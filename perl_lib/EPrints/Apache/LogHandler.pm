@@ -83,79 +83,59 @@ sub handler
 		return DECLINED;
 	}
 
-	my $session = new EPrints::Session or return DECLINED;
-	my $repository = $session->get_repository;
+	my $pnotes = $r->pnotes;
+
+	my $event_type = $pnotes->{ "loghandler" };
+	return DECLINED unless defined $event_type;
 
 	my $c = $r->connection;
 	my $ip = $c->remote_ip;
-	my $uri = URI->new($r->uri);
 
 	my $access = {};
 	$access->{datestamp} = EPrints::Time::get_iso_timestamp( $r->request_time );
 	$access->{requester_id} = $ip;
-	$access->{referent_id} = $r->uri;
-	$access->{referent_docid} = undef;
 	$access->{referring_entity_id} = $r->headers_in->{ "Referer" };
-	$access->{service_type_id} = '';
+	$access->{service_type_id} = $event_type;
 	$access->{requester_user_agent} = $r->headers_in->{ "User-Agent" };
 
-	# External full-text request
-	if( $r->filename and $r->filename =~ /redirect$/ )
+	if( $event_type eq "?abstract=yes" )
 	{
+		$access->{referent_id} = $pnotes->{ "eprintid" };
+	}
+	elsif( $event_type eq "?fulltext=yes" )
+	{
+		my $dataobj = $pnotes->{ "dataobj" };
+		my $filename = $pnotes->{ "filename" };
+		# only count hits to the main file
+		if( $filename ne $dataobj->get_main )
+		{
+			return DECLINED;
+		}
+		if( $dataobj->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
+		{
+			return DECLINED;
+		}
+		$access->{referent_id} = $dataobj->get_value( "eprintid" );
+		$access->{referent_docid} = $dataobj->get_id;
 	}
 	else
 	{
-		my $eprintid = uri_to_eprintid( $session, $uri );
-		unless( defined $eprintid )
-		{
-			# Not interested in this URL.
-			return DECLINED;
-		}
-
-		# Request for an abstract page or full-text
-		$access->{referent_id} = $eprintid;
-
-		my $docid = uri_to_docid( $session, $eprintid, $uri );
-
-		if( defined $docid )
-		{
-			$access->{referent_docid} = $docid;
-			$access->{service_type_id} = "?fulltext=yes";
-		}
-		else
-		{
-			$access->{service_type_id} = "?abstract=yes";
-		}
+		return DECLINED;
 	}
 
+	# Sanity check referring URL (don't store non-HTTP referrals)
 	if( !$access->{referring_entity_id} or $access->{referring_entity_id} !~ /^https?:/ )
 	{
 		$access->{referring_entity_id} = '';
 	}
 
+	my $session = new EPrints::Session(2);
+	$session->get_repository->get_dataset( "access" )->create_object(
+			$session,
+			$access
+		);
+	$session->terminate;
 
-	# Check for an internal referrer
-	my $ref_uri = URI->new($access->{referring_entity_id});
-	my $eprintid = uri_to_eprintid( $session, $ref_uri );
-
-	if( defined $eprintid ) 
-	{
-		$access->{referring_entity_id} = $eprintid;
-
-		my $docid = uri_to_docid( $session, $eprintid, $ref_uri );
-
-		# If referring entity and referent are the same, and both are fulltext,
-		# then this is likely to be inline content (e.g. an image or
-		# javascript). For now, we'll ignore these requests.
-		if( $access->{referring_entity_id} eq $access->{referent_id} and
-			defined( $docid ) )
-		{
-			return OK;
-		}
-	}
-
-	$session->get_repository->get_dataset( "access" )->create_object( $session, $access );
-	
 	return OK;
 }
 

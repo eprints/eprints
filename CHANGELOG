@@ -7967,3 +7967,8 @@ EPRINTS-3.1-beta-2
  * Added css for table cells which are dependant on javascript being 
     available. (using display: block caused render errors)
 
+2008-12-04 tdb
+ * Improved efficiency of access logging (pass object to handler)
+ * Don't log accesses to volatile document versions
+ * No longer attempts to identify internal referal links
+

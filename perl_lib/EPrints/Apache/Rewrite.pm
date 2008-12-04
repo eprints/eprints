@@ -86,8 +86,7 @@ sub handler
 	if( defined $econf ) { @exceptions = @{$econf}; }
 	push @exceptions,
 		$cgipath,
-		"$urlpath/sword-app/",
-		"$urlpath/thumbnails/";
+		"$urlpath/sword-app/";
 
 	foreach my $exppath ( @exceptions )
 	{
@@ -143,9 +142,6 @@ sub handler
 		my $splitpath = "$1/$2/$3/$4";
 		$uri = "/archive/$splitpath$tail";
 
-		my $thumbnails = 0;
-		$thumbnails = 1 if( $tail =~ s/^\/thumbnails// );
-
 		if( $tail =~ s/^\/(\d+)// )
 		{
 			# it's a document....			
@@ -165,11 +161,17 @@ sub handler
 			$r->pnotes( pos => $pos );
 			$r->pnotes( filename => $filename );
 
+			$r->pnotes( loghandler => "?fulltext=yes" );
+
 		 	$r->set_handlers(PerlResponseHandler => \&EPrints::Apache::Storage::handler );
 
 			return DECLINED;
 		}
 	
+		$r->pnotes( eprintid => $eprintid );
+
+		$r->pnotes( loghandler => "?abstract=yes" );
+
 		# OK, It's the EPrints abstract page (or something whacky like /23/fish)
 		EPrints::Update::Abstract::update( $repository, $lang, $eprintid, $uri );
 	}

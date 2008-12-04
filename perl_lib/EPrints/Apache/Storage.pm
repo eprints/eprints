@@ -15,56 +15,32 @@ sub handler
 
 	my $session = EPrints::Session->new();
 
-	my $pnotes = $r->pnotes;
-	my %pnotes = %$pnotes;
-
-	for(qw( datasetid filename ))
-	{
-		if( !defined($pnotes{$_}) )
-		{
-			EPrints::abort( "Fatal error in storage retrieval: required note '$_' is not defined in mod_perl pnotes" );
-		}
-	}
-
-	my $datasetid = $pnotes{ "datasetid" };
-	my $filename = $pnotes{ "filename" };
-
+	my $datasetid = $r->pnotes( "datasetid" );
 	my $dataset = $session->get_repository->get_dataset( $datasetid );
-	if( !$dataset )
-	{
-		EPrints::abort( "Fatal error in storage retrieval: dataset '$datasetid' defined in mod_perl pnotes is not a valid dataset" );
-	}
+	return 404 unless defined $dataset;
+
+	my $filename = $r->pnotes( "filename" );
+	return 404 unless defined $filename;
 
 	my $dataobj;
-
-	# Retrieve document via eprintid + pos
-	if( $datasetid eq "document" && defined($pnotes{ "eprintid" }) && defined($pnotes{ "pos" }) )
+	if( $dataset->confid eq "document" && !defined $r->pnotes( "docid" ) )
 	{
 		$dataobj = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
-			$session,
-			$pnotes{ "eprintid" },
-			$pnotes{ "pos" }
-		);
+				$session,
+				$r->pnotes( "eprintid" ),
+				$r->pnotes( "pos" )
+			);
 	}
 	else
 	{
-		my( $keyfield ) = $dataset->get_fields();
-		my $keyname = $keyfield->get_name;
-
-		my $id = $pnotes{ $keyname };
-
-		if( !defined( $id ) )
-		{
-			EPrints::abort( "Fatal error in storage retrieval: expected to find a mod_perl pnote for '$keyname' (keyfield for '$datasetid'), but didn't" );
-		}
-
+		my $id = $r->pnotes( $dataset->get_key_field->get_name );
+		return 404 unless defined $id;
 		$dataobj = $dataset->get_object( $session, $id );
 	}
 
-	if( !defined( $dataobj ) )
-	{
-		return 404;
-	}
+	return 404 unless defined $dataobj;
+
+	$r->pnotes( dataobj => $dataobj );
 
 	$rc = check_auth( $session, $r, $dataobj );
 
@@ -76,10 +52,7 @@ sub handler
 	# Now get the file object itself
 	my $fileobj = $dataobj->get_stored_file( $filename );
 
-	if( !defined( $fileobj ) )
-	{
-		return 404;
-	}
+	return 404 unless defined $fileobj;
 
 	# Use octet-stream for unknown mime-types
 	my $content_type = $fileobj->is_set( "mime_type" )
