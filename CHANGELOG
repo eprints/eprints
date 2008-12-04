@@ -7989,3 +7989,5 @@ EPRINTS-3.1-beta-2
  * Fixed some non-i18l phrases in Upload.
  * Less confusing error message for missing citation files. Fixes #3369.
  
+2008-12-04 cjg
+ * Fixed oddity that toolbox.pm defined toolkit.pm. Closes #3464

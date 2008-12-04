@@ -185,7 +185,7 @@ if( defined $docid )
 
 $opts{session} = $session;
 
-my $fn_name = "EPrints::Toolkit::tool_".$cmd;
+my $fn_name = "EPrints::Toolbox::tool_".$cmd;
 
 my( $rc, $output ) = eval "$fn_name( \%opts )";
 if( $@ )

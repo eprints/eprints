@@ -27,7 +27,7 @@ __GENERICPOD__
 
 =cut
 
-package EPrints::Toolkit;
+package EPrints::Toolbox;
 
 use strict;
 
