@@ -1322,7 +1322,7 @@ sub parse_xml
 	eval {
 		$doc = EPrints::XML::parse_xml( 
 			$file, 
-			$self->get_conf( "lib_path" ),
+			$self->get_conf( "lib_path" ) . "/",
 			$no_expand );
 	};
 	if( !defined $doc )
