@@ -163,7 +163,6 @@ sub handler
 			$r->pnotes( datasetid => "document" );
 			$r->pnotes( eprintid => $eprintid );
 			$r->pnotes( pos => $pos );
-			$r->pnotes( bucket => ($thumbnails ? "thumbnail" : "data" ) );
 			$r->pnotes( filename => $filename );
 
 		 	$r->set_handlers(PerlResponseHandler => \&EPrints::Apache::Storage::handler );
