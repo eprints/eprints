@@ -51,6 +51,9 @@ sub handler
 {
 	my( $r ) = @_;
 
+	# don't attempt to rewrite the URI of an internal request
+	return DECLINED unless $r->is_initial_req();
+
 	my $repository_id = $r->dir_config( "EPrints_ArchiveID" );
 	if( !defined $repository_id )
 	{
@@ -77,7 +80,7 @@ sub handler
 
 	my $lang = EPrints::Session::get_session_language( $repository, $r );
 	my $args = $r->args;
-	if( $args ne "" ) { $args = '?'.$args; }
+	if( defined $args && $args ne "" ) { $args = '?'.$args; }
 
 	# Skip rewriting the /cgi/ path and any other specified in
 	# the config file.
