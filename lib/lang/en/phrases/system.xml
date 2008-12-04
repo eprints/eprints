@@ -1524,9 +1524,7 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/Staff/HistorySearch:description">Search for actions that have occurred on items in this repository.</epp:phrase>
 
 
-<!-- export -->
-
-    <epp:phrase id="sys:ep_form_required"><img src="{$config{rel_path}}/style/images/required.png" border="0" class="ep_required" alt="Required"/>&nbsp;<epc:pin name="label"/></epp:phrase>
+    <epp:phrase id="sys:ep_form_required"><img src="{$config{rel_path}}/style/images/required.png" border="0" class="ep_required" alt="Required" style="display: inline"/>&nbsp;<epc:pin name="label"/></epp:phrase>
 
 
 
@@ -1542,6 +1540,11 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/InputForm/Component/Upload:from_targz">.tar.gz File</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:from_url">From URL</epp:phrase>
 
+	<epp:phrase id="Plugin/InputForm/Component/Upload:new_document">New document: </epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component/Upload:new_from_zip">New document (from ZIP file): </epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component/Upload:new_from_targz">New document (from .tar.gz file): </epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component/Upload:new_from_url">Capture from URL: </epp:phrase>
+
 	<!-- errors -->
 	<epp:phrase id="Plugin/InputForm/Component/Upload:create_failed">Document creation failed.</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:upload_failed">File upload failed.</epp:phrase>
@@ -1555,7 +1558,6 @@ Titles and Help for the System Fields
 	<!-- options -->
 	<epp:phrase id="Plugin/InputForm/Component/Upload:show_options">Show options</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:hide_options">Hide options</epp:phrase>
-	<epp:phrase id="Plugin/InputForm/Component/Upload:new_document">New document: </epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:add_format">Upload</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:add_file">Upload additional file</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:delete_file">Delete</epp:phrase>
@@ -1567,6 +1569,8 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/InputForm/Component/Upload:add_files"><epc:pin name="link">Need to add additional files to this document?</epc:pin></epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:really_add">Wait! Are you really sure you want to add another file to this document? Only do this if the file is directly required by the document. For example an image required by an HTML document. If you are sure you want to then click OK. Most of the time you want to click Cancel then use the New Document field above.</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:really_next">Wait! You have selected a file to upload but not actually uploaded it. Do you wish to continue without uploading the file?</epp:phrase>
+
+	<epp:phrase id="Plugin/InputForm/Component/Upload:document_problem">In <epc:pin name="document" /> document: <epc:pin name="problem" /></epp:phrase>
 
 	<!-- Subject component -->
 	<epp:phrase id="Plugin/InputForm/Component/Field/Subject:selections">Current selections:</epp:phrase>

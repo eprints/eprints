@@ -481,6 +481,16 @@ sub _load_citation_file
 {
 	my( $self, $file, $dsid, $fileid ) = @_;
 
+	if( !-e $file )
+	{
+		if( $fileid eq "default" )
+		{
+			EPrints::abort( "Default citation file for '$dsid' does not exist." );
+		}
+		$self->log( "Citation file '$fileid' for '$dsid' does not exist." );
+		return;
+	}
+
 	my $doc = $self->parse_xml( $file , 1 );
 	if( !defined $doc )
 	{

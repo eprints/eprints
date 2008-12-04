@@ -6,6 +6,9 @@ use EPrints::Plugin::InputForm::Component;
 
 use strict;
 
+# this feels like these could become plugins at some later date.
+@EPrints::Plugin::InputForm::Component::Upload::UPLOAD_METHODS = qw/ file zip targz fromurl /;
+
 sub new
 {
 	my( $class, %opts ) = @_;
@@ -46,7 +49,7 @@ sub update_from_form
 	{
 		my $internal = $self->get_internal_button;
 
-		if( $internal eq "add_format" )
+		if( $internal eq "add_format" || $internal eq "add_format_file" )
 		{
 			my $doc_data = { eprintid => $self->{dataobj}->get_id };
 
@@ -182,6 +185,45 @@ sub update_from_form
 	}
 
 	return;
+}
+
+sub get_state_params
+{
+	my( $self ) = @_;
+
+	my $params = "";
+	if( $self->{session}->internal_button_pressed )
+	{
+		my $internal = $self->get_internal_button;
+		my $tounroll = {};
+		# added a new document, that should always be unrolled.
+		if( $internal =~ m/^add_format/ )
+		{
+			my $eprint = $self->{workflow}->{item};
+			my @eprint_docs = $eprint->get_all_documents;
+			my $max = undef;
+			foreach my $doc ( $eprint->get_all_documents )
+			{
+				my $docid = $doc->get_id;
+				if( !defined $max || $docid > $max )
+				{
+					$max = $docid;
+				}
+			}
+			$tounroll->{$max} = 1 if defined $max;
+		}
+		# modifying existing document
+		if( $internal =~ m/^doc(\d+)_(.*)$/ )
+		{
+			$tounroll->{$1} = 1;
+		}
+		if( scalar keys %{$tounroll} )
+		{
+			$params .= "&".$self->{prefix}."_view=".join( ",", keys %{$tounroll} );
+		}
+	}
+
+	return $params;
 }
 
 sub doc_update
@@ -327,21 +369,22 @@ sub render_content
 		return $f;
 	}
 
-	my $view = $session->param( $self->{prefix}."_view" );
+	my $tounroll = {};
+	my $tounrollparam = $self->{session}->param( $self->{prefix}."_view" );
+	if( EPrints::Utils::is_set( $tounrollparam ) )
+	{
+		foreach my $docid ( split( ",", $tounrollparam ) )
+		{
+			$tounroll->{$docid} = 1;
+		}
+	}
 
 	# this overrides the prefix-dependent view. It's used when
 	# we're coming in from outside the form and is, to be honest,
 	# a dirty little hack.
 	if( defined $session->param( "docid" ) )
 	{
-		$view = $session->param( "docid" );
-	}
-
-	my $affected_doc_id;
-	my $internal = $self->get_internal_button;
-	if( $internal =~ m/^doc(\d+)_(.*)$/ )
-	{
-		$affected_doc_id = $1;
+		$tounroll->{$session->param( "docid" )} = 1;
 	}
 
 	my $panel = $self->{session}->make_element( "div", id=>$self->{prefix}."_panels" );
@@ -356,8 +399,7 @@ sub render_content
 		my $doc_prefix = $self->{prefix}."_doc".$view_id;
 		my $hide = 1;
 		if( scalar @eprint_docs == 1 ) { $hide = 0; } 
-		if( $view_id eq $view ) { $hide = 0; }	
-		if( defined $affected_doc_id && $view_id eq $affected_doc_id ) { $hide = 0; }
+		if( $tounroll->{$view_id} ) { $hide = 0; }
 		my $doc_div = $self->{session}->make_element( "div", class=>"ep_upload_doc", id=>$doc_prefix."_block" );
 		$panel->appendChild( $doc_div );
 		my $doc_title_bar = $session->make_element( "div", class=>"ep_upload_doc_title_bar" );
@@ -468,9 +510,17 @@ sub _render_doc
 		my $first = 1;
 		foreach my $field ( @fields )
 		{
+			my $label = $field->render_name($session);
+			if( $field->{required} ) # moj: Handle for_archive
+			{
+				$label = $self->{session}->html_phrase( 
+					"sys:ep_form_required",
+					label=>$label );
+			}
+ 
 			$table->appendChild( $session->render_row_with_help(
 				class=>($first?"ep_first":""),
-				label=>$field->render_name($session),
+				label=>$label,
 				field=>$field->render_input_field(
                                 	$session,
                                 	$doc->get_value( $field->get_name ),
@@ -530,7 +580,13 @@ sub _render_add_document
 
 	my $add = $session->make_doc_fragment;
 
-	my $tabs = [qw/ file zip targz fromurl /];	
+	if( scalar @{$self->{config}->{methods}} == 0 )
+	{
+		# no upload methods
+		# so don't render this.
+		return $add;
+	}
+
 	my $links = { file=>"", zip=>"", targz=>"", fromurl=>"" };
 	my $labels = {
 		file=>$self->html_phrase( "from_file" ),
@@ -547,8 +603,8 @@ sub _render_add_document
 	$tab_block->appendChild( 
 		$self->{session}->render_tabs( 
 			id_prefix => $self->{prefix}."_upload",
-			current => "file",
-			tabs => $tabs,
+			current => $self->{config}->{methods}->[0],
+			tabs => $self->{config}->{methods},
 			labels => $labels,
 			links => $links,
 		));
@@ -560,125 +616,154 @@ sub _render_add_document
 			class => "ep_tab_panel" );
 	$newdoc->appendChild( $panel );
 
-##############
-{
-	my $inner_panel = $self->{session}->make_element( 
-			"div", 
-			id => $self->{prefix}."_upload_panel_file" );
-	$panel->appendChild( $inner_panel );
+	my $first = 1;
+	foreach my $method ( @{$self->{config}->{methods}} )
+	{
+		my $inner_panel;
+		if( $first )
+		{
+			$inner_panel = $self->{session}->make_element( 
+				"div", 
+				id => $self->{prefix}."_upload_panel_$method" );
+		}
+		else
+		{
+			# padding for non-javascript enabled browsers
+			$panel->appendChild( 
+				$session->make_element( "div", style=>"height: 1em", class=>"ep_no_js" ) );
+			$inner_panel = $self->{session}->make_element( 
+				"div", 
+				class => "ep_no_js",
+				id => $self->{prefix}."_upload_panel_$method" );	
+		}
+		$panel->appendChild( $inner_panel );
 
-	$inner_panel->appendChild( $self->html_phrase( "new_document" ) );
+		if( $method eq "file" ) { $inner_panel->appendChild( $self->_render_add_document_file ); }
+		if( $method eq "zip" ) { $inner_panel->appendChild( $self->_render_add_document_zip ); }
+		if( $method eq "targz" ) { $inner_panel->appendChild( $self->_render_add_document_targz ); }
+		if( $method eq "fromurl" ) { $inner_panel->appendChild( $self->_render_add_document_fromurl ); }
+		$first = 0;
+	}
+
+	return $add;
+}
+
+
+sub _render_add_document_file
+{
+	my( $self ) = @_;
+
+	my $f = $self->{session}->make_doc_fragment;
+
+	$f->appendChild( $self->html_phrase( "new_document" ) );
 
 	my $ffname = $self->{prefix}."_first_file";	
-	my $file_button = $session->make_element( "input",
+	my $file_button = $self->{session}->make_element( "input",
 		name => $ffname,
 		id => $ffname,
 		type => "file",
 		);
 	my $upload_progress_url = $session->get_url( path => "cgi" ) . "/users/ajax/upload_progress";
 	my $onclick = "return startEmbeddedProgressBar(this.form,{'url':".EPrints::Utils::js_string( $upload_progress_url )."});";
-	my $add_format_button = $session->render_button(
+	my $add_format_button = $self->{session}->render_button(
 		value => $self->phrase( "add_format" ), 
 		class => "ep_form_internal_button",
 		name => "_internal_".$self->{prefix}."_add_format",
 		onclick => $onclick );
-	$inner_panel->appendChild( $file_button );
-	$inner_panel->appendChild( $session->make_text( " " ) );
-	$inner_panel->appendChild( $add_format_button );
+	$f->appendChild( $file_button );
+	$f->appendChild( $session->make_text( " " ) );
+	$f->appendChild( $self->{session}->make_text( " " ) );
+	$f->appendChild( $add_format_button );
 	my $progress_bar = $session->make_element( "div", id => "progress" );
-	$inner_panel->appendChild( $progress_bar );
+	$f->appendChild( $progress_bar );
 
-	my $script = $session->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->phrase("really_next"))." ); } return true; } );" );
-	$inner_panel->appendChild( $script);
+	my $script = $self->{session}->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->phrase("really_next"))." ); } return true; } );" );
+	$f->appendChild( $script);
+	
+	return $f;
 }
 
-$panel->appendChild( $session->make_element( "div", style=>"height: 1em", class=>"ep_no_js" ) );
 
+sub _render_add_document_zip
 {
-	my $inner_panel = $self->{session}->make_element( 
-			"div", 
-			class => "ep_no_js",
-			id => $self->{prefix}."_upload_panel_zip" );
-	$panel->appendChild( $inner_panel );
+	my( $self ) = @_;
 
-	$inner_panel->appendChild( $session->make_text( "New document (from ZIP file): " ) );
+	my $f = $self->{session}->make_doc_fragment;
+
+	$f->appendChild( $self->html_phrase( "new_from_zip" ) );
 
 	my $ffname = $self->{prefix}."_first_file_zip";	
-	my $file_button = $session->make_element( "input",
+	my $file_button = $self->{session}->make_element( "input",
 		name => $ffname,
 		id => $ffname,
 		type => "file",
 		);
-	my $add_format_button = $session->render_button(
+	my $add_format_button = $self->{session}->render_button(
 		value => $self->phrase( "add_format" ), 
 		class => "ep_form_internal_button",
 		name => "_internal_".$self->{prefix}."_add_format_zip" );
-	$inner_panel->appendChild( $file_button );
-	$inner_panel->appendChild( $session->make_text( " " ) );
-	$inner_panel->appendChild( $add_format_button );
+	$f->appendChild( $file_button );
+	$f->appendChild( $self->{session}->make_text( " " ) );
+	$f->appendChild( $add_format_button );
 
-	my $script = $session->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->phrase("really_next"))." ); } return true; } );" );
-	$inner_panel->appendChild( $script);
+	my $script = $self->{session}->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->phrase("really_next"))." ); } return true; } );" );
+	$f->appendChild( $script);
+
+	return $f;
 }
 
-$panel->appendChild( $session->make_element( "div", style=>"height: 1em", class=>"ep_no_js" ) );
-
+sub _render_add_document_targz
 {
-	my $inner_panel = $self->{session}->make_element( 
-			"div", 
-			class => "ep_no_js",
-			id => $self->{prefix}."_upload_panel_targz" );
-	$panel->appendChild( $inner_panel );
+	my( $self ) = @_;
 
-	$inner_panel->appendChild( $session->make_text( "New document (from .tar.gz file): " ));
+	my $f = $self->{session}->make_doc_fragment;
+
+	$f->appendChild( $self->html_phrase( "new_from_targz" ) );
 
 	my $ffname = $self->{prefix}."_first_file_targz";	
-	my $file_button = $session->make_element( "input",
+	my $file_button = $self->{session}->make_element( "input",
 		name => $ffname,
 		id => $ffname,
 		type => "file",
 		);
-	my $add_format_button = $session->render_button(
+	my $add_format_button = $self->{session}->render_button(
 		value => $self->phrase( "add_format" ), 
 		class => "ep_form_internal_button",
 		name => "_internal_".$self->{prefix}."_add_format_targz" );
-	$inner_panel->appendChild( $file_button );
-	$inner_panel->appendChild( $session->make_text( " " ) );
-	$inner_panel->appendChild( $add_format_button );
+	$f->appendChild( $file_button );
+	$f->appendChild( $self->{session}->make_text( " " ) );
+	$f->appendChild( $add_format_button );
 
-	my $script = $session->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->phrase("really_next"))." ); } return true; } );" );
-	$inner_panel->appendChild( $script);
+	my $script = $self->{session}->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->phrase("really_next"))." ); } return true; } );" );
+	$f->appendChild( $script);
+
+	return $f;
 }
 
-$panel->appendChild( $session->make_element( "div", style=>"height: 1em", class=>"ep_no_js" ) );
 
+sub _render_add_document_fromurl
 {
-	my $inner_panel = $self->{session}->make_element( 
-			"div", 
-			class => "ep_no_js",
-			id => $self->{prefix}."_upload_panel_fromurl" );
-	$panel->appendChild( $inner_panel );
+	my( $self ) = @_;
 
-	$inner_panel->appendChild( $session->make_text( "Capture from URL: " ));
+	my $f = $self->{session}->make_doc_fragment;
+
+	$f->appendChild( $self->html_phrase( "new_from_url" ) );
 
 	my $ffname = $self->{prefix}."_first_file_fromurl";	
-	my $file_button = $session->make_element( "input",
+	my $file_button = $self->{session}->make_element( "input",
 		name => $ffname,
 		size => "30",
 		id => $ffname,
 		);
-	my $add_format_button = $session->render_button(
+	my $add_format_button = $self->{session}->render_button(
 		value => $self->phrase( "add_format" ), 
 		class => "ep_form_internal_button",
 		name => "_internal_".$self->{prefix}."_add_format_fromurl" );
-	$inner_panel->appendChild( $file_button );
-	$inner_panel->appendChild( $session->make_text( " " ) );
-	$inner_panel->appendChild( $add_format_button );
-}
-##############
-
+	$f->appendChild( $file_button );
+	$f->appendChild( $self->{session}->make_text( " " ) );
+	$f->appendChild( $add_format_button );
 	
-	return $add; 
+	return $f; 
 }
 
 sub _render_add_file
@@ -947,13 +1032,35 @@ sub validate
 	foreach $doc (@docs)
 	{
 		my $probs = $doc->validate( $for_archive );
-		foreach (@$probs)
+
+		foreach my $field ( @{$self->{config}->{doc_fields}} )
 		{
-			my $prob = $eprint->{session}->make_doc_fragment;
-			$prob->appendChild( $doc->render_description );
-			$prob->appendChild( 
-				$eprint->{session}->make_text( ": " ) );
-			$prob->appendChild( $_ );
+			my $for_archive = 0;
+			
+			if( $field->{required} eq "for_archive" )
+			{
+				$for_archive = 1;
+			}
+
+			# cjg bug - not handling for_archive here.
+			if( $field->{required} && !$doc->is_set( $field->{name} ) )
+			{
+				my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:documents" );
+				$fieldname->appendChild( $field->render_name( $self->{session} ) );
+				my $problem = $self->{session}->html_phrase(
+					"lib/eprint:not_done_field" ,
+					fieldname=>$fieldname );
+				push @{$probs}, $problem;
+			}
+			
+			push @{$probs}, $doc->validate_field( $field->{name} );
+		}
+
+		foreach my $doc_problem (@$probs)
+		{
+			my $prob = $self->html_phrase( "document_problem",
+					document => $doc->render_description,
+					problem =>$doc_problem );
 			push @problems, $prob;
 		}
 	}
@@ -981,6 +1088,37 @@ sub parse_config
 		my $field = $self->xml_to_metafield( $field_tag, $doc_ds );
 		push @{$self->{config}->{doc_fields}}, $field;
 	}
+
+	my @uploadmethods = $config_dom->getElementsByTagName( "upload-methods" );
+	if( defined $uploadmethods[0] )
+	{
+		my @methods = $uploadmethods[0]->getElementsByTagName( "method" );
+	
+		$self->{config}->{methods} = [];
+		METHOD: foreach my $method_tag ( @methods )
+		{	
+			my $method = EPrints::XML::to_string( EPrints::XML::contents_of( $method_tag ) );
+			my $ok = 0;
+			foreach my $ok_meth ( @EPrints::Plugin::InputForm::Component::Upload::UPLOAD_METHODS )
+			{
+				$ok = 1 if( $ok_meth eq $method );
+			}
+			if( !$ok )
+			{
+				$self->{session}->get_repository->log( "Unknown upload method in Component::Upload: '$method'" );
+				next METHOD;
+			}
+			push @{$self->{config}->{methods}}, $method;
+		}
+	}
+	else
+	{
+		foreach my $ok_meth ( @EPrints::Plugin::InputForm::Component::Upload::UPLOAD_METHODS )
+		{
+			push @{$self->{config}->{methods}}, $ok_meth;
+		}
+	}
+	
 }
 
 

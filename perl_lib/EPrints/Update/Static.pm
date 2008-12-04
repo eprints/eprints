@@ -344,8 +344,8 @@ sub copy_xhtml
 		return;
 	}
 
-	my( $elements ) = EPrints::XML::find_elements( $doc, "html" );
-	if( !defined $elements->{html} )
+	my $html = $doc->documentElement;
+	if( !defined $html )
 	{
 		$session->get_repository->log( "Error: no html element in ".$from );
 		EPrints::XML::dispose( $doc );
@@ -355,7 +355,7 @@ sub copy_xhtml
 	#$session->set_page( $session->clone_for_me( $elements->{html}, 1 ) );
 	$session->set_page( 
 		EPrints::XML::EPC::process( 
-			$elements->{html}, 
+			$html, 
 			in => $from,
 			session => $session ) ); 
 

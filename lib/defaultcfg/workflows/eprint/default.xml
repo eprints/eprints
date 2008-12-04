@@ -16,6 +16,14 @@
   <stage name="files">
     <component type="XHTML"><epc:phrase ref="Plugin/InputForm/Component/Upload:help" /></component>
     <component type="Upload">
+<!--
+      <upload-methods>
+        <method>file</method>
+        <method>zip</method>
+        <method>targz</method>
+        <method>fromurl</method>
+      </upload-methods>
+-->
       <field ref="content" />
       <field ref="format" />
       <field ref="formatdesc" />

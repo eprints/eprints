@@ -193,7 +193,7 @@ sub gmt_off
 
 Return a UTF-8 string describing the month, in the current lanugage.
 
-$monthid is a 3 character code: jan, feb, mar... etc.
+$monthid is an integer from 1 to 12.
 
 =cut
 ######################################################################

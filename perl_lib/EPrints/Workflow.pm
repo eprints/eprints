@@ -438,7 +438,9 @@ sub link_problem_xhtml
 		{
 			my $stage = $self->{field_stages}->{$1};
 			return if( !defined $stage );
-			my $url = "?screen=$screenid&eprintid=".$self->{item}->get_id."&stage=$stage#$1";
+			my $keyfield = $self->{dataset}->get_key_field();
+			my $kf_sql = $keyfield->get_sql_name;
+			my $url = "?screen=$screenid&$kf_sql=".$self->{item}->get_id."&stage=$stage#$1";
 			if( defined $new_stage && $new_stage eq $stage )
 			{
 				$url = "#$1";

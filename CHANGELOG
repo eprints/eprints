@@ -7972,3 +7972,19 @@ EPRINTS-3.1-beta-2
  * Don't log accesses to volatile document versions
  * No longer attempts to identify internal referal links
 
+2008-12-04 cjg
+ * Fixed bug in workflow which meant it assumed the primary key was "eprintid"
+    even on the user dataset. Resolving #3403.
+ * Trivial documentation fix, closing #3454.
+ * Fixed bug in creating a static .html from a .xhtml file. Fixes #3390. 
+ * Now when you add a document or modify one, it's always unrolled when the
+    form renders just after. Closes #2938.
+ * Fixed jitters on help when it unfearls using javascript.
+ * Document fields can now be marked as required, and will have the star
+    appear and report problems if not set. Fixes #3195
+ * Can now use <upload-methods> option in upload component config to set which
+    methods are available to upload files (or set to none to stop new 
+    documents being created). Fixing #3450
+ * Fixed some non-i18l phrases in Upload.
+ * Less confusing error message for missing citation files. Fixes #3369.
+ 
