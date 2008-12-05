@@ -37,8 +37,10 @@ sub update
 {
 	my( $repository, $lang, $eprintid, $uri ) = @_;
 
-	my $localpath = $uri;
-	$localpath.="index.html" if( $uri =~ m#/$# );
+	my $localpath = sprintf("%08d", $eprintid);
+	$localpath =~ s/(..)/\/$1/g;
+	$localpath = "/archive" . $localpath . "/index.html";
+
 	my $targetfile = $repository->get_conf( "htdocs_path" )."/".$lang.$localpath;
 
 	my $need_to_update = 0;

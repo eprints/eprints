@@ -7991,3 +7991,8 @@ EPRINTS-3.1-beta-2
  
 2008-12-04 cjg
  * Fixed oddity that toolbox.pm defined toolkit.pm. Closes #3464
+
+2008-12-05 tdb
+ * Always test "index.html" when deciding whether to update abstract page,
+    fixing #3479
+
