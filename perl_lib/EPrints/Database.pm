@@ -2893,9 +2893,15 @@ sub get_ids_by_field_values
 						" = ".
 						$self->quote_value( $sql_vals[$i] );
 				}
-				push @ors, "(".join( ") AND (", @ands ).")";
+				if( scalar @ands )
+				{
+					push @ors, "(".join( ")  AND  (", @ands ).")";
+				}
 			}
-			push @where, "(".join( ") OR (", @ors ).")";
+			if( scalar @ors )
+			{
+				push @where, "(".join( ")  OR  (", @ors ).")";
+			}
 		}
 	}
 

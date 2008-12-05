@@ -7996,3 +7996,7 @@ EPRINTS-3.1-beta-2
  * Always test "index.html" when deciding whether to update abstract page,
     fixing #3479
 
+2008-12-05 cjg
+ * Counts on view-by-name were broken, now not. Fixed #3477.
+ * Links to empty pages are now rendered as text, not links. Fixes #3476.
+ * Browse by name no longer spits warnings if given part isn't there. #3478

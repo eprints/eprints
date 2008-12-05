@@ -566,24 +566,22 @@ sub render_view_menu
 
 		my $li = $session->make_element( "li" );
 
-		my $link = EPrints::Utils::escape_filename( $fileid );
-		if( $has_submenu )
+		if( defined $sizes && $sizes->{$fileid} == 0 )
 		{
-			$link .= '/';
+			$li->appendChild( $fields->[0]->get_value_label( $session, $value ) );
 		}
 		else
 		{
-			$link .= '.html';
+			my $link = EPrints::Utils::escape_filename( $fileid );
+			if( $has_submenu ) { $link .= '/'; } else { $link .= '.html'; }
+			my $a = $session->render_link( $link );
+			$a->appendChild( $fields->[0]->get_value_label( $session, $value ) );
+			$li->appendChild( $a );
 		}
-		my $a = $session->render_link( $link );
-		$a->appendChild(
-			$fields->[0]->get_value_label(
-				$session,
-				$value ) );
-		$li->appendChild( $a );
-		if( defined $sizes && defined $sizes->{$value} )
+
+		if( defined $sizes && defined $sizes->{$fileid} )
 		{
-			$li->appendChild( $session->make_text( " (".$sizes->{$value}.")" ) );
+			$li->appendChild( $session->make_text( " (".$sizes->{$fileid}.")" ) );
 		}
 		$add_ul->appendChild( $li );
 	}
@@ -1305,13 +1303,19 @@ sub group_items
 			{
 				if( $field->get_type eq "name" )
 				{
-					if( $opts->{first_initial} )
+					$code = "";
+					$code.= $value->{family} if defined $value->{family};
+					if( defined $value->{given} )
 					{
-						$code = $value->{family}.", ".(substr( $value->{given},0,1));
-					}
-					else
-					{
-						$code = $value->{family}.", ".$value->{given};
+						$code .= ", ";
+						if( $opts->{first_initial} )
+						{
+							$code .= substr( $value->{given},0,1);
+						}
+						else
+						{
+							$code .= $value->{given};
+						}
 					}
 				}
 				if( $opts->{"truncate"} )
