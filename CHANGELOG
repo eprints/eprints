@@ -8000,3 +8000,7 @@ EPRINTS-3.1-beta-2
  * Counts on view-by-name were broken, now not. Fixed #3477.
  * Links to empty pages are now rendered as text, not links. Fixes #3476.
  * Browse by name no longer spits warnings if given part isn't there. #3478
+
+2008-12-08 tdb
+ * Use get_plugin_class to determine the Plugin class, fixes #3428
+

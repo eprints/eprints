@@ -64,9 +64,10 @@ sub _read_components
 			}
 			$params{prefix} = $id;
 			
+			my $pluginid = "InputForm::Component::$type";
 
 			# Grab any values inside
-			my $class = $EPrints::Plugin::REGISTRY->{"InputForm::Component::$type"};
+			my $class = $self->get_repository->get_plugin_class( $pluginid );
 			if( !defined $class )
 			{
 				print STDERR "Using placeholder for $type\n";
