@@ -67,7 +67,7 @@ sub _read_components
 			my $pluginid = "InputForm::Component::$type";
 
 			# Grab any values inside
-			my $class = $self->get_repository->get_plugin_class( $pluginid );
+			my $class = $self->{session}->get_repository->get_plugin_class( $pluginid );
 			if( !defined $class )
 			{
 				print STDERR "Using placeholder for $type\n";
