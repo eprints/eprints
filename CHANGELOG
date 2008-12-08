@@ -8003,4 +8003,5 @@ EPRINTS-3.1-beta-2
 
 2008-12-08 tdb
  * Use get_plugin_class to determine the Plugin class, fixes #3428
+ * Fixed EPrints invalid user errors when starting indexer from apache
 
