@@ -348,7 +348,6 @@ sub action_process_upload
 	'<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epc="http://eprints.org/ep3/control">' . "\n" . $instring;
 			}
 			eval { $parse = EPrints::XML::parse_xml_string ( $instring )};
-			$instring = $self->replace_urls($instring);
 			#print "=====" . $instring . "======\n\n\n\n";
 			if ($@) {
 				$self->{processor}->add_message( 
@@ -358,6 +357,27 @@ sub action_process_upload
 				#print ($@[0]);
 				#print "$doc: bad";	
 			} else {
+				foreach my $img_tag ( $parse->getElementsByTagName( "img" ) ) {
+					my $src = $img_tag->getAttribute("src");
+					my $url = $self->{session}->get_repository->get_conf("base_url");
+					if (index($src,$url) < 0) {
+						my $filename = substr $src,rindex($src,"/")+1,length($src);
+						$src = $url . "/images/" . $filename;
+						$img_tag->setAttribute("src",$src);
+					}			
+				}
+				$instring = EPrints::XML::to_string($parse);
+				my $check = '<?xml version="1.0" encoding="utf-8"?>';
+				if (substr($instring,0,length($check)) == $check) {
+					$instring = trim(substr($instring,length($check),length($instring)));
+				}
+				$instring = $self->replace_urls($instring);
+				if (!($doc eq "template")) {
+					$instring = substr($instring,5,length($instring));
+					$instring = substr($instring,0,length($instring)-6);
+					$instring = trim($instring);
+				}
+					
 				my $original = "";
 				my $string = $self->{processor}->{configfile};
 				if ($doc eq "page") {
@@ -953,7 +973,6 @@ sub render
 	$page->appendChild( $box );
 	
 	my @images = $self->get_images();
-	
 	my $form = $self->render_form;
 	my $div = $self->{session}->make_element( "div", align => "center" );
 	my $br = $self->{session}->make_element( "br" );
