@@ -486,7 +486,7 @@ sub process_line
 				#print '<epc:pin ref="'.trim($node_value).'" />' . "\n";
 				#print "\n\nBEGIN NODE" . $node_value . "\n\n";
 				$line = '<epc:pin ref="'.$node_value.'"/>';
-				$node_collection->{@node_list[0]} = $node_collection->{$node_list[0]} ."\n". trim($line); 
+				$node_collection->{$node_list[0]} = $node_collection->{$node_list[0]} ."\n". trim($line); 
 				unshift(@node_list,$node_value);
 				$line = "";
 			} elsif (index($line,"PHRASE") > 0) {
@@ -526,7 +526,7 @@ sub process_line
 				$fline = substr $fline,0,index($fline,":");
 				#in out, overwrite, finished phrases;
 				open (FH3,$fline);
-				my $tmpfile3 = File::Temp->new( SUFFIX => ".txt" );
+				$tmpfile3 = File::Temp->new( SUFFIX => ".txt" );
 				binmode($tmpfile3);
 				while (my $phrase_line = <FH3>) {
 					if (index($phrase_line,'id="' . trim($node_value). '"') > 0) {
@@ -577,7 +577,7 @@ sub process_line
 		if (!($phrase_open eq "")) {
 			$phrase_text = $phrase_text . " " . $line;
 		} elsif (!($line eq "<html>") && !($line eq "") && !(index($line,"!DOCTYPE")>0)) {
-			$node_collection->{@node_list[0]} = $node_collection->{$node_list[0]} . "\n" . trim($line); 
+			$node_collection->{$node_list[0]} = $node_collection->{$node_list[0]} . "\n" . trim($line); 
 			#print "\n\n". @node_list[0] ."Appending : $line\n\n";
 		}
 	}
@@ -918,7 +918,7 @@ sub render
 	$tr->appendChild($div);
 	$table->appendChild($tr);
 	$form->appendChild($table);
-	my $div = $self->{session}->make_element( "div", align => "center" );
+	$div = $self->{session}->make_element( "div", align => "center" );
 	$div->appendChild($form);
 
 	my $box = EPrints::Box::render(
@@ -940,7 +940,7 @@ sub render
 			"warning", 
 			$self->{session}->html_phrase( "Plugin/Screen/Admin/Config/Edit:broken" ) );
 	}
-	my $form = $self->render_form;
+	$form = $self->render_form;
 
 	my $textarea = $self->{session}->make_element( "textarea", rows=>25, cols=>80, name=>"data" );
 	open( CONFIGFILE, $fn );
@@ -960,9 +960,9 @@ sub render
 	}
 
 	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
-	my $div = $self->{session}->make_element( "div", align => "center" );
+	$div = $self->{session}->make_element( "div", align => "center" );
 	$div->appendChild($form);
-	my $box = EPrints::Box::render(
+	$box = EPrints::Box::render(
 		id => "inline_edit",
 		session => $self->{session},
 		title => $self->html_phrase("inline_edit_title"), 
@@ -973,9 +973,9 @@ sub render
 	$page->appendChild( $box );
 	
 	my @images = $self->get_images();
-	my $form = $self->render_form;
-	my $div = $self->{session}->make_element( "div", align => "center" );
-	my $br = $self->{session}->make_element( "br" );
+	$form = $self->render_form;
+	$div = $self->{session}->make_element( "div", align => "center" );
+	$br = $self->{session}->make_element( "br" );
 
 	my $done = {};
 	my $img_count = 0;
@@ -1072,7 +1072,7 @@ sub render
 	);
 	$div->appendChild($hidden);
 	$form->appendChild($div);
-	my $box = EPrints::Box::render(
+	$box = EPrints::Box::render(
                 id => "image_edit",
                 session => $self->{session},
                 title => $self->html_phrase("image_editor"),
