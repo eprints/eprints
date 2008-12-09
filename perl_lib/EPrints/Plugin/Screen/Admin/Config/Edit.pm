@@ -376,8 +376,12 @@ sub action_process_upload
 					$instring = substr($instring,5,length($instring));
 					$instring = substr($instring,0,length($instring)-6);
 					$instring = trim($instring);
+				} else {
+					$instring = substr $instring, index($instring,"<head>"), length($instring);
+					$instring = '<?xml version="1.0" standalone="no" ?>' . "\n" . 
+							'<!DOCTYPE html SYSTEM "entities.dtd" >'. "\n\n" . 
+					'<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epc="http://eprints.org/ep3/control">' . "\n" . $instring;
 				}
-					
 				my $original = "";
 				my $string = $self->{processor}->{configfile};
 				if ($doc eq "page") {
