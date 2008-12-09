@@ -653,6 +653,8 @@ sub _render_add_document_file
 {
 	my( $self ) = @_;
 
+	my $session = $self->{session};
+
 	my $f = $self->{session}->make_doc_fragment;
 
 	$f->appendChild( $self->html_phrase( "new_document" ) );
