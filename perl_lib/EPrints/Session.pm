@@ -1267,7 +1267,7 @@ sub render_row_with_help
 		$colspan = 1;
 	}
 
-	my $td = $self->make_element( "td", class=>"ep_multi_input", colspan=>$colspan );
+	my $td = $self->make_element( "td", class=>"ep_multi_input", colspan=>$colspan, id=>$parts{help_prefix}."_outer" );
 	$tr->appendChild( $td );
 
 	my $inline_help = $self->make_element( "div", id=>$parts{help_prefix}, class=>$inline_help_class );

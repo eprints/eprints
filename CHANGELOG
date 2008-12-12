@@ -8008,3 +8008,5 @@ EPRINTS-3.1-beta-2
 2008-12-12 tdb
  * Support plugin "tools" in saved searches, fixing #3462
 
+2008-12-12 cjg
+ * Fixed IE issues in javascript toggles recently introduced.
