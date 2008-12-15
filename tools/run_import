@@ -188,11 +188,21 @@ $list->map(sub {
 	{
 		my $uri = $baseurl . $eprint->get_value( "source" );
 		my $relations = $eprint->get_value( "relation" ) || [];
-		push @$relations, {
-			type => "http://purl.org/dc/terms/isVersionOf",
-			uri => $uri,
-		};
-		$eprint->set_value( "relation", $relations );
+		my $has_relation = 0;
+		for(@$relations)
+		{
+			$has_relation = 1 if
+				$_->{type} eq "http://purl.org/dc/terms/isVersionOf" &&
+				$_->{url} eq $uri;
+		}
+		if( !$has_relation )
+		{
+			push @$relations, {
+				type => "http://purl.org/dc/terms/isVersionOf",
+				uri => $uri,
+			};
+			$eprint->set_value( "relation", $relations );
+		}
 	}
 
 	if( defined($userobj) )
