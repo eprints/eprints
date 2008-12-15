@@ -232,16 +232,7 @@ sub map
 {
 	my( $self, $fn, $info ) = @_;
 
-	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
-
-	my $searchexp = EPrints::Search->new(
-		session => $self->{session},
-		dataset => $dataset,
-	);
-
-	$searchexp->add_field( $dataset->get_field( "importid" ), $self->get_id );
-
-	my $list = $searchexp->perform_search;
+	my $list = $self->get_list();
 
 	$list->map($fn, $info );
 
@@ -263,6 +254,32 @@ sub clear
 
 		$eprint->remove();
 	});
+}
+
+=item $list = $import->get_list()
+
+Returns a list of the items in this import.
+
+=cut
+
+sub get_list
+{
+	my( $self ) = @_;
+
+	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
+
+	my $searchexp = EPrints::Search->new(
+		session => $self->{session},
+		dataset => $dataset,
+	);
+
+	$searchexp->add_field( $dataset->get_field( "importid" ), $self->get_id );
+
+	my $list = $searchexp->perform_search;
+
+	$searchexp->dispose;
+
+	return $list;
 }
 
 =item $eprint = $import->get_from_source( $sourceid )
