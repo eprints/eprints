@@ -224,6 +224,14 @@ $list->map(sub {
 		$eprint->set_value( "userid", $userobj->get_id );
 	}
 
+	# remove empty documents
+	foreach my $doc ($eprint->get_all_documents)
+	{
+		my %files = $doc->get_files;
+		next if scalar keys %files;
+		$doc->remove();
+	}
+
 	$eprint->commit();
 
 	print $eprint->get_id() . "\n";
