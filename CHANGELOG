@@ -8010,3 +8010,8 @@ EPRINTS-3.1-beta-2
 
 2008-12-12 cjg
  * Fixed IE issues in javascript toggles recently introduced.
+
+2008-12-17 tdb
+ * Added maxlength of 16384 to Longtext field type (otherwise Import "cleans
+    up" data to 255 chars)
+
