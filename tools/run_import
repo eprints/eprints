@@ -227,7 +227,7 @@ $list->map(sub {
 	# remove empty documents
 	foreach my $doc ($eprint->get_all_documents)
 	{
-		my %files = $doc->get_files;
+		my %files = $doc->files;
 		next if scalar keys %files;
 		$doc->remove();
 	}
