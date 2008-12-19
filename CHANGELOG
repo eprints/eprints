@@ -8018,3 +8018,6 @@ EPRINTS-3.1-beta-2
 2008-12-17 tdb
  * Can now use Subject input component with other fields in a workflow
 
+2008-12-19 cjg
+ * Fixed incorrect "use" line in MultilineCSV export plugin.
+
