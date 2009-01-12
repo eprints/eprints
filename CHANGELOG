@@ -8021,3 +8021,6 @@ EPRINTS-3.1-beta-2
 2008-12-19 cjg
  * Fixed incorrect "use" line in MultilineCSV export plugin.
 
+2009-01-12 tdb
+ * Added Import module for DSpace abstract pages
+
