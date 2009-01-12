@@ -88,7 +88,7 @@ sub retrieve_epdata
 {
 	my( $self, $url ) = @_;
 
-	my $url = URI->new( $url );
+	$url = URI->new( $url );
 	$url->query_form(
 		mode => "full",
 		show => "full",
