@@ -8023,4 +8023,6 @@ EPRINTS-3.1-beta-2
 
 2009-01-12 tdb
  * Added Import module for DSpace abstract pages
+ * Don't export sub-fields of compounds if set "export_as_xml=0", fixing
+    #3077
 

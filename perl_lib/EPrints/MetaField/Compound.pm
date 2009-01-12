@@ -130,6 +130,7 @@ sub to_xml_basic
 	{
 		my $name = $field_conf->{name};
 		my $field = $dataset->get_field( $name );
+		next unless $field->get_property( "export_as_xml" );
 		my $alias = $fieldname_to_alias{$name};
 		my $v = $value->{$alias};
 		my $tag = $session->make_element( $alias );
