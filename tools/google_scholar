@@ -21,6 +21,20 @@ B<google_scholar> I<repository_id> [B<options>]
 This command will read citation statistics for all peer-reviewed articles in
 EPrints and update the database.
 
+Requires a field defined on eprint:
+
+	{
+		'name' => 'gscholar',
+		'type' => 'compound',
+	#   'volatile' => 1,
+		'fields' => [
+			{ 'sub_name' => 'cluster', 'type' => 'text', },
+			{ 'sub_name' => 'impact', 'type' => 'int', },
+			{ 'sub_name' => 'datestamp', 'type' => 'time', },
+		],
+	},
+
+
 =head1 ARGUMENTS
 
 =over 8
