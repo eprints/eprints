@@ -15,7 +15,7 @@ use EPrints::Plugin::Import::TextFile;
 
 our @ISA = qw( EPrints::Plugin::Import::TextFile );
 
-our %GRAMMAR = (
+our @GRAMMAR = (
 		'dc.contributor.author' => [ 'creators_name', \&ep_dc_contributor_author ],
 		'dc.contributor.department' => [ 'department' ],
 		'dc.date.accessioned' => [ 'datestamp' ],
@@ -25,6 +25,7 @@ our %GRAMMAR = (
 		'dc.title' => [ 'title' ],
 		'dc.type' => [ 'type', \&ep_dc_type ],
 		'dc.description' => [ 'abstract', \&ep_dc_description ],
+		'dc.description.abstract' => [ 'abstract' ],
 		'dc.description.degree' => [ 'thesis_type', \&ep_dc_description_degree ],
 		'dc.rights' => [ 'notes' ],
 );
@@ -81,12 +82,16 @@ sub input_text_fh
 
 sub get_grammar
 {
-	return \%GRAMMAR;
+	return \@GRAMMAR;
 }
 
 sub retrieve_epdata
 {
 	my( $self, $url ) = @_;
+
+	my $epdata = {
+			source => $url,
+		};
 
 	$url = URI->new( $url );
 	$url->query_form(
@@ -100,15 +105,22 @@ sub retrieve_epdata
 
 	return undef unless defined $dc;
 
+	my $suggestions = "";
+	while(my( $dcq, $values ) = each %$dc)
+	{
+		foreach my $value (@$values)
+		{
+			$suggestions .= "$dcq=$value\n";
+		}
+	}
+	$epdata->{suggestions} = $suggestions;
+
 	my $grammar = $self->get_grammar;
 
-	my $epdata = {
-			source => $url,
-		};
-
-	while(my( $dcq, $actions ) = each %$grammar)
+	for(my $i = 0; $i < @$grammar; $i += 2)
 	{
-		my( $fieldname, $f ) = @$actions;
+		my $dcq = $grammar->[$i];
+		my( $fieldname, $f ) = @{$grammar->[$i+1]};
 
 		# skip this field if it is supported by the current repository
 		next unless $self->{dataset}->has_field( $fieldname );
@@ -165,19 +177,25 @@ sub retrieve_dcq
 		return undef;
 	}
 
-	my $doc = EPrints::XML::parse_xml_string( $r->content );
-
-	my $table = $self->find_dc_table( $doc );
-
-	if( !defined $table )
-	{
-		$self->{errmsg} = "Could not find DCQ table";
-		return undef;
-	}
-
-	my %DC = $self->extract_dc( $table );
+	my $dc = $self->find_dc_pairs( $r->content );
+	return undef unless defined $dc;
 
 	$self->{errurl} = $self->{errmsg} = undef;
+
+	return $dc;
+}
+
+sub find_dc_pairs
+{
+	my( $self, $content ) = @_;
+
+	my %DC;
+	while( $content =~ m{<td[^>]*>(dc\.[^<]+)</td><td[^>]*>(.*?)<\s*/\s*td\s*>}sig )
+	{
+		push @{$DC{$1}||=[]}, $2 if length($2);
+	}
+
+	return undef unless scalar keys %DC;
 
 	return \%DC;
 }
@@ -248,6 +266,7 @@ sub ep_dc_type
 	my( $self, $types ) = @_;
 
 	return { type => ({
+			'journal' => 'article',
 			'Electronic thesis or dissertation' => 'thesis',
 			'Thesis' => 'thesis',
 		}->{$types->[0]} || 'other'
