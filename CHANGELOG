@@ -8026,3 +8026,6 @@ EPRINTS-3.1-beta-2
  * Don't export sub-fields of compounds if set "export_as_xml=0", fixing
     #3077
 
+2009-01-16 tdb
+ * Strip all whitespace from DOIs & Pubmed IDs, fixing #3439
+

@@ -39,7 +39,8 @@ sub input_text_fh
 	my $fh = $opts{fh};
 	while( my $doi = <$fh> )
 	{
-		chomp $doi;
+		$doi =~ s/^\s+//;
+		$doi =~ s/\s+$//;
 
 		$doi =~ s/^(doi:)?/doi:/i;
 

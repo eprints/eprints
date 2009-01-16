@@ -31,7 +31,8 @@ sub input_fh
 	my $fh = $opts{fh};
 	while( my $pmid = <$fh> )
 	{
-		chomp $pmid;
+		$pmid =~ s/^\s+//;
+		$pmid =~ s/\s+$//;
 		if( $pmid !~ /^[0-9]+$/ ) # primary IDs are always an integer
 		{
 			$plugin->warning( "Invalid ID: $pmid" );
