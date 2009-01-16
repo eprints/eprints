@@ -4,9 +4,17 @@ package EPrints::Plugin::Import::DSpace;
 
 EPrints::Plugin::Import::DSpace - generic DSpace importer
 
+=head1 DESCRIPTION
+
+This module uses a simple grammar to translate "qualified Dublin Core" (DC) from DSpace instances into local EPrints objects. This module accepts a list of abstract page URLs which are then queried using "mode=full" and "show=full" to retrieve a table of DC terms and values. These are processed using the grammar to get an EPData structure.
+
+Mileage will vary between DSpace instances.
+
 =cut
 
 use strict;
+
+our $DISABLE = 0;
 
 use LWP::UserAgent;
 use URI;
@@ -15,18 +23,55 @@ use EPrints::Plugin::Import::TextFile;
 
 our @ISA = qw( EPrints::Plugin::Import::TextFile );
 
+=head2 Grammar
+
+You can subclass this plugin to refine the grammar used. Return your customised grammar using the get_grammar method.
+
+Example grammar:
+
+  @grammar = (
+	'dc.description' => [ 'abstract' ],
+	'dc.description.abstract' => [ 'abstract' ],
+  	'dc.contributor.author' => [ \&translate_name, 'creators_name' ],
+  );
+
+This will map the first value in B<dc.description> to B<abstract>. If the DC also contains B<dc.description.abstract> this will override any value in B<dc.description>.
+
+You can also apply a method to the DC value before assignment by using a code reference e.g. B<translate_name>:
+
+	sub translate_name
+	{
+		my( $plugin, $values, $fieldname ) = @_;
+
+		my @names;
+
+		foreach my $value (@$values)
+		{
+			my( $family, $given ) = split /,\s*/, $value;
+	
+			push @names,
+				family => $family,
+				given => $given,
+			};
+		}
+
+		return { $fieldname => \@names };
+	}
+
+=cut
+
 our @GRAMMAR = (
-		'dc.contributor.author' => [ 'creators_name', \&ep_dc_contributor_author ],
+		'dc.contributor.author' => [ \&ep_dc_name, 'creators_name' ],
 		'dc.contributor.department' => [ 'department' ],
 		'dc.date.accessioned' => [ 'datestamp' ],
 		'dc.date.issued' => [ 'date' ],
-		'dc.identifier.uri' => [ 'documents', \&ep_dc_identifier_uri ],
+		'dc.identifier.uri' => [ \&ep_dc_identifier_uri ],
 		'dc.publisher' => [ 'publisher' ],
 		'dc.title' => [ 'title' ],
-		'dc.type' => [ 'type', \&ep_dc_type ],
-		'dc.description' => [ 'abstract', \&ep_dc_description ],
-		'dc.description.abstract' => [ 'abstract' ],
-		'dc.description.degree' => [ 'thesis_type', \&ep_dc_description_degree ],
+		'dc.type' => [ \&ep_dc_type, 'type' ],
+		'dc.description' => [ \&ep_dc_join, 'abstract' ],
+		'dc.description.abstract' => [ \&ep_dc_join, 'abstract' ],
+		'dc.description.degree' => [ \&ep_dc_description_degree, 'thesis_type' ],
 		'dc.rights' => [ 'notes' ],
 );
 
@@ -80,11 +125,18 @@ sub input_text_fh
 		ids => \@ids );
 }
 
+=item $grammar = $plugin->get_grammar
+
+Returns an array reference to a grammar.
+
+=cut
+
 sub get_grammar
 {
 	return \@GRAMMAR;
 }
 
+# retrieve epdata from a DSpace abstract page
 sub retrieve_epdata
 {
 	my( $self, $url ) = @_;
@@ -120,10 +172,7 @@ sub retrieve_epdata
 	for(my $i = 0; $i < @$grammar; $i += 2)
 	{
 		my $dcq = $grammar->[$i];
-		my( $fieldname, $f ) = @{$grammar->[$i+1]};
-
-		# skip this field if it is supported by the current repository
-		next unless $self->{dataset}->has_field( $fieldname );
+		my( $f, @opts ) = @{$grammar->[$i+1]};
 
 		# see whether there are any DC values defined
 		my $values = $dc->{$dcq};
@@ -132,25 +181,33 @@ sub retrieve_epdata
 		# get an epdata version of $values
 		my $ep_value = {};
 
-		my $field = $self->{dataset}->get_field( $fieldname );
-		if( defined $f )
+		if( ref($f) eq "CODE" )
 		{
-			$ep_value = &$f( $self, $values );
-		}
-		elsif( $field->get_property( "multiple" ) )
-		{
-			$ep_value->{$fieldname} = $values;
+			$ep_value = &$f( $self, $values, @opts );
 		}
 		else
 		{
-			$ep_value->{$fieldname} = $values->[0];
+			my $fieldname = $f;
+			# skip this field if it isn't supported by the current repository
+			next unless $self->{dataset}->has_field( $fieldname );
+
+			my $field = $self->{dataset}->get_field( $fieldname );
+			if( $field->get_property( "multiple" ) )
+			{
+				$ep_value->{$fieldname} = $values;
+			}
+			else
+			{
+				$ep_value->{$fieldname} = $values->[0];
+			}
 		}
 
 		# merge ep_value into epdata
 		foreach my $fieldname (keys %$ep_value)
 		{
-			my $field = $self->{dataset}->get_field( $fieldname );
+			next unless $self->{dataset}->has_field( $fieldname );
 
+			my $field = $self->{dataset}->get_field( $fieldname );
 			if( $field->get_property( "multiple" ) )
 			{
 				push @{$epdata->{$fieldname}||=[]}, @{$ep_value->{$fieldname}};
@@ -165,6 +222,7 @@ sub retrieve_epdata
 	return $epdata;
 }
 
+# retrieve DC from a URL
 sub retrieve_dcq
 {
 	my( $self, $url ) = @_;
@@ -185,6 +243,7 @@ sub retrieve_dcq
 	return $dc;
 }
 
+# find DC pairs from a DSpace DC table HTML page
 sub find_dc_pairs
 {
 	my( $self, $content ) = @_;
@@ -200,66 +259,36 @@ sub find_dc_pairs
 	return \%DC;
 }
 
-sub find_dc_table
+=item $epdata = $plugin->ep_dc_contributor_author( NAMES, FIELDNAME )
+
+Converts a list of DSpace name strings into epdata.
+
+=cut
+
+sub ep_dc_name
 {
-	my( $self, $doc ) = @_;
+	my( $self, $values, $fieldname ) = @_;
 
-	my @tables = $doc->getElementsByTagName( "table" );
+	my @names;
 
-	foreach my $table ( @tables )
+	foreach my $value (@$values)
 	{
-		my( $td ) = $table->getElementsByTagName( "td" );
-		if( $td->firstChild->toString =~ /^dc\./ )
-		{
-			return $table;
-		}
-	}
+		my( $family, $given ) = split /\s*,\s*/, $value;
 
-	return undef;
-}
-
-sub extract_dc
-{
-	my( $self, $table ) = @_;
-
-	my @rows = $table->getElementsByTagName( "tr" );
-	
-	my %DC;
-
-	foreach my $row (@rows)
-	{
-		my( $td_key, $td_data, $td_lang ) = $row->getElementsByTagName( "td" );
-		next unless defined $td_lang;
-
-		$td_key = $td_key->hasChildNodes ? $td_key->firstChild->toString : undef;
-		$td_data = $td_data->hasChildNodes ? $td_data->firstChild->toString : undef;
-		$td_lang = $td_lang->hasChildNodes ? $td_lang->firstChild->toString : undef;
-		next unless defined $td_key && defined $td_data;
-
-		push @{$DC{$td_key}||=[]}, $td_data;
-	}
-
-	return %DC;
-}
-
-sub ep_dc_contributor_author
-{
-	my( $self, $names ) = @_;
-
-	my $epdata = { creators_name => [] };
-
-	foreach my $name (@$names)
-	{
-		my( $family, $given ) = split /,\s*/, $name;
-
-		push @{$epdata->{creators_name}}, {
+		push @names, {
 			family => $family,
 			given => $given,
 		};
 	}
 
-	return $epdata;
+	return { $fieldname => \@names };
 }
+
+=item $epdata = $plugin->ep_dc_type( TYPES )
+
+Maps a DSpace dc.type to eprint type.
+
+=cut
 
 sub ep_dc_type
 {
@@ -273,12 +302,12 @@ sub ep_dc_type
 	)};
 }
 
-sub ep_dc_description
+sub ep_dc_join
 {
-	my( $self, $descs ) = @_;
+	my( $self, $values, $fieldname ) = @_;
 
 	return {
-		abstract => join "\n", @$descs
+		$fieldname => join "\n", @$values
 	};
 }
 
