@@ -173,7 +173,7 @@ sub update_auto_js
 {
 	my( $repository, $target_dir, $static_dirs ) = @_;
 
-	my @dirs = map { "$_/javascript/auto" } grep { defined } $static_dirs;
+	my @dirs = map { "$_/javascript/auto" } grep { defined } @$static_dirs;
 
 	my $js = "";
 	$js .= "var eprints_http_root = ".EPrints::Utils::js_string( $repository->get_conf('base_url') ).";\n";
