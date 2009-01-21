@@ -43,7 +43,9 @@ sub can_convert
 {
 	my ($plugin, $doc) = @_;
 
-	my $mimetype = $doc->mime_type() or return ();
+	my $mimetype = $doc->mime_type();
+
+	return () unless defined $mimetype;
 
 	my $cmd_id = $EPrints::Plugin::Convert::Unpack::TYPES{$mimetype};
 
