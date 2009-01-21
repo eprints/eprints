@@ -276,6 +276,7 @@ sub upload_doc_file
 		$cgi->upload( $paramid ), 
 		$cgi->param( $paramid ),
 		0, # preserve_path
+		-s $cgi->upload( $paramid )
 	);	
 }
 
