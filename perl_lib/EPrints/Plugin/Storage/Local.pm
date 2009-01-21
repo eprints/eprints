@@ -66,6 +66,8 @@ sub store
 
 	close($out_fh);
 
+	$fileobj->add_plugin_copy( $self, $fileobj->get_value( "filename" ) );
+
 	return $length;
 }
 

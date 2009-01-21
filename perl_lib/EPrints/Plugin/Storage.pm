@@ -41,7 +41,9 @@ sub is_available
 
 Read from and store all data from $filehandle for $fileobj.
 
-Returns false on error.
+If the plugin was successful it must use $fileobj->add_plugin_copy( $plugin, $sourceid) to record the new copy.
+
+Returns undef on error.
 
 =cut
 

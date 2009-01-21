@@ -124,9 +124,12 @@ sub store
 
 	foreach my $plugin ($self->get_plugins( $fileobj, $fh ))
 	{
-		$length = $plugin->store( $fileobj, $fh );
-		last if defined $length;
+		my $rc = $plugin->store( $fileobj, $fh );
+		$length = $rc if defined $rc;
 	}
+
+	# Plugins must add their local information to copies
+	$fileobj->commit();
 
 	return $length;
 }
@@ -164,10 +167,17 @@ sub delete
 
 	my $rc;
 
-	foreach my $plugin ($self->get_plugins( $fileobj ))
+	my $copies = $fileobj->get_value( "copies" );
+
+	foreach my $copy (@$copies)
 	{
+		my $plugin = $self->{session}->plugin( $copy->{pluginid} );
+		if( !defined( $plugin ) )
+		{
+			$self->{session}->get_repository->log( "Can not remove file copy '$copy->{sourceid}' - $copy->{pluginid} not available" );
+			next;
+		}
 		$rc = $plugin->delete( $fileobj );
-		last if $rc;
 	}
 
 	return $rc;
@@ -237,6 +247,7 @@ sub get_plugins
 	$params{item} = $fileobj;
 	$params{current_user} = $session->current_user;
 	$params{session} = $session;
+	$params{parent} = $fileobj->get_parent;
 
 	my $_plugins = EPrints::XML::EPC::process( $self->{config}, %params );
 
