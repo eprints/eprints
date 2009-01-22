@@ -103,7 +103,7 @@ sub handler
 	}
 
 	# URI redirection
-	if( $uri =~ m!^$urlpath/id/([^/]+)/(.*)$! )
+	if( $uri =~ m! ^$urlpath/id/([^/]+)/(.*)$ !x )
 	{
 		my( $datasetid, $id ) = ( $1, $2 );
 
@@ -126,7 +126,7 @@ sub handler
 		}
 	}
 
-	if( $uri =~ m#^/([0-9]+)(.*)$# )
+	if( $uri =~ m! ^/([0-9]+)(.*)$ !x )
 	{
 		# It's an eprint...
 	
@@ -145,7 +145,7 @@ sub handler
 		my $splitpath = "$1/$2/$3/$4";
 		$uri = "/archive/$splitpath$tail";
 
-		if( $tail =~ s/^\/(\d+)// )
+		if( $tail =~ s! ^/(\d+) !!x )
 		{
 			# it's a document....			
 
@@ -157,7 +157,7 @@ sub handler
 			}
 
 			my $filename = $tail;
-			$filename =~ s/^\/+//;
+			$filename =~ s! ^/+ !!x;
 
 			$r->pnotes( datasetid => "document" );
 			$r->pnotes( eprintid => $eprintid );
@@ -181,13 +181,13 @@ sub handler
 
 	# apache 2 does not automatically look for index.html so we have to do it ourselves
 	my $localpath = $uri;
-	if( $uri =~ m#/$# )
+	if( $uri =~ m! /$ !x )
 	{
 		$localpath.="index.html";
 	}
 	$r->filename( $repository->get_conf( "htdocs_path" )."/".$lang.$localpath );
 
-	if( $uri =~ m#^/view(.*)# )
+	if( $uri =~ m! ^/view(.*) !x )
 	{
 		my $session = new EPrints::Session(2); # don't open the CGI info
 		$session->{preparing_static_page} = 1; 
