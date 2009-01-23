@@ -8031,4 +8031,5 @@ EPRINTS-3.1-beta-2
 
 2009-01 23 tdb
  * Make the default allow_null() for MetaFields: FIXME properly
+ * Now locate thumbnails via eprintid/docid.RELATION
 

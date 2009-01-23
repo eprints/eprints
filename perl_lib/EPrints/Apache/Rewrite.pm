@@ -145,7 +145,7 @@ sub handler
 		my $splitpath = "$1/$2/$3/$4";
 		$uri = "/archive/$splitpath$tail";
 
-		if( $tail =~ s! ^/(\d+) !!x )
+		if( $tail =~ s! ^/([0-9]+) !!x )
 		{
 			# it's a document....			
 
@@ -156,12 +156,15 @@ sub handler
 				return redir( $r, sprintf( "%s/%d/%d%s",$urlpath, $eprintid, $pos, $tail ).$args );
 			}
 
+			$tail =~ s! ^([^/]*)/ !!x;
+			my @relations = grep { length($_) } split /\./, $1;
+
 			my $filename = $tail;
-			$filename =~ s! ^/+ !!x;
 
 			$r->pnotes( datasetid => "document" );
 			$r->pnotes( eprintid => $eprintid );
 			$r->pnotes( pos => $pos );
+			$r->pnotes( relations => \@relations );
 			$r->pnotes( filename => $filename );
 
 			$r->pnotes( loghandler => "?fulltext=yes" );

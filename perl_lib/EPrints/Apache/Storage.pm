@@ -40,6 +40,17 @@ sub handler
 
 	return 404 unless defined $dataobj;
 
+	my $relations = $r->pnotes( "relations" );
+	$relations = [] unless defined $relations;
+
+	foreach my $relation (@$relations)
+	{
+		$relation = EPrints::Utils::make_relation( $relation );
+		$dataobj = $dataobj->get_related_objects( $relation )->[0];
+		return 404 unless defined $dataobj;
+		$filename = $dataobj->get_main();
+	}
+
 	$r->pnotes( dataobj => $dataobj );
 
 	$rc = check_auth( $session, $r, $dataobj );
@@ -53,6 +64,14 @@ sub handler
 	my $fileobj = $dataobj->get_stored_file( $filename );
 
 	return 404 unless defined $fileobj;
+
+	my $url = $fileobj->get_remote_copy();
+	if( defined $url )
+	{
+		$session->redirect( $url );
+
+		return $rc;
+	}
 
 	# Use octet-stream for unknown mime-types
 	my $content_type = $fileobj->is_set( "mime_type" )
