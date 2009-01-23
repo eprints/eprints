@@ -884,11 +884,6 @@ sub upload
 
 	$rc = defined($stored);
 
-	if( $rc )
-	{
-		$stored->update_sha();
-	}
-
 	$rc &&= $self->files_modified;
 	
 	return $rc;
@@ -1053,14 +1048,7 @@ sub add_directory
 				$filehandle,
 				-s $filepath
 			);
-			if( defined($stored) )
-			{
-				$stored->update_sha();
-			}
-			else
-			{
-				$rc = 0;
-			}
+			$rc = defined $stored;
 		},
 	}, $directory );
 
@@ -1528,11 +1516,18 @@ sub thumbnail_url
 
 	$size = "small" unless defined $size;
 
-	my( $thumbnail ) = @{($self->get_related_objects( EPrints::Utils::make_relation( "has${size}ThumbnailVersion" ) ))};
+	my $relation = "has${size}ThumbnailVersion";
+
+	my( $thumbnail ) = @{($self->get_related_objects( EPrints::Utils::make_relation( $relation ) ))};
 
 	return undef if !defined $thumbnail;
 
-	return $thumbnail->get_url;
+	my $url = $self->get_baseurl();
+	$url =~ s! /$ !.$relation/!x;
+	$url .= $self->get_main
+		if defined $self->get_main;
+
+	return $url;
 }
 
 # size => "small","medium","preview" (small is default)

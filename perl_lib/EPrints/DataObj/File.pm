@@ -162,7 +162,7 @@ sub create_from_data
 
 	if( defined( $fh ) )
 	{
-		$self->set_file( $fh );
+		$self->set_file( $fh, $data->{filesize} );
 		$self->commit();
 	}
 	elsif( EPrints::Utils::is_set( $data->{data} ) )
@@ -171,7 +171,7 @@ sub create_from_data
 
 		syswrite($tmpfile, MIME::Base64::decode( $data->{data} ));
 		seek( $tmpfile, 0, 0 );
-		$self->set_file( $tmpfile );
+		$self->set_file( $tmpfile, -s $tmpfile );
 		$self->commit();
 	}
 	elsif( EPrints::Utils::is_set( $data->{url} ) )
@@ -182,7 +182,7 @@ sub create_from_data
 		if( $r->is_success )
 		{
 			seek( $tmpfile, 0, 0 );
-			$self->set_file( $tmpfile );
+			$self->set_file( $tmpfile, -s $tmpfile );
 			$self->commit();
 		}
 		else
@@ -337,6 +337,13 @@ sub get_local_copy
 	return $self->get_session->get_storage->get_local_copy( $self );
 }
 
+sub get_remote_copy
+{
+	my( $self ) = @_;
+
+	return $self->get_session->get_storage->get_remote_copy( $self );
+}
+
 =item $success = $file->add_file( $filepath, $filename [, $preserve_path ] )
 
 Read and store the contents of $filepath at $filename.
@@ -365,7 +372,7 @@ Read and store the data from $filehandle at $filename at the next revision numbe
 
 If $preserve_path is untrue will strip any leading path in $filename.
 
-Returns the number of bytes read from $filehandle.
+Returns the number of bytes read from $filehandle or undef on failure.
 
 =cut
 
@@ -380,9 +387,8 @@ sub upload
 	}
 
 	$self->set_value( "filename", $filename );
-	$self->set_value( "filesize", $filesize );
 
-	$filesize = $self->set_file( $fh );
+	$filesize = $self->set_file( $fh, $filesize );
 
 	$self->commit();
 
@@ -418,28 +424,11 @@ Write a copy of this file to $filehandle.
 
 sub write_copy_fh
 {
-	my( $self, $out, $revision ) = @_;
+	my( $self, $out ) = @_;
 
-	use bytes;
-
-	my $in = $self->get_file();
-
-	return 0 if !defined $in;
-
-	binmode($in);
-	binmode($out);
-
-	# note: syswrite(STDOUT) doesn't work under mod_perl!
-	my $buffer;
-	while(sysread($in,$buffer,4096))
-	{
-		print $out $buffer;
-	}
-
-	close($in);
-	close($out);
-
-	return 1;
+	return $self->get_file(sub {
+		print $out $_[0]
+	});
 }
 
 =item $md5 = $stored->generate_md5
@@ -454,7 +443,9 @@ sub generate_md5
 
 	my $md5 = Digest::MD5->new;
 
-	$md5->addfile( $self->get_file() );
+	$self->get_file(sub {
+		$md5->add( $_[0] )
+	});
 
 	return $md5->hexdigest;
 }
@@ -492,9 +483,9 @@ sub generate_sha
 
 	my $sha = $class->new( $alg );
 
-	my $fh = $self->get_file();
-	$sha->addfile( $fh );
-	close($fh);
+	$self->get_file(sub {
+		$sha->add( $_[0] )
+	});
 
 	return $sha->hexdigest;
 }
@@ -531,43 +522,16 @@ sub to_xml
 
 	if( $opts{embed} )
 	{
-		if( defined(my $fh = $self->get_file()) )
-		{
-			use bytes;
-			binmode($fh);
-			my $data = "";
-			while(sysread($fh,$data,4096,length($data))) { }
-			close($fh);
-			$self->set_value( "data", MIME::Base64::encode( $data ) );
-		}
+		my $data = "";
+		$self->get_file(sub {
+			$data .= $_[0];
+		});
+		$self->set_value( "data", MIME::Base64::encode( $data ) );
 	}
 
 	my $file = $self->SUPER::to_xml( %opts );
 
 	return $file;
-}
-
-=item $sourceid = $stored->get_plugin_copy( $plugin )
-
-Returns the source id used to retrieve the copy of this file stored using $plugin.
-
-=cut
-
-sub get_plugin_copy
-{
-	my( $self, $plugin ) = @_;
-
-	my $copies = $self->get_value( "copies" );
-
-	foreach my $copy (@$copies)
-	{
-		if( $copy->{pluginid} eq $plugin->get_id )
-		{
-			return $copy->{sourceid};
-		}
-	}
-
-	return undef;
 }
 
 =item $stored->add_plugin_copy( $plugin, $sourceid )
@@ -580,7 +544,7 @@ sub add_plugin_copy
 {
 	my( $self, $plugin, $sourceid ) = @_;
 
-	my $copies = $self->get_value( "copies" );
+	my $copies = EPrints::Utils::clone( $self->get_value( "copies" ) );
 	push @$copies, {
 		pluginid => $plugin->get_id,
 		sourceid => $sourceid,
@@ -589,7 +553,7 @@ sub add_plugin_copy
 	$self->commit();
 }
 
-=item $fh = $stored->get_file()
+=item $success = $stored->get_file( CALLBACK )
 
 Retrieve a file handle to the stored file (this is a wrapper around L<EPrints::Storage>::retrieve).
 
@@ -597,25 +561,52 @@ Retrieve a file handle to the stored file (this is a wrapper around L<EPrints::S
 
 sub get_file
 {
-	my( $self ) = @_;
+	my( $self, $f ) = @_;
 
-	return $self->{session}->get_storage->retrieve( $self );
+	return $self->{session}->get_storage->retrieve( $self, $f );
 }
 
-=item $filesize = $stored->set_file( $fh )
+=item $content_length = $stored->set_file( $fh, $content_length )
 
-Reads the content of $fh to EOF and stores it. Returns the number of bytes written.
+Reads the content of $fh to EOF and stores it. This also generates and stores the MD5 of the data as it's read.
+
+Returns undef if less than $content_length was written.
 
 =cut
 
 sub set_file
 {
-	my( $self, $fh ) = @_;
+	my( $self, $fh, $clen ) = @_;
 
-	my $filesize = $self->{session}->get_storage->store( $self, $fh );
-	$self->set_value( "filesize", $filesize );
+	my $md5 = Digest::MD5->new;
 
-	return $filesize;
+	my $f;
+	if( ref($f) eq "CODE" )
+	{
+		$f = sub {
+			my $buffer = &$fh();
+			$md5->add( $buffer );
+			return $buffer;
+		};
+	}
+	else
+	{
+		$f = sub {
+			return "" unless sysread($fh,my $buffer,4096);
+			$md5->add( $buffer );
+			return $buffer;
+		};
+	}
+
+	$self->set_value( "filesize", $clen );
+
+	my $written = $self->{session}->get_storage->store( $self, $f );
+	return undef if $written != $clen;
+
+	$self->set_value( "hash", $md5->hexdigest );
+	$self->set_value( "hash_type", "MD5" );
+
+	return $clen;
 }
 
 1;

@@ -37,7 +37,7 @@ sub new
 
 sub store
 {
-	my( $self, $fileobj, $fh ) = @_;
+	my( $self, $fileobj, $f ) = @_;
 
 	use bytes;
 	use integer;
@@ -55,7 +55,7 @@ sub store
 	binmode($out_fh);
 
 	my $buffer;
-	while(sysread($fh,$buffer,4096))
+	while(length($buffer = &$f()))
 	{
 		$length += length($buffer);
 		unless( syswrite($out_fh,$buffer) )
@@ -73,19 +73,30 @@ sub store
 
 sub retrieve
 {
-	my( $self, $fileobj ) = @_;
+	my( $self, $fileobj, $sourceid, $f ) = @_;
 
 	my( $local_path, $in_file ) = $self->_filename( $fileobj );
 
 	open(my $in_fh, "<", $in_file)
 		or EPrints::abort( "Unable to read from $in_file: $!" );
 
-	return $in_fh;
+	my $rc = 1;
+
+	my $buffer;
+	while(sysread($in_fh,$buffer,4096))
+	{
+		$rc &&= &$f($buffer);
+		last unless $rc;
+	}
+
+	close($in_fh);
+
+	return $rc;
 }
 
 sub delete
 {
-	my( $self, $fileobj ) = @_;
+	my( $self, $fileobj, $sourceid ) = @_;
 
 	my( $local_path, $in_file ) = $self->_filename( $fileobj );
 
@@ -94,7 +105,7 @@ sub delete
 
 sub get_local_copy
 {
-	my( $self, $fileobj ) = @_;
+	my( $self, $fileobj, $sourceid ) = @_;
 
 	my( $local_path, $in_file ) = $self->_filename( $fileobj );
 

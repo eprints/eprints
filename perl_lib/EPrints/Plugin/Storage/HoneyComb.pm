@@ -52,7 +52,7 @@ sub new
 
 sub store
 {
-	my( $self, $fileobj, $fh ) = @_;
+	my( $self, $fileobj, $f ) = @_;
 
 	my $length = 0;
 
@@ -85,13 +85,13 @@ sub store
 		$metadata->{'dc.identifier'} = $fileobj->uri;
 	}
 
+	my $buffer;
 	my $oid = $self->{honey}->store_both( sub {
-			my( $ctx, $n ) = @_;
-			sysread($ctx, my $buffer, $n);
+			$buffer = &$f();
 			$length += length($buffer);
 			return $buffer;
 		},
-		$fh,
+		undef,
 		$metadata
 	);
 
@@ -102,9 +102,7 @@ sub store
 
 sub retrieve
 {
-	my( $self, $fileobj, $revision ) = @_;
-
-	my $oid = $fileobj->get_plugin_copy( $self );
+	my( $self, $fileobj, $oid, $f ) = @_;
 
 	my $fh = File::Temp->new();
 
@@ -113,17 +111,24 @@ sub retrieve
 
 	seek($fh, 0, 0);
 
+	my $rc = 1;
+
+	my $buffer;
+	while(sysread($fh,$buffer,4096))
+	{
+		$rc &&= &$f($buffer);
+		last unless $rc;
+	}
+
 # This clobbers temp files/directories due to fork()/exit()
 #	my $fh = $self->{honey}->get_fh( $oid );
 
-	return $fh;
+	return $rc;
 }
 
 sub delete
 {
-	my( $self, $fileobj, $revision ) = @_;
-
-	my $oid = $fileobj->get_plugin_copy( $self );
+	my( $self, $fileobj, $oid ) = @_;
 
 	my $ok = $self->{honey}->delete( $oid );
 

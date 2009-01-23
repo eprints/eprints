@@ -47,12 +47,12 @@ sub new
 				aws_access_key_id => $aws_access_key_id,
 				aws_secret_access_key => $aws_secret_access_key,
 				);
-			$self->{bucket} = $aws_bucket;
+			$self->{aws_bucket} = $aws_bucket;
 		}
 		else
 		{
 			$self->{visible} = "";
-			$self->{error} = "Requires aws_secret_access_key, aws_access_key_id and aws_bucket";
+			$self->{error} = "Requires aws_secret_access_key and aws_access_key_id and aws_bucket";
 		}
 	}
 
@@ -65,14 +65,14 @@ sub uri
 {
 	my( $self, $fileobj ) = @_;
 
-	my $uri = URI->new( $self->{ua}->_proto . "://" . $self->{bucket} . "." . $self->{ua}->_host );
+	my $uri = URI->new( $self->{ua}->_proto . "://" . $self->{aws_bucket} . "." . $self->{ua}->_host );
 
 	my $path = "/";
 
 	if( $fileobj )
 	{
 		$path .= $fileobj->get_id;
-		$path .= "/" . URI::Escape::uri_escape( $fileobj->get_value( "filename" ) );
+		$path .= "/file/" . URI::Escape::uri_escape( $fileobj->get_value( "filename" ) );
 	}
 
 	$uri->path( $path );
@@ -101,7 +101,7 @@ sub create_bucket
 
 sub store
 {
-	my( $self, $fileobj, $fh ) = @_;
+	my( $self, $fileobj, $f ) = @_;
 
 	use bytes;
 	use integer;
@@ -114,9 +114,10 @@ sub store
 
 	my $req = HTTP::Request->new( "PUT" => $uri );
 	$req->header( "Content-Length" => $fileobj->get_value( "filesize" ) );
+	$req->header( "Content-Type" => $fileobj->get_value( "mime_type" ) );
 	my $buffer;
 	$req->content( sub {
-		return "" unless sysread($fh,$buffer,4096);
+		$buffer = &$f();
 		$length += length($buffer);
 		return $buffer;
 	} );
@@ -128,7 +129,7 @@ sub store
 
 	unless( $r->is_success )
 	{
-		$self->{session}->log( $r->as_string );
+		$self->{session}->get_repository->log( $req->as_string . "\n" . $r->as_string );
 	}
 
 	return undef unless $r->is_success;
@@ -140,28 +141,34 @@ sub store
 
 sub retrieve
 {
-	my( $self, $fileobj ) = @_;
-
-	my $uri = $self->uri( $fileobj );
+	my( $self, $fileobj, $uri, $f ) = @_;
 
 	my $req = HTTP::Request->new( GET => $uri );
 
-	my $tmpfile = File::Temp->new();
+	my $r = $self->request( $req, $f );
 
-	binmode($tmpfile);
-	my $r = $self->request( $req, "$tmpfile" );
-	seek($tmpfile,0,0);
+	if( $r->is_error )
+	{
+		$self->{session}->get_repository->log( $r->as_string );
+	}
 
-	return $r->is_success ? $tmpfile : undef;
+	return $r->is_success ? 1 : 0;
 }
 
 sub delete
 {
-	my( $self, $fileobj ) = @_;
+	my( $self, $fileobj, $sourceid ) = @_;
 
 	my $req = HTTP::Request->new( DELETE => $self->uri( $fileobj ) );
 
 	return $self->request( $req )->is_success;
+}
+
+sub get_remote_copy
+{
+	my( $self, $fileobj, $uri ) = @_;
+
+	return $uri;
 }
 
 =back

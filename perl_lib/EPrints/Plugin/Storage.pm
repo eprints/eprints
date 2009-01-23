@@ -37,9 +37,9 @@ sub is_available
 	return 1;
 }
 
-=item $success = $store->store( $fileobj, $filehandle )
+=item $success = $store->store( $fileobj, CALLBACK )
 
-Read from and store all data from $filehandle for $fileobj.
+Store an object using data from CALLBACK.
 
 If the plugin was successful it must use $fileobj->add_plugin_copy( $plugin, $sourceid) to record the new copy.
 
@@ -47,66 +47,46 @@ Returns undef on error.
 
 =cut
 
-=item $filehandle = $store->retrieve( $fileobj [, $revision ] )
+=item $success = $store->retrieve( $fileobj, $sourceid, CALLBACK )
 
-Retrieve a $filehandle to the object stored for $fileobj. If no $revision is specified returns the revision in $fileobj.
-
-=cut
-
-=item $success = $store->delete( $fileobj [, $revision ] )
-
-Delete the object stored for $fileobj. If no $revision is specified deletes the revision in $fileobj.
+Retrieve an object using CALLBACK.
 
 =cut
 
-=item $filename = $store->get_local_copy( $fileobj [, $revision ] )
+=item $success = $store->delete( $fileobj, $sourceid )
+
+Delete the object stored for $fileobj.
+
+=cut
+
+=item $filename = $store->get_local_copy( $fileobj, $sourceid )
 
 Return the name of a local copy of the file (may be a L<File::Temp> object).
 
-Will retrieve and cache the remote object if necessary.
+Returns undef if no local copy is available.
 
 =cut
 
 sub get_local_copy
 {
-	my( $self, $fileobj, $revision ) = @_;
+	my( $self, $fileobj, $sourceid ) = @_;
 
-	my $file = File::Temp->new;
-	my $fh = $self->retrieve( $fileobj, $revision ) or return;
-
-	binmode($file);
-	binmode($fh);
-
-	my $buffer;
-	while(sysread($fh,$buffer,4096))
-	{
-		syswrite($file,$buffer);
-	}
-
-	close($fh);
-
-	seek($file,0,0);
-
-	return $file;
+	return undef;
 }
 
-=item $size = $store->get_size( $fileobj [, $revision ] )
+=item $url = $store->get_remote_copy( $fileobj, $sourceid )
 
-Return the $size (in bytes) of the object stored at $fileobj. If no $revision is specified returns the size of the revision in $fileobj.
+Returns an alternative URL for this file (must be publicly accessible).
 
-=cut
-
-=item @revisions = $store->get_revisions( $fileobj )
-
-Return a list of available revision numbers for $fileobj, in order from latest to oldest.
+Returns undef if no such copy is available.
 
 =cut
 
-sub get_revisions
+sub get_remote_copy
 {
-	my( $self, $fileobj ) = @_;
+	my( $self, $fileobj, $sourceid ) = @_;
 
-	return (1); # default to storing one revision, "1"
+	return undef;
 }
 
 1;

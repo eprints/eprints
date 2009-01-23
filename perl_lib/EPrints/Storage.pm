@@ -108,9 +108,9 @@ sub get_storage_config
 	return $confhash->{$id}->{storage};
 }
 
-=item $bytes = $store->store( $fileobj, $filehandle )
+=item $bytes = $store->store( $fileobj, CODEREF )
 
-Read from and store all data from $filehandle for $fileobj.
+Read from and store all data from CODEREF for $fileobj. The B<filesize> field in $fileobj must be set at the expected number of bytes to read from CODEREF.
 
 Returns number of bytes read from $filehandle, or undef on error.
 
@@ -118,46 +118,48 @@ Returns number of bytes read from $filehandle, or undef on error.
 
 sub store
 {
-	my( $self, $fileobj, $fh ) = @_;
+	my( $self, $fileobj, $f ) = @_;
+
+	if( !$fileobj->is_set( "filesize" ) )
+	{
+		EPrints::abort( "filesize must be set before storing" );
+	}
 
 	my $length;
 
-	foreach my $plugin ($self->get_plugins( $fileobj, $fh ))
+	foreach my $plugin ($self->get_plugins( $fileobj ))
 	{
-		my $rc = $plugin->store( $fileobj, $fh );
-		$length = $rc if defined $rc;
+		$length = $plugin->store( $fileobj, $f );
+		last if defined $length;
 	}
-
-	# Plugins must add their local information to copies
-	$fileobj->commit();
 
 	return $length;
 }
 
-=item $filehandle = $store->retrieve( $fileobj )
-
-Retrieve a $filehandle to the object stored for $fileobj.
+=item $success = $store->retrieve( $fileobj, CALLBACK )
 
 =cut
 
 sub retrieve
 {
-	my( $self, $fileobj ) = @_;
+	my( $self, $fileobj, $f ) = @_;
 
-	my $fh;
+	my $rc;
 
-	foreach my $plugin ($self->get_plugins( $fileobj ))
+	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
-		$fh = $plugin->retrieve( $fileobj );
-		last if defined $fh;
+		my $plugin = $self->{session}->plugin( $copy->{pluginid} );
+		next unless defined $plugin;
+		$rc = $plugin->retrieve( $fileobj, $copy->{sourceid}, $f );
+		last if $rc;
 	}
 
-	return $fh;
+	return $rc;
 }
 
 =item $success = $store->delete( $fileobj )
 
-Delete the object stored for $fileobj.
+Delete all object copies stored for $fileobj.
 
 =cut
 
@@ -167,9 +169,7 @@ sub delete
 
 	my $rc;
 
-	my $copies = $fileobj->get_value( "copies" );
-
-	foreach my $copy (@$copies)
+	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
 		my $plugin = $self->{session}->plugin( $copy->{pluginid} );
 		if( !defined( $plugin ) )
@@ -177,7 +177,7 @@ sub delete
 			$self->{session}->get_repository->log( "Can not remove file copy '$copy->{sourceid}' - $copy->{pluginid} not available" );
 			next;
 		}
-		$rc = $plugin->delete( $fileobj );
+		$rc &= $plugin->delete( $fileobj );
 	}
 
 	return $rc;
@@ -197,36 +197,53 @@ sub get_local_copy
 
 	my $filename;
 
-	foreach my $plugin ($self->get_plugins( $fileobj ))
+	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
+		my $plugin = $self->{session}->plugin( $copy->{pluginid} );
+		next unless defined $plugin;
 		$filename = $plugin->get_local_copy( $fileobj );
 		last if defined $filename;
+	}
+
+	if( !defined $filename )
+	{
+		$filename = File::Temp->new;
+		binmode($filename);
+
+		my $rc = $self->retrieve( $fileobj, sub {
+			return defined syswrite($filename,$_[0])
+		} );
+		seek($filename,0,0);
+
+		undef $filename unless $rc;
 	}
 
 	return $filename;
 }
 
-=item $size = $store->get_size( $fileobj )
+=item $url = $store->get_remote_copy( $fileobj )
 
-UNUSED?
+Returns a URL from which this file can be accessed.
 
-Return the $size (in bytes) of the object stored at $fileobj.
+Returns undef if this file is not available via another service.
 
 =cut
 
-sub get_size
+sub get_remote_copy
 {
 	my( $self, $fileobj ) = @_;
 
-	my $filesize;
+	my $url;
 
-	foreach my $plugin ($self->get_plugins( $fileobj ))
+	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
-		$filesize = $plugin->get_local_copy( $fileobj );
-		last if defined $filesize;
+		my $plugin = $self->{session}->plugin( $copy->{pluginid} );
+		next unless defined $plugin;
+		$url = $plugin->get_remote_copy( $fileobj, $copy->{sourceid} );
+		last if defined $url;
 	}
 
-	return $filesize;
+	return $url;
 }
 
 =item @plugins = $store->get_plugins( $fileobj )
