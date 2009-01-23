@@ -2049,7 +2049,7 @@ sub get_property_defaults
 {
 	return (
 		providence => $EPrints::MetaField::FROM_CONFIG,
-		allow_null 	=> 0,
+		allow_null 	=> 1,
 		browse_link 	=> $EPrints::MetaField::UNDEF,
 		can_clone 	=> 1,
 		confid 		=> $EPrints::MetaField::NO_CHANGE,

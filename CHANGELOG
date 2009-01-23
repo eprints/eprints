@@ -8029,3 +8029,6 @@ EPRINTS-3.1-beta-2
 2009-01-16 tdb
  * Strip all whitespace from DOIs & Pubmed IDs, fixing #3439
 
+2009-01 23 tdb
+ * Make the default allow_null() for MetaFields: FIXME properly
+
