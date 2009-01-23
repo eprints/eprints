@@ -54,8 +54,6 @@ sub store
 {
 	my( $self, $fileobj, $f ) = @_;
 
-	my $length = 0;
-
 	use bytes;
 	use integer;
 
@@ -85,19 +83,15 @@ sub store
 		$metadata->{'dc.identifier'} = $fileobj->uri;
 	}
 
-	my $buffer;
-	my $oid = $self->{honey}->store_both( sub {
-			$buffer = &$f();
-			$length += length($buffer);
-			return $buffer;
-		},
+	my $oid = $self->{honey}->store_both(
+		$f,
 		undef,
 		$metadata
 	);
 
-	$fileobj->add_plugin_copy( $self, $oid );
+	# error handling?
 
-	return $length;
+	return $oid;
 }
 
 sub retrieve

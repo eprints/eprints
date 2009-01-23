@@ -93,9 +93,11 @@ sub get_index_codes_basic
 
 	return( [], [], [] ) unless defined $indexcodes_doc;
 
-	my $fh = $indexcodes_file->get_file();
-	my @codes = <$fh>;
-	close $fh;
+	my $data = "";
+	$indexcodes_file->get_file(sub {
+		$data .= $_[0];
+	});
+	my @codes = split /\n/, $data;
 
 	return( \@codes, [], [] );
 }

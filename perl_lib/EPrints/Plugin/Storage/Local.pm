@@ -42,33 +42,37 @@ sub store
 	use bytes;
 	use integer;
 
-	my $length = 0;
-
 	my( $local_path, $out_file ) = $self->_filename( $fileobj );
 
 	my( $name, $path, $suffix ) = File::Basename::fileparse( $out_file );
 
 	EPrints::Platform::mkdir( $path );
 
-	open(my $out_fh, ">", $out_file)
-		or EPrints::abort( "Unable to write to $out_file: $!" );
+	my $out_fh;
+	unless( open($out_fh, ">", $out_file) )
+	{
+		$self->{error} = "Unable to write to $out_file: $!";
+		$self->{session}->get_repository->log( $self->{error} );
+		return undef;
+	}
 	binmode($out_fh);
 
-	my $buffer;
-	while(length($buffer = &$f()))
+	my $rc;
+	while($rc = syswrite($out_fh,&$f()))
 	{
-		$length += length($buffer);
-		unless( syswrite($out_fh,$buffer) )
-		{
-			EPrints::abort( "Error writing to $out_file: $!" );
-		}
 	}
 
 	close($out_fh);
 
-	$fileobj->add_plugin_copy( $self, $fileobj->get_value( "filename" ) );
+	unless( defined($rc) )
+	{
+		unlink($out_file);
+		$self->{error} = "Error writing to $out_file: $!";
+		$self->{session}->get_repository->log( $self->{error} );
+		return undef;
+	}
 
-	return $length;
+	return $fileobj->get_value( "filename" );
 }
 
 sub retrieve
@@ -77,8 +81,13 @@ sub retrieve
 
 	my( $local_path, $in_file ) = $self->_filename( $fileobj );
 
-	open(my $in_fh, "<", $in_file)
-		or EPrints::abort( "Unable to read from $in_file: $!" );
+	my $in_fh;
+	unless( open($in_fh, "<", $in_file) )
+	{
+		$self->{error} = "Unable to read from $in_file: $!";
+		$self->{session}->get_repository->log( $self->{error} );
+		return undef;
+	}
 
 	my $rc = 1;
 
@@ -109,16 +118,7 @@ sub get_local_copy
 
 	my( $local_path, $in_file ) = $self->_filename( $fileobj );
 
-	return $in_file;
-}
-
-sub get_size
-{
-	my( $self, $fileobj ) = @_;
-
-	my( $local_path, $in_file ) = $self->_filename( $fileobj );
-
-	return -s $in_file;
+	return -r $in_file ? $in_file : undef;
 }
 
 sub _filename

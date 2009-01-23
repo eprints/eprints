@@ -63,7 +63,7 @@ sub new
 
 	unless( $self->{config} )
 	{
-		EPrints::abort "No storage configuration available for use";
+		EPrints::abort( "No storage configuration available for use" );
 	}
 
 	return $self;
@@ -108,11 +108,9 @@ sub get_storage_config
 	return $confhash->{$id}->{storage};
 }
 
-=item $bytes = $store->store( $fileobj, CODEREF )
+=item $success = $store->store( $fileobj, CODEREF )
 
 Read from and store all data from CODEREF for $fileobj. The B<filesize> field in $fileobj must be set at the expected number of bytes to read from CODEREF.
-
-Returns number of bytes read from $filehandle, or undef on error.
 
 =cut
 
@@ -125,15 +123,19 @@ sub store
 		EPrints::abort( "filesize must be set before storing" );
 	}
 
-	my $length;
+	my $rc = 0;
 
 	foreach my $plugin ($self->get_plugins( $fileobj ))
 	{
-		$length = $plugin->store( $fileobj, $f );
-		last if defined $length;
+		if( defined(my $sourceid = $plugin->store( $fileobj, $f )) )
+		{
+			$rc = 1;
+			$fileobj->add_plugin_copy( $plugin, $sourceid );
+		}
+		last; # TODO: store in multiple locations
 	}
 
-	return $length;
+	return $rc;
 }
 
 =item $success = $store->retrieve( $fileobj, CALLBACK )
@@ -144,7 +146,7 @@ sub retrieve
 {
 	my( $self, $fileobj, $f ) = @_;
 
-	my $rc;
+	my $rc = 0;
 
 	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
@@ -172,7 +174,7 @@ sub delete
 	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
 		my $plugin = $self->{session}->plugin( $copy->{pluginid} );
-		if( !defined( $plugin ) )
+		unless( $plugin )
 		{
 			$self->{session}->get_repository->log( "Can not remove file copy '$copy->{sourceid}' - $copy->{pluginid} not available" );
 			next;
@@ -185,9 +187,11 @@ sub delete
 
 =item $filename = $store->get_local_copy( $fileobj )
 
-Return the name of a local copy of the file (may be a L<File::Temp> object).
+Return the name of a local copy of the file.
 
-Will retrieve and cache the remote object if necessary.
+Will retrieve and cache the remote object using L<File::Temp> if necessary.
+
+Returns undef if retrieval failed.
 
 =cut
 

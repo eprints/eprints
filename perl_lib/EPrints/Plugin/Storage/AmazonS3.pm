@@ -106,8 +106,6 @@ sub store
 	use bytes;
 	use integer;
 
-	my $length = 0;
-
 	$self->create_bucket();
 
 	my $uri = $self->uri( $fileobj );
@@ -118,7 +116,6 @@ sub store
 	my $buffer;
 	$req->content( sub {
 		$buffer = &$f();
-		$length += length($buffer);
 		return $buffer;
 	} );
 
@@ -129,14 +126,12 @@ sub store
 
 	unless( $r->is_success )
 	{
-		$self->{session}->get_repository->log( $req->as_string . "\n" . $r->as_string );
+		$self->{error} = $r->as_string . "\n\n" . $req->as_string;
+		$self->{session}->get_repository->log( $self->{error} );
+		return undef;
 	}
 
-	return undef unless $r->is_success;
-
-	$fileobj->add_plugin_copy( $self, $uri );
-
-	return $length;
+	return $uri;
 }
 
 sub retrieve

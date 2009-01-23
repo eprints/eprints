@@ -568,9 +568,9 @@ sub get_file
 
 =item $content_length = $stored->set_file( $fh, $content_length )
 
-Reads the content of $fh to EOF and stores it. This also generates and stores the MD5 of the data as it's read.
+Reads the content of $fh to EOF and stores it. Sets the hash and filesize.
 
-Returns undef if less than $content_length was written.
+Returns undef and sets the filesize to 0 if the write failed.
 
 =cut
 
@@ -599,9 +599,14 @@ sub set_file
 	}
 
 	$self->set_value( "filesize", $clen );
+	$self->set_value( "hash", undef );
+	$self->set_value( "hash_stype", undef );
 
-	my $written = $self->{session}->get_storage->store( $self, $f );
-	return undef if $written != $clen;
+	unless( $self->{session}->get_storage->store( $self, $f ) )
+	{
+		$self->set_value( "filesize", 0 );
+		return undef;
+	}
 
 	$self->set_value( "hash", $md5->hexdigest );
 	$self->set_value( "hash_type", "MD5" );

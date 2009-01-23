@@ -37,15 +37,22 @@ sub is_available
 	return 1;
 }
 
-=item $success = $store->store( $fileobj, CALLBACK )
+=item $sourceid = $store->store( $fileobj, CALLBACK )
 
 Store an object using data from CALLBACK.
 
-If the plugin was successful it must use $fileobj->add_plugin_copy( $plugin, $sourceid) to record the new copy.
+If successful returns the source id used to retrieve this object.
 
 Returns undef on error.
 
 =cut
+
+sub store
+{
+	my( $self, $f ) = @_;
+
+	undef;
+}
 
 =item $success = $store->retrieve( $fileobj, $sourceid, CALLBACK )
 
@@ -53,11 +60,25 @@ Retrieve an object using CALLBACK.
 
 =cut
 
+sub retrieve
+{
+	my( $self, $fileobj, $sourceid, $f ) = @_;
+
+	undef;
+}
+
 =item $success = $store->delete( $fileobj, $sourceid )
 
 Delete the object stored for $fileobj.
 
 =cut
+
+sub delete
+{
+	my( $self, $fileobj, $sourceid ) = @_;
+
+	undef;
+}
 
 =item $filename = $store->get_local_copy( $fileobj, $sourceid )
 
