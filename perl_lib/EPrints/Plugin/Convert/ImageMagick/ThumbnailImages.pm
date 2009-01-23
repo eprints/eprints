@@ -84,6 +84,8 @@ sub export
 	my $src = $doc->get_stored_file( $doc->get_main );
 	$src = $src->get_local_copy();
 
+	return () unless defined $src;
+
 	$type =~ m/^thumbnail_(.*)$/;
 	my $size = $1;
 	return () unless defined $size;
