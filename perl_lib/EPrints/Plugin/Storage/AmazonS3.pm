@@ -177,6 +177,16 @@ sub get_remote_copy
 {
 	my( $self, $fileobj, $uri ) = @_;
 
+	my $req = HTTP::Request->new( HEAD => $uri );
+
+	my $r = $self->request( $req, $f );
+
+	if( $r->is_error )
+	{
+		$self->{session}->get_repository->log( $r->as_string );
+		return undef;
+	}
+
 	return $uri;
 }
 
