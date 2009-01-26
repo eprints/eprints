@@ -2,9 +2,23 @@
 
 EPrints::Plugin::Storage::AmazonS3 - storage in Amazon S3
 
+=head1 SYNOPSIS
+
+	# cfg.d/plugins.pl
+	$c->{plugins}->{"Storage::AmazonS3"}->{params}->{aws_bucket} = "...";
+	$c->{plugins}->{"Storage::AmazonS3"}->{params}->{aws_access_key_id} = "...";
+	$c->{plugins}->{"Storage::AmazonS3"}->{params}->{aws_secret_access_key} = "...";
+
+	# lib/storage/default.xml
+	<plugin name="AmazonS3"/>
+
 =head1 DESCRIPTION
 
 See L<EPrints::Plugin::Storage> for available methods.
+
+To enable this module you must configure the bucket name, access key id and secret access key in your configuration.
+
+If the bucket does not already exist the plugin will attempt to create it before any writes occur.
 
 =head1 METHODS
 
