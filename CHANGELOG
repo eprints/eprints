@@ -8029,7 +8029,10 @@ EPRINTS-3.1-beta-2
 2009-01-16 tdb
  * Strip all whitespace from DOIs & Pubmed IDs, fixing #3439
 
-2009-01 23 tdb
+2009-01-23 tdb
  * Make the default allow_null() for MetaFields: FIXME properly
  * Now locate thumbnails via eprintid/docid.RELATION
+
+2009-01-27
+ * Don't encode pathing in files, fixing #3393
 
