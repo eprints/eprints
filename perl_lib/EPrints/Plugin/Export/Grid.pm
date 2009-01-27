@@ -1,7 +1,5 @@
 package EPrints::Plugin::Export::Grid;
 
-use Unicode::String qw( utf8 );
-
 use EPrints::Plugin::Export;
 use Data::Dumper;
 
