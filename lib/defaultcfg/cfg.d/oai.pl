@@ -13,7 +13,6 @@
 ######################################################################
 
 use EPrints::OpenArchives;
-use Unicode::String qw(latin1 utf8);
 
 my $oai = {};
 $c->{oai} = $oai;
@@ -105,7 +104,7 @@ $oai->{mime_types} = {};
 # of the repository.  It would be appropriate to indicate the language(s)
 # of the metadata/data in the repository.
 
-$oai->{content}->{"text"} = latin1( <<END );
+$oai->{content}->{"text"} = <<END;
 OAI Site description has not been configured.
 END
 $oai->{content}->{"url"} = undef;
@@ -116,7 +115,7 @@ $oai->{content}->{"url"} = undef;
 # metadataPolicy{"text"} and/or metadataPolicy{"url"} 
 # MUST be defined to comply to OAI.
 
-$oai->{metadata_policy}->{"text"} = latin1( <<END );
+$oai->{metadata_policy}->{"text"} = <<END;
 No metadata policy defined. 
 This server has not yet been fully configured.
 Please contact the admin for more information, but if in doubt assume that
@@ -131,7 +130,7 @@ $oai->{metadata_policy}->{"url"} = undef;
 # dataPolicy{"text"} and/or dataPolicy{"url"} 
 # MUST be defined to comply to OAI.
 
-$oai->{data_policy}->{"text"} = latin1( <<END );
+$oai->{data_policy}->{"text"} = <<END;
 No data policy defined. 
 This server has not yet been fully configured.
 Please contact the admin for more information, but if in doubt assume that
@@ -143,7 +142,7 @@ $oai->{data_policy}->{"url"} = undef;
 # policies relating to the submission of content to the repository (or
 # other accession mechanisms).
 
-$oai->{submission_policy}->{"text"} = latin1( <<END );
+$oai->{submission_policy}->{"text"} = <<END;
 No submission-data policy defined. 
 This server has not yet been fully configured.
 END
@@ -157,10 +156,10 @@ $oai->{submission_policy}->{"url"} = undef;
 # An array of comments to be returned. May be empty.
 
 $oai->{comments} = [ 
-	latin1( "This system is running eprints server software (".
+	"This system is running eprints server software (".
 		EPrints::Config::get( "version" ).") developed at the ".
 		"University of Southampton. For more information see ".
-		"http://www.eprints.org/" ) 
+		"http://www.eprints.org/"
 ];
 
 ########################################################################
