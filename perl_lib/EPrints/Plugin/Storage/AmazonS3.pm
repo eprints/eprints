@@ -179,7 +179,7 @@ sub get_remote_copy
 
 	my $req = HTTP::Request->new( HEAD => $uri );
 
-	my $r = $self->request( $req, $f );
+	my $r = $self->request( $req );
 
 	if( $r->is_error )
 	{
