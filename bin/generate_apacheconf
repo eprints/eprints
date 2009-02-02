@@ -717,7 +717,7 @@ print CONF <<END;
   Alias $https_cgiroot/accounts/register $cgidir/register
   Alias $https_cgiroot/accounts/reset_password $cgidir/reset_password
   Alias $https_cgiroot/accounts/set_password $cgidir/set_password
-  Alias $https_cgiroot/users/ $cgidir/users/
+  Alias $https_cgiroot/ $cgidir/
   Alias $https_root/ $htdocs_path/
 
 ##### END OF CONFIG FOR $id

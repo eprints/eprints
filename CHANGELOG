@@ -8033,6 +8033,9 @@ EPRINTS-3.1-beta-2
  * Make the default allow_null() for MetaFields: FIXME properly
  * Now locate thumbnails via eprintid/docid.RELATION
 
-2009-01-27
+2009-01-27 tdb
  * Don't encode pathing in files, fixing #3393
+
+2009-02-02 tdb
+ * Allow https access to anything under /cgi/, fixing autocomplete scripts
 
