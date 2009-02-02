@@ -68,11 +68,13 @@ sub record
 {
 	my( $uri, $size, $method ) = @_;
 
+	my $proc_mem = GTop->new->proc_mem( $$ );
 	my $new_size = GTop->new->proc_mem( $$ )->resident;
+	my $real_size = $proc_mem->size - $proc_mem->share;
 
 	my $diff = $new_size - $size;
 
-	print STDERR "[$$] $size ".EPrints::Utils::human_filesize($diff)." $method $uri\n";
+	print STDERR "[$$] $real_size $size ".EPrints::Utils::human_filesize($diff)." $method $uri\n";
 }
 
 1;
