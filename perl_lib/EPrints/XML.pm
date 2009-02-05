@@ -510,6 +510,12 @@ sub namespace
 	return undef;
 }
 
+=item $v = EPrints::XML::version()
+
+Returns a string description of the current XML library and version.
+
+=cut
+
 ######################################################################
 # Debug code, don't use!
 ######################################################################

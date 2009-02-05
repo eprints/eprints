@@ -183,6 +183,11 @@ sub render
 			$session->html_phrase( "cgi/users/status:indexer_queue_size", 
 				size => $session->make_text( $indexer_queue ) ) ) );
 	
+	$table->appendChild(
+		$session->render_row( 
+			$session->html_phrase( "cgi/users/status:xml_version" ),
+			$session->make_text( EPrints::XML::version() ) ) );
+	
 	$table = $session->make_element( "table", border=>"0" );
 	$html->appendChild( $session->html_phrase( "cgi/users/status:usertitle" ) );
 	$html->appendChild( $table );

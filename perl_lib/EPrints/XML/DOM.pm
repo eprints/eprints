@@ -265,3 +265,9 @@ sub make_document_fragment
 	
 	return $session->{doc}->createDocumentFragment;
 }
+
+sub version
+{
+	"XML::DOM $XML::DOM::VERSION ".$INC{'XML/DOM.pm'};
+}
+

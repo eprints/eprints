@@ -247,3 +247,9 @@ sub make_document_fragment
 	
 	return $session->{doc}->createDocumentFragment;
 }
+
+sub version
+{
+	"XML::GDOME $XML::GDOME::VERSION ".$INC{'XML/GDOME.pm'};
+}
+

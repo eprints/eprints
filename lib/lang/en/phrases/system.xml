@@ -522,6 +522,7 @@ User Area CGI Scripts
     <epp:phrase id="cgi/users/status:indexer_stalled">Stalled</epp:phrase>
     <epp:phrase id="cgi/users/status:indexer_queue">Size of Index Queue</epp:phrase>
     <epp:phrase id="cgi/users/status:indexer_queue_size"><pin name="size" /> Field(s)</epp:phrase>
+	<epp:phrase id="cgi/users/status:xml_version">XML Library</epp:phrase>
     <epp:phrase id="cgi/users/status:database_ok">OK</epp:phrase>
     <epp:phrase id="cgi/users/status:database_down">DOWN</epp:phrase>
     <epp:phrase id="cgi/users/status:database_link">View database schema</epp:phrase>

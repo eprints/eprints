@@ -8039,3 +8039,6 @@ EPRINTS-3.1-beta-2
 2009-02-02 tdb
  * Allow https access to anything under /cgi/, fixing autocomplete scripts
 
+2009-02-05 tdb
+ * Added XML library information to Status screen
+

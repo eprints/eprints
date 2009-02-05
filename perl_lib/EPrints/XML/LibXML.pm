@@ -259,6 +259,11 @@ sub make_document_fragment
 	return $session->{doc}->createDocumentFragment();
 }
 
+sub version
+{
+	"XML::LibXML $XML::LibXML::VERSION ".$INC{'XML/LibXML.pm'};
+}
+
 __END__
 
 =back
