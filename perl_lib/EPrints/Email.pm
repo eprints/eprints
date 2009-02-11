@@ -31,6 +31,7 @@ package EPrints::Email;
 
 use MIME::Lite;
 use LWP::MediaTypes qw( guess_media_type );
+use Encode; # required for MIME-Header support
 
 use strict;
 
@@ -175,8 +176,11 @@ sub send_mail_via_smtp
 		return 0;
 	}
 	my $message = build_email( %p );
+	my $data = $message->as_string;
+	# Send the message as bytes, to avoid Net::Cmd wide-character warnings
+	utf8::encode($data);
 	$smtp->data();
-	$smtp->datasend( $message->as_string );
+	$smtp->datasend( $data );
 	$smtp->dataend();
 	$smtp->quit;
 
@@ -227,9 +231,9 @@ sub build_email
 	my $repository = $p{session}->get_repository;
 
 	my $mimemsg = MIME::Lite->new(
-		From       => "$p{from_name} <$p{from_email}>",
-		To         => "$p{to_name} <$p{to_email}>",
-		Subject    => $p{subject},
+		From       => encode_mime_header( "$p{from_name}" )." <$p{from_email}>",
+		To         => encode_mime_header( "$p{to_name}" )." <$p{to_email}>",
+		Subject    => encode_mime_header( $p{subject} ),
 		Type       => "multipart/alternative",
 		Precedence => "bulk",
 	);
@@ -261,14 +265,17 @@ sub build_email
 		Type  => "TEXT",
 		Data  => $data
 	);
-	$text->attr('content-type.charset' => 'utf-8');
+	$text->attr("Content-type.charset" => "UTF-8");
 	$text->attr("Content-disposition" => "");
 	$mimemsg->attach( $text );
+
+	$data = EPrints::XML::to_string( $xml_mail, undef, 1 );
+
 	my $html = MIME::Lite->new( 
 		Type  => "text/html",
-		Data  => EPrints::XML::to_string($xml_mail, undef, 1),
+		Data  => $data,
 	);
-	$html->attr('content-type.charset' => 'utf-8');
+	$html->attr("Content-type.charset" => "UTF-8");
 	$html->attr("Content-disposition" => "");
 	$mimemsg->attach( $html );
 
@@ -290,6 +297,10 @@ sub build_email
 	return $mixedmsg;
 }
 
+sub encode_mime_header
+{
+	Encode::encode("MIME-Header", $_[0] );
+}
 
 
 

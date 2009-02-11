@@ -8042,3 +8042,7 @@ EPRINTS-3.1-beta-2
 2009-02-05 tdb
  * Added XML library information to Status screen
 
+2009-02-11 tdb
+ * Fixed wide-char warning in Net::Cmd
+ * Added support for UTF-8 email headers (addresses & subject)
+
