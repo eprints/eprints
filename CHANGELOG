@@ -8046,3 +8046,6 @@ EPRINTS-3.1-beta-2
  * Fixed wide-char warning in Net::Cmd
  * Added support for UTF-8 email headers (addresses & subject)
 
+2009-02-13 tdb
+ * Added support for custom OAI sets, see #3271
+

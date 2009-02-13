@@ -598,6 +598,17 @@ sub _list
 
 		if( defined $args->{set} )
 		{
+			my $custom_sets = $session->get_repository->get_conf( "oai", "custom_sets" );
+			my( $info ) = grep { $_->{spec} = $args->{set} } @{$custom_sets||[]};
+			if( defined $info )
+			{
+				my @fields = map { $ds->get_field( $_) } @{$info->{meta_fields}};
+				$searchexp->add_field( \@fields, $info->{value}, $info->{match});
+				delete $args->{set};
+			}
+		}
+		if( defined $args->{set} )
+		{
 			my( $head , @tail ) = EPrints::OpenArchives::decode_setspec( $args->{set} );
 			my( $key , $value ) = split( /=/ , $head );
 			$value = pop @tail if( scalar @tail > 0 );
@@ -941,6 +952,21 @@ sub ListSets
 				"setName",
 				$name ) );
 		}
+	}
+	my $custom_sets = $session->get_repository->get_conf( "oai", "custom_sets");
+	foreach my $info (@{$custom_sets||[]})
+	{
+		my $set = $session->make_element( "set" );
+		$response->appendChild( $session->make_indent( 2 ) );
+		$response->appendChild( $set );
+		$set->appendChild( $session->render_data_element( 
+			4,
+			"setSpec",
+			$info->{spec} ) );
+		$set->appendChild( $session->render_data_element( 
+			4,
+			"setName",
+			$info->{name} ) );
 	}
 
 	my $f = $session->make_doc_fragment();

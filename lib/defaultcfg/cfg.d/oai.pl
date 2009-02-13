@@ -73,6 +73,12 @@ $oai->{sets} = [
 	{ id=>"types", allow_null=>0, fields=>"type" },
 ];
 
+# Custom sets allow you to create a specific search query related to a set
+# e.g. for the EU DRIVER conformance
+#$oai->{custom_sets} = [
+#	{ spec => "driver", name => "DRIVER", meta_fields => [ "full_text_status" ], value => "public" },
+#];
+
 # Filter OAI export. If you want to stop certain records being exported
 # you can add filters here. These work the same as for a search filter.
 
