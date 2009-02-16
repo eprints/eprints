@@ -169,7 +169,7 @@ sub delete
 {
 	my( $self, $fileobj ) = @_;
 
-	my $rc;
+	my $rc = 1;
 
 	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
