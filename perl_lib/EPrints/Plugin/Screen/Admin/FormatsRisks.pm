@@ -61,7 +61,7 @@ sub fetch_data
 		{
 			foreach my $file (@{($doc->get_value( "files" ))})
 			{
-				my $puid = $file->get_value( "pronom_uid" );
+				my $puid = $file->get_value( "pronomid" );
 				$puid = "" unless defined $puid;
 				push @{ $format_files->{$puid} }, $file->get_id;
 			}
@@ -346,19 +346,13 @@ sub get_format_risks_table {
 			if (!($pronom_error_message eq "")) {
 					$format_name = $format;
 			} else {
-				my $natxml = "http://www.nationalarchives.gov.uk/pronom/".$format.".xml";
-				my $doc;
-				eval {
-					$doc = EPrints::XML::parse_url($natxml);
-				};	
-				if ($@) {
+				my $pronom_data = $plugin->{session}->get_repository->get_dataset("pronom")->get_object($plugin->{session}, $format);
+				if (defined $pronom_data) {
+					$format_name = $pronom_data->get_value("name");
+					$format_version = $pronom_data->get_value("version");
+				} else {
 					$format_name = $format;
 					$pronom_error_message = "Format Classification Service Unavailable";
-				} else {
-					my $format_name_node = ($doc->getElementsByTagName( "FormatName" ))[0];
-					my $format_version_node = ($doc->getElementsByTagName( "FormatVersion" ))[0];
-					$format_name = EPrints::Utils::tree_to_utf8($format_name_node);
-					$format_version = EPrints::Utils::tree_to_utf8($format_version_node);
 				}
 			}
 		}
@@ -482,11 +476,12 @@ sub get_format_risks_table {
 		$hideall = $hideall . 'hide("'. $format.'_inner_row");' . "\n";
 		my $inner_column1 = $plugin->{session}->make_element(
 			"td",
-			width => "70%"
+			style => "width: 70%;",
+			valign => "top"
 			);
 		my $inner_column2 = $plugin->{session}->make_element(
 			"td",
-			width => "30%",
+			style => "width: 30%;",
 			valign => "top"
 			);
 		my $eprints_table = $plugin->get_eprints_files($format_eprints,$format);
@@ -563,9 +558,9 @@ sub get_eprints_files
 	my ( $plugin, $format_eprints, $format ) = @_;
 	
 	my $block = $plugin->{session}->make_element(
-		"div"
+		"div",
+		style=>"max-width: 500px; max-height: 400px; overflow: auto;"
 		);
-	
 	#my $eprint_ids = %{$format_eprints}->{$format};
 	#foreach my $eprint_id (keys %{$eprint_ids})
 	my @eprint_ids = keys %{$format_eprints->{$format}};
