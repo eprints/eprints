@@ -1,0 +1,124 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
+
+=head1 NAME
+
+ftpd - FTP Daemon
+
+=cut
+
+use strict;
+use warnings;
+
+#sub POE::Kernel::ASSERT_DEFAULT { 1 }
+#sub POE::Kernel::TRACE_DEFAULT { 1 }
+
+use Getopt::Long;
+use POE qw(Component::Server::FTP);
+use EPrints::Filesys;
+
+
+use EPrints;
+
+my $port = 4523;
+
+GetOptions(
+	"port=s" => \$port,
+	);
+
+my( $repoid ) = @ARGV;
+
+{
+	no warnings;
+#	*POE::Component::Server::FTP::_write_log = sub {
+#		print STDERR "\n\n".($_[ARG0]->{"msg"})."\n\n";
+#	};
+#	*POE::Component::Server::FTP::notify = sub { 1 };
+#	*POE::Component::Server::FTP::accept = sub {
+#		print STDERR "\n\naccept\n\n";
+#		CORE::exit();
+#	};
+#	*POE::Component::Server::FTP::_start = sub {
+#		die "_start!!!";
+#	};
+#	*POE::Kernel::loop_run = sub {
+#		die "loop_run!!!";
+#	};
+#	*POE::Kernel::loop_do_timeslice = sub {
+#		die "loop_do_timeslice";
+#	}
+}
+
+POE::Session->create(
+	inline_states => {
+		_start => sub {
+			my( $kernel, $heap ) = @_[KERNEL, HEAP];
+
+			my $session = EPrints::Session->new( 1, $repoid );
+			$heap->{session} = $session;
+
+			POE::Component::Server::FTP->spawn(
+				Alias => 'ftpd',
+				ListenPort => $port,
+				Domain => $session->get_repository->get_conf( "host" ),
+				Version => $session->get_repository->get_conf( "version" ),
+				AnonymousLogin => "deny",
+#	FilesystemClass => "Filesys::Virtual::Plain",
+#	FilesystemArgs => {
+#		'root_path' => '/',
+#		'cwd' => '/',
+#		'home_path' => '/home',
+#	},
+				FilesystemClass => "EPrints::Filesys",
+				FilesystemArgs => {
+					session => $session,
+				},
+				DownloadLimit => 0, # data rate in bits/second
+				UploadLimit => 0,   # data rate in bits/second
+				LimitScheme => "ip",
+				LogLevel => 4, # 4=debug, 3=less, 2=quiet, 1=silent
+				TimeOut => 120,
+				);
+			$kernel->post( ftpd => "register" );
+		},
+		_stop => sub {
+			my( $kernel, $heap ) = @_[KERNEL, HEAP];
+
+			$heap->{session}->terminate;
+		},
+		_default => sub {
+			my( $kernel, $heap, $event, $arg ) = @_[KERNEL, HEAP, ARG0, ARG1];
+
+			return 0 if( $event =~ m/^_/ );
+			if( ref($arg->[0]) eq "HASH" )
+			{
+				print STDERR "Unhandled event $event\n";
+			}
+			else
+			{
+				print STDERR "Unhandled event $event\n";
+			}
+			return 0;
+		},
+		ftpd_registered => sub {
+			my( $kernel, $heap ) = @_[KERNEL, HEAP];
+		},
+		ftpd_accept => sub {
+			my( $kernel, $heap, $data ) = @_[KERNEL, HEAP, ARG0];
+
+			my $peerip = $data->{peer_addr};
+
+			return 1;
+		},
+		ftpd_write_log => sub {
+			my( $kernel, $heap, $data ) = @_[KERNEL, HEAP, ARG0];
+
+			print STDERR "FTPD LOG: ".(defined($data->{msg}) ? $data->{msg} : "UNKNOWN")."\n";
+		},
+	},
+);
+
+print( "Commencing listening on port $port\n" );
+
+POE::Kernel->run();
+
+1;
