@@ -8049,3 +8049,6 @@ EPRINTS-3.1-beta-2
 2009-02-13 tdb
  * Added support for custom OAI sets, see #3271
 
+2009-02-17 tdb
+ * Added core support for cfg.d-supplied datasets
+

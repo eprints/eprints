@@ -107,7 +107,7 @@ use strict;
 
 # These are both used by the virtual datasets inbox, buffer etc.
 
-my $INFO = {
+our $INFO = {
 	upload_progress => {
 		sqlname => "upload_progress",
 		class => "EPrints::DataObj::UploadProgress",
@@ -141,7 +141,8 @@ my $INFO = {
 		class => "EPrints::DataObj::LoginTicket",
 	},
 	counter => {
-		sqlname => "counters"
+		sqlname => "counters",
+		virtual => 1,
 	},
 	user => {
 		sqlname => "user",
@@ -152,6 +153,7 @@ my $INFO = {
 	},
 	archive => {
 		sqlname => "eprint",
+		virtual => 1,
 		class => "EPrints::DataObj::EPrint",
 		confid => "eprint",
 		import => 1,
@@ -162,6 +164,7 @@ my $INFO = {
 	},
 	buffer => {
 		sqlname => "eprint",
+		virtual => 1,
 		class => "EPrints::DataObj::EPrint",
 		confid => "eprint",
 		import => 1,
@@ -172,6 +175,7 @@ my $INFO = {
 	},
 	inbox => {
 		sqlname => "eprint",
+		virtual => 1,
 		class => "EPrints::DataObj::EPrint",
 		confid => "eprint",
 		import => 1,
@@ -182,6 +186,7 @@ my $INFO = {
 	},
 	deletion => {
 		sqlname => "eprint",
+		virtual => 1,
 		class => "EPrints::DataObj::EPrint",
 		confid => "eprint",
 		import => 1,
@@ -934,7 +939,7 @@ into SQL (not counters which work a bit differently).
 
 sub get_sql_dataset_ids
 {
-	return( qw/ upload_progress file import metafield cachemap message loginticket eprint user document saved_search subject history access request / );
+	return grep { !$INFO->{$_}->{"virtual"} } keys %{$INFO};
 }
 
 ######################################################################
