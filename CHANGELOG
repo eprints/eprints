@@ -8051,4 +8051,5 @@ EPRINTS-3.1-beta-2
 
 2009-02-17 tdb
  * Added core support for cfg.d-supplied datasets
+ * Added an epadmin command to drop unused cache tables
 

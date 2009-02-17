@@ -24,6 +24,8 @@ Where I<command> is one of:
 
 =over 4
 
+=item cleanup_cachemaps
+
 =item config_core
 
 =item config_db
@@ -83,6 +85,10 @@ START HERE! This option will walk you through the tasks needed to create your re
 =item B<epadmin> test I<repository_id>
 
 A null operation which just checks your configuration files are OK and that you can connect to the database.
+
+=item B<epadmin> cleanup_cachemaps I<repository_id>
+
+Drop any orphaned cache tables.
 
 =item B<epadmin> config_core I<repository_id>
 
@@ -255,7 +261,8 @@ else
 {
 	my $repoid = $ARGV[1];
 	pod2usage(1) unless defined $repoid;
-	if( $action eq "config_core" ) { config_core( $repoid ); }
+	if( $action eq "cleanup_cachemaps" ) { cleanup_cachemaps( $repoid ); }
+	elsif( $action eq "config_core" ) { config_core( $repoid ); }
 	elsif( $action eq "config_db" ) { config_db( $repoid ); }
 	elsif( $action eq "create_db" ) { create_db( $repoid ); }
 	elsif( $action eq "create_user" ) { create_user( $repoid ); }
@@ -526,6 +533,23 @@ sub run_script
 	my $bin = $repo->get_conf( "bin_path" );
 
 	system( "$bin/$script", @opts );
+}
+
+sub cleanup_cachemaps
+{
+	my( $repoid ) = @_;
+
+	my $session = EPrints::Session->new( 1 , $repoid, $noise );
+	exit unless( defined $session );
+
+	my $c = $session->get_database->drop_orphan_cache_tables;
+
+	if( $c == 0 )
+	{
+		$session->get_repository->log( "No orphaned cache tables found" );
+	}
+
+	$session->terminate;
 }
 
 sub config_core

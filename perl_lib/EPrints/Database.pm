@@ -2420,6 +2420,33 @@ sub drop_old_caches
 	$sth->finish;
 }
 
+######################################################################
+=pod
+
+=item $c = $db->drop_orphan_cache_tables
+
+Drop tables called "cacheXXX" where XXX is an integer. Returns the number of tables dropped.
+
+=cut
+######################################################################
+
+sub drop_orphan_cache_tables
+{
+	my( $self ) = @_;
+
+	my $rc = 0;
+
+	foreach my $name ($self->get_tables)
+	{
+		next unless $name =~ /^cache(\d+)$/;
+		next if defined $self->get_cachemap( $1 );
+		$self->{session}->get_repository->log( "Dropping orphaned cache table [$name]" );
+		$self->drop_table( $name );
+		++$rc;
+	}
+
+	return $rc;
+}
 
 
 ######################################################################
