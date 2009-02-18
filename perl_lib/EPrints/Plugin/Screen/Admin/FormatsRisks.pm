@@ -8,7 +8,6 @@ my $hideall;
 my $unstable;
 my $risks_url;
 our ($classified, $hideall, $unstable, $risks_url);
-$unstable = 0;
 $classified = "true";
 
 sub new
@@ -50,24 +49,40 @@ sub fetch_data
 
 	my $session = $plugin->{session};
 
-	my $dataset = $session->get_repository->get_dataset( "eprint" );
+	my $dataset = $session->get_repository->get_dataset( "pronom" );
 
 	my $format_files = {};
 
 	$dataset->map( $session, sub {
-		my( $session, $dataset, $eprint ) = @_;
+		my( $session, $dataset, $pronom_formats ) = @_;
 		
-		foreach my $doc ($eprint->get_all_documents)
+		foreach my $pronom_format ($pronom_formats)
 		{
-			foreach my $file (@{($doc->get_value( "files" ))})
+			my $puid = $pronom_format->get_value( "pronomid" );
+			$puid = "" unless defined $puid;
+			if ($pronom_format->get_value("file_count") > 0) 
 			{
-				my $puid = $file->get_value( "pronomid" );
-				$puid = "" unless defined $puid;
-				push @{ $format_files->{$puid} }, $file->get_id;
+				$format_files->{$puid} = $pronom_format->get_value("file_count");
 			}
 		}
 	} );
 
+	my $dataset = $session->get_repository->get_dataset( "file" );
+	my $searchexp = EPrints::Search->new(
+                session => $session,
+                dataset => $dataset,
+                filters => [
+                        { meta_fields => [qw( datasetid )], value => "document" },
+                        { meta_fields => [qw( pronomid )], value => "", match => "EX" },
+                ],
+        );
+        my $list = $searchexp->perform_search;
+	my $count = $list->count;
+	if ($count > 0) {
+		print STDERR "Unclassified : " . $count . "\n";
+		$format_files->{"Unclassified"} = $count;
+	}
+	
 	return $format_files;
 }
 
@@ -116,17 +131,12 @@ sub render
 			"div",
 			align => "center"
 			);	
-	$unclassified->appendChild( $plugin->{session}->make_text( "You have unclassified objects in your repository, to classify these you may want to run the tools/update_pronom_uids script. If not installed this tool is availale via http://files.eprints.org" ));
-	my $risks_warning = $plugin->{session}->make_element(
-			"div",
-			align => "center"
-			);	
-	$risks_warning->appendChild( $plugin->{session}->make_text( "Risks analysis functionality is currently not available.\nThis feature is due to be made available by The National Archives (UK) in the near future.\nThis page will automatically pick up the data when this feature becomes available." ));
+	$unclassified->appendChild( $plugin->{session}->make_text( "You have unclassified objects in your repository, to classify these you may want to run the tools/update_pronom_puids script. If not installed this tool is availale via http://files.eprints.org" ));
 	my $risks_unstable = $plugin->{session}->make_element(
 			"div",
 			align => "center"
 			);	
-	$risks_unstable->appendChild( $plugin->{session}->make_text("This EPrints install is referencing a trial version of the risk analysis service. None of the risk scores are likely to be accurate and thus should not be used as the basis for a program of action." ));
+	$risks_unstable->appendChild( $plugin->{session}->make_text("This EPrints install may be referecing a trial version of the risk analysis service. If you feel this is incorrect please contact the system administrator." ));
 
 	my $br = $plugin->{session}->make_element(
 			"br"
@@ -145,48 +155,12 @@ sub render
 	my $wtr = $plugin->{session}->make_element( "tr" );
 	my $warning_width_limit = $plugin->{session}->make_element( "td", width => "620px", align=>"center" );
 
-	my $risk_xml = "http://www.eprints.org/services/pronom_risk.xml";
-	eval {
-		$doc = EPrints::XML::parse_url($risk_xml);
-	};
-	if ($@) {
-		$risks_url = "http://nationalarchives.gov.uk/pronom/preservationplanning.asmx";
-		my $risk_state_warning_div = $plugin->{session}->make_element(
-			"div"
-		);
-		$risk_state_warning_div->appendChild( $plugin->{session}->make_text("Risk Service Status Unavailable trying default url."));
+	
+	my $unstable = $session->get_repository->get_conf( "pronom_unstable" );	
+
+	if ($unstable eq 1) {
 		$warning = $plugin->{session}->render_message("warning",
-			$risk_state_warning_div
-		);
-		$warning_width_limit->appendChild($warning);
-		#$inner_panel->appendChild($unclassified);
-		$available = 1;
-	} else {
-		my $node; 
-		if ($unstable eq 1) {
-			$node = ($doc->getElementsByTagName( "risks_unstable" ))[0];
-		} else {
-			$node = ($doc->getElementsByTagName( "risks_stable" ))[0];
-		}
-		$available = ($node->getElementsByTagName( "available" ))[0];
-		$available = EPrints::Utils::tree_to_utf8($available);
-		if ($available eq 1) {
-			$risks_url = ($node->getElementsByTagName( "base_url" ))[0];
-			$risks_url = EPrints::Utils::tree_to_utf8($risks_url);
-		} else {
-			$risks_url = "";
-		}
-	}
-	if ($available eq 1) {
-		if ( $unstable eq 1 ) {
-			$warning = $plugin->{session}->render_message("warning",
-					$risks_unstable
-					);
-			$warning_width_limit->appendChild($warning);
-		}
-	} else {
-		$warning = $plugin->{session}->render_message("warning",
-				$risks_warning
+				$risks_unstable
 				);
 		$warning_width_limit->appendChild($warning);
 	}
@@ -224,10 +198,10 @@ sub get_format_risks_table {
 	my $orange = $plugin->{session}->make_element( "div", class=>"ep_msg_warning", id=>"orange" );
 	my $red = $plugin->{session}->make_element( "div", class=>"ep_msg_error", id=>"red" );
 	my $blue = $plugin->{session}->make_element( "div", class=>"ep_msg_other", id=>"blue" );
-	my $unclassified_orange = $plugin->{session}->make_element( "div", class=>"ep_msg_warning", id=>"unclassified_orange" );
+	#my $unclassified_orange = $plugin->{session}->make_element( "div", class=>"ep_msg_warning", id=>"unclassified_orange" );
 	my $green_content_div = $plugin->{session}->make_element( "div", class=>"ep_msg_message_content" );
 	my $orange_content_div = $plugin->{session}->make_element( "div", class=>"ep_msg_warning_content" );
-	my $unclassified_orange_content_div = $plugin->{session}->make_element( "div", class=>"ep_msg_warning_content" );
+	#my $unclassified_orange_content_div = $plugin->{session}->make_element( "div", class=>"ep_msg_warning_content" );
 	my $red_content_div = $plugin->{session}->make_element( "div", class=>"ep_msg_error_content" );
 	my $blue_content_div = $plugin->{session}->make_element( "div", class=>"ep_msg_other_content" );
 
@@ -243,16 +217,16 @@ sub get_format_risks_table {
 	my $heading_blue = $plugin->{session}->make_element( "h1" );
 	$heading_blue->appendChild( $plugin->{session}->make_text( " No Risk Scores Available ") );
 	$blue_content_div->appendChild( $heading_blue );
-	my $heading_unclassified_orange = $plugin->{session}->make_element( "h1" );
-	$heading_unclassified_orange->appendChild( $plugin->{session}->make_text( " Unclassified Objects ") );
-	$unclassified_orange_content_div->appendChild( $heading_unclassified_orange );
+	#my $heading_unclassified_orange = $plugin->{session}->make_element( "h1" );
+	#$heading_unclassified_orange->appendChild( $plugin->{session}->make_text( " Unclassified Objects ") );
+	#$unclassified_orange_content_div->appendChild( $heading_unclassified_orange );
 	
 #	$div->appendChild( $title_div );
 	my $green_count = 0;
 	my $orange_count = 0;
 	my $red_count = 0;
 	my $blue_count = 0;
-	my $unclassified_count = 0;
+	#my $unclassified_count = 0;
 
 
 	my $url = $risks_url;
@@ -263,74 +237,44 @@ sub get_format_risks_table {
 	
 	my $green_format_table = $plugin->{session}->make_element( "table", width => "100%");
 	my $orange_format_table = $plugin->{session}->make_element( "table", width => "100%");
-	my $unclassified_orange_format_table = $plugin->{session}->make_element( "table", width => "100%");
+	#my $unclassified_orange_format_table = $plugin->{session}->make_element( "table", width => "100%");
 	my $red_format_table = $plugin->{session}->make_element( "table", width => "100%");
 	my $blue_format_table = $plugin->{session}->make_element( "table", width => "100%");
 	
 	my $format_table = $blue_format_table;
 	
-
-	my $soap_error = "";
 	my $pronom_error_message = "";
-	foreach my $format (sort { $#{$files_by_format->{$b}} <=> $#{$files_by_format->{$a}} } keys %{$files_by_format})
+	foreach my $format (sort { $files_by_format->{$b} <=> $files_by_format->{$a} } keys %{$files_by_format})
 	{
-		my @SOAP_ERRORS = "";
-		use SOAP::Lite
-			on_fault => sub { my($soap, $res) = @_;
-				if( ref( $res ) ) {
-					chomp( my $err = $res->faultstring );
-					push( @SOAP_ERRORS, "SOAP FAULT: $err" );
-				}
-				else {
-					chomp( my $err = $soap->transport->status );
-					push( @SOAP_ERRORS, "TRANSPORT ERROR: $err" );
-				}
-				return SOAP::SOM->new;
-			};
 		my $color = "blue";
-		if (!($url eq "")) {	
-			my $soap = SOAP::Lite 
-				-> uri('http://pp.pronom.nationalarchives.gov.uk/getFormatRiskIn')
-				-> proxy($url)
-				#-> on_fault(sub { my($soap, $res) = @_;
-			#		die ref $res ? $res->faultstring : $soap->transport->status;
-			#	        return ref $res ? $res : new SOAP::SOM;
-			#        })
-				-> method (SOAP::Data->name('PUID' => \SOAP::Data->value( SOAP::Data->name('Value' => $format) ))->attr({xmlns => 'http://pp.pronom.nationalarchives.gov.uk'}) );
-	
-			my $result = $soap->result();
-			
-			foreach my $error (@SOAP_ERRORS) {
-				if ($soap_error eq "" && !($error eq "")) {
-					$soap_error = $error;
-				}
-			}
-		
-			if ($result < 1000 && $soap_error eq "") {
-				$format_table = $red_format_table;
-				$red_count = $red_count + 1;
-				$color = "red";
-			} elsif ($result > 999 && $result < 2000) {
-				$format_table = $orange_format_table;
-				$orange_count = $orange_count + 1;
-				$color = "orange";
-			} elsif ($result > 1999) {
-				$format_table = $green_format_table;
-				$green_count = $green_count + 1;
-				$color = "green";
-			} else {
-				$format_table = $blue_format_table;
-				$blue_count = $blue_count + 1;
-				$color = "blue";
-			}
+		my $pronom_data = $plugin->{session}->get_repository->get_dataset("pronom")->get_object($plugin->{session}, $format);
+		my $result = $pronom_data->get_value("risk_score");
+
+
+		my $high_risk_boundary = $plugin->{session}->get_repository->get_conf( "high_risk_boundary" );
+		my $medium_risk_boundary = $plugin->{session}->get_repository->get_conf( "medium_risk_boundary" );
+
+		print STDERR $format . " : ". $result . "\n";
+
+		if ($result <= $high_risk_boundary) {
+			$format_table = $red_format_table;
+			$red_count = $red_count + 1;
+			$color = "red";
+		} elsif ($result > $high_risk_boundary && $result <= $medium_risk_boundary) {
+			$format_table = $orange_format_table;
+			$orange_count = $orange_count + 1;
+			$color = "orange";
+		} elsif ($result > $medium_risk_boundary) {
+			$format_table = $green_format_table;
+			$green_count = $green_count + 1;
+			$color = "green";
 		} else {
 			$format_table = $blue_format_table;
 			$blue_count = $blue_count + 1;
 			$color = "blue";
 		}
 	
-		my $count = $#{$files_by_format->{$format}};
-		$count++;
+		my $count = $files_by_format->{$format};
 		if ($max_count < 1) {
 			$max_count = $count;
 		}
@@ -342,19 +286,11 @@ sub get_format_risks_table {
 			$format_name = "Not Classified";
 			$classified = "false";
 		} else {
-			$format_code = $format;
-			if (!($pronom_error_message eq "")) {
-					$format_name = $format;
-			} else {
-				my $pronom_data = $plugin->{session}->get_repository->get_dataset("pronom")->get_object($plugin->{session}, $format);
-				if (defined $pronom_data) {
-					$format_name = $pronom_data->get_value("name");
-					$format_version = $pronom_data->get_value("version");
-				} else {
-					$format_name = $format;
-					$pronom_error_message = "Format Classification Service Unavailable";
-				}
-			}
+			$format_name = $pronom_data->get_value("name");
+			$format_version = $pronom_data->get_value("version");
+		}
+		if ($format_name eq "") {
+			$format_name = $format;
 		}
 			
 		my $format_panel_tr = $plugin->{session}->make_element( 
@@ -393,8 +329,6 @@ sub get_format_risks_table {
 			border => 0,
 			alt => "MINUS"
 		);
-		$hideall = $hideall . 'hide("'.$format.'_minus");' . "\n";
-		#$pronom_output .= " [" . $format_code . "] ";
 		my $format_bar_width = ($count / $max_count) * $max_width;
 		if ($format_bar_width < 10) {
 			$format_bar_width = 10;
@@ -428,35 +362,21 @@ sub get_format_risks_table {
 		$format_count_bar_tr->appendChild( $format_count_bar_td2 ); 
 		$format_count_bar->appendChild( $format_count_bar_tr );
 		$format_details_td->appendChild ( $plugin->{session}->make_text( $pronom_output ) );
-		$format_details_td->appendChild ( $plus_button );
-		$format_details_td->appendChild ( $minus_button );
+		if ($result <= $medium_risk_boundary) 
+		{
+			$format_details_td->appendChild ( $plus_button );
+			$format_details_td->appendChild ( $minus_button );
+			$hideall = $hideall . 'hide("'.$format.'_minus");' . "\n";
+		}
 		$format_count_td->appendChild( $format_count_bar );
 		$format_panel_tr->appendChild( $format_details_td );
 		$format_panel_tr->appendChild( $format_count_td );
-		if ($format_name eq "Not Classified") {
-			$unclassified_orange_format_table->appendChild ( $format_panel_tr );
-			$unclassified_count = $unclassified_count + 1;
-		} else {
+		#if ($format_name eq "Not Classified") {
+		#	$unclassified_orange_format_table->appendChild ( $format_panel_tr );
+		#	$unclassified_count = $unclassified_count + 1;
+		#} else {
 			$format_table->appendChild( $format_panel_tr );
-		}
-
-		my $format_users = {};
-		my $format_eprints = {};
-		foreach my $fileid (@{$files_by_format->{$format}}) {
-			my $file = EPrints::DataObj::File->new(
-				$plugin->{session},
-				$fileid
-			);
-			my $document = $file->get_parent();
-			my $eprint = $document->get_parent();
-			my $eprint_id = $eprint->get_value( "eprintid" );
-			my $user = $eprint->get_user();
-			my $user_id = $eprint->get_value( "userid" );
-			push(@{$format_eprints->{$format}->{$eprint_id}},$fileid);
-			push(@{$format_users->{$format}->{$user_id}},$fileid);
-		}
-
-		my $table = $plugin->get_user_files($format_users,$format);
+		#}
 		
 		my $other_row = $plugin->{session}->make_element(
 			"tr"
@@ -484,20 +404,54 @@ sub get_format_risks_table {
 			style => "width: 30%;",
 			valign => "top"
 			);
-		my $eprints_table = $plugin->get_eprints_files($format_eprints,$format);
-		$inner_column1->appendChild ( $eprints_table );
-		$inner_column2->appendChild ( $table );
+
+		my $format_users = {};
+		my $format_eprints = {};
+		if ($result <= $medium_risk_boundary)
+		{
+			my $search_format;
+			my $dataset = $plugin->{session}->get_repository->get_dataset( "file" );
+			if ($format eq "Unclassified") {
+				$classified = "false";
+				$search_format = "";
+			} else {
+				$search_format = $format;
+			}
+			my $searchexp = EPrints::Search->new(
+				session => $plugin->{session},
+				dataset => $dataset,
+				filters => [
+				{ meta_fields => [qw( datasetid )], value => "document" },
+				{ meta_fields => [qw( pronomid )], value => "$search_format", match => "EX" },
+				],
+				);
+			my $list = $searchexp->perform_search;
+			$list->map( sub { 
+					my $file = $_[2];	
+					my $fileid = $file->get_id;
+					my $document = $file->get_parent();
+					my $eprint = $document->get_parent();
+					my $eprint_id = $eprint->get_value( "eprintid" );
+					my $user = $eprint->get_user();
+					my $user_id = $eprint->get_value( "userid" );
+					push(@{$format_eprints->{$format}->{$eprint_id}},$fileid);
+					push(@{$format_users->{$format}->{$user_id}},$fileid);
+			} );
+			my $table = $plugin->get_user_files($format_users,$format);
+			my $eprints_table = $plugin->get_eprints_files($format_eprints,$format);
+			$inner_column1->appendChild ( $eprints_table );
+			$inner_column2->appendChild ( $table );
+		}
 		$inner_row->appendChild( $inner_column1 );
 		$inner_row->appendChild( $inner_column2 );
 		$inner_table->appendChild( $inner_row );
 		$other_column->appendChild( $inner_table );
 		$other_row->appendChild( $other_column );
-		if ($format_name eq "Not Classified") {
-			$unclassified_orange_format_table->appendChild ( $other_row );
-		} else {
+		#if ($format_name eq "Not Classified") {
+		#	$unclassified_orange_format_table->appendChild ( $other_row );
+		#} else {
 			$format_table->appendChild( $other_row );
-		}
-
+		#}
 	}
 	my $ret = $plugin->{session}->make_doc_fragment;
 
@@ -515,24 +469,11 @@ sub get_format_risks_table {
 		
 	}
 
-	if (!($soap_error eq "")) {
-		my $soap_error_div = $plugin->{session}->make_element(
-			"div",
-			align => "center"
-			);	
-		$soap_error_div->appendChild( $plugin->{session}->make_text("Risks Analysis Error:" . $soap_error));
-
-		my $warning = $plugin->{session}->render_message("warning",
-			$soap_error_div
-		);
-		$ret->appendChild($warning);
-	}
-	#$ret->appendChild($format_table);
 	$green_content_div->appendChild($green_format_table);
 	$orange_content_div->appendChild($orange_format_table);
 	$red_content_div->appendChild($red_format_table);
 	$blue_content_div->appendChild($blue_format_table);
-	$unclassified_orange_content_div->appendChild($unclassified_orange_format_table);
+	#$unclassified_orange_content_div->appendChild($unclassified_orange_format_table);
 	if ($green_count > 0 || $orange_count > 0 || $red_count > 0) {
 		$green->appendChild( $green_content_div );
 		$orange->appendChild( $orange_content_div );
@@ -541,10 +482,10 @@ sub get_format_risks_table {
 		$ret->appendChild($orange);
 		$ret->appendChild($green);
 	}
-	if ($unclassified_count > 0) {
-		$unclassified_orange->appendChild( $unclassified_orange_content_div );
-		$ret->appendChild($unclassified_orange);
-	}
+	#if ($unclassified_count > 0) {
+	#	$unclassified_orange->appendChild( $unclassified_orange_content_div );
+	#	$ret->appendChild($unclassified_orange);
+	#}
 	if ($blue_count > 0) {
 		$blue->appendChild( $blue_content_div );
 		$ret->appendChild($blue);
@@ -671,6 +612,7 @@ sub get_eprints_files
 sub get_user_files 
 {
 	my ( $plugin, $format_users, $format ) = @_;
+
 	
 	my $user_format_count_table = $plugin->{session}->make_element(
 			"table",
