@@ -67,7 +67,7 @@ sub fetch_data
 		}
 	} );
 
-	my $dataset = $session->get_repository->get_dataset( "file" );
+	$dataset = $session->get_repository->get_dataset( "file" );
 	my $searchexp = EPrints::Search->new(
                 session => $session,
                 dataset => $dataset,
