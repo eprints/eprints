@@ -27,27 +27,6 @@ GetOptions(
 
 my( $repoid ) = @ARGV;
 
-{
-	no warnings;
-#	*POE::Component::Server::FTP::_write_log = sub {
-#		print STDERR "\n\n".($_[ARG0]->{"msg"})."\n\n";
-#	};
-#	*POE::Component::Server::FTP::notify = sub { 1 };
-#	*POE::Component::Server::FTP::accept = sub {
-#		print STDERR "\n\naccept\n\n";
-#		CORE::exit();
-#	};
-#	*POE::Component::Server::FTP::_start = sub {
-#		die "_start!!!";
-#	};
-#	*POE::Kernel::loop_run = sub {
-#		die "loop_run!!!";
-#	};
-#	*POE::Kernel::loop_do_timeslice = sub {
-#		die "loop_do_timeslice";
-#	}
-}
-
 POE::Session->create(
 	inline_states => {
 		_start => sub {
@@ -112,7 +91,21 @@ POE::Session->create(
 		ftpd_write_log => sub {
 			my( $kernel, $heap, $data ) = @_[KERNEL, HEAP, ARG0];
 
-			print STDERR "FTPD LOG: ".(defined($data->{msg}) ? $data->{msg} : "UNKNOWN")."\n";
+			#print STDERR "FTPD LOG: ".(defined($data->{msg}) ? $data->{msg} : "UNKNOWN")."\n";
+		},
+		ftpd_login => sub {
+		},
+		ftpd_connected => sub {
+		},
+		ftpd_disconnected => sub {
+		},
+		ftpd_dcon_create => sub {
+		},
+		ftpd_dcon_connected => sub {
+		},
+		ftpd_dcon_destroy => sub {
+		},
+		ftpd_bps_stats => sub {
 		},
 	},
 );

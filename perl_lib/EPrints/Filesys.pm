@@ -48,7 +48,8 @@ our @FILESYS = (
 		can_delete => sub { 0 },
 		exists => sub { 1 },
 		list => sub { qw() },
-		write => \&write_new_eprint,
+		open_write => \&open_write_eprint,
+		close_write => \&close_write_file,
 	},
 	qr{/inbox/([^/]+)} => {
 		is_dir => sub { 1 },
@@ -72,7 +73,8 @@ our @FILESYS = (
 		can_delete => sub { 0 },
 		exists => sub { 1 },
 		list => sub { qw() },
-		write => \&write_new_document,
+		open_write => \&open_write_document,
+		close_write => \&close_write_file,
 	},
 	qr{/inbox/([^/]+)/(\d+)} => {
 		is_dir => sub { 1 },
@@ -88,12 +90,12 @@ our @FILESYS = (
 		can_delete => sub { 1 },
 		exists => \&check_file,
 		open => \&open_file,
-		write => \&write_new_file,
+		open_write => \&open_write_file,
+		close_write => \&close_write_file,
 		delete => \&delete_file,
 	},
 );
 
-# This class global is used to store writing state
 our %WRITE_SETTINGS;
 
 sub new
@@ -143,6 +145,31 @@ sub _dir_entry
 			((gmtime())[5]+1900 eq $yr) ? substr($time,0,5) : $yr,
 			_escape_filename($name)
 		);
+}
+
+sub _sanitise_filename
+{
+	my( $self, $path ) = @_;
+
+	my @dir;
+	for($self->_split_path( $path ))
+	{
+		if( $_ eq ".." )
+		{
+			pop @dir;
+		}
+		elsif( $_ eq "." or $_ eq "" )
+		{
+		}
+		else
+		{
+			push @dir, $_;
+		}
+	}
+
+	my $filename = pop @dir;
+
+	return( $self->_join_path( @dir ), $filename );
 }
 
 sub _split_path
@@ -198,13 +225,11 @@ sub _get_handler
 	{
 		if( $path =~ m/^$FILESYS[$i]$/ )
 		{
-print STDERR "$path == $FILESYS[$i]\n";
 			$handler = $FILESYS[$i+1];
 			$args = [$1,$2,$3,$4,$5,$6,$7,$8,$9];
 			last;
 		}
 	}
-print STDERR "No matching handler for $path\n" unless defined $handler;
 
 	return( $handler, $args );
 }
@@ -241,7 +266,6 @@ sub cwd
 
 	if( 2 == @_ )
 	{
-print STDERR "CWD($cwd)\n";
 		$self->chdir( $cwd );
 	}
 
@@ -316,8 +340,6 @@ sub chdir
 	return 0 unless defined $self->{current_user};
 
 	return 1 if !defined $path or $path !~ /\S/;
-
-print STDERR "CHDIR($path)\n";
 
 	$path = $self->_resolve_path( $path );
 
@@ -446,22 +468,19 @@ sub open_write
 {
 	my( $self, $path, $append ) = @_;
 
-print STDERR "WRITE($path)\n";
-
 	my( $handler, $args ) = $self->_get_handler( $path );
 	return 0 unless defined $handler;
 	return 0 unless &{$handler->{can_write}}( $self, $args );
 
-	my $tmpfile = File::Temp->new();
-	binmode($tmpfile);
+	my $fh = &{$handler->{open_write}}( $self, $args, $append );
 
-	$WRITE_SETTINGS{$tmpfile} = {
-		handler => $handler->{write},
+	$WRITE_SETTINGS{$fh} = {
+		handler => $handler,
 		args => $args,
 		append => $append,
 	};
 
-	return $tmpfile;
+	return $fh;
 }
 
 =item $filesys->close_write( fh )
@@ -470,15 +489,15 @@ print STDERR "WRITE($path)\n";
 
 sub close_write
 {
-	my( $self, $tmpfile ) = @_;
+	my( $self, $fh ) = @_;
 
-	my $settings = delete $WRITE_SETTINGS{$tmpfile};
+	my $settings = delete $WRITE_SETTINGS{$fh};
 
-	&{$settings->{handler}}(
+	&{$settings->{handler}->{close_write}}(
 		$self,
 		$settings->{args},
 		$settings->{append},
-		$tmpfile
+		$fh
 	);
 }
 
@@ -700,7 +719,7 @@ sub open_file
 	return $tmpfile;
 }
 
-sub write_new_eprint
+sub open_write_eprint
 {
 	my( $self, $args, $append, $tmpfile ) = @_;
 
@@ -719,26 +738,23 @@ sub write_new_eprint
 		$session->get_repository->get_dataset( "eprint" )
 		);
 
-	my $ok = $self->write_new_document(
-			[ $eprint->get_id, $filename ],
-			$append,
-			$tmpfile
-		);
+	@$args = ( $eprint->get_id, $args->[0] );
 
-	unless( $ok )
+	my $fh = $self->open_write_document( $args, $append );
+	unless( defined $fh )
 	{
 		$eprint->remove;
-		return 0;
+		return undef;
 	}
 
 	$eprint->commit();
 
-	return 1;
+	return $fh;
 }
 
-sub write_new_document
+sub open_write_document
 {
-	my( $self, $args, $append, $tmpfile ) = @_;
+	my( $self, $args, $append ) = @_;
 
 	my( $eprintid, $filename ) = @$args;
 	($eprintid) = split / /, $eprintid, 2;
@@ -760,13 +776,11 @@ sub write_new_document
 		$session->get_repository->get_dataset( "document" )
 		);
 
-	my $ok = $self->write_new_file(
-		[ $eprintid, $doc->get_value( "pos" ), $filename ],
-		$append,
-		$tmpfile
-		);
 
-	unless( $ok )
+	@$args = ( $args->[0], $doc->get_value( "pos" ), $args->[1] );
+
+	my $fh = $self->open_write_file( $args, $append );
+	unless( defined $fh )
 	{
 		$doc->remove();
 		return 0;
@@ -774,10 +788,40 @@ sub write_new_document
 
 	$doc->commit();
 	
-	return 1;
+	return $fh;
 }
 
-sub write_new_file
+sub open_write_file
+{
+	my( $self, $args, $append ) = @_;
+
+	my $tmpfile = File::Temp->new();
+
+	my( $eprintid, $position, $filename ) = @$args;
+	($eprintid) = split / /, $eprintid, 2;
+	$filename = _unescape_filename( $filename );
+
+	my $doc = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
+		$self->{session},
+		$eprintid,
+		$position,
+		);
+
+	return unless defined $doc;
+
+	if( $append )
+	{
+		my $file = $doc->get_stored_file( $filename );
+		if( defined $file )
+		{
+			$file->write_copy_fh( $tmpfile );
+		}
+	}
+
+	return $tmpfile;
+}
+
+sub close_write_file
 {
 	my( $self, $args, $append, $tmpfile ) = @_;
 
@@ -792,9 +836,7 @@ sub write_new_file
 		);
 
 	CORE::seek($tmpfile,0,0);
-	$doc->upload( $tmpfile, $filename, 0, -s $tmpfile );
-
-	return 1;
+	return $doc->upload( $tmpfile, $filename, 0, -s $tmpfile );
 }
 
 sub delete_eprint
