@@ -15,39 +15,50 @@ use warnings;
 
 use Carp;
 use Filesys::Virtual;
+use Filesys::Virtual::Plain;
 use Time::Local;
+use Fcntl ':mode';
+use constant DEBUG => 0;
 
 our @ISA = qw( Filesys::Virtual );
 
 # Here's the EPrints virtual file system
-our @FILESYS = (
-	qw{/} => {
+our @ROOT_FILESYS = (
+	qr{/} => {
 		is_dir => sub { 1 },
 		can_write => sub { 0 },
 		can_delete => sub { 0 },
 		exists => sub { 1 },
-		list => sub { $_[0]->_dir_entry( "inbox", "drwxr-xr-x", 0, time() ) },
+		size => sub { 4096 },
+		modtime => sub { time() },
+		list => \&list_root,
 	},
 	qr{/inbox} => {
 		is_dir => sub { 1 },
 		can_write => sub { 0 },
 		can_delete => sub { 0 },
 		exists => sub { 1 },
+		size => sub { 4096 },
+		modtime => sub { time() },
 		list => \&list_inbox_eprints,
 	},
-	qw{/inbox/incoming} => {
+);
+
+our @USER_FILESYS = (
+	qr{/inbox/incoming} => {
 		is_dir => sub { 1 },
 		can_write => sub { 0 },
 		can_delete => sub { 0 },
 		exists => sub { 1 },
+		size => sub { 4096 },
+		modtime => sub { time() },
 		list => sub { qw() },
 	},
-	qw{/inbox/incoming/([^/]+)} => {
+	qr{/inbox/incoming/([^/]+)} => {
 		is_dir => sub { 0 },
 		can_write => sub { 1 },
 		can_delete => sub { 0 },
-		exists => sub { 1 },
-		list => sub { qw() },
+		exists => sub { 0 },
 		open_write => \&open_write_eprint,
 		close_write => \&close_write_file,
 	},
@@ -55,24 +66,27 @@ our @FILESYS = (
 		is_dir => sub { 1 },
 		can_write => sub { 1 },
 		can_delete => sub { 1 },
-		exists => \&check_eprint,
+		exists => sub { defined &retrieve_eprint },
+		size => sub { 4096 },
+		modtime => sub { $_[0]->get_object_mtime( &retrieve_eprint ) },
 		list => \&list_documents,
 		delete => \&delete_eprint,
 	},
-	qw{/inbox/([^/]+)/incoming} => {
+	qr{/inbox/([^/]+)/incoming} => {
 		is_dir => sub { 1 },
 		can_write => sub { 0 },
 		can_delete => sub { 1 },
 		exists => sub { 1 },
+		size => sub { 4096 },
+		modtime => sub { time() },
 		list => sub { qw() },
 		delete => sub { 1 }, # fake delete
 	},
-	qw{/inbox/([^/]+)/incoming/([^/]+)} => {
+	qr{/inbox/([^/]+)/incoming/([^/]+)} => {
 		is_dir => sub { 0 },
 		can_write => sub { 1 },
 		can_delete => sub { 0 },
-		exists => sub { 1 },
-		list => sub { qw() },
+		exists => sub { 0 },
 		open_write => \&open_write_document,
 		close_write => \&close_write_file,
 	},
@@ -80,7 +94,9 @@ our @FILESYS = (
 		is_dir => sub { 1 },
 		can_write => sub { 0 },
 		can_delete => sub { 1 },
-		exists => \&check_document,
+		exists => sub { defined &retrieve_document },
+		size => sub { 4096 },
+		modtime => sub { $_[0]->get_object_mtime( &retrieve_document ) },
 		list => \&list_document_contents,
 		delete => \&delete_document,
 	},
@@ -88,26 +104,69 @@ our @FILESYS = (
 		is_dir => sub { 0 },
 		can_write => sub { 1 },
 		can_delete => sub { 1 },
-		exists => \&check_file,
-		open => \&open_file,
+		exists => sub { defined &retrieve_file },
+		size => sub { $_[0]->get_object_size( &retrieve_file ) },
+		modtime => sub { $_[0]->get_object_mtime( &retrieve_file ) },
+		open_read => \&open_file,
 		open_write => \&open_write_file,
 		close_write => \&close_write_file,
 		delete => \&delete_file,
 	},
 );
 
+our @TEST_FILESYS = (
+	qr{/test} => {
+		is_dir => sub { 1 },
+		can_write => sub { 1 },
+		can_delete => sub { 1 },
+		exists => sub { 1 },
+		size => sub { $_[0]->{test}->size( "/" ) },
+		modtime => sub { $_[0]->{test}->modtime( "/" ) },
+		list => sub { $_[0]->{test}->list( "/" ) },
+	},
+	qr{/test(/.+)} => {
+		is_dir => sub { $_[0]->{test}->test( "d", $_[1]->[0] ) },
+		can_write => sub { 1 },
+		can_delete => sub { 1 },
+		exists => sub { $_[0]->{test}->test( "e", $_[1]->[0] ) },
+		size => sub { $_[0]->{test}->size( $_[1]->[0] ) },
+		modtime => sub { $_[0]->{test}->modtime( $_[1]->[0] ) },
+		list => sub { $_[0]->{test}->list( $_[1]->[0] ) },
+		mkdir => sub { $_[0]->{test}->mkdir( $_[1]->[0] ) },
+		open_read => sub { $_[0]->{test}->open_read( $_[1]->[0] ) },
+		close_read => sub { $_[0]->{test}->close_read( $_[2] ) },
+		open_write => sub { $_[0]->{test}->open_write( $_[1]->[0], $_[2] ) },
+		close_write => sub { $_[0]->{test}->close_write( $_[3] ) },
+		delete => sub { $_[0]->{test}->rmdir( $_[1]->[0] ) },
+	},
+);
+
+our %READ_SETTINGS;
 our %WRITE_SETTINGS;
 
 sub new
 {
 	my( $class, $self ) = @_;
 
+	$self = bless $self, $class;
+
 	Carp::croak "Requires session argument" unless $self->{session};
 
+	$self->{root_path} ||= "";
 	$self->{cwd} = [];
-	$self->{current_user} = undef;
+	$self->{filesys} = [];
 
-	$self = bless $self, $class;
+	push @{$self->{filesys}}, @ROOT_FILESYS;
+
+	$self->{test} = Filesys::Virtual::Plain->new({
+		root_path => "/tmp",
+		});
+	push @{$self->{filesys}}, @TEST_FILESYS;
+
+	if( defined $self->{current_user} )
+	{
+		$self->register_user( $self->{current_user} );
+	}
 
 	return $self;
 }
@@ -128,7 +187,7 @@ sub _unescape_filename
 
 sub _dir_entry
 {
-	my( $self, $name, $mode, $size, $mtime ) = @_;
+	my( $self, $name, $mode, $owner, $group, $size, $mtime ) = @_;
 
 	my( $day, $mm, $dd, $time, $yr ) = (gmtime($mtime) =~
 		m/(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/ );
@@ -137,8 +196,8 @@ sub _dir_entry
 			substr($mode,0,1),
 			substr($mode,1),
 			2, # nlinks
-			$self->{current_user}->get_value( "username" ),
-			$self->{current_user}->get_value( "usertype" ),
+			$owner,
+			$group,
 			$size,
 			$mm,
 			$dd,
@@ -190,6 +249,8 @@ sub _resolve_path
 
 	return $self->cwd if not defined $path or $path !~ /\S/;
 
+	$path =~ s/^$self->{root_path}//;
+
 	my @dir;
 	if( $path !~ m{^/} )
 	{
@@ -219,13 +280,17 @@ sub _get_handler
 
 	$path = $self->_resolve_path( $path );
 
+print STDERR "_GET_HANDLER($path)\n" if DEBUG;
+
 	my( $handler, $args );
 
-	for(my $i = 0; $i < @FILESYS; $i+=2)
+	for(my $i = 0; $i < @{$self->{filesys}}; $i+=2)
 	{
-		if( $path =~ m/^$FILESYS[$i]$/ )
+		my $re = $self->{filesys}->[$i];
+		if( $path =~ m/^$re$/ )
 		{
-			$handler = $FILESYS[$i+1];
+print STDERR "\tMATCHES($re)\n" if DEBUG;
+			$handler = $self->{filesys}->[$i+1];
 			$args = [$1,$2,$3,$4,$5,$6,$7,$8,$9];
 			last;
 		}
@@ -233,6 +298,11 @@ sub _get_handler
 
 	return( $handler, $args );
 }
+
+=head2 Virtual::Filesys Methods
+
+=cut
+
 
 =item $filesys->login( USERNAME, PASSWORD [, BECOME ] )
 
@@ -249,7 +319,9 @@ sub login
 		return 0;
 	}
 
-	$self->{current_user} = EPrints::DataObj::User::user_with_username( $self->{session}, $username );
+	my $user = EPrints::DataObj::User::user_with_username( $self->{session}, $username );
+
+	$self->register_user( $user );
 
 	return 1;
 }
@@ -282,9 +354,9 @@ sub chmod
 {
 }
 
-=item $filesys->modtime
+=item $filesys->modtime( PATH )
 
-Unimplemented.
+Returns the modification time of the file in seconds since Unix epoch.
 
 =cut
 
@@ -292,12 +364,16 @@ sub modtime
 {
 	my( $self, $path ) = @_;
 
-	return( 1, "000000000000" ); # 2-digit year?
+	my( $handler, $args ) = $self->_get_handler( $path );
+	return unless defined $handler;
+	return unless &{$handler->{exists}}( $self, $args );
+
+	return &{$handler->{modtime}}( $self, $args );
 }
 
-=item $filesys->size
+=item $filesys->size( PATH )
 
-Unimplemented.
+Returns the size of PATH in bytes.
 
 =cut
 
@@ -305,7 +381,11 @@ sub size
 {
 	my( $self, $path ) = @_;
 
-	return 0;
+	my( $handler, $args ) = $self->_get_handler( $path );
+	return unless defined $handler;
+	return unless &{$handler->{exists}}( $self, $args );
+
+	return &{$handler->{size}}( $self, $args );
 }
 
 =item $filesys->delete( PATH )
@@ -337,8 +417,6 @@ sub chdir
 {
 	my( $self, $path ) = @_;
 
-	return 0 unless defined $self->{current_user};
-
 	return 1 if !defined $path or $path !~ /\S/;
 
 	$path = $self->_resolve_path( $path );
@@ -354,14 +432,20 @@ sub chdir
 	return 1;
 }
 
-=item $filesys->mkdir
+=item $filesys->mkdir( PATH )
 
-Unimplemented.
+Make a path of PATH.
 
 =cut
 
 sub mkdir
 {
+	my( $self, $path ) = @_;
+
+	my( $handler, $args ) = $self->_get_handler( $path );
+	return 0 unless defined $handler;
+
+	return &{$handler->{mkdir}}( $self, $args );
 }
 
 =item $filesys->rmdir( PATH )
@@ -397,7 +481,7 @@ sub list
 	return () unless &{$handler->{is_dir}}( $self, $args );
 	return () unless &{$handler->{exists}}( $self, $args );
 
-	return &{$handler->{list}}( $self, $args );
+	return &{$handler->{list}}( $self, $args, sub { $_[0] } );
 }
 
 =item $filesys->list_details( [ PATH ] )
@@ -408,7 +492,14 @@ List items contained in CWD + PATH, with full detail.
 
 sub list_details
 {
-	return &list( @_ );
+	my( $self, $path ) = @_;
+
+	my( $handler, $args ) = $self->_get_handler( $path );
+	return () unless defined $handler;
+	return () unless &{$handler->{is_dir}}( $self, $args );
+	return () unless &{$handler->{exists}}( $self, $args );
+
+	return &{$handler->{list}}( $self, $args, sub { $self->_dir_entry( @_ ) } );
 }
 
 =item $filesys->stat
@@ -419,16 +510,81 @@ Unimplemented.
 
 sub stat
 {
+	my( $self, $path ) = @_;
+
+print STDERR "STAT($path)\n" if DEBUG;
+
+	my( $handler, $args ) = $self->_get_handler( $path );
+	return () unless defined $handler;
+	return () unless &{$handler->{exists}}( $self, $args );
+
+	# fake mode
+	my $mode = 0644;
+	if( &{$handler->{is_dir}}( $self, $args ) )
+	{
+		$mode |= S_IFDIR;
+		$mode |= 0111;
+	}
+	else
+	{
+		$mode |= S_IFREG;
+	}
+
+	my $size = &{$handler->{size}}( $self, $args );
+	my $mtime = &{$handler->{modtime}}( $self, $args );
+
+	my @stat = (
+		0, #device
+		0, #inode
+		$mode, #mode
+		0, #nlink
+		0, #uid
+		0, #gid,
+		0, #rdev
+		$size, #size
+		$mtime, #atime
+		$mtime, #mtime
+		0, #ctime
+		0, #blksize
+		0 #blocks
+		);
+
+	return @stat;
 }
 
-=item $filesys->test
+=item $filesys->test( TEST, PATH )
 
-Unimplemented.
+Returns where TEST is true of PATH, where TEST is a file test.
 
 =cut
 
 sub test
 {
+	my( $self, $test, $path ) = @_;
+
+print STDERR "TEST($test,$path)\n" if DEBUG;
+
+	my( $handler, $args ) = $self->_get_handler( $path );
+	return 0 unless defined $handler;
+	return 0 unless &{$handler->{exists}}( $self, $args );
+
+	if( $test eq "r" or $test eq "e" )
+	{
+		return 1; # exists
+	}
+	elsif( $test eq "f" )
+	{
+		return !&{$handler->{is_dir}}( $self, $args );
+	}
+	elsif( $test eq "d" )
+	{
+		return &{$handler->{is_dir}}( $self, $args );
+	}
+	else
+	{
+		warn "Unsupported test case '$test' on path '$path'";
+		return 0;
+	}
 }
 
 =item $filesys->open_read( PATH, [ opts? ] )
@@ -446,7 +602,14 @@ sub open_read
 	return 0 unless !&{$handler->{is_dir}}( $self, $args );
 	return 0 unless &{$handler->{exists}}( $self, $args );
 
-	return &{$handler->{open}}( $self, $args );
+	my $fh = &{$handler->{open_read}}( $self, $args );
+
+	$READ_SETTINGS{$fh} = {
+		handler => $handler,
+		args => $args
+	};
+
+	return $fh;
 }
 
 =item $filesys->close_read( fh )
@@ -456,6 +619,16 @@ sub open_read
 sub close_read
 {
 	my( $self, $fh ) = @_;
+
+	my $settings = delete $READ_SETTINGS{$fh};
+
+	return unless defined $settings->{handler}->{close_read};
+
+	&{$settings->{handler}->{close_read}}(
+		$self,
+		$settings->{args},
+		$fh
+	);
 }
 
 =item $filesys->open_write( PATH [, APPEND ] )
@@ -525,9 +698,59 @@ sub utime
 #    Methods below are file system location-specific
 ###
 
+sub list_root
+{
+	my( $self, $args, $f ) = @_;
+
+	my @entries;
+	push @entries, &$f(
+		"inbox",
+		"drwxr-xr-x",
+		"root",
+		"root",
+		0,
+		time() );
+	push @entries, &$f(
+		"test",
+		"drwxr-xr-x",
+		"root",
+		"root",
+		0,
+		time() );
+
+	return @entries;
+};
+
+sub register_user
+{
+	my( $self, $user ) = @_;
+
+	$self->{current_user} = $user;
+
+	push @{$self->{filesys}}, @USER_FILESYS;
+}
+
+sub get_object_size
+{
+	my( $self, $object ) = @_;
+
+	return 0 unless defined $object;
+
+	if( $object->isa( "EPrints::DataObj::File" ) )
+	{
+		return $object->get_value( "filesize" );
+	}
+	else
+	{
+		return 4096; # directory
+	}
+}
+
 sub get_object_mtime
 {
 	my( $self, $object ) = @_;
+
+	return 0 unless defined $object;
 
 	my $field = $object->get_dataset->get_datestamp_field();
 
@@ -542,9 +765,9 @@ sub get_object_mtime
 
 sub list_inbox_eprints
 {
-	my( $self, $args ) = @_;
+	my( $self, $args, $f ) = @_;
 
-	my $user = $self->{current_user};
+	my $user = $self->{current_user} or return ();
 
 	my $dataset = $self->{session}->get_repository->get_dataset( "inbox" );
 
@@ -564,9 +787,11 @@ sub list_inbox_eprints
 
 		my $citation = $eprint->render_description();
 
-		push @dirs, $self->_dir_entry(
+		push @dirs, &$f(
 			$eprint->get_id . " " . EPrints::Utils::tree_to_utf8( $citation ),
 			"drwxr-xr-x", # mode
+			$user->get_value( "username" ),
+			$user->get_value( "usertype" ),
 			0, # size
 			$self->get_object_mtime( $eprint )
 			);
@@ -576,9 +801,11 @@ sub list_inbox_eprints
 
 	$list->dispose;
 
-	push @dirs, $self->_dir_entry(
+	push @dirs, &$f(
 			"incoming",
 			"drwxr-xr-x",
+			$user->get_value( "username" ),
+			$user->get_value( "usertype" ),
 			0, # size
 			time()
 		);
@@ -586,7 +813,7 @@ sub list_inbox_eprints
 	return @dirs;
 }
 
-sub check_eprint
+sub retrieve_eprint
 {
 	my( $self, $args ) = @_;
 
@@ -597,35 +824,34 @@ sub check_eprint
 	
 	my $eprint = $dataset->get_object( $self->{session}, $eprintid );
 
-	return defined $eprint;
+	return $eprint;
 }
 
 sub list_documents
 {
-	my( $self, $args ) = @_;
+	my( $self, $args, $f ) = @_;
 
-	my( $eprintid ) = @$args;
-	($eprintid) = split / /, $eprintid, 2;
+	my $eprint = $self->retrieve_eprint( $args ) or return ();
 
 	my $user = $self->{current_user};
-
-	my $dataset = $self->{session}->get_repository->get_dataset( "inbox" );
-	
-	my $eprint = $dataset->get_object( $self->{session}, $eprintid );
 
 	my @dirs;
 	for($eprint->get_all_documents)
 	{
-		push @dirs, $self->_dir_entry(
+		push @dirs, &$f(
 			$_->get_value( "pos" ),
 			"drwxr-xr-x", # mode
+			$user->get_value( "username" ),
+			$user->get_value( "usertype" ),
 			0, # size
 			$self->get_object_mtime( $_ )
 			);
 	}
-	push @dirs, $self->_dir_entry(
+	push @dirs, &$f(
 			"incoming",
 			"drwxr-xr-x",
+			$user->get_value( "username" ),
+			$user->get_value( "usertype" ),
 			0, # size
 			time()
 		);
@@ -633,7 +859,7 @@ sub list_documents
 	return @dirs;
 }
 
-sub check_document
+sub retrieve_document
 {
 	my( $self, $args ) = @_;
 
@@ -646,30 +872,24 @@ sub check_document
 		$position,
 		);
 
-	return defined $doc;
+	return $doc;
 }
 
 sub list_document_contents
 {
-	my( $self, $args ) = @_;
+	my( $self, $args, $f ) = @_;
 
-	my( $eprintid, $position ) = @$args;
-	($eprintid) = split / /, $eprintid, 2;
-
+	my $doc = $self->retrieve_document( $args ) or return ();
 	my $user = $self->{current_user};
-
-	my $doc = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
-		$self->{session},
-		$eprintid,
-		$position,
-		);
 
 	my @files;
 	for(@{$doc->get_value( "files" )})
 	{
-		push @files, $self->_dir_entry(
+		push @files, &$f(
 			$_->get_value( "filename" ),
 			"-r-xr-xr-x", # mode
+			$user->get_value( "username" ),
+			$user->get_value( "usertype" ),
 			$_->get_value( "filesize" ), # size
 			$self->get_object_mtime( $_ )
 			);
@@ -678,38 +898,21 @@ sub list_document_contents
 	return @files;
 }
 
-sub check_file
+sub retrieve_file
 {
 	my( $self, $args ) = @_;
 
-	my( $eprintid, $position, $filename ) = @$args;
-	($eprintid) = split / /, $eprintid, 2;
-	$filename = _unescape_filename( $filename );
+	my $doc = $self->retrieve_document( $args ) or return;
+	my $filename = _unescape_filename( $args->[2] );
 
-	my $doc = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
-		$self->{session},
-		$eprintid,
-		$position,
-		);
-
-	return defined $doc->get_stored_file( $filename );
+	return $doc->get_stored_file( $filename );
 }
 
 sub open_file
 {
 	my( $self, $args ) = @_;
 
-	my( $eprintid, $position, $filename ) = @$args;
-	($eprintid) = split / /, $eprintid, 2;
-	$filename = _unescape_filename( $filename );
-
-	my $doc = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
-		$self->{session},
-		$eprintid,
-		$position,
-		);
-
-	my $file = $doc->get_stored_file( $filename );
+	my $file = $self->retrieve_file( $args ) or return;
 
 	my $tmpfile = File::Temp->new;
 	binmode($tmpfile);
@@ -723,8 +926,7 @@ sub open_write_eprint
 {
 	my( $self, $args, $append, $tmpfile ) = @_;
 
-	my( $filename ) = @$args;
-	$filename = _unescape_filename( $filename );
+	my $filename = _unescape_filename( $args->[0] );
 
 	my $session = $self->{session};
 	my $user = $self->{current_user};
@@ -756,9 +958,8 @@ sub open_write_document
 {
 	my( $self, $args, $append ) = @_;
 
-	my( $eprintid, $filename ) = @$args;
-	($eprintid) = split / /, $eprintid, 2;
-	$filename = _unescape_filename( $filename );
+	my $eprint = $self->retrieve_eprint( $args ) or return;
+	my $filename = _unescape_filename( $args->[1] );
 
 	my $session = $self->{session};
 
@@ -770,7 +971,7 @@ sub open_write_document
 	my $doc = EPrints::DataObj::Document->create_from_data(
 		$session,
 		{
-			eprintid => $eprintid,
+			eprintid => $eprint->get_id,
 			format => $format,
 		},
 		$session->get_repository->get_dataset( "document" )
@@ -797,15 +998,8 @@ sub open_write_file
 
 	my $tmpfile = File::Temp->new();
 
-	my( $eprintid, $position, $filename ) = @$args;
-	($eprintid) = split / /, $eprintid, 2;
-	$filename = _unescape_filename( $filename );
-
-	my $doc = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
-		$self->{session},
-		$eprintid,
-		$position,
-		);
+	my $doc = $self->retrieve_document( $args );
+	my $filename = _unescape_filename( $args->[2] );
 
 	return unless defined $doc;
 
@@ -825,15 +1019,8 @@ sub close_write_file
 {
 	my( $self, $args, $append, $tmpfile ) = @_;
 
-	my( $eprintid, $position, $filename ) = @$args;
-	($eprintid) = split / /, $eprintid, 2;
-	$filename = _unescape_filename( $filename );
-
-	my $doc = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
-		$self->{session},
-		$eprintid,
-		$position,
-		);
+	my $doc = $self->retrieve_document( $args );
+	my $filename = _unescape_filename( $args->[2] );
 
 	CORE::seek($tmpfile,0,0);
 	return $doc->upload( $tmpfile, $filename, 0, -s $tmpfile );
@@ -843,13 +1030,7 @@ sub delete_eprint
 {
 	my( $self, $args ) = @_;
 
-	my( $eprintid, $position ) = @$args;
-	($eprintid) = split / /, $eprintid, 2;
-
-	my $eprint = EPrints::DataObj::EPrint->new(
-		$self->{session},
-		$eprintid
-		);
+	my $eprint = $self->retrieve_eprint( $args );
 
 	return $eprint->remove();
 }
@@ -858,14 +1039,7 @@ sub delete_document
 {
 	my( $self, $args ) = @_;
 
-	my( $eprintid, $position ) = @$args;
-	($eprintid) = split / /, $eprintid, 2;
-
-	my $doc = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
-		$self->{session},
-		$eprintid,
-		$position,
-		);
+	my $doc = $self->retrieve_document( $args );
 
 	return $doc->remove();
 }
@@ -874,19 +1048,7 @@ sub delete_file
 {
 	my( $self, $args ) = @_;
 
-	my( $eprintid, $position, $filename ) = @$args;
-	($eprintid) = split / /, $eprintid, 2;
-	$filename = _unescape_filename( $filename );
-
-	my $doc = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
-		$self->{session},
-		$eprintid,
-		$position,
-		);
-
-	my $file = $doc->get_stored_file( $filename );
-
-	return 0 unless defined $file;
+	my $file = $self->retrieve_file( $args );
 
 	return $file->remove();
 }
