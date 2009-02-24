@@ -3,12 +3,6 @@ package EPrints::Plugin::Screen::Admin::FormatsRisks;
 @ISA = ( 'EPrints::Plugin::Screen' );
 
 use strict;
-my $classified;
-my $hideall;
-my $unstable;
-my $risks_url;
-our ($classified, $hideall, $unstable, $risks_url);
-$classified = "true";
 
 sub new
 {
@@ -127,11 +121,6 @@ sub render
 			"div", 
 			id => $plugin->{prefix}."_panel" );
 
-	my $unclassified = $plugin->{session}->make_element(
-			"div",
-			align => "center"
-			);	
-	$unclassified->appendChild( $plugin->{session}->make_text( "You have unclassified objects in your repository, to classify these you may want to run the tools/update_pronom_puids script. If not installed this tool is availale via http://files.eprints.org" ));
 	my $risks_unstable = $plugin->{session}->make_element(
 			"div",
 			align => "center"
@@ -154,24 +143,14 @@ sub render
 	);
 	my $wtr = $plugin->{session}->make_element( "tr" );
 	my $warning_width_limit = $plugin->{session}->make_element( "td", width => "620px", align=>"center" );
-
 	
-	my $unstable = $session->get_repository->get_conf( "pronom_unstable" );	
-
-	if ($unstable eq 1) {
+	if( $session->get_repository->get_conf( "pronom_unstable" ) ) {
 		$warning = $plugin->{session}->render_message("warning",
 				$risks_unstable
 				);
 		$warning_width_limit->appendChild($warning);
 	}
-	$format_table = $plugin->get_format_risks_table();
-
-	if ($classified eq "false") {
-		$warning = $plugin->{session}->render_message("warning",
-			$unclassified
-		);
-		$warning_width_limit->appendChild($warning);
-	}
+	$format_table = $plugin->get_format_risks_table( $warning_width_limit );
 
 	$wtr->appendChild($warning_width_limit);
 	$warning_width_table->appendChild($wtr);
@@ -179,20 +158,43 @@ sub render
 	$inner_panel->appendChild($format_table);
 	$html->appendChild( $inner_panel );
 	
-	$script = $plugin->{session}->make_javascript(
-		$hideall
-	);
-	$html->appendChild($script);
-	
+	$html->appendChild( $plugin->render_hide_script );
 	
 	return $html;
 }
 
-sub get_format_risks_table {
-	
+sub render_hide_script {
 	my( $plugin ) = @_;
 
+	my @hides = ();
+	my $dataset = $plugin->{session}->get_repository->get_dataset( "pronom" );
+
+	my $medium_risk_boundary = $plugin->{session}->get_repository->get_conf( "medium_risk_boundary" );
+	$dataset->map( $plugin->{session}, sub {
+		my( $session, $dataset, $pronom_format ) = @_;
+		
+		my $result = $pronom_format->get_value("risk_score");
+		my $format = $pronom_format->get_value("pronomid");
+
+		if ($result <= $medium_risk_boundary) 
+		{
+			push @hides, 'hide("'.$format.'_minus");';
+			push @hides, 'hide("'. $format.'_inner_row");';
+		}
+	} );
+
+	push @hides, "";
+	my $script = $plugin->{session}->make_javascript( join( "\n",@hides ) );
+	return $script;
+}
+
+sub get_format_risks_table {
+	
+	my( $plugin, $message_element ) = @_;
+
 	my $files_by_format = $plugin->fetch_data();
+
+	my $classified = 1;
 	
 	my $green = $plugin->{session}->make_element( "div", class=>"ep_msg_message", id=>"green" );
 	my $orange = $plugin->{session}->make_element( "div", class=>"ep_msg_warning", id=>"orange" );
@@ -228,13 +230,9 @@ sub get_format_risks_table {
 	my $blue_count = 0;
 	#my $unclassified_count = 0;
 
-
-	my $url = $risks_url;
-
 	my $max_count = 0;	
 	my $max_width = 300;
-	
-	
+
 	my $green_format_table = $plugin->{session}->make_element( "table", width => "100%");
 	my $orange_format_table = $plugin->{session}->make_element( "table", width => "100%");
 	#my $unclassified_orange_format_table = $plugin->{session}->make_element( "table", width => "100%");
@@ -284,11 +282,12 @@ sub get_format_risks_table {
 
 		if ($format eq "" || $format eq "NULL") {
 			$format_name = "Not Classified";
-			$classified = "false";
+			$classified = 0;
 		} else {
 			$format_name = $pronom_data->get_value("name");
 			$format_version = $pronom_data->get_value("version");
 		}
+
 		if ($format_name eq "") {
 			$format_name = $format;
 		}
@@ -364,9 +363,7 @@ sub get_format_risks_table {
 		$format_details_td->appendChild ( $plugin->{session}->make_text( $pronom_output ) );
 		if ($result <= $medium_risk_boundary) 
 		{
-			$format_details_td->appendChild ( $plus_button );
 			$format_details_td->appendChild ( $minus_button );
-			$hideall = $hideall . 'hide("'.$format.'_minus");' . "\n";
 		}
 		$format_count_td->appendChild( $format_count_bar );
 		$format_panel_tr->appendChild( $format_details_td );
@@ -393,7 +390,6 @@ sub get_format_risks_table {
 			"tr",
 			id => $format . "_inner_row"
 			);
-		$hideall = $hideall . 'hide("'. $format.'_inner_row");' . "\n";
 		my $inner_column1 = $plugin->{session}->make_element(
 			"td",
 			style => "width: 70%;",
@@ -412,7 +408,7 @@ sub get_format_risks_table {
 			my $search_format;
 			my $dataset = $plugin->{session}->get_repository->get_dataset( "file" );
 			if ($format eq "Unclassified") {
-				$classified = "false";
+				$classified = 0;
 				$search_format = "";
 			} else {
 				$search_format = $format;
@@ -490,8 +486,19 @@ sub get_format_risks_table {
 		$blue->appendChild( $blue_content_div );
 		$ret->appendChild($blue);
 	}
-	
-	return $ret;
+
+
+	if (!$classified) {
+		my $unclassified = $plugin->{session}->make_element(
+				"div",
+				align => "center"
+				);	
+		$unclassified->appendChild( $plugin->{session}->make_text( "You have unclassified objects in your repository, to classify these you may want to run the tools/update_pronom_puids script. If not installed this tool is availale via http://files.eprints.org" ));
+		my $warning = $plugin->{session}->render_message("warning", $unclassified);
+		$message_element->appendChild($warning);
+	}
+
+	return( $ret );
 }
 
 sub get_eprints_files
