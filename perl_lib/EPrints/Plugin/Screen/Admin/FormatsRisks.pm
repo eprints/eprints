@@ -1,3 +1,19 @@
+#######################################################
+###                                                 ###
+###    Preserv2/EPrints FormatsRisk Screen Plugin   ###
+###                                                 ###
+#######################################################
+###                                                 ###
+###     Developed by David Tarrant and Tim Brody    ###
+###                                                 ###
+###          Released under the GPL Licence         ###
+###           (c) University of Southampton         ###
+###                                                 ###
+###        Install in the following location:       ###
+###  eprints/perl_lib/EPrints/Plugin/Screen/Admin/  ###
+###                                                 ###
+#######################################################
+
 package EPrints::Plugin::Screen::Admin::FormatsRisks;
 
 @ISA = ( 'EPrints::Plugin::Screen' );
@@ -99,11 +115,11 @@ sub render
 			} else {
 				canSee = "table-row";
 			}
-			document.getElementById(id).style.display = canSee;
+			$(id).style.display = canSee;
 		}
 		function hide(id) {
-			
-			document.getElementById(id).style.display = "none";
+			if( !$(id) ) { return; }
+			$(id).style.display = "none";
 		}
 		function plus(format) {
 			hide(format + "_plus");
@@ -311,23 +327,6 @@ sub get_format_risks_table {
 		} else {	
 			$pronom_output .= "(Version " . $format_version . ") ";
 		}
-		my $imagesurl = $plugin->{session}->get_repository->get_conf( "rel_path" );
-		my $plus_button = $plugin->{session}->make_element(
-			"img",
-			id => $format . "_plus",
-			onclick => 'plus("'.$format.'")',
-			src => "$imagesurl/style/images/plus.png",
-			border => 0,
-			alt => "PLUS"
-		);
-		my $minus_button = $plugin->{session}->make_element(
-			"img",
-			id => $format . "_minus",
-			onclick => 'minus("'.$format.'")',
-			src => "$imagesurl/style/images/minus.png",
-			border => 0,
-			alt => "MINUS"
-		);
 		my $format_bar_width = ($count / $max_count) * $max_width;
 		if ($format_bar_width < 10) {
 			$format_bar_width = 10;
@@ -363,7 +362,8 @@ sub get_format_risks_table {
 		$format_details_td->appendChild ( $plugin->{session}->make_text( $pronom_output ) );
 		if ($result <= $medium_risk_boundary) 
 		{
-			$format_details_td->appendChild ( $minus_button );
+			$format_details_td->appendChild ( 
+				$plugin->render_plus_and_minus_buttons( $format ) );
 		}
 		$format_count_td->appendChild( $format_count_bar );
 		$format_panel_tr->appendChild( $format_details_td );
@@ -499,6 +499,32 @@ sub get_format_risks_table {
 	}
 
 	return( $ret );
+}
+
+sub render_plus_and_minus_buttons {
+	my( $plugin, $format ) = @_;
+
+	my $imagesurl = $plugin->{session}->get_repository->get_conf( "rel_path" );
+	my $plus_button = $plugin->{session}->make_element(
+		"img",
+		id => $format . "_plus",
+		onclick => 'plus("'.$format.'")',
+		src => "$imagesurl/style/images/plus.png",
+		border => 0,
+		alt => "PLUS"
+	);
+	my $minus_button = $plugin->{session}->make_element(
+		"img",
+		id => $format . "_minus",
+		onclick => 'minus("'.$format.'")',
+		src => "$imagesurl/style/images/minus.png",
+		border => 0,
+		alt => "MINUS"
+	);
+	my $f = $plugin->{session}->make_doc_fragment();
+	$f->appendChild ( $plus_button );
+	$f->appendChild ( $minus_button );
+	return $f;
 }
 
 sub get_eprints_files
