@@ -18,6 +18,9 @@ sub new
 	$self->{name} = "Upload";
 	$self->{visible} = "all";
 	$self->{surround} = "None" unless defined $self->{surround};
+	# a list of documents to unroll when rendering, 
+	# this is used by the POST processing, not GET
+
 	return $self;
 }
 
@@ -48,116 +51,19 @@ sub update_from_form
 	if( $self->{session}->internal_button_pressed )
 	{
 		my $internal = $self->get_internal_button;
-
-		if( $internal eq "add_format" || $internal eq "add_format_file" )
+		if( $internal =~ m/^add_format(_(.*))?/ )
 		{
-			my $doc_data = { eprintid => $self->{dataobj}->get_id };
-
-			my $repository = $self->{session}->get_repository;
-			$doc_data->{format} = $repository->call( 'guess_doc_type', 
-				$self->{session},
-				$self->{session}->param( $self->{prefix}."_first_file" ) );
-
-			my $doc_ds = $self->{session}->get_repository->get_dataset( 'document' );
-			my $document = $doc_ds->create_object( $self->{session}, $doc_data );
-			if( !defined $document )
+			my $method = $2 || "file";
+			my $method_plugin = $self->{session}->plugin( 
+				"InputForm::UploadMethod::$method",
+				prefix => $self->{prefix},
+				dataobj => $self->{dataobj},
+			);
+			if( !defined $method_plugin ) 
 			{
-				$processor->add_message( "error", $self->html_phrase( "create_failed" ) );
-				return;
+				EPrints::abort( "Could not load InputForm::UploadMethod::$method" );
 			}
-			my $success = EPrints::Apache::AnApache::upload_doc_file( 
-				$self->{session},
-				$document,
-				$self->{prefix}."_first_file" );
-			if( !$success )
-			{
-				$document->remove();
-				$processor->add_message( "error", $self->html_phrase( "upload_failed" ) );
-				return;
-			}
-			return;
-		}
-
-		if( $internal eq "add_format_zip" )
-		{
-			my $doc_data = { eprintid => $self->{dataobj}->get_id, format=>"other" };
-
-			my $repository = $self->{session}->get_repository;
-
-			my $doc_ds = $self->{session}->get_repository->get_dataset( 'document' );
-			my $document = $doc_ds->create_object( $self->{session}, $doc_data );
-			if( !defined $document )
-			{
-				$processor->add_message( "error", $self->html_phrase( "create_failed" ) );
-				return;
-			}
-			my $success = EPrints::Apache::AnApache::upload_doc_archive( 
-				$self->{session},
-				$document,
-				$self->{prefix}."_first_file_zip",
-				"zip" );
-			if( !$success )
-			{
-				$document->remove();
-				$processor->add_message( "error", $self->html_phrase( "upload_failed" ) );
-				return;
-			}
-			return;
-		}
-
-		if( $internal eq "add_format_targz" )
-		{
-			my $doc_data = { eprintid => $self->{dataobj}->get_id, format=>"other" };
-
-			my $repository = $self->{session}->get_repository;
-
-			my $doc_ds = $self->{session}->get_repository->get_dataset( 'document' );
-			my $document = $doc_ds->create_object( $self->{session}, $doc_data );
-			if( !defined $document )
-			{
-				$processor->add_message( "error", $self->html_phrase( "create_failed" ) );
-				return;
-			}
-			my $success = EPrints::Apache::AnApache::upload_doc_archive( 
-				$self->{session},
-				$document,
-				$self->{prefix}."_first_file_targz",
-				"targz" );
-			if( !$success )
-			{
-				$document->remove();
-				$processor->add_message( "error", $self->html_phrase( "upload_failed" ) );
-				return;
-			}
-			return;
-		}
-
-		if( $internal eq "add_format_fromurl" )
-		{
-			my $doc_data = { eprintid => $self->{dataobj}->get_id, format=>"other" };
-
-			my $repository = $self->{session}->get_repository;
-
-			my $doc_ds = $self->{session}->get_repository->get_dataset( 'document' );
-			my $document = $doc_ds->create_object( $self->{session}, $doc_data );
-			if( !defined $document )
-			{
-				$processor->add_message( "error", $self->html_phrase( "create_failed" ) );
-				return;
-			}
-			my $success = $document->upload_url( $self->{session}->param( $self->{prefix}."_first_file_fromurl" ) );
-			if( !$success )
-			{
-				$document->remove();
-				$processor->add_message( "error", $self->html_phrase( "upload_failed" ) );
-				return;
-			}
-
-			$document->set_value( "format", $repository->call( 'guess_doc_type', 
-				$self->{session},
-				$document->get_value( "main" ) ) );
-			$document->commit;
-
+			$method_plugin->update_from_form( $processor );
 			return;
 		}
 
@@ -189,38 +95,27 @@ sub update_from_form
 
 sub get_state_params
 {
-	my( $self ) = @_;
+	my( $self, $processor ) = @_;
 
 	my $params = "";
+
+	my $tounroll = {};
+	if( $processor->{notes}->{upload_plugin}->{to_unroll} )
+	{
+		$tounroll = $processor->{notes}->{upload_plugin}->{to_unroll};
+	}
 	if( $self->{session}->internal_button_pressed )
 	{
 		my $internal = $self->get_internal_button;
-		my $tounroll = {};
-		# added a new document, that should always be unrolled.
-		if( $internal =~ m/^add_format/ )
-		{
-			my $eprint = $self->{workflow}->{item};
-			my @eprint_docs = $eprint->get_all_documents;
-			my $max = undef;
-			foreach my $doc ( $eprint->get_all_documents )
-			{
-				my $docid = $doc->get_id;
-				if( !defined $max || $docid > $max )
-				{
-					$max = $docid;
-				}
-			}
-			$tounroll->{$max} = 1 if defined $max;
-		}
 		# modifying existing document
 		if( $internal =~ m/^doc(\d+)_(.*)$/ )
 		{
 			$tounroll->{$1} = 1;
 		}
-		if( scalar keys %{$tounroll} )
-		{
-			$params .= "&".$self->{prefix}."_view=".join( ",", keys %{$tounroll} );
-		}
+	}
+	if( scalar keys %{$tounroll} )
+	{
+		$params .= "&".$self->{prefix}."_view=".join( ",", keys %{$tounroll} );
 	}
 
 	return $params;
@@ -232,6 +127,7 @@ sub doc_update
 
 	my $docid = $doc->get_id;
 	my $doc_prefix = $self->{prefix}."_doc".$docid;
+	$processor->{notes}->{upload_plugin}->{to_unroll}->{$docid} = 1;
 	
 	if( $doc_internal eq "update_doc" )
 	{
@@ -587,14 +483,19 @@ sub _render_add_document
 		return $add;
 	}
 
-	my $links = { file=>"", zip=>"", targz=>"", fromurl=>"" };
-	my $labels = {
-		file=>$self->html_phrase( "from_file" ),
-		zip=>$self->html_phrase( "from_zip" ),
-		targz=>$self->html_phrase( "from_targz" ),
-		fromurl=>$self->html_phrase( "from_url" ),
-	};
-	
+	my $links = {};
+	my $labels = {};
+	my $methods = {};
+	foreach my $tab ( @{$self->{config}->{methods}} )
+	{
+		$links->{$tab} = "";
+		$methods->{$tab} = $self->{session}->plugin( 
+				"InputForm::UploadMethod::$tab",
+				prefix => $self->{prefix},
+				dataobj => $self->{dataobj} );
+		$labels->{$tab} = $methods->{$tab}->render_tab_title();
+	}
+
 	my $newdoc = $self->{session}->make_element( 
 			"div", 
 			class => "ep_upload_newdoc" );
@@ -638,135 +539,13 @@ sub _render_add_document
 		}
 		$panel->appendChild( $inner_panel );
 
-		if( $method eq "file" ) { $inner_panel->appendChild( $self->_render_add_document_file ); }
-		if( $method eq "zip" ) { $inner_panel->appendChild( $self->_render_add_document_zip ); }
-		if( $method eq "targz" ) { $inner_panel->appendChild( $self->_render_add_document_targz ); }
-		if( $method eq "fromurl" ) { $inner_panel->appendChild( $self->_render_add_document_fromurl ); }
+		$inner_panel->appendChild( $methods->{$method}->render_add_document() );
 		$first = 0;
 	}
 
 	return $add;
 }
 
-
-sub _render_add_document_file
-{
-	my( $self ) = @_;
-
-	my $session = $self->{session};
-
-	my $f = $self->{session}->make_doc_fragment;
-
-	$f->appendChild( $self->html_phrase( "new_document" ) );
-
-	my $ffname = $self->{prefix}."_first_file";	
-	my $file_button = $self->{session}->make_element( "input",
-		name => $ffname,
-		id => $ffname,
-		type => "file",
-		);
-	my $upload_progress_url = $session->get_url( path => "cgi" ) . "/users/ajax/upload_progress";
-	my $onclick = "return startEmbeddedProgressBar(this.form,{'url':".EPrints::Utils::js_string( $upload_progress_url )."});";
-	my $add_format_button = $self->{session}->render_button(
-		value => $self->phrase( "add_format" ), 
-		class => "ep_form_internal_button",
-		name => "_internal_".$self->{prefix}."_add_format",
-		onclick => $onclick );
-	$f->appendChild( $file_button );
-	$f->appendChild( $session->make_text( " " ) );
-	$f->appendChild( $self->{session}->make_text( " " ) );
-	$f->appendChild( $add_format_button );
-	my $progress_bar = $session->make_element( "div", id => "progress" );
-	$f->appendChild( $progress_bar );
-
-	my $script = $self->{session}->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->phrase("really_next"))." ); } return true; } );" );
-	$f->appendChild( $script);
-	
-	return $f;
-}
-
-
-sub _render_add_document_zip
-{
-	my( $self ) = @_;
-
-	my $f = $self->{session}->make_doc_fragment;
-
-	$f->appendChild( $self->html_phrase( "new_from_zip" ) );
-
-	my $ffname = $self->{prefix}."_first_file_zip";	
-	my $file_button = $self->{session}->make_element( "input",
-		name => $ffname,
-		id => $ffname,
-		type => "file",
-		);
-	my $add_format_button = $self->{session}->render_button(
-		value => $self->phrase( "add_format" ), 
-		class => "ep_form_internal_button",
-		name => "_internal_".$self->{prefix}."_add_format_zip" );
-	$f->appendChild( $file_button );
-	$f->appendChild( $self->{session}->make_text( " " ) );
-	$f->appendChild( $add_format_button );
-
-	my $script = $self->{session}->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->phrase("really_next"))." ); } return true; } );" );
-	$f->appendChild( $script);
-
-	return $f;
-}
-
-sub _render_add_document_targz
-{
-	my( $self ) = @_;
-
-	my $f = $self->{session}->make_doc_fragment;
-
-	$f->appendChild( $self->html_phrase( "new_from_targz" ) );
-
-	my $ffname = $self->{prefix}."_first_file_targz";	
-	my $file_button = $self->{session}->make_element( "input",
-		name => $ffname,
-		id => $ffname,
-		type => "file",
-		);
-	my $add_format_button = $self->{session}->render_button(
-		value => $self->phrase( "add_format" ), 
-		class => "ep_form_internal_button",
-		name => "_internal_".$self->{prefix}."_add_format_targz" );
-	$f->appendChild( $file_button );
-	$f->appendChild( $self->{session}->make_text( " " ) );
-	$f->appendChild( $add_format_button );
-
-	my $script = $self->{session}->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->phrase("really_next"))." ); } return true; } );" );
-	$f->appendChild( $script);
-
-	return $f;
-}
-
-
-sub _render_add_document_fromurl
-{
-	my( $self ) = @_;
-
-	my $f = $self->{session}->make_doc_fragment;
-
-	$f->appendChild( $self->html_phrase( "new_from_url" ) );
-
-	my $ffname = $self->{prefix}."_first_file_fromurl";	
-	my $file_button = $self->{session}->make_element( "input",
-		name => $ffname,
-		size => "30",
-		id => $ffname,
-		);
-	my $add_format_button = $self->{session}->render_button(
-		value => $self->phrase( "add_format" ), 
-		class => "ep_form_internal_button",
-		name => "_internal_".$self->{prefix}."_add_format_fromurl" );
-	$f->appendChild( $file_button );
-	$f->appendChild( $self->{session}->make_text( " " ) );
-	$f->appendChild( $add_format_button );
-	
-	return $f; 
-}
 
 sub _render_add_file
 {

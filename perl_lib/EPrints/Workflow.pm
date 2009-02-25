@@ -419,11 +419,11 @@ sub _database_err
 
 sub get_state_params
 {
-	my( $self ) = @_;
+	my( $self, $processor ) = @_;
 
 	my $stage = $self->get_stage( $self->get_stage_id );
 
-	return "&stage=".$self->get_stage_id.$stage->get_state_params;
+	return "&stage=".$self->get_stage_id.$stage->get_state_params( $processor );
 }
 
 # add links to fields in problem-report xhtml chunks.

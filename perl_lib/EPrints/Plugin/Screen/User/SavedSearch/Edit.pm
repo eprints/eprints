@@ -177,7 +177,7 @@ sub redirect_to_me_url
 {
 	my( $self ) = @_;
 
-	return $self->SUPER::redirect_to_me_url.$self->workflow->get_state_params;
+	return $self->SUPER::redirect_to_me_url.$self->workflow->get_state_params( $self->{processor} );
 }
 
 1;

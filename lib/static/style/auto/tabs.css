@@ -14,8 +14,7 @@ td.ep_tab {
 }
 td.ep_tab a {
 	display: block;
-	padding-bottom: 4px;
-	padding-top: 2px;
+	padding: 2px 8px 4px 8px;
 	text-decoration: none;
 	color: #000000;
 }
@@ -30,8 +29,7 @@ td.ep_tab_selected {
 }
 td.ep_tab_selected a {
 	text-decoration: none;
-	padding-top: 2px;
-	padding-bottom: 4px;
+	padding: 2px 8px 4px 8px;
 	color: #000000;
 }
 

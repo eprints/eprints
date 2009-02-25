@@ -8059,3 +8059,10 @@ EPRINTS-3.1-beta-2
 
 2009-02-24 cjg + dct
  * tidying up the tidyup on formatrisks.
+
+2009-02-25 cjg
+ * Added InputForm::UploadMethod plugins
+ * These are now used by the Upload component to allow new tabs to be added.
+ * Tiditied up tabs css and widened the tabs a little.
+ * A processor is now passed to the workflow and component get_state_params
+ * Improved handling of the logic on which documents to show unrolled.

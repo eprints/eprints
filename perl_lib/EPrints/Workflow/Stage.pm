@@ -156,12 +156,12 @@ sub update_from_form
 
 sub get_state_params
 {
-	my( $self ) = @_;
+	my( $self, $processor ) = @_;
 
 	my $params = "";
 	foreach my $component (@{$self->{components}})
 	{
-		$params.= $component->get_state_params;
+		$params.= $component->get_state_params( $processor );
 	}
 	return $params;
 }
