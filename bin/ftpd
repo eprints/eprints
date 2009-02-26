@@ -27,12 +27,14 @@ GetOptions(
 
 my( $repoid ) = @ARGV;
 
+my $session = EPrints::Session->new( 1, $repoid );
+exit unless $session;
+
 POE::Session->create(
 	inline_states => {
 		_start => sub {
 			my( $kernel, $heap ) = @_[KERNEL, HEAP];
 
-			my $session = EPrints::Session->new( 1, $repoid );
 			$heap->{session} = $session;
 
 			POE::Component::Server::FTP->spawn(
@@ -91,19 +93,34 @@ POE::Session->create(
 		ftpd_write_log => sub {
 			my( $kernel, $heap, $data ) = @_[KERNEL, HEAP, ARG0];
 
-			#print STDERR "FTPD LOG: ".(defined($data->{msg}) ? $data->{msg} : "UNKNOWN")."\n";
+			print STDERR "FTPD LOG: ".(defined($data->{msg}) ? $data->{msg} : "UNKNOWN")."\n";
 		},
 		ftpd_login => sub {
 		},
 		ftpd_connected => sub {
+			my( $kernel, $heap, $data ) = @_[KERNEL, HEAP, ARG0];
+
+			print STDERR "FTPD CONNECTED\n";
 		},
 		ftpd_disconnected => sub {
+			my( $kernel, $heap, $data ) = @_[KERNEL, HEAP, ARG0];
+
+			print STDERR "FTPD DISCONNECTED\n";
 		},
 		ftpd_dcon_create => sub {
+			my( $kernel, $heap, $data ) = @_[KERNEL, HEAP, ARG0];
+
+			print STDERR "FTPD DCON_CREATE\n";
 		},
 		ftpd_dcon_connected => sub {
+			my( $kernel, $heap, $data ) = @_[KERNEL, HEAP, ARG0];
+
+			print STDERR "FTPD DCON_CONNECTED\n";
 		},
 		ftpd_dcon_destroy => sub {
+			my( $kernel, $heap, $data ) = @_[KERNEL, HEAP, ARG0];
+
+			print STDERR "FTPD DCON_DESTROY\n";
 		},
 		ftpd_bps_stats => sub {
 		},

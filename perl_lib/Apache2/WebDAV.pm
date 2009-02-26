@@ -45,7 +45,7 @@ my %implemented = (
     propfind => 1,
     put      => 1,
     #proppatch => 1,
-    #post     => 1,
+    post     => 1,
     #trace    => 1,
     #lock     => 1,
     #unlock   => 1,
@@ -449,8 +449,10 @@ sub mkcol
     }
     elsif(!$handler->test('e', $path))
     {
-        $handler->mkdir($path);
-
+        if(!$handler->mkdir($path))
+		{
+			return 403;
+		}
         if(!$handler->test('d', $path))
         {
             return 409; # What?
@@ -640,6 +642,10 @@ sub propfind
         }
 
         @stat{@properties} = $handler->stat($path);
+		$stat{"creationdate"} = iso_datetime( $stat{"creationdate"})
+			if defined $stat{"creationdate"};
+		$stat{"getlastmodified"} = gmtime($stat{"getlastmodified"})
+			if defined $stat{"getlastmodified"};
 
         foreach my $prop (keys %wanted_properties)
         {
@@ -647,7 +653,10 @@ sub propfind
             next if $prop eq 'resourcetype';
             next if $prop eq 'getcontenttype';
 
-            $info->{$prop} = $stat{$prop};
+			if( defined $stat{$prop} )
+			{
+				$info->{$prop} = $stat{$prop};
+			}
         }
 
         push @results, {
@@ -975,7 +984,7 @@ sub list_response
         }
     }
 
-#    $r->send_http_header();
+print STDERR $doc->toString(1);
     $r->print($doc->toString(1));
 
     return OK;
@@ -1142,6 +1151,20 @@ sub get_handler_for_path
     });
 
     return $handler;
+}
+
+sub iso_datetime
+{
+	my( $time ) = @_;
+
+	my @time = gmtime($time);
+
+	return sprintf("%04d-%02d-%02dT%02d:%02d:%02dZ",
+		$time[5]+1900,
+		$time[4]+1,
+		$time[3],
+		@time[2,1,0]
+		);
 }
 
 1;

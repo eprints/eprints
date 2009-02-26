@@ -18,7 +18,7 @@ use Filesys::Virtual;
 use Filesys::Virtual::Plain;
 use Time::Local;
 use Fcntl ':mode';
-use constant DEBUG => 0;
+use constant DEBUG => 1;
 
 our @ISA = qw( Filesys::Virtual );
 
@@ -64,11 +64,11 @@ our @USER_FILESYS = (
 	},
 	qr{/inbox/([^/]+)} => {
 		is_dir => sub { 1 },
-		can_write => sub { 1 },
+		can_write => sub { 0 },
 		can_delete => sub { 1 },
-		exists => sub { defined &retrieve_eprint },
+		exists => sub { defined &retrieve_eprint(@_) },
 		size => sub { 4096 },
-		modtime => sub { $_[0]->get_object_mtime( &retrieve_eprint ) },
+		modtime => sub { $_[0]->get_object_mtime( &retrieve_eprint(@_) ) },
 		list => \&list_documents,
 		delete => \&delete_eprint,
 	},
@@ -94,9 +94,9 @@ our @USER_FILESYS = (
 		is_dir => sub { 1 },
 		can_write => sub { 0 },
 		can_delete => sub { 1 },
-		exists => sub { defined &retrieve_document },
+		exists => sub { defined &retrieve_document(@_) },
 		size => sub { 4096 },
-		modtime => sub { $_[0]->get_object_mtime( &retrieve_document ) },
+		modtime => sub { $_[0]->get_object_mtime( &retrieve_document(@_) ) },
 		list => \&list_document_contents,
 		delete => \&delete_document,
 	},
@@ -104,9 +104,9 @@ our @USER_FILESYS = (
 		is_dir => sub { 0 },
 		can_write => sub { 1 },
 		can_delete => sub { 1 },
-		exists => sub { defined &retrieve_file },
-		size => sub { $_[0]->get_object_size( &retrieve_file ) },
-		modtime => sub { $_[0]->get_object_mtime( &retrieve_file ) },
+		exists => sub { defined &retrieve_file(@_) },
+		size => sub { $_[0]->get_object_size( &retrieve_file(@_) ) },
+		modtime => sub { $_[0]->get_object_mtime( &retrieve_file(@_) ) },
 		open_read => \&open_file,
 		open_write => \&open_write_file,
 		close_write => \&close_write_file,
@@ -174,7 +174,7 @@ sub new
 sub _escape_filename
 {
 	my( $fn ) = @_;
-	$fn =~ s#([=/])#sprintf("=%02x",ord($1))#seg;
+	$fn =~ s#([=/&\:\\])#sprintf("=%02x",ord($1))#seg;
 	$fn;
 }
 
@@ -444,6 +444,8 @@ sub mkdir
 
 	my( $handler, $args ) = $self->_get_handler( $path );
 	return 0 unless defined $handler;
+	return 0 unless defined $handler->{mkdir};
+	return 0 unless &{$handler->{can_write}}( $self, $args );
 
 	return &{$handler->{mkdir}}( $self, $args );
 }
@@ -544,7 +546,7 @@ print STDERR "STAT($path)\n" if DEBUG;
 		$size, #size
 		$mtime, #atime
 		$mtime, #mtime
-		0, #ctime
+		$mtime, #ctime
 		0, #blksize
 		0 #blocks
 		);
@@ -570,6 +572,7 @@ print STDERR "TEST($test,$path)\n" if DEBUG;
 
 	if( $test eq "r" or $test eq "e" )
 	{
+print STDERR "TEST=exists?\n";
 		return 1; # exists
 	}
 	elsif( $test eq "f" )
@@ -598,9 +601,10 @@ sub open_read
 	my( $self, $path, @opts ) = @_;
 
 	my( $handler, $args ) = $self->_get_handler( $path );
-	return 0 unless defined $handler;
-	return 0 unless !&{$handler->{is_dir}}( $self, $args );
-	return 0 unless &{$handler->{exists}}( $self, $args );
+	return undef unless defined $handler;
+	return undef unless !&{$handler->{is_dir}}( $self, $args );
+	return undef unless &{$handler->{exists}}( $self, $args );
+	return undef unless defined $handler->{open_read};
 
 	my $fh = &{$handler->{open_read}}( $self, $args );
 
@@ -642,8 +646,9 @@ sub open_write
 	my( $self, $path, $append ) = @_;
 
 	my( $handler, $args ) = $self->_get_handler( $path );
-	return 0 unless defined $handler;
-	return 0 unless &{$handler->{can_write}}( $self, $args );
+	return undef unless defined $handler;
+	return undef unless &{$handler->{can_write}}( $self, $args );
+	return undef unless defined $handler->{open_write};
 
 	my $fh = &{$handler->{open_write}}( $self, $args, $append );
 
@@ -819,10 +824,19 @@ sub retrieve_eprint
 
 	my( $eprintid ) = @$args;
 	($eprintid) = split / /, $eprintid, 2;
+print STDERR "RETRIEVE($eprintid)\n";
+
+	my $user = $self->{current_user};
 
 	my $dataset = $self->{session}->get_repository->get_dataset( "inbox" );
 	
 	my $eprint = $dataset->get_object( $self->{session}, $eprintid );
+	return unless defined $eprint;
+
+	if(	$eprint->get_value( "userid" ) != $user->get_id )
+	{
+		return undef;
+	}
 
 	return $eprint;
 }
