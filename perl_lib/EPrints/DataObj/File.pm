@@ -591,6 +591,7 @@ sub set_file
 	}
 	else
 	{
+		binmode($fh);
 		$f = sub {
 			return "" unless sysread($fh,my $buffer,4096);
 			$md5->add( $buffer );
