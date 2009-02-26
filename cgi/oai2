@@ -189,6 +189,8 @@ sub get_eprint_by_identifier
 			$session,
 			$identifier );
 
+	return undef unless EPrints::Utils::is_set( $id );
+
 	my $dataset = $session->get_repository->get_dataset( "eprint" );
 
 	my $searchexp = EPrints::Search->new(

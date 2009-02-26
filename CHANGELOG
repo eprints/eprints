@@ -8066,3 +8066,7 @@ EPRINTS-3.1-beta-2
  * Tiditied up tabs css and widened the tabs a little.
  * A processor is now passed to the workflow and component get_state_params
  * Improved handling of the logic on which documents to show unrolled.
+
+2009-02-26 tdb
+ * Fixed OAI GetRecord always returning a record, fixing #3498
+
