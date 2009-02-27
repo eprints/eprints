@@ -1,4 +1,4 @@
-package EPrints::Plugin::Export::TextFile;
+package EPrints::Plugin::Export::XMLFile;
 
 # This virtual super-class supports Unicode output
 
@@ -10,8 +10,8 @@ sub new
 
 	my $self = $class->SUPER::new( %params );
 
-	$self->{mimetype} = "text/plain; charset=utf-8";
-	$self->{suffix} = ".txt";
+	$self->{mimetype} = "text/xml; charset=utf-8";
+	$self->{suffix} = ".xml";
 
 	return $self;
 }
@@ -21,13 +21,6 @@ sub initialise_fh
 	my( $plugin, $fh ) = @_;
 
 	binmode($fh, ":utf8");
-}
-
-# Windows Notepad and other text editors will use a BOM to determine the
-# character encoding
-sub byte_order_mark
-{
-	return chr(0xfeff);
 }
 
 1;

@@ -1,8 +1,8 @@
 package EPrints::Plugin::Export::ContextObject;
 
-use EPrints::Plugin::Export;
+use EPrints::Plugin::Export::XMLFile;
 
-@ISA = ( "EPrints::Plugin::Export" );
+@ISA = ( "EPrints::Plugin::Export::XMLFile" );
 
 use strict;
 
@@ -42,8 +42,6 @@ sub new
 	$self->{name} = "OpenURL ContextObject";
 	$self->{accept} = [ 'list/eprint', 'list/access', 'dataobj/eprint', 'dataobj/access' ];
 	$self->{visible} = "all";
-	$self->{suffix} = ".xml";
-	$self->{mimetype} = "text/xml";
 
 	$self->{xmlns} = "info:ofi/fmt:xml:xsd:ctx";
 	$self->{schemaLocation} = "http://www.openurl.info/registry/docs/info:ofi/fmt:xml:xsd:ctx";

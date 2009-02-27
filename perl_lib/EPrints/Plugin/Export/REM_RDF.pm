@@ -41,8 +41,8 @@ This plugin serialises the Resource Map in RDF/XML format.
 
 package EPrints::Plugin::Export::REM_RDF;
 
-use EPrints::Plugin::Export;
-@ISA = ( "EPrints::Plugin::Export" );
+use EPrints::Plugin::Export::XMLFile;
+@ISA = ( "EPrints::Plugin::Export::XMLFile" );
 
 use strict;
 
@@ -54,7 +54,6 @@ sub new
         $self->{name} = "REM (RDF Format)";
         $self->{accept} = [ 'dataobj/eprint', 'list/eprint' ];
         $self->{visible} = "all";
-        $self->{suffix} = ".xml";
         $self->{mimetype} = "application/rdf+xml; charset=utf-8";
 
 	$self->{xmlns} = "http://www.openarchives.org/ore/terms/";

@@ -3,8 +3,9 @@ package EPrints::Plugin::Export::MODS;
 use strict;
 use warnings;
 
-use EPrints::Plugin::Export;
-our @ISA = qw( EPrints::Plugin::Export );
+use EPrints::Plugin::Export::XMLFile;
+
+our @ISA = qw( EPrints::Plugin::Export::XMLFile );
 
 our $PREFIX = "mods:";
 
@@ -17,8 +18,6 @@ sub new
 	$self->{name} = "MODS";
 	$self->{accept} = [ 'dataobj/eprint' ];
 	$self->{visible} = "all";
-	$self->{suffix} = ".xml";
-	$self->{mimetype} = "text/xml";
 	
 	$self->{xmlns} = "http://www.loc.gov/mods/v3";
 	$self->{schemaLocation} = "http://www.loc.gov/standards/mods/v3/mods-3-0.xsd";

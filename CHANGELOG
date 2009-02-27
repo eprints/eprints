@@ -8072,4 +8072,5 @@ EPRINTS-3.1-beta-2
 
 2009-02-27 tdb
  * Only decode strings returned from the XML library if they aren't utf8
+ * Set the output encoding (in header or file handle) in Export plugins
 

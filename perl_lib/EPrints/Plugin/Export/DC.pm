@@ -4,9 +4,9 @@ package EPrints::Plugin::Export::DC;
 
 # documents needs magic files field
 
-use EPrints::Plugin::Export;
+use EPrints::Plugin::Export::TextFile;
 
-@ISA = ( "EPrints::Plugin::Export" );
+@ISA = ( "EPrints::Plugin::Export::TextFile" );
 
 use strict;
 
@@ -19,8 +19,6 @@ sub new
 	$self->{name} = "Dublin Core";
 	$self->{accept} = [ 'list/eprint', 'dataobj/eprint' ];
 	$self->{visible} = "all";
-	$self->{suffix} = ".txt";
-	$self->{mimetype} = "text/plain";
 
 	return $self;
 }

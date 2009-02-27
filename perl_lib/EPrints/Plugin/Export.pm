@@ -190,7 +190,7 @@ sub dataobj_export_url
 
 	my $pluginid = $plugin->{id};
 
-	unless( $pluginid =~ m#^Export::(.*)$# )
+	unless( $pluginid =~ m# ^Export::(.*)$ #x )
 	{
 		$plugin->{session}->get_repository->log( "Bad pluginid in dataobj_export_url: ".$pluginid );
 		return undef;
@@ -206,10 +206,32 @@ sub dataobj_export_url
 	return $url;
 }
 
+=item $plugin->initialise_fh( FH )
+
+Initialise the file handle FH for writing. This may be used to manipulate the Perl IO layers in effect.
+
+Defaults to setting the file handle to binary semantics.
+
+=cut
+
+sub initialise_fh
+{
+	my( $plugin, $fh ) = @_;
+
+	binmode($fh);
+}
+
+=item $bom = $plugin->byte_order_mark
+
+If writing a file the byte order mark will be written before any other content. This may be necessary to write plain-text Unicode-encoded files.
+
+Defaults to empty string.
+
+=cut
+
 sub byte_order_mark
 {
 	"";
 }
-
 
 1;

@@ -42,8 +42,8 @@ This plugin serialises the Resource Map in Atom format.
 
 package EPrints::Plugin::Export::REM_Atom;
 
-use EPrints::Plugin::Export;
-@ISA = ( "EPrints::Plugin::Export" );
+use EPrints::Plugin::Export::XMLFile;
+@ISA = ( "EPrints::Plugin::Export::XMLFile" );
 
 use strict;
 
@@ -55,7 +55,6 @@ sub new
         $self->{name} = "OAI-ORE Resource Map (Atom Format)";
         $self->{accept} = [ 'dataobj/eprint', 'list/eprint' ];
         $self->{visible} = "all";
-        $self->{suffix} = ".xml";
         $self->{mimetype} = "application/atom+xml; charset=utf-8";
 
 	$self->{xmlns} = "http://www.w3.org/2005/Atom";

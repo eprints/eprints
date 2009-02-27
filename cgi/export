@@ -92,6 +92,7 @@ unless( $ok )
 
 my $plugin = $session->plugin( "Export::$format" );
 $session->send_http_header( "content_type"=>$plugin->param("mimetype") );
+$plugin->initialise_fh( \*STDOUT );
 print $eprint->export( $format );	
 	
 $session->terminate;

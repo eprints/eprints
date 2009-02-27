@@ -16,9 +16,9 @@ http://www.ukoln.ac.uk/repositories/digirep/index/Eprints_Application_Profile
 
 # documents needs magic files field
 
-use EPrints::Plugin::Export;
+use EPrints::Plugin::Export::XMLFile;
 
-@ISA = ( "EPrints::Plugin::Export" );
+@ISA = ( "EPrints::Plugin::Export::XMLFile" );
 
 our $prefix = 'epdcx';
 
@@ -129,8 +129,6 @@ sub new
 	$self->{name} = "Eprints Application Profile";
 	$self->{accept} = [ 'list/eprint', 'dataobj/eprint' ];
 	$self->{visible} = "all";
-	$self->{suffix} = ".xml";
-	$self->{mimetype} = "text/xml";
 	
 	$self->{xmlns} = "http://purl.org/eprint/epdcx/2006-11-16/";
 	$self->{schemaLocation} = "http://purl.org/eprint/epdcx/xsd/2006-11-16/epdcx.xsd";

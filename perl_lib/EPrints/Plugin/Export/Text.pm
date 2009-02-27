@@ -1,8 +1,8 @@
 package EPrints::Plugin::Export::Text;
 
-use EPrints::Plugin::Export;
+use EPrints::Plugin::Export::TextFile;
 
-@ISA = ( "EPrints::Plugin::Export" );
+@ISA = ( "EPrints::Plugin::Export::TextFile" );
 
 use strict;
 
@@ -15,8 +15,6 @@ sub new
 	$self->{name} = "ASCII Citation";
 	$self->{accept} = [ 'dataobj/eprint', 'list/eprint' ];
 	$self->{visible} = "all";
-	$self->{suffix} = ".txt";
-	$self->{mimetype} = "text/plain; charset=utf-8";
 	
 	return $self;
 }

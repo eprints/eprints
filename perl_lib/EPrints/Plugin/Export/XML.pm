@@ -1,8 +1,8 @@
 package EPrints::Plugin::Export::XML;
 
-use EPrints::Plugin::Export;
+use EPrints::Plugin::Export::XMLFile;
 
-@ISA = ( "EPrints::Plugin::Export" );
+@ISA = ( "EPrints::Plugin::Export::XMLFile" );
 
 use strict;
 
@@ -15,8 +15,6 @@ sub new
 	$self->{name} = "EP3 XML";
 	$self->{accept} = [ 'list/*', 'dataobj/*' ];
 	$self->{visible} = "all";
-	$self->{suffix} = ".xml";
-	$self->{mimetype} = "text/xml";
 	$self->{xmlns} = "http://eprints.org/ep2/data/2.0";
 
 	return $self;

@@ -4,9 +4,9 @@ package EPrints::Plugin::Export::DIDL;
 
 # documents needs magic files field
 
-use EPrints::Plugin::Export;
+use EPrints::Plugin::Export::XMLFile;
 
-@ISA = ( "EPrints::Plugin::Export" );
+@ISA = ( "EPrints::Plugin::Export::XMLFile" );
 
 use strict;
 
@@ -19,8 +19,6 @@ sub new
 	$self->{name} = "DIDL";
 	$self->{accept} = [ 'dataobj/eprint' ];
 	$self->{visible} = "all";
-	$self->{suffix} = ".xml";
-	$self->{mimetype} = "text/xml";
 
 	$self->{xmlns} = "urn:mpeg:mpeg21:2002:02-DIDL-NS",
 	$self->{schemaLocation} = "http://standards.iso.org/ittf/PubliclyAvailableStandards/MPEG-21_schema_files/did/didmodel.xsd";
