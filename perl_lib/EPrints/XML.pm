@@ -242,7 +242,7 @@ sub to_string
 			$done->{$attr->nodeName} = 1;
 			# cjg Should probably escape these values.
 			my $value = $attr->nodeValue;
-			utf8::decode($value);
+			utf8::decode($value) unless utf8::is_utf8($value);
 			$value =~ s/&/&amp;/g;
 			$value =~ s/</&lt;/g;
 			$value =~ s/>/&gt;/g;
@@ -298,7 +298,7 @@ sub to_string
 			"EntityReference" ) )
 	{
 		push @n, $node->toString; 
-		utf8::decode($n[$#n]);
+		utf8::decode($n[$#n]) unless utf8::is_utf8($n[$#n]);
 	}
 	elsif( EPrints::XML::is_dom( $node, "Comment" ) )
 	{

@@ -314,7 +314,7 @@ sub tree_to_utf8
 		EPrints::XML::is_dom( $node, "CDataSection" ) )
 	{
 		my $v = $node->nodeValue();
-		utf8::decode($v);
+		utf8::decode($v) unless utf8::is_utf8($v);
 		$v =~ s/[\s\r\n\t]+/ /g unless( $pre );
 		return $v;
 	}

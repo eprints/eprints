@@ -8070,3 +8070,6 @@ EPRINTS-3.1-beta-2
 2009-02-26 tdb
  * Fixed OAI GetRecord always returning a record, fixing #3498
 
+2009-02-27 tdb
+ * Only decode strings returned from the XML library if they aren't utf8
+
