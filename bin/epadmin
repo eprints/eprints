@@ -1181,7 +1181,7 @@ sub create_tables
 		exit 1;
 	}
 
-	foreach my $dsid ( &EPrints::DataSet::get_sql_dataset_ids )
+	foreach my $dsid ( $session->get_repository->get_sql_dataset_ids )
 	{
 		my $ds = $session->get_repository->get_dataset( $dsid );
 		my $indexes = $ds->count_indexes;
@@ -1305,7 +1305,7 @@ sub drop_tables_and_recreate_db
 
 	my @tables = $db->get_tables;
 
-	foreach my $datasetid (EPrints::DataSet::get_sql_dataset_ids())
+	foreach my $datasetid ($session->get_repository->get_sql_dataset_ids())
 	{
 		my $dataset = $session->get_repository->get_dataset( $datasetid );
 		my $sql_name = $dataset->get_sql_table_name;

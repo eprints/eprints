@@ -355,7 +355,7 @@ sub create_archive_tables
 	
 	my $success = 1;
 
-	foreach( &EPrints::DataSet::get_sql_dataset_ids )
+	foreach( $self->{session}->get_repository->get_sql_dataset_ids )
 	{
 		$success = $success && $self->create_dataset_tables( 
 			$self->{session}->get_repository->get_dataset( $_ ) );
