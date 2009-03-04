@@ -1582,7 +1582,7 @@ sub create_counters
 {
 	my( $self ) = @_;
 
-	my $repository = $self->get_session->get_repository;
+	my $repository = $self->{session}->get_repository;
 
 	my $rc = 1;
 
@@ -1643,7 +1643,7 @@ sub remove_counters
 {
 	my( $self ) = @_;
 
-	my $repository = $self->get_session->get_repository;
+	my $repository = $self->{session}->get_repository;
 
 	foreach my $counter ($repository->get_sql_counter_ids)
 	{
