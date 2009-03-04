@@ -263,7 +263,10 @@ sub sigusr2_cluck
 	$SIG{'USR2'} = \&sigusr2_cluck;
 }
 
-$SIG{'USR2'} = \&sigusr2_cluck;
+# Don't break if signal handling isn't available
+eval {
+	$SIG{'USR2'} = \&sigusr2_cluck;
+};
 
 1;
 
