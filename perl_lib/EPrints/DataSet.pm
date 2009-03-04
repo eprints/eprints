@@ -20,14 +20,20 @@
 B<EPrints::DataSet> - a dataset is a set of records in the eprints system with
 the same metadata.
 
+=head1 SYNOPSIS
+
+	my $dataset = $repository->get_dataset( "inbox" );
+
+	print sprintf("There are %d records in the inbox\n",
+		$dataset->count);
+
 =head1 DESCRIPTION
 
 This module describes an EPrint dataset.
 
-An repository has one of each type of dataset:
-
-cachemap, counter, user, archive, buffer, inbox, document, subject,
-saved_search, deletion, eprint, access.
+A repository has several datasets that make up the repository's database.
+The list of dataset ids can be obtained from the repository object
+(see L<EPrints::Repository>).
 
 A normal dataset (eg. "user") has a package associated with it 
 (eg. EPrints::DataObj::User) which must be a subclass of EPrints::DataObj 
@@ -36,10 +42,9 @@ Most datasets also have a set of associated EPrints::MetaField's which
 may be optional or compulsary depending on the type eg. books have editors
 but posters don't but they are both EPrints.
 
-Datasets have some default fields plus additional ones configured
-in Fields.pm.
-
-But there are some exceptions:
+The fields contained in a dataset are defined by the data object and by
+any additional fields defined in cfg.d. Some datasets don't have any
+fields while others may just be "virtual" datasets made from others.
 
 =over 4
 
@@ -49,8 +54,8 @@ Don't have a package or metadata fields associated.
 
 =item archive, buffer, inbox, deletion
 
-All have the same package and metadata fields as eprints, but
-are filtered by eprint_status.
+All have the same package and metadata fields as B<eprints>, but
+are filtered by B<eprint_status>.
 
 =back
 
@@ -58,6 +63,10 @@ EPrints::DataSet objects are cached by the related EPrints::Repository
 object and usually obtained by calling.
 
 $ds = $repository->get_dataset( "inbox" );
+
+=head1 METHODS
+
+=head2 Class Methods
 
 =over 4
 
@@ -107,7 +116,7 @@ use strict;
 
 # These are both used by the virtual datasets inbox, buffer etc.
 
-our $INFO = {
+my $INFO = {
 	upload_progress => {
 		sqlname => "upload_progress",
 		class => "EPrints::DataObj::UploadProgress",
@@ -241,61 +250,86 @@ our $INFO = {
 	},
 };
 
-
 ######################################################################
 =pod
 
-=item $ds = EPrints::DataSet->new_stub( $id )
+=item $ds = EPrints::DataSet->new( %properties )
 
-Creates a dataset object without any fields. Useful to
-avoid problems with something a dataset does depending on loading
-the dataset. It can still be queried about other things, such as
-SQL table names. 
+Creates and returns a new dataset based on %properties.
 
-=cut
-######################################################################
+Requires at least B<repository> and B<id> properties.
 
-sub new_stub
-{
-	my( $class , $id ) = @_;
+Available properties:
 
-	if( !defined $INFO->{$id} )
-	{
-		# no repository info, so can't log.
-		EPrints::abort( "Unknown dataset name: $id" );
-	}
-	my $self = {};
-	bless $self, $class;
+=over 4
 
-	$self->{id} = $id;
-	$self->{confid} = $INFO->{$id}->{confid};
-	$self->{confid} = $id unless( defined $self->{confid} );
+=item repository OBJ
 
-	return $self;
-}
+Reference to the repository object.
 
+=item id STRING
 
+Id of the dataset.
 
-######################################################################
-=pod
+=item confid STRING
 
-=item $ds = EPrints::DataSet->new( $repository, $id )
+Name of the dataset this dataset is a subset of (e.g. 'archive' is a subset of 'eprint'). If defined requires dataset_id_field.
 
-Return the dataset specified by $id.
+=item dataset_id_field
 
-Note that dataset know $repository and vice versa - which means they
-will not get garbage collected.
+Name of the text field that contains the subset dataset id.
+
+=item sql_name STRING
+
+Name of the primary database table.
+
+=item virtual BOOL
+
+Set to 1 if this dataset doesn't require it's own database tables.
+
+=item class STRING
+
+Data object class name.
+
+=item filters ARRAYREF
+
+Filters to apply to this dataset before searching (see L<EPrints::Search>).
+
+=item datestamp STRING
+
+The field name that contains a datestamp to order this dataset by.
+
+=item index BOOL
+
+Whether this dataset should be indexed.
+
+=item import BOOL
+
+Whether you can import into this dataset.
+
+=back
 
 =cut
 ######################################################################
 
 sub new
 {
-	my( $class , $repository , $id ) = @_;
+	my( $class, %properties ) = @_;
 	
-	my $self = EPrints::DataSet->new_stub( $id );
+	if( !defined $properties{repository} )
+	{
+		EPrints::abort( "Requires repository property" );
+	}
+	if( !defined $properties{id} )
+	{
+		EPrints::abort( "Requires id property" );
+	}
 
-	$self->{repository} = $repository;
+	my $self = bless \%properties, $class;
+
+	$self->{confid} = $self->{id} unless defined $self->{confid};
+
+	my $repository = $self->{repository};
 	Scalar::Util::weaken($self->{repository})
 		if defined &Scalar::Util::weaken;
 
@@ -303,8 +337,8 @@ sub new
 	$self->{system_fields} = [];
 	$self->{field_index} = {};
 
-	$self->{default_order} = $self->{repository}->
-			get_conf( "default_order" , $self->{confid} );
+	$self->{default_order} = $repository->
+			get_conf( "default_order", $self->{confid} );
 
 	my $oclass = $self->get_object_class;
 	if( defined $oclass )
@@ -331,6 +365,32 @@ sub new
 
 	return $self;
 }
+
+=item $info = EPrints::DataSet::get_system_dataset_info()
+
+Returns a hash reference of core system datasets.
+
+=cut
+
+sub get_system_dataset_info
+{
+	return $INFO;
+}
+
+=back
+
+=head2 Object Methods
+
+=over 4
+
+=cut
+
+=item $field = $ds->process_field( $data [, $system ] )
+
+Creates a new field in this dataset based on $data. If $system is true defines
+the new field as a "core" field.
+
+=cut
 
 sub process_field
 {
@@ -559,7 +619,9 @@ sub count
 			dataset => $self,
 			session => $session );
 		my $list = $searchexp->perform_search;
-		return $list->count;
+		my $c = $list->count;
+		$list->dispose;
+		return $c;
 	}
 
 	return $session->get_database->count_table( $self->get_sql_table_name() );
@@ -581,7 +643,7 @@ sub get_sql_table_name
 {
 	my( $self ) = @_;
 
-	my $table = $INFO->{$self->{id}}->{sqlname};
+	my $table = $self->{sqlname};
 
 	return $table if defined $table;
 
@@ -789,7 +851,7 @@ sub get_object_class
 {
 	my( $self, $session ) = @_;
 
-	return $INFO->{$self->{id}}->{class};
+	return $self->{class};
 }
 
 ######################################################################
@@ -913,32 +975,34 @@ sub reindex
 ######################################################################
 =pod
 
-=item @ids = EPrints::DataSet::get_dataset_ids( get_dataset_ids )
+=item @ids = EPrints::DataSet::get_dataset_ids()
 
-Return a list of all dataset ids.
+Deprecated, use $repository->get_dataset_ids().
 
 =cut
 ######################################################################
 
 sub get_dataset_ids
 {
+	&EPrints::deprecated;
+
 	return keys %{$INFO};
 }
-
 
 ######################################################################
 =pod
 
-=item @ids = EPrints::DataSet::get_sql_dataset_ids
+=item @ids = EPrints::DataSet::get_sql_dataset_ids()
 
-Return a list of all dataset ids of datasets which are directly mapped
-into SQL (not counters which work a bit differently).
+Deprecated, use $repository->get_sql_dataset_ids().
 
 =cut
 ######################################################################
 
 sub get_sql_dataset_ids
 {
+	&EPrints::deprecated;
+
 	return grep { !$INFO->{$_}->{"virtual"} } keys %{$INFO};
 }
 
@@ -1014,9 +1078,7 @@ sub get_dataset_id_field
 {
 	my( $self ) = @_;
 
-	my $f = $INFO->{$self->{id}}->{dataset_id_field};
-
-	return $f;
+	return $self->{dataset_id_field};
 }
 
 ######################################################################
@@ -1032,18 +1094,33 @@ sub get_filters
 {
 	my( $self ) = @_;
 
-	my $f = $INFO->{$self->{id}}->{filters};
+	my $f = $self->{filters};
 
-	return () unless defined $f;
-
-	return @{$f};
+	return defined $f ? @{$f} : undef;
 }
 
 sub indexable
 {
 	my( $self ) = @_;
 
-	return $INFO->{$self->{id}}->{index};
+	return $self->{index};
+}
+
+######################################################################
+=pod
+
+=item $bool = $dataset->is_virtual()
+
+Returns whether this dataset is virtual (i.e. has no database tables).
+
+=cut
+######################################################################
+
+sub is_virtual
+{
+	my( $self ) = @_;
+
+	return $self->{virtual};
 }
 
 ######################################################################
@@ -1061,7 +1138,7 @@ sub get_datestamp_field
 {
 	my( $self ) = @_;
 
-	my $datestamp = $INFO->{$self->{id}}->{datestamp};
+	my $datestamp = $self->{datestamp};
 
 	return defined $datestamp ? $self->get_field( $datestamp ) : undef;
 }

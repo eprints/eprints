@@ -8074,3 +8074,10 @@ EPRINTS-3.1-beta-2
  * Only decode strings returned from the XML library if they aren't utf8
  * Set the output encoding (in header or file handle) in Export plugins
 
+2009-03-04 tdb
+ * Added a field property "sql_counter"
+ * Added "sql_counter"s to all keyfields that use counters
+ * Datasets can now be defined per-repository using $c->{datasets}
+ * Counters are now created based on field definitions
+ * Added example custom dataset
+

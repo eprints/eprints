@@ -97,7 +97,8 @@ sub get_system_field_info
 
 	return
 	( 
-		{ name=>"importid", type=>"int", required=>1, can_clone=>0 },
+		{ name=>"importid", type=>"int", required=>1, can_clone=>0,
+			sql_counter=>"importid" },
 
 		{ name=>"datestamp", type=>"time", required=>1, },
 

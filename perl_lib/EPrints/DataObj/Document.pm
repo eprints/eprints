@@ -123,7 +123,8 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"docid", type=>"int", required=>1, import=>0, show_in_html=>0, can_clone=>0 },
+		{ name=>"docid", type=>"int", required=>1, import=>0, show_in_html=>0, can_clone=>0,
+			sql_counter=>"documentid" },
 
 		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0, show_in_html=>0 },
 

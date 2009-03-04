@@ -110,21 +110,6 @@ my $DEBUG_SQL = 0;
 # of eprints where the current desired db configuration became standard.
 $EPrints::Database::DBVersion = "3.1.1";
 
-# cjg not using transactions so there is a (very small) chance of
-# dupping on a counter. 
-
-#
-# Counters
-#
-@EPrints::Database::counters = ( 
-	"cachemapid", 		"messageid", 
-	"eprintid", 		"userid", 
-	"savedsearchid",	"historyid",
-	"accessid",		"requestid",
-	"documentid",		"importid",
-	"fileid",
-);
-
 
 # ID of next buffer table. This can safely reset to zero each time
 # The module restarts as it is only used for temporary tables.
@@ -1597,10 +1582,12 @@ sub create_counters
 {
 	my( $self ) = @_;
 
+	my $repository = $self->get_session->get_repository;
+
 	my $rc = 1;
 
 	# Create the counters 
-	foreach my $counter (@EPrints::Database::counters)
+	foreach my $counter ($repository->get_sql_counter_ids)
 	{
 		$rc &&= $self->create_counter( $counter );
 	}
@@ -1656,7 +1643,9 @@ sub remove_counters
 {
 	my( $self ) = @_;
 
-	foreach my $counter (@EPrints::Database::counters)
+	my $repository = $self->get_session->get_repository;
+
+	foreach my $counter ($repository->get_sql_counter_ids)
 	{
 		$self->drop_counter( $counter );
 	}

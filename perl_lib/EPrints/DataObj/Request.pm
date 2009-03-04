@@ -43,7 +43,8 @@ sub get_system_field_info
 
 	return (
 
-		{ name=>"requestid", type=>"int", required=>1, can_clone=>1, },
+		{ name=>"requestid", type=>"int", required=>1, can_clone=>1,
+			sql_counter=>"requestid" },
 
 		{ name=>"eprintid", type=>"itemref", 
 			datasetid=>"eprint", required=>1 },

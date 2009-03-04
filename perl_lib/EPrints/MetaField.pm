@@ -2085,6 +2085,7 @@ sub get_property_defaults
 		sql_index 	=> 1,
 		sql_langid 	=> $EPrints::MetaField::UNDEF,
 		sql_sorted	=> 0,
+		sql_counter => $EPrints::MetaField::UNDEF,
 		text_index 	=> 0,
 		toform 		=> $EPrints::MetaField::UNDEF,
 		type 		=> $EPrints::MetaField::REQUIRED,

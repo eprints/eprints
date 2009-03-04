@@ -217,7 +217,8 @@ sub get_system_field_info
 
 	return
 	( 
-		{ name=>"fileid", type=>"int", required=>1, import=>0, show_in_html=>0, can_clone=>0 },
+		{ name=>"fileid", type=>"int", required=>1, import=>0, show_in_html=>0,
+			can_clone=>0, sql_counter=>"fileid" },
 
 		{ name=>"datasetid", type=>"text", text_index=>0, }, 
 

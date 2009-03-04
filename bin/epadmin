@@ -1775,14 +1775,17 @@ sub update_datasets
 	my( $repo, $db ) = @_;
 
 	my $success = 1;
+	my $count = 0;
+	my $field_count = 0;
 
-	foreach( &EPrints::DataSet::get_sql_dataset_ids )
+	foreach( $repo->get_sql_dataset_ids() )
 	{
 		my $dataset = $repo->get_dataset( $_ );
 		if( !$db->has_dataset( $dataset ) )
 		{
 			if( $db->create_dataset_tables( $dataset ) )
 			{
+				++$count;
 				print "Added dataset $_\n" if $noise;
 			}
 			else
@@ -1799,6 +1802,7 @@ sub update_datasets
 			{
 				if( $db->add_field( $dataset, $field ) )
 				{
+					++$field_count;
 					print "Added ".$field->get_name." to dataset $_\n" if $noise;
 				}
 				else
@@ -1810,6 +1814,9 @@ sub update_datasets
 		}
 	}
 
+	print "$count datasets added\n" if $noise;
+	print "$field_count fields added\n" if $noise;
+
 	return $success;
 }
 
@@ -1819,13 +1826,15 @@ sub update_counters
 	my( $repo, $db ) = @_;
 
 	my $success = 1;
+	my $count = 0;
 
-	foreach( @EPrints::Database::counters )
+	foreach( $repo->get_sql_counter_ids )
 	{
 		if( !$db->has_counter( $_ ) )
 		{
 			if( $db->create_counter( $_ ) )
 			{
+				++$count;
 				print "Added counter $_\n" if $noise;
 			}
 			else
@@ -1835,6 +1844,8 @@ sub update_counters
 			}
 		}
 	}
+
+	print "$count counters were added\n" if $noise;
 
 	return $success;
 }

@@ -105,7 +105,8 @@ sub get_system_field_info
 
 	return
 	( 
-		{ name=>"accessid", type=>"int", required=>1, can_clone=>0 },
+		{ name=>"accessid", type=>"int", required=>1, can_clone=>0,
+			sql_counter=>"accessid" },
 
 		{ name=>"datestamp", type=>"time", required=>1, },
 

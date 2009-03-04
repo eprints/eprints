@@ -47,7 +47,8 @@ sub get_system_field_info
 
 	return
 	( 
-		{ name=>"messageid", type=>"int", required=>1, can_clone=>0 },
+		{ name=>"messageid", type=>"int", required=>1, can_clone=>0,
+			sql_counter=>"messageid" },
 
 		{ name=>"datestamp", type=>"time", required=>1, text_index=>0 },
 
