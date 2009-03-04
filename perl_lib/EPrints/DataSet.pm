@@ -257,7 +257,7 @@ my $INFO = {
 
 Creates and returns a new dataset based on %properties.
 
-Requires at least B<repository> and B<id> properties.
+Requires at least B<repository> and B<name> properties.
 
 Available properties:
 
@@ -267,9 +267,9 @@ Available properties:
 
 Reference to the repository object.
 
-=item id STRING
+=item name STRING
 
-Id of the dataset.
+Name of the dataset.
 
 =item confid STRING
 
@@ -287,9 +287,14 @@ Name of the primary database table.
 
 Set to 1 if this dataset doesn't require it's own database tables.
 
+=item type STRING
+
+Type of data object the dataset contains e.g. for L<EPrints::DataObj::EPrint>
+specify "EPrint".
+
 =item class STRING
 
-Data object class name.
+Explicit class to use for data objects. To use the default object specify L<EPrints::DataObj>.
 
 =item filters ARRAYREF
 
@@ -320,9 +325,23 @@ sub new
 	{
 		EPrints::abort( "Requires repository property" );
 	}
-	if( !defined $properties{id} )
+	if( !defined $properties{name} )
 	{
-		EPrints::abort( "Requires id property" );
+		EPrints::abort( "Requires name property" );
+	}
+
+	# We support the field properties of "name" and "type"
+
+	# datasets are identified by "id", not "name"
+	$properties{id} ||= delete $properties{name};
+
+	# type is a short-cut for specifying the object class
+	# (We have to maintain case though, because DataObj classes are
+	# camelcased)
+	my $type = delete $properties{type};
+	if( defined $type )
+	{
+		$properties{class} = "EPrints::DataObj::$type";
 	}
 
 	my $self = bless \%properties, $class;
@@ -647,7 +666,7 @@ sub get_sql_table_name
 
 	return $table if defined $table;
 
-	EPrints::abort( "Can't get a SQL table name for dataset: ".$self->{id} );
+	EPrints::abort( "Can't get a SQL table name for dataset: ".$self->{name} );
 }
 
 

@@ -938,19 +938,25 @@ sub _load_datasets
 
 	$self->{datasets} = {};
 
-	foreach my $info (
-		EPrints::DataSet::get_system_dataset_info(),	# system datasets
-		$self->get_conf( "datasets" )		# repository-specific datasets
-		)
+	my $info = EPrints::DataSet::get_system_dataset_info();
+	foreach my $ds_id ( keys %{$info} )
 	{
-		next unless defined $info;
+		$self->{datasets}->{$ds_id} = EPrints::DataSet->new(
+			repository => $self,
+			name => $ds_id,
+			%{$info->{$ds_id}},
+			);
+	}
 
-		foreach my $ds_id ( keys %{$info} )
+	my $repository_datasets = $self->get_conf( "datasets" );
+	if( $repository_datasets )
+	{
+		foreach my $data ( @{$repository_datasets} )
 		{
+			my $ds_id = $data->{name};
 			$self->{datasets}->{$ds_id} = EPrints::DataSet->new(
 				repository => $self,
-				%{$info->{$ds_id}},
-				id => $ds_id,
+				%{$data},
 				);
 		}
 	}

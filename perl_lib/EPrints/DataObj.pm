@@ -58,8 +58,6 @@ use strict;
 
 =item $sys_fields = EPrints::DataObj->get_system_field_info
 
-ABSTRACT.
-
 Return an array describing the system metadata of the this 
 dataset.
 
@@ -70,7 +68,7 @@ sub get_system_field_info
 {
 	my( $class ) = @_;
 
-	EPrints::abort( "Abstract EPrints::DataObj->get_system_field_info method called" );
+	return ();
 }
 
 ######################################################################
