@@ -7,22 +7,32 @@ $c->{datasets} = [];
 #
 # $c->{datasets} = [
 # 	{
-# 		name => "foo",
+# 		name => "comment",
 # 		class => "EPrints::DataObj",
-# 		sqlname => "foo",
+# 		sqlname => "comment",
+# 		datestamp => "datestamp",
 # 	},
 # ];
 #
 # And some fields:
 #
-# $c->{fields}->{foo} = [
+# $c->{fields}->{comment} = [
 # 	{
-# 		name => "fooid",
+# 		name => "commentid",
 # 		type => "int",
+# 		sql_counter => "commentid",
 # 	},
 # 	{
-# 		name => "dob",
-# 		type => "date",
+# 		name => "datestamp",
+# 		type => "time",
+# 	},
+# 	{
+# 		name => "title",
+# 		type => "text",
+# 	},
+# 	{
+# 		name => "body",
+# 		type => "text",
 # 	},
 # ];
 #

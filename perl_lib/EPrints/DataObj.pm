@@ -212,7 +212,7 @@ sub create_from_data
 
 	# get defaults modifies the hash so we must copy it.
 	my $defaults = EPrints::Utils::clone( $data );
-	$defaults = $class->get_defaults( $session, $defaults );
+	$defaults = $class->get_defaults( $session, $defaults, $dataset );
 	
 	foreach my $field ( $dataset->get_fields )
 	{
@@ -276,7 +276,7 @@ sub create_from_data
 ######################################################################
 =pod
 
-=item $defaults = EPrints::User->get_defaults( $session, $data )
+=item $defaults = EPrints::User->get_defaults( $session, $data, $dataset )
 
 Return default values for this object based on the starting data.
 
@@ -287,9 +287,26 @@ Should be subclassed.
 
 sub get_defaults
 {
-	my( $class, $session, $data ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
 
-	return {};
+	# without dataset there's nothing we can sensibly do
+	return $data unless defined $dataset;
+
+	# Set any counter-driven values
+	foreach my $field ($dataset->get_fields)
+	{
+		my $fieldname = $field->get_name;
+		next if EPrints::Utils::is_set($data->{$fieldname});
+
+		my $counter_id = $field->get_property( "sql_counter" );
+		if( defined $counter_id )
+		{
+			$data->{$field->get_name} =
+				$session->get_database->counter_next( $counter_id );
+		}
+	}
+
+	return $data;
 }
 
 ######################################################################
