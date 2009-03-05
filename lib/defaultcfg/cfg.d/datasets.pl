@@ -1,18 +1,15 @@
-$c->{datasets} = [];
+$c->{datasets} = {};
 
 # Example custom datasets:
 #
 # The following dataset is an absolutely minimal dataset that still stores
 # data.
 #
-# $c->{datasets} = [
-# 	{
-# 		name => "comment",
-# 		class => "EPrints::DataObj",
-# 		sqlname => "comment",
-# 		datestamp => "datestamp",
-# 	},
-# ];
+# $c->{datasets}->{comment} = {
+# 	class => "EPrints::DataObj",
+# 	sqlname => "comment",
+# 	datestamp => "datestamp",
+# };
 #
 # And some fields:
 #
@@ -38,13 +35,11 @@ $c->{datasets} = [];
 #
 # The following dataset uses a custom class defined here.
 #
-# $c->{datasets} = [
-# 	{
-# 		name => "foo", # name
-# 		type => "LocalFoo", # data object class
-# 		sqlname => "foo", # database table name
-# 	},
-# ];
+# $c->{datasets}->{foo} = {
+# 	name => "foo", # name
+# 	type => "LocalFoo", # data object class
+# 	sqlname => "foo", # database table name
+# };
 #
 # See EPrints::DataSet for documentation on dataset properties.
 #

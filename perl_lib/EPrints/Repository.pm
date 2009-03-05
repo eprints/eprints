@@ -951,12 +951,12 @@ sub _load_datasets
 	my $repository_datasets = $self->get_conf( "datasets" );
 	if( $repository_datasets )
 	{
-		foreach my $data ( @{$repository_datasets} )
+		foreach my $ds_id ( keys %{$repository_datasets} )
 		{
-			my $ds_id = $data->{name};
 			$self->{datasets}->{$ds_id} = EPrints::DataSet->new(
 				repository => $self,
-				%{$data},
+				name => $ds_id,
+				%{$repository_datasets->{$ds_id}},
 				);
 		}
 	}
