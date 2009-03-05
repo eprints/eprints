@@ -263,8 +263,9 @@ sub sigusr2_cluck
 	$SIG{'USR2'} = \&sigusr2_cluck;
 }
 
-# Don't break if signal handling isn't available
-eval {
+# If the signal doesn't exist, it isn't critical so don't warn
+{
+	no warnings;
 	$SIG{'USR2'} = \&sigusr2_cluck;
 };
 
