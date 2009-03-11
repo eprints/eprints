@@ -93,7 +93,7 @@ sub render
 	my $dataset_table = $session->make_element( "table", border=>"0" );
 	$html->appendChild( $dataset_table );
 
-	foreach my $datasetid (sort { $a cmp $b } EPrints::DataSet::get_sql_dataset_ids())
+	foreach my $datasetid (sort { $a cmp $b } $session->get_repository->get_sql_dataset_ids())
 	{
 		my $dataset = $session->get_repository->get_dataset( $datasetid );
 
