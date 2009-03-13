@@ -129,13 +129,16 @@ sub new_from_filename
 
 	$searchexp->add_field(
 		$ds->get_field( "datasetid" ),
-		$dataobj->get_dataset->confid );
+		$dataobj->get_dataset->confid,
+		"EX" );
 	$searchexp->add_field(
 		$ds->get_field( "objectid" ),
-		$dataobj->get_id );
+		$dataobj->get_id,
+		"EX" );
 	$searchexp->add_field(
 		$ds->get_field( "filename" ),
-		$filename );
+		$filename,
+		"EX" );
 
 	my $searchid = $searchexp->perform_search;
 	my @records = $searchexp->get_records(0,1);
