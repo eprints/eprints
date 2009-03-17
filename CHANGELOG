@@ -8086,3 +8086,6 @@ EPRINTS-3.1-beta-2
  * Fixed bug in Field::Multi which didn't allow <help> in both the component
     and inside the field.
  * Added temporary conf settings to bin/toolbox to allow file & web import.
+
+2009-03-17 cjg
+ * Updated a search in User.pm to the new API.

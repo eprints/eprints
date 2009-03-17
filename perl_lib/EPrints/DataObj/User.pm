@@ -378,9 +378,9 @@ sub user_with_email
 		$user_ds->get_field( "email" ),
 		$email );
 
-	my $searchid = $searchexp->perform_search;
-	my @records = $searchexp->get_records(0,1);
-	$searchexp->dispose();
+	my $list = $searchexp->perform_search;
+	my @records = $list->get_records(0,1);
+	$list->dispose();
 	
 	return $records[0];
 }
