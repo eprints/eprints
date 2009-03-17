@@ -311,7 +311,7 @@ sub tool_addDocument
 
 	$opts{eprint}->generate_static;
 		
-	return( 0, "OK\n" );
+	return( 0, $document->get_id."\n" );
 }
 
 

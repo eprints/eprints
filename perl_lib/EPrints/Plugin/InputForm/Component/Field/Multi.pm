@@ -70,76 +70,40 @@ sub parse_config
 	my( $self, $config_dom ) = @_;
 	
 	$self->{config}->{fields} = [];
-
-# moj: We need some default phrases for when these aren't specified.
-#	$self->{config}->{title} = ""; 
-#	$self->{config}->{help} = ""; 
-
-	my @fields = $config_dom->getElementsByTagName( "field" );
-	my @title_nodes = $config_dom->getElementsByTagName( "title" );
-	my @help_nodes  = $config_dom->getElementsByTagName( "help" );
-
-	if( @fields == 0 )
-	{
-		# error!
-		EPrints::abort( "Multifield with no fields defined. Config was:\n".EPrints::XML::to_string( $config_dom ) );
-	}
-
-	foreach my $field_tag ( @fields )
-	{
-		my $field = $self->xml_to_metafield( $field_tag );
-		push @{$self->{config}->{fields}}, $field;
-	}
-
-
 	$self->{config}->{title} = $self->{session}->make_doc_fragment;
-	if( scalar @title_nodes == 1 )
-	{
-		foreach my $kid ( $title_nodes[0]->getChildNodes )
-		{
-			$self->{config}->{title}->appendChild( $kid );
-		}	
-	}
 
-	
-	if( scalar @help_nodes == 1 )
+	foreach my $node ( $config_dom->getChildNodes )
 	{
-		my $phrase_ref = $help_nodes[0]->getAttribute( "ref" );
-		$self->{config}->{help} = $self->{session}->make_element( "div", class=>"ep_sr_help_chunk" );
-		if( EPrints::Utils::is_set( $phrase_ref ) )
+		if( $node->nodeName eq "field" ) 
 		{
-			$self->{config}->{help}->appendChild( $self->{session}->html_phrase( $phrase_ref ) );
+			my $field = $self->xml_to_metafield( $node );
+			push @{$self->{config}->{fields}}, $field;
 		}
-		else
+
+		if( $node->nodeName eq "title" ) 
 		{
-			my @phrase_dom = $help_nodes[0]->getElementsByTagName( "phrase" );
-			if( scalar @phrase_dom >= 1 )
+			$self->{config}->{title} = EPrints::XML::contents_of( $node );
+		}
+
+		if( $node->nodeName eq "help" ) 
+		{
+			my $phrase_ref = $node->getAttribute( "ref" );
+			$self->{config}->{help} = $self->{session}->make_element( "div", class=>"ep_sr_help_chunk" );
+			if( EPrints::Utils::is_set( $phrase_ref ) )
 			{
-				$self->{config}->{help}->appendChild( $phrase_dom[0] );
+				$self->{config}->{help}->appendChild( $self->{session}->html_phrase( $phrase_ref ) );
+			}
+			else
+			{
+				$self->{config}->{help} = EPrints::XML::contents_of( $node );
 			}
 		}
 	}
-
-#	else
-#	{
-#		# no <help> configured. Do something sensible.
-#		
-#		$self->{config}->{help} = $self->{session}->make_doc_fragment;
-#		foreach my $field ( @{$self->{config}->{fields}} )
-#		{
-#			my $chunk = $self->{session}->make_element( "div", class=>"ep_sr_help_chunk" );
-#			my $strong = $self->{session}->make_element( "strong" );
-#			$strong->appendChild( $field->render_name( $self->{session} ) );
-#			$strong->appendChild( $self->{session}->make_text( ": " ) );
-#			$chunk->appendChild( $strong );
-#			$chunk->appendChild( 
-#				$field->render_help( 
-#					$self->{session}, 
-#					$field->get_type() ) );
-#			$self->{config}->{help}->appendChild( $chunk );
-#		}
-#	}
-
+	
+	if( @{$self->{config}->{fields}} == 0 )
+	{
+		EPrints::abort( "Multifield with no fields defined. Config was:\n".EPrints::XML::to_string( $config_dom ) );
+	}
 }
 
 sub has_help

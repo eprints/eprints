@@ -8081,3 +8081,8 @@ EPRINTS-3.1-beta-2
  * Counters are now created based on field definitions
  * Added example custom dataset
 
+2009-03-17 cjg
+ * Document toolbox document add now reports document id rather than "OK"
+ * Fixed bug in Field::Multi which didn't allow <help> in both the component
+    and inside the field.
+ * Added temporary conf settings to bin/toolbox to allow file & web import.
