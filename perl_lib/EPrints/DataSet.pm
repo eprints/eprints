@@ -666,7 +666,7 @@ sub get_sql_table_name
 
 	return $table if defined $table;
 
-	EPrints::abort( "Can't get a SQL table name for dataset: ".$self->{name} );
+	EPrints::abort( "Can't get a SQL table name for dataset: ".$self->{id} );
 }
 
 
