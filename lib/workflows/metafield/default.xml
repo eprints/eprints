@@ -25,10 +25,10 @@
   	<component><field ref="sql_index"/></component>
     <component type="Field::Multi">
 		<title>Rendering Options</title>
-		<component><field ref="render_input"/></component>
-		<component><field ref="render_value"/></component>
+		<field ref="render_input"/>
+		<field ref="render_value"/>
 		<epc:if test="type!='boolean' and type!='compound'">
-			<component><field ref="browse_link"/></component>
+			<field ref="browse_link"/>
 		</epc:if>
 	</component>
 	<epc:if test="type='search' or type='fields' or type='subobject' or type='itemref'">
@@ -37,8 +37,8 @@
 	<epc:if test="multiple='TRUE'">
 		<component type="Field::Multi">
 			<title>Multiple Values</title>
-			<component><field ref="input_boxes"/></component>
-			<component><field ref="input_ordered"/></component>
+			<field ref="input_boxes"/>
+			<field ref="input_ordered"/>
 		</component>
 	</epc:if>
 	<epc:if test="type!='boolean' and type!='compound'">
@@ -54,10 +54,10 @@
 	<epc:if test="type='name'">
 		<component type="Field::Multi">
 			<title>Name Options</title>
-			<component><field ref="render_order"/></component>
-			<component><field ref="hide_honourific"/></component>
-			<component><field ref="hide_lineage"/></component>
-			<component><field ref="family_first"/></component>
+			<field ref="render_order"/>
+			<field ref="hide_honourific"/>
+			<field ref="hide_lineage"/>
+			<field ref="family_first"/>
 		</component>
 	</epc:if>
 	<epc:if test="type='subobject'">
