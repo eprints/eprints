@@ -1250,6 +1250,7 @@ my $PRIVMAP =
 		"eprint/inbox/use_as_template:editor",
 		"eprint/inbox/derive_version:editor",
 		"eprint/inbox/staff/edit:editor",
+		"eprint/inbox/takelock:editor",
 
 
 		"eprint/buffer/view:editor",
@@ -1267,6 +1268,7 @@ my $PRIVMAP =
 		"eprint/buffer/use_as_template:editor",
 		"eprint/buffer/derive_version:editor",
 		"eprint/buffer/staff/edit:editor",
+		"eprint/buffer/takelock:editor",
 
 
 		"eprint/archive/view:editor",
@@ -1282,6 +1284,7 @@ my $PRIVMAP =
 		"eprint/archive/use_as_template:editor",
 		"eprint/archive/derive_version:editor",
 		"eprint/archive/staff/edit:editor",
+		"eprint/archive/takelock:editor",
 
 
 		"eprint/deletion/view:editor",
@@ -1294,6 +1297,7 @@ my $PRIVMAP =
 		"eprint/deletion/move_archive:editor",
 		"eprint/deletion/use_as_template:editor",
 		"eprint/deletion/derive_version:editor",
+		"eprint/deletion/takelock:editor",
 	],
 	
 };

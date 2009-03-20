@@ -60,6 +60,12 @@ sub process
 		$self->screen->register_error;
 		$self->{screenid} = "Error";
 	}
+	elsif( !$self->screen->obtain_edit_lock )
+	{
+		$self->add_message( "error", $self->{session}->html_phrase( 
+			"Plugin/Screen:item_locked" ) );
+		$self->{screenid} = "Error";
+	}
 	else
 	{
 		$self->screen->from;
@@ -100,6 +106,12 @@ sub process
 		$self->add_message( "error", $self->{session}->html_phrase( 
 			"Plugin/Screen:screen_not_allowed",
 			screen=>$self->{session}->make_text( $self->{screenid} ) ) );
+		$self->{screenid} = "Error";
+	}
+	elsif( !$self->screen->obtain_view_lock )
+	{
+		$self->add_message( "error", $self->{session}->html_phrase( 
+			"Plugin/Screen:item_locked" ) );
 		$self->{screenid} = "Error";
 	}
 

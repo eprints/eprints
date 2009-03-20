@@ -128,6 +128,27 @@ sub about_to_render
 	my( $self ) = @_;
 }
 
+sub obtain_edit_lock
+{
+	my( $self ) = @_;
+
+	return $self->obtain_lock;
+}
+
+sub obtain_view_lock
+{
+	my( $self ) = @_;
+
+	return $self->obtain_lock;
+}
+
+sub obtain_lock
+{
+	my( $self ) = @_;
+	
+	return 1;
+}
+
 sub can_be_viewed
 {
 	my( $self ) = @_;

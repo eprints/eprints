@@ -26,6 +26,8 @@ sub can_be_viewed
 {
 	my( $self ) = @_;
 
+	return 0 unless $self->could_obtain_eprint_lock;
+
 	return $self->allow( "eprint/staff/edit" );
 }
 

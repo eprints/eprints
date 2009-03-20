@@ -55,11 +55,19 @@ sub from
 	$self->EPrints::Plugin::Screen::from;
 }
 
+sub obtain_lock
+{
+	my( $self ) = @_;
+
+	return $self->obtain_eprint_lock;
+}
+
 sub can_be_viewed
 {
 	my( $self ) = @_;
 
 	return 0 unless defined $self->{processor}->{eprint};
+	return 0 unless $self->could_obtain_eprint_lock;
 	return 0 unless $self->{processor}->{eprint}->get_value( "eprint_status" ) eq "inbox";
 
 	return $self->allow( "eprint/deposit" );

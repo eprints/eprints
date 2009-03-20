@@ -251,7 +251,22 @@ sub render
 		render_result => sub {
 			my( $session, $e, $info ) = @_;
 
-			my $tr = $session->make_element( "tr", class=>"row_".($info->{row}%2?"b":"a") );
+			my $class = "row_".($info->{row}%2?"b":"a");
+			if( $e->is_locked )
+			{
+				$class .= " ep_columns_row_locked";
+				my $my_lock = ( $e->get_value( "edit_lock_user" ) == $session->current_user->get_id );
+				if( $my_lock )
+				{
+					$class .= " ep_columns_row_locked_mine";
+				}
+				else
+				{
+					$class .= " ep_columns_row_locked_other";
+				}
+			}
+
+			my $tr = $session->make_element( "tr", class=>$class );
 
  			my $cols = $columns,
 

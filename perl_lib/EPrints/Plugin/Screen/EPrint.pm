@@ -28,6 +28,24 @@ sub properties_from
 	$self->SUPER::properties_from;
 }
 
+sub could_obtain_eprint_lock
+{
+	my( $self ) = @_;
+
+	return 0 unless defined $self->{processor}->{eprint};
+
+	return $self->{processor}->{eprint}->could_obtain_lock( $self->{session}->current_user );
+}
+
+sub obtain_eprint_lock
+{
+	my( $self ) = @_;
+
+	return 0 unless defined $self->{processor}->{eprint};
+
+	return $self->{processor}->{eprint}->obtain_lock( $self->{session}->current_user );
+}
+
 sub allow
 {
 	my( $self, $priv ) = @_;
@@ -89,6 +107,23 @@ sub register_furniture
 
 	$self->SUPER::register_furniture;
 
+	my $eprint = $self->{processor}->{eprint};
+	my $user = $self->{session}->current_user;
+	if( $eprint->is_locked )
+	{
+		my $my_lock = ( $eprint->get_value( "edit_lock_user" ) == $user->get_id );
+		if( $my_lock )
+		{
+			$self->{processor}->before_messages( $self->{session}->html_phrase( 
+				"Plugin/Screen/EPrint:locked_to_you" ) );
+		}
+		else
+		{
+			$self->{processor}->before_messages( $self->{session}->html_phrase( 
+				"Plugin/Screen/EPrint:locked_to_other", 
+				name => $eprint->render_value( "edit_lock_user" )) );
+		}
+	}
 
 	my $priv = $self->allow( "eprint/view" );
 	my $owner  = $priv & 4;

@@ -31,6 +31,13 @@ sub new
 	return $self;
 }
 
+sub obtain_lock
+{
+	my( $self ) = @_;
+
+	return $self->{processor}->{eprint}->obtain_lock( $self->{session}->current_user );
+}
+
 
 sub can_be_viewed
 {
@@ -38,6 +45,7 @@ sub can_be_viewed
 
 	return 0 unless defined $self->{processor}->{eprint};
 	return 0 if( !defined $self->{processor}->{eprint}->get_user );
+	return 0 unless $self->could_obtain_eprint_lock;
 
 	return $self->allow( "eprint/remove_with_email" );
 }

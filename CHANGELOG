@@ -8089,3 +8089,6 @@ EPRINTS-3.1-beta-2
 
 2009-03-17 cjg
  * Updated a search in User.pm to the new API.
+
+2009-03-20 cjg
+ * Added edit locking.

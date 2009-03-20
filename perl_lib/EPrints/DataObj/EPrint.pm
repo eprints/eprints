@@ -248,9 +248,19 @@ sub get_system_field_info
 
 	{ name=>"item_issues_count", type=>"int",  volatile=>1 },
 
-        { 'name' => 'sword_depositor', 'type' => 'int' },
+	{ 'name' => 'sword_depositor', 'type' => 'int' },
 
-        { 'name' => 'sword_slug', 'type' => 'text' },
+	{ 'name' => 'sword_slug', 'type' => 'text' },
+
+	{ 'name' => 'edit_lock', 'type' => 'compound', volatile => 1,
+		'fields' => [
+			{ 'sub_name' => 'user',  'type' => 'itemref', 'datasetid' => 'user', },
+			{ 'sub_name' => 'since', 'type' => 'int', },
+			{ 'sub_name' => 'until', 'type' => 'int', },
+		],
+		render_value=>"EPrints::DataObj::EPrint::render_edit_lock",
+ 	},
+
 
 	);
 }
@@ -2437,6 +2447,126 @@ sub has_owner
 	return &$fn( $self->{session}, $possible_owner, $self );
 }
 
+
+######################################################################
+=pod
+
+=item $boolean = $eprint->obtain_lock( $user )
+
+=cut
+######################################################################
+
+sub obtain_lock
+{
+	my( $self, $user ) = @_;
+
+	if( ! $self->{session}->get_repository->get_conf( "locking", "eprint", "enable" ) )
+	{
+		# locking not enabled
+		return 1;
+	}
+
+	my $my_lock = ( $self->get_value( "edit_lock_user" ) == $user->get_id );
+	if( $self->is_locked() && !$my_lock )
+	{
+		return 0;
+	}
+	
+	if( !$my_lock )
+	{
+		$self->set_value( "edit_lock_since", time );
+		$self->set_value( "edit_lock_user", $user->get_id );
+	}
+
+	my $timeout = $self->{session}->get_repository->get_conf( "locking", "eprint", "timeout" );
+	$timeout = 600 unless defined $timeout;
+	$self->set_value( "edit_lock_until", time + $timeout );
+
+	$self->commit;
+
+	return 1;
+}
+
+######################################################################
+=pod
+
+=item $boolean = $eprint->could_obtain_lock( $user )
+
+=cut
+######################################################################
+
+sub could_obtain_lock
+{
+	my( $self, $user ) = @_;
+
+	if( ! $self->{session}->get_repository->get_conf( "locking", "eprint", "enable" ) )
+	{
+		# locking not enabled
+		return 1;
+	}
+
+	my $my_lock = ( $self->get_value( "edit_lock_user" ) == $user->get_id );
+	if( $self->is_locked() && !$my_lock )
+	{
+		return 0;
+	}
+	
+	return 1;
+}
+
+######################################################################
+=pod
+
+=item $boolean = $eprint->is_locked()
+
+=cut
+######################################################################
+
+sub is_locked
+{
+	my( $self ) = @_;
+
+	if( ! $self->{session}->get_repository->get_conf( "locking", "eprint", "enable" ) )
+	{
+		# locking not enabled
+		return 0;
+	}
+
+	my $lock_until = $self->get_value( "edit_lock_until" );
+
+	return 0 unless $lock_until;
+
+	return( $lock_until > time );
+}
+
+######################################################################
+=pod
+
+=item $xhtml = render_edit_lock( $session, $value )
+
+=cut
+######################################################################
+
+sub render_edit_lock
+{
+	my( $session, $field, $value, $alllangs, $nolink, $eprint ) = @_;
+
+	if( $value->{"until"} < time ) 
+	{
+		return $session->html_phrase( "lib/eprint:not_locked" );
+	}
+
+	my $f = $field->get_property( "fields_cache" );
+	return $session->html_phrase( "lib/eprint:locked", 
+		locked_by => $f->[0]->render_single_value( $session, $value->{user}, $eprint ),
+		locked_until => $session->make_text( EPrints::Time::human_time( $value->{"until"} ) ) );
+
+	return $f;
+};
+
+
+
+
 ######################################################################
 =pod
 
@@ -2478,3 +2608,6 @@ Callbacks may optionally be defined in the ArchiveConfig.
 See L<ArchiveRenderConfig/eprint_render>.
 
 =back
+
+
+

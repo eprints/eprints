@@ -23,10 +23,18 @@ sub new
 	return $self;
 }
 
+sub obtain_lock
+{
+	my( $self ) = @_;
+
+	return $self->obtain_eprint_lock;
+}
+
 sub allow_changeowner
 {
 	my( $self ) = @_;
 
+	return 0 unless $self->could_obtain_eprint_lock;
 	return $self->allow( "eprint/staff/edit" );
 }
 sub allow_cancel
