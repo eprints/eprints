@@ -119,7 +119,7 @@ sub copy
 {
     my ($self, $r, $handler) = @_;
 
-    my $path = $r->uri();
+    my $path = decode_utf8 $r->uri();
 
     my $destination = $r->headers_in->{'Destination'};
     my $depth       = $r->headers_in->{'Depth'};
@@ -132,7 +132,7 @@ sub copy
     }
 
     # Translate the destination into a usable format
-    $destination = URI->new($destination)->path();
+    $destination = URI::Escape::uri_unescape(URI->new($destination)->path());
 
     # If it's a regular file, don't sweat it
     if($handler->test('f', $path))
@@ -364,24 +364,28 @@ sub get
     # interface to read the file and send it back to the client.
     if($handler->test('f', $path) && $handler->test('r', $path))
     {
-        $r->headers_out->{'Last-Modified'} = $handler->modtime($path);
+		use bytes;
 
         my $fh = $handler->open_read($path) or return NOT_FOUND;
 
-        my $file;
-
-        while(my $line = <$fh>)
-        {
-            $file .= $line;
-        }
+		my $written = 0;
+		while(sysread($fh, $_, 4096))
+		{
+			$written += length($_);
+			$r->print($_);
+		}
 
         $handler->close_read($fh);
 
         $r->status(200);
-        $r->headers_out->{'Content-Length'} = length($file);
-
-#        $r->send_http_header();
-        $r->print($file);
+        $r->headers_out->{'Content-Length'} = $written;
+        $r->headers_out->{'Last-Modified'} = $handler->modtime($path);
+		my $mime_type = 'application/octet-stream';
+		if( $handler->can( "mime_type" ) )
+		{
+			$mime_type = $handler->mime_type( $path );
+		}
+		$r->headers_out->{'Content-Type'} = $mime_type;
 
         return OK;
     }
@@ -478,11 +482,11 @@ sub move
 {
     my ($self, $r, $handler) = @_;
 
-    my $path = $r->uri();
+    my $path = decode_utf8 $r->uri();
 
     my $destination = $r->headers_in->{'Destination'};
 
-    $destination = URI->new($destination)->path();
+    $destination = URI::Escape::uri_unescape(URI->new($destination)->path());
 
     my $overwrite = $r->headers_in->{'Overwrite'};
 
@@ -507,9 +511,22 @@ sub move
 
             my $result = $self->delete($r, $handler);
 
-            $r->uri($path);        # Reset URI to original value
+            $r->uri(encode_utf8 $path);        # Reset URI to original value
         }
     }
+
+	if( $handler->can( "rename" ) )
+	{
+		if( $handler->rename( $path, $destination ) )
+		{
+			$r->err_headers_out->{'Location'} = $r->headers_in->{'Destination'};
+			return 201;
+		}
+	}
+	else
+	{
+		return FORBIDDEN;
+	}
 
     my $copy_result = $self->copy($r, $handler);
 
@@ -572,7 +589,7 @@ sub propfind
     my ($self, $r, $handler) = @_;
 
     my $depth = $r->headers_in->{'Depth'};
-    my $uri   = $r->uri();
+    my $uri   = $self->decode_uri( $r, $r->unparsed_uri() );
 
     # Make sure the resource exists
     if(!$handler->test('e', $uri))
@@ -632,7 +649,18 @@ sub propfind
 
         my $handler = $self->get_handler_for_path($path);
 
-        $info->{'getcontenttype'} = 'application/octet-stream';
+		my $mime_type = 'application/octet-stream';
+		if( $handler->can( "mime_type" ) )
+		{
+			$mime_type = $handler->mime_type( $path );
+		}
+		# Nautilus seems to behave better without the content-type
+        if($r->headers_in->{'User-Agent'} =~ /gvfs/)
+		{
+			$mime_type = undef;
+		}
+
+        $info->{'getcontenttype'} = $mime_type;
         $info->{'resourcetype'}   = '';
 
         if($handler->test('d', $path))
@@ -897,11 +925,11 @@ sub list_response
 
         my $href = $doc->createElement('D:href');
 
-        $href->appendText(
-            File::Spec->catdir(
-                map { uri_escape encode_utf8 $_ } File::Spec->splitdir($path)
-            )
-        );
+		$href->appendText(
+				File::Spec->catdir(
+					map { $self->encode_uri($r, $_) } File::Spec->splitdir($path)
+				)
+			);
 
         $resp->addChild($href);
 
@@ -1001,6 +1029,12 @@ sub get_wanted_properties
     # properties they are requesting.
     my $content = $self->get_request_content($r);
 
+	if( length($content) == 0 &&
+		$r->headers_in->{'User-Agent'} =~ /Microsoft Data Access/ )
+	{
+		return ( allprop => 1 ) unless length($content);
+	}
+
     # NSExpand expands namespaces so, xmlns:D eq '{DAV:}' in front of every
     # element in that namespace.
     my $xml;
@@ -1015,6 +1049,7 @@ sub get_wanted_properties
     # and return undef.
     if(!$xml)
     {
+		print STDERR "Error parsing XML: $@\n";
         $r->status(400);
 #        $r->send_http_header();
         return;
@@ -1058,9 +1093,9 @@ sub get_request_content
 	my $connection = $r->headers_in->{'Connection'};
 	my $te = $r->headers_in->{'TE'};
 
-	if( defined($length) && $length > 0 )
+	if( defined($length) )
 	{
-		$r->read($content, $length);
+		$r->read($content, $length) if $length > 0;
 	}
 	elsif( $connection && lc($connection) eq "te" )
 	{
@@ -1099,7 +1134,7 @@ sub get_request_content
 	}
 	else
 	{
-		warn "Unsupported/unknown method for posting content";
+		print STDERR "Unsupported/unknown method for posting content\n";
 	}
 
     return $content;
@@ -1165,6 +1200,44 @@ sub iso_datetime
 		$time[3],
 		@time[2,1,0]
 		);
+}
+
+# encode/decode uris according to each client's perculiarities
+sub encode_uri
+{
+    my ($self, $r, $uri) = @_;
+
+	if( 0 && $r->headers_in->{'User-Agent'} =~ /Microsoft Data Access/ )
+	{
+		$uri =~ s/([;\/?\:\@&=+\$,%\x80-\xff])/sprintf("%%%02x", ord($1))/eg;
+		return $uri;
+	}
+	if($r->headers_in->{'User-Agent'} =~ /gvfs/)
+	{
+		return uri_escape(encode_utf8($uri),"^A-Za-z0-9-_.!~*'()=");
+	}
+
+	return uri_escape encode_utf8 $uri;
+}
+
+sub decode_uri
+{
+    my ($self, $r, $uri) = @_;
+
+	# Web Folders emits weird URLs which contain chars in the range 0x80-0xff
+	# encoded as %XX but leaves higher bit chars as bytes
+	if( $r->headers_in->{'User-Agent'} =~ /Microsoft Data Access/ )
+	{
+		$uri = decode_utf8 $uri;
+		$uri =~ s/%([0-9a-fA-F]{2})/
+			hex($1) > 0x80 ? chr(hex($1)) : "\%$1"
+		/eg;
+		$uri = encode_utf8 $uri;
+	}
+
+	$uri = URI->new($uri)->path;
+
+	return decode_utf8 uri_unescape $uri;
 }
 
 1;
