@@ -1478,6 +1478,16 @@ sub test
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
 	exit( 1 ) unless( defined $session );
+	if( $noise > 1 )
+	{
+		print "PID: $$\n";
+		eval "use GTop";
+		if( !$@ )
+		{
+			my $size = GTop->new->proc_mem( $$ )->resident;
+			print "SIZE: $size\n";
+		}
+	}
 	$session->terminate;
 
 	print "Everything seems OK.\n";
