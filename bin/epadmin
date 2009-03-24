@@ -1797,7 +1797,7 @@ sub update_datasets
 		}
 		foreach my $field ($dataset->get_fields)
 		{
-			next if defined $field->{"sub_name"};
+			next if defined $field->get_property( "sub_name" );
 			if( !$db->has_field( $dataset, $field ) )
 			{
 				if( $db->add_field( $dataset, $field ) )

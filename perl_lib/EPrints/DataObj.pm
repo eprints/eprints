@@ -726,7 +726,7 @@ sub is_set
 {
 	my( $self, $fieldname ) = @_;
 
-	if( !$self->{dataset}->get_field( $fieldname ) )
+	if( !$self->{dataset}->has_field( $fieldname ) )
 	{
 		$self->{session}->get_repository->log(
 			 "is_set( $fieldname ): Unknown field" );

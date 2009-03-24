@@ -700,7 +700,7 @@ sub field_from_config_string
 		}
 		$field = $dataset->get_field( $fname );
 		push @join, [ $field, $dataset ];
-		if( defined $field->{"datasetid"} )
+		if( $field->is_type( "subobject", "itemref" ) )
 		{
 			my $datasetid = $field->get_property( "datasetid" );
 			$dataset = $dataset->get_repository->get_dataset( $datasetid );
