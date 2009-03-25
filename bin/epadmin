@@ -84,7 +84,7 @@ START HERE! This option will walk you through the tasks needed to create your re
 
 =item B<epadmin> test I<repository_id>
 
-A null operation which just checks your configuration files are OK and that you can connect to the database.
+A null operation which just checks your configuration files are OK and that you can connect to the database. If no I<repository_id> is specified loads each repository in turn.
 
 =item B<epadmin> cleanup_cachemaps I<repository_id>
 
@@ -257,6 +257,7 @@ my @PASSWORD_CHARS = ( 'a'..'z','A'..'Z','0'..'9' );
 
 my $action = $ARGV[0];
 if( $action eq "create" ) { create(); }
+elsif( $action eq "test" ) { test( $ARGV[1] ); }
 else
 {
 	my $repoid = $ARGV[1];
@@ -277,7 +278,6 @@ else
 	elsif( $action eq "upgrade" ) { upgrade( $repoid ); }
 	elsif( $action eq "schema" ) { schema( $repoid ); }
 	elsif( $action eq "update_database_structure" ) { update_database_structure( $repoid ); }
-	elsif( $action eq "test" ) { test( $repoid ); }
 	elsif( $action eq "recommit" ) 
 	{
 		my $datasetid = $ARGV[2];
@@ -1475,6 +1475,16 @@ sub erase_fulltext_index
 sub test
 {
 	my( $repoid ) = @_;
+
+	if( !defined $repoid )
+	{
+		foreach( EPrints::Config::get_repository_ids() )
+		{
+			print "REPOID: $_\n" if $noise > 1;
+			test( $_ );
+		}
+		return;
+	}
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
 	exit( 1 ) unless( defined $session );
