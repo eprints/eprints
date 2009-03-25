@@ -8096,3 +8096,6 @@ EPRINTS-3.1-beta-2
 2009-03-25 tdb
  * Share system phrases across repositories
 
+2009-03-25 tdb
+ * Include the XHTML namespace in HTML output
+
