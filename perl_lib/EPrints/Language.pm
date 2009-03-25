@@ -71,6 +71,8 @@ undef or a reference to the main language object for the repository.
 =cut
 ######################################################################
 
+my %SYSTEM_PHRASES;
+
 sub new
 {
 	my( $class , $langid , $repository , $fallback ) = @_;
@@ -84,9 +86,9 @@ sub new
 	
 	$self->{fallback} = $fallback;
 
-	$self->{repository_data} = {};
+	$self->{repository_data} = { docs => {} };
 
-	$self->{data} = {};
+	$self->{data} = $SYSTEM_PHRASES{$langid} ||= { docs => {} };
 
 	$self->_read_phrases_dir(
 		$self->{repository_data},
@@ -113,7 +115,11 @@ sub _read_phrases_dir
 	{
 		next if $fn =~ m/^\./;
 		next unless $fn =~ m/\.xml$/;
-		$self->_read_phrases( $data, $dir."/".$fn, $repository );
+		my $file = "$dir/$fn";
+		if( !exists $data->{docs}->{$file} )
+		{
+			$self->_read_phrases( $data, $file, $repository );
+		}
 	}
 	close $dh;
 }
@@ -250,7 +256,7 @@ sub _get_src_phrase
 	my $file = ${$data->{file}->{$phraseid}};
 	if( !defined( $session->{config_file_mtime_checked}->{$file} ) )
 	{
-		my $mtime = $self->{docs}->{$file}->{mtime};
+		my $mtime = $data->{docs}->{$file}->{mtime};
 		my $c_mtime = (stat( $file ))[9];
 		if( $mtime ne $c_mtime )
 		{
@@ -343,7 +349,7 @@ sub _read_phrases
 
 	# Keep the document in scope and record its mtime	
 	my $mtime = (stat( $file ))[9];
-	$self->{docs}->{$file} = {
+	$data->{docs}->{$file} = {
 		doc => $doc,
 		mtime => $mtime,
 	};
@@ -410,7 +416,7 @@ sub _reload_phrases
 	}
 
 	# Dispose of the old document
-	my $doc = delete $self->{docs}->{$file};
+	my $doc = delete $data->{docs}->{$file};
 	EPrints::XML::dispose( $doc->{doc} );
 
 	return $self->_read_phrases( $data, $file, $repository );
