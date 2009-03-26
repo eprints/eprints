@@ -66,6 +66,8 @@ Where I<command> is one of:
 
 =item test
 
+=item unit_tests
+
 =item update_database_structure
 
 =item upgrade
@@ -159,6 +161,11 @@ Erases and recreates the database. Removes all documents and files. Does not tou
 =item B<epadmin> erase_eprints I<repository_id>
 
 Erases all the documents and eprints (including their files). Recreates the eprint and document tables. Leaves configuration files and the users and subjects tables alone.
+
+=item B<epadmin> unit_tests
+
+Run unit tests, printing the results to STDOUT. If everything passed will exit
+with a return code of 0.
 
 =item B<epadmin> upgrade I<repository_id>
 
@@ -258,6 +265,7 @@ my @PASSWORD_CHARS = ( 'a'..'z','A'..'Z','0'..'9' );
 my $action = $ARGV[0];
 if( $action eq "create" ) { create(); }
 elsif( $action eq "test" ) { test( $ARGV[1] ); }
+elsif( $action eq "unit_tests" ) { unit_tests(); }
 else
 {
 	my $repoid = $ARGV[1];
@@ -1501,6 +1509,26 @@ sub test
 	$session->terminate;
 
 	print "Everything seems OK.\n";
+}
+
+sub unit_tests
+{
+	eval "use Test::Harness";
+	if( $@ )
+	{
+		die "Can't do unit tests without Test::Harness: $@";
+	}
+
+	my $base_path = $EPrints::SystemSettings::conf->{base_path};
+	my $test_path = "$base_path/tests";
+
+	opendir( DIR, $test_path ) or die "Unable to open unit test path $test_path: $!";
+	my @test_files = grep { -f "$test_path/$_" && $_ !~ /^\./ && $_ =~ /\.pl$/ } readdir( DIR );
+	closedir( DIR );
+
+	@test_files = sort { $a cmp $b } @test_files;
+
+	exit(0) if runtests(map { "$test_path/$_" } @test_files);
 }
 
 sub rehash
