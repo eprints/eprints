@@ -359,27 +359,41 @@ sub new
 	$self->{default_order} = $repository->
 			get_conf( "default_order", $self->{confid} );
 
-	my $oclass = $self->get_object_class;
-	if( defined $oclass )
+	# copy fields from the real dataset
+	if(
+		$self->{id} ne $self->{confid} &&
+		defined(my $cdataset = $repository->get_dataset( $self->{confid} ))
+	  )
 	{
-		foreach my $fielddata ( $oclass->get_system_field_info() )
+		for(qw( fields system_fields field_index ))
 		{
-			$self->process_field( $fielddata, 1 );
+			$self->{$_} = $cdataset->{$_};
 		}
 	}
-	my $repository_fields = $repository->get_conf( "fields", $self->{confid} );
-	if( $repository_fields )
+	else
 	{
-		foreach my $fielddata ( @{$repository_fields} )
+		my $oclass = $self->get_object_class;
+		if( defined $oclass )
 		{
-			$self->process_field( $fielddata, 0 );
+			foreach my $fielddata ( $oclass->get_system_field_info() )
+			{
+				$self->process_field( $fielddata, 1 );
+			}
 		}
-	}
+		my $repository_fields = $repository->get_conf( "fields", $self->{confid} );
+		if( $repository_fields )
+		{
+			foreach my $fielddata ( @{$repository_fields} )
+			{
+				$self->process_field( $fielddata, 0 );
+			}
+		}
 
-	# lock these metadata fields against being modified again.
-	foreach my $field ( @{$self->{fields}} )
-	{
-		$field->final;
+		# lock these metadata fields against being modified again.
+		foreach my $field ( @{$self->{fields}} )
+		{
+			$field->final;
+		}
 	}
 
 	return $self;

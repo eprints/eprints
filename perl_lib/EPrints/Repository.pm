@@ -938,27 +938,28 @@ sub _load_datasets
 
 	$self->{datasets} = {};
 
-	my $info = EPrints::DataSet::get_system_dataset_info();
-	foreach my $ds_id ( keys %{$info} )
+	# system datasets
+	my %info = %{EPrints::DataSet::get_system_dataset_info()};
+
+	# repository-specific datasets
+	my $repository_datasets = $self->get_conf( "datasets" );
+	foreach my $ds_id ( keys %{$repository_datasets||{}} )
+	{
+		$info{$ds_id} = $repository_datasets->{$ds_id};
+	}
+
+	# sort the datasets so that derived datasets follow (and hence share
+	# their fields)
+	foreach my $ds_id (
+		sort { defined $info{$a}->{confid} <=> defined $info{$b}->{confid} }
+		keys %info
+		)
 	{
 		$self->{datasets}->{$ds_id} = EPrints::DataSet->new(
 			repository => $self,
 			name => $ds_id,
-			%{$info->{$ds_id}},
+			%{$info{$ds_id}}
 			);
-	}
-
-	my $repository_datasets = $self->get_conf( "datasets" );
-	if( $repository_datasets )
-	{
-		foreach my $ds_id ( keys %{$repository_datasets} )
-		{
-			$self->{datasets}->{$ds_id} = EPrints::DataSet->new(
-				repository => $self,
-				name => $ds_id,
-				%{$repository_datasets->{$ds_id}},
-				);
-		}
 	}
 
 	return 1;
