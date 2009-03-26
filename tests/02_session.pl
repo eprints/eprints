@@ -9,8 +9,6 @@ EPrints::Test::mem_increase();
 my $session = EPrints::Test::get_test_session( 0 );
 ok(defined $session, 'opened an EPrints::Session object (noisy, no_check_db)');
 
-diag( "Memory usage: ".EPrints::Test::human_mem_increase() );
-
 # check it's the right type
 ok($session->isa('EPrints::Session'),'it really was an EPrints::Session');
 
