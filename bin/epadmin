@@ -265,7 +265,7 @@ my @PASSWORD_CHARS = ( 'a'..'z','A'..'Z','0'..'9' );
 my $action = $ARGV[0];
 if( $action eq "create" ) { create(); }
 elsif( $action eq "test" ) { test( $ARGV[1] ); }
-elsif( $action eq "unit_tests" ) { unit_tests(); }
+elsif( $action eq "unit_tests" ) { unit_tests( @ARGV[1..$#ARGV] ); }
 else
 {
 	my $repoid = $ARGV[1];
@@ -1513,6 +1513,10 @@ sub test
 
 sub unit_tests
 {
+	my( @todo ) = @_;
+
+	my %todo = map { $_ => 1 } @todo;
+
 	eval "use Test::Harness";
 	if( $@ )
 	{
@@ -1527,6 +1531,10 @@ sub unit_tests
 	closedir( DIR );
 
 	@test_files = sort { $a cmp $b } @test_files;
+	if( scalar(@todo) )
+	{
+		@test_files = grep { $todo{$_} or $todo{substr($_,0,-3)} } @test_files;
+	}
 
 	exit(0) if runtests(map { "$test_path/$_" } @test_files);
 }
