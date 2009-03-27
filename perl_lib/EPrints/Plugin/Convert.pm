@@ -237,7 +237,7 @@ sub convert
 	$doc->add_object_relations(
 			$new_doc,
 			EPrints::Utils::make_relation( "hasVersion" ) => undef,
-			EPrints::Utils::make_relation( "hasVolatileVersion" => undef )
+			EPrints::Utils::make_relation( "hasVolatileVersion" ) => undef,
 		);
 
 	return wantarray ? ($new_doc) : $new_doc;
