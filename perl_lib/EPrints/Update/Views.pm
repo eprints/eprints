@@ -400,7 +400,7 @@ sub update_view_menu
 			"browseindex" );
 
 	open( INCLUDE, ">:utf8", "$target.include" ) || EPrints::abort( "Failed to write $target.include: $!" );
-	print INCLUDE EPrints::XML::to_string( $page );
+	print INCLUDE EPrints::XML::to_string( $page, undef, 1 );
 	close INCLUDE;
 
 	return( $target );
@@ -811,7 +811,7 @@ sub update_view_list
 
 		# This writes the title including HTML tags
 		open( TITLE, ">:utf8", "$page_file_name.title" ) || EPrints::abort( "Failed to write $page_file_name.title: $!" );
-		print TITLE EPrints::XML::to_string( $title );
+		print TITLE EPrints::XML::to_string( $title, undef, 1 );
 		close TITLE;
 
 		# This writes the title with HTML tags stripped out.
@@ -827,14 +827,14 @@ sub update_view_list
 		}
 
 		open( EXPORT , ">:utf8", "$page_file_name.export" )  || EPrints::abort( "Failed to write $page_file_name.export: $!" );
-		print EXPORT EPrints::XML::to_string( render_export_bar( $session, $esc_path_values, $view ) );
+		print EXPORT EPrints::XML::to_string( render_export_bar( $session, $esc_path_values, $view ) , undef, 1);
 		close EXPORT;
 
 		open( PAGE, ">:utf8", "$page_file_name.page" ) || EPrints::abort( "Failed to write $page_file_name.page: $!" );
 		open( INCLUDE, ">:utf8", "$page_file_name.include" ) || EPrints::abort( "Failed to write $page_file_name.include: $!" );
 
 		my $navigation_aids = EPrints::XML::to_string( 
-			render_navigation_aids( $session, $path_values, $esc_path_values, $view, \@fields, "list" ) );
+			render_navigation_aids( $session, $path_values, $esc_path_values, $view, \@fields, "list" ), undef, 1 );
 
 		print PAGE $navigation_aids;
 		
@@ -891,7 +891,7 @@ sub update_view_list
 				$first = 0;
 			}
 
-			print PAGE EPrints::XML::to_string( $session->html_phrase( "Update/Views:group_by", groups=>$groups ) );
+			print PAGE EPrints::XML::to_string( $session->html_phrase( "Update/Views:group_by", groups=>$groups ), undef, 1 );
 		}
 
 		my $field;
@@ -910,7 +910,7 @@ sub update_view_list
 		my $intro = "";
 		if( $session->get_lang()->has_phrase( $intro_phrase_id ) )
 		{
-			$intro = EPrints::XML::to_string( $session->html_phrase( $intro_phrase_id ) );
+			$intro = EPrints::XML::to_string( $session->html_phrase( $intro_phrase_id ), undef, 1 );
 		}
 
 		# Number of items div.
@@ -924,7 +924,7 @@ sub update_view_list
 			}
 			$count_div = EPrints::XML::to_string( $session->html_phrase(
 				$phraseid,
-				n=>$session->make_text( $count ) ) );
+				n=>$session->make_text( $count ) ), undef, 1 );
 		}
 
 		# Timestamp div
@@ -934,7 +934,7 @@ sub update_view_list
 			$time_div = EPrints::XML::to_string( $session->html_phrase(
 				"bin/generate_views:timestamp",
 					time=>$session->make_text(
-						EPrints::Time::human_time() ) ) );
+						EPrints::Time::human_time() ) ), undef, 1 );
 		}
 
 
@@ -1045,11 +1045,11 @@ sub update_view_list
 		my $jumpmenu = "";
 		if( $opts->{"jump"} eq "plain" ) 
 		{
-			$jumpmenu = EPrints::XML::to_string( $jumps );
+			$jumpmenu = EPrints::XML::to_string( $jumps, undef, 1);
 		}
 		if( $opts->{"jump"} eq "default" )
 		{
-			$jumpmenu = EPrints::XML::to_string( $session->html_phrase( "Update/Views:jump_to", jumps=>$jumps ) );
+			$jumpmenu = EPrints::XML::to_string( $session->html_phrase( "Update/Views:jump_to", jumps=>$jumps ), undef, 1 );
 		}
 
 		# css for your convenience
@@ -1075,8 +1075,8 @@ sub update_view_list
 			print PAGE "<a name='group_".EPrints::Utils::escape_filename( $code )."'></a>\n";
 			print INCLUDE "<a name='group_".EPrints::Utils::escape_filename( $code )."'></a>\n";
 		
-			print PAGE "<h2>".EPrints::XML::to_string( $heading )."</h2>";
-			print INCLUDE "<h2>".EPrints::XML::to_string( $heading )."</h2>";
+			print PAGE "<h2>".EPrints::XML::to_string( $heading, undef, 1 )."</h2>";
+			print INCLUDE "<h2>".EPrints::XML::to_string( $heading, undef, 1 )."</h2>";
 			my( $block, $n ) = render_array_of_eprints( $session, $view, $items );
 			print PAGE $block;
 			print INCLUDE $block;
@@ -1235,7 +1235,7 @@ sub render_export_bar
 		{
 			my $option = $session->make_element( "option", value=>$id );
 			$option->appendChild( $dom_name );
-			$options->{EPrints::XML::to_string($dom_name)} = $option;
+			$options->{EPrints::XML::to_string($dom_name, undef, 1 )} = $option;
 		}
 	}
 
@@ -1395,7 +1395,7 @@ sub render_array_of_eprints
 		my $ctype = $view->{citation}||"default";
 		if( !defined $session->{citesdone}->{$ctype}->{$item->get_id} )
 		{
-			my $cite = EPrints::XML::to_string( $item->render_citation_link( $view->{citation} ) );
+			my $cite = EPrints::XML::to_string( $item->render_citation_link( $view->{citation} ), undef, 1 );
 			$session->{citesdone}->{$ctype}->{$item->get_id} = $cite;
 		}
 		my $cite = $session->{citesdone}->{$ctype}->{$item->get_id};
