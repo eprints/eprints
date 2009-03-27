@@ -363,8 +363,6 @@ sub create_archive_tables
 
 	$success = $success && $self->create_counters();
 
-	$success = $success && $self->_create_index_queue_table();
-
 	#$success = $success && $self->_create_permission_table();
 
 	$self->create_version_table;	
@@ -1754,32 +1752,6 @@ sub clear_user_messages
 		$message->remove;
 	};
 	$results->map( $fn, undef );
-}
-
-######################################################################
-# 
-# $success = $db->_create_index_queue_table
-#
-# create the table used to keep track of what needs to be indexed in
-# this repository.
-#
-######################################################################
-
-sub _create_index_queue_table
-{
-	my( $self ) = @_;
-
-	my $rc = 1;
-
-	# The table creation SQL
-	$rc &&= $self->_create_table("index_queue", [], [
-		$self->get_column_type( "field", SQL_VARCHAR, SQL_NULL, 128 ),
-		$self->get_column_type( "added", SQL_TIME ),
-	]);
-	$rc &&= $self->create_index( "index_queue", "field" );
-	$rc &&= $self->create_index( "index_queue", "added" );
-
-	return $rc;
 }
 
 ######################################################################
@@ -3835,72 +3807,6 @@ sub valid_login
 	return $real_password eq crypt( $password , $salt );
 }
 
-
-######################################################################
-=pod
-
-=item $db->index_queue( $datasetid, $objectid, $fieldname [, $fieldname ] );
-
-Queues the field of the specified object to be reindexed.
-
-=cut
-######################################################################
-
-sub index_queue
-{
-	my( $self, $datasetid, $objectid, @fieldnames ) = @_; 
-
-	my $rc = 1;
-
-	return $rc unless @fieldnames;
-
-	my $table = "index_queue";
-
-	# SYSDATE is the date/time at the point of insertion, but is supported
-	# by most databases unlike NOW(), which is only in MySQL
-	my $sql = "INSERT INTO ".$self->quote_identifier($table)." (".
-		join(',',map { $self->quote_identifier($_) } qw( field added )).
-		") VALUES (?, SYSDATE)";
-	my $sth = $self->prepare($sql);
-	for(@fieldnames)
-	{
-		$rc &&= $sth->execute( "$datasetid.$objectid.$_" );
-	}
-
-	return $rc;
-}
-
-######################################################################
-=pod
-
-=item ($datasetid, $objectid, $field) = $db->index_dequeue();
-
-Pops an item off the queue. Returns empty list if nothing left.
-
-=cut
-######################################################################
-
-sub index_dequeue
-{
-	my( $self ) = @_;
-
-	my $Q_field = $self->quote_identifier( "field" );
-	my $Q_table = $self->quote_identifier( "index_queue" );
-	my $Q_added = $self->quote_identifier( "added" );
-
-	my $sql = "SELECT $Q_field FROM $Q_table ORDER BY $Q_added ASC LIMIT 1";
-	my $sth = $self->prepare( $sql );
-	$self->execute( $sth, $sql );
-	my( $field ) = $sth->fetchrow_array;
-	$sth->finish;
-
-	return () unless defined $field;
-
-	$sql = "DELETE FROM $Q_table WHERE $Q_field=".$self->quote_value($field);
-	$self->do( $sql );
-
-	return split(/\./, $field);
-}
 
 ######################################################################
 =pod

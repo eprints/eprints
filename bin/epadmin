@@ -1432,40 +1432,27 @@ sub erase_fulltext_index
 	my $ds = $session->get_repository->get_dataset( "document" );
 	print "Stating to erase caches\n" if( $noise >= 1 );
 
-	$ds->map( 
-		$session,
-		sub 
-		{
-			my( $session , $dataset , $doc ) = @_;
+	$ds->map( $session, sub {
+			my( undef, undef, $doc ) = @_;
 
 			if( $noise >= 2 )
 			{
 				print "Removing fulltext index for: ".$doc->get_id."\n";
 			}
 			
-			my @files = ( $doc->words_file, $doc->indexcodes_file );
-			foreach my $file ( @files )
-			{
-				next unless( -e $file );
-				if( $noise >= 2 )
-				{
-					print "Erasing: $file\n";
-				}
-				unlink( $file );
-			}
+			$doc->remove_indexcodes();
 		} );
 
 	print "Done erasing\n" if( $noise >= 1 );
 	print "Queuing records for re-indexing\n" if( $noise >= 1 );
 
+	my $index_queue = $session->get_repository->get_dataset( "index_queue" );
+
 	my $fn = sub {
 		my( $session, $dataset, $item ) = @_;
 	
-		$session->get_database->index_queue( 
-			'eprint',
-			$item->get_id,
-			$EPrints::Utils::FULLTEXT );
-	
+		$item->queue_fulltext();
+
 		if( $session->get_noise() >= 2 )
 		{
 			print STDERR "Queued item: ".$dataset->id()."/".$item->get_id()."\n";
@@ -1691,26 +1678,14 @@ sub reindex
 		exit( 1 );
 	}
 
+	my $index_queue = $session->get_repository->get_dataset( "index_queue" );
+
 	my $fn = sub {
 		my( $session, $dataset, $item ) = @_;
 	
-		foreach my $field ( $dataset->get_fields() )
-		{
-			next unless( $field->get_property( "text_index" ) );
-	
-			$session->get_database->index_queue( 
-				$dataset->id,
-				$item->get_id,
-				$field->get_name );
-		}	
-		if( $dataset->confid eq "eprint" )
-		{
-			$session->get_database->index_queue( 
-				$dataset->id,
-				$item->get_id,
-				$EPrints::Utils::FULLTEXT );
-		}
-	
+		$item->queue_all();
+		$item->queue_fulltext();
+
 		if( $session->get_noise() >= 2 )
 		{
 			print STDERR "Queued item: ".$dataset->id()."/".$item->get_id()."\n";

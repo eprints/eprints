@@ -393,13 +393,24 @@ sub do_index
 	my $seen_action = 0; # have we done anything
 	my $loop_max = 10; # max times to loop
 
-	while(
-		$loop_max-- and
-		my( $datasetid, $objectid, $fieldid ) = $session->get_database->index_dequeue()
-	)
+	my $index_queue = $session->get_repository->get_dataset( "index_queue" );
+	my $searchexp = EPrints::Search->new(
+		allow_blank => 1,
+		session => $session,
+		dataset => $index_queue,
+		);
+	my $list = $searchexp->perform_search();
+
+	foreach my $iq ($list->get_records(0,$loop_max))
 	{
 		$seen_action = 1;
+
+		my $datasetid = $iq->get_value( "datasetid" );
+		my $objectid = $iq->get_value( "objectid" );
+		my $fieldid = $iq->get_value( "fieldid" );
 		my $fieldcode = "$datasetid.$objectid.$fieldid"; # for debug messages
+
+		$iq->remove();
 	
 		my $dataset = $session->get_repository->get_dataset( $datasetid );
 		if( !defined $dataset )
@@ -407,30 +418,56 @@ sub do_index
 			EPrints::Index::indexlog( "Could not make dataset: $datasetid ($fieldcode)" );
 			next;
 		}
-		my $field = $dataset->get_field( $fieldid );
-		if( !defined $field )
+
+		my $item = $dataset->get_object( $session, $objectid );
+		next unless ( defined $item );
+
+		my @fields;
+
+		if( $fieldid eq EPrints::DataObj::IndexQueue::ALL() )
+		{
+			push @fields, $dataset->get_fields();
+		}
+		elsif( $fieldid eq EPrints::DataObj::IndexQueue::FULLTEXT() )
+		{
+			push @fields, EPrints::MetaField->new( 
+				dataset => $dataset, 
+				name => $fieldid,
+				multiple => 1,
+				type => "fulltext" );
+		}
+		else
+		{
+			if( defined(my $field = $dataset->get_field( $fieldid )) )
+			{
+				push @fields, $field;
+			}
+		}
+		if( !scalar @fields )
 		{
 			EPrints::Index::indexlog( "No such field: $fieldid (found on index queue).. skipping.\n" );
 			next;
 		}
 	
-		EPrints::Index::indexlog( "* de-indexing: $fieldcode" ) if( $p->{loglevel} > 4 );
-		EPrints::Index::remove( $session, $dataset, $objectid, $fieldid );
-		EPrints::Index::indexlog( "* done-de-indexing: $fieldcode" ) if( $p->{loglevel} > 5 );
-	
-		next unless( $field->get_property( "text_index" ) );
-	
-		my $item = $dataset->get_object( $session, $objectid );
-		next unless ( defined $item );
-	
-		my $value = $item->get_value( $fieldid );
+		foreach my $field (@fields)
+		{
+			EPrints::Index::indexlog( "* de-indexing: $fieldcode" ) if( $p->{loglevel} > 4 );
+			EPrints::Index::remove( $session, $dataset, $objectid, $field->get_name() );
+			EPrints::Index::indexlog( "* done-de-indexing: $fieldcode" ) if( $p->{loglevel} > 5 );
+
+			next unless( $field->get_property( "text_index" ) );
+
+			my $value = $field->get_value( $item );
 		
-		next unless EPrints::Utils::is_set( $value );	
-	
-		EPrints::Index::indexlog( "* indexing: $fieldcode" ) if( $p->{loglevel} > 4 );
-		EPrints::Index::add( $session, $dataset, $objectid, $fieldid, $value );
-		EPrints::Index::indexlog( "* done-indexing: $fieldcode" ) if( $p->{loglevel} > 5 );
-	}
+			next unless EPrints::Utils::is_set( $value );	
+
+			EPrints::Index::indexlog( "* indexing: $fieldcode" ) if( $p->{loglevel} > 4 );
+			EPrints::Index::add( $session, $dataset, $objectid, $field->get_name(), $value );
+			EPrints::Index::indexlog( "* done-indexing: $fieldcode" ) if( $p->{loglevel} > 5 );
+		}
+	};
+
+	$searchexp->dispose();
 
 	return $seen_action;
 }	

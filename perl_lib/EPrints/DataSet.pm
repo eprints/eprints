@@ -117,6 +117,11 @@ use strict;
 # These are both used by the virtual datasets inbox, buffer etc.
 
 my $INFO = {
+	index_queue => {
+		sqlname => "index_queue",
+		class => "EPrints::DataObj::IndexQueue",
+		datestamp => "datestamp",
+	},
 	upload_progress => {
 		sqlname => "upload_progress",
 		class => "EPrints::DataObj::UploadProgress",

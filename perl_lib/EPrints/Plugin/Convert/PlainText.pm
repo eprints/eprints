@@ -116,25 +116,14 @@ sub export
 		
 		if( $file->get_value( "mime_type" ) eq "text/plain" )
 		{
-			my $fh = $file->get_fh;
 			open( my $fo, ">", $outfile );
-			# PerlIO
-			if( $PERL_VERSION gt v5.8.0 )
-			{
-				binmode($fh, ":encoding(iso-8859-1)");
-				binmode($fo, ":utf8");
-				while(<$fh>) { print $fo $_ }
-			}
-			# Unicode::String
-			else
-			{
-				eval "use Unicode::String";
-				unless( $@ )
-				{
-					while(<$fh>) { print $fo Unicode::String::latin1($_)->utf8; }
-				}
-			}
-			close( $fh ); close( $fo );
+			binmode($fo, ":utf8");
+			$file->get_file(sub {
+				my( $buffer ) = @_;
+
+				print $fo $buffer;
+			});
+			close( $fo );
 		}
 		else
 		{

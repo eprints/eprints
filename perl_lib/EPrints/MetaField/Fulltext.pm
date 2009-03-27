@@ -67,8 +67,9 @@ sub get_index_codes_basic
 	}
 
 	my $doc = EPrints::DataObj::Document->new( $session, $value );
-	my $main_file = $doc->get_stored_file( $doc->get_main );
+	return( [], [], [] ) unless defined $doc->get_main;
 
+	my $main_file = $doc->get_stored_file( $doc->get_main );
 	return( [], [], [] ) unless defined $main_file;
 
 	my( $indexcodes_doc ) = @{($doc->get_related_objects(

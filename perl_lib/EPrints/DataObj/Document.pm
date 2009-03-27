@@ -1319,10 +1319,7 @@ sub files_modified
 		);
 	$_->remove for @$indexcodes;
 
-	$self->{session}->get_database->index_queue( 
-		$self->get_eprint->get_dataset->id,
-		$self->get_eprint->get_id,
-		$EPrints::Utils::FULLTEXT );
+	$self->get_eprint->queue_fulltext();
 
 	# nb. The "main" part is not automatically calculated when
 	# the item is under contruction. This means bulk imports 
@@ -1406,11 +1403,7 @@ sub make_indexcodes
 		return undef;
 	}
 
-	# remove any existing indexcodes documents
-	my $docs = $self->get_related_objects(
-			EPrints::Utils::make_relation( "hasIndexCodesVersion" )
-		);
-	$_->remove() for @$docs;
+	$self->remove_indexcodes();
 	
 	# find a conversion plugin to convert us to indexcodes
 	my $type = "indexcodes";
@@ -1440,35 +1433,32 @@ sub make_indexcodes
 ######################################################################
 =pod
 
-=item $filename = $doc->words_file
+=item $doc = $doc->remove_indexcodes()
 
-Return the filename in which this document uses to cache words 
-extracted from the full text.
-
-=cut
-######################################################################
-
-sub words_file
-{
-	my( $self ) = @_;
-	return $self->cache_file( 'words' );
-}
-
-######################################################################
-=pod
-
-=item $filename = $doc->indexcodes_file
-
-Return the filename in which this document uses to cache indexcodes 
-extracted from the words cache file.
+Remove any documents containing index codes for this document. Returns the
+number of documents removed.
 
 =cut
 ######################################################################
 
-sub indexcodes_file
+sub remove_indexcodes
 {
 	my( $self ) = @_;
-	return $self->cache_file( 'indexcodes' );
+
+	# if we're a volatile version of another document, don't make indexcodes 
+	if( $self->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
+	{
+		return 0;
+	}
+
+	# remove any existing indexcodes documents
+	my $docs = $self->get_related_objects(
+			EPrints::Utils::make_relation( "hasIndexCodesVersion" )
+		);
+	$_->remove() for @$docs;
+	$self->commit() if scalar @$docs; # Commit changes to relations
+	
+	return scalar (@$docs);
 }
 
 ######################################################################

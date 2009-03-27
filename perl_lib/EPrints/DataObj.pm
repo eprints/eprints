@@ -1231,20 +1231,20 @@ sub queue_changes
 
 	return unless $self->{dataset}->indexable;
 
-	my @names;
+	my $index_queue = $self->{session}->get_repository->get_dataset( "index_queue" );
+
 	foreach my $fieldname ( keys %{$self->{changed}} )
 	{
 		my $field = $self->{dataset}->get_field( $fieldname );
 
 		next unless( $field->get_property( "text_index" ) );
 
-		push @names, $fieldname;
+		$index_queue->create_object( $self->{session}, {
+				datasetid => $self->{dataset}->id,
+				objectid => $self->get_id,
+				fieldid => $fieldname
+			});
 	}	
-
-	$self->{session}->get_database->index_queue( 
-		$self->{dataset}->id,
-		$self->get_id,
-		@names );
 }
 
 ######################################################################
@@ -1263,20 +1263,38 @@ sub queue_all
 
 	return unless $self->{dataset}->indexable;
 
-	my @names;
+	my $index_queue = $self->{session}->get_repository->get_dataset( "index_queue" );
 
-	my @fields = $self->{dataset}->get_fields;
-	foreach my $field ( @fields )
-	{
-		next unless( $field->get_property( "text_index" ) );
+	$index_queue->create_object( $self->{session}, {
+			datasetid => $self->{dataset}->id,
+			objectid => $self->get_id,
+			fieldid => EPrints::DataObj::IndexQueue::ALL()
+		});
+}
 
-		push @names, $field->get_name;
-	}	
+######################################################################
+=pod
 
-	$self->{session}->get_database->index_queue( 
-		$self->{dataset}->id,
-		$self->get_id,
-		@names );
+=item $dataobj->queue_fulltext
+
+Add a fulltext index into the indexers todo queue.
+
+=cut
+######################################################################
+
+sub queue_fulltext
+{
+	my( $self ) = @_;
+
+	return unless $self->{dataset}->indexable;
+
+	my $index_queue = $self->{session}->get_repository->get_dataset( "index_queue" );
+
+	$index_queue->create_object( $self->{session}, {
+			datasetid => $self->{dataset}->id,
+			objectid => $self->get_id,
+			fieldid => EPrints::DataObj::IndexQueue::FULLTEXT()
+		});
 }
 
 ######################################################################
@@ -1495,6 +1513,7 @@ sub _get_related_uris
 	my %haystack;
 	foreach my $relation (@$relations)
 	{
+		next unless defined $relation->{"uri"};
 		$haystack{$relation->{"uri"}}->{$relation->{"type"}} = undef;
 	}
 

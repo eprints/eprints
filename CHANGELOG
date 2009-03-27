@@ -8105,3 +8105,6 @@ EPRINTS-3.1-beta-2
 2009-03-27 tdb
  * Fixed to_string() calls not specifying noxmlns in Views (McSweeney)
 
+2009-03-27 tdb
+ * Modified index_queue to be a dataset
+
