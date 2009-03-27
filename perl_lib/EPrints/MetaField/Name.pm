@@ -68,7 +68,13 @@ sub sql_row_from_value
 {
 	my( $self, $session, $value ) = @_;
 
-	return @$value{@PARTS};
+	if( !EPrints::Utils::is_set( $value ) )
+	{
+		return map { undef } @PARTS;
+	}
+
+	# Avoid NULL!="" name part problems
+	return map { defined($_) ? $_ : "" } @$value{@PARTS};
 }
 
 sub get_sql_type
