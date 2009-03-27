@@ -8107,4 +8107,6 @@ EPRINTS-3.1-beta-2
 
 2009-03-27 tdb
  * Modified index_queue to be a dataset
+ * Added get_value_from_id method to MetaField
+ * Refined EPrints::MetaField::Name::get_id_from_value to handle colons
 

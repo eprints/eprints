@@ -1659,7 +1659,7 @@ sub get_ids_by_value
 
 =item $id = $field->get_id_from_value( $session, $value )
 
-Returns a unique id for $value.
+Returns a unique id for $value or "NULL" if $value is undefined.
 
 =cut
 ######################################################################
@@ -1668,7 +1668,24 @@ sub get_id_from_value
 {
 	my( $self, $session, $value ) = @_;
 
-	return $value;
+	return defined($value) ? $value : "NULL";
+}
+
+######################################################################
+=pod
+
+=item $value = $field->get_value_from_id( $session, $id )
+
+Returns the value from $id or undef if $id is "NULL".
+
+=cut
+######################################################################
+
+sub get_value_from_id
+{
+	my( $self, $session, $id ) = @_;
+
+	return $id eq "NULL" ? undef : $id;
 }
 
 ######################################################################

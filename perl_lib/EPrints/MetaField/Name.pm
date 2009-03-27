@@ -43,7 +43,7 @@ use EPrints::MetaField::Text;
 my $VARCHAR_SIZE = 255;
 
 # database order
-my @PARTS = qw( honourific given family lineage );
+my @PARTS = qw( family lineage given honourific );
 
 sub get_sql_names
 {
@@ -197,7 +197,7 @@ sub form_value_basic
 	my( $self, $session, $basename ) = @_;
 	
 	my $data = {};
-	foreach( "honourific", "given", "family", "lineage" )
+	foreach( @PARTS )
 	{
 		$data->{$_} = 
 			$session->param( $basename."_".$_ );
@@ -227,7 +227,7 @@ sub ordervalue_basic
 	}
 
 	my @a;
-	foreach( "family", "lineage", "given", "honourific" )
+	foreach( @PARTS )
 	{
 		if( defined $value->{$_} )
 		{
@@ -599,9 +599,27 @@ sub get_id_from_value
 {
 	my( $self, $session, $name ) = @_;
 
-	no warnings;
+	return "NULL" if !defined $name;
 
-	return $name->{family}.':'.$name->{given}.':'.$name->{lineage}.':'.$name->{honourific};
+	return join(":",
+		map { URI::Escape::uri_escape($_, ":%") }
+		map { defined($_) ? $_ : "NULL" }
+		@{$name}{qw( family given lineage honourific )});
+}
+
+sub get_value_from_id
+{
+	my( $self, $session, $id ) = @_;
+
+	return undef if $id eq "NULL";
+
+	my $name = {};
+	@{$name}{qw( family given lineage honourific )} =
+		map { $_ ne "NULL" ? $_ : undef }
+		map { URI::Escape::uri_unescape($_) }
+		split /:/, $id;
+
+	return $name;
 }
 
 sub to_xml_basic
@@ -610,7 +628,7 @@ sub to_xml_basic
 
 	my $r = $session->make_doc_fragment;	
 
-	foreach my $part ( qw/ family given honourific lineage / )
+	foreach my $part ( @PARTS )
 	{
 		my $nv = $value->{$part};
 		next unless defined $nv;
@@ -631,7 +649,7 @@ sub render_xml_schema_type
 
 	my $all = $session->make_element( "xs:all", minOccurs => "0" );
 	$type->appendChild( $all );
-	foreach my $part ( qw/ family given honourific lineage / )
+	foreach my $part ( @PARTS )
 	{
 		my $element = $session->make_element( "xs:element", name => $part, type => "xs:string" );
 		$all->appendChild( $element );
