@@ -8111,3 +8111,6 @@ EPRINTS-3.1-beta-2
  * Refined EPrints::MetaField::Name::get_id_from_value to handle colons
  * If a name is defined all parts must be defined (""), fixing #3483
 
+2009-03-30 tdb
+ * Added upgrade to DB schema 3.1.2 - fix null parts of names
+

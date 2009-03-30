@@ -1794,6 +1794,12 @@ sub upgrade
 		$dbversion="3.1.1";
 		$db->set_version( $dbversion );
 	}
+	if( $dbversion eq "3.1.1" )
+	{
+		upgrade_3_1_1_to_3_1_2( $repoid, $db );
+		$dbversion="3.1.2";
+		$db->set_version( $dbversion );
+	}
 
 
 	print $dbversion."\n";
@@ -2137,6 +2143,47 @@ sub upgrade_3_1_0_to_3_1_1
 	my $repo = EPrints::Repository->new( $repoid );
 
 	update_datasets( $repo, $db );
+}
+
+sub upgrade_3_1_1_to_3_1_2
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = EPrints::Repository->new( $repoid );
+
+	update_datasets( $repo, $db );
+	update_counters( $repo, $db );
+
+	foreach( $repo->get_sql_dataset_ids() )
+	{
+		my $dataset = $repo->get_dataset( $_ );
+
+		foreach my $field ($dataset->get_fields)
+		{
+			next unless $field->isa( "EPrints::MetaField::Name" );
+
+			my $table;
+			if( $field->get_property( "multiple" ) )
+			{
+				$table = $dataset->get_sql_sub_table_name( $field );
+			}
+			else
+			{
+				$table = $dataset->get_sql_table_name();
+			}
+			my @logic;
+			for($field->get_sql_names)
+			{
+				push @logic, "(`$_` is not Null AND `$_` != '')";
+			}
+			my $logic = "(" . join(" OR ", @logic) . ")";
+			for($field->get_sql_names)
+			{
+				my $sql = "UPDATE `$table` SET `$_`='' WHERE `$_` is Null AND $logic";
+				$db->do( $sql );
+			}
+		}
+	}
 }
 
 
