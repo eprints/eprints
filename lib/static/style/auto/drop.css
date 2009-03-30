@@ -28,9 +28,18 @@
 	background-color: #e0e0ff;
 }
 
-
-
-
 .ep_drop_target ul ul {
 	display: none;
+}
+
+.ep_drop_loading {
+	margin: 0px;
+	text-align: center;
+	background-color: white;
+	border: 1px dotted #888;
+	z-index: 6;
+	position: absolute;
+}
+.ep_drop_loading img {
+	padding: 8px;
 }

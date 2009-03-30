@@ -1196,6 +1196,9 @@ sub get_input_elements
 			my $lookup = $session->make_doc_fragment;
 			my $drop_div = $session->make_element( "div", id=>$basename."_drop", class=>"ep_drop_target" );
 			$lookup->appendChild( $drop_div );
+			my $drop_loading_div = $session->make_element( "div", id=>$basename."_drop_loading", class=>"ep_drop_loading", style=>"display: none" );
+			$drop_loading_div->appendChild( $session->html_phrase( "lib/metafield:drop_loading" ) );
+			$lookup->appendChild( $drop_loading_div );
 
 			my @ids = $self->get_basic_input_ids($session, $basename, $staff, $obj );
 			my $extra_params = $self->{input_lookup_params};
@@ -1324,6 +1327,9 @@ sub get_input_elements
 				my $lookup = $session->make_doc_fragment;
 				my $drop_div = $session->make_element( "div", id=>$ibasename."_drop", class=>"ep_drop_target" );
 				$lookup->appendChild( $drop_div );
+				my $drop_loading_div = $session->make_element( "div", id=>$ibasename."_drop_loading", class=>"ep_drop_loading", style=>"display: none" );
+				$drop_loading_div->appendChild( $session->html_phrase( "lib/metafield:drop_loading" ) );
+				$lookup->appendChild( $drop_loading_div );
 				my @ids = $self->get_basic_input_ids( $session, $ibasename, $staff, $obj );
 				my $extra_params = $self->{input_lookup_params};
 				if( defined $extra_params ) 

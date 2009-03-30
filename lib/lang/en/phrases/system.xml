@@ -105,6 +105,7 @@ EPrints Modules
 
 <!-- MetaField -->
 
+    <epp:phrase id="lib/metafield:drop_loading"><img alt="" src="{$config{rel_path}}/style/images/loading.gif" border="0" /></epp:phrase>
     <epp:phrase id="lib/metafield:year">Year:</epp:phrase>
     <epp:phrase id="lib/metafield:month">Month:</epp:phrase>
     <epp:phrase id="lib/metafield:day">Day:</epp:phrase>
