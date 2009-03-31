@@ -70,27 +70,33 @@ my $count = 0;
 
 my $sth = $session->get_database->prepare( $sql );
 $session->get_database->execute( $sth , $sql );
-while( my( $cnt,$h,$g,$f,$l,$id ) = $sth->fetchrow_array )
+while( my @row = $sth->fetchrow_array )
 {
-	my $row = {};
-	push @rows, $row;
+	my $cnt = shift @row;
+	my $name = $name_field->value_from_sql_row( $session, \@row );
+	my $id = $id_field->value_from_sql_row( $session, \@row );
+
+	my $item = {};
+	push @rows, $item;
 
 	my $frag = $session->make_doc_fragment;
 
-	my $desc = "$h $g $f $l"; 
-	$desc .= " ($id)" if defined $id;
-	$desc .= " ";
-	$frag->appendChild( $session->make_text( $desc ) );
+	$frag->appendChild( $name_field->render_single_value( $session, $name ) );
+	if( EPrints::Utils::is_set( $id ) )
+	{
+		$frag->appendChild( $session->make_text( " " ) );
+		$frag->appendChild( $id_field->render_single_value( $session, $id ) );
+	}
 	my $small = $session->make_element( "small" );
 	$frag->appendChild( $small );
-	$small->appendChild( $session->make_text( "(author of ".$cnt." item".($cnt>1?"s":"")." in this repository)" ) );
+	$small->appendChild( $session->make_text( " (author of ".$cnt." item".($cnt>1?"s":"")." in this repository)" ) );
 
-	$row->{xhtml} = $frag;
-	$row->{values} = [
-		"for:value:relative:_name_family" => $f,
-		"for:value:relative:_name_given" => $g,
-		"for:value:relative:_name_honourific" => $h,
-		"for:value:relative:_name_lineage" => $l,
+	$item->{xhtml} = $frag;
+	$item->{values} = [
+		"for:value:relative:_name_family" => $name->{family},
+		"for:value:relative:_name_given" => $name->{given},
+		"for:value:relative:_name_honourific" => $name->{honourific},
+		"for:value:relative:_name_lineage" => $name->{lineage},
 		"for:value:relative:_id" => $id,
 	];
 
