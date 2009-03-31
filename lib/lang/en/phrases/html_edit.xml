@@ -13,5 +13,6 @@
 	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:inline_edit_title">Edit XPage code</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:change_image">Change: </epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:image_editor">Change/Upload Images</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/Perl:inline_edit_title">Edit config file</epp:phrase>
 
 </epp:phrases>
