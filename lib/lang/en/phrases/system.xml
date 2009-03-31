@@ -649,6 +649,7 @@ User Area CGI Scripts
     <epp:phrase id="Plugin/Screen/Admin/Config/Edit/Citation:title">Edit config file</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config/Edit/NamedSet:title">Edit config file</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config/Edit/Perl:title">Edit config file</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin/Config/Edit/Perl:inline_edit_title">Edit config file</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config/Edit/Phrase:title">Edit config file</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config/Edit/Static:title">Edit config file</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config/Edit/Template:title">Edit config file</epp:phrase>
