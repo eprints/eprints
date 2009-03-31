@@ -1,3 +1,7 @@
+##WARNING - There are lots of system() calls in this file, these need to be removed post haste!
+
+
+
 package EPrints::Plugin::Screen::Admin::Config::Edit;
 
 use EPrints::Plugin::Screen;
@@ -852,87 +856,30 @@ sub render
 	$page->appendChild( $self->html_phrase( "intro" ));
 	
 	$self->{processor}->{screenid}=~m/::Edit::(.*)$/;
+	my $type = $1;
 	my $doc_link = $self->{session}->render_link("http://eprints.org/d/?keyword=${1}ConfigFile&filename=".$self->{processor}->{configfile});
 	$page->appendChild( $self->{session}->html_phrase( "Plugin/Screen/Admin/Config/Edit:documentation", link=>$doc_link ));
 	
 
 	my $form = $self->render_form;
-	## Start offline page edit code
-	my $table = $self->{session}->make_element(
-		"table",
-		width=>"82%"
-		);
-	my $tr = $self->{session}->make_element(
-		"tr",
-		);
-	
-	my $div = $self->{session}->make_element ( 
-		"td",
-		align=>"center",
-		);
-
-	my $p = $self->{session}->make_element (
-		"p"
-	);
-	$p->appendChild($self->html_phrase("external_edit_description"));
-	$div->appendChild($p);
-	my %buttons1;
-
-       	push @{$buttons1{_order}}, "download_full_file";
-       	$buttons1{download_full_file} = $self->{session}->phrase( "Plugin/Screen/Admin/Config/Edit:download_full_file" );
-
-	$div->appendChild( $self->{session}->render_action_buttons( %buttons1 ) );
-	
-	my $br = $self->{session}->make_element ( "br" );	
-	$div->appendChild($br);
-
-	my $inner_panel = $self->{session}->make_element( 
-			"div", 
-			id => $self->{prefix}."_upload_panel_file" );
-
-	$inner_panel->appendChild( $self->html_phrase( "upload_html" ) );
-
-	my $ffname = $self->{prefix}."_first_file";	
-	my $file_button = $self->{session}->make_element( "input",
-		name => $ffname,
-		id => $ffname,
-		type => "file",
-		);
-	my $upload_progress_url = $self->{session}->get_url( path => "cgi" ) . "/users/ajax/upload_progress";
-	my $onclick = "return startEmbeddedProgressBar(this.form,{'url':".EPrints::Utils::js_string( $upload_progress_url )."});";
-	my $upload_button = $self->{session}->render_button(
-		value => $self->phrase( "upload" ), 
-		class => "ep_form_internal_button",
-		name => "_action_process_upload",
-		onclick => $onclick );
-	$inner_panel->appendChild( $file_button );
-	$inner_panel->appendChild( $self->{session}->make_text( " " ) );
-	$inner_panel->appendChild( $upload_button );
-	my $progress_bar = $self->{session}->make_element( "div", id => "progress" );
-	$inner_panel->appendChild( $progress_bar );
-
-	
-	my $script = $self->{session}->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->phrase("really_next"))." ); } return true; } );" );
-	$inner_panel->appendChild( $script);
-	
-	$inner_panel->appendChild( $self->{session}->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
-
-	$div->appendChild($inner_panel);
-	
-	$tr->appendChild($div);
-	$table->appendChild($tr);
-	$form->appendChild($table);
-	$div = $self->{session}->make_element( "div", align => "center" );
-	$div->appendChild($form);
-
-	my $box = EPrints::Box::render(
-		id => "external_edit",
-		session => $self->{session},
-		title => $self->html_phrase("external_edit_title"), 
-		content => $div
-	);
 	#$page->appendChild( $form );
-	$page->appendChild( $box );
+
+	if( $type eq "XPage" )
+	{
+	$page->appendChild( $self->html_edit($form) );
+	}
+	$page->appendChild( $self->config_edit($form,$type) );
+	if( $type eq "XPage" )
+	{
+	$page->appendChild( $self->image_edit($form) );
+	}
+
+	return $page;
+}
+
+sub config_edit
+{
+	my ($self, $form, $type) = @_;
 
 	my $fn = $self->{processor}->{configfilepath};
 	my $broken = 0;
@@ -964,22 +911,37 @@ sub render
 	}
 
 	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
-	$div = $self->{session}->make_element( "div", align => "center" );
+	my $div = $self->{session}->make_element( "div", align => "center" );
 	$div->appendChild($form);
-	$box = EPrints::Box::render(
-		id => "inline_edit",
-		session => $self->{session},
-		title => $self->html_phrase("inline_edit_title"), 
-		collapsed => "true",
-		content => $div
-	);
-	#$page->appendChild( $form );
-	$page->appendChild( $box );
 	
+	my $box;	
+	if( $type eq "XPage" )
+	{
+		$box = EPrints::Box::render(
+			id => "inline_edit",
+			session => $self->{session},
+			title => $self->html_phrase("inline_edit_title"), 
+			collapsed => "true",
+			content => $div
+		);
+	} else {
+		$box = EPrints::Box::render(
+			id => "inline_edit",
+			session => $self->{session},
+			title => $self->html_phrase("inline_edit_title"), 
+			content => $div
+		);
+	}
+	#$page->appendChild( $form );
+}
+sub image_edit 
+{
+	my ($self,$form) = @_;
+
 	my @images = $self->get_images();
 	$form = $self->render_form;
-	$div = $self->{session}->make_element( "div", align => "center" );
-	$br = $self->{session}->make_element( "br" );
+	my $div = $self->{session}->make_element( "div", align => "center" );
+	my $br = $self->{session}->make_element( "br" );
 
 	my $done = {};
 	my $img_count = 0;
@@ -1076,18 +1038,95 @@ sub render
 	);
 	$div->appendChild($hidden);
 	$form->appendChild($div);
-	$box = EPrints::Box::render(
+	my $box = EPrints::Box::render(
                 id => "image_edit",
                 session => $self->{session},
                 title => $self->html_phrase("image_editor"),
                 content => $form
         );	
-	
-	$page->appendChild( $box );
-
-	return $page;
 }
 
+sub html_edit 
+{
+	my ( $self, $form ) = @_;
+
+	## Start offline page edit code
+	my $table = $self->{session}->make_element(
+		"table",
+		width=>"82%"
+		);
+	my $tr = $self->{session}->make_element(
+		"tr",
+		);
+	
+	my $div = $self->{session}->make_element ( 
+		"td",
+		align=>"center",
+		);
+
+	my $p = $self->{session}->make_element (
+		"p"
+	);
+	$p->appendChild($self->html_phrase("external_edit_description"));
+	$div->appendChild($p);
+	my %buttons1;
+
+       	push @{$buttons1{_order}}, "download_full_file";
+       	$buttons1{download_full_file} = $self->{session}->phrase( "Plugin/Screen/Admin/Config/Edit:download_full_file" );
+
+	$div->appendChild( $self->{session}->render_action_buttons( %buttons1 ) );
+	
+	my $br = $self->{session}->make_element ( "br" );	
+	$div->appendChild($br);
+
+	my $inner_panel = $self->{session}->make_element( 
+			"div", 
+			id => $self->{prefix}."_upload_panel_file" );
+
+	$inner_panel->appendChild( $self->html_phrase( "upload_html" ) );
+
+	my $ffname = $self->{prefix}."_first_file";	
+	my $file_button = $self->{session}->make_element( "input",
+		name => $ffname,
+		id => $ffname,
+		type => "file",
+		);
+	my $upload_progress_url = $self->{session}->get_url( path => "cgi" ) . "/users/ajax/upload_progress";
+	my $onclick = "return startEmbeddedProgressBar(this.form,{'url':".EPrints::Utils::js_string( $upload_progress_url )."});";
+	my $upload_button = $self->{session}->render_button(
+		value => $self->phrase( "upload" ), 
+		class => "ep_form_internal_button",
+		name => "_action_process_upload",
+		onclick => $onclick );
+	$inner_panel->appendChild( $file_button );
+	$inner_panel->appendChild( $self->{session}->make_text( " " ) );
+	$inner_panel->appendChild( $upload_button );
+	my $progress_bar = $self->{session}->make_element( "div", id => "progress" );
+	$inner_panel->appendChild( $progress_bar );
+
+	
+	my $script = $self->{session}->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->phrase("really_next"))." ); } return true; } );" );
+	$inner_panel->appendChild( $script);
+	
+	$inner_panel->appendChild( $self->{session}->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
+
+	$div->appendChild($inner_panel);
+	
+	$tr->appendChild($div);
+	$table->appendChild($tr);
+	$form->appendChild($table);
+	$div = $self->{session}->make_element( "div", align => "center" );
+	$div->appendChild($form);
+
+	my $box = EPrints::Box::render(
+		id => "external_edit",
+		session => $self->{session},
+		title => $self->html_phrase("external_edit_title"), 
+		content => $div
+	);
+	
+	return $box;
+}
 
 sub get_images 
 {
