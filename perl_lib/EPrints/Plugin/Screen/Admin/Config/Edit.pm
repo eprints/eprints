@@ -260,7 +260,7 @@ sub action_process_image_upload
 		}
 		seek($tmpfile, 0, 0);
 		
-		system("mv $tmpfile $image_location");
+		rename($tmpfile,$image_location);
 		
 		$self->{processor}->add_message( 
 			"message", 
@@ -411,7 +411,7 @@ sub action_process_upload
 					}
 					
 
-					system("mv $tmpfile $original"); 
+					rename($tmpfile,$original); 
 
 					$self->{processor}->add_message( 
 						"message", 
@@ -425,7 +425,7 @@ sub action_process_upload
 					my $tmpfile = File::Temp->new( SUFFIX => ".txt" );
 					binmode($tmpfile);
 					syswrite($tmpfile,$instring);
-					system("mv $tmpfile $original"); 
+					rename($tmpfile,$original); 
 					$self->{processor}->add_message( 
 						"message", 
 						$self->{session}->make_text("$original: Page updated.") );
@@ -525,37 +525,99 @@ sub process_line
 				#print "\n\nBEGIN PHRASE: " . $node_value . "\n\n";
 				my $fn = $self->{processor}->{configfilepath};
 				$fn = substr $fn, 0, index($fn,"static/");
-  				$fn = $fn . "phrases/*";
-				my $tmpfile3 = File::Temp->new( SUFFIX => ".txt" );
-				system('grep \'id="' . trim($node_value). '"\' '.$fn . ' > ' . $tmpfile3);
-				open (FH3,$tmpfile3);
-				my $fline = <FH3>;
-				close(FH3);
-				$fline = substr $fline,0,index($fline,":");
+  				$fn = $fn . "phrases/";
+				#my $tmpfile3 = File::Temp->new( SUFFIX => ".txt" );
+				#system('grep \'id="' . trim($node_value). '"\' '.$fn . ' > ' . $tmpfile3);
+				#open (FH3,$tmpfile3);
+				#my $fline = <FH3>;
+				#close(FH3);
+				#$fline = substr $fline,0,index($fline,":");
 				#in out, overwrite, finished phrases;
-				open (FH3,$fline);
-				$tmpfile3 = File::Temp->new( SUFFIX => ".txt" );
-				binmode($tmpfile3);
-				while (my $phrase_line = <FH3>) {
-					if (index($phrase_line,'id="' . trim($node_value). '"') > 0) {
-						my $search_string = 'id="' . trim($node_value). '">';
-						my $this_node_name = substr $phrase_line,index($phrase_line,$search_string) + length($search_string),length($phrase_line);
-						$this_node_name = substr $this_node_name,0,index($this_node_name,"</epp:phrase>");
-						if (!($old_values->{trim($node_value)})) {
-							$old_values->{trim($node_value)} = $this_node_name;
-						}
-						if (!($old_values->{trim($node_value)} eq trim($phrase_text))) {
-							syswrite($tmpfile3,"\t" . '<epp:phrase id="' . trim($node_value) . '">' . trim($phrase_text) . '</epp:phrase>' ."\n");
-						} else {
-							syswrite($tmpfile3,$phrase_line);
-						}
-					} else {
-						syswrite($tmpfile3,$phrase_line);
-					}
+
+				#HOW TO FIX
+				# GET old phrase for page by querying eprints.
+				# If it has changed update or add it zz_webcfg.
+
+				my $old_phrase_node = $self->{session}->html_phrase(trim($node_value));
+				my $old_phrase = "";
+				for($old_phrase_node->childNodes)
+				{
+					$old_phrase .= EPrints::XML::to_string($_, undef, 1);
 				}
-				close FH3;				
 				
-				system("mv $tmpfile3 $fline");
+				my $new_phrase_doc = EPrints::XML::parse_xml_string("<phrase>".trim($phrase_text)."</phrase>");
+				my $new_phrase = $new_phrase_doc->documentElement;
+				$phrase_text = "";
+				for($new_phrase->childNodes)
+				{
+					$phrase_text .= EPrints::XML::to_string($_, undef, 1);
+				}
+				
+				$node_value = trim($node_value);
+				
+				#print STDERR $node_value . "\n";
+				#print STDERR "COMPARING new =|" . $phrase_text . "| and old =|" . $old_phrase . "|\n";
+
+				if (!($phrase_text eq $old_phrase)) {
+					#my $newchunk = $self->{session}->make_doc_fragment;
+					my $newchild = $self->{session}->make_element( "epp:phrase", id => $node_value );
+					$new_phrase->setOwnerDocument( $newchild->ownerDocument );
+					for($new_phrase->childNodes)
+					{
+						$newchild->appendChild( $_ );
+					}
+					my $fline = $fn . "zz_webcfg.xml";
+				
+					my $doc = EPrints::XML::parse_xml($fline);
+					my $dom = ($doc->getElementsByTagName( "phrases" ))[0];
+				
+					$newchild->setOwnerDocument( $doc );
+
+					my $done = 0;
+					for my $child ($dom->getChildNodes()) 
+					{
+						next unless EPrints::XML::is_dom( $child, "Element" );
+						next unless $child->getAttribute( "id" ) eq $node_value;
+						#print STDERR ("Replacing Children, new value = " . $phrase_text . "\n");	
+						$dom->replaceChild($newchild,$child);
+						$done = 1;
+					
+					}
+					if ($done < 1) {
+						#print STDERR ("Node not found adding " . $phrase_text . "\n");	
+						$dom->appendChild($newchild);
+					}
+					open(my $FH,">",$fline);
+					print $FH $doc->toString();
+					close($FH);
+
+				}
+
+				
+#
+#				my $tmpfile3 = File::Temp->new( SUFFIX => ".txt" );
+#				binmode($tmpfile3);
+#				my $found = 0;
+#				my $changed = 0;
+#				open (FH3,$fline);
+#				while (my $phrase_line = <FH3>) {
+#					if (index($phrase_line,'id="' . trim($node_value). '"') > 0) {
+#						$found = 1;
+#						if ($changed > 0) {
+#							syswrite($tmpfile3,"\t" . '<epp:phrase id="' . trim($node_value) . '">' . trim($phrase_text) . '</epp:phrase>' ."\n");
+#						} else {
+#							syswrite($tmpfile3,$phrase_line);
+#						}
+#					} else {
+#						syswrite($tmpfile3,$phrase_line);
+#					}
+#				}
+#				if ($found < 1) {
+#					syswrite($tmpfile3,"\t" . '<epp:phrase id="' . trim($node_value) . '">' . trim($phrase_text) . '</epp:phrase>' ."\n");
+#				}
+#				close FH3;				
+#				
+#				rename($tmpfile3,$fline);
 				
  				$line = '<epc:phrase ref="'.trim($node_value).'"/>';
 				#print "\n\nEND PHRASE: \n\n";
