@@ -174,8 +174,9 @@ sub reorder
 
 	my $srctable = $db->cache_table( $self->{cache_id} );
 
+	my $encoded = defined($self->{encoded}) ? $self->{encoded} : "";
 	my $new_cache_id  = $db->cache( 
-		$self->{encoded}."(reordered:$new_order)", # nb. not very neat. 
+		"$encoded(reordered:$new_order)", # nb. not very neat. 
 		$self->{dataset},
 		$srctable,
 		$new_order );

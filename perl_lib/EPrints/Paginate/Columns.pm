@@ -52,7 +52,7 @@ sub paginate_list
 	}
 	$url .= join "&", @param_list;
 
-	my $offset = $session->param( "$basename\_offset" ) + 0;
+	my $offset = ($session->param( "$basename\_offset" ) || 0) + 0;
 	$url .= "&$basename\_offset=$offset"; # $basename\_offset used by paginate_list
 
 	# Sort param
@@ -91,7 +91,7 @@ sub paginate_list
 
 	my $len = scalar(@{$opts{columns}});
 
-	for(my $i; $i<$len;++$i )
+	for(my $i = 0; $i<$len;++$i )
 	{
 		my $col = $opts{columns}->[$i];
 		my $last = ($i == $len-1);

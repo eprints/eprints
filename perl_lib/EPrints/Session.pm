@@ -1554,7 +1554,7 @@ sub render_option_list
 			$defaults{$_} = 1;
 		}
 	}
-	else
+	elsif( defined $params{default} )
 	{
 		$defaults{$params{default}} = 1;
 	}
@@ -3487,7 +3487,10 @@ sub get_action_button
 	}
 
 	# undef if _default is not set.
-	return $self->param("_default_action");
+	$p = $self->param("_default_action");
+	return $p if defined $p;
+
+	return "";
 }
 
 
