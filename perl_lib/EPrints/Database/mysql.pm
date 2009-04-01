@@ -176,6 +176,20 @@ sub has_column
 	return $rc;
 }
 
+sub connect
+{
+	my( $self ) = @_;
+
+	my $rc = $self->SUPER::connect();
+
+	if( $rc )
+	{
+		$self->do("SET NAMES 'utf8'");
+	}
+
+	return $rc;
+}
+
 ######################################################################
 =pod
 
