@@ -95,6 +95,10 @@ sub new
 {
 	my( $class, %properties ) = @_;
 
+	# We'll inherit these from clone()
+	delete $properties{".field"};
+	delete $properties{"field_defaults"};
+
 	my $realclass = "EPrints::MetaField::\u$properties{type}";
 	eval 'use '.$realclass.';';
 	warn "couldn't parse $realclass: $@" if $@;
@@ -107,7 +111,7 @@ sub new
 	# for when repository was called archive.
 	if( defined $properties{archive} )
 	{
-		$properties{repository} = $properties{archive};
+		$properties{repository} = delete $properties{archive};
 	}
 
 	# end of 2.4
@@ -116,30 +120,31 @@ sub new
 	my $self = {};
 	bless $self, $realclass;
 
-	$self->{confid} = $properties{confid};
+	$self->{confid} = delete $properties{confid};
+	$self->{repository} = delete $properties{repository};
 
 	if( defined $properties{dataset} ) 
 	{ 
 		$self->{confid} = $properties{dataset}->confid(); 
-		$self->{dataset} = $properties{dataset};
 		$self->{repository} = $properties{dataset}->get_repository;
+		$self->{dataset} = delete $properties{dataset};
 		if( defined( &Scalar::Util::weaken ) )
 		{
 			Scalar::Util::weaken( $self->{dataset} );
-			Scalar::Util::weaken( $self->{repository} );
 		}
-	}
-	else
-	{
-		if( !defined $properties{repository} )
-		{
-			EPrints::abort( 
-				"Tried to create a metafield without a ".
-				"dataset or an repository." );
-		}
-		$self->{repository} = $properties{repository};
 	}
 
+	if( !defined $self->{repository} )
+	{
+		EPrints::abort( 
+			"Tried to create a metafield without a ".
+			"dataset or an repository." );
+	}
+
+	if( defined &Scalar::Util::weaken )
+	{
+		Scalar::Util::weaken( $self->{repository} );
+	}
 
 	if( !defined $properties{name} )
 	{
@@ -178,26 +183,33 @@ sub new
 		$self->{repository}->set_field_defaults( $properties{type}, $self->{field_defaults} );
 	}
 
-	foreach my $p_id ( keys %{$self->{field_defaults}} )
+	keys %{$self->{field_defaults}}; # Reset each position
+	while(my( $p_id, $p_default ) = each %{$self->{field_defaults}})
 	{
-		$self->set_property( $p_id, $properties{$p_id} );
+		my $p_value = delete $properties{$p_id};
+		if( defined $p_value )
+		{
+			$self->{$p_id} = $p_value;
+		}
+		elsif( $p_default eq $EPrints::MetaField::REQUIRED )
+		{
+			EPrints::abort( "Error in field property for ".$self->{dataset}->id.".".$self->{name}.": $p_id on a ".$self->{type}." metafield can't be undefined" );
+		}
+		elsif
+		  (
+			$p_default ne $EPrints::MetaField::UNDEF &&
+			$p_default ne $EPrints::MetaField::NO_CHANGE
+		  )
+		{
+			$self->{$p_id} = $p_default;
+		}
 	}
 
-	# warn of non-applicable parameters; handy for spotting
-	# typos in the config file.
-	foreach my $p_id ( keys %properties )
+	foreach my $p_id (keys %properties)
 	{
-		# skip warning on ID fields, it's not relevant
-		last if( $self->{type} eq "id" );
-		# no warning if it's a valid param
-		next if( defined $self->{field_defaults}->{$p_id} );
-		# these params are always valid but have no defaults
-		next if( $p_id eq "field_defaults" );
-		next if( $p_id eq "repository" );
-		next if( $p_id eq "dataset" );
-		# internal values ignored. They start with .
-		next if( $p_id =~ m/^\./ );
-		$self->{repository}->log( "Field '".$self->{name}."' has invalid parameter:\n$p_id => $properties{$p_id}" );
+		# warn of non-applicable parameters; handy for spotting
+		# typos in the config file.
+		$self->{repository}->log( "Field '".$self->{dataset}->id.".".$self->{name}."' has invalid parameter:\n$p_id => $properties{$p_id}" );
 	}
 
 	return $self;
