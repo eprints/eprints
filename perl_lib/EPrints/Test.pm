@@ -22,6 +22,8 @@ EPrints::Test - Utility testing tools
 
 package EPrints::Test;
 
+use EPrints::Test::OnlineSession;
+
 sub init
 {
 	my( $package ) = @_;

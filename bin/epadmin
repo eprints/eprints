@@ -46,6 +46,8 @@ Where I<command> is one of:
 
 =item help
 
+=item profile
+
 =item recommit
 
 =item reorder
@@ -167,6 +169,10 @@ Erases all the documents and eprints (including their files). Recreates the epri
 Run unit tests, printing the results to STDOUT. If everything passed will exit
 with a return code of 0.
 
+=item B<epadmin> profile I<test>
+
+Run a performance profile of I<test> using L<Devel::NYTProf>.
+
 =item B<epadmin> upgrade I<repository_id>
 
 After upgrading EPrints, use this to update the database tables. It will advise any other tasks that are required.
@@ -266,6 +272,7 @@ my $action = $ARGV[0];
 if( $action eq "create" ) { create(); }
 elsif( $action eq "test" ) { test( $ARGV[1] ); }
 elsif( $action eq "unit_tests" ) { unit_tests( @ARGV[1..$#ARGV] ); }
+elsif( $action eq "profile" ) { profile( $ARGV[1] ); }
 else
 {
 	my $repoid = $ARGV[1];
@@ -1496,6 +1503,43 @@ sub test
 	$session->terminate;
 
 	print "Everything seems OK.\n";
+}
+
+sub profile
+{
+	my( $test ) = @_;
+
+	unless( defined $test )
+	{
+		die "Requires test argument\n";
+	}
+
+	eval "use Test::Harness";
+	if( $@ )
+	{
+		die "Can't do profiling without Test::Harness: $@";
+	}
+
+	eval "use Devel::NYTProf";
+	if( $@ )
+	{
+		die "Can't do profiling without Devel::NYTProf: $@";
+	}
+
+	my $base_path = $EPrints::SystemSettings::conf->{base_path};
+	my $test_path = "$base_path/tests";
+
+	my $test_file = "$test_path/$test";
+	$test_file =~ s/(\.pl)?$/.pl/;
+
+	unless( -f $test_file )
+	{
+		die "Test '$test' not found in $test_path/\n";
+	}
+
+	$ENV{HARNESS_PERL_SWITCHES} = "-d:NYTProf";
+
+	exit(0) if runtests($test_file);
 }
 
 sub unit_tests

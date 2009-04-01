@@ -8116,3 +8116,7 @@ EPRINTS-3.1-beta-2
 
 2009-03-30 cjg
  * Added spinny ajax loading icon to autocompleter.
+
+2009-04-01 tdb
+ * Added "profile" command to epadmin (run a unit test under profiling)
+ * Added OnlineSession utility test module
