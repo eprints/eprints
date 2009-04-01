@@ -8120,3 +8120,7 @@ EPRINTS-3.1-beta-2
 2009-04-01 tdb
  * Added "profile" command to epadmin (run a unit test under profiling)
  * Added OnlineSession utility test module
+
+2009-04-01 dct
+ * Updated Plugin/Screen/Admin/Config/Edit.pm to allow users to download fully encapsulated web pages for offline editing before re-uploading them via the same page. The uploaded content is split back into phrases and page parts which are put back in the correct EPrints places.
+ * Updated above such that edited phrases are put in the zz_webcfg.xml phrase file and not in the archive phrase file. 
