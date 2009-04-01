@@ -23,6 +23,8 @@ use EPrints::Plugin::Storage;
 
 use strict;
 
+our $DISABLE = 1;
+
 sub new
 {
 	my( $class, %params ) = @_;
