@@ -3628,30 +3628,10 @@ sub plugin
 {
 	my( $self, $pluginid, %params ) = @_;
 
-	my $map = $self->get_repository->get_conf( "plugin_alias_map" );
-	if( defined $map && exists $map->{$pluginid} )
-	{
-		$params{id} = $pluginid;
-		$pluginid = $map->{$pluginid};
-	}
-	return if !defined $pluginid;
-
-	my $class = $self->get_repository->get_plugin_class( $pluginid );
-
-	if( !defined $class )
-	{
-		$self->{repository}->log( "Plugin '$pluginid' not found." );
-		return undef;
-	}
-
-	my $plugin = $class->new( session=>$self, %params );	
-
-	if( $plugin->param( "disable" ) )
-	{
-		return undef;
-	}
-
-	return $plugin;
+	return $self->get_repository->get_plugin_factory->get_plugin( $pluginid,
+		%params,
+		session => $self,
+		);
 }
 
 
@@ -3675,31 +3655,12 @@ sub plugin_list
 {
 	my( $self, %restrictions ) = @_;
 
-	my @plugin_ids = $self->get_repository->get_plugin_ids();
-
-	return @plugin_ids if( !scalar %restrictions );
-	my @out = ();
-	foreach my $plugin_id ( @plugin_ids )
-	{
-		my $plugin = $self->plugin( $plugin_id );
-
-		next if( !defined $plugin );
-
-		# should we add this one to the list?
-		my $add = 1;	
-		foreach my $k ( keys %restrictions )
-		{
-			my $v = $restrictions{$k};
-			next if( $plugin->matches( $k, $v ) );
-			$add = 0;
-		}
-		
-		next unless $add;	
-
-		push @out, $plugin_id;
-	}
-
-	return @out;
+	return
+		map { $_->get_id() }
+		$self->get_repository->get_plugin_factory->get_plugins(
+			\%restrictions,
+			session => $self
+		);
 }
 
 

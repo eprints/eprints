@@ -236,6 +236,7 @@ use EPrints::XML::EPC;
 # Load EPrints::Plugin last, because dynamically loaded plugins may have
 # EPrints dependencies
 use EPrints::Plugin;
+use EPrints::PluginFactory;
 
 our $__loaded;
 

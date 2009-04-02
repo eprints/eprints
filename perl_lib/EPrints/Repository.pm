@@ -1067,15 +1067,22 @@ sub _load_plugins
 {
 	my( $self ) = @_;
 
-	my $dir = $self->get_conf( "config_path" )."/plugins";
-	my $pdir ="$dir/EPrints/Plugin";
-	return 1 unless -d $pdir;
+	$self->{plugins} = EPrints::PluginFactory->new( $self );
 
-	$self->{local_plugins} = {};
-	local @INC = ($dir, @INC);
-	EPrints::Plugin::load_dir( $self->{local_plugins}, $pdir, "EPrints::Plugin" );
+	return defined $self->{plugins};
+}
 
-	return 1;
+=item $plugins = $repository->get_plugin_factory()
+
+Return the plugins factory object.
+
+=cut
+
+sub get_plugin_factory
+{
+	my( $self ) = @_;
+
+	return $self->{plugins};
 }
 
 ######################################################################
@@ -1091,12 +1098,7 @@ sub get_plugin_class
 {
 	my( $self, $pluginid ) = @_;
 
-	if( defined $self->{local_plugins}->{$pluginid} )
-	{
-		return $self->{local_plugins}->{$pluginid};
-	}
-
-	return $EPrints::Plugin::REGISTRY->{$pluginid};
+	return $self->{plugins}->get_plugin_class( $pluginid );
 }
 
 ######################################################################
@@ -1109,12 +1111,11 @@ sub get_plugin_class
 
 sub get_plugin_ids
 {
-	my( $self, $pluginid ) = @_;
+	my( $self ) = @_;
 
-	my %pids = ();
-	foreach( EPrints::Plugin::plugin_list() ) { $pids{$_}=1; }
-	foreach( keys %{$self->{local_plugins}} ) { $pids{$_}=1; }
-	return keys %pids;
+	return
+		map { $_->get_id() }
+		$self->{plugins}->get_plugin_factory();
 }
 
 ######################################################################
@@ -1137,13 +1138,7 @@ sub _map_oai_plugins
 	foreach my $plugin_id ( keys %{$plugin_list} )
 	{
 		my $full_plugin_id = "Export::".$plugin_list->{$plugin_id};
- 		my $class = $EPrints::Plugin::REGISTRY->{$full_plugin_id};
-		if( !defined $class )
-		{
-			$self->log( "OAI Export plugin: $plugin_id not found." );
-			next;
-		}
-		my $plugin = $class->new();
+		my $plugin = $self->{plugins}->get_plugin( $full_plugin_id );
 		$self->{config}->{oai}->{v2}->{metadata_namespaces}->{$plugin_id} = $plugin->{xmlns};
 		$self->{config}->{oai}->{v2}->{metadata_schemas}->{$plugin_id} = $plugin->{schemaLocation};
 		$self->{config}->{oai}->{v2}->{metadata_functions}->{$plugin_id} = sub {

@@ -71,7 +71,7 @@ sub _read_components
 			if( !defined $class )
 			{
 				print STDERR "Using placeholder for $type\n";
-				$class = $EPrints::Plugin::REGISTRY->{"InputForm::Component::PlaceHolder"};
+				$class = $self->{session}->get_repository->get_plugin_class( "InputForm::Component::PlaceHolder" );
 				$params{placeholding}=$type;
 			}
 			if( defined $class )
