@@ -96,7 +96,7 @@ sub new
 	my( $class, %properties ) = @_;
 
 	# We'll inherit these from clone()
-	delete $properties{".field"};
+	delete $properties{".final"};
 	delete $properties{"field_defaults"};
 
 	my $realclass = "EPrints::MetaField::\u$properties{type}";
