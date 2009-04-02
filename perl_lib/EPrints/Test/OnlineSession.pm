@@ -51,9 +51,9 @@ sub new
 
 	my $self = bless $session, $class;
 
-	my $method = $opts{method} || "GET";
-	my $path = defined $opts{path} ? $opts{path} : "";
-	my $query = defined $opts{query} ? $opts{query} : "";
+	my $method = $opts->{method} || "GET";
+	my $path = defined $opts->{path} ? $opts->{path} : "";
+	my $query = defined $opts->{query} ? $opts->{query} : "";
 
 	my $uri = URI->new( $session->get_repository->get_conf( "base_url" ) );
 	if( $path !~ m#^/# )
