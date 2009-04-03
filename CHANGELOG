@@ -8130,3 +8130,7 @@ EPRINTS-3.1-beta-2
     undef
  * Refactored Plugin registry to "PluginFactory" (same access via Session)
 
+2009-04-03 tdb
+ * Changed default type for creators_id to email
+ * Email searches now perform exact matches rather than text indexing
+

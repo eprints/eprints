@@ -15,7 +15,7 @@ $c->{fields}->{eprint} = [
                           },
                           {
                             'sub_name' => 'id',
-                            'type' => 'text',
+                            'type' => 'email',
                             'input_cols' => 20,
                             'allow_null' => 1,
                           }
