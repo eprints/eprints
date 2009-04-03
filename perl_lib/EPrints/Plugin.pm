@@ -45,15 +45,13 @@ sub new
 {
 	my( $class, %params ) = @_;
 
-	my $self = EPrints::Utils::clone( \%params );
-	bless $self, $class;
+	my $self = bless \%params, $class;
 
 	if( !defined $self->{id} )
 	{
-		$self->{id} = $class;
-		$self->{id} =~ s/^EPrints::Plugin:://;
+		$class =~ /^(?:EPrints::Plugin::)?(.*)$/;
+		$self->{id} = $1;
 	}
-	#$self->{id} =~ s/^EPrints::LocalPlugin::([^:]*):://;
 
 	return $self;
 }
