@@ -2324,6 +2324,17 @@ EOW
 		{
 			upgrade_mysql_charset_ordervalues( \%colspecs, $session, $db, $dataset, $key_field, 1 );
 		}
+		if( $dataset->indexable )
+		{
+			my $Q_table = $dataset->get_sql_index_table_name;
+			$colspecs{$Q_table} = { binary => [], char => [] };
+			push @{$colspecs{$Q_table}->{binary}},
+				"`fieldword` BINARY(255)",
+				"`ids` BLOB";
+			push @{$colspecs{$Q_table}->{char}},
+				"`fieldword` VARCHAR(255) CHARACTER SET utf8",
+				"`ids` TEXT CHARACTER SET utf8";
+		}
 		foreach my $field ($dataset->get_fields)
 		{
 #print STDERR $dataset->confid.".".$field->get_name."[".$field->get_type."]\n";
@@ -2346,9 +2357,20 @@ EOW
 				join(", ", map { "MODIFY $_" } @{$specs->{binary}});
 			my $sql = "ALTER TABLE $Q_table ".
 				join(", ", map { "MODIFY $_" } @{$specs->{char}});
-			$db->do($binary_sql);
-			$db->do($sql);
+			$rc &&= $db->do($binary_sql);
+			$rc &&= $db->do($sql);
 		}
+	}
+
+	# don't need to go via binary because these should only contain US-ASCII
+	$rc &&= $db->do("ALTER TABLE `version` MODIFY `version` VARCHAR(255) CHARACTER SET utf8");
+	$rc &&= $db->do("ALTER TABLE `counters` MODIFY `countername` VARCHAR(255) CHARACTER SET utf8");
+
+	if( !$rc )
+	{
+		EPrints::abort <<EOW;
+An unexpected error occurred while attempting to convert tables to UTF-8.
+EOW
 	}
 
 	$session->terminate;
