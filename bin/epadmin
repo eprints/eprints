@@ -1844,6 +1844,12 @@ sub upgrade
 		$dbversion="3.1.2";
 		$db->set_version( $dbversion );
 	}
+	if( $dbversion eq "3.1.2" )
+	{
+		upgrade_3_1_2_to_3_2_0( $repoid, $db );
+		$dbversion="3.2.0";
+		$db->set_version( $dbversion );
+	}
 
 
 	print $dbversion."\n";
@@ -2230,5 +2236,187 @@ sub upgrade_3_1_1_to_3_1_2
 	}
 }
 
+sub upgrade_3_1_2_to_3_2_0
+{
+	my( $repoid, $db ) = @_;
 
+	my $repo = EPrints::Repository->new( $repoid );
 
+	# We can do this now, because we only ever add columns
+	update_datasets( $repo, $db );
+	update_counters( $repo, $db );
+
+	if( ref($db) eq "EPrints::Database::mysql" )
+	{
+		upgrade_mysql_charset( $repoid, $db );
+	}
+}
+
+sub upgrade_mysql_charset
+{
+	my( $repoid, $db ) = @_;
+
+	my $session = EPrints::Session->new( 1, $repoid, 0, 1 );
+	EPrints::abort "Error getting session" unless $session;
+	my $repo = $session->get_repository;
+
+#	$db->do("LOCK TABLES version WRITE");
+
+	print "CREATE(_utf8_test): ";
+	$db->do("CREATE TEMPORARY TABLE _utf8_test LIKE version");
+
+	my $collation = $db->get_column_collation( "_utf8_test", "version" );
+	if( !defined $collation )
+	{
+		EPrints::abort "Error interogating current collation";
+	}
+
+	print " collation is $collation: ";
+	if( 0 && $collation =~ /^utf8_/ )
+	{
+		print " [ Failed ]\n";
+		print STDERR <<EOW;
+Warning! It looks like your database tables are already set to use
+UTF-8. If this is unexpected then any non-English characters in
+your database may be double-encoded. You would see this as corrupt
+characters when viewed from EPrints or a MySQL client. This
+situation is recoverable but can not be identified or fixed by
+this upgrade.
+
+The upgrade will continue.
+
+EOW
+		return;
+	}
+	elsif( 0 && $collation !~ /^latin1_/ )
+	{
+		print " [ Failed ]\n";
+		EPrints::abort <<EOW;
+I don't understand the '$collation' collation. Your MySQL server
+is configured in a way that this upgrade script doesn't support.
+You need to manually correct this problem before an upgrade can
+succeed.
+
+EOW
+		return;
+	}
+
+	print " [ OK ]\n";
+
+	my $rc = $db->do("ALTER TABLE _utf8_test MODIFY version BINARY(255)");
+	$rc &&= $db->do("ALTER TABLE _utf8_test MODIFY version VARCHAR(255) CHARACTER SET utf8");
+
+	if( !$rc )
+	{
+		EPrints::abort <<EOW;
+An unexpected error occurred while attempting to convert tables to UTF-8.
+EOW
+	}
+
+	# convert all textual columns
+	foreach( $repo->get_sql_dataset_ids() )
+	{
+		my $dataset = $repo->get_dataset( $_ );
+		my $key_field = $dataset->get_key_field();
+		my %colspecs;
+		if( $key_field->isa( "EPrints::MetaField::Text" ) ||
+			$key_field->isa( "EPrints::MetaField::Set" ) )
+		{
+			upgrade_mysql_charset_ordervalues( \%colspecs, $session, $db, $dataset, $key_field, 1 );
+		}
+		foreach my $field ($dataset->get_fields)
+		{
+#print STDERR $dataset->confid.".".$field->get_name."[".$field->get_type."]\n";
+			# upgrade main table
+			if( !$field->is_virtual() &&
+				($field->isa( "EPrints::MetaField::Text" ) ||
+				$field->isa( "EPrints::MetaField::Set" )) )
+			{
+				upgrade_mysql_charset_field( \%colspecs, $session, $db, $dataset, $field );
+			}
+			# upgrade ordervalues table
+			if( $field->get_name ne $key_field->get_name )
+			{
+				upgrade_mysql_charset_ordervalues( \%colspecs, $session, $db, $dataset, $field );
+			}
+		}
+		while(my( $Q_table, $specs ) = each %colspecs)
+		{
+			my $binary_sql = "ALTER TABLE $Q_table ".
+				join(", ", map { "MODIFY $_" } @{$specs->{binary}});
+			my $sql = "ALTER TABLE $Q_table ".
+				join(", ", map { "MODIFY $_" } @{$specs->{char}});
+			$db->do($binary_sql);
+			$db->do($sql);
+		}
+	}
+
+	$session->terminate;
+}
+
+sub upgrade_mysql_charset_field
+{
+	my( $colspecs, $session, $db, $dataset, $field ) = @_;
+
+	my $Q_table;
+	if( $field->get_property( "multiple" ) )
+	{
+		$Q_table = $db->quote_identifier($dataset->get_sql_sub_table_name( $field ));
+	}
+	else
+	{
+		$Q_table = $db->quote_identifier($dataset->get_sql_table_name);
+	}
+
+	$colspecs->{$Q_table} ||= { binary => [], char => [] };
+
+	foreach my $sql ($field->get_sql_type( $session ))
+	{
+		push @{$colspecs->{$Q_table}->{binary}},
+			upgrade_mysql_charset_binary( $db, $Q_table, $sql );
+		push @{$colspecs->{$Q_table}->{char}}, $sql;
+	}
+}
+
+sub upgrade_mysql_charset_ordervalues
+{
+	my( $colspecs, $session, $db, $dataset, $field, $key_field ) = @_;
+
+	my $sql_field;
+	if( $key_field )
+	{
+		$sql_field = $field;
+	}
+	else
+	{
+		$sql_field = EPrints::MetaField->new(
+			repository => $session->get_repository,
+			name => $field->get_sql_name(),
+			type => "longtext",
+			allow_null => 1 );
+	}
+
+	foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
+	{
+		my $Q_table = $db->quote_identifier($dataset->get_ordervalues_table_name( $langid ));
+		$colspecs->{$Q_table} ||= { binary => [], char => [] };
+
+		my $sql = $sql_field->get_sql_type( $session );
+		push @{$colspecs->{$Q_table}->{binary}},
+			upgrade_mysql_charset_binary( $db, $Q_table, $sql );
+		push @{$colspecs->{$Q_table}->{char}}, $sql;
+	}
+}
+
+sub upgrade_mysql_charset_binary
+{
+	my( $db, $Q_table, $sql ) = @_;
+
+	my $binary_sql = $sql;
+	$binary_sql =~ s/\btext\b/blob/i;
+	$binary_sql =~ s/\bvarchar\b/binary/i;
+	$binary_sql =~ s/\bchar\b/binary/i;
+	$binary_sql =~ s/\bcharacter set [\w_]+\b//i;
+	$binary_sql =~ s/\bcollate [\w_]+\b//i;
+	return $binary_sql;
+}

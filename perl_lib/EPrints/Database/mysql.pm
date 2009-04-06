@@ -419,6 +419,22 @@ sub get_primary_key
 	return @COLS;
 }
 
+sub get_column_collation
+{
+	my( $self, $table, $column ) = @_;
+
+	my $sth = $self->prepare( "SHOW FULL COLUMNS FROM ".$self->quote_identifier($table)." LIKE ".$self->quote_value($column) );
+	$sth->execute;
+
+	my $collation;
+	while(my $row = $sth->fetch)
+	{
+		$collation = $row->[$sth->{NAME_lc_hash}{"collation"}];
+	}
+
+	return $collation;
+}
+
 1; # For use/require success
 
 ######################################################################

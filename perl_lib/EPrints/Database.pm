@@ -108,7 +108,7 @@ my $DEBUG_SQL = 0;
 
 # this may not be the current version of eprints, it's the version
 # of eprints where the current desired db configuration became standard.
-$EPrints::Database::DBVersion = "3.1.2";
+$EPrints::Database::DBVersion = "3.2.0";
 
 
 # ID of next buffer table. This can safely reset to zero each time
@@ -726,20 +726,24 @@ sub get_column_type
 		$type .= "($length,$scale)";
 	}
 
-	if( $opts{langid} )
+	my $langid = $opts{langid};
+	if( !defined $langid )
 	{
-		my $charset = $self->get_default_charset( $opts{langid} );
+		$langid = "en";
+	}
 
-		if( defined( $charset ) )
-		{
-			$type .= " CHARACTER SET ".$charset;
+	my $charset = $self->get_default_charset( $langid );
+	if( !defined $charset )
+	{
+		$charset = "UTF8";
+	}
 
-			my $collate = $self->get_default_collation( $opts{langid} );
-			if( defined( $collate ) )
-			{
-				$type .= " COLLATE ".$collate;
-			}
-		}
+	$type .= " CHARACTER SET ".$charset;
+
+	my $collate = $self->get_default_collation( $langid );
+	if( defined( $collate ) )
+	{
+		$type .= " COLLATE ".$collate;
 	}
 
 	if( $not_null )
