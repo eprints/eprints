@@ -726,24 +726,27 @@ sub get_column_type
 		$type .= "($length,$scale)";
 	}
 
-	my $langid = $opts{langid};
-	if( !defined $langid )
+	if( $data_type eq SQL_VARCHAR() or $data_type eq SQL_LONGVARCHAR() )
 	{
-		$langid = "en";
-	}
+		my $langid = $opts{langid};
+		if( !defined $langid )
+		{
+			$langid = "en";
+		}
 
-	my $charset = $self->get_default_charset( $langid );
-	if( !defined $charset )
-	{
-		$charset = "UTF8";
-	}
+		my $charset = $self->get_default_charset( $langid );
+		if( !defined $charset )
+		{
+			$charset = "UTF8";
+		}
 
-	$type .= " CHARACTER SET ".$charset;
+		$type .= " CHARACTER SET ".$charset;
 
-	my $collate = $self->get_default_collation( $langid );
-	if( defined( $collate ) )
-	{
-		$type .= " COLLATE ".$collate;
+		my $collate = $self->get_default_collation( $langid );
+		if( defined( $collate ) )
+		{
+			$type .= " COLLATE ".$collate;
+		}
 	}
 
 	if( $not_null )

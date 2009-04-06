@@ -2436,8 +2436,8 @@ sub upgrade_mysql_charset_binary
 
 	my $binary_sql = $sql;
 	$binary_sql =~ s/\btext\b/blob/i;
-	$binary_sql =~ s/\bvarchar\b/binary/i;
-	$binary_sql =~ s/\bchar\b/binary/i;
+	$binary_sql =~ s/\bvarchar\b/varbinary/i;
+	$binary_sql =~ s/\bchar\b/varbinary/i; # otherwise we'll get null padding
 	$binary_sql =~ s/\bcharacter set [\w_]+\b//i;
 	$binary_sql =~ s/\bcollate [\w_]+\b//i;
 	return $binary_sql;
