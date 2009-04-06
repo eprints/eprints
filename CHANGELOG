@@ -8138,3 +8138,7 @@ EPRINTS-3.1-beta-2
  * Create database columns using utf8 character set
  * database upgrade 3.2.0 converts utf8-in-latin to utf8
 
+2009-04-06 tdb
+ * Reverted [4159]
+ * Index complete emails in the indexer to allow correct search-by-email
+
