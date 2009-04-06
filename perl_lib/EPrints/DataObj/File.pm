@@ -605,7 +605,7 @@ sub set_file
 
 	$self->set_value( "filesize", $clen );
 	$self->set_value( "hash", undef );
-	$self->set_value( "hash_stype", undef );
+	$self->set_value( "hash_type", undef );
 
 	unless( $self->{session}->get_storage->store( $self, $f ) )
 	{
