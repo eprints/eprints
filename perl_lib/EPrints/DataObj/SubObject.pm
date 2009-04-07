@@ -35,11 +35,31 @@ package EPrints::DataObj::SubObject;
 
 use strict;
 
-=item $dataobj = EPrints::DataObj::File->create_from_data( $session, $data [, $dataset ] )
+=item $dataobj = EPrints::DataObj::File->new_from_data( $session, $data [, $dataset ] )
 
 Looks for a special B<_parent> element in $data and uses it to set the parent object, if defined.
 
-Will create default values for B<datasetid> and B<objectid> if parent is available.
+=cut
+
+sub new_from_data
+{
+	my( $class, $session, $data, $dataset ) = @_;
+
+	my $parent = delete $data->{_parent};
+
+	my $self = $class->SUPER::new_from_data( $session, $data, $dataset );
+
+	if( defined $parent )
+	{
+		$self->set_parent( $parent );
+	}
+
+	return $self;
+}
+
+=item $dataobj = EPrints::DataObj::File->create_from_data( $session, $data [, $dataset ] )
+
+Looks for a special B<_parent> element in $data and uses it to create default values for B<datasetid> and B<objectid> if parent is available and those fields exist on the object.
 
 =cut
 
@@ -47,22 +67,20 @@ sub create_from_data
 {
 	my( $class, $session, $data, $dataset ) = @_;
 
-	my $parent = delete $data->{_parent};
-
+	my $parent = $data->{_parent};
 	if( defined( $parent ) )
 	{
-		$data->{datasetid} ||= $parent->get_dataset->confid;
-		$data->{objectid} ||= $parent->get_id;
+		if( $dataset->has_field( "datasetid" ) )
+		{
+			$data->{datasetid} ||= $parent->get_dataset->confid;
+		}
+		if( $dataset->has_field( "objectid" ) )
+		{
+			$data->{objectid} ||= $parent->get_id;
+		}
 	}
 
-	my $self = $class->SUPER::create_from_data( $session, $data, $dataset );
-
-	if( defined( $self ) && defined( $parent ) )
-	{
-		$self->set_parent( $parent );
-	}
-
-	return $self;
+	return $class->SUPER::create_from_data( $session, $data, $dataset );
 }
 
 =item $dataobj = $dataobj->get_parent( [ $datasetid [, $objectid ] ] )

@@ -167,6 +167,7 @@ sub create_from_data
 	{
 		$self->set_file( $fh, $data->{filesize} );
 		$self->commit();
+		close($fh);
 	}
 	elsif( EPrints::Utils::is_set( $data->{data} ) )
 	{
@@ -585,7 +586,7 @@ sub set_file
 	my $md5 = Digest::MD5->new;
 
 	my $f;
-	if( ref($f) eq "CODE" )
+	if( ref($fh) eq "CODE" )
 	{
 		$f = sub {
 			my $buffer = &$fh();

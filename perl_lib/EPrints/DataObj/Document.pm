@@ -259,7 +259,10 @@ sub create
 
 	return EPrints::DataObj::Document->create_from_data( 
 		$session, 
-		{ eprintid=>$eprint->get_id },
+		{
+			_parent => $eprint,
+			eprintid => $eprint->get_id
+		},
 		$session->get_repository->get_dataset( "document" ) );
 }
 
@@ -280,7 +283,7 @@ sub create_from_data
 	my( $class, $session, $data, $dataset ) = @_;
        
 	my $eprintid = $data->{eprintid}; 
-	my $eprint = delete $data->{_parent} || delete $data->{eprint};
+	my $eprint = $data->{_parent} ||= delete $data->{eprint};
 
 	my $files = delete $data->{files};
 
@@ -288,10 +291,9 @@ sub create_from_data
 
 	return unless defined $document;
 
-	# Hint for get_eprint()
-	$document->set_parent( $eprint );
-
 	$document->set_under_construction( 1 );
+
+	my $fileds = $session->get_repository->get_dataset( "file" );
 
 	foreach my $filedata ( @{$files||[]} )
 	{
@@ -301,11 +303,10 @@ sub create_from_data
 			next;
 		}
 		$filedata->{_parent} = $document;
-		$filedata->{datasetid} = $document->get_dataset->confid;
-		$filedata->{objectid} = $document->get_id;
 		my $fileobj = EPrints::DataObj::File->create_from_data(
 				$session,
-				$filedata
+				$filedata,
+				$fileds,
 			);
 		if( defined( $fileobj ) )
 		{
@@ -335,13 +336,17 @@ sub get_defaults
 {
 	my( $class, $session, $data ) = @_;
 
-	my $eprint = EPrints::DataObj::EPrint->new( $session, $data->{eprintid} );
-
 	$data->{docid} = $session->get_database->counter_next( "documentid" );
 
 	$data->{pos} = $session->get_database->next_doc_pos( $data->{eprintid} );
 
 	$data->{rev_number} = 1;
+
+	my $eprint = $data->{_parent};
+	if( !defined $eprint )
+	{
+		EPrints::DataObj::EPrint->new( $session, $data->{eprintid} );
+	}
 
 	$session->get_repository->call( 
 			"set_document_defaults", 
@@ -503,7 +508,7 @@ sub get_baseurl
 
 	# The $staff param is ignored.
 
-	my $eprint = $self->get_eprint();
+	my $eprint = $self->get_parent();
 
 	return( undef ) if( !defined $eprint );
 
@@ -528,7 +533,7 @@ sub is_public
 {
 	my( $self ) = @_;
 
-	my $eprint = $self->get_eprint;
+	my $eprint = $self->get_parent;
 
 	return 0 if( $self->get_value( "security" ) ne "public" );
 
@@ -580,7 +585,7 @@ sub local_path
 {
 	my( $self ) = @_;
 
-	my $eprint = $self->get_eprint();
+	my $eprint = $self->get_parent();
 
 	if( !defined $eprint )
 	{
@@ -1172,10 +1177,13 @@ sub commit
 
 	my $success = $self->SUPER::commit( $force );
 	
-	unless( !defined $self->{_parent} || $self->{_parent}->under_construction )
+	my $eprint = $self->get_parent();
+	if( defined $eprint && !$eprint->under_construction )
 	{
 		# cause a new new revision of the parent eprint.
-		$self->get_eprint->commit( 1 );
+		# if the eprint is under construction the changes will be committed
+		# after all the documents are complete
+		$eprint->commit( 1 );
 	}
 	
 	return( $success );
@@ -1205,7 +1213,7 @@ sub validate
 {
 	my( $self, $for_archive ) = @_;
 
-	return [] if $self->get_eprint->skip_validation;
+	return [] if $self->get_parent->skip_validation;
 
 	my @problems;
 
@@ -1319,7 +1327,7 @@ sub files_modified
 		);
 	$_->remove for @$indexcodes;
 
-	$self->get_eprint->queue_fulltext();
+	$self->get_parent->queue_fulltext();
 
 	# nb. The "main" part is not automatically calculated when
 	# the item is under contruction. This means bulk imports 
@@ -1475,7 +1483,7 @@ sub cache_file
 {
 	my( $self, $suffix ) = @_;
 
-	my $eprint =  $self->get_eprint;
+	my $eprint =  $self->get_parent;
 	return unless( defined $eprint );
 
 	return $eprint->local_path."/".
@@ -1720,7 +1728,7 @@ sub thumbnail_path
 {
 	my( $self ) = @_;
 
-	my $eprint = $self->get_eprint();
+	my $eprint = $self->get_parent();
 
 	if( !defined $eprint )
 	{

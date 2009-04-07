@@ -8147,3 +8147,6 @@ EPRINTS-3.1-beta-2
  * Added cgi/schema to access the repository's schema + schema fixes
  * Ignore blank lines in DOI import and check for "malformed" response
 
+2009-04-07 tdb
+ * Refactoured DataObj creation to reduce redundant commits/objects
+

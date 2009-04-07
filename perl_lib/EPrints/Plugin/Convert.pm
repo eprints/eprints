@@ -210,11 +210,34 @@ sub convert
 		return undef;
 	}
 
+	my $main_file = $files[0];
+
 	my $session = $plugin->{session};
+
+	my @filedata;
+	foreach my $filename (@files)
+	{
+		my $fh;
+		unless( open($fh, "<", "$dir/$filename") )
+		{
+			$session->get_repository->log( "Error reading from $dir/$filename: $!" );
+			next;
+		}
+		push @filedata, {
+			filename => $filename,
+			filesize => (-s "$dir/$filename"),
+			url => "file://$dir/$filename",
+			_filehandle => $fh,
+		};
+		# file will take care of closing $fh for us
+	}
 
 	my $doc_ds = $session->get_repository->get_dataset( "document" );
 	my $new_doc = $doc_ds->create_object( $session, { 
+		files => \@filedata,
+		main => $main_file,
 		eprintid => $eprint->get_id,
+		_parent => $eprint,
 		format => $type,
 		formatdesc => $plugin->{name} . ' conversion from ' . $doc->get_type . ' to ' . $type,
 		relation => [{
@@ -224,15 +247,8 @@ sub convert
 			type => EPrints::Utils::make_relation( "isVolatileVersionOf" ),
 			uri => $doc->internal_uri(),
 		}] } );
-	for(@files)
-	{
-		unless( $new_doc->add_file( "$dir/$_", $_ ) )
-		{
-			EPrints::abort( "Error adding $dir/$_ to document" );
-		}
-	}
+
 	$new_doc->set_value( "security", $doc->get_value( "security" ) );
-	$new_doc->commit; # can this be done without a commit at all?
 
 	$doc->add_object_relations(
 			$new_doc,

@@ -399,13 +399,12 @@ sub create_from_data
 	if( defined $documents )
 	{
 		my @docs;
-		foreach my $docdata_orig ( @{$documents} )
+		my $docds = $session->get_repository->get_dataset( "document" );
+		foreach my $docdata ( @{$documents} )
 		{
-			my %docdata = %{$docdata_orig};
-			$docdata{eprintid} = $new_eprint->get_id;
-			$docdata{eprint} = $new_eprint;
-			my $docds = $session->get_repository->get_dataset( "document" );
-			push @docs, EPrints::DataObj::Document->create_from_data( $session,\%docdata,$docds );
+			$docdata->{eprintid} = $new_eprint->get_id;
+			$docdata->{_parent} = $new_eprint;
+			push @docs, EPrints::DataObj::Document->create_from_data( $session,$docdata,$docds );
 		}
 		my @finfo = ();
 		foreach my $doc ( @docs )

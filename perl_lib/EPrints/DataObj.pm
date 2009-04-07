@@ -214,6 +214,14 @@ sub create_from_data
 	my $defaults = EPrints::Utils::clone( $data );
 	$defaults = $class->get_defaults( $session, $defaults, $dataset );
 	
+	# cache the configuration options in variables
+	my $enable_import_ids = $session->get_repository->get_conf(
+		"enable_import_ids"
+		);
+	my $enable_import_datestamps = $session->get_repository->get_conf(
+		"enable_import_datestamps"
+		);
+
 	foreach my $field ( $dataset->get_fields )
 	{
 		next if $field->get_property( "import" );
@@ -222,7 +230,7 @@ sub create_from_data
 		# "enable_import_ids" on session This will allow eprintids 
 		# and userids to be imported as-is rather than just being 
 		# assigned one. 
-		if( $session->get_repository->get_conf('enable_import_ids') )
+		if( $enable_import_ids )
 		{
 			if( $dataset->confid eq "eprint" )
 			{
@@ -234,8 +242,7 @@ sub create_from_data
 			}
 		}
 
-		if( $session->get_repository->get_conf(
-						'enable_import_datestamps') )
+		if( $enable_import_datestamps )
 		{
 			if( $dataset->confid eq "eprint" )
 			{
@@ -253,23 +260,16 @@ sub create_from_data
 		$data->{$k} = $defaults->{$k};
 	}
 
-	my $temp_item = $class->new_from_data( $session, $data, $dataset );
+	my $dataobj = $class->new_from_data( $session, $data, $dataset );
+	return undef unless defined $dataobj;
 
-	my $result = $session->get_database->add_record( $dataset, $temp_item->get_data );
-	return undef unless $result;
-
-	my $keyfield = $dataset->get_key_field;
-	my $kfname = $keyfield->get_name;
-	my $id = $data->{$kfname};
-
-	my $obj = $temp_item; # $dataset->get_object( $session, $id );
-
-	return undef unless( defined $obj );
+	my $rc = $session->get_database->add_record( $dataset, $dataobj->get_data );
+	return undef unless $rc;
 
 	# queue all the fields for indexing.
-	$obj->queue_all;
+	$dataobj->queue_all;
 
-	return $obj;
+	return $dataobj;
 }
                                                                                                                   
 
@@ -488,7 +488,6 @@ Set the value of the named metadata field in this record.
 sub set_value
 {
 	my( $self, $fieldname, $value ) = @_;
-
 
 	if( !$self->{dataset}->has_field( $fieldname ) )
 	{
@@ -1436,12 +1435,12 @@ sub add_stored_file
 		$file->remove();
 	}
 
-	$file = EPrints::DataObj::File->create_from_data( $self->get_session, {
+	$file = EPrints::DataObj::File->create_from_data( $self->{session}, {
 		_parent => $self,
 		_filehandle => $filehandle,
 		filename => $filename,
 		filesize => $filesize,
-	} );
+	}, $self->{session}->get_repository->get_dataset( "file" ) );
 
 	return $file;
 }
@@ -1467,6 +1466,11 @@ sub get_stored_file
 		$self,
 		$filename
 	);
+
+	if( defined $file )
+	{
+		$file->set_parent( $self );
+	}
 
 	return $file;
 }
