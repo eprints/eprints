@@ -520,7 +520,7 @@ sub get_warnings
 
 sub get_valid_datasets
 {
-	qw( document eprint user saved_search import );
+	qw( document eprint user saved_search import file );
 }
 
 sub get_config_path
@@ -1178,6 +1178,12 @@ sub get_field
 
 	my $fielddata = $self->get_perl_struct();
 
+	if( !defined $fielddata->{type} )
+	{
+		$session->get_repository->log( "Error in metafield entry ".$self->get_id.": no type defined" );
+		return undef;
+	}
+
 	my @cfields;
 	if( $fielddata->{type} eq "compound" )
 	{	
@@ -1236,7 +1242,7 @@ sub get_property_defaults
 	return $field_defaults if defined $field_defaults;
 
 	my $class = $type;
-	$class =~ s/[^a-zA-Z]//g; # don't let badness into eval()
+	$class =~ s/[^a-zA-Z0-9_]//g; # don't let badness into eval()
 	$class = "EPrints::MetaField::\u$class";
 	eval "use $class;";
 	if( $@ )

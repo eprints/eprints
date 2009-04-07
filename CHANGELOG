@@ -8144,4 +8144,5 @@ EPRINTS-3.1-beta-2
 
 2009-04-07 tdb
  * Added "reload_metafields" to epadmin to reload metafields dataset
+ * Added cgi/schema to access the repository's schema + schema fixes
 

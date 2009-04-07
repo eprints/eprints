@@ -1957,12 +1957,17 @@ sub render_xml_schema
 		$element->appendChild( $complexType );
 		my $sequence = $session->make_element( "xs:sequence" );
 		$complexType->appendChild( $sequence );
-		my $item = $session->make_element( "xs:element", name => "item", maxOccurs => "unbounded", type => $self->get_xml_schema_type() );
+		my $item = $session->make_element( "xs:element", name => "item", type => $self->get_xml_schema_type(), minOccurs => "0", maxOccurs => "unbounded" );
 		$sequence->appendChild( $item );
 	}
 	else
 	{
 		$element->setAttribute( type => $self->get_xml_schema_type() );
+	}
+
+	if( !$self->get_property( "required" ) )
+	{
+		$element->setAttribute( minOccurs => 0 );
 	}
 
 	return $element;

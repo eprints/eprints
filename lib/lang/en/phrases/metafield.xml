@@ -20,6 +20,7 @@ Phrases related to the Manage Metadata Fields tool.
 	<epp:phrase id="metafield_fieldopt_mfdatasetid_user">user</epp:phrase>
 	<epp:phrase id="metafield_fieldopt_mfdatasetid_saved_search">saved_search</epp:phrase>
 	<epp:phrase id="metafield_fieldopt_mfdatasetid_import">import</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_mfdatasetid_file">file</epp:phrase>
 
 	<epp:phrase id="metafield_compound_stylesheet"><style>
 .ep_blister_bar { margin: 0px; }
@@ -81,6 +82,8 @@ Phrases related to the Manage Metadata Fields tool.
     <epp:phrase id="Plugin/Screen/MetaField/View:deleted_field">Removed the field information for <epc:pin name="fieldid"/>.</epp:phrase>
     <epp:phrase id="Plugin/Screen/MetaField/View:remove_failed">Failed to remove the field. You should ensure the web server has write access to the fields configuration file for this repository.</epp:phrase>
 
+<epp:phrase id="metafield_fieldopt_type_base64">base64</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_nameid">nameid</epp:phrase>
 <epp:phrase id="metafield_fieldopt_type_arclanguage">arclanguage</epp:phrase>
 <epp:phrase id="metafield_fieldopt_fields_type_arclanguage">arclanguage</epp:phrase>
 <epp:phrase id="metafield_optdetails_type_arclanguage">Select from a list of configured languages in the repository.</epp:phrase>
