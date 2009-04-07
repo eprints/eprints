@@ -42,24 +42,18 @@ sub to_xml
 {
 	my( $self, $session, $value, $dataset, %opts ) = @_;
 
-	if( defined $self->{parent_name} )
-	{
-		return $session->make_doc_fragment;
-	}
+	my $tag = $self->SUPER::to_xml( $session, $value, $dataset, %opts );
 
-	my $tag = $session->make_element( $self->get_name, encoding => "base64" );
 	if( $self->get_property( "multiple" ) )
 	{
-		foreach my $single ( @{$value} )
+		foreach my $node ($tag->getElementsByTagName( "item" ) )
 		{
-			my $item = $session->make_element( "item" );
-			$item->appendChild( $self->to_xml_basic( $session, $single, $dataset, %opts ) );
-			$tag->appendChild( $item );
+			$node->setAttribute( encoding => "base64" );
 		}
 	}
-	else
+	elsif( EPrints::XML::is_dom( $tag, "Element" ) )
 	{
-		$tag->appendChild( $self->to_xml_basic( $session, $value, $dataset, %opts ) );
+		$tag->setAttribute( encoding => "base64" );
 	}
 
 	return $tag;

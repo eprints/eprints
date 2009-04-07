@@ -176,6 +176,12 @@ sub to_xml
 {
 	my( $self, $session, $value, $dataset, %opts ) = @_;
 
+	# don't show empty fields
+	if( !$opts{show_empty} && !EPrints::Utils::is_set( $value ) )
+	{
+		return $session->make_doc_fragment;
+	}
+
 	if( $self->get_property( "multiple" ) )
 	{
 		my $tag = $session->make_element( $self->get_name() );

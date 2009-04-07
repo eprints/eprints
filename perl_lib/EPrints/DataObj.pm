@@ -1155,11 +1155,6 @@ sub to_xml
 	{
 		next unless( $field->get_property( "export_as_xml" ) );
 
-		unless( $opts{show_empty} )
-		{
-			next unless( $self->is_set( $field->get_name() ) );
-		}
-
 		if( $opts{version} eq "2" )
 		{
 			$r->appendChild( $field->to_xml( 
@@ -1170,6 +1165,11 @@ sub to_xml
 		}
 		if( $opts{version} eq "1" )
 		{
+			unless( $opts{show_empty} )
+			{
+				next unless( $self->is_set( $field->get_name() ) );
+			}
+
 			$r->appendChild( $field->to_xml_old( 
 				$self->{session}, 
 				$self->get_value( $field->get_name() ),

@@ -1834,7 +1834,14 @@ sub to_xml
 {
 	my( $self, $session, $value, $dataset, %opts ) = @_;
 
+	# we're part of a compound field that will include our value
 	if( defined $self->{parent_name} )
+	{
+		return $session->make_doc_fragment;
+	}
+
+	# don't show empty fields
+	if( !$opts{show_empty} && !EPrints::Utils::is_set( $value ) )
 	{
 		return $session->make_doc_fragment;
 	}
