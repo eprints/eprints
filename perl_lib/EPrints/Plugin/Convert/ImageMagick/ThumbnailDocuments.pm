@@ -60,6 +60,17 @@ sub can_convert
 	return %types;
 }
 
+sub convert
+{
+	my( $plugin, $eprint, $doc, $type ) = @_;
+
+	my $new_doc = $plugin->SUPER::convert( $eprint, $doc, $type );
+
+	$new_doc->set_value( "format", "image/jpeg" );
+
+	return $new_doc;
+}
+
 sub export
 {
 	my ( $plugin, $dir, $doc, $type ) = @_;
