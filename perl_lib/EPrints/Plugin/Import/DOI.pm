@@ -42,6 +42,8 @@ sub input_text_fh
 		$doi =~ s/^\s+//;
 		$doi =~ s/\s+$//;
 
+		next unless length($doi);
+
 		$doi =~ s/^(doi:)?/doi:/i;
 
 		my %params = (
@@ -74,7 +76,7 @@ sub input_text_fh
 
 		my $status = $dom_query->getAttribute( "status" );
 
-		if( defined($status) && $status eq "unresolved" )
+		if( defined($status) && ($status eq "unresolved" || $status eq "malformed") )
 		{
 			my $msg = ($dom_query->getElementsByTagName( "msg" ))[0];
 			$msg = EPrints::Utils::tree_to_utf8( $msg );
