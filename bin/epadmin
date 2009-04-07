@@ -64,6 +64,8 @@ Where I<command> is one of:
 
 =item reload
 
+=item reload_metafields
+
 =item schema
 
 =item test
@@ -155,6 +157,10 @@ Tell the webserver that all abstract summary pages must be regenerated. The webs
 =item B<epadmin> redo_thumbnails I<repository_id> 
 
 Regenerate all the thumbnail and image-preview files and any other things which are triggered if the document file changed.
+
+=item B<epadmin> reload_metafields I<repository_id>
+
+Reload the metafields dataset, based on the current configuration.
 
 =item B<epadmin> erase_data I<repository_id>
 
@@ -287,6 +293,7 @@ else
 	elsif( $action eq "erase_eprints" ) { erase_eprints( $repoid ); }
 	elsif( $action eq "erase_fulltext_index" ) { erase_fulltext_index( $repoid ); }
 	elsif( $action eq "reload" ) { reload( $repoid ); }
+	elsif( $action eq "reload_metafields" ) { reload_metafields( $repoid ); }
 	elsif( $action eq "refresh_abstracts" ) { refresh_abstracts( $repoid ); }
 	elsif( $action eq "refresh_views" ) { refresh_views( $repoid ); }
 	elsif( $action eq "redo_thumbnails" ) { redo_thumbnails( $repoid ); }
@@ -1180,6 +1187,22 @@ END
 	$session->terminate;
 }	
 
+sub reload_metafields
+{
+	my( $repoid ) = @_;
+
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
+
+	my $dataset = $session->get_repository->get_dataset( "metafield" );
+	$dataset->map( $session, sub {
+		my( undef, undef, $mf ) = @_;
+		$mf->remove();
+	});
+
+	my $list = EPrints::DataObj::MetaField::load_all( $session );
+	print "Loaded ".$list->count." metafields\n";
+}	
 
 sub create_tables
 {

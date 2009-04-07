@@ -8142,3 +8142,6 @@ EPRINTS-3.1-beta-2
  * Reverted [4159]
  * Index complete emails in the indexer to allow correct search-by-email
 
+2009-04-07 tdb
+ * Added "reload_metafields" to epadmin to reload metafields dataset
+
