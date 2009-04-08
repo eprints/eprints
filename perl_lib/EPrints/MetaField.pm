@@ -2271,8 +2271,7 @@ sub set_value
 sub is_virtual
 {
 	my( $self ) = @_;
-
-	return $self->get_property( "virtual" );
+	return $self->{virtual};
 }
 
 # if ordering by this field, should we sort highest first?

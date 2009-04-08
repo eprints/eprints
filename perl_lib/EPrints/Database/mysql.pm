@@ -435,6 +435,19 @@ sub get_column_collation
 	return $collation;
 }
 
+# We'll do quote here, because DBD::mysql::quote_identifier is really slow
+sub quote_identifier
+{
+	my( $self, @parts ) = @_;
+
+	# we shouldn't get identifiers with '`' in
+	return join(".", map {
+		$_ =~ m/`/ ?
+			EPrints::abort "Bad character in database identifier: $_" :
+			"`$_`"
+		} @parts);
+}
+
 1; # For use/require success
 
 ######################################################################
