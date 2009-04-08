@@ -255,6 +255,19 @@ sub render_title
 	return $self->html_phrase( "title" );
 }
 
+=item @screen_opts = $screen->list_items( $list_id )
+
+Returns a list of screens that appear in list $list_id ordered by their position.
+
+Each screen opt is a hash ref of:
+
+	screen - screen plugin
+	screen_id - screen id
+	position - position (positive integer)
+	action - the action, if this plugin is for an action list
+
+=cut
+
 sub list_items
 {
 	my( $self, $list_id ) = @_;

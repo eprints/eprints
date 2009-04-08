@@ -8150,3 +8150,6 @@ EPRINTS-3.1-beta-2
 2009-04-07 tdb
  * Refactoured DataObj creation to reduce redundant commits/objects
 
+2009-04-08 tdb
+ * Added unit_test for Plugin::Screen
+

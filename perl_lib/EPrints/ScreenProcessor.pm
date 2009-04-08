@@ -16,26 +16,39 @@ package EPrints::ScreenProcessor;
 
 use strict;
 
-sub process
+=item $processor = EPrints::ScreenProcessor->new( %opts )
+
+=cut
+
+sub new
 {
-	my( $class, %opts ) = @_;
+	my( $class, %self ) = @_;
 
-	my $self = {};
-	bless $self, $class;
+	$self{messages} = [];
+	$self{after_messages} = [];
+	$self{before_messages} = [];
 
-	$self->{messages} = [];
-	$self->{after_messages} = [];
-	$self->{before_messages} = [];
-
-	if( !defined $opts{session} ) 
+	if( !defined $self{session} ) 
 	{
 		EPrints::abort( "session not passed to EPrints::ScreenProcessor->process" );
 	}
 
-	foreach my $k ( keys %opts )
-	{
-		$self->{$k} = $opts{$k};
-	}
+	my $self = bless \%self, $class;
+
+	return $self;
+}
+
+=item EPrints::ScreenProcessor->process( %opts )
+
+Process and send a response to a Web request.
+
+=cut
+
+sub process
+{
+	my( $class, %opts ) = @_;
+
+	my $self = $class->new( %opts );
 
 	if( !defined $self->{screenid} ) 
 	{
