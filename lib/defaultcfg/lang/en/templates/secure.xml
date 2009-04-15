@@ -1,0 +1,64 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE html SYSTEM "entities.dtd" > 
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epc="http://eprints.org/ep3/control">
+  <head>
+    <title><epc:pin ref="title" textonly="yes"/> - <epc:phrase ref="archive_name"/></title>
+    <script type="text/javascript" src="{$config{rel_path}}/javascript/secure_auto.js"><!-- padder --></script>
+    <style type="text/css" media="screen">@import url(<epc:print expr="$config{rel_path}"/>/style/auto.css);</style>
+    <style type="text/css" media="print">@import url(<epc:print expr="$config{rel_path}"/>/style/print.css);</style>
+    <link rel="icon" href="{$config{rel_path}}/favicon.ico" type="image/x-icon"/>
+    <link rel="shortcut icon" href="{$config{rel_path}}/favicon.ico" type="image/x-icon"/>
+    <link rel="Top" href="{$config{frontpage}}"/>
+    <link rel="Search" href="{$config{http_cgiurl}}/search"/>
+    <epc:pin ref="head"/>
+    <style type='text/css' media="screen">@import url(<epc:print expr="$config{rel_path}"/>/style/nojs.css);</style>
+    <script type="text/javascript" src="{$config{rel_path}}/javascript/jscss.js"><!-- padder --></script>
+  </head>
+  <body bgcolor="#ffffff" text="#000000">
+    <epc:pin ref="pagetop"/>
+    <div class="ep_tm_header ep_noprint">
+      <div class="ep_tm_logo"><a href="{$config{frontpage}}"><img alt="Logo" src="{$config{rel_path}}{$config{site_logo}}" /></a></div>
+      <div><a class="ep_tm_archivetitle" href="{$config{frontpage}}"><epc:phrase ref="archive_name"/></a></div>
+
+  <ul class="ep_tm_menu"><li><a href="{$config{http_url}}">Home</a></li><li><a href="{$config{http_url}}/information.html">About</a></li><li><a href="{$config{http_url}}/view/year/">Browse by Year</a></li><li><a href="{$config{http_url}}/view/subjects/">Browse by Subject</a></li><li><a href="{$config{http_url}}/view/divisions/">Browse by Division</a></li></ul>
+
+  <table class="ep_tm_searchbar" border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+      <td align="left"><epc:pin ref="login_status"/></td>
+      <td align="right" style="white-space: nowrap">
+        <form method="get" accept-charset="utf-8" action="{$config{http_cgiurl}}/search" style="display:inline">
+          <input class="ep_tm_searchbarbox" size="20" type="text" name="q"/>
+          <input class="ep_tm_searchbarbutton" value="Search" type="submit" name="_action_search"/>
+          <input type="hidden" name="_action_search" value="Search"/>
+          <input type="hidden" name="_order" value="bytitle"/>
+          <input type="hidden" name="basic_srchtype" value="ALL"/>
+          <input type="hidden" name="_satisfyall" value="ALL"/>
+        </form>
+      </td>
+    </tr>
+  </table>
+</div>
+
+
+<div align="center">
+  <epc:pin ref="toolbar" />
+  <table width="720" class="ep_tm_main"><tr><td align="left">
+    <h1 class="ep_tm_pagetitle"><epc:pin ref="title"/></h1>
+    <epc:pin ref="page"/>
+  </td></tr></table>
+</div>
+
+
+<div class="ep_tm_footer ep_noprint">
+  <epc:phrase ref="ruler" />
+  <hr class="ep_tm_last"/>
+  <div style="float: right; margin-left: 1em"><a href="http://eprints.org/software/"><img alt="EPrints Logo" src="{$config{rel_path}}/images/eprintslogo.gif" border="0"/></a></div>
+  <div style="font-size: 80%;">
+    <div><epc:phrase ref="archive_name" /> is powered by <em><a href="http://eprints.org/software/">EPrints 3</a></em> which is developed by the <a href="http://www.ecs.soton.ac.uk/">School of Electronics and Computer Science</a> at the University of Southampton. <a href="{$config{http_url}}/eprints/">More information and software credits</a>.</div>
+  </div>
+</div>
+
+
+  </body>
+</html>

@@ -8155,4 +8155,6 @@ EPRINTS-3.1-beta-2
 
 2009-04-15 tdb
  * Removed <div> wrapper from message contents
+ * Added a "secure_auto.js" that specifies the correct HTTP paths
+ * Added an explicit secure.xml template default (links to secure_auto.js)
 

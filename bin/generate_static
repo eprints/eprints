@@ -206,15 +206,22 @@ foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 	my $fn;
 
 	# do the magic auto.js and auto.css
+	$fn = EPrints::Update::Static::update_secure_auto_js(
+			$session,
+			$base_target_dir,
+			\@static_dirs
+		);
+	$wrote_files->{$fn} = 1;
+
 	$fn = EPrints::Update::Static::update_auto_js(
-			$session->get_repository,
+			$session,
 			$base_target_dir,
 			\@static_dirs
 		);
 	$wrote_files->{$fn} = 1;
 
 	$fn = EPrints::Update::Static::update_auto_css(
-			$session->get_repository,
+			$session,
 			$base_target_dir,
 			\@static_dirs
 		);

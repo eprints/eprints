@@ -190,18 +190,18 @@ sub handler
 	}
 	$r->filename( $repository->get_conf( "htdocs_path" )."/".$lang.$localpath );
 
+	my $session = new EPrints::Session(2); # don't open the CGI info
+	$session->{preparing_static_page} = 1; 
 	if( $uri =~ m! ^/view(.*) !x )
 	{
-		my $session = new EPrints::Session(2); # don't open the CGI info
-		$session->{preparing_static_page} = 1; 
 		EPrints::Update::Views::update_view_file( $session, $lang, $localpath, $uri );
-		delete $session->{preparing_static_page};
-		$session->terminate;
 	}
 	else
 	{
-		EPrints::Update::Static::update_static_file( $repository, $lang, $localpath );
+		EPrints::Update::Static::update_static_file( $session, $lang, $localpath );
 	}
+	delete $session->{preparing_static_page};
+	$session->terminate;
 
 	$r->set_handlers(PerlResponseHandler =>[ 'EPrints::Apache::Template' ] );
 

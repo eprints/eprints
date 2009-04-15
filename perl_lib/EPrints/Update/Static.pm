@@ -36,7 +36,9 @@ use strict;
 
 sub update_static_file
 {
-	my( $repository, $langid, $localpath ) = @_;
+	my( $session, $langid, $localpath ) = @_;
+
+	my $repository = $session->get_repository;
 
 	if( $localpath =~ m/\/$/ ) { $localpath .= "index.html"; }
 
@@ -58,32 +60,41 @@ sub update_static_file
 	my $ok = $repository->get_conf( "auto_update_auto_files" );
 	if( defined $ok && $ok == 0 )
 	{
-		return if $localpath =~ m!/style/auto.css$!;
-		return if $localpath =~ m!/javascript/auto.js$!;
+		return if $localpath =~ m# /style/auto\.css$ #x;
+		return if $localpath =~ m# /javascript/auto\.js$ #x;
+		return if $localpath =~ m# /javascript/secure_auto\.js$ #x;
 	}
 
 	my $source_mtime;
 	my $source;
 	my $map;
 
-	if( $localpath =~ m{/style/auto\.css$} )
+	if( $localpath =~ m# /style/auto\.css$ #x )
 	{
 		return update_auto_css( 
-				$repository,
+				$session,
 				$repository->get_conf( "htdocs_path" )."/$langid",
 				\@static_dirs
 			);
 	}
-	elsif( $localpath =~ m{/javascript/auto\.js$} )
+	elsif( $localpath =~ m# /javascript/auto\.js$ #x )
 	{
 		return update_auto_js(
-				$repository,
+				$session,
+				$repository->get_conf( "htdocs_path" )."/$langid",
+				\@static_dirs
+			);
+	}
+	elsif( $localpath =~ m# /javascript/secure_auto\.js$ #x )
+	{
+		return update_secure_auto_js(
+				$session,
 				$repository->get_conf( "htdocs_path" )."/$langid",
 				\@static_dirs
 			);
 	}
 
-	if( $localpath =~ m/\.html$/ )
+	if( $localpath =~ m# \.html$ #x )
 	{
 		my $base = $localpath;
 		$base =~ s/\.html$//;
@@ -158,40 +169,59 @@ sub update_static_file
 
 sub update_auto_css
 {
-	my( $repository, $target_dir, $static_dirs ) = @_;
+	my( $session, $target_dir, $static_dirs ) = @_;
 
 	my @dirs = map { "$_/style/auto" } grep { defined } @$static_dirs;
 
 	update_auto(
-			"$target_dir/style",
+			"$target_dir/style/auto.css",
 			"css",
 			\@dirs
 		);
 }
 
-sub update_auto_js
+sub update_secure_auto_js
 {
-	my( $repository, $target_dir, $static_dirs ) = @_;
+	my( $session, $target_dir, $static_dirs ) = @_;
 
 	my @dirs = map { "$_/javascript/auto" } grep { defined } @$static_dirs;
 
 	my $js = "";
-	$js .= "var eprints_http_root = ".EPrints::Utils::js_string( $repository->get_conf('base_url') ).";\n";
-	$js .= "var eprints_http_cgiroot = ".EPrints::Utils::js_string( $repository->get_conf('perl_url') ).";\n";
-	$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( $repository->get_conf('oai','v2','archive_id') ).";\n";
+	$js .= "var eprints_http_root = ".EPrints::Utils::js_string( $session->get_url( scheme => "https", host => 1, path => "static" ) ).";\n";
+	$js .= "var eprints_http_cgiroot = ".EPrints::Utils::js_string( $session->get_url( scheme => "https", host => 1, path => "cgi" ) ).";\n";
+	$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( $session->get_repository->get_conf('oai','v2','archive_id') ).";\n";
 	$js .= "\n";
 
 	update_auto(
-			"$target_dir/javascript",
+			"$target_dir/javascript/secure_auto.js",
 			"js",
 			\@dirs,
 			{ prefix => $js },
 		);
 }
 
-=item $auto = update_auto( $target_dir, $extension, $dirs [, $opts ] )
+sub update_auto_js
+{
+	my( $session, $target_dir, $static_dirs ) = @_;
 
-Update a file called "auto.$extension" in $target_dir by concantenating all of the files found in $dirs with the extension $extension (js, css etc. - may be a regexp).
+	my @dirs = map { "$_/javascript/auto" } grep { defined } @$static_dirs;
+
+	my $js = "";
+	$js .= "var eprints_http_root = ".EPrints::Utils::js_string( $session->get_url( scheme => "http", host => 1, path => "static" ) ).";\n";
+	$js .= "var eprints_http_cgiroot = ".EPrints::Utils::js_string( $session->get_url( scheme => "http", host => 1, path => "cgi" ) ).";\n";
+	$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( $session->get_repository->get_conf('oai','v2','archive_id') ).";\n";
+
+	update_auto(
+			"$target_dir/javascript/auto.js",
+			"js",
+			\@dirs,
+			{ prefix => $js },
+		);
+}
+
+=item $auto = update_auto( $target_filename, $extension, $dirs [, $opts ] )
+
+Update a file called $target_filename by concantenating all of the files found in $dirs with the extension $extension (js, css etc. - may be a regexp).
 
 If more than one file with the same name exists in $dirs then only the last encountered file will be used.
 
@@ -215,9 +245,13 @@ Postfix text to the output file.
 
 sub update_auto
 {
-	my( $target_dir, $ext, $dirs, $opts ) = @_;
+	my( $target, $ext, $dirs, $opts ) = @_;
 
-	my $target = "$target_dir/auto.$ext";
+	my $target_dir = $target;
+	unless( $target_dir =~ s/\/[^\/]+$// )
+	{
+		EPrints::abort "Expected filename to write to: $target";
+	}
 
 	my $target_time = EPrints::Utils::mtime( $target );
 	$target_time = 0 unless defined $target_time;
