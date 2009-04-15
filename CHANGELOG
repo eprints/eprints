@@ -8153,3 +8153,6 @@ EPRINTS-3.1-beta-2
 2009-04-08 tdb
  * Added unit_test for Plugin::Screen
 
+2009-04-15 tdb
+ * Removed <div> wrapper from message contents
+

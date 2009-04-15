@@ -1712,20 +1712,21 @@ sub get_user_messages
 		my $msg = $message->get_value( "message" );
 		my $content;
 		eval {
-			my $doc = EPrints::XML::parse_xml_string( "<div>$msg</div>" );
-			if( EPrints::XML::is_dom( $doc, "Document" ) )
+			my $doc = EPrints::XML::parse_xml_string( "<xml>$msg</xml>" );
+			if( !EPrints::XML::is_dom( $doc, "Document" ) )
 			{
-				$content = $session->clone_for_me($doc->getDocumentElement,1);
-			}	
-			else
+				EPrints::abort "Expected Document node from parse_xml_string(), got '$doc' instead";
+			}
+			$content = $session->make_doc_fragment();
+			foreach my $node ($doc->documentElement->childNodes)
 			{
-				$content = $session->clone_for_me($doc,1);
-			}	
+				$content->appendChild( $session->clone_for_me( $node, 1 ) );
+			}
 			EPrints::XML::dispose($doc);
 		};
-		if( !$content )
+		if( !defined( $content ) )
 		{
-			$content = $session->make_element( "div" );
+			$content = $session->make_doc_fragment();
 			$content->appendChild( $session->make_text( "Internal error while parsing: $msg" ));
 		}
 		push @$messages, {
