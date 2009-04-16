@@ -228,7 +228,10 @@ sub document_to_string
 
 	$doc->setEncoding( $enc );
 
-	return $doc->toString();
+	my $xml = $doc->toString();
+	utf8::decode($xml);
+
+	return $xml;
 }
 
 =item $doc = make_document()

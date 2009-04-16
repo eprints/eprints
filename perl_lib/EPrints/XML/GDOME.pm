@@ -228,7 +228,10 @@ sub document_to_string
 {
 	my( $doc, $enc ) = @_;
 
-	return $doc->toStringEnc( $enc );
+	my $xml = $doc->toStringEnc( $enc );
+	utf8::decode($xml);
+
+	return $xml;
 }
 
 sub make_document
