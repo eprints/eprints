@@ -1,0 +1,20 @@
+use EPrints::Session;
+use EPrints::EPrint;
+
+use strict;
+my $session = new EPrints::Session;
+Apache::exit( 0 ) unless( defined $session );
+
+my $callback = $session->param( "callback" );
+my $eprintid = $session->param( "eprintid" );
+my $eprint = EPrints::DataObj::EPrint->new( 
+			$session, 
+			$eprintid, 
+			$session->get_repository->get_dataset( "archive" ) );
+$session->send_http_header( "content_type"=>"text/javascript" );
+print $callback."(\n";
+print $eprint->export( "JSON" );
+print ");\n";
+
+$session->terminate;
+
