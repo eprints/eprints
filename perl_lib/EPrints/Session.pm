@@ -789,25 +789,20 @@ sub get_full_url
 
 	return undef unless defined $self->{request};
 
+	# we need to add parameters manually to avoid semi-colons
+	my $url = URI->new( $self->get_url( host => 1 ) );
+	$url->path( $self->{request}->uri );
 
 	my @params = $self->param;
-	my $host = $self->{repository}->get_conf( "host" );
-	my $port = $self->{repository}->get_conf( "port" );
-	my $url = "http://$host".($port!=80?":$port":"").$self->{"request"}->uri;
-	if( scalar @params == 0 )
+	my @form;
+	foreach my $param (@params)
 	{
-		return $url;
+		push @form, map { $param => $_ } $self->param( $param );
 	}
-	my @param_list = ();
-	foreach my $param ( @params )
-	{
-		my $value = $self->param( $param );
-		$param =~ s/([^a-zA-Z0-9])/sprintf( "%%%02X", ord( $1 ) )/eg;
-		$value =~ s/([^a-zA-Z0-9])/sprintf( "%%%02X", ord( $1 ) )/eg;
-		push @param_list, $param."=".$value;
-	}
+	utf8::encode($_) for @form; # utf-8 encoded URL
+	$url->query_form( @form );
 
-	return $url."?".join( "&", @param_list );
+	return $url;
 }
 
 

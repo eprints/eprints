@@ -8172,3 +8172,7 @@ EPRINTS-3.1-beta-2
 
 2009-04-16 cjg+tmb
  * Fix for generate-on-demand of /view/foo/index.html URLs
+
+2009-04-16 tdb
+ * get_full_url() returns the correct host/port depending on https
+
