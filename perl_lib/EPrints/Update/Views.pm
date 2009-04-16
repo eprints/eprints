@@ -94,7 +94,7 @@ sub update_view_file
 	my $max_menu_age = $view->{max_menu_age} || 24*60*60;
 	my $max_list_age = $view->{max_list_age} || 24*60*60;
 
-	if( !EPrints::Utils::is_set( $viewinfo ) )
+	if( !EPrints::Utils::is_set( $viewinfo ) || $viewinfo =~ s/^index[^\/]+$// )
 	{
 		if( defined $age && $age < $max_menu_age )
 		{

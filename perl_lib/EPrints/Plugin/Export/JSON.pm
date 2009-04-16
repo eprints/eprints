@@ -118,7 +118,7 @@ sub ep3xml_to_json
 	{
 		if( EPrints::XML::is_dom( $node, "Element" ) )
 		{
-			if( $node->getNodeName() eq "item" )
+			if( $node->getValue() eq "item" )
 			{
 				$type = "list";
 			}
@@ -130,7 +130,7 @@ sub ep3xml_to_json
 		}
 	}
 	
-	my $name = $xml->getNodeName();
+	my $name = $xml->getValue();
 	$type = "list" if( $name eq "documents" );
 	$type = "list" if( $name eq "files" );
 
