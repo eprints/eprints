@@ -5,7 +5,15 @@ use strict;
 my $session = new EPrints::Session;
 Apache::exit( 0 ) unless( defined $session );
 
-my $callback = $session->param( "callback" );
+if( !$session->get_repository->get_conf( "json","enable" ) )
+{
+	EPrints::Apache::AnApache::send_status_line( $session->get_request, 403, "Not allowed" );
+	print "JSON not enabled.";
+	$session->terminate;
+	exit;
+}
+
+my $callback = $session->param( "callback" ) || "callback";
 my $eprintid = $session->param( "eprintid" );
 my $eprint = EPrints::DataObj::EPrint->new( 
 			$session, 
@@ -13,7 +21,10 @@ my $eprint = EPrints::DataObj::EPrint->new(
 			$session->get_repository->get_dataset( "archive" ) );
 $session->send_http_header( "content_type"=>"text/javascript" );
 print $callback."(\n";
-print $eprint->export( "JSON" );
+if( defined $eprint )
+{
+	print $eprint->export( "JSON" );
+}
 print ");\n";
 
 $session->terminate;
