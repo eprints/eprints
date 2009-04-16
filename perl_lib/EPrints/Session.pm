@@ -3153,6 +3153,7 @@ sub param
 	if( !wantarray )
 	{
 		my $value = ( $self->{query}->param( $name ) );
+		utf8::decode($value);
 		return $value;
 	}
 	
@@ -3167,6 +3168,8 @@ sub param
 	{
 		@result = $self->{query}->param;
 	}
+
+	utf8::decode($_) for @result;
 
 	return( @result );
 

@@ -8176,4 +8176,5 @@ EPRINTS-3.1-beta-2
 2009-04-16 tdb
  * get_full_url() returns the correct host/port depending on https
  * Return utf-8 characters when passing Documents to XML::to_string
+ * utf8-decode CGI parameters
 
