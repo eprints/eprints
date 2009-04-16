@@ -8177,4 +8177,7 @@ EPRINTS-3.1-beta-2
  * get_full_url() returns the correct host/port depending on https
  * Return utf-8 characters when passing Documents to XML::to_string
  * utf8-decode CGI parameters
+ * Fixed Phrase Editing to work with new Language internals
+ * Accessor methods for getting phrase information: get_phrase_info
+ * Refactored Admin::Phrases to greatly improve memory and performance
 

@@ -123,8 +123,70 @@ sub _read_phrases_dir
 	}
 	close $dh;
 }
-	
 
+=item $info = $lang->get_phrase_info( $phraseid, $session )
+
+Returns a hash describing the phrase $phraseid. Contains:
+
+	langid - the language the phrase is from
+	phraseid - the phrase id
+	xml - the raw XML fragment
+	fallback - whether the phrase was from the fallback language
+	system - whether the phrase was from the system files
+	filename - the file the phrase came from
+
+If $phraseid doesn't exist returns undef.
+
+=cut
+
+sub get_phrase_info
+{
+	my( $self, $phraseid, $session ) = @_;
+
+	my( $xml, $fb, $src, $file ) = $self->_get_phrase( $phraseid, $session );
+	return undef unless defined $xml;
+
+	return {
+		langid => ($fb ? $self->{fallback}->{id} : $self->{id}),
+		phraseid => $phraseid,
+		xml => $xml,
+		filename => $file,
+		fallback => $fb,
+		system => ($src eq "data" ? 1 : 0),
+	};
+}
+
+=item $phraseids = $language->get_phrase_ids( $fallback )
+
+Return a reference to an array of all phrase ids that are defined in this language (repository and system).
+
+If $fallback is true returns any additional phrase ids defined in the fallback language.
+
+=cut
+
+sub get_phrase_ids
+{
+	my( $self, $fallback ) = @_;
+
+	my %phrase_ids;
+
+	foreach my $src (qw( data repository_data ))
+	{
+		for(keys %{$self->{$src}->{xml}})
+		{
+			$phrase_ids{$_} = undef;
+		}
+		if( $fallback && defined $self->{fallback} )
+		{
+			for(keys %{$self->{fallback}->{$src}->{xml}})
+			{
+				$phrase_ids{$_} = undef;
+			}
+		}
+	}
+
+	return keys %phrase_ids;
+}
 
 ######################################################################
 =pod
@@ -232,15 +294,15 @@ sub _get_phrase
 	# $self->{data}, $fallback->{$data}
 	foreach my $src (qw( repository_data data ))
 	{
-		my $xml = $self->_get_src_phrase( $src, $phraseid, $session );
-		return( $xml, 0 ) if defined $xml;
+		my( $xml, $file ) = $self->_get_src_phrase( $src, $phraseid, $session );
+		return( $xml, 0, $src, $file ) if defined $xml;
 
 		next unless defined $self->{fallback};
-		$xml = $self->{fallback}->_get_src_phrase( $src, $phraseid, $session );
-		return( $xml, 1 ) if defined $xml;
+		($xml, $file ) = $self->{fallback}->_get_src_phrase( $src, $phraseid, $session );
+		return( $xml, 1, $src, $file ) if defined $xml;
 	}
 
-	return undef;
+	return ();
 }
 
 sub _get_src_phrase
@@ -266,7 +328,7 @@ sub _get_src_phrase
 		$session->{config_file_mtime_checked}->{$file} = 1;
 	}
 
-	return $xml;
+	return ($xml, $file);
 }
 
 ######################################################################
@@ -417,7 +479,14 @@ sub _reload_phrases
 
 	# Dispose of the old document
 	my $doc = delete $data->{docs}->{$file};
-	EPrints::XML::dispose( $doc->{doc} );
+	if( defined $doc )
+	{
+		EPrints::XML::dispose( $doc->{doc} );
+	}
+	else
+	{
+		$repository->log( "Asked to reload phrases file '$file', but it wasn't loaded already?" );
+	}
 
 	return $self->_read_phrases( $data, $file, $repository );
 }
@@ -438,7 +507,32 @@ sub get_id
 	return $self->{id};
 }
 
+=item $lang = $language->get_fallback()
 
+Return the fallback language for this language. Returns undef if there is no fallback.
+
+=cut
+
+sub get_fallback
+{
+	my( $self ) = @_;
+	return $self->{fallback};
+}
+
+=item $ok = $language->load_phrases( $session, $file )
+
+Load phrases from $file into the current language (use with care!).
+
+=cut
+
+sub load_phrases
+{
+	my( $self, $session, $file ) = @_;
+
+	return unless -r $file;
+
+	return $self->_reload_phrases( $self->{repository_data}, $file, $session->get_repository );
+}
 
 1;
 
