@@ -8,7 +8,8 @@ Apache::exit( 0 ) unless( defined $session );
 if( !$session->get_repository->get_conf( "json","enable" ) )
 {
 	EPrints::Apache::AnApache::send_status_line( $session->get_request, 403, "Not allowed" );
-	print "JSON not enabled.";
+	EPrints::Apache::AnApache::send_http_header( $session->get_request );
+
 	$session->terminate;
 	exit;
 }
@@ -24,6 +25,10 @@ print $callback."(\n";
 if( defined $eprint )
 {
 	print $eprint->export( "JSON" );
+}
+else
+{
+	print "null";
 }
 print ");\n";
 

@@ -8163,3 +8163,6 @@ EPRINTS-3.1-beta-2
 
 2009-04-16 cjg
  * Added config. options and better error handling to JSON code.
+
+2009-04-16 cjg
+ * Fixed issue with 403 in JSON, and when eprint not found.
