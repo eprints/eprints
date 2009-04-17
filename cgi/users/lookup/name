@@ -109,6 +109,7 @@ my $ul = EPrints::Extras::render_lookup_list( $session, \@rows );
 
 $session->send_http_header( content_type => "text/xml; charset=UTF-8" );
 
+binmode(STDOUT,":utf8");
 print <<END;
 <?xml version="1.0" encoding="UTF-8" ?>
 
