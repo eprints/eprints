@@ -115,7 +115,7 @@ sub render
 	{
 		my $stage = $self->_find_stage( $eprint, 'documents' );
 	
-		foreach my $doc ( $eprint->get_all_documents )
+		foreach my $doc (@docs)
 		{
 			my $tr = $session->make_element( "tr" );
 			$table->appendChild( $tr );

@@ -40,8 +40,6 @@ sub dataobj_to_html_header
 {
 	my( $plugin, $dataobj ) = @_;
 
-	my $data = $plugin->convert_dataobj( $dataobj );
-
 	my $links = $plugin->{session}->make_doc_fragment;
 
 	my $epdata = $plugin->convert_dataobj( $dataobj );
