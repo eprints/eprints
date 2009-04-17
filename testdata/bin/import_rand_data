@@ -59,6 +59,10 @@ sub Text::Lorem::name {
 	return "\u$word";
 };
 
+# generate standard lorems, then add some exotic UTF-8 stuff
+$lorem->{wordlist} = $lorem->generate_wordlist();
+push @{$lorem->{wordlist}}, map { split /\s+/, $_ } <DATA>;
+print "word list=@{$lorem->{wordlist}}\n";
 
 # nb. This syntax is subject to change in future versions.
 my( $archiveid, $datasetid, $total ) = @ARGV;
@@ -198,3 +202,31 @@ sub rand_publication
 {
 	return $PUBLICATIONS[int(rand(@PUBLICATIONS))];
 }
+
+=pod
+
+=cut
+
+__DATA__
+Πιο κι άγχος συνηθίζουν χαρακτηριστικό μια μιας σελίδων περιμένουν τι αρέσει
+γνωρίζει καθυστερούσε τι ροή Μη πως ίδιο θυμάμαι επιτυχία μου μη χαρτιού
+γνωρίζουμε τελικών αντιλήφθηκαν νέα μη Βγήκε κεντρικό κακόκεφος ως μην το
+μου ποια προσλάμβανες προσπαθήσεις Όλα βάζοντας εργασίας σημαίνει μα την τη
+νόμιζες βρίσκονται Ώρα ας πάρεις φακέλους περιμένουν όχι ως χώρου αρχεία
+τοπικές σας γεγονός κακόκεφους με
+खयालात परिवहन संपुर्ण प्राण कलइस अपने कार्य हुएआदि प्राधिकरन खयालात वर्णित मुश्किल पेदा देखने औषधिक दुनिया
+आंतरजाल करके(विशेष ।क नवंबर नयेलिए दिनांक बारे उन्हे विषय ऎसाजीस शारिरिक बीसबतेबोध बाजार क्षमता। भेदनक्षमता
+मार्गदर्शन करते क्षमता। विश्लेषण केन्द्रित बाधा मुक्त
+Об том яйце расположенной ушёл всего остальные до или Всех отнимет проходят
+за эти так ну адрес человек покидали об лет может команда Нее даже сказать
+остальных во ну был фирме колёса задаче заведено качества работать две то
+Нет кровью проектировать программировать во опа ну опять сайта конечного
+Люсита количества программистом нет ну те уже случае работал отнимет
+стратегические ты бог Чем голос процессорах не вы малой вообще поработать
+нью уже во совсем раннего предназначенная
+Rout ugedon d'Vullen nei an ké d'Loft Scholl fergiess den ston d'Hierz
+Hemecht wat jo Jo wuel aremt Poufank rei och Noper päift iw'rem wa rou jo
+onser Scholl rëschten Mier spilt blénken an bei iech Mier d'Beem un rei am
+Hunn Minutt Freiesch den Ze Frot laacht d'Lëtzebuerger rei mä iwerall
+d'Kanner schéinen och Hir dé koum päift Scholl zwé wait Säiten Fuesent as do
+gin d'Hierz schaddreg De hin Gart Kënnt onser Ierd Halm Gaas do och
