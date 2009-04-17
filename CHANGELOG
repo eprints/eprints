@@ -8181,3 +8181,6 @@ EPRINTS-3.1-beta-2
  * Accessor methods for getting phrase information: get_phrase_info
  * Refactored Admin::Phrases to greatly improve memory and performance
 
+2009-04-17 tdb
+ * Revised PluginFactory API to be more intuitive with existing API
+

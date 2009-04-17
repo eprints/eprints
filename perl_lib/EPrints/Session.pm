@@ -3655,12 +3655,32 @@ sub plugin_list
 
 	return
 		map { $_->get_id() }
-		$self->get_repository->get_plugin_factory->get_plugins(
-			\%restrictions,
-			session => $self
+		$self->{repository}->get_plugin_factory->get_plugins(
+			{ session => $self },
+			%restrictions,
 		);
 }
 
+=item @plugins = $session->get_plugins( [ $params, ] %restrictions )
+
+Returns a list of plugin objects that conform to %restrictions (may be empty).
+
+If $params is given uses that hash reference to initialise the plugins. Always passes this session to the plugin constructor method.
+
+=cut
+
+sub get_plugins
+{
+	my( $self, @opts ) = @_;
+
+	my $params = scalar(@opts) % 2 ?
+		shift(@opts) :
+		{};
+
+	$params->{session} = $self;
+
+	return $self->{repository}->get_plugin_factory->get_plugins( $params, @opts );
+}
 
 
 

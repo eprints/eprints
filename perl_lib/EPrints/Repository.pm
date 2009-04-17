@@ -1085,13 +1085,6 @@ sub get_plugin_factory
 	return $self->{plugins};
 }
 
-sub get_plugins
-{
-	my( $self, $requirements, %opts ) = @_;
-
-	return $self->{plugins}->get_plugins( $requirements, %opts );
-}
-
 ######################################################################
 # 
 # $classname = $repository->get_plugin_class

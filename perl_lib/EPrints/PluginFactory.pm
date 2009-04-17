@@ -169,15 +169,15 @@ Register a new plugin with all repositories.
 
 =cut
 
-=item $plugin = $plugins->get_plugin( $id, %opts )
+=item $plugin = $plugins->get_plugin( $id, %params )
 
-Returns a new plugin object identified by $id, initialised with %opts.
+Returns a new plugin object identified by $id, initialised with %params.
 
 =cut
 
 sub get_plugin
 {
-	my( $self, $id, %opts ) = @_;
+	my( $self, $id, %params ) = @_;
 
 	if( $self->{disabled}->{$id} )
 	{
@@ -186,7 +186,7 @@ sub get_plugin
 
 	if( exists $self->{alias}->{$id} )
 	{
-		$opts{id} = $id;
+		$params{id} = $id;
 		$id = $self->{alias}->{$id};
 	}
 	return unless defined $id;
@@ -198,7 +198,7 @@ sub get_plugin
 		return undef;
 	}
 
-	my $plugin = $class->new( %opts );
+	my $plugin = $class->new( %params );
 
 	return $plugin;
 }
@@ -222,24 +222,27 @@ sub get_plugin_class
 	return $class;
 }
 
-=item @plugins = $plugins->get_plugins( $restrictions, %opts )
+=item @plugins = $plugins->get_plugins( [ $params, ] %restrictions )
 
-Returns a list of plugin objects that conform to $restrictions. Initialises the plugins using %opts.
+Returns a list of plugin objects that conform to %restrictions (may be empty).
 
-If $restrictions is undefined returns all plugins.
+If $params is given uses that hash reference to initialise the plugins.
 
 =cut
 
 sub get_plugins
 {
-	my( $self, $restrictions, %opts ) = @_;
+	my( $self, @opts ) = @_;
 
-	$restrictions ||= {};
+	my $params = scalar(@opts) % 2 ?
+		shift(@opts) :
+		{};
+	my %restrictions = @opts;
 
 	my %plugins;
 
-	$self->_list( \%plugins, $self->{repository_data}, $restrictions, \%opts );
-	$self->_list( \%plugins, $self->{data}, $restrictions, \%opts );
+	$self->_list( \%plugins, $self->{repository_data}, $params, \%restrictions );
+	$self->_list( \%plugins, $self->{data}, $params, \%restrictions );
 
 	my @matches;
 	# filter plugins for restrictions
@@ -247,9 +250,9 @@ sub get_plugins
 	{
 		next unless defined $plugin;
 		my $ok = 1;
-		foreach my $k (keys %$restrictions)
+		foreach my $k (keys %restrictions)
 		{
-			$ok = 0, last unless $plugin->matches( $k, $restrictions->{$k} );
+			$ok = 0, last unless $plugin->matches( $k, $restrictions{$k} );
 		}
 		push @matches, $plugin if $ok;
 	}
@@ -259,7 +262,7 @@ sub get_plugins
 
 sub _list
 {
-	my( $self, $found, $data, $restrictions, $opts ) = @_;
+	my( $self, $found, $data, $params, $restrictions ) = @_;
 
 	# this is an efficiency tweak - 99% of the time we'll want plugins
 	# by type, so lets support doing that quickly
@@ -269,7 +272,7 @@ sub _list
 		foreach my $id (@{$data->{$type}||[]})
 		{
 			next if exists $found->{$id};
-			$found->{$id} = $self->get_plugin( $id, %$opts );
+			$found->{$id} = $self->get_plugin( $id, %$params );
 		}
 	}
 	else
@@ -277,7 +280,7 @@ sub _list
 		foreach $type (keys %$data)
 		{
 			next if $type eq "_class_";
-			$self->_list( $found, $data, $opts, {
+			$self->_list( $found, $data, $params, {
 				%$restrictions,
 				type => $type
 			} );
