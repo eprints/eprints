@@ -24,8 +24,6 @@ sub can_be_viewed
 {
 	my( $self ) = @_;
 
-	my @a =  $self->action_list( "eprint_actions" );
-
 	return 0 unless scalar $self->action_list( "eprint_actions" );
 
 	return $self->who_filter;

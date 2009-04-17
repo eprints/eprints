@@ -272,13 +272,14 @@ sub list_items
 {
 	my( $self, $list_id ) = @_;
 
-	my @screens = $self->{session}->plugin_list( type => "Screen" );
+	my @screens = $self->{session}->get_plugins( {
+			processor => $self->{processor},
+		},
+		type => "Screen" );
 	my @list_items = ();
-	foreach my $screen_id ( @screens )
+	foreach my $screen ( @screens )
 	{	
-		my $screen = $self->{session}->plugin( 
-			$screen_id, 
-			processor => $self->{processor} );
+		my $screen_id = $screen->get_id;
 		my $p_conf = $self->{session}->get_repository->get_conf( 
 				"plugins", $screen_id );
 
