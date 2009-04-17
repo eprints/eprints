@@ -1981,6 +1981,9 @@ Titles and Help for the System Fields
 <epp:phrase id="Plugin/Screen/Admin/Phrases:reload_required">Full configuration reload required for this phrase to change will appear. You don't have rights to do that.</epp:phrase>
 <epp:phrase id="Plugin/Screen/Admin/Phrases:will_reload">Configuration will be automatically reloaded.</epp:phrase>
 <epp:phrase id="Plugin/Screen/Admin/Phrases:reloaded">Repository configuration reloaded!</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/Phrases:table_header_src">Source</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/Phrases:table_header_id">Identifier</epp:phrase>
+<epp:phrase id="Plugin/Screen/Admin/Phrases:table_header_phrase">Content</epp:phrase>
 
 <epp:phrase id="request/respond_page:action_respond">Confirm</epp:phrase>
 <epp:phrase id="request/respond_page:accept"><p>You have chosen to <strong>accept</strong> the request for the following item:</p><p><epc:pin name="eprint"/><br/><epc:pin name="document"/></p><p>An acceptance notice will be emailed to the requester with the requested document attached.</p></epp:phrase>
