@@ -383,12 +383,22 @@ sub get_user
 {
 	my( $self ) = @_;
 
-	if( $self->is_set( "userid" ) )
+	return undef unless $self->is_set( "userid" );
+
+	if( defined($self->{user}) )
 	{
-		return EPrints::User->new( $self->{session}, $self->get_value( "userid" ) );
+		# check we still have the same owner
+		if( $self->{user}->get_id eq $self->get_value( "userid" ) )
+		{
+			return $self->{user};
+		}
 	}
 
-	return undef;
+	$self->{user} = EPrints::User->new( 
+		$self->{session}, 
+		$self->get_value( "userid" ) );
+
+	return $self->{user};
 }
 
 =item $history = $history->get_previous()

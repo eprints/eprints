@@ -209,11 +209,23 @@ sub get_user
 {
 	my( $self ) = @_;
 
-	return EPrints::User->new( 
-		$self->{session},
-		$self->get_value( "userid" ) );
-}
+	return undef unless $self->is_set( "userid" );
 
+	if( defined($self->{user}) )
+	{
+		# check we still have the same owner
+		if( $self->{user}->get_id eq $self->get_value( "userid" ) )
+		{
+			return $self->{user};
+		}
+	}
+
+	$self->{user} = EPrints::User->new( 
+		$self->{session}, 
+		$self->get_value( "userid" ) );
+
+	return $self->{user};
+}
 
 ######################################################################
 =pod

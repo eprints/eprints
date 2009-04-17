@@ -1782,11 +1782,22 @@ sub get_user
 {
 	my( $self ) = @_;
 
-	my $user = EPrints::User->new( 
+	return undef unless $self->is_set( "userid" );
+
+	if( defined($self->{user}) )
+	{
+		# check we still have the same owner
+		if( $self->{user}->get_id eq $self->get_value( "userid" ) )
+		{
+			return $self->{user};
+		}
+	}
+
+	$self->{user} = EPrints::User->new( 
 		$self->{session}, 
 		$self->get_value( "userid" ) );
 
-	return $user;
+	return $self->{user};
 }
 
 
