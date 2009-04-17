@@ -160,7 +160,7 @@ sub render
 	my $wtr = $plugin->{session}->make_element( "tr" );
 	my $warning_width_limit = $plugin->{session}->make_element( "td", width => "620px", align=>"center" );
 	
-	if( $session->get_repository->get_conf( "pronom_unstable" ) ) {
+	if( $session->get_repository->get_conf( "pronom_unstable" ) > 0) {
 		$warning = $plugin->{session}->render_message("warning",
 				$risks_unstable
 				);
@@ -270,7 +270,15 @@ sub get_format_risks_table {
 
 		print STDERR $format . " : ". $result . "\n";
 
-		if ($result <= $high_risk_boundary) {
+		if ($format eq "Unclassified" || $format eq "UNKNOWN" ) {
+			$format_table = $red_format_table;
+			$red_count = $red_count + 1;
+			$color = "red";
+		} elsif ($result < 1) {
+			$format_table = $blue_format_table;
+			$blue_count = $blue_count + 1;
+			$color = "blue";
+		} elsif ($result <= $high_risk_boundary) {
 			$format_table = $red_format_table;
 			$red_count = $red_count + 1;
 			$color = "red";
@@ -360,7 +368,7 @@ sub get_format_risks_table {
 		$format_count_bar_tr->appendChild( $format_count_bar_td2 ); 
 		$format_count_bar->appendChild( $format_count_bar_tr );
 		$format_details_td->appendChild ( $plugin->{session}->make_text( $pronom_output ) );
-		if ($result <= $medium_risk_boundary) 
+		if ($result <= $medium_risk_boundary && !($color eq "blue")) 
 		{
 			$format_details_td->appendChild ( 
 				$plugin->render_plus_and_minus_buttons( $format ) );
@@ -403,7 +411,7 @@ sub get_format_risks_table {
 
 		my $format_users = {};
 		my $format_eprints = {};
-		if ($result <= $medium_risk_boundary)
+		if ($result <= $medium_risk_boundary && !($color eq "blue"))
 		{
 			my $search_format;
 			my $dataset = $plugin->{session}->get_repository->get_dataset( "file" );
