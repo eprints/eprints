@@ -247,7 +247,10 @@ sub document_to_string
 {
 	my( $doc, $enc ) = @_;
 
-	return $doc->toString;
+	my $xml = $doc->toString;
+	utf8::decode($xml);
+
+	return $xml;
 }
 
 sub make_document
