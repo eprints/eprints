@@ -3420,6 +3420,8 @@ sub remove_field
 
 	# Remove the field from order values (used to order search results)
 	$self->_remove_field_ordervalues( $dataset, $field );
+
+	return 1; # if we failed the field probably isn't there anyway
 }
 
 # Remove the field from the ordervalues tables
@@ -3478,6 +3480,149 @@ sub _remove_multiple_field
 
 	$self->do( "DROP TABLE ".$self->quote_identifier($table) );
 }
+
+######################################################################
+=pod
+
+=item $ok = $db->rename_field( $dataset, $field, $old_name )
+
+Rename a $field in the database from it's old name $old_name.
+
+Returns true if the field was successfully renamed.
+
+=cut
+######################################################################
+
+sub rename_field
+{
+	my( $self, $dataset, $field, $old_name ) = @_;
+
+	my $rc = 1;
+
+	# If this field is virtual and has sub-fields, rename them
+	if( $field->is_virtual )
+	{
+		my $sub_fields = $field->get_property( "fields_cache" );
+		foreach my $sub_field (@$sub_fields)
+		{
+			my $name = $sub_field->get_name();
+			$sub_field->{name} = $field->get_name() . "_" . $sub_field->get_property( "sub_name" );
+			$rc &&= $self->rename_field( $dataset, $sub_field, $name );
+		}
+	}
+	else # rename the field itself from the metadata table
+	{
+		$rc &&= $self->_rename_field( $dataset, $field, $old_name );
+	}
+
+	# rename the field from order values (used to order search results)
+	$rc &&= $self->_rename_field_ordervalues( $dataset, $field, $old_name );
+
+	return $rc;
+}
+
+# rename the ordervalues table column
+sub _rename_field_ordervalues
+{
+	my( $self, $dataset, $field, $old_name ) = @_;
+
+	my $rc = 1;
+
+	foreach my $langid ( @{$self->{ session }->get_repository->get_conf( "languages" )} )
+	{
+		$rc &&= $self->_rename_field_ordervalues_lang( $dataset, $field, $old_name, $langid );
+	}
+
+	return $rc;
+}
+
+sub _rename_field_ordervalues_lang
+{
+	my( $self, $dataset, $field, $old_name, $langid ) = @_;
+
+	my $order_table = $dataset->get_ordervalues_table_name( $langid );
+
+	my $sql = sprintf("ALTER TABLE %s RENAME COLUMN %s TO %s",
+			$self->quote_identifier($order_table),
+			$self->quote_identifier($old_name),
+			$self->quote_identifier($field->get_sql_name)
+		);
+
+	return $self->do( $sql );
+}
+
+# rename a field
+sub _rename_field
+{
+	my( $self, $dataset, $field, $old_name ) = @_;
+
+	my $rc = 1;
+
+	return $rc if $field->is_virtual; # Virtual fields are still added to ordervalues
+
+	if( $field->get_property( "multiple" ) )
+	{
+		return $self->_rename_multiple_field( $dataset, $field, $old_name );
+	}
+
+	my $table = $dataset->get_sql_table_name;
+	$rc &&= $self->_rename_table_field( $table, $field, $old_name );
+
+	return $rc;
+}
+
+# rename a multiple field (i.e. rename the table & column)
+sub _rename_multiple_field
+{
+	my( $self, $dataset, $field, $old_name ) = @_;
+
+	my $rc = 1;
+
+	my $table = $dataset->get_sql_sub_table_name( $field );
+
+	# work out what the old table is called
+	my $old_table;
+	{
+		local $field->{name} = $old_name;
+		$old_table = $dataset->get_sql_sub_table_name( $field );
+	}
+
+	$rc &&= $self->_rename_table_field( $old_table, $field, $old_name );
+
+	# rename the table
+	$rc &&= $self->do( "ALTER TABLE ".$self->quote_identifier($old_table)." RENAME TO ".$self->quote_identifier($table) );
+}
+
+# utility method to rename a field column in a given table
+sub _rename_table_field
+{
+	my( $self, $table, $field, $old_name ) = @_;
+
+	my $rc = 1;
+
+	my @names = $field->get_sql_names;
+
+	# work out what the old columns are called
+	my @old_names;
+	{
+		local $field->{name} = $old_name;
+		@old_names = $field->get_sql_names;
+	}
+
+	my @column_sql;
+	for(my $i = 0; $i < @names; ++$i)
+	{
+		push @column_sql, sprintf("RENAME COLUMN %s TO %s",
+				$self->quote_identifier($old_names[$i]),
+				$self->quote_identifier($names[$i])
+			);
+	}
+	
+	$rc &&= $self->do( "ALTER TABLE ".$self->quote_identifier($table)." ".join(",", @column_sql));
+
+	return $rc;
+}
+
 
 ######################################################################
 =pod

@@ -448,6 +448,59 @@ sub quote_identifier
 		} @parts);
 }
 
+sub _rename_table_field
+{
+	my( $self, $table, $field, $old_name ) = @_;
+
+	my $rc = 1;
+
+	my @names = $field->get_sql_names;
+	my @types = $field->get_sql_type( $self->{session} );
+
+	# work out what the old columns are called
+	my @old_names;
+	{
+		local $field->{name} = $old_name;
+		@old_names = $field->get_sql_names;
+	}
+
+	my @column_sql;
+	for(my $i = 0; $i < @names; ++$i)
+	{
+		push @column_sql, sprintf("CHANGE %s %s",
+				$self->quote_identifier($old_names[$i]),
+				$types[$i]
+			);
+	}
+	
+	$rc &&= $self->do( "ALTER TABLE ".$self->quote_identifier($table)." ".join(",", @column_sql));
+
+	return $rc;
+}
+
+sub _rename_field_ordervalues_lang
+{
+	my( $self, $dataset, $field, $old_name, $langid ) = @_;
+
+	my $order_table = $dataset->get_ordervalues_table_name( $langid );
+
+	my $sql_field = EPrints::MetaField->new(
+		repository => $self->{ session }->get_repository,
+		name => $field->get_sql_name(),
+		type => "longtext",
+		allow_null => 1 );
+
+	my( $col ) = $sql_field->get_sql_type( $self->{session} );
+
+	my $sql = sprintf("ALTER TABLE %s CHANGE %s %s",
+			$self->quote_identifier($order_table),
+			$self->quote_identifier($old_name),
+			$col
+		);
+
+	return $self->do( $sql );
+}
+
 1; # For use/require success
 
 ######################################################################
