@@ -1226,29 +1226,19 @@ sub human_filesize
 	return $size_in_meg.'Mb';
 }
 
-my $REQUIRED_CACHE = {};
+my %REQUIRED_CACHE;
 sub require_if_exists
 {
 	my( $module ) = @_;
 
-	if( defined $REQUIRED_CACHE->{$module} )
+	# this is very slightly faster than just calling eval-require, because
+	# perl doesn't have to build the eval environment
+	if( !exists $REQUIRED_CACHE{$module} )
 	{
-		return $REQUIRED_CACHE->{$module};
+		$REQUIRED_CACHE{$module} = eval "require $module";
 	}
 
-	$REQUIRED_CACHE->{$module} = 0;
-	my $fp = $module.".pm";
-	$fp =~ s/::/\//g;
-	foreach my $path ( @INC )
-	{
-		if( -e $path."/".$fp )
-		{
- 			$REQUIRED_CACHE->{$module} = eval "require $module";
-			last;
-		}
-	}
-
-	return $REQUIRED_CACHE->{$module};
+	return $REQUIRED_CACHE{$module};
 }
 
 sub chown_for_eprints

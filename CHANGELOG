@@ -8186,3 +8186,6 @@ EPRINTS-3.1-beta-2
  * Refactored Plugin::Screen->list_items() to use new plugin API
  * Cache the user object
 
+2009-04-20 tdb
+ * Removed broken/superfluous replication of require
+
