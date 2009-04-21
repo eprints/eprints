@@ -534,6 +534,36 @@ sub load_phrases
 	return $self->_reload_phrases( $self->{repository_data}, $file, $session->get_repository );
 }
 
+=item $doc = EPrints::Language->create_phrase_doc( $session, [ $comment ] )
+
+Create and return a new, empty, phrases document. Optionally put $comment at the top.
+
+=cut
+
+sub create_phrase_doc
+{
+	my( $class, $session, $comment ) = @_;
+
+	my $xml = <<END;
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<!DOCTYPE phrases SYSTEM "entities.dtd">
+<epp:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:epp="http://eprints.org/ep3/phrase" xmlns:epc='http://eprints.org/ep3/control'>
+
+</epp:phrases>
+END
+
+	my $doc = EPrints::XML::parse_xml_string( $xml );
+
+	if( defined $comment )
+	{
+		my $phrases = $doc->documentElement;
+		$phrases->appendChild( $doc->createComment( $comment ) );
+		$phrases->appendChild( $doc->createTextNode( "\n\n" ) );
+	}
+
+	return $doc;
+}
+
 1;
 
 ######################################################################
