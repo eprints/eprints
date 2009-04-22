@@ -62,7 +62,6 @@ sub Text::Lorem::name {
 # generate standard lorems, then add some exotic UTF-8 stuff
 $lorem->{wordlist} = $lorem->generate_wordlist();
 push @{$lorem->{wordlist}}, map { split /\s+/, $_ } <DATA>;
-print "word list=@{$lorem->{wordlist}}\n";
 
 # nb. This syntax is subject to change in future versions.
 my( $archiveid, $datasetid, $total ) = @ARGV;
