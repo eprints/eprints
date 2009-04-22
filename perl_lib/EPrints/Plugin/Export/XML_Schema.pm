@@ -34,7 +34,7 @@ sub output_list
 	$opts{list}->map( sub {
 		my( $session, $dataset, $item ) = @_;
 
-		my $field = $item->get_field( $session );
+		my $field = $item->make_field_object;
 
 		my $datasetid = $item->get_value( "mfdatasetid" );
 		my $element = $field->render_xml_schema( $session );
