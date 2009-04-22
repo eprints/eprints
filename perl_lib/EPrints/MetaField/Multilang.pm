@@ -40,6 +40,32 @@ BEGIN
 
 use EPrints::MetaField::Compound;
 
+sub new
+{
+	my( $class, %properties ) = @_;
+
+	my $langs = $properties{languages};
+	if( !defined $properties{languages} )
+	{
+		my $repository =
+			$properties{repository} ||
+			$properties{archive} ||
+			$properties{dataset}->get_repository;
+
+		$langs = $repository->get_conf('languages');
+	}
+
+	push @{$properties{fields}}, {
+			sub_name=>"lang",
+			type=>"langid",
+			options => $langs,
+		};
+
+	my $self = $class->SUPER::new( %properties );
+
+	return $self;
+}
+
 sub get_search_conditions_not_ex
 {
 	my( $self, $session, $dataset, $search_value, $match, $merge,

@@ -41,6 +41,28 @@ BEGIN
 
 use EPrints::MetaField::Text;
 
+sub new
+{
+	my( $class, %properties ) = @_;
+
+	$properties{fields_cache} = [];
+
+	my $self = $class->SUPER::new( %properties );
+
+	foreach my $inner_field ( @{$properties{fields}} )
+	{
+		my $field = EPrints::MetaField->new( 
+			parent_name => $self->get_name(),
+			show_in_html => 0,
+			dataset => $self->get_dataset(), 
+			multiple => $self->get_property( "multiple" ),
+			providence => $self->get_property( "providence" ),
+			%{$inner_field} );	
+		push @{$self->{fields_cache}}, $field;
+	}
+
+	return $self;
+}
 
 sub render_value
 {

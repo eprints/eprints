@@ -101,7 +101,7 @@ sub new
 
 	my $realclass = "EPrints::MetaField::\u$properties{type}";
 	eval 'use '.$realclass.';';
-	warn "couldn't parse $realclass: $@" if $@;
+	EPrints::abort "couldn't parse $realclass: $@" if $@;
 
 	###########################################
 	#
@@ -116,6 +116,12 @@ sub new
 
 	# end of 2.4
 	###########################################
+
+	# allow metafields to override new()
+	if( $class ne $realclass )
+	{
+		return $realclass->new( %properties );
+	}
 
 	my $self = {};
 	bless $self, $realclass;

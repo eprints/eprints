@@ -439,65 +439,56 @@ sub process_field
 		$fielddata->{providence} = $system ? "core" : "config";
 	}
 
-	my @cfields;
-	if( $fielddata->{type} eq "compound" )
-	{	
-		@cfields = @{$fielddata->{fields}};
-	}
-	if( $fielddata->{type} eq "multilang" )
-	{	
-		my $langs = $self->{repository}->get_conf('languages');
-		if( defined $fielddata->{languages} )
-		{
-			$langs = $fielddata->{languages};
-		}
-		@cfields = (
-			@{$fielddata->{fields}},
-			{ 
-				sub_name=>"lang",
-				type=>"langid",
-				options => $langs,
-			}, 
-		);
-	}
-		
-	if( scalar @cfields )
-	{	
-		$fielddata->{fields_cache} = [];
-		foreach my $inner_field ( @cfields )
-		{
-			my $field = EPrints::MetaField->new( 
-				parent_name => $fielddata->{name},
-				show_in_html => 0,
-				dataset => $self, 
-				multiple => $fielddata->{multiple},
-				%{$inner_field} );	
-			push @{$self->{fields}}	, $field;
-			if( $system )
-			{
-				push @{$self->{system_fields}} , $field;
-			}
-			$self->{field_index}->{$field->get_name()} = 
-				$field;
-			push @{$fielddata->{fields_cache}}, $field;
-		}
-	}
-
 	my $field = EPrints::MetaField->new( 
 		dataset => $self, 
-		%{$fielddata} );	
-	push @{$self->{fields}}	, $field;
-	if( $system )
-	{
-		push @{$self->{system_fields}} , $field;
-	}
+		%{$fielddata} );
 
-	$self->{field_index}->{$field->get_name()} = $field;
+	$self->register_field( $field, $system );
+	if( $field->isa( "EPrints::MetaField::Compound" ) )
+	{
+		foreach my $inner_field (@{$field->{fields_cache}})
+		{
+			$self->register_field( $inner_field, $system );
+		}
+	}
 
 	return $field;
 }
 
+=item $ds->register_field( $field [, $system ] )
 
+Register a new field with this dataset.
+
+=cut
+
+sub register_field
+{
+	my( $self, $field, $system ) = @_;
+
+	push @{$self->{fields}}, $field;
+	$self->{field_index}->{$field->get_name()} = $field;
+	if( $system )
+	{
+		push @{$self->{system_fields}} , $field;
+	}
+}
+
+=item $ds->unregister_field( $field )
+
+Unregister a field from this dataset.
+
+=cut
+
+sub unregister_field
+{
+	my( $self, $field ) = @_;
+
+	my $name = $field->get_name();
+
+	delete $self->{field_index}->{$name};
+	@{$self->{fields}} = grep { $_->get_name() ne $name } @{$self->{fields}};
+	@{$self->{system_fields}} = grep { $_->get_name() ne $name } @{$self->{system_fields}};
+}
 
 ######################################################################
 =pod

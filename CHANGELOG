@@ -8190,3 +8190,7 @@ EPRINTS-3.1-beta-2
  * Removed broken/superfluous replication of require
  * Added rename_field() method to Database.pm to rename meta fields
 
+2009-04-22 tdb
+ * MetaFields can now subclass new()
+ * Added register_field/unregister_field methods to DataSet
+
