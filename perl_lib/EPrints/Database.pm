@@ -2648,9 +2648,9 @@ sub _get
 		{
 			my( $id, $pos ) = splice(@values,0,2);
 			my $n = $lookup{ $id };
-			my $value = $multifield->value_from_sql_row( $self->{session}, \@values );
-
-			$data[$n]->{$fn}->[$pos] = $value;
+			next unless defined $n; # junk data in auxillary tables?
+			$data[$n]->{$fn}->[$pos] = 
+				$multifield->value_from_sql_row( $self->{session}, \@values );
 		}
 		$sth->finish;
 	}	
@@ -3505,9 +3505,10 @@ sub rename_field
 		my $sub_fields = $field->get_property( "fields_cache" );
 		foreach my $sub_field (@$sub_fields)
 		{
-			my $name = $sub_field->get_name();
-			$sub_field->{name} = $field->get_name() . "_" . $sub_field->get_property( "sub_name" );
-			$rc &&= $self->rename_field( $dataset, $sub_field, $name );
+			my $sub_name = $sub_field->get_property( "sub_name" );
+			$sub_field->{parent_name} = $field->get_name;
+			$sub_field->{name} = $field->get_name . "_" . $sub_name;
+			$rc &&= $self->rename_field( $dataset, $sub_field, $old_name . "_" . $sub_name );
 		}
 	}
 	else # rename the field itself from the metadata table
