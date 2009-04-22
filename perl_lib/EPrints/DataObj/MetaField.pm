@@ -267,7 +267,7 @@ sub new_from_data
 			next unless $field->isa( "EPrints::MetaField::Boolean" );
 			if( $field->get_property( "multiple" ) )
 			{
-				$_ = $RBOOLEAN{$_} for @$value;
+				($_ = defined($_) ? $RBOOLEAN{$_} : $_) for @$value;
 			}
 			else
 			{
@@ -838,7 +838,7 @@ sub get_perl_struct
 			next unless $field->isa( "EPrints::MetaField::Boolean" );
 			if( $field->get_property( "multiple" ) )
 			{
-				$_ = $BOOLEAN{$_} for @$value;
+				($_ = defined($_) ? $BOOLEAN{$_} : $_) for @$value;
 			}
 			else
 			{
