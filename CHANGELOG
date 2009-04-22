@@ -8193,4 +8193,6 @@ EPRINTS-3.1-beta-2
 2009-04-22 tdb
  * MetaFields can now subclass new()
  * Added register_field/unregister_field methods to DataSet
+ * Rename Web metafields
+ * Construct/deconstruct compound fields from other (prefix-named) fields
 

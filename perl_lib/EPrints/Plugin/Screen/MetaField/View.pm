@@ -10,7 +10,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 	
-	$self->{actions} = [qw/ edit_field remove_field new_field delete_field cancel /]; 
+	$self->{actions} = [qw/ edit_field remove_field new_field delete_field rename_field cancel /]; 
 		
 	$self->{appears} = [
 		{ 
@@ -33,6 +33,7 @@ sub can_be_viewed
 *allow_new_field =
 *allow_edit_field =
 *allow_remove_field = 
+*allow_rename_field = 
 *allow_delete_field = \&can_be_viewed;
 
 sub action_cancel {}
@@ -293,6 +294,114 @@ sub action_delete_field
 	}
 }
 
+sub action_rename_field
+{
+	my( $self ) = @_;
+
+	my $session = $self->{session};
+
+	my $datasetid = $session->param( "dataset" ) or return;
+	my $fieldid = $session->param( "field" ) or return;
+	my $newid = $session->param( "new_name" ) or return;
+
+	return if $fieldid eq $newid;
+
+	unless( $self->can_change_field( $datasetid, $fieldid ) )
+	{
+		$self->{processor}->add_message( "error",
+			$self->html_phrase( "invalid_field",
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid ),
+			) );
+		return;
+	}
+
+	my $ds = $session->get_repository->get_dataset( "metafield" );
+
+	my $metafield = $ds->get_object( $session, $datasetid.".".$fieldid );
+	if( !$metafield )
+	{
+		$self->{processor}->add_message( "error",
+			$self->html_phrase( "not_in_metafield",
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid )
+			) );
+		return;
+	}
+
+	if( $metafield->get_value( "providence" ) ne "user" )
+	{
+		$self->{processor}->add_message( "error",
+			$self->html_phrase( "not_user_field",
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid )
+			) );
+		return;
+	}
+
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
+
+	if( $dataset->has_field( $newid ) )
+	{
+		$self->{processor}->add_message( "error",
+			$self->html_phrase( "field_exists" )
+		);
+		return;
+	}
+
+	my $field = $dataset->get_field( $fieldid );
+
+	# remove the field from the dataset
+	$dataset->unregister_field( $field );
+
+	# remove from workflow
+	$metafield->remove_from_workflow();
+
+	# rename the metafield object
+	$metafield->remove();
+	$metafield->set_value( "name", $newid );
+	$metafield->set_value( "metafieldid", "$datasetid.$newid" );
+	$metafield = $metafield->clone();
+
+	# get the new field object
+	my $new_field = $metafield->make_field_object();
+
+	# rename the field in the database
+	$session->get_database->rename_field( $dataset, $new_field, $fieldid );
+
+	# register the new field name
+	$dataset->register_field( $new_field );
+
+	my $ok = EPrints::DataObj::MetaField::save_all( $session );
+
+	if( $ok )
+	{
+		$self->{processor}->add_message( "message",
+			$self->html_phrase( "renamed_field",
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid ),
+				newid => $session->make_text( $newid ),
+			) );
+
+		if( my $plugin = $session->plugin( "Screen::Admin::Reload" ) )
+		{
+			my $screenid = $self->{processor}->{screenid};
+			$plugin->{processor} = $self->{processor};
+			$plugin->action_reload_config;
+			$plugin->{processor}->{screenid} = $screenid ;
+		}
+	}
+	else
+	{
+		$self->{processor}->add_message( "message",
+			$self->html_phrase( "rename_failed",
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid ),
+				newid => $session->make_text( $newid ),
+			) );
+	}
+}
+
 sub can_change_field
 {
 	my( $self, $datasetid, $fieldid ) = @_;
@@ -330,7 +439,7 @@ sub render
 
 	my $fields = $session->get_repository->get_conf( "fields" );
 
-	my @datasets = EPrints::DataObj::MetaField::get_valid_datasets();
+	my @datasets = $session->get_repository->get_types( "datasets" );
 
 	my $url = URI->new("");
 	$url->query_form(
@@ -415,6 +524,12 @@ sub render_dataset
 		my $fieldid = $field->{name};
 		$field = $dataset->get_field( $fieldid );
 
+		if( !defined $field )
+		{
+			$session->get_repository->log( "Encountered a configured field that wasn't in dataset: $fieldid" );
+			next;
+		}
+
 		my $actions = $session->make_doc_fragment;
 
 		if( $field->get_property( "providence" ) eq "core" )
@@ -434,12 +549,19 @@ sub render_dataset
 				buttons => {
 						edit_field => $self->phrase( "edit" ),
 						remove_field => $self->phrase( "remove" ),
+						rename_field => $self->phrase( "rename" ),
+						_order => [qw( rename_field edit_field remove_field )],
 					},
 			);
 			$actions->appendChild( $form );
 			$form->appendChild( $self->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
 			$form->appendChild( $self->render_hidden_field( "dataset", $datasetid ) );
 			$form->appendChild( $self->render_hidden_field( "field", $fieldid ) );
+			$form->insertBefore( $session->render_input_field(
+					name => "new_name",
+					type => "text",
+					size => "10"
+				), $form->firstChild );
 		}
 
 		$table->appendChild(
@@ -541,9 +663,25 @@ sub render_new_form
 			dataset => $dataset->confid,
 		},
 	);
+
+	my $compound_form = $session->render_input_form(
+		fields => [
+			$ds->get_field( "name" ),
+		],
+		show_names => 1,
+		show_help => 1,
+		default_action => "new_compound_field",
+		buttons => { new_compound_field => $self->phrase( "new_compound" ) },
+		hidden_fields => {
+			screen => $self->{processor}->{screenid},
+			dataset => $dataset->confid,
+		},
+	);
+
 	$html->appendChild( $self->html_phrase( "new_form",
-		form => $form,
 		inbox => $existing,
+		form => $form,
+		compound_form => $compound_form,
 	) );
 
 	return $html;
