@@ -84,8 +84,7 @@
   </stage>
 
   <stage name="sub_fields">
-		<component type="XHTML"><epc:phrase ref="metafield_compound_stylesheet"/></component>
-		<component><field ref="fields"/></component>
+		<component type="Field::SubFields"><field ref="fields"/></component>
   </stage>
 
   <stage name="phrases">
