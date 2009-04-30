@@ -8196,3 +8196,5 @@ EPRINTS-3.1-beta-2
  * Rename Web metafields
  * Construct/deconstruct compound fields from other (prefix-named) fields
 
+2009-04-30 tmb
+ * Added hook to allow/deny Web sign-ups from particular email domains

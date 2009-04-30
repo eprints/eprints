@@ -33,3 +33,15 @@ $c->{user_registration_fields} = [ "name" ];
 $c->{default_user_type} = "user";
 #$c->{default_user_type} = "minuser";
 
+# This function allows you to allow/deny sign-ups from
+# particular email domains 
+#$c->{check_registration_email} = sub
+#{
+#	my( $session, $email ) = @_;
+#
+#	# registration allowed
+#	return 1 if $email =~ /\@your\.domain\.com$/;
+#
+#	return 0; # registration denied
+#}
+

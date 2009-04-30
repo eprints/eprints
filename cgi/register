@@ -131,6 +131,19 @@ sub make_page
 			{email=>$session->make_text( $v->{email} )} );
 	}
 
+	if( $session->get_repository->can_call( "check_registration_email" ) )
+	{
+		unless( $session->get_repository->call( "check_registration_email", $session, $v->{email} ) )
+		{
+			return mk_err_page(
+				$session,
+				"cgi/register:email_denied",
+				$fieldlist,
+				$v,
+				{email=>$session->make_text( $v->{email} )} );
+		}
+	} 
+
 	if( defined EPrints::DataObj::User::user_with_username( $session, $v->{username} ) )
 	{
 		return mk_err_page( 
