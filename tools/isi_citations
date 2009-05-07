@@ -30,11 +30,20 @@ pod2usage( 1 ) if $opt_help;
 
 my $noise = $opt_quiet ? 0 : $opt_verbose+1;
 
-my( $repoid ) = @ARGV;
+my( $repoid, @idlist ) = @ARGV;
 pod2usage( 2 ) unless defined $repoid;
 
 my $session = EPrints::Session->new( 1, $repoid, $noise );
 exit( 1 ) unless defined $session;
+
+my $dataset = $session->get_repository->get_dataset( "archive" );
+for(qw( wos creators_name title ))
+{
+	if( !$dataset->has_field( $_ ) )
+	{
+		die "Requires $_ field to be configured\n";
+	}
+}
 
 my $soap = SOAP::Lite->new();
 $soap->proxy( $ISI_ENDPOINT );
@@ -50,9 +59,35 @@ $soap->readable(1);
 # put everything in the ISI namespace
 $soap->default_ns($ISI_NS);
 
+my $searchconf = $session->get_repository->get_conf( "wos", "filters" );
+
 # lets get updating
-my $dataset = $session->get_repository->get_dataset( "archive" );
-$dataset->map($session, \&update_eprint, $soap);
+if( scalar(@idlist) )
+{
+	my $list = EPrints::List->new(
+		session => $session,
+		dataset => $dataset,
+		ids => \@idlist
+		);
+	$list->map(\&update_eprint);
+	$list->dispose;
+}
+elsif( defined $searchconf )
+{
+	my $searchexp = EPrints::Search->new(
+		session => $session,
+		dataset => $dataset,
+		allow_blank => 1,
+		filters => $searchconf
+		);
+	my $list = $searchexp->perform_search;
+	$list->map(\&update_eprint);
+	$list->dispose;
+}
+else
+{
+	$dataset->map($session, \&update_eprint);
+}
 
 FINISH:
 
@@ -60,9 +95,20 @@ $session->terminate;
 
 sub update_eprint
 {
-	my( $session, $dataset, $eprint, $soap ) = @_;
+	my( $session, $dataset, $eprint ) = @_;
 
-	my $query = "AU = (Brody) and TI = (Earlier web usage statistics as predictors of later citation impact) and PY = (2006)";
+	return unless defined $eprint;
+	return unless $eprint->is_set( "creators_name" );
+	return unless $eprint->is_set( "title" );
+
+	my $name = $eprint->get_value( "creators_name" )->[0];
+	$name = sprintf("%s %s*", $name->{family}, substr(Encode::decode_utf8($name->{given}),0,1));
+	my $title = Encode::decode_utf8($eprint->get_value( "title" ));
+	$title =~ s/[^\P{Letter}\P{Number}]+/ /g;
+
+	my $query = "AU = ($name) and TI = ($title)";
+
+#	my $query = "AU = (Brody) and TI = (Earlier web usage statistics as predictors of later citation impact) and PY = (2006)";
 	my $databaseID = "WOS";
 #	$databaseID = "ISIP";
 #	$query = "AU = () and PY = (2006)";
@@ -95,7 +141,12 @@ sub update_eprint
 	my $total = $result->{"recordsFound"};
 	my @records;
 
-	print "Found $total matches\n";
+	return unless $total > 0;
+	if( $total > 1 )
+	{
+		print STDERR $eprint->get_id." ('$query') matched more than once\n";
+		return;
+	}
 
 	# the actual records are stored as a serialised XML string
 	my $parser = XML::LibXML->new;
@@ -118,9 +169,22 @@ sub update_eprint
 	}
 
 	# do some work
-	print "Got records: ".Data::Dumper::Dumper( @records );
+#	print "Got records: ".Data::Dumper::Dumper( @records );
 
-	goto FINISH;
+	my $record = $records[0];
+
+	my $wos = {
+		cluster => $record->{"primarykey"},
+		impact => $record->{"timescited"},
+		datestamp => EPrints::Time::get_iso_timestamp()
+	};
+	$eprint->set_value( "wos", $wos );
+	$eprint->commit;
+
+	print STDERR "Found $record->{timescited} citations to ".$eprint->get_id."\n"
+		if $noise > 1;
+
+#	goto FINISH;
 }
 
 __DATA__
