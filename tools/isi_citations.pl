@@ -1,4 +1,21 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -I/opt/eprints3/perl_lib
+
+# Copyright 2009 University of Southampton.
+# 
+# This file is part of EPrints.
+#
+# EPrints is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation, either version 3 of the License,
+# or (at your option) any later version.
+# 
+# EPrints is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with EPrints.  If not, see <http://www.gnu.org/licenses/>.
 
 use strict;
 use warnings;
@@ -8,7 +25,7 @@ use Getopt::Long;
 use Pod::Usage;
 
 use SOAP::Lite
-#	+trace => all
+#	+trace => 'all'
 ;
 use XML::LibXML;
 use Data::Dumper;
@@ -46,7 +63,10 @@ for(qw( wos creators_name title ))
 }
 
 my $soap = SOAP::Lite->new();
-$soap->proxy( $ISI_ENDPOINT );
+$soap->proxy( $ISI_ENDPOINT,
+	agent => "eprints.org/".$session->get_repository->get_conf("version_id"),
+	from => $session->get_repository->get_conf("adminemail"),
+	);
 
 # don't include namespace in actions
 $soap->on_action(sub { qq("$_[1]") });
@@ -60,6 +80,8 @@ $soap->readable(1);
 $soap->default_ns($ISI_NS);
 
 my $searchconf = $session->get_repository->get_conf( "wos", "filters" );
+
+my $query_builder = $session->get_repository->get_conf( "wos", "build_query" );
 
 # lets get updating
 if( scalar(@idlist) )
@@ -81,7 +103,15 @@ elsif( defined $searchconf )
 		filters => $searchconf
 		);
 	my $list = $searchexp->perform_search;
-	$list->map(\&update_eprint);
+	if( $list->count == 0 )
+	{
+		print STDERR "The configured filters didn't match anything.\n"
+			if $noise;
+	}
+	else
+	{
+		$list->map(\&update_eprint);
+	}
 	$list->dispose;
 }
 else
@@ -98,20 +128,18 @@ sub update_eprint
 	my( $session, $dataset, $eprint ) = @_;
 
 	return unless defined $eprint;
-	return unless $eprint->is_set( "creators_name" );
-	return unless $eprint->is_set( "title" );
 
-	my $name = $eprint->get_value( "creators_name" )->[0];
-	$name = sprintf("%s %s*", $name->{family}, substr(Encode::decode_utf8($name->{given}),0,1));
-	my $title = Encode::decode_utf8($eprint->get_value( "title" ));
-	$title =~ s/[^\P{Letter}\P{Number}]+/ /g;
+	# e.g. "AU = (Brody) and TI = (Earlier web usage statistics as predictors of later citation impact) and PY = (2006)";
+	my $query = &$query_builder( $eprint );
 
-	my $query = "AU = ($name) and TI = ($title)";
+	print STDERR $eprint->get_id.": searching for '$query'\n"
+		if $noise > 1;
 
-#	my $query = "AU = (Brody) and TI = (Earlier web usage statistics as predictors of later citation impact) and PY = (2006)";
 	my $databaseID = "WOS";
 #	$databaseID = "ISIP";
-#	$query = "AU = () and PY = (2006)";
+
+	# sleep a bit
+	sleep(int(rand(3)));
 
 	# make a SOAP query to ISI
 	# ISI requires every argument be included, even if it's blank
@@ -133,7 +161,11 @@ sub update_eprint
 			SOAP::Data->name("fields")->value("times_cited"),
 		);
 	# something went wrong
-	die $som->fault->{ faultstring } if $som->fault;
+	if( $som->fault )
+	{
+		print STDERR "\tError from SOAP endpoint: ".$som->fault->{ faultstring }."\n";
+		return;
+	}
 
 	my $result = $som->result;
 #print Data::Dumper::Dumper($result), "\n";
@@ -141,10 +173,16 @@ sub update_eprint
 	my $total = $result->{"recordsFound"};
 	my @records;
 
-	return unless $total > 0;
+	if( $total == 0 )
+	{
+		print STDERR "\tNo matches found, ignoring.\n"
+			if $noise > 1;
+		return;
+	}
 	if( $total > 1 )
 	{
-		print STDERR $eprint->get_id." ('$query') matched more than once\n";
+		print STDERR "\tMatched more than once, ignoring.\n"
+			if $noise > 1;
 		return;
 	}
 
@@ -181,7 +219,7 @@ sub update_eprint
 	$eprint->set_value( "wos", $wos );
 	$eprint->commit;
 
-	print STDERR "Found $record->{timescited} citations to ".$eprint->get_id."\n"
+	print STDERR "\t$record->{timescited} citations\n"
 		if $noise > 1;
 
 #	goto FINISH;
