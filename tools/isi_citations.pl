@@ -17,6 +17,28 @@
 # You should have received a copy of the GNU General Public License
 # along with EPrints.  If not, see <http://www.gnu.org/licenses/>.
 
+=pod
+
+=head1 NAME
+
+B<isi_citations.pl> - ISI Web of Science citations tool
+
+=head1 SYNOPSIS
+
+B<isi_citations.pl> I<repoid> [B<options>] [B<eprint ids>]
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--verbose>
+
+Be more verbose.
+
+=back
+
+=cut
+
 use strict;
 use warnings;
 
@@ -27,7 +49,6 @@ use Pod::Usage;
 use SOAP::Lite
 #	+trace => 'all'
 ;
-use XML::LibXML;
 use Data::Dumper;
 
 our $ISI_ENDPOINT = "http://wok-ws.isiknowledge.com/esti/soap/SearchRetrieve";
@@ -187,11 +208,10 @@ sub update_eprint
 	}
 
 	# the actual records are stored as a serialised XML string
-	my $parser = XML::LibXML->new;
-	my $doc = $parser->parse_string( $result->{records} );
+	my $doc = EPrints::XML::parse_xml_string( $result->{records} );
 	foreach my $node ($doc->documentElement->childNodes)
 	{
-		next unless $node->isa( "XML::LibXML::Element" );
+		next unless EPrints::XML::is_dom( $node, "Element" );
 		my $record = {
 			eprintid => $eprint->get_id,
 			timescited => $node->getAttribute( "timescited" ),
@@ -200,9 +220,9 @@ sub update_eprint
 		$record->{"year"} = $item->getAttribute( "coverdate" );
 		$record->{"year"} =~ s/^(\d{4}).+/$1/; # yyyymm
 		my( $ut ) = $item->getElementsByTagName( "ut" );
-		$record->{"primarykey"} = $ut->textContent;
+		$record->{"primarykey"} = $ut->firstChild;
 		my( $item_title ) = $item->getElementsByTagName( "item_title" );
-		$record->{"title"} = $item_title->textContent;
+		$record->{"title"} = $item_title->firstChild;
 		push @records, $record;
 	}
 
