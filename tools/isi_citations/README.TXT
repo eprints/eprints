@@ -75,4 +75,44 @@ feedback.
 You may specify a list of eprint ids to process after the [repoid].
 
 
-Last updated 2009-05-07
+Adding Citation Features
+------------------------
+
+Modify eprint_render.pl and add this section:
+	if( $eprint->is_set( "wos" ) )
+	{
+		my $wcits = $eprint->get_value( "wos_impact" );
+
+		my @citation_counts;
+
+		my $frag = $session->make_doc_fragment;
+
+		if( defined $wcits && $wcits > 0)
+		{
+			$frag->appendChild( $session->make_text( "ISI: " ));
+			$frag->appendChild( $eprint->render_value( "wos_impact" ) );
+		}
+
+		$list->appendChild( _render_row(
+					$session,
+					$session->make_text( "Citations" ),
+					$frag
+					) );
+	}
+
+in search.pl
+add the following to the search fields for appropriate searches:
+	{ meta_fields => [ "wos_impact" ] },
+and the following to the order_methods
+	"byISI"          => "-wos_impact/-date/creators_name/title",
+
+and the following phrases
+	<epp:phrase id="ordername_eprint_byISI">by ISI citation count</epp:phrase>
+
+And in the results.xml (the citation for search results) after
+	<epc:print expr="$item.citation('default')" />
+add
+	<epc:if test="is_set(wos_impact)">(Cited <epc:print expr="wos_impact"/> times in ISI.)</epc:if>
+
+
+Last updated 2009-05-08
