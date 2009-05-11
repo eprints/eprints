@@ -177,10 +177,10 @@ binmode(STDERR, ":utf8");
 
 	push @{$self->{filesys}}, @ROOT_FILESYS;
 
-	$self->{test} = Filesys::Virtual::Plain->new({
-		root_path => "/tmp",
-		});
-	push @{$self->{filesys}}, @TEST_FILESYS;
+#	$self->{test} = Filesys::Virtual::Plain->new({
+#		root_path => "/tmp",
+#		});
+#	push @{$self->{filesys}}, @TEST_FILESYS;
 
 	if( defined $self->{current_user} )
 	{
@@ -1046,13 +1046,13 @@ sub list_root
 		"root",
 		0,
 		time() );
-	push @entries, test => &$f(
-		"test",
-		"drwxr-xr-x",
-		"root",
-		"root",
-		0,
-		time() );
+#	push @entries, test => &$f(
+#		"test",
+#		"drwxr-xr-x",
+#		"root",
+#		"root",
+#		0,
+#		time() );
 	push @entries, view => &$f(
 		"view",
 		"drwxr-xr-x",

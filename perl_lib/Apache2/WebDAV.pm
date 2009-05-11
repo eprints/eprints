@@ -23,6 +23,7 @@ use URI::Escape;
 use XML::Simple qw(:strict);
 use XML::LibXML;
 use XML::LibXML::SAX;
+use Fcntl ':mode';
 
 #
 # This module implements an abstract WebDAV server layer.  Like
@@ -663,13 +664,18 @@ sub propfind
         $info->{'getcontenttype'} = $mime_type;
         $info->{'resourcetype'}   = '';
 
-        if($handler->test('d', $path))
-        {
-            $info->{'getcontenttype'} = 'httpd/unix-directory';
-            $info->{'resourcetype'}   = 'collection';
-        }
+#        if($handler->test('d', $path))
+#        {
+#            $info->{'getcontenttype'} = 'httpd/unix-directory';
+#            $info->{'resourcetype'}   = 'collection';
+#        }
 
         @stat{@properties} = $handler->stat($path);
+		if( $stat{"mode"} & S_IFDIR )
+		{
+            $info->{'getcontenttype'} = 'httpd/unix-directory';
+            $info->{'resourcetype'}   = 'collection';
+		}
 		$stat{"creationdate"} = iso_datetime( $stat{"creationdate"})
 			if defined $stat{"creationdate"};
 		$stat{"getlastmodified"} = gmtime($stat{"getlastmodified"})
