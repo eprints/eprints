@@ -8198,3 +8198,6 @@ EPRINTS-3.1-beta-2
 
 2009-04-30 tmb
  * Added hook to allow/deny Web sign-ups from particular email domains
+
+2009-05-11 cjg
+ * Turned Search::Condition into a bunch of subclasses.
