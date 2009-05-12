@@ -8207,4 +8207,5 @@ EPRINTS-3.1-beta-2
 
 2009-05-12 tdb
  * Reduced number of indexed fields in eprint and fixed indexing counts
+ * Added Bigint metafield type (64bit integer)
 

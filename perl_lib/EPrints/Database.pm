@@ -78,6 +78,7 @@ use constant {
 	SQL_TINYINT => DBI::SQL_TINYINT,
 	SQL_SMALLINT => DBI::SQL_SMALLINT,
 	SQL_INTEGER => DBI::SQL_INTEGER,
+	SQL_BIGINT => DBI::SQL_BIGINT,
 	SQL_REAL => DBI::SQL_REAL,
 	SQL_DOUBLE => DBI::SQL_DOUBLE,
 	SQL_DATE => DBI::SQL_DATE,
@@ -95,6 +96,7 @@ use constant {
 		SQL_TINYINT
 		SQL_SMALLINT
 		SQL_INTEGER
+		SQL_BIGINT
 		SQL_REAL
 		SQL_DOUBLE
 		SQL_DATE
@@ -687,7 +689,7 @@ Character data: SQL_VARCHAR(n), SQL_LONGVARCHAR.
 
 Binary data: SQL_VARBINARY(n), SQL_LONGVARBINARY.
 
-Integer data: SQL_TINYINT, SQL_SMALLINT, SQL_INTEGER.
+Integer data: SQL_TINYINT, SQL_SMALLINT, SQL_INTEGER, SQL_BIGINT.
 
 Floating-point data: SQL_REAL, SQL_DOUBLE.
 
@@ -705,10 +707,20 @@ sub get_column_type
 	my $session = $self->{session};
 	my $repository = $session->get_repository;
 
-	my $type_info = $self->{dbh}->type_info( $data_type );
+	my( $db_type, $params );
 
-	my $db_type = $type_info->{TYPE_NAME};
-	my $params = $type_info->{CREATE_PARAMS};
+	if( $data_type ne SQL_BIGINT )
+	{
+		my $type_info = $self->{dbh}->type_info( $data_type );
+
+		$db_type = $type_info->{TYPE_NAME};
+		$params = $type_info->{CREATE_PARAMS};
+	}
+	else
+	{
+		$db_type = "bigint";
+		$params = "";
+	}
 
 	my $type = $self->quote_identifier($name) . " " . $db_type;
 
