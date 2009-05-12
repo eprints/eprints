@@ -788,9 +788,7 @@ sub get_conditions
 	}
 	
 		
-	$cond->optimise;
-
-	return $cond;
+	return $cond->optimise;
 }
 
 
@@ -1126,8 +1124,7 @@ sub perform_search
 	}
 
 
-	#my $conditions = $self->get_conditions;
-	#print STDERR $conditions->describe."\n\n";
+	# print STDERR $self->get_conditions->describe."\n\n";
 
 	my $unsorted_matches = $self->get_conditions->process( 
 						$self->{session} );

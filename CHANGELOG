@@ -8209,3 +8209,7 @@ EPRINTS-3.1-beta-2
  * Reduced number of indexed fields in eprint and fixed indexing counts
  * Added Bigint metafield type (64bit integer)
 
+2009-05-12 cjg
+ * Optimise conditions now return an optimised condition rather than modify
+    the current object.
+
