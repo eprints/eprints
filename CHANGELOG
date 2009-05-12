@@ -8201,3 +8201,6 @@ EPRINTS-3.1-beta-2
 
 2009-05-11 cjg
  * Turned Search::Condition into a bunch of subclasses.
+
+2009-05-12 cjg
+ * First draft of a REST interface.
