@@ -1100,7 +1100,9 @@ sub get_object_mtime
 	return 0 unless defined $field;
 
 	my $datetime = $object->get_value( $field->get_name );
-	$datetime =~ /(\d+)\D(\d{2})\D(\d{2})\D(\d{2})\D(\d{2})\D(\d{2})/;
+	
+	return 0 unless
+		$datetime =~ /(\d+)\D(\d{2})\D(\d{2})\D(\d{2})\D(\d{2})\D(\d{2})/;
 	my $time = Time::Local::timegm($6,$5,$4,$3,$2-1,$1-1900);
 
 	return $time;
