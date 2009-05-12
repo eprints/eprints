@@ -119,7 +119,8 @@ sub get_system_field_info
 	{ name=>"eprintid", type=>"int", required=>1, import=>0, can_clone=>0,
 		sql_counter=>"eprintid" },
 
-	{ name=>"rev_number", type=>"int", required=>1, can_clone=>0 },
+	{ name=>"rev_number", type=>"int", required=>1, can_clone=>0,
+		sql_index=>0 },
 
 	{ name=>"documents", type=>"subobject", datasetid=>'document',
 		multiple=>1 },
@@ -254,9 +255,9 @@ sub get_system_field_info
 
 	{ 'name' => 'edit_lock', 'type' => 'compound', volatile => 1,
 		'fields' => [
-			{ 'sub_name' => 'user',  'type' => 'itemref', 'datasetid' => 'user', },
-			{ 'sub_name' => 'since', 'type' => 'int', },
-			{ 'sub_name' => 'until', 'type' => 'int', },
+			{ 'sub_name' => 'user',  'type' => 'itemref', 'datasetid' => 'user', sql_index=>0 },
+			{ 'sub_name' => 'since', 'type' => 'int', sql_index=>0 },
+			{ 'sub_name' => 'until', 'type' => 'int', sql_index=>0 },
 		],
 		render_value=>"EPrints::DataObj::EPrint::render_edit_lock",
  	},

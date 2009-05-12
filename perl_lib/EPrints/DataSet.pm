@@ -1057,7 +1057,8 @@ sub count_indexes
 	my $n = 0;
 	foreach my $field ( $self->get_fields( 1 ) )
 	{
-		next if( $field->get_property( "multiple" ) );
+		next if $field->get_property( "multiple" );
+		next if $field->isa( "EPrints::MetaField::Compound" );
 		next unless( defined $field->get_sql_index );
 		$n++;
 	}
