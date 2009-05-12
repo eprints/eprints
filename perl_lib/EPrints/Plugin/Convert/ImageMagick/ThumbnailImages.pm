@@ -79,6 +79,8 @@ sub convert
 
 	my $new_doc = $plugin->SUPER::convert( $eprint, $doc, $type );
 
+	return undef if !defined $new_doc;
+
 	$new_doc->set_value( "format", "image/jpeg" );
 
 	return $new_doc;
