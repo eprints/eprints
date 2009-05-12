@@ -59,7 +59,11 @@ sub output_dataobj
 
 	my $xml = $plugin->xml_dataobj( $dataobj );
 
-	return EPrints::XML::to_string( $xml );
+	my $resourceMap = EPrints::XML::to_string( $xml );
+
+	EPrints::XML::dispose($xml);
+
+	return $resourceMap;
 }
 
 

@@ -49,18 +49,18 @@ use strict;
 
 sub new
 {
-        my( $class, %opts ) = @_;
+	my( $class, %opts ) = @_;
 	my $self = $class->SUPER::new( %opts );
 
-        $self->{name} = "OAI-ORE Resource Map (Atom Format)";
-        $self->{accept} = [ 'dataobj/eprint', 'list/eprint' ];
-        $self->{visible} = "all";
-        $self->{mimetype} = "application/atom+xml; charset=utf-8";
+	$self->{name} = "OAI-ORE Resource Map (Atom Format)";
+	$self->{accept} = [ 'dataobj/eprint', 'list/eprint' ];
+	$self->{visible} = "all";
+	$self->{mimetype} = "application/atom+xml; charset=utf-8";
 
 	$self->{xmlns} = "http://www.w3.org/2005/Atom";
 	$self->{schemaLocation} = "http://exyus.com/xcs/tasklist/source/?f=put_atom.xsd";
 
-        return $self;
+	return $self;
 }
 
 sub output_list
@@ -75,16 +75,16 @@ sub output_list
 
 	if( defined $opts{fh} )
 	{
-		print {$opts{fh}} $part;
+		print {$opts{fh}} $plugin->header();
 	}
 	else
 	{
-		push @{$r}, $part;
+		push @{$r}, $plugin->header();
 	}
 
 	$opts{list}->map(sub {
 		my( $session, $dataset, $dataobj ) = @_;
-		$part = $plugin->output_dataobj( $dataobj, single => 1, %opts );
+		$part = $plugin->output_dataobj( $dataobj, multiple => 1, %opts );
 		if( defined $opts{fh} )
 		{
 			print {$opts{fh}} $part;
@@ -97,11 +97,11 @@ sub output_list
 
 	if( defined $opts{fh} )
 	{
-		print {$opts{fh}} $part;
+		print {$opts{fh}} $plugin->footer();
 	}
 	else
 	{
-		push @{$r}, $part;
+		push @{$r}, $plugin->footer();
 	}
 
 
@@ -115,9 +115,9 @@ sub output_list
 
 sub output_dataobj
 {
-        my( $plugin, $dataobj, %opts ) = @_;
+	my( $plugin, $dataobj, %opts ) = @_;
 
-	my $single = $opts{"single"};
+	my $multiple = $opts{"multiple"};
 	
 	my $title = $dataobj->get_value( "title" );
 	#my $lastmod = EPrints::Time::get_iso_timestamp()
@@ -405,17 +405,15 @@ sub output_dataobj
 	$response->appendChild( $xml_node );
 	EPrints::XML::tidy( $response );
 	my $resourceMap= EPrints::XML::to_string( $response );
-	if( $single )
+	if( $multiple )
 	{
-		return $response;
+		return $resourceMap;
 	}
 	else 
 	{
 		return $plugin->header.$resourceMap.$plugin->footer;
 	}
 	EPrints::XML::dispose( $response );
-	
-
 }
 
 sub header
