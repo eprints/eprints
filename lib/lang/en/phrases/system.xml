@@ -1577,13 +1577,14 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/InputForm/Component/Upload:create_failed">Document creation failed.</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:upload_failed">File upload failed.</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:no_document">Attempted action on non-existent document: <epc:pin name="docid"/></epp:phrase>
-	<epp:phrase id="Plugin/InputForm/Component/Upload:bad_document">Specified document does not belong to current item.</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:no_file">File does not exist.</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:bad_button">Unknown internal button: <epc:pin name="button"/></epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:bad_doc_button">Unknown internal document button: <epc:pin name="button"/></epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:conversion_failed">Document conversion failed.</epp:phrase>
 	
 	<!-- options -->
+	<epp:phrase id="Plugin/InputForm/Component/Upload:move_up">Move Up</epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component/Upload:move_down">Move Down</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:show_options">Show options</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:hide_options">Hide options</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:add_format">Upload</epp:phrase>

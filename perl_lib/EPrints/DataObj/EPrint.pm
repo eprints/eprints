@@ -1207,7 +1207,7 @@ sub get_all_documents
 		}
 	}
 
-	return @docs;
+	return sort { ($a->get_value( "placement" )||0) <=> ($b->get_value( "placement" )||0) } @docs;
 }
 
 

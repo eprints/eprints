@@ -8213,3 +8213,6 @@ EPRINTS-3.1-beta-2
  * Optimise conditions now return an optimised condition rather than modify
     the current object.
 
+2009-05-13 tdb
+ * Added ability to change the order documents are shown in
+

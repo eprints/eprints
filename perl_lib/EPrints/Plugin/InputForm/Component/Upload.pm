@@ -29,6 +29,7 @@ sub update_from_form
 {
 	my( $self, $processor ) = @_;
 
+	my $session = $self->{session};
 	my $eprint = $self->{workflow}->{item};
 	my @eprint_docs = $eprint->get_all_documents;
 
@@ -40,7 +41,7 @@ sub update_from_form
 		foreach my $field ( @fields )
 		{
 			my $value = $field->form_value( 
-				$self->{session}, 
+				$session, 
 				$self->{dataobj}, 
 				$doc_prefix );
 			$doc->set_value( $field->{name}, $value );
@@ -48,13 +49,13 @@ sub update_from_form
 		$doc->commit;
 	}
 
-	if( $self->{session}->internal_button_pressed )
+	if( $session->internal_button_pressed )
 	{
 		my $internal = $self->get_internal_button;
 		if( $internal =~ m/^add_format(_(.*))?/ )
 		{
 			my $method = $2 || "file";
-			my $method_plugin = $self->{session}->plugin( 
+			my $method_plugin = $session->plugin( 
 				"InputForm::UploadMethod::$method",
 				prefix => $self->{prefix},
 				dataobj => $self->{dataobj},
@@ -66,23 +67,20 @@ sub update_from_form
 			$method_plugin->update_from_form( $processor );
 			return;
 		}
-
-		if( $internal =~ m/^doc(\d+)_(.*)$/ )
+		if( $internal =~ m/^doc(\d+)_(.+)$/ )
 		{
-			my $doc = EPrints::DataObj::Document->new(
-				$self->{session},
-				$1 );
+			my( $docid, $doc_action ) = ($1, $2);
+			my $doc;
+			for(@eprint_docs)
+			{
+				$doc = $_, last if $_->get_id == $docid;
+			}
 			if( !defined $doc )
 			{
-				$processor->add_message( "error", $self->html_phrase( "no_document", docid => $self->{session}->make_text($1) ) );
+				$processor->add_message( "error", $self->html_phrase( "no_document", docid => $session->make_text($docid) ) );
 				return;
 			}
-			if( $doc->get_value( "eprintid" ) != $self->{dataobj}->get_id )
-			{
-				$processor->add_message( "error", $self->html_phrase( "bad_document" ) );
-				return;
-			}
-			$self->doc_update( $doc, $2, $processor );
+			$self->doc_update( $doc, $doc_action, \@eprint_docs, $processor );
 			return;
 		}
 
@@ -121,14 +119,79 @@ sub get_state_params
 	return $params;
 }
 
+sub _swap_placements
+{
+	my( $docs, $l, $r ) = @_;
+
+	my( $left, $right ) = @$docs[$l,$r];
+
+	my $t = $left->get_value( "placement" );
+	$left->set_value( "placement", $right->get_value( "placement" ) );
+	$right->set_value( "placement", $t );
+
+	$t = $docs->[$l];
+	$docs->[$l] = $docs->[$r];
+	$docs->[$r] = $t;
+}
+
 sub doc_update
 {
-	my( $self, $doc, $doc_internal, $processor ) = @_;
+	my( $self, $doc, $doc_internal, $eprint_docs, $processor ) = @_;
 
 	my $docid = $doc->get_id;
 	my $doc_prefix = $self->{prefix}."_doc".$docid;
 	$processor->{notes}->{upload_plugin}->{to_unroll}->{$docid} = 1;
 	
+	if( $doc_internal eq "up" or $doc_internal eq "down" )
+	{
+		return if scalar @$eprint_docs < 2;
+		foreach my $eprint_doc (@$eprint_docs)
+		{
+			next if $eprint_doc->is_set( "placement" );
+			$eprint_doc->set_value( "placement", $eprint_doc->get_value( "pos" ) );
+		}
+		my $loc;
+		for($loc = 0; $loc < @$eprint_docs; ++$loc)
+		{
+			last if $eprint_docs->[$loc]->get_id == $doc->get_id;
+		}
+		if( $doc_internal eq "up" )
+		{
+			if( $loc == 0 )
+			{
+				for(my $i = 0; $i < $#$eprint_docs; ++$i)
+				{
+					_swap_placements( $eprint_docs, $i, $i+1 );
+				}
+			}
+			else
+			{
+				_swap_placements( $eprint_docs, $loc, $loc-1 );
+			}
+		}
+		if( $doc_internal eq "down" )
+		{
+			if( $loc == $#$eprint_docs )
+			{
+				for(my $i = $#$eprint_docs; $i > 0; --$i)
+				{
+					_swap_placements( $eprint_docs, $i, $i-1 );
+				}
+			}
+			else
+			{
+				_swap_placements( $eprint_docs, $loc, $loc+1 );
+			}
+		}
+		# We don't need to create lots of commits on the parent eprint
+		my $eprint = $eprint_docs->[0]->get_parent;
+		$eprint->set_under_construction( 1 );
+		$_->commit() for @$eprint_docs;
+		$eprint->set_under_construction( 0 );
+		$eprint->commit(1);
+		return;
+	}
+
 	if( $doc_internal eq "update_doc" )
 	{
 		return;
@@ -305,7 +368,7 @@ sub render_content
 		my $tr = $session->make_element( "tr" );
 		$doc_title_bar->appendChild( $table );
 		$table->appendChild( $tr );
-		my $td_left = $session->make_element( "td", align=>"left" );
+		my $td_left = $session->make_element( "td", align=>"left", valign=>"middle", width=>"40%" );
 		$tr->appendChild( $td_left );
 
 		my $table_left = $session->make_element( "table", border=>0 );
@@ -328,7 +391,11 @@ sub render_content
 			$table_left_td_right->appendChild( $session->make_text( EPrints::Utils::human_filesize($size) ));
 		}
 
-		my $td_right = $session->make_element( "td", align=>"right", valign=>"middle" );
+		my $td_centre = $session->make_element( "td", align=>"center", valign=>"middle", width=>"40%" );
+		$tr->appendChild( $td_centre );
+		$td_centre->appendChild( $self->_render_doc_placement( $doc, \@eprint_docs ) );
+
+		my $td_right = $session->make_element( "td", align=>"right", valign=>"middle", width=>"20%" );
 		$tr->appendChild( $td_right );
 
 		my $options = $session->make_element( "div", class=>"ep_update_doc_options ep_only_js" );
@@ -384,6 +451,39 @@ sub doc_fields
 	return @fields;
 }
 
+sub _render_doc_placement
+{
+	my( $self, $doc, $eprint_docs ) = @_;
+
+	my $session = $self->{session};	
+
+	my $frag = $session->make_doc_fragment;
+
+	return $frag unless scalar @$eprint_docs > 1;
+
+	my $prefix = $self->{prefix};
+
+	if( $doc->get_id != $eprint_docs->[0]->get_id )
+	{
+		my $up_button = $session->render_button(
+			name => "_internal_".$prefix."_doc".$doc->get_id."_up",
+			value => $self->phrase( "move_up" ), 
+			class => "ep_form_internal_button",
+			);
+		$frag->appendChild( $up_button );
+	}
+	if( $doc->get_id != $eprint_docs->[$#$eprint_docs]->get_id )
+	{
+		my $down_button = $session->render_button(
+			name => "_internal_".$prefix."_doc".$doc->get_id."_down",
+			value => $self->phrase( "move_down" ), 
+			class => "ep_form_internal_button",
+			);
+		$frag->appendChild( $down_button );
+	}
+
+	return $frag;
+}
 
 sub _render_doc
 {

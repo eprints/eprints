@@ -41,6 +41,10 @@ of EPrints may change this.
 
 The id number of the eprint to which this document belongs.
 
+=item placement (int)
+
+Placement of the document - the order documents should be shown in.
+
 =item format (namedset)
 
 The format of this document. One of the types of the dataset "document".
@@ -134,6 +138,8 @@ sub get_system_field_info
 			datasetid=>"eprint", required=>1, show_in_html=>0 },
 
 		{ name=>"pos", type=>"int", required=>1 },
+
+		{ name=>"placement", type=>"int", },
 
 		{ name=>"format", type=>"namedset", required=>1, input_rows=>1,
 			set_name=>"document" },
@@ -339,6 +345,8 @@ sub get_defaults
 	$data->{docid} = $session->get_database->counter_next( "documentid" );
 
 	$data->{pos} = $session->get_database->next_doc_pos( $data->{eprintid} );
+
+	$data->{placement} = $data->{pos};
 
 	$data->{rev_number} = 1;
 
