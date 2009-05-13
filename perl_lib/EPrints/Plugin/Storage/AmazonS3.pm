@@ -117,9 +117,6 @@ sub store
 {
 	my( $self, $fileobj, $f ) = @_;
 
-	use bytes;
-	use integer;
-
 	$self->create_bucket();
 
 	my $uri = $self->uri( $fileobj );
@@ -127,11 +124,7 @@ sub store
 	my $req = HTTP::Request->new( "PUT" => $uri );
 	$req->header( "Content-Length" => $fileobj->get_value( "filesize" ) );
 	$req->header( "Content-Type" => $fileobj->get_value( "mime_type" ) );
-	my $buffer;
-	$req->content( sub {
-		$buffer = &$f();
-		return $buffer;
-	} );
+	$req->content( $f ); # read from sub
 
 # FIXME: make everything public
 	$req->header( "x-amz-acl" => "public-read" );

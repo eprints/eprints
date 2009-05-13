@@ -49,9 +49,18 @@ Returns undef on error.
 
 sub store
 {
-	my( $self, $f ) = @_;
+	my( $self, $fileobj, $f, $croak ) = @_;
 
-	undef;
+	EPrints::abort ref($self)." appears not to have subclassed store() or open_write() - at least one must be implemented" if $croak;
+
+	return unless $self->open_write( $fileobj, 1 );
+
+	while(length(my $buffer = &$f))
+	{
+		last unless $self->write( $fileobj, $buffer );
+	}
+
+	return $self->close_write( $fileobj );
 }
 
 =item $success = $store->retrieve( $fileobj, $sourceid, CALLBACK )
@@ -108,6 +117,58 @@ sub get_remote_copy
 	my( $self, $fileobj, $sourceid ) = @_;
 
 	return undef;
+}
+
+=item $ok = $store->open_write( $fileobj )
+
+Initialise a new write based on $fileobj.
+
+=cut
+
+sub open_write
+{
+	my( $self, $fileobj, $croak ) = @_;
+
+	EPrints::abort ref($self)." appears not to have subclassed store() or open_write() - at least one must be implemented" if $croak;
+
+	$self->{_fh}->{$fileobj} = File::Temp->new;
+
+	return 1;
+}
+
+=item $ok = $store->write( $fileobj, $buffer )
+
+Write $buffer. Will croak if $fileobj was not previously opened for writing with open_write().
+
+=cut
+
+sub write
+{
+	my( $self, $fileobj, $buffer ) = @_;
+
+	syswrite($self->{_fh}->{$fileobj}, $buffer);
+}
+
+=item $sourceid = $store->close_write( $fileobj )
+
+Finish writing to $fileobj. Returns the sourceid or undef on failure.
+
+=cut
+
+sub close_write
+{
+	my( $self, $fileobj ) = @_;
+
+	my $fh = $self->{_fh}->{$fileobj};
+	sysseek($fh, 0, 0);
+
+	my $buffer;
+	my $f = sub { sysread($fh, $buffer, 4096); return $buffer };
+	my $ok = $self->store( $fileobj, $f, 1 );
+
+	delete $self->{_fh}->{$fileobj};
+
+	return $ok;
 }
 
 1;

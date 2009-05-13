@@ -179,10 +179,34 @@ sub delete
 			$self->{session}->get_repository->log( "Can not remove file copy '$copy->{sourceid}' - $copy->{pluginid} not available" );
 			next;
 		}
-		$rc &= $plugin->delete( $fileobj );
+		$rc &= $plugin->delete( $fileobj, $copy->{sourceid} );
 	}
 
 	return $rc;
+}
+
+=item $ok = $store->delete_copy( $plugin, $fileobj )
+
+Delete the copy of this file stored in $plugin.
+
+=cut
+
+sub delete_copy
+{
+	my( $self, $target, $fileobj ) = @_;
+
+	foreach my $copy (@{$fileobj->get_value( "copies" )})
+	{
+		next unless $copy->{pluginid} eq $target->get_id;
+
+		return 0 unless $target->delete( $fileobj, $copy->{sourceid} );
+
+		$fileobj->remove_plugin_copy( $target );
+
+		last;
+	}
+
+	return 1;
 }
 
 =item $filename = $store->get_local_copy( $fileobj )
@@ -281,6 +305,43 @@ sub get_plugins
 	}
 
 	return @plugins;
+}
+
+=item $ok = $store->copy( $plugin, $fileobj )
+
+Copy the contents of $fileobj into another storage $plugin.
+
+Returns 1 on success, 0 on failure and -1 if a copy already exists in $plugin.
+
+=cut
+
+sub copy
+{
+	my( $self, $target, $fileobj ) = @_;
+
+	my $ok = 1;
+
+	foreach my $copy (@{$fileobj->get_value( "copies_pluginid" )})
+	{
+		return -1 if $copy eq $target->get_id;
+	}
+
+	$ok = $target->open_write( $fileobj );
+
+	return $ok unless $ok;
+	
+	$ok = $self->retrieve( $fileobj, sub {
+		$target->write( $fileobj, $_[0] );
+	} );
+
+	my $sourceid = $target->close_write( $fileobj );
+
+	if( $ok )
+	{
+		$fileobj->add_plugin_copy( $target, $sourceid );
+	}
+
+	return $ok;
 }
 
 =back

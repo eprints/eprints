@@ -1,6 +1,6 @@
 =head1 NAME
 
-EPrints::Plugin::Storage::Local - storage on the local disk
+EPrints::Plugin::Storage::LocalCompress - storage on the local disk
 
 =head1 DESCRIPTION
 
@@ -12,17 +12,19 @@ See L<EPrints::Plugin::Storage> for available methods.
 
 =cut
 
-package EPrints::Plugin::Storage::Local;
+package EPrints::Plugin::Storage::LocalCompress;
+
+use strict;
 
 use URI;
 use URI::Escape;
 use File::Basename;
 
-use EPrints::Plugin::Storage;
+use EPrints::Plugin::Storage::Local;
 
-@ISA = ( "EPrints::Plugin::Storage" );
+our @ISA = ( "EPrints::Plugin::Storage::Local" );
 
-use strict;
+our $DISABLE = eval "use PerlIO::gzip; return 1" ? 0 : 1;
 
 sub new
 {
@@ -30,7 +32,7 @@ sub new
 
 	my $self = $class->SUPER::new( %params );
 
-	$self->{name} = "Local disk storage";
+	$self->{name} = "Compressed local disk storage";
 
 	return $self;
 }
@@ -45,14 +47,15 @@ sub open_write
 
 	EPrints::Platform::mkdir( $path );
 
+	$out_file .= ".gz";
+
 	my $out_fh;
-	unless( open($out_fh, ">", $out_file) )
+	unless( open($out_fh, ">:gzip", $out_file) )
 	{
 		$self->{error} = "Unable to write to $out_file: $!";
 		$self->{session}->get_repository->log( $self->{error} );
 		return 0;
 	}
-	binmode($out_fh);
 
 	$self->{_fh}->{$fileobj} = $out_fh;
 	$self->{_name}->{$fileobj} = $out_file;
@@ -70,7 +73,7 @@ sub write
 	my $fh = $self->{_fh}->{$fileobj}
 		or Carp::croak "Must call open_write before write";
 
-	unless( syswrite($fh, $buffer) )
+	unless( print $fh $buffer )
 	{
 		my $out_file = $self->{_name}->{$fileobj};
 		unlink($out_file);
@@ -100,8 +103,10 @@ sub retrieve
 
 	my( $local_path, $in_file ) = $self->_filename( $fileobj );
 
+	$in_file .= ".gz";
+
 	my $in_fh;
-	unless( open($in_fh, "<", $in_file) )
+	unless( open($in_fh, "<:gzip", $in_file) )
 	{
 		$self->{error} = "Unable to read from $in_file: $!";
 		$self->{session}->get_repository->log( $self->{error} );
@@ -111,7 +116,7 @@ sub retrieve
 	my $rc = 1;
 
 	my $buffer;
-	while(sysread($in_fh,$buffer,4096))
+	while(read($in_fh,$buffer,4096))
 	{
 		$rc &&= &$f($buffer);
 		last unless $rc;
@@ -128,6 +133,8 @@ sub delete
 
 	my( $local_path, $in_file ) = $self->_filename( $fileobj );
 
+	$in_file .= ".gz";
+
 	return 1 unless -e $in_file;
 
 	return unlink($in_file);
@@ -135,46 +142,7 @@ sub delete
 
 sub get_local_copy
 {
-	my( $self, $fileobj, $sourceid ) = @_;
-
-	my( $local_path, $in_file ) = $self->_filename( $fileobj );
-
-	return -r $in_file ? $in_file : undef;
-}
-
-sub _filename
-{
-	my( $self, $fileobj ) = @_;
-
-	my $parent = $fileobj->get_parent();
-
-	my $local_path;
-	my $filename = $fileobj->get_value( "filename" );
-
-	my $in_file;
-
-	if( $parent->isa( "EPrints::DataObj::Document" ) )
-	{
-		$local_path = $parent->local_path;
-		$in_file = "$local_path/$filename";
-	}
-	elsif( $parent->isa( "EPrints::DataObj::History" ) )
-	{
-		$local_path = $parent->get_parent->local_path."/revisions";
-		$filename = $parent->get_value( "revision" ) . ".xml";
-		$in_file = "$local_path/$filename";
-	}
-	elsif( $parent->isa( "EPrints::DataObj::EPrint" ) )
-	{
-		$local_path = $parent->local_path;
-		$in_file = "$local_path/$filename";
-	}
-	else
-	{
-		# Gawd knows?!
-	}
-
-	return( $local_path, $in_file );
+	return &EPrints::Plugin::Storage::get_local_copy( @_ );
 }
 
 =back

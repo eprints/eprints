@@ -51,9 +51,9 @@ sub get_system_field_info
 
 		{ name=>"expires", type=>"int", required=>1 },
 
-		{ name=>"size", type=>"int", required=>1 },
+		{ name=>"size", type=>"bigint", required=>1 },
 
-		{ name=>"received", type=>"int", required=>1 },
+		{ name=>"received", type=>"bigint", required=>1 },
 	);
 }
 

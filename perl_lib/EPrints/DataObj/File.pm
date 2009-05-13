@@ -236,7 +236,7 @@ sub get_system_field_info
 
 		{ name=>"hash_type", type=>"text", },
 
-		{ name=>"filesize", type=>"int", },
+		{ name=>"filesize", type=>"bigint", },
 
 		{ name=>"mtime", type=>"time", },
 
@@ -558,9 +558,25 @@ sub add_plugin_copy
 	$self->commit();
 }
 
+=item $stored->remove_plugin_copy( $plugin )
+
+Remove the copy of this file stored using $plugin.
+
+=cut
+
+sub remove_plugin_copy
+{
+	my( $self, $plugin ) = @_;
+
+	my $copies = EPrints::Utils::clone( $self->get_value( "copies" ) );
+	@$copies = grep { $_->{pluginid} ne $plugin->get_id } @$copies;
+	$self->set_value( "copies", $copies );
+	$self->commit();
+}
+
 =item $success = $stored->get_file( CALLBACK )
 
-Retrieve a file handle to the stored file (this is a wrapper around L<EPrints::Storage>::retrieve).
+Get the contents of the stored file - see L<EPrints::Storage>::retrieve().
 
 =cut
 
@@ -571,9 +587,9 @@ sub get_file
 	return $self->{session}->get_storage->retrieve( $self, $f );
 }
 
-=item $content_length = $stored->set_file( $fh, $content_length )
+=item $content_length = $stored->set_file( CALLBACK, $content_length )
 
-Reads the content of $fh to EOF and stores it. Sets the hash and filesize.
+Reads data from CALLBACK and stores it. Sets the hash and filesize.
 
 Returns undef and sets the filesize to 0 if the write failed.
 

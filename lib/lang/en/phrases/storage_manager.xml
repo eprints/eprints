@@ -6,6 +6,9 @@
         <epp:phrase id="Plugin/Screen/Admin/StorageManager:title">Storage Manager</epp:phrase>
         <epp:phrase id="Plugin/Screen/Admin/StorageManager:description">Manage your repositories hybrid storage setup, including migration of files.</epp:phrase>
 
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:store_summary">There are <epc:pin name="total"/> total files stored using this back-end, taking <epc:pin name="human_bytes"/>.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:migrate">Copy to</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:delete">Delete Copies</epp:phrase>
         
 	<!-- Platforms -->
 	
