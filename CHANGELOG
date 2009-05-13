@@ -8216,3 +8216,5 @@ EPRINTS-3.1-beta-2
 2009-05-13 tdb
  * Added ability to change the order documents are shown in
 
+2009-05-13 cjg
+ * Cleanup and bugfixes on new Search::Condition objects.

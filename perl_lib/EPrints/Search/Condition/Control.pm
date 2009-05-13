@@ -59,37 +59,15 @@ sub optimise
 
 
 
-	# strip passes or become a canpass if all pass
-	my $canpass = 1; 
-	my $mustpass = 0;
-	my @passops = ();
+	# strip passes 
 	my @sureops = ();
 	foreach my $sub_op ( @{$tree->{sub_ops}} )
 	{
-		if( $sub_op->{op} eq "PASS" )
-		{
-			$mustpass = 1;
-			next;
-		}
-		if( $sub_op->{op} eq "CANPASS" )
-		{
-			push @passops, $sub_op->{sub_ops}->[0];
-			next;
-		}
+		next if( $sub_op->{op} eq "PASS" );
 		push @sureops, $sub_op;
-		$canpass = 0;
 	}
-	if( $canpass )
-	{
-		$tree->{sub_ops} = \@passops;
-	}
-	else
-	{
-		$tree->{sub_ops} = \@sureops;
-	}
-	
 
-
+	$tree->{sub_ops} = \@sureops;
 
 	# flatten sub opts with the same type
 	# so OR( A, OR( B, C ) ) becomes OR(A,B,C)
@@ -122,11 +100,6 @@ sub optimise
 	if( scalar @{$tree->{sub_ops}} == 1 )
 	{
 		return $tree->{sub_ops}->[0];
-	}
-
-	if( $canpass || $mustpass )
-	{
-		return EPrints::Search::Condition::CanPass->new( $tree );
 	}
 
 	return $tree;

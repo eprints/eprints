@@ -67,7 +67,6 @@ use strict;
 
 use EPrints::Search::Condition::True;
 use EPrints::Search::Condition::False;
-use EPrints::Search::Condition::CanPass;
 use EPrints::Search::Condition::Pass;
 use EPrints::Search::Condition::And;
 use EPrints::Search::Condition::Or;
@@ -102,7 +101,6 @@ sub new
 	if( $op eq "TRUE" ) { return EPrints::Search::Condition::True->new( @params ); }
 	if( $op eq "FALSE" ) { return EPrints::Search::Condition::False->new( @params ); }
 	if( $op eq "PASS" ) { return EPrints::Search::Condition::Pass->new( @params ); }
-	if( $op eq "CANPASS" ) { return EPrints::Search::Condition::CanPass->new( @params ); }
 	if( $op eq "AND" ) { return EPrints::Search::Condition::And->new( @params ); }
 	if( $op eq "OR" ) { return EPrints::Search::Condition::Or->new( @params ); }
 	if( $op eq "index" ) { return EPrints::Search::Condition::Index->new( @params ); }
@@ -250,29 +248,6 @@ sub get_tables
 	return \@f;	
 }
 
-######################################################################
-=pod
-
-=item $bool = $scond->is_comparison
-
-Return true if the OP is one of =, >, <, >=, <=
-
-=cut
-######################################################################
-
-sub is_comparison
-{
-	my( $self ) = @_;
-
-	return( 1 ) if( $self->{op} eq "=" );
-	return( 1 ) if( $self->{op} eq "<=" );
-	return( 1 ) if( $self->{op} eq ">=" );
-	return( 1 ) if( $self->{op} eq "<" );
-	return( 1 ) if( $self->{op} eq ">" );
-
-	return( 0 );
-}
-
 
 ######################################################################
 =pod
@@ -319,21 +294,6 @@ sub process
 	my( $self, $session, $i, $filter ) = @_;
 
 	EPrints::abort( "process needs to be subclassed" );
-#print STDERR "PROCESS: ".("  "x$i).$self->describe;
-
-	$i = 0 unless( defined $i );
-	my $database = $session->get_database;
-	my $tables = $self->get_tables( $session );
-	my $keyfield = $self->{dataset}->get_key_field();
-	my $sql_col = $self->{field}->get_sql_name;
-
-	my $r = [];
-
-	if( $self->is_comparison )
-	{
-	}
-
-	return $r;
 }
 
 sub run_tables
