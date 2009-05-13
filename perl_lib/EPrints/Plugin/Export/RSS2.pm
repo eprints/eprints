@@ -209,7 +209,7 @@ sub render_doc_media_content
 	{
 		$frag->appendChild( $session->make_element( "media:content", 
 			url => $preview->get_url,
-			type => $thumbnail->mime_type,
+			type => $preview->mime_type,
 		) );
 	}
 
