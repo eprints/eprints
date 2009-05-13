@@ -105,7 +105,7 @@ sub render_option
 
 	# if the option is empty, and no explicit phrase is defined, print 
 	# UNDEFINED rather than an error phrase.
-	if( $option eq "" && !$session->get_lang->has_phrase( $phrasename ) )
+	if( $option eq "" && !$session->get_lang->has_phrase( $phrasename, $session ) )
 	{
 		$phrasename = "lib/metafield:unspecified";
 	}

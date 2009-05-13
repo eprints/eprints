@@ -336,7 +336,7 @@ sub update_view_menu
 	{
 		$phrase_id.= "/".join( "/", @{$path_values} );
 	}
-	unless( $session->get_lang()->has_phrase( $phrase_id ) )
+	unless( $session->get_lang()->has_phrase( $phrase_id, $session ) )
 	{
 		$phrase_id = "bin/generate_views:intro";
 	}
@@ -368,7 +368,7 @@ sub update_view_menu
 	my $title;
 	my $title_phrase_id = "viewtitle_".$ds->confid()."_".$view->{id}."_menu_".( $menu_level + 1 );
 
-	if( $session->get_lang()->has_phrase( $title_phrase_id ) && defined $esc_path_values )
+	if( $session->get_lang()->has_phrase( $title_phrase_id, $session ) && defined $esc_path_values )
 	{
 		my %o = ();
 		for( my $i = 0; $i < scalar( @{$esc_path_values} ); ++$i )
@@ -761,7 +761,7 @@ sub update_view_list
 		my $title;
 		my $phrase_id = "viewtitle_".$ds->confid()."_".$view->{id}."_list";
 	
-		if( $session->get_lang()->has_phrase( $phrase_id ) )
+		if( $session->get_lang()->has_phrase( $phrase_id, $session ) )
 		{
 			my %o = ();
 			for( my $i = 0; $i < scalar( @{$esc_path_values} ); ++$i )
@@ -784,7 +784,7 @@ sub update_view_list
 				$o{"value".($i+1)} = $menu_fields[0]->render_single_value( $session, $value);
 			}		
 			my $grouping_phrase_id = "viewgroup_".$ds->confid()."_".$view->{id}."_".$opts->{filename};
-			if( $session->get_lang()->has_phrase( $grouping_phrase_id ) )
+			if( $session->get_lang()->has_phrase( $grouping_phrase_id, $session ) )
 			{
 				$o{"grouping"} = $session->html_phrase( $grouping_phrase_id );
 			}
@@ -861,7 +861,7 @@ sub update_view_list
 
 				my $group;
 				my $phrase_id = "viewgroup_".$ds->confid()."_".$view->{id}."_".$opts2->{filename};
-				if( $session->get_lang()->has_phrase( $phrase_id ) )
+				if( $session->get_lang()->has_phrase( $phrase_id, $session ) )
 				{
 					$group = $session->html_phrase( $phrase_id );
 				}
@@ -908,7 +908,7 @@ sub update_view_list
 			$intro_phrase_id.= "/".join( "/", @{$esc_path_values} );
 		}
 		my $intro = "";
-		if( $session->get_lang()->has_phrase( $intro_phrase_id ) )
+		if( $session->get_lang()->has_phrase( $intro_phrase_id, $session ) )
 		{
 			$intro = EPrints::XML::to_string( $session->html_phrase( $intro_phrase_id ), undef, 1 );
 		}

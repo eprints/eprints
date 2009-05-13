@@ -133,7 +133,7 @@ sub render
 
 	my $user = $session->current_user;
 
-	if( $session->get_lang->has_phrase( $self->html_phrase_id( "intro" ) ) )
+	if( $session->get_lang->has_phrase( $self->html_phrase_id( "intro" ), $session ) )
 	{
 		my $intro_div_outer = $session->make_element( "div", class => "ep_toolbox" );
 		my $intro_div = $session->make_element( "div", class => "ep_toolbox_content" );

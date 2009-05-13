@@ -8218,3 +8218,6 @@ EPRINTS-3.1-beta-2
 
 2009-05-13 cjg
  * Cleanup and bugfixes on new Search::Condition objects.
+
+2009-05-13 cjg
+ * Added $session to has_phrase calls.

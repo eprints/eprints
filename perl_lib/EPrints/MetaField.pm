@@ -677,13 +677,13 @@ sub render_value_actual
 			my $phrase = "lib/metafield:join_".$self->get_type;
 			my $basephrase = $phrase;
 			if( $i == 1 && $session->get_lang->has_phrase( 
-						$basephrase.".first" ) ) 
+						$basephrase.".first", $session ) ) 
 			{ 
 				$phrase = $basephrase.".first";
 			}
 			if( $i == scalar(@$value)-1 && 
 					$session->get_lang->has_phrase( 
-						$basephrase.".last" ) ) 
+						$basephrase.".last", $session ) ) 
 			{ 
 				$phrase = $basephrase.".last";
 			}
@@ -1948,7 +1948,7 @@ sub render_xml_schema
 
 	my $phraseid = $self->{dataset}->confid . "_fieldname_" . $self->get_name;
 	my $helpid = $self->{dataset}->confid . "_fieldhelp_" . $self->get_name;
-	if( $session->get_lang->has_phrase( $phraseid ) )
+	if( $session->get_lang->has_phrase( $phraseid, $session ) )
 	{
 		my $annotation = $session->make_element( "xs:annotation" );
 		$element->appendChild( $annotation );
@@ -1956,7 +1956,7 @@ sub render_xml_schema
 		$annotation->appendChild( $documentation );
 		$documentation->appendChild( $session->make_text( "\n" ) );
 		$documentation->appendChild( $session->make_text( $session->phrase( $phraseid ) ) );
-		if( $session->get_lang->has_phrase( $helpid ) )
+		if( $session->get_lang->has_phrase( $helpid, $session ) )
 		{
 			$documentation->appendChild( $session->make_text( "\n\n" ) );
 			$documentation->appendChild( $session->make_text( $session->phrase( $helpid ) ) );
