@@ -306,7 +306,7 @@ sub _resolve_symlinks
 	if( grep { $_->get_value( "path" ) eq $vfs->get_value( "path" ) } @stack )
 	{
 		$vfs->remove();
-		EPrints::abort "Circular symlink relation resulted in symlink removal";
+		EPrints::abort("Circular symlink relation resulted in symlink removal");
 	}
 
 print STDERR "\tSYMLINK(".$vfs->get_value( "path" ) . ") => $target\n" if DEBUG;
@@ -451,7 +451,7 @@ sub datetime_to_unixtime
 {
 	unless( $_[0] =~ /^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)$/ )
 	{
-		EPrints::abort "Expected yyyymmddHHMMSS, got $_[0]";
+		EPrints::abort("Expected yyyymmddHHMMSS, got $_[0]");
 	}
 	return Time::Local::timegm($6,$5,$4,$3,$2-1,$1-1900);
 }
