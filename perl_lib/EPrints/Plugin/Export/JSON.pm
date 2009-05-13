@@ -1,17 +1,10 @@
 package EPrints::Plugin::Export::JSON;
 
-use Unicode::String qw( utf8 );
+use EPrints::Plugin::Export::TextFile;
 
-use EPrints::Plugin::Export;
-
-@ISA = ( "EPrints::Plugin::Export" );
+@ISA = ( "EPrints::Plugin::Export::TextFile" );
 
 use strict;
-
-# The utf8() method is called to ensure that
-# any broken characters are removed. There should
-# not be any broken characters, but better to be
-# sure.
 
 sub new
 {
