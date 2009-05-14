@@ -163,28 +163,34 @@ sub render_eprint_media_content
 
 	my $session = $self->{session};
 
-	my $doc;
-
 	if( $session->get_repository->can_call( "eprint_rss_media_doc" ) )
 	{
-		$doc = $session->get_repository->call(
+		my $doc = $session->get_repository->call(
 				"eprint_rss_media_doc",
 				$dataobj,
 				$self
 			);
+
+		if( !defined $doc )
+		{
+			return $session->make_doc_fragment;
+		}
+
+		return $self->render_doc_media_content( $doc );
 	}
 	else
 	{
 		my @docs = $dataobj->get_all_documents();
 
-		@docs = grep { $_->is_public() } @docs;
+		foreach my $doc (@docs)
+		{
+			next unless $doc->is_public();
+			my $media = $self->render_doc_media_content( $doc );
+			return $media if $media->hasChildNodes;
+		}
 
-		$doc = $docs[0];
+		return $session->make_doc_fragment;
 	}
-
-	return $session->make_doc_fragment unless defined $doc;
-
-	return $self->render_doc_media_content( $doc );
 }
 
 sub render_doc_media_content
