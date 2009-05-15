@@ -444,6 +444,11 @@ print CONF <<END;
   # You must add $http_root/archive/ to rewrite_exceptions in cfg.d/urls.pl
   Redirect $http_root/archive/ http://$hostport$http_root/
 
+  <Location "/sword-app/atom">
+      SetHandler perl-script
+      PerlResponseHandler EPrints::Sword::AtomHandler
+  </Location>
+
   <Location "$http_root/sword-app/deposit">
     SetHandler perl-script
     PerlResponseHandler EPrints::Sword::DepositHandler

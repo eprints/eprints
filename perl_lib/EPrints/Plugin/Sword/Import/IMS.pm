@@ -1,51 +1,26 @@
-######################################################################
-#
-# EPrints::Plugin::Sword::Import::IMS
-#
-######################################################################
-#
-#  __COPYRIGHT__
-#
-# Copyright 2000-2008 University of Southampton. All Rights Reserved.
-# 
-#  __LICENSE__
-#
-######################################################################
-
-######################################################################
-#
-# PURPOSE:
-#	
-#	This is a basic importer for IMS. It can parse a minimal
-#	amount of metadata and attached files.
-#
-# METHODS:
-#
-# input_files( $plugin, %opts ):
-#       The method called by DepositHandler. The %opts hash contains
-#       information on which files to import.
-#
-######################################################################
-
 package EPrints::Plugin::Sword::Import::IMS;
 
 use strict;
 
-use EPrints::Plugin::Import::TextFile;
+use EPrints::Plugin::Sword::Import;
+our @ISA = qw/ EPrints::Plugin::Sword::Import /;
 
-our @ISA = qw/ EPrints::Plugin::Import::TextFile /;
+our %SUPPORTED_MIME_TYPES =
+(
+        "application/zip" => 1,
+);
+
+our %UNPACK_MIME_TYPES =
+(
+        "application/zip" => "Sword::Unpack::Zip",
+);
 
 sub new
 {
 	my( $class, %params ) = @_;
-
 	my $self = $class->SUPER::new( %params );
-
 	$self->{name} = "SWORD Importer - IMS";
 	$self->{visible} = "all";
-	
-	$self->{accept} = "text/xml";
-
 	return $self;
 }
 
@@ -56,28 +31,73 @@ sub input_file
 
 	my $session = $plugin->{session};
 
-	my $input_files = $opts{files};
-	
-	# Let's find the XML file first:
-	my $infile = EPrints::Sword::Utils::get_file_to_import( $session, $input_files, "text/xml" );
+        my $mime = $opts{mime_type};
+        my $file = $opts{file};
+        my $NO_OP = $opts{no_op};
 
-	return unless(defined $infile);
+        # Let's find the XML file to import:
+        unless( defined $SUPPORTED_MIME_TYPES{$mime} )
+        {
+                $plugin->add_verbose( "[ERROR] unknown MIME TYPE '$mime'." );
+                $plugin->set_status_code( 415 );
+                return undef;
+        }
+
+        my $unpacker = $UNPACK_MIME_TYPES{$mime};
+
+        my $tmp_dir;
+
+        if( defined $unpacker )
+        {
+                $tmp_dir = EPrints::TempDir->new( "swordXXX", UNLINK => 1 );
+
+                if( !defined $tmp_dir )
+                {
+                        print STDERR "\n[SWORD-DEPOSIT] [INTERNAL-ERROR] Failed to create the temp directory!";
+                        $plugin->add_verbose( "[INTERNAL ERROR] failed to create the temp directory." );
+                        $plugin->set_status_code( 500 );
+                        return undef;
+                }
+
+                my $files = $plugin->unpack_files( $unpacker, $file, $tmp_dir );
+                unless(defined $files)
+                {
+                        $plugin->add_verbose( "[ERROR] failed to unpack the files." );
+                        return undef;
+                }
+
+                my $candidates = $plugin->get_files_to_import( $files, "text/xml" );
+
+                if(scalar(@$candidates) == 0)
+                {
+                        $plugin->add_verbose( "[ERROR] could not find the XML file." );
+                        $plugin->set_status_code( 400 );
+                        return undef;
+                }
+                elsif(scalar(@$candidates) > 1)
+                {
+                        $plugin->add_verbose( "[WARNING] there were more than one XML files in this archive. I am using the first one." );
+                }
+
+                $file = $$candidates[0];
+        }
+
 
 	my $dataset_id = $opts{dataset_id};
 	my $owner_id = $opts{owner_id};
 	my $depositor_id = $opts{depositor_id};
-
+	
 	my $fh;
-	if( !open( $fh, $infile ) )
-	{
-		print STDERR "\nI couldnt open the file: $infile";
-		return;
-	}
-
+        if( !open( $fh, $file ) )
+        {
+                $plugin->add_verbose( "ERROR: couldnt open the file: '$file' because '$!'" );
+                $plugin->set_status_code( 500 );
+                return undef;
+        }
 
 	# hack to find out in which directory the XML file is located (useful later..)
         my $unpack_dir;
-        my $fntmp = $infile;
+        my $fntmp = $file;
 
         if( $fntmp =~ /^(.*)\/(.*)$/ )
         {
@@ -85,20 +105,22 @@ sub input_file
                 $fntmp = $2;
         }
 
-
 	my $xml;
 	while( my $d = <$fh> )
 	{ 
 		$xml .= $d 
 	}
 
-
 	my $dataset = $session->get_archive()->get_dataset( $dataset_id );
+        
 	if(!defined $dataset)
-	{
-		print STDERR "\n[SWORD-IMS] [INTERNAL-ERROR] Failed to open the dataset '$dataset_id'.";
-		return;
-	}
+        {
+                print STDERR "\n[SWORD-METS] [INTERNAL-ERROR] Failed to open the dataset '$dataset_id'.";
+                $plugin->add_verbose( "ERROR: failed to open the dataset '$dataset_id'" );
+                $plugin->set_status_code( 500 );
+                return undef;
+        }
+
 
 	my $dom_doc;
 	eval
@@ -108,27 +130,50 @@ sub input_file
 
 	if($@ || !defined $dom_doc)
 	{
-		print STDERR "\n[SWORD-IMS] [ERROR] Couldnt parse the xml.";
-		return;
-	}
+                $plugin->add_verbose( "[ERROR] failed to parse the xml ($@)." );
+                $plugin->set_status_code( 400 );
+                return;
+        }
 
 	# Need to find the right sections in XML. We return 'undef' anytime a sub-section is not found.
 	my $dom_top = $dom_doc->getDocumentElement;
-	return unless defined( $dom_top );
+	unless( defined $dom_top )
+        {
+                $plugin->set_status_code( 400 );
+                $plugin->add_verbose( "[ERROR] failed to parse the xml: missing top element." );
+                return;
+        }
 
 	my $metadata = ($dom_top->getElementsByTagName( "metadata" ))[0];
-	return unless defined( $metadata );
+	unless( defined $metadata )
+        {
+                $plugin->set_status_code( 400 );
+                $plugin->add_verbose( "[ERROR] failed to parse the xml: no <metadata> tag found." );
+                return;
+        }
 
 	my $lom = ($metadata->getElementsByTagName( "lom" ))[0];
-	return unless defined( $lom );
+	unless( defined $lom )
+        {
+                $plugin->set_status_code( 400 );
+                $plugin->add_verbose( "[ERROR] failed to parse the xml: no <lom> tag found." );
+                return;
+        }
 
 	my $general = ($lom->getElementsByTagName( "general" ))[0];
-	return unless defined( $general );
+	unless( defined $general )
+        {
+                $plugin->set_status_code( 400 );
+                $plugin->add_verbose( "[ERROR] failed to parse the xml: no <general> tag found." );
+                return;
+        }
 
 	my $title_wrap = ($general->getElementsByTagName( "title" ))[0];
-	return unless defined( $title_wrap );
-
-	my $title = ($title_wrap->getElementsByTagName( "langstring" ))[0];
+	my $title;
+	if( defined $title_wrap )
+        {
+		$title = ($title_wrap->getElementsByTagName( "langstring" ))[0];
+        }
 
 	my $epdata = {};
 
@@ -152,19 +197,34 @@ sub input_file
 
 	# looking for files to import...
 	my @files;
-
-	foreach my $node ( $resources->getChildNodes )
+	if( defined $resources )
 	{
-		next if( !EPrints::XML::is_dom( $node, "Element" ) );
-
-		if($node->tagName eq 'resource')
+		foreach my $node ( $resources->getChildNodes )
 		{
-			my $file = ($node->getElementsByTagName( "file" ))[0];
-			next unless defined $file;
-			my $file_loc = $file->getAttribute( "href" );
-			next unless defined $file_loc;
-			push @files, $file_loc;
+			next if( !EPrints::XML::is_dom( $node, "Element" ) );
+
+			if($node->tagName eq 'resource')
+			{
+				my $file = ($node->getElementsByTagName( "file" ))[0];
+				next unless defined $file;
+				my $file_loc = $file->getAttribute( "href" );
+				next unless defined $file_loc;
+				push @files, $file_loc;
+			}
 		}
+	}
+	else
+	{
+		$plugin->add_verbose( "[WARNING] no <resources> tag found: no files will be imported." );
+	}
+
+
+	if( $NO_OP )
+	{
+		# should stop there!
+                $plugin->add_verbose( "[OK] Plugin - import successful (but in No-Op mode)." );
+                $plugin->set_status_code( 200 );
+		return;
 	}
 
 	if(defined $depositor_id)
@@ -180,15 +240,31 @@ sub input_file
 	$epdata->{eprint_status} = $dataset_id;
 
 	my $eprint = $dataset->create_object( $plugin->{session}, $epdata );
-	
-	return unless( defined $eprint );
-	
+
+        unless(defined $eprint)
+        {
+                $plugin->set_status_code( 500 );
+                $plugin->add_verbose( "[ERROR] failed to create the EPrint object." );
+                return;
+        }
+
 	foreach my $file (@files)
 	{
 	        my %doc_data;
 	        $doc_data{eprintid} = $eprint->get_id;
+
 		# try to guess the MIME of the attached file:
-		$doc_data{format} = EPrints::Sword::FileType::checktype_filename( $unpack_dir."/".$file );
+
+               $doc_data{format} = $session->get_repository->call( 'guess_doc_type',
+                                $session,
+                                $unpack_dir."/".$file );
+
+               if( $doc_data{format} eq 'other' )
+               {
+                        my $guess2 = EPrints::Sword::FileType::checktype_filename( $unpack_dir."/".$file );
+                        $doc_data{format} = $guess2 unless( $guess2 eq 'application/octet-stream' );
+               }
+
 		$doc_data{main} = $file;
 
 	        my %file_data;
@@ -201,28 +277,34 @@ sub input_file
 
 		my $document = EPrints::DataObj::Document->create_from_data( $session, \%doc_data, $doc_dataset );
 
-		if(!defined $document)
-		{
-			print STDERR "\n[SWORD-IMS] [ERROR] Failed to add the attached file to the eprint.";
-		}
+	        if(!defined $document)
+                {
+                        $plugin->add_verbose( "[WARNING] Failed to create Document object." );
+                }
 	}
 
-	return $eprint->get_id;
+        if( $plugin->keep_deposited_file() )
+        {
+                if( $plugin->attach_deposited_file( $eprint, $opts{file}, $opts{mime_type} ) )
+                {
+                        $plugin->add_verbose( "[OK] attached deposited file." );
+                }
+                else
+                {
+                        $plugin->add_verbose( "[WARNING] failed to attach the deposited file." );
+                }
+        }
+
+	$plugin->add_verbose( "[OK] EPrint object created." );
+
+	return $eprint;
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+sub keep_deposited_file
+{
+        return 1;
+}
 
 
 1;
