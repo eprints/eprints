@@ -40,11 +40,15 @@ sub serve_top_level
 	if( @path == 1 && $path[0] eq "" )
 	{
 		$session->send_http_header( "content_type"=>"text/html" );
-		print render_html( <<END );
-<ul>
-<li><a href="eprint/">eprint/</a></li>
-</ul>
-END
+		my @ds_ids = $session->get_repository->get_dataset_ids;
+		print "<ul>\n";
+		foreach my $ds_id ( @ds_ids )
+		{
+			my $dataset = $session->get_repository->get_dataset( $ds_id );
+			next if $dataset->confid ne $ds_id;
+			print "<li><a href='$ds_id/'>$ds_id</a></li>\n";
+		}
+		print "</ul>\n";
 		return;
 	}
 
@@ -111,9 +115,15 @@ sub serve_dataset
 		if( defined $format && $format eq "xml" )
 		{
 			return unless allowed_methods( $session, "GET","PUT" );
-			$session->send_http_header( "content_type"=>"text/xml" );
-			print "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
-			print $object->export( "XML" );
+			my $method = $ENV{REQUEST_METHOD};
+			if( $method eq "GET" )
+			{
+				get_dataobj_xml( $session, $object );
+			}
+			if( $method eq "PUT" )
+			{
+				put_dataobj_xml( $session, $object );
+			}
 			return;
 		}
 
@@ -136,6 +146,8 @@ sub serve_dataset
 sub serve_dataobj
 {
 	my( $session, $object, @path ) = @_;
+
+	return unless allow_priv( $object->get_dataset->confid."/view", $session, $object );
 
 	my $file = shift @path;
 	
@@ -190,8 +202,15 @@ sub serve_dataobj
 			{
 				# /title.txt
 				return unless allowed_methods( $session, "GET","PUT" );
-				$session->send_http_header( "content_type"=>"text/plain" );
-				print $object->get_value( $field_name );
+				my $method = $ENV{REQUEST_METHOD};
+				if( $method eq "GET" )
+				{
+					get_field_txt( $session, $object, $field );
+				}
+				if( $method eq "PUT" )
+				{
+					put_field_txt( $session, $object, $field );
+				}
 				return;
 			}	
 		}
@@ -200,9 +219,15 @@ sub serve_dataobj
 		{
 			# /title.xml
 			return unless allowed_methods( $session, "GET","PUT" );
-			$session->send_http_header( "content_type"=>"text/xml" );
-			print "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
-			print EPrints::XML::to_string( $field->to_xml( $session, $object->get_value( $field_name ), $object->get_dataset ));
+			my $method = $ENV{REQUEST_METHOD};
+			if( $method eq "GET" )
+			{
+				get_field_xml( $session, $object, $field );
+			}
+			if( $method eq "PUT" )
+			{
+				put_field_xml( $session, $object, $field );
+			}
 			return;
 		}	
 
@@ -240,13 +265,18 @@ sub serve_field
 		# /
 		if( $file eq "" )
 		{
-			return unless allowed_methods( $session, "GET","PUT" );
+			return unless allowed_methods( $session, "GET" );
 			my $c = "<ul>";
 			$c.= "<li><a href='size.txt'>size.txt</a></li>";
 			for( my $i=0; $i<scalar @{$value}; ++$i )
 			{
 				my $n = $i + 1;
- 				if( $field->is_type( "compound","subobject","name" ) )
+ 				if( $field->is_type( "subobject" ) )
+				{
+					$c.="<li><a href='$n/'>$n/</a></li>";
+					$c.="<li><a href='$n.xml'>$n.xml/</a></li>";
+				}
+ 				elsif( $field->is_type( "compound","name" ) )
 				{
 					$c.="<li><a href='$n/'>$n/</a></li>";
 				}
@@ -269,8 +299,16 @@ sub serve_field
 			return;
 		}
 	
-	
 		my( $n, $format ) = split( /\./, $file, 2 );
+
+		if( $format eq "xml" && $field->is_type( "subobject" ) )
+		{
+			return unless allowed_methods( $session, "GET","PUT" );
+			$session->send_http_header( "content_type"=>"text/xml" );
+			print "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
+			print $object->export( "XML" );
+			return;
+		}
 
 		if( !EPrints::Utils::is_set( $value->[$n-1] ) )
 		{
@@ -523,3 +561,122 @@ sub allowed_methods
 
 	return 0;
 }
+
+sub get_dataobj_xml
+{
+	my( $session, $object ) = @_;
+
+	return unless allow_get_dataobj( $object->get_dataset->confid."/view", $session, $object );
+
+	$session->send_http_header( "content_type"=>"text/xml" );
+	print "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
+	print $object->export( "XML" );
+}
+
+sub put_dataobj_xml
+{
+	my( $session, $object ) = @_;
+
+	return unless allow_priv( $object->get_dataset->confid."/staff/edit", $session, $object );
+
+	$session->send_http_header( "content_type"=>"text/plain" );
+	print "NOT DONE YET\n";
+}
+
+sub get_field_txt
+{
+	my( $session, $object, $field ) = @_;
+
+	return unless allow_priv( $object->get_dataset->confid."/view", $session, $object );
+
+	$session->send_http_header( "content_type"=>"text/plain" );
+	print $object->get_value( $field->get_name );
+}
+
+sub get_field_xml
+{
+	my( $session, $object, $field ) = @_;
+
+	return unless allow_priv( $object->get_dataset->confid."/view", $session, $object );
+
+	$session->send_http_header( "content_type"=>"text/xml" );
+	print "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
+	print EPrints::XML::to_string( $field->to_xml( $session, $object->get_value( $field->get_name ), $object->get_dataset ));
+}
+
+sub put_field_xml
+{
+	my( $session, $object, $field ) = @_;
+
+	if( $field->get_name eq $object->get_dataset->get_key_field->get_name || $field->get_name eq "rev_number" )
+	{
+		my $r = $session->get_request;
+		EPrints::Apache::AnApache::send_status_line( $r, 403, "Forbidden" );
+	}
+	return unless allow_priv( $object->get_dataset->confid."/staff/edit", $session, $object );
+
+	$session->send_http_header( "content_type"=>"text/plain" );
+	print "NOT DONE YET\n";
+}
+
+sub put_field_txt
+{
+	my( $session, $object, $field ) = @_;
+
+	if( $field->get_name eq $object->get_dataset->get_key_field->get_name || $field->get_name eq "rev_number" )
+	{
+		my $r = $session->get_request;
+		EPrints::Apache::AnApache::send_status_line( $r, 403, "Forbidden" );
+	}
+	return unless allow_priv( $object->get_dataset->confid."/staff/edit", $session, $object );
+
+	$object->set_value( $field->get_name, $session->{putdata} );
+	$object->commit;
+	$session->send_http_header( "content_type"=>"text/plain" );
+	print "OK\n";
+}
+
+sub allow_priv
+{
+	my( $priv, $session, $object ) = @_;
+
+	if( $priv =~ m/^eprint\// )
+	{
+		my $status = $object->get_value( "eprint_status" );
+		$priv =~ s/^eprint\//eprint\/$status\//;	
+	}
+
+	return 1 if( $session->allow_anybody( $priv ) );
+	return 1 if( $priv eq "eprint/archive/view" );
+
+	my $r = $session->get_request;
+	$r->auth_type( "Basic" );
+	$r->auth_name( "EPrintsREST" );
+	my ($status, $password) = $r->get_basic_auth_pw;
+	my $username = $r->user;
+
+	if( !$session->valid_login( $username, $password ) )
+	{
+		$r->note_basic_auth_failure;
+		EPrints::Apache::AnApache::send_status_line( $r, 401, "Auth Required" );
+		return 0;
+	}
+
+	my $user = EPrints::DataObj::User::user_with_username( $session, $username );
+
+	if( !defined $user )
+	{
+		print STDERR "Unknown user.\n";
+		return 0;
+	}
+
+	if( !$user->allow( $priv, $object ) )
+	{
+		EPrints::Apache::AnApache::send_status_line( $r, 403, "Forbidden" );
+		return 0;
+	}
+
+	return 1;
+}
+
+

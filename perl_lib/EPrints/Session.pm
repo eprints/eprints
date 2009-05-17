@@ -3192,6 +3192,7 @@ sub read_params
 	my $progressid = ($uri =~ /progress_id=([a-fA-F0-9]{32})/)[0];
 
 	my $c = $r->connection;
+
 	my $params = $c->notes->get( "loginparams" );
 	if( defined $params && $params ne 'undef')
 	{
@@ -3223,6 +3224,15 @@ sub read_params
 			$progress->set_value( "received", $size );
 			$progress->commit;
 		}
+	}
+	elsif( $r->method eq "PUT" )
+	{
+		my $buffer;
+		while( $r->read( $buffer, 1024*1024 ) )
+		{
+			$self->{putdata} .= $buffer;
+		}
+ 		$self->{query} = new CGI();
 	}
 	else
 	{
