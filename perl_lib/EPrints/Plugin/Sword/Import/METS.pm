@@ -103,7 +103,6 @@ sub input_file
 		return;
 	}
 
-	# Hack to find out in which directory the XML file is located (useful later when the documents are created)
 	my $unpack_dir;
 	my $fntmp;
 
@@ -132,7 +131,6 @@ sub input_file
 		$plugin->set_status_code( 500 );
 		return;
 	}
-
 
         my $dom_doc;
         eval
@@ -290,10 +288,10 @@ sub input_file
 	       }
 		
 		$doc_data{main} = $file;
-
+		local $session->get_repository->{config}->{enable_file_imports} = 1;
 	        my %file_data;
 	       	$file_data{filename} = $file;
-		$file_data{data} = $unpack_dir."/".$file;
+		$file_data{url} = "file://$unpack_dir/$file";
 
         	$doc_data{files} = [ \%file_data ];
 

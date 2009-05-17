@@ -41,7 +41,6 @@ sub input_file
 	my $file = $opts{file};
 	my $mime = $opts{mime_type};
 
-        # if $NO_OP (No Operation) is set then we don't really need to import
         my $NO_OP = $opts{no_op};
         my $VERBOSE = $opts{verbose};
 

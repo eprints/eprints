@@ -22,7 +22,7 @@ sub new
 	return $self;
 }
 
-
+###	sub input_file( $plugin, %opts )
 ###        $opts{file} = $file;
 ###        $opts{mime_type} = $headers->{content_type};
 ###        $opts{dataset_id} = $target_collection;
@@ -78,7 +78,7 @@ sub unpack_files
                 $$files[$i] = $tmp_dir."/content/".$$files[$i];
         }
 
-		$self->add_verbose( "[OK] archive decompressed." );
+	$self->add_verbose( "[OK] archive decompressed." );
 
         return $files;
 }
@@ -164,7 +164,6 @@ sub get_verbose
 	return (defined $self->{verbose}) ? $self->{verbose} : "";
 }
 
-
 # this method should be overridden by custom plugins:
 sub keep_deposited_file
 {
@@ -187,9 +186,11 @@ sub attach_deposited_file
 	$doc_data{formatdesc} = $self->{session}->phrase( "Sword/Deposit:document_formatdesc" );
 	$doc_data{main} = $fn;
 
+	local $self->{session}->get_repository->{config}->{enable_file_imports} = 1;
+
 	my %file_data;
 	$file_data{filename} = $fn;
-	$file_data{data} = $file;
+	$file_data{url} = "file://$file";
 
 	$doc_data{files} = [ \%file_data ];
 

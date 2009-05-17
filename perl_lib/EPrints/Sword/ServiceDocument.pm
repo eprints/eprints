@@ -27,23 +27,6 @@
 #
 ######################################################################
 
-######################################################################
-#
-# PURPOSE:
-#
-#	This is an handler called by Apache/mod_perl to provide the 
-#	Service Document for SWORD.
-#
-# METHODS:
-#
-# handler( $request )
-# 	Parameters: 	$request -> the RequestRec object sent by mod_perl.
-#
-# 	Returns:	Apache2::Const::DONE
-# 			
-#
-#####################################################################
-
 package EPrints::Sword::ServiceDocument;
 
 use EPrints;

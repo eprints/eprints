@@ -100,12 +100,14 @@ sub input_file
 		$doc_data{format} = $session->get_repository->call( "guess_doc_type", $session, $file );
 	}
 
+	local $session->get_repository->{config}->{enable_file_imports} = 1;
+
 	$doc_data{main} = $fn;
 
 	my %file_data;
-
+	
 	$file_data{filename} = $fn;
-	$file_data{data} = $file;
+	$file_data{url} = "file://$file";	
 
 	$doc_data{files} = [ \%file_data ];
 
@@ -124,7 +126,7 @@ sub input_file
 	}
 	else
 	{
-		$document->make_thumbnails();			
+		$document->make_thumbnails();
 	}
 
 	$eprint->generate_static();

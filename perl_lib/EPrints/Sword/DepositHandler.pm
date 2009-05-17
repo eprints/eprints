@@ -244,8 +244,9 @@ sub handler
 
         if (open( TMP, '+>'.$file ))
         {
-                print TMP $post;
-                close(TMP);
+		binmode( TMP );
+		print TMP $post;
+		close(TMP);
         }
         else
 	{
@@ -352,7 +353,6 @@ sub handler
 
 		if( $code == 200 )
 		{
-			# need to generate some mock XML
 			my %xml_opts;
 			$xml_opts{user_agent} = $headers->{user_agent};
 			$xml_opts{x_packaging} = $headers->{x_packaging};

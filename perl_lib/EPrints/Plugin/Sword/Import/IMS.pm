@@ -95,7 +95,6 @@ sub input_file
                 return undef;
         }
 
-	# hack to find out in which directory the XML file is located (useful later..)
         my $unpack_dir;
         my $fntmp = $file;
 
@@ -254,7 +253,6 @@ sub input_file
 	        $doc_data{eprintid} = $eprint->get_id;
 
 		# try to guess the MIME of the attached file:
-
                $doc_data{format} = $session->get_repository->call( 'guess_doc_type',
                                 $session,
                                 $unpack_dir."/".$file );
@@ -267,9 +265,11 @@ sub input_file
 
 		$doc_data{main} = $file;
 
+		local $session->get_repository->{config}->{enable_file_imports} = 1;
+
 	        my %file_data;
 	       	$file_data{filename} = $file;
-	       	$file_data{data} = $unpack_dir."/".$file;
+	       	$file_data{url} = "file://$unpack_dir/$file";
 
         	$doc_data{files} = [ \%file_data ];
 
