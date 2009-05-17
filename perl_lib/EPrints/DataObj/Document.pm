@@ -308,6 +308,8 @@ sub create_from_data
 		{
 			next;
 		}
+		$filedata->{objectid} = $document->get_id;
+		$filedata->{datasetid} = $document->get_dataset_id;
 		$filedata->{_parent} = $document;
 		my $fileobj = EPrints::DataObj::File->create_from_data(
 				$session,

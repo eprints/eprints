@@ -224,9 +224,10 @@ sub get_system_field_info
 		{ name=>"fileid", type=>"int", required=>1, import=>0, show_in_html=>0,
 			can_clone=>0, sql_counter=>"fileid" },
 
-		{ name=>"datasetid", type=>"text", text_index=>0, }, 
+		{ name=>"datasetid", type=>"text", text_index=>0, import=>0,
+			can_clone=>0 }, 
 
-		{ name=>"objectid", type=>"int", }, 
+		{ name=>"objectid", type=>"int", import=>0, can_clone=>0 }, 
 
 		{ name=>"filename", type=>"text", },
 

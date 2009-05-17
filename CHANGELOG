@@ -8226,3 +8226,7 @@ EPRINTS-3.1-beta-2
  * Added handling for PUT request data to Session
  * Added priv handling to REST interface
  * REST interface now supports PUT, on basic .txt fields.
+
+2009-05-17 tdb
+ * Fixed importing of files pointing to the wrong parent object.
+
