@@ -566,7 +566,7 @@ sub get_dataobj_xml
 {
 	my( $session, $object ) = @_;
 
-	return unless allow_get_dataobj( $object->get_dataset->confid."/view", $session, $object );
+	return unless allow_priv( $object->get_dataset->confid."/view", $session, $object );
 
 	$session->send_http_header( "content_type"=>"text/xml" );
 	print "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";

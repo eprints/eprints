@@ -8230,3 +8230,5 @@ EPRINTS-3.1-beta-2
 2009-05-17 tdb
  * Fixed importing of files pointing to the wrong parent object.
 
+2009-05-17 cjg
+ * Fixed broken call in cgi/rest
