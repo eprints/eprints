@@ -2247,12 +2247,15 @@ sub upgrade_3_1_1_to_3_1_2
 			my @logic;
 			for($field->get_sql_names)
 			{
-				push @logic, "(`$_` is not Null AND `$_` != '')";
+				my $q_name = $db->quote_identifier( $_ );
+				push @logic, "($q_name is not Null AND $q_name != '')";
 			}
 			my $logic = "(" . join(" OR ", @logic) . ")";
 			for($field->get_sql_names)
 			{
-				my $sql = "UPDATE `$table` SET `$_`='' WHERE `$_` is Null AND $logic";
+				my $q_name = $db->quote_identifier( $_ );
+				my $q_table = $db->quote_identifier( $table );
+				my $sql = "UPDATE $q_table SET $q_name='' WHERE $q_name is Null AND $logic";
 				$db->do( $sql );
 			}
 		}

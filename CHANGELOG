@@ -8235,3 +8235,7 @@ EPRINTS-3.1-beta-2
 
 2009-05-17 sf
  * Fixed file corruption problem on SWORD + removed some commnents
+
+2009-05-26 tdb
+ * Fixed MySQL-quoted commands in epadmin upgrade [Alexander Bergolth]
+
