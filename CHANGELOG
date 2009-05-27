@@ -8242,7 +8242,12 @@ EPRINTS-3.1-beta-2
 2009-05-27 tdb
  * Fixed login page not using phrase for title
 
-2009-05-29 tdb
+2009-05-27 tdb
  * Fixed spurious history objects being created on document upload
  * Modified DataObj to clear changed fields after commit
+
+2009-05-27 tdb
+ * To supply file data to a File object use "_content", which can take
+    a sub, file handle or scalar reference.
+ * Storage controller will now write content to all configured plugins
 

@@ -1440,7 +1440,7 @@ sub add_stored_file
 
 	$file = EPrints::DataObj::File->create_from_data( $self->{session}, {
 		_parent => $self,
-		_filehandle => $filehandle,
+		_content => $filehandle,
 		filename => $filename,
 		filesize => $filesize,
 	}, $self->{session}->get_repository->get_dataset( "file" ) );

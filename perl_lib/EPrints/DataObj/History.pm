@@ -1167,20 +1167,17 @@ sub set_dataobj_xml
 {
 	my( $self, $dataobj ) = @_;
 
-	my $tmpfile = File::Temp->new;
-
-	binmode($tmpfile, ":utf8");
+	use bytes;
 
 	my $xml = $dataobj->to_xml;
 
-	print $tmpfile '<?xml version="1.0" encoding="utf-8" ?>'."\n";
-	print $tmpfile EPrints::XML::to_string( $xml );
+	my $data = "<?xml version='1.0' encoding='utf-8' ?>\n";
+	$data .= EPrints::XML::to_string( $xml );
+	# $data will be bytes due to "use bytes" above
 
 	EPrints::XML::dispose( $xml );
 
-	seek($tmpfile,0,0);
-
-	$self->add_stored_file( "dataobj.xml", $tmpfile, -s "$tmpfile" );
+	$self->add_stored_file( "dataobj.xml", \$data, length($data) );
 }
 
 ######################################################################

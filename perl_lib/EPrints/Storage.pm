@@ -108,9 +108,11 @@ sub get_storage_config
 	return $confhash->{$id}->{storage};
 }
 
-=item $success = $store->store( $fileobj, CODEREF )
+=item $len = $store->store( $fileobj, CODEREF )
 
 Read from and store all data from CODEREF for $fileobj. The B<filesize> field in $fileobj must be set at the expected number of bytes to read from CODEREF.
+
+Returns undef if the file couldn't be stored, otherwise the number of bytes read.
 
 =cut
 
@@ -118,24 +120,66 @@ sub store
 {
 	my( $self, $fileobj, $f ) = @_;
 
+	use bytes;
+	use integer;
+
+	my $rc = 0;
+	my $rlen = 0;
+
 	if( !$fileobj->is_set( "filesize" ) )
 	{
 		EPrints::abort( "filesize must be set before storing" );
 	}
 
-	my $rc = 0;
+	my( @writable, @errored );
 
+	# open a write for each plugin, record any plugins that error
 	foreach my $plugin ($self->get_plugins( $fileobj ))
 	{
-		if( defined(my $sourceid = $plugin->store( $fileobj, $f )) )
+		if( $plugin->open_write( $fileobj ) )
 		{
-			$rc = 1;
-			$fileobj->add_plugin_copy( $plugin, $sourceid );
+			push @writable, $plugin;
 		}
-		last; # TODO: store in multiple locations
+		else
+		{
+			push @errored, $plugin;
+		}
 	}
 
-	return $rc;
+	# nothing to do, so don't bother reading input data
+	return undef unless scalar @writable;
+
+	# copy the input data to each writable plugin
+	my( $buffer, $c );
+	while(($c = length($buffer = &$f)) > 0)
+	{
+		$rlen += $c;
+		foreach my $plugin (@writable)
+		{
+			next if $plugin->write( $fileobj, $buffer );
+
+			# a write error occurred, close and remove this plugin
+			$plugin->close_write( $fileobj );
+			@writable = grep { $_ ne $plugin } @writable;
+			push @errored, $plugin;
+		}
+	}
+
+	# close writing to each plugin
+	foreach my $plugin (@writable)
+	{
+		if( defined(my $sourceid = $plugin->close_write( $fileobj )) )
+		{
+			++$rc;
+			$fileobj->add_plugin_copy( $plugin, $sourceid );
+		}
+		else
+		{
+			push @errored, $plugin;
+		}
+	}
+
+	return $rc ? $rlen : undef;
 }
 
 =item $success = $store->retrieve( $fileobj, CALLBACK )

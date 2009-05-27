@@ -227,9 +227,9 @@ sub convert
 			filename => $filename,
 			filesize => (-s "$dir/$filename"),
 			url => "file://$dir/$filename",
-			_filehandle => $fh,
+			_content => $fh,
 		};
-		# file will take care of closing $fh for us
+		# file is closed after object creation
 	}
 
 	my $doc_ds = $session->get_repository->get_dataset( "document" );
@@ -247,6 +247,11 @@ sub convert
 			type => EPrints::Utils::make_relation( "isVolatileVersionOf" ),
 			uri => $doc->internal_uri(),
 		}] } );
+
+	for(@filedata)
+	{
+		close($_->{_content});
+	}
 
 	$new_doc->set_value( "security", $doc->get_value( "security" ) );
 

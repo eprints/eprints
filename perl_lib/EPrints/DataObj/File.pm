@@ -149,7 +149,7 @@ sub new_from_filename
 
 =item $dataobj = EPrints::DataObj::File->create_from_data( $session, $data [, $dataset ] )
 
-Create a new File record using $data. If "_filehandle" is defined in $data it will be read from and stored.
+Create a new File record using $data. If "_content" is defined in $data it will be read from and stored - for possible values see set_file().
 
 =cut
 
@@ -157,25 +157,22 @@ sub create_from_data
 {
 	my( $class, $session, $data, $dataset ) = @_;
 
-	my $fh = delete $data->{_filehandle};
+	my $content = delete $data->{_content} || delete $data->{_filehandle};
 
 	my $self = $class->SUPER::create_from_data( $session, $data, $dataset );
 
 	return unless defined $self;
 
-	if( defined( $fh ) )
+	if( defined( $content ) )
 	{
-		$self->set_file( $fh, $data->{filesize} );
+		$self->set_file( $content, $data->{filesize} );
 		$self->commit();
-		close($fh);
 	}
 	elsif( EPrints::Utils::is_set( $data->{data} ) )
 	{
-		my $tmpfile = File::Temp->new;
-
-		syswrite($tmpfile, MIME::Base64::decode( $data->{data} ));
-		seek( $tmpfile, 0, 0 );
-		$self->set_file( $tmpfile, -s $tmpfile );
+		use bytes;
+		my $data = MIME::Base64::decode( $data->{data} );
+		$self->set_file( \$data, length($data) );
 		$self->commit();
 	}
 	elsif( EPrints::Utils::is_set( $data->{url} ) )
@@ -588,34 +585,53 @@ sub get_file
 	return $self->{session}->get_storage->retrieve( $self, $f );
 }
 
-=item $content_length = $stored->set_file( CALLBACK, $content_length )
+=item $content_length = $stored->set_file( CONTENT, $content_length )
 
-Reads data from CALLBACK and stores it. Sets the hash and filesize.
+Reads data from CONTENT and stores it. Sets the MD5 hash and filesize.
 
-Returns undef and sets the filesize to 0 if the write failed.
+If the write failed returns undef and sets the filesize to 0.
+
+CONTENT may be one of:
+
+	CODEREF - will be called until it returns empty string ("")
+	SCALARREF - a scalar reference will be used as-is (expects bytes)
+	GLOB - will be treated as a file handle and read with sysread()
+
+This method does not check the actual number of bytes read is the same as $content_length.
 
 =cut
 
 sub set_file
 {
-	my( $self, $fh, $clen ) = @_;
+	my( $self, $content, $clen ) = @_;
+
+	use bytes;
+	use integer;
 
 	my $md5 = Digest::MD5->new;
 
 	my $f;
-	if( ref($fh) eq "CODE" )
+	if( ref($content) eq "CODE" )
 	{
 		$f = sub {
-			my $buffer = &$fh();
+			my $buffer = &$content();
 			$md5->add( $buffer );
 			return $buffer;
 		};
 	}
+	elsif( ref($content) eq "SCALAR" )
+	{
+		$md5->add( $$content );
+		my $i = 1;
+		$f = sub {
+			return $i ? ($i = 0) == 0 ? $$content : "" : "";
+		};
+	}
 	else
 	{
-		binmode($fh);
+		binmode($content);
 		$f = sub {
-			return "" unless sysread($fh,my $buffer,4096);
+			return "" unless sysread($content,my $buffer,16384);
 			$md5->add( $buffer );
 			return $buffer;
 		};
@@ -625,10 +641,17 @@ sub set_file
 	$self->set_value( "hash", undef );
 	$self->set_value( "hash_type", undef );
 
-	unless( $self->{session}->get_storage->store( $self, $f ) )
+	my $rlen = $self->{session}->get_storage->store( $self, $f );
+
+	if( !defined $rlen )
 	{
 		$self->set_value( "filesize", 0 );
 		return undef;
+	}
+
+	if( $rlen != $clen )
+	{
+		EPrints::abort( "Expected $clen bytes but actually got $rlen - set_file on ".$self->get_dataset_id."/".$self->get_id." (".$self->get_value( "filename" ).")" );
 	}
 
 	$self->set_value( "hash", $md5->hexdigest );
