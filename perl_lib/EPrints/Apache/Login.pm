@@ -49,7 +49,7 @@ sub handler
 	for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
 	$opts{code} = join( "", @a );
 
-	my $title = $session->make_text( "Login" );
+	my $title = $session->html_phrase( "cgi/login:title" );
 	$session->build_page( $title, $page, "login" );
 	$session->send_page( %opts );
 	$session->terminate;
