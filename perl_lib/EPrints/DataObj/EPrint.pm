@@ -990,18 +990,7 @@ sub commit
 		$self->set_value( 
 			"lastmod" , 
 			EPrints::Time::get_iso_timestamp() );
-	}
 
-	my $success = $self->SUPER::commit( $force );
-	return( 0 ) unless $success;
-
-	unless( $self->under_construction )
-	{
-		$self->remove_static;
-	}
-
-	if( $self->{non_volatile_change} )
-	{
 		my $user = $self->{session}->current_user;
 		my $userid = undef;
 		$userid = $user->get_id if defined $user;
@@ -1020,6 +1009,14 @@ sub commit
 		);
 		$event->set_dataobj_xml( $self );
 	}
+
+	unless( $self->under_construction )
+	{
+		$self->remove_static;
+	}
+
+	# commit changes and clear changed fields
+	my $success = $self->SUPER::commit( $force );
 
 	return( $success );
 }

@@ -19,7 +19,10 @@ sub update_from_form
 {
 	my( $self, $processor ) = @_;
 
-	my $doc_data = { eprintid => $self->{dataobj}->get_id };
+	my $doc_data = {
+		_parent => $self->{dataobj},
+		eprintid => $self->{dataobj}->get_id,
+		};
 
 	my $repository = $self->{session}->get_repository;
 	$doc_data->{format} = $repository->call( 'guess_doc_type', 

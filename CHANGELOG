@@ -8242,3 +8242,7 @@ EPRINTS-3.1-beta-2
 2009-05-27 tdb
  * Fixed login page not using phrase for title
 
+2009-05-29 tdb
+ * Fixed spurious history objects being created on document upload
+ * Modified DataObj to clear changed fields after commit
+

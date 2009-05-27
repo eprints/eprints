@@ -19,7 +19,11 @@ sub update_from_form
 {
 	my( $self, $processor ) = @_;
 
-	my $doc_data = { eprintid => $self->{dataobj}->get_id, format=>"other" };
+	my $doc_data = {
+		_parent => $self->{dataobj},
+		eprintid => $self->{dataobj}->get_id,
+		format=>"other"
+		};
 
 	my $repository = $self->{session}->get_repository;
 

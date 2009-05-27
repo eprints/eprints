@@ -301,6 +301,8 @@ sub create_from_data
 
 	my $fileds = $session->get_repository->get_dataset( "file" );
 
+	my $files_modified = 0;
+
 	foreach my $filedata ( @{$files||[]} )
 	{
 		# Don't try to add empty file objects
@@ -318,12 +320,16 @@ sub create_from_data
 			);
 		if( defined( $fileobj ) )
 		{
+			$files_modified = 1;
 			# Calculate and store the MD5 checksum
 			$fileobj->update_md5();
 		}
 	}
 
-	$document->files_modified;
+	if( $files_modified )
+	{
+		$document->files_modified;
+	}
 
 	$document->set_under_construction( 0 );
 
@@ -1357,8 +1363,6 @@ sub files_modified
 				$self->set_value( "main", $filenames[0] );
 			}
 		}
-	
-		$self->commit( 1 );
 	}
 
 	$self->make_thumbnails;
@@ -1366,6 +1370,8 @@ sub files_modified
 	{
 		$self->{session}->get_repository->call( "on_files_modified", $self->{session}, $self );
 	}
+
+	$self->commit();
 }
 
 ######################################################################

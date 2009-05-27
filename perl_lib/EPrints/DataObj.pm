@@ -380,7 +380,7 @@ sub clear_changed
 
 =item $success = $dataobj->commit( [$force] )
 
-Write this object to the database.
+Write this object to the database and reset the changed fields.
 
 If $force isn't true then it only actually modifies the database
 if one or more fields have been changed.
@@ -419,6 +419,9 @@ sub commit
 
 	# Queue changes for the indexer (if indexable)
 	$self->queue_changes();
+
+	# clear changed fields
+	$self->clear_changed();
 
 	return $success;
 }
