@@ -2779,18 +2779,24 @@ sub prepare_page
 			my $modifier = shift @parts;
 			if( defined $modifier && $modifier eq "textonly" )
 			{
+				my $text;
 				if( defined $map->{"utf-8.".$pinid.".textonly"} )
 				{
-					push @output, $map->{"utf-8.".$pinid.".textonly"};
+					$text = $map->{"utf-8.".$pinid.".textonly"};
 				}
 				elsif( defined $map->{$pinid} )
 				{
 					# don't convert href's to <http://...>'s
-					push @output, EPrints::Utils::tree_to_utf8( $map->{$pinid}, undef, undef, undef, 1 ); 
+					$text = EPrints::Utils::tree_to_utf8( $map->{$pinid}, undef, undef, undef, 1 ); 
 				}
+
 				# else no title
-		
-				next;
+				next unless defined $text;
+
+				# escape any entities in the text (<>&" etc.)
+				my $xml = $self->make_text( $text );
+				push @output, EPrints::XML::to_string( $xml, undef, 1 );
+				EPrints::XML::dispose( $xml );
 			}
 	
 			if( defined $map->{"utf-8.".$pinid} )

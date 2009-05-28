@@ -8251,3 +8251,6 @@ EPRINTS-3.1-beta-2
     a sub, file handle or scalar reference.
  * Storage controller will now write content to all configured plugins
 
+2009-05-28 tdb
+ * Fixed an HTML insertion bug in the <title> element [Brian D. Gregg]
+
