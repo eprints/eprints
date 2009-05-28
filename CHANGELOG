@@ -8254,3 +8254,7 @@ EPRINTS-3.1-beta-2
 2009-05-28 tdb
  * Fixed an HTML insertion bug in the <title> element [Brian D. Gregg]
 
+2009-05-28 tdb
+ * Moved most of SystemSettings.pm into system configuration files
+ * Can now disable a repository through a system configuration setting
+

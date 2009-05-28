@@ -1,8 +1,34 @@
 use lib '/opt/eprints3/perl_lib';
 
-BEGIN
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use Carp qw(verbose);
+use EPrints;
+
+use strict;
+
+# Tell me more about warnings
+$SIG{__WARN__} = \&Carp::cluck;
+
+check_mod_perl();
+
+load_archives();
+
+print STDERR "EPrints archives loaded: ".join( ", ",  EPrints::Config::get_repository_ids() )."\n";
+
+$EPrints::SystemSettings::loaded = 1;
+
+sub check_mod_perl
 {
-	use EPrints::SystemSettings;
+	$ENV{MOD_PERL} or EPrints::abort( "not running under mod_perl!" );
 
 	my $conf_v = $ENV{EPRINTS_APACHE};
 	if( defined $conf_v )
@@ -33,37 +59,13 @@ END
 		}
 	}
 }
-######################################################################
-#
-#  __COPYRIGHT__
-#
-# Copyright 2000-2008 University of Southampton. All Rights Reserved.
-# 
-#  __LICENSE__
-#
-######################################################################
 
-use Carp qw(verbose);
-
-$ENV{MOD_PERL} or EPrints::abort( "not running under mod_perl!" );
-
-use EPrints;
-
-use strict;
-
-
-EPrints::Config::ensure_init();
-
-my %done = ();
-foreach( EPrints::Config::get_repository_ids() )
+sub load_archives
 {
-	next if $done{$_};
-	EPrints::Repository->new( $_ );
+	foreach( EPrints::Config::get_repository_ids() )
+	{
+		EPrints::Repository->new( $_ );
+	}
 }
-print STDERR "EPrints archives loaded: ".join( ", ",  EPrints::Config::get_repository_ids() )."\n";
 
-# Tell me more about warnings
-$SIG{__WARN__} = \&Carp::cluck;
-
-$EPrints::SystemSettings::loaded = 1;
 1;

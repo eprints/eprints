@@ -66,13 +66,16 @@ A shell script will print the stack trace to the console.
 package EPrints;
 
 use EPrints::SystemSettings;
+use EPrints::Config;
 
+use Data::Dumper;
 use Scalar::Util;
 
 BEGIN {
 	use Carp qw(cluck);
 
-	use EPrints::Platform;
+	# load the configuration - required by EPrints::Platform et al
+	EPrints::Config::init();
 
 	umask( 0002 );
 
@@ -182,7 +185,6 @@ use EPrints::Utils;
 use EPrints::Time;
 
 use EPrints::Box;
-use EPrints::Config;
 use EPrints::Database;
 use EPrints::Storage;
 use EPrints::DataObj;
@@ -215,6 +217,9 @@ use EPrints::MetaField;
 use EPrints::OpenArchives;
 use EPrints::Paginate;
 use EPrints::Paginate::Columns;
+use EPrints::Platform;
+use EPrints::Plugin;
+use EPrints::PluginFactory;
 use EPrints::Probity;
 use EPrints::Repository;
 use EPrints::Search;
@@ -232,11 +237,6 @@ use EPrints::Update::Abstract;
 use EPrints::Workflow;
 use EPrints::Workflow::Stage;
 use EPrints::XML::EPC;
-
-# Load EPrints::Plugin last, because dynamically loaded plugins may have
-# EPrints dependencies
-use EPrints::Plugin;
-use EPrints::PluginFactory;
 
 our $__loaded;
 

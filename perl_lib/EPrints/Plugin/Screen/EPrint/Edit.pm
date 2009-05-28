@@ -59,7 +59,7 @@ sub from
 	}
 
 	my $action_id = $self->{processor}->{action};
-	if( $action_id =~ m/^jump_(.*)$/ )
+	if( defined $action_id && $action_id =~ m/^jump_(.*)$/ )
 	{
 		my $jump_to = $1;
 

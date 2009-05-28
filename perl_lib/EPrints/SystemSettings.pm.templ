@@ -16,54 +16,9 @@ package EPrints::SystemSettings;
 
 $EPrints::SystemSettings::conf = 
 {
-	apache => "2",
-	smtp_server=>'smtp.ecs.soton.ac.uk',
-	base_path => "/opt/ep2stable",
-	geoip => {
-		class => "Geo::IP",
-		country => "/usr/local/share/GeoIP/GeoIP.dat",
-		organisation => "/usr/local/share/GeoIP/GeoOrg.dat",
-	},
-	executables => {
-		unzip 	=> "/usr/bin/unzip",
-		wget 	=> "/usr/bin/wget",
-		sendmail => "/usr/sbin/sendmail",
-		gunzip 	=> "/bin/gunzip",
-		tar 	=> "/bin/tar",
-		latex 	=> "/usr/bin/latex",
-		dvips 	=> "/usr/bin/dvips",
-		convert	=> "/usr/bin/convert",
-		mimetex	=> "/export/0/home/cjg/Projects/eprints2_stable/eprints/system/mimetex.cgi",
-		cp		=> "/bin/cp",
-		rm		=> "/bin/rm",
-	},
-	invocation => {
-		zip 	=> '$(unzip) 1>/dev/null 2>&1 -qq -o -d \'$(DIR)\' \'$(ARC)\'',
-	        targz  	=> '$(gunzip) -c < \'$(ARC)\' 2>/dev/null | $(tar) xf - -C \'$(DIR)\' >/dev/null 2>&1',
-		wget 	=> '$(wget)  -r -L -q -m -nH -np --execute="robots=off" --cut-dirs=$(CUTDIRS) \'$(URL)\'',
-		sendmail => '$(sendmail) -oi -t -odb --',
-		latex => '$(latex) \'$(SOURCE)\'',
-		dvips => '$(dvips) \'$(SOURCE)\' -o \'$(TARGET)\'',
-		convert_crop_white => '$(convert) -crop 0x0 -bordercolor white -border 4x4 \'$(SOURCE)\' \'$(TARGET)\'',
-		cpall => '$(cp) -pR \'$(SOURCE)\'/* \'$(TARGET)\'',
-		rmall => '$(rm) -rf \'$(TARGET)\'/*',
-	},
-	archive_extensions => {
-		"zip"    =>  ".zip",
-		"targz"  =>  ".tar.gz",
-	},
-	archive_formats => [ "zip", "targz" ],
-	version_id => "CVS",
-	version => "EPrints 3 (development version)",
-	user => "eprints",
-	group => "eprints",
-	disable_df => 1,
-	show_ids_in_log => 0,
-	enable_gdome => 1,
-	file_perms => 0664,
-	dir_perms => 02775,
-	platform => "unix",
-
+	base_path => "/opt/eprints3",
+	version_id => "SVN",
+	version => "EPrints (development version)",
 };
 
 1;
