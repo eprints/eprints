@@ -462,6 +462,21 @@ sub run_length
 	return [ scalar @{$value->[0]}, "INTEGER" ];
 }
 
+sub run_render_data_row
+{
+	my( $self, $state, $value ) = @_;
+
+	if( !$value->[1]->isa( "EPrints::MetaField" ) )
+	{
+		$self->runtime_error( "can't call render_data_row on non-field values." );
+	}
+
+	return [ $state->{session}->html_phrase( "data_row", 
+			name => $value->[1]->render_name( $state->{session} ),
+			value => $value->[1]->render_value( $state->{session}, $value->[0] ) ),
+		 "XHTML" ];
+}
+
 sub run_today
 {
 	my( $self, $state ) = @_;

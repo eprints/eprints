@@ -71,64 +71,15 @@
         <epc:if test="type = 'thesis'">(<epc:print expr="thesis_type" />)</epc:if>
       </td>
     </tr>
-    <epc:if test="commentary AND as_item(commentary)" >
-      <tr>
-        <th align="right"><epc:phrase ref="eprint_fieldname_commentary" />:</th>
-        <td><epc:print expr="commentary.as_item().citation_link('default')" /></td>
-      </tr>
-    </epc:if>
-    <epc:if test="note">
-      <tr>
-        <th align="right"><epc:phrase ref="eprint_fieldname_note" />:</th>
-        <td><epc:print expr="note" /></td>
-      </tr>
-    </epc:if>
-    <epc:if test="keywords">
-      <tr>
-        <th align="right"><epc:phrase ref="eprint_fieldname_keywords" />:</th>
-        <td><epc:print expr="keywords" /></td>
-      </tr>
-    </epc:if>
-    <epc:if test="subjects">
-      <tr>
-        <th align="right"><epc:phrase ref="eprint_fieldname_subjects" />:</th>
-        <td><epc:print expr="subjects" /></td>
-      </tr>
-    </epc:if>
-    <epc:if test="divisions">
-      <tr>
-        <th align="right"><epc:phrase ref="eprint_fieldname_divisions" />:</th>
-        <td><epc:print expr="divisions" /></td>
-      </tr>
-    </epc:if>
-    <epc:if test="sword_depositor">
-      <tr>
-        <th align="right"><epc:phrase ref="page:sword_deposited_by" />:</th>
-        <choose>
-          <when test="sword_depositor.as_item()"><td><epc:print expr="sword_depositor.as_item().citation('default')" /></td></when>
-          <otherwise><td><epc:phrase ref="page:invalid_user" /></td></otherwise>
-        </choose>
-      </tr>
-    </epc:if>
-    <tr>
-      <th align="right"><epc:phrase ref="page:deposited_by" />:</th>
-      <choose>
-        <when test="userid.as_item()"><td><epc:print expr="userid.as_item().citation('default')" /></td></when>
-        <otherwise><td><epc:phrase ref="page:invalid_user" /></td></otherwise>
-      </choose>
-    </tr>
-    <epc:if test="datestamp">
-      <tr>
-        <th align="right"><epc:phrase ref="page:deposited_on" />:</th>
-        <td><epc:print expr="datestamp" /></td>
-      </tr>
-    </epc:if>
-    <epc:if test="lastmod">
-      <tr>
-        <th align="right"><epc:phrase ref="eprint_fieldname_lastmod" />:</th>
-        <td><epc:print expr="lastmod" /></td>
-      </tr>
-    </epc:if>
+    <epc:if test="commentary"><epc:print expr="commentary.render_data_row()" /></epc:if>
+    <epc:if test="note"><epc:print expr="note.render_data_row()" /></epc:if>
+    <epc:if test="keywords"><epc:print expr="keywords.render_data_row()" /></epc:if>
+    <epc:if test="subjects"><epc:print expr="subjects.render_data_row()" /></epc:if>
+    <epc:if test="divisions"><epc:print expr="divisions.render_data_row()" /></epc:if>
+    <epc:if test="sword_depositor"><epc:print expr="sword_depositor.render_data_row()" /></epc:if>
+    <epc:if test="userid"><epc:print expr="userid.render_data_row()" /></epc:if>
+    <epc:if test="datestamp"><epc:print expr="datestamp.render_data_row()" /></epc:if>
+    <epc:if test="lastmod"><epc:print expr="lastmod.render_data_row()" /></epc:if>
   </table>
 
   <epc:if test="$flags{has_multiple_versions}">

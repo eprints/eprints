@@ -8270,3 +8270,8 @@ EPRINTS-3.1-beta-2
  * Fixed typo in comment on User.pm
  * Changed sword_depositor to an itemref from a text type.
  * Moved most of eprint_render.pl into a citation file: summary_page.xml
+
+2009-06-03 cjg
+ * Added new EPScript method render_data_row
+ * Added phrase to go with it.
+ * Used this to shorten the summary_page.xml file.
