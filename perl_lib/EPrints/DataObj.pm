@@ -1521,6 +1521,7 @@ sub _get_related_uris
 	foreach my $relation (@$relations)
 	{
 		next unless defined $relation->{"uri"};
+		next unless defined $relation->{"type"};
 		$haystack{$relation->{"uri"}}->{$relation->{"type"}} = undef;
 	}
 

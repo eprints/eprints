@@ -108,12 +108,13 @@ sub print
 			$field->set_property( "render_$k", $v );
 		}
 	}
+#print STDERR "(".$result->[0].",".$result->[1].")\n";
 
 	if( !defined $field )
 	{
 		return $state->{session}->make_text( "[No type for value '$result->[0]' from '$code']" );
 	}
-	
+
 	return $field->render_value( $state->{session}, $result->[0], 0, 0, $result->[2] );
 }
 
@@ -353,6 +354,15 @@ sub run_is_set
 	return [ EPrints::Utils::is_set( $param->[0] ), "BOOLEAN" ];
 } 
 
+sub run_citation_link
+{
+	my( $self, $state, $object, $citationid ) = @_;
+
+	my $citation = $object->[0]->render_citation_link( $citationid->[0]  );
+
+	return [ $citation, "XHTML" ];
+}
+
 sub run_citation
 {
 	my( $self, $state, $object, $citationid ) = @_;
@@ -497,6 +507,153 @@ sub run_datemath
 
 	return [ EPrints::Time::get_iso_date( $t ), "DATE" ];
 }
+
+sub run_dataset 
+{
+	my( $self, $state, $object ) = @_;
+
+	if( !$object->[0]->isa( "EPrints::DataObj" ) )
+	{
+		$self->runtime_error( "can't call dataset on non-data objects." );
+	}
+
+	return [ $object->[0]->get_dataset->confid, "STRING" ];
+}
+
+
+sub run_related_objects
+{
+	my( $self, $state, $object, @required ) = @_;
+
+	if( !defined $object->[0] || ref($object->[0])!~m/^EPrints::DataObj::/ )
+	{
+		$self->runtime_error( "can't call dataset on non-data objects." );
+	}
+
+	my @r = ();
+	foreach( @required ) { push @r, $_->[0]; }
+	
+	return [ $object->[0]->get_related_objects( @r ) ];
+}
+
+sub run_url
+{
+	my( $self, $state, $object ) = @_;
+
+	if( !defined $object->[0] || ref($object->[0])!~m/^EPrints::DataObj::/ )
+	{
+		$self->runtime_error( "can't call url() on non-data objects." );
+	}
+
+	return [ $object->[0]->get_url, "STRING" ];
+}
+
+sub run_doc_size
+{
+	my( $self, $state, $doc ) = @_;
+
+	if( !defined $doc->[0] || ref($doc->[0]) ne "EPrints::DataObj::Document" )
+	{
+		$self->runtime_error( "Can only call document_size() on document objects not ".
+			ref($doc->[0]) );
+	}
+
+	my %files = $doc->[0]->files;
+
+	return $files{$doc->[0]->get_main} || 0;
+}
+
+sub run_is_public
+{
+	my( $self, $state, $doc ) = @_;
+
+	if( !defined $doc->[0] || ref($doc->[0]) ne "EPrints::DataObj::Document" )
+	{
+		$self->runtime_error( "Can only call document_size() on document objects not ".
+			ref($doc->[0]) );
+	}
+
+	return [ $doc->[0]->is_public, "BOOLEAN" ];
+}
+
+sub run_thumbnail_url
+{
+	my( $self, $state, $doc, $size ) = @_;
+
+	if( !defined $doc->[0] || ref($doc->[0]) ne "EPrints::DataObj::Document" )
+	{
+		$self->runtime_error( "Can only call thumbnail_url() on document objects not ".
+			ref($doc->[0]) );
+	}
+
+	return [ $doc->[0]->thumbnail_url( $size->[0] ), "STRING" ];
+}
+
+sub run_preview_link
+{
+	my( $self, $state, $doc, $caption, $set ) = @_;
+
+	if( !defined $doc->[0] || ref($doc->[0]) ne "EPrints::DataObj::Document" )
+	{
+		$self->runtime_error( "Can only call thumbnail_url() on document objects not ".
+			ref($doc->[0]) );
+	}
+
+	return [ $doc->[0]->render_preview_link( caption=>$caption->[0], set=>$set->[0] ), "XHTML" ];
+}
+
+sub run_icon
+{
+	my( $self, $state, $doc, $preview, $new_window ) = @_;
+
+	if( !defined $doc->[0] || ref($doc->[0]) ne "EPrints::DataObj::Document" )
+	{
+		$self->runtime_error( "Can only call thumbnail_url() on document objects not ".
+			ref($doc->[0]) );
+	}
+
+	return [ $doc->[0]->render_icon_link( preview=>$preview->[0], new_window=>$new_window->[0] ), "XHTML" ];
+}
+
+
+sub run_human_filesize
+{
+	my( $self, $state, $size_in_bytes ) = @_;
+
+	return [ EPrints::Utils::human_filesize( $size_in_bytes || 0 ), "INTEGER" ];
+}
+
+sub run_control_url
+{
+	my( $self, $state, $eprint ) = @_;
+
+	if( !defined $eprint->[0] || ref($eprint->[0]) ne "EPrints::DataObj::EPrint" )
+	{
+		$self->runtime_error( "Can only call control_url() on eprint objects not ".
+			ref($eprint->[0]) );
+	}
+
+	return [ $eprint->[0]->get_control_url(), "STRING" ];
+}
+
+sub run_contact_email
+{
+	my( $self, $state, $eprint ) = @_;
+
+	if( !defined $eprint->[0] || ref($eprint->[0]) ne "EPrints::DataObj::EPrint" )
+	{
+		$self->runtime_error( "Can only call contact_email() on eprint objects not ".
+			ref($eprint->[0]) );
+	}
+
+	if( !$state->{session}->get_repository->can_call( "email_for_doc_request" ) )
+	{
+		return [ undef, "STRING" ];
+	}
+
+	return [ $state->{session}->get_repository->call( "email_for_doc_request", $state->{session}, $eprint->[0] ), "STRING" ]; 
+}
+
 
 ########################################################
 

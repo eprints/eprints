@@ -75,6 +75,10 @@ sub process
 		{
 			return _process_print( $node, %params );
 		}
+		if( $name eq "debug" )
+		{
+			return _process_debug( $node, %params );
+		}
 		if( $name eq "phrase" )
 		{
 			return _process_phrase( $node, %params );
@@ -127,7 +131,7 @@ sub expand_attribute
 		}
 		else
 		{
-			$newv.=EPrints::Script::print( $r[$i], $params )->toString;
+			$newv.= EPrints::Utils::tree_to_utf8( EPrints::Script::print( $r[$i], $params ) );
 		}
 	}
 	return $newv;
@@ -211,7 +215,9 @@ sub _process_phrase
 	my %pins = ();
 	foreach my $param ( $node->getChildNodes )
 	{
-		next unless( $param->tagName eq "param" );
+		my $tagname = $param->tagName;
+		$tagname =~ s/^epc://;
+		next unless( $tagname eq "param" );
 
 		if( !$param->hasAttribute( "name" ) )
 		{
@@ -252,6 +258,17 @@ sub _process_print
 
 	return EPrints::Script::print( $expr, \%params, $opts );
 }	
+
+sub _process_debug
+{
+	my( $node, %params ) = @_;
+	
+	my $result = _process_print( $node, %params );
+
+	print STDERR EPrints::XML::to_string( $result );
+
+	return $params{session}->make_doc_fragment;
+}
 
 sub _process_foreach
 {
@@ -302,7 +319,14 @@ sub _process_foreach
 	foreach my $item ( @{$list} )
 	{
 		my %newparams = %params;
-		$newparams{$iterator} = [ $item, $type ];
+		my $thistype = $type;
+		if( !defined $thistype || $thistype eq "ARRAY" )
+		{
+			$thistype = ref( $item );
+			$thistype = "STRING" if( $thistype eq "" ); 	
+			$thistype = "XHTML" if( $thistype =~ /^XML::/ );
+		}
+		$newparams{$iterator} = [ $item, $thistype ];
 		$output->appendChild( process_child_nodes( $node, %newparams ) );
 	}
 

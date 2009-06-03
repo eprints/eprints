@@ -249,7 +249,7 @@ sub get_system_field_info
 
 	{ name=>"item_issues_count", type=>"int",  volatile=>1 },
 
-	{ 'name' => 'sword_depositor', 'type' => 'int' },
+	{ 'name' => 'sword_depositor', 'type' => 'itemref', datasetid=>"user" },
 
 	{ 'name' => 'sword_slug', 'type' => 'text' },
 
