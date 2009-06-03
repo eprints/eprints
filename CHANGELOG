@@ -8258,3 +8258,15 @@ EPRINTS-3.1-beta-2
  * Moved most of SystemSettings.pm into system configuration files
  * Can now disable a repository through a system configuration setting
 
+2009-06-03 cjg
+ * New EPScript methods: citation_link, dataset, related_objects, url,
+    doc_size, is_public, thumbnail_url, preview_link, icon, human_filesize,
+    control_url, contact_email.
+ * Fixed issue in related items which gave warnings if "type" not defined.
+ * New EPC tag type: epc:debug, which is like print but sends the XML to 
+    STDERR for debugging purposes.
+ * Improvements to the epc:foreach processing (better handling of multiple
+    object types in lists)
+ * Fixed typo in comment on User.pm
+ * Changed sword_depositor to an itemref from a text type.
+ * Moved most of eprint_render.pl into a citation file: summary_page.xml
