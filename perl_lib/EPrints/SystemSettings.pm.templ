@@ -16,9 +16,12 @@ package EPrints::SystemSettings;
 
 $EPrints::SystemSettings::conf = 
 {
-	base_path => "/opt/eprints3",
-	version_id => "SVN",
-	version => "EPrints (development version)",
+	'base_path' => "/opt/eprints3",
+	'version_id' => "SVN",
+	'version' => "EPrints (development version)",
+	'user' => 'eprints',
+	'group' => 'eprints',
+	'smtp_server' => 'smtp',
 };
 
 1;

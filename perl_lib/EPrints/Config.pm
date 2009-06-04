@@ -121,7 +121,7 @@ Load the system configuration files.
 
 sub load_system_config
 {
-	my $dir = $SYSTEMCONF->{"lib_path"}."/cfg.d";
+	my $dir = $SYSTEMCONF->{"cfg_path"}."/cfg.d";
 
 	$SYSTEMCONF->{set_in} = {};
 	$SYSTEMCONF->{set_in}->{$_} = "EPrints::SystemSettings"
