@@ -622,9 +622,9 @@ sub set_file
 	elsif( ref($content) eq "SCALAR" )
 	{
 		$md5->add( $$content );
-		my $i = 1;
+		my $first = 1;
 		$f = sub {
-			return $i ? ($i = 0) == 0 ? $$content : "" : "";
+			return $first-- ? $$content : "";
 		};
 	}
 	else
