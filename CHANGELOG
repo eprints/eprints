@@ -8275,3 +8275,11 @@ EPRINTS-3.1-beta-2
  * Added new EPScript method render_data_row
  * Added phrase to go with it.
  * Used this to shorten the summary_page.xml file.
+
+2009-06-04 cjg
+ * New Script method: property() which takes a string and returns a property
+    from a hash or dataobj.
+ * Removed render_data_row() method as it's not needed after all.
+ * Removed the data_row phrase too.
+ * Reworked summary_page.xml to iterate over a list of fields from
+    eprint_render.pl

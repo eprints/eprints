@@ -71,15 +71,18 @@
         <epc:if test="type = 'thesis'">(<epc:print expr="thesis_type" />)</epc:if>
       </td>
     </tr>
-    <epc:if test="commentary"><epc:print expr="commentary.render_data_row()" /></epc:if>
-    <epc:if test="note"><epc:print expr="note.render_data_row()" /></epc:if>
-    <epc:if test="keywords"><epc:print expr="keywords.render_data_row()" /></epc:if>
-    <epc:if test="subjects"><epc:print expr="subjects.render_data_row()" /></epc:if>
-    <epc:if test="divisions"><epc:print expr="divisions.render_data_row()" /></epc:if>
-    <epc:if test="sword_depositor"><epc:print expr="sword_depositor.render_data_row()" /></epc:if>
-    <epc:if test="userid"><epc:print expr="userid.render_data_row()" /></epc:if>
-    <epc:if test="datestamp"><epc:print expr="datestamp.render_data_row()" /></epc:if>
-    <epc:if test="lastmod"><epc:print expr="lastmod.render_data_row()" /></epc:if>
+    <epc:comment> 
+       The below block loops over a list of field names taken from eprint_render.pl
+       Edit the list of metadata to show in the summary page table in eprint_render.pl
+    </epc:comment>
+    <epc:foreach expr="$config{summary_page_metadata}" iterator="fieldname">
+      <epc:if test="$item.property($fieldname)">
+        <tr>
+          <th align="right"><epc:phrase ref="eprint_fieldname_{$fieldname}" />:</th>
+          <td valign="top"><epc:print expr="$item.property($fieldname)" /></td>
+        </tr>
+      </epc:if>
+    </epc:foreach>
   </table>
 
   <epc:if test="$flags{has_multiple_versions}">

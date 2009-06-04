@@ -301,14 +301,21 @@ sub run_PROPERTY
 {
 	my( $self, $state, $objvar ) = @_;
 
+	return $self->run_property( $state, $objvar, [ $self->{value}, "STRING" ] );
+}
+
+sub run_property 
+{
+	my( $self, $state, $objvar, $value ) = @_;
+
 	if( !defined $objvar->[0] )
 	{
-		$self->runtime_error( "can't get a property {".$self->{value}."} from undefined value" );
+		$self->runtime_error( "can't get a property {".$value->[0]."} from undefined value" );
 	}
 	my $ref = ref($objvar->[0]);
 	if( $ref eq "HASH" )
 	{
-		my $v = $objvar->[0]->{ $self->{value} };
+		my $v = $objvar->[0]->{ $value->[0] };
 		my $type = ref( $v );
 		$type = "STRING" if( $type eq "" ); 	
 		$type = "XHTML" if( $type =~ /^XML::/ );
@@ -316,20 +323,20 @@ sub run_PROPERTY
 	}
 	if( $ref !~ m/::/ )
 	{
-		$self->runtime_error( "can't get a property from anything except a hash or object: ".$self->{value}." (it was '$ref')." );
+		$self->runtime_error( "can't get a property from anything except a hash or object: ".$value->[0]." (it was '$ref')." );
 	}
 	if( !$objvar->[0]->isa( "EPrints::DataObj" ) )
 	{
-		$self->runtime_error( "can't get a property from non-dataobj: ".$self->{value} );
+		$self->runtime_error( "can't get a property from non-dataobj: ".$value->[0] );
 	}
-	if( !$objvar->[0]->get_dataset->has_field( $self->{value} ) )
+	if( !$objvar->[0]->get_dataset->has_field( $value->[0] ) )
 	{
-		$self->runtime_error( $objvar->[0]->get_dataset->confid . " object does not have a '".$self->{value}."' field" );
+		$self->runtime_error( $objvar->[0]->get_dataset->confid . " object does not have a '".$value->[0]."' field" );
 	}
 
 	return [ 
-		$objvar->[0]->get_value( $self->{value} ),
-		$objvar->[0]->get_dataset->get_field( $self->{value} ),
+		$objvar->[0]->get_value( $value->[0] ),
+		$objvar->[0]->get_dataset->get_field( $value->[0] ),
 		$objvar->[0] ];
 }
 
@@ -462,21 +469,6 @@ sub run_length
 	return [ scalar @{$value->[0]}, "INTEGER" ];
 }
 
-sub run_render_data_row
-{
-	my( $self, $state, $value ) = @_;
-
-	if( !$value->[1]->isa( "EPrints::MetaField" ) )
-	{
-		$self->runtime_error( "can't call render_data_row on non-field values." );
-	}
-
-	return [ $state->{session}->html_phrase( "data_row", 
-			name => $value->[1]->render_name( $state->{session} ),
-			value => $value->[1]->render_value( $state->{session}, $value->[0] ) ),
-		 "XHTML" ];
-}
-
 sub run_today
 {
 	my( $self, $state ) = @_;
@@ -534,7 +526,6 @@ sub run_dataset
 
 	return [ $object->[0]->get_dataset->confid, "STRING" ];
 }
-
 
 sub run_related_objects
 {

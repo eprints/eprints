@@ -1,4 +1,22 @@
 
+$c->{summary_page_metadata} = [qw/
+	commentary
+	note
+	keywords
+	subjects
+	divisions
+	sword_depositor
+	userid
+	datestamp
+	lastmod
+/];
+
+# IMPORTANT NOTE ABOUT SUMMARY PAGES
+#
+# While you can completely customise them using the perl subroutine
+# below, it's easier to edit them via citation/eprint/summary_page.xml
+
+
 ######################################################################
 
 =item $xhtmlfragment = eprint_render( $eprint, $session, $preview )

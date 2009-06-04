@@ -67,6 +67,10 @@ sub process
 		{
 			return _process_if( $node, %params );
 		}
+		if( $name eq "comment" )
+		{
+			return _process_comment( $node, %params );
+		}
 		if( $name eq "choose" )
 		{
 			return _process_choose( $node, %params );
@@ -358,6 +362,13 @@ sub _process_if
 	}
 
 	return $collapsed;
+}
+
+sub _process_comment
+{
+	my( $node, %params ) = @_;
+
+	return $params{session}->make_doc_fragment;
 }
 
 sub _process_choose
