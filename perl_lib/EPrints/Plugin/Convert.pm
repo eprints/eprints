@@ -214,6 +214,8 @@ sub convert
 
 	my $session = $plugin->{session};
 
+	my @handles;
+
 	my @filedata;
 	foreach my $filename (@files)
 	{
@@ -230,6 +232,7 @@ sub convert
 			_content => $fh,
 		};
 		# file is closed after object creation
+		push @handles, $fh;
 	}
 
 	my $doc_ds = $session->get_repository->get_dataset( "document" );
@@ -248,9 +251,9 @@ sub convert
 			uri => $doc->internal_uri(),
 		}] } );
 
-	for(@filedata)
+	for(@handles)
 	{
-		close($_->{_content});
+		close($_);
 	}
 
 	$new_doc->set_value( "security", $doc->get_value( "security" ) );
