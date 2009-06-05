@@ -37,7 +37,7 @@ use EPrints::Plugin::Storage;
 @ISA = ( "EPrints::Plugin::Storage" );
 
 use HTTP::Request;
-eval "use LWP::UserAgent::S3";
+eval "use LWP::UserAgent::AmazonS3";
 
 our $DISABLE = $@ ? 1 : 0;
 
@@ -57,7 +57,7 @@ sub new
 		my $aws_bucket = $self->param( "aws_bucket" );
 		if( $aws_secret_access_key && $aws_access_key_id && $aws_bucket )
 		{
-			$self->{ua} = LWP::UserAgent::S3->new(
+			$self->{ua} = LWP::UserAgent::AmazonS3->new(
 				aws_access_key_id => $aws_access_key_id,
 				aws_secret_access_key => $aws_secret_access_key,
 				);
