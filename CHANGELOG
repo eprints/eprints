@@ -8283,3 +8283,7 @@ EPRINTS-3.1-beta-2
  * Removed the data_row phrase too.
  * Reworked summary_page.xml to iterate over a list of fields from
     eprint_render.pl
+
+2009-06-05 tdb/dct05r
+ * Added Sun Cloud Storage Service support
+

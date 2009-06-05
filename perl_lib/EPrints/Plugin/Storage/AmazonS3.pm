@@ -83,7 +83,7 @@ sub uri
 
 	my $path = "/";
 
-	if( $fileobj )
+	if( defined $fileobj )
 	{
 		$path .= $fileobj->get_id;
 		$path .= "/file/" . URI::Escape::uri_escape( $fileobj->get_value( "filename" ) );
@@ -107,6 +107,9 @@ sub create_bucket
 	return $r if $r->is_success;
 
 	$req = HTTP::Request->new( PUT => $uri );
+
+	$req->header( "Content-Length" => 0 );
+	$req->content( "" );
 
 	$r = $self->request( $req );
 

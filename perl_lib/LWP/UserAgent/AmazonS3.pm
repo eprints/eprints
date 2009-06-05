@@ -1,4 +1,4 @@
-package LWP::UserAgent::S3;
+package LWP::UserAgent::AmazonS3;
 
 use strict;
 use warnings;
@@ -46,14 +46,21 @@ sub aws_secret_access_key { shift->_elem('aws_secret_access_key',      @_); }
 
 sub gen_stringtosign
 {
-	my( $self, $req ) = @_;
+	my( $self, $req, $expires ) = @_;
 
 	my $stringtosign = "";
 
 	$stringtosign .= $req->method . "\n";
 	$stringtosign .= ($req->header( "Content-MD5" ) || "") . "\n";
 	$stringtosign .= ($req->header( "Content-Type" ) || "") . "\n";
-	$stringtosign .= ($req->header( "Date" ) || "") . "\n";
+	if( defined $expires )
+	{
+		$stringtosign .= ($expires || "") . "\n";
+	}
+	else
+	{
+		$stringtosign .= ($req->header( "Date" ) || "") . "\n";
+	}
 
 	my %amz_headers;
 	$req->headers->scan( sub {
@@ -94,16 +101,16 @@ sub hash_stringtosign
 
 	my $hmac = Digest::HMAC_SHA1->new( $self->aws_secret_access_key );
 	$hmac->add( $stringtosign );
-	my $b64 = MIME::Base64::encode_base64( $hmac->digest );
+	my $b64 = MIME::Base64::encode_base64( $hmac->digest, "" );
 
 	return $b64;
 }
 
 sub gen_signature
 {
-	my( $self, $req ) = @_;
+	my( $self, $req, $expires ) = @_;
 
-	my $stringtosign = $self->gen_stringtosign( $req );
+	my $stringtosign = $self->gen_stringtosign( $req, $expires );
 	my $b64 = $self->hash_stringtosign( $stringtosign );
 
 	return $b64;
@@ -140,13 +147,13 @@ __END__
 
 =head1 NAME
 
-LWP::UserAgent::S3 - utility for REST access to Amazon S3
+LWP::UserAgent::AmazonS3 - utility for REST access to Amazon S3
 
 =head1 SYNOPSIS
 
-  use LWP::UserAgent::S3;
+  use LWP::UserAgent::AmazonS3;
 
-  my $s3 = LWP::UserAgent::S3->new(
+  my $s3 = LWP::UserAgent::AmazonS3->new(
   	aws_access_key_id => $aws_access_key_id,
 	aws_secret_access_key => $aws_secret_access_key,
 	);
