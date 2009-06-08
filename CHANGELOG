@@ -8287,3 +8287,7 @@ EPRINTS-3.1-beta-2
 2009-06-05 tdb/dct05r
  * Added Sun Cloud Storage Service support
 
+2009-06-08 tdb
+ * Added a prepare_select() method that allows x-database LIMITS
+    [Alexander Bergolth]
+

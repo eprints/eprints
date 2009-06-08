@@ -3059,6 +3059,49 @@ sub prepare
 	return $result;
 }
 
+######################################################################
+=pod
+
+=item $sth = $db->prepare_select( $sql [, %options ] )
+
+Prepare a SELECT statement $sql and return a handle to it. After preparing a
+statement use execute() to execute it.
+
+The LIMIT SQL keyword is not universally supported, to specify a LIMIT you must
+use the B<limit> option.
+
+Options:
+
+	limit - limit the number of rows returned
+	offset - return B<limit> number of rows after offset
+
+=cut
+######################################################################
+
+sub prepare_select
+{
+	my( $self, $sql, %options ) = @_;
+
+	if( defined $options{limit} && length($options{limit}) )
+	{
+		if( defined $options{offset} && length($options{offset}) )
+		{
+			$sql .= sprintf(" LIMIT %d OFFSET %d",
+				$options{offset},
+				$options{limit} );
+		}
+		else
+		{
+			$sql .= sprintf(" LIMIT %d", $options{limit} );
+		}
+	}
+
+	return $self->prepare( $sql );
+}
+
+
+
+
 
 ######################################################################
 =pod

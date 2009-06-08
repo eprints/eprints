@@ -52,12 +52,11 @@ if( EPrints::Utils::is_set( $id ) )
 $sql .= "GROUP BY ".join(",",map { $database->quote_identifier($_) } @fields) .
 	" ORDER BY $Q_num_matches DESC," .
 	$database->quote_identifier("creators_name_family").",".
-	$database->quote_identifier("creators_name_given") .
-	" LIMIT 40";
+	$database->quote_identifier("creators_name_given");
 
 my @rows;
 
-my $sth = $session->get_database->prepare( $sql );
+my $sth = $session->get_database->prepare_select( $sql, 'limit' => 40 );
 $session->get_database->execute( $sth , $sql );
 while( my @row = $sth->fetchrow_array )
 {

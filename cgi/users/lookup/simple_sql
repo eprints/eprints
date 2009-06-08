@@ -26,11 +26,11 @@ elsif( $mode eq "prefix" )
 }
 $Q_string_frag = $session->get_database->quote_value( $Q_string_frag );
 
-my $sql = "SELECT $Q_xml from $Q_table WHERE $Q_value LIKE $Q_string_frag LIMIT 40";
+my $sql = "SELECT $Q_xml from $Q_table WHERE $Q_value LIKE $Q_string_frag";
 
 my $ul = $session->make_element( "ul" );
 
-my $sth = $session->get_database->prepare( $sql );
+my $sth = $session->get_database->prepare_select( $sql, 'limit' => 40 );
 $session->get_database->execute( $sth , $sql );
 my $first = 1;
 while( my( $value ) = $sth->fetchrow_array )

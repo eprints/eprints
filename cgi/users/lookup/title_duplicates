@@ -46,12 +46,11 @@ my $sql = "SELECT $Q_eprintid" .
 	" AND $Q_eprintid!=$eprintid" .
 	" AND $Q_title IS NOT NULL" .
 	" AND $Q_title LIKE " .
-	$database->quote_value( EPrints::Database::prep_like_value( $q ) . '%' ) .
-	" LIMIT 10";
+	$database->quote_value( EPrints::Database::prep_like_value( $q ) . '%' );
 
 my $doc = $session->make_doc_fragment();
 
-my $sth = $session->get_database->prepare( $sql );
+my $sth = $session->get_database->prepare_select( $sql, 'limit' => 10 );
 $session->get_database->execute( $sth , $sql );
 
 my $base_url = $session->get_repository->get_conf( "base_url" );

@@ -133,6 +133,38 @@ sub connect
 	$self->{dbh}->{LongReadLen} = 2048;
 }
 
+sub prepare_select
+{
+	my( $self, $sql, %options ) = @_;
+
+	if( defined $options{limit} && length($options{limit}) )
+	{
+		if( defined $options{offset} && length($options{offset}) )
+		{
+			my $upper = $options{offset} + $options{limit};
+			$sql = "SELECT *\n"
+				.  "FROM (\n"
+				.  "  SELECT /*+ FIRST_ROWS($upper) */ query__.*, ROWNUM rnum__\n"
+				.  "  FROM (\n"
+				.     $sql ."\n"
+				.  "  ) query__\n"
+				.  "  WHERE ROWNUM <= $upper)\n"
+				.  "WHERE rnum__  > $offset";
+		}
+		else
+		{
+			my $upper = $options{limit} + 0;
+			$sql = "SELECT /*+ FIRST_ROWS($upper) */ query__.*\n"
+				.  "FROM (\n"
+				.   $sql ."\n"
+				.  ") query__\n"
+				.  "WHERE ROWNUM <= $upper";
+		}
+	}
+
+	return $sql;
+}
+
 sub create_archive_tables
 {
 	my( $self ) = @_;
@@ -239,29 +271,6 @@ sub get_column_type
 	}
 
 	return $type;
-}
-
-sub index_dequeue
-{
-	my( $self ) = @_;
-
-	my $Q_field = $self->quote_identifier( "field" );
-	my $Q_table = $self->quote_identifier( "index_queue" );
-	my $Q_added = $self->quote_identifier( "added" );
-
-	# Oracle doesn't support LIMIT
-	my $sql = "SELECT $Q_field FROM (SELECT ROWNUM \"ID\",$Q_field FROM $Q_table ORDER BY $Q_added ASC) WHERE \"ID\"=1";
-	my $sth = $self->prepare( $sql );
-	$self->execute( $sth, $sql );
-	my( $field ) = $sth->fetchrow_array;
-	$sth->finish;
-
-	return () unless defined $field;
-
-	$sql = "DELETE FROM $Q_table WHERE $Q_field=".$self->quote_value($field);
-	$self->do( $sql );
-
-	return split(/\./, $field);
 }
 
 ######################################################################
