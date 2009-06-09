@@ -1102,6 +1102,12 @@ representing the results.
 sub perform_search
 {
 	my( $self ) = @_;
+
+	if( $self->{session}->get_repository->get_conf( "temp_use_v2_search" ) )
+	{
+		return $self->perform_search_v2;
+	}
+
 	$self->{error} = undef;
 
 	if( defined $self->{results} )
@@ -1145,10 +1151,61 @@ sub perform_search
 	return $self->{results};
 }
 
+sub perform_search_v2
+{
+	my( $self ) = @_;
+
+	$self->{error} = undef;
+
+	if( defined $self->{results} )
+	{
+		return $self->{results};
+	}
+
+	# cjg hmmm check cache still exists?
+	if( defined $self->{cache_id} )
+	{
+		$self->{results} = EPrints::List->new( 
+			session => $self->{session},
+			dataset => $self->{dataset},
+			encoded => $self->serialise,
+			cache_id => $self->{cache_id}, 
+			desc => $self->render_conditions_description,
+			desc_order => $self->render_order_description,
+		);
+		return $self->{results};
+	}
+
+
+	# print STDERR $self->get_conditions->describe."\n\n";
+
+	my $unsorted_matches = $self->get_conditions->process_v2( 
+		session => $self->{session},
+		order => $self->{custom_order},
+		dataset => $self->{dataset},
+ 	);
+
+	$self->{results} = EPrints::List->new( 
+		session => $self->{session},
+		dataset => $self->{dataset},
+		encoded => $self->serialise,
+		keep_cache => $self->{keep_cache},
+		ids => $unsorted_matches, 
+		desc => $self->render_conditions_description,
+		desc_order => $self->render_order_description,
+	);
+
+	$self->{cache_id} = $self->{results}->get_cache_id;
+
+	return $self->{results};
+}
+
+
+
 
 
  ######################################################################
- # Legacy functions which daisy chain to the results object
+ # sort Legacy functions which daisy chain to the results object
  # All deprecated.
  ######################################################################
 

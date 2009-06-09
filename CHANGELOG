@@ -8297,3 +8297,6 @@ EPRINTS-3.1-beta-2
 2009-06-09 tdb
  * Look for document format icons in system as well as the repository
 
+2009-06-09 cjg
+ * Added experiemental alternate search method. Not yet used by default.
+ * Added *temporary* config option "temp_use_v2_search" to use new style search.

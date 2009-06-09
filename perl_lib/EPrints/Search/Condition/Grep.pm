@@ -81,13 +81,38 @@ sub item_matches
 	return( 0 );
 }
 
+sub get_tables
+{
+	my( $self, $session ) = @_;
+
+	my $tables = $self->SUPER::get_tables( $session );
+	my $database = $session->get_database;
+
+	my $sql_col = $self->{field}->get_sql_name;
+	my @ors = ();
+	foreach my $cond (@{$self->{params}})
+	{
+		# not prepping like values...
+		push @ors, $database->quote_identifier($EPrints::Search::Condition::TABLEALIAS,"grepstring")." LIKE '$cond'";
+	}
+	my $where = "( ".$database->quote_identifier($EPrints::Search::Condition::TABLEALIAS,"fieldname")." = '$sql_col' AND ( ".join( " OR ", @ors )." ))";
+
+	push @{$tables}, {
+		left => $self->{field}->get_dataset->get_key_field->get_name, 
+		where => $where,
+		table => $self->{dataset}->get_sql_grep_table_name,
+	};
+
+	return $tables;
+}
+
 sub process
 {
 	my( $self, $session, $i, $filter ) = @_;
 
 	$i = 0 unless( defined $i );
 	my $database = $session->get_database;
-	my $tables = $self->get_tables( $session );
+	my $tables = $self->SUPER::get_tables( $session );
 	my $keyfield = $self->{dataset}->get_key_field();
 	my $sql_col = $self->{field}->get_sql_name;
 
@@ -125,7 +150,7 @@ sub process
 			table => $gtable,
 		};
 		my $set = $self->run_tables( $session, $tables );
-		$r = _merge( $r , $set, 0 );
+		$r = EPrints::Search::Condition::_merge( $r , $set, 0 );
 	}
 
 	return $r;

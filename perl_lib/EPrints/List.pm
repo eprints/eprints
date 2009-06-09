@@ -543,8 +543,9 @@ sub _get_records
 		}
 
 		# quick solutions if we don't need to order anything...
-		if( !defined $offset && !defined $count && !defined $self->{order} )
+		if( $offset == 0 && !defined $count && !defined $self->{order} )
 		{
+
 			if( $justids )
 			{
 				if( $self->_matches_all )
@@ -579,7 +580,6 @@ sub _get_records
 			return $self->{session}->get_database->get_single( $self->{dataset}, $range[0] );
 		}	
 	}
-
 	if( !defined $self->{cache_id} )
 	{
 		$self->cache;

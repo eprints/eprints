@@ -140,13 +140,12 @@ sub get_datetime_where_clause
 	return "(".join( " OR ", @or ).")";
 }
 
-sub process
+sub get_tables
 {
-	my( $self, $session, $i, $filter ) = @_;
+	my( $self, $session ) = @_;
 
-	$i = 0 unless( defined $i );
 	my $database = $session->get_database;
-	my $tables = $self->get_tables( $session );
+	my $tables = $self->SUPER::get_tables( $session );
 	my $keyfield = $self->{dataset}->get_key_field();
 	my $sql_col = $self->{field}->get_sql_name;
 
@@ -172,7 +171,7 @@ sub process
 			: $self->{field}->get_dataset->get_sql_table_name() 
 	};
 
-	return $self->run_tables( $session, $tables );
+	return $tables;
 }
 
 sub get_op_val

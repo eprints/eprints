@@ -78,20 +78,27 @@ sub item_matches
 
 sub process
 {
-	my( $self, $session, $i, $filter ) = @_;
+	my( $self, $session ) = @_;
 
-	$i = 0 unless( defined $i );
-
-	my $tables = $self->get_tables( $session );
 	my $database = $session->get_database;
-
-	if( scalar @{$tables} == 0 )
+	my $tables = $self->SUPER::get_tables( $session );
+	if( scalar @{$tables} )
 	{
-		my $where = $database->quote_identifier("fieldword")." = ".$database->quote_value( 
-			$self->{field}->get_sql_name.":".$self->{params}->[0] );
-		return $session->get_database->get_index_ids( $self->get_table, $where );
+		# join to a second dataset
+		return $self->run_tables( $session, $self->get_tables( $session ) );
 	}
 
+	my $where = $database->quote_identifier("fieldword")." = ".$database->quote_value( 
+			$self->{field}->get_sql_name.":".$self->{params}->[0] );
+	return $session->get_database->get_index_ids( $self->get_table, $where );
+}
+
+sub get_tables
+{
+	my( $self, $session ) = @_;
+
+	my $tables = $self->SUPER::get_tables( $session );
+	my $database = $session->get_database;
 	# otherwise joined tables on an index -- not efficient but this will work...
 	my $where = $database->quote_identifier($EPrints::Search::Condition::TABLEALIAS,"field")." = ".$database->quote_value( $self->{field}->get_sql_name );
 	$where .= " AND ".$database->quote_identifier($EPrints::Search::Condition::TABLEALIAS,"word")." = ".$database->quote_value( $self->{params}->[0] ); 
@@ -102,7 +109,7 @@ sub process
 		table => $self->{field}->get_dataset->get_sql_rindex_table_name,
 	};
 
-	return $self->run_tables( $session, $tables );
+	return $tables;
 }
 
 sub get_op_val

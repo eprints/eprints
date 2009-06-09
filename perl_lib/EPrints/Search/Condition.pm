@@ -78,6 +78,8 @@ use EPrints::Search::Condition::InSubject;
 use EPrints::Search::Condition::IsNull;
 use EPrints::Search::Condition::Comparison;
 
+use Data::Dumper;
+
 # current conditional operators:
 
 $EPrints::Search::Condition::TABLEALIAS = "d41d8cd98f00b204e9800998ecf8427e";
@@ -108,6 +110,7 @@ sub new
 	if( $op eq "name_match" ) { return EPrints::Search::Condition::NameMatch->new( @params ); }
 	if( $op eq "in_subject" ) { return EPrints::Search::Condition::InSubject->new( @params ); }
 	if( $op eq "is_null" ) { return EPrints::Search::Condition::IsNull->new( @params ); }
+	if( $op eq "grep" ) { return EPrints::Search::Condition::Grep->new( @params ); }
 	if ( $op =~ m/^(=|<=|>=|<|>)$/ )
 	{
 		return EPrints::Search::Condition::Comparison->new( $op, @params );
@@ -293,7 +296,177 @@ sub process
 {
 	my( $self, $session, $i, $filter ) = @_;
 
-	EPrints::abort( "process needs to be subclassed" );
+	my $tables = $self->get_tables( $session );
+
+	return $self->run_tables( $session, $tables );
+}
+
+sub process_v2
+{
+	my( $self, %opts ) = @_;
+
+	my $session = $opts{session};
+	my $database = $opts{session}->get_database;
+
+	my $qdata = { alias_count=>0, aliases=>{} };
+	#$session->get_database->set_debug( 1 );
+
+	my $qt = $self->get_query_tree( $session, $qdata );
+
+	my $select;
+	my $last_key_id;
+	my @tables = ();
+
+	if( defined $opts{order} )
+	{
+		$qdata->{aliases}->{order_table} = {
+			id_field => "OV.".$opts{dataset}->get_key_field()->get_name(),
+			table => $opts{dataset}->get_ordervalues_table_name($opts{session}->get_langid()),
+			join_type => "left",
+			alias => "OV",
+		};
+	}
+
+	foreach my $alias ( sort table_order_fn values %{$qdata->{aliases}} )
+	{
+		if( defined $alias->{id_field} )
+		{
+			if( !defined $select ) 
+			{
+				$select = $alias->{id_field};
+			}
+			else
+			{
+				$alias->{join_on} = $alias->{id_field}."=".$last_key_id;
+			}
+		}	
+		else
+		{
+			if( !defined $select )
+			{
+				EPrints::abort( "Internal search error: no primary select field" );
+			}
+		}
+		if( defined $alias->{join_on} ) 
+		{
+			push @tables, uc( $alias->{join_type} )." JOIN ".$alias->{table}." AS ".$alias->{alias}." ON ".$alias->{join_on};
+		}
+		else
+		{	
+			push @tables, $alias->{table}." AS ".$alias->{alias};
+		}
+		$last_key_id = $alias->{id_field};
+	}
+
+	my $sql;
+	$sql  = "SELECT DISTINCT $select ";
+	$sql .= "FROM ".join( " ", @tables )." ";
+	$sql .= "WHERE "._process_wheres( $qt );
+
+	if( defined $opts{order} )
+	{
+		$sql .= " ORDER BY ";
+		my $first = 1;
+		foreach my $fieldname ( split( "/", $opts{order} ) )
+		{
+			$sql .= ", " if( !$first );
+			my $desc = 0;
+			if( $fieldname =~ s/^-// ) { $desc = 1; }
+			my $field = EPrints::Utils::field_from_config_string( $opts{dataset}, $fieldname );
+			$sql .= "OV.".$database->quote_identifier( $field->get_sql_name() );
+			$sql .= " DESC" if $desc;
+			$first = 0;
+		}
+	}
+
+	my $results = [];
+	my $sth = $session->get_database->prepare( $sql );
+	$session->get_database->execute( $sth, $sql );
+	while( my @info = $sth->fetchrow_array ) 
+	{
+		push @{$results}, $info[0];
+	}
+	$sth->finish;
+
+	return( $results );
+}
+
+sub table_order_fn
+{
+	my $j = defined $a->{join_on} <=> defined $b->{join_on};
+	return $j unless $j == 0;
+
+	return ($a->{join_type} eq "inner") <=> ($b->{join_type} eq "inner");
+}
+
+sub _process_wheres
+{
+	my( $qt ) = @_;
+
+	my $type = shift @{$qt};
+	
+	if( $type eq "AND" || $type eq "OR" )
+	{
+		my @parts = ();
+		foreach my $sub_where ( @{$qt} )
+		{
+			push @parts, _process_wheres( $sub_where );
+		}
+		return "(".join( " ".$type." ", @parts ).")";
+	}
+
+	if( $type eq "ITEM" )
+	{
+		my $a = $qt->[-1];
+		my $where = $a->{where};
+	
+		$where =~ s/d41d8cd98f00b204e9800998ecf8427e/$a->{alias}/g;
+		return $where;
+	}
+	
+	die "Unknown where whotsit bit";
+}
+
+sub get_query_tree
+{
+	my( $self, $session, $qdata ) = @_;
+
+	my $tables = $self->get_tables( $session );
+	my $join_path = "";
+	my $prev_tinfo;
+	foreach my $tinfo ( @{$tables} )
+	{
+		$tinfo->{join_type} = "inner" unless defined $tinfo->{join_type};
+		$join_path .= "/".$tinfo->{left}."/".$tinfo->{join_type}."/".$tinfo->{table};
+		$tinfo->{join_path} = $join_path;
+		if( defined $qdata->{aliases}->{$join_path} )
+		{
+			$tinfo->{alias} = $qdata->{aliases}->{$join_path}->{alias};
+		}
+		else
+		{
+			$qdata->{alias_count}++;
+			$tinfo->{alias} = "T".$qdata->{alias_count};
+			$qdata->{aliases}->{$join_path} = { 
+				alias=>$tinfo->{alias}, 
+				table=>$tinfo->{table},
+				join_type=>$tinfo->{join_type},
+			};
+			if( defined $prev_tinfo )
+			{
+				$qdata->{aliases}->{$join_path}->{join_on} = $prev_tinfo->{alias}.".".$prev_tinfo->{right} ."=".$tinfo->{alias}.".".$tinfo->{left};
+			}
+			else
+			{
+				$qdata->{aliases}->{$join_path}->{id_field} = $tinfo->{alias}.".".$tinfo->{left};
+			}
+		}
+
+		$prev_tinfo = $tinfo;
+		if( defined $tinfo->{right} ) { $join_path.="/".$tinfo->{right}; }
+	}
+
+	return [ "ITEM", @$tables ];
 }
 
 sub run_tables
@@ -344,7 +517,7 @@ sub run_tables
 	}
 
 	my $sql = "SELECT DISTINCT ".$db->quote_identifier("T0",$opt_tables[0]->{left})." FROM ".join( ", ", @sql_tables )." WHERE (".join(") AND (", @sql_wheres ).")";
-#print "$sql\n";
+
 	my $results = [];
 	my $sth = $session->get_database->prepare( $sql );
 	$session->get_database->execute( $sth, $sql );

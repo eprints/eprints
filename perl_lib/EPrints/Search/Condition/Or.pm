@@ -79,9 +79,24 @@ sub item_matches
 	return( 0 );
 }
 
+sub get_query_tree
+{
+	my( $self, $session, $qdata ) = @_;
+
+	my @list = ( "OR" );
+	foreach my $sub_op ( $self->ordered_ops )
+	{
+		push @list, $sub_op->get_query_tree( $session, $qdata );
+	}
+
+	return \@list;
+}
+
 sub process
 {
 	my( $self, $session, $i, $filter ) = @_;
+
+
 
 	$i = 0 unless( defined $i );
 
