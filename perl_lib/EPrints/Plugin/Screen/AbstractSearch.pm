@@ -220,7 +220,11 @@ sub from
 		$self->{processor}->{search}->{satisfy_all} = ( $anyall eq "ALL" );
 	}
 
-	my $order_opt = $self->{session}->param( $self->{prefix}."order" );
+	my $order_opt = $self->{session}->param( "order" );
+	if( !defined $order_opt )
+	{
+		$order_opt = "";
+	}
 
 	my $allowed_order = 0;
 	foreach my $order_key ( keys %{$self->{processor}->{sconf}->{order_methods}} )
@@ -334,12 +338,20 @@ sub render_links
 		$plugin_id =~ m/^[^:]+::(.*)$/;
 		my $id = $1;
 		my $plugin = $self->{session}->plugin( $plugin_id );
+		my $url = URI::http->new;
+		$url->query_form(
+			cache => $self->{cache_id},
+			exp => $escexp,
+			output => $id,
+			_action_export_redir => 1
+			);
 		my $link = $self->{session}->make_element( 
 			"link", 
 			rel=>"alternate",
-			href=>"?cache=".$self->{cache_id}."&exp=".$escexp."&_action_export_redir=1&output=$id",
+			href=>$url,
 			type=>$plugin->param("mimetype"),
 			title=>EPrints::XML::to_string( $plugin->render_name ), );
+		$links->appendChild( $self->{session}->make_text( "\n    " ) );
 		$links->appendChild( $link );
 	}
 
