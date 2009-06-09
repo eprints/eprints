@@ -8294,3 +8294,6 @@ EPRINTS-3.1-beta-2
 2009-06-09 tdb
  * Use fileinfo field to render document links (faster citation rendering)
 
+2009-06-09 tdb
+ * Look for document format icons in system as well as the repository
+

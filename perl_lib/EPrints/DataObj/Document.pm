@@ -1564,7 +1564,9 @@ sub icon_url
 
 	my $icon = "unknown.png";
 	my $rel_path = "style/images/fileicons";
-	my $local_path = $self->{session}->get_repository->get_conf( "htdocs_path" )."/".$self->{session}->get_langid;
+	my @paths;
+	push @paths, $self->{session}->get_repository->get_conf( "htdocs_path" )."/".$self->{session}->get_langid."/".$rel_path;
+	push @paths, $self->{session}->get_repository->get_conf( "lib_path" )."/static/".$rel_path;
 
 	# e.g. audio/mp3 will look for "audio_mp3.png" then "audio.png" then
 	# "unknown.png"
@@ -1572,13 +1574,18 @@ sub icon_url
 	$minor = "" if !defined $minor;
 	$minor =~ s/\//_/g;
 
-	if( -e "$local_path/$rel_path/$major\_$minor.png" )
+	foreach my $local_path (@paths)
 	{
-		$icon = "$major\_$minor.png";
-	}
-	elsif( -e "$local_path/$rel_path/$major.png" )
-	{
-		$icon = "$major.png";
+		if( -e "$local_path/$major\_$minor.png" )
+		{
+			$icon = "$major\_$minor.png";
+			last;
+		}
+		elsif( -e "$local_path/$major.png" )
+		{
+			$icon = "$major.png";
+			last;
+		}
 	}
 
 	return $self->{session}->get_repository->get_conf( "http_url" )."/$rel_path/$icon";
