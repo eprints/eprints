@@ -8291,3 +8291,6 @@ EPRINTS-3.1-beta-2
  * Added a prepare_select() method that allows x-database LIMITS
     [Alexander Bergolth]
 
+2009-06-09 tdb
+ * Use fileinfo field to render document links (faster citation rendering)
+

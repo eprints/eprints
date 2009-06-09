@@ -320,20 +320,21 @@ sub render_fileinfo
 	my( $session, $field, $value, $alllangs, $nolink, $eprint ) = @_;
 
 	my $f = $session->make_doc_fragment;
-	foreach my $doc ($eprint->get_all_documents)
+	my @fileinfo = map { split /;/, $_ } split /\|/, $value;
+	for(my $i = 0; $i < @fileinfo; $i+=2)
 	{
-		my $a = $session->render_link( $doc->get_url );
+		my $a = $session->render_link( $fileinfo[$i+1] );
 		$a->appendChild( $session->make_element( 
 			"img", 
 			class=>"ep_doc_icon",
 			alt=>"file",
-			src=>$doc->icon_url,
+			src=>$fileinfo[$i],
 			border=>0 ));
 		$f->appendChild( $a );
 	}
 
 	return $f;
-};
+}
 
 
 
