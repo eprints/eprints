@@ -47,7 +47,7 @@ sub get_system_field_info
 
 	return
 	( 
-		{ name=>"cachemapid", type=>"int", required=>1, can_clone=>0,
+		{ name=>"cachemapid", type=>"counter", required=>1, can_clone=>0,
 			sql_counter=>"cachemapid" },
 
 		{ name=>"created", type=>"int", required=>1, text_index=>0 },
@@ -99,13 +99,9 @@ Return default values for this object based on the starting data.
 
 sub get_defaults
 {
-	my( $class, $session, $data ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
 	
-	if( !defined $data->{cachemapid} )
-	{ 
-		my $new_id = $session->get_database->counter_next( "cachemapid" );
-		$data->{cachemapid} = $new_id;
-	}
+	$class->SUPER::get_defaults( $session, $data, $dataset );
 
 	$data->{created} = time();
 

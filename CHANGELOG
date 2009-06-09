@@ -8308,3 +8308,9 @@ EPRINTS-3.1-beta-2
  * Fix new search so that left-joins come after inner joins, a left join is 
     joined to the main table, and it does not merge tables in AND queries
     on sub-tables, but does on OR queries.
+
+2009-06-09 tdb
+ * Added two new field types, "counter" and "timestamp"
+ * Added MetaField method "get_default_value"
+ * All data objects now use counters and timestamps to get ids and timestamps
+

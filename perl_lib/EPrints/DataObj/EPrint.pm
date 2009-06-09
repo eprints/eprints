@@ -116,11 +116,11 @@ sub get_system_field_info
 	my( $class ) = @_;
 
 	return ( 
-	{ name=>"eprintid", type=>"int", required=>1, import=>0, can_clone=>0,
+	{ name=>"eprintid", type=>"counter", required=>1, import=>0, can_clone=>0,
 		sql_counter=>"eprintid" },
 
 	{ name=>"rev_number", type=>"int", required=>1, can_clone=>0,
-		sql_index=>0 },
+		sql_index=>0, default_value=>1 },
 
 	{ name=>"documents", type=>"subobject", datasetid=>'document',
 		multiple=>1 },
@@ -148,7 +148,7 @@ sub get_system_field_info
 	{ name=>"datestamp", type=>"time", required=>0, import=>0,
 		render_res=>"minute", render_style=>"short", can_clone=>0 },
 
-	{ name=>"lastmod", type=>"time", required=>0, import=>0,
+	{ name=>"lastmod", type=>"timestamp", required=>0, import=>0,
 		render_res=>"minute", render_style=>"short", can_clone=>0 },
 
 	{ name=>"status_changed", type=>"time", required=>0, import=>0,
@@ -501,19 +501,13 @@ Return default values for this object based on the starting data.
 
 sub get_defaults
 {
-	my( $class, $session, $data ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
 
-	if( !defined $data->{eprintid} )
-	{ 
-		my $new_id = $session->get_database->counter_next( "eprintid" );
-		$data->{eprintid} = $new_id;
-	}
+	$class->SUPER::get_defaults( $session, $data, $dataset );
 
 	my $dir = _create_directory( $session, $data->{eprintid} );
 
 	$data->{dir} = $dir;
-	$data->{rev_number} = 1;
-	$data->{lastmod} = EPrints::Time::get_iso_timestamp();
 	$data->{status_changed} = $data->{lastmod};
 	if( $data->{eprint_status} eq "archive" )
 	{

@@ -85,23 +85,6 @@ sub get_dataset_id
 
 ######################################################################
 
-=item $defaults = EPrints::DataObj::LoginTicket->get_defaults( $session, $data )
-
-Return default values for this object based on the starting data.
-
-=cut
-
-######################################################################
-
-sub get_defaults
-{
-	my( $class, $session, $data ) = @_;
-	
-	return $data;
-}
-
-######################################################################
-
 =head2 Object Methods
 
 =cut

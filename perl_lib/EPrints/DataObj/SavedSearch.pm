@@ -63,10 +63,11 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"id", type=>"int", required=>1, import=>0, can_clone=>1,
+		{ name=>"id", type=>"counter", required=>1, import=>0, can_clone=>1,
 			sql_counter=>"savedsearchid" },
 
-		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0 },
+		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0,
+			default_value=>1 },
 
 		{ name=>"userid", type=>"itemref", 
 			datasetid=>"user", required=>1 },
@@ -75,18 +76,18 @@ sub get_system_field_info
 
 		{ name=>"name", type=>"text" },
 
-		{ 
-			name => "spec",
-			type => "search",
-			datasetid => "eprint",
-		},
+		{ name => "spec", type => "search", datasetid => "eprint",
+			default_value=>"" },
 
 		{ name=>"frequency", type=>"set", required=>1,
-			options=>["never","daily","weekly","monthly"] },
+			options=>["never","daily","weekly","monthly"],
+			default_value=>"never" },
 
-		{ name=>"mailempty", type=>"boolean", input_style=>"radio" },
+		{ name=>"mailempty", type=>"boolean", input_style=>"radio",
+			default_value=>"TRUE" },
 
-		{ name=>"public", type=>"boolean", input_style=>"radio" },
+		{ name=>"public", type=>"boolean", input_style=>"radio",
+			default_value=>"FALSE" },
 	);
 }
 
@@ -125,38 +126,6 @@ sub create
 		{ userid=>$userid },
 		$session->get_repository->get_dataset( "saved_search" ) );
 }
-
-######################################################################
-=pod
-
-=item $defaults = EPrints::DataObj::SavedSearch->get_defaults( $session, $data )
-
-Return default values for this object based on the starting data.
-
-=cut
-######################################################################
-
-sub get_defaults
-{
-	my( $class, $session, $data ) = @_;
-
-	my $id = $session->get_database->counter_next( "savedsearchid" );
-
-	$data->{id} = $id;
-	$data->{frequency} = 'never';
-	$data->{mailempty} = "TRUE";
-	$data->{spec} = '';
-	$data->{rev_number} = 1;
-	$data->{public} = "FALSE";
-
-#	$session->get_repository->call(
-#		"set_saved_search_defaults",
-#		$data,
-#		$session );
-
-	return $data;
-}	
-
 
 ######################################################################
 =pod

@@ -51,7 +51,7 @@ sub get_system_field_info
 	( 
 		{ name=>"metafieldid", type=>"text", required=>1, },
 
-		{ name=>"mfdatestamp", type=>"time", required=>1, },
+		{ name=>"mfdatestamp", type=>"timestamp", required=>1, },
 
 		{ name=>"mfstatus", type=>"set", required=>1,
 			options => [qw( inbox archive deletion )],
@@ -337,16 +337,16 @@ Return default values for this object based on the starting data.
 
 sub get_defaults
 {
-	my( $class, $session, $data ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
 	
+	$class->SUPER::get_defaults( $session, $data, $dataset );
+
 	if( $data->{name} and $data->{mfdatasetid} )
 	{
 		$data->{metafieldid} ||= "$data->{mfdatasetid}.$data->{name}";
 	}
 
 	$data->{"mfstatus"} = "inbox";
-
-	$data->{"mfdatestamp"} = EPrints::Time::get_iso_timestamp();
 
 	# This is set by DataSet for core and config fields
 	$data->{"providence"} = "user";

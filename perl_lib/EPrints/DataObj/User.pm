@@ -140,10 +140,11 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"userid", type=>"int", required=>1, import=>0, can_clone=>1,
+		{ name=>"userid", type=>"counter", required=>1, import=>0, can_clone=>1,
 			sql_counter=>"userid" },
 
-		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0 },
+		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0,
+			default_value=>1 },
 
 		{ name=>"saved_searches", type=>"subobject", datasetid=>'saved_search',
 			multiple=>1 },
@@ -165,7 +166,7 @@ sub get_system_field_info
 
 		{ name=>"pinsettime", type=>"int", show_in_html=>0 },
 
-		{ name=>"joined", type=>"time", required=>1 },
+		{ name=>"joined", type=>"timestamp", required=>1 },
 
 		{ name=>"email", type=>"email", required=>1 },
 
@@ -188,9 +189,11 @@ sub get_system_field_info
 		{ name => "roles", multiple => 1, type => "text", text_index=>0 },
 
 		{ name=>"frequency", type=>"set", input_style=>"medium",
-			options=>["never","daily","weekly","monthly"] },
+			options=>["never","daily","weekly","monthly"],
+			default_value=>"never" },
 
-		{ name=>"mailempty", type=>"boolean", input_style=>"radio" },
+		{ name=>"mailempty", type=>"boolean", input_style=>"radio",
+			default_value=>"FALSE" },
 
 		{ name=>"items_fields", type=>"fields", datasetid=>"eprint", 
 			multiple=>1, input_ordered=>1, required=>1, volatile=>1 },
@@ -326,29 +329,16 @@ Return default values for this object based on the starting data.
 
 sub get_defaults
 {
-	my( $class, $session, $data ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
 
-	my $date_joined = EPrints::Time::get_iso_timestamp();
-
-	my $defaults = { 
-		"userid"=>$data->{userid},
-		"joined"=>$date_joined,
-		"frequency"=>'never',
-		"mailempty"=>"FALSE",
-		"rev_number"=>1,
-	};
-
-	if( !defined $data->{userid} )
-	{ 
-		$defaults->{userid} = _create_userid( $session );
-	}
+	$class->SUPER::get_defaults( $session, $data, $dataset );
 
 	$session->get_repository->call(
 		"set_user_defaults",
-		$defaults,
+		$data,
 		$session );
 
-	return $defaults;
+	return $data;
 }
 
 
@@ -730,24 +720,6 @@ sub mail
 	); 
 }
 
-
-
-######################################################################
-# 
-# $userid = EPrints::DataObj::User::_create_userid( $session )
-#
-# Get the next unused userid value.
-#
-######################################################################
-
-sub _create_userid
-{
-	my( $session ) = @_;
-	
-	my $new_id = $session->get_database->counter_next( "userid" );
-
-	return( $new_id );
-}
 
 
 ######################################################################

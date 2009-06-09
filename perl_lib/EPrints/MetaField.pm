@@ -2138,7 +2138,6 @@ sub get_property_defaults
 		sql_index 	=> 1,
 		sql_langid 	=> $EPrints::MetaField::UNDEF,
 		sql_sorted	=> 0,
-		sql_counter => $EPrints::MetaField::UNDEF,
 		text_index 	=> 0,
 		toform 		=> $EPrints::MetaField::UNDEF,
 		type 		=> $EPrints::MetaField::REQUIRED,
@@ -2146,11 +2145,29 @@ sub get_property_defaults
 		parent_name	=> $EPrints::MetaField::UNDEF,
 		volatile	=> 0,
 		virtual		=> 0,
+		default_value => $EPrints::MetaField::UNDEF,
 
 		help_xhtml	=> $EPrints::MetaField::UNDEF,
 		title_xhtml	=> $EPrints::MetaField::UNDEF,
 		join_path	=> $EPrints::MetaField::UNDEF,
 );
+}
+
+=item $value = $field->get_default_value( $session )
+
+Return the default value for this field. This is only applicable to very simple
+cases such as timestamps, auto-incremented values etc.
+
+Any complex initialisation should be done in the "set_eprint_automatic_fields"
+callback (or the equivalent for the given object).
+
+=cut
+
+sub get_default_value
+{
+	my( $self, $session ) = @_;
+
+	return $self->get_property( "default_value" );
 }
 
 =item ( $terms, $grep_terms, $ignored ) = $field->get_index_codes( $session, $value )

@@ -59,7 +59,8 @@ sub get_system_field_info
 	( 
 		{ name=>"subjectid", type=>"text", required=>1, text_index=>0, can_clone=>1, },
 
-		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0 },
+		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0,
+			default_value=>1 },
 
 		{ name=>"name", type=>"multilang", required=>1,	multiple=>1,
 			fields=>[ 
@@ -346,23 +347,6 @@ END
 	$subject->commit;
 
 	return $subject;
-}
-
-######################################################################
-# 
-# $defaults = EPrints::DataObj::Subject->get_defaults( $session, $data )
-#
-# Return default values for this object based on the starting data.
-# 
-######################################################################
-
-sub get_defaults
-{
-	my( $class, $session, $data ) = @_;
-
-	$data->{"rev_number"} = 1;
-
-	return $data;
 }
 
 ######################################################################

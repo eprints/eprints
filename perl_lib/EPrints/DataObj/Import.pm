@@ -97,10 +97,10 @@ sub get_system_field_info
 
 	return
 	( 
-		{ name=>"importid", type=>"int", required=>1, can_clone=>0,
+		{ name=>"importid", type=>"counter", required=>1, can_clone=>0,
 			sql_counter=>"importid" },
 
-		{ name=>"datestamp", type=>"time", required=>1, },
+		{ name=>"datestamp", type=>"timestamp", required=>1, },
 
 		{ name=>"userid", type=>"itemref", required=>0, datasetid => "user" },
 
@@ -138,27 +138,6 @@ Returns the id of the L<EPrints::DataSet> object to which this record belongs.
 sub get_dataset_id
 {
 	return "import";
-}
-
-######################################################################
-
-=item $defaults = EPrints::DataObj::Import->get_defaults( $session, $data )
-
-Return default values for this object based on the starting data.
-
-=cut
-
-######################################################################
-
-sub get_defaults
-{
-	my( $class, $session, $data ) = @_;
-	
-	$data->{importid} = $session->get_database->counter_next( "importid" );
-
-	$data->{datestamp} = EPrints::Time::get_iso_timestamp();
-
-	return $data;
 }
 
 ######################################################################

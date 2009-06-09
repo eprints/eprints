@@ -127,10 +127,11 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"docid", type=>"int", required=>1, import=>0, show_in_html=>0, can_clone=>0,
+		{ name=>"docid", type=>"counter", required=>1, import=>0, show_in_html=>0, can_clone=>0,
 			sql_counter=>"documentid" },
 
-		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0, show_in_html=>0 },
+		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0, show_in_html=>0,
+			default_value=>1 },
 
 		{ name=>"files", type=>"subobject", datasetid=>"file", multiple=>1 },
 
@@ -348,15 +349,13 @@ Return default values for this object based on the starting data.
 
 sub get_defaults
 {
-	my( $class, $session, $data ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
 
-	$data->{docid} = $session->get_database->counter_next( "documentid" );
+	$class->SUPER::get_defaults( $session, $data, $dataset );
 
 	$data->{pos} = $session->get_database->next_doc_pos( $data->{eprintid} );
 
 	$data->{placement} = $data->{pos};
-
-	$data->{rev_number} = 1;
 
 	my $eprint = $data->{_parent};
 	if( !defined $eprint )

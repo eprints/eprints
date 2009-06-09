@@ -289,21 +289,18 @@ sub get_defaults
 {
 	my( $class, $session, $data, $dataset ) = @_;
 
-	# without dataset there's nothing we can sensibly do
-	return $data unless defined $dataset;
+	if( !defined $dataset )
+	{
+		$dataset = $session->get_repository->get_dataset( $class->get_dataset_id );
+	}
 
-	# Set any counter-driven values
+	# set any values that a field has a default for e.g. counters
 	foreach my $field ($dataset->get_fields)
 	{
 		my $fieldname = $field->get_name;
 		next if EPrints::Utils::is_set($data->{$fieldname});
 
-		my $counter_id = $field->get_property( "sql_counter" );
-		if( defined $counter_id )
-		{
-			$data->{$field->get_name} =
-				$session->get_database->counter_next( $counter_id );
-		}
+		$data->{$fieldname} = $field->get_default_value( $session );
 	}
 
 	return $data;

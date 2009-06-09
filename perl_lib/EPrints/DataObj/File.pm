@@ -218,7 +218,7 @@ sub get_system_field_info
 
 	return
 	( 
-		{ name=>"fileid", type=>"int", required=>1, import=>0, show_in_html=>0,
+		{ name=>"fileid", type=>"counter", required=>1, import=>0, show_in_html=>0,
 			can_clone=>0, sql_counter=>"fileid" },
 
 		{ name=>"datasetid", type=>"text", text_index=>0, import=>0,
@@ -236,7 +236,7 @@ sub get_system_field_info
 
 		{ name=>"filesize", type=>"bigint", },
 
-		{ name=>"mtime", type=>"time", },
+		{ name=>"mtime", type=>"timestamp", },
 
 		{ name=>"url", type=>"url", virtual=>1 },
 
@@ -282,11 +282,9 @@ Return default values for this object based on the starting data.
 
 sub get_defaults
 {
-	my( $class, $session, $data ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
 	
-	$data->{fileid} = $session->get_database->counter_next( "fileid" );
-
-	$data->{mtime} = EPrints::Time::get_iso_timestamp();
+	$class->SUPER::get_defaults( $session, $data, $dataset );
 
 	if( defined( $data->{filename} ) )
 	{

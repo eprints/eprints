@@ -47,10 +47,10 @@ sub get_system_field_info
 
 	return
 	( 
-		{ name=>"messageid", type=>"int", required=>1, can_clone=>0,
+		{ name=>"messageid", type=>"counter", required=>1, can_clone=>0,
 			sql_counter=>"messageid" },
 
-		{ name=>"datestamp", type=>"time", required=>1, text_index=>0 },
+		{ name=>"datestamp", type=>"timestamp", required=>1, text_index=>0 },
 
 		{ name=>"userid", type=>"itemref", datasetid=>"user", required=>1, text_index=>0 },
 
@@ -85,31 +85,6 @@ Returns the id of the L<EPrints::DataSet> object to which this record belongs.
 sub get_dataset_id
 {
 	return "message";
-}
-
-######################################################################
-
-=item $defaults = EPrints::DataObj::Message->get_defaults( $session, $data )
-
-Return default values for this object based on the starting data.
-
-=cut
-
-######################################################################
-
-sub get_defaults
-{
-	my( $class, $session, $data ) = @_;
-	
-	if( !defined $data->{messageid} )
-	{ 
-		my $new_id = $session->get_database->counter_next( "messageid" );
-		$data->{messageid} = $new_id;
-	}
-
-	$data->{datestamp} = EPrints::Time::get_iso_timestamp();
-
-	return $data;
 }
 
 ######################################################################

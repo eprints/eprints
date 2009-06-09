@@ -43,7 +43,7 @@ sub get_system_field_info
 
 	return (
 
-		{ name=>"requestid", type=>"int", required=>1, can_clone=>1,
+		{ name=>"requestid", type=>"counter", required=>1, can_clone=>1,
 			sql_counter=>"requestid" },
 
 		{ name=>"eprintid", type=>"itemref", 
@@ -51,7 +51,7 @@ sub get_system_field_info
 
 		{ name=>"docid", type=>"text", required=>0 },
 
-		{ name=>"datestamp", type=>"time", required=>1, },
+		{ name=>"datestamp", type=>"timestamp", required=>1, },
 
 		{ name=>"userid", type=>"itemref", 
 			datasetid=>"user", required=>0 },
@@ -88,27 +88,6 @@ Returns the id of the L<EPrints::DataSet> object to which this record belongs.
 sub get_dataset_id
 {
 	return "request";
-}
-
-######################################################################
-
-=item $defaults = EPrints::DataObj::Access->get_defaults( $session, $data )
-
-Return default values for this object based on the starting data.
-
-=cut
-
-######################################################################
-
-sub get_defaults
-{
-	my( $class, $session, $data ) = @_;
-	
-	$data->{requestid} = $session->get_database->counter_next( "requestid" );
-
-	$data->{datestamp} = EPrints::Time::get_iso_timestamp();
-
-	return $data;
 }
 
 ######################################################################

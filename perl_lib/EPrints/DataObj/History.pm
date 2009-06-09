@@ -104,7 +104,7 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"historyid", type=>"int", required=>1, can_clone=>0,
+		{ name=>"historyid", type=>"counter", required=>1, can_clone=>0,
 			sql_counter=>"historyid" }, 
 
 		{ name=>"userid", type=>"itemref", 
@@ -120,7 +120,7 @@ sub get_system_field_info
 
 		{ name=>"revision", type=>"int", },
 
-		{ name=>"timestamp", type=>"time", }, 
+		{ name=>"timestamp", type=>"timestamp", }, 
 
 		# TODO should be a set when I know what the actions will be
 		{ name=>"action", type=>"set", text_index=>0, options=>[qw/
@@ -241,16 +241,14 @@ Return default values for this object based on the starting data.
 
 sub get_defaults
 {
-	my( $class, $session, $data ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
 	
-	$data->{historyid} = $session->get_database->counter_next( "historyid" );
-
-	$data->{timestamp} = EPrints::Time::get_iso_timestamp();
+	$class->SUPER::get_defaults( $session, $data, $dataset );
 
 	my $user;
-	if( $data->{userid} )
+	if( defined $data->{userid} )
 	{
-		$user = EPrints::User->new( $session, $data->{userid} );
+		$user = EPrints::DataObj::User->new( $session, $data->{userid} );
 	}
 	if( defined $user ) 
 	{
