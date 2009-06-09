@@ -1340,10 +1340,12 @@ sub in_editorial_scope_of
 	return 1;
 }
 
-=item $problems = $dataobj->validate( [ $for_archive ] )
+=item $problems = $dataobj->validate( [ $for_archive ], $workflow_id )
 
 Return a reference to an array of XHTML DOM objects describing
-validation problems with the entire $dataobj.
+validation problems with the entire $dataobj based on $workflow_id.
+
+If $workflow_id is undefined defaults to "default".
 
 A reference to an empty array indicates no problems.
 

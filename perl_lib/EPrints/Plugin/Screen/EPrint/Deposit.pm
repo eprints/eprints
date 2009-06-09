@@ -77,7 +77,7 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $problems = $self->{processor}->{eprint}->validate( $self->{processor}->{for_archive} );
+	my $problems = $self->{processor}->{eprint}->validate( $self->{processor}->{for_archive}, $self->workflow_id );
 	if( scalar @{$problems} > 0 )
 	{
 		my $dom_problems = $self->{session}->make_element( "ul" );

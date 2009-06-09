@@ -1048,10 +1048,12 @@ sub write_revision
 ######################################################################
 =pod
 
-=item $problems = $eprint->validate( [$for_archive] )
+=item $problems = $eprint->validate( [$for_archive], $workflow_id )
 
 Return a reference to an array of XHTML DOM objects describing
-validation problems with the entire eprint.
+validation problems with the entire eprint based on $workflow_id.
+
+If $workflow_id is undefined defaults to "default".
 
 A reference to an empty array indicates no problems.
 
@@ -1062,16 +1064,17 @@ Calls L</validate_eprint> for the C<$eprint>.
 
 sub validate
 {
-	my( $self , $for_archive ) = @_;
+	my( $self , $for_archive, $workflow_id ) = @_;
 
 	return [] if $self->skip_validation;
 	
+	$workflow_id = "default" if !defined $workflow_id;
 
 	# get the workflow
 
 	my %opts = ( item=> $self, session=>$self->{session} );
 	$opts{STAFF_ONLY} = [$for_archive ? "TRUE" : "FALSE","BOOLEAN"];
- 	my $workflow = EPrints::Workflow->new( $self->{session}, "default", %opts );
+ 	my $workflow = EPrints::Workflow->new( $self->{session}, $workflow_id, %opts );
 
 	my @problems = ();
 

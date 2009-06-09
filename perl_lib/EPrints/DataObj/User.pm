@@ -427,14 +427,16 @@ The problems are XHTML DOM objects describing the problem.
 
 sub validate
 {
-	my( $self ) = @_;
+	my( $self, $for_archive, $workflow_id ) = @_;
+
+	$workflow_id = "default" if !defined $workflow_id;
 
 	my @problems;
 
 	my $user_ds = $self->{session}->get_repository->get_dataset( "user" );
 
 	my %opts = ( item=> $self, session=>$self->{session} );
- 	my $workflow = EPrints::Workflow->new( $self->{session}, "default", %opts );
+ 	my $workflow = EPrints::Workflow->new( $self->{session}, $workflow_id, %opts );
 
 	push @problems, $workflow->validate;
 

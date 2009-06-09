@@ -189,10 +189,15 @@ sub workflow
 	{
 		my %opts = ( item=> $self->{processor}->{eprint}, session=>$self->{session} );
 		$opts{STAFF_ONLY} = [$staff ? "TRUE" : "FALSE","BOOLEAN"];
- 		$self->{processor}->{$cache_id} = EPrints::Workflow->new( $self->{session}, "default", %opts );
+ 		$self->{processor}->{$cache_id} = EPrints::Workflow->new( $self->{session}, $self->workflow_id, %opts );
 	}
 
 	return $self->{processor}->{$cache_id};
+}
+
+sub workflow_id
+{
+	return "default";
 }
 
 sub uncache_workflow
