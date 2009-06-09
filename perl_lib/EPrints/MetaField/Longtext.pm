@@ -108,7 +108,7 @@ sub form_value_basic
 	
 	my $value = $session->param( $basename );
 
-	return undef if( $value eq "" );
+	return undef if( !defined($value) or $value eq "" );
 
 	return $value;
 }
