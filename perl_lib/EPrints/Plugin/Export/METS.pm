@@ -110,7 +110,7 @@ sub xml_dataobj
 
 	my $session = $plugin->{ session };
 
-	my $id = $dataobj->uri;
+	my $id = $dataobj->get_dataset->confid."_".$dataobj->get_id;
 
 	my $mods_plugin = $session->plugin( "Export::MODS" )
 		or die "Couldn't get Export::MODS plugin";
@@ -145,7 +145,7 @@ sub xml_dataobj
 	));
 	$mods_dmd->appendChild(my $mods_mdWrap = $session->make_element(
 		"${PREFIX}mdWrap",
-		"MDTYPE" => "mods"
+		"MDTYPE" => "MODS"
 	));
 	my $mods = $mods_plugin->xml_dataobj( $dataobj, $MODS_PREFIX );
 	$mods_mdWrap->appendChild( my $xmlData = $session->make_element(
@@ -177,7 +177,7 @@ sub _make_header
 	
 	my $header = $session->make_element(
 		"${PREFIX}metsHdr",
-		"CREATEDATA" => $time
+		"CREATEDATE" => $time
 	);
 	$header->appendChild( my $agent = $session->make_element(
 		"${PREFIX}agent",
@@ -209,7 +209,7 @@ sub _make_amdSec
 	
 	$rightsMD->appendChild( my $mdWrap = $session->make_element(
 		"${PREFIX}mdWrap",
-		"MDTYPE" => "mods"
+		"MDTYPE" => "MODS"
 	));
 	
 	$mdWrap->appendChild( my $xmlData = $session->make_element(
@@ -280,12 +280,12 @@ sub _make_structMap
 	$structMap->appendChild( my $top_div = $session->make_element(
 		"${PREFIX}div",
 		"DMDID" => $dmd_id,
-		"AMDID" => $amd_id
+		"ADMID" => $amd_id
 	));
 	
 	foreach my $doc ($dataobj->get_all_documents)
 	{
-		my $id_base = $id."_".$doc->get_id;
+		my $id_base = $id."_".$doc->get_dataset->confid."_".$doc->get_id;
 		my $file_idx = 0;
 		my %files = $doc->files;
 		if( scalar keys %files > 1 )

@@ -20,7 +20,7 @@ sub new
 	$self->{visible} = "all";
 	
 	$self->{xmlns} = "http://www.loc.gov/mods/v3";
-	$self->{schemaLocation} = "http://www.loc.gov/standards/mods/v3/mods-3-0.xsd";
+	$self->{schemaLocation} = "http://www.loc.gov/standards/mods/v3/mods-3-3.xsd";
 
 	return $self;
 }
@@ -50,7 +50,7 @@ sub xml_dataobj
 	chop($nsp); # Remove the ':'
 	my $mods = $session->make_element(
 		"${PREFIX}mods",
-		"version" => "3.0",
+		"version" => "3.3",
 		$nsp => $plugin->{ xmlns },
 		"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
 		"xsi:schemaLocation" => ($plugin->{ xmlns } . ' ' . $plugin->{ schemaLocation }),

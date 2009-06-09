@@ -204,7 +204,7 @@ sub eprint_to_uketd_dc
 			#$format = "application/octet-stream" unless defined $format;
 			
 			push @etddata, [ "identifier", $_->get_url(), "dc", "dcterms:URI" ];
-			push @etddata, [ "format", $format, "dc", "dcterms" ];
+			push @etddata, [ "format", $format, "dc" ];
 			# information about extent and checksums could be added here, if they are available
 			# the default eprint doesn't have a place for this but both could be generated dynamically
 		}
