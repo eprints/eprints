@@ -81,12 +81,17 @@ sub item_matches
 
 sub get_query_tree
 {
-	my( $self, $session, $qdata ) = @_;
+	my( $self, $session, $qdata, $mergemap ) = @_;
+
+	# if nested or's then use existing $mergemap, otherwise create one.
+	# this allows mutiple OR'd queries on the same table to use the
+	# same instance of that table. Does not apply to ANDs 
+	$mergemap = {} if !defined $mergemap;
 
 	my @list = ( "OR" );
 	foreach my $sub_op ( $self->ordered_ops )
 	{
-		push @list, $sub_op->get_query_tree( $session, $qdata );
+		push @list, $sub_op->get_query_tree( $session, $qdata, $mergemap );
 	}
 
 	return \@list;

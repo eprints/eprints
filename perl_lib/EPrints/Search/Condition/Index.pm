@@ -100,8 +100,8 @@ sub get_tables
 	my $tables = $self->SUPER::get_tables( $session );
 	my $database = $session->get_database;
 	# otherwise joined tables on an index -- not efficient but this will work...
-	my $where = $database->quote_identifier($EPrints::Search::Condition::TABLEALIAS,"field")." = ".$database->quote_value( $self->{field}->get_sql_name );
-	$where .= " AND ".$database->quote_identifier($EPrints::Search::Condition::TABLEALIAS,"word")." = ".$database->quote_value( $self->{params}->[0] ); 
+	my $where = "(".$database->quote_identifier($EPrints::Search::Condition::TABLEALIAS,"field")." = ".$database->quote_value( $self->{field}->get_sql_name );
+	$where .= " AND ".$database->quote_identifier($EPrints::Search::Condition::TABLEALIAS,"word")." = ".$database->quote_value( $self->{params}->[0] ).")"; 
 	
 	push @{$tables}, {
 		left => $self->{field}->get_dataset->get_key_field->get_name, 

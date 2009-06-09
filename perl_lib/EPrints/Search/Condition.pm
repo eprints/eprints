@@ -327,34 +327,43 @@ sub process_v2
 		};
 	}
 
-	foreach my $alias ( sort table_order_fn values %{$qdata->{aliases}} )
+	my @aliases = sort table_order_fn values %{$qdata->{aliases}};
+	if( $aliases[0]->{join_type} ne "inner" )
 	{
-		if( defined $alias->{id_field} )
+		# forced to add a new first table to be inner joined.
+		unshift @aliases, {
+			id_field => $opts{dataset}->get_key_field->get_name(), 
+			table => $opts{dataset}->get_sql_table_name(),
+			join_type => "inner",
+			alias => "MAIN",
+		};
+	}
+
+	foreach my $alias ( @aliases )
+	{
+		if( !defined $select ) 
 		{
-			if( !defined $select ) 
+			# first item
+			if( !defined $alias->{id_field} )
 			{
-				$select = $alias->{id_field};
+				EPrints::abort( "Internal search error: no primary select field. ".Dumper( \@aliases ) );
 			}
-			else
-			{
-				$alias->{join_on} = $alias->{id_field}."=".$last_key_id;
-			}
-		}	
-		else
-		{
-			if( !defined $select )
-			{
-				EPrints::abort( "Internal search error: no primary select field" );
-			}
-		}
-		if( defined $alias->{join_on} ) 
-		{
-			push @tables, uc( $alias->{join_type} )." JOIN ".$alias->{table}." AS ".$alias->{alias}." ON ".$alias->{join_on};
-		}
-		else
-		{	
+			$select = $alias->{id_field};
 			push @tables, $alias->{table}." AS ".$alias->{alias};
 		}
+		else
+		{
+			if( defined $alias->{id_field} )
+			{	
+				$alias->{join_on} = $alias->{id_field}."=".$last_key_id;
+			}
+			if( !defined $alias->{join_on} )
+			{
+				EPrints::abort( "Internal search error: nothing to join. ".Dumper( \@aliases ) );
+			}
+			push @tables, uc( $alias->{join_type} )." JOIN ".$alias->{table}." AS ".$alias->{alias}." ON ".$alias->{join_on};
+		}
+		
 		$last_key_id = $alias->{id_field};
 	}
 
@@ -396,7 +405,12 @@ sub table_order_fn
 	my $j = defined $a->{join_on} <=> defined $b->{join_on};
 	return $j unless $j == 0;
 
-	return ($a->{join_type} eq "inner") <=> ($b->{join_type} eq "inner");
+	# inner joins first
+	my $jt = ($b->{join_type} eq "inner") <=> ($a->{join_type} eq "inner");
+	return $jt unless $jt == 0;
+
+	# MAIN table first if possible
+	return ($b->{alias} eq "MAIN") <=> ($a->{alias} eq "MAIN");
 }
 
 sub _process_wheres
@@ -429,36 +443,57 @@ sub _process_wheres
 
 sub get_query_tree
 {
-	my( $self, $session, $qdata ) = @_;
+	my( $self, $session, $qdata, $mergemap ) = @_;
 
 	my $tables = $self->get_tables( $session );
 	my $join_path = "";
+
+	my $main_path = "/".$self->{dataset}->get_key_field->get_name().
+			"/inner".
+			"/".$self->{dataset}->get_sql_table_name();
 	my $prev_tinfo;
 	foreach my $tinfo ( @{$tables} )
 	{
 		$tinfo->{join_type} = "inner" unless defined $tinfo->{join_type};
 		$join_path .= "/".$tinfo->{left}."/".$tinfo->{join_type}."/".$tinfo->{table};
 		$tinfo->{join_path} = $join_path;
-		if( defined $qdata->{aliases}->{$join_path} )
+
+		if( $tinfo->{join_path} eq $main_path && defined $qdata->{aliases}->{MAIN} )
 		{
-			$tinfo->{alias} = $qdata->{aliases}->{$join_path}->{alias};
+			$tinfo->{alias} = "MAIN";
+		}
+		elsif( defined $mergemap && defined $mergemap->{$join_path} )
+		{
+			$tinfo->{alias} = $mergemap->{$join_path};
 		}
 		else
 		{
-			$qdata->{alias_count}++;
-			$tinfo->{alias} = "T".$qdata->{alias_count};
-			$qdata->{aliases}->{$join_path} = { 
+			if( $tinfo->{join_path} eq $main_path )
+			{
+				$tinfo->{alias} = "MAIN";
+			}
+			else
+			{
+				$qdata->{alias_count}++;
+				$tinfo->{alias} = "T".$qdata->{alias_count};
+			}
+			my $new_table = { 
 				alias=>$tinfo->{alias}, 
 				table=>$tinfo->{table},
 				join_type=>$tinfo->{join_type},
 			};
 			if( defined $prev_tinfo )
 			{
-				$qdata->{aliases}->{$join_path}->{join_on} = $prev_tinfo->{alias}.".".$prev_tinfo->{right} ."=".$tinfo->{alias}.".".$tinfo->{left};
+				$new_table->{join_on} = $prev_tinfo->{alias}.".".$prev_tinfo->{right} ."=".$tinfo->{alias}.".".$tinfo->{left};
 			}
 			else
 			{
-				$qdata->{aliases}->{$join_path}->{id_field} = $tinfo->{alias}.".".$tinfo->{left};
+				$new_table->{id_field} = $tinfo->{alias}.".".$tinfo->{left};
+			}
+			$qdata->{aliases}->{$tinfo->{alias}} = $new_table;
+			if( defined $mergemap )
+			{
+				$mergemap->{$join_path} = $tinfo->{alias};
 			}
 		}
 

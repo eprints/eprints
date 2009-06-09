@@ -8304,3 +8304,7 @@ EPRINTS-3.1-beta-2
 2009-06-09 tdb
  * Fixed schema errors in uketd_dc and METS/MODS export plugins
 
+2009-06-09 cjg
+ * Fix new search so that left-joins come after inner joins, a left join is 
+    joined to the main table, and it does not merge tables in AND queries
+    on sub-tables, but does on OR queries.
