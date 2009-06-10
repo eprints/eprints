@@ -155,6 +155,9 @@ sub _get_property_fields
 		{ name=>"input_rows", type=>"int", input_cols=>3, },
 		{ name=>"input_cols", type=>"int", input_cols=>3, },
 		{ name=>"input_boxes", type=>"int", input_cols=>3, },
+
+		{ name=>"sql_counter", type=>"text", sql_index=>0 },
+		{ name=>"default_value", type=>"text", sql_index=>0 },
 	);
 }
 
@@ -175,6 +178,7 @@ sub _get_field_types
 			arclanguage
 			boolean
 			compound
+			counter
 			date
 			email
 			float
@@ -191,6 +195,7 @@ sub _get_field_types
 			subject
 			text
 			time
+			timestamp
 			url
 	);
 }

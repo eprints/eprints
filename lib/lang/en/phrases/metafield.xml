@@ -84,6 +84,11 @@ Phrases related to the Manage Metadata Fields tool.
     <epp:phrase id="Plugin/Screen/MetaField/View:deleted_field">Removed the field information for <epc:pin name="fieldid"/>.</epp:phrase>
     <epp:phrase id="Plugin/Screen/MetaField/View:remove_failed">Failed to remove the field. You should ensure the web server has write access to the fields configuration file for this repository.</epp:phrase>
 
+<epp:phrase id="metafield_fieldopt_type_counter">counter</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_counter">An integer that will automatically increase by 1 for every new object.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_timestamp">timestamp</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_timestamp">A date/time that will automatically be initialised to the current date/time.</epp:phrase>
+
 <epp:phrase id="metafield_fieldopt_type_base64">base64</epp:phrase>
 <epp:phrase id="metafield_fieldopt_fields_type_nameid">nameid</epp:phrase>
 <epp:phrase id="metafield_fieldopt_type_arclanguage">arclanguage</epp:phrase>
@@ -260,6 +265,8 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 <epp:phrase id="metafield_fieldname_input_boxes">Initial Input Rows</epp:phrase>
 <epp:phrase id="metafield_fieldname_fields_input_boxes">Input Boxes</epp:phrase>
 <epp:phrase id="metafield_fieldhelp_input_boxes">Starting number of input rows to show (if field is multiple). As users add values more rows will be shown.</epp:phrase>
+<epp:phrase id="metafield_fieldname_sql_counter">Counter Name</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_sql_counter">The name of the counter used to get the next incremented value, must be made up of lowercase English characters or underscore.</epp:phrase>
 
 <epp:phrase id="metafield_fieldopt_required_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
 <epp:phrase id="metafield_fieldopt_fields_required_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>

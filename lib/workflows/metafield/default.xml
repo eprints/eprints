@@ -19,10 +19,13 @@
   <stage name="settings">
 	<component type="XHTML"><epc:phrase ref="metafield_properties_help"/></component>
   	<component><field ref="required"/></component>
-  	<component><field ref="allow_null"/></component>
   	<component><field ref="volatile"/></component>
   	<component><field ref="export_as_xml"/></component>
+  	<component><field ref="allow_null"/></component>
   	<component><field ref="sql_index"/></component>
+	<epc:if test="type='counter'">
+		<component><field ref="sql_counter" required="yes"/></component>
+	</epc:if>
     <component type="Field::Multi">
 		<title>Rendering Options</title>
 		<field ref="render_input"/>

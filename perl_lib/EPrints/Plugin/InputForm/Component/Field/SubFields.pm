@@ -149,6 +149,11 @@ sub get_potential_metafields
 		$fielddata->{sub_name} = delete $fielddata->{name};
 		$fielddata->{sub_name} =~ s/^$prefix//;
 
+		if( defined $fielddata->{options} )
+		{
+			$fielddata->{options} = join ",", @{$fielddata->{options}};
+		}
+
 		$potential{$fielddata->{sub_name}} = $fielddata;
 	} );
 
