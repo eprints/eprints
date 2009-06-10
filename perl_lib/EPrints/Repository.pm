@@ -1022,7 +1022,7 @@ sub get_sql_counter_ids
 		my $dataset = $self->get_dataset( $ds_id );
 		foreach my $field ($dataset->get_fields)
 		{
-			next if $field->is_virtual;
+			next unless $field->isa( "EPrints::MetaField::Counter" );
 			my $c_id = $field->get_property( "sql_counter" );
 			push @counter_ids, $c_id if defined $c_id;
 		}
