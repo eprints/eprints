@@ -2797,6 +2797,7 @@ sub prepare_page
 				my $xml = $self->make_text( $text );
 				push @output, EPrints::XML::to_string( $xml, undef, 1 );
 				EPrints::XML::dispose( $xml );
+				next;
 			}
 	
 			if( defined $map->{"utf-8.".$pinid} )
