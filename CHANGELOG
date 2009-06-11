@@ -8314,3 +8314,6 @@ EPRINTS-3.1-beta-2
  * Added MetaField method "get_default_value"
  * All data objects now use counters and timestamps to get ids and timestamps
 
+2009-06-10 tdb
+ * Removed has_table from version checks and drop_table
+

@@ -3848,10 +3848,11 @@ sub drop_table
 {
 	my( $self, $tablename ) = @_;
 
-	return 1 unless $self->has_table( $tablename );
+	local $self->{dbh}->{PrintError} = 0;
+	local $self->{dbh}->{RaiseError} = 0;
 
 	my $sql = "DROP TABLE ".$self->quote_identifier($tablename);
-	$self->do( $sql );
+	return $self->{dbh}->do( $sql );
 }
 
 ######################################################################
@@ -3952,7 +3953,8 @@ sub get_version
 {
 	my( $self ) = @_;
 
-	return undef unless $self->has_table( "version" );
+	local $self->{dbh}->{PrintError} = 0;
+	local $self->{dbh}->{RaiseError} = 0;
 
 	my $Q_version = $self->quote_identifier( "version" );
 
