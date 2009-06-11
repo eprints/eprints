@@ -1561,11 +1561,12 @@ sub icon_url
 		return $thumbnail_url if defined $thumbnail_url;
 	}
 
+	my $session = $self->{session};
+	my $langid = $session->get_langid;
+	my @static_dirs = $session->get_repository->get_static_dirs( $langid );
+
 	my $icon = "unknown.png";
 	my $rel_path = "style/images/fileicons";
-	my @paths;
-	push @paths, $self->{session}->get_repository->get_conf( "htdocs_path" )."/".$self->{session}->get_langid."/".$rel_path;
-	push @paths, $self->{session}->get_repository->get_conf( "lib_path" )."/static/".$rel_path;
 
 	# e.g. audio/mp3 will look for "audio_mp3.png" then "audio.png" then
 	# "unknown.png"
@@ -1573,21 +1574,22 @@ sub icon_url
 	$minor = "" if !defined $minor;
 	$minor =~ s/\//_/g;
 
-	foreach my $local_path (@paths)
+	foreach my $dir (@static_dirs)
 	{
-		if( -e "$local_path/$major\_$minor.png" )
+		my $path = "$dir/$rel_path";
+		if( $minor ne "" && -e "$path/$major\_$minor.png" )
 		{
 			$icon = "$major\_$minor.png";
 			last;
 		}
-		elsif( -e "$local_path/$major.png" )
+		elsif( -e "$path/$major.png" )
 		{
 			$icon = "$major.png";
 			last;
 		}
 	}
 
-	return $self->{session}->get_repository->get_conf( "http_url" )."/$rel_path/$icon";
+	return $session->get_repository->get_conf( "http_url" )."/$rel_path/$icon";
 }
 
 =item $frag = $doc->render_icon_link( %opts )

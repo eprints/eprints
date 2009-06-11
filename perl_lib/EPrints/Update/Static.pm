@@ -44,18 +44,7 @@ sub update_static_file
 
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid.$localpath;
 
-	my @static_dirs = ();;
-
-	my $theme = $repository->get_conf( "theme" );
-	push @static_dirs, $repository->get_conf( "lib_path" )."/static";
-	push @static_dirs, $repository->get_conf( "lib_path" )."/lang/$langid/static";
-	if( defined $theme )
-	{	
-		push @static_dirs, $repository->get_conf( "lib_path" )."/themes/$theme/static";
-		push @static_dirs, $repository->get_conf( "lib_path" )."/themes/$theme/lang/$langid/static";
-	}
-	push @static_dirs, $repository->get_conf( "config_path" )."/static";
-	push @static_dirs, $repository->get_conf( "config_path" )."/lang/$langid/static";
+	my @static_dirs = $repository->get_static_dirs( $langid );
 
 	my $ok = $repository->get_conf( "auto_update_auto_files" );
 	if( defined $ok && $ok == 0 )

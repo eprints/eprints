@@ -1356,6 +1356,43 @@ sub get_store_dirs
 	return @dirs;
 }
 
+######################################################################
+=pod
+
+=item @dirs = $repository->get_static_dirs( $langid )
+
+Returns a list of directories from which static files may be sourced.
+
+=cut
+######################################################################
+
+sub get_static_dirs
+{
+	my( $self, $langid ) = @_;
+
+	my @dirs;
+
+	my $config_path = $self->get_conf( "config_path" );
+	my $lib_path = $self->get_conf( "lib_path" );
+
+	# repository path: /archives/[repoid]/cfg/
+	push @dirs, "$config_path/static";
+	push @dirs, "$config_path/lang/$langid/static";
+
+	# themes path: /lib/themes/
+	my $theme = $self->get_conf( "theme" );
+	if( defined $theme )
+	{	
+		push @dirs, "$lib_path/themes/$theme/static";
+		push @dirs, "$lib_path/themes/$theme/lang/$langid/static";
+	}
+
+	# system path: /lib/static/
+	push @dirs, "$lib_path/static";
+	push @dirs, "$lib_path/lang/$langid/static";
+
+	return @dirs;
+}
 
 ######################################################################
 =pod

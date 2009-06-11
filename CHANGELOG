@@ -8317,3 +8317,7 @@ EPRINTS-3.1-beta-2
 2009-06-10 tdb
  * Removed has_table from version checks and drop_table
 
+2009-06-10 tdb
+ * Added "get_static_dirs()" method to repository, fixes icon_url() not
+    getting icons from the system directories
+
