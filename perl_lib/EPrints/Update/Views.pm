@@ -54,8 +54,9 @@ sub abbr_path
 	foreach my $part (@parts)
 	{
 		next if length($part) < 40;
-		my $ext = $part =~ s/(\.[^\.]+)$// ? $1 : "";
-		$part = Digest::MD5::md5_hex($part) . $ext;
+		my( $name, $ext ) = split /\./, $part, 2;
+		$part = Digest::MD5::md5_hex($name);
+		$part .= ".$ext" if defined $ext;
 	}
 
 	return join "/", @parts;
@@ -70,7 +71,7 @@ sub update_view_file
 	$localpath = abbr_path( $localpath );
 
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid.$localpath;
-	my $ext = $target =~ s/(\.[^\.]*)$// ? $1 : "";
+	my $ext = $target =~ s/(\..*)// ? $1 : "";
 	my $age;
 	if( -e "$target.page" ) 
 	{
