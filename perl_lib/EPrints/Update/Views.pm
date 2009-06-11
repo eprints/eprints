@@ -40,14 +40,37 @@ use strict;
 
 # Does not update the file if it's not needed.
 
+=item $path = abbr_path( $path )
+
+This internal method replaces any part of $path that is longer than 40 characters with the MD5 of that part. It ignores file extensions (dot followed by anything).
+
+=cut
+
+sub abbr_path
+{
+	my( $path ) = @_;
+
+	my @parts = split /\//, $path;
+	foreach my $part (@parts)
+	{
+		next if length($part) < 40;
+		my $ext = $part =~ s/(\.[^\.]+)$// ? $1 : "";
+		$part = Digest::MD5::md5_hex($part) . $ext;
+	}
+
+	return join "/", @parts;
+}
+
 sub update_view_file
 {
 	my( $session, $langid, $localpath, $uri ) = @_;
 
 	my $repository = $session->get_repository;
 
+	$localpath = abbr_path( $localpath );
+
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid.$localpath;
-	$target =~ s/\.[^\.]*$//;
+	my $ext = $target =~ s/(\.[^\.]*)$// ? $1 : "";
 	my $age;
 	if( -e "$target.page" ) 
 	{
@@ -71,10 +94,9 @@ sub update_view_file
 		# a day shouldn't hurt.
 		if( defined $age && $age < 24*60*60 )
 		{
-			return;
+			return "$target$ext";
 		}
-		update_browse_view_list( $session, $langid );
-		return;
+		return update_browse_view_list( $session, $langid ) . $ext;
 	}
 	
 	$uri =~ m/^\/view(\/(([^\/]+)(\/(.*))?)?)?$/;
@@ -98,36 +120,34 @@ sub update_view_file
 	{
 		if( defined $age && $age < $max_menu_age )
 		{
-			return;
+			return "$target$ext";
 		}
 
-		update_view_menu( $session, $view, $langid );
-		return;
+		return update_view_menu( $session, $view, $langid ) . $ext;
 	}
 
 	if( $viewinfo =~ s/\/$// )
 	{
 		if( defined $age && $age < $max_menu_age )
 		{
-			return;
+			return "$target$ext";
 		}
 
 		# if it ends with "/" then it's a submenu
 		my @view_path = split( '/', $viewinfo );
 		
-		update_view_menu( $session, $view, $langid, \@view_path );
-		return;
+		return update_view_menu( $session, $view, $langid, \@view_path ) . $ext;
 	}
 
 	# Otherwise it's (probably) a view list
 
 	if( defined $age && $age < $max_list_age )
 	{
-		return;
+		return "$target$ext";
 	}
 
 	my @view_path = split( '/', $viewinfo );
-	update_view_list( $session, $view, $langid, \@view_path );
+	return update_view_list( $session, $view, $langid, \@view_path ) . $ext;
 }
 
 
@@ -172,7 +192,7 @@ sub update_browse_view_list
 			},
 			"browsemain" );
 
-	return( $target );
+	return $target;
 }
 
 # return an array of the filters required for the given path_values
@@ -253,7 +273,7 @@ sub update_view_menu
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid."/view/".$view->{id}."/";
 	if( defined $esc_path_values )
 	{
-		$target .= join( "/", @{$esc_path_values}, "index" );
+		$target .= abbr_path(join( "/", @{$esc_path_values}, "index" ));
 	}
 	else
 	{
@@ -403,7 +423,9 @@ sub update_view_menu
 	print INCLUDE EPrints::XML::to_string( $page, undef, 1 );
 	close INCLUDE;
 
-	return( $target );
+	EPrints::XML::dispose( $page );
+
+	return $target;
 }
 
 sub get_fieldlist_totals
@@ -666,10 +688,10 @@ sub update_view_list
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid."/view/".$view->{id}."/";
 
 	my $filename = pop @{$esc_path_values};
-	foreach( @{$esc_path_values} ) { $target .= "$_/"; }
+	$target .= abbr_path( join "/", @$esc_path_values );
 
 	my( $value, $suffix ) = split( /\./, $filename );
-	$target .= $value;
+	$target .= abbr_path( $value );
 
 	push @{$esc_path_values}, $value;
 
@@ -1081,7 +1103,7 @@ sub update_view_list
 		$first_view = 0;
 	}
 
-	return @files;
+	return $target;
 }
 
 # pagetype is "menu" or "list"

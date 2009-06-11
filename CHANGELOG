@@ -8321,3 +8321,7 @@ EPRINTS-3.1-beta-2
  * Added "get_static_dirs()" method to repository, fixes icon_url() not
     getting icons from the system directories
 
+2009-06-10 tdb
+ * Support long values in browse views by using the MD5 of the value,
+    fixing #3482
+
