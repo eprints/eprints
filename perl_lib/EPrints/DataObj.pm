@@ -297,6 +297,7 @@ sub get_defaults
 	# set any values that a field has a default for e.g. counters
 	foreach my $field ($dataset->get_fields)
 	{
+		next if defined $field->get_property( "sub_name" );
 		my $fieldname = $field->get_name;
 		next if EPrints::Utils::is_set($data->{$fieldname});
 
