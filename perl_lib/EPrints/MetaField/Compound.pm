@@ -162,6 +162,34 @@ sub to_xml_basic
 	return $r;
 }
 
+sub xml_to_epdata_basic
+{
+	my( $self, $session, $xml, %opts ) = @_;
+
+	my $value = {};
+
+	my %a_to_f = $self->get_alias_to_fieldname;
+	foreach my $node ($xml->childNodes)
+	{
+		next unless EPrints::XML::is_dom( $node, "Element" );
+		my $nodeName = $node->nodeName;
+		my $name = $a_to_f{$nodeName};
+		if( !defined $name )
+		{
+			if( defined $opts{Handler} )
+			{
+				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:unexpected_element", name => $session->make_text( $nodeName ) ) );
+				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:expected", elements => $session->make_text( "<".join("> <", sort { $a cmp $b } keys %a_to_f).">" ) ) );
+			}
+			next;
+		}
+		my $field = $self->get_dataset->get_field( $name );
+		$value->{$nodeName} = $field->xml_to_epdata_basic( $session, $node, %opts );
+	}
+
+	return $value;
+}
+
 # This type of field is virtual.
 sub is_virtual
 {

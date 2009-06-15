@@ -8325,3 +8325,6 @@ EPRINTS-3.1-beta-2
  * Support long values in browse views by using the MD5 of the value,
     fixing #3482
 
+2009-06-15 tdb
+ * Refactoured XML importing to embed the translation inside objects/fields
+

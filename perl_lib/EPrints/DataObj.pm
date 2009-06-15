@@ -1181,6 +1181,58 @@ sub to_xml
 	return $r;
 }
 
+=item $epdata = EPrints::DataObj->xml_to_epdata( $session, $xml, %opts )
+
+Populates $epdata based on $xml. This is the inverse of to_xml() but doesn't create a new object.
+
+=cut
+
+sub xml_to_epdata
+{
+	my( $class, $session, $xml, %opts ) = @_;
+
+	my $epdata = {};
+
+	my $dataset = $session->get_repository->get_dataset( $class->get_dataset_id );
+
+	my @fields = $dataset->get_fields;
+	my @field_names = sort { $a cmp $b } map { $_->get_name } @fields;
+	my %fields_map = map { $_->get_name => $_ } @fields;
+
+	my %seen = ();
+	foreach my $node ($xml->childNodes)
+	{
+		next unless EPrints::XML::is_dom( $node, "Element" );
+		my $nodeName = $node->nodeName;
+		if( $seen{$nodeName} )
+		{
+			if( defined $opts{Handler} )
+			{
+				$opts{Handler}->message( "warning", $session->phrase( "Plugin/Import/XML:dup_element", name => $session->make_text( $nodeName ) ) );
+			}
+			next;
+		}
+		$seen{$nodeName} = 1;
+		my $field = $fields_map{$nodeName};
+		if( !defined $field )
+		{
+			if( defined $opts{Handler} )
+			{
+				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:unexpected_element", name => $session->make_text( $nodeName ) ) );
+				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:expected", elements => $session->make_text( "<".join("> <", @field_names).">" ) ) );
+			}
+			next;
+		}
+		my $value = $field->xml_to_epdata( $session, $node, %opts );
+		if( EPrints::Utils::is_set( $value ) )
+		{
+			$epdata->{$nodeName} = $value;
+		}
+	}
+
+	return $epdata;
+}
+
 ######################################################################
 =pod
 

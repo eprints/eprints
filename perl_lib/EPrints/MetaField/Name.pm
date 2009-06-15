@@ -647,6 +647,31 @@ sub to_xml_basic
 	return $r;
 }
 
+sub xml_to_epdata_basic
+{
+	my( $self, $session, $xml, %opts ) = @_;
+
+	my $value = {};
+	my %valid = map { $_ => 1 } @PARTS;
+	foreach my $node ($xml->childNodes)
+	{
+		next unless EPrints::XML::is_dom( $node, "Element" );
+		my $nodeName = $node->nodeName;
+		if( !exists $valid{$nodeName} )
+		{
+			if( defined $opts{Handler} )
+			{
+				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:unexpected_element", name => $session->make_text( $node->nodeName ) ) );
+				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:expected", elements => $session->make_text( "<".join("> <", @PARTS).">" ) ) );
+			}
+			next;
+		}
+		$value->{$nodeName} = EPrints::Utils::tree_to_utf8( $node );
+	}
+
+	return $value;
+}
+
 sub render_xml_schema_type
 {
 	my( $self, $session ) = @_;

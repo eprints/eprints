@@ -1881,8 +1881,51 @@ sub to_xml_basic
 	return $session->make_text( $value );
 }
 
+=item $epdata = $field->xml_to_epdata( $session, $xml, %opts )
 
+Populates $epdata based on $xml.
 
+=cut
+
+sub xml_to_epdata
+{
+	my( $self, $session, $xml, %opts ) = @_;
+
+	my $value = undef;
+
+	if( $self->get_property( "multiple" ) )
+	{
+		$value = [];
+		foreach my $node ($xml->childNodes)
+		{
+			next unless EPrints::XML::is_dom( $node, "Element" );
+			if( $node->nodeName ne "item" )
+			{
+				if( defined $opts{Handler} )
+				{
+					$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:unexpected_element", name => $session->make_text( $node->nodeName ) ) );
+					$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:expected", elements => $session->make_text( "<item>" ) ) );
+				}
+				next;
+			}
+			push @$value, $self->xml_to_epdata_basic( $session, $node, %opts );
+		}
+	}
+	else
+	{
+		$value = $self->xml_to_epdata_basic( $session, $xml, %opts );
+	}
+
+	return $value;
+}
+
+# return epdata for a single value of this field
+sub xml_to_epdata_basic
+{
+	my( $self, $session, $xml, %opts ) = @_;
+
+	return EPrints::Utils::tree_to_utf8( $xml );
+}
 
 
 

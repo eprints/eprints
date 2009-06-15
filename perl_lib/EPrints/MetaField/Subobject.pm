@@ -201,5 +201,55 @@ sub to_xml
 	}
 }
 
+sub xml_to_epdata
+{
+	my( $self, $session, $xml, %opts ) = @_;
+
+	my $value = undef;
+
+	if( $self->get_property( "multiple" ) )
+	{
+		$value = [];
+		foreach my $node ($xml->childNodes)
+		{
+			next unless EPrints::XML::is_dom( $node, "Element" );
+			my $epdata = $self->xml_to_epdata_basic( $session, $node, %opts );
+			if( defined $epdata )
+			{
+				push @$value, $epdata;
+			}
+		}
+	}
+	else
+	{
+		$value = $self->xml_to_epdata_basic( $session, $xml, %opts );
+	}
+
+	return $value;
+}
+
+sub xml_to_epdata_basic
+{
+	my( $self, $session, $xml, %opts ) = @_;
+
+	my $datasetid = $self->get_property( "datasetid" );
+
+	my $ds = $session->get_repository->get_dataset( $datasetid );
+	my $class = $ds->get_object_class;
+
+	my $nodeName = $xml->nodeName;
+	if( $nodeName ne $datasetid )
+	{
+		if( defined $opts{Handler} )
+		{
+			$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:unexpected_element", name => $session->make_text( $nodeName ) ) );
+			$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:expected", elements => $session->make_text( "<$datasetid>" ) ) );
+		}
+		return undef;
+	}
+
+	return $class->xml_to_epdata( $session, $xml, %opts );
+}
+
 ######################################################################
 1;
