@@ -1924,7 +1924,7 @@ sub xml_to_epdata_basic
 {
 	my( $self, $session, $xml, %opts ) = @_;
 
-	return EPrints::Utils::tree_to_utf8( $xml );
+	return EPrints::Utils::tree_to_utf8( scalar $xml->childNodes );
 }
 
 

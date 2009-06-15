@@ -666,7 +666,7 @@ sub xml_to_epdata_basic
 			}
 			next;
 		}
-		$value->{$nodeName} = EPrints::Utils::tree_to_utf8( $node );
+		$value->{$nodeName} = EPrints::Utils::tree_to_utf8( scalar $node->childNodes );
 	}
 
 	return $value;
