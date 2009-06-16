@@ -15,7 +15,7 @@ sub new
 	
 	$self->{appears} = [
 		{
-			place => "admin_actions",
+			place => "admin_actions_system",
 			position => 3000,
 		},
 	];

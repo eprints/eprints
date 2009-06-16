@@ -14,17 +14,17 @@ sub new
 
 	$self->{appears} = [
 		{ 
-			place => "admin_actions", 	
+			place => "admin_actions_system", 	
 			action => "start_indexer",
 			position => 1100, 
 		},
 		{ 
-			place => "admin_actions", 	
+			place => "admin_actions_system", 	
 			action => "force_start_indexer",
 			position => 1100, 
 		},
 		{ 
-			place => "admin_actions", 	
+			place => "admin_actions_system", 	
 			action => "stop_indexer",
 			position => 1100, 
 		},

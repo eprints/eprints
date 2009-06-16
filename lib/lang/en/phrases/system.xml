@@ -553,6 +553,10 @@ User Area CGI Scripts
     <epp:phrase id="cgi/users/status:title">Server Status</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Admin:title">Admin</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin:tab_editorial">Editorial Tools</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin:tab_system">System Tools</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin:tab_config">Config. Tools</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Admin:tab_misc">Misc. Tools</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Phrases:title">Phrase Editor</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Phrases:description">Modify phrases used in the system.</epp:phrase>
     <epp:phrase id="Plugin/Screen/QA:title">QA</epp:phrase>
