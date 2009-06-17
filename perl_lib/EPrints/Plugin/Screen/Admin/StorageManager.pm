@@ -333,10 +333,36 @@ sub render
 	$div = $session->make_element( "div" );
 	$html->appendChild( $div );
 
-	foreach my $store (sort { $a->get_id cmp $b->get_id } @plugins)
-	{
-		$html->appendChild( $plugin->render_plugin( $store, \@plugins ) );
+	my $plugin_classes = {};
+	foreach my $store (sort {defined($a->{position}) <=> defined($b->{position}) || $a <=> $b } @plugins) {
+		$plugin_classes->{$store->{storage_class}} ||= [];
+		push(@{$plugin_classes->{$store->{storage_class}}},$plugin->render_plugin( $store, \@plugins ) );
 	}
+	foreach my $plug (sort {$a cmp $b} keys(%{$plugin_classes})) {
+		my $part = $session->make_element( "div", class=>"ep_toolbox", id=>"blue" );
+		my $part_content_div = $session->make_element( "div", class=>"ep_toolbox_content", style=>"padding-left:6px; padding-bottom: 6px;" );
+		my $heading_blue = $session->make_element( "div", align=>"center", style=>"margin: 0px 0px 10px 0px;
+		    		font: bold 130% Arial,Sans-serif;
+				text-align: center;
+				color: #606060;"
+				);
+		$heading_blue->appendChild( $plugin->html_phrase($plug) );
+		
+		my $pic = $plug . "_pic";
+		$part_content_div->appendChild($plugin->html_phrase($pic));
+		$part_content_div->appendChild($heading_blue);
+		
+		foreach my $sections (@{$plugin_classes->{$plug}})
+		{
+			$part_content_div->appendChild ( $sections );
+		}
+		$part->appendChild($part_content_div);
+		$html->appendChild($part);
+	}
+	#foreach my $store (sort { $a->get_id cmp $b->get_id } @plugins)
+	#{
+	#	$html->appendChild( $plugin->render_plugin( $store, \@plugins ) );
+	#}
 
 	my $stats = $plugin->{session}->make_element(
 			"div",

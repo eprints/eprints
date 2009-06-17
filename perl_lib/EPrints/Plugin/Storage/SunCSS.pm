@@ -49,6 +49,8 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "Sun Cloud Simple Storage";
+	$self->{storage_class} = "z_cloud_storage";
+	
 	if( $self->{session} )
 	{
 		my $suncss_access_key_id = $self->param( "suncss_access_key_id" );

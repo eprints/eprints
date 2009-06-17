@@ -50,6 +50,8 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "Amazon S3 storage";
+	$self->{storage_class} = "z_cloud_storage";
+	
 	if( $self->{session} )
 	{
 		my $aws_access_key_id = $self->param( "aws_access_key_id" );

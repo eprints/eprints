@@ -33,6 +33,7 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "Compressed local disk storage";
+	$self->{storage_class} = "a_local_disk_storage";
 
 	return $self;
 }

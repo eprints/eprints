@@ -31,6 +31,8 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "Local disk storage";
+	$self->{storage_class} = "a_local_disk_storage";
+	$self->{position} = 1;
 
 	return $self;
 }
@@ -147,7 +149,7 @@ sub _filename
 	my( $self, $fileobj ) = @_;
 
 	my $parent = $fileobj->get_parent();
-
+	
 	my $local_path;
 	my $filename = $fileobj->get_value( "filename" );
 

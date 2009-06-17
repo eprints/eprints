@@ -23,7 +23,7 @@ use EPrints::Plugin::Storage;
 
 use strict;
 
-our $DISABLE = 1;
+#our $DISABLE = 1;
 
 sub new
 {
@@ -32,7 +32,8 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "HoneyComb storage";
-
+	$self->{storage_class} = "m_local_archival_storage";
+	
 	my $rc = EPrints::Utils::require_if_exists("Net::Sun::HoneyComb");
 	unless( $rc ) 
 	{
