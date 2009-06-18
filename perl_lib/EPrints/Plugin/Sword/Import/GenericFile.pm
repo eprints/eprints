@@ -90,6 +90,7 @@ sub input_file
 	}
 
 	my %doc_data;
+	$doc_data{_parent} = $eprint;
 	$doc_data{eprintid} = $eprint->get_id;
 	if( defined $opts{mime_type} && $opts{mime} ne 'application/octet-stream' )
 	{

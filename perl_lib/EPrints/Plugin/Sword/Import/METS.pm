@@ -275,6 +275,7 @@ sub input_file
 	foreach my $file (@files)
 	{
 	        my %doc_data;
+		$doc_data{_parent} = $eprint;
 	        $doc_data{eprintid} = $eprint->get_id;
  
                $doc_data{format} = $session->get_repository->call( 'guess_doc_type',

@@ -117,4 +117,30 @@ sub set_parent
 	$self->{_parent} = $parent;
 }
 
+=item $id = $dataobj->get_parent_dataset_id()
+
+Returns the id of the dataset that the parent object belongs to.
+
+=cut
+
+sub get_parent_dataset_id
+{
+	my( $self ) = @_;
+
+	return $self->get_value( "datasetid" );
+}
+
+=item $id = $dataobj->get_parent_id()
+
+Returns the id of the parent data object.
+
+=cut
+
+sub get_parent_id
+{
+	my( $self ) = @_;
+
+	return $self->get_value( "objectid" );
+}
+
 1;

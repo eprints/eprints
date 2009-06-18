@@ -1651,18 +1651,24 @@ sub get_related_objects
 	foreach my $uri (@uris)
 	{
 		my( $ds_id, $id ) = $uri =~ m/^_internal:([^.]+)\.(.+)/;
-		if( !defined $id )
-		{
-			next;
-		}
+		next unless defined $id;
 
 		my $dataset = $self->get_session->get_repository->get_dataset( $ds_id );
-		if( !defined( $dataset ) )
+		next unless defined $dataset;
+
+		my $dataobj = $dataset->get_object( $self->get_session, $id );
+		next unless defined $dataobj;
+
+		if(
+			$dataobj->isa( "EPrints::DataObj::SubObject" ) &&
+			$dataobj->get_parent_dataset_id eq $self->get_parent_dataset_id &&
+			$dataobj->get_parent_id eq $self->get_parent_id
+		  )
 		{
-			next;
+			$dataobj->set_parent( $self->get_parent );
 		}
 
-		push @matches, $dataset->get_object( $self->get_session, $id );
+		push @matches, $dataobj;
 	}
 
 	return \@matches;

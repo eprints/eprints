@@ -436,6 +436,7 @@ sub create_from_data
 	my $event = $history_ds->create_object( 
 		$session,
 		{
+			_parent=>$new_eprint,
 			userid=>$userid,
 			datasetid=>"eprint",
 			objectid=>$new_eprint->get_id,
@@ -763,6 +764,7 @@ sub _transfer
 	$history_ds->create_object( 
 		$self->{session},
 		{
+			_parent=>$self,
 			userid=>$userid,
 			datasetid=>"eprint",
 			objectid=>$self->get_id,
@@ -826,6 +828,7 @@ sub log_mail_owner
 	$history_ds->create_object( 
 		$self->{session},
 		{
+			_parent=>$self,
 			userid=>$userid,
 			datasetid=>"eprint",
 			objectid=>$self->get_id,
@@ -884,6 +887,7 @@ sub remove
 	$history_ds->create_object( 
 		$self->{session},
 		{
+			_parent=>$self,
 			userid=>$userid,
 			datasetid=>"eprint",
 			objectid=>$self->get_id,
@@ -994,6 +998,7 @@ sub commit
 		my $event = $history_ds->create_object( 
 			$self->{session},
 			{
+				_parent=>$self,
 				userid=>$userid,
 				datasetid=>"eprint",
 				objectid=>$self->get_id,

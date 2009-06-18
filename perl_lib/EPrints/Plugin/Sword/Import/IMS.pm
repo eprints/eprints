@@ -250,6 +250,7 @@ sub input_file
 	foreach my $file (@files)
 	{
 	        my %doc_data;
+		$doc_data{_parent} = $eprint;
 	        $doc_data{eprintid} = $eprint->get_id;
 
 		# try to guess the MIME of the attached file:

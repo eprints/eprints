@@ -1850,6 +1850,18 @@ sub mime_type
 	return $fileobj->get_value( "mime_type" );
 }
 
+sub get_parent_dataset_id
+{
+	"eprint";
+}
+
+sub get_parent_id
+{
+	my( $self ) = @_;
+
+	return $self->get_value( "eprintid" );
+}
+
 1;
 
 ######################################################################
