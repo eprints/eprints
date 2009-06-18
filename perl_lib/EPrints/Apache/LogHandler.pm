@@ -56,15 +56,15 @@ The document id as a fragment of the referent: C<#docid>.
 
 package EPrints::Apache::LogHandler;
 
-use strict;
-use warnings;
-
-use URI;
-
 use EPrints;
-use EPrints::Apache::AnApache;
 
-use constant NOT_MODIFIED => 304;
+use strict;
+
+use constant {
+	DECLINED => -1,
+	OK => 0,
+	NOT_MODIFIED => 304
+};
 
 =item handler REQUEST
 
@@ -80,13 +80,13 @@ sub handler
 	# MODIFIED SINCE (304 NOT MODIFIED)
 	unless( $r->status == 200 ) 
 	{
-		return DECLINED;
+		return DECLINED();
 	}
 
 	my $pnotes = $r->pnotes;
 
 	my $event_type = $pnotes->{ "loghandler" };
-	return DECLINED unless defined $event_type;
+	return DECLINED() unless defined $event_type;
 
 	my $c = $r->connection;
 	my $ip = $c->remote_ip;
@@ -109,18 +109,18 @@ sub handler
 		# only count hits to the main file
 		if( $filename ne $dataobj->get_main )
 		{
-			return DECLINED;
+			return DECLINED();
 		}
 		if( $dataobj->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
 		{
-			return DECLINED;
+			return DECLINED();
 		}
 		$access->{referent_id} = $dataobj->get_value( "eprintid" );
 		$access->{referent_docid} = $dataobj->get_id;
 	}
 	else
 	{
-		return DECLINED;
+		return DECLINED();
 	}
 
 	# Sanity check referring URL (don't store non-HTTP referrals)
@@ -136,7 +136,7 @@ sub handler
 		);
 	$session->terminate;
 
-	return OK;
+	return OK();
 }
 
 =item $id = EPrints::Apache::LogHandler::uri_to_eprintid( $session, $uri )
