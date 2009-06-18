@@ -162,7 +162,7 @@ sub prepare_select
 		}
 	}
 
-	return $sql;
+	return $self->prepare( $sql );
 }
 
 sub create_archive_tables
