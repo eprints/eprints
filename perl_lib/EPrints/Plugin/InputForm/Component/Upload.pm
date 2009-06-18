@@ -949,10 +949,26 @@ sub validate
 	return @problems;
 }
 
+sub _get_upload_plugins
+{
+	my ($self) = @_;
+
+	my %defaults = map { $_ => 1 } @EPrints::Plugin::InputForm::Component::Upload::UPLOAD_METHODS;
+
+	foreach( $self->{session}->plugin_list( type => 'InputForm' ) )
+	{
+		next unless( $_ =~ /^InputForm::UploadMethod::(.*)$/ );
+		next if( $defaults{$1} );
+		push @EPrints::Plugin::InputForm::Component::Upload::UPLOAD_METHODS, $1;
+		$defaults{$1} = 1;
+	}
+}
 
 sub parse_config
 {
 	my( $self, $config_dom ) = @_;
+
+	$self->_get_upload_plugins();
 	
 	$self->{config}->{doc_fields} = [];
 
