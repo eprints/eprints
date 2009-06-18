@@ -130,6 +130,16 @@ sub input_file
 		$document->make_thumbnails();
 	}
 
+	if( $fn =~ /\.docx|pptx$/ )
+	{
+		my $conv_plugin = $session->plugin( "Convert::OpenXML" );
+		if( $conv_plugin )
+		{
+			my @new_docs = $conv_plugin->convert( $eprint, $document, 'both' );
+			print STDERR "\nnew docs: ".join(",",@new_docs);
+		}
+	}
+
 	$eprint->generate_static();
 
 	$plugin->set_deposited_file_docid( $document->get_id );
