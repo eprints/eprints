@@ -182,6 +182,7 @@ sub attach_deposited_file
 
 	my %doc_data;
 	$doc_data{eprintid} = $eprint->get_id;
+	$doc_data{_parent} = $eprint;
 	$doc_data{format} =  $mime;
 	$doc_data{formatdesc} = $self->{session}->phrase( "Sword/Deposit:document_formatdesc" );
 	$doc_data{main} = $fn;
