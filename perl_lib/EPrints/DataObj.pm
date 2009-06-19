@@ -298,10 +298,11 @@ sub get_defaults
 	foreach my $field ($dataset->get_fields)
 	{
 		next if defined $field->get_property( "sub_name" );
-		my $fieldname = $field->get_name;
-		next if EPrints::Utils::is_set($data->{$fieldname});
 
-		$data->{$fieldname} = $field->get_default_value( $session );
+		my $value = $field->get_default_value( $session );
+		next unless EPrints::Utils::is_set( $value );
+
+		$data->{$field->get_name} = $value;
 	}
 
 	return $data;
