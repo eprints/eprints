@@ -114,7 +114,7 @@ sub new_from_data
 {
 	my( $class, $session, $data, $dataset ) = @_;
 
-	my $self = { data=>{} };
+	my $self = { data=>{}, changed=>{}, non_volatile_change=>0 };
 	$self->{session} = $session;
 	Scalar::Util::weaken($self->{session})
 		if defined &Scalar::Util::weaken;
@@ -393,7 +393,7 @@ sub commit
 {
 	my( $self, $force ) = @_;
 	
-	if( !defined $self->{changed} || scalar( keys %{$self->{changed}} ) == 0 )
+	if( scalar( keys %{$self->{changed}} ) == 0 )
 	{
 		# don't do anything if there isn't anything to do
 		return( 1 ) unless $force;

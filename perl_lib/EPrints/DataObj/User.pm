@@ -297,6 +297,21 @@ sub create_from_data
 
 	my $new_user = $class->SUPER::create_from_data( $session, $data, $dataset );
 
+	$session->get_repository->call( 
+		"set_user_automatic_fields", 
+		$new_user );
+	
+	if( scalar( keys %{$new_user->{changed}} ) > 0 )
+	{
+		# Remove empty slots in multiple fields
+		$new_user->tidy;
+
+		# Write the data to the database
+		$session->get_database->update(
+			$new_user->{dataset},
+			$new_user->{data} );
+	}
+
 	$session->get_database->counter_minimum( "userid", $new_user->get_id );
 
 	return $new_user;
