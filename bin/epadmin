@@ -906,6 +906,7 @@ sub root_dbh
 {
 	my( $repoid, $dbname ) = @_;
 
+	EPrints::Config::init();
 	my $config = EPrints::Config::load_repository_config_module( $repoid );
 
 	$dbname = $config->{dbname} unless defined $dbname;
@@ -967,6 +968,7 @@ END
 		$oldpasswords = 1;
 	} 
 
+	EPrints::Config::init();
 	my $config = EPrints::Config::load_repository_config_module( $repoid );
 
 	my $sth = $dbh->prepare( "show databases" );
