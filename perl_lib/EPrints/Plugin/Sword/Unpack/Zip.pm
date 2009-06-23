@@ -46,8 +46,6 @@
 
 package EPrints::Plugin::Sword::Unpack::Zip;
 
-use Unicode::String qw( utf8 );
-
 @ISA = ( "EPrints::Plugin::Convert" );
 
 use strict;
