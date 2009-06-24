@@ -28,35 +28,49 @@ sub update_from_form
 	if( $ibutton =~ /^(.+)_add$/ )
 	{
 		my $subject = $1;
-		my %vals = ();
-		$vals{$subject} = 1;
-			
-		my $values = $self->{dataobj}->get_value( $field->get_name );
-		foreach my $s ( @$values )
+		my $value;
+		if( $field->get_property( "multiple" ) )
 		{
-			$vals{$s} = 1;
+			my %vals = ();
+
+			my $values = $self->{dataobj}->get_value( $field->get_name );
+			foreach my $s ( @$values, $subject )
+			{
+				$vals{$s} = 1;
+			}
+			
+			$value = [sort keys %vals];
 		}
-		
-		my @out = keys %vals;
-		$self->{dataobj}->set_value( $field->get_name, \@out );
+		else
+		{
+			$value = $subject;
+		}
+		$self->{dataobj}->set_value( $field->get_name, $value );
 		$self->{dataobj}->commit;
 	}
 	
 	if( $ibutton =~ /^(.+)_remove$/ )
 	{
 		my $subject = $1;
-		my %vals = ();
-		
-		my $values = $self->{dataobj}->get_value( $field->get_name );
-		foreach my $s ( @$values )
+		my $value;
+		if( $field->get_property( "multiple" ) )
 		{
-			$vals{$s} = 1;
+			my %vals = ();
+			
+			my $values = $self->{dataobj}->get_value( $field->get_name );
+			foreach my $s ( @$values )
+			{
+				$vals{$s} = 1;
+			}
+			delete $vals{$subject};
+			
+			$value = [sort keys %vals];
 		}
-		delete $vals{$subject};
-		
-		my @out = keys %vals;
-		
-		$self->{dataobj}->set_value( $field->get_name, \@out );
+		else
+		{
+			$value = undef;
+		}
+		$self->{dataobj}->set_value( $field->get_name, $value );
 		$self->{dataobj}->commit;
 	}
 
@@ -83,7 +97,15 @@ sub render_content
 
 	$self->{expanded} = {};
 	$self->{selected} = {};
-	my @values = @{$field->get_value( $eprint )};
+	my @values;
+	if( $field->get_property( "multiple" ) )
+	{
+		@values = @{$field->get_value( $eprint )};
+	}
+	elsif( $eprint->is_set( $field->get_name ) )
+	{
+		push @values, $field->get_value( $eprint );
+	}
 	foreach my $subj_id ( @values )
 	{
 		$self->{selected}->{$subj_id} = 1;

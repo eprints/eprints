@@ -8334,3 +8334,6 @@ EPRINTS-3.1-beta-2
 2009-06-18 tdb
  * Set the parent of subobjects wherever possible to reduce DB retrievals
 
+2009-06-24 tdb
+ * Subject inputform component can now be used with singular values
+
