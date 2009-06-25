@@ -699,6 +699,10 @@ sub field_from_config_string
 			EPrints::abort( "Attempt to get a field or subfield from a non existant dataset. Could be due to a sub field of a inappropriate field type." );
 		}
 		$field = $dataset->get_field( $fname );
+		if( !defined $field )
+		{
+			EPrints::abort( "Dataset ".$dataset->confid." does not have a field '$fname'" );
+		}
 		push @join, [ $field, $dataset ];
 		if( $field->is_type( "subobject", "itemref" ) )
 		{
