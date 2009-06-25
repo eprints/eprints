@@ -41,6 +41,8 @@ BEGIN
 
 use EPrints::MetaField;
 
+our $REGEXP_DATETIME = qr/\d\d\d\d(?:-\d\d(?:-\d\d(?:[ T]\d\d(?::\d\d(?::\d\dZ?)?)?)?)?)?/;
+
 sub get_sql_names
 {
 	my( $self ) = @_;
@@ -360,11 +362,11 @@ sub render_search_value
 	my $drange = $value;
 	my $lastdate;
 	my $firstdate;
-	if( $drange =~ s/-(\d\d\d\d(-\d\d(-\d\d)?)?)$/-/ )
+	if( $drange =~ s/-($REGEXP_DATETIME)$/-/ )
 	{	
 		$lastdate = $1;
 	}
-	if( $drange =~ s/^(\d\d\d\d(-\d\d(-\d\d)?)?)(-?)$/$4/ )
+	if( $drange =~ s/^($REGEXP_DATETIME)(?:-?)$/$4/ )
 	{
 		$firstdate = $1;
 	}
@@ -428,8 +430,6 @@ sub get_search_conditions
 			$merge, 
 			$search_mode );
 }
-
-our $REGEXP_DATETIME = qr/\d\d\d\d(?:-\d\d(?:-\d\d(?:[ T]\d\d(?::\d\d(?::\d\dZ?)?)?)?)?)?/;
 
 sub get_search_conditions_not_ex
 {
