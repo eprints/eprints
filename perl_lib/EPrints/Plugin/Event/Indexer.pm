@@ -11,8 +11,8 @@ sub run_index
 	my $dataobj = EPrints::DataSet->get_object_from_uri( $self->{session}, $uri );
 	if( !defined $dataobj )
 	{
-		$self->plain_message( "error", "Failed to retrieve object identified by '$uri'" );
-		return;
+		$self->plain_message( "warning", "Failed to retrieve object identified by '$uri'" );
+		return 1;
 	}
 
 	my $dataset = $dataobj->get_dataset;
@@ -36,8 +36,8 @@ sub run_index_all
 	my $dataobj = EPrints::DataSet->get_object_from_uri( $self->{session}, $uri );
 	if( !defined $dataobj )
 	{
-		$self->plain_message( "error", "Failed to retrieve object identified by '$uri'" );
-		return;
+		$self->plain_message( "warning", "Failed to retrieve object identified by '$uri'" );
+		return 1;
 	}
 
 	my $dataset = $dataobj->get_dataset;
@@ -54,8 +54,8 @@ sub run_index_fulltext
 	my $dataobj = EPrints::DataSet->get_object_from_uri( $self->{session}, $uri );
 	if( !defined $dataobj )
 	{
-		$self->plain_message( "error", "Failed to retrieve object identified by '$uri'" );
-		return;
+		$self->plain_message( "warning", "Failed to retrieve object identified by '$uri'" );
+		return 1;
 	}
 
 	my $dataset = $dataobj->get_dataset;
