@@ -910,6 +910,33 @@ sub get_object
 	return $class->new( $session, $id, $self );
 }
 
+=item $dataobj = EPrints::DataSet->get_object_from_uri( $session, $uri )
+
+Returns a the dataobj identified by internal URI $uri.
+
+Returns undef if $uri isn't an internal URI or the object is no longer available.
+
+=cut
+
+sub get_object_from_uri
+{
+	my( $class, $session, $uri ) = @_;
+
+	my( $datasetid, $id ) = $uri =~ m# ^/id/([^/]+)/(.+)$ #x;
+	return unless defined $id;
+
+	$datasetid = URI::Escape::uri_unescape( $datasetid );
+
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
+	return unless defined $dataset;
+
+	$id = URI::Escape::uri_unescape( $id );
+
+	my $dataobj = $dataset->get_object( $session, $id );
+
+	return $dataobj;
+}
+
 ######################################################################
 =pod
 

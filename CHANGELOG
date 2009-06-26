@@ -8337,3 +8337,6 @@ EPRINTS-3.1-beta-2
 2009-06-24 tdb
  * Subject inputform component can now be used with singular values
 
+2009-06-26 tdb
+ * Revised internal URIs to be /id/[datasetid]/[objectid]
+

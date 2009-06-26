@@ -1032,12 +1032,14 @@ sub uri
 		return $self->get_session->get_repository->call( [ "dataobj_uri", $ds_id ], $self );
 	}
 			
-	return $self->get_session->get_repository->get_conf( "base_url" )."/id/".$ds_id."/".$self->get_id;
+	return $self->get_session->get_repository->get_conf( "base_url" ).$self->internal_uri;
 }
 
 =item $uri = $dataobj->internal_uri()
 
 Return an internal URI for this object (independent of repository hostname).
+
+To retrieve an object by internal URI use L<EPrints::DataSet>::get_object_from_uri().
 
 =cut
 
@@ -1045,7 +1047,10 @@ sub internal_uri
 {
 	my( $self ) = @_;
 
-	return sprintf("_internal:%s.%s", $self->get_dataset->confid, $self->get_id);
+	return sprintf("/id/%s/%s",
+		URI::Escape::uri_escape($self->get_dataset_id),
+		URI::Escape::uri_escape($self->get_id)
+		);
 }
 
 ######################################################################
@@ -1651,13 +1656,7 @@ sub get_related_objects
 	my @matches;
 	foreach my $uri (@uris)
 	{
-		my( $ds_id, $id ) = $uri =~ m/^_internal:([^.]+)\.(.+)/;
-		next unless defined $id;
-
-		my $dataset = $self->get_session->get_repository->get_dataset( $ds_id );
-		next unless defined $dataset;
-
-		my $dataobj = $dataset->get_object( $self->get_session, $id );
+		my $dataobj = EPrints::DataSet->get_object_from_uri( $self->{session}, $uri );
 		next unless defined $dataobj;
 
 		if(
