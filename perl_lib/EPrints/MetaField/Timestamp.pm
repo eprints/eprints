@@ -40,5 +40,18 @@ sub get_default_value
 	return EPrints::Time::get_iso_timestamp();
 }
 
+sub is_type
+{
+	my( $self, @types ) = @_;
+
+	for(@types)
+	{
+		return 1 if $_ eq "time";
+		return 1 if $_ eq "timestamp";
+	}
+
+	return 0;
+}
+
 ######################################################################
 1;
