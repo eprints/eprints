@@ -610,7 +610,7 @@ sub run_index
 			eval {
 				local $SIG{ALRM} = sub { die "alarm\n" };
 				alarm($self->get_timeout);
-				$seen_action ||= EPrints::Index::do_index( $session, {
+				$seen_action ||= $self->_run_index( $session, {
 					loglevel => $self->{noise},
 				});
 				alarm(0);
@@ -662,6 +662,39 @@ sub run_index
 	}
 
 	$_->terminate for @sessions;
+}
+
+sub _run_index
+{
+	my( $self, $session ) = @_;
+
+	my $event = $session->get_database->dequeue_event();
+	return undef unless defined $event;
+
+	my $pluginid = $event->get_value( "pluginid" );
+	my $plugin = $session->plugin( "Event::".$pluginid );
+	if( !defined $plugin )
+	{
+		$self->log( 1, "** event ".$event->get_id." asked for an unknown pluginid '$pluginid'" );
+		$event->set_value( "status", "failed" );
+		$event->commit();
+		return;
+	}
+
+	my $rc = $plugin->run( $event );
+	if( $rc )
+	{
+		$event->set_value( "status", "success" );
+		$event->commit;
+	}
+	else
+	{
+		$self->log( 3, "** event ".$event->get_id." failed" );
+		$event->set_value( "status", "failed" );
+		$event->commit();
+	}
+
+	return $rc;
 }
 
 # is it time to respawn the indexer/roll the logs?

@@ -8339,4 +8339,5 @@ EPRINTS-3.1-beta-2
 
 2009-06-26 tdb
  * Revised internal URIs to be /id/[datasetid]/[objectid]
+ * Extended Index Queue for initial support for scheduling any job
 

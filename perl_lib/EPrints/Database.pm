@@ -4079,6 +4079,41 @@ sub get_driver_name
 	return ref($self)." [DBI $DBI::VERSION, DBD::$dbd $dbd_version]";
 }
 
+sub dequeue_event
+{
+	my( $self ) = @_;
+
+	my $session = $self->{session};
+	my $dataset = $session->get_repository->get_dataset( "index_queue" );
+
+	my $until = EPrints::Time::get_iso_timestamp();
+	my $searchexp = EPrints::Search->new(
+		session => $session,
+		dataset => $dataset,
+		filters => [
+			{ meta_fields => ["status"], value => "waiting" },
+			{ meta_fields => ["start_time"], value => "-$until", match => "EQ" },
+		],
+		custom_order => "-priority/-start_time"
+		);
+
+	my $table = $self->quote_identifier( $dataset->get_sql_table_name );
+
+#	$self->do("LOCK TABLES $table WRITE");
+# We hit snafus with table aliasing in $searchexp
+
+	my( $event ) = $searchexp->perform_search->get_records( 0, 1 );
+	if( defined $event )
+	{
+		$event->set_value( "status", "inprogress" );
+		$event->commit;
+	}
+
+#	$self->do("UNLOCK TABLES");
+
+	return $event;
+}
+
 1; # For use/require success
 
 ######################################################################

@@ -1289,7 +1289,7 @@ sub queue_changes
 
 	return unless $self->{dataset}->indexable;
 
-	my $index_queue = $self->{session}->get_repository->get_dataset( "index_queue" );
+	my @fields;
 
 	foreach my $fieldname ( keys %{$self->{changed}} )
 	{
@@ -1297,12 +1297,18 @@ sub queue_changes
 
 		next unless( $field->get_property( "text_index" ) );
 
-		$index_queue->create_object( $self->{session}, {
-				datasetid => $self->{dataset}->id,
-				objectid => $self->get_id,
-				fieldid => $fieldname
-			});
+		push @fields, $fieldname;
 	}	
+
+	return unless scalar @fields;
+
+	my $index_queue = $self->{session}->get_repository->get_dataset( "index_queue" );
+
+	$index_queue->create_object( $self->{session}, {
+			pluginid => "Indexer",
+			action => "index",
+			params => join("|", $self->internal_uri, @fields),
+		});
 }
 
 ######################################################################
@@ -1324,9 +1330,9 @@ sub queue_all
 	my $index_queue = $self->{session}->get_repository->get_dataset( "index_queue" );
 
 	$index_queue->create_object( $self->{session}, {
-			datasetid => $self->{dataset}->id,
-			objectid => $self->get_id,
-			fieldid => EPrints::DataObj::IndexQueue::ALL()
+			pluginid => "Indexer",
+			action => "index_all",
+			params => $self->internal_uri,
 		});
 }
 
@@ -1349,9 +1355,9 @@ sub queue_fulltext
 	my $index_queue = $self->{session}->get_repository->get_dataset( "index_queue" );
 
 	$index_queue->create_object( $self->{session}, {
-			datasetid => $self->{dataset}->id,
-			objectid => $self->get_id,
-			fieldid => EPrints::DataObj::IndexQueue::FULLTEXT()
+			pluginid => "Indexer",
+			action => "index_fulltext",
+			params => $self->internal_uri,
 		});
 }
 
