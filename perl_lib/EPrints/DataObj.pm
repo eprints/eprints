@@ -1302,12 +1302,12 @@ sub queue_changes
 
 	return unless scalar @fields;
 
-	my $index_queue = $self->{session}->get_repository->get_dataset( "index_queue" );
+	my $event_queue = $self->{session}->get_repository->get_dataset( "event_queue" );
 
-	$index_queue->create_object( $self->{session}, {
+	$event_queue->create_object( $self->{session}, {
 			pluginid => "Indexer",
 			action => "index",
-			params => join("|", $self->internal_uri, @fields),
+			params => [$self->internal_uri, @fields],
 		});
 }
 
@@ -1327,12 +1327,12 @@ sub queue_all
 
 	return unless $self->{dataset}->indexable;
 
-	my $index_queue = $self->{session}->get_repository->get_dataset( "index_queue" );
+	my $event_queue = $self->{session}->get_repository->get_dataset( "event_queue" );
 
-	$index_queue->create_object( $self->{session}, {
+	$event_queue->create_object( $self->{session}, {
 			pluginid => "Indexer",
 			action => "index_all",
-			params => $self->internal_uri,
+			params => [$self->internal_uri],
 		});
 }
 
@@ -1352,12 +1352,12 @@ sub queue_fulltext
 
 	return unless $self->{dataset}->indexable;
 
-	my $index_queue = $self->{session}->get_repository->get_dataset( "index_queue" );
+	my $event_queue = $self->{session}->get_repository->get_dataset( "event_queue" );
 
-	$index_queue->create_object( $self->{session}, {
+	$event_queue->create_object( $self->{session}, {
 			pluginid => "Indexer",
 			action => "index_fulltext",
-			params => $self->internal_uri,
+			params => [$self->internal_uri],
 		});
 }
 

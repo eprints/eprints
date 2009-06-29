@@ -2,11 +2,11 @@ package EPrints::Plugin::Event::Indexer;
 
 @ISA = qw( EPrints::Plugin::Event );
 
+use strict;
+
 sub run_index
 {
-	my( $self, $event ) = @_;
-
-	my( $uri, @fieldnames ) = split /\|/, $event->get_value( "params" );
+	my( $self, $event, $uri, @fieldnames ) = @_;
 
 	my $dataobj = EPrints::DataSet->get_object_from_uri( $self->{session}, $uri );
 	if( !defined $dataobj )
@@ -29,9 +29,7 @@ sub run_index
 
 sub run_index_all
 {
-	my( $self, $event ) = @_;
-
-	my $uri = $event->get_value( "params" );
+	my( $self, $event, $uri ) = @_;
 
 	my $dataobj = EPrints::DataSet->get_object_from_uri( $self->{session}, $uri );
 	if( !defined $dataobj )
@@ -47,9 +45,7 @@ sub run_index_all
 
 sub run_index_fulltext 
 {
-	my( $self, $event ) = @_;
-
-	my $uri = $event->get_value( "params" );
+	my( $self, $event, $uri ) = @_;
 
 	my $dataobj = EPrints::DataSet->get_object_from_uri( $self->{session}, $uri );
 	if( !defined $dataobj )

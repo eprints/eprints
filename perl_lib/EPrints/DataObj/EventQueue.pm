@@ -1,14 +1,14 @@
-package EPrints::DataObj::IndexQueue;
+package EPrints::DataObj::EventQueue;
 
 =head1 NAME
 
-EPrints::DataObj::IndexQueue - Indexer queue
+EPrints::DataObj::EventQueue - Scheduler queue
 
 =head1 FIELDS
 
 =over 4
 
-=item indexqueueid
+=item eventqueueid
 
 A unique id for this event.
 
@@ -84,7 +84,7 @@ use constant {
 sub get_system_field_info
 {
 	return (
-		{ name=>"indexqueueid", type=>"counter", sql_counter=>"indexqueueid", required=>1 },
+		{ name=>"eventqueueid", type=>"counter", sql_counter=>"eventqueueid", required=>1 },
 		{ name=>"datestamp", type=>"timestamp", required=>1, },
 		{ name=>"hash", type=>"text", sql_index=>1, },
 		{ name=>"unique", type=>"boolean", },
@@ -92,17 +92,17 @@ sub get_system_field_info
 		{ name=>"start_time", type=>"timestamp", required=>1, },
 		{ name=>"end_time", type=>"time", },
 		{ name=>"due_time", type=>"time", },
-		{ name=>"repetition", type=>"int", },
+		{ name=>"repetition", type=>"int", sql_index=>0, },
 		{ name=>"status", type=>"set", options=>[qw( waiting inprogress success failed )], default_value=>"waiting", },
 		{ name=>"userid", type=>"itemref", datasetid=>"user", },
 		{ name=>"description", type=>"longtext", },
 		{ name=>"pluginid", type=>"text", required=>1, },
 		{ name=>"action", type=>"text", required=>1, },
-		{ name=>"params", type=>"longtext", },
+		{ name=>"params", type=>"storable", },
 	);
 }
 
-sub get_dataset_id { "index_queue" }
+sub get_dataset_id { "event_queue" }
 
 sub new_from_data
 {

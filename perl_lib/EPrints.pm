@@ -196,7 +196,7 @@ use EPrints::DataObj::EPrint;
 use EPrints::DataObj::File;
 use EPrints::DataObj::History;
 use EPrints::DataObj::Import;
-use EPrints::DataObj::IndexQueue;
+use EPrints::DataObj::EventQueue;
 use EPrints::DataObj::LoginTicket;
 use EPrints::DataObj::Message;
 use EPrints::DataObj::MetaField;

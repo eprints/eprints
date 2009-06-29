@@ -2089,4 +2089,14 @@ Titles and Help for the System Fields
 
 <epp:phrase id="user_fieldname_permission_group">Permission Group</epp:phrase>
 
+<!-- Scheduler Queue -->
+
+<epp:phrase id="event_queue_fieldopt_status_success">Success</epp:phrase>
+<epp:phrase id="event_queue_fieldopt_status_inprogress">In Progress</epp:phrase>
+<epp:phrase id="event_queue_fieldopt_status_waiting">Waiting</epp:phrase>
+<epp:phrase id="event_queue_fieldopt_status_failed">Failed</epp:phrase>
+<epp:phrase id="event_queue_fieldname_status">Status</epp:phrase>
+<epp:phrase id="event_queue_fieldname_priority"></epp:phrase>
+<epp:phrase id="event_queue_fieldname_start_time"></epp:phrase>
+
 </epp:phrases>

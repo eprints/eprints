@@ -139,7 +139,7 @@ sub render
 		$indexer_status = "running";
 	}
 
-	my $indexer_queue = $session->get_database->count_table( "index_queue" );
+	my $indexer_queue = $session->get_database->count_table( "event_queue" );
 	
 	my( $html , $table , $p , $span );
 	

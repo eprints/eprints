@@ -30,6 +30,17 @@ sub run
 	my $rc = 1;
 
 	my $action = $event->get_value( "action" );
+	my $params = [];
+	if( $event->is_set( "params" ) )
+	{
+		$params = $event->get_value( "params" );
+	}
+
+	if( !ref($params) eq "ARRAY" )
+	{
+		$self->plain_message( "error", "parameters are not an array" );
+		return 0;
+	}
 
 	if( $action =~ /^([a-zA-Z_]+)$/ )
 	{
@@ -37,8 +48,8 @@ sub run
 		my $method = ref($self)."::$f";
 		if( defined &$method )
 		{
-			$self->plain_message( "message", "executing $method( ".$event->get_value( "params" )." )" );
-			$rc = $self->$f( $event );
+			$self->plain_message( "message", "executing $method(".join(', ', @$params).")" );
+			$rc = $self->$f( $event, @$params );
 		}
 		else
 		{
@@ -54,17 +65,22 @@ sub run
 		$rc = 0;
 	}
 
-	EPrints::XML::dispose( $action );
-
 	return $rc;
 }
 
+=item $ok = $plugin->run_log( $event [, @params ] )
+
+Example event method. If the B<action> is "log" this method will be called with the event parameters @params. This method just sends the message to the repository log.
+
+Returns true on success.
+
+=cut
+
 sub run_log
 {
-	my( $self, $event ) = @_;
+	my( $self, $event, @params ) = @_;
 
-	my $msg = $event->get_value( "params" );
-	$self->{session}->get_repository->log( ref($self)."::run_log(): $msg" );
+	$self->{session}->get_repository->log( "event: ".$event->get_value( "action" ) . " (" . join(', ', @params) . ")" );
 
 	return 1;
 }

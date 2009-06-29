@@ -4084,7 +4084,7 @@ sub dequeue_event
 	my( $self ) = @_;
 
 	my $session = $self->{session};
-	my $dataset = $session->get_repository->get_dataset( "index_queue" );
+	my $dataset = $session->get_repository->get_dataset( "event_queue" );
 
 	my $until = EPrints::Time::get_iso_timestamp();
 	my $searchexp = EPrints::Search->new(
