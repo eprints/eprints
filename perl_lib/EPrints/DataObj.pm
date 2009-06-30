@@ -1330,6 +1330,7 @@ sub queue_all
 	my $event_queue = $self->{session}->get_repository->get_dataset( "event_queue" );
 
 	$event_queue->create_object( $self->{session}, {
+			unique => "TRUE",
 			pluginid => "Indexer",
 			action => "index_all",
 			params => [$self->internal_uri],
@@ -1355,6 +1356,7 @@ sub queue_fulltext
 	my $event_queue = $self->{session}->get_repository->get_dataset( "event_queue" );
 
 	$event_queue->create_object( $self->{session}, {
+			unique => "TRUE",
 			pluginid => "Indexer",
 			action => "index_fulltext",
 			params => [$self->internal_uri],
