@@ -1302,9 +1302,7 @@ sub queue_changes
 
 	return unless scalar @fields;
 
-	my $event_queue = $self->{session}->get_repository->get_dataset( "event_queue" );
-
-	$event_queue->create_object( $self->{session}, {
+	EPrints::DataObj::EventQueue->create_object( $self->{session}, {
 			pluginid => "Indexer",
 			action => "index",
 			params => [$self->internal_uri, @fields],
@@ -1327,10 +1325,7 @@ sub queue_all
 
 	return unless $self->{dataset}->indexable;
 
-	my $event_queue = $self->{session}->get_repository->get_dataset( "event_queue" );
-
-	$event_queue->create_object( $self->{session}, {
-			unique => "TRUE",
+	EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
 			pluginid => "Indexer",
 			action => "index_all",
 			params => [$self->internal_uri],
@@ -1353,9 +1348,7 @@ sub queue_fulltext
 
 	return unless $self->{dataset}->indexable;
 
-	my $event_queue = $self->{session}->get_repository->get_dataset( "event_queue" );
-
-	$event_queue->create_object( $self->{session}, {
+	EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
 			unique => "TRUE",
 			pluginid => "Indexer",
 			action => "index_fulltext",

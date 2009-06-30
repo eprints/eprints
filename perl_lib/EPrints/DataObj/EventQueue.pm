@@ -104,36 +104,37 @@ sub get_system_field_info
 
 sub get_dataset_id { "event_queue" }
 
-sub new_from_data
+sub create_unique
 {
 	my( $class, $session, $data, $dataset ) = @_;
 
-	if( defined $data->{unique} && $data->{unique} eq "TRUE" )
+	$dataset ||= $session->get_repository->get_dataset( $class->get_dataset_id );
+
+	$data->{unique} = "TRUE";
+
+	my $md5 = Digest::MD5->new;
+	$md5->add( $data->{pluginid} );
+	$md5->add( $data->{action} );
+	$md5->add( EPrints::MetaField::Storable->freeze( $session, $data->{params} ) )
+		if EPrints::Utils::is_set( $data->{params} );
+	$data->{hash} = $md5->hexdigest;
+
+	my $searchexp = EPrints::Search->new(
+		dataset => $dataset,
+		session => $session,
+		filters => [
+			{ meta_fields => [qw( hash )], value => $data->{hash} },
+			{ meta_fields => [qw( status )], value => "waiting inprogress", match => "EQ", merge => "ANY" },
+		]);
+	my $count = $searchexp->perform_search->count;
+	$searchexp->dispose;
+
+	if( $count > 0 )
 	{
-		my $md5 = Digest::MD5->new;
-		$md5->data( $data->{pluginid} );
-		$md5->data( $data->{action} );
-		$md5->data( $data->{params} )
-			if EPrints::Utils::is_set( $data->{params} );
-		$data->{hash} = $md5->hexdigest;
-
-		my $searchexp = EPrints::Search->new(
-			dataset => $dataset,
-			session => $session,
-			filters => [
-				{ meta_fields => [qw( hash )], value => $data->{hash} },
-				{ meta_fields => [qw( status )], value => "waiting inprogress", match => "EQ", merge => "ANY" },
-			]);
-		my $count = $searchexp->perform_search->count;
-		$searchexp->dispose;
-
-		if( $count > 0 )
-		{
-			return undef;
-		}
+		return undef;
 	}
 
-	return $class->SUPER::new_from_data( $session, $data, $dataset );
+	return $class->create_from_data( $session, $data, $dataset );
 }
 
 1;

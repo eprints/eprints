@@ -69,22 +69,21 @@ sub value_from_sql_row
 {
 	my( $self, $session, $row ) = @_;
 
-	return Storable::thaw( shift @$row );
+	return $self->thaw( $session, shift @$row );
 }
 
 sub sql_row_from_value
 {
 	my( $self, $session, $value ) = @_;
 
-	# nfreeze is a "portable" structure
-	return Storable::nfreeze( $value );
+	return $self->freeze( $session, $value );
 }
 
 sub to_xml_basic
 {
 	my( $self, $session, $value, $dataset, %opts ) = @_;
 
-	return $self->SUPER::to_xml_basic( $session, MIME::Base64::encode_base64(Storable::nfreeze( $value )), $dataset, %opts );
+	return $self->SUPER::to_xml_basic( $session, MIME::Base64::encode_base64($self->freeze( $session, $value )), $dataset, %opts );
 }
 
 # return epdata for a single value of this field
@@ -92,7 +91,23 @@ sub xml_to_epdata_basic
 {
 	my( $self, $session, $xml, %opts ) = @_;
 
-	return Storage::thaw( MIME::Base64::decode_base64( $self->SUPER::xml_to_epdata_basic( $session, $xml, %opts ) ) );
+	return $self->thaw( $session, MIME::Base64::decode_base64( $self->SUPER::xml_to_epdata_basic( $session, $xml, %opts ) ) );
+}
+
+sub freeze
+{
+	my( $class, $session, $value ) = @_;
+
+	local $Storable::canonical = 1;
+
+	return Storable::nfreeze( $value );
+}
+
+sub thaw
+{
+	my( $class, $session, $value ) = @_;
+
+	return Storable::thaw( $value );
 }
 
 ######################################################################
