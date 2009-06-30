@@ -111,11 +111,11 @@ sub new_from_data
 	if( defined $data->{unique} && $data->{unique} eq "TRUE" )
 	{
 		my $md5 = Digest::MD5->new;
-		$md5->add_data( $data->{pluginid} );
-		$md5->add_data( $data->{action} );
-		$md5->add_data( $data->{params} )
+		$md5->data( $data->{pluginid} );
+		$md5->data( $data->{action} );
+		$md5->data( $data->{params} )
 			if EPrints::Utils::is_set( $data->{params} );
-		$data->{hash} = $md5->hex_digest;
+		$data->{hash} = $md5->hexdigest;
 
 		my $searchexp = EPrints::Search->new(
 			dataset => $dataset,
