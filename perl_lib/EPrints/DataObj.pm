@@ -1302,7 +1302,7 @@ sub queue_changes
 
 	return unless scalar @fields;
 
-	EPrints::DataObj::EventQueue->create_object( $self->{session}, {
+	EPrints::DataObj::EventQueue->create_from_data( $self->{session}, {
 			pluginid => "Indexer",
 			action => "index",
 			params => [$self->internal_uri, @fields],
