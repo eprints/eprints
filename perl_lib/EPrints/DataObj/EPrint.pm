@@ -684,6 +684,8 @@ sub clone
 		return undef;
 	}
 
+	$new_eprint->{under_construction} = 1;
+
 	my $status = $self->get_value( "eprint_status" );
 	unless( $nolink )
 	{
@@ -703,19 +705,13 @@ sub clone
 
 	if( $copy_documents )
 	{
-		my @docs = $self->get_all_documents;
-
-		foreach my $doc (@docs)
+		foreach my $doc (@{$self->get_value( "documents" )})
 		{
-			my $new_doc = $doc->clone( $new_eprint );
-			unless( $new_doc )
-			{	
-				$ok = 0;
-				next;
-			}
-			$new_doc->register_parent( $new_eprint );
+			$doc->clone( $new_eprint ) or $ok = 0, last;
 		}
 	}
+
+	$new_eprint->{under_construction} = 0;
 
 	# Now write the new EPrint to the database
 	unless( $ok && $new_eprint->commit )

@@ -387,41 +387,30 @@ sub clone
 {
 	my( $self, $eprint ) = @_;
 	
+	my $data = EPrints::Utils::clone( $self->{data} );
+
+	$data->{eprintid} = $eprint->get_id;
+	$data->{_parent} = $eprint;
+
 	# First create a new doc object
-	my $new_doc = $self->{dataset}->create_object( $self->{session},
-		{ eprintid=>$eprint->get_id } );
+	my $new_doc = $self->{dataset}->create_object( $self->{session}, $data );
+	return undef if !defined $new_doc;
+	
+	my $ok = 1;
 
-	return( 0 ) if( !defined $new_doc );
-	
-	# Copy fields across
-	foreach( "format", "formatdesc", "language", "security", "main" )
-	{
-		$new_doc->set_value( $_, $self->get_value( $_ ) );
-	}
-	
 	# Copy files
-	
-	my $repository = $self->{session}->get_repository;
-	
-	my $rc = $repository->exec( "cpall", SOURCE=>$self->local_path(), TARGET=>$new_doc->local_path() ); 
-
-	# If something's gone wrong...
-	if ( $rc!=0 )
+	foreach my $file (@{$self->get_value( "files" )})
 	{
-		$repository->log( "Error copying from ".$self->local_path()." to ".$new_doc->local_path().": $!" );
-		return( undef );
+		$file->clone( $new_doc ) or $ok = 0, last;
 	}
 
-	if( $new_doc->commit() )
-	{
-		$new_doc->files_modified;
-		return( $new_doc );
-	}
-	else
+	if( !$ok )
 	{
 		$new_doc->remove();
-		return( undef );
+		return undef;
 	}
+
+	return $new_doc;
 }
 
 

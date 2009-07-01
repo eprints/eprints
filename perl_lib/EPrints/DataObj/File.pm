@@ -308,6 +308,41 @@ sub get_defaults
 
 ######################################################################
 
+=item $new_file = $file->clone( $parent )
+
+Clone the $file object (including contained files) and return the new object.
+
+=cut
+
+sub clone
+{
+	my( $self, $parent ) = @_;
+
+	my $data = EPrints::Utils::clone( $self->{data} );
+
+	$data->{objectid} = $parent->get_id;
+	$data->{_parent} = $parent;
+
+	my $new_file = $self->{dataset}->create_object( $self->{session}, $data );
+	return undef if !defined $new_file;
+
+	my $storage = $self->{session}->get_storage;
+
+	my $rc = 1;
+
+	$rc &&= $storage->open_write( $new_file );
+	$self->get_file( sub { $storage->write( $new_file, $_[0] ) } );
+	$rc &&= $storage->close_write( $new_file );
+
+	if( !$rc )
+	{
+		$new_file->remove;
+		return undef;
+	}
+
+	return $new_file;
+}
+
 =item $success = $file->remove
 
 Delete the stored file.

@@ -54,8 +54,7 @@ sub new
 {
 	my( $class, $session ) = @_;
 
-	my $self = bless {}, $class;
-	$self->{session} = $session;
+	my $self = bless { _opened => {}, session => $session }, $class;
 	Scalar::Util::weaken($self->{session})
 		if defined &Scalar::Util::weaken;
 
@@ -123,63 +122,21 @@ sub store
 	use bytes;
 	use integer;
 
-	my $rc = 0;
 	my $rlen = 0;
 
-	if( !$fileobj->is_set( "filesize" ) )
-	{
-		EPrints::abort( "filesize must be set before storing" );
-	}
-
-	my( @writable, @errored );
-
-	# open a write for each plugin, record any plugins that error
-	foreach my $plugin ($self->get_plugins( $fileobj ))
-	{
-		if( $plugin->open_write( $fileobj ) )
-		{
-			push @writable, $plugin;
-		}
-		else
-		{
-			push @errored, $plugin;
-		}
-	}
-
-	# nothing to do, so don't bother reading input data
-	return undef unless scalar @writable;
+	return 0 unless $self->open_write( $fileobj );
 
 	# copy the input data to each writable plugin
 	my( $buffer, $c );
 	while(($c = length($buffer = &$f)) > 0)
 	{
 		$rlen += $c;
-		foreach my $plugin (@writable)
-		{
-			next if $plugin->write( $fileobj, $buffer );
-
-			# a write error occurred, close and remove this plugin
-			$plugin->close_write( $fileobj );
-			@writable = grep { $_ ne $plugin } @writable;
-			push @errored, $plugin;
-		}
+		$self->write( $fileobj, $buffer );
 	}
 
-	# close writing to each plugin
-	foreach my $plugin (@writable)
-	{
-		if( defined(my $sourceid = $plugin->close_write( $fileobj )) )
-		{
-			++$rc;
-			$fileobj->add_plugin_copy( $plugin, $sourceid );
-		}
-		else
-		{
-			push @errored, $plugin;
-		}
-	}
+	return 0 unless $self->close_write( $fileobj );
 
-	return $rc ? $rlen : undef;
+	return $rlen == $fileobj->get_value( "filesize" ) ? $rlen : undef;
 }
 
 =item $success = $store->retrieve( $fileobj, CALLBACK )
@@ -386,6 +343,99 @@ sub copy
 	}
 
 	return $ok;
+}
+
+=item $ok = $storage->open_write( $fileobj )
+
+Start a write session for $fileobj. $fileobj must have at least the "filesize" property set (which is the number of bytes that will be written).
+
+=cut
+
+sub open_write
+{
+	my( $self, $fileobj ) = @_;
+
+	if( !$fileobj->is_set( "filesize" ) )
+	{
+		EPrints::abort( "filesize must be set before calling open_write" );
+	}
+
+	my( @writable, @errored );
+
+	# open a write for each plugin, record any plugins that error
+	foreach my $plugin ($self->get_plugins( $fileobj ))
+	{
+		if( $plugin->open_write( $fileobj ) )
+		{
+			push @writable, $plugin;
+		}
+		else
+		{
+			push @errored, $plugin;
+		}
+	}
+
+	return 0 unless scalar @writable;
+
+	$self->{_opened}->{$fileobj} = \@writable;
+
+	return 1;
+}
+
+=item $ok = $storage->write( $fileobj, $buffer )
+
+Write $buffer to the storage plugin(s).
+
+=cut
+
+sub write
+{
+	my( $self, $fileobj, $buffer ) = @_;
+
+	my( @writable );
+
+	# write the buffer to each plugin
+	# on error close the write to the plugin
+	for(@{$self->{_opened}->{$fileobj}})
+	{
+		push(@writable, $_), next if $_->write( $fileobj, $buffer );
+
+		$_->close_write( $fileobj );
+	}
+
+	$self->{_opened}->{$fileobj} = \@writable;
+
+	return scalar( @writable ) > 1;
+}
+
+=item $ok = $storage->close_write( $fileobj );
+
+Finish writing to the storage plugin(s) for $fileobj.
+
+=cut
+
+sub close_write
+{
+	my( $self, $fileobj ) = @_;
+
+	my $rc = scalar @{$self->{_opened}->{$fileobj}};
+
+	for(@{$self->{_opened}->{$fileobj}})
+	{
+		my $sourceid = $_->close_write( $fileobj );
+		if( defined $sourceid )
+		{
+			$fileobj->add_plugin_copy( $_, $sourceid );
+		}
+		else
+		{
+			$rc = 0;
+		}
+	}
+
+	delete $self->{_opened}->{$fileobj};
+
+	return $rc;
 }
 
 =back
