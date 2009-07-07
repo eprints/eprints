@@ -59,7 +59,7 @@ sub get_sql_type
 		$self->get_sql_name,
 		EPrints::Database::SQL_LONGVARBINARY,
 		!$self->get_property( "allow_null" ),
-		$self->get_property( "maxlength" ),
+		undef, # maxlength
 		undef, # precision
 		$self->get_sql_properties,
 	);
