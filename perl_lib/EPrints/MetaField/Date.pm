@@ -366,7 +366,7 @@ sub render_search_value
 	{	
 		$lastdate = $1;
 	}
-	if( $drange =~ s/^($REGEXP_DATETIME)(?:-?)$/$4/ )
+	if( $drange =~ s/^($REGEXP_DATETIME)(-?)$/$2/ )
 	{
 		$firstdate = $1;
 	}
