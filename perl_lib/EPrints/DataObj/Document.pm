@@ -432,6 +432,7 @@ sub remove
 
 	foreach my $dataobj (@{($self->get_related_objects( EPrints::Utils::make_relation( "hasVolatileVersion" ) ))})
 	{
+		next unless $dataobj->has_object_relations( $self, EPrints::Utils::make_relation( "isVolatileVersionOf" ) );
 		$dataobj->remove();
 	}
 
