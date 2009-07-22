@@ -121,4 +121,33 @@ sub human_mem_increase
 	return EPrints::Utils::human_filesize( $diff );
 }
 
+=item $doc = EPrints::Test::get_test_document( $session )
+
+Finds and returns the first document in the repository.
+
+=cut
+
+sub get_test_document
+{
+	my( $session ) = @_;
+
+	my $db = $session->get_database;
+
+	my $sth = $db->prepare_select(
+		sprintf("SELECT %s FROM %s ORDER BY %s ASC",
+			$db->quote_identifier( "docid" ),
+			$db->quote_identifier( "document" ),
+			$db->quote_identifier( "docid" )
+		),
+		limit => 1 );
+
+	$sth->execute;
+
+	my( $id ) = $sth->fetchrow_array;
+
+	return unless defined $id;
+
+	return EPrints::DataObj::Document->new( $session, $id );
+}
+
 1;
