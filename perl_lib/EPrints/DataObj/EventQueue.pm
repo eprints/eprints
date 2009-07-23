@@ -76,11 +76,6 @@ Parameters to pass to the action (a text serialisation).
 
 use strict;
 
-use constant {
-	ALL => "_all_",
-	FULLTEXT => "_fulltext_",
-};
-
 sub get_system_field_info
 {
 	return (

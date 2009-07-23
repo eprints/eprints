@@ -58,7 +58,7 @@ sub run_index_fulltext
 
 	my $field = EPrints::MetaField->new( 
 				dataset => $dataset, 
-				name => "_FULLTEXT_",
+				name => "_fulltext_",
 				multiple => 1,
 				type => "fulltext" );
 
@@ -77,7 +77,7 @@ sub _index_fields
 		EPrints::Index::remove( $session, $dataset, $dataobj->get_id, $field->get_name );
 		next unless( $field->get_property( "text_index" ) );
 
-$self->plain_message( "message", "indexing ".$dataset->confid.".".$dataobj->get_id.".".$field->get_name );
+#$self->plain_message( "message", "indexing ".$dataset->confid.".".$dataobj->get_id.".".$field->get_name );
 		my $value = $field->get_value( $dataobj );
 		next unless EPrints::Utils::is_set( $value );	
 
