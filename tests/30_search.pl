@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 6;
+use Test::More tests => 9;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -40,6 +40,7 @@ $searchexp = EPrints::Search->new(
 );
 
 my $sample_doc = EPrints::Test::get_test_document( $session );
+my $sample_eprint = $sample_doc->get_parent;
 
 $searchexp->add_field( $dataset->get_field( "eprintid" ), $sample_doc->get_value( "eprintid" ) );
 $searchexp->add_field( $sample_doc->get_dataset->get_field( "format" ), $sample_doc->get_value( "format" ) );
@@ -56,5 +57,44 @@ $searchexp->map(sub {
 $searchexp->dispose;
 
 ok($is_ok, "search for eprint id + doc format");
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $sample_doc->get_dataset,
+);
+
+$searchexp->add_field( $sample_doc->get_dataset->get_field( "relation_type" ), EPrints::Utils::make_relation("isVolatileVersionOf")." ".EPrints::Utils::make_relation("ispreviewThumbnailVersionOf"), "EQ", "ALL" );
+
+my $count = $searchexp->perform_search->count;
+
+ok($count > 0, "search multiple field");
+
+$searchexp->dispose;
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $dataset,
+);
+
+$searchexp->add_field( $dataset->get_field( "creators_name" ), "Neumeier, M" );
+
+ok($searchexp->perform_search->count > 0, "search multiple name field");
+
+$searchexp->dispose;
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $dataset,
+	satisfy_all => 0,
+	custom_order => "-date/title",
+);
+
+$searchexp->add_field( $dataset->get_field( "creators_name" ), "Smith, John" );
+$searchexp->add_field( $sample_doc->get_dataset->get_field( "format" ), "application/pdf" );
+$searchexp->add_field( $sample_doc->get_dataset->get_field( "relation_type" ), EPrints::Utils::make_relation("isVolatileVersionOf") );
+
+ok($searchexp->perform_search->count > 0, "satisfy/multi datasets/multiple");
+
+$searchexp->dispose;
 
 $session->terminate;
