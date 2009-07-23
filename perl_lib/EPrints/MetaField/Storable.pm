@@ -69,12 +69,18 @@ sub value_from_sql_row
 {
 	my( $self, $session, $row ) = @_;
 
-	return $self->thaw( $session, shift @$row );
+	my $value = shift @$row;
+
+	return undef unless defined $value;
+
+	return $self->thaw( $session, $value );
 }
 
 sub sql_row_from_value
 {
 	my( $self, $session, $value ) = @_;
+
+	return undef unless defined $value;
 
 	return $self->freeze( $session, $value );
 }
@@ -99,6 +105,11 @@ sub freeze
 	my( $class, $session, $value ) = @_;
 
 	local $Storable::canonical = 1;
+
+	if( !ref($value) )
+	{
+		EPrints::abort( "Asked to freeze non-reference object '$value'" );
+	}
 
 	return Storable::nfreeze( $value );
 }
