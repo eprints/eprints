@@ -1745,8 +1745,6 @@ sub reindex
 		exit( 1 );
 	}
 
-	my $index_queue = $session->get_repository->get_dataset( "index_queue" );
-
 	my $fn = sub {
 		my( $session, $dataset, $item ) = @_;
 	
