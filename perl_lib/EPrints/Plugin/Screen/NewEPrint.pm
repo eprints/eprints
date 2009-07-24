@@ -59,6 +59,22 @@ sub action_create
 
 }
 
+sub render
+{
+	my( $self ) = @_;
+
+	my $session = $self->{session};
+
+	my $url = URI->new($self->{processor}->{url});
+	$url->query_form( 
+		screen => $self->{processor}->{screenid},
+		_action_create => 1
+		);
+
+	$session->redirect( $url );
+	$session->terminate();
+	exit(0);
+}
 
 
 1;
