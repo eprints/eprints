@@ -39,7 +39,12 @@ sub new
 {
 	my( $class, @params ) = @_;
 
-	return bless { op=>"OR", sub_ops=>\@params }, $class;
+	my $self = bless { op=>"OR", sub_ops=>\@params }, $class;
+
+	$self->{prefix} = $self;
+	$self->{prefix} =~ s/^.*:://;
+
+	return $self;
 }
 
 sub optimise_specific
@@ -120,6 +125,19 @@ sub process
 #print STDERR "PROCESS: ".("  "x$i)."/OR [".join(",",@{$set})."]\n";
 #
 	return $set;
+}
+
+sub get_query_logic
+{
+	my( $self, %opts ) = @_;
+
+	my @logic;
+	foreach my $sub_op ( $self->ordered_ops )
+	{
+		push @logic, $sub_op->get_query_logic( %opts );
+	}
+
+	return "(" . join(") OR (", @logic) . ")";
 }
 
 

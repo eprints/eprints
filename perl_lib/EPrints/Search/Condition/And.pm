@@ -39,7 +39,11 @@ sub new
 {
 	my( $class, @params ) = @_;
 
-	return bless { op=>"AND", sub_ops=>\@params }, $class;
+	my $self = bless { op=>"AND", sub_ops=>\@params }, $class;
+
+	$self->{prefix} = $self->{op}.($self+0)."_";
+
+	return $self;
 }
 
 sub optimise_specific
@@ -121,5 +125,17 @@ sub process
 	return $set;
 }
 
+sub get_query_logic
+{
+	my( $self, %opts ) = @_;
+
+	my @logic;
+	foreach my $sub_op ( $self->ordered_ops )
+	{
+		push @logic, $sub_op->get_query_logic( %opts );
+	}
+
+	return "(" . join(") AND (", @logic) . ")";
+}
 
 1;

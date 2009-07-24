@@ -26,11 +26,11 @@ Matches items with a matching name.
 
 package EPrints::Search::Condition::NameMatch;
 
-use EPrints::Search::Condition;
+use EPrints::Search::Condition::Comparison;
 
 BEGIN
 {
-	our @ISA = qw( EPrints::Search::Condition );
+	our @ISA = qw( EPrints::Search::Condition::Comparison );
 }
 
 use strict;

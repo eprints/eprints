@@ -162,6 +162,10 @@ If the cache still exists, it will set the default values of the
 search fields, and when the search is performed it will skip the 
 search and build a search results object directly from the cache.
 
+=item limit
+
+Limit the number of matching records to limit.
+
 =back
 
 WEB PAGE RELATED PARAMETERS
@@ -204,6 +208,7 @@ being mentioned in the description of the search.
 	"custom_order", "keep_cache", 	"cache_id", 	
 	"prefix", 	"defaults", 	"filters", 
 	"search_fields","show_zero_results", "show_help",
+	"limit",
 );
 
 sub new
@@ -1179,11 +1184,24 @@ sub perform_search_v2
 
 	# print STDERR $self->get_conditions->describe."\n\n";
 
-	my $unsorted_matches = $self->get_conditions->process_v2( 
-		session => $self->{session},
-		order => $self->{custom_order},
-		dataset => $self->{dataset},
- 	);
+	my $unsorted_matches;
+	if( $self->{session}->get_repository->get_conf( "temp_use_v2_search" ) > 1 )
+	{
+		$unsorted_matches = $self->get_conditions->process_v3( 
+			session => $self->{session},
+			order => $self->{custom_order},
+			dataset => $self->{dataset},
+			limit => $self->{limit},
+		);
+	}
+	else
+	{
+		$unsorted_matches = $self->get_conditions->process_v2( 
+			session => $self->{session},
+			order => $self->{custom_order},
+			dataset => $self->{dataset},
+		);
+	}
 
 	$self->{results} = EPrints::List->new( 
 		session => $self->{session},

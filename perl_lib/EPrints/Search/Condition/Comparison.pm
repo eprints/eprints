@@ -183,4 +183,126 @@ sub get_op_val
 	return 4;
 }
 
+sub get_query_joins
+{
+	my( $self, $joins, %opts ) = @_;
+
+	my $field = $self->{field};
+	my $dataset = $field->{dataset};
+
+	$joins->{$dataset->confid} ||= { dataset => $dataset };
+	$self->{alias} = $dataset->get_sql_table_name;
+
+	if( $field->get_property( "multiple" ) )
+	{
+		my $table = $dataset->get_sql_sub_table_name( $field );
+		my $idx = scalar(@{$joins->{$dataset->confid}->{'multiple'} ||= []});
+		$self->{alias} = $idx . "_" . $table;
+		push @{$joins->{$dataset->confid}->{'multiple'}}, {
+			table => $table,
+			alias => $self->{alias},
+			key => $dataset->get_key_field->get_sql_name,
+		};
+	}
+}
+
+sub get_query_logic
+{
+	my( $self, %opts ) = @_;
+
+	my $db = $opts{session}->get_database;
+	my $field = $self->{field};
+	my $dataset = $field->{dataset};
+
+	my $table = $self->{alias};
+	my $q_table = $db->quote_identifier( $table );
+
+	my $sql_name = $field->get_sql_name;
+
+	my $op = $self->{op};
+
+	if( $field->isa( "EPrints::MetaField::Name" ) )
+	{
+		my @logic;
+		for(qw( given family ))
+		{
+			my $q_name = $db->quote_identifier( "$sql_name\_$_" );
+			my $q_value = $db->quote_value( $self->{params}->[0]->{$_} );
+			push @logic, "$q_table.$q_name $op $q_value";
+		}
+		return "(".join(") AND (", @logic).")";
+	}
+	elsif( $field->isa( "EPrints::MetaField::Time" ) )
+	{
+		return $self->get_query_logic_time( %opts );
+	}
+	elsif( $field->isa( "EPrints::MetaField::Int" ) )
+	{
+		my $q_name = $db->quote_identifier( $sql_name );
+		my $q_value = EPrints::Database::prep_int( $self->{params}->[0] );
+
+		return "$q_table.$q_name $op $q_value";
+	}
+	else
+	{
+		my $q_name = $db->quote_identifier( $sql_name );
+		my $q_value = $db->quote_value( $self->{params}->[0] );
+
+		return "$q_table.$q_name $op $q_value";
+	}
+}
+
+sub get_query_logic_time
+{
+	my( $self, %opts ) = @_;
+	
+	my $session = $opts{session};
+	my $database = $session->get_database;
+	my $sql_col = $self->{field}->get_sql_name;
+
+	my( $cmp, $eq ) = @{ { 
+		'>=', [ '>', 1 ],
+		'<=', [ '<', 1 ],
+		'>', [ '>', 0 ],
+		'<', [ '<', 0 ],
+		'=', [ undef, 1 ] }->{$self->{op}} };
+	my $timemap = [ 'year','month','day','hour','minute','second' ];
+
+	my @parts = split( /[-: TZ]/, $self->{params}->[0] );
+	my $nparts = scalar @parts;
+	if( $self->{field}->isa( "EPrints::MetaField::Date" ) && $nparts > 3 )
+	{
+		$nparts = 3;
+	}
+
+	my @or = ();
+
+	if( defined $cmp )
+	{
+		for( my $i=0;$i<$nparts;++$i )
+		{
+			my @and = ();
+			for( my $j=0;$j<=$i;++$j )
+			{	
+				my $o = "=";
+				if( $j==$i ) { $o = $cmp; }
+				push @and, $database->quote_identifier($self->{alias},$sql_col."_".$timemap->[$j])." ".$o." ".EPrints::Database::prep_int( $parts[$j] ); 
+			}
+			push @or, "( ".join( " AND ", @and )." )";
+		}
+	}
+
+	if( $eq )
+	{
+		my @and = ();
+		for( my $i=0;$i<$nparts;++$i )
+		{
+			push @and, $database->quote_identifier($self->{alias},$sql_col."_".$timemap->[$i])." = ".EPrints::Database::prep_int( $parts[$i] ); 
+		}
+		push @or, "( ".join( " AND ", @and )." )";
+	}
+
+	return "(".join( " OR ", @or ).")";
+}
+
 1;

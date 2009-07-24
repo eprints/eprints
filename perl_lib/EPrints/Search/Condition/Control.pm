@@ -146,4 +146,14 @@ sub get_op_val
 	return 3;
 }
 
+sub get_query_joins
+{
+	my( $self, $joins, %opts ) = @_;
+
+	foreach my $sub_op ( $self->ordered_ops )
+	{
+		$sub_op->get_query_joins( $joins, %opts );
+	}
+}
+
 1;

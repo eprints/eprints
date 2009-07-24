@@ -116,4 +116,61 @@ sub get_op_val
 	return 4;
 }
 
+sub get_query_joins
+{
+	my( $self, $joins, %opts ) = @_;
+
+	my $field = $self->{field};
+	my $dataset = $field->{dataset};
+
+	$joins->{$dataset->confid} ||= { dataset => $dataset };
+	$joins->{$dataset->confid}->{'multiple'} ||= [];
+
+	if( $field->get_property( "multiple" ) )
+	{
+		my $table = $dataset->get_sql_sub_table_name( $field );
+		my $idx = scalar(@{$joins->{$dataset->confid}->{'multiple'}});
+		my $sub_alias = $idx . "_" . $table;
+		$self->{alias} = $idx . "_" . $table . "_subject";
+		push @{$joins->{$dataset->confid}->{'multiple'}}, {
+			table => $table,
+			alias => $sub_alias,
+			key => $dataset->get_key_field->get_sql_name,
+			inner => [{
+				table => "subject_ancestors",
+				alias => $self->{alias},
+				key => $field->get_sql_name,
+				right_key => "subjectid",
+			}],
+		};
+	}
+	else
+	{
+		my $table = "subject_ancestors";
+		my $idx = scalar(@{$joins->{$dataset->confid}->{'multiple'}});
+		$self->{alias} = $idx . "_" . $table;
+		push @{$joins->{$dataset->confid}->{'multiple'}}, {
+			table => $table,
+			alias => $self->{alias},
+			key => $field->get_sql_name,
+			right_key => "subjectid",
+		};
+	}
+}
+
+sub get_query_logic
+{
+	my( $self, %opts ) = @_;
+
+	my $db = $opts{session}->get_database;
+	my $field = $self->{field};
+	my $dataset = $field->{dataset};
+
+	my $q_table = $db->quote_identifier($self->{alias});
+	my $q_name = $db->quote_identifier("ancestors");
+	my $q_value = $db->quote_value( $self->{params}->[0] );
+
+	return "$q_table.$q_name = $q_value";
+}
+
 1;

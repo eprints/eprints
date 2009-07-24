@@ -117,4 +117,41 @@ sub get_op_val
 	return 1;
 }
 
+sub get_query_joins
+{
+	my( $self, $joins, %opts ) = @_;
+
+	my $field = $self->{field};
+	my $dataset = $field->{dataset};
+
+	$joins->{$dataset->confid} ||= { dataset => $dataset };
+	$joins->{$dataset->confid}->{'multiple'} ||= [];
+
+	my $table = $dataset->get_sql_rindex_table_name( $field );
+	my $idx = scalar(@{$joins->{$dataset->confid}->{'multiple'} ||= []});
+	$self->{alias} = $idx . "_" . $table;
+	push @{$joins->{$dataset->confid}->{'multiple'}}, {
+		table => $table,
+		alias => $self->{alias},
+		key => $dataset->get_key_field->get_sql_name,
+	};
+}
+
+sub get_query_logic
+{
+	my( $self, %opts ) = @_;
+
+	my $db = $opts{session}->get_database;
+	my $field = $self->{field};
+	my $dataset = $field->{dataset};
+
+	my $q_table = $db->quote_identifier($self->{alias});
+	my $q_fieldname = $db->quote_identifier("field");
+	my $q_fieldvalue = $db->quote_value($field->get_sql_name);
+	my $q_word = $db->quote_identifier("word");
+	my $q_value = $db->quote_value( $self->{params}->[0] );
+
+	return "($q_table.$q_fieldname = $q_fieldvalue AND $q_table.$q_word = $q_value)";
+}
+
 1;

@@ -28,11 +28,11 @@ eg. Smi matches Smith.
 
 package EPrints::Search::Condition::IndexStart;
 
-use EPrints::Search::Condition;
+use EPrints::Search::Condition::Index;
 
 BEGIN
 {
-	our @ISA = qw( EPrints::Search::Condition );
+	our @ISA = qw( EPrints::Search::Condition::Index );
 }
 
 use strict;
@@ -120,6 +120,23 @@ sub get_tables
 sub get_op_val
 {
 	return 1;
+}
+
+sub get_query_logic
+{
+	my( $self, %opts ) = @_;
+
+	my $db = $opts{session}->get_database;
+	my $field = $self->{field};
+	my $dataset = $field->{dataset};
+
+	my $q_table = $db->quote_identifier($self->{alias});
+	my $q_fieldname = $db->quote_identifier("field");
+	my $q_fieldvalue = $db->quote_value($field->get_sql_name);
+	my $q_word = $db->quote_identifier("word");
+	my $q_value = EPrints::Database::prep_like_value( $self->{params}->[0] );
+
+	return "($q_table.$q_fieldname = $q_fieldvalue AND $q_table.$q_word LIKE '$q_value\%')";
 }
 
 1;

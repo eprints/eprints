@@ -161,4 +161,45 @@ sub get_op_val
 	return 4;
 }
 
+sub get_query_joins
+{
+	my( $self, $joins, %opts ) = @_;
+
+	my $field = $self->{field};
+	my $dataset = $field->{dataset};
+
+	$joins->{$dataset->confid} ||= { dataset => $dataset };
+	$joins->{$dataset->confid}->{'multiple'} ||= [];
+
+	$self->{alias} = $dataset->get_sql_grep_table_name( $field );
+	push @{$joins->{$dataset->confid}->{'multiple'}}, {
+		table => $self->{alias},
+		alias => $self->{alias},
+		key => $dataset->get_key_field->get_sql_name,
+	};
+}
+
+sub get_query_logic
+{
+	my( $self, %opts ) = @_;
+
+	my $db = $opts{session}->get_database;
+	my $field = $self->{field};
+	my $dataset = $field->{dataset};
+
+	my $q_table = $db->quote_identifier($self->{alias});
+	my $q_grepstring = $db->quote_identifier("grepstring");
+	my $q_fieldname = $db->quote_identifier("fieldname");
+	my $q_fieldvalue = $db->quote_value($field->get_sql_name);
+
+	my @logic;
+	foreach my $cond (@{$self->{params}})
+	{
+		# escape $cond value in any way?
+		push @logic, "$q_table.$q_grepstring LIKE '$cond'";
+	}
+
+	return "(($q_table.$q_fieldname = $q_fieldvalue) AND (".join( " OR ", @logic )."))";
+}
+
 1;
