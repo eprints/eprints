@@ -119,6 +119,17 @@ sub make_page
 				$v,
 				{fieldname=>$field->render_name($session)} );
 		}
+
+		if( $field->isa( "EPrints::MetaField::Recaptcha" ) &&
+			EPrints::Utils::is_set( $v->{$field->get_name} ) )
+		{
+			return mk_err_page(
+				$session,
+				"cgi/register:captcha_failed",
+				$fieldlist,
+				$v,
+				{} );
+		}
 	}
 
 	if( defined EPrints::DataObj::User::user_with_email( $session, $v->{email} ) )
