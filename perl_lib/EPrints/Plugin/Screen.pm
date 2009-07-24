@@ -51,7 +51,7 @@ sub render
 {
 	my( $self ) = @_;
 
-	return $self->html_phrase( "no_render_subclass", screen => $self );
+	return $self->html_phrase( "no_render_subclass", screen => $self->{session}->make_text( $self ) );
 }
 
 sub render_links
