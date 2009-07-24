@@ -601,7 +601,7 @@ sub _list
 		if( defined $args->{set} )
 		{
 			my $custom_sets = $session->get_repository->get_conf( "oai", "custom_sets" );
-			my( $info ) = grep { $_->{spec} = $args->{set} } @{$custom_sets||[]};
+			my( $info ) = grep { $_->{spec} eq $args->{set} } @{$custom_sets||[]};
 			if( defined $info )
 			{
 				my @fields = map { $ds->get_field( $_) } @{$info->{meta_fields}};
