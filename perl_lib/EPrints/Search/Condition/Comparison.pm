@@ -232,7 +232,7 @@ sub get_query_logic
 		}
 		return "(".join(") AND (", @logic).")";
 	}
-	elsif( $field->isa( "EPrints::MetaField::Time" ) )
+	elsif( $field->isa( "EPrints::MetaField::Date" ) )
 	{
 		return $self->get_query_logic_time( %opts );
 	}

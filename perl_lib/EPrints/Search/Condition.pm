@@ -499,7 +499,7 @@ sub process_v3
 
 #print STDERR "EXECUTING: $sql\n";
 	my $sth = $db->prepare_select( $sql, limit => $opts{limit} );
-	$sth->execute;
+	$db->execute($sth, $sql);
 
 	my @results;
 
