@@ -1100,6 +1100,7 @@ sub update_view_list
 	if( defined $esc_path_values )
 	{
 		$filters = get_filters( $session, $view, $esc_path_values );
+		return if !defined $filters;
 		$menu_level = scalar @{$esc_path_values};
 	}
 
