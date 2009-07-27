@@ -8,7 +8,7 @@
      <epp:phrase id="viewname_eprint_status">Status</epp:phrase>
 
      <epp:phrase id="viewname_eprint_subjects">Subject</epp:phrase>
-     <epp:phrase id="viewtitle_eprint_subjects_menu_1">Browse by Subject and Year</epp:phrase>
+     <!--<epp:phrase id="viewtitle_eprint_subjects_menu_1">Browse by Subject and Year</epp:phrase>-->
      <epp:phrase id="viewtitle_eprint_subjects_menu_2">Browse by Year where Subject is "<epc:pin name="value1" />"</epp:phrase>
      <!--<epp:phrase id="viewtitle_eprint_subjects_list">Items where Subject is "<epc:pin name="value1" />" and Year is <epc:pin name="value2" /></epp:phrase>-->
      <epp:phrase id="viewtitle_eprint_subjects_list">Items where Subject is "<epc:pin name="value1" />"</epp:phrase>
@@ -24,5 +24,8 @@
      <epp:phrase id="viewtitle_eprint_divisions_menu_2">Browse by Year where Division is "<epc:pin name="value1" />"</epp:phrase>
      <epp:phrase id="viewtitle_eprint_divisions_list">Items where Division is "<epc:pin name="value1" />" and Year is <epc:pin name="value2" /></epp:phrase>
 
+     <epp:phrase id="viewname_eprint_creators">Author</epp:phrase>
+     <epp:phrase id="viewtitle_eprint_year_menu_1">Browse by Author</epp:phrase>
+     <epp:phrase id="viewtitle_eprint_creators_list">Items where Author is "<epc:pin name="value1" />"</epp:phrase>
 
 </epp:phrases>

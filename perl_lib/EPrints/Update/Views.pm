@@ -1511,7 +1511,7 @@ sub render_navigation_aids
 	my $menu_fields;
 	if( $menu_level > 0 )
 	{
-		$menu_fields = $menu_fields->[$menu_level-1];
+		$menu_fields = $menus_fields->[$menu_level-1];
 	}
 
 	if( defined $menu_fields && $menu_fields->[0]->is_type( "subject" ) )
@@ -1527,7 +1527,8 @@ sub render_navigation_aids
 		}
 	
 		# strip empty subjects if needed
-		if( $view->{hideempty} )
+		my $menu = $view->{menus}->[$menu_level-1];
+		if( $menu->{hideempty} )
 		{
 			my @newids = ();
 			foreach my $id ( @ids )
