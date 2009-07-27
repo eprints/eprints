@@ -42,6 +42,7 @@ sub new
 	{
 		$self->{session} = $opts{session};
 		$self->{collapse} = $opts{collapse};
+		$self->{collapse_help} = $opts{collapse_help};
 		$self->{surround} = $opts{surround};
 		$self->{prefix} = $opts{prefix};
 		$self->{dataobj} = $opts{dataobj};
@@ -128,6 +129,19 @@ sub is_collapsed
 	my $r =  $self->could_collapse;
 	
 	return $r;
+}
+
+=item $bool = $component->is_help_collapsed()
+
+Return true if the help text should be hidden.
+
+=cut
+
+sub is_help_collapsed
+{
+	my( $self ) = @_;
+
+	return $self->{collapse_help};
 }
 
 # return false if this component does not want to be collapsed, even if

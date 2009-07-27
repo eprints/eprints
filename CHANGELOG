@@ -8351,3 +8351,6 @@ EPRINTS-3.1-beta-2
  * Added support for a "captcha" field to user registration
  * Allow NewEPrint screen to be used in the key_tools area
 
+2009-07-27 tdb
+ * Added "collapse_help" option to workflow component to disable collapsing
+
