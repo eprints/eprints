@@ -29,17 +29,10 @@ not done
 
 package EPrints::MetaField::Compound;
 
+use EPrints::MetaField;
+@ISA = qw( EPrints::MetaField );
+
 use strict;
-use warnings;
-
-BEGIN
-{
-	our( @ISA );
-	
-	@ISA = qw( EPrints::MetaField );
-}
-
-use EPrints::MetaField::Text;
 
 sub new
 {
@@ -52,12 +45,18 @@ sub new
 	foreach my $inner_field ( @{$properties{fields}} )
 	{
 		my $field = EPrints::MetaField->new( 
+			show_in_html => 0, # don't show the inner field separately
+		# these properties can be overriden
+			export_as_xml => $properties{ "export_as_xml" },
+			import => $properties{ "import" },
+		# inner field's properties
+			%{$inner_field},
+		# these properties must be the same as the compound
 			parent_name => $self->get_name(),
-			show_in_html => 0,
 			dataset => $self->get_dataset(), 
-			multiple => $self->get_property( "multiple" ),
 			providence => $self->get_property( "providence" ),
-			%{$inner_field} );	
+			multiple => $properties{ "multiple" },
+			volatile => $properties{ "volatile" } );
 		push @{$self->{fields_cache}}, $field;
 	}
 
