@@ -723,7 +723,10 @@ sub render_xml_diffs
 
 	unless( EPrints::XML::is_dom( $tree1, "Element" ) && EPrints::XML::is_dom( $tree2, "Element" ))
 	{
-		return $session->make_text( "eh?:".ref($tree1) );
+		return(
+			$session->make_text( "schema changed?:".ref($tree1) ),
+			$session->make_text( "schema changed?:".ref($tree2) )
+			);
 	}
 
 	my $f1 = $session->make_doc_fragment;
