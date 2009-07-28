@@ -1,4 +1,7 @@
-$c->{datasets} = {};
+if( !defined $c->{datasets} )
+{
+	$c->{datasets} = {};
+}
 
 # Example custom datasets:
 #
