@@ -33,11 +33,15 @@ $c->{dynamic_template}->{function} = sub {
 			"dynamic:logged_in", 
 			user => $user->render_description,
 			tools => $session->render_toolbar );
+		$parts->{login_status_header} = $session->html_phrase(
+			"dynamic:logged_in_header" );
 	}
 	else
 	{
 		$parts->{login_status} = $session->html_phrase( 
 			"dynamic:not_logged_in" );
+		$parts->{login_status_header} = $session->html_phrase(
+			"dynamic:not_logged_in_header" );
 	}
 };
 
