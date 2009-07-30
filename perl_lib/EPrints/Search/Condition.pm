@@ -367,6 +367,149 @@ sub _sql_left_join
 		$right_key);
 }
 
+sub process_groupby
+{
+	my( $self, %opts ) = @_;
+
+	my $session = $opts{session};
+	my $db = $opts{session}->get_database;
+
+	my $dataset = $opts{dataset};
+	my $groupby = $opts{field};
+
+	if( $groupby->get_dataset->confid ne $dataset->confid )
+	{
+		EPrints::abort( "Can only only group-by on field in main dataset" );
+	}
+
+	my $joins = {};
+	# populate $joins with all the required tables
+	$self->get_query_joins( $joins, %opts );
+
+	my $table = $dataset->get_sql_table_name;
+	my $key_field_name = $dataset->get_key_field->get_sql_name;
+
+	my $sql = "SELECT ";
+	if( $groupby->get_property( "multiple" ) )
+	{
+		$sql .= join(",", map { 
+			$db->quote_identifier($dataset->get_sql_sub_table_name($groupby), $_)
+		} $groupby->get_sql_names() );
+	}
+	else
+	{
+		$sql .= join(",", map { 
+			$db->quote_identifier($table, $_)
+		} $groupby->get_sql_names() );
+	}
+	$sql .= ",COUNT(DISTINCT ".$db->quote_identifier($table,$key_field_name).") ";
+
+	my @joins;
+
+	push @joins, $db->quote_identifier( $table );
+
+	my $idx = 0;
+	my @join_logic;
+	foreach my $datasetid (keys %$joins)
+	{
+		$joins->{$datasetid}->{'multiple'} ||= [];
+		my $join_table = $table;
+		my $join_key = $key_field_name;
+		# join to the non-main dataset
+		if( $datasetid ne $dataset->confid )
+		{
+			# join to the main dataset by aliasing the main dataset and then
+			# doing a LEFT JOIN to the new dataset
+			my $alias = ++$idx . "_" . $table;
+			my $dataset = $joins->{$datasetid}->{dataset};
+			my $table = $dataset->get_sql_table_name;
+			my $key = $dataset->get_key_field->get_sql_name;
+			push @joins, _sql_left_join($db,
+				[ $join_table, $alias ],
+				$join_key,
+				$table,
+				$join_key ); # TODO: per-dataset join-path
+			# assert the INNER JOIN between the alias and main dataset
+			push @join_logic, sprintf("%s.%s=%s.%s",
+				$db->quote_identifier($join_table),
+				$db->quote_identifier($join_key),
+				$db->quote_identifier($alias),
+				$db->quote_identifier($join_key));
+			# any fields will need to join to the new dataset
+			$join_table = $table;
+			$join_key = $key;
+		}
+		# add LEFT JOINs for each multiple field to the dataset table
+		foreach my $multiple (@{$joins->{$datasetid}->{'multiple'}})
+		{
+			# default to using the join_key (should be right 99% of the time)
+			$multiple->{key} ||= $join_key;
+			# this will be different for a non-multiple InSubject
+			$multiple->{right_key} ||= $multiple->{key};
+			# we need to alias the sub-table to enable ANDs
+			my $alias = ++$idx . "_" . $join_table;
+			push @joins, _sql_left_join($db,
+				[ $join_table, $alias ],
+				$multiple->{key},
+				[ $multiple->{table}, $multiple->{alias} ],
+				$multiple->{right_key} );
+			# now apply INNER JOINs to this field (e.g. for subjects)
+			foreach my $inner (@{$multiple->{'inner'}||=[]})
+			{
+				$inner->{right_key} ||= $inner->{key};
+				$joins[$#joins] .= _sql_inner_join($db,
+					$multiple->{alias},
+					$inner->{key},
+					[ $inner->{table}, $inner->{alias} ],
+					$inner->{right_key} );
+			}
+			# add the logic for joining our sub-table alias to the parent table
+			push @join_logic, sprintf("%s.%s=%s.%s",
+				$db->quote_identifier($join_table),
+				$db->quote_identifier($join_key),
+				$db->quote_identifier($alias),
+				$db->quote_identifier($join_key));
+		}
+	}
+
+	$sql .= " FROM ".join(',', @joins);
+
+	my $logic = $self->get_query_logic( %opts );
+	push @join_logic, $logic if length($logic);
+	if( scalar(@join_logic) )
+	{
+		$sql .= " WHERE (".join(") AND (", @join_logic).")";
+	}
+
+	$sql .= " GROUP BY ";
+	if( $groupby->get_property( "multiple" ) )
+	{
+		$sql .= join(",", map { 
+			$db->quote_identifier($dataset->get_sql_sub_table_name($groupby), $_)
+		} $groupby->get_sql_names() );
+	}
+	else
+	{
+		$sql .= join(",", map { 
+			$db->quote_identifier($dataset->get_sql_table_name, $_)
+		} $groupby->get_sql_names() );
+	}
+
+print STDERR "EXECUTING: $sql\n";
+	my $sth = $db->prepare_select( $sql );
+	$db->execute($sth, $sql);
+
+	my( @values, @counts ) = @_;
+
+	while(my @row = $sth->fetchrow_array)
+	{
+		push @values, $groupby->value_from_sql_row( $session, \@row );
+		push @counts, $row[0];
+	}
+
+	return( \@values, \@counts );
+}
+
 sub process_v3
 {
 	my( $self, %opts ) = @_;

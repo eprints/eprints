@@ -1156,6 +1156,26 @@ sub perform_search
 	return $self->{results};
 }
 
+=item ($values, $counts) = $searchexp->perform_groupby( $field )
+
+Perform a SQL GROUP BY on $field based on the current search parameters.
+
+Returns two array references, one containing a list of unique values and one a list of counts for each value.
+
+=cut
+
+sub perform_groupby
+{
+	my( $self, $field ) = @_;
+
+	# we don't do any caching of GROUP BY
+	return $self->get_conditions->process_groupby( 
+			session => $self->{session},
+			dataset => $self->{dataset},
+			field => $field,
+		);
+}
+
 sub perform_search_v2
 {
 	my( $self ) = @_;
