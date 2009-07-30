@@ -789,9 +789,20 @@ sub get_full_url
 
 	return undef unless defined $self->{request};
 
+	my $unparsed_uri = URI::http->new( $self->{request}->unparsed_uri );
+
 	# we need to add parameters manually to avoid semi-colons
 	my $url = URI->new( $self->get_url( host => 1 ) );
-	$url->path( $self->{request}->uri );
+	# current path
+	$url->path( $unparsed_uri->path );
+	# add query
+	$url->query( $unparsed_uri->query );
+
+	# if there's no CGI defined we can't add POSTed parameters
+	if( !defined $self->get_query )
+	{
+		return $url;
+	}
 
 	my @params = $self->param;
 	my @form;
