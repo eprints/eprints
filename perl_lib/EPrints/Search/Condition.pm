@@ -389,24 +389,30 @@ sub process_groupby
 	my $table = $dataset->get_sql_table_name;
 	my $key_field_name = $dataset->get_key_field->get_sql_name;
 
+	my @joins;
+
 	my $sql = "SELECT ";
 	if( $groupby->get_property( "multiple" ) )
 	{
+		my $sub_table = $dataset->get_sql_sub_table_name( $groupby );
 		$sql .= join(",", map { 
-			$db->quote_identifier($dataset->get_sql_sub_table_name($groupby), $_)
+			$db->quote_identifier($sub_table, $_)
 		} $groupby->get_sql_names() );
+		push @joins,
+			$db->quote_identifier( $table ) . _sql_inner_join($db,
+					$table,
+					$key_field_name,
+					$sub_table,
+					$key_field_name );
 	}
 	else
 	{
 		$sql .= join(",", map { 
 			$db->quote_identifier($table, $_)
 		} $groupby->get_sql_names() );
+		push @joins, $db->quote_identifier( $table );
 	}
 	$sql .= ",COUNT(DISTINCT ".$db->quote_identifier($table,$key_field_name).") ";
-
-	my @joins;
-
-	push @joins, $db->quote_identifier( $table );
 
 	my $idx = 0;
 	my @join_logic;
