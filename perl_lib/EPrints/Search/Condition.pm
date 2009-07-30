@@ -501,11 +501,11 @@ sub process_groupby
 		} $groupby->get_sql_names() );
 	}
 
-print STDERR "EXECUTING: $sql\n";
+#print STDERR "EXECUTING: $sql\n";
 	my $sth = $db->prepare_select( $sql );
 	$db->execute($sth, $sql);
 
-	my( @values, @counts ) = @_;
+	my( @values, @counts );
 
 	while(my @row = $sth->fetchrow_array)
 	{
