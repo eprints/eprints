@@ -141,10 +141,14 @@ sub make_tmp_file
 		$tmp_file = File::Temp->new;
 		$tmp_file->autoflush;
 
-		# Write a Byte Order Mark for utf-8
-		# (the form is set to utf-8)
-		binmode($tmp_file);
-		print $tmp_file pack("CCC", 0xef, 0xbb, 0xbf);
+		# Write a Byte Order Mark for utf-8 if the plugin is a TextFile type,
+		# which will cause utf-8 to be read correctly
+		my $plugin = $self->{processor}->{plugin};
+		if( $plugin->isa( "EPrints::Plugin::Import::TextFile" ) )
+		{
+			binmode($tmp_file);
+			print $tmp_file pack("CCC", 0xef, 0xbb, 0xbf);
+		}
 		print $tmp_file $import_data;
 	}
 	else
@@ -192,7 +196,7 @@ sub _import
 	my @problems;
 
 	# Don't let an import plugin die() on us
-	eval {
+	my $list = eval {
 		$plugin->input_fh(
 			dataset=>$ds,
 			fh=>$tmp_file,
@@ -265,7 +269,7 @@ sub _import
 		}
 	}
 
-	return $ok;
+	return $list;
 }
 
 sub redirect_to_me_url { }
