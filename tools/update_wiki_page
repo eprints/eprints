@@ -1,0 +1,69 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+update_wiki_page - Post an API module to the Wiki
+
+=head1 SYNOPSIS
+
+B<update_wiki_page> [B<options>] [EPrints::Utils[, EPrints::DataObj[, ...]]]
+
+=head1 DESCRIPTION
+
+This script merges changes from the Wiki and POD to create API pages on the
+Wiki.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item --help
+
+Show help for this script.
+
+=item --verbose
+
+Be more verbose (i.e. show functions that do have POD).
+
+=item --username
+
+Username to post with.
+
+=item --password
+
+Password to post to the wiki with.
+
+=back
+
+=cut
+
+use Getopt::Long;
+use Pod::Usage;
+
+use EPrints;
+use EPrints::Test::Pod2Wiki;
+
+use strict;
+
+my( $opt_help, $opt_verbose, $opt_username, $opt_password );
+
+GetOptions(
+	"help" => \$opt_help,
+	"verbose" => \$opt_verbose,
+	"username=s" => \$opt_username,
+	"password=s" => \$opt_password,
+) or pod2usage( 2 );
+
+pod2usage( 1 ) if $opt_help;
+
+my $parser = EPrints::Test::Pod2Wiki->new(
+	wiki_index => "http://wiki.eprints.org/index.php",
+	username => $opt_username,
+	password => $opt_password,
+);
+
+for(@ARGV)
+{
+	print "Processing $_\n";
+	$parser->update_page( $_ );
+}
