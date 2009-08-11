@@ -67,3 +67,12 @@ for(@ARGV)
 	print "Processing $_\n";
 	$parser->update_page( $_ );
 }
+if( !@ARGV )
+{
+	while(<>)
+	{
+		chomp($_);
+		print STDERR "Processing $_\n";
+		$parser->update_page( $_ );
+	}
+}
