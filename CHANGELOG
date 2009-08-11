@@ -8357,3 +8357,6 @@ EPRINTS-3.1-beta-2
 2009-07-29 tdb
  * Added dynamic javascript and CSS based on user logged in status
 
+2009-08-11 tdb
+ * Return NOT_FOUND if a request for a secure document doesn't exist
+

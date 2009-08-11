@@ -123,7 +123,7 @@ sub _authen_doc
 	my( $r, $session ) = @_;
 
 	my $document = secure_doc_from_url( $r, $session );
-	return FORBIDDEN if( !defined $document );
+	return NOT_FOUND if( !defined $document );
 
 	my $security = $document->get_value( "security" );
 
@@ -246,7 +246,7 @@ sub authz_doc
 	if( !defined $document ) 
 	{
 		$session->terminate();
-		return FORBIDDEN;
+		return NOT_FOUND;
 	}
 
 	my $request_result = $session->get_repository->call( "can_request_view_document", $document, $r );
