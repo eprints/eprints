@@ -38,13 +38,13 @@ use Carp;
 
 @EPrints::XML::COMPRESS_TAGS = qw/br hr img link input meta/;
 
-if( $EPrints::SystemSettings::conf->{enable_gdome} )
-{
-	require EPrints::XML::GDOME;
-}
-elsif( $EPrints::SystemSettings::conf->{enable_libxml} )
+if( $EPrints::SystemSettings::conf->{enable_libxml} )
 {
 	require EPrints::XML::LibXML;
+}
+elsif( $EPrints::SystemSettings::conf->{enable_gdome} )
+{
+	require EPrints::XML::GDOME;
 }
 else
 {
