@@ -34,6 +34,7 @@ use LWP::UserAgent;
 use Pod::Html;
 use HTML::Entities;
 use HTTP::Cookies;
+use Pod::Coverage;
 
 use strict;
 
@@ -94,7 +95,7 @@ sub update_page
 	my( $self, $package_name ) = @_;
 
 	_flush_seen(); # see method
-	$self->{_out} = [ $self->_p2w_preamble() ];
+	$self->{_out} = [];
 
 	# locate the source file
 	my $file = $self->_p2w_locate_package( $package_name );
@@ -105,6 +106,9 @@ sub update_page
 	}
 
 	my $title = $self->_p2w_wiki_title( $package_name );
+
+	# add the preamble
+	push @{$self->{_out}}, $self->_p2w_preamble( $package_name, $title );
 
 	# retrieve the current wiki page
 	my $wiki_page = $self->_p2w_wiki_source( $title );
@@ -117,6 +121,9 @@ sub update_page
 
 	# parse the file for POD statements
 	$self->parse_from_file( $file );
+
+	# locate unpodded-methods and add them to the wiki page
+	$self->_p2w_add_uncovered( $package_name, $file );
 
 	# make sure that there was a $END_PREFIX
 	$self->command( "pod" );
@@ -131,7 +138,6 @@ sub update_page
 	my $new_wiki_page = join "", @{$self->{_out}};
 	if( $new_wiki_page ne $wiki_page )
 	{
-#print STDERR "Output:\n$new_wiki_page";
 		my $u = URI->new( $self->{wiki_index} );
 		$u->query_form(
 			title => $title,
@@ -168,15 +174,23 @@ print STDERR "Nothing changed\n";
 # preamble blurb for the Wiki output (placed in a comment)
 sub _p2w_preamble
 {
-	my( $self ) = @_;
+	my( $self, $package_name, $title ) = @_;
 
 	my $blurb = <<EOC;
 This page has been automatically generated from the EPrints source. Any wiki changes made between the '$PREFIX*' and '$END_PREFIX' comments will be lost.
 EOC
 
+	my $sort_key = $package_name;
+	$sort_key =~ s/^.*:://;
+
+	my $file = $package_name;
+	$file =~ s/::/\//g;
+	$file = "$file.pm";
+
 	return (
 		"<!-- ${PREFIX}_preamble_ \n$blurb -->",
-		"[[Category:API]]",
+		"{{API:Source|file=$file|package_name=$package_name}}",
+		"[[Category:API|$sort_key]]",
 		"<!-- $END_PREFIX -->\n",
 	);
 }
@@ -199,9 +213,9 @@ sub _p2w_wiki_title
 {
 	my( $self, $package_name ) = @_;
 
-#	$package_name =~ s/::/-/g;
+	$package_name =~ s/::/\//g;
 
-	return "API_$package_name";
+	return "API:$package_name";
 }
 
 # retrieve the Wiki source page
@@ -267,6 +281,40 @@ sub _p2w_parse_wiki
 	$self->{_wiki} = \%wiki;
 }
 
+sub _p2w_add_uncovered
+{
+	my( $self, $package_name, $file ) = @_;
+
+	my $parser = Pod::Coverage->new(
+		package => $package_name,
+		pod_from => $file,
+	);
+
+	my @methods = sort $parser->uncovered();
+
+	return unless scalar @methods > 0;
+
+	$self->command( "head1", "UNDOCUMENTED METHODS", 0, Pod::Paragraph->new(
+		-text => "UNDOCUMENTED METHODS",
+		-name => "head1" ) );
+	push @{$self->{_out}},
+		"{{API:Undocumented Methods}}";
+	$self->command( "over", "", 0, Pod::Paragraph->new(
+		-text => "",
+		-name => "over" ) );
+
+	foreach my $ref (@methods)
+	{
+		$self->command( "item", $ref, 0, Pod::Paragraph->new(
+			-text => $ref,
+			-name => "item" ) );
+	}
+
+	$self->command( "back", "", 0, Pod::Paragraph->new(
+		-text => "",
+		-name => "back" ) );
+}
+
 =item $parser->command( ... )
 
 L<Pod::Parser> callback.
@@ -279,15 +327,17 @@ sub command
 
 	if( $self->{_p2w_pod_section} )
 	{
-		push @{$self->{_out}},
-			"<!-- $END_PREFIX -->\n";
-		my $key = $self->{_p2w_pod_section};
+		my $key = delete $self->{_p2w_pod_section};
+		if( $key eq "head_name" )
+		{
+			push @{$self->{_out}}, "__TOC__\n";
+		}
+		push @{$self->{_out}}, "<!-- $END_PREFIX -->\n";
 		if( $self->{_wiki}->{$key} )
 		{
 			push @{$self->{_out}},
 				delete $self->{_wiki}->{$key};
 		}
-		$self->{_p2w_pod_section} = undef;
 	}
 	return if $cmd eq "pod";
 
@@ -300,9 +350,11 @@ sub command
 	{
 		$self->{_p2w_head_depth} = $1;
 		my $eqs = "=" x $1;
-		push @{$self->{_out}},
-			"<!-- ${PREFIX}head_$ref -->",
-			"$eqs$text$eqs\n";
+		push @{$self->{_out}}, "<!-- ${PREFIX}head_$ref -->";
+		if( $ref ne "name" )
+		{
+			push @{$self->{_out}}, "$eqs$text$eqs\n";
+		}
 		$self->{_p2w_pod_section} = "head_$ref";
 	}
 	elsif( $cmd eq "over" or $cmd eq "back" )
@@ -315,8 +367,11 @@ sub command
 		my $eqs = "=" x $depth;
 		push @{$self->{_out}},
 			"<!-- ${PREFIX}item_$ref -->",
-			"$eqs$ref$eqs\n\n",
-			"  $text\n\n";
+			"$eqs$ref$eqs\n\n";
+		if( $ref ne $text )
+		{
+			push @{$self->{_out}}, "  $text\n\n";
+		}
 		$self->{_p2w_pod_section} = "item_$ref";
 	}
 	else
@@ -375,7 +430,7 @@ sub interpolate
 
 	$text = $self->SUPER::interpolate( $text, $line_num );
 	# join wrapped lines together
-	$text =~ s/([^\n])\n([^\s])/$1$2/g;
+	$text =~ s/([^\n])\n([^\s])/$1 $2/g;
 	# tabs = indented
 	$text =~ s/\t/  /g;
 	$text = HTML::Entities::encode_entities( $text, "<>&" );
@@ -400,6 +455,11 @@ sub interior_sequence
 	return "'''$seq_arg'''" if $seq_cmd eq 'B';
 	return "\x00tt\x00$seq_arg\x00" if $seq_cmd eq 'C';
 	return "\x00u\x00$seq_arg\x00" if $seq_cmd eq 'I';
+	if( $seq_cmd eq "L" && $seq_arg =~ /^(EPrints.*)/ )
+	{
+		my $title = $self->_p2w_wiki_title( $seq_arg );
+		return "[[$title|$seq_arg]]";
+	}
 	return "$seq_cmd!$seq_arg!";
 }
 
