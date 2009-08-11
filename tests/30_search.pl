@@ -151,4 +151,19 @@ ok(defined($list) && $list->count > 0, "subject hierarchy");
 
 $searchexp->dispose;
 
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $dataset,
+);
+
+$searchexp->add_field( $dataset->get_field( "subjects" ), "QH" );
+
+my( $values, $counts ) = eval { $searchexp->perform_groupby( $dataset->get_field( "creators_name" ) ) };
+
+ok(defined($values) && scalar(@$values) > 0, "groupby");
+
+$searchexp->dispose;
+
+
 $session->terminate;
