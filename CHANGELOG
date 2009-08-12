@@ -8360,3 +8360,6 @@ EPRINTS-3.1-beta-2
 2009-08-11 tdb
  * Return NOT_FOUND if a request for a secure document doesn't exist
 
+2009-08-12 tdb
+ * Use "brief" citation to render title duplicate matches >5
+

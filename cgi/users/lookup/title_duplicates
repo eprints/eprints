@@ -80,19 +80,18 @@ do
 		$li->setAttribute( 'class', 'ep_first' );
 		$first = 0;
 	}
+	my $eprint = EPrints::DataObj::EPrint->new( $session, $eprintid );
 	if( ++$count > 5 )
 	{
-		$li->appendChild( $session->make_element( 'a',
-					target => '_blank',
-					href => "$base_url/$eprintid",
-					) )->appendChild( $session->make_text( "\"$title\"" ) );
+		$li->appendChild( $eprint->render_citation_link( "brief", target => "_blank" ) );
 	}
 	else
 	{
-		my $eprint = EPrints::DataObj::EPrint->new( $session, $eprintid );
 		$li->appendChild( $eprint->render_citation_link( "default", target=>"_blank" ) );
 	}
-} while( $row = $sth->fetch );
+} while( $count < 20 && defined($row = $sth->fetch) );
+
+$sth->finish;
 
 $session->send_http_header( content_type => "text/xml; charset=UTF-8" );
 
