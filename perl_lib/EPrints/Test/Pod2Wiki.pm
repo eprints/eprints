@@ -168,37 +168,45 @@ sub update_page
 	my $new_wiki_page = join "", @{$self->{_out}};
 	if( $new_wiki_page ne $wiki_page )
 	{
-		my $u = URI->new( $self->{wiki_index} );
-		$u->query_form(
-			title => $title,
-			action => "edit"
-		);
-		my $r = $self->{_ua}->get( $u );
-		my( $edit_time ) = $r->content =~ /<input (.*?wpStarttime.*?)\/>/;
-		$edit_time = $edit_time =~ /value=["']([^"']+)/;
-		my( $edit_token ) = $r->content =~ /<input (.*?wpEditToken.*?)\/>/;
-		($edit_token) = $edit_token =~ /value=["']([^"']+)/;
-		my( $auto_summary ) = $r->content =~ /<input (.*?wpAutoSummary.*?)\/>/;
-		($auto_summary) = $auto_summary =~ /value=["']([^"']+)/;
-		$u->query_form(
-			title => $title,
-			action => "submit"
-		);
-		$r = $self->{_ua}->post( $u, [
-			wpStarttime => $edit_time,
-			wpEdittime => $edit_time,
-			wpSection => "",
-			wpTextbox1 => $new_wiki_page,
-			wpSave => "Save page",
-			wpEditToken => $edit_token,
-			wpAutoSummary => $auto_summary,
-		]);
-print STDERR "Ok\n" if $r->code eq "302";
+print STDERR "Ok\n" if $self->_p2w_post_new_page( $title, $new_wiki_page );
 	}
 	else
 	{
 print STDERR "Nothing changed\n";
 	}
+}
+
+sub _p2w_post_new_page
+{
+	my( $self, $title, $content ) = @_;
+
+	my $u = URI->new( $self->{wiki_index} );
+	$u->query_form(
+		title => $title,
+		action => "edit"
+	);
+	my $r = $self->{_ua}->get( $u );
+	my( $edit_time ) = $r->content =~ /<input (.*?wpStarttime.*?)\/>/;
+	$edit_time = $edit_time =~ /value=["']([^"']+)/;
+	my( $edit_token ) = $r->content =~ /<input (.*?wpEditToken.*?)\/>/;
+	($edit_token) = $edit_token =~ /value=["']([^"']+)/;
+	my( $auto_summary ) = $r->content =~ /<input (.*?wpAutoSummary.*?)\/>/;
+	($auto_summary) = $auto_summary =~ /value=["']([^"']+)/;
+	$u->query_form(
+		title => $title,
+		action => "submit"
+	);
+	$r = $self->{_ua}->post( $u, [
+		wpStarttime => $edit_time,
+		wpEdittime => $edit_time,
+		wpSection => "",
+		wpTextbox1 => $content,
+		wpSave => "Save page",
+		wpEditToken => $edit_token,
+		wpAutoSummary => $auto_summary,
+	]);
+
+	return $r->code eq "302";
 }
 
 # preamble blurb for the Wiki output (placed in a comment)
