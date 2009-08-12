@@ -8352,7 +8352,7 @@ EPRINTS-3.1-beta-2
  * Allow NewEPrint screen to be used in the key_tools area
 
 2009-07-27 tdb
- * Added "collapse_help" option to workflow component to disable collapsing
+ * Added "show_help" option to workflow component to disable collapsing
 
 2009-07-29 tdb
  * Added dynamic javascript and CSS based on user logged in status
