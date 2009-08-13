@@ -1078,10 +1078,8 @@ sub update_view_list
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid."/view/".$view->{id}."/";
 
 	my $filename = pop @{$esc_path_values};
-	$target .= abbr_path( join "/", @$esc_path_values );
-
 	my( $value, $suffix ) = split( /\./, $filename );
-	$target .= abbr_path( $value );
+	$target .= abbr_path( join "/", @$esc_path_values, $value );
 
 	push @{$esc_path_values}, $value;
 
