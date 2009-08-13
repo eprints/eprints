@@ -136,15 +136,11 @@ sub update_static_file
 
 	if( $suffix eq "xhtml" ) 
 	{ 
-		my $session = new EPrints::Session(2); # don't open the CGI info
 		copy_xhtml( $session, $source, $target, {} ); 
-		$session->terminate;
 	}
 	elsif( $suffix eq "xpage" ) 
 	{ 
-		my $session = new EPrints::Session(2); # don't open the CGI info
 		copy_xpage( $session, $source, $target, {} ); 
-		$session->terminate;
 	}
 	else 
 	{ 
