@@ -58,7 +58,15 @@ sub _read_components
 			$params{collapse} = 1 if( defined $collapse_attr && $collapse_attr eq "yes" );
 
 			my $help_attr = $stage_node->getAttribute( "show_help" );
-			$params{collapse_help} = !defined $help_attr || $help_attr ne "yes";
+			$help_attr ||= "toggle";
+			if( $help_attr eq "never" )
+			{
+				$params{no_help} = 1;
+			}
+			elsif( $help_attr eq "always" )
+			{
+				$params{no_toggle} = 1;
+			}
 
 			my $id = $stage_node->getAttribute( "id" );
 			if( !defined $id )

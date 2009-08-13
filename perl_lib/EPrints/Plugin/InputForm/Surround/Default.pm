@@ -60,7 +60,7 @@ sub render
 	$title_bar->appendChild( $title_div );
 
 	# Help rendering
-	if( $component->has_help )
+	if( $component->has_help && !$component->{no_help} )
 	{
 		$self->_render_help( $component, $title_bar, $content_inner );
 	}
@@ -130,6 +130,20 @@ sub _render_help
 
 	my $help = $component->render_help( $self );
 
+	# add the help text to the main part of the component
+	my $hide_class = !$component->{no_toggle} ? "ep_no_js" : "";
+	my $div = $session->make_element( "div", class => "ep_sr_help $hide_class", id => $prefix );
+	$content_inner->appendChild( $div );
+	my $div_inner = $session->make_element( "div", id => $prefix."_inner" );
+	$div_inner->appendChild( $help );
+	$div->appendChild( $div_inner );
+
+	# don't render a toggle button
+	if( $component->{no_toggle} )
+	{
+		return;
+	}
+
 	# construct a table with left/right columns
 	my $table = $session->make_element( "table",
 		cellpadding=>"0",
@@ -143,23 +157,22 @@ sub _render_help
 	$tr->appendChild( $left );
 	$tr->appendChild( $right );
 
+	# move the existing title_bar contents into the left help cell
+	for($title_bar->childNodes)
+	{
+		$left->appendChild( $title_bar->removeChild($_) );
+	}
+	$title_bar->appendChild( $table );
+
+	# add open/close icons to the right help cell
 	my $action_div = $session->make_element( "div", class => "ep_only_js" );
 	$right->appendChild( $action_div );
 
-	my $jscript = "EPJS_blur(event); EPJS_toggleSlide('$prefix',true);EPJS_toggle('${prefix}_hide',true);EPJS_toggle('${prefix}_show',false);return false";
-	if( $component->is_help_collapsed )
-	{
-		$jscript = "EPJS_blur(event); EPJS_toggleSlide('$prefix',false);EPJS_toggle('${prefix}_hide',false);EPJS_toggle('${prefix}_show',true);return false";
-	}
+	my $jscript = "EPJS_blur(event); EPJS_toggleSlide('$prefix',false);EPJS_toggle('${prefix}_hide',false);EPJS_toggle('${prefix}_show',true);return false";
 
 	foreach my $action (qw( show hide ))
 	{
-		my $hide_class = "";
-		if( ($component->is_help_collapsed && $action eq "hide") ||
-			(!$component->is_help_collapsed && $action eq "show") )
-		{
-			$hide_class = "ep_hide";
-		}
+		my $hide_class = $action eq "hide" ? "ep_hide" : "";
 		my $div = $session->make_element( "div", class => "ep_sr_${action}_help ep_toggle ${hide_class}", id => "${prefix}_${action}" );
 		my $link = $session->make_element( "a",
 			onclick => $jscript,
@@ -168,22 +181,6 @@ sub _render_help
 
 		$action_div->appendChild( $div );
 	}
-	
-	my $hide_class = $component->is_help_collapsed ? "ep_no_js" : "";
-	my $div = $session->make_element( "div", class => "ep_sr_help $hide_class", id => $prefix );
-	my $div_inner = $session->make_element( "div", id => $prefix."_inner" );
-	$div_inner->appendChild( $help );
-	$div->appendChild( $div_inner );
-
-	# move the existing title_bar contents into the left help cell
-	for($title_bar->childNodes)
-	{
-		$left->appendChild( $title_bar->removeChild($_) );
-	}
-	$title_bar->appendChild( $table );
-
-	# add the help text to the main part of the component
-	$content_inner->appendChild( $div );
 }
 
 1;

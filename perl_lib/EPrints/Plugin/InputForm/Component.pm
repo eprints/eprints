@@ -19,6 +19,10 @@
 
 B<EPrints::Plugin::InputForm::Component> - A single form component 
 
+=head1 METHODS
+
+=over 4
+
 =cut
 
 package EPrints::Plugin::InputForm::Component;
@@ -28,6 +32,22 @@ use strict;
 our @ISA = qw/ EPrints::Plugin /;
 
 $EPrints::Plugin::InputForm::Component::DISABLE = 1;
+
+=item $component = EPrints::Plugin::InputForm::Component->new( %opts )
+
+Create a new component object with following parameters:
+
+	session - session object
+	collapse - whether the component starts collapsed
+	no_help - hide field help
+	no_toggle - hide help toggle button
+	surround - surround class, defaults to 'Default'
+	prefix - prefix for the component id
+	dataobj - object the field is being rendered for
+
+See also L<EPrints::Plugin::InputForm::Surround::Default>.
+
+=cut
 
 sub new
 {
@@ -42,7 +62,8 @@ sub new
 	{
 		$self->{session} = $opts{session};
 		$self->{collapse} = $opts{collapse};
-		$self->{collapse_help} = $opts{collapse_help};
+		$self->{no_help} = $opts{no_help};
+		$self->{no_toggle} = $opts{no_toggle};
 		$self->{surround} = $opts{surround};
 		$self->{prefix} = $opts{prefix};
 		$self->{dataobj} = $opts{dataobj};
@@ -129,19 +150,6 @@ sub is_collapsed
 	my $r =  $self->could_collapse;
 	
 	return $r;
-}
-
-=item $bool = $component->is_help_collapsed()
-
-Return true if the help text should be hidden.
-
-=cut
-
-sub is_help_collapsed
-{
-	my( $self ) = @_;
-
-	return $self->{collapse_help};
 }
 
 # return false if this component does not want to be collapsed, even if
@@ -382,6 +390,10 @@ sub get_state_params
 
 	return "";
 }
+
+=back
+
+=cut
 
 ######################################################################
 1;
