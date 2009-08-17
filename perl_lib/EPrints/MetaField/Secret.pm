@@ -40,6 +40,14 @@ BEGIN
 
 use EPrints::MetaField::Text;
 
+sub get_property_defaults
+{
+	return (
+		shift->SUPER::get_property_defaults,
+		repeat_secret => $EPrints::MetaField::FROM_CONFIG,
+	);
+}
+
 sub get_sql_index
 {
 	my( $self ) = @_;
@@ -85,20 +93,44 @@ sub get_basic_input_elements
 {
 	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
 
-	my $maxlength = $self->get_max_input_size;
-	my $size = ( $maxlength > $self->{input_cols} ?
-					$self->{input_cols} : 
-					$maxlength );
-	my $input = $session->render_noenter_input_field(
+	my $maxlength = $self->get_property( "maxlength" );
+	my $size = $self->{input_cols};
+	my $password = $session->render_noenter_input_field(
 		class => "ep_form_text",
 		type => "password",
 		name => $basename,
 		id => $basename,
-		value => $value,
 		size => $size,
 		maxlength => $maxlength );
 
-	return [ [ { el=>$input } ] ];
+	if( !$self->get_property( "repeat_secret" ) )
+	{
+		return [ [ { el=>$password } ] ];
+	}
+
+	my $confirm = $session->render_noenter_input_field(
+		class => "ep_form_text",
+		type => "password",
+		name => $basename."_confirm",
+		id => $basename."_confirm",
+		size => $size,
+		maxlength => $maxlength );
+
+	my $label1 = $session->make_element( "div", style=>"margin-right: 4px;" );
+	$label1->appendChild( $session->html_phrase(
+		$self->{dataset}->confid."_fieldname_".$self->get_name
+	) );
+	$label1->appendChild( $session->make_text( ":" ) );
+	my $label2 = $session->make_element( "div", style=>"margin-right: 4px;" );
+	$label2->appendChild( $session->html_phrase(
+		$self->{dataset}->confid."_fieldname_".$self->get_name."_confirm"
+	) );
+	$label2->appendChild( $session->make_text( ":" ) );
+	
+	return [
+		[ { el=>$label1 }, { el=>$password } ],
+		[ { el=>$label2 }, { el=>$confirm } ]
+	];
 }
 
 sub is_browsable
@@ -124,6 +156,28 @@ sub get_index_codes
 	my( $self, $session, $value ) = @_;
 
 	return( [], [], [] );
+}
+
+sub validate
+{
+	my( $self, $session, $value, $object ) = @_;
+
+	my @probs = $self->SUPER::validate( $session, $value, $object );
+
+	if( $self->get_property( "repeat_secret" ) )
+	{
+		my $basename = $self->get_name;
+
+		my $password = $session->param( $basename );
+		my $confirm = $session->param( $basename."_confirm" );
+
+		if( !length($password) || $password ne $confirm )
+		{
+			push @probs, $session->html_phrase( "validate:secret_mismatch" );
+		}
+	}
+
+	return @probs;
 }
 
 ######################################################################

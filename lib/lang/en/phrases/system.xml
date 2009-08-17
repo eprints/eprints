@@ -882,6 +882,7 @@ Public CGI Scripts
     <epp:phrase id="cgi:view_eprint:view_eprint">View Item</epp:phrase>
 
 <!-- register -->
+    <epp:phrase id="cgi/register:field_error"><p>There was a problem with the data you entered in <b><epc:pin name="fieldname"/></b>:<epc:pin name="problems"/></p></epp:phrase>
     <epp:phrase id="cgi/register:no_web_signup"><p>Registration is not enabled on this system.</p></epp:phrase>
     <epp:phrase id="cgi/register:intro">
 <p>In order to access some areas of the repository, you'll need a <em>user registration</em>. No charge is made for registering with us or using any of our services.</p>
@@ -1113,6 +1114,8 @@ Titles and Help for the System Fields
     <epp:phrase id="user_fieldhelp_username"></epp:phrase>
     <epp:phrase id="user_fieldname_password">Password</epp:phrase>
     <epp:phrase id="user_fieldhelp_password">Leaving this field blank will not affect the password.</epp:phrase>
+    <epp:phrase id="user_fieldname_newpassword"><epc:phrase ref="user_fieldname_password"/></epp:phrase>
+    <epp:phrase id="user_fieldname_newpassword_confirm">Re-type <epc:phrase ref="user_fieldname_password"/></epp:phrase>
     <epp:phrase id="user_fieldname_usertype">User Type</epp:phrase>
     <epp:phrase id="user_fieldhelp_usertype"></epp:phrase>
     <epp:phrase id="user_fieldhelp_newpassword">Set a password. This will not be activated until you enter a security code which will be mailed to you.</epp:phrase>
@@ -2103,7 +2106,7 @@ Titles and Help for the System Fields
 
 <!-- Captcha -->
 
-<epp:phrase id="cgi/register:captcha_failed"><p>The value you entered for the captcha wasn't correct, please try again.</p></epp:phrase>
+<epp:phrase id="validate:recaptcha_mismatch">The words you entered for the captcha weren't correct.</epp:phrase>
 <epp:phrase id="user_fieldname_captcha">Captcha Challenge</epp:phrase>
 <epp:phrase id="user_fieldhelp_captcha">To prevent robots from filling in this form you must verify this captcha.</epp:phrase>
 

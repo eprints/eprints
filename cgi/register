@@ -120,15 +120,22 @@ sub make_page
 				{fieldname=>$field->render_name($session)} );
 		}
 
-		if( $field->isa( "EPrints::MetaField::Recaptcha" ) &&
-			EPrints::Utils::is_set( $v->{$field->get_name} ) )
+		my @problems = $field->validate( $session, $v->{$field->get_name} );
+		if( scalar @problems )
 		{
-			return mk_err_page(
+			my $ul = $session->make_element( "ul" );
+			for(@problems)
+			{
+				my $li = $session->make_element( "li" );
+				$ul->appendChild( $li );
+				$li->appendChild( $_ );
+			}
+			return mk_err_page( 
 				$session,
-				"cgi/register:captcha_failed",
+				"cgi/register:field_error",
 				$fieldlist,
 				$v,
-				{} );
+				{fieldname=>$field->render_name($session), problems=>$ul} );
 		}
 	}
 

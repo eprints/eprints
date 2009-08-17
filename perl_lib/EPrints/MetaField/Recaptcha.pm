@@ -143,5 +143,19 @@ sub form_value_actual
 	return undef;
 }
 
+sub validate
+{
+	my( $self, $session, $value, $object ) = @_;
+
+	my @probs;
+
+	if( $value )
+	{
+		push @probs, $session->html_phrase( "validate:recaptcha_mismatch" );
+	}
+
+	return @probs;
+}
+
 ######################################################################
 1;

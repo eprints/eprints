@@ -342,6 +342,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 
 <epp:phrase id="validate:unknown_datasetid">Unspecified or unknown dataset id "<epc:pin name="datasetid"/>" given</epp:phrase>
 <epp:phrase id="validate:missing_property">Missing required property "<epc:pin name="property"/>"</epp:phrase>
+<epp:phrase id="validate:secret_mismatch">Check that you have entered the same secret twice.</epp:phrase>
 
 <epp:phrase id="metafield_fieldname_mfdatasetid">Parent Dataset</epp:phrase>
 <epp:phrase id="metafield_fieldname_mfstatus">Field Status</epp:phrase>
