@@ -8363,3 +8363,5 @@ EPRINTS-3.1-beta-2
 2009-08-12 tdb
  * Use "brief" citation to render title duplicate matches >5
 
+2009-08-17 cjg
+ * Added $session->get_conf() to improve readability of code.

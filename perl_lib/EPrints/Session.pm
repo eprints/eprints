@@ -723,6 +723,24 @@ sub get_repository
 ######################################################################
 =pod
 
+=item $conf = $session->get_conf( $conf_id, ... )
+
+This is an alias for $session->get_repository->get_conf( ... ) to make for more readable code.
+
+=cut
+######################################################################
+
+sub get_conf
+{
+	my( $self, @params ) = @_;
+
+	return $self->{repository}->get_conf( @params );
+}
+
+
+######################################################################
+=pod
+
 =item $url = $session->get_url( [ @OPTS ] [, $page] )
 
 Utility method to get various URLs. See L<EPrints::URL>. With no arguments returns the same as get_uri().
