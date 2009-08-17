@@ -75,13 +75,13 @@ sub xml_dataobj
 
 	# we have a variety of namespaces since we're doing qualified dublin core, so we need an
 	# array of references to three element arrays in our data structure
-	my @etdData = &eprint_to_uketd_dc( $eprint, $plugin->{session} );
+	my @etdData = &eprint_to_uketd_dc( $eprint, $plugin->{handle} );
 	
 	my $namespace = $plugin->{xmlns};
 	my $schema = $plugin->{schemaLocation};
 
         # the eprint may well be null since it may not be a thesis but an article
-        my $uketd_dc = $plugin->{session}->make_element(
+        my $uketd_dc = $plugin->{handle}->make_element(
 		"uketd_dc:uketddc",
 		"xmlns:dc" => "http://purl.org/dc/elements/1.1/",
 		"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
@@ -96,10 +96,10 @@ sub xml_dataobj
 	foreach( @etdData )
 	{
 		if(scalar $_ < 4){
-			$uketd_dc->appendChild( $plugin->{session}->render_data_element( 8, $_->[2].":".$_->[0], $_->[1] ) );
+			$uketd_dc->appendChild( $plugin->{handle}->render_data_element( 8, $_->[2].":".$_->[0], $_->[1] ) );
 		}else{
 		# there's an attribute to add
-			$uketd_dc->appendChild( $plugin->{session}->render_data_element( 8, $_->[2].":".$_->[0], $_->[1], "xsi:type"=> $_->[3]  ) );
+			$uketd_dc->appendChild( $plugin->{handle}->render_data_element( 8, $_->[2].":".$_->[0], $_->[1], "xsi:type"=> $_->[3]  ) );
 			
 		}
 	}
@@ -121,7 +121,7 @@ sub xml_dataobj
 
 sub eprint_to_uketd_dc
 {
-	my( $eprint, $session ) = @_;
+	my( $eprint, $handle ) = @_;
 
 	my @etddata = ();
 	# we still want much the same dc data so include under the dc namespace
@@ -154,7 +154,7 @@ sub eprint_to_uketd_dc
 		my $subjectid;
 		foreach $subjectid ( @{$eprint->get_value( "subjects" )} )
 		{
-			my $subject = EPrints::DataObj::Subject->new( $session, $subjectid );
+			my $subject = EPrints::DataObj::Subject->new( $handle, $subjectid );
 			# avoid problems with bad subjects
 			next unless( defined $subject ); 
 			push @etddata, [ "subject", EPrints::Utils::tree_to_utf8( $subject->render_description() ), "dc" ];
@@ -189,14 +189,14 @@ sub eprint_to_uketd_dc
 	
 	
 		my $ds = $eprint->get_dataset();
-		push @etddata, [ "type", $session->get_type_name( "eprint", $eprint->get_value( "type" ) ), "dc" ];
+		push @etddata, [ "type", $handle->get_type_name( "eprint", $eprint->get_value( "type" ) ), "dc" ];
 		
 		# The URL of the abstract page is the dcterms isreferencedby
 		push @etddata, [ "isReferencedBy", $eprint->get_url(), "dcterms" ];
 	
 	
 		my @documents = $eprint->get_all_documents();
-		my $mimetypes = $session->get_repository->get_conf( "oai", "mime_types" );
+		my $mimetypes = $handle->get_repository->get_conf( "oai", "mime_types" );
 		foreach( @documents )
 		{
 			my $format = $mimetypes->{$_->get_value("format")};

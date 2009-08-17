@@ -29,79 +29,79 @@ sub output_list
 
 	my $list = $opts{list}->reorder( "-datestamp" );
 
-	my $session = $plugin->{session};
+	my $handle = $plugin->{handle};
 
-	my $response = $session->make_element( "rdf:RDF",
+	my $response = $handle->make_element( "rdf:RDF",
 		"xmlns:rdf"=>"http://www.w3.org/1999/02/22-rdf-syntax-ns#",
 		"xmlns"=>"http://purl.org/rss/1.0/" );
 
-	my $channel = $session->make_element( "channel",
-		"rdf:about"=>$session->get_full_url );
+	my $channel = $handle->make_element( "channel",
+		"rdf:about"=>$handle->get_full_url );
 	$response->appendChild( $channel );
 
-	my $title = $session->phrase( "archive_name" );
+	my $title = $handle->phrase( "archive_name" );
 
 	$title.= ": ".EPrints::Utils::tree_to_utf8( $list->render_description );
 
-	$channel->appendChild( $session->render_data_element(
+	$channel->appendChild( $handle->render_data_element(
 		4,
 		"title",
 		$title ) );
 
-	$channel->appendChild( $session->render_data_element(
+	$channel->appendChild( $handle->render_data_element(
 		4,
 		"link",
-		$session->get_repository->get_conf( "frontpage" ) ) );
+		$handle->get_repository->get_conf( "frontpage" ) ) );
 
-	$channel->appendChild( $session->render_data_element(
+	$channel->appendChild( $handle->render_data_element(
 		4,
 		"description", 
-		$session->get_repository->get_conf( "oai","content","text" ) ) );
+		$handle->get_repository->get_conf( "oai","content","text" ) ) );
 
-	$channel->appendChild( $session->render_data_element(
+	$channel->appendChild( $handle->render_data_element(
 		4,
 		"pubDate", 
 		RFC822_time() ) );
 
-	$channel->appendChild( $session->render_data_element(
+	$channel->appendChild( $handle->render_data_element(
 		4,
 		"lastBuildDate", 
 		RFC822_time() ) );
 
-	$channel->appendChild( $session->render_data_element(
+	$channel->appendChild( $handle->render_data_element(
 		4,
 		"language", 
-		$session->get_langid ) );
+		$handle->get_langid ) );
 
-	$channel->appendChild( $session->render_data_element(
+	$channel->appendChild( $handle->render_data_element(
 		4,
 		"copyright", 
 		"" ) );
 
 
-	my $items = $session->make_element( "items" );
+	my $items = $handle->make_element( "items" );
 	$channel->appendChild( $items );
-	my $seq = $session->make_element( "rdf:Seq" );
+	my $seq = $handle->make_element( "rdf:Seq" );
 	$items->appendChild( $seq );
 
 	foreach my $eprint ( $list->get_records( 0, $plugin->{number_to_show} ) )
 	{
-		my $li = $session->make_element( "rdf:li",
+		my $li = $handle->make_element( "rdf:li",
 			"rdf:resource"=>$eprint->get_url );
 		$seq->appendChild( $li );
 
-		my $item = $session->make_element( "item",
+		my $item = $handle->make_element( "item",
 			"rdf:about"=>$eprint->get_url );
 
-		$item->appendChild( $session->render_data_element(
+		$item->appendChild( $handle->render_data_element(
 			2,
 			"title",
 			EPrints::Utils::tree_to_utf8( $eprint->render_description ) ) );
-		$item->appendChild( $session->render_data_element(
+		$item->appendChild( $handle->render_data_element(
 			2,
 			"link",
 			$eprint->get_url ) );
-		$item->appendChild( $session->render_data_element(
+		$item->appendChild( $handle->render_data_element(
 			2,
 			"description",
 			EPrints::Utils::tree_to_utf8( $eprint->render_citation ) ) );

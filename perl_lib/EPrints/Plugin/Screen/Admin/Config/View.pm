@@ -17,23 +17,23 @@ sub properties_from
 {
 	my( $self ) = @_;
 
-	$self->{processor}->{configfile} = $self->{session}->param( "configfile" );
-	$self->{processor}->{configfilepath} = $self->{session}->get_repository->get_conf( "config_path" )."/".$self->{processor}->{configfile};
+	$self->{processor}->{configfile} = $self->{handle}->param( "configfile" );
+	$self->{processor}->{configfilepath} = $self->{handle}->get_repository->get_conf( "config_path" )."/".$self->{processor}->{configfile};
 
 	if( $self->{processor}->{configfile} =~ m/\/\./ )
 	{
 		$self->{processor}->{screenid} = "Error";
-		$self->{processor}->add_message( "error", $self->{session}->html_phrase(
+		$self->{processor}->add_message( "error", $self->{handle}->html_phrase(
 			"Plugin/Screen/Admin/Config/Edit:bad_filename",
-			filename=>$self->{session}->make_text( $self->{processor}->{configfile} ) ) );
+			filename=>$self->{handle}->make_text( $self->{processor}->{configfile} ) ) );
 		return;
 	}
 	if( !-e $self->{processor}->{configfilepath} )
 	{
 		$self->{processor}->{screenid} = "Error";
-		$self->{processor}->add_message( "error", $self->{session}->html_phrase(
+		$self->{processor}->add_message( "error", $self->{handle}->html_phrase(
 			"Plugin/Screen/Admin/Config/Edit:no_such_file",
-			filename=>$self->{session}->make_text( $self->{processor}->{configfilepath} ) ) );
+			filename=>$self->{handle}->make_text( $self->{processor}->{configfilepath} ) ) );
 		return;
 	}
 
@@ -51,8 +51,8 @@ sub render_title
 {
 	my( $self ) = @_;
 
-	my $f = $self->{session}->make_doc_fragment;
-	$f->appendChild( $self->html_phrase( "page_title", file=>$self->{session}->make_text( $self->{processor}->{configfile} ) ) );
+	my $f = $self->{handle}->make_doc_fragment;
+	$f->appendChild( $self->html_phrase( "page_title", file=>$self->{handle}->make_text( $self->{processor}->{configfile} ) ) );
 	return $f;
 }
 
@@ -69,17 +69,17 @@ sub render
 
 	# we trust the filename by this point
 	
-	my $path = $self->{session}->get_repository->get_conf( "config_path" );
+	my $path = $self->{handle}->get_repository->get_conf( "config_path" );
 
-	my $page = $self->{session}->make_doc_fragment;
+	my $page = $self->{handle}->make_doc_fragment;
 
 	my $edit_screen_id = "Screen::".$self->{processor}->{screenid};
 	$edit_screen_id =~ s/::View::/::Edit::/;
-	my $edit_screen = $self->{session}->plugin( $edit_screen_id, processor => $self->{processor} );
+	my $edit_screen = $self->{handle}->plugin( $edit_screen_id, processor => $self->{processor} );
 
 	$self->{processor}->{screenid}=~m/::View::(.*)$/;
-	my $doc_link = $self->{session}->render_link("http://eprints.org/d/?keyword=${1}ConfigFile&filename=".$self->{processor}->{configfile});
-	$page->appendChild( $self->{session}->html_phrase( "Plugin/Screen/Admin/Config/View:documentation", link=>$doc_link ));
+	my $doc_link = $self->{handle}->render_link("http://eprints.org/d/?keyword=${1}ConfigFile&filename=".$self->{processor}->{configfile});
+	$page->appendChild( $self->{handle}->html_phrase( "Plugin/Screen/Admin/Config/View:documentation", link=>$doc_link ));
 
 	if( $edit_screen->can_be_viewed )
 	{
@@ -90,14 +90,14 @@ sub render
 			screen => $edit_screen,
 			screen_id => $edit_screen_id,
 		} );
-		my $buttons = $self->{session}->make_element( "div" );
+		my $buttons = $self->{handle}->make_element( "div" );
 		$buttons->appendChild( $edit_config_button );
 		$form->appendChild( $buttons );
 	}
 
-	my $pre = $self->{session}->make_element( "pre", class=>"ep_config_viewfile" );
+	my $pre = $self->{handle}->make_element( "pre", class=>"ep_config_viewfile" );
 	open( CONFIGFILE, $self->{processor}->{configfilepath} );
-	while( my $line = <CONFIGFILE> ) { $pre->appendChild( $self->{session}->make_text( $line) ); }
+	while( my $line = <CONFIGFILE> ) { $pre->appendChild( $self->{handle}->make_text( $line) ); }
 	close CONFIGFILE;
 	$page->appendChild( $pre );
 
@@ -109,8 +109,8 @@ sub render_hidden_bits
 {
 	my( $self ) = @_;
 
-	my $chunk = $self->{session}->make_doc_fragment;
-	$chunk->appendChild( $self->{session}->render_hidden_field( "configfile", $self->{processor}->{configfile} ) );
+	my $chunk = $self->{handle}->make_doc_fragment;
+	$chunk->appendChild( $self->{handle}->render_hidden_field( "configfile", $self->{processor}->{configfile} ) );
 	$chunk->appendChild( $self->SUPER::render_hidden_bits );
 
 	return $chunk;
@@ -122,9 +122,9 @@ sub register_furniture
 
 	$self->SUPER::register_furniture;
 
-	my $link = $self->{session}->render_link( "?screen=Admin::Config" );
+	my $link = $self->{handle}->render_link( "?screen=Admin::Config" );
 
-	$self->{processor}->before_messages( $self->{session}->html_phrase( 
+	$self->{processor}->before_messages( $self->{handle}->html_phrase( 
 		"Plugin/Screen/Admin/Config:back_to_config",
 		link=>$link ) );
 }

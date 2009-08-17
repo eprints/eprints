@@ -283,7 +283,7 @@ sub input_text_fh
 	
 	return EPrints::List->new( 
 		dataset => $opts{dataset}, 
-		session => $plugin->{session},
+		handle => $plugin->{handle},
 		ids=>\@ids );
 }
 

@@ -40,9 +40,9 @@ use EPrints::MetaField::Longtext;
 
 sub to_xml
 {
-	my( $self, $session, $value, $dataset, %opts ) = @_;
+	my( $self, $handle, $value, $dataset, %opts ) = @_;
 
-	my $tag = $self->SUPER::to_xml( $session, $value, $dataset, %opts );
+	my $tag = $self->SUPER::to_xml( $handle, $value, $dataset, %opts );
 
 	if( $self->get_property( "multiple" ) )
 	{

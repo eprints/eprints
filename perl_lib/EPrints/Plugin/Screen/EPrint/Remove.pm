@@ -48,22 +48,22 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
+	my $div = $self->{handle}->make_element( "div", class=>"ep_block" );
 
 	$div->appendChild( $self->html_phrase("sure_delete",
 		title=>$self->{processor}->{eprint}->render_description() ) );
 
 	my %buttons = (
-		cancel => $self->{session}->phrase(
+		cancel => $self->{handle}->phrase(
 				"lib/submissionform:action_cancel" ),
-		remove => $self->{session}->phrase(
+		remove => $self->{handle}->phrase(
 				"lib/submissionform:action_remove" ),
 		_order => [ "remove", "cancel" ]
 	);
 
 	my $form= $self->render_form;
 	$form->appendChild( 
-		$self->{session}->render_action_buttons( 
+		$self->{handle}->render_action_buttons( 
 			%buttons ) );
 	$div->appendChild( $form );
 
@@ -99,8 +99,8 @@ sub action_remove
 
 	if( !$self->{processor}->{eprint}->remove )
 	{
-		my $db_error = $self->{session}->get_database->error;
-		$self->{session}->get_repository->log( "DB error removing EPrint ".$self->{processor}->{eprint}->get_value( "eprintid" ).": $db_error" );
+		my $db_error = $self->{handle}->get_database->error;
+		$self->{handle}->get_repository->log( "DB error removing EPrint ".$self->{processor}->{eprint}->get_value( "eprintid" ).": $db_error" );
 		$self->{processor}->add_message( "message", $self->html_phrase( "item_not_removed" ) );
 		$self->{processor}->{screenid} = "FirstTool";
 		return;

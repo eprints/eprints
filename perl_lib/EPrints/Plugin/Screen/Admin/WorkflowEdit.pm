@@ -50,24 +50,24 @@ sub new
 
 sub render
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $out = $session->make_element( "div" );#, style => "margin: 1pt; border: solid black 1px" ); 
+	my $out = $handle->make_element( "div" );#, style => "margin: 1pt; border: solid black 1px" ); 
 	
-	$out->appendChild( $session->make_text( $self->{tag} ) );	
+	$out->appendChild( $handle->make_text( $self->{tag} ) );	
 	
 	foreach my $condition ( @{$self->{conditions}} )
 	{
 		my $test = $condition->get_attribute( "test" );
-		my $cond = $session->make_element( "div", class => "we_conditional" );
-		$cond->appendChild( $session->make_text( "Condition: ".$test ) );
+		my $cond = $handle->make_element( "div", class => "we_conditional" );
+		$cond->appendChild( $handle->make_text( "Condition: ".$test ) );
 		$out->appendChild( $cond );
 	}
 	
 	my $contents = $self->{contents};
 	foreach my $content ( @$contents )
 	{
-		$out->appendChild( $content->render( $session ) );	
+		$out->appendChild( $content->render( $handle ) );	
 	}
 	return $out;	
 }
@@ -104,15 +104,15 @@ sub get_attribute
 
 sub to_dom
 {
-	my( $self, $session, $skip_children ) = @_;
-	my $root = $session->make_doc_fragment;
+	my( $self, $handle, $skip_children ) = @_;
+	my $root = $handle->make_doc_fragment;
 	my $currnode = $root;
 	
 	$skip_children = 0 if( !defined $skip_children );
 	
 	foreach my $condition ( @{$self->{conditions}} )
 	{
-		my $if = $session->make_element( "if" );
+		my $if = $handle->make_element( "if" );
 		foreach my $attribute ( @{$condition->{attrs}} )
 		{
 			if( $attribute->{name} eq "test" )
@@ -125,7 +125,7 @@ sub to_dom
 		$currnode = $if;	
 	}
 
-	my $el = $session->make_element( $self->{tag} );
+	my $el = $handle->make_element( $self->{tag} );
 
 	foreach my $attr ( @{$self->{attrs}} )
 	{
@@ -136,7 +136,7 @@ sub to_dom
 	{
 		foreach my $element ( @{$self->{contents}} )
 		{
-			$el->appendChild( $element->to_dom( $session ) );
+			$el->appendChild( $element->to_dom( $handle ) );
 		}
 	}
 	$currnode->appendChild( $el );
@@ -321,15 +321,15 @@ sub new
 
 sub render
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $out = $session->make_element( "div", class => "we_stage" );
+	my $out = $handle->make_element( "div", class => "we_stage" );
 	
 	foreach my $condition ( @{$self->{conditions}} )
 	{
 		my $test = $condition->get_attribute( "test" );
-		my $cond = $session->make_element( "div", class => "we_conditional" );
-		$cond->appendChild( $session->make_text( "Condition: ".$test ) );
+		my $cond = $handle->make_element( "div", class => "we_conditional" );
+		$cond->appendChild( $handle->make_text( "Condition: ".$test ) );
 		$out->appendChild( $cond );
 	}
 
@@ -338,22 +338,22 @@ sub render
 	
 	if( $name ) 
 	{
-		my $title_bar = $session->make_element( "div", class => "we_stage_bar" ); 
-		my $title = $session->make_element( "div", class => "we_stage_title" );
+		my $title_bar = $handle->make_element( "div", class => "we_stage_bar" ); 
+		my $title = $handle->make_element( "div", class => "we_stage_title" );
 		my $text = "Stage (".$self->get_attribute( "name" ).")";
-		$title->appendChild( $session->make_text( $text ) );
+		$title->appendChild( $handle->make_text( $text ) );
 		$title_bar->appendChild( $title );
 		$out->appendChild( $title_bar );
 	}
 	elsif( $ref )
 	{
-		$out->appendChild( $session->make_text( "Stage Ref (".$self->get_attribute( "ref" ).")" ) );
+		$out->appendChild( $handle->make_text( "Stage Ref (".$self->get_attribute( "ref" ).")" ) );
 	}
 
 	my $contents = $self->{contents};
 	foreach my $content ( @$contents )
 	{
-		$out->appendChild( $content->render( $session ) );	
+		$out->appendChild( $content->render( $handle ) );	
 	}
 	return $out;	
 }
@@ -383,23 +383,23 @@ sub new
 
 sub render
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $out = $session->make_element( "div", class => "ep_sr_component" );
+	my $out = $handle->make_element( "div", class => "ep_sr_component" );
 	
 	foreach my $condition ( @{$self->{conditions}} )
 	{
 		my $test = $condition->get_attribute( "test" );
-		my $cond = $session->make_element( "div", class => "we_conditional" );
-		$cond->appendChild( $session->make_text( "Condition: ".$test ) );
+		my $cond = $handle->make_element( "div", class => "we_conditional" );
+		$cond->appendChild( $handle->make_text( "Condition: ".$test ) );
 		$out->appendChild( $cond );
 	}
 
-	my $cont_div = $session->make_element( "div", class => "ep_sr_content" );	
+	my $cont_div = $handle->make_element( "div", class => "ep_sr_content" );	
 	my $contents = $self->{contents};
 	
-	my $title_bar = $session->make_element( "div", class => "ep_sr_title_bar" ); 
-	my $title = $session->make_element( "div", class => "ep_sr_title" );
+	my $title_bar = $handle->make_element( "div", class => "ep_sr_title_bar" ); 
+	my $title = $handle->make_element( "div", class => "ep_sr_title" );
 	my $text = "Component (Default)";
 	if( defined $self->get_attribute( "type" ) )
 	{
@@ -407,19 +407,19 @@ sub render
 		$text = "Component (".$type.")";
 	}
 
-	$title->appendChild( $session->make_text( $text ) ); 
+	$title->appendChild( $handle->make_text( $text ) ); 
 	$title_bar->appendChild( $title );
 	$cont_div->appendChild( $title_bar );
 
 	if( $self->get_attribute( "type" ) eq "XHTML" )
 	{
-		$cont_div->appendChild( $session->make_text( EPrints::XML::to_string( $self->{content} ) ) );
+		$cont_div->appendChild( $handle->make_text( EPrints::XML::to_string( $self->{content} ) ) );
 	}
 	else
 	{
 		foreach my $content ( @$contents )
 		{
-			$cont_div->appendChild( $content->render( $session ) );	
+			$cont_div->appendChild( $content->render( $handle ) );	
 		}
 	}
 	$out->appendChild( $cont_div );
@@ -445,17 +445,17 @@ sub new_from_dom
 
 sub to_dom
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 	my $element;
 
 	if( $self->get_attribute( "type") eq "XHTML" )
 	{
-		$element = $self->SUPER::to_dom( $session, 1 );
+		$element = $self->SUPER::to_dom( $handle, 1 );
 		$element->getFirstChild()->appendChild( $self->{content} );
 	}
 	else
 	{
-		$element = $self->SUPER::to_dom( $session, 0 );
+		$element = $self->SUPER::to_dom( $handle, 0 );
 	}
 	return $element;
 }	
@@ -487,25 +487,25 @@ sub new
 
 sub render
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $out = $session->make_element( "div", class => "we_field" ); 
+	my $out = $handle->make_element( "div", class => "we_field" ); 
 	
 	
 	foreach my $condition ( @{$self->{conditions}} )
 	{
 		my $test = $condition->get_attribute( "test" );
-		my $cond = $session->make_element( "div", class => "we_conditional" );
-		$cond->appendChild( $session->make_text( "Condition: ".$test ) );
+		my $cond = $handle->make_element( "div", class => "we_conditional" );
+		$cond->appendChild( $handle->make_text( "Condition: ".$test ) );
 		$out->appendChild( $cond );
 	}
 	
-	$out->appendChild( $session->make_text( "Field: ".$self->get_attribute( "ref" ) ) );
+	$out->appendChild( $handle->make_text( "Field: ".$self->get_attribute( "ref" ) ) );
 	
 	my $contents = $self->{contents};
 	foreach my $content ( @$contents )
 	{
-		$out->appendChild( $content->render( $session ) );	
+		$out->appendChild( $content->render( $handle ) );	
 	}
 	return $out;	
 }
@@ -525,15 +525,15 @@ sub new
 
 sub render
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $out = $session->make_element( "div", class => "we_title" );
+	my $out = $handle->make_element( "div", class => "we_title" );
 	
 	foreach my $condition ( @{$self->{conditions}} )
 	{
 		my $test = $condition->get_attribute( "test" );
-		my $cond = $session->make_element( "div", class => "we_conditional" );
-		$cond->appendChild( $session->make_text( "Condition: ".$test ) );
+		my $cond = $handle->make_element( "div", class => "we_conditional" );
+		$cond->appendChild( $handle->make_text( "Condition: ".$test ) );
 		$out->appendChild( $cond );
 	}
 	$out->appendChild( $self->{content} );
@@ -551,8 +551,8 @@ sub new_from_dom
 
 sub to_dom
 {
-	my( $self, $session ) = @_;
-	my $element = $self->SUPER::to_dom( $session );
+	my( $self, $handle ) = @_;
+	my $element = $self->SUPER::to_dom( $handle );
 	$element->getFirstChild()->appendChild( $self->{content} );
 	return $element;
 }	
@@ -603,23 +603,23 @@ sub render
 	my( $self ) = @_;
 
 	# Load workflow XML
-	my $doc = EPrints::XML::parse_xml( $self->{session}->get_repository->get_conf( "config_path" )."/workflows/eprint/default.xml" );
+	my $doc = EPrints::XML::parse_xml( $self->{handle}->get_repository->get_conf( "config_path" )."/workflows/eprint/default.xml" );
 	
 	my $root = $doc->documentElement();
 
-	my $session = $self->{session};
-	my $user = $session->current_user;
+	my $handle = $self->{handle};
+	my $user = $handle->current_user;
 
 	my $norm = $self->normalize( $root );
 
 	my $struc = $self->to_structure( $norm ); 
-	return $struc->render( $session );
+	return $struc->render( $handle );
 }
 
 sub normalize
 {
 	my( $self, $root ) = @_;
-	my $out = $self->{session}->make_doc_fragment;
+	my $out = $self->{handle}->make_doc_fragment;
 
 	my $normed = $self->normalize_element( $root );
 	$self->flatten_ifs( $normed );
@@ -678,7 +678,7 @@ sub normalize_element
 {
 	my( $self, $element ) = @_;
 	
-	my $out = $self->{session}->make_doc_fragment;
+	my $out = $self->{handle}->make_doc_fragment;
 
 	if( $element->getNodeName eq "#text" )
 	{
@@ -743,7 +743,7 @@ sub normalize_choose
 {
 	my( $self, $element ) = @_;
 
-	my $out = $self->{session}->make_doc_fragment;
+	my $out = $self->{handle}->make_doc_fragment;
 	my @prior_tests = ();
 	foreach my $child ( $element->getChildNodes() )
 	{
@@ -761,7 +761,7 @@ sub normalize_choose
 				my $norm_child = $self->normalize_element( $when_child );
 				if( $norm_child )
 				{
-					my $if = $self->{session}->make_element( "if" );
+					my $if = $self->{handle}->make_element( "if" );
 					$if->setAttribute("test", $neg_test.$test );
 					$if->appendChild( $norm_child );
 					$out->appendChild( $if );
@@ -781,7 +781,7 @@ sub normalize_choose
 				my $norm_child = $self->normalize_element( $when_child );
 				if( $norm_child )
 				{
-					my $if = $self->{session}->make_element( "if" );
+					my $if = $self->{handle}->make_element( "if" );
 					$if->setAttribute("test", $neg_test );
 					$if->appendChild( $norm_child );
 					$out->appendChild( $if );

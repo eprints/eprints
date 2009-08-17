@@ -415,7 +415,7 @@ sub tidy
 		}
 	}
 
-	# tidys the node in it's own document so we don't require $session
+	# tidys the node in it's own document so we don't require $handle
 	my $doc = $node->ownerDocument;
 
 	$indent = $indent || 0;

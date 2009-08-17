@@ -45,7 +45,7 @@ use strict;
 ######################################################################
 =pod
 
-=item $language = EPrints::Workflow->new( $session, $workflow_id, %params )
+=item $language = EPrints::Workflow->new( $handle, $workflow_id, %params )
 
 Create a new workflow object representing the specification given in
 the workflow.xml configuration
@@ -57,20 +57,20 @@ the workflow.xml configuration
 
 sub new
 {
-	my( $class , $session, $workflow_id, %params ) = @_;
+	my( $class , $handle, $workflow_id, %params ) = @_;
 
 	my $self = {};
 
 	bless $self, $class;
 	
-	$self->{repository} = $session->get_repository;
-	$self->{session} = $session;
+	$self->{repository} = $handle->get_repository;
+	$self->{handle} = $handle;
 	$self->{dataset} = $params{item}->get_dataset;
 	$self->{item} = $params{item};
 	$self->{workflow_id} = $workflow_id;
 
-	$params{session} = $session;
-	$params{current_user} = $session->current_user;
+	$params{handle} = $handle;
+	$params{current_user} = $handle->current_user;
 	$self->{user} = $params{current_user};
 
 	$params{in} = $self->description;
@@ -95,7 +95,7 @@ sub get_stage_id
 	
 	if( !defined $self->{stage} )
 	{
-		$self->{stage} = $self->{session}->param( "stage" );
+		$self->{stage} = $self->{handle}->param( "stage" );
 	}
 	if( !defined $self->{stage} )
 	{
@@ -325,10 +325,10 @@ sub update_from_form
 
 	return 1 unless scalar @problems;
  
-	my $warnings = $self->{session}->make_element( "ul" );
+	my $warnings = $self->{handle}->make_element( "ul" );
 	foreach my $problem_xhtml ( @problems )
 	{
-		my $li = $self->{session}->make_element( "li" );
+		my $li = $self->{handle}->make_element( "li" );
 		$li->appendChild( $problem_xhtml );
 		$warnings->appendChild( $li );
 	}
@@ -345,7 +345,7 @@ sub render
 {
 	my ( $self) = @_;
 
-#	if( $self->{session}->get_repository->get_conf( 'log_submission_timing' ) )
+#	if( $self->{handle}->get_repository->get_conf( 'log_submission_timing' ) )
 #	{
 #		if( $stage ne "meta" )
 #		{
@@ -354,7 +354,7 @@ sub render
 #		# meta gets logged after pageid is worked out
 #	}
 	
-	my $fragment = $self->{session}->make_doc_fragment;
+	my $fragment = $self->{handle}->make_doc_fragment;
 		
 	my $hidden_fields = {
 		stage => $self->get_stage_id,
@@ -362,7 +362,7 @@ sub render
 
 	foreach my $name ( keys %$hidden_fields )
 	{
-		$fragment->appendChild( $self->{session}->render_hidden_field(
+		$fragment->appendChild( $self->{handle}->render_hidden_field(
 		$name,
 		$hidden_fields->{$name} ) );
 	}
@@ -370,7 +370,7 @@ sub render
 	# Add the stage components
 
 	my $stage_obj = $self->get_stage( $self->get_stage_id );
-	my $stage_dom = $stage_obj->render( $self->{session}, $self );
+	my $stage_dom = $stage_obj->render( $self->{handle}, $self );
 
 	$fragment->appendChild( $stage_dom );
 	
@@ -388,12 +388,12 @@ sub _corrupt_err
 {
 	my( $self ) = @_;
 
-	$self->{session}->render_error( 
-		$self->{session}->html_phrase( 
+	$self->{handle}->render_error( 
+		$self->{handle}->html_phrase( 
 			"lib/submissionform:corrupt_err",
 			line_no => 
-				$self->{session}->make_text( (caller())[2] ) ),
-		$self->{session}->get_repository->get_conf( "userhome" ) );
+				$self->{handle}->make_text( (caller())[2] ) ),
+		$self->{handle}->get_repository->get_conf( "userhome" ) );
 
 }
 
@@ -407,12 +407,12 @@ sub _database_err
 {
 	my( $self ) = @_;
 
-	$self->{session}->render_error( 
-		$self->{session}->html_phrase( 
+	$self->{handle}->render_error( 
+		$self->{handle}->html_phrase( 
 			"lib/submissionform:database_err",
 			line_no => 
-				$self->{session}->make_text( (caller())[2] ) ),
-		$self->{session}->get_repository->get_conf( "userhome" ) );
+				$self->{handle}->make_text( (caller())[2] ) ),
+		$self->{handle}->get_repository->get_conf( "userhome" ) );
 }
 
 # return "&foo=bar"  style paramlist to add to url to maintain state
@@ -446,7 +446,7 @@ sub link_problem_xhtml
 				$url = "#$1";
 			}
 			
-			my $newnode = $self->{session}->render_link( $url );
+			my $newnode = $self->{handle}->render_link( $url );
 			foreach my $kid ( $node->getChildNodes )
 			{
 				$node->removeChild( $kid );

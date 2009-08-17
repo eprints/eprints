@@ -48,7 +48,7 @@ sub get_property_defaults
 
 sub get_default_value
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
 	return "urn:uuid:" . APR::UUID->new->format();
 }

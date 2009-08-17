@@ -18,7 +18,7 @@ To allow for simpler local configuration Convert plugins should use SystemSettin
 
 =head1 SYNOPSIS
 
-	my $root = $session->plugin( 'Convert' );
+	my $root = $handle->plugin( 'Convert' );
 
 	my %available = $root->can_convert( $document );
 
@@ -48,7 +48,7 @@ our @ISA = qw/ EPrints::Plugin /;
 
 =item new OPTIONS
 
-Create a new plugin object using OPTIONS (should only be called by L<EPrints::Session>).
+Create a new plugin object using OPTIONS (should only be called by L<EPrints::Handle>).
 
 =cut
 ######################################################################
@@ -79,7 +79,7 @@ sub render_name
 {
 	my( $plugin ) = @_;
 
-	return $plugin->{session}->make_text( $plugin->{name} );
+	return $plugin->{handle}->make_text( $plugin->{name} );
 }
 
 ######################################################################
@@ -117,7 +117,7 @@ sub get_repository
 {
 	my( $plugin ) = @_;
 	
-	return $plugin->{ "session" }->get_repository;
+	return $plugin->{handle}->get_repository;
 }
 
 =pod
@@ -152,14 +152,14 @@ sub can_convert
 {
 	my ($plugin, $doc, $type) = @_;
 	
-	my $session = $plugin->{ "session" };
-	my @ids = $session->plugin_list( type => 'Convert' );
+	my $handle = $plugin->{handle};
+	my @ids = $handle->plugin_list( type => 'Convert' );
 
 	my %types;
 	for(@ids)
 	{
 		next if $_ eq $plugin->get_id;
-		my %avail = $session->plugin( $_ )->can_convert( $doc, $type );
+		my %avail = $handle->plugin( $_ )->can_convert( $doc, $type );
 		while( my( $mt, $def ) = each %avail )
 		{
 			next if defined( $type ) && $mt ne $type;
@@ -212,7 +212,7 @@ sub convert
 
 	my $main_file = $files[0];
 
-	my $session = $plugin->{session};
+	my $handle = $plugin->{handle};
 
 	my @handles;
 
@@ -222,7 +222,7 @@ sub convert
 		my $fh;
 		unless( open($fh, "<", "$dir/$filename") )
 		{
-			$session->get_repository->log( "Error reading from $dir/$filename: $!" );
+			$handle->get_repository->log( "Error reading from $dir/$filename: $!" );
 			next;
 		}
 		push @filedata, {
@@ -235,8 +235,8 @@ sub convert
 		push @handles, $fh;
 	}
 
-	my $doc_ds = $session->get_repository->get_dataset( "document" );
-	my $new_doc = $doc_ds->create_object( $session, { 
+	my $doc_ds = $handle->get_repository->get_dataset( "document" );
+	my $new_doc = $doc_ds->create_object( $handle, { 
 		files => \@filedata,
 		main => $main_file,
 		eprintid => $eprint->get_id,

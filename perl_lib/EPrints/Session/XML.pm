@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::Session::XML
+# EPrints::Handle::XML
 #
 ######################################################################
 #
@@ -17,11 +17,11 @@
 
 =head1 NAME
 
-B<EPrints::Session:::XML> - :XML methods for EPrinst::Session
+B<EPrints::Handle:::XML> - :XML methods for EPrinst::Session
 
 =head1 DESCRIPTION
 
-This module provides additional methods to EPrints::Session and is not
+This module provides additional methods to EPrints::Handle and is not
 an object in it's own right.
 
 =over 4
@@ -30,18 +30,18 @@ an object in it's own right.
 
 use strict;
 
-package EPrints::Session;
+package EPrints::Handle;
 
 
 
 ######################################################################
 =pod
 
-=item $dom = $session->make_element( $element_name, %attribs )
+=item $dom = $handle->make_element( $element_name, %attribs )
 
 Return a DOM element with name ename and the specified attributes.
 
-eg. $session->make_element( "img", src => "/foo.gif", alt => "my pic" )
+eg. $handle->make_element( "img", src => "/foo.gif", alt => "my pic" )
 
 Will return the DOM object describing:
 
@@ -70,7 +70,7 @@ sub make_element
 ######################################################################
 =pod
 
-=item $dom = $session->make_indent( $width )
+=item $dom = $handle->make_indent( $width )
 
 Return a DOM object describing a C.R. and then $width spaces. This
 is used to make nice looking XML for things like the OAI interface.
@@ -88,7 +88,7 @@ sub make_indent
 ######################################################################
 =pod
 
-=item $dom = $session->make_comment( $text )
+=item $dom = $handle->make_comment( $text )
 
 Return a DOM object describing a comment containing $text.
 
@@ -112,7 +112,7 @@ sub make_comment
 ######################################################################
 =pod
 
-=item $DOM = $session->make_text( $text )
+=item $DOM = $handle->make_text( $text )
 
 Return a DOM object containing the given text. $text should be
 UTF-8 encoded.
@@ -121,7 +121,7 @@ Characters will be treated as _text_ including < > etc.
 
 eg.
 
-$session->make_text( "This is <b> an example" );
+$handle->make_text( "This is <b> an example" );
 
 Would return a DOM object representing the XML:
 
@@ -151,7 +151,7 @@ sub make_text
 ######################################################################
 =pod
 
-=item $DOM = $session->make_javascript( $code, %attribs )
+=item $DOM = $handle->make_javascript( $code, %attribs )
 
 Return a new DOM "script" element containing $code in javascript. %attribs will
 be added to the script element, similar to make_element().
@@ -188,7 +188,7 @@ sub make_javascript
 ######################################################################
 =pod
 
-=item $fragment = $session->make_doc_fragment
+=item $fragment = $handle->make_doc_fragment
 
 Return a new XML document fragment. This is an item which can have
 XML elements added to it, but does not actually get rendered itself.
@@ -209,11 +209,11 @@ sub make_doc_fragment
 ######################################################################
 =pod
 
-=item $copy_of_node = $session->clone_for_me( $node, [$deep] )
+=item $copy_of_node = $handle->clone_for_me( $node, [$deep] )
 
 XML DOM items can only be added to the document which they belong to.
 
-A EPrints::Session has it's own XML DOM DOcument. 
+A EPrints::Handle has it's own XML DOM DOcument. 
 
 This method copies an XML node from _any_ document. The copy belongs
 to this sessions document.

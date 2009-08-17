@@ -1,7 +1,7 @@
 
 $c->{set_eprint_defaults} = sub
 {
-	my( $data, $session ) = @_;
+	my( $data, $handle ) = @_;
 
 	$data->{type} = "article";
 };

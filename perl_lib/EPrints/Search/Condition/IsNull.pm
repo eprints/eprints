@@ -60,10 +60,10 @@ sub item_matches
 
 sub process
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $database = $session->get_database;
-	my $tables = $self->SUPER::get_tables( $session );
+	my $database = $handle->get_database;
+	my $tables = $self->SUPER::get_tables( $handle );
 	my $sql_col = $self->{field}->get_sql_name;
 
 	my $where;

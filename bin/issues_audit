@@ -111,17 +111,17 @@ $noise = 1+$verbose if( $verbose );
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;
 
-my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
-exit( 1 ) unless( defined $session );
+my $handle = new EPrints::Handle( 1 , $ARGV[0] , $noise );
+exit( 1 ) unless( defined $handle );
 
 
 
 ##############################
 
-my $file = $session->get_repository->get_conf( "config_path" )."/issues.xml";
+my $file = $handle->get_repository->get_conf( "config_path" )."/issues.xml";
 if( -e $file )
 {
-	my $doc = $session->get_repository->parse_xml( $file , 1 );
+	my $doc = $handle->get_repository->parse_xml( $file , 1 );
 	if( !defined $doc )
 	{
         	EPrints::abort "Error parsing $file\n";
@@ -138,9 +138,9 @@ else
 	print "No $file - skipping\n" if( $noise > 1 );
 }
 
-my $ds = $session->get_repository()->get_dataset( 'eprint' );
+my $ds = $handle->get_repository()->get_dataset( 'eprint' );
 my $searchexp = new EPrints::SearchExpression(
-       	session=>$session,
+       	handle =>$handle,
        	allow_blank => 1,
        	dataset=>$ds );
 $searchexp->add_field( $ds->get_field( "eprint_status" ), 'archive buffer', 'EQ','ANY' );
@@ -148,13 +148,13 @@ my $list = $searchexp->perform_search;
 
 
 # Run all available Issues plugins
-my @issues_plugins = $session->plugin_list(
+my @issues_plugins = $handle->plugin_list(
 	type=>"Issues",
 	is_available=>1 );
 my $issues = {};
 foreach my $plugin_id ( @issues_plugins )
 {
-	my $plugin = $session->plugin( $plugin_id );
+	my $plugin = $handle->plugin( $plugin_id );
 	print "Running plugin: ".$plugin->get_name()."\n" if( $noise > 0 );
 	my $plugin_issues = $plugin->list_issues( list=>$list );
 	foreach my $itemid ( keys %{$plugin_issues} )
@@ -171,7 +171,7 @@ print "Updating database\n" if $noise > 0;
 my $now = EPrints::Time::get_iso_timestamp();
 $list->map( 
 		sub { 
-			my( $session, $dataset, $item, $info ) = @_;
+			my( $handle, $dataset, $item, $info ) = @_;
 		
 			my $new_issues = $issues->{$item->get_id} || [];	
 			my $current_issues = $item->get_value( "item_issues" ) || [];
@@ -233,7 +233,7 @@ $list->dispose;
 
 #####################################
 
-$session->terminate();
+$handle->terminate();
 exit;
 
 

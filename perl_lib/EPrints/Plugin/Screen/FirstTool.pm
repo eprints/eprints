@@ -24,7 +24,7 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $chunk = $self->{session}->make_doc_fragment;
+	my $chunk = $self->{handle}->make_doc_fragment;
 
 	$chunk->appendChild( $self->html_phrase( "no_tools" ) );
 

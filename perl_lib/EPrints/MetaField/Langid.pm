@@ -43,9 +43,9 @@ use EPrints::MetaField::Set;
 
 sub get_sql_type
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	return $session->get_database->get_column_type(
+	return $handle->get_database->get_column_type(
 		$self->get_sql_name(),
 		EPrints::Database::SQL_VARCHAR,
 		!$self->get_property( "allow_null" ),
@@ -58,7 +58,7 @@ sub get_sql_type
 
 sub render_option
 {
-	my( $self, $session, $option ) = @_;
+	my( $self, $handle, $option ) = @_;
 
 	$option = "" if !defined $option;
 
@@ -66,12 +66,12 @@ sub render_option
 
 	# if the option is empty, and no explicit phrase is defined, print 
 	# UNDEFINED rather than an error phrase.
-	if( $option eq "" && !$session->get_lang->has_phrase( $phrasename, $session ) )
+	if( $option eq "" && !$handle->get_lang->has_phrase( $phrasename, $handle ) )
 	{
 		$phrasename = "lib/metafield:unspecified";
 	}
 
-	return $session->html_phrase( $phrasename );
+	return $handle->html_phrase( $phrasename );
 }
 
 sub get_property_defaults

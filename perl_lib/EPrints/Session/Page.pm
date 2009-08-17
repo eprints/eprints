@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::Session::Page
+# EPrints::Handle::Page
 #
 ######################################################################
 #
@@ -17,11 +17,11 @@
 
 =head1 NAME
 
-B<EPrints::Session:::Page> - :Page methods for EPrins::Session
+B<EPrints::Handle:::Page> - :Page methods for EPrins::Session
 
 =head1 DESCRIPTION
 
-This module provides additional methods to EPrints::Session and is not
+This module provides additional methods to EPrints::Handle and is not
 an object in it's own right.
 
 =over 4
@@ -30,13 +30,13 @@ an object in it's own right.
 
 use strict;
 
-package EPrints::Session;
+package EPrints::Handle;
 
 
 ######################################################################
 =pod
 
-=item $session->write_static_page( $filebase, $parts, [$page_id], [$wrote_files] )
+=item $handle->write_static_page( $filebase, $parts, [$page_id], [$wrote_files] )
 
 Write an .html file plus a set of files describing the parts of the
 page for use with the dynamic template option.
@@ -108,7 +108,7 @@ sub write_static_page
 ######################################################################
 =pod
 
-=item $session->prepare_page( $parts, %options )
+=item $handle->prepare_page( $parts, %options )
 
 Create an XHTML page for this session. 
 
@@ -254,7 +254,7 @@ sub prepare_page
 		if( $type eq "print" )
 		{
 			my $expr = join "", @parts;
-			my $result = EPrints::XML::to_string( EPrints::Script::print( $expr, { session=>$self } ), undef, 1 );
+			my $result = EPrints::XML::to_string( EPrints::Script::print( $expr, { handle =>$self } ), undef, 1 );
 			push @output, $result;
 			next;
 		}
@@ -316,7 +316,7 @@ sub prepare_page
 ######################################################################
 =pod
 
-=item $session->send_page( %httpopts )
+=item $handle->send_page( %httpopts )
 
 Send a web page out by HTTP. Only relevant if this is a CGI script.
 build_page must have been called first.
@@ -355,7 +355,7 @@ END
 ######################################################################
 =pod
 
-=item $session->page_to_file( $filename, [$wrote_files] )
+=item $handle->page_to_file( $filename, [$wrote_files] )
 
 Write out the current webpage to the given filename.
 
@@ -406,7 +406,7 @@ END
 ######################################################################
 =pod
 
-=item $session->set_page( $newhtml )
+=item $handle->set_page( $newhtml )
 
 Erase the current page for this session, if any, and replace it with
 the XML DOM structure described by $newhtml.

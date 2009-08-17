@@ -20,15 +20,15 @@ sub properties_from
 {
 	my( $self ) = @_;
 
-	$self->{processor}->{docid} = $self->{session}->param( "docid" );
-	$self->{processor}->{document} = new EPrints::DataObj::Document( $self->{session}, $self->{processor}->{docid} );
+	$self->{processor}->{docid} = $self->{handle}->param( "docid" );
+	$self->{processor}->{document} = new EPrints::DataObj::Document( $self->{handle}, $self->{processor}->{docid} );
 
 	# We need a valid docid or an eprintid if the eprint has no documents
 	if( !defined $self->{processor}->{document} )
 	{
 
-		$self->{processor}->{eprintid} = $self->{session}->param( "eprintid" );
-		$self->{processor}->{eprint} = new EPrints::DataObj::EPrint( $self->{session}, $self->{processor}->{eprintid} );
+		$self->{processor}->{eprintid} = $self->{handle}->param( "eprintid" );
+		$self->{processor}->{eprint} = new EPrints::DataObj::EPrint( $self->{handle}, $self->{processor}->{eprintid} );
 
 		if( !defined $self->{processor}->{eprint} ||
 			$self->{processor}->{eprint}->get_value( "full_text_status" ) ne "none" )
@@ -51,11 +51,11 @@ sub properties_from
 	}
 
 	# Check that we have a contact email address for this eprint
-	if( $self->{session}->get_repository->can_call( "email_for_doc_request" ) ) 
+	if( $self->{handle}->get_repository->can_call( "email_for_doc_request" ) ) 
 	{
-		$self->{processor}->{contact_email} = $self->{session}->get_repository->call( 
+		$self->{processor}->{contact_email} = $self->{handle}->get_repository->call( 
 			"email_for_doc_request", 
-			$self->{session}, 
+			$self->{handle}, 
 			$self->{processor}->{eprint} );
 	}
 	if( !defined $self->{processor}->{contact_email} )
@@ -64,7 +64,7 @@ sub properties_from
 		return;
 	}
 
-	$self->{processor}->{request_sent} = $self->{session}->param( "request_sent" );
+	$self->{processor}->{request_sent} = $self->{handle}->param( "request_sent" );
 
 	$self->SUPER::properties_from;
 
@@ -75,7 +75,7 @@ sub _properties_error
 	my( $self ) = @_;
 	
 	$self->{processor}->{screenid} = "Error";
-	$self->{processor}->add_message( "error", $self->{session}->html_phrase( "general:bad_param" ) );
+	$self->{processor}->add_message( "error", $self->{handle}->html_phrase( "general:bad_param" ) );
 }
 
 # submit is a null action
@@ -91,13 +91,13 @@ sub action_request
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
-	my $email = $session->param( "requester_email" );
+	my $email = $handle->param( "requester_email" );
 
 	unless( defined $email && $email ne "" )
 	{
-		$self->{processor}->add_message( "error", $session->html_phrase( "request:no_email" ) );
+		$self->{processor}->add_message( "error", $handle->html_phrase( "request:no_email" ) );
 		return;
 	}
 
@@ -112,13 +112,13 @@ sub action_request
 	$data->{requester_email} = $email;
 	$data->{email} = $contact_email;
 
-	my $user = EPrints::DataObj::User::user_with_email( $session, $contact_email );
+	my $user = EPrints::DataObj::User::user_with_email( $handle, $contact_email );
 	$data->{userid} = $user->get_id if defined $user;
 
-	my $reason = $session->param( "reason" );
+	my $reason = $handle->param( "reason" );
 	$data->{reason} = $reason if EPrints::Utils::is_set( $reason );
 
-	my $request = $session->get_repository->get_dataset( "request" )->create_object( $session, $data );
+	my $request = $handle->get_repository->get_dataset( "request" )->create_object( $handle, $data );
 
 	my $history_data = {
 		datasetid=>"request",
@@ -136,19 +136,19 @@ sub action_request
 	}
 
 	# Log request creation event
-	my $history_ds = $session->get_repository->get_dataset( "history" );
-	$history_ds->create_object( $session, $history_data );
+	my $history_ds = $handle->get_repository->get_dataset( "history" );
+	$history_ds->create_object( $handle, $history_data );
 
 	# Send request email
-	my $subject = $session->phrase( "request/request_email:subject", eprint => $eprint->get_value( "title" ) );
-	my $mail = $session->make_element( "mail" );
-	$mail->appendChild( $session->html_phrase(
+	my $subject = $handle->phrase( "request/request_email:subject", eprint => $eprint->get_value( "title" ) );
+	my $mail = $handle->make_element( "mail" );
+	$mail->appendChild( $handle->html_phrase(
 		"request/request_email:body", 
 		eprint => $eprint->render_citation_link_staff,
-		document => defined $doc ? $doc->render_value( "main" ) : $session->make_doc_fragment,
-		requester => $session->make_text( $email ),
-		reason => EPrints::Utils::is_set( $reason ) ? $session->make_text( $reason )
-			: $session->html_phrase( "Plugin/Screen/EPrint/RequestRemoval:reason" ) ) );
+		document => defined $doc ? $doc->render_value( "main" ) : $handle->make_doc_fragment,
+		requester => $handle->make_text( $email ),
+		reason => EPrints::Utils::is_set( $reason ) ? $handle->make_text( $reason )
+			: $handle->html_phrase( "Plugin/Screen/EPrint/RequestRemoval:reason" ) ) );
 
 	my $result;
 	if( defined $user && defined $doc )
@@ -156,21 +156,21 @@ sub action_request
 		# Contact is registered user and EPrints holds requested document
 		# Send email to contact with accept/reject links
 
-		my $url =  $session->get_repository->get_conf( "http_cgiurl" ) .
+		my $url =  $handle->get_repository->get_conf( "http_cgiurl" ) .
 			"/users/home?screen=Request::Respond&requestid=" . $request->get_id;
 
-		$mail->appendChild( $session->html_phrase( "request/request_email:links",
-			accept => $session->render_link( "$url&action=accept" ),
-			reject => $session->render_link( "$url&action=reject" ) ) );
+		$mail->appendChild( $handle->html_phrase( "request/request_email:links",
+			accept => $handle->render_link( "$url&action=accept" ),
+			reject => $handle->render_link( "$url&action=reject" ) ) );
 
 		$result = EPrints::Email::send_mail(
-			session => $session,
-			langid => $session->get_langid,
+			handle => $handle,
+			langid => $handle->get_langid,
 			to_name => EPrints::Utils::tree_to_utf8( $user->render_description ),
 			to_email => $contact_email,
 			subject => $subject,
 			message => $mail,
-			sig => $session->html_phrase( "mail_sig" ),
+			sig => $handle->html_phrase( "mail_sig" ),
 		);
 	} 
 	else
@@ -178,46 +178,46 @@ sub action_request
 		# Contact is non-registered user or EPrints holds no documents
 		# Send email to contact with 'replyto'
 		$result = EPrints::Email::send_mail(
-			session => $session,
-			langid => $session->get_langid,
+			handle => $handle,
+			langid => $handle->get_langid,
 			to_name => defined $user ? EPrints::Utils::tree_to_utf8( $user->render_description ) : "",
 			to_email => $contact_email,
 			subject => $subject,
 			message => $mail,
-			sig => $session->html_phrase( "mail_sig" ),
+			sig => $handle->html_phrase( "mail_sig" ),
 			replyto_email => $email,
 		);
 	}
 
 	if( !$result )
 	{
-		$self->{processor}->add_message( "error", $session->html_phrase( "general:email_failed" ) );
+		$self->{processor}->add_message( "error", $handle->html_phrase( "general:email_failed" ) );
 		return;
 	}
 		
 	# Send acknowledgement to requester
-	$mail = $session->make_element( "mail" );
-	$mail->appendChild( $session->html_phrase(
+	$mail = $handle->make_element( "mail" );
+	$mail->appendChild( $handle->html_phrase(
 		"request/ack_email:body", 
-		document => defined $doc ? $doc->render_value( "main" ) : $session->make_doc_fragment,
+		document => defined $doc ? $doc->render_value( "main" ) : $handle->make_doc_fragment,
 		eprint	=> $eprint->render_citation_link ) );
 
 	$result = EPrints::Email::send_mail(
-		session => $session,
-		langid => $session->get_langid,
+		handle => $handle,
+		langid => $handle->get_langid,
 		to_email => $email,
-		subject => $session->phrase( "request/ack_email:subject", eprint=>$eprint->get_value( "title" ) ), 
+		subject => $handle->phrase( "request/ack_email:subject", eprint=>$eprint->get_value( "title" ) ), 
 		message => $mail,
-		sig => $session->html_phrase( "mail_sig" )
+		sig => $handle->html_phrase( "mail_sig" )
 	);
 
 	if( !$result )
 	{
-		$self->{processor}->add_message( "error", $session->html_phrase( "general:email_failed" ) );
+		$self->{processor}->add_message( "error", $handle->html_phrase( "general:email_failed" ) );
 		return;
 	}
 	
-	$self->{processor}->add_message( "message", $session->html_phrase( "request/ack_page", link => $session->render_link( $eprint->get_url ) ) );
+	$self->{processor}->add_message( "message", $handle->html_phrase( "request/ack_page", link => $handle->render_link( $eprint->get_url ) ) );
 	$self->{processor}->{request_sent} = 1;
 }
 
@@ -246,33 +246,33 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
-	my $page = $session->make_doc_fragment();
+	my $page = $handle->make_doc_fragment();
 	return $page if $self->{processor}->{request_sent};
 
 	my $eprint = $self->{processor}->{eprint};
 	my $doc = $self->{processor}->{document};
 
-	my $p = $session->make_element( "p" );
+	my $p = $handle->make_element( "p" );
 	$p->appendChild( $eprint->render_citation );
 	$page->appendChild( $p );
 
 	$page->appendChild( $self->render_document ) if defined $doc;
 
-	my $form = $session->render_input_form(
+	my $form = $handle->render_input_form(
 		fields => [ 
-			$session->get_repository->get_dataset( "request" )->get_field( "requester_email" ),
-			$session->get_repository->get_dataset( "request" )->get_field( "reason" ),
+			$handle->get_repository->get_dataset( "request" )->get_field( "requester_email" ),
+			$handle->get_repository->get_dataset( "request" )->get_field( "reason" ),
 		],
 		show_names => 1,
 		show_help => 1,
-		buttons => { request => $session->phrase( "request:button" ) },
+		buttons => { request => $handle->phrase( "request:button" ) },
 	);
 	$page->appendChild( $form );
 
-	$form->appendChild( $session->render_hidden_field( "eprintid", $eprint->get_id ) );
-	$form->appendChild( $session->render_hidden_field( "docid", $doc->get_id ) ) if defined $doc;
+	$form->appendChild( $handle->render_hidden_field( "eprintid", $eprint->get_id ) );
+	$form->appendChild( $handle->render_hidden_field( "docid", $doc->get_id ) ) if defined $doc;
 
 	return $page;
 }
@@ -281,26 +281,26 @@ sub render_document
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 	my $doc = $self->{processor}->{document};
 
 	my( $doctable, $doctr, $doctd );
-	$doctable = $session->make_element( "table" );
-	$doctr = $session->make_element( "tr" );
+	$doctable = $handle->make_element( "table" );
+	$doctr = $handle->make_element( "tr" );
 	
-	$doctd = $session->make_element( "td" );
+	$doctd = $handle->make_element( "td" );
 	$doctr->appendChild( $doctd );
 	$doctd->appendChild( $doc->render_icon_link );
 	
-	$doctd = $session->make_element( "td" );
+	$doctd = $handle->make_element( "td" );
 	$doctr->appendChild( $doctd );
 	$doctd->appendChild( $doc->render_citation_link() );
 	my %files = $doc->files;
 	if( defined $files{$doc->get_main} )
 	{
 		my $size = $files{$doc->get_main};
-		$doctd->appendChild( $session->make_element( 'br' ) );
-		$doctd->appendChild( $session->make_text( EPrints::Utils::human_filesize($size) ));
+		$doctd->appendChild( $handle->make_element( 'br' ) );
+		$doctd->appendChild( $handle->make_text( EPrints::Utils::human_filesize($size) ));
 	}
 
 	$doctable->appendChild( $doctr );

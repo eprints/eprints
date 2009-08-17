@@ -66,12 +66,12 @@ sub item_matches
 	foreach my $sub_id ( @sub_ids )
 	{
 		my $s = EPrints::DataObj::Subject->new( 
-				$item->get_session,
+				$item->get_handle,
 				$sub_id );	
 
 		if( !defined $s )
 		{
-			$item->get_session->get_repository->log(
+			$item->get_handle->get_repository->log(
 "Attempt to call item_matches on a searchfield with non-existant\n".
 "subject id: '$_', item was #".$item->get_id );
 			next;
@@ -88,10 +88,10 @@ sub item_matches
 
 sub get_tables
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $database = $session->get_database;
-	my $tables = $self->SUPER::get_tables( $session );
+	my $database = $handle->get_database;
+	my $tables = $self->SUPER::get_tables( $handle );
 	my $keyfield = $self->{dataset}->get_key_field();
 	my $sql_col = $self->{field}->get_sql_name;
 
@@ -162,7 +162,7 @@ sub get_query_logic
 {
 	my( $self, %opts ) = @_;
 
-	my $db = $opts{session}->get_database;
+	my $db = $opts{handle}->get_database;
 	my $field = $self->{field};
 	my $dataset = $field->{dataset};
 

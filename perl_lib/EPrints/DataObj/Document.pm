@@ -188,7 +188,7 @@ sub get_system_field_info
 
 sub main_input_tags
 {
-	my( $session, $object ) = @_;
+	my( $handle, $object ) = @_;
 
 	my %files = $object->files;
 
@@ -200,21 +200,21 @@ sub main_input_tags
 
 sub main_render_option
 {
-	my( $session, $option ) = @_;
+	my( $handle, $option ) = @_;
 
-	return $session->make_text( $option );
+	return $handle->make_text( $option );
 }
 
 
 
 sub doc_with_eprintid_and_pos
 {
-	my( $session, $eprintid, $pos ) = @_;
+	my( $handle, $eprintid, $pos ) = @_;
 	
-	my $document_ds = $session->get_repository->get_dataset( "document" );
+	my $document_ds = $handle->get_repository->get_dataset( "document" );
 
 	my $searchexp = new EPrints::Search(
-		session=>$session,
+		handle =>$handle,
 		dataset=>$document_ds );
 
 	$searchexp->add_field(
@@ -249,7 +249,7 @@ sub get_dataset_id
 ######################################################################
 # =pod
 # 
-# =item $doc = EPrints::DataObj::Document::create( $session, $eprint )
+# =item $doc = EPrints::DataObj::Document::create( $handle, $eprint )
 # 
 # Create and return a new Document belonging to the given $eprint object, 
 # get the initial metadata from set_document_defaults in the configuration
@@ -262,21 +262,21 @@ sub get_dataset_id
 
 sub create
 {
-	my( $session, $eprint ) = @_;
+	my( $handle, $eprint ) = @_;
 
 	return EPrints::DataObj::Document->create_from_data( 
-		$session, 
+		$handle, 
 		{
 			_parent => $eprint,
 			eprintid => $eprint->get_id
 		},
-		$session->get_repository->get_dataset( "document" ) );
+		$handle->get_repository->get_dataset( "document" ) );
 }
 
 ######################################################################
 # =pod
 # 
-# =item $dataobj = EPrints::DataObj::Document->create_from_data( $session, $data, $dataset )
+# =item $dataobj = EPrints::DataObj::Document->create_from_data( $handle, $data, $dataset )
 # 
 # Returns undef if a bad (or no) subjectid is specified.
 # 
@@ -287,20 +287,20 @@ sub create
 
 sub create_from_data
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $handle, $data, $dataset ) = @_;
        
 	my $eprintid = $data->{eprintid}; 
 	my $eprint = $data->{_parent} ||= delete $data->{eprint};
 
 	my $files = delete $data->{files};
 
-	my $document = $class->SUPER::create_from_data( $session, $data, $dataset );
+	my $document = $class->SUPER::create_from_data( $handle, $data, $dataset );
 
 	return unless defined $document;
 
 	$document->set_under_construction( 1 );
 
-	my $fileds = $session->get_repository->get_dataset( "file" );
+	my $fileds = $handle->get_repository->get_dataset( "file" );
 
 	my $files_modified = 0;
 
@@ -315,7 +315,7 @@ sub create_from_data
 		$filedata->{datasetid} = $document->get_dataset_id;
 		$filedata->{_parent} = $document;
 		my $fileobj = EPrints::DataObj::File->create_from_data(
-				$session,
+				$handle,
 				$filedata,
 				$fileds,
 			);
@@ -340,7 +340,7 @@ sub create_from_data
 ######################################################################
 =pod
 
-=item $defaults = EPrints::DataObj::Document->get_defaults( $session, $data )
+=item $defaults = EPrints::DataObj::Document->get_defaults( $handle, $data )
 
 Return default values for this object based on the starting data.
 
@@ -349,24 +349,24 @@ Return default values for this object based on the starting data.
 
 sub get_defaults
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $handle, $data, $dataset ) = @_;
 
-	$class->SUPER::get_defaults( $session, $data, $dataset );
+	$class->SUPER::get_defaults( $handle, $data, $dataset );
 
-	$data->{pos} = $session->get_database->next_doc_pos( $data->{eprintid} );
+	$data->{pos} = $handle->get_database->next_doc_pos( $data->{eprintid} );
 
 	$data->{placement} = $data->{pos};
 
 	my $eprint = $data->{_parent};
 	if( !defined $eprint )
 	{
-		EPrints::DataObj::EPrint->new( $session, $data->{eprintid} );
+		EPrints::DataObj::EPrint->new( $handle, $data->{eprintid} );
 	}
 
-	$session->get_repository->call( 
+	$handle->get_repository->call( 
 			"set_document_defaults", 
 			$data,
- 			$session,
+ 			$handle,
 			$eprint );
 
 	return $data;
@@ -393,7 +393,7 @@ sub clone
 	$data->{_parent} = $eprint;
 
 	# First create a new doc object
-	my $new_doc = $self->{dataset}->create_object( $self->{session}, $data );
+	my $new_doc = $self->{dataset}->create_object( $self->{handle}, $data );
 	return undef if !defined $new_doc;
 	
 	my $ok = 1;
@@ -453,8 +453,8 @@ sub remove
 
 	if( !$success )
 	{
-		my $db_error = $self->{session}->get_database->error;
-		$self->{session}->get_repository->log( "Error removing document ".$self->get_value( "docid" )." from database: $db_error" );
+		my $db_error = $self->{handle}->get_database->error;
+		$self->{handle}->get_repository->log( "Error removing document ".$self->get_value( "docid" )." from database: $db_error" );
 		return( 0 );
 	}
 
@@ -464,7 +464,7 @@ sub remove
 
 	if( !$ok )
 	{
-		$self->{session}->get_repository->log( "Error removing document files for ".$self->get_value("docid").", path ".$full_path.": $!" );
+		$self->{handle}->get_repository->log( "Error removing document files for ".$self->get_value("docid").", path ".$full_path.": $!" );
 		$success = 0;
 	}
 
@@ -517,7 +517,7 @@ sub get_baseurl
 
 	return( undef ) if( !defined $eprint );
 
-	my $repository = $self->{session}->get_repository;
+	my $repository = $self->{handle}->get_repository;
 
 	my $docpath = $self->get_value( "pos" );
 
@@ -594,7 +594,7 @@ sub local_path
 
 	if( !defined $eprint )
 	{
-		$self->{session}->get_repository->log(
+		$self->{handle}->get_repository->log(
 			"Document ".$self->get_id." has no eprint (eprintid is ".$self->get_value( "eprintid" )."!" );
 		return( undef );
 	}	
@@ -701,7 +701,7 @@ sub remove_file
 	}
 	else
 	{
-		$self->{session}->get_repository->log( "Error removing file $filename for doc ".$self->get_value( "docid" ).": $!" );
+		$self->{handle}->get_repository->log( "Error removing file $filename for doc ".$self->get_value( "docid" ).": $!" );
 	}
 
 	return defined $fileobj;
@@ -732,7 +732,7 @@ sub remove_all_files
 
 	if( !$ok )
 	{
-		$self->{session}->get_repository->log( "Error removing document files for ".$self->get_value( "docid" ).", path ".$full_path.": $!" );
+		$self->{handle}->get_repository->log( "Error removing document files for ".$self->get_value( "docid" ).", path ".$full_path.": $!" );
 		return( 0 );
 	}
 
@@ -852,7 +852,7 @@ sub upload
 	# Get the filename. File::Basename isn't flexible enough (setting 
 	# internal globals in reentrant code very dodgy.)
 
-	my $repository = $self->{session}->get_repository;
+	my $repository = $self->{handle}->get_repository;
 	if( $filename =~ m/^~/ )
 	{
 		$repository->log( "Bad filename for file '$filename' in document: starts with ~ (will not add)\n" );
@@ -1005,7 +1005,7 @@ sub add_archive
 	my $tmpdir = EPrints::TempDir->new( CLEANUP => 1 );
 
 	# Do the extraction
-	my $rc = $self->{session}->get_repository->exec( 
+	my $rc = $self->{handle}->get_repository->exec( 
 			$archive_format, 
 			DIR => $tmpdir,
 			ARC => $file );
@@ -1114,7 +1114,7 @@ sub upload_url
 	# Count slashes
 	my $cut_dirs = substr($url->path,1) =~ tr"/""; # ignore leading /
 
-	my $rc = $self->{session}->get_repository->exec( 
+	my $rc = $self->{handle}->get_repository->exec( 
 			"wget",
 			CUTDIRS => $cut_dirs,
 			URL => $url );
@@ -1166,9 +1166,9 @@ sub commit
 {
 	my( $self, $force ) = @_;
 
-	my $dataset = $self->{session}->get_repository->get_dataset( "document" );
+	my $dataset = $self->{handle}->get_repository->get_dataset( "document" );
 
-	$self->{session}->get_repository->call( "set_document_automatic_fields", $self );
+	$self->{handle}->get_repository->call( "set_document_automatic_fields", $self );
 
 	if( !defined $self->{changed} || scalar( keys %{$self->{changed}} ) == 0 )
 	{
@@ -1225,8 +1225,8 @@ sub validate
 	unless( EPrints::Utils::is_set( $self->get_type() ) )
 	{
 		# No type specified
-		my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:documents" );
-		push @problems, $self->{session}->html_phrase( 
+		my $fieldname = $self->{handle}->make_element( "span", class=>"ep_problem_field:documents" );
+		push @problems, $self->{handle}->html_phrase( 
 					"lib/document:no_type",
 					fieldname=>$fieldname );
 	}
@@ -1237,21 +1237,21 @@ sub validate
 
 	if( scalar keys %files ==0 )
 	{
-		my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:documents" );
-		push @problems, $self->{session}->html_phrase( "lib/document:no_files", fieldname=>$fieldname );
+		my $fieldname = $self->{handle}->make_element( "span", class=>"ep_problem_field:documents" );
+		push @problems, $self->{handle}->html_phrase( "lib/document:no_files", fieldname=>$fieldname );
 	}
 	elsif( !defined $self->get_main() || $self->get_main() eq "" )
 	{
 		# No file selected as main!
-		my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:documents" );
-		push @problems, $self->{session}->html_phrase( "lib/document:no_first", fieldname=>$fieldname );
+		my $fieldname = $self->{handle}->make_element( "span", class=>"ep_problem_field:documents" );
+		push @problems, $self->{handle}->html_phrase( "lib/document:no_first", fieldname=>$fieldname );
 	}
 		
 	# Site-specific checks
-	push @problems, $self->{session}->get_repository->call( 
+	push @problems, $self->{handle}->get_repository->call( 
 		"validate_document", 
 		$self, 
-		$self->{session},
+		$self->{handle},
 		$for_archive );
 
 	return( \@problems );
@@ -1273,11 +1273,11 @@ sub user_can_view
 
 	if( !defined $user )
 	{
-		$self->{session}->get_repository->log( '$doc->user_can_view called with undefined $user object.' );
+		$self->{handle}->get_repository->log( '$doc->user_can_view called with undefined $user object.' );
 		return( 0 );
 	}
 
-	my $result = $self->{session}->get_repository->call( 
+	my $result = $self->{handle}->get_repository->call( 
 		"can_user_view_document",
 		$self,
 		$user );	
@@ -1285,7 +1285,7 @@ sub user_can_view
 	return( 1 ) if( $result eq "ALLOW" );
 	return( 0 ) if( $result eq "DENY" );
 
-	$self->{session}->get_repository->log( "Response from can_user_view_document was '$result'. Only ALLOW, DENY are allowed." );
+	$self->{handle}->get_repository->log( "Response from can_user_view_document was '$result'. Only ALLOW, DENY are allowed." );
 	return( 0 );
 
 }
@@ -1355,9 +1355,9 @@ sub files_modified
 	}
 
 	$self->make_thumbnails;
-	if( $self->{session}->get_repository->can_call( "on_files_modified" ) )
+	if( $self->{handle}->get_repository->can_call( "on_files_modified" ) )
 	{
-		$self->{session}->get_repository->call( "on_files_modified", $self->{session}, $self );
+		$self->{handle}->get_repository->call( "on_files_modified", $self->{handle}, $self );
 	}
 
 	$self->commit();
@@ -1385,7 +1385,7 @@ sub rehash
 		EPrints::Platform::get_hash_name();
 
 	EPrints::Probity::create_log_fh( 
-		$self->{session}, 
+		$self->{handle}, 
 		$files,
 		$tmpfile );
 
@@ -1420,7 +1420,7 @@ sub make_indexcodes
 	
 	# find a conversion plugin to convert us to indexcodes
 	my $type = "indexcodes";
-	my %types = $self->{session}->plugin( "Convert" )->can_convert( $self, $type );
+	my %types = $self->{handle}->plugin( "Convert" )->can_convert( $self, $type );
 	return undef unless exists($types{$type});
 	my $plugin = $types{$type}->{"plugin"};
 
@@ -1551,9 +1551,9 @@ sub icon_url
 		return $thumbnail_url if defined $thumbnail_url;
 	}
 
-	my $session = $self->{session};
-	my $langid = $session->get_langid;
-	my @static_dirs = $session->get_repository->get_static_dirs( $langid );
+	my $handle = $self->{handle};
+	my $langid = $handle->get_langid;
+	my @static_dirs = $handle->get_repository->get_static_dirs( $langid );
 
 	my $icon = "unknown.png";
 	my $rel_path = "style/images/fileicons";
@@ -1579,7 +1579,7 @@ sub icon_url
 		}
 	}
 
-	return $session->get_repository->get_conf( "http_url" )."/$rel_path/$icon";
+	return $handle->get_repository->get_conf( "http_url" )."/$rel_path/$icon";
 }
 
 =item $frag = $doc->render_icon_link( %opts )
@@ -1635,34 +1635,34 @@ sub render_icon_link
 		$aopts{onmouseover} = "EPJS_ShowPreview( event, '$preview_id' );";
 		$aopts{onmouseout} = "EPJS_HidePreview( event, '$preview_id' );";
 	}
-	my $a = $self->{session}->make_element( "a", %aopts );
-	$a->appendChild( $self->{session}->make_element( 
+	my $a = $self->{handle}->make_element( "a", %aopts );
+	$a->appendChild( $self->{handle}->make_element( 
 		"img", 
 		class=>"ep_doc_icon",
 		alt=>"[img]",
 		src=>$self->icon_url( public=>$opts{public} ),
 		border=>0 ));
-	my $f = $self->{session}->make_doc_fragment;
+	my $f = $self->{handle}->make_doc_fragment;
 	$f->appendChild( $a ) ;
 	if( $opts{preview} )
 	{
-		my $preview = $self->{session}->make_element( "div",
+		my $preview = $self->{handle}->make_element( "div",
 				id => $preview_id,
 				class => "ep_preview", );
-		my $table = $self->{session}->make_element( "table" );
+		my $table = $self->{handle}->make_element( "table" );
 		$preview->appendChild( $table );
-		my $tr = $self->{session}->make_element( "tr" );
-		my $td = $self->{session}->make_element( "td" );
+		my $tr = $self->{handle}->make_element( "tr" );
+		my $td = $self->{handle}->make_element( "td" );
 		$tr->appendChild( $td );
 		$table->appendChild( $tr );
-		$td->appendChild( $self->{session}->make_element( 
+		$td->appendChild( $self->{handle}->make_element( 
 			"img", 
 			class=>"ep_preview_image",
 			alt=>"",
 			src=>$preview_url,
 			border=>0 ));
-		my $div = $self->{session}->make_element( "div", class=>"ep_preview_title" );
-		$div->appendChild( $self->{session}->html_phrase( "lib/document:preview"));
+		my $div = $self->{handle}->make_element( "div", class=>"ep_preview_title" );
+		$div->appendChild( $self->{handle}->html_phrase( "lib/document:preview"));
 		$td->appendChild( $div );
 		$f->appendChild( $preview );
 	}
@@ -1694,9 +1694,9 @@ sub render_preview_link
 {
 	my( $self, %opts ) = @_;
 
-	my $f = $self->{session}->make_doc_fragment;
+	my $f = $self->{handle}->make_doc_fragment;
 
-	my $caption = $opts{caption} || $self->{session}->make_doc_fragment;
+	my $caption = $opts{caption} || $self->{handle}->make_doc_fragment;
 	my $set = $opts{set};
 	if( EPrints::Utils::is_set($set) )
 	{
@@ -1710,12 +1710,12 @@ sub render_preview_link
 	my $url = $self->thumbnail_url( "preview" );
 	if( defined( $url ) )
 	{
-		my $link = $self->{session}->make_element( "a",
+		my $link = $self->{handle}->make_element( "a",
 				href=>$url,
 				rel=>"lightbox$set",
 				title=>EPrints::XML::to_string($caption),
 			);
-		$link->appendChild( $self->{session}->html_phrase( "lib/document:preview" ) );
+		$link->appendChild( $self->{handle}->html_phrase( "lib/document:preview" ) );
 		$f->appendChild( $link );
 	}
 
@@ -1728,7 +1728,7 @@ sub thumbnail_plugin
 {
 	my( $self, $size ) = @_;
 
-	my $convert = $self->{session}->plugin( "Convert" );
+	my $convert = $self->{handle}->plugin( "Convert" );
 	my %types = $convert->can_convert( $self );
 
 	my $def = $types{'thumbnail_'.$size};
@@ -1746,7 +1746,7 @@ sub thumbnail_path
 
 	if( !defined $eprint )
 	{
-		$self->{session}->get_repository->log(
+		$self->{handle}->get_repository->log(
 			"Document ".$self->get_id." has no eprint (eprintid is ".$self->get_value( "eprintid" )."!" );
 		return( undef );
 	}	
@@ -1779,9 +1779,9 @@ sub make_thumbnails
 
 	my @list = qw/ small medium preview /;
 
-	if( $self->{session}->get_repository->can_call( "thumbnail_types" ) )
+	if( $self->{handle}->get_repository->can_call( "thumbnail_types" ) )
 	{
-		$self->{session}->get_repository->call( "thumbnail_types", \@list, $self->{session}, $self );
+		$self->{handle}->get_repository->call( "thumbnail_types", \@list, $self->{handle}, $self );
 	}
 
 	foreach my $size ( @list )
@@ -1818,9 +1818,9 @@ sub make_thumbnails
 		$doc->commit();
 	}
 
-	if( $self->{session}->get_repository->can_call( "on_generate_thumbnails" ) )
+	if( $self->{handle}->get_repository->can_call( "on_generate_thumbnails" ) )
 	{
-		$self->{session}->get_repository->call( "on_generate_thumbnails", $self->{session}, $self );
+		$self->{handle}->get_repository->call( "on_generate_thumbnails", $self->{handle}, $self );
 	}
 
 	$self->commit();

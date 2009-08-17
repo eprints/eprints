@@ -333,7 +333,7 @@ sub convert_dataobj
 	my $data = {};
 
 	# ID Ref ID
-	$data->{ID} = $plugin->{session}->get_repository->get_id . $dataobj->get_id;
+	$data->{ID} = $plugin->{handle}->get_repository->get_id . $dataobj->get_id;
 
 	# TY Pub Type
 	my $type = $dataobj->get_type;

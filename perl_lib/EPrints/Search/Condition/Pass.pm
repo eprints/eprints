@@ -51,7 +51,7 @@ sub item_matches
 
 sub process
 {
-	my( $self, $session, $i, $filter ) = @_;
+	my( $self, $handle, $i, $filter ) = @_;
 
 	EPrints::abort( "process called on Pass condition.");
 }

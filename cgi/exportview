@@ -17,51 +17,51 @@ use EPrints;
 use strict;
 use Data::Dumper;
 
-my $session = new EPrints::Session;
-exit( 0 ) unless( defined $session );
-# $session->get_database->set_debug( 1 );
+my $handle = new EPrints::Handle;
+exit( 0 ) unless( defined $handle );
+# $handle->get_database->set_debug( 1 );
 
-if( defined $session->param( "view" ) )
+if( defined $handle->param( "view" ) )
 {
 	# hmm, got GET parameters, not a path...
-	my $viewid = $session->param( "view" );
-	my $values = $session->param( "values" );
-	my $format = $session->param( "format" );
+	my $viewid = $handle->param( "view" );
+	my $values = $handle->param( "values" );
+	my $format = $handle->param( "format" );
 
-	my $plugin = get_plugin( $session, $format );
+	my $plugin = get_plugin( $handle, $format );
 	if( !defined $plugin )
 	{
-		error( $session, $session->html_phrase( "cgi/export:not_available",
-					format => $session->make_text( $format ) ) );
-		$session->terminate;
+		error( $handle, $handle->html_phrase( "cgi/export:not_available",
+					format => $handle->make_text( $format ) ) );
+		$handle->terminate;
 		exit;
 	}
 
-	my $export_url = $session->get_repository->get_conf( "perl_url" )."/exportview";
+	my $export_url = $handle->get_repository->get_conf( "perl_url" )."/exportview";
 	my $fn = $values;
 	$fn =~ s/\//_/g;
 	$export_url .= "/$viewid/$values/$format/$fn".$plugin->param("suffix");
-	$session->redirect( $export_url );
+	$handle->redirect( $export_url );
 	exit;
 }
 
 
-my $path_info = $session->get_request->path_info;
+my $path_info = $handle->get_request->path_info;
 #http://devel.eprints.org/cgi/exportview/person/Nittrouer=3AX=2E=3A=3A/HTML/Nittrouer=3AX=2E=3A=3A.html
 unless( $path_info =~ m!^/([^/]+)/(.*)/([^/]+)/[^/]+$! )
 {
-	error( $session, $session->html_phrase( "cgi/export:no_id" ) );
-	$session->terminate;
+	error( $handle, $handle->html_phrase( "cgi/export:no_id" ) );
+	$handle->terminate;
 	exit;
 }
 my $viewid = $1;
 my @view_path = split( '/', $2 );
 my $format = $3;
 
-my $ds = $session->get_repository->get_dataset( "archive" );
+my $ds = $handle->get_repository->get_dataset( "archive" );
 
 my $view;
-foreach my $a_view ( @{$session->get_repository->get_conf( "browse_views" )} )
+foreach my $a_view ( @{$handle->get_repository->get_conf( "browse_views" )} )
 {
 	$view = $a_view if( $a_view->{id} eq $viewid );
 }
@@ -70,18 +70,18 @@ if( !defined $view )
 	EPrints::abort( "view with ID '$viewid' is not available." );
 }
 
-my $filters = EPrints::Update::Views::get_filters( $session, $view, \@view_path );
+my $filters = EPrints::Update::Views::get_filters( $handle, $view, \@view_path );
 if( !defined $filters )
 {
-	$session->not_found; #404
-	$session->terminate;
+	$handle->not_found; #404
+	$handle->terminate;
 	exit;
 }
 
 my $search = new EPrints::Search(
 				custom_order=>$view->{order},
 				satisfy_all=>1,
-				session=>$session,
+				handle =>$handle,
 				dataset=>$ds );
 $search->add_field( $ds->get_field('metadata_visibility'), 'show', 'EQ' );
 my $n=0;
@@ -90,41 +90,41 @@ foreach my $filter ( @{$filters} )
 	$search->add_field( $filter->{fields}, $filter->{value}, "EX", undef, "filter".($n++), 1 );
 }
 
-my $plugin = get_plugin( $session, $format );
+my $plugin = get_plugin( $handle, $format );
 if( !defined $plugin )
 {
-	error( $session, $session->html_phrase( "cgi/export:not_available",
-				format => $session->make_text( $format ) ) );
-	$session->terminate;
+	error( $handle, $handle->html_phrase( "cgi/export:not_available",
+				format => $handle->make_text( $format ) ) );
+	$handle->terminate;
 	exit;
 }
 
-$session->send_http_header( "content_type"=>$plugin->param("mimetype") );
+$handle->send_http_header( "content_type"=>$plugin->param("mimetype") );
 
 my $list = $search->perform_search;
 print $list->export( $format );	
 	
 $list->dispose;
 
-$session->terminate;
+$handle->terminate;
 exit;
 
 sub error
 {
-	my( $session, $msg ) = @_;
+	my( $handle, $msg ) = @_;
 
-	$session->build_page( 
-		$session->html_phrase( "cgi/export:error_title" ),
+	$handle->build_page( 
+		$handle->html_phrase( "cgi/export:error_title" ),
 		$msg,
 		"export_error" );
-	$session->send_page;
+	$handle->send_page;
 }
 
 sub get_plugin
 {
-	my( $session, $format ) = @_;
+	my( $handle, $format ) = @_;
 
-	my @plugins = $session->plugin_list( 
+	my @plugins = $handle->plugin_list( 
 				type=>"Export", 
 				can_accept=>"list/eprint", 
 				is_visible=>"all" );
@@ -133,7 +133,7 @@ sub get_plugin
 	{ 
 		if( $_ eq "Export::$format" ) 
 		{
-			return $session->plugin( "Export::$format" );
+			return $handle->plugin( "Export::$format" );
 		}
 	}
 	return;

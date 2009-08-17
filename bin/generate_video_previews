@@ -101,24 +101,24 @@ $|=1;
 
 
 
-my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
-exit( 1 ) unless( defined $session );
+my $handle = new EPrints::Handle( 1 , $ARGV[0] , $noise );
+exit( 1 ) unless( defined $handle );
 
-my $dataset = $session->get_repository->get_dataset( "document" );
+my $dataset = $handle->get_repository->get_dataset( "document" );
 
-my $plugin = $session->plugin( "Convert::ThumbnailVideos" );
+my $plugin = $handle->plugin( "Convert::ThumbnailVideos" );
 unless( $plugin )
 {
 	die "Convert::ThumbnailVideos not found\n";
 }
 
-$dataset->map($session, \&generate_preview, $plugin);
+$dataset->map($handle, \&generate_preview, $plugin);
 
-$session->terminate;
+$handle->terminate;
 
 sub generate_preview
 {
-	my( $session, $dataset, $doc, $plugin ) = @_;
+	my( $handle, $dataset, $doc, $plugin ) = @_;
 
 	if( !$doc->get_main )
 	{
@@ -147,7 +147,7 @@ sub generate_preview
 	my( $flv ) = $plugin->export( $tmpdir, $doc, "thumbnail_video" );
 	unless( $flv )
 	{
-		$session->get_repository->log( "Error generating flash video from document ".$doc->get_id );
+		$handle->get_repository->log( "Error generating flash video from document ".$doc->get_id );
 		return;
 	}
 

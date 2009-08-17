@@ -59,7 +59,7 @@ sub new
 
 	$self->{name} = "Thumbnail Videos";
 	$self->{visible} = "all";
-	$self->{ffmpeg} = defined($self->{session}) ?
+	$self->{ffmpeg} = defined($self->{handle}) ?
 		$self->get_repository->get_conf( "executables", "ffmpeg" ) :
 		undef;
 

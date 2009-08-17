@@ -5,13 +5,13 @@ BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
 BEGIN { use_ok( "EPrints::ScreenProcessor" ); }
 
-my $session = EPrints::Test::get_test_session();
+my $handle = EPrints::Test::get_test_session();
 
 # find an example eprint
-my $dataset = $session->get_repository->get_dataset( "eprint" );
-my( $eprintid ) = @{ $dataset->get_item_ids( $session ) };
+my $dataset = $handle->get_repository->get_dataset( "eprint" );
+my( $eprintid ) = @{ $dataset->get_item_ids( $handle ) };
 
-$session = EPrints::Test::OnlineSession->new( $session, {
+$handle = EPrints::Test::OnlineSession->new( $handle, {
 	method => "GET",
 	path => "/cgi/search/simple",
 	query => {
@@ -21,16 +21,16 @@ $session = EPrints::Test::OnlineSession->new( $session, {
 	},
 });
 
-my $sconf = $session->get_repository->get_conf( "search", "simple" );
+my $sconf = $handle->get_repository->get_conf( "search", "simple" );
 
 EPrints::ScreenProcessor->process( 
-	session => $session, 
-	url => $session->get_repository->get_conf( "perl_url" )."/search/simple",
+	handle => $handle, 
+	url => $handle->get_repository->get_conf( "perl_url" )."/search/simple",
 	sconf => $sconf,
 	template => $sconf->{template},
 	screenid => "Public::EPrintSearch",
 );
 
-#print STDERR $session->test_get_stdout;
+#print STDERR $handle->test_get_stdout;
 
 ok(1);

@@ -152,12 +152,12 @@ $|=1;
 
 binmode( STDOUT, ":utf8" );
 
-my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
-exit( 1 ) unless( defined $session );
+my $handle = new EPrints::Handle( 1 , $ARGV[0] , $noise );
+exit( 1 ) unless( defined $handle );
 
-$session->cache_subjects;
+$handle->cache_subjects;
 
-my $repository = $session->get_repository;
+my $repository = $handle->get_repository;
 
 my $views = $repository->get_conf( "browse_views" );
 
@@ -180,7 +180,7 @@ LANGUAGE: foreach my $langid ( @{$repository->get_conf( "languages" )} )
 {
 	next LANGUAGE if( defined $lang_opt && $langid ne $lang_opt );
 
-	$session->change_lang( $langid );
+	$handle->change_lang( $langid );
 
 	my @files = ();
 	my $dir =  $repository->get_conf( "htdocs_path" )."/".$langid."/view";
@@ -190,7 +190,7 @@ LANGUAGE: foreach my $langid ( @{$repository->get_conf( "languages" )} )
 		next VIEW if( defined $view_opt && $view->{id} ne $view_opt );
 
 		push @files, update_view_by_path(
-			session => $session,
+			handle => $handle,
 			view => $view, 
 			langid => $langid, 
 			path => [],
@@ -201,7 +201,7 @@ LANGUAGE: foreach my $langid ( @{$repository->get_conf( "languages" )} )
 	if( $do_menus )
 	{
 		# make views index page
-		my $file = EPrints::Update::Views::update_browse_view_list( $session, $langid );
+		my $file = EPrints::Update::Views::update_browse_view_list( $handle, $langid );
 		print "Wrote: $file\n" if( $noise > 1 );
 		push @files, $file;
 	}
@@ -213,7 +213,7 @@ LANGUAGE: foreach my $langid ( @{$repository->get_conf( "languages" )} )
 	print "done\n" if( $noise > 1 );
 }
 
-$session->terminate();
+$handle->terminate();
 exit;
 
 
@@ -223,14 +223,14 @@ sub update_view_by_path
 
 	my @files = ();
 
-	my $sizes = EPrints::Update::Views::get_sizes( $opts{session}, $opts{view}, $opts{path} );
+	my $sizes = EPrints::Update::Views::get_sizes( $opts{handle}, $opts{view}, $opts{path} );
 
 	if( defined $sizes )
 	{
 		# has sub levels
 		if( $opts{do_menus} )
 		{
-			my @menu_files = EPrints::Update::Views::update_view_menu( $opts{session}, $opts{view}, $opts{langid}, $opts{path} );
+			my @menu_files = EPrints::Update::Views::update_view_menu( $opts{handle}, $opts{view}, $opts{langid}, $opts{path} );
 			foreach my $file ( @menu_files )
 			{
 				print "Wrote: $file\n" if( $noise > 1 );
@@ -250,7 +250,7 @@ sub update_view_by_path
 	if( !defined $sizes && $opts{do_lists} )
 	{
 		# is a leaf node
-		my @leaf_files = EPrints::Update::Views::update_view_list( $opts{session}, $opts{view}, $opts{langid}, $opts{path} );
+		my @leaf_files = EPrints::Update::Views::update_view_list( $opts{handle}, $opts{view}, $opts{langid}, $opts{path} );
 		foreach my $file ( @leaf_files )
 		{
 			print "Wrote: $file\n" if( $noise > 1 );

@@ -35,7 +35,7 @@ BEGIN
 EPrints::Test::init( __PACKAGE__ );
 }
 
-sub EPrints::Session::DESTROY
+sub EPrints::Handle::DESTROY
 {
 	find_cycle( $_[0], \&report_object_cycle );
 }

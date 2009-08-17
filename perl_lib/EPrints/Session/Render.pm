@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::Session::Render
+# EPrints::Handle::Render
 #
 ######################################################################
 #
@@ -17,11 +17,11 @@
 
 =head1 NAME
 
-B<EPrints::Session::Render> - Render methods for EPrinst::Session
+B<EPrints::Handle::Render> - Render methods for EPrinst::Session
 
 =head1 DESCRIPTION
 
-This module provides additional methods to EPrints::Session and is not
+This module provides additional methods to EPrints::Handle and is not
 an object in it's own right.
 
 =over 4
@@ -30,7 +30,7 @@ an object in it's own right.
 
 use strict;
 
-package EPrints::Session;
+package EPrints::Handle;
 
 
 
@@ -59,7 +59,7 @@ These methods help build XHTML.
 ######################################################################
 =pod
 
-=item $ruler = $session->render_ruler
+=item $ruler = $handle->render_ruler
 
 Return an HR.
 in ruler.xml
@@ -77,7 +77,7 @@ sub render_ruler
 ######################################################################
 =pod
 
-=item $nbsp = $session->render_nbsp
+=item $nbsp = $handle->render_nbsp
 
 Return an XHTML &nbsp; character.
 
@@ -96,7 +96,7 @@ sub render_nbsp
 ######################################################################
 =pod
 
-=item $xhtml = $session->render_data_element( $indent, $elementname, $value, [%opts] )
+=item $xhtml = $handle->render_data_element( $indent, $elementname, $value, [%opts] )
 
 This is used to help render neat XML data. It returns a fragment 
 containing an element of name $elementname containing the value
@@ -105,7 +105,7 @@ $value, the element is indented by $indent spaces.
 The %opts describe any extra attributes for the element
 
 eg.
-$session->render_data_element( 4, "foo", "bar", class=>"fred" )
+$handle->render_data_element( 4, "foo", "bar", class=>"fred" )
 
 would return a XML DOM object describing:
     <foo class="fred">bar</foo>
@@ -130,7 +130,7 @@ sub render_data_element
 ######################################################################
 =pod
 
-=item $xhtml = $session->render_link( $uri, [$target] )
+=item $xhtml = $handle->render_link( $uri, [$target] )
 
 Returns an HTML link to the given uri, with the optional $target if
 it needs to point to a different frame or window.
@@ -151,7 +151,7 @@ sub render_link
 ######################################################################
 =pod
 
-=item $table_row = $session->render_row( $key, @values );
+=item $table_row = $handle->render_row( $key, @values );
 
 Return the key and values in a DOM encoded HTML table row. eg.
 
@@ -162,27 +162,27 @@ Return the key and values in a DOM encoded HTML table row. eg.
 
 sub render_row
 {
-	my( $session, $key, @values ) = @_;
+	my( $handle, $key, @values ) = @_;
 
 	my( $tr, $th, $td );
 
-	$tr = $session->make_element( "tr" );
+	$tr = $handle->make_element( "tr" );
 
-	$th = $session->make_element( "th", valign=>"top", class=>"ep_row" ); 
+	$th = $handle->make_element( "th", valign=>"top", class=>"ep_row" ); 
 	if( !defined $key )
 	{
-		$th->appendChild( $session->render_nbsp );
+		$th->appendChild( $handle->render_nbsp );
 	}
 	else
 	{
 		$th->appendChild( $key );
-		$th->appendChild( $session->make_text( ":" ) );
+		$th->appendChild( $handle->make_text( ":" ) );
 	}
 	$tr->appendChild( $th );
 
 	foreach my $value ( @values )
 	{
-		$td = $session->make_element( "td", valign=>"top", class=>"ep_row" ); 
+		$td = $handle->make_element( "td", valign=>"top", class=>"ep_row" ); 
 		$td->appendChild( $value );
 		$tr->appendChild( $td );
 	}
@@ -282,7 +282,7 @@ sub render_toolbar
 	my( $self ) = @_;
 
 	my $screen_processor = bless {
-		session => $self,
+		handle => $self,
 		screenid => "FirstTool",
 	}, "EPrints::ScreenProcessor";
 
@@ -412,7 +412,7 @@ sub render_toolbar
 ######################################################################
 =pod
 
-=item $xhtml = $session->render_language_name( $langid ) 
+=item $xhtml = $handle->render_language_name( $langid ) 
 Return a DOM object containing the description of the specified language
 in the current default language, or failing that from languages.xml
 
@@ -431,7 +431,7 @@ sub render_language_name
 ######################################################################
 =pod
 
-=item $xhtml = $session->render_type_name( $type_set, $type ) 
+=item $xhtml = $handle->render_type_name( $type_set, $type ) 
 
 Return a DOM object containing the description of the specified type
 in the type set. eg. "eprint", "article"
@@ -449,7 +449,7 @@ sub render_type_name
 ######################################################################
 =pod
 
-=item $string = $session->get_type_name( $type_set, $type ) 
+=item $string = $handle->get_type_name( $type_set, $type ) 
 
 As above, but return a utf-8 string. Used in <option> elements, for
 example.
@@ -467,7 +467,7 @@ sub get_type_name
 ######################################################################
 =pod
 
-=item $xhtml_name = $session->render_name( $name, [$familylast] )
+=item $xhtml_name = $handle->render_name( $name, [$familylast] )
 
 $name is a ref. to a hash containing family, given etc.
 
@@ -496,7 +496,7 @@ sub render_name
 ######################################################################
 =pod
 
-=item $xhtml_select = $session->render_option_list( %params )
+=item $xhtml_select = $handle->render_option_list( %params )
 
 This method renders an XHTML <select>. The options are complicated
 and may change, so it's better not to use it.
@@ -634,7 +634,7 @@ sub render_option_list
 ######################################################################
 =pod
 
-=item $option = $session->render_single_option( $key, $desc, $selected )
+=item $option = $handle->render_single_option( $key, $desc, $selected )
 
 Used by render_option_list.
 
@@ -659,7 +659,7 @@ sub render_single_option
 ######################################################################
 =pod
 
-=item $xhtml_hidden = $session->render_hidden_field( $name, $value )
+=item $xhtml_hidden = $handle->render_hidden_field( $name, $value )
 
 Return the XHTML DOM describing an <input> element of type "hidden"
 and name and value as specified. eg.
@@ -706,7 +706,7 @@ sub render_noenter_input_field
 ######################################################################
 =pod
 
-=item $xhtml_uploda = $session->render_upload_field( $name )
+=item $xhtml_uploda = $handle->render_upload_field( $name )
 
 Render into XHTML DOM a file upload form button with the given name. 
 
@@ -737,7 +737,7 @@ sub render_upload_field
 ######################################################################
 =pod
 
-=item $dom = $session->render_action_buttons( %buttons )
+=item $dom = $handle->render_action_buttons( %buttons )
 
 Returns a DOM object describing the set of buttons.
 
@@ -769,7 +769,7 @@ sub render_action_buttons
 ######################################################################
 =pod
 
-=item $dom = $session->render_internal_buttons( %buttons )
+=item $dom = $handle->render_internal_buttons( %buttons )
 
 As for render_action_buttons, but creates buttons for actions which
 will modify the state of the current form, not continue with whatever
@@ -791,7 +791,7 @@ sub render_internal_buttons
 
 ######################################################################
 # 
-# $dom = $session->_render_buttons_aux( $btype, %buttons )
+# $dom = $handle->_render_buttons_aux( $btype, %buttons )
 #
 ######################################################################
 
@@ -854,7 +854,7 @@ sub render_button
 ######################################################################
 =pod
 
-=item $dom = $session->render_form( $method, $dest )
+=item $dom = $handle->render_form( $method, $dest )
 
 Return a DOM object describing an HTML form element. 
 
@@ -864,7 +864,7 @@ $dest is the target of the form. By default the current page.
 
 eg.
 
-$session->render_form( "GET", "http://example.com/cgi/foo" );
+$handle->render_form( "GET", "http://example.com/cgi/foo" );
 
 returns a DOM object representing:
 
@@ -902,7 +902,7 @@ sub render_form
 ######################################################################
 =pod
 
-=item $ul = $session->render_subjects( $subject_list, [$baseid], [$currentid], [$linkmode], [$sizes] )
+=item $ul = $handle->render_subjects( $subject_list, [$baseid], [$currentid], [$linkmode], [$sizes] )
 
 Return as XHTML DOM a nested set of <ul> and <li> tags describing
 part of a subject tree.
@@ -962,7 +962,7 @@ sub render_subjects
 
 ######################################################################
 # 
-# $ul = $session->_render_subjects_aux( $subjects, $id, $currentid, $linkmode, $sizes )
+# $ul = $handle->_render_subjects_aux( $subjects, $id, $currentid, $linkmode, $sizes )
 #
 # Recursive subroutine needed by render_subjects.
 #
@@ -1029,7 +1029,7 @@ sub _render_subjects_aux
 ######################################################################
 =pod
 
-=item $session->render_error( $error_text, $back_to, $back_to_text )
+=item $handle->render_error( $error_text, $back_to, $back_to_text )
 
 Renders an error page with the given error text. A link, with the
 text $back_to_text, is offered, the destination of this is $back_to,
@@ -1108,7 +1108,7 @@ my %INPUT_FORM_DEFAULTS = (
 ######################################################################
 =pod
 
-=item $dom = $session->render_input_form( %params )
+=item $dom = $handle->render_input_form( %params )
 
 Return a DOM object representing an entire input form.
 
@@ -1246,7 +1246,7 @@ sub render_input_form
 
 ######################################################################
 # 
-# $xhtml_field = $session->_render_input_form_field( $field, $value, $show_names, $show_help, $comment, $dataset, $type, $staff, $hiddenfields, $object )
+# $xhtml_field = $handle->_render_input_form_field( $field, $value, $show_names, $show_help, $comment, $dataset, $type, $staff, $hiddenfields, $object )
 #
 # Render a single field in a form being rendered by render_input_form
 #
@@ -1311,7 +1311,7 @@ sub _render_input_form_field
 
 ######################################################################
 # 
-# $xhtml = $session->render_toolbox( $title, $content )
+# $xhtml = $handle->render_toolbox( $title, $content )
 #
 # Render a toolbox. This method will probably gain a whole bunch of new
 # options.
@@ -1370,7 +1370,7 @@ sub render_message
 
 ######################################################################
 # 
-# $xhtml = $session->render_tabs( %params )
+# $xhtml = $handle->render_tabs( %params )
 #
 # Render javascript tabs to switch between views. The views must be
 # rendered seperately. 

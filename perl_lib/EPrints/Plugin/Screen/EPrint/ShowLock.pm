@@ -47,10 +47,10 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 	my $eprint = $self->{processor}->{eprint};
 
-	my $page = $session->make_doc_fragment;
+	my $page = $handle->make_doc_fragment;
 
 	$page->appendChild( $self->render_action_list_bar( "lock_tools", ['eprintid'] ) );
 
@@ -59,9 +59,9 @@ sub render
 
 	$page->appendChild( $self->html_phrase( "item_locked",
 		locked_by => $eprint->render_value( "edit_lock_user" ),
-		locked_since => $session->make_text( EPrints::Time::human_time( $since ) ),
-		locked_until => $session->make_text( EPrints::Time::human_time( $until ) ),
-		locked_remaining => $session->make_text( $until - time ), ));
+		locked_since => $handle->make_text( EPrints::Time::human_time( $since ) ),
+		locked_until => $handle->make_text( EPrints::Time::human_time( $until ) ),
+		locked_remaining => $handle->make_text( $until - time ), ));
 
 	return $page;
 }

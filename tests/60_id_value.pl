@@ -4,8 +4,8 @@ use Test::More tests => 6;
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
 
-my $session = EPrints::Test::get_test_session();
-my $repository = $session->get_repository;
+my $handle = EPrints::Test::get_test_session();
+my $repository = $handle->get_repository;
 
 my $field = EPrints::MetaField->new(
 	repository => $repository,
@@ -15,11 +15,11 @@ my $field = EPrints::MetaField->new(
 
 my $value = chr(0x169) . " X '\"&++";
 
-is( $field->get_id_from_value( $session, undef ), "NULL", "undef->NULL" );
-is( $field->get_value_from_id( $session, "NULL" ), undef, "NULL->''" );
+is( $field->get_id_from_value( $handle, undef ), "NULL", "undef->NULL" );
+is( $field->get_value_from_id( $handle, "NULL" ), undef, "NULL->''" );
 
-my $id = $field->get_id_from_value( $session, $value );
-is( $field->get_value_from_id( $session, $id ), $value, "value->id->value" );
+my $id = $field->get_id_from_value( $handle, $value );
+is( $field->get_value_from_id( $handle, $id ), $value, "value->id->value" );
 
 $field = EPrints::MetaField->new(
 	repository => $repository,
@@ -33,6 +33,6 @@ my $name = {
 	honourific => "DR.",
 };
 
-$id = $field->get_id_from_value( $session, $name );
-is_deeply( $field->get_value_from_id( $session, $id ), $name, "name->id->name" );
+$id = $field->get_id_from_value( $handle, $name );
+is_deeply( $field->get_value_from_id( $handle, $id ), $name, "name->id->name" );
 

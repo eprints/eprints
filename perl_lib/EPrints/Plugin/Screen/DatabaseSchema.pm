@@ -34,33 +34,33 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
-	my $user = $session->current_user;
+	my $handle = $self->{handle};
+	my $user = $handle->current_user;
 
 	my( $html , $table , $p , $span );
 	
 	# Write the results to a table
 	
-	$html = $session->make_doc_fragment;
+	$html = $handle->make_doc_fragment;
 
 	# Write the results to a table
 	
-	$table = $session->make_element( "table", border=>"0" );
-	$html->appendChild( $session->html_phrase( "cgi/users/status:cache_tables" ) );
+	$table = $handle->make_element( "table", border=>"0" );
+	$html->appendChild( $handle->html_phrase( "cgi/users/status:cache_tables" ) );
 	$html->appendChild( $table );
 
 	$table->appendChild(
-		$session->render_row( 
+		$handle->render_row( 
 			undef,
-			$session->html_phrase( "cgi/users/status:cachedate" ),
-			$session->html_phrase( "cgi/users/status:cachesize" ) ) );
+			$handle->html_phrase( "cgi/users/status:cachedate" ),
+			$handle->html_phrase( "cgi/users/status:cachesize" ) ) );
 
-	my $cache_ds = $session->get_repository->get_dataset( "cachemap" );
-	foreach my $name ($session->get_database->get_tables)
+	my $cache_ds = $handle->get_repository->get_dataset( "cachemap" );
+	foreach my $name ($handle->get_database->get_tables)
 	{
 		next unless $name =~ /^cache(\d+)$/;
-		my $cachemap = $cache_ds->get_object( $session, $1 );
-		my $count = $session->get_database->count_table($name);
+		my $cachemap = $cache_ds->get_object( $handle, $1 );
+		my $count = $handle->get_database->count_table($name);
 		my $created;
 		if( $cachemap )
 		{
@@ -72,58 +72,58 @@ sub render
 		}
 
 		$table->appendChild(
-			$session->render_row( 
-				$session->make_text( $name ),
-				$session->make_text( $created ),
-				$session->make_text( $count ) ) );
+			$handle->render_row( 
+				$handle->make_text( $name ),
+				$handle->make_text( $created ),
+				$handle->make_text( $count ) ) );
 	}
 	
-	$html->appendChild( $session->html_phrase( "cgi/users/status:database_tables" ) );
+	$html->appendChild( $handle->html_phrase( "cgi/users/status:database_tables" ) );
 
-	$p = $session->make_element( "p" );
+	$p = $handle->make_element( "p" );
 	$html->appendChild( $p );
-	$html->appendChild( $session->make_text( "Schema version " . $session->get_database->get_version ));
+	$html->appendChild( $handle->make_text( "Schema version " . $handle->get_database->get_version ));
 
-	my %all_tables = map { $_ => 1 } $session->get_database->get_tables;
+	my %all_tables = map { $_ => 1 } $handle->get_database->get_tables;
 
-	my $langs = $session->get_repository->get_conf( "languages" );
+	my $langs = $handle->get_repository->get_conf( "languages" );
 
-	$html->appendChild( $session->html_phrase( "cgi/users/status:dataset_tables" ) );
+	$html->appendChild( $handle->html_phrase( "cgi/users/status:dataset_tables" ) );
 
-	my $dataset_table = $session->make_element( "table", border=>"0" );
+	my $dataset_table = $handle->make_element( "table", border=>"0" );
 	$html->appendChild( $dataset_table );
 
-	foreach my $datasetid (sort { $a cmp $b } $session->get_repository->get_sql_dataset_ids())
+	foreach my $datasetid (sort { $a cmp $b } $handle->get_repository->get_sql_dataset_ids())
 	{
-		my $dataset = $session->get_repository->get_dataset( $datasetid );
+		my $dataset = $handle->get_repository->get_dataset( $datasetid );
 
 		my $table_name = $dataset->get_sql_table_name;
 		delete $all_tables{$table_name};
 
 		my $url = "#$datasetid";
-		my $link = $session->render_link( $url );
-		$link->appendChild( $session->html_phrase( "datasetname_$datasetid" ) );
+		my $link = $handle->render_link( $url );
+		$link->appendChild( $handle->html_phrase( "datasetname_$datasetid" ) );
 
 		$dataset_table->appendChild(
-			$session->render_row(
-				$session->make_text( $table_name ),
+			$handle->render_row(
+				$handle->make_text( $table_name ),
 				$link,
-				$session->html_phrase( "datasethelp_$datasetid" ),
+				$handle->html_phrase( "datasethelp_$datasetid" ),
 		) );
 
-		$table = $session->make_element( "table", border=>"0" );
+		$table = $handle->make_element( "table", border=>"0" );
 
 		foreach my $aux_type (qw( index rindex index_grep ))
 		{
 			my $aux_table = $table_name."__".$aux_type;
 			next unless delete $all_tables{$aux_table};
 
-			my $name = $session->html_phrase( "database/name__$aux_type" );
-			my $help = $session->html_phrase( "database/help__$aux_type" );
+			my $name = $handle->html_phrase( "database/name__$aux_type" );
+			my $help = $handle->html_phrase( "database/help__$aux_type" );
 
 			$table->appendChild(
-					$session->render_row(
-						$session->make_text( $aux_table ),
+					$handle->render_row(
+						$handle->make_text( $aux_table ),
 						$name,
 						$help,
 						) );
@@ -134,14 +134,14 @@ sub render
 			my $aux_table = $table_name."__ordervalues_".$lang;
 			next unless delete $all_tables{$aux_table};
 
-			my $name = $session->html_phrase( "database/name__ordervalues" );
-			my $help = $session->html_phrase( "database/help__ordervalues",
-				lang => $session->html_phrase( "languages_typename_$lang" ),
+			my $name = $handle->html_phrase( "database/name__ordervalues" );
+			my $help = $handle->html_phrase( "database/help__ordervalues",
+				lang => $handle->html_phrase( "languages_typename_$lang" ),
 			);
 
 			$table->appendChild(
-					$session->render_row(
-						$session->make_text( $aux_table ),
+					$handle->render_row(
+						$handle->make_text( $aux_table ),
 						$name,
 						$help,
 						) );
@@ -157,16 +157,16 @@ sub render
 			delete $all_tables{"$table_name\_$field_name"};
 
 			my $nameid = "${datasetid}_fieldname_$field_name";
-			my $name = $session->html_phrase( $nameid );
+			my $name = $handle->html_phrase( $nameid );
 
 			my $helpid = "${datasetid}_fieldhelp_$field_name";
-			my $help = $session->get_lang->has_phrase( $helpid, $session ) ?
-				$session->html_phrase( $helpid ) :
-				$session->make_text( "" );
+			my $help = $handle->get_lang->has_phrase( $helpid, $handle ) ?
+				$handle->html_phrase( $helpid ) :
+				$handle->make_text( "" );
 
 			$table->appendChild(
-					$session->render_row(
-						$session->make_text( "$table_name\_$field_name" ),
+					$handle->render_row(
+						$handle->make_text( "$table_name\_$field_name" ),
 						$name,
 						$help
 						) );
@@ -174,20 +174,20 @@ sub render
 
 		if( $table->hasChildNodes )
 		{
-			my $link = $session->make_element( "a",
+			my $link = $handle->make_element( "a",
 				name => $datasetid,
 			);
-			my $h = $session->make_element( "h4" );
+			my $h = $handle->make_element( "h4" );
 			$html->appendChild( $link );
 			$link->appendChild( $h );
-			$h->appendChild( $session->html_phrase( "datasetname_$datasetid" ) );
+			$h->appendChild( $handle->html_phrase( "datasetname_$datasetid" ) );
 			$html->appendChild( $table );
 		}
 	}
 
-	$html->appendChild( $session->html_phrase( "cgi/users/status:misc_tables" ) );
+	$html->appendChild( $handle->html_phrase( "cgi/users/status:misc_tables" ) );
 
-	$table = $session->make_element( "table", border=>"0" );
+	$table = $handle->make_element( "table", border=>"0" );
 	$html->appendChild( $table );
 
 	foreach my $table_name (sort { $a cmp $b } keys %all_tables)
@@ -195,24 +195,24 @@ sub render
 		next if $table_name =~ /^cache(\d+)$/;
 
 		my $nameid = "database/name_$table_name";
-		my $name = $session->get_lang->has_phrase( $nameid, $session ) ?
-			$session->html_phrase( $nameid ) :
-			$session->html_phrase( "database/name_" );
+		my $name = $handle->get_lang->has_phrase( $nameid, $handle ) ?
+			$handle->html_phrase( $nameid ) :
+			$handle->html_phrase( "database/name_" );
 
 		my $helpid = "database/help_$table_name";
-		my $help = $session->get_lang->has_phrase( $helpid, $session ) ?
-			$session->html_phrase( $helpid ) :
-			$session->html_phrase( "database/help_" );
+		my $help = $handle->get_lang->has_phrase( $helpid, $handle ) ?
+			$handle->html_phrase( $helpid ) :
+			$handle->html_phrase( "database/help_" );
 
 		$table->appendChild(
-			$session->render_row(
-				$session->make_text( $table_name ),
+			$handle->render_row(
+				$handle->make_text( $table_name ),
 				$name,
 				$help
 		) );
 	}
 
-	$self->{processor}->{title} = $session->html_phrase( "cgi/users/status:title" );
+	$self->{processor}->{title} = $handle->html_phrase( "cgi/users/status:title" );
 
 	return $html;
 }

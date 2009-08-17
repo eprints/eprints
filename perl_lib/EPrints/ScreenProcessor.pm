@@ -28,7 +28,7 @@ sub new
 	$self{after_messages} = [];
 	$self{before_messages} = [];
 
-	if( !defined $self{session} ) 
+	if( !defined $self{handle} ) 
 	{
 		EPrints::abort( "session not passed to EPrints::ScreenProcessor->process" );
 	}
@@ -52,7 +52,7 @@ sub process
 
 	if( !defined $self->{screenid} ) 
 	{
-		$self->{screenid} = $self->{session}->param( "screen" );
+		$self->{screenid} = $self->{handle}->param( "screen" );
 	}
 	if( !defined $self->{screenid} ) 
 	{
@@ -63,8 +63,8 @@ sub process
 	# Rather than parameters for the action, if any.
 	$self->screen->properties_from; 
 	
-	$self->{action} = $self->{session}->get_action_button;
-	$self->{internal} = $self->{session}->get_internal_button;
+	$self->{action} = $self->{handle}->get_action_button;
+	$self->{internal} = $self->{handle}->get_internal_button;
 	delete $self->{action} if( $self->{action} eq "" );
 	delete $self->{internal} if( $self->{internal} eq "" );
 
@@ -75,7 +75,7 @@ sub process
 	}
 	elsif( !$self->screen->obtain_edit_lock )
 	{
-		$self->add_message( "error", $self->{session}->html_phrase( 
+		$self->add_message( "error", $self->{handle}->html_phrase( 
 			"Plugin/Screen:item_locked" ) );
 		$self->{screenid} = "Error";
 	}
@@ -86,14 +86,14 @@ sub process
 
 	if( defined $self->{redirect} )
 	{
-		$self->{session}->redirect( $self->{redirect} );
+		$self->{handle}->redirect( $self->{redirect} );
 		return;
 	}
 
 	# used to swap to a different screen if appropriate
 	$self->screen->about_to_render;
 
-	my $current_user = $self->{session}->current_user;
+	my $current_user = $self->{handle}->current_user;
 	if( $ENV{REQUEST_METHOD} eq "POST" && defined $current_user )
 	{
 		my $url = $self->screen->redirect_to_me_url;
@@ -101,12 +101,12 @@ sub process
 		{
 			foreach my $message ( @{$self->{messages}} )
 			{
-				$self->{session}->get_database->save_user_message( 
+				$self->{handle}->get_database->save_user_message( 
 					$current_user->get_id,
 					$message->{type},
 					$message->{content} );
 			}
-			$self->{session}->redirect( $url );
+			$self->{handle}->redirect( $url );
 			return;
 		}
 	}
@@ -116,14 +116,14 @@ sub process
 
 	if( !$self->screen->can_be_viewed )
 	{
-		$self->add_message( "error", $self->{session}->html_phrase( 
+		$self->add_message( "error", $self->{handle}->html_phrase( 
 			"Plugin/Screen:screen_not_allowed",
-			screen=>$self->{session}->make_text( $self->{screenid} ) ) );
+			screen=>$self->{handle}->make_text( $self->{screenid} ) ) );
 		$self->{screenid} = "Error";
 	}
 	elsif( !$self->screen->obtain_view_lock )
 	{
-		$self->add_message( "error", $self->{session}->html_phrase( 
+		$self->add_message( "error", $self->{handle}->html_phrase( 
 			"Plugin/Screen:item_locked" ) );
 		$self->{screenid} = "Error";
 	}
@@ -132,7 +132,7 @@ sub process
 	
 	if( $self->screen->wishes_to_export )
 	{
-		$self->{session}->send_http_header( "content_type"=>$self->screen->export_mimetype );
+		$self->{handle}->send_http_header( "content_type"=>$self->screen->export_mimetype );
 		$self->screen->export;
 		return;
 	}
@@ -141,10 +141,10 @@ sub process
 
 	my $content = $self->screen->render;
 	my $links = $self->screen->render_links;
-#	my $toolbar = $self->{session}->render_toolbar;
+#	my $toolbar = $self->{handle}->render_toolbar;
 	my $title = $self->screen->render_title;
 
-	my $page = $self->{session}->make_doc_fragment;
+	my $page = $self->{handle}->make_doc_fragment;
 
 	foreach my $chunk ( @{$self->{before_messages}} )
 	{
@@ -158,7 +158,7 @@ sub process
 
 	$page->appendChild( $content );
 
-	$self->{session}->prepare_page(  
+	$self->{handle}->prepare_page(  
 		{
 			title => $title, 
 			page => $page,
@@ -167,7 +167,7 @@ sub process
 		},
 		template => $self->{template},
  	);
-	$self->{session}->send_page();
+	$self->{handle}->send_page();
 }
 
 
@@ -200,7 +200,7 @@ sub screen
 
 	my $screen = $self->{screenid};
 	my $plugin_id = "Screen::".$screen;
-	$self->{screen} = $self->{session}->plugin( $plugin_id, processor=>$self );
+	$self->{screen} = $self->{handle}->plugin( $plugin_id, processor=>$self );
 
 	if( !defined $self->{screen} )
 	{
@@ -208,9 +208,9 @@ sub screen
 		{
 			$self->add_message( 
 				"error", 
-				$self->{session}->html_phrase( 
+				$self->{handle}->html_phrase( 
 					"Plugin/Screen:unknown_screen",
-					screen=>$self->{session}->make_text( $screen ) ) );
+					screen=>$self->{handle}->make_text( $screen ) ) );
 			$self->{screenid} = "Error";
 			return $self->screen;
 		}
@@ -223,13 +223,13 @@ sub render_messages
 {	
 	my( $self ) = @_;
 
-	my $chunk = $self->{session}->make_doc_fragment;
+	my $chunk = $self->{handle}->make_doc_fragment;
 
 	my @old_messages;
-	my $cuser = $self->{session}->current_user;
+	my $cuser = $self->{handle}->current_user;
 	if( defined $cuser )
 	{
-		my $db = $self->{session}->get_database;
+		my $db = $self->{handle}->get_database;
 		@old_messages = $db->get_user_messages( $cuser->get_id );
 		$db->clear_user_messages( $cuser->get_id );
 	}
@@ -240,7 +240,7 @@ sub render_messages
 			# parse error!
 			next;
 		}
-		my $dom_message = $self->{session}->render_message( 
+		my $dom_message = $self->{handle}->render_message( 
 				$message->{type},
 				$message->{content});
 		$chunk->appendChild( $dom_message );
@@ -254,7 +254,7 @@ sub action_not_allowed
 {
 	my( $self, $action ) = @_;
 
-	$self->add_message( "error", $self->{session}->html_phrase( 
+	$self->add_message( "error", $self->{handle}->html_phrase( 
 		"Plugin/Screen:action_not_allowed",
 		action=>$action ) );
 }

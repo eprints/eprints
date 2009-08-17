@@ -14,9 +14,9 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	if( !defined $self->{session} ) 
+	if( !defined $self->{handle} ) 
 	{
-		$self->{session} = $self->{processor}->{session};
+		$self->{handle} = $self->{processor}->{handle};
 	}
 	$self->{actions} = [];
 
@@ -31,7 +31,7 @@ sub properties_from
 {
 	my( $self ) = @_;
 
-	my $user = $self->{session}->current_user;
+	my $user = $self->{handle}->current_user;
 	if( defined $user )
 	{
 		$self->{processor}->{user} = $user;
@@ -51,40 +51,40 @@ sub render
 {
 	my( $self ) = @_;
 
-	return $self->html_phrase( "no_render_subclass", screen => $self->{session}->make_text( $self ) );
+	return $self->html_phrase( "no_render_subclass", screen => $self->{handle}->make_text( $self ) );
 }
 
 sub render_links
 {
 	my( $self ) = @_;
 
-	return $self->{session}->make_doc_fragment;
+	return $self->{handle}->make_doc_fragment;
 }
 
 sub register_furniture
 {
 	my( $self ) = @_;
 
-	return $self->{session}->make_doc_fragment;
+	return $self->{handle}->make_doc_fragment;
 }
 
 sub register_error
 {
 	my( $self ) = @_;
 
-	$self->{processor}->add_message( "error", $self->{session}->html_phrase( 
+	$self->{processor}->add_message( "error", $self->{handle}->html_phrase( 
 		"Plugin/Screen:screen_not_allowed",
-		screen=>$self->{session}->make_text( $self->{processor}->{screenid} ) ) );
+		screen=>$self->{handle}->make_text( $self->{processor}->{screenid} ) ) );
 }
 
 sub render_hidden_bits
 {
 	my( $self ) = @_;
 
-	my $chunk = $self->{session}->make_doc_fragment;
+	my $chunk = $self->{handle}->make_doc_fragment;
 
 	$chunk->appendChild( 
-		$self->{session}->render_hidden_field( 
+		$self->{handle}->render_hidden_field( 
 			"screen", 
 			substr($self->{id},8) ) );
 
@@ -116,7 +116,7 @@ sub render_form
 {
 	my( $self ) = @_;
 
-	my $form = $self->{session}->render_form( "post", $self->{processor}->{url}."#t" );
+	my $form = $self->{handle}->render_form( "post", $self->{processor}->{url}."#t" );
 
 	$form->appendChild( $self->render_hidden_bits );
 
@@ -209,10 +209,10 @@ sub from
 	if( !$ok )
 	{
 		$self->{processor}->add_message( "error",
-			$self->{session}->html_phrase( 
+			$self->{handle}->html_phrase( 
 	      			"Plugin/Screen:unknown_action",
-				action=>$self->{session}->make_text( $action_id ),
-				screen=>$self->{session}->make_text( $self->{processor}->{screenid} ) ) );
+				action=>$self->{handle}->make_text( $action_id ),
+				screen=>$self->{handle}->make_text( $self->{processor}->{screenid} ) ) );
 		return;
 	}
 
@@ -232,9 +232,9 @@ sub allow
 {
 	my( $self, $priv ) = @_;
 
-	return 1 if( $self->{session}->allow_anybody( $priv ) );
-	return 0 if( !defined $self->{session}->current_user );
-	return $self->{session}->current_user->allow( $priv );
+	return 1 if( $self->{handle}->allow_anybody( $priv ) );
+	return 0 if( !defined $self->{handle}->current_user );
+	return $self->{handle}->current_user->allow( $priv );
 }
 
 
@@ -272,7 +272,7 @@ sub list_items
 {
 	my( $self, $list_id ) = @_;
 
-	my @screens = $self->{session}->get_plugins( {
+	my @screens = $self->{handle}->get_plugins( {
 			processor => $self->{processor},
 		},
 		type => "Screen" );
@@ -280,7 +280,7 @@ sub list_items
 	foreach my $screen ( @screens )
 	{	
 		my $screen_id = $screen->get_id;
-		my $p_conf = $self->{session}->get_repository->get_conf( 
+		my $p_conf = $self->{handle}->get_repository->get_conf( 
 				"plugins", $screen_id );
 
 		if( exists $p_conf->{appears}->{$list_id} && 
@@ -427,7 +427,7 @@ sub action_icon_url
 {
 	my( $self, $action ) = @_;
 
-	my $icon = $self->{session}->get_repository->get_conf( "plugins", $self->{id}, "actions", $action, "icon" );
+	my $icon = $self->{handle}->get_repository->get_conf( "plugins", $self->{id}, "actions", $action, "icon" );
 	if( !defined $icon ) 
 	{
 		$icon = $self->{action_icon}->{$action};
@@ -435,7 +435,7 @@ sub action_icon_url
 
 	return undef if !defined $icon;
 
-	my $url = $self->{session}->get_url( path => "images", $icon );
+	my $url = $self->{handle}->get_url( path => "images", $icon );
 
 	return $url;
 }
@@ -458,7 +458,7 @@ sub _render_action_aux
 {
 	my( $self, $params, $asicon ) = @_;
 	
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 	
 	my $method = "GET";	
 	if( defined $params->{action} )
@@ -466,16 +466,16 @@ sub _render_action_aux
 		$method = "POST";
 	}
 
-	my $form = $session->render_form( $method );
+	my $form = $handle->render_form( $method );
 
 	$form->appendChild( 
-		$session->render_hidden_field( 
+		$handle->render_hidden_field( 
 			"screen", 
 			substr( $params->{screen_id}, 8 ) ) );
 	foreach my $id ( @{$params->{hidden}} )
 	{
 		$form->appendChild( 
-			$session->render_hidden_field( 
+			$handle->render_hidden_field( 
 				$id, 
 				$self->{processor}->{$id} ) );
 	}
@@ -495,7 +495,7 @@ sub _render_action_aux
 	if( defined $icon && $asicon )
 	{
 		$form->appendChild( 
-			$session->make_element(
+			$handle->make_element(
 				"input",
 				type=>"image",
 				class=>"ep_form_action_icon",
@@ -508,7 +508,7 @@ sub _render_action_aux
 	else
 	{
 		$form->appendChild( 
-			$session->render_button(
+			$handle->render_button(
 				class=>"ep_form_action_button",
 				name=>"_action_$action", 
 				value=>$title ));
@@ -527,7 +527,7 @@ sub render_action_button_if_allowed
 	}
 	else
 	{
-		return $self->{session}->make_doc_fragment;
+		return $self->{handle}->make_doc_fragment;
 	}
 }
 
@@ -535,24 +535,24 @@ sub render_action_list
 {
 	my( $self, $list_id, $hidden ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
-	my $table = $session->make_element( "table", class=>"ep_act_list" );
+	my $table = $handle->make_element( "table", class=>"ep_act_list" );
 	foreach my $params ( $self->action_list( $list_id ) )
 	{
-		my $tr = $session->make_element( "tr" );
+		my $tr = $handle->make_element( "tr" );
 		$table->appendChild( $tr );
 
-		my $td = $session->make_element( "td", class=>"ep_act_list_button" );
+		my $td = $handle->make_element( "td", class=>"ep_act_list_button" );
 		$tr->appendChild( $td );
 		$td->appendChild( $self->render_action_button( { %$params, hidden => $hidden } ) );
 
-		my $td2 = $session->make_element( "td", class=>"ep_act_list_join" );
+		my $td2 = $handle->make_element( "td", class=>"ep_act_list_join" );
 		$tr->appendChild( $td2 );
 
-		$td2->appendChild( $session->make_text( " - " ) );
+		$td2->appendChild( $handle->make_text( " - " ) );
 
-		my $td3 = $session->make_element( "td", class=>"ep_act_list_desc" );
+		my $td3 = $handle->make_element( "td", class=>"ep_act_list_desc" );
 		$tr->appendChild( $td3 );
 		$td3->appendChild( $self->get_description( $params ) );
 	}
@@ -565,16 +565,16 @@ sub render_action_list_bar
 {
 	my( $self, $list_id, $hidden ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
-	my $div = $self->{session}->make_element( "div", class=>"ep_act_bar" );
-	my $table = $session->make_element( "table" );
+	my $div = $self->{handle}->make_element( "div", class=>"ep_act_bar" );
+	my $table = $handle->make_element( "table" );
 	$div->appendChild( $table );
-	my $tr = $session->make_element( "tr" );
+	my $tr = $handle->make_element( "tr" );
 	$table->appendChild( $tr );
 	foreach my $params ( $self->action_list( $list_id ) )
 	{
-		my $td = $session->make_element( "td" );
+		my $td = $handle->make_element( "td" );
 		$tr->appendChild( $td );
 		$td->appendChild( $self->render_action_button( { %$params, hidden => $hidden } ) );
 	}
@@ -587,16 +587,16 @@ sub render_action_list_icons
 {
 	my( $self, $list_id, $hidden ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
-	my $div = $self->{session}->make_element( "div", class=>"ep_act_icons" );
-	my $table = $session->make_element( "table" );
+	my $div = $self->{handle}->make_element( "div", class=>"ep_act_icons" );
+	my $table = $handle->make_element( "table" );
 	$div->appendChild( $table );
-	my $tr = $session->make_element( "tr" );
+	my $tr = $handle->make_element( "tr" );
 	$table->appendChild( $tr );
 	foreach my $params ( $self->action_list( $list_id ) )
 	{
-		my $td = $session->make_element( "td" );
+		my $td = $handle->make_element( "td" );
 		$tr->appendChild( $td );
 		$td->appendChild( $self->render_action_icon( { %$params, hidden => $hidden } ) );
 	}

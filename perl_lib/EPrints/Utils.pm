@@ -411,7 +411,7 @@ sub copy
 ######################################################################
 =pod
 
-=item $response = EPrints::Utils::wget( $session, $source, $target )
+=item $response = EPrints::Utils::wget( $handle, $source, $target )
 
 Copy $source file or URL to $target file without alteration.
 
@@ -424,7 +424,7 @@ Returns the HTTP response object: use $response->is_success to check whether the
 
 sub wget
 {
-	my( $session, $url, $target ) = @_;
+	my( $handle, $url, $target ) = @_;
 
 	$target = "$target";
 
@@ -437,12 +437,12 @@ sub wget
 
 	if( $url->scheme eq "file" )
 	{
-		if( !$session->get_repository->get_conf( "enable_file_imports" ) )
+		if( !$handle->get_repository->get_conf( "enable_file_imports" ) )
 		{
 			return HTTP::Response->new( 403, "Access denied by configuration: file imports disabled" );
 		}
 	}
-	elsif( !$session->get_repository->get_conf( "enable_web_imports" ) )
+	elsif( !$handle->get_repository->get_conf( "enable_web_imports" ) )
 	{
 		return HTTP::Response->new( 403, "Access denied by configuration: web imports disabled" );
 	}
@@ -574,7 +574,7 @@ sub rmtree
 # in=>.. describes where this came from in case it needs to report an
 # error.
 #
-# session=> is required
+# handle => is required
 #
 # item => is required (the epobject being cited).
 #
@@ -613,33 +613,33 @@ sub _render_citation_aux
 
 		if( $name eq "iflink" )
 		{
-			$rendered = $params{session}->make_doc_fragment;
+			$rendered = $params{handle}->make_doc_fragment;
 			$addkids = defined $params{url};
 		}
 		elsif( $name eq "ifnotlink" )
 		{
-			$rendered = $params{session}->make_doc_fragment;
+			$rendered = $params{handle}->make_doc_fragment;
 			$addkids = !defined $params{url};
 		}
 		elsif( $name eq "linkhere" )
 		{
 			if( defined $params{url} )
 			{
-				$rendered = $params{session}->make_element( 
+				$rendered = $params{handle}->make_element( 
 					"a",
 					target=>$params{target},
 					href=> $params{url} );
 			}
 			else
 			{
-				$rendered = $params{session}->make_doc_fragment;
+				$rendered = $params{handle}->make_doc_fragment;
 			}
 		}
 	}
 
 	if( !defined $rendered )
 	{
-		$rendered = $params{session}->clone_for_me( $node );
+		$rendered = $params{handle}->clone_for_me( $node );
 	}
 
 	if( $addkids )
@@ -949,7 +949,7 @@ sub clone
 ######################################################################
 =pod
 
-=item $crypted_value = EPrints::Utils::crypt_password( $value, $session )
+=item $crypted_value = EPrints::Utils::crypt_password( $value, $handle )
 
 Apply the crypt encoding to the given $value.
 
@@ -958,7 +958,7 @@ Apply the crypt encoding to the given $value.
 
 sub crypt_password
 {
-	my( $value, $session ) = @_;
+	my( $value, $handle ) = @_;
 
 	return unless EPrints::Utils::is_set( $value );
 

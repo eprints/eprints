@@ -78,7 +78,7 @@ sub handler
 
 	my $uri = $r->uri;
 
-	my $lang = EPrints::Session::get_session_language( $repository, $r );
+	my $lang = EPrints::Handle::get_language( $repository, $r );
 	my $args = $r->args;
 	if( defined $args && $args ne "" ) { $args = '?'.$args; }
 
@@ -109,17 +109,17 @@ sub handler
 
 		my $dataset = $repository->get_dataset( $datasetid );
 		my $item;
-		my $session = new EPrints::Session(2); # don't open the CGI info
+		my $handle = new EPrints::Handle(2); # don't open the CGI info
 		if( defined $dataset )
 		{
-			$item = $dataset->get_object( $session, $id );
+			$item = $dataset->get_object( $handle, $id );
 		}
 		my $url;
 		if( defined $item )
 		{
 			$url = $item->get_url;
 		}
-		$session->terminate;
+		$handle->terminate;
 		if( defined $url )
 		{
 			return redir( $r, $url );
@@ -190,19 +190,19 @@ sub handler
 	}
 	$r->filename( $repository->get_conf( "htdocs_path" )."/".$lang.$localpath );
 
-	my $session = new EPrints::Session(2); # don't open the CGI info
-	$session->{preparing_static_page} = 1; 
+	my $handle = new EPrints::Handle(2); # don't open the CGI info
+	$handle->{preparing_static_page} = 1; 
 	if( $uri =~ m! ^/view(.*) !x )
 	{
-		my $filename = EPrints::Update::Views::update_view_file( $session, $lang, $localpath, $uri );
+		my $filename = EPrints::Update::Views::update_view_file( $handle, $lang, $localpath, $uri );
 		$r->filename( $filename );
 	}
 	else
 	{
-		EPrints::Update::Static::update_static_file( $session, $lang, $localpath );
+		EPrints::Update::Static::update_static_file( $handle, $lang, $localpath );
 	}
-	delete $session->{preparing_static_page};
-	$session->terminate;
+	delete $handle->{preparing_static_page};
+	$handle->terminate;
 
 	$r->set_handlers(PerlResponseHandler =>[ 'EPrints::Apache::Template' ] );
 

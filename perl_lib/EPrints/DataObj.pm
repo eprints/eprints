@@ -38,8 +38,8 @@ It is ABSTRACT - its methods should not be called directly.
 #     A reference to a hash containing the metadata of this
 #     record.
 #
-#  $self->{session}
-#     The current EPrints::Session
+#  $self->{handle}
+#     The current EPrints::Handle
 #
 #  $self->{dataset}
 #     The EPrints::DataSet to which this record belongs.
@@ -74,7 +74,7 @@ sub get_system_field_info
 ######################################################################
 =pod
 
-=item $dataobj = EPrints::DataObj->new( $session, $id [, $dataset] )
+=item $dataobj = EPrints::DataObj->new( $handle, $id [, $dataset] )
 
 Return new data object, created by loading it from the database.
 
@@ -85,14 +85,14 @@ If $dataset is not defined uses the default dataset for this object.
 
 sub new
 {
-	my( $class, $session, $id, $dataset ) = @_;
+	my( $class, $handle, $id, $dataset ) = @_;
 
 	if( !defined($dataset) )
 	{
-		$dataset = $session->get_repository->get_dataset( $class->get_dataset_id );
+		$dataset = $handle->get_repository->get_dataset( $class->get_dataset_id );
 	}
 
-	return $session->get_database->get_single( 
+	return $handle->get_database->get_single( 
 			$dataset,
 			$id );
 }
@@ -100,7 +100,7 @@ sub new
 ######################################################################
 =pod
 
-=item $dataobj = EPrints::DataObj->new_from_data( $session, $data [, $dataset ] )
+=item $dataobj = EPrints::DataObj->new_from_data( $handle, $data [, $dataset ] )
 
 Construct a new EPrints::DataObj object based on the $data hash 
 reference of metadata.
@@ -112,11 +112,11 @@ Used to create an object from the data retrieved from the database.
 
 sub new_from_data
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $handle, $data, $dataset ) = @_;
 
 	my $self = { data=>{}, changed=>{}, non_volatile_change=>0 };
-	$self->{session} = $session;
-	Scalar::Util::weaken($self->{session})
+	$self->{handle} = $handle;
+	Scalar::Util::weaken($self->{handle})
 		if defined &Scalar::Util::weaken;
 	if( defined( $dataset ) )
 	{
@@ -124,7 +124,7 @@ sub new_from_data
 	}
 	else
 	{
-		$self->{dataset} = $session->get_repository->get_dataset( $class->get_dataset_id );
+		$self->{dataset} = $handle->get_repository->get_dataset( $class->get_dataset_id );
 	}
 	bless( $self, ref($class) || $class );
 
@@ -148,9 +148,9 @@ sub clone
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
-	my $clone = $self->create_from_data( $session, $self->get_data, $self->get_dataset );
+	my $clone = $self->create_from_data( $handle, $self->get_data, $self->get_dataset );
 
 	return $clone;
 }
@@ -158,7 +158,7 @@ sub clone
 ######################################################################
 #=pod
 #
-#=item $dataobj = EPrints::DataObj::create( $session, @default_data )
+#=item $dataobj = EPrints::DataObj::create( $handle, @default_data )
 #
 #ABSTRACT.
 #
@@ -171,7 +171,7 @@ sub clone
 
 sub create
 {
-	my( $session, @default_data ) = @_;
+	my( $handle, @default_data ) = @_;
 
 	Carp::croak( "EPrints::DataObj::create must be overridden" );
 }
@@ -180,7 +180,7 @@ sub create
 ######################################################################
 #=pod
 #
-#=item $dataobj = EPrints::DataObj->create_from_data( $session, $data, $dataset )
+#=item $dataobj = EPrints::DataObj->create_from_data( $handle, $data, $dataset )
 #
 #Create a new object of this type in the database. 
 #
@@ -190,17 +190,17 @@ sub create
 #
 #This will create sub objects also.
 #
-#Call this via $dataset->create_object( $session, $data )
+#Call this via $dataset->create_object( $handle, $data )
 #
 #=cut
 ######################################################################
 
 sub create_from_data
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $handle, $data, $dataset ) = @_;
 
 	$data = EPrints::Utils::clone( $data );
-	$dataset ||= $session->get_repository->get_dataset( $class->get_dataset_id );
+	$dataset ||= $handle->get_repository->get_dataset( $class->get_dataset_id );
 
 	# If there is a field which indicates the virtual dataset,
 	# set that now, so it's visible to get_defaults.
@@ -212,13 +212,13 @@ sub create_from_data
 
 	# get defaults modifies the hash so we must copy it.
 	my $defaults = EPrints::Utils::clone( $data );
-	$defaults = $class->get_defaults( $session, $defaults, $dataset );
+	$defaults = $class->get_defaults( $handle, $defaults, $dataset );
 	
 	# cache the configuration options in variables
-	my $enable_import_ids = $session->get_repository->get_conf(
+	my $enable_import_ids = $handle->get_repository->get_conf(
 		"enable_import_ids"
 		);
-	my $enable_import_datestamps = $session->get_repository->get_conf(
+	my $enable_import_datestamps = $handle->get_repository->get_conf(
 		"enable_import_datestamps"
 		);
 
@@ -260,10 +260,10 @@ sub create_from_data
 		$data->{$k} = $defaults->{$k};
 	}
 
-	my $dataobj = $class->new_from_data( $session, $data, $dataset );
+	my $dataobj = $class->new_from_data( $handle, $data, $dataset );
 	return undef unless defined $dataobj;
 
-	my $rc = $session->get_database->add_record( $dataset, $dataobj->get_data );
+	my $rc = $handle->get_database->add_record( $dataset, $dataobj->get_data );
 	return undef unless $rc;
 
 	# queue all the fields for indexing.
@@ -276,7 +276,7 @@ sub create_from_data
 ######################################################################
 =pod
 
-=item $defaults = EPrints::User->get_defaults( $session, $data, $dataset )
+=item $defaults = EPrints::User->get_defaults( $handle, $data, $dataset )
 
 Return default values for this object based on the starting data.
 
@@ -287,11 +287,11 @@ Should be subclassed.
 
 sub get_defaults
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $handle, $data, $dataset ) = @_;
 
 	if( !defined $dataset )
 	{
-		$dataset = $session->get_repository->get_dataset( $class->get_dataset_id );
+		$dataset = $handle->get_repository->get_dataset( $class->get_dataset_id );
 	}
 
 	# set any values that a field has a default for e.g. counters
@@ -299,7 +299,7 @@ sub get_defaults
 	{
 		next if defined $field->get_property( "sub_name" );
 
-		my $value = $field->get_default_value( $session );
+		my $value = $field->get_default_value( $handle );
 		next unless EPrints::Utils::is_set( $value );
 
 		$data->{$field->get_name} = $value;
@@ -324,7 +324,7 @@ sub remove
 {
 	my( $self ) = @_;
 
-	return $self->{session}->get_database->remove(
+	return $self->{handle}->get_database->remove(
 		$self->{dataset},
 		$self->get_id );
 }
@@ -403,14 +403,14 @@ sub commit
 	$self->tidy;
 
 	# Write the data to the database
-	my $success = $self->{session}->get_database->update(
+	my $success = $self->{handle}->get_database->update(
 		$self->{dataset},
 		$self->{data} );
 
 	if( !$success )
 	{
-		my $db_error = $self->{session}->get_database->error;
-		$self->{session}->get_repository->log( 
+		my $db_error = $self->{handle}->get_database->error;
+		$self->{handle}->get_repository->log( 
 			"Error committing ".$self->get_dataset_id.".".
 			$self->get_id.": ".$db_error );
 		return 0;
@@ -493,9 +493,9 @@ sub set_value
 
 	if( !$self->{dataset}->has_field( $fieldname ) )
 	{
-		if( $self->{session}->get_noise > 0 )
+		if( $self->{handle}->get_noise > 0 )
 		{
-			$self->{session}->get_repository->log( "Attempt to set value on not existant field: ".$self->{dataset}->id()."/$fieldname" );
+			$self->{handle}->get_repository->log( "Attempt to set value on not existant field: ".$self->{dataset}->id()."/$fieldname" );
 		}
 		return;
 	}
@@ -633,18 +633,18 @@ sub get_values
 ######################################################################
 =pod
 
-=item $session = $dataobj->get_session
+=item $handle = $dataobj->get_handle
 
-Returns the EPrints::Session object to which this record belongs.
+Returns the EPrints::Handle object to which this record belongs.
 
 =cut
 ######################################################################
 
-sub get_session
+sub get_handle
 {
 	my( $self ) = @_;
 
-	return $self->{session};
+	return $self->{handle};
 }
 
 
@@ -729,7 +729,7 @@ sub is_set
 
 	if( !$self->{dataset}->has_field( $fieldname ) )
 	{
-		$self->{session}->get_repository->log(
+		$self->{handle}->get_repository->log(
 			 "is_set( $fieldname ): Unknown field" );
 	}
 
@@ -842,7 +842,7 @@ sub render_value
 
 	my $field = $self->{dataset}->get_field( $fieldname );	
 	
-	return $field->render_value( $self->{session}, $self->get_value($fieldname), $showall, undef,$self );
+	return $field->render_value( $self->{handle}, $self->get_value($fieldname), $showall, undef,$self );
 }
 
 
@@ -868,14 +868,14 @@ sub render_citation
 		$style = 'default';
 	}
 
-	my $stylespec = $self->{session}->get_citation_spec(
+	my $stylespec = $self->{handle}->get_citation_spec(
 					$self->{dataset},
 					$style );
 
 	return EPrints::Utils::render_citation( $stylespec, 
 			item=>$self, 
 			in=>"citation ".$self->{dataset}->confid."/".$style, 
-			session=>$self->{session},
+			handle =>$self->{handle},
 			%params );
 }
 
@@ -960,11 +960,11 @@ sub render_full
 {
 	my( $self ) = @_;
 
-	my $unspec_fields = $self->{session}->make_doc_fragment;
+	my $unspec_fields = $self->{handle}->make_doc_fragment;
 	my $unspec_first = 1;
 
 	# Show all the fields
-	my $table = $self->{session}->make_element( "table",
+	my $table = $self->{handle}->make_element( "table",
 					border=>"0",
 					cellpadding=>"3" );
 
@@ -977,8 +977,8 @@ sub render_full
 		my $name = $field->get_name();
 		if( $self->is_set( $name ) )
 		{
-			$table->appendChild( $self->{session}->render_row(
-				$field->render_name( $self->{session} ),	
+			$table->appendChild( $self->{handle}->render_row(
+				$field->render_name( $self->{handle} ),	
 				$self->render_value( $field->get_name(), 1 ) ) );
 			next;
 		}
@@ -991,16 +991,16 @@ sub render_full
 		else
 		{
 			$unspec_fields->appendChild( 
-				$self->{session}->make_text( ", " ) );
+				$self->{handle}->make_text( ", " ) );
 		}
 		$unspec_fields->appendChild( 
-			$field->render_name( $self->{session} ) );
+			$field->render_name( $self->{handle} ) );
 
 
 	}
 
-	$table->appendChild( $self->{session}->render_row(
-			$self->{session}->html_phrase( "lib/dataobj:unspecified" ),
+	$table->appendChild( $self->{handle}->render_row(
+			$self->{handle}->html_phrase( "lib/dataobj:unspecified" ),
 			$unspec_fields ) );
 
 	return $table;
@@ -1027,12 +1027,12 @@ sub uri
 	my( $self ) = @_;
 
 	my $ds_id = $self->get_dataset->confid;
-	if( $self->get_session->get_repository->can_call( "dataobj_uri", $ds_id ) )
+	if( $self->get_handle->get_repository->can_call( "dataobj_uri", $ds_id ) )
 	{
-		return $self->get_session->get_repository->call( [ "dataobj_uri", $ds_id ], $self );
+		return $self->get_handle->get_repository->call( [ "dataobj_uri", $ds_id ], $self );
 	}
 			
-	return $self->get_session->get_repository->get_conf( "base_url" ).$self->internal_uri;
+	return $self->get_handle->get_repository->get_conf( "base_url" ).$self->internal_uri;
 }
 
 =item $uri = $dataobj->internal_uri()
@@ -1139,7 +1139,7 @@ sub to_xml
 	my $ns = EPrints::XML::namespace( 'data', $opts{version} );
 	if( !defined $ns )
 	{
-		$self->{session}->get_repository->log(
+		$self->{handle}->get_repository->log(
 			 "to_xml: unknown version: ".$opts{version} );
 		#error
 		return;
@@ -1156,8 +1156,8 @@ sub to_xml
 		$tl = $self->{dataset}->confid; 
 		$attrs{'id'} = $self->uri;
 	}	
-	my $r = $self->{session}->make_element( $tl, %attrs );
-	$r->appendChild( $self->{session}->make_text( "\n" ) );
+	my $r = $self->{handle}->make_element( $tl, %attrs );
+	$r->appendChild( $self->{handle}->make_text( "\n" ) );
 	foreach my $field ( $self->{dataset}->get_fields() )
 	{
 		next unless( $field->get_property( "export_as_xml" ) );
@@ -1165,7 +1165,7 @@ sub to_xml
 		if( $opts{version} eq "2" )
 		{
 			$r->appendChild( $field->to_xml( 
-				$self->{session}, 
+				$self->{handle}, 
 				$self->get_value( $field->get_name() ),
 				$self->{dataset},
 				%opts ) );
@@ -1178,7 +1178,7 @@ sub to_xml
 			}
 
 			$r->appendChild( $field->to_xml_old( 
-				$self->{session}, 
+				$self->{handle}, 
 				$self->get_value( $field->get_name() ),
 				2 ) ); # no xmlns on inner elements
 		}
@@ -1187,7 +1187,7 @@ sub to_xml
 	return $r;
 }
 
-=item $epdata = EPrints::DataObj->xml_to_epdata( $session, $xml, %opts )
+=item $epdata = EPrints::DataObj->xml_to_epdata( $handle, $xml, %opts )
 
 Populates $epdata based on $xml. This is the inverse of to_xml() but doesn't create a new object.
 
@@ -1195,11 +1195,11 @@ Populates $epdata based on $xml. This is the inverse of to_xml() but doesn't cre
 
 sub xml_to_epdata
 {
-	my( $class, $session, $xml, %opts ) = @_;
+	my( $class, $handle, $xml, %opts ) = @_;
 
 	my $epdata = {};
 
-	my $dataset = $session->get_repository->get_dataset( $class->get_dataset_id );
+	my $dataset = $handle->get_repository->get_dataset( $class->get_dataset_id );
 
 	my @fields = $dataset->get_fields;
 	my @field_names = sort { $a cmp $b } map { $_->get_name } @fields;
@@ -1214,7 +1214,7 @@ sub xml_to_epdata
 		{
 			if( defined $opts{Handler} )
 			{
-				$opts{Handler}->message( "warning", $session->phrase( "Plugin/Import/XML:dup_element", name => $session->make_text( $nodeName ) ) );
+				$opts{Handler}->message( "warning", $handle->phrase( "Plugin/Import/XML:dup_element", name => $handle->make_text( $nodeName ) ) );
 			}
 			next;
 		}
@@ -1224,12 +1224,12 @@ sub xml_to_epdata
 		{
 			if( defined $opts{Handler} )
 			{
-				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:unexpected_element", name => $session->make_text( $nodeName ) ) );
-				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:expected", elements => $session->make_text( "<".join("> <", @field_names).">" ) ) );
+				$opts{Handler}->message( "warning", $handle->html_phrase( "Plugin/Import/XML:unexpected_element", name => $handle->make_text( $nodeName ) ) );
+				$opts{Handler}->message( "warning", $handle->html_phrase( "Plugin/Import/XML:expected", elements => $handle->make_text( "<".join("> <", @field_names).">" ) ) );
 			}
 			next;
 		}
-		my $value = $field->xml_to_epdata( $session, $node, %opts );
+		my $value = $field->xml_to_epdata( $handle, $node, %opts );
 		if( EPrints::Utils::is_set( $value ) )
 		{
 			$epdata->{$nodeName} = $value;
@@ -1254,7 +1254,7 @@ sub export
 	my( $self, $out_plugin_id, %params ) = @_;
 
 	my $plugin_id = "Export::".$out_plugin_id;
-	my $plugin = $self->{session}->plugin( $plugin_id );
+	my $plugin = $self->{handle}->plugin( $plugin_id );
 
 	unless( defined $plugin )
 	{
@@ -1302,7 +1302,7 @@ sub queue_changes
 
 	return unless scalar @fields;
 
-	EPrints::DataObj::EventQueue->create_from_data( $self->{session}, {
+	EPrints::DataObj::EventQueue->create_from_data( $self->{handle}, {
 			pluginid => "Indexer",
 			action => "index",
 			params => [$self->internal_uri, @fields],
@@ -1325,7 +1325,7 @@ sub queue_all
 
 	return unless $self->{dataset}->indexable;
 
-	EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
+	EPrints::DataObj::EventQueue->create_unique( $self->{handle}, {
 			pluginid => "Indexer",
 			action => "index_all",
 			params => [$self->internal_uri],
@@ -1348,7 +1348,7 @@ sub queue_fulltext
 
 	return unless $self->{dataset}->indexable;
 
-	EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
+	EPrints::DataObj::EventQueue->create_unique( $self->{handle}, {
 			unique => "TRUE",
 			pluginid => "Indexer",
 			action => "index_fulltext",
@@ -1432,7 +1432,7 @@ sub validate_field
 
 	my $field = $self->{dataset}->get_field( $fieldname );
 	
-	return $field->validate( $self->{session}, $self->get_value( $fieldname ), $self );
+	return $field->validate( $self->{handle}, $self->get_value( $fieldname ), $self );
 }
 
 
@@ -1497,12 +1497,12 @@ sub add_stored_file
 		$file->remove();
 	}
 
-	$file = EPrints::DataObj::File->create_from_data( $self->{session}, {
+	$file = EPrints::DataObj::File->create_from_data( $self->{handle}, {
 		_parent => $self,
 		_content => $filehandle,
 		filename => $filename,
 		filesize => $filesize,
-	}, $self->{session}->get_repository->get_dataset( "file" ) );
+	}, $self->{handle}->get_repository->get_dataset( "file" ) );
 
 	return $file;
 }
@@ -1524,7 +1524,7 @@ sub get_stored_file
 	my( $self, $filename ) = @_;
 
 	my $file = EPrints::DataObj::File->new_from_filename(
-		$self->{session},
+		$self->{handle},
 		$self,
 		$filename
 	);
@@ -1657,7 +1657,7 @@ sub get_related_objects
 	my @matches;
 	foreach my $uri (@uris)
 	{
-		my $dataobj = EPrints::DataSet->get_object_from_uri( $self->{session}, $uri );
+		my $dataobj = EPrints::DataSet->get_object_from_uri( $self->{handle}, $uri );
 		next unless defined $dataobj;
 
 		if(

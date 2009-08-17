@@ -51,9 +51,9 @@ sub get_property_defaults
 
 sub get_sql_type
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $database = $session->get_database;
+	my $database = $handle->get_database;
 
 	return $database->get_column_type(
 		$self->get_sql_name,
@@ -67,42 +67,42 @@ sub get_sql_type
 
 sub value_from_sql_row
 {
-	my( $self, $session, $row ) = @_;
+	my( $self, $handle, $row ) = @_;
 
 	my $value = shift @$row;
 
 	return undef unless defined $value;
 
-	return $self->thaw( $session, $value );
+	return $self->thaw( $handle, $value );
 }
 
 sub sql_row_from_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
 	return undef unless defined $value;
 
-	return $self->freeze( $session, $value );
+	return $self->freeze( $handle, $value );
 }
 
 sub to_xml_basic
 {
-	my( $self, $session, $value, $dataset, %opts ) = @_;
+	my( $self, $handle, $value, $dataset, %opts ) = @_;
 
-	return $self->SUPER::to_xml_basic( $session, MIME::Base64::encode_base64($self->freeze( $session, $value )), $dataset, %opts );
+	return $self->SUPER::to_xml_basic( $handle, MIME::Base64::encode_base64($self->freeze( $handle, $value )), $dataset, %opts );
 }
 
 # return epdata for a single value of this field
 sub xml_to_epdata_basic
 {
-	my( $self, $session, $xml, %opts ) = @_;
+	my( $self, $handle, $xml, %opts ) = @_;
 
-	return $self->thaw( $session, MIME::Base64::decode_base64( $self->SUPER::xml_to_epdata_basic( $session, $xml, %opts ) ) );
+	return $self->thaw( $handle, MIME::Base64::decode_base64( $self->SUPER::xml_to_epdata_basic( $handle, $xml, %opts ) ) );
 }
 
 sub freeze
 {
-	my( $class, $session, $value ) = @_;
+	my( $class, $handle, $value ) = @_;
 
 	local $Storable::canonical = 1;
 
@@ -116,7 +116,7 @@ sub freeze
 
 sub thaw
 {
-	my( $class, $session, $value ) = @_;
+	my( $class, $handle, $value ) = @_;
 
 	return Storable::thaw( $value );
 }

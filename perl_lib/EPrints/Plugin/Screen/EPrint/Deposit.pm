@@ -80,10 +80,10 @@ sub render
 	my $problems = $self->{processor}->{eprint}->validate( $self->{processor}->{for_archive}, $self->workflow_id );
 	if( scalar @{$problems} > 0 )
 	{
-		my $dom_problems = $self->{session}->make_element( "ul" );
+		my $dom_problems = $self->{handle}->make_element( "ul" );
 		foreach my $problem_xhtml ( @{$problems} )
 		{
-			my $li = $self->{session}->make_element( "li" );
+			my $li = $self->{handle}->make_element( "li" );
 			$li->appendChild( $problem_xhtml );
 			$dom_problems->appendChild( $li );
 		}
@@ -94,10 +94,10 @@ sub render
 	my $warnings = $self->{processor}->{eprint}->get_warnings;
 	if( scalar @{$warnings} > 0 )
 	{
-		my $dom_warnings = $self->{session}->make_element( "ul" );
+		my $dom_warnings = $self->{handle}->make_element( "ul" );
 		foreach my $warning_xhtml ( @{$warnings} )
 		{
-			my $li = $self->{session}->make_element( "li" );
+			my $li = $self->{handle}->make_element( "li" );
 			$li->appendChild( $warning_xhtml );
 			$dom_warnings->appendChild( $li );
 		}
@@ -106,22 +106,22 @@ sub render
 	}
 
 
-	my $page = $self->{session}->make_doc_fragment;
+	my $page = $self->{handle}->make_doc_fragment;
 	my $form = $self->render_form;
 	$page->appendChild( $form );
 
 	my $blister = $self->render_blister( "deposit", 0 );
-	my $toolbox = $self->{session}->render_toolbox( undef, $blister );
+	my $toolbox = $self->{handle}->render_toolbox( undef, $blister );
 	$form->appendChild( $toolbox );
 
 
 	if( scalar @{$problems} == 0 )
 	{
-		$form->appendChild( $self->{session}->html_phrase( "deposit_agreement_text" ) );
+		$form->appendChild( $self->{handle}->html_phrase( "deposit_agreement_text" ) );
 	
-		$form->appendChild( $self->{session}->render_action_buttons(
-			deposit => $self->{session}->phrase( "priv:action/eprint/deposit" ),
-			save => $self->{session}->phrase( "priv:action/eprint/deposit_later" ),
+		$form->appendChild( $self->{handle}->render_action_buttons(
+			deposit => $self->{handle}->phrase( "priv:action/eprint/deposit" ),
+			save => $self->{handle}->phrase( "priv:action/eprint/deposit_later" ),
 			_order => [qw( deposit save )],
 		) );
 	}
@@ -153,10 +153,10 @@ sub action_deposit
 	if( scalar @{$problems} > 0 )
 	{
 		$self->{processor}->add_message( "error", $self->html_phrase( "validation_errors" ) ); 
-		my $warnings = $self->{session}->make_element( "ul" );
+		my $warnings = $self->{handle}->make_element( "ul" );
 		foreach my $problem_xhtml ( @{$problems} )
 		{
-			my $li = $self->{session}->make_element( "li" );
+			my $li = $self->{handle}->make_element( "li" );
 			$li->appendChild( $problem_xhtml );
 			$warnings->appendChild( $li );
 		}
@@ -167,7 +167,7 @@ sub action_deposit
 
 	# OK, no problems, submit it to the archive
 
-	my $sb = $self->{session}->get_repository->get_conf( "skip_buffer" ) || 0;	
+	my $sb = $self->{handle}->get_repository->get_conf( "skip_buffer" ) || 0;	
 	my $ok = 0;
 	if( $sb )
 	{

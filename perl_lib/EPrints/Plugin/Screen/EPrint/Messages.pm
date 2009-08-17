@@ -41,9 +41,9 @@ sub get_messages
 
 	if( !defined $self->{processor}->{$cache_id} )
 	{
-		my $ds = $self->{session}->get_repository->get_dataset( "history" );
+		my $ds = $self->{handle}->get_repository->get_dataset( "history" );
 		my $searchexp = EPrints::Search->new(
-			session=>$self->{session},
+			handle =>$self->{handle},
 			dataset=>$ds,
 			custom_order=>"-timestamp/-historyid" );
 		
@@ -68,14 +68,14 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $page = $self->{session}->make_doc_fragment;
+	my $page = $self->{handle}->make_doc_fragment;
 
 	my $results = $self->get_messages;
 
 	if( $results->count )
 	{
 		$results->map( sub {
-			my( $session, $dataset, $item ) = @_;
+			my( $handle, $dataset, $item ) = @_;
 		
 			$page->appendChild( $item->render );
 		} );

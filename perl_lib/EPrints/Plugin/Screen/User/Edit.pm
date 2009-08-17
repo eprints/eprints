@@ -76,7 +76,7 @@ sub action_save
 
 	$self->workflow->update_from_form( $self->{processor} );
 	$self->uncache_workflow;
-	$self->{session}->reload_current_user;
+	$self->{handle}->reload_current_user;
 	
 	$self->{processor}->{screenid} = "User::View";
 }
@@ -94,7 +94,7 @@ sub action_prev
 	my( $self ) = @_;
 
 	$self->workflow->update_from_form( $self->{processor} );
-	$self->{session}->reload_current_user;
+	$self->{handle}->reload_current_user;
 	$self->uncache_workflow;
 	$self->workflow->prev;
 }
@@ -113,7 +113,7 @@ sub action_next
 
 	my $from_ok = $self->workflow->update_from_form( $self->{processor} );
 	$self->uncache_workflow;
-	$self->{session}->reload_current_user;
+	$self->{handle}->reload_current_user;
 	return unless $from_ok;
 
 	if( !defined $self->workflow->get_next_stage_id )
@@ -180,7 +180,7 @@ sub render_buttons
 		push @{$buttons{_order}}, "next";
 		$buttons{next} = $self->phrase( "next" );
 	}	
-	return $self->{session}->render_action_buttons( %buttons );
+	return $self->{handle}->render_action_buttons( %buttons );
 }
 
 1;

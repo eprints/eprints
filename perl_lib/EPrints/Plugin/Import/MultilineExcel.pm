@@ -38,7 +38,7 @@ sub input_file
 		close TMP;
 	}
 
-	my $session = $plugin->{session};
+	my $handle = $plugin->{handle};
 
 	my $excel = Spreadsheet::ParseExcel::Workbook->Parse( $filename );
 
@@ -56,7 +56,7 @@ sub input_file
 	my $colmap = [];
 	if( $sheet->{Cells}[$sheet->{MinRow}][$sheet->{MinCol}]->{Val} ne "eprintid" )
 	{
-		$plugin->handler->message( "error", $session->make_text( "Top left cell is not 'eprintid'" ));
+		$plugin->handler->message( "error", $handle->make_text( "Top left cell is not 'eprintid'" ));
 		return;
 	}
 	foreach my $col ( $sheet->{MinCol}..$sheet->{MaxCol} )
@@ -125,7 +125,7 @@ sub input_file
 
 	return EPrints::List->new( 
 		dataset => $opts{dataset}, 
-		session => $plugin->{session},
+		handle => $plugin->{handle},
 		ids=>\@ids );
 }
 

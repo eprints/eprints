@@ -34,7 +34,7 @@ sub input_file
 {
         my ( $plugin, %opts ) = @_;
 
-        my $session = $plugin->{session};
+        my $handle = $plugin->{handle};
 
 	print STDERR "\nPlugin Sword::Import should be overridden";
 	
@@ -45,9 +45,9 @@ sub unpack_files
 {
         my ( $self, $plugin_id, $fn, $tmp_dir ) = @_;
 
-        my $session = $self->{session};
+        my $handle = $self->{handle};
 
-        my $unpack_plugin = $session->plugin( $plugin_id );
+        my $unpack_plugin = $handle->plugin( $plugin_id );
 
         if(!defined $unpack_plugin)
         {
@@ -88,7 +88,7 @@ sub get_files_to_import
 {
         my ( $self, $files, $mime_type ) = @_;
 
-        my $session = $self->{session};
+        my $handle = $self->{handle};
 
         my @candidates;
 
@@ -119,8 +119,8 @@ sub get_file_mime_type
 {
         my( $self, $filename ) = @_;
 
-        return $self->{session}->get_repository->call( 'guess_doc_type',
-                                $self->{session},
+        return $self->{handle}->get_repository->call( 'guess_doc_type',
+                                $self->{handle},
                                 $filename );
 }
 
@@ -184,10 +184,10 @@ sub attach_deposited_file
 	$doc_data{eprintid} = $eprint->get_id;
 	$doc_data{_parent} = $eprint;
 	$doc_data{format} =  $mime;
-	$doc_data{formatdesc} = $self->{session}->phrase( "Sword/Deposit:document_formatdesc" );
+	$doc_data{formatdesc} = $self->{handle}->phrase( "Sword/Deposit:document_formatdesc" );
 	$doc_data{main} = $fn;
 
-	local $self->{session}->get_repository->{config}->{enable_file_imports} = 1;
+	local $self->{handle}->get_repository->{config}->{enable_file_imports} = 1;
 
 	my %file_data;
 	$file_data{filename} = $fn;
@@ -195,9 +195,9 @@ sub attach_deposited_file
 
 	$doc_data{files} = [ \%file_data ];
 
-	my $doc_dataset = $self->{session}->get_repository->get_dataset( "document" );
+	my $doc_dataset = $self->{handle}->get_repository->get_dataset( "document" );
 
-	my $document = EPrints::DataObj::Document->create_from_data( $self->{session}, \%doc_data, $doc_dataset );
+	my $document = EPrints::DataObj::Document->create_from_data( $self->{handle}, \%doc_data, $doc_dataset );
 
 	return 0 unless( defined $document );
 

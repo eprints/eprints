@@ -45,9 +45,9 @@ use EPrints::MetaField::Longtext;
 
 sub render_single_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
-	my $searchexp = $self->make_searchexp( $session, $value );
+	my $searchexp = $self->make_searchexp( $handle, $value );
 	my $desc = $searchexp->render_description;
 	$searchexp->dispose;
 	return $desc;
@@ -56,7 +56,7 @@ sub render_single_value
 
 ######################################################################
 # 
-# $searchexp = $field->make_searchexp( $session, $value, [$basename] )
+# $searchexp = $field->make_searchexp( $handle, $value, [$basename] )
 #
 # This method should only be called on fields of type "search". 
 # Return a search expression from the serialised expression in value.
@@ -67,14 +67,14 @@ sub render_single_value
 
 sub make_searchexp
 {
-	my( $self, $session, $value, $basename ) = @_;
+	my( $self, $handle, $value, $basename ) = @_;
 
-	my $ds = $session->get_repository->get_dataset( 
+	my $ds = $handle->get_repository->get_dataset( 
 			$self->{datasetid} );	
 	my $fieldnames = $self->get_property( "fieldnames" );
 
 	my $searchexp = EPrints::Search->new(
-		session => $session,
+		handle => $handle,
 		dataset => $ds,
 		prefix => $basename,
 		fieldnames => $fieldnames );
@@ -95,24 +95,24 @@ sub make_searchexp
 
 sub get_basic_input_elements
 {
-	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
+	my( $self, $handle, $value, $basename, $staff, $obj ) = @_;
 
 	#cjg NOT CSS'd properly.
 
-	my $div = $session->make_element( 
+	my $div = $handle->make_element( 
 		"div", 
 		style => "padding: 6pt; margin-left: 24pt; " );
 
 	# cjg - make help an option?
 
 	my $searchexp = $self->make_searchexp( 
-		$session,
+		$handle,
 		$value,
 		$basename."_" );
 
 	foreach my $sf ( $searchexp->get_non_filter_searchfields )
 	{
-		my $sfdiv = $session->make_element( 
+		my $sfdiv = $handle->make_element( 
 				"div" , 
 				class => "ep_search_field_name" );
 		$sfdiv->appendChild( $sf->render_name );
@@ -128,12 +128,12 @@ sub get_basic_input_elements
 
 sub form_value_basic
 {
-	my( $self, $session, $basename ) = @_;
+	my( $self, $handle, $basename ) = @_;
 	
-	my $ds = $session->get_repository->get_dataset( 
+	my $ds = $handle->get_repository->get_dataset( 
 			$self->{datasetid} );	
 	my $searchexp = EPrints::Search->new(
-		session => $session,
+		handle => $handle,
 		dataset => $ds,
 		prefix => $basename."_",
 		fieldnames => $self->get_property( "fieldnames" ) );

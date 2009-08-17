@@ -64,7 +64,7 @@ sub get_test_repository
 	return $repository;
 }
 
-=item $session = EPrints::Test::get_test_session( [ $noise ] )
+=item $handle = EPrints::Test::get_test_session( [ $noise ] )
 
 Returns a session to the first repository.
 
@@ -78,9 +78,9 @@ sub get_test_session
 
 	$noise ||= 0;
 
-	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	my $handle = new EPrints::Handle( 1 , $repoid , $noise );
 
-	return $session;
+	return $handle;
 }
 
 =item $size = EPrints::Test::mem_increase( [ $previous ] )
@@ -121,7 +121,7 @@ sub human_mem_increase
 	return EPrints::Utils::human_filesize( $diff );
 }
 
-=item $doc = EPrints::Test::get_test_document( $session )
+=item $doc = EPrints::Test::get_test_document( $handle )
 
 Finds and returns the first document in the repository.
 
@@ -129,9 +129,9 @@ Finds and returns the first document in the repository.
 
 sub get_test_document
 {
-	my( $session ) = @_;
+	my( $handle ) = @_;
 
-	my $db = $session->get_database;
+	my $db = $handle->get_database;
 
 	my $sth = $db->prepare_select(
 		sprintf("SELECT %s FROM %s ORDER BY %s ASC",
@@ -147,7 +147,7 @@ sub get_test_document
 
 	return unless defined $id;
 
-	return EPrints::DataObj::Document->new( $session, $id );
+	return EPrints::DataObj::Document->new( $handle, $id );
 }
 
 1;

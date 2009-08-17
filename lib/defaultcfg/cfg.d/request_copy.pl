@@ -7,7 +7,7 @@
 # requests for restricted documents can be handled within EPrints.
 $c->{email_for_doc_request} = sub 
 {
-	my ( $session, $eprint ) = @_;
+	my ( $handle, $eprint ) = @_;
 
 	# Uncomment the line below to turn off this feature
 	#return undef;
@@ -28,7 +28,7 @@ $c->{email_for_doc_request} = sub
 
 	# Uncomment the line below to fall back to the email
 	# address of the archive administrator - think carefully!
-	#return $session->get_repository->get_conf( "adminemail" );
+	#return $handle->get_repository->get_conf( "adminemail" );
 
 	# Uncomment the lines below to fall back to a different
 	# email address according on the divisions with which

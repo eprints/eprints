@@ -25,7 +25,7 @@ sub xml_dataobj
 {
 	my( $plugin, $dataobj, %opts ) = @_;
 
-	my $dc = $plugin->{session}->plugin( "Export::OAI_DC" );
+	my $dc = $plugin->{handle}->plugin( "Export::OAI_DC" );
 
 	return $dc->xml_dataobj( $dataobj, %opts );
 }
@@ -34,7 +34,7 @@ sub kev_dataobj
 {
 	my( $plugin, $dataobj, $ctx ) = @_;
 
-	my $dc = $plugin->{session}->plugin( "Export::DC" );
+	my $dc = $plugin->{handle}->plugin( "Export::DC" );
 
 	my $data = $dc->convert_dataobj( $dataobj );
 

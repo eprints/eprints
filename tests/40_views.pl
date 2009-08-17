@@ -18,12 +18,12 @@ $SIG{INT} = sub { die "CAUGHT SIGINT\n" };
 
 EPrints::Test::mem_increase();
 
-my $session = EPrints::Test::get_test_session( 0 );
-ok(defined $session, 'opened an EPrints::Session object (noisy, no_check_db)');
+my $handle = EPrints::Test::get_test_session( 0 );
+ok(defined $handle, 'opened an EPrints::Handle object (noisy, no_check_db)');
 
-$session->cache_subjects;
+$handle->cache_subjects;
 
-my $repository = $session->get_repository;
+my $repository = $handle->get_repository;
 
 my $views = $repository->get_conf( "browse_views" );
 
@@ -31,13 +31,13 @@ my $ds = $repository->get_dataset( "archive" );
 
 my $test_id = "_40_views_pl";
 
-my $lang = $session->get_lang;
+my $lang = $handle->get_lang;
 my $langid = $lang->{id};
 
 # Work-around to suppress the phrase warnings
 {
 my $data = $lang->_get_repositorydata;
-$data->{xml}->{"viewname_eprint_$test_id"} = $session->make_text( $test_id );
+$data->{xml}->{"viewname_eprint_$test_id"} = $handle->make_text( $test_id );
 keys %{$data->{file}};
 (undef, $data->{file}->{"viewname_eprint_$test_id"}) = each %{$data->{file}};
 keys %{$data->{file}};
@@ -63,7 +63,7 @@ EPrints::Test::mem_increase();
 Test::More::diag( "memory footprint\n" );
 
 push @files, update_view_by_path(
-		session => $session,
+		handle => $handle,
 		view => $test_view, 
 		langid => $langid, 
 		path => [],
@@ -73,12 +73,12 @@ push @files, update_view_by_path(
 Test::More::diag( "\t update_view_by_path=" . EPrints::Test::human_mem_increase() );
 
 push @files, EPrints::Update::Views::update_browse_view_list(
-		$session,
+		$handle,
 		$langid );
 
 Test::More::diag( "\t update_browse_view_list=" . EPrints::Test::human_mem_increase() );
 
-$session->terminate;
+$handle->terminate;
 
 ok(1);
 
@@ -88,14 +88,14 @@ sub update_view_by_path
 
 	my @files = ();
 
-	my $sizes = EPrints::Update::Views::get_sizes( $opts{session}, $opts{view}, $opts{path} );
+	my $sizes = EPrints::Update::Views::get_sizes( $opts{handle}, $opts{view}, $opts{path} );
 
 	if( defined $sizes )
 	{
 		# has sub levels
 		if( $opts{do_menus} )
 		{
-			my @menu_files = EPrints::Update::Views::update_view_menu( $opts{session}, $opts{view}, $opts{langid}, $opts{path} );
+			my @menu_files = EPrints::Update::Views::update_view_menu( $opts{handle}, $opts{view}, $opts{langid}, $opts{path} );
 			push @files, @menu_files;
 		}
 
@@ -112,7 +112,7 @@ sub update_view_by_path
 	if( !defined $sizes && $opts{do_lists} )
 	{
 		# is a leaf node
-		my @leaf_files = EPrints::Update::Views::update_view_list( $opts{session}, $opts{view}, $opts{langid}, $opts{path} );
+		my @leaf_files = EPrints::Update::Views::update_view_list( $opts{handle}, $opts{view}, $opts{langid}, $opts{path} );
 		push @files, @leaf_files;
 	}
 

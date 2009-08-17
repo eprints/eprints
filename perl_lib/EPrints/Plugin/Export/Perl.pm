@@ -40,7 +40,7 @@ sub output_list
 	my %datasets;
 
 	$opts{list}->map( sub {
-		my( $session, $dataset, $item ) = @_;
+		my( $handle, $dataset, $item ) = @_;
 
 		my $datasetid = $item->get_value( "mfdatasetid" );
 		push @{$datasets{$datasetid}}, $plugin->output_dataobj( $item );

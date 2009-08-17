@@ -56,9 +56,9 @@ $c->{diskspace_warn_threshold} = 512*1024;
 # It must return a legal document format id.
 $c->{guess_doc_type} = sub
 {
-	my( $session, $filename ) = @_;
+	my( $handle, $filename ) = @_;
 
-	my @formats = $session->get_repository->get_types( "document" );
+	my @formats = $handle->get_repository->get_types( "document" );
 
 	if( $filename=~m/\.([^.]+)$/ )
 	{
@@ -108,7 +108,7 @@ $c->{guess_doc_type} = sub
 
 $c->{on_files_modified} = sub
 {
-	my( $session, $document ) = @_;
+	my( $handle, $document ) = @_;
 
 	# do your stuff
 };

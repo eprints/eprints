@@ -57,7 +57,7 @@ sub redirect_to_me_url
 {
 	my( $self ) = @_;
 
-	my $cacheid = $self->{processor}->{session}->param( "cache" );
+	my $cacheid = $self->{processor}->{handle}->param( "cache" );
 
 	return $self->SUPER::redirect_to_me_url."&cache=$cacheid";
 }
@@ -67,12 +67,12 @@ sub get_cache
 	my( $self ) = @_;
 
 	my $processor = $self->{processor};
-	my $session = $processor->{session};
+	my $handle = $processor->{handle};
 
-	my $cacheid = $session->param( "cache" );
+	my $cacheid = $handle->param( "cache" );
 
-	my $dataset = $session->get_repository->get_dataset( "cachemap" );
-	my $cache = $dataset->get_object( $session, $cacheid );
+	my $dataset = $handle->get_repository->get_dataset( "cachemap" );
+	my $cache = $dataset->get_object( $handle, $cacheid );
 
 	return $cache;
 }
@@ -82,15 +82,15 @@ sub get_searchexp
 	my( $self ) = @_;
 
 	my $processor = $self->{processor};
-	my $session = $processor->{session};
+	my $handle = $processor->{handle};
 
-	my $cacheid = $session->param( "cache" );
+	my $cacheid = $handle->param( "cache" );
 
 	my $cache = $self->get_cache();
 
 	my $searchexp = EPrints::Search->new(
-		session => $session,
-		dataset => $session->get_repository->get_dataset( "eprint" ),
+		handle => $handle,
+		dataset => $handle->get_repository->get_dataset( "eprint" ),
 		keep_cache => 1,
 	);
 
@@ -108,7 +108,7 @@ sub action_edit
 	my( $self ) = @_;
 
 	my $processor = $self->{processor};
-	my $session = $processor->{session};
+	my $handle = $processor->{handle};
 
 	my $searchexp = $self->get_searchexp;
 	if( !$searchexp )
@@ -128,7 +128,7 @@ sub action_edit
 	my %changes = $self->get_changes( $dataset );
 
 	$list->map(sub {
-		my( $session, $dataset, $object ) = @_;
+		my( $handle, $dataset, $object ) = @_;
 
 		while(my( $fieldname, $opts ) = each %changes)
 		{
@@ -181,20 +181,20 @@ sub action_edit
 
 	if( %changes )
 	{
-		my $ul = $session->make_element( "ul" );
+		my $ul = $handle->make_element( "ul" );
 		while(my( $fieldname, $opts ) = each %changes)
 		{
 			my $field = $dataset->get_field( $fieldname );
 			my $action = $opts->{"action"};
 			my $value = $opts->{"value"};
-			my $li = $session->make_element( "li" );
+			my $li = $handle->make_element( "li" );
 			$ul->appendChild( $li );
 			$value = defined($value) ?
-				$field->render_single_value( $session, $value ) :
-				$session->html_phrase( "lib/metafield:unspecified" );
+				$field->render_single_value( $handle, $value ) :
+				$handle->html_phrase( "lib/metafield:unspecified" );
 			$li->appendChild( $self->html_phrase( "applied_$action",
 				value => $value,
-				fieldname => $session->html_phrase( "eprint_fieldname_$fieldname" ),
+				fieldname => $handle->html_phrase( "eprint_fieldname_$fieldname" ),
 			) );
 		}
 		$processor->add_message( "message", $self->html_phrase( "applied",
@@ -212,11 +212,11 @@ sub render
 	my( $self ) = @_;
 
 	my $processor = $self->{processor};
-	my $session = $processor->{session};
+	my $handle = $processor->{handle};
 
 	my( $page, $p, $div, $link );
 
-	$page = $session->make_doc_fragment;
+	$page = $handle->make_doc_fragment;
 
 	my $searchexp = $self->get_searchexp;
 
@@ -230,27 +230,27 @@ sub render
 
 	if( $list->count == 0 )
 	{
-		$processor->add_message( "error", $session->html_phrase( "lib/searchexpression:noresults" ) );
+		$processor->add_message( "error", $handle->html_phrase( "lib/searchexpression:noresults" ) );
 		return $page;
 	}
 
-	$p = $session->make_element( "p" );
+	$p = $handle->make_element( "p" );
 	$page->appendChild( $p );
 	$p->appendChild( $searchexp->render_description );
 
-	$p = $session->make_element( "p" );
+	$p = $handle->make_element( "p" );
 	$page->appendChild( $p );
-	$p->appendChild( $session->make_text(
+	$p->appendChild( $handle->make_text(
 		"Applying batch alterations to " . $list->count . " items (first 5 shown):"
 	) );
 
-	my $ul = $session->make_element( "ul" );
+	my $ul = $handle->make_element( "ul" );
 	$p->appendChild( $ul );
 
 	my @eprints = $list->get_records( 0, 5 );
 	foreach my $eprint (@eprints)
 	{
-		my $li = $session->make_element( "li" );
+		my $li = $handle->make_element( "li" );
 		$ul->appendChild( $li );
 		$li->appendChild( $eprint->render_citation_link( ) );
 	}
@@ -286,12 +286,12 @@ sub get_changes
 	my %changes;
 
 	my $processor = $self->{processor};
-	my $session = $processor->{session};
+	my $handle = $processor->{handle};
 
 	foreach my $field ($self->get_fields( $dataset ))
 	{
 		my $action = $field->get_name . "_action";
-		$action = $session->param( $action );
+		$action = $handle->param( $action );
 		if( $action )
 		{
 			local $field->{multiple};
@@ -302,11 +302,11 @@ sub get_changes
 			}
 			if( $field->is_type( "compound", "multilang" ) )
 			{
-				$value = $field->form_value( $session );
+				$value = $field->form_value( $handle );
 			}
 			else
 			{
-				$value = $field->form_value( $session, undef, $field->get_name );
+				$value = $field->form_value( $handle, undef, $field->get_name );
 			}
 			$changes{ $field->get_name } = {
 				action => $action,
@@ -323,11 +323,11 @@ sub render_changes_form
 	my( $self, $searchexp ) = @_;
 
 	my $processor = $self->{processor};
-	my $session = $processor->{session};
+	my $handle = $processor->{handle};
 
 	my( $page, $p, $div, $link );
 
-	$page = $session->make_doc_fragment;
+	$page = $handle->make_doc_fragment;
 
 	my $dataset = $searchexp->get_dataset;
 
@@ -377,7 +377,7 @@ sub render_changes_form
 		edit => "Apply Changes",
 	);
 
-	my $form = $session->render_input_form(
+	my $form = $handle->render_input_form(
 		dataset => $dataset,
 		fields => \@input_fields,
 		show_help => 0,
@@ -400,7 +400,7 @@ sub custom_field_to_field
 	my( $self, $dataset, $data ) = @_;
 
 	my $processor = $self->{processor};
-	my $session = $processor->{session};
+	my $handle = $processor->{handle};
 
 	$data->{fields_cache} = [];
 

@@ -19,12 +19,12 @@ $c->{summary_page_metadata} = [qw/
 
 ######################################################################
 
-=item $xhtmlfragment = eprint_render( $eprint, $session, $preview )
+=item $xhtmlfragment = eprint_render( $eprint, $handle, $preview )
 
 This subroutine takes an eprint object and renders the XHTML view
 of this eprint for public viewing.
 
-Takes two arguments: the L<$eprint|EPrints::DataObj::EPrint> to render and the current L<$session|EPrints::Session>.
+Takes two arguments: the L<$eprint|EPrints::DataObj::EPrint> to render and the current L<$handle|EPrints::Handle>.
 
 Returns three XHTML DOM fragments (see L<EPrints::XML>): C<$page>, C<$title>, (and optionally) C<$links>.
 
@@ -38,10 +38,10 @@ no sense.)
 
 $c->{eprint_render} = sub
 {
-	my( $eprint, $session, $preview ) = @_;
+	my( $eprint, $handle, $preview ) = @_;
 
-	my $succeeds_field = $session->get_repository->get_dataset( "eprint" )->get_field( "succeeds" );
-	my $commentary_field = $session->get_repository->get_dataset( "eprint" )->get_field( "commentary" );
+	my $succeeds_field = $handle->get_repository->get_dataset( "eprint" )->get_field( "succeeds" );
+	my $commentary_field = $handle->get_repository->get_dataset( "eprint" )->get_field( "commentary" );
 
 	my $flags = { 
 		has_multiple_versions => $eprint->in_thread( $succeeds_field ),
@@ -57,15 +57,15 @@ $c->{eprint_render} = sub
 		my $latest = $eprint->last_in_thread( $succeeds_field );
 		if( $latest->get_value( "eprintid" ) == $eprint->get_value( "eprintid" ) )
 		{
-			$fragments{multi_info} = $session->html_phrase( "page:latest_version" );
+			$fragments{multi_info} = $handle->html_phrase( "page:latest_version" );
 		}
 		else
 		{
-			$fragments{multi_info} = $session->render_message(
+			$fragments{multi_info} = $handle->render_message(
 				"warning",
-				$session->html_phrase( 
+				$handle->html_phrase( 
 					"page:not_latest_version",
-					link => $session->render_link( $latest->get_url() ) ) );
+					link => $handle->render_link( $latest->get_url() ) ) );
 		}
 	}		
 
@@ -122,9 +122,9 @@ if(0){
 
 	my $title = $eprint->render_description();
 
-	my $links = $session->make_doc_fragment();
-	$links->appendChild( $session->plugin( "Export::Simple" )->dataobj_to_html_header( $eprint ) );
-	$links->appendChild( $session->plugin( "Export::DC" )->dataobj_to_html_header( $eprint ) );
+	my $links = $handle->make_doc_fragment();
+	$links->appendChild( $handle->plugin( "Export::Simple" )->dataobj_to_html_header( $eprint ) );
+	$links->appendChild( $handle->plugin( "Export::DC" )->dataobj_to_html_header( $eprint ) );
 
 	return( $page, $title, $links );
 };

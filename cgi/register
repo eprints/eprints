@@ -15,40 +15,40 @@
 use EPrints;
 use strict;
 
-my $session = new EPrints::Session;
-exit( 0 ) unless( defined $session );
+my $handle = new EPrints::Handle;
+exit( 0 ) unless( defined $handle );
 
-my( $page, $title ) = make_page( $session );
+my( $page, $title ) = make_page( $handle );
 
-$session->build_page( $title, $page, "register" );
-$session->send_page();
+$handle->build_page( $title, $page, "register" );
+$handle->send_page();
 
-$session->terminate();
+$handle->terminate();
 
 sub make_page
 {
-	my( $session ) = @_;
+	my( $handle ) = @_;
 
 	my $min = 0;
-	my $signup_style = $session->get_repository->get_conf( "signup_style" );
+	my $signup_style = $handle->get_repository->get_conf( "signup_style" );
 	if( defined $signup_style && $signup_style eq "minimal" )
 	{
 		$min = 1;
 	}
 
-	unless( $session->get_repository->get_conf("allow_web_signup") )
+	unless( $handle->get_repository->get_conf("allow_web_signup") )
 	{
 		return mk_err_page( 
-			$session,
+			$handle,
 			"cgi/register:no_web_signup" );
 	}
 
-	my $user_ds = $session->get_repository->get_dataset( "user" );
+	my $user_ds = $handle->get_repository->get_dataset( "user" );
 
-	my $extrafields = $session->get_repository->get_conf( "extra_reg_fields" );
+	my $extrafields = $handle->get_repository->get_conf( "extra_reg_fields" );
 
-	my $default_type = $session->get_repository->get_conf( "default_user_type" ); 
-	my $extrafields =  $session->get_repository->get_conf( "user_registration_fields" ) if !$min;
+	my $default_type = $handle->get_repository->get_conf( "default_user_type" ); 
+	my $extrafields =  $handle->get_repository->get_conf( "user_registration_fields" ) if !$min;
 	$extrafields = [] if( !defined $extrafields );
 
 	my $fieldlist = []; 
@@ -77,34 +77,34 @@ sub make_page
 		push @{$fieldlist}, $f->{$fieldid};
 	}
 
-	if( !$session->have_parameters() )
+	if( !$handle->have_parameters() )
 	{
-		my $page = $session->make_doc_fragment;
+		my $page = $handle->make_doc_fragment;
 		unless( $min )
 		{
-			$page->appendChild( $session->html_phrase( "cgi/register:intro" ) );
+			$page->appendChild( $handle->html_phrase( "cgi/register:intro" ) );
 		}
 		else
 		{
-			$page->appendChild( $session->html_phrase( "cgi/register:intro_minimal" ) );
+			$page->appendChild( $handle->html_phrase( "cgi/register:intro_minimal" ) );
 		}
-		my $defaults = { lang => $session->get_langid() };
-		$page->appendChild( make_reg_form( $session, $fieldlist, $defaults ));
+		my $defaults = { lang => $handle->get_langid() };
+		$page->appendChild( make_reg_form( $handle, $fieldlist, $defaults ));
 		
-		my $title = $session->html_phrase( "cgi/register:title" );
+		my $title = $handle->html_phrase( "cgi/register:title" );
 		return( $page, $title );
 	}
 
 
 
-	if( $session->have_parameters() )
+	if( $handle->have_parameters() )
 	{
 	}
 	# Process the form.
-	my $v = { lang => $session->get_langid() };
+	my $v = { lang => $handle->get_langid() };
 	foreach my $field ( @{$fieldlist} )
 	{
-		$v->{$field->get_name} = $field->form_value( $session );
+		$v->{$field->get_name} = $field->form_value( $handle );
 	}
 	$v->{username} = $v->{email} if $min;
 	foreach my $field ( @{$fieldlist} )
@@ -113,63 +113,63 @@ sub make_page
 			&& $field->get_property( "required" ) )
 		{
 			return mk_err_page( 
-				$session,
+				$handle,
 				"cgi/register:missing_field",
 				$fieldlist,
 				$v,
-				{fieldname=>$field->render_name($session)} );
+				{fieldname=>$field->render_name($handle)} );
 		}
 
-		my @problems = $field->validate( $session, $v->{$field->get_name} );
+		my @problems = $field->validate( $handle, $v->{$field->get_name} );
 		if( scalar @problems )
 		{
-			my $ul = $session->make_element( "ul" );
+			my $ul = $handle->make_element( "ul" );
 			for(@problems)
 			{
-				my $li = $session->make_element( "li" );
+				my $li = $handle->make_element( "li" );
 				$ul->appendChild( $li );
 				$li->appendChild( $_ );
 			}
 			return mk_err_page( 
-				$session,
+				$handle,
 				"cgi/register:field_error",
 				$fieldlist,
 				$v,
-				{fieldname=>$field->render_name($session), problems=>$ul} );
+				{fieldname=>$field->render_name($handle), problems=>$ul} );
 		}
 	}
 
-	if( defined EPrints::DataObj::User::user_with_email( $session, $v->{email} ) )
+	if( defined EPrints::DataObj::User::user_with_email( $handle, $v->{email} ) )
 	{
 		return mk_err_page( 
-			$session,
+			$handle,
 			"cgi/register:email_exists", 
 			$fieldlist,
 			$v,
-			{email=>$session->make_text( $v->{email} )} );
+			{email=>$handle->make_text( $v->{email} )} );
 	}
 
-	if( $session->get_repository->can_call( "check_registration_email" ) )
+	if( $handle->get_repository->can_call( "check_registration_email" ) )
 	{
-		unless( $session->get_repository->call( "check_registration_email", $session, $v->{email} ) )
+		unless( $handle->get_repository->call( "check_registration_email", $handle, $v->{email} ) )
 		{
 			return mk_err_page(
-				$session,
+				$handle,
 				"cgi/register:email_denied",
 				$fieldlist,
 				$v,
-				{email=>$session->make_text( $v->{email} )} );
+				{email=>$handle->make_text( $v->{email} )} );
 		}
 	} 
 
-	if( defined EPrints::DataObj::User::user_with_username( $session, $v->{username} ) )
+	if( defined EPrints::DataObj::User::user_with_username( $handle, $v->{username} ) )
 	{
 		return mk_err_page( 
-			$session,
+			$handle,
 			"cgi/register:username_exists", 
 			$fieldlist,
 			$v,
-			{username=>$session->make_text( $v->{username} )} );
+			{username=>$handle->make_text( $v->{username} )} );
 	}
 
 	my $pin = sprintf( "%04X%04X%04X%04X",int rand 0xffff,int rand 0xffff,int rand 0xffff,int rand 0xffff );
@@ -187,26 +187,26 @@ sub make_page
 	{
 		$user_data->{username} = $v->{email};
 	}
-	my $user_dataset = $session->get_repository->get_dataset( "user" );
-	my $user = $user_dataset->create_object( $session, $user_data );
+	my $user_dataset = $handle->get_repository->get_dataset( "user" );
+	my $user = $user_dataset->create_object( $handle, $user_data );
 
-	my $page = $session->make_doc_fragment;
-	$page->appendChild( $session->html_phrase( 
+	my $page = $handle->make_doc_fragment;
+	$page->appendChild( $handle->html_phrase( 
 		"cgi/register:created_new_user",
-			email=>$session->make_text( $v->{email} ),
-			username=>$session->make_text( $v->{username} ) ) );
+			email=>$handle->make_text( $v->{email} ),
+			username=>$handle->make_text( $v->{username} ) ) );
 
 	my $maxdelta = EPrints::Time::human_delay(
-		$session->get_repository->get_conf( "pin_timeout" ) );
+		$handle->get_repository->get_conf( "pin_timeout" ) );
 
 	# If email fails then we should abort
 	my $rc = $user->mail( 
 		"cgi/register:account",
-		$session->html_phrase( 
+		$handle->html_phrase( 
 			"mail_password_pin", 
-			confirmurl => $session->render_link( $session->get_repository->get_conf( "perl_url" )."/confirm?userid=".$user->get_value( "userid" )."&pin=".$pin ),
+			confirmurl => $handle->render_link( $handle->get_repository->get_conf( "perl_url" )."/confirm?userid=".$user->get_value( "userid" )."&pin=".$pin ),
 			username => $user->render_value( "username" ),
-			maxdelta => $session->make_text( $maxdelta ) ) );
+			maxdelta => $handle->make_text( $maxdelta ) ) );
 
 	if( !$rc )
 	{
@@ -214,56 +214,56 @@ sub make_page
 		# and apologise
 		$user->remove();
 		return mk_err_page(
-			$session,
+			$handle,
 			"general:email_failed",
 			$fieldlist,
 			$v,
 			{} );
 	}
 
-#`	$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
+#`	$page->appendChild( $handle->html_phrase( "general:frontpage_link" ) );
 
-	my $title = $session->html_phrase( "cgi/register:title" );
+	my $title = $handle->html_phrase( "cgi/register:title" );
 	return( $page, $title );
 }
 
 
 sub mk_err_page
 {
-	my( $session, $phrase, $fieldlist, $defaults, $opts ) = @_;
+	my( $handle, $phrase, $fieldlist, $defaults, $opts ) = @_;
 
-	my $page = $session->make_doc_fragment;
+	my $page = $handle->make_doc_fragment;
 
-	$page->appendChild( $session->render_message( "error", 
-		$session->html_phrase( $phrase, %{$opts} ) ) );
+	$page->appendChild( $handle->render_message( "error", 
+		$handle->html_phrase( $phrase, %{$opts} ) ) );
 
-#	$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
+#	$page->appendChild( $handle->html_phrase( "general:frontpage_link" ) );
 	if( defined $fieldlist )
 	{
-		#$page->appendChild( $session->render_ruler );
-		$page->appendChild( make_reg_form( $session, $fieldlist, $defaults ) );
+		#$page->appendChild( $handle->render_ruler );
+		$page->appendChild( make_reg_form( $handle, $fieldlist, $defaults ) );
 	}
 
 	return( 
 		$page,	
-		$session->html_phrase( "cgi/register:error" ) );
+		$handle->html_phrase( "cgi/register:error" ) );
 }
 
 sub make_reg_form
 {
-	my( $session, $fieldlist, $defaults ) = @_;
+	my( $handle, $fieldlist, $defaults ) = @_;
 
 	$defaults->{newpassword} = undef;
 
-	return $session->render_input_form(
+	return $handle->render_input_form(
 			fields=>$fieldlist,
 			values=>$defaults,
 			show_help=>1,
 			show_names=>1,
-			comments=>{above_buttons=>$session->html_phrase( "cgi/register:register_agreement" )},
+			comments=>{above_buttons=>$handle->html_phrase( "cgi/register:register_agreement" )},
 			default_action=>"submit",
 			buttons=>{
-				submit=>$session->phrase( "cgi/register:action_submit" )
+				submit=>$handle->phrase( "cgi/register:action_submit" )
 			},
 			dest=>"register" );
 }

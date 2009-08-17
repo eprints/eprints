@@ -46,7 +46,7 @@ use EPrints::MetaField;
 
 sub get_sql_type
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
 	return undef;
 }
@@ -75,19 +75,19 @@ sub get_property_defaults
 
 sub render_xml_schema
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
 	my $datasetid = $self->get_property( "datasetid" );
 
-	my $element = $session->make_element( "xs:element", name => $self->get_name );
+	my $element = $handle->make_element( "xs:element", name => $self->get_name );
 
 	if( $self->get_property( "multiple" ) )
 	{
-		my $complexType = $session->make_element( "xs:complexType" );
+		my $complexType = $handle->make_element( "xs:complexType" );
 		$element->appendChild( $complexType );
-		my $sequence = $session->make_element( "xs:sequence" );
+		my $sequence = $handle->make_element( "xs:sequence" );
 		$complexType->appendChild( $sequence );
-		my $item = $session->make_element( "xs:element", name => $datasetid, maxOccurs => "unbounded", type => $self->get_xml_schema_type() );
+		my $item = $handle->make_element( "xs:element", name => $datasetid, maxOccurs => "unbounded", type => $self->get_xml_schema_type() );
 		$sequence->appendChild( $item );
 	}
 	else
@@ -107,22 +107,22 @@ sub get_xml_schema_type
 
 sub render_xml_schema_type
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	return $session->make_doc_fragment;
+	return $handle->make_doc_fragment;
 }
 
 sub get_value
 {
 	my( $self, $parent ) = @_;
 
-	my $ds = $parent->get_session->get_repository->get_dataset( $self->get_property( "datasetid" ) );
+	my $ds = $parent->get_handle->get_repository->get_dataset( $self->get_property( "datasetid" ) );
 
 	my( $keyfield ) = $ds->get_fields;
 	my $keyname = $keyfield->get_name;
 
 	my $searchexp = EPrints::Search->new(
-		session => $parent->get_session,
+		handle => $parent->get_handle,
 		dataset => $ds,
 		custom_order => "-$keyname",
 	);
@@ -174,17 +174,17 @@ sub get_value
 
 sub to_xml
 {
-	my( $self, $session, $value, $dataset, %opts ) = @_;
+	my( $self, $handle, $value, $dataset, %opts ) = @_;
 
 	# don't show empty fields
 	if( !$opts{show_empty} && !EPrints::Utils::is_set( $value ) )
 	{
-		return $session->make_doc_fragment;
+		return $handle->make_doc_fragment;
 	}
 
 	if( $self->get_property( "multiple" ) )
 	{
-		my $tag = $session->make_element( $self->get_name() );
+		my $tag = $handle->make_element( $self->get_name() );
 		foreach my $dataobj ( @{$value||[]} )
 		{
 			$tag->appendChild( $dataobj->to_xml( %opts ) );
@@ -197,13 +197,13 @@ sub to_xml
 	}
 	else
 	{
-		return $session->make_doc_fragment;
+		return $handle->make_doc_fragment;
 	}
 }
 
 sub xml_to_epdata
 {
-	my( $self, $session, $xml, %opts ) = @_;
+	my( $self, $handle, $xml, %opts ) = @_;
 
 	my $value = undef;
 
@@ -213,7 +213,7 @@ sub xml_to_epdata
 		foreach my $node ($xml->childNodes)
 		{
 			next unless EPrints::XML::is_dom( $node, "Element" );
-			my $epdata = $self->xml_to_epdata_basic( $session, $node, %opts );
+			my $epdata = $self->xml_to_epdata_basic( $handle, $node, %opts );
 			if( defined $epdata )
 			{
 				push @$value, $epdata;
@@ -222,7 +222,7 @@ sub xml_to_epdata
 	}
 	else
 	{
-		$value = $self->xml_to_epdata_basic( $session, $xml, %opts );
+		$value = $self->xml_to_epdata_basic( $handle, $xml, %opts );
 	}
 
 	return $value;
@@ -230,11 +230,11 @@ sub xml_to_epdata
 
 sub xml_to_epdata_basic
 {
-	my( $self, $session, $xml, %opts ) = @_;
+	my( $self, $handle, $xml, %opts ) = @_;
 
 	my $datasetid = $self->get_property( "datasetid" );
 
-	my $ds = $session->get_repository->get_dataset( $datasetid );
+	my $ds = $handle->get_repository->get_dataset( $datasetid );
 	my $class = $ds->get_object_class;
 
 	my $nodeName = $xml->nodeName;
@@ -242,13 +242,13 @@ sub xml_to_epdata_basic
 	{
 		if( defined $opts{Handler} )
 		{
-			$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:unexpected_element", name => $session->make_text( $nodeName ) ) );
-			$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:expected", elements => $session->make_text( "<$datasetid>" ) ) );
+			$opts{Handler}->message( "warning", $handle->html_phrase( "Plugin/Import/XML:unexpected_element", name => $handle->make_text( $nodeName ) ) );
+			$opts{Handler}->message( "warning", $handle->html_phrase( "Plugin/Import/XML:expected", elements => $handle->make_text( "<$datasetid>" ) ) );
 		}
 		return undef;
 	}
 
-	return $class->xml_to_epdata( $session, $xml, %opts );
+	return $class->xml_to_epdata( $handle, $xml, %opts );
 }
 
 ######################################################################

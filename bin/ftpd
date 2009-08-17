@@ -27,21 +27,21 @@ GetOptions(
 
 my( $repoid ) = @ARGV;
 
-my $session = EPrints::Session->new( 1, $repoid );
-exit unless $session;
+my $handle = EPrints::Handle->new( 1, $repoid );
+exit unless $handle;
 
 POE::Session->create(
 	inline_states => {
 		_start => sub {
 			my( $kernel, $heap ) = @_[KERNEL, HEAP];
 
-			$heap->{session} = $session;
+			$heap->{handle} = $handle;
 
 			POE::Component::Server::FTP->spawn(
 				Alias => 'ftpd',
 				ListenPort => $port,
-				Domain => $session->get_repository->get_conf( "host" ),
-				Version => $session->get_repository->get_conf( "version" ),
+				Domain => $handle->get_repository->get_conf( "host" ),
+				Version => $handle->get_repository->get_conf( "version" ),
 				AnonymousLogin => "deny",
 #	FilesystemClass => "Filesys::Virtual::Plain",
 #	FilesystemArgs => {
@@ -51,7 +51,7 @@ POE::Session->create(
 #	},
 				FilesystemClass => "EPrints::Filesys",
 				FilesystemArgs => {
-					session => $session,
+					handle => $handle,
 				},
 				DownloadLimit => 0, # data rate in bits/second
 				UploadLimit => 0,   # data rate in bits/second
@@ -64,7 +64,7 @@ POE::Session->create(
 		_stop => sub {
 			my( $kernel, $heap ) = @_[KERNEL, HEAP];
 
-			$heap->{session}->terminate;
+			$heap->{handle}->terminate;
 		},
 		_default => sub {
 			my( $kernel, $heap, $event, $arg ) = @_[KERNEL, HEAP, ARG0, ARG1];

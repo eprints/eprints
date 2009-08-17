@@ -80,7 +80,7 @@ sub run_log
 {
 	my( $self, $event, @params ) = @_;
 
-	$self->{session}->get_repository->log( "event: ".$event->get_value( "action" ) . " (" . join(', ', @params) . ")" );
+	$self->{handle}->get_repository->log( "event: ".$event->get_value( "action" ) . " (" . join(', ', @params) . ")" );
 
 	return 1;
 }
@@ -89,7 +89,7 @@ sub plain_message
 {
 	my( $self, $type, $msg ) = @_;
 
-	$self->message( $type, $self->{session}->make_text( $msg ) );
+	$self->message( $type, $self->{handle}->make_text( $msg ) );
 }
 
 # TODO: scheduler logging?

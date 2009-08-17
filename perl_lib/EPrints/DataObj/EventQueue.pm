@@ -101,22 +101,22 @@ sub get_dataset_id { "event_queue" }
 
 sub create_unique
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $handle, $data, $dataset ) = @_;
 
-	$dataset ||= $session->get_repository->get_dataset( $class->get_dataset_id );
+	$dataset ||= $handle->get_repository->get_dataset( $class->get_dataset_id );
 
 	$data->{unique} = "TRUE";
 
 	my $md5 = Digest::MD5->new;
 	$md5->add( $data->{pluginid} );
 	$md5->add( $data->{action} );
-	$md5->add( EPrints::MetaField::Storable->freeze( $session, $data->{params} ) )
+	$md5->add( EPrints::MetaField::Storable->freeze( $handle, $data->{params} ) )
 		if EPrints::Utils::is_set( $data->{params} );
 	$data->{hash} = $md5->hexdigest;
 
 	my $searchexp = EPrints::Search->new(
 		dataset => $dataset,
-		session => $session,
+		handle => $handle,
 		filters => [
 			{ meta_fields => [qw( hash )], value => $data->{hash} },
 			{ meta_fields => [qw( status )], value => "waiting inprogress", match => "EQ", merge => "ANY" },
@@ -129,7 +129,7 @@ sub create_unique
 		return undef;
 	}
 
-	return $class->create_from_data( $session, $data, $dataset );
+	return $class->create_from_data( $handle, $data, $dataset );
 }
 
 1;

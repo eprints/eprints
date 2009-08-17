@@ -61,7 +61,7 @@ sub export
 	my( $codes, $badwords ) = ( [], [] );
 	if( $text )
 	{
-		( $codes, $badwords ) = EPrints::MetaField::Text::_extract_words( $self->{session}, $text );
+		( $codes, $badwords ) = EPrints::MetaField::Text::_extract_words( $self->{handle}, $text );
 	}
 
 	return () unless scalar(@$codes);

@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::Session::Render
+# EPrints::Handle::Render
 #
 ######################################################################
 #
@@ -17,11 +17,11 @@
 
 =head1 NAME
 
-B<EPrints::Session::Render> - Render methods for EPrinst::Session
+B<EPrints::Handle::Render> - Render methods for EPrinst::Session
 
 =head1 DESCRIPTION
 
-This module provides additional methods to EPrints::Session and is not
+This module provides additional methods to EPrints::Handle and is not
 an object in it's own right.
 
 =over 4
@@ -30,13 +30,13 @@ an object in it's own right.
 
 use strict;
 
-package EPrints::Session;
+package EPrints::Handle;
 
 
 ######################################################################
 =pod
 
-=item $langid = EPrints::Session::get_session_language( $repository, $request )
+=item $langid = EPrints::Handle::get_language( $repository, $request )
 
 Given an repository object and a Apache (mod_perl) request object, this
 method decides what language the session should be.
@@ -51,7 +51,7 @@ eprint repository actually supports.
 =cut
 ######################################################################
 
-sub get_session_language
+sub get_language
 {
 	my( $repository, $request ) = @_; #$r should not really be passed???
 
@@ -115,7 +115,7 @@ END
 ######################################################################
 =pod
 
-=item $session->change_lang( $newlangid )
+=item $handle->change_lang( $newlangid )
 
 Change the current language of the session. $newlangid should be a
 valid country code for the current repository.
@@ -146,7 +146,7 @@ sub change_lang
 ######################################################################
 =pod
 
-=item $xhtml_phrase = $session->html_phrase( $phraseid, %inserts )
+=item $xhtml_phrase = $handle->html_phrase( $phraseid, %inserts )
 
 Return an XHTML DOM object describing a phrase from the phrase files.
 
@@ -184,7 +184,7 @@ sub html_phrase
 ######################################################################
 =pod
 
-=item $utf8_text = $session->phrase( $phraseid, %inserts )
+=item $utf8_text = $handle->phrase( $phraseid, %inserts )
 
 Performs the same function as html_phrase, but returns plain text.
 
@@ -213,7 +213,7 @@ sub phrase
 ######################################################################
 =pod
 
-=item $language = $session->get_lang
+=item $language = $handle->get_lang
 
 Return the EPrints::Language object for this sessions current 
 language.
@@ -232,7 +232,7 @@ sub get_lang
 ######################################################################
 =pod
 
-=item $langid = $session->get_langid
+=item $langid = $handle->get_langid
 
 Return the ID code of the current language of this session.
 
@@ -253,7 +253,7 @@ sub get_langid
 ######################################################################
 =pod
 
-=item $value = EPrints::Session::best_language( $repository, $lang, %values )
+=item $value = EPrints::Handle::best_language( $repository, $lang, %values )
 
 $repository is the current repository. $lang is the prefered language.
 
@@ -307,7 +307,7 @@ sub best_language
 ######################################################################
 =pod
 
-=item $viewname = $session->get_view_name( $dataset, $viewid )
+=item $viewname = $handle->get_view_name( $dataset, $viewid )
 
 Return a UTF8 encoded string containing the human readable name
 of the /view/ section with the ID $viewid.

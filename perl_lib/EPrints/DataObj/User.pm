@@ -213,7 +213,7 @@ sub get_system_field_info
 ######################################################################
 =pod
 
-=item $user = EPrints::DataObj::User->new( $session, $userid )
+=item $user = EPrints::DataObj::User->new( $handle, $userid )
 
 Load the user with the ID of $userid from the database and return
 it as an EPrints::DataObj::User object.
@@ -223,10 +223,10 @@ it as an EPrints::DataObj::User object.
 
 sub new
 {
-	my( $class, $session, $userid ) = @_;
+	my( $class, $handle, $userid ) = @_;
 
-	return $session->get_database->get_single( 
-		$session->get_repository->get_dataset( "user" ),
+	return $handle->get_database->get_single( 
+		$handle->get_repository->get_dataset( "user" ),
 		$userid );
 }
 
@@ -234,7 +234,7 @@ sub new
 ######################################################################
 =pod
 
-=item $user = EPrints::DataObj::User->new_from_data( $session, $data )
+=item $user = EPrints::DataObj::User->new_from_data( $handle, $data )
 
 Construct a new EPrints::DataObj::User object based on the $data hash 
 reference of metadata.
@@ -246,12 +246,12 @@ Used to create an object from the data retrieved from the database.
 
 sub new_from_data
 {
-	my( $class, $session, $known ) = @_;
+	my( $class, $handle, $known ) = @_;
 
 	return $class->SUPER::new_from_data(
-			$session,
+			$handle,
 			$known,
-			$session->get_repository->get_dataset( "user" ) );
+			$handle->get_repository->get_dataset( "user" ) );
 }
 
 
@@ -259,7 +259,7 @@ sub new_from_data
 ######################################################################
 # =pod
 # 
-# =item $user = EPrints::DataObj::User::create( $session, $user_type )
+# =item $user = EPrints::DataObj::User::create( $handle, $user_type )
 # 
 # Create a new user in the database with the specified user type.
 # 
@@ -268,19 +268,19 @@ sub new_from_data
 
 sub create
 {
-	my( $session, $user_type ) = @_;
+	my( $handle, $user_type ) = @_;
 
 
 	return EPrints::DataObj::User->create_from_data( 
-		$session, 
+		$handle, 
 		{ usertype=>$user_type },
-		$session->get_repository->get_dataset( "user" ) );
+		$handle->get_repository->get_dataset( "user" ) );
 }
 
 ######################################################################
 # =pod
 # 
-# =item $dataobj = EPrints::DataObj->create_from_data( $session, $data, $dataset )
+# =item $dataobj = EPrints::DataObj->create_from_data( $handle, $data, $dataset )
 # 
 # Create a new object of this type in the database. 
 # 
@@ -293,11 +293,11 @@ sub create
 
 sub create_from_data
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $handle, $data, $dataset ) = @_;
 
-	my $new_user = $class->SUPER::create_from_data( $session, $data, $dataset );
+	my $new_user = $class->SUPER::create_from_data( $handle, $data, $dataset );
 
-	$session->get_repository->call( 
+	$handle->get_repository->call( 
 		"set_user_automatic_fields", 
 		$new_user );
 	
@@ -307,12 +307,12 @@ sub create_from_data
 		$new_user->tidy;
 
 		# Write the data to the database
-		$session->get_database->update(
+		$handle->get_database->update(
 			$new_user->{dataset},
 			$new_user->{data} );
 	}
 
-	$session->get_database->counter_minimum( "userid", $new_user->get_id );
+	$handle->get_database->counter_minimum( "userid", $new_user->get_id );
 
 	return $new_user;
 }
@@ -335,7 +335,7 @@ sub get_dataset_id
 ######################################################################
 =pod
 
-=item $defaults = EPrints::DataObj::User->get_defaults( $session, $data )
+=item $defaults = EPrints::DataObj::User->get_defaults( $handle, $data )
 
 Return default values for this object based on the starting data.
 
@@ -344,14 +344,14 @@ Return default values for this object based on the starting data.
 
 sub get_defaults
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $handle, $data, $dataset ) = @_;
 
-	$class->SUPER::get_defaults( $session, $data, $dataset );
+	$class->SUPER::get_defaults( $handle, $data, $dataset );
 
-	$session->get_repository->call(
+	$handle->get_repository->call(
 		"set_user_defaults",
 		$data,
-		$session );
+		$handle );
 
 	return $data;
 }
@@ -361,7 +361,7 @@ sub get_defaults
 ######################################################################
 =pod
 
-=item $user = EPrints::DataObj::User::user_with_email( $session, $email )
+=item $user = EPrints::DataObj::User::user_with_email( $handle, $email )
 
 Return the EPrints::user with the specified $email, or undef if they
 are not found.
@@ -371,12 +371,12 @@ are not found.
 
 sub user_with_email
 {
-	my( $session, $email ) = @_;
+	my( $handle, $email ) = @_;
 	
-	my $user_ds = $session->get_repository->get_dataset( "user" );
+	my $user_ds = $handle->get_repository->get_dataset( "user" );
 
 	my $searchexp = new EPrints::Search(
-		session=>$session,
+		handle =>$handle,
 		dataset=>$user_ds );
 
 	$searchexp->add_field(
@@ -394,7 +394,7 @@ sub user_with_email
 ######################################################################
 =pod
 
-=item $user = EPrints::DataObj::User::user_with_username( $session, $username )
+=item $user = EPrints::DataObj::User::user_with_username( $handle, $username )
 
 Return the EPrints::user with the specified $username, or undef if 
 they are not found.
@@ -404,12 +404,12 @@ they are not found.
 
 sub user_with_username
 {
-	my( $session, $username ) = @_;
+	my( $handle, $username ) = @_;
 	
-	my $user_ds = $session->get_repository->get_dataset( "user" );
+	my $user_ds = $handle->get_repository->get_dataset( "user" );
 
 	my $searchexp = new EPrints::Search(
-		session=>$session,
+		handle =>$handle,
 		dataset=>$user_ds );
 
 	$searchexp->add_field(
@@ -448,17 +448,17 @@ sub validate
 
 	my @problems;
 
-	my $user_ds = $self->{session}->get_repository->get_dataset( "user" );
+	my $user_ds = $self->{handle}->get_repository->get_dataset( "user" );
 
-	my %opts = ( item=> $self, session=>$self->{session} );
- 	my $workflow = EPrints::Workflow->new( $self->{session}, $workflow_id, %opts );
+	my %opts = ( item=> $self, handle =>$self->{handle} );
+ 	my $workflow = EPrints::Workflow->new( $self->{handle}, $workflow_id, %opts );
 
 	push @problems, $workflow->validate;
 
-	push @problems, $self->{session}->get_repository->call(
+	push @problems, $self->{handle}->get_repository->call(
 			"validate_user",
 			$self,
-			$self->{session} );
+			$self->{handle} );
 
 	return( \@problems );
 }
@@ -482,7 +482,7 @@ sub commit
 {
 	my( $self, $force ) = @_;
 
-	$self->{session}->get_repository->call( 
+	$self->{handle}->get_repository->call( 
 		"set_user_automatic_fields", 
 		$self );
 	
@@ -526,8 +526,8 @@ sub remove
 	}
 
 	# remove user record
-	my $user_ds = $self->{session}->get_repository->get_dataset( "user" );
-	$success = $success && $self->{session}->get_database->remove(
+	my $user_ds = $self->{handle}->get_repository->get_dataset( "user" );
+	$success = $success && $self->{handle}->get_database->remove(
 		$user_ds,
 		$self->get_value( "userid" ) );
 	
@@ -555,7 +555,7 @@ sub get_eprints
 	my( $self , $ds ) = @_;
 
 	my $searchexp = new EPrints::Search(
-		session=>$self->{session},
+		handle =>$self->{handle},
 		custom_order=>"eprintid",
 		dataset=>$ds );
 
@@ -585,13 +585,13 @@ sub get_editable_eprints
 
 	unless( $self->is_set( 'editperms' ) )
 	{
-		my $ds = $self->{session}->get_repository->get_dataset( 
+		my $ds = $self->{handle}->get_repository->get_dataset( 
 			"buffer" );
 		my $searchexp = EPrints::Search->new(
 			allow_blank => 1,
 			custom_order => "-datestamp",
 			dataset => $ds,
-			session => $self->{session} );
+			handle => $self->{handle} );
 		return $searchexp->perform_search;
 	}
 
@@ -600,10 +600,10 @@ sub get_editable_eprints
 	foreach my $sv ( @{$self->get_value( 'editperms' )} )
 	{
 		my $searchexp = $editperms->make_searchexp(
-			$self->{session},
+			$self->{handle},
 			$sv );
 		$searchexp->add_field(
-			$self->{session}->get_repository->get_dataset("eprint" )->get_field( "eprint_status" ),
+			$self->{handle}->get_repository->get_dataset("eprint" )->get_field( "eprint_status" ),
 			"buffer" );
 		$searchexp->{custom_order}="-datestamp";
 	        $searchexp->{order} = $EPrints::Search::CustomOrder;
@@ -639,14 +639,14 @@ sub get_owned_eprints
 {
 	my( $self, $ds ) = @_;
 
-	my $fn = $self->{session}->get_repository->get_conf( "get_users_owned_eprints" );
+	my $fn = $self->{handle}->get_repository->get_conf( "get_users_owned_eprints" );
 
 	if( !defined $fn )
 	{
 		return $self->get_eprints( $ds );
 	}
 
-	my $result = &$fn( $self->{session}, $self, $ds );
+	my $result = &$fn( $self->{handle}, $self, $ds );
 	unless( $result->isa( "EPrints::List" ) )
 	{
 		EPrints::abort( "get_users_owned_eprints should now return an EPrints::List object." );
@@ -710,7 +710,7 @@ sub mail
 
 	# Mail the admin in the default language
 	my $langid = $self->get_value( "lang" );
-	my $lang = $self->{session}->get_repository->get_language( $langid );
+	my $lang = $self->{handle}->get_repository->get_language( $langid );
 
 	my $remail;
 	my $rname;
@@ -725,13 +725,13 @@ sub mail
 	}
 
 	return EPrints::Email::send_mail(
-		session  => $self->{session},
+		handle => $self->{handle},
 		langid   => $langid,
 		to_name  => EPrints::Utils::tree_to_utf8( $self->render_description ),
 		to_email => $email,
-		subject  => EPrints::Utils::tree_to_utf8( $lang->phrase( $subjectid, {}, $self->{session} ) ),
+		subject  => EPrints::Utils::tree_to_utf8( $lang->phrase( $subjectid, {}, $self->{handle} ) ),
 		message  => $message,
-		sig      => $lang->phrase( "mail_sig", {}, $self->{session} ),
+		sig      => $lang->phrase( "mail_sig", {}, $self->{handle} ),
 		replyto_name  => $rname, 
 		replyto_email => $remail,
 	); 
@@ -755,7 +755,7 @@ sub render
 {
 	my( $self ) = @_;
 
-	my( $dom, $title ) = $self->{session}->get_repository->call( "user_render", $self, $self->{session} );
+	my( $dom, $title ) = $self->{handle}->get_repository->call( "user_render", $self, $self->{handle} );
 
 	if( !defined $title )
 	{
@@ -784,22 +784,22 @@ sub render_full
 
 	my( $table, $title ) = $self->SUPER::render_full;
 
-	my $ds = $self->{session}->get_repository->get_dataset( "saved_search" );
+	my $ds = $self->{handle}->get_repository->get_dataset( "saved_search" );
 	foreach my $saved_search ( $self->get_saved_searches )
 	{
-		my $rowright = $self->{session}->make_doc_fragment;
+		my $rowright = $self->{handle}->make_doc_fragment;
 		foreach( "frequency","spec","mailempty" )
 		{
 			my $strong;
-			$strong = $self->{session}->make_element( "strong" );
-			$strong->appendChild( $ds->get_field( $_ )->render_name( $self->{session} ) );
-			$strong->appendChild( $self->{session}->make_text( ": " ) );
+			$strong = $self->{handle}->make_element( "strong" );
+			$strong->appendChild( $ds->get_field( $_ )->render_name( $self->{handle} ) );
+			$strong->appendChild( $self->{handle}->make_text( ": " ) );
 			$rowright->appendChild( $strong );
 			$rowright->appendChild( $saved_search->render_value( $_ ) );
-			$rowright->appendChild( $self->{session}->make_element( "br" ) );
+			$rowright->appendChild( $self->{handle}->make_element( "br" ) );
 		}
-		$table->appendChild( $self->{session}->render_row(
-			$self->{session}->html_phrase(
+		$table->appendChild( $self->{handle}->render_row(
+			$self->{handle}->html_phrase(
 				"page:saved_search" ),
 			$rowright ) );
 				
@@ -826,14 +826,14 @@ sub get_url
 {
 	my( $self ) = @_;
 
-	return $self->{session}->get_repository->get_conf( "http_cgiurl" )."/users/home?screen=User::View&userid=".$self->get_value( "userid" );
+	return $self->{handle}->get_repository->get_conf( "http_cgiurl" )."/users/home?screen=User::View&userid=".$self->get_value( "userid" );
 }
 
 sub get_control_url
 {
 	my( $self ) = @_;
 
-	return $self->{session}->get_repository->get_conf( "http_cgiurl" )."/users/home?screen=User::View&userid=".$self->get_value( "userid" );
+	return $self->{handle}->get_repository->get_conf( "http_cgiurl" )."/users/home?screen=User::View&userid=".$self->get_value( "userid" );
 }
 	
 
@@ -871,11 +871,11 @@ sub get_saved_searches
 {
 	my( $self ) = @_;
 
-	my $ds = $self->{session}->get_repository->get_dataset( 
+	my $ds = $self->{handle}->get_repository->get_dataset( 
 		"saved_search" );
 
 	my $searchexp = EPrints::Search->new(
-		session=>$self->{session},
+		handle =>$self->{handle},
 		dataset=>$ds,
 		custom_order=>"id" );
 
@@ -913,7 +913,7 @@ sub send_out_editor_alert
 
 	if( $freq eq "never" )
 	{
-		$self->{session}->get_repository->log( 
+		$self->{handle}->get_repository->log( 
 			"Attempt to send out an editor alert for a user\n".
 			"which has frequency 'never'\n" );
 		return;
@@ -921,61 +921,61 @@ sub send_out_editor_alert
 
 	unless( $self->has_role( "editor" ) )
 	{
-		$self->{session}->get_repository->log( 
+		$self->{handle}->get_repository->log( 
 			"Attempt to send out an editor alert for a user\n".
 			"which does not have editor role (".
 			$self->get_value("username").")\n" );
 		return;
 	}
 		
-	my $origlangid = $self->{session}->get_langid;
+	my $origlangid = $self->{handle}->get_langid;
 	
-	$self->{session}->change_lang( $self->get_value( "lang" ) );
+	$self->{handle}->change_lang( $self->get_value( "lang" ) );
 
 	my $list = $self->get_editable_eprints;
 
 	if( $list->count > 0 || $self->get_value( "mailempty" ) eq 'TRUE' )
 	{
-		my $url = URI->new($self->{session}->get_repository->get_conf( "http_cgiurl" )."/users/home");
+		my $url = URI->new($self->{handle}->get_repository->get_conf( "http_cgiurl" )."/users/home");
 		$url->query_form(
 			screen => "User::Edit",
 			userid => $self->get_id
 		);
-		my $freqphrase = $self->{session}->html_phrase(
+		my $freqphrase = $self->{handle}->html_phrase(
 			"lib/saved_search:".$freq ); # nb. reusing the SavedSearch.pm phrase
 		my $searchdesc = $self->render_value( "editperms" );
 
-		my $matches = $self->{session}->make_doc_fragment;
+		my $matches = $self->{handle}->make_doc_fragment;
 
 		$list->map( sub {
-			my( $session, $dataset, $eprint ) = @_;
+			my( $handle, $dataset, $eprint ) = @_;
 
-			my $p = $self->{session}->make_element( "p" );
+			my $p = $self->{handle}->make_element( "p" );
 			$p->appendChild( $eprint->render_citation_link_staff );
 			$matches->appendChild( $p );
 		} );
 
-		my $mail = $self->{session}->html_phrase( 
+		my $mail = $self->{handle}->html_phrase( 
 				"lib/user:editor_update_mail",
 				howoften => $freqphrase,
-				n => $self->{session}->make_text( $list->count ),
+				n => $self->{handle}->make_text( $list->count ),
 				search => $searchdesc,
 				matches => $matches,
-				url => $self->{session}->render_link( $url ) );
+				url => $self->{handle}->render_link( $url ) );
 		$self->mail( 
 			"lib/user:editor_update_subject",
 			$mail );
 		EPrints::XML::dispose( $mail );
 	}
 
-	$self->{session}->change_lang( $origlangid );
+	$self->{handle}->change_lang( $origlangid );
 }
 
 
 ######################################################################
 =pod
 
-=item EPrints::DataObj::User::process_editor_alerts( $session, $frequency );
+=item EPrints::DataObj::User::process_editor_alerts( $handle, $frequency );
 
 Static method.
 
@@ -987,20 +987,20 @@ weekly, monthly) for the current repository.
 
 sub process_editor_alerts
 {
-	my( $session, $frequency ) = @_;
+	my( $handle, $frequency ) = @_;
 
 	if( $frequency ne "daily" && 
 		$frequency ne "weekly" && 
 		$frequency ne "monthly" )
 	{
-		$session->get_repository->log( "EPrints::DataObj::User::process_editor_alerts called with unknown frequency: ".$frequency );
+		$handle->get_repository->log( "EPrints::DataObj::User::process_editor_alerts called with unknown frequency: ".$frequency );
 		return;
 	}
 
-	my $subs_ds = $session->get_repository->get_dataset( "user" );
+	my $subs_ds = $handle->get_repository->get_dataset( "user" );
 
 	my $searchexp = EPrints::Search->new(
-		session => $session,
+		handle => $handle,
 		dataset => $subs_ds );
 
 	$searchexp->add_field(
@@ -1008,12 +1008,12 @@ sub process_editor_alerts
 		$frequency );
 
 	my $fn = sub {
-		my( $session, $dataset, $item, $info ) = @_;
+		my( $handle, $dataset, $item, $info ) = @_;
 
 		return unless( $item->has_role( "editor" ) );
 
 		$item->send_out_editor_alert;
-		if( $session->get_noise >= 2 )
+		if( $handle->get_noise >= 2 )
 		{
 			print "Sending out editor alert for ".$item->get_value( "username" )."\n";
 		}
@@ -1321,7 +1321,7 @@ sub allow
 {
 	my( $self, $priv, $item ) = @_;
 
-	return 1 if( $self->{session}->allow_anybody( $priv ) );
+	return 1 if( $self->{handle}->allow_anybody( $priv ) );
 
 	my $privs = $self->get_privs;
 
@@ -1331,7 +1331,7 @@ sub allow
 
 	if( !$if_logged_in && ( $if_editor || $if_owner ) && !defined $item )
 	{
-		$self->{session}->get_repository->log(
+		$self->{handle}->get_repository->log(
 "\$user->allow( $priv ) called. It needed an item to resolve the permission, but none was passed. Assuming false, but this may indicate a bug." );
 		return 0;
 	}
@@ -1363,7 +1363,7 @@ sub get_privs
 
 	return $self->{".privs"} if( defined $self->{".privs"} ) ;
 
-	my $rep = $self->{session}->get_repository;
+	my $rep = $self->{handle}->get_repository;
 	my $role_config = $rep->get_conf( "user_roles", $self->get_value( "usertype" ) );
 	my $extra_roles = $self->get_value( "roles" ) || [];
 
@@ -1413,7 +1413,7 @@ sub get_roles
 {
 	my( $self ) = @_;
 
-	my $rep = $self->{session}->get_repository;
+	my $rep = $self->{handle}->get_repository;
 	my $role_config = $rep->get_conf( "user_roles", $self->get_value( "usertype" ) );
 	my $extra_roles = $self->get_value( "roles" ) || [];
 	my @roles = ();

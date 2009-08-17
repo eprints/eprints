@@ -863,12 +863,12 @@ sub _bail {
 }
 
 sub _addfile {
-    my ($self, $handle) = @_;
+    my ($self, $session) = @_;
 
     my $n;
     my $buf = "";
 
-    while (($n = read($handle, $buf, 4096))) {
+    while (($n = read($session, $buf, 4096))) {
         $self->add($buf);
     }
     _bail("Read failed") unless defined $n;

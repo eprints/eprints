@@ -36,9 +36,9 @@ use strict;
 
 sub update_static_file
 {
-	my( $session, $langid, $localpath ) = @_;
+	my( $handle, $langid, $localpath ) = @_;
 
-	my $repository = $session->get_repository;
+	my $repository = $handle->get_repository;
 
 	if( $localpath =~ m/\/$/ ) { $localpath .= "index.html"; }
 
@@ -61,7 +61,7 @@ sub update_static_file
 	if( $localpath =~ m# /style/auto\.css$ #x )
 	{
 		return update_auto_css( 
-				$session,
+				$handle,
 				$repository->get_conf( "htdocs_path" )."/$langid",
 				\@static_dirs
 			);
@@ -69,7 +69,7 @@ sub update_static_file
 	elsif( $localpath =~ m# /javascript/auto\.js$ #x )
 	{
 		return update_auto_js(
-				$session,
+				$handle,
 				$repository->get_conf( "htdocs_path" )."/$langid",
 				\@static_dirs
 			);
@@ -77,7 +77,7 @@ sub update_static_file
 	elsif( $localpath =~ m# /javascript/secure_auto\.js$ #x )
 	{
 		return update_secure_auto_js(
-				$session,
+				$handle,
 				$repository->get_conf( "htdocs_path" )."/$langid",
 				\@static_dirs
 			);
@@ -136,11 +136,11 @@ sub update_static_file
 
 	if( $suffix eq "xhtml" ) 
 	{ 
-		copy_xhtml( $session, $source, $target, {} ); 
+		copy_xhtml( $handle, $source, $target, {} ); 
 	}
 	elsif( $suffix eq "xpage" ) 
 	{ 
-		copy_xpage( $session, $source, $target, {} ); 
+		copy_xpage( $handle, $source, $target, {} ); 
 	}
 	else 
 	{ 
@@ -154,7 +154,7 @@ sub update_static_file
 
 sub update_auto_css
 {
-	my( $session, $target_dir, $static_dirs ) = @_;
+	my( $handle, $target_dir, $static_dirs ) = @_;
 
 	my @dirs = map { "$_/style/auto" } grep { defined } @$static_dirs;
 
@@ -167,14 +167,14 @@ sub update_auto_css
 
 sub update_secure_auto_js
 {
-	my( $session, $target_dir, $static_dirs ) = @_;
+	my( $handle, $target_dir, $static_dirs ) = @_;
 
 	my @dirs = map { "$_/javascript/auto" } grep { defined } @$static_dirs;
 
 	my $js = "";
-	$js .= "var eprints_http_root = ".EPrints::Utils::js_string( $session->get_url( scheme => "https", host => 1, path => "static" ) ).";\n";
-	$js .= "var eprints_http_cgiroot = ".EPrints::Utils::js_string( $session->get_url( scheme => "https", host => 1, path => "cgi" ) ).";\n";
-	$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( $session->get_repository->get_conf('oai','v2','archive_id') ).";\n";
+	$js .= "var eprints_http_root = ".EPrints::Utils::js_string( $handle->get_url( scheme => "https", host => 1, path => "static" ) ).";\n";
+	$js .= "var eprints_http_cgiroot = ".EPrints::Utils::js_string( $handle->get_url( scheme => "https", host => 1, path => "cgi" ) ).";\n";
+	$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( $handle->get_repository->get_conf('oai','v2','archive_id') ).";\n";
 	$js .= "\n";
 
 	update_auto(
@@ -187,14 +187,14 @@ sub update_secure_auto_js
 
 sub update_auto_js
 {
-	my( $session, $target_dir, $static_dirs ) = @_;
+	my( $handle, $target_dir, $static_dirs ) = @_;
 
 	my @dirs = map { "$_/javascript/auto" } grep { defined } @$static_dirs;
 
 	my $js = "";
-	$js .= "var eprints_http_root = ".EPrints::Utils::js_string( $session->get_url( scheme => "http", host => 1, path => "static" ) ).";\n";
-	$js .= "var eprints_http_cgiroot = ".EPrints::Utils::js_string( $session->get_url( scheme => "http", host => 1, path => "cgi" ) ).";\n";
-	$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( $session->get_repository->get_conf('oai','v2','archive_id') ).";\n";
+	$js .= "var eprints_http_root = ".EPrints::Utils::js_string( $handle->get_url( scheme => "http", host => 1, path => "static" ) ).";\n";
+	$js .= "var eprints_http_cgiroot = ".EPrints::Utils::js_string( $handle->get_url( scheme => "http", host => 1, path => "cgi" ) ).";\n";
+	$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( $handle->get_repository->get_conf('oai','v2','archive_id') ).";\n";
 
 	update_auto(
 			"$target_dir/javascript/auto.js",
@@ -305,13 +305,13 @@ sub copy_plain
 
 sub copy_xpage
 {
-	my( $session, $from, $to, $wrote_files ) = @_;
+	my( $handle, $from, $to, $wrote_files ) = @_;
 
-	my $doc = $session->get_repository->parse_xml( $from );
+	my $doc = $handle->get_repository->parse_xml( $from );
 
 	if( !defined $doc )
 	{
-		$session->get_repository->log( "Could not load file: $from" );
+		$handle->get_repository->log( "Could not load file: $from" );
 		return;
 	}
 
@@ -323,7 +323,7 @@ sub copy_xpage
 		$part =~ s/^.*://;
 		next unless( $part eq "body" || $part eq "title" || $part eq "template" );
 
-		$parts->{$part} = $session->make_doc_fragment;
+		$parts->{$part} = $handle->make_doc_fragment;
 			
 		foreach my $kid ( $node->getChildNodes )
 		{
@@ -331,14 +331,14 @@ sub copy_xpage
 				EPrints::XML::EPC::process( 
 					$kid,
 					in => $from,
-					session => $session ) ); 
+					handle => $handle ) ); 
 		}
 	}
 	foreach my $part ( qw/ title body / )
 	{
 		if( !$parts->{$part} )
 		{
-			$session->get_repository->log( "Error: no $part element in ".$from );
+			$handle->get_repository->log( "Error: no $part element in ".$from );
 			EPrints::XML::dispose( $doc );
 			return;
 		}
@@ -346,39 +346,39 @@ sub copy_xpage
 
 	$parts->{page} = delete $parts->{body};
 	$to =~ s/.html$//;
-	$session->write_static_page( $to, $parts, "static", $wrote_files );
+	$handle->write_static_page( $to, $parts, "static", $wrote_files );
 
 	EPrints::XML::dispose( $doc );
 }
 
 sub copy_xhtml
 {
-	my( $session, $from, $to, $wrote_files ) = @_;
+	my( $handle, $from, $to, $wrote_files ) = @_;
 
-	my $doc = $session->get_repository->parse_xml( $from );
+	my $doc = $handle->get_repository->parse_xml( $from );
 
 	if( !defined $doc )
 	{
-		$session->get_repository->log( "Could not load file: $from" );
+		$handle->get_repository->log( "Could not load file: $from" );
 		return;
 	}
 
 	my $html = $doc->documentElement;
 	if( !defined $html )
 	{
-		$session->get_repository->log( "Error: no html element in ".$from );
+		$handle->get_repository->log( "Error: no html element in ".$from );
 		EPrints::XML::dispose( $doc );
 		return;
 	}
 	# why clone?
-	#$session->set_page( $session->clone_for_me( $elements->{html}, 1 ) );
-	$session->set_page( 
+	#$handle->set_page( $handle->clone_for_me( $elements->{html}, 1 ) );
+	$handle->set_page( 
 		EPrints::XML::EPC::process( 
 			$html, 
 			in => $from,
-			session => $session ) ); 
+			handle => $handle ) ); 
 
-	$session->page_to_file( $to, $wrote_files );
+	$handle->page_to_file( $to, $wrote_files );
 }
 
 

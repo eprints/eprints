@@ -12,7 +12,7 @@ sub render_tab_title
 {
 	my( $self ) = @_;
 
-	return $self->{session}->make_text( "You need to over-ride the render_tab_title method on your UpdateMethod" );
+	return $self->{handle}->make_text( "You need to over-ride the render_tab_title method on your UpdateMethod" );
 
 }
 
@@ -27,9 +27,9 @@ sub render_add_document
 {
 	my( $self ) = @_;
 
-	my $f = $self->{session}->make_doc_fragment;
+	my $f = $self->{handle}->make_doc_fragment;
 
-	$f->appendChild( $self->{session}->make_text( "You need to over-ride the render_add_document method on your UpdateMethod" ) );
+	$f->appendChild( $self->{handle}->make_text( "You need to over-ride the render_add_document method on your UpdateMethod" ) );
 }
 
 

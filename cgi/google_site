@@ -4,12 +4,12 @@ use EPrints;
 
 use strict;
 
-my $session = new EPrints::Session();
-exit( 1 ) unless( defined $session );
+my $handle = new EPrints::Handle();
+exit( 1 ) unless( defined $handle );
 
-my $url = "http://www.google.com/search?q=".$session->param( "q" );
-$url .= "+site:".$session->get_repository->get_conf( "host" );
+my $url = "http://www.google.com/search?q=".$handle->param( "q" );
+$url .= "+site:".$handle->get_repository->get_conf( "host" );
 
-$session->redirect( $url );
+$handle->redirect( $url );
 
-$session->terminate();
+$handle->terminate();

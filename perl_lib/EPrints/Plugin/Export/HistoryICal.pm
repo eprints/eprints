@@ -42,7 +42,7 @@ END
 	}
 
 	$opts{list}->map( sub {
-		my( $session, $dataset, $item ) = @_;
+		my( $handle, $dataset, $item ) = @_;
 
 		my $part = $plugin->output_dataobj( $item, %opts );
 		if( defined $opts{fh} )

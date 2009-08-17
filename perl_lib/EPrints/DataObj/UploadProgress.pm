@@ -82,7 +82,7 @@ sub get_dataset_id
 	return "upload_progress";
 }
 
-=item $progress = EPrints::DataObj::UploadProgress->new_from_request( $session )
+=item $progress = EPrints::DataObj::UploadProgress->new_from_request( $handle )
 
 Create a new $progress object based on the current request.
 
@@ -92,9 +92,9 @@ Returns undef if no file upload is pointed to by this request.
 
 sub new_from_request
 {
-	my( $class, $session ) = @_;
+	my( $class, $handle ) = @_;
 
-	my $uri = $session->get_request->unparsed_uri;
+	my $uri = $handle->get_request->unparsed_uri;
 
 	my $progressid = ($uri =~ /progress_id=([a-fA-F0-9]{32})/)[0];
 
@@ -107,7 +107,7 @@ sub new_from_request
 
 	for(1..16)
 	{
-		$progress = EPrints::DataObj::UploadProgress->new( $session, $progressid );
+		$progress = EPrints::DataObj::UploadProgress->new( $handle, $progressid );
 		last if defined $progress;
 		select(0.250);
 	}
@@ -117,11 +117,11 @@ sub new_from_request
 
 sub remove_expired
 {
-	my( $class, $session ) = @_;
+	my( $class, $handle ) = @_;
 
-	my $dataset = $session->get_repository->get_dataset( $class->get_dataset_id );
+	my $dataset = $handle->get_repository->get_dataset( $class->get_dataset_id );
 
-	my $dbh = $session->get_database;
+	my $dbh = $handle->get_database;
 
 	my $Q_table = $dbh->quote_identifier( $dataset->get_sql_table_name() );
 	my $Q_expires = $dbh->quote_identifier( "expires" );
@@ -132,7 +132,7 @@ sub remove_expired
 
 ######################################################################
 
-=item $defaults = EPrints::DataObj::UploadProgress->get_defaults( $session, $data )
+=item $defaults = EPrints::DataObj::UploadProgress->get_defaults( $handle, $data )
 
 Return default values for this object based on the starting data.
 
@@ -142,7 +142,7 @@ Return default values for this object based on the starting data.
 
 sub get_defaults
 {
-	my( $class, $session, $data ) = @_;
+	my( $class, $handle, $data ) = @_;
 	
 	$data->{expires} = time() + 60*60*24*7; # 1 week
 

@@ -65,7 +65,7 @@ sub item_matches
 
 	my( $codes, $grepcodes, $badwords ) =
 		$self->{field}->get_index_codes(
-			$item->get_session,
+			$item->get_handle,
 			$item->get_value( $self->{field}->get_name ) );
 
 	foreach my $code ( @{$codes} )
@@ -78,27 +78,27 @@ sub item_matches
 
 sub process
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $database = $session->get_database;
-	my $tables = $self->SUPER::get_tables( $session );
+	my $database = $handle->get_database;
+	my $tables = $self->SUPER::get_tables( $handle );
 	if( scalar @{$tables} )
 	{
 		# join to a second dataset
-		return $self->run_tables( $session, $self->get_tables( $session ) );
+		return $self->run_tables( $handle, $self->get_tables( $handle ) );
 	}
 
 	my $where = $database->quote_identifier("fieldword")." = ".$database->quote_value( 
 			$self->{field}->get_sql_name.":".$self->{params}->[0] );
-	return $session->get_database->get_index_ids( $self->get_table, $where );
+	return $handle->get_database->get_index_ids( $self->get_table, $where );
 }
 
 sub get_tables
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $tables = $self->SUPER::get_tables( $session );
-	my $database = $session->get_database;
+	my $tables = $self->SUPER::get_tables( $handle );
+	my $database = $handle->get_database;
 	# otherwise joined tables on an index -- not efficient but this will work...
 	my $where = "(".$database->quote_identifier($EPrints::Search::Condition::TABLEALIAS,"field")." = ".$database->quote_value( $self->{field}->get_sql_name );
 	$where .= " AND ".$database->quote_identifier($EPrints::Search::Condition::TABLEALIAS,"word")." = ".$database->quote_value( $self->{params}->[0] ).")"; 
@@ -141,7 +141,7 @@ sub get_query_logic
 {
 	my( $self, %opts ) = @_;
 
-	my $db = $opts{session}->get_database;
+	my $db = $opts{handle}->get_database;
 	my $field = $self->{field};
 	my $dataset = $field->{dataset};
 

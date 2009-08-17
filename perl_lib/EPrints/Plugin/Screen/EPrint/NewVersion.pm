@@ -39,9 +39,9 @@ sub action_new_version
 {
 	my( $self ) = @_;
 
-	my $inbox_ds = $self->{session}->get_repository()->get_dataset( "inbox" );
+	my $inbox_ds = $self->{handle}->get_repository()->get_dataset( "inbox" );
 	my $copy = $self->{processor}->{eprint}->clone( $inbox_ds, 1 );
-	$copy->set_value( "userid", $self->{session}->current_user->get_value( "userid" ) );
+	$copy->set_value( "userid", $self->{handle}->current_user->get_value( "userid" ) );
 	$copy->commit();
 
 	$self->{processor}->add_message( "message",

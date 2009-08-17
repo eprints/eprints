@@ -212,9 +212,24 @@ $INC{"EPrints/Auth.pm"} = "EPrints/BackCompatibility.pm";
 
 ######################################################################
 
+package EPrints::DataObj;
+
+sub get_session { EPrints::deprecated; return $_[0]->get_handle; }
+
+######################################################################
+
 package EPrints::Session;
 
+sub new { EPrints::deprecated; return EPrints::Handle::new( @_ ); }
+
+our @ISA = qw/ EPrints::Handle /;
+
+######################################################################
+
+package EPrints::Handle;
+
 sub get_archive { EPrints::deprecated; return $_[0]->get_repository; }
+sub get_session_language { EPrints::deprecated; return $_[0]->get_language; }
 
 ######################################################################
 
@@ -306,38 +321,38 @@ sub get_types
 
 sub get_type_names
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 		
 	EPrints::deprecated;
 
 	my %names = ();
 	foreach( @{$self->get_types} )
 	{
-		$names{$_} = $self->get_type_name( $session, $_ );
+		$names{$_} = $self->get_type_name( $handle, $_ );
 	}
 	return( \%names );
 }
 
 sub get_type_name
 {
-	my( $self, $session, $type ) = @_;
+	my( $self, $handle, $type ) = @_;
 
 	EPrints::deprecated;
 
-        return $session->phrase( $self->confid()."_typename_".$type );
+        return $handle->phrase( $self->confid()."_typename_".$type );
 }
 
 sub render_type_name
 {
-	my( $self, $session, $type ) = @_;
+	my( $self, $handle, $type ) = @_;
 	
 	EPrints::deprecated;
 
 	if( $self->{confid} eq "language"  || $self->{confid} eq "arclanguage" )
 	{
-		return $session->make_text( $self->get_type_name( $session, $type ) );
+		return $handle->make_text( $self->get_type_name( $handle, $type ) );
 	}
-        return $session->html_phrase( $self->confid()."_typename_".$type );
+        return $handle->html_phrase( $self->confid()."_typename_".$type );
 }
 
 sub load_workflows
@@ -346,7 +361,7 @@ sub load_workflows
 
 	return if $self->{workflows_loaded};
 
-	my $mini_session = EPrints::Session->new( 1, $self->{repository}->get_id );
+	my $mini_session = EPrints::Handle->new( 1, $self->{repository}->get_id );
 	foreach my $typeid ( @{$self->{type_order}} )
 	{
 		my $tdata = {};

@@ -45,7 +45,7 @@ sub list_issues
 	my $info = { issues => {}, opts=>\%opts };
 	$opts{list}->map( 
 		sub { 
-			my( $session, $dataset, $item, $info ) = @_;
+			my( $handle, $dataset, $item, $info ) = @_;
 			my @issues = $plugin->process_item_in_list( $item, $info );
 		},
 		$info

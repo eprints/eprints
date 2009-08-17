@@ -2,27 +2,27 @@
 
 use EPrints;
 
-my $session = new EPrints::Session;
-exit( 0 ) unless( defined $session );
+my $handle = new EPrints::Handle;
+exit( 0 ) unless( defined $handle );
 
-print_xsd( $session );
+print_xsd( $handle );
 
-$session->terminate;
+$handle->terminate;
 
 sub print_xsd
 {
-	my( $session ) = @_;
+	my( $handle ) = @_;
 
-	my $dataset = $session->get_repository->get_dataset( "metafield" );
+	my $dataset = $handle->get_repository->get_dataset( "metafield" );
 
-	my $plugin = $session->plugin( "Export::XML_Schema" );
+	my $plugin = $handle->plugin( "Export::XML_Schema" );
 
 	my $list = EPrints::List->new(
 		dataset => $dataset,
-		session => $session,
+		handle => $handle,
 		ids=>["ALL"] );
 
-	$session->send_http_header( "content_type" => "application/xml" );
+	$handle->send_http_header( "content_type" => "application/xml" );
 	$plugin->initialise_fh( \*STDOUT );
 	$plugin->output_list( list=>$list, fh=>*STDOUT );
 

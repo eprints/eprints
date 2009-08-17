@@ -50,9 +50,9 @@ sub convert
 {
         my ($plugin, $eprint, $doc, $type, $user) = @_;
 	
-#	if( defined $plugin->{session}->current_user )
+#	if( defined $plugin->{handle}->current_user )
 #	{
-#		unless( $eprint->obtain_lock( $plugin->{session}->current_user ) )
+#		unless( $eprint->obtain_lock( $plugin->{handle}->current_user ) )
 #		{
 #			print STDERR "\nFailed to obtain the lock for eprint object.";
 #			return;
@@ -70,7 +70,7 @@ sub convert
 #		}
 #	}
 
-	$plugin->{dataset} = $plugin->{session}->get_repository->get_dataset( $eprint->get_dataset_id );
+	$plugin->{dataset} = $plugin->{handle}->get_repository->get_dataset( $eprint->get_dataset_id );
 	$plugin->{_eprint} = $eprint;
 
         my $dir = EPrints::TempDir->new( "ep-convertXXXXX", UNLINK => 1);
@@ -80,9 +80,9 @@ sub convert
                 return undef;
         }
 
-        my $session = $plugin->{session};
+        my $handle = $plugin->{handle};
         
-	my $doc_ds = $session->get_repository->get_dataset( "document" );
+	my $doc_ds = $handle->get_repository->get_dataset( "document" );
 
 	my @new_docs;
 
@@ -91,7 +91,7 @@ sub convert
                 my $fh;
                 unless( open($fh, "<", "$dir/$filename") )
                 {
-                        $session->get_repository->log( "Error reading from $dir/$filename: $!" );
+                        $handle->get_repository->log( "Error reading from $dir/$filename: $!" );
                         next;
                 }
 		my @filedata;
@@ -103,12 +103,12 @@ sub convert
                 };
                 # file will take care of closing $fh for us
     
-	        my $new_doc = $doc_ds->create_object( $session, {
+	        my $new_doc = $doc_ds->create_object( $handle, {
 			files => \@filedata,
 			main => $filename,
 			eprintid => $eprint->get_id,
 			_parent => $eprint,
-			format =>  $session->get_repository->call( "guess_doc_type", $session, $filename ),
+			format =>  $handle->get_repository->call( "guess_doc_type", $handle, $filename ),
 			formatdesc => 'extracted from openxml format',
 			relation => [{
 				type => EPrints::Utils::make_relation( "isVersionOf" ),

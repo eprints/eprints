@@ -54,7 +54,7 @@ sub open_write
 	unless( open($out_fh, ">:gzip", $out_file) )
 	{
 		$self->{error} = "Unable to write to $out_file: $!";
-		$self->{session}->get_repository->log( $self->{error} );
+		$self->{handle}->get_repository->log( $self->{error} );
 		return 0;
 	}
 
@@ -79,7 +79,7 @@ sub write
 		my $out_file = $self->{_name}->{$fileobj};
 		unlink($out_file);
 		$self->{error} = "Error writing to $out_file: $!";
-		$self->{session}->get_repository->log( $self->{error} );
+		$self->{handle}->get_repository->log( $self->{error} );
 		return 0;
 	}
 
@@ -110,7 +110,7 @@ sub retrieve
 	unless( open($in_fh, "<:gzip", $in_file) )
 	{
 		$self->{error} = "Unable to read from $in_file: $!";
-		$self->{session}->get_repository->log( $self->{error} );
+		$self->{handle}->get_repository->log( $self->{error} );
 		return undef;
 	}
 

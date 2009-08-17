@@ -8,14 +8,14 @@ sub register_furniture
 {
 	my( $self ) = @_;
 
-	return $self->{session}->make_doc_fragment;
+	return $self->{handle}->make_doc_fragment;
 }
 
 sub render_toolbar
 {
 	my( $self ) = @_;
 
-	return $self->{session}->make_doc_fragment;
+	return $self->{handle}->make_doc_fragment;
 }
 
 
@@ -34,7 +34,7 @@ sub search_dataset
 {
 	my( $self ) = @_;
 
-	$self->{session}->get_repository->get_dataset( "archive" );
+	$self->{handle}->get_repository->get_dataset( "archive" );
 }
 
 sub search_filters
@@ -60,15 +60,15 @@ sub get_controls_before
 	my $cacheid = $self->{processor}->{results}->{cache_id};
 	my $escexp = $self->{processor}->{search}->serialise;
 
-	my $cuser = $self->{session}->current_user;
+	my $cuser = $self->{handle}->current_user;
 	if( defined $cuser )
 	{
 		if( $cuser->allow( "create_saved_search" ) )
 		{
-			my $base = $self->{session}->get_repository->get_conf( "userhome" );
+			my $base = $self->{handle}->get_repository->get_conf( "userhome" );
 			push @controls_before, {
 				url => $base."?screen=User::SaveSearch&cache=$cacheid&_action_create=1",
-				label => $self->{session}->html_phrase( "lib/searchexpression:savesearch" ),
+				label => $self->{handle}->html_phrase( "lib/searchexpression:savesearch" ),
 			};
 		}
 	}
@@ -78,7 +78,7 @@ sub get_controls_before
 
 sub render_result_row
 {
-	my( $self, $session, $result, $searchexp, $n ) = @_;
+	my( $self, $handle, $result, $searchexp, $n ) = @_;
 
 	return $result->render_citation_link(
 			$self->{processor}->{sconf}->{citation},  #undef unless specified

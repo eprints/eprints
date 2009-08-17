@@ -94,8 +94,8 @@ Match an item only if all of the words in the value match.
 #
 # INSTANCE VARIABLES:
 #
-#  $searchfield->{"session"}
-#     The current EPrints::Session
+#  $searchfield->{handle}
+#     The current EPrints::Handle
 #
 #  $searchfield->{"dataset"}
 #     The EPrints::DataSet which this search field will search
@@ -141,7 +141,7 @@ use strict;
 ######################################################################
 =pod
 
-=item $thing = EPrints::Search::Field->new( $session, $dataset, $fields, $value, [$match], [$merge], [$prefix], [$show_help] )
+=item $thing = EPrints::Search::Field->new( $handle, $dataset, $fields, $value, [$match], [$merge], [$prefix], [$show_help] )
 
 Create a new search field object. 
 
@@ -163,12 +163,12 @@ $show_help is used to control if the help shows up on the search form. A value o
 
 sub new
 {
-	my( $class, $session, $dataset, $fields, $value, $match, $merge, $prefix, $id, $show_help ) = @_;
+	my( $class, $handle, $dataset, $fields, $value, $match, $merge, $prefix, $id, $show_help ) = @_;
 	
 	my $self = {};
 	bless $self, $class;
 	
-	$self->{"session"} = $session;
+	$self->{handle} = $handle;
 	$self->{"dataset"} = $dataset;
 
 	$self->{"value"} = $value;
@@ -178,14 +178,14 @@ sub new
 	$self->{"merge"} = $merge if( EPrints::Utils::is_set( $merge ) );
 	if( $self->{match} ne "EQ" && $self->{match} ne "IN" && $self->{match} ne "EX" )
 	{
-		$session->get_repository->log( 
+		$handle->get_repository->log( 
 "search field match value was '".$self->{match}."'. Should be EQ, IN or EX." );
 		$self->{merge} = "ALL";
 	}
 
 	if( $self->{merge} ne "ALL" && $self->{merge} ne "ANY" )
 	{
-		$session->get_repository->log( 
+		$handle->get_repository->log( 
 "search field merge value was '".$self->{merge}."'. Should be ALL or ANY." );
 		$self->{merge} = "ALL";
 	}
@@ -194,7 +194,7 @@ sub new
 	$self->{"show_help"} = "toggle" unless defined $self->{"show_help"};
 	if( $self->{"show_help"} ne "toggle" && $self->{"show_help"} ne "always" && $self->{"show_help"} ne "never" )
 	{
-		$session->get_repository->log( 
+		$handle->get_repository->log( 
 "search field show_help value was '".$self->{"show_help"}."'. Should be toggle, always or never." );
 		$self->{"show_help"} = "toggle";
 	}
@@ -302,7 +302,7 @@ sub from_form
 
 	( $self->{"value"}, $self->{"merge"}, $self->{"match"}, $problem ) =
 		$self->{"field"}->from_search_form( 
-			$self->{"session"}, 
+			$self->{handle}, 
 			$self->{"form_name_prefix"} );
 
 	$self->{"value"} = "" unless( defined $self->{"value"} );
@@ -358,15 +358,15 @@ sub get_conditions
 	if( $self->{"search_mode"} eq "simple" )
 	{
 		@parts = EPrints::Index::split_words( 
-			$self->{"session"},  # could be just archive?
+			$self->{handle},  # could be just archive?
 			EPrints::Index::apply_mapping( 
-				$self->{"session"}, 
+				$self->{handle}, 
 				$self->{"value"} ) );
 	}
 	else
 	{
 		@parts = $self->{"field"}->split_search_value( 
-			$self->{"session"},
+			$self->{handle},
 			$self->{"value"} );
 	}
 
@@ -393,7 +393,7 @@ sub get_conditions_no_split
 	foreach my $field ( @{$self->{"fieldlist"}} )
 	{
 		push @r, $field->get_search_conditions( 
-				$self->{"session"},
+				$self->{handle},
 				$self->{"dataset"},
 				$search_value,
 				$self->{"match"},
@@ -514,7 +514,7 @@ sub render
 {
 	my( $self ) = @_;
 
-	return $self->{"field"}->render_search_input( $self->{"session"}, $self );
+	return $self->{"field"}->render_search_input( $self->{handle}, $self );
 }
 
 ######################################################################
@@ -552,12 +552,12 @@ sub render_description
 {
 	my( $self ) = @_;
 
-	my $frag = $self->{"session"}->make_doc_fragment;
+	my $frag = $self->{handle}->make_doc_fragment;
 
 	my $sfname = $self->render_name;
 
 	return $self->{"field"}->render_search_description(
-			$self->{"session"},
+			$self->{handle},
 			$sfname,
 			$self->{"value"},
 			$self->{"merge"},
@@ -581,25 +581,25 @@ sub render_name
 	if( defined $self->{"id"} )
 	{
 		my $phraseid = "searchfield_name_".$self->{"id"};
-		if( $self->{"session"}->get_lang->has_phrase( $phraseid, $self->{"session"} ) )
+		if( $self->{handle}->get_lang->has_phrase( $phraseid, $self->{handle} ) )
 		{
-			return $self->{"session"}->html_phrase( $phraseid );
+			return $self->{handle}->html_phrase( $phraseid );
 		}
 	}
 
 	# No id was set, gotta make a normal name from 
 	# the metadata fields.
-	my( $sfname ) = $self->{"session"}->make_doc_fragment;
+	my( $sfname ) = $self->{handle}->make_doc_fragment;
 	my( $first ) = 1;
 	foreach my $f (@{$self->{"fieldlist"}})
 	{
 		if( !$first ) 
 		{ 
 			$sfname->appendChild( 
-				$self->{"session"}->make_text( "/" ) );
+				$self->{handle}->make_text( "/" ) );
 		}
 		$first = 0;
-		$sfname->appendChild( $f->render_name( $self->{"session"} ) );
+		$sfname->appendChild( $f->render_name( $self->{handle} ) );
 	}
 	return $sfname;
 }
@@ -622,12 +622,12 @@ sub render_help
 
 	my $custom_help = "searchfield_help_".$self->{"id"};
 	my $phrase_id = "lib/searchfield:help_".$self->{"field"}->get_type();
-	if( $self->{"session"}->get_lang->has_phrase( $custom_help, $self->{"session"} ) )
+	if( $self->{handle}->get_lang->has_phrase( $custom_help, $self->{handle} ) )
 	{
 		$phrase_id = $custom_help;
 	}
 		
-	return $self->{"session"}->html_phrase( $phrase_id );
+	return $self->{handle}->html_phrase( $phrase_id );
 }
 
 

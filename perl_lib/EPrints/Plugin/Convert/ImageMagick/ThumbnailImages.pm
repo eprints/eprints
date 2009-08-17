@@ -69,7 +69,7 @@ sub new
 
 	$self->{name} = "Image thumbnails";
 	$self->{visible} = "all";
-	if( defined $self->{session} )
+	if( defined $self->{handle} )
 	{
 		$self->{formats} = $self->param( "formats" );
 		$self->{sizes} = $self->param( "sizes" );

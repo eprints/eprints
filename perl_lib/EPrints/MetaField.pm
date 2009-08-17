@@ -347,7 +347,7 @@ sub get_dataset
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_name( $session )
+=item $xhtml = $field->render_name( $handle )
 
 Render the name of this field as an XHTML object.
 
@@ -356,7 +356,7 @@ Render the name of this field as an XHTML object.
 
 sub render_name
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
 	if( defined $self->{title_xhtml} )
 	{
@@ -364,39 +364,39 @@ sub render_name
 	}
 	my $phrasename = $self->{confid}."_fieldname_".$self->{name};
 
-	return $session->html_phrase( $phrasename );
+	return $handle->html_phrase( $phrasename );
 }
 
 ######################################################################
 =pod
 
-=item $label = $field->display_name( $session )
+=item $label = $field->display_name( $handle )
 
 DEPRECATED! Can't be removed because it's used in 2.2's default
 ArchiveRenderConfig.pm
 
 Return the UTF-8 encoded name of this field, in the language of
-the $session.
+the $handle.
 
 =cut
 ######################################################################
 
 sub display_name
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
 #	print STDERR "CALLED DEPRECATED FUNCTION EPrints::MetaField::display_name\n";
 
 	my $phrasename = $self->{confid}."_fieldname_".$self->{name};
 
-	return $session->phrase( $phrasename );
+	return $handle->phrase( $phrasename );
 }
 
 
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_help( $session )
+=item $xhtml = $field->render_help( $handle )
 
 Return the help information for a user inputing some data for this
 field as an XHTML chunk.
@@ -406,7 +406,7 @@ field as an XHTML chunk.
 
 sub render_help
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
 	if( defined $self->{help_xhtml} )
 	{
@@ -414,14 +414,14 @@ sub render_help
 	}
 	my $phrasename = $self->{confid}."_fieldhelp_".$self->{name};
 
-	return $session->html_phrase( $phrasename );
+	return $handle->html_phrase( $phrasename );
 }
 
 
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_input_field( $session, $value, [$dataset], [$staff], [$hidden_fields], $obj, [$basename] )
+=item $xhtml = $field->render_input_field( $handle, $value, [$dataset], [$staff], [$hidden_fields], $obj, [$basename] )
 
 Return the XHTML of the fields for an form which will allow a user
 to input metadata to this field. $value is the default value for
@@ -434,7 +434,7 @@ The actual function called may be overridden from the config.
 
 sub render_input_field
 {
-	my( $self, $session, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
+	my( $self, $handle, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
 
 	if( defined $basename )
 	{
@@ -447,14 +447,14 @@ sub render_input_field
 
 	if( defined $self->{toform} )
 	{
-		$value = $self->call_property( "toform", $value, $session );
+		$value = $self->call_property( "toform", $value, $handle );
 	}
 
 	if( defined $self->{render_input} )
 	{
 		return $self->call_property( "render_input",
 			$self,
-			$session, 
+			$handle, 
 			$value, 
 			$dataset, 
 			$staff,
@@ -464,7 +464,7 @@ sub render_input_field
 	}
 
 	return $self->render_input_field_actual( 
-			$session, 
+			$handle, 
 			$value, 
 			$dataset, 
 			$staff,
@@ -477,7 +477,7 @@ sub render_input_field
 ######################################################################
 =pod
 
-=item $value = $field->form_value( $session, $object, [$prefix] )
+=item $value = $field->form_value( $handle, $object, [$prefix] )
 
 Get a value for this field from the CGI parameters, assuming that
 the form contained the input fields for this metadata field.
@@ -487,7 +487,7 @@ the form contained the input fields for this metadata field.
 
 sub form_value
 {
-	my( $self, $session, $object, $prefix ) = @_;
+	my( $self, $handle, $object, $prefix ) = @_;
 
 	my $basename;
 	if( defined $prefix )
@@ -499,11 +499,11 @@ sub form_value
 		$basename = $self->{name};
 	}
 
-	my $value = $self->form_value_actual( $session, $object, $basename );
+	my $value = $self->form_value_actual( $handle, $object, $basename );
 
 	if( defined $self->{fromform} )
 	{
-		$value = $self->call_property( "fromform", $value, $session, $object, $basename );
+		$value = $self->call_property( "fromform", $value, $handle, $object, $basename );
 	}
 
 	return $value;
@@ -603,7 +603,7 @@ sub is_type
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_value( $session, $value, [$alllangs], [$nolink], $object )
+=item $xhtml = $field->render_value( $handle, $value, [$alllangs], [$nolink], $object )
 
 Render the given value of this given string as XHTML DOM. If $alllangs 
 is true and this is a multilang field then render all language versions,
@@ -619,12 +619,12 @@ control the rendering instead.
 
 sub render_value
 {
-	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
+	my( $self, $handle, $value, $alllangs, $nolink, $object ) = @_;
 
 	if( defined $self->{render_value} )
 	{
 		return $self->call_property( "render_value", 
-			$session, 
+			$handle, 
 			$self, 
 			$value, 
 			$alllangs, 
@@ -632,32 +632,32 @@ sub render_value
 			$object );
 	}
 
-	return $self->render_value_actual( $session, $value, $alllangs, $nolink, $object );
+	return $self->render_value_actual( $handle, $value, $alllangs, $nolink, $object );
 }
 
 sub render_value_actual
 {
-	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
+	my( $self, $handle, $value, $alllangs, $nolink, $object ) = @_;
 
 	unless( EPrints::Utils::is_set( $value ) )
 	{
 		if( $self->{render_quiet} )
 		{
-			return $session->make_doc_fragment;
+			return $handle->make_doc_fragment;
 		}
 		else
 		{
 			# maybe should just return nothing
-			return $session->html_phrase( 
+			return $handle->html_phrase( 
 				"lib/metafield:unspecified",
-				fieldname => $self->render_name( $session ) );
+				fieldname => $self->render_name( $handle ) );
 		}
 	}
 
 	unless( $self->get_property( "multiple" ) )
 	{
 		return $self->render_value_no_multiple( 
-			$session, 
+			$handle, 
 			$value, 
 			$alllangs, 
 			$nolink,
@@ -667,7 +667,7 @@ sub render_value_actual
 	my @rendered_values = ();
 
 	my $first = 1;
-	my $html = $session->make_doc_fragment();
+	my $html = $handle->make_doc_fragment();
 	
 	for(my $i=0; $i<scalar(@$value); ++$i )
 	{
@@ -676,22 +676,22 @@ sub render_value_actual
 		{
 			my $phrase = "lib/metafield:join_".$self->get_type;
 			my $basephrase = $phrase;
-			if( $i == 1 && $session->get_lang->has_phrase( 
-						$basephrase.".first", $session ) ) 
+			if( $i == 1 && $handle->get_lang->has_phrase( 
+						$basephrase.".first", $handle ) ) 
 			{ 
 				$phrase = $basephrase.".first";
 			}
 			if( $i == scalar(@$value)-1 && 
-					$session->get_lang->has_phrase( 
-						$basephrase.".last", $session ) ) 
+					$handle->get_lang->has_phrase( 
+						$basephrase.".last", $handle ) ) 
 			{ 
 				$phrase = $basephrase.".last";
 			}
-			$html->appendChild( $session->html_phrase( $phrase ) );
+			$html->appendChild( $handle->html_phrase( $phrase ) );
 		}
 		$html->appendChild( 
 			$self->render_value_no_multiple( 
-				$session, 
+				$handle, 
 				$sv, 
 				$alllangs, 
 				$nolink,
@@ -705,7 +705,7 @@ sub render_value_actual
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_value_no_multiple( $session, $value, $alllangs, $nolink, $object )
+=item $xhtml = $field->render_value_no_multiple( $handle, $value, $alllangs, $nolink, $object )
 
 Render the XHTML for a non-multiple value. Can be either a from
 a non-multiple field, or a single value from a multiple field.
@@ -717,19 +717,19 @@ Usually just used internally.
 
 sub render_value_no_multiple
 {
-	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
+	my( $self, $handle, $value, $alllangs, $nolink, $object ) = @_;
 
 
-	my $rendered = $self->render_value_withopts( $session, $value, $nolink, $object );
+	my $rendered = $self->render_value_withopts( $handle, $value, $nolink, $object );
 
 	if( !defined $self->{browse_link} || $nolink)
 	{
 		return $rendered;
 	}
 
-	my $url = $session->get_repository->get_conf(
+	my $url = $handle->get_repository->get_conf(
 			"http_url" );
-	my $views = $session->get_repository->get_conf( "browse_views" );
+	my $views = $handle->get_repository->get_conf( "browse_views" );
 	my $linkview;
 	foreach my $view ( @{$views} )
 	{
@@ -741,11 +741,11 @@ sub render_value_no_multiple
 
 	if( !defined $linkview )
 	{
-		$session->get_repository->log( "browse_link to view '".$self->{browse_link}."' not found for field '".$self->{name}."'\n" );
+		$handle->get_repository->log( "browse_link to view '".$self->{browse_link}."' not found for field '".$self->{name}."'\n" );
 		return $rendered;
 	}
 
-	my $link_id = $self->get_id_from_value( $session, $value );
+	my $link_id = $self->get_id_from_value( $handle, $value );
 
 	if( defined $linkview->{fields} && $linkview->{fields} =~ m/,/ )
 	{
@@ -761,7 +761,7 @@ sub render_value_no_multiple
 			".html";
 	}
 
-	my $a = $session->render_link( $url );
+	my $a = $handle->render_link( $url );
 	$a->appendChild( $rendered );
 	return $a;
 }
@@ -770,7 +770,7 @@ sub render_value_no_multiple
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_value_withopts( $session, $value, $nolink, $object )
+=item $xhtml = $field->render_value_withopts( $handle, $value, $nolink, $object )
 
 Render a single value but adding the render_opts features.
 
@@ -784,13 +784,13 @@ Usually just used internally.
 
 sub render_value_withopts
 {
-	my( $self, $session, $value, $nolink, $object ) = @_;
+	my( $self, $handle, $value, $nolink, $object ) = @_;
 
 	if( !EPrints::Utils::is_set( $value ) )
 	{
-		return $session->html_phrase( 
+		return $handle->html_phrase( 
 			"lib/metafield:unspecified",
-			fieldname => $self->render_name( $session ) );
+			fieldname => $self->render_name( $handle ) );
 	}
 
 	if( $self->{render_magicstop} )
@@ -812,20 +812,20 @@ sub render_value_withopts
 	if( defined $self->{render_single_value} )
 	{
 		return $self->call_property( "render_single_value",
-			$session, 
+			$handle, 
 			$self, 
 			$value,
 			$object );
 	}
 
-	return $self->render_single_value( $session, $value, $object );
+	return $self->render_single_value( $handle, $value, $object );
 }
 
 
 ######################################################################
 =pod
 
-=item $out_list = $field->sort_values( $session, $in_list )
+=item $out_list = $field->sort_values( $handle, $in_list )
 
 Sorts the in_list into order, based on the "order values" of the 
 values in the in_list. Assumes that the values are not a list of
@@ -836,9 +836,9 @@ multiple values. [ [], [], [] ], but rather a list of single values.
 
 sub sort_values
 {
-	my( $self, $session, $in_list ) = @_;
+	my( $self, $handle, $in_list ) = @_;
 
-	return $session->get_database->sort_values( $self, $in_list );
+	return $handle->get_database->sort_values( $self, $in_list );
 }
 
 
@@ -879,7 +879,7 @@ sub list_values
 ######################################################################
 =pod
 
-=item $value = $field->most_local( $session, $value )
+=item $value = $field->most_local( $handle, $value )
 
 If this field is a multilang field then return the version of the 
 value most useful for the language of the session. In order of
@@ -892,10 +892,10 @@ then just return $value.
 
 sub most_local
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
-	my $bestvalue =  EPrints::Session::best_language( 
-		$session->get_repository, $session->get_langid(), %{$value} );
+	my $bestvalue =  EPrints::Handle::best_language( 
+		$handle->get_repository, $handle->get_langid(), %{$value} );
 	return $bestvalue;
 }
 
@@ -935,7 +935,7 @@ sub call_property
 ######################################################################
 =pod
 
-=item $val = $field->value_from_sql_row( $session, $row )
+=item $val = $field->value_from_sql_row( $handle, $row )
 
 Shift and return the value of this field from the database input $row.
 
@@ -944,7 +944,7 @@ Shift and return the value of this field from the database input $row.
 
 sub value_from_sql_row
 {
-	my( $self, $session, $row ) = @_;
+	my( $self, $handle, $row ) = @_;
 
 	return shift @$row;
 }
@@ -952,7 +952,7 @@ sub value_from_sql_row
 ######################################################################
 =pod
 
-=item @row = $field->sql_row_from_value( $session, $value )
+=item @row = $field->sql_row_from_value( $handle, $value )
 
 Return a list of values to insert into the database based on $value.
 
@@ -961,7 +961,7 @@ Return a list of values to insert into the database based on $value.
 
 sub sql_row_from_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
 	return( $value );
 }
@@ -969,7 +969,7 @@ sub sql_row_from_value
 ######################################################################
 =pod
 
-=item %opts = $field->get_sql_properties( $session )
+=item %opts = $field->get_sql_properties( $handle )
 
 Map the relevant SQL properties for this field to options passed to L<EPrints::Database>::get_column_type().
 
@@ -978,7 +978,7 @@ Map the relevant SQL properties for this field to options passed to L<EPrints::D
 
 sub get_sql_properties
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
 	return (
 		index => $self->{ "sql_index" },
@@ -990,7 +990,7 @@ sub get_sql_properties
 ######################################################################
 =pod
 
-=item @types = $field->get_sql_type( $session )
+=item @types = $field->get_sql_type( $handle )
 
 Return the SQL column types of this field, used for creating tables.
 
@@ -999,9 +999,9 @@ Return the SQL column types of this field, used for creating tables.
 
 sub get_sql_type
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $database = $session->get_database;
+	my $database = $handle->get_database;
 
 	return $database->get_column_type(
 		$self->get_sql_name,
@@ -1016,7 +1016,7 @@ sub get_sql_type
 ######################################################################
 =pod
 
-=item $field = $field->create_ordervalues_field( $session [, $langid ] )
+=item $field = $field->create_ordervalues_field( $handle [, $langid ] )
 
 Return a new field object that this field can use to store order values, optionally for language $langid.
 
@@ -1025,10 +1025,10 @@ Return a new field object that this field can use to store order values, optiona
 
 sub create_ordervalues_field
 {
-	my( $self, $session, $langid ) = @_;
+	my( $self, $handle, $langid ) = @_;
 
 	return EPrints::MetaField->new(
-		repository => $session->get_repository,
+		repository => $handle->get_repository,
 		type => "longtext",
 		name => $self->get_name,
 		sql_sorted => 1,
@@ -1061,7 +1061,7 @@ sub get_sql_index
 ######################################################################
 =pod
 
-=item $xhtml_dom = $field->render_single_value( $session, $value )
+=item $xhtml_dom = $field->render_single_value( $handle, $value )
 
 Returns the XHTML representation of the value. The value will be
 non-multiple. Just the  simple value.
@@ -1071,16 +1071,16 @@ non-multiple. Just the  simple value.
 
 sub render_single_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
-	return $session->make_text( $value );
+	return $handle->make_text( $value );
 }
 
 
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_input_field_actual( $session, $value, [$dataset], [$staff], [$hidden_fields], [$obj], [$basename] )
+=item $xhtml = $field->render_input_field_actual( $handle, $value, [$dataset], [$staff], [$hidden_fields], [$obj], [$basename] )
 
 Return the XHTML of the fields for an form which will allow a user
 to input metadata to this field. $value is the default value for
@@ -1097,10 +1097,10 @@ with, if any.
 
 sub render_input_field_actual
 {
-	my( $self, $session, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
+	my( $self, $handle, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
 
 
-	my $elements = $self->get_input_elements( $session, $value, $staff, $obj, $basename );
+	my $elements = $self->get_input_elements( $handle, $value, $staff, $obj, $basename );
 
 	# if there's only one element then lets not bother making
 	# a table to put it in
@@ -1110,30 +1110,30 @@ sub render_input_field_actual
 #		return $elements->[0]->[0]->{el};
 #	}
 
-	my $table = $session->make_element( "table", border=>0, cellpadding=>0, cellspacing=>0, class=>"ep_form_input_grid" );
+	my $table = $handle->make_element( "table", border=>0, cellpadding=>0, cellspacing=>0, class=>"ep_form_input_grid" );
 
-	my $col_titles = $self->get_input_col_titles( $session, $staff );
+	my $col_titles = $self->get_input_col_titles( $handle, $staff );
 	if( defined $col_titles )
 	{
-		my $tr = $session->make_element( "tr" );
+		my $tr = $handle->make_element( "tr" );
 		my $th;
 		my $x = 0;
 		if( $self->get_property( "multiple" ) && $self->{input_ordered})
 		{
-			$th = $session->make_element( "th", class=>"empty_heading", id=>$basename."_th_".$x++ );
+			$th = $handle->make_element( "th", class=>"empty_heading", id=>$basename."_th_".$x++ );
 			$tr->appendChild( $th );
 		}
 
 		if( !defined $col_titles )
 		{
-			$th = $session->make_element( "th", class=>"empty_heading", id=>$basename."_th_".$x++ );
+			$th = $handle->make_element( "th", class=>"empty_heading", id=>$basename."_th_".$x++ );
 			$tr->appendChild( $th );
 		}	
 		else
 		{
 			foreach my $col_title ( @{$col_titles} )
 			{
-				$th = $session->make_element( "th", id=>$basename."_th_".$x++ );
+				$th = $handle->make_element( "th", id=>$basename."_th_".$x++ );
 				$th->appendChild( $col_title );
 				$tr->appendChild( $th );
 			}
@@ -1145,7 +1145,7 @@ sub render_input_field_actual
 	foreach my $row ( @{$elements} )
 	{
 		my $x = 0;
-		my $tr = $session->make_element( "tr" );
+		my $tr = $handle->make_element( "tr" );
 		foreach my $item ( @{$row} )
 		{
 			my %opts = ( valign=>"top", id=>$basename."_cell_".$x++."_".$y );
@@ -1154,7 +1154,7 @@ sub render_input_field_actual
 				next if( $prop eq "el" );
 				$opts{$prop} = $item->{$prop};
 			}	
-			my $td = $session->make_element( "td", %opts );
+			my $td = $handle->make_element( "td", %opts );
 			if( defined $item->{el} )
 			{
 				$td->appendChild( $item->{el} );
@@ -1170,36 +1170,36 @@ sub render_input_field_actual
 
 sub get_input_col_titles
 {
-	my( $self, $session, $staff ) = @_;
+	my( $self, $handle, $staff ) = @_;
 	return undef;
 }
 
 
 sub get_input_elements
 {
-	my( $self, $session, $value, $staff, $obj, $basename ) = @_;	
+	my( $self, $handle, $value, $staff, $obj, $basename ) = @_;	
 
 	my $assist;
 	if( $self->{input_assist} )
 	{
-		$assist = $session->make_doc_fragment;
-		$assist->appendChild( $session->render_internal_buttons(
+		$assist = $handle->make_doc_fragment;
+		$assist->appendChild( $handle->render_internal_buttons(
 			$self->{name}."_assist" => 
-				$session->phrase( 
+				$handle->phrase( 
 					"lib/metafield:assist" ) ) );
 	}
 
 	unless( $self->get_property( "multiple" ) )
 	{
 		my $rows = $self->get_input_elements_single( 
-				$session, 
+				$handle, 
 				$value,
 				$basename,
 				$staff,
 				$obj );
 		if( defined $self->{input_advice_right} )
 		{
-			my $advice = $self->call_property( "input_advice_right", $session, $self, $value );
+			my $advice = $self->call_property( "input_advice_right", $handle, $self, $value );
 			my $row = pop @{$rows};
 			push @{$row}, { el=>$advice };
 			push @{$rows}, $row;
@@ -1211,14 +1211,14 @@ sub get_input_elements
 		{
 			my $n = length( $basename) - length( $self->{name}) - 1;
 			my $componentid = substr( $basename, 0, $n );
-			my $lookup = $session->make_doc_fragment;
-			my $drop_div = $session->make_element( "div", id=>$basename."_drop", class=>"ep_drop_target" );
+			my $lookup = $handle->make_doc_fragment;
+			my $drop_div = $handle->make_element( "div", id=>$basename."_drop", class=>"ep_drop_target" );
 			$lookup->appendChild( $drop_div );
-			my $drop_loading_div = $session->make_element( "div", id=>$basename."_drop_loading", class=>"ep_drop_loading", style=>"display: none" );
-			$drop_loading_div->appendChild( $session->html_phrase( "lib/metafield:drop_loading" ) );
+			my $drop_loading_div = $handle->make_element( "div", id=>$basename."_drop_loading", class=>"ep_drop_loading", style=>"display: none" );
+			$drop_loading_div->appendChild( $handle->html_phrase( "lib/metafield:drop_loading" ) );
 			$lookup->appendChild( $drop_loading_div );
 
-			my @ids = $self->get_basic_input_ids($session, $basename, $staff, $obj );
+			my @ids = $self->get_basic_input_ids($handle, $basename, $staff, $obj );
 			my $extra_params = $self->{input_lookup_params};
 			if( defined $extra_params ) 
 			{
@@ -1234,13 +1234,13 @@ sub get_input_elements
 				my @wcells = ( $id );
 				push @code, 'ep_autocompleter( "'.$id.'", "'.$basename.'_drop", "'.$self->{input_lookup_url}.'", {relative: "'.$basename.'", component: "'.$componentid.'" }, [ $("'.join('"),$("',@wcells).'")], [], "'.$extra_params.'" );'."\n";
 			}
-			my $script = $session->make_javascript( join "", @code );
+			my $script = $handle->make_javascript( join "", @code );
 			$lookup->appendChild( $script );
 			push @{$rows}, [ {el=>$lookup,colspan=>$cols,class=>"ep_form_input_grid_wide"} ];
 		}
 		if( defined $self->{input_advice_below} )
 		{
-			my $advice = $self->call_property( "input_advice_below", $session, $self, $value );
+			my $advice = $self->call_property( "input_advice_below", $handle, $self, $value );
 			push @{$rows}, [ {el=>$advice,colspan=>$cols,class=>"ep_form_input_grid_wide"} ];
 		}
 
@@ -1253,7 +1253,7 @@ sub get_input_elements
 
 	# multiple field...
 
-	my $boxcount = $session->param( $self->{name}."_spaces" );
+	my $boxcount = $handle->param( $self->{name}."_spaces" );
 	if( !defined $boxcount )
 	{
 		$boxcount = $self->{input_boxes};
@@ -1273,7 +1273,7 @@ sub get_input_elements
 		}
 	}
 
-	my $swap = $session->param( $self->{name}."_swap" );
+	my $swap = $handle->param( $self->{name}."_swap" );
 	if( $swap =~ m/^(\d+),(\d+)$/ )
 	{
 		my( $a, $b ) = ( $value->[$1-1], $value->[$2-1] );
@@ -1283,13 +1283,13 @@ sub get_input_elements
 	}
 
 
-	my $imagesurl = $session->get_repository->get_conf( "rel_path" )."/style/images";
+	my $imagesurl = $handle->get_repository->get_conf( "rel_path" )."/style/images";
 	
 	my $rows = [];
 	for( my $i=1 ; $i<=$boxcount ; ++$i )
 	{
 		my $section = $self->get_input_elements_single( 
-				$session, 
+				$handle, 
 				$value->[$i-1], 
 				$basename."_".$i,
 				$staff,
@@ -1302,9 +1302,9 @@ sub get_input_elements
 			my $lastcol = {};
 			if( $n == 0 && $self->{input_ordered})
 			{
-				$col1 = { el=>$session->make_text( $i.". " ), class=>"ep_form_input_grid_pos" };
-				my $arrows = $session->make_doc_fragment;
-				$arrows->appendChild( $session->make_element(
+				$col1 = { el=>$handle->make_text( $i.". " ), class=>"ep_form_input_grid_pos" };
+				my $arrows = $handle->make_doc_fragment;
+				$arrows->appendChild( $handle->make_element(
 					"input",
 					type=>"image",
 					src=> "$imagesurl/multi_down.png",
@@ -1314,8 +1314,8 @@ sub get_input_elements
 					value=>"1" ));
 				if( $i > 1 )
 				{
-					$arrows->appendChild( $session->make_text( " " ) );
-					$arrows->appendChild( $session->make_element(
+					$arrows->appendChild( $handle->make_text( " " ) );
+					$arrows->appendChild( $handle->make_element(
 						"input",
 						type=>"image",
 						alt=>"up",
@@ -1329,7 +1329,7 @@ sub get_input_elements
 			}
 			if( defined $self->{input_advice_right} )
 			{
-				my $advice = $self->call_property( "input_advice_right", $session, $self, $value->[$i-1] );
+				my $advice = $self->call_property( "input_advice_right", $handle, $self, $value->[$i-1] );
 				push @{$row}, { el=>$advice };
 			}
 			push @{$rows}, $row;
@@ -1342,13 +1342,13 @@ sub get_input_elements
 				my $n = length( $basename) - length( $self->{name}) - 1;
 				my $componentid = substr( $basename, 0, $n );
 				my $ibasename = $basename."_".$i;
-				my $lookup = $session->make_doc_fragment;
-				my $drop_div = $session->make_element( "div", id=>$ibasename."_drop", class=>"ep_drop_target" );
+				my $lookup = $handle->make_doc_fragment;
+				my $drop_div = $handle->make_element( "div", id=>$ibasename."_drop", class=>"ep_drop_target" );
 				$lookup->appendChild( $drop_div );
-				my $drop_loading_div = $session->make_element( "div", id=>$ibasename."_drop_loading", class=>"ep_drop_loading", style=>"display: none" );
-				$drop_loading_div->appendChild( $session->html_phrase( "lib/metafield:drop_loading" ) );
+				my $drop_loading_div = $handle->make_element( "div", id=>$ibasename."_drop_loading", class=>"ep_drop_loading", style=>"display: none" );
+				$drop_loading_div->appendChild( $handle->html_phrase( "lib/metafield:drop_loading" ) );
 				$lookup->appendChild( $drop_loading_div );
-				my @ids = $self->get_basic_input_ids( $session, $ibasename, $staff, $obj );
+				my @ids = $self->get_basic_input_ids( $handle, $ibasename, $staff, $obj );
 				my $extra_params = $self->{input_lookup_params};
 				if( defined $extra_params ) 
 				{
@@ -1372,7 +1372,7 @@ sub get_input_elements
 					}
 					push @code, 'ep_autocompleter( "'.$id.'", "'.$ibasename.'_drop", "'.$self->{input_lookup_url}.'", { relative: "'.$ibasename.'", component: "'.$componentid.'" }, [$("'.join('"),$("',@wcells).'")], [ "'.join('","',@relfields).'"],"'.$extra_params.'" );'."\n";
 				}
-				my $script = $session->make_javascript( join "", @code );
+				my $script = $handle->make_javascript( join "", @code );
 				$lookup->appendChild( $script );
 				my @row = ();
 				push @row, {} if( $self->{input_ordered} );
@@ -1382,18 +1382,18 @@ sub get_input_elements
 			}
 			if( defined $self->{input_advice_below} )
 			{
-				my $advice = $self->call_property( "input_advice_below", $session, $self, $value->[$i-1] );
+				my $advice = $self->call_property( "input_advice_below", $handle, $self, $value->[$i-1] );
 				push @{$rows}, [ {},{el=>$advice,colspan=>$cols-1, class=>"ep_form_input_grid_wide"} ];
 			}
 		}
 	}
-	my $more = $session->make_doc_fragment;
-	$more->appendChild( $session->render_hidden_field(
+	my $more = $handle->make_doc_fragment;
+	$more->appendChild( $handle->render_hidden_field(
 					$self->{name}."_spaces",
 					$boxcount ) );
-	$more->appendChild( $session->render_internal_buttons(
+	$more->appendChild( $handle->render_internal_buttons(
 		$self->{name}."_morespaces" => 
-			$session->phrase( 
+			$handle->phrase( 
 				"lib/metafield:more_spaces" ) ) );
 	if( defined $assist )
 	{
@@ -1412,16 +1412,16 @@ sub get_input_elements
 
 sub get_state_params
 {
-	my( $self, $session, $prefix ) = @_;
+	my( $self, $handle, $prefix ) = @_;
 
 	my $params = "";
 	my $jump = "";
 
-	my $ibutton = $session->get_internal_button;
+	my $ibutton = $handle->get_internal_button;
 	my $name = $self->{name};
 	if( $ibutton eq "${name}_morespaces" ) 
 	{
-		my $spaces = $session->param( $self->{name}."_spaces" );
+		my $spaces = $handle->param( $self->{name}."_spaces" );
 		$spaces += $self->{input_add_boxes};
 		$params.= "&".$self->{name}."_spaces=$spaces";
 		$jump = "#".$self->{name};
@@ -1448,10 +1448,10 @@ sub get_state_params
 
 sub get_input_elements_single
 {
-	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
+	my( $self, $handle, $value, $basename, $staff, $obj ) = @_;
 
 	return $self->get_basic_input_elements( 
-			$session, 
+			$handle, 
 			$value, 
 			$basename, 
 			$staff,
@@ -1462,7 +1462,7 @@ sub get_input_elements_single
 
 sub get_basic_input_elements
 {
-	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
+	my( $self, $handle, $value, $basename, $staff, $obj ) = @_;
 
 	my $maxlength = $self->get_max_input_size;
 	my $size = ( $maxlength > $self->{input_cols} ?
@@ -1470,8 +1470,8 @@ sub get_basic_input_elements
 					$maxlength );
 
 
-	my $f = $session->make_element( "div" );
-	my $input = $session->render_noenter_input_field(
+	my $f = $handle->make_element( "div" );
+	my $input = $handle->render_noenter_input_field(
 		class=>"ep_form_text",
 		name => $basename,
 		id => $basename,
@@ -1479,7 +1479,7 @@ sub get_basic_input_elements
 		size => $size,
 		maxlength => $maxlength );
 	$f->appendChild( $input );
-	$f->appendChild( $session->make_element( "div", id=>$basename."_".$_."_billboard" ));
+	$f->appendChild( $handle->make_element( "div", id=>$basename."_".$_."_billboard" ));
 
 	return [ [ { el=>$f } ] ];
 }
@@ -1488,7 +1488,7 @@ sub get_basic_input_elements
 
 sub get_basic_input_ids
 {
-	my( $self, $session, $basename, $staff, $obj ) = @_;
+	my( $self, $handle, $basename, $staff, $obj ) = @_;
 
 	return( $basename );
 }
@@ -1504,7 +1504,7 @@ sub get_max_input_size
 
 ######################################################################
 # 
-# $foo = $field->form_value_actual( $session, $object, $basename )
+# $foo = $field->form_value_actual( $handle, $object, $basename )
 #
 # undocumented
 #
@@ -1512,16 +1512,16 @@ sub get_max_input_size
 
 sub form_value_actual
 {
-	my( $self, $session, $object, $basename ) = @_;
+	my( $self, $handle, $object, $basename ) = @_;
 
 	if( $self->get_property( "multiple" ) )
 	{
 		my @values = ();
-		my $boxcount = $session->param( $self->{name}."_spaces" );
+		my $boxcount = $handle->param( $self->{name}."_spaces" );
 		$boxcount = 1 if( $boxcount < 1 );
 		for( my $i=1; $i<=$boxcount; ++$i )
 		{
-			my $value = $self->form_value_single( $session, $basename."_".$i, $object );
+			my $value = $self->form_value_single( $handle, $basename."_".$i, $object );
 			next unless( EPrints::Utils::is_set( $value ) );
 			push @values, $value;
 		}
@@ -1532,12 +1532,12 @@ sub form_value_actual
 		return \@values;
 	}
 
-	return $self->form_value_single( $session, $basename, $object );
+	return $self->form_value_single( $handle, $basename, $object );
 }
 
 ######################################################################
 # 
-# $foo = $field->form_value_single( $session, $n, $object )
+# $foo = $field->form_value_single( $handle, $n, $object )
 #
 # undocumented
 #
@@ -1545,16 +1545,16 @@ sub form_value_actual
 
 sub form_value_single
 {
-	my( $self, $session, $basename, $object ) = @_;
+	my( $self, $handle, $basename, $object ) = @_;
 
-	my $value = $self->form_value_basic( $session, $basename, $object );
+	my $value = $self->form_value_basic( $handle, $basename, $object );
 	return undef unless( EPrints::Utils::is_set( $value ) );
 	return $value;
 }
 
 ######################################################################
 # 
-# $foo = $field->form_value_basic( $session, $basename, $object )
+# $foo = $field->form_value_basic( $handle, $basename, $object )
 #
 # undocumented
 #
@@ -1562,9 +1562,9 @@ sub form_value_single
 
 sub form_value_basic
 {
-	my( $self, $session, $basename, $object ) = @_;
+	my( $self, $handle, $basename, $object ) = @_;
 	
-	my $value = $session->param( $basename );
+	my $value = $handle->param( $basename );
 
 	return undef if( !EPrints::Utils::is_set( $value ) );
 
@@ -1618,14 +1618,14 @@ sub is_browsable
 ######################################################################
 =pod
 
-=item $values = $field->get_values( $session, $dataset, %opts )
+=item $values = $field->get_values( $handle, $dataset, %opts )
 
 Return a reference to an array of all the values of this field. 
 For fields like "subject" or "set"
 it returns all the variations. For fields like "text" return all 
 the distinct values from the database.
 
-Results are sorted according to the ordervalues of the $session.
+Results are sorted according to the ordervalues of the $handle.
 
 =cut
 ######################################################################
@@ -1633,13 +1633,13 @@ Results are sorted according to the ordervalues of the $session.
 
 sub get_values
 {
-	my( $self, $session, $dataset, %opts ) = @_;
+	my( $self, $handle, $dataset, %opts ) = @_;
 
 	my $langid = $opts{langid};
-	$langid = $session->get_langid unless( defined $langid );
+	$langid = $handle->get_langid unless( defined $langid );
 
 	my $unsorted_values = $self->get_unsorted_values( 
-		$session,
+		$handle,
 		$dataset,	
 		%opts );
 
@@ -1654,7 +1654,7 @@ sub get_values
 		# uses function _basic because value will NEVER be multiple
 		my $orderkey = $self->ordervalue_basic(
 			$value, 
-			$session, 
+			$handle, 
 			$langid );
 		$orderkeys{$v2} = $orderkey || "";
 	}
@@ -1666,22 +1666,22 @@ sub get_values
 
 sub get_unsorted_values
 {
-	my( $self, $session, $dataset, %opts ) = @_;
+	my( $self, $handle, $dataset, %opts ) = @_;
 
-	return $session->get_database->get_values( $self, $dataset );
+	return $handle->get_database->get_values( $self, $dataset );
 }
 
 sub get_ids_by_value
 {
-	my( $self, $session, $dataset, %opts ) = @_;
+	my( $self, $handle, $dataset, %opts ) = @_;
 
-	return $session->get_database->get_ids_by_field_values( $self, $dataset, %opts );
+	return $handle->get_database->get_ids_by_field_values( $self, $dataset, %opts );
 }
 
 ######################################################################
 =pod
 
-=item $id = $field->get_id_from_value( $session, $value )
+=item $id = $field->get_id_from_value( $handle, $value )
 
 Returns a unique id for $value or "NULL" if $value is undefined.
 
@@ -1690,7 +1690,7 @@ Returns a unique id for $value or "NULL" if $value is undefined.
 
 sub get_id_from_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
 	return defined($value) ? $value : "NULL";
 }
@@ -1698,7 +1698,7 @@ sub get_id_from_value
 ######################################################################
 =pod
 
-=item $value = $field->get_value_from_id( $session, $id )
+=item $value = $field->get_value_from_id( $handle, $id )
 
 Returns the value from $id or undef if $id is "NULL".
 
@@ -1707,7 +1707,7 @@ Returns the value from $id or undef if $id is "NULL".
 
 sub get_value_from_id
 {
-	my( $self, $session, $id ) = @_;
+	my( $self, $handle, $id ) = @_;
 
 	return $id eq "NULL" ? undef : $id;
 }
@@ -1715,7 +1715,7 @@ sub get_value_from_id
 ######################################################################
 =pod
 
-=item $xhtml = $field->get_value_label( $session, $value )
+=item $xhtml = $field->get_value_label( $handle, $value )
 
 Return an XHTML DOM object describing the given value. Normally this
 is just the value, but in the case of something like a "set" field 
@@ -1726,19 +1726,19 @@ this returns the name of the option in the current language.
 
 sub get_value_label
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
-	return $session->make_text( $value );
+	return $handle->make_text( $value );
 }
 
 
 
 #	if( $self->is_type( "id" ) )
 #	{
-#		return $session->get_repository->call( 
+#		return $handle->get_repository->call( 
 #			"id_label", 
 #			$self, 
-#			$session, 
+#			$handle, 
 #			$value );
 #	}
 
@@ -1746,7 +1746,7 @@ sub get_value_label
 ######################################################################
 =pod
 
-=item $ov = $field->ordervalue( $value, $session, $langid, $dataset )
+=item $ov = $field->ordervalue( $value, $handle, $langid, $dataset )
 
 Return a string representing this value which can be used to sort
 it into order by comparing it alphabetically.
@@ -1756,7 +1756,7 @@ it into order by comparing it alphabetically.
 
 sub ordervalue
 {
-	my( $self , $value , $session , $langid , $dataset ) = @_;
+	my( $self , $value , $handle , $langid , $dataset ) = @_;
 
 	return "" if( !defined $value );
 
@@ -1766,7 +1766,7 @@ sub ordervalue
 		return $self->call_property( "make_value_orderkey",
 			$self, 
 			$value, 
-			$session, 
+			$handle, 
 			$langid,
 			$dataset );
 	}
@@ -1774,13 +1774,13 @@ sub ordervalue
 
 	if( !$self->get_property( "multiple" ) )
 	{
-		return $self->ordervalue_single( $value , $session , $langid, $dataset );
+		return $self->ordervalue_single( $value , $handle , $langid, $dataset );
 	}
 
 	my @r = ();	
 	foreach( @$value )
 	{
-		push @r, $self->ordervalue_single( $_ , $session , $langid, $dataset );
+		push @r, $self->ordervalue_single( $_ , $handle , $langid, $dataset );
 	}
 	return join( ":", @r );
 }
@@ -1788,7 +1788,7 @@ sub ordervalue
 
 ######################################################################
 # 
-# $ov = $field->ordervalue_single( $value, $session, $langid, $dataset )
+# $ov = $field->ordervalue_single( $value, $handle, $langid, $dataset )
 # 
 # undocumented
 # 
@@ -1796,7 +1796,7 @@ sub ordervalue
 
 sub ordervalue_single
 {
-	my( $self , $value , $session , $langid, $dataset ) = @_;
+	my( $self , $value , $handle , $langid, $dataset ) = @_;
 
 	return "" unless( EPrints::Utils::is_set( $value ) );
 
@@ -1808,7 +1808,7 @@ sub ordervalue_single
 			$dataset ); 
 	}
 
-	return $self->ordervalue_basic( $value, $session, $langid );
+	return $self->ordervalue_basic( $value, $handle, $langid );
 }
 
 
@@ -1822,7 +1822,7 @@ sub ordervalue_single
 
 sub ordervalue_basic
 {
-	my( $self, $value, $session, $langid ) = @_;
+	my( $self, $value, $handle, $langid ) = @_;
 
 	return $value;
 }
@@ -1838,33 +1838,33 @@ sub ordervalue_basic
 
 sub to_xml
 {
-	my( $self, $session, $value, $dataset, %opts ) = @_;
+	my( $self, $handle, $value, $dataset, %opts ) = @_;
 
 	# we're part of a compound field that will include our value
 	if( defined $self->{parent_name} )
 	{
-		return $session->make_doc_fragment;
+		return $handle->make_doc_fragment;
 	}
 
 	# don't show empty fields
 	if( !$opts{show_empty} && !EPrints::Utils::is_set( $value ) )
 	{
-		return $session->make_doc_fragment;
+		return $handle->make_doc_fragment;
 	}
 
-	my $tag = $session->make_element( $self->get_name );	
+	my $tag = $handle->make_element( $self->get_name );	
 	if( $self->get_property( "multiple" ) )
 	{
 		foreach my $single ( @{$value} )
 		{
-			my $item = $session->make_element( "item" );
-			$item->appendChild( $self->to_xml_basic( $session, $single, $dataset, %opts ) );
+			my $item = $handle->make_element( "item" );
+			$item->appendChild( $self->to_xml_basic( $handle, $single, $dataset, %opts ) );
 			$tag->appendChild( $item );
 		}
 	}
 	else
 	{
-		$tag->appendChild( $self->to_xml_basic( $session, $value, $dataset, %opts ) );
+		$tag->appendChild( $self->to_xml_basic( $handle, $value, $dataset, %opts ) );
 	}
 
 	return $tag;
@@ -1872,16 +1872,16 @@ sub to_xml
 
 sub to_xml_basic
 {
-	my( $self, $session, $value, $dataset, %opts ) = @_;
+	my( $self, $handle, $value, $dataset, %opts ) = @_;
 
 	if( !defined $value ) 
 	{
-		return $session->make_text( "" );
+		return $handle->make_text( "" );
 	}
-	return $session->make_text( $value );
+	return $handle->make_text( $value );
 }
 
-=item $epdata = $field->xml_to_epdata( $session, $xml, %opts )
+=item $epdata = $field->xml_to_epdata( $handle, $xml, %opts )
 
 Populates $epdata based on $xml.
 
@@ -1889,7 +1889,7 @@ Populates $epdata based on $xml.
 
 sub xml_to_epdata
 {
-	my( $self, $session, $xml, %opts ) = @_;
+	my( $self, $handle, $xml, %opts ) = @_;
 
 	my $value = undef;
 
@@ -1903,17 +1903,17 @@ sub xml_to_epdata
 			{
 				if( defined $opts{Handler} )
 				{
-					$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:unexpected_element", name => $session->make_text( $node->nodeName ) ) );
-					$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:expected", elements => $session->make_text( "<item>" ) ) );
+					$opts{Handler}->message( "warning", $handle->html_phrase( "Plugin/Import/XML:unexpected_element", name => $handle->make_text( $node->nodeName ) ) );
+					$opts{Handler}->message( "warning", $handle->html_phrase( "Plugin/Import/XML:expected", elements => $handle->make_text( "<item>" ) ) );
 				}
 				next;
 			}
-			push @$value, $self->xml_to_epdata_basic( $session, $node, %opts );
+			push @$value, $self->xml_to_epdata_basic( $handle, $node, %opts );
 		}
 	}
 	else
 	{
-		$value = $self->xml_to_epdata_basic( $session, $xml, %opts );
+		$value = $self->xml_to_epdata_basic( $handle, $xml, %opts );
 	}
 
 	return $value;
@@ -1922,7 +1922,7 @@ sub xml_to_epdata
 # return epdata for a single value of this field
 sub xml_to_epdata_basic
 {
-	my( $self, $session, $xml, %opts ) = @_;
+	my( $self, $handle, $xml, %opts ) = @_;
 
 	return EPrints::Utils::tree_to_utf8( scalar $xml->childNodes );
 }
@@ -1934,9 +1934,9 @@ sub xml_to_epdata_basic
 
 sub to_xml_old
 {
-	my( $self, $session, $v, $no_xmlns ) = @_;
+	my( $self, $handle, $v, $no_xmlns ) = @_;
 
-	my $r = $session->make_doc_fragment;
+	my $r = $handle->make_doc_fragment;
 
 	if( $self->is_virtual )
 	{
@@ -1953,30 +1953,30 @@ sub to_xml_old
 		}
 		foreach my $item ( @list )
 		{
-			$r->appendChild( $session->make_text( "    " ) );
-			$r->appendChild( $self->to_xml_old_single( $session, $item, $no_xmlns ) );
-			$r->appendChild( $session->make_text( "\n" ) );
+			$r->appendChild( $handle->make_text( "    " ) );
+			$r->appendChild( $self->to_xml_old_single( $handle, $item, $no_xmlns ) );
+			$r->appendChild( $handle->make_text( "\n" ) );
 		}
 	}
 	else
 	{
-		$r->appendChild( $session->make_text( "    " ) );
-		$r->appendChild( $self->to_xml_old_single( $session, $v, $no_xmlns ) );
-		$r->appendChild( $session->make_text( "\n" ) );
+		$r->appendChild( $handle->make_text( "    " ) );
+		$r->appendChild( $self->to_xml_old_single( $handle, $v, $no_xmlns ) );
+		$r->appendChild( $handle->make_text( "\n" ) );
 	}
 	return $r;
 }
 
 sub to_xml_old_single
 {
-	my( $self, $session, $v, $no_xmlns ) = @_;
+	my( $self, $handle, $v, $no_xmlns ) = @_;
 
 	my %attrs = ( name=>$self->get_name() );
 	$attrs{'xmlns'}="http://eprints.org/ep2/data" unless( $no_xmlns );
 
-	my $r = $session->make_element( "field", %attrs );
+	my $r = $handle->make_element( "field", %attrs );
 
-	$r->appendChild( $self->to_xml_basic( $session, $v ) );
+	$r->appendChild( $self->to_xml_basic( $handle, $v ) );
 
 	return $r;
 }
@@ -1985,35 +1985,35 @@ sub to_xml_old_single
 
 sub render_xml_schema
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $element = $session->make_element( "xs:element", name => $self->get_name );
+	my $element = $handle->make_element( "xs:element", name => $self->get_name );
 
 	my $phraseid = $self->{dataset}->confid . "_fieldname_" . $self->get_name;
 	my $helpid = $self->{dataset}->confid . "_fieldhelp_" . $self->get_name;
-	if( $session->get_lang->has_phrase( $phraseid, $session ) )
+	if( $handle->get_lang->has_phrase( $phraseid, $handle ) )
 	{
-		my $annotation = $session->make_element( "xs:annotation" );
+		my $annotation = $handle->make_element( "xs:annotation" );
 		$element->appendChild( $annotation );
-		my $documentation = $session->make_element( "xs:documentation" );
+		my $documentation = $handle->make_element( "xs:documentation" );
 		$annotation->appendChild( $documentation );
-		$documentation->appendChild( $session->make_text( "\n" ) );
-		$documentation->appendChild( $session->make_text( $session->phrase( $phraseid ) ) );
-		if( $session->get_lang->has_phrase( $helpid, $session ) )
+		$documentation->appendChild( $handle->make_text( "\n" ) );
+		$documentation->appendChild( $handle->make_text( $handle->phrase( $phraseid ) ) );
+		if( $handle->get_lang->has_phrase( $helpid, $handle ) )
 		{
-			$documentation->appendChild( $session->make_text( "\n\n" ) );
-			$documentation->appendChild( $session->make_text( $session->phrase( $helpid ) ) );
+			$documentation->appendChild( $handle->make_text( "\n\n" ) );
+			$documentation->appendChild( $handle->make_text( $handle->phrase( $helpid ) ) );
 		}
-		$documentation->appendChild( $session->make_text( "\n" ) );
+		$documentation->appendChild( $handle->make_text( "\n" ) );
 	}
 
 	if( $self->get_property( "multiple" ) )
 	{
-		my $complexType = $session->make_element( "xs:complexType" );
+		my $complexType = $handle->make_element( "xs:complexType" );
 		$element->appendChild( $complexType );
-		my $sequence = $session->make_element( "xs:sequence" );
+		my $sequence = $handle->make_element( "xs:sequence" );
 		$complexType->appendChild( $sequence );
-		my $item = $session->make_element( "xs:element", name => "item", type => $self->get_xml_schema_type(), minOccurs => "0", maxOccurs => "unbounded" );
+		my $item = $handle->make_element( "xs:element", name => "item", type => $self->get_xml_schema_type(), minOccurs => "0", maxOccurs => "unbounded" );
 		$sequence->appendChild( $item );
 	}
 	else
@@ -2038,13 +2038,13 @@ sub get_xml_schema_type
 
 sub render_xml_schema_type
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $type = $session->make_element( "xs:simpleType", name => $self->get_xml_schema_type );
+	my $type = $handle->make_element( "xs:simpleType", name => $self->get_xml_schema_type );
 
-	my $restriction = $session->make_element( "xs:restriction", base => "xs:string" );
+	my $restriction = $handle->make_element( "xs:restriction", base => "xs:string" );
 	$type->appendChild( $restriction );
-	my $length = $session->make_element( "xs:maxLength", value => $self->get_max_input_size );
+	my $length = $handle->make_element( "xs:maxLength", value => $self->get_max_input_size );
 	$restriction->appendChild( $length );
 
 	return $type;
@@ -2052,24 +2052,24 @@ sub render_xml_schema_type
 
 sub render_search_input
 {
-	my( $self, $session, $searchfield ) = @_;
+	my( $self, $handle, $searchfield ) = @_;
 	
-	my $frag = $session->make_doc_fragment;
+	my $frag = $handle->make_doc_fragment;
 
 	# complex text types
 	my @text_tags = ( "ALL", "ANY" );
 	my %text_labels = ( 
-		"ANY" => $session->phrase( "lib/searchfield:text_any" ),
-		"ALL" => $session->phrase( "lib/searchfield:text_all" ) );
+		"ANY" => $handle->phrase( "lib/searchfield:text_any" ),
+		"ALL" => $handle->phrase( "lib/searchfield:text_all" ) );
 	$frag->appendChild( 
-		$session->render_option_list(
+		$handle->render_option_list(
 			name=>$searchfield->get_form_prefix."_merge",
 			values=>\@text_tags,
 			default=>$searchfield->get_merge,
 			labels=>\%text_labels ) );
-	$frag->appendChild( $session->make_text(" ") );
+	$frag->appendChild( $handle->make_text(" ") );
 	$frag->appendChild(
-		$session->render_input_field(
+		$handle->render_input_field(
 			class => "ep_form_text",
 			type => "text",
 			name => $searchfield->get_form_prefix,
@@ -2081,15 +2081,15 @@ sub render_search_input
 
 sub from_search_form
 {
-	my( $self, $session, $basename ) = @_;
+	my( $self, $handle, $basename ) = @_;
 
 	# complex text types
 
-	my $val = $session->param( $basename );
+	my $val = $handle->param( $basename );
 	return unless defined $val;
 
-	my $search_type = $session->param( $basename."_merge" );
-	my $search_match = $session->param( $basename."_match" );
+	my $search_type = $handle->param( $basename."_merge" );
+	my $search_match = $handle->param( $basename."_match" );
 		
 	# Default search type if none supplied (to allow searches 
 	# using simple HTTP GETs)
@@ -2104,7 +2104,7 @@ sub from_search_form
 
 sub render_search_description
 {
-	my( $self, $session, $sfname, $value, $merge, $match ) = @_;
+	my( $self, $handle, $sfname, $value, $merge, $match ) = @_;
 
 	my( $phraseid );
 	if( $match eq "EQ" || $match eq "EX" )
@@ -2121,10 +2121,10 @@ sub render_search_description
 	}
 
 	my $valuedesc = $self->render_search_value(
-		$session,
+		$handle,
 		$value );
 	
-	return $session->html_phrase(
+	return $handle->html_phrase(
 		$phraseid,
 		name => $sfname, 
 		value => $valuedesc );
@@ -2132,9 +2132,9 @@ sub render_search_description
 
 sub render_search_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
-	return $session->make_text( '"'.$value.'"' );
+	return $handle->make_text( '"'.$value.'"' );
 }	
 
 sub get_search_group { return 'basic'; } 
@@ -2196,7 +2196,7 @@ sub get_property_defaults
 );
 }
 
-=item $value = $field->get_default_value( $session )
+=item $value = $field->get_default_value( $handle )
 
 Return the default value for this field. This is only applicable to very simple
 cases such as timestamps, auto-incremented values etc.
@@ -2208,12 +2208,12 @@ callback (or the equivalent for the given object).
 
 sub get_default_value
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
 	return $self->get_property( "default_value" );
 }
 
-=item ( $terms, $grep_terms, $ignored ) = $field->get_index_codes( $session, $value )
+=item ( $terms, $grep_terms, $ignored ) = $field->get_index_codes( $handle, $value )
 
 Get indexable terms from $value. $terms is a reference to an array of strings to index. $grep_terms is a reference to an array of terms to add to the grep index. $ignored is a reference to an array of terms that should be ignored (e.g. stop words in a free-text field).
 
@@ -2222,12 +2222,12 @@ Get indexable terms from $value. $terms is a reference to an array of strings to
 # Most types are not indexed		
 sub get_index_codes
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
 	return( [], [], [] );
 }
 
-=item @terms = $field->split_search_value( $session, $value )
+=item @terms = $field->split_search_value( $handle, $value )
 
 Split $value into terms that can be used to search against this field.
 
@@ -2235,16 +2235,16 @@ Split $value into terms that can be used to search against this field.
 
 sub split_search_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
 #	return EPrints::Index::split_words( 
-#			$session,
-#			EPrints::Index::apply_mapping( $session, $value ) );
+#			$handle,
+#			EPrints::Index::apply_mapping( $handle, $value ) );
 
 	return split /\s+/, $value;
 }
 
-=item $cond = $field->get_search_conditions( $session, $dataset, $value, $match, $merge, $mode )
+=item $cond = $field->get_search_conditions( $handle, $dataset, $value, $match, $merge, $mode )
 
 Return a L<Search::Condition> for $value based on this field.
 
@@ -2252,7 +2252,7 @@ Return a L<Search::Condition> for $value based on this field.
 
 sub get_search_conditions
 {
-	my( $self, $session, $dataset, $search_value, $match, $merge,
+	my( $self, $handle, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 
 	if( $match eq "EX" )
@@ -2273,7 +2273,7 @@ sub get_search_conditions
 	}
 
 	return $self->get_search_conditions_not_ex(
-			$session, 
+			$handle, 
 			$dataset, 
 			$search_value, 
 			$match, 
@@ -2281,7 +2281,7 @@ sub get_search_conditions
 			$search_mode );
 }
 
-=item $cond = $field->get_search_conditions_not_ex( $session, $dataset, $value, $match, $merge, $mode )
+=item $cond = $field->get_search_conditions_not_ex( $handle, $dataset, $value, $match, $merge, $mode )
 
 Return the search condition for a search which is not-exact ($match ne "EX").
 
@@ -2289,7 +2289,7 @@ Return the search condition for a search which is not-exact ($match ne "EX").
 
 sub get_search_conditions_not_ex
 {
-	my( $self, $session, $dataset, $search_value, $match, $merge,
+	my( $self, $handle, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 	
 	if( $match eq "EQ" )
@@ -2304,7 +2304,7 @@ sub get_search_conditions_not_ex
 	# free text!
 
 	# apply stemming and stuff
-	my( $codes, $grep_codes, $bad ) = $self->get_index_codes( $session, $search_value );
+	my( $codes, $grep_codes, $bad ) = $self->get_index_codes( $handle, $search_value );
 
 	# Just go "yeah" if stemming removed the word
 	if( !EPrints::Utils::is_set( $codes->[0] ) )
@@ -2347,13 +2347,13 @@ sub should_reverse_order { return 0; }
 # return an array of dom problems
 sub validate
 {
-	my( $self, $session, $value, $object ) = @_;
+	my( $self, $handle, $value, $object ) = @_;
 
-	return $session->get_repository->call(
+	return $handle->get_repository->call(
 		"validate_field",
 		$self,
 		$value,
-		$session );
+		$handle );
 }
 
 

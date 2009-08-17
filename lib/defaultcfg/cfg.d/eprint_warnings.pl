@@ -2,13 +2,13 @@
 
 ######################################################################
 #
-# eprint_warnings( $eprint, $session )
+# eprint_warnings( $eprint, $handle )
 #
 ######################################################################
 #
 # $eprint 
 # - EPrint object
-# $session 
+# $handle 
 # - Session object (the current session)
 #
 # returns: @problems
@@ -26,14 +26,14 @@
 
 $c->{eprint_warnings} = sub
 {
-	my( $eprint, $session ) = @_;
+	my( $eprint, $handle ) = @_;
 
 	my @problems = ();
 
 	my @docs = $eprint->get_all_documents;
 	if( @docs == 0 )
 	{
-		push @problems, $session->html_phrase( "warnings:no_documents" );
+		push @problems, $handle->html_phrase( "warnings:no_documents" );
 	}
 
 	my $all_public = 1;
@@ -47,7 +47,7 @@ $c->{eprint_warnings} = sub
 
 	if( !$all_public && !$eprint->is_set( "contact_email" ) )
 	{
-		push @problems, $session->html_phrase( "warnings:no_contact_email" );
+		push @problems, $handle->html_phrase( "warnings:no_contact_email" );
 	}
 		
 

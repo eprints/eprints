@@ -43,10 +43,10 @@ use EPrints::MetaField;
 
 sub get_sql_type
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
 	# Could be a 'SET' on MySQL/Postgres
-	return $session->get_database->get_column_type(
+	return $handle->get_database->get_column_type(
 		$self->get_sql_name(),
 		EPrints::Database::SQL_VARCHAR,
 		!$self->get_property( "allow_null" ),
@@ -58,7 +58,7 @@ sub get_sql_type
 
 sub get_index_codes
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
 	return( [], [], [] );
 }
@@ -66,29 +66,29 @@ sub get_index_codes
 
 sub render_single_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
-	return $session->html_phrase(
+	return $handle->html_phrase(
 		"lib/metafield:".($value eq "TRUE"?"true":"false") );
 }
 
 
 sub get_basic_input_elements
 {
-	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
+	my( $self, $handle, $value, $basename, $staff, $obj ) = @_;
 
 	if( $self->{input_style} eq "menu" )
 	{
 		my @values = qw/ TRUE FALSE /;
 		my %labels = (
-TRUE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_TRUE"),
-FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE"),
+TRUE=> $handle->phrase( $self->{confid}."_fieldopt_".$self->{name}."_TRUE"),
+FALSE=> $handle->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE"),
 );
 		my $height = 2;
 		if( !$self->get_property( "required" ) )
 		{
 			push @values, "";
-			$labels{""} = $session->phrase( "lib/metafield:unspecified_selection" );
+			$labels{""} = $handle->phrase( "lib/metafield:unspecified_selection" );
 			$height++;
 		}
 		if( $self->get_property( "input_rows" ) )
@@ -102,49 +102,49 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE"),
 			name=>$basename,
 			default=>$value
 		);
-		return [[{ el=>$session->render_option_list( %settings ) }]];
+		return [[{ el=>$handle->render_option_list( %settings ) }]];
 	}
 
 	if( $self->{input_style} eq "radio" )
 	{
 		# render as radio buttons
 
-		my $true = $session->render_noenter_input_field(
+		my $true = $handle->render_noenter_input_field(
 			type => "radio",
 			checked=>( defined $value && $value eq 
 					"TRUE" ? "checked" : undef ),
 			name => $basename,
 			value => "TRUE" );
-		my $false = $session->render_noenter_input_field(
+		my $false = $handle->render_noenter_input_field(
 			type => "radio",
 			checked=>( defined $value && $value eq 
 					"FALSE" ? "checked" : undef ),
 			name => $basename,
 			value => "FALSE" );
-		my $f = $session->make_doc_fragment;
+		my $f = $handle->make_doc_fragment;
 		$f->appendChild( 
-			$session->html_phrase(
+			$handle->html_phrase(
 				$self->{confid}."_radio_".$self->{name},
 				true=>$true,
 				false=>$false ) );
 		if( !$self->get_property( "required" ) )
 		{
-			my $div = $session->make_element( "div" );
+			my $div = $handle->make_element( "div" );
 			$div->appendChild( 
-				$session->render_noenter_input_field(
+				$handle->render_noenter_input_field(
 					type => "radio",
 					checked=>( !EPrints::Utils::is_set($value) ? "checked" : undef ),
 					name => $basename,
 					value => "" ) );
 			$f->appendChild( $div );
-			$div->appendChild( $session->html_phrase( 
+			$div->appendChild( $handle->html_phrase( 
 				"lib/metafield:unspecified_selection" ) );
 		}
 		return [[{ el=>$f }]];
 	}
 			
 	# render as checkbox (ugly)
-	return [[{ el=>$session->render_noenter_input_field(
+	return [[{ el=>$handle->render_noenter_input_field(
 				type => "checkbox",
 				checked=>( defined $value && $value eq 
 						"TRUE" ? "checked" : undef ),
@@ -154,9 +154,9 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE"),
 
 sub form_value_basic
 {
-	my( $self, $session, $basename ) = @_;
+	my( $self, $handle, $basename ) = @_;
 	
-	my $form_val = $session->param( $basename );
+	my $form_val = $handle->param( $basename );
 	if( 
 		$self->{input_style} eq "radio" || 
 		$self->{input_style} eq "menu" )
@@ -174,7 +174,7 @@ sub form_value_basic
 
 sub get_unsorted_values
 {
-	my( $self, $session, $dataset, %opts ) = @_;
+	my( $self, $handle, $dataset, %opts ) = @_;
 
 	return [ "TRUE", "FALSE" ];
 }
@@ -182,18 +182,18 @@ sub get_unsorted_values
 
 sub render_search_input
 {
-	my( $self, $session, $searchfield ) = @_;
+	my( $self, $handle, $searchfield ) = @_;
 	
 	# Boolean: Popup menu
 
 	my @bool_tags = ( "EITHER", "TRUE", "FALSE" );
 	my %bool_labels = ( 
-"EITHER" => $session->phrase( "lib/searchfield:bool_nopref" ),
-"TRUE"   => $session->phrase( "lib/searchfield:bool_yes" ),
-"FALSE"  => $session->phrase( "lib/searchfield:bool_no" ) );
+"EITHER" => $handle->phrase( "lib/searchfield:bool_nopref" ),
+"TRUE"   => $handle->phrase( "lib/searchfield:bool_yes" ),
+"FALSE"  => $handle->phrase( "lib/searchfield:bool_no" ) );
 
 	my $value = $searchfield->get_value;	
-	return $session->render_option_list(
+	return $handle->render_option_list(
 		name => $searchfield->get_form_prefix,
 		values => \@bool_tags,
 		default => ( defined $value ? $value : $bool_tags[0] ),
@@ -202,9 +202,9 @@ sub render_search_input
 
 sub from_search_form
 {
-	my( $self, $session, $basename ) = @_;
+	my( $self, $handle, $basename ) = @_;
 
-	my $val = $session->param( $basename );
+	my $val = $handle->param( $basename );
 
 	return unless defined $val;
 
@@ -215,16 +215,16 @@ sub from_search_form
 
 sub render_search_description
 {
-	my( $self, $session, $sfname, $value, $merge, $match ) = @_;
+	my( $self, $handle, $sfname, $value, $merge, $match ) = @_;
 
 	if( $value eq "TRUE" )
 	{
-		return $session->html_phrase(
+		return $handle->html_phrase(
 			"lib/searchfield:desc_true",
 			name => $sfname );
 	}
 
-	return $session->html_phrase(
+	return $handle->html_phrase(
 		"lib/searchfield:desc_false",
 		name => $sfname );
 }
@@ -232,7 +232,7 @@ sub render_search_description
 
 sub get_search_conditions_not_ex
 {
-	my( $self, $session, $dataset, $search_value, $match, $merge,
+	my( $self, $handle, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 	
 	return EPrints::Search::Condition->new( 
@@ -254,15 +254,15 @@ sub get_property_defaults
 
 sub render_xml_schema_type
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $type = $session->make_element( "xs:simpleType", name => $self->get_xml_schema_type );
+	my $type = $handle->make_element( "xs:simpleType", name => $self->get_xml_schema_type );
 
-	my $restriction = $session->make_element( "xs:restriction", base => "xs:string" );
+	my $restriction = $handle->make_element( "xs:restriction", base => "xs:string" );
 	$type->appendChild( $restriction );
 	foreach my $value (@{$self->get_unsorted_values})
 	{
-		my $enumeration = $session->make_element( "xs:enumeration", value => $value );
+		my $enumeration = $handle->make_element( "xs:enumeration", value => $value );
 		$restriction->appendChild( $enumeration );
 	}
 

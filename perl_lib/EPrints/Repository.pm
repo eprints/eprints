@@ -626,7 +626,7 @@ sub _load_templates
 		}
 		closedir( $dh );
 
-		#my $tmp_session = EPrints::Session->new( 1, $self->{id} );
+		#my $tmp_session = EPrints::Handle->new( 1, $self->{id} );
 		#$tmp_session->terminate;
 
 		foreach my $fn ( @template_files )
@@ -1142,9 +1142,9 @@ sub _map_oai_plugins
 		$self->{config}->{oai}->{v2}->{metadata_namespaces}->{$plugin_id} = $plugin->{xmlns};
 		$self->{config}->{oai}->{v2}->{metadata_schemas}->{$plugin_id} = $plugin->{schemaLocation};
 		$self->{config}->{oai}->{v2}->{metadata_functions}->{$plugin_id} = sub {
-			my( $eprint, $session ) = @_;
+			my( $eprint, $handle ) = @_;
 
-			my $plugin = $session->plugin( $full_plugin_id );
+			my $plugin = $handle->plugin( $full_plugin_id );
 			my $xml = $plugin->xml_dataobj( $eprint );
 			return $xml;
 		};

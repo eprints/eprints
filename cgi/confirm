@@ -16,40 +16,40 @@ use EPrints;
 
 use strict;
 
-my $session = new EPrints::Session;
-exit( 0 ) unless( defined $session );
+my $handle = new EPrints::Handle;
+exit( 0 ) unless( defined $handle );
 
-my( $title, $page ) = make_confirm_page( $session );
+my( $title, $page ) = make_confirm_page( $handle );
 
-$session->build_page( $title, $page, "confirm" );
-$session->send_page();
-$session->terminate();
+$handle->build_page( $title, $page, "confirm" );
+$handle->send_page();
+$handle->terminate();
 
 
 sub make_confirm_page
 {
-	my( $session ) = @_;
+	my( $handle ) = @_;
 
-	my $page = $session->make_doc_fragment;
+	my $page = $handle->make_doc_fragment;
 
-	my $user_ds = $session->get_repository->get_dataset( "user" );
+	my $user_ds = $handle->get_repository->get_dataset( "user" );
 
-	if( !$session->have_parameters() )
+	if( !$handle->have_parameters() )
 	{
-		$page->appendChild( $session->html_phrase( "general:bad_param" ) );
-		return( $session->html_phrase( "cgi/confirm:err_title" ) , $page );
+		$page->appendChild( $handle->html_phrase( "general:bad_param" ) );
+		return( $handle->html_phrase( "cgi/confirm:err_title" ) , $page );
 	}
 
 	# Process the form.
-	my $userid = $session->param( "userid" )+0;
-	my $pin = $session->param( "pin" );
+	my $userid = $handle->param( "userid" )+0;
+	my $pin = $handle->param( "pin" );
 
-	my $user = new EPrints::User( $session, $userid );
+	my $user = new EPrints::User( $handle, $userid );
 
 	if( !defined $user )
 	{
-		$page->appendChild( $session->html_phrase( "cgi/confirm:bad_user" ) );
-		return( $session->html_phrase( "cgi/confirm:err_title" ) , $page );
+		$page->appendChild( $handle->html_phrase( "cgi/confirm:bad_user" ) );
+		return( $handle->html_phrase( "cgi/confirm:err_title" ) , $page );
 	}
 
 	my $userpin = $user->get_value( "pin" );
@@ -58,19 +58,19 @@ sub make_confirm_page
 
 	if( !defined $userpin )
 	{
-		$page->appendChild( $session->html_phrase( "cgi/confirm:no_pin" ) );
-		return( $session->html_phrase( "cgi/confirm:err_title" ) , $page );
+		$page->appendChild( $handle->html_phrase( "cgi/confirm:no_pin" ) );
+		return( $handle->html_phrase( "cgi/confirm:err_title" ) , $page );
 	}
 	if( $userpin ne $pin)
 	{
-		$page->appendChild( $session->html_phrase( "cgi/confirm:pin_mismatch" ) );
-		return( $session->html_phrase( "cgi/confirm:err_title" ) , $page );
+		$page->appendChild( $handle->html_phrase( "cgi/confirm:pin_mismatch" ) );
+		return( $handle->html_phrase( "cgi/confirm:err_title" ) , $page );
 	}
-	my $maxdelta = $session->get_repository->get_conf( "pin_timeout" );
+	my $maxdelta = $handle->get_repository->get_conf( "pin_timeout" );
 	if( ( $maxdelta != 0 ) && ( $maxdelta * 60 * 60 < $delta ) )
 	{
-		$page->appendChild( $session->html_phrase( "cgi/confirm:pin_timeout" ) );
-		return( $session->html_phrase( "cgi/confirm:err_title" ) , $page );
+		$page->appendChild( $handle->html_phrase( "cgi/confirm:pin_timeout" ) );
+		return( $handle->html_phrase( "cgi/confirm:err_title" ) , $page );
 	}
 
 	# Only ONE of these should be set, as the two set_* scripts should zero the
@@ -81,9 +81,9 @@ sub make_confirm_page
 	
 	if( $user->is_set( "newemail" ) )
 	{
-		$page->appendChild( $session->html_phrase( 
+		$page->appendChild( $handle->html_phrase( 
 			"cgi/confirm:set_email",
-			newemail=>$session->make_text( $user->get_value( "newemail" ) ) ) );
+			newemail=>$handle->make_text( $user->get_value( "newemail" ) ) ) );
 		# check no one else has this email! cjg
 		$user->set_value( "email", $user->get_value( "newemail" ) );
 		$user->set_value( "newemail", undef );
@@ -99,22 +99,22 @@ sub make_confirm_page
 	else
 	{
 		# Must be password then. Can't see it 'cus it's a "secret".
-		$session->get_database->_update_quoted(
+		$handle->get_database->_update_quoted(
 			$user_ds->get_sql_table_name,
 			["userid"],
-			[$session->get_database->quote_value($userid)],
+			[$handle->get_database->quote_value($userid)],
 			["password","newpassword","pin"],
-			[$session->get_database->quote_identifier("newpassword"),"NULL","NULL"],
+			[$handle->get_database->quote_identifier("newpassword"),"NULL","NULL"],
 		);
-		$page->appendChild( $session->html_phrase( "cgi/confirm:set_password" ) );
-		$session->login( $user );
+		$page->appendChild( $handle->html_phrase( "cgi/confirm:set_password" ) );
+		$handle->login( $user );
 	}
 
-	$page->appendChild( $session->html_phrase( "cgi/confirm:username",
+	$page->appendChild( $handle->html_phrase( "cgi/confirm:username",
 		username => $user->render_value( "username" ) ) );
 
-	$page->appendChild( $session->html_phrase( "cgi/confirm:go_login" ) );
+	$page->appendChild( $handle->html_phrase( "cgi/confirm:go_login" ) );
 
-	return( $session->html_phrase( "cgi/confirm:title" ) , $page );
+	return( $handle->html_phrase( "cgi/confirm:title" ) , $page );
 }
 

@@ -24,7 +24,7 @@ sub update_from_form
 
 	foreach my $field ( @{$self->{config}->{fields}} )
 	{
-		my $value = $field->form_value( $self->{session}, $self->{dataobj}, $self->{prefix} );
+		my $value = $field->form_value( $self->{handle}, $self->{dataobj}, $self->{prefix} );
 		$self->{dataobj}->set_value( $field->{name}, $value );
 	}
 
@@ -49,9 +49,9 @@ sub validate
 		# cjg bug - not handling for_archive here.
 		if( $field->{required} && !$self->{dataobj}->is_set( $field->{name} ) )
 		{
-			my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:".$field->{name} );
-			$fieldname->appendChild( $field->render_name( $self->{session} ) );
-			my $problem = $self->{session}->html_phrase(
+			my $fieldname = $self->{handle}->make_element( "span", class=>"ep_problem_field:".$field->{name} );
+			$fieldname->appendChild( $field->render_name( $self->{handle} ) );
+			my $problem = $self->{handle}->html_phrase(
 				"lib/eprint:not_done_field" ,
 				fieldname=>$fieldname );
 			push @problems, $problem;
@@ -70,7 +70,7 @@ sub parse_config
 	my( $self, $config_dom ) = @_;
 	
 	$self->{config}->{fields} = [];
-	$self->{config}->{title} = $self->{session}->make_doc_fragment;
+	$self->{config}->{title} = $self->{handle}->make_doc_fragment;
 
 	foreach my $node ( $config_dom->getChildNodes )
 	{
@@ -88,10 +88,10 @@ sub parse_config
 		if( $node->nodeName eq "help" ) 
 		{
 			my $phrase_ref = $node->getAttribute( "ref" );
-			$self->{config}->{help} = $self->{session}->make_element( "div", class=>"ep_sr_help_chunk" );
+			$self->{config}->{help} = $self->{handle}->make_element( "div", class=>"ep_sr_help_chunk" );
 			if( EPrints::Utils::is_set( $phrase_ref ) )
 			{
-				$self->{config}->{help}->appendChild( $self->{session}->html_phrase( $phrase_ref ) );
+				$self->{config}->{help}->appendChild( $self->{handle}->html_phrase( $phrase_ref ) );
 			}
 			else
 			{
@@ -117,8 +117,8 @@ sub render_content
 {
 	my( $self, $surround ) = @_;
 
-	my $table = $self->{session}->make_element( "table", class => "ep_multi" );
-	my $tbody = $self->{session}->make_element( "tbody" );
+	my $table = $self->{handle}->make_element( "table", class => "ep_multi" );
+	my $tbody = $self->{handle}->make_element( "tbody" );
 	$table->appendChild( $tbody );
 	my $first = 1;
 	foreach my $field ( @{$self->{config}->{fields}} )
@@ -128,16 +128,16 @@ sub render_content
 		$parts{class} = "ep_first" if $first;
 		$first = 0;
 
-		$parts{label} = $field->render_name( $self->{session} );
+		$parts{label} = $field->render_name( $self->{handle} );
 
 		if( $field->{required} ) # moj: Handle for_archive
 		{
-			$parts{label} = $self->{session}->html_phrase( 
+			$parts{label} = $self->{handle}->html_phrase( 
 				"sys:ep_form_required",
 				label=>$parts{label} );
 		}
  
-		$parts{help} = $field->render_help( $self->{session} );
+		$parts{help} = $field->render_help( $self->{handle} );
 
 
 		# Get the field and its value/default
@@ -151,7 +151,7 @@ sub render_content
 			$value = $self->{default};
 		}
 		$parts{field} = $field->render_input_field( 
-			$self->{session}, 
+			$self->{handle}, 
 			$value, 
 			undef,
 			0,
@@ -163,7 +163,7 @@ sub render_content
 
 		$parts{help_prefix} = $self->{prefix}."_help_".$field->get_name;
 
-		$table->appendChild( $self->{session}->render_row_with_help( %parts ) );
+		$table->appendChild( $self->{handle}->render_row_with_help( %parts ) );
 	}
 	return $table;
 }
@@ -181,7 +181,7 @@ sub render_title
 
 	# nb. That this must clone the title as the title may be used 
 	# more than once.
-	return $self->{session}->clone_for_me( $self->{config}->{title}, 1 );
+	return $self->{handle}->clone_for_me( $self->{config}->{title}, 1 );
 }
 
 
@@ -217,7 +217,7 @@ sub get_state_params
 	my $params = "";
 	foreach my $field ( @{$self->{config}->{fields}} )
 	{
-		$params.= $field->get_state_params( $self->{session}, $self->{prefix}."_".$field->get_name );
+		$params.= $field->get_state_params( $self->{handle}, $self->{prefix}."_".$field->get_name );
 	}
 	return $params;
 }

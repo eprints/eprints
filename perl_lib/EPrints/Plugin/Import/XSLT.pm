@@ -35,9 +35,9 @@ sub new
 		$self->{name} = munge_name($name);
 		$self->{visible} = "all";
 		$self->{produce} = [ 'list/eprint' ];
-		$self->{session} ||= $self->{processor}->{session};
+		$self->{handle} ||= $self->{processor}->{handle};
 		$self->{Handler} ||= EPrints::CLIProcessor->new(
-			session => $self->{session}
+			handle => $self->{handle}
 		);
 		my $settings = $EPrints::Plugin::Import::XSLT::SETTINGS{$self->{id}};
 		$self->{stylesheet} = $settings->{stylesheet};
@@ -92,9 +92,9 @@ sub input_fh
 	my( $plugin, %opts ) = @_;
 
 	my $fh = $opts{fh};
-	my $session = $plugin->{session};
+	my $handle = $plugin->{handle};
 
-	my $xmlplugin = $session->plugin( "Import::XML",
+	my $xmlplugin = $handle->plugin( "Import::XML",
 		Handler => $plugin->handler,
 		parse_only => $plugin->{parse_only},
 	);
@@ -126,15 +126,15 @@ sub input_fh
 		TARGET => "$epfile",
 	);
 
-	unless( $session->get_repository->can_invoke( "xsltproc", %args ) )
+	unless( $handle->get_repository->can_invoke( "xsltproc", %args ) )
 	{
 		EPrints::abort "Can't invoke xsltproc\n";
 	}
 
-	my $rc = EPrints::Platform::exec( $session->get_repository, "xsltproc", %args );
+	my $rc = EPrints::Platform::exec( $handle->get_repository, "xsltproc", %args );
 	if( $rc )
 	{
-		$plugin->handler->message( "error", $session->make_text( "Error invoking xslt processor (result = $rc)" ) );
+		$plugin->handler->message( "error", $handle->make_text( "Error invoking xslt processor (result = $rc)" ) );
 		return;
 	}
 

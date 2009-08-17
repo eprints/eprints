@@ -16,108 +16,108 @@ use EPrints;
 use EPrints::Toolbox;
 use strict;
 
-my $session = new EPrints::Session;
-exit( 0 ) unless( defined $session );
+my $handle = new EPrints::Handle;
+exit( 0 ) unless( defined $handle );
 
-my $cmd = $session->param( "verb" );
-my $username = $session->param( "username" );
-my $password = $session->param( "password" );
+my $cmd = $handle->param( "verb" );
+my $username = $handle->param( "username" );
+my $password = $handle->param( "password" );
 
 my %opts = ();
 
-if( !$session->valid_login( $username, $password ) )
+if( !$handle->valid_login( $username, $password ) )
 {
-	toolbox_fail( $session, "Invalid username/password" );
+	toolbox_fail( $handle, "Invalid username/password" );
 }
 
-$session->{current_user} = EPrints::DataObj::User::user_with_username( $session, $username );
+$handle->{current_user} = EPrints::DataObj::User::user_with_username( $handle, $username );
 
-if( !$session->{current_user}->allow( "toolbox" ) )
+if( !$handle->{current_user}->allow( "toolbox" ) )
 {
-	toolbox_fail( $session, "User '$username' not authorised to use toolbox functions" );
+	toolbox_fail( $handle, "User '$username' not authorised to use toolbox functions" );
 }
 
 $opts{data_fn} = sub {
 	my( %opts ) = @_;
 
-	my $data = $session->param( "data" );
+	my $data = $handle->param( "data" );
 	if( EPrints::Utils::is_set( $data ) )
 	{
 		return $data;
 	}
 
-	my $fn = $opts{session}->param( "datafile" );
+	my $fn = $opts{handle}->param( "datafile" );
 	$data = join( "", <$fn> );
 	return $data;
 };
 
 
-$opts{format} = $session->param( "format" );
-$opts{filename} = $session->param( "filename" );
-$opts{field} = $session->param( "field" );
+$opts{format} = $handle->param( "format" );
+$opts{filename} = $handle->param( "filename" );
+$opts{field} = $handle->param( "field" );
 
-my $eprintid = $session->param( "eprint" );
+my $eprintid = $handle->param( "eprint" );
 if( EPrints::Utils::is_set( $eprintid ) )
 {
-	$opts{eprint} = EPrints::DataObj::EPrint->new( $session, $eprintid );
+	$opts{eprint} = EPrints::DataObj::EPrint->new( $handle, $eprintid );
 	if( !defined $opts{eprint} )
 	{
-		toolbox_fail( $session, "Could not find eprint $eprintid" );
+		toolbox_fail( $handle, "Could not find eprint $eprintid" );
 	}
 }
 
-my $docid = $session->param( "document" );
+my $docid = $handle->param( "document" );
 if( EPrints::Utils::is_set( $docid ) )
 {
-	$opts{document} = EPrints::DataObj::Document->new( $session, $docid );
+	$opts{document} = EPrints::DataObj::Document->new( $handle, $docid );
 	if( !defined $opts{document} )
 	{
-		toolbox_fail( $session, "Could not find document $docid" );
+		toolbox_fail( $handle, "Could not find document $docid" );
 	}
 }
 
-$opts{session} = $session;
+$opts{handle} = $handle;
 
 my $fn_name = "EPrints::Toolbox::tool_".$cmd;
 
 my( $rc, $output ) = eval "$fn_name( \%opts )";
 if( $@ )
 {
-	toolbox_fail( $session, "Command '$cmd' failed.", [$@] );
+	toolbox_fail( $handle, "Command '$cmd' failed.", [$@] );
 }
 if( $rc ) 
 {
-	toolbox_fail( $session, "Command Failed", $output );
+	toolbox_fail( $handle, "Command Failed", $output );
 }
 
-$session->send_http_header( content_type=>"text/plain" );
+$handle->send_http_header( content_type=>"text/plain" );
 print $output;
 
-$session->terminate();
+$handle->terminate();
 exit;
 
 sub toolbox_fail
 {
-	my( $session, $msg, $problems ) = @_;
+	my( $handle, $msg, $problems ) = @_;
 
-	my $error = $session->make_element( "eprints_toolbox_error" );
-	my $message = $session->make_element( "message" );
+	my $error = $handle->make_element( "eprints_toolbox_error" );
+	my $message = $handle->make_element( "message" );
 	$error->appendChild( $message );
-	$message->appendChild( $session->make_text( $msg ) );
+	$message->appendChild( $handle->make_text( $msg ) );
 	if( defined $problems )
 	{
 		foreach my $problem ( @{$problems} )
 		{
-			my $problem_dom = $session->make_element( "problem" );
+			my $problem_dom = $handle->make_element( "problem" );
 			$error->appendChild( $problem_dom );
-			$problem_dom->appendChild( $session->make_text( $problem ) );
+			$problem_dom->appendChild( $handle->make_text( $problem ) );
 		}
 	}
 	EPrints::XML::tidy( $error );
-	$session->send_http_header( content_type=>"text/xml" );
+	$handle->send_http_header( content_type=>"text/xml" );
 
 	print EPrints::XML::to_string( $error );
-	$session->terminate;
+	$handle->terminate;
 	exit;
 }
 

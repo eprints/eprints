@@ -41,9 +41,9 @@ sub get_history
 
 	if( !defined $self->{processor}->{$cache_id} )
 	{
-		my $ds = $self->{session}->get_repository->get_dataset( "history" );
+		my $ds = $self->{handle}->get_repository->get_dataset( "history" );
 		my $searchexp = EPrints::Search->new(
-			session=>$self->{session},
+			handle =>$self->{handle},
 			dataset=>$ds,
 			custom_order=>"-timestamp/-historyid" );
 		
@@ -70,7 +70,7 @@ sub render
 
 	my $cacheid = $list->{cache_id};
 
-	my $container = $self->{session}->make_element( 
+	my $container = $self->{handle}->make_element( 
 				"div", 
 				class=>"ep_paginate_list" );
 	my %opts =
@@ -87,10 +87,10 @@ sub render
 
 
 
-	my $page = $self->{session}->render_form( "GET" );
+	my $page = $self->{handle}->render_form( "GET" );
 	$page->appendChild( 
 		EPrints::Paginate->paginate_list( 
-			$self->{session}, 
+			$self->{handle}, 
 			"_history", 
 			$list,
 			%opts ) );
@@ -101,9 +101,9 @@ sub render
 
 sub render_result_row
 {
-	my( $self, $session, $result, $searchexp, $n ) = @_;
+	my( $self, $handle, $result, $searchexp, $n ) = @_;
 
-	my $div = $session->make_element( "div", class=>"ep_search_result" );
+	my $div = $handle->make_element( "div", class=>"ep_search_result" );
 	$div->appendChild( $result->render_citation( "default" ) );
 	return $div;
 }

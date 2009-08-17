@@ -38,8 +38,8 @@ sub handler
 {
         my $request = shift;
 
-        my $session = new EPrints::Session;
-        if(! defined $session )
+        my $handle = new EPrints::Handle;
+        if(! defined $handle )
         {
                 print STDERR "\n[SWORD-SERVDOC] [INTERNAL-ERROR] Could not create session object.";
                 $request->status( 500 );
@@ -47,7 +47,7 @@ sub handler
         }
 
 	# Authenticating user and behalf user
-	my $response = EPrints::Sword::Utils::authenticate( $session, $request );
+	my $response = EPrints::Sword::Utils::authenticate( $handle, $request );
 	my $error = $response->{error};
 
 	if( defined $error )
@@ -63,46 +63,46 @@ sub handler
 		}
 
 		$request->status( $error->{status_code} );
-		$session->terminate;
+		$handle->terminate;
 		return Apache2::Const::DONE;
         }
 
 	my $owner = $response->{owner};
 	my $depositor = $response->{depositor};		# can be undef if no X-On-Behalf-Of in the request
 
-	my $service_conf = $session->get_repository->get_conf( "sword","service_conf" );
+	my $service_conf = $handle->get_repository->get_conf( "sword","service_conf" );
 
 	# Load some default values if those were not set in the sword.pl configuration file
 	if(!defined $service_conf || !defined $service_conf->{title})
 	{
 		$service_conf = {};
-		$service_conf->{title} = $session->phrase( "archive_name" );
+		$service_conf->{title} = $handle->phrase( "archive_name" );
 	}
 
 	# SERVICE and WORKSPACE DEFINITION
 
-	my $service = $session->make_element( "service", 
+	my $service = $handle->make_element( "service", 
 			xmlns => "http://www.w3.org/2007/app",
 			"xmlns:atom" => "http://www.w3.org/2005/Atom",
 			"xmlns:sword" => "http://purl.org/net/sword/",
 			"xmlns:dcterms" => "http://purl.org/dc/terms/" );
 
 
-	my $workspace = $session->make_element( "workspace" );
+	my $workspace = $handle->make_element( "workspace" );
 
-	my $atom_title = $session->make_element( "atom:title" );
+	my $atom_title = $handle->make_element( "atom:title" );
 
-	$atom_title->appendChild( $session->make_text( $service_conf->{title} ) );
+	$atom_title->appendChild( $handle->make_text( $service_conf->{title} ) );
 
 	$workspace->appendChild( $atom_title );
 
 
 	# COLLECTION DEFINITION
-	my $collections = EPrints::Sword::Utils::get_collections( $session );
+	my $collections = EPrints::Sword::Utils::get_collections( $handle );
 
 	# Note: if no collections are defined, we send an empty ServiceDocument
 
-	my $deposit_url = EPrints::Sword::Utils::get_deposit_url( $session );
+	my $deposit_url = EPrints::Sword::Utils::get_deposit_url( $handle );
 
 	foreach my $collec (keys %$collections)
 	{
@@ -110,56 +110,56 @@ sub handler
 
 		my $href = defined $conf->{href} ? $conf->{href} : $deposit_url.$collec;
 
-		my $collection = $session->make_element( "collection" , "href" => $href );
+		my $collection = $handle->make_element( "collection" , "href" => $href );
 
-		my $ctitle = $session->make_element( "atom:title" );
-		$ctitle->appendChild( $session->make_text( $conf->{title} ) );
+		my $ctitle = $handle->make_element( "atom:title" );
+		$ctitle->appendChild( $handle->make_text( $conf->{title} ) );
 		$collection->appendChild( $ctitle );
 
 		foreach(@{$conf->{mime_types}})
 		{
-			my $accept = $session->make_element( "accept" );
-			$accept->appendChild( $session->make_text( "$_" ) );
+			my $accept = $handle->make_element( "accept" );
+			$accept->appendChild( $handle->make_text( "$_" ) );
 			$collection->appendChild( $accept );
 		}
 
 		my $supported_packages = $conf->{packages};
 		foreach( keys %$supported_packages )
 		{
-			my $package = $session->make_element( "sword:acceptPackaging" );
+			my $package = $handle->make_element( "sword:acceptPackaging" );
 			my $qvalue = $supported_packages->{$_}->{qvalue};
 			if(defined $qvalue)
 			{
 				$package->setAttribute( "q", $qvalue );
 			}
-			$package->appendChild( $session->make_text( "$_" ) );
+			$package->appendChild( $handle->make_text( "$_" ) );
 			$collection->appendChild( $package );
 		}
 
 		# COLLECTION POLICY
-		my $cpolicy = $session->make_element( "sword:collectionPolicy" );
-		$cpolicy->appendChild($session->make_text( $conf->{sword_policy}  ) );
+		my $cpolicy = $handle->make_element( "sword:collectionPolicy" );
+		$cpolicy->appendChild($handle->make_text( $conf->{sword_policy}  ) );
 		$collection->appendChild( $cpolicy );
 
 		# COLLECTION TREATMENT
 		my $treatment = $conf->{treatment};
 		if( defined $depositor )
 		{
-			$treatment.= $session->phrase( "Sword/ServiceDocument:note_behalf", username=>$depositor->get_value( "username" ));
+			$treatment.= $handle->phrase( "Sword/ServiceDocument:note_behalf", username=>$depositor->get_value( "username" ));
 		}
 
-		my $coll_treat = $session->make_element( "sword:treatment" );
-		$coll_treat->appendChild($session->make_text( $treatment ) );
+		my $coll_treat = $handle->make_element( "sword:treatment" );
+		$coll_treat->appendChild($handle->make_text( $treatment ) );
 		$collection->appendChild( $coll_treat );
 
 		# COLLECTION MEDIATED
-		my $coll_mediated = $session->make_element( "sword:mediation" );
-		$coll_mediated->appendChild( $session->make_text($conf->{mediation} ));
+		my $coll_mediated = $handle->make_element( "sword:mediation" );
+		$coll_mediated->appendChild( $handle->make_text($conf->{mediation} ));
 		$collection->appendChild( $coll_mediated );
 
 		# DCTERMS ABSTRACT
-		my $coll_abstract = $session->make_element( "dcterms:abstract" );
-		$coll_abstract->appendChild( $session->make_text( $conf->{dcterms_abstract} ) );
+		my $coll_abstract = $handle->make_element( "dcterms:abstract" );
+		$coll_abstract->appendChild( $handle->make_text( $conf->{dcterms_abstract} ) );
 		$collection->appendChild( $coll_abstract  );
 		
 		$workspace->appendChild( $collection );
@@ -168,18 +168,18 @@ sub handler
 	$service->appendChild( $workspace );
 
 	# SWORD LEVEL
-	my $sword_level = $session->make_element( "sword:version" );
-	$sword_level->appendChild( $session->make_text( "1.3" ) );
+	my $sword_level = $handle->make_element( "sword:version" );
+	$sword_level->appendChild( $handle->make_text( "1.3" ) );
 	$service->appendChild( $sword_level );
 
 	# SWORD VERBOSE	(Unsupported)
-	my $sword_verbose = $session->make_element( "sword:verbose" );
-	$sword_verbose->appendChild( $session->make_text( "true" ) );
+	my $sword_verbose = $handle->make_element( "sword:verbose" );
+	$sword_verbose->appendChild( $handle->make_text( "true" ) );
 	$service->appendChild( $sword_verbose );
 
 	# SWORD NOOP (Unsupported)
-	my $sword_noop = $session->make_element( "sword:noOp" );
-	$sword_noop->appendChild( $session->make_text( "true" ) );
+	my $sword_noop = $handle->make_element( "sword:noOp" );
+	$sword_noop->appendChild( $handle->make_text( "true" ) );
 	$service->appendChild( $sword_noop );
 
 	my $content = '<?xml version="1.0" encoding="UTF-8"?>'.$service->toString;
@@ -191,7 +191,7 @@ sub handler
 
 	print $content;
 
-	$session->terminate;
+	$handle->terminate;
 	return Apache2::Const::DONE;
 }
 

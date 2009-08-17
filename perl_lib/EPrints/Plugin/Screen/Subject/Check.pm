@@ -38,19 +38,19 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 	my $subject = $self->{processor}->{subject};
 
-	my $page = $session->make_doc_fragment;
+	my $page = $handle->make_doc_fragment;
 
-	my @errors = check_subjects( $session );
+	my @errors = check_subjects( $handle );
 
 	if( @errors )
 	{
-		my $ul = $session->make_element( "ul" );
+		my $ul = $handle->make_element( "ul" );
 		for(@errors)
 		{
-			my $li = $session->make_element( "li" );
+			my $li = $handle->make_element( "li" );
 			$ul->appendChild( $li );
 			$li->appendChild( $_ );
 		}
@@ -69,7 +69,7 @@ sub render
 ######################################################################
 =pod
 
-=item @errors = check_subjects( $session )
+=item @errors = check_subjects( $handle )
 
 Perform some checks on the Subjects tree, returns a list of errors.
 
@@ -78,11 +78,11 @@ Perform some checks on the Subjects tree, returns a list of errors.
 
 sub check_subjects
 {
-	my( $session ) = @_;
+	my( $handle ) = @_;
 
 	my @errors;
 
-	my $dataset = $session->get_repository->get_dataset( "subject" );
+	my $dataset = $handle->get_repository->get_dataset( "subject" );
 
 	my %subjects = (
 		ROOT => {
@@ -91,7 +91,7 @@ sub check_subjects
 		},
 	);
 
-	foreach my $subject ($session->get_database->get_all( $dataset ))
+	foreach my $subject ($handle->get_database->get_all( $dataset ))
 	{
 		$subjects{$subject->get_id} = {
 			subjectid => $subject->get_id,
@@ -101,7 +101,7 @@ sub check_subjects
 
 	if( scalar(keys %subjects) == 0 )
 	{
-		push @errors, $session->html_phrase( "Plugin/Screen/Subject/Check:no_subjects" );
+		push @errors, $handle->html_phrase( "Plugin/Screen/Subject/Check:no_subjects" );
 	}
 
 	# Check for invalid parent ids
@@ -110,8 +110,8 @@ sub check_subjects
 		if( $subjectid ne "ROOT" &&
 			!EPrints::Utils::is_set($subject->{ "parents" }) )
 		{
-			push @errors, $session->html_phrase( "Plugin/Screen/Subject/Check:orphaned",
-				subjectid => $session->make_text( $subjectid ),
+			push @errors, $handle->html_phrase( "Plugin/Screen/Subject/Check:orphaned",
+				subjectid => $handle->make_text( $subjectid ),
 			);
 		}
 		for(@{$subject->{ "parents" }})
@@ -122,9 +122,9 @@ sub check_subjects
 			}
 			else
 			{
-				push @errors, $session->html_phrase( "Plugin/Screen/Subject/Check:no_such_parent",
-					subjectid => $session->make_text( $subjectid ),
-					parentid => $session->make_text( $_ ),
+				push @errors, $handle->html_phrase( "Plugin/Screen/Subject/Check:no_such_parent",
+					subjectid => $handle->make_text( $subjectid ),
+					parentid => $handle->make_text( $_ ),
 				);
 				$_ = {};
 			}
@@ -135,13 +135,13 @@ sub check_subjects
 
 	foreach my $subject (values %subjects)
 	{
-		%loops = (%loops, _check_recursion( $session, $subject ));
+		%loops = (%loops, _check_recursion( $handle, $subject ));
 	}
 
 	while(my( $path, $subjects ) = each %loops)
 	{
-		push @errors, $session->html_phrase( "Plugin/Screen/Subject/Check:loop",
-			path => $session->make_text( $path ),
+		push @errors, $handle->html_phrase( "Plugin/Screen/Subject/Check:loop",
+			path => $handle->make_text( $path ),
 		);
 	}
 
@@ -156,7 +156,7 @@ sub check_subjects
 
 sub _check_recursion
 {
-	my( $session, @path ) = @_;
+	my( $handle, @path ) = @_;
 
 	my %loops;
 
@@ -174,7 +174,7 @@ sub _check_recursion
 		# Otherwise, continue on to this parent
 		else
 		{
-			%loops = (%loops, _check_recursion( $session, @path, $parent ));
+			%loops = (%loops, _check_recursion( $handle, @path, $parent ));
 		}
 	}
 

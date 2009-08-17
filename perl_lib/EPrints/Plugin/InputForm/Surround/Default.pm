@@ -13,7 +13,7 @@ sub render_title
 
 	if( $component->is_required )
 	{
-		$title = $self->{session}->html_phrase( 
+		$title = $self->{handle}->html_phrase( 
 			"sys:ep_form_required",
 			label=>$title );
 	}
@@ -29,14 +29,14 @@ sub render
 	my $comp_name = $component->get_name();
 	my @problems = @{$component->get_problems()};
 
-	my $surround = $self->{session}->make_element( "div",
+	my $surround = $self->{handle}->make_element( "div",
 		class => "ep_sr_component",
 		id => $component->{prefix} );
 
 
 	foreach my $field_id ( $component->get_fields_handled )
 	{
-		$surround->appendChild( $self->{session}->make_element( "a", name=>$field_id ) );
+		$surround->appendChild( $self->{handle}->make_element( "a", name=>$field_id ) );
 	}
 
 	my $barid = $component->{prefix}."_titlebar";
@@ -48,11 +48,11 @@ sub render
 		$content_class = "ep_no_js";
 	}
 		
-	my $title_bar = $self->{session}->make_element( "div", class=>"ep_sr_title_bar $title_bar_class", id=>$barid );
-	my $title_div = $self->{session}->make_element( "div", class=>"ep_sr_title" );
+	my $title_bar = $self->{handle}->make_element( "div", class=>"ep_sr_title_bar $title_bar_class", id=>$barid );
+	my $title_div = $self->{handle}->make_element( "div", class=>"ep_sr_title" );
 
-	my $content = $self->{session}->make_element( "div", id => $component->{prefix}."_content", class=>"$content_class ep_sr_content" );
-	my $content_inner = $self->{session}->make_element( "div", id => $component->{prefix}."_content_inner" );
+	my $content = $self->{handle}->make_element( "div", id => $component->{prefix}."_content", class=>"$content_class ep_sr_content" );
+	my $content_inner = $self->{handle}->make_element( "div", id => $component->{prefix}."_content_inner" );
 	$surround->appendChild( $title_bar );
 
 	$content->appendChild( $content_inner );
@@ -69,7 +69,7 @@ sub render
 
 	if( scalar @problems > 0 )
 	{
-		my $problem_div = $self->{session}->make_element( "div", class => "wf_problems" );
+		my $problem_div = $self->{handle}->make_element( "div", class => "wf_problems" );
 		foreach my $problem ( @problems )
 		{
 			$problem_div->appendChild( $problem );
@@ -77,34 +77,34 @@ sub render
 		$surround->appendChild( $problem_div );
 	}
 
-	my $imagesurl = $self->{session}->get_repository->get_conf( "rel_path" );
+	my $imagesurl = $self->{handle}->get_repository->get_conf( "rel_path" );
 
 	$content_inner->appendChild( $component->render_content( $self ) );
 
 	if( $component->is_collapsed )
 	{
 		my $colbarid = $component->{prefix}."_col";
-		my $col_div = $self->{session}->make_element( "div", class=>"ep_sr_collapse_bar ep_only_js ep_toggle", id => $colbarid );
+		my $col_div = $self->{handle}->make_element( "div", class=>"ep_sr_collapse_bar ep_only_js ep_toggle", id => $colbarid );
 
 		my $contentid = $component->{prefix}."_content";
 		my $main_id = $component->{prefix};
-		my $col_link =  $self->{session}->make_element( "a", class=>"ep_sr_collapse_link", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${contentid}',false,'${main_id}');EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#" );
+		my $col_link =  $self->{handle}->make_element( "a", class=>"ep_sr_collapse_link", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${contentid}',false,'${main_id}');EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#" );
 
 		$col_div->appendChild( $col_link );
-		$col_link->appendChild( $self->{session}->make_element( "img", alt=>"+", src=>"$imagesurl/style/images/plus.png", border=>0 ) );
-		$col_link->appendChild( $self->{session}->make_text( " " ) );
+		$col_link->appendChild( $self->{handle}->make_element( "img", alt=>"+", src=>"$imagesurl/style/images/plus.png", border=>0 ) );
+		$col_link->appendChild( $self->{handle}->make_text( " " ) );
 		$col_link->appendChild( $component->render_title( $self ) );
 		$surround->appendChild( $col_div );
 
 		# alternate title to allow it to re-hide
-		my $recol_link =  $self->{session}->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${contentid}',false,'${main_id}');EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#", class=>"ep_only_js ep_toggle ep_sr_collapse_link" );
-		$recol_link->appendChild( $self->{session}->make_element( "img", alt=>"-", src=>"$imagesurl/style/images/minus.png", border=>0 ) );
-		$recol_link->appendChild( $self->{session}->make_text( " " ) );
+		my $recol_link =  $self->{handle}->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${contentid}',false,'${main_id}');EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#", class=>"ep_only_js ep_toggle ep_sr_collapse_link" );
+		$recol_link->appendChild( $self->{handle}->make_element( "img", alt=>"-", src=>"$imagesurl/style/images/minus.png", border=>0 ) );
+		$recol_link->appendChild( $self->{handle}->make_text( " " ) );
 		#nb. clone the title as we've already used it above.
 		$recol_link->appendChild( $self->render_title( $component ) );
 		$title_div->appendChild( $recol_link );
 
-		my $nojstitle = $self->{session}->make_element( "div", class=>"ep_no_js" );
+		my $nojstitle = $self->{handle}->make_element( "div", class=>"ep_no_js" );
 		$nojstitle->appendChild( $self->render_title( $component ) );
 		$title_div->appendChild( $nojstitle );
 
@@ -124,7 +124,7 @@ sub _render_help
 {
 	my( $self, $component, $title_bar, $content_inner ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
 	my $prefix = $component->{prefix}."_help";
 
@@ -132,9 +132,9 @@ sub _render_help
 
 	# add the help text to the main part of the component
 	my $hide_class = !$component->{no_toggle} ? "ep_no_js" : "";
-	my $div = $session->make_element( "div", class => "ep_sr_help $hide_class", id => $prefix );
+	my $div = $handle->make_element( "div", class => "ep_sr_help $hide_class", id => $prefix );
 	$content_inner->appendChild( $div );
-	my $div_inner = $session->make_element( "div", id => $prefix."_inner" );
+	my $div_inner = $handle->make_element( "div", id => $prefix."_inner" );
 	$div_inner->appendChild( $help );
 	$div->appendChild( $div_inner );
 
@@ -145,14 +145,14 @@ sub _render_help
 	}
 
 	# construct a table with left/right columns
-	my $table = $session->make_element( "table",
+	my $table = $handle->make_element( "table",
 		cellpadding=>"0",
 		border=>"0",
 		cellspacing=>"0",
 		width=>"100%" );
-	my $tr = $session->make_element( "tr" );
-	my $left = $session->make_element( "td" );
-	my $right = $session->make_element( "td", align=>"right" );
+	my $tr = $handle->make_element( "tr" );
+	my $left = $handle->make_element( "td" );
+	my $right = $handle->make_element( "td", align=>"right" );
 	$table->appendChild( $tr );
 	$tr->appendChild( $left );
 	$tr->appendChild( $right );
@@ -165,7 +165,7 @@ sub _render_help
 	$title_bar->appendChild( $table );
 
 	# add open/close icons to the right help cell
-	my $action_div = $session->make_element( "div", class => "ep_only_js" );
+	my $action_div = $handle->make_element( "div", class => "ep_only_js" );
 	$right->appendChild( $action_div );
 
 	my $jscript = "EPJS_blur(event); EPJS_toggleSlide('$prefix',false);EPJS_toggle('${prefix}_hide',false);EPJS_toggle('${prefix}_show',true);return false";
@@ -173,8 +173,8 @@ sub _render_help
 	foreach my $action (qw( show hide ))
 	{
 		my $hide_class = $action eq "hide" ? "ep_hide" : "";
-		my $div = $session->make_element( "div", class => "ep_sr_${action}_help ep_toggle ${hide_class}", id => "${prefix}_${action}" );
-		my $link = $session->make_element( "a",
+		my $div = $handle->make_element( "div", class => "ep_sr_${action}_help ep_toggle ${hide_class}", id => "${prefix}_${action}" );
+		my $link = $handle->make_element( "a",
 			onclick => $jscript,
 			href => '#' );
 		$div->appendChild( $self->html_phrase( "${action}_help", link => $link ) );

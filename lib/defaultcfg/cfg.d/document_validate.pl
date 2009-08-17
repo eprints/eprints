@@ -1,11 +1,11 @@
 ######################################################################
 #
-# validate_document( $document, $session, $for_archive ) 
+# validate_document( $document, $handle, $for_archive ) 
 #
 ######################################################################
 # $document 
 # - Document object
-# $session 
+# $handle 
 # - Session object (the current session)
 # $for_archive
 # - boolean (see comments at the start of the validation section)
@@ -22,7 +22,7 @@
 
 $c->{validate_document} = sub
 {
-	my( $document, $session, $for_archive ) = @_;
+	my( $document, $handle, $for_archive ) = @_;
 
 	my @problems = ();
 
@@ -32,8 +32,8 @@ $c->{validate_document} = sub
 	if( $document->get_value( "format" ) eq "other" &&
 	   !EPrints::Utils::is_set( $document->get_value( "formatdesc" ) ) )
 	{
-		my $fieldname = $session->make_element( "span", class=>"ep_problem_field:documents" );
-		push @problems, $session->html_phrase( 
+		my $fieldname = $handle->make_element( "span", class=>"ep_problem_field:documents" );
+		push @problems, $handle->html_phrase( 
 					"validate:need_description" ,
 					type=>$document->render_description(),
 					fieldname=>$fieldname );
@@ -43,8 +43,8 @@ $c->{validate_document} = sub
 	if( $document->get_value( "security" ) eq "public" &&
 		EPrints::Utils::is_set( $document->get_value( "date_embargo" ) ) )
 	{
-		my $fieldname = $session->make_element( "span", class=>"ep_problem_field:documents" );
-		push @problems, $session->html_phrase( 
+		my $fieldname = $handle->make_element( "span", class=>"ep_problem_field:documents" );
+		push @problems, $handle->html_phrase( 
 					"validate:embargo_check_security" ,
 					fieldname=>$fieldname );
 	}
@@ -58,9 +58,9 @@ $c->{validate_document} = sub
 		if( $year < $thisyear || ( $year == $thisyear && $month < $thismonth ) ||
 			( $year == $thisyear && $month == $thismonth && $day <= $thisday ) )
 		{
-			my $fieldname = $session->make_element( "span", class=>"ep_problem_field:documents" );
+			my $fieldname = $handle->make_element( "span", class=>"ep_problem_field:documents" );
 			push @problems,
-				$session->html_phrase( "validate:embargo_invalid_date",
+				$handle->html_phrase( "validate:embargo_invalid_date",
 				fieldname=>$fieldname );
 		}
 	}

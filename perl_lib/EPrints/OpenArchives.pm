@@ -41,7 +41,7 @@ use strict;
 ######################################################################
 =pod
 
-=item $xml = EPrints::OpenArchives::make_header( $session, $eprint, $oai2 )
+=item $xml = EPrints::OpenArchives::make_header( $handle, $eprint, $oai2 )
 
 Return a DOM tree containing the generic <header> part of a OAI response
 describing an EPrint. 
@@ -53,25 +53,25 @@ Return the OAI2 version if $oai2 is true.
 
 sub make_header
 {
-	my ( $session, $eprint, $oai2 ) = @_;
+	my ( $handle, $eprint, $oai2 ) = @_;
 
-	my $header = $session->make_element( "header" );
+	my $header = $handle->make_element( "header" );
 	my $oai_id;
 	if( $oai2 )
 	{
-		$oai_id = $session->get_repository->get_conf( 
+		$oai_id = $handle->get_repository->get_conf( 
 			"oai", 
 			"v2", 
 			"archive_id" );
 	}
 	else
 	{
-		$oai_id = $session->get_repository->get_conf( 
+		$oai_id = $handle->get_repository->get_conf( 
 			"oai", 
 			"archive_id" );
 	}
 	
-	$header->appendChild( $session->render_data_element(
+	$header->appendChild( $handle->render_data_element(
 		6,
 		"identifier",
 		EPrints::OpenArchives::to_oai_identifier(
@@ -90,7 +90,7 @@ sub make_header
 		$time = "00:00:00" unless defined $time; # Work-around for bad imports
 		$datestamp = $date."T".$time."Z";
 	}
-	$header->appendChild( $session->render_data_element(
+	$header->appendChild( $handle->render_data_element(
 		6,
 		"datestamp",
 		$datestamp ) );
@@ -103,7 +103,7 @@ sub make_header
 			return $header;
 		}
 
-		my $viewconf = $session->get_repository->get_conf( "oai","sets" );
+		my $viewconf = $handle->get_repository->get_conf( "oai","sets" );
         	foreach my $info ( @{$viewconf} )
         	{
 			my @values = $eprint->get_values( $info->{fields} );
@@ -118,11 +118,11 @@ sub make_header
 				my @l;
 				if( $afield->is_type( "subject" ) )
 				{
-					my $subj = new EPrints::DataObj::Subject( $session, $v );
+					my $subj = new EPrints::DataObj::Subject( $handle, $v );
 					next unless( defined $subj );
 	
 					my @paths = $subj->get_paths( 
-						$session, 
+						$handle, 
 						$afield->get_property( "top" ) );
 
 					foreach my $path ( @paths )
@@ -142,7 +142,7 @@ sub make_header
 
 				foreach( @l )
 				{
-					$header->appendChild( $session->render_data_element(
+					$header->appendChild( $handle->render_data_element(
 						6,
 						"setSpec",
 						encode_setspec( $info->{id}.'=' ).$_ ) );
@@ -158,13 +158,13 @@ sub make_header
 ######################################################################
 =pod
 
-=item $xml = EPrints::OpenArchives::make_record( $session, $eprint, $fn, $oai2 )
+=item $xml = EPrints::OpenArchives::make_record( $handle, $eprint, $fn, $oai2 )
 
 Return XML DOM describing the entire OAI <record> for a single eprint.
 
 If $oai2 is true return the XML suitable for OAI v2.0
 
-$fn is a pointer to a function which takes ( $eprint, $session ) and
+$fn is a pointer to a function which takes ( $eprint, $handle ) and
 returns an XML DOM tree describing the metadata in the desired format.
 
 =cut
@@ -172,12 +172,12 @@ returns an XML DOM tree describing the metadata in the desired format.
 
 sub make_record
 {
-	my( $session, $eprint, $plugin, $oai2 ) = @_;
+	my( $handle, $eprint, $plugin, $oai2 ) = @_;
 
-	my $record = $session->make_element( "record" );
+	my $record = $handle->make_element( "record" );
 
-	my $header = make_header( $session, $eprint, $oai2 );
-	$record->appendChild( $session->make_indent( 4 ) );
+	my $header = make_header( $handle, $eprint, $oai2 );
+	$record->appendChild( $handle->make_indent( 4 ) );
 	$record->appendChild( $header );
 
 	if( $eprint->get_dataset()->id() eq "deletion" )
@@ -192,10 +192,10 @@ sub make_record
 	my $md = $plugin->xml_dataobj( $eprint );
 	if( defined $md )
 	{
-		my $metadata = $session->make_element( "metadata" );
-		$metadata->appendChild( $session->make_indent( 6 ) );
+		my $metadata = $handle->make_element( "metadata" );
+		$metadata->appendChild( $handle->make_indent( 6 ) );
 		$metadata->appendChild( $md );
-		$record->appendChild( $session->make_indent( 4 ) );
+		$record->appendChild( $handle->make_indent( 4 ) );
 		$record->appendChild( $metadata );
 	}
 
@@ -227,7 +227,7 @@ sub to_oai_identifier
 ######################################################################
 =pod
 
-=item $eprintid = EPrints::OpenArchives::from_oai_identifier( $session, $oai_identifier )
+=item $eprintid = EPrints::OpenArchives::from_oai_identifier( $handle, $oai_identifier )
 
 Return the local eprint id of an oai eprint identifier.
 
@@ -241,9 +241,9 @@ identifier is suitable.
 
 sub from_oai_identifier
 {
-        my( $session , $oai_identifier ) = @_;
-        my $arcid = $session->get_repository->get_conf( "oai", "archive_id" );
-        my $arcid2 = $session->get_repository->get_conf( "oai", "v2", "archive_id" );
+        my( $handle , $oai_identifier ) = @_;
+        my $arcid = $handle->get_repository->get_conf( "oai", "archive_id" );
+        my $arcid2 = $handle->get_repository->get_conf( "oai", "v2", "archive_id" );
         if( $oai_identifier =~ /^oai:($arcid|$arcid2):(\d+)$/ )
         {
                 return( $2 );

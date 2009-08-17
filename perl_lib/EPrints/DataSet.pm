@@ -630,7 +630,7 @@ sub id
 ######################################################################
 =pod
 
-=item $n = $ds->count( $session )
+=item $n = $ds->count( $handle )
 
 Return the number of records in this dataset.
 
@@ -639,21 +639,21 @@ Return the number of records in this dataset.
 
 sub count
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
 	if( defined $self->get_filters )
 	{
 		my $searchexp = EPrints::Search->new(
 			allow_blank => 1,
 			dataset => $self,
-			session => $session );
+			handle => $handle );
 		my $list = $searchexp->perform_search;
 		my $c = $list->count;
 		$list->dispose;
 		return $c;
 	}
 
-	return $session->get_database->count_table( $self->get_sql_table_name() );
+	return $handle->get_database->count_table( $self->get_sql_table_name() );
 }
  
 
@@ -811,7 +811,7 @@ sub get_key_field
 ######################################################################
 =pod
 
-=item $obj = $ds->make_object( $session, $data )
+=item $obj = $ds->make_object( $handle, $data )
 
 Return an object of the class associated with this dataset, always
 a subclass of EPrints::DataObj.
@@ -825,7 +825,7 @@ Return $data if no class associated with this dataset.
 
 sub make_object
 {
-	my( $self , $session , $data ) = @_;
+	my( $self , $handle , $data ) = @_;
 
 	my $class = $self->get_object_class;
 
@@ -838,7 +838,7 @@ sub make_object
 	}
 
 	return $class->new_from_data( 
-		$session,
+		$handle,
 		$data,
 		$self );
 }
@@ -846,7 +846,7 @@ sub make_object
 ######################################################################
 =pod
 
-=item $obj = $ds->create_object( $session, $data )
+=item $obj = $ds->create_object( $handle, $data )
 
 Create a new object in the given dataset. Return the new object.
 
@@ -859,11 +859,11 @@ If $data describes sub-objects too then those will also be created.
 
 sub create_object
 {
-	my( $self , $session , $data ) = @_;
+	my( $self , $handle , $data ) = @_;
 
 	my $class = $self->get_object_class;
 
-	return $class->create_from_data( $session, $data, $self );
+	return $class->create_from_data( $handle, $data, $self );
 }
 
 ######################################################################
@@ -878,7 +878,7 @@ Return the perl class to which objects in this dataset belong.
 
 sub get_object_class
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
 	return $self->{class};
 }
@@ -886,7 +886,7 @@ sub get_object_class
 ######################################################################
 =pod
 
-=item $obj = $ds->get_object( $session, $id );
+=item $obj = $ds->get_object( $handle, $id );
 
 Return the object from this dataset with the given id, or undefined.
 
@@ -895,22 +895,22 @@ Return the object from this dataset with the given id, or undefined.
 
 sub get_object
 {
-	my( $self, $session, $id ) = @_;
+	my( $self, $handle, $id ) = @_;
 
 	my $class = $self->get_object_class;
 
 	if( !defined $class )
 	{
-		$session->get_repository->log(
+		$handle->get_repository->log(
 				"Can't get_object for dataset ".
 				$self->{confid} );
 		return undef;
 	}
 
-	return $class->new( $session, $id, $self );
+	return $class->new( $handle, $id, $self );
 }
 
-=item $dataobj = EPrints::DataSet->get_object_from_uri( $session, $uri )
+=item $dataobj = EPrints::DataSet->get_object_from_uri( $handle, $uri )
 
 Returns a the dataobj identified by internal URI $uri.
 
@@ -920,19 +920,19 @@ Returns undef if $uri isn't an internal URI or the object is no longer available
 
 sub get_object_from_uri
 {
-	my( $class, $session, $uri ) = @_;
+	my( $class, $handle, $uri ) = @_;
 
 	my( $datasetid, $id ) = $uri =~ m# ^/id/([^/]+)/(.+)$ #x;
 	return unless defined $id;
 
 	$datasetid = URI::Escape::uri_unescape( $datasetid );
 
-	my $dataset = $session->get_repository->get_dataset( $datasetid );
+	my $dataset = $handle->get_repository->get_dataset( $datasetid );
 	return unless defined $dataset;
 
 	$id = URI::Escape::uri_unescape( $id );
 
-	my $dataobj = $dataset->get_object( $session, $id );
+	my $dataobj = $dataset->get_object( $handle, $id );
 
 	return $dataobj;
 }
@@ -940,7 +940,7 @@ sub get_object_from_uri
 ######################################################################
 =pod
 
-=item $xhtml = $ds->render_name( $session )
+=item $xhtml = $ds->render_name( $handle )
 
 Return a piece of XHTML describing this dataset, in the language of
 the current session.
@@ -950,15 +950,15 @@ the current session.
 
 sub render_name($$)
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-        return $session->html_phrase( "dataset_name_".$self->id() );
+        return $handle->html_phrase( "dataset_name_".$self->id() );
 }
 
 ######################################################################
 =pod
 
-=item $ds->map( $session, $fn, $info )
+=item $ds->map( $handle, $fn, $info )
 
 Maps the function $fn onto every record in this dataset. See 
 Search for a full explanation.
@@ -968,12 +968,12 @@ Search for a full explanation.
 
 sub map
 {
-	my( $self, $session, $fn, $info ) = @_;
+	my( $self, $handle, $fn, $info ) = @_;
 
 	my $searchexp = EPrints::Search->new(
 		allow_blank => 1,
 		dataset => $self,
-		session => $session );
+		handle => $handle );
 	$searchexp->perform_search();
 	$searchexp->map( $fn, $info );
 	$searchexp->dispose();
@@ -1001,7 +1001,7 @@ sub get_repository
 ######################################################################
 =pod
 
-=item $ds->reindex( $session )
+=item $ds->reindex( $handle )
 
 Recommits all the items in this dataset. This could take a real long 
 time on a large set of records.
@@ -1013,18 +1013,18 @@ Really should not be called reindex anymore as it doesn't.
 
 sub reindex
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
 	my $fn = sub {
-		my( $session, $dataset, $item ) = @_;
-		if( $session->get_noise() >= 2 )
+		my( $handle, $dataset, $item ) = @_;
+		if( $handle->get_noise() >= 2 )
 		{
 			print STDERR "Reindexing item: ".$dataset->id()."/".$item->get_id()."\n";
 		}
 		$item->commit();
 	};
 
-	$self->map( $session, $fn );
+	$self->map( $handle, $fn );
 }
 
 ######################################################################
@@ -1094,7 +1094,7 @@ sub count_indexes
 ######################################################################
 =pod
 
-=item @ids = $dataset->get_item_ids( $session )
+=item @ids = $dataset->get_item_ids( $handle )
 
 Return a list of the id's of all items in this set.
 
@@ -1103,18 +1103,18 @@ Return a list of the id's of all items in this set.
 
 sub get_item_ids
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
 	if( defined $self->get_filters )
 	{
 		my $searchexp = EPrints::Search->new(
 			allow_blank => 1,
 			dataset => $self,
-			session => $session );
+			handle => $handle );
 		my $list = $searchexp->perform_search;
 		return $list->get_ids;
 	}
-	return $session->get_database->get_values( $self->get_key_field, $self );
+	return $handle->get_database->get_values( $self->get_key_field, $self );
 }
 
 

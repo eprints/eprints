@@ -15,44 +15,44 @@
 use EPrints;
 
 use strict;
-my $session = new EPrints::Session;
-exit( 0 ) unless( defined $session );
+my $handle = new EPrints::Handle;
+exit( 0 ) unless( defined $handle );
 
-my $page=$session->make_doc_fragment();
+my $page=$handle->make_doc_fragment();
 
 
 
-if( $session->get_repository->can_call( 'on_logout' ) )
+if( $handle->get_repository->can_call( 'on_logout' ) )
 {
-	$session->get_repository->call( 'on_logout', $session );
+	$handle->get_repository->call( 'on_logout', $handle );
 }
 
 
 
-my $ticketid = EPrints::Apache::AnApache::cookie( $session->get_request, "eprints_session" );
+my $ticketid = EPrints::Apache::AnApache::cookie( $handle->get_request, "eprints_session" );
 
-my $dataset = $session->get_repository->get_dataset( "loginticket" );
+my $dataset = $handle->get_repository->get_dataset( "loginticket" );
 
-$session->get_database->delete_from(
+$handle->get_database->delete_from(
 	$dataset->get_sql_table_name(),
 	["code"],
 	[$ticketid],
 );
-$session->logout;
+$handle->logout;
 
 
 
-$page->appendChild( $session->render_message( 
+$page->appendChild( $handle->render_message( 
 	"message",
-	$session->make_text( "Logout OK!" ) ) );
+	$handle->make_text( "Logout OK!" ) ) );
 
-$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
+$page->appendChild( $handle->html_phrase( "general:frontpage_link" ) );
 	
-my $title = $session->make_text( "Logout" );
-$session->build_page( $title, $page, "login" );
-$session->send_page();
+my $title = $handle->make_text( "Logout" );
+$handle->build_page( $title, $page, "login" );
+$handle->send_page();
 
-$session->terminate;
+$handle->terminate;
 exit;
 
 

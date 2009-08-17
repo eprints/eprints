@@ -89,7 +89,7 @@ sub get_dataset_id
 
 ######################################################################
 
-=item $defaults = EPrints::DataObj::Cachemap->get_defaults( $session, $data )
+=item $defaults = EPrints::DataObj::Cachemap->get_defaults( $handle, $data )
 
 Return default values for this object based on the starting data.
 
@@ -99,9 +99,9 @@ Return default values for this object based on the starting data.
 
 sub get_defaults
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $handle, $data, $dataset ) = @_;
 	
-	$class->SUPER::get_defaults( $session, $data, $dataset );
+	$class->SUPER::get_defaults( $handle, $data, $dataset );
 
 	$data->{created} = time();
 
@@ -128,7 +128,7 @@ sub remove
 	
 	my $rc = 1;
 	
-	my $database = $self->{session}->get_database;
+	my $database = $self->{handle}->get_database;
 
 	$rc &&= $database->remove(
 		$self->{dataset},

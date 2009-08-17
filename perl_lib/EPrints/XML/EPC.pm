@@ -98,7 +98,7 @@ sub process
 
 	}
 
-	my $collapsed = $params{session}->clone_for_me( $node );
+	my $collapsed = $params{handle}->clone_for_me( $node );
 	my $attrs = $collapsed->attributes;
 	if( defined $attrs )
 	{
@@ -145,7 +145,7 @@ sub process_child_nodes
 {
 	my( $node, %params ) = @_;
 
-	my $collapsed = $params{session}->make_doc_fragment;
+	my $collapsed = $params{handle}->make_doc_fragment;
 
 	foreach my $child ( $node->getChildNodes )
 	{
@@ -170,18 +170,18 @@ sub _process_pin
 
 	if( !defined $params{pindata}->{inserts}->{$ref} )
 	{
-		$params{session}->get_repository->log(
+		$params{handle}->get_repository->log(
 "missing parameter \"$ref\" when making phrase \"".$params{pindata}->{phraseid}."\"" );
-		return $params{session}->make_text( "[pin missing: $ref]" );
+		return $params{handle}->make_text( "[pin missing: $ref]" );
 	}
 	if( !EPrints::XML::is_dom( $params{pindata}->{inserts}->{$ref},
 			"DocumentFragment",
 			"Text",
 			"Element" ) )
 	{
-		$params{session}->get_repository->log(
+		$params{handle}->get_repository->log(
 "parameter \"$ref\" is not an XML node when making phrase \"".$params{pindata}->{phraseid}."\"" );
-		return $params{session}->make_text( "[pin missing: $ref]" );
+		return $params{handle}->make_text( "[pin missing: $ref]" );
 	}
 		
 
@@ -232,7 +232,7 @@ sub _process_phrase
 		$pins{$name} = process_child_nodes( $param, %params );
 	}
 
-	my $collapsed = $params{session}->html_phrase( $ref, %pins );
+	my $collapsed = $params{handle}->html_phrase( $ref, %pins );
 
 #	print $collapsed->toString."\n";
 
@@ -271,7 +271,7 @@ sub _process_debug
 
 	print STDERR EPrints::XML::to_string( $result );
 
-	return $params{session}->make_doc_fragment;
+	return $params{handle}->make_doc_fragment;
 }
 
 sub _process_foreach
@@ -302,7 +302,7 @@ sub _process_foreach
 
 	my $list = $result->[0];
 	my $type = $result->[1];
-	my $output = $params{session}->make_doc_fragment;
+	my $output = $params{handle}->make_doc_fragment;
 
 	if( !EPrints::Utils::is_set( $list ) )
 	{
@@ -354,7 +354,7 @@ sub _process_if
 	my $result = EPrints::Script::execute( $test, \%params );
 #	print STDERR  "IFTEST:::".$test." == $result\n";
 
-	my $collapsed = $params{session}->make_doc_fragment;
+	my $collapsed = $params{handle}->make_doc_fragment;
 
 	if( $result->[0] )
 	{
@@ -368,14 +368,14 @@ sub _process_comment
 {
 	my( $node, %params ) = @_;
 
-	return $params{session}->make_doc_fragment;
+	return $params{handle}->make_doc_fragment;
 }
 
 sub _process_choose
 {
 	my( $node, %params ) = @_;
 
-	my $collapsed = $params{session}->make_doc_fragment;
+	my $collapsed = $params{handle}->make_doc_fragment;
 
 	# when
 	foreach my $child ( $node->getChildNodes )

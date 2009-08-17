@@ -44,12 +44,12 @@ use strict;
 ######################################################################
 =pod
 
-=item EPrints::Apache::AnApache::upload_doc_file( $session, $document, $paramid );
+=item EPrints::Apache::AnApache::upload_doc_file( $handle, $document, $paramid );
 
 Collect a file named $paramid uploaded via HTTP and add it to the 
 specified $document.
 
-=item EPrints::Apache::AnApache::upload_doc_archive( $session, $document, $paramid, $archive_format );
+=item EPrints::Apache::AnApache::upload_doc_archive( $handle, $document, $paramid, $archive_format );
 
 Collect an archive file (.ZIP, .tar.gz, etc.) uploaded via HTTP and 
 unpack it then add it to the specified document.
@@ -268,9 +268,9 @@ sub cookie
 
 sub upload_doc_file
 {
-	my( $session, $document, $paramid ) = @_;
+	my( $handle, $document, $paramid ) = @_;
 
-	my $cgi = $session->get_query;
+	my $cgi = $handle->get_query;
 
 	return $document->upload( 
 		$cgi->upload( $paramid ), 
@@ -282,9 +282,9 @@ sub upload_doc_file
 
 sub upload_doc_archive
 {
-	my( $session, $document, $paramid, $archive_format ) = @_;
+	my( $handle, $document, $paramid, $archive_format ) = @_;
 
-	my $cgi = $session->get_query;
+	my $cgi = $handle->get_query;
 
 	return $document->upload_archive( 
 		$cgi->upload( $paramid ), 

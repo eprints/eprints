@@ -22,10 +22,10 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
-	my $user = $session->current_user;
+	my $handle = $self->{handle};
+	my $user = $handle->current_user;
 
-	return $session->make_doc_fragment;
+	return $handle->make_doc_fragment;
 }
 
 1;

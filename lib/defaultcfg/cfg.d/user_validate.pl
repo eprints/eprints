@@ -1,11 +1,11 @@
 ######################################################################
 #
-# validate_user( $user, $session, $for_archive ) 
+# validate_user( $user, $handle, $for_archive ) 
 #
 ######################################################################
 # $user 
 # - User object
-# $session 
+# $handle 
 # - Session object (the current session)
 # $for_archive
 # - boolean (see comments at the start of the validation section)
@@ -22,7 +22,7 @@
 
 $c->{validate_user} = sub
 {
-	my( $user, $session, $for_archive ) = @_;
+	my( $user, $handle, $for_archive ) = @_;
 
 	my @problems = ();
 

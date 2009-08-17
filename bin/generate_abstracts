@@ -105,40 +105,40 @@ $noise = 1+$verbose if( $verbose );
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;
 
-my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
-exit( 1 ) unless( defined $session );
+my $handle = new EPrints::Handle( 1 , $ARGV[0] , $noise );
+exit( 1 ) unless( defined $handle );
 
 if( defined $ARGV[1] )
 {
-	my $eprint = EPrints::DataObj::EPrint->new( $session, $ARGV[1] );
+	my $eprint = EPrints::DataObj::EPrint->new( $handle, $ARGV[1] );
 	if( !defined $eprint )
 	{
-		$session->get_repository->log( 
+		$handle->get_repository->log( 
 "EPrint #".$ARGV[1]." not found. Can't write abstract." );
 	}
 	else
 	{
-		make_static( $session, $eprint->get_dataset, $eprint, {} );
+		make_static( $handle, $eprint->get_dataset, $eprint, {} );
 		print "Wrote abstract #$ARGV[1]\n" if( $noise > 0);
 	}
 }
 else
 {
 	print "Writing abstracts\n" if( $noise > 0);
-	my $dataset = $session->get_repository->get_dataset( "eprint" );
+	my $dataset = $handle->get_repository->get_dataset( "eprint" );
 	my $info = { count=>0 };
-	$dataset->map( $session , \&make_static, $info );
+	$dataset->map( $handle , \&make_static, $info );
 	if( $noise > 0)
 	{
 		print "Done writing ".$info->{count}." abstracts\n";
 	}
 }
-$session->terminate();
+$handle->terminate();
 exit;
 
 sub make_static
 {
-	my( $session, $dataset, $eprint, $info ) = @_;
+	my( $handle, $dataset, $eprint, $info ) = @_;
 	$eprint->generate_static();
 	if( $noise > 1 )
 	{

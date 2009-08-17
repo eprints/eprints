@@ -44,21 +44,21 @@ use EPrints::MetaField::Set;
 
 sub tags
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my @tags = $self->get_unsorted_values( $session );
+	my @tags = $self->get_unsorted_values( $handle );
 
 	return sort {
-		EPrints::Utils::tree_to_utf8( $self->render_option( $session, $a ) ) cmp
-		EPrints::Utils::tree_to_utf8( $self->render_option( $session, $b ) ) 
+		EPrints::Utils::tree_to_utf8( $self->render_option( $handle, $a ) ) cmp
+		EPrints::Utils::tree_to_utf8( $self->render_option( $handle, $b ) ) 
 	} @tags;
 }
 
 sub get_unsorted_values
 {
-	my( $self, $session, $dataset, %opts ) = @_;
+	my( $self, $handle, $dataset, %opts ) = @_;
 
-	my $ds = $session->get_repository->get_dataset( 
+	my $ds = $handle->get_repository->get_dataset( 
 			$self->get_property('datasetid') );
 
 	my @types = ();
@@ -74,29 +74,29 @@ sub get_unsorted_values
 # this method uses a dirty little cache to make things run much faster.
 sub render_option
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
-	if( !defined $value ) { return $self->SUPER::render_option( $session, undef ); }
+	if( !defined $value ) { return $self->SUPER::render_option( $handle, undef ); }
 	my $cacheid = $self->get_property('datasetid').".".$value;
 
-	my $text = $session->{cache_metafield_options}->{$cacheid};
+	my $text = $handle->{cache_metafield_options}->{$cacheid};
 	if( defined $text )
 	{
-		return $session->make_text( $text );
+		return $handle->make_text( $text );
 	}
-	my $ds = $session->get_repository->get_dataset( 
+	my $ds = $handle->get_repository->get_dataset( 
 			$self->get_property('datasetid') );
 
 	if( !$ds->has_field( $value ) )
 	{
-		return $session->make_text( "???$value???" );
+		return $handle->make_text( "???$value???" );
 	}
 
 	my $field = $ds->get_field( $value );
-	$text = EPrints::Utils::tree_to_utf8( $field->render_name( $session ) );
-	$session->{cache_metafield_options}->{$cacheid} = $text;
+	$text = EPrints::Utils::tree_to_utf8( $field->render_name( $handle ) );
+	$handle->{cache_metafield_options}->{$cacheid} = $text;
 
-	return $session->make_text( $text );
+	return $handle->make_text( $text );
 }
 
 sub get_property_defaults

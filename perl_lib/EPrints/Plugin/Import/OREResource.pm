@@ -53,7 +53,7 @@ sub input_fh
 
 	$list ||= EPrints::List->new(
 			dataset => $opts{dataset},
-			session => $plugin->{session},
+			handle => $plugin->{handle},
 			ids => [] );
 
 	return $list;
@@ -71,7 +71,7 @@ sub input_fh_xml
 
 	return EPrints::List->new(
 			dataset => $opts{dataset},
-			session => $plugin->{session},
+			handle => $plugin->{handle},
 			ids => [$dataobj->get_id] );
 }
 
@@ -85,7 +85,7 @@ sub input_fh_list
 
 	my $tmpfile = File::Temp->new;
 
-	my $r = EPrints::Utils::wget( $plugin->{session}, $url, $tmpfile );
+	my $r = EPrints::Utils::wget( $plugin->{handle}, $url, $tmpfile );
 	seek($tmpfile,0,0);
 
 	if( $r->is_error )
@@ -121,7 +121,7 @@ sub input_fh_list
 
 	return EPrints::List->new(
 			dataset => $opts{dataset},
-			session => $plugin->{session},
+			handle => $plugin->{handle},
 			ids => \@ids );
 }
 
@@ -130,7 +130,7 @@ sub xml_to_dataobj
 	# $xml is the PubmedArticle element
 	my( $plugin, $dataset, $xml ) = @_;
 
-	my $session = $plugin->{session};
+	my $handle = $plugin->{handle};
 
 	my $epdata = {};
 
@@ -202,13 +202,13 @@ sub xml_to_dataobj
 
 	my $tmpfile = File::Temp->new;
 
-	EPrints::Utils::wget( $session, $oai_dc, "$tmpfile" );
+	EPrints::Utils::wget( $handle, $oai_dc, "$tmpfile" );
 	seek($tmpfile,0,0);
 
 	$plugin->handler->parsed( $epdata );
 	return if( $plugin->{parse_only} );
 
-	my $dc_plugin = $session->plugin( "Import::XSLT::OAI_Dublin_Core_XML",
+	my $dc_plugin = $handle->plugin( "Import::XSLT::OAI_Dublin_Core_XML",
 		processor => $plugin->{processor},
 		dataset => $dataset,
 	);
@@ -230,18 +230,18 @@ sub xml_to_dataobj
 	{
 		next unless $aggregates{$uri};
 		my $cnt_file = File::Temp->new();
-		my $r = EPrints::Utils::wget($session,$uri,$cnt_file);
+		my $r = EPrints::Utils::wget($handle,$uri,$cnt_file);
 		next unless $r->is_success;
 		my $content_type = $r->header( "Content-Type" ) or next;
 		($content_type) = split /;/, $content_type;
 		my $mime_type = MIME::Types->new->type( $content_type ) or next;
 		my $doc = EPrints::DataObj::Document->create_from_data(
-			$session,
+			$handle,
 			{
 				eprintid => $eprint->get_id,
 				format => $content_type,
 			},
-			$session->get_repository->get_dataset( "document" )
+			$handle->get_repository->get_dataset( "document" )
 		);
 
 		my( $ext ) = $mime_type->extensions;

@@ -21,14 +21,14 @@ sub update_from_form
 {
 	my( $self, $processor ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 	my $field = $self->{config}->{field};
 	my $metafield = $self->{dataobj};
 	my $mfdatasetid = $metafield->get_value( "mfdatasetid" );
-	my $dataset = $session->get_repository->get_dataset( $mfdatasetid );
+	my $dataset = $handle->get_repository->get_dataset( $mfdatasetid );
 	my $prefix = quotemeta( $metafield->get_value( "name" ) . "_" );
 
-	my @fieldids = $session->param( $self->{prefix} );
+	my @fieldids = $handle->param( $self->{prefix} );
 
 	my $value = $metafield->get_value( $field->get_name );
 	my @value = @$value;
@@ -66,16 +66,16 @@ sub render_content
 {
 	my( $self, $surround ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 	my $field = $self->{config}->{field};
 	my $metafield = $self->{dataobj};
 
 	my $value = $metafield->get_value( $field->get_name );
 	my @value = @$value;
 
-	my $out = $session->make_element( "div" );
+	my $out = $handle->make_element( "div" );
 
-	my $dataset = $session->get_repository->get_dataset( $metafield->get_value( "mfdatasetid" ) );
+	my $dataset = $handle->get_repository->get_dataset( $metafield->get_value( "mfdatasetid" ) );
 
 	my $prefix = $metafield->get_value( "name" ) . "_";
 
@@ -98,15 +98,15 @@ sub render_content
 	{
 		my $name = $prefix . $fielddata->{"sub_name"};
 		my $selected = defined($fielddata->{mfremoved}) && $fielddata->{mfremoved} eq "FALSE";
-		my $option = $session->render_input_field(
+		my $option = $handle->render_input_field(
 			type => "checkbox",
 			name => $self->{prefix},
 			value => $name,
 			($selected ? (checked => "checked") : ()),
 		);
-		$option->appendChild( $session->make_text( $name ) );
+		$option->appendChild( $handle->make_text( $name ) );
 		$out->appendChild( $option );
-		$out->appendChild( $session->make_element( "br" ) );
+		$out->appendChild( $handle->make_element( "br" ) );
 	}
 
 	return $out;
@@ -116,7 +116,7 @@ sub get_potential_metafields
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 	my $field = $self->{config}->{field};
 	my $metafield = $self->{dataobj};
 	my $prefix = $metafield->get_value( "name" ) . "_";
@@ -124,7 +124,7 @@ sub get_potential_metafields
 	my $dataset = $metafield->get_dataset;
 
 	my $searchexp = EPrints::Search->new(
-		session => $session,
+		handle => $handle,
 		dataset => $dataset,
 		filters => [
 			{ meta_fields => ["providence"], match => "EQ", value => "user" },

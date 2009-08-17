@@ -63,7 +63,7 @@ sub from
 	{
 		my $jump_to = $1;
 
-		if( defined $self->{session}->param( "stage" ) )
+		if( defined $self->{handle}->param( "stage" ) )
 		{
 			$self->workflow->update_from_form( $self->{processor},$jump_to );
 			$self->uncache_workflow;
@@ -195,7 +195,7 @@ sub render
 	my $form = $self->render_form;
 
 	my $blister = $self->render_blister( $self->workflow->get_stage_id, 0 );
-	my $toolbox = $self->{session}->render_toolbox( undef, $blister );
+	my $toolbox = $self->{handle}->render_toolbox( undef, $blister );
 	$form->appendChild( $toolbox );
 
 	$form->appendChild( $self->render_buttons );
@@ -216,18 +216,18 @@ sub render_buttons
 	{
 		push @{$buttons{_order}}, "prev";
 		$buttons{prev} = 
-			$self->{session}->phrase( "lib/submissionform:action_prev" );
+			$self->{handle}->phrase( "lib/submissionform:action_prev" );
 	}
 
 	push @{$buttons{_order}}, "save";
 	$buttons{save} = 
-		$self->{session}->phrase( "lib/submissionform:action_save" );
+		$self->{handle}->phrase( "lib/submissionform:action_save" );
 
 	push @{$buttons{_order}}, "next";
 	$buttons{next} = 
-		$self->{session}->phrase( "lib/submissionform:action_next" );
+		$self->{handle}->phrase( "lib/submissionform:action_next" );
 
-	return $self->{session}->render_action_buttons( %buttons );
+	return $self->{handle}->render_action_buttons( %buttons );
 }
 
 1;

@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::Session
+# EPrints::Handle
 #
 ######################################################################
 #
@@ -17,14 +17,14 @@
 
 =head1 NAME
 
-B<EPrints::Session> - Single connection to the EPrints system
+B<EPrints::Handle> - Single connection to the EPrints system
 
 =head1 DESCRIPTION
 
 This module is not really a session. The name is out of date, but
 hard to change.
 
-EPrints::Session represents a connection to the EPrints system. It
+EPrints::Handle represents a connection to the EPrints system. It
 connects to a single EPrints repository, and the database used by
 that repository. Thus it has an associated EPrints::Database and
 EPrints::Repository object.
@@ -47,15 +47,15 @@ Specific sets of functions are documented in:
 
 =over 4
 
-=item EPrints::Session::XML
+=item EPrints::Handle::XML
 
-=item EPrints::Session::Render
+=item EPrints::Handle::Render
 
-=item EPrints::Session::Language
+=item EPrints::Handle::Language
 
-=item EPrints::Session::Page
+=item EPrints::Handle::Page
 
-=item EPrints::Session::CGI
+=item EPrints::Handle::CGI
 
 =back
 
@@ -102,14 +102,15 @@ Specific sets of functions are documented in:
 #
 ######################################################################
 
-package EPrints::Session;
+
+package EPrints::Handle;
 
 use EPrints;
-use EPrints::Session::XML;
-use EPrints::Session::Render;
-use EPrints::Session::Language;
-use EPrints::Session::Page;
-use EPrints::Session::CGI;
+use EPrints::Handle::XML;
+use EPrints::Handle::Render;
+use EPrints::Handle::Language;
+use EPrints::Handle::Page;
+use EPrints::Handle::CGI;
 
 #use URI::Escape;
 use CGI qw(-compile);
@@ -124,7 +125,7 @@ use strict;
 
 =over 4
 
-=item $session = EPrints::Session->new( $mode, [$repository_id], [$noise], [$nocheckdb] )
+=item $handle = EPrints::Handle->new( $mode, [$repository_id], [$noise], [$nocheckdb] )
 
 Create a connection to an EPrints repository which provides access 
 to the database and to the repository configuration.
@@ -214,7 +215,7 @@ sub new
 	{
 		# running as CGI, Lets work out what language the
 		# client wants...
-		$self->change_lang( get_session_language( 
+		$self->change_lang( get_language( 
 			$self->{repository}, 
 			$self->{request} ) );
 	}
@@ -307,7 +308,7 @@ sub _add_http_paths
 ######################################################################
 =pod
 
-=item $session->terminate
+=item $handle->terminate
 
 Perform any cleaning up necessary, for example SQL cache tables which
 are no longer needed.
@@ -339,7 +340,7 @@ sub terminate
 
 ######################################################################
 # 
-# $id = $session->get_next_id
+# $id = $handle->get_next_id
 #
 # Return a number unique within this session. Used to generate id's
 # in the HTML.
@@ -371,7 +372,7 @@ sub get_next_id
 ######################################################################
 =pod
 
-=item $db = $session->get_database
+=item $db = $handle->get_database
 
 Return the current EPrints::Database connection object.
 
@@ -385,7 +386,7 @@ sub get_database
 	return $self->{database};
 }
 
-=item $store = $session->get_storage
+=item $store = $handle->get_storage
 
 Return the storage control object.
 
@@ -402,7 +403,7 @@ sub get_storage
 ######################################################################
 =pod
 
-=item $repository = $session->get_repository
+=item $repository = $handle->get_repository
 
 Return the EPrints::Repository object associated with the Session.
 
@@ -418,9 +419,9 @@ sub get_repository
 ######################################################################
 =pod
 
-=item $conf = $session->get_conf( $conf_id, ... )
+=item $conf = $handle->get_conf( $conf_id, ... )
 
-This is an alias for $session->get_repository->get_conf( ... ) to make for more readable code.
+This is an alias for $handle->get_repository->get_conf( ... ) to make for more readable code.
 
 =cut
 ######################################################################
@@ -436,24 +437,24 @@ sub get_conf
 ######################################################################
 =pod
 
-=item $url = $session->get_url( [ @OPTS ] [, $page] )
+=item $url = $handle->get_url( [ @OPTS ] [, $page] )
 
 Utility method to get various URLs. See L<EPrints::URL>. With no arguments returns the same as get_uri().
 
 	# Return the current static path
-	$session->get_url( path => "static" );
+	$handle->get_url( path => "static" );
 
 	# Return the current cgi path
-	$session->get_url( path => "cgi" );
+	$handle->get_url( path => "cgi" );
 
 	# Return a full URL to the current cgi path
-	$session->get_url( host => 1, path => "cgi" );
+	$handle->get_url( host => 1, path => "cgi" );
 
 	# Return a full URL to the static path under HTTP
-	$session->get_url( scheme => "http", host => 1, path => "static" );
+	$handle->get_url( scheme => "http", host => 1, path => "static" );
 
 	# Return a full URL to the image 'foo.png'
-	$session->get_url( host => 1, path => "images", "foo.png" );
+	$handle->get_url( host => 1, path => "images", "foo.png" );
 
 =cut
 ######################################################################
@@ -462,7 +463,7 @@ sub get_url
 {
 	my( $self, @opts ) = @_;
 
-	my $url = EPrints::URL->new( session => $self );
+	my $url = EPrints::URL->new( handle => $self );
 
 	return $url->get( @opts );
 }
@@ -471,10 +472,10 @@ sub get_url
 ######################################################################
 =pod
 
-=item $noise_level = $session->get_noise
+=item $noise_level = $handle->get_noise
 
 Return the noise level for the current session. See the explaination
-under EPrints::Session->new()
+under EPrints::Handle->new()
 
 =cut
 ######################################################################
@@ -490,7 +491,7 @@ sub get_noise
 ######################################################################
 =pod
 
-=item $boolean = $session->get_online
+=item $boolean = $handle->get_online
 
 Return true if this script is running via CGI, return false if we're
 on the command line.
@@ -511,7 +512,7 @@ sub get_online
 ######################################################################
 =pod
 
-=item $plugin = $session->plugin( $pluginid )
+=item $plugin = $handle->plugin( $pluginid )
 
 Return the plugin with the given pluginid, in this repository or, failing
 that, from the system level plugins.
@@ -525,7 +526,7 @@ sub plugin
 
 	return $self->get_repository->get_plugin_factory->get_plugin( $pluginid,
 		%params,
-		session => $self,
+		handle => $self,
 		);
 }
 
@@ -534,7 +535,7 @@ sub plugin
 ######################################################################
 =pod
 
-=item @plugin_ids  = $session->plugin_list( %restrictions )
+=item @plugin_ids  = $handle->plugin_list( %restrictions )
 
 Return either a list of all the plugins available to this repository or
 return a list of available plugins which can accept the given 
@@ -553,12 +554,12 @@ sub plugin_list
 	return
 		map { $_->get_id() }
 		$self->{repository}->get_plugin_factory->get_plugins(
-			{ session => $self },
+			{ handle => $self },
 			%restrictions,
 		);
 }
 
-=item @plugins = $session->get_plugins( [ $params, ] %restrictions )
+=item @plugins = $handle->get_plugins( [ $params, ] %restrictions )
 
 Returns a list of plugin objects that conform to %restrictions (may be empty).
 
@@ -574,7 +575,7 @@ sub get_plugins
 		shift(@opts) :
 		{};
 
-	$params->{session} = $self;
+	$params->{handle} = $self;
 
 	return $self->{repository}->get_plugin_factory->get_plugins( $params, @opts );
 }
@@ -584,7 +585,7 @@ sub get_plugins
 ######################################################################
 # =pod
 # 
-# =item $spec = $session->get_citation_spec( $dataset, [$ctype] )
+# =item $spec = $handle->get_citation_spec( $dataset, [$ctype] )
 # 
 # Return the XML spec for the given dataset. If a $ctype is specified
 # then return the named citation style for that dataset. eg.
@@ -632,7 +633,7 @@ sub get_citation_type
 ######################################################################
 =pod
 
-=item $time = EPrints::Session::microtime();
+=item $time = EPrints::Handle::microtime();
 
 This function is currently buggy so just returns the time in seconds.
 
@@ -668,7 +669,7 @@ sub microtime
 ######################################################################
 =pod
 
-=item $foo = $session->mail_administrator( $subjectid, $messageid, %inserts )
+=item $foo = $handle->mail_administrator( $subjectid, $messageid, %inserts )
 
 Sends a mail to the repository administrator with the given subject and
 message body.
@@ -692,7 +693,7 @@ sub mail_administrator
 	# Mail the admin in the default language
 	my $langid = $self->{repository}->get_conf( "defaultlanguage" );
 	return EPrints::Email::send_mail(
-		session => $self,
+		handle => $self,
 		langid => $langid,
 		to_email => $self->{repository}->get_conf( "adminemail" ),
 		to_name => $self->phrase( "lib/session:archive_admin" ),	
@@ -712,7 +713,7 @@ my $PUBLIC_PRIVS =
 
 sub allow_anybody
 {
-	my( $session, $priv ) = @_;
+	my( $handle, $priv ) = @_;
 
 	return 1 if( $PUBLIC_PRIVS->{$priv} );
 
@@ -724,7 +725,7 @@ sub allow_anybody
 ######################################################################
 =pod
 
-=item $session->DESTROY
+=item $handle->DESTROY
 
 Destructor. Don't call directly.
 

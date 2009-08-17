@@ -48,7 +48,7 @@ sub action_reindex
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 	my $eprint = $self->{processor}->{eprint};
 
 	$eprint->queue_all();

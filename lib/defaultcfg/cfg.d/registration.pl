@@ -37,7 +37,7 @@ $c->{default_user_type} = "user";
 # particular email domains 
 #$c->{check_registration_email} = sub
 #{
-#	my( $session, $email ) = @_;
+#	my( $handle, $email ) = @_;
 #
 #	# registration allowed
 #	return 1 if $email =~ /\@your\.domain\.com$/;

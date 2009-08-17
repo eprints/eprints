@@ -25,7 +25,7 @@ sub render_name
 {
 	my( $plugin ) = @_;
 
-	return $plugin->{session}->make_text( $plugin->param("name") );
+	return $plugin->{handle}->make_text( $plugin->param("name") );
 }
 
 sub matches 
@@ -131,7 +131,7 @@ sub output_list
 
 	my $r = [];
 	$opts{list}->map( sub {
-		my( $session, $dataset, $item ) = @_;
+		my( $handle, $dataset, $item ) = @_;
 
 		my $part = $plugin->output_dataobj( $item, %opts );
 		if( defined $opts{fh} )
@@ -159,7 +159,7 @@ sub output_dataobj
 	
 	my $r = "error. output_dataobj not subclassed";
 
-	$plugin->{session}->get_repository->log( $r );
+	$plugin->{handle}->get_repository->log( $r );
 
 	return $r;
 }
@@ -170,9 +170,9 @@ sub xml_dataobj
 	
 	my $r = "error. xml_dataobj not subclassed";
 
-	$plugin->{session}->get_repository->log( $r );
+	$plugin->{handle}->get_repository->log( $r );
 
-	return $plugin->{session}->make_text( $r );
+	return $plugin->{handle}->make_text( $r );
 }
 
 # if this an output plugin can output results for a single dataobj then
@@ -192,15 +192,15 @@ sub dataobj_export_url
 
 	unless( $pluginid =~ m# ^Export::(.*)$ #x )
 	{
-		$plugin->{session}->get_repository->log( "Bad pluginid in dataobj_export_url: ".$pluginid );
+		$plugin->{handle}->get_repository->log( "Bad pluginid in dataobj_export_url: ".$pluginid );
 		return undef;
 	}
 	my $format = $1;
 
-	my $url = $plugin->{session}->get_repository->get_conf( "http_cgiurl" );
+	my $url = $plugin->{handle}->get_repository->get_conf( "http_cgiurl" );
 	$url .= "/users" if $staff;
 	$url .= "/export/".$dataobj->get_id."/".$format;
-	$url .= "/".$plugin->{session}->get_repository->get_id;
+	$url .= "/".$plugin->{handle}->get_repository->get_id;
 	$url .= "-".$dataobj->get_dataset->confid."-".$dataobj->get_id.$plugin->param("suffix");
 
 	return $url;

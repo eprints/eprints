@@ -69,10 +69,10 @@ sub render
 	my $problems = $self->{processor}->{dataobj}->validate( $self->{processor}->{for_archive} );
 	if( scalar @{$problems} > 0 )
 	{
-		my $dom_problems = $self->{session}->make_element( "ul" );
+		my $dom_problems = $self->{handle}->make_element( "ul" );
 		foreach my $problem_xhtml ( @{$problems} )
 		{
-			my $li = $self->{session}->make_element( "li" );
+			my $li = $self->{handle}->make_element( "li" );
 			$li->appendChild( $problem_xhtml );
 			$dom_problems->appendChild( $li );
 		}
@@ -83,10 +83,10 @@ sub render
 	my $warnings = $self->{processor}->{dataobj}->get_warnings;
 	if( scalar @{$warnings} > 0 )
 	{
-		my $dom_warnings = $self->{session}->make_element( "ul" );
+		my $dom_warnings = $self->{handle}->make_element( "ul" );
 		foreach my $warning_xhtml ( @{$warnings} )
 		{
-			my $li = $self->{session}->make_element( "li" );
+			my $li = $self->{handle}->make_element( "li" );
 			$li->appendChild( $warning_xhtml );
 			$dom_warnings->appendChild( $li );
 		}
@@ -95,12 +95,12 @@ sub render
 	}
 
 
-	my $page = $self->{session}->make_doc_fragment;
+	my $page = $self->{handle}->make_doc_fragment;
 	my $form = $self->render_form;
 	$page->appendChild( $form );
 
 	my $blister = $self->render_blister( "commit", 0 );
-	my $toolbox = $self->{session}->render_toolbox( undef, $blister );
+	my $toolbox = $self->{handle}->render_toolbox( undef, $blister );
 	$form->appendChild( $toolbox );
 
 
@@ -108,9 +108,9 @@ sub render
 	{
 		$form->appendChild( $self->html_phrase( "commit_help" ) );
 	
-		$form->appendChild( $self->{session}->render_action_buttons(
-			commit => $self->{session}->phrase( "priv:action/metafield/commit" ),
-			save => $self->{session}->phrase( "priv:action/metafield/save" ),
+		$form->appendChild( $self->{handle}->render_action_buttons(
+			commit => $self->{handle}->phrase( "priv:action/metafield/commit" ),
+			save => $self->{handle}->phrase( "priv:action/metafield/save" ),
 			_order => [qw( commit save )],
 		) );
 	}
@@ -143,10 +143,10 @@ sub action_commit
 	if( scalar @{$problems} > 0 )
 	{
 		$self->{processor}->add_message( "error", $self->html_phrase( "validation_errors" ) ); 
-		my $warnings = $self->{session}->make_element( "ul" );
+		my $warnings = $self->{handle}->make_element( "ul" );
 		foreach my $problem_xhtml ( @{$problems} )
 		{
-			my $li = $self->{session}->make_element( "li" );
+			my $li = $self->{handle}->make_element( "li" );
 			$li->appendChild( $problem_xhtml );
 			$warnings->appendChild( $li );
 		}
@@ -161,7 +161,7 @@ sub action_commit
 
 	my $dataobj = $self->{processor}->{dataobj};
 	$ok &&= $dataobj->move_to_archive();
-	$ok &&= EPrints::DataObj::MetaField::save_all( $self->{session} );
+	$ok &&= EPrints::DataObj::MetaField::save_all( $self->{handle} );
 
 	if( !$dataobj->add_to_phrases() )
 	{
@@ -176,11 +176,11 @@ sub action_commit
 	if( $ok )
 	{
 		$self->{processor}->add_message( "message", $self->html_phrase( "metafield_committed",
-			fieldid => $self->{session}->make_text( $dataobj->get_value( "name" ) ),
-			datasetid => $self->{session}->make_text( $dataobj->get_value( "mfdatasetid" ) )
+			fieldid => $self->{handle}->make_text( $dataobj->get_value( "name" ) ),
+			datasetid => $self->{handle}->make_text( $dataobj->get_value( "mfdatasetid" ) )
 		) );
 
-		if( my $plugin = $self->{session}->plugin( "Screen::Admin::Reload" ) )
+		if( my $plugin = $self->{handle}->plugin( "Screen::Admin::Reload" ) )
 		{
 			my $screenid = $self->{processor}->{screenid};
 			$plugin->{processor} = $self->{processor};

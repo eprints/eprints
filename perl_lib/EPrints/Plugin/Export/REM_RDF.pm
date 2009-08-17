@@ -81,7 +81,7 @@ sub output_list
 	}
 
 	$opts{list}->map(sub {
-		my( $session, $dataset, $dataobj ) = @_;
+		my( $handle, $dataset, $dataobj ) = @_;
 		$part = $plugin->output_dataobj( $dataobj, multiple => 1, %opts );
 		if( defined $opts{fh} )
 		{
@@ -123,21 +123,21 @@ sub output_dataobj
 	my $eprint_rev = $dataobj->get_value( "rev_number" );
 	my $eprint_url = $dataobj->get_url;
 	my $resmap_url = $plugin->dataobj_export_url( $dataobj );
-	my $session = $plugin->{session};
-	my $base_url = $session->get_repository->get_conf("base_url");
-	my $archive_id = $session->get_repository->get_id;
+	my $handle = $plugin->{handle};
+	my $base_url = $handle->get_repository->get_conf("base_url");
+	my $archive_id = $handle->get_repository->get_id;
 	
-	my $response = $session->make_doc_fragment;
+	my $response = $handle->make_doc_fragment;
 
-	my $topcontent = $session->make_element( "rdf:Description",
+	my $topcontent = $handle->make_element( "rdf:Description",
 		"rdf:about"=>"$resmap_url" );
 	
-	my $sub_content = $session->make_element ("rdf:type",
+	my $sub_content = $handle->make_element ("rdf:type",
 		"rdf:resource"=>"http://www.openarchives.org/ore/terms/ResourceMap" );
 	
 	$topcontent->appendChild( $sub_content );
 	
-	$sub_content = $session->render_data_element (
+	$sub_content = $handle->render_data_element (
 		4,
 		"dc:modified",
 		$lastmod,
@@ -145,12 +145,12 @@ sub output_dataobj
 
 	$topcontent->appendChild( $sub_content);
 
-	$sub_content = $session->make_element ("ore:describes",
+	$sub_content = $handle->make_element ("ore:describes",
 		"rdf:resource"=>"$resmap_url#aggregation" );
 
 	$topcontent->appendChild( $sub_content );
 	
-	my $aggregation = $session->make_element( "rdf:Description",
+	my $aggregation = $handle->make_element( "rdf:Description",
 		"rdf:about"=>"$resmap_url#aggregation" );
 	
 	$response->appendChild( $topcontent );	
@@ -165,19 +165,19 @@ sub output_dataobj
 		foreach my $key (keys %files)
 		{
 			my $fileurl = $doc->get_url($key);
-			$sub_content = $session->make_element("ore:aggregates",
+			$sub_content = $handle->make_element("ore:aggregates",
 				"rdf:resource"=>"$fileurl" );
 			$aggregation->appendChild ( $sub_content );
-			my $additional = $session->make_element( "rdf:Description",
+			my $additional = $handle->make_element( "rdf:Description",
 				"rdf:about"=>"$fileurl" );
-			$sub_content = $session->render_data_element(
+			$sub_content = $handle->render_data_element(
 				4,
 				"dc:format",
 				$format
  			);
 			$additional->appendChild( $sub_content );
 		
-			$sub_content = $session->render_data_element(
+			$sub_content = $handle->render_data_element(
 				4,
 				"dc:hasVersion",
 				$rev_number
@@ -191,7 +191,7 @@ sub output_dataobj
 	
 	my $xml_node;
 	
-	my @plugins = $session->plugin_list();
+	my @plugins = $handle->plugin_list();
 	foreach my $plugin_name (@plugins) 
 	{
 		my $url = "$base_url/cgi/export/$eprint_id/";
@@ -200,7 +200,7 @@ sub output_dataobj
 		{
 			my $plugin_id = $plugin_name;
 			$plugin_name = substr($plugin_id,8,length($plugin_id));
-			my $plugin_temp = $session->plugin($plugin_id);
+			my $plugin_temp = $handle->plugin($plugin_id);
 			my $plugin_suffix = $plugin_temp->param("suffix");
 			my $uri =  $plugin_temp->local_uri();
 			$uri =~ /Export/g;
@@ -208,7 +208,7 @@ sub output_dataobj
 			$url = $url."$plugin_location/$archive_id-eprint-$eprint_id$plugin_suffix";
 
 			if ($plugin_name eq "XML") {
-				$sub_content = $session->make_element("ore:aggregates",
+				$sub_content = $handle->make_element("ore:aggregates",
 					"rdf:resource"=>"$url" );
 				$aggregation->appendChild ( $sub_content );
 				my $dc_title = $plugin_temp->param("name") || "";
@@ -216,12 +216,12 @@ sub output_dataobj
 				my $dc_conformsTo = $plugin_temp->param("xmlns") || "";
 				my $schema_location = $plugin_temp->param("schemaLocation") || "";
 			
-				my $additional = $session->make_element( "rdf:Description",
+				my $additional = $handle->make_element( "rdf:Description",
 					"rdf:about"=>"$url" );
 
 				if ( $dc_title ne "" )
 				{	
-					$sub_content = $session->render_data_element(
+					$sub_content = $handle->render_data_element(
 						4,
 						"dc:title",
 						$dc_title
@@ -231,7 +231,7 @@ sub output_dataobj
 			
 				if ( $dc_format ne "" )		
 				{
-					$sub_content = $session->render_data_element(
+					$sub_content = $handle->render_data_element(
 						4,
 						"dc:format",
 						$dc_format
@@ -241,7 +241,7 @@ sub output_dataobj
 			
 				if ( $dc_conformsTo ne "" ) 
 				{
-					$sub_content = $session->render_data_element(
+					$sub_content = $handle->render_data_element(
 						4,
 						"dc:conformsTo",
 						$dc_conformsTo
@@ -251,7 +251,7 @@ sub output_dataobj
 			
 				if ( $schema_location ne "") 
 				{
-					$sub_content = $session->render_data_element(
+					$sub_content = $handle->render_data_element(
 						4,
 						"rdfs:comment",
 						$schema_location
@@ -266,7 +266,7 @@ sub output_dataobj
 		}
 	}
 
-	@plugins = $session->plugin_list();
+	@plugins = $handle->plugin_list();
 	foreach my $plugin_name (@plugins) 
 	{
 		my $url = "$base_url/cgi/export/$eprint_id/";
@@ -275,7 +275,7 @@ sub output_dataobj
 		{
 			my $plugin_id = $plugin_name;
 			$plugin_name = substr($plugin_id,8,length($plugin_id));
-			my $plugin_temp = $session->plugin($plugin_id);
+			my $plugin_temp = $handle->plugin($plugin_id);
 			my $plugin_suffix = $plugin_temp->param("suffix");
 			my $uri =  $plugin_temp->local_uri();
 			$uri =~ /Export/g;
@@ -284,7 +284,7 @@ sub output_dataobj
 
 			if ($plugin_name eq "XML") {
 			} else {
-				$sub_content = $session->make_element("rdfs:seeAlso",
+				$sub_content = $handle->make_element("rdfs:seeAlso",
 					"rdf:resource"=>"$url" );
 				$xml_node->appendChild ( $sub_content );
 				my $dc_title = $plugin_temp->param("name") || "";
@@ -292,12 +292,12 @@ sub output_dataobj
 				my $dc_conformsTo = $plugin_temp->param("xmlns") || "";
 				my $schema_location = $plugin_temp->param("schemaLocation") || "";
 
-				my $additional = $session->make_element( "rdf:Description",
+				my $additional = $handle->make_element( "rdf:Description",
 						"rdf:about"=>"$url" );
 
 				if ( $dc_title ne "" )
 				{	
-					$sub_content = $session->render_data_element(
+					$sub_content = $handle->render_data_element(
 							4,
 							"dc:title",
 							$dc_title
@@ -307,7 +307,7 @@ sub output_dataobj
 
 				if ( $dc_format ne "" )		
 				{
-					$sub_content = $session->render_data_element(
+					$sub_content = $handle->render_data_element(
 							4,
 							"dc:format",
 							$dc_format
@@ -317,7 +317,7 @@ sub output_dataobj
 
 				if ( $dc_conformsTo ne "" ) 
 				{
-					$sub_content = $session->render_data_element(
+					$sub_content = $handle->render_data_element(
 							4,
 							"dc:conformsTo",
 							$dc_conformsTo
@@ -327,7 +327,7 @@ sub output_dataobj
 
 				if ( $schema_location ne "") 
 				{
-					$sub_content = $session->render_data_element(
+					$sub_content = $handle->render_data_element(
 							4,
 							"rdfs:comment",
 							$schema_location

@@ -37,17 +37,17 @@ sub action_create
 {
 	my( $self ) = @_;
 
-	my $ds = $self->{processor}->{session}->get_repository->get_dataset( "inbox" );
+	my $ds = $self->{processor}->{handle}->get_repository->get_dataset( "inbox" );
 
-	my $user = $self->{session}->current_user;
+	my $user = $self->{handle}->current_user;
 
-	$self->{processor}->{eprint} = $ds->create_object( $self->{session}, { 
+	$self->{processor}->{eprint} = $ds->create_object( $self->{handle}, { 
 		userid => $user->get_value( "userid" ) } );
 
 	if( !defined $self->{processor}->{eprint} )
 	{
-		my $db_error = $self->{session}->get_database->error;
-		$self->{processor}->{session}->get_repository->log( "Database Error: $db_error" );
+		my $db_error = $self->{handle}->get_database->error;
+		$self->{processor}->{handle}->get_repository->log( "Database Error: $db_error" );
 		$self->{processor}->add_message( 
 			"error",
 			$self->html_phrase( "db_error" ) );
@@ -63,7 +63,7 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
 	my $url = URI->new($self->{processor}->{url});
 	$url->query_form( 
@@ -71,8 +71,8 @@ sub render
 		_action_create => 1
 		);
 
-	$session->redirect( $url );
-	$session->terminate();
+	$handle->redirect( $url );
+	$handle->terminate();
 	exit(0);
 }
 

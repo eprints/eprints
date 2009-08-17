@@ -36,7 +36,7 @@ sub convert_dataobj
 	my $data = ();
 
 	# Key
-	$data->{key} = $plugin->{session}->get_repository->get_id . $dataobj->get_id;
+	$data->{key} = $plugin->{handle}->get_repository->get_id . $dataobj->get_id;
 
 	# Entry Type
 	my $type = $dataobj->get_type;
@@ -107,7 +107,7 @@ sub convert_dataobj
 	# month
 	if ($dataobj->exists_and_set( "date" )) {
 		if( $dataobj->get_value( "date" ) =~ /^[0-9]{4}-([0-9]{2})/ ) {
-			$data->{bibtex}->{month} = EPrints::Time::get_month_label( $plugin->{session}, $1 );
+			$data->{bibtex}->{month} = EPrints::Time::get_month_label( $plugin->{handle}, $1 );
 		}
 	}
 

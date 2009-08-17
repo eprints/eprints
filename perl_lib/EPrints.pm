@@ -23,11 +23,11 @@ B<EPrints> - Institutional Repository software
 
 	use EPrints qw();
 
-	my $session = EPrints::Session->new( 1, "demoprints" );
+	my $handle = EPrints::Handle->new( 1, "demoprints" );
 
 	...
 
-	$session->terminate;
+	$handle->terminate;
 
 =head1 DESCRIPTION
 
@@ -227,7 +227,7 @@ use EPrints::Search::Field;
 use EPrints::Search::Condition;
 use EPrints::CLIProcessor;
 use EPrints::ScreenProcessor;
-use EPrints::Session;
+use EPrints::Handle;
 use EPrints::Script;
 use EPrints::URL;
 use EPrints::Paracite;
@@ -279,7 +279,7 @@ __END__
 
 =head1 SEE ALSO
 
-L<EPrints::Session>
+L<EPrints::Handle>
 
 =head1 COPYRIGHT
 

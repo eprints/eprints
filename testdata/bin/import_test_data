@@ -52,20 +52,20 @@ $noise = 1+$verbose if( $verbose );
 # nb. This syntax is subject to change in future versions.
 my( $archiveid, $datasetid, $userid ) = @ARGV;
 
-my $session = new EPrints::Session( 1 , $archiveid, $noise );
-exit( 1 ) unless( defined $session );
+my $handle = new EPrints::Handle( 1 , $archiveid, $noise );
+exit( 1 ) unless( defined $handle );
 
-my $db = $session->get_database;
+my $db = $handle->get_database;
 
 $userid = 1 unless defined $userid;
 $datasetid = "archive" unless defined $datasetid;
 
 my $datapath = $EPrints::SystemSettings::conf->{base_path}."/testdata/data";
 
-my $ds = $session->get_archive()->get_dataset( $datasetid );
+my $ds = $handle->get_archive()->get_dataset( $datasetid );
 
 my $pluginid = "Import::XML";
-my $plugin = $session->plugin( $pluginid );
+my $plugin = $handle->plugin( $pluginid );
 
 my $infile = $datapath."/data.xml.gz";
 
@@ -75,7 +75,7 @@ open( $fh, "gunzip -c $infile |" ) || die "Can't gunzip file.";
 my $list = $plugin->input_fh( dataset=>$ds, fh=>$fh, filename=>$infile );
 close $fh; 
 
-$session->terminate;
+$handle->terminate;
 
 exit;
 

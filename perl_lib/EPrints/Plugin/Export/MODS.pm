@@ -39,7 +39,7 @@ sub xml_dataobj
 {
 	my( $plugin, $dataobj, $prefix ) = @_;
 
-	my $session = $plugin->{ session };
+	my $handle = $plugin->{handle};
 
 	my $dataset = $dataobj->get_dataset;
 
@@ -48,7 +48,7 @@ sub xml_dataobj
 
 	my $nsp = "xmlns:${PREFIX}";
 	chop($nsp); # Remove the ':'
-	my $mods = $session->make_element(
+	my $mods = $handle->make_element(
 		"${PREFIX}mods",
 		"version" => "3.3",
 		$nsp => $plugin->{ xmlns },
@@ -57,25 +57,25 @@ sub xml_dataobj
 	);
 
 	# title
-	$mods->appendChild( _make_title( $session, $dataset, $dataobj ));
+	$mods->appendChild( _make_title( $handle, $dataset, $dataobj ));
 
 	# creators
-	$mods->appendChild( _make_creators( $session, $dataset, $dataobj ));
+	$mods->appendChild( _make_creators( $handle, $dataset, $dataobj ));
 
 	# abstract
-	$mods->appendChild( _make_abstract( $session, $dataset, $dataobj ));
+	$mods->appendChild( _make_abstract( $handle, $dataset, $dataobj ));
 
 	# subjects
-	$mods->appendChild( _make_subjects( $session, $dataset, $dataobj ));
+	$mods->appendChild( _make_subjects( $handle, $dataset, $dataobj ));
 	
 	# date_issue
-	$mods->appendChild( _make_issue_date( $session, $dataset, $dataobj ));
+	$mods->appendChild( _make_issue_date( $handle, $dataset, $dataobj ));
 
 	# publisher
-	$mods->appendChild( _make_publisher( $session, $dataset, $dataobj ));
+	$mods->appendChild( _make_publisher( $handle, $dataset, $dataobj ));
 	
 	# genre
-	$mods->appendChild( _make_genre( $session, $dataset, $dataobj ));
+	$mods->appendChild( _make_genre( $handle, $dataset, $dataobj ));
 	
 	$PREFIX = "mods:";
 	
@@ -84,23 +84,23 @@ sub xml_dataobj
 
 sub _make_title
 {
-	my( $session, $dataset, $dataobj ) = @_;
+	my( $handle, $dataset, $dataobj ) = @_;
 
 	my $val = $dataobj->get_value( "title" );
-	return $session->make_doc_fragment unless defined $val;
+	return $handle->make_doc_fragment unless defined $val;
 	
-	my $titleInfo = $session->make_element( "${PREFIX}titleInfo" );
-	$titleInfo->appendChild( my $title = $session->make_element( "${PREFIX}title" ));
-	$title->appendChild( $session->make_text( $val ));
+	my $titleInfo = $handle->make_element( "${PREFIX}titleInfo" );
+	$titleInfo->appendChild( my $title = $handle->make_element( "${PREFIX}title" ));
+	$title->appendChild( $handle->make_text( $val ));
 	
 	return $titleInfo;
 }
 
 sub _make_creators
 {
-	my( $session, $dataset, $dataobj ) = @_;
+	my( $handle, $dataset, $dataobj ) = @_;
 	
-	my $frag = $session->make_doc_fragment;
+	my $frag = $handle->make_doc_fragment;
 	
 	my $creators = $dataobj->get_value( "creators_name" );
 	return $frag unless defined $creators;
@@ -108,28 +108,28 @@ sub _make_creators
 	foreach my $creator ( @{$creators} )
 	{	
 		next if !defined $creator;
-		$frag->appendChild(my $name = $session->make_element(
+		$frag->appendChild(my $name = $handle->make_element(
 			"${PREFIX}name",
 			"type" => "personal"
 		));
-		$name->appendChild(my $given = $session->make_element(
+		$name->appendChild(my $given = $handle->make_element(
 			"${PREFIX}namePart",
 			"type" => "given"
 		));
-		$given->appendChild( $session->make_text( $creator->{ given } ));
-		$name->appendChild(my $family = $session->make_element(
+		$given->appendChild( $handle->make_text( $creator->{ given } ));
+		$name->appendChild(my $family = $handle->make_element(
 			"${PREFIX}namePart",
 			"type" => "family"
 		));
-		$family->appendChild( $session->make_text( $creator->{ family } ));
-		$name->appendChild(my $role = $session->make_element(
+		$family->appendChild( $handle->make_text( $creator->{ family } ));
+		$name->appendChild(my $role = $handle->make_element(
 			"${PREFIX}role",
 		));
-		$role->appendChild( my $roleTerm = $session->make_element(
+		$role->appendChild( my $roleTerm = $handle->make_element(
 			"${PREFIX}roleTerm",
 			"type" => "text"
 		));
-		$roleTerm->appendChild( $session->make_text( "author" ));
+		$roleTerm->appendChild( $handle->make_text( "author" ));
 	}
 
 	return $frag;
@@ -137,22 +137,22 @@ sub _make_creators
 
 sub _make_abstract
 {
-	my( $session, $dataset, $dataobj ) = @_;
+	my( $handle, $dataset, $dataobj ) = @_;
 	
 	my $val = $dataobj->get_value( "abstract" );
-	return $session->make_doc_fragment unless defined $val;
+	return $handle->make_doc_fragment unless defined $val;
 	
-	my $abstract = $session->make_element( "${PREFIX}abstract" );
-	$abstract->appendChild( $session->make_text( $val ));
+	my $abstract = $handle->make_element( "${PREFIX}abstract" );
+	$abstract->appendChild( $handle->make_text( $val ));
 	
 	return $abstract;
 }
 
 sub _make_subjects
 {
-	my( $session, $dataset, $dataobj ) = @_;
+	my( $handle, $dataset, $dataobj ) = @_;
 	
-	my $frag = $session->make_doc_fragment;
+	my $frag = $handle->make_doc_fragment;
 	
 	my $subjects = $dataset->has_field("subjects") ?
 		$dataobj->get_value("subjects") :
@@ -161,13 +161,13 @@ sub _make_subjects
 	
 	foreach my $val (@$subjects)
 	{
-		my $subject = EPrints::DataObj::Subject->new( $session, $val );
+		my $subject = EPrints::DataObj::Subject->new( $handle, $val );
 		next unless defined $subject;
-		$frag->appendChild( my $classification = $session->make_element(
+		$frag->appendChild( my $classification = $handle->make_element(
 			"${PREFIX}classification",
 			"authority" => "lcc"
 		));
-		$classification->appendChild( $session->make_text(
+		$classification->appendChild( $handle->make_text(
 			EPrints::XML::to_string($subject->render_description)
 		));
 	}
@@ -177,26 +177,26 @@ sub _make_subjects
 
 sub _make_issue_date
 {
-	my( $session, $dataset, $dataobj ) = @_;
+	my( $handle, $dataset, $dataobj ) = @_;
 	
 	my $val = $dataobj->get_value( "date" );
-	return $session->make_doc_fragment unless defined $val;
+	return $handle->make_doc_fragment unless defined $val;
 	
 	$val =~ s/(-0+)+$//;
 	
-	my $originInfo = $session->make_element( "${PREFIX}originInfo" );
-	$originInfo->appendChild( my $dateIssued = $session->make_element(
+	my $originInfo = $handle->make_element( "${PREFIX}originInfo" );
+	$originInfo->appendChild( my $dateIssued = $handle->make_element(
 		"${PREFIX}dateIssued",
 		"encoding" => "iso8061"
 	));
-	$dateIssued->appendChild( $session->make_text( $val ));
+	$dateIssued->appendChild( $handle->make_text( $val ));
 	
 	return $originInfo;
 }
 
 sub _make_publisher
 {
-	my( $session, $dataset, $dataobj ) = @_;
+	my( $handle, $dataset, $dataobj ) = @_;
 	
 	my $val;
 	
@@ -214,23 +214,23 @@ sub _make_publisher
 		$val = $dataobj->get_value( "publisher" );		
 	}
 	
-	return $session->make_doc_fragment unless defined $val;	
+	return $handle->make_doc_fragment unless defined $val;	
 	
-	my $originInfo = $session->make_element( "${PREFIX}originInfo" );
-	$originInfo->appendChild( my $pub = $session->make_element( "${PREFIX}publisher" ));
-	$pub->appendChild( $session->make_text( $val ));
+	my $originInfo = $handle->make_element( "${PREFIX}originInfo" );
+	$originInfo->appendChild( my $pub = $handle->make_element( "${PREFIX}publisher" ));
+	$pub->appendChild( $handle->make_text( $val ));
 	
 	return $originInfo;
 }
 
 sub _make_genre
 {
-	my( $session, $dataset, $dataobj ) = @_;
+	my( $handle, $dataset, $dataobj ) = @_;
 	
-	my $val = $session->phrase( $dataset->confid()."_typename_".$dataobj->get_type() );
+	my $val = $handle->phrase( $dataset->confid()."_typename_".$dataobj->get_type() );
 	
-	my $genre = $session->make_element( "${PREFIX}genre" );
-	$genre->appendChild( $session->make_text( $val ));
+	my $genre = $handle->make_element( "${PREFIX}genre" );
+	$genre->appendChild( $handle->make_text( $val ));
 	
 	return $genre; 
 }

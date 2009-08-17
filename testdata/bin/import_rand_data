@@ -66,17 +66,17 @@ push @{$lorem->{wordlist}}, map { split /\s+/, $_ } <DATA>;
 # nb. This syntax is subject to change in future versions.
 my( $archiveid, $datasetid, $total ) = @ARGV;
 
-my $session = new EPrints::Session( 1 , $archiveid, $noise );
-exit( 1 ) unless( defined $session );
+my $handle = new EPrints::Handle( 1 , $archiveid, $noise );
+exit( 1 ) unless( defined $handle );
 
-my $db = $session->get_database;
+my $db = $handle->get_database;
 
 $datasetid = "archive" unless defined $datasetid;
 $total ||= 1000;
 
 # Basic data
-our @TYPES = @{$session->get_repository->{types}->{eprint}};
-our @SUBJECTS = @{read_subjects( $session )};
+our @TYPES = @{$handle->get_repository->{types}->{eprint}};
+our @SUBJECTS = @{read_subjects( $handle )};
 our @PUBLICATIONS;
 for(1..100)
 {
@@ -85,10 +85,10 @@ for(1..100)
 
 my $datapath = $EPrints::SystemSettings::conf->{base_path}."/testdata/data";
 
-my $ds = $session->get_repository->get_dataset( $datasetid );
+my $ds = $handle->get_repository->get_dataset( $datasetid );
 
-$session->get_repository->{config}->{enable_file_imports} = 1;
-$session->get_repository->{config}->{enable_web_imports} = 1;
+$handle->get_repository->{config}->{enable_file_imports} = 1;
+$handle->get_repository->{config}->{enable_web_imports} = 1;
 
 
 for(1..$total)
@@ -118,13 +118,13 @@ for(1..$total)
 			} ],
 		} ],
 	};
-	$session->get_database->begin;
-	my $eprint = $ds->create_object( $session, $data );
-	$session->get_database->commit;
+	$handle->get_database->begin;
+	my $eprint = $ds->create_object( $handle, $data );
+	$handle->get_database->commit;
 	print $eprint->get_id, "\n";
 }
 
-$session->terminate;
+$handle->terminate;
 
 exit;
 
@@ -190,11 +190,11 @@ sub rand_date
 
 sub read_subjects
 {
-	my( $session ) = @_;
+	my( $handle ) = @_;
 
-	my $ds = $session->get_repository->get_dataset( "subject" );
+	my $ds = $handle->get_repository->get_dataset( "subject" );
 
-	return $ds->get_item_ids( $session );
+	return $ds->get_item_ids( $handle );
 }
 
 sub rand_publication

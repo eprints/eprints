@@ -79,8 +79,8 @@ diag( "Repository-Specific Data" );
 my $repository = EPrints::Test::Repository->new( EPrints::Test::get_test_id() );
 
 EPrints::Test::mem_increase(0); # Reset
-my $session = EPrints::Test::get_test_session();
+my $handle = EPrints::Test::get_test_session();
 diag( "Session=".EPrints::Test::human_mem_increase() );
 
 ok(defined $repository, "test repository creation");
-ok(defined $session, "test session creation");
+ok(defined $handle, "test session creation");

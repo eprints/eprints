@@ -90,9 +90,9 @@ sub item_matches
 
 sub get_datetime_where_clause
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 	
-	my $database = $session->get_database;
+	my $database = $handle->get_database;
 	my $sql_col = $self->{field}->get_sql_name;
 
 	my( $cmp, $eq ) = @{ { 
@@ -142,17 +142,17 @@ sub get_datetime_where_clause
 
 sub get_tables
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $database = $session->get_database;
-	my $tables = $self->SUPER::get_tables( $session );
+	my $database = $handle->get_database;
+	my $tables = $self->SUPER::get_tables( $handle );
 	my $keyfield = $self->{dataset}->get_key_field();
 	my $sql_col = $self->{field}->get_sql_name;
 
 	my $where;
 	if( $self->{field}->is_type( "date", "time" ) )
 	{
-		$where = $self->get_datetime_where_clause( $session );
+		$where = $self->get_datetime_where_clause( $handle );
 	}
 	elsif( $self->{field}->is_type( "pagerange","int","year" ) )
 	{
@@ -210,7 +210,7 @@ sub get_query_logic
 {
 	my( $self, %opts ) = @_;
 
-	my $db = $opts{session}->get_database;
+	my $db = $opts{handle}->get_database;
 	my $field = $self->{field};
 	my $dataset = $field->{dataset};
 
@@ -256,8 +256,8 @@ sub get_query_logic_time
 {
 	my( $self, %opts ) = @_;
 	
-	my $session = $opts{session};
-	my $database = $session->get_database;
+	my $handle = $opts{handle};
+	my $database = $handle->get_database;
 	my $sql_col = $self->{field}->get_sql_name;
 
 	my( $cmp, $eq ) = @{ { 

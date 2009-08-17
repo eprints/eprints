@@ -29,43 +29,43 @@ sub output_list
 
 	my $list = $opts{list}->reorder( "-datestamp" );
 
-	my $session = $plugin->{session};
+	my $handle = $plugin->{handle};
 
-	my $response = $session->make_element( "feed",
+	my $response = $handle->make_element( "feed",
 		"xmlns"=>"http://www.w3.org/2005/Atom" );
 
-	my $title = $session->phrase( "archive_name" );
+	my $title = $handle->phrase( "archive_name" );
 
 	$title.= ": ".EPrints::Utils::tree_to_utf8( $list->render_description );
 
-	my $host = $session->{repository}->get_conf( 'host' );
+	my $host = $handle->{repository}->get_conf( 'host' );
 
-	$response->appendChild( $session->render_data_element(
+	$response->appendChild( $handle->render_data_element(
 		4,
 		"title",
 		$title ) );
 
-	$response->appendChild( $session->render_data_element(
+	$response->appendChild( $handle->render_data_element(
 		4,
 		"link",
 		"",
-		href => $session->get_repository->get_conf( "frontpage" ) ) );
+		href => $handle->get_repository->get_conf( "frontpage" ) ) );
 	
-	$response->appendChild( $session->render_data_element(
+	$response->appendChild( $handle->render_data_element(
 		4,
 		"link",
 		"",
 		rel => "self",
-		href => $session->get_full_url ) );
+		href => $handle->get_full_url ) );
 
-	$response->appendChild( $session->render_data_element(
+	$response->appendChild( $handle->render_data_element(
 		4,
 		"updated", 
 		EPrints::Time::get_iso_timestamp() ) );
 
 	my( $sec,$min,$hour,$mday,$mon,$year ) = localtime;
 
-	$response->appendChild( $session->render_data_element(
+	$response->appendChild( $handle->render_data_element(
 		4,
 		"id", 
 		"tag:".$host.",".($year+1900).":feed:feed-title" ) );
@@ -73,18 +73,18 @@ sub output_list
 
 	foreach my $eprint ( $list->get_records( 0, $plugin->{number_to_show} ) )
 	{
-		my $item = $session->make_element( "entry" );
+		my $item = $handle->make_element( "entry" );
 		
-		$item->appendChild( $session->render_data_element(
+		$item->appendChild( $handle->render_data_element(
 			2,
 			"title",
 			EPrints::Utils::tree_to_utf8( $eprint->render_description ) ) );
-		$item->appendChild( $session->render_data_element(
+		$item->appendChild( $handle->render_data_element(
 			2,
 			"link",
 			"",
 			href => $eprint->get_url ) );
-		$item->appendChild( $session->render_data_element(
+		$item->appendChild( $handle->render_data_element(
 			2,
 			"summary",
 			EPrints::Utils::tree_to_utf8( $eprint->render_citation ) ) );
@@ -101,12 +101,12 @@ sub output_list
 			$updated =  EPrints::Time::get_iso_timestamp();
 		}
 		
-		$item->appendChild( $session->render_data_element(
+		$item->appendChild( $handle->render_data_element(
 			2,
 			"updated",
 			$updated ) );	
 
-		$item->appendChild( $session->render_data_element(
+		$item->appendChild( $handle->render_data_element(
 			4,
 			"id", 
 			"tag:".$host.",".$eprint->get_value( "date" ).":item:/".$eprint->get_id ) );
@@ -114,10 +114,10 @@ sub output_list
 		my $names = $eprint->get_value( "creators" );
 		foreach my $name ( @$names )
 		{
-			my $author = $session->make_element( "author" );
+			my $author = $handle->make_element( "author" );
 			
 			my $name_str = EPrints::Utils::make_name_string( $name->{name}, 1 );
-			$author->appendChild( $session->render_data_element(
+			$author->appendChild( $handle->render_data_element(
 				4,
 				"name",
 				$name_str ) );

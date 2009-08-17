@@ -44,23 +44,23 @@ use EPrints::MetaField::Set;
 
 sub tags
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	return @{$session->get_repository->get_conf( "languages" )};
+	return @{$handle->get_repository->get_conf( "languages" )};
 }
 
 sub get_unsorted_values
 {
-	my( $self, $session, $dataset, %opts ) = @_;
+	my( $self, $handle, $dataset, %opts ) = @_;
 
-	return @{$session->get_repository->get_conf( "languages" )};
+	return @{$handle->get_repository->get_conf( "languages" )};
 }
 
 sub render_option
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
-	return $session->render_type_name( 'languages', $value );
+	return $handle->render_type_name( 'languages', $value );
 }
 
 sub get_property_defaults

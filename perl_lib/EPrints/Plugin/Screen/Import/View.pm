@@ -30,18 +30,18 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 	my $dataobj = $self->{processor}->{dataobj};
 
-	my $page = $session->make_doc_fragment;
+	my $page = $handle->make_doc_fragment;
 
-	my $ul = $session->make_element( "ul" );
+	my $ul = $handle->make_element( "ul" );
 	$page->appendChild( $ul );
 
 	$dataobj->map(sub {
 		my( undef, undef, $item ) = @_;
 
-		my $li = $session->make_element( "li" );
+		my $li = $handle->make_element( "li" );
 		$ul->appendChild( $li );
 
 		$li->appendChild( $item->render_citation_link() );

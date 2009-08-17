@@ -72,10 +72,10 @@ sub item_matches
 
 sub get_tables
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $database = $session->get_database;
-	my $tables = $self->SUPER::get_tables( $session );
+	my $database = $handle->get_database;
+	my $tables = $self->SUPER::get_tables( $handle );
 	my $keyfield = $self->{dataset}->get_key_field();
 	my $sql_col = $self->{field}->get_sql_name;
 

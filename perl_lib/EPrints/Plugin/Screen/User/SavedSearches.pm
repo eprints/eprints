@@ -38,11 +38,11 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 	
-	my $page = $session->make_doc_fragment;
+	my $page = $handle->make_doc_fragment;
 
-	my $div = $session->make_element( "div", class=>"ep_block" );
+	my $div = $handle->make_element( "div", class=>"ep_block" );
 	$div->appendChild( $self->html_phrase( "intro" ) );
 	$page->appendChild( $div );
 
@@ -55,19 +55,19 @@ sub render_saved_search_list
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 	my $user = $self->{processor}->{user};
 	my @saved_searches = $user->get_saved_searches;
-	my $ds = $session->get_repository->get_dataset( "saved_search" );
+	my $ds = $handle->get_repository->get_dataset( "saved_search" );
 
 	if( scalar @saved_searches == 0 )
 	{
 		return $self->html_phrase( "no_searches" );
 	}
 
-	my $page = $session->make_doc_fragment;
+	my $page = $handle->make_doc_fragment;
 	my( $table, $tr, $td, $th );
-	$table = $session->make_element( 
+	$table = $handle->make_element( 
 		"table",
 		cellspacing=>0,
 		class => "ep_savedsearches" );
@@ -76,13 +76,13 @@ sub render_saved_search_list
 	{
 		$self->{processor}->{savedsearchid} = $saved_search->get_id;
 		$self->{processor}->{savedsearch} = $saved_search;
-		my $screen = $self->{session}->plugin(
+		my $screen = $self->{handle}->plugin(
 				"Screen::User::SavedSearch::View",
 				processor=>$self->{processor} );
 
-		my $tr = $session->make_element( "tr" );
-		my $th = $session->make_element( "th" );
-		my $td = $session->make_element( "td" );
+		my $tr = $handle->make_element( "tr" );
+		my $th = $handle->make_element( "th" );
+		my $td = $handle->make_element( "td" );
 		$table->appendChild( $tr );
 		$tr->appendChild( $th );
 		$tr->appendChild( $td );

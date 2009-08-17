@@ -207,7 +207,7 @@ sub get_table
 
 sub get_tables
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
 	my $field = $self->{field};
 	my $dataset = $self->{dataset};
@@ -222,7 +222,7 @@ sub get_tables
 			my $join_data = {};
 			if( $j_field->is_type( "subobject" ) )
 			{
-				my $right_ds = $session->get_repository->get_dataset( 
+				my $right_ds = $handle->get_repository->get_dataset( 
 					$j_field->get_property('datasetid') );
 				$join_data->{table} = $right_ds->get_sql_table_name();
 				$join_data->{left} = $j_dataset->get_key_field->get_name();
@@ -275,7 +275,7 @@ sub item_matches
 ######################################################################
 =pod
 
-=item $ids = $scond->process( $session, [$indent], [$filter] );
+=item $ids = $scond->process( $handle, [$indent], [$filter] );
 
 Return a reference to an array containing the ID's of items in
 the database which match this condition.
@@ -294,11 +294,11 @@ need to be applied to all values in the database.
 
 sub process
 {
-	my( $self, $session, $i, $filter ) = @_;
+	my( $self, $handle, $i, $filter ) = @_;
 
-	my $tables = $self->get_tables( $session );
+	my $tables = $self->get_tables( $handle );
 
-	return $self->run_tables( $session, $tables );
+	return $self->run_tables( $handle, $tables );
 }
 
 =item $cond->get_query_joins( $joins, %opts )
@@ -371,8 +371,8 @@ sub process_groupby
 {
 	my( $self, %opts ) = @_;
 
-	my $session = $opts{session};
-	my $db = $opts{session}->get_database;
+	my $handle = $opts{handle};
+	my $db = $opts{handle}->get_database;
 
 	my $dataset = $opts{dataset};
 	my $groupby = $opts{field};
@@ -509,7 +509,7 @@ sub process_groupby
 
 	while(my @row = $sth->fetchrow_array)
 	{
-		push @values, $groupby->value_from_sql_row( $session, \@row );
+		push @values, $groupby->value_from_sql_row( $handle, \@row );
 		push @counts, $row[0];
 	}
 
@@ -520,8 +520,8 @@ sub process_v3
 {
 	my( $self, %opts ) = @_;
 
-	my $session = $opts{session};
-	my $db = $opts{session}->get_database;
+	my $handle = $opts{handle};
+	my $db = $opts{handle}->get_database;
 
 	my $dataset = $opts{dataset};
 
@@ -540,7 +540,7 @@ sub process_v3
 	# main LEFT JOIN ordervalues
 	if( defined $opts{order} )
 	{
-		my $ov_table = $dataset->get_ordervalues_table_name( $session->get_langid );
+		my $ov_table = $dataset->get_ordervalues_table_name( $handle->get_langid );
 		push @joins, _sql_left_join($db,
 			$table,
 			$key_field_name,
@@ -664,13 +664,13 @@ sub process_v2
 {
 	my( $self, %opts ) = @_;
 
-	my $session = $opts{session};
-	my $database = $opts{session}->get_database;
+	my $handle = $opts{handle};
+	my $database = $opts{handle}->get_database;
 
 	my $qdata = { alias_count=>0, aliases=>{} };
-	#$session->get_database->set_debug( 1 );
+	#$handle->get_database->set_debug( 1 );
 
-	my $qt = $self->get_query_tree( $session, $qdata );
+	my $qt = $self->get_query_tree( $handle, $qdata );
 
 	my $select;
 	my $last_key_id;
@@ -680,7 +680,7 @@ sub process_v2
 	{
 		$qdata->{aliases}->{order_table} = {
 			id_field => "OV.".$opts{dataset}->get_key_field()->get_name(),
-			table => $opts{dataset}->get_ordervalues_table_name($opts{session}->get_langid()),
+			table => $opts{dataset}->get_ordervalues_table_name($opts{handle}->get_langid()),
 			join_type => "left",
 			alias => "OV",
 		};
@@ -749,8 +749,8 @@ sub process_v2
 
 #print STDERR "EXECUTING: $sql\n";
 	my $results = [];
-	my $sth = $session->get_database->prepare( $sql );
-	$session->get_database->execute( $sth, $sql );
+	my $sth = $handle->get_database->prepare( $sql );
+	$handle->get_database->execute( $sth, $sql );
 	while( my @info = $sth->fetchrow_array ) 
 	{
 		push @{$results}, $info[0];
@@ -803,9 +803,9 @@ sub _process_wheres
 
 sub get_query_tree
 {
-	my( $self, $session, $qdata, $mergemap ) = @_;
+	my( $self, $handle, $qdata, $mergemap ) = @_;
 
-	my $tables = $self->get_tables( $session );
+	my $tables = $self->get_tables( $handle );
 	my $join_path = "";
 
 	my $main_path = "/".$self->{dataset}->get_key_field->get_name().
@@ -866,9 +866,9 @@ sub get_query_tree
 
 sub run_tables
 {
-	my( $self, $session, $tables ) = @_;
+	my( $self, $handle, $tables ) = @_;
 
-	my $db = $session->get_database;
+	my $db = $handle->get_database;
 
 	my @opt_tables;
 	while( scalar @{$tables} )
@@ -914,8 +914,8 @@ sub run_tables
 	my $sql = "SELECT DISTINCT ".$db->quote_identifier("T0",$opt_tables[0]->{left})." FROM ".join( ", ", @sql_tables )." WHERE (".join(") AND (", @sql_wheres ).")";
 
 	my $results = [];
-	my $sth = $session->get_database->prepare( $sql );
-	$session->get_database->execute( $sth, $sql );
+	my $sth = $handle->get_database->prepare( $sql );
+	$handle->get_database->execute( $sth, $sql );
 	while( my @info = $sth->fetchrow_array ) 
 	{
 		push @{$results}, $info[0];

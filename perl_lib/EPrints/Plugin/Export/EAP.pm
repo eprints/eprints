@@ -79,7 +79,7 @@ sub datetime_value
 	$value = $date;
 	$value .= "T${time}Z" if $time;
 
-	return $self->{session}->make_text( $value );
+	return $self->{handle}->make_text( $value );
 }
 
 sub name_value
@@ -88,7 +88,7 @@ sub name_value
 
 	$value = EPrints::Utils::make_name_string( $value );
 
-	return $self->{session}->make_text( $value );
+	return $self->{handle}->make_text( $value );
 }
 
 sub type_value
@@ -106,7 +106,7 @@ sub citation_value
 
 	$value = EPrints::Utils::tree_to_utf8( $dataobj->render_citation );
 
-	return $self->{session}->make_text( $value );
+	return $self->{handle}->make_text( $value );
 }
 
 sub doi_value
@@ -115,7 +115,7 @@ sub doi_value
 
 	return unless $value =~ /^doi:/;
 
-	return $self->{session}->make_text( $value );
+	return $self->{handle}->make_text( $value );
 }
 
 use strict;
@@ -151,16 +151,16 @@ sub xml_dataobj
 {
 	my( $self, $dataobj ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
-	my $main_dc_plugin = $self->{session}->plugin( "Export::DC" );
+	my $main_dc_plugin = $self->{handle}->plugin( "Export::DC" );
 	
 	my $data = $main_dc_plugin->convert_dataobj( $dataobj );
 
 	my $xmlns = $self->{xmlns};
 	my $schemaLocation = $self->{schemaLocation};
 
-	my $md = $self->{session}->make_element(
+	my $md = $self->{handle}->make_element(
 			"$prefix:descriptionSet",
 			"xmlns:$prefix" => "$xmlns",
 			"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
@@ -200,21 +200,21 @@ sub scholarly_work
 {
 	my( $self, $dataobj, $id, $expressions ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
 	# the resource
-	my $description = $session->make_element(
+	my $description = $handle->make_element(
 		"$prefix:description",
 		"$prefix:resourceURI" => $id
 	);
 
-	$description->appendChild( $session->make_element(
+	$description->appendChild( $handle->make_element(
 		"$prefix:statement",
 		"$prefix:propertyURI" => "http://purl.org/dc/elements/1.1/type",
 		"$prefix:valueURI" => "http://purl.org/eprint/entitType/ScholarlyWork"
 	));
 
-	$description->appendChild( $session->make_element(
+	$description->appendChild( $handle->make_element(
 		"$prefix:statement",
 		"$prefix:propertyURI" => "http://purl.org/dc/elements/1.1/identifier",
 	))->appendChild( $self->valueString( $dataobj->get_url, $dataobj, undef,
@@ -223,7 +223,7 @@ sub scholarly_work
 
 	while(my( $id, $eprint ) = each %$expressions )
 	{
-		$description->appendChild( $session->make_element(
+		$description->appendChild( $handle->make_element(
 			"$prefix:statement",
 			"$prefix:propertyURI" => "http://purl.org/eprint/terms/isExpressedAs",
 			"$prefix:valueRef" => $id,
@@ -239,10 +239,10 @@ sub expression
 {
 	my( $self, $dataobj, $id, $manifestations ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
 	# the resource
-	my $description = $session->make_element(
+	my $description = $handle->make_element(
 		"$prefix:description",
 		"$prefix:resourceId" => $id,
 	);
@@ -254,7 +254,7 @@ sub expression
 	{
 		if( $dataobj->get_value( "refereed" ) eq "TRUE" )
 		{
-			$description->appendChild( $session->make_element(
+			$description->appendChild( $handle->make_element(
 				"$prefix:statement",
 				"$prefix:propertyURI" => "http://purl.org/eprint/terms/status",
 				"$prefix:valueURI" => "http://purl.org/eprint/status/PeerReviewed",
@@ -262,7 +262,7 @@ sub expression
 		}
 		else
 		{
-			$description->appendChild( $session->make_element(
+			$description->appendChild( $handle->make_element(
 				"$prefix:statement",
 				"$prefix:propertyURI" => "http://purl.org/eprint/terms/status",
 				"$prefix:valueURI" =>  "http://purl.org/eprint/status/NonPeerReviewed",
@@ -272,7 +272,7 @@ sub expression
 
 	while(my( $id, $eprint ) = each %$manifestations )
 	{
-		$description->appendChild( $session->make_element(
+		$description->appendChild( $handle->make_element(
 			"$prefix:statement",
 			"$prefix:propertyURI" => "http://purl.org/eprint/terms/isManifestedAs",
 			"$prefix:valueRef" => $id,
@@ -286,15 +286,15 @@ sub manifestation
 {
 	my( $self, $doc, $id ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
 	# the resource
-	my $description = $session->make_element(
+	my $description = $handle->make_element(
 		"$prefix:description",
 		"$prefix:resourceId" => $id,
 	);
 
-	$description->appendChild( $session->make_element(
+	$description->appendChild( $handle->make_element(
 		"$prefix:statement",
 		"$prefix:propertyURI" => "http://purl.org/dc/elements/1.1/type",
 		"$prefix:valueURI" => "http://purl.org/eprint/entity/entityType/Manifestation",
@@ -302,7 +302,7 @@ sub manifestation
 
 	$description->appendChild( $self->render_elements( $doc, \@MANIFESTATION_ELEMENTS ));
 
-	$description->appendChild( $session->make_element(
+	$description->appendChild( $handle->make_element(
 		"$prefix:statement",
 		"$prefix:propertyURI" => "http://purl.org/eprint/terms/isAvailableAs",
 		"$prefix:valueURI" => $doc->get_url
@@ -315,15 +315,15 @@ sub available
 {
 	my( $self, $doc, $id ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
 	# the resource
-	my $description = $session->make_element(
+	my $description = $handle->make_element(
 		"$prefix:description",
 		"$prefix:resourceURI" => $doc->get_url,
 	);
 
-	$description->appendChild( $session->make_element(
+	$description->appendChild( $handle->make_element(
 		"$prefix:statement",
 		"$prefix:propertyURI" => "http://purl.org/dc/elements/1.1/type",
 		"$prefix:valueURI" => "http://purl.org/eprint/entityType/Copy",
@@ -331,7 +331,7 @@ sub available
 
 	if( $doc->get_value( "security" ) eq "public" )
 	{
-		$description->appendChild( $session->make_element(
+		$description->appendChild( $handle->make_element(
 			"$prefix:statement",
 			"$prefix:propertyURI" => "http://purl.org/dc/terms/accessRights",
 			"$prefix:valueURI" => "http://purl.org/eprint/accessRights/OpenAccess",
@@ -345,9 +345,9 @@ sub render_elements
 {
 	my( $self, $dataobj, $elements ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
-	my $frag = $session->make_doc_fragment;
+	my $frag = $handle->make_doc_fragment;
 
 	my $dataset = $dataobj->get_dataset;
 	for(my $i = 0; $i < @$elements; $i+=2)
@@ -365,14 +365,14 @@ sub render_elements
 			my $v = &$f( $self, $value, $dataobj, $field );
 			if( $v and ref($v) )
 			{
-				$frag->appendChild( $session->make_element(
+				$frag->appendChild( $handle->make_element(
 					"$prefix:statement",
 					"$prefix:propertyURI" => $uri,
 				))->appendChild( $v );
 			}
 			elsif( defined $v )
 			{
-				$frag->appendChild( $session->make_element(
+				$frag->appendChild( $handle->make_element(
 					"$prefix:statement",
 					"$prefix:propertyURI" => $uri,
 					"$prefix:valueURI" => $v,
@@ -388,8 +388,8 @@ sub valueString
 {
 	my( $self, $value, $dataobj, $field, %attr ) = @_;
 
-	my $ele = $self->{session}->make_element( "$prefix:valueString", %attr );
-	$ele->appendChild( $self->{session}->make_text( $value ) );
+	my $ele = $self->{handle}->make_element( "$prefix:valueString", %attr );
+	$ele->appendChild( $self->{handle}->make_text( $value ) );
 
 	return $ele;
 }

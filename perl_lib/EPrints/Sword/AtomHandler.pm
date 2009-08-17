@@ -9,8 +9,8 @@ sub handler
 {
         my $request = shift;
 
-        my $session = new EPrints::Session;
-        if(! defined $session )
+        my $handle = new EPrints::Handle;
+        if(! defined $handle )
         {
                 print STDERR "\n[SWORD-SERVDOC] [INTERNAL-ERROR] Could not create session object.";
                 $request->status( 500 );
@@ -18,7 +18,7 @@ sub handler
         }
 
 	# Authenticating user and behalf user
-	my $response = EPrints::Sword::Utils::authenticate( $session, $request );
+	my $response = EPrints::Sword::Utils::authenticate( $handle, $request );
 	my $error = $response->{error};
 
 	if( defined $error )
@@ -34,7 +34,7 @@ sub handler
 		}
 
 		$request->status( $error->{status_code} );
-		$session->terminate;
+		$handle->terminate;
 		return Apache2::Const::DONE;
         }
 
@@ -61,7 +61,7 @@ sub handler
 		return Apache2::Const::OK;
 	}
 
-	my $eprint = EPrints::DataObj::EPrint->new( $session, $epid );
+	my $eprint = EPrints::DataObj::EPrint->new( $handle, $epid );
 
 	unless( defined $eprint )
 	{
@@ -78,21 +78,21 @@ sub handler
 		return Apache2::Const::OK;
 	}
 
-	my $real_owner = EPrints::DataObj::User->new( $session, $eprint->get_value( "userid" ) );
-	my $real_depositor = EPrints::DataObj::User->new( $session, $eprint->get_value( "sword_depositor" ) );
+	my $real_owner = EPrints::DataObj::User->new( $handle, $eprint->get_value( "userid" ) );
+	my $real_depositor = EPrints::DataObj::User->new( $handle, $eprint->get_value( "sword_depositor" ) );
 
-        my $xml = EPrints::Sword::Utils::create_xml( $session,
+        my $xml = EPrints::Sword::Utils::create_xml( $handle,
 			eprint => $eprint,
 			sword_treatment => "",
 			owner => $real_owner,
 			depositor => $real_depositor );
 
-	$request->headers_out->{'Location'} = EPrints::Sword::Utils::get_atom_url( $session, $eprint );
+	$request->headers_out->{'Location'} = EPrints::Sword::Utils::get_atom_url( $handle, $eprint );
         $request->headers_out->{'Content-Length'} = length $xml;
         $request->content_type('application/atom+xml');
         $request->status( 201 );        # Created
         $request->print( $xml );
-        $session->terminate;
+        $handle->terminate;
         return Apache2::Const::OK;
 }
 

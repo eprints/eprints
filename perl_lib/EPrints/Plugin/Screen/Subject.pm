@@ -11,19 +11,19 @@ sub properties_from
 {
 	my( $self ) = @_;
 
-	$self->{processor}->{subjectid} = $self->{session}->param( "subjectid" );
+	$self->{processor}->{subjectid} = $self->{handle}->param( "subjectid" );
 	if( !defined $self->{processor}->{subjectid} )
 	{
 		$self->{processor}->{subjectid} = "ROOT";
 	}
-	$self->{processor}->{subject} = new EPrints::DataObj::Subject( $self->{session}, $self->{processor}->{subjectid} );
+	$self->{processor}->{subject} = new EPrints::DataObj::Subject( $self->{handle}, $self->{processor}->{subjectid} );
 
 	if( !defined $self->{processor}->{subject} )
 	{
 		$self->{processor}->{screenid} = "Error";
 		$self->{processor}->add_message( "error", 
 			$self->html_phrase( "no_such_subject",
-			id=>$self->{session}->make_text( $self->{processor}->{subjectid} ) ));
+			id=>$self->{handle}->make_text( $self->{processor}->{subjectid} ) ));
 		return;
 	}
 
@@ -38,9 +38,9 @@ sub allow
 
 	my $subject = $self->get_subject;
 
-	return 1 if( $self->{session}->allow_anybody( $priv ) );
-	return 0 if( !defined $self->{session}->current_user );	
-	return $self->{session}->current_user->allow( $priv, $subject );
+	return 1 if( $self->{handle}->allow_anybody( $priv ) );
+	return 0 if( !defined $self->{handle}->current_user );	
+	return $self->{handle}->current_user->allow( $priv, $subject );
 }
 
 sub render_tab_title
@@ -58,7 +58,7 @@ sub get_subject
 	my $subject = $self->{processor}->{subject};
 	if( !defined $self->{processor}->{subjectid} )
 	{
-		$subject = new EPrints::DataObj::Subject( $self->{session}, "ROOT" );
+		$subject = new EPrints::DataObj::Subject( $self->{handle}, "ROOT" );
 	}
 	return $subject;
 }
@@ -69,9 +69,9 @@ sub render_title
 
 	my $subject = $self->get_subject;
 
-	my $f = $self->{session}->make_doc_fragment;
+	my $f = $self->{handle}->make_doc_fragment;
 	$f->appendChild( $self->html_phrase( "title" ) );
-	$f->appendChild( $self->{session}->make_text( ": " ) );
+	$f->appendChild( $self->{handle}->make_text( ": " ) );
 
 	my $title = $subject->render_citation( "screen" );
 	$f->appendChild( $title );
@@ -85,9 +85,9 @@ sub render_hidden_bits
 {
 	my( $self ) = @_;
 
-	my $chunk = $self->{session}->make_doc_fragment;
+	my $chunk = $self->{handle}->make_doc_fragment;
 
-	$chunk->appendChild( $self->{session}->render_hidden_field( "subjectid", $self->{processor}->{subjectid} ) );
+	$chunk->appendChild( $self->{handle}->render_hidden_field( "subjectid", $self->{processor}->{subjectid} ) );
 	$chunk->appendChild( $self->SUPER::render_hidden_bits );
 
 	return $chunk;

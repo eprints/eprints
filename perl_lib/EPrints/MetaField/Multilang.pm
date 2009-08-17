@@ -68,24 +68,24 @@ sub new
 
 sub get_search_conditions_not_ex
 {
-	my( $self, $session, $dataset, $search_value, $match, $merge,
+	my( $self, $handle, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 	
 	my $f = $self->get_property( "fields_cache" );
 	my $first_name = $f->[0]->{name};
 	my $field = $dataset->get_field( $first_name );
 	return $field->get_search_conditions_not_ex( 
-		$session, $dataset,$search_value,$match,$merge,$search_mode );
+		$handle, $dataset,$search_value,$match,$merge,$search_mode );
 }
 
 sub render_value
 {
-	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
+	my( $self, $handle, $value, $alllangs, $nolink, $object ) = @_;
 
 	if( $alllangs )
 	{
 		return $self->SUPER::render_value( 
-				$session,$value,$alllangs,$nolink,$object);
+				$handle,$value,$alllangs,$nolink,$object);
 	}
 
 	my $f = $self->get_property( "fields_cache" );
@@ -93,10 +93,10 @@ sub render_value
 
 	my $map = $self->value_to_langhash( $value );
 
-	my $best = $self->most_local( $session, $map );
+	my $best = $self->most_local( $handle, $map );
 
 	my $field = $object->get_dataset->get_field( $first_name );
-	return $field->render_single_value( $session, $best );
+	return $field->render_single_value( $handle, $best );
 }
 
 sub value_to_langhash
@@ -119,11 +119,11 @@ sub value_to_langhash
 
 sub ordervalue
 {
-	my( $self , $value , $session , $langid, $dataset ) = @_;
+	my( $self , $value , $handle , $langid, $dataset ) = @_;
 
 	my $langhash = $self->value_to_langhash( $value );
 
-	my $best = $self->most_local( $session, $langhash );
+	my $best = $self->most_local( $handle, $langhash );
 	
 	return $best;
 }

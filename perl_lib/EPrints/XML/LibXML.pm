@@ -249,7 +249,7 @@ sub make_document
 	return XML::LibXML::Document->new();
 }
 
-=item $doc = make_document_fragment( $session )
+=item $doc = make_document_fragment( $handle )
 
 Return a new, empty DOM document fragment.
 
@@ -257,9 +257,9 @@ Return a new, empty DOM document fragment.
 
 sub make_document_fragment
 {
-	my( $session ) = @_;
+	my( $handle ) = @_;
 	
-	return $session->{doc}->createDocumentFragment();
+	return $handle->{doc}->createDocumentFragment();
 }
 
 sub version

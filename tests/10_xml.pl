@@ -33,15 +33,15 @@ ok(1);
 
 sub xml_tests
 {
-	my $session = EPrints::Test::get_test_session( 0 );
+	my $handle = EPrints::Test::get_test_session( 0 );
 
 	my $node;
 	my $frag;
 
-	$node = $session->make_element( "x" );
+	$node = $handle->make_element( "x" );
 	ok(EPrints::XML::is_dom( $node, "Element" ), "$XML_LIB: is_dom (Element)");
 
-	$frag = $session->make_doc_fragment;
+	$frag = $handle->make_doc_fragment;
 	ok(EPrints::XML::is_dom( $frag, "DocumentFragment" ), "$XML_LIB: is_dom (DocumentFragment)");
 
 	my $doc = eval { EPrints::XML::parse_xml_string( $XML_STR ) };
@@ -62,7 +62,7 @@ sub xml_tests
 	$xml_str = EPrints::XML::to_string( $doc );
 	ok(utf8::is_utf8($xml_str), "$XML_LIB: to_string utf8 document");
 
-	$session->terminate;
+	$handle->terminate;
 
 	ok(1, "$XML_LIB complete");
 }

@@ -69,7 +69,7 @@ $c->{indexing}->{freetext_seperator_chars} = {
 
 ######################################################################
 #
-# extract_words( $session, $text )
+# extract_words( $handle, $text )
 #
 #  This method is used when indexing a record, to decide what words
 #  should be used as index words.
@@ -83,7 +83,7 @@ $c->{indexing}->{freetext_seperator_chars} = {
 
 $c->{extract_words} = sub
 {
-	my( $session, $text ) = @_;
+	my( $handle, $text ) = @_;
 
 	# Acronym processing only works on uppercase non accented
 	# latin letters. If you don't want this processing comment
@@ -102,9 +102,9 @@ $c->{extract_words} = sub
 
 	# Process string. 
 	# First we apply the char_mappings.
-	my $buffer = EPrints::Index::apply_mapping( $session, $text );
+	my $buffer = EPrints::Index::apply_mapping( $handle, $text );
 
-	my @words =EPrints::Index::split_words( $session, $buffer );
+	my @words =EPrints::Index::split_words( $handle, $buffer );
 
 	# Iterate over every word (bits divided by seperator chars)
 	# We use hashes rather than arrays at this point to make

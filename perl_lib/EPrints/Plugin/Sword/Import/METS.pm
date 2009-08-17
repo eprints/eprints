@@ -35,7 +35,7 @@ sub input_file
 {
         my ( $plugin, %opts ) = @_;
 
-        my $session = $plugin->{session};
+        my $handle = $plugin->{handle};
 
         my $dir = $opts{dir};
 	my $mime = $opts{mime_type};
@@ -122,7 +122,7 @@ sub input_file
 	}
 	close $fh;
 
-	my $dataset = $session->get_repository()->get_dataset( $dataset_id );
+	my $dataset = $handle->get_repository()->get_dataset( $dataset_id );
 
 	if(!defined $dataset)
 	{
@@ -263,7 +263,7 @@ sub input_file
 	
 	$epdata->{eprint_status} = $dataset_id;
 
-	my $eprint = $dataset->create_object( $plugin->{session}, $epdata );
+	my $eprint = $dataset->create_object( $plugin->{handle}, $epdata );
 
 	unless(defined $eprint)
 	{
@@ -278,8 +278,8 @@ sub input_file
 		$doc_data{_parent} = $eprint;
 	        $doc_data{eprintid} = $eprint->get_id;
  
-               $doc_data{format} = $session->get_repository->call( 'guess_doc_type',
-                                $session,
+               $doc_data{format} = $handle->get_repository->call( 'guess_doc_type',
+                                $handle,
 				$unpack_dir."/".$file );
 
 	       if( $doc_data{format} eq 'other' )
@@ -289,16 +289,16 @@ sub input_file
 	       }
 		
 		$doc_data{main} = $file;
-		local $session->get_repository->{config}->{enable_file_imports} = 1;
+		local $handle->get_repository->{config}->{enable_file_imports} = 1;
 	        my %file_data;
 	       	$file_data{filename} = $file;
 		$file_data{url} = "file://$unpack_dir/$file";
 
         	$doc_data{files} = [ \%file_data ];
 
-	        my $doc_dataset = $session->get_repository->get_dataset( "document" );
+	        my $doc_dataset = $handle->get_repository->get_dataset( "document" );
 
-		my $document = EPrints::DataObj::Document->create_from_data( $session, \%doc_data, $doc_dataset );
+		my $document = EPrints::DataObj::Document->create_from_data( $handle, \%doc_data, $doc_dataset );
 
         	if(!defined $document)
                 {

@@ -26,7 +26,7 @@ sub output_list
 {
 	my( $plugin, %opts ) = @_;
 
-	my $session = $plugin->{session};
+	my $handle = $plugin->{handle};
 
 	my $list = $opts{list};
 
@@ -36,19 +36,19 @@ sub output_list
 	);
 
 	my $uri = URI->new("");
-	$uri->path( $session->get_repository->get_conf( "rel_cgipath" ) . "/users/home" );
+	$uri->path( $handle->get_repository->get_conf( "rel_cgipath" ) . "/users/home" );
 	$uri->query_form(
 		screen => "BatchEdit",
 		cache => $list->get_cache_id,
 	);
 
-	if( $session->get_online )
+	if( $handle->get_online )
 	{
-		$session->redirect( $uri );
+		$handle->redirect( $uri );
 	}
 	else
 	{
-		$uri = URI->new_abs( $uri, $session->get_repository->get_conf( "http_url" ));
+		$uri = URI->new_abs( $uri, $handle->get_repository->get_conf( "http_url" ));
 		if( $opts{fh} )
 		{
 			print {$opts{fh}} "$uri\n";

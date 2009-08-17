@@ -42,9 +42,9 @@ use EPrints::MetaField::Text;
 
 sub get_sql_type
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	return $session->get_database->get_column_type(
+	return $handle->get_database->get_column_type(
 		$self->get_sql_name(),
 		EPrints::Database::SQL_LONGVARCHAR,
 		!$self->get_property( "allow_null" ),
@@ -56,13 +56,13 @@ sub get_sql_type
 
 sub render_single_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
-	my $text = $session->make_text( $value );
+	my $text = $handle->make_text( $value );
 
 	return $text if( $self->{render_dont_link} );
 
-	my $a = $session->render_link( $value );
+	my $a = $handle->render_link( $value );
 	$a->appendChild( $text );
 	return $a;
 }
@@ -74,9 +74,9 @@ sub get_xml_schema_type
 
 sub render_xml_schema_type
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	return $session->make_doc_fragment;
+	return $handle->make_doc_fragment;
 }
 
 ######################################################################

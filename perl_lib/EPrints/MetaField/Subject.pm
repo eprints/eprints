@@ -44,34 +44,34 @@ use EPrints::MetaField::Set;
 
 sub render_single_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
-	my $subject = new EPrints::DataObj::Subject( $session, $value );
+	my $subject = new EPrints::DataObj::Subject( $handle, $value );
 	if( !defined $subject )
 	{
-		return $session->make_text( "?? $value ??" );
+		return $handle->make_text( "?? $value ??" );
 	}
 
 	return $subject->render_with_path(
-		$session,
+		$handle,
 		$self->get_property( "top" ) );
 }
 
 sub render_option
 {
-	my( $self, $session, $option ) = @_;
+	my( $self, $handle, $option ) = @_;
 
 	if( defined $self->get_property("render_option") )
 	{
-		return $self->call_property( "render_option", $session, $option );
+		return $self->call_property( "render_option", $handle, $option );
 	}
 
 	if( !defined $option )
 	{
-		return $self->SUPER::render_option( $session, $option );
+		return $self->SUPER::render_option( $handle, $option );
 	}
 
-	my $subject = new EPrints::DataObj::Subject( $session, $option );
+	my $subject = new EPrints::DataObj::Subject( $handle, $option );
 
 	return $subject->render_description;
 }
@@ -79,7 +79,7 @@ sub render_option
 ######################################################################
 =pod
 
-=item $subject = $field->get_top_subject( $session )
+=item $subject = $field->get_top_subject( $handle )
 
 Return the top EPrints::DataObj::Subject object for this field. Only meaningful
 for "subject" type fields.
@@ -89,22 +89,22 @@ for "subject" type fields.
 
 sub get_top_subject
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
 	my $topid = $self->get_property( "top" );
 	if( !defined $topid )
 	{
-		$session->render_error( $session->make_text( 
+		$handle->render_error( $handle->make_text( 
 			'Subject field name "'.$self->get_name().'" has '.
 			'no "top" property.' ) );
 		exit;
 	}
 		
-	my $topsubject = EPrints::DataObj::Subject->new( $session, $topid );
+	my $topsubject = EPrints::DataObj::Subject->new( $handle, $topid );
 
 	if( !defined $topsubject )
 	{
-		$session->render_error( $session->make_text( 
+		$handle->render_error( $handle->make_text( 
 			'The top level subject (id='.$topid.') for field '.
 			'"'.$self->get_name().'" does not exist. The '.
 			'site admin probably has not run import_subjects. '.
@@ -117,10 +117,10 @@ sub get_top_subject
 
 sub render_set_input
 {
-	my( $self, $session, $default, $required, $obj, $basename ) = @_;
+	my( $self, $handle, $default, $required, $obj, $basename ) = @_;
 
 
-	my $topsubj = $self->get_top_subject( $session );
+	my $topsubj = $self->get_top_subject( $handle );
 
 	my ( $pairs ) = $topsubj->get_subjects( 
 		!($self->{showall}), 
@@ -133,12 +133,12 @@ sub render_set_input
 	{
 		# If it's not multiple and not required there 
 		# must be a way to unselect it.
-		my $unspec = $session->phrase( 
+		my $unspec = $handle->phrase( 
 			"lib/metafield:unspecified_selection" ) ;
 		$pairs = [ [ "", $unspec ], @{$pairs} ];
 	}
 
-	return $session->render_option_list(
+	return $handle->render_option_list(
 		pairs => $pairs,
 		defaults_at_top => 1,
 		name => $basename,
@@ -151,9 +151,9 @@ sub render_set_input
 
 sub get_unsorted_values
 {
-	my( $self, $session, $dataset, %opts ) = @_;
+	my( $self, $handle, $dataset, %opts ) = @_;
 
-	my $topsubj = $self->get_top_subject( $session );
+	my $topsubj = $self->get_top_subject( $handle );
 	my ( $pairs ) = $topsubj->get_subjects( 
 		0 , 
 		!$opts{hidetoplevel} , 
@@ -169,12 +169,12 @@ sub get_unsorted_values
 
 sub get_value_label
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
-	my $subj = EPrints::DataObj::Subject->new( $session, $value );
+	my $subj = EPrints::DataObj::Subject->new( $handle, $value );
 	if( !defined $subj )
 	{
-		return $session->make_text( 
+		return $handle->make_text( 
 			"?? Bad Subject: ".$value." ??" );
 	}
 	return $subj->render_description();
@@ -182,14 +182,14 @@ sub get_value_label
 
 sub render_search_set_input
 {
-	my( $self, $session, $searchfield ) = @_;
+	my( $self, $handle, $searchfield ) = @_;
 
 	my $prefix = $searchfield->get_form_prefix;
 	my $value = $searchfield->get_value;
 	
-	my $topsubj = $self->get_top_subject( $session );
+	my $topsubj = $self->get_top_subject( $handle );
 
-	my( $subjectmap, $rmap ) = EPrints::DataObj::Subject::get_all( $session );
+	my( $subjectmap, $rmap ) = EPrints::DataObj::Subject::get_all( $handle );
 
 	my $pairs = traverse_subjects( $topsubj, 1,$subjectmap, $rmap, "");
 
@@ -207,7 +207,7 @@ sub render_search_set_input
 		@defaults = split /\s/, $value;
 	}
 
-	return $session->render_option_list( 
+	return $handle->render_option_list( 
 		name => $prefix,
 		defaults_at_top => 1,
 		default => \@defaults,
@@ -245,7 +245,7 @@ sub traverse_subjects
 
 sub get_search_conditions_not_ex
 {
-	my( $self, $session, $dataset, $search_value, $match, $merge,
+	my( $self, $handle, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 	
 	return EPrints::Search::Condition->new( 
@@ -272,9 +272,9 @@ sub get_property_defaults
 
 sub get_values
 {
-	my( $self, $session, $dataset, %opts ) = @_;
+	my( $self, $handle, $dataset, %opts ) = @_;
 
-	my $topsubj = $self->get_top_subject( $session );
+	my $topsubj = $self->get_top_subject( $handle );
 	my ( $pairs ) = $topsubj->get_subjects(
 		0,
 		1,
@@ -292,9 +292,9 @@ sub get_values
 
 sub tags
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	return @{$self->get_values( $session )};
+	return @{$self->get_values( $handle )};
 }
 
 ######################################################################

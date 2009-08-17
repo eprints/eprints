@@ -83,7 +83,7 @@ sub output_list
 	}
 
 	$opts{list}->map(sub {
-		my( $session, $dataset, $dataobj ) = @_;
+		my( $handle, $dataset, $dataobj ) = @_;
 		$part = $plugin->output_dataobj( $dataobj, multiple => 1, %opts );
 		if( defined $opts{fh} )
 		{
@@ -128,20 +128,20 @@ sub output_dataobj
 	my $eprint_rev = $dataobj->get_value( "rev_number" );
 	my $eprint_url = $dataobj->get_url;
 	my $resmap_url = $plugin->dataobj_export_url( $dataobj );
-	my $session = $plugin->{session};
-	my $base_url = $session->get_repository->get_conf("base_url");
-	my $archive_id = $session->get_repository->get_id;
-	my $archive_name = $session->phrase( "archive_name" );
-	my $response = $session->make_doc_fragment;
+	my $handle = $plugin->{handle};
+	my $base_url = $handle->get_repository->get_conf("base_url");
+	my $archive_id = $handle->get_repository->get_id;
+	my $archive_name = $handle->phrase( "archive_name" );
+	my $response = $handle->make_doc_fragment;
 
-	my $topcontent = $session->render_data_element(
+	my $topcontent = $handle->render_data_element(
 		4,
 		"id",
 		"$resmap_url#aggregation"
 	);
 	$response->appendChild( $topcontent );
 	
-	my $sub_content = $session->make_element ("link",
+	my $sub_content = $handle->make_element ("link",
 		"href"=>"$resmap_url",
 		"rel"=>"self",
 		"type"=>"application/atom+xml"
@@ -149,14 +149,14 @@ sub output_dataobj
 	
 	$response->appendChild( $sub_content );
 	
-	$topcontent = $session->render_data_element(
+	$topcontent = $handle->render_data_element(
 		4,
 		"updated",
 		$lastmod
 	);
 	$response->appendChild( $topcontent );
 	
-	$sub_content = $session->render_data_element ( 
+	$sub_content = $handle->render_data_element ( 
 		4,
 		"generator",
 		$archive_name,
@@ -166,7 +166,7 @@ sub output_dataobj
 	$response->appendChild( $sub_content);
 	
 
-	$sub_content = $session->make_element ("category",
+	$sub_content = $handle->make_element ("category",
 		"scheme"=>"http://www.openarchives.org/ore/terms/",
 		"term"=>"http://www.openarchives.org/ore/terms/Aggregation",
 		"label"=>"Aggregation"
@@ -174,15 +174,15 @@ sub output_dataobj
 
 	$response->appendChild( $sub_content );
 	
-	$topcontent = $session->render_data_element(
+	$topcontent = $handle->render_data_element(
 		4,
 		"title",
 		$title
 	);
 	$response->appendChild( $topcontent );
 
-	my $author = $session->make_element("author");	
-	$topcontent = $session->render_data_element(
+	my $author = $handle->make_element("author");	
+	$topcontent = $handle->render_data_element(
 		4,
 		"name",
 		"$archive_id EPrints Repository @ $base_url"
@@ -191,32 +191,32 @@ sub output_dataobj
 	$response->appendChild( $author );
 
 	
-	my $content = $session->make_element("entry");
-	$sub_content = $session->render_data_element(
+	my $content = $handle->make_element("entry");
+	$sub_content = $handle->render_data_element(
 		4,
 		"id",
 		"http://oreproxy.org/r?what=$base_url/$eprint_id&where=$resmap_url#aggregation"
 	);
 	$content->appendChild( $sub_content );
-	$sub_content = $session->make_element("link",
+	$sub_content = $handle->make_element("link",
 		"href"=>"$base_url/$eprint_id",
 		"rel"=>"alternate",
 		"type"=>"text/html"
 	);
 	$content->appendChild( $sub_content );
-	$sub_content = $session->render_data_element(
+	$sub_content = $handle->render_data_element(
 		4,
 		"title",
 		"Splash Page for \"$title\" (text/html)"
 	);
 	$content->appendChild( $sub_content );
-	$sub_content = $session->render_data_element(
+	$sub_content = $handle->render_data_element(
 		4,
 		"updated",
 		$lastmod
 	);
 	$content->appendChild( $sub_content );
-	$sub_content = $session->make_element("category",
+	$sub_content = $handle->make_element("category",
 		"scheme"=>"info:eu-repo/semantics/",
 		"term"=>"info:eu-repo/semantics/humanStartPage",
 		"label"=>"humanStartPage"
@@ -232,26 +232,26 @@ sub output_dataobj
 		foreach my $key (keys %files)
 		{
 			my $fileurl = $doc->get_url($key);
-			my $content = $session->make_element("entry");
-			$sub_content = $session->render_data_element(
+			my $content = $handle->make_element("entry");
+			$sub_content = $handle->render_data_element(
 				4,
 				"id",
 				"http://oreproxy.org/r?what=$fileurl&where=$resmap_url#aggregation"
 			);
 			$content->appendChild( $sub_content );
-			$sub_content = $session->make_element("link",
+			$sub_content = $handle->make_element("link",
 				"href"=>$fileurl,
 				"rel"=>"alternate",
 				"type"=>$format
  			);
 			$content->appendChild( $sub_content );
-			$sub_content = $session->render_data_element(
+			$sub_content = $handle->render_data_element(
 					4,
 					"updated",
 					$lastmod
 					);
 			$content->appendChild( $sub_content );
-			$sub_content = $session->render_data_element(
+			$sub_content = $handle->render_data_element(
 				4,
 				"title",
 				"$title ($format)" 
@@ -263,10 +263,10 @@ sub output_dataobj
 
 	}
 	
-	my $xml_node = $session->make_element("entry");
+	my $xml_node = $handle->make_element("entry");
 	my $sub_xml_node;
 
-	my @plugins = $session->plugin_list();
+	my @plugins = $handle->plugin_list();
 	foreach my $plugin_name (@plugins) 
 	{
 		my $url = "$base_url/cgi/export/$eprint_id/";
@@ -275,7 +275,7 @@ sub output_dataobj
 		{
 			my $plugin_id = $plugin_name;
 			$plugin_name = substr($plugin_id,8,length($plugin_id));
-			my $plugin_temp = $session->plugin($plugin_id);
+			my $plugin_temp = $handle->plugin($plugin_id);
 			my $plugin_suffix = $plugin_temp->param("suffix");
 			my $uri =  $plugin_temp->local_uri();
 			$uri =~ /Export/g;
@@ -283,7 +283,7 @@ sub output_dataobj
 			$url = $url."$plugin_location/$archive_id-eprint-$eprint_id$plugin_suffix";
 
 			if ($plugin_name eq "XML") {
-				$sub_content = $session->render_data_element(
+				$sub_content = $handle->render_data_element(
 					4,
 					"id",
 					"http://oreproxy.org/r?what=$url&where=$resmap_url#aggregation" 
@@ -294,33 +294,33 @@ sub output_dataobj
 				my $dc_conformsTo = $plugin_temp->param("xmlns") || "";
 				my $schema_location = $plugin_temp->param("schemaLocation") || "";
 			
-				$sub_content = $session->make_element( "link",
+				$sub_content = $handle->make_element( "link",
 					"href"=>$url,
 					"rel"=>"alternate",
 					"type"=>$dc_format
 				);
 				$xml_node->appendChild ( $sub_content );
 				
-				$sub_content = $session->render_data_element(
+				$sub_content = $handle->render_data_element(
 						4,
 						"updated",
 						$lastmod
 						);
 				$xml_node->appendChild( $sub_content );
 				
-				$sub_content = $session->render_data_element(
+				$sub_content = $handle->render_data_element(
 					4,
 					"title",
 					"$dc_title for Resource @ $base_url/$eprint_id ($dc_format)" 
 				);
 				$xml_node->appendChild ( $sub_content );
 	
-				my $additional = $session->make_element("rdf:Description",
+				my $additional = $handle->make_element("rdf:Description",
 					"rdf:about"=>"http://oreproxy.org/r?what=$url&where=$resmap_url#aggregation" );
 
 				if ( $dc_title ne "" )
 				{	
-					$sub_content = $session->render_data_element(
+					$sub_content = $handle->render_data_element(
 						4,
 						"dcterms:title",
 						$dc_title
@@ -330,7 +330,7 @@ sub output_dataobj
 			
 				if ( $dc_format ne "" )		
 				{
-					$sub_content = $session->render_data_element(
+					$sub_content = $handle->render_data_element(
 						4,
 						"dcterms:format",
 						$dc_format
@@ -340,7 +340,7 @@ sub output_dataobj
 			
 				if ( $dc_conformsTo ne "" ) 
 				{
-					$sub_content = $session->render_data_element(
+					$sub_content = $handle->render_data_element(
 						4,
 						"dcterms:conformsTo",
 						$dc_conformsTo
@@ -350,7 +350,7 @@ sub output_dataobj
 			
 				if ( $schema_location ne "") 
 				{
-					$sub_content = $session->render_data_element(
+					$sub_content = $handle->render_data_element(
 						4,
 						"rdfs:comment",
 						$schema_location
@@ -365,7 +365,7 @@ sub output_dataobj
 		}
 	}	
 	
-	@plugins = $session->plugin_list();
+	@plugins = $handle->plugin_list();
 	foreach my $plugin_name (@plugins) 
 	{
 		my $url = "$base_url/cgi/export/$eprint_id/";
@@ -374,7 +374,7 @@ sub output_dataobj
 		{
 			my $plugin_id = $plugin_name;
 			$plugin_name = substr($plugin_id,8,length($plugin_id));
-			my $plugin_temp = $session->plugin($plugin_id);
+			my $plugin_temp = $handle->plugin($plugin_id);
 			my $plugin_suffix = $plugin_temp->param("suffix");
 			my $uri =  $plugin_temp->local_uri();
 			$uri =~ /Export/g;
@@ -383,7 +383,7 @@ sub output_dataobj
 
 			if ($plugin_name eq "XML") {
 			} else {
-				$sub_content = $session->make_element("rdfs:seeAlso",
+				$sub_content = $handle->make_element("rdfs:seeAlso",
 					"rdf:resource"=>"$url" );
 				#$sub_xml_node->appendChild ( $sub_content );
 				my $dc_title = $plugin_temp->param("name") || "";
@@ -391,7 +391,7 @@ sub output_dataobj
 				my $dc_conformsTo = $plugin_temp->param("xmlns") || "";
 				my $schema_location = $plugin_temp->param("schemaLocation") || "";
 
-				my $additional = $session->make_element( "link",
+				my $additional = $handle->make_element( "link",
 						"rel"=>"alternate",
 						"href"=>$url,
 						"type"=>$dc_format

@@ -109,7 +109,7 @@ sub get_dataset_id
 ######################################################################
 # =pod
 # 
-# =item $saved_search = EPrints::DataObj::SavedSearch->create( $session, $userid )
+# =item $saved_search = EPrints::DataObj::SavedSearch->create( $handle, $userid )
 # 
 # Create a new saved search. entry in the database, belonging to user
 # with id $userid.
@@ -119,12 +119,12 @@ sub get_dataset_id
 
 sub create
 {
-	my( $class, $session, $userid ) = @_;
+	my( $class, $handle, $userid ) = @_;
 
 	return EPrints::DataObj::SavedSearch->create_from_data( 
-		$session, 
+		$handle, 
 		{ userid=>$userid },
-		$session->get_repository->get_dataset( "saved_search" ) );
+		$handle->get_repository->get_dataset( "saved_search" ) );
 }
 
 ######################################################################
@@ -144,7 +144,7 @@ sub commit
 {
 	my( $self, $force ) = @_;
 	
-#	$self->{session}->get_repository->call( 
+#	$self->{handle}->get_repository->call( 
 #		"set_saved_search_automatic_fields", 
 #		$self );
 
@@ -190,7 +190,7 @@ sub get_user
 	}
 
 	$self->{user} = EPrints::User->new( 
-		$self->{session}, 
+		$self->{handle}, 
 		$self->get_value( "userid" ) );
 
 	return $self->{user};
@@ -211,11 +211,11 @@ sub make_searchexp
 {
 	my( $self ) = @_;
 
-	my $ds = $self->{session}->get_repository->get_dataset( 
+	my $ds = $self->{handle}->get_repository->get_dataset( 
 		"saved_search" );
 	
 	return $ds->get_field( 'spec' )->make_searchexp( 
-		$self->{session},
+		$self->{handle},
 		$self->get_value( 'spec' ) );
 }
 
@@ -240,7 +240,7 @@ sub send_out_alert
 
 	if( $freq eq "never" )
 	{
-		$self->{session}->get_repository->log( 
+		$self->{handle}->get_repository->log( 
 			"Attempt to send out an alert for a\n".
 			"which has frequency 'never'\n" );
 		return;
@@ -250,21 +250,21 @@ sub send_out_alert
 
 	if( !defined $user )
 	{
-		$self->{session}->get_repository->log( 
+		$self->{handle}->get_repository->log( 
 			"Attempt to send out an alert for a\n".
 			"non-existant user. SavedSearch ID#".$self->get_id."\n" );
 		return;
 	}
 
-	my $origlangid = $self->{session}->get_langid;
+	my $origlangid = $self->{handle}->get_langid;
 	
-	$self->{session}->change_lang( $user->get_value( "lang" ) );
+	$self->{handle}->change_lang( $user->get_value( "lang" ) );
 
 	my $searchexp = $self->make_searchexp;
 	# get the description before we fiddle with searchexp
  	my $searchdesc = $searchexp->render_description,
 
-	my $datestamp_field = $self->{session}->get_repository->get_dataset( 
+	my $datestamp_field = $self->{handle}->get_repository->get_dataset( 
 		"archive" )->get_field( "datestamp" );
 
 	if( $freq eq "daily" )
@@ -314,18 +314,18 @@ sub send_out_alert
 			$last_month."-" );
 	}
 
-	my $settings_url = $self->{session}->get_repository->get_conf( "http_cgiurl" ).
+	my $settings_url = $self->{handle}->get_repository->get_conf( "http_cgiurl" ).
 		"/users/home?screen=User::SavedSearch::Edit&savedsearchid=".$self->get_id;
-	my $freqphrase = $self->{session}->html_phrase(
+	my $freqphrase = $self->{handle}->html_phrase(
 		"lib/saved_search:".$freq );
 
 	my $fn = sub {
-		my( $session, $dataset, $item, $info ) = @_;
+		my( $handle, $dataset, $item, $info ) = @_;
 
-		my $p = $session->make_element( "p" );
-		$p->appendChild( $item->render_citation_link( $session->get_repository->get_conf( "saved_search_citation" )));
+		my $p = $handle->make_element( "p" );
+		$p->appendChild( $item->render_citation_link( $handle->get_repository->get_conf( "saved_search_citation" )));
 		$info->{matches}->appendChild( $p );
-#		$info->{matches}->appendChild( $session->make_text( $item->get_url ) );
+#		$info->{matches}->appendChild( $handle->make_text( $item->get_url ) );
 	};
 
 
@@ -336,17 +336,17 @@ sub send_out_alert
 	if( $list->count > 0 || $mempty eq 'TRUE' )
 	{
 		my $info = {};
-		$info->{matches} = $self->{session}->make_doc_fragment;
+		$info->{matches} = $self->{handle}->make_doc_fragment;
 		$list->map( $fn, $info );
 
-		my $mail = $self->{session}->html_phrase( 
+		my $mail = $self->{handle}->html_phrase( 
 				"lib/saved_search:mail",
 				howoften => $freqphrase,
-				n => $self->{session}->make_text( $list->count ),
+				n => $self->{handle}->make_text( $list->count ),
 				search => $searchdesc,
 				matches => $info->{matches},
-				url => $self->{session}->render_link( $settings_url ) );
-		if( $self->{session}->get_noise >= 2 )
+				url => $self->{handle}->render_link( $settings_url ) );
+		if( $self->{handle}->get_noise >= 2 )
 		{
 			print "Sending out alert #".$self->get_id." to ".$user->get_value( "email" )."\n";
 		}
@@ -357,14 +357,14 @@ sub send_out_alert
 	}
 	$list->dispose;
 
-	$self->{session}->change_lang( $origlangid );
+	$self->{handle}->change_lang( $origlangid );
 }
 
 
 ######################################################################
 =pod
 
-=item EPrints::DataObj::SavedSearch::process_set( $session, $frequency );
+=item EPrints::DataObj::SavedSearch::process_set( $handle, $frequency );
 
 Static method. Calls send_out_alert on every saved search 
 with a frequency matching $frequency.
@@ -377,20 +377,20 @@ was sent out at the current time.
 
 sub process_set
 {
-	my( $session, $frequency ) = @_;
+	my( $handle, $frequency ) = @_;
 
 	if( $frequency ne "daily" && 
 		$frequency ne "weekly" && 
 		$frequency ne "monthly" )
 	{
-		$session->get_repository->log( "EPrints::DataObj::SavedSearch::process_set called with unknown frequency: ".$frequency );
+		$handle->get_repository->log( "EPrints::DataObj::SavedSearch::process_set called with unknown frequency: ".$frequency );
 		return;
 	}
 
-	my $subs_ds = $session->get_repository->get_dataset( "saved_search" );
+	my $subs_ds = $handle->get_repository->get_dataset( "saved_search" );
 
 	my $searchexp = EPrints::Search->new(
-		session => $session,
+		handle => $handle,
 		dataset => $subs_ds );
 
 	$searchexp->add_field(
@@ -398,7 +398,7 @@ sub process_set
 		$frequency );
 
 	my $fn = sub {
-		my( $session, $dataset, $item, $info ) = @_;
+		my( $handle, $dataset, $item, $info ) = @_;
 
 		$item->send_out_alert;
 	};
@@ -407,12 +407,12 @@ sub process_set
 	$searchexp->map( $fn, {} );
 	$searchexp->dispose;
 
-	my $statusfile = $session->get_repository->get_conf( "variables_path" ).
+	my $statusfile = $handle->get_repository->get_conf( "variables_path" ).
 		"/alert-".$frequency.".timestamp";
 
 	unless( open( TIMESTAMP, ">$statusfile" ) )
 	{
-		$session->get_repository->log( "EPrints::DataObj::SavedSearch::process_set failed to open\n$statusfile\nfor writing." );
+		$handle->get_repository->log( "EPrints::DataObj::SavedSearch::process_set failed to open\n$statusfile\nfor writing." );
 	}
 	else
 	{
@@ -430,7 +430,7 @@ END
 ######################################################################
 =pod
 
-=item $timestamp = EPrints::DataObj::SavedSearch::get_last_timestamp( $session, $frequency );
+=item $timestamp = EPrints::DataObj::SavedSearch::get_last_timestamp( $handle, $frequency );
 
 Static method. Return the timestamp of the last time this frequency 
 of alert was sent.
@@ -440,17 +440,17 @@ of alert was sent.
 
 sub get_last_timestamp
 {
-	my( $session, $frequency ) = @_;
+	my( $handle, $frequency ) = @_;
 
 	if( $frequency ne "daily" && 
 		$frequency ne "weekly" && 
 		$frequency ne "monthly" )
 	{
-		$session->get_repository->log( "EPrints::DataObj::SavedSearch::get_last_timestamp called with unknown\nfrequency: ".$frequency );
+		$handle->get_repository->log( "EPrints::DataObj::SavedSearch::get_last_timestamp called with unknown\nfrequency: ".$frequency );
 		return;
 	}
 
-	my $statusfile = $session->get_repository->get_conf( "variables_path" ).
+	my $statusfile = $handle->get_repository->get_conf( "variables_path" ).
 		"/alert-".$frequency.".timestamp";
 
 	unless( open( TIMESTAMP, $statusfile ) )
@@ -503,7 +503,7 @@ sub get_url
 
 	return undef if( $self->get_value("public") ne "TRUE" );
 
-	return $self->{session}->get_repository->get_conf( "http_cgiurl" )."/saved_search?savedsearchid=".$self->get_id;
+	return $self->{handle}->get_repository->get_conf( "http_cgiurl" )."/saved_search?savedsearchid=".$self->get_id;
 }
 
 =pod

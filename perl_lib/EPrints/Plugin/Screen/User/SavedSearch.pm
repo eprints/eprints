@@ -14,10 +14,10 @@ sub properties_from
 	# sets userid and user to the current user, if any
 	$self->SUPER::properties_from;
 
-	my $searchid = $self->{session}->param( "savedsearchid" );
+	my $searchid = $self->{handle}->param( "savedsearchid" );
 	$self->{processor}->{savedsearchid} = $searchid;
 	$self->{processor}->{savedsearch} = new EPrints::DataObj::SavedSearch( 
-					$self->{session}, $searchid );
+					$self->{handle}, $searchid );
 
 	if( !defined $self->{processor}->{savedsearch} )
 	{
@@ -25,7 +25,7 @@ sub properties_from
 		$self->{processor}->add_message( "error", 
 			$self->html_phrase(
 				"no_such_saved_search",
-				id => $self->{session}->make_text( 
+				id => $self->{handle}->make_text( 
 						$self->{processor}->{savedsearchid} ) ) );
 		return;
 	}
@@ -52,9 +52,9 @@ sub allow
 
 	return 0 unless defined $self->{processor}->{savedsearch};
 
-	return 1 if( $self->{session}->allow_anybody( $priv ) );
-	return 0 if( !defined $self->{session}->current_user );
-	return $self->{session}->current_user->allow( $priv, $self->{processor}->{savedsearch} );
+	return 1 if( $self->{handle}->allow_anybody( $priv ) );
+	return 0 if( !defined $self->{handle}->current_user );
+	return $self->{handle}->current_user->allow( $priv, $self->{processor}->{savedsearch} );
 }
 
 sub workflow
@@ -68,10 +68,10 @@ sub workflow
 		my %opts = ( 
 			item => $self->{processor}->{savedsearch},
 			search_description=>[$self->{processor}->{savedsearch}->render_value( "spec" ),"XHTML"],
-			session => $self->{session} );
+			handle => $self->{handle} );
 		$opts{STAFF_ONLY} = [$staff ? "TRUE" : "FALSE","BOOLEAN"];
  		$self->{processor}->{$cache_id} = EPrints::Workflow->new( 
-			$self->{session}, 
+			$self->{handle}, 
 			"default", 
 			%opts );
 	}
@@ -85,9 +85,9 @@ sub render_hidden_bits
 {
 	my( $self ) = @_;
 
-	my $chunk = $self->{session}->make_doc_fragment;
+	my $chunk = $self->{handle}->make_doc_fragment;
 
-	$chunk->appendChild( $self->{session}->render_hidden_field( "savedsearchid", $self->{processor}->{savedsearchid} ) );
+	$chunk->appendChild( $self->{handle}->render_hidden_field( "savedsearchid", $self->{processor}->{savedsearchid} ) );
 	$chunk->appendChild( $self->SUPER::render_hidden_bits );
 
 	return $chunk;
@@ -98,9 +98,9 @@ sub render_title
 {
 	my( $self ) = @_;
 
-	my $f = $self->{session}->make_doc_fragment;
+	my $f = $self->{handle}->make_doc_fragment;
 	$f->appendChild( $self->html_phrase( "title" ) );
-	$f->appendChild( $self->{session}->make_text( ": " ));
+	$f->appendChild( $self->{handle}->make_text( ": " ));
 	$f->appendChild( $self->{processor}->{savedsearch}->render_description );
 	return $f;
 }

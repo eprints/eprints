@@ -42,21 +42,21 @@ use EPrints::MetaField::Text;
 
 sub render_single_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 	
-	my $text = $session->make_text( $value );
+	my $text = $handle->make_text( $value );
 
 	return $text if !defined $value;
 	return $text if( $self->{render_dont_link} );
 
-	my $a = $session->render_link( "mailto:".$value );
+	my $a = $handle->render_link( "mailto:".$value );
 	$a->appendChild( $text );
 	return $a;
 }
 
 sub get_index_codes
 {
-       my( $self, $session, $value ) = @_;
+       my( $self, $handle, $value ) = @_;
 
        if( !$self->get_property( "multiple" ) )
        {
@@ -67,7 +67,7 @@ sub get_index_codes
 
 sub get_search_conditions_not_ex
 {
-       my( $self, $session, $dataset, $search_value, $match, $merge,
+       my( $self, $handle, $dataset, $search_value, $match, $merge,
                $search_mode ) = @_;
        
        if( $match eq "EQ" )
@@ -88,12 +88,12 @@ sub get_search_conditions_not_ex
 
 sub render_search_value
 {
-       my( $self, $session, $value ) = @_;
+       my( $self, $handle, $value ) = @_;
 
-       my $valuedesc = $session->make_doc_fragment;
-       $valuedesc->appendChild( $session->make_text( '"' ) );
-       $valuedesc->appendChild( $session->make_text( $value ) );
-       $valuedesc->appendChild( $session->make_text( '"' ) );
+       my $valuedesc = $handle->make_doc_fragment;
+       $valuedesc->appendChild( $handle->make_text( '"' ) );
+       $valuedesc->appendChild( $handle->make_text( $value ) );
+       $valuedesc->appendChild( $handle->make_text( '"' ) );
 
        return $valuedesc;
 }

@@ -55,7 +55,7 @@ sub handler
 
 	return DECLINED unless( -r $filename.".page" );
 
-	my $session = new EPrints::Session;
+	my $handle = new EPrints::Handle;
 
 	my $parts;
 	foreach my $part ( "title", "title.textonly", "page", "head", "template" )
@@ -74,7 +74,7 @@ sub handler
 		else
 		{
 			$parts->{"utf-8.".$part} = "";
-			$session->get_repository->log( "Could not read ".$filename.".".$part );
+			$handle->get_repository->log( "Could not read ".$filename.".".$part );
 		}
 	}
 
@@ -82,12 +82,12 @@ sub handler
 	my $template = delete $parts->{"utf-8.template"};
 	chomp $template;
 	$template = 'default' if $template eq "";
-	$session->{preparing_static_page} = 1; 
-	$session->prepare_page( $parts, page_id=>"static", template=>$template );
-	delete $session->{preparing_static_page};
-	$session->send_page;
+	$handle->{preparing_static_page} = 1; 
+	$handle->prepare_page( $parts, page_id=>"static", template=>$template );
+	delete $handle->{preparing_static_page};
+	$handle->send_page;
 
-	$session->terminate;
+	$handle->terminate;
 
 
 	return OK;

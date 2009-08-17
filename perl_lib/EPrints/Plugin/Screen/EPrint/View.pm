@@ -11,7 +11,7 @@ sub render_status
 {
 	my( $self ) = @_;
 
-	return $self->{session}->html_phrase( "Plugin/Screen/EPrint/View:no_subclass" );
+	return $self->{handle}->html_phrase( "Plugin/Screen/EPrint/View:no_subclass" );
 }
 
 sub can_be_viewed
@@ -27,7 +27,7 @@ sub about_to_render
 {
 	my( $self ) = @_;
 
-	my $cuser  = $self->{session}->current_user;
+	my $cuser  = $self->{handle}->current_user;
 
 	my $priv = $self->allow( "eprint/view" );
 	my $owner  = $priv & 4;
@@ -50,16 +50,16 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $chunk = $self->{session}->make_doc_fragment;
+	my $chunk = $self->{handle}->make_doc_fragment;
 
 	$chunk->appendChild( $self->render_status );
 	$chunk->appendChild( $self->render_common_action_buttons );
 
 	# if in archive and can request delete then do that here TODO
 
-	my $sb = $self->{session}->get_repository->get_conf( "skip_buffer" ) || 0;
+	my $sb = $self->{handle}->get_repository->get_conf( "skip_buffer" ) || 0;
 	
-	my $view = $self->{session}->param( "view" );
+	my $view = $self->{handle}->param( "view" );
 	if( defined $view )
 	{
 		$view = "Screen::$view";
@@ -99,7 +99,7 @@ sub render
 	}
 
 	$chunk->appendChild( 
-		$self->{session}->render_tabs( 
+		$self->{handle}->render_tabs( 
 			id_prefix => $id_prefix,
 			current => $view,
 			tabs => $tabs,
@@ -107,28 +107,28 @@ sub render
 			links => $links,
 			slow_tabs => $slowlist ) );
 			
-	my $panel = $self->{session}->make_element( 
+	my $panel = $self->{handle}->make_element( 
 			"div", 
 			id => "${id_prefix}_panels", 
 			class => "ep_tab_panel" );
 	$chunk->appendChild( $panel );
-	my $view_div = $self->{session}->make_element( 
+	my $view_div = $self->{handle}->make_element( 
 			"div", 
 			id => "${id_prefix}_panel_$view" );
 
-	my $screen = $self->{session}->plugin( 
+	my $screen = $self->{handle}->plugin( 
 			$view,
 			processor => $self->{processor} );
 	if( !defined $screen )
 	{
 		$view_div->appendChild( 
-			$self->{session}->html_phrase(
+			$self->{handle}->html_phrase(
 				"cgi/users/edit_eprint:view_unavailable" ) ); # error
 	}
 	elsif(! ($screen->can_be_viewed & $self->who_filter ) )
 	{
 		$view_div->appendChild( 
-			$self->{session}->html_phrase(
+			$self->{handle}->html_phrase(
 				"cgi/users/edit_eprint:view_unavailable" ) );
 	}
 	else
@@ -149,18 +149,18 @@ sub render
 	foreach my $screen_id ( @{$tabs} )
 	{
 		next if $screen_id eq $view;
-		my $other_view = $self->{session}->make_element( 
+		my $other_view = $self->{handle}->make_element( 
 			"div", 
 			id => "${id_prefix}_panel_$screen_id", 
 			style => "display: none" );
 		$panel->appendChild( $other_view );
 
-		my $screen = $self->{session}->plugin( 
+		my $screen = $self->{handle}->plugin( 
 			$screen_id,
 			processor=>$self->{processor} );
 		if( $screen->{expensive} )
 		{
-			$other_view->appendChild( $self->{session}->html_phrase( 
+			$other_view->appendChild( $self->{handle}->html_phrase( 
 					"cgi/users/edit_eprint:loading" ) );
 			next;
 		}
@@ -176,7 +176,7 @@ sub render_common_action_buttons
 {
 	my( $self ) = @_;
 
-	return $self->{session}->make_doc_fragment;
+	return $self->{handle}->make_doc_fragment;
 }
 
 
@@ -185,13 +185,13 @@ sub derive_version
 {
 	my( $self ) = @_;
 
-	my $ds_inbox = $self->{session}->get_repository->get_dataset( "inbox" );
+	my $ds_inbox = $self->{handle}->get_repository->get_dataset( "inbox" );
 	my $new_eprint = $self->{processor}->{eprint}->clone( $ds_inbox, 1, 0 );
 
 	if( !defined $new_eprint )
 	{
 		$self->{processor}->add_message( "error", 
-			$self->{session}->html_phrase( "Plugin/Screen/EPrint/View:failed" ) );
+			$self->{handle}->html_phrase( "Plugin/Screen/EPrint/View:failed" ) );
 		return;
 	}
 	
@@ -204,13 +204,13 @@ sub derive_clone
 {
 	my( $self ) = @_;
 
-	my $ds_inbox = $self->{session}->get_repository->get_dataset( "inbox" );
+	my $ds_inbox = $self->{handle}->get_repository->get_dataset( "inbox" );
 	my $new_eprint = $self->{processor}->{eprint}->clone( $ds_inbox, 0, 1 );
 
 	if( !defined $new_eprint )
 	{
 		$self->{processor}->add_message( "error", 
-			$self->{session}->html_phrase( "Plugin/Screen/EPrint/View:failed" ) );
+			$self->{handle}->html_phrase( "Plugin/Screen/EPrint/View:failed" ) );
 		return;
 	}
 	

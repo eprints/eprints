@@ -80,18 +80,18 @@ sub send_mail
 {
 	my( %p ) = @_;
 
-	my $repository = $p{session}->get_repository;
+	my $repository = $p{handle}->get_repository;
 
 	if( defined $p{message} )
 	{
 		my $msg = $p{message};
 
 		# First get the body
-		my $body = $p{session}->html_phrase( 
+		my $body = $p{handle}->html_phrase( 
 			"mail_body",
-			content => $p{session}->clone_for_me($msg,1) );
+			content => $p{handle}->clone_for_me($msg,1) );
 		# Then add the HTML around it
-		my $html = $p{session}->html_phrase(
+		my $html = $p{handle}->html_phrase(
 			"mail_wrapper",
 			body => $body );
 
@@ -100,7 +100,7 @@ sub send_mail
 
 	if( !defined $p{from_email} ) 
 	{
-		$p{from_name} = $p{session}->phrase( "archive_name" );
+		$p{from_name} = $p{handle}->phrase( "archive_name" );
 		$p{from_email} = $repository->get_conf( "adminemail" );
 	}
 	
@@ -126,7 +126,7 @@ sub send_mail
 
 	if( !$result )
 	{
-		$p{session}->get_repository->log( "Failed to send mail.\nTo: $p{to_email} <$p{to_name}>\nSubject: $p{subject}\n" );
+		$p{handle}->get_repository->log( "Failed to send mail.\nTo: $p{to_email} <$p{to_name}>\nSubject: $p{subject}\n" );
 	}
 
 	return $result;
@@ -150,7 +150,7 @@ sub send_mail_via_smtp
 
 	eval 'use Net::SMTP';
 
-	my $repository = $p{session}->get_repository;
+	my $repository = $p{handle}->get_repository;
 
 	my $smtphost = $repository->get_conf( 'smtp_server' );
 
@@ -203,7 +203,7 @@ sub send_mail_via_sendmail
 {
 	my( %p )  = @_;
 
-	my $repository = $p{session}->get_repository;
+	my $repository = $p{handle}->get_repository;
 
 	unless( open( SENDMAIL, "|".$repository->invocation( "sendmail" ) ) )
 	{
@@ -228,7 +228,7 @@ sub build_email
 
 	my $MAILWIDTH = 80;
 
-	my $repository = $p{session}->get_repository;
+	my $repository = $p{handle}->get_repository;
 
 	my $mimemsg = MIME::Lite->new(
 		From       => encode_mime_header( "$p{from_name}" )." <$p{from_email}>",

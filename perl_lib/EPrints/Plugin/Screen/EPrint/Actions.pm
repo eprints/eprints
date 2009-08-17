@@ -35,7 +35,7 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
 	return $self->render_action_list( "eprint_actions", ['eprintid'] );
 }

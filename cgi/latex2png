@@ -16,17 +16,17 @@ use EPrints;
 
 use strict;
 
-my $session = new EPrints::Session;
-exit( 0 ) unless( defined $session );
+my $handle = new EPrints::Handle;
+exit( 0 ) unless( defined $handle );
 
-my $latex = $session->param( "latex" );
+my $latex = $handle->param( "latex" );
 $latex = "???" if( !defined $latex );
 
-my $pngfile = EPrints::Latex::texstring_to_png( $session, $latex );
+my $pngfile = EPrints::Latex::texstring_to_png( $handle, $latex );
 
-$session->send_http_header( content_type=>'image/png' );
+$handle->send_http_header( content_type=>'image/png' );
 open( PNG, $pngfile ) || die "can't open $pngfile";
 while(<PNG>) { print; }
 close PNG;
 
-$session->terminate();
+$handle->terminate();

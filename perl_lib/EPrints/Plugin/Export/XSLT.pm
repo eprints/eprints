@@ -129,7 +129,7 @@ sub output_dataobj
 
 	my $r = "";
 
-	my $session = $plugin->{session};
+	my $handle = $plugin->{handle};
 
 	my $path = $plugin->{path};
 	my $stylesheet = $plugin->{stylesheet};
@@ -151,15 +151,15 @@ sub output_dataobj
 		TARGET => "$tmpfile",
 	);
 
-	unless( $session->get_repository->can_invoke( "xsltproc", %args ) )
+	unless( $handle->get_repository->can_invoke( "xsltproc", %args ) )
 	{
 		EPrints::abort "Can't invoke xsltproc\n";
 	}
 
-	my $xml_plugin = $session->plugin( "Export::XML" );
+	my $xml_plugin = $handle->plugin( "Export::XML" );
 	print $xmlfile $xml_plugin->output_dataobj( $dataobj );
 
-	my $rc = EPrints::Platform::exec( $session->get_repository, "xsltproc", %args );
+	my $rc = EPrints::Platform::exec( $handle->get_repository, "xsltproc", %args );
 	if( $rc )
 	{
 		EPrints::abort "Error invoking xsltproc (result = $rc)\n";

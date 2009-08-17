@@ -27,13 +27,13 @@ sub render
 {
 	my( $self ) = @_;
 	
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
-	my $page = $session->make_doc_fragment();
+	my $page = $handle->make_doc_fragment();
 
 	my ($data,$title) = $self->{processor}->{user}->render; 
 
-	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
+	my $div = $self->{handle}->make_element( "div", class=>"ep_block" );
 	$page->appendChild( $div );
 	$div->appendChild( $data );
 	

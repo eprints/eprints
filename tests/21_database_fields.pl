@@ -4,13 +4,13 @@ use Test::More tests => 17;
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
 
-my $session = EPrints::Test::get_test_session( 0 );
-ok(defined $session, 'opened an EPrints::Session object (noisy, no_check_db)');
+my $handle = EPrints::Test::get_test_session( 0 );
+ok(defined $handle, 'opened an EPrints::Handle object (noisy, no_check_db)');
 
 # a dataset that won't mind being broken
-my $dataset = $session->get_repository->get_dataset( "upload_progress" );
+my $dataset = $handle->get_repository->get_dataset( "upload_progress" );
 
-my $db = $session->get_db;
+my $db = $handle->get_db;
 
 my $field;
 
@@ -61,4 +61,4 @@ ok( $db->rename_field( $dataset, $field, "unit_tests" ), "rename multiple field"
 ok( $db->has_table( $dataset->get_sql_sub_table_name( $field ) ), "expected table name" );
 ok( $db->remove_field( $dataset, $field ), "remove multiple field" );
 
-$session->terminate;
+$handle->terminate;

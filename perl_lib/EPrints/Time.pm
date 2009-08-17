@@ -35,7 +35,7 @@ use Time::Local 'timegm_nocheck';
 ######################################################################
 =pod
 
-=item $xhtml = EPrints::Time::render_date( $session, $datevalue )
+=item $xhtml = EPrints::Time::render_date( $handle, $datevalue )
 
 Render the given date or date and time as a chunk of XHTML.
 
@@ -46,19 +46,19 @@ The date given is in UTC but it will be rendered in the local offset.
 
 sub render_date
 {
-	my( $session, $datevalue) = @_;
-	return _render_date( $session, $datevalue, 0 );
+	my( $handle, $datevalue) = @_;
+	return _render_date( $handle, $datevalue, 0 );
 }
 
 sub render_short_date
 {
-	my( $session, $datevalue) = @_;
-	return _render_date( $session, $datevalue, 1 );
+	my( $handle, $datevalue) = @_;
+	return _render_date( $handle, $datevalue, 1 );
 }
 
 sub datestring_to_timet
 {
-	my( $session, $datevalue, $short ) = @_;
+	my( $handle, $datevalue, $short ) = @_;
 
 	my( $year,$mon,$day,$hour,$min,$sec ) = split /[- :TZ]/, $datevalue;
 
@@ -69,11 +69,11 @@ sub datestring_to_timet
 
 sub _render_date
 {
-	my( $session, $datevalue, $short ) = @_;
+	my( $handle, $datevalue, $short ) = @_;
 
 	if( !defined $datevalue )
 	{
-		return $session->html_phrase( "lib/utils:date_unspecified" );
+		return $handle->html_phrase( "lib/utils:date_unspecified" );
 	}
 
 	# remove 0'd days and months
@@ -96,7 +96,7 @@ sub _render_date
 
 	if( !defined $year || $year eq "undef" || $year eq "" || $year == 0 ) 
 	{
-		return $session->html_phrase( "lib/utils:date_unspecified" );
+		return $handle->html_phrase( "lib/utils:date_unspecified" );
 	}
 
 	# 1999
@@ -107,11 +107,11 @@ sub _render_date
 	{
 		if( $short )	
 		{
-			$month_name = EPrints::Time::get_month_label_short( $session, $mon );
+			$month_name = EPrints::Time::get_month_label_short( $handle, $mon );
 		}
 		else
 		{
-			$month_name = EPrints::Time::get_month_label( $session, $mon );
+			$month_name = EPrints::Time::get_month_label( $handle, $mon );
 		}
 		$r = "$month_name $r";
 	}
@@ -126,7 +126,7 @@ sub _render_date
 
 	if( !defined $hour )
 	{
-		return $session->make_text( $r );
+		return $handle->make_text( $r );
 	}
 
 	my $time;
@@ -153,7 +153,7 @@ sub _render_date
 
 	$r .= " ".$off if( !$short );
 
-	return $session->make_text( $r );
+	return $handle->make_text( $r );
 }
 
 ######################################################################
@@ -189,7 +189,7 @@ sub gmt_off
 ######################################################################
 =pod
 
-=item $label = EPrints::Time::get_month_label( $session, $monthid )
+=item $label = EPrints::Time::get_month_label( $handle, $monthid )
 
 Return a UTF-8 string describing the month, in the current lanugage.
 
@@ -200,21 +200,21 @@ $monthid is an integer from 1 to 12.
 
 sub get_month_label
 {
-	my( $session, $monthid ) = @_;
+	my( $handle, $monthid ) = @_;
 
 	my $code = sprintf( "lib/utils:month_%02d", $monthid );
 
-	return $session->phrase( $code );
+	return $handle->phrase( $code );
 }
 
 
 sub get_month_label_short
 {
-	my( $session, $monthid ) = @_;
+	my( $handle, $monthid ) = @_;
 
 	my $code = sprintf( "lib/utils:month_short_%02d", $monthid );
 
-	return $session->phrase( $code );
+	return $handle->phrase( $code );
 }
 
 ######################################################################

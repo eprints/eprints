@@ -67,7 +67,7 @@ sub input_fh
 
 	return EPrints::List->new(
 			dataset => $opts{dataset},
-			session => $plugin->{session},
+			handle => $plugin->{handle},
 			ids => $handler->{imported} );
 }
 
@@ -115,7 +115,7 @@ sub xml_to_text
 
 	unless( $ok )
 	{
-		$plugin->warning( $plugin->{session}->phrase( "Plugin/Import/DefaultXML:unexpected_xml", xml => $xml->toString ) );
+		$plugin->warning( $plugin->{handle}->phrase( "Plugin/Import/DefaultXML:unexpected_xml", xml => $xml->toString ) );
 	}
 	my $r = join( "", @v );
 
@@ -134,7 +134,7 @@ sub characters
 
 	if( $self->{depth} > 1 )
 	{
-		$self->{xmlcurrent}->appendChild( $self->{plugin}->{session}->make_text( $node_info->{Data} ) );
+		$self->{xmlcurrent}->appendChild( $self->{plugin}->{handle}->make_text( $node_info->{Data} ) );
 	}
 }
 
@@ -165,9 +165,9 @@ sub end_element
 			my $href = delete $self->{href};
 			my $file = $self->{xmlcurrent}->getParentNode;
 			$file->removeChild( $self->{xmlcurrent} );
-			my $url = $self->{plugin}->{session}->make_element( "url" );
+			my $url = $self->{plugin}->{handle}->make_element( "url" );
 			$file->insertBefore( $url, $file->firstChild() );
-			$url->appendChild( $self->{plugin}->{session}->make_text( $href ) );
+			$url->appendChild( $self->{plugin}->{handle}->make_text( $href ) );
 		}
 		pop @{$self->{xmlstack}};
 		
@@ -197,14 +197,14 @@ sub start_element
 
 	if( $self->{depth} == 1 )
 	{
-		$self->{xml} = $self->{plugin}->{session}->make_element( $node_info->{Name}, %params );
+		$self->{xml} = $self->{plugin}->{handle}->make_element( $node_info->{Name}, %params );
 		$self->{xmlstack} = [$self->{xml}];
 		$self->{xmlcurrent} = $self->{xml};
 	}
 
 	if( $self->{depth} > 1 )
 	{
-		my $new = $self->{plugin}->{session}->make_element( $node_info->{Name}, %params );
+		my $new = $self->{plugin}->{handle}->make_element( $node_info->{Name}, %params );
 		$self->{xmlcurrent}->appendChild( $new );
 		push @{$self->{xmlstack}}, $new;
 		$self->{xmlcurrent} = $new;

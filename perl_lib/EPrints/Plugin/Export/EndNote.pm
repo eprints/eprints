@@ -198,7 +198,7 @@ sub convert_dataobj
 	}
 
 	# F Label
-	$data->{F} = $plugin->{session}->get_repository->get_id . ":" . $dataobj->get_id;
+	$data->{F} = $plugin->{handle}->get_repository->get_id . ":" . $dataobj->get_id;
 
 	return $data;
 }

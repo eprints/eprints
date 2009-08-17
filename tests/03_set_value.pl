@@ -6,10 +6,10 @@ BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
 
 my $repository = EPrints::Test::get_test_repository();
-my $session = EPrints::Test::get_test_session();
-my $dataset = $session->get_repository->get_dataset( "archive" );
+my $handle = EPrints::Test::get_test_session();
+my $dataset = $handle->get_repository->get_dataset( "archive" );
 
-my $eprint = EPrints::DataObj::EPrint->new_from_data( $session, {
+my $eprint = EPrints::DataObj::EPrint->new_from_data( $handle, {
 	eprint_status => "archive",
 }, $dataset );
 

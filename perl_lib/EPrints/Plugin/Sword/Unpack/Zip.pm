@@ -69,12 +69,12 @@ sub export
 {
 	my( $plugin, %opts ) = @_;
 
-	my $session = $plugin->{session};
+	my $handle = $plugin->{handle};
 
 	my $dir = $opts{dir};	# the directory where to unpack to
 	my $filename = $opts{filename};
 	
-	my $repository = $session->get_repository;
+	my $repository = $handle->get_repository;
 
 	# use the 'zip' command of the repository (cf. SystemSettings.pm)
 	my $cmd_id = 'zip';

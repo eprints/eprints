@@ -31,8 +31,8 @@ dataset. Usually this is the results of a search.
 #
 # INSTANCE VARIABLES:
 #
-#  $self->{session}
-#     The current EPrints::Session
+#  $self->{handle}
+#     The current EPrints::Handle
 #
 #  $self->{dataset}
 #     The EPrints::Dataset to which this list belongs.
@@ -55,7 +55,7 @@ dataset. Usually this is the results of a search.
 #
 #  $self->{keep_cache}
 #     If this is true then the cache will not be automatically tidied
-#     when the EPrints::Session terminates.
+#     when the EPrints::Handle terminates.
 #
 #  $self->{desc} 
 #     Contains an XHTML description of what this is the iist of.
@@ -73,7 +73,7 @@ use strict;
 =pod
 
 =item $list = EPrints::List->new( 
-			session => $session,
+			handle => $handle,
 			dataset => $dataset,
 			[desc => $desc],
 			[desc_order => $desc_order],
@@ -83,7 +83,7 @@ use strict;
 			[order => $order] );
 
 =item $list = EPrints::List->new( 
-			session => $session,
+			handle => $handle,
 			dataset => $dataset,
 			[desc => $desc],
 			[desc_order => $desc_order],
@@ -97,7 +97,7 @@ encoded is the serialised version of the searchExpression which
 created this list, if there was one.
 
 If keep_cache is set then the cache will not be disposed of at the
-end of the current $session. If cache_id is set then keep_cache is
+end of the current $handle. If cache_id is set then keep_cache is
 automatically true.
 
 =cut
@@ -108,7 +108,7 @@ sub new
 	my( $class, %opts ) = @_;
 
 	my $self = {};
-	$self->{session} = $opts{session};
+	$self->{handle} = $opts{handle};
 	$self->{dataset} = $opts{dataset};
 	$self->{ids} = $opts{ids};
 	$self->{order} = $opts{order};
@@ -122,7 +122,7 @@ sub new
 	{
 		EPrints::abort( "cache_id or ids must be defined in a EPrints::List->new()" );
 	}
-	if( !defined $self->{session} )
+	if( !defined $self->{handle} )
 	{
 		EPrints::abort( "session must be defined in a EPrints::List->new()" );
 	}
@@ -170,7 +170,7 @@ sub reorder
 
 	$self->cache;
 
-	my $db = $self->{session}->get_database;
+	my $db = $self->{handle}->get_database;
 
 	my $srctable = $db->cache_table( $self->{cache_id} );
 
@@ -182,7 +182,7 @@ sub reorder
 		$new_order );
 
 	my $new_list = EPrints::List->new( 
-		session=>$self->{session},
+		handle =>$self->{handle},
 		dataset=>$self->{dataset},
 		desc=>$self->{desc}, # don't pass desc_order!
 		order=>$new_order,
@@ -217,7 +217,7 @@ sub union
 	# losing desc, although could be added later.
 	return EPrints::List->new(
 		dataset => $self->{dataset},
-		session => $self->{session},
+		handle => $self->{handle},
 		order => $order,
 		ids=>\@objectids );
 }
@@ -251,7 +251,7 @@ sub remainder
 	# losing desc, although could be added later.
 	return EPrints::List->new(
 		dataset => $self->{dataset},
-		session => $self->{session},
+		handle => $self->{handle},
 		order => $order,
 		ids=>\@objectids );
 }
@@ -282,7 +282,7 @@ sub intersect
 	# losing desc, although could be added later.
 	return EPrints::List->new(
 		dataset => $self->{dataset},
-		session => $self->{session},
+		handle => $self->{handle},
 		order => $order,
 		ids=>\@objectids );
 }
@@ -316,7 +316,7 @@ sub cache
 #		return;
 #	}
 
-	my $db = $self->{session}->get_database;
+	my $db = $self->{handle}->get_database;
 	if( $self->_matches_all )
 	{
 		$self->{cache_id} = $db->cache( 
@@ -347,7 +347,7 @@ sub cache
 			$self->{order} );
 
 		# clean up intermediate cache table
-		$self->{session}->get_database->drop_cache( $self->{cache_id} );
+		$self->{handle}->get_database->drop_cache( $self->{cache_id} );
 
 		$self->{cache_id} = $new_cache_id;
 	}
@@ -388,13 +388,13 @@ sub dispose
 
 	if( defined $self->{cache_id} && !$self->{keep_cache} )
 	{
-		if( !defined $self->{session}->get_database )
+		if( !defined $self->{handle}->get_database )
 		{
 			print STDERR "Wanted to drop cache ".$self->{cache_id}." but we've already entered clean up and closed the database connection.\n";
 		}
 		else
 		{
-			$self->{session}->get_database->drop_cache( $self->{cache_id} );
+			$self->{handle}->get_database->drop_cache( $self->{cache_id} );
 			delete $self->{cache_id};
 		}
 	}
@@ -419,7 +419,7 @@ sub count
 	{
 		if( $self->_matches_all )
 		{
-			return $self->{dataset}->count( $self->{session} );
+			return $self->{dataset}->count( $self->{handle} );
 		}
 		return( scalar @{$self->{ids}} );
 	}
@@ -428,7 +428,7 @@ sub count
 	{
 		#cjg Should really have a way to get at the
 		# cache. Maybe we should have a table object.
-		return $self->{session}->get_database->count_table( 
+		return $self->{handle}->get_database->count_table( 
 			"cache".$self->{cache_id} );
 	}
 
@@ -550,7 +550,7 @@ sub _get_records
 			{
 				if( $self->_matches_all )
 				{
-					return $self->{dataset}->get_item_ids( $self->{session} );
+					return $self->{dataset}->get_item_ids( $self->{handle} );
 				}
 				else
 				{
@@ -560,7 +560,7 @@ sub _get_records
 	
 			if( $self->_matches_all )
 			{
-				return $self->{session}->get_database->get_all(
+				return $self->{handle}->get_database->get_all(
 					$self->{dataset} );
 			}
 		}
@@ -577,7 +577,7 @@ sub _get_records
 			my $to = $offset+$count-1;
 			my @range = @ids[($from..$to)];
 		
-			return $self->{session}->get_database->get_single( $self->{dataset}, $range[0] );
+			return $self->{handle}->get_database->get_single( $self->{dataset}, $range[0] );
 		}	
 	}
 	if( !defined $self->{cache_id} )
@@ -585,7 +585,7 @@ sub _get_records
 		$self->cache;
 	}
 
-	my $r = $self->{session}->get_database->from_cache( 
+	my $r = $self->{handle}->get_database->from_cache( 
 			$self->{dataset}, 
 			$self->{cache_id},
 			$offset,
@@ -619,7 +619,7 @@ Example:
 
  sub deal
  {
- 	my( $session, $dataset, $eprint, $info ) = @_;
+ 	my( $handle, $dataset, $eprint, $info ) = @_;
  
  	if( $eprint->get_value( "a" ) eq $eprint->get_value( "b" ) ) {
  		$info->{matches} += 1;
@@ -643,7 +643,7 @@ sub map
 		foreach my $item ( @records )
 		{
 			&{$function}( 
-				$self->{session}, 
+				$self->{handle}, 
 				$self->{dataset}, 
 				$item, 
 				$info );
@@ -668,7 +668,7 @@ sub export
 	my( $self, $out_plugin_id, %params ) = @_;
 
 	my $plugin_id = "Export::".$out_plugin_id;
-	my $plugin = $self->{session}->plugin( $plugin_id );
+	my $plugin = $self->{handle}->plugin( $plugin_id );
 
 	unless( defined $plugin )
 	{
@@ -719,16 +719,16 @@ sub render_description
 {
 	my( $self ) = @_;
 
-	my $frag = $self->{session}->make_doc_fragment;
+	my $frag = $self->{handle}->make_doc_fragment;
 
 	if( defined $self->{desc} )
 	{
-		$frag->appendChild( $self->{session}->clone_for_me( $self->{desc}, 1 ) );
-		$frag->appendChild( $self->{session}->make_text( " " ) );
+		$frag->appendChild( $self->{handle}->clone_for_me( $self->{desc}, 1 ) );
+		$frag->appendChild( $self->{handle}->make_text( " " ) );
 	}
 	if( defined $self->{desc_order} )
 	{
-		$frag->appendChild( $self->{session}->clone_for_me( $self->{desc_order}, 1 ) );
+		$frag->appendChild( $self->{handle}->clone_for_me( $self->{desc_order}, 1 ) );
 	}
 
 	return $frag;

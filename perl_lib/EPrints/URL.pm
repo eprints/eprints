@@ -26,7 +26,7 @@ This module contains utility methods for generating and getting URLs, relative p
 
 	use EPrints;
 
-	my $base_url = $session->get_url->get(
+	my $base_url = $handle->get_url->get(
 		scheme => "auto",
 		host => 1,
 		path => "cgi",
@@ -105,7 +105,7 @@ sub get
 	my $page = scalar(@opts) % 2 ? pop(@opts) : undef;
 	my %opts = @opts;
 
-	my $session = $self->{session};
+	my $handle = $self->{handle};
 
 	my $uri = URI->new("", "http");
 
@@ -116,7 +116,7 @@ sub get
 	# scheme
 	if( $opts{scheme} eq "auto" )
 	{
-		if( $session->get_secure )
+		if( $handle->get_secure )
 		{
 			$opts{scheme} = "https";
 		}
@@ -132,15 +132,15 @@ sub get
 		if( $opts{scheme} eq "https" )
 		{
 			$uri->scheme( "https" );
-			$uri->host( $session->get_repository->get_conf( "securehost" ) );
-			my $port = $session->get_repository->get_conf( "secureport" ) || 443;
+			$uri->host( $handle->get_repository->get_conf( "securehost" ) );
+			my $port = $handle->get_repository->get_conf( "secureport" ) || 443;
 			$uri->port( $port ) if $port != 443;
 		}
 		else
 		{
 			$uri->scheme( "http" );
-			$uri->host( $session->get_repository->get_conf( "host" ) );
-			my $port = $session->get_repository->get_conf( "port" ) || 80;
+			$uri->host( $handle->get_repository->get_conf( "host" ) );
+			my $port = $handle->get_repository->get_conf( "port" ) || 80;
 			$uri->port( $port ) if $port != 80;
 		}
 	}
@@ -148,28 +148,28 @@ sub get
 	# path
 	if( $opts{path} eq "auto" )
 	{
-		$uri->path( $session->get_request->uri );
+		$uri->path( $handle->get_request->uri );
 	}
 	elsif( $opts{path} eq "static" )
 	{
-		$uri->path( $session->get_repository->get_conf( "$opts{scheme}_root" ) );
+		$uri->path( $handle->get_repository->get_conf( "$opts{scheme}_root" ) );
 	}
 	elsif( $opts{path} eq "cgi" )
 	{
-		$uri->path( $session->get_repository->get_conf( "$opts{scheme}_cgiroot" ) );
+		$uri->path( $handle->get_repository->get_conf( "$opts{scheme}_cgiroot" ) );
 	}
 	elsif( $opts{path} eq "images" )
 	{
-		$uri->path( $session->get_repository->get_conf( "$opts{scheme}_root" ) . "/style/images" );
+		$uri->path( $handle->get_repository->get_conf( "$opts{scheme}_root" ) . "/style/images" );
 	}
 
 	# query
 	if( $opts{path} && $opts{query} )
 	{
 		my @params;
-		foreach my $param ($session->param)
+		foreach my $param ($handle->param)
 		{
-			my $value = $session->param( $param );
+			my $value = $handle->param( $param );
 			push @params, $param => $value;
 		}
 		$uri->query_form( @params );

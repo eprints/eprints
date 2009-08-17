@@ -2,10 +2,10 @@
 
 ######################################################################
 #
-# session_init( $session, $offline )
+# session_init( $handle, $offline )
 #
 #  Invoked each time a new session is needed (generally one per
-#  script invocation.) $session is a session object that can be used
+#  script invocation.) $handle is a session object that can be used
 #  to store any values you want. To prevent future clashes, prefix
 #  all of the keys you put in the hash with repository.
 #
@@ -16,13 +16,13 @@
 
 $c->{session_init} = sub
 {
-	my( $session, $offline ) = @_;
+	my( $handle, $offline ) = @_;
 };
 
 
 ######################################################################
 #
-# session_close( $session )
+# session_close( $handle )
 #
 #  Invoked at the close of each session. Here you should clean up
 #  anything you did in session_init().
@@ -31,12 +31,12 @@ $c->{session_init} = sub
 
 $c->{session_close} = sub
 {
-	my( $session ) = @_;
+	my( $handle ) = @_;
 };
 
 ######################################################################
 #
-# email_for_doc_request( $session, $eprint )
+# email_for_doc_request( $handle, $eprint )
 #
 #  Invoked to determine the contact email address for an eprint. Used
 #  by the "request documents" feature

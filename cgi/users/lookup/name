@@ -2,18 +2,18 @@ use EPrints;
 
 use strict;
 
-my $session = EPrints::Session->new();
+my $handle = EPrints::Handle->new();
 
 # security?
 
 my $content = "text/xml";
-$session->send_http_header( content_type=>$content );
-my $family = $session->param( "_name_family" );
-my $given = $session->param( "_name_given" );
-my $id = $session->param( "_id" );
+$handle->send_http_header( content_type=>$content );
+my $family = $handle->param( "_name_family" );
+my $given = $handle->param( "_name_given" );
+my $id = $handle->param( "_id" );
 
-my $database = $session->get_database;
-my $dataset = $session->get_repository->get_dataset( "eprint" );
+my $database = $handle->get_database;
+my $dataset = $handle->get_repository->get_dataset( "eprint" );
 my $name_field = $dataset->get_field( "creators_name" );
 my $id_field = $dataset->get_field( "creators_id" );
 
@@ -56,28 +56,28 @@ $sql .= "GROUP BY ".join(",",map { $database->quote_identifier($_) } @fields) .
 
 my @rows;
 
-my $sth = $session->get_database->prepare_select( $sql, 'limit' => 40 );
-$session->get_database->execute( $sth , $sql );
+my $sth = $handle->get_database->prepare_select( $sql, 'limit' => 40 );
+$handle->get_database->execute( $sth , $sql );
 while( my @row = $sth->fetchrow_array )
 {
 	my $cnt = shift @row;
-	my $name = $name_field->value_from_sql_row( $session, \@row );
-	my $id = $id_field->value_from_sql_row( $session, \@row );
+	my $name = $name_field->value_from_sql_row( $handle, \@row );
+	my $id = $id_field->value_from_sql_row( $handle, \@row );
 
 	my $item = {};
 	push @rows, $item;
 
-	my $frag = $session->make_doc_fragment;
+	my $frag = $handle->make_doc_fragment;
 
-	$frag->appendChild( $name_field->render_single_value( $session, $name ) );
+	$frag->appendChild( $name_field->render_single_value( $handle, $name ) );
 	if( EPrints::Utils::is_set( $id ) )
 	{
-		$frag->appendChild( $session->make_text( " " ) );
-		$frag->appendChild( $id_field->render_single_value( $session, $id ) );
+		$frag->appendChild( $handle->make_text( " " ) );
+		$frag->appendChild( $id_field->render_single_value( $handle, $id ) );
 	}
-	my $small = $session->make_element( "small" );
+	my $small = $handle->make_element( "small" );
 	$frag->appendChild( $small );
-	$small->appendChild( $session->make_text( " (author of ".$cnt." item".($cnt>1?"s":"")." in this repository)" ) );
+	$small->appendChild( $handle->make_text( " (author of ".$cnt." item".($cnt>1?"s":"")." in this repository)" ) );
 
 	$item->{xhtml} = $frag;
 	$item->{values} = [
@@ -91,9 +91,9 @@ while( my @row = $sth->fetchrow_array )
 
 $sth->finish();
 
-my $ul = EPrints::Extras::render_lookup_list( $session, \@rows );
+my $ul = EPrints::Extras::render_lookup_list( $handle, \@rows );
 
-$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
+$handle->send_http_header( content_type => "text/xml; charset=UTF-8" );
 
 binmode(STDOUT,":utf8");
 print <<END;
@@ -104,5 +104,5 @@ print EPrints::XML::to_string( $ul, "utf-8", 1 );
 
 EPrints::XML::dispose( $ul );
 
-$session->terminate;
+$handle->terminate;
 

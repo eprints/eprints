@@ -60,7 +60,7 @@ sub new
 	# don't have a config when we first load this to register it as a plugin class
 	if( defined $opts{xml_config} )
 	{
-		$self->{session} = $opts{session};
+		$self->{handle} = $opts{handle};
 		$self->{collapse} = $opts{collapse};
 		$self->{no_help} = $opts{no_help};
 		$self->{no_toggle} = $opts{no_toggle};
@@ -122,11 +122,11 @@ sub get_surround
 		$surround = $self->{surround};
 	}
 		
-	my $surround_obj = $self->{session}->plugin( "InputForm::Surround::$surround" );
+	my $surround_obj = $self->{handle}->plugin( "InputForm::Surround::$surround" );
 	
 	if( !defined $surround_obj )
 	{
-		$surround_obj = $self->{session}->plugin( "InputForm::Surround::Default" ); 
+		$surround_obj = $self->{handle}->plugin( "InputForm::Surround::Default" ); 
 	}
 
 	return $surround_obj; 
@@ -184,11 +184,11 @@ sub params
 	my $prefix = $self->{prefix}."_";
 	my %params = ();
 
-	foreach my $p ( $self->{session}->param() )
+	foreach my $p ( $self->{handle}->param() )
 	{
 		if( $p =~ /^$prefix(.+)$/ )
 		{
-			$params{$1} = $self->{session}->param( $p );
+			$params{$1} = $self->{handle}->param( $p );
 		}
 	}
 	return %params;
@@ -199,10 +199,10 @@ sub get_internal_value
 	my( $self ) = @_;
 
 	my $prefix = $self->{prefix}."_";
-	foreach my $param ( $self->{session}->param )
+	foreach my $param ( $self->{handle}->param )
 	{
 		next unless( $param =~ s/^(_internal|passon)_$prefix// );
-		my $v = $self->{session}->param( $param );
+		my $v = $self->{handle}->param( $param );
 		next unless EPrints::Utils::is_set( $v );
 		return $v;
 	}
@@ -213,7 +213,7 @@ sub get_internal_button
 {
 	my( $self ) = @_;
 
-	my $internal_button = $self->{session}->get_internal_button;
+	my $internal_button = $self->{handle}->get_internal_button;
 
 	return undef unless defined $internal_button;
 

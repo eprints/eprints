@@ -21,20 +21,20 @@ if( $@ )
 }
 
 use strict;
-my $session = new EPrints::Session;
-exit( 0 ) unless( defined $session );
-# $session->get_database->set_debug( 1 );
+my $handle = new EPrints::Handle;
+exit( 0 ) unless( defined $handle );
+# $handle->get_database->set_debug( 1 );
 
-my $repository = $session->get_repository();
+my $repository = $handle->get_repository();
 
 # Create an OpenURL object
 my $uri = URI::OpenURL->new();
 
 # Fill the OpenURL object with the current CGI parameters
 my @query;
-foreach my $name ($session->param)
+foreach my $name ($handle->param)
 {
-	for ($session->param( $name ))
+	for ($handle->param( $name ))
 	{
 		push @query, $name => $_;
 	}
@@ -52,10 +52,10 @@ my %md = $rft->metadata;
 # Set up a new search expression
 # NB I'm not worrying about filtering because this script will only
 # redirect?
-my $ds = $session->get_repository->get_dataset( "archive" );
+my $ds = $handle->get_repository->get_dataset( "archive" );
 my $searchexp = new EPrints::Search(
 	keep_cache => 1,
-	session => $session,
+	handle => $handle,
 	dataset => $ds,
 	satisfy_all => 1,
 );
@@ -70,7 +70,7 @@ if( $md{ "aulast" } )
 }
 if( defined($rft->id) )
 {
-	my $oai_id = $session->get_repository->get_conf( "oai" )->{ "v2" }->{ "archive_id" };
+	my $oai_id = $handle->get_repository->get_conf( "oai" )->{ "v2" }->{ "archive_id" };
 	if( defined($rft->id) and $rft->id =~ /^(?:info:ofi\/nam:info:)?oai:$oai_id:(\d+)$/ )
 	{
 		$searchexp->add_field(
@@ -118,7 +118,7 @@ while(my( $epf, $ouf ) = each %EXACT_TERMS)
 # Urg, either the query was empty or we couldn't use the query given
 if( $searchexp->is_blank )
 {
-	not_found( $session, $uri, "empty_query" );
+	not_found( $handle, $uri, "empty_query" );
 }
 
 # Perform the search, but we're only interested in the first match
@@ -129,7 +129,7 @@ my( $eprint ) = $list->get_records( 0, 1 );
 # No match found for the given query
 unless( $eprint ) 
 {
-	not_found( $session, $uri, "no_match" );
+	not_found( $handle, $uri, "no_match" );
 }
 
 my $svc = $uri->serviceType;
@@ -145,7 +145,7 @@ if( $svc->val_fmt and $svc->val_fmt eq 'info:ofi/fmt:kev:mtx:oai_pmh' )
 	$url = URI->new( $url );
 
 	# Get the OAI identifier for this eprint
-	my $oai_id = $session->get_repository->get_conf( 
+	my $oai_id = $handle->get_repository->get_conf( 
 			"oai", 
 			"v2", 
 			"archive_id" );
@@ -160,7 +160,7 @@ if( $svc->val_fmt and $svc->val_fmt eq 'info:ofi/fmt:kev:mtx:oai_pmh' )
 	}
 	$url->query_form( %args );
 
-	$session->redirect( $url );
+	$handle->redirect( $url );
 }
 # Scholarly Service
 elsif( $svc_md{ "fulltext" } and
@@ -171,7 +171,7 @@ elsif( $svc_md{ "fulltext" } and
 	if( @docs )
 	{
 		my $url = $docs[0]->get_url();
-		$session->redirect( $url );
+		$handle->redirect( $url );
 	}
 }
 # Default to redirecting to the abstract page
@@ -179,26 +179,26 @@ else
 {
 	# Redirect to the abstract page
 	my $url = $eprint->get_url;
-	$session->redirect( $url );
+	$handle->redirect( $url );
 }
 
-$session->terminate;
+$handle->terminate;
 
 sub not_found
 {
-	my( $session, $uri, $message ) = @_;
+	my( $handle, $uri, $message ) = @_;
 
-	$session->not_found( undef ); # Don't print the default 404!
+	$handle->not_found( undef ); # Don't print the default 404!
 
 	my %pins = $uri->query_form;
-	$_ = $session->make_text($_) for values %pins;
+	$_ = $handle->make_text($_) for values %pins;
 
-	$session->build_page( 
-		$session->html_phrase( "cgi/openurl:${message}_title" ),
-		$session->html_phrase( "cgi/openurl:${message}_blurb", %pins ),
+	$handle->build_page( 
+		$handle->html_phrase( "cgi/openurl:${message}_title" ),
+		$handle->html_phrase( "cgi/openurl:${message}_blurb", %pins ),
 		"plain_404" );
 
-        $session->send_page();
+        $handle->send_page();
 
 	exit(0);
 }

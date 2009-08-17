@@ -20,14 +20,14 @@ B<EPrints::Test::OnlineSession> - Test online features of EPrints, offline
 
 package EPrints::Test::OnlineSession;
 
-our @ISA = qw( EPrints::Session );
+our @ISA = qw( EPrints::Handle );
 
 my @VARS = qw( stdout uri secure );
 my %VAR;
 
-=item $session = EPrints::Test::OnlineSession->new( $session, $query )
+=item $handle = EPrints::Test::OnlineSession->new( $handle, $query )
 
-Subclass $session and initialise it with our fake $query.
+Subclass $handle and initialise it with our fake $query.
 
 $query may contain:
 
@@ -47,15 +47,15 @@ foreach my $f (@VARS)
 
 sub new
 {
-	my( $class, $session, $opts ) = @_;
+	my( $class, $handle, $opts ) = @_;
 
-	my $self = bless $session, $class;
+	my $self = bless $handle, $class;
 
 	my $method = $opts->{method} || "GET";
 	my $path = defined $opts->{path} ? $opts->{path} : "";
 	my $query = defined $opts->{query} ? $opts->{query} : "";
 
-	my $uri = URI->new( $session->get_repository->get_conf( "base_url" ) );
+	my $uri = URI->new( $handle->get_repository->get_conf( "base_url" ) );
 	if( $path !~ m#^/# )
 	{
 		$path = $uri->path . "/" . $path;

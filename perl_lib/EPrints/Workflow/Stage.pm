@@ -9,9 +9,9 @@ sub new
 	bless $self, $class;
 
 	$self->{workflow} = $workflow;
-	$self->{session} = $workflow->{session};
+	$self->{handle} = $workflow->{handle};
 	$self->{item} = $workflow->{item};
-	$self->{repository} = $self->{session}->get_repository;
+	$self->{repository} = $self->{handle}->get_repository;
 
 	$self->{name} = $stage->getAttribute("name");
 	unless( EPrints::Utils::is_set( $self->{name} ) )
@@ -40,7 +40,7 @@ sub _read_components
 
 			# Nb. Cyclic refs on stage & workflow. May mess up g.c.
 			my %params = (
-					session=>$self->{session}, 
+					handle =>$self->{handle}, 
 					xml_config=>$stage_node, 
 					dataobj=>$self->{item}, 
 					stage=>$self, 	
@@ -78,11 +78,11 @@ sub _read_components
 			my $pluginid = "InputForm::Component::$type";
 
 			# Grab any values inside
-			my $class = $self->{session}->get_repository->get_plugin_class( $pluginid );
+			my $class = $self->{handle}->get_repository->get_plugin_class( $pluginid );
 			if( !defined $class )
 			{
 				print STDERR "Using placeholder for $type\n";
-				$class = $self->{session}->get_repository->get_plugin_class( "InputForm::Component::PlaceHolder" );
+				$class = $self->{handle}->get_repository->get_plugin_class( "InputForm::Component::PlaceHolder" );
 				$params{placeholding}=$type;
 			}
 			if( defined $class )
@@ -179,23 +179,23 @@ sub get_state_params
 
 sub render
 {
-	my( $self, $session, $workflow ) = @_;
+	my( $self, $handle, $workflow ) = @_;
 
-	my $dom = $session->make_doc_fragment();
+	my $dom = $handle->make_doc_fragment();
 
 	foreach my $component (@{$self->{components}})
 	{
 		my $div;
 		my $surround;
 		
-		$div = $session->make_element(
+		$div = $handle->make_element(
 			"div",
 			class => "ep_form_field_input" );
-		$div->appendChild( $component->get_surround()->render( $component, $session ) );
+		$div->appendChild( $component->get_surround()->render( $component, $handle ) );
 		$dom->appendChild( $div );
 	}
 
-#  $form->appendChild( $session->render_action_buttons( %$submit_buttons ) ); 
+#  $form->appendChild( $handle->render_action_buttons( %$submit_buttons ) ); 
   
 	return $dom;
 }

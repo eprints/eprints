@@ -42,15 +42,15 @@ use EPrints::MetaField;
 
 sub render_single_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
-	return $self->render_option( $session , $value );
+	return $self->render_option( $handle , $value );
 }
 
 ######################################################################
 =pod
 
-=item ( $options , $labels ) = $field->tags_and_labels( $session )
+=item ( $options , $labels ) = $field->tags_and_labels( $handle )
 
 Return a reference to an array of options for this
 field, plus an array of UTF-8 encoded labels for these options in the 
@@ -61,20 +61,20 @@ current language.
 
 sub tags_and_labels
 {
-	my( $self , $session ) = @_;
-	my @tags = $self->tags( $session );
+	my( $self , $handle ) = @_;
+	my @tags = $self->tags( $handle );
 	my %labels = ();
 	foreach( @tags )
 	{
 		$labels{$_} = EPrints::Utils::tree_to_utf8( 
-			$self->render_option( $session, $_ ) );
+			$self->render_option( $handle, $_ ) );
 	}
 	return (\@tags, \%labels);
 }
 
 sub tags
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 	EPrints::abort( "no options in tags()" ) if( !defined $self->{options} );
 	return @{$self->{options}};
 }
@@ -82,9 +82,9 @@ sub tags
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_option( $session, $option )
+=item $xhtml = $field->render_option( $handle, $option )
 
-Return the title of option $option in the language of $session as an 
+Return the title of option $option in the language of $handle as an 
 XHTML DOM object.
 
 =cut
@@ -92,11 +92,11 @@ XHTML DOM object.
 
 sub render_option
 {
-	my( $self, $session, $option ) = @_;
+	my( $self, $handle, $option ) = @_;
 
 	if( defined $self->get_property("render_option") )
 	{
-		return $self->call_property( "render_option", $session, $option );
+		return $self->call_property( "render_option", $handle, $option );
 	}
 
 	$option = "" if !defined $option;
@@ -105,28 +105,28 @@ sub render_option
 
 	# if the option is empty, and no explicit phrase is defined, print 
 	# UNDEFINED rather than an error phrase.
-	if( $option eq "" && !$session->get_lang->has_phrase( $phrasename, $session ) )
+	if( $option eq "" && !$handle->get_lang->has_phrase( $phrasename, $handle ) )
 	{
 		$phrasename = "lib/metafield:unspecified";
 	}
 
-	return $session->html_phrase( $phrasename );
+	return $handle->html_phrase( $phrasename );
 }
 
 
 sub render_input_field_actual
 {
-	my( $self, $session, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
+	my( $self, $handle, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
 
-	my $table = $session->make_element( "table", border=>0, cellpadding=>0, cellspacing=>0, class=>"ep_form_input_grid" );
-	my $tr = $session->make_element( "tr" );
-	my $td = $session->make_element( "td" );
+	my $table = $handle->make_element( "table", border=>0, cellpadding=>0, cellspacing=>0, class=>"ep_form_input_grid" );
+	my $tr = $handle->make_element( "tr" );
+	my $td = $handle->make_element( "td" );
 	$table->appendChild( $tr );
 	$tr->appendChild( $td );
 	if( $self->get_property( "input_ordered" ) )
 	{
 		$td->appendChild(  $self->SUPER::render_input_field_actual( 
-			$session, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) );
+			$handle, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) );
 		return $table;
 	}
 
@@ -139,25 +139,25 @@ sub render_input_field_actual
 
 	# called as a seperate function because subject does this
 	# bit differently, and overrides render_set_input.
-	$td->appendChild( $self->render_set_input( $session, $default, $required, $obj, $basename ) );
+	$td->appendChild( $self->render_set_input( $handle, $default, $required, $obj, $basename ) );
 	return $table;
 }
 
 sub input_tags_and_labels
 {
-	my( $self, $session, $obj ) = @_;
+	my( $self, $handle, $obj ) = @_;
 
-	my @tags = $self->tags( $session );
+	my @tags = $self->tags( $handle );
 	if( defined $self->get_property("input_tags") )
 	{
-		@tags = $self->call_property( "input_tags", $session, $obj );
+		@tags = $self->call_property( "input_tags", $handle, $obj );
 	}
 
 	my %labels = ();
 	foreach( @tags )
 	{
 		$labels{$_} = EPrints::Utils::tree_to_utf8( 
-			$self->render_option( $session, $_ ) );
+			$self->render_option( $handle, $_ ) );
 	}
 
 	return( \@tags, \%labels );
@@ -166,17 +166,17 @@ sub input_tags_and_labels
 # this is only called by the compound renderer
 sub get_basic_input_elements
 {
-	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
+	my( $self, $handle, $value, $basename, $staff, $obj ) = @_;
 
-	my( $tags, $labels ) = $self->input_tags_and_labels( $session, $obj );
+	my( $tags, $labels ) = $self->input_tags_and_labels( $handle, $obj );
 
 	# If it's not multiple and not required there 
 	# must be a way to unselect it.
 	$tags = [ "", @{$tags} ];
-	my $unspec = EPrints::Utils::tree_to_utf8( $self->render_option( $session, undef ) );
+	my $unspec = EPrints::Utils::tree_to_utf8( $self->render_option( $handle, undef ) );
 	$labels = { ""=>$unspec, %{$labels} };
 
-	return( [ [ { el=>$session->render_option_list(
+	return( [ [ { el=>$handle->render_option_list(
 			values => $tags,
 			labels => $labels,
 			name => $basename,
@@ -189,9 +189,9 @@ sub get_basic_input_elements
 # basic input renderer for "set" type fields
 sub render_set_input
 {
-	my( $self, $session, $default, $required, $obj, $basename ) = @_;
+	my( $self, $handle, $default, $required, $obj, $basename ) = @_;
 
-	my( $tags, $labels ) = $self->input_tags_and_labels( $session, $obj );
+	my( $tags, $labels ) = $self->input_tags_and_labels( $handle, $obj );
 	
 	my $input_style = $self->get_property( "input_style" );
 
@@ -202,13 +202,13 @@ sub render_set_input
 		# If it's not multiple and not required there 
 		# must be a way to unselect it.
 		$tags = [ "", @{$tags} ];
-		my $unspec = EPrints::Utils::tree_to_utf8( $self->render_option( $session, undef ) );
+		my $unspec = EPrints::Utils::tree_to_utf8( $self->render_option( $handle, undef ) );
 		$labels = { ""=>$unspec, %{$labels} };
 	}
 
 	if( $input_style eq "short" )
 	{
-		return( $session->render_option_list(
+		return( $handle->render_option_list(
 				values => $tags,
 				labels => $labels,
 				name => $basename,
@@ -222,24 +222,24 @@ sub render_set_input
 	my( $list );
 	if( $input_style eq "long" )
 	{
-		$list = $session->make_element( "dl", class=>"ep_field_set_long" );
+		$list = $handle->make_element( "dl", class=>"ep_field_set_long" );
 	}	
 	else
 	{
-		$list = $session->make_doc_fragment;
+		$list = $handle->make_doc_fragment;
 	}
 	foreach my $opt ( @{$tags} )
 	{
 		my $row;
 		if( $input_style eq "long" )
 		{
-			$row = $session->make_element( "dt" );
+			$row = $handle->make_element( "dt" );
 		}
 		else
 		{
-			$row = $session->make_element( "div" );
+			$row = $handle->make_element( "div" );
 		}
-		my $label1 = $session->make_element( "label", for=>$basename."_".$opt );
+		my $label1 = $handle->make_element( "label", for=>$basename."_".$opt );
 		$row->appendChild( $label1 );
 		my $checked = undef;
 		my $type = "radio";
@@ -259,22 +259,22 @@ sub render_set_input
 				$checked = "checked";
 			}
 		}
-		$label1->appendChild( $session->render_noenter_input_field(
+		$label1->appendChild( $handle->render_noenter_input_field(
 			type => $type,
 			name => $basename,
 			id => $basename."_".$opt,
 			value => $opt,
 			checked => $checked ) );
-		$label1->appendChild( $session->make_text( " ".$labels->{$opt} ));
+		$label1->appendChild( $handle->make_text( " ".$labels->{$opt} ));
 		$list->appendChild( $row );
 
 		next unless( $input_style eq "long" );
 
-		my $dd = $session->make_element( "dd" );
-		my $label2 = $session->make_element( "label", for=>$basename."_".$opt );
+		my $dd = $handle->make_element( "dd" );
+		my $label2 = $handle->make_element( "label", for=>$basename."_".$opt );
 		$dd->appendChild( $label2 );
 		my $phrasename = $self->{confid}."_optdetails_".$self->{name}."_".$opt;
-		$label2->appendChild( $session->html_phrase( $phrasename ));
+		$label2->appendChild( $handle->html_phrase( $phrasename ));
 		$list->appendChild( $dd );
 	}
 	return $list;
@@ -282,14 +282,14 @@ sub render_set_input
 
 sub form_value_actual
 {
-	my( $self, $session, $obj, $basename ) = @_;
+	my( $self, $handle, $obj, $basename ) = @_;
 
 	if( $self->get_property( "input_ordered" ) )
 	{
-		return $self->SUPER::form_value_actual( $session, $obj, $basename );
+		return $self->SUPER::form_value_actual( $handle, $obj, $basename );
 	}
 
-	my @values = $session->param( $basename );
+	my @values = $handle->param( $basename );
 	
 	if( scalar( @values ) == 0 )
 	{
@@ -315,51 +315,51 @@ sub form_value_actual
 # fields.
 sub get_values
 {
-	my( $self, $session, $dataset, %opts ) = @_;
+	my( $self, $handle, $dataset, %opts ) = @_;
 
-	my @tags = $self->tags( $session );
+	my @tags = $self->tags( $handle );
 
 	return \@tags;
 }
 
 sub get_value_label
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 		
-	return $self->render_option( $session, $value );
+	return $self->render_option( $handle, $value );
 }
 
 sub ordervalue_basic
 {
-	my( $self , $value , $session , $langid ) = @_;
+	my( $self , $value , $handle , $langid ) = @_;
 
 	return "" unless( EPrints::Utils::is_set( $value ) );
 
-	my $label = $self->get_value_label( $session, $value );
+	my $label = $self->get_value_label( $handle, $value );
 	return EPrints::Utils::tree_to_utf8( $label );
 }
 
 sub render_search_input
 {
-	my( $self, $session, $searchfield ) = @_;
+	my( $self, $handle, $searchfield ) = @_;
 	
-	my $frag = $session->make_doc_fragment;
+	my $frag = $handle->make_doc_fragment;
 	
 	$frag->appendChild( $self->render_search_set_input( 
-				$session,
+				$handle,
 				$searchfield ) );
 
 	if( $self->get_property( "multiple" ) )
 	{
 		my @set_tags = ( "ANY", "ALL" );
 		my %set_labels = ( 
-			"ANY" => $session->phrase( "lib/searchfield:set_any" ),
-			"ALL" => $session->phrase( "lib/searchfield:set_all" ) );
+			"ANY" => $handle->phrase( "lib/searchfield:set_any" ),
+			"ALL" => $handle->phrase( "lib/searchfield:set_all" ) );
 
 
-		$frag->appendChild( $session->make_text(" ") );
+		$frag->appendChild( $handle->make_text(" ") );
 		$frag->appendChild( 
-			$session->render_option_list(
+			$handle->render_option_list(
 				name=>$searchfield->get_form_prefix."_merge",
 				values=>\@set_tags,
 				default=>$searchfield->get_merge,
@@ -371,7 +371,7 @@ sub render_search_input
 
 sub render_search_set_input
 {
-	my( $self, $session, $searchfield ) = @_;
+	my( $self, $handle, $searchfield ) = @_;
 
 	my $prefix = $searchfield->get_form_prefix;
 	my $value = $searchfield->get_value;
@@ -382,14 +382,14 @@ sub render_search_set_input
 	my @allfields = @{$searchfield->get_fields};
 	if( scalar @allfields == 1 )
 	{
-		( $tags, $labels ) = $self->tags_and_labels( $session );
+		( $tags, $labels ) = $self->tags_and_labels( $handle );
 	}
 	else
 	{
 		my( $t ) = {};
 		foreach my $field ( @allfields )
 		{
-			my ( $t2, $l2 ) = $field->tags_and_labels( $session );
+			my ( $t2, $l2 ) = $field->tags_and_labels( $handle );
 			foreach( @{$t2} ) { $t->{$_}=1; }
 			foreach( keys %{$l2} ) { $labels->{$_}=$l2->{$_}; }
 		}
@@ -409,7 +409,7 @@ sub render_search_set_input
 		@defaults = split /\s/, $value;
 	}
 
-	return $session->render_option_list( 
+	return $handle->render_option_list( 
 		checkbox => ($self->{search_input_style} eq "checkbox"?1:0),
 		name => $prefix,
 		default => \@defaults,
@@ -421,10 +421,10 @@ sub render_search_set_input
 
 sub from_search_form
 {
-	my( $self, $session, $prefix ) = @_;
+	my( $self, $handle, $prefix ) = @_;
 
 	my @vals = ();
-	foreach( $session->param( $prefix ) )
+	foreach( $handle->param( $prefix ) )
 	{
 		next if m/^\s*$/;
 		# ignore the "--------" divider.
@@ -443,10 +443,10 @@ sub from_search_form
 	my $val = join ' ', @vals;
 
 	# ANY or ALL?
-	my $merge = $session->param( $prefix."_merge" );
+	my $merge = $handle->param( $prefix."_merge" );
 	$merge = "ANY" unless( defined $merge );
 
-        my $match = $session->param( $prefix."_match" );
+        my $match = $handle->param( $prefix."_match" );
         $match = "EQ" unless defined( $match );
 	
 	return( $val, $merge, $match );
@@ -455,7 +455,7 @@ sub from_search_form
 	
 sub render_search_description
 {
-	my( $self, $session, $sfname, $value, $merge, $match ) = @_;
+	my( $self, $handle, $sfname, $value, $merge, $match ) = @_;
 
 	my $phraseid;
 	if( $merge eq "ANY" )
@@ -467,21 +467,21 @@ sub render_search_description
 		$phraseid = "lib/searchfield:desc_all_in";
 	}
 
-	my $valuedesc = $session->make_doc_fragment;
+	my $valuedesc = $handle->make_doc_fragment;
 	my @list = split( ' ',  $value );
 	for( my $i=0; $i<scalar @list; ++$i )
 	{
 		if( $i>0 )
 		{
-			$valuedesc->appendChild( $session->make_text( ", " ) );
+			$valuedesc->appendChild( $handle->make_text( ", " ) );
 		}
-		$valuedesc->appendChild( $session->make_text( '"' ) );
+		$valuedesc->appendChild( $handle->make_text( '"' ) );
 		$valuedesc->appendChild(
-			$self->get_value_label( $session, $list[$i] ) );
-		$valuedesc->appendChild( $session->make_text( '"' ) );
+			$self->get_value_label( $handle, $list[$i] ) );
+		$valuedesc->appendChild( $handle->make_text( '"' ) );
 	}
 
-	return $session->html_phrase(
+	return $handle->html_phrase(
 		$phraseid,
 		name => $sfname, 
 		value => $valuedesc ); 
@@ -489,7 +489,7 @@ sub render_search_description
 
 sub get_search_conditions_not_ex
 {
-	my( $self, $session, $dataset, $search_value, $match, $merge,
+	my( $self, $handle, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 	
 	return EPrints::Search::Condition->new( 
@@ -526,25 +526,25 @@ sub get_xml_schema_type
 
 sub render_xml_schema_type
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $type = $session->make_element( "xs:simpleType", name => $self->get_xml_schema_type );
+	my $type = $handle->make_element( "xs:simpleType", name => $self->get_xml_schema_type );
 
-	my( $tags, $labels ) = $self->tags_and_labels( $session );
+	my( $tags, $labels ) = $self->tags_and_labels( $handle );
 
-	my $restriction = $session->make_element( "xs:restriction", base => "xs:string" );
+	my $restriction = $handle->make_element( "xs:restriction", base => "xs:string" );
 	$type->appendChild( $restriction );
 	foreach my $value (@$tags)
 	{
-		my $enumeration = $session->make_element( "xs:enumeration", value => $value );
+		my $enumeration = $handle->make_element( "xs:enumeration", value => $value );
 		$restriction->appendChild( $enumeration );
 		if( defined $labels->{$value} )
 		{
-			my $annotation = $session->make_element( "xs:annotation" );
+			my $annotation = $handle->make_element( "xs:annotation" );
 			$enumeration->appendChild( $annotation );
-			my $documentation = $session->make_element( "xs:documentation" );
+			my $documentation = $handle->make_element( "xs:documentation" );
 			$annotation->appendChild( $documentation );
-			$documentation->appendChild( $session->make_text( $labels->{$value} ) );
+			$documentation->appendChild( $handle->make_text( $labels->{$value} ) );
 		}
 	}
 

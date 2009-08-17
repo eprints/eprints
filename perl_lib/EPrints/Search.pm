@@ -34,11 +34,11 @@ web page.
 
 =head2 Searching for Eprints
 
-	$ds = $session->get_repository->get_dataset( "archive" );
+	$ds = $handle->get_repository->get_dataset( "archive" );
 
 	$searchexp = EPrints::Search->new(
 		satisfy_all => 1,
-		session => $session,
+		handle => $handle,
 		dataset => $ds,
 	);
 
@@ -60,7 +60,7 @@ web page.
 
 	my $info = { matches => 0 };
 	sub fn {
-		my( $session, $dataset, $eprint, $info ) = @_;
+		my( $handle, $dataset, $eprint, $info ) = @_;
 		$info->{matches}++;
 	};
 	$results->map( \&fn, $info );
@@ -103,9 +103,9 @@ GENERAL PARAMETERS
 
 =over 4
 
-=item session (required)
+=item handle (required)
 
-The current L<EPrints::Session>
+The current L<EPrints::Handle>
 
 =item dataset OR dataset_id (required)
 
@@ -203,7 +203,7 @@ being mentioned in the description of the search.
 ######################################################################
 
 @EPrints::Search::OPTS = (
-	"session", 	"dataset", 	"allow_blank", 	
+	"handle", 	"dataset", 	"allow_blank", 	
 	"satisfy_all", 	"fieldnames", 	"staff", 	
 	"custom_order", "keep_cache", 	"cache_id", 	
 	"prefix", 	"defaults", 	"filters", 
@@ -217,7 +217,7 @@ sub new
 	
 	my $self = {};
 	bless $self, $class;
-	# only session & table are required.
+	# only handle & table are required.
 	# setup defaults for the others:
 	$data{allow_blank} = 0 if ( !defined $data{allow_blank} );
 	$data{satisfy_all} = 1 if ( !defined $data{satisfy_all} );
@@ -259,7 +259,7 @@ END
 
 	if( defined $data{"dataset_id"} )
 	{
-		$self->{"dataset"} = $self->{"session"}->get_repository->get_dataset( $data{"dataset_id"} );
+		$self->{"dataset"} = $self->{handle}->get_repository->get_dataset( $data{"dataset_id"} );
 	}
 
 	# Arrays for the Search::Field objects
@@ -271,7 +271,7 @@ END
 	if( $self->{fieldnames} eq "editpermfields" )
 	{
 		$self->{search_fields}= [];
-		foreach( @{ $self->{session}->get_repository->get_conf( "editor_limit_fields" )} )
+		foreach( @{ $self->{handle}->get_repository->get_conf( "editor_limit_fields" )} )
 		{
 			push @{$self->{search_fields}}, { meta_fields=>[$_] };	
 		}
@@ -363,7 +363,7 @@ sub from_cache
 {
 	my( $self, $id ) = @_;
 
-	my $string = $self->{session}->get_database->cache_exp( $id );
+	my $string = $self->{handle}->get_database->cache_exp( $id );
 
 	return( 0 ) if( !defined $string );
 	$self->from_string( $string );
@@ -394,7 +394,7 @@ sub add_field
 
 	# Create a new searchfield
 	my $searchfield = EPrints::Search::Field->new( 
-					$self->{session},
+					$self->{handle},
 					$self->{dataset},
 					$metafields,
 					$value,
@@ -608,7 +608,7 @@ sub from_string
 	
 # not overriding these bits
 #	$self->{allow_blank} = $parts[0];
-#	$self->{dataset} = $self->{session}->get_repository->get_dataset( $parts[3] ); 
+#	$self->{dataset} = $self->{handle}->get_repository->get_dataset( $parts[3] ); 
 
 	my $sf_data = {};
 	if( defined $field_string )
@@ -649,7 +649,7 @@ sub from_string_raw
 	delete $self->{custom_order} if( $self->{custom_order} eq "" );
 # not overriding these bits
 #	$self->{allow_blank} = $parts[0];
-#	$self->{dataset} = $self->{session}->get_repository->get_dataset( $parts[3] ); 
+#	$self->{dataset} = $self->{handle}->get_repository->get_dataset( $parts[3] ); 
 
 	foreach( split /\|/ , $field_string )
 	{
@@ -857,12 +857,12 @@ sub render_description
 {
 	my( $self ) = @_;
 
-	my $frag = $self->{session}->make_doc_fragment;
+	my $frag = $self->{handle}->make_doc_fragment;
 
 	$frag->appendChild( $self->render_conditions_description );
-	$frag->appendChild( $self->{session}->make_text( ". " ) );
+	$frag->appendChild( $self->{handle}->make_text( ". " ) );
 	$frag->appendChild( $self->render_order_description );
-	$frag->appendChild( $self->{session}->make_text( ". " ) );
+	$frag->appendChild( $self->{handle}->make_text( ". " ) );
 
 	return $frag;
 }
@@ -896,13 +896,13 @@ sub render_conditions_description
 		$joinphraseid = "lib/searchexpression:desc_and";
 	}
 
-	my $frag = $self->{session}->make_doc_fragment;
+	my $frag = $self->{handle}->make_doc_fragment;
 
 	for( my $i=0; $i<scalar @bits; ++$i )
 	{
 		if( $i>0 )
 		{
-			$frag->appendChild( $self->{session}->html_phrase( 
+			$frag->appendChild( $self->{handle}->html_phrase( 
 				$joinphraseid ) );
 		}
 		$frag->appendChild( $bits[$i] );
@@ -910,7 +910,7 @@ sub render_conditions_description
 
 	if( scalar @bits == 0 )
 	{
-		$frag->appendChild( $self->{session}->html_phrase(
+		$frag->appendChild( $self->{handle}->html_phrase(
 			"lib/searchexpression:desc_no_conditions" ) );
 	}
 
@@ -932,7 +932,7 @@ sub render_order_description
 {
 	my( $self ) = @_;
 
-	my $frag = $self->{session}->make_doc_fragment;
+	my $frag = $self->{handle}->make_doc_fragment;
 
 	# empty if there is no order.
 	return $frag unless( EPrints::Utils::is_set( $self->{custom_order} ) );
@@ -940,16 +940,16 @@ sub render_order_description
 	my $first = 1;
 	foreach my $orderid ( split( "/", $self->{custom_order} ) )
 	{
-		$frag->appendChild( $self->{session}->make_text( ", " ) ) if( !$first );
+		$frag->appendChild( $self->{handle}->make_text( ", " ) ) if( !$first );
 		my $desc = 0;
 		if( $orderid=~s/^-// ) { $desc = 1; }
-		$frag->appendChild( $self->{session}->make_text( "-" ) ) if( $desc );
+		$frag->appendChild( $self->{handle}->make_text( "-" ) ) if( $desc );
 		my $field = EPrints::Utils::field_from_config_string( $self->{dataset}, $orderid );
-		$frag->appendChild( $field->render_name( $self->{session} ) );
+		$frag->appendChild( $field->render_name( $self->{handle} ) );
 		$first = 0;
 	}
 
-	return $self->{session}->html_phrase(
+	return $self->{handle}->html_phrase(
 		"lib/searchexpression:desc_order",
 		order => $frag );
 
@@ -1108,7 +1108,7 @@ sub perform_search
 {
 	my( $self ) = @_;
 
-	if( $self->{session}->get_repository->get_conf( "temp_use_v2_search" ) )
+	if( $self->{handle}->get_repository->get_conf( "temp_use_v2_search" ) )
 	{
 		return $self->perform_search_v2;
 	}
@@ -1124,7 +1124,7 @@ sub perform_search
 	if( defined $self->{cache_id} )
 	{
 		$self->{results} = EPrints::List->new( 
-			session => $self->{session},
+			handle => $self->{handle},
 			dataset => $self->{dataset},
 			encoded => $self->serialise,
 			cache_id => $self->{cache_id}, 
@@ -1138,10 +1138,10 @@ sub perform_search
 	# print STDERR $self->get_conditions->describe."\n\n";
 
 	my $unsorted_matches = $self->get_conditions->process( 
-						$self->{session} );
+						$self->{handle} );
 
 	$self->{results} = EPrints::List->new( 
-		session => $self->{session},
+		handle => $self->{handle},
 		dataset => $self->{dataset},
 		order => $self->{custom_order},
 		encoded => $self->serialise,
@@ -1170,7 +1170,7 @@ sub perform_groupby
 
 	# we don't do any caching of GROUP BY
 	return $self->get_conditions->process_groupby( 
-			session => $self->{session},
+			handle => $self->{handle},
 			dataset => $self->{dataset},
 			field => $field,
 		);
@@ -1191,7 +1191,7 @@ sub perform_search_v2
 	if( defined $self->{cache_id} )
 	{
 		$self->{results} = EPrints::List->new( 
-			session => $self->{session},
+			handle => $self->{handle},
 			dataset => $self->{dataset},
 			encoded => $self->serialise,
 			cache_id => $self->{cache_id}, 
@@ -1205,10 +1205,10 @@ sub perform_search_v2
 	# print STDERR $self->get_conditions->describe."\n\n";
 
 	my $unsorted_matches;
-	if( $self->{session}->get_repository->get_conf( "temp_use_v2_search" ) > 1 )
+	if( $self->{handle}->get_repository->get_conf( "temp_use_v2_search" ) > 1 )
 	{
 		$unsorted_matches = $self->get_conditions->process_v3( 
-			session => $self->{session},
+			handle => $self->{handle},
 			order => $self->{custom_order},
 			dataset => $self->{dataset},
 			limit => $self->{limit},
@@ -1217,14 +1217,14 @@ sub perform_search_v2
 	else
 	{
 		$unsorted_matches = $self->get_conditions->process_v2( 
-			session => $self->{session},
+			handle => $self->{handle},
 			order => $self->{custom_order},
 			dataset => $self->{dataset},
 		);
 	}
 
 	$self->{results} = EPrints::List->new( 
-		session => $self->{session},
+		handle => $self->{handle},
 		dataset => $self->{dataset},
 		encoded => $self->serialise,
 		keep_cache => $self->{keep_cache},
@@ -1254,7 +1254,7 @@ sub cache_results
 
 	if( !defined $self->{result} )
 	{
-		$self->{session}->get_repository->log( "\$searchexp->cache_results() : Search has not been performed" );
+		$self->{handle}->get_repository->log( "\$searchexp->cache_results() : Search has not been performed" );
 		return;
 	}
 
@@ -1319,7 +1319,7 @@ sub get_ids_by_field_values
 	}
 
 	my $counts = $field->get_ids_by_value(
-		$self->{session},
+		$self->{handle},
 		$self->{dataset},
 		filters => \@filters
 	);

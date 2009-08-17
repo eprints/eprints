@@ -37,7 +37,7 @@ use strict;
 use EPrints::Apache::AnApache; # exports apache constants
 use URI;
 
-#use EPrints::Session;
+#use EPrints::Handle;
 #use EPrints::SystemSettings;
 
 
@@ -48,35 +48,35 @@ sub authen
 
 	return OK unless $r->is_initial_req; # only the first internal request
 	
-	my $session = new EPrints::Session(2); # don't open the CGI info
+	my $handle = new EPrints::Handle(2); # don't open the CGI info
 	
-	if( !defined $session )
+	if( !defined $handle )
 	{
 		return FORBIDDEN;
 	}
 
 	my $rc;
-	if( !_use_auth_basic( $r, $session ) )
+	if( !_use_auth_basic( $r, $handle ) )
 	{
-		$rc = auth_cookie( $r, $session );
+		$rc = auth_cookie( $r, $handle );
 	}
 	else
 	{
-		$rc = auth_basic( $r, $session );
+		$rc = auth_basic( $r, $handle );
 	}
 
-	$session->terminate();
+	$handle->terminate();
 
 	return $rc;
 }
 
 sub _use_auth_basic
 {
-	my( $r, $session ) = @_;
+	my( $r, $handle ) = @_;
 
 	my $rc = 0;
 
-	if( !$session->get_repository->get_conf( "cookie_auth" ) ) 
+	if( !$handle->get_repository->get_conf( "cookie_auth" ) ) 
 	{
 		$rc = 1;
 	}
@@ -85,13 +85,13 @@ sub _use_auth_basic
 		my $uri = URI->new( $r->uri, "http" );
 		my $script = $uri->path;
 
-		my $econf = $session->get_repository->get_conf( "auth_basic" ) || [];
+		my $econf = $handle->get_repository->get_conf( "auth_basic" ) || [];
 
 		foreach my $exppath ( @$econf )
 		{
 			if( $exppath !~ /^\// )
 			{
-				$exppath = $session->get_repository->get_conf( "rel_cgipath" )."/$exppath";
+				$exppath = $handle->get_repository->get_conf( "rel_cgipath" )."/$exppath";
 			}
 			if( $script =~ /^$exppath/ )
 			{
@@ -108,43 +108,43 @@ sub authen_doc
 {
 	my( $r ) = @_;
 
-	my $session = new EPrints::Session(2); # don't open the CGI info
+	my $handle = new EPrints::Handle(2); # don't open the CGI info
 
-	return FORBIDDEN if( !defined $session );
+	return FORBIDDEN if( !defined $handle );
 
-	my $rvalue = _authen_doc( $r, $session );
-	$session->terminate;
+	my $rvalue = _authen_doc( $r, $handle );
+	$handle->terminate;
 
 	return $rvalue;
 }
 
 sub _authen_doc
 {
-	my( $r, $session ) = @_;
+	my( $r, $handle ) = @_;
 
-	my $document = secure_doc_from_url( $r, $session );
+	my $document = secure_doc_from_url( $r, $handle );
 	return NOT_FOUND if( !defined $document );
 
 	my $security = $document->get_value( "security" );
 
-	my $result = $session->get_repository->call( "can_request_view_document", $document, $r );
+	my $result = $handle->get_repository->call( "can_request_view_document", $document, $r );
 
 	return OK if( $result eq "ALLOW" );
 	return FORBIDDEN if( $result eq "DENY" );
 	if( $result ne "USER" )
 	{
-		$session->get_repository->log( "Response from can_request_view_document was '$result'. Only ALLOW, DENY, USER are allowed." );
+		$handle->get_repository->log( "Response from can_request_view_document was '$result'. Only ALLOW, DENY, USER are allowed." );
 		return FORBIDDEN;
 	}
 
 	my $rc;
-	if( !_use_auth_basic( $r, $session ) )
+	if( !_use_auth_basic( $r, $handle ) )
 	{
-		$rc = auth_cookie( $r, $session, 1 );
+		$rc = auth_cookie( $r, $handle, 1 );
 	}
 	else
 	{
-		$rc = auth_basic( $r, $session );
+		$rc = auth_basic( $r, $handle );
 	}
 
 	return $rc;
@@ -155,16 +155,16 @@ sub _authen_doc
 
 sub auth_cookie
 {
-	my( $r, $session, $redir ) = @_;
+	my( $r, $handle, $redir ) = @_;
 
-	my $user = $session->current_user;
+	my $user = $handle->current_user;
 
 	if( !defined $user ) 
 	{
-		my $login_url = $session->get_url(
+		my $login_url = $handle->get_url(
 			path => "cgi",
 		) . "/users/login";
-		my $target_url = $session->get_url(
+		my $target_url = $handle->get_url(
 			host => 1,
 			path => "auto",
 		);
@@ -172,9 +172,9 @@ sub auth_cookie
 		$login_url->query_form(
 			target => $target_url
 		);
-		if( $session->get_repository->can_call( 'get_login_url' ) )
+		if( $handle->get_repository->can_call( 'get_login_url' ) )
 		{
-			$login_url = $session->get_repository->call( 'get_login_url', $session, $target_url );
+			$login_url = $handle->get_repository->call( 'get_login_url', $handle, $target_url );
 			$redir = 1;
 		}
 		if( $redir )
@@ -205,7 +205,7 @@ sub auth_cookie
 
 sub auth_basic
 {
-	my( $r, $session ) = @_;
+	my( $r, $handle ) = @_;
 
 	my( $res, $passwd_sent ) = $r->get_basic_auth_pw;
 	my( $user_sent ) = $r->user;
@@ -215,16 +215,16 @@ sub auth_basic
 		return AUTH_REQUIRED;
 	}
 
-	my $user_ds = $session->get_repository->get_dataset( "user" );
+	my $user_ds = $handle->get_repository->get_dataset( "user" );
 
-	my $user = EPrints::DataObj::User::user_with_username( $session, $user_sent );
+	my $user = EPrints::DataObj::User::user_with_username( $handle, $user_sent );
 	if( !defined $user )
 	{
 		$r->note_basic_auth_failure;
 		return AUTH_REQUIRED;
 	}
 
-	return $session->valid_login( $user_sent, $passwd_sent ) ?
+	return $handle->valid_login( $user_sent, $passwd_sent ) ?
 			OK : AUTH_REQUIRED;
 }
 
@@ -240,25 +240,25 @@ sub authz_doc
 {
 	my( $r ) = @_;
 
-	my $session = new EPrints::Session(2); # don't open the CGI info
+	my $handle = new EPrints::Handle(2); # don't open the CGI info
 
-	my $document = secure_doc_from_url( $r, $session );
+	my $document = secure_doc_from_url( $r, $handle );
 	if( !defined $document ) 
 	{
-		$session->terminate();
+		$handle->terminate();
 		return NOT_FOUND;
 	}
 
-	my $request_result = $session->get_repository->call( "can_request_view_document", $document, $r );
+	my $request_result = $handle->get_repository->call( "can_request_view_document", $document, $r );
 	return OK if( $request_result eq "ALLOW" );
 	return FORBIDDEN if( $request_result eq "DENY" );
 
 	my $security = $document->get_value( "security" );
 
-	my $user = $session->current_user;
+	my $user = $handle->current_user;
 
 	my $result = $document->user_can_view( $user );
-	$session->terminate();
+	$handle->terminate();
 
 	if( $result )
 	{
@@ -273,7 +273,7 @@ sub authz_doc
 ######################################################################
 =pod
 
-=item $document = EPrints::Apache::Auth::secure_doc_from_url( $r, $session )
+=item $document = EPrints::Apache::Auth::secure_doc_from_url( $r, $handle )
 
 Return the document that the current URL, in the secure documents area
 relates to, if any. Or undef.
@@ -284,12 +284,12 @@ relates to, if any. Or undef.
 
 sub secure_doc_from_url
 {
-	my( $r, $session ) = @_;
+	my( $r, $handle ) = @_;
 
 	# hack to reduce load. We cache the document in the request object.
 	#if( defined $r->{eprint_document} ) { return $r->{eprint_document}; }
 
-	my $repository = $session->{repository};
+	my $repository = $handle->{repository};
 	my $uri = $r->uri;
 
 	my $urlpath = $repository->get_conf( "rel_path" );
@@ -310,7 +310,7 @@ sub secure_doc_from_url
 		return undef;
 	}
 
-	my $document = EPrints::DataObj::Document::doc_with_eprintid_and_pos( $session, $eprintid, $pos );
+	my $document = EPrints::DataObj::Document::doc_with_eprintid_and_pos( $handle, $eprintid, $pos );
 	if( !defined $document ) {
 		$repository->log( 
 "Request to ".$r->uri.": document eprintid=$eprintid pos=$pos not found." );

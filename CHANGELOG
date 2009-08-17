@@ -8369,3 +8369,6 @@ EPRINTS-3.1-beta-2
 2009-08-17 cjg
  * Chopped Session.pm into smaller modules for easier management.
  * Moved some functions to BackCompatability and refactored get_archive
+
+2009-08-17 cjg
+ * s/session/handle/g. May the gods have mercy on us.

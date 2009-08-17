@@ -3,11 +3,11 @@ use EPrints;
 use strict;
 use warnings;
 
-my $session = EPrints::Session->new();
+my $handle = EPrints::Handle->new();
 
-my $string_frag = lc $session->param( "q" );
-my $lookup_file = $session->param( "file" );
-my $mode = $session->param( "mode" ) || "phrase";
+my $string_frag = lc $handle->param( "q" );
+my $lookup_file = $handle->param( "file" );
+my $mode = $handle->param( "mode" ) || "phrase";
 if( !defined $lookup_file )
 {
 	EPrints::abort( "no filename" );
@@ -16,7 +16,7 @@ my $lookup_xml ={};
 my $lookup_lc_names = [];
 $lookup_file=~s/\///sg;
 $lookup_file=~s/^\.+//s;
-my $filepath = $session->get_repository->get_conf( "config_path" )."/autocomplete/$lookup_file";
+my $filepath = $handle->get_repository->get_conf( "config_path" )."/autocomplete/$lookup_file";
 open( DATA, '<', $filepath ) || EPrints::abort "can't read $filepath: $!";
 while( <DATA> )
 {
@@ -62,4 +62,4 @@ foreach (@filtered_lookup_names){
 }
 print '</ul>';
 
-$session->terminate;
+$handle->terminate;

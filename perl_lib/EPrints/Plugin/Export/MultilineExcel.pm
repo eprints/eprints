@@ -64,7 +64,7 @@ sub output_list
 	my $row_id = 1;
 
 	$opts{list}->map( sub {
-		my( $session, $dataset, $item ) = @_;
+		my( $handle, $dataset, $item ) = @_;
 
 		my $rows = $plugin->dataobj_to_rows( $item );
 	

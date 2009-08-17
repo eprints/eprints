@@ -104,8 +104,8 @@ sub input_text_fh
 		if( !defined $epdata )
 		{
 			$self->handler->message( "warning", $self->html_phrase( "retrieve_failed",
-				url => $self->{session}->make_text( $url ),
-				error => $self->{session}->make_text( $self->{errmsg} )
+				url => $self->{handle}->make_text( $url ),
+				error => $self->{handle}->make_text( $self->{errmsg} )
 				) );
 			next;
 		}
@@ -121,7 +121,7 @@ sub input_text_fh
 
 	return EPrints::List->new( 
 		dataset => $opts{dataset}, 
-		session => $self->{session},
+		handle => $self->{handle},
 		ids => \@ids );
 }
 

@@ -50,7 +50,7 @@ sub get_sql_names
 
 sub value_from_sql_row
 {
-	my( $self, $session, $row ) = @_;
+	my( $self, $handle, $row ) = @_;
 
 	my @parts = splice(@$row,0,6);
 
@@ -67,7 +67,7 @@ sub value_from_sql_row
 
 sub sql_row_from_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
 	my @parts;
 	@parts = split /[-: TZ]/, $value if defined $value;
@@ -78,7 +78,7 @@ sub sql_row_from_value
 
 sub render_single_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
 	my $res = $self->{render_res};
 
@@ -96,15 +96,15 @@ sub render_single_value
 
 	if( $self->{render_style} eq "short" )
 	{
-		return EPrints::Time::render_short_date( $session, $value );
+		return EPrints::Time::render_short_date( $handle, $value );
 	}
-	return EPrints::Time::render_date( $session, $value );
+	return EPrints::Time::render_date( $handle, $value );
 }
 	
 
 sub get_basic_input_ids
 {
-	my( $self, $session, $basename, $staff, $obj ) = @_;
+	my( $self, $handle, $basename, $staff, $obj ) = @_;
 
 	return( $basename."_second", $basename."_minute", $basename."_hour",
 		$basename."_day", $basename."_month", $basename."_year" );
@@ -112,9 +112,9 @@ sub get_basic_input_ids
 
 sub get_basic_input_elements
 {
-	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
+	my( $self, $handle, $value, $basename, $staff, $obj ) = @_;
 
-	my $frag = $session->make_doc_fragment;
+	my $frag = $handle->make_doc_fragment;
 		
 	my $min_res = $self->get_property( "min_resolution" );
 	
@@ -122,13 +122,13 @@ sub get_basic_input_elements
 
 	if( defined $min_res && $min_res ne "second" )
 	{	
-		$div = $session->make_element( "div", class=>"ep_form_field_help" );	
-		$div->appendChild( $session->html_phrase( 
+		$div = $handle->make_element( "div", class=>"ep_form_field_help" );	
+		$div->appendChild( $handle->html_phrase( 
 			"lib/metafield:date_res_".$min_res ) );
 		$frag->appendChild( $div );
 	}
 
-	$div = $session->make_element( "div" );
+	$div = $handle->make_element( "div" );
 	my( $hour,$minute,$second,$year, $month, $day ) = ("", "", "","","","");
 	if( defined $value && $value ne "" )
 	{
@@ -148,10 +148,10 @@ sub get_basic_input_elements
  	my $secondid = $basename."_second";
 
 	$div->appendChild( 
-		$session->html_phrase( "lib/metafield:year" ) );
-	$div->appendChild( $session->make_text(" ") );
+		$handle->html_phrase( "lib/metafield:year" ) );
+	$div->appendChild( $handle->make_text(" ") );
 
-	$div->appendChild( $session->render_noenter_input_field(
+	$div->appendChild( $handle->render_noenter_input_field(
 		class => "ep_form_text",
 		name => $yearid,
 		id => $yearid,
@@ -160,26 +160,26 @@ sub get_basic_input_elements
 		maxlength => 4 ) );
 
 	##############################################
-	$div->appendChild( $session->make_text(" ") );
+	$div->appendChild( $handle->make_text(" ") );
 	##############################################
 
 	$div->appendChild( 
-		$session->html_phrase( "lib/metafield:month" ) );
-	$div->appendChild( $session->make_text(" ") );
-	$div->appendChild( $session->render_option_list(
+		$handle->html_phrase( "lib/metafield:month" ) );
+	$div->appendChild( $handle->make_text(" ") );
+	$div->appendChild( $handle->render_option_list(
 		name => $monthid,
 		id => $monthid,
 		values => \@EPrints::MetaField::Date::MONTHKEYS,
 		default => $month,
-		labels => $self->_month_names( $session ) ) );
+		labels => $self->_month_names( $handle ) ) );
 
 	##############################################
-	$div->appendChild( $session->make_text(" ") );
+	$div->appendChild( $handle->make_text(" ") );
 	##############################################
 
 	$div->appendChild( 
-		$session->html_phrase( "lib/metafield:day" ) );
-	$div->appendChild( $session->make_text(" ") );
+		$handle->html_phrase( "lib/metafield:day" ) );
+	$div->appendChild( $handle->make_text(" ") );
 
 	my @daykeys = ();
 	my %daylabels = ();
@@ -189,7 +189,7 @@ sub get_basic_input_elements
 		push @daykeys, $key;
 		$daylabels{$key} = ($_==0?"?":$key);
 	}
-	$div->appendChild( $session->render_option_list(
+	$div->appendChild( $handle->render_option_list(
 		name => $dayid,
 		id => $dayid,
 		values => \@daykeys,
@@ -197,12 +197,12 @@ sub get_basic_input_elements
 		labels => \%daylabels ) );
 
 	##############################################
-	$div->appendChild( $session->make_text(" ") );
+	$div->appendChild( $handle->make_text(" ") );
 	##############################################
 
 	$div->appendChild( 
-		$session->html_phrase( "lib/metafield:hour" ) );
-	$div->appendChild( $session->make_text(" ") );
+		$handle->html_phrase( "lib/metafield:hour" ) );
+	$div->appendChild( $handle->make_text(" ") );
 
 	my @hourkeys = ( "" );
 	my %hourlabels = ( ""=>"?" );
@@ -212,7 +212,7 @@ sub get_basic_input_elements
 		push @hourkeys, $key;
 		$hourlabels{$key} = $key;
 	}
-	$div->appendChild( $session->render_option_list(
+	$div->appendChild( $handle->render_option_list(
 		name => $hourid,
 		id => $hourid,
 		values => \@hourkeys,
@@ -220,12 +220,12 @@ sub get_basic_input_elements
 		labels => \%hourlabels ) );
 
 	##############################################
-	$div->appendChild( $session->make_text(" ") );
+	$div->appendChild( $handle->make_text(" ") );
 	##############################################
 
 	$div->appendChild( 
-		$session->html_phrase( "lib/metafield:minute" ) );
-	$div->appendChild( $session->make_text(" ") );
+		$handle->html_phrase( "lib/metafield:minute" ) );
+	$div->appendChild( $handle->make_text(" ") );
 
 	my @minutekeys = ( "" );
 	my %minutelabels = ( ""=>"?" );
@@ -235,7 +235,7 @@ sub get_basic_input_elements
 		push @minutekeys, $key;
 		$minutelabels{$key} = $key;
 	}
-	$div->appendChild( $session->render_option_list(
+	$div->appendChild( $handle->render_option_list(
 		name => $minuteid,
 		id => $minuteid,
 		values => \@minutekeys,
@@ -243,12 +243,12 @@ sub get_basic_input_elements
 		labels => \%minutelabels ) );
 
 	##############################################
-	$div->appendChild( $session->make_text(" ") );
+	$div->appendChild( $handle->make_text(" ") );
 	##############################################
 
 	$div->appendChild( 
-		$session->html_phrase( "lib/metafield:second" ) );
-	$div->appendChild( $session->make_text(" ") );
+		$handle->html_phrase( "lib/metafield:second" ) );
+	$div->appendChild( $handle->make_text(" ") );
 
 	my @secondkeys = ( "" );
 	my %secondlabels = ( ""=>"?" );
@@ -258,7 +258,7 @@ sub get_basic_input_elements
 		push @secondkeys, $key;
 		$secondlabels{$key} = $key;
 	}
-	$div->appendChild( $session->render_option_list(
+	$div->appendChild( $handle->render_option_list(
 		name => $secondid,
 		id => $secondid,
 		values => \@secondkeys,
@@ -278,17 +278,17 @@ sub get_basic_input_elements
 
 sub form_value_basic
 {
-	my( $self, $session, $basename ) = @_;
+	my( $self, $handle, $basename ) = @_;
 	
-	my $day = $session->param( $basename."_day" );
-	my $month = $session->param( $basename."_month" );
-	my $year = $session->param( $basename."_year" );
+	my $day = $handle->param( $basename."_day" );
+	my $month = $handle->param( $basename."_month" );
+	my $year = $handle->param( $basename."_year" );
 	$month = undef if( !EPrints::Utils::is_set($month) || $month == 0 );
 	$year = undef if( !EPrints::Utils::is_set($year) || $year == 0 );
 	$day = undef if( !EPrints::Utils::is_set($day) || $day == 0 );
-	my $second = $session->param( $basename."_second" );
-	my $minute = $session->param( $basename."_minute" );
-	my $hour = $session->param( $basename."_hour" );
+	my $second = $handle->param( $basename."_second" );
+	my $minute = $handle->param( $basename."_minute" );
+	my $hour = $handle->param( $basename."_hour" );
 	$second = undef if( !EPrints::Utils::is_set($second) || $second eq "" );
 	$minute = undef if( !EPrints::Utils::is_set($minute) || $minute eq "" );
 	$hour = undef if( !EPrints::Utils::is_set($hour) || $hour eq "" );
@@ -311,9 +311,9 @@ sub form_value_basic
 
 sub get_unsorted_values
 {
-	my( $self, $session, $dataset ) = @_;
+	my( $self, $handle, $dataset ) = @_;
 
-	my $values = $session->get_database->get_values( $self, $dataset );
+	my $values = $handle->get_database->get_values( $self, $dataset );
 
 	my $res = $self->{render_res};
 
@@ -345,9 +345,9 @@ sub get_unsorted_values
 
 sub get_value_label
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $handle, $value ) = @_;
 
-	return EPrints::Time::render_date( $session, $value );
+	return EPrints::Time::render_date( $handle, $value );
 }
 
 sub get_property_defaults
@@ -370,13 +370,13 @@ sub should_reverse_order { return 1; }
 
 sub render_xml_schema_type
 {
-	my( $self, $session ) = @_;
+	my( $self, $handle ) = @_;
 
-	my $type = $session->make_element( "xs:simpleType", name => $self->get_xml_schema_type );
+	my $type = $handle->make_element( "xs:simpleType", name => $self->get_xml_schema_type );
 
-	my $restriction = $session->make_element( "xs:restriction", base => "xs:string" );
+	my $restriction = $handle->make_element( "xs:restriction", base => "xs:string" );
 	$type->appendChild( $restriction );
-	my $pattern = $session->make_element( "xs:pattern", value => "([0-9]{4}-[0-9]{2}-[0-9]{2}[ T][0-9]{2}:[0-9]{2}:[0-9]{2}Z{0,1})|([0-9]{4}-[0-9]{2}-[0-9]{2}[ T][0-9]{2}:[0-9]{2})|([0-9]{4}-[0-9]{2}-[0-9]{2}[ T][0-9]{2})|([0-9]{4}-[0-9]{2}-[0-9]{2})|([0-9]{4}-[0-9]{2})|([0-9]{4})" );
+	my $pattern = $handle->make_element( "xs:pattern", value => "([0-9]{4}-[0-9]{2}-[0-9]{2}[ T][0-9]{2}:[0-9]{2}:[0-9]{2}Z{0,1})|([0-9]{4}-[0-9]{2}-[0-9]{2}[ T][0-9]{2}:[0-9]{2})|([0-9]{4}-[0-9]{2}-[0-9]{2}[ T][0-9]{2})|([0-9]{4}-[0-9]{2}-[0-9]{2})|([0-9]{4}-[0-9]{2})|([0-9]{4})" );
 	$restriction->appendChild( $pattern );
 
 	return $type;
