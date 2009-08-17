@@ -122,7 +122,7 @@ sub input_file
 	}
 	close $fh;
 
-	my $dataset = $session->get_archive()->get_dataset( $dataset_id );
+	my $dataset = $session->get_repository()->get_dataset( $dataset_id );
 
 	if(!defined $dataset)
 	{

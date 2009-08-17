@@ -989,7 +989,6 @@ Returns the EPrints::Repository to which this dataset belongs.
 
 =cut
 ######################################################################
-sub get_archive { return $_[0]->get_repository; }
 
 sub get_repository
 {

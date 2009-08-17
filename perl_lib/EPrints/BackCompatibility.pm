@@ -212,7 +212,15 @@ $INC{"EPrints/Auth.pm"} = "EPrints/BackCompatibility.pm";
 
 ######################################################################
 
+package EPrints::Session;
+
+sub get_archive { EPrints::deprecated; return $_[0]->get_repository; }
+
+######################################################################
+
 package EPrints::DataSet;
+
+sub get_archive { EPrints::deprecated; return $_[0]->get_repository; }
 
 sub get_page_fields
 {

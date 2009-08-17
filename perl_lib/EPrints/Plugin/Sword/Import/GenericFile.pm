@@ -40,7 +40,7 @@ sub input_file
 	my $NO_OP = $opts{no_op};
 	my $VERBOSE = $opts{verbose};
 
-	my $dataset = $session->get_archive()->get_dataset( $dataset_id );
+	my $dataset = $session->get_repository()->get_dataset( $dataset_id );
 
 	if(!defined $dataset)
         {

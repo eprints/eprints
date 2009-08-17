@@ -23,8 +23,6 @@ B<EPrints::Email> - Email Utility functions for EPrints.
 
 This package handles sending emails.
 
-=over 4
-
 =cut
 
 package EPrints::Email;
@@ -38,6 +36,8 @@ use strict;
 
 ######################################################################
 =pod
+
+=over 4
 
 =item EPrints::Utils::send_mail( %properties )
 

@@ -39,7 +39,7 @@ sub action_use_as_template
 {
 	my( $self ) = @_;
 
-	my $inbox_ds = $self->{session}->get_archive()->get_dataset( "inbox" );
+	my $inbox_ds = $self->{session}->get_repository()->get_dataset( "inbox" );
 	my $copy = $self->{processor}->{eprint}->clone( $inbox_ds, 0, 1 );
 	$copy->set_value( "userid", $self->{session}->current_user->get_value( "userid" ) );
 	$copy->commit();

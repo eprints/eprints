@@ -8365,3 +8365,7 @@ EPRINTS-3.1-beta-2
 
 2009-08-17 cjg
  * Added $session->get_conf() to improve readability of code.
+
+2009-08-17 cjg
+ * Chopped Session.pm into smaller modules for easier management.
+ * Moved some functions to BackCompatability and refactored get_archive

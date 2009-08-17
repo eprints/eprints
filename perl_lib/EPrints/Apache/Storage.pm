@@ -133,7 +133,7 @@ sub check_auth
 	}
 
 	my $rc;
-	if( $session->get_archive->get_conf( "cookie_auth" ) ) 
+	if( $session->get_repository->get_conf( "cookie_auth" ) ) 
 	{
 		$rc = EPrints::Apache::Auth::auth_cookie( $r, $session, 1 );
 	}

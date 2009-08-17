@@ -138,7 +138,7 @@ else
 	print "No $file - skipping\n" if( $noise > 1 );
 }
 
-my $ds = $session->get_archive()->get_dataset( 'eprint' );
+my $ds = $session->get_repository()->get_dataset( 'eprint' );
 my $searchexp = new EPrints::SearchExpression(
        	session=>$session,
        	allow_blank => 1,

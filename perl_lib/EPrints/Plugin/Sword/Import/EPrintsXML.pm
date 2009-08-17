@@ -95,7 +95,7 @@ sub input_file
         my $owner_id = $opts{owner_id};
         my $depositor_id = $opts{depositor_id};
 
-        my $ds = $session->get_archive()->get_dataset( $dataset_id );
+        my $ds = $session->get_repository()->get_dataset( $dataset_id );
 
         my $fh;
 
