@@ -89,7 +89,7 @@ sub action_create
 
 	if( !defined $self->{processor}->{user} )
 	{
-		my $db_error = session->get_database->error;
+		my $db_error = $handle->get_database->error;
 		$handle->get_repository->log( "Database Error: $db_error" );
 		$self->{processor}->add_message( 
 			"error",

@@ -17,7 +17,7 @@
 
 =head1 NAME
 
-B<EPrints::Handle:::XML> - :XML methods for EPrinst::Session
+B<EPrints::Handle::XML> - XML methods for EPrints::Session
 
 =head1 DESCRIPTION
 

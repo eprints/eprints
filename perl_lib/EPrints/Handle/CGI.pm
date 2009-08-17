@@ -17,7 +17,7 @@
 
 =head1 NAME
 
-B<EPrints::Handle:::CGI> - :CGI methods for EPrins::Handle
+B<EPrints::Handle::CGI> - CGI methods for EPrins::Handle
 
 =head1 DESCRIPTION
 

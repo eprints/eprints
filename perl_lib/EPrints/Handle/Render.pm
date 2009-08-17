@@ -17,7 +17,7 @@
 
 =head1 NAME
 
-B<EPrints::Handle::Render> - Render methods for EPrinst::Session
+B<EPrints::Handle::Render> - Render methods for EPrints::Session
 
 =head1 DESCRIPTION
 

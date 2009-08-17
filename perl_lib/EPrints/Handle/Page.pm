@@ -17,7 +17,7 @@
 
 =head1 NAME
 
-B<EPrints::Handle:::Page> - :Page methods for EPrins::Session
+B<EPrints::Handle::Page> - Page methods for EPrints::Handle
 
 =head1 DESCRIPTION
 
