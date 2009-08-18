@@ -21,68 +21,38 @@ B<EPrints::Search> - Represents a single search
 =head1 DESCRIPTION
 
 The Search object represents the conditions of a single 
-search.
+search. It returns an L<EPrints::List> object which stores
+the results of the search.
 
-It used to also store the results of the search, but now it returns
-an L<EPrints::List> object. 
-
-A search expression can also render itself as a web-form, populate
+A Search object can also render itself as a web-form, populate
 itself with values from that web-form and render the results as a
 web page.
 
-=head1 EXAMPLES
+=head1 SYNOPSIS
 
-=head2 Searching for Eprints
+	# searching for articles and books in the archive, sorted by date:
+	my $ds = $handle->get_dataset( "archive" );
 
-	$ds = $handle->get_repository->get_dataset( "archive" );
-
-	$searchexp = EPrints::Search->new(
+	my $searchexp = EPrints::Search->new(
 		satisfy_all => 1,
 		handle => $handle,
 		dataset => $ds,
+		order => "-date"
 	);
 
-	# Search for an eprint with eprintid 23
-	# (ought to use EPrints::DataObj::EPrint->new( SESSION, ID ))
-	$searchexp->add_field( $ds->get_field( "eprintid" ), 23 );
+	$searchexp->add_field( $ds->get_field( "type" ), qw/ article book /, "EQ", "ANY" );
 
-	$searchexp->add_field( $ds->get_field( "creators" ), "John Smith" );
-
-=head2 Getting Results
-
-	$results = $searchexp->perform_search;
-
-	my $count = $searchexp->count;
-	my $count = $results->count;
-
-	my $ids = $results->get_ids( 0, 10 );
-	my $ids = $results->get_ids; # Get all matching ids
-
-	my $info = { matches => 0 };
-	sub fn {
-		my( $handle, $dataset, $eprint, $info ) = @_;
-		$info->{matches}++;
-	};
-	$results->map( \&fn, $info );
-
+	# getting the results:
+	my $list = $searchexp->perform_search;
+	
+	# Dispose of the Search object:
 	$searchexp->dispose;
 
-See L<EPrints::List> for more.
+See L<EPrints::List> to know how to access the results of the search.
 
 =head1 METHODS
 
-=over 4
-
 =cut
-
-######################################################################
-#
-# INSTANCE VARIABLES:
-#
-#  $self->{foo}
-#     undefined
-#
-######################################################################
 
 package EPrints::Search;
 
@@ -91,6 +61,8 @@ use strict;
 
 ######################################################################
 =pod
+
+=over 4
 
 =item $searchexp = EPrints::Search->new( %params )
 
@@ -124,20 +96,21 @@ results matching any search-field will be returned.
 =item search_fields
 
 A reference to an array of search field configuration structures. Each 
-takes the form { id=>"...", default=>"..", meta_fields=>"..." } where
-the meaning is the same as for search configuration in ArchiveConfig.
+takes the form:
+{ id=>"...", default=>"..", meta_fields=>"..." } 
+
+where the meaning is the same as for search configuration in cfg.d/eprint_search_*.pl
 
 Search fields can also be added to the search expression after it has
-been constructed.
+been constructed (by using $searchexp->add_field(...)).
 
 =item order
 
-The order the results should be returned. This is a key to the list
-of orders available to this dataset, defined in ArchiveConfig.pm
+The order the results should be returned. 
 
 =item custom_order
 
-"order" limits you to the orders specified in ArchiveConfig, and is
+"order" limits you to the orders specified in cfg.d/eprint_search_*.pl, and is
 usually used by the web page based searching. custom_order allows
 you to specify any order you like. The format is 
 foo/-bar. This means that the results will be sorted
@@ -346,17 +319,79 @@ END
 	return( $self );
 }
 
-
 ######################################################################
 =pod
 
-=item $ok = $thing->from_cache( $id )
+=item $results = $searchexp->perform_search
 
-Populate this search expression with values from the given cache.
-
-Return false if the cache does not exist.
+Execute this search and return a L<EPrints::List> object
+representing the results.
 
 =cut
+######################################################################
+
+sub perform_search
+{
+	my( $self ) = @_;
+
+	if( $self->{handle}->get_repository->get_conf( "temp_use_v2_search" ) )
+	{
+		return $self->perform_search_v2;
+	}
+
+	$self->{error} = undef;
+
+	if( defined $self->{results} )
+	{
+		return $self->{results};
+	}
+
+	# cjg hmmm check cache still exists?
+	if( defined $self->{cache_id} )
+	{
+		$self->{results} = EPrints::List->new( 
+			handle => $self->{handle},
+			dataset => $self->{dataset},
+			encoded => $self->serialise,
+			cache_id => $self->{cache_id}, 
+			desc => $self->render_conditions_description,
+			desc_order => $self->render_order_description,
+		);
+		return $self->{results};
+	}
+
+
+	# print STDERR $self->get_conditions->describe."\n\n";
+
+	my $unsorted_matches = $self->get_conditions->process( 
+						$self->{handle} );
+
+	$self->{results} = EPrints::List->new( 
+		handle => $self->{handle},
+		dataset => $self->{dataset},
+		order => $self->{custom_order},
+		encoded => $self->serialise,
+		keep_cache => $self->{keep_cache},
+		ids => $unsorted_matches, 
+		desc => $self->render_conditions_description,
+		desc_order => $self->render_order_description,
+	);
+
+	$self->{cache_id} = $self->{results}->get_cache_id;
+
+	return $self->{results};
+}
+
+######################################################################
+#=pod
+#
+#=item $ok = $thing->from_cache( $id )
+#
+#Populate this search expression with values from the given cache.
+#
+#Return false if the cache does not exist.
+#
+#=cut
 ######################################################################
 
 sub from_cache
@@ -372,16 +407,14 @@ sub from_cache
 	return( 1 );
 }
 
-
 ######################################################################
 =pod
 
 =item $searchfield = $searchexp->add_field( $metafields, $value, $match, $merge, $id, $filter, $show_help )
 
-Adds a new search in $metafields which is either a single L<EPrints::MetaField>
-or a list of fields in an array ref with default $value. If a search field
+Adds the new search field $metafields (which is either a single L<EPrints::MetaField>
+or a list of fields in an array ref) with default $value. If a search field
 already exists, the value of that field is replaced with $value.
-
 
 =cut
 ######################################################################
@@ -424,16 +457,16 @@ sub add_field
 
 
 ######################################################################
-=pod
-
-=item $searchfield = $searchexp->get_searchfield( $sf_id )
-
-Return a L<EPrints::Search::Field> belonging to this Search with
-the given id. 
-
-Return undef if not searchfield of that ID belongs to this search. 
-
-=cut
+#=pod
+#
+#=item $searchfield = $searchexp->get_searchfield( $sf_id )
+#
+#Return a L<EPrints::Search::Field> belonging to this Search with
+#the given id. 
+#
+#Return undef if not searchfield of that ID belongs to this search. 
+#
+#=cut
 ######################################################################
 
 sub get_searchfield
@@ -467,18 +500,15 @@ sub clear
 	$self->{satisfy_all} = 1;
 }
 
-
-
-
 ######################################################################
-=pod
-
-=item $bool = $searchexp->get_satisfy_all
-
-Return true if this search requires that all the search fields with
-values are satisfied. 
-
-=cut
+#=pod
+#
+#=item $bool = $searchexp->get_satisfy_all
+#
+#Return true if this search requires that all the search fields with
+#values are satisfied. 
+#
+#=cut
 ######################################################################
 
 sub get_satisfy_all
@@ -489,19 +519,17 @@ sub get_satisfy_all
 }
 
 
-
-
 ######################################################################
-=pod
-
-=item $boolean = $searchexp->is_blank
-
-Return true is this searchexpression has no conditions set, otherwise
-true.
-
-If any field is set to "exact" then it can never count as unset.
-
-=cut
+#=pod
+#
+#=item $boolean = $searchexp->is_blank
+#
+#Return true is this searchexpression has no conditions set, otherwise
+#true.
+#
+#If any field is set to "exact" then it can never count as unset.
+#
+#=cut
 ######################################################################
 
 sub is_blank
@@ -519,15 +547,15 @@ sub is_blank
 
 
 ######################################################################
-=pod
-
-=item $string = $searchexp->serialise
-
-Return a text representation of the search expression, for persistent
-storage. Doesn't store table or the order by fields, just the field
-names, values, default order and satisfy_all.
-
-=cut
+#=pod
+#
+#=item $string = $searchexp->serialise
+#
+#Return a text representation of the search expression, for persistent
+#storage. Doesn't store table or the order by fields, just the field
+#names, values, default order and satisfy_all.
+#
+#=cut
 ######################################################################
 
 sub serialise
@@ -581,15 +609,15 @@ sub serialise
 
 
 ######################################################################
-=pod
-
-=item $searchexp->from_string( $string )
-
-Unserialises the contents of $string but only into the fields alrdeady
-existing in $searchexp. Set the order and satisfy_all mode but do not 
-affect the dataset or allow blank.
-
-=cut
+#=pod
+#
+#=item $searchexp->from_string( $string )
+#
+#Unserialises the contents of $string but only into the fields alrdeady
+#existing in $searchexp. Set the order and satisfy_all mode but do not 
+#affect the dataset or allow blank.
+#
+#=cut
 ######################################################################
 
 sub from_string
@@ -722,14 +750,14 @@ sub clone
 
 
 ######################################################################
-=pod
-
-=item $conditions = $searchexp->get_conditons
-
-Return a tree of L<EPrints::Search::Condition> objects describing the
-simple steps required to perform this search.
-
-=cut
+#=pod
+#
+#=item $conditions = $searchexp->get_conditons
+#
+#Return a tree of L<EPrints::Search::Condition> objects describing the
+#simple steps required to perform this search.
+#
+#=cut
 ######################################################################
 
 sub get_conditions
@@ -799,13 +827,13 @@ sub get_conditions
 
 
 ######################################################################
-=pod
-
-=item $dataset = $searchexp->get_dataset
-
-Return the L<EPrints::DataSet> which this search relates to.
-
-=cut
+#=pod
+#
+#=item $dataset = $searchexp->get_dataset
+#
+#Return the L<EPrints::DataSet> which this search relates to.
+#
+#=cut
 ######################################################################
 
 sub get_dataset
@@ -817,13 +845,13 @@ sub get_dataset
 
 
 ######################################################################
-=pod
-
-=item $searchexp->set_dataset( $dataset )
-
-Set the L<EPrints::DataSet> which this search relates to.
-
-=cut
+#=pod
+#
+#=item $searchexp->set_dataset( $dataset )
+#
+#Set the L<EPrints::DataSet> which this search relates to.
+#
+#=cut
 ######################################################################
 
 sub set_dataset
@@ -976,13 +1004,13 @@ sub set_property
 
 
 ######################################################################
-=pod
-
-=item @search_fields = $searchexp->get_searchfields()
-
-Return the L<EPrints::Search::Field> objects relating to this search.
-
-=cut
+#=pod
+#
+#=item @search_fields = $searchexp->get_searchfields()
+#
+#Return the L<EPrints::Search::Field> objects relating to this search.
+#
+#=cut
 ######################################################################
 
 sub get_searchfields
@@ -999,14 +1027,14 @@ sub get_searchfields
 }
 
 ######################################################################
-=pod
-
-=item @search_fields = $searchexp->get_non_filter_searchfields();
-
-Return the L<EPrints::Search::Field> objects relating to this search,
-which are normal search fields, and not "filters".
-
-=cut
+#=pod
+#
+#=item @search_fields = $searchexp->get_non_filter_searchfields();
+#
+#Return the L<EPrints::Search::Field> objects relating to this search,
+#which are normal search fields, and not "filters".
+#
+#=cut
 ######################################################################
 
 sub get_non_filter_searchfields
@@ -1028,14 +1056,14 @@ sub get_non_filter_searchfields
 
 
 ######################################################################
-=pod
-
-=item @search_fields = $searchexp->get_set_searchfields
-
-Return the searchfields belonging to this search expression which
-have a value set. 
-
-=cut
+#=pod
+#
+#=item @search_fields = $searchexp->get_set_searchfields
+#
+#Return the searchfields belonging to this search expression which
+#have a value set. 
+#
+#=cut
 ######################################################################
 
 sub get_set_searchfields
@@ -1051,39 +1079,15 @@ sub get_set_searchfields
 	return @set_fields;
 }
 
-
-
-
- ######################################################################
- ##
- ##
- ##  SEARCH THE DATABASE AND CACHE CODE
- ##
- ##
- ######################################################################
-
-
-#
-# Search related instance variables
-#   {cache_id}  - the ID of the table the results are cached & 
-#			ordered in.
-#
-#   {results}  - the EPrints::List object which describes the results.
-#	
-
-
-
-
-
 ######################################################################
-=pod
-
-=item $cache_id = $searchexp->get_cache_id
-
-Return the ID of the cache containing the results of this search,
-if known.
-
-=cut
+#=pod
+#
+#=item $cache_id = $searchexp->get_cache_id
+#
+#Return the ID of the cache containing the results of this search,
+#if known.
+#
+#=cut
 ######################################################################
 
 sub get_cache_id
@@ -1093,76 +1097,17 @@ sub get_cache_id
 	return $self->{cache_id};
 }
 
+
+
 ######################################################################
-=pod
-
-=item $results = $searchexp->perform_search
-
-Execute this search and return a L<EPrints::List> object
-representing the results.
-
-=cut
+#=item ($values, $counts) = $searchexp->perform_groupby( $field )
+#
+#Perform a SQL GROUP BY on $field based on the current search parameters.
+#
+#Returns two array references, one containing a list of unique values and one a list of counts for each value.
+#
+#=cut
 ######################################################################
-
-sub perform_search
-{
-	my( $self ) = @_;
-
-	if( $self->{handle}->get_repository->get_conf( "temp_use_v2_search" ) )
-	{
-		return $self->perform_search_v2;
-	}
-
-	$self->{error} = undef;
-
-	if( defined $self->{results} )
-	{
-		return $self->{results};
-	}
-
-	# cjg hmmm check cache still exists?
-	if( defined $self->{cache_id} )
-	{
-		$self->{results} = EPrints::List->new( 
-			handle => $self->{handle},
-			dataset => $self->{dataset},
-			encoded => $self->serialise,
-			cache_id => $self->{cache_id}, 
-			desc => $self->render_conditions_description,
-			desc_order => $self->render_order_description,
-		);
-		return $self->{results};
-	}
-
-
-	# print STDERR $self->get_conditions->describe."\n\n";
-
-	my $unsorted_matches = $self->get_conditions->process( 
-						$self->{handle} );
-
-	$self->{results} = EPrints::List->new( 
-		handle => $self->{handle},
-		dataset => $self->{dataset},
-		order => $self->{custom_order},
-		encoded => $self->serialise,
-		keep_cache => $self->{keep_cache},
-		ids => $unsorted_matches, 
-		desc => $self->render_conditions_description,
-		desc_order => $self->render_order_description,
-	);
-
-	$self->{cache_id} = $self->{results}->get_cache_id;
-
-	return $self->{results};
-}
-
-=item ($values, $counts) = $searchexp->perform_groupby( $field )
-
-Perform a SQL GROUP BY on $field based on the current search parameters.
-
-Returns two array references, one containing a list of unique values and one a list of counts for each value.
-
-=cut
 
 sub perform_groupby
 {
@@ -1239,14 +1184,10 @@ sub perform_search_v2
 }
 
 
-
-
-
  ######################################################################
  # sort Legacy functions which daisy chain to the results object
  # All deprecated.
  ######################################################################
-
 
 sub cache_results
 {
@@ -1294,13 +1235,13 @@ sub get_ids
 }
 
 ######################################################################
-=pod
-
-=item $hash = $searchexp->get_ids_by_field_values( $field )
-
-Find the ids for each unique value in $field.
-
-=cut
+#=pod
+#
+#=item $hash = $searchexp->get_ids_by_field_values( $field )
+#
+#Find the ids for each unique value in $field.
+#
+#=cut
 ######################################################################
 
 sub get_ids_by_field_values
@@ -1333,9 +1274,6 @@ sub map
 
 	return $self->{results}->map( $function, $info );
 }
-
-
-
 
 
 1;
