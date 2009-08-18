@@ -19,6 +19,21 @@
 
 B<EPrints::Handle::Render> - Render methods for EPrins::Handle
 
+=head1 SYNOPSIS
+
+EPrints::Handle::get_language( $my_repository, $request ); # returns "en" country code for english
+
+use Handle;
+
+$handle = EPrints::Handle->new();
+$handle->change_lang( "de" ) # sets the language to German
+
+$name_dom = $handle->html_phrase("archivename"); #Return a DOM object containing the archivename phrase for the current repository.
+
+$name_text = $handle->phrase("archivename"); #Return a string containing the text of the phrase 
+
+
+
 =head1 DESCRIPTION
 
 This module provides additional methods to EPrints::Handle and is not

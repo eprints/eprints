@@ -19,12 +19,25 @@
 
 B<EPrints::Handle::XML> - XML methods for EPrints::Session
 
+=head1 SYNOPSIS
+  use Handle;
+  
+  $handle = EPrints::Handle->new();
+  
+  $img_dom = $handle->make_element( "img", src => "/foo.gif", alt => "my pic" );
+  
+  $comment_dom = $handle->make_comment( $text );
+  
+  $text_dom = $handle->make_text( $text );
+  
+  $empty_frag = $handle->make_doc_fragment;  
+
 =head1 DESCRIPTION
 
 This module provides additional methods to EPrints::Handle and is not
 an object in it's own right.
 
-=over 4
+
 
 =cut
 
@@ -36,6 +49,8 @@ package EPrints::Handle;
 
 ######################################################################
 =pod
+
+=over 4
 
 =item $dom = $handle->make_element( $element_name, %attribs )
 
