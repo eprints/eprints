@@ -85,7 +85,7 @@ for( @plugins )
 
 $form->appendChild( $session->render_action_buttons( submit => $session->phrase( "cgi/users/import:button" ) ) );
 
-$session->build_page( $title, $page );
+$session->prepare_page( title=>$title, page=>$page );
 $session->send_page();
 
 $session->terminate();

@@ -91,7 +91,7 @@ if( defined $format )
 	{
 		my $page = $handle->html_phrase( 
 					"lib/searchexpression:export_error_format" );
-		$handle->build_page( $title, $page, "latest_tool" );
+		$handle->prepare_page( title=>$title, page=>$page, page_id=>"latest_tool" );
 		$handle->send_page();
 	}
 	
@@ -132,7 +132,7 @@ foreach my $item ( @records )
 		$container->appendChild( $div );
 	}
 }
-$handle->build_page( $title, $page, "latest_tool" );
+$handle->prepare_page( title=>$title, page=>$page, page_id=>"latest_tool" );
 $handle->send_page();
 
 $handle->terminate;

@@ -130,14 +130,14 @@ sub render
 	$self->{dataset} );
 
 	my $curr_stage = $self->{workflow}->get_stage($self->{stage});
-	$self->{handle}->build_page(
-		$self->{handle}->html_phrase(
+	$self->{handle}->prepare_page(
+		title=>$self->{handle}->html_phrase(
 		"lib/submissionform:title_meta",
 		type => $self->{eprint}->render_value( "type" ),
 		eprintid => $self->{eprint}->render_value( "eprintid" ),
 		desc => $self->{eprint}->render_description ),
-		$curr_stage->render( $self->{handle}, $arc->{workflow}, $self->{eprint} ), 
-		"submission_metadata" );
+		page=>$curr_stage->render( $self->{handle}, $arc->{workflow}, $self->{eprint} ), 
+		page_id=>"submission_metadata" );
 
 	$self->{handle}->send_page();
 

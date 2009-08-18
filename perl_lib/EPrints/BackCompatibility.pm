@@ -237,6 +237,13 @@ package EPrints::Handle;
 sub get_archive { EPrints::deprecated(); return $_[0]->get_repository; }
 sub get_session_language { EPrints::deprecated(); return $_[0]->get_language; }
 sub get_db { EPrints::deprecated(); return $_[0]->get_database; }
+# move to compat module?
+sub build_page
+{
+	my( $self, $title, $mainbit, $page_id, $links, $template ) = @_;
+  EPrints::deprecated();
+	$self->prepare_page( { title=>$title, page=>$mainbit, pagetop=>undef,head=>$links}, page_id=>$page_id, template=>$template );
+}
 
 ######################################################################
 

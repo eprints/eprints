@@ -21,7 +21,7 @@ exit( 0 ) unless( defined $handle );
 
 my( $title, $page ) = make_confirm_page( $handle );
 
-$handle->build_page( $title, $page, "confirm" );
+$handle->prepare_page( title=>$title, page=>$page, page_id=>"confirm" );
 $handle->send_page();
 $handle->terminate();
 

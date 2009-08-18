@@ -116,7 +116,7 @@ These are general methods, not documented in the above modules.
 #     be part of this document.
 #
 #  $self->{page}
-#     Used to store the output XHTML page between "build_page" and
+#     Used to store the output XHTML page between "prepage_page" and
 #     "send_page"
 #
 #  $self->{lang}

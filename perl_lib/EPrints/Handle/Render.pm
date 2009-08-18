@@ -1115,10 +1115,10 @@ sub render_error
 	$a->appendChild( $back_to_text );
 	$p->appendChild( $a );
 	$page->appendChild( $p );
-	$self->build_page(	
-		$self->html_phrase( "lib/session:error_title" ),
-		$page,
-		"error" );
+	$self->prepare_page(	
+		title=>$self->html_phrase( "lib/session:error_title" ),
+		page=>$page,
+		page_id=>"error" );
 
 	$self->send_page();
 }

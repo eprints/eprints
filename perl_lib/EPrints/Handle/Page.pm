@@ -143,13 +143,6 @@ template=>"my_template" the name of the template to use.
 
 =cut
 ######################################################################
-# move to compat module?
-sub build_page
-{
-	my( $self, $title, $mainbit, $page_id, $links, $template ) = @_;
-	$self->prepare_page( { title=>$title, page=>$mainbit, pagetop=>undef,head=>$links}, page_id=>$page_id, template=>$template );
-}
-
 
 sub prepare_page
 {

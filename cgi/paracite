@@ -37,10 +37,10 @@ sub process
 
 	unless( EPrints::Utils::is_set( $handle->param("ref") ) )
 	{
-		$handle->build_page( 
-			$title, 
-			$handle->html_phrase( "cgi/paracite:no_reference" ),
-			"paracite" );
+		$handle->prepare_page( 
+			title=>$title, 
+			page=>$handle->html_phrase( "cgi/paracite:no_reference" ),
+			page_id=>"paracite" );
 		$handle->send_page();
 		return;
 	}
@@ -137,7 +137,7 @@ sub process
 		"cgi/paracite:paracite_link",
 		link=>$a ));
 
-	$handle->build_page( $title, $page, "paracite" );
+	$handle->prepare_page( title=>$title, page=>$page, page_id=>"paracite" );
 	$handle->send_page();
 	return;
 }

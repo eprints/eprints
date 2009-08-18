@@ -50,7 +50,7 @@ sub handler
 	$opts{code} = join( "", @a );
 
 	my $title = $handle->html_phrase( "cgi/login:title" );
-	$handle->build_page( $title, $page, "login" );
+	$handle->prepare_page( title=>$title, page=>$page, page_id=>"login" );
 	$handle->send_page( %opts );
 	$handle->terminate;
 

@@ -118,7 +118,7 @@ unless( $seensome )
 $page->appendChild( $handle->html_phrase( "general:frontpage_link" ) );
 	
 my $title = $handle->html_phrase( "cgi/latest:title" );
-$handle->build_page( $title, $page, "latest" );
+$handle->prepare_page( title=>$title, page=>$page, page_id=>"latest" );
 $handle->send_page();
 
 $handle->terminate;

@@ -113,10 +113,10 @@ sub error
 {
 	my( $handle, $msg ) = @_;
 
-	$handle->build_page( 
-		$handle->html_phrase( "cgi/export:error_title" ),
-		$msg,
-		"export_error" );
+	$handle->prepare_page( 
+		title=>$handle->html_phrase( "cgi/export:error_title" ),
+		page=>$msg,
+		page_id=>"export_error" );
 	$handle->send_page;
 }
 

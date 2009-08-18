@@ -193,10 +193,10 @@ sub not_found
 	my %pins = $uri->query_form;
 	$_ = $handle->make_text($_) for values %pins;
 
-	$handle->build_page( 
-		$handle->html_phrase( "cgi/openurl:${message}_title" ),
-		$handle->html_phrase( "cgi/openurl:${message}_blurb", %pins ),
-		"plain_404" );
+	$handle->prepare_page( 
+		title=>$handle->html_phrase( "cgi/openurl:${message}_title" ),
+		page=>$handle->html_phrase( "cgi/openurl:${message}_blurb", %pins ),
+		page_id=>"plain_404" );
 
         $handle->send_page();
 

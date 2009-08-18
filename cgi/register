@@ -20,7 +20,7 @@ exit( 0 ) unless( defined $handle );
 
 my( $page, $title ) = make_page( $handle );
 
-$handle->build_page( $title, $page, "register" );
+$handle->prepare_page( title=>$title, page=>$page, page_id=>"register" );
 $handle->send_page();
 
 $handle->terminate();

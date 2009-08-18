@@ -152,11 +152,11 @@ sub plain_404
 {
 	my( $handle ) = @_;
 
-	$handle->build_page( 
-		$handle->html_phrase( "cgi/handle_http_error:404_title" ),
-		$handle->html_phrase( "cgi/handle_http_error:404_blurb", 
+	$handle->prepare_page( 
+		title=>$handle->html_phrase( "cgi/handle_http_error:404_title" ),
+		page=>$handle->html_phrase( "cgi/handle_http_error:404_blurb", 
 			url => $handle->make_text( $ENV{REDIRECT_URL} ) ),
-		"plain_404" );
+		page_id=>"plain_404" );
 
         $handle->send_page();
 }
@@ -168,10 +168,10 @@ sub noview_404
 
 	my $error = "The browse views section is missing. The site admin needs to run generate_views. This should be automated with cron. See the documentation for more details.";
 
-	$handle->build_page( 
-		$handle->html_phrase( "cgi/handle_http_error:404_title" ),
-		$handle->make_text( $error ),
-		"noview_404" );
+	$handle->prepare_page( 
+		title=>$handle->html_phrase( "cgi/handle_http_error:404_title" ),
+		page=>$handle->make_text( $error ),
+		page_id=>"noview_404" );
 	$handle->get_repository->log( $error );
 
         $handle->send_page();

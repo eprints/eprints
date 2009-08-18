@@ -70,7 +70,7 @@ if( !defined $format || $format eq "" )
 	my $page = $handle->html_phrase( "cgi/export:page",
 		citation => $eprint->render_citation_link,
 		formats => $eprint->render_export_links ); 
-	$handle->build_page( $title, $page, "export" );
+	$handle->prepare_page( title=>$title, page=>$page, page_id=>"export" );
 	$handle->send_page;
 	$handle->terminate;
 	exit;
@@ -102,10 +102,7 @@ sub error
 {
 	my( $handle, $msg ) = @_;
 
-	$handle->build_page( 
-		$handle->html_phrase( "cgi/export:error_title" ),
-		$msg,
-		"export_error" );
+	$handle->prepare_page( title=>$handle->html_phrase( "cgi/export:error_title" ), page=>$msg, page_id=>"export_error" );
 	$handle->send_page;
 }
 

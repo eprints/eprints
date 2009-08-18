@@ -49,7 +49,7 @@ $page->appendChild( $handle->render_message(
 $page->appendChild( $handle->html_phrase( "general:frontpage_link" ) );
 	
 my $title = $handle->make_text( "Logout" );
-$handle->build_page( $title, $page, "login" );
+$handle->prepage_page( title=>$title, page=>$page, page_id=>"login" );
 $handle->send_page();
 
 $handle->terminate;
