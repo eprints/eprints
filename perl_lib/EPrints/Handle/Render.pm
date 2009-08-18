@@ -22,9 +22,31 @@ B<EPrints::Handle::Render> - Render methods for EPrints::Session
 =head1 DESCRIPTION
 
 This module provides additional methods to EPrints::Handle and is not
-an object in it's own right.
+an object in its own right.
 
-=over 4
+Look at EPrints::Handle for further information on how to access the 
+Handle methods.
+
+=head1 SYNOPSIS
+
+	# create a simple <a> element:
+	my $link = $handle->render_link( "http://www.eprints.org/", "_blank" );
+	$link->appendChild( $handle->make_text( "Visit the EPrints website" ) );	
+
+	# create a POST form on the current cgi script:	
+	my $form = $handle->render_form( "POST" );
+	$form->appendChild( $handle->render_hidden_field( "eprintid", $eprint->get_id ) );
+	$form->appendChild( $handle->render_input_field( "name" => "ep_input_text", "id" => "ep_input_text" ) );
+	$form->appendChild( $handle->render_button( "name" => "action_submit" ) );
+
+	# create a message in the EPrints Screen style:
+	$page->appendChild( $handle->render_message( "error", $handle->make_text( "Error description" ), 1 ) );	
+
+	# create a Toolbox in the EPrints style:	
+	$page->appendChild( $handle->render_toolbox( $title, $content ) );
+
+
+=head1 METHODS
 
 =cut
 
@@ -34,35 +56,14 @@ package EPrints::Handle;
 
 
 
-
-
-
-#############################################################
-#############################################################
-=pod
-
-=back
-
-=head2 XHTML Related Methods
-
-These methods help build XHTML.
-
-=over 4
-
-=cut
-#############################################################
-#############################################################
-
-
-
-
 ######################################################################
 =pod
 
+=over 4
+
 =item $ruler = $handle->render_ruler
 
-Return an HR.
-in ruler.xml
+Return an <hr/> element. Look in ruler.xml for style definition.
 
 =cut
 ######################################################################
@@ -277,6 +278,8 @@ sub render_row_with_help
 	return $tr;
 }
 
+
+# called by dynamic_template.pl
 sub render_toolbar
 {
 	my( $self ) = @_;
@@ -312,7 +315,6 @@ sub render_toolbar
 		$a->appendChild( $tool->{screen}->render_title );
 		$core->appendChild( $a );
 	}
-
 
 	my $current_user = $self->current_user;
 
@@ -494,14 +496,14 @@ sub render_name
 }
 
 ######################################################################
-=pod
-
-=item $xhtml_select = $handle->render_option_list( %params )
-
-This method renders an XHTML <select>. The options are complicated
-and may change, so it's better not to use it.
-
-=cut
+#=pod
+#
+#=item $xhtml_select = $handle->render_option_list( %params )
+#
+#This method renders an XHTML <select>. The options are complicated
+#and may change, so it's better not to use it.
+#
+#=cut
 ######################################################################
 
 sub render_option_list
@@ -632,13 +634,13 @@ sub render_option_list
 
 
 ######################################################################
-=pod
-
-=item $option = $handle->render_single_option( $key, $desc, $selected )
-
-Used by render_option_list.
-
-=cut
+#=pod
+#
+#=item $option = $handle->render_single_option( $key, $desc, $selected )
+#
+#Used by render_option_list.
+#
+#=cut
 ######################################################################
 
 sub render_single_option
@@ -685,6 +687,15 @@ sub render_hidden_field
 		type => "hidden" );
 }
 
+######################################################################
+=pod
+
+=item $xhtml_input = $handle->render_input_field( %opts )
+
+Return the XHTML DOM describing a generic <input> element
+
+=cut
+######################################################################
 sub render_input_field
 {
 	my( $self, @opts ) = @_;
@@ -692,6 +703,16 @@ sub render_input_field
 	return $self->make_element( "input", @opts );
 }
 
+######################################################################
+=pod
+
+=item $xhtml_input = $handle->render_noenter_input_field( %opts )
+
+Return the XHTML DOM describing a generic <input> element. The form
+will not be submitted when the user presses Enter.
+
+=cut
+######################################################################
 sub render_noenter_input_field
 {
 	my( $self, @opts ) = @_;
@@ -1469,3 +1490,4 @@ sub render_tabs
 	return $f;
 }
 
+1;
