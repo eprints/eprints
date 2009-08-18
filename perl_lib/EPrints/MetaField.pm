@@ -18,6 +18,31 @@
 
 B<EPrints::MetaField> - A single metadata field.
 
+=head1 SYNOPSIS
+
+	my $field = $dataset->get_field( $fieldname );
+
+	# you must clone a field to modify any properties
+	$newfield = $field->clone;
+	$newfield->set_property( $property, $value );
+
+	$name = $field->get_name;
+	$type = $field->get_type;
+	$value = $field->get_property( $property );
+	$boolean = $field->is_type( @typenames );
+	$results = $field->call_property( $property, @args ); 
+	# (results depend on what the property sub returns)
+
+	$xhtml = $field->render_name( $handle );
+	$xhtml = $field->render_help( $handle );
+	$xhtml = $field->render_value( $handle, $value, $show_all_langs, $dont_include_links, $object );
+	$xhtml = $field->render_single_value( $handle, $value );
+	$xhtml = $field->get_value_label( $handle, $value );
+
+	$values = $field->get_values( $handle, $dataset, %opts );
+
+	$sorted_list = $field->sort_values( $handle, $unsorted_list );
+
 =head1 DESCRIPTION
 
 Theis object represents a single metadata field, not the value of
@@ -30,8 +55,6 @@ field. For example: "text", "name" or "date".
 
 A full description of metadata types and properties is in the eprints
 documentation and will not be duplicated here.
-
-=over 4
 
 =cut
 
@@ -77,18 +100,14 @@ $EPrints::MetaField::REQUIRED 		= "272b7aa107d30cfa9c67c4bdfca7005d_REQUIRED";
 $EPrints::MetaField::UNDEF 		= "272b7aa107d30cfa9c67c4bdfca7005d_UNDEF";
 
 ######################################################################
-=pod
-
-=item $field = EPrints::MetaField->new( %properties )
-
-Create a new metafield. %properties is a hash of the properties of the 
-field, with the addition of "dataset", or if "dataset" is not set then
-"confid" and "repository" must be provided instead.
-
-Some field types require certain properties to be explicitly set. See
-the main documentation.
-
-=cut
+# $field = EPrints::MetaField->new( %properties )
+# 
+# Create a new metafield. %properties is a hash of the properties of the 
+# field, with the addition of "dataset", or if "dataset" is not set then
+# "confid" and "repository" must be provided instead.
+# 
+# Some field types require certain properties to be explicitly set. See
+# the main documentation.
 ######################################################################
 
 sub new
@@ -222,14 +241,10 @@ sub new
 }
 
 ######################################################################
-=pod
-
-=item $field->final
-
-This method tells the metafield that it is now read only. Any call to
-set_property will produce a abort error.
-
-=cut
+# $field->final
+# 
+# This method tells the metafield that it is now read only. Any call to
+# set_property will produce a abort error.
 ######################################################################
 
 sub final
@@ -242,6 +257,10 @@ sub final
 
 ######################################################################
 =pod
+
+=head1 METHODS
+
+=over 4
 
 =item $field->set_property( $property, $value )
 
@@ -370,32 +389,6 @@ sub render_name
 ######################################################################
 =pod
 
-=item $label = $field->display_name( $handle )
-
-DEPRECATED! Can't be removed because it's used in 2.2's default
-ArchiveRenderConfig.pm
-
-Return the UTF-8 encoded name of this field, in the language of
-the $handle.
-
-=cut
-######################################################################
-
-sub display_name
-{
-	my( $self, $handle ) = @_;
-
-#	print STDERR "CALLED DEPRECATED FUNCTION EPrints::MetaField::display_name\n";
-
-	my $phrasename = $self->{confid}."_fieldname_".$self->{name};
-
-	return $handle->phrase( $phrasename );
-}
-
-
-######################################################################
-=pod
-
 =item $xhtml = $field->render_help( $handle )
 
 Return the help information for a user inputing some data for this
@@ -421,24 +414,25 @@ sub render_help
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_input_field( $handle, $value, [$dataset], [$staff], [$hidden_fields], $obj, [$basename] )
+=item $xhtml = $field->render_input_field( $handle, $value, [$dataset], [$staff], [$hidden_fields], $obj, [$prefix] )
 
 Return the XHTML of the fields for an form which will allow a user
 to input metadata to this field. $value is the default value for
 this field.
 
-The actual function called may be overridden from the config.
+The actual function called may be overridden from the config options.
 
 =cut
 ######################################################################
 
 sub render_input_field
 {
-	my( $self, $handle, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
+	my( $self, $handle, $value, $dataset, $staff, $hidden_fields, $obj, $prefix ) = @_;
 
-	if( defined $basename )
+	my $basename;
+	if( defined $prefix )
 	{
-		$basename = $basename."_".$self->{name};
+		$basename = $prefix."_".$self->{name};
 	}
 	else
 	{
@@ -552,9 +546,15 @@ sub get_type
 
 Return the value of the given property.
 
-Special note about "required" property: It only indicates if the
-field is always required. You must query the dataset to check if
-it is required for a specific type.
+Special note about "required" property, the workflow may in some
+situations return a field which is 'required' which isn't if you
+get it via $dataset.
+
+There's about 50 in total, with additional extras for some subtypes
+of MetaField! However the most useful ones are:
+
+	if( $field->get_property( "multiple" ) ) { ... }
+	if( $field->get_property( "required" ) ) { ... }
 
 =cut
 ######################################################################
@@ -703,16 +703,10 @@ sub render_value_actual
 
 
 ######################################################################
-=pod
-
-=item $xhtml = $field->render_value_no_multiple( $handle, $value, $alllangs, $nolink, $object )
-
-Render the XHTML for a non-multiple value. Can be either a from
-a non-multiple field, or a single value from a multiple field.
-
-Usually just used internally.
-
-=cut
+# $xhtml = $field->render_value_no_multiple( $handle, $value, $alllangs, $nolink, $object )
+# 
+# Render the XHTML for a non-multiple value. Can be either a from
+# a non-multiple field, or a single value from a multiple field.
 ######################################################################
 
 sub render_value_no_multiple
@@ -768,18 +762,14 @@ sub render_value_no_multiple
 
 
 ######################################################################
-=pod
-
-=item $xhtml = $field->render_value_withopts( $handle, $value, $nolink, $object )
-
-Render a single value but adding the render_opts features.
-
-This uses either the field specific render_single_value or, if one
-is configured, the render_single_value specified in the config.
-
-Usually just used internally.
-
-=cut
+# $xhtml = $field->render_value_withopts( $handle, $value, $nolink, $object )
+# 
+# Render a single value but adding the render_opts features.
+# 
+# This uses either the field specific render_single_value or, if one
+# is configured, the render_single_value specified in the config.
+# 
+# Usually just used internally.
 ######################################################################
 
 sub render_value_withopts
@@ -843,18 +833,16 @@ sub sort_values
 
 
 ######################################################################
-=pod
-
-=item @values = $field->list_values( $value )
-
-Return a list of every distinct value in this field. 
-
- - for simple fields: return ( $value )
- - for multiple fields: return @{$value}
-
-This function is used by the item_matches method in Search.
-
-=cut
+# @values = $field->list_values( $value )
+#
+# Return a list of every distinct value in this field. 
+# 
+# - for simple fields: return ( $value )
+# - for multiple fields: return @{$value}
+# 
+# This function is used by the item_matches method in Search. It's useful
+# when you want a list of values and don't care if the source is multiple 
+# or not.
 ######################################################################
 
 sub list_values
@@ -877,17 +865,13 @@ sub list_values
 
 
 ######################################################################
-=pod
-
-=item $value = $field->most_local( $handle, $value )
-
-If this field is a multilang field then return the version of the 
-value most useful for the language of the session. In order of
-preference: The language of the session, the default language for
-the repository, any language at all. If it is not a multilang field
-then just return $value.
-
-=cut
+# $value = $field->most_local( $handle, $value )
+# 
+# If this field is a multilang field then return the version of the 
+# value most useful for the language of the session. In order of
+# preference: The language of the session, the default language for
+# the repository, any language at all. If it is not a multilang field
+# then just return $value.
 ######################################################################
 
 sub most_local
@@ -933,13 +917,10 @@ sub call_property
 }
 
 ######################################################################
-=pod
-
-=item $val = $field->value_from_sql_row( $handle, $row )
-
-Shift and return the value of this field from the database input $row.
-
-=cut
+# $val = $field->value_from_sql_row( $handle, $row )
+# 
+# Shift and return the value of this field from the database input $row.
+# Clever for fields with multiple columns per row.
 ######################################################################
 
 sub value_from_sql_row
@@ -950,13 +931,9 @@ sub value_from_sql_row
 }
 
 ######################################################################
-=pod
-
-=item @row = $field->sql_row_from_value( $handle, $value )
-
-Return a list of values to insert into the database based on $value.
-
-=cut
+# @row = $field->sql_row_from_value( $handle, $value )
+# 
+# Return a list of values to insert into the database based on $value.
 ######################################################################
 
 sub sql_row_from_value
@@ -967,13 +944,10 @@ sub sql_row_from_value
 }
 
 ######################################################################
-=pod
-
-=item %opts = $field->get_sql_properties( $handle )
-
-Map the relevant SQL properties for this field to options passed to L<EPrints::Database>::get_column_type().
-
-=cut
+# %opts = $field->get_sql_properties( $handle )
+# 
+# Map the relevant SQL properties for this field to options passed to 
+# L<EPrints::Database>::get_column_type().
 ######################################################################
 
 sub get_sql_properties
@@ -988,13 +962,9 @@ sub get_sql_properties
 }
 
 ######################################################################
-=pod
-
-=item @types = $field->get_sql_type( $handle )
-
-Return the SQL column types of this field, used for creating tables.
-
-=cut
+# @types = $field->get_sql_type( $handle )
+# 
+# Return the SQL column types of this field, used for creating tables.
 ######################################################################
 
 sub get_sql_type
@@ -1014,13 +984,10 @@ sub get_sql_type
 }
 
 ######################################################################
-=pod
-
-=item $field = $field->create_ordervalues_field( $handle [, $langid ] )
-
-Return a new field object that this field can use to store order values, optionally for language $langid.
-
-=cut
+# $field = $field->create_ordervalues_field( $handle [, $langid ] )
+# 
+# Return a new field object that this field can use to store order values, 
+# optionally for language $langid.
 ######################################################################
 
 sub create_ordervalues_field
@@ -1037,13 +1004,9 @@ sub create_ordervalues_field
 }
 
 ######################################################################
-=pod
-
-=item $sql = $field->get_sql_index
-
-Return the columns that an index should be created over.
-
-=cut
+# $sql = $field->get_sql_index
+# 
+# Return the columns that an index should be created over.
 ######################################################################
 
 sub get_sql_index
@@ -1056,15 +1019,13 @@ sub get_sql_index
 }
 
 
-
-
 ######################################################################
 =pod
 
 =item $xhtml_dom = $field->render_single_value( $handle, $value )
 
-Returns the XHTML representation of the value. The value will be
-non-multiple. Just the  simple value.
+Returns the XHTML representation of the value. If the field is multiple
+then $value should be a single item from the values, not the list.
 
 =cut
 ######################################################################
@@ -1078,21 +1039,17 @@ sub render_single_value
 
 
 ######################################################################
-=pod
-
-=item $xhtml = $field->render_input_field_actual( $handle, $value, [$dataset], [$staff], [$hidden_fields], [$obj], [$basename] )
-
-Return the XHTML of the fields for an form which will allow a user
-to input metadata to this field. $value is the default value for
-this field.
-
-Unlike render_input_field, this function does not use the render_input
-property, even if it's set.
-
-The $obj is the current state of the object this field is associated 
-with, if any.
-
-=cut
+# $xhtml = $field->render_input_field_actual( $handle, $value, [$dataset], [$staff], [$hidden_fields], [$obj], [$basename] )
+# 
+# Return the XHTML of the fields for an form which will allow a user
+# to input metadata to this field. $value is the default value for
+# this field.
+# 
+# Unlike render_input_field, this function does not use the render_input
+# property, even if it's set.
+# 
+# The $obj is the current state of the object this field is associated 
+# with, if any.
 ######################################################################
 
 sub render_input_field_actual
@@ -1575,13 +1532,9 @@ sub form_value_basic
 }
 
 ######################################################################
-=pod
-
-=item @sqlnames = $field->get_sql_names
-
-Return the names of this field's columns as they appear in a SQL table.
-
-=cut
+# @sqlnames = $field->get_sql_names
+# 
+# Return the names of this field's columns as they appear in a SQL table.
 ######################################################################
 
 sub get_sql_names
@@ -1600,13 +1553,9 @@ sub get_sql_name
 }
 
 ######################################################################
-=pod
-
-=item $boolean = $field->is_browsable
-
-Return true if this field can be "browsed". ie. Used as a view.
-
-=cut
+# $boolean = $field->is_browsable
+# 
+# Return true if this field can be "browsed". ie. Used as a view.
 ######################################################################
 
 sub is_browsable
@@ -1621,15 +1570,15 @@ sub is_browsable
 =item $values = $field->get_values( $handle, $dataset, %opts )
 
 Return a reference to an array of all the values of this field. 
-For fields like "subject" or "set"
-it returns all the variations. For fields like "text" return all 
-the distinct values from the database.
+
+For fields like "subject" or "set" it returns all the variations. 
+
+For fields like "text" return all the distinct values from the database.
 
 Results are sorted according to the ordervalues of the $handle.
 
 =cut
 ######################################################################
-
 
 sub get_values
 {
@@ -1679,13 +1628,9 @@ sub get_ids_by_value
 }
 
 ######################################################################
-=pod
-
-=item $id = $field->get_id_from_value( $handle, $value )
-
-Returns a unique id for $value or "NULL" if $value is undefined.
-
-=cut
+# $id = $field->get_id_from_value( $handle, $value )
+# 
+# Returns a unique id for $value or "NULL" if $value is undefined.
 ######################################################################
 
 sub get_id_from_value
@@ -1696,13 +1641,9 @@ sub get_id_from_value
 }
 
 ######################################################################
-=pod
-
-=item $value = $field->get_value_from_id( $handle, $id )
-
-Returns the value from $id or undef if $id is "NULL".
-
-=cut
+# $value = $field->get_value_from_id( $handle, $id )
+# 
+# Returns the value from $id or undef if $id is "NULL".
 ######################################################################
 
 sub get_value_from_id
@@ -1731,27 +1672,11 @@ sub get_value_label
 	return $handle->make_text( $value );
 }
 
-
-
-#	if( $self->is_type( "id" ) )
-#	{
-#		return $handle->get_repository->call( 
-#			"id_label", 
-#			$self, 
-#			$handle, 
-#			$value );
-#	}
-
-
 ######################################################################
-=pod
-
-=item $ov = $field->ordervalue( $value, $handle, $langid, $dataset )
-
-Return a string representing this value which can be used to sort
-it into order by comparing it alphabetically.
-
-=cut
+# $ov = $field->ordervalue( $value, $handle, $langid, $dataset )
+# 
+# Return a string representing this value which can be used to sort
+# it into order by comparing it alphabetically.
 ######################################################################
 
 sub ordervalue
@@ -1881,11 +1806,11 @@ sub to_xml_basic
 	return $handle->make_text( $value );
 }
 
-=item $epdata = $field->xml_to_epdata( $handle, $xml, %opts )
-
-Populates $epdata based on $xml.
-
-=cut
+######################################################################
+# $epdata = $field->xml_to_epdata( $handle, $xml, %opts )
+# 
+# Populates $epdata based on $xml.
+######################################################################
 
 sub xml_to_epdata
 {
@@ -1919,7 +1844,10 @@ sub xml_to_epdata
 	return $value;
 }
 
+######################################################################
 # return epdata for a single value of this field
+######################################################################
+
 sub xml_to_epdata_basic
 {
 	my( $self, $handle, $xml, %opts ) = @_;
@@ -2196,15 +2124,15 @@ sub get_property_defaults
 );
 }
 
-=item $value = $field->get_default_value( $handle )
-
-Return the default value for this field. This is only applicable to very simple
-cases such as timestamps, auto-incremented values etc.
-
-Any complex initialisation should be done in the "set_eprint_automatic_fields"
-callback (or the equivalent for the given object).
-
-=cut
+######################################################################
+# $value = $field->get_default_value( $handle )
+# 
+# Return the default value for this field. This is only applicable to very simple
+# cases such as timestamps, auto-incremented values etc.
+# 
+# Any complex initialisation should be done in the "set_eprint_automatic_fields"
+# callback (or the equivalent for the given object).
+######################################################################
 
 sub get_default_value
 {
@@ -2213,11 +2141,12 @@ sub get_default_value
 	return $self->get_property( "default_value" );
 }
 
-=item ( $terms, $grep_terms, $ignored ) = $field->get_index_codes( $handle, $value )
-
-Get indexable terms from $value. $terms is a reference to an array of strings to index. $grep_terms is a reference to an array of terms to add to the grep index. $ignored is a reference to an array of terms that should be ignored (e.g. stop words in a free-text field).
-
-=cut
+######################################################################
+# ( $terms, $grep_terms, $ignored ) = $field->get_index_codes( $handle, $value )
+# 
+# Get indexable terms from $value. $terms is a reference to an array of strings to index. $grep_terms is a reference to an array of terms to add to the grep index. $ignored is a reference to an array of terms that should be ignored (e.g. stop words in a free-text field).
+# 
+######################################################################
 
 # Most types are not indexed		
 sub get_index_codes
@@ -2227,11 +2156,11 @@ sub get_index_codes
 	return( [], [], [] );
 }
 
-=item @terms = $field->split_search_value( $handle, $value )
-
-Split $value into terms that can be used to search against this field.
-
-=cut
+######################################################################
+# @terms = $field->split_search_value( $handle, $value )
+# 
+# Split $value into terms that can be used to search against this field.
+######################################################################
 
 sub split_search_value
 {
@@ -2244,11 +2173,11 @@ sub split_search_value
 	return split /\s+/, $value;
 }
 
-=item $cond = $field->get_search_conditions( $handle, $dataset, $value, $match, $merge, $mode )
-
-Return a L<Search::Condition> for $value based on this field.
-
-=cut
+######################################################################
+# $cond = $field->get_search_conditions( $handle, $dataset, $value, $match, $merge, $mode )
+# 
+# Return a L<Search::Condition> for $value based on this field.
+######################################################################
 
 sub get_search_conditions
 {
@@ -2281,11 +2210,11 @@ sub get_search_conditions
 			$search_mode );
 }
 
-=item $cond = $field->get_search_conditions_not_ex( $handle, $dataset, $value, $match, $merge, $mode )
-
-Return the search condition for a search which is not-exact ($match ne "EX").
-
-=cut
+######################################################################
+# $cond = $field->get_search_conditions_not_ex( $handle, $dataset, $value, $match, $merge, $mode )
+# 
+# Return the search condition for a search which is not-exact ($match ne "EX").
+######################################################################
 
 sub get_search_conditions_not_ex
 {
