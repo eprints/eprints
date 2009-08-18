@@ -21,6 +21,14 @@ B<EPrints::Handle::Page> - Page methods for EPrints::Handle
 
 =head1 SYNOPSIS
 
+use EPrints::Handle;
+
+$handle = EPrints::Handle->new();
+
+$handle->prepare_page(page=>$mypage, title=>$mytitle); #makes a pages for sending
+
+$handle->send_page(); #sends the page
+
 =head1 DESCRIPTION
 
 This module provides additional methods to EPrints::Handle and is not
@@ -34,22 +42,24 @@ package EPrints::Handle;
 
 
 ######################################################################
-=pod
+#=pod
 
-=over 4
+#=over 4
 
-=item $handle->write_static_page( $filebase, $parts, [$page_id], [$wrote_files] )
+#=item $handle->write_static_page( $filebase, $parts, [$page_id], [$wrote_files] )
 
-Write an .html file plus a set of files describing the parts of the
-page for use with the dynamic template option.
+#Write an .html file plus a set of files describing the parts of the
+#page for use with the dynamic template option.
 
-File base is the name of the page without the .html suffix.
+#$filebase - is the name of the page without the .html suffix.
 
-parts is a reference to a hash containing DOM trees.
+#$parts - a reference to a hash containing DOM trees.
 
-If $wrote_files is defined then any filenames written are logged in it as keys.
+#$page_id - the id attribute the body tag for this page will have (for style and javascript purposes) 
 
-=cut
+#$wrote_files - any filenames written are logged in it as keys.
+
+#=cut
 ######################################################################
 
 sub write_static_page
@@ -110,22 +120,26 @@ sub write_static_page
 ######################################################################
 =pod
 
+=over 4
+
 =item $handle->prepare_page( $parts, %options )
 
-Create an XHTML page for this session. 
+Create an XHTML page for this handle. 
 
-$parts is a hash of XHTML elements to insert into the pins in the
-template. Usually: title, page. Maybe pagetop and head.
+This function only builds the page it does not output it any way, see
+the send_page method for that.
 
 If template is set then an alternate template file is used.
 
-This function only builds the page it does not output it any way, see
-the methods below for that.
+$parts is a hash containing the following.
+
+$parts->{title} - title for this page
+$parts->{page} - the page content of this page
 
 Options include:
 
-page_id=>"id to put in body tag"
-template=>"The template to use instead of default."
+page_id=>"id_to_put_in_body_tag" i.e. <body id="id_to_put_in_body_tag">
+template=>"my_template" the name of the template to use.
 
 =cut
 ######################################################################
@@ -321,9 +335,13 @@ sub prepare_page
 =item $handle->send_page( %httpopts )
 
 Send a web page out by HTTP. Only relevant if this is a CGI script.
-build_page must have been called first.
+prepare_page must have been called first.
 
-See send_http_header for an explanation of %httpopts
+$httpopts->{content_type} - Default value is "text/html; charset=UTF-8". This sets
+the http content type header.
+
+$httpopts->{lang} - If this is set then a cookie setting the language preference
+is set in the http header.
 
 Dispose of the XML once it's sent out.
 
@@ -355,20 +373,20 @@ END
 
 
 ######################################################################
-=pod
+#=pod
 
-=item $handle->page_to_file( $filename, [$wrote_files] )
+#=item $handle->page_to_file( $filename, [$wrote_files] )
 
-Write out the current webpage to the given filename.
+#Write out the current webpage to the given filename.
 
-build_page must have been called first.
+#build_page must have been called first.
 
-Dispose of the XML once it's sent out.
+#Dispose of the XML once it's sent out.
 
-If $wrote_files is set then keys are created in it for each file
-created.
+#If $wrote_files is set then keys are created in it for each file
+#created.
 
-=cut
+#=cut
 ######################################################################
 
 sub page_to_file
@@ -406,18 +424,18 @@ END
 
 
 ######################################################################
-=pod
+#=pod
 
-=item $handle->set_page( $newhtml )
+#=item $handle->set_page( $newhtml )
 
-Erase the current page for this session, if any, and replace it with
-the XML DOM structure described by $newhtml.
+#Erase the current page for this session, if any, and replace it with
+#the XML DOM structure described by $newhtml.
 
-This page is what is output by page_to_file or send_page.
+#This page is what is output by page_to_file or send_page.
 
-$newhtml is a normal DOM Element, not a document object.
+#$newhtml is a normal DOM Element, not a document object.
 
-=cut
+#=cut
 ######################################################################
 
 sub set_page
