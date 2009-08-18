@@ -41,8 +41,6 @@ $filesize_text = EPrints::Utils::human_filesize( 3300 ); # returns "3kb"
 
 This package contains functions which don't belong anywhere else.
 
-=over 4
-
 =cut
 
 package EPrints::Utils;
@@ -85,6 +83,8 @@ sub prepare_cmd {
 
 ######################################################################
 =pod
+
+=over 4
 
 =item $string = EPrints::Utils::make_name_string( $name, [$familylast] )
 
