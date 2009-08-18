@@ -209,7 +209,7 @@ sub _extract_media_files
 {
 	my( $self, $dir, $content_dir ) = @_;
 
-	my $media_dir = EPrints::Utils::join_path( $dir, $content_dir, "media" );
+	my $media_dir = EPrints::Platform::join_path( $dir, $content_dir, "media" );
 	
 	my $dh;
         opendir $dh, $media_dir;
@@ -221,12 +221,12 @@ sub _extract_media_files
 	my @real_files;
 	foreach(@files)
 	{
-		push @real_files, EPrints::Utils::join_path( $content_dir, "media", $_ );
+		push @real_files, EPrints::Platform::join_path( $content_dir, "media", $_ );
 	}
 
 	if( $content_dir eq 'ppt' )
 	{
-		my $thumbnail = EPrints::Utils::join_path( $dir, "docProps/thumbnail.jpeg" );
+		my $thumbnail = EPrints::Platform::join_path( $dir, "docProps/thumbnail.jpeg" );
 		push @real_files, "docProps/thumbnail.jpeg" if( -e $thumbnail );
 	}
 
@@ -243,7 +243,7 @@ sub _parse_dc
 
 	my ($file,$fh);
 
-	$file = EPrints::Utils::join_path( $dir, "docProps/core.xml" );
+	$file = EPrints::Platform::join_path( $dir, "docProps/core.xml" );
 
         return unless( open( $fh, $file ) );
 

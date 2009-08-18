@@ -112,7 +112,7 @@ sub export
 		my $filename = $file->get_value( "filename" );
 		my $tgt = $filename;
 		next unless $tgt =~ s/\.$file_extension$/\.txt/;
-		my $outfile = EPrints::Utils::join_path( $dir, $tgt );
+		my $outfile = EPrints::Platform::join_path( $dir, $tgt );
 		
 		if( $file->get_value( "mime_type" ) eq "text/plain" )
 		{
