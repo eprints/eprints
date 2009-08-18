@@ -24,8 +24,6 @@ B<EPrints::Handle::Render> - Render methods for EPrins::Handle
 This module provides additional methods to EPrints::Handle and is not
 an object in it's own right.
 
-=over 4
-
 =cut
 
 use strict;
@@ -35,6 +33,8 @@ package EPrints::Handle;
 
 ######################################################################
 =pod
+
+=over 4
 
 =item $langid = EPrints::Handle::get_language( $repository, $request )
 
@@ -47,6 +47,12 @@ failing that it looks at the default language for the repository.
 
 The language ID it returns is the highest on the list that the given
 eprint repository actually supports.
+
+$repository - the Respository object which will be used to determine the supported languages
+
+$request - the Request object which will be used to determine the requested language
+
+e.g EPrints::Handle::get_language( $my_repository, $request ); # returns "en" country code for english
 
 =cut
 ######################################################################
@@ -122,6 +128,8 @@ valid country code for the current repository.
 
 An invalid code will cause eprints to terminate with an error.
 
+e.g $handle->change_lang( "de" ) # sets the language to German
+
 =cut
 ######################################################################
 
@@ -159,24 +167,25 @@ an entry in %inserts where the key is the "ref" of the pin and the
 value is an XHTML DOM object describing what the pin should be 
 replaced with.
 
+Return a DOM object containing the archivename phrase for the current repository.
+  $name_dom = $handle->html_phrase("archivename"); 
+
+Returns a DOM object containing the error message inserting the name of a field
+  $error_dom = $handle->html_phrase("validate:bad_email", 
+      fieldname => $email_field->render_name($handle)
+  );
+
 =cut
 ######################################################################
 
 sub html_phrase
 {
 	my( $self, $phraseid , %inserts ) = @_;
-	# $phraseid [ASCII] 
-	# %inserts [HASH: ASCII->DOM]
-	#
-	# returns [DOM]	
         
 	$self->{used_phrases}->{$phraseid} = 1;
 
 	my $r = $self->{lang}->phrase( $phraseid , \%inserts , $self );
-	#my $s = $self->make_element( "span", title=>$phraseid );
-	#$s->appendChild( $r );
-	#return $s;
-
+	
 	return $r;
 }
 
@@ -191,6 +200,10 @@ Performs the same function as html_phrase, but returns plain text.
 All HTML elements will be removed, <br> and <p> will be converted 
 into breaks in the text. <img> tags will be replaced with their 
 "alt" values.
+
+Return a string containing the text of the phrase 
+  $name_text = $handle->phrase("archivename"); 
+  
 
 =cut
 ######################################################################
@@ -211,14 +224,11 @@ sub phrase
 }
 
 ######################################################################
-=pod
 
-=item $language = $handle->get_lang
+#=item $language = $handle->get_lang
 
-Return the EPrints::Language object for this sessions current 
-language.
+#Return the EPrints::Language object for this sessions current language.
 
-=cut
 ######################################################################
 
 sub get_lang
@@ -234,7 +244,7 @@ sub get_lang
 
 =item $langid = $handle->get_langid
 
-Return the ID code of the current language of this session.
+Return the ISO ID code of the current language of this session. e.g. "en" for english.
 
 =cut
 ######################################################################
@@ -273,7 +283,7 @@ Otherwise, if possible return the value for "en" (English).
 
 Otherwise just return any one value.
 
-This means that the view sees the best possible phrase. 
+This means that the viewer sees the best possible phrase. 
 
 =cut
 ######################################################################
@@ -305,14 +315,12 @@ sub best_language
 
 
 ######################################################################
-=pod
 
-=item $viewname = $handle->get_view_name( $dataset, $viewid )
+#=item $viewname = $handle->get_view_name( $dataset, $viewid )
 
-Return a UTF8 encoded string containing the human readable name
-of the /view/ section with the ID $viewid.
+#Return a UTF8 encoded string containing the human readable name
+#of the /view/ section with the ID $viewid.
 
-=cut
 ######################################################################
 
 sub get_view_name
