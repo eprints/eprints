@@ -20,30 +20,33 @@ B<EPrints::List> - List of data objects, usually a search result.
 
 =head1 SYNOPSIS
 
-use EPrints::List;
+	use EPrints::List;
 
-$list = EPrints::List->new( handle => $handle, dataset => $dataset, ids => $ids); # ref to an array of ids to populate the list with
+	$list = EPrints::List->new( handle => $handle, dataset => $dataset, ids => $ids); # ref to an array of ids to populate the list with
 
-$new_list = $list->reorder( "-creation_date" ); # makes a new list ordered by reverse order creation_date
+	$new_list = $list->reorder( "-creation_date" ); # makes a new list ordered by reverse order creation_date
 
-$new_list = $list->remainder( $list2, "creation_date" ) # makes a new list by adding the contents of $list to $list2. the resulting list is ordered by "creation_date"
+	$new_list = $list->union( $list2, "creation_date" ) # makes a new list by adding the contents of $list to $list2. the resulting list is ordered by "creation_date"
 
-$new_list = $list->remainder( $list2, "title" ); # makes a new list by removing the contents of $list2 from $list orders the resulting list by title
+	$new_list = $list->remainder( $list2, "title" ); # makes a new list by removing the contents of $list2 from $list orders the resulting list by title
 
-$n = $list->count() # returns the number of items in the list
+	$n = $list->count() # returns the number of items in the list
 
-@dataobjs = $list->get_records( 0, 20 );  #get the first 20 DataObjs from the list in an array
+	@dataobjs = $list->get_records( 0, 20 );  #get the first 20 DataObjs from the list in an array
 
-$list->map( $function, $info ) # performs a function on every item in the list. This is very useful go and look at the detailed description.
+	$list->map( $function, $info ) # performs a function on every item in the list. This is very useful go and look at the detailed description.
 
-$plugin_output = $list->export( "BibTeX"); #calls Plugin::Export::BibTeX on the list.
+	$plugin_output = $list->export( "BibTeX" ); #calls Plugin::Export::BibTeX on the list.
 
-$dataset = $list->get_dataset(); #returns the dataset in which the containing objects belong
+	$dataset = $list->get_dataset(); #returns the dataset in which the containing objects belong
 
 =head1 DESCRIPTION
 
 This class represents an ordered list of objects, all from the same
 dataset. Usually this is the results of a search. 
+
+=head1 SEE ALSO
+	L<EPrints::Search>
 
 =cut
 
