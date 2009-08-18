@@ -37,7 +37,7 @@ EPrints::Time::get_month_label_short( $handle, 11 ) # returns Nov
 
 This package contains functions related to time/date functionality. 
 
-=over 4
+
 
 =cut
 
@@ -48,6 +48,8 @@ use Time::Local 'timegm_nocheck';
 
 ######################################################################
 =pod
+
+=over 4
 
 =item $xhtml = EPrints::Time::render_date( $handle, $datevalue )
 

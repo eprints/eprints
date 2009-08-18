@@ -18,12 +18,32 @@
 
 B<EPrints::List> - List of data objects, usually a search result.
 
+=head1 SYNOPSIS
+
+use EPrints::List;
+
+$list = EPrints::List->new( handle => $handle, dataset => $dataset, ids => $ids); # ref to an array of ids to populate the list with
+
+$new_list = $list->reorder( "-creation_date" ); # makes a new list ordered by reverse order creation_date
+
+$new_list = $list->remainder( $list2, "creation_date" ) # makes a new list by adding the contents of $list to $list2. the resulting list is ordered by "creation_date"
+
+$new_list = $list->remainder( $list2, "title" ); # makes a new list by removing the contents of $list2 from $list orders the resulting list by title
+
+$n = $list->count() # returns the number of items in the list
+
+@dataobjs = $list->get_records( 0, 20 );  #get the first 20 DataObjs from the list in an array
+
+$list->map( $function, $info ) # performs a function on every item in the list. This is very useful go and look at the detailed description.
+
+$plugin_output = $list->export( "BibTeX"); #calls Plugin::Export::BibTeX on the list.
+
+$dataset = $list->get_dataset(); #returns the dataset in which the containing objects belong
+
 =head1 DESCRIPTION
 
 This class represents an ordered list of objects, all from the same
 dataset. Usually this is the results of a search. 
-
-=over 4
 
 =cut
 
@@ -72,15 +92,13 @@ use strict;
 ######################################################################
 =pod
 
+=over 4
+
 =item $list = EPrints::List->new( 
 			handle => $handle,
 			dataset => $dataset,
-			[desc => $desc],
-			[desc_order => $desc_order],
-			ids => $ids,
-			[encoded => $encoded],
-			[keep_cache => $keep_cache],
-			[order => $order] );
+			ids => $ids, # a ref to the array of ids
+			[order => $order] ); # the field on which to order the list
 
 =item $list = EPrints::List->new( 
 			handle => $handle,
@@ -90,7 +108,7 @@ use strict;
 			cache_id => $cache_id );
 
 Creates a new list object in memory only. Lists will be
-cached if anything method requiring order is called, or an explicit 
+cached if any method requiring order is called, or an explicit 
 cache() method is called.
 
 encoded is the serialised version of the searchExpression which
@@ -153,6 +171,8 @@ sub new
 
 Create a new list from this one, but sorted in a new way.
 
+$new_list = $list->reorder( "-creation_date" ); # makes a new list ordered by reverse order creation_date
+
 =cut
 ######################################################################
 
@@ -200,6 +220,10 @@ sub reorder
 Create a new list from this one plus another one. If order is not set
 then this list will not be in any certain order.
 
+$list2 - the list which is to be combined to the calling list
+
+$order - a field which the the resulting list will be ordered on. (optional)
+
 =cut
 ######################################################################
 
@@ -233,6 +257,10 @@ then this list will not be in any certain order.
 Remove all items in $list2 from $list and return the result as a
 new EPrints::List.
 
+$list2 - the eprints you want to remove from the calling list
+
+$order - the field the remaining list is to be ordered by
+
 =cut
 ######################################################################
 
@@ -264,6 +292,10 @@ sub remainder
 Create a new list containing only the items which are in both lists.
 If order is not set then this list will not be in any certain order.
 
+$list2 - a list to intersect with the calling list
+
+$order -  the field the resulting list will be ordered on
+
 =cut
 ######################################################################
 
@@ -288,13 +320,13 @@ sub intersect
 }
 
 ######################################################################
-=pod
+#=pod
 
-=item $list->cache
+#=item $list->cache
 
-Cause this list to be cached in the database.
+#Cause this list to be cached in the database.
 
-=cut
+#=cut
 ######################################################################
 
 sub cache
@@ -354,13 +386,13 @@ sub cache
 }
 
 ######################################################################
-=pod
+#=pod
 
-=item $cache_id = $list->get_cache_id
+#=item $cache_id = $list->get_cache_id
 
-Return the ID of the cache table for this list, or undef.
+#Return the ID of the cache table for this list, or undef.
 
-=cut
+#=cut
 ######################################################################
 
 sub get_cache_id
@@ -373,13 +405,13 @@ sub get_cache_id
 
 
 ######################################################################
-=pod
+#=pod
 
-=item $list->dispose
+#=item $list->dispose
 
-Clean up the cache table if appropriate.
+#Clean up the cache table if appropriate.
 
-=cut
+#=cut
 ######################################################################
 
 sub dispose
@@ -441,8 +473,9 @@ sub count
 
 =item @dataobjs = $list->get_records( [$offset], [$count] )
 
-Return the objects described by this list. $count is the maximum
-to return. $offset is what index through the list to start from.
+Returns the DataObjs in this list as an array. 
+$offset - what index through the list to start from.
+$count - the maximum to return.
 
 =cut
 ######################################################################
@@ -462,6 +495,9 @@ sub get_records
 
 Return a reference to an array containing the ids of the specified
 range from the list. This is more efficient if you just need the ids.
+
+$offset - what index through the list to start from.
+$count - the maximum to return.
 
 =cut
 ######################################################################
@@ -619,7 +655,7 @@ Example:
 
  sub deal
  {
- 	my( $handle, $dataset, $eprint, $info ) = @_;
+ 	my( $handle, $dataset, $eprint, $info ) = @_; # params passed to the function by $list->map
  
  	if( $eprint->get_value( "a" ) eq $eprint->get_value( "b" ) ) {
  		$info->{matches} += 1;
@@ -659,6 +695,10 @@ sub map
 Apply an output plugin to this list of items. If the param "fh"
 is set it will send the results to a filehandle rather than return
 them as a string. 
+
+$plugin_id - the ID of the Export plugin which is to be used to process the list. e.g. "BibTeX"
+
+$param{"fh"} = "temp_dir/my_file.txt"; - the file the results are to be out put to, useful for output too big to put into memory.
 
 =cut
 ######################################################################

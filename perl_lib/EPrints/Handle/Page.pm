@@ -19,12 +19,12 @@
 
 B<EPrints::Handle::Page> - Page methods for EPrints::Handle
 
+=head1 SYNOPSIS
+
 =head1 DESCRIPTION
 
 This module provides additional methods to EPrints::Handle and is not
 an object in it's own right.
-
-=over 4
 
 =cut
 
@@ -35,6 +35,8 @@ package EPrints::Handle;
 
 ######################################################################
 =pod
+
+=over 4
 
 =item $handle->write_static_page( $filebase, $parts, [$page_id], [$wrote_files] )
 
