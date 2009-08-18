@@ -67,7 +67,7 @@ B<EPrints> - Institutional Repository software
 
 	$handle->log( "We did some stuff." );
 
-	if( I<sometest> ) { EPrints::abort( "Something bad happened" ); }
+	if( some_test() ) { EPrints::abort( "Something bad happened" ); }
 	
 	$handle->terminate;
 
@@ -77,21 +77,13 @@ Using this module will cause all the other EPrints modules to be used also.
 
 See http://www.eprints.org/ for more information about EPrints. Much more documentation can be found at http://wiki.eprints.org/w/Documentation
 
-=head2 Main EPrints Modules
+=head2 Key API EPrints Modules
 
 =over 4
 
 =item EPrints
 
 This module! Used to load the other modules.
-
-=item EPrints::Box
-
-A utitility module to render HTML boxes with style and javascript roll-up animations.
-
-=item EPrints::Database
-
-An object representing a connection to the database for a repository. This is an abstraction over sub-objects which connect to MySQL or Oracle.
 
 =item EPrints::DataObj
 
@@ -105,25 +97,9 @@ Represents a single document. A document is a set of metadata plus files. It *ma
 
 Represents a single submission to the repository. May have 0+ documents as sub-objects. Has both system defined metafields plus many defined in the repository configuration. 
 
-=item EPrints::DataObj::File
-
-Represents a single file in a document with some basic metadata such as checksums.
-
-=item EPrints::DataObj::User
-
-Represents a single registered user of the repository. Used for keeping track of preferences, profile information and rights management.
-
-=item EPrints::DataObj::Subject
-
-This dataset is used to store the structure of heierachichal(sp?) sets, used by the "Subject" metafield type.
-
 =item EPrints::DataSet
 
 This object represents a set of objects of the same time, and has associated MetaFields and database tables. 
-
-=item EPrints::Email
-
-Tool for sending email.
 
 =item EPrints::Handle
 
@@ -159,6 +135,44 @@ A list of zero or more data-objects in a single dataset. It can be constructed f
 
 A single field in a dataset. It has many subclasses, one for each type of field.
 
+=item EPrints::Repository
+
+Represents the configuration, datasets and dataobjects of a single repository. It is loaded from the configuration files and is essentially read-only.
+
+=item EPrints::Search
+
+The search object takes parameters and returns a List object of matching dataobjs from a given dataset. It can also be used it reverse to test if a dataobj matches it's parameters.
+
+=back
+
+=head2 Other API EPrints Modules
+
+=over 4
+
+=item EPrints::Box
+
+A utitility module to render HTML boxes with style and javascript roll-up animations.
+
+=item EPrints::Database
+
+An object representing a connection to the database for a repository. This is an abstraction over sub-objects which connect to MySQL or Oracle.
+
+=item EPrints::DataObj::File
+
+Represents a single file in a document with some basic metadata such as checksums.
+
+=item EPrints::DataObj::User
+
+Represents a single registered user of the repository. Used for keeping track of preferences, profile information and rights management.
+
+=item EPrints::DataObj::Subject
+
+This dataset is used to store the structure of heierachichal(sp?) sets, used by the "Subject" metafield type.
+
+=item EPrints::Email
+
+Tool for sending email.
+
 =item EPrints::Paginate
 
 Tools for rendering an EPrint::List as paginated HTML.
@@ -170,14 +184,6 @@ An extension to EPrints::Paginate which shows the results in sortable columns, a
 =item EPrints::Platform
 
 Methods to abstract the operating system. Specifically between UNIX and Windows.
-
-=item EPrints::Repository
-
-Represents the configuration, datasets and dataobjects of a single repository. It is loaded from the configuration files and is essentially read-only.
-
-=item EPrints::Search
-
-The search object takes parameters and returns a List object of matching dataobjs from a given dataset. It can also be used it reverse to test if a dataobj matches it's parameters.
 
 =item EPrints::Storage
 
