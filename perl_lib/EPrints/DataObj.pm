@@ -18,16 +18,47 @@
 
 B<EPrints::DataObj> - Base class for records in EPrints.
 
+=head1 SYNOPSIS
+
+	$dataobj = EPrints::DataObj->new( $handle, $id [, $dataset] )
+	
+	$handle = $dataobj->get_handle
+	$dataset = $dataobj->get_dataset
+	
+	$id = $dataobj->get_id
+	$uri = $dataobj->uri
+	$url = $dataobj->get_url
+	$url = $dataobj->get_control_url
+	
+	$value = $dataobj->get_value( $fieldname )
+	$bool = $dataobj->is_set( $fieldname )
+	$bool = $dataobj->exists_and_set( $fieldname )
+	
+	$success = $dataobj->remove
+	
+	$dataobj->set_value( $fieldname, $value )
+	$success = $dataobj->commit( [$force] )
+	
+	$xhtml = $dataobj->render_value( $fieldname, [$showall] )
+	$xhtml = $dataobj->render_citation( [$style], [%params] )
+	$xhtml = $dataobj->render_citation_link( [$style], %params )
+	$xhtml = $dataobj->render_citation_link_staff( [$style], %params )
+	$xhtml = $dataobj->render_description
+	($xhtml, $title ) = $dataobj->render
+	($xhtml, $title ) = $dataobj->render_full
+	
+	$plugin_output = $dataobj->export( $plugin_id [,%params] )
+
 =head1 DESCRIPTION
 
 This module is a base class which is inherited by L<EPrints::DataObj::EPrint>,
 L<EPrints::User>, L<EPrints::DataObj::Subject> and
 L<EPrints::DataObj::Document> and several other classes.
 
-It is ABSTRACT - its methods should not be called directly.
+It is ABSTRACT - these methods should not be called directly.
 
-=over 4
-
+To create a new object in the database use:
+	$obj = $ds->create_object( $handle, $data );
 =cut
 
 ######################################################################
@@ -54,14 +85,10 @@ use strict;
 
 
 ######################################################################
-=pod
-
-=item $sys_fields = EPrints::DataObj->get_system_field_info
-
-Return an array describing the system metadata of the this 
-dataset.
-
-=cut
+# $sys_fields = EPrints::DataObj->get_system_field_info
+# 
+# Return an array describing the system metadata of the this 
+# dataset.
 ######################################################################
 
 sub get_system_field_info
@@ -73,6 +100,8 @@ sub get_system_field_info
 
 ######################################################################
 =pod
+
+=over 4
 
 =item $dataobj = EPrints::DataObj->new( $handle, $id [, $dataset] )
 
@@ -98,16 +127,12 @@ sub new
 }
 
 ######################################################################
-=pod
-
-=item $dataobj = EPrints::DataObj->new_from_data( $handle, $data [, $dataset ] )
-
-Construct a new EPrints::DataObj object based on the $data hash 
-reference of metadata.
-
-Used to create an object from the data retrieved from the database.
-
-=cut
+# $dataobj = EPrints::DataObj->new_from_data( $handle, $data [, $dataset ] )
+# 
+# Construct a new EPrints::DataObj object based on the $data hash 
+# reference of metadata.
+# 
+# Used to create an object from the data retrieved from the database.
 ######################################################################
 
 sub new_from_data
@@ -156,17 +181,13 @@ sub clone
 }
 
 ######################################################################
-#=pod
+# $dataobj = EPrints::DataObj::create( $handle, @default_data )
 #
-#=item $dataobj = EPrints::DataObj::create( $handle, @default_data )
+# ABSTRACT.
 #
-#ABSTRACT.
+# Create a new object of this type in the database. 
 #
-#Create a new object of this type in the database. 
-#
-#The syntax for @default_data depends on the type of data object.
-#
-#=cut
+# The syntax for @default_data depends on the type of data object.
 #######################################################################
 
 sub create
@@ -178,21 +199,13 @@ sub create
 
 
 ######################################################################
-#=pod
+# $dataobj = EPrints::DataObj->create_from_data( $handle, $data, $dataset )
 #
-#=item $dataobj = EPrints::DataObj->create_from_data( $handle, $data, $dataset )
-#
-#Create a new object of this type in the database. 
-#
-#$dataset is the dataset it will belong to. 
-#
-#$data is the data structured as with new_from_data.
-#
-#This will create sub objects also.
-#
-#Call this via $dataset->create_object( $handle, $data )
-#
-#=cut
+# Create a new object of this type in the database. 
+# $dataset is the dataset it will belong to. 
+# $data is the data structured as with new_from_data.
+# This will create sub objects also.
+# Call this via $dataset->create_object( $handle, $data )
 ######################################################################
 
 sub create_from_data
@@ -274,15 +287,11 @@ sub create_from_data
                                                                                                                   
 
 ######################################################################
-=pod
-
-=item $defaults = EPrints::User->get_defaults( $handle, $data, $dataset )
-
-Return default values for this object based on the starting data.
-
-Should be subclassed.
-
-=cut
+# $defaults = EPrints::User->get_defaults( $handle, $data, $dataset )
+#
+# Return default values for this object based on the starting data.
+#
+# Should be subclassed.
 ######################################################################
 
 sub get_defaults
@@ -307,6 +316,25 @@ sub get_defaults
 
 	return $data;
 }
+
+######################################################################
+=pod
+
+=item $handle = $dataobj->get_handle
+
+Returns the EPrints::Handle object to which this record belongs.
+
+=cut
+######################################################################
+
+sub get_handle
+{
+	my( $self ) = @_;
+
+	return $self->{handle};
+}
+
+
 
 ######################################################################
 =pod
@@ -354,16 +382,12 @@ sub under_construction
 }
 
 ######################################################################
-=pod
-
-=item $dataobj->clear_changed( )
-
-Clear any changed fields, which will result in them not being committed unless
-force is used.
-
-This method is used by the Database to avoid unnecessary commits.
-
-=cut
+# $dataobj->clear_changed( )
+#
+# Clear any changed fields, which will result in them not being committed unless
+# force is used.
+#
+# This method is used by the Database to avoid unnecessary commits.
 ######################################################################
 
 sub clear_changed
@@ -633,24 +657,6 @@ sub get_values
 ######################################################################
 =pod
 
-=item $handle = $dataobj->get_handle
-
-Returns the EPrints::Handle object to which this record belongs.
-
-=cut
-######################################################################
-
-sub get_handle
-{
-	my( $self ) = @_;
-
-	return $self->{handle};
-}
-
-
-######################################################################
-=pod
-
 =item $data = $dataobj->get_data
 
 Returns a reference to the hash table of all the metadata for this record keyed 
@@ -674,42 +680,6 @@ sub get_data
 	
 	return $self->{data};
 }
-
-######################################################################
-=pod
-
-=item $dataset = EPrints::DataObj->get_dataset_id
-
-Returns the id of the L<EPrints::DataSet> object to which this record belongs.
-
-=cut
-######################################################################
-
-sub get_dataset_id
-{
-	my( $class ) = @_;
-
-	Carp::croak( "get_dataset_id must be overridden by $class" );
-}
-
-
-######################################################################
-=pod
-
-=item $dataset = $dataobj->get_dataset
-
-Returns the L<EPrints::DataSet> object to which this record belongs.
-
-=cut
-######################################################################
-
-sub get_dataset
-{
-	my( $self ) = @_;
-	
-	return $self->{dataset};
-}
-
 
 ######################################################################
 =pod 
@@ -766,50 +736,29 @@ sub exists_and_set
 }
 
 
-######################################################################
-=pod
-
-=item $id = $dataobj->get_id
-
-Returns the value of the primary key of this record.
-
-=cut
-######################################################################
-
-sub get_id
-{
-	my( $self ) = @_;
-
-	my $keyfield = $self->{dataset}->get_key_field();
-
-	return $self->{data}->{$keyfield->get_name()};
-}
 
 ######################################################################
-=pod
-
-=item $id = $dataobj->get_gid
-
-DEPRECATED (see uri())
-
-Returns the globally referential fully-qualified identifier for this object or
-undef if this object can not be externally referenced.
-
-=cut
+# $id = $dataobj->get_gid
+# 
+# DEPRECATED (see uri())
+# 
+# Returns the globally referential fully-qualified identifier for this object or
+# undef if this object can not be externally referenced.
 ######################################################################
 
 sub get_gid
 {
 	my( $self ) = @_;
-
+	EPrints::deprecated();
 	return $self->uri;
 }
 
-=item $datestamp = $dataobj->get_datestamp
 
-Returns the datestamp of this object in "YYYY-MM-DD hh:mm:ss" format.
-
-=cut
+######################################################################
+# $datestamp = $dataobj->get_datestamp
+# 
+# Returns the datestamp of this object in "YYYY-MM-DD hh:mm:ss" format.
+######################################################################
 
 sub get_datestamp
 {
@@ -825,7 +774,6 @@ sub get_datestamp
 
 ######################################################################
 =pod
-
 
 =item $xhtml = $dataobj->render_value( $fieldname, [$showall] )
 
@@ -888,6 +836,10 @@ sub render_citation
 Renders a citation (as above) but as a link to the URL for this item. For
 example - the abstract page of an eprint. 
 
+=item $xhtml = $dataobj->render_citation_link_staff( [$style], %params )
+
+As for render_citation_link but the link goes to the edit URL for the item.
+
 =cut
 ######################################################################
 
@@ -914,8 +866,7 @@ sub render_citation_link_staff
 
 =item $xhtml = $dataobj->render_description
 
-Returns a short description of this object using the default citation style
-for this dataset.
+Returns a short description of this object using the "brief" citation style for this dataset.
 
 =cut
 ######################################################################
@@ -1007,17 +958,66 @@ sub render_full
 }
 
 
+######################################################################
+=pod
+
+=item $id = $dataobj->get_id
+
+Returns the value of the primary key of this record.
+
+=cut
+######################################################################
+
+sub get_id
+{
+	my( $self ) = @_;
+
+	my $keyfield = $self->{dataset}->get_key_field();
+
+	return $self->{data}->{$keyfield->get_name()};
+}
+
+######################################################################
+# $dataset = EPrints::DataObj->get_dataset_id
+#
+# Returns the id of the L<EPrints::DataSet> object to which this record belongs.
+######################################################################
+
+sub get_dataset_id
+{
+	my( $class ) = @_;
+
+	Carp::croak( "get_dataset_id must be overridden by $class" );
+}
 
 
 ######################################################################
 =pod
 
-=item $url = $dataobj->uri
+=item $dataset = $dataobj->get_dataset
 
-Returns a unique URI for this object. Not certain to resolve as a 
-URL.
+Returns the L<EPrints::DataSet> object to which this record belongs.
 
-If $c->{dataobj_uri}->{eprint} is a function, call that to work it out.
+=cut
+######################################################################
+
+sub get_dataset
+{
+	my( $self ) = @_;
+	
+	return $self->{dataset};
+}
+
+
+
+######################################################################
+=pod
+
+=item $uri = $dataobj->uri
+
+Returns a unique URI for this object. Not certain to resolve as a URL.
+
+The URI is generally of the form I<repository_url>/id/I<datasetid>/I<dataobj_id>
 
 =cut
 ######################################################################
@@ -1035,13 +1035,13 @@ sub uri
 	return $self->get_handle->get_repository->get_conf( "base_url" ).$self->internal_uri;
 }
 
-=item $uri = $dataobj->internal_uri()
-
-Return an internal URI for this object (independent of repository hostname).
-
-To retrieve an object by internal URI use L<EPrints::DataSet>::get_object_from_uri().
-
-=cut
+######################################################################
+# $uri = $dataobj->internal_uri()
+#
+# Return an internal URI for this object (independent of repository hostname).
+# 
+# To retrieve an object by internal URI use L<EPrints::DataSet>::get_object_from_uri().
+######################################################################
 
 sub internal_uri
 {
@@ -1090,13 +1090,9 @@ sub get_control_url
 
 
 ######################################################################
-=pod
-
-=item $type = $dataobj->get_type
-
-Returns the type of this record - type of user, type of eprint etc.
-
-=cut
+# $type = $dataobj->get_type
+#
+# Returns the type of this record - type of user, type of eprint etc.
 ######################################################################
 
 sub get_type
@@ -1107,26 +1103,22 @@ sub get_type
 }
 
 ######################################################################
-=pod
-
-=item $xmlfragment = $dataobj->to_xml( %opts )
-
-Convert this object into an XML fragment. 
-
-%opts are:
-
-no_xmlns=>1 : do not include a xmlns attribute in the 
-outer element. (This assumes this chunk appears in a larger tree 
-where the xmlns is already set correctly.
-
-showempty=>1 : fields with no value are shown.
-
-version=>"code" : pick what version of the EPrints XML format
-to use "1" or "2"
-
-embed=>1 : include the data of a file, not just it's URL.
-
-=cut
+# $xmlfragment = $dataobj->to_xml( %opts )
+# 
+# Convert this object into an XML fragment. 
+# 
+# %opts are:
+# 
+# no_xmlns=>1 : do not include a xmlns attribute in the 
+# outer element. (This assumes this chunk appears in a larger tree 
+# where the xmlns is already set correctly.
+# 
+# showempty=>1 : fields with no value are shown.
+# 
+# version=>"code" : pick what version of the EPrints XML format
+# to use "1" or "2"
+# 
+# embed=>1 : include the data of a file, not just it's URL.
 ######################################################################
 
 sub to_xml
@@ -1187,11 +1179,11 @@ sub to_xml
 	return $r;
 }
 
-=item $epdata = EPrints::DataObj->xml_to_epdata( $handle, $xml, %opts )
-
-Populates $epdata based on $xml. This is the inverse of to_xml() but doesn't create a new object.
-
-=cut
+######################################################################
+# $epdata = EPrints::DataObj->xml_to_epdata( $handle, $xml, %opts )
+#
+# Populates $epdata based on $xml. This is the inverse of to_xml() but doesn't create a new object.
+######################################################################
 
 sub xml_to_epdata
 {
@@ -1242,9 +1234,9 @@ sub xml_to_epdata
 ######################################################################
 =pod
 
-=item $plugin_output = $detaobj->export( $plugin_id, %params )
+=item $plugin_output = $dataobj->export( $plugin_id [,%params] )
 
-Apply an output plugin to this items. Return the results.
+Apply an output plugin to this items. Return the results. No additional parameters are required for most export plugins.
 
 =cut
 ######################################################################
@@ -1274,13 +1266,9 @@ sub export
 }
 
 ######################################################################
-=pod
-
-=item $dataobj->queue_changes
-
-Add all the changed fields into the indexers todo queue.
-
-=cut
+# $dataobj->queue_changes
+#
+# Add all the changed fields into the indexers todo queue.
 ######################################################################
 
 sub queue_changes
@@ -1310,13 +1298,9 @@ sub queue_changes
 }
 
 ######################################################################
-=pod
-
-=item $dataobj->queue_all
-
-Add all the fields into the indexers todo queue.
-
-=cut
+# $dataobj->queue_all
+#
+# Add all the fields into the indexers todo queue.
 ######################################################################
 
 sub queue_all
@@ -1333,13 +1317,9 @@ sub queue_all
 }
 
 ######################################################################
-=pod
-
-=item $dataobj->queue_fulltext
-
-Add a fulltext index into the indexers todo queue.
-
-=cut
+# $dataobj->queue_fulltext
+# 
+# Add a fulltext index into the indexers todo queue.
 ######################################################################
 
 sub queue_fulltext
@@ -1537,7 +1517,21 @@ sub get_stored_file
 	return $file;
 }
 
+=back
+
 =head2 Related Objects
+
+These methods have been introduced in ep3.2 to describe the relationships between objects in the system. 
+
+See the wiki for more detailed discussion of how to use these.
+
+	$dataobj->add_object_relations( $target, $has => $is [, $has => $is ] )
+	$bool = $dataobj->has_object_relations( $target, @types )
+	$bool = $dataobj->has_related_objects( @types )
+	$dataobjs = $dataobj->get_related_objects( @types )
+	$dataobj->remove_object_relations( $target [, $has => $is [, $has => $is ] )
+
+=over 4
 
 =item $dataobj->add_object_relations( $target, $has => $is [, $has => $is ] )
 

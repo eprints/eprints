@@ -24,8 +24,6 @@ B<EPrints::Repository> - A single eprint repository
 This class is a single eprint repository with its own configuration,
 database and website.
 
-=over 4
-
 =cut
 
 ######################################################################
@@ -85,6 +83,9 @@ my %ARCHIVE_CACHE = ();
 
 ######################################################################
 =pod
+
+=over 4
+
 
 =item $repository = EPrints::Repository->new( $id, [$noxml] )
 

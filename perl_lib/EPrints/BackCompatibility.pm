@@ -55,9 +55,9 @@ our @ISA = qw/ EPrints::DataObj::Document /;
 
 $INC{"EPrints/Document.pm"} = "EPrints/BackCompatibility.pm";
 
-sub create { EPrints::deprecated; return EPrints::DataObj::Document::create( @_ ); }
+sub create { EPrints::deprecated(); return EPrints::DataObj::Document::create( @_ ); }
 
-sub docid_to_path { EPrints::deprecated; return EPrints::DataObj::Document::docid_to_path( @_ ); }
+sub docid_to_path { EPrints::deprecated(); return EPrints::DataObj::Document::docid_to_path( @_ ); }
 
 ######################################################################
 
@@ -67,8 +67,8 @@ our @ISA = qw/ EPrints::DataObj::EPrint /;
 
 $INC{"EPrints/EPrint.pm"} = "EPrints/BackCompatibility.pm";
 
-sub create { EPrints::deprecated; return EPrints::DataObj::EPrint::create( @_ ); }
-sub eprintid_to_path { EPrints::deprecated; return EPrints::DataObj::EPrint::eprintid_to_path( @_ ); }
+sub create { EPrints::deprecated(); return EPrints::DataObj::EPrint::create( @_ ); }
+sub eprintid_to_path { EPrints::deprecated(); return EPrints::DataObj::EPrint::eprintid_to_path( @_ ); }
 
 ######################################################################
 
@@ -79,12 +79,12 @@ our @ISA = qw/ EPrints::DataObj::Subject /;
 $INC{"EPrints/Subject.pm"} = "EPrints/BackCompatibility.pm";
 
 $EPrints::Subject::root_subject = "ROOT";
-sub remove_all { EPrints::deprecated; return EPrints::DataObj::Subject::remove_all( @_ ); }
-sub create { EPrints::deprecated; return EPrints::DataObj::Subject::create( @_ ); }
-sub subject_label { EPrints::deprecated; return EPrints::DataObj::Subject::subject_label( @_ ); }
-sub get_all { EPrints::deprecated; return EPrints::DataObj::Subject::get_all( @_ ); }
-sub valid_id { EPrints::deprecated; return EPrints::DataObj::Subject::valid_id( @_ ); }
-sub children { EPrints::deprecated; return EPrints::DataObj::Subject::get_children( $_[0] ); }
+sub remove_all { EPrints::deprecated(); return EPrints::DataObj::Subject::remove_all( @_ ); }
+sub create { EPrints::deprecated(); return EPrints::DataObj::Subject::create( @_ ); }
+sub subject_label { EPrints::deprecated(); return EPrints::DataObj::Subject::subject_label( @_ ); }
+sub get_all { EPrints::deprecated(); return EPrints::DataObj::Subject::get_all( @_ ); }
+sub valid_id { EPrints::deprecated(); return EPrints::DataObj::Subject::valid_id( @_ ); }
+sub children { EPrints::deprecated(); return EPrints::DataObj::Subject::get_children( $_[0] ); }
 
 ######################################################################
 
@@ -94,8 +94,8 @@ our @ISA = qw/ EPrints::DataObj::SavedSearch /;
 
 $INC{"EPrints/Subscription.pm"} = "EPrints/BackCompatibility.pm";
 
-sub process_set { EPrints::deprecated; return EPrints::DataObj::SavedSearch::process_set( @_ ); }
-sub get_last_timestamp { EPrints::deprecated; return EPrints::DataObj::SavedSearch::get_last_timestamp( @_ ); }
+sub process_set { EPrints::deprecated(); return EPrints::DataObj::SavedSearch::process_set( @_ ); }
+sub get_last_timestamp { EPrints::deprecated(); return EPrints::DataObj::SavedSearch::get_last_timestamp( @_ ); }
 
 ######################################################################
 
@@ -105,37 +105,37 @@ our @ISA = qw/ EPrints::DataObj::User /;
 
 $INC{"EPrints/User.pm"} = "EPrints/BackCompatibility.pm";
 
-sub create { EPrints::deprecated; return EPrints::DataObj::User::create( @_ ); }
-sub user_with_email { EPrints::deprecated; return EPrints::DataObj::User::user_with_email( @_ ); }
-sub user_with_username { EPrints::deprecated; return EPrints::DataObj::User::user_with_username( @_ ); }
-sub process_editor_alerts { EPrints::deprecated; return EPrints::DataObj::User::process_editor_alerts( @_ ); }
-sub create_user { EPrints::deprecated; return EPrints::DataObj::User::create( @_ ); }
+sub create { EPrints::deprecated(); return EPrints::DataObj::User::create( @_ ); }
+sub user_with_email { EPrints::deprecated(); return EPrints::DataObj::User::user_with_email( @_ ); }
+sub user_with_username { EPrints::deprecated(); return EPrints::DataObj::User::user_with_username( @_ ); }
+sub process_editor_alerts { EPrints::deprecated(); return EPrints::DataObj::User::process_editor_alerts( @_ ); }
+sub create_user { EPrints::deprecated(); return EPrints::DataObj::User::create( @_ ); }
 
 package EPrints::DataObj::User;
-sub can_edit { EPrints::deprecated; return $_->in_editorial_scope_of( $_[0] ); }
+sub can_edit { EPrints::deprecated(); return $_->in_editorial_scope_of( $_[0] ); }
 
 ######################################################################
 
 package EPrints::Utils;
 
-sub send_mail { EPrints::deprecated; return EPrints::Email::send_mail( @_ ); }
-sub send_mail_via_smtp { EPrints::deprecated; return EPrints::Email::send_mail_via_smtp( @_ ); }
-sub send_mail_via_sendmail { EPrints::deprecated; return EPrints::Email::send_mail_via_sendmail( @_ ); }
-sub collapse_conditions { EPrints::deprecated; return EPrints::XML::EPC::process( @_ ); }
-sub render_date { EPrints::deprecated; return EPrints::Time::render_date( @_ ); }
-sub render_short_date { EPrints::deprecated; return EPrints::Time::render_short_date( @_ ); }
-sub datestring_to_timet { EPrints::deprecated; return EPrints::Time::datestring_to_timet( @_ ); }
-sub gmt_off { EPrints::deprecated; return EPrints::Time::gmt_off( @_ ); }
-sub get_month_label { EPrints::deprecated; return EPrints::Time::get_month_label( @_ ); }
-sub get_month_label_short { EPrints::deprecated; return EPrints::Time::get_month_label_short( @_ ); }
-sub get_date { EPrints::deprecated; return EPrints::Time::get_date( @_ ); }
-sub get_date_array { EPrints::deprecated; return EPrints::Time::get_date_array( @_ ); }
-sub get_datestamp { EPrints::deprecated; return EPrints::Time::get_iso_date( @_ ); }
-sub get_iso_date { EPrints::deprecated; return EPrints::Time::get_iso_date( @_ ); }
-sub get_timestamp { EPrints::deprecated; return EPrints::Time::human_time( @_ ); }
-sub human_time { EPrints::deprecated; return EPrints::Time::human_time( @_ ); }
-sub human_delay { EPrints::deprecated; return EPrints::Time::human_delay( @_ ); }
-sub get_iso_timestamp { EPrints::deprecated; return EPrints::Time::get_iso_timestamp( @_ ); }
+sub send_mail { EPrints::deprecated(); return EPrints::Email::send_mail( @_ ); }
+sub send_mail_via_smtp { EPrints::deprecated(); return EPrints::Email::send_mail_via_smtp( @_ ); }
+sub send_mail_via_sendmail { EPrints::deprecated(); return EPrints::Email::send_mail_via_sendmail( @_ ); }
+sub collapse_conditions { EPrints::deprecated(); return EPrints::XML::EPC::process( @_ ); }
+sub render_date { EPrints::deprecated(); return EPrints::Time::render_date( @_ ); }
+sub render_short_date { EPrints::deprecated(); return EPrints::Time::render_short_date( @_ ); }
+sub datestring_to_timet { EPrints::deprecated(); return EPrints::Time::datestring_to_timet( @_ ); }
+sub gmt_off { EPrints::deprecated(); return EPrints::Time::gmt_off( @_ ); }
+sub get_month_label { EPrints::deprecated(); return EPrints::Time::get_month_label( @_ ); }
+sub get_month_label_short { EPrints::deprecated(); return EPrints::Time::get_month_label_short( @_ ); }
+sub get_date { EPrints::deprecated(); return EPrints::Time::get_date( @_ ); }
+sub get_date_array { EPrints::deprecated(); return EPrints::Time::get_date_array( @_ ); }
+sub get_datestamp { EPrints::deprecated(); return EPrints::Time::get_iso_date( @_ ); }
+sub get_iso_date { EPrints::deprecated(); return EPrints::Time::get_iso_date( @_ ); }
+sub get_timestamp { EPrints::deprecated(); return EPrints::Time::human_time( @_ ); }
+sub human_time { EPrints::deprecated(); return EPrints::Time::human_time( @_ ); }
+sub human_delay { EPrints::deprecated(); return EPrints::Time::human_delay( @_ ); }
+sub get_iso_timestamp { EPrints::deprecated(); return EPrints::Time::get_iso_timestamp( @_ ); }
 
 
 ######################################################################
@@ -191,13 +191,13 @@ $INC{"EPrints/SearchCondition.pm"} = "EPrints/BackCompatibility.pm";
 
 package EPrints::AnApache;
 
-sub upload_doc_file { EPrints::deprecated; return EPrints::Apache::AnApache::upload_doc_file( @_ ); }
-sub upload_doc_archive { EPrints::deprecated; return EPrints::Apache::AnApache::upload_doc_archive( @_ ); }
-sub send_http_header { EPrints::deprecated; return EPrints::Apache::AnApache::send_http_header( @_ ); }
-sub header_out { EPrints::deprecated; return EPrints::Apache::AnApache::header_out( @_ ); }
-sub header_in { EPrints::deprecated; return EPrints::Apache::AnApache::header_in( @_ ); }
-sub get_request { EPrints::deprecated; return EPrints::Apache::AnApache::get_request( @_ ); }
-sub cookie { EPrints::deprecated; return EPrints::Apache::AnApache::cookie( @_ ); }
+sub upload_doc_file { EPrints::deprecated(); return EPrints::Apache::AnApache::upload_doc_file( @_ ); }
+sub upload_doc_archive { EPrints::deprecated(); return EPrints::Apache::AnApache::upload_doc_archive( @_ ); }
+sub send_http_header { EPrints::deprecated(); return EPrints::Apache::AnApache::send_http_header( @_ ); }
+sub header_out { EPrints::deprecated(); return EPrints::Apache::AnApache::header_out( @_ ); }
+sub header_in { EPrints::deprecated(); return EPrints::Apache::AnApache::header_in( @_ ); }
+sub get_request { EPrints::deprecated(); return EPrints::Apache::AnApache::get_request( @_ ); }
+sub cookie { EPrints::deprecated(); return EPrints::Apache::AnApache::cookie( @_ ); }
 
 $INC{"EPrints/AnApache.pm"} = "EPrints/BackCompatibility.pm";
 
@@ -205,8 +205,8 @@ $INC{"EPrints/AnApache.pm"} = "EPrints/BackCompatibility.pm";
 
 package EPrints::Auth;
 
-sub authz { EPrints::deprecated; return EPrints::Apache::Auth::authz( @_ ); }
-sub authen { EPrints::deprecated; return EPrints::Apache::Auth::authen( @_ ); }
+sub authz { EPrints::deprecated(); return EPrints::Apache::Auth::authz( @_ ); }
+sub authen { EPrints::deprecated(); return EPrints::Apache::Auth::authen( @_ ); }
 
 $INC{"EPrints/Auth.pm"} = "EPrints/BackCompatibility.pm";
 
@@ -214,13 +214,13 @@ $INC{"EPrints/Auth.pm"} = "EPrints/BackCompatibility.pm";
 
 package EPrints::DataObj;
 
-sub get_session { EPrints::deprecated; return $_[0]->get_handle; }
+sub get_session { EPrints::deprecated(); return $_[0]->get_handle; }
 
 ######################################################################
 
 package EPrints::Session;
 
-sub new { EPrints::deprecated; return EPrints::Handle::new( @_ ); }
+sub new { EPrints::deprecated(); return EPrints::Handle::new( @_ ); }
 
 our @ISA = qw/ EPrints::Handle /;
 
@@ -228,20 +228,21 @@ our @ISA = qw/ EPrints::Handle /;
 
 package EPrints::Handle;
 
-sub get_archive { EPrints::deprecated; return $_[0]->get_repository; }
-sub get_session_language { EPrints::deprecated; return $_[0]->get_language; }
+sub get_archive { EPrints::deprecated(); return $_[0]->get_repository; }
+sub get_session_language { EPrints::deprecated(); return $_[0]->get_language; }
+sub get_db { EPrints::deprecated(); return $_[0]->get_database; }
 
 ######################################################################
 
 package EPrints::DataSet;
 
-sub get_archive { EPrints::deprecated; return $_[0]->get_repository; }
+sub get_archive { EPrints::deprecated(); return $_[0]->get_repository; }
 
 sub get_page_fields
 {
 	my( $self, $type, $page, $staff ) = @_;
 
-	EPrints::deprecated;
+	EPrints::deprecated();
 
 	$self->load_workflows();
 
@@ -261,7 +262,7 @@ sub get_type_pages
 {
 	my( $self, $type ) = @_;
 
-	EPrints::deprecated;
+	EPrints::deprecated();
 
 	$self->load_workflows();
 
@@ -276,7 +277,7 @@ sub get_type_fields
 {
 	my( $self, $type, $staff ) = @_;
 
-	EPrints::deprecated;
+	EPrints::deprecated();
 
 	$self->load_workflows();
 
@@ -296,7 +297,7 @@ sub get_required_type_fields
 {
 	my( $self, $type ) = @_;
 	# Can't do this any more without loading lots of workflow gubbins
-	EPrints::deprecated;
+	EPrints::deprecated();
 
 	return(); 
 
@@ -306,7 +307,7 @@ sub get_required_type_fields
 sub is_valid_type
 {
 	my( $self, $type ) = @_;
-	EPrints::deprecated;
+	EPrints::deprecated();
 	return( defined $self->{repository}->{types}->{$self->confid}->{$type} );
 }
 
@@ -314,7 +315,7 @@ sub get_types
 {
 	my( $self ) = @_;
 
-	EPrints::deprecated;
+	EPrints::deprecated();
 
 	return( $self->{repository}->{types}->{$self->confid} );
 }
@@ -323,7 +324,7 @@ sub get_type_names
 {
 	my( $self, $handle ) = @_;
 		
-	EPrints::deprecated;
+	EPrints::deprecated();
 
 	my %names = ();
 	foreach( @{$self->get_types} )
@@ -337,7 +338,7 @@ sub get_type_name
 {
 	my( $self, $handle, $type ) = @_;
 
-	EPrints::deprecated;
+	EPrints::deprecated();
 
         return $handle->phrase( $self->confid()."_typename_".$type );
 }
@@ -346,7 +347,7 @@ sub render_type_name
 {
 	my( $self, $handle, $type ) = @_;
 	
-	EPrints::deprecated;
+	EPrints::deprecated();
 
 	if( $self->{confid} eq "language"  || $self->{confid} eq "arclanguage" )
 	{

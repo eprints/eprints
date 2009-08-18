@@ -19,19 +19,30 @@
 
 B<EPrints::Handle> - Single connection to the EPrints system
 
-=head1 DESCRIPTION
+=head1 SYNOPSIS
 
-This module is not really a session. The name is out of date, but
-hard to change.
+	$handle = EPrints::Handle->new(); # cgi
+	$handle = new EPrints::Handle( 1 , $repository_id ); # command line
+	if( !$handle ) { exit 1; }
+
+	$repository = $handle->get_repository;
+	$dataset = $handle->get_dataset( $dataset_id );
+	$handle->log( "Something bad occurred" );
+	$conf = $handle->get_conf( "base_url" );
+
+	$handle->terminate
+
+=head1 DESCRIPTION
 
 EPrints::Handle represents a connection to the EPrints system. It
 connects to a single EPrints repository, and the database used by
 that repository. Thus it has an associated EPrints::Database and
 EPrints::Repository object.
 
-Each "session" has a "current language". If you are running in a 
+Each "handle" has a current language. If you are running in a 
 multilingual mode, this is used by the HTML rendering functions to
-choose what language to return text in.
+choose what language to return text in. See EPrints::Handle::Language for
+the language specific methods.
 
 The "session" object also knows about the current apache connection,
 if there is one, including the CGI parameters. 
@@ -49,17 +60,29 @@ Specific sets of functions are documented in:
 
 =item EPrints::Handle::XML
 
+XML DOM utilties.
+
 =item EPrints::Handle::Render
+
+XHTML generating utilities.
 
 =item EPrints::Handle::Language
 
+I18L methods.
+
 =item EPrints::Handle::Page
 
+XHTML Page and templating methods.
+
 =item EPrints::Handle::CGI
+
+Methods for detail with the web-interface.
 
 =back
 
 =head1 METHODS
+
+These are general methods, not documented in the above modules.
 
 =cut
 
@@ -363,12 +386,6 @@ sub get_next_id
 	return $self->{id_counter}++;
 }
 
-
-
-
-
-
-
 ######################################################################
 =pod
 
@@ -378,7 +395,6 @@ Return the current EPrints::Database connection object.
 
 =cut
 ######################################################################
-sub get_db { return $_[0]->get_database; } # back compatibility
 
 sub get_database
 {
@@ -388,7 +404,7 @@ sub get_database
 
 =item $store = $handle->get_storage
 
-Return the storage control object.
+Return the storage control object. See EPrints::Storage for details.
 
 =cut
 
@@ -419,9 +435,55 @@ sub get_repository
 ######################################################################
 =pod
 
+=item $dataset = $handle->get_dataset( $conf_id, ... )
+
+This is an alias for $handle->get_repository->get_dataset( ... ) to make for more readable code.
+
+Returns the named EPrints::DataSet for the repository or undef.
+
+=cut
+######################################################################
+
+sub get_dataset
+{
+	my( $self, @params ) = @_;
+
+	return $self->{repository}->get_dataset( @params );
+}
+
+######################################################################
+=pod
+
+=item $handle->log( $conf_id, ... )
+
+This is an alias for $handle->get_repository->log( ... ) to make for more readable code.
+
+Write a message to the current log file.
+
+=cut
+######################################################################
+
+sub log
+{
+	my( $self, @params ) = @_;
+
+	$self->{repository}->log( @params );
+}
+
+######################################################################
+=pod
+
 =item $conf = $handle->get_conf( $conf_id, ... )
 
 This is an alias for $handle->get_repository->get_conf( ... ) to make for more readable code.
+
+Return a configuration value. Can go deeper down a tree of parameters.
+
+eg. if 
+	$conf = $handle->get_conf( "a" );
+returns { b=>1, c=>2, d=>3 } then
+	$conf = $handle->get_conf( "a","c" );
+will return 2.
 
 =cut
 ######################################################################
@@ -533,18 +595,14 @@ sub plugin
 
 
 ######################################################################
-=pod
-
-=item @plugin_ids  = $handle->plugin_list( %restrictions )
-
-Return either a list of all the plugins available to this repository or
-return a list of available plugins which can accept the given 
-restrictions.
-
-Restictions:
- vary depending on the type of the plugin.
-
-=cut
+# @plugin_ids  = $handle->plugin_list( %restrictions )
+# 
+# Return either a list of all the plugins available to this repository or
+# return a list of available plugins which can accept the given 
+# restrictions.
+# 
+# Restictions:
+#  vary depending on the type of the plugin.
 ######################################################################
 
 sub plugin_list
@@ -559,13 +617,14 @@ sub plugin_list
 		);
 }
 
-=item @plugins = $handle->get_plugins( [ $params, ] %restrictions )
-
-Returns a list of plugin objects that conform to %restrictions (may be empty).
-
-If $params is given uses that hash reference to initialise the plugins. Always passes this session to the plugin constructor method.
-
-=cut
+######################################################################
+# @plugins = $handle->get_plugins( [ $params, ] %restrictions )
+# 
+# Returns a list of plugin objects that conform to %restrictions (may be empty).
+# 
+# If $params is given uses that hash reference to initialise the 
+# plugins. Always passes this session to the plugin constructor method.
+######################################################################
 
 sub get_plugins
 {
@@ -583,9 +642,7 @@ sub get_plugins
 
 
 ######################################################################
-# =pod
-# 
-# =item $spec = $handle->get_citation_spec( $dataset, [$ctype] )
+# $spec = $handle->get_citation_spec( $dataset, [$ctype] )
 # 
 # Return the XML spec for the given dataset. If a $ctype is specified
 # then return the named citation style for that dataset. eg.
@@ -594,8 +651,6 @@ sub get_plugins
 # 
 # This returns a copy of the XML citation spec., so that it may be 
 # safely modified.
-# 
-# =cut
 ######################################################################
 
 sub get_citation_spec
@@ -631,17 +686,15 @@ sub get_citation_type
 
 
 ######################################################################
-=pod
-
-=item $time = EPrints::Handle::microtime();
-
-This function is currently buggy so just returns the time in seconds.
-
-Return the time of day in seconds, but to a precision of microseconds.
-
-Accuracy depends on the operating system etc.
-
-=cut
+# 
+# $time = EPrints::Handle::microtime();
+# 
+# This function is currently buggy so just returns the time in seconds.
+# 
+# Return the time of day in seconds, but to a precision of microseconds.
+# 
+# Accuracy depends on the operating system etc.
+# 
 ######################################################################
 
 sub microtime
@@ -669,7 +722,7 @@ sub microtime
 ######################################################################
 =pod
 
-=item $foo = $handle->mail_administrator( $subjectid, $messageid, %inserts )
+=item $ok = $handle->mail_administrator( $subjectid, $messageid, %inserts )
 
 Sends a mail to the repository administrator with the given subject and
 message body.
@@ -682,6 +735,8 @@ basis for the mail body.
 
 %inserts is a hash. The keys are the pins in the messageid phrase and
 the values the utf8 strings to replace the pins with.
+
+Returns true on success, false on failure.
 
 =cut
 ######################################################################
@@ -723,13 +778,11 @@ sub allow_anybody
 
 
 ######################################################################
-=pod
-
-=item $handle->DESTROY
-
-Destructor. Don't call directly.
-
-=cut
+# 
+# $handle->DESTROY
+# 
+# Destructor. Don't call directly.
+# 
 ######################################################################
 
 sub DESTROY

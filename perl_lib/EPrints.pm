@@ -45,6 +45,10 @@ B<EPrints> - Institutional Repository software
 		]
 	);
 	$eprint->commit;
+
+	my $eprint_ds = $handle->get_dataset( "eprint" );
+	my $new_eprint = $eprint_ds->create_object( 
+		$handle, { title=>"My new EPrint!" } );
 	
 	my $archive_ds = $handle->get_dataset( "archive" );
 	my $search = new EPrints::Search( 
@@ -99,7 +103,7 @@ Represents a single submission to the repository. May have 0+ documents as sub-o
 
 =item EPrints::DataSet
 
-This object represents a set of objects of the same time, and has associated MetaFields and database tables. 
+This object represents a set of objects of the same time, and has associated MetaFields and database tables. A dataset may represent a subset of another dataset. For example, "eprint" represents all EPrints::DataObj::EPrint objects, but the "buffer" dataset only represents those which are "under review".
 
 =item EPrints::Handle
 
