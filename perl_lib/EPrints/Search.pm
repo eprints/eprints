@@ -48,7 +48,8 @@ web page.
 	# Dispose of the Search object:
 	$searchexp->dispose;
 
-See L<EPrints::List> to know how to access the results of the search.
+=head1 SEE ALSO
+	<EPrints::List> to know how to access the results of the search.
 
 =head1 METHODS
 
