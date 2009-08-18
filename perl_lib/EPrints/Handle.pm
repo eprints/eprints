@@ -473,7 +473,7 @@ sub log
 ######################################################################
 =pod
 
-=item $conf = $handle->get_conf( $conf_id, ... )
+=item $confitem = $handle->get_conf( $key, [@subkeys] )
 
 This is an alias for $handle->get_repository->get_conf( ... ) to make for more readable code.
 

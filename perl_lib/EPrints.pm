@@ -185,10 +185,6 @@ Tools for rendering an EPrint::List as paginated HTML.
 
 An extension to EPrints::Paginate which shows the results in sortable columns, as seen in Items and Review screens.
 
-=item EPrints::Platform
-
-Methods to abstract the operating system. Specifically between UNIX and Windows.
-
 =item EPrints::Storage
 
 Methods to abstract the process of reading and writing files. EPrints 3.2 introduced the possibility of storing files in the cloud, or in other storage devices, and this module is the interface to that.

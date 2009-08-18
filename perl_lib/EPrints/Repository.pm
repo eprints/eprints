@@ -19,6 +19,27 @@
 
 B<EPrints::Repository> - A single eprint repository
 
+=head1 SYNOPSIS
+
+	$repository = $handle->get_repository;
+
+	# without a $handle available
+	$repository = EPrints::Repository->new( $id, [$noxml] );
+
+	$id = $repository->get_id;
+	$dataset = $repository->get_dataset( $setname );
+
+	$repository->log( $msg );
+
+	$confitem = $repository->get_conf( $key, [@subkeys] );
+
+	# calling subtroutines in the config	
+	$boolean = $repository->can_call( @cmd_conf_path );
+	$result = $repository->call( $cmd, @params );
+
+	# calling external commands
+	$returncode = $repository->exec( $cmd_id, %map );
+
 =head1 DESCRIPTION
 
 This class is a single eprint repository with its own configuration,
@@ -86,7 +107,6 @@ my %ARCHIVE_CACHE = ();
 
 =over 4
 
-
 =item $repository = EPrints::Repository->new( $id, [$noxml] )
 
 Returns the repository with the given repository ID. If $noxml is specified
@@ -94,9 +114,15 @@ then it skips loading the XML based configuration files (this is
 needed when creating an repository as it first has to create the DTD
 files, and if it can't start you have a catch 22 situtation).
 
+This constructor should only be used if you don't want to create a 
+EPrints::Handle for some reason.
+
+In a CGI context, creating a handle will link it to an existing 
+EPrints::Repository object, whereas calling this constructor will 
+cause all the config files to be read specially for you. (much slower!)
+
 =cut
 ######################################################################
-sub new_archive_by_id { my $class= shift; return $class->new( @_ ); }
 
 sub new
 {
@@ -181,17 +207,13 @@ sub new
 }
 
 ######################################################################
-=pod
-
-=item $repository = EPrints::Repository->new_from_request( $request )
-
-This creates a new repository object. It looks at the given Apache
-request object and decides which repository to load based on the 
-value of the PerlVar "EPrints_ArchiveID".
-
-Aborts with an error if this is not possible.
-
-=cut
+# $repository = EPrints::Repository->new_from_request( $request )
+# 
+# This creates a new repository object. It looks at the given Apache
+# request object and decides which repository to load based on the 
+# value of the PerlVar "EPrints_ArchiveID".
+# 
+# Aborts with an error if this is not possible.
 ######################################################################
 
 sub new_from_request
@@ -212,13 +234,11 @@ sub new_from_request
 }
 
 ######################################################################
-#
 # $repository->check_secure_dirs( $request );
 #
 # This method triggers an abort if the secure dirs specified in 
 # the apache conf don't match those EPrints is using. This prevents
 # the risk of a security breach after moving directories.
-#
 ######################################################################
 
 sub check_secure_dirs
@@ -303,13 +323,9 @@ sub get_storage_config
 }
 
 ######################################################################
-#=pod
-#
-#=item $success = $repository->_load_workflows
+# $success = $repository->_load_workflows
 #
 # Attempts to load and cache the workflows for this repository
-#
-#=cut
 ######################################################################
 
 sub _load_workflows
@@ -333,11 +349,9 @@ sub _load_workflows
 
 	
 ######################################################################
-# 
 # $workflow_xml = $repository->get_workflow_config( $datasetid, $workflowid )
 #
 # Return the XML of the requested workflow
-#
 ######################################################################
 
 sub get_workflow_config
@@ -352,11 +366,9 @@ sub get_workflow_config
 }
 
 ######################################################################
-# 
 # $success = $repository->_load_languages
 #
 # Attempts to load and cache all the phrase files for this repository.
-#
 ######################################################################
 
 sub _load_languages
@@ -392,14 +404,10 @@ sub _load_languages
 
 
 ######################################################################
-=pod
-
-=item $language = $repository->get_language( [$langid] )
-
-Returns the EPrints::Language for the requested language id (or the
-default for this repository if $langid is not specified). 
-
-=cut
+# $language = $repository->get_language( [$langid] )
+#
+# Returns the EPrints::Language for the requested language id (or the
+# default for this repository if $langid is not specified). 
 ######################################################################
 
 sub get_language
@@ -414,11 +422,9 @@ sub get_language
 }
 
 ######################################################################
-# 
 # $success = $repository->_load_citation_specs
 #
 # Attempts to load and cache all the citation styles for this repository.
-#
 ######################################################################
 
 sub _load_citation_specs
@@ -550,9 +556,7 @@ sub freshen_citation
 }
 
 ######################################################################
-# =pod
-# 
-# =item $citation = $repository->get_citation_spec( $dsid, [$style] )
+# $citation = $repository->get_citation_spec( $dsid, [$style] )
 # 
 # Returns the DOM citation style for the given type of object. This
 # is the origional and should be cloned before you alter it.
@@ -560,9 +564,7 @@ sub freshen_citation
 # If $style is specified then returns a certain style if available, 
 # otherwise the default.
 #
-# dsid = user,eprint etc.
-# 
-# =cut
+# $dsid = user,eprint etc.
 ######################################################################
 
 sub get_citation_spec
@@ -603,11 +605,9 @@ sub get_citation_type
 }
 
 ######################################################################
-# 
 # $success = $repository->_load_templates
 #
 # Loads and caches all the html template files for this repository.
-#
 ######################################################################
 
 sub _load_templates
@@ -791,14 +791,10 @@ sub _load_template
 
 
 ######################################################################
-=pod
-
-=item $template = $repository->get_template_parts( $langid, [$template_id] )
-
-Returns an array of utf-8 strings alternating between XML and the id
-of a pin to replace. This is used for the faster template construction.
-
-=cut
+# $template = $repository->get_template_parts( $langid, [$template_id] )
+# 
+# Returns an array of utf-8 strings alternating between XML and the id
+# of a pin to replace. This is used for the faster template construction.
 ######################################################################
 
 sub get_template_parts
@@ -820,14 +816,10 @@ END
 	return $t;
 }
 ######################################################################
-=pod
-
-=item $template = $repository->get_template( $langid, [$template_id] )
-
-Returns the DOM document which is the webpage template for the given
-language. Do not modify the template without cloning it first.
-
-=cut
+# $template = $repository->get_template( $langid, [$template_id] )
+# 
+# Returns the DOM document which is the webpage template for the given
+# language. Do not modify the template without cloning it first.
 ######################################################################
 
 sub get_template
@@ -850,11 +842,9 @@ END
 }
 
 ######################################################################
-# 
 # $success = $repository->_load_namedsets
 #
 # Loads and caches all the named set lists from the cfg/namedsets/ directory.
-#
 ######################################################################
 
 sub _load_namedsets
@@ -901,14 +891,10 @@ sub _load_namedsets
 }
 
 ######################################################################
-=pod
-
-=item @type_ids = $repository->get_types( $type_set )
-
-Return an array of keys for the named set. Comes from 
-/cfg/types/foo.xml
-
-=cut
+# @type_ids = $repository->get_types( $type_set )
+# 
+# Return an array of keys for the named set. Comes from 
+# /cfg/namedsets/$type_set
 ######################################################################
 
 sub get_types
@@ -925,12 +911,10 @@ sub get_types
 }
 
 ######################################################################
-# 
 # $success = $repository->_load_datasets
 #
 # Loads and caches all the EPrints::DataSet objects belonging to this
 # repository.
-#
 ######################################################################
 
 sub _load_datasets
@@ -984,13 +968,9 @@ sub get_dataset_ids
 }
 
 ######################################################################
-=pod
-
-=item @dataset_ids = $repository->get_sql_dataset_ids()
-
-Returns a list of dataset ids that have database tables.
-
-=cut
+# @dataset_ids = $repository->get_sql_dataset_ids()
+# 
+# Returns a list of dataset ids that have database tables.
 ######################################################################
 
 sub get_sql_dataset_ids
@@ -1003,13 +983,9 @@ sub get_sql_dataset_ids
 }
 
 ######################################################################
-=pod
-
-=item @counter_ids = $repository->get_sql_counter_ids()
-
-Returns a list of counter ids generated by the database.
-
-=cut
+# @counter_ids = $repository->get_sql_counter_ids()
+# 
+# Returns a list of counter ids generated by the database.
 ######################################################################
 
 sub get_sql_counter_ids
@@ -1057,11 +1033,9 @@ sub get_dataset
 
 
 ######################################################################
-# 
 # $success = $repository->_load_plugins
 #
 # Load any plugins distinct to this repository.
-#
 ######################################################################
 
 sub _load_plugins
@@ -1073,11 +1047,11 @@ sub _load_plugins
 	return defined $self->{plugins};
 }
 
-=item $plugins = $repository->get_plugin_factory()
-
-Return the plugins factory object.
-
-=cut
+######################################################################
+# $plugins = $repository->get_plugin_factory()
+# 
+# Return the plugins factory object.
+######################################################################
 
 sub get_plugin_factory
 {
@@ -1087,12 +1061,10 @@ sub get_plugin_factory
 }
 
 ######################################################################
-# 
 # $classname = $repository->get_plugin_class
 #
 # Returns the perl module for a plugin with this id, using global
 # and repository-sepcific plugins.
-#
 ######################################################################
 
 sub get_plugin_class
@@ -1103,11 +1075,9 @@ sub get_plugin_class
 }
 
 ######################################################################
-# 
 # @list = $repository->get_plugin_ids
 #
 # Returns a list of plugin ids available to this repository.
-#
 ######################################################################
 
 sub get_plugin_ids
@@ -1120,12 +1090,10 @@ sub get_plugin_ids
 }
 
 ######################################################################
-# 
 # $success = $repository->_map_oai_plugins
 #
 # The OAI interface now uses plugins. This checks each OAI plugin and
 # stores its namespace, and a function to render with it.
-#
 ######################################################################
 
 sub _map_oai_plugins
@@ -1161,7 +1129,7 @@ sub _map_oai_plugins
 
 =item $confitem = $repository->get_conf( $key, [@subkeys] )
 
-Returns a named configuration setting. Probably set in ArchiveConfig.pm
+Returns a named configuration setting. 
 
 $repository->get_conf( "stuff", "en", "foo" )
 
@@ -1302,18 +1270,14 @@ sub can_call
 }
 
 ######################################################################
-=pod
-
-=item $result = $repository->try_call( $cmd, @params )
-
-Calls the subroutine named $cmd from the configuration perl modules
-for this repository with the given params and returns the result.
-
-If the subroutine does not exist then quietly returns undef.
-
-This is used to call deprecated callback subroutines.
-
-=cut
+# $result = $repository->try_call( $cmd, @params )
+# 
+# Calls the subroutine named $cmd from the configuration perl modules
+# for this repository with the given params and returns the result.
+# 
+# If the subroutine does not exist then quietly returns undef.
+# 
+# This is used to call deprecated callback subroutines.
 ######################################################################
 
 sub try_call
@@ -1326,14 +1290,10 @@ sub try_call
 }
 
 ######################################################################
-=pod
-
-=item @dirs = $repository->get_store_dirs
-
-Returns a list of directories available for storing documents. These
-may well be symlinks to other hard drives.
-
-=cut
+# @dirs = $repository->get_store_dirs
+# 
+# Returns a list of directories available for storing documents. These
+# may well be symlinks to other hard drives.
 ######################################################################
 
 sub get_store_dirs
@@ -1358,13 +1318,9 @@ sub get_store_dirs
 }
 
 ######################################################################
-=pod
-
-=item @dirs = $repository->get_static_dirs( $langid )
-
-Returns a list of directories from which static files may be sourced.
-
-=cut
+# @dirs = $repository->get_static_dirs( $langid )
+# 
+# Returns a list of directories from which static files may be sourced.
 ######################################################################
 
 sub get_static_dirs
@@ -1396,16 +1352,12 @@ sub get_static_dirs
 }
 
 ######################################################################
-=pod
-
-=item $size = $repository->get_store_dir_size( $dir )
-
-Returns the current storage (in bytes) used by a given documents dir.
-$dir should be one of the values returned by $repository->get_store_dirs.
-
-This should not be called if disable_df is set in SystemSettings.
-
-=cut
+# $size = $repository->get_store_dir_size( $dir )
+# 
+# Returns the current storage (in bytes) used by a given documents dir.
+# $dir should be one of the values returned by $repository->get_store_dirs.
+# 
+# This should not be called if disable_df is set in SystemSettings.
 ######################################################################
 
 sub get_store_dir_size
@@ -1422,24 +1374,17 @@ sub get_store_dir_size
 	return EPrints::Platform::free_space( $filepath );
 } 
 
-
-
-
 ######################################################################
-=pod
-
-=item $domdocument = $repository->parse_xml( $file, $no_expand );
-
-Turns the given $file into a XML DOM document. If $no_expand
-is true then load &entities; but do not expand them to the values in
-the DTD.
-
-This function also sets the path in which the Parser will look for 
-DTD files to the repository's config directory.
-
-Returns undef if an error occurs during parsing.
-
-=cut
+# $domdocument = $repository->parse_xml( $file, $no_expand );
+#
+# Turns the given $file into a XML DOM document. If $no_expand
+# is true then load &entities; but do not expand them to the values in
+# the DTD.
+#
+# This function also sets the path in which the Parser will look for 
+# DTD files to the repository's config directory.
+#
+# Returns undef if an error occurs during parsing.
 ######################################################################
 
 sub parse_xml
@@ -1530,18 +1475,14 @@ sub can_invoke
 }
 
 ######################################################################
-=pod
-
-=item $commandstring = $repository->invocation( $cmd_id, %map )
-
-Finds the invocation for the specified command from SystemSetting and
-fills in the blanks using %map. Returns a string which may be executed
-as a system call.
-
-All arguments are ESCAPED using quotemeta() before being used (i.e. don't
-pre-escape arguments in %map).
-
-=cut
+# $commandstring = $repository->invocation( $cmd_id, %map )
+# 
+# Finds the invocation for the specified command from SystemSetting and
+# fills in the blanks using %map. Returns a string which may be executed
+# as a system call.
+# 
+# All arguments are ESCAPED using quotemeta() before being used (i.e. don't
+# pre-escape arguments in %map).
 ######################################################################
 
 sub invocation
@@ -1562,14 +1503,10 @@ sub invocation
 }
 
 ######################################################################
-=pod
-
-=item $defaults = $repository->get_field_defaults( $fieldtype )
-
-Return the cached default properties for this metadata field type.
-or undef.
-
-=cut
+# $defaults = $repository->get_field_defaults( $fieldtype )
+# 
+# Return the cached default properties for this metadata field type.
+# or undef.
 ######################################################################
 
 sub get_field_defaults
@@ -1580,13 +1517,9 @@ sub get_field_defaults
 }
 
 ######################################################################
-=pod
-
-=item $repository->set_field_defaults( $fieldtype, $defaults )
-
-Cache the default properties for this metadata field type.
-
-=cut
+# $repository->set_field_defaults( $fieldtype, $defaults )
+# 
+# Cache the default properties for this metadata field type.
 ######################################################################
 
 sub set_field_defaults
@@ -1599,77 +1532,15 @@ sub set_field_defaults
 
 
 ######################################################################
-=pod
-
-=item $success = $repository->generate_dtd
-
-DEPRECATED
-
-=cut
-######################################################################
-
-sub generate_dtd
-{
-	my( $self ) = @_;
-
-	my $src_dtdfile = $self->get_conf("lib_path")."/xhtml-entities.dtd";
-	my $tgt_dtdfile = $self->get_conf( "variables_path" )."/entities.dtd";
-
-	my $src_mtime = EPrints::Utils::mtime( $src_dtdfile );
-	my $tgt_mtime = EPrints::Utils::mtime( $tgt_dtdfile );
-	if( $tgt_mtime > $src_mtime )
-	{
-		# as this file doesn't change anymore, except possibly after an
-		# upgrade, only update the var/entities.dtd file if the one in
-		# the lib directory is newer.
-		return 1;
-	}
-
-	open( XHTMLENTITIES, "<", $src_dtdfile ) ||
-		die "Failed to open system DTD ($src_dtdfile) to include ".
-			"in repository DTD";
-	my $xhtmlentities = join( "", <XHTMLENTITIES> );
-	close XHTMLENTITIES;
-
-	my $tmpfile = File::Temp->new;
-
-	print $tmpfile <<END;
-<!-- 
-	XHTML Entities
-
-	*** DO NOT EDIT, This is auto-generated ***
--->
-<!--
-	Generic XHTML entities 
--->
-
-END
-	print $tmpfile $xhtmlentities;
-	close $tmpfile;
-
-	copy( "$tmpfile", $tgt_dtdfile );
-
-	EPrints::Utils::chown_for_eprints( $tgt_dtdfile );
-
-	return 1;
-}
-
-
-
-######################################################################
-=pod
-
-=item ( $returncode, $output) = $repository->test_config
-
-This runs "epadmin test" as an external script to test if the current
-configuraion on disk loads OK. This can be used by the web interface
-to test if changes to config. files may be saved, or not.
-
-$returncode will be zero if everything seems OK.
-
-If not, then $output will contain the output of epadmin test 
-
-=cut
+# ( $returncode, $output) = $repository->test_config
+# 
+# This runs "epadmin test" as an external script to test if the current
+# configuraion on disk loads OK. This can be used by the web interface
+# to test if changes to config. files may be saved, or not.
+# 
+# $returncode will be zero if everything seems OK.
+# 
+# If not, then $output will contain the output of epadmin test 
 ######################################################################
 
 sub test_config

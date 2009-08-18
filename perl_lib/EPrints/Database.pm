@@ -39,7 +39,7 @@ Any use of SQL must use quote_identifier to quote database tables and columns. T
 
 Variables that are database quoted are prefixed with 'Q_'.
 
-=over 4
+=head1 METHODS
 
 =cut
 
@@ -121,6 +121,8 @@ my %TEMPTABLES = ();
 
 ######################################################################
 =pod
+
+=over 4
 
 =item $dbstr = EPrints::Database::build_connection_string( %params )
 

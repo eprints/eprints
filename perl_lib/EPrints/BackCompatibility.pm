@@ -148,6 +148,12 @@ $INC{"EPrints/Archive.pm"} = "EPrints/BackCompatibility.pm";
 
 ######################################################################
 
+package EPrints::Repository;
+
+sub new_archive_by_id { EPrints::deprecated(); my $class= shift; return $class->new( @_ ); }
+
+######################################################################
+
 package EPrints::SearchExpression;
 
 our @ISA = qw/ EPrints::Search /;
@@ -422,6 +428,20 @@ package EPrints::Index;
 
 sub split_words { &EPrints::Index::Tokenizer::split_words }
 sub apply_mapping { &EPrints::Index::Tokenizer::apply_mapping }
+
+package EPrints::MetaField;
+
+sub display_name
+{
+	my( $self, $handle ) = @_;
+
+	EPrints::deprecated();
+
+	my $phrasename = $self->{confid}."_fieldname_".$self->{name};
+
+	return $handle->phrase( $phrasename );
+}
+
 
 
 1;
