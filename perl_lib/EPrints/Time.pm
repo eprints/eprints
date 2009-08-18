@@ -19,6 +19,20 @@
 
 B<EPrints::Time> - Time and Date-related functions 
 
+=head1 SYNOPSIS
+
+EPrints::Time::render_date( $handle, "2001-01-12T00:00:00Z" ) #returns XML containing 12 January 2001 00:00
+
+EPrints::Time::render_short_date( $handle, "2001-01-12T00:00:00Z" ) #returns XML containing 12 Jan 2001 00:00
+
+EPrints::Time::get_iso_timestamp( ); # returns NOW in the form YYYY-MM-DDTHH:MM:SSZ
+
+EPrints::Time::human_delay( 28 ); # returns "1 day"
+
+EPrints::Time::get_month_label( $handle, 11 ) # returns November
+
+EPrints::Time::get_month_label_short( $handle, 11 ) # returns Nov
+
 =head1 DESCRIPTION
 
 This package contains functions related to time/date functionality. 
@@ -39,7 +53,9 @@ use Time::Local 'timegm_nocheck';
 
 Render the given date or date and time as a chunk of XHTML.
 
-The date given is in UTC but it will be rendered in the local offset.
+$datevalue is given in a UTC timestamp of the form YYYY-MM-DDTHH:MM:SSZ but it will be rendered in the local offset.
+
+e.g EPrints::Time::render_date( $handle, "2001-01-12T00:00:00Z" ) #returns XML containing 12 January 2001 00:00
 
 =cut
 ######################################################################
@@ -50,15 +66,41 @@ sub render_date
 	return _render_date( $handle, $datevalue, 0 );
 }
 
+######################################################################
+=pod
+
+=item $xhtml = EPrints::Time::render_short_date( $handle, $datevalue )
+
+Renders a short version of the given date or date and time as a chunk of XHTML.
+
+$datevalue is given in UTC timestamp of the form YYYY-MM-DDTHH:MM:SSZ but it will be rendered in the local offset.
+
+e.g EPrints::Time::render_short_date( $handle, "2001-01-12T00:00:00Z" ) #returns XML containing 12 Jan 2001 00:00
+
+=cut
+######################################################################
+
 sub render_short_date
 {
 	my( $handle, $datevalue) = @_;
 	return _render_date( $handle, $datevalue, 1 );
 }
 
+######################################################################
+=pod
+
+=item $xhtml = EPrints::Time::datestring_to_timet( $handle, $datevalue )
+
+Returns an interger number of seconds since 1970-01-01:00:00
+
+$datevalue - in the format YYYY-MM-DDTHH:MM:SSZ 
+
+=cut
+######################################################################
+
 sub datestring_to_timet
 {
-	my( $handle, $datevalue, $short ) = @_;
+	my( $handle, $datevalue ) = @_;
 
 	my( $year,$mon,$day,$hour,$min,$sec ) = split /[- :TZ]/, $datevalue;
 
@@ -195,6 +237,8 @@ Return a UTF-8 string describing the month, in the current lanugage.
 
 $monthid is an integer from 1 to 12.
 
+e.g EPrints::Time::get_month_label( $handle, 11 ) # returns November
+
 =cut
 ######################################################################
 
@@ -207,6 +251,19 @@ sub get_month_label
 	return $handle->phrase( $code );
 }
 
+######################################################################
+=pod
+
+=item $label = EPrints::Time::get_month_label_short( $handle, $monthid )
+
+Return a UTF-8 string of a short representation in  month, in the current lanugage.
+
+$monthid is an integer from 1 to 12.
+
+e.g EPrints::Time::get_month_label_short( $handle, 11 ) # returns Nov
+
+=cut
+######################################################################
 
 sub get_month_label_short
 {
@@ -308,6 +365,7 @@ e.g. 2005-02-12T09:23:33Z
 
 $time in seconds from 1970. If not defined then assume current time.
 
+
 =cut
 ######################################################################
 
@@ -324,6 +382,21 @@ sub get_iso_timestamp
 			$hour, $min, $sec );
 }
 
+######################################################################
+=pod
+
+=item $timestamp = EPrints::Time::human_delay( $hours );
+
+Returns a human readable amount of time. 
+
+$hours the number of hours representing the time you want to be human readable.
+
+e.g. EPrints::Time::human_delay( 28 ); # returns "1 day"
+
+e.g. EPrints::Time::human_delay( 400 ); # returns "2 weeks"
+
+=cut
+######################################################################
 sub human_delay
 {
 	my( $hours ) = @_;
