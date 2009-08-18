@@ -26,6 +26,7 @@ EPrints::DataObj::EPrint is a subclass of EPrints::DataObj with the following
 metadata fields (plus those defined in cfg.d/eprint_fields.pl):
 
 =head1 SYNOPSIS
+	Inherrits all methods from EPrints::DataObj.
 
 	# create a new eprint object (in the inbox):
 	my $inbox_ds = $handle->get_dataset( "inbox" );
@@ -123,6 +124,7 @@ The ID of the eprint (if any) which has replaced this eprint. This is only set
 on records in the "deletion" dataset.  This field should have
 been an int and may be changed in a later upgrade.
 
+=back
 
 =head1 SEE ALSO
 
@@ -152,13 +154,9 @@ package EPrints::DataObj::EPrint;
 use strict;
 
 ######################################################################
-#=pod
+# $metadata = EPrints::DataObj::EPrint->get_system_field_info
 #
-#=item $metadata = EPrints::DataObj::EPrint->get_system_field_info
-#
-#Return an array describing the system metadata of the EPrint dataset.
-#
-#=cut
+# Return an array describing the system metadata of the EPrint dataset.
 ######################################################################
 
 sub get_system_field_info
@@ -387,9 +385,7 @@ sub render_fileinfo
 
 
 ######################################################################
-# =pod
-# 
-# =item $eprint = EPrints::DataObj::EPrint::create( $handle, $dataset, $data )
+# $eprint = EPrints::DataObj::EPrint::create( $handle, $dataset, $data )
 # 
 # Create a new EPrint entry in the given dataset.
 # 
@@ -400,8 +396,6 @@ sub render_fileinfo
 # are set.
 # 
 # If C<$data> is not defined calls L</set_eprint_defaults>.
-# 
-# =cut
 ######################################################################
 
 sub create
@@ -415,9 +409,7 @@ sub create
 }
 
 ######################################################################
-# =pod
-# 
-# =item $dataobj = EPrints::DataObj->create_from_data( $handle, $data, $dataset )
+# $dataobj = EPrints::DataObj->create_from_data( $handle, $data, $dataset )
 # 
 # Create a new object of this type in the database. 
 # 
@@ -426,8 +418,6 @@ sub create
 # $data is the data structured as with new_from_data.
 # 
 # This will create sub objects also.
-# 
-# =cut
 ######################################################################
 
 sub create_from_data
@@ -502,13 +492,9 @@ sub create_from_data
 }
 
 ######################################################################
-#=pod
+# $dataset = EPrints::DataObj::EPrint->get_dataset_id
 #
-#=item $dataset = EPrints::DataObj::EPrint->get_dataset_id
-#
-#Returns the id of the L<EPrints::DataSet> object to which this record belongs.
-#
-#=cut
+# Returns the id of the L<EPrints::DataSet> object to which this record belongs.
 ######################################################################
 
 sub get_dataset_id
@@ -517,14 +503,10 @@ sub get_dataset_id
 }
 
 ######################################################################
-#=pod
+# $dataset = $eprint->get_dataset
 #
-#=item $dataset = $eprint->get_dataset
-#
-#Return the dataset to which this object belongs. This will return
-#one of the virtual datasets: inbox, buffer, archive or deletion.
-#
-#=cut
+# Return the dataset to which this object belongs. This will return
+# one of the virtual datasets: inbox, buffer, archive or deletion.
 ######################################################################
 
 sub get_dataset
@@ -539,13 +521,9 @@ sub get_dataset
 }
 
 ######################################################################
-#=pod
+# $defaults = EPrints::DataObj::EPrint->get_defaults( $handle, $data )
 #
-#=item $defaults = EPrints::DataObj::EPrint->get_defaults( $handle, $data )
-#
-#Return default values for this object based on the starting data.
-#
-#=cut
+# Return default values for this object based on the starting data.
 ######################################################################
 
 sub get_defaults
@@ -574,7 +552,6 @@ sub get_defaults
 
 
 ######################################################################
-# 
 # $directory =  EPrints::DataObj::EPrint::_create_directory( $handle, $eprintid )
 #
 #  Create a directory on the local filesystem for the new document
@@ -583,7 +560,6 @@ sub get_defaults
 #
 #  If "df" is available then check for diskspace and mail a warning 
 #  to the admin if the threshold is passed.
-#
 ######################################################################
 
 sub _create_directory
@@ -695,20 +671,16 @@ END
 
 
 ######################################################################
-#=pod
+# $eprint = $eprint->clone( $dest_dataset, $copy_documents, $link )
 #
-#=item $eprint = $eprint->clone( $dest_dataset, $copy_documents, $link )
+# Create a copy of this EPrint with a new ID in the given dataset.
+# Return the new eprint, or undef in the case of an error.
 #
-#Create a copy of this EPrint with a new ID in the given dataset.
-#Return the new eprint, or undef in the case of an error.
+# If $copy_documents is set and true then the documents (and files)
+# will be copied in addition to the metadata.
 #
-#If $copy_documents is set and true then the documents (and files)
-#will be copied in addition to the metadata.
-#
-#If $nolink is true then the new eprint is not connected to the
-#old one.
-#
-#=cut
+# If $nolink is true then the new eprint is not connected to the
+# old one.
 ######################################################################
 
 sub clone
@@ -740,10 +712,6 @@ sub clone
 		# We assume the new eprint will be a later version of this one,
 		# so we'll fill in the succeeds field, provided this one is
 		# already in the main repository.
-#		if( $status eq "archive" || $status eq "deletion" )
-#		{
-#		}
-#		cjg disabled this condtion.
 
 		$new_eprint->set_value( "succeeds" , $self->get_value( "eprintid" ) );
 	}
@@ -774,11 +742,9 @@ sub clone
 
 
 ######################################################################
-# 
 # $success = $eprint->_transfer( $new_status )
 #
 #  Change the eprint status.
-#
 ######################################################################
 
 sub _transfer
@@ -847,17 +813,11 @@ sub _transfer
 }
 
 ######################################################################
-=pod
-
-=over 4
-
-=item $eprint->log_mail_owner( $mail )
-
-Log that the given mail message was sent to the owner of this eprint.
-
-$mail is the same XHTML DOM that was sent as the email.
-
-=cut
+# $eprint->log_mail_owner( $mail )
+# 
+# Log that the given mail message was sent to the owner of this eprint.
+# 
+# $mail is the same XHTML DOM that was sent as the email.
 ######################################################################
 
 sub log_mail_owner
@@ -886,17 +846,13 @@ sub log_mail_owner
 }
 
 ######################################################################
-=pod
-
-=item $user = $eprint->get_editorial_contact
-
-Return the user identified as the editorial contact for this item.
-
-By default returns undef.
-
-nb. This has nothing to do with the editor defined in the metadata
-
-=cut
+# $user = $eprint->get_editorial_contact
+#
+# Return the user identified as the editorial contact for this item.
+# 
+# By default returns undef.
+# 
+# nb. This has nothing to do with the editor defined in the metadata
 ######################################################################
 
 sub get_editorial_contact
@@ -907,18 +863,13 @@ sub get_editorial_contact
 }	
 
 
-
 ######################################################################
-#=pod
+# $success = $eprint->remove
 #
-#=item $success = $eprint->remove
+# Erase this eprint and any associated records from the database and
+# filesystem.
 #
-#Erase this eprint and any associated records from the database and
-#filesystem.
-#
-#This should only be called on eprints in "inbox" or "buffer".
-#
-#=cut
+# This should only be called on eprints in "inbox" or "buffer".
 ######################################################################
 
 sub remove
@@ -963,18 +914,14 @@ sub remove
 
 
 ######################################################################
-#=pod
+# $success = $eprint->commit( [$force] );
 #
-#=item $success = $eprint->commit( [$force] );
+# Commit any changes that might have been made to the database.
 #
-#Commit any changes that might have been made to the database.
+# If the item has not be changed then this function does nothing unless
+# $force is true.
 #
-#If the item has not be changed then this function does nothing unless
-#$force is true.
-#
-#Calls L</set_eprint_automatic_fields> just before the C<$eprint> is committed.
-#
-#=cut
+# Calls L</set_eprint_automatic_fields> just before the C<$eprint> is committed.
 ######################################################################
 
 sub commit
@@ -1068,14 +1015,10 @@ sub commit
 }
 
 ######################################################################
-#=pod
+# $eprint->write_revision
 #
-#=item $eprint->write_revision
-#
-#Write out a snapshot of the XML describing the current state of the
-#eprint.
-#
-#=cut
+# Write out a snapshot of the XML describing the current state of the
+# eprint.
 ######################################################################
 
 sub write_revision
@@ -1097,20 +1040,16 @@ sub write_revision
 
 
 ######################################################################
-#=pod
+# $problems = $eprint->validate( [$for_archive], $workflow_id )
 #
-#=item $problems = $eprint->validate( [$for_archive], $workflow_id )
+# Return a reference to an array of XHTML DOM objects describing
+# validation problems with the entire eprint based on $workflow_id.
 #
-#Return a reference to an array of XHTML DOM objects describing
-#validation problems with the entire eprint based on $workflow_id.
+# If $workflow_id is undefined defaults to "default".
 #
-#If $workflow_id is undefined defaults to "default".
+# A reference to an empty array indicates no problems.
 #
-#A reference to an empty array indicates no problems.
-#
-#Calls L</validate_eprint> for the C<$eprint>.
-#
-#=cut
+# Calls L</validate_eprint> for the C<$eprint>.
 ######################################################################
 
 sub validate
@@ -1142,17 +1081,13 @@ sub validate
 }
 
 ######################################################################
-#=pod
-
-#=item $warnings = $eprint->get_warnings
-
-#Return a reference to an array of XHTML DOM objects describing
-#warnings about this eprint - that is things that are not quite 
-#validation errors, but it'd be nice if they were fixed.
-
-#Calls L</eprint_warnings> for the C<$eprint>.
-
-#=cut
+# $warnings = $eprint->get_warnings
+#
+# Return a reference to an array of XHTML DOM objects describing
+# warnings about this eprint - that is things that are not quite 
+# validation errors, but it'd be nice if they were fixed.
+#
+# Calls L</eprint_warnings> for the C<$eprint>.
 ######################################################################
 
 sub get_warnings
@@ -1170,15 +1105,11 @@ sub get_warnings
 
 
 ######################################################################
-#=pod
-
-#=item $boolean = $eprint->skip_validation
-
-#Returns true if this eprint should pass validation without being
-#properly validated. This is to allow the use of dodgey data imported
-#from legacy systems.
-
-#=cut
+# $boolean = $eprint->skip_validation
+#
+# Returns true if this eprint should pass validation without being
+# properly validated. This is to allow the use of dodgey data imported
+# from legacy systems.
 ######################################################################
 
 sub skip_validation 
@@ -1198,14 +1129,10 @@ sub skip_validation
 
 
 ######################################################################
-#=pod
-
-#=item $eprint->prune_documents
-
-#Remove any documents associated with this eprint which don't actually
-#have any files.
-
-#=cut
+# $eprint->prune_documents
+#
+# Remove any documents associated with this eprint which don't actually
+# have any files.
 ######################################################################
 
 sub prune_documents
@@ -1227,6 +1154,8 @@ sub prune_documents
 
 ######################################################################
 =pod
+
+=over 4
 
 =item @documents = $eprint->get_all_documents
 
@@ -1261,16 +1190,12 @@ sub get_all_documents
 
 
 ######################################################################
-#=pod
+# @formats =  $eprint->required_formats
 #
-#=item @formats =  $eprint->required_formats
+# Return a list of the required formats for this 
+# eprint. Only one of the required formats is required, not all.
 #
-#Return a list of the required formats for this 
-#eprint. Only one of the required formats is required, not all.
-#
-#An empty list means no format is required.
-#
-#=cut
+# An empty list means no format is required.
 ######################################################################
 
 sub required_formats
@@ -1296,7 +1221,8 @@ sub required_formats
 =item $success = $eprint->move_to_deletion
 
 Transfer the EPrint into the "deletion" dataset. Should only be
-called for eprints in the "archive" dataset.
+called for eprints in the "archive" dataset. This is called "retiring" in
+the Web interface.
 
 nb. This does not delete the eprint.
 
@@ -1338,7 +1264,9 @@ sub move_to_deletion
 =item $success = $eprint->move_to_inbox
 
 Transfer the EPrint into the "inbox" dataset. Should only be
-called for eprints in the "buffer" dataset.
+called for eprints in the "buffer" dataset. 
+
+This means moving it back to the user workarea.
 
 =cut
 ######################################################################
@@ -1360,6 +1288,8 @@ sub move_to_inbox
 
 Transfer the EPrint into the "buffer" dataset. Should only be
 called for eprints in the "inbox" or "archive" dataset.
+
+"buffer" is the internal code for the "review area".
 
 =cut
 ######################################################################
@@ -1386,12 +1316,10 @@ sub move_to_buffer
 
 
 ######################################################################
-# 
 # $eprint->_move_from_archive
 #
 # Called when an item leaves the main archive. Removes the static 
 # pages.
-#
 ######################################################################
 
 sub _move_from_archive
@@ -1409,6 +1337,8 @@ sub _move_from_archive
 
 Move this eprint into the main "archive" dataset. Normally only called
 for eprints in "deletion" or "buffer" datasets.
+
+This causes the item to appear on the website.
 
 =cut
 ######################################################################
@@ -1561,14 +1491,10 @@ sub generate_static
 }
 
 ######################################################################
-#=pod
+# $eprint->generate_static_all_related
 #
-#=item $eprint->generate_static_all_related
-#
-#Generate the static pages for this eprint plus any it's related to,
-#by succession or commentary.
-#
-#=cut
+# Generate the static pages for this eprint plus any it's related to,
+# by succession or commentary.
 ######################################################################
 
 sub generate_static_all_related
@@ -1589,13 +1515,9 @@ sub generate_static_all_related
 }
 
 ######################################################################
-#=pod
+# $eprint->remove_static
 #
-#=item $eprint->remove_static
-#
-#Remove the static web page or pages.
-#
-#=cut
+# Remove the static web page or pages.
 ######################################################################
 
 sub remove_static
@@ -1611,12 +1533,10 @@ sub remove_static
 }
 
 ######################################################################
-# 
 # $path = $eprint->_htmlpath( $langid )
 #
 # return the filesystem path in which the static files for this eprint
 # are stored.
-#
 ######################################################################
 
 sub _htmlpath
@@ -1630,19 +1550,15 @@ sub _htmlpath
 
 
 ######################################################################
-#=pod
+# ( $description, $title, $links ) = $eprint->render
 #
-#=item ( $description, $title, $links ) = $eprint->render
+# Render the eprint. The 3 returned values are references to XHTML DOM
+# objects. $description is the public viewable description of this eprint
+# that appears as the body of the abstract page. $title is the title of
+# the abstract page for this eprint. $links is any elements which should
+# go in the <head> of this page.
 #
-#Render the eprint. The 3 returned values are references to XHTML DOM
-#objects. $description is the public viewable description of this eprint
-#that appears as the body of the abstract page. $title is the title of
-#the abstract page for this eprint. $links is any elements which should
-#go in the <head> of this page.
-
-#Calls L</eprint_render> to actually render the C<$eprint>, if it isn't deleted.
-
-#=cut
+# Calls L</eprint_render> to actually render the C<$eprint>, if it isn't deleted.
 ######################################################################
 
 
@@ -1743,13 +1659,9 @@ sub render_box_list
 
 
 ######################################################################
-#=pod
+# ( $html ) = $eprint->render_history
 #
-#=item ( $html ) = $eprint->render_history
-#
-#Render the history of this eprint as XHTML DOM.
-#
-#=cut
+# Render the history of this eprint as XHTML DOM.
 ######################################################################
 
 sub render_history
@@ -1784,13 +1696,9 @@ sub render_history
 }
 
 ######################################################################
-#=pod
+# $url = $eprint->get_control_url
 #
-#=item $url = $eprint->get_control_url
-#
-#Return the URL of the control page for this eprint.
-#
-#=cut
+# Return the URL of the control page for this eprint.
 ######################################################################
 
 sub get_control_url
@@ -1803,13 +1711,9 @@ sub get_control_url
 }
 
 ######################################################################
-#=pod
+# $url = $eprint->get_url
 #
-#=item $url = $eprint->get_url
-#
-#Return the public URL of this eprints abstract page. 
-#
-#=cut
+# Return the public URL of this eprints abstract page. 
 ######################################################################
 
 sub get_url
@@ -1854,15 +1758,11 @@ sub get_user
 
 
 ######################################################################
-#=pod
+# $path = EPrints::DataObj::EPrint::eprintid_to_path( $eprintid )
 #
-#=item $path = EPrints::DataObj::EPrint::eprintid_to_path( $eprintid )
-#
-#Return this eprints id converted into directories. Thousands of 
-#files in one directory cause problems. For example, the eprint with the 
-#id 50344 would have the path 00/05/03/44.
-
-#=cut
+# Return this eprints id converted into directories. Thousands of 
+# files in one directory cause problems. For example, the eprint with the 
+# id 50344 would have the path 00/05/03/44.
 ######################################################################
 
 sub eprintid_to_path
@@ -1885,14 +1785,10 @@ sub eprintid_to_path
 
 
 ######################################################################
-#=pod
-
-#=item @eprints = $eprint->get_all_related
-
-#Return the eprints that are related in some way to this in a succession
-#or commentary thread. The returned list does NOT include this EPrint.
-
-#=cut
+# @eprints = $eprint->get_all_related
+#
+# Return the eprints that are related in some way to this in a succession
+# or commentary thread. The returned list does NOT include this EPrint.
 ######################################################################
 
 sub get_all_related
@@ -1931,15 +1827,11 @@ sub get_all_related
 
 
 ######################################################################
-#=pod
-
-#=item $boolean = $eprint->in_thread( $field )
-
-#Return true if this eprint is part of a thread of $field. $field
-#should be an EPrint::MetaField representing either "commentary" or
-#"succeeds".
-
-#=cut
+# $boolean = $eprint->in_thread( $field )
+#
+# Return true if this eprint is part of a thread of $field. $field
+# should be an EPrint::MetaField representing either "commentary" or
+# "succeeds".
 ######################################################################
 
 sub in_thread
@@ -1960,14 +1852,10 @@ sub in_thread
 
 
 ######################################################################
-#=pod
+# $eprint = $eprint->first_in_thread( $field )
 #
-#=item $eprint = $eprint->first_in_thread( $field )
-
-#Return the first (earliest) version or first paper in the thread
-#of commentaries of this paper in the repository.
-
-#=cut
+# Return the first (earliest) version or first paper in the thread
+# of commentaries of this paper in the repository.
 ######################################################################
 
 sub first_in_thread
@@ -1997,13 +1885,9 @@ sub first_in_thread
 
 
 ######################################################################
-#=pod
-
-#=item @eprints = $eprint->later_in_thread( $field )
-
-#Return a list of the immediately later items in the thread. 
-
-#=cut
+# @eprints = $eprint->later_in_thread( $field )
+#
+# Return a list of the immediately later items in the thread. 
 ######################################################################
 
 sub later_in_thread
@@ -2029,13 +1913,9 @@ sub later_in_thread
 
 
 ######################################################################
-#=pod
-
-#=item @eprints = $eprint->all_in_thread( $field )
-
-#Return all of the EPrints in the given thread.
-
-#=cut
+# @eprints = $eprint->all_in_thread( $field )
+#
+# Return all of the EPrints in the given thread.
 ######################################################################
 
 sub all_in_thread
@@ -2053,13 +1933,11 @@ sub all_in_thread
 }
 
 ######################################################################
-# 
 # $eprint->_collect_thread( $field, $current, $eprints, $set, $above )
 #
 # $above is a hash which contains all the ids eprints above the current
 # one as keys.
 # $set contains all the eprints found.
-#
 ######################################################################
 
 sub _collect_thread
@@ -2085,13 +1963,9 @@ sub _collect_thread
 
 
 ######################################################################
-#=pod
-
-#=item $eprint = $eprint->last_in_thread( $field )
-
-#Return the last item in the specified thread.
-
-#=cut
+# $eprint = $eprint->last_in_thread( $field )
+#
+# Return the last item in the specified thread.
 ######################################################################
 
 sub last_in_thread
@@ -2118,17 +1992,13 @@ sub last_in_thread
 
 
 ######################################################################
-#=pod
-
-#=item $eprint->remove_from_threads
-
-#Extract the eprint from any threads it's in. i.e., if any other
-#paper is a later version of or commentary on this paper, the link
-#from that paper to this will be removed.
-
-#Abstract pages are updated if needed.
-
-#=cut
+# $eprint->remove_from_threads
+#
+# Extract the eprint from any threads it's in. i.e., if any other
+# paper is a later version of or commentary on this paper, the link
+# from that paper to this will be removed.
+# 
+# Abstract pages are updated if needed.
 ######################################################################
 
 sub remove_from_threads
@@ -2176,13 +2046,14 @@ sub remove_from_threads
 	}
 }
 
-#
+######################################################################
 # $eprint->succeed_thread_modified
 #
 # Something either started or stopped succeeding this eprint.
 # Update the metadata_visibility flag accordingly.
 # If metadata visibility is "hide" then do nothing as this must not
 # be overridden.
+######################################################################
 
 sub succeed_thread_modified
 {
@@ -2225,13 +2096,9 @@ sub succeed_thread_modified
 }
 
 ######################################################################
-#=pod
-
-#=item $xhtml = $eprint->render_version_thread( $field )
-
-#Render XHTML DOM describing the entire thread as nested unordered lists.
-
-#=cut
+# $xhtml = $eprint->render_version_thread( $field )
+#
+# Render XHTML DOM describing the entire thread as nested unordered lists.
 ######################################################################
 
 sub render_version_thread
@@ -2250,13 +2117,11 @@ sub render_version_thread
 }
 
 ######################################################################
-# 
 # $xhtml = $eprint->_render_version_thread_aux( $field, $eprint_shown, $above )
 #
 # $above is a hash ref, the keys of which are ID's of eprints already 
 # seen above this item. One item CAN appear twice, just not as it's
 #  own decentant.
-#
 ######################################################################
 
 sub _render_version_thread_aux
@@ -2306,14 +2171,10 @@ sub _render_version_thread_aux
 }
 
 ######################################################################
-#=pod
-
-#=item $eprint->loop_error( $field, @looped_ids )
-
-#This eprint is part of a threading loop which is not allowed. Log a
-#warning.
-
-#=cut
+# $eprint->loop_error( $field, @looped_ids )
+#
+# This eprint is part of a threading loop which is not allowed. Log a
+# warning.
 ######################################################################
 
 sub loop_error
@@ -2329,13 +2190,9 @@ sub loop_error
 }
 
 ######################################################################
-#=pod
-
-#=item $type = $eprint->get_type
-
-#Return the type of this eprint.
-
-#=cut
+# $type = $eprint->get_type
+#
+# Return the type of this eprint.
 ######################################################################
 
 sub get_type
@@ -2348,17 +2205,13 @@ sub get_type
 
 
 ######################################################################
-#=pod
-
-#=item $xhtml_ul_list = $eprint->render_export_links( [$staff] )
-
-#Return a <ul> list containing links to all the formats this eprint
-#is available in. 
-
-#If $staff is true then show all formats available to staff, and link
-#to the staff export URL.
-
-#=cut
+# $xhtml_ul_list = $eprint->render_export_links( [$staff] )
+#
+# Return a <ul> list containing links to all the formats this eprint
+# is available in. 
+#
+# If $staff is true then show all formats available to staff, and link
+# to the staff export URL.
 ######################################################################
 	
 sub render_export_links
@@ -2388,13 +2241,9 @@ sub render_export_links
 
 
 ######################################################################
-#=pod
-
-#=item @roles = $eprint->user_roles( $user )
-
-#Return the @roles $user has on $eprint.
-
-#=cut
+# @roles = $eprint->user_roles( $user )
+#
+# Return the @roles $user has on $eprint.
 ######################################################################
 
 sub user_roles
@@ -2415,36 +2264,13 @@ sub user_roles
 }
 
 ######################################################################
-#=pod
-
-#=item $eprint->datestamp
-
-#DEPRECATED.
-
-#=cut
-######################################################################
-
-sub datestamp
-{
-	my( $self ) = @_;
-
-	my( $package,$filename,$line,$subroutine ) = caller(2);
-	$self->{handle}->get_repository->log( 
-"The \$eprint->datestamp method is deprecated. It was called from $filename line $line." );
-}
-
-######################################################################
-#=pod
-
-#=item $boolean = $eprint->in_editorial_scope_of( $possible_editor )
-
-#Returns true if $possible_editor can edit this eprint. This is
-#according to the user editperms. 
-
-#This does not mean the user has the editor priv., just that if they
-#do then they may edit the given item.
-
-#=cut
+# $boolean = $eprint->in_editorial_scope_of( $possible_editor )
+#
+# Returns true if $possible_editor can edit this eprint. This is
+# according to the user editperms. 
+#
+# This does not mean the user has the editor priv., just that if they
+# do then they may edit the given item.
 ######################################################################
 
 sub in_editorial_scope_of
@@ -2476,19 +2302,15 @@ sub in_editorial_scope_of
 }
 
 ######################################################################
-#=pod
-
-#=item $boolean = $eprint->has_owner( $possible_owner )
-
-#Returns true if $possible_owner can edit this eprint. This is
-#according to the user editperms. 
-
-#This does not mean the user has the editor priv., just that if they
-#do then they may edit the given item.
-
-#Uses the callback "does_user_own_eprint" if available.
-
-#=cut
+# $boolean = $eprint->has_owner( $possible_owner )
+#
+# Returns true if $possible_owner can edit this eprint. This is
+# according to the user editperms. 
+#
+# This does not mean the user has the editor priv., just that if they
+# do then they may edit the given item.
+#
+# Uses the callback "does_user_own_eprint" if available.
 ######################################################################
 
 sub has_owner
@@ -2511,11 +2333,7 @@ sub has_owner
 
 
 ######################################################################
-#=pod
-#
-#=item $boolean = $eprint->obtain_lock( $user )
-#
-#=cut
+# $boolean = $eprint->obtain_lock( $user )
 ######################################################################
 
 sub obtain_lock
@@ -2550,11 +2368,7 @@ sub obtain_lock
 }
 
 ######################################################################
-#=pod
-#
-#=item $boolean = $eprint->could_obtain_lock( $user )
-#
-#=cut
+# $boolean = $eprint->could_obtain_lock( $user )
 ######################################################################
 
 sub could_obtain_lock
@@ -2577,11 +2391,7 @@ sub could_obtain_lock
 }
 
 ######################################################################
-#=pod
-#
-#=item $boolean = $eprint->is_locked()
-#
-#=cut
+# $boolean = $eprint->is_locked()
 ######################################################################
 
 sub is_locked
@@ -2602,11 +2412,7 @@ sub is_locked
 }
 
 ######################################################################
-#=pod
-#
-#=item $xhtml = render_edit_lock( $handle, $value )
-#
-#=cut
+# $xhtml = render_edit_lock( $handle, $value )
 ######################################################################
 
 sub render_edit_lock

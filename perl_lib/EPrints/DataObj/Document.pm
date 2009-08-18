@@ -19,6 +19,53 @@
 
 B<EPrints::DataObj::Document> - A single format of a record.
 
+=head1 SYNOPSIS
+
+	Inherrits all methods from EPrints::DataObj.
+
+	# create a new document on $eprint 
+	my $doc_data = {
+		_parent => $eprint,
+		eprintid => $eprint->get_id,
+	};
+	my $doc_ds = $handle->get_repository->get_dataset( 'document' );
+	my $document = $doc_ds->create_object( $handle, $doc_data );
+
+	# Add files to the document	
+	$success = $doc->add_file( $file, $filename, [$preserve_path] );
+	$success = $doc->upload( $filehandle, $filename [, $preserve_path [, $filesize ] ] );
+	$success = $doc->upload_archive( $filehandle, $filename, $archive_format );
+	$success = $doc->add_archive( $file, $archive_format );
+	$success = $doc->add_directory( $directory );
+	$success = $doc->upload_url( $url );
+
+	# get an existing document
+	$document = EPrints::DataObj::EPrint->new( $handle, $doc_id );
+	# or
+	foreach my $doc ( $eprint->get_all_documents ) { ... }
+
+	# eprint to which this document belongs
+	$eprint = $doc->get_eprint;
+
+	# delete a document object *forever*:
+	$success = $doc->remove;
+
+	$url = $doc->get_url( [$file] );
+	$path = $doc->local_path;
+	%files = $doc->files;
+
+	# delete a file
+	$success = $doc->remove_file( $filename );
+	# delete all files
+	$success = $doc->remove_all_files;
+
+	# change the file which is used as the URL for the document.
+	$doc->set_main( $main_file );
+
+	# icons and previews
+	$xhtml = $doc->render_icon_link( %opts );
+	$xhtml = $doc->render_preview_link( %opts );
+
 =head1 DESCRIPTION
 
 Document represents a single format of an EPrint (eg. PDF) - the 
@@ -62,7 +109,17 @@ EPrints does not set this.
 =item security (namedset)
 
 The security type of this document - who can view it. One of the types
-of the dataset "security".
+of the namedset "security".
+
+=item content (namedset)
+
+The type of content. Conceptual type, no format. ie. Supporting Material or 
+published version. Values from namedset "content"
+
+=item license (namedset)
+
+The type of license for the document. Such as GFDL or creative commons.
+Values from namedset "licenses"
 
 =item main (text)
 
@@ -78,8 +135,6 @@ part of this record.
 =back
 
 =head1 METHODS
-
-=over 4
 
 =cut
 
@@ -112,13 +167,9 @@ use strict;
 $EPrints::DataObj::Document::OTHER = "OTHER";
 
 ######################################################################
-=pod
-
-=item $metadata = EPrints::DataObj::Document->get_system_field_info
-
-Return an array describing the system metadata of the Document dataset.
-
-=cut
+# $metadata = EPrints::DataObj::Document->get_system_field_info
+#
+# Return an array describing the system metadata of the Document dataset.
 ######################################################################
 
 sub get_system_field_info
@@ -232,13 +283,9 @@ sub doc_with_eprintid_and_pos
 }
 
 ######################################################################
-=pod
-
-=item $dataset = EPrints::DataObj::Document->get_dataset_id
-
-Returns the id of the L<EPrints::DataSet> object to which this record belongs.
-
-=cut
+# $dataset = EPrints::DataObj::Document->get_dataset_id
+# 
+# Returns the id of the L<EPrints::DataSet> object to which this record belongs.
 ######################################################################
 
 sub get_dataset_id
@@ -247,17 +294,13 @@ sub get_dataset_id
 }
 
 ######################################################################
-# =pod
-# 
-# =item $doc = EPrints::DataObj::Document::create( $handle, $eprint )
+# $doc = EPrints::DataObj::Document::create( $handle, $eprint )
 # 
 # Create and return a new Document belonging to the given $eprint object, 
 # get the initial metadata from set_document_defaults in the configuration
 # for this repository.
 # 
 # Note that this creates the document in the database, not just in memory.
-# 
-# =cut
 ######################################################################
 
 sub create
@@ -274,15 +317,11 @@ sub create
 }
 
 ######################################################################
-# =pod
-# 
-# =item $dataobj = EPrints::DataObj::Document->create_from_data( $handle, $data, $dataset )
+# $dataobj = EPrints::DataObj::Document->create_from_data( $handle, $data, $dataset )
 # 
 # Returns undef if a bad (or no) subjectid is specified.
 # 
 # Otherwise calls the parent method in EPrints::DataObj.
-# 
-# =cut
 ######################################################################
 
 sub create_from_data
@@ -338,13 +377,9 @@ sub create_from_data
 }
 
 ######################################################################
-=pod
-
-=item $defaults = EPrints::DataObj::Document->get_defaults( $handle, $data )
-
-Return default values for this object based on the starting data.
-
-=cut
+# $defaults = EPrints::DataObj::Document->get_defaults( $handle, $data )
+#
+# Return default values for this object based on the starting data.
 ######################################################################
 
 sub get_defaults
@@ -415,13 +450,9 @@ sub clone
 
 
 ######################################################################
-=pod
-
-=item $success = $doc->remove
-
-Attempt to completely delete this document
-
-=cut
+# $success = $doc->remove
+#
+# Attempt to completely delete this document
 ######################################################################
 
 sub remove
@@ -475,6 +506,8 @@ sub remove
 ######################################################################
 =pod
 
+=over 4
+
 =item $eprint = $doc->get_eprint
 
 Return the EPrint this document is associated with.
@@ -497,14 +530,10 @@ sub get_parent
 
 
 ######################################################################
-=pod
-
-=item $url = $doc->get_baseurl( [$staff] )
-
-Return the base URL of the document. Overrides the stub in DataObj.
-$staff is currently ignored.
-
-=cut
+# $url = $doc->get_baseurl( [$staff] )
+# 
+# Return the base URL of the document. Overrides the stub in DataObj.
+# $staff is currently ignored.
 ######################################################################
 
 sub get_baseurl
@@ -552,7 +581,7 @@ sub is_public
 
 =item $url = $doc->get_url( [$file] )
 
-Return the full URL of the document. Overrides the stub in DataObj.
+Return the full URL of the document. 
 
 If file is not specified then the "main" file is used.
 
@@ -629,50 +658,6 @@ sub files
 	return( %files );
 }
 
-
-# cjg should this function be in some kind of utils module and
-# used by generate_static too?
-######################################################################
-# 
-# %files = EPrints::DataObj::Document::_get_files( $files, $root, $dir )
-#
-#  Recursively get all the files in $dir. Paths are returned relative
-#  to $root (i.e. $root is removed from the start of files.)
-#
-######################################################################
-
-sub _get_files
-{
-	my( $files, $root, $dir ) = @_;
-
-	my $fixed_dir = ( $dir eq "" ? "" : $dir . "/" );
-
-	# Read directory contents
-	opendir CDIR, $root . "/" . $dir or return( undef );
-	my @filesread = readdir CDIR;
-	closedir CDIR;
-
-	# Iterate through files
-	my $name;
-	foreach $name (@filesread)
-	{
-		if( $name ne "." && $name ne ".." )
-		{
-			# If it's a directory, recurse
-			if( -d $root . "/" . $fixed_dir . $name )
-			{
-				_get_files( $files, $root, $fixed_dir . $name );
-			}
-			else
-			{
-				#my @stats = stat( $root . "/" . $fixed_dir . $name );
-				$files->{$fixed_dir.$name} = -s $root . "/" . $fixed_dir . $name;
-				#push @files, $fixed_dir . $name;
-			}
-		}
-	}
-
-}
 ######################################################################
 =pod
 
@@ -749,6 +734,8 @@ sub remove_all_files
 
 Sets the main file. Won't affect the database until a $doc->commit().
 
+This checks the file exists, so is more than an alias for get_value.
+
 =cut
 ######################################################################
 
@@ -773,13 +760,9 @@ sub set_main
 
 
 ######################################################################
-=pod
-
-=item $filename = $doc->get_main
-
-Return the name of the main file in this document.
-
-=cut
+# $filename = $doc->get_main
+#
+# Return the name of the main file in this document.
 ######################################################################
 
 sub get_main
@@ -791,14 +774,10 @@ sub get_main
 
 
 ######################################################################
-=pod
-
-=item $doc->set_format( $format )
-
-Set format. Won't affect the database until a commit(). Just an alias 
-for $doc->set_value( "format" , $format );
-
-=cut
+# $doc->set_format( $format )
+# 
+# Set format. Won't affect the database until a commit(). Just an alias 
+# for $doc->set_value( "format" , $format );
 ######################################################################
 
 sub set_format
@@ -810,15 +789,11 @@ sub set_format
 
 
 ######################################################################
-=pod
-
-=item $doc->set_format_desc( $format_desc )
-
-Set the format description.  Won't affect the database until a commit().
-Just an alias for
-$doc->set_value( "format_desc" , $format_desc );
-
-=cut
+# $doc->set_format_desc( $format_desc )
+# 
+# Set the format description.  Won't affect the database until a commit().
+# Just an alias for
+# $doc->set_value( "format_desc" , $format_desc );
 ######################################################################
 
 sub set_format_desc
@@ -928,14 +903,10 @@ sub add_file
 }
 
 ######################################################################
-=pod
-
-=item $cleanfilename = sanitise( $filename )
-
-Return just the filename (no leading path) and convert any naughty
-characters to underscore.
-
-=cut
+# $cleanfilename = sanitise( $filename )
+# 
+# Return just the filename (no leading path) and convert any naughty
+# characters to underscore.
 ######################################################################
 
 sub sanitise 
@@ -1149,17 +1120,13 @@ sub upload_url
 
 
 ######################################################################
-=pod
-
-=item $success = $doc->commit
-
-Commit any changes that have been made to this object to the
-database.
-
-Calls "set_document_automatic_fields" in the ArchiveConfig first to
-set any automatic fields that may be needed.
-
-=cut
+# $success = $doc->commit
+#
+# Commit any changes that have been made to this object to the
+# database.
+# 
+# Calls "set_document_automatic_fields" in the ArchiveConfig first to
+# set any automatic fields that may be needed.
 ######################################################################
 
 sub commit
@@ -1194,24 +1161,14 @@ sub commit
 	return( $success );
 }
 	
-
-
-
-	
-
-
 ######################################################################
-=pod
-
-=item $problems = $doc->validate( [$for_archive] )
-
-Return an array of XHTML DOM objects describing validation problems
-with the entire document, including the metadata and repository config
-specific requirements.
-
-A reference to an empty array indicates no problems.
-
-=cut
+# $problems = $doc->validate( [$for_archive] )
+# 
+# Return an array of XHTML DOM objects describing validation problems
+# with the entire document, including the metadata and repository config
+# specific requirements.
+# 
+# A reference to an empty array indicates no problems.
 ######################################################################
 
 sub validate
@@ -1259,12 +1216,10 @@ sub validate
 
 
 ######################################################################
-#
 # $boolean = $doc->user_can_view( $user )
 #
 # Return true if this documents security settings allow the given user
 # to view it.
-#
 ######################################################################
 
 sub user_can_view
@@ -1292,13 +1247,9 @@ sub user_can_view
 
 
 ######################################################################
-=pod
-
-=item $type = $doc->get_type
-
-Return the type of this document.
-
-=cut
+# $type = $doc->get_type
+# 
+# Return the type of this document.
 ######################################################################
 
 sub get_type
@@ -1309,14 +1260,10 @@ sub get_type
 }
 
 ######################################################################
-=pod
-
-=item $doc->files_modified
-
-This method does all the things that need doing when a file has been
-modified.
-
-=cut
+# $doc->files_modified
+# 
+# This method does all the things that need doing when a file has been
+# modified.
 ######################################################################
 
 sub files_modified
@@ -1364,14 +1311,10 @@ sub files_modified
 }
 
 ######################################################################
-=pod
-
-=item $doc->rehash
-
-Recalculate the hash value of the document. Uses MD5 of the files (in
-alphabetic order), but can use user specified hashing function instead.
-
-=cut
+# $doc->rehash
+# 
+# Recalculate the hash value of the document. Uses MD5 of the files (in
+# alphabetic order), but can use user specified hashing function instead.
 ######################################################################
 
 sub rehash
@@ -1397,13 +1340,9 @@ sub rehash
 }
 
 ######################################################################
-=pod
-
-=item $doc = $doc->make_indexcodes()
-
-Make the indexcodes document for this document. Returns the generated document or undef on failure.
-
-=cut
+# $doc = $doc->make_indexcodes()
+# 
+# Make the indexcodes document for this document. Returns the generated document or undef on failure.
 ######################################################################
 
 sub make_indexcodes
@@ -1444,14 +1383,10 @@ sub make_indexcodes
 }
 
 ######################################################################
-=pod
-
-=item $doc = $doc->remove_indexcodes()
-
-Remove any documents containing index codes for this document. Returns the
-number of documents removed.
-
-=cut
+# $doc = $doc->remove_indexcodes()
+# 
+# Remove any documents containing index codes for this document. Returns the
+# number of documents removed.
 ######################################################################
 
 sub remove_indexcodes
@@ -1475,13 +1410,9 @@ sub remove_indexcodes
 }
 
 ######################################################################
-=pod
-
-=item $filename = $doc->cache_file( $suffix );
-
-Return a cache filename for this document with the givven suffix.
-
-=cut
+# $filename = $doc->cache_file( $suffix );
+#
+# Return a cache filename for this document with the given suffix.
 ######################################################################
 
 sub cache_file
@@ -1496,14 +1427,12 @@ sub cache_file
 }
 	
 ######################################################################
-#
 # $doc->register_parent( $eprint )
 #
 # Give the document the EPrints::DataObj::EPrint object that it belongs to.
 #
 # This may cause reference loops, but it does avoid two identical
 # EPrints objects existing at once.
-#
 ######################################################################
 
 sub register_parent
@@ -1582,6 +1511,7 @@ sub icon_url
 	return $handle->get_repository->get_conf( "http_url" )."/$rel_path/$icon";
 }
 
+######################################################################
 =item $frag = $doc->render_icon_link( %opts )
 
 Render a link to the icon for this document.
@@ -1609,6 +1539,7 @@ Show thumbnail/preview on all docs if poss.
 =back
 
 =cut
+######################################################################
 
 sub render_icon_link
 {
@@ -1670,6 +1601,7 @@ sub render_icon_link
 	return $f;
 }
 
+######################################################################
 =item $frag = $doc->render_preview_link( %opts )
 
 Render a link to the preview for this document (if available) using a lightbox.
@@ -1689,6 +1621,7 @@ The name of the set this document belongs to, defaults to none (preview won't be
 =back
 
 =cut
+######################################################################
 
 sub render_preview_link
 {
@@ -1753,7 +1686,6 @@ sub thumbnail_path
 	
 	return( $eprint->local_path()."/thumbnails/".sprintf("%02d",$self->get_value( "pos" )) );
 }
-
 
 sub remove_thumbnails
 {
@@ -1860,4 +1792,3 @@ sub get_parent_id
 =back
 
 =cut
-

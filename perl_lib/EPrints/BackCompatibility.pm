@@ -69,6 +69,7 @@ $INC{"EPrints/EPrint.pm"} = "EPrints/BackCompatibility.pm";
 
 sub create { EPrints::deprecated(); return EPrints::DataObj::EPrint::create( @_ ); }
 sub eprintid_to_path { EPrints::deprecated(); return EPrints::DataObj::EPrint::eprintid_to_path( @_ ); }
+sub datestamp { EPrints::deprecated(); EPrints::abort( "datestamp function no longer available" ); }
 
 ######################################################################
 
