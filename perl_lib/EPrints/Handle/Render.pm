@@ -31,20 +31,33 @@ Handle methods.
 
 	# create a simple <a> element:
 	my $link = $handle->render_link( "http://www.eprints.org/", "_blank" );
-	$link->appendChild( $handle->make_text( "Visit the EPrints website" ) );	
+	$link->appendChild( 
+		$handle->make_text( "Visit the EPrints website" ) );
 
 	# create a POST form on the current cgi script:	
 	my $form = $handle->render_form( "POST" );
-	$form->appendChild( $handle->render_hidden_field( "eprintid", $eprint->get_id ) );
-	$form->appendChild( $handle->render_input_field( "name" => "ep_input_text", "id" => "ep_input_text" ) );
-	$form->appendChild( $handle->render_button( "name" => "action_submit" ) );
+	$form->appendChild( 
+		$handle->render_hidden_field( 
+			"eprintid", 
+			$eprint->get_id ) );
+	$form->appendChild( 
+		$handle->render_input_field( 
+			"name" => "ep_input_text", 
+			"id" => "ep_input_text" ) );
+	$form->appendChild( 
+		$handle->render_button( 
+			"name" => "action_submit" ) );
 
 	# create a message in the EPrints Screen style:
-	$page->appendChild( $handle->render_message( "error", $handle->make_text( "Error description" ), 1 ) );	
+	$page->appendChild( 
+		$handle->render_message( 
+			"error", 
+			$handle->make_text( "Error description" ), 
+			1 ) );	
 
 	# create a Toolbox in the EPrints style:	
-	$page->appendChild( $handle->render_toolbox( $title, $content ) );
-
+	$page->appendChild( 
+		$handle->render_toolbox( $title, $content ) );
 
 =head1 METHODS
 
