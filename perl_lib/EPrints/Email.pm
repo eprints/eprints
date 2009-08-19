@@ -19,6 +19,17 @@
 
 B<EPrints::Email> - Email Utility functions for EPrints.
 
+=head1 SYNOPSIS
+
+use EPrints::Email;
+
+EPrints::Email::send_mail( handle=>$handle,
+                            langid=>"en",
+                             to_email=>"test@test.com", 
+                             to_name=>"Bob Test", 
+                             subject=>"Recent Test Reports", 
+                             message=>$message_dom ); # sends an email to Bob Test at test@test.com in English with the subject "Recent Test Reports"
+
 =head1 DESCRIPTION
 
 This package handles sending emails.
@@ -39,39 +50,50 @@ use strict;
 
 =over 4
 
-=item EPrints::Utils::send_mail( %properties )
+=item EPrints::Email::send_mail( %properties )
 
 Sends an email. 
 
+=over 4
+
 Required properties:
 
-session - the current session
+%properties{handle} - the current handle
 
-langid - the id of the language to send the email in.
+%properties{langid} - the ISO language code of the language to send the email in. e.g. "en" for English
 
-to_email, to_name - who to send it to
+%properties{to_email} - the email address to send the email to 
 
-subject - the subject of the message (UTF-8 encoded string)
+%properties{to_name} - the name of the person you are emailing (encoded in UTF-8)
 
-message - the body of the message as a DOM tree
+%properties{subject} - the subject of the message (encoded in UTF-8)
+
+%properties{message} - the body of the message as a DOM tree
+
+=back
 
 optional properties:
 
-from_email, from_name - who is sending the email (defaults to the archive admin)
+=over 4
 
-sig - the signature file as a DOM tree
+%properties{from_email, from_name - who is sending the email (defaults to the archive admin)
 
-replyto_email, replyto_name
+%properties{sig} - the signature file as a DOM tree
 
-attach - ref to an array of filenames (with full paths) to attach to the message 
+%properties{replyto_email} - the email address the recipient should reply to.
+
+%properties{replyto_name} - the name of the person to reply to (encoded in UTF-8)
+
+%properties{attach} - ref to an array of filenames (with full paths) to attach to the message 
+
+=back
 
 Returns true if mail sending (appears to have) succeeded. False otherwise.
 
 Uses the config. option "send_email" to send the mail, or if that's
 not defined sends the email via STMP.
 
-names and the subject should be encoded as utf-8
-
+=back
 
 =cut
 ######################################################################
