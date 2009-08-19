@@ -14,7 +14,13 @@
 
 =head1 NAME
 
-B<EPrints::Box> - Class to render cute little Web 2.0ish boxes.
+B<EPrints::Box> - Class to render cute little collapsable/expandable Web 2.0ish boxes.
+
+=head1 SYNOPSIS
+
+use EPrints::Box;
+
+EPrints::Box(handle=>$handle, id="my_box", title=>$my_title_dom, content=>$my_content_dom, collapsed=>1); # an XHTML DOM box with a title and some content that starts rolled up.
 
 =head1 DESCRIPTION
 
@@ -29,27 +35,37 @@ use strict;
 ######################################################################
 =pod
 
+=over 4
+
 =item $box_xhtmldom = EPrints::Box::render( %options )
 
-Render a cute box.
+Render a collapsable/expandable box to which content can be added. The box is in keeping with the eprints style
 
-Options:
+Required Options:
 
 =over 4
 
-=item session: Current $handle (required)
+$options{handle} - Current $handle
 
-=item id: XML ID of box (required)
+$options{id} - ID attibute of the box i.e. <div id="my_box">
 
-=item title: XHTML DOM of title (required). Nb. Will not be cloned.
+$options{title} - XHTML DOM of the title of the box. Note the exact object will be used not a clone of the object.
 
-=item content: XHTML DOM of content (required). Nb. Will not be cloned.
+$options{content} - XHTML DOM of the content of the box. Note the exact object will be used not a clone of the object.
 
-=item collapsed: boolean. Default to false.
+=back
 
-=item content-style: the css style to apply to the content box. For example; "overflow-y: auto; height: 300px;"
+Optional Options:
 
-=item show_icon_url and hide_icon_url: the icons to show instead of the default [+] and [-]
+=over 4
+
+%options{collapsed} - Should the box start rolled up. Default to false.
+
+%options{content-style} - the css style to apply to the content box. For example; "overflow-y: auto; height: 300px;"
+
+%options{show_icon_url} - the url of the icon to use instead of the [+]
+
+%options{hide_icon_url} - the url of the icon to use instead of the [-]
 
 =back
 
