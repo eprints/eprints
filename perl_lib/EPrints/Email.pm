@@ -21,14 +21,18 @@ B<EPrints::Email> - Email Utility functions for EPrints.
 
 =head1 SYNOPSIS
 
-use EPrints::Email;
+	use EPrints;
 
-EPrints::Email::send_mail( handle=>$handle,
-                            langid=>"en",
-                             to_email=>"test@test.com", 
-                             to_name=>"Bob Test", 
-                             subject=>"Recent Test Reports", 
-                             message=>$message_dom ); # sends an email to Bob Test at test@test.com in English with the subject "Recent Test Reports"
+	# sends an email to Bob Test at test@test.com in English with the 
+	# subject "Recent Test Reports"
+	EPrints::Email::send_mail( 
+		  handle => $handle,
+		  langid => "en",
+		to_email => "test@test.com", 
+		 to_name => "Bob Test", 
+		 subject => "Recent Test Reports", 
+		 message => $message_dom,
+	); 
 
 =head1 DESCRIPTION
 

@@ -139,7 +139,7 @@ sub human_delay { EPrints::deprecated(); return EPrints::Time::human_delay( @_ )
 sub get_iso_timestamp { EPrints::deprecated(); return EPrints::Time::get_iso_timestamp( @_ ); }
 sub df_dir{my( $dir ) = @_;EPrints::deprecated();return EPrints::Platform::free_space( $dir );}
 sub mkdir{my( $full_path, $perms ) = @_;EPrints::abort("EPrints::Utils::mkdir is deprecated: use EPrints::Platform::mkdir");	return 1;}
-sub join_path{ EPrints::deprecated();	return EPrints::Platform::join_path; }
+sub join_path { EPrints::deprecated(); return EPrints::Platform::join_path(@_); }
 
 
 

@@ -20,22 +20,31 @@
 B<EPrints::Utils> - Utility functions for EPrints.
 
 =head1 SYNOPSIS
+	
+	$boolean = EPrints::Utils::is_set( $object ) 
+	# return true if an object/scalar/array has any data in it
 
-$boolean = EPrints::Utils::is_set( $object ) #returns true if an object/scalar/array has any data in it
-
-$response = EPrints::Utils::wget( $handle, "http://www.eprints.org/index.php", "temp_dir/my_file" ) # copy the contents of the url to a file
-if($response->is_sucess()){ do something...}
-
-$string = EPrints::Utils::make_name_string( given=>"Bob", family=>"Smith",honourific=>"Mr", 1 ) returns "Mr Bob Smith"
-$string = EPrints::Utils::make_name_string( given=>"Bob", family=>"Smith",honourific=>"Mr", 0 ) returns Mr Smith, Bob
-
-$string = EPrints::Utils::url_escape( "http://www.eprints.org?var=1&var2=2" ); # returns http://www.eprints.org?var=1&ampvar2=2
-
-$esc_string = EPrints::Utils::escape_filename( $string );
-
-$string = EPrints::Utils::unescape_filename( $esc_string );
-
-$filesize_text = EPrints::Utils::human_filesize( 3300 ); # returns "3kb"
+	# copy the contents of the url to a file
+	$response = EPrints::Utils::wget( 
+		$handle, 
+		"http://www.eprints.org/index.php", 
+		"temp_dir/my_file" ) 
+	if($response->is_sucess()){ do something...}
+	
+	$name = { given=>"Wendy", family=>"Hall", honourific=>"Dame" };
+	# return Dame Wendy Hall
+	$string = EPrints::Utils::make_name_string( $name, 1 );
+	# return Dame Hall, Wendy
+	$string = EPrints::Utils::make_name_string( $name, 0 );
+	
+	# returns http://www.eprints.org?var=%3Cfoo%3E
+	$string = EPrints::Utils::url_escape( "http://www.eprints.org?var=<foo>" ); 
+	
+	$esc_string = EPrints::Utils::escape_filename( $string );
+	$string = EPrints::Utils::unescape_filename( $esc_string );
+	
+	$filesize_text = EPrints::Utils::human_filesize( 3300 ); 
+	# returns "3kb"
 
 =head1 DESCRIPTION
 
@@ -77,8 +86,9 @@ BEGIN {
 
 sub prepare_cmd {
 	my ($cmd, %VARS) = @_;
+
 	$cmd =~ s/\$\(([\w_]+)\)/defined($VARS{$1}) ? quotemeta($VARS{$1}) : die("Unspecified variable $1 in $cmd")/seg;
-	$cmd;
+	return $cmd;
 }
 
 ######################################################################

@@ -18,9 +18,17 @@ B<EPrints::Box> - Class to render cute little collapsable/expandable Web 2.0ish 
 
 =head1 SYNOPSIS
 
-use EPrints::Box;
+	use EPrints;
 
-EPrints::Box(handle=>$handle, id="my_box", title=>$my_title_dom, content=>$my_content_dom, collapsed=>1); # an XHTML DOM box with a title and some content that starts rolled up.
+	# an XHTML DOM box with a title and some content that starts rolled up.
+	EPrints::Box(
+		   handle => $handle,
+		       id => "my_box",
+		    title => $my_title_dom,
+		  content => $my_content_dom,
+		collapsed => 1,
+	); 
+
 
 =head1 DESCRIPTION
 

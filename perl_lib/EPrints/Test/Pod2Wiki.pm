@@ -69,7 +69,8 @@ use Pod::Coverage;
 use strict;
 
 my $PREFIX = "Pod2Wiki=";
-my $END_PREFIX = "End of Pod2Wiki";
+my $END_PREFIX = "Edit below this comment";
+my $STYLE = "background-color: #eef; margin: 0.5em 0em 1em 0em; border: solid 1px #cce;  padding: 0em 1em 0em 1em; font-size: 80%; ";
 
 =item EPrints::Test::Pod2Wiki->new( ... )
 
@@ -134,7 +135,6 @@ sub update_page
 		print STDERR "Warning! Source file not found for $package_name: $file\n";
 		return 0;
 	}
-
 	my $title = $self->_p2w_wiki_title( $package_name );
 
 	# add the preamble
@@ -153,7 +153,7 @@ sub update_page
 	$self->parse_from_file( $file );
 
 	# locate unpodded-methods and add them to the wiki page
-	$self->_p2w_add_uncovered( $package_name, $file );
+	# $self->_p2w_add_uncovered( $package_name, $file );
 
 	# make sure that there was a $END_PREFIX
 	$self->command( "pod" );
@@ -168,7 +168,14 @@ sub update_page
 	my $new_wiki_page = join "", @{$self->{_out}};
 	if( $new_wiki_page ne $wiki_page )
 	{
-print STDERR "Ok\n" if $self->_p2w_post_new_page( $title, $new_wiki_page );
+		if( $self->_p2w_post_new_page( $title, $new_wiki_page ) )
+		{
+			print STDERR "Ok\n" 
+		}
+		else
+		{
+			print STDERR "Failed to post page\n" 
+		}
 	}
 	else
 	{
@@ -205,7 +212,6 @@ sub _p2w_post_new_page
 		wpEditToken => $edit_token,
 		wpAutoSummary => $auto_summary,
 	]);
-
 	return $r->code eq "302";
 }
 
@@ -215,7 +221,7 @@ sub _p2w_preamble
 	my( $self, $package_name, $title ) = @_;
 
 	my $blurb = <<EOC;
-This page has been automatically generated from the EPrints source. Any wiki changes made between the '$PREFIX*' and '$END_PREFIX' comments will be lost.
+This page has been automatically generated from the EPrints 3.2 source. Any wiki changes made between the '$PREFIX*' and '$END_PREFIX' comments will be lost.
 EOC
 
 	my $sort_key = $package_name;
@@ -227,10 +233,12 @@ EOC
 
 	return (
 		"<!-- ${PREFIX}_preamble_ \n$blurb -->",
+		"\n__NOTOC__\n",
 		"{{Pod2Wiki}}",
 		"{{API:Source|file=$file|package_name=$package_name}}",
 		"[[Category:API|$sort_key]]",
-		"<!-- $END_PREFIX -->\n",
+		"<div>",
+		"<!-- $END_PREFIX -->\n\n\n",
 	);
 }
 
@@ -367,7 +375,7 @@ sub command
 	if( $self->{_p2w_pod_section} )
 	{
 		my $key = delete $self->{_p2w_pod_section};
-		push @{$self->{_out}}, "<!-- $END_PREFIX -->\n";
+		push @{$self->{_out}}, "<div style='$STYLE'>\n<h4><span style='display:none'>User Comments</span></h4>\n<!-- $END_PREFIX -->\n\n\n";
 		if( $self->{_wiki}->{$key} )
 		{
 			push @{$self->{_out}},
@@ -385,8 +393,11 @@ sub command
 	{
 		$self->{_p2w_head_depth} = $1;
 		my $eqs = "=" x $1;
-		push @{$self->{_out}}, "<!-- ${PREFIX}head_$ref -->";
-		push @{$self->{_out}}, "$eqs$text$eqs\n";
+		$eqs .= "="; # start at == not =
+		push @{$self->{_out}}, 
+			"<!-- ${PREFIX}head_$ref -->",
+			"</div>\n",
+			"$eqs$text$eqs\n";
 		$self->{_p2w_pod_section} = "head_$ref";
 	}
 	elsif( $cmd eq "over" or $cmd eq "back" )
@@ -397,13 +408,15 @@ sub command
 		my $depth = $self->{_p2w_head_depth} || 0;
 		++$depth;
 		my $eqs = "=" x $depth;
+		$eqs .= "="; # start at == not =
 		push @{$self->{_out}},
 			"<!-- ${PREFIX}item_$ref -->",
-			"$eqs$ref$eqs\n\n";
-		if( $ref ne $text )
-		{
-			push @{$self->{_out}}, "  $text\n\n";
-		}
+			"</div>\n",
+			"$eqs$text$eqs\n\n";
+#		if( $ref ne $text )
+#		{
+#			push @{$self->{_out}}, "  $text\n\n";
+#		}
 		$self->{_p2w_pod_section} = "item_$ref";
 	}
 	else
@@ -411,6 +424,7 @@ sub command
 		$text =~ s/[\r\n]+$//s;
 		push @{$self->{_out}},
 			"<!-- ${PREFIX}$cmd -->",
+			"</div>\n",
 			$text;
 		$self->{_p2w_pod_section} = $cmd;
 	}

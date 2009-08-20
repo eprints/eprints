@@ -21,21 +21,21 @@ B<EPrints::XML> - XML Abstraction Module
 
 =head1 SYNOPSIS
 
-$string = EPrints::XML::to_string( $node, "utf-8", 1 ); #use this to convert DOM trees to string
-
-$dom = EPrints::XML::parse_xml_string( $string );
-
-$dom = EPrints::XML::parse_xml( $file, $basepath, $no_expand );
-
-$boolean = is_dom( $node, @nodestrings );
-
-$newnode = EPrints::XML::clone_node( $node, $deep );
-
-EPrints::XML::write_xhtml_file( $node, $filename );
-
-$document = EPrints::XML::make_document();
-
-$dom = EPrints:XML::parse_url($url, $no_expand);
+	$string = EPrints::XML::to_string( $node, "utf-8", 1 ); #use this to convert DOM trees to string
+	
+	$dom = EPrints::XML::parse_xml_string( $string );
+	
+	$dom = EPrints::XML::parse_xml( $file, $basepath, $no_expand );
+	
+	$boolean = is_dom( $node, @nodestrings );
+	
+	$newnode = EPrints::XML::clone_node( $node, $deep );
+	
+	EPrints::XML::write_xhtml_file( $node, $filename );
+	
+	$document = EPrints::XML::make_document();
+	
+	$dom = EPrints:XML::parse_url($url, $no_expand);
 
 
 

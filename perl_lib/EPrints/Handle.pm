@@ -56,29 +56,15 @@ results which can be returned via the web interface.
 
 Specific sets of functions are documented in:
 
-=over 4
+EPrints::Handle::XML - XML DOM utilties.  
 
-=item EPrints::Handle::XML
+EPrints::Handle::Render - XHTML generating utilities.  
 
-XML DOM utilties.
+EPrints::Handle::Language - I18L methods.  
 
-=item EPrints::Handle::Render
+EPrints::Handle::Page - XHTML Page and templating methods.  
 
-XHTML generating utilities.
-
-=item EPrints::Handle::Language
-
-I18L methods.
-
-=item EPrints::Handle::Page
-
-XHTML Page and templating methods.
-
-=item EPrints::Handle::CGI
-
-Methods for detail with the web-interface.
-
-=back
+EPrints::Handle::CGI - Methods for detail with the web-interface.  
 
 =head1 METHODS
 
@@ -165,8 +151,7 @@ connect to.
 $mode :
 mode = 0    - We are online (CGI script)
 mode = 1    - We are offline (bin script) $repository_id is repository_id
-mode = 2    - We are online, but don't create a CGI query (so we
- don't consume the data).
+mode = 2    - We are online, but don't create a CGI query (so we don't consume the data).
 
 $noise is the level of debugging output.
 0 - silent

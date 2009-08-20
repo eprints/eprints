@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
 
 =head1 NAME
 
