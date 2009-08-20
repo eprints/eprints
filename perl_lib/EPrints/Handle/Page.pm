@@ -21,13 +21,8 @@ B<EPrints::Handle::Page> - Page methods for EPrints::Handle
 
 =head1 SYNOPSIS
 
-use EPrints::Handle;
-
-$handle = EPrints::Handle->new();
-
-$handle->prepare_page(page=>$mypage, title=>$mytitle); #makes a pages for sending
-
-$handle->send_page(); #sends the page
+	$handle->prepare_page( page=>$mypage, title=>$mytitle );
+	$handle->send_page(); 
 
 =head1 DESCRIPTION
 

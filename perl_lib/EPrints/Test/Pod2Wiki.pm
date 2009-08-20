@@ -234,6 +234,7 @@ EOC
 	return (
 		"<!-- ${PREFIX}_preamble_ \n$blurb -->",
 		"\n__NOTOC__\n",
+		"{{API}}",
 		"{{Pod2Wiki}}",
 		"{{API:Source|file=$file|package_name=$package_name}}",
 		"[[Category:API|$sort_key]]",

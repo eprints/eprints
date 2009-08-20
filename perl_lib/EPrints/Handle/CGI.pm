@@ -19,14 +19,6 @@
 
 B<EPrints::Handle::CGI> - CGI methods for EPrints::Handle
 
-=head1 DESCRIPTION
-
-This module provides additional methods to EPrints::Handle and is not
-an object in its own right.
-
-Look at EPrints::Handle for further information on how to access the 
-Handle methods.
-
 =head1 SYNOPSIS
 
 	my $user = $handle->current_user;
@@ -37,6 +29,14 @@ Handle methods.
 	$handle->redirect( "http://www.eprints.org/" );
 
 	my $current_page_uri = $handle->get_uri();
+
+=head1 DESCRIPTION
+
+This module provides additional methods to EPrints::Handle and is not
+an object in its own right.
+
+Look at EPrints::Handle for further information on how to access the 
+Handle methods.
 
 =head1 METHODS
 

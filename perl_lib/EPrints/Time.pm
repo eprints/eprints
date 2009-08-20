@@ -21,17 +21,23 @@ B<EPrints::Time> - Time and Date-related functions
 
 =head1 SYNOPSIS
 
-EPrints::Time::render_date( $handle, "2001-01-12T00:00:00Z" ) #returns XML containing 12 January 2001 00:00
+	EPrints::Time::render_date( $handle, "2001-01-12T00:00:00Z" ) 
+	# returns XML containing 12 January 2001 00:00
 
-EPrints::Time::render_short_date( $handle, "2001-01-12T00:00:00Z" ) #returns XML containing 12 Jan 2001 00:00
-
-EPrints::Time::get_iso_timestamp( ); # returns NOW in the form YYYY-MM-DDTHH:MM:SSZ
-
-EPrints::Time::human_delay( 28 ); # returns "1 day"
-
-EPrints::Time::get_month_label( $handle, 11 ) # returns November
-
-EPrints::Time::get_month_label_short( $handle, 11 ) # returns Nov
+	EPrints::Time::render_short_date( $handle, "2001-01-12T00:00:00Z" ) 
+	# returns XML containing 12 Jan 2001 00:00
+	
+	EPrints::Time::get_iso_timestamp( ); 
+	# returns NOW in the form YYYY-MM-DDTHH:MM:SSZ
+	
+	EPrints::Time::human_delay( 28 ); 
+	# returns "1 day"
+	
+	EPrints::Time::get_month_label( $handle, 11 ) 
+	# returns November
+	
+	EPrints::Time::get_month_label_short( $handle, 11 ) 
+	# returns Nov
 
 =head1 DESCRIPTION
 
@@ -213,20 +219,20 @@ and localtime.
 
 sub gmt_off
 {
-        my $time = time;
-        my( @local ) = localtime($time);
-        my( @gmt ) = gmtime($time);
+	my $time = time;
+	my( @local ) = localtime($time);
+	my( @gmt ) = gmtime($time);
  
-        my @diff;
+	my @diff;
  
-        for(0..2) { $diff[$_] = $local[$_] - $gmt[$_]; }
+	for(0..2) { $diff[$_] = $local[$_] - $gmt[$_]; }
 
 	my $local_cmp_code = $local[3]+$local[4]*100+$local[5]*10000; 
 	my $gmt_cmp_code = $gmt[3]+$gmt[4]*100+$gmt[5]*10000; 
-        if( $local_cmp_code > $gmt_cmp_code ) { $diff[2] += 24; }
-        if( $local_cmp_code < $gmt_cmp_code ) { $diff[2] -= 24; }
+	if( $local_cmp_code > $gmt_cmp_code ) { $diff[2] += 24; }
+	if( $local_cmp_code < $gmt_cmp_code ) { $diff[2] -= 24; }
  
-        return $diff[2]*60*60 + $diff[1]*60 + $diff[0];
+	return $diff[2]*60*60 + $diff[1]*60 + $diff[0];
 }
 
 

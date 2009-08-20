@@ -20,17 +20,14 @@
 B<EPrints::Handle::XML> - XML methods for EPrints::Session
 
 =head1 SYNOPSIS
-  use Handle;
-  
-  $handle = EPrints::Handle->new();
-  
-  $img_dom = $handle->make_element( "img", src => "/foo.gif", alt => "my pic" );
-  
-  $comment_dom = $handle->make_comment( $text );
-  
-  $text_dom = $handle->make_text( $text );
-  
-  $empty_frag = $handle->make_doc_fragment;  
+
+	$img_dom = $handle->make_element( "img", src => "/foo.gif", alt => "my pic" );
+	
+	$comment_dom = $handle->make_comment( $text );
+	
+	$text_dom = $handle->make_text( $text );
+	
+	$empty_frag = $handle->make_doc_fragment;
 
 =head1 DESCRIPTION
 
