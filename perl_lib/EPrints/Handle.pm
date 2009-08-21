@@ -56,15 +56,19 @@ results which can be returned via the web interface.
 
 Specific sets of functions are documented in:
 
-EPrints::Handle::XML - XML DOM utilties.  
+=over 8
 
-EPrints::Handle::Render - XHTML generating utilities.  
+L<EPrints::Handle::XML> - XML DOM utilties.  
 
-EPrints::Handle::Language - I18L methods.  
+L<EPrints::Handle::Render> - XHTML generating utilities.  
 
-EPrints::Handle::Page - XHTML Page and templating methods.  
+L<EPrints::Handle::Language> - I18L methods.  
 
-EPrints::Handle::CGI - Methods for detail with the web-interface.  
+L<EPrints::Handle::Page> - XHTML Page and templating methods.  
+
+L<EPrints::Handle::CGI> - Methods for detail with the web-interface.  
+
+=back
 
 =head1 METHODS
 

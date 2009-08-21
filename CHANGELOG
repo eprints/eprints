@@ -8375,3 +8375,7 @@ EPRINTS-3.1-beta-2
 
 2009-08-17 cjg
  * Cleanup of some typos
+
+2009-08-21 cjg
+ * Fixed a bug introduced in refactoring prepare_page.
+ * More document improvements.

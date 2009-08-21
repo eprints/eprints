@@ -238,8 +238,10 @@ sub wishes_to_export
 	unless( $ok ) 
 	{
 		$self->{handle}->prepare_page(
-			title=>$self->{handle}->html_phrase( "lib/searchexpression:export_error_title" ),
-			page=>$self->{handle}->html_phrase( "lib/searchexpression:export_error_format" ),
+			{
+				title=>$self->{handle}->html_phrase( "lib/searchexpression:export_error_title" ),
+				page=>$self->{handle}->html_phrase( "lib/searchexpression:export_error_format" ),
+			},
 			page_id=>"export_error" );
 		$self->{handle}->send_page;
 		return;
