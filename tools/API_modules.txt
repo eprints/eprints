@@ -8,6 +8,7 @@ EPrints
 EPrints::DataObj::Document
 EPrints::DataObj::EPrint
 EPrints::DataObj
+EPrints::DataSet
 EPrints::List
 EPrints::MetaField
 EPrints::Repository
