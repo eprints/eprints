@@ -28,7 +28,7 @@ B<EPrints::DataObj::Document> - A single format of a record.
 		_parent => $eprint,
 		eprintid => $eprint->get_id,
 	};
-	my $doc_ds = $handle->get_repository->get_dataset( 'document' );
+	my $doc_ds = $handle->get_dataset( 'document' );
 	my $document = $doc_ds->create_object( $handle, $doc_data );
 
 	# Add files to the document	

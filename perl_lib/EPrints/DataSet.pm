@@ -23,6 +23,7 @@ the same metadata.
 =head1 SYNOPSIS
 
 	my $ds = $handle->get_dataset( "inbox" );
+	my $ds = $repository->get_dataset( "inbox" );
 
 	$confid = $ds->confid; # eprint
 	$id = $ds->id;         # inbox

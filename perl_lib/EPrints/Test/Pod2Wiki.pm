@@ -70,7 +70,7 @@ use strict;
 
 my $PREFIX = "Pod2Wiki=";
 my $END_PREFIX = "Edit below this comment";
-my $STYLE = "background-color: #eef; margin: 0.5em 0em 1em 0em; border: solid 1px #cce;  padding: 0em 1em 0em 1em; font-size: 80%; ";
+my $STYLE = "background-color: #e8e8f; margin: 0.5em 0em 1em 0em; border: solid 1px #cce;  padding: 0em 1em 0em 1em; font-size: 80%; ";
 
 =item EPrints::Test::Pod2Wiki->new( ... )
 
