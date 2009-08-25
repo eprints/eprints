@@ -35,10 +35,13 @@ B<EPrints::Handle> - Single connection to the EPrints system
 
 	$eprint = $handle->get_live_eprint( $eprint_id );
 	$eprint = $handle->get_eprint( $eprint_id );
+
 	$user = $handle->get_user( $user_id );
 	$user = $handle->get_user_with_username( $username );
 	$user = $handle->get_user_with_email( $email );
+
 	$document = $handle->get_document( $doc_id );
+
 	$subject = $handle->get_subject( $subject_id );
 
 	$handle->terminate

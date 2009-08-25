@@ -26,7 +26,8 @@ EPrints::DataObj::EPrint is a subclass of EPrints::DataObj with the following
 metadata fields (plus those defined in cfg.d/eprint_fields.pl):
 
 =head1 SYNOPSIS
-	Inherrits all methods from EPrints::DataObj.
+
+Inherrits all methods from L<EPrints::DataObj>.
 
 	# create a new eprint object (in the inbox):
 	my $inbox_ds = $handle->get_dataset( "inbox" );

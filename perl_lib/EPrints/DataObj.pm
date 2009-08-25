@@ -60,7 +60,9 @@ L<EPrints::DataObj::Document> and several other classes.
 It is ABSTRACT - these methods should not be called directly.
 
 To create a new object in the database use:
+
 	$obj = $ds->create_object( $handle, $data );
+
 =cut
 
 ######################################################################
