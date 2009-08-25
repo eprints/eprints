@@ -988,7 +988,7 @@ sub render_subjects
 	my %subs = ();
 	foreach( @{$subject_list}, $baseid )
 	{
-		$subs{$_} = EPrints::DataObj::Subject->new( $self, $_ );
+		$subs{$_} = $self->get_subject( $_ );
 	}
 
 	return $self->_render_subjects_aux( \%subs, $baseid, $currentid, $linkmode, $sizes );

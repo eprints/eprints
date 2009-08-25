@@ -154,7 +154,7 @@ sub eprint_to_uketd_dc
 		my $subjectid;
 		foreach $subjectid ( @{$eprint->get_value( "subjects" )} )
 		{
-			my $subject = EPrints::DataObj::Subject->new( $handle, $subjectid );
+			my $subject = $handle->get_subject( $subjectid );
 			# avoid problems with bad subjects
 			next unless( defined $subject ); 
 			push @etddata, [ "subject", EPrints::Utils::tree_to_utf8( $subject->render_description() ), "dc" ];

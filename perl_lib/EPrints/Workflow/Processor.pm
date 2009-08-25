@@ -124,10 +124,7 @@ sub render
 
 	$self->{eprintid} = 100;
 
-	$self->{eprint} = EPrints::DataObj::EPrint->new(
-	$self->{handle},
-	$self->{eprintid},
-	$self->{dataset} );
+	$self->{eprint} = $self->{dataset}->get_object( $self->{eprintid} );
 
 	my $curr_stage = $self->{workflow}->get_stage($self->{stage});
 	$self->{handle}->prepare_page(

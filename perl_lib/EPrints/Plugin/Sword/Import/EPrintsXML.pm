@@ -160,7 +160,7 @@ sub input_file
 		return undef;
 	}
 
-	my $eprint = EPrints::DataObj::EPrint->new( $handle, $$ids[0] );
+	my $eprint = $handle->get_eprint( $$ids[0] );
 
 	unless( defined $eprint )
 	{

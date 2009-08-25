@@ -105,7 +105,7 @@ sub authenticate
                 return \%response;
         }
 
-        my $user = EPrints::DataObj::User::user_with_username( $handle, $username );
+        my $user = $handle->get_user_with_username( $username );
 
 	# This error could be a 500 Internal Error since the previous check ($db->valid_login) succeeded.
         if(!defined $user)
@@ -123,7 +123,7 @@ sub authenticate
         my $xbehalf = EPrints::Apache::AnApache::header_in( $request, 'X-On-Behalf-Of' );
         if(defined $xbehalf)
         {
-		my $behalf_user = EPrints::DataObj::User::user_with_username( $handle, $xbehalf );
+		my $behalf_user = $handle->get_user_with_username( $xbehalf );
 
 	        if(!defined $behalf_user)
 		{
@@ -697,7 +697,7 @@ sub create_xml
 	my $content;
 	if( defined $deposited_file_docid )
 	{
-		my $doc = EPrints::DataObj::Document->new( $handle, $deposited_file_docid );
+		my $doc = $handle->get_document( $deposited_file_docid );
 	
 		if( defined $doc )
 		{

@@ -28,7 +28,7 @@ sub process_at_end
 		next unless scalar @set > 1;
 		foreach my $id ( @set )
 		{
-			my $eprint = EPrints::DataObj::EPrint->new( $handle, $id );
+			my $eprint = $handle->get_eprint( $id );
 			my $desc = $handle->make_doc_fragment;
 			$desc->appendChild( $handle->make_text( "Duplicate title to " ) );
 			$desc->appendChild( $eprint->render_citation_link_staff );

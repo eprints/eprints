@@ -16,8 +16,7 @@ sub properties_from
 
 	my $searchid = $self->{handle}->param( "savedsearchid" );
 	$self->{processor}->{savedsearchid} = $searchid;
-	$self->{processor}->{savedsearch} = new EPrints::DataObj::SavedSearch( 
-					$self->{handle}, $searchid );
+	$self->{processor}->{savedsearch} = $self->{handle}->get_saved_search( $searchid );
 
 	if( !defined $self->{processor}->{savedsearch} )
 	{

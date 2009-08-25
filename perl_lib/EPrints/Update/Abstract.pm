@@ -66,7 +66,7 @@ sub update
 	# so try and regenerate the abstracts page.
 
 	my $handle = new EPrints::Handle(2); # don't open the CGI info
-	my $eprint = EPrints::DataObj::EPrint->new( $handle, $eprintid );
+	my $eprint = $handle->get_eprint( $eprintid );
 	if( defined $eprint )
 	{
 		$eprint->generate_static;

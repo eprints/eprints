@@ -16,7 +16,7 @@ sub properties_from
 	{
 		$self->{processor}->{subjectid} = "ROOT";
 	}
-	$self->{processor}->{subject} = new EPrints::DataObj::Subject( $self->{handle}, $self->{processor}->{subjectid} );
+	$self->{processor}->{subject} = $self->{handle}->get_subject( $self->{processor}->{subjectid} );
 
 	if( !defined $self->{processor}->{subject} )
 	{
@@ -58,7 +58,7 @@ sub get_subject
 	my $subject = $self->{processor}->{subject};
 	if( !defined $self->{processor}->{subjectid} )
 	{
-		$subject = new EPrints::DataObj::Subject( $self->{handle}, "ROOT" );
+		$subject = $self->{handle}->get_subject( "ROOT" );
 	}
 	return $subject;
 }

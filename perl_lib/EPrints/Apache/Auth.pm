@@ -217,7 +217,7 @@ sub auth_basic
 
 	my $user_ds = $handle->get_repository->get_dataset( "user" );
 
-	my $user = EPrints::DataObj::User::user_with_username( $handle, $user_sent );
+	my $user = $handle->get_user_with_username( $user_sent );
 	if( !defined $user )
 	{
 		$r->note_basic_auth_failure;

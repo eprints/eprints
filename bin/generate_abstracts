@@ -110,7 +110,7 @@ exit( 1 ) unless( defined $handle );
 
 if( defined $ARGV[1] )
 {
-	my $eprint = EPrints::DataObj::EPrint->new( $handle, $ARGV[1] );
+	my $eprint = $handle->get_eprint( $ARGV[1] );
 	if( !defined $eprint )
 	{
 		$handle->get_repository->log( 

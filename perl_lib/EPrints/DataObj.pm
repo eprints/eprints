@@ -20,34 +20,36 @@ B<EPrints::DataObj> - Base class for records in EPrints.
 
 =head1 SYNOPSIS
 
-	$dataobj = EPrints::DataObj->new( $handle, $id [, $dataset] )
+	$dataobj = EPrints::DataObj->new( $handle, $id [, $dataset] );
+	$dataobj = $dataset->get_object( $id );
+	$dataobj = $handle->get_XXXXX( $id );
 	
-	$handle = $dataobj->get_handle
-	$dataset = $dataobj->get_dataset
+	$handle = $dataobj->get_handle;
+	$dataset = $dataobj->get_dataset;
 	
-	$id = $dataobj->get_id
-	$uri = $dataobj->uri
-	$url = $dataobj->get_url
-	$url = $dataobj->get_control_url
+	$id = $dataobj->get_id;
+	$uri = $dataobj->uri;
+	$url = $dataobj->get_url;
+	$url = $dataobj->get_control_url;
 	
-	$value = $dataobj->get_value( $fieldname )
-	$bool = $dataobj->is_set( $fieldname )
-	$bool = $dataobj->exists_and_set( $fieldname )
+	$value = $dataobj->get_value( $fieldname );
+	$bool = $dataobj->is_set( $fieldname );
+	$bool = $dataobj->exists_and_set( $fieldname );
 	
-	$success = $dataobj->remove
+	$success = $dataobj->remove;
 	
-	$dataobj->set_value( $fieldname, $value )
-	$success = $dataobj->commit( [$force] )
+	$dataobj->set_value( $fieldname, $value );
+	$success = $dataobj->commit( [$force] );
 	
-	$xhtml = $dataobj->render_value( $fieldname, [$showall] )
-	$xhtml = $dataobj->render_citation( [$style], [%params] )
-	$xhtml = $dataobj->render_citation_link( [$style], %params )
-	$xhtml = $dataobj->render_citation_link_staff( [$style], %params )
-	$xhtml = $dataobj->render_description
-	($xhtml, $title ) = $dataobj->render
-	($xhtml, $title ) = $dataobj->render_full
+	$xhtml = $dataobj->render_value( $fieldname, [$showall] );
+	$xhtml = $dataobj->render_citation( [$style], [%params] );
+	$xhtml = $dataobj->render_citation_link( [$style], %params );
+	$xhtml = $dataobj->render_citation_link_staff( [$style], %params );
+	$xhtml = $dataobj->render_description;
+	($xhtml, $title ) = $dataobj->render;
+	($xhtml, $title ) = $dataobj->render_full;
 	
-	$plugin_output = $dataobj->export( $plugin_id [,%params] )
+	$plugin_output = $dataobj->export( $plugin_id [,%params] );
 
 =head1 DESCRIPTION
 

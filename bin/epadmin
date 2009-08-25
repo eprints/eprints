@@ -1044,7 +1044,7 @@ sub create_user
 
 	print "Creating a new user in $repoid\n\n";
 	$user_info->{username} ||= EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
-	while( defined EPrints::DataObj::User::user_with_username( $handle, $user_info->{username} ) )
+	while( defined $handle->get_user_with_username( $user_info->{username} ) )
 	{
 		print STDERR "User with username '".$user_info->{username}."' already exists.\n";
 		$user_info->{username} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
@@ -1624,7 +1624,7 @@ sub rehash
 	my $docid = $ARGV[2];
 	if( defined $docid )
 	{
-		my $doc = EPrints::DataObj::Document->new( $handle, $docid );
+		my $doc = $handle-get_document( $docid );
 		if( !defined $doc )
 		{
 			$handle->get_repository->log( 
@@ -1823,7 +1823,7 @@ sub upgrade
 
 	my $handle = new EPrints::Handle( 1 , $repoid , $noise, 1 );
 	exit( 1 ) unless( defined $handle );
-	my $db = $handle->get_db();
+	my $db = $handle->get_database();
 	my $dbversion = $db->get_version();
 	
 	if( $dbversion eq "3.0" )
@@ -2218,7 +2218,7 @@ sub update_database_structure
 
 	my $handle = new EPrints::Handle( 1 , $repoid , $noise );
 	exit( 1 ) unless( defined $handle );
-	my $db = $handle->get_db();
+	my $db = $handle->get_database();
 	
 	my $repo = EPrints::Repository->new( $repoid );
 

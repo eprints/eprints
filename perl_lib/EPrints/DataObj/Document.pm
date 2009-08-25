@@ -40,7 +40,7 @@ B<EPrints::DataObj::Document> - A single format of a record.
 	$success = $doc->upload_url( $url );
 
 	# get an existing document
-	$document = EPrints::DataObj::EPrint->new( $handle, $doc_id );
+	$document = $handle->get_document( $doc_id );
 	# or
 	foreach my $doc ( $eprint->get_all_documents ) { ... }
 
@@ -395,7 +395,7 @@ sub get_defaults
 	my $eprint = $data->{_parent};
 	if( !defined $eprint )
 	{
-		EPrints::DataObj::EPrint->new( $handle, $data->{eprintid} );
+		$eprint = $handle->get_eprint( $data->{eprintid} );
 	}
 
 	$handle->get_repository->call( 

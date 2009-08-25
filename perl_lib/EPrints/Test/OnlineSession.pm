@@ -81,7 +81,7 @@ sub new
 
 	if( defined $opts->{username} )
 	{
-		my $user = EPrints::DataObj::User::user_with_username( $self, $opts->{username} );
+		my $user = $self->get_user_with_username( $opts->{username} );
 		if( !defined $user )
 		{
 			EPrints::abort "Couldn't retrieve user with username $opts->{username}";
@@ -146,5 +146,6 @@ END
 		delete $self->{page};
 	}
 }
+
 
 1;

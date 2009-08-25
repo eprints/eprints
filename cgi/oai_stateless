@@ -654,9 +654,7 @@ sub ListSets
 			my $field = EPrints::Utils::field_from_config_string( $ds, $fieldname );
 			if( $field->is_type( "subject" ) )
 			{
-				my $topsubj = EPrints::DataObj::Subject->new(
-					$handle,
-					$field->get_property( "top" ) );
+				my $topsubj = $handle->get_subject( $field->get_property( "top" ) );
 				my $i;
 				foreach $i ( @{$topsubj->get_subjects( 0, 0, 1 )} )
 				{

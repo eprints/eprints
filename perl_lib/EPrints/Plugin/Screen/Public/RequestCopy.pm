@@ -21,14 +21,14 @@ sub properties_from
 	my( $self ) = @_;
 
 	$self->{processor}->{docid} = $self->{handle}->param( "docid" );
-	$self->{processor}->{document} = new EPrints::DataObj::Document( $self->{handle}, $self->{processor}->{docid} );
+	$self->{processor}->{document} = $self->{handle}->get_document( $self->{processor}->{docid} );
 
 	# We need a valid docid or an eprintid if the eprint has no documents
 	if( !defined $self->{processor}->{document} )
 	{
 
 		$self->{processor}->{eprintid} = $self->{handle}->param( "eprintid" );
-		$self->{processor}->{eprint} = new EPrints::DataObj::EPrint( $self->{handle}, $self->{processor}->{eprintid} );
+		$self->{processor}->{eprint} = $self->{handle}->get_eprint( $self->{processor}->{eprintid} );
 
 		if( !defined $self->{processor}->{eprint} ||
 			$self->{processor}->{eprint}->get_value( "full_text_status" ) ne "none" )
@@ -112,7 +112,7 @@ sub action_request
 	$data->{requester_email} = $email;
 	$data->{email} = $contact_email;
 
-	my $user = EPrints::DataObj::User::user_with_email( $handle, $contact_email );
+	my $user = $handle->get_user_with_email( $contact_email );
 	$data->{userid} = $user->get_id if defined $user;
 
 	my $reason = $handle->param( "reason" );

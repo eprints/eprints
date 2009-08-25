@@ -248,7 +248,7 @@ sub get_defaults
 	my $user;
 	if( defined $data->{userid} )
 	{
-		$user = EPrints::DataObj::User->new( $handle, $data->{userid} );
+		$user = $handle->get_user( $data->{userid} );
 	}
 	if( defined $user ) 
 	{

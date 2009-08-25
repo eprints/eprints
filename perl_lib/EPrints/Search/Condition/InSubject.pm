@@ -65,9 +65,7 @@ sub item_matches
 
 	foreach my $sub_id ( @sub_ids )
 	{
-		my $s = EPrints::DataObj::Subject->new( 
-				$item->get_handle,
-				$sub_id );	
+		my $s = $item->get_handle->get_subject( $sub_id );	
 
 		if( !defined $s )
 		{

@@ -29,7 +29,7 @@ B<EPrints> - Institutional Repository software
 	my $handle = new EPrints::Handle( 1 , 'my_repository_id' );
 	exit( 1 ) unless( defined $handle );
 
-	$eprint = new EPrints::DataObj::EPrint( $handle, 23 );
+	$eprint = $handle->get_eprint( $eprintid );
 	my $title = $eprint->get_value( 'title' );
 	
 	$eprint->set_value( 'creators', 

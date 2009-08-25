@@ -18,9 +18,7 @@ sub properties_from
 	if( defined $userid )
 	{
 		$self->{processor}->{userid} = $userid;
-		$self->{processor}->{user} = new EPrints::DataObj::User( 
-						$self->{handle}, 
-						$userid );
+		$self->{processor}->{user} = $self->{handle}->get_user( $userid );
 	}
 
 	if( !defined $self->{processor}->{user} )

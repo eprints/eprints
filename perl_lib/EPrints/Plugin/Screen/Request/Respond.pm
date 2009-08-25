@@ -24,21 +24,21 @@ sub properties_from
 
 	# Need valid requestid
 	$self->{processor}->{requestid} = $self->{handle}->param( "requestid" );
-	$self->{processor}->{request} = new EPrints::DataObj::Request( $self->{handle}, $self->{processor}->{requestid} );
+	$self->{processor}->{request} = $self->{handle}->get_request( $self->{processor}->{requestid} );
 	if( !defined $self->{processor}->{request} )
 	{
 		&_properties_error;
 		return;
 	}
 
-	$self->{processor}->{document} = EPrints::DataObj::Document->new(
-				$self->{handle}, $self->{processor}->{request}->get_value( "docid" ) );
+	$self->{processor}->{document} = $self->{handle}->get_document( 
+				$self->{processor}->{request}->get_value( "docid" ) );
 
-	$self->{processor}->{eprint} = EPrints::DataObj::EPrint->new(
-				$self->{handle}, $self->{processor}->{request}->get_value( "eprintid" ) );
+	$self->{processor}->{eprint} = $self->{handle}->get_eprint( 
+				$self->{processor}->{request}->get_value( "eprintid" ) );
 
-	$self->{processor}->{contact} = EPrints::DataObj::User->new(
-				$self->{handle}, $self->{processor}->{request}->get_value( "userid" ) );
+	$self->{processor}->{contact} = $self->{handle}->get_user( 
+				$self->{processor}->{request}->get_value( "userid" ) );
 
 	# Need valid document, eprint and contact
 	if( !defined $self->{processor}->{document} ||

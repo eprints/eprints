@@ -107,7 +107,7 @@ sub new_from_request
 
 	for(1..16)
 	{
-		$progress = EPrints::DataObj::UploadProgress->new( $handle, $progressid );
+		$progress = $handle->get_upload_progress( $progressid );
 		last if defined $progress;
 		select(0.250);
 	}

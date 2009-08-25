@@ -242,11 +242,11 @@ if( defined $user )
 {
 	if( $user =~ m/^\d+/ )
 	{
-		$userobj = EPrints::DataObj::User->new( $handle, $user );
+		$userobj = $handle->get_user( $user );
 	}
 	else
 	{
-		$userobj = EPrints::DataObj::User::user_with_username( $handle, $user );
+		$userobj = $handle->get_user_with_username( $user );
 	}
 	if( !defined $userobj )
 	{

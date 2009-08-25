@@ -30,6 +30,14 @@ B<EPrints::Handle> - Single connection to the EPrints system
 	$handle->log( "Something bad occurred" );
 	$conf = $handle->get_conf( "base_url" );
 
+	$eprint = $handle->get_live_eprint( $eprint_id );
+	$eprint = $handle->get_eprint( $eprint_id );
+	$user = $handle->get_user( $user_id );
+	$user = $handle->get_user_with_username( $username );
+	$user = $handle->get_user_with_email( $email );
+	$document = $handle->get_document( $doc_id );
+	$subject = $handle->get_subject( $subject_id );
+
 	$handle->terminate
 
 =head1 DESCRIPTION
@@ -418,15 +426,16 @@ Return the EPrints::Repository object associated with the Session.
 sub get_repository
 {
 	my( $self ) = @_;
+
 	return $self->{repository};
 }
 
 ######################################################################
 =pod
 
-=item $dataset = $handle->get_dataset( $conf_id, ... )
+=item $dataset = $handle->get_dataset( $dataset_id )
 
-This is an alias for $handle->get_repository->get_dataset( ... ) to make for more readable code.
+This is an alias for $handle->get_repository->get_dataset( $dataset_id ) to make for more readable code.
 
 Returns the named EPrints::DataSet for the repository or undef.
 
@@ -435,9 +444,125 @@ Returns the named EPrints::DataSet for the repository or undef.
 
 sub get_dataset
 {
+	my( $self, $dataset_id ) = @_;
+
+	return $self->{repository}->get_dataset( $dataset_id );
+}
+
+######################################################################
+=pod
+
+=item $object = $handle->get_dataobj( $dataset_id, $object_id )
+
+This is an alias for $handle->get_repository->get_dataset( $dataset_id )->get_object( $handle, $object_id ) to make for more readable code.
+
+Returns the EPrints::DataObj for the specified dataset and object_id or undefined if either the dataset or object do not exist.
+
+=cut
+######################################################################
+
+sub get_dataobj
+{
+	my( $self, $dataset_id, $object_id ) = @_;
+
+	my $ds = $self->{repository}->get_dataset( $dataset_id, $object_id );
+
+	return unless defined $ds;
+
+	return $ds->get_object( $object_id );
+}
+
+######################################################################
+=pod
+
+=item $eprint = $handle->get_live_eprint( $eprint_id )
+
+Return an eprint which is publically available (ie. in the "archive"
+dataset). Use this in preference to $handle->get_eprint if you are 
+making scripts where the output will be shown to the public.
+
+Returns undef if the eprint does not exist, or is not public.
+
+=cut
+######################################################################
+
+sub get_live_eprint
+{
+	my( $self, $eprint_id ) = @_;
+
+	return $self->{repository}->{datasets}->{"archive"}->{class}->new( $self, $eprint_id );
+}
+
+######################################################################
+=pod
+
+=item $eprint = $handle->get_user_with_username( $username )
+
+Return a user dataobj with the given username, or undef.
+
+=cut
+######################################################################
+
+sub get_user_with_username
+{
+	my( $self, $username ) = @_;
+
+	return EPrints::DataObj::User::user_with_username( $self, $username );
+}
+
+######################################################################
+=pod
+
+=item $eprint = $handle->get_user_with_email( $email )
+
+Return a user dataobj with the given email, or undef.
+
+=cut
+######################################################################
+
+sub get_user_with_email
+{
+	my( $self, $email ) = @_;
+
+	return EPrints::DataObj::User::user_with_email( $self, $email );
+}
+
+######################################################################
+=pod
+
+=item $eprint = $handle->get_eprint( $eprint_id )
+
+=item $user = $handle->get_user( $user_id )
+
+=item $document = $handle->get_document( $document_id )
+
+=item $file = $handle->get_file( $file_id )
+
+=item $subject = $handle->get_subject( $subject_id )
+
+This is an alias for $handle->get_dataset( ... )->get_object( ... ) to make for more readable code.
+
+Any dataset may be accessed in this manner, but only the ones listed above should be considered part of the API.
+
+=cut
+######################################################################
+
+sub AUTOLOAD
+{
 	my( $self, @params ) = @_;
 
-	return $self->{repository}->get_dataset( @params );
+	our $AUTOLOAD;
+
+	if( $AUTOLOAD =~ m/^.*::get_(.*)$/ )
+	{
+		my $ds = $self->{repository}->{datasets}->{$1};
+		if( defined $ds && defined $ds->{class} )
+		{
+			return $ds->{class}->new( $self, @params );
+		}
+	}
+
+	EPrints::abort( "Unknown method '$AUTOLOAD' called on EPrints::Handle" );
 }
 
 ######################################################################

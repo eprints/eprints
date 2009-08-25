@@ -1008,8 +1008,7 @@ sub render_subj_menu
 		foreach my $value ( @{$values} )
 		{
 			next unless( defined $sizes->{$value} && $sizes->{$value} > 0 );
-			my $subject = EPrints::DataObj::Subject->new(
-					 $handle, $value );
+			my $subject = $handle->get_subject( $value );
 			my @ids= @{$subject->get_value( "ancestors" )};
 			foreach my $id ( @ids ) { $show{$id} = 1; }
 		}

@@ -46,7 +46,7 @@ sub render_single_value
 {
 	my( $self, $handle, $value ) = @_;
 
-	my $subject = new EPrints::DataObj::Subject( $handle, $value );
+	my $subject = $handle->get_subject( $value );
 	if( !defined $subject )
 	{
 		return $handle->make_text( "?? $value ??" );
@@ -71,7 +71,7 @@ sub render_option
 		return $self->SUPER::render_option( $handle, $option );
 	}
 
-	my $subject = new EPrints::DataObj::Subject( $handle, $option );
+	my $subject = $handle->get_subject( $option );
 
 	return $subject->render_description;
 }
@@ -100,7 +100,7 @@ sub get_top_subject
 		exit;
 	}
 		
-	my $topsubject = EPrints::DataObj::Subject->new( $handle, $topid );
+	my $topsubject = $handle->get_subject( $topid );
 
 	if( !defined $topsubject )
 	{
@@ -171,7 +171,7 @@ sub get_value_label
 {
 	my( $self, $handle, $value ) = @_;
 
-	my $subj = EPrints::DataObj::Subject->new( $handle, $value );
+	my $subj = $handle->get_subject( $value );
 	if( !defined $subj )
 	{
 		return $handle->make_text( 

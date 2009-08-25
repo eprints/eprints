@@ -66,7 +66,7 @@ sub get_index_codes_basic
 		return $self->SUPER::get_index_codes_basic( $handle, $value );
 	}
 
-	my $doc = EPrints::DataObj::Document->new( $handle, $value );
+	my $doc = $handle->get_document( $value );
 	return( [], [], [] ) unless defined $doc->get_main;
 
 	my $main_file = $doc->get_stored_file( $doc->get_main );

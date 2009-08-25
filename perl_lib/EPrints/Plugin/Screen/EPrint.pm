@@ -12,7 +12,7 @@ sub properties_from
 	my( $self ) = @_;
 
 	$self->{processor}->{eprintid} = $self->{handle}->param( "eprintid" );
-	$self->{processor}->{eprint} = new EPrints::DataObj::EPrint( $self->{handle}, $self->{processor}->{eprintid} );
+	$self->{processor}->{eprint} = $self->{handle}->get_eprint( $self->{processor}->{eprintid} );
 
 	if( !defined $self->{processor}->{eprint} )
 	{

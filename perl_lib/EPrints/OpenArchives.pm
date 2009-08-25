@@ -118,7 +118,7 @@ sub make_header
 				my @l;
 				if( $afield->is_type( "subject" ) )
 				{
-					my $subj = new EPrints::DataObj::Subject( $handle, $v );
+					my $subj = $handle->get_subject( $v );
 					next unless( defined $subj );
 	
 					my @paths = $subj->get_paths( 

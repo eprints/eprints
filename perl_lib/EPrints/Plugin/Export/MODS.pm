@@ -161,7 +161,7 @@ sub _make_subjects
 	
 	foreach my $val (@$subjects)
 	{
-		my $subject = EPrints::DataObj::Subject->new( $handle, $val );
+		my $subject = $handle->get_subject( $val );
 		next unless defined $subject;
 		$frag->appendChild( my $classification = $handle->make_element(
 			"${PREFIX}classification",

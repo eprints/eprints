@@ -460,7 +460,7 @@ sub get_parents
 	my @parents = ();
 	foreach( @{$self->{data}->{parents}} )
 	{
-		push @parents, new EPrints::DataObj::Subject( $self->{handle}, $_ );
+		push @parents, $self->{handle}->get_subject( $_ );
 	}
 	return( @parents );
 }
@@ -574,7 +574,7 @@ sub get_paths
 	my( @paths ) = ();
 	foreach my $subjectid ( @{$self->{data}->{parents}} )
 	{
-		my $subj = new EPrints::DataObj::Subject( $handle, $subjectid );
+		my $subj = $handle->get_subject( $subjectid );
 		if( !defined $subj )
 		{
 			$handle->get_repository->log( "Non existant subjectid: $subjectid in parents of ".$self->get_value( "subjectid" ) );
@@ -788,7 +788,7 @@ sub get_all
 	# Retrieve all of the subjects
 	my @subjects = $handle->get_database->get_all( 
 		$handle->get_repository->get_dataset( "subject" ) );
-	push @subjects, EPrints::DataObj::Subject->new( $handle, $EPrints::DataObj::Subject::root_subject );
+	push @subjects, $handle->get_subject( $EPrints::DataObj::Subject::root_subject );
 
 	return( undef ) if( scalar @subjects == 0 );
 

@@ -147,7 +147,7 @@ sub get_test_document
 
 	return unless defined $id;
 
-	return EPrints::DataObj::Document->new( $handle, $id );
+	return $handle->get_document( $id );
 }
 
 1;

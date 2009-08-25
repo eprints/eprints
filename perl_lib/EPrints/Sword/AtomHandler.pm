@@ -61,7 +61,7 @@ sub handler
 		return Apache2::Const::OK;
 	}
 
-	my $eprint = EPrints::DataObj::EPrint->new( $handle, $epid );
+	my $eprint = $handle->get_eprint( $epid );
 
 	unless( defined $eprint )
 	{
@@ -78,8 +78,8 @@ sub handler
 		return Apache2::Const::OK;
 	}
 
-	my $real_owner = EPrints::DataObj::User->new( $handle, $eprint->get_value( "userid" ) );
-	my $real_depositor = EPrints::DataObj::User->new( $handle, $eprint->get_value( "sword_depositor" ) );
+	my $real_owner = $handle->get_user( $eprint->get_value( "userid" ) );
+	my $real_depositor = $handle->get_user( $eprint->get_value( "sword_depositor" ) );
 
         my $xml = EPrints::Sword::Utils::create_xml( $handle,
 			eprint => $eprint,

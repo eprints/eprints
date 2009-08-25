@@ -155,7 +155,7 @@ my %opts = ();
 
 if( defined $cuserid )
 {
-	$handle->{current_user} = EPrints::DataObj::User->new( $handle, $cuserid );
+	$handle->{current_user} = $handle->get_user( $cuserid );
 	if( !$handle->{current_user} )
 	{
 		toolbox_fail( "Could not find user $cuserid" );
@@ -170,7 +170,7 @@ $opts{field} = $field;
 
 if( defined $eprintid )
 {
-	$opts{eprint} = EPrints::DataObj::EPrint->new( $handle, $eprintid );
+	$opts{eprint} = $handle->get_eprint( $eprintid );
 	if( !defined $opts{eprint} )
 	{
 		toolbox_fail( "Could not find eprint $eprintid" );
@@ -179,7 +179,7 @@ if( defined $eprintid )
 
 if( defined $docid )
 {
-	$opts{document} = EPrints::DataObj::Document->new( $handle, $docid );
+	$opts{document} = $handle->get_document( $docid );
 	if( !defined $opts{document} )
 	{
 		toolbox_fail( "Could not find document $docid" );

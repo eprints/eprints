@@ -324,7 +324,7 @@ sub action_add
 		return;
 	}
 
-	my $newchild = EPrints::DataObj::Subject->new( $handle, $newid );
+	my $newchild = $handle->get_subject( $newid );
 	if( defined $newchild )
 	{
 		if( grep( /^$newid$/, @{$subject->get_value( "ancestors" )} ) )
@@ -383,7 +383,7 @@ sub from
 	if( defined $action && $action =~ m/^unlink_(.*)$/ )
 	{
 		my $victimid = $1;
-		my $victim = EPrints::DataObj::Subject->new( $handle, $victimid );
+		my $victim = $handle->get_subject( $victimid );
 #		foreach( @{$victim->get_value( "parents" )} )
 #		{
 #		}

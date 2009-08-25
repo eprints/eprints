@@ -70,7 +70,7 @@ sub action_create
 		return;
 	}
 
-	if( defined EPrints::DataObj::User::user_with_username( $handle, $candidate_username ) )
+	if( defined $handle->get_user_with_username( $candidate_username ) )
 	{
 		$self->{processor}->add_message( 
 			"error",

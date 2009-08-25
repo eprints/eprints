@@ -526,8 +526,7 @@ sub _current_user_auth_basic
 
 	return undef if( !EPrints::Utils::is_set( $username ) );
 
-	my $user = EPrints::DataObj::User::user_with_username( $self, $username );
-	return $user;
+	return $self->get_user_with_username( $username );
 }
 
 # Attempt to login using cookie based login.
@@ -552,8 +551,7 @@ sub _current_user_auth_cookie
 
 	if( EPrints::Utils::is_set( $userid ) && $userid ne 'undef' )
 	{	
-		my $user = EPrints::DataObj::User->new( $self, $userid );
-		return $user;
+		return $self->get_user( $userid );
 	}
 	
 	my $cookie = EPrints::Apache::AnApache::cookie( $self->get_request, "eprints_session" );
@@ -567,8 +565,7 @@ sub _current_user_auth_cookie
 	
 	return undef if( !EPrints::Utils::is_set( $userid ) );
 
-	my $user = EPrints::DataObj::User->new( $self, $userid );
-	return $user;
+	return $self->get_user( $userid );
 }
 
 

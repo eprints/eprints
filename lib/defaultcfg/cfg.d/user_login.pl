@@ -13,7 +13,7 @@
 #$c->{check_user_password} = sub {
 #	my( $handle, $username, $password ) = @_;
 #
-#	my $user = EPrints::DataObj::User::user_with_username( $handle, $username );
+#	my $user = $handle->get_user_with_username( $username );
 #	return 0 unless $user;
 #
 #	my $user_type = $user->get_type;

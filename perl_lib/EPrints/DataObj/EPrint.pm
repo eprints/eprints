@@ -33,8 +33,11 @@ metadata fields (plus those defined in cfg.d/eprint_fields.pl):
 	my $epdata = { userid => $user->get_id, title => "Default title" };
 	my $eprint = $inbox_ds->create_object( $handle, $epdata );
 
-	# open the eprint with id '$eprintid':
-	$eprint = EPrints::DataObj::EPrint->new( $handle, $eprintid );	
+	# open the eprint with id '$eprint_id'.
+	$eprint = $handle->get_eprint( $eprint_id );
+
+	# open a public eprint with id '$eprint_id':
+	$eprint = $handle->get_live_eprint( $eprint_id );
 
 	# set some metadata:
 	$eprint->set_value( "title", "The title of this eprint" );
@@ -1576,8 +1579,7 @@ sub render
 		$dom = $self->{handle}->make_doc_fragment;
 		$dom->appendChild( $self->{handle}->html_phrase( 
 			"lib/eprint:eprint_gone" ) );
-		my $replacement = new EPrints::DataObj::EPrint(
-			$self->{handle},
+		my $replacement = $self->{handle}->get_eprint( 
 			$self->get_value( "replacedby" ) );
 		if( defined $replacement )
 		{
@@ -1872,8 +1874,7 @@ sub first_in_thread
 			last;
 		}
 		$below->{$first->get_id} = 1;
-		my $prev = EPrints::DataObj::EPrint->new( 
-				$self->{handle},
+		my $prev = $self->{handle}->get_eprint( 
 				$first->get_value( $field->get_name ) );
 
 		return( $first ) unless( defined $prev );

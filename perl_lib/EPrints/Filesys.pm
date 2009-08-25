@@ -480,7 +480,7 @@ sub login
 		return 0;
 	}
 
-	my $user = EPrints::DataObj::User::user_with_username( $self->{handle}, $username );
+	my $user = $self->{handle}->get_user_with_username( $username );
 
 	$self->register_user( $user );
 
