@@ -2,7 +2,8 @@ use EPrints::Handle;
 use EPrints::EPrint;
 
 use strict;
-my $handle = new EPrints::Handle;
+
+my $handle = EPrints->get_handle();
 Apache::exit( 0 ) unless( defined $handle );
 
 if( !$handle->get_repository->get_conf( "json","enable" ) )

@@ -8385,3 +8385,7 @@ EPRINTS-3.1-beta-2
  * Added convenience methods to $handle: get_dataobj, get_live_eprint,
     get_user_with_username, get_user_with_email.
  * Refactored all code and pod to use these.
+
+2009-08-25 cjg 
+ * Reworked API for getting handles and repositories.
+ * Refactored code and docs for this new API.

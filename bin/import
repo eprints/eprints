@@ -204,7 +204,7 @@ my $datasetid = shift @ARGV;
 my $ipluginid = shift @ARGV;
 my $filename = shift @ARGV;
 
-my $handle = new EPrints::Handle( 1, $repository_id, $noise );
+my $handle = EPrints->get_handle( repository=>$ARGV[0], noise=>$noise );
 exit( 1 ) unless defined $handle;
 
 if( $enable_file_imports )

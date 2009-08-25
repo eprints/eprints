@@ -285,9 +285,9 @@ sub get_all_sessions
 	my @arc_ids = EPrints::Config::get_repository_ids();
 	foreach my $arc_id (sort @arc_ids)
 	{
-		my $repository = EPrints::Repository->new( $arc_id );
+		my $repository = EPrints->get_repository( $arc_id );
 		next unless $repository->get_conf( "index" );
-		my $handle = EPrints::Handle->new( 1 , $arc_id );
+		my $handle = EPrints->get_handle( $arc_id );
 		if( !defined $handle )
 		{
 			$self->log( 0, "!! Could not open session for $arc_id" );

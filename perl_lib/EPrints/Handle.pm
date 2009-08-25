@@ -21,9 +21,12 @@ B<EPrints::Handle> - Single connection to the EPrints system
 
 =head1 SYNOPSIS
 
-	$handle = EPrints::Handle->new(); # cgi
-	$handle = new EPrints::Handle( 1 , $repository_id ); # command line
-	if( !$handle ) { exit 1; }
+	# cgi script	
+	$handle = EPrints->get_handle();
+	exit( 1 ) unless( defined $handle );
+
+	# bin script
+	$handle = EPrints->get_handle( repository => $repository_id, noise => $noise );
 
 	$repository = $handle->get_repository;
 	$dataset = $handle->get_dataset( $dataset_id );
@@ -139,83 +142,46 @@ use CGI qw(-compile);
 use strict;
 #require 'sys/syscall.ph';
 
-
-
 ######################################################################
-=pod
-
-=over 4
-
-=item $handle = EPrints::Handle->new( $mode, [$repository_id], [$noise], [$nocheckdb] )
-
-Create a connection to an EPrints repository which provides access 
-to the database and to the repository configuration.
-
-This method can be called in two modes. Setting $mode to 0 means this
-is a connection via a CGI web page. $repository_id is ignored, instead
-the value is taken from the "PerlSetVar EPrints_ArchiveID" option in
-the apache configuration for the current directory.
-
-If this is being called from a command line script, then $mode should
-be 1, and $repository_id should be the ID of the repository we want to
-connect to.
-
-$mode :
-mode = 0    - We are online (CGI script)
-mode = 1    - We are offline (bin script) $repository_id is repository_id
-mode = 2    - We are online, but don't create a CGI query (so we don't consume the data).
-
-$noise is the level of debugging output.
-0 - silent
-1 - quietish
-2 - noisy
-3 - debug all SQL statements
-4 - debug database connection
- 
-Under normal conditions use "0" for online and "1" for offline.
-
-$nocheckdb - if this is set to 1 then a connection is made to the
-database without checking that the tables exist. 
-
-=cut
+# $handle = EPrints::Handle->new( %opts )
+# 
+# See EPrints.pm for details.
 ######################################################################
 
 sub new
 {
-	my( $class, $mode, $repository_id, $noise, $nocheckdb ) = @_;
+	my( $class, %opts ) = @_;
+
+	$opts{check_database} = 1 if( !defined $opts{check_database} );
+	$opts{consume_post_data} = 1 if( !defined $opts{consume_post_data} );
+	$opts{noise} = 0 if( !defined $opts{noise} );
+
 	my $self = {};
 	bless $self, $class;
 
-	$mode = 0 unless defined( $mode );
-	$noise = 0 unless defined( $noise );
-	$self->{noise} = $noise;
+	$self->{noise} = $opts{noise};
 	$self->{used_phrases} = {};
 
-	if( $mode == 0 || $mode == 2 || !defined $mode )
-	{
-		$self->{request} = EPrints::Apache::AnApache::get_request();
-		$self->{offline} = 0;
-		$self->{repository} = EPrints::Repository->new_from_request( $self->{request} );
-	}
-	elsif( $mode == 1 )
+	if( defined $opts{repository} )
 	{
 		$self->{offline} = 1;
-		if( !defined $repository_id || $repository_id eq "" )
-		{
-			print STDERR "No repository id specified.\n";
-			return undef;
-		}
-		$self->{repository} = EPrints::Repository->new( $repository_id );
+		$self->{repository} = EPrints->get_repository( $opts{repository} );
 		if( !defined $self->{repository} )
 		{
-			print STDERR "Can't load repository module for: $repository_id\n";
+			print STDERR "Can't load repository module for: ".$opts{repository}."\n";
 			return undef;
 		}
+		$opts{consume_post_data} = 0;
 	}
 	else
 	{
-		print STDERR "Unknown session mode: $mode\n";
-		return undef;
+		if( !$ENV{MOD_PERL} )
+		{
+			EPrints::abort( "No repository specified, but not running under mod_perl." );
+		}
+		$self->{request} = EPrints::Apache::AnApache::get_request();
+		$self->{offline} = 0;
+		$self->{repository} = EPrints::Repository->new_from_request( $self->{request} );
 	}
 
 	#### Got Repository Config Module ###
@@ -250,40 +216,34 @@ sub new
 		# Database connection failure - noooo!
 		$self->render_error( $self->html_phrase( 
 			"lib/session:fail_db_connect" ) );
-#$self->get_repository->log( "Failed to connect to database." );
 		return undef;
 	}
 
-	#cjg make this a method of EPrints::Database?
-	unless( $nocheckdb )
-	{
-		# Check there are some tables.
-		# Well, check for the most important table, which 
-		# if it's not there is a show stopper.
-		unless( $self->{database}->is_latest_version )
-		{ 
-			my $cur_version = $self->{database}->get_version || "unknown";
-			if( $self->{database}->has_table( "eprint" ) )
-			{	
-				EPrints::abort(
+	# Check there are some tables.
+	# Well, check for the most important table, which 
+	# if it's not there is a show stopper.
+	if( $opts{check_database} && !$self->{database}->is_latest_version )
+	{ 
+		my $cur_version = $self->{database}->get_version || "unknown";
+		if( $self->{database}->has_table( "eprint" ) )
+		{	
+			EPrints::abort(
 	"Database tables are in old configuration (version $cur_version). Please run:\nepadmin upgrade ".$self->get_repository->get_id );
-			}
-			else
-			{
-				EPrints::abort(
-					"No tables in the MySQL database! ".
-					"Did you run create_tables?" );
-			}
-			$self->{database}->disconnect();
-			return undef;
 		}
+		else
+		{
+			EPrints::abort(
+	"No tables in the MySQL database! Did you run create_tables?" );
+		}
+		$self->{database}->disconnect();
+		return undef;
 	}
 
 	$self->{storage} = EPrints::Storage->new( $self );
 
 	if( $self->{noise} >= 2 ) { print "done.\n"; }
 	
-	if( $mode == 0 ) { $self->read_params; }
+	if( $opts{consume_post_data} ) { $self->read_params; }
 
 	$self->{repository}->call( "session_init", $self, $self->{offline} );
 
@@ -651,7 +611,7 @@ sub get_url
 =item $noise_level = $handle->get_noise
 
 Return the noise level for the current session. See the explaination
-under EPrints::Handle->new()
+under EPrints->get_handle()
 
 =cut
 ######################################################################

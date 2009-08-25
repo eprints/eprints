@@ -373,6 +373,11 @@ sub read_params
 	my( $self ) = @_;
 
 	my $r = $self->{request};
+	if( !defined $r ) 
+	{ 
+		EPrints::abort( "Called \$handle->read_params but no request object available!" ); 
+	}
+
 	my $uri = $r->unparsed_uri;
 	my $progressid = ($uri =~ /progress_id=([a-fA-F0-9]{32})/)[0];
 

@@ -36,26 +36,26 @@ use strict;
 
 sub handler
 {
-        my $request = shift;
+	my $request = shift;
 
-        my $handle = new EPrints::Handle;
-        if(! defined $handle )
-        {
-                print STDERR "\n[SWORD-SERVDOC] [INTERNAL-ERROR] Could not create session object.";
-                $request->status( 500 );
-                return Apache2::Const::DONE;
-        }
+	my $handle = EPrints->get_handle();
+	if(! defined $handle )
+	{
+		print STDERR "\n[SWORD-SERVDOC] [INTERNAL-ERROR] Could not create session object.";
+		$request->status( 500 );
+		return Apache2::Const::DONE;
+	}
 
 	# Authenticating user and behalf user
 	my $response = EPrints::Sword::Utils::authenticate( $handle, $request );
 	my $error = $response->{error};
 
 	if( defined $error )
-        {       
-                if( defined $error->{x_error_code} )
-                {
+	{       
+		if( defined $error->{x_error_code} )
+		{
 			$request->headers_out->{'X-Error-Code'} = $error->{x_error_code};
-                }
+		}
 
 		if( $error->{no_auth} )
 		{
@@ -65,7 +65,7 @@ sub handler
 		$request->status( $error->{status_code} );
 		$handle->terminate;
 		return Apache2::Const::DONE;
-        }
+	}
 
 	my $owner = $response->{owner};
 	my $depositor = $response->{depositor};		# can be undef if no X-On-Behalf-Of in the request

@@ -145,7 +145,7 @@ $|=1;
 my $repoid = shift @ARGV;
 my $cmd = shift @ARGV;
 
-my $handle = new EPrints::Handle( 1, $repoid, $noise );
+my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
 exit( 1 ) unless defined $handle;
 
 $handle->get_repository->{config}->{enable_web_imports} = 1;

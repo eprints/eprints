@@ -50,9 +50,9 @@ $noise = 1+$verbose if( $verbose );
 
 
 # nb. This syntax is subject to change in future versions.
-my( $archiveid, $datasetid, $userid ) = @ARGV;
+my( $repoid, $datasetid, $userid ) = @ARGV;
 
-my $handle = new EPrints::Handle( 1 , $archiveid, $noise );
+my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
 exit( 1 ) unless( defined $handle );
 
 my $db = $handle->get_database;
@@ -62,7 +62,7 @@ $datasetid = "archive" unless defined $datasetid;
 
 my $datapath = $EPrints::SystemSettings::conf->{base_path}."/testdata/data";
 
-my $ds = $handle->get_archive()->get_dataset( $datasetid );
+my $ds = $handle->get_dataset( $datasetid );
 
 my $pluginid = "Import::XML";
 my $plugin = $handle->plugin( $pluginid );

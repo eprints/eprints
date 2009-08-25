@@ -25,8 +25,13 @@ B<EPrints> - Institutional Repository software
 	
 	use EPrints;
 	use strict;
-	
-	my $handle = new EPrints::Handle( 1 , 'my_repository_id' );
+
+	# cgi script	
+	my $handle = EPrints->get_handle();
+	exit( 1 ) unless( defined $handle );
+
+	# bin script
+	my $handle = EPrints->get_handle( repository => $repository_id, noise => $noise );
 	exit( 1 ) unless( defined $handle );
 
 	$eprint = $handle->get_eprint( $eprintid );
@@ -417,6 +422,54 @@ use EPrints::Workflow::Stage;
 use EPrints::XML::EPC;
 
 our $__loaded;
+
+######################################################################
+=pod 
+
+=item $handle = EPrints->get_handle( %options )
+
+Return an EPrints::Handle object joining a web request or script to a
+database connection, and the configuration and data for a single 
+repository.
+
+The main options are:
+
+repository => $repository_id: This is required for command line scripts. CGI scripts will obtain the repository ID from the context of the request.
+
+noise => [0..4]: The level of debug info. 0 - silent, 1 - quietish (default), 2 - noisy, 3 - debug all SQL statements, 4 - debug database connection.
+
+The following advanced options are also available but are less likely to be useful:
+
+consume_post_data => [0,1]: Default 1. Only meaningful when running as a web-request. Setting this to "0" will stop the session parsing the POST data which comes in via STDIN. This may be useful if writing apache handlers which make decisions before the main $handle is created. If you don't set it they consume the POST data, and the main handle doesn't get to see it.
+
+check_database => [0,1]: Default 1. By default a session checks the database structure is compatible with the EPrints database module version. Setting this to "0" will supress this check.
+=cut
+######################################################################
+
+sub get_handle
+{
+	my( $class, %options ) = @_;
+
+	return EPrints::Handle->new( %options );
+}
+
+######################################################################
+=pod 
+
+=item $repository = EPrints->get_repository( $repository_id )
+
+Return an EPrints::Repository object representing the configuration
+of the named repository.
+
+=cut
+######################################################################
+
+sub get_repository
+{
+	my( $class, $repository_id ) = @_;
+
+	return EPrints::Repository->new( $repository_id );
+}
 
 sub import
 {

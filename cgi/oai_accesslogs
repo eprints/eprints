@@ -22,7 +22,7 @@ use EPrints::Apache::AnApache;
 use strict;
 
 # New session
-my $handle = new EPrints::Handle();
+my $handle = EPrints->get_handle();
 exit( 0 ) unless( defined $handle );
 
 my $auth_name = "EPrints Username and Password";

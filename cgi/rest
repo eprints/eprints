@@ -3,7 +3,7 @@ use EPrints;
 use Data::Dumper;
 
 use strict;
-my $handle = new EPrints::Handle;
+my $handle = EPrints->get_handle();
 exit( 0 ) unless( defined $handle );
 
 my $base_url = $handle->get_repository->get_conf( "perl_url" )."/rest";

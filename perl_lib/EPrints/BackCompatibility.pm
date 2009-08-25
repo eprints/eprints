@@ -233,9 +233,22 @@ sub get_session { EPrints::deprecated(); return $_[0]->get_handle; }
 
 package EPrints::Session;
 
-sub new { EPrints::deprecated(); return EPrints::Handle::new( @_ ); }
-
 our @ISA = qw/ EPrints::Handle /;
+
+sub new 
+{ 
+	my( $class, $mode, $repo_id, $noise, $nocheckdb ) = @_;
+
+	EPrints::deprecated();
+
+	my %opts = ();
+	if( defined $repo_id ) { $opts{repository} = $repo_id; }
+	if( defined $noise ) { $opts{noise} = $noise; }
+	if( $nocheckdb ) { $opts{check_database} = 0; }
+	if( $class == 2 ) { $opts{consume_post_data} = 0; }
+
+	return EPrints::Handle->new( %opts );
+}
 
 ######################################################################
 
@@ -382,7 +395,7 @@ sub load_workflows
 
 	return if $self->{workflows_loaded};
 
-	my $mini_session = EPrints::Handle->new( 1, $self->{repository}->get_id );
+	my $mini_session = EPrints::Handle->new( repository=>$self->{repository}->get_id );
 	foreach my $typeid ( @{$self->{type_order}} )
 	{
 		my $tdata = {};

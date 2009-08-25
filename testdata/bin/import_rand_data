@@ -64,9 +64,9 @@ $lorem->{wordlist} = $lorem->generate_wordlist();
 push @{$lorem->{wordlist}}, map { split /\s+/, $_ } <DATA>;
 
 # nb. This syntax is subject to change in future versions.
-my( $archiveid, $datasetid, $total ) = @ARGV;
+my( $repoid, $datasetid, $total ) = @ARGV;
 
-my $handle = new EPrints::Handle( 1 , $archiveid, $noise );
+my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
 exit( 1 ) unless( defined $handle );
 
 my $db = $handle->get_database;

@@ -152,7 +152,8 @@ $|=1;
 
 binmode( STDOUT, ":utf8" );
 
-my $handle = new EPrints::Handle( 1 , $ARGV[0] , $noise );
+my $handle = EPrints->get_handle( repository=>$ARGV[0], noise=>$noise );
+
 exit( 1 ) unless( defined $handle );
 
 $handle->cache_subjects;

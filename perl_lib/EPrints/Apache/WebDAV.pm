@@ -22,7 +22,7 @@ foreach my $key (keys %{$r->headers_in})
 	print STDERR sprintf("%20s: %s\n", $key, $r->headers_in->{$key});
 }
 
-	my $handle = EPrints::Handle->new( 2 );
+	my $handle = EPrints->get_handle( consume_post_data=>0 );
 
 	my $auth_name = "DAV";
 

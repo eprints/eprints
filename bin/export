@@ -131,7 +131,7 @@ my $datasetid = shift @ARGV;
 my $opluginid = shift @ARGV;
 my @objectids = @ARGV;
 
-my $handle = new EPrints::Handle( 1, $repoid, $noise );
+my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
 exit( 1 ) unless defined $handle;
 
 my $ds = $handle->get_repository->get_dataset( $datasetid ) ;

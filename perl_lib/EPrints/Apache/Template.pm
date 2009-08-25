@@ -55,7 +55,7 @@ sub handler
 
 	return DECLINED unless( -r $filename.".page" );
 
-	my $handle = new EPrints::Handle;
+	my $handle = EPrints->get_handle();
 
 	my $parts;
 	foreach my $part ( "title", "title.textonly", "page", "head", "template" )

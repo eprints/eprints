@@ -10,7 +10,7 @@ sub handler
 {
 	my( $r ) = @_;
 
-	my $handle = new EPrints::Handle;
+	my $handle = EPrints->get_handle();
 	my $problems;
 	# ok then we need to get the cgi
 	my $username = $handle->param( "login_username" );

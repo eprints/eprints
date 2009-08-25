@@ -24,7 +24,7 @@ B<EPrints::Repository> - A single eprint repository
 	$repository = $handle->get_repository;
 
 	# without a $handle available
-	$repository = EPrints::Repository->new( $id, [$noxml] );
+	$repository = EPrints->get_repository( $id );
 
 	$id = $repository->get_id;
 	$dataset = $repository->get_dataset( $setname );
@@ -103,25 +103,19 @@ my %ARCHIVE_CACHE = ();
 
 
 ######################################################################
-=pod
-
-=over 4
-
-=item $repository = EPrints::Repository->new( $id, [$noxml] )
-
-Returns the repository with the given repository ID. If $noxml is specified
-then it skips loading the XML based configuration files (this is
-needed when creating an repository as it first has to create the DTD
-files, and if it can't start you have a catch 22 situtation).
-
-This constructor should only be used if you don't want to create a 
-EPrints::Handle for some reason.
-
-In a CGI context, creating a handle will link it to an existing 
-EPrints::Repository object, whereas calling this constructor will 
-cause all the config files to be read specially for you. (much slower!)
-
-=cut
+# $repository = EPrints::Repository->new( $id, [$noxml] )
+# 
+# Returns the repository with the given repository ID. If $noxml is specified
+# then it skips loading the XML based configuration files (this is
+# needed when creating an repository as it first has to create the DTD
+# files, and if it can't start you have a catch 22 situtation).
+# 
+# This constructor should only be used if you don't want to create a 
+# EPrints::Handle for some reason.
+# 
+# In a CGI context, creating a handle will link it to an existing 
+# EPrints::Repository object, whereas calling this constructor will 
+# cause all the config files to be read specially for you. (much slower!)
 ######################################################################
 
 sub new
@@ -222,7 +216,7 @@ sub new_from_request
 		
 	my $repoid = $request->dir_config( "EPrints_ArchiveID" );
 
-	my $repository = EPrints::Repository->new( $repoid );
+	my $repository = EPrints->get_repository( $repoid );
 
 	if( !defined $repository )
 	{
@@ -626,9 +620,6 @@ sub _load_templates
 			push @template_files, $fn if $fn=~m/\.xml$/;
 		}
 		closedir( $dh );
-
-		#my $tmp_session = EPrints::Handle->new( 1, $self->{id} );
-		#$tmp_session->terminate;
 
 		foreach my $fn ( @template_files )
 		{
