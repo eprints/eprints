@@ -44,8 +44,6 @@ B<EPrints::Handle> - Single connection to the EPrints system
 
 	$subject = $handle->get_subject( $subject_id );
 
-	$handle->terminate
-
 =head1 DESCRIPTION
 
 EPrints::Handle represents a connection to the EPrints system. It
@@ -302,7 +300,6 @@ are no longer needed.
 sub terminate
 {
 	my( $self ) = @_;
-	
 	
 	$self->{repository}->call( "session_close", $self );
 	$self->{database}->disconnect();
@@ -866,6 +863,10 @@ sub DESTROY
 {
 	my( $self ) = @_;
 
+	if( defined $self->{repository} ) 
+	{
+		$self->terminate;
+	}
 	EPrints::Utils::destroy( $self );
 }
 

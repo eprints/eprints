@@ -78,8 +78,6 @@ B<EPrints> - Institutional Repository software
 
 	if( some_test() ) { EPrints::abort( "Something bad happened" ); }
 	
-	$handle->terminate;
-
 =head1 DESCRIPTION
 
 Using this module will cause all the other EPrints modules to be used also.
@@ -443,6 +441,7 @@ The following advanced options are also available but are less likely to be usef
 consume_post_data => [0,1]: Default 1. Only meaningful when running as a web-request. Setting this to "0" will stop the session parsing the POST data which comes in via STDIN. This may be useful if writing apache handlers which make decisions before the main $handle is created. If you don't set it they consume the POST data, and the main handle doesn't get to see it.
 
 check_database => [0,1]: Default 1. By default a session checks the database structure is compatible with the EPrints database module version. Setting this to "0" will supress this check.
+
 =cut
 ######################################################################
 

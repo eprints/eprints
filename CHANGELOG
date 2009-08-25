@@ -8389,3 +8389,6 @@ EPRINTS-3.1-beta-2
 2009-08-25 cjg 
  * Reworked API for getting handles and repositories.
  * Refactored code and docs for this new API.
+
+2009-08-25 cjg 
+ * $handle->terminate now called by DESTROY if not before.
