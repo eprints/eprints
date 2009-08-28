@@ -37,10 +37,6 @@ use strict;
 use EPrints::Apache::AnApache; # exports apache constants
 use URI;
 
-#use EPrints::Handle;
-#use EPrints::SystemSettings;
-
-
 
 sub authen
 {
@@ -48,7 +44,7 @@ sub authen
 
 	return OK unless $r->is_initial_req; # only the first internal request
 	
-	my $handle = EPrints->get_handle( consume_post_data=>0 );
+	my $handle = EPrints->get_repository_handle( consume_post_data=>0 );
 	
 	if( !defined $handle )
 	{
@@ -108,7 +104,7 @@ sub authen_doc
 {
 	my( $r ) = @_;
 
-	my $handle = EPrints->get_handle( consume_post_data=>0 );
+	my $handle = EPrints->get_repository_handle( consume_post_data=>0 );
 
 	return FORBIDDEN if( !defined $handle );
 
@@ -240,7 +236,7 @@ sub authz_doc
 {
 	my( $r ) = @_;
 
-	my $handle = EPrints->get_handle( consume_post_data=>0 );
+	my $handle = EPrints->get_repository_handle( consume_post_data=>0 );
 
 	my $document = secure_doc_from_url( $r, $handle );
 	if( !defined $document ) 

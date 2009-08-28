@@ -16,7 +16,7 @@ sub handler
 {
 	my $request = shift;
 
-        my $handle = EPrints->get_handle();
+        my $handle = EPrints->get_repository_handle();
 	if(! defined $handle )
 	{
 		print STDERR "\n[SWORD-DEPOSIT] [INTERNAL-ERROR] Could not create session object.";

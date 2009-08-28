@@ -8392,3 +8392,9 @@ EPRINTS-3.1-beta-2
 
 2009-08-25 cjg 
  * $handle->terminate now called by DESTROY if not before.
+
+2009-08-28 cjg 
+ * Refactored EPrints::Handle::* into EPrints::RepositoryHandle and 
+    EPrints::XMLHandle
+ * Changed the EPrints->get_handle method to get_repository_handle( %opts ) 
+    and get_repository_handle_by_id( $repo_id, %opts )

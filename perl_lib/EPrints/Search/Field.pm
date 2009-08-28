@@ -95,7 +95,7 @@ Match an item only if all of the words in the value match.
 # INSTANCE VARIABLES:
 #
 #  $searchfield->{handle}
-#     The current EPrints::Handle
+#     The current EPrints::RepositoryHandle
 #
 #  $searchfield->{"dataset"}
 #     The EPrints::DataSet which this search field will search

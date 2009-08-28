@@ -54,7 +54,7 @@ Oracle won't ORDER BY LOBS.
 # INSTANCE VARIABLES:
 #
 #  $self->{handle}
-#     The EPrints::Handle which is associated with this database 
+#     The EPrints::RepositoryHandle which is associated with this database 
 #     connection.
 #
 #  $self->{debug}

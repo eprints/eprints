@@ -78,7 +78,7 @@ GENERAL PARAMETERS
 
 =item handle (required)
 
-The current L<EPrints::Handle>
+The current L<EPrints::RepositoryHandle>
 
 =item dataset OR dataset_id (required)
 

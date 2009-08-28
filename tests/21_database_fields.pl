@@ -5,7 +5,7 @@ BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
 
 my $handle = EPrints::Test::get_test_session( 0 );
-ok(defined $handle, 'opened an EPrints::Handle object (noisy, no_check_db)');
+ok(defined $handle, 'opened an EPrints::RepositoryHandle object (noisy, no_check_db)');
 
 # a dataset that won't mind being broken
 my $dataset = $handle->get_repository->get_dataset( "upload_progress" );

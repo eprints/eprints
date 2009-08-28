@@ -52,7 +52,7 @@ $noise = 1+$verbose if( $verbose );
 # nb. This syntax is subject to change in future versions.
 my( $repoid, $datasetid, $userid ) = @ARGV;
 
-my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 exit( 1 ) unless( defined $handle );
 
 my $db = $handle->get_database;

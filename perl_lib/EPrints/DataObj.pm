@@ -74,7 +74,7 @@ To create a new object in the database use:
 #     record.
 #
 #  $self->{handle}
-#     The current EPrints::Handle
+#     The current EPrints::RepositoryHandle
 #
 #  $self->{dataset}
 #     The EPrints::DataSet to which this record belongs.
@@ -326,7 +326,7 @@ sub get_defaults
 
 =item $handle = $dataobj->get_handle
 
-Returns the EPrints::Handle object to which this record belongs.
+Returns the EPrints::RepositoryHandle object to which this record belongs.
 
 =cut
 ######################################################################

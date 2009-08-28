@@ -1,12 +1,12 @@
 ######################################################################
 #
-# EPrints::Handle::Render
+# EPrints::XMLHandle
 #
 ######################################################################
 #
 #  __COPYRIGHT__
 #
-# Copyright 2000-2009 University of Southampton. All Rights Reserved.
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
 # 
 #  __LICENSE__
 #
@@ -17,56 +17,309 @@
 
 =head1 NAME
 
-B<EPrints::Handle::Render> - Render methods for EPrints::Session
-
-=head1 DESCRIPTION
-
-This module provides additional methods to EPrints::Handle and is not
-an object in its own right.
-
-Look at EPrints::Handle for further information on how to access the 
-Handle methods.
+B<EPrints::XMLHandle> - A single XML/XHTML rendering object.
 
 =head1 SYNOPSIS
 
+	$xml = $handle->get_xml;
+
+	# XML
+
+	$img_dom = $xml->make_element( "img", src => "/foo.gif", alt => "my pic" );
+	$comment_dom = $xml->make_comment( $text );
+	$text_dom = $xml->make_text( $text );
+	$empty_frag = $xml->make_doc_fragment;
+
+	# XHTML
+	
 	# create a simple <a> element:
-	my $link = $handle->render_link( "http://www.eprints.org/", "_blank" );
+	my $link = $xml->render_link( "http://www.eprints.org/", "_blank" );
 	$link->appendChild( 
-		$handle->make_text( "Visit the EPrints website" ) );
+		$xml->make_text( "Visit the EPrints website" ) );
 
 	# create a POST form on the current cgi script:	
-	my $form = $handle->render_form( "POST" );
+	my $form = $xml->render_form( "POST" );
 	$form->appendChild( 
-		$handle->render_hidden_field( 
+		$xml->render_hidden_field( 
 			"eprintid", 
 			$eprint->get_id ) );
 	$form->appendChild( 
-		$handle->render_input_field( 
+		$xml->render_input_field( 
 			"name" => "ep_input_text", 
 			"id" => "ep_input_text" ) );
 	$form->appendChild( 
-		$handle->render_button( 
+		$xml->render_button( 
 			"name" => "action_submit" ) );
 
 	# create a message in the EPrints Screen style:
 	$page->appendChild( 
-		$handle->render_message( 
+		$xml->render_message( 
 			"error", 
-			$handle->make_text( "Error description" ), 
+			$xml->make_text( "Error description" ), 
 			1 ) );	
 
 	# create a Toolbox in the EPrints style:	
 	$page->appendChild( 
-		$handle->render_toolbox( $title, $content ) );
+		$xml->render_toolbox( $title, $content ) );
 
-=head1 METHODS
+
+=head1 DESCRIPTION
+
+This object contains all the methods for working with XML and XHTML.
+
+=head1 XML Methods
 
 =cut
 
+######################################################################
+#
+# INSTANCE VARIABLES:
+#
+#  $self->{handle}
+#     The current EPrints::RepositoryHandle, used to get state and
+#     configuration options.
+#
+#  $self->{doc}
+#     The XML document to which items created by this object will 
+#     belong.
+#
+######################################################################
+
+package EPrints::XMLHandle;
+
+use EPrints;
+use EPrints::XML;
+
 use strict;
 
-package EPrints::Handle;
+######################################################################
+# Constructor, generally used by the handle constructor
+######################################################################
 
+sub new
+{
+	my( $class, $handle ) = @_;
+
+	my $self = bless {
+		doc => EPrints::XML::make_document,
+		handle => $handle,
+	}, $class;
+
+
+	return $self;
+}
+
+######################################################################
+=pod
+
+=over 4
+
+=item $dom = $xml->make_element( $element_name, %attribs )
+
+Return a DOM element with name ename and the specified attributes.
+
+eg. $xml->make_element( "img", src => "/foo.gif", alt => "my pic" )
+
+Will return the DOM object describing:
+
+<img src="/foo.gif" alt="my pic" />
+
+Note that in the call we use "=>" not "=".
+
+=cut
+######################################################################
+
+sub make_element
+{
+	my( $self , $ename , @opts ) = @_;
+
+	my $element = $self->{doc}->createElement( $ename );
+	for(my $i = 0; $i < @opts; $i += 2)
+	{
+		$element->setAttribute( $opts[$i], $opts[$i+1] )
+			if defined( $opts[$i+1] );
+	}
+
+	return $element;
+}
+
+
+######################################################################
+=pod
+
+=item $dom = $xml->make_indent( $width )
+
+Return a DOM object describing a C.R. and then $width spaces. This
+is used to make nice looking XML for things like the OAI interface.
+
+=cut
+######################################################################
+
+sub make_indent
+{
+	my( $self, $width ) = @_;
+
+	return $self->{doc}->createTextNode( "\n"." "x$width );
+}
+
+######################################################################
+=pod
+
+=item $dom = $xml->make_comment( $text )
+
+Return a DOM object describing a comment containing $text.
+
+eg.
+
+<!-- this is a comment -->
+
+=cut
+######################################################################
+
+sub make_comment
+{
+	my( $self, $text ) = @_;
+
+	return $self->{doc}->createComment( $text );
+}
+	
+
+# $text is a UTF8 String!
+
+######################################################################
+=pod
+
+=item $DOM = $xml->make_text( $text )
+
+Return a DOM object containing the given text. $text should be
+UTF-8 encoded.
+
+Characters will be treated as _text_ including < > etc.
+
+eg.
+
+$xml->make_text( "This is <b> an example" );
+
+Would return a DOM object representing the XML:
+
+"This is &lt;b&gt; an example"
+
+=cut
+######################################################################
+
+sub make_text
+{
+	my( $self , $text ) = @_;
+
+	# patch up an issue with Unicode::String containing
+	# an empty string -> seems to upset XML::GDOME
+	if( !defined $text || $text eq "" )
+	{
+		$text = "";
+	}
+        
+        $text =~ s/[\x00-\x08\x0B\x0C\x0E-\x1F]//g;
+
+	my $textnode = $self->{doc}->createTextNode( $text );
+
+	return $textnode;
+}
+
+######################################################################
+=pod
+
+=item $DOM = $xml->make_javascript( $code, %attribs )
+
+Return a new DOM "script" element containing $code in javascript. %attribs will
+be added to the script element, similar to make_element().
+
+E.g.
+
+	<script type="text/javascript">
+	// <![CDATA[
+	alert("Hello, World!");
+	// ]]>
+	</script>
+
+=cut
+######################################################################
+
+sub make_javascript
+{
+	my( $self, $text, %attr ) = @_;
+
+	if( !defined( $text ) )
+	{
+		$text = "";
+	}
+	chomp($text);
+
+	my $script = $self->make_element( "script", type => "text/javascript", %attr );
+
+	$script->appendChild( $self->make_text( "\n// " ) );
+	$script->appendChild( $self->{doc}->createCDATASection( "\n$text\n// " ) );
+
+	return $script;
+}
+
+######################################################################
+=pod
+
+=item $fragment = $xml->make_doc_fragment
+
+Return a new XML document fragment. This is an item which can have
+XML elements added to it, but does not actually get rendered itself.
+
+If appended to an element then it disappears and its children join
+the element at that point.
+
+=cut
+######################################################################
+
+sub make_doc_fragment
+{
+	my( $self ) = @_;
+
+	return EPrints::XML::make_document_fragment( $self );
+}
+
+######################################################################
+=pod
+
+=item $copy_of_node = $xml->clone( $node, [$deep] )
+
+XML DOM items can only be added to the document which they belong to.
+
+A EPrints::RepositoryHandle has it's own XML DOM DOcument. 
+
+This method copies an XML node from _any_ document. The copy belongs
+to this sessions document.
+
+If $deep is set then the children, (and their children etc.), are 
+copied too.
+
+=cut
+######################################################################
+
+sub clone
+{
+	my( $self, $node, $deep ) = @_;
+
+	return EPrints::XML::clone_and_own( $node, $self->{doc}, $deep );
+}
+
+
+######################################################################
+######################################################################
+=pod
+
+=back
+
+=head1 XHTML Methods
+
+=cut
+######################################################################
+######################################################################
 
 
 ######################################################################
@@ -74,7 +327,7 @@ package EPrints::Handle;
 
 =over 4
 
-=item $ruler = $handle->render_ruler
+=item $ruler = $xml->render_ruler
 
 Return an <hr/> element. Look in ruler.xml for style definition.
 
@@ -85,13 +338,13 @@ sub render_ruler
 {
 	my( $self ) = @_;
 
-	return $self->html_phrase( "ruler" );
+	return $self->{handle}->html_phrase( "ruler" );
 }
 
 ######################################################################
 =pod
 
-=item $nbsp = $handle->render_nbsp
+=item $nbsp = $xml->render_nbsp
 
 Return an XHTML &nbsp; character.
 
@@ -110,7 +363,7 @@ sub render_nbsp
 ######################################################################
 =pod
 
-=item $xhtml = $handle->render_data_element( $indent, $elementname, $value, [%opts] )
+=item $xhtml = $xml->render_data_element( $indent, $elementname, $value, [%opts] )
 
 This is used to help render neat XML data. It returns a fragment 
 containing an element of name $elementname containing the value
@@ -119,7 +372,7 @@ $value, the element is indented by $indent spaces.
 The %opts describe any extra attributes for the element
 
 eg.
-$handle->render_data_element( 4, "foo", "bar", class=>"fred" )
+$xml->render_data_element( 4, "foo", "bar", class=>"fred" )
 
 would return a XML DOM object describing:
     <foo class="fred">bar</foo>
@@ -144,7 +397,7 @@ sub render_data_element
 ######################################################################
 =pod
 
-=item $xhtml = $handle->render_link( $uri, [$target] )
+=item $xhtml = $xml->render_link( $uri, [$target] )
 
 Returns an HTML link to the given uri, with the optional $target if
 it needs to point to a different frame or window.
@@ -165,7 +418,7 @@ sub render_link
 ######################################################################
 =pod
 
-=item $table_row = $handle->render_row( $key, @values );
+=item $table_row = $xml->render_row( $key, @values );
 
 Return the key and values in a DOM encoded HTML table row. eg.
 
@@ -176,27 +429,27 @@ Return the key and values in a DOM encoded HTML table row. eg.
 
 sub render_row
 {
-	my( $handle, $key, @values ) = @_;
+	my( $xml, $key, @values ) = @_;
 
 	my( $tr, $th, $td );
 
-	$tr = $handle->make_element( "tr" );
+	$tr = $xml->make_element( "tr" );
 
-	$th = $handle->make_element( "th", valign=>"top", class=>"ep_row" ); 
+	$th = $xml->make_element( "th", valign=>"top", class=>"ep_row" ); 
 	if( !defined $key )
 	{
-		$th->appendChild( $handle->render_nbsp );
+		$th->appendChild( $xml->render_nbsp );
 	}
 	else
 	{
 		$th->appendChild( $key );
-		$th->appendChild( $handle->make_text( ":" ) );
+		$th->appendChild( $xml->make_text( ":" ) );
 	}
 	$tr->appendChild( $th );
 
 	foreach my $value ( @values )
 	{
-		$td = $handle->make_element( "td", valign=>"top", class=>"ep_row" ); 
+		$td = $xml->make_element( "td", valign=>"top", class=>"ep_row" ); 
 		$td->appendChild( $value );
 		$tr->appendChild( $td );
 	}
@@ -279,12 +532,12 @@ sub render_row_with_help
 	my $td2 = $self->make_element( "td", class=>"ep_multi_help ep_only_js_table_cell ep_toggle" );
 	my $show_help = $self->make_element( "div", class=>"ep_sr_show_help ep_only_js", id=>$parts{help_prefix}."_show" );
 	my $helplink = $self->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlide('$parts{help_prefix}',false,'block');EPJS_toggle('$parts{help_prefix}_hide',false,'block');EPJS_toggle('$parts{help_prefix}_show',true,'block');return false", href=>"#" );
-	$show_help->appendChild( $self->html_phrase( "lib/session:show_help",link=>$helplink ) );
+	$show_help->appendChild( $self->{handle}->html_phrase( "lib/session:show_help",link=>$helplink ) );
 	$td2->appendChild( $show_help );
 
 	my $hide_help = $self->make_element( "div", class=>"ep_sr_hide_help ep_hide", id=>$parts{help_prefix}."_hide" );
 	my $helplink2 = $self->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlide('$parts{help_prefix}',false,'block');EPJS_toggle('$parts{help_prefix}_hide',false,'block');EPJS_toggle('$parts{help_prefix}_show',true,'block');return false", href=>"#" );
-	$hide_help->appendChild( $self->html_phrase( "lib/session:hide_help",link=>$helplink2 ) );
+	$hide_help->appendChild( $self->{handle}->html_phrase( "lib/session:hide_help",link=>$helplink2 ) );
 	$td2->appendChild( $hide_help );
 	$tr->appendChild( $td2 );
 
@@ -298,7 +551,7 @@ sub render_toolbar
 	my( $self ) = @_;
 
 	my $screen_processor = bless {
-		handle => $self,
+		handle => $self->{handle},
 		screenid => "FirstTool",
 	}, "EPrints::ScreenProcessor";
 
@@ -311,7 +564,7 @@ sub render_toolbar
 
 	my @core = $screen->list_items( "key_tools" );
 	my @other = $screen->list_items( "other_tools" );
-	my $url = $self->get_repository->get_conf( "http_cgiurl" )."/users/home";
+	my $url = $self->{handle}->get_repository->get_conf( "http_cgiurl" )."/users/home";
 
 	my $first = 1;
 	foreach my $tool ( @core )
@@ -322,29 +575,29 @@ sub render_toolbar
 		}
 		else
 		{
-			$core->appendChild( $self->html_phrase( "Plugin/Screen:tool_divide" ) );
+			$core->appendChild( $self->{handle}->html_phrase( "Plugin/Screen:tool_divide" ) );
 		}
 		my $a = $self->render_link( $url."?screen=".substr($tool->{screen_id},8) );
 		$a->appendChild( $tool->{screen}->render_title );
 		$core->appendChild( $a );
 	}
 
-	my $current_user = $self->current_user;
+	my $current_user = $self->{handle}->current_user;
 
 	if( defined $current_user && $current_user->allow( "config/edit/static" ) )
 	{
-		my $conffile = $self->get_static_page_conf_file;
+		my $conffile = $self->{handle}->get_static_page_conf_file;
 		if( defined $conffile )
 		{
 			if( !$first )
 			{
-				$core->appendChild( $self->html_phrase( "Plugin/Screen:tool_divide" ) );
+				$core->appendChild( $self->{handle}->html_phrase( "Plugin/Screen:tool_divide" ) );
 			}
 			$first = 0;
 			
 			# Will do odd things for non xpages
 			my $a = $self->render_link( $url."?screen=Admin::Config::Edit::XPage&configfile=".$conffile );
-			$a->appendChild( $self->html_phrase( "lib/session:edit_page" ) );
+			$a->appendChild( $self->{handle}->html_phrase( "lib/session:edit_page" ) );
 			$core->appendChild( $a );
 		}
 	}
@@ -355,11 +608,11 @@ sub render_toolbar
 		{
 			if( !$first )
 			{
-				$core->appendChild( $self->html_phrase( "Plugin/Screen:tool_divide" ) );
+				$core->appendChild( $self->{handle}->html_phrase( "Plugin/Screen:tool_divide" ) );
 			}
 			$first = 0;
 
-			my $editurl = $self->get_full_url;
+			my $editurl = $self->{handle}->get_full_url;
 			if( $editurl =~ m/\?/ )
 			{
 				$editurl .= "&edit_phrases=yes";
@@ -371,14 +624,14 @@ sub render_toolbar
 
 			# Will do odd things for non xpages
 			my $a = $self->render_link( $editurl );
-			$a->appendChild( $self->html_phrase( "lib/session:edit_phrases" ) );
+			$a->appendChild( $self->{handle}->html_phrase( "lib/session:edit_phrases" ) );
 			$core->appendChild( $a );
 		}
 	}
 
 	if( scalar @other == 1 )
 	{
-		$core->appendChild( $self->html_phrase( "Plugin/Screen:tool_divide" ) );	
+		$core->appendChild( $self->{handle}->html_phrase( "Plugin/Screen:tool_divide" ) );	
 		my $tool = $other[0];
 		my $a = $self->render_link( $url."?screen=".substr($tool->{screen_id},8) );
 		$a->appendChild( $tool->{screen}->render_title );
@@ -391,13 +644,13 @@ sub render_toolbar
 
 		my $nojs_divide = $self->make_element( "span", class=>"ep_no_js_inline" );
 		$nojs_divide->appendChild( 
-			$self->html_phrase( "Plugin/Screen:tool_divide" ) );
+			$self->{handle}->html_phrase( "Plugin/Screen:tool_divide" ) );
 		$span->appendChild( $nojs_divide );
 		
 		my $more_bit = $self->make_element( "span", class=>"ep_only_js" );
 		my $more = $self->make_element( "a", id=>"ep_user_menu_more", href=>"#", onclick => "EPJS_blur(event); EPJS_toggle_type('ep_user_menu_core',true,'inline');EPJS_toggle_type('ep_user_menu_extra',false,'inline');return false", );
-		$more->appendChild( $self->html_phrase( "Plugin/Screen:more" ) );
-		$more_bit->appendChild( $self->html_phrase( "Plugin/Screen:tool_divide" ) );	
+		$more->appendChild( $self->{handle}->html_phrase( "Plugin/Screen:more" ) );
+		$more_bit->appendChild( $self->{handle}->html_phrase( "Plugin/Screen:tool_divide" ) );	
 		$more_bit->appendChild( $more );
 		$toolbar->appendChild( $more_bit );
 
@@ -411,7 +664,7 @@ sub render_toolbar
 			else
 			{
 				$span->appendChild( 
-					$self->html_phrase( "Plugin/Screen:tool_divide" ) );
+					$self->{handle}->html_phrase( "Plugin/Screen:tool_divide" ) );
 			}
 			my $a = $self->render_link( $url."?screen=".substr($tool->{screen_id},8) );
 			$a->appendChild( $tool->{screen}->render_title );
@@ -427,7 +680,7 @@ sub render_toolbar
 ######################################################################
 =pod
 
-=item $xhtml = $handle->render_language_name( $langid ) 
+=item $xhtml = $xml->render_language_name( $langid ) 
 Return a DOM object containing the description of the specified language
 in the current default language, or failing that from languages.xml
 
@@ -440,13 +693,13 @@ sub render_language_name
 
 	my $phrasename = 'languages_typename_'.$langid;
 
-	return $self->html_phrase( $phrasename );
+	return $self->{handle}->html_phrase( $phrasename );
 }
 
 ######################################################################
 =pod
 
-=item $xhtml = $handle->render_type_name( $type_set, $type ) 
+=item $xhtml = $xml->render_type_name( $type_set, $type ) 
 
 Return a DOM object containing the description of the specified type
 in the type set. eg. "eprint", "article"
@@ -458,13 +711,13 @@ sub render_type_name
 {
 	my( $self, $type_set, $type ) = @_;
 
-        return $self->html_phrase( $type_set."_typename_".$type );
+        return $self->{handle}->html_phrase( $type_set."_typename_".$type );
 }
 
 ######################################################################
 =pod
 
-=item $string = $handle->get_type_name( $type_set, $type ) 
+=item $string = $xml->get_type_name( $type_set, $type ) 
 
 As above, but return a utf-8 string. Used in <option> elements, for
 example.
@@ -476,13 +729,13 @@ sub get_type_name
 {
 	my( $self, $type_set, $type ) = @_;
 
-        return $self->phrase( $type_set."_typename_".$type );
+        return $self->{handle}->phrase( $type_set."_typename_".$type );
 }
 
 ######################################################################
 =pod
 
-=item $xhtml_name = $handle->render_name( $name, [$familylast] )
+=item $xhtml_name = $xml->render_name( $name, [$familylast] )
 
 $name is a ref. to a hash containing family, given etc.
 
@@ -511,7 +764,7 @@ sub render_name
 ######################################################################
 #=pod
 #
-#=item $xhtml_select = $handle->render_option_list( %params )
+#=item $xhtml_select = $xml->render_option_list( %params )
 #
 #This method renders an XHTML <select>. The options are complicated
 #and may change, so it's better not to use it.
@@ -649,7 +902,7 @@ sub render_option_list
 ######################################################################
 #=pod
 #
-#=item $option = $handle->render_single_option( $key, $desc, $selected )
+#=item $option = $xml->render_single_option( $key, $desc, $selected )
 #
 #Used by render_option_list.
 #
@@ -674,7 +927,7 @@ sub render_single_option
 ######################################################################
 =pod
 
-=item $xhtml_hidden = $handle->render_hidden_field( $name, $value )
+=item $xhtml_hidden = $xml->render_hidden_field( $name, $value )
 
 Return the XHTML DOM describing an <input> element of type "hidden"
 and name and value as specified. eg.
@@ -690,7 +943,7 @@ sub render_hidden_field
 
 	if( !defined $value ) 
 	{
-		$value = $self->param( $name );
+		$value = $self->{handle}->param( $name );
 	}
 
 	return $self->render_input_field( 
@@ -703,7 +956,7 @@ sub render_hidden_field
 ######################################################################
 =pod
 
-=item $xhtml_input = $handle->render_input_field( %opts )
+=item $xhtml_input = $xml->render_input_field( %opts )
 
 Return the XHTML DOM describing a generic <input> element
 
@@ -719,7 +972,7 @@ sub render_input_field
 ######################################################################
 =pod
 
-=item $xhtml_input = $handle->render_noenter_input_field( %opts )
+=item $xhtml_input = $xml->render_noenter_input_field( %opts )
 
 Return the XHTML DOM describing a generic <input> element. The form
 will not be submitted when the user presses Enter.
@@ -740,7 +993,7 @@ sub render_noenter_input_field
 ######################################################################
 =pod
 
-=item $xhtml_uploda = $handle->render_upload_field( $name )
+=item $xhtml_uploda = $xml->render_upload_field( $name )
 
 Render into XHTML DOM a file upload form button with the given name. 
 
@@ -771,7 +1024,7 @@ sub render_upload_field
 ######################################################################
 =pod
 
-=item $dom = $handle->render_action_buttons( %buttons )
+=item $dom = $xml->render_action_buttons( %buttons )
 
 Returns a DOM object describing the set of buttons.
 
@@ -803,7 +1056,7 @@ sub render_action_buttons
 ######################################################################
 =pod
 
-=item $dom = $handle->render_internal_buttons( %buttons )
+=item $dom = $xml->render_internal_buttons( %buttons )
 
 As for render_action_buttons, but creates buttons for actions which
 will modify the state of the current form, not continue with whatever
@@ -825,7 +1078,7 @@ sub render_internal_buttons
 
 ######################################################################
 # 
-# $dom = $handle->_render_buttons_aux( $btype, %buttons )
+# $dom = $xml->_render_buttons_aux( $btype, %buttons )
 #
 ######################################################################
 
@@ -888,7 +1141,7 @@ sub render_button
 ######################################################################
 =pod
 
-=item $dom = $handle->render_form( $method, $dest )
+=item $dom = $xml->render_form( $method, $dest )
 
 Return a DOM object describing an HTML form element. 
 
@@ -898,7 +1151,7 @@ $dest is the target of the form. By default the current page.
 
 eg.
 
-$handle->render_form( "GET", "http://example.com/cgi/foo" );
+$xml->render_form( "GET", "http://example.com/cgi/foo" );
 
 returns a DOM object representing:
 
@@ -922,7 +1175,7 @@ sub render_form
 	$form->setAttribute( "accept-charset", "utf-8" );
 	if( !defined $dest )
 	{
-		$dest = $self->get_uri;
+		$dest = $self->{handle}->get_uri;
 	}
 	$form->setAttribute( "action", $dest );
 	if( "\L$method" eq "post" )
@@ -936,7 +1189,7 @@ sub render_form
 ######################################################################
 =pod
 
-=item $ul = $handle->render_subjects( $subject_list, [$baseid], [$currentid], [$linkmode], [$sizes] )
+=item $ul = $xml->render_subjects( $subject_list, [$baseid], [$currentid], [$linkmode], [$sizes] )
 
 Return as XHTML DOM a nested set of <ul> and <li> tags describing
 part of a subject tree.
@@ -988,7 +1241,7 @@ sub render_subjects
 	my %subs = ();
 	foreach( @{$subject_list}, $baseid )
 	{
-		$subs{$_} = $self->get_subject( $_ );
+		$subs{$_} = $self->{handle}->get_subject( $_ );
 	}
 
 	return $self->_render_subjects_aux( \%subs, $baseid, $currentid, $linkmode, $sizes );
@@ -996,7 +1249,7 @@ sub render_subjects
 
 ######################################################################
 # 
-# $ul = $handle->_render_subjects_aux( $subjects, $id, $currentid, $linkmode, $sizes )
+# $ul = $xml->_render_subjects_aux( $subjects, $id, $currentid, $linkmode, $sizes )
 #
 # Recursive subroutine needed by render_subjects.
 #
@@ -1063,7 +1316,7 @@ sub _render_subjects_aux
 ######################################################################
 =pod
 
-=item $handle->render_error( $error_text, $back_to, $back_to_text )
+=item $xml->render_error( $error_text, $back_to, $back_to_text )
 
 Renders an error page with the given error text. A link, with the
 text $back_to_text, is offered, the destination of this is $back_to,
@@ -1078,49 +1331,49 @@ sub render_error
 	
 	if( !defined $back_to )
 	{
-		$back_to = $self->get_repository->get_conf( "frontpage" );
+		$back_to = $self->{handle}->get_repository->get_conf( "frontpage" );
 	}
 	if( !defined $back_to_text )
 	{
-		$back_to_text = $self->html_phrase( "lib/session:continue");
+		$back_to_text = $self->{handle}->html_phrase( "lib/session:continue");
 	}
 
 	my $textversion = '';
-	$textversion.= $self->phrase( "lib/session:some_error" );
+	$textversion.= $self->{handle}->phrase( "lib/session:some_error" );
 	$textversion.= EPrints::Utils::tree_to_utf8( $error_text, 76 );
 	$textversion.= "\n";
 
-	if ( $self->{offline} )
+	if ( $self->{handle}->{offline} )
 	{
 		print $textversion;
 		return;
 	} 
 
 	# send text version to log
-	$self->get_repository->log( $textversion );
+	$self->{handle}->get_repository->log( $textversion );
 
 	my( $p, $page, $a );
 	$page = $self->make_doc_fragment();
 
-	$page->appendChild( $self->html_phrase( "lib/session:some_error"));
+	$page->appendChild( $self->{handle}->html_phrase( "lib/session:some_error"));
 
 	$p = $self->make_element( "p" );
 	$p->appendChild( $error_text );
 	$page->appendChild( $p );
 
-	$page->appendChild( $self->html_phrase( "lib/session:contact" ) );
+	$page->appendChild( $self->{handle}->html_phrase( "lib/session:contact" ) );
 				
 	$p = $self->make_element( "p" );
 	$a = $self->render_link( $back_to ); 
 	$a->appendChild( $back_to_text );
 	$p->appendChild( $a );
 	$page->appendChild( $p );
-	$self->prepare_page(	
-		title=>$self->html_phrase( "lib/session:error_title" ),
+	$self->{handle}->prepare_page(	
+		title=>$self->{handle}->html_phrase( "lib/session:error_title" ),
 		page=>$page,
 		page_id=>"error" );
 
-	$self->send_page();
+	$self->{handle}->send_page();
 }
 
 my %INPUT_FORM_DEFAULTS = (
@@ -1142,7 +1395,7 @@ my %INPUT_FORM_DEFAULTS = (
 ######################################################################
 =pod
 
-=item $dom = $handle->render_input_form( %params )
+=item $dom = $xml->render_input_form( %params )
 
 Return a DOM object representing an entire input form.
 
@@ -1206,9 +1459,9 @@ sub render_input_form
 	my( $form );
 
 	$form =	$self->render_form( "post", $p{dest} );
-	if( defined $p{default_action} && $self->client() ne "LYNX" )
+	if( defined $p{default_action} && $self->{handle}->client() ne "LYNX" )
 	{
-		my $imagesurl = $self->get_repository->get_conf( "rel_path" )."/images";
+		my $imagesurl = $self->{handle}->get_repository->get_conf( "rel_path" )."/images";
 		# This button will be the first on the page, so
 		# if a user hits return and the browser auto-
 		# submits then it will be this image button, not
@@ -1280,7 +1533,7 @@ sub render_input_form
 
 ######################################################################
 # 
-# $xhtml_field = $handle->_render_input_form_field( $field, $value, $show_names, $show_help, $comment, $dataset, $type, $staff, $hiddenfields, $object )
+# $xhtml_field = $xml->_render_input_form_field( $field, $value, $show_names, $show_help, $comment, $dataset, $type, $staff, $hiddenfields, $object )
 #
 # Render a single field in a form being rendered by render_input_form
 #
@@ -1295,7 +1548,7 @@ sub _render_input_form_field
 
 	$html = $self->make_doc_fragment();
 
-	if( substr( $self->get_internal_button(), 0, length($field->get_name())+1 ) eq $field->get_name()."_" ) 
+	if( substr( $self->{handle}->get_internal_button(), 0, length($field->get_name())+1 ) eq $field->get_name()."_" ) 
 	{
 		my $a = $self->make_element( "a", name=>"t" );
 		$html->appendChild( $a );
@@ -1314,7 +1567,7 @@ sub _render_input_form_field
 		my $label = $field->render_name( $self );
 		if( $req && !$field->is_type( "boolean" ) )
 		{
-			$label = $self->html_phrase( "sys:ep_form_required",
+			$label = $self->{handle}->html_phrase( "sys:ep_form_required",
 				label=>$label );
 		}
 		$div->appendChild( $label );
@@ -1345,7 +1598,7 @@ sub _render_input_form_field
 
 ######################################################################
 # 
-# $xhtml = $handle->render_toolbox( $title, $content )
+# $xhtml = $xml->render_toolbox( $title, $content )
 #
 # Render a toolbox. This method will probably gain a whole bunch of new
 # options.
@@ -1379,7 +1632,7 @@ sub render_message
 	
 	$show_icon = 1 unless defined $show_icon;
 
-	my $id = "m".$self->get_next_id;
+	my $id = "m".$self->{handle}->get_next_id;
 	my $div = $self->make_element( "div", class=>"ep_msg_".$type, id=>$id );
 	my $content_div = $self->make_element( "div", class=>"ep_msg_".$type."_content" );
 	my $table = $self->make_element( "table" );
@@ -1388,8 +1641,8 @@ sub render_message
 	if( $show_icon )
 	{
 		my $td1 = $self->make_element( "td" );
-		my $imagesurl = $self->get_repository->get_conf( "rel_path" );
-		$td1->appendChild( $self->make_element( "img", class=>"ep_msg_".$type."_icon", src=>"$imagesurl/style/images/".$type.".png", alt=>$self->phrase( "Plugin/Screen:message_".$type ) ) );
+		my $imagesurl = $self->{handle}->get_repository->get_conf( "rel_path" );
+		$td1->appendChild( $self->make_element( "img", class=>"ep_msg_".$type."_icon", src=>"$imagesurl/style/images/".$type.".png", alt=>$self->{handle}->phrase( "Plugin/Screen:message_".$type ) ) );
 		$tr->appendChild( $td1 );
 	}
 	my $td2 = $self->make_element( "td" );
@@ -1404,11 +1657,11 @@ sub render_message
 
 ######################################################################
 # 
-# $xhtml = $handle->render_tabs( %params )
+# $xhtml = $xml->render_tabs( %params )
 #
 # Render javascript tabs to switch between views. The views must be
 # rendered seperately. 
-
+#
 # %params contains the following options:
 # id_prefix: the prefix of the id attributes.
 # current: the id of the current tab
@@ -1503,4 +1756,40 @@ sub render_tabs
 	return $f;
 }
 
+######################################################################
+# $xml->dispose
+#
+# De-link the XML object, if needed.
+######################################################################
+
+sub dispose
+{
+	my( $self ) = @_;
+
+	delete $self->{handle};
+
+	if( defined $self->{doc} )
+	{
+		EPrints::XML::dispose( $self->{doc} );
+		delete $self->{doc};
+	}
+}
+
+######################################################################
+=pod 
+
+=back
+
+=cut
+######################################################################
+
+sub plugin { EPrints::abort(); }
 1;
+
+
+
+
+
+
+
+

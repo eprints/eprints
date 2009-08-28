@@ -20,7 +20,7 @@ B<EPrints::Test::OnlineSession> - Test online features of EPrints, offline
 
 package EPrints::Test::OnlineSession;
 
-our @ISA = qw( EPrints::Handle );
+our @ISA = qw( EPrints::RepositoryHandle );
 
 my @VARS = qw( stdout uri secure );
 my %VAR;

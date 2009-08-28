@@ -27,12 +27,11 @@ B<EPrints> - Institutional Repository software
 	use strict;
 
 	# cgi script	
-	my $handle = EPrints->get_handle();
+	$handle = EPrints->get_repository_handle();
 	exit( 1 ) unless( defined $handle );
 
 	# bin script
-	my $handle = EPrints->get_handle( repository => $repository_id, noise => $noise );
-	exit( 1 ) unless( defined $handle );
+	$handle = EPrints->get_repository_handle_by_id( $repository_id, noise => $noise );
 
 	$eprint = $handle->get_eprint( $eprintid );
 	my $title = $eprint->get_value( 'title' );
@@ -108,31 +107,9 @@ Represents a single submission to the repository. May have 0+ documents as sub-o
 
 This object represents a set of objects of the same time, and has associated MetaFields and database tables. A dataset may represent a subset of another dataset. For example, "eprint" represents all EPrints::DataObj::EPrint objects, but the "buffer" dataset only represents those which are "under review".
 
-=item EPrints::Handle
+=item EPrints::RepositoryHandle
 
 the core of the EPrints API. This object represents a connection between the configuration for a repository, the database connection and either the CGI (web) or CLI (command line) interface.
-
-Handle has a large number of methods, which are documented in more than one file:
-
-=item EPrints::Handle::Language
-
-Handle methods for i18n.
-
-=item EPrints::Handle::Render
-
-Handle methods for generating XHTML as XML::DOM objects.
-
-=item EPrints::Handle::CGI
-
-Handle methods for working with the mod_perl connection.
-
-=item EPrints::Handle::Page
-
-Handle methods for generating and serving XHTML web pages.
-
-=item EPrints::Handle::XML
-
-Handle methods for creating XML::DOM objects.
 
 =item EPrints::List
 
@@ -345,7 +322,8 @@ END
 	sub deprecated
 	{
 		my @c = caller(1);
-		print STDERR "Called deprecated function $c[3] from $c[1] line $c[2]\n";
+
+#		print STDERR "Called deprecated function $c[3] from $c[1] line $c[2]\n";
 	}
 
 	sub try
@@ -408,7 +386,7 @@ use EPrints::Search::Field;
 use EPrints::Search::Condition;
 use EPrints::CLIProcessor;
 use EPrints::ScreenProcessor;
-use EPrints::Handle;
+use EPrints::RepositoryHandle;
 use EPrints::Script;
 use EPrints::URL;
 use EPrints::Paracite;
@@ -418,15 +396,18 @@ use EPrints::Update::Abstract;
 use EPrints::Workflow;
 use EPrints::Workflow::Stage;
 use EPrints::XML::EPC;
+use EPrints::XMLHandle;
 
 our $__loaded;
 
 ######################################################################
 =pod 
 
-=item $handle = EPrints->get_handle( %options )
+=item $handle = EPrints->get_repository_handle( %options )
 
-Return an EPrints::Handle object joining a web request or script to a
+=item $handle = EPrints->get_repository_handle_by_id( %options )
+
+Return an EPrints::RepositoryHandle object joining a web request or script to a
 database connection, and the configuration and data for a single 
 repository.
 
@@ -445,17 +426,23 @@ check_database => [0,1]: Default 1. By default a session checks the database str
 =cut
 ######################################################################
 
-sub get_handle
+sub get_repository_handle
 {
 	my( $class, %options ) = @_;
 
-	return EPrints::Handle->new( %options );
+	return EPrints::RepositoryHandle->new( %options );
+}
+sub get_repository_handle_by_id
+{
+	my( $class, $repository_id, %options ) = @_;
+
+	return EPrints::RepositoryHandle->new( repository=>$repository_id, %options );
 }
 
 ######################################################################
 =pod 
 
-=item $repository = EPrints->get_repository( $repository_id )
+=item $repository = EPrints->get_repository_config( $repository_id )
 
 Return an EPrints::Repository object representing the configuration
 of the named repository.
@@ -463,7 +450,7 @@ of the named repository.
 =cut
 ######################################################################
 
-sub get_repository
+sub get_repository_config
 {
 	my( $class, $repository_id ) = @_;
 
@@ -509,7 +496,7 @@ __END__
 
 =head1 SEE ALSO
 
-L<EPrints::Handle>
+L<EPrints::RepositoryHandle>
 
 =head1 COPYRIGHT
 

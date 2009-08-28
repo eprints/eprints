@@ -6,7 +6,7 @@
 This subroutine takes a user object and renders the XHTML view
 of this user for public viewing.
 
-Takes the L<$user|EPrints::DataObj::User> to render and the current L<$handle|EPrints::Handle>.
+Takes the L<$user|EPrints::DataObj::User> to render and the current L<$handle|EPrints::RepositoryHandle>.
 
 Returns an $xhtmlfragment (see L<EPrints::XML>).
 

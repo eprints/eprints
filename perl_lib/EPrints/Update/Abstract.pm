@@ -65,7 +65,7 @@ sub update
 	# file is newer than the abstracts page...
 	# so try and regenerate the abstracts page.
 
-	my $handle = EPrints->get_handle( consume_post_data=>0 );
+	my $handle = EPrints->get_repository_handle( consume_post_data=>0 );
 	my $eprint = $handle->get_eprint( $eprintid );
 	if( defined $eprint )
 	{

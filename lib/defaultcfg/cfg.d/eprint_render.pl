@@ -24,7 +24,7 @@ $c->{summary_page_metadata} = [qw/
 This subroutine takes an eprint object and renders the XHTML view
 of this eprint for public viewing.
 
-Takes two arguments: the L<$eprint|EPrints::DataObj::EPrint> to render and the current L<$handle|EPrints::Handle>.
+Takes two arguments: the L<$eprint|EPrints::DataObj::EPrint> to render and the current L<$handle|EPrints::RepositoryHandle>.
 
 Returns three XHTML DOM fragments (see L<EPrints::XML>): C<$page>, C<$title>, (and optionally) C<$links>.
 

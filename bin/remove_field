@@ -111,7 +111,7 @@ $|=1;
 
 my( $repositoryid, $datasetid, $fieldid ) = @ARGV;
 
-my $handle = EPrints->get_handle( repository=>$repositoryid, noise=>$noise );
+my $handle = EPrints->get_repository_handle_by_id( $repositoryid, noise=>$noise );
 exit( 1 ) unless( defined $handle );
 
 my $database = $handle->{ database };

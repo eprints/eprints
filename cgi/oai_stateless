@@ -27,7 +27,7 @@ use constant {
 
 use EPrints;
 
-my $handle = EPrints->get_handle();
+my $handle = EPrints->get_repository_handle();
 exit( 0 ) unless defined $handle;
 
 our $METADATAPREFIX_REGEXP = qr/^[A-Za-z0-9\-_\.!~\*'\(\)]+$/;

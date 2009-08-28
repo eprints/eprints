@@ -19,7 +19,7 @@ $SIG{INT} = sub { die "CAUGHT SIGINT\n" };
 EPrints::Test::mem_increase();
 
 my $handle = EPrints::Test::get_test_session( 0 );
-ok(defined $handle, 'opened an EPrints::Handle object (noisy, no_check_db)');
+ok(defined $handle, 'opened an EPrints::RepositoryHandle object (noisy, no_check_db)');
 
 $handle->cache_subjects;
 

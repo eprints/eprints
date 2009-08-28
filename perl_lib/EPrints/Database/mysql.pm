@@ -40,7 +40,7 @@ MySQL is (by default) lax about truncation.
 # INSTANCE VARIABLES:
 #
 #  $self->{handle}
-#     The EPrints::Handle which is associated with this database 
+#     The EPrints::RepositoryHandle which is associated with this database 
 #     connection.
 #
 #  $self->{debug}

@@ -17,9 +17,9 @@ EPrints::ScreenProcessor->process(
 	url => $handle->get_repository->get_conf( "base_url" ) . "/cgi/users/home"
 	);
 
-$handle->terminate;
-
 my $content = $handle->test_get_stdout();
+
+$handle->terminate;
 
 #diag($content);
 

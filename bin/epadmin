@@ -553,7 +553,7 @@ sub run_script
 {
 	my( $repoid, $script, @opts ) = @_;
 
-	my $repo = EPrints->get_repository( $repoid );
+	my $repo = EPrints->get_repository_config( $repoid );
 	my $bin = $repo->get_conf( "bin_path" );
 
 	system( "$bin/$script", @opts );
@@ -563,7 +563,7 @@ sub cleanup_cachemaps
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit unless( defined $handle );
 
 	my $c = $handle->get_database->drop_orphan_cache_tables;
@@ -1026,7 +1026,7 @@ sub create_user
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit unless( defined $handle );
 
 	my $user_info = {};
@@ -1086,7 +1086,7 @@ sub redo_thumbnails
 {
 	my( $repoid, @ids ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit( 1 ) unless( defined $handle );
 
 	my $mf = sub {
@@ -1132,7 +1132,7 @@ sub refresh_views
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit( 1 ) unless( defined $handle );
 	
 	my $file = $handle->get_repository->get_conf( "variables_path" )."/views.timestamp";
@@ -1161,7 +1161,7 @@ sub refresh_abstracts
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit( 1 ) unless( defined $handle );
 	
 	my $file = $handle->get_repository->get_conf( "variables_path" )."/abstracts.timestamp";
@@ -1189,7 +1189,7 @@ sub reload
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit( 1 ) unless( defined $handle );
 	
 	my $file = $handle->get_repository->get_conf( "variables_path" )."/last_changed.timestamp";
@@ -1214,7 +1214,7 @@ sub reload_metafields
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit( 1 ) unless( defined $handle );
 
 	my $dataset = $handle->get_repository->get_dataset( "metafield" );
@@ -1231,7 +1231,7 @@ sub create_tables
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit( 1 ) unless( defined $handle );
 
 	if( $handle->get_database->has_table( "eprint" ) )
@@ -1333,7 +1333,7 @@ sub reset_dataset
 {
 	my( $repoid, $datasetid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit( 1 ) unless( defined $handle );
 
 	my $db = $handle->get_database;
@@ -1359,7 +1359,7 @@ sub drop_tables_and_recreate_db
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise, check_database=>0 );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise, check_database=>0 );
 	exit( 1 ) unless( defined $handle );
 
 	my $db = $handle->get_database;
@@ -1411,7 +1411,7 @@ sub drop_and_recreate_db
 {
 	my( $repoid ) = @_;
 
-	my $repo = EPrints->get_repository( $repoid );
+	my $repo = EPrints->get_repository_config( $repoid );
 	my $database = $repo->get_conf( "dbname" );
 	
 	if( $noise>=1 ) { print "Connecting to mysql...\n"; }
@@ -1446,7 +1446,7 @@ sub erase_eprint_files
 
 	if( $noise>=1 ) { print "Erasing eprint files...\n"; }
 
-	my $repo = EPrints->get_repository( $repoid );
+	my $repo = EPrints->get_repository_config( $repoid );
 	my $documents_path = $repo->get_conf( "documents_path" );
 	my $htdocs_path = $repo->get_conf( "htdocs_path" );
 	
@@ -1479,7 +1479,7 @@ sub erase_fulltext_index
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit( 1 ) unless( defined $handle );
 
 	my $ds = $handle->get_repository->get_dataset( "document" );
@@ -1532,7 +1532,7 @@ sub test
 		return;
 	}
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit( 1 ) unless( defined $handle );
 	if( $noise > 1 )
 	{
@@ -1618,7 +1618,7 @@ sub rehash
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit( 1 ) unless( defined $handle );
 
 	my $docid = $ARGV[2];
@@ -1675,7 +1675,7 @@ sub recommit
 {
 	my( $repoid, $datasetid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit( 1 ) unless( defined $handle );
 
 	my $dataset = $handle->get_repository->get_dataset( $datasetid );
@@ -1724,7 +1724,7 @@ sub reorder
 {
 	my( $repoid, $datasetid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit( 1 ) unless( defined $handle );
 
 	my $dataset = $handle->get_repository->get_dataset( $datasetid );
@@ -1755,7 +1755,7 @@ sub reindex
 {
 	my( $repoid, $datasetid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit( 1 ) unless( defined $handle );
 
 	my $dataset = $handle->get_repository->get_dataset( $datasetid );
@@ -1788,7 +1788,7 @@ sub schema
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit( 1 ) unless( defined $handle );
 
 	my $mf_dataset = $handle->get_repository->get_dataset( "metafield" );
@@ -1821,7 +1821,7 @@ sub upgrade
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise, check_database=>0 );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise, check_database=>0 );
 	exit( 1 ) unless( defined $handle );
 	my $db = $handle->get_database();
 	my $dbversion = $db->get_version();
@@ -2136,7 +2136,7 @@ sub upgrade_3_0_6_to_3_0_7
 {
 	my( $repoid, $db ) = @_;
 
-	my $repo = EPrints->get_repository( $repoid );
+	my $repo = EPrints->get_repository_config( $repoid );
 	foreach my $datasetid ( qw/
 			access document eprint history
 			request saved_search subject user /)
@@ -2151,7 +2151,7 @@ sub upgrade_3_0_7_to_3_1_0
 {
 	my( $repoid, $db ) = @_;
 
-	my $repo = EPrints->get_repository( $repoid );
+	my $repo = EPrints->get_repository_config( $repoid );
 
 	# Expand id primary keys to id-pos on multiple fields
 	foreach my $datasetid ( qw/
@@ -2216,7 +2216,7 @@ sub update_database_structure
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 	exit( 1 ) unless( defined $handle );
 	my $db = $handle->get_database();
 	
@@ -2232,7 +2232,7 @@ sub upgrade_3_1_0_to_3_1_1
 {
 	my( $repoid, $db ) = @_;
 
-	my $repo = EPrints->get_repository( $repoid );
+	my $repo = EPrints->get_repository_config( $repoid );
 
 	update_datasets( $repo, $db );
 }
@@ -2241,7 +2241,7 @@ sub upgrade_3_1_1_to_3_1_2
 {
 	my( $repoid, $db ) = @_;
 
-	my $repo = EPrints->get_repository( $repoid );
+	my $repo = EPrints->get_repository_config( $repoid );
 
 	update_datasets( $repo, $db );
 	update_counters( $repo, $db );
@@ -2285,7 +2285,7 @@ sub upgrade_3_1_2_to_3_2_0
 {
 	my( $repoid, $db ) = @_;
 
-	my $repo = EPrints->get_repository( $repoid );
+	my $repo = EPrints->get_repository_config( $repoid );
 
 	# We can do this now, because we only ever add columns
 	update_datasets( $repo, $db );
@@ -2301,7 +2301,7 @@ sub upgrade_mysql_charset
 {
 	my( $repoid, $db ) = @_;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>0, check_database=>0 );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>0, check_database=>0 );
 	EPrints::abort "Error getting session" unless $handle;
 	my $repo = $handle->get_repository;
 

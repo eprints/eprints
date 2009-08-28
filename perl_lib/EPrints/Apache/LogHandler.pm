@@ -129,7 +129,7 @@ sub handler
 		$access->{referring_entity_id} = '';
 	}
 
-	my $handle = EPrints->get_handle( consume_post_data=>0 );
+	my $handle = EPrints->get_repository_handle( consume_post_data=>0 );
 	$handle->get_repository->get_dataset( "access" )->create_object(
 			$handle,
 			$access

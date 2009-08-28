@@ -59,7 +59,7 @@ sub handler
 	{
 		return DECLINED;
 	}
-	my $repository = EPrints->get_repository( $repository_id );
+	my $repository = EPrints->get_repository_config( $repository_id );
 	$repository->check_secure_dirs( $r );
 	my $esec = $r->dir_config( "EPrints_Secure" );
 	my $secure = (defined $esec && $esec eq "yes" );
@@ -78,7 +78,7 @@ sub handler
 
 	my $uri = $r->uri;
 
-	my $lang = EPrints::Handle::get_language( $repository, $r );
+	my $lang = EPrints::RepositoryHandle::get_language( $repository, $r );
 	my $args = $r->args;
 	if( defined $args && $args ne "" ) { $args = '?'.$args; }
 
@@ -109,7 +109,7 @@ sub handler
 
 		my $dataset = $repository->get_dataset( $datasetid );
 		my $item;
-		my $handle = EPrints->get_handle( consume_post_data=>0 );
+		my $handle = EPrints->get_repository_handle( consume_post_data=>0 );
 		if( defined $dataset )
 		{
 			$item = $dataset->get_object( $handle, $id );
@@ -190,7 +190,7 @@ sub handler
 	}
 	$r->filename( $repository->get_conf( "htdocs_path" )."/".$lang.$localpath );
 
-	my $handle = EPrints->get_handle( consume_post_data=>0 );
+	my $handle = EPrints->get_repository_handle( consume_post_data=>0 );
 	$handle->{preparing_static_page} = 1; 
 	if( $uri =~ m! ^/view(.*) !x )
 	{

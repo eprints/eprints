@@ -55,7 +55,7 @@ dataset. Usually this is the results of a search.
 # INSTANCE VARIABLES:
 #
 #  $self->{handle}
-#     The current EPrints::Handle
+#     The current EPrints::RepositoryHandle
 #
 #  $self->{dataset}
 #     The EPrints::Dataset to which this list belongs.
@@ -78,7 +78,7 @@ dataset. Usually this is the results of a search.
 #
 #  $self->{keep_cache}
 #     If this is true then the cache will not be automatically tidied
-#     when the EPrints::Handle terminates.
+#     when the EPrints::RepositoryHandle terminates.
 #
 #  $self->{desc} 
 #     Contains an XHTML description of what this is the iist of.

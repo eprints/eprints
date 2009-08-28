@@ -28,7 +28,7 @@ GetOptions(
 my( $repoid ) = @ARGV;
 
 my $noise = 1;
-my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 exit unless $handle;
 
 POE::Session->create(

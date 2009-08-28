@@ -4,7 +4,7 @@ use EPrints;
 
 use strict;
 
-my $handle = EPrints->get_handle();
+my $handle = EPrints->get_repository_handle();
 exit( 1 ) unless( defined $handle );
 
 my $url = "http://www.google.com/search?q=".$handle->param( "q" );

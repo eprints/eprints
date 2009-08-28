@@ -233,7 +233,7 @@ sub get_session { EPrints::deprecated(); return $_[0]->get_handle; }
 
 package EPrints::Session;
 
-our @ISA = qw/ EPrints::Handle /;
+our @ISA = qw/ EPrints::RepositoryHandle /;
 
 sub new 
 { 
@@ -247,23 +247,56 @@ sub new
 	if( $nocheckdb ) { $opts{check_database} = 0; }
 	if( $class == 2 ) { $opts{consume_post_data} = 0; }
 
-	return EPrints::Handle->new( %opts );
+	return EPrints::RepositoryHandle->new( %opts );
 }
 
 ######################################################################
 
-package EPrints::Handle;
+package EPrints::RepositoryHandle;
 
 sub get_archive { EPrints::deprecated(); return $_[0]->get_repository; }
 sub get_session_language { EPrints::deprecated(); return $_[0]->get_language; }
 sub get_db { EPrints::deprecated(); return $_[0]->get_database; }
-# move to compat module?
 sub build_page
 {
 	my( $self, $title, $mainbit, $page_id, $links, $template ) = @_;
   EPrints::deprecated();
 	$self->prepare_page( { title=>$title, page=>$mainbit, pagetop=>undef,head=>$links}, page_id=>$page_id, template=>$template );
 }
+sub make_element { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->make_element( @_ ); }
+sub make_indent { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->make_indent( @_ ); }
+sub make_comment { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->make_comment( @_ ); }
+sub make_text { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->make_text( @_ ); }
+sub make_javascript { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->make_javascript( @_ ); }
+sub make_doc_fragment { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->make_doc_fragment( @_ ); }
+sub clone_for_me { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->clone( @_ ); }
+sub render_ruler { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_ruler( @_ ); }
+sub render_nbsp { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_nbsp( @_ ); }
+sub render_data_element { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_data_element( @_ ); }
+sub render_link { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_link( @_ ); }
+sub render_row { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_row( @_ ); }
+sub render_row_with_help { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_row_with_help( @_ ); }
+sub render_toolbar { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_toolbar( @_ ); }
+sub render_language_name { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_language_name( @_ ); }
+sub render_type_name { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_type_name( @_ ); }
+sub get_type_name { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->get_type_name( @_ ); }
+sub render_name { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_name( @_ ); }
+sub render_option_list { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_option_list( @_ ); }
+sub render_single_option { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_single_option( @_ ); }
+sub render_hidden_field { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_hidden_field( @_ ); }
+sub render_input_field { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_input_field( @_ ); }
+sub render_noenter_input_field { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_noenter_input_field( @_ ); }
+sub render_upload_field { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_upload_field( @_ ); }
+sub render_action_buttons { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_action_buttons( @_ ); }
+sub render_internal_buttons { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_internal_buttons( @_ ); }
+sub render_button { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_button( @_ ); }
+sub render_form { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_form( @_ ); }
+sub render_subjects { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_subjects( @_ ); }
+sub render_error { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_error( @_ ); }
+sub render_input_form { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_input_form( @_ ); }
+sub render_toolbox { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_toolbox( @_ ); }
+sub render_message { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_message( @_ ); }
+sub render_tabs { EPrints::deprecated(); my $self=shift @_; return $self->{xml}->render_tabs( @_ ); }
 
 ######################################################################
 
@@ -395,7 +428,7 @@ sub load_workflows
 
 	return if $self->{workflows_loaded};
 
-	my $mini_session = EPrints::Handle->new( repository=>$self->{repository}->get_id );
+	my $mini_session = EPrints::RepositoryHandle->new( repository=>$self->{repository}->get_id );
 	foreach my $typeid ( @{$self->{type_order}} )
 	{
 		my $tdata = {};
@@ -472,3 +505,4 @@ sub display_name
 
 
 1;
+

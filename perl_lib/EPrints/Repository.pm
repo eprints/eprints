@@ -24,7 +24,7 @@ B<EPrints::Repository> - A single eprint repository
 	$repository = $handle->get_repository;
 
 	# without a $handle available
-	$repository = EPrints->get_repository( $id );
+	$repository = EPrints->get_repository_config( $id );
 
 	$id = $repository->get_id;
 	$dataset = $repository->get_dataset( $setname );
@@ -111,7 +111,7 @@ my %ARCHIVE_CACHE = ();
 # files, and if it can't start you have a catch 22 situtation).
 # 
 # This constructor should only be used if you don't want to create a 
-# EPrints::Handle for some reason.
+# EPrints::RepositoryHandle for some reason.
 # 
 # In a CGI context, creating a handle will link it to an existing 
 # EPrints::Repository object, whereas calling this constructor will 
@@ -216,7 +216,7 @@ sub new_from_request
 		
 	my $repoid = $request->dir_config( "EPrints_ArchiveID" );
 
-	my $repository = EPrints->get_repository( $repoid );
+	my $repository = EPrints->get_repository_config( $repoid );
 
 	if( !defined $repository )
 	{

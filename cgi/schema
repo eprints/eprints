@@ -2,7 +2,7 @@
 
 use EPrints;
 
-my $handle = EPrints->get_handle();
+my $handle = EPrints->get_repository_handle();
 exit( 0 ) unless( defined $handle );
 
 print_xsd( $handle );

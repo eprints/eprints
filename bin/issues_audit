@@ -111,7 +111,7 @@ $noise = 1+$verbose if( $verbose );
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;
 
-my $handle = EPrints->get_handle( repository=>$ARGV[0], noise=>$noise );
+my $handle = EPrints->get_repository_handle_by_id( $ARGV[0], noise=>$noise );
 exit( 1 ) unless( defined $handle );
 
 

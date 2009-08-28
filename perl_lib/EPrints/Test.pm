@@ -59,7 +59,7 @@ sub get_test_repository
 {
 	my $repoid = get_test_id();
 
-	my $repository = EPrints->get_repository( $repoid );
+	my $repository = EPrints->get_repository_config( $repoid );
 
 	return $repository;
 }
@@ -78,7 +78,7 @@ sub get_test_session
 
 	$noise ||= 0;
 
-	my $handle = EPrints->get_handle( repository=>$repoid, noise=>$noise );
+	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
 
 	return $handle;
 }

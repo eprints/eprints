@@ -5,7 +5,7 @@ BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
 
 my $handle = EPrints::Test::get_test_session( 0 );
-ok(defined $handle, 'opened an EPrints::Handle object');
+ok(defined $handle, 'opened an EPrints::RepositoryHandle object');
 
 my $database = $handle->get_database();
 ok( defined $database, "database defined" );

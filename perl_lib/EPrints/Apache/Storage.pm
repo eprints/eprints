@@ -13,7 +13,7 @@ sub handler
 
 	my $rc = OK;
 
-	my $handle = EPrints->get_handle();
+	my $handle = EPrints->get_repository_handle();
 
 	my $datasetid = $r->pnotes( "datasetid" );
 	my $dataset = $handle->get_repository->get_dataset( $datasetid );

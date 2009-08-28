@@ -287,7 +287,7 @@ sub get_all_sessions
 	{
 		my $repository = EPrints->get_repository( $arc_id );
 		next unless $repository->get_conf( "index" );
-		my $handle = EPrints->get_handle( $arc_id );
+		my $handle = EPrints->get_repository_handle_by_id( $arc_id );
 		if( !defined $handle )
 		{
 			$self->log( 0, "!! Could not open session for $arc_id" );

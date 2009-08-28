@@ -878,7 +878,7 @@ sub most_local
 {
 	my( $self, $handle, $value ) = @_;
 
-	my $bestvalue =  EPrints::Handle::best_language( 
+	my $bestvalue =  EPrints::RepositoryHandle::best_language( 
 		$handle->get_repository, $handle->get_langid(), %{$value} );
 	return $bestvalue;
 }

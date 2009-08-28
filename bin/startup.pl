@@ -64,7 +64,7 @@ sub load_archives
 {
 	foreach( EPrints::Config::get_repository_ids() )
 	{
-		EPrints->get_repository( $_ );
+		EPrints->get_repository_config( $_ );
 	}
 }
 
