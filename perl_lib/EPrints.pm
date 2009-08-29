@@ -319,11 +319,18 @@ END
 		exit( 1 );
 	}
 
+	# tag is a string identifying the set of deprecated methods
+	# to which this method belongs, so you can filter some.
 	sub deprecated
 	{
+		my( $tag ) = @_;
+
 		my @c = caller(1);
 
-#		print STDERR "Called deprecated function $c[3] from $c[1] line $c[2]\n";
+		# should check system settings. cjg.
+		return if( $tag eq "xml" );
+
+		print STDERR "Called deprecated function $c[3] from $c[1] line $c[2]\n";
 	}
 
 	sub try

@@ -8398,3 +8398,7 @@ EPRINTS-3.1-beta-2
     EPrints::XMLHandle
  * Changed the EPrints->get_handle method to get_repository_handle( %opts ) 
     and get_repository_handle_by_id( $repo_id, %opts )
+
+2009-08-29 cjg
+ * Tweaked deprecated messages to give the xml methods an "xml" tag, so
+    that these can be supressed. They are just annoying.
