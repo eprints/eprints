@@ -352,6 +352,14 @@ sub has_column
 	return $rc;
 }
 
+# Oracle doesn't support getting the "current" value of a sequence
+sub counter_current
+{
+	my( $self, $counter ) = @_;
+
+	return undef;
+}
+
 1; # For use/require success
 
 ######################################################################

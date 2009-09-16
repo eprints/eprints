@@ -8365,3 +8365,8 @@ EPRINTS-3.1-beta-2
 
 2009-08-17 cjg
  * Added $session->get_conf() to improve readability of code.
+
+2009-09-16 tdb
+ * Fixed current_counter not being available to Oracle
+ * Fixed erroneous attempt to set increment=0 in counter_minimum
+

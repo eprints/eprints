@@ -1912,12 +1912,16 @@ sub counter_minimum
 	# If .next() hasn't been called .current() will be undefined/0
 	if( !$curval )
 	{
-		$self->counter_next( $counter );
+		$curval = $self->counter_next( $counter );
 	}
 
 	if( $curval < $value )
 	{
-		$self->do("ALTER SEQUENCE ".$self->quote_identifier($counter_seq)." INCREMENT BY ".($value-$curval-1));
+		# Oracle/Postgres will complain if we try to set a zero-increment
+		if( ($value-$curval-1) != 0 )
+		{
+			$self->do("ALTER SEQUENCE ".$self->quote_identifier($counter_seq)." INCREMENT BY ".($value-$curval-1));
+		}
 		$curval = $self->counter_next( $counter );
 		$self->do("ALTER SEQUENCE ".$self->quote_identifier($counter_seq)." INCREMENT BY 1");
 	}
