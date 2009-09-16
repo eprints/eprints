@@ -135,20 +135,6 @@ task. (example is unpacking a .tar.gz file).
  
 sub exec { return &{$real_module."::exec"}( @_ ); }
 
-######################################################################
-=pod
-
-=item $path = EPrints::Platform::join_path(@PARTS)
-
-Join a path together in an OS-safe manner. Currently this just joins using '/'.
-If EPrints is adapted to work under WinOS it will need to use '\' to join paths
-together.
-
-=cut
-######################################################################
-
-sub join_path{	return &{$real_module."::join_path"}(@_); }
-
 #####################################################################
 
 =item $rc = read_perl_script( $repository, $filename, @args )

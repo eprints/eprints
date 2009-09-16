@@ -169,7 +169,7 @@ binmode(STDERR, ":utf8");
 
 	$self = bless $self, $class;
 
-	Carp::croak "Requires session argument" unless $self->{handle};
+	Carp::croak "Requires session argument" unless $self->{session};
 
 	$self->{root_path} ||= "";
 	$self->{cwd} = [];
@@ -350,17 +350,17 @@ sub _vfs_create
 {
 	my( $self, $type, $path, $tgt ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $vfs = EPrints::DataObj::VFS->create_from_data(
-		$handle,
+		$session,
 		{
 			path => $path,
 			userid => $self->{current_user}->get_id,
 			type => "directory",
 			target => $tgt,
 		},
-		$handle->get_repository->get_dataset( "vfs" )
+		$session->get_repository->get_dataset( "vfs" )
 		);
 
 	return $vfs;
@@ -380,8 +380,8 @@ sub _vfs_match
 		my $path = $self->_join_path( @parts[0..$i] );
 
 		my $searchexp = EPrints::Search->new(
-			handle => $self->{handle},
-			dataset => $self->{handle}->get_repository->get_dataset( "vfs" ),
+			session => $self->{session},
+			dataset => $self->{session}->get_repository->get_dataset( "vfs" ),
 			filters => [
 				{ meta_fields => [qw( userid )], match => "EX", value => $self->{current_user}->get_id, describe => 0 },
 				{ meta_fields => [qw( path )], match => "EX", value => $path, describe => 0 },
@@ -417,8 +417,8 @@ sub _vfs_list
 	$path = $self->_resolve_path( $path );
 
 	my $searchexp = EPrints::Search->new(
-		handle => $self->{handle},
-		dataset => $self->{handle}->get_repository->get_dataset( "vfs" ),
+		session => $self->{session},
+		dataset => $self->{session}->get_repository->get_dataset( "vfs" ),
 		filters => [
 			{ meta_fields => [qw( userid )], match => "EX", value => $self->{current_user}->get_id, describe => 0 },
 		]
@@ -475,12 +475,12 @@ sub login
 {
 	my( $self, $username, $password, $become ) = @_;
 
-	if( !$self->{handle}->valid_login( $username, $password ) )
+	if( !$self->{session}->valid_login( $username, $password ) )
 	{
 		return 0;
 	}
 
-	my $user = $self->{handle}->get_user_with_username( $username );
+	my $user = EPrints::DataObj::User::user_with_username( $self->{session}, $username );
 
 	$self->register_user( $user );
 
@@ -1115,19 +1115,19 @@ sub virtual_delete
 print STDERR "VIRTUAL_DELETE($path)\n";
 
 	my $user = $self->{current_user} or return 0;
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	$path = $self->_resolve_path( $path );
 
 	my $vfs = EPrints::DataObj::VFS->create_from_data(
-		$handle,
+		$session,
 		{
 			path => $path,
 			userid => $user->get_id,
 			type => "deletion",
 			target => $path,
 		},
-		$handle->get_repository->get_dataset( "vfs" )
+		$session->get_repository->get_dataset( "vfs" )
 		);
 
 	return 1;
@@ -1139,10 +1139,10 @@ sub list_inbox_eprints
 
 	my $user = $self->{current_user} or return ();
 
-	my $dataset = $self->{handle}->get_repository->get_dataset( "inbox" );
+	my $dataset = $self->{session}->get_repository->get_dataset( "inbox" );
 
 	my $searchexp = EPrints::Search->new(
-		handle => $self->{handle},
+		session => $self->{session},
 		dataset => $dataset,
 		filters => [
 			{ meta_fields => [qw( userid )], match => "EX", value => $user->get_id, }
@@ -1186,7 +1186,7 @@ sub list_eprint_exports
 	my( $self, $args, $f ) = @_;
 
 	my $user = $self->{current_user} or return ();
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $eprint = $self->retrieve_eprint( $args );
 	return () unless $eprint;
@@ -1195,7 +1195,7 @@ sub list_eprint_exports
 
 	my $fn = "eprint";
 
-	my @plugins = $handle->plugin_list(
+	my @plugins = $session->plugin_list(
 		type => "Export",
 		can_accept => "dataobj/eprint",
 		is_visible => "all"
@@ -1205,7 +1205,7 @@ sub list_eprint_exports
 
 	foreach my $name (@plugins)
 	{
-		my $plugin = $handle->plugin( $name );
+		my $plugin = $session->plugin( $name );
 		$name =~ s/^Export:://;
 		if( length($path) )
 		{
@@ -1246,14 +1246,14 @@ sub eprint_export_size
 	my( $self, $args ) = @_;
 
 	my $user = $self->{current_user} or return ();
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $eprint = $self->retrieve_eprint( $args );
 	return undef unless $eprint;
 	my $path = $args->[1];
 	$path =~ s#/#::#g; # Foo/Bar => Foo::Bar
 
-	my $plugin = $handle->plugin( "Export::" . $path );
+	my $plugin = $session->plugin( "Export::" . $path );
 	return undef unless $plugin;
 
 	my $tmpfile = File::Temp->new;
@@ -1269,14 +1269,14 @@ sub eprint_export_mime_type
 	my( $self, $args ) = @_;
 
 	my $user = $self->{current_user} or return ();
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $eprint = $self->retrieve_eprint( $args );
 	return undef unless $eprint;
 	my $path = $args->[1];
 	$path =~ s#/#::#g; # Foo/Bar => Foo::Bar
 
-	my $plugin = $handle->plugin( "Export::" . $path );
+	my $plugin = $session->plugin( "Export::" . $path );
 	return undef unless $plugin;
 
 	return $plugin->param( "mimetype" );
@@ -1287,14 +1287,14 @@ sub open_eprint_export
 	my( $self, $args ) = @_;
 
 	my $user = $self->{current_user} or return ();
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $eprint = $self->retrieve_eprint( $args );
 	return undef unless $eprint;
 	my $path = $args->[1];
 	$path =~ s#/#::#g; # Foo/Bar => Foo::Bar
 
-	my $plugin = $handle->plugin( "Export::" . $path );
+	my $plugin = $session->plugin( "Export::" . $path );
 	return undef unless $plugin;
 
 	my $tmpfile = File::Temp->new;
@@ -1309,30 +1309,30 @@ sub make_eprint
 {
 	my( $self, $args, $path ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 	my $user = $self->{current_user};
 
 	my $title = $args->[0];
 
 	my $eprint = EPrints::DataObj::EPrint->create_from_data(
-		$handle,
+		$session,
 		{
 			userid => $user->get_id,
 			eprint_status => "inbox",
 			title => $title,
 		},
-		$handle->get_repository->get_dataset( "inbox" )
+		$session->get_repository->get_dataset( "inbox" )
 		);
 
 	my $vfs = EPrints::DataObj::VFS->create_from_data(
-		$handle,
+		$session,
 		{
 			path => $path,
 			userid => $user->get_id,
 			type => "directory",
 			target => "/inbox/" . $eprint->get_id,
 		},
-		$handle->get_repository->get_dataset( "vfs" )
+		$session->get_repository->get_dataset( "vfs" )
 		);
 
 	return 1;
@@ -1344,9 +1344,9 @@ sub retrieve_eprint
 
 	my( $eprintid ) = @$args;
 
-	my $dataset = $self->{handle}->get_repository->get_dataset( "eprint" );
+	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
 	
-	my $eprint = $dataset->get_object( $self->{handle}, $eprintid );
+	my $eprint = $dataset->get_object( $self->{session}, $eprintid );
 	return unless defined $eprint;
 
 	return $eprint;
@@ -1504,32 +1504,32 @@ sub make_document
 	my( $self, $args, $path ) = @_;
 
 	my $eprint = $self->retrieve_eprint( $args ) or return ();
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $title = $args->[1];
 
 	my $doc = EPrints::DataObj::Document->create_from_data(
-		$handle,
+		$session,
 		{
 			eprintid => $eprint->get_id,
 			format => "other",
 			formatdesc => $title,
 		},
-		$handle->get_repository->get_dataset( "document" )
+		$session->get_repository->get_dataset( "document" )
 		);
 
 	my $tgt = $path;
 	$tgt =~ s# [^/]+$ # $doc->get_value( "pos" ) #xe;
 
 	my $vfs = EPrints::DataObj::VFS->create_from_data(
-		$handle,
+		$session,
 		{
 			path => $path,
 			userid => $self->{current_user}->get_id,
 			type => "directory",
 			target => $tgt,
 		},
-		$handle->get_repository->get_dataset( "vfs" )
+		$session->get_repository->get_dataset( "vfs" )
 		);
 
 	return 1;
@@ -1543,7 +1543,7 @@ sub retrieve_document
 	($eprintid) = split / /, $eprintid, 2;
 
 	my $doc = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
-		$self->{handle},
+		$self->{session},
 		$eprintid,
 		$position,
 		);
@@ -1604,16 +1604,16 @@ sub open_write_eprint
 
 	my $filename = $args->[0];
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 	my $user = $self->{current_user};
 
 	my $eprint = EPrints::DataObj::EPrint->create_from_data(
-		$handle,
+		$session,
 		{ 
 			userid => $user->get_id,
 			eprint_status => "inbox",
 		},
-		$handle->get_repository->get_dataset( "eprint" )
+		$session->get_repository->get_dataset( "eprint" )
 		);
 
 	@$args = ( $eprint->get_id, $args->[0] );
@@ -1637,20 +1637,20 @@ sub open_write_document
 	my $eprint = $self->retrieve_eprint( $args ) or return;
 	my $filename = $args->[1];
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $format = $handle->get_repository->call( "guess_doc_type",
-				$handle,
+	my $format = $session->get_repository->call( "guess_doc_type",
+				$session,
 				$filename,
 				);
 
 	my $doc = EPrints::DataObj::Document->create_from_data(
-		$handle,
+		$session,
 		{
 			eprintid => $eprint->get_id,
 			format => $format,
 		},
-		$handle->get_repository->get_dataset( "document" )
+		$session->get_repository->get_dataset( "document" )
 		);
 
 
@@ -1733,15 +1733,15 @@ sub register_browse_views
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $ds = $handle->get_repository->get_dataset( "archive" );
+	my $ds = $session->get_repository->get_dataset( "archive" );
 
 	my @views;
 
-	foreach my $view ( @{$handle->get_repository->get_conf( "browse_views" )} )
+	foreach my $view ( @{$session->get_repository->get_conf( "browse_views" )} )
 	{
-		my $name = $handle->get_view_name( $ds, $view->{id} );
+		my $name = $session->get_view_name( $ds, $view->{id} );
 		$name = quotemeta( _escape_filename( $name ) );
 		my @fields = EPrints::Update::Views::get_fields_from_config( $ds, $view->{fields} );
 		my $value_count = scalar @fields;
@@ -1818,15 +1818,15 @@ sub list_browse_views
 {
 	my( $self, $args, $f ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my @dirs;
 
-	my $ds = $handle->get_repository->get_dataset( "archive" );
+	my $ds = $session->get_repository->get_dataset( "archive" );
 
-	foreach my $view ( @{$handle->get_repository->get_conf( "browse_views" )} )
+	foreach my $view ( @{$session->get_repository->get_conf( "browse_views" )} )
 	{
-		my $name = $handle->get_view_name( $ds, $view->{id} );
+		my $name = $session->get_view_name( $ds, $view->{id} );
 		$name = _escape_filename( $name );
 		push @dirs, $name => &$f(
 			$name,
@@ -1848,13 +1848,13 @@ sub retrieve_browse_view
 	my( $view_name ) = @$args;
 	$view_name = _unescape_filename( $view_name );
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $ds = $handle->get_repository->get_dataset( "archive" );
+	my $ds = $session->get_repository->get_dataset( "archive" );
 
-	foreach my $view ( @{$handle->get_repository->get_conf( "browse_views" )} )
+	foreach my $view ( @{$session->get_repository->get_conf( "browse_views" )} )
 	{
-		my $name = $handle->get_view_name( $ds, $view->{id} );
+		my $name = $session->get_view_name( $ds, $view->{id} );
 		return $view if $name eq $view_name;
 	}
 
@@ -1888,18 +1888,18 @@ sub list_browse_view_menu
 	my $view = $self->retrieve_browse_view( $args );
 	return () unless defined $view;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $ds = $handle->get_repository->get_dataset( "archive" );
+	my $ds = $session->get_repository->get_dataset( "archive" );
 
 	my @fields = EPrints::Update::Views::get_fields_from_config( $ds, $view->{fields} );
 	my @view_values = $self->retrieve_browse_view_values( $args, \@fields );
-	my $filters = EPrints::Update::Views::get_filters( $handle, $view, \@view_values );
+	my $filters = EPrints::Update::Views::get_filters( $session, $view, \@view_values );
 
 	my $menu_level = scalar @view_values;
 	my @menu_fields = @{$fields[$menu_level]};
 
-	my $key_values = EPrints::Update::Views::get_fieldlist_values( $handle, $ds, \@menu_fields );
+	my $key_values = EPrints::Update::Views::get_fieldlist_values( $session, $ds, \@menu_fields );
 
 	my @dirs;
 
@@ -1926,15 +1926,15 @@ sub list_browse_view_contents
 	my $view = $self->retrieve_browse_view( $args );
 	return () unless defined $view;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $ds = $handle->get_repository->get_dataset( "archive" );
+	my $ds = $session->get_repository->get_dataset( "archive" );
 
 	my @fields = EPrints::Update::Views::get_fields_from_config( $ds, $view->{fields} );
 	my @view_values = $self->retrieve_browse_view_values( $args, \@fields );
 
 	my $searchexp = EPrints::Search->new(
-		handle => $handle,
+		session => $session,
 		dataset => $ds,
 		satisfy_all => 1,
 		filters => [

@@ -136,7 +136,7 @@ sub item_matches
 
 sub process
 {
-	my( $self, $handle, $i, $filter ) = @_;
+	my( $self, $session, $i, $filter ) = @_;
 
 	EPrints::abort( "process called on abstract Control condition.");
 }

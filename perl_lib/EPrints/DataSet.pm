@@ -22,22 +22,10 @@ the same metadata.
 
 =head1 SYNOPSIS
 
-	my $ds = $handle->get_dataset( "inbox" );
-	my $ds = $repository->get_dataset( "inbox" );
+	my $dataset = $repository->get_dataset( "inbox" );
 
-	$confid = $ds->confid; # eprint
-	$id = $ds->id;         # inbox
-
-	$metafield = $ds->get_field( $fieldname );
-	$metafield = $ds->get_key_field;
-	$bool = $ds->has_field( $fieldname );
-	@metafields = $ds->get_fields;
-
-	$n = $ds->count( $handle );
-	$ds->map( $handle, $fn, $info );
-	@ids = $dataset->get_item_ids( $handle );
-
-	$obj = $ds->create_object( $handle, $data );
+	print sprintf("There are %d records in the inbox\n",
+		$dataset->count);
 
 =head1 DESCRIPTION
 
@@ -75,6 +63,12 @@ EPrints::DataSet objects are cached by the related EPrints::Repository
 object and usually obtained by calling.
 
 $ds = $repository->get_dataset( "inbox" );
+
+=head1 METHODS
+
+=head2 Class Methods
+
+=over 4
 
 =cut
 
@@ -262,52 +256,70 @@ my $INFO = {
 };
 
 ######################################################################
-# $ds = EPrints::DataSet->new( %properties )
-#
-# Creates and returns a new dataset based on %properties.
-# 
-# Requires at least B<repository> and B<name> properties.
-# 
-# Available properties:
-# 
-# repository OBJ
-#   Reference to the repository object.
-#
-# name STRING
-#   Name of the dataset.
-#
-# confid STRING
-#   Name of the dataset this dataset is a subset of (e.g. 'archive' is a 
-#   subset of 'eprint'). If defined requires dataset_id_field.
-#
-# dataset_id_field
-#   Name of the text field that contains the subset dataset id.
-#
-# sql_name STRING
-#   Name of the primary database table.
-#
-# virtual BOOL
-#   Set to 1 if this dataset doesn't require it's own database tables.
-#
-# type STRING
-#   Type of data object the dataset contains e.g. for L<EPrints::DataObj::EPrint>
-#   specify "EPrint".
-#
-# class STRING
-#   Explicit class to use for data objects. To use the default object specify L<EPrints::DataObj>.
-#
-# filters ARRAYREF
-#   Filters to apply to this dataset before searching (see L<EPrints::Search>).
-#
-# datestamp STRING
-#   The field name that contains a datestamp to order this dataset by.
-#
-# index BOOL
-#   Whether this dataset should be indexed.
-#
-# import BOOL
-#   Whether you can import into this dataset.
-#
+=pod
+
+=item $ds = EPrints::DataSet->new( %properties )
+
+Creates and returns a new dataset based on %properties.
+
+Requires at least B<repository> and B<name> properties.
+
+Available properties:
+
+=over 4
+
+=item repository OBJ
+
+Reference to the repository object.
+
+=item name STRING
+
+Name of the dataset.
+
+=item confid STRING
+
+Name of the dataset this dataset is a subset of (e.g. 'archive' is a subset of 'eprint'). If defined requires dataset_id_field.
+
+=item dataset_id_field
+
+Name of the text field that contains the subset dataset id.
+
+=item sql_name STRING
+
+Name of the primary database table.
+
+=item virtual BOOL
+
+Set to 1 if this dataset doesn't require it's own database tables.
+
+=item type STRING
+
+Type of data object the dataset contains e.g. for L<EPrints::DataObj::EPrint>
+specify "EPrint".
+
+=item class STRING
+
+Explicit class to use for data objects. To use the default object specify L<EPrints::DataObj>.
+
+=item filters ARRAYREF
+
+Filters to apply to this dataset before searching (see L<EPrints::Search>).
+
+=item datestamp STRING
+
+The field name that contains a datestamp to order this dataset by.
+
+=item index BOOL
+
+Whether this dataset should be indexed.
+
+=item import BOOL
+
+Whether you can import into this dataset.
+
+=back
+
+=cut
 ######################################################################
 
 sub new
@@ -392,23 +404,31 @@ sub new
 	return $self;
 }
 
-######################################################################
-# $info = EPrints::DataSet::get_system_dataset_info()
-# 
-# Returns a hash reference of core system datasets.
-######################################################################
+=item $info = EPrints::DataSet::get_system_dataset_info()
+
+Returns a hash reference of core system datasets.
+
+=cut
 
 sub get_system_dataset_info
 {
 	return $INFO;
 }
 
-######################################################################
-# $field = $ds->process_field( $data [, $system ] )
-#
-# Creates a new field in this dataset based on $data. 
-# If $system is true defines the new field as a "core" field.
-######################################################################
+=back
+
+=head2 Object Methods
+
+=over 4
+
+=cut
+
+=item $field = $ds->process_field( $data [, $system ] )
+
+Creates a new field in this dataset based on $data. If $system is true defines
+the new field as a "core" field.
+
+=cut
 
 sub process_field
 {
@@ -435,11 +455,11 @@ sub process_field
 	return $field;
 }
 
-######################################################################
-# $ds->register_field( $field [, $system ] )
-#
-# Register a new field with this dataset.
-######################################################################
+=item $ds->register_field( $field [, $system ] )
+
+Register a new field with this dataset.
+
+=cut
 
 sub register_field
 {
@@ -453,11 +473,11 @@ sub register_field
 	}
 }
 
-######################################################################
-# $ds->unregister_field( $field )
-#
-# Unregister a field from this dataset.
-######################################################################
+=item $ds->unregister_field( $field )
+
+Unregister a field from this dataset.
+
+=cut
 
 sub unregister_field
 {
@@ -472,10 +492,6 @@ sub unregister_field
 
 ######################################################################
 =pod
-
-=head1 METHODS
-
-=over 4
 
 =item $metafield = $ds->get_field( $fieldname )
 
@@ -548,10 +564,15 @@ sub has_field
 }
 
 ######################################################################
-# $ordertype = $ds->default_order
-#
-# Return the id string of the default order for this dataset. 
-# For example "bytitle" for eprints.
+=pod
+
+=item $ordertype = $ds->default_order
+
+Return the id string of the default order for this dataset. 
+
+For example "bytitle" for eprints.
+
+=cut
 ######################################################################
 
 sub default_order
@@ -560,6 +581,14 @@ sub default_order
 
 	return $self->{default_order};
 }
+
+#
+# string confid()
+#
+#  returns the id string to be used to identify this dataset in the 
+#  config and phrases ( in a nutshell "Archive", "Buffer" and "Inbox"
+#  all return "eprint" because they all (must) have identical structure.
+
 
 ######################################################################
 =pod
@@ -580,13 +609,13 @@ sub confid
 	return $self->{confid};
 }
 
+
 ######################################################################
 =pod
 
 =item $id = $ds->id
 
-Return the id of this dataset. Unlike confid the buffer dataset will 
-return "buffer". 
+Return the id of this dataset.
 
 =cut
 ######################################################################
@@ -597,10 +626,11 @@ sub id
 	return $self->{id};
 }
 
+
 ######################################################################
 =pod
 
-=item $n = $ds->count( $handle )
+=item $n = $ds->count( $session )
 
 Return the number of records in this dataset.
 
@@ -609,28 +639,33 @@ Return the number of records in this dataset.
 
 sub count
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
 	if( defined $self->get_filters )
 	{
 		my $searchexp = EPrints::Search->new(
 			allow_blank => 1,
 			dataset => $self,
-			handle => $handle );
+			session => $session );
 		my $list = $searchexp->perform_search;
 		my $c = $list->count;
 		$list->dispose;
 		return $c;
 	}
 
-	return $handle->get_database->count_table( $self->get_sql_table_name() );
+	return $session->get_database->count_table( $self->get_sql_table_name() );
 }
  
+
 ######################################################################
-# $tablename = $ds->get_sql_table_name
-#
-# Return the name of the main SQL Table containing this dataset.
-# the other SQL tables names are based on this name.
+=pod
+
+=item $tablename = $ds->get_sql_table_name
+
+Return the name of the main SQL Table containing this dataset.
+the other SQL tables names are based on this name.
+
+=cut
 ######################################################################
 
 sub get_sql_table_name
@@ -644,11 +679,17 @@ sub get_sql_table_name
 	EPrints::abort( "Can't get a SQL table name for dataset: ".$self->{id} );
 }
 
+
+
 ######################################################################
-# $tablename = $ds->get_sql_index_table_name
-#
-# Return the name of the SQL table which contains the free text indexing
-# information.
+=pod
+
+=item $tablename = $ds->get_sql_index_table_name
+
+Return the name of the SQL table which contains the free text indexing
+information.
+
+=cut
 ######################################################################
 
 sub get_sql_index_table_name
@@ -658,10 +699,14 @@ sub get_sql_index_table_name
 }
 
 ######################################################################
-# $tablename = $ds->get_sql_grep_table_name
-#
-# Reutrn the name of the SQL table which contains the strings to
-# be used with LIKE in a final pass of a search.
+=pod
+
+=item $tablename = $ds->get_sql_grep_table_name
+
+Reutrn the name of the SQL table which contains the strings to
+be used with LIKE in a final pass of a search.
+
+=cut
 ######################################################################
 
 sub get_sql_grep_table_name
@@ -671,11 +716,15 @@ sub get_sql_grep_table_name
 }
 
 ######################################################################
-# $tablename = $ds->get_sql_rindex_table_name
-# 
-# Return the name of the SQL table which contains the reverse text
-# indexing information. (Used for deleting freetext indexes when
-# removing a record).
+=pod
+
+=item $tablename = $ds->get_sql_rindex_table_name
+
+Reutrn the name of the SQL table which contains the reverse text
+indexing information. (Used for deleting freetext indexes when
+removing a record).
+
+=cut
 ######################################################################
 
 sub get_sql_rindex_table_name
@@ -685,10 +734,14 @@ sub get_sql_rindex_table_name
 }
 
 ######################################################################
-# $tablename = $ds->get_ordervalues_table_name( $langid )
-#
-# Return the name of the SQL table containing values used for ordering
-# this dataset.
+=pod
+
+=item $tablename = $ds->get_ordervalues_table_name( $langid )
+
+Return the name of the SQL table containing values used for ordering
+this dataset.
+
+=cut
 ######################################################################
 
 sub get_ordervalues_table_name
@@ -699,11 +752,15 @@ sub get_ordervalues_table_name
 
 
 ######################################################################
-# $tablename = $ds->get_sql_sub_table_name( $field )
-# 
-# Returns the name of the SQL table which contains the information
-# on the "multiple" field. $field is an EPrints::MetaField belonging
-# to this dataset.
+=pod
+
+=item $tablename = $ds->get_sql_sub_table_name( $field )
+
+Returns the name of the SQL table which contains the information
+on the "multiple" field. $field is an EPrints::MetaField belonging
+to this dataset.
+
+=cut
 ######################################################################
 
 sub get_sql_sub_table_name
@@ -716,7 +773,7 @@ sub get_sql_sub_table_name
 ######################################################################
 =pod
 
-=item @fields = $ds->get_fields
+=item $fields = $ds->get_fields
 
 Returns a list of the EPrints::Metafields belonging to this dataset.
 
@@ -752,19 +809,23 @@ sub get_key_field
 
 
 ######################################################################
-# $obj = $ds->make_object( $handle, $data )
-# 
-# Return an object of the class associated with this dataset, always
-# a subclass of EPrints::DataObj.
-# 
-# $data is a hash of values for fields of a record in this dataset.
-# 
-# Return $data if no class associated with this dataset.
+=pod
+
+=item $obj = $ds->make_object( $session, $data )
+
+Return an object of the class associated with this dataset, always
+a subclass of EPrints::DataObj.
+
+$data is a hash of values for fields of a record in this dataset.
+
+Return $data if no class associated with this dataset.
+
+=cut
 ######################################################################
 
 sub make_object
 {
-	my( $self , $handle , $data ) = @_;
+	my( $self , $session , $data ) = @_;
 
 	my $class = $self->get_object_class;
 
@@ -777,7 +838,7 @@ sub make_object
 	}
 
 	return $class->new_from_data( 
-		$handle,
+		$session,
 		$data,
 		$self );
 }
@@ -785,7 +846,7 @@ sub make_object
 ######################################################################
 =pod
 
-=item $obj = $ds->create_object( $handle, $data )
+=item $obj = $ds->create_object( $session, $data )
 
 Create a new object in the given dataset. Return the new object.
 
@@ -798,73 +859,80 @@ If $data describes sub-objects too then those will also be created.
 
 sub create_object
 {
-	my( $self , $handle , $data ) = @_;
+	my( $self , $session , $data ) = @_;
 
 	my $class = $self->get_object_class;
 
-	return $class->create_from_data( $handle, $data, $self );
+	return $class->create_from_data( $session, $data, $self );
 }
 
 ######################################################################
-# $class = $ds->get_object_class;
-# 
-# Return the perl class to which objects in this dataset belong.
+=pod
+
+=item $class = $ds->get_object_class;
+
+Return the perl class to which objects in this dataset belong.
+
+=cut
 ######################################################################
 
 sub get_object_class
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
 	return $self->{class};
 }
 
 ######################################################################
-# $obj = $ds->get_object( $handle, $id );
-# 
-# Return the object from this dataset with the given id, or undefined.
+=pod
+
+=item $obj = $ds->get_object( $session, $id );
+
+Return the object from this dataset with the given id, or undefined.
+
+=cut
 ######################################################################
 
 sub get_object
 {
-	my( $self, $handle, $id ) = @_;
+	my( $self, $session, $id ) = @_;
 
 	my $class = $self->get_object_class;
 
 	if( !defined $class )
 	{
-		$handle->get_repository->log(
+		$session->get_repository->log(
 				"Can't get_object for dataset ".
 				$self->{confid} );
 		return undef;
 	}
 
-	return $class->new( $handle, $id, $self );
+	return $class->new( $session, $id, $self );
 }
 
+=item $dataobj = EPrints::DataSet->get_object_from_uri( $session, $uri )
 
-######################################################################
-# $dataobj = EPrints::DataSet->get_object_from_uri( $handle, $uri )
-# 
-# Returns a the dataobj identified by internal URI $uri.
-# 
-# Returns undef if $uri isn't an internal URI or the object is no longer available.
-######################################################################
+Returns a the dataobj identified by internal URI $uri.
+
+Returns undef if $uri isn't an internal URI or the object is no longer available.
+
+=cut
 
 sub get_object_from_uri
 {
-	my( $class, $handle, $uri ) = @_;
+	my( $class, $session, $uri ) = @_;
 
 	my( $datasetid, $id ) = $uri =~ m# ^/id/([^/]+)/(.+)$ #x;
 	return unless defined $id;
 
 	$datasetid = URI::Escape::uri_unescape( $datasetid );
 
-	my $dataset = $handle->get_repository->get_dataset( $datasetid );
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
 	return unless defined $dataset;
 
 	$id = URI::Escape::uri_unescape( $id );
 
-	my $dataobj = $dataset->get_object( $handle, $id );
+	my $dataobj = $dataset->get_object( $session, $id );
 
 	return $dataobj;
 }
@@ -872,40 +940,40 @@ sub get_object_from_uri
 ######################################################################
 =pod
 
-=item $xhtml = $ds->render_name( $handle )
+=item $xhtml = $ds->render_name( $session )
 
 Return a piece of XHTML describing this dataset, in the language of
-the given handle.
+the current session.
 
 =cut
 ######################################################################
 
-sub render_name
+sub render_name($$)
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
-        return $handle->html_phrase( "dataset_name_".$self->id() );
+        return $session->html_phrase( "dataset_name_".$self->id() );
 }
 
 ######################################################################
 =pod
 
-=item $ds->map( $handle, $fn, $info )
+=item $ds->map( $session, $fn, $info )
 
 Maps the function $fn onto every record in this dataset. See 
-EPrints::List for a full explanation.
+Search for a full explanation.
 
 =cut
 ######################################################################
 
 sub map
 {
-	my( $self, $handle, $fn, $info ) = @_;
+	my( $self, $session, $fn, $info ) = @_;
 
 	my $searchexp = EPrints::Search->new(
 		allow_blank => 1,
 		dataset => $self,
-		handle => $handle );
+		session => $session );
 	$searchexp->perform_search();
 	$searchexp->map( $fn, $info );
 	$searchexp->dispose();
@@ -921,6 +989,7 @@ Returns the EPrints::Repository to which this dataset belongs.
 
 =cut
 ######################################################################
+sub get_archive { return $_[0]->get_repository; }
 
 sub get_repository
 {
@@ -931,47 +1000,81 @@ sub get_repository
 
 
 ######################################################################
-# $ds->reindex( $handle )
-# 
-# Recommits all the items in this dataset. This could take a real long 
-# time on a large set of records.
-# 
-# Really should not be called reindex anymore as it doesn't.
+=pod
+
+=item $ds->reindex( $session )
+
+Recommits all the items in this dataset. This could take a real long 
+time on a large set of records.
+
+Really should not be called reindex anymore as it doesn't.
+
+=cut
 ######################################################################
 
 sub reindex
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
 	my $fn = sub {
-		my( $handle, $dataset, $item ) = @_;
-		if( $handle->get_noise() >= 2 )
+		my( $session, $dataset, $item ) = @_;
+		if( $session->get_noise() >= 2 )
 		{
 			print STDERR "Reindexing item: ".$dataset->id()."/".$item->get_id()."\n";
 		}
 		$item->commit();
 	};
 
-	$self->map( $handle, $fn );
+	$self->map( $session, $fn );
 }
 
-# these have to go here not BackCompatability as they need to see $INFO
-sub get_dataset_ids { EPrints::deprecated(); return keys %{$INFO}; }
-sub get_sql_dataset_ids 
+######################################################################
+=pod
+
+=item @ids = EPrints::DataSet::get_dataset_ids()
+
+Deprecated, use $repository->get_dataset_ids().
+
+=cut
+######################################################################
+
+sub get_dataset_ids
 {
-	EPrints::deprecated();
+	&EPrints::deprecated;
+
+	return keys %{$INFO};
+}
+
+######################################################################
+=pod
+
+=item @ids = EPrints::DataSet::get_sql_dataset_ids()
+
+Deprecated, use $repository->get_sql_dataset_ids().
+
+=cut
+######################################################################
+
+sub get_sql_dataset_ids
+{
+	&EPrints::deprecated;
+
 	return grep { !$INFO->{$_}->{"virtual"} } keys %{$INFO};
 }
 
 ######################################################################
-# $n = $ds->count_indexes
-# 
-# Return the number of indexes required for the main SQL table of this
-# dataset. Used to check it's not over 32 (the current maximum allowed
-# by MySQL)
-# 
-# Assumes things either have 1 or 0 indexes which might not always
-# be true.
+=pod
+
+=item $n = $ds->count_indexes
+
+Return the number of indexes required for the main SQL table of this
+dataset. Used to check it's not over 32 (the current maximum allowed
+by MySQL)
+
+Assumes things either have 1 or 0 indexes which might not always
+be true.
+
+=cut
 ######################################################################
 
 sub count_indexes
@@ -992,7 +1095,7 @@ sub count_indexes
 ######################################################################
 =pod
 
-=item @ids = $dataset->get_item_ids( $handle )
+=item @ids = $dataset->get_item_ids( $session )
 
 Return a list of the id's of all items in this set.
 
@@ -1001,18 +1104,18 @@ Return a list of the id's of all items in this set.
 
 sub get_item_ids
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
 	if( defined $self->get_filters )
 	{
 		my $searchexp = EPrints::Search->new(
 			allow_blank => 1,
 			dataset => $self,
-			handle => $handle );
+			session => $session );
 		my $list = $searchexp->perform_search;
 		return $list->get_ids;
 	}
-	return $handle->get_database->get_values( $self->get_key_field, $self );
+	return $session->get_database->get_values( $self->get_key_field, $self );
 }
 
 
@@ -1061,9 +1164,13 @@ sub indexable
 }
 
 ######################################################################
-# $bool = $dataset->is_virtual()
-# 
-# Returns whether this dataset is virtual (i.e. has no database tables).
+=pod
+
+=item $bool = $dataset->is_virtual()
+
+Returns whether this dataset is virtual (i.e. has no database tables).
+
+=cut
 ######################################################################
 
 sub is_virtual
@@ -1074,10 +1181,14 @@ sub is_virtual
 }
 
 ######################################################################
-# $field = $dataset->get_datestamp_field()
-# 
-# Returns the datestamp field for this dataset which may be used for incremental
-# harvesting. Returns undef if no such field is available.
+=pod
+
+=item $field = $dataset->get_datestamp_field()
+
+Returns the datestamp field for this dataset which may be used for incremental
+harvesting. Returns undef if no such field is available.
+
+=cut
 ######################################################################
 
 sub get_datestamp_field
@@ -1100,10 +1211,6 @@ sub get_datestamp_field
 =pod
 
 =back
-
-=head1 SEE ALSO
-
-EPrints::MetaField, EPrints::DataObj
 
 =cut
 

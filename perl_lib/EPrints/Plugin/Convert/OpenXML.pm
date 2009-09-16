@@ -50,9 +50,9 @@ sub convert
 {
         my ($plugin, $eprint, $doc, $type, $user) = @_;
 	
-#	if( defined $plugin->{handle}->current_user )
+#	if( defined $plugin->{session}->current_user )
 #	{
-#		unless( $eprint->obtain_lock( $plugin->{handle}->current_user ) )
+#		unless( $eprint->obtain_lock( $plugin->{session}->current_user ) )
 #		{
 #			print STDERR "\nFailed to obtain the lock for eprint object.";
 #			return;
@@ -70,7 +70,7 @@ sub convert
 #		}
 #	}
 
-	$plugin->{dataset} = $plugin->{handle}->get_repository->get_dataset( $eprint->get_dataset_id );
+	$plugin->{dataset} = $plugin->{session}->get_repository->get_dataset( $eprint->get_dataset_id );
 	$plugin->{_eprint} = $eprint;
 
         my $dir = EPrints::TempDir->new( "ep-convertXXXXX", UNLINK => 1);
@@ -80,9 +80,9 @@ sub convert
                 return undef;
         }
 
-        my $handle = $plugin->{handle};
+        my $session = $plugin->{session};
         
-	my $doc_ds = $handle->get_repository->get_dataset( "document" );
+	my $doc_ds = $session->get_repository->get_dataset( "document" );
 
 	my @new_docs;
 
@@ -91,7 +91,7 @@ sub convert
                 my $fh;
                 unless( open($fh, "<", "$dir/$filename") )
                 {
-                        $handle->get_repository->log( "Error reading from $dir/$filename: $!" );
+                        $session->get_repository->log( "Error reading from $dir/$filename: $!" );
                         next;
                 }
 		my @filedata;
@@ -103,12 +103,12 @@ sub convert
                 };
                 # file will take care of closing $fh for us
     
-	        my $new_doc = $doc_ds->create_object( $handle, {
+	        my $new_doc = $doc_ds->create_object( $session, {
 			files => \@filedata,
 			main => $filename,
 			eprintid => $eprint->get_id,
 			_parent => $eprint,
-			format =>  $handle->get_repository->call( "guess_doc_type", $handle, $filename ),
+			format =>  $session->get_repository->call( "guess_doc_type", $session, $filename ),
 			formatdesc => 'extracted from openxml format',
 			relation => [{
 				type => EPrints::Utils::make_relation( "isVersionOf" ),
@@ -209,7 +209,7 @@ sub _extract_media_files
 {
 	my( $self, $dir, $content_dir ) = @_;
 
-	my $media_dir = EPrints::Platform::join_path( $dir, $content_dir, "media" );
+	my $media_dir = EPrints::Utils::join_path( $dir, $content_dir, "media" );
 	
 	my $dh;
         opendir $dh, $media_dir;
@@ -221,12 +221,12 @@ sub _extract_media_files
 	my @real_files;
 	foreach(@files)
 	{
-		push @real_files, EPrints::Platform::join_path( $content_dir, "media", $_ );
+		push @real_files, EPrints::Utils::join_path( $content_dir, "media", $_ );
 	}
 
 	if( $content_dir eq 'ppt' )
 	{
-		my $thumbnail = EPrints::Platform::join_path( $dir, "docProps/thumbnail.jpeg" );
+		my $thumbnail = EPrints::Utils::join_path( $dir, "docProps/thumbnail.jpeg" );
 		push @real_files, "docProps/thumbnail.jpeg" if( -e $thumbnail );
 	}
 
@@ -243,7 +243,7 @@ sub _parse_dc
 
 	my ($file,$fh);
 
-	$file = EPrints::Platform::join_path( $dir, "docProps/core.xml" );
+	$file = EPrints::Utils::join_path( $dir, "docProps/core.xml" );
 
         return unless( open( $fh, $file ) );
 

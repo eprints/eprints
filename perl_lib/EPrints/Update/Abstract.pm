@@ -65,13 +65,13 @@ sub update
 	# file is newer than the abstracts page...
 	# so try and regenerate the abstracts page.
 
-	my $handle = EPrints->get_repository_handle( consume_post_data=>0 );
-	my $eprint = $handle->get_eprint( $eprintid );
+	my $session = new EPrints::Session(2); # don't open the CGI info
+	my $eprint = EPrints::DataObj::EPrint->new( $session, $eprintid );
 	if( defined $eprint )
 	{
 		$eprint->generate_static;
 	}
-	$handle->terminate;
+	$session->terminate;
 }
 
 1;

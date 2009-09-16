@@ -52,7 +52,7 @@ sub new
 	$self->{name} = "Amazon S3 storage";
 	$self->{storage_class} = "z_cloud_storage";
 	
-	if( $self->{handle} )
+	if( $self->{session} )
 	{
 		my $aws_access_key_id = $self->param( "aws_access_key_id" );
 		my $aws_secret_access_key = $self->param( "aws_secret_access_key" );
@@ -139,7 +139,7 @@ sub store
 	unless( $r->is_success )
 	{
 		$self->{error} = $r->as_string . "\n\n" . $req->as_string;
-		$self->{handle}->get_repository->log( $self->{error} );
+		$self->{session}->get_repository->log( $self->{error} );
 		return undef;
 	}
 
@@ -156,7 +156,7 @@ sub retrieve
 
 	if( $r->is_error )
 	{
-		$self->{handle}->get_repository->log( $r->as_string );
+		$self->{session}->get_repository->log( $r->as_string );
 	}
 
 	return $r->is_success ? 1 : 0;
@@ -181,7 +181,7 @@ sub get_remote_copy
 
 	if( $r->is_error )
 	{
-		$self->{handle}->get_repository->log( $r->as_string );
+		$self->{session}->get_repository->log( $r->as_string );
 		return undef;
 	}
 

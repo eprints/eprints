@@ -45,7 +45,7 @@ use EPrints::MetaField;
 
 sub get_sql_type
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
 	return undef;
 }
@@ -71,17 +71,17 @@ sub get_property_defaults
 
 sub render_xml_schema
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
-	my $element = $handle->make_element( "xs:element", name => $self->get_name );
+	my $element = $session->make_element( "xs:element", name => $self->get_name );
 
 	if( $self->get_property( "multiple" ) )
 	{
-		my $complexType = $handle->make_element( "xs:complexType" );
+		my $complexType = $session->make_element( "xs:complexType" );
 		$element->appendChild( $complexType );
-		my $sequence = $handle->make_element( "xs:sequence" );
+		my $sequence = $session->make_element( "xs:sequence" );
 		$complexType->appendChild( $sequence );
-		my $item = $handle->make_element( "xs:element", name => "file", maxOccurs => "unbounded", type => $self->get_xml_schema_type() );
+		my $item = $session->make_element( "xs:element", name => "file", maxOccurs => "unbounded", type => $self->get_xml_schema_type() );
 		$sequence->appendChild( $item );
 	}
 	else
@@ -94,27 +94,27 @@ sub render_xml_schema
 
 sub render_xml_schema_type
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
-	my $type = $handle->make_element( "xs:complexType", name => $self->get_xml_schema_type );
+	my $type = $session->make_element( "xs:complexType", name => $self->get_xml_schema_type );
 
-	my $all = $handle->make_element( "xs:all", minOccurs => "0" );
+	my $all = $session->make_element( "xs:all", minOccurs => "0" );
 	$type->appendChild( $all );
 	foreach my $part ( qw/ filename filesize url / )
 	{
-		my $element = $handle->make_element( "xs:element", name => $part, type => "xs:string" );
+		my $element = $session->make_element( "xs:element", name => $part, type => "xs:string" );
 		$all->appendChild( $element );
 	}
 	{
-		my $element = $handle->make_element( "xs:element", name => "data" );
+		my $element = $session->make_element( "xs:element", name => "data" );
 		$all->appendChild( $element );
-		my $complexType = $handle->make_element( "xs:complexType" );
+		my $complexType = $session->make_element( "xs:complexType" );
 		$element->appendChild( $complexType );
-		my $simpleContent = $handle->make_element( "xs:simpleContent" );
+		my $simpleContent = $session->make_element( "xs:simpleContent" );
 		$complexType->appendChild( $simpleContent );
-		my $extension = $handle->make_element( "xs:extension", base => "xs:base64Binary" );
+		my $extension = $session->make_element( "xs:extension", base => "xs:base64Binary" );
 		$simpleContent->appendChild( $extension );
-		my $attribute = $handle->make_element( "xs:attribute", name => "href", type => "xs:anyURI" );
+		my $attribute = $session->make_element( "xs:attribute", name => "href", type => "xs:anyURI" );
 		$extension->appendChild( $attribute );
 	}
 

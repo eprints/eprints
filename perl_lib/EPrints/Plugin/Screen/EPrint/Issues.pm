@@ -33,29 +33,29 @@ sub render
 	my( $self ) = @_;
 
 	my $eprint = $self->{processor}->{eprint};
-	my $handle = $eprint->{handle};
+	my $session = $eprint->{session};
 
-	my $page = $handle->make_doc_fragment;
+	my $page = $session->make_doc_fragment;
 	$page->appendChild( $self->html_phrase( "live_audit_intro" ) );
 
 
 	# Run all available Issues plugins
-	my @issues_plugins = $handle->plugin_list(
+	my @issues_plugins = $session->plugin_list(
 		type=>"Issues",
 		is_available=>1 );
 	my @issues = ();
 	foreach my $plugin_id ( @issues_plugins )
 	{
-		my $plugin = $handle->plugin( $plugin_id );
+		my $plugin = $session->plugin( $plugin_id );
 		push @issues, $plugin->item_issues( $eprint );
 	}
 
 	if( scalar @issues ) 
 	{
-		my $ol = $handle->make_element( "ol" );
+		my $ol = $session->make_element( "ol" );
 		foreach my $issue ( @issues )
 		{
-			my $li = $handle->make_element( "li" );
+			my $li = $session->make_element( "li" );
 			$li->appendChild( $issue->{description} );
 			$ol->appendChild( $li );
 		}

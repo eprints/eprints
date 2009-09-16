@@ -40,37 +40,37 @@ sub action_test_email
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $email = $handle->param( "requester_email" );
+	my $email = $session->param( "requester_email" );
 
 	unless( $email )
 	{
-		$self->{processor}->add_message( "error", $handle->html_phrase( "request:no_email" ) );
+		$self->{processor}->add_message( "error", $session->html_phrase( "request:no_email" ) );
 		return;
 	}
 
-	my $mail = $handle->make_element( "mail" );
+	my $mail = $session->make_element( "mail" );
 	$mail->appendChild( $self->html_phrase( "test_mail" ));
 
 	my $rc = EPrints::Email::send_mail(
-		handle => $handle,
-		langid => $handle->get_langid,
+		session => $session,
+		langid => $session->get_langid,
 		to_email => $email,
 		subject => $self->phrase( "test_mail_subject" ),
 		message => $mail,
-		sig => $handle->html_phrase( "mail_sig" )
+		sig => $session->html_phrase( "mail_sig" )
 	);
 
 	if( !$rc )
 	{
-		$self->{processor}->add_message( "error", $handle->html_phrase( "general:email_failed" ) );
+		$self->{processor}->add_message( "error", $session->html_phrase( "general:email_failed" ) );
 	}
 	else
 	{
 		$self->{processor}->add_message( "message",
 			$self->html_phrase( "mail_sent",
-				requester => $handle->make_text( $email )
+				requester => $session->make_text( $email )
 			) );
 	}
 }	
@@ -79,15 +79,15 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my( $html , $table , $p , $span );
 	
-	$html = $handle->make_doc_fragment;
+	$html = $session->make_doc_fragment;
 
-	my $form = $handle->render_input_form(
+	my $form = $session->render_input_form(
 		fields => [
-			$handle->get_repository->get_dataset( "request" )->get_field( "requester_email" ),
+			$session->get_repository->get_dataset( "request" )->get_field( "requester_email" ),
 		],
 		show_names => 1,
 		show_help => 1,
@@ -95,7 +95,7 @@ sub render
 	);
 
 	$html->appendChild( $form );
-	$form->appendChild( $handle->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
+	$form->appendChild( $session->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
 
 	return $html;
 }

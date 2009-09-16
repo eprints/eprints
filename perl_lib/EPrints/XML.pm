@@ -19,32 +19,14 @@
 
 B<EPrints::XML> - XML Abstraction Module
 
-=head1 SYNOPSIS
-
-	$string = EPrints::XML::to_string( $node, "utf-8", 1 ); #use this to convert DOM trees to string
-	
-	$dom = EPrints::XML::parse_xml_string( $string );
-	
-	$dom = EPrints::XML::parse_xml( $file, $basepath, $no_expand );
-	
-	$boolean = is_dom( $node, @nodestrings );
-	
-	$newnode = EPrints::XML::clone_node( $node, $deep );
-	
-	EPrints::XML::write_xhtml_file( $node, $filename );
-	
-	$document = EPrints::XML::make_document();
-	
-	$dom = EPrints:XML::parse_url($url, $no_expand);
-
-
-
 =head1 DESCRIPTION
 
 EPrints can use either XML::DOM, XML::LibXML or XML::GDOME modules to generate
 and process XML. Some of the functionality of these modules differs so this
 module abstracts such functionality so that all the module specific code is in
 one place. 
+
+=over 4
 
 =cut
 
@@ -74,8 +56,6 @@ use strict;
 
 ######################################################################
 =pod
-
-=over 4
 
 =item $doc = EPrints::XML::parse_xml_string( $string );
 
@@ -435,7 +415,7 @@ sub tidy
 		}
 	}
 
-	# tidys the node in it's own document so we don't require $handle
+	# tidys the node in it's own document so we don't require $session
 	my $doc = $node->ownerDocument;
 
 	$indent = $indent || 0;
@@ -639,18 +619,5 @@ sub trim_whitespace
 	}
 
 }
-
-=pod 
-
-=item $dom = EPrints:XML::parse_url($url, $no_expand)
-
-Return a DOM document found at the URL
-
-$url - the url which resolves to the XML you wish to parse.
-
-$no_expand - set to 1 if you do not want the xml to be indented.
-
-=cut
-
 
 1;

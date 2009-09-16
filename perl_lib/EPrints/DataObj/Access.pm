@@ -29,7 +29,7 @@ Inherits from L<EPrints::DataObj>.
 
 =item $obj->{ "dataset" }
 
-=item $obj->{handle}
+=item $obj->{ "session" }
 
 =back
 
@@ -177,7 +177,7 @@ sub get_referent_id
 
 	$id =~ /:?(\d+)$/;
 
-	$id = EPrints::OpenArchives::to_oai_identifier( $self->{handle}->get_repository->get_conf( "oai" )->{v2}->{ "archive_id" }, $1 );
+	$id = EPrints::OpenArchives::to_oai_identifier( $self->{session}->get_repository->get_conf( "oai" )->{v2}->{ "archive_id" }, $1 );
 
 	return $id;
 }

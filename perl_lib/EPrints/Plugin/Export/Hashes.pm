@@ -27,7 +27,7 @@ sub output_list
 {
 	my( $plugin, %opts ) = @_;
 
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{session};
 
 	if( !defined $opts{fh} )
 	{
@@ -36,14 +36,14 @@ sub output_list
 
 	my @files = ();
 	$opts{list}->map( sub {
-		my( $handle, $dataset, $item ) = @_;
+		my( $session, $dataset, $item ) = @_;
 
-		my $file = find_latest_doc_hash( $handle, $item );
+		my $file = find_latest_doc_hash( $session, $item );
 		push @files, $file if defined $file;
 	} );
 
 	EPrints::Probity::create_log_fh(
-		$handle,
+		$session,
 		\@files,
 		$opts{fh} );
 }
@@ -51,13 +51,13 @@ sub output_list
 
 sub find_latest_doc_hash
 {
-	my( $handle, $doc ) = @_;
+	my( $session, $doc ) = @_;
 
 	my $id = $doc->get_id;
 	my $eprint = $doc->get_eprint;
 	if( !defined $eprint )
 	{
-		$handle->get_repository->log( "No eprint for document: $id" );
+		$session->get_repository->log( "No eprint for document: $id" );
 		return ();
 	}
 	my $path = $eprint->local_path;

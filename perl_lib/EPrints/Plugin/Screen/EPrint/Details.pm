@@ -31,14 +31,14 @@ sub _render_name_maybe_with_link
 {
 	my( $self, $eprint, $field ) = @_;
 
-	my $r_name = $field->render_name( $eprint->{handle} );
+	my $r_name = $field->render_name( $eprint->{session} );
 	my $name = $field->get_name;
 	my $stage = $self->_find_stage( $eprint, $name );
 
 	return $r_name if( !defined $stage );
 
 	my $url = "?eprintid=".$eprint->get_id."&screen=".$self->edit_screen_id."&stage=$stage#$name";
-	my $link = $eprint->{handle}->render_link( $url );
+	my $link = $eprint->{session}->render_link( $url );
 	$link->appendChild( $r_name );
 	return $link;
 }
@@ -68,14 +68,14 @@ sub render
 	my( $self ) = @_;
 
 	my $eprint = $self->{processor}->{eprint};
-	my $handle = $eprint->{handle};
+	my $session = $eprint->{session};
 
-	my $unspec_fields = $handle->make_doc_fragment;
+	my $unspec_fields = $session->make_doc_fragment;
 	my $unspec_first = 1;
 
-	my $page = $handle->make_doc_fragment;
+	my $page = $session->make_doc_fragment;
 	# Show all the fields
-	my $table = $handle->make_element( "table",
+	my $table = $session->make_element( "table",
 					border=>"0",
 					cellpadding=>"3" );
 	$page->appendChild( $table );
@@ -91,7 +91,7 @@ sub render
 		my $name = $field->get_name();
 		if( $eprint->is_set( $name ) )
 		{
-			$table->appendChild( $handle->render_row(
+			$table->appendChild( $session->render_row(
 				$r_name,
 				$eprint->render_value( $field->get_name(), 1 ) ) );
 			next;
@@ -105,7 +105,7 @@ sub render
 		else
 		{
 			$unspec_fields->appendChild( 
-				$handle->make_text( ", " ) );
+				$session->make_text( ", " ) );
 		}
 		$unspec_fields->appendChild( $self->_render_name_maybe_with_link( $eprint, $field ) );
 	}
@@ -117,25 +117,25 @@ sub render
 	
 		foreach my $doc (@docs)
 		{
-			my $tr = $handle->make_element( "tr" );
+			my $tr = $session->make_element( "tr" );
 			$table->appendChild( $tr );
-			my $th = $handle->make_element( "th", class=>"ep_row" );
+			my $th = $session->make_element( "th", class=>"ep_row" );
 			$tr->appendChild( $th );
-			my $td = $handle->make_element( "td", class=>"ep_row" );
+			my $td = $session->make_element( "td", class=>"ep_row" );
 			$tr->appendChild( $td );
 
 			if( defined $stage )
 			{
 				my $url = "?eprintid=".$eprint->get_id."&screen=".$self->edit_screen_id."&stage=$stage&docid=".$doc->get_id."#documents";
-				my $a = $handle->render_link( $url );
+				my $a = $session->render_link( $url );
 				$a->appendChild( $doc->render_description );
-				$th->appendChild( $handle->html_phrase( 
+				$th->appendChild( $session->html_phrase( 
 					"lib/dataobj:document_title",
 					doc=>$a ) );
 			}
 			else
 			{
-				$th->appendChild( $handle->html_phrase( 
+				$th->appendChild( $session->html_phrase( 
 					"lib/dataobj:document_title",
 					doc=>$doc->render_description ) );
 			}
@@ -160,28 +160,28 @@ sub render
 				next if( !$doc->is_set( $name ) );
 			
 				my $field = $doc->get_dataset->get_field( $name );
-				my $strong = $handle->make_element( "strong" );
+				my $strong = $session->make_element( "strong" );
 				$td->appendChild( $strong );
-				$strong->appendChild( $field->render_name( $handle ) );
-				$strong->appendChild( $handle->make_text( ": " ) );
+				$strong->appendChild( $field->render_name( $session ) );
+				$strong->appendChild( $session->make_text( ": " ) );
 				$td->appendChild( $doc->render_value( $name ) );
-				$td->appendChild( $handle->make_text( ". " ) );
+				$td->appendChild( $session->make_text( ". " ) );
 			}
-			my $ul = $handle->make_element( "ul" );
+			my $ul = $session->make_element( "ul" );
 			$td->appendChild( $ul );
 			foreach my $file ( keys %files )
 			{
-				my $li = $handle->make_element( "li" );
+				my $li = $session->make_element( "li" );
 				$ul->appendChild( $li );
-				my $a = $handle->render_link( $doc->get_url( $file ) );
-				$a->appendChild( $handle->make_text( $file ) );
+				my $a = $session->render_link( $doc->get_url( $file ) );
+				$a->appendChild( $session->make_text( $file ) );
 				$li->appendChild( $a );
 			}
 		}
 	}	
-	my $h3 = $handle->make_element( "h3" );
+	my $h3 = $session->make_element( "h3" );
 	$page->appendChild( $h3 );
-	$h3->appendChild( $handle->html_phrase( "lib/dataobj:unspecified" ) );
+	$h3->appendChild( $session->html_phrase( "lib/dataobj:unspecified" ) );
 	$page->appendChild( $unspec_fields );
 
 	return $page;

@@ -62,8 +62,8 @@ sub input_text_fh
 		if( $@ )
 		{
 			$plugin->handler->message( "warning", $plugin->html_phrase( "invalid_doi",
-				doi => $plugin->{handle}->make_text( $doi ),
-				msg => $plugin->{handle}->make_text( "No or unrecognised response" )
+				doi => $plugin->{session}->make_text( $doi ),
+				msg => $plugin->{session}->make_text( "No or unrecognised response" )
 			));
 			next;
 		}
@@ -81,8 +81,8 @@ sub input_text_fh
 			my $msg = ($dom_query->getElementsByTagName( "msg" ))[0];
 			$msg = EPrints::Utils::tree_to_utf8( $msg );
 			$plugin->handler->message( "warning", $plugin->html_phrase( "invalid_doi",
-				doi => $plugin->{handle}->make_text( $doi ),
-				msg => $plugin->{handle}->make_text( $msg )
+				doi => $plugin->{session}->make_text( $doi ),
+				msg => $plugin->{session}->make_text( $msg )
 			));
 			next;
 		}
@@ -120,7 +120,7 @@ sub input_text_fh
 
 	return EPrints::List->new( 
 		dataset => $opts{dataset}, 
-		handle => $plugin->{handle},
+		session => $plugin->{session},
 		ids=>\@ids );
 }
 

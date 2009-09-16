@@ -44,9 +44,9 @@ use EPrints::MetaField;
 
 sub get_sql_type
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
-	return $handle->get_database->get_column_type(
+	return $session->get_database->get_column_type(
 		$self->get_sql_name(),
 		EPrints::Database::SQL_INTEGER,
 		!$self->get_property( "allow_null" ),
@@ -79,9 +79,9 @@ sub ordervalue_basic
 
 sub render_search_input
 {
-	my( $self, $handle, $searchfield ) = @_;
+	my( $self, $session, $searchfield ) = @_;
 	
-	return $handle->render_input_field(
+	return $session->render_input_field(
 				class => "ep_form_text",
 				name=>$searchfield->get_form_prefix,
 				value=>$searchfield->get_value,
@@ -91,9 +91,9 @@ sub render_search_input
 
 sub from_search_form
 {
-	my( $self, $handle, $prefix ) = @_;
+	my( $self, $session, $prefix ) = @_;
 
-	my $val = $handle->param( $prefix );
+	my $val = $session->param( $prefix );
 	return unless defined $val;
 
 	my $number = '[0-9]+\.?[0-9]*';
@@ -103,12 +103,12 @@ sub from_search_form
 		return( $val );
 	}
 			
-	return( undef,undef,undef, $handle->html_phrase( "lib/searchfield:int_err" ) );
+	return( undef,undef,undef, $session->html_phrase( "lib/searchfield:int_err" ) );
 }
 
 sub render_search_value
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
 	my $type = $self->get_type;
 
@@ -116,32 +116,32 @@ sub render_search_value
 
 	if( $value =~ m/^($number)-($number)$/ )
 	{
-		return $handle->html_phrase(
+		return $session->html_phrase(
 			"lib/searchfield:desc_".$type."_between",
-			from => $handle->make_text( $1 ),
-			to => $handle->make_text( $2 ) );
+			from => $session->make_text( $1 ),
+			to => $session->make_text( $2 ) );
 	}
 
 	if( $value =~ m/^-($number)$/ )
 	{
-		return $handle->html_phrase(
+		return $session->html_phrase(
 			"lib/searchfield:desc_".$type."_orless",
-			to => $handle->make_text( $1 ) );
+			to => $session->make_text( $1 ) );
 	}
 
 	if( $value =~ m/^($number)-$/ )
 	{
-		return $handle->html_phrase(
+		return $session->html_phrase(
 			"lib/searchfield:desc_".$type."_ormore",
-			from => $handle->make_text( $1 ) );
+			from => $session->make_text( $1 ) );
 	}
 
-	return $handle->make_text( $value );
+	return $session->make_text( $value );
 }
 
 sub get_search_conditions_not_ex
 {
-	my( $self, $handle, $dataset, $search_value, $match, $merge,
+	my( $self, $session, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 	
 	# N
@@ -211,9 +211,9 @@ sub get_xml_schema_type
 
 sub render_xml_schema_type
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
-	return $handle->make_doc_fragment;
+	return $session->make_doc_fragment;
 }
 
 ######################################################################

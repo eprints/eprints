@@ -32,23 +32,23 @@ sub properties_from
 {
 	my( $self ) = @_;
 
-	$self->{processor}->{configfile} = $self->{handle}->param( "configfile" );
-	$self->{processor}->{configfilepath} = $self->{handle}->get_repository->get_conf( "config_path" )."/".$self->{processor}->{configfile};
+	$self->{processor}->{configfile} = $self->{session}->param( "configfile" );
+	$self->{processor}->{configfilepath} = $self->{session}->get_repository->get_conf( "config_path" )."/".$self->{processor}->{configfile};
 
 	if( $self->{processor}->{configfile} =~ m/\/\./ )
 	{
 		$self->{processor}->{screenid} = "Error";
-		$self->{processor}->add_message( "error", $self->{handle}->html_phrase(
+		$self->{processor}->add_message( "error", $self->{session}->html_phrase(
 			"Plugin/Screen/Admin/Config/Edit:bad_filename",
-			filename=>$self->{handle}->make_text( $self->{processor}->{configfile} ) ) );
+			filename=>$self->{session}->make_text( $self->{processor}->{configfile} ) ) );
 		return;
 	}
 	if( !-e $self->{processor}->{configfilepath} )
 	{
 		$self->{processor}->{screenid} = "Error";
-		$self->{processor}->add_message( "error", $self->{handle}->html_phrase(
+		$self->{processor}->add_message( "error", $self->{session}->html_phrase(
 			"Plugin/Screen/Admin/Config/Edit:no_such_file",
-			filename=>$self->{handle}->make_text( $self->{processor}->{configfilepath} ) ) );
+			filename=>$self->{session}->make_text( $self->{processor}->{configfilepath} ) ) );
 		return;
 	}
 
@@ -114,8 +114,8 @@ sub save_broken
 		$self->{processor}->add_message( 
 			"error", 
 			$self->html_phrase( "could_not_write", 
-				error_msg=>$self->{handle}->make_text($!), 
-				filename=>$self->{handle}->make_text( $fn )));
+				error_msg=>$self->{session}->make_text($!), 
+				filename=>$self->{session}->make_text( $fn )));
 		return;
 	}
 	print DATA $data;
@@ -135,7 +135,7 @@ sub action_revert_config
 
 	$self->{processor}->add_message( 
 		"message", 
-		$self->{handle}->html_phrase( "Plugin/Screen/Admin/Config/Edit:reverted" )
+		$self->{session}->html_phrase( "Plugin/Screen/Admin/Config/Edit:reverted" )
 	);
 		
 }
@@ -144,7 +144,7 @@ sub action_save_config
 {
 	my( $self ) = @_;
 
-	my $data = $self->{handle}->param( "data" );
+	my $data = $self->{session}->param( "data" );
 	
 	# de-dos da data
 	$data =~ s/\r\n/\n/g;	
@@ -153,7 +153,7 @@ sub action_save_config
 	{
 		$self->{processor}->add_message( 
 			"error", 
-			$self->{handle}->html_phrase( "Plugin/Screen/Admin/Config/Edit:no_data" )
+			$self->{session}->html_phrase( "Plugin/Screen/Admin/Config/Edit:no_data" )
 		);
 		return;
 	}
@@ -165,7 +165,7 @@ sub action_save_config
 		# -- if it fails: report an error and save it to a .broken file then abort
 		$self->{processor}->add_message( 
 			"error", 
-			$self->{handle}->html_phrase( "Plugin/Screen/Admin/Config/Edit:did_not_install" )
+			$self->{session}->html_phrase( "Plugin/Screen/Admin/Config/Edit:did_not_install" )
 		);
 		foreach my $problem ( @file_problems )
 		{
@@ -186,9 +186,9 @@ sub action_save_config
 	{
 		$self->{processor}->add_message( 
 			"error", 
-			$self->{handle}->html_phrase( "Plugin/Screen/Admin/Config/Edit:could_not_write", 
-				error_msg=>$self->{handle}->make_text($!), 
-				filename=>$self->{handle}->make_text( $self->{processor}->{configfilepath} ) ) );
+			$self->{session}->html_phrase( "Plugin/Screen/Admin/Config/Edit:could_not_write", 
+				error_msg=>$self->{session}->make_text($!), 
+				filename=>$self->{session}->make_text( $self->{processor}->{configfilepath} ) ) );
 		return;
 	}
 	print DATA $data;
@@ -196,7 +196,7 @@ sub action_save_config
 
 	# then test using epadmin
 
-	my( $result, $msg ) = $self->{handle}->get_repository->test_config;
+	my( $result, $msg ) = $self->{session}->get_repository->test_config;
 
 	if( $result != 0 )
 	{
@@ -206,10 +206,10 @@ sub action_save_config
 
 		$self->{processor}->add_message( 
 			"error", 
-			$self->{handle}->html_phrase( "Plugin/Screen/Admin/Config/Edit:did_not_install" )
+			$self->{session}->html_phrase( "Plugin/Screen/Admin/Config/Edit:did_not_install" )
 		);
-		my $pre = $self->{handle}->make_element( "pre" );
-		$pre->appendChild( $self->{handle}->make_text( $msg ) );
+		my $pre = $self->{session}->make_element( "pre" );
+		$pre->appendChild( $self->{session}->make_text( $msg ) );
 		$self->{processor}->add_message( "warning", $pre );
 		return;
 	}
@@ -220,33 +220,33 @@ sub action_save_config
 
 	$self->{processor}->add_message( 
 		"message", 
-		$self->{handle}->html_phrase( 
+		$self->{session}->html_phrase( 
 			"Plugin/Screen/Admin/Config/Edit:file_saved",
-			filename=>$self->{handle}->make_text( $self->{processor}->{configfilepath} ) ) );
+			filename=>$self->{session}->make_text( $self->{processor}->{configfilepath} ) ) );
 }
 
 sub action_process_image_upload 
 {
 	my( $self ) = @_;
 	
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $max_img_count = $handle->param("image_count");
+	my $max_img_count = $session->param("image_count");
 	my $img_count;
 	for (my $int=0;$int<=$max_img_count;$int++) 
 	{
-		if ($handle->param("image_" . $int)) {
+		if ($session->param("image_" . $int)) {
 			$img_count = $int;
 		}	
 	}
-	my $image_location = $handle->param("image_path_" . $img_count);
+	my $image_location = $session->param("image_path_" . $img_count);
 	my $fname = "image_" . $img_count;
 	
-	my $url = $self->{handle}->get_repository->get_conf("base_url");
+	my $url = $self->{session}->get_repository->get_conf("base_url");
 	$image_location =~ s/$url//g;
-	$image_location = $handle->get_repository->get_conf( "config_path" ) . "/static" . $image_location;
+	$image_location = $session->get_repository->get_conf( "config_path" ) . "/static" . $image_location;
 	
-	my $fh = $handle->get_query->upload( $fname );
+	my $fh = $session->get_query->upload( $fname );
 
 	if( defined( $fh ) )
 	{
@@ -264,12 +264,12 @@ sub action_process_image_upload
 		
 		$self->{processor}->add_message( 
 			"message", 
-			$self->{handle}->make_text("Image uploaded."));
+			$self->{session}->make_text("Image uploaded."));
 	
 	} else {
 		$self->{processor}->add_message( 
 			"warning", 
-			$self->{handle}->make_text("No image uploaded."));
+			$self->{session}->make_text("No image uploaded."));
 	}
 }
 
@@ -277,11 +277,11 @@ sub action_process_upload
 {
 	my( $self ) = @_;
 	
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $fname = $self->{prefix}."_first_file";
 	
-	my $fh = $handle->get_query->upload( $fname );
+	my $fh = $session->get_query->upload( $fname );
 
 	if( defined( $fh ) )
 	{
@@ -326,7 +326,7 @@ sub action_process_upload
 		
 
 
-		#my $doc = $handle->get_repository->parse_xml( $tmpfile );
+		#my $doc = $session->get_repository->parse_xml( $tmpfile );
 		
 		#my $html = $doc->documentElement;
 		#$self->process_nodes($html);
@@ -356,14 +356,14 @@ sub action_process_upload
 			if ($@) {
 				$self->{processor}->add_message( 
 					"warning", 
-					$self->{handle}->make_text("$doc: Page failed to parse - not updated.\n".$@."\n".$@[0]) );
+					$self->{session}->make_text("$doc: Page failed to parse - not updated.\n".$@."\n".$@[0]) );
 				#print ($@);
 				#print ($@[0]);
 				#print "$doc: bad";	
 			} else {
 				foreach my $img_tag ( $parse->getElementsByTagName( "img" ) ) {
 					my $src = $img_tag->getAttribute("src");
-					my $url = $self->{handle}->get_repository->get_conf("base_url");
+					my $url = $self->{session}->get_repository->get_conf("base_url");
 					if (index($src,$url) < 0) {
 						my $filename = substr $src,rindex($src,"/")+1,length($src);
 						$src = $url . "/images/" . $filename;
@@ -389,7 +389,7 @@ sub action_process_upload
 				my $original = "";
 				my $string = $self->{processor}->{configfile};
 				if ($doc eq "page") {
-					$original = $handle->get_repository->get_conf( "config_path" ) . "/" . $string;
+					$original = $session->get_repository->get_conf( "config_path" ) . "/" . $string;
 					open (FH,$original);
 					my $tmpfile = File::Temp->new( SUFFIX => ".txt" );
 					binmode($tmpfile);
@@ -415,11 +415,11 @@ sub action_process_upload
 
 					$self->{processor}->add_message( 
 						"message", 
-						$self->{handle}->make_text("$original: Page updated.") );
+						$self->{session}->make_text("$original: Page updated.") );
 				} elsif ($doc eq "template") {
 					my $lang = substr $string,0,rindex($string,"/");
 					$lang = substr $lang,0,rindex($lang,"/");
-					$original = $handle->get_repository->get_conf( "config_path" ) . "/" . $lang . "/templates/default.xml";
+					$original = $session->get_repository->get_conf( "config_path" ) . "/" . $lang . "/templates/default.xml";
 					#print $node_collection->{$doc};	
 					#exit;
 					my $tmpfile = File::Temp->new( SUFFIX => ".txt" );
@@ -428,11 +428,11 @@ sub action_process_upload
 					rename($tmpfile,$original); 
 					$self->{processor}->add_message( 
 						"message", 
-						$self->{handle}->make_text("$original: Page updated.") );
+						$self->{session}->make_text("$original: Page updated.") );
 				} else {
 					$self->{processor}->add_message( 
 						"message", 
-						$self->{handle}->make_text("$doc: Page will update when code is written..") );
+						$self->{session}->make_text("$doc: Page will update when code is written..") );
 				}
 				#print "$doc: good";
 			}
@@ -441,19 +441,19 @@ sub action_process_upload
 	
 	$self->{processor}->add_message( 
 		"message", 
-		$self->{handle}->html_phrase("Plugin/Screen/Admin/Config/Edit/XPage:phrases_updated") );
+		$self->{session}->html_phrase("Plugin/Screen/Admin/Config/Edit/XPage:phrases_updated") );
 }
 
 sub replace_urls 
 {
 	my ($self, $instring) = @_;
 	my %map_url = (
-		$self->{handle}->get_repository->get_conf("http_url") => '$config{rel_path}',
-		$self->{handle}->get_repository->get_conf("https_url") => '$config{rel_path}',
-		$self->{handle}->get_repository->get_conf("http_cgiurl") => '$config{rel_cgipath}',
-		$self->{handle}->get_repository->get_conf("https_cgiurl") => '$config{rel_cgipath}'
+		$self->{session}->get_repository->get_conf("http_url") => '$config{rel_path}',
+		$self->{session}->get_repository->get_conf("https_url") => '$config{rel_path}',
+		$self->{session}->get_repository->get_conf("http_cgiurl") => '$config{rel_cgipath}',
+		$self->{session}->get_repository->get_conf("https_cgiurl") => '$config{rel_cgipath}'
 	);
-	my $frontpage = $self->{handle}->get_repository->get_conf("frontpage");	
+	my $frontpage = $self->{session}->get_repository->get_conf("frontpage");	
 	$instring =~ s/$frontpage\"/\{\$config\{frontpage\}\}"/g;
 	
 	$frontpage = substr $frontpage, 0, length($frontpage)-1;
@@ -538,7 +538,7 @@ sub process_line
 				# GET old phrase for page by querying eprints.
 				# If it has changed update or add it zz_webcfg.
 
-				my $old_phrase_node = $self->{handle}->html_phrase(trim($node_value));
+				my $old_phrase_node = $self->{session}->html_phrase(trim($node_value));
 				my $old_phrase = "";
 				for($old_phrase_node->childNodes)
 				{
@@ -559,8 +559,8 @@ sub process_line
 				#print STDERR "COMPARING new =|" . $phrase_text . "| and old =|" . $old_phrase . "|\n";
 
 				if (!($phrase_text eq $old_phrase)) {
-					#my $newchunk = $self->{handle}->make_doc_fragment;
-					my $newchild = $self->{handle}->make_element( "epp:phrase", id => $node_value );
+					#my $newchunk = $self->{session}->make_doc_fragment;
+					my $newchild = $self->{session}->make_element( "epp:phrase", id => $node_value );
 					$new_phrase->setOwnerDocument( $newchild->ownerDocument );
 					for($new_phrase->childNodes)
 					{
@@ -673,7 +673,7 @@ sub trim($)
 sub action_download_full_file {
 	my ( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	
 	my $string = $self->{processor}->{configfile};
@@ -685,12 +685,12 @@ sub action_download_full_file {
 
 	my $filename = substr $string, $index+1, $length;
 
-	my $from = $handle->get_repository->get_conf( "config_path" ) . "/" . $string;
-	my $doc = $handle->get_repository->parse_xml( $from );
+	my $from = $session->get_repository->get_conf( "config_path" ) . "/" . $string;
+	my $doc = $session->get_repository->parse_xml( $from );
 
 	if( !defined $doc )
 	{
-		$handle->get_repository->log( "Could not load file: $from" );
+		$session->get_repository->log( "Could not load file: $from" );
 		return;
 	}
 
@@ -704,7 +704,7 @@ sub action_download_full_file {
 		$part =~ s/^.*://;
 		next unless( $part eq "body" || $part eq "title" || $part eq "template" );
 
-		$page_parts->{$part} = $handle->make_doc_fragment;
+		$page_parts->{$part} = $session->make_doc_fragment;
 
 		foreach my $kid ( $node->getChildNodes )
 		{
@@ -712,7 +712,7 @@ sub action_download_full_file {
 			my $post_epc_kid = EPrints::XML::EPC::process( 
 					$post_edit_exp_kid,
 					in => $from,
-					handle => $handle ); 
+					session => $session ); 
 			$page_parts->{$part}->appendChild( $post_epc_kid );
 		}
 	}
@@ -722,7 +722,7 @@ sub action_download_full_file {
 		if( !$page_parts->{$part} )
 		{
 			#dang some error?
-			#$handle->get_repository->log( "Error: no $part element in ".$from );
+			#$session->get_repository->log( "Error: no $part element in ".$from );
 			#EPrints::XML::dispose( $doc );
 			#return;
 		}
@@ -736,8 +736,8 @@ sub action_download_full_file {
 	#print EPrints::XML::to_string( $page_parts->{page} );
 
 	####
-	my $template_parts = $handle->get_repository->get_template_parts( 
-			$handle->get_langid, 
+	my $template_parts = $session->get_repository->get_template_parts( 
+			$session->get_langid, 
 			$page_parts->{template} );
 	#print join( "\n\n*****\n\n", @{$template_parts} )."\n";
 	my @output = ();
@@ -773,10 +773,10 @@ sub action_download_full_file {
 			#push @output, "<!-- EPEDIT:START:TEMPLATE:PRINT $expr -->";
 			if ( $expr eq '$config{rel_path}') {
 				my $temp = '$config{base_url}';
-				my $result = EPrints::XML::to_string( EPrints::Script::print( $temp, { handle =>$handle } ), undef, 1 );
+				my $result = EPrints::XML::to_string( EPrints::Script::print( $temp, { session=>$session } ), undef, 1 );
 				push @output,$result;
 			}
-			my $result = EPrints::XML::to_string( EPrints::Script::print( $expr, { handle =>$handle } ), undef, 1 );
+			my $result = EPrints::XML::to_string( EPrints::Script::print( $expr, { session=>$session } ), undef, 1 );
 			#push @output, "<!-- EPEDIT:END:TEMPLATE:PRINT -->";
 			push @output, $result;
 			next;
@@ -786,7 +786,7 @@ sub action_download_full_file {
 		{	
 			my $phraseid = join "", @parts;
 			push @output, "<!-- EPEDIT:START:TEMPLATE:PHRASE $phraseid -->";
-			push @output, EPrints::XML::to_string( $handle->html_phrase( $phraseid ), undef, 1 );
+			push @output, EPrints::XML::to_string( $session->html_phrase( $phraseid ), undef, 1 );
 			push @output, "<!-- EPEDIT:END:TEMPLATE:PHRASE -->";
 			next;
 		}
@@ -845,9 +845,9 @@ sub action_download_full_file {
 		push @final_output,$self->insert_url($fragment);
 	}
 	@output = @final_output;
-	$handle->send_http_header( content_type=>"text/html" );
+	$session->send_http_header( content_type=>"text/html" );
 	EPrints::Apache::AnApache::header_out(
-			$self->{handle}->get_request,
+			$self->{session}->get_request,
 			"Content-Disposition: attachment; filename=".$filename."html;"
 			);
 	print join( "", @output )."\n";
@@ -859,7 +859,7 @@ sub insert_url
 {
 	my( $self, $inside_tag ) = @_;
 
-	my $url = $self->{handle}->get_repository->get_conf("base_url");
+	my $url = $self->{session}->get_repository->get_conf("base_url");
 	$inside_tag =~ s!(=\s*['"])/!$1$url/!g;
 
 	return $inside_tag;
@@ -899,8 +899,8 @@ sub render_title
 {
 	my( $self ) = @_;
 
-	my $f = $self->{handle}->make_doc_fragment;
-	$f->appendChild( $self->html_phrase( "page_title", file=>$self->{handle}->make_text( $self->{processor}->{configfile} ) ) );
+	my $f = $self->{session}->make_doc_fragment;
+	$f->appendChild( $self->html_phrase( "page_title", file=>$self->{session}->make_text( $self->{processor}->{configfile} ) ) );
 	return $f;
 }
 
@@ -910,17 +910,17 @@ sub render
 
 	# we trust the filename by this point
 	
-	my $path = $self->{handle}->get_repository->get_conf( "config_path" );
+	my $path = $self->{session}->get_repository->get_conf( "config_path" );
 
-	my $page = $self->{handle}->make_doc_fragment;
+	my $page = $self->{session}->make_doc_fragment;
 
 	
 	$page->appendChild( $self->html_phrase( "intro" ));
 	
 	$self->{processor}->{screenid}=~m/::Edit::(.*)$/;
 	my $type = $1;
-	my $doc_link = $self->{handle}->render_link("http://eprints.org/d/?keyword=${1}ConfigFile&filename=".$self->{processor}->{configfile});
-	$page->appendChild( $self->{handle}->html_phrase( "Plugin/Screen/Admin/Config/Edit:documentation", link=>$doc_link ));
+	my $doc_link = $self->{session}->render_link("http://eprints.org/d/?keyword=${1}ConfigFile&filename=".$self->{processor}->{configfile});
+	$page->appendChild( $self->{session}->html_phrase( "Plugin/Screen/Admin/Config/Edit:documentation", link=>$doc_link ));
 	
 
 	my $form = $self->render_form;
@@ -951,29 +951,29 @@ sub config_edit
 		$fn = "$fn.broken";
 		$self->{processor}->add_message( 
 			"warning", 
-			$self->{handle}->html_phrase( "Plugin/Screen/Admin/Config/Edit:broken" ) );
+			$self->{session}->html_phrase( "Plugin/Screen/Admin/Config/Edit:broken" ) );
 	}
 	$form = $self->render_form;
 
-	my $textarea = $self->{handle}->make_element( "textarea", rows=>25, cols=>80, name=>"data" );
+	my $textarea = $self->{session}->make_element( "textarea", rows=>25, cols=>80, name=>"data" );
 	open( CONFIGFILE, $fn );
-	while( my $line = <CONFIGFILE> ) { $textarea->appendChild( $self->{handle}->make_text( $line) ); }
+	while( my $line = <CONFIGFILE> ) { $textarea->appendChild( $self->{session}->make_text( $line) ); }
 	close CONFIGFILE;
 	$form->appendChild( $textarea );
 
 	my %buttons;
 
        	push @{$buttons{_order}}, "save_config";
-       	$buttons{save_config} = $self->{handle}->phrase( "Plugin/Screen/Admin/Config/Edit:save_config_button" );
+       	$buttons{save_config} = $self->{session}->phrase( "Plugin/Screen/Admin/Config/Edit:save_config_button" );
 
 	if( $broken )
 	{
         	push @{$buttons{_order}}, "revert_config";
-        	$buttons{revert_config} = $self->{handle}->phrase( "Plugin/Screen/Admin/Config/Edit:revert_config_button" );
+        	$buttons{revert_config} = $self->{session}->phrase( "Plugin/Screen/Admin/Config/Edit:revert_config_button" );
 	}
 
-	$form->appendChild( $self->{handle}->render_action_buttons( %buttons ) );
-	my $div = $self->{handle}->make_element( "div", align => "center" );
+	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
+	my $div = $self->{session}->make_element( "div", align => "center" );
 	$div->appendChild($form);
 	
 	my $box;	
@@ -981,7 +981,7 @@ sub config_edit
 	{
 		$box = EPrints::Box::render(
 			id => "inline_edit",
-			handle => $self->{handle},
+			session => $self->{session},
 			title => $self->html_phrase("inline_edit_title"), 
 			collapsed => "true",
 			content => $div
@@ -989,7 +989,7 @@ sub config_edit
 	} else {
 		$box = EPrints::Box::render(
 			id => "inline_edit",
-			handle => $self->{handle},
+			session => $self->{session},
 			title => $self->html_phrase("inline_edit_title"), 
 			content => $div
 		);
@@ -1002,8 +1002,8 @@ sub image_edit
 
 	my @images = $self->get_images();
 	$form = $self->render_form;
-	my $div = $self->{handle}->make_element( "div", align => "center" );
-	my $br = $self->{handle}->make_element( "br" );
+	my $div = $self->{session}->make_element( "div", align => "center" );
+	my $br = $self->{session}->make_element( "br" );
 
 	my $done = {};
 	my $img_count = 0;
@@ -1011,7 +1011,7 @@ sub image_edit
 	{
 		if (!($done->{$image})) 
 		{
-			my $img_node = $self->{handle}->make_element(
+			my $img_node = $self->{session}->make_element(
 				"img",
 				border => 1,
 				style => "max-width: 200px;",
@@ -1019,29 +1019,29 @@ sub image_edit
 			);
 			$done->{$image} = 1;
 
-			my $table = $self->{handle}->make_element(
+			my $table = $self->{session}->make_element(
 				"table",
 				width => "100%"
 			);
-			my $tr = $self->{handle}->make_element(
+			my $tr = $self->{session}->make_element(
 				"tr"
 			);
-			my $td_img = $self->{handle}->make_element(
+			my $td_img = $self->{session}->make_element(
 				"td",
 				height => "80px",
 				align => "center"
 			);
 			$td_img->appendChild($img_node);
-			my $td_text = $self->{handle}->make_element(
+			my $td_text = $self->{session}->make_element(
 				"td",
 				width => "400px",
 				valign => "center"
 			);
 			my $image_name = substr $image, rindex($image,"/")+1, length($image);
-			my $bold = $self->{handle}->make_element( "b" );
-			$bold->appendChild($self->{handle}->make_text($image_name));
+			my $bold = $self->{session}->make_element( "b" );
+			$bold->appendChild($self->{session}->make_text($image_name));
 			$td_text->appendChild($bold);
-			my $hidden = $self->{handle}->make_element(
+			my $hidden = $self->{session}->make_element(
 				"input",
 				type => "hidden",
 				name => "image_path_" . $img_count,
@@ -1051,7 +1051,7 @@ sub image_edit
 			$td_text->appendChild($br);
 			
 
-			my $inner_panel = $self->{handle}->make_element( 
+			my $inner_panel = $self->{session}->make_element( 
 					"div", 
 					id => $self->{prefix}."_upload" );
 
@@ -1059,29 +1059,29 @@ sub image_edit
 
 			my $ffname = "image_" . $img_count;
 			$img_count++;
-			my $file_button = $self->{handle}->make_element( "input",
+			my $file_button = $self->{session}->make_element( "input",
 					name => $ffname,
 					id => $ffname,
 					type => "file",
 					);
-			my $upload_progress_url = $self->{handle}->get_url( path => "cgi" ) . "/users/ajax/upload_progress";
+			my $upload_progress_url = $self->{session}->get_url( path => "cgi" ) . "/users/ajax/upload_progress";
 			my $onclick = "this.parentNode.insertBefore( \$('progress'), this.nextSibling); return startEmbeddedProgressBar(this.form,{'url':".EPrints::Utils::js_string( $upload_progress_url )."});";
-			my $upload_button = $self->{handle}->render_button(
+			my $upload_button = $self->{session}->render_button(
 					value => $self->phrase( "upload" ), 
 					class => "ep_form_internal_button",
 					name => "_action_process_image_upload",
 					onclick => $onclick );
 			$inner_panel->appendChild( $file_button );
-			$inner_panel->appendChild( $self->{handle}->make_text( " " ) );
+			$inner_panel->appendChild( $self->{session}->make_text( " " ) );
 			$inner_panel->appendChild( $upload_button );
-			#my $progress_bar = $self->{handle}->make_element( "div", id => "progress_image_" . $img_count );
+			#my $progress_bar = $self->{session}->make_element( "div", id => "progress_image_" . $img_count );
 			#$inner_panel->appendChild( $progress_bar );
 
 
-			my $script = $self->{handle}->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->phrase("really_next"))." ); } return true; } );" );
+			my $script = $self->{session}->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->phrase("really_next"))." ); } return true; } );" );
 			$inner_panel->appendChild( $script);
 
-			$inner_panel->appendChild( $self->{handle}->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
+			$inner_panel->appendChild( $self->{session}->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
 
 			$td_text->appendChild($inner_panel);
 				
@@ -1092,7 +1092,7 @@ sub image_edit
 			$div->appendChild($table);
 		}
 	}
-	my $hidden = $self->{handle}->make_element(
+	my $hidden = $self->{session}->make_element(
 		"input",
 		type => "hidden",
 		name => "image_count",
@@ -1102,7 +1102,7 @@ sub image_edit
 	$form->appendChild($div);
 	my $box = EPrints::Box::render(
                 id => "image_edit",
-                handle => $self->{handle},
+                session => $self->{session},
                 title => $self->html_phrase("image_editor"),
                 content => $form
         );	
@@ -1113,20 +1113,20 @@ sub html_edit
 	my ( $self, $form ) = @_;
 
 	## Start offline page edit code
-	my $table = $self->{handle}->make_element(
+	my $table = $self->{session}->make_element(
 		"table",
 		width=>"82%"
 		);
-	my $tr = $self->{handle}->make_element(
+	my $tr = $self->{session}->make_element(
 		"tr",
 		);
 	
-	my $div = $self->{handle}->make_element ( 
+	my $div = $self->{session}->make_element ( 
 		"td",
 		align=>"center",
 		);
 
-	my $p = $self->{handle}->make_element (
+	my $p = $self->{session}->make_element (
 		"p"
 	);
 	$p->appendChild($self->html_phrase("external_edit_description"));
@@ -1134,55 +1134,55 @@ sub html_edit
 	my %buttons1;
 
        	push @{$buttons1{_order}}, "download_full_file";
-       	$buttons1{download_full_file} = $self->{handle}->phrase( "Plugin/Screen/Admin/Config/Edit:download_full_file" );
+       	$buttons1{download_full_file} = $self->{session}->phrase( "Plugin/Screen/Admin/Config/Edit:download_full_file" );
 
-	$div->appendChild( $self->{handle}->render_action_buttons( %buttons1 ) );
+	$div->appendChild( $self->{session}->render_action_buttons( %buttons1 ) );
 	
-	my $br = $self->{handle}->make_element ( "br" );	
+	my $br = $self->{session}->make_element ( "br" );	
 	$div->appendChild($br);
 
-	my $inner_panel = $self->{handle}->make_element( 
+	my $inner_panel = $self->{session}->make_element( 
 			"div", 
 			id => $self->{prefix}."_upload_panel_file" );
 
 	$inner_panel->appendChild( $self->html_phrase( "upload_html" ) );
 
 	my $ffname = $self->{prefix}."_first_file";	
-	my $file_button = $self->{handle}->make_element( "input",
+	my $file_button = $self->{session}->make_element( "input",
 		name => $ffname,
 		id => $ffname,
 		type => "file",
 		);
-	my $upload_progress_url = $self->{handle}->get_url( path => "cgi" ) . "/users/ajax/upload_progress";
+	my $upload_progress_url = $self->{session}->get_url( path => "cgi" ) . "/users/ajax/upload_progress";
 	my $onclick = "return startEmbeddedProgressBar(this.form,{'url':".EPrints::Utils::js_string( $upload_progress_url )."});";
-	my $upload_button = $self->{handle}->render_button(
+	my $upload_button = $self->{session}->render_button(
 		value => $self->phrase( "upload" ), 
 		class => "ep_form_internal_button",
 		name => "_action_process_upload",
 		onclick => $onclick );
 	$inner_panel->appendChild( $file_button );
-	$inner_panel->appendChild( $self->{handle}->make_text( " " ) );
+	$inner_panel->appendChild( $self->{session}->make_text( " " ) );
 	$inner_panel->appendChild( $upload_button );
-	my $progress_bar = $self->{handle}->make_element( "div", id => "progress" );
+	my $progress_bar = $self->{session}->make_element( "div", id => "progress" );
 	$inner_panel->appendChild( $progress_bar );
 
 	
-	my $script = $self->{handle}->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->phrase("really_next"))." ); } return true; } );" );
+	my $script = $self->{session}->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->phrase("really_next"))." ); } return true; } );" );
 	$inner_panel->appendChild( $script);
 	
-	$inner_panel->appendChild( $self->{handle}->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
+	$inner_panel->appendChild( $self->{session}->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
 
 	$div->appendChild($inner_panel);
 	
 	$tr->appendChild($div);
 	$table->appendChild($tr);
 	$form->appendChild($table);
-	$div = $self->{handle}->make_element( "div", align => "center" );
+	$div = $self->{session}->make_element( "div", align => "center" );
 	$div->appendChild($form);
 
 	my $box = EPrints::Box::render(
 		id => "external_edit",
-		handle => $self->{handle},
+		session => $self->{session},
 		title => $self->html_phrase("external_edit_title"), 
 		content => $div
 	);
@@ -1194,7 +1194,7 @@ sub get_images
 {
 	my ( $self ) = @_;
 	
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $string = $self->{processor}->{configfile};
 	my $char = "/";
@@ -1205,13 +1205,13 @@ sub get_images
 
 	my $filename = substr $string, $index+1, $length;
 
-	my $from = $handle->get_repository->get_conf( "config_path" ) . "/" . $string;
+	my $from = $session->get_repository->get_conf( "config_path" ) . "/" . $string;
 
-	my $doc = $handle->get_repository->parse_xml( $from );
+	my $doc = $session->get_repository->parse_xml( $from );
 
 	if( !defined $doc )
 	{
-		$handle->get_repository->log( "Could not load file: $from" );
+		$session->get_repository->log( "Could not load file: $from" );
 		return;
 	}
 
@@ -1224,7 +1224,7 @@ sub get_images
 		$part =~ s/^.*://;
 		next unless( $part eq "body" || $part eq "title" || $part eq "template" );
 
-		$page_parts->{$part} = $handle->make_doc_fragment;
+		$page_parts->{$part} = $session->make_doc_fragment;
 
 		foreach my $kid ( $node->getChildNodes )
 		{
@@ -1232,7 +1232,7 @@ sub get_images
 			my $post_epc_kid = EPrints::XML::EPC::process( 
 					$post_edit_exp_kid,
 					in => $from,
-					handle => $handle ); 
+					session => $session ); 
 			$page_parts->{$part}->appendChild( $post_epc_kid );
 		}
 	}
@@ -1242,7 +1242,7 @@ sub get_images
 		if( !$page_parts->{$part} )
 		{
 			#dang some error?
-			#$handle->get_repository->log( "Error: no $part element in ".$from );
+			#$session->get_repository->log( "Error: no $part element in ".$from );
 			#EPrints::XML::dispose( $doc );
 			#return;
 		}
@@ -1256,8 +1256,8 @@ sub get_images
 	#print EPrints::XML::to_string( $page_parts->{page} );
 
 	####
-	my $template_parts = $handle->get_repository->get_template_parts( 
-			$handle->get_langid, 
+	my $template_parts = $session->get_repository->get_template_parts( 
+			$session->get_langid, 
 			$page_parts->{template} );
 	#print join( "\n\n*****\n\n", @{$template_parts} )."\n";
 	my @output = ();
@@ -1293,10 +1293,10 @@ sub get_images
 			#push @output, "<!-- EPEDIT:START:TEMPLATE:PRINT $expr -->";
 			if ( $expr eq '$config{rel_path}') {
 				my $temp = '$config{base_url}';
-				my $result = EPrints::XML::to_string( EPrints::Script::print( $temp, { handle =>$handle } ), undef, 1 );
+				my $result = EPrints::XML::to_string( EPrints::Script::print( $temp, { session=>$session } ), undef, 1 );
 				push @output,$result;
 			}
-			my $result = EPrints::XML::to_string( EPrints::Script::print( $expr, { handle =>$handle } ), undef, 1 );
+			my $result = EPrints::XML::to_string( EPrints::Script::print( $expr, { session=>$session } ), undef, 1 );
 			#push @output, "<!-- EPEDIT:END:TEMPLATE:PRINT -->";
 			push @output, $result;
 			next;
@@ -1306,7 +1306,7 @@ sub get_images
 		{	
 			my $phraseid = join "", @parts;
 			push @output, "<!-- EPEDIT:START:TEMPLATE:PHRASE $phraseid -->";
-			push @output, EPrints::XML::to_string( $handle->html_phrase( $phraseid ), undef, 1 );
+			push @output, EPrints::XML::to_string( $session->html_phrase( $phraseid ), undef, 1 );
 			push @output, "<!-- EPEDIT:END:TEMPLATE:PHRASE -->";
 			next;
 		}
@@ -1375,8 +1375,8 @@ sub render_hidden_bits
 {
 	my( $self ) = @_;
 
-	my $chunk = $self->{handle}->make_doc_fragment;
-	$chunk->appendChild( $self->{handle}->render_hidden_field( "configfile", $self->{processor}->{configfile} ) );
+	my $chunk = $self->{session}->make_doc_fragment;
+	$chunk->appendChild( $self->{session}->render_hidden_field( "configfile", $self->{processor}->{configfile} ) );
 	$chunk->appendChild( $self->SUPER::render_hidden_bits );
 
 	return $chunk;
@@ -1395,9 +1395,9 @@ sub register_furniture
 
 	$self->SUPER::register_furniture;
 
-	my $link = $self->{handle}->render_link( "?screen=Admin::Config" );
+	my $link = $self->{session}->render_link( "?screen=Admin::Config" );
 
-	$self->{processor}->before_messages( $self->{handle}->html_phrase( 
+	$self->{processor}->before_messages( $self->{session}->html_phrase( 
 		"Plugin/Screen/Admin/Config:back_to_config",
 		link=>$link ) );
 }

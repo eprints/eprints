@@ -18,35 +18,12 @@
 
 B<EPrints::List> - List of data objects, usually a search result.
 
-=head1 SYNOPSIS
-
-	use EPrints::List;
-
-	$list = EPrints::List->new( handle => $handle, dataset => $dataset, ids => $ids); # ref to an array of ids to populate the list with
-
-	$new_list = $list->reorder( "-creation_date" ); # makes a new list ordered by reverse order creation_date
-
-	$new_list = $list->union( $list2, "creation_date" ) # makes a new list by adding the contents of $list to $list2. the resulting list is ordered by "creation_date"
-
-	$new_list = $list->remainder( $list2, "title" ); # makes a new list by removing the contents of $list2 from $list orders the resulting list by title
-
-	$n = $list->count() # returns the number of items in the list
-
-	@dataobjs = $list->get_records( 0, 20 );  #get the first 20 DataObjs from the list in an array
-
-	$list->map( $function, $info ) # performs a function on every item in the list. This is very useful go and look at the detailed description.
-
-	$plugin_output = $list->export( "BibTeX" ); #calls Plugin::Export::BibTeX on the list.
-
-	$dataset = $list->get_dataset(); #returns the dataset in which the containing objects belong
-
 =head1 DESCRIPTION
 
 This class represents an ordered list of objects, all from the same
 dataset. Usually this is the results of a search. 
 
-=head1 SEE ALSO
-	L<EPrints::Search>
+=over 4
 
 =cut
 
@@ -54,8 +31,8 @@ dataset. Usually this is the results of a search.
 #
 # INSTANCE VARIABLES:
 #
-#  $self->{handle}
-#     The current EPrints::RepositoryHandle
+#  $self->{session}
+#     The current EPrints::Session
 #
 #  $self->{dataset}
 #     The EPrints::Dataset to which this list belongs.
@@ -78,7 +55,7 @@ dataset. Usually this is the results of a search.
 #
 #  $self->{keep_cache}
 #     If this is true then the cache will not be automatically tidied
-#     when the EPrints::RepositoryHandle terminates.
+#     when the EPrints::Session terminates.
 #
 #  $self->{desc} 
 #     Contains an XHTML description of what this is the iist of.
@@ -95,30 +72,32 @@ use strict;
 ######################################################################
 =pod
 
-=over 4
-
 =item $list = EPrints::List->new( 
-			handle => $handle,
+			session => $session,
 			dataset => $dataset,
-			ids => $ids, # a ref to the array of ids
-			[order => $order] ); # the field on which to order the list
+			[desc => $desc],
+			[desc_order => $desc_order],
+			ids => $ids,
+			[encoded => $encoded],
+			[keep_cache => $keep_cache],
+			[order => $order] );
 
 =item $list = EPrints::List->new( 
-			handle => $handle,
+			session => $session,
 			dataset => $dataset,
 			[desc => $desc],
 			[desc_order => $desc_order],
 			cache_id => $cache_id );
 
 Creates a new list object in memory only. Lists will be
-cached if any method requiring order is called, or an explicit 
+cached if anything method requiring order is called, or an explicit 
 cache() method is called.
 
 encoded is the serialised version of the searchExpression which
 created this list, if there was one.
 
 If keep_cache is set then the cache will not be disposed of at the
-end of the current $handle. If cache_id is set then keep_cache is
+end of the current $session. If cache_id is set then keep_cache is
 automatically true.
 
 =cut
@@ -129,7 +108,7 @@ sub new
 	my( $class, %opts ) = @_;
 
 	my $self = {};
-	$self->{handle} = $opts{handle};
+	$self->{session} = $opts{session};
 	$self->{dataset} = $opts{dataset};
 	$self->{ids} = $opts{ids};
 	$self->{order} = $opts{order};
@@ -143,7 +122,7 @@ sub new
 	{
 		EPrints::abort( "cache_id or ids must be defined in a EPrints::List->new()" );
 	}
-	if( !defined $self->{handle} )
+	if( !defined $self->{session} )
 	{
 		EPrints::abort( "session must be defined in a EPrints::List->new()" );
 	}
@@ -174,8 +153,6 @@ sub new
 
 Create a new list from this one, but sorted in a new way.
 
-$new_list = $list->reorder( "-creation_date" ); # makes a new list ordered by reverse order creation_date
-
 =cut
 ######################################################################
 
@@ -193,7 +170,7 @@ sub reorder
 
 	$self->cache;
 
-	my $db = $self->{handle}->get_database;
+	my $db = $self->{session}->get_database;
 
 	my $srctable = $db->cache_table( $self->{cache_id} );
 
@@ -205,7 +182,7 @@ sub reorder
 		$new_order );
 
 	my $new_list = EPrints::List->new( 
-		handle =>$self->{handle},
+		session=>$self->{session},
 		dataset=>$self->{dataset},
 		desc=>$self->{desc}, # don't pass desc_order!
 		order=>$new_order,
@@ -222,10 +199,6 @@ sub reorder
 
 Create a new list from this one plus another one. If order is not set
 then this list will not be in any certain order.
-
-$list2 - the list which is to be combined to the calling list
-
-$order - a field which the the resulting list will be ordered on. (optional)
 
 =cut
 ######################################################################
@@ -244,7 +217,7 @@ sub union
 	# losing desc, although could be added later.
 	return EPrints::List->new(
 		dataset => $self->{dataset},
-		handle => $self->{handle},
+		session => $self->{session},
 		order => $order,
 		ids=>\@objectids );
 }
@@ -259,10 +232,6 @@ then this list will not be in any certain order.
 
 Remove all items in $list2 from $list and return the result as a
 new EPrints::List.
-
-$list2 - the eprints you want to remove from the calling list
-
-$order - the field the remaining list is to be ordered by
 
 =cut
 ######################################################################
@@ -282,7 +251,7 @@ sub remainder
 	# losing desc, although could be added later.
 	return EPrints::List->new(
 		dataset => $self->{dataset},
-		handle => $self->{handle},
+		session => $self->{session},
 		order => $order,
 		ids=>\@objectids );
 }
@@ -294,10 +263,6 @@ sub remainder
 
 Create a new list containing only the items which are in both lists.
 If order is not set then this list will not be in any certain order.
-
-$list2 - a list to intersect with the calling list
-
-$order -  the field the resulting list will be ordered on
 
 =cut
 ######################################################################
@@ -317,19 +282,19 @@ sub intersect
 	# losing desc, although could be added later.
 	return EPrints::List->new(
 		dataset => $self->{dataset},
-		handle => $self->{handle},
+		session => $self->{session},
 		order => $order,
 		ids=>\@objectids );
 }
 
 ######################################################################
-#=pod
+=pod
 
-#=item $list->cache
+=item $list->cache
 
-#Cause this list to be cached in the database.
+Cause this list to be cached in the database.
 
-#=cut
+=cut
 ######################################################################
 
 sub cache
@@ -351,7 +316,7 @@ sub cache
 #		return;
 #	}
 
-	my $db = $self->{handle}->get_database;
+	my $db = $self->{session}->get_database;
 	if( $self->_matches_all )
 	{
 		$self->{cache_id} = $db->cache( 
@@ -382,20 +347,20 @@ sub cache
 			$self->{order} );
 
 		# clean up intermediate cache table
-		$self->{handle}->get_database->drop_cache( $self->{cache_id} );
+		$self->{session}->get_database->drop_cache( $self->{cache_id} );
 
 		$self->{cache_id} = $new_cache_id;
 	}
 }
 
 ######################################################################
-#=pod
+=pod
 
-#=item $cache_id = $list->get_cache_id
+=item $cache_id = $list->get_cache_id
 
-#Return the ID of the cache table for this list, or undef.
+Return the ID of the cache table for this list, or undef.
 
-#=cut
+=cut
 ######################################################################
 
 sub get_cache_id
@@ -408,13 +373,13 @@ sub get_cache_id
 
 
 ######################################################################
-#=pod
+=pod
 
-#=item $list->dispose
+=item $list->dispose
 
-#Clean up the cache table if appropriate.
+Clean up the cache table if appropriate.
 
-#=cut
+=cut
 ######################################################################
 
 sub dispose
@@ -423,13 +388,13 @@ sub dispose
 
 	if( defined $self->{cache_id} && !$self->{keep_cache} )
 	{
-		if( !defined $self->{handle}->get_database )
+		if( !defined $self->{session}->get_database )
 		{
 			print STDERR "Wanted to drop cache ".$self->{cache_id}." but we've already entered clean up and closed the database connection.\n";
 		}
 		else
 		{
-			$self->{handle}->get_database->drop_cache( $self->{cache_id} );
+			$self->{session}->get_database->drop_cache( $self->{cache_id} );
 			delete $self->{cache_id};
 		}
 	}
@@ -454,7 +419,7 @@ sub count
 	{
 		if( $self->_matches_all )
 		{
-			return $self->{dataset}->count( $self->{handle} );
+			return $self->{dataset}->count( $self->{session} );
 		}
 		return( scalar @{$self->{ids}} );
 	}
@@ -463,7 +428,7 @@ sub count
 	{
 		#cjg Should really have a way to get at the
 		# cache. Maybe we should have a table object.
-		return $self->{handle}->get_database->count_table( 
+		return $self->{session}->get_database->count_table( 
 			"cache".$self->{cache_id} );
 	}
 
@@ -476,9 +441,8 @@ sub count
 
 =item @dataobjs = $list->get_records( [$offset], [$count] )
 
-Returns the DataObjs in this list as an array. 
-$offset - what index through the list to start from.
-$count - the maximum to return.
+Return the objects described by this list. $count is the maximum
+to return. $offset is what index through the list to start from.
 
 =cut
 ######################################################################
@@ -498,9 +462,6 @@ sub get_records
 
 Return a reference to an array containing the ids of the specified
 range from the list. This is more efficient if you just need the ids.
-
-$offset - what index through the list to start from.
-$count - the maximum to return.
 
 =cut
 ######################################################################
@@ -589,7 +550,7 @@ sub _get_records
 			{
 				if( $self->_matches_all )
 				{
-					return $self->{dataset}->get_item_ids( $self->{handle} );
+					return $self->{dataset}->get_item_ids( $self->{session} );
 				}
 				else
 				{
@@ -599,7 +560,7 @@ sub _get_records
 	
 			if( $self->_matches_all )
 			{
-				return $self->{handle}->get_database->get_all(
+				return $self->{session}->get_database->get_all(
 					$self->{dataset} );
 			}
 		}
@@ -616,7 +577,7 @@ sub _get_records
 			my $to = $offset+$count-1;
 			my @range = @ids[($from..$to)];
 		
-			return $self->{handle}->get_database->get_single( $self->{dataset}, $range[0] );
+			return $self->{session}->get_database->get_single( $self->{dataset}, $range[0] );
 		}	
 	}
 	if( !defined $self->{cache_id} )
@@ -624,7 +585,7 @@ sub _get_records
 		$self->cache;
 	}
 
-	my $r = $self->{handle}->get_database->from_cache( 
+	my $r = $self->{session}->get_database->from_cache( 
 			$self->{dataset}, 
 			$self->{cache_id},
 			$offset,
@@ -658,7 +619,7 @@ Example:
 
  sub deal
  {
- 	my( $handle, $dataset, $eprint, $info ) = @_; # params passed to the function by $list->map
+ 	my( $session, $dataset, $eprint, $info ) = @_;
  
  	if( $eprint->get_value( "a" ) eq $eprint->get_value( "b" ) ) {
  		$info->{matches} += 1;
@@ -682,7 +643,7 @@ sub map
 		foreach my $item ( @records )
 		{
 			&{$function}( 
-				$self->{handle}, 
+				$self->{session}, 
 				$self->{dataset}, 
 				$item, 
 				$info );
@@ -699,10 +660,6 @@ Apply an output plugin to this list of items. If the param "fh"
 is set it will send the results to a filehandle rather than return
 them as a string. 
 
-$plugin_id - the ID of the Export plugin which is to be used to process the list. e.g. "BibTeX"
-
-$param{"fh"} = "temp_dir/my_file.txt"; - the file the results are to be out put to, useful for output too big to put into memory.
-
 =cut
 ######################################################################
 
@@ -711,7 +668,7 @@ sub export
 	my( $self, $out_plugin_id, %params ) = @_;
 
 	my $plugin_id = "Export::".$out_plugin_id;
-	my $plugin = $self->{handle}->plugin( $plugin_id );
+	my $plugin = $self->{session}->plugin( $plugin_id );
 
 	unless( defined $plugin )
 	{
@@ -762,16 +719,16 @@ sub render_description
 {
 	my( $self ) = @_;
 
-	my $frag = $self->{handle}->make_doc_fragment;
+	my $frag = $self->{session}->make_doc_fragment;
 
 	if( defined $self->{desc} )
 	{
-		$frag->appendChild( $self->{handle}->clone_for_me( $self->{desc}, 1 ) );
-		$frag->appendChild( $self->{handle}->make_text( " " ) );
+		$frag->appendChild( $self->{session}->clone_for_me( $self->{desc}, 1 ) );
+		$frag->appendChild( $self->{session}->make_text( " " ) );
 	}
 	if( defined $self->{desc_order} )
 	{
-		$frag->appendChild( $self->{handle}->clone_for_me( $self->{desc_order}, 1 ) );
+		$frag->appendChild( $self->{session}->clone_for_me( $self->{desc_order}, 1 ) );
 	}
 
 	return $frag;

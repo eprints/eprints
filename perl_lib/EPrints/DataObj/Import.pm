@@ -29,7 +29,7 @@ Inherits from L<EPrints::DataObj>.
 
 =item $obj->{ "dataset" }
 
-=item $obj->{handle}
+=item $obj->{ "session" }
 
 =back
 
@@ -161,13 +161,13 @@ sub run
 	$self->set_value( "last_run", EPrints::Time::get_iso_timestamp() );
 	$self->commit();
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $url = $self->get_value( "url" );
 
 	if( !EPrints::Utils::is_set( $url ) )
 	{
-		$processor->add_message( "error", $handle->make_text( "Can't run import that doesn't contain a URL" ) );
+		$processor->add_message( "error", $session->make_text( "Can't run import that doesn't contain a URL" ) );
 		return;
 	}
 
@@ -178,22 +178,22 @@ sub run
 
 	if( !$r->is_success )
 	{
-		my $err = $handle->make_doc_fragment;
-		$err->appendChild( $handle->make_text( "Error requesting " ) );
-		$err->appendChild( $handle->render_link( $url ) );
-		$err->appendChild( $handle->make_text( ": ".$r->status_line ) );
+		my $err = $session->make_doc_fragment;
+		$err->appendChild( $session->make_text( "Error requesting " ) );
+		$err->appendChild( $session->render_link( $url ) );
+		$err->appendChild( $session->make_text( ": ".$r->status_line ) );
 		$processor->add_message( "error", $err );
 		return;
 	}
 
 	my $plugin = EPrints::DataObj::Import::XML->new(
-			handle => $handle,
+			session => $session,
 			import => $self,
 		);
 
 	my $list = $plugin->input_file(
 			filename => "$file",
-			dataset => $handle->get_repository->get_dataset( "eprint" ),
+			dataset => $session->get_repository->get_dataset( "eprint" ),
 		);
 
 	$self->set_value( "last_success", EPrints::Time::get_iso_timestamp() );
@@ -230,7 +230,7 @@ sub clear
 	my( $self ) = @_;
 
 	$self->map(sub {
-		my( $handle, $dataset, $eprint ) = @_;
+		my( $session, $dataset, $eprint ) = @_;
 
 		$eprint->remove();
 	});
@@ -246,10 +246,10 @@ sub get_list
 {
 	my( $self ) = @_;
 
-	my $dataset = $self->{handle}->get_repository->get_dataset( "eprint" );
+	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
 
 	my $searchexp = EPrints::Search->new(
-		handle => $self->{handle},
+		session => $self->{session},
 		dataset => $dataset,
 	);
 
@@ -274,10 +274,10 @@ sub get_from_source
 
 	return undef unless defined $sourceid;
 
-	my $dataset = $self->{handle}->get_repository->get_dataset( "eprint" );
+	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
 
 	my $searchexp = EPrints::Search->new(
-		handle => $self->{handle},
+		session => $self->{session},
 		dataset => $dataset,
 	);
 
@@ -360,14 +360,14 @@ sub epdata_to_dataobj
 	}
 	else
 	{
-		$dataobj = $dataset->create_object( $self->{handle}, $epdata );
+		$dataobj = $dataset->create_object( $self->{session}, $epdata );
 	}
 
 	return undef unless defined $dataobj;
 
-	if( $self->{handle}->get_repository->can_call( "set_eprint_import_automatic_fields" ) )
+	if( $self->{session}->get_repository->can_call( "set_eprint_import_automatic_fields" ) )
 	{
-		$self->{handle}->get_repository->call(
+		$self->{session}->get_repository->call(
 			"set_eprint_import_automatic_fields",
 			$dataobj,
 			$self

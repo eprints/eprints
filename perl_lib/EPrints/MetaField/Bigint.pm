@@ -36,9 +36,9 @@ our @ISA = qw( EPrints::MetaField::Int );
 
 sub get_sql_type
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
-	return $handle->get_database->get_column_type(
+	return $session->get_database->get_column_type(
 		$self->get_sql_name(),
 		EPrints::Database::SQL_BIGINT,
 		!$self->get_property( "allow_null" ),

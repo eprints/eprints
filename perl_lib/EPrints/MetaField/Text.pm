@@ -43,31 +43,31 @@ BEGIN
 
 sub render_search_value
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
-	my $valuedesc = $handle->make_doc_fragment;
-	$valuedesc->appendChild( $handle->make_text( '"' ) );
-	$valuedesc->appendChild( $handle->make_text( $value ) );
-	$valuedesc->appendChild( $handle->make_text( '"' ) );
-	my( $good, $bad ) = _extract_words( $handle, $value );
+	my $valuedesc = $session->make_doc_fragment;
+	$valuedesc->appendChild( $session->make_text( '"' ) );
+	$valuedesc->appendChild( $session->make_text( $value ) );
+	$valuedesc->appendChild( $session->make_text( '"' ) );
+	my( $good, $bad ) = _extract_words( $session, $value );
 
 	if( scalar(@{$bad}) )
 	{
-		my $igfrag = $handle->make_doc_fragment;
+		my $igfrag = $session->make_doc_fragment;
 		for( my $i=0; $i<scalar(@{$bad}); $i++ )
 		{
 			if( $i>0 )
 			{
 				$igfrag->appendChild(
-					$handle->make_text( 
+					$session->make_text( 
 						', ' ) );
 			}
 			$igfrag->appendChild(
-				$handle->make_text( 
+				$session->make_text( 
 					'"'.$bad->[$i].'"' ) );
 		}
 		$valuedesc->appendChild( 
-			$handle->html_phrase( 
+			$session->html_phrase( 
 				"lib/searchfield:desc_ignored",
 				list => $igfrag ) );
 	}
@@ -78,16 +78,16 @@ sub render_search_value
 
 #sub split_search_value
 #{
-#	my( $self, $handle, $value ) = @_;
+#	my( $self, $session, $value ) = @_;
 #
-#	my( $codes, $bad ) = _extract_words( $handle, $value );
+#	my( $codes, $bad ) = _extract_words( $session, $value );
 #
 #	return @{$codes};
 #}
 
 sub get_search_conditions_not_ex
 {
-	my( $self, $handle, $dataset, $search_value, $match, $merge,
+	my( $self, $session, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 	
 	if( $match eq "EQ" )
@@ -102,7 +102,7 @@ sub get_search_conditions_not_ex
 	# free text!
 
 	# apply stemming and stuff
-	my( $codes, $bad ) = _extract_words( $handle, $search_value );
+	my( $codes, $bad ) = _extract_words( $session, $search_value );
 
 	# Just go "yeah" if stemming removed the word
 	if( !EPrints::Utils::is_set( $codes->[0] ) )
@@ -121,18 +121,18 @@ sub get_search_group { return 'text'; }
 
 sub get_index_codes
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
 	return( [], [], [] ) unless( EPrints::Utils::is_set( $value ) );
 
 	if( !$self->get_property( "multiple" ) )
 	{
-		return $self->get_index_codes_basic( $handle, $value );
+		return $self->get_index_codes_basic( $session, $value );
 	}
 	my( $codes, $grepcodes, $ignored ) = ( [], [], [] );
 	foreach my $v (@{$value} )
 	{		
-		my( $c,$g,$i ) = $self->get_index_codes_basic( $handle, $v );
+		my( $c,$g,$i ) = $self->get_index_codes_basic( $session, $v );
 		push @{$codes},@{$c};
 		push @{$grepcodes},@{$g};
 		push @{$ignored},@{$i};
@@ -143,11 +143,11 @@ sub get_index_codes
 
 sub get_index_codes_basic
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
 	return( [], [], [] ) unless( EPrints::Utils::is_set( $value ) );
 
-	my( $codes, $badwords ) = _extract_words( $handle, $value );
+	my( $codes, $badwords ) = _extract_words( $session, $value );
 
 	return( $codes, [], $badwords );
 }
@@ -156,12 +156,12 @@ sub get_index_codes_basic
 # text indexing config.
 sub _extract_words
 {
-	my( $handle, $value ) = @_;
+	my( $session, $value ) = @_;
 
 	my( $codes, $badwords ) = 
-		$handle->get_repository->call( 
+		$session->get_repository->call( 
 			"extract_words" ,
-			$handle,
+			$session,
 			$value );
 	my $newbadwords = [];
 	foreach( @{$badwords} ) 
@@ -184,7 +184,7 @@ sub get_property_defaults
 ######################################################################
 =pod
 
-=item $val = $field->value_from_sql_row( $handle, $row )
+=item $val = $field->value_from_sql_row( $session, $row )
 
 Shift and return the utf8 value of this field from the database input $row.
 
@@ -193,7 +193,7 @@ Shift and return the utf8 value of this field from the database input $row.
 
 sub value_from_sql_row
 {
-	my( $self, $handle, $row ) = @_;
+	my( $self, $session, $row ) = @_;
 
 	utf8::decode( $row->[0] );
 

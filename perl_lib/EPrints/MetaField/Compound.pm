@@ -65,61 +65,61 @@ sub new
 
 sub render_value
 {
-	my( $self, $handle, $value, $alllangs, $nolink, $object ) = @_;
+	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
 
 	if( defined $self->{render_value} )
 	{
 		return $self->call_property( "render_value",
-			$handle, 
+			$session, 
 			$self, 
 			$value, 
 			$alllangs, 
 			$nolink );
 	}
 
-	my $table = $handle->make_element( "table", border=>1, cellspacing=>0, cellpadding=>2 );
-	my $tr = $handle->make_element( "tr" );
+	my $table = $session->make_element( "table", border=>1, cellspacing=>0, cellpadding=>2 );
+	my $tr = $session->make_element( "tr" );
 	$table->appendChild( $tr );
 	my $f = $self->get_property( "fields_cache" );
 	foreach my $field_conf ( @{$f} )
 	{
 		my $fieldname = $field_conf->{name};
 		my $field = $self->{dataset}->get_field( $fieldname );
-		my $th = $handle->make_element( "th" );
+		my $th = $session->make_element( "th" );
 		$tr->appendChild( $th );
-		$th->appendChild( $field->render_name( $handle ) );
+		$th->appendChild( $field->render_name( $session ) );
 	}
 
 	if( $self->get_property( "multiple" ) )
 	{
 		foreach my $row ( @{$value} )
 		{
-			$table->appendChild( $self->render_single_value_row( $handle, $row, $object ) );
+			$table->appendChild( $self->render_single_value_row( $session, $row, $object ) );
 		}
 	}
 	else
 	{
-		$table->appendChild( $self->render_single_value_row( $handle, $value, $object ) );
+		$table->appendChild( $self->render_single_value_row( $session, $value, $object ) );
 	}
 	return $table;
 }
 
 sub render_single_value_row
 {
-	my( $self, $handle, $value, $object ) = @_;
+	my( $self, $session, $value, $object ) = @_;
 
 	my $f = $self->get_property( "fields_cache" );
 
 	my %fieldname_to_alias = $self->get_fieldname_to_alias;
-	my $tr = $handle->make_element( "tr" );
+	my $tr = $session->make_element( "tr" );
 	foreach my $field ( @{$f} )
 	{
 		my $name = $field->get_name;
-		my $td = $handle->make_element( "td" );
+		my $td = $session->make_element( "td" );
 		$tr->appendChild( $td );
 		$td->appendChild( 
 			$field->render_single_value( 
-				$handle, 
+				$session, 
 				$value->{$fieldname_to_alias{$name}}, 
 				$object ) );
 	}
@@ -129,18 +129,18 @@ sub render_single_value_row
 
 sub render_single_value
 {
-	my( $self, $handle, $value, $object ) = @_;
+	my( $self, $session, $value, $object ) = @_;
 
-	my $table = $handle->make_element( "table", border=>1 );
-	$table->appendChild( $self->render_single_value_row( $handle, $value, $object ) );
+	my $table = $session->make_element( "table", border=>1 );
+	$table->appendChild( $self->render_single_value_row( $session, $value, $object ) );
 	return $table;
 }
 
 sub to_xml_basic
 {
-	my( $self, $handle, $value, $dataset ) = @_;
+	my( $self, $session, $value, $dataset ) = @_;
 
-	my $r = $handle->make_doc_fragment;
+	my $r = $session->make_doc_fragment;
 	if( !EPrints::Utils::is_set( $value )  )
 	{
 		return $r;
@@ -154,8 +154,8 @@ sub to_xml_basic
 		next unless $field->get_property( "export_as_xml" );
 		my $alias = $fieldname_to_alias{$name};
 		my $v = $value->{$alias};
-		my $tag = $handle->make_element( $alias );
-		$tag->appendChild( $field->to_xml_basic( $handle, $v, $dataset ) );
+		my $tag = $session->make_element( $alias );
+		$tag->appendChild( $field->to_xml_basic( $session, $v, $dataset ) );
 		$r->appendChild( $tag );
 	}
 	return $r;
@@ -163,7 +163,7 @@ sub to_xml_basic
 
 sub xml_to_epdata_basic
 {
-	my( $self, $handle, $xml, %opts ) = @_;
+	my( $self, $session, $xml, %opts ) = @_;
 
 	my $value = {};
 
@@ -177,13 +177,13 @@ sub xml_to_epdata_basic
 		{
 			if( defined $opts{Handler} )
 			{
-				$opts{Handler}->message( "warning", $handle->html_phrase( "Plugin/Import/XML:unexpected_element", name => $handle->make_text( $nodeName ) ) );
-				$opts{Handler}->message( "warning", $handle->html_phrase( "Plugin/Import/XML:expected", elements => $handle->make_text( "<".join("> <", sort { $a cmp $b } keys %a_to_f).">" ) ) );
+				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:unexpected_element", name => $session->make_text( $nodeName ) ) );
+				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:expected", elements => $session->make_text( "<".join("> <", sort { $a cmp $b } keys %a_to_f).">" ) ) );
 			}
 			next;
 		}
 		my $field = $self->get_dataset->get_field( $name );
-		$value->{$nodeName} = $field->xml_to_epdata_basic( $handle, $node, %opts );
+		$value->{$nodeName} = $field->xml_to_epdata_basic( $session, $node, %opts );
 	}
 
 	return $value;
@@ -199,7 +199,7 @@ sub is_virtual
 
 sub get_sql_type
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
 	return undef;
 }
@@ -317,18 +317,18 @@ sub set_value
 
 sub get_input_col_titles
 {
-	my( $self, $handle, $staff ) = @_;
+	my( $self, $session, $staff ) = @_;
 
 	my @r  = ();
 	my $f = $self->get_property( "fields_cache" );
 	foreach my $field ( @{$f} )
 	{
 		my $fieldname = $field->get_name;
-		my $sub_r = $field->get_input_col_titles( $handle, $staff );
+		my $sub_r = $field->get_input_col_titles( $session, $staff );
 
 		if( !defined $sub_r )
 		{
-			$sub_r = [ $field->render_name( $handle ) ];
+			$sub_r = [ $field->render_name( $session ) ];
 		}
 
 		push @r, @{$sub_r};
@@ -340,7 +340,7 @@ sub get_input_col_titles
 # assumes all basic input elements are 1 high, x wide.
 sub get_basic_input_elements
 {
-	my( $self, $handle, $value, $basename, $staff, $object ) = @_;
+	my( $self, $session, $value, $basename, $staff, $object ) = @_;
 
 	my $f = $self->get_property( "fields_cache" );
 	my $grid_row = [];
@@ -351,7 +351,7 @@ sub get_basic_input_elements
 		my $fieldname = $field->get_name;
 		my $alias = $fieldname_to_alias{$fieldname};
 		my $part_grid = $field->get_basic_input_elements( 
-					$handle, 
+					$session, 
 					$value->{$fieldname_to_alias{$fieldname}}, 
 					$basename."_".$alias, 
 					$staff, 
@@ -365,7 +365,7 @@ sub get_basic_input_elements
 
 sub get_basic_input_ids
 {
-	my( $self, $handle, $basename, $staff, $obj ) = @_;
+	my( $self, $session, $basename, $staff, $obj ) = @_;
 
 	my @ids = ();
 
@@ -377,7 +377,7 @@ sub get_basic_input_ids
 		my $alias = $fieldname_to_alias{$fieldname};
 		my $field = $obj->get_dataset->get_field( $fieldname );
 		push @ids, $field->get_basic_input_ids( 
-					$handle, 
+					$session, 
 					$basename."_".$alias, 
 					$staff, 
 					$obj );
@@ -389,7 +389,7 @@ sub get_basic_input_ids
 
 sub form_value_basic
 {
-	my( $self, $handle, $basename, $object ) = @_;
+	my( $self, $session, $basename, $object ) = @_;
 	
 	my $value = {};
 
@@ -399,7 +399,7 @@ sub form_value_basic
 	{
 		my $fieldname = $field->get_name;
 		my $alias = $fieldname_to_alias{$fieldname};
-		my $v = $field->form_value_basic( $handle, $basename."_".$alias, $object );
+		my $v = $field->form_value_basic( $session, $basename."_".$alias, $object );
 		$value->{$alias} = $v;
 	}
 
@@ -410,7 +410,7 @@ sub form_value_basic
 
 sub validate
 {
-	my( $self, $handle, $value, $object ) = @_;
+	my( $self, $session, $value, $object ) = @_;
 
 	my $f = $self->get_property( "fields_cache" );
 	my @problems;
@@ -430,7 +430,7 @@ sub is_browsable
 # don't index
 sub get_index_codes
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
 	return( [], [], [] );
 }
@@ -456,16 +456,16 @@ sub get_xml_schema_type
 
 sub render_xml_schema_type
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
-	my $type = $handle->make_element( "xs:complexType", name => $self->get_xml_schema_type );
+	my $type = $session->make_element( "xs:complexType", name => $self->get_xml_schema_type );
 
-	my $sequence = $handle->make_element( "xs:sequence" );
+	my $sequence = $session->make_element( "xs:sequence" );
 	$type->appendChild( $sequence );
 	foreach my $field (@{$self->{fields_cache}})
 	{
 		my $name = $field->{sub_name};
-		my $element = $handle->make_element( "xs:element", name => $name, type => $field->get_xml_schema_type() );
+		my $element = $session->make_element( "xs:element", name => $name, type => $field->get_xml_schema_type() );
 		$sequence->appendChild( $element );
 	}
 
@@ -474,10 +474,10 @@ sub render_xml_schema_type
 
 sub get_search_conditions_not_ex
 {
-	my( $self, $handle, $dataset, $search_value, $match, $merge,
+	my( $self, $session, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 
-	EPrints::abort( "Attempt to search compound field. Repository ID=".$handle->get_repository->get_id.", dataset=". $self->{dataset}->confid . ", field=" . $self->get_name );
+	EPrints::abort( "Attempt to search compound field. Repository ID=".$session->get_repository->get_id.", dataset=". $self->{dataset}->confid . ", field=" . $self->get_name );
 }
 
 ######################################################################

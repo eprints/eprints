@@ -39,7 +39,7 @@ use strict;
 ######################################################################
 =pod
 
-=item $xhtml = EPrints::Extras::render_xhtml_field( $handle, $field,
+=item $xhtml = EPrints::Extras::render_xhtml_field( $session, $field,
 $value )
 
 Return an XHTML DOM object of the contents of $value. In the case of
@@ -58,9 +58,9 @@ may allow a limited set of elements only.
 
 sub render_xhtml_field
 {
-	my( $handle , $field , $value ) = @_;
+	my( $session , $field , $value ) = @_;
 
-	if( !defined $value ) { return $handle->make_doc_fragment; }
+	if( !defined $value ) { return $session->make_doc_fragment; }
         my( %c ) = (
                 ParseParamEnt => 0,
                 ErrorContext => 2,
@@ -72,16 +72,16 @@ sub render_xhtml_field
         {
                 my $err = $@;
                 $err =~ s# at /.*##;
-		my $pre = $handle->make_element( "pre" );
-		$pre->appendChild( $handle->make_text( "Error parsing XML in render_xhtml_field: ".$err ) );
+		my $pre = $session->make_element( "pre" );
+		$pre->appendChild( $session->make_text( "Error parsing XML in render_xhtml_field: ".$err ) );
 		return $pre;
         }
-	my $fragment = $handle->make_doc_fragment;
+	my $fragment = $session->make_doc_fragment;
 	my $top = ($doc->getElementsByTagName( "fragment" ))[0];
 	foreach my $node ( $top->getChildNodes )
 	{
 		$fragment->appendChild(
-			$handle->clone_for_me( $node, 1 ) );
+			$session->clone_for_me( $node, 1 ) );
 	}
 	EPrints::XML::dispose( $doc );
 		
@@ -91,7 +91,7 @@ sub render_xhtml_field
 ######################################################################
 =pod
 
-=item $xhtml = EPrints::Extras::render_preformatted_field( $handle, $field, $value )
+=item $xhtml = EPrints::Extras::render_preformatted_field( $session, $field, $value )
 
 Return an XHTML DOM object of the contents of $value.
 
@@ -103,11 +103,11 @@ element.
 
 sub render_preformatted_field
 {
-	my( $handle , $field , $value ) = @_;
+	my( $session , $field , $value ) = @_;
 
-	my $pre = $handle->make_element( "pre" );
+	my $pre = $session->make_element( "pre" );
 	$value =~ s/\r\n/\n/g;
-	$pre->appendChild( $handle->make_text( $value ) );
+	$pre->appendChild( $session->make_text( $value ) );
 		
 	return $pre;
 }
@@ -115,7 +115,7 @@ sub render_preformatted_field
 ######################################################################
 =pod
 
-=item $xhtml = EPrints::Extras::render_hightlighted_field( $handle, $field, $value )
+=item $xhtml = EPrints::Extras::render_hightlighted_field( $session, $field, $value )
 
 Return an XHTML DOM object of the contents of $value.
 
@@ -127,24 +127,24 @@ element.
 
 sub render_highlighted_field
 {
-	my( $handle , $field , $value, $alllangs, $nolink, $object ) = @_;
+	my( $session , $field , $value, $alllangs, $nolink, $object ) = @_;
 
-	my $div = $handle->make_element( "div", class=>"ep_highlight" );
-	my $v=$field->render_value_actual( $handle, $value, $alllangs, $nolink, $object );
+	my $div = $session->make_element( "div", class=>"ep_highlight" );
+	my $v=$field->render_value_actual( $session, $value, $alllangs, $nolink, $object );
 	$div->appendChild( $v );	
 	return $div;
 }
 
 sub render_lookup_list
 {
-	my( $handle, $rows ) = @_;
+	my( $session, $rows ) = @_;
 
-	my $ul = $handle->make_element( "ul" );
+	my $ul = $session->make_element( "ul" );
 
 	my $first = 1;
 	foreach my $row (@$rows)
 	{
-		my $li = $handle->make_element( "li" );
+		my $li = $session->make_element( "li" );
 		$ul->appendChild( $li );
 		if( $first )
 		{
@@ -157,17 +157,17 @@ sub render_lookup_list
 		}
 		elsif( defined($row->{desc}) )
 		{
-			$li->appendChild( $handle->make_text( $row->{desc} ) );
+			$li->appendChild( $session->make_text( $row->{desc} ) );
 		}
 		my @values = @{$row->{values}};
-		my $ul = $handle->make_element( "ul" );
+		my $ul = $session->make_element( "ul" );
 		$li->appendChild( $ul );
 		for(my $i = 0; $i < @values; $i+=2)
 		{
 			my( $name, $value ) = @values[$i,$i+1];
-			my $li = $handle->make_element( "li", id => $name );
+			my $li = $session->make_element( "li", id => $name );
 			$ul->appendChild( $li );
-			$li->appendChild( $handle->make_text( $value ) );
+			$li->appendChild( $session->make_text( $value ) );
 		}
 	}
 
@@ -177,7 +177,7 @@ sub render_lookup_list
 ######################################################################
 =pod
 
-=item $xhtml = EPrints::Extras::render_url_truncate_end( $handle, $field, $value )
+=item $xhtml = EPrints::Extras::render_url_truncate_end( $session, $field, $value )
 
 Hyper link the URL but truncate the end part if it gets longer 
 than 50 characters.
@@ -187,23 +187,23 @@ than 50 characters.
 
 sub render_url_truncate_end
 {
-	my( $handle, $field, $value ) = @_;
+	my( $session, $field, $value ) = @_;
 
 	my $len = 50;	
-	my $link = $handle->render_link( $value );
+	my $link = $session->render_link( $value );
 	my $text = $value;
 	if( length( $value ) > $len )
 	{
 		$text = substr( $value, 0, $len )."...";
 	}
-	$link->appendChild( $handle->make_text( $text ) );
+	$link->appendChild( $session->make_text( $text ) );
 	return $link
 }
 
 ######################################################################
 =pod
 
-=item $xhtml = EPrints::Extras::render_url_truncate_middle( $handle, $field, $value )
+=item $xhtml = EPrints::Extras::render_url_truncate_middle( $session, $field, $value )
 
 Hyper link the URL but truncate the middle part if it gets longer 
 than 50 characters.
@@ -213,23 +213,23 @@ than 50 characters.
 
 sub render_url_truncate_middle
 {
-	my( $handle, $field, $value ) = @_;
+	my( $session, $field, $value ) = @_;
 
 	my $len = 50;	
-	my $link = $handle->render_link( $value );
+	my $link = $session->render_link( $value );
 	my $text = $value;
 	if( length( $value ) > $len )
 	{
 		$text = substr( $value, 0, $len/2 )."...".substr( $value, -$len/2, -1 );
 	}
-	$link->appendChild( $handle->make_text( $text ) );
+	$link->appendChild( $session->make_text( $text ) );
 	return $link
 }
 
 ######################################################################
 =pod
 
-=item $xhtml = EPrints::Extras::render_related_url( $handle, $field, $value )
+=item $xhtml = EPrints::Extras::render_related_url( $session, $field, $value )
 
 Hyper link the URL but truncate the middle part if it gets longer 
 than 50 characters.
@@ -239,7 +239,7 @@ than 50 characters.
 
 sub render_related_url
 {
-	my( $handle, $field, $value ) = @_;
+	my( $session, $field, $value ) = @_;
 
 	my $f = $field->get_property( "fields_cache" );
 	my $fmap = {};	
@@ -250,20 +250,20 @@ sub render_related_url
 		$fmap->{$field_conf->{sub_name}} = $field;
 	}
 
-	my $ul = $handle->make_element( "ul" );
+	my $ul = $session->make_element( "ul" );
 	foreach my $row ( @{$value} )
 	{
-		my $li = $handle->make_element( "li" );
-		my $link = $handle->render_link( $row->{url} );
+		my $li = $session->make_element( "li" );
+		my $link = $session->render_link( $row->{url} );
 		if( defined $row->{type} )
 		{
-			$link->appendChild( $fmap->{type}->render_single_value( $handle, $row->{type} ) );
+			$link->appendChild( $fmap->{type}->render_single_value( $session, $row->{type} ) );
 		}
 		else
 		{
 			my $text = $row->{url};
 			if( length( $text ) > 40 ) { $text = substr( $text, 0, 40 )."..."; }
-			$link->appendChild( $handle->make_text( $text ) );
+			$link->appendChild( $session->make_text( $text ) );
 		}
 		$li->appendChild( $link );
 		$ul->appendChild( $li );
@@ -305,17 +305,17 @@ If the field looks like it contains a DOI then link it.
 
 sub render_possible_doi
 {
-	my( $handle, $field, $value ) = @_; 
+	my( $session, $field, $value ) = @_; 
 
 	$value = "" unless defined $value;
 
-	if( $value !~ /^(doi:)?10\.\d\d\d\d\// ) { return $handle->make_text( $value ); }
+	if( $value !~ /^(doi:)?10\.\d\d\d\d\// ) { return $session->make_text( $value ); }
 	
 	$value =~ s/^doi://;
 
 	my $url = "http://dx.doi.org/$value";
-	my $link = $handle->render_link( $url );
-	$link->appendChild( $handle->make_text( $value ) );
+	my $link = $session->render_link( $url );
+	$link->appendChild( $session->make_text( $value ) );
 	return $link; 
 }
 

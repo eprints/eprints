@@ -59,7 +59,7 @@ sub render
 
 	my $eprint = $self->{processor}->{eprint};
 
-	my $page = $self->{handle}->make_doc_fragment();
+	my $page = $self->{session}->make_doc_fragment();
 	
 	$page->appendChild( $self->html_phrase( "intro" ) );
 
@@ -67,20 +67,20 @@ sub render
 	
 	$page->appendChild( $form );
 	
-	my $reason = $self->{handle}->make_doc_fragment;
-	my $reason_static = $self->{handle}->make_element( "div", id=>"ep_mail_reason_fixed",class=>"ep_only_js" );
+	my $reason = $self->{session}->make_doc_fragment;
+	my $reason_static = $self->{session}->make_element( "div", id=>"ep_mail_reason_fixed",class=>"ep_only_js" );
 	$reason_static->appendChild( $self->html_phrase( "reason" ) );
-	$reason_static->appendChild( $self->{handle}->make_text( " " ));	
+	$reason_static->appendChild( $self->{session}->make_text( " " ));	
 	
-	my $edit_link = $self->{handle}->make_element( "a", href=>"#", onclick => "EPJS_blur(event); EPJS_toggle('ep_mail_reason_fixed',true,'block');EPJS_toggle('ep_mail_reason_edit',false,'block');\$('ep_mail_reason_edit').focus(); \$('ep_mail_reason_edit').select(); return false", );
-	$reason_static->appendChild( $self->{handle}->html_phrase( "mail_edit_click",
+	my $edit_link = $self->{session}->make_element( "a", href=>"#", onclick => "EPJS_blur(event); EPJS_toggle('ep_mail_reason_fixed',true,'block');EPJS_toggle('ep_mail_reason_edit',false,'block');\$('ep_mail_reason_edit').focus(); \$('ep_mail_reason_edit').select(); return false", );
+	$reason_static->appendChild( $self->{session}->html_phrase( "mail_edit_click",
 		edit_link => $edit_link ) ); 
 	$reason->appendChild( $reason_static );
 	
 
-	my $div = $self->{handle}->make_element( "div", class => "ep_form_field_input" );
+	my $div = $self->{session}->make_element( "div", class => "ep_form_field_input" );
 
-	my $textarea = $self->{handle}->make_element(
+	my $textarea = $self->{session}->make_element(
 		"textarea",
 		id => "ep_mail_reason_edit",
 		class => "ep_no_js",
@@ -92,31 +92,31 @@ sub render
 	$reason->appendChild( $textarea );
 
 	# remove any markup:
-	my $title = $self->{handle}->make_text( 
+	my $title = $self->{session}->make_text( 
 		EPrints::Utils::tree_to_utf8( 
 			$eprint->render_description() ) );
 	
-	my $from_user =$self->{handle}->current_user;
+	my $from_user =$self->{session}->current_user;
 	
 	my $content = $self->html_phrase(
 		"mail",
 		user => $from_user->render_description,
-		email => $self->{handle}->make_text( $from_user->get_value( "email" )),
+		email => $self->{session}->make_text( $from_user->get_value( "email" )),
 		citation => $self->{processor}->{eprint}->render_citation,
-		url => $self->{handle}->render_link(
+		url => $self->{session}->render_link(
 				$self->{processor}->{eprint}->get_control_url ),
 		reason => $reason );
 
-	my $body = $self->{handle}->html_phrase(
+	my $body = $self->{session}->html_phrase(
 		"mail_body",
 		content => $content );
 
 	my $subject = $self->html_phrase( "subject" );
 
-	my $view = $self->{handle}->html_phrase(
+	my $view = $self->{session}->html_phrase(
 		"mail_view",
 		subject => $subject,
-		to => $self->{handle}->html_phrase( "archive_name" ),
+		to => $self->{session}->html_phrase( "archive_name" ),
 		from => $from_user->render_description,
 		body => $body );
 
@@ -124,7 +124,7 @@ sub render
 	
 	$form->appendChild( $div );
 
-	$form->appendChild( $self->{handle}->render_action_buttons(
+	$form->appendChild( $self->{session}->render_action_buttons(
 		_class => "ep_form_button_bar",
 		"send" => $self->phrase( "action:send:title" ),
 		"cancel" => $self->phrase( "action:cancel:title" ),
@@ -156,21 +156,21 @@ sub action_send
 	}
 	else
 	{
-		$langid = $self->{handle}->{repository}->get_conf( "defaultlanguage" );
+		$langid = $self->{session}->{repository}->get_conf( "defaultlanguage" );
 	}
-	my $lang = $self->{handle}->get_repository->get_language( $langid );
+	my $lang = $self->{session}->get_repository->get_language( $langid );
 
 	my %mail;
-	$mail{handle} = $self->{handle};
+	$mail{session} = $self->{session};
 	$mail{langid} = $langid;
 	$mail{subject} = EPrints::Utils::tree_to_utf8( $lang->phrase( 
 		"Plugin/Screen/EPrint/RequestRemoval:subject",
 		{},
-		$self->{handle} ) );
+		$self->{session} ) );
 	$mail{sig} = $lang->phrase( 
 		"mail_sig",
 		{},
-		$self->{handle} );
+		$self->{session} );
 
 	if( defined $ed )
 	{
@@ -182,21 +182,21 @@ sub action_send
  		$mail{to_name} = EPrints::Utils::tree_to_utf8( $lang->phrase( 
 			"lib/session:archive_admin",
 			{},
-			$self->{handle} ) );
- 		$mail{to_email} = $self->{handle}->get_repository->get_conf( "adminemail" );
+			$self->{session} ) );
+ 		$mail{to_email} = $self->{session}->get_repository->get_conf( "adminemail" );
 	}
 	
-	my $from_user = $self->{handle}->current_user;
+	my $from_user = $self->{session}->current_user;
 	$mail{from_name} = EPrints::Utils::tree_to_utf8( $from_user->render_description() );
 	$mail{from_email} = $from_user->get_value( "email" );
 
-	my $reason = $self->{handle}->make_text( $self->{handle}->param( "reason" ) );
+	my $reason = $self->{session}->make_text( $self->{session}->param( "reason" ) );
 	$mail{message} = $self->html_phrase(
 		"mail",
 		user => $from_user->render_description,
-		email => $self->{handle}->make_text( $from_user->get_value( "email" )),
+		email => $self->{session}->make_text( $from_user->get_value( "email" )),
 		citation => $self->{processor}->{eprint}->render_citation,
-		url => $self->{handle}->render_link(
+		url => $self->{session}->render_link(
 				$self->{processor}->{eprint}->get_control_url ),
 		reason => $reason );
 
@@ -205,24 +205,24 @@ sub action_send
 	if( !$mail_ok ) 
 	{
 		$self->{processor}->add_message( "warning",
-			$self->{handle}->html_phrase( 
+			$self->{session}->html_phrase( 
 				"cgi/users/edit_eprint:mail_fail",
-				username => $self->{handle}->make_text( $mail{to_name} ),
-				email => $self->{handle}->make_text( $mail{to_email} ) ));
+				username => $self->{session}->make_text( $mail{to_name} ),
+				email => $self->{session}->make_text( $mail{to_email} ) ));
 		return;
 	}
 
 	$self->{processor}->add_message( "message",
-		$self->{handle}->html_phrase( 
+		$self->{session}->html_phrase( 
 			"cgi/users/edit_eprint:mail_sent" ) );
 
 
 
 
-	my $history_ds = $self->{handle}->get_repository->get_dataset( "history" );
+	my $history_ds = $self->{session}->get_repository->get_dataset( "history" );
 
 	$history_ds->create_object( 
-		$self->{handle},
+		$self->{session},
 		{
 			userid=>$from_user->get_id,
 			datasetid=>"eprint",

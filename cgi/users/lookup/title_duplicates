@@ -5,21 +5,21 @@ use EPrints;
 use strict;
 use warnings;
 
-my $handle = EPrints::Handle->new();
+my $session = EPrints::Session->new();
 
 # security?
 
 # How many chars needed before we try and suggest duplicates?
 my $need = 5;
 
-my $q = $handle->param( "q" ) || "";
+my $q = $session->param( "q" ) || "";
 
 exit unless length( $q ) >= $need; 
 
-my $eprintid = $handle->param( "eprintid" );
+my $eprintid = $session->param( "eprintid" );
 if( !defined($eprintid) )
 {
-	$handle->get_repository->log( "title_duplicates lookup script called without eprintid argument: ".join(',',$handle->param));
+	$session->get_repository->log( "title_duplicates lookup script called without eprintid argument: ".join(',',$session->param));
 	exit(0);
 }
 elsif( $eprintid =~ /^([0-9]+)$/ )
@@ -31,8 +31,8 @@ else
 	EPrints::abort "Requires numeric eprintid argument";
 }
 
-my $database = $handle->get_database;
-my $dataset = $handle->get_repository->get_dataset( "eprint" );
+my $database = $session->get_database;
+my $dataset = $session->get_repository->get_dataset( "eprint" );
 
 my $Q_table = $database->quote_identifier($dataset->get_sql_table_name);
 my $Q_eprintid = $database->quote_identifier( "eprintid" );
@@ -48,12 +48,12 @@ my $sql = "SELECT $Q_eprintid" .
 	" AND $Q_title LIKE " .
 	$database->quote_value( EPrints::Database::prep_like_value( $q ) . '%' );
 
-my $doc = $handle->make_doc_fragment();
+my $doc = $session->make_doc_fragment();
 
-my $sth = $handle->get_database->prepare_select( $sql, 'limit' => 10 );
-$handle->get_database->execute( $sth , $sql );
+my $sth = $session->get_database->prepare_select( $sql, 'limit' => 10 );
+$session->get_database->execute( $sth , $sql );
 
-my $base_url = $handle->get_repository->get_conf( "base_url" );
+my $base_url = $session->get_repository->get_conf( "base_url" );
 
 my $warning =<<END;
 The following records matching this title already exist in the archive.
@@ -64,9 +64,9 @@ my $row = $sth->fetch;
 
 exit unless defined $row;
 
-$doc->appendChild( my $div = $handle->render_message( "warning", $handle->make_text( $warning) ) );
+$doc->appendChild( my $div = $session->render_message( "warning", $session->make_text( $warning) ) );
 
-$div->appendChild( my $ul = $handle->make_element( 'ul' ));
+$div->appendChild( my $ul = $session->make_element( 'ul' ));
 
 my $count = 0;
 my $first = 1;
@@ -74,13 +74,13 @@ my $first = 1;
 do
 {
 	my( $eprintid, $title ) = @$row;
-	$ul->appendChild( my $li = $handle->make_element( 'li' ) );
+	$ul->appendChild( my $li = $session->make_element( 'li' ) );
 	if( $first )
 	{
 		$li->setAttribute( 'class', 'ep_first' );
 		$first = 0;
 	}
-	my $eprint = EPrints::DataObj::EPrint->new( $handle, $eprintid );
+	my $eprint = EPrints::DataObj::EPrint->new( $session, $eprintid );
 	if( ++$count > 5 )
 	{
 		$li->appendChild( $eprint->render_citation_link( "brief", target => "_blank" ) );
@@ -93,7 +93,7 @@ do
 
 $sth->finish;
 
-$handle->send_http_header( content_type => "text/xml; charset=UTF-8" );
+$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
 
 print <<END,
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -103,4 +103,4 @@ END
 
 EPrints::XML::dispose( $doc );
 
-$handle->terminate;
+$session->terminate;

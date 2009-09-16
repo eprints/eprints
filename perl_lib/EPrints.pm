@@ -21,175 +21,17 @@ B<EPrints> - Institutional Repository software
 
 =head1 SYNOPSIS
 
-	#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
-	
-	use EPrints;
-	use strict;
+	use EPrints qw();
 
-	# cgi script	
-	$handle = EPrints->get_repository_handle();
-	exit( 1 ) unless( defined $handle );
+	my $session = EPrints::Session->new( 1, "demoprints" );
 
-	# bin script
-	$handle = EPrints->get_repository_handle_by_id( $repository_id, noise => $noise );
+	...
 
-	$eprint = $handle->get_eprint( $eprintid );
-	my $title = $eprint->get_value( 'title' );
-	
-	$eprint->set_value( 'creators', 
-		[
-			{ 
-				name => { given=>'John', family=>'Smith' },
-				id => 'js@example.com',
-			},
-			{ 
-				name => { given=>'Marvin', family=>'Fenderson' },
-				id => 'marvin@totl.net',
-			},
-		]
-	);
-	$eprint->commit;
+	$session->terminate;
 
-	my $eprint_ds = $handle->get_dataset( "eprint" );
-	my $new_eprint = $eprint_ds->create_object( 
-		$handle, { title=>"My new EPrint!" } );
-	
-	my $archive_ds = $handle->get_dataset( "archive" );
-	my $search = new EPrints::Search( 
-		handle => $handle, 
-		dataset => $archive_ds );
-	my $date_mf = $archive_ds->get_field( "date" );
-	$search->add_field( $date_mf, "2000-2003" );
-
-	my $list = $search->perform_search;
-	$list->map(
-		sub {
-			my( $handle, $dataset, $eprint, $info ) = @_;
-	
-			printf( "%s: %s\n", 
-				 $eprint->get_value( "date" ),
-				 $eprint->get_value( "title" ) );
-		}
-	);
-	$list->dispose();
-
-	$handle->log( "We did some stuff." );
-
-	if( some_test() ) { EPrints::abort( "Something bad happened" ); }
-	
 =head1 DESCRIPTION
 
-Using this module will cause all the other EPrints modules to be used also.
-
-See http://www.eprints.org/ for more information about EPrints. Much more documentation can be found at http://wiki.eprints.org/w/Documentation
-
-=head2 Key API EPrints Modules
-
-=over 4
-
-=item EPrints
-
-This module! Used to load the other modules.
-
-=item EPrints::DataObj
-
-Abstract object representing a single record in a DataSet. Has one subclass for each type of DataSet. The most important subclasses are listed below. This module documents generic functions which work on all (or most) data objects. Every DataObj has a unique ID within the dataset (an integer, with the exception of Subject). Every DataObj is given a URI of the form I<repository_url>/id/I<datasetid>/I<dataobj_id>
-
-=item EPrints::DataObj::Document
-
-Represents a single document. A document is a set of metadata plus files. It *may* have some repository configuraed metadata in addition to the default. The metadata describes the document and is mostly concerned with formats, and rights. Documents belong to exactly one EPrints::DataObj::EPrint are are destroyed if it is destroyed. A document has one or more file. If there's more than one file then they are related, like a .css file for a .html
-
-=item EPrints::DataObj::EPrint
-
-Represents a single submission to the repository. May have 0+ documents as sub-objects. Has both system defined metafields plus many defined in the repository configuration. 
-
-=item EPrints::DataSet
-
-This object represents a set of objects of the same time, and has associated MetaFields and database tables. A dataset may represent a subset of another dataset. For example, "eprint" represents all EPrints::DataObj::EPrint objects, but the "buffer" dataset only represents those which are "under review".
-
-=item EPrints::RepositoryHandle
-
-the core of the EPrints API. This object represents a connection between the configuration for a repository, the database connection and either the CGI (web) or CLI (command line) interface.
-
-=item EPrints::List
-
-A list of zero or more data-objects in a single dataset. It can be constructed from a list of ID's or returned as the result of a search.
-
-=item EPrints::MetaField
-
-A single field in a dataset. It has many subclasses, one for each type of field.
-
-=item EPrints::Repository
-
-Represents the configuration, datasets and dataobjects of a single repository. It is loaded from the configuration files and is essentially read-only.
-
-=item EPrints::Search
-
-The search object takes parameters and returns a List object of matching dataobjs from a given dataset. It can also be used it reverse to test if a dataobj matches it's parameters.
-
-=back
-
-=head2 Other API EPrints Modules
-
-=over 4
-
-=item EPrints::Box
-
-A utitility module to render HTML boxes with style and javascript roll-up animations.
-
-=item EPrints::Database
-
-An object representing a connection to the database for a repository. This is an abstraction over sub-objects which connect to MySQL or Oracle.
-
-=item EPrints::DataObj::File
-
-Represents a single file in a document with some basic metadata such as checksums.
-
-=item EPrints::DataObj::User
-
-Represents a single registered user of the repository. Used for keeping track of preferences, profile information and rights management.
-
-=item EPrints::DataObj::Subject
-
-This dataset is used to store the structure of heierachichal(sp?) sets, used by the "Subject" metafield type.
-
-=item EPrints::Email
-
-Tool for sending email.
-
-=item EPrints::Paginate
-
-Tools for rendering an EPrint::List as paginated HTML.
-
-=item EPrints::Paginate::Columns
-
-An extension to EPrints::Paginate which shows the results in sortable columns, as seen in Items and Review screens.
-
-=item EPrints::Storage
-
-Methods to abstract the process of reading and writing files. EPrints 3.2 introduced the possibility of storing files in the cloud, or in other storage devices, and this module is the interface to that.
-
-=item EPrints::TempDir
-
-Tools for creating and destorying temporary directories.
-
-=item EPrints::Time
-
-A set of methods for handling time and converting between time formats.
-
-=item EPrints::URL
-
-Utility methods for generating and getting URLs, relative paths etc.
-
-=item EPrints::Utils
-
-Misc. utility methods.
-
-=item EPrints::XML
-
-Utility methods for working with XML and DOM. This papers over the cracks between the 3 different XML DOM libraries EPrints supports.
-
-=back
+See http://www.eprints.org/.
 
 =head2 Available Symbols
 
@@ -216,6 +58,8 @@ Where PID is the id number of the stalled process.
 A shell script will print the stack trace to the console.
 
 =head1 METHODS
+
+=over 4
 
 =cut
 
@@ -254,8 +98,6 @@ use EPrints::Apache::Storage;
 	# abort($err) Defined here so modules can abort even at startup
 ######################################################################
 =pod
-
-=over 4
 
 =item EPrints::abort( $msg )
 
@@ -319,17 +161,9 @@ END
 		exit( 1 );
 	}
 
-	# tag is a string identifying the set of deprecated methods
-	# to which this method belongs, so you can filter some.
 	sub deprecated
 	{
-		my( $tag ) = @_;
-
 		my @c = caller(1);
-
-		# should check system settings. cjg.
-		return if( $tag eq "xml" );
-
 		print STDERR "Called deprecated function $c[3] from $c[1] line $c[2]\n";
 	}
 
@@ -393,7 +227,7 @@ use EPrints::Search::Field;
 use EPrints::Search::Condition;
 use EPrints::CLIProcessor;
 use EPrints::ScreenProcessor;
-use EPrints::RepositoryHandle;
+use EPrints::Session;
 use EPrints::Script;
 use EPrints::URL;
 use EPrints::Paracite;
@@ -403,66 +237,8 @@ use EPrints::Update::Abstract;
 use EPrints::Workflow;
 use EPrints::Workflow::Stage;
 use EPrints::XML::EPC;
-use EPrints::XMLHandle;
 
 our $__loaded;
-
-######################################################################
-=pod 
-
-=item $handle = EPrints->get_repository_handle( %options )
-
-=item $handle = EPrints->get_repository_handle_by_id( %options )
-
-Return an EPrints::RepositoryHandle object joining a web request or script to a
-database connection, and the configuration and data for a single 
-repository.
-
-The main options are:
-
-repository => $repository_id: This is required for command line scripts. CGI scripts will obtain the repository ID from the context of the request.
-
-noise => [0..4]: The level of debug info. 0 - silent, 1 - quietish (default), 2 - noisy, 3 - debug all SQL statements, 4 - debug database connection.
-
-The following advanced options are also available but are less likely to be useful:
-
-consume_post_data => [0,1]: Default 1. Only meaningful when running as a web-request. Setting this to "0" will stop the session parsing the POST data which comes in via STDIN. This may be useful if writing apache handlers which make decisions before the main $handle is created. If you don't set it they consume the POST data, and the main handle doesn't get to see it.
-
-check_database => [0,1]: Default 1. By default a session checks the database structure is compatible with the EPrints database module version. Setting this to "0" will supress this check.
-
-=cut
-######################################################################
-
-sub get_repository_handle
-{
-	my( $class, %options ) = @_;
-
-	return EPrints::RepositoryHandle->new( %options );
-}
-sub get_repository_handle_by_id
-{
-	my( $class, $repository_id, %options ) = @_;
-
-	return EPrints::RepositoryHandle->new( repository=>$repository_id, %options );
-}
-
-######################################################################
-=pod 
-
-=item $repository = EPrints->get_repository_config( $repository_id )
-
-Return an EPrints::Repository object representing the configuration
-of the named repository.
-
-=cut
-######################################################################
-
-sub get_repository_config
-{
-	my( $class, $repository_id ) = @_;
-
-	return EPrints::Repository->new( $repository_id );
-}
 
 sub import
 {
@@ -503,7 +279,7 @@ __END__
 
 =head1 SEE ALSO
 
-L<EPrints::RepositoryHandle>
+L<EPrints::Session>
 
 =head1 COPYRIGHT
 

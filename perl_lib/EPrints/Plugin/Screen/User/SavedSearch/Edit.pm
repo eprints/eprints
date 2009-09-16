@@ -74,7 +74,7 @@ sub action_save
 	my( $self ) = @_;
 
 	$self->workflow->update_from_form( $self->{processor},"User::SavedSearches" );
-	$self->{handle}->reload_current_user;
+	$self->{session}->reload_current_user;
 	
 	$self->{processor}->{screenid} = "User::SavedSearches";
 }
@@ -92,7 +92,7 @@ sub action_prev
 	my( $self ) = @_;
 
 	$self->workflow->update_from_form( $self->{processor} );
-	$self->{handle}->reload_current_user;
+	$self->{session}->reload_current_user;
 	$self->workflow->prev;
 }
 
@@ -109,7 +109,7 @@ sub action_next
 	my( $self ) = @_;
 
 	my $from_ok = $self->workflow->update_from_form( $self->{processor} );
-	$self->{handle}->reload_current_user;
+	$self->{session}->reload_current_user;
 	return unless $from_ok;
 
 	if( !defined $self->workflow->get_next_stage_id )
@@ -170,7 +170,7 @@ sub render_buttons
 		push @{$buttons{_order}}, "next";
 		$buttons{next} = $self->phrase( "next" );
 	}	
-	return $self->{handle}->render_action_buttons( %buttons );
+	return $self->{session}->render_action_buttons( %buttons );
 }
 
 sub redirect_to_me_url

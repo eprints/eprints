@@ -14,7 +14,7 @@ sub render_status
 {
 	my( $self ) = @_;
 
-	my $status_fragment = $self->{handle}->make_doc_fragment;
+	my $status_fragment = $self->{session}->make_doc_fragment;
 
 	return $status_fragment;
 }

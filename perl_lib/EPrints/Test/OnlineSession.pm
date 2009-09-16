@@ -20,14 +20,14 @@ B<EPrints::Test::OnlineSession> - Test online features of EPrints, offline
 
 package EPrints::Test::OnlineSession;
 
-our @ISA = qw( EPrints::RepositoryHandle );
+our @ISA = qw( EPrints::Session );
 
 my @VARS = qw( stdout uri secure );
 my %VAR;
 
-=item $handle = EPrints::Test::OnlineSession->new( $handle, $query )
+=item $session = EPrints::Test::OnlineSession->new( $session, $query )
 
-Subclass $handle and initialise it with our fake $query.
+Subclass $session and initialise it with our fake $query.
 
 $query may contain:
 
@@ -47,15 +47,15 @@ foreach my $f (@VARS)
 
 sub new
 {
-	my( $class, $handle, $opts ) = @_;
+	my( $class, $session, $opts ) = @_;
 
-	my $self = bless $handle, $class;
+	my $self = bless $session, $class;
 
 	my $method = $opts->{method} || "GET";
 	my $path = defined $opts->{path} ? $opts->{path} : "";
 	my $query = defined $opts->{query} ? $opts->{query} : "";
 
-	my $uri = URI->new( $handle->get_repository->get_conf( "base_url" ) );
+	my $uri = URI->new( $session->get_repository->get_conf( "base_url" ) );
 	if( $path !~ m#^/# )
 	{
 		$path = $uri->path . "/" . $path;
@@ -81,7 +81,7 @@ sub new
 
 	if( defined $opts->{username} )
 	{
-		my $user = $self->get_user_with_username( $opts->{username} );
+		my $user = EPrints::DataObj::User::user_with_username( $self, $opts->{username} );
 		if( !defined $user )
 		{
 			EPrints::abort "Couldn't retrieve user with username $opts->{username}";
@@ -146,6 +146,5 @@ END
 		delete $self->{page};
 	}
 }
-
 
 1;

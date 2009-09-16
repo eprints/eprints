@@ -19,24 +19,11 @@
 
 B<EPrints::Email> - Email Utility functions for EPrints.
 
-=head1 SYNOPSIS
-
-	use EPrints;
-
-	# sends an email to Bob Test at test@test.com in English with the 
-	# subject "Recent Test Reports"
-	EPrints::Email::send_mail( 
-		  handle => $handle,
-		  langid => "en",
-		to_email => "test@test.com", 
-		 to_name => "Bob Test", 
-		 subject => "Recent Test Reports", 
-		 message => $message_dom,
-	); 
-
 =head1 DESCRIPTION
 
 This package handles sending emails.
+
+=over 4
 
 =cut
 
@@ -52,52 +39,39 @@ use strict;
 ######################################################################
 =pod
 
-=over 4
-
-=item EPrints::Email::send_mail( %properties )
+=item EPrints::Utils::send_mail( %properties )
 
 Sends an email. 
 
-=over 4
-
 Required properties:
 
-%properties{handle} - the current handle
+session - the current session
 
-%properties{langid} - the ISO language code of the language to send the email in. e.g. "en" for English
+langid - the id of the language to send the email in.
 
-%properties{to_email} - the email address to send the email to 
+to_email, to_name - who to send it to
 
-%properties{to_name} - the name of the person you are emailing (encoded in UTF-8)
+subject - the subject of the message (UTF-8 encoded string)
 
-%properties{subject} - the subject of the message (encoded in UTF-8)
-
-%properties{message} - the body of the message as a DOM tree
-
-=back
+message - the body of the message as a DOM tree
 
 optional properties:
 
-=over 4
+from_email, from_name - who is sending the email (defaults to the archive admin)
 
-%properties{from_email, from_name - who is sending the email (defaults to the archive admin)
+sig - the signature file as a DOM tree
 
-%properties{sig} - the signature file as a DOM tree
+replyto_email, replyto_name
 
-%properties{replyto_email} - the email address the recipient should reply to.
-
-%properties{replyto_name} - the name of the person to reply to (encoded in UTF-8)
-
-%properties{attach} - ref to an array of filenames (with full paths) to attach to the message 
-
-=back
+attach - ref to an array of filenames (with full paths) to attach to the message 
 
 Returns true if mail sending (appears to have) succeeded. False otherwise.
 
 Uses the config. option "send_email" to send the mail, or if that's
 not defined sends the email via STMP.
 
-=back
+names and the subject should be encoded as utf-8
+
 
 =cut
 ######################################################################
@@ -106,18 +80,18 @@ sub send_mail
 {
 	my( %p ) = @_;
 
-	my $repository = $p{handle}->get_repository;
+	my $repository = $p{session}->get_repository;
 
 	if( defined $p{message} )
 	{
 		my $msg = $p{message};
 
 		# First get the body
-		my $body = $p{handle}->html_phrase( 
+		my $body = $p{session}->html_phrase( 
 			"mail_body",
-			content => $p{handle}->clone_for_me($msg,1) );
+			content => $p{session}->clone_for_me($msg,1) );
 		# Then add the HTML around it
-		my $html = $p{handle}->html_phrase(
+		my $html = $p{session}->html_phrase(
 			"mail_wrapper",
 			body => $body );
 
@@ -126,7 +100,7 @@ sub send_mail
 
 	if( !defined $p{from_email} ) 
 	{
-		$p{from_name} = $p{handle}->phrase( "archive_name" );
+		$p{from_name} = $p{session}->phrase( "archive_name" );
 		$p{from_email} = $repository->get_conf( "adminemail" );
 	}
 	
@@ -152,7 +126,7 @@ sub send_mail
 
 	if( !$result )
 	{
-		$p{handle}->get_repository->log( "Failed to send mail.\nTo: $p{to_email} <$p{to_name}>\nSubject: $p{subject}\n" );
+		$p{session}->get_repository->log( "Failed to send mail.\nTo: $p{to_email} <$p{to_name}>\nSubject: $p{subject}\n" );
 	}
 
 	return $result;
@@ -176,7 +150,7 @@ sub send_mail_via_smtp
 
 	eval 'use Net::SMTP';
 
-	my $repository = $p{handle}->get_repository;
+	my $repository = $p{session}->get_repository;
 
 	my $smtphost = $repository->get_conf( 'smtp_server' );
 
@@ -229,7 +203,7 @@ sub send_mail_via_sendmail
 {
 	my( %p )  = @_;
 
-	my $repository = $p{handle}->get_repository;
+	my $repository = $p{session}->get_repository;
 
 	unless( open( SENDMAIL, "|".$repository->invocation( "sendmail" ) ) )
 	{
@@ -254,7 +228,7 @@ sub build_email
 
 	my $MAILWIDTH = 80;
 
-	my $repository = $p{handle}->get_repository;
+	my $repository = $p{session}->get_repository;
 
 	my $mimemsg = MIME::Lite->new(
 		From       => encode_mime_header( "$p{from_name}" )." <$p{from_email}>",

@@ -4,8 +4,8 @@ use Test::More tests => 9;
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
 
-my $handle = EPrints::Test::get_test_session( 0 );
-ok(defined $handle, 'opened an EPrints::RepositoryHandle object (noisy, no_check_db)');
+my $session = EPrints::Test::get_test_session( 0 );
+ok(defined $session, 'opened an EPrints::Session object (noisy, no_check_db)');
 
 {
 package MyHander;
@@ -27,7 +27,7 @@ my $doc = EPrints::XML::parse_xml_string( join "", <DATA> );
 my( $eprint_xml ) = $doc->documentElement->getElementsByTagName( "eprint" );
 
 my $handler = MyHander->new;
-my $epdata = EPrints::DataObj::EPrint->xml_to_epdata( $handle, $eprint_xml, Handler => $handler );
+my $epdata = EPrints::DataObj::EPrint->xml_to_epdata( $session, $eprint_xml, Handler => $handler );
 
 is( $epdata->{title}, "Fulvous Whistling Ducks and Man", "Parsed title" );
 is( $epdata->{creators}->[0]->{name}->{family}, "Toda", "Parsed 1st creator" );
@@ -53,7 +53,7 @@ foreach my $test (sort keys %warnings)
 
 EPrints::XML::dispose( $doc );
 
-$handle->terminate;
+$session->terminate;
 
 __DATA__
 <?xml version="1.0" encoding="utf-8" ?>

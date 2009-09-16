@@ -26,18 +26,18 @@ sub output_list
 {
 	my( $plugin, %opts ) = @_;
 
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{session};
 
 	my %elements;
 	my %types;
 
 	$opts{list}->map( sub {
-		my( $handle, $dataset, $item ) = @_;
+		my( $session, $dataset, $item ) = @_;
 
 		my $field = $item->make_field_object;
 
 		my $datasetid = $item->get_value( "mfdatasetid" );
-		my $element = $field->render_xml_schema( $handle );
+		my $element = $field->render_xml_schema( $session );
 		push @{$elements{$datasetid}}, $element;
 
 		foreach my $sub_field ($field, @{$field->{fields_cache}||[]})
@@ -45,12 +45,12 @@ sub output_list
 			my $type = $sub_field->get_xml_schema_type();
 			if( $type !~ /^xs:/ )
 			{
-				$types{$type} ||= $sub_field->render_xml_schema_type( $handle );
+				$types{$type} ||= $sub_field->render_xml_schema_type( $session );
 			}
 		}
 	} );
 
-	my $schema = $handle->make_element( "xs:schema",
+	my $schema = $session->make_element( "xs:schema",
 		"targetNamespace" => "http://eprints.org/ep2/data/2.0",
 		"xmlns" => "http://eprints.org/ep2/data/2.0",
 		"xmlns:xs" => "http://www.w3.org/2001/XMLSchema",
@@ -60,22 +60,22 @@ sub output_list
 	foreach my $datasetid (sort keys %elements)
 	{
 		# root element for this dataset
-		my $root = $handle->make_element( "xs:element", name => "${datasetid}s" );
+		my $root = $session->make_element( "xs:element", name => "${datasetid}s" );
 		$schema->appendChild( $root );
-		my $complexType = $handle->make_element( "xs:complexType" );
+		my $complexType = $session->make_element( "xs:complexType" );
 		$root->appendChild( $complexType );
-		my $choice = $handle->make_element( "xs:choice" );
+		my $choice = $session->make_element( "xs:choice" );
 		$complexType->appendChild( $choice );
-		my $element = $handle->make_element( "xs:element", name => $datasetid, type => "dataset_$datasetid", minOccurs => "0", maxOccurs => "unbounded" );
+		my $element = $session->make_element( "xs:element", name => $datasetid, type => "dataset_$datasetid", minOccurs => "0", maxOccurs => "unbounded" );
 		$choice->appendChild( $element );
 
 		# dataset schema
-		$complexType = $handle->make_element( "xs:complexType", name => "dataset_$datasetid" );
+		$complexType = $session->make_element( "xs:complexType", name => "dataset_$datasetid" );
 		$schema->appendChild( $complexType );
 
 		# dataset fields
 		# TODO: this should be xs:all, but the DTD won't accept minOccurs=0
-		my $datasetAll = $handle->make_element( "xs:choice", minOccurs => 0, maxOccurs => "unbounded" );
+		my $datasetAll = $session->make_element( "xs:choice", minOccurs => 0, maxOccurs => "unbounded" );
 		$complexType->appendChild( $datasetAll );
 		foreach my $field_schemas (@{$elements{$datasetid}})
 		{
@@ -83,7 +83,7 @@ sub output_list
 		}
 
 		# dataset "id" attribute (attributes follow elements in schema)
-		my $id = $handle->make_element( "xs:attribute", name => "id", type => "xs:anyURI" );
+		my $id = $session->make_element( "xs:attribute", name => "id", type => "xs:anyURI" );
 		$complexType->appendChild( $id );
 	}
 

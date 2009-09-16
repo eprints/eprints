@@ -553,7 +553,7 @@ sub run_script
 {
 	my( $repoid, $script, @opts ) = @_;
 
-	my $repo = EPrints->get_repository_config( $repoid );
+	my $repo = EPrints::Repository->new( $repoid );
 	my $bin = $repo->get_conf( "bin_path" );
 
 	system( "$bin/$script", @opts );
@@ -563,17 +563,17 @@ sub cleanup_cachemaps
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit unless( defined $handle );
+	my $session = EPrints::Session->new( 1 , $repoid, $noise );
+	exit unless( defined $session );
 
-	my $c = $handle->get_database->drop_orphan_cache_tables;
+	my $c = $session->get_database->drop_orphan_cache_tables;
 
 	if( $c == 0 )
 	{
-		$handle->get_repository->log( "No orphaned cache tables found" );
+		$session->get_repository->log( "No orphaned cache tables found" );
 	}
 
-	$handle->terminate;
+	$session->terminate;
 }
 
 sub config_core
@@ -1026,8 +1026,8 @@ sub create_user
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit unless( defined $handle );
+	my $session = EPrints::Session->new( 1 , $repoid, $noise );
+	exit unless( defined $session );
 
 	my $user_info = {};
 	@{$user_info}{qw( username usertype password email )} = @ARGV[2..$#ARGV];
@@ -1044,19 +1044,19 @@ sub create_user
 
 	print "Creating a new user in $repoid\n\n";
 	$user_info->{username} ||= EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
-	while( defined $handle->get_user_with_username( $user_info->{username} ) )
+	while( defined EPrints::DataObj::User::user_with_username( $session, $user_info->{username} ) )
 	{
 		print STDERR "User with username '".$user_info->{username}."' already exists.\n";
 		$user_info->{username} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
 	}
-	my @utypes = $handle->get_repository->get_types( "user" );
+	my @utypes = $session->get_repository->get_types( "user" );
 	$user_info->{usertype} ||= EPrints::Utils::get_input( '^('.join( '|', @utypes ).')$', 'Select a user type ('.join( "|",@utypes).')', 'admin' );
 	$user_info->{password} ||= EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Enter Password' );
-	$user_info->{password} = EPrints::Utils::crypt_password( $user_info->{password}, $handle );
+	$user_info->{password} = EPrints::Utils::crypt_password( $user_info->{password}, $session );
 	$user_info->{email} ||= EPrints::Utils::get_input( $REGEXP_EMAIL, 'Email' );
 	
-	my $user_ds = $handle->get_repository->get_dataset( "user" );
-	my $new_user = $user_ds->create_object( $handle, $user_info );
+	my $user_ds = $session->get_repository->get_dataset( "user" );
+	my $new_user = $user_ds->create_object( $session, $user_info );
 
 	print "\n";
 
@@ -1075,10 +1075,10 @@ sub create_user
 	}
 	else
 	{
-		my $db_error = $handle->get_database->error;
+		my $db_error = $session->get_database->error;
 		print STDERR "Error creating user: $db_error\n";
 	}
-	$handle->terminate;
+	$session->terminate;
 }
 
 
@@ -1086,11 +1086,11 @@ sub redo_thumbnails
 {
 	my( $repoid, @ids ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit( 1 ) unless( defined $handle );
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
 
 	my $mf = sub {
-		my( $handle , $dataset , $doc ) = @_;
+		my( $session , $dataset , $doc ) = @_;
 
 		if( $noise >= 2 )
 		{
@@ -1101,17 +1101,17 @@ sub redo_thumbnails
 		$doc->make_thumbnails;
 	};
 
-	my $doc_ds = $handle->get_repository->get_dataset( "document" );
+	my $doc_ds = $session->get_repository->get_dataset( "document" );
 	if( !@ids )
 	{
-		$doc_ds->map( $handle, $mf );
+		$doc_ds->map( $session, $mf );
 	}
 	else
 	{
-		my $dataset = $handle->get_repository->get_dataset( "eprint" );
+		my $dataset = $session->get_repository->get_dataset( "eprint" );
 		for(@ids)
 		{
-			my $eprint = $dataset->get_object( $handle, $_ );
+			my $eprint = $dataset->get_object( $session, $_ );
 			if( !defined $eprint )
 			{
 				print STDERR "No such eprint '$_'\n";
@@ -1119,12 +1119,12 @@ sub redo_thumbnails
 			}
 			foreach my $doc ($eprint->get_all_documents)
 			{
-				&$mf( $handle, $doc_ds, $doc );
+				&$mf( $session, $doc_ds, $doc );
 			}
 		}
 	}
 
-	$handle->terminate;
+	$session->terminate;
 }	
 
 
@@ -1132,10 +1132,10 @@ sub refresh_views
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit( 1 ) unless( defined $handle );
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
 	
-	my $file = $handle->get_repository->get_conf( "variables_path" )."/views.timestamp";
+	my $file = $session->get_repository->get_conf( "variables_path" )."/views.timestamp";
 	unless( open( CHANGEDFILE, ">$file" ) )
 	{
 		EPrints::abort( "Cannot write to file $file" );
@@ -1151,7 +1151,7 @@ restarting the server at this point is slightly more efficient.
 
 END
 	}
-	$handle->terminate;
+	$session->terminate;
 
 	reload( $repoid );
 }	
@@ -1161,10 +1161,10 @@ sub refresh_abstracts
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit( 1 ) unless( defined $handle );
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
 	
-	my $file = $handle->get_repository->get_conf( "variables_path" )."/abstracts.timestamp";
+	my $file = $session->get_repository->get_conf( "variables_path" )."/abstracts.timestamp";
 	unless( open( CHANGEDFILE, ">$file" ) )
 	{
 		EPrints::abort( "Cannot write to file $file" );
@@ -1180,7 +1180,7 @@ restarting the server at this point is slightly more efficient.
 
 END
 	}
-	$handle->terminate;
+	$session->terminate;
 
 	reload( $repoid );
 }	
@@ -1189,10 +1189,10 @@ sub reload
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit( 1 ) unless( defined $handle );
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
 	
-	my $file = $handle->get_repository->get_conf( "variables_path" )."/last_changed.timestamp";
+	my $file = $session->get_repository->get_conf( "variables_path" )."/last_changed.timestamp";
 	unless( open( CHANGEDFILE, ">$file" ) )
 	{
 		EPrints::abort( "Cannot write to file $file" );
@@ -1207,23 +1207,23 @@ soon as possible.
 
 END
 	}
-	$handle->terminate;
+	$session->terminate;
 }	
 
 sub reload_metafields
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit( 1 ) unless( defined $handle );
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
 
-	my $dataset = $handle->get_repository->get_dataset( "metafield" );
-	$dataset->map( $handle, sub {
+	my $dataset = $session->get_repository->get_dataset( "metafield" );
+	$dataset->map( $session, sub {
 		my( undef, undef, $mf ) = @_;
 		$mf->remove();
 	});
 
-	my $list = EPrints::DataObj::MetaField::load_all( $handle );
+	my $list = EPrints::DataObj::MetaField::load_all( $session );
 	print "Loaded ".$list->count." metafields\n";
 }	
 
@@ -1231,39 +1231,39 @@ sub create_tables
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit( 1 ) unless( defined $handle );
+	my $session = new EPrints::Session( 1 , $repoid , $noise, 1 );
+	exit( 1 ) unless( defined $session );
 
-	if( $handle->get_database->has_table( "eprint" ) )
+	if( $session->get_database->has_table( "eprint" ) )
 	{
 		print "WARNING: Database is NOT empty. Contains an \"eprint\" table.\n";
 		print "You might consider running 'epadmin erase_data $repoid' instead.\n";
-		$handle->terminate;
+		$session->terminate;
 		exit 1;
 	}
 
-	foreach my $dsid ( $handle->get_repository->get_sql_dataset_ids )
+	foreach my $dsid ( $session->get_repository->get_sql_dataset_ids )
 	{
-		my $ds = $handle->get_repository->get_dataset( $dsid );
+		my $ds = $session->get_repository->get_dataset( $dsid );
 		my $indexes = $ds->count_indexes;
 		if( $indexes > 32 )
 		{
 			print STDERR "WARNING: Main table of dataset \"$dsid\" requires $indexes indexes.\n";
-			$handle->terminate;
+			$session->terminate;
 			EPrints::abort( "MySQL has a maximum of 32 indexes per table and the '$dsid'\ntable requires $indexes. Add an sql_index=>0 parameter to some of the\nfields in this dataset. See the Documentation for more information\non the 'sql_index' metadata parameter. --force will override this\ncheck but the SQL will probably fail anyway." );
 		}
 	}
 			
 	if( $noise>=1 ) { print "Creating database tables...\n"; }
-	if( $handle->get_database->create_archive_tables )
+	if( $session->get_database->create_archive_tables )
 	{
 		if( $noise>=1 ) { print "Done creating database tables.\n\n"; }
 	}
 	else
 	{
-		my $error = $handle->get_database->error;
+		my $error = $session->get_database->error;
 		print STDERR "DB Error: $error\n";
-		$handle->terminate;
+		$session->terminate;
 		exit 1;
 	}
 }
@@ -1333,10 +1333,10 @@ sub reset_dataset
 {
 	my( $repoid, $datasetid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit( 1 ) unless( defined $handle );
+	my $session = new EPrints::Session( 1 , $repoid , $noise, 1 );
+	exit( 1 ) unless( defined $session );
 
-	my $db = $handle->get_database;
+	my $db = $session->get_database;
 	my @tables = $db->get_tables;
 	print "Erasing dataset $datasetid\n" if( $noise >= 1 );
 	foreach my $table ( @tables )
@@ -1352,23 +1352,23 @@ sub reset_dataset
 		$db->counter_reset( $datasetid."id" );
 	}
 
-	$handle->terminate;
+	$session->terminate;
 }
 
 sub drop_tables_and_recreate_db
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise, check_database=>0 );
-	exit( 1 ) unless( defined $handle );
+	my $session = new EPrints::Session( 1 , $repoid , $noise, 1 );
+	exit( 1 ) unless( defined $session );
 
-	my $db = $handle->get_database;
+	my $db = $session->get_database;
 
 	my @tables = $db->get_tables;
 
-	foreach my $datasetid ($handle->get_repository->get_sql_dataset_ids())
+	foreach my $datasetid ($session->get_repository->get_sql_dataset_ids())
 	{
-		my $dataset = $handle->get_repository->get_dataset( $datasetid );
+		my $dataset = $session->get_repository->get_dataset( $datasetid );
 		my $sql_name = $dataset->get_sql_table_name;
 		if( $noise>=2 ) { print "Removing dataset $datasetid [$sql_name]\n"; }
 		foreach my $table (@tables)
@@ -1403,7 +1403,7 @@ sub drop_tables_and_recreate_db
 		create_tables( $repoid );
 	}
 
-	$handle->terminate;
+	$session->terminate;
 }
 
 # not an option directly!
@@ -1411,7 +1411,7 @@ sub drop_and_recreate_db
 {
 	my( $repoid ) = @_;
 
-	my $repo = EPrints->get_repository_config( $repoid );
+	my $repo = EPrints::Repository->new( $repoid );
 	my $database = $repo->get_conf( "dbname" );
 	
 	if( $noise>=1 ) { print "Connecting to mysql...\n"; }
@@ -1446,7 +1446,7 @@ sub erase_eprint_files
 
 	if( $noise>=1 ) { print "Erasing eprint files...\n"; }
 
-	my $repo = EPrints->get_repository_config( $repoid );
+	my $repo = EPrints::Repository->new( $repoid );
 	my $documents_path = $repo->get_conf( "documents_path" );
 	my $htdocs_path = $repo->get_conf( "htdocs_path" );
 	
@@ -1479,13 +1479,13 @@ sub erase_fulltext_index
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit( 1 ) unless( defined $handle );
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
 
-	my $ds = $handle->get_repository->get_dataset( "document" );
+	my $ds = $session->get_repository->get_dataset( "document" );
 	print "Stating to erase caches\n" if( $noise >= 1 );
 
-	$ds->map( $handle, sub {
+	$ds->map( $session, sub {
 			my( undef, undef, $doc ) = @_;
 
 			if( $noise >= 2 )
@@ -1500,22 +1500,22 @@ sub erase_fulltext_index
 	print "Queuing records for re-indexing\n" if( $noise >= 1 );
 
 	my $fn = sub {
-		my( $handle, $dataset, $item ) = @_;
+		my( $session, $dataset, $item ) = @_;
 	
 		$item->queue_fulltext();
 
-		if( $handle->get_noise() >= 2 )
+		if( $session->get_noise() >= 2 )
 		{
 			print STDERR "Queued item: ".$dataset->id()."/".$item->get_id()."\n";
 		}
 	};
 
-	my $ep_ds = $handle->get_repository->get_dataset( "eprint" );
-	$ep_ds->map( $handle, $fn );
+	my $ep_ds = $session->get_repository->get_dataset( "eprint" );
+	$ep_ds->map( $session, $fn );
 
 	print "Done queuing\n" if( $noise >= 1 );
 
-	$handle->terminate;
+	$session->terminate;
 }
 
 sub test
@@ -1532,8 +1532,8 @@ sub test
 		return;
 	}
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit( 1 ) unless( defined $handle );
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
 	if( $noise > 1 )
 	{
 		print "PID: $$\n";
@@ -1544,7 +1544,7 @@ sub test
 			print "SIZE: $size\n";
 		}
 	}
-	$handle->terminate;
+	$session->terminate;
 
 	print "Everything seems OK.\n";
 }
@@ -1618,16 +1618,16 @@ sub rehash
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit( 1 ) unless( defined $handle );
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
 
 	my $docid = $ARGV[2];
 	if( defined $docid )
 	{
-		my $doc = $handle-get_document( $docid );
+		my $doc = EPrints::DataObj::Document->new( $session, $docid );
 		if( !defined $doc )
 		{
-			$handle->get_repository->log( 
+			$session->get_repository->log( 
 	"Document #$docid not found. Can't rehash." );
 		}
 		else
@@ -1639,13 +1639,13 @@ sub rehash
 	else
 	{
 		print "Rehashing documents\n" if( $noise > 0);
-		my $dataset = $handle->get_repository->get_dataset( "document" );
+		my $dataset = $session->get_repository->get_dataset( "document" );
 		my $info = { count=>0 };
 		$dataset->map( 
-			$handle , 
+			$session , 
 			sub 
 			{
-				my( $handle, $dataset, $doc, $info ) = @_;
+				my( $session, $dataset, $doc, $info ) = @_;
 				$doc->rehash;
 				if( $noise > 1 )
 				{
@@ -1661,7 +1661,7 @@ sub rehash
 		}
 	}
 
-	$handle->terminate;
+	$session->terminate;
 }
 
 ###################################
@@ -1675,14 +1675,14 @@ sub recommit
 {
 	my( $repoid, $datasetid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit( 1 ) unless( defined $handle );
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
 
-	my $dataset = $handle->get_repository->get_dataset( $datasetid );
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
 	if( !defined $dataset )
 	{
 		print "Exiting due to unknown dataset.\n" if( $noise >= 1 );
-		$handle->terminate();
+		$session->terminate();
 		exit( 1 );
 	}
 
@@ -1691,96 +1691,96 @@ sub recommit
                 print "\n";
                 print "You are about to recommit \"$datasetid\" in the $repoid repository.\n";
                 print "This can take some time.\n\n";
-                print "Number of records in set: ".$dataset->count( $handle )."\n";
+                print "Number of records in set: ".$dataset->count( $session )."\n";
         }
 
         my $sure = EPrints::Utils::get_input_confirm( "Continue" );
         unless( $sure )
         {
                 print "Aborting then.\n\n";
-                $handle->terminate();
+                $session->terminate();
                 exit( 1 );
         }
 
 
 	my $fn = sub {
-        	my( $handle, $dataset, $item ) = @_;
+        	my( $session, $dataset, $item ) = @_;
 	
-        	if( $handle->get_noise() >= 2 )
+        	if( $session->get_noise() >= 2 )
         	{
                 	print STDERR "Committing item: ".$dataset->id()."/".$item->get_id()."\n";
         	}
         	$item->commit();
 	};
 
-	$dataset->map( $handle, $fn );
+	$dataset->map( $session, $fn );
 
 	print "All items in \"$datasetid\" have been re-commited.\n" if( $noise >= 1 );
 
-	$handle->terminate;
+	$session->terminate;
 }
 
 sub reorder
 {
 	my( $repoid, $datasetid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit( 1 ) unless( defined $handle );
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
 
-	my $dataset = $handle->get_repository->get_dataset( $datasetid );
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
 	if( !defined $dataset )
 	{
 		print "Exiting due to unknown dataset.\n" if( $noise >= 1 );
-		$handle->terminate();
+		$session->terminate();
 		exit( 1 );
 	}
 
 	my $fn = sub {
-		my( $handle, $dataset, $item ) = @_;
+		my( $session, $dataset, $item ) = @_;
 	
-		EPrints::Index::update_ordervalues( $handle, $dataset, $item->{data} );
+		EPrints::Index::update_ordervalues( $session, $dataset, $item->{data} );
 
-		if( $handle->get_noise() >= 2 )
+		if( $session->get_noise() >= 2 )
 		{
 			print STDERR "Re-ordered item: ".$dataset->id()."/".$item->get_id()."\n";
 		}
 	};
 
-	$dataset->map( $handle, $fn );
+	$dataset->map( $session, $fn );
 
-	$handle->terminate;
+	$session->terminate;
 }
 
 sub reindex
 {
 	my( $repoid, $datasetid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit( 1 ) unless( defined $handle );
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
 
-	my $dataset = $handle->get_repository->get_dataset( $datasetid );
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
 	if( !defined $dataset )
 	{
 		print "Exiting due to unknown dataset.\n" if( $noise >= 1 );
-		$handle->terminate();
+		$session->terminate();
 		exit( 1 );
 	}
 
 	my $fn = sub {
-		my( $handle, $dataset, $item ) = @_;
+		my( $session, $dataset, $item ) = @_;
 	
 		$item->queue_all();
 		$item->queue_fulltext();
 
-		if( $handle->get_noise() >= 2 )
+		if( $session->get_noise() >= 2 )
 		{
 			print STDERR "Queued item: ".$dataset->id()."/".$item->get_id()."\n";
 		}
 	};
 
-	$dataset->map( $handle, $fn );
+	$dataset->map( $session, $fn );
 
-	$handle->terminate;
+	$session->terminate;
 }
 
 
@@ -1788,16 +1788,16 @@ sub schema
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit( 1 ) unless( defined $handle );
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
 
-	my $mf_dataset = $handle->get_repository->get_dataset( "metafield" );
+	my $mf_dataset = $session->get_repository->get_dataset( "metafield" );
 
-	my $plugin = $handle->plugin( "Export::XML_Schema" );
+	my $plugin = $session->plugin( "Export::XML_Schema" );
 
 	my $list = EPrints::List->new(
 		dataset => $mf_dataset,
-		handle => $handle,
+		session => $session,
 		ids=>["ALL"] );
 
 	print $plugin->byte_order_mark;
@@ -1805,7 +1805,7 @@ sub schema
 
 	undef $list;
 
-	$handle->terminate;
+	$session->terminate;
 }
 
 
@@ -1821,9 +1821,9 @@ sub upgrade
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise, check_database=>0 );
-	exit( 1 ) unless( defined $handle );
-	my $db = $handle->get_database();
+	my $session = new EPrints::Session( 1 , $repoid , $noise, 1 );
+	exit( 1 ) unless( defined $session );
+	my $db = $session->get_db();
 	my $dbversion = $db->get_version();
 	
 	if( $dbversion eq "3.0" )
@@ -1895,7 +1895,7 @@ sub upgrade
 
 
 	print $dbversion."\n";
-	$handle->terminate;
+	$session->terminate;
 }
 
 # This will check for any missing datasets or fields and add them
@@ -2136,7 +2136,7 @@ sub upgrade_3_0_6_to_3_0_7
 {
 	my( $repoid, $db ) = @_;
 
-	my $repo = EPrints->get_repository_config( $repoid );
+	my $repo = EPrints::Repository->new( $repoid );
 	foreach my $datasetid ( qw/
 			access document eprint history
 			request saved_search subject user /)
@@ -2151,7 +2151,7 @@ sub upgrade_3_0_7_to_3_1_0
 {
 	my( $repoid, $db ) = @_;
 
-	my $repo = EPrints->get_repository_config( $repoid );
+	my $repo = EPrints::Repository->new( $repoid );
 
 	# Expand id primary keys to id-pos on multiple fields
 	foreach my $datasetid ( qw/
@@ -2216,23 +2216,23 @@ sub update_database_structure
 {
 	my( $repoid ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-	exit( 1 ) unless( defined $handle );
-	my $db = $handle->get_database();
+	my $session = new EPrints::Session( 1 , $repoid , $noise );
+	exit( 1 ) unless( defined $session );
+	my $db = $session->get_db();
 	
-	my $repo = EPrints->get_repository( $repoid );
+	my $repo = EPrints::Repository->new( $repoid );
 
 	update_datasets( $repo, $db );
 	update_counters( $repo, $db );
 
-	$handle->terminate;
+	$session->terminate;
 }
 
 sub upgrade_3_1_0_to_3_1_1
 {
 	my( $repoid, $db ) = @_;
 
-	my $repo = EPrints->get_repository_config( $repoid );
+	my $repo = EPrints::Repository->new( $repoid );
 
 	update_datasets( $repo, $db );
 }
@@ -2241,7 +2241,7 @@ sub upgrade_3_1_1_to_3_1_2
 {
 	my( $repoid, $db ) = @_;
 
-	my $repo = EPrints->get_repository_config( $repoid );
+	my $repo = EPrints::Repository->new( $repoid );
 
 	update_datasets( $repo, $db );
 	update_counters( $repo, $db );
@@ -2285,7 +2285,7 @@ sub upgrade_3_1_2_to_3_2_0
 {
 	my( $repoid, $db ) = @_;
 
-	my $repo = EPrints->get_repository_config( $repoid );
+	my $repo = EPrints::Repository->new( $repoid );
 
 	# We can do this now, because we only ever add columns
 	update_datasets( $repo, $db );
@@ -2301,9 +2301,9 @@ sub upgrade_mysql_charset
 {
 	my( $repoid, $db ) = @_;
 
-	my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>0, check_database=>0 );
-	EPrints::abort "Error getting session" unless $handle;
-	my $repo = $handle->get_repository;
+	my $session = EPrints::Session->new( 1, $repoid, 0, 1 );
+	EPrints::abort "Error getting session" unless $session;
+	my $repo = $session->get_repository;
 
 #	$db->do("LOCK TABLES version WRITE");
 
@@ -2367,7 +2367,7 @@ EOW
 		if( $key_field->isa( "EPrints::MetaField::Text" ) ||
 			$key_field->isa( "EPrints::MetaField::Set" ) )
 		{
-			upgrade_mysql_charset_ordervalues( \%colspecs, $handle, $db, $dataset, $key_field, 1 );
+			upgrade_mysql_charset_ordervalues( \%colspecs, $session, $db, $dataset, $key_field, 1 );
 		}
 		if( $dataset->indexable )
 		{
@@ -2388,12 +2388,12 @@ EOW
 				($field->isa( "EPrints::MetaField::Text" ) ||
 				$field->isa( "EPrints::MetaField::Set" )) )
 			{
-				upgrade_mysql_charset_field( \%colspecs, $handle, $db, $dataset, $field );
+				upgrade_mysql_charset_field( \%colspecs, $session, $db, $dataset, $field );
 			}
 			# upgrade ordervalues table
 			if( $field->get_name ne $key_field->get_name )
 			{
-				upgrade_mysql_charset_ordervalues( \%colspecs, $handle, $db, $dataset, $field );
+				upgrade_mysql_charset_ordervalues( \%colspecs, $session, $db, $dataset, $field );
 			}
 		}
 		while(my( $Q_table, $specs ) = each %colspecs)
@@ -2418,12 +2418,12 @@ An unexpected error occurred while attempting to convert tables to UTF-8.
 EOW
 	}
 
-	$handle->terminate;
+	$session->terminate;
 }
 
 sub upgrade_mysql_charset_field
 {
-	my( $colspecs, $handle, $db, $dataset, $field ) = @_;
+	my( $colspecs, $session, $db, $dataset, $field ) = @_;
 
 	my $Q_table;
 	if( $field->get_property( "multiple" ) )
@@ -2437,7 +2437,7 @@ sub upgrade_mysql_charset_field
 
 	$colspecs->{$Q_table} ||= { binary => [], char => [] };
 
-	foreach my $sql ($field->get_sql_type( $handle ))
+	foreach my $sql ($field->get_sql_type( $session ))
 	{
 		push @{$colspecs->{$Q_table}->{binary}},
 			upgrade_mysql_charset_binary( $db, $Q_table, $sql );
@@ -2447,7 +2447,7 @@ sub upgrade_mysql_charset_field
 
 sub upgrade_mysql_charset_ordervalues
 {
-	my( $colspecs, $handle, $db, $dataset, $field, $key_field ) = @_;
+	my( $colspecs, $session, $db, $dataset, $field, $key_field ) = @_;
 
 	my $sql_field;
 	if( $key_field )
@@ -2457,18 +2457,18 @@ sub upgrade_mysql_charset_ordervalues
 	else
 	{
 		$sql_field = EPrints::MetaField->new(
-			repository => $handle->get_repository,
+			repository => $session->get_repository,
 			name => $field->get_sql_name(),
 			type => "longtext",
 			allow_null => 1 );
 	}
 
-	foreach my $langid ( @{$handle->get_repository->get_conf( "languages" )} )
+	foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 	{
 		my $Q_table = $db->quote_identifier($dataset->get_ordervalues_table_name( $langid ));
 		$colspecs->{$Q_table} ||= { binary => [], char => [] };
 
-		my $sql = $sql_field->get_sql_type( $handle );
+		my $sql = $sql_field->get_sql_type( $session );
 		push @{$colspecs->{$Q_table}->{binary}},
 			upgrade_mysql_charset_binary( $db, $Q_table, $sql );
 		push @{$colspecs->{$Q_table}->{char}}, $sql;

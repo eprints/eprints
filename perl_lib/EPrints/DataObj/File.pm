@@ -109,7 +109,7 @@ use strict;
 
 ######################################################################
 
-=item $dataobj = EPrints::DataObj::File->new_from_filename( $handle, $dataobj, $filename )
+=item $dataobj = EPrints::DataObj::File->new_from_filename( $session, $dataobj, $filename )
 
 Convenience method to get an existing File object for $filename stored in $dataobj.
 
@@ -119,12 +119,12 @@ Returns undef if no such record exists.
 
 sub new_from_filename
 {
-	my( $class, $handle, $dataobj, $filename ) = @_;
+	my( $class, $session, $dataobj, $filename ) = @_;
 	
-	my $ds = $handle->get_repository->get_dataset( $class->get_dataset_id );
+	my $ds = $session->get_repository->get_dataset( $class->get_dataset_id );
 
 	my $searchexp = new EPrints::Search(
-		handle =>$handle,
+		session=>$session,
 		dataset=>$ds );
 
 	$searchexp->add_field(
@@ -147,7 +147,7 @@ sub new_from_filename
 	return $records[0];
 }
 
-=item $dataobj = EPrints::DataObj::File->create_from_data( $handle, $data [, $dataset ] )
+=item $dataobj = EPrints::DataObj::File->create_from_data( $session, $data [, $dataset ] )
 
 Create a new File record using $data. If "_content" is defined in $data it will be read from and stored - for possible values see set_file().
 
@@ -155,11 +155,11 @@ Create a new File record using $data. If "_content" is defined in $data it will 
 
 sub create_from_data
 {
-	my( $class, $handle, $data, $dataset ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
 
 	my $content = delete $data->{_content} || delete $data->{_filehandle};
 
-	my $self = $class->SUPER::create_from_data( $handle, $data, $dataset );
+	my $self = $class->SUPER::create_from_data( $session, $data, $dataset );
 
 	return unless defined $self;
 
@@ -179,7 +179,7 @@ sub create_from_data
 	{
 		my $tmpfile = File::Temp->new;
 
-		my $r = EPrints::Utils::wget( $handle, $data->{url}, $tmpfile );
+		my $r = EPrints::Utils::wget( $session, $data->{url}, $tmpfile );
 		if( $r->is_success )
 		{
 			seek( $tmpfile, 0, 0 );
@@ -189,7 +189,7 @@ sub create_from_data
 		else
 		{
 			# warn, cleanup and return
-			$handle->get_repository->log( "Failed to retrieve $data->{url}: " . $r->code . " " . $r->message );
+			$session->get_repository->log( "Failed to retrieve $data->{url}: " . $r->code . " " . $r->message );
 			$self->remove();
 			return;
 		}
@@ -272,7 +272,7 @@ sub get_dataset_id
 
 ######################################################################
 
-=item $defaults = EPrints::DataObj::File->get_defaults( $handle, $data )
+=item $defaults = EPrints::DataObj::File->get_defaults( $session, $data )
 
 Return default values for this object based on the starting data.
 
@@ -282,13 +282,13 @@ Return default values for this object based on the starting data.
 
 sub get_defaults
 {
-	my( $class, $handle, $data, $dataset ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
 	
-	$class->SUPER::get_defaults( $handle, $data, $dataset );
+	$class->SUPER::get_defaults( $session, $data, $dataset );
 
 	if( defined( $data->{filename} ) )
 	{
-		my $type = $handle->get_repository->call( "guess_doc_type", $handle, $data->{filename} );
+		my $type = $session->get_repository->call( "guess_doc_type", $session, $data->{filename} );
 		if( $type ne "other" )
 		{
 			$data->{mime_type} = $type;
@@ -323,10 +323,10 @@ sub clone
 	$data->{objectid} = $parent->get_id;
 	$data->{_parent} = $parent;
 
-	my $new_file = $self->{dataset}->create_object( $self->{handle}, $data );
+	my $new_file = $self->{dataset}->create_object( $self->{session}, $data );
 	return undef if !defined $new_file;
 
-	my $storage = $self->{handle}->get_storage;
+	my $storage = $self->{session}->get_storage;
 
 	my $rc = 1;
 
@@ -355,7 +355,7 @@ sub remove
 
 	$self->SUPER::remove();
 
-	$self->get_handle->get_storage->delete( $self );
+	$self->get_session->get_storage->delete( $self );
 }
 
 =item $filename = $file->get_local_copy()
@@ -370,14 +370,14 @@ sub get_local_copy
 {
 	my( $self ) = @_;
 
-	return $self->get_handle->get_storage->get_local_copy( $self );
+	return $self->get_session->get_storage->get_local_copy( $self );
 }
 
 sub get_remote_copy
 {
 	my( $self ) = @_;
 
-	return $self->get_handle->get_storage->get_remote_copy( $self );
+	return $self->get_session->get_storage->get_remote_copy( $self );
 }
 
 =item $success = $file->add_file( $filepath, $filename [, $preserve_path ] )
@@ -615,7 +615,7 @@ sub get_file
 {
 	my( $self, $f ) = @_;
 
-	return $self->{handle}->get_storage->retrieve( $self, $f );
+	return $self->{session}->get_storage->retrieve( $self, $f );
 }
 
 =item $content_length = $stored->set_file( CONTENT, $content_length )
@@ -674,7 +674,7 @@ sub set_file
 	$self->set_value( "hash", undef );
 	$self->set_value( "hash_type", undef );
 
-	my $rlen = $self->{handle}->get_storage->store( $self, $f );
+	my $rlen = $self->{session}->get_storage->store( $self, $f );
 
 	if( !defined $rlen )
 	{

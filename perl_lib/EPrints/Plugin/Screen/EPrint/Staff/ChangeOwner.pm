@@ -58,17 +58,17 @@ sub action_setowner
 
 	$self->{processor}->{screenid} = "EPrint::View";
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 	my $eprint = $self->{processor}->{eprint};
 	my $dataset = $eprint->{dataset};
 
-	my $database = $handle->get_database;
+	my $database = $session->get_database;
 
-	my $username = $handle->param( "username" );
+	my $username = $session->param( "username" );
 
 	return unless EPrints::Utils::is_set( $username );
 
-	my $user = $handle->get_user_with_username( $username );
+	my $user = EPrints::DataObj::User::user_with_username( $session, $username );
 
 	unless( $user )
 	{
@@ -99,18 +99,18 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 	my $eprint = $self->{processor}->{eprint};
 
 	my( $html, $table, $p, $span );
 
-	$html = $handle->make_doc_fragment;
+	$html = $session->make_doc_fragment;
 
 	my $internal = $self->{processor}->{internal};
 
-	my $form = $handle->render_input_form(
+	my $form = $session->render_input_form(
 			fields => [
-				$handle->get_repository->get_dataset( "user" )->get_field( "username" ),
+				$session->get_repository->get_dataset( "user" )->get_field( "username" ),
 			],
 			hidden_fields => {
 				eprintid => $eprint->get_id,
@@ -124,7 +124,7 @@ sub render
 			);
 
 	$html->appendChild( $form );
-	$form->appendChild( $handle->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
+	$form->appendChild( $session->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
 
 	return $html;
 }

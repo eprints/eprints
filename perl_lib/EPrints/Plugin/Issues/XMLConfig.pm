@@ -21,7 +21,7 @@ sub config_file
 {
 	my( $plugin ) = @_;
 
-	return $plugin->{handle}->get_repository->get_conf( "config_path" )."/issues.xml";
+	return $plugin->{session}->get_repository->get_conf( "config_path" )."/issues.xml";
 }
 
 sub get_config
@@ -31,17 +31,17 @@ sub get_config
 	if( !defined $plugin->{issuesconfig} )
 	{
 		my $file = $plugin->config_file;
-		my $doc = $plugin->{handle}->get_repository->parse_xml( $file , 1 );
+		my $doc = $plugin->{session}->get_repository->parse_xml( $file , 1 );
 		if( !defined $doc )
 		{
-			$plugin->{handle}->get_repository->log( "Error parsing $file\n" );
+			$plugin->{session}->get_repository->log( "Error parsing $file\n" );
 			return;
 		}
 	
 		$plugin->{issuesconfig} = ($doc->getElementsByTagName( "issues" ))[0];
 		if( !defined $plugin->{issuesconfig} )
 		{
-			$plugin->{handle}->get_repository->log(  "Missing <issues> tag in $file\n" );
+			$plugin->{session}->get_repository->log(  "Missing <issues> tag in $file\n" );
 			EPrints::XML::dispose( $doc );
 			return;
 		}
@@ -67,8 +67,8 @@ sub item_issues
 	
 	my %params = ();
 	$params{item} = $dataobj;
-	$params{current_user} = $plugin->{handle}->current_user;
-	$params{handle} = $plugin->{handle};
+	$params{current_user} = $plugin->{session}->current_user;
+	$params{session} = $plugin->{session};
 	my $issues = EPrints::XML::EPC::process( $plugin->get_config, %params );
 
 	my @issues_list = ();

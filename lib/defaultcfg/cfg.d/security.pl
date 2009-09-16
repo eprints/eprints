@@ -111,7 +111,7 @@ $c->{can_user_view_document} = sub
 		
 	}
 
-	$doc->get_handle->get_repository->log( 
+	$doc->get_session->get_repository->log( 
 "unrecognized user security flag '$security' on document ".$doc->get_id );
 	# Unknown security type, be paranoid and deny permission.
 	return( "DENY" );

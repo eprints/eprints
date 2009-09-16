@@ -105,11 +105,6 @@ sub mkdir
 	return 1;
 }
 
-sub join_path
-{
-	return join('/', @_);
-}
-
 sub exec 
 {
 	my( $repository, $cmd_id, %map ) = @_;

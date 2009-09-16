@@ -22,30 +22,30 @@ foreach my $key (keys %{$r->headers_in})
 	print STDERR sprintf("%20s: %s\n", $key, $r->headers_in->{$key});
 }
 
-	my $handle = EPrints->get_repository_handle( consume_post_data=>0 );
+	my $session = EPrints::Session->new( 2 );
 
 	my $auth_name = "DAV";
 
 	# Require authentication
-	if( !defined $handle->current_user )
+	if( !defined $session->current_user )
 	{
 		$r->auth_name( $auth_name );
 		$r->ap_auth_type( "Basic" );
-		$rc = EPrints::Apache::Auth::auth_basic( $r, $handle );
+		$rc = EPrints::Apache::Auth::auth_basic( $r, $session );
 		if( $rc == OK )
 		{
-			$handle->{current_user} = $handle->_current_user_auth_basic;
+			$session->{current_user} = $session->_current_user_auth_basic;
 		}
 	}
 
-	if( !defined $handle->current_user )
+	if( !defined $session->current_user )
 	{
 		$r->err_headers_out->{'WWW-Authenticate'} = "Basic realm=\"$auth_name\"";
 	}
 
-	if( defined $handle->current_user )
+	if( defined $session->current_user )
 	{
-print STDERR "current_user=".$handle->current_user->get_value( "username" )."\n";
+print STDERR "current_user=".$session->current_user->get_value( "username" )."\n";
 
 		my $dav = Apache2::WebDAV->new;
 
@@ -54,8 +54,8 @@ print STDERR "current_user=".$handle->current_user->get_value( "username" )."\n"
 			module => "EPrints::Filesys",
 			args => {
 				root_path => "/DAV",
-				handle => $handle,
-				current_user => $handle->current_user,
+				session => $session,
+				current_user => $session->current_user,
 			},
 		});
 
@@ -77,7 +77,7 @@ foreach my $key (keys %{$r->err_headers_out})
 print STDERR "RESULT ".($rc||$r->status_line||$r->status)."\n";
 print STDERR "\n";
 
-	$handle->terminate;
+	$session->terminate;
 
 	return $rc;
 }

@@ -25,7 +25,7 @@ sub search_dataset
 {
 	my( $self ) = @_;
 
-	return $self->{handle}->get_repository->get_dataset( "eprint" );
+	return $self->{session}->get_repository->get_dataset( "eprint" );
 }
 
 sub search_filters
@@ -50,7 +50,7 @@ sub from
 {
 	my( $self ) = @_;
 
-	my $sconf = $self->{handle}->get_repository->get_conf( "issues_search" );
+	my $sconf = $self->{session}->get_repository->get_conf( "issues_search" );
 	if( !defined $sconf) { $sconf = $self->default_search_config; }
 
 	my %sopts = %{$sconf};
@@ -108,7 +108,7 @@ sub get_controls_before
 
 sub render_result_row
 {
-	my( $self, $handle, $result, $searchexp, $n ) = @_;
+	my( $self, $session, $result, $searchexp, $n ) = @_;
 
 	return $result->render_citation_link_staff(
 			$self->{processor}->{sconf}->{citation},  #undef unless specified
@@ -120,7 +120,7 @@ sub render_anyall_field
 {
 	my( $self ) = @_;
 
-	return $self->{handle}->make_doc_fragment;
+	return $self->{session}->make_doc_fragment;
 }
 
 

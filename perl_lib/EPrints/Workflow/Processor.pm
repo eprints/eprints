@@ -45,7 +45,7 @@ use strict;
 ######################################################################
 =pod
 
-=item $thing = EPrints::WorkflowProc->new( $handle, $redirect, $staff, $dataset, $formtarget )
+=item $thing = EPrints::WorkflowProc->new( $session, $redirect, $staff, $dataset, $formtarget )
 
 undocumented
 
@@ -54,15 +54,15 @@ undocumented
 
 sub new
 {
-	my( $class, $handle, $workflow_id ) = @_;
+	my( $class, $session, $workflow_id ) = @_;
 
 	my $self = {};
 	bless $self, $class;
 
-	$self->{handle} = $handle;
+	$self->{session} = $session;
 
 	# Use user configured order for stages or...
-	# $self->{workflow} = $handle->get_repository->get_workflow( $workflow_id );
+	# $self->{workflow} = $session->get_repository->get_workflow( $workflow_id );
 
 	return( $self );
 }
@@ -71,8 +71,8 @@ sub _pre_process
 {
 	my( $self ) = @_;
 
-	$self->{action}    = $self->{handle}->get_action_button();
-	$self->{stage}     = $self->{handle}->param( "stage" );
+	$self->{action}    = $self->{session}->get_action_button();
+	$self->{stage}     = $self->{session}->param( "stage" );
 
 	print STDERR $self->{action}."\n";
 
@@ -85,8 +85,8 @@ sub _pre_process
 		$self->{stage} = $self->{workflow}->get_prev_stage( $self->{stage} );
 	}
 
-	$self->{eprintid}  = $self->{handle}->param( "eprintid" );
-	$self->{user}      = $self->{handle}->current_user();
+	$self->{eprintid}  = $self->{session}->param( "eprintid" );
+	$self->{user}      = $self->{session}->current_user();
 	
 	print STDERR $self->{stage}."\n";
 
@@ -106,7 +106,7 @@ sub render
 {
 	my( $self, $stage ) = @_;
 	
-	my $arc = $self->{handle}->get_repository;
+	my $arc = $self->{session}->get_repository;
 	$self->{dataset} = $arc->get_dataset( "archive" );
 	$self->{workflow} = $arc->{workflow};
 
@@ -124,21 +124,22 @@ sub render
 
 	$self->{eprintid} = 100;
 
-	$self->{eprint} = $self->{dataset}->get_object( $self->{eprintid} );
+	$self->{eprint} = EPrints::DataObj::EPrint->new(
+	$self->{session},
+	$self->{eprintid},
+	$self->{dataset} );
 
 	my $curr_stage = $self->{workflow}->get_stage($self->{stage});
-	$self->{handle}->prepare_page(
-		{
-			title=>$self->{handle}->html_phrase(
-				"lib/submissionform:title_meta",
-				type => $self->{eprint}->render_value( "type" ),
-				eprintid => $self->{eprint}->render_value( "eprintid" ),
-				desc => $self->{eprint}->render_description ),
-			page=>$curr_stage->render( $self->{handle}, $arc->{workflow}, $self->{eprint} ), 
-		},
-		page_id=>"submission_metadata" );
+	$self->{session}->build_page(
+		$self->{session}->html_phrase(
+		"lib/submissionform:title_meta",
+		type => $self->{eprint}->render_value( "type" ),
+		eprintid => $self->{eprint}->render_value( "eprintid" ),
+		desc => $self->{eprint}->render_description ),
+		$curr_stage->render( $self->{session}, $arc->{workflow}, $self->{eprint} ), 
+		"submission_metadata" );
 
-	$self->{handle}->send_page();
+	$self->{session}->send_page();
 
 	return( 1 );
 }

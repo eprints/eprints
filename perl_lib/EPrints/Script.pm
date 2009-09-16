@@ -52,12 +52,12 @@ sub execute
 	my( $code, $state ) = @_;
 
 #foreach( keys %{$state} ) { print STDERR "$_: ".$state->{$_}."\n"; }
-	$state->{repository} = $state->{handle}->get_repository;
-	$state->{config} = $state->{handle}->get_repository->{config};
+	$state->{repository} = $state->{session}->get_repository;
+	$state->{config} = $state->{session}->get_repository->{config};
 
 	# might be undefined
-	$state->{current_user} = $state->{handle}->current_user; 
-	$state->{current_lang} = [$state->{handle}->get_langid, "STRING" ]; 
+	$state->{current_user} = $state->{session}->current_user; 
+	$state->{current_lang} = [$state->{session}->get_langid, "STRING" ]; 
 
 	my $compiled = EPrints::Script::Compiler->new()->compile( $code, $state->{in} );
 
@@ -75,23 +75,23 @@ sub print
 
 	if( $result->[1] eq "XHTML"  )
 	{
-		return $state->{handle}->clone_for_me( $result->[0], 1 );
+		return $state->{session}->clone_for_me( $result->[0], 1 );
 	}
 	if( $result->[1] eq "BOOLEAN"  )
 	{
-		return $state->{handle}->make_text( $result->[0]?"TRUE":"FALSE" );
+		return $state->{session}->make_text( $result->[0]?"TRUE":"FALSE" );
 	}
 	if( $result->[1] eq "STRING"  )
 	{
-		return $state->{handle}->make_text( $result->[0] );
+		return $state->{session}->make_text( $result->[0] );
 	}
 	if( $result->[1] eq "DATE"  )
 	{
-		return $state->{handle}->make_text( $result->[0] );
+		return $state->{session}->make_text( $result->[0] );
 	}
 	if( $result->[1] eq "INTEGER"  )
 	{
-		return $state->{handle}->make_text( $result->[0] );
+		return $state->{session}->make_text( $result->[0] );
 	}
 
 	my $field = $result->[1];
@@ -112,10 +112,10 @@ sub print
 
 	if( !defined $field )
 	{
-		return $state->{handle}->make_text( "[No type for value '$result->[0]' from '$code']" );
+		return $state->{session}->make_text( "[No type for value '$result->[0]' from '$code']" );
 	}
 
-	return $field->render_value( $state->{handle}, $result->[0], 0, 0, $result->[2] );
+	return $field->render_value( $state->{session}, $result->[0], 0, 0, $result->[2] );
 }
 
 sub error
@@ -374,9 +374,9 @@ sub run_citation
 {
 	my( $self, $state, $object, $citationid ) = @_;
 
-	my $stylespec = $state->{handle}->get_citation_spec( $object->[0]->get_dataset, $citationid->[0] );
+	my $stylespec = $state->{session}->get_citation_spec( $object->[0]->get_dataset, $citationid->[0] );
 
-	my $citation = EPrints::XML::EPC::process( $stylespec, item=>$object->[0], handle =>$state->{handle}, in=>"Citation:".$object->[0]->get_dataset.".".$citationid->[0] );
+	my $citation = EPrints::XML::EPC::process( $stylespec, item=>$object->[0], session=>$state->{session}, in=>"Citation:".$object->[0]->get_dataset.".".$citationid->[0] );
 
 	return [ $citation, "XHTML" ];
 }
@@ -423,7 +423,7 @@ sub run_as_item
 		$self->runtime_error( "can't call as_item on anything but a value of type itemref" );
 	}
 
-	my $object = $itemref->[1]->get_item( $state->{handle}, $itemref->[0] );
+	my $object = $itemref->[1]->get_item( $state->{session}, $itemref->[0] );
 
 	return [ $object ];
 }
@@ -652,12 +652,12 @@ sub run_contact_email
 			ref($eprint->[0]) );
 	}
 
-	if( !$state->{handle}->get_repository->can_call( "email_for_doc_request" ) )
+	if( !$state->{session}->get_repository->can_call( "email_for_doc_request" ) )
 	{
 		return [ undef, "STRING" ];
 	}
 
-	return [ $state->{handle}->get_repository->call( "email_for_doc_request", $state->{handle}, $eprint->[0] ), "STRING" ]; 
+	return [ $state->{session}->get_repository->call( "email_for_doc_request", $state->{session}, $eprint->[0] ), "STRING" ]; 
 }
 
 
@@ -689,7 +689,7 @@ sub compile
 	
 	if( scalar @{$self->{tokens}} == 0 ) 
 	{
-		#$state->{handle}->get_repository->log( "Script in: ".$state->{in}.": Empty script." );
+		#$state->{session}->get_repository->log( "Script in: ".$state->{in}.": Empty script." );
 		return [ 0, "BOOLEAN" ];
 	}
 		

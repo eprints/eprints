@@ -15,11 +15,11 @@
 use EPrints;
 
 use strict;
-my $handle = new EPrints::Handle;
-exit( 0 ) unless( defined $handle );
-# $handle->get_database->set_debug( 1 );
+my $session = new EPrints::Session;
+exit( 0 ) unless( defined $session );
+# $session->get_database->set_debug( 1 );
 
-my $path_info = $handle->get_request->path_info;
+my $path_info = $session->get_request->path_info;
 # lose a leading slash
 $path_info =~ s#^/##;
 # we only want stuff up to the 2nd slash
@@ -29,39 +29,39 @@ my $searchid = $path_info;
 if( $searchid eq "advsearch" )
 {
 	# cover the old systems sins...
-	my $url = $handle->get_repository->get_conf( "perl_url" ).
+	my $url = $session->get_repository->get_conf( "perl_url" ).
 			"/search/advanced";
-	if( defined $handle->get_request->args )
+	if( defined $session->get_request->args )
 	{
-		$url .="?".$handle->get_request->args;
+		$url .="?".$session->get_request->args;
 	}
-	$handle->redirect( $url );
-	$handle->terminate;
+	$session->redirect( $url );
+	$session->terminate;
 	exit;
 }
-my $sconf = $handle->get_repository->get_conf( "search", $searchid );
+my $sconf = $session->get_repository->get_conf( "search", $searchid );
 if( !defined $sconf )
 {
-	my $url = $handle->get_repository->get_conf( "perl_url" ).
+	my $url = $session->get_repository->get_conf( "perl_url" ).
 			"/search/simple";
-	if( defined $handle->get_request->args )
+	if( defined $session->get_request->args )
 	{
-		$url .="?".$handle->get_request->args;
+		$url .="?".$session->get_request->args;
 	}
-	$handle->redirect( $url );
-	$handle->terminate;
+	$session->redirect( $url );
+	$session->terminate;
 	exit;
 }
 
 
 EPrints::ScreenProcessor->process( 
-	handle => $handle, 
-	url => $handle->get_repository->get_conf( "perl_url" )."/search/$searchid",
+	session => $session, 
+	url => $session->get_repository->get_conf( "perl_url" )."/search/$searchid",
 	sconf => $sconf,
 	template => $sconf->{template},
 	screenid => "Public::EPrintSearch",
 );
-$handle->terminate;
+$session->terminate;
 
 exit;
 

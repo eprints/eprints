@@ -46,21 +46,21 @@ sub dataobj_to_html_header
 {
 	my( $plugin, $dataobj ) = @_;
 
-	my $links = $plugin->{handle}->make_doc_fragment;
+	my $links = $plugin->{session}->make_doc_fragment;
 
-	$links->appendChild( $plugin->{handle}->make_element(
+	$links->appendChild( $plugin->{session}->make_element(
 		"link",
 		rel => "schema.DC",
 		href => "http://purl.org/DC/elements/1.0/" ) );
-	$links->appendChild( $plugin->{handle}->make_text( "\n" ));
+	$links->appendChild( $plugin->{session}->make_text( "\n" ));
 	my $dc = $plugin->convert_dataobj( $dataobj );
 	foreach( @{$dc} )
 	{
-		$links->appendChild( $plugin->{handle}->make_element(
+		$links->appendChild( $plugin->{session}->make_element(
 			"meta",
 			name => "DC.".$_->[0],
 			content => $_->[1] ) );
-		$links->appendChild( $plugin->{handle}->make_text( "\n" ));
+		$links->appendChild( $plugin->{session}->make_text( "\n" ));
 	}
 	return $links;
 }
@@ -96,9 +96,9 @@ sub convert_dataobj
 		my $subjectid;
 		foreach $subjectid ( @{$eprint->get_value( "subjects" )} )
 		{
-			my $subject = $plugin->{handle}->get_subject( $subjectid );
+			my $subject = EPrints::DataObj::Subject->new( $plugin->{session}, $subjectid );
 			# avoid problems with bad subjects
-			next unless( defined $subject ); 
+				next unless( defined $subject ); 
 			push @dcdata, [ "subject", EPrints::Utils::tree_to_utf8( $subject->render_description() ) ];
 		}
 	}
@@ -143,7 +143,7 @@ sub convert_dataobj
 
 
 	my @documents = $eprint->get_all_documents();
-	my $mimetypes = $plugin->{handle}->get_repository->get_conf( "oai", "mime_types" );
+	my $mimetypes = $plugin->{session}->get_repository->get_conf( "oai", "mime_types" );
 	foreach( @documents )
 	{
 		my $format = $mimetypes->{$_->get_value("format")};

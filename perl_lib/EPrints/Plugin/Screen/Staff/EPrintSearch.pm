@@ -25,7 +25,7 @@ sub search_dataset
 {
 	my( $self ) = @_;
 
-	return $self->{handle}->get_repository->get_dataset( "eprint" );
+	return $self->{session}->get_repository->get_dataset( "eprint" );
 }
 
 sub search_filters
@@ -53,11 +53,11 @@ sub from
 	my $sconf = {
 		staff => 1,
 		dataset_id => "eprint",
-		citation => $self->{handle}->get_repository->get_conf( "search","advanced","citation" ),
-		order_methods => $self->{handle}->get_repository->get_conf( "search","advanced","order_methods" ),
+		citation => $self->{session}->get_repository->get_conf( "search","advanced","citation" ),
+		order_methods => $self->{session}->get_repository->get_conf( "search","advanced","order_methods" ),
 	};
 		
-	my $adv_fields = $self->{handle}->get_repository->get_conf( "search","advanced","search_fields" );
+	my $adv_fields = $self->{session}->get_repository->get_conf( "search","advanced","search_fields" );
 	$sconf->{"search_fields"} = [
 		{ meta_fields => [ "eprintid" ] },
 		{ meta_fields => [ "userid.username" ] },
@@ -88,7 +88,7 @@ sub get_controls_before
 
 sub render_result_row
 {
-	my( $self, $handle, $result, $searchexp, $n ) = @_;
+	my( $self, $session, $result, $searchexp, $n ) = @_;
 
 	return $result->render_citation_link_staff(
 			$self->{processor}->{sconf}->{citation},  #undef unless specified

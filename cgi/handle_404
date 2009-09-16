@@ -19,12 +19,12 @@ use EPrints;
 
 use strict;
 
-my $handle = new EPrints::Handle();
-exit( 0 ) unless( defined $handle );
+my $session = new EPrints::Session();
+exit( 0 ) unless( defined $session );
 
 my $url = $ENV{REDIRECT_URL};
 
-my $r = $handle->{ request };
+my $r = $session->{ request };
 my $c = $r->connection;
 # Has 404 message been suppressed? (don't forget to reset it for this connection)
 my $show = $c->notes->get( "show_404" );
@@ -32,32 +32,32 @@ $c->notes->set( show_404 => 1 );
 
 if( defined($show) and !$show )
 {
-	$handle->terminate();
+	$session->terminate();
 	exit( 0 );
 }
 
 my $newurl;
-my $fn = $handle->get_repository->get_conf( "catch404" );
+my $fn = $session->get_repository->get_conf( "catch404" );
 if( defined $fn )
 {
-	$newurl = &{$fn}( $handle, $url );
+	$newurl = &{$fn}( $session, $url );
 }
 
-my $urlpath = $handle->get_repository->get_conf( "rel_path" );
+my $urlpath = $session->get_repository->get_conf( "rel_path" );
 if( defined $newurl )
 {
-	$handle->redirect( $newurl );
+	$session->redirect( $newurl );
 }
 elsif( $url =~ m#^$urlpath/view/# )
 {
-	&noview_404( $handle );
+	&noview_404( $session );
 }
 else
 {
-	&plain_404( $handle );
+	&plain_404( $session );
 }
 
-$handle->terminate();
+$session->terminate();
 
 ## Try and work out if the user is trying to access a deleted document
 #my $url = $ENV{REDIRECT_URL};
@@ -72,46 +72,46 @@ $handle->terminate();
 #
 #	# Was the eprint deleted?
 #	#cjg!
-#	#my $deletion_record = new EPrints::Deletion( $handle, $guessed_id );
+#	#my $deletion_record = new EPrints::Deletion( $session, $guessed_id );
 #	
 #	if( defined $deletion_record )
 #	{
 #		# The user seems to be trying to get to a deleted eprint. 
-#		print $handle->{render}->render_deleted_eprint( $deletion_record );
+#		print $session->{render}->render_deleted_eprint( $deletion_record );
 #	}
 #	else
 #	{
 #		# See if the eprint exists.
 #		my $eprint = new EPrints::DataObj::EPrint(
-#			$handle,
+#			$session,
 #			$guessed_id,;
 #			EPrints::Database::table_name( "archive" ) );
 #		
 #		if( defined $eprint )
 #		{
 #			# Seems to be a slightly malformed access to an existing eprint.
-#			existing_record( $handle, $eprint );
+#			existing_record( $session, $eprint );
 #		}
 #		else
 #		{
 #			# Not a deleted or existing eprint: a plain old Document Not Found
-#			plain_404( $handle );
+#			plain_404( $session );
 #		}
 #	}
 #}
 #else
 #{
 #	# No match, can't find any ID. Just a plain old 404.
-#	plain_404( $handle );
+#	plain_404( $session );
 #}
 #
-#$handle->terminate();
+#$session->terminate();
 #
 #
 #
 #######################################################################
 ##
-## existing_record( $handle, $eprint )
+## existing_record( $session, $eprint )
 ##
 ##  Render an appropriate erro saying that the user seems to be trying
 ##  to get to a particular eprint, but may have just entered the URL
@@ -121,28 +121,28 @@ $handle->terminate();
 #
 #sub existing_record
 #{
-#	my( $handle, $eprint ) = @_;
+#	my( $session, $eprint ) = @_;
 #	
-#	print $handle->{render}->start_html( 
-#		$handle->{lang}->phrase( "cgi/handle_404:doc_not_found" ) );
+#	print $session->{render}->start_html( 
+#		$session->{lang}->phrase( "cgi/handle_404:doc_not_found" ) );
 #
 #	print "<P>";
-#	print $handle->{lang}->phrase( "cgi/handle_404:file_not_found" );
+#	print $session->{lang}->phrase( "cgi/handle_404:file_not_found" );
 #	print "<CODE>$url</CODE></P>\n";
 #	print "<P>";
-#	print $handle->{lang}->phrase( "cgi/handle_404:looking_for" );
+#	print $session->{lang}->phrase( "cgi/handle_404:looking_for" );
 #	print "</P>\n";
 #	print "<P ALIGN=CENTER>";
-#	print $handle->{render}->render_eprint_citation( $eprint, 1, 1 );
+#	print $session->{render}->render_eprint_citation( $eprint, 1, 1 );
 #	print "</P>\n";
 #	
-#	print $handle->{render}->end_html();
+#	print $session->{render}->end_html();
 #}
 
 
 ######################################################################
 #
-# plain_404( $handle )
+# plain_404( $session )
 #
 #  Render a standard Document Not Found error message.
 #
@@ -150,31 +150,31 @@ $handle->terminate();
 
 sub plain_404
 {
-	my( $handle ) = @_;
+	my( $session ) = @_;
 
-	$handle->prepare_page( 
-		title=>$handle->html_phrase( "cgi/handle_http_error:404_title" ),
-		page=>$handle->html_phrase( "cgi/handle_http_error:404_blurb", 
-			url => $handle->make_text( $ENV{REDIRECT_URL} ) ),
-		page_id=>"plain_404" );
+	$session->build_page( 
+		$session->html_phrase( "cgi/handle_http_error:404_title" ),
+		$session->html_phrase( "cgi/handle_http_error:404_blurb", 
+			url => $session->make_text( $ENV{REDIRECT_URL} ) ),
+		"plain_404" );
 
-        $handle->send_page();
+        $session->send_page();
 }
 
 
 sub noview_404
 {
-	my( $handle ) = @_;
+	my( $session ) = @_;
 
 	my $error = "The browse views section is missing. The site admin needs to run generate_views. This should be automated with cron. See the documentation for more details.";
 
-	$handle->prepare_page( 
-		title=>$handle->html_phrase( "cgi/handle_http_error:404_title" ),
-		page=>$handle->make_text( $error ),
-		page_id=>"noview_404" );
-	$handle->get_repository->log( $error );
+	$session->build_page( 
+		$session->html_phrase( "cgi/handle_http_error:404_title" ),
+		$session->make_text( $error ),
+		"noview_404" );
+	$session->get_repository->log( $error );
 
-        $handle->send_page();
+        $session->send_page();
 }
 
 

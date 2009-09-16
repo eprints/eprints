@@ -15,18 +15,18 @@
 use EPrints;
 
 use strict;
-my $handle = new EPrints::Handle;
-exit( 0 ) unless( defined $handle );
+my $session = new EPrints::Session;
+exit( 0 ) unless( defined $session );
 
-my $ds = $handle->get_repository->get_dataset( "archive" );
+my $ds = $session->get_repository->get_dataset( "archive" );
 
-my $citation = $handle->get_repository->get_conf( "latest_tool_citation" );
+my $citation = $session->get_repository->get_conf( "latest_tool_citation" );
 
 my $max = 20;
-my $mode = $handle->param( "mode" );
+my $mode = $session->param( "mode" );
 $mode = "default" if( !defined $mode );
 my $filters = [];
-my $conf = $handle->get_repository->get_conf( "latest_tool_modes", $mode );
+my $conf = $session->get_repository->get_conf( "latest_tool_modes", $mode );
 my $show_conditions = 0;
 if( defined $conf )
 {
@@ -43,37 +43,37 @@ if( defined $conf )
 }
 push @{$filters}, { meta_fields=>[ 'metadata_visibility' ], value=>'show', match=>'EX', describe=>0 };
 my $number_to_get = $max;
-my $n = $handle->param( "n" );
+my $n = $session->param( "n" );
 if( $n > 0 && $n <= $max )
 {
 	$number_to_get = $n;
 }
 my $searchexp = new EPrints::Search(
 	allow_blank => 1,
-	handle => $handle,
+	session => $session,
 	filters => $filters,
 	custom_order => "-datestamp",
 	dataset => $ds );
 my $title;
 if( $show_conditions )
 {
-	$title = $handle->html_phrase( 
+	$title = $session->html_phrase( 
 		"cgi/latest_tool:title_matching",
-		n => $handle->make_text( $number_to_get ),
+		n => $session->make_text( $number_to_get ),
 		search => $searchexp->render_conditions_description );
 }
 else
 {
-	$title = $handle->html_phrase( 
+	$title = $session->html_phrase( 
 		"cgi/latest_tool:title",
-		n => $handle->make_text( $number_to_get ) );
+		n => $session->make_text( $number_to_get ) );
 }
 
 my $results = $searchexp->perform_search();
-my $format = $handle->param( "output" );
+my $format = $session->param( "output" );
 if( defined $format )
 {
-	my @plugins = $handle->plugin_list(
+	my @plugins = $session->plugin_list(
 		type=>"Export",
 		can_accept=>"list/eprint",
 		is_visible=>"all" );
@@ -82,37 +82,37 @@ if( defined $format )
 	foreach( @plugins ) { if( $_ eq "Export::$format" ) { $ok = 1; last; } }
 	if( $ok ) 
 	{
-		my $plugin = $handle->plugin( "Export::".$format );
-		$handle->send_http_header( 
+		my $plugin = $session->plugin( "Export::".$format );
+		$session->send_http_header( 
 				"content_type" => $plugin->param( 'mimetype' ) );
 		print $results->export( $format );
 	}
 	else
 	{
-		my $page = $handle->html_phrase( 
+		my $page = $session->html_phrase( 
 					"lib/searchexpression:export_error_format" );
-		$handle->prepare_page( title=>$title, page=>$page, page_id=>"latest_tool" );
-		$handle->send_page();
+		$session->build_page( $title, $page, "latest_tool" );
+		$session->send_page();
 	}
 	
 	$results->dispose;
-	$handle->terminate;
+	$session->terminate;
 	exit;
 }
 
 my @records = $results->get_records( 0, $number_to_get );
 $results->dispose;
 
-my $page = $handle->make_doc_fragment();
-my $type = $handle->get_citation_type( $ds, $citation );
+my $page = $session->make_doc_fragment();
+my $type = $session->get_citation_type( $ds, $citation );
 my $container;
 if( $type eq "table_row" )
 {
-	$container = $handle->make_element( "table", class=>"ep_latest_tool_list" );
+	$container = $session->make_element( "table", class=>"ep_latest_tool_list" );
 }
 else
 {
-	$container = $handle->make_element( "div", class=>"ep_latest_tool_list" );
+	$container = $session->make_element( "div", class=>"ep_latest_tool_list" );
 }
 $page->appendChild( $container );
 my $n = 1;
@@ -127,15 +127,15 @@ foreach my $item ( @records )
 	}
 	else
 	{
-		my $div = $handle->make_element( "div", class=>"ep_latest_tool_result" );
+		my $div = $session->make_element( "div", class=>"ep_latest_tool_result" );
 		$div->appendChild( $row );
 		$container->appendChild( $div );
 	}
 }
-$handle->prepare_page( title=>$title, page=>$page, page_id=>"latest_tool" );
-$handle->send_page();
+$session->build_page( $title, $page, "latest_tool" );
+$session->send_page();
 
-$handle->terminate;
+$session->terminate;
 exit;
 
 use POSIX qw(strftime);

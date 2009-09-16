@@ -2,13 +2,13 @@
 
 ######################################################################
 #
-# validate_eprint( $eprint, $handle, $for_archive ) 
+# validate_eprint( $eprint, $session, $for_archive ) 
 #
 ######################################################################
 #
 # $eprint 
 # - EPrint object
-# $handle 
+# $session 
 # - Session object (the current session)
 # $for_archive
 # - boolean (see comments at the start of the validation section)
@@ -25,7 +25,7 @@
 
 $c->{validate_eprint} = sub
 {
-	my( $eprint, $handle, $for_archive ) = @_;
+	my( $eprint, $session, $for_archive ) = @_;
 
 	my @problems = ();
 
@@ -35,8 +35,8 @@ $c->{validate_eprint} = sub
 	if( !$eprint->is_set( "creators" ) && 
 		!$eprint->is_set( "editors" ) )
 	{
-		my $fieldname = $handle->make_element( "span", class=>"ep_problem_field:creators" );
-		push @problems, $handle->html_phrase( 
+		my $fieldname = $session->make_element( "span", class=>"ep_problem_field:creators" );
+		push @problems, $session->html_phrase( 
 				"validate:need_creators_or_editors",
 				fieldname=>$fieldname );
 	}

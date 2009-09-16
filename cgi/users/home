@@ -20,11 +20,11 @@ use EPrints;
 use strict;
 
 use EPrints::ScreenProcessor;
-my $handle = EPrints->get_repository_handle();
+my $session = EPrints::Session->new();
 
 EPrints::ScreenProcessor->process( 
-	handle => $handle, 
-	url => $handle->get_repository->get_conf( "rel_cgipath" )."/users/home" );
+	session=>$session, 
+	url=>$session->get_repository->get_conf( "rel_cgipath" )."/users/home" );
 
-$handle->terminate;
+$session->terminate;
 

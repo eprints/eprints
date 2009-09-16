@@ -59,7 +59,7 @@ sub handler
 	{
 		return DECLINED;
 	}
-	my $repository = EPrints->get_repository_config( $repository_id );
+	my $repository = EPrints::Repository->new( $repository_id );
 	$repository->check_secure_dirs( $r );
 	my $esec = $r->dir_config( "EPrints_Secure" );
 	my $secure = (defined $esec && $esec eq "yes" );
@@ -78,7 +78,7 @@ sub handler
 
 	my $uri = $r->uri;
 
-	my $lang = EPrints::RepositoryHandle::get_language( $repository, $r );
+	my $lang = EPrints::Session::get_session_language( $repository, $r );
 	my $args = $r->args;
 	if( defined $args && $args ne "" ) { $args = '?'.$args; }
 
@@ -109,17 +109,17 @@ sub handler
 
 		my $dataset = $repository->get_dataset( $datasetid );
 		my $item;
-		my $handle = EPrints->get_repository_handle( consume_post_data=>0 );
+		my $session = new EPrints::Session(2); # don't open the CGI info
 		if( defined $dataset )
 		{
-			$item = $dataset->get_object( $handle, $id );
+			$item = $dataset->get_object( $session, $id );
 		}
 		my $url;
 		if( defined $item )
 		{
 			$url = $item->get_url;
 		}
-		$handle->terminate;
+		$session->terminate;
 		if( defined $url )
 		{
 			return redir( $r, $url );
@@ -190,19 +190,19 @@ sub handler
 	}
 	$r->filename( $repository->get_conf( "htdocs_path" )."/".$lang.$localpath );
 
-	my $handle = EPrints->get_repository_handle( consume_post_data=>0 );
-	$handle->{preparing_static_page} = 1; 
+	my $session = new EPrints::Session(2); # don't open the CGI info
+	$session->{preparing_static_page} = 1; 
 	if( $uri =~ m! ^/view(.*) !x )
 	{
-		my $filename = EPrints::Update::Views::update_view_file( $handle, $lang, $localpath, $uri );
+		my $filename = EPrints::Update::Views::update_view_file( $session, $lang, $localpath, $uri );
 		$r->filename( $filename );
 	}
 	else
 	{
-		EPrints::Update::Static::update_static_file( $handle, $lang, $localpath );
+		EPrints::Update::Static::update_static_file( $session, $lang, $localpath );
 	}
-	delete $handle->{preparing_static_page};
-	$handle->terminate;
+	delete $session->{preparing_static_page};
+	$session->terminate;
 
 	$r->set_handlers(PerlResponseHandler =>[ 'EPrints::Apache::Template' ] );
 

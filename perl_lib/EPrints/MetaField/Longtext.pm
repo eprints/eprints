@@ -42,9 +42,9 @@ use EPrints::MetaField::Text;
 
 sub get_sql_type
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
-	return $handle->get_database->get_column_type(
+	return $session->get_database->get_column_type(
 		$self->get_sql_name(),
 		EPrints::Database::SQL_LONGVARCHAR,
 		!$self->get_property( "allow_null" ),
@@ -66,34 +66,34 @@ sub get_sql_index
 
 sub render_single_value
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 	
 #	my @paras = split( /\r\n\r\n|\r\r|\n\n/ , $value );
 #
-#	my $frag = $handle->make_doc_fragment();
+#	my $frag = $session->make_doc_fragment();
 #	foreach( @paras )
 #	{
-#		my $p = $handle->make_element( "p" );
-#		$p->appendChild( $handle->make_text( $_ ) );
+#		my $p = $session->make_element( "p" );
+#		$p->appendChild( $session->make_text( $_ ) );
 #		$frag->appendChild( $p );
 #	}
 #	return $frag;
 
-	return $handle->make_text( $value );
+	return $session->make_text( $value );
 }
 
 sub get_basic_input_elements
 {
-	my( $self, $handle, $value, $basename, $staff, $obj ) = @_;
+	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
 
-	my $textarea = $handle->make_element(
+	my $textarea = $session->make_element(
 		"textarea",
 		name => $basename,
 		id => $basename,
 		rows => $self->{input_rows},
 		cols => $self->{input_cols},
 		wrap => "virtual" );
-	$textarea->appendChild( $handle->make_text( $value ) );
+	$textarea->appendChild( $session->make_text( $value ) );
 
 	return [ [ { el=>$textarea } ] ];
 }
@@ -101,12 +101,12 @@ sub get_basic_input_elements
 
 sub form_value_basic
 {
-	my( $self, $handle, $basename ) = @_;
+	my( $self, $session, $basename ) = @_;
 
 	# this version is just like that for Basic except it
 	# does not remove line breaks.
 	
-	my $value = $handle->param( $basename );
+	my $value = $session->param( $basename );
 
 	return undef if( !defined($value) or $value eq "" );
 
@@ -134,9 +134,9 @@ sub get_xml_schema_type
 
 sub render_xml_schema_type
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
-	return $handle->make_doc_fragment;
+	return $session->make_doc_fragment;
 }
 
 

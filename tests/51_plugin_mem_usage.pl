@@ -56,12 +56,12 @@ our @ISA = qw( EPrints::Repository );
 
 my $repository = EPrints::Test::Repository->new( EPrints::Test::get_test_id() );
 
-my $handle = EPrints::Test::get_test_session();
+my $session = EPrints::Test::get_test_session();
 
 ok(defined $repository, "test repository creation");
-ok(defined $handle, "test session creation");
+ok(defined $session, "test session creation");
 
-$handle->terminate;
+$session->terminate;
 
 my %usage = %_PLUGIN_MEM_USAGE;
 

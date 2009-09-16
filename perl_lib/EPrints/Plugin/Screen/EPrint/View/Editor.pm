@@ -37,10 +37,10 @@ sub render_status
 
 	my $url = $self->{processor}->{eprint}->get_url;
 
-	my $div = $self->{handle}->make_element( "div", class=>"ep_block" );
-	$div->appendChild( $self->{handle}->html_phrase( "cgi/users/edit_eprint:staff_item_is_in_".$status,
-		link => $self->{handle}->render_link( $url ), 
-		url  => $self->{handle}->make_text( $url ) ) );
+	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
+	$div->appendChild( $self->{session}->html_phrase( "cgi/users/edit_eprint:staff_item_is_in_".$status,
+		link => $self->{session}->render_link( $url ), 
+		url  => $self->{session}->make_text( $url ) ) );
 
 	return $div;
 }

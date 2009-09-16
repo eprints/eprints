@@ -3,30 +3,30 @@ use EPrints;
 
 use strict;
 
-my $handle = EPrints::Handle->new();
+my $session = EPrints::Session->new();
 
-my $url = $handle->param( "target" );
-my $c = $handle->{request}->connection;
+my $url = $session->param( "target" );
+my $c = $session->{request}->connection;
 
 my $code = $c->notes->get( "cookie_code" );
 
 if( !defined $url ) { $url = "/cgi/users/home"; }
 
-#my $page = $handle->make_doc_fragment;
+#my $page = $session->make_doc_fragment;
 
-#$page->appendChild( $handle->render_message( 
+#$page->appendChild( $session->render_message( 
 #	"message",	
-#	$handle->html_phrase("cgi/login:message") ) );
+#	$session->html_phrase("cgi/login:message") ) );
 
-#$page->appendChild( $handle->html_phrase( 
+#$page->appendChild( $session->html_phrase( 
 #	"cgi/login:link_text",
-#	link=>$handle->render_link( $url ) ) );
+#	link=>$session->render_link( $url ) ) );
 
-#my $title = $handle->html_phrase( "cgi/login:title" );
-#$handle->build_page( $title, $page );
-#$handle->send_page();
+#my $title = $session->html_phrase( "cgi/login:title" );
+#$session->build_page( $title, $page );
+#$session->send_page();
 
-$handle->redirect( $url );
+$session->redirect( $url );
 
-$handle->terminate;
+$session->terminate;
 

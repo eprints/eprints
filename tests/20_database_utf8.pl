@@ -4,10 +4,10 @@ use Test::More tests => 8;
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
 
-my $handle = EPrints::Test::get_test_session( 0 );
-ok(defined $handle, 'opened an EPrints::RepositoryHandle object');
+my $session = EPrints::Test::get_test_session( 0 );
+ok(defined $session, 'opened an EPrints::Session object');
 
-my $database = $handle->get_database();
+my $database = $session->get_database();
 ok( defined $database, "database defined" );
 
 SKIP: {
@@ -60,6 +60,6 @@ SKIP: {
 	$database->do("DROP TABLE IF EXISTS $table");
 }
 
-$handle->terminate;
+$session->terminate;
 
 ok(1);

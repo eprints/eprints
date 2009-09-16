@@ -57,12 +57,12 @@ sub get_sql_index
 
 sub render_value
 {
-	my( $self, $handle, $value, $alllangs, $nolink ) = @_;
+	my( $self, $session, $value, $alllangs, $nolink ) = @_;
 
 	if( defined $self->{render_value} )
 	{
 		return $self->call_property( "render_value",
-			$handle, 
+			$session, 
 			$self, 
 			$value, 
 			$alllangs, 
@@ -76,26 +76,26 @@ sub render_value
 
 	if( $self->get_property( 'multiple' ) )
 	{
-		return $self->SUPER::render_value( $handle, $value, $alllangs, $nolink );
+		return $self->SUPER::render_value( $session, $value, $alllangs, $nolink );
 	}
 
-	return $self->render_single_value( $handle, $value, $nolink );
+	return $self->render_single_value( $session, $value, $nolink );
 }
 
 sub render_single_value
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
-	return $handle->html_phrase( 'lib/metafield/secret:show_value' );
+	return $session->html_phrase( 'lib/metafield/secret:show_value' );
 }
 
 sub get_basic_input_elements
 {
-	my( $self, $handle, $value, $basename, $staff, $obj ) = @_;
+	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
 
 	my $maxlength = $self->get_property( "maxlength" );
 	my $size = $self->{input_cols};
-	my $password = $handle->render_noenter_input_field(
+	my $password = $session->render_noenter_input_field(
 		class => "ep_form_text",
 		type => "password",
 		name => $basename,
@@ -108,7 +108,7 @@ sub get_basic_input_elements
 		return [ [ { el=>$password } ] ];
 	}
 
-	my $confirm = $handle->render_noenter_input_field(
+	my $confirm = $session->render_noenter_input_field(
 		class => "ep_form_text",
 		type => "password",
 		name => $basename."_confirm",
@@ -116,16 +116,16 @@ sub get_basic_input_elements
 		size => $size,
 		maxlength => $maxlength );
 
-	my $label1 = $handle->make_element( "div", style=>"margin-right: 4px;" );
-	$label1->appendChild( $handle->html_phrase(
+	my $label1 = $session->make_element( "div", style=>"margin-right: 4px;" );
+	$label1->appendChild( $session->html_phrase(
 		$self->{dataset}->confid."_fieldname_".$self->get_name
 	) );
-	$label1->appendChild( $handle->make_text( ":" ) );
-	my $label2 = $handle->make_element( "div", style=>"margin-right: 4px;" );
-	$label2->appendChild( $handle->html_phrase(
+	$label1->appendChild( $session->make_text( ":" ) );
+	my $label2 = $session->make_element( "div", style=>"margin-right: 4px;" );
+	$label2->appendChild( $session->html_phrase(
 		$self->{dataset}->confid."_fieldname_".$self->get_name."_confirm"
 	) );
-	$label2->appendChild( $handle->make_text( ":" ) );
+	$label2->appendChild( $session->make_text( ":" ) );
 	
 	return [
 		[ { el=>$label1 }, { el=>$password } ],
@@ -141,9 +141,9 @@ sub is_browsable
 
 sub from_search_form
 {
-	my( $self, $handle, $prefix ) = @_;
+	my( $self, $session, $prefix ) = @_;
 
-	$handle->get_repository->log( "Attempt to search a \"secret\" type field." );
+	$session->get_repository->log( "Attempt to search a \"secret\" type field." );
 
 	return;
 }
@@ -153,27 +153,27 @@ sub get_search_group { return 'secret'; }  #!! can't really search secret
 # REALLY don't index passwords!
 sub get_index_codes
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
 	return( [], [], [] );
 }
 
 sub validate
 {
-	my( $self, $handle, $value, $object ) = @_;
+	my( $self, $session, $value, $object ) = @_;
 
-	my @probs = $self->SUPER::validate( $handle, $value, $object );
+	my @probs = $self->SUPER::validate( $session, $value, $object );
 
 	if( $self->get_property( "repeat_secret" ) )
 	{
 		my $basename = $self->get_name;
 
-		my $password = $handle->param( $basename );
-		my $confirm = $handle->param( $basename."_confirm" );
+		my $password = $session->param( $basename );
+		my $confirm = $session->param( $basename."_confirm" );
 
 		if( !length($password) || $password ne $confirm )
 		{
-			push @probs, $handle->html_phrase( "validate:secret_mismatch" );
+			push @probs, $session->html_phrase( "validate:secret_mismatch" );
 		}
 	}
 

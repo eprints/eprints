@@ -34,7 +34,7 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $div = $self->{handle}->make_element( "div", class=>"ep_block" );
+	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
 
 	$div->appendChild( $self->html_phrase("sure_delete", 
 		title=>$self->{processor}->{savedsearch}->render_description() ) );
@@ -46,7 +46,7 @@ sub render
 	);
 
 	my $form= $self->render_form;
-	$form->appendChild( $self->{handle}->render_action_buttons( %buttons ) );
+	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
 	$div->appendChild( $form );
 
 	return( $div );
@@ -81,8 +81,8 @@ sub action_remove
 
 	if( !$self->{processor}->{savedsearch}->remove )
 	{
-		my $db_error = $self->{handle}->get_database->error;
-		$self->{handle}->get_repository->log( "DB error removing Saved Search ".$self->{processor}->{savedsearch}->get_id.": $db_error" );
+		my $db_error = $self->{session}->get_database->error;
+		$self->{session}->get_repository->log( "DB error removing Saved Search ".$self->{processor}->{savedsearch}->get_id.": $db_error" );
 		$self->{processor}->add_message( "message", $self->html_phrase( "item_not_removed" ) );
 		return;
 	}

@@ -62,7 +62,7 @@ EOX
 	}
 
 	$opts{list}->map( sub {
-		my( $handle, $dataset, $item ) = @_;
+		my( $session, $dataset, $item ) = @_;
 
 		my $part = $plugin->output_dataobj( $item, %opts );
 		if( defined $opts{fh} )
@@ -108,20 +108,20 @@ sub xml_dataobj
 {
 	my( $plugin, $dataobj ) = @_;
 
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{ session };
 
 	my $id = $dataobj->get_dataset->confid."_".$dataobj->get_id;
 
-	my $mods_plugin = $handle->plugin( "Export::MODS" )
+	my $mods_plugin = $session->plugin( "Export::MODS" )
 		or die "Couldn't get Export::MODS plugin";
-	my $conv_plugin = $handle->plugin( "Convert" )
+	my $conv_plugin = $session->plugin( "Convert" )
 		or die "Couldn't get Convert plugin";
 	
 	my $nsp = "xmlns:${PREFIX}";
 	chop($nsp); # remove the trailing ':'
 	my $mods_nsp = "xmlns:${MODS_PREFIX}";
 	chop($mods_nsp); # remove the trailing ':'
-	my $mets = $handle->make_element(
+	my $mets = $session->make_element(
 		"${PREFIX}mets",
 		"OBJID" => $id,
 		"LABEL" => "Eprints Item",
@@ -135,20 +135,20 @@ sub xml_dataobj
 	);
 	
 	# metsHdr
-	$mets->appendChild( _make_header( $handle, $dataobj ));
+	$mets->appendChild( _make_header( $session, $dataobj ));
 
 	# dmdSec
 	my $mods_id = "DMD_".$id."_mods"; # also used in structMap
-	$mets->appendChild(my $mods_dmd = $handle->make_element(
+	$mets->appendChild(my $mods_dmd = $session->make_element(
 		"${PREFIX}dmdSec",
 		"ID" => $mods_id
 	));
-	$mods_dmd->appendChild(my $mods_mdWrap = $handle->make_element(
+	$mods_dmd->appendChild(my $mods_mdWrap = $session->make_element(
 		"${PREFIX}mdWrap",
 		"MDTYPE" => "MODS"
 	));
 	my $mods = $mods_plugin->xml_dataobj( $dataobj, $MODS_PREFIX );
-	$mods_mdWrap->appendChild( my $xmlData = $handle->make_element(
+	$mods_mdWrap->appendChild( my $xmlData = $session->make_element(
 		"${PREFIX}xmlData"
 	));
 	# copy in the child nodes (we don't need to repeat the MODS namespace)
@@ -157,78 +157,78 @@ sub xml_dataobj
 	# amdSec
 	my $amd_id = "TMD_".$id;
 	my $rights_id = "rights_".$id."_mods";
-	$mets->appendChild( _make_amdSec( $handle, $dataobj, $amd_id, $rights_id ));
+	$mets->appendChild( _make_amdSec( $session, $dataobj, $amd_id, $rights_id ));
 	
 	# fileSec
-	$mets->appendChild( _make_fileSec( $handle, $dataobj, $id, $conv_plugin ));
+	$mets->appendChild( _make_fileSec( $session, $dataobj, $id, $conv_plugin ));
 	
 	# structMap
-	$mets->appendChild( _make_structMap( $handle, $dataobj, $id, $mods_id, $amd_id ));
+	$mets->appendChild( _make_structMap( $session, $dataobj, $id, $mods_id, $amd_id ));
 
 	return $mets;
 }
 
 sub _make_header
 {
-	my( $handle, $dataobj ) = @_;
+	my( $session, $dataobj ) = @_;
 	
 	my $time = EPrints::Time::get_iso_timestamp();
-	my $repo = $handle->get_repository;
+	my $repo = $session->get_repository;
 	
-	my $header = $handle->make_element(
+	my $header = $session->make_element(
 		"${PREFIX}metsHdr",
 		"CREATEDATE" => $time
 	);
-	$header->appendChild( my $agent = $handle->make_element(
+	$header->appendChild( my $agent = $session->make_element(
 		"${PREFIX}agent",
 		"ROLE" => "CUSTODIAN",
 		"TYPE" => "ORGANIZATION"
 	));
-	$agent->appendChild( my $name = $handle->make_element(
+	$agent->appendChild( my $name = $session->make_element(
 		"${PREFIX}name",
 	));
-	my $aname = $handle->phrase( "archive_name" );
-	$name->appendChild( $handle->make_text( $aname ));
+	my $aname = $session->phrase( "archive_name" );
+	$name->appendChild( $session->make_text( $aname ));
 	
 	return $header;
 }
 
 sub _make_amdSec
 {
-	my( $handle, $dataobj, $amd_id, $rights_id ) = @_;
+	my( $session, $dataobj, $amd_id, $rights_id ) = @_;
 	
-	my $amdSec = $handle->make_element(
+	my $amdSec = $session->make_element(
 		"${PREFIX}amdSec",
 		"ID" => $amd_id
 	);
 	
-	$amdSec->appendChild(my $rightsMD = $handle->make_element(
+	$amdSec->appendChild(my $rightsMD = $session->make_element(
 		"${PREFIX}rightsMD",
 		"ID" => $rights_id
 	));
 	
-	$rightsMD->appendChild( my $mdWrap = $handle->make_element(
+	$rightsMD->appendChild( my $mdWrap = $session->make_element(
 		"${PREFIX}mdWrap",
 		"MDTYPE" => "MODS"
 	));
 	
-	$mdWrap->appendChild( my $xmlData = $handle->make_element(
+	$mdWrap->appendChild( my $xmlData = $session->make_element(
 		"${PREFIX}xmlData",
 	));
 	
-	$xmlData->appendChild( my $mods_use = $handle->make_element(
+	$xmlData->appendChild( my $mods_use = $session->make_element(
 		"${MODS_PREFIX}useAndReproduction"
 	));
-	$mods_use->appendChild( $handle->html_phrase( "deposit_agreement_text" ));
+	$mods_use->appendChild( $session->html_phrase( "deposit_agreement_text" ));
 	
 	return $amdSec;
 }
 
 sub _make_fileSec
 {
-	my( $handle, $dataobj, $id, $conv_plugin ) = @_;
+	my( $session, $dataobj, $id, $conv_plugin ) = @_;
 
-	my $fileSec = $handle->make_element(
+	my $fileSec = $session->make_element(
 		"${PREFIX}fileSec"
 	);
 	
@@ -238,7 +238,7 @@ sub _make_fileSec
 		my $id_base = $id."_".$doc->get_id;
 		my %files = $doc->files;
 
-		$fileSec->appendChild(my $fileGrp = $handle->make_element(
+		$fileSec->appendChild(my $fileGrp = $session->make_element(
 			"${PREFIX}fileGrp",
 			"USE" => "reference"
 		));
@@ -251,7 +251,7 @@ sub _make_fileSec
 			my $mimetype = $doc->mime_type( $name );
 			$mimetype = 'application/octet-stream' unless defined $mimetype;
 
-			$fileGrp->appendChild( my $file = $handle->make_element(
+			$fileGrp->appendChild( my $file = $session->make_element(
 				"${PREFIX}file",
 				"ID" => $id_base."_".$file_idx,
 				"SIZE" => $size,
@@ -259,7 +259,7 @@ sub _make_fileSec
 				"MIMETYPE" => $mimetype
 			));
 
-			$file->appendChild( $handle->make_element(
+			$file->appendChild( $session->make_element(
 				"${PREFIX}FLocat",
 				"LOCTYPE" => "URL",
 				"xlink:type" => "simple",
@@ -273,11 +273,11 @@ sub _make_fileSec
 
 sub _make_structMap
 {
-	my( $handle, $dataobj, $id, $dmd_id, $amd_id ) = @_;
+	my( $session, $dataobj, $id, $dmd_id, $amd_id ) = @_;
 	
-	my $structMap = $handle->make_element( "${PREFIX}structMap" );
+	my $structMap = $session->make_element( "${PREFIX}structMap" );
 	
-	$structMap->appendChild( my $top_div = $handle->make_element(
+	$structMap->appendChild( my $top_div = $session->make_element(
 		"${PREFIX}div",
 		"DMDID" => $dmd_id,
 		"ADMID" => $amd_id
@@ -294,10 +294,10 @@ sub _make_structMap
 			{
 				$file_idx++;
 				my $file_id = $id_base."_".$file_idx;
-				$top_div->appendChild( my $div = $handle->make_element(
+				$top_div->appendChild( my $div = $session->make_element(
 					"${PREFIX}div"
 				));
-				$div->appendChild( $handle->make_element(
+				$div->appendChild( $session->make_element(
 					"${PREFIX}fptr",
 					"FILEID" => $file_id
 				));
@@ -307,7 +307,7 @@ sub _make_structMap
 		{
 			$file_idx++;
 			my $file_id = $id_base."_".$file_idx;
-			$top_div->appendChild( $handle->make_element(
+			$top_div->appendChild( $session->make_element(
 				"${PREFIX}fptr",
 				"FILEID" => $file_id
 			));

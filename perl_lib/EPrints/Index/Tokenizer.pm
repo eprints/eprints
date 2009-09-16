@@ -34,7 +34,7 @@ package EPrints::Index::Tokenizer;
 ######################################################################
 =pod
 
-=item @words = EPrints::Index::Tokenizer::split_words( $handle, $utext )
+=item @words = EPrints::Index::Tokenizer::split_words( $session, $utext )
 
 Splits a utf8 string into individual words. 
 
@@ -43,7 +43,7 @@ Splits a utf8 string into individual words.
 
 sub split_words
 {
-	my( $handle, $utext ) = @_;
+	my( $session, $utext ) = @_;
 
 	if( ref($utext) eq "Unicode::String" )
 	{
@@ -58,7 +58,7 @@ sub split_words
 ######################################################################
 =pod
 
-=item $utext2 = EPrints::Index::Tokenizer::apply_mapping( $handle, $utext )
+=item $utext2 = EPrints::Index::Tokenizer::apply_mapping( $session, $utext )
 
 Replaces certain unicode characters with ASCII equivalents and returns
 the new string.
@@ -71,7 +71,7 @@ be ignored when searching.
 
 sub apply_mapping
 {
-	my( $handle, $text ) = @_;
+	my( $session, $text ) = @_;
 
 	if( ref($utext) eq "Unicode::String" )
 	{

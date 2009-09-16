@@ -31,7 +31,7 @@ sub from
 
 	my $ds = $self->{processor}->{savedsearch}->get_dataset;
 	my $spec = $self->{processor}->{savedsearch}->get_value( 'spec' );
-	$self->{processor}->{search} = $ds->get_field( "spec" )->make_searchexp( $self->{handle}, $spec );
+	$self->{processor}->{search} = $ds->get_field( "spec" )->make_searchexp( $self->{session}, $spec );
 	$self->{processor}->{results} = $self->{processor}->{search}->perform_search;
 
 	$self->SUPER::from;
@@ -48,12 +48,12 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	$self->{processor}->{results}->cache;
 	my $cacheid = $self->{processor}->{results}->get_cache_id;
 
-	my $export_div = $self->{handle}->make_element( "div", class=>"ep_search_export" );
+	my $export_div = $self->{session}->make_element( "div", class=>"ep_search_export" );
 	$export_div->appendChild( $self->render_export_bar );
 
 	my %opts = (
@@ -62,8 +62,8 @@ sub render
 			savedsearchid => $self->{processor}->{savedsearchid},
 		},
 		render_result => sub {
-			my( $handle, $result, $searchexp, $n ) = @_;
-			my $div = $handle->make_element( "div", class=>"ep_search_result" );
+			my( $session, $result, $searchexp, $n ) = @_;
+			my $div = $session->make_element( "div", class=>"ep_search_result" );
 			$div->appendChild( 
 				$result->render_citation_link(
 					'result',
@@ -72,12 +72,12 @@ sub render
 		},
 		render_result_params => $self->{processor}->{results},
 		above_results => $export_div,
-		container => $self->{handle}->make_element( "table" ),
+		container => $self->{session}->make_element( "table" ),
 #		page_size => $self->{page_size},
 	);
 
-	my $page = $self->{handle}->render_form( "GET" );
-	$page->appendChild( EPrints::Paginate->paginate_list( $self->{handle}, "_search", $self->{processor}->{results}, %opts ) );
+	my $page = $self->{session}->render_form( "GET" );
+	$page->appendChild( EPrints::Paginate->paginate_list( $self->{session}, "_search", $self->{processor}->{results}, %opts ) );
 
 	return $page;
 }
@@ -86,7 +86,7 @@ sub render_title
 {
 	my( $self ) = @_;
 
-	my $f = $self->{handle}->make_doc_fragment;
+	my $f = $self->{session}->make_doc_fragment;
 	$f->appendChild( $self->{processor}->{savedsearch}->render_description );
 	return $f;
 }
@@ -97,7 +97,7 @@ sub action_export_redir
 {
 	my( $self ) = @_;
 
-	my $format = $self->{handle}->param( "_output" );
+	my $format = $self->{session}->param( "_output" );
 
 	$self->{processor}->{redirect} = $self->export_url( $format );
 }
@@ -118,7 +118,7 @@ sub _get_export_plugins
 {
 	my( $self ) = @_;
 
-	return $self->{handle}->plugin_list( 
+	return $self->{session}->plugin_list( 
 			type=>"Export",
 			can_accept=>"list/eprint",
 			is_visible=>"all" );
@@ -128,12 +128,12 @@ sub export_url
 {
 	my( $self, $format ) = @_;
 
-	my $plugin = $self->{handle}->plugin( "Export::".$format );
+	my $plugin = $self->{session}->plugin( "Export::".$format );
 
-	my $savedsearchid = $self->{handle}->param( "savedsearchid" );
-	my $url = $self->{handle}->get_uri();
+	my $savedsearchid = $self->{session}->param( "savedsearchid" );
+	my $url = $self->{session}->get_uri();
 	#cjg escape URL'ify urls in this bit... (4 of them?)
-	my $fullurl = "$url/export_".$self->{handle}->get_repository->get_id."_".$format.$plugin->param("suffix")."?savedsearchid=$savedsearchid&_output=$format&_action_export=1&screen=".$self->{processor}->{screenid};
+	my $fullurl = "$url/export_".$self->{session}->get_repository->get_id."_".$format.$plugin->param("suffix")."?savedsearchid=$savedsearchid&_output=$format&_action_export=1&screen=".$self->{processor}->{screenid};
 	return $fullurl;
 }
 
@@ -143,76 +143,76 @@ sub render_export_bar
 	my( $self ) = @_;
 	my @plugins = $self->_get_export_plugins;
 	my $cacheid = $self->{processor}->{results}->{cache_id};
-	my $savedsearchid = $self->{handle}->param( "savedsearchid" );
-	my $url = $self->{handle}->get_uri();
-	my $handle = $self->{handle};
+	my $savedsearchid = $self->{session}->param( "savedsearchid" );
+	my $url = $self->{session}->get_uri();
+	my $session = $self->{session};
 	if( scalar @plugins == 0 ) 
 	{
-		return $handle->make_doc_fragment;
+		return $session->make_doc_fragment;
 	}
 
-	my $feeds = $handle->make_doc_fragment;
-	my $tools = $handle->make_doc_fragment;
+	my $feeds = $session->make_doc_fragment;
+	my $tools = $session->make_doc_fragment;
 	my $options = {};
 	foreach my $plugin_id ( @plugins ) 
 	{
 		$plugin_id =~ m/^[^:]+::(.*)$/;
 		my $id = $1;
-		my $plugin = $handle->plugin( $plugin_id );
+		my $plugin = $session->plugin( $plugin_id );
 		my $dom_name = $plugin->render_name;
 		if( $plugin->is_feed || $plugin->is_tool )
 		{
 			my $type = "feed";
 			$type = "tool" if( $plugin->is_tool );
-			my $span = $handle->make_element( "span", class=>"ep_search_$type" );
+			my $span = $session->make_element( "span", class=>"ep_search_$type" );
 			my $url = $self->export_url( $id );
-			my $a1 = $handle->render_link( $url );
-			my $icon = $handle->make_element( "img", src=>$plugin->icon_url(), alt=>"[$type]", border=>0 );
+			my $a1 = $session->render_link( $url );
+			my $icon = $session->make_element( "img", src=>$plugin->icon_url(), alt=>"[$type]", border=>0 );
 			$a1->appendChild( $icon );
-			my $a2 = $handle->render_link( $url );
+			my $a2 = $session->render_link( $url );
 			$a2->appendChild( $dom_name );
 			$span->appendChild( $a1 );
-			$span->appendChild( $handle->make_text( " " ) );
+			$span->appendChild( $session->make_text( " " ) );
 			$span->appendChild( $a2 );
 
 			if( $type eq "tool" )
 			{
-				$tools->appendChild( $handle->make_text( " " ) );
+				$tools->appendChild( $session->make_text( " " ) );
 				$tools->appendChild( $span );	
 			}
 			if( $type eq "feed" )
 			{
-				$feeds->appendChild( $handle->make_text( " " ) );
+				$feeds->appendChild( $session->make_text( " " ) );
 				$feeds->appendChild( $span );
 			}
 		}
 		else
 		{
-			my $option = $handle->make_element( "option", value=>$id );
+			my $option = $session->make_element( "option", value=>$id );
 			$option->appendChild( $dom_name );
 			$options->{EPrints::XML::to_string($dom_name)} = $option;
 		}
 	}
-	my $select = $handle->make_element( "select", name=>"_output" );
+	my $select = $session->make_element( "select", name=>"_output" );
 	foreach my $optname ( sort keys %{$options} )
 	{
 		$select->appendChild( $options->{$optname} );
 	}
-	my $button = $handle->make_doc_fragment;
-	$button->appendChild( $handle->render_button(
+	my $button = $session->make_doc_fragment;
+	$button->appendChild( $session->render_button(
 			name=>"_action_export_redir",
-			value=>$handle->phrase( "lib/searchexpression:export_button" ) ) );
+			value=>$session->phrase( "lib/searchexpression:export_button" ) ) );
 	$button->appendChild( 
-		$handle->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
+		$session->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
 	$button->appendChild( 
-		$handle->render_hidden_field( "_cache", $cacheid ) ); 
+		$session->render_hidden_field( "_cache", $cacheid ) ); 
 	$button->appendChild( 
-		$handle->render_hidden_field( "savedsearchid", $savedsearchid, ) );
+		$session->render_hidden_field( "savedsearchid", $savedsearchid, ) );
 
-	return $handle->html_phrase( "lib/searchexpression:export_section",
+	return $session->html_phrase( "lib/searchexpression:export_section",
 					feeds => $feeds,
 					tools => $tools,
-					count => $handle->make_text( 
+					count => $session->make_text( 
 						$self->{processor}->{results}->count ),
 					menu => $select,
 					button => $button );
@@ -225,9 +225,9 @@ sub wishes_to_export
 
 	return 0 unless $self->{processor}->{search_subscreen} eq "export";
 
-	my $format = $self->{handle}->param( "_output" );
+	my $format = $self->{session}->param( "_output" );
 
-	my @plugins = $self->{handle}->plugin_list(
+	my @plugins = $self->{session}->plugin_list(
 		type=>"Export",
 		can_accept=>"list/eprint",
 		is_visible=>"all",
@@ -237,17 +237,15 @@ sub wishes_to_export
 	foreach( @plugins ) { if( $_ eq "Export::$format" ) { $ok = 1; last; } }
 	unless( $ok ) 
 	{
-		$self->{handle}->prepare_page(
-			{
-				title=>$self->{handle}->html_phrase( "lib/searchexpression:export_error_title" ),
-				page=>$self->{handle}->html_phrase( "lib/searchexpression:export_error_format" ),
-			},
-			page_id=>"export_error" );
-		$self->{handle}->send_page;
+		$self->{session}->build_page(
+			$self->{session}->html_phrase( "lib/searchexpression:export_error_title" ),
+			$self->{session}->html_phrase( "lib/searchexpression:export_error_format" ),
+			"export_error" );
+		$self->{session}->send_page;
 		return;
 	}
 	
-	$self->{processor}->{export_plugin} = $self->{handle}->plugin( "Export::$format" );
+	$self->{processor}->{export_plugin} = $self->{session}->plugin( "Export::$format" );
 	$self->{processor}->{export_format} = $format;
 	
 	return 1;

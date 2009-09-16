@@ -264,9 +264,9 @@ sub make_document
 
 sub make_document_fragment
 {
-	my( $handle ) = @_;
+	my( $session ) = @_;
 	
-	return $handle->{doc}->createDocumentFragment;
+	return $session->{doc}->createDocumentFragment;
 }
 
 sub version

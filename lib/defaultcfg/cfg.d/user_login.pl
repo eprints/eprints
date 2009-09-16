@@ -11,16 +11,16 @@
 # change-email.
 #
 #$c->{check_user_password} = sub {
-#	my( $handle, $username, $password ) = @_;
+#	my( $session, $username, $password ) = @_;
 #
-#	my $user = $handle->get_user_with_username( $username );
+#	my $user = EPrints::DataObj::User::user_with_username( $session, $username );
 #	return 0 unless $user;
 #
 #	my $user_type = $user->get_type;
 #	if( $user_type eq "admin" )
 #	{
 #		# internal authentication for "admin" type
-#		return $handle->get_database->valid_login( $username, $password );
+#		return $session->get_database->valid_login( $username, $password );
 #	}
 #
 #	# LDAP authentication for "user" and "editor" types

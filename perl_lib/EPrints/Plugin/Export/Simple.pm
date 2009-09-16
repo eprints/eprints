@@ -40,16 +40,16 @@ sub dataobj_to_html_header
 {
 	my( $plugin, $dataobj ) = @_;
 
-	my $links = $plugin->{handle}->make_doc_fragment;
+	my $links = $plugin->{session}->make_doc_fragment;
 
 	my $epdata = $plugin->convert_dataobj( $dataobj );
 	foreach( @{$epdata} )
 	{
-		$links->appendChild( $plugin->{handle}->make_element(
+		$links->appendChild( $plugin->{session}->make_element(
 			"meta",
 			name => "eprints.".$_->[0],
 			content => $_->[1] ) );
-		$links->appendChild( $plugin->{handle}->make_text( "\n" ));
+		$links->appendChild( $plugin->{session}->make_text( "\n" ));
 	}
 	return $links;
 }

@@ -35,7 +35,7 @@ sub can_be_viewed
 	my $eprint = $self->{processor}->{eprint};
 	return 0 if !defined $eprint;
 	return 0 if !$eprint->is_locked();
-	return 15 if( $eprint->get_value( "edit_lock_user" ) == $self->{handle}->current_user->get_id );
+	return 15 if( $eprint->get_value( "edit_lock_user" ) == $self->{session}->current_user->get_id );
 
 	return 0;
 }

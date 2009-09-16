@@ -21,16 +21,16 @@ sub process_at_end
 {
 	my( $plugin, $info ) = @_;
 
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{session};
 	foreach my $code ( keys %{$info->{titlemap}} )
 	{
 		my @set = @{$info->{titlemap}->{$code}};
 		next unless scalar @set > 1;
 		foreach my $id ( @set )
 		{
-			my $eprint = $handle->get_eprint( $id );
-			my $desc = $handle->make_doc_fragment;
-			$desc->appendChild( $handle->make_text( "Duplicate title to " ) );
+			my $eprint = EPrints::DataObj::EPrint->new( $session, $id );
+			my $desc = $session->make_doc_fragment;
+			$desc->appendChild( $session->make_text( "Duplicate title to " ) );
 			$desc->appendChild( $eprint->render_citation_link_staff );
 			OTHER: foreach my $id2 ( @set )
 			{

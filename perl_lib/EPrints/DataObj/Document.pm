@@ -19,53 +19,6 @@
 
 B<EPrints::DataObj::Document> - A single format of a record.
 
-=head1 SYNOPSIS
-
-	Inherrits all methods from EPrints::DataObj.
-
-	# create a new document on $eprint 
-	my $doc_data = {
-		_parent => $eprint,
-		eprintid => $eprint->get_id,
-	};
-	my $doc_ds = $handle->get_dataset( 'document' );
-	my $document = $doc_ds->create_object( $handle, $doc_data );
-
-	# Add files to the document	
-	$success = $doc->add_file( $file, $filename, [$preserve_path] );
-	$success = $doc->upload( $filehandle, $filename [, $preserve_path [, $filesize ] ] );
-	$success = $doc->upload_archive( $filehandle, $filename, $archive_format );
-	$success = $doc->add_archive( $file, $archive_format );
-	$success = $doc->add_directory( $directory );
-	$success = $doc->upload_url( $url );
-
-	# get an existing document
-	$document = $handle->get_document( $doc_id );
-	# or
-	foreach my $doc ( $eprint->get_all_documents ) { ... }
-
-	# eprint to which this document belongs
-	$eprint = $doc->get_eprint;
-
-	# delete a document object *forever*:
-	$success = $doc->remove;
-
-	$url = $doc->get_url( [$file] );
-	$path = $doc->local_path;
-	%files = $doc->files;
-
-	# delete a file
-	$success = $doc->remove_file( $filename );
-	# delete all files
-	$success = $doc->remove_all_files;
-
-	# change the file which is used as the URL for the document.
-	$doc->set_main( $main_file );
-
-	# icons and previews
-	$xhtml = $doc->render_icon_link( %opts );
-	$xhtml = $doc->render_preview_link( %opts );
-
 =head1 DESCRIPTION
 
 Document represents a single format of an EPrint (eg. PDF) - the 
@@ -109,17 +62,7 @@ EPrints does not set this.
 =item security (namedset)
 
 The security type of this document - who can view it. One of the types
-of the namedset "security".
-
-=item content (namedset)
-
-The type of content. Conceptual type, no format. ie. Supporting Material or 
-published version. Values from namedset "content"
-
-=item license (namedset)
-
-The type of license for the document. Such as GFDL or creative commons.
-Values from namedset "licenses"
+of the dataset "security".
 
 =item main (text)
 
@@ -135,6 +78,8 @@ part of this record.
 =back
 
 =head1 METHODS
+
+=over 4
 
 =cut
 
@@ -167,9 +112,13 @@ use strict;
 $EPrints::DataObj::Document::OTHER = "OTHER";
 
 ######################################################################
-# $metadata = EPrints::DataObj::Document->get_system_field_info
-#
-# Return an array describing the system metadata of the Document dataset.
+=pod
+
+=item $metadata = EPrints::DataObj::Document->get_system_field_info
+
+Return an array describing the system metadata of the Document dataset.
+
+=cut
 ######################################################################
 
 sub get_system_field_info
@@ -239,7 +188,7 @@ sub get_system_field_info
 
 sub main_input_tags
 {
-	my( $handle, $object ) = @_;
+	my( $session, $object ) = @_;
 
 	my %files = $object->files;
 
@@ -251,21 +200,21 @@ sub main_input_tags
 
 sub main_render_option
 {
-	my( $handle, $option ) = @_;
+	my( $session, $option ) = @_;
 
-	return $handle->make_text( $option );
+	return $session->make_text( $option );
 }
 
 
 
 sub doc_with_eprintid_and_pos
 {
-	my( $handle, $eprintid, $pos ) = @_;
+	my( $session, $eprintid, $pos ) = @_;
 	
-	my $document_ds = $handle->get_repository->get_dataset( "document" );
+	my $document_ds = $session->get_repository->get_dataset( "document" );
 
 	my $searchexp = new EPrints::Search(
-		handle =>$handle,
+		session=>$session,
 		dataset=>$document_ds );
 
 	$searchexp->add_field(
@@ -283,9 +232,13 @@ sub doc_with_eprintid_and_pos
 }
 
 ######################################################################
-# $dataset = EPrints::DataObj::Document->get_dataset_id
-# 
-# Returns the id of the L<EPrints::DataSet> object to which this record belongs.
+=pod
+
+=item $dataset = EPrints::DataObj::Document->get_dataset_id
+
+Returns the id of the L<EPrints::DataSet> object to which this record belongs.
+
+=cut
 ######################################################################
 
 sub get_dataset_id
@@ -294,52 +247,60 @@ sub get_dataset_id
 }
 
 ######################################################################
-# $doc = EPrints::DataObj::Document::create( $handle, $eprint )
+# =pod
+# 
+# =item $doc = EPrints::DataObj::Document::create( $session, $eprint )
 # 
 # Create and return a new Document belonging to the given $eprint object, 
 # get the initial metadata from set_document_defaults in the configuration
 # for this repository.
 # 
 # Note that this creates the document in the database, not just in memory.
+# 
+# =cut
 ######################################################################
 
 sub create
 {
-	my( $handle, $eprint ) = @_;
+	my( $session, $eprint ) = @_;
 
 	return EPrints::DataObj::Document->create_from_data( 
-		$handle, 
+		$session, 
 		{
 			_parent => $eprint,
 			eprintid => $eprint->get_id
 		},
-		$handle->get_repository->get_dataset( "document" ) );
+		$session->get_repository->get_dataset( "document" ) );
 }
 
 ######################################################################
-# $dataobj = EPrints::DataObj::Document->create_from_data( $handle, $data, $dataset )
+# =pod
+# 
+# =item $dataobj = EPrints::DataObj::Document->create_from_data( $session, $data, $dataset )
 # 
 # Returns undef if a bad (or no) subjectid is specified.
 # 
 # Otherwise calls the parent method in EPrints::DataObj.
+# 
+# =cut
 ######################################################################
 
 sub create_from_data
 {
-	my( $class, $handle, $data, $dataset ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
        
 	my $eprintid = $data->{eprintid}; 
 	my $eprint = $data->{_parent} ||= delete $data->{eprint};
 
 	my $files = delete $data->{files};
 
-	my $document = $class->SUPER::create_from_data( $handle, $data, $dataset );
+	my $document = $class->SUPER::create_from_data( $session, $data, $dataset );
 
 	return unless defined $document;
 
 	$document->set_under_construction( 1 );
 
-	my $fileds = $handle->get_repository->get_dataset( "file" );
+	my $fileds = $session->get_repository->get_dataset( "file" );
 
 	my $files_modified = 0;
 
@@ -354,7 +315,7 @@ sub create_from_data
 		$filedata->{datasetid} = $document->get_dataset_id;
 		$filedata->{_parent} = $document;
 		my $fileobj = EPrints::DataObj::File->create_from_data(
-				$handle,
+				$session,
 				$filedata,
 				$fileds,
 			);
@@ -377,31 +338,35 @@ sub create_from_data
 }
 
 ######################################################################
-# $defaults = EPrints::DataObj::Document->get_defaults( $handle, $data )
-#
-# Return default values for this object based on the starting data.
+=pod
+
+=item $defaults = EPrints::DataObj::Document->get_defaults( $session, $data )
+
+Return default values for this object based on the starting data.
+
+=cut
 ######################################################################
 
 sub get_defaults
 {
-	my( $class, $handle, $data, $dataset ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
 
-	$class->SUPER::get_defaults( $handle, $data, $dataset );
+	$class->SUPER::get_defaults( $session, $data, $dataset );
 
-	$data->{pos} = $handle->get_database->next_doc_pos( $data->{eprintid} );
+	$data->{pos} = $session->get_database->next_doc_pos( $data->{eprintid} );
 
 	$data->{placement} = $data->{pos};
 
 	my $eprint = $data->{_parent};
 	if( !defined $eprint )
 	{
-		$eprint = $handle->get_eprint( $data->{eprintid} );
+		EPrints::DataObj::EPrint->new( $session, $data->{eprintid} );
 	}
 
-	$handle->get_repository->call( 
+	$session->get_repository->call( 
 			"set_document_defaults", 
 			$data,
- 			$handle,
+ 			$session,
 			$eprint );
 
 	return $data;
@@ -428,7 +393,7 @@ sub clone
 	$data->{_parent} = $eprint;
 
 	# First create a new doc object
-	my $new_doc = $self->{dataset}->create_object( $self->{handle}, $data );
+	my $new_doc = $self->{dataset}->create_object( $self->{session}, $data );
 	return undef if !defined $new_doc;
 	
 	my $ok = 1;
@@ -450,9 +415,13 @@ sub clone
 
 
 ######################################################################
-# $success = $doc->remove
-#
-# Attempt to completely delete this document
+=pod
+
+=item $success = $doc->remove
+
+Attempt to completely delete this document
+
+=cut
 ######################################################################
 
 sub remove
@@ -484,8 +453,8 @@ sub remove
 
 	if( !$success )
 	{
-		my $db_error = $self->{handle}->get_database->error;
-		$self->{handle}->get_repository->log( "Error removing document ".$self->get_value( "docid" )." from database: $db_error" );
+		my $db_error = $self->{session}->get_database->error;
+		$self->{session}->get_repository->log( "Error removing document ".$self->get_value( "docid" )." from database: $db_error" );
 		return( 0 );
 	}
 
@@ -495,7 +464,7 @@ sub remove
 
 	if( !$ok )
 	{
-		$self->{handle}->get_repository->log( "Error removing document files for ".$self->get_value("docid").", path ".$full_path.": $!" );
+		$self->{session}->get_repository->log( "Error removing document files for ".$self->get_value("docid").", path ".$full_path.": $!" );
 		$success = 0;
 	}
 
@@ -505,8 +474,6 @@ sub remove
 
 ######################################################################
 =pod
-
-=over 4
 
 =item $eprint = $doc->get_eprint
 
@@ -530,10 +497,14 @@ sub get_parent
 
 
 ######################################################################
-# $url = $doc->get_baseurl( [$staff] )
-# 
-# Return the base URL of the document. Overrides the stub in DataObj.
-# $staff is currently ignored.
+=pod
+
+=item $url = $doc->get_baseurl( [$staff] )
+
+Return the base URL of the document. Overrides the stub in DataObj.
+$staff is currently ignored.
+
+=cut
 ######################################################################
 
 sub get_baseurl
@@ -546,7 +517,7 @@ sub get_baseurl
 
 	return( undef ) if( !defined $eprint );
 
-	my $repository = $self->{handle}->get_repository;
+	my $repository = $self->{session}->get_repository;
 
 	my $docpath = $self->get_value( "pos" );
 
@@ -581,7 +552,7 @@ sub is_public
 
 =item $url = $doc->get_url( [$file] )
 
-Return the full URL of the document. 
+Return the full URL of the document. Overrides the stub in DataObj.
 
 If file is not specified then the "main" file is used.
 
@@ -623,7 +594,7 @@ sub local_path
 
 	if( !defined $eprint )
 	{
-		$self->{handle}->get_repository->log(
+		$self->{session}->get_repository->log(
 			"Document ".$self->get_id." has no eprint (eprintid is ".$self->get_value( "eprintid" )."!" );
 		return( undef );
 	}	
@@ -658,6 +629,50 @@ sub files
 	return( %files );
 }
 
+
+# cjg should this function be in some kind of utils module and
+# used by generate_static too?
+######################################################################
+# 
+# %files = EPrints::DataObj::Document::_get_files( $files, $root, $dir )
+#
+#  Recursively get all the files in $dir. Paths are returned relative
+#  to $root (i.e. $root is removed from the start of files.)
+#
+######################################################################
+
+sub _get_files
+{
+	my( $files, $root, $dir ) = @_;
+
+	my $fixed_dir = ( $dir eq "" ? "" : $dir . "/" );
+
+	# Read directory contents
+	opendir CDIR, $root . "/" . $dir or return( undef );
+	my @filesread = readdir CDIR;
+	closedir CDIR;
+
+	# Iterate through files
+	my $name;
+	foreach $name (@filesread)
+	{
+		if( $name ne "." && $name ne ".." )
+		{
+			# If it's a directory, recurse
+			if( -d $root . "/" . $fixed_dir . $name )
+			{
+				_get_files( $files, $root, $fixed_dir . $name );
+			}
+			else
+			{
+				#my @stats = stat( $root . "/" . $fixed_dir . $name );
+				$files->{$fixed_dir.$name} = -s $root . "/" . $fixed_dir . $name;
+				#push @files, $fixed_dir . $name;
+			}
+		}
+	}
+
+}
 ######################################################################
 =pod
 
@@ -686,7 +701,7 @@ sub remove_file
 	}
 	else
 	{
-		$self->{handle}->get_repository->log( "Error removing file $filename for doc ".$self->get_value( "docid" ).": $!" );
+		$self->{session}->get_repository->log( "Error removing file $filename for doc ".$self->get_value( "docid" ).": $!" );
 	}
 
 	return defined $fileobj;
@@ -717,7 +732,7 @@ sub remove_all_files
 
 	if( !$ok )
 	{
-		$self->{handle}->get_repository->log( "Error removing document files for ".$self->get_value( "docid" ).", path ".$full_path.": $!" );
+		$self->{session}->get_repository->log( "Error removing document files for ".$self->get_value( "docid" ).", path ".$full_path.": $!" );
 		return( 0 );
 	}
 
@@ -733,8 +748,6 @@ sub remove_all_files
 =item $doc->set_main( $main_file )
 
 Sets the main file. Won't affect the database until a $doc->commit().
-
-This checks the file exists, so is more than an alias for get_value.
 
 =cut
 ######################################################################
@@ -760,9 +773,13 @@ sub set_main
 
 
 ######################################################################
-# $filename = $doc->get_main
-#
-# Return the name of the main file in this document.
+=pod
+
+=item $filename = $doc->get_main
+
+Return the name of the main file in this document.
+
+=cut
 ######################################################################
 
 sub get_main
@@ -774,10 +791,14 @@ sub get_main
 
 
 ######################################################################
-# $doc->set_format( $format )
-# 
-# Set format. Won't affect the database until a commit(). Just an alias 
-# for $doc->set_value( "format" , $format );
+=pod
+
+=item $doc->set_format( $format )
+
+Set format. Won't affect the database until a commit(). Just an alias 
+for $doc->set_value( "format" , $format );
+
+=cut
 ######################################################################
 
 sub set_format
@@ -789,11 +810,15 @@ sub set_format
 
 
 ######################################################################
-# $doc->set_format_desc( $format_desc )
-# 
-# Set the format description.  Won't affect the database until a commit().
-# Just an alias for
-# $doc->set_value( "format_desc" , $format_desc );
+=pod
+
+=item $doc->set_format_desc( $format_desc )
+
+Set the format description.  Won't affect the database until a commit().
+Just an alias for
+$doc->set_value( "format_desc" , $format_desc );
+
+=cut
 ######################################################################
 
 sub set_format_desc
@@ -827,7 +852,7 @@ sub upload
 	# Get the filename. File::Basename isn't flexible enough (setting 
 	# internal globals in reentrant code very dodgy.)
 
-	my $repository = $self->{handle}->get_repository;
+	my $repository = $self->{session}->get_repository;
 	if( $filename =~ m/^~/ )
 	{
 		$repository->log( "Bad filename for file '$filename' in document: starts with ~ (will not add)\n" );
@@ -903,10 +928,14 @@ sub add_file
 }
 
 ######################################################################
-# $cleanfilename = sanitise( $filename )
-# 
-# Return just the filename (no leading path) and convert any naughty
-# characters to underscore.
+=pod
+
+=item $cleanfilename = sanitise( $filename )
+
+Return just the filename (no leading path) and convert any naughty
+characters to underscore.
+
+=cut
 ######################################################################
 
 sub sanitise 
@@ -976,7 +1005,7 @@ sub add_archive
 	my $tmpdir = EPrints::TempDir->new( CLEANUP => 1 );
 
 	# Do the extraction
-	my $rc = $self->{handle}->get_repository->exec( 
+	my $rc = $self->{session}->get_repository->exec( 
 			$archive_format, 
 			DIR => $tmpdir,
 			ARC => $file );
@@ -1085,7 +1114,7 @@ sub upload_url
 	# Count slashes
 	my $cut_dirs = substr($url->path,1) =~ tr"/""; # ignore leading /
 
-	my $rc = $self->{handle}->get_repository->exec( 
+	my $rc = $self->{session}->get_repository->exec( 
 			"wget",
 			CUTDIRS => $cut_dirs,
 			URL => $url );
@@ -1120,22 +1149,26 @@ sub upload_url
 
 
 ######################################################################
-# $success = $doc->commit
-#
-# Commit any changes that have been made to this object to the
-# database.
-# 
-# Calls "set_document_automatic_fields" in the ArchiveConfig first to
-# set any automatic fields that may be needed.
+=pod
+
+=item $success = $doc->commit
+
+Commit any changes that have been made to this object to the
+database.
+
+Calls "set_document_automatic_fields" in the ArchiveConfig first to
+set any automatic fields that may be needed.
+
+=cut
 ######################################################################
 
 sub commit
 {
 	my( $self, $force ) = @_;
 
-	my $dataset = $self->{handle}->get_repository->get_dataset( "document" );
+	my $dataset = $self->{session}->get_repository->get_dataset( "document" );
 
-	$self->{handle}->get_repository->call( "set_document_automatic_fields", $self );
+	$self->{session}->get_repository->call( "set_document_automatic_fields", $self );
 
 	if( !defined $self->{changed} || scalar( keys %{$self->{changed}} ) == 0 )
 	{
@@ -1161,14 +1194,24 @@ sub commit
 	return( $success );
 }
 	
+
+
+
+	
+
+
 ######################################################################
-# $problems = $doc->validate( [$for_archive] )
-# 
-# Return an array of XHTML DOM objects describing validation problems
-# with the entire document, including the metadata and repository config
-# specific requirements.
-# 
-# A reference to an empty array indicates no problems.
+=pod
+
+=item $problems = $doc->validate( [$for_archive] )
+
+Return an array of XHTML DOM objects describing validation problems
+with the entire document, including the metadata and repository config
+specific requirements.
+
+A reference to an empty array indicates no problems.
+
+=cut
 ######################################################################
 
 sub validate
@@ -1182,8 +1225,8 @@ sub validate
 	unless( EPrints::Utils::is_set( $self->get_type() ) )
 	{
 		# No type specified
-		my $fieldname = $self->{handle}->make_element( "span", class=>"ep_problem_field:documents" );
-		push @problems, $self->{handle}->html_phrase( 
+		my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:documents" );
+		push @problems, $self->{session}->html_phrase( 
 					"lib/document:no_type",
 					fieldname=>$fieldname );
 	}
@@ -1194,21 +1237,21 @@ sub validate
 
 	if( scalar keys %files ==0 )
 	{
-		my $fieldname = $self->{handle}->make_element( "span", class=>"ep_problem_field:documents" );
-		push @problems, $self->{handle}->html_phrase( "lib/document:no_files", fieldname=>$fieldname );
+		my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:documents" );
+		push @problems, $self->{session}->html_phrase( "lib/document:no_files", fieldname=>$fieldname );
 	}
 	elsif( !defined $self->get_main() || $self->get_main() eq "" )
 	{
 		# No file selected as main!
-		my $fieldname = $self->{handle}->make_element( "span", class=>"ep_problem_field:documents" );
-		push @problems, $self->{handle}->html_phrase( "lib/document:no_first", fieldname=>$fieldname );
+		my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:documents" );
+		push @problems, $self->{session}->html_phrase( "lib/document:no_first", fieldname=>$fieldname );
 	}
 		
 	# Site-specific checks
-	push @problems, $self->{handle}->get_repository->call( 
+	push @problems, $self->{session}->get_repository->call( 
 		"validate_document", 
 		$self, 
-		$self->{handle},
+		$self->{session},
 		$for_archive );
 
 	return( \@problems );
@@ -1216,10 +1259,12 @@ sub validate
 
 
 ######################################################################
+#
 # $boolean = $doc->user_can_view( $user )
 #
 # Return true if this documents security settings allow the given user
 # to view it.
+#
 ######################################################################
 
 sub user_can_view
@@ -1228,11 +1273,11 @@ sub user_can_view
 
 	if( !defined $user )
 	{
-		$self->{handle}->get_repository->log( '$doc->user_can_view called with undefined $user object.' );
+		$self->{session}->get_repository->log( '$doc->user_can_view called with undefined $user object.' );
 		return( 0 );
 	}
 
-	my $result = $self->{handle}->get_repository->call( 
+	my $result = $self->{session}->get_repository->call( 
 		"can_user_view_document",
 		$self,
 		$user );	
@@ -1240,16 +1285,20 @@ sub user_can_view
 	return( 1 ) if( $result eq "ALLOW" );
 	return( 0 ) if( $result eq "DENY" );
 
-	$self->{handle}->get_repository->log( "Response from can_user_view_document was '$result'. Only ALLOW, DENY are allowed." );
+	$self->{session}->get_repository->log( "Response from can_user_view_document was '$result'. Only ALLOW, DENY are allowed." );
 	return( 0 );
 
 }
 
 
 ######################################################################
-# $type = $doc->get_type
-# 
-# Return the type of this document.
+=pod
+
+=item $type = $doc->get_type
+
+Return the type of this document.
+
+=cut
 ######################################################################
 
 sub get_type
@@ -1260,10 +1309,14 @@ sub get_type
 }
 
 ######################################################################
-# $doc->files_modified
-# 
-# This method does all the things that need doing when a file has been
-# modified.
+=pod
+
+=item $doc->files_modified
+
+This method does all the things that need doing when a file has been
+modified.
+
+=cut
 ######################################################################
 
 sub files_modified
@@ -1302,19 +1355,23 @@ sub files_modified
 	}
 
 	$self->make_thumbnails;
-	if( $self->{handle}->get_repository->can_call( "on_files_modified" ) )
+	if( $self->{session}->get_repository->can_call( "on_files_modified" ) )
 	{
-		$self->{handle}->get_repository->call( "on_files_modified", $self->{handle}, $self );
+		$self->{session}->get_repository->call( "on_files_modified", $self->{session}, $self );
 	}
 
 	$self->commit();
 }
 
 ######################################################################
-# $doc->rehash
-# 
-# Recalculate the hash value of the document. Uses MD5 of the files (in
-# alphabetic order), but can use user specified hashing function instead.
+=pod
+
+=item $doc->rehash
+
+Recalculate the hash value of the document. Uses MD5 of the files (in
+alphabetic order), but can use user specified hashing function instead.
+
+=cut
 ######################################################################
 
 sub rehash
@@ -1328,7 +1385,7 @@ sub rehash
 		EPrints::Platform::get_hash_name();
 
 	EPrints::Probity::create_log_fh( 
-		$self->{handle}, 
+		$self->{session}, 
 		$files,
 		$tmpfile );
 
@@ -1340,9 +1397,13 @@ sub rehash
 }
 
 ######################################################################
-# $doc = $doc->make_indexcodes()
-# 
-# Make the indexcodes document for this document. Returns the generated document or undef on failure.
+=pod
+
+=item $doc = $doc->make_indexcodes()
+
+Make the indexcodes document for this document. Returns the generated document or undef on failure.
+
+=cut
 ######################################################################
 
 sub make_indexcodes
@@ -1359,7 +1420,7 @@ sub make_indexcodes
 	
 	# find a conversion plugin to convert us to indexcodes
 	my $type = "indexcodes";
-	my %types = $self->{handle}->plugin( "Convert" )->can_convert( $self, $type );
+	my %types = $self->{session}->plugin( "Convert" )->can_convert( $self, $type );
 	return undef unless exists($types{$type});
 	my $plugin = $types{$type}->{"plugin"};
 
@@ -1383,10 +1444,14 @@ sub make_indexcodes
 }
 
 ######################################################################
-# $doc = $doc->remove_indexcodes()
-# 
-# Remove any documents containing index codes for this document. Returns the
-# number of documents removed.
+=pod
+
+=item $doc = $doc->remove_indexcodes()
+
+Remove any documents containing index codes for this document. Returns the
+number of documents removed.
+
+=cut
 ######################################################################
 
 sub remove_indexcodes
@@ -1410,9 +1475,13 @@ sub remove_indexcodes
 }
 
 ######################################################################
-# $filename = $doc->cache_file( $suffix );
-#
-# Return a cache filename for this document with the given suffix.
+=pod
+
+=item $filename = $doc->cache_file( $suffix );
+
+Return a cache filename for this document with the givven suffix.
+
+=cut
 ######################################################################
 
 sub cache_file
@@ -1427,12 +1496,14 @@ sub cache_file
 }
 	
 ######################################################################
+#
 # $doc->register_parent( $eprint )
 #
 # Give the document the EPrints::DataObj::EPrint object that it belongs to.
 #
 # This may cause reference loops, but it does avoid two identical
 # EPrints objects existing at once.
+#
 ######################################################################
 
 sub register_parent
@@ -1480,9 +1551,9 @@ sub icon_url
 		return $thumbnail_url if defined $thumbnail_url;
 	}
 
-	my $handle = $self->{handle};
-	my $langid = $handle->get_langid;
-	my @static_dirs = $handle->get_repository->get_static_dirs( $langid );
+	my $session = $self->{session};
+	my $langid = $session->get_langid;
+	my @static_dirs = $session->get_repository->get_static_dirs( $langid );
 
 	my $icon = "unknown.png";
 	my $rel_path = "style/images/fileicons";
@@ -1508,10 +1579,9 @@ sub icon_url
 		}
 	}
 
-	return $handle->get_repository->get_conf( "http_url" )."/$rel_path/$icon";
+	return $session->get_repository->get_conf( "http_url" )."/$rel_path/$icon";
 }
 
-######################################################################
 =item $frag = $doc->render_icon_link( %opts )
 
 Render a link to the icon for this document.
@@ -1539,7 +1609,6 @@ Show thumbnail/preview on all docs if poss.
 =back
 
 =cut
-######################################################################
 
 sub render_icon_link
 {
@@ -1566,34 +1635,34 @@ sub render_icon_link
 		$aopts{onmouseover} = "EPJS_ShowPreview( event, '$preview_id' );";
 		$aopts{onmouseout} = "EPJS_HidePreview( event, '$preview_id' );";
 	}
-	my $a = $self->{handle}->make_element( "a", %aopts );
-	$a->appendChild( $self->{handle}->make_element( 
+	my $a = $self->{session}->make_element( "a", %aopts );
+	$a->appendChild( $self->{session}->make_element( 
 		"img", 
 		class=>"ep_doc_icon",
 		alt=>"[img]",
 		src=>$self->icon_url( public=>$opts{public} ),
 		border=>0 ));
-	my $f = $self->{handle}->make_doc_fragment;
+	my $f = $self->{session}->make_doc_fragment;
 	$f->appendChild( $a ) ;
 	if( $opts{preview} )
 	{
-		my $preview = $self->{handle}->make_element( "div",
+		my $preview = $self->{session}->make_element( "div",
 				id => $preview_id,
 				class => "ep_preview", );
-		my $table = $self->{handle}->make_element( "table" );
+		my $table = $self->{session}->make_element( "table" );
 		$preview->appendChild( $table );
-		my $tr = $self->{handle}->make_element( "tr" );
-		my $td = $self->{handle}->make_element( "td" );
+		my $tr = $self->{session}->make_element( "tr" );
+		my $td = $self->{session}->make_element( "td" );
 		$tr->appendChild( $td );
 		$table->appendChild( $tr );
-		$td->appendChild( $self->{handle}->make_element( 
+		$td->appendChild( $self->{session}->make_element( 
 			"img", 
 			class=>"ep_preview_image",
 			alt=>"",
 			src=>$preview_url,
 			border=>0 ));
-		my $div = $self->{handle}->make_element( "div", class=>"ep_preview_title" );
-		$div->appendChild( $self->{handle}->html_phrase( "lib/document:preview"));
+		my $div = $self->{session}->make_element( "div", class=>"ep_preview_title" );
+		$div->appendChild( $self->{session}->html_phrase( "lib/document:preview"));
 		$td->appendChild( $div );
 		$f->appendChild( $preview );
 	}
@@ -1601,7 +1670,6 @@ sub render_icon_link
 	return $f;
 }
 
-######################################################################
 =item $frag = $doc->render_preview_link( %opts )
 
 Render a link to the preview for this document (if available) using a lightbox.
@@ -1621,15 +1689,14 @@ The name of the set this document belongs to, defaults to none (preview won't be
 =back
 
 =cut
-######################################################################
 
 sub render_preview_link
 {
 	my( $self, %opts ) = @_;
 
-	my $f = $self->{handle}->make_doc_fragment;
+	my $f = $self->{session}->make_doc_fragment;
 
-	my $caption = $opts{caption} || $self->{handle}->make_doc_fragment;
+	my $caption = $opts{caption} || $self->{session}->make_doc_fragment;
 	my $set = $opts{set};
 	if( EPrints::Utils::is_set($set) )
 	{
@@ -1643,12 +1710,12 @@ sub render_preview_link
 	my $url = $self->thumbnail_url( "preview" );
 	if( defined( $url ) )
 	{
-		my $link = $self->{handle}->make_element( "a",
+		my $link = $self->{session}->make_element( "a",
 				href=>$url,
 				rel=>"lightbox$set",
 				title=>EPrints::XML::to_string($caption),
 			);
-		$link->appendChild( $self->{handle}->html_phrase( "lib/document:preview" ) );
+		$link->appendChild( $self->{session}->html_phrase( "lib/document:preview" ) );
 		$f->appendChild( $link );
 	}
 
@@ -1661,7 +1728,7 @@ sub thumbnail_plugin
 {
 	my( $self, $size ) = @_;
 
-	my $convert = $self->{handle}->plugin( "Convert" );
+	my $convert = $self->{session}->plugin( "Convert" );
 	my %types = $convert->can_convert( $self );
 
 	my $def = $types{'thumbnail_'.$size};
@@ -1679,13 +1746,14 @@ sub thumbnail_path
 
 	if( !defined $eprint )
 	{
-		$self->{handle}->get_repository->log(
+		$self->{session}->get_repository->log(
 			"Document ".$self->get_id." has no eprint (eprintid is ".$self->get_value( "eprintid" )."!" );
 		return( undef );
 	}	
 	
 	return( $eprint->local_path()."/thumbnails/".sprintf("%02d",$self->get_value( "pos" )) );
 }
+
 
 sub remove_thumbnails
 {
@@ -1711,9 +1779,9 @@ sub make_thumbnails
 
 	my @list = qw/ small medium preview /;
 
-	if( $self->{handle}->get_repository->can_call( "thumbnail_types" ) )
+	if( $self->{session}->get_repository->can_call( "thumbnail_types" ) )
 	{
-		$self->{handle}->get_repository->call( "thumbnail_types", \@list, $self->{handle}, $self );
+		$self->{session}->get_repository->call( "thumbnail_types", \@list, $self->{session}, $self );
 	}
 
 	foreach my $size ( @list )
@@ -1750,9 +1818,9 @@ sub make_thumbnails
 		$doc->commit();
 	}
 
-	if( $self->{handle}->get_repository->can_call( "on_generate_thumbnails" ) )
+	if( $self->{session}->get_repository->can_call( "on_generate_thumbnails" ) )
 	{
-		$self->{handle}->get_repository->call( "on_generate_thumbnails", $self->{handle}, $self );
+		$self->{session}->get_repository->call( "on_generate_thumbnails", $self->{session}, $self );
 	}
 
 	$self->commit();
@@ -1792,3 +1860,4 @@ sub get_parent_id
 =back
 
 =cut
+

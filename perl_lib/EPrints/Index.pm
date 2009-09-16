@@ -42,7 +42,7 @@ use strict;
 ######################################################################
 =pod
 
-=item EPrints::Index::remove( $handle, $dataset, $objectid, $fieldid )
+=item EPrints::Index::remove( $session, $dataset, $objectid, $fieldid )
 
 Remove all indexes to the field in the specified object.
 
@@ -51,13 +51,13 @@ Remove all indexes to the field in the specified object.
 
 sub remove
 {
-	my( $handle, $dataset, $objectid, $fieldid ) = @_;
+	my( $session, $dataset, $objectid, $fieldid ) = @_;
 
 	my $rv = 1;
 
 	my $sql;
 
-	my $db = $handle->get_database;
+	my $db = $session->get_database;
 
 	my $keyfield = $dataset->get_key_field();
 	my $Q_keyname = $db->quote_identifier( $keyfield->get_sql_name() );
@@ -72,8 +72,8 @@ sub remove
 	my $where = "$Q_keyname=".$db->quote_value($objectid)." AND $Q_field=".$db->quote_value($fieldid);
 
 	$sql = "SELECT $Q_word FROM $Q_rindextable WHERE $where";
-	my $sth = $handle->get_database->prepare( $sql );
-	$rv = $rv && $handle->get_database->execute( $sth, $sql );
+	my $sth = $session->get_database->prepare( $sql );
+	$rv = $rv && $session->get_database->execute( $sth, $sql );
 	my @codes = ();
 	while( my( $c ) = $sth->fetchrow_array )
 	{
@@ -83,12 +83,12 @@ sub remove
 
 	foreach my $code ( @codes )
 	{
-		my $fieldword = $handle->{database}->quote_value( "$fieldid:$code" );
-		my $sql = "UPDATE $Q_indextable SET $Q_ids = REPLACE($Q_ids,':$objectid:',':') WHERE $Q_fieldword=$fieldword AND $Q_ids LIKE ".$handle->{database}->quote_value("\%:$objectid:\%");
-		$rv &&= $handle->{database}->do($sql);
+		my $fieldword = $session->{database}->quote_value( "$fieldid:$code" );
+		my $sql = "UPDATE $Q_indextable SET $Q_ids = REPLACE($Q_ids,':$objectid:',':') WHERE $Q_fieldword=$fieldword AND $Q_ids LIKE ".$session->{database}->quote_value("\%:$objectid:\%");
+		$rv &&= $session->{database}->do($sql);
 	}
 	$sql = "DELETE FROM $Q_rindextable WHERE $where";
-	$rv = $rv && $handle->get_database->do( $sql );
+	$rv = $rv && $session->get_database->do( $sql );
 
 	return $rv;
 }
@@ -96,7 +96,7 @@ sub remove
 ######################################################################
 =pod
 
-=item EPrints::Index::purge_index( $handle, $dataset )
+=item EPrints::Index::purge_index( $session, $dataset )
 
 Remove all the current index information for the given dataset. Only
 really useful if used in conjunction with rebuilding the indexes.
@@ -106,17 +106,17 @@ really useful if used in conjunction with rebuilding the indexes.
 
 sub purge_index
 {
-	my( $handle, $dataset ) = @_;
+	my( $session, $dataset ) = @_;
 
-	$handle->clear_table( $dataset->get_sql_index_table_name() );
-	$handle->clear_table( $dataset->get_sql_rindex_table_name() );
+	$session->clear_table( $dataset->get_sql_index_table_name() );
+	$session->clear_table( $dataset->get_sql_rindex_table_name() );
 }
 
 
 ######################################################################
 =pod
 
-=item EPrints::Index::add( $handle, $dataset, $objectid, $fieldid, $value )
+=item EPrints::Index::add( $session, $dataset, $objectid, $fieldid, $value )
 
 Add indexes to the field in the specified object. The index keys will
 be taken from value.
@@ -126,13 +126,13 @@ be taken from value.
 
 sub add
 {
-	my( $handle, $dataset, $objectid, $fieldid, $value ) = @_;
+	my( $session, $dataset, $objectid, $fieldid, $value ) = @_;
 
-	my $database = $handle->get_database;
+	my $database = $session->get_database;
 
 	my $field = $dataset->get_field( $fieldid );
 
-	my( $codes, $grepcodes, $ignored ) = $field->get_index_codes( $handle, $value );
+	my( $codes, $grepcodes, $ignored ) = $field->get_index_codes( $session, $value );
 
 	my %done = ();
 
@@ -161,8 +161,8 @@ sub add
 		my $where = "$Q_fieldword=".$database->quote_value($fieldword);
 
 		my $sql = "SELECT MAX($POS) FROM $Q_indextable WHERE $where"; 
-		my $sth = $handle->get_database->prepare( $sql );
-		$rv = $rv && $handle->get_database->execute( $sth, $sql );
+		my $sth = $session->get_database->prepare( $sql );
+		$rv = $rv && $session->get_database->execute( $sth, $sql );
 		return 0 unless $rv;
 		my ( $n ) = $sth->fetchrow_array;
 		$sth->finish;
@@ -175,8 +175,8 @@ sub add
 		else
 		{
 			$sql = "SELECT $Q_ids FROM $Q_indextable WHERE $where AND $POS=$n"; 
-			$sth=$handle->get_database->prepare( $sql );
-			$rv = $rv && $handle->get_database->execute( $sth, $sql );
+			$sth=$session->get_database->prepare( $sql );
+			$rv = $rv && $session->get_database->execute( $sth, $sql );
 			my( $ids ) = $sth->fetchrow_array;
 			$sth->finish;
 			my( @list ) = split( ":",$ids );
@@ -184,7 +184,7 @@ sub add
 			if( (scalar @list)-2 < 128 )
 			{
 				$sql = "UPDATE $Q_indextable SET $Q_ids='$ids$objectid:' WHERE $where AND $POS=$n";
-				$rv = $rv && $handle->get_database->do( $sql );
+				$rv = $rv && $session->get_database->do( $sql );
 				return 0 unless $rv;
 			}
 			else
@@ -195,14 +195,14 @@ sub add
 		}
 		if( $insert )
 		{
-			$rv &&= $handle->get_database->insert( $indextable, ["fieldword","pos","ids"], [
+			$rv &&= $session->get_database->insert( $indextable, ["fieldword","pos","ids"], [
 				$fieldword,
 				$n,
 				":$objectid:"
 			]);
 			return 0 unless $rv;
 		}
-		$rv &&= $handle->get_database->insert( $rindextable, ["field","word",$keyfield->get_sql_name()], [
+		$rv &&= $session->get_database->insert( $rindextable, ["field","word",$keyfield->get_sql_name()], [
 			$field->get_sql_name,
 			$code,
 			$objectid
@@ -215,7 +215,7 @@ sub add
 
 	foreach my $grepcode ( @{$grepcodes} )
 	{
-		$handle->get_database->insert($dataset->get_sql_grep_table_name, [
+		$session->get_database->insert($dataset->get_sql_grep_table_name, [
 			$keyfield->get_sql_name(),
 			"fieldname",
 			"grepstring"
@@ -234,7 +234,7 @@ sub add
 ######################################################################
 =pod
 
-=item EPrints::Index::update_ordervalues( $handle, $dataset, $data )
+=item EPrints::Index::update_ordervalues( $session, $dataset, $data )
 
 Update the order values for an object. $data is a structure
 returned by $dataobj->get_data
@@ -246,15 +246,15 @@ returned by $dataobj->get_data
 
 sub update_ordervalues
 {
-	my( $handle, $dataset, $data, $tmp ) = @_;
+	my( $session, $dataset, $data, $tmp ) = @_;
 
-	&_do_ordervalues( $handle, $dataset, $data, 0, $tmp );	
+	&_do_ordervalues( $session, $dataset, $data, 0, $tmp );	
 }
 
 ######################################################################
 =pod
 
-=item EPrints::Index::insert_ordervalues( $handle, $dataset, $data )
+=item EPrints::Index::insert_ordervalues( $session, $dataset, $data )
 
 Create the order values for an object. $data is a structure
 returned by $dataobj->get_data
@@ -264,9 +264,9 @@ returned by $dataobj->get_data
 
 sub insert_ordervalues
 {
-	my( $handle, $dataset, $data, $tmp ) = @_;
+	my( $session, $dataset, $data, $tmp ) = @_;
 
-	&_do_ordervalues( $handle, $dataset, $data, 1, $tmp );	
+	&_do_ordervalues( $session, $dataset, $data, 1, $tmp );	
 }
 
 # internal method to avoid code duplication. Update and insert are
@@ -274,7 +274,7 @@ sub insert_ordervalues
 
 sub _do_ordervalues
 {
-        my( $handle, $dataset, $data, $insert, $tmp ) = @_;
+        my( $session, $dataset, $data, $insert, $tmp ) = @_;
 
 	# insert is ignored
 	# insert = 0 => update
@@ -286,7 +286,7 @@ sub _do_ordervalues
 	my $keyname = $keyfield->get_sql_name;
 	my $keyvalue = $data->{$keyfield->get_name()};
 
-	foreach my $langid ( @{$handle->get_repository->get_conf( "languages" )} )
+	foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 	{
 		my $ovt = $dataset->get_ordervalues_table_name( $langid );
 		if( $tmp ) { $ovt .= "_tmp"; }
@@ -297,7 +297,7 @@ sub _do_ordervalues
 		{
 			my $ov = $field->ordervalue( 
 					$data->{$field->get_name()},
-					$handle,
+					$session,
 					$langid,
 					$dataset );
 			
@@ -307,16 +307,16 @@ sub _do_ordervalues
 
 		if( !$insert )
 		{
-			$handle->get_database->delete_from( $ovt, [$keyname], [$keyvalue] );
+			$session->get_database->delete_from( $ovt, [$keyname], [$keyvalue] );
 		}
-		$handle->get_database->insert( $ovt, \@fnames, \@fvals );
+		$session->get_database->insert( $ovt, \@fnames, \@fvals );
 	}
 }
 
 ######################################################################
 =pod
 
-=item EPrints::Index::delete_ordervalues( $handle, $dataset, $id )
+=item EPrints::Index::delete_ordervalues( $session, $dataset, $id )
 
 Remove the ordervalues for item $id from the ordervalues table of
 $dataset.
@@ -326,9 +326,9 @@ $dataset.
 
 sub delete_ordervalues
 {
-	my( $handle, $dataset, $id, $tmp ) = @_;
+	my( $session, $dataset, $id, $tmp ) = @_;
 
-	my $db = $handle->get_database;
+	my $db = $session->get_database;
 
 	my @fields = $dataset->get_fields( 1 );
 
@@ -337,7 +337,7 @@ sub delete_ordervalues
 	my $keyfield = $dataset->get_key_field();
 	my $keyvalue = $id;
 
-	foreach my $langid ( @{$handle->get_repository->get_conf( "languages" )} )
+	foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 	{
 		# cjg raw SQL!
 		my $ovt = $dataset->get_ordervalues_table_name( $langid );
@@ -388,15 +388,15 @@ sub indexlog
 
 sub do_index
 {
-	my( $handle, $p ) = @_;
+	my( $session, $p ) = @_;
 
 	my $seen_action = 0; # have we done anything
 	my $loop_max = 10; # max times to loop
 
-	my $index_queue = $handle->get_repository->get_dataset( "index_queue" );
+	my $index_queue = $session->get_repository->get_dataset( "index_queue" );
 	my $searchexp = EPrints::Search->new(
 		allow_blank => 1,
-		handle => $handle,
+		session => $session,
 		dataset => $index_queue,
 		);
 	my $list = $searchexp->perform_search();
@@ -412,14 +412,14 @@ sub do_index
 
 		$iq->remove();
 	
-		my $dataset = $handle->get_repository->get_dataset( $datasetid );
+		my $dataset = $session->get_repository->get_dataset( $datasetid );
 		if( !defined $dataset )
 		{
 			EPrints::Index::indexlog( "Could not make dataset: $datasetid ($fieldcode)" );
 			next;
 		}
 
-		my $item = $dataset->get_object( $handle, $objectid );
+		my $item = $dataset->get_object( $session, $objectid );
 		next unless ( defined $item );
 
 		my @fields;
@@ -452,7 +452,7 @@ sub do_index
 		foreach my $field (@fields)
 		{
 			EPrints::Index::indexlog( "* de-indexing: $fieldcode" ) if( $p->{loglevel} > 4 );
-			EPrints::Index::remove( $handle, $dataset, $objectid, $field->get_name() );
+			EPrints::Index::remove( $session, $dataset, $objectid, $field->get_name() );
 			EPrints::Index::indexlog( "* done-de-indexing: $fieldcode" ) if( $p->{loglevel} > 5 );
 
 			next unless( $field->get_property( "text_index" ) );
@@ -462,7 +462,7 @@ sub do_index
 			next unless EPrints::Utils::is_set( $value );	
 
 			EPrints::Index::indexlog( "* indexing: $fieldcode" ) if( $p->{loglevel} > 4 );
-			EPrints::Index::add( $handle, $dataset, $objectid, $field->get_name(), $value );
+			EPrints::Index::add( $session, $dataset, $objectid, $field->get_name(), $value );
 			EPrints::Index::indexlog( "* done-indexing: $fieldcode" ) if( $p->{loglevel} > 5 );
 		}
 	};

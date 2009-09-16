@@ -15,15 +15,15 @@
 use EPrints;
 
 use strict;
-my $handle = new EPrints::Handle;
-exit( 0 ) unless( defined $handle );
+my $session = new EPrints::Session;
+exit( 0 ) unless( defined $session );
 
-my $ds = $handle->get_repository->get_dataset( "archive" );
-my $page=$handle->make_doc_fragment();
+my $ds = $session->get_repository->get_dataset( "archive" );
+my $page=$session->make_doc_fragment();
 
-$page->appendChild( $handle->html_phrase( "cgi/latest:intro" ) );
+$page->appendChild( $session->html_phrase( "cgi/latest:intro" ) );
 
-my $citation = $handle->get_repository->get_conf( "latest_citation" );
+my $citation = $session->get_repository->get_conf( "latest_citation" );
 
 my $seensome = 0;
 for( my $d=0; $d<7; ++$d )
@@ -39,7 +39,7 @@ for( my $d=0; $d<7; ++$d )
 			},
 		],	
 		custom_order => "-datestamp",
-		handle => $handle,
+		session => $session,
 		dataset => $ds,
 	);
 
@@ -55,40 +55,40 @@ for( my $d=0; $d<7; ++$d )
 		my $day;
 		if( $d == 0 )
 		{
-			$day = $handle->html_phrase( "cgi/latest:today" );
+			$day = $session->html_phrase( "cgi/latest:today" );
 		}
 		elsif( $d == 1 )
 		{
-			$day = $handle->html_phrase( "cgi/latest:yesterday" );
+			$day = $session->html_phrase( "cgi/latest:yesterday" );
 		}
 		else
 		{
 			my $dow = (localtime($t))[6];
-			$day = $handle->html_phrase( "cgi/latest:day_".$dow );
+			$day = $session->html_phrase( "cgi/latest:day_".$dow );
 		}
 
-		my $h2= $handle->make_element( "h2" );
+		my $h2= $session->make_element( "h2" );
 		$h2->appendChild( $day );
 		$page->appendChild( $h2 );
 
-		my $type = $handle->get_citation_type( $ds, $citation );
+		my $type = $session->get_citation_type( $ds, $citation );
 		my $container;
 		if( $type eq "table_row" )
 		{
-			$container = $handle->make_element( 
+			$container = $session->make_element( 
 					"table", 
 					class=>"ep_latest_list" );
 		}
 		else
 		{
-			$container = $handle->make_element( 
+			$container = $session->make_element( 
 					"div", 
 					class=>"ep_latest_list" );
 		}
 		$page->appendChild( $container );
 		my $n = 1;
 		$search->map( sub{ 
-			my( $handle, $dataset, $item, $info ) = @_;
+			my( $session, $dataset, $item, $info ) = @_;
 			my $row = $item->render_citation_link( 
 				$citation,
 				n => [$n++, "INTEGER"] );
@@ -98,7 +98,7 @@ for( my $d=0; $d<7; ++$d )
 			}
 			else
 			{
-				my $div = $handle->make_element( 
+				my $div = $session->make_element( 
 					"div", 
 					class=>"ep_latest_result" );
 				$div->appendChild( $row );
@@ -106,19 +106,19 @@ for( my $d=0; $d<7; ++$d )
 			}
 		} );
 	
-		$page->appendChild( $handle->render_ruler() );
+		$page->appendChild( $session->render_ruler() );
 	}
 	$search->dispose();
 }
 unless( $seensome )
 {
-	$page->appendChild( $handle->html_phrase( "cgi/latest:none" ) );
+	$page->appendChild( $session->html_phrase( "cgi/latest:none" ) );
 }
 
-$page->appendChild( $handle->html_phrase( "general:frontpage_link" ) );
+$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
 	
-my $title = $handle->html_phrase( "cgi/latest:title" );
-$handle->prepare_page( title=>$title, page=>$page, page_id=>"latest" );
-$handle->send_page();
+my $title = $session->html_phrase( "cgi/latest:title" );
+$session->build_page( $title, $page, "latest" );
+$session->send_page();
 
-$handle->terminate;
+$session->terminate;

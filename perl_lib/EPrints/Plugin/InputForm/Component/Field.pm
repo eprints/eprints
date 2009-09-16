@@ -46,7 +46,7 @@ sub update_from_form
 {
 	my( $self, $processor ) = @_;
 	my $field = $self->{config}->{field};
-	my $value = $field->form_value( $self->{handle}, $self->{dataobj}, $self->{prefix} );
+	my $value = $field->form_value( $self->{session}, $self->{dataobj}, $self->{prefix} );
 	$self->{dataobj}->set_value( $field->{name}, $value );
 }
 
@@ -57,7 +57,7 @@ sub get_state_params
 	my $field = $self->{config}->{field};
 
 	return $field->get_state_params( 
-			$self->{handle},  
+			$self->{session},  
 			$self->{prefix}, );
 }
 
@@ -86,9 +86,9 @@ sub validate
 
 	if( $self->is_required() && !$self->{dataobj}->is_set( $field->{name} ) )
 	{
-		my $fieldname = $self->{handle}->make_element( "span", class=>"ep_problem_field:".$field->{name} );
-		$fieldname->appendChild( $field->render_name( $self->{handle} ) );
-		my $problem = $self->{handle}->html_phrase(
+		my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:".$field->{name} );
+		$fieldname->appendChild( $field->render_name( $self->{session} ) );
+		my $problem = $self->{session}->html_phrase(
 			"lib/eprint:not_done_field" ,
 			fieldname=>$fieldname );
 		push @problems, $problem;
@@ -142,7 +142,7 @@ sub has_help
 	my( $self ) = @_;
 
 	my $dom = $self->{config}->{field}->render_help(
-		$self->{handle},
+		$self->{session},
 		$self->{config}->{field}->get_type() );
 
 	if( EPrints::XML::is_empty( $dom ) )
@@ -167,7 +167,7 @@ sub render_help
 	my( $self, $surround ) = @_;
 
 	return $self->{config}->{field}->render_help( 
-			$self->{handle}, 
+			$self->{session}, 
 			$self->{config}->{field}->get_type() );
 }
 
@@ -198,7 +198,7 @@ sub render_title
 {
 	my( $self, $surround ) = @_;
 
-	return $self->{config}->{field}->render_name( $self->{handle} );
+	return $self->{config}->{field}->render_name( $self->{session} );
 }
 
 =pod
@@ -224,7 +224,7 @@ sub render_content
 	}
 
 	return $self->{config}->{field}->render_input_field( 
-			$self->{handle}, 
+			$self->{session}, 
 			$value, 
 			$self->{dataobj}->get_dataset,
 			0, # staff mode should be detected from workflow

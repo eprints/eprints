@@ -21,7 +21,7 @@ B<EPrints::Storage> - store and retrieve objects in the storage engine
 
 =head1 SYNOPSIS
 
-	my $store = $handle->get_storage();
+	my $store = $session->get_storage();
 
 	$store->store(
 		$fileobj,		# file object
@@ -37,9 +37,9 @@ This module is the storage control layer which uses L<EPrints::Plugin::Storage> 
 
 =over 4
 
-=item $store = EPrints::Storage->new( $handle )
+=item $store = EPrints::Storage->new( $session )
 
-Create a new storage object for $handle. Should not be used directly, see L<EPrints::Handle>.
+Create a new storage object for $session. Should not be used directly, see L<EPrints::Session>.
 
 =cut
 
@@ -52,13 +52,13 @@ use strict;
 
 sub new
 {
-	my( $class, $handle ) = @_;
+	my( $class, $session ) = @_;
 
-	my $self = bless { _opened => {}, handle => $handle }, $class;
-	Scalar::Util::weaken($self->{handle})
+	my $self = bless { _opened => {}, session => $session }, $class;
+	Scalar::Util::weaken($self->{session})
 		if defined &Scalar::Util::weaken;
 
-	$self->{config} = $handle->get_repository->get_storage_config( "default" );
+	$self->{config} = $session->get_repository->get_storage_config( "default" );
 
 	unless( $self->{config} )
 	{
@@ -151,7 +151,7 @@ sub retrieve
 
 	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
-		my $plugin = $self->{handle}->plugin( $copy->{pluginid} );
+		my $plugin = $self->{session}->plugin( $copy->{pluginid} );
 		next unless defined $plugin;
 		$rc = $plugin->retrieve( $fileobj, $copy->{sourceid}, $f );
 		last if $rc;
@@ -174,10 +174,10 @@ sub delete
 
 	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
-		my $plugin = $self->{handle}->plugin( $copy->{pluginid} );
+		my $plugin = $self->{session}->plugin( $copy->{pluginid} );
 		unless( $plugin )
 		{
-			$self->{handle}->get_repository->log( "Can not remove file copy '$copy->{sourceid}' - $copy->{pluginid} not available" );
+			$self->{session}->get_repository->log( "Can not remove file copy '$copy->{sourceid}' - $copy->{pluginid} not available" );
 			next;
 		}
 		$rc &= $plugin->delete( $fileobj, $copy->{sourceid} );
@@ -228,7 +228,7 @@ sub get_local_copy
 
 	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
-		my $plugin = $self->{handle}->plugin( $copy->{pluginid} );
+		my $plugin = $self->{session}->plugin( $copy->{pluginid} );
 		next unless defined $plugin;
 		$filename = $plugin->get_local_copy( $fileobj );
 		last if defined $filename;
@@ -266,7 +266,7 @@ sub get_remote_copy
 
 	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
-		my $plugin = $self->{handle}->plugin( $copy->{pluginid} );
+		my $plugin = $self->{session}->plugin( $copy->{pluginid} );
 		next unless defined $plugin;
 		$url = $plugin->get_remote_copy( $fileobj, $copy->{sourceid} );
 		last if defined $url;
@@ -287,12 +287,12 @@ sub get_plugins
 
 	my @plugins;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my %params;
 	$params{item} = $fileobj;
-	$params{current_user} = $handle->current_user;
-	$params{handle} = $handle;
+	$params{current_user} = $session->current_user;
+	$params{session} = $session;
 	$params{parent} = $fileobj->get_parent;
 
 	my $_plugins = EPrints::XML::EPC::process( $self->{config}, %params );
@@ -301,7 +301,7 @@ sub get_plugins
 	{
 		next unless( $child->nodeName eq "plugin" );
 		my $pluginid = $child->getAttribute( "name" );
-		my $plugin = $handle->plugin( "Storage::$pluginid" );
+		my $plugin = $session->plugin( "Storage::$pluginid" );
 		push @plugins, $plugin if defined $plugin;
 	}
 

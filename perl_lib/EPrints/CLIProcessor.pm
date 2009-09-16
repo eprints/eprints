@@ -49,7 +49,7 @@ sub color
 	return exists $COLORS{$type} ? Term::ANSIColor::color( $COLORS{$type} ) : "";
 }
 
-=item $processor = EPrints::CLIProcessor->new( handle => $handle, %opts )
+=item $processor = EPrints::CLIProcessor->new( session => $session, %opts )
 
 Create a new processor object. Supported options:
 
@@ -117,7 +117,7 @@ sub object
 
 	push @{$self->{ids}}, $dataobj->get_id;
 
-	if( $self->{handle}->get_noise > 1 )
+	if( $self->{session}->get_noise > 1 )
 	{
 		print STDERR "Imported ".$dataset->id." ".$dataobj->get_id."\n";
 	}

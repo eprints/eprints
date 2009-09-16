@@ -34,15 +34,15 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
-	my $user = $handle->current_user;
+	my $session = $self->{session};
+	my $user = $session->current_user;
 
-	my $path = $handle->get_repository->get_conf( "config_path" );
+	my $path = $session->get_repository->get_conf( "config_path" );
 
-	my $page = $handle->make_doc_fragment;
+	my $page = $session->make_doc_fragment;
 
-	my $path_div = $handle->make_element( "div", style=>"padding-bottom: 0.5em" );
-	$path_div->appendChild( $handle->make_text( $path ));
+	my $path_div = $session->make_element( "div", style=>"padding-bottom: 0.5em" );
+	$path_div->appendChild( $session->make_text( $path ));
 	$page->appendChild( $path_div );
 
 	# some text like "EPrints configuration editor; with great power comes great responsibility" ?
@@ -67,16 +67,16 @@ sub render_dir
 	}
 	closedir( $dh );
 
-	my $div = $self->{handle}->make_element( "div", style=>"margin-left: 3em; padding: 0.5em 0 0.5em 0; border-left: 1px solid blue" );
+	my $div = $self->{session}->make_element( "div", style=>"margin-left: 3em; padding: 0.5em 0 0.5em 0; border-left: 1px solid blue" );
 	foreach my $file ( sort @files )
 	{
-		my $div_title = $self->{handle}->make_element( "div", style=>"padding: 0.25em 0 0.25em 0;" );
+		my $div_title = $self->{session}->make_element( "div", style=>"padding: 0.25em 0 0.25em 0;" );
 		$div->appendChild( $div_title );
-		$div_title->appendChild( $self->{handle}->make_text( "-- " ) );
+		$div_title->appendChild( $self->{session}->make_text( "-- " ) );
 		if( -d "$realpath/$file" )
 		{
-			$div_title->appendChild( $self->{handle}->make_text( $file ) );
-			$div_title->appendChild( $self->{handle}->make_text( "/" ) );
+			$div_title->appendChild( $self->{session}->make_text( $file ) );
+			$div_title->appendChild( $self->{session}->make_text( "/" ) );
 			$div->appendChild( $self->render_dir( "$realpath/$file", "$relpath$file/" ) );
 			next;
 		}
@@ -86,7 +86,7 @@ sub render_dir
 		my $view = 0;
 		if( defined $configtype )
 		{
-			my $screen = $self->{handle}->plugin( 
+			my $screen = $self->{session}->plugin( 
 				"Screen::Admin::Config::View::$configtype",
 				processor => $self->{processor} );
 			$view = 1 if( $screen->can_be_viewed );
@@ -96,14 +96,14 @@ sub render_dir
 		if( !$view )
 		{
 			# not allowed to view this kind of config file
-			$div_title->appendChild( $self->{handle}->make_text( $file ) );
+			$div_title->appendChild( $self->{session}->make_text( $file ) );
 			next;
 		}
 	
 		my $url = "?screen=Admin::Config::View::$configtype&configfile=$relpath$file";
-		my $link = $self->{handle}->render_link( $url );
+		my $link = $self->{session}->render_link( $url );
 		$div_title->appendChild( $link );
-		$link->appendChild( $self->{handle}->make_text( $file ) );
+		$link->appendChild( $self->{session}->make_text( $file ) );
 	}
 	return $div;
 }

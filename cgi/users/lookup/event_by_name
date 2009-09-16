@@ -2,14 +2,14 @@ use EPrints;
 
 use strict;
 
-my $handle = EPrints::Handle->new();
+my $session = EPrints::Session->new();
 
 # security?
 
-my $q = $handle->param( "q" ) || "";
+my $q = $session->param( "q" ) || "";
 
-my $database = $handle->get_database;
-my $dataset = $handle->get_repository->get_dataset( "eprint" );
+my $database = $session->get_database;
+my $dataset = $session->get_repository->get_dataset( "eprint" );
 
 my @fields = qw( event_title event_location event_dates event_type );
 
@@ -32,24 +32,24 @@ my $sql = "SELECT COUNT($Q_eprintid) $Q_num_matches," .
 
 my @rows;
 
-my $sth = $handle->get_database->prepare_select( $sql, 'limit' => 40 );
-$handle->get_database->execute( $sth , $sql );
+my $sth = $session->get_database->prepare_select( $sql, 'limit' => 40 );
+$session->get_database->execute( $sth , $sql );
 my $first = 1;
 while( my( $n,$title,$location,$dates,$type ) = $sth->fetchrow_array )
 {
 	my $row = {};
 	push @rows, $row;
 
-	my $frag = $handle->make_doc_fragment;
+	my $frag = $session->make_doc_fragment;
 
 	my $desc = "\"$title\"";
 	$desc .= " ($dates)" if defined $dates;
 	$desc .= " hosted in $location" if defined $location;;
 	$desc .= " ";
-	$frag->appendChild( $handle->make_text( $desc ) );
-	my $small = $handle->make_element( "small" );
+	$frag->appendChild( $session->make_text( $desc ) );
+	my $small = $session->make_element( "small" );
 	$frag->appendChild( $small );
-	$small->appendChild( $handle->make_text( "(found on $n record".($n>1?"s":"")." in this repository)" ) );
+	$small->appendChild( $session->make_text( "(found on $n record".($n>1?"s":"")." in this repository)" ) );
 
 	$row->{xhtml} = $frag;
 	$row->{values} = [
@@ -60,9 +60,9 @@ while( my( $n,$title,$location,$dates,$type ) = $sth->fetchrow_array )
 	];
 }
 
-my $ul = EPrints::Extras::render_lookup_list( $handle, \@rows );
+my $ul = EPrints::Extras::render_lookup_list( $session, \@rows );
 
-$handle->send_http_header( content_type => "text/xml; charset=UTF-8" );
+$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
 
 print <<END;
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -72,5 +72,5 @@ print EPrints::XML::to_string( $ul, "utf-8", 1 );
 
 EPrints::XML::dispose( $ul );
 
-$handle->terminate;
+$session->terminate;
 

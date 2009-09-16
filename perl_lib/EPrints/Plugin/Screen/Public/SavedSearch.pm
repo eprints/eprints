@@ -25,14 +25,14 @@ sub register_furniture
 {
 	my( $self ) = @_;
 
-	return $self->{handle}->make_doc_fragment;
+	return $self->{session}->make_doc_fragment;
 }
 
 sub render_toolbar
 {
 	my( $self ) = @_;
 
-	return $self->{handle}->make_doc_fragment;
+	return $self->{session}->make_doc_fragment;
 }
 
 sub from
@@ -64,9 +64,10 @@ sub properties_from
 	my( $self ) = @_;
 
 
-	my $searchid = $self->{handle}->param( "savedsearchid" );
+	my $searchid = $self->{session}->param( "savedsearchid" );
 	$self->{processor}->{savedsearchid} = $searchid;
-	$self->{processor}->{savedsearch} = $self->{handle}->get_saved_search( $searchid );
+	$self->{processor}->{savedsearch} = new EPrints::DataObj::SavedSearch( 
+					$self->{session}, $searchid );
 
 	if( !defined $self->{processor}->{savedsearch} )
 	{
@@ -74,7 +75,7 @@ sub properties_from
 		$self->{processor}->add_message( "error", 
 			$self->html_phrase(
 				"no_such_saved_search",
-				id => $self->{handle}->make_text( 
+				id => $self->{session}->make_text( 
 						$self->{processor}->{savedsearchid} ) ) );
 		return;
 	}

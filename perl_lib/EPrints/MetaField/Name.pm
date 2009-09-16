@@ -54,7 +54,7 @@ sub get_sql_names
 
 sub value_from_sql_row
 {
-	my( $self, $handle, $row ) = @_;
+	my( $self, $session, $row ) = @_;
 
 	my %value;
 	@value{@PARTS} = splice(@$row,0,4);
@@ -66,7 +66,7 @@ sub value_from_sql_row
 
 sub sql_row_from_value
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
 	if( !EPrints::Utils::is_set( $value ) )
 	{
@@ -79,13 +79,13 @@ sub sql_row_from_value
 
 sub get_sql_type
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
 	my @parts = $self->get_sql_names;
 
 	for(@parts)
 	{
-		$_ = $handle->get_database->get_column_type(
+		$_ = $session->get_database->get_column_type(
 			$_,
 			EPrints::Database::SQL_VARCHAR,
 			!$self->get_property( "allow_null" ),
@@ -110,21 +110,21 @@ sub get_sql_index
 	
 sub render_single_value
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
 	my $order = $self->{render_order};
 	
 	# If the render opt "order" is set to "gf" then we order
 	# the name with given name first. 
 
-	return $handle->render_name( 
+	return $session->render_name( 
 			$value, 
 			defined $order && $order eq "gf" );
 }
 
 sub get_input_bits
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
 	my @namebits;
 	unless( $self->get_property( "hide_honourific" ) )
@@ -149,22 +149,22 @@ sub get_input_bits
 
 sub get_basic_input_elements
 {
-	my( $self, $handle, $value, $basename, $staff, $obj ) = @_;
+	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
 
 	my $parts = [];
-	foreach( $self->get_input_bits( $handle ) )
+	foreach( $self->get_input_bits( $session ) )
 	{
 		my $size = $self->{input_name_cols}->{$_};
-		my $f = $handle->make_element( "div" );
+		my $f = $session->make_element( "div" );
 		push @{$parts}, {el=>$f};
-		$f->appendChild( $handle->render_noenter_input_field(
+		$f->appendChild( $session->render_noenter_input_field(
 			class => "ep_form_text",
 			name => $basename."_".$_,
 			id => $basename."_".$_,
 			value => $value->{$_},
 			size => $size,
 			maxlength => $self->{maxlength} ) );
-		$f->appendChild( $handle->make_element( "div", id=>$basename."_".$_."_billboard" ));
+		$f->appendChild( $session->make_element( "div", id=>$basename."_".$_."_billboard" ));
 	}
 
 	return [ $parts ];
@@ -172,10 +172,10 @@ sub get_basic_input_elements
 
 sub get_basic_input_ids
 {
-	my( $self, $handle, $basename, $staff, $obj ) = @_;
+	my( $self, $session, $basename, $staff, $obj ) = @_;
 
 	my @ids = ();
-	foreach( $self->get_input_bits( $handle ) )
+	foreach( $self->get_input_bits( $session ) )
 	{
 		push @ids, $basename."_".$_;
 	}
@@ -185,28 +185,28 @@ sub get_basic_input_ids
 
 sub get_input_col_titles
 {
-	my( $self, $handle, $staff ) = @_;
+	my( $self, $session, $staff ) = @_;
 
 	my @r = ();
-	foreach my $bit ( $self->get_input_bits( $handle ) )
+	foreach my $bit ( $self->get_input_bits( $session ) )
 	{
 		# deal with some legacy in the phrase id's
 		$bit = "given_names" if( $bit eq "given" );
 		$bit = "family_names" if( $bit eq "family" );
-		push @r, $handle->html_phrase(	"lib/metafield:".$bit );
+		push @r, $session->html_phrase(	"lib/metafield:".$bit );
 	}
 	return \@r;
 }
 
 sub form_value_basic
 {
-	my( $self, $handle, $basename ) = @_;
+	my( $self, $session, $basename ) = @_;
 	
 	my $data = {};
 	foreach( @PARTS )
 	{
 		$data->{$_} = 
-			$handle->param( $basename."_".$_ );
+			$session->param( $basename."_".$_ );
 	}
 
 	unless( EPrints::Utils::is_set( $data ) )
@@ -219,9 +219,9 @@ sub form_value_basic
 
 sub get_value_label
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
-	return $self->render_single_value( $handle, $value );
+	return $self->render_single_value( $session, $value );
 }
 
 sub ordervalue_basic
@@ -251,7 +251,7 @@ sub ordervalue_basic
 
 sub split_search_value
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
 	# should use archive whitespaces
 	# remove spaces around commas to make them single names
@@ -275,23 +275,23 @@ sub split_search_value
 
 sub render_search_value
 {
-        my( $self, $handle, $value ) = @_;
+        my( $self, $session, $value ) = @_;
 
 	# bit of a hack but fixes the dodgey name rendering in RSS titles etc.
 	# probably need to be removed when the code is rationalised.
 	if( ref( $value ) eq "HASH" )
 	{
 		my $text = "\"".$value->{family}.", ".$value->{given}."\"";		
-		return $handle->make_text( $text );
+		return $session->make_text( $text );
 	}
 
-	my @bits = $self->split_search_value( $handle, $value );
-        return $handle->make_text( '"'.join( '", "', @bits).'"' );
+	my @bits = $self->split_search_value( $session, $value );
+        return $session->make_text( '"'.join( '", "', @bits).'"' );
 }
 
 sub get_search_conditions
 {
-	my( $self, $handle, $dataset, $search_value, $match, $merge,
+	my( $self, $session, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 
 	if( $match eq "EX" )
@@ -305,12 +305,12 @@ sub get_search_conditions
 	}
 
 	my $v2 = EPrints::Index::apply_mapping( 
-			$handle,
+			$session,
 			$search_value );
 
 	my $indexmode = "index";
 
-	if( $handle->get_repository->get_conf( "match_start_of_name" ) )
+	if( $session->get_repository->get_conf( "match_start_of_name" ) )
 	{
 		$indexmode = "index_start";
 	}
@@ -425,9 +425,9 @@ sub get_property_defaults
 
 sub get_unsorted_values
 {
-	my( $self, $handle, $dataset, %opts ) = @_;
+	my( $self, $session, $dataset, %opts ) = @_;
 
-	my $list = $handle->get_database->get_values( $self, $dataset );
+	my $list = $session->get_database->get_values( $self, $dataset );
 
 	return $list;
 
@@ -538,12 +538,12 @@ END
 
 sub get_index_codes_basic
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
 	return( [], [], [] ) unless( EPrints::Utils::is_set( $value ) );
 
-	my $f = &EPrints::Index::apply_mapping( $handle, $value->{family} );
-	my $g = &EPrints::Index::apply_mapping( $handle, $value->{given} );
+	my $f = &EPrints::Index::apply_mapping( $session, $value->{family} );
+	my $g = &EPrints::Index::apply_mapping( $session, $value->{given} );
 
 	# Add a space before all capitals to break
 	# up initials. Will screw up names with capital
@@ -553,14 +553,14 @@ sub get_index_codes_basic
 
 	my $code = '';
 	my @r = ();
-	foreach( EPrints::Index::split_words( $handle, $f ) )
+	foreach( EPrints::Index::split_words( $session, $f ) )
 	{
 		next if( $_ eq "" );
 		push @r, "\L$_";
 		$code.= "[\L$_]";
 	}
 	$code.= "-";
-	foreach( EPrints::Index::split_words( $handle, $g ) )
+	foreach( EPrints::Index::split_words( $session, $g ) )
 	{
 		next if( $_ eq "" );
 #		push @r, "given:\L$_";
@@ -571,13 +571,13 @@ sub get_index_codes_basic
 
 sub get_values
 {
-	my( $self, $handle, $dataset, %opts ) = @_;
+	my( $self, $session, $dataset, %opts ) = @_;
 
 	my $langid = $opts{langid};
-	$langid = $handle->get_langid unless( defined $langid );
+	$langid = $session->get_langid unless( defined $langid );
 
 	my $unsorted_values = $self->get_unsorted_values( 
-		$handle,
+		$session,
 		$dataset,	
 		%opts );
 
@@ -592,18 +592,18 @@ sub get_values
 		# uses function _basic because value will NEVER be multiple
 		my $orderkey = $self->ordervalue_basic(
 			$value, 
-			$handle, 
+			$session, 
 			$langid );
-		$orderkeys{$self->get_id_from_value($handle, $v2)} = $orderkey;
+		$orderkeys{$self->get_id_from_value($session, $v2)} = $orderkey;
 	}
 
-	my @outvalues = sort {$orderkeys{$self->get_id_from_value($handle, $a)} cmp $orderkeys{$self->get_id_from_value($handle, $b)}} @values;
+	my @outvalues = sort {$orderkeys{$self->get_id_from_value($session, $a)} cmp $orderkeys{$self->get_id_from_value($session, $b)}} @values;
 	return \@outvalues;
 }
 
 sub get_id_from_value
 {
-	my( $self, $handle, $name ) = @_;
+	my( $self, $session, $name ) = @_;
 
 	return "NULL" if !defined $name;
 
@@ -615,7 +615,7 @@ sub get_id_from_value
 
 sub get_value_from_id
 {
-	my( $self, $handle, $id ) = @_;
+	my( $self, $session, $id ) = @_;
 
 	return undef if $id eq "NULL";
 
@@ -630,17 +630,17 @@ sub get_value_from_id
 
 sub to_xml_basic
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
-	my $r = $handle->make_doc_fragment;	
+	my $r = $session->make_doc_fragment;	
 
 	foreach my $part ( @PARTS )
 	{
 		my $nv = $value->{$part};
 		next unless defined $nv;
 		next unless $nv ne "";
-		my $tag = $handle->make_element( $part );
-		$tag->appendChild( $handle->make_text( $nv ) );
+		my $tag = $session->make_element( $part );
+		$tag->appendChild( $session->make_text( $nv ) );
 		$r->appendChild( $tag );
 	}
 	
@@ -649,7 +649,7 @@ sub to_xml_basic
 
 sub xml_to_epdata_basic
 {
-	my( $self, $handle, $xml, %opts ) = @_;
+	my( $self, $session, $xml, %opts ) = @_;
 
 	my $value = {};
 	my %valid = map { $_ => 1 } @PARTS;
@@ -661,8 +661,8 @@ sub xml_to_epdata_basic
 		{
 			if( defined $opts{Handler} )
 			{
-				$opts{Handler}->message( "warning", $handle->html_phrase( "Plugin/Import/XML:unexpected_element", name => $handle->make_text( $node->nodeName ) ) );
-				$opts{Handler}->message( "warning", $handle->html_phrase( "Plugin/Import/XML:expected", elements => $handle->make_text( "<".join("> <", @PARTS).">" ) ) );
+				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:unexpected_element", name => $session->make_text( $node->nodeName ) ) );
+				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:expected", elements => $session->make_text( "<".join("> <", @PARTS).">" ) ) );
 			}
 			next;
 		}
@@ -674,15 +674,15 @@ sub xml_to_epdata_basic
 
 sub render_xml_schema_type
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
-	my $type = $handle->make_element( "xs:complexType", name => $self->get_xml_schema_type );
+	my $type = $session->make_element( "xs:complexType", name => $self->get_xml_schema_type );
 
-	my $all = $handle->make_element( "xs:all" );
+	my $all = $session->make_element( "xs:all" );
 	$type->appendChild( $all );
 	foreach my $part ( @PARTS )
 	{
-		my $element = $handle->make_element( "xs:element", name => $part, type => "xs:string", minOccurs => "0" );
+		my $element = $session->make_element( "xs:element", name => $part, type => "xs:string", minOccurs => "0" );
 		$all->appendChild( $element );
 	}
 

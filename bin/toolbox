@@ -145,18 +145,18 @@ $|=1;
 my $repoid = shift @ARGV;
 my $cmd = shift @ARGV;
 
-my $handle = EPrints->get_repository_handle_by_id( $repoid, noise=>$noise );
-exit( 1 ) unless defined $handle;
+my $session = new EPrints::Session( 1, $repoid, $noise );
+exit( 1 ) unless defined $session;
 
-$handle->get_repository->{config}->{enable_web_imports} = 1;
-$handle->get_repository->{config}->{enable_file_imports} = 1;
+$session->get_repository->{config}->{enable_web_imports} = 1;
+$session->get_repository->{config}->{enable_file_imports} = 1;
 
 my %opts = ();
 
 if( defined $cuserid )
 {
-	$handle->{current_user} = $handle->get_user( $cuserid );
-	if( !$handle->{current_user} )
+	$session->{current_user} = EPrints::DataObj::User->new( $session, $cuserid );
+	if( !$session->{current_user} )
 	{
 		toolbox_fail( "Could not find user $cuserid" );
 	}
@@ -170,7 +170,7 @@ $opts{field} = $field;
 
 if( defined $eprintid )
 {
-	$opts{eprint} = $handle->get_eprint( $eprintid );
+	$opts{eprint} = EPrints::DataObj::EPrint->new( $session, $eprintid );
 	if( !defined $opts{eprint} )
 	{
 		toolbox_fail( "Could not find eprint $eprintid" );
@@ -179,14 +179,14 @@ if( defined $eprintid )
 
 if( defined $docid )
 {
-	$opts{document} = $handle->get_document( $docid );
+	$opts{document} = EPrints::DataObj::Document->new( $session, $docid );
 	if( !defined $opts{document} )
 	{
 		toolbox_fail( "Could not find document $docid" );
 	}
 }
 
-$opts{handle} = $handle;
+$opts{session} = $session;
 
 my $fn_name = "EPrints::Toolbox::tool_".$cmd;
 
@@ -202,7 +202,7 @@ if( $rc )
 
 print $output;
 
-$handle->terminate();
+$session->terminate();
 exit;
 
 sub toolbox_fail

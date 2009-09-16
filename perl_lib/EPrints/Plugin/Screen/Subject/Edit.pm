@@ -36,13 +36,13 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 	my $subject = $self->{processor}->{subject};
 
-	my $page = $handle->make_doc_fragment;
+	my $page = $session->make_doc_fragment;
 
 	$page->appendChild( $self->html_phrase( "subjectid", 
-		id=>$handle->make_text( $subject->get_value( "subjectid" ) ) ) );
+		id=>$session->make_text( $subject->get_value( "subjectid" ) ) ) );
 
 	if( $subject->get_id ne $EPrints::DataObj::Subject::root_subject )
 	{
@@ -60,17 +60,17 @@ sub render_editbox
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $subject_ds = $handle->get_repository->get_dataset( "subject" );
+	my $subject_ds = $session->get_repository->get_dataset( "subject" );
 	my $subject = $self->{processor}->{subject};
 
-	my $form = $handle->render_form( "post" );
-	$form->appendChild( $handle->render_hidden_field( "subjectid", $subject->get_id ) );
-	$form->appendChild( $handle->render_hidden_field( "screen", "Subject::Edit" ) );
-	my $table = $self->{handle}->make_element( "table", class => "ep_multi" );
+	my $form = $session->render_form( "post" );
+	$form->appendChild( $session->render_hidden_field( "subjectid", $subject->get_id ) );
+	$form->appendChild( $session->render_hidden_field( "screen", "Subject::Edit" ) );
+	my $table = $self->{session}->make_element( "table", class => "ep_multi" );
 	$form->appendChild( $table );
-	my $tbody = $self->{handle}->make_element( "tbody" );
+	my $tbody = $self->{session}->make_element( "tbody" );
 	$table->appendChild( $tbody );
 	my $first = 1;
 	my $prefix = "update";
@@ -83,16 +83,16 @@ sub render_editbox
 		$parts{class} = "ep_first" if $first;
 		$first = 0;
 
-		$parts{label} = $field->render_name( $self->{handle} );
+		$parts{label} = $field->render_name( $self->{session} );
 
 		if( $field->{required} eq "yes" ) # moj: Handle for_archive
 		{
-			$parts{label} = $self->{handle}->html_phrase( 
+			$parts{label} = $self->{session}->html_phrase( 
 				"sys:ep_form_required",
 				label=>$parts{label} );
 		}
  
-		$parts{help} = $field->render_help( $self->{handle} );
+		$parts{help} = $field->render_help( $self->{session} );
 
 
 		# Get the field and its value/default
@@ -107,7 +107,7 @@ sub render_editbox
 		}
 
 		$parts{field} = $field->render_input_field( 
-			$self->{handle}, 
+			$self->{session}, 
 			$value, 
 			undef,
 			0,
@@ -118,12 +118,12 @@ sub render_editbox
 
 		$parts{help_prefix} = $prefix."_help_".$field->get_name;
 
-		$table->appendChild( $self->{handle}->render_row_with_help( %parts ) );
+		$table->appendChild( $self->{session}->render_row_with_help( %parts ) );
 	}
-        $form->appendChild( $handle->render_action_buttons(
+        $form->appendChild( $session->render_action_buttons(
                 save => $self->phrase( "action_save" ) ) );
 
-	return $self->{handle}->render_toolbox( 
+	return $self->{session}->render_toolbox( 
 		$self->html_phrase( "modify" ),
 		$form );
 }
@@ -134,13 +134,13 @@ sub action_save
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 	my $subject = $self->{processor}->{subject};
-	my $subject_ds = $handle->get_repository->get_dataset( "subject" );
-	my $name = $subject_ds->get_field( "name" )->form_value( $handle, $subject, "update" );
+	my $subject_ds = $session->get_repository->get_dataset( "subject" );
+	my $name = $subject_ds->get_field( "name" )->form_value( $session, $subject, "update" );
 	$subject->set_value( "name", $name );
 
-	my $depositable = $subject_ds->get_field( "depositable" )->form_value( $handle, $subject, "update" );
+	my $depositable = $subject_ds->get_field( "depositable" )->form_value( $session, $subject, "update" );
 	$subject->set_value( "depositable", $depositable );
 	$self->{processor}->add_message( "message", $self->html_phrase( "saved" ) );
 
@@ -154,61 +154,61 @@ sub render_subject_tree
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $subject = $self->{processor}->{subject};
 
-	my $page = $handle->make_doc_fragment();
+	my $page = $session->make_doc_fragment();
 
 	my @ids = @{$subject->get_value( "ancestors" )};
 	foreach( $subject->get_children )
 	{
 		push @ids, $_->get_value( "subjectid" );
 	}
-	return $handle->render_toolbox( 
+	return $session->render_toolbox( 
 		$self->html_phrase( "location" ),
-		$handle->render_subjects( \@ids, undef, $subject->get_id, 1 ) );
+		$session->render_subjects( \@ids, undef, $subject->get_id, 1 ) );
 }
 
 sub render_subject_children
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
-	my $archive_ds = $handle->get_repository->get_dataset( "archive" );
-	my $buffer_ds = $handle->get_repository->get_dataset( "buffer" );
-	my $subject_ds = $handle->get_repository->get_dataset( "subject" );
+	my $session = $self->{session};
+	my $archive_ds = $session->get_repository->get_dataset( "archive" );
+	my $buffer_ds = $session->get_repository->get_dataset( "buffer" );
+	my $subject_ds = $session->get_repository->get_dataset( "subject" );
 	my $subject = $self->{processor}->{subject};
 
-	my $page = $handle->make_doc_fragment();
+	my $page = $session->make_doc_fragment();
 
-	my $form = $handle->render_form( "post" );
-	$form->appendChild( $handle->render_hidden_field( "subjectid", $subject->get_id ) );
-	$form->appendChild( $handle->render_hidden_field( "screen", "Subject::Edit" ) );
+	my $form = $session->render_form( "post" );
+	$form->appendChild( $session->render_hidden_field( "subjectid", $subject->get_id ) );
+	$form->appendChild( $session->render_hidden_field( "screen", "Subject::Edit" ) );
 	$page->appendChild( $form );
 
 	my( $table, $tr, $td, $th, $a );
-	$table = $handle->make_element( "table", border=>1, cellpadding=>4, cellspacing=>0 );
+	$table = $session->make_element( "table", border=>1, cellpadding=>4, cellspacing=>0 );
 
-	$tr = $handle->make_element( "tr" );
+	$tr = $session->make_element( "tr" );
 	
-	$th = $handle->make_element( "th" );
+	$th = $session->make_element( "th" );
 	$th->appendChild( $self->html_phrase( "subject" ) );
 	$tr->appendChild( $th );
 
-	$th = $handle->make_element( "th" );
+	$th = $session->make_element( "th" );
 	$th->appendChild( $self->html_phrase( "inarchive" ) );
 	$tr->appendChild( $th );
 
-#	$th = $handle->make_element( "th" );
+#	$th = $session->make_element( "th" );
 #	$th->appendChild( $self->html_phrase( "cgi/users/edit_subject:inbuffer" ) );
 #	$tr->appendChild( $th );
 
-	$th = $handle->make_element( "th" );
+	$th = $session->make_element( "th" );
 	$th->appendChild( $self->html_phrase( "nparents" ) );
 	$tr->appendChild( $th );
 
-	$th = $handle->make_element( "th" );
+	$th = $session->make_element( "th" );
 	$th->appendChild( $self->html_phrase( "nchildren" ) );
 	$tr->appendChild( $th );
 
@@ -217,37 +217,37 @@ sub render_subject_children
 
 	foreach( $subject->get_children )
 	{
-		$tr = $handle->make_element( "tr" );
+		$tr = $session->make_element( "tr" );
 
-		$td = $handle->make_element( "td", align=>"left");
-		$a = $handle->render_link( "?screen=Subject::Edit&subjectid=".$_->get_value( "subjectid" ) );
+		$td = $session->make_element( "td", align=>"left");
+		$a = $session->render_link( "?screen=Subject::Edit&subjectid=".$_->get_value( "subjectid" ) );
 		$a->appendChild( $_->render_description() );
 		$td->appendChild( $a );
 		$tr->appendChild( $td );
 		
-		$td = $handle->make_element( "td", align=>"center");
-		$td->appendChild( $handle->make_text( $_->count_eprints( $archive_ds ) ) );
+		$td = $session->make_element( "td", align=>"center");
+		$td->appendChild( $session->make_text( $_->count_eprints( $archive_ds ) ) );
 		$tr->appendChild( $td );
 
-#		$td = $handle->make_element( "td", align=>"center");
-#		$td->appendChild( $handle->make_text( $_->count_eprints( $buffer_ds ) ) );
+#		$td = $session->make_element( "td", align=>"center");
+#		$td->appendChild( $session->make_text( $_->count_eprints( $buffer_ds ) ) );
 #		$tr->appendChild( $td );
 
 		my $parents_n = scalar @{$_->get_value( "parents" )};
 		my $children_n = scalar $_->get_children;
 
-		$td = $handle->make_element( "td", align=>"center");
-		$td->appendChild( $handle->make_text( $parents_n ) );
+		$td = $session->make_element( "td", align=>"center");
+		$td->appendChild( $session->make_text( $parents_n ) );
 		$tr->appendChild( $td );
 		
-		$td = $handle->make_element( "td", align=>"center");
-		$td->appendChild( $handle->make_text( $children_n ) );
+		$td = $session->make_element( "td", align=>"center");
+		$td->appendChild( $session->make_text( $children_n ) );
 		$tr->appendChild( $td );
 		
-		$td = $handle->make_element( "td" );
+		$td = $session->make_element( "td" );
 		if( $children_n == 0 )
 		{
-			$td->appendChild( $handle->render_action_buttons( 
+			$td->appendChild( $session->render_action_buttons( 
 				"unlink_".$_->get_value( "subjectid" ) =>
 					$self->phrase( "action_".($parents_n == 1?"delete":"unlink") ) ) );
 		}
@@ -256,7 +256,7 @@ sub render_subject_children
 	}
 	$form->appendChild( $table );
 
-	return $handle->render_toolbox(
+	return $session->render_toolbox(
 		$self->html_phrase( "children" ),
 		$form );
 }
@@ -266,27 +266,27 @@ sub render_subject_add_node
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
-	my $subject_ds = $handle->get_repository->get_dataset( "subject" );
+	my $session = $self->{session};
+	my $subject_ds = $session->get_repository->get_dataset( "subject" );
 	my $subject = $self->{processor}->{subject};
 
-	my $form = $handle->render_form( "post" );
-	$form->appendChild( $handle->render_hidden_field( "subjectid", $subject->get_id ) );
-	$form->appendChild( $handle->render_hidden_field( "screen", "Subject::Edit" ) );
+	my $form = $session->render_form( "post" );
+	$form->appendChild( $session->render_hidden_field( "subjectid", $subject->get_id ) );
+	$form->appendChild( $session->render_hidden_field( "screen", "Subject::Edit" ) );
 
 	my $field = $subject_ds->get_field( "subjectid" );
 
-	my $table = $handle->make_element( "table", width=>"100%" );
+	my $table = $session->make_element( "table", width=>"100%" );
 	$form->appendChild( $table );
 	my $prefix = "newnode";
 
 	my %parts;
 	$parts{class} = "ep_first";
-	$parts{label} = $field->render_name( $self->{handle} );
-	$parts{help} = $field->render_help( $self->{handle} );
+	$parts{label} = $field->render_name( $self->{session} );
+	$parts{help} = $field->render_help( $self->{session} );
 
 	$parts{field} = $field->render_input_field( 
-		$self->{handle}, 
+		$self->{session}, 
 		undef, 
 		undef,
 		0,
@@ -297,12 +297,12 @@ sub render_subject_add_node
 
 	$parts{help_prefix} = $prefix."_help_".$field->get_name;
 
-	$table->appendChild( $self->{handle}->render_row_with_help( %parts ) );
+	$table->appendChild( $self->{session}->render_row_with_help( %parts ) );
 
-        $form->appendChild( $handle->render_action_buttons(
+        $form->appendChild( $session->render_action_buttons(
                 add => $self->phrase( "action_add" ) ) );
 
-	return $self->{handle}->render_toolbox( 
+	return $self->{session}->render_toolbox( 
 		$self->html_phrase( "add_child", subid=>$subject->render_value( "subjectid" ) ),
 		$form );
 }
@@ -313,9 +313,9 @@ sub action_add
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
-	my $newid = $handle->param( "newnode_subjectid" );
-	my $subject_ds = $handle->get_repository->get_dataset( "subject" );
+	my $session = $self->{session};
+	my $newid = $session->param( "newnode_subjectid" );
+	my $subject_ds = $session->get_repository->get_dataset( "subject" );
 	my $subject = $self->{processor}->{subject};
 	
 	if( !EPrints::Utils::is_set( $newid ) )
@@ -324,7 +324,7 @@ sub action_add
 		return;
 	}
 
-	my $newchild = $handle->get_subject( $newid );
+	my $newchild = EPrints::DataObj::Subject->new( $session, $newid );
 	if( defined $newchild )
 	{
 		if( grep( /^$newid$/, @{$subject->get_value( "ancestors" )} ) )
@@ -343,7 +343,7 @@ sub action_add
 	}
 
 	# new subject node
-	my $newsubject = $subject_ds->create_object( $handle, {
+	my $newsubject = $subject_ds->create_object( $session, {
 		subjectid => $newid,
 		parents => [ $subject->get_value( "subjectid" ) ],
 		depositable => 1 } );
@@ -360,10 +360,10 @@ sub redirect_to_me_url
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
-	my $subject_ds = $handle->get_repository->get_dataset( "subject" );
+	my $session = $self->{session};
+	my $subject_ds = $session->get_repository->get_dataset( "subject" );
 	my $field = $subject_ds->get_field( "name" );
-	return $self->SUPER::redirect_to_me_url.$field->get_state_params( $self->{handle} );
+	return $self->SUPER::redirect_to_me_url.$field->get_state_params( $self->{session} );
 }
 
 
@@ -378,12 +378,12 @@ sub from
 		return;
 	}
 
-	my $handle = $self->{handle};
-	my $action = $handle->get_action_button();
+	my $session = $self->{session};
+	my $action = $session->get_action_button();
 	if( defined $action && $action =~ m/^unlink_(.*)$/ )
 	{
 		my $victimid = $1;
-		my $victim = $handle->get_subject( $victimid );
+		my $victim = EPrints::DataObj::Subject->new( $session, $victimid );
 #		foreach( @{$victim->get_value( "parents" )} )
 #		{
 #		}
@@ -445,16 +445,16 @@ sub from
 
 sub mkpage_editsubject
 {
-	my( $self, $handle, $subid ) = @_;
+	my( $self, $session, $subid ) = @_;
 
-	my $subject_ds = $handle->get_repository->get_dataset( "subject" );
+	my $subject_ds = $session->get_repository->get_dataset( "subject" );
 
 	my $subject;	
 	
 	my( $title );
-	my $page = $handle->make_doc_fragment();
+	my $page = $session->make_doc_fragment();
 
-	my $action = $handle->get_action_button();
+	my $action = $session->get_action_button();
 	my @problems = ();
 
 	if( defined $action )
@@ -465,13 +465,13 @@ sub mkpage_editsubject
 	}
 	if( scalar @problems )
 	{	
-		my $probdiv = $handle->make_element( "div", class=>"problems" );
-		my $ul = $handle->make_element( "ul" );
+		my $probdiv = $session->make_element( "div", class=>"problems" );
+		my $ul = $session->make_element( "ul" );
 		$probdiv->appendChild( $self->html_phrase( "problems" ) );
 		$probdiv->appendChild( $ul );
 		foreach( @problems )
 		{
-			my $li = $handle->make_element( "li" );
+			my $li = $session->make_element( "li" );
 			$li->appendChild( $_ );
 			$ul->appendChild( $li );
 		}

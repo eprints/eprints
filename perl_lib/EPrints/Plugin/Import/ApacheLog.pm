@@ -56,14 +56,14 @@ sub input_fh
 
 	return EPrints::List->new(
 		dataset => $opts{dataset},
-		handle => $plugin->{handle},
+		session => $plugin->{session},
 		ids => \@ids );
 }
 
 sub convert_input
 {
 	my( $plugin, $input_data ) = @_;
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{session};
 
 	# This regexp should cope with commonlog format
 	unless( $input_data =~ /^((?:\d{1,3}\.){3}\d{1,3}) - .*? +\[([^\]]+)\] "([A-Z]+) +(\S+) +HTTP\/1\.[01]" (\d+) (\d+|-) "(.*)" "(.*)"$/ )
@@ -97,11 +97,11 @@ sub convert_input
 	$access->{service_type_id} = '';
 	$access->{requester_user_agent} = $agent;
 
-	my $eprintid = EPrints::Apache::LogHandler::uri_to_eprintid( $handle, $page );
+	my $eprintid = EPrints::Apache::LogHandler::uri_to_eprintid( $session, $page );
 	return undef unless( defined $eprintid );
 	$access->{referent_id} = $eprintid;
 
-	my $docid = EPrints::Apache::LogHandler::uri_to_docid( $handle, $eprintid, $page );
+	my $docid = EPrints::Apache::LogHandler::uri_to_docid( $session, $eprintid, $page );
 	if( defined $docid )
 	{
 		$access->{referent_docid} = $docid;
@@ -118,13 +118,13 @@ sub convert_input
 	}
 
 	my $ref_uri = URI->new($access->{referring_entity_id},'http');
-	$eprintid = EPrints::Apache::LogHandler::uri_to_eprintid( $handle, $ref_uri );
+	$eprintid = EPrints::Apache::LogHandler::uri_to_eprintid( $session, $ref_uri );
 
 	if( defined $eprintid )
 	{
 		$access->{referring_entity_id} = $eprintid;
 
-		my $docid = EPrints::Apache::LogHandler::uri_to_docid ( $handle, $eprintid, $ref_uri );
+		my $docid = EPrints::Apache::LogHandler::uri_to_docid ( $session, $eprintid, $ref_uri );
 		if( $access->{referring_entity_id} eq $access->{referent_id} and
 				defined( $docid ) )
 		{

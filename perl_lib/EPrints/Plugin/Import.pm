@@ -30,15 +30,15 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	if( !$self->{handle} )
+	if( !$self->{session} )
 	{
-		$self->{handle} = $self->{processor}->{handle};
+		$self->{session} = $self->{processor}->{session};
 	}
 
 	if( !$self->{Handler} )
 	{
 		$self->{Handler} = EPrints::CLIProcessor->new(
-			handle => $self->{handle}
+			session => $self->{session}
 		);
 	}
 
@@ -67,7 +67,7 @@ sub render_name
 {
 	my( $plugin ) = @_;
 
-	return $plugin->{handle}->make_text( $plugin->param("name") );
+	return $plugin->{session}->make_text( $plugin->param("name") );
 }
 
 sub matches 
@@ -207,11 +207,11 @@ sub epdata_to_dataobj
 {
 	my( $plugin, $dataset, $epdata ) = @_;
 
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{session};
 
 	my $item;
 
-	if( $handle->get_repository->get_conf('enable_import_ids') )
+	if( $session->get_repository->get_conf('enable_import_ids') )
 	{
 		my $ds_id = $dataset->confid;
 		if( $ds_id eq "eprint" || $ds_id eq "user" )
@@ -219,9 +219,9 @@ sub epdata_to_dataobj
 			my $id = $epdata->{$dataset->get_key_field->get_name};
 			if( $plugin->{update} )
 			{
-				$item = $dataset->get_object( $handle, $id );
+				$item = $dataset->get_object( $session, $id );
 			}
-			elsif( $handle->get_database->exists( $dataset, $id ) )
+			elsif( $session->get_database->exists( $dataset, $id ) )
 			{
 				$plugin->error("Failed attampt to import existing $ds_id.$id");
 				return;
@@ -265,7 +265,7 @@ sub epdata_to_dataobj
 	# Create a new item
 	else
 	{
-		$item = $dataset->create_object( $plugin->{handle}, $epdata );
+		$item = $dataset->create_object( $plugin->{session}, $epdata );
 	}
 
 	if( defined( $item ) )
@@ -280,14 +280,14 @@ sub warning
 {
 	my( $plugin, $msg ) = @_;
 
-	$plugin->handler->message( "warning", $plugin->{handle}->make_text( $msg ));
+	$plugin->handler->message( "warning", $plugin->{session}->make_text( $msg ));
 }	
 
 sub error
 {
 	my( $plugin, $msg ) = @_;
 
-	$plugin->handler->message( "error", $plugin->{handle}->make_text( $msg ));
+	$plugin->handler->message( "error", $plugin->{session}->make_text( $msg ));
 }
 
 1;

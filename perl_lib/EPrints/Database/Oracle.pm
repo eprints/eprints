@@ -53,8 +53,8 @@ Oracle won't ORDER BY LOBS.
 #
 # INSTANCE VARIABLES:
 #
-#  $self->{handle}
-#     The EPrints::RepositoryHandle which is associated with this database 
+#  $self->{session}
+#     The EPrints::Session which is associated with this database 
 #     connection.
 #
 #  $self->{debug}
@@ -289,7 +289,7 @@ sub get_tables
 
 	my @tables;
 
-	my $dbuser = $self->{handle}->get_repository->get_conf( "dbuser" );
+	my $dbuser = $self->{session}->get_repository->get_conf( "dbuser" );
 	my $sth = $self->{dbh}->table_info( '%', $dbuser, '%', 'TABLE' );
 
 	while(my $row = $sth->fetch)

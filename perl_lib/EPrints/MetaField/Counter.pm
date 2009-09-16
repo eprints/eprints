@@ -44,9 +44,9 @@ sub get_property_defaults
 
 sub get_default_value
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
-	return $handle->get_database->counter_next( $self->get_property( "sql_counter" ) );
+	return $session->get_database->counter_next( $self->get_property( "sql_counter" ) );
 }
 
 ######################################################################

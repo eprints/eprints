@@ -78,8 +78,8 @@ sub action_move_inbox
 
 	if( !defined $user )
 	{
-		$self->{handle}->render_error( 
-			$self->{handle}->html_phrase( 
+		$self->{session}->render_error( 
+			$self->{session}->html_phrase( 
 				"cgi/users/edit_eprint:no_user" ),
 			"error" );
 		return;
@@ -141,7 +141,7 @@ sub add_result_message
 		$self->{processor}->add_message( "error",
 			$self->html_phrase( 
 				"cant_move",
-				id => $self->{handle}->make_text( 
+				id => $self->{session}->make_text( 
 					$self->{processor}->{eprintid} ) ) );
 	}
 

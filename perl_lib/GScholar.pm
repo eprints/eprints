@@ -17,7 +17,7 @@ our $SCHOLAR = URI->new( "http://scholar.google.com/scholar" );
 
 sub get_cites
 {
-	my( $handle, $eprint ) = @_;
+	my( $session, $eprint ) = @_;
 
 	my $title = $eprint->get_value( "title" );
 	$title =~ s/^(.{30,}?):\s.*$/$1/; # strip sub-titles
@@ -36,7 +36,7 @@ sub get_cites
 
 	my $cluster_id;
 
-	print STDERR "GET $quri\n" if $handle->{noise} > 1;
+	print STDERR "GET $quri\n" if $session->{noise} > 1;
 	my $r = $MECH->get( $quri );
 	die $r->code unless $r->is_success;
 
@@ -80,7 +80,7 @@ sub get_cites
 		for(@clusters)
 		{
 			my $url = $_->URI;
-			print STDERR "GET $url\n" if $handle->{noise} > 1;
+			print STDERR "GET $url\n" if $session->{noise} > 1;
 			$MECH->get( $url );
 
 			my $by_link = $MECH->find_link( url_regex => qr/^$eprint_link/ );
@@ -97,7 +97,7 @@ sub get_cites
 
 	unless( $cluster_id )
 	{
-		print STDERR "No match for ".$eprint->get_id."\n" if $handle->{noise} > 1;
+		print STDERR "No match for ".$eprint->get_id."\n" if $session->{noise} > 1;
 		return undef;
 	}
 

@@ -40,7 +40,7 @@ sub xml_dataobj
 {
 	my( $plugin, $dataobj ) = @_;
 
-	my $p = $plugin->{handle}->make_element( "p", class=>"citation" );
+	my $p = $plugin->{session}->make_element( "p", class=>"citation" );
 	
 	$p->appendChild( $dataobj->render_citation_link );
 

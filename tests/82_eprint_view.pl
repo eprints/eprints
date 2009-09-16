@@ -5,13 +5,13 @@ BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
 BEGIN { use_ok( "EPrints::ScreenProcessor" ); }
 
-my $handle = EPrints::Test::get_test_session();
+my $session = EPrints::Test::get_test_session();
 
 # find an example eprint
-my $dataset = $handle->get_repository->get_dataset( "eprint" );
-my( $eprintid ) = @{ $dataset->get_item_ids( $handle ) };
+my $dataset = $session->get_repository->get_dataset( "eprint" );
+my( $eprintid ) = @{ $dataset->get_item_ids( $session ) };
 
-$handle = EPrints::Test::OnlineSession->new( $handle, {
+$session = EPrints::Test::OnlineSession->new( $session, {
 	method => "GET",
 	path => "/cgi/users/home",
 	username => "admin",
@@ -22,13 +22,13 @@ $handle = EPrints::Test::OnlineSession->new( $handle, {
 });
 
 EPrints::ScreenProcessor->process(
-	handle => $handle,
-	url => $handle->get_repository->get_conf( "base_url" ) . "/cgi/users/home"
+	session => $session,
+	url => $session->get_repository->get_conf( "base_url" ) . "/cgi/users/home"
 	);
 
-$handle->terminate;
+$session->terminate;
 
-my $content = $handle->test_get_stdout();
+my $content = $session->test_get_stdout();
 
 #diag($content);
 

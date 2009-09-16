@@ -58,7 +58,7 @@ sub item_matches
 
 	my( $codes, $grepcodes, $badwords ) =
 		$self->{field}->get_index_codes(
-			$item->get_handle,
+			$item->get_session,
 			$item->get_value( $self->{field}->get_name ) );
 
 	my @re = ();
@@ -83,10 +83,10 @@ sub item_matches
 
 sub get_tables
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
-	my $tables = $self->SUPER::get_tables( $handle );
-	my $database = $handle->get_database;
+	my $tables = $self->SUPER::get_tables( $session );
+	my $database = $session->get_database;
 
 	my $sql_col = $self->{field}->get_sql_name;
 	my @ors = ();
@@ -108,11 +108,11 @@ sub get_tables
 
 sub process
 {
-	my( $self, $handle, $i, $filter ) = @_;
+	my( $self, $session, $i, $filter ) = @_;
 
 	$i = 0 unless( defined $i );
-	my $database = $handle->get_database;
-	my $tables = $self->SUPER::get_tables( $handle );
+	my $database = $session->get_database;
+	my $tables = $self->SUPER::get_tables( $session );
 	my $keyfield = $self->{dataset}->get_key_field();
 	my $sql_col = $self->{field}->get_sql_name;
 
@@ -149,7 +149,7 @@ sub process
 			where => '('.$where.' AND ('.$kfn.'='.join(' OR '.$kfn.'=', @fset ).' ))',
 			table => $gtable,
 		};
-		my $set = $self->run_tables( $handle, $tables );
+		my $set = $self->run_tables( $session, $tables );
 		$r = EPrints::Search::Condition::_merge( $r , $set, 0 );
 	}
 
@@ -183,7 +183,7 @@ sub get_query_logic
 {
 	my( $self, %opts ) = @_;
 
-	my $db = $opts{handle}->get_database;
+	my $db = $opts{session}->get_database;
 	my $field = $self->{field};
 	my $dataset = $field->{dataset};
 

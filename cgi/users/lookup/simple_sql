@@ -3,18 +3,18 @@ use EPrints;
 use strict;
 use warnings;
 
-my $handle = EPrints::Handle->new();
+my $session = EPrints::Session->new();
 
-my $string_frag = lc($handle->param( "q" ) || "");
-my $table = $handle->param( "table" );
-my $mode = $handle->param( "mode" ) || "phrase";
+my $string_frag = lc($session->param( "q" ) || "");
+my $table = $session->param( "table" );
+my $mode = $session->param( "mode" ) || "phrase";
 if( !defined $table )
 {
 	EPrints::abort( "table" );
 }
-my $Q_table = $handle->get_database->quote_identifier( "ac_$table" );
-my $Q_xml = $handle->get_database->quote_identifier( "xml" );
-my $Q_value = $handle->get_database->quote_identifier( "value" );
+my $Q_table = $session->get_database->quote_identifier( "ac_$table" );
+my $Q_xml = $session->get_database->quote_identifier( "xml" );
+my $Q_value = $session->get_database->quote_identifier( "value" );
 my $Q_string_frag = EPrints::Database::prep_like_value( $string_frag );
 if( $mode eq "phrase" )
 {
@@ -24,14 +24,14 @@ elsif( $mode eq "prefix" )
 {
 	$Q_string_frag = "$Q_string_frag\%";
 }
-$Q_string_frag = $handle->get_database->quote_value( $Q_string_frag );
+$Q_string_frag = $session->get_database->quote_value( $Q_string_frag );
 
 my $sql = "SELECT $Q_xml from $Q_table WHERE $Q_value LIKE $Q_string_frag";
 
-my $ul = $handle->make_element( "ul" );
+my $ul = $session->make_element( "ul" );
 
-my $sth = $handle->get_database->prepare_select( $sql, 'limit' => 40 );
-$handle->get_database->execute( $sth , $sql );
+my $sth = $session->get_database->prepare_select( $sql, 'limit' => 40 );
+$session->get_database->execute( $sth , $sql );
 my $first = 1;
 while( my( $value ) = $sth->fetchrow_array )
 {
@@ -40,18 +40,18 @@ while( my( $value ) = $sth->fetchrow_array )
 	eval { $doc = EPrints::XML::parse_xml_string( "<div>$value</div>" ) };
 	if( $@ )
 	{
-		$value = $handle->make_text( $value );
+		$value = $session->make_text( $value );
 	}
 	else
 	{
-		$value = $handle->make_doc_fragment;
+		$value = $session->make_doc_fragment;
 		for($doc->documentElement->childNodes)
 		{
-			$value->appendChild( $handle->clone_for_me( $_, 1 ) );
+			$value->appendChild( $session->clone_for_me( $_, 1 ) );
 		}
 		EPrints::XML::dispose( $doc );
 	}
-	my $li = $handle->make_element( "li" );
+	my $li = $session->make_element( "li" );
 	$ul->appendChild( $li );
 	if( $first )
 	{
@@ -59,14 +59,14 @@ while( my( $value ) = $sth->fetchrow_array )
 		$first = 0;
 	}
 	$li->appendChild( $value );
-	my $ul2 = $handle->make_element( "ul" );
-	my $li2 = $handle->make_element( "li", id => "for:value:relative:" );
+	my $ul2 = $session->make_element( "ul" );
+	my $li2 = $session->make_element( "li", id => "for:value:relative:" );
 	$li->appendChild( $ul2 );
 	$ul2->appendChild( $li2 );
-	$li2->appendChild( $handle->clone_for_me( $value, 1 ) );
+	$li2->appendChild( $session->clone_for_me( $value, 1 ) );
 }
 
-$handle->send_http_header( content_type => "text/xml; charset=UTF-8" );
+$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
 print <<END;
 <?xml version="1.0" encoding="UTF-8" ?>
 
@@ -75,4 +75,4 @@ print EPrints::XML::to_string( $ul, "utf-8", 1 );
 
 EPrints::XML::dispose( $ul );
 
-$handle->terminate;
+$session->terminate;

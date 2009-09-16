@@ -59,14 +59,14 @@ sub get_value
 
 sub get_index_codes_basic
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
 	if( $value !~ s/^_FULLTEXT_:// )
 	{
-		return $self->SUPER::get_index_codes_basic( $handle, $value );
+		return $self->SUPER::get_index_codes_basic( $session, $value );
 	}
 
-	my $doc = $handle->get_document( $value );
+	my $doc = EPrints::DataObj::Document->new( $session, $value );
 	return( [], [], [] ) unless defined $doc->get_main;
 
 	my $main_file = $doc->get_stored_file( $doc->get_main );

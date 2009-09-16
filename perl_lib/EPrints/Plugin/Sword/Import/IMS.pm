@@ -29,7 +29,7 @@ sub input_file
 {
 	my ( $plugin, %opts ) = @_;
 
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{session};
 
         my $mime = $opts{mime_type};
         my $file = $opts{file};
@@ -110,7 +110,7 @@ sub input_file
 		$xml .= $d 
 	}
 
-	my $dataset = $handle->get_repository()->get_dataset( $dataset_id );
+	my $dataset = $session->get_archive()->get_dataset( $dataset_id );
         
 	if(!defined $dataset)
         {
@@ -238,7 +238,7 @@ sub input_file
 	
 	$epdata->{eprint_status} = $dataset_id;
 
-	my $eprint = $dataset->create_object( $plugin->{handle}, $epdata );
+	my $eprint = $dataset->create_object( $plugin->{session}, $epdata );
 
         unless(defined $eprint)
         {
@@ -254,8 +254,8 @@ sub input_file
 	        $doc_data{eprintid} = $eprint->get_id;
 
 		# try to guess the MIME of the attached file:
-               $doc_data{format} = $handle->get_repository->call( 'guess_doc_type',
-                                $handle,
+               $doc_data{format} = $session->get_repository->call( 'guess_doc_type',
+                                $session,
                                 $unpack_dir."/".$file );
 
                if( $doc_data{format} eq 'other' )
@@ -266,7 +266,7 @@ sub input_file
 
 		$doc_data{main} = $file;
 
-		local $handle->get_repository->{config}->{enable_file_imports} = 1;
+		local $session->get_repository->{config}->{enable_file_imports} = 1;
 
 	        my %file_data;
 	       	$file_data{filename} = $file;
@@ -274,9 +274,9 @@ sub input_file
 
         	$doc_data{files} = [ \%file_data ];
 
-	        my $doc_dataset = $handle->get_repository->get_dataset( "document" );
+	        my $doc_dataset = $session->get_repository->get_dataset( "document" );
 
-		my $document = EPrints::DataObj::Document->create_from_data( $handle, \%doc_data, $doc_dataset );
+		my $document = EPrints::DataObj::Document->create_from_data( $session, \%doc_data, $doc_dataset );
 
 	        if(!defined $document)
                 {

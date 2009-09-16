@@ -43,7 +43,7 @@ sub output_list
 	$opts{json_indent} = 1;
 	my $first = 1;
 	$opts{list}->map( sub {
-		my( $handle, $dataset, $item ) = @_;
+		my( $session, $dataset, $item ) = @_;
 		my $part = "";
 		if( $first ) { $part = "  "; $first = 0; } else { $part = ",\n  "; }
 		$part .= $plugin->output_dataobj( $item, %opts );

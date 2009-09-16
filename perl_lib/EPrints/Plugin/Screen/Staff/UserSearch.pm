@@ -25,7 +25,7 @@ sub search_dataset
 {
 	my( $self ) = @_;
 
-	return $self->{handle}->get_repository->get_dataset( "user" );
+	return $self->{session}->get_repository->get_dataset( "user" );
 }
 
 sub search_filters
@@ -50,7 +50,7 @@ sub from
 {
 	my( $self ) = @_;
 
-	my $sconf = $self->{handle}->get_repository->get_conf( "search", "user" );
+	my $sconf = $self->{session}->get_repository->get_conf( "search", "user" );
 		
 	$self->{processor}->{sconf} = $sconf;
 
@@ -73,7 +73,7 @@ sub get_controls_before
 
 sub render_result_row
 {
-	my( $self, $handle, $result, $searchexp, $n ) = @_;
+	my( $self, $session, $result, $searchexp, $n ) = @_;
 
 	return $result->render_citation_link_staff(
 			$self->{processor}->{sconf}->{citation},  #undef unless specified

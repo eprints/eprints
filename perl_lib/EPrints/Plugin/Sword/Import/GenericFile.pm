@@ -28,7 +28,7 @@ sub input_file
 {
 	my ( $plugin, %opts ) = @_;
 
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{session};
 
 	my $file = $opts{file};
 
@@ -40,7 +40,7 @@ sub input_file
 	my $NO_OP = $opts{no_op};
 	my $VERBOSE = $opts{verbose};
 
-	my $dataset = $handle->get_repository()->get_dataset( $dataset_id );
+	my $dataset = $session->get_archive()->get_dataset( $dataset_id );
 
 	if(!defined $dataset)
         {
@@ -72,7 +72,7 @@ sub input_file
 	$epdata->{eprint_status} = $dataset_id;
 
 	# minimal amount of metadata!
-	my $eprint = $dataset->create_object( $plugin->{handle}, $epdata );
+	my $eprint = $dataset->create_object( $plugin->{session}, $epdata );
 		
 	unless( defined $eprint )
 	{
@@ -98,10 +98,10 @@ sub input_file
 	}
 	else
 	{
-		$doc_data{format} = $handle->get_repository->call( "guess_doc_type", $handle, $file );
+		$doc_data{format} = $session->get_repository->call( "guess_doc_type", $session, $file );
 	}
 
-	local $handle->get_repository->{config}->{enable_file_imports} = 1;
+	local $session->get_repository->{config}->{enable_file_imports} = 1;
 
 	$doc_data{main} = $fn;
 
@@ -112,9 +112,9 @@ sub input_file
 
 	$doc_data{files} = [ \%file_data ];
 
-	my $doc_dataset = $handle->get_repository->get_dataset( "document" );
+	my $doc_dataset = $session->get_repository->get_dataset( "document" );
 
-	my $document = EPrints::DataObj::Document->create_from_data( $handle, \%doc_data, $doc_dataset );
+	my $document = EPrints::DataObj::Document->create_from_data( $session, \%doc_data, $doc_dataset );
 
 	if(!defined $document)
 	{
@@ -132,7 +132,7 @@ sub input_file
 
 	if( $fn =~ /\.docx|pptx$/ )
 	{
-		my $conv_plugin = $handle->plugin( "Convert::OpenXML" );
+		my $conv_plugin = $session->plugin( "Convert::OpenXML" );
 		if( $conv_plugin )
 		{
 			my @new_docs = $conv_plugin->convert( $eprint, $document, 'both' );

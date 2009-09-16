@@ -60,7 +60,7 @@ sub output_dataobj
 	$type = "other" unless exists $TYPES{$type};
 
 	my $rft_plugin = $TYPES{$type}->{plugin};
-	$rft_plugin = $plugin->{handle}->plugin( $rft_plugin );
+	$rft_plugin = $plugin->{session}->plugin( $rft_plugin );
 
 	if( $dataset->has_field( "id_number" ) && $dataobj->is_set( "id_number" ) )
 	{

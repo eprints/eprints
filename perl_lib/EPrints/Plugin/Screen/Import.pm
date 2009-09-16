@@ -37,9 +37,9 @@ sub properties_from
 	
 	$self->SUPER::properties_from;
 
-	my $pluginid = $self->{handle}->param( "pluginid" );
+	my $pluginid = $self->{session}->param( "pluginid" );
 
-	my $import_documents = $self->{handle}->param( "import_documents" );
+	my $import_documents = $self->{session}->param( "import_documents" );
 	if( defined($import_documents) && $import_documents eq "yes" )
 	{
 		$import_documents = 1;
@@ -51,23 +51,23 @@ sub properties_from
 	
 	if( defined $pluginid )
 	{
-		my $plugin = $self->{handle}->plugin(
+		my $plugin = $self->{session}->plugin(
 			$pluginid,
-			handle => $self->{handle},
-			dataset => $self->{handle}->get_repository->get_dataset( "inbox" ),
+			session => $self->{session},
+			dataset => $self->{session}->get_repository->get_dataset( "inbox" ),
 			processor => $self->{processor},
 			import_documents => $import_documents,
 		);
 		if( !defined $plugin || $plugin->broken )
 		{
-			$self->{processor}->add_message( "error", $self->{handle}->html_phrase( "general:bad_param" ) );
+			$self->{processor}->add_message( "error", $self->{session}->html_phrase( "general:bad_param" ) );
 			return;
 		}
 
 		my $req_plugin_type = "list/eprint";
 		unless( $plugin->can_produce( $req_plugin_type ) )
 		{
-			$self->{processor}->add_message( "error", $self->{handle}->html_phrase( "general:bad_param" ) );
+			$self->{processor}->add_message( "error", $self->{session}->html_phrase( "general:bad_param" ) );
 			return;
 		}
 
@@ -128,8 +128,8 @@ sub make_tmp_file
 
 	my $tmp_file;
 
-	my $import_fh = $self->{handle}->{query}->upload( "import_filename" );
-	my $import_data = $self->{handle}->param( "import_data" );
+	my $import_fh = $self->{session}->{query}->upload( "import_filename" );
+	my $import_data = $self->{session}->param( "import_data" );
 
 	if( defined $import_fh )
 	{
@@ -165,8 +165,8 @@ sub _import
 
 	seek($tmp_file, 0, SEEK_SET);
 
-	my $handle = $self->{handle};
-	my $ds = $handle->get_repository->get_dataset( "inbox" );
+	my $session = $self->{session};
+	my $ds = $session->get_repository->get_dataset( "inbox" );
 	my $user = $self->{processor}->{user};
 
 	my $plugin = $self->{processor}->{plugin};
@@ -230,9 +230,9 @@ sub _import
 	{
 		s/^(.{$MAX_ERR_LEN}).*$/$1 .../s;
 		s/\t/        /g; # help _mktext out a bit
-		my @lines = EPrints::DataObj::History::_mktext( $handle, $_, 0, 0, 80 );
-		my $pre = $handle->make_element( "pre" );
-		$pre->appendChild( $handle->make_text( join( "\n", @lines )));
+		my @lines = EPrints::DataObj::History::_mktext( $session, $_, 0, 0, 80 );
+		my $pre = $session->make_element( "pre" );
+		$pre->appendChild( $session->make_text( join( "\n", @lines )));
 		$self->{processor}->add_message( "warning", $pre );
 	}
 
@@ -244,13 +244,13 @@ sub _import
 		{
 			$self->{processor}->add_message( "message", $self->html_phrase(
 				"test_completed", 
-				count => $handle->make_text( $count ) ) ) unless $quiet;
+				count => $session->make_text( $count ) ) ) unless $quiet;
 		}
 		else
 		{
 			$self->{processor}->add_message( "warning", $self->html_phrase( 
 				"test_failed", 
-				count => $handle->make_text( $count ) ) );
+				count => $session->make_text( $count ) ) );
 		}
 	}
 	else
@@ -259,13 +259,13 @@ sub _import
 		{
 			$self->{processor}->add_message( "message", $self->html_phrase( 
 				"import_completed", 
-				count => $handle->make_text( $count ) ) );
+				count => $session->make_text( $count ) ) );
 		}
 		else
 		{
 			$self->{processor}->add_message( "warning", $self->html_phrase( 
 				"import_failed", 
-				count => $handle->make_text( $count ) ) );
+				count => $session->make_text( $count ) ) );
 		}
 	}
 
@@ -278,80 +278,80 @@ sub render
 {
 	my ( $self ) = @_;
 
-	my $handle = $self->{handle};
-	my $ds = $handle->get_repository->get_dataset( "inbox" );
+	my $session = $self->{session};
+	my $ds = $session->get_repository->get_dataset( "inbox" );
 
-	my $page = $handle->make_doc_fragment;
+	my $page = $session->make_doc_fragment;
 
 	# Preamble
 	$page->appendChild( $self->html_phrase( "intro" ) );
 
-	my $form =  $handle->render_form( "post" );
-	$form->appendChild( $handle->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
+	my $form =  $session->render_form( "post" );
+	$form->appendChild( $session->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
 	$page->appendChild( $form );
 
-	my $table = $handle->make_element( "table", width=>"100%" );
+	my $table = $session->make_element( "table", width=>"100%" );
 
-	my $frag = $handle->make_doc_fragment;
-	my $textarea = $frag->appendChild( $handle->make_element(
+	my $frag = $session->make_doc_fragment;
+	my $textarea = $frag->appendChild( $session->make_element(
 		"textarea",
 		name => "import_data",
 		rows => 10,
 		cols => 50,
 		wrap => "virtual" ) );
-	if( defined(my $import_data = $handle->param( "import_data" )) )
+	if( defined(my $import_data = $session->param( "import_data" )) )
 	{
-		$textarea->appendChild( $handle->make_text( $import_data ) );
+		$textarea->appendChild( $session->make_text( $import_data ) );
 	}
-	$frag->appendChild( $handle->make_element( "br" ) );
-	$frag->appendChild( $handle->make_element( "br" ) );
-	$frag->appendChild( $handle->render_upload_field( "import_filename" ) );
+	$frag->appendChild( $session->make_element( "br" ) );
+	$frag->appendChild( $session->make_element( "br" ) );
+	$frag->appendChild( $session->render_upload_field( "import_filename" ) );
 
-	$table->appendChild( $handle->render_row_with_help(
-		help => $handle->make_doc_fragment,
+	$table->appendChild( $session->render_row_with_help(
+		help => $session->make_doc_fragment,
 		label => $self->html_phrase( "step1" ),
 		class => "ep_first",
 		field => $frag,
 	));
 	
-	my @plugins = $handle->plugin_list( 
+	my @plugins = $session->plugin_list( 
 			type=>"Import",
 			is_advertised=>1,
 			is_visible=>"all",
 			can_produce=>"list/".$ds->confid );
 
-	my $select = $handle->make_element( "select", name => "pluginid" );
-	$table->appendChild( $handle->render_row_with_help(
-		help => $handle->make_doc_fragment,
+	my $select = $session->make_element( "select", name => "pluginid" );
+	$table->appendChild( $session->render_row_with_help(
+		help => $session->make_doc_fragment,
 		label => $self->html_phrase( "step2" ),
 		field => $select,
 	));
 	
 	for( @plugins )
 	{
-		my $plugin = $handle->plugin( $_,
+		my $plugin = $session->plugin( $_,
 			processor => $self->{processor},
 		);
 		next if $plugin->broken;
-		my $opt = $handle->make_element( "option", value => $_  );
+		my $opt = $session->make_element( "option", value => $_  );
 		$opt->setAttribute( "selected", "selected" ) if $self->{processor}->{plugin} && $_ eq $self->{processor}->{plugin}->get_id;
 		$opt->appendChild( $plugin->render_name );
 		$select->appendChild( $opt );
 	}
 
-	if( $handle->get_repository->get_conf( "enable_web_imports" ) )
+	if( $session->get_repository->get_conf( "enable_web_imports" ) )
 	{
-		my $checkbox = $handle->render_input_field( type=>"checkbox", name=>"import_documents", value=>"yes", class=>"ep_form_checkbox" );
-		$table->appendChild( $handle->render_row_with_help(
-			help => $handle->make_doc_fragment,
+		my $checkbox = $session->render_input_field( type=>"checkbox", name=>"import_documents", value=>"yes", class=>"ep_form_checkbox" );
+		$table->appendChild( $session->render_row_with_help(
+			help => $session->make_doc_fragment,
 			label => $self->html_phrase( "import_documents" ),
 			field => $checkbox,
 		));
 	}
 
-	$form->appendChild( $handle->render_toolbox( undef, $table ) );
+	$form->appendChild( $session->render_toolbox( undef, $table ) );
 
-	$form->appendChild( $handle->render_action_buttons( 
+	$form->appendChild( $session->render_action_buttons( 
 		_class => "ep_form_button_bar",
 		test => $self->phrase( "action:test:title" ), 
 		import => $self->phrase( "action:import:title" ) ) );

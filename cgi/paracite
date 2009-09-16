@@ -17,36 +17,36 @@ use ParaTools::CiteParser::Standard;
 use URI;
 
 use strict;
-my $handle = new EPrints::Handle;
-exit( 0 ) unless( defined $handle );
+my $session = new EPrints::Session;
+exit( 0 ) unless( defined $session );
 
-my $ds = $handle->get_repository->get_dataset( "archive" );
+my $ds = $session->get_repository->get_dataset( "archive" );
 
-&process( $handle );
+&process( $session );
 
-$handle->terminate;
+$session->terminate;
 
 exit;
 
 
 sub process
 {
-	my( $handle ) = @_;
+	my( $session ) = @_;
 	
-	my $title = $handle->html_phrase( "cgi/paracite:title" );
+	my $title = $session->html_phrase( "cgi/paracite:title" );
 
-	unless( EPrints::Utils::is_set( $handle->param("ref") ) )
+	unless( EPrints::Utils::is_set( $session->param("ref") ) )
 	{
-		$handle->prepare_page( 
-			title=>$title, 
-			page=>$handle->html_phrase( "cgi/paracite:no_reference" ),
-			page_id=>"paracite" );
-		$handle->send_page();
+		$session->build_page( 
+			$title, 
+			$session->html_phrase( "cgi/paracite:no_reference" ),
+			"paracite" );
+		$session->send_page();
 		return;
 	}
 
 
-	my $ref = $handle->param("ref");
+	my $ref = $session->param("ref");
 
 	my $parser = new ParaTools::CiteParser::Standard();
 	my $metadata = $parser->parse($ref);
@@ -73,7 +73,7 @@ sub process
 
 	unless( EPrints::Utils::is_set( $author ) )
 	{
-		$handle->redirect( $paraurl );
+		$session->redirect( $paraurl );
 		return;
 	}
 
@@ -81,7 +81,7 @@ sub process
 		filters => [
 			{ meta_fields=>[ 'metadata_visibility' ], value=>'show', match=>'EQ', merge=>"ANY", describe=>0 },
 		],
-		handle => $handle,
+		session => $session,
 		dataset => $ds );
 
 	if( EPrints::Utils::is_set( $author ) )
@@ -114,30 +114,30 @@ sub process
 	my $count = $searchexp->count();
 	if( $count == 0 )
 	{
-		$handle->redirect( $paraurl );
+		$session->redirect( $paraurl );
 		$searchexp->dispose;
 		return;
 	}
 
-	my $page = $handle->make_doc_fragment();
-	my $p = $handle->make_element( "p" );
-	$p->appendChild( $handle->make_text( $ref ) );
+	my $page = $session->make_doc_fragment();
+	my $p = $session->make_element( "p" );
+	$p->appendChild( $session->make_text( $ref ) );
 	$page->appendChild( $p );
 	my @matches = $searchexp->get_records( 0, 10 );
-	$page->appendChild( $handle->html_phrase( "cgi/paracite:possible_matches" ) );
+	$page->appendChild( $session->html_phrase( "cgi/paracite:possible_matches" ) );
 	foreach my $m ( @matches )
 	{
-		my $p = $handle->make_element( "p" );
+		my $p = $session->make_element( "p" );
 		$p->appendChild( $m->render_citation_link );
 		$page->appendChild( $p );
 	}
-	$page->appendChild( $handle->render_ruler );
-	my $a = $handle->make_element( "a", href=>$paraurl );
-	$page->appendChild( $handle->html_phrase( 
+	$page->appendChild( $session->render_ruler );
+	my $a = $session->make_element( "a", href=>$paraurl );
+	$page->appendChild( $session->html_phrase( 
 		"cgi/paracite:paracite_link",
 		link=>$a ));
 
-	$handle->prepare_page( title=>$title, page=>$page, page_id=>"paracite" );
-	$handle->send_page();
+	$session->build_page( $title, $page, "paracite" );
+	$session->send_page();
 	return;
 }

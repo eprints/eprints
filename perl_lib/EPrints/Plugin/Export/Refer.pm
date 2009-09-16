@@ -77,7 +77,7 @@ sub convert_dataobj
 	$data->{K} = $dataobj->get_value( "keywords" ) if $dataobj->exists_and_set( "keywords" );
 	$data->{X} = $dataobj->get_value( "abstract" ) if $dataobj->exists_and_set( "abstract" );
 
-	$data->{L} = $plugin->{handle}->get_repository->get_id . $dataobj->get_id;
+	$data->{L} = $plugin->{session}->get_repository->get_id . $dataobj->get_id;
 
 	return $data;
 }

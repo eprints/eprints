@@ -42,17 +42,17 @@ use strict;
 
 sub render_input_field_actual
 {
-	my( $self, $handle, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
+	my( $self, $session, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
 
-	my $public_key = $handle->get_repository->get_conf( "recaptcha", "public_key" );
+	my $public_key = $session->get_repository->get_conf( "recaptcha", "public_key" );
 
 	if( !defined $public_key )
 	{
-		$handle->get_repository->log( "recaptcha public_key not set" );
+		$session->get_repository->log( "recaptcha public_key not set" );
 		return undef;
 	}
 
-	my $frag = $handle->make_doc_fragment;
+	my $frag = $session->make_doc_fragment;
 
 	my $url = URI->new( "https://api-secure.recaptcha.net/challenge" );
 	$url->query_form(
@@ -60,7 +60,7 @@ sub render_input_field_actual
 		error => $value,
 		);
 
-	my $script = $frag->appendChild( $handle->make_element( "script",
+	my $script = $frag->appendChild( $session->make_element( "script",
 		type => "text/javascript",
 		src => $url ) );
 
@@ -70,20 +70,20 @@ sub render_input_field_actual
 		error => $value,
 		);
 
-	my $noscript = $frag->appendChild( $handle->make_element( "noscript" ) );
-	$noscript->appendChild( $handle->make_element( "iframe",
+	my $noscript = $frag->appendChild( $session->make_element( "noscript" ) );
+	$noscript->appendChild( $session->make_element( "iframe",
 		src => $url,
 		height => "300",
 		width => "500",
 		frameborder => "0"
 		) );
-	$noscript->appendChild( $handle->make_element( "br" ) );
-	$noscript->appendChild( $handle->make_element( "textarea",
+	$noscript->appendChild( $session->make_element( "br" ) );
+	$noscript->appendChild( $session->make_element( "textarea",
 		name => "recaptcha_challenge_field",
 		rows => "3",
 		cols => "40"
 		) );
-	$noscript->appendChild( $handle->make_element( "input",
+	$noscript->appendChild( $session->make_element( "input",
 		type => "hidden",
 		name => "recaptcha_response_field",
 		value => "manual_challenge"
@@ -94,16 +94,16 @@ sub render_input_field_actual
 
 sub form_value_actual
 {
-	my( $self, $handle, $object, $basename ) = @_;
+	my( $self, $session, $object, $basename ) = @_;
 
-	my $private_key = $handle->get_repository->get_conf( "recaptcha", "private_key" );
-	my $remote_ip = $handle->get_request->connection->remote_ip;
-	my $challenge = $handle->param( "recaptcha_challenge_field" );
-	my $response = $handle->param( "recaptcha_response_field" );
+	my $private_key = $session->get_repository->get_conf( "recaptcha", "private_key" );
+	my $remote_ip = $session->get_request->connection->remote_ip;
+	my $challenge = $session->param( "recaptcha_challenge_field" );
+	my $response = $session->param( "recaptcha_response_field" );
 
 	if( !defined $private_key )
 	{
-		$handle->get_repository->log( "recaptcha private_key not set" );
+		$session->get_repository->log( "recaptcha private_key not set" );
 		return undef;
 	}
 
@@ -138,20 +138,20 @@ sub form_value_actual
 
 	# error talking to recaptcha, so lets continue to avoid blocking the user
 	# in case of network problems
-	$handle->get_repository->log( "Error contacting recaptcha: ".$r->code." ".$r->message );
+	$session->get_repository->log( "Error contacting recaptcha: ".$r->code." ".$r->message );
 
 	return undef;
 }
 
 sub validate
 {
-	my( $self, $handle, $value, $object ) = @_;
+	my( $self, $session, $value, $object ) = @_;
 
 	my @probs;
 
 	if( $value )
 	{
-		push @probs, $handle->html_phrase( "validate:recaptcha_mismatch" );
+		push @probs, $session->html_phrase( "validate:recaptcha_mismatch" );
 	}
 
 	return @probs;

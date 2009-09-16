@@ -37,7 +37,7 @@ use strict;
 ######################################################################
 =pod
 
-=item $xhtml = EPrints::Paracite::render_reference( $handle, $field, $value )
+=item $xhtml = EPrints::Paracite::render_reference( $session, $field, $value )
 
 This function is intended to be passed by reference to the 
 render_single_value property of a referencetext metadata field. Each
@@ -48,14 +48,14 @@ reference will then be rendered as a link to a CGI script.
 
 sub render_reference
 {
-	my( $handle , $field , $value ) = @_;
+	my( $session , $field , $value ) = @_;
 	
 	my $i=0;
 	my $mode = 0;
-	my $html = $handle->make_doc_fragment();
-	my $perlurl = $handle->get_repository->get_conf( 
+	my $html = $session->make_doc_fragment();
+	my $perlurl = $session->get_repository->get_conf( 
 		"http_cgiurl" );
-	my $baseurl = $handle->get_repository->get_conf( 
+	my $baseurl = $session->get_repository->get_conf( 
 		"http_url" );
 
 	# Loop through all references
@@ -66,14 +66,14 @@ sub render_reference
 	{
 		next if( $reference =~ /^\s*$/ );
 
-		my $form = $handle->render_form( 'post', $perlurl.'/paracite' );
-		my $p = $handle->make_element(
+		my $form = $session->render_form( 'post', $perlurl.'/paracite' );
+		my $p = $session->make_element(
 			"p", 
 			class=>"citation_reference" );
 		$form->appendChild( $p );
-		$p->appendChild( $handle->make_text( $reference." " ) );
-		$p->appendChild( $handle->make_element( 'input', name=>'action', value=>'1', type=>'image', src=>$baseurl."/images/reflink.png" ) );
-		$p->appendChild( $handle->make_element( 'input', name=>'ref', value=>$reference, type=>'hidden' ) );
+		$p->appendChild( $session->make_text( $reference." " ) );
+		$p->appendChild( $session->make_element( 'input', name=>'action', value=>'1', type=>'image', src=>$baseurl."/images/reflink.png" ) );
+		$p->appendChild( $session->make_element( 'input', name=>'ref', value=>$reference, type=>'hidden' ) );
 		$html->appendChild( $form );		
 	}
 

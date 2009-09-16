@@ -26,24 +26,24 @@ sub output_dataobj
 {
 	my( $plugin, $dataobj ) = @_;
 
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{session};
 	
-	my $response = $handle->make_element( "rdf:RDF",
+	my $response = $session->make_element( "rdf:RDF",
 		"xmlns:rdf"=>"http://www.w3.org/1999/02/22-rdf-syntax-ns#",
 		"xmlns:rdfs"=>"http://www.w3.org/2000/01/rdf-schema#",
 		"xmlns:foaf"=>"http://xmlns.com/foaf/0.1/",
 		"xmlns:dc"=>"http://purl.org/dc/elements/1.1/" );
 
-	my $person = $handle->make_element( "foaf:Person" );
+	my $person = $session->make_element( "foaf:Person" );
 	
 	my %fields = (
-		nick => $handle->make_text( $dataobj->get_value( "username" ) ),
+		nick => $session->make_text( $dataobj->get_value( "username" ) ),
 		name => $dataobj->get_value( "name" ),
 	);
 
 	foreach my $field ( keys %fields )
 	{
-		my $el = $handle->make_element( "foaf:$field" );
+		my $el = $session->make_element( "foaf:$field" );
 		$el->appendChild( $fields{$field} );
 		$person->appendChild( $el );
 	}

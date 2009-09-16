@@ -34,9 +34,9 @@ sub action_regen_abstracts
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $file = $handle->get_repository->get_conf( "variables_path" )."/abstracts.timestamp";
+	my $file = $session->get_repository->get_conf( "variables_path" )."/abstracts.timestamp";
 	unless( open( CHANGEDFILE, ">$file" ) )
 	{
 		$self->{processor}->add_message( "error",

@@ -1,12 +1,12 @@
 
 ######################################################################
 
-=item $xhtmlfragment = user_render( $user, $handle )
+=item $xhtmlfragment = user_render( $user, $session )
 
 This subroutine takes a user object and renders the XHTML view
 of this user for public viewing.
 
-Takes the L<$user|EPrints::DataObj::User> to render and the current L<$handle|EPrints::RepositoryHandle>.
+Takes the L<$user|EPrints::DataObj::User> to render and the current L<$session|EPrints::Session>.
 
 Returns an $xhtmlfragment (see L<EPrints::XML>).
 
@@ -17,45 +17,45 @@ Returns an $xhtmlfragment (see L<EPrints::XML>).
 
 $c->{user_render} = sub
 {
-	my( $user, $handle ) = @_;
+	my( $user, $session ) = @_;
 
 	my $html;	
 
 	my( $info, $p, $a );
-	$info = $handle->make_doc_fragment;
+	$info = $session->make_doc_fragment;
 
 
 	# Render the public information about this user.
-	$p = $handle->make_element( "p" );
+	$p = $session->make_element( "p" );
 	$p->appendChild( $user->render_description() );
 	# Address, Starting with dept. and organisation...
 	if( $user->is_set( "dept" ) )
 	{
-		$p->appendChild( $handle->make_element( "br" ) );
+		$p->appendChild( $session->make_element( "br" ) );
 		$p->appendChild( $user->render_value( "dept" ) );
 	}
 	if( $user->is_set( "org" ) )
 	{
-		$p->appendChild( $handle->make_element( "br" ) );
+		$p->appendChild( $session->make_element( "br" ) );
 		$p->appendChild( $user->render_value( "org" ) );
 	}
 	if( $user->is_set( "address" ) )
 	{
-		$p->appendChild( $handle->make_element( "br" ) );
+		$p->appendChild( $session->make_element( "br" ) );
 		$p->appendChild( $user->render_value( "address" ) );
 	}
 	if( $user->is_set( "country" ) )
 	{
-		$p->appendChild( $handle->make_element( "br" ) );
+		$p->appendChild( $session->make_element( "br" ) );
 		$p->appendChild( $user->render_value( "country" ) );
 	}
 	$info->appendChild( $p );
 	
 	if( $user->is_set( "usertype" ) )
 	{
-		$p = $handle->make_element( "p" );
-		$p->appendChild( $handle->html_phrase( "user_fieldname_usertype" ) );
-		$p->appendChild( $handle->make_text( ": " ) );
+		$p = $session->make_element( "p" );
+		$p->appendChild( $session->html_phrase( "user_fieldname_usertype" ) );
+		$p->appendChild( $session->make_text( ": " ) );
 		$p->appendChild( $user->render_value( "usertype" ) );
 		$info->appendChild( $p );
 	}
@@ -65,7 +65,7 @@ $c->{user_render} = sub
 	{
 		if( $user->is_set( "email" ) )
 		{
-			$p = $handle->make_element( "p" );
+			$p = $session->make_element( "p" );
 			$p->appendChild( $user->render_value( "email" ) );
 			$info->appendChild( $p );
 		}
@@ -73,7 +73,7 @@ $c->{user_render} = sub
 
 	if( $user->is_set( "url" ) )
 	{
-		$p = $handle->make_element( "p" );
+		$p = $session->make_element( "p" );
 		$p->appendChild( $user->render_value( "url" ) );
 		$info->appendChild( $p );
 	}

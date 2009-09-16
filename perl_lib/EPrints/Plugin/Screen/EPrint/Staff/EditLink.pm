@@ -35,13 +35,13 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $div = $self->{handle}->make_element( "div", style=>"padding-top: 4em; padding-bottom: 4em" );
-	my $form = $self->{handle}->render_form( "get" );
+	my $div = $self->{session}->make_element( "div", style=>"padding-top: 4em; padding-bottom: 4em" );
+	my $form = $self->{session}->render_form( "get" );
 	$div->appendChild( $form );
 	$form->appendChild( 
-		$self->{handle}->render_hidden_field( "screen", "EPrint::Staff::Edit" ) );
+		$self->{session}->render_hidden_field( "screen", "EPrint::Staff::Edit" ) );
 	$form->appendChild( 
-		$self->{handle}->render_hidden_field( 
+		$self->{session}->render_hidden_field( 
 			"eprintid", 
 			$self->{processor}->{eprintid} ) );
 	$form->appendChild( $self->render_blister( "", 1 ) );

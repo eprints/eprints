@@ -37,7 +37,7 @@ use MIME::Base64;
 
 sub authenticate
 {
-	my ( $handle, $request ) = @_;
+	my ( $session, $request ) = @_;
 
 	my %response;
 
@@ -94,7 +94,7 @@ sub authenticate
                 return \%response;
         }
 
-	unless( $handle->valid_login( $username, $password ) )
+	unless( $session->valid_login( $username, $password ) )
 	{
 		$response{error} = {
 					status_code => 401, 
@@ -105,7 +105,7 @@ sub authenticate
                 return \%response;
         }
 
-        my $user = $handle->get_user_with_username( $username );
+        my $user = EPrints::DataObj::User::user_with_username( $session, $username );
 
 	# This error could be a 500 Internal Error since the previous check ($db->valid_login) succeeded.
         if(!defined $user)
@@ -123,7 +123,7 @@ sub authenticate
         my $xbehalf = EPrints::Apache::AnApache::header_in( $request, 'X-On-Behalf-Of' );
         if(defined $xbehalf)
         {
-		my $behalf_user = $handle->get_user_with_username( $xbehalf );
+		my $behalf_user = EPrints::DataObj::User::user_with_username( $session, $xbehalf );
 
 	        if(!defined $behalf_user)
 		{
@@ -137,7 +137,7 @@ sub authenticate
 	                return \%response;
 		}
 
-		if(!can_user_behalf( $handle, $user->get_value( "username" ), $behalf_user->get_value( "username" ) ))
+		if(!can_user_behalf( $session, $user->get_value( "username" ), $behalf_user->get_value( "username" ) ))
 		{
 			$response{error} = {
 					status_code => 403, 
@@ -164,7 +164,7 @@ sub authenticate
 
 sub process_headers
 {
-	my ( $handle, $request ) = @_;
+	my ( $session, $request ) = @_;
 
 	my %response;
 
@@ -327,9 +327,9 @@ sub process_headers
 
 sub can_user_behalf
 {
-	my ( $handle, $username, $behalf_username ) = @_;
+	my ( $session, $username, $behalf_username ) = @_;
 
-	my $allowed = $handle->get_repository->get_conf( "sword", "allowed_mediations" );
+	my $allowed = $session->get_repository->get_conf( "sword", "allowed_mediations" );
 
 	# test if ALL mediations are allowed
 	my $all_allowed = $allowed->{'*'};
@@ -373,13 +373,13 @@ sub is_collection_valid_OBSOLETE_METHOD
 
 sub get_collections
 {
-	my ( $handle ) = @_;
+	my ( $session ) = @_;
 
-	my $coll_conf = $handle->get_repository->get_conf( "sword","collections" );
+	my $coll_conf = $session->get_repository->get_conf( "sword","collections" );
 	return undef unless(defined $coll_conf);
 	
-	my $mime_types = $handle->get_repository->get_conf( "sword", "accept_mime_types" );
-	my $packages = $handle->get_repository->get_conf( "sword", "supported_packages" );
+	my $mime_types = $session->get_repository->get_conf( "sword", "accept_mime_types" );
+	my $packages = $session->get_repository->get_conf( "sword", "supported_packages" );
 
 	my $coll_count = 0;
 	foreach my $c (keys %$coll_conf)
@@ -425,7 +425,7 @@ sub is_mime_allowed
 
 sub get_files_mime_OBSOLETE_METHOD
 {
-	my ( $handle, $f ) = @_;
+	my ( $session, $f ) = @_;
 
 	my $mimes = {};
 
@@ -445,13 +445,13 @@ sub get_files_mime_OBSOLETE_METHOD
 
 sub get_file_to_import_OBSOLETE_METHOD
 {
-	my ( $handle, $files, $mime_type, $return_all ) = @_;
+	my ( $session, $files, $mime_type, $return_all ) = @_;
 
 
 print STDERR "\nWARNING Sword::FileType::get_file_to_import was called!!";
 
 
-	my $mimes = get_files_mime( $handle, $files );
+	my $mimes = get_files_mime( $session, $files );
         my @candidates;
 
 	$return_all = 0 unless(defined $return_all);
@@ -498,22 +498,22 @@ print STDERR "\nWARNING Sword::FileType::get_file_to_import was called!!";
 
 sub get_atom_url
 {
-	my ( $handle, $eprint ) = @_;
-	return $handle->get_repository->get_conf( "base_url" )."/sword-app/atom/".$eprint->get_id.".atom";
+	my ( $session, $eprint ) = @_;
+	return $session->get_repository->get_conf( "base_url" )."/sword-app/atom/".$eprint->get_id.".atom";
 }
 
 
 
 sub get_deposit_url
 {
-	my ( $handle ) = @_;
-	return $handle->get_repository->get_conf( "base_url" )."/sword-app/deposit/"
+	my ( $session ) = @_;
+	return $session->get_repository->get_conf( "base_url" )."/sword-app/deposit/"
 }
 
 sub get_collections_url
 {
-        my ( $handle ) = @_;
-        return $handle->get_repository->get_conf( "base_url" )."/id/eprint/";
+        my ( $session ) = @_;
+        return $session->get_repository->get_conf( "base_url" )."/id/eprint/";
 }
 
 
@@ -522,53 +522,53 @@ sub get_collections_url
 # other helper functions:
 sub generate_error_document
 {
-        my ( $handle, %opts ) = @_;
+        my ( $session, %opts ) = @_;
 
-        my $error = $handle->make_element( "sword:error", "xmlns:atom" => "http://www.w3.org/2005/Atom",
+        my $error = $session->make_element( "sword:error", "xmlns:atom" => "http://www.w3.org/2005/Atom",
                                                            "xmlns:sword" => "http://purl.org/net/sword/" );
 
 	$opts{href} = "http://eprints.org/sword/error/UnknownError" unless( defined $opts{href} );
 	$error->setAttribute( "href", $opts{href} );
 
-        my $title = $handle->make_element( "atom:title" );
-        $title->appendChild( $handle->make_text( "ERROR" ) );
+        my $title = $session->make_element( "atom:title" );
+        $title->appendChild( $session->make_text( "ERROR" ) );
         $error->appendChild( $title );
 
-        my $updated = $handle->make_element( "atom:updated" );
-        $updated->appendChild( $handle->make_text( EPrints::Time::get_iso_timestamp() ) );
+        my $updated = $session->make_element( "atom:updated" );
+        $updated->appendChild( $session->make_text( EPrints::Time::get_iso_timestamp() ) );
         $error->appendChild( $updated );
 
-        my $source_gen = $handle->get_repository->get_conf( "sword", "service_conf" )->{generator};
+        my $source_gen = $session->get_repository->get_conf( "sword", "service_conf" )->{generator};
         unless( defined $source_gen )
         {
-                $source_gen = $handle->phrase( "archive_name" )." [".$handle->get_repository->get_conf( "version_id" )."]";
+                $source_gen = $session->phrase( "archive_name" )." [".$session->get_repository->get_conf( "version_id" )."]";
         }
 
-        my $generator = $handle->make_element( "atom:generator" );
-        $generator->setAttribute( "uri", $handle->get_repository->get_conf( "base_url" ) );
+        my $generator = $session->make_element( "atom:generator" );
+        $generator->setAttribute( "uri", $session->get_repository->get_conf( "base_url" ) );
         $generator->setAttribute( "version", "1.3" );
-        $generator->appendChild($handle->make_text( $source_gen ) );
+        $generator->appendChild($session->make_text( $source_gen ) );
         $error->appendChild( $generator );
 
-	my $summary = $handle->make_element( "atom:summary" );
+	my $summary = $session->make_element( "atom:summary" );
 	$error->appendChild( $summary );
 
 	if( defined $opts{summary} )
         {
-                $summary->appendChild( $handle->make_text( $opts{summary} ) );
+                $summary->appendChild( $session->make_text( $opts{summary} ) );
         }
 
         if( defined $opts{verbose_desc} )
         {
-                my $desc = $handle->make_element( "sword:verboseDescription" );
-                $desc->appendChild( $handle->make_text( $opts{verbose_desc} ) );
+                my $desc = $session->make_element( "sword:verboseDescription" );
+                $desc->appendChild( $session->make_text( $opts{verbose_desc} ) );
                 $error->appendChild( $desc );
         }
 
 	if( defined $opts{user_agent} )
 	{
-                my $sword_agent = $handle->make_element( "sword:userAgent" );
-                $sword_agent->appendChild( $handle->make_text( $opts{user_agent} ) );
+                my $sword_agent = $session->make_element( "sword:userAgent" );
+                $sword_agent->appendChild( $session->make_text( $opts{user_agent} ) );
                 $error->appendChild( $sword_agent );
         }
 
@@ -580,7 +580,7 @@ sub generate_error_document
 
 sub create_xml
 {
-        my ( $handle, %opts ) = @_;
+        my ( $session, %opts ) = @_;
 
         my $eprint = $opts{eprint};
         my $owner = $opts{owner};
@@ -588,20 +588,20 @@ sub create_xml
 	my $deposited_file_docid = $opts{deposited_file_docid};
 
         # ENTRY
-        my $entry = $handle->make_element( "atom:entry", "xmlns:atom" => "http://www.w3.org/2005/Atom",
+        my $entry = $session->make_element( "atom:entry", "xmlns:atom" => "http://www.w3.org/2005/Atom",
                                         "xmlns:sword" => "http://purl.org/net/sword/" );
 
         # TITLE
         my $eptitle = $eprint->get_value( "title" );
         $eptitle = "UNSPECIFIED" unless defined( $eptitle );
 
-        my $title = $handle->make_element( "atom:title" );
-        $title->appendChild( $handle->make_text( $eptitle ) );
+        my $title = $session->make_element( "atom:title" );
+        $title->appendChild( $session->make_text( $eptitle ) );
         $entry->appendChild( $title );
 
         # ID
-        my $uid = $handle->make_element( "atom:id" );
-        $uid->appendChild( $handle->make_text( $eprint->get_id ) );
+        my $uid = $session->make_element( "atom:id" );
+        $uid->appendChild( $session->make_text( $eprint->get_id ) );
         $entry->appendChild( $uid );
 
         # UPDATED
@@ -616,8 +616,8 @@ sub create_xml
                 $time_updated =  EPrints::Time::get_iso_timestamp();
         }
 
-        my $updated = $handle->make_element( "atom:updated" );
-        $updated->appendChild( $handle->make_text( $time_updated ) );
+        my $updated = $session->make_element( "atom:updated" );
+        $updated->appendChild( $session->make_text( $time_updated ) );
         $entry->appendChild( $updated );
         
 	my $time_pub;
@@ -631,77 +631,77 @@ sub create_xml
 		$time_pub = $time_updated;
         }
         
-	my $published = $handle->make_element( "atom:published" );
-        $published->appendChild( $handle->make_text( $time_pub ) );
+	my $published = $session->make_element( "atom:published" );
+        $published->appendChild( $session->make_text( $time_pub ) );
         $entry->appendChild( $published );
 
 
         # AUTHOR/CONTRIBUTOR
 	if( defined $depositor )
         {
-                my $author = $handle->make_element( "atom:author" );
-                my $name = $handle->make_element( "atom:name" );
-                $name->appendChild( $handle->make_text( $owner->get_value( "username" ) ) );
+                my $author = $session->make_element( "atom:author" );
+                my $name = $session->make_element( "atom:name" );
+                $name->appendChild( $session->make_text( $owner->get_value( "username" ) ) );
                 $author->appendChild( $name );
                 my $author_email = $owner->get_value( "email" );
                 my $email_tag;
                 if( defined $author_email )
                 {
-                        $email_tag = $handle->make_element( "atom:email" );
-                        $email_tag->appendChild( $handle->make_text( $author_email ) );
+                        $email_tag = $session->make_element( "atom:email" );
+                        $email_tag->appendChild( $session->make_text( $author_email ) );
                         $author->appendChild( $email_tag );
                 }
                 $entry->appendChild( $author );
 
-                my $contributor = $handle->make_element( "atom:contributor" );
-                my $name2 = $handle->make_element( "atom:name" );
-                $name2->appendChild( $handle->make_text( $depositor->get_value( "username" ) ) );
+                my $contributor = $session->make_element( "atom:contributor" );
+                my $name2 = $session->make_element( "atom:name" );
+                $name2->appendChild( $session->make_text( $depositor->get_value( "username" ) ) );
                 $contributor->appendChild( $name2 );
                 my $contrib_email = $depositor->get_value( "email" );
                 if( defined $contrib_email )
                 {
-                        $email_tag = $handle->make_element( "atom:email" );
-                        $email_tag->appendChild( $handle->make_text( $contrib_email ) );
+                        $email_tag = $session->make_element( "atom:email" );
+                        $email_tag->appendChild( $session->make_text( $contrib_email ) );
                         $contributor->appendChild( $email_tag );
                 }
                 $entry->appendChild( $contributor );
         }
         else
         {
-                my $author = $handle->make_element( "atom:author" );
-                my $name = $handle->make_element( "atom:name" );
-                $name->appendChild( $handle->make_text( $owner->get_value( "username" ) ) );
+                my $author = $session->make_element( "atom:author" );
+                my $name = $session->make_element( "atom:name" );
+                $name->appendChild( $session->make_text( $owner->get_value( "username" ) ) );
                 $author->appendChild( $name );
                 my $author_email = $owner->get_value( "email" );
                 if( defined $author_email )
                 {
-                        my $email_tag = $handle->make_element( "atom:email" );
-                        $email_tag->appendChild( $handle->make_text( $author_email ) );
+                        my $email_tag = $session->make_element( "atom:email" );
+                        $email_tag->appendChild( $session->make_text( $author_email ) );
                         $author->appendChild( $email_tag );
                 }
                 $entry->appendChild( $author );
         }
 
         # SUMMARY
-	my $summary = $handle->make_element( "atom:summary", "type" => "text" );
+	my $summary = $session->make_element( "atom:summary", "type" => "text" );
 	$entry->appendChild( $summary );
 	my $abstract = $eprint->get_value( "abstract" );
         if( defined $abstract && length $abstract > 100 )        # display 100 characters max for the abstract
         {
                 $abstract = substr( $abstract, 0, 96 );
                 $abstract .= "...";
-                $summary->appendChild( $handle->make_text( $abstract ) );
+                $summary->appendChild( $session->make_text( $abstract ) );
         }
 
 	# if docid is defined, <content> should point to that document, otherwise point to the abstract page
 	my $content;
 	if( defined $deposited_file_docid )
 	{
-		my $doc = $handle->get_document( $deposited_file_docid );
+		my $doc = EPrints::DataObj::Document->new( $session, $deposited_file_docid );
 	
 		if( defined $doc )
 		{
-			$content = $handle->make_element( "atom:content", 
+			$content = $session->make_element( "atom:content", 
 							"type" => $doc->get_value( "format" ),
 							"src" => $doc->uri );
 		}		
@@ -709,62 +709,62 @@ sub create_xml
 
 	unless( defined $content )
 	{
-		$content = $handle->make_element( "atom:content", "type" => "text/html", src=> $eprint->uri )
+		$content = $session->make_element( "atom:content", "type" => "text/html", src=> $eprint->uri )
 	}
         $entry->appendChild( $content );
 
-	my $edit_link = $handle->make_element( "atom:link", 
+	my $edit_link = $session->make_element( "atom:link", 
 					"rel" => "edit",
-					"href" => EPrints::Sword::Utils::get_atom_url( $handle, $eprint ) );
+					"href" => EPrints::Sword::Utils::get_atom_url( $session, $eprint ) );
 
 	$entry->appendChild( $edit_link );
 
 
         # SOURCE GENERATOR
-	my $source_gen = $handle->get_repository->get_conf( "sword", "service_conf" )->{generator};
+	my $source_gen = $session->get_repository->get_conf( "sword", "service_conf" )->{generator};
 	unless( defined $source_gen )
 	{
-	        $source_gen = $handle->phrase( "archive_name" )." [".$handle->get_repository->get_conf( "version_id" )."]";
+	        $source_gen = $session->phrase( "archive_name" )." [".$session->get_repository->get_conf( "version_id" )."]";
 	}
 
-        my $generator = $handle->make_element( "atom:generator" );
-        $generator->setAttribute( "uri", $handle->get_repository->get_conf( "base_url" ) );
+        my $generator = $session->make_element( "atom:generator" );
+        $generator->setAttribute( "uri", $session->get_repository->get_conf( "base_url" ) );
 	$generator->setAttribute( "version", "1.3" );
-        $generator->appendChild($handle->make_text( $source_gen ) );
+        $generator->appendChild($session->make_text( $source_gen ) );
         $entry->appendChild( $generator );
 
 
         # VERBOSE
         if(defined $opts{verbose_desc})
         {
-                my $sword_verbose = $handle->make_element( "sword:verboseDescription" );
-                $sword_verbose->appendChild( $handle->make_text( $opts{verbose_desc} ) );
+                my $sword_verbose = $session->make_element( "sword:verboseDescription" );
+                $sword_verbose->appendChild( $session->make_text( $opts{verbose_desc} ) );
                 $entry->appendChild( $sword_verbose );
         }
 
 
         # SWORD TREATMEMT
-	my $sword_treat = $handle->make_element( "sword:treatment" );
-        $sword_treat->appendChild( $handle->make_text( $opts{sword_treatment} ) );
+	my $sword_treat = $session->make_element( "sword:treatment" );
+        $sword_treat->appendChild( $session->make_text( $opts{sword_treatment} ) );
         $entry->appendChild( $sword_treat );
 
 
 	if( defined $opts{x_packaging} )
 	{
-		my $sword_xpack = $handle->make_element( "sword:packaging" );
-		$sword_xpack->appendChild( $handle->make_text( $opts{x_packaging} ) );
+		my $sword_xpack = $session->make_element( "sword:packaging" );
+		$sword_xpack->appendChild( $session->make_text( $opts{x_packaging} ) );
 		$entry->appendChild( $sword_xpack );
 	}
 
 	if(defined $opts{user_agent})
         {
-                my $sword_agent = $handle->make_element( "sword:userAgent" );
-                $sword_agent->appendChild( $handle->make_text( $opts{user_agent} ) );
+                my $sword_agent = $session->make_element( "sword:userAgent" );
+                $sword_agent->appendChild( $session->make_text( $opts{user_agent} ) );
                 $entry->appendChild( $sword_agent );
         }
 	
-	my $sword_noop = $handle->make_element( "sword:noOp" );
-	$sword_noop->appendChild( $handle->make_text( "false" ) );
+	my $sword_noop = $session->make_element( "sword:noOp" );
+	$sword_noop->appendChild( $session->make_text( "false" ) );
 	$entry->appendChild( $sword_noop );
 
 	EPrints::XML::tidy( $entry );
@@ -777,7 +777,7 @@ sub create_xml
 # the XML sent when performing a No-Op operation
 sub create_noop_xml
 {
-        my ( $handle, %opts ) = @_;
+        my ( $session, %opts ) = @_;
 
         my $sword_treatment = $opts{sword_treatment};
         my $owner = $opts{owner};
@@ -785,110 +785,110 @@ sub create_noop_xml
         my $verbose = $opts{verbose_desc};
 
         # ENTRY
-        my $entry = $handle->make_element( "atom:entry", "xmlns:atom" => "http://www.w3.org/2005/Atom",
+        my $entry = $session->make_element( "atom:entry", "xmlns:atom" => "http://www.w3.org/2005/Atom",
                                         "xmlns:sword" => "http://purl.org/net/sword/" );
 
         # UPDATED
         my $time_updated = EPrints::Time::get_iso_timestamp();
-        my $updated = $handle->make_element( "atom:updated" );
-        $updated->appendChild( $handle->make_text( $time_updated ) );
+        my $updated = $session->make_element( "atom:updated" );
+        $updated->appendChild( $session->make_text( $time_updated ) );
         $entry->appendChild( $updated );
 
-        my $published = $handle->make_element( "atom:published" );
-        $published->appendChild( $handle->make_text( $time_updated ) );
+        my $published = $session->make_element( "atom:published" );
+        $published->appendChild( $session->make_text( $time_updated ) );
         $entry->appendChild( $published );
 
         # AUTHOR/CONTRIBUTOR
 	if( defined $depositor )
         {
-                my $author = $handle->make_element( "atom:author" );
-                my $name = $handle->make_element( "atom:name" );
-                $name->appendChild( $handle->make_text( $owner->get_value( "username" ) ) );
+                my $author = $session->make_element( "atom:author" );
+                my $name = $session->make_element( "atom:name" );
+                $name->appendChild( $session->make_text( $owner->get_value( "username" ) ) );
                 $author->appendChild( $name );
                 my $author_email = $owner->get_value( "email" );
                 my $email_tag;
                 if( defined $author_email )
                 {
-                        $email_tag = $handle->make_element( "atom:email" );
-                        $email_tag->appendChild( $handle->make_text( $author_email ) );
+                        $email_tag = $session->make_element( "atom:email" );
+                        $email_tag->appendChild( $session->make_text( $author_email ) );
                         $author->appendChild( $email_tag );
                 }
                 $entry->appendChild( $author );
 
-                my $contributor = $handle->make_element( "atom:contributor" );
-                my $name2 = $handle->make_element( "atom:name" );
-                $name2->appendChild( $handle->make_text( $depositor->get_value( "username" ) ) );
+                my $contributor = $session->make_element( "atom:contributor" );
+                my $name2 = $session->make_element( "atom:name" );
+                $name2->appendChild( $session->make_text( $depositor->get_value( "username" ) ) );
                 $contributor->appendChild( $name2 );
                 my $contrib_email = $depositor->get_value( "email" );
                 if( defined $contrib_email )
                 {
-                        $email_tag = $handle->make_element( "atom:email" );
-                        $email_tag->appendChild( $handle->make_text( $contrib_email ) );
+                        $email_tag = $session->make_element( "atom:email" );
+                        $email_tag->appendChild( $session->make_text( $contrib_email ) );
                         $contributor->appendChild( $email_tag );
                 }
                 $entry->appendChild( $contributor );
         }
         else
         {
-                my $author = $handle->make_element( "atom:author" );
-                my $name = $handle->make_element( "atom:name" );
-                $name->appendChild( $handle->make_text( $owner->get_value( "username" ) ) );
+                my $author = $session->make_element( "atom:author" );
+                my $name = $session->make_element( "atom:name" );
+                $name->appendChild( $session->make_text( $owner->get_value( "username" ) ) );
                 $author->appendChild( $name );
                 my $author_email = $owner->get_value( "email" );
                 if( defined $author_email )
                 {
-                        my $email_tag = $handle->make_element( "atom:email" );
-                        $email_tag->appendChild( $handle->make_text( $author_email ) );
+                        my $email_tag = $session->make_element( "atom:email" );
+                        $email_tag->appendChild( $session->make_text( $author_email ) );
                         $author->appendChild( $email_tag );
                 }
                 $entry->appendChild( $author );
         }
 
         # SOURCE GENERATOR
-	my $source_gen = $handle->get_repository->get_conf( "sword", "service_conf" )->{generator};
-        $source_gen = $handle->phrase( "archive_name" ) unless(defined $source_gen);
+	my $source_gen = $session->get_repository->get_conf( "sword", "service_conf" )->{generator};
+        $source_gen = $session->phrase( "archive_name" ) unless(defined $source_gen);
 
-        my $source = $handle->make_element( "atom:source" );
-        my $generator = $handle->make_element( "atom:generator" );
-        $generator->setAttribute( "uri", $handle->get_repository->get_conf( "base_url" ) );
-        $generator->appendChild($handle->make_text( $source_gen ) );
+        my $source = $session->make_element( "atom:source" );
+        my $generator = $session->make_element( "atom:generator" );
+        $generator->setAttribute( "uri", $session->get_repository->get_conf( "base_url" ) );
+        $generator->appendChild($session->make_text( $source_gen ) );
         $source->appendChild( $generator );
         $entry->appendChild( $source );
 
         #VERBOSE (if defined)
        if(defined $verbose)
         {
-                my $sword_verbose = $handle->make_element( "sword:verboseDescription" );
-                $sword_verbose->appendChild( $handle->make_text( $verbose ) );
+                my $sword_verbose = $session->make_element( "sword:verboseDescription" );
+                $sword_verbose->appendChild( $session->make_text( $verbose ) );
                 $entry->appendChild( $sword_verbose );
         }
 
         # SWORD TREATMEMT
-	my $sword_treat = $handle->make_element( "sword:treatment" );
-        $sword_treat->appendChild( $handle->make_text( $sword_treatment ) );
+	my $sword_treat = $session->make_element( "sword:treatment" );
+        $sword_treat->appendChild( $session->make_text( $sword_treatment ) );
         $entry->appendChild( $sword_treat );
 
 
 	if( defined $opts{x_packaging} )
 	{
-		my $sword_xpack = $handle->make_element( "sword:packaging" );
-		$sword_xpack->appendChild( $handle->make_text( $opts{x_packaging} ) );
+		my $sword_xpack = $session->make_element( "sword:packaging" );
+		$sword_xpack->appendChild( $session->make_text( $opts{x_packaging} ) );
 		$entry->appendChild( $sword_xpack );
 	}
 
         # USER AGENT (if set)
 	if(defined $opts{user_agent})
         {
-                my $sword_agent = $handle->make_element( "sword:userAgent" );
-                $sword_agent->appendChild( $handle->make_text( $opts{user_agent} ) );
+                my $sword_agent = $session->make_element( "sword:userAgent" );
+                $sword_agent->appendChild( $session->make_text( $opts{user_agent} ) );
                 $entry->appendChild( $sword_agent );
         }
 	
-	my $sword_noop = $handle->make_element( "sword:noOp" );
-	$sword_noop->appendChild( $handle->make_text( "true" ) );
+	my $sword_noop = $session->make_element( "sword:noOp" );
+	$sword_noop->appendChild( $session->make_text( "true" ) );
 	$entry->appendChild( $sword_noop );
 
-	my $sword_summ = $handle->make_element( "atom:summary" );
+	my $sword_summ = $session->make_element( "atom:summary" );
 	$entry->appendChild( $sword_summ );
 
 	EPrints::XML::tidy( $entry );

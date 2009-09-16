@@ -3,18 +3,18 @@ use EPrints;
 use strict;
 use warnings;
 
-my $handle = EPrints::Handle->new();
+my $session = EPrints::Session->new();
 
-my $string_frag = lc $handle->param( "q" );
-my $lookup_file = $handle->param( "file" );
-my $mode = $handle->param( "mode" ) || "phrase";
+my $string_frag = lc $session->param( "q" );
+my $lookup_file = $session->param( "file" );
+my $mode = $session->param( "mode" ) || "phrase";
 if( !defined $lookup_file )
 {
 	EPrints::abort( "no filename" );
 }
 $lookup_file=~s/\///sg;
 $lookup_file=~s/^\.+//s;
-my $filepath = $handle->get_repository->get_conf( "config_path" )."/autocomplete/$lookup_file";
+my $filepath = $session->get_repository->get_conf( "config_path" )."/autocomplete/$lookup_file";
 open( DATA, '<', $filepath ) || EPrints::abort "can't read $filepath: $!";
 my @filtered_lookup_names;
 if( $mode eq "phrase" )
@@ -59,4 +59,4 @@ foreach my $value ( @filtered_lookup_names )
 }
 print '</ul>';
 
-$handle->terminate;
+$session->terminate;

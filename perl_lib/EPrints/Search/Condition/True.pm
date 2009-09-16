@@ -51,7 +51,7 @@ sub item_matches
 
 sub process
 {
-	my( $self, $handle, $i, $filter ) = @_;
+	my( $self, $session, $i, $filter ) = @_;
 
 	return ["ALL"];
 }

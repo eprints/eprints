@@ -49,7 +49,7 @@ sub render
 	my $links = {};
 	my $position = {};
 	my $id_prefix = "ep_admin_tabs";
-	my $view = $self->{handle}->param( "view" );
+	my $view = $self->{session}->param( "view" );
 
 	my $n = 1;
 	foreach my $tab_id ( $self->action_lists )
@@ -64,9 +64,9 @@ sub render
 		$links->{$tab_id} = "?screen=".$self->{processor}->{screenid}."&view=$tab_id";
 	}
 
-	my $chunk = $self->{handle}->make_doc_fragment;
+	my $chunk = $self->{session}->make_doc_fragment;
 	$chunk->appendChild( 
-		$self->{handle}->render_tabs( 
+		$self->{session}->render_tabs( 
 			id_prefix => $id_prefix,
 			current => $view,
 			tabs => $tabs,
@@ -74,7 +74,7 @@ sub render
 			links => $links,
 		));
 
-	my $panel = $self->{handle}->make_element( 
+	my $panel = $self->{session}->make_element( 
 			"div", 
 			id => "${id_prefix}_panels", 
 			class => "ep_tab_panel" );
@@ -84,7 +84,7 @@ sub render
 	{
 		my %o;
 		if( $tab_id ne $view ) { $o{style} = "display:none;";}
-		my $tab = $self->{handle}->make_element( 
+		my $tab = $self->{session}->make_element( 
 			"div", 
 			id => "${id_prefix}_panel_$tab_id", 
 			%o );

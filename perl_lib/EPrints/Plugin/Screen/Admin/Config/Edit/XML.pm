@@ -26,15 +26,15 @@ sub validate_config_file
 	eval {
 		my $doc = EPrints::XML::parse_xml( 
 			$tmpfile, 
-			$self->{handle}->get_repository->get_conf( "variables_path" )."/",
+			$self->{session}->get_repository->get_conf( "variables_path" )."/",
 			1 );
 	};
 	my $xml_parse_issues = $@;
 	unlink( $tmpfile );
 	if( $xml_parse_issues )
 	{
-		my $pre = $self->{handle}->make_element( "pre" );
-		$pre->appendChild( $self->{handle}->make_text( $xml_parse_issues ) );
+		my $pre = $self->{session}->make_element( "pre" );
+		$pre->appendChild( $self->{session}->make_text( $xml_parse_issues ) );
 		push @issues, $pre;
 	}
 

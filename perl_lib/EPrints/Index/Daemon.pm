@@ -70,7 +70,7 @@ sub new
 	my $self = bless \%opts, $class;
 
 	$self->{Handler} ||= EPrints::CLIProcessor->new(
-		handle => $self->{handle}
+		session => $self->{session}
 	);
 
 	return $self;
@@ -285,15 +285,15 @@ sub get_all_sessions
 	my @arc_ids = EPrints::Config::get_repository_ids();
 	foreach my $arc_id (sort @arc_ids)
 	{
-		my $repository = EPrints->get_repository( $arc_id );
+		my $repository = EPrints::Repository->new( $arc_id );
 		next unless $repository->get_conf( "index" );
-		my $handle = EPrints->get_repository_handle_by_id( $arc_id );
-		if( !defined $handle )
+		my $session = EPrints::Session->new( 1 , $arc_id );
+		if( !defined $session )
 		{
 			$self->log( 0, "!! Could not open session for $arc_id" );
 			next;
 		}
-		push @sessions, $handle;
+		push @sessions, $session;
 	}
 
 	return @sessions;
@@ -324,7 +324,7 @@ sub log
 
 =cut
 
-=item $daemon->start( $handle )
+=item $daemon->start( $session )
 
 Starts the indexer process from an existing EPrints session.
 
@@ -332,7 +332,7 @@ Starts the indexer process from an existing EPrints session.
 
 sub start
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
 	my $rc = 0;
 
@@ -344,7 +344,7 @@ use EPrints qw( no_check_user );
 EPrints::Index::Daemon->new( logfile => "$logfile" )->start_daemon();
 END
 
-	my( $in_fh, $out_fh, $err_fh ) = $handle->get_request->spawn_proc_prog( $perl, [
+	my( $in_fh, $out_fh, $err_fh ) = $session->get_request->spawn_proc_prog( $perl, [
 		"-w",
 		"-I$perl_lib",
 		"-e", $prog,
@@ -352,7 +352,7 @@ END
 
 	while(defined(my $err = <$err_fh>))
 	{
-		$self->handler->add_message( "warning", $handle->make_text( $err ));
+		$self->handler->add_message( "warning", $session->make_text( $err ));
 	}
 
 	close($in_fh);
@@ -372,7 +372,7 @@ END
 	return $rc;
 }
 
-=item $daemon->stop( $handle )
+=item $daemon->stop( $session )
 
 Stops the indexer process from an existing EPrints session.
 
@@ -380,7 +380,7 @@ Stops the indexer process from an existing EPrints session.
 
 sub stop
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
 	return $self->stop_daemon;
 }
@@ -427,7 +427,7 @@ sub real_exit
 {
 	my( $self ) = @_;
 
-	if( $self->{handle} and $self->{handle}->{request} )
+	if( $self->{session} and $self->{session}->{request} )
 	{
 		CORE::exit(0); # exit inside mod_perl
 	}
@@ -604,13 +604,13 @@ sub run_index
 	{
 		my $seen_action = 0;
 
-		foreach my $handle ( @sessions )
+		foreach my $session ( @sessions )
 		{
 			# give the next code $timeout secs to complete
 			eval {
 				local $SIG{ALRM} = sub { die "alarm\n" };
 				alarm($self->get_timeout);
-				$seen_action ||= $self->_run_index( $handle, {
+				$seen_action ||= $self->_run_index( $session, {
 					loglevel => $self->{noise},
 				});
 				alarm(0);
@@ -666,13 +666,13 @@ sub run_index
 
 sub _run_index
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
-	my $event = $handle->get_database->dequeue_event();
+	my $event = $session->get_database->dequeue_event();
 	return undef unless defined $event;
 
 	my $pluginid = $event->get_value( "pluginid" );
-	my $plugin = $handle->plugin( "Event::".$pluginid );
+	my $plugin = $session->plugin( "Event::".$pluginid );
 	if( !defined $plugin )
 	{
 		$self->log( 1, "** event ".$event->get_id." asked for an unknown pluginid '$pluginid'" );

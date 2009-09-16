@@ -16,8 +16,8 @@ sub handler
 {
 	my $request = shift;
 
-        my $handle = EPrints->get_repository_handle();
-	if(! defined $handle )
+	my $session = new EPrints::Session;
+	if(! defined $session )
 	{
 		print STDERR "\n[SWORD-DEPOSIT] [INTERNAL-ERROR] Could not create session object.";
 		$request->status( 500 );
@@ -27,7 +27,7 @@ sub handler
 	# "verbose_desc" is only sent when verbose is enabled. The desc itself is always built though.
 	my $verbose_desc = "[OK] Verbose mode enabled.\n";
 
-	my $response = EPrints::Sword::Utils::authenticate( $handle, $request );
+	my $response = EPrints::Sword::Utils::authenticate( $session, $request );
 	$verbose_desc .= $response->{verbose_desc};
 
 	if( defined $response->{error} )
@@ -42,11 +42,11 @@ sub handler
                 {
                         $request->headers_out->{'WWW-Authenticate'} = 'Basic realm="SWORD"';
 			$request->status( $error->{status_code} );
-			$handle->terminate;
+			$session->terminate;
 			return Apache2::Const::DONE;
                 }
 
-		my $error_doc = EPrints::Sword::Utils::generate_error_document( $handle, 
+		my $error_doc = EPrints::Sword::Utils::generate_error_document( $session, 
 					summary => "Authentication error.",
 					href => $error->{error_href}, 
 					verbose_desc => $verbose_desc );
@@ -55,7 +55,7 @@ sub handler
 	        $request->headers_out->{'Content-Length'} = length $error_doc;
         	$request->content_type('application/atom+xml');
 		$request->print( $error_doc );
-                $handle->terminate;
+                $session->terminate;
                 return Apache2::Const::DONE;
         }
 
@@ -63,7 +63,7 @@ sub handler
 	my $depositor = $response->{depositor};		# undef unless mediated deposit
 
 	# Processing HTTP headers in order to retrieve SWORD options
-	my $headers = EPrints::Sword::Utils::process_headers( $handle, $request );
+	my $headers = EPrints::Sword::Utils::process_headers( $session, $request );
 	$verbose_desc .= $headers->{verbose_desc};
 
 	my $VERBOSE = $headers->{x_verbose};
@@ -77,7 +77,7 @@ sub handler
                         $request->headers_out->{'X-Error-Code'} = $error->{x_error_code};
                 }
 		
-		my $error_doc = EPrints::Sword::Utils::generate_error_document( $handle, 
+		my $error_doc = EPrints::Sword::Utils::generate_error_document( $session, 
 					user_agent => $headers->{user_agent},
 					summary => "Failed to parse the HTTP headers.",
 					href => $error->{error_href}, 
@@ -87,13 +87,13 @@ sub handler
 	        $request->headers_out->{'Content-Length'} = length $error_doc;
         	$request->content_type('application/atom+xml');
 		$request->print( $error_doc );
-                $handle->terminate;
+                $session->terminate;
                 return Apache2::Const::DONE;
 	}
 
 	# Check that the collection exists on this repository:
 	my $target_collection = $headers->{collection};
-	my $collections = EPrints::Sword::Utils::get_collections( $handle );
+	my $collections = EPrints::Sword::Utils::get_collections( $session );
 	
 	my $collec_conf = $collections->{$target_collection};
 
@@ -101,7 +101,7 @@ sub handler
 	{
 		$verbose_desc .= "ERROR: The collection '$target_collection' does not exist.\n";
 		
-                my $error_doc = EPrints::Sword::Utils::generate_error_document( $handle, 
+                my $error_doc = EPrints::Sword::Utils::generate_error_document( $session, 
 					user_agent => $headers->{user_agent},
 					summary => "Unknown or invalid collection: '$target_collection'.",
 					href => "http://eprints.org/sword/error/UnknownCollection", 
@@ -111,7 +111,7 @@ sub handler
                 $request->content_type('application/atom+xml');
                 $request->print( $error_doc );
 		$request->status( 400 );
-		$handle->terminate; 	
+		$session->terminate; 	
 		return Apache2::Const::DONE;
 	}
 
@@ -134,7 +134,7 @@ sub handler
 	{
 		$verbose_desc .= "ERROR: Mediated deposits are disabled.\n";
 
-		my $error_doc = EPrints::Sword::Utils::generate_error_document( $handle,
+		my $error_doc = EPrints::Sword::Utils::generate_error_document( $session,
 					user_agent => $headers->{user_agent},
 					summary => "Invalid mediated deposit.",
                                         href => "http://purl.org/net/sword/error/MediationNotAllowed",
@@ -145,7 +145,7 @@ sub handler
                 $request->print( $error_doc );
 		$request->headers_out->{'X-Error-Code'} = 'MediationNotAllowed';
 		$request->status( 401 );
-		$handle->terminate;
+		$session->terminate;
 		return Apache2::Const::DONE;
 	}
 
@@ -153,7 +153,7 @@ sub handler
 	{
 		$verbose_desc .= "[ERROR] Mime-type '".$headers->{content_type}."' is not supported by this collection.\n";
 
-		my $error_doc = EPrints::Sword::Utils::generate_error_document( $handle,
+		my $error_doc = EPrints::Sword::Utils::generate_error_document( $session,
 					user_agent => $headers->{user_agent},
 					summary => "Invalid mime type.",
                                         href => "http://purl.org/net/sword/error/ErrorContent",
@@ -164,30 +164,30 @@ sub handler
                 $request->print( $error_doc );
 		$request->headers_out->{'X-Error-Code'} = 'ErrorContent';
 		$request->status( 400 );
-		$handle->terminate;
+		$session->terminate;
 		return Apache2::Const::DONE;
 	}
 
 	# Saving the data/file sent through POST
-        my $postdata = $handle->{query}->{'POSTDATA'};
+        my $postdata = $session->{query}->{'POSTDATA'};
 
  	# This is because CGI.pm (>3.15) has changed:
         if( !defined $postdata || scalar @$postdata < 1 )
 	{
-		push @$postdata, $handle->{query}->param( 'POSTDATA' );
+		push @$postdata, $session->{query}->param( 'POSTDATA' );
 	}
 		
 	# to let cURL works
         if( !defined $postdata || scalar @$postdata < 1 )
         {
-		push @$postdata, $handle->{query}->param();
+		push @$postdata, $session->{query}->param();
 	}
 
         if( !defined $postdata || scalar @$postdata < 1 )
         {
 		$verbose_desc .= "[ERROR] No files found in the postdata.\n";
 
-                my $error_doc = EPrints::Sword::Utils::generate_error_document( $handle,
+                my $error_doc = EPrints::Sword::Utils::generate_error_document( $session,
 					user_agent => $headers->{user_agent},
 					summary => "Missing postdata.",
                                         href => "http://purl.org/net/sword/error/ErrorBadRequest",
@@ -198,7 +198,7 @@ sub handler
                 $request->print( $error_doc );
 		$request->headers_out->{'X-Error-Code'} = 'ErrorBadRequest';
 		$request->status( 400 );
-		$handle->terminate;
+		$session->terminate;
 		return Apache2::Const::DONE;
         }
 
@@ -212,7 +212,7 @@ sub handler
                 {
 			$verbose_desc .= "[ERROR] MD5 checksum is incorrect.\n";
 
-			my $error_doc = EPrints::Sword::Utils::generate_error_document( $handle,
+			my $error_doc = EPrints::Sword::Utils::generate_error_document( $session,
 					user_agent => $headers->{user_agent},
 						summary => "MD5 checksum is incorrect",
 						href => "http://purl.org/net/sword/error/ErrorChecksumMismatch",
@@ -223,7 +223,7 @@ sub handler
 			$request->print( $error_doc );
 			$request->headers_out->{'X-Error-Code'} = 'ErrorChecksumMismatch';
 			$request->status( 412 );
-			$handle->terminate;
+			$session->terminate;
 			return Apache2::Const::DONE;
                 }
 	}
@@ -235,7 +235,7 @@ sub handler
         {
                 print STDERR "\n[SWORD-DEPOSIT] [INTERNAL-ERROR] Failed to create the temp directory!";
 		$request->status( 500 );
-		$handle->terminate;
+		$session->terminate;
                 return Apache2::Const::DONE;
         }
 
@@ -252,7 +252,7 @@ sub handler
 	{
 		print STDERR "\n[SWORD-DEPOSIT] [INTERNAL-ERROR] Failed to create the temp file because: $!";
 		$request->status( 500 );
-		$handle->terminate;
+		$session->terminate;
 		return Apache2::Const::DONE;
 	}
 
@@ -263,7 +263,7 @@ sub handler
 
 	if(defined $xpackage)
 	{
-		$import_plugin_conf = $handle->get_repository->get_conf( "sword", "supported_packages" )->{$xpackage};
+		$import_plugin_conf = $session->get_repository->get_conf( "sword", "supported_packages" )->{$xpackage};
 		if( defined $import_plugin_conf )
 		{
 			$import_plugin_id = $import_plugin_conf->{plugin};
@@ -273,7 +273,7 @@ sub handler
 	}
 	else
 	{
-		my $enable_generic = $handle->get_repository->get_conf( "sword", "enable_generic_importer" );
+		my $enable_generic = $session->get_repository->get_conf( "sword", "enable_generic_importer" );
 		if( $enable_generic )
 		{
 			$verbose_desc .= "[WARNING] X-Packaging not set (I will just import the uploaded file).\n";
@@ -282,7 +282,7 @@ sub handler
 		else
 		{
 			$verbose_desc .= "[ERROR] X-Packaging not set.\n";
-			my $error_doc = EPrints::Sword::Utils::generate_error_document( $handle, 
+			my $error_doc = EPrints::Sword::Utils::generate_error_document( $session, 
 					user_agent => $headers->{user_agent},
 						href => "http://purl.org/net/sword/error/ErrorBadRequest",
 						summary => "X-Packaging not set.",
@@ -292,7 +292,7 @@ sub handler
 			$request->content_type('application/atom+xml');
 			$request->print( $error_doc );
 			$request->status( 400 );
-			$handle->terminate;
+			$session->terminate;
 			return Apache2::Const::DONE;
 		}
 	}
@@ -302,7 +302,7 @@ sub handler
 		# APP Profile 1.3 stipulates we send this:
 		$verbose_desc .= "[ERROR] X-Package '$xpackage' is not supported by this repository.\n";
 		
-		my $error_doc = EPrints::Sword::Utils::generate_error_document( $handle,
+		my $error_doc = EPrints::Sword::Utils::generate_error_document( $session,
 					user_agent => $headers->{user_agent},
 					href => "http://purl.org/net/sword/error/ErrorContent", 
 					summary => "Unsupported packaging format: '$xpackage'.",
@@ -311,17 +311,17 @@ sub handler
 		$request->content_type('application/atom+xml');
 		$request->print( $error_doc );
 		$request->status( 415 );	# Unsupported Media Type
-		$handle->terminate;
+		$session->terminate;
 		return Apache2::Const::DONE;
 	}
 
-	my $import_plugin = $handle->plugin( $import_plugin_id );
+	my $import_plugin = $session->plugin( $import_plugin_id );
 	unless( defined $import_plugin )
 	{
                 print STDERR "\n[SWORD-DEPOSIT] [INTERNAL-ERROR] Failed to load the plugin '".$import_plugin_id."'. Make sure SWORD is properly configured.";
                 $verbose_desc .= "[INTERNAL ERROR] Failed to load the import plugin.\n";
 
-                my $error_doc = EPrints::Sword::Utils::generate_error_document( $handle, 
+                my $error_doc = EPrints::Sword::Utils::generate_error_document( $session, 
 					user_agent => $headers->{user_agent},
 					href => "http://eprints.org/sword/error/UnknownCollection",
 					summary => "Internal error: failed to load the import plugin.",
@@ -331,7 +331,7 @@ sub handler
                 $request->content_type('application/atom+xml');
                 $request->print( $error_doc );
                 $request->status( 500 );
-                $handle->terminate;
+                $session->terminate;
                 return Apache2::Const::DONE;
 	}
 
@@ -361,17 +361,17 @@ sub handler
 			$xml_opts{depositor} = $depositor if( defined $depositor );
 			$xml_opts{verbose_desc} = $verbose_desc if( $VERBOSE );
 
-			my $noop_xml = EPrints::Sword::Utils::create_noop_xml( $handle, %xml_opts );
+			my $noop_xml = EPrints::Sword::Utils::create_noop_xml( $session, %xml_opts );
 
 			$request->headers_out->{'Content-Length'} = length $noop_xml;
 			$request->content_type( 'application/atom+xml' );
 			$request->status( 200 );        # Successful
 		        $request->print( $noop_xml );
-		        $handle->terminate;
+		        $session->terminate;
 		        return Apache2::Const::OK;
 		}
 
-                my $error_doc = EPrints::Sword::Utils::generate_error_document( $handle,
+                my $error_doc = EPrints::Sword::Utils::generate_error_document( $session,
 					user_agent => $headers->{user_agent},
                                         href => "http://purl.org/net/sword/error/ErrorContent",
                                         summary => "Import plugin failed in no-op mode.",
@@ -382,7 +382,7 @@ sub handler
                 $request->print( $error_doc );
 
 		$request->status( $code );
-		$handle->terminate;
+		$session->terminate;
                 return Apache2::Const::OK;
 
 	}
@@ -393,7 +393,7 @@ sub handler
 		$code = 400 unless(defined $code);
 	        $request->status( $code );
                 
-                my $error_doc = EPrints::Sword::Utils::generate_error_document( $handle,
+                my $error_doc = EPrints::Sword::Utils::generate_error_document( $session,
 					user_agent => $headers->{user_agent},
                                         href => "http://purl.org/net/sword/error/ErrorContent",
                                         summary => "Import plugin failed.",
@@ -403,7 +403,7 @@ sub handler
                 $request->content_type('application/atom+xml');
                 $request->print( $error_doc );
                 $request->status( $code );        # Unsupported Media Type
-                $handle->terminate;
+                $session->terminate;
                 return Apache2::Const::DONE;
         }
 
@@ -417,16 +417,16 @@ sub handler
 	$xml_opts{user_agent} = $headers->{user_agent};
 	$xml_opts{deposited_file_docid} = $import_plugin->get_deposited_file_docid();
 
-	my $xml = EPrints::Sword::Utils::create_xml( $handle, %xml_opts );
+	my $xml = EPrints::Sword::Utils::create_xml( $session, %xml_opts );
 
-	$request->headers_out->{'Location'} = EPrints::Sword::Utils::get_atom_url( $handle, $eprint );
+	$request->headers_out->{'Location'} = EPrints::Sword::Utils::get_atom_url( $session, $eprint );
 	$request->headers_out->{'Content-Length'} = length $xml;
 	$request->content_type('application/atom+xml');
 
 	$request->print( $xml );
 	$request->status( 201 );	# Created
 
-	$handle->terminate;	
+	$session->terminate;	
 	return Apache2::Const::OK;
 }
 

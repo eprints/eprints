@@ -70,7 +70,7 @@ sub input_fh
 
 	return EPrints::List->new( 
 		dataset => $opts{dataset}, 
-		handle => $plugin->{handle},
+		session => $plugin->{session},
 		ids=>\@ids );
 }
 

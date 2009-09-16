@@ -34,21 +34,21 @@ sub action_reload_config
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my( $result, $msg ) = $handle->get_repository->test_config;
+	my( $result, $msg ) = $session->get_repository->test_config;
 
 	if( $result != 0 )
 	{
 		$self->{processor}->add_message( "error",
 			$self->html_phrase( 
 				"reload_bad_config",
-				output=>$self->{handle}->make_text( $msg ) ) );
+				output=>$self->{session}->make_text( $msg ) ) );
 		$self->{processor}->{screenid} = "Admin";
 		return;
 	}
 
-	my $file = $handle->get_repository->get_conf( "variables_path" )."/last_changed.timestamp";
+	my $file = $session->get_repository->get_conf( "variables_path" )."/last_changed.timestamp";
 	unless( open( CHANGEDFILE, ">$file" ) )
 	{
 		$self->{processor}->add_message( "error",

@@ -42,19 +42,19 @@ sub action_new_field
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $datasetid = $handle->param( "dataset" ) or return;
-	my $name = $handle->param( "name" ) or return;
+	my $datasetid = $session->param( "dataset" ) or return;
+	my $name = $session->param( "name" ) or return;
 	my $metafieldid = "$datasetid.$name";
 
-	my $dataset = $handle->get_repository->get_dataset( $datasetid );
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
 
 	if( $name =~ /[^a-z_]/ )
 	{
 		$self->{processor}->add_message( "error",
 			$self->html_phrase( "bad_name",
-				name => $handle->make_text( $name )
+				name => $session->make_text( $name )
 			)
 		);
 		return;
@@ -78,15 +78,15 @@ sub action_new_field
 		return;
 	}
 
-	my $ds = $handle->get_repository->get_dataset( "metafield" );
+	my $ds = $session->get_repository->get_dataset( "metafield" );
 
-	if( my $obj = $ds->get_object( $handle, $metafieldid ) )
+	if( my $obj = $ds->get_object( $session, $metafieldid ) )
 	{
 		$self->{processor}->{dataobj} = $obj;
 	}
 	else
 	{
-		$self->{processor}->{dataobj} = $ds->create_object( $handle, {
+		$self->{processor}->{dataobj} = $ds->create_object( $session, {
 			metafieldid => $metafieldid,
 			mfdatasetid => $datasetid,
 			name => $name,
@@ -109,23 +109,23 @@ sub action_edit_field
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $datasetid = $handle->param( "dataset" ) or return;
-	my $fieldid = $handle->param( "field" ) or return;
-	my $confirm = $handle->param( "confirm" );
+	my $datasetid = $session->param( "dataset" ) or return;
+	my $fieldid = $session->param( "field" ) or return;
+	my $confirm = $session->param( "confirm" );
 	my $metafieldid = "$datasetid.$fieldid";
 
 	unless( $confirm )
 	{
-		my $form = $handle->render_input_form(
+		my $form = $session->render_input_form(
 			fields => [],
 			buttons => { edit_field => $self->phrase( "confirm" ), cancel => $self->phrase( "cancel" ), _order => [qw( edit_field cancel )] },
 		);
 		$self->{processor}->add_message( "warning",
 			$self->html_phrase( "confirm_edit",
-				datasetid => $handle->make_text( $datasetid ),
-				fieldid => $handle->make_text( $fieldid ),
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid ),
 				confirm_button => $form,
 			) );
 		$form->appendChild( $self->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
@@ -135,7 +135,7 @@ sub action_edit_field
 		return;
 	}
 
-	my $dataset = $handle->get_repository->get_dataset( $datasetid );
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
 
 	if( !$dataset )
 	{
@@ -151,15 +151,15 @@ sub action_edit_field
 	{
 		$self->{processor}->add_message( "error",
 			$self->html_phrase( "invalid_field",
-				datasetid => $handle->make_text( $datasetid ),
-				fieldid => $handle->make_text( $fieldid ),
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid ),
 			) );
 		return;
 	}
 
-	my $ds = $handle->get_repository->get_dataset( "metafield" );
+	my $ds = $session->get_repository->get_dataset( "metafield" );
 
-	if( my $obj = $ds->get_object( $handle, $metafieldid ) )
+	if( my $obj = $ds->get_object( $session, $metafieldid ) )
 	{
 		$self->{processor}->{dataobj} = $obj;
 	}
@@ -172,32 +172,32 @@ sub action_remove_field
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $datasetid = $handle->param( "dataset" ) or return;
-	my $fieldid = $handle->param( "field" ) or return;
-	my $confirm = $handle->param( "confirm" );
+	my $datasetid = $session->param( "dataset" ) or return;
+	my $fieldid = $session->param( "field" ) or return;
+	my $confirm = $session->param( "confirm" );
 
 	unless( $self->can_change_field( $datasetid, $fieldid ) )
 	{
 		$self->{processor}->add_message( "error",
 			$self->html_phrase( "invalid_field",
-				datasetid => $handle->make_text( $datasetid ),
-				fieldid => $handle->make_text( $fieldid ),
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid ),
 			) );
 		return;
 	}
 
 	unless( $confirm )
 	{
-		my $form = $handle->render_input_form(
+		my $form = $session->render_input_form(
 			fields => [],
 			buttons => { remove_field => $self->phrase( "confirm" ), cancel => $self->phrase( "cancel" ), _order => [qw( remove_field cancel )] },
 		);
 		$self->{processor}->add_message( "warning",
 			$self->html_phrase( "confirm_remove",
-				datasetid => $handle->make_text( $datasetid ),
-				fieldid => $handle->make_text( $fieldid ),
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid ),
 				confirm_button => $form,
 			) );
 		$form->appendChild( $self->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
@@ -207,17 +207,17 @@ sub action_remove_field
 		return;
 	}
 
-	my $ds = $handle->get_repository->get_dataset( "metafield" );
-	my $dataset = $handle->get_repository->get_dataset( $datasetid );
+	my $ds = $session->get_repository->get_dataset( "metafield" );
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
 	my $field = $dataset->get_field( $fieldid );
 
-	my $metafield = $ds->get_object( $handle, $datasetid.".".$fieldid );
+	my $metafield = $ds->get_object( $session, $datasetid.".".$fieldid );
 	if( !$metafield )
 	{
 		$self->{processor}->add_message( "error",
 			$self->html_phrase( "not_in_metafield",
-				datasetid => $handle->make_text( $datasetid ),
-				fieldid => $handle->make_text( $fieldid )
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid )
 			) );
 		return;
 	}
@@ -226,25 +226,25 @@ sub action_remove_field
 	{
 		$self->{processor}->add_message( "error",
 			$self->html_phrase( "not_user_field",
-				datasetid => $handle->make_text( $datasetid ),
-				fieldid => $handle->make_text( $fieldid )
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid )
 			) );
 		return;
 	}
 
 	$metafield->remove_from_workflow;
 	$metafield->move_to_deletion;
-	my $ok = EPrints::DataObj::MetaField::save_all( $handle );
+	my $ok = EPrints::DataObj::MetaField::save_all( $session );
 
 	if( $ok )
 	{
 		$self->{processor}->add_message( "message",
 			$self->html_phrase( "removed_field",
-				datasetid => $handle->make_text( $datasetid ),
-				fieldid => $handle->make_text( $fieldid )
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid )
 			) );
 
-		if( my $plugin = $self->{handle}->plugin( "Screen::Admin::Reload" ) )
+		if( my $plugin = $self->{session}->plugin( "Screen::Admin::Reload" ) )
 		{
 			my $screenid = $self->{processor}->{screenid};
 			$plugin->{processor} = $self->{processor};
@@ -256,8 +256,8 @@ sub action_remove_field
 	{
 		$self->{processor}->add_message( "error",
 			$self->html_phrase( "remove_failed",
-				datasetid => $handle->make_text( $datasetid ),
-				fieldid => $handle->make_text( $fieldid )
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid )
 			) );
 	}
 }
@@ -266,30 +266,30 @@ sub action_delete_field
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $datasetid = $handle->param( "dataset" ) or return;
-	my $fieldid = $handle->param( "name" ) or return;
+	my $datasetid = $session->param( "dataset" ) or return;
+	my $fieldid = $session->param( "name" ) or return;
 
-	my $ds = $handle->get_repository->get_dataset( "metafield" );
+	my $ds = $session->get_repository->get_dataset( "metafield" );
 
-	my $obj = $ds->get_object( $handle, $datasetid.".".$fieldid );
+	my $obj = $ds->get_object( $session, $datasetid.".".$fieldid );
 
 	if( $obj and $obj->get_value( "mfstatus" ) eq "inbox" )
 	{
 		$obj->remove;
 		$self->{processor}->add_message( "message",
 			$self->html_phrase( "deleted_field",
-				datasetid => $handle->make_text( $datasetid ),
-				fieldid => $handle->make_text( $fieldid )
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid )
 			) );
 	}
 	else
 	{
 		$self->{processor}->add_message( "error",
 			$self->html_phrase( "invalid_field",
-				datasetid => $handle->make_text( $datasetid ),
-				fieldid => $handle->make_text( $fieldid )
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid )
 			) );
 	}
 }
@@ -298,11 +298,11 @@ sub action_rename_field
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $datasetid = $handle->param( "dataset" ) or return;
-	my $fieldid = $handle->param( "field" ) or return;
-	my $newid = $handle->param( "new_name" ) or return;
+	my $datasetid = $session->param( "dataset" ) or return;
+	my $fieldid = $session->param( "field" ) or return;
+	my $newid = $session->param( "new_name" ) or return;
 
 	return if $fieldid eq $newid;
 
@@ -310,21 +310,21 @@ sub action_rename_field
 	{
 		$self->{processor}->add_message( "error",
 			$self->html_phrase( "invalid_field",
-				datasetid => $handle->make_text( $datasetid ),
-				fieldid => $handle->make_text( $fieldid ),
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid ),
 			) );
 		return;
 	}
 
-	my $ds = $handle->get_repository->get_dataset( "metafield" );
+	my $ds = $session->get_repository->get_dataset( "metafield" );
 
-	my $metafield = $ds->get_object( $handle, $datasetid.".".$fieldid );
+	my $metafield = $ds->get_object( $session, $datasetid.".".$fieldid );
 	if( !$metafield )
 	{
 		$self->{processor}->add_message( "error",
 			$self->html_phrase( "not_in_metafield",
-				datasetid => $handle->make_text( $datasetid ),
-				fieldid => $handle->make_text( $fieldid )
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid )
 			) );
 		return;
 	}
@@ -333,13 +333,13 @@ sub action_rename_field
 	{
 		$self->{processor}->add_message( "error",
 			$self->html_phrase( "not_user_field",
-				datasetid => $handle->make_text( $datasetid ),
-				fieldid => $handle->make_text( $fieldid )
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid )
 			) );
 		return;
 	}
 
-	my $dataset = $handle->get_repository->get_dataset( $datasetid );
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
 
 	if( $dataset->has_field( $newid ) )
 	{
@@ -367,23 +367,23 @@ sub action_rename_field
 	my $new_field = $metafield->make_field_object();
 
 	# rename the field in the database
-	$handle->get_database->rename_field( $dataset, $new_field, $fieldid );
+	$session->get_database->rename_field( $dataset, $new_field, $fieldid );
 
 	# register the new field name
 	$dataset->register_field( $new_field );
 
-	my $ok = EPrints::DataObj::MetaField::save_all( $handle );
+	my $ok = EPrints::DataObj::MetaField::save_all( $session );
 
 	if( $ok )
 	{
 		$self->{processor}->add_message( "message",
 			$self->html_phrase( "renamed_field",
-				datasetid => $handle->make_text( $datasetid ),
-				fieldid => $handle->make_text( $fieldid ),
-				newid => $handle->make_text( $newid ),
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid ),
+				newid => $session->make_text( $newid ),
 			) );
 
-		if( my $plugin = $handle->plugin( "Screen::Admin::Reload" ) )
+		if( my $plugin = $session->plugin( "Screen::Admin::Reload" ) )
 		{
 			my $screenid = $self->{processor}->{screenid};
 			$plugin->{processor} = $self->{processor};
@@ -395,9 +395,9 @@ sub action_rename_field
 	{
 		$self->{processor}->add_message( "message",
 			$self->html_phrase( "rename_failed",
-				datasetid => $handle->make_text( $datasetid ),
-				fieldid => $handle->make_text( $fieldid ),
-				newid => $handle->make_text( $newid ),
+				datasetid => $session->make_text( $datasetid ),
+				fieldid => $session->make_text( $fieldid ),
+				newid => $session->make_text( $newid ),
 			) );
 	}
 }
@@ -406,7 +406,7 @@ sub can_change_field
 {
 	my( $self, $datasetid, $fieldid ) = @_;
 
-	my $fields = $self->{handle}->get_repository->get_conf( "fields" );
+	my $fields = $self->{session}->get_repository->get_conf( "fields" );
 
 	return 0 unless exists $fields->{$datasetid};
 
@@ -422,7 +422,7 @@ sub redirect_to_me_url
 {
 	my( $self ) = @_;
 
-	my $datasetid = $self->{processor}->{datasetid} || $self->{handle}->param( "dataset" );
+	my $datasetid = $self->{processor}->{datasetid} || $self->{session}->param( "dataset" );
 
 	return $self->SUPER::redirect_to_me_url."&dataset=".$datasetid;
 }
@@ -431,15 +431,15 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my( $html , $table , $p , $span );
 	
-	$html = $handle->make_doc_fragment;
+	$html = $session->make_doc_fragment;
 
-	my $fields = $handle->get_repository->get_conf( "fields" );
+	my $fields = $session->get_repository->get_conf( "fields" );
 
-	my @datasets = $handle->get_repository->get_types( "datasets" );
+	my @datasets = $session->get_repository->get_types( "datasets" );
 
 	my $url = URI->new("");
 	$url->query_form(
@@ -450,30 +450,30 @@ sub render
 
 	$html->appendChild( $self->html_phrase( "datasets" ) );
 
-	$table = $handle->make_element( "table", border=>"0" );
+	$table = $session->make_element( "table", border=>"0" );
 	$html->appendChild( $table );
 
 	foreach my $datasetid (@datasets)
 	{
 		my $u = $url->clone;
 		$u->query_form( $u->query_form, dataset => $datasetid );
-		my $link = $handle->render_link( $u );
+		my $link = $session->render_link( $u );
 		$table->appendChild(
-			$handle->render_row(
-				$handle->html_phrase( "datasetname_$datasetid" ),
-				$handle->html_phrase( "datasethelp_$datasetid" ),
+			$session->render_row(
+				$session->html_phrase( "datasetname_$datasetid" ),
+				$session->html_phrase( "datasethelp_$datasetid" ),
 				$link,
 			) );
 		$link->appendChild( $self->html_phrase( "edit_dataset",
-			datasetid => $handle->make_text( $datasetid )
+			datasetid => $session->make_text( $datasetid )
 			) );
 	}
 
-	my $datasetid = $handle->param( "dataset" );
+	my $datasetid = $session->param( "dataset" );
 
 	if( $datasetid )
 	{
-		my $dataset = $handle->get_repository->get_dataset( $datasetid );
+		my $dataset = $session->get_repository->get_dataset( $datasetid );
 
 		if( $dataset )
 		{
@@ -494,29 +494,29 @@ sub render_dataset
 {
 	my( $self, $dataset ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my( $html , $table , $p , $span );
 	
-	$html = $handle->make_doc_fragment;
+	$html = $session->make_doc_fragment;
 
 	my $datasetid = $dataset->confid;
 
 	# user-configured fields
 	my @fields = @{
-		$handle->get_repository->get_conf( "fields", $datasetid ) || []
+		$session->get_repository->get_conf( "fields", $datasetid ) || []
 	};
 
 	# system fields
 	push @fields, $dataset->get_object_class->get_system_field_info;
 
-	my $h2 = $handle->make_element( "h2" );
+	my $h2 = $session->make_element( "h2" );
 	$html->appendChild( $h2 );
-	$h2->appendChild( $handle->html_phrase( "datasetname_$datasetid" ) );
+	$h2->appendChild( $session->html_phrase( "datasetname_$datasetid" ) );
 
 	$html->appendChild( $self->render_new_form( $dataset ) );
 
-	$table = $handle->make_element( "table", border=>"0" );
+	$table = $session->make_element( "table", border=>"0" );
 	$html->appendChild( $table );
 
 	foreach my $field (sort { $a->{name} cmp $b->{name} } @fields)
@@ -526,11 +526,11 @@ sub render_dataset
 
 		if( !defined $field )
 		{
-			$handle->get_repository->log( "Encountered a configured field that wasn't in dataset: $fieldid" );
+			$session->get_repository->log( "Encountered a configured field that wasn't in dataset: $fieldid" );
 			next;
 		}
 
-		my $actions = $handle->make_doc_fragment;
+		my $actions = $session->make_doc_fragment;
 
 		if( $field->get_property( "providence" ) eq "core" )
 		{
@@ -542,7 +542,7 @@ sub render_dataset
 		}
 		else
 		{
-			my $form = $handle->render_input_form(
+			my $form = $session->render_input_form(
 				fields => [],
 				show_names => 0,
 				show_help => 0,
@@ -557,7 +557,7 @@ sub render_dataset
 			$form->appendChild( $self->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
 			$form->appendChild( $self->render_hidden_field( "dataset", $datasetid ) );
 			$form->appendChild( $self->render_hidden_field( "field", $fieldid ) );
-			$form->insertBefore( $handle->render_input_field(
+			$form->insertBefore( $session->render_input_field(
 					name => "new_name",
 					type => "text",
 					size => "10"
@@ -565,9 +565,9 @@ sub render_dataset
 		}
 
 		$table->appendChild(
-			$handle->render_row(
-				$handle->make_text( $fieldid ),
-				$handle->html_phrase( "$datasetid\_fieldname\_$fieldid" ),
+			$session->render_row(
+				$session->make_text( $fieldid ),
+				$session->html_phrase( "$datasetid\_fieldname\_$fieldid" ),
 				$actions
 			) );
 	}
@@ -579,7 +579,7 @@ sub render_hidden_field
 {
 	my( $self, $name, $value ) = @_;
 
-	return $self->{handle}->make_element(
+	return $self->{session}->make_element(
 		"input",
 		type => "hidden",
 		name => $name,
@@ -591,16 +591,16 @@ sub render_new_form
 {
 	my( $self, $dataset ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my( $html , $table , $p , $span );
 	
-	$html = $handle->make_doc_fragment;
+	$html = $session->make_doc_fragment;
 
-	my $ds = $handle->get_repository->get_dataset( "metafield" );
+	my $ds = $session->get_repository->get_dataset( "metafield" );
 	
 	my $searchexp = EPrints::Search->new(
-		handle => $handle,
+		session => $session,
 		dataset => $ds,
 	);
 	$searchexp->add_field( $ds->get_field( "mfdatasetid" ), $dataset->confid );
@@ -608,12 +608,12 @@ sub render_new_form
 
 	my $list = $searchexp->perform_search;
 
-	my $existing = $handle->make_element( "ul" );
+	my $existing = $session->make_element( "ul" );
 
 	my $uri = URI->new("");
 
 	my $fn = sub {
-		my( $handle, $ds, $obj ) = @_;
+		my( $session, $ds, $obj ) = @_;
 
 		$uri->query_form(
 			screen => $self->{processor}->{screenid},
@@ -622,11 +622,11 @@ sub render_new_form
 			_action_new_field => "1",
 		);
 
-		my $li = $handle->make_element( "li" );
-		my $link = $handle->render_link( $uri );
+		my $li = $session->make_element( "li" );
+		my $link = $session->render_link( $uri );
 		$existing->appendChild( $li );
 		$li->appendChild( $link );
-		$link->appendChild( $handle->make_text( $obj->get_value( "name" ) ) );
+		$link->appendChild( $session->make_text( $obj->get_value( "name" ) ) );
 
 		$uri->query_form(
 			screen => $self->{processor}->{screenid},
@@ -635,22 +635,22 @@ sub render_new_form
 			_action_delete_field => "1",
 		);
 
-		$link = $handle->render_link( $uri );
-		$li->appendChild( $handle->make_text( " [ " ) );
+		$link = $session->render_link( $uri );
+		$li->appendChild( $session->make_text( " [ " ) );
 		$li->appendChild( $link );
-		$li->appendChild( $handle->make_text( " ]" ) );
+		$li->appendChild( $session->make_text( " ]" ) );
 		$link->appendChild( $self->html_phrase( "remove" ) );
 	};
 	$list->map( $fn );
 
 	if( $list->count == 0 )
 	{
-		my $li = $handle->make_element( "li" );
+		my $li = $session->make_element( "li" );
 		$existing->appendChild( $li );
 		$li->appendChild( $self->html_phrase( "inbox_empty" ) );
 	}
 
-	my $form = $handle->render_input_form(
+	my $form = $session->render_input_form(
 		fields => [
 			$ds->get_field( "name" ),
 		],
@@ -664,7 +664,7 @@ sub render_new_form
 		},
 	);
 
-	my $compound_form = $handle->render_input_form(
+	my $compound_form = $session->render_input_form(
 		fields => [
 			$ds->get_field( "name" ),
 		],

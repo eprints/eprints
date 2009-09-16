@@ -13,7 +13,7 @@ sub render_tab_title
 {
 	my( $self ) = @_;
 
-	return $self->{handle}->html_phrase( "Plugin/InputForm/Component/Upload:from_targz" );
+	return $self->{session}->html_phrase( "Plugin/InputForm/Component/Upload:from_targz" );
 }
 
 sub update_from_form
@@ -26,17 +26,17 @@ sub update_from_form
 		format=>"other"
 		};
 
-	my $repository = $self->{handle}->get_repository;
+	my $repository = $self->{session}->get_repository;
 
-	my $doc_ds = $self->{handle}->get_repository->get_dataset( 'document' );
-	my $document = $doc_ds->create_object( $self->{handle}, $doc_data );
+	my $doc_ds = $self->{session}->get_repository->get_dataset( 'document' );
+	my $document = $doc_ds->create_object( $self->{session}, $doc_data );
 	if( !defined $document )
 	{
-		$processor->add_message( "error", $self->{handle}->html_phrase( "Plugin/InputForm/Component/Upload:create_failed" ) );
+		$processor->add_message( "error", $self->{session}->html_phrase( "Plugin/InputForm/Component/Upload:create_failed" ) );
 		return;
 	}
 	my $success = EPrints::Apache::AnApache::upload_doc_archive( 
-		$self->{handle},
+		$self->{session},
 		$document,
 		$self->{prefix}."_first_file_targz",
 		"targz" );
@@ -44,7 +44,7 @@ sub update_from_form
 	if( !$success )
 	{
 		$document->remove();
-		$processor->add_message( "error", $self->{handle}->html_phrase( "Plugin/InputForm/Component/Upload:upload_failed" ) );
+		$processor->add_message( "error", $self->{session}->html_phrase( "Plugin/InputForm/Component/Upload:upload_failed" ) );
 		return;
 	}
 
@@ -55,25 +55,25 @@ sub render_add_document
 {
 	my( $self ) = @_;
 
-	my $f = $self->{handle}->make_doc_fragment;
+	my $f = $self->{session}->make_doc_fragment;
 
-	$f->appendChild( $self->{handle}->html_phrase( "Plugin/InputForm/Component/Upload:new_from_targz" ) );
+	$f->appendChild( $self->{session}->html_phrase( "Plugin/InputForm/Component/Upload:new_from_targz" ) );
 
 	my $ffname = $self->{prefix}."_first_file_targz";	
-	my $file_button = $self->{handle}->make_element( "input",
+	my $file_button = $self->{session}->make_element( "input",
 		name => $ffname,
 		id => $ffname,
 		type => "file",
 		);
-	my $add_format_button = $self->{handle}->render_button(
-		value => $self->{handle}->phrase( "Plugin/InputForm/Component/Upload:add_format" ), 
+	my $add_format_button = $self->{session}->render_button(
+		value => $self->{session}->phrase( "Plugin/InputForm/Component/Upload:add_format" ), 
 		class => "ep_form_internal_button",
 		name => "_internal_".$self->{prefix}."_add_format_targz" );
 	$f->appendChild( $file_button );
-	$f->appendChild( $self->{handle}->make_text( " " ) );
+	$f->appendChild( $self->{session}->make_text( " " ) );
 	$f->appendChild( $add_format_button );
 
-	my $script = $self->{handle}->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->{handle}->phrase("Plugin/InputForm/Component/Upload:really_next"))." ); } return true; } );" );
+	my $script = $self->{session}->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($self->{session}->phrase("Plugin/InputForm/Component/Upload:really_next"))." ); } return true; } );" );
 	$f->appendChild( $script);
 
 	return $f;

@@ -50,7 +50,7 @@ sub wishes_to_export
 {
 	my( $self ) = @_;
 
-	return defined $self->{handle}->param( "ajax" );
+	return defined $self->{session}->param( "ajax" );
 }
 
 # "ajax"
@@ -58,9 +58,9 @@ sub export
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $action = $handle->param( "ajax" );
+	my $action = $session->param( "ajax" );
 	return unless defined $action;
 
 	if( $action eq "stats" )
@@ -81,14 +81,14 @@ sub ajax_stats
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $pluginid = $handle->param( "store" );
+	my $pluginid = $session->param( "store" );
 	return "Requires store argument" unless defined $pluginid;
-	my $store = $handle->plugin( $pluginid );
+	my $store = $session->plugin( $pluginid );
 	return "$pluginid is not a valid plugin name" unless defined $store;
 
-	my $dataset = $handle->get_repository->get_dataset( "file" );
+	my $dataset = $session->get_repository->get_dataset( "file" );
 
 	my $data = {
 			total => 0,
@@ -97,7 +97,7 @@ sub ajax_stats
 		};
 
 	my $searchexp = EPrints::Search->new(
-		handle => $handle,
+		session => $session,
 		dataset => $dataset,
 		allow_blank => 1,
 		filters => [
@@ -119,15 +119,15 @@ sub ajax_stats
 	});
 	$searchexp->dispose;
 
-	my $html = $handle->make_doc_fragment;
+	my $html = $session->make_doc_fragment;
 
 	$html->appendChild( $self->html_phrase( "store_summary",
-		total => $handle->make_text( $data->{total} ),
-		bytes => $handle->make_text( $data->{bytes} ),
-		human_bytes => $handle->make_text( EPrints::Utils::human_filesize( $data->{bytes} ) ),
+		total => $session->make_text( $data->{total} ),
+		bytes => $session->make_text( $data->{bytes} ),
+		human_bytes => $session->make_text( EPrints::Utils::human_filesize( $data->{bytes} ) ),
 		) );
 
-	my $table = $handle->make_element( "table" );
+	my $table = $session->make_element( "table" );
 	$html->appendChild( $table );
 
 	my $max = 1;
@@ -140,42 +140,42 @@ sub ajax_stats
 
 	my $max_width = 200;
 
-	my @plugins = $handle->get_plugins( type => "Storage" );
+	my @plugins = $session->get_plugins( type => "Storage" );
 
 	foreach my $datasetid (sort { $a cmp $b } keys %{$data->{parent}})
 	{
 		my $ddata = $data->{parent}->{$datasetid};
 		my $total_width = $max_width * $ddata->{total} / $max;
 		my $bytes_width = $max_width * $ddata->{bytes} / $max_bytes;
-		my $form = $handle->render_form( "GET", "#" );
-		$form->appendChild( $handle->render_hidden_field( screen => $self->{processor}->{screenid} ) );
-		$form->appendChild( $handle->render_hidden_field( store => $pluginid ) );
-		$form->appendChild( $handle->render_hidden_field( datasetid => $datasetid ) );
-		$form->appendChild( $handle->render_button(
+		my $form = $session->render_form( "GET", "#" );
+		$form->appendChild( $session->render_hidden_field( screen => $self->{processor}->{screenid} ) );
+		$form->appendChild( $session->render_hidden_field( store => $pluginid ) );
+		$form->appendChild( $session->render_hidden_field( datasetid => $datasetid ) );
+		$form->appendChild( $session->render_button(
 			onclick => "return js_admin_storagemanager_migrate(this);",
 			value => $self->phrase( "migrate" )
 			) );
-		my $select = $handle->make_element( "select", name => "target" );
+		my $select = $session->make_element( "select", name => "target" );
 		$form->appendChild( $select );
-		my $option = $handle->make_element( "option" );
+		my $option = $session->make_element( "option" );
 		$select->appendChild( $option );
 		foreach my $plugin (@plugins)
 		{
 			next if $plugin->get_id eq $pluginid;
-			my $option = $handle->make_element( "option", value => $plugin->get_id );
+			my $option = $session->make_element( "option", value => $plugin->get_id );
 			$select->appendChild( $option );
-			$option->appendChild( $handle->make_text( $plugin->get_name ) );
+			$option->appendChild( $session->make_text( $plugin->get_name ) );
 		}
-		$form->appendChild( $handle->make_element( "br" ) );
-		$form->appendChild( $handle->render_button(
+		$form->appendChild( $session->make_element( "br" ) );
+		$form->appendChild( $session->render_button(
 			onclick => "return js_admin_storagemanager_delete(this);",
 			value => $self->phrase( "delete" )
 			) );
 
-		$table->appendChild( $handle->render_row(
-			$handle->html_phrase( "dataset_name_$datasetid" ),
-			$self->get_count_bar( "#00f", $total_width, $handle->make_text( $ddata->{total} ) ),
-#			$self->get_count_bar( "#00f", $bytes_width, $handle->make_text( EPrints::Utils::human_filesize( $ddata->{bytes} ) ) ),
+		$table->appendChild( $session->render_row(
+			$session->html_phrase( "dataset_name_$datasetid" ),
+			$self->get_count_bar( "#00f", $total_width, $session->make_text( $ddata->{total} ) ),
+#			$self->get_count_bar( "#00f", $bytes_width, $session->make_text( EPrints::Utils::human_filesize( $ddata->{bytes} ) ) ),
 			$form
 			) );
 	}
@@ -189,22 +189,22 @@ sub ajax_migrate
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $pluginid = $handle->param( "store" );
+	my $pluginid = $session->param( "store" );
 	return "Requires store argument" unless defined $pluginid;
-	my $store = $handle->plugin( $pluginid );
+	my $store = $session->plugin( $pluginid );
 	return "$pluginid is not a valid plugin name" unless defined $store;
-	my $target = $handle->param( "target" );
+	my $target = $session->param( "target" );
 	return "Requires target argument" unless defined $target;
-	my $target_store = $handle->plugin( $target );
+	my $target_store = $session->plugin( $target );
 	return "$target is not a valid plugin name" unless defined $target_store;
-	my $datasetid = $handle->param( "datasetid" );
+	my $datasetid = $session->param( "datasetid" );
 
-	my $dataset = $handle->get_repository->get_dataset( "file" );
+	my $dataset = $session->get_repository->get_dataset( "file" );
 
 	my $searchexp = EPrints::Search->new(
-		handle => $handle,
+		session => $session,
 		dataset => $dataset,
 		filters => [
 			{ meta_fields => ["copies_pluginid"], value => $pluginid },
@@ -217,7 +217,7 @@ sub ajax_migrate
 	$searchexp->map(sub {
 		my( undef, undef, $file ) = @_;
 
-		$total ++ if $handle->get_storage->copy( $target_store, $file );
+		$total ++ if $session->get_storage->copy( $target_store, $file );
 	});
 	$searchexp->dispose;
 
@@ -228,18 +228,18 @@ sub ajax_delete
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $pluginid = $handle->param( "store" );
+	my $pluginid = $session->param( "store" );
 	return "Requires store argument" unless defined $pluginid;
-	my $store = $handle->plugin( $pluginid );
+	my $store = $session->plugin( $pluginid );
 	return "$pluginid is not a valid plugin name" unless defined $store;
-	my $datasetid = $handle->param( "datasetid" );
+	my $datasetid = $session->param( "datasetid" );
 
-	my $dataset = $handle->get_repository->get_dataset( "file" );
+	my $dataset = $session->get_repository->get_dataset( "file" );
 
 	my $searchexp = EPrints::Search->new(
-		handle => $handle,
+		session => $session,
 		dataset => $dataset,
 		filters => [
 			{ meta_fields => ["copies_pluginid"], value => $pluginid },
@@ -255,7 +255,7 @@ sub ajax_delete
 		my @copies = @{$file->get_value( "copies" )};
 		return if scalar(@copies) <= 1;
 
-		$total ++ if $handle->get_storage->delete_copy( $store, $file );
+		$total ++ if $session->get_storage->delete_copy( $store, $file );
 	});
 	$searchexp->dispose;
 
@@ -274,14 +274,14 @@ sub fetch_data
 {
 	my ( $plugin ) = @_;
 
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{session};
 
-	my $dataset = $handle->get_repository->get_dataset( "file" );
+	my $dataset = $session->get_repository->get_dataset( "file" );
 
 	my $plugin_datasets = {};
 
-	$dataset->map( $handle, sub {
-		my( $handle, $dataset, $file ) = @_;
+	$dataset->map( $session, sub {
+		my( $session, $dataset, $file ) = @_;
 		
 		my $fileid = $file->get_value( "fileid" );
 		my $datasetid = $file->get_value( "datasetid");
@@ -309,28 +309,28 @@ sub render
 {
 	my( $plugin ) = @_;
 
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{session};
 	
 #	my $plugin_datasets = $plugin->fetch_data();
 	my $plugin_datasets = {};
 	
 	my( $html, $div, $h2, $h3 );
 
-	$html = $handle->make_doc_fragment;
+	$html = $session->make_doc_fragment;
 
-	$div = $handle->make_element( "div", id => $LOADING_DIV, style => "display: none" );
+	$div = $session->make_element( "div", id => $LOADING_DIV, style => "display: none" );
 	$html->appendChild( $div );
-	$div->appendChild( $handle->make_element( "img",
-		src => $handle->get_repository->get_conf( "rel_path" )."/style/images/loading.gif"
+	$div->appendChild( $session->make_element( "img",
+		src => $session->get_repository->get_conf( "rel_path" )."/style/images/loading.gif"
 		) );
 
-	my @plugins = $handle->get_plugins( type => "Storage" );
+	my @plugins = $session->get_plugins( type => "Storage" );
 
-	my $script = $handle->make_element( "script", type => "text/javascript" );
+	my $script = $session->make_element( "script", type => "text/javascript" );
 	$html->appendChild( $script );
-	$script->appendChild( $handle->make_comment( "\n$JAVASCRIPT\n// " ) );
+	$script->appendChild( $session->make_comment( "\n$JAVASCRIPT\n// " ) );
 
-	$div = $handle->make_element( "div" );
+	$div = $session->make_element( "div" );
 	$html->appendChild( $div );
 
 	my $plugin_classes = {};
@@ -339,9 +339,9 @@ sub render
 		push(@{$plugin_classes->{$store->{storage_class}}},$plugin->render_plugin( $store, \@plugins ) );
 	}
 	foreach my $plug (sort {$a cmp $b} keys(%{$plugin_classes})) {
-		my $part = $handle->make_element( "div", class=>"ep_toolbox", id=>"blue" );
-		my $part_content_div = $handle->make_element( "div", class=>"ep_toolbox_content", style=>"padding-left:6px; padding-bottom: 6px;" );
-		my $heading_blue = $handle->make_element( "div", align=>"center", style=>"margin: 0px 0px 10px 0px;
+		my $part = $session->make_element( "div", class=>"ep_toolbox", id=>"blue" );
+		my $part_content_div = $session->make_element( "div", class=>"ep_toolbox_content", style=>"padding-left:6px; padding-bottom: 6px;" );
+		my $heading_blue = $session->make_element( "div", align=>"center", style=>"margin: 0px 0px 10px 0px;
 		    		font: bold 130% Arial,Sans-serif;
 				text-align: center;
 				color: #606060;"
@@ -364,12 +364,12 @@ sub render
 	#	$html->appendChild( $plugin->render_plugin( $store, \@plugins ) );
 	#}
 
-	my $stats = $plugin->{handle}->make_element(
+	my $stats = $plugin->{session}->make_element(
 			"div",
 			align => "center"
 			);
 
-	my $br = $plugin->{handle}->make_element(
+	my $br = $plugin->{session}->make_element(
 		"br"
 		);
 	
@@ -379,11 +379,11 @@ sub render
 
 	foreach my $plugin_id (keys %{$plugin_datasets})
         {
-		my $content_div = $plugin->{handle}->make_element( "div", class=>"ep_msg_other_content" );
-		my $heading = $plugin->{handle}->make_element( "h1" );
+		my $content_div = $plugin->{session}->make_element( "div", class=>"ep_msg_other_content" );
+		my $heading = $plugin->{session}->make_element( "h1" );
 	        $heading->appendChild( $plugin->html_phrase($plugin_id) );
 	        $content_div->appendChild( $heading );
-		my $count_table = $plugin->{handle}->make_element( "table", width => "100%");
+		my $count_table = $plugin->{session}->make_element( "table", width => "100%");
 
 		foreach my $datasetid (keys %{$plugin_datasets->{$plugin_id}})
 		{
@@ -402,15 +402,15 @@ sub render
 			
 			my $max = $max_counts->{$plugin_id}->{"MAX"};
 	                my $count = $plugin_datasets->{$plugin_id}->{$datasetid};
-			my $panel_tr = $plugin->{handle}->make_element(
+			my $panel_tr = $plugin->{session}->make_element(
 				"tr",
 				id => $plugin->{prefix}."_".$plugin_id . "_" . $datasetid );
-			my $details_td = $plugin->{handle}->make_element(
+			my $details_td = $plugin->{session}->make_element(
 				"td",
 				width => "50%",
 				align => "right"
 				);
-			my $count_td = $plugin->{handle}->make_element(
+			my $count_td = $plugin->{session}->make_element(
                                 "td",
                                 width => "50%",
                                 align => "left"
@@ -418,19 +418,19 @@ sub render
 			my $width = ($count / $max) * $max_width;	
 			my $count_bar = $plugin->get_count_bar("blue",$width,$count);
 			$count_td->appendChild($count_bar);
-			my $hover = $plugin->{handle}->make_element( "a", 
+			my $hover = $plugin->{session}->make_element( "a", 
 								style => "color: black;",
 								href => "#",
-								title => $plugin->{handle}->phrase("datasethelp_". $datasetid ),
+								title => $plugin->{session}->phrase("datasethelp_". $datasetid ),
 								);
-			$hover->appendChild( $plugin->{handle}->html_phrase("datasetname_". $datasetid ));
+			$hover->appendChild( $plugin->{session}->html_phrase("datasetname_". $datasetid ));
         		$details_td->appendChild( $hover );
 
 			$panel_tr->appendChild($details_td);
 			$panel_tr->appendChild($count_td);
 			
 			$count_table->appendChild($panel_tr);
-        		#$stats->appendChild( $plugin->{handle}->make_text( $plugin_id . " " . $datasetid . " " . $count ))m
+        		#$stats->appendChild( $plugin->{session}->make_text( $plugin_id . " " . $datasetid . " " . $count ))m
 			#$stats->appendChild($br);
 			#$stats->appendChild($br);
 		}
@@ -445,22 +445,22 @@ sub render_plugin
 {
 	my( $self, $plugin, $plugins ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $html = $handle->make_doc_fragment;
+	my $html = $session->make_doc_fragment;
 
-	my $h3 = $handle->make_element( "h3" );
+	my $h3 = $session->make_element( "h3" );
 	$html->appendChild( $h3 );
-	$h3->appendChild( $handle->make_text( $plugin->get_name ) );
+	$h3->appendChild( $session->make_text( $plugin->get_name ) );
 
-	my $stats = $handle->make_element( "div",
+	my $stats = $session->make_element( "div",
 			class => "js_admin_storagemanager_show_stats",
 			id => "stats_".$plugin->get_id
 		);
 	$html->appendChild( $stats );
 
-	$stats->appendChild( $handle->make_element( "img",
-		src => $handle->get_repository->get_conf( "rel_path" )."/style/images/loading.gif"
+	$stats->appendChild( $session->make_element( "img",
+		src => $session->get_repository->get_conf( "rel_path" )."/style/images/loading.gif"
 		) );
 
 	return $html;
@@ -473,30 +473,30 @@ sub get_count_bar
 	if ($width < 10) {
 		$width = 10;
 	}
-	my $count_bar = $plugin->{handle}->make_element(
+	my $count_bar = $plugin->{session}->make_element(
 			"table",
 			cellpadding => 0,
 			cellspacing => 0,
 			width => "100%",
 			);
-	my $count_bar_tr = $plugin->{handle}->make_element(
+	my $count_bar_tr = $plugin->{session}->make_element(
 			"tr"
 			);
-	my $count_bar_td = $plugin->{handle}->make_element(
+	my $count_bar_td = $plugin->{session}->make_element(
 			"td",
 			width => $width."px",
 			style => "background-color: $color;"
 			);
-	my $count_bar_td2 = $plugin->{handle}->make_element(
+	my $count_bar_td2 = $plugin->{session}->make_element(
 			"td",
 			style => "padding-left: 2px"
 
 			);
 
-	$count_bar_td->appendChild( $plugin->{handle}->make_text( "  " ) );
+	$count_bar_td->appendChild( $plugin->{session}->make_text( "  " ) );
 	if( defined $label && ref($label) )
 	{
-		$count_bar_td2->appendChild( $plugin->{handle}->make_text( " " ) );
+		$count_bar_td2->appendChild( $plugin->{session}->make_text( " " ) );
 		$count_bar_td2->appendChild( $label );
 	}
 	$count_bar_tr->appendChild( $count_bar_td ); 

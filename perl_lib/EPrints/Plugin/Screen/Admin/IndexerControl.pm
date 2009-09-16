@@ -31,10 +31,10 @@ sub new
 	];
 
 	$self->{daemon} = EPrints::Index::Daemon->new(
-		handle => $self->{handle},
+		session => $self->{session},
 		Handler => $self->{processor},
 		logfile => EPrints::Index::logfile(),
-		noise => ($self->{handle}->{noise}||1),
+		noise => ($self->{session}->{noise}||1),
 	);
 
 	return $self;
@@ -64,7 +64,7 @@ sub action_stop_indexer
 {
 	my( $self ) = @_;
 
-	my $result = $self->get_daemon->stop( $self->{handle} );
+	my $result = $self->get_daemon->stop( $self->{session} );
 
 	if( $result == 1 )
 	{
@@ -78,7 +78,7 @@ sub action_stop_indexer
 		$self->{processor}->add_message( 
 			"error", 
 			$self->html_phrase( "cant_stop_indexer", 
-				logpath => $self->{handle}->make_text( EPrints::Index::logfile() ) 
+				logpath => $self->{session}->make_text( EPrints::Index::logfile() ) 
 			)
 		);
 	}
@@ -97,7 +97,7 @@ sub action_start_indexer
 {
 	my( $self ) = @_;
 
-	my $result = $self->get_daemon->start( $self->{handle} );
+	my $result = $self->get_daemon->start( $self->{session} );
 
 	if( $result == 1 )
 	{
@@ -111,7 +111,7 @@ sub action_start_indexer
 		$self->{processor}->add_message( 
 			"error", 
 			$self->html_phrase( "cant_start_indexer", 
-				logpath => $self->{handle}->make_text( EPrints::Index::logfile() ) 
+				logpath => $self->{session}->make_text( EPrints::Index::logfile() ) 
 			)
 		);
 	}
@@ -130,7 +130,7 @@ sub action_force_start_indexer
 
 	$self->get_daemon->stop(); # give the indexer a chance to stop
 	$self->get_daemon->cleanup(); # remove pid/tick file
-	my $result = $self->get_daemon->start( $self->{handle} );
+	my $result = $self->get_daemon->start( $self->{session} );
 
 	if( $result == 1 )
 	{

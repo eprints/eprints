@@ -35,7 +35,7 @@ package EPrints::DataObj::SubObject;
 
 use strict;
 
-=item $dataobj = EPrints::DataObj::File->new_from_data( $handle, $data [, $dataset ] )
+=item $dataobj = EPrints::DataObj::File->new_from_data( $session, $data [, $dataset ] )
 
 Looks for a special B<_parent> element in $data and uses it to set the parent object, if defined.
 
@@ -43,11 +43,11 @@ Looks for a special B<_parent> element in $data and uses it to set the parent ob
 
 sub new_from_data
 {
-	my( $class, $handle, $data, $dataset ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
 
 	my $parent = delete $data->{_parent};
 
-	my $self = $class->SUPER::new_from_data( $handle, $data, $dataset );
+	my $self = $class->SUPER::new_from_data( $session, $data, $dataset );
 
 	if( defined $parent )
 	{
@@ -57,7 +57,7 @@ sub new_from_data
 	return $self;
 }
 
-=item $dataobj = EPrints::DataObj::File->create_from_data( $handle, $data [, $dataset ] )
+=item $dataobj = EPrints::DataObj::File->create_from_data( $session, $data [, $dataset ] )
 
 Looks for a special B<_parent> element in $data and uses it to create default values for B<datasetid> and B<objectid> if parent is available and those fields exist on the object.
 
@@ -65,7 +65,7 @@ Looks for a special B<_parent> element in $data and uses it to create default va
 
 sub create_from_data
 {
-	my( $class, $handle, $data, $dataset ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
 
 	my $parent = $data->{_parent};
 	if( defined( $parent ) )
@@ -80,7 +80,7 @@ sub create_from_data
 		}
 	}
 
-	return $class->SUPER::create_from_data( $handle, $data, $dataset );
+	return $class->SUPER::create_from_data( $session, $data, $dataset );
 }
 
 =item $dataobj = $dataobj->get_parent( [ $datasetid [, $objectid ] ] )
@@ -97,14 +97,14 @@ sub get_parent
 
 	return $self->{_parent} if defined( $self->{_parent} );
 
-	my $handle = $self->get_handle;
+	my $session = $self->get_session;
 
 	$datasetid = $self->get_value( "datasetid" ) unless defined $datasetid;
 	$objectid = $self->get_value( "objectid" ) unless defined $objectid;
 
-	my $ds = $handle->get_repository->get_dataset( $datasetid );
+	my $ds = $session->get_repository->get_dataset( $datasetid );
 
-	my $parent = $ds->get_object( $handle, $objectid );
+	my $parent = $ds->get_object( $session, $objectid );
 	$self->set_parent( $parent );
 
 	return $parent;

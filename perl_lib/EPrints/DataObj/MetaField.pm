@@ -212,13 +212,13 @@ sub _get_field_types
 
 ######################################################################
 
-=item $thing = EPrints::DataObj::MetaField->new( $handle, $metafieldid )
+=item $thing = EPrints::DataObj::MetaField->new( $session, $metafieldid )
 
 Return the data object identified by $metafieldid.
 
 =cut
 
-=item $thing = EPrints::DataObj::MetaField->new_from_data( $handle, $known )
+=item $thing = EPrints::DataObj::MetaField->new_from_data( $session, $known )
 
 Create a new C<EPrints::DataObj::MetaField> object containing data $known (a hash reference).
 
@@ -241,9 +241,9 @@ our %RBOOLEAN = (
 
 sub new_from_data
 {
-	my( $class, $handle, $known ) = @_;
+	my( $class, $session, $known ) = @_;
 
-	my $dataset = $handle->get_repository->get_dataset( "metafield" );
+	my $dataset = $session->get_repository->get_dataset( "metafield" );
 
 	# strip unsupported properties
 	for(keys %$known)
@@ -289,7 +289,7 @@ sub new_from_data
 	}
 
 	return $class->SUPER::new_from_data(
-			$handle,
+			$session,
 			$known,
 			$dataset );
 }
@@ -302,7 +302,7 @@ sub new_from_data
 
 ######################################################################
 
-=item $path = EPrints::DataObj::MetaField->get_config_path( $handle )
+=item $path = EPrints::DataObj::MetaField->get_config_path( $session )
 
 Returns the root directory of the repository configuration path.
 
@@ -310,9 +310,9 @@ Returns the root directory of the repository configuration path.
 
 sub get_config_path
 {
-	my( $class, $handle ) = @_;
+	my( $class, $session ) = @_;
 
-	return $handle->get_repository->get_conf("config_path");
+	return $session->get_repository->get_conf("config_path");
 }
 
 ######################################################################
@@ -332,7 +332,7 @@ sub get_dataset_id()
 
 ######################################################################
 
-=item $defaults = EPrints::DataObj::MetaField->get_defaults( $handle, $data )
+=item $defaults = EPrints::DataObj::MetaField->get_defaults( $session, $data )
 
 Return default values for this object based on the starting data.
 
@@ -342,9 +342,9 @@ Return default values for this object based on the starting data.
 
 sub get_defaults
 {
-	my( $class, $handle, $data, $dataset ) = @_;
+	my( $class, $session, $data, $dataset ) = @_;
 	
-	$class->SUPER::get_defaults( $handle, $data, $dataset );
+	$class->SUPER::get_defaults( $session, $data, $dataset );
 
 	if( $data->{name} and $data->{mfdatasetid} )
 	{
@@ -359,7 +359,7 @@ sub get_defaults
 	return $data;
 }
 
-=item $filename = EPrints::DataObj::MetaField->get_perl_file_config( $handle )
+=item $filename = EPrints::DataObj::MetaField->get_perl_file_config( $session )
 
 Returns the location of the Perl configuration file.
 
@@ -367,12 +367,12 @@ Returns the location of the Perl configuration file.
 
 sub get_perl_file_config
 {
-	my( $class, $handle ) = @_;
+	my( $class, $session ) = @_;
 
-	return $handle->get_repository->get_conf( "variables_path" )."/metafield.pl";
+	return $session->get_repository->get_conf( "variables_path" )."/metafield.pl";
 }
 
-=item $filename = EPrints::DataObj::MetaField->get_phrases_filename( $handle, $langid )
+=item $filename = EPrints::DataObj::MetaField->get_phrases_filename( $session, $langid )
 
 Returns the location of the XML phrases file for $lang.
 
@@ -380,12 +380,12 @@ Returns the location of the XML phrases file for $lang.
 
 sub get_phrases_filename
 {
-	my( $class, $handle, $langid ) = @_;
+	my( $class, $session, $langid ) = @_;
 
-	return $handle->get_repository->get_conf( "config_path" )."/lang/$langid/phrases/zz_webcfg.xml";
+	return $session->get_repository->get_conf( "config_path" )."/lang/$langid/phrases/zz_webcfg.xml";
 }
 
-=item $defaults = EPrints::DataObj::MetaField->get_property_defaults( $handle, $type )
+=item $defaults = EPrints::DataObj::MetaField->get_property_defaults( $session, $type )
 
 Gets the property defaults for metafield $type.
 
@@ -393,9 +393,9 @@ Gets the property defaults for metafield $type.
 
 sub get_property_defaults
 {
-	my( $self, $handle, $type ) = @_;
+	my( $self, $session, $type ) = @_;
 
-	my $field_defaults = $handle->get_repository->get_field_defaults( $type );
+	my $field_defaults = $session->get_repository->get_field_defaults( $type );
 	return $field_defaults if defined $field_defaults;
 
 	my $class = $type;
@@ -408,13 +408,13 @@ sub get_property_defaults
 	}
 
 	my $prototype = bless {
-			repository => $handle->get_repository
+			repository => $session->get_repository
 		}, $class;
 
 	return { $prototype->get_property_defaults };
 }
 
-=item $filename = EPrints::DataObj::MetaField->get_workflow_filename( $handle, $datasetid )
+=item $filename = EPrints::DataObj::MetaField->get_workflow_filename( $session, $datasetid )
 
 Returns the location of the workflow file for $datasetid.
 
@@ -422,12 +422,12 @@ Returns the location of the workflow file for $datasetid.
 
 sub get_workflow_filename
 {
-	my( $self, $handle, $datasetid ) = @_;
+	my( $self, $session, $datasetid ) = @_;
 
-	return $handle->get_repository->get_conf( "config_path" )."/workflows/$datasetid/default.xml";
+	return $session->get_repository->get_conf( "config_path" )."/workflows/$datasetid/default.xml";
 }
 
-=item $filename = EPrints::DataObj::MetaField->get_xml_file_config( $handle )
+=item $filename = EPrints::DataObj::MetaField->get_xml_file_config( $session )
 
 Returns the location of the XML configuration file.
 
@@ -435,12 +435,12 @@ Returns the location of the XML configuration file.
 
 sub get_xml_file_config
 {
-	my( $class, $handle ) = @_;
+	my( $class, $session ) = @_;
 
-	return $handle->get_repository->get_conf( "variables_path" )."/metafield.xml";
+	return $session->get_repository->get_conf( "variables_path" )."/metafield.xml";
 }
 
-=item $list = EPrints::DataObj::MetaField::load_all( $handle )
+=item $list = EPrints::DataObj::MetaField::load_all( $session )
 
 Populate the metafield dataset using the currently configured fields. Returns a L<EPrints::List> of the loaded meta fields.
 
@@ -448,17 +448,17 @@ Populate the metafield dataset using the currently configured fields. Returns a 
 
 sub load_all
 {
-	my( $handle ) = @_;
+	my( $session ) = @_;
 
-	my $ds = $handle->get_repository->get_dataset( "metafield" );
-	my @datasetids = $handle->get_repository->get_types( "datasets" );
-	my $fields = $handle->get_repository->get_conf( "fields" );
+	my $ds = $session->get_repository->get_dataset( "metafield" );
+	my @datasetids = $session->get_repository->get_types( "datasets" );
+	my $fields = $session->get_repository->get_conf( "fields" );
 
 	my @ids;
 
 	foreach my $datasetid (@datasetids)
 	{
-		my $dataset = $handle->get_repository->get_dataset( $datasetid );
+		my $dataset = $session->get_repository->get_dataset( $datasetid );
 
 		my @field_data;
 
@@ -478,7 +478,7 @@ sub load_all
 		{
 			my $metafieldid = $dataset->confid.".".$data->{"name"};
 			my $dataobj = $ds->get_object(
-					$handle,
+					$session,
 					$metafieldid
 					);
 			if( defined($dataobj) )
@@ -488,19 +488,19 @@ sub load_all
 			$data = EPrints::Utils::clone( $data );
 			$data->{mfstatus} = "archive";
 			$data->{mfdatasetid} = $datasetid;
-			$dataobj = $ds->create_object( $handle, $data );
+			$dataobj = $ds->create_object( $session, $data );
 			push @ids, $dataobj->get_id;
 		}
 	}
 
 	return EPrints::List->new(
-		handle => $handle,
+		session => $session,
 		dataset => $ds,
 		ids => \@ids,
 	);
 }
 
-=item EPrints::DataObj::MetaField::save_all( $handle )
+=item EPrints::DataObj::MetaField::save_all( $session )
 
 Save the user-configured fields.
 
@@ -508,12 +508,12 @@ Save the user-configured fields.
 
 sub save_all
 {
-	my( $handle ) = @_;
+	my( $session ) = @_;
 
-	my $dataset = $handle->get_repository->get_dataset( "metafield" );
+	my $dataset = $session->get_repository->get_dataset( "metafield" );
 
 	my $searchexp = EPrints::Search->new(
-		handle => $handle,
+		session => $session,
 		dataset => $dataset,
 	);
 
@@ -522,12 +522,12 @@ sub save_all
 
 	my $list = $searchexp->perform_search;
 
-	my $xml_plugin = $handle->plugin( "Export::XML" );
+	my $xml_plugin = $session->plugin( "Export::XML" );
 
 	my $file_name;
 	my $fh;
 
-	$file_name = __PACKAGE__->get_xml_file_config( $handle );
+	$file_name = __PACKAGE__->get_xml_file_config( $session );
 
 	open($fh, ">", $file_name)
 		or EPrints::abort "Can't write to $file_name: $!";
@@ -537,9 +537,9 @@ sub save_all
 	);
 	close($fh);
 
-	my $perl_plugin = $handle->plugin( "Export::Perl" );
+	my $perl_plugin = $session->plugin( "Export::Perl" );
 
-	$file_name = __PACKAGE__->get_perl_file_config( $handle );
+	$file_name = __PACKAGE__->get_perl_file_config( $session );
 
 	open($fh, ">", $file_name)
 		or EPrints::abort "Can't write to $file_name: $!";
@@ -568,13 +568,13 @@ sub add_to_phrases
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $ok = 1;
 
 	my $name = $self->get_value( "name" );
 	my $datasetid = $self->get_value( "mfdatasetid" );
-	my $path = $self->get_config_path( $handle ) . "/lang";
+	my $path = $self->get_config_path( $session ) . "/lang";
 
 	my %phrases;
 
@@ -622,7 +622,7 @@ sub add_to_phrases
 
 	foreach my $langid (keys %phrases)
 	{
-		my $file_name = $self->get_phrases_filename( $handle, $langid );
+		my $file_name = $self->get_phrases_filename( $session, $langid );
 		my $doc;
 		if( !-e $file_name )
 		{
@@ -633,20 +633,20 @@ sub add_to_phrases
 			$doc = EPrints::XML::parse_xml( $file_name );
 		}
 		my $xml = $doc->documentElement;
-		local $handle->{doc} = $doc;
+		local $session->{doc} = $doc;
 
 		while(my( $name, $text ) = each %{$phrases{$langid}})
 		{
-			my $phrase = $handle->make_element( "epp:phrase", id => $name );
+			my $phrase = $session->make_element( "epp:phrase", id => $name );
 			my $html = eval { EPrints::XML::parse_xml_string( $text ) };
 			if( defined $html )
 			{
-				$phrase->appendChild( $handle->clone_for_me( $html->documentElement, 1 ) );
+				$phrase->appendChild( $session->clone_for_me( $html->documentElement, 1 ) );
 				EPrints::XML::dispose( $html );
 			}
 			else
 			{
-				$phrase->appendChild( $handle->make_text( $text ) );
+				$phrase->appendChild( $session->make_text( $text ) );
 			}
 			my $old_phrase;
 			foreach my $node ($xml->childNodes)
@@ -679,7 +679,7 @@ sub add_to_phrases
 		}
 		else
 		{
-			$handle->get_repository->log( "Failed to open $file_name for writing: $!" );
+			$session->get_repository->log( "Failed to open $file_name for writing: $!" );
 			$ok = 0;
 		}
 
@@ -699,19 +699,19 @@ sub add_to_workflow
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $ok = 1;
 
 	my $datasetid = $self->get_value( "mfdatasetid" );
 
-	my $file_name = $self->get_workflow_filename( $handle, $datasetid );
+	my $file_name = $self->get_workflow_filename( $session, $datasetid );
 
 	return $ok unless -e $file_name;
 
 	my $doc = EPrints::XML::parse_xml( $file_name );
 
-	local $handle->{doc} = $doc;
+	local $session->{doc} = $doc;
 
 	my $workflow = $doc->documentElement;
 
@@ -740,11 +740,11 @@ sub add_to_workflow
 	}
 	if( !defined( $stage_ref ) )
 	{
-		$stage_ref = $handle->make_element( "stage",
+		$stage_ref = $session->make_element( "stage",
 			ref => "local"
 		);
 		$flow->appendChild( $stage_ref );
-		$flow->appendChild( $handle->make_text( "\n\t" ) );
+		$flow->appendChild( $session->make_text( "\n\t" ) );
 	}
 
 	my $stage;
@@ -762,22 +762,22 @@ sub add_to_workflow
 
 	if( !defined( $stage ) )
 	{
-		$stage = $handle->make_element( "stage",
+		$stage = $session->make_element( "stage",
 			name => "local"
 		);
-		$stage->appendChild( $handle->make_text( "\n\t" ) );
-		$workflow->appendChild( $handle->make_text( "\t" ) );
+		$stage->appendChild( $session->make_text( "\n\t" ) );
+		$workflow->appendChild( $session->make_text( "\t" ) );
 		$workflow->appendChild( $stage );
-		$workflow->appendChild( $handle->make_text( "\n\n" ) );
+		$workflow->appendChild( $session->make_text( "\n\n" ) );
 	}
 
-	my $component = $handle->make_element( "component" );
-	my $field = $handle->make_element( "field",
+	my $component = $session->make_element( "component" );
+	my $field = $session->make_element( "field",
 		ref => $self->get_value( "name" )
 	);
-	$stage->appendChild( $handle->make_text( "\t" ) );
+	$stage->appendChild( $session->make_text( "\t" ) );
 	$stage->appendChild( $component );
-	$stage->appendChild( $handle->make_text( "\n\t" ) );
+	$stage->appendChild( $session->make_text( "\n\t" ) );
 	$component->appendChild( $field );
 
 	if( open(my $fh, ">", $file_name) )
@@ -788,7 +788,7 @@ sub add_to_workflow
 	}
 	else
 	{
-		$handle->get_repository->log( "Failed to open $file_name for writing: $!" );
+		$session->get_repository->log( "Failed to open $file_name for writing: $!" );
 		$ok = 0;
 	}
 
@@ -861,7 +861,7 @@ sub get_perl_struct
 	foreach my $field_data ($data,@{$data->{fields}||[]})
 	{
 		# Remove unused properties (avoid warnings)
-		my $defaults = $self->get_property_defaults( $self->{handle}, $field_data->{type} );
+		my $defaults = $self->get_property_defaults( $self->{session}, $field_data->{type} );
 		foreach my $property (keys %$field_data)
 		{
 			if( !defined $defaults->{$property} )
@@ -885,17 +885,17 @@ sub _phrases_empty
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $doc = $handle->get_lang->create_phrase_doc( $handle );
+	my $doc = $session->get_lang->create_phrase_doc( $session );
 	my $phrases = $doc->documentElement;
 
-	local $handle->{doc} = $doc;
+	local $session->{doc} = $doc;
 
-	my $phrase = $handle->make_element( "epp:phrase",
+	my $phrase = $session->make_element( "epp:phrase",
 		id=>"metapage_title_local"
 	);
-	$phrase->appendChild( $handle->make_text( "Misc." ) );
+	$phrase->appendChild( $session->make_text( "Misc." ) );
 
 	$phrases->appendChild( $phrase );
 
@@ -923,16 +923,16 @@ sub make_field_object
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $datasetid = $self->get_value( "mfdatasetid" );
-	my $dataset = $handle->get_repository->get_dataset( $datasetid );
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
 
 	my $fielddata = $self->get_perl_struct();
 
 	if( !defined $fielddata->{type} )
 	{
-		$handle->get_repository->log( "Error in metafield entry ".$self->get_id.": no type defined" );
+		$session->get_repository->log( "Error in metafield entry ".$self->get_id.": no type defined" );
 		return undef;
 	}
 
@@ -1001,12 +1001,12 @@ sub move_to_archive
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $ds = $self->get_dataset;
 
 	my $datasetid = $self->get_value( "mfdatasetid" );
-	my $dataset = $handle->get_repository->get_dataset( $datasetid );
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
 
 	my $field = $self->make_field_object();
 
@@ -1037,7 +1037,7 @@ sub move_to_archive
 				$dataset->unregister_field( $dataset->get_field( $name ) );
 			}
 
-			my $inner_metafield = $ds->get_object( $handle, "$datasetid.$name" );
+			my $inner_metafield = $ds->get_object( $session, "$datasetid.$name" );
 			if( defined $inner_metafield )
 			{
 				$inner_metafield->remove;
@@ -1056,12 +1056,12 @@ sub move_to_archive
 				$dataset->process_field( $inner_field );
 			}
 
-			my $inner_metafield = $ds->get_object( $handle, "$datasetid.$name" );
+			my $inner_metafield = $ds->get_object( $session, "$datasetid.$name" );
 			if( !defined $inner_metafield )
 			{
 				$inner_field->{"mfstatus"} = $self->get_value( "mfstatus" );
 				$inner_field->{"mfdatasetid"} = $self->get_value( "mfdatasetid" );
-				$ds->create_object( $handle, $inner_field );
+				$ds->create_object( $session, $inner_field );
 			}
 		}
 		if( scalar(@current) == 0 )
@@ -1076,11 +1076,11 @@ sub move_to_archive
 	$field = $dataset->process_field( $conf, 0 );
 
 	# add to the user configuration
-	my $fields = $handle->get_repository->get_conf( "fields" );
+	my $fields = $session->get_repository->get_conf( "fields" );
 	push @{$fields->{$datasetid}||=[]}, $conf;
 
 	# add to the database (force changes)
-	$handle->get_database->add_field( $dataset, $field, 1 );
+	$session->get_database->add_field( $dataset, $field, 1 );
 
 	$self->set_value( "mfstatus", "archive" );
 	$self->commit( 1 );
@@ -1092,10 +1092,10 @@ sub move_to_deletion
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $datasetid = $self->get_value( "mfdatasetid" );
-	my $dataset = $handle->get_repository->get_dataset( $datasetid );
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
 	my $name = $self->get_value( "name" );
 
 	my $field = $dataset->get_field( $name );
@@ -1104,13 +1104,13 @@ sub move_to_deletion
 	$dataset->unregister_field( $field );
 
 	# remove the field from the current session
-	my $fieldconf = $handle->get_repository->get_conf( "fields", $datasetid );
+	my $fieldconf = $session->get_repository->get_conf( "fields", $datasetid );
 	if( defined $fieldconf )
 	{
 		@{$fieldconf} = grep { $_->{name} ne $name } @{$fieldconf};
 	}
 
-	$handle->get_database->remove_field( $dataset, $field );
+	$session->get_database->remove_field( $dataset, $field );
 
 	$self->remove();
 
@@ -1127,20 +1127,20 @@ sub remove_from_workflow
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
 	my $ok = 1;
 
 	my $datasetid = $self->get_value( "mfdatasetid" );
 	my $name = $self->get_value( "name" );
 
-	my $file_name = $self->get_workflow_filename( $handle, $datasetid );
+	my $file_name = $self->get_workflow_filename( $session, $datasetid );
 
 	return $ok unless -e $file_name;
 
-	local $handle->{doc};
+	local $session->{doc};
 
-	my $doc = $handle->{doc} = EPrints::XML::parse_xml( $file_name );
+	my $doc = $session->{doc} = EPrints::XML::parse_xml( $file_name );
 
 	my $workflow = $doc->documentElement;
 
@@ -1236,25 +1236,25 @@ sub _validate_epdata
 {
 	my( $self, $epdata ) = @_;
 
-	my $handle = $self->get_handle;
+	my $session = $self->get_session;
 
 	my @problems;
 
 	if( !defined $epdata->{"type"} )
 	{
-		push @problems, $handle->html_phrase(
+		push @problems, $session->html_phrase(
 				"validate:missing_type",
 			);
 		return @problems;
 	}
 
-	my $field_defaults = $self->get_property_defaults( $handle, $epdata->{type} );
+	my $field_defaults = $self->get_property_defaults( $session, $epdata->{type} );
 
 	if( !defined $field_defaults )
 	{
-		push @problems, $handle->html_phrase(
+		push @problems, $session->html_phrase(
 				"validate:bad_type",
-				type => $handle->make_text( $epdata->{type} ),
+				type => $session->make_text( $epdata->{type} ),
 			);
 		return @problems;
 	}
@@ -1265,9 +1265,9 @@ sub _validate_epdata
 		next if $property eq "fields";
 		if( $field_defaults->{$property} eq $EPrints::MetaField::REQUIRED && !EPrints::Utils::is_set( $epdata->{$property} ) )
 		{
-			push @problems, $handle->html_phrase(
+			push @problems, $session->html_phrase(
 					"validate:missing_property",
-					property => $handle->make_text( $property )
+					property => $session->make_text( $property )
 				);
 		}
 	}
@@ -1276,9 +1276,9 @@ sub _validate_epdata
 	# fields_sub_name
 	if( exists $field_defaults->{"fields"} && $field_defaults->{"fields"} eq $EPrints::MetaField::REQUIRED && !EPrints::Utils::is_set( $epdata->{"fields_sub_name"} ) )
 	{
-		push @problems, $handle->html_phrase(
+		push @problems, $session->html_phrase(
 				"validate:missing_property",
-				property => $handle->make_text( "fields" )
+				property => $session->make_text( "fields" )
 			);
 	}
 
@@ -1287,11 +1287,11 @@ sub _validate_epdata
 		my $datasetid = $epdata->{"datasetid"};
 		$datasetid = "" unless defined $datasetid;
 
-		unless( $handle->get_repository->get_dataset( $datasetid ) )
+		unless( $session->get_repository->get_dataset( $datasetid ) )
 		{
-			push @problems, $handle->html_phrase(
+			push @problems, $session->html_phrase(
 					"validate:unknown_datasetid",
-					datasetid => $handle->make_text( $datasetid ),
+					datasetid => $session->make_text( $datasetid ),
 				);
 		}
 	}

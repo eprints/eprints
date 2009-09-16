@@ -25,7 +25,7 @@
 # If the function returns a string then the browser is redirected to
 # that url. If it returns undef then then the normal error page is shown.
 # $c->{catch404} = sub {
-#	my( $handle, $url ) = @_;
+#	my( $session, $url ) = @_;
 #	
 #	if( $url =~ m#/subject-(\d+).html$# )
 #	{

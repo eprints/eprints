@@ -42,7 +42,7 @@ sub xml_to_epdata
 	my( $plugin, $dataset, $xml ) = @_;
 
 	my $epdata = $dataset->get_object_class->xml_to_epdata(
-		$plugin->{handle},
+		$plugin->{session},
 		$xml,
 		Handler => $plugin->{Handler} );
 

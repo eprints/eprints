@@ -71,11 +71,11 @@ sub xml_dataobj
 {
 	my( $plugin, $dataobj ) = @_;
 
-	my $main_dc_plugin = $plugin->{handle}->plugin( "Export::REM_Atom" );
+	my $main_dc_plugin = $plugin->{session}->plugin( "Export::REM_Atom" );
 
 	my $data = $main_dc_plugin->output_dataobj( $dataobj, single => 1 );
 
-	my $dc = $plugin->{handle}->make_element(
+	my $dc = $plugin->{session}->make_element(
         	"atom:atom",
 		"xmlns" => "http://www.w3.org/2005/Atom",
 		"xmlns:atom" => "http://www.w3.org/2005/Atom",

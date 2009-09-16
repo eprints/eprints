@@ -3,7 +3,7 @@
 # - MetaField object
 # $value
 # - metadata value (see docs)
-# $handle 
+# $session 
 # - Session object (the current session)
 # $for_archive
 # - boolean (see comments at the start of the validation section)
@@ -25,7 +25,7 @@
 
 $c->{validate_field} = sub
 {
-	my( $field, $value, $handle, $for_archive ) = @_;
+	my( $field, $value, $session, $for_archive ) = @_;
 
 	my @problems = ();
 
@@ -40,13 +40,13 @@ $c->{validate_field} = sub
 		{
 			my $v = $_;
 
-			my $fieldname = $handle->make_element( "span", class=>"ep_problem_field:".$field->get_name );
-			$fieldname->appendChild( $field->render_name( $handle ) );
+			my $fieldname = $session->make_element( "span", class=>"ep_problem_field:".$field->get_name );
+			$fieldname->appendChild( $field->render_name( $session ) );
 			# Check a URL for correctness
 			if( $field->is_type( "url" ) && $v !~ /^\w+:/ )
 			{
 				push @problems,
-					$handle->html_phrase( "validate:missing_http",
+					$session->html_phrase( "validate:missing_http",
 						fieldname=>$fieldname );
 			}
 
@@ -54,7 +54,7 @@ $c->{validate_field} = sub
 			if( $field->is_type( "name" ) && !EPrints::Utils::is_set( $v->{family} ) )
 			{
 				push @problems,
-					$handle->html_phrase( "validate:missing_family",
+					$session->html_phrase( "validate:missing_family",
 						fieldname=>$fieldname );
 			}
 
@@ -62,7 +62,7 @@ $c->{validate_field} = sub
 			if( $field->is_type( "name" ) && !EPrints::Utils::is_set( $v->{given} ) )
 			{
 				push @problems,
-					$handle->html_phrase( "validate:missing_given",
+					$session->html_phrase( "validate:missing_given",
 						fieldname=>$fieldname );
 			}
 
@@ -71,7 +71,7 @@ $c->{validate_field} = sub
 			if( $field->is_type( "email" ) && $v !~ /^[^ \@]+\@[^ \@]+$/ )
 			{
 				push @problems,
-					$handle->html_phrase( "validate:bad_email",
+					$session->html_phrase( "validate:bad_email",
 						fieldname=>$fieldname );
 			}
 		}

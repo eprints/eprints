@@ -85,12 +85,12 @@ sub item_matches
 
 sub get_query_tree
 {
-	my( $self, $handle, $qdata ) = @_;
+	my( $self, $session, $qdata ) = @_;
 
 	my @list = ( "AND" );
 	foreach my $sub_op ( $self->ordered_ops )
 	{
-		push @list, $sub_op->get_query_tree( $handle, $qdata );
+		push @list, $sub_op->get_query_tree( $session, $qdata );
 	}
 
 	return \@list;
@@ -99,7 +99,7 @@ sub get_query_tree
 
 sub process
 {
-	my( $self, $handle, $i, $filter ) = @_;
+	my( $self, $session, $i, $filter ) = @_;
 
 	$i = 0 unless( defined $i );
 
@@ -107,7 +107,7 @@ sub process
 #print STDERR "PROCESS: ".("  "x$i)."AND\n";
 	foreach my $sub_op ( $self->ordered_ops )
 	{
-		my $r = $sub_op->process( $handle, $i + 1, $set );
+		my $r = $sub_op->process( $session, $i + 1, $set );
 		if( scalar @{$r} == 0 )
 		{
 			$set = [];

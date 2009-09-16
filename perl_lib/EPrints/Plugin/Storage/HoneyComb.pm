@@ -42,7 +42,7 @@ sub new
 		return $self;
 	}
 
-	if( $params{handle} )
+	if( $params{session} )
 	{
 		eval { $self->{honey} = Net::Sun::HoneyComb->new(
 			"hc-data",
@@ -63,7 +63,7 @@ sub store
 	my $parent = $fileobj->get_parent();
 
 	my $metadata = {
-		'dc.isPartOf' => $self->{handle}->get_repository->get_conf( 'base_url' ),
+		'dc.isPartOf' => $self->{session}->get_repository->get_conf( 'base_url' ),
 	};
 
 	if( $fileobj->is_set( "mime_type" ) )

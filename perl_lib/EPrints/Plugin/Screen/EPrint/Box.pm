@@ -32,7 +32,7 @@ sub render
 {
 	my( $self ) = @_;
 
-	return $self->{handle}->make_text( "Please add a 'render' method to this box!" );
+	return $self->{session}->make_text( "Please add a 'render' method to this box!" );
 }
 
 1;

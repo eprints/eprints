@@ -1,26 +1,26 @@
-use EPrints;
+use EPrints::Session;
+use EPrints::EPrint;
 
 use strict;
+my $session = new EPrints::Session;
+Apache::exit( 0 ) unless( defined $session );
 
-my $handle = EPrints->get_repository_handle();
-Apache::exit( 0 ) unless( defined $handle );
-
-if( !$handle->get_repository->get_conf( "json","enable" ) )
+if( !$session->get_repository->get_conf( "json","enable" ) )
 {
-	EPrints::Apache::AnApache::send_status_line( $handle->get_request, 403, "Not allowed" );
-	EPrints::Apache::AnApache::send_http_header( $handle->get_request );
+	EPrints::Apache::AnApache::send_status_line( $session->get_request, 403, "Not allowed" );
+	EPrints::Apache::AnApache::send_http_header( $session->get_request );
 
-	$handle->terminate;
+	$session->terminate;
 	exit;
 }
 
-my $callback = $handle->param( "callback" ) || "callback";
-my $eprintid = $handle->param( "eprintid" );
+my $callback = $session->param( "callback" ) || "callback";
+my $eprintid = $session->param( "eprintid" );
 my $eprint = EPrints::DataObj::EPrint->new( 
-			$handle, 
+			$session, 
 			$eprintid, 
-			$handle->get_repository->get_dataset( "archive" ) );
-$handle->send_http_header( "content_type"=>"text/javascript" );
+			$session->get_repository->get_dataset( "archive" ) );
+$session->send_http_header( "content_type"=>"text/javascript" );
 print $callback."(\n";
 if( defined $eprint )
 {
@@ -32,5 +32,5 @@ else
 }
 print ");\n";
 
-$handle->terminate;
+$session->terminate;
 

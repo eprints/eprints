@@ -71,7 +71,7 @@ sub tool_getEprintField
 	my $field = $opts{eprint}->get_dataset->get_field( $opts{field} );
 
 	my $fieldxml = $field->to_xml( 
-			$opts{handle},
+			$opts{session},
 			$opts{eprint}->get_value( $opts{field} ),
 			$opts{eprint}->get_dataset );
 
@@ -109,8 +109,8 @@ sub tool_createEprint
 	my $xml = EPrints::XML::parse_xml_string( $data );
 	if( !defined $xml ) { return( 1, [ "Failed to parse XML" ] ); }
 
-	my $plugin = $opts{handle}->plugin( "Import::XML" );
-	my $ds = $opts{handle}->get_repository->get_dataset( "eprint" );
+	my $plugin = $opts{session}->plugin( "Import::XML" );
+	my $ds = $opts{session}->get_repository->get_dataset( "eprint" );
 	my $eprint = $plugin->xml_to_dataobj( $ds, $xml->getDocumentElement );
 
 	if( !defined $eprint )
@@ -147,8 +147,8 @@ sub tool_modifyEprint
 	my $xml = EPrints::XML::parse_xml_string( $data );
 	if( !defined $xml ) { return( 1, [ "Failed to parse XML" ] ); }
 
-	my $plugin = $opts{handle}->plugin( "Import::XML" );
-	my $ds = $opts{handle}->get_repository->get_dataset( "eprint" );
+	my $plugin = $opts{session}->plugin( "Import::XML" );
+	my $ds = $opts{session}->get_repository->get_dataset( "eprint" );
 	my $epdata = $plugin->xml_to_epdata( $ds, $xml->getDocumentElement );
 
 	foreach my $fieldid ( keys %{$epdata} )
@@ -194,8 +194,8 @@ sub tool_modifyDocument
 	my $xml = EPrints::XML::parse_xml_string( $data );
 	if( !defined $xml ) { return( 1, [ "Failed to parse XML" ] ); }
 
-	my $plugin = $opts{handle}->plugin( "Import::XML" );
-	my $ds = $opts{handle}->get_repository->get_dataset( "document" );
+	my $plugin = $opts{session}->plugin( "Import::XML" );
+	my $ds = $opts{session}->get_repository->get_dataset( "document" );
 	my $epdata = $plugin->xml_to_epdata( $ds, $xml->getDocumentElement );
 
 	foreach my $fieldid ( keys %{$epdata} )
@@ -297,12 +297,12 @@ sub tool_addDocument
 	my $xml = EPrints::XML::parse_xml_string( $data );
 	if( !defined $xml ) { return( 1, [ "Failed to parse XML" ] ); }
 
-	my $plugin = $opts{handle}->plugin( "Import::XML" );
-	my $ds = $opts{handle}->get_repository->get_dataset( "document" );
+	my $plugin = $opts{session}->plugin( "Import::XML" );
+	my $ds = $opts{session}->get_repository->get_dataset( "document" );
 	my $epdata = $plugin->xml_to_epdata( $ds, $xml->getDocumentElement );
 
 	$epdata->{eprintid} = $opts{eprint}->get_id;
-	my $document = EPrints::DataObj::Document->create_from_data( $opts{handle}, $epdata, $ds );
+	my $document = EPrints::DataObj::Document->create_from_data( $opts{session}, $epdata, $ds );
 
 	if( !defined $document )
 	{
@@ -347,14 +347,14 @@ sub _aux_tool_searchEprint
 	{
 		return( 1, [ "No nodes found inside <search> (there must be only one)" ] );	
 	}
-	my $dataset = $opts{handle}->get_repository->get_dataset( 'eprint' ); 
-	my( $conditions, $error ) = xml_to_conditions( $opts{handle}, $dataset, $condition_top );
+	my $dataset = $opts{session}->get_repository->get_dataset( 'eprint' ); 
+	my( $conditions, $error ) = xml_to_conditions( $opts{session}, $dataset, $condition_top );
 	if( defined $error )
 	{
 		return( 1, [ $error ] );
 	}
 
-	return( 0, $conditions->process( $opts{handle} ), $order );
+	return( 0, $conditions->process( $opts{session} ), $order );
 }
 	
 
@@ -378,15 +378,15 @@ sub tool_xmlSearchEprints
 
 	if( $rc ) { return( $rc, $value ); }
 
-	my $dataset = $opts{handle}->get_repository->get_dataset( 'eprint' ); 
+	my $dataset = $opts{session}->get_repository->get_dataset( 'eprint' ); 
 	my $list = EPrints::List->new( 
-		handle => $opts{handle},
+		session => $opts{session},
 		dataset => $dataset,
 		ids => $value,
 		keep_cache=>1,
 		order => $order );
 
-	my $plugin = $opts{handle}->plugin( "Export::XML" );
+	my $plugin = $opts{session}->plugin( "Export::XML" );
 
 	return( 0, $plugin->output_list( list=>$list ) );
 }
@@ -394,7 +394,7 @@ sub tool_xmlSearchEprints
 
 sub xml_to_conditions
 {
-	my( $handle, $dataset, $xml ) = @_;
+	my( $session, $dataset, $xml ) = @_;
 
 	unless( EPrints::XML::is_dom( $xml, "Element" ) )
 	{
@@ -409,7 +409,7 @@ sub xml_to_conditions
 		foreach my $kid ( $xml->getChildNodes )
 		{
 			next unless( EPrints::XML::is_dom( $kid, "Element" ) );
-			my( $result, $error ) = xml_to_conditions( $handle, $dataset, $kid );
+			my( $result, $error ) = xml_to_conditions( $session, $dataset, $kid );
 			if( !defined $result ) { return( undef, $error ); }
 			push @r, $result;
 		}
@@ -457,7 +457,7 @@ sub xml_to_conditions
 		my $value = EPrints::XML::to_string( EPrints::XML::contents_of( $xml ) );
 
 		my $con = $field->get_search_conditions(
-				$handle,
+				$session,
 				$dataset,
 				$value,
 				$match,

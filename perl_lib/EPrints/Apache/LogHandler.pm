@@ -129,17 +129,17 @@ sub handler
 		$access->{referring_entity_id} = '';
 	}
 
-	my $handle = EPrints->get_repository_handle( consume_post_data=>0 );
-	$handle->get_repository->get_dataset( "access" )->create_object(
-			$handle,
+	my $session = new EPrints::Session(2);
+	$session->get_repository->get_dataset( "access" )->create_object(
+			$session,
 			$access
 		);
-	$handle->terminate;
+	$session->terminate;
 
 	return OK();
 }
 
-=item $id = EPrints::Apache::LogHandler::uri_to_eprintid( $handle, $uri )
+=item $id = EPrints::Apache::LogHandler::uri_to_eprintid( $session, $uri )
 
 Returns the eprint id that $uri corresponds to, or undef.
 
@@ -147,7 +147,7 @@ Returns the eprint id that $uri corresponds to, or undef.
 
 sub uri_to_eprintid
 {
-	my( $handle, $uri ) = @_;
+	my( $session, $uri ) = @_;
 
 	# uri is something like /xxxxxx/?
 	if( $uri->path =~ m#^(?:/archive)?/(\d+)/# )
@@ -158,7 +158,7 @@ sub uri_to_eprintid
 	return undef;
 }
 
-=item $id = EPrints::Apache::LogHandler::uri_to_docid( $handle, $eprintid, $uri )
+=item $id = EPrints::Apache::LogHandler::uri_to_docid( $session, $eprintid, $uri )
 
 Returns the docid that $uri corresponds to (given the $eprintid), or undef.
 
@@ -166,7 +166,7 @@ Returns the docid that $uri corresponds to (given the $eprintid), or undef.
 
 sub uri_to_docid
 {
-	my( $handle, $eprintid, $uri ) = @_;
+	my( $session, $eprintid, $uri ) = @_;
 
 	if( $uri->path =~ m#^(?:/archive)?/(\d+)/(\d+)/# )
 	{

@@ -25,7 +25,7 @@ sub search_dataset
 {
 	my( $self ) = @_;
 
-	return $self->{handle}->get_repository->get_dataset( "history" );
+	return $self->{session}->get_repository->get_dataset( "history" );
 }
 
 sub search_filters
@@ -39,11 +39,11 @@ sub render_links
 {
 	my( $self ) = @_;
 
-	my $f = $self->{handle}->make_doc_fragment;
+	my $f = $self->{session}->make_doc_fragment;
 	if( $self->{processor}->{search_subscreen} eq "results" )
 	{
-		my $style = $self->{handle}->make_element( "style", type=>"text/css" );
-		$style->appendChild( $self->{handle}->make_text( ".ep_tm_main { width: 90%; }" ) );
+		my $style = $self->{session}->make_element( "style", type=>"text/css" );
+		$style->appendChild( $self->{session}->make_text( ".ep_tm_main { width: 90%; }" ) );
 		$f->appendChild( $style );
 	}
 
@@ -104,7 +104,7 @@ sub get_controls_before
 
 sub render_result_row
 {
-	my( $self, $handle, $result, $searchexp, $n ) = @_;
+	my( $self, $session, $result, $searchexp, $n ) = @_;
 
 	return $result->render_citation_link_staff(
 			$self->{processor}->{sconf}->{citation},  #undef unless specified

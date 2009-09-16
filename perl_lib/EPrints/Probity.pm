@@ -42,7 +42,7 @@ use URI;
 ######################################################################
 =pod
 
-=item $xml = EPrints::Probity::process_file( $handle, $filename, [$name] );
+=item $xml = EPrints::Probity::process_file( $session, $filename, [$name] );
 
 Process the given file and return an XML chunk in the format. 
 
@@ -62,17 +62,17 @@ If there is a problem return a empty XML document fragment.
 
 sub process_file
 {
-	my( $handle, $file ) = @_;
+	my( $session, $file ) = @_;
 
 	my $filename = $file->get_value( "filename" );
 	my $value = $file->get_value( "hash" );
 	my $alg = $file->get_value( "hash_type" );
 
-	my $hash = $handle->make_element( "hash" );
-	$hash->appendChild( $handle->render_data_element( 6, "name", $filename ) );
-	$hash->appendChild( $handle->render_data_element( 6, "algorithm", $alg ) );
-	$hash->appendChild( $handle->render_data_element( 6, "value", $value ) );
-	$hash->appendChild( $handle->render_data_element( 6, "date", EPrints::Time::get_iso_timestamp() ));
+	my $hash = $session->make_element( "hash" );
+	$hash->appendChild( $session->render_data_element( 6, "name", $filename ) );
+	$hash->appendChild( $session->render_data_element( 6, "algorithm", $alg ) );
+	$hash->appendChild( $session->render_data_element( 6, "value", $value ) );
+	$hash->appendChild( $session->render_data_element( 6, "date", EPrints::Time::get_iso_timestamp() ));
 
 	return $hash;
 }
@@ -80,7 +80,7 @@ sub process_file
 ######################################################################
 =pod
 
-=item $xml = EPrints::Probity::create_log( $handle, $files, [$outfile] )
+=item $xml = EPrints::Probity::create_log( $session, $files, [$outfile] )
 
 Create an XML file $outfile of the format:
 
@@ -105,29 +105,29 @@ If $outfile is not specified then the XML is sent to STDOUT.
 
 sub create_log
 {
-	my( $handle, $files, $outfile ) = @_;
+	my( $session, $files, $outfile ) = @_;
 
 	my $fh;
 	unless( open( $fh, ">$outfile" ) )
 	{
-		$handle->get_repository->log( "Error pening '$outfile' to write log: $!" );
+		$session->get_repository->log( "Error pening '$outfile' to write log: $!" );
 		return;
 	}
-	create_log_fh( $handle, $files, $fh );
+	create_log_fh( $session, $files, $fh );
 	close $fh;
 }
 
 sub create_log_fh
 {
-	my( $handle, $files, $fh ) = @_;
+	my( $session, $files, $fh ) = @_;
 
-	my $hashlist = $handle->make_element( 
+	my $hashlist = $session->make_element( 
 		"hashlist", 
 		xmlns=>"http://probity.org/XMLprobity" );
 	foreach my $file ( @{$files} )
 	{
-		$hashlist->appendChild( $handle->make_indent( 3 ) );
-		$hashlist->appendChild( process_file( $handle, $file ) );
+		$hashlist->appendChild( $session->make_indent( 3 ) );
+		$hashlist->appendChild( process_file( $session, $file ) );
 	}
 
 	$fh = *STDOUT unless defined $fh;

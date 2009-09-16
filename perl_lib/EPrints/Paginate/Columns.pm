@@ -34,12 +34,12 @@ use strict;
 
 sub paginate_list
 {
-	my( $class, $handle, $basename, $list, %opts ) = @_;
+	my( $class, $session, $basename, $list, %opts ) = @_;
 
 	my %newopts = %opts;
 	
 	# Build base URL
-	my $url = $handle->get_uri . "?";
+	my $url = $session->get_uri . "?";
 	my @param_list;
 	if( defined $opts{params} )
 	{
@@ -52,11 +52,11 @@ sub paginate_list
 	}
 	$url .= join "&", @param_list;
 
-	my $offset = ($handle->param( "$basename\_offset" ) || 0) + 0;
+	my $offset = ($session->param( "$basename\_offset" ) || 0) + 0;
 	$url .= "&$basename\_offset=$offset"; # $basename\_offset used by paginate_list
 
 	# Sort param
-	my $sort_order = $handle->param( $basename."_order" );
+	my $sort_order = $session->param( $basename."_order" );
 	if( !defined $sort_order ) 
 	{
 		my $firstcol = $opts{columns}->[0];
@@ -82,11 +82,11 @@ sub paginate_list
 	}
 	
 	# URL for images
-	my $imagesurl = $handle->get_repository->get_conf( "rel_path" )."/style/images";
+	my $imagesurl = $session->get_repository->get_conf( "rel_path" )."/style/images";
 
 	# Container for list
-	my $table = $handle->make_element( "table", border=>0, cellpadding=>4, cellspacing=>0, class=>"ep_columns" );
-	my $tr = $handle->make_element( "tr", class=>"header_plain" );
+	my $table = $session->make_element( "table", border=>0, cellpadding=>4, cellspacing=>0, class=>"ep_columns" );
+	my $tr = $session->make_element( "tr", class=>"header_plain" );
 	$table->appendChild( $tr );
 
 	my $len = scalar(@{$opts{columns}});
@@ -96,7 +96,7 @@ sub paginate_list
 		my $col = $opts{columns}->[$i];
 		my $last = ($i == $len-1);
 		# Column headings
-		my $th = $handle->make_element( "th", class=>"ep_columns_title".($last?" ep_columns_title_last":"") );
+		my $th = $session->make_element( "th", class=>"ep_columns_title".($last?" ep_columns_title_last":"") );
 		$tr->appendChild( $th );
 		next if !defined $col;
 	
@@ -114,24 +114,24 @@ sub paginate_list
 				$linkurl = "$url&$basename\_order=$col";
 			}
 		}
-		my $itable = $handle->make_element( "table", cellpadding=>0, border=>0, cellspacing=>0, width=>"100%" );
-		my $itr = $handle->make_element( "tr" );
+		my $itable = $session->make_element( "table", cellpadding=>0, border=>0, cellspacing=>0, width=>"100%" );
+		my $itr = $session->make_element( "tr" );
 		$itable->appendChild( $itr );
-		my $itd1 = $handle->make_element( "td" );
+		my $itd1 = $session->make_element( "td" );
 		$itr->appendChild( $itd1 );
-		my $itd2 = $handle->make_element( "td", style=>"padding-left: 1em; text-align: right" );
+		my $itd2 = $session->make_element( "td", style=>"padding-left: 1em; text-align: right" );
 		$itr->appendChild( $itd2 );
-		my $link = $handle->render_link( $linkurl );
-		$link->appendChild( $list->get_dataset->get_field( $col )->render_name( $handle ) );
+		my $link = $session->render_link( $linkurl );
+		$link->appendChild( $list->get_dataset->get_field( $col )->render_name( $session ) );
 		$itd1->appendChild( $link );
-		my $link2 = $handle->render_link( $linkurl );
+		my $link2 = $session->render_link( $linkurl );
 		$itd2->appendChild( $link2 );
 		$th->appendChild( $itable );
 		# Sort controls
 
 		if( $sort_order eq $col )
 		{
-			$link2->appendChild( $handle->make_element(
+			$link2->appendChild( $session->make_element(
 				"img",
 				alt=>"Up",
 				border=>0,
@@ -139,7 +139,7 @@ sub paginate_list
 		}
 		if( $sort_order eq "-$col" )
 		{
-			$link2->appendChild( $handle->make_element(
+			$link2->appendChild( $session->make_element(
 				"img",
 				alt=>"Down",
 				border=>0,
@@ -155,13 +155,13 @@ sub paginate_list
 	$newopts{container} = $table unless defined $newopts{container};
 	$newopts{render_result_params} = $info unless defined $newopts{render_result_params};
 	$newopts{render_result} = sub {
-		my( $handle, $e, $info ) = @_;
+		my( $session, $e, $info ) = @_;
 
-		my $tr = $handle->make_element( "tr" );
+		my $tr = $session->make_element( "tr" );
 		my $first = 1;
 		foreach my $column ( @{ $info->{columns} } )
 		{
-			my $td = $handle->make_element( "td", class=>"ep_columns_cell".($first?" ep_columns_cell_first":"") );
+			my $td = $session->make_element( "td", class=>"ep_columns_cell".($first?" ep_columns_cell_first":"") );
 			$first = 0;
 			$tr->appendChild( $td );
 			$td->appendChild( $e->render_value( $column ) );
@@ -170,15 +170,15 @@ sub paginate_list
 	} unless defined $newopts{render_result};
 
 	$newopts{render_no_results} = sub {
-		my( $handle, $info, $phrase ) = @_;
-		my $tr = $handle->make_element( "tr" );
-		my $td = $handle->make_element( "td", class=>"ep_columns_no_items", colspan => scalar @{ $opts{columns} } );
+		my( $session, $info, $phrase ) = @_;
+		my $tr = $session->make_element( "tr" );
+		my $td = $session->make_element( "td", class=>"ep_columns_no_items", colspan => scalar @{ $opts{columns} } );
 		$td->appendChild( $phrase ); 
 		$tr->appendChild( $td );
 		return $tr;
 	} unless defined $newopts{render_no_results};
 	
-	return EPrints::Paginate->paginate_list( $handle, $basename, $list, %newopts );
+	return EPrints::Paginate->paginate_list( $session, $basename, $list, %newopts );
 }
 
 1;

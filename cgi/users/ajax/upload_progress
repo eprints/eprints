@@ -3,20 +3,20 @@ use EPrints;
 use strict;
 
 # Make sure we don't accidentally start another progress for this request
-my $handle = EPrints::Handle->new( 2 );
+my $session = EPrints::Session->new( 2 );
 
-my $progress = EPrints::DataObj::UploadProgress->new_from_request( $handle );
+my $progress = EPrints::DataObj::UploadProgress->new_from_request( $session );
 
 if( !$progress )
 {
-	$handle->not_found( "No such file upload in progress" );
-	$handle->terminate;
+	$session->not_found( "No such file upload in progress" );
+	$session->terminate;
 	exit(0);
 }
 
 my $content = $progress->render_json();
 
-my $r = $handle->get_request;
+my $r = $session->get_request;
 
 # Based on Apache2::UploadProgress
 $r->headers_out->set( 'Vary' => 'Accept' );
@@ -28,4 +28,4 @@ $r->content_type( "application/x-json" );
 $r->set_content_length( length $content );
 $r->write( $content );
 
-$handle->terminate;
+$session->terminate;

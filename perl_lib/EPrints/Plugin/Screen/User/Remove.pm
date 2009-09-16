@@ -34,22 +34,22 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $div = $self->{handle}->make_element( "div", class=>"ep_block" );
+	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
 
 	$div->appendChild( $self->html_phrase("sure_delete", 
 		title=>$self->{processor}->{user}->render_description() ) );
 
 	my %buttons = (
-		cancel => $self->{handle}->phrase(
+		cancel => $self->{session}->phrase(
 				"lib/submissionform:action_cancel" ),
-		remove => $self->{handle}->phrase(
+		remove => $self->{session}->phrase(
 				"lib/submissionform:action_remove" ),
 		_order => [ "remove", "cancel" ]
 	);
 
 	my $form= $self->render_form;
 	$form->appendChild( 
-		$self->{handle}->render_action_buttons( 
+		$self->{session}->render_action_buttons( 
 			%buttons ) );
 	$div->appendChild( $form );
 
@@ -85,8 +85,8 @@ sub action_remove
 
 	if( !$self->{processor}->{user}->remove )
 	{
-		my $db_error = $self->{handle}->get_database->error;
-		$self->{handle}->get_repository->log( "DB error removing User ".$self->{processor}->{user}->get_value( "userid" ).": $db_error" );
+		my $db_error = $self->{session}->get_database->error;
+		$self->{session}->get_repository->log( "DB error removing User ".$self->{processor}->{user}->get_value( "userid" ).": $db_error" );
 		$self->{processor}->add_message( "message", $self->html_phrase( "user_not_removed" ) );
 		return;
 	}

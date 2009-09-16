@@ -31,52 +31,52 @@ sub output_list
 
 	my $list = $opts{list}->reorder( "-datestamp" );
 
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{session};
 
-	my $response = $handle->make_element( "rss",
+	my $response = $session->make_element( "rss",
 		"version" => "2.0",
 		"xmlns:content" => "http://purl.org/rss/1.0/modules/content/",
 		"xmlns:dc" => "http://purl.org/dc/elements/1.1/",
 		"xmlns:media" => "http://search.yahoo.com/mrss" );
 
-	my $channel = $handle->make_element( "channel" );
+	my $channel = $session->make_element( "channel" );
 	$response->appendChild( $channel );
 
-	my $title = $handle->phrase( "archive_name" );
+	my $title = $session->phrase( "archive_name" );
 
 	$title.= ": ".EPrints::Utils::tree_to_utf8( $list->render_description );
 
-	$channel->appendChild( $handle->render_data_element(
+	$channel->appendChild( $session->render_data_element(
 		4,
 		"title",
 		$title ) );
 
-	$channel->appendChild( $handle->render_data_element(
+	$channel->appendChild( $session->render_data_element(
 		4,
 		"link",
-		$handle->get_repository->get_conf( "frontpage" ) ) );
+		$session->get_repository->get_conf( "frontpage" ) ) );
 
-	$channel->appendChild( $handle->render_data_element(
+	$channel->appendChild( $session->render_data_element(
 		4,
 		"description", 
-		$handle->get_repository->get_conf( "oai","content","text" ) ) );
+		$session->get_repository->get_conf( "oai","content","text" ) ) );
 
-	$channel->appendChild( $handle->render_data_element(
+	$channel->appendChild( $session->render_data_element(
 		4,
 		"pubDate", 
 		RFC822_time() ) );
 
-	$channel->appendChild( $handle->render_data_element(
+	$channel->appendChild( $session->render_data_element(
 		4,
 		"lastBuildDate", 
 		RFC822_time() ) );
 
-	$channel->appendChild( $handle->render_data_element(
+	$channel->appendChild( $session->render_data_element(
 		4,
 		"language", 
-		$handle->get_langid ) );
+		$session->get_langid ) );
 
-	$channel->appendChild( $handle->render_data_element(
+	$channel->appendChild( $session->render_data_element(
 		4,
 		"copyright", 
 		"" ) );
@@ -84,32 +84,32 @@ sub output_list
 
 	foreach my $eprint ( $list->get_records( 0, $plugin->{number_to_show} ) )
 	{
-		my $item = $handle->make_element( "item" );
+		my $item = $session->make_element( "item" );
 		
 		my $datestamp = $eprint->get_value( "datestamp" );
 		if( $datestamp =~ /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/ )
 		{
 			my $time = timelocal( $6, $5, $4, $3, $2-1, $1 );
-			$item->appendChild( $handle->render_data_element(
+			$item->appendChild( $session->render_data_element(
 				2,
 				"pubDate",
 				RFC822_time( $time ) ) );	
 			
 		}
 
-		$item->appendChild( $handle->render_data_element(
+		$item->appendChild( $session->render_data_element(
 			2,
 			"title",
 			EPrints::Utils::tree_to_utf8( $eprint->render_description ) ) );
-		$item->appendChild( $handle->render_data_element(
+		$item->appendChild( $session->render_data_element(
 			2,
 			"link",
 			$eprint->get_url ) );
-		$item->appendChild( $handle->render_data_element(
+		$item->appendChild( $session->render_data_element(
 			2,
 			"guid",
 			$eprint->get_url ) );
-		$item->appendChild( $handle->render_data_element(
+		$item->appendChild( $session->render_data_element(
 			2,
 			"description",
 			EPrints::Utils::tree_to_utf8( $eprint->render_citation ) ) );
@@ -154,18 +154,18 @@ sub render_media_content
 		return $self->render_doc_media_content( $dataobj );
 	}
 
-	return $self->{handle}->make_doc_fragment();
+	return $self->{session}->make_doc_fragment();
 }
 
 sub render_eprint_media_content
 {
 	my( $self, $dataobj ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	if( $handle->get_repository->can_call( "eprint_rss_media_doc" ) )
+	if( $session->get_repository->can_call( "eprint_rss_media_doc" ) )
 	{
-		my $doc = $handle->get_repository->call(
+		my $doc = $session->get_repository->call(
 				"eprint_rss_media_doc",
 				$dataobj,
 				$self
@@ -173,7 +173,7 @@ sub render_eprint_media_content
 
 		if( !defined $doc )
 		{
-			return $handle->make_doc_fragment;
+			return $session->make_doc_fragment;
 		}
 
 		return $self->render_doc_media_content( $doc );
@@ -189,7 +189,7 @@ sub render_eprint_media_content
 			return $media if $media->hasChildNodes;
 		}
 
-		return $handle->make_doc_fragment;
+		return $session->make_doc_fragment;
 	}
 }
 
@@ -197,14 +197,14 @@ sub render_doc_media_content
 {
 	my( $self, $dataobj ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $frag = $handle->make_doc_fragment;
+	my $frag = $session->make_doc_fragment;
 
 	my( $thumbnail ) = @{($dataobj->get_related_objects( EPrints::Utils::make_relation( "hassmallThumbnailVersion" ) ))};
 	if( $thumbnail )
 	{
-		$frag->appendChild( $handle->make_element( "media:thumbnail", 
+		$frag->appendChild( $session->make_element( "media:thumbnail", 
 			url => $thumbnail->get_url,
 			type => $thumbnail->mime_type,
 		) );
@@ -213,7 +213,7 @@ sub render_doc_media_content
 	my( $preview ) = @{($dataobj->get_related_objects( EPrints::Utils::make_relation( "haspreviewThumbnailVersion" ) ))};
 	if( $preview )
 	{
-		$frag->appendChild( $handle->make_element( "media:content", 
+		$frag->appendChild( $session->make_element( "media:content", 
 			url => $preview->get_url,
 			type => $preview->mime_type,
 		) );

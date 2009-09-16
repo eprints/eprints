@@ -15,14 +15,14 @@
 use EPrints;
 use strict;
 
-my $handle = new EPrints::Handle();
-exit( 1 ) unless( defined $handle );
+my $session = new EPrints::Session();
+exit( 1 ) unless( defined $session );
 
 EPrints::ScreenProcessor->process( 
-	handle => $handle, 
-	url => $handle->get_repository->get_conf( "perl_url" )."/respond_doc",
+	session => $session, 
+	url => $session->get_repository->get_conf( "perl_url" )."/respond_doc",
 	screenid => "Request::Respond",
 );
-$handle->terminate;
+$session->terminate;
 
 exit;

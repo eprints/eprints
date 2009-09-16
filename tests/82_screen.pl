@@ -5,13 +5,13 @@ BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
 BEGIN { use_ok( "EPrints::ScreenProcessor" ); }
 
-my $handle = EPrints::Test::get_test_session();
+my $session = EPrints::Test::get_test_session();
 
 # find an example eprint
-my $dataset = $handle->get_repository->get_dataset( "eprint" );
-my( $eprintid ) = @{ $dataset->get_item_ids( $handle ) };
+my $dataset = $session->get_repository->get_dataset( "eprint" );
+my( $eprintid ) = @{ $dataset->get_item_ids( $session ) };
 
-$handle = EPrints::Test::OnlineSession->new( $handle, {
+$session = EPrints::Test::OnlineSession->new( $session, {
 	method => "GET",
 	path => "/cgi/users/home",
 	username => "admin",
@@ -22,8 +22,8 @@ $handle = EPrints::Test::OnlineSession->new( $handle, {
 });
 
 my $processor = EPrints::ScreenProcessor->new(
-	handle => $handle,
-	url => $handle->get_repository->get_conf( "base_url" ) . "/cgi/users/home",
+	session => $session,
+	url => $session->get_repository->get_conf( "base_url" ) . "/cgi/users/home",
 	screenid => "!!!test!!!",
 	);
 
@@ -33,7 +33,7 @@ my $screen = EPrints::Plugin::Screen->new(
 
 $screen->properties_from();
 
-is( $processor->{user}, $handle->current_user, "properties_from()" );
+is( $processor->{user}, $session->current_user, "properties_from()" );
 
 my @items = $screen->list_items( "key_tools" );
 
@@ -55,7 +55,7 @@ is( defined($items_screen->{screen_id}) && $items_screen->{screen_id}, $screen_i
 
 # disable
 {
-	local $handle->get_repository->{config}->{plugins}->{$screen_id}->{appears}->{"key_tools"} = undef;
+	local $session->get_repository->{config}->{plugins}->{$screen_id}->{appears}->{"key_tools"} = undef;
 
 	my( $t ) = grep { $_->{screen_id} eq $screen_id } $screen->list_items( "key_tools" );
 
@@ -72,7 +72,7 @@ ok( defined($ne_screen), "item_tools contains $screen_id" );
 
 # disable action
 {
-	local $handle->get_repository->{config}->{plugins}->{$screen_id}->{appears}->{"item_tools"} = undef;
+	local $session->get_repository->{config}->{plugins}->{$screen_id}->{appears}->{"item_tools"} = undef;
 
 	my( $t ) = grep { $_->{screen_id} eq $screen_id } $screen->action_list( "item_tools" );
 
@@ -82,13 +82,13 @@ ok( defined($ne_screen), "item_tools contains $screen_id" );
 # configure to an unusual location
 {
 	# note we also check based on definedness, not trueness
-	local $handle->get_repository->{config}->{plugins}->{$screen_id}->{appears}->{"__TEST__"} = 0;
+	local $session->get_repository->{config}->{plugins}->{$screen_id}->{appears}->{"__TEST__"} = 0;
 
 	my( $t ) = grep { $_->{screen_id} eq $screen_id } $screen->action_list( "__TEST__" );
 
 	ok( defined($t), "enabled $screen_id in __TEST__ list" );
 }
 
-$handle->terminate;
+$session->terminate;
 
 ok(1);

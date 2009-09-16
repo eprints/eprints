@@ -12,7 +12,7 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $chunk = $self->{handle}->make_doc_fragment;
+	my $chunk = $self->{session}->make_doc_fragment;
 
 	return $chunk;
 }

@@ -14,11 +14,13 @@ sub properties_from
 	# sets userid and user to the current user, if any
 	$self->SUPER::properties_from;
 
-	my $userid = $self->{handle}->param( "userid" );
+	my $userid = $self->{session}->param( "userid" );
 	if( defined $userid )
 	{
 		$self->{processor}->{userid} = $userid;
-		$self->{processor}->{user} = $self->{handle}->get_user( $userid );
+		$self->{processor}->{user} = new EPrints::DataObj::User( 
+						$self->{session}, 
+						$userid );
 	}
 
 	if( !defined $self->{processor}->{user} )
@@ -27,7 +29,7 @@ sub properties_from
 		$self->{processor}->add_message( "error", 
 			$self->html_phrase(
 				"no_such_user",
-				id => $self->{handle}->make_text( 
+				id => $self->{session}->make_text( 
 						$self->{processor}->{userid} ) ) );
 		return;
 	}
@@ -57,11 +59,11 @@ sub allow
 
 	return 0 unless defined $self->{processor}->{user};
 
-	return 1 if( $self->{handle}->allow_anybody( $priv ) );
+	return 1 if( $self->{session}->allow_anybody( $priv ) );
 
-	return 0 if( !defined $self->{handle}->current_user );
+	return 0 if( !defined $self->{session}->current_user );
 
-	return $self->{handle}->current_user->allow( $priv, $self->{processor}->{user} );
+	return $self->{session}->current_user->allow( $priv, $self->{processor}->{user} );
 }
 
 sub register_furniture
@@ -70,18 +72,18 @@ sub register_furniture
 
 	$self->SUPER::register_furniture;
 
-	my $f = $self->{handle}->make_doc_fragment;
+	my $f = $self->{session}->make_doc_fragment;
 
-	my $cuser = $self->{handle}->current_user;
+	my $cuser = $self->{session}->current_user;
 
 	if( $cuser->get_id eq $self->{processor}->{userid} )
 	{
 		return $f;
 	}
 
-	my $h2 = $self->{handle}->make_element( "h2", style=>"margin: 0px" );
+	my $h2 = $self->{session}->make_element( "h2", style=>"margin: 0px" );
 	my $title = $self->{processor}->{user}->render_citation( "screen" );
-	my $a = $self->{handle}->render_link( "?screen=User::View&userid=".$self->{processor}->{userid} );
+	my $a = $self->{session}->render_link( "?screen=User::View&userid=".$self->{processor}->{userid} );
 	$f->appendChild( $h2 );
 	$h2->appendChild( $a );
 	$a->appendChild( $title );
@@ -101,10 +103,10 @@ sub workflow
 	{
 		my %opts = ( 
 			item => $self->{processor}->{user},
-			handle => $self->{handle} );
+			session => $self->{session} );
 		$opts{STAFF_ONLY} = [$staff ? "TRUE" : "FALSE","BOOLEAN"];
  		$self->{processor}->{$cache_id} = EPrints::Workflow->new( 
-			$self->{handle}, 
+			$self->{session}, 
 			"default", 
 			%opts );
 	}
@@ -126,9 +128,9 @@ sub render_hidden_bits
 {
 	my( $self ) = @_;
 
-	my $chunk = $self->{handle}->make_doc_fragment;
+	my $chunk = $self->{session}->make_doc_fragment;
 
-	$chunk->appendChild( $self->{handle}->render_hidden_field( "userid", $self->{processor}->{userid} ) );
+	$chunk->appendChild( $self->{session}->render_hidden_field( "userid", $self->{processor}->{userid} ) );
 	$chunk->appendChild( $self->SUPER::render_hidden_bits );
 
 	return $chunk;

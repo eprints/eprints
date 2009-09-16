@@ -15,12 +15,12 @@
 use EPrints;
 
 use strict;
-my $handle = new EPrints::Handle;
-exit( 0 ) unless( defined $handle );
+my $session = new EPrints::Session;
+exit( 0 ) unless( defined $session );
 
-my $node_id = $handle->param( "subjectid" );
-my $top_prefix = $handle->param( "prefix" );
-my $top_subject = EPrints::DataObj::Subject->new( $handle, $node_id );
+my $node_id = $session->param( "subjectid" );
+my $top_prefix = $session->param( "prefix" );
+my $top_subject = EPrints::DataObj::Subject->new( $session, $node_id );
 
 my @children = $top_subject->get_children;
 if( scalar @children )
@@ -37,7 +37,7 @@ if( scalar @children )
 		my $has_kids = scalar @kids;
 
 		my $prefix = $top_prefix."_".$node_id;
-		my $id = $prefix."_".$handle->get_next_id;
+		my $id = $prefix."_".$session->get_next_id;
 
 		my $desc = $subject->render_description;
 		my $label = EPrints::Utils::tree_to_utf8( $desc );
@@ -100,7 +100,7 @@ END
 	print "</ul>\n";	
 }
 
-$handle->terminate;
+$session->terminate;
 exit;
 
 1;

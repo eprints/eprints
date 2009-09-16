@@ -50,15 +50,15 @@ sub action_take
 
 	$self->{processor}->{screenid} = "EPrint::View";
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 	my $eprint = $self->{processor}->{eprint};
-	my $user = $handle->current_user;
+	my $user = $session->current_user;
 
 	my $title = $eprint->render_citation( "screen" );
-	my $a = $handle->render_link( "?screen=EPrint::View&eprintid=".$self->{processor}->{eprintid} );
+	my $a = $session->render_link( "?screen=EPrint::View&eprintid=".$self->{processor}->{eprintid} );
 	$a->appendChild( $title );
 
-	$self->{handle}->get_database->save_user_message( 
+	$self->{session}->get_database->save_user_message( 
 			$eprint->get_value( "edit_lock_user" ),
 			"warning",
 			$self->html_phrase( "lock_taken", user=>$user->render_citation, item=>$a ) );

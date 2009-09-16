@@ -57,10 +57,10 @@ sub action_create
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
-	my $ds = $handle->get_repository->get_dataset( "user" );
+	my $session = $self->{session};
+	my $ds = $session->get_repository->get_dataset( "user" );
 
-	my $candidate_username = $handle->param( "username" );
+	my $candidate_username = $session->param( "username" );
 
 	unless( EPrints::Utils::is_set( $candidate_username ) )
 	{
@@ -70,27 +70,27 @@ sub action_create
 		return;
 	}
 
-	if( defined $handle->get_user_with_username( $candidate_username ) )
+	if( defined EPrints::DataObj::User::user_with_username( $session, $candidate_username ) )
 	{
 		$self->{processor}->add_message( 
 			"error",
 			$self->html_phrase( "user_exists",
-				username=>$handle->make_text( $candidate_username ) ) );
+				username=>$session->make_text( $candidate_username ) ) );
 		return;
 	}
 
-	my $usertype = $handle->get_repository->get_conf( "default_user_type" ); 
+	my $usertype = $session->get_repository->get_conf( "default_user_type" ); 
 
 	# Attempt to create a new account
 
-	$self->{processor}->{user} = $ds->create_object( $self->{handle}, { 
+	$self->{processor}->{user} = $ds->create_object( $self->{session}, { 
 		username=>$candidate_username,
 		usertype=>$usertype } );
 
 	if( !defined $self->{processor}->{user} )
 	{
-		my $db_error = $handle->get_database->error;
-		$handle->get_repository->log( "Database Error: $db_error" );
+		my $db_error = session->get_database->error;
+		$session->get_repository->log( "Database Error: $db_error" );
 		$self->{processor}->add_message( 
 			"error",
 			$self->html_phrase( "db_error" ) );
@@ -105,9 +105,9 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 
-	my $page = $handle->make_element( "div", class=>"ep_block" );
+	my $page = $session->make_element( "div", class=>"ep_block" );
 
 	$page->appendChild( $self->html_phrase( "blurb" ) );
 
@@ -117,17 +117,17 @@ sub render
 		_order => [ "create", "cancel" ]
 	);
 
-	my $form = $handle->render_form( "GET" );
+	my $form = $session->render_form( "GET" );
 	$form->appendChild( 
-		$handle->render_hidden_field ( "screen", "NewUser" ) );		
-	my $ds = $handle->get_repository->get_dataset( "user" );
+		$session->render_hidden_field ( "screen", "NewUser" ) );		
+	my $ds = $session->get_repository->get_dataset( "user" );
 	my $username_field = $ds->get_field( "username" );
 	my $usertype_field = $ds->get_field( "usertype" );
-	my $div = $handle->make_element( "div", style=>"margin-bottom: 1em" );
-	$div->appendChild( $username_field->render_name( $handle ) );
-	$div->appendChild( $handle->make_text( ": " ) );
+	my $div = $session->make_element( "div", style=>"margin-bottom: 1em" );
+	$div->appendChild( $username_field->render_name( $session ) );
+	$div->appendChild( $session->make_text( ": " ) );
 	$div->appendChild( 
-		$handle->make_element( 
+		$session->make_element( 
 			"input",
 			"maxlength"=>"255",
 			"name"=>"username",
@@ -135,7 +135,7 @@ sub render
 			"class"=>"ep_form_text",
 			"size"=>"20", ));
 	$form->appendChild( $div );
-	$form->appendChild( $handle->render_action_buttons( %buttons ) );
+	$form->appendChild( $session->render_action_buttons( %buttons ) );
 	
 	$page->appendChild( $form );
 

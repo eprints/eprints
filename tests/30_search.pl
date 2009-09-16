@@ -1,16 +1,16 @@
 use strict;
-use Test::More tests => 13;
+use Test::More tests => 12;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
 
-my $handle = EPrints::Test::get_test_session( 0 );
-ok(defined $handle, 'opened an EPrints::RepositoryHandle object (noisy, no_check_db)');
+my $session = EPrints::Test::get_test_session( 0 );
+ok(defined $session, 'opened an EPrints::Session object (noisy, no_check_db)');
 
-my $dataset = $handle->get_repository->get_dataset( "eprint" );
+my $dataset = $session->get_repository->get_dataset( "eprint" );
 
 my $searchexp = EPrints::Search->new(
-	handle => $handle,
+	session => $session,
 	dataset => $dataset,
 	allow_blank => 1,
 );
@@ -23,7 +23,7 @@ $searchexp->dispose;
 
 
 $searchexp = EPrints::Search->new(
-	handle => $handle,
+	session => $session,
 	dataset => $dataset,
 );
 
@@ -37,7 +37,7 @@ $searchexp->dispose;
 
 
 $searchexp = EPrints::Search->new(
-	handle => $handle,
+	session => $session,
 	dataset => $dataset,
 );
 
@@ -51,11 +51,11 @@ $searchexp->dispose;
 
 
 $searchexp = EPrints::Search->new(
-	handle => $handle,
+	session => $session,
 	dataset => $dataset,
 );
 
-my $sample_doc = EPrints::Test::get_test_document( $handle );
+my $sample_doc = EPrints::Test::get_test_document( $session );
 my $sample_eprint = $sample_doc->get_parent;
 
 $searchexp->add_field( $dataset->get_field( "eprintid" ), $sample_doc->get_value( "eprintid" ) );
@@ -76,7 +76,7 @@ $searchexp->dispose;
 
 
 $searchexp = EPrints::Search->new(
-	handle => $handle,
+	session => $session,
 	dataset => $sample_doc->get_dataset,
 );
 
@@ -90,7 +90,7 @@ $searchexp->dispose;
 
 
 $searchexp = EPrints::Search->new(
-	handle => $handle,
+	session => $session,
 	dataset => $dataset,
 );
 
@@ -104,7 +104,7 @@ $searchexp->dispose;
 
 
 $searchexp = EPrints::Search->new(
-	handle => $handle,
+	session => $session,
 	dataset => $dataset,
 	satisfy_all => 0,
 );
@@ -121,7 +121,7 @@ $searchexp->dispose;
 
 
 $searchexp = EPrints::Search->new(
-	handle => $handle,
+	session => $session,
 	dataset => $dataset,
 	satisfy_all => 0,
 	custom_order => "-date/title",
@@ -139,7 +139,7 @@ $searchexp->dispose;
 
 
 $searchexp = EPrints::Search->new(
-	handle => $handle,
+	session => $session,
 	dataset => $dataset,
 );
 
@@ -153,7 +153,7 @@ $searchexp->dispose;
 
 
 $searchexp = EPrints::Search->new(
-	handle => $handle,
+	session => $session,
 	dataset => $dataset,
 );
 
@@ -166,4 +166,4 @@ ok(defined($values) && scalar(@$values) > 0, "groupby");
 $searchexp->dispose;
 
 
-$handle->terminate;
+$session->terminate;

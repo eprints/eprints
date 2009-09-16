@@ -68,7 +68,7 @@ sub convert_dataobj
 			push @$data, [ author => {
 				aulast => $author->{family},
 				aufirst => $author->{given},
-				au => EPrints::Utils::tree_to_utf8( $field->render_value( $plugin->{handle}, [ $author ] ) )
+				au => EPrints::Utils::tree_to_utf8( $field->render_value( $plugin->{session}, [ $author ] ) )
 			} ];
 		}
 	}
@@ -86,7 +86,7 @@ sub convert_dataobj
 		}
 		else
 		{
-			$value = EPrints::Utils::tree_to_utf8( $field->render_value( $plugin->{handle}, $dataobj->get_value( $fieldname ) ) );
+			$value = EPrints::Utils::tree_to_utf8( $field->render_value( $plugin->{session}, $dataobj->get_value( $fieldname ) ) );
 		}
 		push @$data, [ $entity_field => $value ];
 	}
@@ -98,14 +98,14 @@ sub xml_entity_dataobj
 {
 	my( $plugin, $dataobj, %opts ) = @_;
 
-	my $handle = $plugin->{handle};
-	my $repository = $handle->get_repository;
+	my $session = $plugin->{ "session" };
+	my $repository = $session->get_repository;
 
 	my $prefix = $opts{prefix};
 	my $namespace = $opts{namespace};
 	my $schemaLocation = $opts{schemaLocation};
 
-	my $entity = $handle->make_element(
+	my $entity = $session->make_element(
 		"$prefix:journal",
 		"xmlns:$prefix" => $namespace,
 		"xmlns:xsi" => "http://www.w3.org/2001/XML",
@@ -114,7 +114,7 @@ sub xml_entity_dataobj
 
 	my $data = $plugin->convert_dataobj( $dataobj, %opts );
 
-	my $auths = $handle->make_element( "$prefix:authors" );
+	my $auths = $session->make_element( "$prefix:authors" );
 	$entity->appendChild( $auths );
 
 	foreach my $e (@$data)
@@ -123,31 +123,31 @@ sub xml_entity_dataobj
 		{
 			my $author = $e->[1];
 
-			my $auth = $auths->appendChild( $handle->make_element( "$prefix:author" ) );
+			my $auth = $auths->appendChild( $session->make_element( "$prefix:author" ) );
 
 			$auth->appendChild(
-				$handle->make_element( "$prefix:aulast" )
+				$session->make_element( "$prefix:aulast" )
 			)->appendChild(
-				$handle->make_text( $author->{ "aulast" } )
+				$session->make_text( $author->{ "aulast" } )
 			);
 
 			$auth->appendChild(
-				$handle->make_element( "$prefix:aufirst" )
+				$session->make_element( "$prefix:aufirst" )
 			)->appendChild(
-				$handle->make_text( $author->{ "aufirst" } )
+				$session->make_text( $author->{ "aufirst" } )
 			);
 
 			$auth->appendChild(
-				$handle->make_element( "$prefix:au" )
+				$session->make_element( "$prefix:au" )
 			)->appendChild(
-				$handle->make_text( $author->{ "au" } )
+				$session->make_text( $author->{ "au" } )
 			);
 		}
 		else
 		{
-			my $node = $handle->make_element( "$prefix:$e->[0]" );
+			my $node = $session->make_element( "$prefix:$e->[0]" );
 			$entity->appendChild( $node );
-			$node->appendChild( $handle->make_text( $e->[1] ));
+			$node->appendChild( $session->make_text( $e->[1] ));
 		}
 	}
 
@@ -181,7 +181,7 @@ EOX
 	}
 
 	$opts{list}->map( sub {
-		my( $handle, $dataset, $item ) = @_;
+		my( $session, $dataset, $item ) = @_;
 
 		my $part = $plugin->output_dataobj( $item, %opts );
 		if( defined $opts{fh} )
@@ -230,7 +230,7 @@ sub xml_dataobj
 
 	my $itemtype = $dataobj->get_dataset->confid;
 
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{ "session" };
 
 	my $timestamp_field;
 	if( $itemtype eq "eprint" )
@@ -247,7 +247,7 @@ sub xml_dataobj
 	$timestamp = "${date}T${time}Z";
 
 	# TODO: fix timestamp format
-	my $co = $handle->make_element(
+	my $co = $session->make_element(
 		"ctx:context-object",
 		"xmlns:ctx" => "info:ofi/fmt:xml:xsd:ctx",
 		"xmlns:xsi" => "http://www.w3.org/2001/XML",
@@ -272,21 +272,21 @@ sub xml_eprint
 {
 	my( $plugin, $eprint, %opts ) = @_;
 
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{ "session" };
 
 	# Referent
-	my $rft = $handle->make_element( "ctx:referent" );
+	my $rft = $session->make_element( "ctx:referent" );
 	
-	my $oai = $handle->get_repository->get_conf( "oai" );
+	my $oai = $session->get_repository->get_conf( "oai" );
 
 	my $oai_id = EPrints::OpenArchives::to_oai_identifier( 
 			$oai->{v2}->{ "archive_id" }, 
 			$eprint->get_id );
 
 	$rft->appendChild( 
-		$handle->make_element( "ctx:identifier" )
+		$session->make_element( "ctx:identifier" )
 	)->appendChild(
-		$handle->make_text( "info:".$oai_id )
+		$session->make_text( "info:".$oai_id )
 	);
 
 	my $type = $eprint->get_value( "type" );
@@ -304,65 +304,65 @@ sub xml_access
 {
 	my( $plugin, $access, %opts ) = @_;
 
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{ "session" };
 
-	my $r = $handle->make_doc_fragment;
+	my $r = $session->make_doc_fragment;
 
-	my $rft = $handle->make_element( "ctx:referent" );
+	my $rft = $session->make_element( "ctx:referent" );
 	$r->appendChild( $rft );
 	
 	$rft->appendChild( 
-		$handle->make_element( "ctx:identifier" )
+		$session->make_element( "ctx:identifier" )
 	)->appendChild(
-		$handle->make_text( $access->get_referent_id )
+		$session->make_text( $access->get_referent_id )
 	);
 
 	# referring-entity
 	if( $access->exists_and_set( "referring_entity_id" ) )
 	{
-		my $rfr = $handle->make_element( "ctx:referring-entity" );
+		my $rfr = $session->make_element( "ctx:referring-entity" );
 		$r->appendChild( $rfr );
 
 		$rfr->appendChild(
-			$handle->make_element( "ctx:identifier" )
+			$session->make_element( "ctx:identifier" )
 		)->appendChild(
-			$handle->make_text( $access->get_value( "referring_entity_id" ))
+			$session->make_text( $access->get_value( "referring_entity_id" ))
 		);
 	}
 
 	# requester
-	my $req = $handle->make_element( "ctx:requester" );
+	my $req = $session->make_element( "ctx:requester" );
 	$r->appendChild( $req );
 
 	$req->appendChild(
-		$handle->make_element( "ctx:identifier" )
+		$session->make_element( "ctx:identifier" )
 	)->appendChild(
-		$handle->make_text( $access->get_requester_id )
+		$session->make_text( $access->get_requester_id )
 	);
 	
 	if( $access->exists_and_set( "requester_user_agent" ) )
 	{
 		$req->appendChild(
-			$handle->make_element( "ctx:private-accesslog" )
+			$session->make_element( "ctx:private-accesslog" )
 		)->appendChild(
-			$handle->make_text( $access->get_value( "requester_user_agent" ))
+			$session->make_text( $access->get_value( "requester_user_agent" ))
 		);
 	}
 
 	# service-type
 	if( $access->exists_and_set( "service_type_id" ) )
 	{
-		my $svc = $handle->make_element( "ctx:service-type" );
+		my $svc = $session->make_element( "ctx:service-type" );
 		$r->appendChild( $svc );
 
-		my $md_val = $handle->make_element( "ctx:metadata-by-val" );
+		my $md_val = $session->make_element( "ctx:metadata-by-val" );
 		$svc->appendChild( $md_val );
 	
-		my $fmt = $handle->make_element( "ctx:format" );
+		my $fmt = $session->make_element( "ctx:format" );
 		$md_val->appendChild( $fmt );
-		$fmt->appendChild( $handle->make_text( "info:ofi/fmt:xml:xsd:sch_svc" ));
+		$fmt->appendChild( $session->make_text( "info:ofi/fmt:xml:xsd:sch_svc" ));
 
-		my $md = $handle->make_element(
+		my $md = $session->make_element(
 			"sv:svc-list",
 			"xmlns:sv" => "info:ofi/fmt:xml:xsd:sch_svc",
 			"xsi:schemaLocation" => "info:ofi/fmt:xml:xsd:sch_svc http://www.openurl.info/registry/docs/info:ofi/fmt:xml:xsd:sch_svc",
@@ -372,9 +372,9 @@ sub xml_access
 		my $uri = URI->new( $access->get_value( "service_type_id" ), 'http' );
 		my( $key, $value ) = $uri->query_form;
 		$md->appendChild(
-			$handle->make_element( "sv:$key" )
+			$session->make_element( "sv:$key" )
 		)->appendChild(
-			$handle->make_text( $value )
+			$session->make_text( $value )
 		);
 	}
 
@@ -384,20 +384,20 @@ sub xml_access
 sub _metadata_by_val
 {
 	my( $plugin, $dataobj, %opts ) = @_;
-	my $handle = $plugin->{handle};
+	my $session = $plugin->{ "session" };
 
-	my $md_val = $handle->make_element( "ctx:metadata-by-val" );
+	my $md_val = $session->make_element( "ctx:metadata-by-val" );
 	
 	$md_val->appendChild(
-		$handle->make_element( "ctx:format" )
+		$session->make_element( "ctx:format" )
 	)->appendChild(
-		$handle->make_text( $opts{ "namespace" } )
+		$session->make_text( $opts{ "namespace" } )
 	);
 	
-	my $md = $handle->make_element( "ctx:metadata" );
+	my $md = $session->make_element( "ctx:metadata" );
 	$md_val->appendChild( $md );
 
-	my $entity_plugin = $handle->plugin( $opts{ "plugin" } );
+	my $entity_plugin = $session->plugin( $opts{ "plugin" } );
 	$md->appendChild( $entity_plugin->xml_dataobj( $dataobj ) );
 
 	return $md_val;

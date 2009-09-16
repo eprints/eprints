@@ -27,16 +27,16 @@ use constant {
 
 use EPrints;
 
-my $handle = EPrints->get_repository_handle();
-exit( 0 ) unless defined $handle;
+my $session = EPrints::Session->new;
+exit( 0 ) unless defined $session;
 
 our $METADATAPREFIX_REGEXP = qr/^[A-Za-z0-9\-_\.!~\*'\(\)]+$/;
 our $IDENTIFIER_REGEXP = qr/^[a-z]+:.*$/;
 our $DATETIME_REGEXP = qr/^\d\d\d\d-\d\d-\d\d(T\d\d:\d\d:\d\dZ)?$/;
 
-our $DATESTAMP_FIELD = $handle->get_repository->get_dataset( "eprint")->get_datestamp_field;
-our $ARCHIVE_ID = $handle->get_repository->get_conf( "oai", "v2", "archive_id" );
-our %FORMATS = %{$handle->get_repository->get_conf( "oai", "v2", "output_plugins" )};
+our $DATESTAMP_FIELD = $session->get_repository->get_dataset( "eprint")->get_datestamp_field;
+our $ARCHIVE_ID = $session->get_repository->get_conf( "oai", "v2", "archive_id" );
+our %FORMATS = %{$session->get_repository->get_conf( "oai", "v2", "output_plugins" )};
 
 # OAI-PMH grammar
 our %GRAMMAR = (
@@ -74,16 +74,16 @@ my @errors;
 my %arguments;
 
 my %params;
-my @params = $handle->param;
+my @params = $session->param;
 
 # check whether any parameters were repeated
 for(@params)
 {
-	my @values = $handle->param( $_ );
+	my @values = $session->param( $_ );
 	if( scalar(@values) > 1 )
 	{
 		push @errors,
-			render_oai_error( $handle, "badArgument", "Includes a repeated argument for '$_'" );
+			render_oai_error( $session, "badArgument", "Includes a repeated argument for '$_'" );
 	}
 	elsif( defined $values[0] && length $values[0] )
 	{
@@ -97,14 +97,14 @@ if( !defined $verb )
 {
 	$verb = "error";
 	unshift @errors,
-		render_oai_error( $handle, "badVerb", "Missing verb argument" ),
-		render_oai_error( $handle, "badArgument", "Requires verb argument" );
+		render_oai_error( $session, "badVerb", "Missing verb argument" ),
+		render_oai_error( $session, "badArgument", "Requires verb argument" );
 }
 elsif( !exists $GRAMMAR{$verb} )
 {
 	unshift @errors,
-		render_oai_error( $handle, "badVerb", "The value of the verb argument is not a legal OAI-PMH verb" ),
-		render_oai_error( $handle, "badArgument", "Bad verb argument" );
+		render_oai_error( $session, "badVerb", "The value of the verb argument is not a legal OAI-PMH verb" ),
+		render_oai_error( $session, "badArgument", "Bad verb argument" );
 }
 else
 {
@@ -119,7 +119,7 @@ else
 	foreach my $name (keys %unknown)
 	{
 		push @errors,
-			render_oai_error( $handle, "badArgument", "Unrecognised argument '$name'" );
+			render_oai_error( $session, "badArgument", "Unrecognised argument '$name'" );
 	}
 
 	# find out if we have an exclusive argument
@@ -132,7 +132,7 @@ else
 		if( scalar(keys %arguments) > 1 )
 		{
 			push @errors,
-				render_oai_error( $handle, "badArgument", "'$exclusive' is exclusive and can not be used with any other arguments (except for 'verb')" );
+				render_oai_error( $session, "badArgument", "'$exclusive' is exclusive and can not be used with any other arguments (except for 'verb')" );
 		}
 	}
 
@@ -145,7 +145,7 @@ else
 			if( $props->[0] == OAI_REQUIRED && !defined($value) )
 			{
 				push @errors,
-					render_oai_error( $handle, "badArgument", "Missing required argument '$name'" );
+					render_oai_error( $session, "badArgument", "Missing required argument '$name'" );
 			}
 		}
 	}
@@ -158,40 +158,40 @@ else
 		if( $value !~ /$props->[1]/ )
 		{
 			push @errors,
-				render_oai_error( $handle, "badArgument", "'$name' doesn't match required syntax '$props->[1]'" );
+				render_oai_error( $session, "badArgument", "'$name' doesn't match required syntax '$props->[1]'" );
 		}
 		else
 		{
-			push @errors, &{$props->[2]}( $handle, $value );
+			push @errors, &{$props->[2]}( $session, $value );
 			$arguments{$name} = $value;
 		}
 	}
 }
 
 # if we don't have any argument errors, get the response
-my $response = $handle->make_element( $verb );
+my $response = $session->make_element( $verb );
 if( !scalar @errors )
 {
 	no strict "refs";
-	push @errors, &$verb( $handle, $response, \%arguments );
+	push @errors, &$verb( $session, $response, \%arguments );
 }
 
-my $oai_pmh = $handle->make_element( "OAI-PMH",
+my $oai_pmh = $session->make_element( "OAI-PMH",
 		"xmlns" => "http://www.openarchives.org/OAI/2.0/",
 		"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
 		"xsi:schemaLocation" => "http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd"
 	);
 
-$oai_pmh->appendChild( $handle->render_data_element(
+$oai_pmh->appendChild( $session->render_data_element(
 		2,
 		"responseDate",
 		EPrints::Time::get_iso_timestamp() ) );
 
-my $url = $handle->get_url( host => 1, path => "cgi" ) . "/oai2";
+my $url = $session->get_url( host => 1, path => "cgi" ) . "/oai2";
 # error response
 if( scalar @errors )
 {
-	$oai_pmh->appendChild( $handle->render_data_element(
+	$oai_pmh->appendChild( $session->render_data_element(
 		2,
 		"request",
 		$url ) );
@@ -204,7 +204,7 @@ if( scalar @errors )
 # normal response
 else
 {
-	$oai_pmh->appendChild( $handle->render_data_element(
+	$oai_pmh->appendChild( $session->render_data_element(
 		2,
 		"request",
 		$url,
@@ -214,9 +214,9 @@ else
 }
 
 # send the response
-$handle->send_http_header( content_type=>"text/xml; charset=UTF-8" );
+$session->send_http_header( content_type=>"text/xml; charset=UTF-8" );
 
-my $xslt = $handle->get_url( path => "static" ) . "/oai2.xsl";
+my $xslt = $session->get_url( path => "static" ) . "/oai2.xsl";
 
 binmode(STDOUT, ":utf8");
 print "<?xml version='1.0' encoding='UTF-8'?>\n",
@@ -225,13 +225,13 @@ print "<?xml version='1.0' encoding='UTF-8'?>\n",
 
 EPrints::XML::dispose( $oai_pmh );
 
-$handle->terminate;
+$session->terminate;
 
 sub render_oai_error
 {
-	my( $handle, $code, $message ) = @_;
+	my( $session, $code, $message ) = @_;
 
-	return $handle->render_data_element(
+	return $session->render_data_element(
 			2,
 			"error",
 			$message,
@@ -240,17 +240,17 @@ sub render_oai_error
 
 sub render_text_url
 {
-	my( $handle, $name, $texturl ) = @_;
+	my( $session, $name, $texturl ) = @_;
 
-	my $f = $handle->make_doc_fragment();
+	my $f = $session->make_doc_fragment();
 
-	$f->appendChild( $handle->make_indent( 8 ) );
-	my $e = $handle->make_element( $name );
+	$f->appendChild( $session->make_indent( 8 ) );
+	my $e = $session->make_element( $name );
 	$f->appendChild( $e );
 
 	if ( defined $texturl->{"text"} ) 
 	{
-		$e->appendChild( $handle->render_data_element(
+		$e->appendChild( $session->render_data_element(
 			10,
 			"text",
 			$texturl->{"text"} ) );
@@ -258,7 +258,7 @@ sub render_text_url
 
 	if ( defined $texturl->{"url"} ) 
 	{
-		$e->appendChild( $handle->render_data_element(
+		$e->appendChild( $session->render_data_element(
 			10,
 			"URL",
 			$texturl->{"url"} ) );
@@ -269,18 +269,18 @@ sub render_text_url
 
 sub get_eprint_by_identifier
 {
-	my( $handle, $identifier ) = @_;
+	my( $session, $identifier ) = @_;
 
 	my $id = EPrints::OpenArchives::from_oai_identifier(
-			$handle,
+			$session,
 			$identifier );
 
 	return undef unless EPrints::Utils::is_set( $id );
 
-	my $dataset = $handle->get_repository->get_dataset( "eprint" );
+	my $dataset = $session->get_repository->get_dataset( "eprint" );
 
 	my $searchexp = EPrints::Search->new(
-		handle => $handle,
+		session => $session,
 		dataset => $dataset,
 	);
 
@@ -314,14 +314,14 @@ sub get_eprint_by_identifier
 
 sub check_metadataprefix
 {
-	my( $handle, $value ) = @_;
+	my( $session, $value ) = @_;
 
 	my @errors;
 
-	if( !defined $handle->get_repository->get_conf( "oai", "v2", "metadata_namespaces" )->{$value} || !defined($FORMATS{$value}) )
+	if( !defined $session->get_repository->get_conf( "oai", "v2", "metadata_namespaces" )->{$value} || !defined($FORMATS{$value}) )
 	{
 		push @errors, render_oai_error(
-				$handle,
+				$session,
 				"cannotDisseminateFormat",
 				"Record not available as metadata type: '$value'" );
 	}
@@ -333,15 +333,15 @@ sub check_metadataprefix
 
 sub check_identifier
 {
-	my( $handle, $value ) = @_;
+	my( $session, $value ) = @_;
 
 	my @errors;
 
-	my $eprint = get_eprint_by_identifier( $handle, $value );
+	my $eprint = get_eprint_by_identifier( $session, $value );
 	if( !defined $eprint )
 	{
 		push @errors, render_oai_error(
-				$handle,
+				$session,
 				"idDoesNotExist",
 				"'$value' is not a valid item in this repository" );
 	}
@@ -353,7 +353,7 @@ sub check_identifier
 
 sub check_from_date
 {
-	my( $handle, $value ) = @_;
+	my( $session, $value ) = @_;
 
 	if( $value =~ /^(\d\d\d\d-\d\d-\d\d)$/ )
 	{
@@ -369,7 +369,7 @@ sub check_from_date
 
 sub check_until_date
 {
-	my( $handle, $value ) = @_;
+	my( $session, $value ) = @_;
 
 	if( $value =~ /^(\d\d\d\d-\d\d-\d\d)$/ )
 	{
@@ -385,7 +385,7 @@ sub check_until_date
 
 sub check_resumptiontoken
 {
-	my( $handle, $value ) = @_;
+	my( $session, $value ) = @_;
 
 	my %token;
 
@@ -405,7 +405,7 @@ sub check_resumptiontoken
 # serialises and returns a hash ref that can be used as a resumption token
 sub serialise_resumptiontoken
 {
-	my( $handle, $params ) = @_;
+	my( $session, $params ) = @_;
 
 	return URI::Escape::uri_escape(
 		join "&",
@@ -415,16 +415,16 @@ sub serialise_resumptiontoken
 
 sub Identify
 {
-	my( $handle, $response, $args ) = @_;
+	my( $session, $response, $args ) = @_;
 
-	my $sample_identifier = $handle->get_repository->get_conf( "oai","v2","sample_identifier" );
+	my $sample_identifier = $session->get_repository->get_conf( "oai","v2","sample_identifier" );
 	my $earliest_datestamp = "0001-01-01T00:00:00Z";
 
 	# get a real identifier & datestamp
 	my $order = $DATESTAMP_FIELD->get_name;
 	my $searchexp = EPrints::Search->new(
-		handle => $handle,
-		dataset => $handle->get_repository->get_dataset( "archive" ),
+		session => $session,
+		dataset => $session->get_repository->get_dataset( "archive" ),
 		custom_order => "$order",
 		);
 	my( $sample_eprint ) = $searchexp->perform_search->get_records( 0, 1 );
@@ -444,111 +444,111 @@ sub Identify
 		}
 	}
 
-	$response->appendChild( $handle->render_data_element(
+	$response->appendChild( $session->render_data_element(
 		4,
 		"repositoryName",
-		$handle->phrase( "archive_name" ) ) );
+		$session->phrase( "archive_name" ) ) );
 
-	$response->appendChild( $handle->render_data_element(
+	$response->appendChild( $session->render_data_element(
 		4,
 		"baseURL",
-		$handle->get_repository->get_conf( "oai","v2","base_url" ) ) );
+		$session->get_repository->get_conf( "oai","v2","base_url" ) ) );
 
-	$response->appendChild( $handle->render_data_element(
+	$response->appendChild( $session->render_data_element(
 		4,
 		"protocolVersion",
 		"2.0" ) );
 
-	$response->appendChild( $handle->render_data_element(
+	$response->appendChild( $session->render_data_element(
 		4,
 		"adminEmail",
-		$handle->get_repository->get_conf( "adminemail" ) ) );
+		$session->get_repository->get_conf( "adminemail" ) ) );
 
 	# Later this may be either calcualted from the
 	# database, or configurable.
-	$response->appendChild( $handle->render_data_element(
+	$response->appendChild( $session->render_data_element(
 		4,
 		"earliestDatestamp",
 		$earliest_datestamp ) );
 
-	$response->appendChild( $handle->render_data_element(
+	$response->appendChild( $session->render_data_element(
 		4,
 		"deletedRecord",
 		"persistent" ) );
 
-	$response->appendChild( $handle->render_data_element(
+	$response->appendChild( $session->render_data_element(
 		4,
 		"granularity",
 		"YYYY-MM-DDThh:mm:ssZ" ) );
 
-	my $d1 = $handle->make_element( "description" );
+	my $d1 = $session->make_element( "description" );
 	my $NS = "http://www.openarchives.org/OAI/2.0/oai-identifier";
 	my $XSD = "http://www.openarchives.org/OAI/2.0/oai-identifier.xsd";
-	my $oaiid = $handle->make_element( 	
+	my $oaiid = $session->make_element( 	
 		"oai-identifier",
 		"xmlns"=>$NS,
 		"xmlns:xsi"=>"http://www.w3.org/2001/XMLSchema-instance",
 		"xsi:schemaLocation"=>"$NS $XSD" );
 
-	$d1->appendChild( $handle->make_indent( 6 ) );
+	$d1->appendChild( $session->make_indent( 6 ) );
 	$d1->appendChild( $oaiid );
-	$response->appendChild( $handle->make_indent( 4 ) );
+	$response->appendChild( $session->make_indent( 4 ) );
 	$response->appendChild( $d1 );
 
-	$oaiid->appendChild( $handle->render_data_element(
+	$oaiid->appendChild( $session->render_data_element(
 		8,
 		"scheme",
 		"oai" ) );
 
-	$oaiid->appendChild( $handle->render_data_element(
+	$oaiid->appendChild( $session->render_data_element(
 		8,
 		"repositoryIdentifier",
 		$ARCHIVE_ID ) );
 
-	$oaiid->appendChild( $handle->render_data_element(
+	$oaiid->appendChild( $session->render_data_element(
 		8,
 		"delimiter",
 		":" ) );
 
-	$oaiid->appendChild( $handle->render_data_element(
+	$oaiid->appendChild( $session->render_data_element(
 		8,
 		"sampleIdentifier",
 		$sample_identifier ) );
 
-	my $d2 = $handle->make_element( "description" );
-	my $eprints = $handle->make_element( 	
+	my $d2 = $session->make_element( "description" );
+	my $eprints = $session->make_element( 	
 		"eprints", 
 		"xmlns"=>"http://www.openarchives.org/OAI/1.1/eprints",
 		"xmlns:xsi"=>"http://www.w3.org/2001/XMLSchema-instance",
 		"xsi:schemaLocation"=>"http://www.openarchives.org/OAI/1.1/eprints http://www.openarchives.org/OAI/1.1/eprints.xsd" );
-	$d2->appendChild( $handle->make_indent( 6 ) );
+	$d2->appendChild( $session->make_indent( 6 ) );
 	$d2->appendChild( $eprints );
-	$response->appendChild( $handle->make_indent( 4 ) );
+	$response->appendChild( $session->make_indent( 4 ) );
 	$response->appendChild( $d2 );
 
 	$eprints->appendChild( render_text_url( 
-		$handle,
+		$session,
 		"content", 
-		$handle->get_repository->get_conf( "oai","content" ) ) );
+		$session->get_repository->get_conf( "oai","content" ) ) );
                           
 	$eprints->appendChild( render_text_url( 
-		$handle,
+		$session,
 		"metadataPolicy", 
-		$handle->get_repository->get_conf( "oai","metadata_policy" ) ) );
+		$session->get_repository->get_conf( "oai","metadata_policy" ) ) );
 
 	$eprints->appendChild( render_text_url( 
-		$handle,
+		$session,
 		"dataPolicy", 
-		$handle->get_repository->get_conf( "oai","data_policy" ) ) );
+		$session->get_repository->get_conf( "oai","data_policy" ) ) );
 
 	$eprints->appendChild( render_text_url( 
-		$handle,
+		$session,
 		"submissionPolicy", 
-		$handle->get_repository->get_conf( "oai","submission_policy" ) ) );
+		$session->get_repository->get_conf( "oai","submission_policy" ) ) );
 
-	foreach( @{$handle->get_repository->get_conf( "oai","comments" )} ) 
+	foreach( @{$session->get_repository->get_conf( "oai","comments" )} ) 
 	{
-		$eprints->appendChild( $handle->render_data_element(
+		$eprints->appendChild( $session->render_data_element(
 			8,
 			"comment", 
 			$_ ) );
@@ -559,7 +559,7 @@ sub Identify
 
 sub GetRecord
 {
-	my( $handle, $response, $args ) = @_;
+	my( $session, $response, $args ) = @_;
 
 	my $eprint = $args->{identifier};
 
@@ -568,17 +568,17 @@ sub GetRecord
 	# this record, only the header will be output.
 
 	my $plugin_id = "Export::" . $args->{metadataPrefix};
-	my $plugin = $handle->plugin( $plugin_id );
+	my $plugin = $session->plugin( $plugin_id );
 
 	unless( defined $plugin )
 	{
 		EPrints::abort( "Could not find plugin $plugin_id" );
 	}
 
-	$response->appendChild( $handle->make_indent( 2 ) );
+	$response->appendChild( $session->make_indent( 2 ) );
 	$response->appendChild( 
 		EPrints::OpenArchives::make_record(
-			$handle,
+			$session,
 			$eprint,
 			$plugin,
 			1 ) );
@@ -588,37 +588,37 @@ sub GetRecord
 
 sub ListMetadataFormats
 {
-	my( $handle, $response, $args ) = @_;
+	my( $session, $response, $args ) = @_;
 	
 	my $eprint = $args->{identifier};
 
 	foreach ( keys %FORMATS )
 	{
 		my $plugin_id = "Export::" . $FORMATS{ $_ };
-		my $plugin = $handle->plugin( $plugin_id ) or next;
+		my $plugin = $session->plugin( $plugin_id ) or next;
 		if( defined($eprint) )
 		{
 			$eprint->export( $FORMATS{ $_ } ) or next;
 		}
 		
-		my $mdf = $handle->make_element( "metadataFormat" );
+		my $mdf = $session->make_element( "metadataFormat" );
 
-		$mdf->appendChild( $handle->render_data_element(
+		$mdf->appendChild( $session->render_data_element(
 			4,
 			"metadataPrefix",
 			$_ ) );
 
-		$mdf->appendChild( $handle->render_data_element(
+		$mdf->appendChild( $session->render_data_element(
 			4,
 			"schema",
 			$plugin->{ 'schemaLocation' }
 		));
-		$mdf->appendChild( $handle->render_data_element(
+		$mdf->appendChild( $session->render_data_element(
 			4,
 			"metadataNamespace",
 			$plugin->{ 'xmlns' }
 		));
-		$response->appendChild( $handle->make_indent( 2 ) );
+		$response->appendChild( $session->make_indent( 2 ) );
 		$response->appendChild( $mdf );
 	}
 	
@@ -627,12 +627,12 @@ sub ListMetadataFormats
 
 sub ListSets
 {
-	my( $handle, $response, $args ) = @_;
+	my( $session, $response, $args ) = @_;
 	
 	if( defined $args->{resumptionToken} )
 	{	
 		return( render_oai_error(
-			$handle,
+			$session,
 			"badResumptionToken",
 			"Resumption Tokens not supported for ListSets" ) );
 	}
@@ -640,10 +640,10 @@ sub ListSets
 	my @sets = ();
 	my %setnames = ();
 
-	my $ds = $handle->get_repository->get_dataset( "archive" );
-	my $ds_del = $handle->get_repository->get_dataset( "deletion" );
+	my $ds = $session->get_repository->get_dataset( "archive" );
+	my $ds_del = $session->get_repository->get_dataset( "deletion" );
 
-	my $viewconf = $handle->get_repository->get_conf( "oai","sets" );
+	my $viewconf = $session->get_repository->get_conf( "oai","sets" );
 	my $info;
 	foreach $info ( @{$viewconf} )
 	{
@@ -654,7 +654,9 @@ sub ListSets
 			my $field = EPrints::Utils::field_from_config_string( $ds, $fieldname );
 			if( $field->is_type( "subject" ) )
 			{
-				my $topsubj = $handle->get_subject( $field->get_property( "top" ) );
+				my $topsubj = EPrints::DataObj::Subject->new(
+					$session,
+					$field->get_property( "top" ) );
 				my $i;
 				foreach $i ( @{$topsubj->get_subjects( 0, 0, 1 )} )
 				{
@@ -669,48 +671,48 @@ sub ListSets
 			}
 			else
 			{
-				my $v1 = $field->get_values( $handle, $ds );
+				my $v1 = $field->get_values( $session, $ds );
 				my $delfield = $field->clone();
 #cjg why clone with new style datasets?
 				#$delfield->set_dataset( $ds_del );
-				my $v2 = $delfield->get_values( $handle, $ds_del );
+				my $v2 = $delfield->get_values( $session, $ds_del );
 				foreach( @{$v1}, @{$v2} )
 				{
 					my $key = EPrints::OpenArchives::encode_setspec( $_ );
 					if( !defined $key ) { $key=""; }
-					$v{$key} = EPrints::Utils::tree_to_utf8( $field->get_value_label( $handle, $_ ) );
+					$v{$key} = EPrints::Utils::tree_to_utf8( $field->get_value_label( $session, $_ ) );
 				}
 			}
 		}
 		unless( $info->{allow_null} ) { delete $v{""}; }
 		foreach( keys %v ) 
 		{	
-			my $set = $handle->make_element( "set" );
-			$response->appendChild( $handle->make_indent( 2 ) );
+			my $set = $session->make_element( "set" );
+			$response->appendChild( $session->make_indent( 2 ) );
 			$response->appendChild( $set );
 			my $spec = EPrints::OpenArchives::encode_setspec( $info->{id}."=" ).$_;
-			$set->appendChild( $handle->render_data_element( 
+			$set->appendChild( $session->render_data_element( 
 				4,
 				"setSpec",
 				$spec ) );
-			my $name = $handle->get_view_name( $ds, $info->{id} )." = ".$v{$_};
-			$set->appendChild( $handle->render_data_element( 
+			my $name = $session->get_view_name( $ds, $info->{id} )." = ".$v{$_};
+			$set->appendChild( $session->render_data_element( 
 				4,
 				"setName",
 				$name ) );
 		}
 	}
-	my $custom_sets = $handle->get_repository->get_conf( "oai", "custom_sets");
+	my $custom_sets = $session->get_repository->get_conf( "oai", "custom_sets");
 	foreach my $info (@{$custom_sets||[]})
 	{
-		my $set = $handle->make_element( "set" );
-		$response->appendChild( $handle->make_indent( 2 ) );
+		my $set = $session->make_element( "set" );
+		$response->appendChild( $session->make_indent( 2 ) );
 		$response->appendChild( $set );
-		$set->appendChild( $handle->render_data_element( 
+		$set->appendChild( $session->render_data_element( 
 			4,
 			"setSpec",
 			$info->{spec} ) );
-		$set->appendChild( $handle->render_data_element( 
+		$set->appendChild( $session->render_data_element( 
 			4,
 			"setName",
 			$info->{name} ) );
@@ -721,21 +723,21 @@ sub ListSets
 
 sub ListIdentifiers
 {
-	my( $handle, $response, $args ) = @_;
+	my( $session, $response, $args ) = @_;
 
-	return _list( $handle, $response, $args, 0 );
+	return _list( $session, $response, $args, 0 );
 }
 
 sub ListRecords
 {
-	my( $handle, $response, $args ) = @_;
+	my( $session, $response, $args ) = @_;
 
-	return _list( $handle, $response, $args, 1 );
+	return _list( $session, $response, $args, 1 );
 }
 
 sub _list
 {
-	my( $handle, $response, $args, $show_metadata ) = @_;
+	my( $session, $response, $args, $show_metadata ) = @_;
 
 	my $PAGESIZE = 100;
 
@@ -744,7 +746,7 @@ sub _list
 
 	my %token;
 
-	if( defined $handle->param( "resumptionToken" ) )
+	if( defined $session->param( "resumptionToken" ) )
 	{
 		%$args = %token = %{$args->{resumptionToken}};
 
@@ -753,29 +755,29 @@ sub _list
 		if( defined $args->{metadataPrefix} )
 		{
 			push @errors,
-				check_metadataprefix( $handle, $args->{metadataPrefix} );
+				check_metadataprefix( $session, $args->{metadataPrefix} );
 		}
 		else
 		{
 			push @errors, render_oai_error(
-				$handle,
+				$session,
 				"badArgument",
 				"Expected metadata prefix as part of resumption token, token contains: ".join(',',%token) );
 		}
 
 		if( defined $args->{from} )
 		{
-			push @errors, check_from_date( $handle, $args->{from} );
+			push @errors, check_from_date( $session, $args->{from} );
 		}
 		if( defined $args->{until} )
 		{
-			push @errors, check_until_date( $handle, $args->{until} );
+			push @errors, check_until_date( $session, $args->{until} );
 		}
 
 		if( scalar(@errors) )
 		{
 			unshift @errors, render_oai_error(
-				$handle,
+				$session,
 				"badResumptionToken",
 				"The value of the resumptionToken argument is invalid or expired." );
 		}
@@ -786,12 +788,12 @@ sub _list
 	{
 		# granularity check
 		if(
-			$handle->param( "from" ) && $handle->param( "until" ) &&
-			length($handle->param( "from" )) != length($handle->param( "until" ))
+			$session->param( "from" ) && $session->param( "until" ) &&
+			length($session->param( "from" )) != length($session->param( "until" ))
 		  )
 		{
 			return( render_oai_error(
-				$handle,
+				$session,
 				"badArgument",
 				"from and until dates have different granularity" ) );
 		}
@@ -799,7 +801,7 @@ sub _list
 		# populate the resumption token with original parameters
 		foreach my $name (qw( metadataPrefix from until set ))
 		{
-			my $value = $handle->param( $name );
+			my $value = $session->param( $name );
 			if( defined $value && length($value) )
 			{
 				$token{$name} = $value;
@@ -807,8 +809,8 @@ sub _list
 		}
 	}
 
-	my $ds = $handle->get_repository->get_dataset( "eprint" );
-	my $filters = $handle->get_repository->get_conf( "oai", "filters" );
+	my $ds = $session->get_repository->get_dataset( "eprint" );
+	my $filters = $session->get_repository->get_conf( "oai", "filters" );
 	$filters = [] unless defined $filters;
 	push @$filters, {
 		meta_fields => [qw( eprint_status )],
@@ -817,7 +819,7 @@ sub _list
 		merge => "ANY",
 	};
 	my $searchexp = new EPrints::Search(
-			handle => $handle,
+			session => $session,
 			allow_blank => 1,
 			filters => [
 				@{$filters},
@@ -848,7 +850,7 @@ sub _list
 
 	if( defined $args->{set} )
 	{
-		my $custom_sets = $handle->get_repository->get_conf( "oai", "custom_sets" );
+		my $custom_sets = $session->get_repository->get_conf( "oai", "custom_sets" );
 		my( $info ) = grep { $_->{spec} = $args->{set} } @{$custom_sets||[]};
 		if( defined $info )
 		{
@@ -862,7 +864,7 @@ sub _list
 		my( $head , @tail ) = EPrints::OpenArchives::decode_setspec( $args->{set} );
 		my( $key , $value ) = split( /=/ , $head );
 		$value = pop @tail if( scalar @tail > 0 );
-		my $views = $handle->get_repository->get_conf( "oai","sets" ); #cjg
+		my $views = $session->get_repository->get_conf( "oai","sets" ); #cjg
 		my $info;
 		foreach( @{$views} )
 		{
@@ -871,7 +873,7 @@ sub _list
 		if( !defined $info )
 		{
 			return( render_oai_error(
-				$handle,
+				$session,
 				"badArgument",
 				"Invalid set parameter; unknown key ( $key )" ) );
 		}
@@ -902,7 +904,7 @@ END
 	{
 		# something went wrong
 		return( render_oai_error(
-			$handle,
+			$session,
 			"badArgument",
 			"Could not make Search (system error)." ) );
 	}
@@ -915,7 +917,7 @@ END
 		# no items at all
 
 		return( render_oai_error(
-			$handle,
+			$session,
 			"noRecordsMatch",
 			"No items match. None. None at all. Not even deleted ones." ) );
 	}	
@@ -925,10 +927,10 @@ END
 		my @records = $searchexp->get_records( 0, $PAGESIZE );
 		foreach my $eprint ( @records )
 		{
-			$response->appendChild( $handle->make_indent( 2 ) );
+			$response->appendChild( $session->make_indent( 2 ) );
 			$response->appendChild(
 					EPrints::OpenArchives::make_header(
-						$handle,
+						$session,
 						$eprint,
 						1 ) );
 			$token{offset} = $eprint->get_id + 1;
@@ -937,7 +939,7 @@ END
 	else
 	{
 		my $plugin_id = "Export::" . $args->{metadataPrefix};
-		my $plugin = $handle->plugin( $plugin_id );
+		my $plugin = $session->plugin( $plugin_id );
 
 		unless( defined $plugin )
 		{
@@ -947,10 +949,10 @@ END
 		my @records = $searchexp->get_records( $args->{offset}, $PAGESIZE );
 		foreach my $eprint ( @records )
 		{
-			$response->appendChild( $handle->make_indent( 2 ) );
+			$response->appendChild( $session->make_indent( 2 ) );
 			$response->appendChild( 
 				EPrints::OpenArchives::make_record(
-					$handle,
+					$session,
 					$eprint,
 					$plugin,
 					1 ) );
@@ -967,10 +969,10 @@ END
 		$token{completeListSize} ||= $count;
 
 		# we'll give a fake expiration date to make DRIVER happy
-		$response->appendChild( $handle->render_data_element(
+		$response->appendChild( $session->render_data_element(
 			2,
 			"resumptionToken",
-			serialise_resumptiontoken( $handle, \%token ),
+			serialise_resumptiontoken( $session, \%token ),
 			expirationDate => EPrints::Time::get_iso_timestamp( time + 86400 ),
 			completeListSize => $token{completeListSize} ) );
 	}

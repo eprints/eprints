@@ -44,38 +44,38 @@ use EPrints::MetaField::Set;
 
 sub tags
 {
-	my( $self, $handle ) = @_;
+	my( $self, $session ) = @_;
 
 	if( defined $self->{options} )
 	{
 		return @{$self->{options}};
 	}
-	return $handle->get_repository->get_types( $self->{set_name} );
+	return $session->get_repository->get_types( $self->{set_name} );
 }
 
 sub get_unsorted_values
 {
-	my( $self, $handle, $dataset, %opts ) = @_;
+	my( $self, $session, $dataset, %opts ) = @_;
 
 	if( defined $self->{options} )
 	{
 		return @{$self->{options}};
 	}
-	my @types = $handle->get_repository->get_types( $self->{set_name} );
+	my @types = $session->get_repository->get_types( $self->{set_name} );
 
 	return @types;
 }
 
 sub render_option
 {
-	my( $self, $handle, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
 	if( !defined $value )
 	{
-		return $self->SUPER::render_option( $handle, $value );
+		return $self->SUPER::render_option( $session, $value );
 	}
 
-	return $handle->render_type_name( $self->{set_name}, $value );
+	return $session->render_type_name( $self->{set_name}, $value );
 }
 
 sub get_property_defaults

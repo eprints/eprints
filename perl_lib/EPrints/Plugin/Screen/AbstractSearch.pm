@@ -29,14 +29,14 @@ sub action_export_redir
 {
 	my( $self ) = @_;
 
-	my $cacheid = $self->{handle}->param( "cache" );
-	my $format = $self->{handle}->param( "output" );
+	my $cacheid = $self->{session}->param( "cache" );
+	my $format = $self->{session}->param( "output" );
 	if( !defined $format )
 	{
 		$self->{processor}->{search_subscreen} = "results";
 		$self->{processor}->add_message(
 			"error",
-			$self->{handle}->html_phrase( "lib/searchexpression:export_error_format" ) );
+			$self->{session}->html_phrase( "lib/searchexpression:export_error_format" ) );
 		return;
 	}
 
@@ -47,13 +47,13 @@ sub export_url
 {
 	my( $self, $format ) = @_;
 
-	my $plugin = $self->{handle}->plugin( "Export::".$format );
+	my $plugin = $self->{session}->plugin( "Export::".$format );
 	if( !defined $plugin )
 	{
 		EPrints::abort( "No such plugin: $format\n" );	
 	}
 
-	my $url = URI->new( $self->{handle}->get_uri() . "/export_" . $self->{handle}->get_repository->get_id . "_" . $format . $plugin->param( "suffix" ) );
+	my $url = URI->new( $self->{session}->get_uri() . "/export_" . $self->{session}->get_repository->get_id . "_" . $format . $plugin->param( "suffix" ) );
 
 	$url->query_form(
 		screen => $self->{processor}->{screenid},
@@ -125,7 +125,7 @@ sub run_search
 	if( $list->count == 0 && !$self->{processor}->{search}->{show_zero_results} )
 	{
 		$self->{processor}->add_message( "warning",
-			$self->{handle}->html_phrase(
+			$self->{session}->html_phrase(
 				"lib/searchexpression:noresults") );
 		$self->{processor}->{search_subscreen} = "form";
 	}
@@ -158,7 +158,7 @@ sub from
 	# maybe this can be removed later, but for a minor release this seems safest.
 	if( !EPrints::Utils::is_set( $self->{processor}->{action} ) )
 	{
-		my @paramlist = $self->{handle}->param();
+		my @paramlist = $self->{session}->param();
 		my $has_params = 0;
 		$has_params = 1 if( scalar @paramlist );
 		$has_params = 0 if( scalar @paramlist == 1 && $paramlist[0] eq 'screen' );
@@ -170,7 +170,7 @@ sub from
 
 	$self->{processor}->{search} = new EPrints::Search(
 		keep_cache => 1,
-		handle => $self->{handle},
+		session => $self->{session},
 		filters => [$self->search_filters],
 		dataset => $self->search_dataset,
 		%{$self->{processor}->{sconf}} );
@@ -183,7 +183,7 @@ sub from
 	 	$self->{processor}->{action} eq "export_redir"  )
 	{
 		my $loaded = 0;
-		my $id = $self->{handle}->param( "cache" );
+		my $id = $self->{session}->param( "cache" );
 		if( defined $id )
 		{
 			$loaded = $self->{processor}->{search}->from_cache( $id );
@@ -191,7 +191,7 @@ sub from
 	
 		if( !$loaded )
 		{
-			my $exp = $self->{handle}->param( "exp" );
+			my $exp = $self->{session}->param( "exp" );
 			if( defined $exp )
 			{
 				$self->{processor}->{search}->from_string( $exp );
@@ -213,14 +213,14 @@ sub from
 			}
 		}
 	}
-	my $anyall = $self->{handle}->param( "satisfyall" );
+	my $anyall = $self->{session}->param( "satisfyall" );
 
 	if( defined $anyall )
 	{
 		$self->{processor}->{search}->{satisfy_all} = ( $anyall eq "ALL" );
 	}
 
-	my $order_opt = $self->{handle}->param( "order" );
+	my $order_opt = $self->{session}->param( "order" );
 	if( !defined $order_opt )
 	{
 		$order_opt = "";
@@ -251,7 +251,7 @@ sub from
 		if( $self->{processor}->{action} eq "search" )
 		{
 			$self->{processor}->add_message( "warning",
-				$self->{handle}->html_phrase( 
+				$self->{session}->html_phrase( 
 					"lib/searchexpression:least_one" ) );
 		}
 		$self->{processor}->{search_subscreen} = "form";
@@ -275,8 +275,8 @@ sub render
 
 	$self->{processor}->add_message(
 		"error",
-		$self->{handle}->html_phrase( "lib/searchexpression:bad_subscreen",
-			subscreen => $self->{handle}->make_text($subscreen) ) );
+		$self->{session}->html_phrase( "lib/searchexpression:bad_subscreen",
+			subscreen => $self->{session}->make_text($subscreen) ) );
 
 	return $self->render_search_form;	
 }
@@ -292,7 +292,7 @@ sub _get_export_plugins
 			is_visible=>$self->_vis_level,
 	);
 	unless( $include_not_advertised ) { $is_advertised = 1; }
-	return $self->{handle}->plugin_list( %opts );
+	return $self->{session}->plugin_list( %opts );
 }
 
 sub _vis_level
@@ -315,7 +315,7 @@ sub render_title
 	my $phraseid = $self->{processor}->{sconf}->{"title_phrase"};
 	if( defined $phraseid )
 	{
-		return $self->{handle}->html_phrase( $phraseid );
+		return $self->{"session"}->html_phrase( $phraseid );
 	}
 	return $self->SUPER::render_title;
 }
@@ -330,14 +330,14 @@ sub render_links
 	}
 
 	my @plugins = $self->_get_export_plugins;
-	my $links = $self->{handle}->make_doc_fragment();
+	my $links = $self->{session}->make_doc_fragment();
 
 	my $escexp = $self->{processor}->{search}->serialise;
 	foreach my $plugin_id ( @plugins ) 
 	{
 		$plugin_id =~ m/^[^:]+::(.*)$/;
 		my $id = $1;
-		my $plugin = $self->{handle}->plugin( $plugin_id );
+		my $plugin = $self->{session}->plugin( $plugin_id );
 		my $url = URI::http->new;
 		$url->query_form(
 			cache => $self->{cache_id},
@@ -345,13 +345,13 @@ sub render_links
 			output => $id,
 			_action_export_redir => 1
 			);
-		my $link = $self->{handle}->make_element( 
+		my $link = $self->{session}->make_element( 
 			"link", 
 			rel=>"alternate",
 			href=>$url,
 			type=>$plugin->param("mimetype"),
 			title=>EPrints::XML::to_string( $plugin->render_name ), );
-		$links->appendChild( $self->{handle}->make_text( "\n    " ) );
+		$links->appendChild( $self->{session}->make_text( "\n    " ) );
 		$links->appendChild( $link );
 	}
 
@@ -367,85 +367,85 @@ sub render_export_bar
 	if( !defined $self->{processor}->{results} || 
 		ref($self->{processor}->{results}) ne "EPrints::List" )
 	{
-                return $self->{handle}->make_doc_fragment;
+                return $self->{session}->make_doc_fragment;
 	}
 
 	my @plugins = $self->_get_export_plugins;
 	my $cacheid = $self->{processor}->{results}->{cache_id};
 	my $order = $self->{processor}->{search}->{custom_order};
 	my $escexp = $self->{processor}->{search}->serialise;
-	my $handle = $self->{handle};
+	my $session = $self->{session};
 	if( scalar @plugins == 0 ) 
 	{
-		return $handle->make_doc_fragment;
+		return $session->make_doc_fragment;
 	}
 
-	my $feeds = $handle->make_doc_fragment;
-	my $tools = $handle->make_doc_fragment;
+	my $feeds = $session->make_doc_fragment;
+	my $tools = $session->make_doc_fragment;
 	my $options = {};
 	foreach my $plugin_id ( @plugins ) 
 	{
 		$plugin_id =~ m/^[^:]+::(.*)$/;
 		my $id = $1;
-		my $plugin = $handle->plugin( $plugin_id );
+		my $plugin = $session->plugin( $plugin_id );
 		my $dom_name = $plugin->render_name;
 		if( $plugin->is_feed || $plugin->is_tool )
 		{
 			my $type = "feed";
 			$type = "tool" if( $plugin->is_tool );
-			my $span = $handle->make_element( "span", class=>"ep_search_$type" );
+			my $span = $session->make_element( "span", class=>"ep_search_$type" );
 			my $url = $self->export_url( $id );
-			my $a1 = $handle->render_link( $url );
-			my $icon = $handle->make_element( "img", src=>$plugin->icon_url(), alt=>"[$type]", border=>0 );
+			my $a1 = $session->render_link( $url );
+			my $icon = $session->make_element( "img", src=>$plugin->icon_url(), alt=>"[$type]", border=>0 );
 			$a1->appendChild( $icon );
-			my $a2 = $handle->render_link( $url );
+			my $a2 = $session->render_link( $url );
 			$a2->appendChild( $dom_name );
 			$span->appendChild( $a1 );
-			$span->appendChild( $handle->make_text( " " ) );
+			$span->appendChild( $session->make_text( " " ) );
 			$span->appendChild( $a2 );
 
 			if( $type eq "tool" )
 			{
-				$tools->appendChild( $handle->make_text( " " ) );
+				$tools->appendChild( $session->make_text( " " ) );
 				$tools->appendChild( $span );	
 			}
 			if( $type eq "feed" )
 			{
-				$feeds->appendChild( $handle->make_text( " " ) );
+				$feeds->appendChild( $session->make_text( " " ) );
 				$feeds->appendChild( $span );	
 			}
 		}
 		else
 		{
-			my $option = $handle->make_element( "option", value=>$id );
+			my $option = $session->make_element( "option", value=>$id );
 			$option->appendChild( $dom_name );
 			$options->{EPrints::XML::to_string($dom_name)} = $option;
 		}
 	}
 
-	my $select = $handle->make_element( "select", name=>"output" );
+	my $select = $session->make_element( "select", name=>"output" );
 	foreach my $optname ( sort keys %{$options} )
 	{
 		$select->appendChild( $options->{$optname} );
 	}
-	my $button = $handle->make_doc_fragment;
-	$button->appendChild( $handle->render_button(
+	my $button = $session->make_doc_fragment;
+	$button->appendChild( $session->render_button(
 			name=>"_action_export_redir",
-			value=>$handle->phrase( "lib/searchexpression:export_button" ) ) );
+			value=>$session->phrase( "lib/searchexpression:export_button" ) ) );
 	$button->appendChild( 
-		$handle->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
+		$session->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
 	$button->appendChild( 
-		$handle->render_hidden_field( "order", $order ) ); 
+		$session->render_hidden_field( "order", $order ) ); 
 	$button->appendChild( 
-		$handle->render_hidden_field( "cache", $cacheid ) ); 
+		$session->render_hidden_field( "cache", $cacheid ) ); 
 	$button->appendChild( 
-		$handle->render_hidden_field( "exp", $escexp, ) );
+		$session->render_hidden_field( "exp", $escexp, ) );
 
-	my $form = $self->{handle}->render_form( "GET" );
-	$form->appendChild( $handle->html_phrase( "lib/searchexpression:export_section",
+	my $form = $self->{session}->render_form( "GET" );
+	$form->appendChild( $session->html_phrase( "lib/searchexpression:export_section",
 					feeds => $feeds,
 					tools => $tools,
-					count => $handle->make_text( 
+					count => $session->make_text( 
 						$self->{processor}->{results}->count ),
 					menu => $select,
 					button => $button ));
@@ -459,16 +459,16 @@ sub get_basic_controls_before
 	my $cacheid = $self->{processor}->{results}->{cache_id};
 	my $escexp = $self->{processor}->{search}->serialise;
 
-	my $baseurl = $self->{handle}->get_uri . "?cache=$cacheid&exp=$escexp&screen=".$self->{processor}->{screenid};
+	my $baseurl = $self->{session}->get_uri . "?cache=$cacheid&exp=$escexp&screen=".$self->{processor}->{screenid};
 	$baseurl .= "&order=".$self->{processor}->{search}->{custom_order};
 	my @controls_before = (
 		{
 			url => "$baseurl&_action_update=1",
-			label => $self->{handle}->html_phrase( "lib/searchexpression:refine" ),
+			label => $self->{session}->html_phrase( "lib/searchexpression:refine" ),
 		},
 		{
-			url => $self->{handle}->get_uri . "?screen=".$self->{processor}->{screenid},
-			label => $self->{handle}->html_phrase( "lib/searchexpression:new" ),
+			url => $self->{session}->get_uri . "?screen=".$self->{processor}->{screenid},
+			label => $self->{session}->html_phrase( "lib/searchexpression:new" ),
 		}
 	);
 
@@ -489,7 +489,7 @@ sub paginate_opts
 	if( !defined $self->{processor}->{results} || 
 		ref($self->{processor}->{results}) ne "EPrints::List" )
 	{
-                return $self->{handle}->make_doc_fragment;
+                return $self->{session}->make_doc_fragment;
 	}
 
 	my %bits = ();
@@ -499,40 +499,40 @@ sub paginate_opts
 
 	my @controls_before = $self->get_controls_before;
 	
-	my $export_div = $self->{handle}->make_element( "div", class=>"ep_search_export" );
+	my $export_div = $self->{session}->make_element( "div", class=>"ep_search_export" );
 	$export_div->appendChild( $self->render_export_bar );
 
-	my $type = $self->{handle}->get_citation_type( 
+	my $type = $self->{session}->get_citation_type( 
 			$self->{processor}->{results}->get_dataset, 
 			$self->get_citation_id );
 	my $container;
 	if( $type eq "table_row" )
 	{
-		$container = $self->{handle}->make_element( 
+		$container = $self->{session}->make_element( 
 				"table", 
 				class=>"ep_paginate_list" );
 	}
 	else
 	{
-		$container = $self->{handle}->make_element( 
+		$container = $self->{session}->make_element( 
 				"div", 
 				class=>"ep_paginate_list" );
 	}
 
-	my $order_div = $self->{handle}->make_element( "div", class=>"ep_search_reorder" );
-	my $form = $self->{handle}->render_form( "GET" );
+	my $order_div = $self->{session}->make_element( "div", class=>"ep_search_reorder" );
+	my $form = $self->{session}->render_form( "GET" );
 	$order_div->appendChild( $form );
-	$form->appendChild( $self->{handle}->html_phrase( "lib/searchexpression:order_results" ) );
-	$form->appendChild( $self->{handle}->make_text( ": " ) );
+	$form->appendChild( $self->{session}->html_phrase( "lib/searchexpression:order_results" ) );
+	$form->appendChild( $self->{session}->make_text( ": " ) );
 	$form->appendChild( $self->render_order_menu );
 
-	$form->appendChild( $self->{handle}->render_button(
+	$form->appendChild( $self->{session}->render_button(
 			name=>"_action_search",
-			value=>$self->{handle}->phrase( "lib/searchexpression:reorder_button" ) ) );
+			value=>$self->{session}->phrase( "lib/searchexpression:reorder_button" ) ) );
 	$form->appendChild( 
-		$self->{handle}->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
+		$self->{session}->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
 	$form->appendChild( 
-		$self->{handle}->render_hidden_field( "exp", $escexp, ) );
+		$self->{session}->render_hidden_field( "exp", $escexp, ) );
 
 	return (
 		pins => \%bits,
@@ -556,7 +556,7 @@ sub render_results_intro
 {
 	my( $self ) = @_;
 
-	return $self->{handle}->make_doc_fragment;
+	return $self->{session}->make_doc_fragment;
 }
 
 sub render_results
@@ -566,16 +566,16 @@ sub render_results
 	if( !defined $self->{processor}->{results} || 
 		ref($self->{processor}->{results}) ne "EPrints::List" )
 	{
-                return $self->{handle}->make_doc_fragment;
+                return $self->{session}->make_doc_fragment;
 	}
 
 	my %opts = $self->paginate_opts;
 
-	my $page = $self->{handle}->make_doc_fragment;
+	my $page = $self->{session}->make_doc_fragment;
 	$page->appendChild( $self->render_results_intro );
 	$page->appendChild( 
 		EPrints::Paginate->paginate_list( 
-			$self->{handle}, 
+			$self->{session}, 
 			"search", 
 			$self->{processor}->{results}, 
 			%opts ) );
@@ -585,9 +585,9 @@ sub render_results
 
 sub render_result_row
 {
-	my( $self, $handle, $result, $searchexp, $n ) = @_;
+	my( $self, $session, $result, $searchexp, $n ) = @_;
 
-	my $type = $handle->get_citation_type( 
+	my $type = $session->get_citation_type( 
 			$self->{processor}->{results}->get_dataset, 
 			$self->get_citation_id );
 
@@ -596,7 +596,7 @@ sub render_result_row
 		return $result->render_citation_link;
 	}
 
-	my $div = $handle->make_element( "div", class=>"ep_search_result" );
+	my $div = $session->make_element( "div", class=>"ep_search_result" );
 	$div->appendChild( $result->render_citation_link( "default" ) );
 	return $div;
 }
@@ -612,19 +612,19 @@ sub render_search_form
 {
 	my( $self ) = @_;
 
-	my $form = $self->{handle}->render_form( "get" );
+	my $form = $self->{session}->render_form( "get" );
 	$form->appendChild( 
-		$self->{handle}->render_hidden_field ( "screen", $self->{processor}->{screenid} ) );		
+		$self->{session}->render_hidden_field ( "screen", $self->{processor}->{screenid} ) );		
 
 	my $pphrase = $self->{processor}->{sconf}->{"preamble_phrase"};
 	if( defined $pphrase )
 	{
-		$form->appendChild( $self->{handle}->html_phrase( $pphrase ));
+		$form->appendChild( $self->{"session"}->html_phrase( $pphrase ));
 	}
 
 	$form->appendChild( $self->render_controls );
 
-	my $table = $self->{handle}->make_element( "table", class=>"ep_search_fields" );
+	my $table = $self->{session}->make_element( "table", class=>"ep_search_fields" );
 	$form->appendChild( $table );
 
 	$table->appendChild( $self->render_search_fields );
@@ -643,12 +643,12 @@ sub render_search_fields
 {
 	my( $self ) = @_;
 
-	my $frag = $self->{handle}->make_doc_fragment;
+	my $frag = $self->{session}->make_doc_fragment;
 
 	foreach my $sf ( $self->{processor}->{search}->get_non_filter_searchfields )
 	{
 		$frag->appendChild( 
-			$self->{handle}->render_row_with_help( 
+			$self->{session}->render_row_with_help( 
 				help_prefix => $sf->get_form_prefix."_help",
 				help => $sf->render_help,
 				label => $sf->render_name,
@@ -669,22 +669,22 @@ sub render_anyall_field
 	my @sfields = $self->{processor}->{search}->get_non_filter_searchfields;
 	if( (scalar @sfields) < 2 )
 	{
-		return $self->{handle}->make_doc_fragment;
+		return $self->{session}->make_doc_fragment;
 	}
 
-	my $menu = $self->{handle}->render_option_list(
+	my $menu = $self->{session}->render_option_list(
 			name=>"satisfyall",
 			values=>[ "ALL", "ANY" ],
 			default=>( defined $self->{processor}->{search}->{satisfy_all} && $self->{processor}->{search}->{satisfy_all}==0 ?
 				"ANY" : "ALL" ),
-			labels=>{ "ALL" => $self->{handle}->phrase( 
+			labels=>{ "ALL" => $self->{session}->phrase( 
 						"lib/searchexpression:all" ),
-				  "ANY" => $self->{handle}->phrase( 
+				  "ANY" => $self->{session}->phrase( 
 						"lib/searchexpression:any" )} );
 
-	return $self->{handle}->render_row_with_help( 
+	return $self->{session}->render_row_with_help( 
 			no_help => 1,
-			label => $self->{handle}->html_phrase( 
+			label => $self->{session}->html_phrase( 
 				"lib/searchexpression:must_fulfill" ),  
 			field => $menu,
 	);
@@ -694,13 +694,13 @@ sub render_controls
 {
 	my( $self ) = @_;
 
-	my $div = $self->{handle}->make_element( 
+	my $div = $self->{session}->make_element( 
 		"div" , 
 		class => "ep_search_buttons" );
-	$div->appendChild( $self->{handle}->render_action_buttons( 
+	$div->appendChild( $self->{session}->render_action_buttons( 
 		_order => [ "search", "newsearch" ],
-		newsearch => $self->{handle}->phrase( "lib/searchexpression:action_reset" ),
-		search => $self->{handle}->phrase( "lib/searchexpression:action_search" ) )
+		newsearch => $self->{session}->phrase( "lib/searchexpression:action_reset" ),
+		search => $self->{session}->phrase( "lib/searchexpression:action_search" ) )
  	);
 	return $div;
 }
@@ -711,9 +711,9 @@ sub render_order_field
 {
 	my( $self ) = @_;
 
-	return $self->{handle}->render_row_with_help( 
+	return $self->{session}->render_row_with_help( 
 			no_help => 1,
-			label => $self->{handle}->html_phrase( 
+			label => $self->{session}->html_phrase( 
 				"lib/searchexpression:order_results" ),  
 			field => $self->render_order_menu,
 	);
@@ -733,11 +733,11 @@ sub render_order_menu
 	foreach( keys %$methods )
 	{
 		$order = $raworder if( $methods->{$_} eq $raworder );
-                $labels{$methods->{$_}} = $self->{handle}->phrase(
+                $labels{$methods->{$_}} = $self->{session}->phrase(
                 	"ordername_".$self->{processor}->{search}->{dataset}->confid() . "_" . $_ );
         }
 
-	return $self->{handle}->render_option_list(
+	return $self->{session}->render_option_list(
 		name=>"order",
 		values=>[values %{$methods}],
 		default=>$order,
@@ -755,7 +755,7 @@ sub wishes_to_export
 
 	return 0 unless $self->{processor}->{search_subscreen} eq "export";
 
-	my $format = $self->{handle}->param( "output" );
+	my $format = $self->{session}->param( "output" );
 
 	my @plugins = $self->_get_export_plugins( 1 );
 		
@@ -766,11 +766,11 @@ sub wishes_to_export
 		$self->{processor}->{search_subscreen} = "results";
 		$self->{processor}->add_message(
 			"error",
-			$self->{handle}->html_phrase( "lib/searchexpression:export_error_format" ) );
+			$self->{session}->html_phrase( "lib/searchexpression:export_error_format" ) );
 		return;
 	}
 	
-	$self->{processor}->{export_plugin} = $self->{handle}->plugin( "Export::$format" );
+	$self->{processor}->{export_plugin} = $self->{session}->plugin( "Export::$format" );
 	$self->{processor}->{export_format} = $format;
 	
 	return 1;

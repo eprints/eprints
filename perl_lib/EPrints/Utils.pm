@@ -19,36 +19,11 @@
 
 B<EPrints::Utils> - Utility functions for EPrints.
 
-=head1 SYNOPSIS
-	
-	$boolean = EPrints::Utils::is_set( $object ) 
-	# return true if an object/scalar/array has any data in it
-
-	# copy the contents of the url to a file
-	$response = EPrints::Utils::wget( 
-		$handle, 
-		"http://www.eprints.org/index.php", 
-		"temp_dir/my_file" ) 
-	if($response->is_sucess()){ do something...}
-	
-	$name = { given=>"Wendy", family=>"Hall", honourific=>"Dame" };
-	# return Dame Wendy Hall
-	$string = EPrints::Utils::make_name_string( $name, 1 );
-	# return Dame Hall, Wendy
-	$string = EPrints::Utils::make_name_string( $name, 0 );
-	
-	# returns http://www.eprints.org?var=%3Cfoo%3E
-	$string = EPrints::Utils::url_escape( "http://www.eprints.org?var=<foo>" ); 
-	
-	$esc_string = EPrints::Utils::escape_filename( $string );
-	$string = EPrints::Utils::unescape_filename( $esc_string );
-	
-	$filesize_text = EPrints::Utils::human_filesize( 3300 ); 
-	# returns "3kb"
-
 =head1 DESCRIPTION
 
 This package contains functions which don't belong anywhere else.
+
+=over 4
 
 =cut
 
@@ -68,33 +43,71 @@ BEGIN {
 	eval "use Compat::Term::ReadKey" if $@;
 }
 
+
+
 ######################################################################
-#=pod
+=pod
 
-#=item $cmd = EPrints::Utils::prepare_cmd($cmd,%VARS)
+=item $space =  EPrints::Utils::df_dir( $dir )
 
-#Prepare command string $cmd by substituting variables (specified by
-#C<$(varname)>) with their value from %VARS (key is C<varname>). All %VARS are
-#quoted before replacement to make it shell-safe.
+Return the number of bytes of disk space available in the directory
+$dir or undef if we can't find out.
 
-#If a variable is specified in $cmd, but not present in %VARS a die is thrown.
+DEPRECATED - use EPrints::Platform::free_space instead.
 
-#=cut
+=cut
 ######################################################################
-#TODO ask brody what the hell this is :-P pm5
-#DEPRECATED in favour of EPrints::Repository::invocation
+
+sub df_dir
+{
+	my( $dir ) = @_;
+
+	EPrints::deprecated;
+
+	return EPrints::Platform::free_space( $dir );
+}
+
+
+######################################################################
+=pod
+
+=item $cmd = EPrints::Utils::prepare_cmd($cmd,%VARS)
+
+Prepare command string $cmd by substituting variables (specified by
+C<$(varname)>) with their value from %VARS (key is C<varname>). All %VARS are
+quoted before replacement to make it shell-safe.
+
+If a variable is specified in $cmd, but not present in %VARS a die is thrown.
+
+=cut
+######################################################################
 
 sub prepare_cmd {
 	my ($cmd, %VARS) = @_;
-
 	$cmd =~ s/\$\(([\w_]+)\)/defined($VARS{$1}) ? quotemeta($VARS{$1}) : die("Unspecified variable $1 in $cmd")/seg;
-	return $cmd;
+	$cmd;
 }
 
 ######################################################################
 =pod
 
-=over 4
+=item $path = EPrints::Utils::join_path(@PARTS)
+
+Join a path together in an OS-safe manner. Currently this just joins using '/'.
+If EPrints is adapted to work under WinOS it will need to use '\' to join paths
+together.
+
+=cut
+######################################################################
+
+sub join_path
+{
+	return join('/', @_);
+}
+
+
+######################################################################
+=pod
 
 =item $string = EPrints::Utils::make_name_string( $name, [$familylast] )
 
@@ -377,15 +390,15 @@ sub _blank_lines
 }
 
 ######################################################################
-#=pod
+=pod
 
-#=item $ok = EPrints::Utils::copy( $source, $target )
+=item $ok = EPrints::Utils::copy( $source, $target )
 
-#Copy $source file to $target file without alteration.
+Copy $source file to $target file without alteration.
 
-#Return true on success (sets $! on error).
+Return true on success (sets $! on error).
 
-#=cut
+=cut
 ######################################################################
 
 sub copy
@@ -398,7 +411,7 @@ sub copy
 ######################################################################
 =pod
 
-=item $response = EPrints::Utils::wget( $handle, $source, $target )
+=item $response = EPrints::Utils::wget( $session, $source, $target )
 
 Copy $source file or URL to $target file without alteration.
 
@@ -411,7 +424,7 @@ Returns the HTTP response object: use $response->is_success to check whether the
 
 sub wget
 {
-	my( $handle, $url, $target ) = @_;
+	my( $session, $url, $target ) = @_;
 
 	$target = "$target";
 
@@ -424,12 +437,12 @@ sub wget
 
 	if( $url->scheme eq "file" )
 	{
-		if( !$handle->get_repository->get_conf( "enable_file_imports" ) )
+		if( !$session->get_repository->get_conf( "enable_file_imports" ) )
 		{
 			return HTTP::Response->new( 403, "Access denied by configuration: file imports disabled" );
 		}
 	}
-	elsif( !$handle->get_repository->get_conf( "enable_web_imports" ) )
+	elsif( !$session->get_repository->get_conf( "enable_web_imports" ) )
 	{
 		return HTTP::Response->new( 403, "Access denied by configuration: web imports disabled" );
 	}
@@ -444,15 +457,60 @@ sub wget
 }
 
 ######################################################################
-#=pod
+=pod
 
-#=item $ok = EPrints::Utils::rmtree( $full_path )
+=item $ok = EPrints::Utils::mkdir( $full_path )
 
-#Unlinks the path and everything in it.
+Create the specified directory.
 
-#Return true on success.
+Return true on success.
 
-#=cut
+=cut
+######################################################################
+
+sub mkdir
+{
+	my( $full_path, $perms ) = @_;
+
+	Carp::croak("EPrints::Utils::mkdir is deprecated: use EPrints::Platform::mkdir");
+
+	# Default to "dir_perms"
+	$perms = eval($EPrints::SystemSettings::conf->{"dir_perms"})
+		if @_ < 2;
+
+	# Make sure $dir is a plain old string (not unicode) as
+	# Unicode::String borks mkdir
+
+	my $dir="";
+	my @parts = split( "/", "$full_path" );
+	while( scalar @parts )
+	{
+		$dir .= "/".(shift @parts );
+		if( !-d $dir )
+		{
+			my $ok = mkdir( $dir, $perms );
+			if( !$ok )
+			{
+				print STDERR "Failed to mkdir $dir: $!\n";
+				return 0;
+			}
+		}
+	}		
+
+	return 1;	
+}
+
+
+######################################################################
+=pod
+
+=item $ok = EPrints::Utils::rmtree( $full_path )
+
+Unlinks the path and everything in it.
+
+Return true on success.
+
+=cut
 ######################################################################
 
 sub rmtree
@@ -516,7 +574,7 @@ sub rmtree
 # in=>.. describes where this came from in case it needs to report an
 # error.
 #
-# handle => is required
+# session=> is required
 #
 # item => is required (the epobject being cited).
 #
@@ -555,33 +613,33 @@ sub _render_citation_aux
 
 		if( $name eq "iflink" )
 		{
-			$rendered = $params{handle}->make_doc_fragment;
+			$rendered = $params{session}->make_doc_fragment;
 			$addkids = defined $params{url};
 		}
 		elsif( $name eq "ifnotlink" )
 		{
-			$rendered = $params{handle}->make_doc_fragment;
+			$rendered = $params{session}->make_doc_fragment;
 			$addkids = !defined $params{url};
 		}
 		elsif( $name eq "linkhere" )
 		{
 			if( defined $params{url} )
 			{
-				$rendered = $params{handle}->make_element( 
+				$rendered = $params{session}->make_element( 
 					"a",
 					target=>$params{target},
 					href=> $params{url} );
 			}
 			else
 			{
-				$rendered = $params{handle}->make_doc_fragment;
+				$rendered = $params{session}->make_doc_fragment;
 			}
 		}
 	}
 
 	if( !defined $rendered )
 	{
-		$rendered = $params{handle}->clone_for_me( $node );
+		$rendered = $params{session}->clone_for_me( $node );
 	}
 
 	if( $addkids )
@@ -600,16 +658,16 @@ sub _render_citation_aux
 
 
 ######################################################################
-#=pod
+=pod
 
-#=item $metafield = EPrints::Utils::field_from_config_string( $dataset, $fieldname )
+=item $metafield = EPrints::Utils::field_from_config_string( $dataset, $fieldname )
 
-#Return the EPrint::MetaField from $dataset with the given name.
+Return the EPrint::MetaField from $dataset with the given name.
 
-#If fieldname has a semicolon followed by render options then these
-#are passed as render options to the new EPrints::MetaField object.
+If fieldname has a semicolon followed by render options then these
+are passed as render options to the new EPrints::MetaField object.
 
-#=cut
+=cut
 ######################################################################
 
 sub field_from_config_string
@@ -684,24 +742,24 @@ sub field_from_config_string
 }
 
 ######################################################################
-#=pod
+=pod
 
-#=item $string = EPrints::Utils::get_input( $regexp, [$prompt], [$default] )
+=item $string = EPrints::Utils::get_input( $regexp, [$prompt], [$default] )
 
-#Read input from the keyboard.
+Read input from the keyboard.
 
-#Prints the promp and default value, if any. eg.
-# How many fish [5] >
+Prints the promp and default value, if any. eg.
+ How many fish [5] >
 
-#Return the value the user enters at the keyboard.
+Return the value the user enters at the keyboard.
 
-#If the value does not match the regexp then print the prompt again
-#and try again.
+If the value does not match the regexp then print the prompt again
+and try again.
 
-#If a default is set and the user just hits return then the default
-#value is returned.
+If a default is set and the user just hits return then the default
+value is returned.
 
-#=cut
+=cut
 ######################################################################
 
 sub get_input
@@ -733,16 +791,16 @@ sub get_input
 }
 
 ######################################################################
-#=pod
+=pod
 
-#=item EPrints::Utils::get_input_hidden( $regexp, [$prompt], [$default] )
+=item EPrints::Utils::get_input_hidden( $regexp, [$prompt], [$default] )
 
-#Get input from the console without echoing the entered characters 
-#(mostly useful for getting passwords). Uses L<Term::ReadKey>.
+Get input from the console without echoing the entered characters 
+(mostly useful for getting passwords). Uses L<Term::ReadKey>.
 
-#Identical to get_input except the characters don't appear.
+Identical to get_input except the characters don't appear.
 
-#=cut
+=cut
 ######################################################################
 
 sub get_input_hidden
@@ -779,18 +837,18 @@ sub get_input_hidden
 }
 
 ######################################################################
-#=pod
+=pod
 
-#=item EPrints::Utils::get_input_confirm( [$prompt], [$quick], [$default] )
+=item EPrints::Utils::get_input_confirm( [$prompt], [$quick], [$default] )
 
-#Asks the user for confirmation (yes/no). If $quick is true only checks for a
-#single-character input ('y' or 'n').
+Asks the user for confirmation (yes/no). If $quick is true only checks for a
+single-character input ('y' or 'n').
 
-#If $default is '1' defaults to yes, if '0' defaults to no.
+If $default is '1' defaults to yes, if '0' defaults to no.
 
-#Returns true if the user answers 'yes' or false for any other value.
+Returns true if the user answers 'yes' or false for any other value.
 
-#=cut
+=cut
 ######################################################################
 
 sub get_input_confirm
@@ -841,18 +899,18 @@ sub get_input_confirm
 }
 
 ######################################################################
-#=pod
+=pod
 
-#=item $clone_of_data = EPrints::Utils::clone( $data )
+=item $clone_of_data = EPrints::Utils::clone( $data )
 
-#Deep copies the data structure $data, following arrays and hashes.
+Deep copies the data structure $data, following arrays and hashes.
 
-#Does not handle blessed items.
+Does not handle blessed items.
 
-#Useful when we want to modify a temporary copy of a data structure 
-#that came from the configuration files.
+Useful when we want to modify a temporary copy of a data structure 
+that came from the configuration files.
 
-#=cut
+=cut
 ######################################################################
 
 sub clone
@@ -889,18 +947,18 @@ sub clone
 
 
 ######################################################################
-#=pod
+=pod
 
-#=item $crypted_value = EPrints::Utils::crypt_password( $value, $handle )
+=item $crypted_value = EPrints::Utils::crypt_password( $value, $session )
 
-#Apply the crypt encoding to the given $value.
+Apply the crypt encoding to the given $value.
 
-#=cut
+=cut
 ######################################################################
 
 sub crypt_password
 {
-	my( $value, $handle ) = @_;
+	my( $value, $session ) = @_;
 
 	return unless EPrints::Utils::is_set( $value );
 
@@ -934,17 +992,17 @@ sub url_escape
 
 
 ######################################################################
-#=pod
+=pod
 
-#=item $long = EPrints::Utils::ip2long( $ip )
+=item $long = EPrints::Utils::ip2long( $ip )
 
-#Convert quad-dotted notation to long
+Convert quad-dotted notation to long
 
-#=item $ip = EPrints::Utils::long2ip( $ip )
+=item $ip = EPrints::Utils::long2ip( $ip )
 
-#Convert long to quad-dotted notation
+Convert long to quad-dotted notation
 
-#=cut
+=cut
 ######################################################################
 
 sub ip2long
@@ -970,15 +1028,15 @@ sub long2ip
 }
 
 ######################################################################
-#=pod
+=pod
 
-#=item EPrints::Utils::cmd_version( $progname )
+=item EPrints::Utils::cmd_version( $progname )
 
-#Print out a "--version" style message to STDOUT.
+Print out a "--version" style message to STDOUT.
 
-#$progname is the name of the current script.
+$progname is the name of the current script.
 
-#=cut
+=cut
 ######################################################################
 
 sub cmd_version

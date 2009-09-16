@@ -43,11 +43,11 @@ sub xml_dataobj
 {
 	my( $plugin, $dataobj ) = @_;
 
-	my $main_dc_plugin = $plugin->{handle}->plugin( "Export::DC" );
+	my $main_dc_plugin = $plugin->{session}->plugin( "Export::DC" );
 	
 	my $data = $main_dc_plugin->convert_dataobj( $dataobj );
 
-	my $dc = $plugin->{handle}->make_element(
+	my $dc = $plugin->{session}->make_element(
         	"oai_dc:dc",
 		"xmlns:oai_dc" => "http://www.openarchives.org/OAI/2.0/oai_dc/",
         	"xmlns:dc" => "http://purl.org/dc/elements/1.1/",
@@ -59,7 +59,7 @@ sub xml_dataobj
 	# them to the DC element.
 	foreach( @{$data} )
 	{
-		$dc->appendChild(  $plugin->{handle}->render_data_element( 8, "dc:".$_->[0], $_->[1] ) );
+		$dc->appendChild(  $plugin->{session}->render_data_element( 8, "dc:".$_->[0], $_->[1] ) );
 		# produces <key>value</key>
 	}
 

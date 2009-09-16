@@ -37,7 +37,7 @@ sub input_file
 {
         my ( $plugin, %opts) = @_;
 
-        my $handle = $plugin->{handle};
+        my $session = $plugin->{session};
 	my $file = $opts{file};
 	my $mime = $opts{mime_type};
 
@@ -95,7 +95,7 @@ sub input_file
         my $owner_id = $opts{owner_id};
         my $depositor_id = $opts{depositor_id};
 
-        my $ds = $handle->get_repository()->get_dataset( $dataset_id );
+        my $ds = $session->get_archive()->get_dataset( $dataset_id );
 
         my $fh;
 
@@ -160,7 +160,7 @@ sub input_file
 		return undef;
 	}
 
-	my $eprint = $handle->get_eprint( $$ids[0] );
+	my $eprint = EPrints::DataObj::EPrint->new( $session, $$ids[0] );
 
 	unless( defined $eprint )
 	{
@@ -340,7 +340,7 @@ sub xml_field_to_epdatafield
                                         fieldname => $field->get_name ) );
                                 next;
                         }
-                        my $sub_dataset = $plugin->{handle}->get_repository->get_dataset( $expect );
+                        my $sub_dataset = $plugin->{session}->get_repository->get_dataset( $expect );
                         push @{$epdatafield}, $plugin->xml_to_epdata( $sub_dataset,$el );
                         next;
                 }
@@ -469,7 +469,7 @@ sub characters
 		}
 		else
 		{
-			$self->{xmlcurrent}->appendChild( $self->{plugin}->{handle}->make_text( $node_info->{Data} ) );
+			$self->{xmlcurrent}->appendChild( $self->{plugin}->{session}->make_text( $node_info->{Data} ) );
 		}
 	}
 }
@@ -518,7 +518,7 @@ sub end_element
 			close TMP;
 
 			$self->{xmlcurrent}->appendChild( 
-				$self->{plugin}->{handle}->make_text( $tmpfile ) );
+				$self->{plugin}->{session}->make_text( $tmpfile ) );
 			delete $self->{basedata};
 		}
 		pop @{$self->{xmlstack}};
@@ -550,14 +550,14 @@ sub start_element
 
 	if( $self->{depth} == 1 )
 	{
-		$self->{xml} = $self->{plugin}->{handle}->make_element( $node_info->{Name} );
+		$self->{xml} = $self->{plugin}->{session}->make_element( $node_info->{Name} );
 		$self->{xmlstack} = [$self->{xml}];
 		$self->{xmlcurrent} = $self->{xml};
 	}
 
 	if( $self->{depth} > 1 )
 	{
-		my $new = $self->{plugin}->{handle}->make_element( $node_info->{Name} );
+		my $new = $self->{plugin}->{session}->make_element( $node_info->{Name} );
 		$self->{xmlcurrent}->appendChild( $new );
 		push @{$self->{xmlstack}}, $new;
 		$self->{xmlcurrent} = $new;

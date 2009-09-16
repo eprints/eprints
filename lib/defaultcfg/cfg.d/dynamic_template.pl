@@ -24,23 +24,23 @@ $c->{dynamic_template}->{enable} = 1;
 # miuntes and cache them to a file.
 
 $c->{dynamic_template}->{function} = sub {
-	my( $handle, $parts ) = @_;
+	my( $session, $parts ) = @_;
 
-	my $user = $handle->current_user;
+	my $user = $session->current_user;
 	if( defined $user )
 	{
-		$parts->{login_status} = $handle->html_phrase( 
+		$parts->{login_status} = $session->html_phrase( 
 			"dynamic:logged_in", 
 			user => $user->render_description,
-			tools => $handle->render_toolbar );
-		$parts->{login_status_header} = $handle->html_phrase(
+			tools => $session->render_toolbar );
+		$parts->{login_status_header} = $session->html_phrase(
 			"dynamic:logged_in_header" );
 	}
 	else
 	{
-		$parts->{login_status} = $handle->html_phrase( 
+		$parts->{login_status} = $session->html_phrase( 
 			"dynamic:not_logged_in" );
-		$parts->{login_status_header} = $handle->html_phrase(
+		$parts->{login_status_header} = $session->html_phrase(
 			"dynamic:not_logged_in_header" );
 	}
 };

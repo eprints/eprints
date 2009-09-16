@@ -39,8 +39,8 @@ MySQL is (by default) lax about truncation.
 #
 # INSTANCE VARIABLES:
 #
-#  $self->{handle}
-#     The EPrints::RepositoryHandle which is associated with this database 
+#  $self->{session}
+#     The EPrints::Session which is associated with this database 
 #     connection.
 #
 #  $self->{debug}
@@ -111,7 +111,7 @@ sub create_counters
 {
 	my( $self ) = @_;
 
-	my $counter_ds = $self->{handle}->get_repository->get_dataset( "counter" );
+	my $counter_ds = $self->{session}->get_repository->get_dataset( "counter" );
 	
 	# The table creation SQL
 	my $table = $counter_ds->get_sql_table_name;
@@ -230,7 +230,7 @@ sub remove_counters
 {
 	my( $self ) = @_;
 
-	my $counter_ds = $self->{handle}->get_repository->get_dataset( "counter" );
+	my $counter_ds = $self->{session}->get_repository->get_dataset( "counter" );
 	my $table = $counter_ds->get_sql_table_name;
 	
 	$self->drop_table( $table );
@@ -251,7 +251,7 @@ sub counter_next
 {
 	my( $self, $counter ) = @_;
 
-	my $ds = $self->{handle}->get_repository->get_dataset( "counter" );
+	my $ds = $self->{session}->get_repository->get_dataset( "counter" );
 
 	# Update the counter
 	my $table = $ds->get_sql_table_name;
@@ -286,7 +286,7 @@ sub counter_minimum
 {
 	my( $self, $counter, $value ) = @_;
 
-	my $ds = $self->{handle}->get_repository->get_dataset( "counter" );
+	my $ds = $self->{session}->get_repository->get_dataset( "counter" );
 
 	$value+=0; # ensure numeric!
 
@@ -312,7 +312,7 @@ sub counter_reset
 {
 	my( $self, $counter ) = @_;
 
-	my $ds = $self->{handle}->get_repository->get_dataset( "counter" );
+	my $ds = $self->{session}->get_repository->get_dataset( "counter" );
 
 	# Update the counter	
 	my $sql = "UPDATE ".$ds->get_sql_table_name()." ";
@@ -339,7 +339,7 @@ sub _cache_from_TABLE
 	$sql = "INSERT INTO $cache_table ($Q_keyname) SELECT B.$Q_keyname FROM $srctable B";
 	if( defined $order )
 	{
-		$sql .= " LEFT JOIN ".$self->quote_identifier($dataset->get_ordervalues_table_name($self->{handle}->get_langid()))." O";
+		$sql .= " LEFT JOIN ".$self->quote_identifier($dataset->get_ordervalues_table_name($self->{session}->get_langid()))." O";
 		$sql .= " ON B.$Q_keyname = O.$Q_keyname";
 	}
 	if( scalar @$logic )
@@ -428,7 +428,7 @@ sub _rename_table_field
 	my $rc = 1;
 
 	my @names = $field->get_sql_names;
-	my @types = $field->get_sql_type( $self->{handle} );
+	my @types = $field->get_sql_type( $self->{session} );
 
 	# work out what the old columns are called
 	my @old_names;
@@ -458,12 +458,12 @@ sub _rename_field_ordervalues_lang
 	my $order_table = $dataset->get_ordervalues_table_name( $langid );
 
 	my $sql_field = EPrints::MetaField->new(
-		repository => $self->{handle}->get_repository,
+		repository => $self->{ session }->get_repository,
 		name => $field->get_sql_name(),
 		type => "longtext",
 		allow_null => 1 );
 
-	my( $col ) = $sql_field->get_sql_type( $self->{handle} );
+	my( $col ) = $sql_field->get_sql_type( $self->{session} );
 
 	my $sql = sprintf("ALTER TABLE %s CHANGE %s %s",
 			$self->quote_identifier($order_table),

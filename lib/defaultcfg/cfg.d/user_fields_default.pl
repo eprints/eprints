@@ -1,7 +1,7 @@
 
 $c->{set_user_defaults} = sub
 {
-	my( $data, $handle ) = @_;
+	my( $data, $session ) = @_;
 
 	$data->{hideemail} = "TRUE";
 

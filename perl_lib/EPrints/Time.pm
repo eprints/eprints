@@ -19,31 +19,11 @@
 
 B<EPrints::Time> - Time and Date-related functions 
 
-=head1 SYNOPSIS
-
-	EPrints::Time::render_date( $handle, "2001-01-12T00:00:00Z" ) 
-	# returns XML containing 12 January 2001 00:00
-
-	EPrints::Time::render_short_date( $handle, "2001-01-12T00:00:00Z" ) 
-	# returns XML containing 12 Jan 2001 00:00
-	
-	EPrints::Time::get_iso_timestamp( ); 
-	# returns NOW in the form YYYY-MM-DDTHH:MM:SSZ
-	
-	EPrints::Time::human_delay( 28 ); 
-	# returns "1 day"
-	
-	EPrints::Time::get_month_label( $handle, 11 ) 
-	# returns November
-	
-	EPrints::Time::get_month_label_short( $handle, 11 ) 
-	# returns Nov
-
 =head1 DESCRIPTION
 
 This package contains functions related to time/date functionality. 
 
-
+=over 4
 
 =cut
 
@@ -55,60 +35,30 @@ use Time::Local 'timegm_nocheck';
 ######################################################################
 =pod
 
-=over 4
-
-=item $xhtml = EPrints::Time::render_date( $handle, $datevalue )
+=item $xhtml = EPrints::Time::render_date( $session, $datevalue )
 
 Render the given date or date and time as a chunk of XHTML.
 
-$datevalue is given in a UTC timestamp of the form YYYY-MM-DDTHH:MM:SSZ but it will be rendered in the local offset.
-
-e.g EPrints::Time::render_date( $handle, "2001-01-12T00:00:00Z" ) #returns XML containing 12 January 2001 00:00
+The date given is in UTC but it will be rendered in the local offset.
 
 =cut
 ######################################################################
 
 sub render_date
 {
-	my( $handle, $datevalue) = @_;
-	return _render_date( $handle, $datevalue, 0 );
+	my( $session, $datevalue) = @_;
+	return _render_date( $session, $datevalue, 0 );
 }
-
-######################################################################
-=pod
-
-=item $xhtml = EPrints::Time::render_short_date( $handle, $datevalue )
-
-Renders a short version of the given date or date and time as a chunk of XHTML.
-
-$datevalue is given in UTC timestamp of the form YYYY-MM-DDTHH:MM:SSZ but it will be rendered in the local offset.
-
-e.g EPrints::Time::render_short_date( $handle, "2001-01-12T00:00:00Z" ) #returns XML containing 12 Jan 2001 00:00
-
-=cut
-######################################################################
 
 sub render_short_date
 {
-	my( $handle, $datevalue) = @_;
-	return _render_date( $handle, $datevalue, 1 );
+	my( $session, $datevalue) = @_;
+	return _render_date( $session, $datevalue, 1 );
 }
-
-######################################################################
-=pod
-
-=item $xhtml = EPrints::Time::datestring_to_timet( $handle, $datevalue )
-
-Returns an interger number of seconds since 1970-01-01:00:00
-
-$datevalue - in the format YYYY-MM-DDTHH:MM:SSZ 
-
-=cut
-######################################################################
 
 sub datestring_to_timet
 {
-	my( $handle, $datevalue ) = @_;
+	my( $session, $datevalue, $short ) = @_;
 
 	my( $year,$mon,$day,$hour,$min,$sec ) = split /[- :TZ]/, $datevalue;
 
@@ -119,11 +69,11 @@ sub datestring_to_timet
 
 sub _render_date
 {
-	my( $handle, $datevalue, $short ) = @_;
+	my( $session, $datevalue, $short ) = @_;
 
 	if( !defined $datevalue )
 	{
-		return $handle->html_phrase( "lib/utils:date_unspecified" );
+		return $session->html_phrase( "lib/utils:date_unspecified" );
 	}
 
 	# remove 0'd days and months
@@ -146,7 +96,7 @@ sub _render_date
 
 	if( !defined $year || $year eq "undef" || $year eq "" || $year == 0 ) 
 	{
-		return $handle->html_phrase( "lib/utils:date_unspecified" );
+		return $session->html_phrase( "lib/utils:date_unspecified" );
 	}
 
 	# 1999
@@ -157,11 +107,11 @@ sub _render_date
 	{
 		if( $short )	
 		{
-			$month_name = EPrints::Time::get_month_label_short( $handle, $mon );
+			$month_name = EPrints::Time::get_month_label_short( $session, $mon );
 		}
 		else
 		{
-			$month_name = EPrints::Time::get_month_label( $handle, $mon );
+			$month_name = EPrints::Time::get_month_label( $session, $mon );
 		}
 		$r = "$month_name $r";
 	}
@@ -176,7 +126,7 @@ sub _render_date
 
 	if( !defined $hour )
 	{
-		return $handle->make_text( $r );
+		return $session->make_text( $r );
 	}
 
 	my $time;
@@ -203,7 +153,7 @@ sub _render_date
 
 	$r .= " ".$off if( !$short );
 
-	return $handle->make_text( $r );
+	return $session->make_text( $r );
 }
 
 ######################################################################
@@ -219,67 +169,52 @@ and localtime.
 
 sub gmt_off
 {
-	my $time = time;
-	my( @local ) = localtime($time);
-	my( @gmt ) = gmtime($time);
+        my $time = time;
+        my( @local ) = localtime($time);
+        my( @gmt ) = gmtime($time);
  
-	my @diff;
+        my @diff;
  
-	for(0..2) { $diff[$_] = $local[$_] - $gmt[$_]; }
+        for(0..2) { $diff[$_] = $local[$_] - $gmt[$_]; }
 
 	my $local_cmp_code = $local[3]+$local[4]*100+$local[5]*10000; 
 	my $gmt_cmp_code = $gmt[3]+$gmt[4]*100+$gmt[5]*10000; 
-	if( $local_cmp_code > $gmt_cmp_code ) { $diff[2] += 24; }
-	if( $local_cmp_code < $gmt_cmp_code ) { $diff[2] -= 24; }
+        if( $local_cmp_code > $gmt_cmp_code ) { $diff[2] += 24; }
+        if( $local_cmp_code < $gmt_cmp_code ) { $diff[2] -= 24; }
  
-	return $diff[2]*60*60 + $diff[1]*60 + $diff[0];
+        return $diff[2]*60*60 + $diff[1]*60 + $diff[0];
 }
 
 
 ######################################################################
 =pod
 
-=item $label = EPrints::Time::get_month_label( $handle, $monthid )
+=item $label = EPrints::Time::get_month_label( $session, $monthid )
 
 Return a UTF-8 string describing the month, in the current lanugage.
 
 $monthid is an integer from 1 to 12.
-
-e.g EPrints::Time::get_month_label( $handle, 11 ) # returns November
 
 =cut
 ######################################################################
 
 sub get_month_label
 {
-	my( $handle, $monthid ) = @_;
+	my( $session, $monthid ) = @_;
 
 	my $code = sprintf( "lib/utils:month_%02d", $monthid );
 
-	return $handle->phrase( $code );
+	return $session->phrase( $code );
 }
 
-######################################################################
-=pod
-
-=item $label = EPrints::Time::get_month_label_short( $handle, $monthid )
-
-Return a UTF-8 string of a short representation in  month, in the current lanugage.
-
-$monthid is an integer from 1 to 12.
-
-e.g EPrints::Time::get_month_label_short( $handle, 11 ) # returns Nov
-
-=cut
-######################################################################
 
 sub get_month_label_short
 {
-	my( $handle, $monthid ) = @_;
+	my( $session, $monthid ) = @_;
 
 	my $code = sprintf( "lib/utils:month_short_%02d", $monthid );
 
-	return $handle->phrase( $code );
+	return $session->phrase( $code );
 }
 
 ######################################################################
@@ -373,7 +308,6 @@ e.g. 2005-02-12T09:23:33Z
 
 $time in seconds from 1970. If not defined then assume current time.
 
-
 =cut
 ######################################################################
 
@@ -390,21 +324,6 @@ sub get_iso_timestamp
 			$hour, $min, $sec );
 }
 
-######################################################################
-=pod
-
-=item $timestamp = EPrints::Time::human_delay( $hours );
-
-Returns a human readable amount of time. 
-
-$hours the number of hours representing the time you want to be human readable.
-
-e.g. EPrints::Time::human_delay( 28 ); # returns "1 day"
-
-e.g. EPrints::Time::human_delay( 400 ); # returns "2 weeks"
-
-=cut
-######################################################################
 sub human_delay
 {
 	my( $hours ) = @_;
