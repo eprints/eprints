@@ -17,7 +17,7 @@ sub new
 
 	$self->{name} = "DOI (via CrossRef)";
 	$self->{visible} = "all";
-	$self->{produce} = [ 'list/eprint' ];
+	$self->{produce} = [ 'dataobj/eprint', 'list/eprint' ];
 
 	return $self;
 }

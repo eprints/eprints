@@ -157,6 +157,9 @@ sub render
 
 	$chunk->appendChild( $self->render_action_list_bar( "item_tools" ) );
 
+	my $import_screen = $session->plugin( "Screen::Import" );
+	$chunk->appendChild( $import_screen->render_import_bar() );
+
 	my %filters = $self->get_filters;
 	my @l = ();
 	foreach( keys %filters ) { push @l, $_ if $filters{$_}; }

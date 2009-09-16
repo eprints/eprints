@@ -290,4 +290,9 @@ sub error
 	$plugin->handler->message( "error", $plugin->{session}->make_text( $msg ));
 }
 
+sub is_tool
+{
+	return 0;
+}
+
 1;

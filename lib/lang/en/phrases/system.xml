@@ -1350,13 +1350,78 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/Screen/Items:db_error">Database Error</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Items:list_desc">Your Deposits</epp:phrase>
 
-    <epp:phrase id="Plugin/Screen/Import:title">Import Items</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Import:intro">Follow the steps below to import records into your workarea.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:title">Import Items from <epc:pin name="input"/></epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:intro">To import items from an external source enter the required data below. To test whether the data to import is correctly formatted click <em><epc:phrase ref="Plugin/Screen/Import:action:test:title"/></em>, otherwise click <em><epc:phrase ref="Plugin/Screen/Import:action:import:title"/></em> to import.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:import_section">
+<table width="100%"><tr>
+  <td align="left">Import from <epc:pin name="menu"/><epc:pin name="button"/></td>
+</tr>
+<tr>
+  <td align="left">
+    <epc:pin name="tools"/>
+  </td>
+</tr>
+</table></epp:phrase>
 
-    <epp:phrase id="Plugin/Screen/Import:action:test:title">Test run</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Import:action:import:title">Test run + Import</epp:phrase>
+    <epp:phrase id="Plugin/Import/ExplodeArchive:input:form">Select an archive from your system: <epc:pin name="input_file_upload"/> e.g. my_photos.zip<br />
+Each file inside this archive will be created as an <b>individual</b> document inside the resulting eprint.</epp:phrase>
+    <epp:phrase id="Plugin/Import/DOI:input:form">
+<table>
+<tr>
+<td>Enter a DOI:</td><td><epc:pin name="input_uri"/> e.g. doi:10.1006/jmbi.1998.2354</td>
+</tr>
+</table>
+	</epp:phrase>
+	<epp:phrase id="Plugin/Import/DOI:bulk_input:form">
+<table>
+<tr>
+<td>Either enter DOIs (one per line):</td><td><epc:pin name="bulk_input_text_area"/></td>
+</tr><tr>
+<td><b>OR</b> select a file to import from:</td><td><epc:pin name="bulk_input_file_upload"/></td>
+</tr>
+</table>
+	</epp:phrase>
+    <epp:phrase id="Plugin/Import/BibTeX:input:form">
+<table>
+<tr>
+<td>Enter a BibTeX entry:</td><td><epc:pin name="input_text_area"/></td>
+</tr>
+</table>
+	</epp:phrase>
+    <epp:phrase id="Plugin/Import/BibTeX:bulk_input:form">
+<table>
+<tr>
+<td>Either cut-and-paste BibTeX entries into this box:</td><td><epc:pin name="bulk_input_text_area"/></td>
+</tr><tr>
+<td><b>OR</b> select a file to import from:</td><td><epc:pin name="bulk_input_file_upload"/></td>
+</tr>
+</table>
+	</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Import:input:form">
+<table>
+<tr>
+<td>Enter data to import:</td><td><epc:pin name="input_text_area"/></td>
+</tr>
+</table>
+	</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Import:bulk_input:form">
+<table>
+<tr>
+<td><b>Either</b> paste data here:</td><td><epc:pin name="bulk_input_text_area"/></td>
+</tr><tr>
+<td><b>Or</b> select a file to import from:</td><td><epc:pin name="bulk_input_file_upload"/></td>
+</tr>
+</table>
+	</epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/Import:input:title">Import a single item</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:bulk_input:title">Import more than one item</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:action:import_from:title">Import</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:action:test:title">Test without Importing</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:action:import:title">Import Items</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:nothing_to_import">You must specify something to import!</epp:phrase>
 
+	<epp:phrase id="Plugin/Screen/Import:multiple_inputs">Encountered more than one set of input - make sure you haven't filled in more than one field.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:test_completed">Test run completed: <epc:pin name="count"/> item(s) found.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:test_failed">Test run failed: <epc:pin name="count"/> item(s) found before an error caused the test run to abort. Carefully check any warning messages before proceeding.</epp:phrase>
 
@@ -1367,7 +1432,7 @@ Titles and Help for the System Fields
 
     <epp:phrase id="Plugin/Screen/Import:step1">Cut and paste import records<br/><i>or</i><br />Upload import file</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:step2">Select import format</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Import:import_documents">Import full text (if available)</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:import_documents">Import full texts in addition to metadata if full text is available</epp:phrase>
 
     <!-- eprint action screens -->
 
