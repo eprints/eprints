@@ -99,7 +99,7 @@ use EPrints::Apache::Storage;
 ######################################################################
 =pod
 
-=item EPrints::abort( $msg )
+=item EPrints->abort( $errmsg )
 
 Print an error message and exit. If running under mod_perl then
 print the error as a webpage and exit.
@@ -110,9 +110,9 @@ used to report errors when initialising modules.
 =cut
 ######################################################################
 
-	sub abort
+	sub abort($;$)
 	{
-		my( $errmsg ) = @_;
+		my( $errmsg ) = pop @_; # last parameter
 
 		my $r;
 		if( $ENV{MOD_PERL} && $EPrints::SystemSettings::loaded)
@@ -181,6 +181,7 @@ END
 
 use EPrints::BackCompatibility;
 use EPrints::XML;
+use EPrints::XHTML;
 use EPrints::Utils;
 use EPrints::Time;
 
@@ -259,19 +260,48 @@ sub new($)
 
 =item $repo = $ep->repository( $repository_id, %options );
 
-Return the repository with the given ID. Options are... optional.
+Return the repository with the given ID, or undef. Options are... optional.
 
 Options noise=>1, etc.
 
 =cut
+
 sub repository($$%)
 {
-	my( $self, $repository_id, %ops ) = @_;
+	my( $self, $repository_id, %options ) = @_;
 
 	return undef if( ! EPrints::Repository::exists( $repository_id ) );
 
 	return EPrints::Repository->new( $repository_id );
 }	
+
+
+=pod
+
+=item $repo = $ep->current_repository( %options );
+
+Return the repository based on the current web request, or undef.
+
+%options as for $ep->repository(..)
+
+=cut
+
+sub current_repository($%)
+{
+	my( $self, %options ) = @_;
+
+	my $request = EPrints::Apache::AnApache::get_request();
+	return undef if !defined $request;
+		
+	my $repoid = $request->dir_config( "EPrints_ArchiveID" );
+
+	my $repository = EPrints::Repository->new( $repoid );
+	return undef if !defined $repository;
+
+	$repository->check_secure_dirs( $request );
+
+	return $repository;
+}
 
 
 

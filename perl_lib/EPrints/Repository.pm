@@ -115,7 +115,7 @@ sub new
 	if( defined $ARCHIVE_CACHE{$id} )
 	{
 		my $self = $ARCHIVE_CACHE{$id};
-		my $file = $self->get_conf( "variables_path" )."/last_changed.timestamp";
+		my $file = $self->config( "variables_path" )."/last_changed.timestamp";
 		my $poketime = (stat( $file ))[9];
 		# If the /cfg/.changed file was touched since the config
 		# for this repository was loaded then we will reload it.
@@ -179,7 +179,11 @@ sub new
 	return $self;
 }
 
-sub exists
+# $bool = EPrints::Repository::exists( $repository_id )
+#
+# Return true if a repository exists with this ID.
+
+sub exists($)
 {
 	my( $repository_id ) = @_;
 	
@@ -187,6 +191,121 @@ sub exists
 
 	return ( -d $archiveroot )
 }
+
+######################################################################
+=pod
+
+=item $xml = $repository->xml;
+
+Return an XML object for working with XML.
+
+=cut
+######################################################################
+
+sub xml($) 
+{
+	my( $repository ) = @_;
+
+	if( ! defined $repository->{xml} )
+	{
+		$repository->{xml} = EPrints::XML->new( $repository );
+	}
+
+	return $repository->{xml};
+}
+
+
+######################################################################
+=pod
+
+=item $xhtml = $repository->xhtml;
+
+Return an XHTML object for working with XHTML.
+
+=cut
+######################################################################
+
+sub xhtml($) 
+{
+	my( $repository ) = @_;
+
+	if( ! defined $repository->{xhtml} )
+	{
+		$repository->{xhtml} = EPrints::XHTML->new( $repository );
+	}
+
+	return $repository->{xhtml};
+}
+
+######################################################################
+=pod
+
+=item $eprint = $repository->eprint( $eprint_id );
+
+Return the eprint with the given ID, or undef.
+
+=cut
+######################################################################
+
+sub eprint($$)
+{
+	my( $repository, $eprint_id ) = @_;
+
+	return $repository->dataset( "eprint" )->get_object( $repository, $eprint_id );
+}
+	
+######################################################################
+=pod
+
+=item $user = $repository->user( $user_id );
+
+Return the user with the given ID, or undef.
+
+=cut
+######################################################################
+
+sub user($$)
+{
+	my( $repository, $user_id ) = @_;
+
+	return $repository->dataset( "user" )->get_object( $repository, $user_id );
+}
+	
+######################################################################
+=pod
+
+=item $user = $repository->user_by_username( $username );
+
+Return the user with the given username, or undef.
+
+=cut
+######################################################################
+
+sub user_by_username($$)
+{
+	my( $repository, $username ) = @_;
+
+	return EPrints::DataObj::User::user_with_username( $repository, $username )
+}
+	
+######################################################################
+=pod
+
+=item $user = $repository->user_by_email( $email );
+
+Return the user with the given email, or undef.
+
+=cut
+######################################################################
+
+sub user_by_email($$)
+{
+	my( $repository, $email ) = @_;
+
+	return EPrints::DataObj::User::user_with_email( $repository, $email )
+}
+	
+	
 
 ######################################################################
 =pod
@@ -234,7 +353,7 @@ sub check_secure_dirs
 	my( $self, $request ) = @_;
 
 	my $real_secured_cgi = EPrints::Config::get( "cgi_path" )."/users";
-	my $real_documents_path = $self->get_conf( "documents_path" );
+	my $real_documents_path = $self->config( "documents_path" );
 
 	my $apacheconf_secured_cgi = $request->dir_config( "EPrints_Dir_SecuredCGI" );
 	my $apacheconf_documents_path = $request->dir_config( "EPrints_Dir_Documents" );
@@ -289,11 +408,11 @@ sub _load_storage
 	$self->{storage} = {};
 
 	EPrints::Storage::load_all( 
-		$self->get_conf( "lib_path" )."/storage",
+		$self->config( "lib_path" )."/storage",
 		$self->{storage} );
 
 	EPrints::Storage::load_all( 
-		$self->get_conf( "config_path" )."/storage",
+		$self->config( "config_path" )."/storage",
 		$self->{storage} );
 
 	return 1;
@@ -327,13 +446,13 @@ sub _load_workflows
 	$self->{workflows} = {};
 
 	EPrints::Workflow::load_all( 
-		$self->get_conf( "config_path" )."/workflows",
+		$self->config( "config_path" )."/workflows",
 		$self->{workflows} );
 
 	# load any remaining workflows from the generic level.
 	# eg. saved searches
 	EPrints::Workflow::load_all( 
-		$self->get_conf( "lib_path" )."/workflows",
+		$self->config( "lib_path" )."/workflows",
 		$self->{workflows} );
 
 	return 1;
@@ -371,7 +490,7 @@ sub _load_languages
 {
 	my( $self ) = @_;
 	
-	my $defaultid = $self->get_conf( "defaultlanguage" );
+	my $defaultid = $self->config( "defaultlanguage" );
 	$self->{langs}->{$defaultid} = EPrints::Language->new( 
 		$defaultid, 
 		$self );
@@ -382,7 +501,7 @@ sub _load_languages
 	}
 
 	my $langid;
-	foreach $langid ( @{$self->get_conf( "languages" )} )
+	foreach $langid ( @{$self->config( "languages" )} )
 	{
 		next if( $langid eq $defaultid );	
 		$self->{langs}->{$langid} =
@@ -416,7 +535,7 @@ sub get_language
 
 	if( !defined $langid )
 	{
-		$langid = $self->get_conf( "defaultlanguage" );
+		$langid = $self->config( "defaultlanguage" );
 	}
 	return $self->{langs}->{$langid};
 }
@@ -435,8 +554,8 @@ sub _load_citation_specs
 
 	$self->{citation_style} = {};
 	$self->{citation_type} = {};
-	$self->_load_citation_dir( $self->get_conf( "config_path" )."/citations" );
-	$self->_load_citation_dir( $self->get_conf( "lib_path" )."/citations" );
+	$self->_load_citation_dir( $self->config( "config_path" )."/citations" );
+	$self->_load_citation_dir( $self->config( "lib_path" )."/citations" );
 }
 
 sub _load_citation_dir
@@ -622,9 +741,9 @@ sub _load_templates
 {
 	my( $self ) = @_;
 
-	foreach my $langid ( @{$self->get_conf( "languages" )} )
+	foreach my $langid ( @{$self->config( "languages" )} )
 	{
-		my $dir = $self->get_conf( "config_path" )."/lang/$langid/templates";
+		my $dir = $self->config( "config_path" )."/lang/$langid/templates";
 		my $dh;
 		opendir( $dh, $dir );
 		my @template_files = ();
@@ -657,7 +776,7 @@ sub freshen_template
 {
 	my( $self, $langid, $id ) = @_;
 
-	my $file = $self->get_conf( "config_path" ).
+	my $file = $self->config( "config_path" ).
 			"/lang/$langid/templates/$id.xml";
 	my @filestat = stat( $file );
 	my $mtime = $filestat[9];
@@ -872,7 +991,7 @@ sub _load_namedsets
 
 	# load /namedsets/* 
 
-	my $dir = $self->get_conf( "config_path" )."/namedsets";
+	my $dir = $self->config( "config_path" )."/namedsets";
 	my $dh;
 	opendir( $dh, $dir );
 	my @type_files = ();
@@ -951,7 +1070,7 @@ sub _load_datasets
 	my %info = %{EPrints::DataSet::get_system_dataset_info()};
 
 	# repository-specific datasets
-	my $repository_datasets = $self->get_conf( "datasets" );
+	my $repository_datasets = $self->config( "datasets" );
 	foreach my $ds_id ( keys %{$repository_datasets||{}} )
 	{
 		$info{$ds_id} = $repository_datasets->{$ds_id};
@@ -1043,14 +1162,15 @@ sub get_sql_counter_ids
 ######################################################################
 =pod
 
-=item $dataset = $repository->get_dataset( $setname )
+=item $dataset = $repository->dataset( $setname )
 
-Returns the cached EPrints::DataSet with the given dataset id name.
+Return a given dataset or undef if it doesn't exist.
 
 =cut
 ######################################################################
 
-sub get_dataset
+sub get_dataset { return dataset( @_ ); }
+sub dataset($$)
 {
 	my( $self , $setname ) = @_;
 
@@ -1167,20 +1287,21 @@ sub _map_oai_plugins
 ######################################################################
 =pod
 
-=item $confitem = $repository->get_conf( $key, [@subkeys] )
+=item $confitem = $repository->config( $key, [@subkeys] )
 
 Returns a named configuration setting. Probably set in ArchiveConfig.pm
 
-$repository->get_conf( "stuff", "en", "foo" )
+$repository->config( "stuff", "en", "foo" )
 
 is equivalent to 
 
-$repository->get_conf( "stuff" )->{en}->{foo} 
+$repository->config( "stuff" )->{en}->{foo} 
 
 =cut
 ######################################################################
 
-sub get_conf
+sub get_conf { return config( @_ ); }
+sub config($$@)
 {
 	my( $self, $key, @subkeys ) = @_;
 
@@ -1197,7 +1318,7 @@ sub get_conf
 	{
 		if( $key eq "variables_path" )
 		{
-			$val = $self->get_conf( 'archiveroot' )."/var";
+			$val = $self->config( 'archiveroot' )."/var";
 		}
 
 	}
@@ -1222,7 +1343,7 @@ sub log
 {
 	my( $self , $msg) = @_;
 
-	if( $self->get_conf( 'show_ids_in_log' ) )
+	if( $self->config( 'show_ids_in_log' ) )
 	{
 		my @m2 = ();
 		foreach my $line ( split( '\n', $msg ) )
@@ -1254,12 +1375,12 @@ sub call
 	my $fn;
 	if( ref $cmd eq "ARRAY" )
 	{
-		$fn = $self->get_conf( @$cmd );
+		$fn = $self->config( @$cmd );
 		$cmd = join( "->",@{$cmd} );
 	}
 	else
 	{
-		$fn = $self->get_conf( $cmd );
+		$fn = $self->config( $cmd );
 	}
 
 	if( !defined $fn || ref $fn ne "CODE" )
@@ -1301,7 +1422,7 @@ sub can_call
 {
 	my( $self, @cmd_conf_path ) = @_;
 	
-	my $fn = $self->get_conf( @cmd_conf_path );
+	my $fn = $self->config( @cmd_conf_path );
 	return( 0 ) unless( defined $fn );
 
 	return( 0 ) unless( ref $fn eq "CODE" );
@@ -1348,7 +1469,7 @@ sub get_store_dirs
 {
 	my( $self ) = @_;
 
-	my $docroot = $self->get_conf( "documents_path" );
+	my $docroot = $self->config( "documents_path" );
 
 	opendir( DOCSTORE, $docroot ) || return undef;
 
@@ -1381,15 +1502,15 @@ sub get_static_dirs
 
 	my @dirs;
 
-	my $config_path = $self->get_conf( "config_path" );
-	my $lib_path = $self->get_conf( "lib_path" );
+	my $config_path = $self->config( "config_path" );
+	my $lib_path = $self->config( "lib_path" );
 
 	# repository path: /archives/[repoid]/cfg/
 	push @dirs, "$config_path/static";
 	push @dirs, "$config_path/lang/$langid/static";
 
 	# themes path: /lib/themes/
-	my $theme = $self->get_conf( "theme" );
+	my $theme = $self->config( "theme" );
 	if( defined $theme )
 	{	
 		push @dirs, "$lib_path/themes/$theme/static";
@@ -1420,7 +1541,7 @@ sub get_store_dir_size
 {
 	my( $self , $dir ) = @_;
 
-	my $filepath = $self->get_conf( "documents_path" )."/".$dir;
+	my $filepath = $self->config( "documents_path" )."/".$dir;
 
 	if( ! -d $filepath )
 	{
@@ -1458,7 +1579,7 @@ sub parse_xml
 	eval {
 		$doc = EPrints::XML::parse_xml( 
 			$file, 
-			$self->get_conf( "lib_path" ) . "/",
+			$self->config( "lib_path" ) . "/",
 			$no_expand );
 	};
 	if( !defined $doc )
@@ -1510,7 +1631,7 @@ sub can_execute
 {
 	my( $self, $cmd_id ) = @_;
 
-	my $cmd = $self->get_conf( "executables", $cmd_id );
+	my $cmd = $self->config( "executables", $cmd_id );
 
 	return ($cmd and $cmd ne "NOTFOUND") ? 1 : 0;
 }
@@ -1519,14 +1640,14 @@ sub can_invoke
 {
 	my( $self, $cmd_id, %map ) = @_;
 
-	my $execs = $self->get_conf( "executables" );
+	my $execs = $self->config( "executables" );
 
 	foreach( keys %{$execs} )
 	{
 		$map{$_} = $execs->{$_} unless $execs->{$_} eq "NOTFOUND";
 	}
 
-	my $command = $self->get_conf( "invocation" )->{ $cmd_id };
+	my $command = $self->config( "invocation" )->{ $cmd_id };
 	
 	return 0 if( !defined $command );
 
@@ -1556,13 +1677,13 @@ sub invocation
 {
 	my( $self, $cmd_id, %map ) = @_;
 
-	my $execs = $self->get_conf( "executables" );
+	my $execs = $self->config( "executables" );
 	foreach( keys %{$execs} )
 	{
 		$map{$_} = $execs->{$_};
 	}
 
-	my $command = $self->get_conf( "invocation" )->{ $cmd_id };
+	my $command = $self->config( "invocation" )->{ $cmd_id };
 
 	$command =~ s/\$\(([a-z]*)\)/quotemeta($map{$1})/gei;
 
@@ -1620,8 +1741,8 @@ sub generate_dtd
 {
 	my( $self ) = @_;
 
-	my $src_dtdfile = $self->get_conf("lib_path")."/xhtml-entities.dtd";
-	my $tgt_dtdfile = $self->get_conf( "variables_path" )."/entities.dtd";
+	my $src_dtdfile = $self->config("lib_path")."/xhtml-entities.dtd";
+	my $tgt_dtdfile = $self->config( "variables_path" )."/entities.dtd";
 
 	my $src_mtime = EPrints::Utils::mtime( $src_dtdfile );
 	my $tgt_mtime = EPrints::Utils::mtime( $tgt_dtdfile );

@@ -8373,3 +8373,6 @@ EPRINTS-3.1-beta-2
 
 2009-09-29 cjg
  * EPrints.pm methods for API.
+
+2009-09-29 cjg
+ * First half of Repository methods for API. Not yet merged Repository & Session.

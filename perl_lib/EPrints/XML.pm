@@ -53,6 +53,19 @@ else
 
 use strict;
 
+# $xml = new EPrints::XML( $repository )
+#
+# Contructor, should be called by Repository only.
+
+sub new($$)
+{
+	my( $class, $repository ) = @_;
+
+	my $self = bless { repository => $repository }, $class;
+
+	return $self;
+}
+
 
 ######################################################################
 =pod
