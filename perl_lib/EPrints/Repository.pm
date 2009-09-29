@@ -179,19 +179,6 @@ sub new
 	return $self;
 }
 
-# $bool = EPrints::Repository::exists( $repository_id )
-#
-# Return true if a repository exists with this ID.
-
-sub exists($)
-{
-	my( $repository_id ) = @_;
-	
-	my $archiveroot = $EPrints::SystemSettings::conf->{arc_path}."/".$repository_id;
-
-	return ( -d $archiveroot )
-}
-
 ######################################################################
 =pod
 

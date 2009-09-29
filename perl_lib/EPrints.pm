@@ -270,7 +270,12 @@ sub repository($$%)
 {
 	my( $self, $repository_id, %options ) = @_;
 
-	return undef if( ! EPrints::Repository::exists( $repository_id ) );
+	my $ok = 0;
+	foreach my $an_id ( EPrints::Config::get_repository_ids() )
+	{
+		$ok = 1 if( $an_id eq $repository_id );
+	}
+	return undef if( !$ok );
 
 	return EPrints::Repository->new( $repository_id );
 }	

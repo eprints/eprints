@@ -8376,3 +8376,7 @@ EPRINTS-3.1-beta-2
 
 2009-09-29 cjg
  * First half of Repository methods for API. Not yet merged Repository & Session.
+
+2009-09-29 cjg
+ * $eprints->repository now obeys disable option.
+
