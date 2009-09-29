@@ -179,6 +179,15 @@ sub new
 	return $self;
 }
 
+sub exists
+{
+	my( $repository_id ) = @_;
+	
+	my $archiveroot = $EPrints::SystemSettings::conf->{arc_path}."/".$repository_id;
+
+	return ( -d $archiveroot )
+}
+
 ######################################################################
 =pod
 
