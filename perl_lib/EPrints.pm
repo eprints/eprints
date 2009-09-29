@@ -206,7 +206,6 @@ use EPrints::DataObj::SavedSearch;
 use EPrints::DataObj::UploadProgress;
 use EPrints::DataObj::User;
 use EPrints::DataSet;
-use EPrints::DataSetHandle;
 use EPrints::Email;
 use EPrints::Extras;
 use EPrints::Index;
