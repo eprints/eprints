@@ -206,6 +206,7 @@ use EPrints::DataObj::SavedSearch;
 use EPrints::DataObj::UploadProgress;
 use EPrints::DataObj::User;
 use EPrints::DataSet;
+use EPrints::DataSetHandle;
 use EPrints::Email;
 use EPrints::Extras;
 use EPrints::Index;
@@ -239,6 +240,41 @@ use EPrints::Workflow::Stage;
 use EPrints::XML::EPC;
 
 our $__loaded;
+
+=pod
+
+=item $ep = EPrints->new();
+
+Construct a new EPrints system object.
+
+=cut
+
+sub new($)
+{
+	my( $class ) = @_;
+
+	return bless {}, $class;
+}
+
+=pod
+
+=item $repo = $ep->repository( $repository_id, %options );
+
+Return the repository with the given ID. Options are... optional.
+
+Options noise=>1, etc.
+
+=cut
+sub repository($$%)
+{
+	my( $self, $repository_id, %ops ) = @_;
+
+	return undef if( ! EPrints::Repository::exists( $repository_id ) );
+
+	return EPrints::Repository->new( $repository_id );
+}	
+
+
 
 sub import
 {

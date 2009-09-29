@@ -8371,3 +8371,5 @@ EPRINTS-3.1-beta-2
  * Fixed erroneous attempt to set increment=0 in counter_minimum
  * Modified Import UI to allow a per-plugin/single/bulk workflow
 
+2009-09-29 cjg
+ * EPrints.pm methods for API.
