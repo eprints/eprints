@@ -110,7 +110,7 @@ used to report errors when initialising modules.
 =cut
 ######################################################################
 
-	sub abort($;$)
+	sub abort
 	{
 		my( $errmsg ) = pop @_; # last parameter
 
