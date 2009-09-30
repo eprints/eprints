@@ -8380,3 +8380,6 @@ EPRINTS-3.1-beta-2
 2009-09-29 cjg
  * $eprints->repository now obeys disable option.
 
+2009-09-30 tdb
+ * More efficient methods for getting "owned" and "editable" eprints
+

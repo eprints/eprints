@@ -117,7 +117,9 @@ sub render
 	my $page = $self->{session}->make_doc_fragment();
 
 	# Get EPrints in the submission buffer
-	my $list = $user->get_editable_eprints();
+	my $list = $user->editable_eprints_list( filters => [
+		{ meta_fields => ["eprint_status"], value => "buffer" },
+		]);
 
 	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
 	$page->appendChild( $div );

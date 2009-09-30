@@ -166,18 +166,10 @@ sub render
 
 	### Get the items owned by the current user
 	my $ds = $session->get_repository->get_dataset( "eprint" );
-	my $list = $session->current_user->get_owned_eprints( $ds );
-	$list = $list->reorder( "-status_changed" );
 
-	my $searchexp = new EPrints::Search(
-		session=>$session,
-		dataset=>$ds );
-	$searchexp->add_field(
-		$ds->get_field( "eprint_status" ),
-		join( " ", @l ),
-		"EQ",
-		"ANY" );
-	$list = $list->intersect( $searchexp->perform_search, "-eprintid" );
+	my $list = $session->current_user->owned_eprints_list( filters => [
+		{ meta_fields => [qw( eprint_status )], value => join(" ", @l), match => "EQ", merge => "ANY" },
+		]);
 	my $filter_div = $session->make_element( "div", class=>"ep_items_filters" );
 	foreach my $f ( qw/ inbox buffer archive deletion / )
 	{
