@@ -8383,3 +8383,6 @@ EPRINTS-3.1-beta-2
 2009-09-30 tdb
  * More efficient methods for getting "owned" and "editable" eprints
 
+2009-10-13 tdb
+ * Replaced search code with search code v3 (pure SQL)
+

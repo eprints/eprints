@@ -79,44 +79,6 @@ sub item_matches
 	return( 0 );
 }
 
-sub process
-{
-	my( $self, $session ) = @_;
-
-	my $database = $session->get_database;
-	my $tables = $self->SUPER::get_tables( $session );
-	if( scalar @{$tables} )
-	{
-		# join to a second dataset
-		return $self->run_tables( $session, $self->get_tables( $session ) );
-	}
-
-	my $where = $database->quote_identifier("fieldword")." LIKE ".$database->quote_value( 
-		EPrints::Database::prep_like_value($self->{field}->get_sql_name.":".$self->{params}->[0]) . "\%");
-
-	return $session->get_database->get_index_ids( $self->get_table, $where );
-}
-
-sub get_tables
-{
-	my( $self, $session ) = @_;
-
-	my $tables = $self->SUPER::get_tables( $session );
-	my $database = $session->get_database;
-
-	# otherwise joined tables on an index -- not efficient but this will work...
-	my $where = "(".$database->quote_identifier($EPrints::Search::Condition::TABLEALIAS,"field")." = ".$database->quote_value( $self->{field}->get_sql_name );
-	$where .= " AND ".$database->quote_identifier($EPrints::Search::Condition::TABLEALIAS,"word")." LIKE '".EPrints::Database::prep_like_value( $self->{params}->[0] )."\%')";
-
-	push @{$tables}, {
-		left => $self->{field}->get_dataset->get_key_field->get_name, 
-		where => $where,
-		table => $self->{field}->get_dataset->get_sql_rindex_table_name,
-	};
-
-	return $tables;
-}
-
 sub get_op_val
 {
 	return 1;

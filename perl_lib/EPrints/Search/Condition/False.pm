@@ -49,16 +49,15 @@ sub item_matches
 	return 0;
 }
 
-sub process
-{
-	my( $self, $session, $i, $filter ) = @_;
-
-	return [];
-}
-
 sub get_op_val
 {
 	return 0;
+}
+
+# always FALSE
+sub get_query_logic
+{
+	return "1=0";
 }
 
 1;

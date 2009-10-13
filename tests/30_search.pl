@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 12;
+use Test::More tests => 17;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -165,5 +165,47 @@ ok(defined($values) && scalar(@$values) > 0, "groupby");
 
 $searchexp->dispose;
 
+my $dataset_size = $dataset->count( $session );
+BAIL_OUT( "Can't test empty dataset" ) unless $dataset_size > 0;
+
+my $cond = EPrints::Search::Condition::False->new;
+
+my $matches = $cond->process(
+	session => $session,
+	dataset => $dataset,
+	);
+
+ok(@$matches == 0, "FALSE condition returns empty");
+
+$cond = EPrints::Search::Condition::True->new;
+
+$matches = $cond->process(
+	session => $session,
+	dataset => $dataset,
+	);
+
+ok(@$matches == $dataset_size, "TRUE condition returns everything");
+
+$cond = EPrints::Search::Condition::And->new(
+	EPrints::Search::Condition::False->new,
+	EPrints::Search::Condition::True->new );
+
+$matches = $cond->process(
+	session => $session,
+	dataset => $dataset,
+	);
+
+ok(@$matches == 0, "TRUE AND FALSE is FALSE");
+
+$cond = EPrints::Search::Condition::Or->new(
+	EPrints::Search::Condition::True->new,
+	EPrints::Search::Condition::False->new );
+
+$matches = $cond->process(
+	session => $session,
+	dataset => $dataset,
+	);
+
+ok(@$matches == $dataset_size, "TRUE OR FALSE is TRUE");
 
 $session->terminate;

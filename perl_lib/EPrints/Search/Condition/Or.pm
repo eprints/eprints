@@ -84,49 +84,6 @@ sub item_matches
 	return( 0 );
 }
 
-sub get_query_tree
-{
-	my( $self, $session, $qdata, $mergemap ) = @_;
-
-	# if nested or's then use existing $mergemap, otherwise create one.
-	# this allows mutiple OR'd queries on the same table to use the
-	# same instance of that table. Does not apply to ANDs 
-	$mergemap = {} if !defined $mergemap;
-
-	my @list = ( "OR" );
-	foreach my $sub_op ( $self->ordered_ops )
-	{
-		push @list, $sub_op->get_query_tree( $session, $qdata, $mergemap );
-	}
-
-	return \@list;
-}
-
-sub process
-{
-	my( $self, $session, $i, $filter ) = @_;
-
-
-
-	$i = 0 unless( defined $i );
-
-#print STDERR "PROCESS: ".("  "x$i)."OR\n";
-	my $set;
-	foreach my $sub_op ( $self->ordered_ops )
-	{
-		my $r = $sub_op->process( $session, $i + 1);
-		if( !defined $set )
-		{
-			$set = $r;
-			next;
-		}
-		$set = EPrints::Search::Condition::_merge( $r , $set, 0 );
-	}
-#print STDERR "PROCESS: ".("  "x$i)."/OR [".join(",",@{$set})."]\n";
-#
-	return $set;
-}
-
 sub get_query_logic
 {
 	my( $self, %opts ) = @_;

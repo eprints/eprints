@@ -205,52 +205,6 @@ sub get_table
 	return $self->{dataset}->get_sql_table_name();
 }
 
-sub get_tables
-{
-	my( $self, $session ) = @_;
-
-	my $field = $self->{field};
-	my $dataset = $self->{dataset};
-
-	my $jp = $field->get_property( "join_path" );
-	my @f = ();
-	if( $jp )
-	{
-		foreach my $join ( @{$jp} )
-		{
-			my( $j_field, $j_dataset ) = @{$join};
-			my $join_data = {};
-			if( $j_field->is_type( "subobject" ) )
-			{
-				my $right_ds = $session->get_repository->get_dataset( 
-					$j_field->get_property('datasetid') );
-				$join_data->{table} = $right_ds->get_sql_table_name();
-				$join_data->{left} = $j_dataset->get_key_field->get_name();
-				$join_data->{right} = $right_ds->get_key_field->get_name();
-			}
-			else
-			{
-				# itemid
-				if( $j_field->get_property( "multiple" ) )
-				{
-					$join_data->{table} = $j_dataset->get_sql_sub_table_name( $j_field );
-					$join_data->{left} = $j_dataset->get_key_field->get_name();
-					$join_data->{right} = $j_field->get_name();
-				}
-				else
-				{
-					$join_data->{table} = $j_dataset->get_sql_table_name();
-					$join_data->{left} = $j_dataset->get_key_field->get_name();
-					$join_data->{right} = $j_field->get_name();
-				}
-			}
-			push @f, $join_data;
-		}
-	}
-
-	return \@f;	
-}
-
 
 ######################################################################
 =pod
@@ -292,16 +246,155 @@ need to be applied to all values in the database.
 =cut
 ######################################################################
 
+# TDB: This code is very complex and probably needs to be restructured. But it
+# does make subclasses of Condition fairly simple.
 sub process
 {
-	my( $self, $session, $i, $filter ) = @_;
+	my( $self, %opts ) = @_;
 
-	my $tables = $self->get_tables( $session );
+	my $session = $opts{session};
+	my $db = $opts{session}->get_database;
 
-	return $self->run_tables( $session, $tables );
+	my $dataset = $opts{dataset};
+
+	my $table = $dataset->get_sql_table_name;
+	my $q_table = $db->quote_identifier( $table );
+
+	my $key_field_name = $dataset->get_key_field->get_sql_name;
+	my $q_key_field_name = $db->quote_identifier( $key_field_name );
+
+	# SELECT matching ids from the "main" dataset table's key field
+	my $sql = "SELECT DISTINCT ".$db->quote_identifier($table,$key_field_name);
+
+	# calculate the tables we need (with appropriate joins)
+	my @joins;
+
+	# "main" LEFT JOIN "ordervalues"
+	if( defined $opts{order} )
+	{
+		my $ov_table = $dataset->get_ordervalues_table_name( $session->get_langid );
+		push @joins, _sql_left_join($db,
+			$table,
+			$key_field_name,
+			[$ov_table, "OV"],
+			$key_field_name );
+	}
+	# "main"
+	else
+	{
+		push @joins, $db->quote_identifier( $table );
+	}
+
+	my $joins = {};
+	# populate $joins with all the required tables
+	$self->get_query_joins( $joins, %opts );
+
+	my $idx = 0;
+	my @join_logic;
+	foreach my $datasetid (keys %$joins)
+	{
+		$joins->{$datasetid}->{'multiple'} ||= [];
+		my $join_table = $table;
+		my $join_key = $key_field_name;
+		# join to the non-main dataset
+		if( $datasetid ne $dataset->confid )
+		{
+			# join to the main dataset by aliasing the main dataset and then
+			# doing a LEFT JOIN to the new dataset
+			my $alias = ++$idx . "_" . $table;
+			my $dataset = $joins->{$datasetid}->{dataset};
+			my $table = $dataset->get_sql_table_name;
+			my $key = $dataset->get_key_field->get_sql_name;
+			push @joins, _sql_left_join($db,
+				[ $join_table, $alias ],
+				$join_key,
+				$table,
+				$join_key ); # TODO: per-dataset join-path
+			# assert the INNER JOIN between the alias and main dataset
+			push @join_logic, sprintf("%s.%s=%s.%s",
+				$db->quote_identifier($join_table),
+				$db->quote_identifier($join_key),
+				$db->quote_identifier($alias),
+				$db->quote_identifier($join_key));
+			# any fields will need to join to the new dataset
+			$join_table = $table;
+			$join_key = $key;
+		}
+		# add LEFT JOINs for each multiple field to the dataset table
+		foreach my $multiple (@{$joins->{$datasetid}->{'multiple'}})
+		{
+			# default to using the join_key (should be right 99% of the time)
+			$multiple->{key} ||= $join_key;
+			# this will be different for a non-multiple InSubject
+			$multiple->{right_key} ||= $multiple->{key};
+			# we need to alias the sub-table to enable ANDs
+			my $alias = ++$idx . "_" . $join_table;
+			push @joins, _sql_left_join($db,
+				[ $join_table, $alias ],
+				$multiple->{key},
+				[ $multiple->{table}, $multiple->{alias} ],
+				$multiple->{right_key} );
+			# now apply INNER JOINs to this field (e.g. for subjects)
+			foreach my $inner (@{$multiple->{'inner'}||=[]})
+			{
+				$inner->{right_key} ||= $inner->{key};
+				$joins[$#joins] .= _sql_inner_join($db,
+					$multiple->{alias},
+					$inner->{key},
+					[ $inner->{table}, $inner->{alias} ],
+					$inner->{right_key} );
+			}
+			# add the logic for joining our sub-table alias to the parent table
+			push @join_logic, sprintf("%s.%s=%s.%s",
+				$db->quote_identifier($join_table),
+				$db->quote_identifier($join_key),
+				$db->quote_identifier($alias),
+				$db->quote_identifier($join_key));
+		}
+	}
+
+	$sql .= " FROM ".join(',', @joins);
+
+	my $logic = $self->get_query_logic( %opts );
+	push @join_logic, $logic if length($logic);
+	if( scalar(@join_logic) )
+	{
+		$sql .= " WHERE (".join(") AND (", @join_logic).")";
+	}
+
+	if( defined $opts{order} )
+	{
+		$sql .= " ORDER BY ";
+		my $first = 1;
+		foreach my $fieldname ( split( "/", $opts{order} ) )
+		{
+			$sql .= ", " if( !$first );
+			$first = 0;
+			my $desc = 0;
+			if( $fieldname =~ s/^-// ) { $desc = 1; }
+			my $field = EPrints::Utils::field_from_config_string( $dataset, $fieldname );
+			$sql .= $db->quote_identifier( "OV", $field->get_sql_name() );
+			$sql .= " DESC" if $desc;
+		}
+	}
+
+#print STDERR "EXECUTING: $sql\n";
+	my $sth = $db->prepare_select( $sql, limit => $opts{limit} );
+	$db->execute($sth, $sql);
+
+	my @results;
+
+	while(my $row = $sth->fetch)
+	{
+		push @results, $row->[0];
+	}
+
+	return \@results;
 }
 
 =item $cond->get_query_joins( $joins, %opts )
+
+Populates $joins with the tables required for this search condition.
 
 	joins = {
 		DATASET_ID => {
@@ -324,7 +417,7 @@ sub get_query_joins
 
 =item $sql = $cond->get_query_logic( %opts )
 
-Returns some raw SQL that, if longer than zero chars, will be used as the logic in the WHERE part of the SQL query.
+Returns a SQL string that, if longer than zero chars, will be used as the logic in the WHERE part of the SQL query.
 
 =cut
 
@@ -366,6 +459,14 @@ sub _sql_left_join
 		$right->[1],
 		$right_key);
 }
+
+=item ($values, $counts) = $scond->process_groupby( field => $field, %opts )
+
+B<Warning!> This method is experimental and subject to change.
+
+Returns two array refs - the first is the list of unique values found in $field and the second the number of times each value was encountered.
+
+=cut
 
 sub process_groupby
 {
@@ -516,415 +617,6 @@ sub process_groupby
 	return( \@values, \@counts );
 }
 
-sub process_v3
-{
-	my( $self, %opts ) = @_;
-
-	my $session = $opts{session};
-	my $db = $opts{session}->get_database;
-
-	my $dataset = $opts{dataset};
-
-	my $table = $dataset->get_sql_table_name;
-	my $q_table = $db->quote_identifier( $table );
-
-	my $key_field_name = $dataset->get_key_field->get_sql_name;
-	my $q_key_field_name = $db->quote_identifier( $key_field_name );
-
-	# SELECT matching ids from the main dataset table
-	my $sql = "SELECT DISTINCT ".$db->quote_identifier($table,$key_field_name);
-
-	# calculate the tables we need (with appropriate joins)
-	my @joins;
-
-	# main LEFT JOIN ordervalues
-	if( defined $opts{order} )
-	{
-		my $ov_table = $dataset->get_ordervalues_table_name( $session->get_langid );
-		push @joins, _sql_left_join($db,
-			$table,
-			$key_field_name,
-			[$ov_table, "OV"],
-			$key_field_name );
-	}
-	# main
-	else
-	{
-		push @joins, $db->quote_identifier( $table );
-	}
-
-	my $joins = {};
-	# populate $joins with all the required tables
-	$self->get_query_joins( $joins, %opts );
-
-	my $idx = 0;
-	my @join_logic;
-	foreach my $datasetid (keys %$joins)
-	{
-		$joins->{$datasetid}->{'multiple'} ||= [];
-		my $join_table = $table;
-		my $join_key = $key_field_name;
-		# join to the non-main dataset
-		if( $datasetid ne $dataset->confid )
-		{
-			# join to the main dataset by aliasing the main dataset and then
-			# doing a LEFT JOIN to the new dataset
-			my $alias = ++$idx . "_" . $table;
-			my $dataset = $joins->{$datasetid}->{dataset};
-			my $table = $dataset->get_sql_table_name;
-			my $key = $dataset->get_key_field->get_sql_name;
-			push @joins, _sql_left_join($db,
-				[ $join_table, $alias ],
-				$join_key,
-				$table,
-				$join_key ); # TODO: per-dataset join-path
-			# assert the INNER JOIN between the alias and main dataset
-			push @join_logic, sprintf("%s.%s=%s.%s",
-				$db->quote_identifier($join_table),
-				$db->quote_identifier($join_key),
-				$db->quote_identifier($alias),
-				$db->quote_identifier($join_key));
-			# any fields will need to join to the new dataset
-			$join_table = $table;
-			$join_key = $key;
-		}
-		# add LEFT JOINs for each multiple field to the dataset table
-		foreach my $multiple (@{$joins->{$datasetid}->{'multiple'}})
-		{
-			# default to using the join_key (should be right 99% of the time)
-			$multiple->{key} ||= $join_key;
-			# this will be different for a non-multiple InSubject
-			$multiple->{right_key} ||= $multiple->{key};
-			# we need to alias the sub-table to enable ANDs
-			my $alias = ++$idx . "_" . $join_table;
-			push @joins, _sql_left_join($db,
-				[ $join_table, $alias ],
-				$multiple->{key},
-				[ $multiple->{table}, $multiple->{alias} ],
-				$multiple->{right_key} );
-			# now apply INNER JOINs to this field (e.g. for subjects)
-			foreach my $inner (@{$multiple->{'inner'}||=[]})
-			{
-				$inner->{right_key} ||= $inner->{key};
-				$joins[$#joins] .= _sql_inner_join($db,
-					$multiple->{alias},
-					$inner->{key},
-					[ $inner->{table}, $inner->{alias} ],
-					$inner->{right_key} );
-			}
-			# add the logic for joining our sub-table alias to the parent table
-			push @join_logic, sprintf("%s.%s=%s.%s",
-				$db->quote_identifier($join_table),
-				$db->quote_identifier($join_key),
-				$db->quote_identifier($alias),
-				$db->quote_identifier($join_key));
-		}
-	}
-
-	$sql .= " FROM ".join(',', @joins);
-
-	my $logic = $self->get_query_logic( %opts );
-	push @join_logic, $logic if length($logic);
-	if( scalar(@join_logic) )
-	{
-		$sql .= " WHERE (".join(") AND (", @join_logic).")";
-	}
-
-	if( defined $opts{order} )
-	{
-		$sql .= " ORDER BY ";
-		my $first = 1;
-		foreach my $fieldname ( split( "/", $opts{order} ) )
-		{
-			$sql .= ", " if( !$first );
-			$first = 0;
-			my $desc = 0;
-			if( $fieldname =~ s/^-// ) { $desc = 1; }
-			my $field = EPrints::Utils::field_from_config_string( $dataset, $fieldname );
-			$sql .= $db->quote_identifier( "OV", $field->get_sql_name() );
-			$sql .= " DESC" if $desc;
-		}
-	}
-
-#print STDERR "EXECUTING: $sql\n";
-	my $sth = $db->prepare_select( $sql, limit => $opts{limit} );
-	$db->execute($sth, $sql);
-
-	my @results;
-
-	while(my $row = $sth->fetch)
-	{
-		push @results, $row->[0];
-	}
-
-	return \@results;
-}
-
-sub process_v2
-{
-	my( $self, %opts ) = @_;
-
-	my $session = $opts{session};
-	my $database = $opts{session}->get_database;
-
-	my $qdata = { alias_count=>0, aliases=>{} };
-	#$session->get_database->set_debug( 1 );
-
-	my $qt = $self->get_query_tree( $session, $qdata );
-
-	my $select;
-	my $last_key_id;
-	my @tables = ();
-
-	if( defined $opts{order} )
-	{
-		$qdata->{aliases}->{order_table} = {
-			id_field => "OV.".$opts{dataset}->get_key_field()->get_name(),
-			table => $opts{dataset}->get_ordervalues_table_name($opts{session}->get_langid()),
-			join_type => "left",
-			alias => "OV",
-		};
-	}
-
-	my @aliases = sort table_order_fn values %{$qdata->{aliases}};
-	if( $aliases[0]->{join_type} ne "inner" )
-	{
-		# forced to add a new first table to be inner joined.
-		unshift @aliases, {
-			id_field => $opts{dataset}->get_key_field->get_name(), 
-			table => $opts{dataset}->get_sql_table_name(),
-			join_type => "inner",
-			alias => "MAIN",
-		};
-	}
-
-	foreach my $alias ( @aliases )
-	{
-		if( !defined $select ) 
-		{
-			# first item
-			if( !defined $alias->{id_field} )
-			{
-				EPrints::abort( "Internal search error: no primary select field. ".Dumper( \@aliases ) );
-			}
-			$select = $alias->{id_field};
-			push @tables, $alias->{table}." AS ".$alias->{alias};
-		}
-		else
-		{
-			if( defined $alias->{id_field} )
-			{	
-				$alias->{join_on} = $alias->{id_field}."=".$last_key_id;
-			}
-			if( !defined $alias->{join_on} )
-			{
-				EPrints::abort( "Internal search error: nothing to join. ".Dumper( \@aliases ) );
-			}
-			push @tables, uc( $alias->{join_type} )." JOIN ".$alias->{table}." AS ".$alias->{alias}." ON ".$alias->{join_on};
-		}
-		
-		$last_key_id = $alias->{id_field};
-	}
-
-	my $sql;
-	$sql  = "SELECT DISTINCT $select ";
-	$sql .= "FROM ".join( " ", @tables )." ";
-	$sql .= "WHERE "._process_wheres( $qt );
-
-	if( defined $opts{order} )
-	{
-		$sql .= " ORDER BY ";
-		my $first = 1;
-		foreach my $fieldname ( split( "/", $opts{order} ) )
-		{
-			$sql .= ", " if( !$first );
-			my $desc = 0;
-			if( $fieldname =~ s/^-// ) { $desc = 1; }
-			my $field = EPrints::Utils::field_from_config_string( $opts{dataset}, $fieldname );
-			$sql .= "OV.".$database->quote_identifier( $field->get_sql_name() );
-			$sql .= " DESC" if $desc;
-			$first = 0;
-		}
-	}
-
-#print STDERR "EXECUTING: $sql\n";
-	my $results = [];
-	my $sth = $session->get_database->prepare( $sql );
-	$session->get_database->execute( $sth, $sql );
-	while( my @info = $sth->fetchrow_array ) 
-	{
-		push @{$results}, $info[0];
-	}
-	$sth->finish;
-
-	return( $results );
-}
-
-sub table_order_fn
-{
-	my $j = defined $a->{join_on} <=> defined $b->{join_on};
-	return $j unless $j == 0;
-
-	# inner joins first
-	my $jt = ($b->{join_type} eq "inner") <=> ($a->{join_type} eq "inner");
-	return $jt unless $jt == 0;
-
-	# MAIN table first if possible
-	return ($b->{alias} eq "MAIN") <=> ($a->{alias} eq "MAIN");
-}
-
-sub _process_wheres
-{
-	my( $qt ) = @_;
-
-	my $type = shift @{$qt};
-	
-	if( $type eq "AND" || $type eq "OR" )
-	{
-		my @parts = ();
-		foreach my $sub_where ( @{$qt} )
-		{
-			push @parts, _process_wheres( $sub_where );
-		}
-		return "(".join( " ".$type." ", @parts ).")";
-	}
-
-	if( $type eq "ITEM" )
-	{
-		my $a = $qt->[-1];
-		my $where = $a->{where};
-	
-		$where =~ s/d41d8cd98f00b204e9800998ecf8427e/$a->{alias}/g;
-		return $where;
-	}
-	
-	die "Unknown where whotsit bit";
-}
-
-sub get_query_tree
-{
-	my( $self, $session, $qdata, $mergemap ) = @_;
-
-	my $tables = $self->get_tables( $session );
-	my $join_path = "";
-
-	my $main_path = "/".$self->{dataset}->get_key_field->get_name().
-			"/inner".
-			"/".$self->{dataset}->get_sql_table_name();
-	my $prev_tinfo;
-	foreach my $tinfo ( @{$tables} )
-	{
-		$tinfo->{join_type} = "inner" unless defined $tinfo->{join_type};
-		$join_path .= "/".$tinfo->{left}."/".$tinfo->{join_type}."/".$tinfo->{table};
-		$tinfo->{join_path} = $join_path;
-
-		if( $tinfo->{join_path} eq $main_path && defined $qdata->{aliases}->{MAIN} )
-		{
-			$tinfo->{alias} = "MAIN";
-		}
-		elsif( defined $mergemap && defined $mergemap->{$join_path} )
-		{
-			$tinfo->{alias} = $mergemap->{$join_path};
-		}
-		else
-		{
-			if( $tinfo->{join_path} eq $main_path )
-			{
-				$tinfo->{alias} = "MAIN";
-			}
-			else
-			{
-				$qdata->{alias_count}++;
-				$tinfo->{alias} = "T".$qdata->{alias_count};
-			}
-			my $new_table = { 
-				alias=>$tinfo->{alias}, 
-				table=>$tinfo->{table},
-				join_type=>$tinfo->{join_type},
-			};
-			if( defined $prev_tinfo )
-			{
-				$new_table->{join_on} = $prev_tinfo->{alias}.".".$prev_tinfo->{right} ."=".$tinfo->{alias}.".".$tinfo->{left};
-			}
-			else
-			{
-				$new_table->{id_field} = $tinfo->{alias}.".".$tinfo->{left};
-			}
-			$qdata->{aliases}->{$tinfo->{alias}} = $new_table;
-			if( defined $mergemap )
-			{
-				$mergemap->{$join_path} = $tinfo->{alias};
-			}
-		}
-
-		$prev_tinfo = $tinfo;
-		if( defined $tinfo->{right} ) { $join_path.="/".$tinfo->{right}; }
-	}
-
-	return [ "ITEM", @$tables ];
-}
-
-sub run_tables
-{
-	my( $self, $session, $tables ) = @_;
-
-	my $db = $session->get_database;
-
-	my @opt_tables;
-	while( scalar @{$tables} )
-	{
-		my $head = shift @$tables;
-		while( scalar @$tables && $head->{right} eq $tables->[0]->{left} && $head->{table} eq $tables->[0]->{table} )
-		{
-			my $head2 = shift @$tables;
-			$head->{right} = $head2->{right};
-			if( defined $head2->{where} )
-			{
-				if( defined $head->{where} )
-				{
-					$head->{where} = "(".$head->{where}.") AND (".$head2->{where}.")";
-				}
-				else
-				{
-					$head->{where} = $head2->{where};
-				}
-			}
-		}
-		push @opt_tables, $head;
-	}
-
-	my @sql_wheres = ();
-	my @sql_tables = ();
-	for( my $tn=0; $tn<scalar @opt_tables; $tn++ )
-	{
-		my $tabinfo = $opt_tables[$tn];
-		push @sql_tables, $db->quote_identifier($tabinfo->{table})." ".$db->quote_identifier("T$tn");
-		if( defined $tabinfo->{right} )
-		{
-			push @sql_wheres, $db->quote_identifier("T$tn", $tabinfo->{right})."=".$db->quote_identifier("T".($tn+1), $opt_tables[$tn+1]->{left});
-		}
-		if( defined $tabinfo->{where} )
-		{
-			my $where = $tabinfo->{where};
-			$where =~ s/$EPrints::Search::Condition::TABLEALIAS/T$tn/g;
-			push @sql_wheres, $where;
-		}
-	}
-
-	my $sql = "SELECT DISTINCT ".$db->quote_identifier("T0",$opt_tables[0]->{left})." FROM ".join( ", ", @sql_tables )." WHERE (".join(") AND (", @sql_wheres ).")";
-
-	my $results = [];
-	my $sth = $session->get_database->prepare( $sql );
-	$session->get_database->execute( $sth, $sql );
-	while( my @info = $sth->fetchrow_array ) 
-	{
-		push @{$results}, $info[0];
-	}
-	$sth->finish;
-
-	return( $results );
-}
-
 ######################################################################
 =pod
 
@@ -947,45 +639,6 @@ sub optimise
 
 	return $self;
 }
-
-
-# "ALL"
-sub _merge
-{
-	my( $a, $b, $and ) = @_;
-
-	$a = [] unless( defined $a );
-	$b = [] unless( defined $b );
-	my $a_all = ( defined $a->[0] && $a->[0] eq "ALL" );
-	my $b_all = ( defined $b->[0] && $b->[0] eq "ALL" );
-	if( $and )
-	{
-		return $b if( $a_all );
-		return $a if( $b_all );
-	}
-	elsif( $a_all || $b_all )
-	{
-		# anything OR'd with "ALL" is "ALL"
-		return [ "ALL" ];
-	}
-
-	my @c;
-	if ($and) {
-		my (%MARK);
-		grep($MARK{$_}++,@{$a});
-		@c = grep($MARK{$_},@{$b});
-	} else {
-		my (%MARK);
-		foreach(@{$a}, @{$b}) {
-			$MARK{$_}++;
-		}
-		@c = keys %MARK;
-	}
-
-	return \@c;
-}
-
-
 
 1;
 

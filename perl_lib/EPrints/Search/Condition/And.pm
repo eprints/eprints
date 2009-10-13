@@ -83,48 +83,6 @@ sub item_matches
 	return( 1 );
 }
 
-sub get_query_tree
-{
-	my( $self, $session, $qdata ) = @_;
-
-	my @list = ( "AND" );
-	foreach my $sub_op ( $self->ordered_ops )
-	{
-		push @list, $sub_op->get_query_tree( $session, $qdata );
-	}
-
-	return \@list;
-}
-
-
-sub process
-{
-	my( $self, $session, $i, $filter ) = @_;
-
-	$i = 0 unless( defined $i );
-
-	my $set;
-#print STDERR "PROCESS: ".("  "x$i)."AND\n";
-	foreach my $sub_op ( $self->ordered_ops )
-	{
-		my $r = $sub_op->process( $session, $i + 1, $set );
-		if( scalar @{$r} == 0 )
-		{
-			$set = [];
-			last;
-		}
-		if( !defined $set )
-		{
-			$set = $r;
-			next;
-		}
-		$set = EPrints::Search::Condition::_merge( $r , $set, 1 );
-	}
-#print STDERR "PROCESS: ".("  "x$i)."/AND [".join(",",@{$set})."]\n";
-
-	return $set;
-}
-
 sub get_query_logic
 {
 	my( $self, %opts ) = @_;

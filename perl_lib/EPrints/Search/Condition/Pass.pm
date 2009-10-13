@@ -49,13 +49,6 @@ sub item_matches
 	EPrints::abort( "item_matches called on Pass condition.");
 }
 
-sub process
-{
-	my( $self, $session, $i, $filter ) = @_;
-
-	EPrints::abort( "process called on Pass condition.");
-}
-
 sub get_op_val
 {
 	return 0;
