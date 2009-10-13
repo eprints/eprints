@@ -264,7 +264,7 @@ sub process
 	my $q_key_field_name = $db->quote_identifier( $key_field_name );
 
 	# SELECT matching ids from the "main" dataset table's key field
-	my $sql = "SELECT DISTINCT ".$db->quote_identifier($table,$key_field_name);
+	my $sql = "SELECT ".$db->quote_identifier($table,$key_field_name);
 
 	# calculate the tables we need (with appropriate joins)
 	my @joins;
@@ -297,6 +297,12 @@ sub process
 	my $joins = {};
 	# populate $joins with all the required tables
 	$self->get_query_joins( $joins, %opts );
+
+	# if we have joins to other datasets/multiple tables we need DISTINCT
+	if( scalar keys %$joins )
+	{
+		$sql =~ s/^SELECT /SELECT DISTINCT /;
+	}
 
 	my $idx = 0;
 	my @join_logic;
@@ -377,7 +383,7 @@ sub process
 		for(my $i = 0; $i < @orders; $i+=2)
 		{
 			$sql .= ", " if $i != 0;
-			$sql .= $orders[$i] . " ". $orders[$i+1];
+			$sql .= $db->quote_identifier("OV", $orders[$i]) . " ". $orders[$i+1];
 		}
 	}
 
