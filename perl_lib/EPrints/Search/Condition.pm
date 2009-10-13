@@ -269,9 +269,18 @@ sub process
 	# calculate the tables we need (with appropriate joins)
 	my @joins;
 
+	# work out the order value names
+	my @orders = $self->_split_order_by( $session, $dataset, $opts{order} );
+
 	# "main" LEFT JOIN "ordervalues"
-	if( defined $opts{order} )
+	if( scalar @orders )
 	{
+		# DISTINCT ORDER-BY in Oracle requires the order fields to be in the
+		# SELECT part
+		for(my $i = 0; $i < @orders; $i+=2)
+		{
+			$sql .= ",".$db->quote_identifier("OV", $orders[$i]);
+		}
 		my $ov_table = $dataset->get_ordervalues_table_name( $session->get_langid );
 		push @joins, _sql_left_join($db,
 			$table,
@@ -362,19 +371,13 @@ sub process
 		$sql .= " WHERE (".join(") AND (", @join_logic).")";
 	}
 
-	if( defined $opts{order} )
+	if( scalar @orders )
 	{
 		$sql .= " ORDER BY ";
-		my $first = 1;
-		foreach my $fieldname ( split( "/", $opts{order} ) )
+		for(my $i = 0; $i < @orders; $i+=2)
 		{
-			$sql .= ", " if( !$first );
-			$first = 0;
-			my $desc = 0;
-			if( $fieldname =~ s/^-// ) { $desc = 1; }
-			my $field = EPrints::Utils::field_from_config_string( $dataset, $fieldname );
-			$sql .= $db->quote_identifier( "OV", $field->get_sql_name() );
-			$sql .= " DESC" if $desc;
+			$sql .= ", " if $i != 0;
+			$sql .= $orders[$i] . " ". $orders[$i+1];
 		}
 	}
 
@@ -390,6 +393,29 @@ sub process
 	}
 
 	return \@results;
+}
+
+sub _split_order_by
+{
+	my( $self, $session, $dataset, $order ) = @_;
+
+	return () unless defined $order;
+
+	my $db = $session->get_database;
+
+	my @orders;
+
+	foreach my $fieldname ( split( "/", $order ) )
+	{
+		my $desc = 0;
+		if( $fieldname =~ s/^-// ) { $desc = 1; }
+		my $field = EPrints::Utils::field_from_config_string( $dataset, $fieldname );
+		push @orders,
+			$field->get_sql_name,
+			$desc ? "DESC" : "ASC";
+	}
+
+	return @orders;
 }
 
 =item $cond->get_query_joins( $joins, %opts )
