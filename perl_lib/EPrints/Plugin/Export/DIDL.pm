@@ -42,7 +42,7 @@ sub xml_dataobj
 	$didl->appendChild( $item );
 
 
-	my $d1 = $plugin->{session}->make_element( "didl:Descriptior" );
+	my $d1 = $plugin->{session}->make_element( "didl:Descriptor" );
 	my $s1 = $plugin->{session}->make_element( "didl:Statement", mimeType=>"application/xml; charset=utf-8" );
 	my $ident = $plugin->{session}->make_element( 
 		"dii:Identifier",
@@ -56,7 +56,7 @@ sub xml_dataobj
 	$item->appendChild( $d1 );
 
 
-	my $d2 = $plugin->{session}->make_element( "didl:Descriptior" );
+	my $d2 = $plugin->{session}->make_element( "didl:Descriptor" );
 	my $s2 = $plugin->{session}->make_element( "didl:Statement", mimeType=>"application/xml; charset=utf-8" );
 	my $dc_plugin = $plugin->{session}->plugin( "Export::OAI_DC" );
 	$s2->appendChild( $dc_plugin->xml_dataobj( $eprint ) ); 
@@ -70,7 +70,7 @@ sub xml_dataobj
 		$item->appendChild( $comp );
 
 
-		my $d3 = $plugin->{session}->make_element( "didl:Descriptior" );
+		my $d3 = $plugin->{session}->make_element( "didl:Descriptor" );
 		my $s3 = $plugin->{session}->make_element( "didl:Statement", mimeType=>"application/xml; charset=utf-8" );
 		my $i3 = $plugin->{session}->make_element( 
 			"dii:Identifier",
