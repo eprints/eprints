@@ -257,6 +257,8 @@ sub process
 
 	my $dataset = $opts{dataset};
 
+	my $cachemap = $opts{cachemap};
+
 	my $table = $dataset->get_sql_table_name;
 	my $q_table = $db->quote_identifier( $table );
 
@@ -275,12 +277,6 @@ sub process
 	# "main" LEFT JOIN "ordervalues"
 	if( scalar @orders )
 	{
-		# DISTINCT ORDER-BY in Oracle requires the order fields to be in the
-		# SELECT part
-		for(my $i = 0; $i < @orders; $i+=2)
-		{
-			$sql .= ",".$db->quote_identifier("OV", $orders[$i]);
-		}
 		my $ov_table = $dataset->get_ordervalues_table_name( $session->get_langid );
 		push @joins, _sql_left_join($db,
 			$table,
@@ -297,12 +293,6 @@ sub process
 	my $joins = {};
 	# populate $joins with all the required tables
 	$self->get_query_joins( $joins, %opts );
-
-	# if we have joins to other datasets/multiple tables we need DISTINCT
-	if( scalar keys %$joins )
-	{
-		$sql =~ s/^SELECT /SELECT DISTINCT /;
-	}
 
 	my $idx = 0;
 	my @join_logic;
@@ -377,6 +367,22 @@ sub process
 		$sql .= " WHERE (".join(") AND (", @join_logic).")";
 	}
 
+	# if we have multiple tables we need to group-by the eprintid to get unique
+	# eprintids
+	if( scalar @joins )
+	{
+		$sql .= " GROUP BY ".$db->quote_identifier($table,$key_field_name);
+		# oracle needs every ORDER BY field to be defined in the GROUP BY
+		if( scalar @orders )
+		{
+			for(my $i = 0; $i < @orders; $i+=2)
+			{
+				$sql .= ",".$db->quote_identifier("OV",$orders[$i]);
+			}
+		}
+	}
+
+	# add the ORDER BY if the search is ordered
 	if( scalar @orders )
 	{
 		$sql .= " ORDER BY ";
@@ -385,6 +391,16 @@ sub process
 			$sql .= ", " if $i != 0;
 			$sql .= $db->quote_identifier("OV", $orders[$i]) . " ". $orders[$i+1];
 		}
+	}
+
+	if( defined $cachemap )
+	{
+		my $cache_table = $db->begin_cache_table( $cachemap, $dataset->get_key_field );
+		$sql = "INSERT INTO ".$db->quote_identifier($cache_table)." (".$db->quote_identifier($key_field_name).") ".$sql;
+#print STDERR "EXECUTING: $sql\n";
+		$db->do($sql);
+		$db->finish_cache_table( $cachemap );
+		$sql = "SELECT ".$db->quote_identifier($key_field_name)." FROM ".$db->quote_identifier($cache_table);
 	}
 
 #print STDERR "EXECUTING: $sql\n";

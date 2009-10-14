@@ -474,6 +474,33 @@ sub _rename_field_ordervalues_lang
 	return $self->do( $sql );
 }
 
+sub begin_cache_table
+{
+	my( $self, $cachemap, $keyfield ) = @_;
+
+	my $cache_table  = $cachemap->get_sql_table_name;
+	my $cache_seq = $cache_table . "_seq";
+	my $cache_trigger = $cache_table . "_trig";
+
+	$self->_create_table( $cache_table, ["pos"], [
+			$self->get_column_type( "pos", SQL_INTEGER, SQL_NOT_NULL ),
+			$keyfield->get_sql_type( $self->{session} ),
+			]);
+
+	$self->do("ALTER TABLE ".$self->quote_identifier( $cache_table )." MODIFY ".$self->quote_identifier( "pos" )." INT AUTO_INCREMENT");
+
+	return $cache_table;
+}
+
+sub finish_cache_table
+{
+	my( $self, $cachemap, $keyfield ) = @_;
+
+	my $cache_table  = $cachemap->get_sql_table_name;
+
+	return $cache_table;
+}
+
 1; # For use/require success
 
 ######################################################################

@@ -2154,6 +2154,52 @@ EOT
 	$self->do("DROP TRIGGER $Q_trigger");
 }
 
+sub begin_cache_table
+{
+	my( $self, $cachemap, $keyfield ) = @_;
+
+	my $cache_table  = $cachemap->get_sql_table_name;
+	my $cache_seq = $cache_table . "_seq";
+	my $cache_trigger = $cache_table . "_trig";
+
+	$self->_create_table( $cache_table, ["pos"], [
+			$self->get_column_type( "pos", SQL_INTEGER, SQL_NOT_NULL ),
+			$keyfield->get_sql_type( $self->{session} ),
+			]);
+
+	$self->create_sequence( $cache_seq );
+
+	my $Q_cache_table = $self->quote_identifier( $cache_table );
+	my $Q_trigger = $self->quote_identifier( $cache_trigger );
+	my $NEXTVAL = $self->quote_identifier($cache_seq).".nextval";
+
+	my $sql = <<EOT;
+CREATE OR REPLACE TRIGGER $Q_trigger
+  BEFORE INSERT ON $Q_cache_table
+  FOR EACH ROW
+BEGIN
+  SELECT $NEXTVAL INTO :new."pos" FROM dual;
+END;
+EOT
+	$self->do($sql);
+
+	return $cache_table;
+}
+
+sub finish_cache_table
+{
+	my( $self, $cachemap, $keyfield ) = @_;
+
+	my $cache_table  = $cachemap->get_sql_table_name;
+	my $cache_seq = $cache_table . "_seq";
+	my $cache_trigger = $cache_table . "_trig";
+
+	$self->drop_sequence( $cache_seq );
+
+	$self->do("DROP TRIGGER ".$self->quote_identifier( $cache_trigger ));
+
+	return $cache_table;
+}
 
 ######################################################################
 =pod

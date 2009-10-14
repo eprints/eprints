@@ -1132,8 +1132,19 @@ sub perform_search
 
 	# print STDERR $self->get_conditions->describe."\n\n";
 
+	my $userid = $self->{session}->current_user;
+	$userid = $userid->get_id if defined $userid;
+
+	my $cachemap = $self->{session}->get_repository->get_dataset( "cachemap" )->create_object( $self->{session}, {
+			lastused => time(),
+			userid => $userid,
+			searchexp => $self->serialise,
+			oneshot => "TRUE",
+	} );
+
 	my $unsorted_matches = $self->get_conditions->process( 
 		session => $self->{session},
+		cachemap => $cachemap,
 		order => $self->{custom_order},
 		dataset => $self->{dataset},
 		limit => $self->{limit},
@@ -1145,6 +1156,7 @@ sub perform_search
 		encoded => $self->serialise,
 		keep_cache => $self->{keep_cache},
 		ids => $unsorted_matches, 
+		cache_id => $cachemap->get_id,
 		desc => $self->render_conditions_description,
 		desc_order => $self->render_order_description,
 	);
