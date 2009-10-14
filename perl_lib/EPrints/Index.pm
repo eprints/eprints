@@ -59,13 +59,17 @@ sub remove
 
 	my $db = $session->get_database;
 
+	my $indextable = $dataset->get_sql_index_table_name();
+	my $rindextable = $dataset->get_sql_rindex_table_name();
+	my $grepindextable = $dataset->get_sql_grep_table_name();
+
 	my $keyfield = $dataset->get_key_field();
 	my $Q_keyname = $db->quote_identifier( $keyfield->get_sql_name() );
 	my $Q_field = $db->quote_identifier( "field" );
 	my $Q_word = $db->quote_identifier( "word" );
 	my $Q_fieldword = $db->quote_identifier( "fieldword" );
-	my $Q_indextable = $db->quote_identifier($dataset->get_sql_index_table_name());
-	my $Q_rindextable = $db->quote_identifier($dataset->get_sql_rindex_table_name());
+	my $Q_indextable = $db->quote_identifier($indextable);
+	my $Q_rindextable = $db->quote_identifier($rindextable);
 	my $POS = $db->quote_identifier("pos");
 	my $Q_ids = $db->quote_identifier("ids");
 
@@ -89,6 +93,12 @@ sub remove
 	}
 	$sql = "DELETE FROM $Q_rindextable WHERE $where";
 	$rv = $rv && $session->get_database->do( $sql );
+
+	# remove from grep table
+
+	$session->get_database->delete_from($grepindextable,
+		[ $keyfield->get_sql_name, "fieldname" ],
+		[ $objectid, $fieldid ] );
 
 	return $rv;
 }
@@ -149,6 +159,7 @@ sub add
 
 	my $indextable = $dataset->get_sql_index_table_name();
 	my $rindextable = $dataset->get_sql_rindex_table_name();
+	my $grepindextable = $dataset->get_sql_grep_table_name();
 
 	my $rv = 1;
 	
@@ -213,18 +224,11 @@ sub add
 
 	my $name = $field->get_name;
 
-	foreach my $grepcode ( @{$grepcodes} )
-	{
-		$session->get_database->insert($dataset->get_sql_grep_table_name, [
-			$keyfield->get_sql_name(),
-			"fieldname",
-			"grepstring"
-		], [
-			$objectid,
-			$name,
-			$grepcode
-		]);
-	}
+	$session->get_database->insert($grepindextable, [
+		$keyfield->get_sql_name(),
+		"fieldname",
+		"grepstring"
+	], map { [ $objectid, $name, $_ ] } @$grepcodes );
 }
 
 
