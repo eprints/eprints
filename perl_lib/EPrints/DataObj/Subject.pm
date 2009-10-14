@@ -57,7 +57,7 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"subjectid", type=>"text", required=>1, text_index=>0, can_clone=>1, },
+		{ name=>"subjectid", type=>"text", required=>1, text_index=>0, can_clone=>1, maxlength=>128 },
 
 		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0,
 			default_value=>1 },
