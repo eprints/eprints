@@ -369,7 +369,7 @@ sub process
 
 	# if we have multiple tables we need to group-by the eprintid to get unique
 	# eprintids
-	if( scalar @joins )
+	if( @joins > 1 || scalar @orders )
 	{
 		$sql .= " GROUP BY ".$db->quote_identifier($table,$key_field_name);
 		# oracle needs every ORDER BY field to be defined in the GROUP BY
@@ -400,7 +400,7 @@ sub process
 #print STDERR "EXECUTING: $sql\n";
 		$db->do($sql);
 		$db->finish_cache_table( $cachemap );
-		$sql = "SELECT ".$db->quote_identifier($key_field_name)." FROM ".$db->quote_identifier($cache_table);
+		$sql = "SELECT ".$db->quote_identifier($key_field_name)." FROM ".$db->quote_identifier($cache_table)." ORDER BY ".$db->quote_identifier("pos");
 	}
 
 #print STDERR "EXECUTING: $sql\n";

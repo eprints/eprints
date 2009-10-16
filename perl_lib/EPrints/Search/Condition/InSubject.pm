@@ -106,14 +106,13 @@ sub get_query_joins
 		my $table = $dataset->get_sql_sub_table_name( $field );
 		my $idx = scalar(@{$joins->{$dataset->confid}->{'multiple'}});
 		my $sub_alias = $idx . "_" . $table;
-		$self->{alias} = $idx . "_" . $table . "_subject";
 		push @{$joins->{$dataset->confid}->{'multiple'}}, {
 			table => $table,
 			alias => $sub_alias,
 			key => $dataset->get_key_field->get_sql_name,
-			inner => [{
+			inner => [$self->{join} = {
 				table => "subject_ancestors",
-				alias => $self->{alias},
+				alias => $idx . "_" . $table . "_subject",
 				key => $field->get_sql_name,
 				right_key => "subjectid",
 			}],
@@ -123,10 +122,9 @@ sub get_query_joins
 	{
 		my $table = "subject_ancestors";
 		my $idx = scalar(@{$joins->{$dataset->confid}->{'multiple'}});
-		$self->{alias} = $idx . "_" . $table;
-		push @{$joins->{$dataset->confid}->{'multiple'}}, {
+		push @{$joins->{$dataset->confid}->{'multiple'}}, $self->{join} = {
 			table => $table,
-			alias => $self->{alias},
+			alias => $idx . "_" . $table,
 			key => $field->get_sql_name,
 			right_key => "subjectid",
 		};
@@ -141,7 +139,7 @@ sub get_query_logic
 	my $field = $self->{field};
 	my $dataset = $field->{dataset};
 
-	my $q_table = $db->quote_identifier($self->{alias});
+	my $q_table = $db->quote_identifier($self->{join}->{alias});
 	my $q_name = $db->quote_identifier("ancestors");
 	my $q_value = $db->quote_value( $self->{params}->[0] );
 

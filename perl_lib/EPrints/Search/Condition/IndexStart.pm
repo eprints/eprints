@@ -92,7 +92,7 @@ sub get_query_logic
 	my $field = $self->{field};
 	my $dataset = $field->{dataset};
 
-	my $q_table = $db->quote_identifier($self->{alias});
+	my $q_table = $db->quote_identifier($self->{join}->{alias});
 	my $q_fieldname = $db->quote_identifier("field");
 	my $q_fieldvalue = $db->quote_value($field->get_sql_name);
 	my $q_word = $db->quote_identifier("word");

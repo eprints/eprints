@@ -96,10 +96,10 @@ sub get_query_joins
 	$joins->{$dataset->confid} ||= { dataset => $dataset };
 	$joins->{$dataset->confid}->{'multiple'} ||= [];
 
-	$self->{alias} = $dataset->get_sql_grep_table_name( $field );
-	push @{$joins->{$dataset->confid}->{'multiple'}}, {
-		table => $self->{alias},
-		alias => $self->{alias},
+	my $alias = $dataset->get_sql_grep_table_name( $field );
+	push @{$joins->{$dataset->confid}->{'multiple'}}, $self->{join} = {
+		table => $alias,
+		alias => $alias,
 		key => $dataset->get_key_field->get_sql_name,
 	};
 }
@@ -112,7 +112,7 @@ sub get_query_logic
 	my $field = $self->{field};
 	my $dataset = $field->{dataset};
 
-	my $q_table = $db->quote_identifier($self->{alias});
+	my $q_table = $db->quote_identifier($self->{join}->{alias});
 	my $q_grepstring = $db->quote_identifier("grepstring");
 	my $q_fieldname = $db->quote_identifier("fieldname");
 	my $q_fieldvalue = $db->quote_value($field->get_sql_name);

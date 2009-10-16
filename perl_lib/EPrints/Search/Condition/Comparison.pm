@@ -157,16 +157,15 @@ sub get_query_joins
 	my $dataset = $field->{dataset};
 
 	$joins->{$dataset->confid} ||= { dataset => $dataset };
-	$self->{alias} = $dataset->get_sql_table_name;
+	$self->{join}->{alias} = $dataset->get_sql_table_name;
 
 	if( $field->get_property( "multiple" ) )
 	{
 		my $table = $dataset->get_sql_sub_table_name( $field );
 		my $idx = scalar(@{$joins->{$dataset->confid}->{'multiple'} ||= []});
-		$self->{alias} = $idx . "_" . $table;
-		push @{$joins->{$dataset->confid}->{'multiple'}}, {
+		push @{$joins->{$dataset->confid}->{'multiple'}}, $self->{join} = {
 			table => $table,
-			alias => $self->{alias},
+			alias => $idx . "_" . $table,
 			key => $dataset->get_key_field->get_sql_name,
 		};
 	}
@@ -180,7 +179,7 @@ sub get_query_logic
 	my $field = $self->{field};
 	my $dataset = $field->{dataset};
 
-	my $table = $self->{alias};
+	my $table = $self->{join}->{alias};
 	my $q_table = $db->quote_identifier( $table );
 
 	my $sql_name = $field->get_sql_name;
@@ -252,7 +251,7 @@ sub get_query_logic_time
 			{	
 				my $o = "=";
 				if( $j==$i ) { $o = $cmp; }
-				push @and, $database->quote_identifier($self->{alias},$sql_col."_".$timemap->[$j])." ".$o." ".EPrints::Database::prep_int( $parts[$j] ); 
+				push @and, $database->quote_identifier($self->{join}->{alias},$sql_col."_".$timemap->[$j])." ".$o." ".EPrints::Database::prep_int( $parts[$j] ); 
 			}
 			push @or, "( ".join( " AND ", @and )." )";
 		}
@@ -263,7 +262,7 @@ sub get_query_logic_time
 		my @and = ();
 		for( my $i=0;$i<$nparts;++$i )
 		{
-			push @and, $database->quote_identifier($self->{alias},$sql_col."_".$timemap->[$i])." = ".EPrints::Database::prep_int( $parts[$i] ); 
+			push @and, $database->quote_identifier($self->{join}->{alias},$sql_col."_".$timemap->[$i])." = ".EPrints::Database::prep_int( $parts[$i] ); 
 		}
 		push @or, "( ".join( " AND ", @and )." )";
 	}
