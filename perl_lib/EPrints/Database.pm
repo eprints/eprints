@@ -485,6 +485,8 @@ sub create_dataset_index_tables
 
 	my $keyfield = $dataset->get_key_field()->clone;
 
+	$keyfield->set_property( allow_null => 0 );
+
 	my $field_fieldword = EPrints::MetaField->new( 
 		repository=> $self->{session}->get_repository,
 		name => "fieldword", 
@@ -513,19 +515,23 @@ sub create_dataset_index_tables
 	my $field_fieldname = EPrints::MetaField->new( 
 		repository=> $self->{session}->get_repository,
 		name => "fieldname", 
-		type => "text" );
+		type => "text",
+		maxlength => 64,
+		allow_null => 0 );
 	my $field_grepstring = EPrints::MetaField->new( 
 		repository=> $self->{session}->get_repository,
 		name => "grepstring", 
-		type => "text");
+		type => "text",
+		maxlength => 128,
+		allow_null => 0 );
 
 	if( !$self->has_table( $dataset->get_sql_grep_table_name ) )
 	{
 		$rv = $rv & $self->create_table(
 			$dataset->get_sql_grep_table_name,
 			$dataset,
-			0, # no primary key
-			( $keyfield, $field_fieldname, $field_grepstring ) );
+			3, # no primary key
+			( $field_fieldname, $field_grepstring, $keyfield ) );
 	}
 
 
@@ -535,22 +541,24 @@ sub create_dataset_index_tables
 	my $field_field = EPrints::MetaField->new( 
 		repository=> $self->{session}->get_repository,
 		name => "field", 
-		type => "text" );
+		type => "text",
+		maxlength => 64,
+		allow_null => 0 );
 	my $field_word = EPrints::MetaField->new( 
 		repository=> $self->{session}->get_repository,
 		name => "word", 
-		type => "text");
+		type => "text",
+		maxlength => 128,
+		allow_null => 0 );
 
 	if( !$self->has_table( $dataset->get_sql_rindex_table_name ) )
 	{
 		$rv = $rv & $self->create_table(
 			$dataset->get_sql_rindex_table_name,
 			$dataset,
-			0, # no primary key
-			( $keyfield, $field_field, $field_word ) );
+			3, # primary key over all fields
+			( $field_field, $field_word, $keyfield ) );
 	}
-
-
 
 	return $rv;
 }
@@ -777,6 +785,8 @@ sub get_column_type
 Create the tables used to store metadata for this dataset: the main
 table and any required for multiple or mulitlang fields.
 
+The first $setkey number of fields are used for a primary key.
+
 =cut
 ######################################################################
 
@@ -833,7 +843,7 @@ sub create_table
 	}
 
 	# Construct the SQL statement
-	my $key = undef;
+	my @primary_key;
 	my @indices;
 	my @columns;
 	foreach $field (@fields)
@@ -841,12 +851,12 @@ sub create_table
 		next if( $field->get_property( "multiple" ) );
 		next if( $field->is_virtual );
 
-		# First field is primary key.
-		if( !defined $key && $setkey)
+		# Set a primary key over $setkey columns
+		if( $setkey > @primary_key )
 		{
-			$key = $field;
+			push @primary_key, $field;
 		}
-		else
+		if( !$setkey || @primary_key > 1 )
 		{
 			my @index_columns = $field->get_sql_index();
 			if( scalar @index_columns )
@@ -855,22 +865,14 @@ sub create_table
 			}
 		}
 		push @columns, $field->get_sql_type( $self->{session} );
-
 	}
-	my @primary_key;
-	if( $setkey )	
-	{
-		if( $setkey == 2 )	
-		{
-			push @primary_key, $key->get_sql_name(), "pos";
-		}
-		else
-		{
-			push @primary_key, $key->get_sql_name();
-		}
-	}
-
 	
+	@primary_key = map {
+		my $cfield = $_->clone;
+		$cfield->set_property( sql_index => 1 );
+		$cfield->get_sql_index;
+	} @primary_key;
+
 	# Send to the database
 	$rv = $rv && $self->_create_table( $tablename, \@primary_key, \@columns );
 	
@@ -2493,8 +2495,9 @@ id.
 
 sub get_single
 {
-	my ( $self , $dataset , $value ) = @_;
-	return ($self->_get( $dataset, 0 , $value ))[0];
+	my( $self, $dataset, $id ) = @_;
+
+	return ($self->get_records( $dataset, $id ))[0];
 }
 
 
@@ -2512,6 +2515,158 @@ sub get_all
 {
 	my ( $self , $dataset ) = @_;
 	return $self->_get( $dataset, 2 );
+}
+
+=item @ids = $db->get_cache_ids( $dataset, $cachemap, $offset, $count )
+
+Returns a list of $count ids from $cache_id starting at $offset and in the order in the cachemap.
+
+=cut
+
+sub get_cache_ids
+{
+	my( $self, $dataset, $cachemap, $offset, $count ) = @_;
+
+	my @ids;
+
+	my $Q_pos = $self->quote_identifier( "pos" );
+
+	my $sql = "SELECT ".$self->quote_identifier( $dataset->get_key_field->get_sql_name );
+	$sql .= " FROM ".$self->quote_identifier( $cachemap->get_sql_table_name );
+	$sql .= " WHERE $Q_pos >= $offset";
+	if( defined $count )
+	{
+		$sql .= " AND $Q_pos < ".($offset+$count);
+	}
+	$sql .= " ORDER BY ".$self->quote_identifier( "pos" )." ASC";
+
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth, $sql );
+
+	while(my $row = $sth->fetch)
+	{
+		push @ids, $row->[0];
+	}
+
+	return @ids;
+}
+
+=item @records = $db->get_records( $dataset [, $id [, $id ] ] )
+
+Retrieves the records in $dataset with the given $id(s). If an $id doesn't exist in the database it will be ignored.
+
+=cut
+
+sub get_records
+{
+	my( $self, $dataset, @ids ) = @_;
+
+	return () unless scalar @ids;
+
+	my @data = map { {} } @ids;
+
+	my $session = $self->{session};
+
+	my $key_field = $dataset->get_key_field;
+	my $key_name = $key_field->get_name;
+
+	# we build a list of OR statements to retrieve records
+	my $Q_key_name = $self->quote_identifier( $key_name );
+	my $logic = join(' OR ',map { "$Q_key_name=".$self->quote_value($_) } @ids);
+
+	# we need to map the returned rows back to the input order
+	my $i = 0;
+	my %lookup = map { $_ => $i++ } @ids;
+
+	# work out which fields we need to retrieve
+	my @fields;
+	my @aux_fields;
+	foreach my $field ($dataset->get_fields)
+	{
+		next if $field->is_virtual;
+		# never retrieve secrets
+		next if $field->isa( "EPrints::Metafield::Secret" );
+
+		if( $field->get_property( "multiple" ) )
+		{
+			push @aux_fields, $field;
+		}
+		else
+		{
+			push @fields, $field;
+		}
+	}
+
+	# retrieve the data from the main dataset table
+	my $sql = "SELECT ".join(',',map {
+			$self->quote_identifier($_)
+		} map {
+			$_->get_sql_names
+		} @fields);
+	$sql .= " FROM ".$self->quote_identifier($dataset->get_sql_table_name);
+	$sql .= " WHERE $logic";
+
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth, $sql );
+
+	while(my @row = $sth->fetchrow_array)
+	{
+		my $epdata = {};
+		foreach my $field (@fields)
+		{
+			$epdata->{$field->get_name} = $field->value_from_sql_row( $session, \@row );
+		}
+		next if !defined $epdata->{$key_name};
+		$data[$lookup{$epdata->{$key_name}}] = $epdata;
+	}
+
+	# retrieve the data from multiple fields
+	my $pos_field = EPrints::MetaField->new(
+		repository => $session->get_repository,
+		name => "pos",
+		type => "int" );
+	foreach my $field (@aux_fields)
+	{
+		my @fields = ($key_field, $pos_field, $field);
+		my $sql = "SELECT ".join(',',map {
+				$self->quote_identifier($_)
+			} map {
+				$_->get_sql_names
+			} @fields);
+		$sql .= " FROM ".$self->quote_identifier($dataset->get_sql_sub_table_name( $field ));
+		$sql .= " WHERE $logic";
+
+		# multiple values are always at least empty list
+		foreach my $epdata (@data)
+		{
+			$epdata->{$field->get_name} = [];
+		}
+
+		my $sth = $self->prepare( $sql );
+		$self->execute( $sth, $sql );
+		while(my @row = $sth->fetchrow_array)
+		{
+			my( $id, $pos ) = splice(@row,0,2);
+			my $value = $field->value_from_sql_row( $session, \@row );
+			$data[$lookup{$id}]->{$field->get_name}->[$pos] = $value;
+		}
+	}
+
+	# convert the epdata into objects
+	foreach my $epdata (@data)
+	{
+		if( !defined $epdata->{$key_name} )
+		{
+			$epdata = undef;
+		}
+		$epdata = $dataset->make_object( $session,  $epdata);
+		$epdata->clear_changed();
+	}
+
+	# remove any objects that couldn't be retrieved
+	@data = grep { defined $_ } @data;
+
+	return @data;
 }
 
 ######################################################################
@@ -3801,11 +3956,16 @@ sub create_version_table
 	my $table = "version";
 	my $column = "version";
 
-	$self->_create_table($table, [], [
-		$self->get_column_type( $column, SQL_VARCHAR, SQL_NULL, 255 ),
-	]);
+	my $version = EPrints::MetaField->new(
+		repository => $self->{ session }->get_repository,
+		name => $column,
+		type => "text",
+		maxlength => 64,
+		allow_null => 0 );
 
-	$self->insert( $table, [$column], [undef] );
+	$self->create_table( $table, undef, 1, $version );
+
+	$self->insert( $table, [$column], ["0.0.0"] );
 }
 
 ######################################################################
