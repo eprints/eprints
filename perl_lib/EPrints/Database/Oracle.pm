@@ -360,6 +360,13 @@ sub counter_current
 	return undef;
 }
 
+# Oracle uppercases all non-quoted identifiers so if we want users to be able
+# to use unquoted queries we'll have to make all our identifiers uppercase
+sub quote_identifier
+{
+	return shift->SUPER::quote_identifier(map(uc,@_));
+}
+
 1; # For use/require success
 
 ######################################################################
