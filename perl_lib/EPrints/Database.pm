@@ -490,11 +490,13 @@ sub create_dataset_index_tables
 	my $field_fieldword = EPrints::MetaField->new( 
 		repository=> $self->{session}->get_repository,
 		name => "fieldword", 
-		type => "text");
+		type => "text",
+		maxlength => 128);
 	my $field_pos = EPrints::MetaField->new( 
 		repository=> $self->{session}->get_repository,
 		name => "pos", 
-		type => "int" );
+		type => "int",
+		sql_index => 0 );
 	my $field_ids = EPrints::MetaField->new( 
 		repository=> $self->{session}->get_repository,
 		name => "ids", 
@@ -504,9 +506,8 @@ sub create_dataset_index_tables
 		$rv &= $self->create_table(
 			$dataset->get_sql_index_table_name,
 			$dataset,
-			0, # no primary key
+			2, # primary key over word/pos
 			( $field_fieldword, $field_pos, $field_ids ) );
-		$rv &= $self->add_index_to_indextable( $dataset );
 	}
 
 	#######################
@@ -563,15 +564,6 @@ sub create_dataset_index_tables
 	return $rv;
 }
 
-sub add_index_to_indextable
-{
-	my( $self, $dataset ) = @_;
-
-	my $table_name = $dataset->get_sql_index_table_name;
-
-	return $self->create_index( $table_name, "fieldword", "pos" ) ? 1 : 0;
-}
- 
 ######################################################################
 =pod
 
@@ -2503,7 +2495,7 @@ sub get_single
 {
 	my( $self, $dataset, $id ) = @_;
 
-	return ($self->get_records( $dataset, $id ))[0];
+	return ($self->get_dataobjs( $dataset, $id ))[0];
 }
 
 
