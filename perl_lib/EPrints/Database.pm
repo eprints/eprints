@@ -2084,12 +2084,16 @@ sub _cache_from_LIST
 
 	my $cache_table  = $cachemap->get_sql_table_name;
 
+	$self->begin;
+
 	my $sth = $self->prepare( "INSERT INTO ".$self->quote_identifier($cache_table)." VALUES (?,?)" );
 	my $i = 0;
 	foreach( @{$list} )
 	{
 		$sth->execute( ++$i, $_ );
 	}
+
+	$self->commit;
 }
 
 sub _cache_from_TABLE
