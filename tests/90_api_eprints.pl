@@ -12,7 +12,7 @@ BEGIN { use_ok( "EPrints::Test" ); }
 my %API_METHODS = (
 	"EPrints" => [qw( new abort current_repository repository repository_ids )],
 	"EPrints::Repository" => [qw( config current_url current_user dataset eprint log redirect query user user_by_email user_by_username xhtml xml )],
-	"EPrints::Dataset" => [qw( base_id create_dataobj dataobj field fields key_field id list prepare_search search )],
+	"EPrints::DataSet" => [qw( base_id create_dataobj dataobj field fields key_field id list prepare_search search )],
 	"EPrints::List" => [qw( count ids item map slice )],
 	"EPrints::XML" => [qw( clone clone_node contents_of create_comment_node create_document_fragment create_element create_text_node dispose parse_file parse_string parse_url text_contents_of to_string )],
 	"EPrints::XHTML" => [qw( build_page form hidden_field input_field text_area_field to_xhtml )],

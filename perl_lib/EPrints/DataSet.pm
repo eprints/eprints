@@ -423,6 +423,22 @@ sub get_system_dataset_info
 
 =cut
 
+=item $id = $ds->base_id
+
+	$ds = $repo->dataset( "inbox" );
+	$id = $ds->base_id; # returns "eprint"
+
+Returns the identifier of the base dataset for this dataset (same as L</id> unless this dataset is virtual).
+
+=cut
+
+sub confid { &base_id }
+sub base_id
+{
+	my( $self ) = @_;
+	return $self->{confid};
+}
+
 =item $field = $ds->process_field( $data [, $system ] )
 
 Creates a new field in this dataset based on $data. If $system is true defines
@@ -493,18 +509,17 @@ sub unregister_field
 ######################################################################
 =pod
 
-=item $metafield = $ds->get_field( $fieldname )
+=item $metafield = $ds->field( $fieldname )
 
-Return a MetaField object describing the asked for field
-in this dataset, or undef if there is no such field.
+Returns the L<EPrints::MetaField> from this dataset with the given name, or undef.
 
 =cut
 ######################################################################
 
-sub get_field
+sub get_field { &field }
+sub field
 {
 	my( $self, $fieldname ) = @_;
-
 
 	# magic fields which can be searched but do
 	# not really exist.
@@ -581,34 +596,6 @@ sub default_order
 
 	return $self->{default_order};
 }
-
-#
-# string confid()
-#
-#  returns the id string to be used to identify this dataset in the 
-#  config and phrases ( in a nutshell "Archive", "Buffer" and "Inbox"
-#  all return "eprint" because they all (must) have identical structure.
-
-
-######################################################################
-=pod
-
-=item $confid = $ds->confid
-
-Return the string to use when getting configuration for this dataset.
-
-archive, buffer, inbox and deletion all return "eprint" as they must
-have the same configuration.
-
-=cut
-######################################################################
-
-sub confid
-{
-	my( $self ) = @_;
-	return $self->{confid};
-}
-
 
 ######################################################################
 =pod
@@ -773,35 +760,34 @@ sub get_sql_sub_table_name
 ######################################################################
 =pod
 
-=item $fields = $ds->get_fields
+=item @fields = $ds->fields
 
-Returns a list of the EPrints::Metafields belonging to this dataset.
+Returns a list of the L<EPrints::Metafield>s belonging to this dataset.
 
 =cut
 ######################################################################
 
-sub get_fields
+sub get_fields { &fields }
+sub fields
 {
 	my( $self ) = @_;
-
-	my @fields = @{ $self->{fields} };
-
-	return @fields;
+	return @{ $self->{fields} };
 }
-
 
 ######################################################################
 =pod
 
-=item $field = $ds->get_key_field
+=item $field = $ds->key_field
 
-Return the EPrints::MetaField representing the primary key field.
+Return the L<EPrints::MetaField> representing the primary key field.
+
 Always the first field.
 
 =cut
 ######################################################################
 
-sub get_key_field
+sub get_key_field { &key_field }
+sub key_field
 {
 	my( $self ) = @_;
 	return $self->{fields}->[0];
@@ -846,13 +832,11 @@ sub make_object
 ######################################################################
 =pod
 
-=item $obj = $ds->create_object( $session, $data )
+=item $obj = $ds->create_dataobj( $data )
 
-Create a new object in the given dataset. Return the new object.
+Returns a new object in this dataset based on $data or undef on failure.
 
-Return undef if the object could not be created.
-
-If $data describes sub-objects too then those will also be created.
+If $data describes sub-objects then those will also be created.
 
 =cut
 ######################################################################
@@ -865,6 +849,11 @@ sub create_object
 
 	return $class->create_from_data( $session, $data, $self );
 }
+sub create_dataobj
+{
+	my( $self, $data ) = @_;
+	return $self->dataobj_class->create_from_data( $self->repository, $data, $self );
+}
 
 ######################################################################
 =pod
@@ -876,10 +865,10 @@ Return the perl class to which objects in this dataset belong.
 =cut
 ######################################################################
 
-sub get_object_class
+sub get_object_class { &dataobj_class }
+sub dataobj_class
 {
 	my( $self, $session ) = @_;
-
 	return $self->{class};
 }
 
@@ -908,6 +897,18 @@ sub get_object
 	}
 
 	return $class->new( $session, $id, $self );
+}
+
+=item $dataobj = $ds->dataobj( $id )
+
+Returns the object from this dataset with the given id, or undefined.
+
+=cut
+
+sub dataobj
+{
+	my( $self, $id ) = @_;
+	return $self->dataobj_class->new( $self->repository, $id, $self );
 }
 
 =item $dataobj = EPrints::DataSet->get_object_from_uri( $session, $uri )
@@ -983,18 +984,18 @@ sub map
 ######################################################################
 =pod
 
-=item $repository = $ds->get_repository
+=item $repository = $ds->repository
 
-Returns the EPrints::Repository to which this dataset belongs.
+Returns the L<EPrints::Repository> to which this dataset belongs.
 
 =cut
 ######################################################################
-sub get_archive { return $_[0]->get_repository; }
 
-sub get_repository
+sub get_archive { &repository }
+sub get_repository { &repository }
+sub repository
 {
 	my( $self ) = @_;
-	
 	return $self->{repository};
 }
 
@@ -1200,10 +1201,51 @@ sub get_datestamp_field
 	return defined $datestamp ? $self->get_field( $datestamp ) : undef;
 }
 
+=item $searchexp = $ds->prepare_search( %options )
 
+Returns a L<EPrints::Search> for this dataset with %options.
 
+=cut
 
+sub prepare_search
+{
+	my( $self, %opts ) = @_;
 
+	return EPrints::Search->new(
+		dataset => $self,
+		allow_blank => 1,
+		%opts,
+	);
+}
+
+=item $list = $ds->search( %options )
+
+Short-cut to L</prepare_search>( %options )->execute.
+
+=cut
+
+sub search
+{
+	my( $self, %opts ) = @_;
+
+	return $self->prepare_search( %opts )->execute;
+}
+
+=item $list = $ds->list( $ids )
+
+Returns a L<EPrints::List> for this dataset for the given $ids list.
+
+=cut
+
+sub list
+{
+	my( $self, $ids ) = @_;
+
+	return EPrints::List->new(
+		dataset => $self,
+		ids => $ids,
+	);
+}
 
 ######################################################################
 1;

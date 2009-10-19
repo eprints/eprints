@@ -513,14 +513,15 @@ sub form_value
 ######################################################################
 =pod
 
-=item $name = $field->get_name
+=item $name = $field->name
 
 Return the name of this field.
 
 =cut
 ######################################################################
 
-sub get_name
+sub get_name { &name }
+sub name
 {
 	my( $self ) = @_;
 	return $self->{name};
@@ -530,14 +531,15 @@ sub get_name
 ######################################################################
 =pod
 
-=item $type = $field->get_type
+=item $type = $field->type
 
 Return the type of this field.
 
 =cut
 ######################################################################
 
-sub get_type
+sub get_type { &type }
+sub type
 {
 	my( $self ) = @_;
 	return $self->{type};
@@ -548,7 +550,7 @@ sub get_type
 ######################################################################
 =pod
 
-=item $value = $field->get_property( $property )
+=item $value = $field->property( $property )
 
 Return the value of the given property.
 
@@ -559,7 +561,8 @@ it is required for a specific type.
 =cut
 ######################################################################
 
-sub get_property
+sub get_property { &property }
+sub property
 {
 	my( $self, $property ) = @_;
 

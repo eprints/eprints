@@ -47,13 +47,13 @@ isa_ok( $searchexp, "EPrints::Search", "prepare_search()" );
 ### Objects ###
 my $TITLE = "TEST EPRINT";
 
-my $dataobj = $dataset->create_dataobj( { eprint_status => "inbox", title => $title, userid => 1 } );
+my $dataobj = $dataset->create_dataobj( { eprint_status => "inbox", title => $TITLE, userid => 1 } );
 if( !defined $dataobj ) { BAIL_OUT( "Could not create a new data object" ); }
-my $dataobj_id = $dataobj->get_id;
+my $dataobj_id = $dataobj->id;
 my $dataobj_copy = $dataset->dataobj( $dataobj_id );
 if( !defined $dataobj_copy ) { BAIL_OUT( "Could not retrieve new data object copy" ); }
-ok( $dataobj_copy->get_id, $dataobj_id, "ids match of retrieved objects" );
-ok(!defined($dataset->dataobj( "INVALID_ID" )), "invalid dataobj identifier is undef" )
+ok( $dataobj_copy->id eq $dataobj_id, "ids match of retrieved objects" );
+ok(!defined($dataset->dataobj( "INVALID_ID" )), "invalid dataobj identifier is undef" );
 is( $dataobj_copy->value( "title" ), $TITLE, "title value" );
 
 $dataobj->delete; # clean up
