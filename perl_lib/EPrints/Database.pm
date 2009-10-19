@@ -2551,13 +2551,13 @@ sub get_cache_ids
 	return @ids;
 }
 
-=item @records = $db->get_records( $dataset [, $id [, $id ] ] )
+=item @dataobjs = $db->get_dataobjs( $dataset [, $id [, $id ] ] )
 
 Retrieves the records in $dataset with the given $id(s). If an $id doesn't exist in the database it will be ignored.
 
 =cut
 
-sub get_records
+sub get_dataobjs
 {
 	my( $self, $dataset, @ids ) = @_;
 

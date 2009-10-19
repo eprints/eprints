@@ -541,7 +541,7 @@ sub _get_records
 	}
 
 	return \@ids if $justids;
-	return $self->{session}->get_database->get_records( $self->{dataset}, @ids );
+	return $self->{session}->get_database->get_dataobjs( $self->{dataset}, @ids );
 }
 
 
