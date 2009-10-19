@@ -2109,6 +2109,7 @@ sub _cache_from_TABLE
 	my $B = $self->quote_identifier("B");
 	my $O = $self->quote_identifier("O");
 	my $Q_srctable = $self->quote_identifier($srctable);
+	my $Q_pos = $self->quote_identifier( "pos" );
 
 	$self->create_sequence( $cache_seq );
 
@@ -2117,7 +2118,7 @@ CREATE OR REPLACE TRIGGER $Q_trigger
   BEFORE INSERT ON $Q_cache_table
   FOR EACH ROW
 BEGIN
-  SELECT $NEXTVAL INTO :new."pos" FROM dual;
+  SELECT $NEXTVAL INTO :new.$Q_pos FROM dual;
 END;
 EOT
 	$self->do($sql);
@@ -2173,6 +2174,7 @@ sub begin_cache_table
 
 	my $Q_cache_table = $self->quote_identifier( $cache_table );
 	my $Q_trigger = $self->quote_identifier( $cache_trigger );
+	my $Q_pos = $self->quote_identifier( "pos" );
 	my $NEXTVAL = $self->quote_identifier($cache_seq).".nextval";
 
 	my $sql = <<EOT;
@@ -2180,7 +2182,7 @@ CREATE OR REPLACE TRIGGER $Q_trigger
   BEFORE INSERT ON $Q_cache_table
   FOR EACH ROW
 BEGIN
-  SELECT $NEXTVAL INTO :new."pos" FROM dual;
+  SELECT $NEXTVAL INTO :new.$Q_pos FROM dual;
 END;
 EOT
 	$self->do($sql);
