@@ -491,16 +491,19 @@ sub create_dataset_index_tables
 		repository=> $self->{session}->get_repository,
 		name => "fieldword", 
 		type => "text",
-		maxlength => 128);
+		maxlength => 128,
+		allow_null => 0);
 	my $field_pos = EPrints::MetaField->new( 
 		repository=> $self->{session}->get_repository,
 		name => "pos", 
 		type => "int",
-		sql_index => 0 );
+		sql_index => 0,
+		allow_null => 0);
 	my $field_ids = EPrints::MetaField->new( 
 		repository=> $self->{session}->get_repository,
 		name => "ids", 
-		type => "longtext");
+		type => "longtext",
+		allow_null => 0);
 	if( !$self->has_table( $dataset->get_sql_index_table_name ) )
 	{
 		$rv &= $self->create_table(
@@ -843,20 +846,24 @@ sub create_table
 		next if( $field->get_property( "multiple" ) );
 		next if( $field->is_virtual );
 
-		# Set a primary key over $setkey columns
+		my $cfield = $field->clone;
+
+		# Set a PRIMARY KEY over $setkey columns
 		if( $setkey > @primary_key )
 		{
 			push @primary_key, $field;
+			# PRIMARY KEY columns must be NOT NULL
+			$cfield->set_property( allow_null => 0 );
 		}
 		if( !$setkey || @primary_key > 1 )
 		{
-			my @index_columns = $field->get_sql_index();
+			my @index_columns = $cfield->get_sql_index();
 			if( scalar @index_columns )
 			{
 				push @indices, \@index_columns;
 			}
 		}
-		push @columns, $field->get_sql_type( $self->{session} );
+		push @columns, $cfield->get_sql_type( $self->{session} );
 	}
 	
 	@primary_key = map {
