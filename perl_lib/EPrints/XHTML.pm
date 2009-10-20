@@ -180,12 +180,9 @@ sub to_xhtml
 		foreach my $i ( 0..$nnm->length-1 )
 		{
 			my $attr = $nnm->item($i);
-			my $name = $attr->localName; # ignore prefixes
-
 			# strip all namespace definitions
-			next if $name eq "xmlns";
-			my $prefix = $attr->prefix;
-			next if defined($prefix) && $prefix eq "xmlns";
+			next if $attr->nodeName =~ /^xmlns/;
+			my $name = $attr->localName;
 
 			next if( exists $seen->{$name} );
 			$seen->{$name} = 1;

@@ -45,6 +45,11 @@ $EPrints::XML::LIB_LEN = length("XML::DOM::");
 *XML::DOM::Node::nodeName = sub { shift->getNodeName(@_) };
 *XML::DOM::Node::nodeValue = sub { shift->getNodeValue(@_) };
 *XML::DOM::Node::nodeType = sub { shift->getNodeType(@_) };
+*XML::DOM::Node::localName = sub {
+		my $name = shift->getNodeName(@_);
+		$name =~ s/^.*://;
+		return $name;
+	};
 *XML::DOM::Attr::name = \&XML::DOM::Attr::getName;
 *XML::DOM::Attr::nodeName = \&XML::DOM::Attr::getName;
 *XML::DOM::Attr::value = \&XML::DOM::Attr::getValue;
