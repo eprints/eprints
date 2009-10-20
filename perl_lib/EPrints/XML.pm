@@ -299,11 +299,6 @@ TODO: Returns any text child nodes in $node.
 
 =cut
 
-sub text_contents_of
-{
-	my( $self, $node ) = @_;
-}
-
 =item $xml->dispose( $node )
 
 Dispose and free the memory used by $node.
