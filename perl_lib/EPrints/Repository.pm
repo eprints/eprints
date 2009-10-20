@@ -150,7 +150,6 @@ sub new
 	$self->{class} = "EPrints::Config::$id";
 
 	$self->{id} = $id;
-	$self->{xmldoc} = EPrints::XML::make_document();
 
 	$self->_add_http_paths;
 
@@ -609,7 +608,6 @@ sub _load_citation_file
 	my $doc = $self->parse_xml( $file , 1 );
 	if( !defined $doc )
 	{
-		$self->log( "Error parsing $file\n" );
 		return;
 	}
 
@@ -617,31 +615,20 @@ sub _load_citation_file
 	if( !defined $citation )
 	{
 		$self->log(  "Missing <citations> tag in $file\n" );
-		EPrints::XML::dispose( $doc );
+		$self->xml->dispose( $doc );
 		return;
 	}
 	my $type = $citation->getAttribute( "type" );
 	$type = "default" unless defined $type;
+
+	my $frag = $self->xml->contents_of( $citation );
+
 	$self->{citation_type}->{$dsid}->{$fileid} = $type;
-
-	# is this cloning really needed?
-	my( $frag ) = $self->{xmldoc}->createDocumentFragment();
-	foreach( $citation->getChildNodes )
-	{
-		$frag->appendChild( 
-			EPrints::XML::clone_and_own(
-				$_,
-				$self->{xmldoc},
-				1 ) );
-	}
-
-	EPrints::XML::dispose( $doc );
-
 	$self->{citation_style}->{$dsid}->{$fileid} = $frag;
-
 	$self->{citation_sourcefile}->{$dsid}->{$fileid} = $file;
 	$self->{citation_mtime}->{$dsid}->{$fileid} = EPrints::Utils::mtime( $file );
 
+	$self->xml->dispose( $doc );
 }
 
 sub freshen_citation
@@ -778,20 +765,15 @@ sub freshen_template
 	if( !defined $template ) { return 0; }
 
 	$self->{html_templates}->{$id}->{$langid} = $template;
-	$self->{text_templates}->{$id}->{$langid} = _template_to_text( $template );
+	$self->{text_templates}->{$id}->{$langid} = $self->_template_to_text( $template );
 	$self->{template_mtime}->{$id}->{$langid} = $mtime;
 }
 
 sub _template_to_text
 {
-	my( $template ) = @_;
+	my( $self, $template ) = @_;
 
-	my $doc = $template->ownerDocument;
-
-	$template = EPrints::XML::clone_and_own( 
-			$template,
-			$doc,
-			1 );
+	$template = $self->xml->clone( $template );
 
 	my $divide = "61fbfe1a470b4799264feccbbeb7a5ef";
 
@@ -806,7 +788,7 @@ sub _template_to_text
 		{
 			$ref.=":textonly";
 		}
-		my $textnode = $doc->createTextNode( $divide.$ref.$divide );
+		my $textnode = $self->xml->create_text_node( $divide.$ref.$divide );
 		$parent->replaceChild( $textnode, $pin );
 	}
 
@@ -815,7 +797,7 @@ sub _template_to_text
 	{
 		my $parent = $print->getParentNode;
 		my $ref = "print:".$print->getAttribute( "expr" );
-		my $textnode = $doc->createTextNode( $divide.$ref.$divide );
+		my $textnode = $self->xml->create_text_node( $divide.$ref.$divide );
 		$parent->replaceChild( $textnode, $print );
 	}
 
@@ -824,26 +806,26 @@ sub _template_to_text
 	{
 		my $parent = $phrase->getParentNode;
 		my $ref = "phrase:".$phrase->getAttribute( "ref" );
-		my $textnode = $doc->createTextNode( $divide.$ref.$divide );
+		my $textnode = $self->xml->create_text_node( $divide.$ref.$divide );
 		$parent->replaceChild( $textnode, $phrase );
 	}
 
-	_divide_attributes( $template, $doc, $divide );
+	$self->_divide_attributes( $template, $divide );
 
-	my @r = split( "$divide", EPrints::XML::to_string( $template,undef,1 ) );
+	my @r = split( "$divide", $self->xhtml->to_xhtml( $template ) );
 
 	return \@r;
 }
 
 sub _divide_attributes
 {
-	my( $node, $doc, $divide ) = @_;
+	my( $self, $node, $divide ) = @_;
 
-	return unless( EPrints::XML::is_dom( $node, "Element" ) );
+	return unless( $self->xml->is( $node, "Element" ) );
 
-	foreach my $kid ( $node->getChildNodes )
+	foreach my $kid ( $node->childNodes )
 	{
-		_divide_attributes( $kid, $doc, $divide );
+		$self->_divide_attributes( $kid, $divide );
 	}
 	
 	my $attrs = $node->attributes;
@@ -894,12 +876,9 @@ sub _load_template
 	}
 	else
 	{
-		$rvalue = EPrints::XML::clone_and_own( 
-			$html,
-			$self->{xmldoc},
-			1 );
+		$rvalue = $self->xml->clone( $html );
 	}
-	EPrints::XML::dispose( $doc );
+	$self->xml->dispose( $doc );
 	return $rvalue;
 }
 
@@ -1562,17 +1541,16 @@ sub parse_xml
 {
 	my( $self, $file, $no_expand ) = @_;
 
-	my $doc;
-	eval {
-		$doc = EPrints::XML::parse_xml( 
-			$file, 
-			$self->config( "lib_path" ) . "/",
-			$no_expand );
-	};
+	my $lib_path = $self->config( "lib_path" ) . "/";
+
+	my $doc = eval { $self->xml->parse_file( $file,
+		base_path => $lib_path,
+		no_expand => $no_expand ) };
 	if( !defined $doc )
 	{
 		$self->log( "Failed to parse XML file: $file: $@" );
 	}
+
 	return $doc;
 }
 
