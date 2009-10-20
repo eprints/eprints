@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 10;
+use Test::More tests => 13;
 
 use strict;
 use warnings;
@@ -44,5 +44,18 @@ $node = $xml->create_comment( "content" );
 ok(defined($node) && $xml->is( $node, "Comment" ) && $node->nodeValue eq "content", "create_comment" );
 $node = $xml->create_document_fragment;
 ok(defined($node) && $xml->is( $node, "DocumentFragment" ), "create_document_fragment" );
+
+my $xhtml = $repo->xhtml;
+
+$node = $xhtml->hidden_field( "foo", "bar" );
+ok(defined($node) && $node->getAttribute( "name" ) eq "foo" && $node->getAttribute( "value" ) eq "bar" && $node->getAttribute( "type" ) eq "hidden", "xhtml hidden field");
+$node = $xml->create_element( "html" );
+$node->appendChild( $xml->create_element( "script", type => 'text/javascript' ) );
+$node->appendChild( $xml->create_element( "div" ) );
+$node->appendChild( $xml->create_element( "br" ) );
+my $str = $xml->to_string( $node );
+is($str,'<html><script type="text/javascript"/><div/><br/></html>',"to_string");
+$str = $xhtml->to_xhtml( $node );
+is($str,'<html xmlns="http://www.w3.org/1999/xhtml"><script type="text/javascript">// <!-- No script --></script><div></div><br /></html>',"to_xhtml");
 
 $xml->dispose( $doc );

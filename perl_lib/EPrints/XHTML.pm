@@ -46,6 +46,9 @@ package EPrints::XHTML;
 
 use strict;
 
+@EPrints::XHTML::COMPRESS_TAGS = qw/br hr img link input meta/;
+%EPrints::XHTML::COMPRESS_TAG = map { $_ => 1 } @EPrints::XHTML::COMPRESS_TAGS;
+
 # $xhtml = new EPrints::XHTML( $repository )
 #
 # Contructor, should be called by Repository only.
@@ -144,6 +147,108 @@ sub text_area_field
 	$node->appendChild( $self->{repository}->xml->create_text_node( $value ) );
 
 	return $node;
+}
+
+=item $utf8_string = $xhtml->to_xhtml( $node, %opts )
+
+Returns $node as valid XHTML.
+
+=cut
+
+sub to_xhtml
+{
+	my( $self, $node, %opts ) = @_;
+
+	my $xml = $self->{repository}->xml;
+
+	my @n = ();
+	if( $xml->is( $node, "Element" ) )
+	{
+		my $tagname = $node->localName; # ignore prefixes
+
+		$tagname = lc($tagname);
+
+		push @n, '<', $tagname;
+		my $nnm = $node->attributes;
+		my $seen = {};
+
+		if( $tagname eq "html" )
+		{
+			push @n, ' xmlns="http://www.w3.org/1999/xhtml"';
+		}
+
+		foreach my $i ( 0..$nnm->length-1 )
+		{
+			my $attr = $nnm->item($i);
+			my $name = $attr->localName; # ignore prefixes
+
+			# strip all namespace definitions
+			next if $name eq "xmlns";
+			my $prefix = $attr->prefix;
+			next if defined($prefix) && $prefix eq "xmlns";
+
+			next if( exists $seen->{$name} );
+			$seen->{$name} = 1;
+
+			my $value = $attr->nodeValue;
+			utf8::decode($value) unless utf8::is_utf8($value);
+			$value =~ s/&/&amp;/g;
+			$value =~ s/</&lt;/g;
+			$value =~ s/>/&gt;/g;
+			$value =~ s/"/&quot;/g;
+			push @n, ' ', $name, '="', $value, '"';
+		}
+
+		if( $node->hasChildNodes )
+		{
+			push @n, '>';
+			foreach my $kid ( $node->childNodes )
+			{
+				push @n, $self->to_xhtml( $kid, %opts );
+			}
+			push @n, '</', $tagname, '>';
+		}
+		elsif( $EPrints::XHTML::COMPRESS_TAG{$tagname} )
+		{
+			push @n, ' />';
+		}
+		elsif( $tagname eq "script" )
+		{
+			push @n, '>// <!-- No script --></', $tagname, '>';
+		}
+		else
+		{
+			push @n, '></', $tagname, '>';
+		}
+	}
+	elsif( $xml->is( $node, "DocumentFragment" ) )
+	{
+		foreach my $kid ( $node->getChildNodes )
+		{
+			push @n, $self->to_xhtml( $kid, %opts );
+		}
+	}
+	elsif( $xml->is( $node, "Document" ) )
+	{
+		push @n, $self->to_xhtml( $node->documentElement, %opts );
+	}
+	elsif( $xml->is( 
+			$node, 
+			"Text", 
+			"Comment",
+			"CDATASection", 
+			"ProcessingInstruction",
+			"EntityReference" ) )
+	{
+		push @n, $node->toString; 
+		utf8::decode($n[$#n]) unless utf8::is_utf8($n[$#n]);
+	}
+	else
+	{
+		print STDERR "EPrints::XHTML: Not sure how to turn node type ".ref($node)." into XHTML.\n";
+	}
+
+	return wantarray ? @n : join('', @n);
 }
 
 ######################################################################

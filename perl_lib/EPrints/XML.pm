@@ -296,6 +296,158 @@ TODO: Returns any text child nodes in $node.
 
 =cut
 
+=item $utf8_string = $xml->to_string( $node, %opts )
+
+Serialises and returns the $node as a UTF-8 string.
+
+To generate an XHTML string see L<EPrints::XHTML>.
+
+=cut
+
+sub to_string
+{
+	if( !$_[0]->isa( "EPrints::XML" ) )
+	{
+		return &_to_string;
+	}
+
+	my( $self, $node, %opts ) = @_;
+
+	my $string = $node->toString;
+	utf8::decode($string) unless utf8::is_utf8($string);
+
+	return $string;
+}
+
+######################################################################
+=pod
+
+=item $string = EPrints::XML::to_string( $node, [$enc], [$noxmlns] )
+
+Return the given node (and its children) as a UTF8 encoded string.
+
+$enc is only used when $node is a document.
+
+If $stripxmlns is true then all xmlns attributes and namespace prefixes are
+removed. Handy for making legal XHTML.
+
+Papers over some cracks, specifically that XML::GDOME does not 
+support toString on a DocumentFragment, and that XML::GDOME does
+not insert a space before the / in tags with no children, which
+confuses some browsers. Eg. <br/> vs <br />
+
+=cut
+######################################################################
+
+sub _to_string
+{
+	my( $node, $enc, $noxmlns ) = @_;
+
+	if( !defined $node )
+	{
+		EPrints::abort( "no node passed to to_string" );
+	}
+
+	$enc = 'utf-8' unless defined $enc;
+	
+	my @n = ();
+	if( EPrints::XML::is_dom( $node, "Element" ) )
+	{
+		my $tagname = $node->nodeName;
+
+		if( $noxmlns )
+		{
+			$tagname =~ s/^.+://;
+		}
+
+		# lowercasing all tags screws up OAI.
+		#$tagname = "\L$tagname";
+
+		push @n, '<', $tagname;
+		my $nnm = $node->attributes;
+		my $done = {};
+		foreach my $i ( 0..$nnm->length-1 )
+		{
+			my $attr = $nnm->item($i);
+			my $name = $attr->nodeName;
+			next if( $done->{$attr->nodeName} );
+			$done->{$attr->nodeName} = 1;
+			# cjg Should probably escape these values.
+			my $value = $attr->nodeValue;
+			# strip namespaces, unless it's the XHTML namespace on <html>
+			if( $noxmlns && $name =~ m/^xmlns/ )
+			{
+				next unless $tagname eq "html" && $value =~ m#http://www\.w3\.org/1999/xhtml#;
+			}
+			utf8::decode($value) unless utf8::is_utf8($value);
+			$value =~ s/&/&amp;/g;
+			$value =~ s/</&lt;/g;
+			$value =~ s/>/&gt;/g;
+			$value =~ s/"/&quot;/g;
+			push @n, " ", $name."=\"".$value."\"";
+		}
+
+		#cjg This is bad. It makes nodes like <div /> if 
+		# they are empty. Should make <div></div> like XML::DOM
+		my $compress = 0;
+		foreach my $ctag ( @EPrints::XML::COMPRESS_TAGS )
+		{
+			$compress = 1 if( $ctag eq $tagname );
+		}
+		if( $node->hasChildNodes )
+		{
+			$compress = 0;
+		}
+
+		if( $compress )
+		{
+			push @n," />";
+		}
+		else
+		{
+			push @n,">";
+			foreach my $kid ( $node->getChildNodes )
+			{
+				push @n, _to_string( $kid, $enc, $noxmlns );
+			}
+			push @n,"</",$tagname,">";
+		}
+	}
+	elsif( EPrints::XML::is_dom( $node, "DocumentFragment" ) )
+	{
+		foreach my $kid ( $node->getChildNodes )
+		{
+			push @n, _to_string( $kid, $enc, $noxmlns );
+		}
+	}
+	elsif( EPrints::XML::is_dom( $node, "Document" ) )
+	{
+   		#my $docType  = $node->getDoctype();
+	 	#my $elem     = $node->documentElement();
+		#push @n, $docType->toString, "\n";, to_string( $elem , $enc, $noxmlns);
+		push @n, document_to_string( $node, $enc );
+	}
+	elsif( EPrints::XML::is_dom( 
+			$node, 
+			"Text", 
+			"CDATASection", 
+			"ProcessingInstruction",
+			"EntityReference" ) )
+	{
+		push @n, $node->toString; 
+		utf8::decode($n[$#n]) unless utf8::is_utf8($n[$#n]);
+	}
+	elsif( EPrints::XML::is_dom( $node, "Comment" ) )
+	{
+		push @n, "<!--",$node->getData, "-->"
+	}
+	else
+	{
+		print STDERR "EPrints::XML: Not sure how to turn node type ".$node->getNodeType."\ninto a string.\n";
+	}
+	return join '', @n;
+}
+
 =item $xml->dispose( $node )
 
 Dispose and free the memory used by $node.
@@ -396,135 +548,6 @@ to $node, recursively.
 ######################################################################
 
 # in required dom module
-
-######################################################################
-=pod
-
-=item $string = EPrints::XML::to_string( $node, [$enc], [$noxmlns] )
-
-Return the given node (and its children) as a UTF8 encoded string.
-
-$enc is only used when $node is a document.
-
-If $stripxmlns is true then all xmlns attributes and namespace prefixes are
-removed. Handy for making legal XHTML.
-
-Papers over some cracks, specifically that XML::GDOME does not 
-support toString on a DocumentFragment, and that XML::GDOME does
-not insert a space before the / in tags with no children, which
-confuses some browsers. Eg. <br/> vs <br />
-
-=cut
-######################################################################
-
-sub to_string
-{
-	my( $node, $enc, $noxmlns ) = @_;
-
-	if( !defined $node )
-	{
-		EPrints::abort( "no node passed to to_string" );
-	}
-
-	$enc = 'utf-8' unless defined $enc;
-	
-	my @n = ();
-	if( EPrints::XML::is_dom( $node, "Element" ) )
-	{
-		my $tagname = $node->nodeName;
-
-		if( $noxmlns )
-		{
-			$tagname =~ s/^.+://;
-		}
-
-		# lowercasing all tags screws up OAI.
-		#$tagname = "\L$tagname";
-
-		push @n, '<', $tagname;
-		my $nnm = $node->attributes;
-		my $done = {};
-		foreach my $i ( 0..$nnm->length-1 )
-		{
-			my $attr = $nnm->item($i);
-			my $name = $attr->nodeName;
-			next if( $done->{$attr->nodeName} );
-			$done->{$attr->nodeName} = 1;
-			# cjg Should probably escape these values.
-			my $value = $attr->nodeValue;
-			# strip namespaces, unless it's the XHTML namespace on <html>
-			if( $noxmlns && $name =~ m/^xmlns/ )
-			{
-				next unless $tagname eq "html" && $value =~ m#http://www\.w3\.org/1999/xhtml#;
-			}
-			utf8::decode($value) unless utf8::is_utf8($value);
-			$value =~ s/&/&amp;/g;
-			$value =~ s/</&lt;/g;
-			$value =~ s/>/&gt;/g;
-			$value =~ s/"/&quot;/g;
-			push @n, " ", $name."=\"".$value."\"";
-		}
-
-		#cjg This is bad. It makes nodes like <div /> if 
-		# they are empty. Should make <div></div> like XML::DOM
-		my $compress = 0;
-		foreach my $ctag ( @EPrints::XML::COMPRESS_TAGS )
-		{
-			$compress = 1 if( $ctag eq $tagname );
-		}
-		if( $node->hasChildNodes )
-		{
-			$compress = 0;
-		}
-
-		if( $compress )
-		{
-			push @n," />";
-		}
-		else
-		{
-			push @n,">";
-			foreach my $kid ( $node->getChildNodes )
-			{
-				push @n, to_string( $kid, $enc, $noxmlns );
-			}
-			push @n,"</",$tagname,">";
-		}
-	}
-	elsif( EPrints::XML::is_dom( $node, "DocumentFragment" ) )
-	{
-		foreach my $kid ( $node->getChildNodes )
-		{
-			push @n, to_string( $kid, $enc, $noxmlns );
-		}
-	}
-	elsif( EPrints::XML::is_dom( $node, "Document" ) )
-	{
-   		#my $docType  = $node->getDoctype();
-	 	#my $elem     = $node->documentElement();
-		#push @n, $docType->toString, "\n";, to_string( $elem , $enc, $noxmlns);
-		push @n, document_to_string( $node, $enc );
-	}
-	elsif( EPrints::XML::is_dom( 
-			$node, 
-			"Text", 
-			"CDATASection", 
-			"ProcessingInstruction",
-			"EntityReference" ) )
-	{
-		push @n, $node->toString; 
-		utf8::decode($n[$#n]) unless utf8::is_utf8($n[$#n]);
-	}
-	elsif( EPrints::XML::is_dom( $node, "Comment" ) )
-	{
-		push @n, "<!--",$node->getData, "-->"
-	}
-	else
-	{
-		print STDERR "EPrints::XML: Not sure how to turn node type ".$node->getNodeType."\ninto a string.\n";
-	}
-	return join '', @n;
-}
 
 
 ######################################################################
