@@ -36,7 +36,7 @@ $XML::DOM::SafeMode = 0;
 
 XML::DOM::setTagCompression( \&_xmldom_tag_compression );
 
-$EPrints::XML::PREFIX = "XML::DOM::";
+$EPrints::XML::LIB_LEN = length("XML::DOM::");
 
 # DOM spec fixes
 *XML::DOM::Document::documentElement = \&XML::DOM::Document::getDocumentElement;
@@ -103,7 +103,7 @@ sub parse_xml_string
 	return $doc;
 }
 
-sub parse_url
+sub _parse_url
 {
 	my( $url, $no_expand ) = @_;
 
@@ -198,35 +198,18 @@ sub event_parse
 }
 
 
-sub dispose
+sub _dispose
 {
 	my( $node ) = @_;
 
-	if( !defined $node )
-	{
-		EPrints::abort "attempt to dispose an undefined dom node";
-	}
 	if( !$node->isa( "XML::DOM::Node" ) )
 	{
 		EPrints::abort "attempt to dispose an dom node which isn't a dom node";
 	}
 	
-
 	$node->dispose;
 }
 
-
-sub clone_node
-{
-	my( $node, $deep ) = @_;
-
-	if( !defined $node )
-	{
-		EPrints::abort "no node passed to clone_node";
-	}
-
-	return $node->cloneNode( $deep );
-}
 
 sub clone_and_own
 {

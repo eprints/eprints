@@ -31,7 +31,28 @@ loaded into EPrints::XML namespace if we're using XML::GDOME
 require XML::GDOME;
 use XML::Parser;
 
-$EPrints::XML::PREFIX = "XML::GDOME::";
+$EPrints::XML::LIB_LEN = length("XML::GDOME::");
+
+# Need to clone children for DocumentFragment::cloneNode 
+*XML::GDOME::DocumentFragment::cloneNode = sub {
+		my( $self, $deep ) = @_;
+
+		$deep = 0 if !defined $deep;
+
+		my $f = $self->ownerDocument->createDocumentFragment;
+		for($self->childNodes)
+		{
+			$f->appendChild( $_->cloneNode( $deep ) );
+		}
+
+		return $f;
+	};
+# Missing setOwnerDocument
+*XML::GDOME::Node::setOwnerDocument = sub {
+		my( $self, $doc ) = @_;
+
+		$doc->importNode( $self, 1 );
+	};
 
 sub parse_xml_string
 {
@@ -52,7 +73,7 @@ sub parse_xml_string
 	return $doc;
 }
 
-sub parse_url
+sub _parse_url
 {
 	my( $url, $no_expand ) = @_;
 
@@ -135,44 +156,9 @@ sub event_parse
 }
 
 
-sub dispose
+sub _dispose
 {
 	my( $node ) = @_;
-
-	if( !defined $node )
-	{
-		EPrints::abort( "attempt to dispose an undefined dom node" );
-	}
-}
-
-
-sub clone_node
-{
-	my( $node, $deep ) = @_;
-
-	if( !defined $node )
-	{
-		EPrints::abort( "no node passed to clone_node" );
-	}
-
-	if( is_dom( $node, "DocumentFragment" ) )
-	{
-		my $doc = $node->getOwnerDocument;
-		my $f = $doc->createDocumentFragment;
-		return $f unless $deep;
-		
-		foreach my $c ( $node->getChildNodes )
-		{
-			$f->appendChild( $c->cloneNode( 1 ) );
-		}
-		return $f;
-	}
-
-	my $doc = $node->getOwnerDocument;
-	my $newnode = $node->cloneNode( 1 );
-	$doc->importNode( $newnode, 1 );
-
-	return $newnode;
 }
 
 sub clone_and_own

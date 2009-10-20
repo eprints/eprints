@@ -35,7 +35,7 @@ use XML::LibXML 1.63;
 use XML::LibXML::SAX::Parser;
 # $XML::LibXML::skipXMLDeclaration = 1; # Same behaviour as XML::DOM
 
-$EPrints::XML::PREFIX = "XML::LibXML::";
+$EPrints::XML::LIB_LEN = length("XML::LibXML::");
 
 ##############################################################################
 # DOM spec fixes
@@ -62,6 +62,20 @@ $EPrints::XML::PREFIX = "XML::LibXML::";
 			XML::LibXML::Document::setDocumentElement( @_ ) :
 			XML::LibXML::Node::appendChild( @_ );
 	};
+# Need to clone children for DocumentFragment::cloneNode 
+*XML::LibXML::DocumentFragment::cloneNode = sub {
+		my( $self, $node, $deep ) = @_;
+
+		$deep = 0 if !defined $deep;
+
+		my $f = $node->ownerDocument->createDocumentFragment;
+		for($node->childNodes)
+		{
+			$f->appendChild( $_->cloneNode( $deep ) );
+		}
+
+		return $f;
+	};
 
 ##############################################################################
 # Bug work-arounds
@@ -84,7 +98,7 @@ sub parse_xml_string
 	return $PARSER->parse_string( $string );
 }
 
-sub parse_url
+sub _parse_url
 {
 	my( $url, $no_expand ) = @_;
 
@@ -130,55 +144,9 @@ sub event_parse
 }
 
 
-=item dispose( $node )
-
-Unused
-
-=cut
-
-sub dispose
+sub _dispose
 {
 	my( $node ) = @_;
-
-	if( !defined $node )
-	{
-		EPrints::abort( "attempt to dispose an undefined dom node" );
-	}
-}
-
-=item $node = clone_node( $node [, $deep] )
-
-Clone $node and return it, optionally descending into child nodes ($deep).
-
-=cut
-
-sub clone_node
-{
-	my( $node, $deep ) = @_;
-
-	$deep ||= 0;
-
-	if( !defined $node )
-	{
-		EPrints::abort( "no node passed to clone_node" );
-	}
-
-	if( is_dom( $node, "DocumentFragment" ) )
-	{
-		my $doc = $node->getOwner;
-		my $f = $doc->createDocumentFragment;
-		return $f unless $deep;
-		
-		foreach my $c ( $node->getChildNodes )
-		{
-			$f->appendChild( $c->cloneNode( $deep ) );
-		}
-		return $f;
-	}
-
-	my $newnode = $node->cloneNode( $deep );
-
-	return $newnode;
 }
 
 =item $node = clone_and_own( $node, $doc [, $deep] )

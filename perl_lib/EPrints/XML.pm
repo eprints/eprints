@@ -19,12 +19,39 @@
 
 B<EPrints::XML> - XML Abstraction Module
 
-=head1 DESCRIPTION
+=head1 SYNOPSIS
+
+	my $xml = $repository->xml;
+
+	$doc = $xml->parse_string( $string );
+	$doc = $xml->parse_file( $filename );
+	$doc = $xml->parse_url( $url );
+
+	$utf8_string = $xml->to_string( $dom_node, %opts );
+
+	$dom_node = $xml->clone( $dom_node ); # deep
+	$dom_node = $xml->clone_node( $dom_node ); # shallow
+
+	# clone and return child nodes
+	$dom_node = $xml->contents_of( $dom_node );
+	# Return text child nodes as a string
+	$utf8_string = $xml->text_contents_of( $dom_node );
+
+	$dom_node = $xml->create_element( $name, %attr );
+	$dom_node = $xml->create_text_node( $value );
+	$dom_node = $xml->create_comment( $value );
+	$dom_node = $xml->create_document_fragment;
+
+	$xml->dispose( $dom_node );
+
+head1 DESCRIPTION
 
 EPrints can use either XML::DOM, XML::LibXML or XML::GDOME modules to generate
 and process XML. Some of the functionality of these modules differs so this
 module abstracts such functionality so that all the module specific code is in
 one place. 
+
+=head1 METHODS
 
 =over 4
 
@@ -63,31 +90,235 @@ sub new($$)
 
 	my $self = bless { repository => $repository }, $class;
 
+	$self->{doc} = make_document();
+
 	return $self;
 }
 
+=back
 
-######################################################################
-=pod
+=head2 Parsing
 
-=item $doc = EPrints::XML::parse_xml_string( $string );
-
-Return a DOM document describing the XML string %string.
-
-If we are using GDOME then it will create an XML::GDOME document
-instead.
-
-In the event of an error in the XML file, report to STDERR and
-return undef.
+=over 4
 
 =cut
-######################################################################
 
-# in DOM specific module
-	
 
-######################################################################
-=pod
+=item $doc = $xml->parse_string( $string )
+
+Returns an XML document parsed from $string or undef if it can't be parsed.
+
+=cut
+
+sub parse_string
+{
+	my( $self, $string ) = @_;
+	return parse_xml_string( $string );
+}
+
+=item $doc = $xml->parse_file( $filename )
+
+Returns an XML document parsed from the file called $filename or undef if it can't be parsed.
+
+=cut
+
+sub parse_file
+{
+	my( $self, $filename ) = @_;
+	return parse_xml( $filename );
+}
+
+=item $doc = $xml->parse_url( $url )
+
+Returns an XML document parsed from the content located at $url or undef if it can't be parsed.
+
+=cut
+
+sub parse_url
+{
+	return _parse_url( pop(@_) );
+}
+
+=back
+
+=head2 Node Creation
+
+=over 4
+
+=cut
+
+
+=item $node = $xml->create_element( $name [, @attrs ] )
+
+Returns a new XML element named $name with optional attribute pairs @attrs.
+
+=cut
+
+sub create_element
+{
+	my( $self, $name, @attrs ) = @_;
+
+	my $node = $self->{doc}->createElement( $name );
+	while(my( $key, $value ) = splice(@attrs,0,2))
+	{
+		$node->setAttribute( $key => $value );
+	}
+
+	return $node;
+}
+
+=item $node = $xml->create_text_node( $value )
+
+Returns a new XML text node containing $value.
+
+=cut
+
+sub create_text_node
+{
+	my( $self, $value ) = @_;
+	return $self->{doc}->createTextNode( $value );
+}
+
+=item $node = $xml->create_comment( $value )
+
+Returns a new XML comment containing $value.
+
+=cut
+
+sub create_comment
+{
+	my( $self, $value ) = @_;
+	return $self->{doc}->createComment( $value );
+}
+
+=item $node = $xml->create_document_fragment
+
+Returns a new XML document fragment.
+
+=cut
+
+sub create_document_fragment
+{
+	my( $self ) = @_;
+	return $self->{doc}->createDocumentFragment;
+}
+
+=back
+
+=head2 Other
+
+=over 4
+
+=cut
+
+
+=item $bool = $xml->is( $node, $type [, $type ... ] )
+
+Returns true if $node is one of the given node types: Document, DocumentFragment, Element, Comment, Text.
+
+=cut
+
+sub is
+{
+	my( $self, $node, @types ) = @_;
+
+	for(@types)
+	{
+		return 1 if substr(ref($node),-1*length($_)) eq $_;
+	}
+
+	return 0;
+}
+
+=item $node = $xml->clone( $node )
+
+Returns a deep clone of $node. The new node(s) will be owned by this object.
+
+=cut
+
+sub clone
+{
+	my( $self, $node ) = @_;
+
+	my $clone = $node->cloneNode( 1 );
+	$clone->setOwnerDocument( $self->{doc} );
+
+	return $clone;
+}
+
+=item $node = $xml->clone_node( $node )
+
+Returns a clone of $node only (no children). The new node will be owned by this object.
+
+=item $node = EPrints::XML::clone_node( $node [, $deep ] )
+
+DEPRECATED.
+
+=cut
+
+sub clone_node
+{
+	my( $self, $node ) = @_;
+
+	# backwards compatibility
+	if( !$self->isa( "EPrints::XML" ) )
+	{
+		my $deep = $node;
+		$node = $self;
+		return $node->cloneNode( $deep );
+	}
+
+	my $clone = $node->cloneNode( 0 );
+	$clone->setOwnerDocument( $self->{doc} );
+
+	return $clone;
+}
+
+=item $node = $xml->contents_of( $node )
+
+Returns a document fragment containing a copy of all the children of $node.
+
+=cut
+
+sub contents_of
+{
+	my $node = pop @_;
+
+	my $f = $node->ownerDocument->createDocumentFragment;
+	foreach my $c ( $node->childNodes )
+	{
+		$f->appendChild( $c->cloneNode( 1 ) );
+	}
+
+	return $f;
+}
+
+=item $string = $xml->text_contents_of( $node )
+
+TODO: Returns any text child nodes in $node.
+
+=cut
+
+sub text_contents_of
+{
+	my( $self, $node ) = @_;
+}
+
+=item $xml->dispose( $node )
+
+Dispose and free the memory used by $node.
+
+=cut
+
+sub dispose
+{
+	my $node = pop @_;
+	if( !defined $node )
+	{
+		EPrints::abort( "attempt to dispose an undefined dom node" );
+	}
+	_dispose( $node );
+}
 
 =item $doc = EPrints::XML::parse_xml( $file, $basepath, $no_expand )
 
@@ -150,33 +381,8 @@ sub is_dom
 }
 
 
-######################################################################
-=pod
-
-=item EPrints::XML::dispose( $node )
-
-Dispose of this node if needed. Only XML::DOM nodes need to be
-disposed as they have cyclic references. XML::GDOME nodes are C structs.
-
-=cut
-######################################################################
-
 # in required dom module
 
-
-######################################################################
-=pod
-
-=item $newnode = EPrints::XML::clone_node( $node, $deep )
-
-Clone the given DOM node and return the new node. Always does a deep
-copy.
-
-This function does different things for XML::DOM & XML::GDOME
-but the result should be the same.
-
-=cut
-######################################################################
 
 # in required dom module
 
@@ -559,30 +765,11 @@ sub debug_xml
 	print STDERR "<\n";
 }
 
-
-
-
 sub is_empty
 {
 	my( $node ) = @_;
 	return !$node->hasChildNodes();
 }
-
-sub contents_of
-{
-	my( $node ) = @_;
-
-	my $doc = $node->ownerDocument;
-	my $f = $doc->createDocumentFragment;
-	foreach my $c ( $node->getChildNodes )
-	{
-		$node->removeChild( $c );
-		$f->appendChild( $c );
-	}
-
-	return $f;
-}
-
 
 sub trim_whitespace
 {
