@@ -62,20 +62,6 @@ $EPrints::XML::LIB_LEN = length("XML::LibXML::");
 			XML::LibXML::Document::setDocumentElement( @_ ) :
 			XML::LibXML::Node::appendChild( @_ );
 	};
-# Need to clone children for DocumentFragment::cloneNode 
-*XML::LibXML::DocumentFragment::cloneNode = sub {
-		my( $self, $node, $deep ) = @_;
-
-		$deep = 0 if !defined $deep;
-
-		my $f = $node->ownerDocument->createDocumentFragment;
-		for($node->childNodes)
-		{
-			$f->appendChild( $_->cloneNode( $deep ) );
-		}
-
-		return $f;
-	};
 
 ##############################################################################
 # Bug work-arounds

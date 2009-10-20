@@ -47,12 +47,6 @@ $EPrints::XML::LIB_LEN = length("XML::GDOME::");
 
 		return $f;
 	};
-# Missing setOwnerDocument
-*XML::GDOME::Node::setOwnerDocument = sub {
-		my( $self, $doc ) = @_;
-
-		$doc->importNode( $self, 1 );
-	};
 
 sub parse_xml_string
 {

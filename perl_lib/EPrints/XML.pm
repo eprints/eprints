@@ -104,9 +104,9 @@ sub new($$)
 =cut
 
 
-=item $doc = $xml->parse_string( $string )
+=item $doc = $xml->parse_string( $string, %opts )
 
-Returns an XML document parsed from $string or undef if it can't be parsed.
+Returns an XML document parsed from $string.
 
 =cut
 
@@ -116,21 +116,24 @@ sub parse_string
 	return parse_xml_string( $string );
 }
 
-=item $doc = $xml->parse_file( $filename )
+=item $doc = $xml->parse_file( $filename, %opts )
 
-Returns an XML document parsed from the file called $filename or undef if it can't be parsed.
+Returns an XML document parsed from the file called $filename.
+
+	base_path - base path to load DTD files from
+	no_expand - don't expand entities
 
 =cut
 
 sub parse_file
 {
-	my( $self, $filename ) = @_;
-	return parse_xml( $filename );
+	my( $self, $filename, %opts ) = @_;
+	return parse_xml( $filename, $opts{base_path}, $opts{no_expand} );
 }
 
-=item $doc = $xml->parse_url( $url )
+=item $doc = $xml->parse_url( $url, %opts )
 
-Returns an XML document parsed from the content located at $url or undef if it can't be parsed.
+Returns an XML document parsed from the content located at $url.
 
 =cut
 
@@ -240,10 +243,7 @@ sub clone
 {
 	my( $self, $node ) = @_;
 
-	my $clone = $node->cloneNode( 1 );
-	$clone->setOwnerDocument( $self->{doc} );
-
-	return $clone;
+	return $self->{doc}->importNode( $node, 1 );
 }
 
 =item $node = $xml->clone_node( $node )
@@ -268,10 +268,7 @@ sub clone_node
 		return $node->cloneNode( $deep );
 	}
 
-	my $clone = $node->cloneNode( 0 );
-	$clone->setOwnerDocument( $self->{doc} );
-
-	return $clone;
+	return $self->{doc}->importNode( $node, 0 );
 }
 
 =item $node = $xml->contents_of( $node )

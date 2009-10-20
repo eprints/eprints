@@ -55,6 +55,14 @@ $EPrints::XML::LIB_LEN = length("XML::DOM::");
 *XML::DOM::Element::hasAttribute = sub { defined(shift->getAttributeNode(@_)) };
 *XML::DOM::Node::childNodes = \&XML::DOM::Node::getChildNodes;
 *XML::DOM::Node::firstChild = \&XML::DOM::Node::getFirstChild;
+*XML::DOM::Document::importNode = sub {
+		my( $doc, $node, $deep ) = @_;
+
+		$node = $node->cloneNode( $deep );
+		$node->setOwnerDocument( $doc );
+
+		return $node;
+	};
 
 ######################################################################
 # 
