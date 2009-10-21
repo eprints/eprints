@@ -8,6 +8,24 @@ use EPrints::Plugin;
 
 use strict;
 
+sub new
+{
+	my( $class, %params ) = @_;
+
+	my $self = $class->SUPER::new(%params);
+
+	$self->{appears} = [
+		{
+# TODO: implement full placement/actions for UploadMethods?
+#			place => "inputform_upload_method",
+#			action => "file",
+			position => 1000000,
+		}
+	];
+
+	return $self;
+}
+
 sub render_tab_title
 {
 	my( $self ) = @_;

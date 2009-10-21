@@ -6,9 +6,6 @@ use EPrints::Plugin::InputForm::Component;
 
 use strict;
 
-# this feels like these could become plugins at some later date.
-@EPrints::Plugin::InputForm::Component::Upload::UPLOAD_METHODS = qw/ file zip targz fromurl /;
-
 sub new
 {
 	my( $class, %opts ) = @_;
@@ -52,20 +49,22 @@ sub update_from_form
 	if( $session->internal_button_pressed )
 	{
 		my $internal = $self->get_internal_button;
-		if( $internal =~ m/^add_format(_(.*))?/ )
+		if( $internal =~ m/^add_format_(.+)/ )
 		{
-			my $method = $2 || "file";
-			my $method_plugin = $session->plugin( 
-				"InputForm::UploadMethod::$method",
-				prefix => $self->{prefix},
-				dataobj => $self->{dataobj},
-			);
-			if( !defined $method_plugin ) 
+			my $method = $2;
+			my @plugins = $self->_get_upload_plugins(
+					prefix => $self->{prefix},
+					dataobj => $self->{dataobj},
+				);
+			foreach my $plugin (@plugins)
 			{
-				EPrints::abort( "Could not load InputForm::UploadMethod::$method" );
+				if( $plugin->get_name eq $method )
+				{
+					$plugin->update_from_form( $processor );
+					return;
+				}
 			}
-			$method_plugin->update_from_form( $processor );
-			return;
+			EPrints::abort( "$method is not a supported upload method" );
 		}
 		if( $internal =~ m/^doc(\d+)_(.+)$/ )
 		{
@@ -574,26 +573,25 @@ sub _render_add_document
 
 	my $session = $self->{session};
 
+	my @methods = $self->_get_upload_plugins(
+			prefix => $self->{prefix},
+			dataobj => $self->{dataobj}
+		);
+
 	my $add = $session->make_doc_fragment;
 
-	if( scalar @{$self->{config}->{methods}} == 0 )
-	{
-		# no upload methods
-		# so don't render this.
-		return $add;
-	}
+	# no upload methods so don't do anything
+	return $add if @methods == 0;
 
-	my $links = {};
+	my $tabs = [];
 	my $labels = {};
-	my $methods = {};
-	foreach my $tab ( @{$self->{config}->{methods}} )
+	my $links = {};
+	foreach my $plugin ( @methods )
 	{
-		$links->{$tab} = "";
-		$methods->{$tab} = $self->{session}->plugin( 
-				"InputForm::UploadMethod::$tab",
-				prefix => $self->{prefix},
-				dataobj => $self->{dataobj} );
-		$labels->{$tab} = $methods->{$tab}->render_tab_title();
+		my $name = $plugin->get_id;
+		push @$tabs, $name;
+		$labels->{$name} = $plugin->render_tab_title();
+		$links->{$name} = "";
 	}
 
 	my $newdoc = $self->{session}->make_element( 
@@ -604,8 +602,8 @@ sub _render_add_document
 	$tab_block->appendChild( 
 		$self->{session}->render_tabs( 
 			id_prefix => $self->{prefix}."_upload",
-			current => $self->{config}->{methods}->[0],
-			tabs => $self->{config}->{methods},
+			current => $tabs->[0],
+			tabs => $tabs,
 			labels => $labels,
 			links => $links,
 		));
@@ -618,14 +616,14 @@ sub _render_add_document
 	$newdoc->appendChild( $panel );
 
 	my $first = 1;
-	foreach my $method ( @{$self->{config}->{methods}} )
+	foreach my $plugin ( @methods )
 	{
 		my $inner_panel;
 		if( $first )
 		{
 			$inner_panel = $self->{session}->make_element( 
 				"div", 
-				id => $self->{prefix}."_upload_panel_$method" );
+				id => $self->{prefix}."_upload_panel_".$plugin->get_id );
 		}
 		else
 		{
@@ -635,11 +633,11 @@ sub _render_add_document
 			$inner_panel = $self->{session}->make_element( 
 				"div", 
 				class => "ep_no_js",
-				id => $self->{prefix}."_upload_panel_$method" );	
+				id => $self->{prefix}."_upload_panel_".$plugin->get_id );	
 		}
 		$panel->appendChild( $inner_panel );
 
-		$inner_panel->appendChild( $methods->{$method}->render_add_document() );
+		$inner_panel->appendChild( $plugin->render_add_document() );
 		$first = 0;
 	}
 
@@ -951,25 +949,53 @@ sub validate
 
 sub _get_upload_plugins
 {
-	my ($self) = @_;
+	my( $self, %opts ) = @_;
 
-	my %defaults = map { $_ => 1 } @EPrints::Plugin::InputForm::Component::Upload::UPLOAD_METHODS;
+	my %plugins;
 
-	foreach( $self->{session}->plugin_list( type => 'InputForm' ) )
+	my @plugins;
+	if( defined $self->{config}->{methods} )
 	{
-		next unless( $_ =~ /^InputForm::UploadMethod::(.*)$/ );
-		next if( $defaults{$1} );
-		push @EPrints::Plugin::InputForm::Component::Upload::UPLOAD_METHODS, $1;
-		$defaults{$1} = 1;
+		METHOD: foreach my $method (@{$self->{config}->{methods}})
+		{
+			my $plugin = $self->{session}->plugin( "InputForm::UploadMethod::$method", %opts );
+			if( !defined $plugin )
+			{
+				$self->{session}->get_repository->log( "Unknown upload method in Component::Upload: '$method'" );
+				next METHOD;
+			}
+			push @plugins, $plugin;
+		}
 	}
+	else
+	{
+		METHOD: foreach my $plugin ( $self->{session}->plugin_list( type => 'InputForm' ) )
+		{
+			$plugin = $self->{session}->plugin( $plugin, %opts );
+			next METHOD if !$plugin->isa( "EPrints::Plugin::InputForm::UploadMethod" );
+			next METHOD if ref($plugin) eq "EPrints::Plugin::InputForm::UploadMethod";
+			push @plugins, $plugin;
+		}
+	}
+
+	foreach my $plugin ( @plugins )
+	{
+		foreach my $appearance ( @{$plugin->{appears}} )
+		{
+			$plugins{ref($plugin)} = [$appearance->{position},$plugin];
+		}
+	}
+
+	return
+		map { $plugins{$_}->[1] }
+		sort { $plugins{$a}->[0] <=> $plugins{$b}->[0] || $a cmp $b }
+		keys %plugins;
 }
 
 sub parse_config
 {
 	my( $self, $config_dom ) = @_;
 
-	$self->_get_upload_plugins();
-	
 	$self->{config}->{doc_fields} = [];
 
 # moj: We need some default phrases for when these aren't specified.
@@ -989,35 +1015,18 @@ sub parse_config
 	my @uploadmethods = $config_dom->getElementsByTagName( "upload-methods" );
 	if( defined $uploadmethods[0] )
 	{
+		$self->{config}->{methods} = [];
+
 		my @methods = $uploadmethods[0]->getElementsByTagName( "method" );
 	
-		$self->{config}->{methods} = [];
-		METHOD: foreach my $method_tag ( @methods )
+		foreach my $method_tag ( @methods )
 		{	
 			my $method = EPrints::XML::to_string( EPrints::XML::contents_of( $method_tag ) );
-			my $ok = 0;
-			foreach my $ok_meth ( @EPrints::Plugin::InputForm::Component::Upload::UPLOAD_METHODS )
-			{
-				$ok = 1 if( $ok_meth eq $method );
-			}
-			if( !$ok )
-			{
-				$self->{session}->get_repository->log( "Unknown upload method in Component::Upload: '$method'" );
-				next METHOD;
-			}
 			push @{$self->{config}->{methods}}, $method;
 		}
 	}
-	else
-	{
-		foreach my $ok_meth ( @EPrints::Plugin::InputForm::Component::Upload::UPLOAD_METHODS )
-		{
-			push @{$self->{config}->{methods}}, $ok_meth;
-		}
-	}
-	
-}
 
+}
 
 
 1;

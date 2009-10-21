@@ -71,7 +71,7 @@ sub render_add_document
 	my $add_format_button = $self->{session}->render_button(
 		value => $self->{session}->phrase( "Plugin/InputForm/Component/Upload:add_format" ), 
 		class => "ep_form_internal_button",
-		name => "_internal_".$self->{prefix}."_add_format",
+		name => "_internal_".$self->{prefix}."_add_format_".$self->get_id,
 		onclick => $onclick );
 	$f->appendChild( $file_button );
 	$f->appendChild( $session->make_text( " " ) );
