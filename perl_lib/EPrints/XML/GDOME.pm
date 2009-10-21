@@ -33,6 +33,13 @@ use XML::Parser;
 
 $EPrints::XML::LIB_LEN = length("XML::GDOME::");
 
+# DOM spec fixes
+*XML::GDOME::Attr::localName = sub {
+		my $name = shift->getNodeName(@_);
+		$name =~ s/^.*://;
+		return $name;
+	};
+
 # Need to clone children for DocumentFragment::cloneNode 
 *XML::GDOME::DocumentFragment::cloneNode = sub {
 		my( $self, $deep ) = @_;

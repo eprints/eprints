@@ -8389,3 +8389,5 @@ EPRINTS-3.1-beta-2
 2009-10-21 tdb
  * Refined UploadMethods so they can specify a position to appear at
 
+2009-10-21 cjg
+ * Minor tweak to XML::GDOME to work with the new XML set up.
