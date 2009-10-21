@@ -223,6 +223,7 @@ use EPrints::Plugin;
 use EPrints::PluginFactory;
 use EPrints::Probity;
 use EPrints::Repository;
+use EPrints::RepositoryConfig;
 use EPrints::Search;
 use EPrints::Search::Field;
 use EPrints::Search::Condition;
@@ -249,11 +250,14 @@ Construct a new EPrints system object.
 
 =cut
 
-sub new($)
+# opts can be 
+#  cleanup (default 1) set to zero to prevent garbage collection destroying
+#  the repositories we handed out.
+sub new($%)
 {
-	my( $class ) = @_;
+	my( $class, %opts ) = @_;
 
-	return bless {}, $class;
+	return bless { opts=>\%opts }, $class;
 }
 
 =pod
@@ -277,7 +281,7 @@ sub repository($$%)
 	}
 	return undef if( !$ok );
 
-	return EPrints::Repository->new( $repository_id );
+	return EPrints::Repository->new( $repository_id, %options );
 }	
 
 
@@ -299,8 +303,9 @@ sub current_repository($%)
 	return undef if !defined $request;
 		
 	my $repoid = $request->dir_config( "EPrints_ArchiveID" );
-
-	my $repository = EPrints::Repository->new( $repoid );
+	
+	$options{cgi} = 1;
+	my $repository = EPrints::Repository->new( $repoid, %options );
 	return undef if !defined $repository;
 
 	$repository->check_secure_dirs( $request );
@@ -328,6 +333,16 @@ sub import
 
 	$__loaded = 1;
 }
+
+
+use Carp;
+
+ $SIG{__WARN__} = $SIG{__DIE__} = sub {
+        my $error = shift;
+
+	Carp::cluck( $error );
+    };
+
 
 sub sigusr2_cluck
 {
