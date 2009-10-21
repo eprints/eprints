@@ -58,7 +58,7 @@ sub update_from_form
 				);
 			foreach my $plugin (@plugins)
 			{
-				if( $plugin->get_name eq $method )
+				if( $plugin->get_id eq $method )
 				{
 					$plugin->update_from_form( $processor );
 					return;
