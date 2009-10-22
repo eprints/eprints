@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 18;
+use Test::More tests => 19;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -231,5 +231,20 @@ $searchexp = EPrints::Search->new(
 
 $list = $searchexp->perform_search;
 ok($list->count > 0, "history object by username subquery");
+
+my $udataset = $session->get_repository->get_dataset( "user" );
+my $ssdataset = $session->get_repository->get_dataset( "saved_search" );
+my @usertypes = $session->get_repository->get_types( "user" );
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $ssdataset );
+
+$searchexp->add_field(
+	$udataset->get_field( "frequency" ),
+	"never" );
+
+eval { $searchexp->perform_search };
+ok( !$@, "userid->frequency on saved_search" );
 
 $session->terminate;

@@ -307,11 +307,26 @@ sub process
 			# join to the main dataset by aliasing the main dataset and then
 			# doing a LEFT JOIN to the new dataset
 			my $alias = ++$idx . "_" . $table;
-			my $dataset = $joins->{$datasetid}->{dataset};
-			my $table = $dataset->get_sql_table_name;
-			my $key = $dataset->get_key_field->get_sql_name;
-			my $left_key = $joins->{$datasetid}->{left_key} || $key_field_name;
-			my $right_key = $joins->{$datasetid}->{right_key} || $key_field_name;
+			my $join_dataset = $joins->{$datasetid}->{dataset};
+			my $table = $join_dataset->get_sql_table_name;
+			my $key = $join_dataset->get_key_field->get_sql_name;
+			my $left_key;
+			my $right_key;
+# TODO: this patches over the missing join_path support but isn't the solution
+				# this dataset is child of main dataset
+				if( $join_dataset->has_field( $key_field_name ) )
+				{
+					$left_key = $right_key = $key_field_name;
+				}
+				# main dataset is a child of this dataset
+				elsif( $dataset->has_field( $join_dataset->get_key_field->get_sql_name ) )
+				{
+					$left_key = $right_key = $join_dataset->get_key_field->get_sql_name;
+				}
+				else
+				{
+					EPrints::abort( "Unknown join between datasets ".$dataset->confid." and ".$join_dataset->confid );
+				}
 			push @joins, _sql_left_join($db,
 				[ $join_table, $alias ],
 				$left_key,
