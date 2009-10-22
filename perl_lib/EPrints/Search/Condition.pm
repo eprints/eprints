@@ -310,11 +310,13 @@ sub process
 			my $dataset = $joins->{$datasetid}->{dataset};
 			my $table = $dataset->get_sql_table_name;
 			my $key = $dataset->get_key_field->get_sql_name;
+			my $left_key = $joins->{$datasetid}->{left_key} || $key_field_name;
+			my $right_key = $joins->{$datasetid}->{right_key} || $key_field_name;
 			push @joins, _sql_left_join($db,
 				[ $join_table, $alias ],
-				$join_key,
+				$left_key,
 				$table,
-				$join_key ); # TODO: per-dataset join-path
+				$right_key ); # TODO: per-dataset join-path
 			# assert the INNER JOIN between the alias and main dataset
 			push @join_logic, sprintf("%s.%s=%s.%s",
 				$db->quote_identifier($join_table),

@@ -159,6 +159,13 @@ sub get_query_joins
 	$joins->{$dataset->confid} ||= { dataset => $dataset };
 	$self->{join}->{alias} = $dataset->get_sql_table_name;
 
+	foreach my $join_path (@{$field->get_property( "join_path" )||[]})
+	{
+		my $left_field = $join_path->[0];
+		$joins->{$dataset->confid}->{left_key} = $left_field->get_sql_name;
+		$joins->{$dataset->confid}->{right_key} = $dataset->get_key_field->get_sql_name;
+	}
+
 	if( $field->get_property( "multiple" ) )
 	{
 		my $table = $dataset->get_sql_sub_table_name( $field );

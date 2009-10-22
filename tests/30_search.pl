@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 17;
+use Test::More tests => 18;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -207,5 +207,29 @@ $matches = $cond->process(
 	);
 
 ok(@$matches == $dataset_size, "TRUE OR FALSE is TRUE");
+
+my $hdataset = $session->get_repository->get_dataset( "history" );
+
+my $db = $session->get_database;
+
+my $sql = "SELECT ".$db->quote_identifier( "userid" )." FROM ".$db->quote_identifier( $hdataset->get_sql_table_name )." WHERE ".$db->quote_identifier( "userid" )." IS NOT NULL";
+my $sth = $db->prepare_select( $sql, limit => 1 );
+$sth->execute;
+
+my( $userid ) = $sth->fetchrow_array;
+
+undef $sth;
+
+BAIL_OUT("Need at least one history object") unless defined $userid;
+my $user = EPrints::DataObj::User->new( $session, $userid );
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $hdataset,
+	filters => [{ meta_fields => [qw( userid.username )], value => $user->get_value( "username" ) }],
+	);
+
+$list = $searchexp->perform_search;
+ok($list->count > 0, "history object by username subquery");
 
 $session->terminate;
