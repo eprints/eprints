@@ -4329,6 +4329,19 @@ sub dequeue_event
 	return $event;
 }
 
+=item $sql = $db->prepare_regexp( $quoted_column, $quoted_value )
+
+The syntax used for regular expressions varies across databases. This method takes two B<quoted> values and returns a SQL expression that will apply the regexp ($quoted_value) to the column ($quoted_column).
+
+=cut
+
+sub prepare_regexp
+{
+	my( $self, $col, $value ) = @_;
+
+	return "REGEXP($col,$value)";
+}
+
 1; # For use/require success
 
 ######################################################################

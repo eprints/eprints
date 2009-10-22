@@ -501,6 +501,13 @@ sub finish_cache_table
 	return $cache_table;
 }
 
+sub prepare_regexp
+{
+	my( $self, $col, $value ) = @_;
+
+	return "$col REGEXP $value";
+}
+
 1; # For use/require success
 
 ######################################################################

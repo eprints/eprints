@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 19;
+use Test::More tests => 20;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -246,5 +246,13 @@ $searchexp->add_field(
 
 eval { $searchexp->perform_search };
 ok( !$@, "userid->frequency on saved_search" );
+
+$cond = EPrints::Search::Condition::Regexp->new( $udataset, $udataset->get_field( "username" ), '^' . $user->get_value( "username" ) . '$' );
+$matches = $cond->process(
+	session => $session,
+	dataset => $udataset,
+	);
+
+is(scalar(@$matches), 1, "regexp username matched itself" );
 
 $session->terminate;
