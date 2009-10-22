@@ -40,7 +40,7 @@ sub new
 	my( $class, @params ) = @_;
 
 	my $self = {};
-	$self->{op} = "name_match";
+	$self->{op} = "=";
 	$self->{dataset} = shift @params;
 	$self->{field} = shift @params;
 	$self->{params} = \@params;
