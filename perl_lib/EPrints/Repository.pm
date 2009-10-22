@@ -160,7 +160,7 @@ sub new
 
 	$self->{id} = $repository_id;
 
-local $SIG{__DIE__} = undef;
+local $SIG{__DIE__} = sub {};
 	$self->load_config();
 
 	if( $self->{noise} >= 2 ) { print "\nStarting EPrints Repository.\n"; }
