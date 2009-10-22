@@ -1282,6 +1282,32 @@ sub js_string
 	return "unescape('$string')";
 }
 
+# EPrints::Utils::process_parameters( $params, $defaults );
+#  for each key in the hash ref $defaults, if $params->{$key} is not set
+#  then it's set to the default from the $defaults hash.
+#  Also warns if unknown paramters were passed.
+
+sub process_parameters(\%%)
+{
+	my( $params, %defaults ) = @_;
+
+	foreach my $k ( keys %defaults )
+	{
+		if( !defined $params->{$k} ) 
+		{ 
+			$params->{$k} = $defaults{$k}; 
+		}
+	}
+
+	foreach my $k ( keys %{$params} )
+	{
+		if( !defined $defaults{$k} )
+		{
+			my @c = caller(1);
+			warn "Unexpected parameter '$k' passed to ".$c[3]." at ".$c[1]." line ".$c[2]."\n";
+		}
+	}
+}
 
 ######################################################################
 # Redirect as this function has been moved.

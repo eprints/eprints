@@ -223,7 +223,6 @@ use EPrints::Plugin;
 use EPrints::PluginFactory;
 use EPrints::Probity;
 use EPrints::Repository;
-use EPrints::RepositoryConfig;
 use EPrints::Search;
 use EPrints::Search::Field;
 use EPrints::Search::Condition;
@@ -334,14 +333,6 @@ sub import
 	$__loaded = 1;
 }
 
-
-use Carp;
-
- $SIG{__WARN__} = $SIG{__DIE__} = sub {
-        my $error = shift;
-
-	Carp::cluck( $error );
-    };
 
 
 sub sigusr2_cluck

@@ -8396,3 +8396,10 @@ EPRINTS-3.1-beta-2
  * Merged Session & Repository. Repository is now a subclass of 
     RepositoryConfig. RepositoryConfig can be used where no db connection etc.
     is possible. More work to do on this, but works!
+
+2009-10-21 cjg
+ * (re)Added caching for Repository configuration when running under mod_perl
+ * Added function to check hash paramters passed to a function, set defaults
+    if undef, and warn if unexpeted paramters were passed.
+ * Merged RepositoryConfig into Repository.
+ * Moved old Session functions into BackCompatability

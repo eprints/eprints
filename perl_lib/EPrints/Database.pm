@@ -300,7 +300,7 @@ sub begin
 {
 	my( $self ) = @_;
 
-	$self->{dbh}->{AutoCommit} = 0;
+#	$self->{dbh}->{AutoCommit} = 0;
 }
 
 ######################################################################
@@ -317,9 +317,9 @@ sub commit
 {
 	my( $self ) = @_;
 
-	return if $self->{dbh}->{AutoCommit};
-	$self->{dbh}->commit;
-	$self->{dbh}->{AutoCommit} = 1;
+#	return if $self->{dbh}->{AutoCommit};
+#	$self->{dbh}->commit;
+#	$self->{dbh}->{AutoCommit} = 1;
 }
 
 ######################################################################

@@ -10,7 +10,7 @@ my $session = EPrints::Test::get_test_session( 0 );
 ok(defined $session, 'opened an EPrints::Session object (noisy, no_check_db)');
 
 # check it's the right type
-ok($session->isa('EPrints::Session'),'it really was an EPrints::Session');
+ok($session->isa('EPrints::Repository'),'it really was an EPrints::Repository');
 
 is($session->{noise},0,"Correct noise setting?");
 is($session->{offline},1,"Correct offline setting?");
