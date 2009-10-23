@@ -306,11 +306,6 @@ sub create_from_data
 
 	foreach my $filedata ( @{$files||[]} )
 	{
-		# Don't try to add empty file objects
-		if( !defined($filedata->{data}) && !defined($filedata->{url}) )
-		{
-			next;
-		}
 		$filedata->{objectid} = $document->get_id;
 		$filedata->{datasetid} = $document->get_dataset_id;
 		$filedata->{_parent} = $document;
