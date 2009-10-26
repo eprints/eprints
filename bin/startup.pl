@@ -20,7 +20,11 @@ $SIG{__WARN__} = \&Carp::cluck;
 
 check_mod_perl();
 
-load_repositories();
+$EPrints::HANDLE = EPrints->new();
+foreach my $id ( EPrints::Config::get_repository_ids() )
+{
+	$eprints->repository( $id, db_connect => 0 );
+}
 
 print STDERR "EPrints archives loaded: ".join( ", ",  EPrints::Config::get_repository_ids() )."\n";
 
@@ -57,14 +61,6 @@ generate_apacheconf, then try to start Apache again.
 END
 			die "Apache version mismatch";
 		}
-	}
-}
-
-sub load_repositories
-{
-	foreach my $repository_id ( EPrints::Config::get_repository_ids() )
-	{
-		EPrints::Repository->new( $repository_id, db_connect => 0 );
 	}
 }
 

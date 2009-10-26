@@ -416,14 +416,13 @@ sub EPrints::Session::new
 	if( defined $mode && $mode == 2 ) { $opts{cgi} = 1; $opts{consume_post} = 0; }
 	if( $nocheckdb ) { $opts{check_db} = 0; }
 
-	my $ep = EPrints->new( cleanup=>0 ); 
 	if( $opts{cgi} )
 	{
-		$ep->current_repository( %opts );
+		return $EPrints::HANDLE->current_repository;
 	}
 	else
 	{
-		$ep->repository( $repository_id, %opts );
+		EPrints->new->repository( $repository_id, %opts );
 	}
 }
 

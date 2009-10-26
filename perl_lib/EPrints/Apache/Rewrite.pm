@@ -54,13 +54,9 @@ sub handler
 	# don't attempt to rewrite the URI of an internal request
 	return DECLINED unless $r->is_initial_req();
 
-	my $repository_id = $r->dir_config( "EPrints_ArchiveID" );
-	if( !defined $repository_id )
-	{
-		return DECLINED;
-	}
-	my $repository = EPrints::Repository->new( $repository_id, db_connect => 0 );
-	$repository->check_secure_dirs( $r );
+	my $repository = $EPrints::HANDLE->current_repository;
+	return DECLINED unless defined $repository;
+
 	my $esec = $r->dir_config( "EPrints_Secure" );
 	my $secure = (defined $esec && $esec eq "yes" );
 	my $urlpath;
@@ -78,7 +74,7 @@ sub handler
 
 	my $uri = $r->uri;
 
-	my $lang = EPrints::Session::get_session_language( $repository, $r );
+	my $lang = $repository->{lang}->get_id;
 	my $args = $r->args;
 	if( defined $args && $args ne "" ) { $args = '?'.$args; }
 
@@ -109,17 +105,15 @@ sub handler
 
 		my $dataset = $repository->get_dataset( $datasetid );
 		my $item;
-		my $session = new EPrints::Session(2); # don't open the CGI info
 		if( defined $dataset )
 		{
-			$item = $dataset->get_object( $session, $id );
+			$item = $dataset->get_object( $repository, $id );
 		}
 		my $url;
 		if( defined $item )
 		{
 			$url = $item->get_url;
 		}
-		$session->terminate;
 		if( defined $url )
 		{
 			return redir( $r, $url );
@@ -190,19 +184,16 @@ sub handler
 	}
 	$r->filename( $repository->get_conf( "htdocs_path" )."/".$lang.$localpath );
 
-	my $session = new EPrints::Session(2); # don't open the CGI info
-	$session->{preparing_static_page} = 1; 
+	local $repository->{preparing_static_page} = 1; 
 	if( $uri =~ m! ^/view(.*) !x )
 	{
-		my $filename = EPrints::Update::Views::update_view_file( $session, $lang, $localpath, $uri );
+		my $filename = EPrints::Update::Views::update_view_file( $repository, $lang, $localpath, $uri );
 		$r->filename( $filename );
 	}
 	else
 	{
-		EPrints::Update::Static::update_static_file( $session, $lang, $localpath );
+		EPrints::Update::Static::update_static_file( $repository, $lang, $localpath );
 	}
-	delete $session->{preparing_static_page};
-	$session->terminate;
 
 	$r->set_handlers(PerlResponseHandler =>[ 'EPrints::Apache::Template' ] );
 

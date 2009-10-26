@@ -8403,3 +8403,7 @@ EPRINTS-3.1-beta-2
     if undef, and warn if unexpeted paramters were passed.
  * Merged RepositoryConfig into Repository.
  * Moved old Session functions into BackCompatability
+
+2009-10-25 tdb
+ * Repository objects now persist between Apache sessions
+

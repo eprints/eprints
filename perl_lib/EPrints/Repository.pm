@@ -139,7 +139,7 @@ sub new
 {
 	my( $class, $repository_id, %opts ) = @_;
 
-	EPrints::Utils::process_parameters( %opts, 
+	EPrints::Utils::process_parameters( \%opts, 
 		  consume_post => 1,
 		           cgi => 0,
 		         noise => 0,
@@ -154,15 +154,9 @@ sub new
 
 	$self->{used_phrases} = {};
 
-	if( $opts{cgi} )
-	{
-		$self->{request} = EPrints::Apache::AnApache::get_request();
-		$self->{offline} = 0;
-	}
-	else
-	{
-		$self->{offline} = 1;
-	}
+	$self->{putdata} = undef;
+
+	$self->{offline} = 1;
 
 	$self->{id} = $repository_id;
 
@@ -170,25 +164,12 @@ sub new
 
 	if( $self->{noise} >= 2 ) { print "\nStarting EPrints Repository.\n"; }
 
-	$self->_add_live_http_paths;
-
-	if( $self->{offline} )
-	{
-		# Set a script to use the default language unless it 
-		# overrides it
-		$self->change_lang( 
-			$self->get_conf( "defaultlanguage" ) );
-	}
-	else
-	{
-		# running as CGI, Lets work out what language the
-		# client wants...
-		$self->change_lang( get_session_language( 
-			$self,
-			$self->{request} ) );
-	}
+	# Set a script to use the default language unless it 
+	# overrides it
+	$self->change_lang( 
+		$self->get_conf( "defaultlanguage" ) );
 	
-	$self->{doc} = EPrints::XML::make_document;
+	$self->{doc} = EPrints::XML::make_document();
 
 	if( defined $opts{db_connect} && $opts{db_connect} == 0 )
 	{
@@ -238,11 +219,6 @@ sub new
 
 	if( $self->{noise} >= 2 ) { print "done.\n"; }
 	
-	if( !$self->{offline} && (!defined $opts{consume_post} || $opts{consume_post}) )
-	{
-		$self->read_params; 
-	}
-
 	$self->call( "session_init", $self, $self->{offline} );
 
 	return( $self );
@@ -334,18 +310,7 @@ are no longer needed.
 sub terminate
 {
 	my( $self ) = @_;
-	
-	$self->call( "session_close", $self );
-	$self->{database}->disconnect();
 
-	# If we've not printed the XML page, we need to dispose of
-	# it now.
-	EPrints::XML::dispose( $self->{doc} );
-
-	if( $self->{noise} >= 2 ) { print "Ending EPrints Repository.\n\n"; }
-
-	# give garbage collection a hand.
-	foreach( keys %{$self} ) { delete $self->{$_}; } 
 }
 
 
@@ -543,8 +508,35 @@ sub user_by_email($$)
 
 	return EPrints::DataObj::User::user_with_email( $repository, $email )
 }
-	
-	
+
+sub init_from_request
+{
+	my( $self, $r ) = @_;
+
+	$self->{query} = undef;
+	$self->{request} = $r;
+	$self->{offline} = 0;
+
+	$self->change_lang( $self->get_session_language( $r ) );
+
+	if( !defined $self->{database} )
+	{
+		$self->{database} = EPrints::Database->new( $self );
+	}
+
+	$self->check_secure_dirs( $r );
+}
+
+sub cleanup_from_request
+{
+	my( $self, $r ) = @_;
+
+	$self->{request} = undef;
+	$self->{query} = undef;
+	$self->{offline} = 1;
+	$self->{current_user} = undef;
+	$self->{putdata} = undef;
+}
 
 ######################################################################
 =pod
@@ -564,17 +556,7 @@ sub new_from_request
 {
 	my( $class, $request ) = @_;
 		
-	my $repoid = $request->dir_config( "EPrints_ArchiveID" );
-
-	my $repository = EPrints::RepositoryConfig->new( $repoid );
-
-	if( !defined $repository )
-	{
-		EPrints::abort( "Can't load EPrints repository: $repoid" );
-	}
-	$repository->check_secure_dirs( $request );
-
-	return $repository;
+	return $EPrints::HANDLE->current_repository;
 }
 
 ######################################################################
@@ -4784,7 +4766,7 @@ sub param
 
 	if( !defined $self->{query} ) 
 	{
-		EPrints::abort("CGI Query object not defined!" );
+		$self->read_params;
 	}
 
 	if( !wantarray )
@@ -4825,6 +4807,10 @@ sub read_params
 	my( $self ) = @_;
 
 	my $r = $self->{request};
+	if( !defined $r )
+	{
+		EPrints::abort( "Attempt to read parameters with no request available" );
+	}
 	my $uri = $r->unparsed_uri;
 	my $progressid = ($uri =~ /progress_id=([a-fA-F0-9]{32})/)[0];
 
@@ -5556,6 +5542,9 @@ Destructor. Don't call directly.
 sub DESTROY
 {
 	my( $self ) = @_;
+
+	$self->call( "session_close", $self );
+	$self->{database}->disconnect();
 
 	EPrints::Utils::destroy( $self );
 }
