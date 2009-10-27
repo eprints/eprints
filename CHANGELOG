@@ -8407,3 +8407,5 @@ EPRINTS-3.1-beta-2
 2009-10-25 tdb
  * Repository objects now persist between Apache sessions
 
+2009-10-27 cjg
+ * Fixed bug which meant "use Session" caused a die.
