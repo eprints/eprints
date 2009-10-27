@@ -146,10 +146,9 @@ $|=1;
 
 # Load up the repositories
 my %reps = ();
-my $eprints = EPrints->new;
 foreach my $repository_id ( EPrints::Config::get_repository_ids() )
 {
-	$reps{$repository_id} = $eprints->repository( $repository_id ); 
+	$reps{$repository_id} = new EPrints::Repository( $repository_id, 1 ); 
 	exit( 1 ) unless( defined $reps{$repository_id} );
 }
 
@@ -497,7 +496,6 @@ print CONF <<END;
   # a "Location" block as it occurs before the
   # Location is known.
   PerlTransHandler EPrints::Apache::Rewrite
-  PerlCleanupHandler EPrints::Apache::CleanupHandler
   
 END
 

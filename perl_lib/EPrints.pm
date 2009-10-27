@@ -272,9 +272,6 @@ sub repository($$%)
 {
 	my( $self, $repository_id, %options ) = @_;
 
-	return $self->{repository}->{$repository_id}
-		if exists $self->{repository}->{$repository_id};
-
 	my $ok = 0;
 	foreach my $an_id ( EPrints::Config::get_repository_ids() )
 	{
@@ -282,8 +279,7 @@ sub repository($$%)
 	}
 	return undef if( !$ok );
 
-	return $self->{repository}->{$repository_id}
-		= EPrints::Repository->new( $repository_id, %options );
+	return EPrints::Repository->new( $repository_id, %options );
 }	
 
 
@@ -305,15 +301,7 @@ sub current_repository($%)
 	return undef if !defined $request;
 		
 	my $repoid = $request->dir_config( "EPrints_ArchiveID" );
-	return undef if !defined $repoid;
 	
-	my $repo = $self->repository( $repoid );
-	if( !defined $repo->{request} )
-	{
-		$repo->init_from_request( $request )
-	}
-	return $repo;
-
 	$options{cgi} = 1;
 	my $repository = EPrints::Repository->new( $repoid, %options );
 	return undef if !defined $repository;
@@ -357,24 +345,6 @@ sub sigusr2_cluck
 	no warnings;
 	$SIG{'USR2'} = \&sigusr2_cluck;
 };
-
-sub cleanup_from_request
-{
-	my( $self, $r ) = @_;
-
-	my $repo = $self->current_repository;
-	if( defined $repo )
-	{
-		$repo->cleanup_from_request( $r );
-	}
-
-	return 0;
-}
-
-sub DESTROY
-{
-	print STDERR "$_[0]!DESTROY!\n";
-}
 
 1;
 

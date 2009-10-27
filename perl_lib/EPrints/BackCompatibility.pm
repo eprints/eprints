@@ -420,17 +420,18 @@ sub EPrints::Session::new
 	if( defined $mode && $mode == 2 ) { $opts{cgi} = 1; $opts{consume_post} = 0; }
 	if( $nocheckdb ) { $opts{check_db} = 0; }
 
+	my $ep = EPrints->new( cleanup=>0 ); 
 	if( $opts{cgi} )
 	{
-		return $EPrints::HANDLE->current_repository;
+		$ep->current_repository( %opts );
 	}
 	else
 	{
-		EPrints->new->repository( $repository_id, %opts );
+		$ep->repository( $repository_id, %opts );
 	}
 }
 
-$INC{"EPrints/Subject.pm"} = "EPrints/BackCompatibility.pm";
+$INC{"EPrints/Session.pm"} = "EPrints/BackCompatibility.pm";
 
 ######################################################################
 1;

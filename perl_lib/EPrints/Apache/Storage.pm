@@ -13,11 +13,10 @@ sub handler
 
 	my $rc = OK;
 
-	my $repository = $EPrints::HANDLE->current_repository;
-	return DECLINED unless defined $repository;
+	my $session = EPrints::Session->new();
 
 	my $datasetid = $r->pnotes( "datasetid" );
-	my $dataset = $repository->get_dataset( $datasetid );
+	my $dataset = $session->get_repository->get_dataset( $datasetid );
 	return 404 unless defined $dataset;
 
 	my $filename = $r->pnotes( "filename" );
@@ -27,7 +26,7 @@ sub handler
 	if( $dataset->confid eq "document" && !defined $r->pnotes( "docid" ) )
 	{
 		$dataobj = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
-				$repository,
+				$session,
 				$r->pnotes( "eprintid" ),
 				$r->pnotes( "pos" )
 			);
@@ -36,7 +35,7 @@ sub handler
 	{
 		my $id = $r->pnotes( $dataset->get_key_field->get_name );
 		return 404 unless defined $id;
-		$dataobj = $dataset->get_object( $repository, $id );
+		$dataobj = $dataset->get_object( $session, $id );
 	}
 
 	return 404 unless defined $dataobj;
@@ -54,7 +53,7 @@ sub handler
 
 	$r->pnotes( dataobj => $dataobj );
 
-	$rc = check_auth( $repository, $r, $dataobj );
+	$rc = check_auth( $session, $r, $dataobj );
 
 	if( $rc != OK )
 	{
@@ -69,7 +68,7 @@ sub handler
 	my $url = $fileobj->get_remote_copy();
 	if( defined $url )
 	{
-		$repository->redirect( $url );
+		$session->redirect( $url );
 
 		return $rc;
 	}
@@ -87,7 +86,7 @@ sub handler
 	);
 
 	# Can use download=1 to force a download
-	my $download = $repository->param( "download" );
+	my $download = $session->param( "download" );
 	if( $download )
 	{
 		EPrints::Apache::AnApache::header_out(
@@ -103,7 +102,7 @@ sub handler
 		);
 	}
 
-	$repository->send_http_header(
+	$session->send_http_header(
 		content_type => $content_type,
 	);
 
@@ -111,6 +110,8 @@ sub handler
 	{
 		EPrints::abort( "Error in file retrieval: failed to get file contents" );
 	}
+
+	$session->terminate;
 
 	return $rc;
 }
