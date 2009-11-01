@@ -75,15 +75,6 @@ See L<EPrints::List> for more.
 
 =cut
 
-######################################################################
-#
-# INSTANCE VARIABLES:
-#
-#  $self->{foo}
-#     undefined
-#
-######################################################################
-
 package EPrints::Search;
 
 use URI::Escape;
@@ -348,7 +339,7 @@ END
 
 
 ######################################################################
-=pod
+=for InternalDoc
 
 =item $ok = $thing->from_cache( $id )
 
@@ -424,7 +415,7 @@ sub add_field
 
 
 ######################################################################
-=pod
+=for InternalDoc
 
 =item $searchfield = $searchexp->get_searchfield( $sf_id )
 
@@ -471,7 +462,7 @@ sub clear
 
 
 ######################################################################
-=pod
+=for InternalDoc
 
 =item $bool = $searchexp->get_satisfy_all
 
@@ -492,7 +483,7 @@ sub get_satisfy_all
 
 
 ######################################################################
-=pod
+=for InternalDoc
 
 =item $boolean = $searchexp->is_blank
 
@@ -519,7 +510,7 @@ sub is_blank
 
 
 ######################################################################
-=pod
+=for InternalDoc
 
 =item $string = $searchexp->serialise
 
@@ -581,7 +572,7 @@ sub serialise
 
 
 ######################################################################
-=pod
+=for InternalDoc
 
 =item $searchexp->from_string( $string )
 
@@ -722,7 +713,7 @@ sub clone
 
 
 ######################################################################
-=pod
+=for InternalDoc
 
 =item $conditions = $searchexp->get_conditons
 
@@ -799,7 +790,7 @@ sub get_conditions
 
 
 ######################################################################
-=pod
+=for InternalDoc
 
 =item $dataset = $searchexp->get_dataset
 
@@ -817,7 +808,7 @@ sub get_dataset
 
 
 ######################################################################
-=pod
+=for InternalDoc
 
 =item $searchexp->set_dataset( $dataset )
 
@@ -976,7 +967,7 @@ sub set_property
 
 
 ######################################################################
-=pod
+=for InternalDoc
 
 =item @search_fields = $searchexp->get_searchfields()
 
@@ -999,7 +990,7 @@ sub get_searchfields
 }
 
 ######################################################################
-=pod
+=for InternalDoc
 
 =item @search_fields = $searchexp->get_non_filter_searchfields();
 
@@ -1028,7 +1019,7 @@ sub get_non_filter_searchfields
 
 
 ######################################################################
-=pod
+=for InternalDoc
 
 =item @search_fields = $searchexp->get_set_searchfields
 
@@ -1051,32 +1042,8 @@ sub get_set_searchfields
 	return @set_fields;
 }
 
-
-
-
- ######################################################################
- ##
- ##
- ##  SEARCH THE DATABASE AND CACHE CODE
- ##
- ##
- ######################################################################
-
-
-#
-# Search related instance variables
-#   {cache_id}  - the ID of the table the results are cached & 
-#			ordered in.
-#
-#   {results}  - the EPrints::List object which describes the results.
-#	
-
-
-
-
-
 ######################################################################
-=pod
+=for InternalDoc
 
 =item $cache_id = $searchexp->get_cache_id
 
@@ -1248,7 +1215,7 @@ sub get_ids
 }
 
 ######################################################################
-=pod
+=for InternalDoc
 
 =item $hash = $searchexp->get_ids_by_field_values( $field )
 
