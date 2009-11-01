@@ -69,7 +69,8 @@ BEGIN {
 
 
 ######################################################################
-=begin InternalDoc
+
+=for InternalDoc
 
 =item $cmd = EPrints::Utils::prepare_cmd($cmd,%VARS)
 
@@ -79,7 +80,8 @@ quoted before replacement to make it shell-safe.
 
 If a variable is specified in $cmd, but not present in %VARS a die is thrown.
 
-=end InternalDoc
+=cut
+
 ######################################################################
 #TODO ask brody what the hell this is :-P pm5
 #DEPRECATED in favour of EPrints::Repository::invocation?
@@ -91,6 +93,7 @@ sub prepare_cmd {
 }
 
 ######################################################################
+
 =pod
 
 =item $string = EPrints::Utils::make_name_string( $name, [$familylast] )
@@ -110,6 +113,7 @@ but if $familylast is true then it will be:
 "honourific given family lineage"
 
 =cut
+
 ######################################################################
 
 sub make_name_string
@@ -152,6 +156,7 @@ sub make_name_string
 
 
 ######################################################################
+
 =pod
 
 =item $str = EPrints::Utils::wrap_text( $text, [$width], [$init_tab], [$sub_tab] )
@@ -164,6 +169,7 @@ $init_tab and $sub_tab allow indenting on the first and subsequent lines
 respectively (see L<Text::Wrap> for more information).
 
 =cut
+
 ######################################################################
 
 sub wrap_text
@@ -189,6 +195,7 @@ sub wrap_text
 
 
 ######################################################################
+
 =pod
 
 =item $boolean = EPrints::Utils::is_set( $r )
@@ -206,6 +213,7 @@ This is used to see if a complex data structure actually has any data
 in it.
 
 =cut
+
 ######################################################################
 
 sub is_set
@@ -243,6 +251,7 @@ sub is_set
 # a stupid thing to do, anyway.
 
 ######################################################################
+
 =pod
 
 =item $string = EPrints::Utils::tree_to_utf8( $tree, $width, [$pre], [$whitespace_before], [$ignore_a] )
@@ -264,6 +273,7 @@ XHTML elements are removed with the following exceptions:
 <a href="foo">bar</a> will be converted into "bar <foo>" unless ignore_a is set.
 
 =cut
+
 ######################################################################
 
 sub tree_to_utf8
@@ -374,7 +384,8 @@ sub _blank_lines
 }
 
 ######################################################################
-=begin InternalDoc
+
+=for InternalDoc
 
 =item $ok = EPrints::Utils::copy( $source, $target )
 
@@ -382,7 +393,8 @@ Copy $source file to $target file without alteration.
 
 Return true on success (sets $! on error).
 
-=end InternalDoc
+=cut
+
 ######################################################################
 
 sub copy
@@ -393,6 +405,7 @@ sub copy
 }
 
 ######################################################################
+
 =pod
 
 =item $response = EPrints::Utils::wget( $session, $source, $target )
@@ -404,6 +417,7 @@ Will fail if $source is a "file:" and "enable_file_imports" is false or if $sour
 Returns the HTTP response object: use $response->is_success to check whether the copy succeeded.
 
 =cut
+
 ######################################################################
 
 sub wget
@@ -441,7 +455,8 @@ sub wget
 }
 
 ######################################################################
-=begin InternalDoc
+
+=for InternalDoc
 
 =item $ok = EPrints::Utils::rmtree( $full_path )
 
@@ -449,7 +464,8 @@ Unlinks the path and everything in it.
 
 Return true on success.
 
-=end InternalDoc
+=cut
+
 ######################################################################
 
 sub rmtree
@@ -597,7 +613,8 @@ sub _render_citation_aux
 
 
 ######################################################################
-=begin InternalDoc
+
+=for InternalDoc
 
 =item $metafield = EPrints::Utils::field_from_config_string( $dataset, $fieldname )
 
@@ -606,7 +623,8 @@ Return the EPrint::MetaField from $dataset with the given name.
 If fieldname has a semicolon followed by render options then these
 are passed as render options to the new EPrints::MetaField object.
 
-=end InteralDoc
+=cut
+
 ######################################################################
 
 sub field_from_config_string
@@ -681,7 +699,8 @@ sub field_from_config_string
 }
 
 ######################################################################
-=begin InternalDoc
+
+=for InternalDoc
 
 =item $string = EPrints::Utils::get_input( $regexp, [$prompt], [$default] )
 
@@ -698,7 +717,8 @@ and try again.
 If a default is set and the user just hits return then the default
 value is returned.
 
-=end InternalDoc
+=cut
+
 ######################################################################
 
 sub get_input
@@ -730,7 +750,8 @@ sub get_input
 }
 
 ######################################################################
-=begin InteralDoc
+
+=for InteralDoc
 
 =item EPrints::Utils::get_input_hidden( $regexp, [$prompt], [$default] )
 
@@ -739,7 +760,8 @@ Get input from the console without echoing the entered characters
 
 Identical to get_input except the characters don't appear.
 
-=end InternalDoc
+=cut
+
 ######################################################################
 
 sub get_input_hidden
@@ -776,7 +798,8 @@ sub get_input_hidden
 }
 
 ######################################################################
-=begin InternalDoc
+
+=for InternalDoc
 
 =item EPrints::Utils::get_input_confirm( [$prompt], [$quick], [$default] )
 
@@ -787,7 +810,8 @@ If $default is '1' defaults to yes, if '0' defaults to no.
 
 Returns true if the user answers 'yes' or false for any other value.
 
-=end InternalDoc
+=cut
+
 ######################################################################
 
 sub get_input_confirm
@@ -838,7 +862,8 @@ sub get_input_confirm
 }
 
 ######################################################################
-=begin InternalDOc
+
+=for InternalDoc
 
 =item $clone_of_data = EPrints::Utils::clone( $data )
 
@@ -849,7 +874,8 @@ Does not handle blessed items.
 Useful when we want to modify a temporary copy of a data structure 
 that came from the configuration files.
 
-=end InternalDoc
+=cut
+
 ######################################################################
 
 sub clone
@@ -886,13 +912,15 @@ sub clone
 
 
 ######################################################################
-=begin InternalDoc
+
+=for InternalDoc
 
 =item $crypted_value = EPrints::Utils::crypt_password( $value, $session )
 
 Apply the crypt encoding to the given $value.
 
-=end InternalDoc
+=cut
+
 ######################################################################
 
 sub crypt_password
@@ -911,6 +939,7 @@ sub crypt_password
 # Escape everything AFTER the last /
 
 ######################################################################
+
 =pod
 
 =item $string = EPrints::Utils::url_escape( $url )
@@ -918,6 +947,7 @@ sub crypt_password
 Escape the given $url, so that it can appear safely in HTML.
 
 =cut
+
 ######################################################################
 
 sub url_escape
@@ -931,7 +961,8 @@ sub url_escape
 
 
 ######################################################################
-=begin InternalDoc
+
+=for InternalDoc
 
 =item $long = EPrints::Utils::ip2long( $ip )
 
@@ -941,7 +972,8 @@ Convert quad-dotted notation to long
 
 Convert long to quad-dotted notation
 
-=end InternalDoc
+=cut
+
 ######################################################################
 
 sub ip2long
@@ -967,7 +999,8 @@ sub long2ip
 }
 
 ######################################################################
-=begin InternalDoc
+
+=for InternalDoc
 
 =item EPrints::Utils::cmd_version( $progname )
 
@@ -975,7 +1008,8 @@ Print out a "--version" style message to STDOUT.
 
 $progname is the name of the current script.
 
-=end InternalDoc
+=cut
+
 ######################################################################
 
 sub cmd_version
@@ -1074,6 +1108,7 @@ sub destroy
 
 
 ######################################################################
+
 =pod
 
 =item $esc_string = EPrints::Utils::escape_filename( $string )
@@ -1082,6 +1117,7 @@ Take a value and escape it to be a legal filename to go in the /view/
 section of the site.
 
 =cut
+
 ######################################################################
 
 sub escape_filename
@@ -1112,6 +1148,7 @@ sub escape_filename
 }
 
 ######################################################################
+
 =pod
 
 =item $string = EPrints::Utils::unescape_filename( $esc_string )
@@ -1119,6 +1156,7 @@ sub escape_filename
 Unescape a string previously escaped with escape_filename().
 
 =cut
+
 ######################################################################
 
 sub unescape_filename
@@ -1133,6 +1171,7 @@ sub unescape_filename
 }
 
 ######################################################################
+
 =pod
 
 =item $filesize_text = EPrints::Utils::human_filesize( $size_in_bytes )
@@ -1146,6 +1185,7 @@ This is not internationalised, I don't think it needs to be. Let me
 know if this is a problem. support@eprints.org
 
 =cut
+
 ######################################################################
 
 sub human_filesize
