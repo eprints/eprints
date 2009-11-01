@@ -354,13 +354,13 @@ sub intersect
 }
 
 ######################################################################
-=begin InternalDOc
+=for InternalDoc
 
 =item $list->cache
 
 Cause this list to be cached in the database.
 
-=end InternalDoc
+=cut
 ######################################################################
 
 sub cache
@@ -421,13 +421,13 @@ sub cache
 }
 
 ######################################################################
-=begin InternalDoc
+=for InternalDoc
 
 =item $cache_id = $list->get_cache_id
 
 Return the ID of the cache table for this list, or undef.
 
-=end InternalDoc
+=cut
 ######################################################################
 
 sub get_cache_id
@@ -440,13 +440,13 @@ sub get_cache_id
 
 
 ######################################################################
-=begin InternalDoc
+=for InternalDoc
 
 =item $list->dispose
 
 Clean up the cache table if appropriate.
 
-=end InternalDoc
+=cut
 ######################################################################
 
 sub dispose
