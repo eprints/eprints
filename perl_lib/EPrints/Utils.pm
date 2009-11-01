@@ -12,18 +12,42 @@
 #
 ######################################################################
 
-
 =pod
 
 =head1 NAME
 
 B<EPrints::Utils> - Utility functions for EPrints.
 
+=head1 SYNOPSIS
+	
+	$boolean = EPrints::Utils::is_set( $object ) 
+	# return true if an object/scalar/array has any data in it
+
+	# copy the contents of the url to a file
+	$response = EPrints::Utils::wget( 
+		$handle, 
+		"http://www.eprints.org/index.php", 
+		"temp_dir/my_file" ) 
+	if($response->is_sucess()){ do something...}
+	
+	$name = { given=>"Wendy", family=>"Hall", honourific=>"Dame" };
+	# return Dame Wendy Hall
+	$string = EPrints::Utils::make_name_string( $name, 1 );
+	# return Dame Hall, Wendy
+	$string = EPrints::Utils::make_name_string( $name, 0 );
+	
+	# returns http://www.eprints.org?var=%3Cfoo%3E
+	$string = EPrints::Utils::url_escape( "http://www.eprints.org?var=<foo>" ); 
+	
+	$esc_string = EPrints::Utils::escape_filename( $string );
+	$string = EPrints::Utils::unescape_filename( $esc_string );
+	
+	$filesize_text = EPrints::Utils::human_filesize( 3300 ); 
+	# returns "3kb"
+
 =head1 DESCRIPTION
 
 This package contains functions which don't belong anywhere else.
-
-=over 4
 
 =cut
 
@@ -44,32 +68,8 @@ BEGIN {
 }
 
 
-
 ######################################################################
-=pod
-
-=item $space =  EPrints::Utils::df_dir( $dir )
-
-Return the number of bytes of disk space available in the directory
-$dir or undef if we can't find out.
-
-DEPRECATED - use EPrints::Platform::free_space instead.
-
-=cut
-######################################################################
-
-sub df_dir
-{
-	my( $dir ) = @_;
-
-	EPrints::deprecated;
-
-	return EPrints::Platform::free_space( $dir );
-}
-
-
-######################################################################
-=pod
+=begin InternalDoc
 
 =item $cmd = EPrints::Utils::prepare_cmd($cmd,%VARS)
 
@@ -79,32 +79,16 @@ quoted before replacement to make it shell-safe.
 
 If a variable is specified in $cmd, but not present in %VARS a die is thrown.
 
-=cut
+=end InternalDoc
 ######################################################################
+#TODO ask brody what the hell this is :-P pm5
+#DEPRECATED in favour of EPrints::Repository::invocation?
 
 sub prepare_cmd {
 	my ($cmd, %VARS) = @_;
 	$cmd =~ s/\$\(([\w_]+)\)/defined($VARS{$1}) ? quotemeta($VARS{$1}) : die("Unspecified variable $1 in $cmd")/seg;
 	$cmd;
 }
-
-######################################################################
-=pod
-
-=item $path = EPrints::Utils::join_path(@PARTS)
-
-Join a path together in an OS-safe manner. Currently this just joins using '/'.
-If EPrints is adapted to work under WinOS it will need to use '\' to join paths
-together.
-
-=cut
-######################################################################
-
-sub join_path
-{
-	return join('/', @_);
-}
-
 
 ######################################################################
 =pod
@@ -390,7 +374,7 @@ sub _blank_lines
 }
 
 ######################################################################
-=pod
+=begin InternalDoc
 
 =item $ok = EPrints::Utils::copy( $source, $target )
 
@@ -398,7 +382,7 @@ Copy $source file to $target file without alteration.
 
 Return true on success (sets $! on error).
 
-=cut
+=end InternalDoc
 ######################################################################
 
 sub copy
@@ -457,52 +441,7 @@ sub wget
 }
 
 ######################################################################
-=pod
-
-=item $ok = EPrints::Utils::mkdir( $full_path )
-
-Create the specified directory.
-
-Return true on success.
-
-=cut
-######################################################################
-
-sub mkdir
-{
-	my( $full_path, $perms ) = @_;
-
-	Carp::croak("EPrints::Utils::mkdir is deprecated: use EPrints::Platform::mkdir");
-
-	# Default to "dir_perms"
-	$perms = eval($EPrints::SystemSettings::conf->{"dir_perms"})
-		if @_ < 2;
-
-	# Make sure $dir is a plain old string (not unicode) as
-	# Unicode::String borks mkdir
-
-	my $dir="";
-	my @parts = split( "/", "$full_path" );
-	while( scalar @parts )
-	{
-		$dir .= "/".(shift @parts );
-		if( !-d $dir )
-		{
-			my $ok = mkdir( $dir, $perms );
-			if( !$ok )
-			{
-				print STDERR "Failed to mkdir $dir: $!\n";
-				return 0;
-			}
-		}
-	}		
-
-	return 1;	
-}
-
-
-######################################################################
-=pod
+=begin InternalDoc
 
 =item $ok = EPrints::Utils::rmtree( $full_path )
 
@@ -510,7 +449,7 @@ Unlinks the path and everything in it.
 
 Return true on success.
 
-=cut
+=end InternalDoc
 ######################################################################
 
 sub rmtree
@@ -658,7 +597,7 @@ sub _render_citation_aux
 
 
 ######################################################################
-=pod
+=begin InternalDoc
 
 =item $metafield = EPrints::Utils::field_from_config_string( $dataset, $fieldname )
 
@@ -667,7 +606,7 @@ Return the EPrint::MetaField from $dataset with the given name.
 If fieldname has a semicolon followed by render options then these
 are passed as render options to the new EPrints::MetaField object.
 
-=cut
+=end InteralDoc
 ######################################################################
 
 sub field_from_config_string
@@ -742,7 +681,7 @@ sub field_from_config_string
 }
 
 ######################################################################
-=pod
+=begin InternalDoc
 
 =item $string = EPrints::Utils::get_input( $regexp, [$prompt], [$default] )
 
@@ -759,7 +698,7 @@ and try again.
 If a default is set and the user just hits return then the default
 value is returned.
 
-=cut
+=end InternalDoc
 ######################################################################
 
 sub get_input
@@ -791,7 +730,7 @@ sub get_input
 }
 
 ######################################################################
-=pod
+=begin InteralDoc
 
 =item EPrints::Utils::get_input_hidden( $regexp, [$prompt], [$default] )
 
@@ -800,7 +739,7 @@ Get input from the console without echoing the entered characters
 
 Identical to get_input except the characters don't appear.
 
-=cut
+=end InternalDoc
 ######################################################################
 
 sub get_input_hidden
@@ -837,7 +776,7 @@ sub get_input_hidden
 }
 
 ######################################################################
-=pod
+=begin InternalDoc
 
 =item EPrints::Utils::get_input_confirm( [$prompt], [$quick], [$default] )
 
@@ -848,7 +787,7 @@ If $default is '1' defaults to yes, if '0' defaults to no.
 
 Returns true if the user answers 'yes' or false for any other value.
 
-=cut
+=end InternalDoc
 ######################################################################
 
 sub get_input_confirm
@@ -899,7 +838,7 @@ sub get_input_confirm
 }
 
 ######################################################################
-=pod
+=begin InternalDOc
 
 =item $clone_of_data = EPrints::Utils::clone( $data )
 
@@ -910,7 +849,7 @@ Does not handle blessed items.
 Useful when we want to modify a temporary copy of a data structure 
 that came from the configuration files.
 
-=cut
+=end InternalDoc
 ######################################################################
 
 sub clone
@@ -947,13 +886,13 @@ sub clone
 
 
 ######################################################################
-=pod
+=begin InternalDoc
 
 =item $crypted_value = EPrints::Utils::crypt_password( $value, $session )
 
 Apply the crypt encoding to the given $value.
 
-=cut
+=end InternalDoc
 ######################################################################
 
 sub crypt_password
@@ -992,7 +931,7 @@ sub url_escape
 
 
 ######################################################################
-=pod
+=begin InternalDoc
 
 =item $long = EPrints::Utils::ip2long( $ip )
 
@@ -1002,7 +941,7 @@ Convert quad-dotted notation to long
 
 Convert long to quad-dotted notation
 
-=cut
+=end InternalDoc
 ######################################################################
 
 sub ip2long
@@ -1028,7 +967,7 @@ sub long2ip
 }
 
 ######################################################################
-=pod
+=begin InternalDoc
 
 =item EPrints::Utils::cmd_version( $progname )
 
@@ -1036,7 +975,7 @@ Print out a "--version" style message to STDOUT.
 
 $progname is the name of the current script.
 
-=cut
+=end InternalDoc
 ######################################################################
 
 sub cmd_version
@@ -1320,10 +1259,3 @@ sub make_relation
 }
 
 1;
-
-######################################################################
-=pod
-
-=back
-
-=cut
