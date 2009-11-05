@@ -20,12 +20,10 @@ $SIG{__WARN__} = \&Carp::cluck;
 
 check_mod_perl();
 
-foreach my $repository_id ( EPrints::Config::get_repository_ids() )
-{
-	EPrints::Repository->new( $repository_id, db_connect => 0 );
-}
+$EPrints::HANDLE = EPrints->new();
+my @repository_ids = $EPrints::HANDLE->load_repositories;
 
-print STDERR "EPrints archives loaded: ".join( ", ",  EPrints::Config::get_repository_ids() )."\n";
+print STDERR "EPrints archives loaded: ".join( ", ",  @repository_ids )."\n";
 
 $EPrints::SystemSettings::loaded = 1;
 

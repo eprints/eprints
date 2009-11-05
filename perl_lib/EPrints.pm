@@ -301,16 +301,18 @@ sub current_repository($%)
 	return undef if !defined $request;
 		
 	my $repoid = $request->dir_config( "EPrints_ArchiveID" );
+	return undef if !defined $repoid;
 	
-	$options{cgi} = 1;
-	my $repository = EPrints::Repository->new( $repoid, %options );
+	my $repository = $self->{repository}->{$repoid};
 	return undef if !defined $repository;
 
-	$repository->check_secure_dirs( $request );
+	if( !defined $repository->{request} )
+	{
+		$repository->init_from_request( $request );
+	}
 
 	return $repository;
 }
-
 
 
 sub import
@@ -332,6 +334,20 @@ sub import
 	$__loaded = 1;
 }
 
+sub load_repositories
+{
+	my( $self ) = @_;
+
+	my @ids;
+
+	foreach my $id ( EPrints::Config::get_repository_ids() )
+	{
+		$self->{repository}->{$id} = $self->repository( $id, db_connect => 0 );
+		push @ids, $id;
+	}
+
+	return @ids;
+}
 
 
 sub sigusr2_cluck

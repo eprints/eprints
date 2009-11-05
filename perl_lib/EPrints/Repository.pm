@@ -243,6 +243,8 @@ sub new
 
 	$self->call( "session_init", $self, $self->{offline} );
 
+	$self->{loadtime} = time();
+	
 	return( $self );
 }
 
@@ -315,6 +317,11 @@ sub get_query
 {
 	my( $self ) = @_;
 
+	if( !defined $self->{query} )
+	{
+		$self->read_params;
+	}
+
 	return $self->{query};
 }
 
@@ -334,9 +341,12 @@ sub terminate
 	my( $self ) = @_;
 	
 	$self->call( "session_close", $self );
-	$self->{database}->disconnect();
 
 	if( $self->{noise} >= 2 ) { print "Ending EPrints Repository.\n\n"; }
+
+return;
+
+	$self->{database}->disconnect();
 
 	# give garbage collection a hand.
 	foreach( keys %{$self} ) { delete $self->{$_}; } 
@@ -344,37 +354,11 @@ sub terminate
 
 
 
-my %REPOSITORY_CACHE = ();
-my @CACHE_KEYS = qw/ citation_mtime citation_sourcefile citation_style citation_type class config datasets field_defaults html_templates langs plugins storage template_mtime text_templates types workflows /;
-
 sub load_config
 {
 	my( $self, $load_xml ) = @_;
 
 	$load_xml = 1 if !defined $load_xml;
-
-	if( defined $REPOSITORY_CACHE{$self->{id}} )
-	{
-		my $cache = $REPOSITORY_CACHE{$self->{id}};
-		my $file = $cache->{config}->{variables_path}."/last_changed.timestamp";
-		my $poketime = (stat( $file ))[9];
-		# If the /cfg/.changed file was touched since the config
-		# for this repository was loaded then we will reload it.
-		# This is not as handy as it sounds as we'll have to reload
-		# it each time the main server forks.
-		if( !defined $poketime || $poketime < $cache->{loadtime} )
-		{
-			foreach my $cache_key ( @CACHE_KEYS )
-			{
-				$self->{$cache_key} = $cache->{$cache_key};
-			}
-			return $self;	
-		}
-
-		print STDERR "$file has been modified since the repository config was loaded: reloading!\n";
-	}
-	
-
 
 	$self->{config} = EPrints::Config::load_repository_config_module( $self->{id} );
 
@@ -414,13 +398,6 @@ sub load_config
 	$self->_map_oai_plugins() || return;
 
 	$self->{field_defaults} = {};
-
-	$REPOSITORY_CACHE{$self->{id}} = {};
-	foreach my $cache_key ( @CACHE_KEYS )
-	{
-		$REPOSITORY_CACHE{$self->{id}}->{$cache_key} = $self->{$cache_key};
-	}
-	$REPOSITORY_CACHE{$self->{id}}->{loadtime} = time;
 
 	return $self;
 }
@@ -4753,7 +4730,7 @@ sub param
 
 	if( !defined $self->{query} ) 
 	{
-		EPrints::abort("CGI Query object not defined!" );
+		$self->read_params;
 	}
 
 	if( !wantarray )
@@ -5606,6 +5583,74 @@ sub get_static_page_conf_file
 	return undef;
 }
 
+sub check_last_changed
+{
+	my( $self ) = @_;
+
+	my $file = $self->{config}->{variables_path}."/last_changed.timestamp";
+	my $poketime = (stat( $file ))[9];
+	# If the /cfg/.changed file was touched since the config
+	# for this repository was loaded then we will reload it.
+	# This is not as handy as it sounds as we'll have to reload
+	# it each time the main server forks.
+	if( defined($poketime) && $poketime > $self->{loadtime} )
+	{
+		print STDERR "$file has been modified since the repository config was loaded: reloading!\n";
+
+		$self->load_config;
+		$self->{loadtime} = time();
+	}
+}
+
+sub init_from_request
+{
+	my( $self, $request ) = @_;
+
+#print STDERR "[$$] $self->init( $request )\n";
+
+	# go online
+	$self->{request} = $request;
+	$self->{offline} = 0;
+
+	# see if we need to reload our configuration
+	$self->check_last_changed;
+
+	# check secured directories
+	$self->check_secure_dirs( $request );
+
+	# register a cleanup call for us
+	$request->pool->cleanup_register( \&cleanup, $self );
+
+	# connect to the database
+	$self->{database} = EPrints::Database->new( $self );
+
+	# add live HTTP path configuration
+	$self->_add_live_http_paths;
+
+	# set the language for the current user
+	$self->change_lang( $self->get_session_language( $request ) );
+
+	return 1;
+}
+
+my @CACHE_KEYS = qw/ citation_mtime citation_sourcefile citation_style citation_type class config datasets field_defaults html_templates langs plugins storage template_mtime text_templates types workflows loadtime /;
+my %CACHED = map { $_ => 1 } @CACHE_KEYS;
+
+sub cleanup
+{
+	my( $self ) = @_;
+
+#print STDERR "[$$] $self->cleanup $self->{request}\n";
+
+	$self->{database}->disconnect;
+
+	for(keys %$self)
+	{
+		delete $self->{$_} if !$CACHED{$_};
+	}
+
+	$self->{offline} = 1;
+}
 
 ######################################################################
 =pod

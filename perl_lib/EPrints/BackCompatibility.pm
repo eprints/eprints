@@ -427,7 +427,7 @@ sub EPrints::Session::new
 	my $ep = EPrints->new( cleanup=>0 ); 
 	if( $opts{cgi} )
 	{
-		$ep->current_repository( %opts );
+		return $EPrints::HANDLE->current_repository;
 	}
 	else
 	{
