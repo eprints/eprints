@@ -49,9 +49,9 @@ sub update_from_form
 	if( $session->internal_button_pressed )
 	{
 		my $internal = $self->get_internal_button;
-		if( $internal =~ m/^add_format_(.+)/ )
+		if( $internal =~ m/^add_format_(.+)$/ )
 		{
-			my $method = $2;
+			my $method = $1;
 			my @plugins = $self->_get_upload_plugins(
 					prefix => $self->{prefix},
 					dataobj => $self->{dataobj},
@@ -64,7 +64,7 @@ sub update_from_form
 					return;
 				}
 			}
-			EPrints::abort( "$method is not a supported upload method" );
+			EPrints::abort( "'$method' is not a supported upload method" );
 		}
 		if( $internal =~ m/^doc(\d+)_(.+)$/ )
 		{
