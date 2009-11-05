@@ -167,6 +167,7 @@ sub create_element
 	my $node = $self->{doc}->createElement( $name );
 	while(my( $key, $value ) = splice(@attrs,0,2))
 	{
+		next if !defined $value;
 		$node->setAttribute( $key => $value );
 	}
 
