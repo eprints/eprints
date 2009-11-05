@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 13;
+use Test::More tests => 16;
 
 use strict;
 use warnings;
@@ -59,3 +59,15 @@ $str = $xhtml->to_xhtml( $node );
 is($str,'<html xmlns="http://www.w3.org/1999/xhtml"><script type="text/javascript">// <!-- No script --></script><div></div><br /></html>',"to_xhtml");
 
 $xml->dispose( $doc );
+
+$node = $xml->create_element( "foo" );
+my $clone = $xml->clone( $node );
+$node->setAttribute( foo => "bar" );
+ok( !$clone->hasAttribute( "foo" ), "same-doc clones are cloned" );
+
+$node->appendChild( $xml->create_element( "bar" ) );
+$clone = $xml->clone( $node );
+ok( $clone->hasChildNodes, "deep clone clones child nodes" );
+
+$clone = $xml->clone_node( $node );
+ok( !$clone->hasChildNodes, "shallow clone doesn't clone children" );

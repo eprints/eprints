@@ -630,29 +630,29 @@ sub add_to_phrases
 		}
 		else
 		{
-			$doc = EPrints::XML::parse_xml( $file_name );
+			$doc = $session->xml->parse_file( $file_name );
 		}
-		my $xml = $doc->documentElement;
-		local $session->{doc} = $doc;
+		my $xml = EPrints::XML->new( $session, doc => $doc );
+		my $phrases = $doc->documentElement;
 
 		while(my( $name, $text ) = each %{$phrases{$langid}})
 		{
-			my $phrase = $session->make_element( "epp:phrase", id => $name );
-			my $html = eval { EPrints::XML::parse_xml_string( $text ) };
+			my $phrase = $xml->create_element( "epp:phrase", id => $name );
+			my $html = eval { $xml->parse_xml_string( $text ) };
 			if( defined $html )
 			{
-				$phrase->appendChild( $session->clone_for_me( $html->documentElement, 1 ) );
-				EPrints::XML::dispose( $html );
+				$phrase->appendChild( $xml->clone( $html->documentElement ) );
+				$xml->dispose( $html );
 			}
 			else
 			{
-				$phrase->appendChild( $session->make_text( $text ) );
+				$phrase->appendChild( $xml->create_text_node( $text ) );
 			}
 			my $old_phrase;
-			foreach my $node ($xml->childNodes)
+			foreach my $node ($phrases->childNodes)
 			{
-				if( EPrints::XML::is_dom( $node, "Element" ) and
-					$node->hasAttribute("id") and
+				if( $xml->is( $node, "Element" ) &&
+					$node->hasAttribute("id") &&
 					$node->getAttribute("id") eq $name )
 				{
 					$old_phrase = $node;
@@ -661,20 +661,19 @@ sub add_to_phrases
 			}
 			if( defined $old_phrase )
 			{
-				$xml->replaceChild( $phrase, $old_phrase );
+				$phrases->replaceChild( $phrase, $old_phrase );
 			}
 			else
 			{
-				$xml->appendChild( $doc->createTextNode( "\n\t" ) );
-				$xml->appendChild( $phrase );
+				$phrases->appendChild( $xml->create_text_node( "\n\t" ) );
+				$phrases->appendChild( $phrase );
 			}
-			EPrints::XML::dispose( $phrase );
 		}
 
 		if( open(my $fh, ">", $file_name) )
 		{
 			binmode($fh, ":utf8");
-			print $fh EPrints::XML::to_string( $doc );
+			print $fh $xml->to_string( $doc );
 			close($fh);
 		}
 		else
@@ -683,7 +682,7 @@ sub add_to_phrases
 			$ok = 0;
 		}
 
-		EPrints::XML::dispose( $doc );
+		$xml->dispose( $doc );
 	}
 
 	return $ok;
@@ -709,10 +708,9 @@ sub add_to_workflow
 
 	return $ok unless -e $file_name;
 
-	my $doc = EPrints::XML::parse_xml( $file_name );
+	my $doc = $session->xml->parse_file( $file_name );
 
-	local $session->{doc} = $doc;
-
+	my $xml = EPrints::XML->new( $session, doc => $doc );
 	my $workflow = $doc->documentElement;
 
 	# return if this field is already referred to in the workflow
@@ -729,8 +727,8 @@ sub add_to_workflow
 	my $stage_ref;
 	for($flow->childNodes)
 	{
-		if( EPrints::XML::is_dom( $_, "Element" ) and
-			$_->hasAttribute( "ref" ) and
+		if( $xml->is( $_, "Element" ) &&
+			$_->hasAttribute( "ref" ) &&
 			$_->getAttribute( "ref" ) eq "local"
 		)
 		{
@@ -740,18 +738,18 @@ sub add_to_workflow
 	}
 	if( !defined( $stage_ref ) )
 	{
-		$stage_ref = $session->make_element( "stage",
+		$stage_ref = $xml->create_element( "stage",
 			ref => "local"
 		);
 		$flow->appendChild( $stage_ref );
-		$flow->appendChild( $session->make_text( "\n\t" ) );
+		$flow->appendChild( $xml->create_text_node( "\n\t" ) );
 	}
 
 	my $stage;
 	for($workflow->childNodes)
 	{
-		if( EPrints::XML::is_dom( $_, "Element" ) and
-			$_->hasAttribute( "name" ) and
+		if( $xml->is( $_, "Element" ) &&
+			$_->hasAttribute( "name" ) &&
 			$_->getAttribute( "name" ) eq "local"
 		)
 		{
@@ -762,28 +760,28 @@ sub add_to_workflow
 
 	if( !defined( $stage ) )
 	{
-		$stage = $session->make_element( "stage",
+		$stage = $xml->create_element( "stage",
 			name => "local"
 		);
-		$stage->appendChild( $session->make_text( "\n\t" ) );
-		$workflow->appendChild( $session->make_text( "\t" ) );
+		$stage->appendChild( $xml->create_text_node( "\n\t" ) );
+		$workflow->appendChild( $xml->create_text_node( "\t" ) );
 		$workflow->appendChild( $stage );
-		$workflow->appendChild( $session->make_text( "\n\n" ) );
+		$workflow->appendChild( $xml->create_text_node( "\n\n" ) );
 	}
 
-	my $component = $session->make_element( "component" );
-	my $field = $session->make_element( "field",
+	my $component = $xml->create_element( "component" );
+	my $field = $xml->create_element( "field",
 		ref => $self->get_value( "name" )
 	);
-	$stage->appendChild( $session->make_text( "\t" ) );
+	$stage->appendChild( $xml->create_text_node( "\t" ) );
 	$stage->appendChild( $component );
-	$stage->appendChild( $session->make_text( "\n\t" ) );
+	$stage->appendChild( $xml->create_text_node( "\n\t" ) );
 	$component->appendChild( $field );
 
 	if( open(my $fh, ">", $file_name) )
 	{
 		binmode($fh, ":utf8");
-		print $fh EPrints::XML::to_string($doc);
+		print $fh $xml->to_string($doc);
 		close($fh);
 	}
 	else
@@ -791,8 +789,6 @@ sub add_to_workflow
 		$session->get_repository->log( "Failed to open $file_name for writing: $!" );
 		$ok = 0;
 	}
-
-	EPrints::XML::dispose( $doc );
 
 	return $ok;
 }
@@ -890,12 +886,9 @@ sub _phrases_empty
 	my $doc = $session->get_lang->create_phrase_doc( $session );
 	my $phrases = $doc->documentElement;
 
-	local $session->{doc} = $doc;
-
-	my $phrase = $session->make_element( "epp:phrase",
-		id=>"metapage_title_local"
-	);
-	$phrase->appendChild( $session->make_text( "Misc." ) );
+	my $phrase = $doc->createElement( "epp:phrase" );
+	$phrase->setAttribute( id=>"metapage_title_local" );
+	$phrase->appendChild( $doc->createTextNode( "Misc." ) );
 
 	$phrases->appendChild( $phrase );
 
@@ -1138,9 +1131,7 @@ sub remove_from_workflow
 
 	return $ok unless -e $file_name;
 
-	local $session->{doc};
-
-	my $doc = $session->{doc} = EPrints::XML::parse_xml( $file_name );
+	my $doc = $session->xml->parse_file( $file_name );
 
 	my $workflow = $doc->documentElement;
 
@@ -1204,10 +1195,10 @@ sub remove_from_workflow
 
 	open(my $fh, ">", $file_name) or EPrints::abort "Failed to open $file_name for writing: $!";
 	binmode($fh, ":utf8");
-	print $fh EPrints::XML::to_string($doc);
+	print $fh $session->xml->to_string( $doc );
 	close($fh);
 
-	EPrints::XML::dispose( $doc );
+	$session->xml->dispose( $doc );
 
 	return $ok;
 }

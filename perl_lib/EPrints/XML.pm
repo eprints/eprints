@@ -86,11 +86,14 @@ use strict;
 
 sub new($$)
 {
-	my( $class, $repository ) = @_;
+	my( $class, $repository, %opts ) = @_;
 
-	my $self = bless { repository => $repository }, $class;
+	my $self = bless { repository => $repository, %opts }, $class;
 
-	$self->{doc} = make_document();
+	if( !defined $self->{doc} )
+	{
+		$self->{doc} = make_document();
+	}
 
 	return $self;
 }
@@ -168,6 +171,18 @@ sub create_element
 	}
 
 	return $node;
+}
+
+=item $node = $xml->create_cdata_section( $value )
+
+Returns a CDATA section containing $value.
+
+=cut
+
+sub create_cdata_section
+{
+	my( $self, $value ) = @_;
+	return $self->{doc}->createCDATASection( $value );
 }
 
 =item $node = $xml->create_text_node( $value )
@@ -268,7 +283,12 @@ sub clone_node
 		return $node->cloneNode( $deep );
 	}
 
-	return $self->{doc}->importNode( $node, 0 );
+	my $clone = $node->cloneNode( 0 );
+	$clone->setOwnerDocument( $self->{doc} );
+
+	return $clone;
+# Bug in XML::LibXML where it ignores $deep, can't easily override this
+#	return $self->{doc}->importNode( $node, 0 );
 }
 
 =item $node = $xml->contents_of( $node )
@@ -833,6 +853,13 @@ sub trim_whitespace
 		$node->appendChild( $doc->createTextNode( $text ));
 	}
 
+}
+
+# DEPRECATED
+sub make_document_fragment
+{
+	my( $session ) = @_;
+	return $session->xml->create_document_fragment;
 }
 
 1;

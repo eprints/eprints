@@ -203,19 +203,6 @@ sub make_document
 	return XML::LibXML::Document->new();
 }
 
-=item $doc = make_document_fragment( $session )
-
-Return a new, empty DOM document fragment.
-
-=cut
-
-sub make_document_fragment
-{
-	my( $session ) = @_;
-	
-	return $session->{doc}->createDocumentFragment();
-}
-
 sub version
 {
 	"XML::LibXML $XML::LibXML::VERSION ".$INC{'XML/LibXML.pm'};

@@ -188,8 +188,6 @@ sub new
 			$self->{request} ) );
 	}
 	
-	$self->{doc} = EPrints::XML::make_document();
-
 	if( defined $opts{db_connect} && $opts{db_connect} == 0 )
 	{
 		$opts{check_db} = 0;
@@ -338,10 +336,6 @@ sub terminate
 	$self->call( "session_close", $self );
 	$self->{database}->disconnect();
 
-	# If we've not printed the XML page, we need to dispose of
-	# it now.
-	EPrints::XML::dispose( $self->{doc} );
-
 	if( $self->{noise} >= 2 ) { print "Ending EPrints Repository.\n\n"; }
 
 	# give garbage collection a hand.
@@ -434,30 +428,26 @@ sub load_config
 ######################################################################
 =pod
 
-=item $xml = $repository_config->xml;
+=item $xml = $repo->xml
 
 Return an XML object for working with XML.
 
 =cut
 ######################################################################
 
-sub xml($) 
+sub xml($)
 {
-	my( $repository_config ) = @_;
+	my( $self ) = @_;
 
-	if( ! defined $repository_config->{xml} )
-	{
-		$repository_config->{xml} = EPrints::XML->new( $repository_config );
-	}
+	return $self->{xml} if defined $self->{xml};
 
-	return $repository_config->{xml};
+	return $self->{xml} = EPrints::XML->new( $self );
 }
-
 
 ######################################################################
 =pod
 
-=item $xhtml = $repository_config->xhtml;
+=item $xhtml = $repo->xhtml
 
 Return an XHTML object for working with XHTML.
 
@@ -466,14 +456,11 @@ Return an XHTML object for working with XHTML.
 
 sub xhtml($) 
 {
-	my( $repository_config ) = @_;
+	my( $self ) = @_;
 
-	if( ! defined $repository_config->{xhtml} )
-	{
-		$repository_config->{xhtml} = EPrints::XHTML->new( $repository_config );
-	}
+	return $self->{xhtml} if defined $self->{xhtml};
 
-	return $repository_config->{xhtml};
+	return $self->{xhtml} = EPrints::XHTML->new( $self );
 }
 
 ######################################################################
@@ -2531,16 +2518,8 @@ Note that in the call we use "=>" not "=".
 
 sub make_element
 {
-	my( $self , $ename , @opts ) = @_;
-
-	my $element = $self->{doc}->createElement( $ename );
-	for(my $i = 0; $i < @opts; $i += 2)
-	{
-		$element->setAttribute( $opts[$i], $opts[$i+1] )
-			if defined( $opts[$i+1] );
-	}
-
-	return $element;
+	my( $self, $ename , @opts ) = @_;
+	return $self->xml->create_element( $ename, @opts );
 }
 
 
@@ -2558,8 +2537,7 @@ is used to make nice looking XML for things like the OAI interface.
 sub make_indent
 {
 	my( $self, $width ) = @_;
-
-	return $self->{doc}->createTextNode( "\n"." "x$width );
+	return $self->xml->create_text_node( "\n"." "x$width );
 }
 
 ######################################################################
@@ -2579,8 +2557,7 @@ eg.
 sub make_comment
 {
 	my( $self, $text ) = @_;
-
-	return $self->{doc}->createComment( $text );
+	$self->xml->create_comment( $text );
 }
 	
 
@@ -2609,20 +2586,11 @@ Would return a DOM object representing the XML:
 
 sub make_text
 {
-	my( $self , $text ) = @_;
+	my( $self, $text ) = @_;
 
-	# patch up an issue with Unicode::String containing
-	# an empty string -> seems to upset XML::GDOME
-	if( !defined $text || $text eq "" )
-	{
-		$text = "";
-	}
-        
-        $text =~ s/[\x00-\x08\x0B\x0C\x0E-\x1F]//g;
+	return $self->xml->create_document_fragment if !defined $text;
 
-	my $textnode = $self->{doc}->createTextNode( $text );
-
-	return $textnode;
+	return $self->xml->create_text_node( $text );
 }
 
 ######################################################################
@@ -2654,10 +2622,10 @@ sub make_javascript
 	}
 	chomp($text);
 
-	my $script = $self->make_element( "script", type => "text/javascript", %attr );
+	my $script = $self->xml->create_element( "script", type => "text/javascript", %attr );
 
-	$script->appendChild( $self->make_text( "\n// " ) );
-	$script->appendChild( $self->{doc}->createCDATASection( "\n$text\n// " ) );
+	$script->appendChild( $self->xml->create_text_node( "\n// " ) );
+	$script->appendChild( $self->xml->create_cdata_section( "\n$text\n// " ) );
 
 	return $script;
 }
@@ -2679,8 +2647,7 @@ the element at that point.
 sub make_doc_fragment
 {
 	my( $self ) = @_;
-
-	return EPrints::XML::make_document_fragment( $self );
+	return $self->xml->create_document_fragment;
 }
 
 
@@ -3534,7 +3501,7 @@ sub render_form
 {
 	my( $self, $method, $dest ) = @_;
 	
-	my $form = $self->{doc}->createElement( "form" );
+	my $form = $self->xml->create_element( "form" );
 	$form->setAttribute( "method", "\L$method" );
 	$form->setAttribute( "accept-charset", "utf-8" );
 	if( !defined $dest )
@@ -4589,7 +4556,9 @@ sub clone_for_me
 {
 	my( $self, $node, $deep ) = @_;
 
-	return EPrints::XML::clone_and_own( $node, $self->{doc}, $deep );
+	return $self->xml->clone( $node ) if $deep;
+
+	return $self->xml->clone_node( $node );
 }
 
 
