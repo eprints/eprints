@@ -139,7 +139,7 @@ sub new
 {
 	my( $class, $repository_id, %opts ) = @_;
 
-	EPrints::Utils::process_parameters( %opts, 
+	EPrints::Utils::process_parameters( \%opts, 
 		  consume_post => 1,
 		           cgi => 0,
 		         noise => 0,
@@ -188,7 +188,7 @@ sub new
 			$self->{request} ) );
 	}
 	
-	$self->{doc} = EPrints::XML::make_document;
+	$self->{doc} = EPrints::XML::make_document();
 
 	if( defined $opts{db_connect} && $opts{db_connect} == 0 )
 	{
