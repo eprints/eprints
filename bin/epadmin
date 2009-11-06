@@ -1770,7 +1770,10 @@ sub reindex
 		my( $session, $dataset, $item ) = @_;
 	
 		$item->queue_all();
-		$item->queue_fulltext();
+		if( $item->get_dataset->base_id eq "eprint" )
+		{
+			$item->queue_fulltext();
+		}
 
 		if( $session->get_noise() >= 2 )
 		{
