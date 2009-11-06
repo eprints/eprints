@@ -4,16 +4,9 @@ package EPrints::Plugin::Event::Indexer;
 
 use strict;
 
-sub run_index
+sub index
 {
-	my( $self, $event, $uri, @fieldnames ) = @_;
-
-	my $dataobj = EPrints::DataSet->get_object_from_uri( $self->{session}, $uri );
-	if( !defined $dataobj )
-	{
-		$self->plain_message( "warning", "Failed to retrieve object identified by '$uri'" );
-		return 1;
-	}
+	my( $self, $dataobj, @fieldnames ) = @_;
 
 	my $dataset = $dataobj->get_dataset;
 
@@ -27,32 +20,18 @@ sub run_index
 	return $self->_index_fields( $dataobj, \@fields );
 }
 
-sub run_index_all
+sub index_all
 {
-	my( $self, $event, $uri ) = @_;
-
-	my $dataobj = EPrints::DataSet->get_object_from_uri( $self->{session}, $uri );
-	if( !defined $dataobj )
-	{
-		$self->plain_message( "warning", "Failed to retrieve object identified by '$uri'" );
-		return 1;
-	}
+	my( $self, $dataobj ) = @_;
 
 	my $dataset = $dataobj->get_dataset;
 
 	return $self->_index_fields( $dataobj, [$dataset->get_fields] );
 }
 
-sub run_index_fulltext 
+sub index_fulltext 
 {
-	my( $self, $event, $uri ) = @_;
-
-	my $dataobj = EPrints::DataSet->get_object_from_uri( $self->{session}, $uri );
-	if( !defined $dataobj )
-	{
-		$self->plain_message( "warning", "Failed to retrieve object identified by '$uri'" );
-		return 1;
-	}
+	my( $self, $dataobj ) = @_;
 
 	my $dataset = $dataobj->get_dataset;
 
@@ -77,7 +56,6 @@ sub _index_fields
 		EPrints::Index::remove( $session, $dataset, $dataobj->get_id, $field->get_name );
 		next unless( $field->get_property( "text_index" ) );
 
-#$self->plain_message( "message", "indexing ".$dataset->confid.".".$dataobj->get_id.".".$field->get_name );
 		my $value = $field->get_value( $dataobj );
 		next unless EPrints::Utils::is_set( $value );	
 

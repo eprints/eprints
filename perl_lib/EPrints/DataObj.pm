@@ -1303,7 +1303,7 @@ sub queue_changes
 	return unless scalar @fields;
 
 	EPrints::DataObj::EventQueue->create_from_data( $self->{session}, {
-			pluginid => "Indexer",
+			pluginid => "Event::Indexer",
 			action => "index",
 			params => [$self->internal_uri, @fields],
 		});
@@ -1326,7 +1326,7 @@ sub queue_all
 	return unless $self->{dataset}->indexable;
 
 	EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
-			pluginid => "Indexer",
+			pluginid => "Event::Indexer",
 			action => "index_all",
 			params => [$self->internal_uri],
 		});
@@ -1350,7 +1350,7 @@ sub queue_fulltext
 
 	EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
 			unique => "TRUE",
-			pluginid => "Indexer",
+			pluginid => "Event::Indexer",
 			action => "index_fulltext",
 			params => [$self->internal_uri],
 		});

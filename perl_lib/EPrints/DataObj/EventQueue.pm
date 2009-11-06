@@ -58,11 +58,11 @@ A human-readable description of this event.
 
 =item pluginid
 
-The L<EPrints::Plugin::Event> plugin id to call to execute this event (not contained the leading "Event::").
+The L<EPrints::Plugin::Event> plugin id to call to execute this event.
 
 =item action
 
-The name of the action to execute on the plugin.
+The name of the action to execute on the plugin (i.e. method name).
 
 =item params
 
@@ -130,6 +130,65 @@ sub create_unique
 	}
 
 	return $class->create_from_data( $session, $data, $dataset );
+}
+
+=item $ok = $event->execute()
+
+Execute the action this event describes.
+
+=cut
+
+sub execute
+{
+	my( $self ) = @_;
+
+	my $session = $self->{session};
+
+	my $plugin = $session->plugin( $self->get_value( "pluginid" ) );
+	if( !defined $plugin )
+	{
+		# no such plugin
+		$session->log( "Plugin not available: ".$self->get_value( "pluginid" ) );
+		return 0;
+	}
+
+	my $action = $self->get_value( "action" );
+	if( !$plugin->can( $action ) )
+	{
+		$session->log( "No such method $action on ".ref($plugin) );
+		return 0;
+	}
+
+	my $params = $self->get_value( "params" );
+	if( !defined $params )
+	{
+		$params = [];
+	}
+	my @params = @$params;
+
+	# expand any object identifiers
+	foreach my $param (@params)
+	{
+		if( $param =~ m# ^/id/([^/]+)/(.+)$ #x )
+		{
+			my $dataset = $session->dataset( $1 );
+			if( !defined $dataset )
+			{
+				$session->log( "Bad parameters: No such dataset '$1'" );
+				return 0;
+			}
+			$param = $dataset->dataobj( $2 );
+			if( !defined $param )
+			{
+				$session->log( "Bad parameters: No such item '$2' in dataset '$1'" );
+				return 0;
+			}
+		}
+	}
+
+	$plugin->$action( @params );
+
+	return 1;
 }
 
 1;

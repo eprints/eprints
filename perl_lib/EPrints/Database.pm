@@ -4298,6 +4298,9 @@ sub dequeue_event
 	my $dataset = $session->get_repository->get_dataset( "event_queue" );
 
 	my $until = EPrints::Time::get_iso_timestamp();
+
+	my $event;
+
 	my $searchexp = EPrints::Search->new(
 		session => $session,
 		dataset => $dataset,
@@ -4305,22 +4308,40 @@ sub dequeue_event
 			{ meta_fields => ["status"], value => "waiting" },
 			{ meta_fields => ["start_time"], value => "-$until", match => "EQ" },
 		],
-		custom_order => "-priority/-start_time"
+		custom_order => "-priority/-start_time",
+		limit => 1,
 		);
 
-	my $table = $self->quote_identifier( $dataset->get_sql_table_name );
+	my $sql = "UPDATE ".
+		$self->quote_identifier( $dataset->get_sql_table_name ).
+		" SET ".
+		$self->quote_identifier( $dataset->field( "status" )->get_sql_name ).
+		"=".
+		$self->quote_value( "inprogress" ).
+		" WHERE ".
+		$self->quote_identifier( $dataset->key_field->get_sql_name ).
+		"=?";
 
-#	$self->do("LOCK TABLES $table WRITE");
-# We hit snafus with table aliasing in $searchexp
-
-	my( $event ) = $searchexp->perform_search->get_records( 0, 1 );
-	if( defined $event )
+	while(1)
 	{
-		$event->set_value( "status", "inprogress" );
-		$event->commit;
-	}
+		( $event ) = $searchexp->perform_search->get_records( 0, 1 );
+		last if !defined $event; # nothing to do
 
-#	$self->do("UNLOCK TABLES");
+		my $rows = $self->{dbh}->do( $sql, {}, $event->get_id );
+		if( $rows == -1 )
+		{
+			EPrints::abort( "Error in SQL: $sql\n".$self->{dbh}->{errstr} );
+		}
+		elsif( $rows == 1 )
+		{
+			$event->set_value( "status", "inprogress" );
+			last;
+		}
+		else
+		{
+			# another process grabbed this event
+		}
+	}
 
 	return $event;
 }

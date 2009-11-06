@@ -280,23 +280,24 @@ sub get_all_sessions
 {
 	my( $self ) = @_;
 
-	my @sessions;
+	my @repos;
+
+	my $eprints = EPrints->new;
 
 	my @arc_ids = EPrints::Config::get_repository_ids();
 	foreach my $arc_id (sort @arc_ids)
 	{
-		my $repository = EPrints::Repository->new( $arc_id );
-		next unless $repository->get_conf( "index" );
-		my $session = EPrints::Session->new( 1 , $arc_id );
-		if( !defined $session )
+		my $repository = $eprints->repository( $arc_id );
+		if( !defined $repository )
 		{
 			$self->log( 0, "!! Could not open session for $arc_id" );
 			next;
 		}
-		push @sessions, $session;
+		next unless $repository->config( "index" );
+		push @repos, $repository;
 	}
 
-	return @sessions;
+	return @repos;
 }
 
 =item $daemon->log( LEVEL, MESSAGE )
@@ -669,19 +670,9 @@ sub _run_index
 	my( $self, $session ) = @_;
 
 	my $event = $session->get_database->dequeue_event();
-	return undef unless defined $event;
+	return 0 unless defined $event;
 
-	my $pluginid = $event->get_value( "pluginid" );
-	my $plugin = $session->plugin( "Event::".$pluginid );
-	if( !defined $plugin )
-	{
-		$self->log( 1, "** event ".$event->get_id." asked for an unknown pluginid '$pluginid'" );
-		$event->set_value( "status", "failed" );
-		$event->commit();
-		return;
-	}
-
-	my $rc = $plugin->run( $event );
+	my $rc = $event->execute;
 	if( $rc )
 	{
 		$event->set_value( "status", "success" );
@@ -694,7 +685,7 @@ sub _run_index
 		$event->commit();
 	}
 
-	return $rc;
+	return 1; # seen action, even if it is to fail
 }
 
 # is it time to respawn the indexer/roll the logs?
