@@ -1733,7 +1733,7 @@ sub get_value_from_id
 ######################################################################
 =pod
 
-=item $xhtml = $field->get_value_label( $session, $value )
+=item $xhtml = $field->render_value_label( $value )
 
 Return an XHTML DOM object describing the given value. Normally this
 is just the value, but in the case of something like a "set" field 
@@ -1742,6 +1742,11 @@ this returns the name of the option in the current language.
 =cut
 ######################################################################
 
+sub render_value_label
+{
+	my( $self, $value ) = @_;
+	return $self->get_value_label( $self->repository, $value );
+}
 sub get_value_label
 {
 	my( $self, $session, $value ) = @_;
