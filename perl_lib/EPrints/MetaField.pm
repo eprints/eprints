@@ -325,29 +325,39 @@ sub clone
 }
 
 
+=item $repository = $field->repository
 
+Return the L<EPrints::Repository> to which this field belongs.
+
+=cut
+
+sub repository
+{
+	my( $self ) = @_;
+	return $self->{repository};
+}
 
 ######################################################################
 =pod
 
-=item $dataset = $field->get_dataset
+=item $dataset = $field->dataset
 
-Return the dataset to which this field belongs, or undef.
+Return the L<EPrints::DataSet> to which this field belongs, or undef.
 
 =cut
 ######################################################################
 
-sub get_dataset
+sub get_dataset { shift->dataset( @_ ) }
+sub dataset
 {
 	my( $self ) = @_;
-
 	return $self->{dataset};
 }
 
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_name( $session )
+=item $xhtml = $field->render_name
 
 Render the name of this field as an XHTML object.
 
@@ -356,7 +366,7 @@ Render the name of this field as an XHTML object.
 
 sub render_name
 {
-	my( $self, $session ) = @_;
+	my( $self ) = @_;
 
 	if( defined $self->{title_xhtml} )
 	{
@@ -364,7 +374,7 @@ sub render_name
 	}
 	my $phrasename = $self->{confid}."_fieldname_".$self->{name};
 
-	return $session->html_phrase( $phrasename );
+	return $self->repository->html_phrase( $phrasename );
 }
 
 ######################################################################
@@ -396,7 +406,7 @@ sub display_name
 ######################################################################
 =pod
 
-=item $xhtml = $field->render_help( $session )
+=item $xhtml = $field->render_help
 
 Return the help information for a user inputing some data for this
 field as an XHTML chunk.
@@ -406,7 +416,7 @@ field as an XHTML chunk.
 
 sub render_help
 {
-	my( $self, $session ) = @_;
+	my( $self ) = @_;
 
 	if( defined $self->{help_xhtml} )
 	{
@@ -414,7 +424,7 @@ sub render_help
 	}
 	my $phrasename = $self->{confid}."_fieldhelp_".$self->{name};
 
-	return $session->html_phrase( $phrasename );
+	return $self->repository->html_phrase( $phrasename );
 }
 
 
@@ -520,7 +530,7 @@ Return the name of this field.
 =cut
 ######################################################################
 
-sub get_name { &name }
+sub get_name { shift->name( @_ ) }
 sub name
 {
 	my( $self ) = @_;
@@ -538,7 +548,7 @@ Return the type of this field.
 =cut
 ######################################################################
 
-sub get_type { &type }
+sub get_type { shift->type( @_ ) }
 sub type
 {
 	my( $self ) = @_;
@@ -561,7 +571,7 @@ it is required for a specific type.
 =cut
 ######################################################################
 
-sub get_property { &property }
+sub get_property { shift->property( @_ ) }
 sub property
 {
 	my( $self, $property ) = @_;
@@ -840,8 +850,9 @@ multiple values. [ [], [], [] ], but rather a list of single values.
 sub sort_values
 {
 	my( $self, $session, $in_list ) = @_;
+	$in_list = $session if !defined $in_list;
 
-	return $session->get_database->sort_values( $self, $in_list );
+	return $self->repository->database->sort_values( $self, $in_list );
 }
 
 
@@ -1621,7 +1632,7 @@ sub is_browsable
 ######################################################################
 =pod
 
-=item $values = $field->get_values( $session, $dataset, %opts )
+=item $values = $field->values( %opts )
 
 Return a reference to an array of all the values of this field. 
 For fields like "subject" or "set"
@@ -1633,7 +1644,11 @@ Results are sorted according to the ordervalues of the $session.
 =cut
 ######################################################################
 
-
+sub values
+{
+	my( $self, %opts ) = @_;
+	return $self->get_values( $self->repository, $self->dataset, %opts );
+}
 sub get_values
 {
 	my( $self, $session, $dataset, %opts ) = @_;
