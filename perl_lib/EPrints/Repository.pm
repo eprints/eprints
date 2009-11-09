@@ -344,7 +344,8 @@ sub terminate
 
 	if( $self->{noise} >= 2 ) { print "Ending EPrints Repository.\n\n"; }
 
-return;
+	# if we're online then clean-up happens later
+	return if !$self->{offline};
 
 	$self->{database}->disconnect();
 
@@ -2276,6 +2277,7 @@ Return the current EPrints::Database connection object.
 ######################################################################
 sub get_db { return $_[0]->get_database; } # back compatibility
 
+sub database { shift->get_database( @_ ) }
 sub get_database
 {
 	my( $self ) = @_;

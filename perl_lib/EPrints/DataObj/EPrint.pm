@@ -2512,12 +2512,14 @@ sub could_obtain_lock
 		return 1;
 	}
 
-	my $my_lock = ( $self->get_value( "edit_lock_user" ) == $user->get_id );
-	if( $self->is_locked() && !$my_lock )
+	if(
+		$self->is_locked() &&
+		$self->get_value( "edit_lock_user" ) ne $user->get_id
+	  )
 	{
 		return 0;
 	}
-	
+
 	return 1;
 }
 

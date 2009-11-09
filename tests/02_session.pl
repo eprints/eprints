@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 16;
+use Test::More tests => 15;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -21,8 +21,6 @@ ok($session->get_repository->isa('EPrints::Repository'), "and it's really an rep
 
 ok(defined $session->get_database, "is there a database attached?");
 ok($session->get_database->isa('EPrints::Database'), "and it's really an EPrints::Database?");
-
-ok(defined $session->{doc}, "is there a XML base document?");
 
 ok(defined $session->{lang}, "session has a language set" );
 ok($session->{lang}->isa('EPrints::Language'), "and it's EPrints::Language" );

@@ -53,7 +53,8 @@ my $dataobj_id = $dataobj->id;
 my $dataobj_copy = $dataset->dataobj( $dataobj_id );
 if( !defined $dataobj_copy ) { BAIL_OUT( "Could not retrieve new data object copy" ); }
 ok( $dataobj_copy->id eq $dataobj_id, "ids match of retrieved objects" );
-ok(!defined($dataset->dataobj( "INVALID_ID" )), "invalid dataobj identifier is undef" );
+my $ud_dataobj = $dataset->dataobj( "INVALID_ID" );
+is($ud_dataobj,undef,"invalid dataobj identifier is undef" );
 is( $dataobj_copy->value( "title" ), $TITLE, "title value" );
 
 $dataobj->delete; # clean up
