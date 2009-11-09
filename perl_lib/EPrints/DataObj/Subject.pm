@@ -790,30 +790,29 @@ sub get_all
 		$session->get_repository->get_dataset( "subject" ) );
 	push @subjects, EPrints::DataObj::Subject->new( $session, $EPrints::DataObj::Subject::root_subject );
 
-	return( undef ) if( scalar @subjects == 0 );
+	return( {}, {} ) if( scalar @subjects == 0 );
 
-	my( %subjectmap );
-	my( %rmap );
-	my $subject;
-	foreach $subject (@subjects)
+	my( %subjectmap ); # map subject ids to subject objects
+	my( %rmap ); # map parents to children
+	foreach my $subject (@subjects)
 	{
-		$subjectmap{$subject->get_value("subjectid")} = $subject;
-		# iffy non oo bit here.
-		# guess it's ok within the same class... (maybe)
-		# works fine, just a bit naughty
-		foreach( @{$subject->{data}->{parents}} )
+		my $subjectid = $subject->get_id;
+		$subjectmap{$subjectid} = $subject;
+		# this should probably use value() instead of talking direct to data
+		foreach my $parentid ( @{$subject->{data}->{parents}} )
 		{
-			$rmap{$_} = [] if( !defined $rmap{$_} );
-			push @{$rmap{$_}}, $subject;
+			$rmap{$parentid} = [] if( !defined $rmap{$parentid} );
+			push @{$rmap{$parentid}}, $subject;
 		}
 	}
-	my $namefield = $session->get_repository->get_dataset(
-		"subject" )->get_field( "name" );
-	foreach( keys %rmap )
+	# sort and fill in the gaps for the child map
+	foreach my $subject (@subjects)
 	{
-		@{$rmap{$_}} = sort {   
+		my $subjectid = $subject->get_id;
+		$rmap{$subjectid} = [] if !defined $rmap{$subjectid};
+		@{$rmap{$subjectid}} = sort {   
 			$a->local_name cmp $b->local_name
-			} @{$rmap{$_}};
+			} @{$rmap{$subjectid}};
 	}
 	
 	return( \%subjectmap, \%rmap );

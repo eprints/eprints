@@ -8410,3 +8410,6 @@ EPRINTS-3.1-beta-2
 2009-11-5 tdb
  * Repository objects persist across requests
 
+2009-11-9 tdb
+ * Subject children cache is now initialised for all subjects, fixing #3451
+
