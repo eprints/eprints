@@ -300,11 +300,7 @@ sub _render_subnodes
 
 	my $node_id = $subject->get_value( "subjectid" );
 
-	my @children = ();
-	if( defined $self->{reverse_map}->{$node_id} )
-	{
-		@children = @{$self->{reverse_map}->{$node_id}};
-	}
+	my @children = @{$self->{reverse_map}->{$node_id}};
 
 	my @filteredchildren;
 	if( defined $whitelist )
@@ -348,7 +344,7 @@ sub _render_subnode
 #	}
 
 	my $has_kids = 0;
-	$has_kids = 1 if( defined $self->{reverse_map}->{$node_id} );
+	$has_kids = 1 if( scalar @{$self->{reverse_map}->{$node_id}} );
 
 	my $expanded = 0;
 	$expanded = 1 if( $depth < $self->{visdepth} );
