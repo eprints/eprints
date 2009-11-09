@@ -271,7 +271,39 @@ sub create_from_data
 
 	return $dataobj;
 }
-                                                                                                                  
+
+=item $dataobj = $dataobj->create_subobject( $fieldname, $epdata )
+
+Creates and returns a new dataobj that is a sub-object of this object in field $fieldname with initial data $epdata.
+
+=cut
+
+sub create_subobject
+{
+	my( $self, $fieldname, $epdata ) = @_;
+
+	my $field = $self->dataset->field( $fieldname );
+	if( !defined $field )
+	{
+		EPrints::abort( "Cannot create sub-object on non-existant field $fieldname" );
+	}
+	if( !$field->isa( "EPrints::MetaField::Subobject" ) )
+	{
+		EPrints::abort( "Cannot create sub-object on non-subobject field $fieldname" );
+	}
+
+	my $dataset = $self->repository->dataset( $field->property( "datasetid" ) );
+
+	$epdata->{_parent} = $self;
+
+	# work-around for Document expecting "eprintid" to be set as well as _parent
+	if( $self->isa( "EPrints::DataObj::EPrint" ) && $fieldname eq "documents" )
+	{
+		$epdata->{eprintid} = $self->id;
+	}
+
+	return $dataset->create_dataobj( $epdata );
+}
 
 ######################################################################
 =pod
@@ -320,6 +352,7 @@ Return true if successful.
 =cut
 ######################################################################
 
+sub delete { shift->remove( @_ ) }
 sub remove
 {
 	my( $self ) = @_;
@@ -440,6 +473,7 @@ undef unless the field has the property multiple set, in which case it returns
 =cut
 ######################################################################
 
+sub value { shift->get_value( @_ ) }
 sub get_value
 {
 	my( $self, $fieldname ) = @_;
@@ -640,6 +674,7 @@ Returns the EPrints::Session object to which this record belongs.
 =cut
 ######################################################################
 
+sub repository { shift->get_session(@_) }
 sub get_session
 {
 	my( $self ) = @_;
@@ -703,6 +738,7 @@ Returns the L<EPrints::DataSet> object to which this record belongs.
 =cut
 ######################################################################
 
+sub dataset { shift->get_dataset( @_ ) }
 sub get_dataset
 {
 	my( $self ) = @_;
@@ -776,6 +812,7 @@ Returns the value of the primary key of this record.
 =cut
 ######################################################################
 
+sub id { shift->get_id( @_ ) }
 sub get_id
 {
 	my( $self ) = @_;
@@ -1064,6 +1101,7 @@ of an eprint.
 =cut
 ######################################################################
 
+sub url { shift->get_url( @_ ) }
 sub get_url
 {
 	my( $self ) = @_;

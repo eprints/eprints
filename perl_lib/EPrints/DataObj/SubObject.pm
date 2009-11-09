@@ -91,6 +91,7 @@ Subsequent calls to get_parent will return the cached object, regardless of $dat
 
 =cut
 
+sub parent { shift->get_parent( @_ ) }
 sub get_parent
 {
 	my( $self, $datasetid, $objectid ) = @_;
