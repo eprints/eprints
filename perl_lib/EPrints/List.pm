@@ -32,7 +32,7 @@ B<EPrints::List> - List of data objects, usually a search result.
 
 	$n = $list->count() # returns the number of items in the list
 
-	@dataobjs = $list->get_records( 0, 20 );  #get the first 20 DataObjs from the list in an array
+	@dataobjs = $list->slice( 0, 20 );  #get the first 20 DataObjs from the list in an array
 
 	$list->map( $function, $info ) # performs a function on every item in the list. This is very useful go and look at the detailed description.
 
@@ -502,11 +502,25 @@ sub count
 	EPrints::abort( "Called \$list->count() where there was no cache or ids." );
 }
 
+=item $dataobj = $list->item( $offset )
+
+Returns the item at offset $offset.
+
+Returns undef if $offset is out of range of the current list of items.
+
+=cut
+
+sub item
+{
+	my( $self, $offset ) = @_;
+
+	return ($self->slice( $offset, 1 ))[0];
+}
 
 ######################################################################
 =pod
 
-=item @dataobjs = $list->get_records( [$offset], [$count] )
+=item @dataobjs = $list->slice( [$offset], [$count] )
 
 Returns the DataObjs in this list as an array. 
 $offset - what index through the list to start from.
@@ -515,7 +529,8 @@ $count - the maximum to return.
 =cut
 ######################################################################
 
-sub get_records
+sub get_records { shift->slice( @_ ) }
+sub slice
 {
 	my( $self , $offset , $count ) = @_;
 	
@@ -526,7 +541,7 @@ sub get_records
 ######################################################################
 =pod
 
-=item $ids = $list->get_ids( [$offset], [$count] )
+=item $ids = $list->ids( [$offset], [$count] )
 
 Return a reference to an array containing the ids of the specified
 range from the list. This is more efficient if you just need the ids.
@@ -537,7 +552,8 @@ $count - the maximum to return.
 =cut
 ######################################################################
 
-sub get_ids
+sub get_ids { shift->ids( @_ ) }
+sub ids
 {
 	my( $self , $offset , $count ) = @_;
 	
@@ -657,7 +673,7 @@ sub map
 
 	for( my $offset = 0; $offset < $count; $offset+=$CHUNKSIZE )
 	{
-		my @records = $self->get_records( $offset, $CHUNKSIZE );
+		my @records = $self->slice( $offset, $CHUNKSIZE );
 		foreach my $item ( @records )
 		{
 			&{$function}( 
