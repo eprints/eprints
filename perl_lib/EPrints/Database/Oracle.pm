@@ -290,7 +290,7 @@ sub get_tables
 	my @tables;
 
 	my $dbuser = $self->{session}->get_repository->get_conf( "dbuser" );
-	my $sth = $self->{dbh}->table_info( '%', $dbuser, '%', 'TABLE' );
+	my $sth = $self->{dbh}->table_info( '%', uc($dbuser), '%', 'TABLE' );
 
 	while(my $row = $sth->fetch)
 	{
@@ -365,6 +365,54 @@ sub counter_current
 sub quote_identifier
 {
 	return shift->SUPER::quote_identifier(map(uc,@_));
+}
+
+sub _cache_from_TABLE
+{
+	my( $self, $cachemap, $dataset, $srctable, $order, $logic ) = @_;
+
+	my $cache_table  = $cachemap->get_sql_table_name;
+	my $keyfield = $dataset->get_key_field();
+	$logic ||= [];
+
+	my $Q_cache_table = $self->quote_identifier( $cache_table );
+	my $Q_keyname = $self->quote_identifier($keyfield->get_name());
+	my $B = $self->quote_identifier("B");
+	my $O = $self->quote_identifier("O");
+	my $Q_srctable = $self->quote_identifier($srctable);
+	my $Q_pos = $self->quote_identifier("pos");
+
+	my $sql;
+	$sql =  "INSERT INTO $Q_cache_table ($Q_pos, $Q_keyname) SELECT ROWNUM, $B.$Q_keyname FROM (";
+	$sql .= " SELECT $B.$Q_keyname FROM $Q_srctable $B";
+	if( defined $order )
+	{
+		$sql .= " LEFT JOIN ".$self->quote_identifier($dataset->get_ordervalues_table_name($self->{session}->get_langid()))." $O";
+		$sql .= " ON $B.$Q_keyname = $O.$Q_keyname";
+	}
+	if( scalar @$logic )
+	{
+		$sql .= " WHERE ".join(" AND ", @$logic);
+	}
+	if( defined $order )
+	{
+		$sql .= " ORDER BY ";
+		my $first = 1;
+		foreach( split( "/", $order ) )
+		{
+			$sql .= ", " if( !$first );
+			my $desc = 0;
+			if( s/^-// ) { $desc = 1; }
+			my $field = EPrints::Utils::field_from_config_string(
+					$dataset,
+					$_ );
+			$sql .= "$O.".$self->quote_identifier($field->get_sql_name());
+			$sql .= " DESC" if $desc;
+			$first = 0;
+		}
+	}
+	$sql .= " ) $B";
+	$self->do( $sql );
 }
 
 1; # For use/require success
