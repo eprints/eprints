@@ -305,17 +305,20 @@ sub get_request
 ######################################################################
 =pod
 
-=item $query = $repository->get_query;
+=item $query = $repository->query
 
-Return the CGI.pm object describing the current HTTP query, or 
+Return the L<CGI> object describing the current HTTP query, or 
 undefined if this isn't a CGI script.
 
 =cut
 ######################################################################
 
-sub get_query
+sub get_query { &query }
+sub query
 {
 	my( $self ) = @_;
+
+	return undef if $self->{offline};
 
 	if( !defined $self->{query} )
 	{
@@ -384,7 +387,6 @@ sub load_config
 	if( $load_xml )
 	{
 		# $self->generate_dtd() || return;
-		$self->_load_storage() || return;
 		$self->_load_workflows() || return;
 		$self->_load_namedsets() || return;
 		$self->_load_datasets() || return;
@@ -605,34 +607,6 @@ sub _add_http_paths
 
 }
  
-sub _load_storage
-{
-	my( $self ) = @_;
-
-	$self->{storage} = {};
-
-	EPrints::Storage::load_all( 
-		$self->config( "lib_path" )."/storage",
-		$self->{storage} );
-
-	EPrints::Storage::load_all( 
-		$self->config( "config_path" )."/storage",
-		$self->{storage} );
-
-	return 1;
-}
-
-sub get_storage_config
-{
-	my( $self, $storageid ) = @_;
-
-	my $r = EPrints::Storage::get_storage_config( 
-		$storageid,
-		$self->{storage} );
-
-	return $r;
-}
-
 ######################################################################
 #=pod
 #
@@ -2319,29 +2293,32 @@ sub get_repository
 ######################################################################
 =pod
 
-=item $url = $repository->get_url( [ @OPTS ] [, $page] )
+=item $url = $repository->current_url( [ @OPTS ] [, $page] )
 
-Utility method to get various URLs. See L<EPrints::URL>. With no arguments returns the same as get_uri().
+Utility method to get various URLs. See L<EPrints::URL>.
+
+With no arguments returns the current full URL without any query part.
 
 	# Return the current static path
-	$repository->get_url( path => "static" );
+	$repository->current_url( path => "static" );
 
 	# Return the current cgi path
-	$repository->get_url( path => "cgi" );
+	$repository->current_url( path => "cgi" );
 
 	# Return a full URL to the current cgi path
-	$repository->get_url( host => 1, path => "cgi" );
+	$repository->current_url( host => 1, path => "cgi" );
 
 	# Return a full URL to the static path under HTTP
-	$repository->get_url( scheme => "http", host => 1, path => "static" );
+	$repository->current_url( scheme => "http", host => 1, path => "static" );
 
 	# Return a full URL to the image 'foo.png'
-	$repository->get_url( host => 1, path => "images", "foo.png" );
+	$repository->current_url( host => 1, path => "images", "foo.png" );
 
 =cut
 ######################################################################
 
-sub get_url
+sub get_url { &current_url }
+sub current_url
 {
 	my( $self, @opts ) = @_;
 
@@ -5608,14 +5585,19 @@ sub init_from_request
 {
 	my( $self, $request ) = @_;
 
-#print STDERR "[$$] $self->init( $request )\n";
+	if( defined $self->{request} )
+	{
+		# we're in a sub-request
+		$self->{request} = $request; # make sure we have the current request
+		return 1;
+	}
+
+	# see if we need to reload our configuration
+	$self->check_last_changed;
 
 	# go online
 	$self->{request} = $request;
 	$self->{offline} = 0;
-
-	# see if we need to reload our configuration
-	$self->check_last_changed;
 
 	# check secured directories
 	$self->check_secure_dirs( $request );
@@ -5635,14 +5617,12 @@ sub init_from_request
 	return 1;
 }
 
-my @CACHE_KEYS = qw/ citation_mtime citation_sourcefile citation_style citation_type class config datasets field_defaults html_templates langs plugins storage template_mtime text_templates types workflows loadtime /;
+my @CACHE_KEYS = qw/ id citation_mtime citation_sourcefile citation_style citation_type class config datasets field_defaults html_templates langs plugins storage template_mtime text_templates types workflows loadtime /;
 my %CACHED = map { $_ => 1 } @CACHE_KEYS;
 
 sub cleanup
 {
 	my( $self ) = @_;
-
-#print STDERR "[$$] $self->cleanup $self->{request}\n";
 
 	$self->{database}->disconnect;
 

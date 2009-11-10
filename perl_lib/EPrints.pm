@@ -273,7 +273,7 @@ sub repository($$%)
 	my( $self, $repository_id, %options ) = @_;
 
 	my $ok = 0;
-	foreach my $an_id ( EPrints::Config::get_repository_ids() )
+	foreach my $an_id ( $self->repository_ids )
 	{
 		$ok = 1 if( $an_id eq $repository_id );
 	}
@@ -306,10 +306,7 @@ sub current_repository($%)
 	my $repository = $self->{repository}->{$repoid};
 	return undef if !defined $repository;
 
-	if( !defined $repository->{request} )
-	{
-		$repository->init_from_request( $request );
-	}
+	$repository->init_from_request( $request );
 
 	return $repository;
 }
@@ -334,13 +331,28 @@ sub import
 	$__loaded = 1;
 }
 
+=item @ids = $eprints->repository_ids
+
+Returns a list of the active repository ids.
+
+=cut
+
+sub repository_ids
+{
+	my( $self ) = @_;
+
+	my @ids;
+
+	return EPrints::Config::get_repository_ids();
+}
+
 sub load_repositories
 {
 	my( $self ) = @_;
 
 	my @ids;
 
-	foreach my $id ( EPrints::Config::get_repository_ids() )
+	foreach my $id ( $self->repository_ids )
 	{
 		$self->{repository}->{$id} = $self->repository( $id, db_connect => 0 );
 		push @ids, $id;

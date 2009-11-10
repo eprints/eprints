@@ -18,7 +18,7 @@ my %API_METHODS = (
 	"EPrints::XHTML" => [qw( build_page form hidden_field input_field text_area_field to_xhtml )],
 	"EPrints::Page" => [qw( send write_to_file )],
 	"EPrints::DataObj" => [qw( commit create_subobject delete export id is_set render_citation render_value set_value uri url value )],
-	"EPrints::MetaField" => [qw( name property render_help render_name render_value_label set_property sort_values type values )],
+	"EPrints::MetaField" => [qw( name property render_help render_name render_value_label set_property sort_values type all_values )],
 );
 
 my $repoid = EPrints::Test::get_test_id();

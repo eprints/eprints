@@ -21,7 +21,7 @@ B<EPrints::Storage> - store and retrieve objects in the storage engine
 
 =head1 SYNOPSIS
 
-	my $store = $session->get_storage();
+	my $store = $repository->storage();
 
 	$store->store(
 		$fileobj,		# file object
@@ -37,9 +37,9 @@ This module is the storage control layer which uses L<EPrints::Plugin::Storage> 
 
 =over 4
 
-=item $store = EPrints::Storage->new( $session )
+=item $store = EPrints::Storage->new( $repository )
 
-Create a new storage object for $session. Should not be used directly, see L<EPrints::Session>.
+Create a new storage object for $repository. Should not be used directly, see L<EPrints::Session>.
 
 =cut
 
@@ -52,15 +52,20 @@ use strict;
 
 sub new
 {
-	my( $class, $session ) = @_;
+	my( $class, $repository ) = @_;
 
-	my $self = bless { _opened => {}, session => $session }, $class;
-	Scalar::Util::weaken($self->{session})
+	my $self = bless {
+			_opened => {},
+			config => {},
+			repository => $repository
+		}, $class;
+	Scalar::Util::weaken($self->{repository})
 		if defined &Scalar::Util::weaken;
 
-	$self->{config} = $session->get_repository->get_storage_config( "default" );
+	$self->_load_all( $repository->config( "lib_path" )."/storage" );
+	$self->_load_all( $repository->config( "config_path" )."/storage" );
 
-	unless( $self->{config} )
+	if( !scalar keys %{$self->{config}} )
 	{
 		EPrints::abort( "No storage configuration available for use" );
 	}
@@ -68,43 +73,49 @@ sub new
 	return $self;
 }
 
-sub load_all
+sub _load_all
 {
-	my( $path, $confhash ) = @_;
+	my( $self, $path ) = @_;
 
-	my $file = "$path/default.xml";
-
-	load_config_file( $file, $confhash );
+	foreach my $id (qw( default ))
+	{
+		$self->_load_config_file(
+			"$path/$id.xml",
+			$self->{config}->{$id} = {}
+		);
+	}
 }
 
-sub load_config_file
+sub _load_config_file
 {
-	my( $file, $confhash ) = @_;
+	my( $self, $file, $confhash ) = @_;
 
 	return unless -e $file;
 
-	my $doc = EPrints::XML::parse_xml( $file );
-	$confhash->{"default"}->{storage} = $doc->documentElement();
-	$confhash->{"default"}->{file} = $file;
-	$confhash->{"default"}->{mtime} = EPrints::Utils::mtime( $file );
+	my $doc = $self->{repository}->parse_xml( $file );
+	$confhash->{xml} = $doc->documentElement();
+	$confhash->{file} = $file;
+	$confhash->{mtime} = EPrints::Utils::mtime( $file );
 
 	return 1;
 }
 
-sub get_storage_config
+sub _config
 {
-	my( $id, $confhash ) = @_;
+	my( $self, $id ) = @_;
 
-	my $file = $confhash->{$id}->{file};
+	my $config = $self->{config}->{$id};
 
+	my $file = $config->{file};
 	my $mtime = EPrints::Utils::mtime( $file );
-
-	if( $mtime > $confhash->{$id}->{mtime} )
+	if( $mtime > $config->{mtime} )
 	{
-		load_config_file( $file, $confhash );
+		EPrints::XML::dispose( $config->{xml} );
+		%$config = ();
+		$self->load_config_file( $file, $config );
 	}
 
-	return $confhash->{$id}->{storage};
+	return $config->{xml};
 }
 
 =item $len = $store->store( $fileobj, CODEREF )
@@ -151,7 +162,7 @@ sub retrieve
 
 	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
-		my $plugin = $self->{session}->plugin( $copy->{pluginid} );
+		my $plugin = $self->{repository}->plugin( $copy->{pluginid} );
 		next unless defined $plugin;
 		$rc = $plugin->retrieve( $fileobj, $copy->{sourceid}, $f );
 		last if $rc;
@@ -174,10 +185,10 @@ sub delete
 
 	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
-		my $plugin = $self->{session}->plugin( $copy->{pluginid} );
+		my $plugin = $self->{repository}->plugin( $copy->{pluginid} );
 		unless( $plugin )
 		{
-			$self->{session}->get_repository->log( "Can not remove file copy '$copy->{sourceid}' - $copy->{pluginid} not available" );
+			$self->{repository}->get_repository->log( "Can not remove file copy '$copy->{sourceid}' - $copy->{pluginid} not available" );
 			next;
 		}
 		$rc &= $plugin->delete( $fileobj, $copy->{sourceid} );
@@ -228,7 +239,7 @@ sub get_local_copy
 
 	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
-		my $plugin = $self->{session}->plugin( $copy->{pluginid} );
+		my $plugin = $self->{repository}->plugin( $copy->{pluginid} );
 		next unless defined $plugin;
 		$filename = $plugin->get_local_copy( $fileobj );
 		last if defined $filename;
@@ -266,7 +277,7 @@ sub get_remote_copy
 
 	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
-		my $plugin = $self->{session}->plugin( $copy->{pluginid} );
+		my $plugin = $self->{repository}->plugin( $copy->{pluginid} );
 		next unless defined $plugin;
 		$url = $plugin->get_remote_copy( $fileobj, $copy->{sourceid} );
 		last if defined $url;
@@ -287,21 +298,23 @@ sub get_plugins
 
 	my @plugins;
 
-	my $session = $self->{session};
+	my $repository = $self->{repository};
 
 	my %params;
 	$params{item} = $fileobj;
-	$params{current_user} = $session->current_user;
-	$params{session} = $session;
+	$params{current_user} = $repository->current_user;
+	$params{session} = $repository;
 	$params{parent} = $fileobj->get_parent;
 
-	my $_plugins = EPrints::XML::EPC::process( $self->{config}, %params );
+	my $epc = $self->_config( "default" );
+
+	my $_plugins = EPrints::XML::EPC::process( $epc, %params );
 
 	foreach my $child ($_plugins->childNodes)
 	{
 		next unless( $child->nodeName eq "plugin" );
 		my $pluginid = $child->getAttribute( "name" );
-		my $plugin = $session->plugin( "Storage::$pluginid" );
+		my $plugin = $repository->plugin( "Storage::$pluginid" );
 		push @plugins, $plugin if defined $plugin;
 	}
 
