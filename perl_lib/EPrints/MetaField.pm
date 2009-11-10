@@ -1632,19 +1632,19 @@ sub is_browsable
 ######################################################################
 =pod
 
-=item $values = $field->values( %opts )
+=item $values = $field->all_values( %opts )
 
 Return a reference to an array of all the values of this field. 
 For fields like "subject" or "set"
 it returns all the variations. For fields like "text" return all 
 the distinct values from the database.
 
-Results are sorted according to the ordervalues of the $session.
+Results are sorted according to the ordervalues of the current session.
 
 =cut
 ######################################################################
 
-sub values
+sub all_values
 {
 	my( $self, %opts ) = @_;
 	return $self->get_values( $self->repository, $self->dataset, %opts );
