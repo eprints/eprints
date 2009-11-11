@@ -112,7 +112,7 @@ $oai->{mime_types} = {};
 # of the repository.  It would be appropriate to indicate the language(s)
 # of the metadata/data in the repository.
 
-$oai->{content}->{"text"} = "See web site";
+$oai->{content}->{"text"} = undef;
 $oai->{content}->{"url"} = $c->{base_url} . "/policies.html";
 
 # "metadataPolicy" : Text and/or a URL linking to text describing policies
