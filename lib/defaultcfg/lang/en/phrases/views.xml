@@ -25,7 +25,7 @@
      <epp:phrase id="viewtitle_eprint_divisions_list">Items where Division is "<epc:pin name="value1" />" and Year is <epc:pin name="value2" /></epp:phrase>
 
      <epp:phrase id="viewname_eprint_creators">Author</epp:phrase>
-     <epp:phrase id="viewtitle_eprint_year_menu_1">Browse by Author</epp:phrase>
+     <epp:phrase id="viewtitle_eprint_creators_menu_1">Browse by Author</epp:phrase>
      <epp:phrase id="viewtitle_eprint_creators_list">Items where Author is "<epc:pin name="value1" />"</epp:phrase>
 
 </epp:phrases>
