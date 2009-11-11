@@ -49,7 +49,6 @@ sub can_be_viewed
 {
 	my( $self ) = @_;
 
-	return 1;
 	return $self->allow( "eprint/archive/edit" );
 }
 
