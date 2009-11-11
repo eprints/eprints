@@ -11,7 +11,7 @@ $c->{invocation} = {
 	 'zip' => '$(unzip) 1>/dev/null 2>&1 -qq -o -d $(DIR) $(ARC)',
 	 'unzip' => '$(unzip) 1>/dev/null 2>&1 -qq -o -j -d $(DIRECTORY) $(SOURCE)',
 	 'cpall' => '$(cp) -pR $(SOURCE)/* $(TARGET)',
-	 'wget' => '$(wget)  -r -L -q -m -nH -np --execute="robots=off" --cut-dirs=$(CUTDIRS) $(URL)',
+	 'wget' => '$(wget) -U "Mozilla/5.0" -r -L -q -m -nH -np --execute="robots=off" --cut-dirs=$(CUTDIRS) $(URL)',
 	 'antiword' => '$(antiword) -t -f -m UTF-8 $(SOURCE) > $(TARGET)',
 	 'rmall' => '$(rm) -rf $(TARGET)/*',
    };
