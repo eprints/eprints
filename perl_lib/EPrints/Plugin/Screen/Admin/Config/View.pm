@@ -94,6 +94,17 @@ sub render
 		$buttons->appendChild( $edit_config_button );
 		$form->appendChild( $buttons );
 	}
+	else
+	{
+		# As the priv is hard-coded in the Edit modules no other way to do this
+		my $priv = $self->{processor}->{screenid};
+		$priv =~ s/^.+:://;
+		$priv = "+config/edit/\L$priv";
+		my $content = $self->{session}->html_phrase( "Plugin/Screen/Admin/Config/View:enable_editing",
+				privilege => $self->{session}->make_text( $priv ),
+			);
+		$page->appendChild( $self->{session}->render_message( "warning", $content ) );
+	}
 
 	my $pre = $self->{session}->make_element( "pre", class=>"ep_config_viewfile" );
 	open( CONFIGFILE, $self->{processor}->{configfilepath} );

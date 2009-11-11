@@ -609,6 +609,7 @@ User Area CGI Scripts
     <epp:phrase id="Plugin/Screen/Admin/Config:description">View configuration files for this repository.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config:back_to_config"><p><epc:pin name="link">View other configuration files</epc:pin>.</p></epp:phrase>
 
+	<epp:phrase id="Plugin/Screen/Admin/Config/View:enable_editing">To enable configuration file editing add the <tt><epc:pin name="privilege"/></tt> privilege to your user role.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config/View/Apache:page_title">View config file: <epc:pin name="file" /></epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config/View/Autocomplete:page_title">View config file: <epc:pin name="file" /></epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config/View/Citation:page_title">View config file: <epc:pin name="file" /></epp:phrase>
