@@ -323,6 +323,9 @@ Serialises and returns the $node as a UTF-8 string.
 
 To generate an XHTML string see L<EPrints::XHTML>.
 
+Options:
+	indent - if true will indent the XML tree
+
 =cut
 
 sub to_string
@@ -334,7 +337,7 @@ sub to_string
 
 	my( $self, $node, %opts ) = @_;
 
-	my $string = $node->toString;
+	my $string = $node->toString( $opts{indent} );
 	utf8::decode($string) unless utf8::is_utf8($string);
 
 	return $string;

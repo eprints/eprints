@@ -1212,6 +1212,7 @@ sub prepare_search
 	my( $self, %opts ) = @_;
 
 	return EPrints::Search->new(
+		session => $self->{repository},
 		dataset => $self,
 		allow_blank => 1,
 		%opts,
@@ -1228,7 +1229,7 @@ sub search
 {
 	my( $self, %opts ) = @_;
 
-	return $self->prepare_search( %opts )->execute;
+	return $self->prepare_search( %opts )->perform_search;
 }
 
 =item $list = $ds->list( $ids )

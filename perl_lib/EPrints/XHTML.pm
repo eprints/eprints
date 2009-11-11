@@ -30,6 +30,8 @@ B<EPrints::XHTML> - XHTML Module
 	$xhtml_dom_node = $xhtml->text_area_field( $name, $value, rows => 4 );
 	$xhtml_dom_node = $xhtml->form( "get", $url );
 
+	$xhtml_dom_node = $xhtml->data_element( $name, $value, indent => 4 );
+
 	$page = $xhtml->build_page( %opts );
 
 =head1 DESCRIPTION
@@ -101,17 +103,23 @@ Returns an XHTML input field with name $name and value $value. Specify "noenter"
 
 sub input_field
 {
-	my( $self, $name, $value, %opts ) = @_;
+	my( $self, $name, $value, @opts ) = @_;
 
-	if( delete $opts{noenter} )
+	for(my $i = 0; $i < @opts; $i+=2)
 	{
-		$opts{onKeyPress} = "return EPJS_block_enter( event )";
+		if( $opts[$i] eq 'noenter' )
+		{
+			splice(@opts,$i,2,
+				onKeyPress => 'return EPJS_block_enter( event )'
+			);
+			last;
+		}
 	}
 
 	return $self->{repository}->xml->create_element( "input",
 		name => $name,
 		value => $value,
-		%opts );
+		@opts );
 }
 
 =item $node = $xhtml->hidden_field( $name, $value, %opts );
@@ -122,16 +130,16 @@ Returns an XHTML hidden input field.
 
 sub hidden_field
 {
-	my( $self, $name, $value, %opts ) = @_;
+	my( $self, $name, $value, @opts ) = @_;
 
 	return $self->{repository}->xml->create_element( "input",
 		name => $name,
 		value => $value,
 		type => "hidden",
-		%opts );
+		@opts );
 }
 
-=item $node = $xhtml->text_area_field( $name, $value, %opts );
+=item $node = $xhtml->text_area_field( $name, $value, %opts )
 
 Returns an XHTML textarea input.
 
@@ -139,12 +147,51 @@ Returns an XHTML textarea input.
 
 sub text_area_field
 {
-	my( $self, $name, $value, %opts ) = @_;
+	my( $self, $name, $value, @opts ) = @_;
 
 	my $node = $self->{repository}->xml->create_element( "textarea",
 		name => $name,
-		%opts );
+		@opts );
 	$node->appendChild( $self->{repository}->xml->create_text_node( $value ) );
+
+	return $node;
+}
+
+=item $node = $xhtml->data_element( $name, $value, %opts )
+
+Create a new element named $name containing a text node containing $value.
+
+Options:
+	indent - amount of whitespace to indent by
+
+=cut
+
+sub data_element
+{
+	my( $self, $name, $value, @opts ) = @_;
+
+	my $indent;
+	for(my $i = 0; $i < @opts; $i+=2)
+	{
+		if( $opts[$i] eq 'indent' )
+		{
+			(undef, $indent ) = splice(@opts,$i,2);
+			last;
+		}
+	}
+
+	my $node = $self->{repository}->xml->create_element( $name, @opts );
+	$node->appendChild( $self->{repository}->xml->create_text_node( $value ) );
+
+	if( defined $indent )
+	{
+		my $f = $self->{repository}->xml->create_document_fragment;
+		$f->appendChild( $self->{repository}->xml->create_text_node(
+			"\n"." "x$indent
+			) );
+		$f->appendChild( $node );
+		return $f;
+	}
 
 	return $node;
 }

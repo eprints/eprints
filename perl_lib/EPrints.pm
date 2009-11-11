@@ -255,6 +255,9 @@ sub new($%)
 {
 	my( $class, %opts ) = @_;
 
+	# mod_perl
+	return $EPrints::HANDLE if defined $EPrints::HANDLE;
+
 	return bless { opts=>\%opts }, $class;
 }
 

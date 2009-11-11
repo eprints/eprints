@@ -2691,13 +2691,9 @@ sub render_data_element
 {
 	my( $self, $indent, $elementname, $value, %opts ) = @_;
 
-	my $f = $self->make_doc_fragment();
-	my $el = $self->make_element( $elementname, %opts );
-	$el->appendChild( $self->make_text( $value ) );
-	$f->appendChild( $self->make_indent( $indent ) );
-	$f->appendChild( $el );
-
-	return $f;
+	return $self->xhtml->data_element( $elementname, $value,
+		indent => $indent,
+		%opts );
 }
 
 
