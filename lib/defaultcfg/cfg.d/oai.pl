@@ -110,10 +110,8 @@ $oai->{mime_types} = {};
 # of the repository.  It would be appropriate to indicate the language(s)
 # of the metadata/data in the repository.
 
-$oai->{content}->{"text"} = <<END;
-OAI Site description has not been configured.
-END
-$oai->{content}->{"url"} = undef;
+$oai->{content}->{"text"} = "See web site";
+$oai->{content}->{"url"} = $c->{base_url} . "/policies.html";
 
 # "metadataPolicy" : Text and/or a URL linking to text describing policies
 # relating to the use of metadata harvested through the OAI interface.
