@@ -119,10 +119,18 @@ sub output_dataobj
 		}
 	}
 
+	my $header = "";
+	my $footer = "";
+	if( !$opts{multiple} )
+	{
+		$header = $plugin->_header;
+		$footer = $plugin->_footer;
+	}
+
 	return 
-		$plugin->_header.
+		$header.
 		$plugin->ep3xml_to_json( $obj_node, $opts{json_indent} ).
-		$plugin->_footer;
+		$footer;
 }
 
 sub ep3xml_to_json
