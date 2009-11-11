@@ -73,13 +73,21 @@ sub output_list
 	
 	my $r = [];
 
+	my $xml = $plugin->_root;
+	my $header = EPrints::XML::to_string( $xml );
+	EPrints::XML::dispose( $xml );
+	$header =~ s/(<\/\w+>)$//;
+	my $footer = $1;
+
+	$header = "<?xml version='1.0'?>\n\n$header";
+
 	if( defined $opts{fh} )
 	{
-		print {$opts{fh}} $plugin->header();
+		print {$opts{fh}} $header;
 	}
 	else
 	{
-		push @{$r}, $plugin->header();
+		push @{$r}, $header;
 	}
 
 	$opts{list}->map(sub {
@@ -97,11 +105,11 @@ sub output_list
 
 	if( defined $opts{fh} )
 	{
-		print {$opts{fh}} $plugin->footer();
+		print {$opts{fh}} $footer;
 	}
 	else
 	{
-		push @{$r}, $plugin->footer();
+		push @{$r}, $footer;
 	}
 
 
@@ -113,7 +121,7 @@ sub output_list
 	return join( '', @{$r} );
 }
 
-sub output_dataobj
+sub xml_dataobj
 {
 	my( $plugin, $dataobj, %opts ) = @_;
 
@@ -403,27 +411,31 @@ sub output_dataobj
 	}	
 	$xml_node->appendChild( $sub_xml_node );	
 	$response->appendChild( $xml_node );
-	EPrints::XML::tidy( $response );
-	my $resourceMap= EPrints::XML::to_string( $response );
 	if( $multiple )
 	{
-		return $resourceMap;
+		return $response;
 	}
 	else 
 	{
-		return $plugin->header.$resourceMap.$plugin->footer;
+		my $feed = $plugin->_root;
+		$feed->appendChild( $response );
+		return $feed;
 	}
-	EPrints::XML::dispose( $response );
 }
 
-sub header
+sub _root
 {
-	return "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<feed xmlns=\"http://www.w3.org/2005/Atom\" xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n\txmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\"\n\txmlns:ore=\"http://www.openarchives.org/ore/terms/\"\n\txmlns:dcterms=\"http://purl.org/dc/terms/\">\n";
-}
+	my( $self ) = @_;
 
-sub footer
-{
-	return "</feed>";
+	my $feed = $self->{session}->make_element( "feed",
+			"xmlns"=>"http://www.w3.org/2005/Atom",
+			"xmlns:rdf"=>"http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+			"xmlns:rdfs"=>"http://www.w3.org/2000/01/rdf-schema#",
+			"xmlns:ore"=>"http://www.openarchives.org/ore/terms/",
+			"xmlns:dcterms"=>"http://purl.org/dc/terms/",
+		);
+
+	return $feed;
 }
 
 1;

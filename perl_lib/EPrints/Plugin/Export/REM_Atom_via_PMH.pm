@@ -71,9 +71,9 @@ sub xml_dataobj
 {
 	my( $plugin, $dataobj ) = @_;
 
-	my $main_dc_plugin = $plugin->{session}->plugin( "Export::REM_Atom" );
+	my $main_plugin = $plugin->{session}->plugin( "Export::REM_Atom" );
 
-	my $data = $main_dc_plugin->output_dataobj( $dataobj, single => 1 );
+	my $data = $main_plugin->xml_dataobj( $dataobj, single => 1 );
 
 	my $dc = $plugin->{session}->make_element(
         	"atom:atom",

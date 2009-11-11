@@ -23,4 +23,15 @@ sub initialise_fh
 	binmode($fh, ":utf8");
 }
 
+sub output_dataobj
+{
+	my( $self, $dataobj, %opts ) = @_;
+
+	my $xml = $self->xml_dataobj( $dataobj, %opts );
+	my $r = EPrints::XML::to_string( $xml );
+	EPrints::XML::dispose( $xml );
+
+	return $r;
+}
+
 1;
