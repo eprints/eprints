@@ -17,11 +17,42 @@ sub new
 	$self->{visible} = "all";
 	$self->{suffix} = ".js";
 	$self->{mimetype} = "text/javascript; charset=utf-8";
+	if( defined($self->{session}) && $self->{session}->get_online )
+	{
+		$self->{jsonp} = $self->{session}->param( "jsonp" );
+		if( defined $self->{jsonp} )
+		{
+			$self->{jsonp} =~ s/[^A-Za-z0-9]//g;
+		}
+	}
 
 	return $self;
 }
 
 
+sub _prefix
+{
+	my( $self ) = @_;
+
+	if( defined($self->{jsonp}) )
+	{
+		return "$self->{jsonp}(";
+	}
+
+	return "";
+}
+
+sub _postfix
+{
+	my( $self ) = @_;
+
+	if( defined($self->{jsonp}) )
+	{
+		return ")";
+	}
+
+	return "";
+}
 
 sub output_list
 {
@@ -30,7 +61,7 @@ sub output_list
 	my $r = [];
 
 	my $part;
-	$part = "[\n\n";
+	$part = $plugin->_prefix."[\n\n";
 	if( defined $opts{fh} )
 	{
 		print {$opts{fh}} $part;
@@ -46,7 +77,7 @@ sub output_list
 		my( $session, $dataset, $item ) = @_;
 		my $part = "";
 		if( $first ) { $part = "  "; $first = 0; } else { $part = ",\n  "; }
-		$part .= $plugin->output_dataobj( $item, %opts );
+		$part .= $plugin->output_dataobj( $item, %opts, multiple => 1 );
 		if( defined $opts{fh} )
 		{
 			print {$opts{fh}} $part;
@@ -57,7 +88,7 @@ sub output_list
 		}
 	} );
 
-	$part= "\n\n]\n\n";
+	$part= "\n\n]\n\n".$plugin->_postfix;
 	if( defined $opts{fh} )
 	{
 		print {$opts{fh}} $part;
@@ -94,7 +125,10 @@ sub output_dataobj
 		}
 	}
 
-	return $plugin->ep3xml_to_json( $obj_node, $opts{json_indent} );
+	return 
+		$plugin->_prefix.
+		$plugin->ep3xml_to_json( $obj_node, $opts{json_indent} ).
+		$plugin->_postfix;
 }
 
 sub ep3xml_to_json
