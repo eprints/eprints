@@ -8418,3 +8418,5 @@ EPRINTS-3.1-beta-2
  * Create action list for actions to go on summary page
  * Added this list to the summary page
 
+2009-11-11 cjg
+ * Fixed bug that is_advertised property on export plugins is being ignored.

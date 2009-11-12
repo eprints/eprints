@@ -291,7 +291,7 @@ sub _get_export_plugins
 			can_accept=>"list/".$self->{processor}->{search}->{dataset}->confid, 
 			is_visible=>$self->_vis_level,
 	);
-	unless( $include_not_advertised ) { $is_advertised = 1; }
+	unless( $include_not_advertised ) { $opts{is_advertised} = 1; }
 	return $self->{session}->plugin_list( %opts );
 }
 
