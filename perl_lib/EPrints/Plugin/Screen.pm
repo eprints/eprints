@@ -474,7 +474,7 @@ sub _render_action_aux
 		$method = "POST";
 	}
 
-	my $form = $session->render_form( $method, $session->config( "userhome" ) );
+	my $form = $session->render_form( $method, $session->current_url( path => "cgi" ) . "/users/home" );
 
 	$form->appendChild( 
 		$session->render_hidden_field( 
