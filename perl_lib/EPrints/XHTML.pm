@@ -105,19 +105,23 @@ sub input_field
 {
 	my( $self, $name, $value, @opts ) = @_;
 
+	my $noenter;
 	for(my $i = 0; $i < @opts; $i+=2)
 	{
 		if( $opts[$i] eq 'noenter' )
 		{
-			splice(@opts,$i,2,
-				onKeyPress => 'return EPJS_block_enter( event )'
-			);
+			(undef, $noenter) = splice(@opts,$i,2);
 			last;
 		}
+	}
+	if( $noenter )
+	{
+		push @opts, onKeyPress => 'return EPJS_block_enter( event )';
 	}
 
 	return $self->{repository}->xml->create_element( "input",
 		name => $name,
+		id => $name,
 		value => $value,
 		@opts );
 }
@@ -134,6 +138,7 @@ sub hidden_field
 
 	return $self->{repository}->xml->create_element( "input",
 		name => $name,
+		id => $name,
 		value => $value,
 		type => "hidden",
 		@opts );
@@ -151,6 +156,7 @@ sub text_area_field
 
 	my $node = $self->{repository}->xml->create_element( "textarea",
 		name => $name,
+		id => $name,
 		@opts );
 	$node->appendChild( $self->{repository}->xml->create_text_node( $value ) );
 

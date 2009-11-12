@@ -3241,35 +3241,33 @@ and name and value as specified. eg.
 
 sub render_hidden_field
 {
-	my( $self , $name , $value ) = @_;
+	my( $self, $name, $value ) = @_;
 
 	if( !defined $value ) 
 	{
 		$value = $self->param( $name );
 	}
 
-	return $self->render_input_field( 
-		name => $name,
-		id => $name,
-		value => $value,
-		type => "hidden" );
+	return $self->xhtml->hidden_field( $name, $value );
 }
 
 sub render_input_field
 {
-	my( $self, @opts ) = @_;
-
-	return $self->make_element( "input", @opts );
+	my( $self, %opts ) = @_;
+	return $self->xhtml->input_field(
+		delete($opts{name}),
+		delete($opts{value}),
+		%opts );
 }
 
 sub render_noenter_input_field
 {
-	my( $self, @opts ) = @_;
-
-	return $self->make_element( "input",
-		onKeyPress => "return EPJS_block_enter( event )",
-		@opts,
-	);
+	my( $self, %opts ) = @_;
+	return $self->xhtml->input_field(
+		delete($opts{name}),
+		delete($opts{value}),
+		noenter => 1,
+		%opts );
 }
 
 
@@ -3289,18 +3287,10 @@ eg.
 sub render_upload_field
 {
 	my( $self, $name ) = @_;
-
-#	my $div = $self->make_element( "div" ); #no class cjg	
-#	$div->appendChild( $self->make_element(
-#		"input", 
-#		name => $name,
-#		type => "file" ) );
-#	return $div;
-
-	return $self->render_noenter_input_field(
-		name => $name,
+	return $self->xhtml->input_field(
+		$name,
+		undef,
 		type => "file" );
-
 }
 
 
@@ -3453,19 +3443,7 @@ sub render_form
 {
 	my( $self, $method, $dest ) = @_;
 	
-	my $form = $self->xml->create_element( "form" );
-	$form->setAttribute( "method", "\L$method" );
-	$form->setAttribute( "accept-charset", "utf-8" );
-	if( !defined $dest )
-	{
-		$dest = $self->get_uri;
-	}
-	$form->setAttribute( "action", $dest );
-	if( "\L$method" eq "post" )
-	{
-		$form->setAttribute( "enctype", "multipart/form-data" );
-	}
-	return $form;
+	return $self->xhtml->form( $method, $dest );
 }
 
 
