@@ -8423,3 +8423,6 @@ EPRINTS-3.1-beta-2
 
 2009-11-11 cjg
  * Trivial change to eprint fields; changed creators_id from 'email' to 'text'
+
+2009-11-11 cjg
+ * Added 'fn' parameter to cgi/json as an alternative to 'callback' 
