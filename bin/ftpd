@@ -28,7 +28,11 @@ GetOptions(
 my( $repoid ) = @ARGV;
 
 my $session = EPrints::Session->new( 1, $repoid );
-exit unless $session;
+if( !defined $session )
+{
+	print STDERR "Failed to load repository: $repoid\n";
+	exit 1;
+}
 
 POE::Session->create(
 	inline_states => {

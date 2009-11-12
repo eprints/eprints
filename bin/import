@@ -199,13 +199,18 @@ if( $scripted ) { $noise = 0; }
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;
 
-my $repository_id = shift @ARGV;
+my $repoid = shift @ARGV;
 my $datasetid = shift @ARGV;
 my $ipluginid = shift @ARGV;
 my $filename = shift @ARGV;
 
-my $session = new EPrints::Session( 1, $repository_id, $noise );
-exit( 1 ) unless defined $session;
+my $session = new EPrints::Session( 1, $repoid, $noise );
+if( !defined $session )
+{
+	print STDERR "Failed to load repository: $repoid\n";
+	exit 1;
+}
+
 
 if( $enable_file_imports )
 {

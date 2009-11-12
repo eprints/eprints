@@ -564,7 +564,11 @@ sub cleanup_cachemaps
 	my( $repoid ) = @_;
 
 	my $session = EPrints::Session->new( 1 , $repoid, $noise );
-	exit unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 
 	my $c = $session->get_database->drop_orphan_cache_tables;
 
@@ -1027,7 +1031,11 @@ sub create_user
 	my( $repoid ) = @_;
 
 	my $session = EPrints::Session->new( 1 , $repoid, $noise );
-	exit unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 
 	my $user_info = {};
 	@{$user_info}{qw( username usertype password email )} = @ARGV[2..$#ARGV];
@@ -1087,7 +1095,11 @@ sub redo_thumbnails
 	my( $repoid, @ids ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 
 	my $mf = sub {
 		my( $session , $dataset , $doc ) = @_;
@@ -1133,7 +1145,11 @@ sub refresh_views
 	my( $repoid ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 	
 	my $file = $session->get_repository->get_conf( "variables_path" )."/views.timestamp";
 	unless( open( CHANGEDFILE, ">$file" ) )
@@ -1162,7 +1178,11 @@ sub refresh_abstracts
 	my( $repoid ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 	
 	my $file = $session->get_repository->get_conf( "variables_path" )."/abstracts.timestamp";
 	unless( open( CHANGEDFILE, ">$file" ) )
@@ -1190,7 +1210,11 @@ sub reload
 	my( $repoid ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 	
 	my $file = $session->get_repository->get_conf( "variables_path" )."/last_changed.timestamp";
 	unless( open( CHANGEDFILE, ">$file" ) )
@@ -1215,7 +1239,11 @@ sub reload_metafields
 	my( $repoid ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 
 	my $dataset = $session->get_repository->get_dataset( "metafield" );
 	$dataset->map( $session, sub {
@@ -1232,7 +1260,11 @@ sub create_tables
 	my( $repoid ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise, 1 );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 
 	if( $session->get_database->has_table( "eprint" ) )
 	{
@@ -1334,7 +1366,11 @@ sub reset_dataset
 	my( $repoid, $datasetid ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise, 1 );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 
 	my $db = $session->get_database;
 	my @tables = $db->get_tables;
@@ -1360,7 +1396,11 @@ sub drop_tables_and_recreate_db
 	my( $repoid ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise, 1 );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 
 	my $db = $session->get_database;
 
@@ -1480,7 +1520,11 @@ sub erase_fulltext_index
 	my( $repoid ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 
 	my $ds = $session->get_repository->get_dataset( "document" );
 	print "Stating to erase caches\n" if( $noise >= 1 );
@@ -1533,7 +1577,12 @@ sub test
 	}
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
+	
 	if( $noise > 1 )
 	{
 		print "PID: $$\n";
@@ -1619,7 +1668,11 @@ sub rehash
 	my( $repoid ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 
 	my $docid = $ARGV[2];
 	if( defined $docid )
@@ -1676,7 +1729,11 @@ sub recommit
 	my( $repoid, $datasetid ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 
 	my $dataset = $session->get_repository->get_dataset( $datasetid );
 	if( !defined $dataset )
@@ -1725,7 +1782,11 @@ sub reorder
 	my( $repoid, $datasetid ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 
 	my $dataset = $session->get_repository->get_dataset( $datasetid );
 	if( !defined $dataset )
@@ -1756,7 +1817,11 @@ sub reindex
 	my( $repoid, $datasetid ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 
 	my $dataset = $session->get_repository->get_dataset( $datasetid );
 	if( !defined $dataset )
@@ -1792,7 +1857,11 @@ sub schema
 	my( $repoid ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
 
 	my $mf_dataset = $session->get_repository->get_dataset( "metafield" );
 
@@ -1825,7 +1894,12 @@ sub upgrade
 	my( $repoid ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise, 1 );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
+	
 	my $db = $session->get_db();
 	my $dbversion = $db->get_version();
 	
@@ -2220,7 +2294,12 @@ sub update_database_structure
 	my( $repoid ) = @_;
 
 	my $session = new EPrints::Session( 1 , $repoid , $noise );
-	exit( 1 ) unless( defined $session );
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
+	
 	my $db = $session->get_db();
 	
 	my $repo = EPrints::Repository->new( $repoid );
@@ -2305,7 +2384,12 @@ sub upgrade_mysql_charset
 	my( $repoid, $db ) = @_;
 
 	my $session = EPrints::Session->new( 1, $repoid, 0, 1 );
-	EPrints::abort "Error getting session" unless $session;
+	if( !defined $session )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
+
 	my $repo = $session->get_repository;
 
 #	$db->do("LOCK TABLES version WRITE");

@@ -8436,3 +8436,6 @@ EPRINTS-3.1-beta-2
 
 2009-11-12 cjg
  * Fix to make button forms work with https.
+
+2009-11-12 cjg
+ * Better error message if repository is not loaded in /bin/ scripts.

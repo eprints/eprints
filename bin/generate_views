@@ -152,8 +152,14 @@ $|=1;
 
 binmode( STDOUT, ":utf8" );
 
-my $session = new EPrints::Session( 1 , $ARGV[0] , $noise );
-exit( 1 ) unless( defined $session );
+my $repoid = $ARGV[0];
+
+my $session = new EPrints::Session( 1 , $repoid , $noise );
+if( !defined $session )
+{
+	print STDERR "Failed to load repository: $repoid\n";
+	exit 1;
+}
 
 $session->cache_subjects;
 
