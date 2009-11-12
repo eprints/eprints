@@ -374,7 +374,7 @@ sub render_search_value
 	if( defined $firstdate && defined $lastdate )
 	{
 		return $session->html_phrase(
-			"lib/searchfield:desc_date_between",
+			"lib/searchfield:desc:date_between",
 			from => EPrints::Time::render_date( 
 					$session, 
 					$firstdate ),
@@ -386,7 +386,7 @@ sub render_search_value
 	if( defined $lastdate )
 	{
 		return $session->html_phrase(
-			"lib/searchfield:desc_date_orless",
+			"lib/searchfield:desc:date_orless",
 			to => EPrints::Time::render_date( 
 					$session,
 					$lastdate ) );
@@ -395,7 +395,7 @@ sub render_search_value
 	if( defined $firstdate && $drange eq "-" )
 	{
 		return $session->html_phrase(
-			"lib/searchfield:desc_date_ormore",
+			"lib/searchfield:desc:date_ormore",
 			from => EPrints::Time::render_date( 
 					$session,
 					$firstdate ) );

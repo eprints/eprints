@@ -280,33 +280,33 @@ EPrints Modules
     <epp:phrase id="lib/searchfield:desc_any_in"><epc:pin name="name"/> matches any of <epc:pin name="value"/></epp:phrase>
     <epp:phrase id="lib/searchfield:desc_all_in"><epc:pin name="name"/> matches <epc:pin name="value"/></epp:phrase>
 
-    <epp:phrase id="lib/searchfield:desc_year_between">between <epc:pin name="from"/> and <epc:pin name="to"/> inclusive</epp:phrase>
-    <epp:phrase id="lib/searchfield:desc_year_orless"><epc:pin name="to"/> or before</epp:phrase>
-    <epp:phrase id="lib/searchfield:desc_year_ormore"><epc:pin name="from"/> or after</epp:phrase>
-
-    <epp:phrase id="lib/searchfield:desc_int_between">between <epc:pin name="from"/> and <epc:pin name="to"/> inclusive</epp:phrase>
-    <epp:phrase id="lib/searchfield:desc_int_orless"><epc:pin name="to"/> or less</epp:phrase>
-    <epp:phrase id="lib/searchfield:desc_int_ormore"><epc:pin name="from"/> or more</epp:phrase>
-
-	<epp:phrase id="lib/searchfield:desc_between">between <epc:pin name="from"/> and <epc:pin name="to"/> inclusive</epp:phrase>
+	<epp:phrase id="lib/searchfield:desc:between">between <epc:pin name="from"/> and <epc:pin name="to"/> inclusive</epp:phrase>
 	<epp:phrase id="lib/searchfield:desc:orless"><epc:pin name="to"/> or less</epp:phrase>
 	<epp:phrase id="lib/searchfield:desc:ormore"><epc:pin name="from"/> or more</epp:phrase>
 
-    <epp:phrase id="lib/searchfield:desc_counter_between" ref="lib/searchfield:desc_between" />
+	<epp:phrase id="lib/searchfield:desc:year_between" ref="lib/searchfield:desc:between" />
+	<epp:phrase id="lib/searchfield:desc:year_orless" ref="lib/searchfield:desc:orless" />
+	<epp:phrase id="lib/searchfield:desc:year_ormore" ref="lib/searchfield:desc:ormore" />
+
+	<epp:phrase id="lib/searchfield:desc:int_between" ref="lib/searchfield:desc:between" />
+	<epp:phrase id="lib/searchfield:desc:int_orless" ref="lib/searchfield:desc:orless" />
+	<epp:phrase id="lib/searchfield:desc:int_ormore" ref="lib/searchfield:desc:ormore" />
+
+	<epp:phrase id="lib/searchfield:desc:float_between" ref="lib/searchfield:desc:between" />
+	<epp:phrase id="lib/searchfield:desc:float_orless" ref="lib/searchfield:desc:orless" />
+	<epp:phrase id="lib/searchfield:desc:float_ormore" ref="lib/searchfield:desc:ormore" />
+
+	<epp:phrase id="lib/searchfield:desc:date_between" ref="lib/searchfield:desc:between" />
+	<epp:phrase id="lib/searchfield:desc:date_orless" ref="lib/searchfield:desc:orless" />
+	<epp:phrase id="lib/searchfield:desc:date_ormore" ref="lib/searchfield:desc:ormore" />
+
+	<epp:phrase id="lib/searchfield:desc:itemref_between" ref="lib/searchfield:desc:between" />
+	<epp:phrase id="lib/searchfield:desc:itemref_orless" ref="lib/searchfield:desc:orless" />
+	<epp:phrase id="lib/searchfield:desc:itemref_ormore" ref="lib/searchfield:desc:ormore" />
+
+    <epp:phrase id="lib/searchfield:desc:counter_between" ref="lib/searchfield:desc:between" />
 	<epp:phrase id="lib/searchfield:desc:counter_orless" ref="lib/searchfield:desc:orless" />
 	<epp:phrase id="lib/searchfield:desc:counter_ormore" ref="lib/searchfield:desc:ormore" />
-
-    <epp:phrase id="lib/searchfield:desc_float_between">between <epc:pin name="from"/> and <epc:pin name="to"/> inclusive</epp:phrase>
-    <epp:phrase id="lib/searchfield:desc_float_orless"><epc:pin name="to"/> or less</epp:phrase>
-    <epp:phrase id="lib/searchfield:desc_float_ormore"><epc:pin name="from"/> or more</epp:phrase>
-
-    <epp:phrase id="lib/searchfield:desc_date_between">between <epc:pin name="from"/> and <epc:pin name="to"/> inclusive</epp:phrase>
-    <epp:phrase id="lib/searchfield:desc_date_orless"><epc:pin name="to"/> or before</epp:phrase>
-    <epp:phrase id="lib/searchfield:desc_date_ormore"><epc:pin name="from"/> or after</epp:phrase>
-
-    <epp:phrase id="lib/searchfield:desc_itemref_between">between <epc:pin name="from"/> and <epc:pin name="to"/> inclusive</epp:phrase>
-    <epp:phrase id="lib/searchfield:desc_itemref_orless"><epc:pin name="to"/> or less</epp:phrase>
-    <epp:phrase id="lib/searchfield:desc_itemref_ormore"><epc:pin name="from"/> or more</epp:phrase>
 
     <epp:phrase id="lib/searchfield:desc_ignored"> (Ignoring: <epc:pin name="list"/>)</epp:phrase>
 

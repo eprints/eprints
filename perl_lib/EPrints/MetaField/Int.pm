@@ -117,7 +117,7 @@ sub render_search_value
 	if( $value =~ m/^($number)-($number)$/ )
 	{
 		return $session->html_phrase(
-			"lib/searchfield:desc_".$type."_between",
+			"lib/searchfield:desc:".$type."_between",
 			from => $session->make_text( $1 ),
 			to => $session->make_text( $2 ) );
 	}
@@ -125,14 +125,14 @@ sub render_search_value
 	if( $value =~ m/^-($number)$/ )
 	{
 		return $session->html_phrase(
-			"lib/searchfield:desc_".$type."_orless",
+			"lib/searchfield:desc:".$type."_orless",
 			to => $session->make_text( $1 ) );
 	}
 
 	if( $value =~ m/^($number)-$/ )
 	{
 		return $session->html_phrase(
-			"lib/searchfield:desc_".$type."_ormore",
+			"lib/searchfield:desc:".$type."_ormore",
 			from => $session->make_text( $1 ) );
 	}
 
