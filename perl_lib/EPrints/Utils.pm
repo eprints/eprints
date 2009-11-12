@@ -582,6 +582,7 @@ sub _render_citation_aux
 			{
 				$rendered = $params{session}->make_element( 
 					"a",
+					onclick=>$params{onclick},
 					target=>$params{target},
 					href=> $params{url} );
 			}
