@@ -2534,10 +2534,10 @@ sub get_cache_ids
 
 	my $sql = "SELECT ".$self->quote_identifier( $dataset->get_key_field->get_sql_name );
 	$sql .= " FROM ".$self->quote_identifier( $cachemap->get_sql_table_name );
-	$sql .= " WHERE $Q_pos >= $offset";
+	$sql .= " WHERE $Q_pos > $offset";
 	if( defined $count )
 	{
-		$sql .= " AND $Q_pos < ".($offset+$count);
+		$sql .= " AND $Q_pos <= ".($offset+$count);
 	}
 	$sql .= " ORDER BY ".$self->quote_identifier( "pos" )." ASC";
 
