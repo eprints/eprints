@@ -8429,3 +8429,6 @@ EPRINTS-3.1-beta-2
 
 2009-11-12 cjg
  * Bugfix to clone node under GDOME.
+
+2009-11-12 cjg
+ * Syntactic tweak to process_parameters

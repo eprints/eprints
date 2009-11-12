@@ -1266,21 +1266,21 @@ sub js_string
 #  then it's set to the default from the $defaults hash.
 #  Also warns if unknown paramters were passed.
 
-sub process_parameters(\%%)
+sub process_parameters($$)
 {
-	my( $params, %defaults ) = @_;
+	my( $params, $defaults ) = @_;
 
-	foreach my $k ( keys %defaults )
+	foreach my $k ( keys %{$defaults} )
 	{
 		if( !defined $params->{$k} ) 
 		{ 
-			$params->{$k} = $defaults{$k}; 
+			$params->{$k} = $defaults->{$k}; 
 		}
 	}
 
 	foreach my $k ( keys %{$params} )
 	{
-		if( !defined $defaults{$k} )
+		if( !defined $defaults->{$k} )
 		{
 			my @c = caller(1);
 			warn "Unexpected parameter '$k' passed to ".$c[3]." at ".$c[1]." line ".$c[2]."\n";

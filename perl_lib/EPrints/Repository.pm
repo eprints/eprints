@@ -139,13 +139,13 @@ sub new
 {
 	my( $class, $repository_id, %opts ) = @_;
 
-	EPrints::Utils::process_parameters( \%opts, 
+	EPrints::Utils::process_parameters( \%opts, {
 		  consume_post => 1,
 		           cgi => 0,
 		         noise => 0,
 		    db_connect => 1,
 		      check_db => 1,
-	);
+	});
 
 	my $self = bless {}, $class;
 
