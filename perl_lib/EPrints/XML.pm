@@ -284,8 +284,10 @@ sub clone_node
 		return $node->cloneNode( $deep );
 	}
 
-	return clone_and_own( $node, $self->{doc}, $node );
+	my $clone = $node->cloneNode( 0 );
+	$clone->setOwnerDocument( $self->{doc} );
 
+	return $clone;
 # Bug in XML::LibXML where it ignores $deep, can't easily override this
 #	return $self->{doc}->importNode( $node, 0 );
 }
