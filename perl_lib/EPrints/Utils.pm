@@ -1207,7 +1207,21 @@ sub human_filesize
 
 	my $size_in_meg = int( $size_in_k / 1024 );
 
-	return $size_in_meg.'Mb';
+	if ($size_in_meg < 4096)
+	{
+		return $size_in_meg.'Mb';
+	}
+
+	my $size_in_gig = int( $size_in_meg / 1024 );
+
+	if ($size_in_gig < 4096)
+	{
+		return $size_in_gig.'Gb';
+	}
+
+	my $size_in_tb = int( $size_in_gig / 1024 );
+
+	return $size_in_tb.'Tb';
 }
 
 my %REQUIRED_CACHE;
