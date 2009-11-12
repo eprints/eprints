@@ -22,6 +22,10 @@
     <epp:phrase id="Plugin/Screen/BatchEdit:applied_replace">Replaced existing value in <epc:pin name="fieldname"/> with "<epc:pin name="value"/>".</epp:phrase>
 
 
+	<epp:phrase id="Plugin/Screen/BatchEdit:applying_to">Applying batch alterations to <epc:pin name="count" /> items (only first 5 shown):</epp:phrase>
+	<epp:phrase id="Plugin/Screen/BatchEdit:add_action">Add Action</epp:phrase>
+	<epp:phrase id="eprint_fieldname_batchedit_remove" />
+
 
 </epp:phrases>
 
