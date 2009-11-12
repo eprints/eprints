@@ -8420,3 +8420,6 @@ EPRINTS-3.1-beta-2
 
 2009-11-11 cjg
  * Fixed bug that is_advertised property on export plugins is being ignored.
+
+2009-11-11 cjg
+ * Trivial change to eprint fields; changed creators_id from 'email' to 'text'
