@@ -8439,3 +8439,9 @@ EPRINTS-3.1-beta-2
 
 2009-11-12 cjg
  * Better error message if repository is not loaded in /bin/ scripts.
+
+2009-11-12 cjg
+ * Built a method in Rewrite which takes a list of plugins and a HTTP
+    accept header and returns the best plugin for that header!
+ * Export plugins have a quality value, defaulting to qs=0.5
+ * URIs now perform a content negotiation redirect! 

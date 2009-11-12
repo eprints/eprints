@@ -16,6 +16,7 @@ sub new
 	$self->{accept} = [ 'list/*', 'dataobj/*' ];
 	$self->{visible} = "all";
 	$self->{xmlns} = "http://eprints.org/ep2/data/2.0";
+	$self->{qs} = 0.8;
 
 	return $self;
 }

@@ -18,6 +18,10 @@ sub new
 	$self->{mimetype} = "text/plain";
 	$self->{advertise} = 1;
 
+	# q is used to describe quality. Use it to increase or decrease the 
+	# desirability of using this plugin during content negotiation.
+	$self->{qs} = 0.5; 
+
 	return $self;
 }
 

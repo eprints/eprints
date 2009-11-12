@@ -1288,7 +1288,12 @@ sub process_parameters($$)
 	foreach my $k ( keys %{$defaults} )
 	{
 		if( !defined $params->{$k} ) 
-		{ 
+		{
+			if( $defaults->{$k} eq "*REQUIRED*" )
+			{
+				my @c = caller(1);
+				EPrints::abort( "Required parameter '$k' not passed to ".$c[3]." at ".$c[1]." line ".$c[2] );
+			}
 			$params->{$k} = $defaults->{$k}; 
 		}
 	}

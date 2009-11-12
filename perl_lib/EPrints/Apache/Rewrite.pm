@@ -116,8 +116,29 @@ sub handler
 		my $url;
 		if( defined $item )
 		{
-			$url = $item->get_url;
-		}
+			# content negotiation. Only worries about type, not charset
+			# or language etc. at this stage.
+			#
+			my $accept = EPrints::AnApache::header_in( $r, "Accept" );
+
+			my $match = content_negotiate_best_plugin( 
+				$session, 
+				accept_header => $accept,
+				plugins => [$repository->plugin_list(
+					type => "Export",
+					is_visible => "all",
+					can_accept => "dataobj/".$dataset->confid )],
+			);
+
+			if( $match eq "DEFAULT_SUMMARY_PAGE" )
+			{
+				$url = $item->get_url;
+			}
+			else
+			{
+				$url = $match->dataobj_export_url( $item );	
+			}
+		}	
 		$session->terminate;
 		if( defined $url )
 		{
@@ -218,6 +239,77 @@ sub redir
 	return DONE;
 } 
 
+sub content_negotiate_best_plugin
+{
+	my( $repository, %o ) = @_;
+
+	EPrints::Utils::process_parameters( \%o, {
+		accept_header => "*REQUIRED*",
+		consider_summary_page => 1, 
+		plugins => "*REQUIRED*",
+	 } );
+
+	my $pset = {};
+	if( $o{consider_summary_page} )
+	{
+		$pset->{"text/html"} = { qs=>0.9, DEFAULT_SUMMARY_PAGE=>1 };
+	}
+
+	foreach my $a_plugin_id ( @{$o{plugins}} )
+	{
+		my $a_plugin = $repository->plugin( $a_plugin_id );
+		my( $type, %params ) = split( /\s*[;=]\s*/, $a_plugin->{mimetype} );
+	
+		next if( defined $pset->{$type} && $pset->{$type}->{qs} >= $a_plugin->{qs} );
+		$pset->{$type} = $a_plugin;
+	}
+	my @pset_order = sort { $pset->{$b}->{qs} <=> $pset->{$a}->{qs} } keys %{$pset};
+
+	my $accepts = {};
+	CHOICE: foreach my $choice ( split( /\s*,\s*/, $o{accept_header} ) )
+	{
+		my( $mime, %params ) = split( /\s*[;=]\s*/, $choice );
+		$params{q} = 1 unless defined $params{q};
+		$accepts->{$mime} = \%params;
+	}
+
+	my @acc_order = sort { $accepts->{$b}->{q} <=> $accepts->{$a}->{q} } keys %{$accepts};
+
+	my $match;
+	CHOICE: foreach my $choice ( @acc_order )
+	{
+		if( $pset->{$choice} ) 
+		{
+			$match = $pset->{$choice};
+			last CHOICE;
+		}
+
+		if( $choice eq "*/*" )
+		{
+			$match = $pset->{$pset_order[0]};
+			last CHOICE;
+		}
+
+		if( $choice =~ s/\*[^\/]+$// )
+		{
+			foreach my $type ( @pset_order )
+			{
+				if( $choice eq substr( $type, 0, length $type ) )
+				{
+					$match = $pset->{$type};
+					last CHOICE;
+				}
+			}
+		}
+	}
+
+	if( $match->{DEFAULT_SUMMARY_PAGE} )
+	{
+		return "DEFAULT_SUMMARY_PAGE";
+	}
+
+	return $match; 
+}
 
 
 1;
