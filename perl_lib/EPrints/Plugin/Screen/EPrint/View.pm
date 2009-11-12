@@ -7,6 +7,31 @@ use EPrints::Plugin::Screen::EPrint;
 
 use strict;
 
+sub new
+{
+	my( $class, %params ) = @_;
+
+	my $self = $class->SUPER::new(%params);
+
+	$self->{staff} = 0;
+
+	$self->{icon} = "action_view.png";
+
+	if( $class eq "EPrints::Plugin::Screen::EPrint::View" )
+	{
+		# don't add this for subclasses!
+		$self->{appears} = [
+			{
+				place => "eprint_summary_page_actions",
+				position => 100,
+			},
+		];
+	}
+
+	return $self;
+}
+
+
 sub render_status
 {
 	my( $self ) = @_;

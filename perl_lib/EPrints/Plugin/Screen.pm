@@ -255,7 +255,7 @@ sub render_title
 	return $self->html_phrase( "title" );
 }
 
-=item @screen_opts = $screen->list_items( $list_id )
+=item @screen_opts = $screen->ist_items( $list_id, %opts )
 
 Returns a list of screens that appear in list $list_id ordered by their position.
 
@@ -266,17 +266,25 @@ Each screen opt is a hash ref of:
 	position - position (positive integer)
 	action - the action, if this plugin is for an action list
 
+Incoming opts:
+
+	filter => 1 or 0 (default 1)
+
 =cut
 
 sub list_items
 {
-	my( $self, $list_id ) = @_;
+	my( $self, $list_id, %opts ) = @_;
+
+	my $filter = $opts{filter};
+	$filter = 1 unless defined $opts{filter};
 
 	my @screens = $self->{session}->get_plugins( {
 			processor => $self->{processor},
 		},
 		type => "Screen" );
 	my @list_items = ();
+
 	foreach my $screen ( @screens )
 	{	
 		my $screen_id = $screen->get_id;
@@ -343,7 +351,7 @@ sub list_items
 
 		# must be done after checking things in the list
 		# to prevent actions looping.
-		next if( !$screen->can_be_viewed );
+		next if( $filter && !$screen->can_be_viewed );
 	
 		foreach my $opt ( @things_in_list )
 		{	
@@ -351,7 +359,7 @@ sub list_items
 			$p = 999999 if( !defined $p );
 			if( defined $opt->{action} )
 			{
- 				next if( !$screen->allow_action( $opt->{action} ) );
+ 				next if( $filter && !$screen->allow_action( $opt->{action} ) );
 			}
 
 			push @list_items, {
@@ -466,7 +474,7 @@ sub _render_action_aux
 		$method = "POST";
 	}
 
-	my $form = $session->render_form( $method );
+	my $form = $session->render_form( $method, $session->config( "userhome" ) );
 
 	$form->appendChild( 
 		$session->render_hidden_field( 

@@ -660,6 +660,73 @@ sub run_contact_email
 	return [ $state->{session}->get_repository->call( "email_for_doc_request", $state->{session}, $eprint->[0] ), "STRING" ]; 
 }
 
+# item is optional and it's primary key is passed to the list rendering bobbles
+# for actions which need a current object.
+sub run_action_list
+{
+	my( $self, $state, $list_id, $item ) = @_;
+
+	my $screen_processor = bless {
+		session => $state->{session},
+		screenid => "FirstTool",
+	}, "EPrints::ScreenProcessor";
+
+	my $screen = $screen_processor->screen;
+	$screen->properties_from;
+
+	my @list = $screen->list_items( $list_id->[0], filter=>0 );
+	if( defined $item )
+	{
+        	my $keyfield = $item->[0]->{dataset}->get_key_field();
+		$screen_processor->{$keyfield->get_name()} = $item->[0]->get_id;
+		foreach my $action ( @list )
+		{
+			$action->{hidden} = [$keyfield->get_name()];
+		}
+	}
+
+	return [ \@list, "ARRAY" ];
+}
+
+sub run_action_button
+{
+	my( $self, $state, $action_p ) = @_;
+
+	my $action = $action_p->[0]; 
+	
+	return [ $action->{screen}->render_action_button( $action ), "XHTML" ];
+}
+sub run_action_icon
+{
+	my( $self, $state, $action_p ) = @_;
+
+	my $action = $action_p->[0]; 
+	
+	return [ $action->{screen}->render_action_icon( $action ), "XHTML" ];
+}
+sub run_action_description
+{
+	my( $self, $state, $action_p ) = @_;
+
+	my $action = $action_p->[0]; 
+	
+	return [ $action->{screen}->get_description( $action ), "XHTML" ];
+}
+sub run_action_title
+{
+	my( $self, $state, $action_p ) = @_;
+
+	my $action = $action_p->[0]; 
+	
+	if( defined $action->{action} )
+	{
+		return [ $action->{screen}->html_phrase( "action:".$action->{action}.":title" ), "XHTML" ];
+	}
+	else
+	{
+		return [ $action->{screen}->html_phrase( "title" ), "XHTML" ];
+	}
+}
 
 ########################################################
 

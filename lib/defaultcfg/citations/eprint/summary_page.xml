@@ -1,17 +1,17 @@
 <?xml version="1.0" ?>
 
 <!-- 
-	Full citation for an eprint. 
+	Full "abstract page" (or splash page or summary page, depending on your jargon) for an eprint. 
 -->
 
 <cite:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:epc="http://eprints.org/ep3/control" xmlns:cite="http://eprints.org/ep3/citation" >
 
-  <p class="ep_block" style="margin-bottom: 1em">
+  <p style="margin-bottom: 1em">
     <epc:print expr="$item.citation('default')" />
   </p>
 
   <epc:if test="$flags{has_multiple_versions}">
-    <div class="ep_block" style="margin-bottom: 1em">
+    <div style="margin-bottom: 1em">
       <epc:print expr="$multi_info" />
     </div>
   </epc:if>
@@ -49,16 +49,14 @@
   </epc:if>
 
   <epc:if test="official_url">
-    <div class="ep_block" style="margin-bottom: 1em">
+    <div style="margin-bottom: 1em">
       <epc:phrase ref="eprint_fieldname_official_url"/>: <epc:print expr="official_url" />
     </div>
   </epc:if>
 
   <epc:if test="abstract">
-    <div class="ep_block">
-      <h2><epc:phrase ref="eprint_fieldname_abstract"/></h2>
-      <p style="text-align: left; margin: 1em auto 0em auto"><epc:print expr="abstract" /></p>
-    </div>
+    <h2><epc:phrase ref="eprint_fieldname_abstract"/></h2>
+    <p style="text-align: left; margin: 1em auto 0em auto"><epc:print expr="abstract" /></p>
   </epc:if>
 
   <table style="margin-bottom: 1em; margin-top: 1em;" cellpadding="3">
@@ -95,7 +93,15 @@
   </epc:if>
 
   <epc:if test="!$flags{preview}">
-    <p style="text-align: right">Repository Staff Only: <a href="{$item.control_url()}">Item Control Page</a></p>
+    <h3>Registered Users Actions (these require a login)</h3>
+    <table class="ep_summary_page_actions">
+    <epc:foreach expr="action_list('eprint_summary_page_actions',$item)" iterator="action">
+      <tr>
+        <td><epc:print expr="$action.action_icon()" /></td>
+        <td><epc:print expr="$action.action_title()" /></td>
+      </tr>
+    </epc:foreach>
+    </table>
   </epc:if>
 
 </cite:citation>

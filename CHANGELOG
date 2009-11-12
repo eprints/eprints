@@ -8413,3 +8413,8 @@ EPRINTS-3.1-beta-2
 2009-11-9 tdb
  * Subject children cache is now initialised for all subjects, fixing #3451
 
+2009-11-11 cjg
+ * Added methods to Script for working with action lists.
+ * Create action list for actions to go on summary page
+ * Added this list to the summary page
+
