@@ -36,6 +36,8 @@ $XML::DOM::SafeMode = 0;
 
 XML::DOM::setTagCompression( \&_xmldom_tag_compression );
 
+$EPrints::XML::CLASS = "EPrints::XML::DOM";
+
 $EPrints::XML::LIB_LEN = length("XML::DOM::");
 
 # DOM spec fixes
@@ -263,3 +265,10 @@ sub version
 	"XML::DOM $XML::DOM::VERSION ".$INC{'XML/DOM.pm'};
 }
 
+package EPrints::XML::DOM;
+
+our @ISA = qw( EPrints::XML );
+
+use strict;
+
+1;

@@ -35,6 +35,8 @@ use XML::LibXML 1.63;
 use XML::LibXML::SAX::Parser;
 # $XML::LibXML::skipXMLDeclaration = 1; # Same behaviour as XML::DOM
 
+$EPrints::XML::CLASS = "EPrints::XML::LibXML";
+
 $EPrints::XML::LIB_LEN = length("XML::LibXML::");
 
 ##############################################################################
@@ -207,6 +209,14 @@ sub version
 {
 	"XML::LibXML $XML::LibXML::VERSION ".$INC{'XML/LibXML.pm'};
 }
+
+package EPrints::XML::LibXML;
+
+our @ISA = qw( EPrints::XML );
+
+use strict;
+
+1;
 
 __END__
 

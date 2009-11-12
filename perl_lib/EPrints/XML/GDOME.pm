@@ -31,6 +31,8 @@ loaded into EPrints::XML namespace if we're using XML::GDOME
 require XML::GDOME;
 use XML::Parser;
 
+$EPrints::XML::CLASS = "EPrints::XML::GDOME";
+
 $EPrints::XML::LIB_LEN = length("XML::GDOME::");
 
 # DOM spec fixes
@@ -236,3 +238,25 @@ sub version
 	"XML::GDOME $XML::GDOME::VERSION ".$INC{'XML/GDOME.pm'};
 }
 
+package EPrints::XML::GDOME;
+
+our @ISA = qw( EPrints::XML );
+
+use strict;
+
+sub clone_node
+{
+	my( $self, $node ) = @_;
+
+	# backwards compatibility
+	if( !$self->isa( "EPrints::XML" ) )
+	{
+		my $deep = $node;
+		$node = $self;
+		return EPrints::XML::clone_and_own( $node, $node->ownerDocument, $deep );
+	}
+
+	return EPrints::XML::clone_and_own( $node, $self->{doc}, 0 );
+}
+
+1;

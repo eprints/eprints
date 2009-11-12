@@ -63,6 +63,8 @@ package EPrints::XML;
 
 use Carp;
 
+$EPrints::XML::CLASS = undef;
+
 @EPrints::XML::COMPRESS_TAGS = qw/br hr img link input meta/;
 
 if( $EPrints::SystemSettings::conf->{enable_libxml} )
@@ -87,6 +89,8 @@ use strict;
 sub new($$)
 {
 	my( $class, $repository, %opts ) = @_;
+
+	$class = $EPrints::XML::CLASS;
 
 	my $self = bless { repository => $repository, %opts }, $class;
 

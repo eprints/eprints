@@ -8428,7 +8428,8 @@ EPRINTS-3.1-beta-2
  * Added 'fn' parameter to cgi/json as an alternative to 'callback' 
 
 2009-11-12 cjg
- * Bugfix to clone node under GDOME.
-
-2009-11-12 cjg
  * Syntactic tweak to process_parameters
+
+2009-11-12 tdb
+ * Added subclasses for EPrints::XML to support class-overrides
+
