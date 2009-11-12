@@ -55,6 +55,7 @@ sub from
 		dataset_id => "eprint",
 		citation => $self->{session}->get_repository->get_conf( "search","advanced","citation" ),
 		order_methods => $self->{session}->get_repository->get_conf( "search","advanced","order_methods" ),
+		default_order => $self->{session}->get_repository->get_conf( "search","advanced","default_order"),
 	};
 		
 	my $adv_fields = $self->{session}->get_repository->get_conf( "search","advanced","search_fields" );
