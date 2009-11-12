@@ -288,6 +288,14 @@ EPrints Modules
     <epp:phrase id="lib/searchfield:desc_int_orless"><epc:pin name="to"/> or less</epp:phrase>
     <epp:phrase id="lib/searchfield:desc_int_ormore"><epc:pin name="from"/> or more</epp:phrase>
 
+	<epp:phrase id="lib/searchfield:desc_between">between <epc:pin name="from"/> and <epc:pin name="to"/> inclusive</epp:phrase>
+	<epp:phrase id="lib/searchfield:desc:orless"><epc:pin name="to"/> or less</epp:phrase>
+	<epp:phrase id="lib/searchfield:desc:ormore"><epc:pin name="from"/> or more</epp:phrase>
+
+    <epp:phrase id="lib/searchfield:desc_counter_between" ref="lib/searchfield:desc_between" />
+	<epp:phrase id="lib/searchfield:desc:counter_orless" ref="lib/searchfield:desc:orless" />
+	<epp:phrase id="lib/searchfield:desc:counter_ormore" ref="lib/searchfield:desc:ormore" />
+
     <epp:phrase id="lib/searchfield:desc_float_between">between <epc:pin name="from"/> and <epc:pin name="to"/> inclusive</epp:phrase>
     <epp:phrase id="lib/searchfield:desc_float_orless"><epc:pin name="to"/> or less</epp:phrase>
     <epp:phrase id="lib/searchfield:desc_float_ormore"><epc:pin name="from"/> or more</epp:phrase>

@@ -252,6 +252,13 @@ sub phrase
 		return $frag;
 	}
 
+	# use referenced phrase instead
+	my $ref = $phrase->getAttribute( "ref" );
+	if( EPrints::Utils::is_set( $ref ) )
+	{
+		return $self->phrase( $ref, $inserts, $session );
+	}
+
 #print STDERR "---\nN:$phrase\nNO:".$phrase->getOwnerDocument."\n";
 	my $used = {};
 	my $result = EPrints::XML::EPC::process_child_nodes( 
