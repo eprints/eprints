@@ -8426,3 +8426,6 @@ EPRINTS-3.1-beta-2
 
 2009-11-11 cjg
  * Added 'fn' parameter to cgi/json as an alternative to 'callback' 
+
+2009-11-12 cjg
+ * Bugfix to clone node under GDOME.
