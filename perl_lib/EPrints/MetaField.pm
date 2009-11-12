@@ -1485,14 +1485,30 @@ sub get_basic_input_elements
 
 
 	my $f = $session->make_element( "div" );
-	my $input = $session->render_noenter_input_field(
-		class=>"ep_form_text",
-		name => $basename,
-		id => $basename,
-		value => $value,
-		size => $size,
-		maxlength => $maxlength );
-	$f->appendChild( $input );
+	if( defined $self->{render_input} )
+	{
+		my $input = $self->call_property( "render_input",
+			$self,
+			$session, 
+			$value, 
+			$self->{dataset}, 
+			$staff,
+			undef,
+			$obj,
+			$basename );
+		$f->appendChild( $input );
+	}
+	else
+	{
+		my $input = $session->render_noenter_input_field(
+			class=>"ep_form_text",
+			name => $basename,
+			id => $basename,
+			value => $value,
+			size => $size,
+			maxlength => $maxlength );
+		$f->appendChild( $input );
+	}
 	$f->appendChild( $session->make_element( "div", id=>$basename."_".$_."_billboard" ));
 
 	return [ [ { el=>$f } ] ];
