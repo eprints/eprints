@@ -4,6 +4,8 @@ use EPrints::Plugin::Screen;
 
 @ISA = ( 'EPrints::Plugin::Screen' );
 
+my $JAVASCRIPT = join "", <DATA>;
+
 use strict;
 
 sub new
@@ -625,7 +627,7 @@ sub render_changes_form
 
 	$page = $session->make_doc_fragment;
 
-	$page->appendChild( $session->make_javascript ( join "", <DATA> ) );
+	$page->appendChild( $session->make_javascript ( $JAVASCRIPT ) );
 
 	my $iframe = $session->make_element( "iframe",
 			id => "ep_batchedit_iframe",
