@@ -388,7 +388,11 @@ sub open_write
 		}
 	}
 
-	return 0 unless scalar @writable;
+	if( @writable == 0 )
+	{
+		$self->{repository}->log( ref($self).": No plugins available to store file/".$fileobj->id );
+		return 0;
+	}
 
 	$self->{_opened}->{$fileobj} = \@writable;
 
@@ -412,6 +416,8 @@ sub write
 	for(@{$self->{_opened}->{$fileobj}})
 	{
 		push(@writable, $_), next if $_->write( $fileobj, $buffer );
+
+		$self->{repository}->log( ref($self).": ".$_->get_name." failed while storing file/".$fileobj->id );
 
 		$_->close_write( $fileobj );
 	}
@@ -442,11 +448,16 @@ sub close_write
 		}
 		else
 		{
-			$rc = 0;
+			$rc--;
 		}
 	}
 
 	delete $self->{_opened}->{$fileobj};
+
+	if( $rc == 0 )
+	{
+		$self->{repository}->log( ref($self).": Failed to store file/".$fileobj->id );
+	}
 
 	return $rc;
 }
