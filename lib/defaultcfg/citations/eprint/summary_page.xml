@@ -93,7 +93,7 @@
   </epc:if>
 
   <epc:if test="!$flags{preview}">
-    <h3>Registered Users Actions (these require a login)</h3>
+    <h3>Actions (login required)</h3>
     <table class="ep_summary_page_actions">
     <epc:foreach expr="action_list('eprint_summary_page_actions',$item)" iterator="action">
       <tr>

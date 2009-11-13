@@ -1,0 +1,37 @@
+use EPrints;
+use EPrints::Plugin::Export::RDFXML;
+
+use Data::Dumper;
+use strict;
+my $session = new EPrints::Session;
+Apache::exit( 0 ) unless( defined $session );
+
+my $uri = $ENV{"PATH_INFO"};
+
+my $repository = $session->get_repository;
+
+$uri =~ s/^\//epx:/;
+
+my $archive_ds = $session->get_repository->get_dataset( "archive" );
+
+my $searchexp = new EPrints::Search( session=>$session, dataset=>$archive_ds,match=>"ANY" );
+
+$searchexp->add_field( $archive_ds->get_field( "rdf_resource" ), $uri, "EX" );
+
+my $list = $searchexp->perform_search;
+my @records = $list->get_records();
+
+my $cache = {};
+RECORD: foreach my $eprint ( @records )
+{
+	EPrints::Plugin::Export::RDFXML::add_eprint_triples( $eprint, $cache, $uri );
+}
+
+
+my $plugin = $session->plugin( "Export::RDFXML" );
+$session->send_http_header( "content_type" => $plugin->param( 'mimetype' ) );
+my $xmlns = $repository->get_conf( "rdf","xmlns");
+print $plugin->output_triple_cache( $cache, $xmlns );
+
+$session->terminate;
+

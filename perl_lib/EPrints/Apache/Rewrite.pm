@@ -102,6 +102,13 @@ sub handler
 	}
 
 	# URI redirection
+
+	if( $uri =~ m! ^$urlpath/id/x-(.*)$ !x )
+	{
+		my $url = $repository->config( "http_cgiurl" )."/exportresource/$1";
+		return redir( $r, $url );
+	}
+
 	if( $uri =~ m! ^$urlpath/id/([^/]+)/(.*)$ !x )
 	{
 		my( $datasetid, $id ) = ( $1, $2 );

@@ -261,13 +261,30 @@ sub get_system_field_info
 		],
 		render_value=>"EPrints::DataObj::EPrint::render_edit_lock",
  	},
+	{
+		'name' => 'rdf',
+		'type' => 'compound',
+		'multiple' => 1,
+		'fields' => [
+			{ 'sub_name' => 'resource',  'type' => 'longtext', sql_index => 1, text_index=>0 },
+			{ 'sub_name' => 'subject',   'type' => 'longtext', sql_index => 0, text_index=>0 },
+			{ 'sub_name' => 'predicate', 'type' => 'longtext', sql_index => 0, text_index=>0 },
+			{ 'sub_name' => 'object',    'type' => 'longtext', sql_index => 0, text_index=>0 },
+			{ 'sub_name' => 'type',      'type' => 'longtext', sql_index => 0, text_index=>0 },
+		],
+		render_value=>"EPrints::DataObj::EPrint::render_rdf_field",
+	},
 
 
 	);
 }
 
+sub render_rdf_field 
+{
+	my( $session, $field, $value ) = @_;
 
-
+	return $session->make_text( sprintf( "%d Triples", scalar @{$value} ) );
+}
 
 sub render_issues
 {
@@ -418,9 +435,7 @@ sub create_from_data
 
 	$new_eprint->set_under_construction( 0 );
 
-	$session->get_repository->call( 
-		"set_eprint_automatic_fields", 
-		$new_eprint );
+	$new_eprint->_update_triggers();
 
 	$session->get_database->update(
 		$dataset,
@@ -452,6 +467,41 @@ sub create_from_data
 
 	return $new_eprint;
 }
+
+# Update all the stuff that needs updating before an eprint
+# is written to the database.
+sub _update_triggers
+{
+	my( $self ) = @_;
+
+	$self->{session}->get_repository->call( 
+		"set_eprint_automatic_fields", 
+		$self );
+
+	if( $self->get_value( "eprint_status" ) eq "archive" )
+	{
+		my $triples = {};
+		foreach my $fn ( @{$self->get_session->get_repository->get_conf( "rdf","get_triples" )} )
+		{
+			&{$fn}( eprint=>$self, triples=>$triples );
+		}
+		my $t = [];
+		foreach my $resource ( keys %{$triples} )
+		{
+			foreach my $spo ( @{$triples->{$resource}} )
+			{
+				push @{$t}, {
+					resource=>$resource,
+					subject=>$spo->[0],
+					predicate=>$spo->[1],
+					object=>$spo->[2],
+					type=>$spo->[3] };
+			}
+		}
+		$self->set_value( "rdf", $t );
+	}
+}
+
 
 ######################################################################
 =pod
@@ -950,9 +1000,7 @@ sub commit
 	}
 	$self->set_value( "item_issues_count", $c );
 
-	$self->{session}->get_repository->call( 
-		"set_eprint_automatic_fields", 
-		$self );
+	$self->_update_triggers();
 
 	my @docs = $self->get_all_documents();
 	my @finfo = ();
