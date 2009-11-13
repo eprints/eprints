@@ -660,6 +660,13 @@ sub run_contact_email
 	return [ $state->{session}->get_repository->call( "email_for_doc_request", $state->{session}, $eprint->[0] ), "STRING" ]; 
 }
 
+sub run_uri
+{
+	my( $self, $state, $dataobj ) = @_;
+
+	return [ $dataobj->[0]->uri, "STRING" ];
+}
+
 # item is optional and it's primary key is passed to the list rendering bobbles
 # for actions which need a current object.
 sub run_action_list

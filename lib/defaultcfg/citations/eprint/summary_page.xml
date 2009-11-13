@@ -81,6 +81,10 @@
         </tr>
       </epc:if>
     </epc:foreach>
+    <tr>
+      <th align="right">URI:</th>
+      <td valign="top"><a href="{$item.uri()}"><epc:print expr="$item.uri()" /></a></td>
+    </tr>
   </table>
 
   <epc:if test="$flags{has_multiple_versions}">

@@ -8455,3 +8455,6 @@ EPRINTS-3.1-beta-2
 
 2009-11-13 cjg
  * Corrected deprecated call in EPrints::Apache::ReWrite (introduced last commit)
+
+2009-11-13 cjg
+ * Added URI to EPrint Summary Page
