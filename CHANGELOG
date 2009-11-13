@@ -8445,3 +8445,7 @@ EPRINTS-3.1-beta-2
     accept header and returns the best plugin for that header!
  * Export plugins have a quality value, defaulting to qs=0.5
  * URIs now perform a content negotiation redirect! 
+
+2009-11-13 cjg
+ * Improved document_upload.pl layout to make it easier to add/remove 
+    suffix to mimetype mappings.

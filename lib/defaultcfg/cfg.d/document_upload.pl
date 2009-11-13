@@ -63,44 +63,48 @@ $c->{guess_doc_type} = sub
 	if( $filename=~m/\.([^.]+)$/ )
 	{
 		my $suffix = "\L$1";
-
-		return "text/html" if $suffix eq "htm";
-		return "text/html" if $suffix eq "html";
-		return "application/pdf" if $suffix eq "pdf";
-		return "application/postscript" if $suffix eq "ps";
-		return "text/plain" if $suffix eq "txt";
-		return "text/xml" if $suffix eq "xml";
-		return "application/vnd.ms-powerpoint" if $suffix eq "ppt";
-		return "application/vnd.ms-powerpoint" if $suffix eq "pptx";
-		return "application/vnd.ms-excel" if $suffix eq "xls";
-		return "application/vnd.ms-excel" if $suffix eq "xlsx";
-		return "application/msword" if $suffix eq "doc";
-		return "application/msword" if $suffix eq "docx";
-		return "application/rtf" if $suffix eq "rtf";
-		return "image/jpeg" if $suffix eq "jpg";
-		return "image/jpeg" if $suffix eq "jpeg";
-		return "image/png" if $suffix eq "png";
-		return "image/gif" if $suffix eq "gif";
-		return "image/bmp" if $suffix eq "bmp";
-		return "image/tiff" if $suffix eq "tiff";
-		return "image/tiff" if $suffix eq "tif";
-		return "video/mpeg" if $suffix eq "mpg";
-		return "video/mpeg" if $suffix eq "mpeg";
-		return "video/quicktime" if $suffix eq "mov";
-		return "video/x-msvideo" if $suffix eq "avi";
-		return "application/bzip2" if $suffix eq "bz2";
-		return "application/x-compressed" if $suffix eq "gz";
-		return "application/x-compressed" if $suffix eq "tgz";
-		return "application/zip" if $suffix eq "zip";
-		return "audio/x-wav" if $suffix eq "wav";
-		return "audio/mpeg" if $suffix eq "mp3";
-		return "audio/ogg" if $suffix eq "ogg";
-		return "audio/flac" if $suffix eq "flac";
-		return "audio/x-ms-wma" if $suffix eq "wma";
+		my $guess = $session->config( "mimemap", $suffix );
+		return $guess if( defined $guess );
 	}
 
 	return "other";
 };
+
+$c->{mimemap}->{htm}  = "text/html";
+$c->{mimemap}->{html} = "text/html";
+$c->{mimemap}->{txt}  = "text/plain";
+$c->{mimemap}->{xml}  = "text/xml";
+$c->{mimemap}->{n3}   = "text/n3";
+$c->{mimemap}->{pdf}  = "application/pdf";
+$c->{mimemap}->{ps}   = "application/postscript";
+$c->{mimemap}->{ppt}  = "application/vnd.ms-powerpoint";
+$c->{mimemap}->{pptx} = "application/vnd.ms-powerpoint";
+$c->{mimemap}->{xls}  = "application/vnd.ms-excel";
+$c->{mimemap}->{xlsx} = "application/vnd.ms-excel";
+$c->{mimemap}->{doc}  = "application/msword";
+$c->{mimemap}->{docx} = "application/msword";
+$c->{mimemap}->{rtf}  = "application/rtf";
+$c->{mimemap}->{bz2}  = "application/bzip2";
+$c->{mimemap}->{gz}   = "application/x-compressed";
+$c->{mimemap}->{tgz}  = "application/x-compressed";
+$c->{mimemap}->{zip}  = "application/zip";
+$c->{mimemap}->{rdf}  = "application/rdf+xml";
+$c->{mimemap}->{jpg}  = "image/jpeg";
+$c->{mimemap}->{jpeg} = "image/jpeg";
+$c->{mimemap}->{png}  = "image/png";
+$c->{mimemap}->{gif}  = "image/gif";
+$c->{mimemap}->{bmp}  = "image/bmp";
+$c->{mimemap}->{tiff} = "image/tiff";
+$c->{mimemap}->{tif}  = "image/tiff";
+$c->{mimemap}->{mpg}  = "video/mpeg";
+$c->{mimemap}->{mpeg} = "video/mpeg";
+$c->{mimemap}->{mov}  = "video/quicktime";
+$c->{mimemap}->{avi}  = "video/x-msvideo";
+$c->{mimemap}->{wav}  = "audio/x-wav";
+$c->{mimemap}->{mp3}  = "audio/mpeg";
+$c->{mimemap}->{ogg}  = "audio/ogg";
+$c->{mimemap}->{flac} = "audio/flac";
+$c->{mimemap}->{wma}  = "audio/x-ms-wma";
 
 # This subroutine is called every time that the files in a document are
 # modified (added or removed).
