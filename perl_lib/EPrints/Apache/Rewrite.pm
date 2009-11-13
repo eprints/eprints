@@ -126,7 +126,7 @@ sub handler
 			# content negotiation. Only worries about type, not charset
 			# or language etc. at this stage.
 			#
-			my $accept = EPrints::AnApache::header_in( $r, "Accept" );
+			my $accept = EPrints::Apache::AnApache::header_in( $r, "Accept" );
 
 			my $match = content_negotiate_best_plugin( 
 				$session, 
