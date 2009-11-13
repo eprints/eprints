@@ -47,7 +47,7 @@ sub update_from_form
 	}
 	
 	#Get all docs including volatiles
-	@eprint_docs = @{($eprint->get_value( "documents" ))};
+	my @eprint_all_docs = @{($eprint->get_value( "documents" ))};
 
 	if( $session->internal_button_pressed )
 	{
@@ -73,7 +73,7 @@ sub update_from_form
 		{
 			my( $docid, $doc_action ) = ($1, $2);
 			my $doc;
-			for(@eprint_docs)
+			for(@eprint_all_docs)
 			{
 				$doc = $_, last if $_->get_id == $docid;
 			}
@@ -143,9 +143,9 @@ sub doc_update
 	my $docid = $doc->get_id;
 	my $doc_prefix = $self->{prefix}."_doc".$docid;
 	$processor->{notes}->{upload_plugin}->{to_unroll}->{$docid} = 1;
-	
+
 	if( $doc_internal eq "up" or $doc_internal eq "down" )
-	{
+	{	
 		return if scalar @$eprint_docs < 2;
 		foreach my $eprint_doc (@$eprint_docs)
 		{
