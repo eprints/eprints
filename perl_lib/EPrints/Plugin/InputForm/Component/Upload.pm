@@ -45,6 +45,9 @@ sub update_from_form
 		}
 		$doc->commit;
 	}
+	
+	#Get all docs including volatiles
+	@eprint_docs = @{($eprint->get_value( "documents" ))};
 
 	if( $session->internal_button_pressed )
 	{
@@ -202,6 +205,24 @@ sub doc_update
 		return;
 	}
 
+	if( $doc_internal eq "unlink_doc" )
+        {
+                my $relation = EPrints::Utils::make_relation( "isVolatileVersionOf" );
+                my $parent = $doc->get_related_objects($relation)->[0];
+                print STDERR "\n" . $parent->get_id . "\n";
+                $parent->remove_object_relations(
+                        $doc,
+                        EPrints::Utils::make_relation( "hasVolatileVersion" ),
+                );
+                $parent->commit;
+                $doc->remove_object_relations(
+                        $parent,
+                        EPrints::Utils::make_relation( "isVolatileVersionOf" ),
+                );
+                $doc->commit;
+                return;
+        }
+
 	if( $doc_internal eq "add_file" )
 	{
 		my $success = EPrints::Apache::AnApache::upload_doc_file( 
@@ -350,88 +371,275 @@ sub render_content
 
 	my $imagesurl = $session->get_repository->get_conf( "rel_path" );
 
-	# sort by doc id?	
+	my $relation = EPrints::Utils::make_relation( "isVolatileVersionOf" );	
+
 	foreach my $doc ( @eprint_docs )
 	{	
-		my $view_id = $doc->get_id;
-		my $doc_prefix = $self->{prefix}."_doc".$view_id;
-		my $hide = 1;
-		if( scalar @eprint_docs == 1 ) { $hide = 0; } 
-		if( $tounroll->{$view_id} ) { $hide = 0; }
-		my $doc_div = $self->{session}->make_element( "div", class=>"ep_upload_doc", id=>$doc_prefix."_block" );
-		$panel->appendChild( $doc_div );
-		my $doc_title_bar = $session->make_element( "div", class=>"ep_upload_doc_title_bar" );
+		$panel->appendChild( _render_doc_div( $self, $doc, \@eprint_docs, $tounroll, $imagesurl ));
+
+	}
+
+	return $f;
+
+}
+
+sub _render_doc_div 
+{
+
+	my ( $self, $doc, $eprint_docs, $tounroll, $imagesurl ) = @_;
+
+	my $session = $self->{session};
+
+	my $view_id = $doc->get_id;
+	my $doc_prefix = $self->{prefix}."_doc".$view_id;
+	my $hide = 1;
+	if( $eprint_docs == 1 ) { $hide = 0; } 
+	if( $tounroll->{$view_id} ) { $hide = 0; }
+	my $doc_div = $self->{session}->make_element( "div", class=>"ep_upload_doc", id=>$doc_prefix."_block" );
+	my $doc_title_bar = $session->make_element( "div", class=>"ep_upload_doc_title_bar" );
 
 
-		my $table = $session->make_element( "table", width=>"100%", border=>0 );
-		my $tr = $session->make_element( "tr" );
-		$doc_title_bar->appendChild( $table );
-		$table->appendChild( $tr );
-		my $td_left = $session->make_element( "td", align=>"left", valign=>"middle", width=>"40%" );
-		$tr->appendChild( $td_left );
+	my $table = $session->make_element( "table", width=>"100%", border=>0 );
+	my $tr = $session->make_element( "tr" );
+	$doc_title_bar->appendChild( $table );
+	$table->appendChild( $tr );
+	my $td_left = $session->make_element( "td", align=>"left", valign=>"middle", width=>"40%" );
+	$tr->appendChild( $td_left );
 
-		my $table_left = $session->make_element( "table", border=>0 );
-		$td_left->appendChild( $table_left );
-		my $table_left_tr = $session->make_element( "tr" );
-		my $table_left_td_left = $session->make_element( "td", align=>"center" );
-		my $table_left_td_right = $session->make_element( "td", align=>"left", class=>"ep_upload_doc_title" );
-		$table_left->appendChild( $table_left_tr );
-		$table_left_tr->appendChild( $table_left_td_left );
-		$table_left_tr->appendChild( $table_left_td_right );
-		
-		$table_left_td_left->appendChild( $doc->render_icon_link( new_window=>1, preview=>1, public=>0 ) );
+	my $table_left = $session->make_element( "table", border=>0 );
+	$td_left->appendChild( $table_left );
+	my $table_left_tr = $session->make_element( "tr" );
+	my $table_left_td_left = $session->make_element( "td", align=>"center" );
+	my $table_left_td_right = $session->make_element( "td", align=>"left", class=>"ep_upload_doc_title" );
+	$table_left->appendChild( $table_left_tr );
+	$table_left_tr->appendChild( $table_left_td_left );
+	$table_left_tr->appendChild( $table_left_td_right );
 
-		$table_left_td_right->appendChild( $doc->render_citation);
-		my %files = $doc->files;
-		if( defined $files{$doc->get_main} )
-		{
-			my $size = $files{$doc->get_main};
-			$table_left_td_right->appendChild( $session->make_element( 'br' ) );
-			$table_left_td_right->appendChild( $session->make_text( EPrints::Utils::human_filesize($size) ));
-		}
+	$table_left_td_left->appendChild( $doc->render_icon_link( new_window=>1, preview=>1, public=>0 ) );
 
-		my $td_centre = $session->make_element( "td", align=>"center", valign=>"middle", width=>"40%" );
-		$tr->appendChild( $td_centre );
-		$td_centre->appendChild( $self->_render_doc_placement( $doc, \@eprint_docs ) );
+	$table_left_td_right->appendChild( $doc->render_citation);
+	my %files = $doc->files;
+	if( defined $files{$doc->get_main} )
+	{
+		my $size = $files{$doc->get_main};
+		$table_left_td_right->appendChild( $session->make_element( 'br' ) );
+		$table_left_td_right->appendChild( $session->make_text( EPrints::Utils::human_filesize($size) ));
+	}
 
-		my $td_right = $session->make_element( "td", align=>"right", valign=>"middle", width=>"20%" );
-		$tr->appendChild( $td_right );
+	my $td_centre = $session->make_element( "td", align=>"center", valign=>"middle", width=>"40%" );
+	$tr->appendChild( $td_centre );
+	$td_centre->appendChild( $self->_render_doc_placement( $doc, $eprint_docs ) );
+	my $msg = $self->phrase( "delete_document_confirm" );
+	my $delete_fmt_button = $session->render_button(
+		name => "_internal_".$doc_prefix."_delete_doc",
+		value => $self->phrase( "delete_document" ), 
+		class => "ep_form_internal_button",
+		onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm(".EPrints::Utils::js_string($msg).");",
+		);
+        $td_centre->appendChild( $delete_fmt_button );
 
-		my $options = $session->make_element( "div", class=>"ep_update_doc_options ep_only_js" );
-		my $opts_toggle = $session->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${doc_prefix}_opts',".($hide?"false":"true").",'${doc_prefix}_block');EPJS_toggle('${doc_prefix}_opts_hide',".($hide?"false":"true").",'block');EPJS_toggle('${doc_prefix}_opts_show',".($hide?"true":"false").",'block');return false", href=>"#" );
-		$options->appendChild( $opts_toggle );
-		$td_right->appendChild( $options );
+	my $td_right = $session->make_element( "td", align=>"right", valign=>"middle", width=>"20%" );
+	$tr->appendChild( $td_right );
 
-		my $s_options = $session->make_element( "span", id=>$doc_prefix."_opts_show", class=>"ep_update_doc_options ".($hide?"":"ep_hide") );
-		$s_options->appendChild( $self->html_phrase( "show_options" ) );
-		$s_options->appendChild( $session->make_text( " " ) );
-		$s_options->appendChild( 
+	my $options = $session->make_element( "div", class=>"ep_update_doc_options ep_only_js" );
+	my $opts_toggle = $session->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${doc_prefix}_opts',".($hide?"false":"true").",'${doc_prefix}_block');EPJS_toggle('${doc_prefix}_opts_hide',".($hide?"false":"true").",'block');EPJS_toggle('${doc_prefix}_opts_show',".($hide?"true":"false").",'block');return false", href=>"#" );
+	$options->appendChild( $opts_toggle );
+	$td_right->appendChild( $options );
+
+	my $s_options = $session->make_element( "span", id=>$doc_prefix."_opts_show", class=>"ep_update_doc_options ".($hide?"":"ep_hide") );
+	$s_options->appendChild( $self->html_phrase( "show_options" ) );
+	$s_options->appendChild( $session->make_text( " " ) );
+	$s_options->appendChild( 
 			$session->make_element( "img",
 				src=>"$imagesurl/style/images/plus.png",
 				) );
-		$opts_toggle->appendChild( $s_options );
+	$opts_toggle->appendChild( $s_options );
 
-		my $h_options = $session->make_element( "span", id=>$doc_prefix."_opts_hide", class=>"ep_update_doc_options ".($hide?"ep_hide":"") );
-		$h_options->appendChild( $self->html_phrase( "hide_options" ) );
-		$h_options->appendChild( $session->make_text( " " ) );
-		$h_options->appendChild( 
+	my $h_options = $session->make_element( "span", id=>$doc_prefix."_opts_hide", class=>"ep_update_doc_options ".($hide?"ep_hide":"") );
+	$h_options->appendChild( $self->html_phrase( "hide_options" ) );
+	$h_options->appendChild( $session->make_text( " " ) );
+	$h_options->appendChild( 
 			$session->make_element( "img",
 				src=>"$imagesurl/style/images/minus.png",
 				) );
-		$opts_toggle->appendChild( $h_options );
+	$opts_toggle->appendChild( $h_options );
 
 
-		#$doc_title->appendChild( $doc->render_description );
-		$doc_div->appendChild( $doc_title_bar );
-	
-		my $content = $session->make_element( "div", id=>$doc_prefix."_opts", class=>"ep_upload_doc_content ".($hide?"ep_no_js":"") );
-		my $content_inner = $self->{session}->make_element( "div", id=>$doc_prefix."_opts_inner" );
-		$content_inner->appendChild( $self->_render_doc( $doc ) );
-		$content->appendChild( $content_inner );
-		$doc_div->appendChild( $content );
+#$doc_title->appendChild( $doc->render_description );
+	$doc_div->appendChild( $doc_title_bar );
+
+	my $content = $session->make_element( "div", id=>$doc_prefix."_opts", class=>"ep_upload_doc_content ".($hide?"ep_no_js":"") );
+	my $content_inner = $self->{session}->make_element( "div", id=>$doc_prefix."_opts_inner" );
+
+	my $id_prefix = "doc.".$doc->get_id;
+
+
+	my @tabs = $self->_render_doc( $doc );
+
+	my $volits = $self->_render_related_docs( $doc );
+
+	if (defined $volits)
+	{
+		push @tabs, $volits;
 	}
-	
-	return $f;
+
+	# render the tab menu
+	$content_inner->appendChild( $session->render_tabs(
+				id_prefix => $id_prefix,
+				current => $tabs[0]->{id},
+				tabs => [map { $_->{id} } @tabs],
+				labels => {map { $_->{id} => $_->{title} } @tabs},
+				links => {map { $_->{id} => "" } @tabs},
+				) );
+
+	# panel that all the tab content sits in
+	my $panel = $session->make_element( "div",
+			id => "${id_prefix}_panels",
+			class => "ep_tab_panel",
+			);
+	$content_inner->appendChild( $panel );
+
+	foreach my $tab (@tabs)
+	{
+		my $view_div = $session->make_element( "div",
+				id => "${id_prefix}_panel_".$tab->{id},
+				);
+		if( $tab ne $tabs[0] )
+		{
+			$view_div->setAttribute( "style", "display: none" );
+		}
+		$view_div->appendChild( $tab->{content} );
+
+		$panel->appendChild( $view_div );
+	}
+
+	$content->appendChild( $content_inner );
+	$doc_div->appendChild( $content );
+
+	return $doc_div;
+
+}
+
+sub _render_related_docs
+{
+	my ( $self, $doc ) = @_;
+
+	my $volatiles = 0;
+
+	my $eprint = $doc->get_parent;
+
+	my @volatile_docs = get_volatile_docs($self,$eprint);
+
+	my $volatile_part = $self->{session}->make_element( "div", id=>$self->{prefix}."_panels", align=>"center" );
+
+	my $relation = EPrints::Utils::make_relation( "isVolatileVersionOf" );
+
+	foreach my $vol ( @volatile_docs )
+	{
+		foreach my $rel_doc ( @{($vol->get_related_objects($relation))} )
+		{
+			if ($rel_doc->get_id == $doc->get_id) {
+				$volatile_part->appendChild( _render_volatile_div( $self, $vol ));
+				$volatiles = 1;
+			}
+		}
+	}
+
+	if ($volatiles > 0)
+	{
+		return {
+			id => "related_".$doc->get_id,
+			   title => $self->html_phrase("related_files"),
+			   content => $volatile_part,
+		};
+	}
+	else
+	{
+		return undef;
+	}
+}
+
+sub get_volatile_docs
+{
+	my ($self,$eprint) = @_;
+
+	my $session = $self->{session};
+
+	#Potential Authentication Bit
+	#my $current_user = $session->current_user;
+	#if ( ! $current_user->has_role('volatile_editor')) {
+	#       return ();
+	#}
+
+	my $relation = EPrints::Utils::make_relation( "isVolatileVersionOf" );
+
+	my @docs = ();
+
+	# Filter out any documents that are volatile versions
+        foreach my $doc (@{($eprint->get_value( "documents" ))})
+        {
+                if( $doc->has_related_objects( $relation ) )
+                {
+                        push @docs, $doc;
+                }
+        }
+
+        return sort { ($a->get_value( "placement" )||0) <=> ($b->get_value( "placement" )||0) } @docs;	
+
+}
+
+sub _render_volatile_div
+{
+        my ( $self, $doc ) = @_;
+
+        my $session = $self->{session};
+
+        my $view_id = $doc->get_id;
+        my $doc_prefix = $self->{prefix}."_doc".$view_id;
+        my $doc_div = $self->{session}->make_element( "div", class=>"ep_upload_doc", id=>$doc_prefix."_block" );
+        my $doc_title_bar = $session->make_element( "div", class=>"ep_upload_doc_title_bar" );
+
+        my $table = $session->make_element( "table", width=>"100%", border=>0 );
+        my $tr = $session->make_element( "tr" );
+        $doc_title_bar->appendChild( $table );
+        $table->appendChild( $tr );
+        my $td_left = $session->make_element( "td", align=>"left", valign=>"middle", width=>"40%" );
+        $tr->appendChild( $td_left );
+
+        my $table_left = $session->make_element( "table", border=>0 );
+        $td_left->appendChild( $table_left );
+        my $table_left_tr = $session->make_element( "tr" );
+        my $table_left_td_left = $session->make_element( "td", align=>"center" );
+        my $table_left_td_right = $session->make_element( "td", align=>"left", class=>"ep_upload_doc_title" );
+	$table_left->appendChild( $table_left_tr );
+        $table_left_tr->appendChild( $table_left_td_left );
+        $table_left_tr->appendChild( $table_left_td_right );
+
+        $table_left_td_left->appendChild( $doc->render_icon_link( new_window=>1, preview=>1, public=>0 ) );
+
+        $table_left_td_right->appendChild( $doc->render_citation );
+        my %files = $doc->files;
+        if( defined $files{$doc->get_main} )
+        {
+                my $size = $files{$doc->get_main};
+                $table_left_td_right->appendChild( $session->make_element( 'br' ) );
+                $table_left_td_right->appendChild( $session->make_text( EPrints::Utils::human_filesize($size) ));
+        }
+
+        my $td_right = $session->make_element( "td", align=>"right", valign=>"middle", width=>"20%" );
+        $tr->appendChild( $td_right );
+        my $msg = $self->phrase( "unlink_document_confirm" );
+        my $unlink_button = $session->render_button(
+                name => "_internal_".$doc_prefix."_unlink_doc",
+                value => $self->phrase( "unlink_document" ),
+                class => "ep_form_internal_button",
+                onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm(".EPrints::Utils::js_string($msg).");",
+                );
+	$td_right->appendChild($unlink_button);
+#$doc_title->appendChild( $doc->render_description );
+        $doc_div->appendChild( $doc_title_bar );
+
+        return $doc_div;
 }
 
 sub doc_fields
@@ -461,6 +669,8 @@ sub _render_doc_placement
 	return $frag unless scalar @$eprint_docs > 1;
 
 	my $prefix = $self->{prefix};
+	
+	my $appended_button=0;
 
 	if( $doc->get_id != $eprint_docs->[0]->get_id )
 	{
@@ -470,6 +680,8 @@ sub _render_doc_placement
 			class => "ep_form_internal_button",
 			);
 		$frag->appendChild( $up_button );
+		$appended_button=1;
+		
 	}
 	if( $doc->get_id != $eprint_docs->[$#$eprint_docs]->get_id )
 	{
@@ -479,6 +691,12 @@ sub _render_doc_placement
 			class => "ep_form_internal_button",
 			);
 		$frag->appendChild( $down_button );
+		$appended_button=1;
+	}
+
+	if ($appended_button>0) 
+	{
+		$frag->appendChild( $session->make_element( "br" ));
 	}
 
 	return $frag;
@@ -490,8 +708,9 @@ sub _render_doc
 
 	my $session = $self->{session};	
 
-	my $doc_cont = $session->make_element( "div" );
+	my @tabs;
 
+	my $doc_cont = $session->make_element( "div" );
 
 	my $docid = $doc->get_id;
 	my $doc_prefix = $self->{prefix}."_doc".$docid;
@@ -540,18 +759,15 @@ sub _render_doc
 		);
 	$tool_div->appendChild( $update_button );
 
-	my $msg = $self->phrase( "delete_document_confirm" );
-	my $delete_fmt_button = $session->render_button(
-		name => "_internal_".$doc_prefix."_delete_doc",
-		value => $self->phrase( "delete_document" ), 
-		class => "ep_form_internal_button",
-		onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm(".EPrints::Utils::js_string($msg).");",
-		);
-	$tool_div->appendChild( $delete_fmt_button );
-
 	$doc_cont->appendChild( $tool_div );
+	
+	push @tabs, {
+		id => "metadata_".$doc->get_id,
+		   title => $self->html_phrase("Metadata"),
+		   content => $doc_cont,
+	};
 
-
+	$doc_cont = $session->make_element( "div" );
 
 	my $files = $session->make_element( "div", class=>"ep_upload_files" );
 	$doc_cont->appendChild( $files );
@@ -563,7 +779,12 @@ sub _render_doc
 	$block->appendChild( $self->_render_convert_document( $doc ) );
 	$doc_cont->appendChild( $block );
 
-	return $doc_cont;
+	push @tabs, {
+		id => "files_".$doc->get_id,
+		   title => $self->html_phrase("Files"),
+		   content => $doc_cont,
+	};
+	return @tabs;
 }
 			
 
