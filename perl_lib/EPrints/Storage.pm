@@ -62,8 +62,10 @@ sub new
 	Scalar::Util::weaken($self->{repository})
 		if defined &Scalar::Util::weaken;
 
-	$self->_load_all( $repository->config( "lib_path" )."/storage" );
-	$self->_load_all( $repository->config( "config_path" )."/storage" );
+	$self->_load_all(
+			$repository->config( "lib_path" )."/storage",
+			$repository->config( "config_path" )."/storage",
+		);
 
 	if( !scalar keys %{$self->{config}} )
 	{
@@ -75,22 +77,26 @@ sub new
 
 sub _load_all
 {
-	my( $self, $path ) = @_;
+	my( $self, @paths ) = @_;
 
 	foreach my $id (qw( default ))
 	{
-		$self->_load_config_file(
-			"$path/$id.xml",
-			$self->{config}->{$id} = {}
-		);
+		foreach my $path ( @paths )
+		{
+			my $file = "$path/$id.xml";
+			next if !-e $file;
+
+			$self->_load_config_file(
+				$file,
+				$self->{config}->{$id} = {}
+			);
+		}
 	}
 }
 
 sub _load_config_file
 {
 	my( $self, $file, $confhash ) = @_;
-
-	return unless -e $file;
 
 	my $doc = $self->{repository}->parse_xml( $file );
 	$confhash->{xml} = $doc->documentElement();
