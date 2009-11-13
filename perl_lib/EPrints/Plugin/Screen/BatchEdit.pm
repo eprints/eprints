@@ -41,6 +41,8 @@ sub redirect_to_me_url
 {
 	my( $self ) = @_;
 
+	return undef;
+
 	my $cacheid = $self->{processor}->{session}->param( "cache" );
 
 	return $self->SUPER::redirect_to_me_url."&cache=$cacheid";
@@ -211,6 +213,52 @@ sub export
 			$session->param( "c" )
 		);
 	}
+	elsif( $action eq "edit" )
+	{
+		$self->ajax_edit();
+	}
+	elsif( $action eq "list" )
+	{
+		$self->ajax_list();
+	}
+}
+
+sub ajax_list
+{
+	my( $self ) = @_;
+
+	my $max = 8;
+
+	my $session = $self->{session};
+
+	my $searchexp = $self->get_searchexp;
+	return if !defined $searchexp;
+
+	my $list = $searchexp->perform_search;
+
+	my @records = $list->get_records( 0, $max );
+
+	$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
+	binmode(STDOUT, ":utf8");
+
+	my $div = $session->make_element( "div" );
+
+	$div->appendChild( $self->html_phrase( "applying_to",
+		count => $session->make_text( $list->count ),
+		showing => $session->make_text( $max ) ) );
+
+	my $ul = $session->make_element( "ul" );
+	$div->appendChild( $ul );
+
+	foreach my $record (@records)
+	{
+		my $li = $session->make_element( "li" );
+		$ul->appendChild( $li );
+		$li->appendChild( $record->render_citation_link() );
+	}
+
+	print EPrints::XML::to_string( $div, undef, 1 );
+	EPrints::XML::dispose( $div );
 }
 
 # generate a new action line
@@ -280,7 +328,7 @@ sub ajax_new_field
 					type => "image",
 					alt => "Remove",
 					src => $session->get_url( path => "static", "/style/images/action_remove.png" ),
-					onclick => "ep_batchedit_remove_field('$alias')",
+					onclick => "ep_batchedit_remove_action($c)",
 				) );
 
 				# hint so we can work out how to retrieve the values
@@ -296,10 +344,7 @@ sub ajax_new_field
 
 	$custom_field = $self->custom_field_to_field( $dataset, $custom_field );
 
-	$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
-	binmode(STDOUT, ":utf8");
-
-	my $div = $session->make_element( "div", id => $alias );
+	my $div = $session->make_element( "div", id => "action_$c" );
 
 	my $title_div = $session->make_element( "div", class => "ep_form_field_name" );
 	$div->appendChild( $title_div );
@@ -311,10 +356,138 @@ sub ajax_new_field
 
 	my $inputs = $custom_field->render_input_field( $session );
 	$div->appendChild( $inputs );
+	$inputs->setAttribute( 'id', "action_$c" );
 
+	$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
+	binmode(STDOUT, ":utf8");
 	print EPrints::XML::to_string( $div, undef, 1 );
 	EPrints::XML::dispose( $div );
 }
+
+sub ajax_edit
+{
+	my( $self ) = @_;
+
+	my $processor = $self->{processor};
+	my $session = $processor->{session};
+
+	my $searchexp = $self->get_searchexp;
+	if( !$searchexp )
+	{
+		return;
+	}
+
+	my $list = $searchexp->perform_search;
+
+	if( $list->count == 0 )
+	{
+		return;
+	}
+
+	select(STDOUT);
+	local $| = 1;
+
+#	binmode(STDOUT, ":utf8");
+
+	my $request = $session->get_request;
+
+#	$session->send_http_header( content_type => "text/plain; charset=UTF-8" );
+	$request->content_type( "text/plain; charset=UTF-8" );
+	$request->rflush;
+
+	my $dataset = $searchexp->get_dataset;
+
+	my @actions = $self->get_changes( $dataset );
+
+	if( !@actions )
+	{
+		$request->print( "0\n" );
+		$request->print( "SPLIT\n" );
+		my $message = $session->render_message( "warning", $self->html_phrase( "no_changes" ) );
+		$request->print( EPrints::XML::to_string( $message ) );
+		EPrints::XML::dispose( $message );
+		return;
+	}
+
+	$request->print( $list->count() . "\n" );
+	$request->print( "0\n" );
+
+	my $count = 0;
+	$list->map(sub {
+		my( $session, $dataset, $dataobj ) = @_;
+
+		foreach my $act (@actions)
+		{
+			my $field = $act->{"field"};
+			my $action = $act->{"action"};
+			my $value = $act->{"value"};
+			my $orig_value = $field->get_value( $dataobj );
+
+			if( $field->get_property( "multiple" ) )
+			{
+				if( $action eq "clear" )
+				{
+					$field->set_value( $dataobj, [] );
+				}
+				elsif( $action eq "delete" )
+				{
+					my $values = EPrints::Utils::clone( $orig_value );
+					@$values = grep { cmp_deeply($value, $_) != 0 } @$values;
+					$field->set_value( $dataobj, $values );
+				}
+				elsif( $action eq "insert" )
+				{
+					my @values = ($value, @$orig_value);
+					$field->set_value( $dataobj, \@values );
+				}
+				elsif( $action eq "append" )
+				{
+					my @values = (@$orig_value, $value);
+					$field->set_value( $dataobj, \@values );
+				}
+			}
+			else
+			{
+				if( $action eq "clear" )
+				{
+					$field->set_value( $dataobj, undef );
+				}
+				elsif( $action eq "replace" )
+				{
+					$field->set_value( $dataobj, $value );
+				}
+			}
+		}
+
+		$dataobj->commit;
+		$request->print( ++$count."\n" );
+	});
+
+	my $ul = $session->make_element( "ul" );
+	foreach my $act (@actions)
+	{
+		my $field = $act->{"field"};
+		my $action = $act->{"action"};
+		my $value = $act->{"value"};
+		my $li = $session->make_element( "li" );
+		$ul->appendChild( $li );
+		$value = defined($value) ?
+			$field->render_single_value( $session, $value ) :
+			$session->html_phrase( "lib/metafield:unspecified" );
+		$li->appendChild( $self->html_phrase( "applied_$action",
+			value => $session->make_text( EPrints::Utils::tree_to_utf8( $value ) ),
+			fieldname => $field->render_name,
+		) );
+		EPrints::XML::dispose( $value );
+	}
+	$request->print( "SPLIT\n" );
+	my $message = $session->render_message( "message", $self->html_phrase( "applied",
+		changes => $ul,
+	) );
+	$request->print( EPrints::XML::to_string( $message ) );
+	EPrints::XML::dispose( $message );
+}
+
 
 sub render
 {
@@ -347,20 +520,21 @@ sub render
 	$page->appendChild( $p );
 	$p->appendChild( $searchexp->render_description );
 
-	$p = $session->make_element( "p" );
+	$p = $session->make_element( "p", id => "ep_batchedit_sample" );
 	$page->appendChild( $p );
-	$p->appendChild( $self->html_phrase( "applying_to", count => $session->make_text( $list->count ) ) );
 
-	my $ul = $session->make_element( "ul" );
-	$p->appendChild( $ul );
-
-	my @eprints = $list->get_records( 0, 5 );
-	foreach my $eprint (@eprints)
-	{
-		my $li = $session->make_element( "li" );
-		$ul->appendChild( $li );
-		$li->appendChild( $eprint->render_citation_link( ) );
-	}
+#	$p->appendChild( $self->html_phrase( "applying_to", count => $session->make_text( $list->count ) ) );
+#
+#	my $ul = $session->make_element( "ul" );
+#	$p->appendChild( $ul );
+#
+#	my @eprints = $list->get_records( 0, 5 );
+#	foreach my $eprint (@eprints)
+#	{
+#		my $li = $session->make_element( "li" );
+#		$ul->appendChild( $li );
+#		$li->appendChild( $eprint->render_citation_link( ) );
+#	}
 
 	$page->appendChild( $self->render_changes_form( $searchexp ) );
 
@@ -379,9 +553,10 @@ sub get_fields
 	foreach my $field ($dataset->get_fields)
 	{
 		next if defined $field->{sub_name};
-		next if $field->isa( "EPrints::MetaField::Subobject" );
 		next if $field->get_name eq $dataset->get_key_field->get_name;
-		next if !$field->get_property( "show_in_fieldlist" );
+		next if
+			!$field->isa( "EPrints::MetaField::Compound" ) &&
+			!$field->get_property( "show_in_fieldlist" );
 
 		push @fields, $field;
 		my $name = $field->render_name( $self->{session} );
@@ -452,8 +627,20 @@ sub render_changes_form
 
 	$page->appendChild( $session->make_javascript ( join "", <DATA> ) );
 
+	my $iframe = $session->make_element( "iframe",
+			id => "ep_batchedit_iframe",
+			name => "ep_batchedit_iframe",
+			width => "0px",
+			height => "0px",
+			style => "border: 0px;",
+	);
+	$page->appendChild( $iframe );
+
+	$div = $session->make_element( "div", id => "ep_batchedit_progress" );
+	$page->appendChild( $div );
+
 	my %buttons = (
-		edit => "Apply Changes",
+		edit => $self->phrase( "action:edit" ),
 	);
 
 	my $form = $session->render_input_form(
@@ -461,16 +648,19 @@ sub render_changes_form
 #		fields => \@input_fields,
 		show_help => 0,
 		show_names => 1,
-		top_buttons => \%buttons,
+#		top_buttons => \%buttons,
 		buttons => \%buttons,
 		hidden_fields => {
 			screen => $processor->{screenid},
 			cache => $searchexp->get_cache_id,
 			max_action => 0,
+			ajax => "edit",
 		},
 	);
 	$page->appendChild( $form );
 	$form->setAttribute( id => "ep_batchedit_form" );
+	$form->setAttribute( target => "ep_batchedit_iframe" );
+	$form->setAttribute( onsubmit => "ep_batchedit_submitted(); return false" );
 
 	my $container = $session->make_element( "div" );
 	# urg, fragile!
@@ -573,8 +763,46 @@ sub _cmp_hash
 
 __DATA__
 
+Event.observe(window, 'load', ep_batchedit_update_list);
+
+function ep_batchedit_update_list()
+{
+	$('ep_batchedit_sample').update( '<img src="' + eprints_http_root + '/style/images/lightbox/loading.gif" />' );
+
+	var ajax_parameters = {};
+	ajax_parameters['screen'] = $F('screen');
+	ajax_parameters['cache'] = $F('cache');
+	ajax_parameters['ajax'] = 'list';
+
+	new Ajax.Request(
+		eprints_http_cgiroot+"/users/home",
+		{
+			method: "get",
+			onFailure: function() { 
+				alert( "AJAX request failed..." );
+			},
+			onException: function(req, e) { 
+				alert( "AJAX Exception " + e );
+			},
+			onSuccess: function(response){ 
+				var xml = response.responseText;
+				if( !xml )
+				{
+					alert( "No response from server: "+response.responseText );
+				}
+				else
+				{
+					$('ep_batchedit_sample').update( xml );
+				}
+			},
+			parameters: ajax_parameters
+		} 
+	);
+}
+
 var ep_batchedit_c = 1;
 
+/* the user clicked to add an action */
 function ep_batchedit_add_action()
 {
 	var name = $('ep_batchedit_field_name').value;
@@ -619,7 +847,94 @@ function ep_batchedit_add_action()
 	);
 }
 
-function ep_batchedit_remove_field(action)
+/* the user clicked to remove an action */
+function ep_batchedit_remove_action(idx)
 {
-	$(action).parentNode.removeChild( $(action) );
+	var action = $('action_' + idx);
+	if( action != null )
+		action.parentNode.removeChild( action );
 }
+
+/* the user submitted the changes form */
+function ep_batchedit_submitted()
+{
+	var form = $('ep_batchedit_form');
+	var iframe = $('ep_batchedit_iframe');
+	var container = $('ep_batchedit_progress');
+
+	form.submit();
+
+	form.hide();
+
+	var max_action = $F('max_action');
+	for(var i = 0; i < max_action; ++i)
+		ep_batchedit_remove_action( i );
+
+	while(container.hasChildNodes())
+		container.removeChild( container.firstChild );
+
+	var progress = new EPrintsProgressBar({bar: 'progress_bar_orange.png'}, container);
+
+	var pe = new PeriodicalExecuter(function(pe) {
+		var parts = ep_batchedit_iframe_contents( iframe );
+		var content = parts[0];
+		if( content == null )
+			return;
+		var nums = content.split( '\n' );
+		var total = nums[0];
+		if( !total )
+			return;
+		nums.pop();
+		var current = nums[nums.length-1];
+
+		var percent = current / total;
+		progress.update( percent, Math.round(percent*100) + '%' );
+	}, .2);
+
+	Event.observe(iframe, 'load', function() {
+		Event.stopObserving( iframe, 'load' );
+		pe.stop();
+
+		progress.update( 1, '100%' );
+
+		// reduce UI flicker by adding a short delay before we refresh
+		new PeriodicalExecuter(function(pe_f) {
+			pe_f.stop();
+
+			ep_batchedit_finished();
+		}, .5);
+	});
+}
+
+function ep_batchedit_iframe_contents( iframe )
+{
+	if(
+		iframe.contentWindow.document == null ||
+		iframe.contentWindow.document.body.firstChild == null
+	  )
+		return [];
+
+	var content = iframe.contentWindow.document.body.firstChild.firstChild.nodeValue;
+
+	return content.split( 'SPLIT\n' );
+}
+
+function ep_batchedit_finished()
+{
+	var form = $('ep_batchedit_form');
+	var iframe = $('ep_batchedit_iframe');
+	var container = $('ep_batchedit_progress');
+
+	while(container.hasChildNodes())
+		container.removeChild( container.firstChild );
+
+	var parts = ep_batchedit_iframe_contents( iframe );
+
+	container.innerHTML = parts[1];
+
+	ep_batchedit_update_list();
+
+	form.show();
+}
+
+
