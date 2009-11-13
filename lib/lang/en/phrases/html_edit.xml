@@ -11,6 +11,7 @@
 	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:really_next">Next?</epp:phrase>
         <epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:phrases_updated">Phrase update complete.</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:inline_edit_title">Edit XPage code</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/Template:inline_edit_title">Edit Template code</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:change_image">Change: </epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:image_editor">Change/Upload Images</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/Perl:inline_edit_title">Edit config file</epp:phrase>
