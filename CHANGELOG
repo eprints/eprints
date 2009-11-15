@@ -8458,3 +8458,9 @@ EPRINTS-3.1-beta-2
 
 2009-11-13 cjg
  * Added URI to EPrint Summary Page
+
+2009-11-15 cjg
+ * If no "accept" header then assume text/html
+ * Renamed _update_triggers to update_triggers (prelude from moving it to DataObj.pm)
+ * Added RDF-N3 Export tool.
+ * Tweaks to bibo module to handle events better

@@ -435,7 +435,7 @@ sub create_from_data
 
 	$new_eprint->set_under_construction( 0 );
 
-	$new_eprint->_update_triggers();
+	$new_eprint->update_triggers();
 
 	$session->get_database->update(
 		$dataset,
@@ -470,7 +470,7 @@ sub create_from_data
 
 # Update all the stuff that needs updating before an eprint
 # is written to the database.
-sub _update_triggers
+sub update_triggers
 {
 	my( $self ) = @_;
 
@@ -1000,7 +1000,7 @@ sub commit
 	}
 	$self->set_value( "item_issues_count", $c );
 
-	$self->_update_triggers();
+	$self->update_triggers();
 
 	my @docs = $self->get_all_documents();
 	my @finfo = ();
@@ -1575,7 +1575,7 @@ sub generate_static_all_related
 	# appropriate
 	my @to_update = $self->get_all_related;
 	
-	# Do the actual updates
+	# Do the actual pdates
 	foreach my $related (@to_update)
 	{
 		$related->generate_static;

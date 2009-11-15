@@ -127,6 +127,7 @@ sub handler
 			# or language etc. at this stage.
 			#
 			my $accept = EPrints::Apache::AnApache::header_in( $r, "Accept" );
+			$accept = "text/html" unless defined $accept;
 
 			my $match = content_negotiate_best_plugin( 
 				$session, 

@@ -76,10 +76,11 @@ push @{$c->{rdf}->{get_triples}}, sub {
 
 	return () if( !$eprint->get_value( "type" ) eq "conference_item" );
 
-	my $event_title = $eprint->get_value( "event_title" );
 	my $event_uri = &{$c->{rdf}->{event_uri}}( $eprint );
-	my $event_location = $eprint->get_value( "event_location" );
+	return if !defined $event_uri;
+
 	my $eprint_uri = "<".$eprint->uri.">";
+	my $event_title = $eprint->get_value( "event_title" )||"";
 
 	push @{$o{triples}->{$event_uri}},
 [ $eprint_uri,	"rdf:type",		"bibo:Article" ],
@@ -90,6 +91,7 @@ push @{$c->{rdf}->{get_triples}}, sub {
 	my $event_loc_uri = &{$c->{rdf}->{event_location_uri}}( $eprint );
 	if( $event_loc_uri )
 	{
+		my $event_location = $eprint->get_value( "event_location" );
 		push @{$o{triples}->{$event_uri}},
 [ $event_uri, 	"event:place", 		$event_loc_uri ];
 
