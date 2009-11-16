@@ -55,7 +55,7 @@ sub output_list
 	my $r = [];
 
 	my $part;
-	$part = $plugin->_header."[\n\n";
+	$part = $plugin->_header."[\n";
 	if( defined $opts{fh} )
 	{
 		print {$opts{fh}} $part;
@@ -70,8 +70,8 @@ sub output_list
 	$opts{list}->map( sub {
 		my( $session, $dataset, $item ) = @_;
 		my $part = "";
-		if( $first ) { $part = "  "; $first = 0; } else { $part = ",\n  "; }
-		$part .= $plugin->output_dataobj( $item, %opts, multiple => 1 );
+		if( $first ) { $first = 0; } else { $part = ",\n"; }
+		$part .= $plugin->output_dataobj( $item, %opts, fh => undef, multiple => 1 );
 		if( defined $opts{fh} )
 		{
 			print {$opts{fh}} $part;
@@ -82,7 +82,7 @@ sub output_list
 		}
 	} );
 
-	$part= "\n\n]\n\n".$plugin->_footer;
+	$part= "\n]\n\n".$plugin->_footer;
 	if( defined $opts{fh} )
 	{
 		print {$opts{fh}} $part;
@@ -103,96 +103,75 @@ sub output_list
 
 sub output_dataobj
 {
-	my( $plugin, $dataobj, %opts ) = @_;
+	my( $self, $dataobj, %opts ) = @_;
 
-	my $itemtype = $dataobj->get_dataset->confid;
+	my $json = $self->_epdata_to_json( $dataobj, 1 );
 
-	my $xml = $dataobj->to_xml;
-	my $obj_node = $xml;
-	# pull the <eprint> out of the document fragment, if it is in one.
-	foreach my $node ( $xml->getChildNodes() )
-	{
-		if( $node->getName() eq $dataobj->get_dataset->confid )
-		{
-			$obj_node = $node;
-			last;
-		}
-	}
-
-	my $header = "";
-	my $footer = "";
 	if( !$opts{multiple} )
 	{
-		$header = $plugin->_header;
-		$footer = $plugin->_footer;
+		$json = $self->_header . $json . $self->_footer;
 	}
 
-	return 
-		$header.
-		$plugin->ep3xml_to_json( $obj_node, $opts{json_indent} ).
-		$footer;
+	if( $opts{fh} )
+	{
+		print {$opts{fh}} $json;
+		return "";
+	}
+
+	return $json;
 }
 
-sub ep3xml_to_json
+sub _epdata_to_json
 {
-	my( $plugin, $xml, $indent ) = @_;
+	my( $self, $epdata, $depth, $in_hash ) = @_;
 
-	$indent = 0 if !defined $indent;
+	my $pad = "  " x $depth;
+	my $pre_pad = $in_hash ? "" : $pad;
 
-	my $pad = "  "x$indent;
-	#$pad= "|$pad";
-
-	my $type = "text";
-	foreach my $node ( $xml->getChildNodes() )
+	if( !ref( $epdata ) )
 	{
-		if( EPrints::XML::is_dom( $node, "Element" ) )
+		if( !defined $epdata )
 		{
-			if( $node->tagName eq "item" )
-			{
-				$type = "list";
-			}
-			else
-			{
-				$type = "hash";
-			}
-			last;
+			return "''"; # part of a compound field
+		}
+		elsif( $epdata =~ /['\\]/ )
+		{
+			return $pre_pad . EPrints::Utils::js_string( $epdata );
+		}
+		else
+		{
+			return $pre_pad . "'$epdata'";
 		}
 	}
-	
-	my $name = $xml->tagName;
-	$type = "list" if( $name eq "documents" );
-	$type = "list" if( $name eq "files" );
-
-	if( $type eq "list" )
+	elsif( ref( $epdata ) eq "ARRAY" )
 	{
-		my @r = ();	
-		foreach my $node ( $xml->getChildNodes() )
-		{
-			next unless( EPrints::XML::is_dom( $node, "Element" ) );
-			push @r, $plugin->ep3xml_to_json( $node, $indent+1 );
-		}
-		return "[\n$pad  ".join( ",\n$pad  ", @r )."\n$pad]";
+		return "$pre_pad\[\n" . join(",\n", map {
+			$self->_epdata_to_json( $_, $depth + 1 )
+		} grep { EPrints::Utils::is_set( $_ ) } @$epdata ) . "\n$pad\]";
 	}
-
-	if( $type eq "hash" )
+	elsif( ref( $epdata ) eq "HASH" )
 	{
-		my @r = ();	
-		foreach my $node ( $xml->getChildNodes() )
-		{
-			next unless( EPrints::XML::is_dom( $node, "Element" ) );
-			my $n = $node->getName();
-			$n =~ s/["\\]/\\$&/g;
-			push @r, '"'.$n.'": '.$plugin->ep3xml_to_json( $node, $indent+1 );
-		}
-		return "{\n$pad  ".join( ",\n$pad  ", @r )."\n$pad}";
+		return "$pre_pad\{\n" . join(",\n", map {
+			$pad . "  " . $_ . ": " . $self->_epdata_to_json( $epdata->{$_}, $depth + 1, 1 )
+		} grep { EPrints::Utils::is_set( $epdata->{$_} ) } keys %$epdata) . "\n$pad\}";
 	}
+	elsif( $epdata->isa( "EPrints::DataObj" ) )
+	{
+		my $subdata = {};
 
-	# must be text
-	
-	my $v = EPrints::Utils::tree_to_utf8( EPrints::XML::contents_of( $xml ) );
-	$v =~ s/["\\]/\\$&/g;
-	$v =~ s/\n/\\n/g;
-	return '"'.$v.'"';
+		foreach my $field ($epdata->get_dataset->get_fields)
+		{
+			next if !$field->get_property( "export_as_xml" );
+			next if defined $field->{sub_name};
+			my $value = $field->get_value( $epdata );
+			next if !EPrints::Utils::is_set( $value );
+			$subdata->{$field->get_name} = $value;
+		}
+
+		$subdata->{uri} = $epdata->uri;
+
+		return $self->_epdata_to_json( $subdata, $depth + 1 );
+	}
 }
 
 
