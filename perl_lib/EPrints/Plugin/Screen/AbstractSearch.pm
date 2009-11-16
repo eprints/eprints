@@ -60,6 +60,7 @@ sub export_url
 		_action_export => 1,
 		output => $format,
 		exp => $self->{processor}->{search}->serialise,
+		n => $self->{session}->param( "n" ),
 	);
 
 	return $url;
@@ -756,6 +757,7 @@ sub wishes_to_export
 	return 0 unless $self->{processor}->{search_subscreen} eq "export";
 
 	my $format = $self->{session}->param( "output" );
+	my $n = $self->{session}->param( "n" );
 
 	my @plugins = $self->_get_export_plugins( 1 );
 		
@@ -772,6 +774,7 @@ sub wishes_to_export
 	
 	$self->{processor}->{export_plugin} = $self->{session}->plugin( "Export::$format" );
 	$self->{processor}->{export_format} = $format;
+	$self->{processor}->{export_n} = $n;
 	
 	return 1;
 }
@@ -781,7 +784,21 @@ sub export
 {
 	my( $self ) = @_;
 
-	print $self->{processor}->{results}->export( $self->{processor}->{export_format} );
+	my $results = $self->{processor}->{results};
+	my $n = $self->{processor}->{export_n};
+	if( $n && $n > 0 )
+	{
+		my $ids = $results->get_ids( 0, $n );
+		$results = EPrints::List->new(
+			session => $self->{session},
+			dataset => $results->{dataset},
+			ids => $ids );
+	}
+
+	my $format = $self->{processor}->{export_format};
+	my $plugin = $self->{session}->plugin( "Export::" . $format );
+	$plugin->initialise_fh( *STDOUT );
+	$results->export( $format, fh => *STDOUT );
 }
 
 sub export_mimetype
