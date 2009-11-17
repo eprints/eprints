@@ -8467,3 +8467,6 @@ EPRINTS-3.1-beta-2
 
 2009-11-16 cjg
  * Removed unused dependency on Unicode::String from RDFN3
+
+2009-11-16 cjg
+ * Added code to RDF .pl files to check fields exist.

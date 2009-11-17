@@ -13,16 +13,16 @@ push @{$c->{rdf}->{get_triples}}, sub {
 
 	my @ep3s;
 	push @ep3s, [ $eprint_uri, "rdf:type", "bibo:Article" ];
-	if( $eprint->is_set( "title" ) )
+	if( $eprint->dataset->has_field( "title" ) && $eprint->is_set( "title" ) )
 	{
 		push @ep3s, [ $eprint_uri, "dct:title", $eprint->get_value( "title" ), "plain" ];
 	}
-	if( $eprint->is_set( "abstract" ) )
+	if( $eprint->dataset->has_field( "abstract" ) && $eprint->is_set( "abstract" ) )
 	{
 		push @ep3s, [ $eprint_uri, "bibo:abstract", $eprint->get_value( "abstract" ), "xsd:string" ];
 		push @ep3s, [ $eprint_uri, "dct:description", $eprint->get_value( "abstract" ), "xsd:string"];
 	}
-	if( $eprint->is_set( "date" ) )
+	if( $eprint->dataset->has_field( "date" ) && $eprint->is_set( "date" ) )
 	{
 		push @ep3s, [ $eprint_uri, "dct:date", $eprint->get_value( "date" ), "plain" ];
 	}
@@ -40,7 +40,7 @@ push @{$c->{rdf}->{get_triples}}, sub {
 	##############################
 
 	my @creators;
-	if( $eprint->is_set( "creators" ) )
+	if( $eprint->dataset->has_field( "creators" ) && $eprint->is_set( "creators" ) )
 	{
 		@creators = @{$eprint->get_value( "creators" )};
 	}
@@ -74,6 +74,7 @@ push @{$c->{rdf}->{get_triples}}, sub {
 	my( %o ) = @_;
 	my $eprint = $o{"eprint"};
 
+	return () if( !$eprint->dataset->has_field( "type" ) );
 	return () if( !$eprint->get_value( "type" ) eq "conference_item" );
 
 	my $event_uri = &{$c->{rdf}->{event_uri}}( $eprint );
