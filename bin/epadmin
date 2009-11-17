@@ -2301,8 +2301,7 @@ sub update_database_structure
 	}
 	
 	my $db = $session->get_db();
-	
-	my $repo = EPrints::Repository->new( $repoid );
+	my $repo = $session->get_repository();
 
 	update_datasets( $repo, $db );
 	update_counters( $repo, $db );
