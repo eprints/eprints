@@ -1486,7 +1486,7 @@ sub erase_eprint_files
 
 	if( $noise>=1 ) { print "Erasing eprint files...\n"; }
 
-	my $repo = EPrints::Repository->new( $repoid );
+	my $repo = EPrints::Repository->new( $repoid, check_db => 0 );
 	my $documents_path = $repo->get_conf( "documents_path" );
 	my $htdocs_path = $repo->get_conf( "htdocs_path" );
 	
