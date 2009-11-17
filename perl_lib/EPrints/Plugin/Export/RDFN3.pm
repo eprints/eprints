@@ -4,8 +4,6 @@ package EPrints::Plugin::Export::RDFN3;
 
 # documents needs magic files field
 
-use Unicode::String qw( utf8 );
-
 use EPrints::Plugin::Export;
 
 @ISA = ( "EPrints::Plugin::Export" );
