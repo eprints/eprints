@@ -132,7 +132,7 @@ sub _epdata_to_json
 	{
 		if( !defined $epdata )
 		{
-			return "''"; # part of a compound field
+			return "null"; # part of a compound field
 		}
 		elsif( $epdata =~ /['\\]/ )
 		{
@@ -147,13 +147,13 @@ sub _epdata_to_json
 	{
 		return "$pre_pad\[\n" . join(",\n", map {
 			$self->_epdata_to_json( $_, $depth + 1 )
-		} grep { EPrints::Utils::is_set( $_ ) } @$epdata ) . "\n$pad\]";
+		} @$epdata ) . "\n$pad\]";
 	}
 	elsif( ref( $epdata ) eq "HASH" )
 	{
 		return "$pre_pad\{\n" . join(",\n", map {
 			$pad . "  " . $_ . ": " . $self->_epdata_to_json( $epdata->{$_}, $depth + 1, 1 )
-		} grep { EPrints::Utils::is_set( $epdata->{$_} ) } keys %$epdata) . "\n$pad\}";
+		} keys %$epdata) . "\n$pad\}";
 	}
 	elsif( $epdata->isa( "EPrints::DataObj" ) )
 	{
