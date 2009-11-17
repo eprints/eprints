@@ -12,6 +12,6 @@ $c->{rdf}->{person_uri} = sub {
 	my $name = $person->{name};	
 	my $code = "eprintsrdf/".$eprint->get_id."/".($name->{family}||"")."/".($name->{given}||"");
 
-	return "epx:person/".md5_hex( $code );
+	return "epx:person/".md5_hex( utf8::encode( $code ) );
 };
 

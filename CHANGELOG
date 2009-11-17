@@ -8470,3 +8470,9 @@ EPRINTS-3.1-beta-2
 
 2009-11-16 cjg
  * Added code to RDF .pl files to check fields exist.
+
+2009-11-16 cjg 
+ * Added test to make sure rdf functions exist before calling them
+ * Added fix for unicode in values used to md5hash RDF URI values
+ * Moved all dataobj warning, validate and change-trigger code to DataObj
+    as a prelude to adding sets of triggers.

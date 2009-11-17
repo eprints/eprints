@@ -352,18 +352,6 @@ sub get_defaults
 
 	$data->{placement} = $data->{pos};
 
-	my $eprint = $data->{_parent};
-	if( !defined $eprint )
-	{
-		EPrints::DataObj::EPrint->new( $session, $data->{eprintid} );
-	}
-
-	$session->get_repository->call( 
-			"set_document_defaults", 
-			$data,
- 			$session,
-			$eprint );
-
 	return $data;
 }
 
@@ -1163,7 +1151,7 @@ sub commit
 
 	my $dataset = $self->{session}->get_repository->get_dataset( "document" );
 
-	$self->{session}->get_repository->call( "set_document_automatic_fields", $self );
+	$self->update_triggers();
 
 	if( !defined $self->{changed} || scalar( keys %{$self->{changed}} ) == 0 )
 	{
@@ -1243,11 +1231,7 @@ sub validate
 	}
 		
 	# Site-specific checks
-	push @problems, $self->{session}->get_repository->call( 
-		"validate_document", 
-		$self, 
-		$self->{session},
-		$for_archive );
+	push @problems, @{ $self->SUPER::validate( $for_archive ) };
 
 	return( \@problems );
 }

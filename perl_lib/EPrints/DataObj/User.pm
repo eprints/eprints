@@ -297,9 +297,7 @@ sub create_from_data
 
 	my $new_user = $class->SUPER::create_from_data( $session, $data, $dataset );
 
-	$session->get_repository->call( 
-		"set_user_automatic_fields", 
-		$new_user );
+	$new_user->update_triggers();
 	
 	if( scalar( keys %{$new_user->{changed}} ) > 0 )
 	{
@@ -342,20 +340,7 @@ Return default values for this object based on the starting data.
 =cut
 ######################################################################
 
-sub get_defaults
-{
-	my( $class, $session, $data, $dataset ) = @_;
-
-	$class->SUPER::get_defaults( $session, $data, $dataset );
-
-	$session->get_repository->call(
-		"set_user_defaults",
-		$data,
-		$session );
-
-	return $data;
-}
-
+# inherrits
 
 
 ######################################################################
@@ -455,10 +440,7 @@ sub validate
 
 	push @problems, $workflow->validate;
 
-	push @problems, $self->{session}->get_repository->call(
-			"validate_user",
-			$self,
-			$self->{session} );
+	push @problems, @{ $self->SUPER::validate( $for_archive ) };
 
 	return( \@problems );
 }
@@ -482,9 +464,7 @@ sub commit
 {
 	my( $self, $force ) = @_;
 
-	$self->{session}->get_repository->call( 
-		"set_user_automatic_fields", 
-		$self );
+	$self->update_triggers();
 	
 	if( !defined $self->{changed} || scalar( keys %{$self->{changed}} ) == 0 )
 	{

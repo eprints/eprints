@@ -365,14 +365,7 @@ sub epdata_to_dataobj
 
 	return undef unless defined $dataobj;
 
-	if( $self->{session}->get_repository->can_call( "set_eprint_import_automatic_fields" ) )
-	{
-		$self->{session}->get_repository->call(
-			"set_eprint_import_automatic_fields",
-			$dataobj,
-			$self
-		);
-	}
+	$self->update_triggers();
 
 	$dataobj->commit();
 

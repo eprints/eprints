@@ -166,10 +166,8 @@ sub get_system_field_info
 	{ name=>"replacedby", type=>"itemref", required=>0,
 		datasetid=>"eprint", can_clone=>0 },
 
-	# empty string: normal visibility
-	# no_search: does not appear on search/view pages. 
-	# to hide... well, the dark dataset should appear in 3.1 or 3.2
 	{ name=>"metadata_visibility", type=>"set", required=>1,
+		default_value => "show",
 		options=>[ "show", "no_search" ] },
 
 	{ name=>"contact_email", type=>"email", required=>0, can_clone=>0 },
@@ -474,14 +472,14 @@ sub update_triggers
 {
 	my( $self ) = @_;
 
-	$self->{session}->get_repository->call( 
-		"set_eprint_automatic_fields", 
-		$self );
+	$self->SUPER::update_triggers();
 
-	if( $self->get_value( "eprint_status" ) eq "archive" )
+	my $repository = $self->get_session->get_repository;
+
+	if( $self->get_value( "eprint_status" ) eq "archive" && $repository->get_conf( "rdf","get_triples" ) )
 	{
 		my $triples = {};
-		foreach my $fn ( @{$self->get_session->get_repository->get_conf( "rdf","get_triples" )} )
+		foreach my $fn ( @{$repository->get_conf( "rdf","get_triples" )} )
 		{
 			&{$fn}( eprint=>$self, triples=>$triples );
 		}
@@ -564,13 +562,7 @@ sub get_defaults
 	{
 		$data->{datestamp} = $data->{lastmod};
 	}
-	$data->{metadata_visibility} = "show";
-
-	$session->get_repository->call(
-		"set_eprint_defaults",
-		$data,
-		$session );
-
+	
 	return $data;
 }
 
@@ -1129,42 +1121,12 @@ sub validate
 
 	push @problems, $workflow->validate;
 
-	# Now give the site specific stuff one last chance to have a gander.
-	push @problems, $self->{session}->get_repository->call( 
-			"validate_eprint", 
-			$self,
-			$self->{session},
-			$for_archive );
+	my $super_v = $self->SUPER::validate( $for_archive );
+	push @problems, @{$super_v};
 
 	return( \@problems );
 }
 
-######################################################################
-=pod
-
-=item $warnings = $eprint->get_warnings
-
-Return a reference to an array of XHTML DOM objects describing
-warnings about this eprint - that is things that are not quite 
-validation errors, but it'd be nice if they were fixed.
-
-Calls L</eprint_warnings> for the C<$eprint>.
-
-=cut
-######################################################################
-
-sub get_warnings
-{
-	my( $self , $for_archive ) = @_;
-
-	# Now give the site specific stuff one last chance to have a gander.
-	my @warnings = $self->{session}->get_repository->call( 
-			"eprint_warnings", 
-			$self,
-			$self->{session} );
-
-	return \@warnings;
-}
 
 
 ######################################################################

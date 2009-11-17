@@ -337,8 +337,32 @@ sub get_defaults
 		$data->{$field->get_name} = $value;
 	}
 
+	my $old_default_fn = "set_".$class->get_dataset_id."_defaults"; 
+	if( $session->can_call( $old_default_fn ) )
+	{
+		$session->call( 
+			$old_default_fn,
+			$data,
+ 			$session,
+			$data->{_parent} );
+	}
+
 	return $data;
 }
+
+# Update all the stuff that needs to be updated before
+# an object is written to the database.
+sub update_triggers 
+{
+	my( $self ) = @_;
+
+	my $old_auto_fn = "set_".$self->get_dataset_id."_automatic_fields"; 
+	if( $self->{session}->can_call( $old_auto_fn ) )
+	{
+		$self->{session}->call( $old_auto_fn, $self );
+	}
+}
+
 
 ######################################################################
 =pod
@@ -1449,7 +1473,26 @@ A reference to an empty array indicates no problems.
 
 =cut
 
-sub validate { [] }
+# Validate this object. Not used on all dataobjs. $for_archive being
+# true indicates that the item is beting validated to go live.
+sub validate
+{
+	my( $self, $for_archive ) = @_;
+
+	my @problems;
+
+	my $old_validate_fn = "validate_".$self->get_dataset_id;
+	if( $self->{session}->can_call( $old_validate_fn ) )
+	{
+		push @problems, $self->{session}->call( 
+			$old_validate_fn,
+			$self, 
+			$self->{session},
+			$for_archive );
+	}
+
+	return \@problems;
+}
 
 =item $warnings = $dataobj->get_warnings( )
 
@@ -1460,7 +1503,24 @@ A reference to an empty array indicates no problems.
 
 =cut
 
-sub get_warnings { [] }
+sub get_warnings
+{
+	my( $self , $for_archive ) = @_;
+
+	my @warnings = ();
+
+	my $old_warnings_fn = $self->get_dataset_id."_warnings";
+	if( $self->{session}->can_call( $old_warnings_fn ) )
+	{
+		push @warnings, $self->{session}->call( 
+			$old_warnings_fn,
+			$self, 
+			$self->{session},
+			$for_archive );
+	}
+
+	return \@warnings;
+}
 
 # check if a field is valid. Return an array of XHTML problems.
 

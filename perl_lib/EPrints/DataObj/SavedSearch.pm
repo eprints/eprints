@@ -144,9 +144,7 @@ sub commit
 {
 	my( $self, $force ) = @_;
 	
-#	$self->{session}->get_repository->call( 
-#		"set_saved_search_automatic_fields", 
-#		$self );
+	$self->update_triggers();
 
 	if( !defined $self->{changed} || scalar( keys %{$self->{changed}} ) == 0 )
 	{
