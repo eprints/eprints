@@ -2653,20 +2653,16 @@ sub get_dataobjs
 		}
 	}
 
+	# remove any objects that couldn't be retrieved
+	@data = grep { defined $_->{$key_name} } @data;
+
 	# convert the epdata into objects
 	foreach my $epdata (@data)
 	{
-		if( !defined $epdata->{$key_name} )
-		{
-			$epdata = undef;
-			next;
-		}
-		$epdata = $dataset->make_object( $session,  $epdata);
-		$epdata->clear_changed();
+		my $dataobj = $dataset->make_object( $session );
+		$dataobj->{data} = $epdata;
+		$epdata = $dataobj;
 	}
-
-	# remove any objects that couldn't be retrieved
-	@data = grep { defined $_ } @data;
 
 	return @data;
 }
