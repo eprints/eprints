@@ -36,10 +36,11 @@ sub update_from_form
 	my @eprint_docs = $eprint->get_all_documents;
 
 	foreach my $doc ( @eprint_docs )
-	{	
+	{
 		my @fields = $self->doc_fields( $doc );
 		my $docid = $doc->get_id;
 		my $doc_prefix = $self->{prefix}."_doc".$docid;
+		next if !$self->{session}->param( $doc_prefix );
 		foreach my $field ( @fields )
 		{
 			my $value = $field->form_value( 
@@ -359,7 +360,6 @@ sub render_content
 
 sub _render_doc_div 
 {
-
 	my ( $self, $doc, $eprint_docs, $tounroll ) = @_;
 
 	my $session = $self->{session};
@@ -740,6 +740,8 @@ sub _render_doc
 
 	if( scalar @fields )
 	{
+		my $update_doc = $session->render_hidden_field( $doc_prefix, "1" );
+		$doc_cont->appendChild( $update_doc );
 		my $table = $session->make_element( "table", class=>"ep_upload_fields ep_multi" );
 		$doc_cont->appendChild( $table );
 		my $first = 1;
@@ -1110,60 +1112,11 @@ sub validate
 	return @problems;
 }
 
-sub _get_upload_plugins
-{
-	my( $self, %opts ) = @_;
-
-	my %plugins;
-
-	my @plugins;
-	if( defined $self->{config}->{methods} )
-	{
-		METHOD: foreach my $method (@{$self->{config}->{methods}})
-		{
-			my $plugin = $self->{session}->plugin( "InputForm::UploadMethod::$method", %opts );
-			if( !defined $plugin )
-			{
-				$self->{session}->get_repository->log( "Unknown upload method in Component::Upload: '$method'" );
-				next METHOD;
-			}
-			push @plugins, $plugin;
-		}
-	}
-	else
-	{
-		METHOD: foreach my $plugin ( $self->{session}->plugin_list( type => 'InputForm' ) )
-		{
-			$plugin = $self->{session}->plugin( $plugin, %opts );
-			next METHOD if !$plugin->isa( "EPrints::Plugin::InputForm::UploadMethod" );
-			next METHOD if ref($plugin) eq "EPrints::Plugin::InputForm::UploadMethod";
-			push @plugins, $plugin;
-		}
-	}
-
-	foreach my $plugin ( @plugins )
-	{
-		foreach my $appearance ( @{$plugin->{appears}} )
-		{
-			$plugins{ref($plugin)} = [$appearance->{position},$plugin];
-		}
-	}
-
-	return
-		map { $plugins{$_}->[1] }
-		sort { $plugins{$a}->[0] <=> $plugins{$b}->[0] || $a cmp $b }
-		keys %plugins;
-}
-
 sub parse_config
 {
 	my( $self, $config_dom ) = @_;
 
 	$self->{config}->{doc_fields} = [];
-
-# moj: We need some default phrases for when these aren't specified.
-#	$self->{config}->{title} = ""; 
-#	$self->{config}->{help} = ""; 
 
 	my @fields = $config_dom->getElementsByTagName( "field" );
 
@@ -1174,21 +1127,6 @@ sub parse_config
 		my $field = $self->xml_to_metafield( $field_tag, $doc_ds );
 		push @{$self->{config}->{doc_fields}}, $field;
 	}
-
-	my @uploadmethods = $config_dom->getElementsByTagName( "upload-methods" );
-	if( defined $uploadmethods[0] )
-	{
-		$self->{config}->{methods} = [];
-
-		my @methods = $uploadmethods[0]->getElementsByTagName( "method" );
-	
-		foreach my $method_tag ( @methods )
-		{	
-			my $method = EPrints::XML::to_string( EPrints::XML::contents_of( $method_tag ) );
-			push @{$self->{config}->{methods}}, $method;
-		}
-	}
-
 }
 
 

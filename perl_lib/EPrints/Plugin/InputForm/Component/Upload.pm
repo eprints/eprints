@@ -222,95 +222,6 @@ sub doc_fields
 	return @fields;
 }
 
-sub validate
-{
-	my( $self ) = @_;
-	
-	my @problems = ();
-
-	my $for_archive = $self->{workflow}->{for_archive};
-
-	my $eprint = $self->{workflow}->{item};
-	my $session = $self->{session};
-	
-        my @req_formats = $eprint->required_formats;
-	my @docs = $eprint->get_all_documents;
-
-	my $ok = 0;
-	$ok = 1 if( scalar @req_formats == 0 );
-
-	my $doc;
-	foreach $doc ( @docs )
-        {
-		my $docformat = $doc->get_value( "format" );
-		foreach( @req_formats )
-		{
-                	$ok = 1 if( $docformat eq $_ );
-		}
-        }
-
-	if( !$ok )
-	{
-		my $doc_ds = $eprint->{session}->get_repository->get_dataset( 
-			"document" );
-		my $fieldname = $eprint->{session}->make_element( "span", class=>"ep_problem_field:documents" );
-		my $prob = $eprint->{session}->make_doc_fragment;
-		$prob->appendChild( $eprint->{session}->html_phrase( 
-			"lib/eprint:need_a_format",
-			fieldname=>$fieldname ) );
-		my $ul = $eprint->{session}->make_element( "ul" );
-		$prob->appendChild( $ul );
-		
-		foreach( @req_formats )
-		{
-			my $li = $eprint->{session}->make_element( "li" );
-			$ul->appendChild( $li );
-			$li->appendChild( $eprint->{session}->render_type_name( "document", $_ ) );
-		}
-			
-		push @problems, $prob;
-
-	}
-
-	foreach $doc (@docs)
-	{
-		my $probs = $doc->validate( $for_archive );
-
-		foreach my $field ( @{$self->{config}->{doc_fields}} )
-		{
-			my $for_archive = 0;
-			
-			if( $field->{required} eq "for_archive" )
-			{
-				$for_archive = 1;
-			}
-
-			# cjg bug - not handling for_archive here.
-			if( $field->{required} && !$doc->is_set( $field->{name} ) )
-			{
-				my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:documents" );
-				$fieldname->appendChild( $field->render_name( $self->{session} ) );
-				my $problem = $self->{session}->html_phrase(
-					"lib/eprint:not_done_field" ,
-					fieldname=>$fieldname );
-				push @{$probs}, $problem;
-			}
-			
-			push @{$probs}, $doc->validate_field( $field->{name} );
-		}
-
-		foreach my $doc_problem (@$probs)
-		{
-			my $prob = $self->html_phrase( "document_problem",
-					document => $doc->render_description,
-					problem =>$doc_problem );
-			push @problems, $prob;
-		}
-	}
-
-	return @problems;
-}
-
 sub _get_upload_plugins
 {
 	my( $self, %opts ) = @_;
@@ -359,22 +270,6 @@ sub _get_upload_plugins
 sub parse_config
 {
 	my( $self, $config_dom ) = @_;
-
-	$self->{config}->{doc_fields} = [];
-
-# moj: We need some default phrases for when these aren't specified.
-#	$self->{config}->{title} = ""; 
-#	$self->{config}->{help} = ""; 
-
-	my @fields = $config_dom->getElementsByTagName( "field" );
-
-	my $doc_ds = $self->{session}->get_repository->get_dataset( "document" );
-
-	foreach my $field_tag ( @fields )
-	{
-		my $field = $self->xml_to_metafield( $field_tag, $doc_ds );
-		push @{$self->{config}->{doc_fields}}, $field;
-	}
 
 	my @uploadmethods = $config_dom->getElementsByTagName( "upload-methods" );
 	if( defined $uploadmethods[0] )

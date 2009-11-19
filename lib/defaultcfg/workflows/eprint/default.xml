@@ -23,7 +23,6 @@ Action buttons (Previous/Save/Next) can be shown "top", "bottom" or "both":
 
   <stage name="files">
     <component type="Upload" show_help="always" />
-    <component type="Documents">
 <!--
       <upload-methods>
         <method>file</method>
@@ -32,6 +31,7 @@ Action buttons (Previous/Save/Next) can be shown "top", "bottom" or "both":
         <method>fromurl</method>
       </upload-methods>
 -->
+    <component type="Documents">
       <field ref="content" />
       <field ref="format" />
       <field ref="formatdesc" />

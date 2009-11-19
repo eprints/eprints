@@ -1681,7 +1681,7 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="Plugin/InputForm/Component/Upload:no_file">File does not exist.</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:bad_button">Unknown internal button: <epc:pin name="button"/></epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:bad_doc_button">Unknown internal document button: <epc:pin name="button"/></epp:phrase>
-	<epp:phrase id="Plugin/InputForm/Component/Upload:conversion_failed">Document conversion failed.</epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component/Documents:conversion_failed">Document conversion failed.</epp:phrase>
 	
 	<!-- tabs -->
 	<epp:phrase id="Plugin/InputForm/Component/Documents:Metadata">Metadata</epp:phrase>
@@ -1708,7 +1708,7 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="Plugin/InputForm/Component/Documents:really_add">Wait! Are you really sure you want to add another file to this document? Only do this if the file is directly required by the document. For example an image required by an HTML document. If you are sure you want to then click OK. Most of the time you want to click Cancel then use the New Document field above.</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:really_next">Wait! You have selected a file to upload but not actually uploaded it. Do you wish to continue without uploading the file?</epp:phrase>
 
-	<epp:phrase id="Plugin/InputForm/Component/Upload:document_problem">In <epc:pin name="document" /> document: <epc:pin name="problem" /></epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component/Documents:document_problem">In <epc:pin name="document" /> document: <epc:pin name="problem" /></epp:phrase>
 
 	<!-- Subject component -->
 	<epp:phrase id="Plugin/InputForm/Component/Field/Subject:selections">Current selections:</epp:phrase>
