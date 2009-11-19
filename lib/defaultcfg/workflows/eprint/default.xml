@@ -22,8 +22,8 @@ Action buttons (Previous/Save/Next) can be shown "top", "bottom" or "both":
   </stage>
 
   <stage name="files">
-    <component type="XHTML"><epc:phrase ref="Plugin/InputForm/Component/Upload:help" /></component>
-    <component type="Upload">
+    <component type="Upload" show_help="always" />
+    <component type="Documents">
 <!--
       <upload-methods>
         <method>file</method>
