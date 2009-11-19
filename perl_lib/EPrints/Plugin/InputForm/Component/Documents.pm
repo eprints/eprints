@@ -18,6 +18,11 @@ sub new
 	# a list of documents to unroll when rendering, 
 	# this is used by the POST processing, not GET
 
+	if( defined $self->{session} )
+	{
+		$self->{imagesurl} = $self->{session}->get_url( path => "static" );
+	}
+
 	return $self;
 }
 
@@ -342,11 +347,9 @@ sub render_content
 	my $panel = $self->{session}->make_element( "div", id=>$self->{prefix}."_panels" );
 	$f->appendChild( $panel );
 
-	my $imagesurl = $session->get_repository->get_conf( "rel_path" );
-
 	foreach my $doc ( @eprint_docs )
 	{	
-		$panel->appendChild( _render_doc_div( $self, $doc, \@eprint_docs, $tounroll, $imagesurl ));
+		$panel->appendChild( _render_doc_div( $self, $doc, \@eprint_docs, $tounroll ));
 
 	}
 
@@ -357,7 +360,7 @@ sub render_content
 sub _render_doc_div 
 {
 
-	my ( $self, $doc, $eprint_docs, $tounroll, $imagesurl ) = @_;
+	my ( $self, $doc, $eprint_docs, $tounroll ) = @_;
 
 	my $session = $self->{session};
 
@@ -366,8 +369,17 @@ sub _render_doc_div
 	my $hide = 1;
 	if( $eprint_docs == 1 ) { $hide = 0; } 
 	if( $tounroll->{$view_id} ) { $hide = 0; }
+
 	my $doc_div = $self->{session}->make_element( "div", class=>"ep_upload_doc", id=>$doc_prefix."_block" );
+
 	my $doc_title_bar = $session->make_element( "div", class=>"ep_upload_doc_title_bar" );
+	$doc_div->appendChild( $doc_title_bar );
+
+	my $doc_expansion_bar = $session->make_element( "div", class=>"ep_upload_doc_expansion_bar ep_only_js" );
+	$doc_div->appendChild( $doc_expansion_bar );
+
+	my $content = $session->make_element( "div", id=>$doc_prefix."_opts", class=>"ep_upload_doc_content ".($hide?"ep_no_js":"") );
+	$doc_div->appendChild( $content );
 
 
 	my $table = $session->make_element( "table", width=>"100%", border=>0 );
@@ -377,70 +389,39 @@ sub _render_doc_div
 	my $td_left = $session->make_element( "td", align=>"left", valign=>"middle", width=>"40%" );
 	$tr->appendChild( $td_left );
 
-	my $table_left = $session->make_element( "table", border=>0 );
-	$td_left->appendChild( $table_left );
-	my $table_left_tr = $session->make_element( "tr" );
-	my $table_left_td_left = $session->make_element( "td", align=>"center" );
-	my $table_left_td_right = $session->make_element( "td", align=>"left", class=>"ep_upload_doc_title" );
-	$table_left->appendChild( $table_left_tr );
-	$table_left_tr->appendChild( $table_left_td_left );
-	$table_left_tr->appendChild( $table_left_td_right );
+	$td_left->appendChild( $self->_render_doc_icon_info( $doc ) );
 
-	$table_left_td_left->appendChild( $doc->render_icon_link( new_window=>1, preview=>1, public=>0 ) );
-
-	$table_left_td_right->appendChild( $doc->render_citation);
-	my %files = $doc->files;
-	if( defined $files{$doc->get_main} )
-	{
-		my $size = $files{$doc->get_main};
-		$table_left_td_right->appendChild( $session->make_element( 'br' ) );
-		$table_left_td_right->appendChild( $session->make_text( EPrints::Utils::human_filesize($size) ));
-	}
-
-	my $td_centre = $session->make_element( "td", align=>"center", valign=>"middle", width=>"40%" );
-	$tr->appendChild( $td_centre );
-	$td_centre->appendChild( $self->_render_doc_placement( $doc, $eprint_docs ) );
-	my $msg = $self->phrase( "delete_document_confirm" );
-	my $delete_fmt_button = $session->render_button(
-		name => "_internal_".$doc_prefix."_delete_doc",
-		value => $self->phrase( "delete_document" ), 
-		class => "ep_form_internal_button",
-		onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm(".EPrints::Utils::js_string($msg).");",
-		);
-        $td_centre->appendChild( $delete_fmt_button );
-
-	my $td_right = $session->make_element( "td", align=>"right", valign=>"middle", width=>"20%" );
+	my $td_right = $session->make_element( "td", align=>"right", valign=>"middle", class => "ep_upload_doc_actions" );
 	$tr->appendChild( $td_right );
 
-	my $options = $session->make_element( "div", class=>"ep_update_doc_options ep_only_js" );
-	my $opts_toggle = $session->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${doc_prefix}_opts',".($hide?"false":"true").",'${doc_prefix}_block');EPJS_toggle('${doc_prefix}_opts_hide',".($hide?"false":"true").",'block');EPJS_toggle('${doc_prefix}_opts_show',".($hide?"true":"false").",'block');return false", href=>"#" );
-	$options->appendChild( $opts_toggle );
-	$td_right->appendChild( $options );
+	$td_right->appendChild( $self->_render_doc_actions( $doc_prefix, $doc, $eprint_docs ) );
 
-	my $s_options = $session->make_element( "span", id=>$doc_prefix."_opts_show", class=>"ep_update_doc_options ".($hide?"":"ep_hide") );
+	my $opts_toggle = $session->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${doc_prefix}_opts',".($hide?"false":"true").",'${doc_prefix}_block');EPJS_toggle('${doc_prefix}_opts_hide',".($hide?"false":"true").",'block');EPJS_toggle('${doc_prefix}_opts_show',".($hide?"true":"false").",'block');return false" );
+	$doc_expansion_bar->appendChild( $opts_toggle );
+
+	my $s_options = $session->make_element( "div", id=>$doc_prefix."_opts_show", class=>"ep_update_doc_options ".($hide?"":"ep_hide") );
 	$s_options->appendChild( $self->html_phrase( "show_options" ) );
 	$s_options->appendChild( $session->make_text( " " ) );
 	$s_options->appendChild( 
 			$session->make_element( "img",
-				src=>"$imagesurl/style/images/plus.png",
+				src=>"$self->{imagesurl}/style/images/plus.png",
 				) );
 	$opts_toggle->appendChild( $s_options );
 
-	my $h_options = $session->make_element( "span", id=>$doc_prefix."_opts_hide", class=>"ep_update_doc_options ".($hide?"ep_hide":"") );
+	my $h_options = $session->make_element( "div", id=>$doc_prefix."_opts_hide", class=>"ep_update_doc_options ".($hide?"ep_hide":"") );
 	$h_options->appendChild( $self->html_phrase( "hide_options" ) );
 	$h_options->appendChild( $session->make_text( " " ) );
 	$h_options->appendChild( 
 			$session->make_element( "img",
-				src=>"$imagesurl/style/images/minus.png",
+				src=>"$self->{imagesurl}/style/images/minus.png",
 				) );
 	$opts_toggle->appendChild( $h_options );
 
 
 #$doc_title->appendChild( $doc->render_description );
-	$doc_div->appendChild( $doc_title_bar );
 
-	my $content = $session->make_element( "div", id=>$doc_prefix."_opts", class=>"ep_upload_doc_content ".($hide?"ep_no_js":"") );
 	my $content_inner = $self->{session}->make_element( "div", id=>$doc_prefix."_opts_inner" );
+	$content->appendChild( $content_inner );
 
 	my $id_prefix = "doc.".$doc->get_id;
 
@@ -485,11 +466,70 @@ sub _render_doc_div
 		$panel->appendChild( $view_div );
 	}
 
-	$content->appendChild( $content_inner );
-	$doc_div->appendChild( $content );
-
 	return $doc_div;
+}
 
+sub _render_doc_icon_info
+{
+	my( $self, $doc ) = @_;
+
+	my $session = $self->{session};
+
+	my $table = $session->make_element( "table", border=>0 );
+	my $table_tr = $session->make_element( "tr" );
+	my $table_td_left = $session->make_element( "td", align=>"center" );
+	my $table_td_right = $session->make_element( "td", align=>"left", class=>"ep_upload_doc_title" );
+	$table->appendChild( $table_tr );
+	$table_tr->appendChild( $table_td_left );
+	$table_tr->appendChild( $table_td_right );
+
+	$table_td_left->appendChild( $doc->render_icon_link( new_window=>1, preview=>1, public=>0 ) );
+
+	$table_td_right->appendChild( $doc->render_citation);
+	my %files = $doc->files;
+	if( defined $files{$doc->get_main} )
+	{
+		my $size = $files{$doc->get_main};
+		$table_td_right->appendChild( $session->make_element( 'br' ) );
+		$table_td_right->appendChild( $session->make_text( EPrints::Utils::human_filesize($size) ));
+	}
+
+	return $table;
+}
+
+sub _render_doc_actions
+{
+	my( $self, $doc_prefix, $doc, $eprint_docs ) = @_;
+
+	my $session = $self->{session};
+
+	my $table = $session->make_element( "table" );
+
+	my( $tr, $td );
+
+	$tr = $session->make_element( "tr" );
+	$table->appendChild( $tr );
+
+	$td = $session->make_element( "td" );
+	$tr->appendChild( $td );
+	$td->appendChild( $self->_render_doc_placement( $doc, $eprint_docs ) );
+
+	$td = $session->make_element( "td" );
+	$tr->appendChild( $td );
+	my $msg = $self->phrase( "delete_document_confirm" );
+	my $button_title = $self->phrase( "delete_document" );
+	my $delete_fmt_button = $session->render_input_field(
+		name => "_internal_".$doc_prefix."_delete_doc",
+		value => $button_title,
+		type => "image",
+		title => $button_title,
+		alt => $button_title,
+		src => "$self->{imagesurl}/style/images/action_remove.png",
+		onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm(".EPrints::Utils::js_string($msg).");",
+		);
+	$td->appendChild( $delete_fmt_button );
+
+	return $table;
 }
 
 sub _render_related_docs
@@ -641,34 +681,43 @@ sub _render_doc_placement
 	return $frag unless scalar @$eprint_docs > 1;
 
 	my $prefix = $self->{prefix};
-	
-	my $appended_button=0;
+
+	my $table = $session->make_element( "table" );
+	$frag->appendChild( $table );
 
 	if( $doc->get_id != $eprint_docs->[0]->get_id )
 	{
-		my $up_button = $session->render_button(
-			name => "_internal_".$prefix."_doc".$doc->get_id."_up",
-			value => $self->phrase( "move_up" ), 
-			class => "ep_form_internal_button",
+		my $tr = $session->make_element( "tr" );
+		$table->appendChild( $tr );
+		my $td = $session->make_element( "td" );
+		$tr->appendChild( $td );
+		my $button_title = $self->phrase( "move_up" );
+		my $up_button = $session->render_input_field(
+				name => "_internal_".$prefix."_doc".$doc->get_id."_up",
+				value => $button_title,
+				type => "image",
+				title => $button_title,
+				alt => $button_title,
+				src => "$self->{imagesurl}/style/images/multi_up.png",
 			);
-		$frag->appendChild( $up_button );
-		$appended_button=1;
-		
+		$td->appendChild( $up_button );
 	}
 	if( $doc->get_id != $eprint_docs->[$#$eprint_docs]->get_id )
 	{
-		my $down_button = $session->render_button(
-			name => "_internal_".$prefix."_doc".$doc->get_id."_down",
-			value => $self->phrase( "move_down" ), 
-			class => "ep_form_internal_button",
+		my $tr = $session->make_element( "tr" );
+		$table->appendChild( $tr );
+		my $td = $session->make_element( "td" );
+		$tr->appendChild( $td );
+		my $button_title = $self->phrase( "move_down" );
+		my $down_button = $session->render_input_field(
+				name => "_internal_".$prefix."_doc".$doc->get_id."_down",
+				value => $button_title,
+				type => "image",
+				title => $button_title,
+				alt => $button_title,
+				src => "$self->{imagesurl}/style/images/multi_down.png",
 			);
-		$frag->appendChild( $down_button );
-		$appended_button=1;
-	}
-
-	if ($appended_button>0) 
-	{
-		$frag->appendChild( $session->make_element( "br" ));
+		$td->appendChild( $down_button );
 	}
 
 	return $frag;
@@ -917,8 +966,6 @@ sub _render_filelist
 		return $table;
 	}
 
-	my $imagesurl = $session->get_repository->get_conf( "rel_path" );
-
 	my $i = 0;
 	foreach my $filename ( sort keys %files )
 	{
@@ -943,7 +990,7 @@ sub _render_filelist
 		my $del_btn_text = $session->html_phrase( "lib/submissionform:delete" );
 		my $del_btn = $session->make_element( "input", 
 			type => "image", 
-			src => "$imagesurl/style/images/delete.png",
+			src => "$self->{imagesurl}/style/images/delete.png",
 			name => "_internal_".$doc_prefix."_delete_$i",
 			onclick => "EPJS_blur(event); return confirm( ".EPrints::Utils::js_string($self->phrase( "delete_file_confirm", filename => $filename ))." );",
 			value => $self->phrase( "delete_file" ) );
