@@ -106,7 +106,7 @@ sub handler
 	if( $uri =~ m! ^$urlpath/id/x-(.*)$ !x )
 	{
 		my $url = $repository->config( "http_cgiurl" )."/exportresource/$1";
-		return redir( $r, $url );
+		return redir_see_other( $r, $url );
 	}
 
 	if( $uri =~ m! ^$urlpath/id/([^/]+)/(.*)$ !x )
@@ -150,7 +150,7 @@ sub handler
 		$session->terminate;
 		if( defined $url )
 		{
-			return redir( $r, $url );
+			return redir_see_other( $r, $url );
 		}
 	}
 
@@ -242,6 +242,16 @@ sub redir
 	my( $r, $url ) = @_;
 
 	EPrints::Apache::AnApache::send_status_line( $r, 302, "Close but no Cigar" );
+	EPrints::Apache::AnApache::header_out( $r, "Location", $url );
+	EPrints::Apache::AnApache::send_http_header( $r );
+	return DONE;
+} 
+
+sub redir_see_other
+{
+	my( $r, $url ) = @_;
+
+	EPrints::Apache::AnApache::send_status_line( $r, 303, "See Elseware" );
 	EPrints::Apache::AnApache::header_out( $r, "Location", $url );
 	EPrints::Apache::AnApache::send_http_header( $r );
 	return DONE;

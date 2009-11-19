@@ -8485,3 +8485,5 @@ EPRINTS-3.1-beta-2
  * Removed box around action buttons and blister bar in workflow
  * Document upload screen now has tabs
 
+2009-11-19 cjg
+ * Fixed URI redirections to be 303 not 302.
