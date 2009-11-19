@@ -8487,3 +8487,6 @@ EPRINTS-3.1-beta-2
 
 2009-11-19 cjg
  * Fixed URI redirections to be 303 not 302.
+
+2009-11-19 cjg
+ * Added arguments to export plugins.

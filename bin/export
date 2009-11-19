@@ -58,6 +58,10 @@ If this is set then just output the single, specified item or items.
 
 =over 8
 
+=item B<--arg key=value>
+
+Add an argument to the export plugin. May be repeated. Effects depend on te export plugin.
+
 =item B<--help>
 
 Print a brief help message and exit.
@@ -102,6 +106,7 @@ my $purge = 1;
 my $help = 0;
 my $man = 0;
 my $single = 0;
+my %args = ();
 
 Getopt::Long::Configure("permute");
 
@@ -113,6 +118,7 @@ GetOptions(
 	'silent' => \$quiet,
 	'quiet' => \$quiet,
 	'single' => \$single,
+	'arg=s' => \%args,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "export_xml" ) if $version;
 pod2usage( 1 ) if $help;
@@ -211,6 +217,16 @@ if( $plugin->broken )
 	exit 1;
 }
 
+foreach my $argid ( keys %args )
+{
+	if( !$plugin->has_argument( $argid ) )
+	{
+		print STDERR "Plugin $pluginid does not accept argument $argid\n";
+		$session->terminate();
+		exit 1;
+	}
+}
+
 $plugin->initialise_fh( \*STDOUT );
 print $plugin->byte_order_mark;
 
@@ -234,7 +250,7 @@ if( $single )
 		exit 1;
 	}
 
-	print $dataobj->export( $opluginid );
+	print $dataobj->export( $opluginid, %args );
 }
 else
 {
@@ -266,7 +282,7 @@ else
 		$list = $searchexp->perform_search;
 	}
 
-	$plugin->output_list( list=>$list, fh=>*STDOUT );
+	$plugin->output_list( list=>$list, fh=>*STDOUT, %args );
 }
 
 $session->terminate();

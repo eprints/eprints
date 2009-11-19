@@ -17,12 +17,29 @@ sub new
 	$self->{visible} = "all";
 	$self->{mimetype} = "text/plain";
 	$self->{advertise} = 1;
+	$self->{arguments} = {};
 
 	# q is used to describe quality. Use it to increase or decrease the 
 	# desirability of using this plugin during content negotiation.
 	$self->{qs} = 0.5; 
 
 	return $self;
+}
+
+# Return an array of the ID's of arguemnts this plugin accepts
+sub arguments
+{
+	my( $self ) = @_;
+
+	return keys %{$self->{arguments}};
+}
+
+# Return true if this plugin accepts the given argument ID
+sub has_argument
+{
+	my( $self, $arg ) = @_;
+
+	return exists $self->{arguments}->{$arg};
 }
 
 sub render_name

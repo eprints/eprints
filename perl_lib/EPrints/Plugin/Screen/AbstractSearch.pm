@@ -798,7 +798,15 @@ sub export
 	my $format = $self->{processor}->{export_format};
 	my $plugin = $self->{session}->plugin( "Export::" . $format );
 	$plugin->initialise_fh( *STDOUT );
-	$results->export( $format, fh => *STDOUT );
+
+	my %opts = ( fh => *STDOUT );
+	foreach my $arg_id ( $plugin->arguments() )
+	{
+		my $v = $self->{session}->param( $arg_id );
+		if( $v ) { $opts{$arg_id} = $v; }
+	}
+	$results->export( $format, %opts );
+
 }
 
 sub export_mimetype

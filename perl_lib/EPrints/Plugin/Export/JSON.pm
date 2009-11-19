@@ -17,18 +17,7 @@ sub new
 	$self->{visible} = "all";
 	$self->{suffix} = ".js";
 	$self->{mimetype} = "text/javascript; charset=utf-8";
-	$self->{_header} = "";
-	$self->{_footer} = "";
-	if( defined($self->{session}) && $self->{session}->get_online )
-	{
-		my $jsonp = $self->{session}->param( "jsonp" );
-		if( defined $jsonp )
-		{
-			$jsonp =~ s/[^A-Za-z0-9_]//g;
-			$self->{_header} = "$jsonp(";
-			$self->{_footer} = ")";
-		}
-	}
+	$self->{arguments} = { jsonp => undef };
 
 	return $self;
 }
@@ -36,26 +25,37 @@ sub new
 
 sub _header
 {
-	my( $self ) = @_;
+	my( $self, %opts ) = @_;
 
-	return $self->{_header};
+	my $jsonp = $opts{jsonp};
+	if( defined $jsonp )
+	{
+		$jsonp =~ s/[^=A-Za-z0-9_]//g;
+		return "$jsonp(";
+	}
+
+	return "";
 }
 
 sub _footer
 {
-	my( $self ) = @_;
+	my( $self, %opts ) = @_;
 
-	return $self->{_footer};
+	my $jsonp = $opts{jsonp};
+	if( defined $jsonp )
+	{
+		return ");\n";
+	}
+	return "";
 }
 
 sub output_list
 {
-	my( $plugin, %opts ) = @_;
+	my( $self, %opts ) = @_;
 
 	my $r = [];
-
 	my $part;
-	$part = $plugin->_header."[\n";
+	$part = $self->_header(%opts)."[\n";
 	if( defined $opts{fh} )
 	{
 		print {$opts{fh}} $part;
@@ -68,10 +68,10 @@ sub output_list
 	$opts{json_indent} = 1;
 	my $first = 1;
 	$opts{list}->map( sub {
-		my( $session, $dataset, $item ) = @_;
+		my( $session, $dataset, $dataobj ) = @_;
 		my $part = "";
 		if( $first ) { $first = 0; } else { $part = ",\n"; }
-		$part .= $plugin->output_dataobj( $item, %opts, fh => undef, multiple => 1 );
+		$part .= $self->_epdata_to_json( $dataobj, 1 );
 		if( defined $opts{fh} )
 		{
 			print {$opts{fh}} $part;
@@ -82,7 +82,7 @@ sub output_list
 		}
 	} );
 
-	$part= "\n]\n\n".$plugin->_footer;
+	$part= "\n]\n\n".$self->_footer(%opts);
 	if( defined $opts{fh} )
 	{
 		print {$opts{fh}} $part;
@@ -105,20 +105,7 @@ sub output_dataobj
 {
 	my( $self, $dataobj, %opts ) = @_;
 
-	my $json = $self->_epdata_to_json( $dataobj, 1 );
-
-	if( !$opts{multiple} )
-	{
-		$json = $self->_header . $json . $self->_footer;
-	}
-
-	if( $opts{fh} )
-	{
-		print {$opts{fh}} $json;
-		return "";
-	}
-
-	return $json;
+	return $self->_header( %opts ).$self->_epdata_to_json( $dataobj, 1 ).$self->_footer( %opts );
 }
 
 sub _epdata_to_json
