@@ -272,13 +272,13 @@ sub create_from_data
 	return $dataobj;
 }
 
-=item $dataobj = $dataobj->create_subobject( $fieldname, $epdata )
+=item $dataobj = $dataobj->create_subdataobj( $fieldname, $epdata )
 
 Creates and returns a new dataobj that is a sub-object of this object in field $fieldname with initial data $epdata.
 
 =cut
 
-sub create_subobject
+sub create_subdataobj
 {
 	my( $self, $fieldname, $epdata ) = @_;
 
