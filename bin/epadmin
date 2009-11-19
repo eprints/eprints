@@ -323,6 +323,7 @@ else
 		reorder( $repoid, $datasetid ); 
 	}
 	elsif( $action eq "rehash" ) { rehash( $repoid ); }
+	elsif( $action eq "upgrade_add_files" ) { upgrade_add_files( $repoid ) }
 	else { pod2usage( 1 ); }
 }
 
@@ -1795,77 +1796,34 @@ sub upgrade
 	my $repo = &repository( check_db => 0 );
 	
 	my $db = $repo->database();
-	my $dbversion = $db->get_version();
 	
-	if( $dbversion eq "3.0" )
+	my @versions = qw(
+			3.0
+			3.0.1
+			3.0.2
+			3.0.3
+			3.0.4
+			3.0.5
+			3.0.6
+			3.0.7
+			3.1.0
+			3.1.1
+			3.1.2
+			3.2.0
+		);
+
+	for(my $i = 0; $i < $#versions; ++$i)
 	{
-		upgrade_3_0_to_3_0_1( $repo, $db );
-		$dbversion="3.0.1";
-		$db->set_version( $dbversion );
-	}
-	if( $dbversion eq "3.0.1" )
-	{
-		upgrade_3_0_1_to_3_0_2( $repo, $db );
-		$dbversion="3.0.2";
-		$db->set_version( $dbversion );
-	}
-	if( $dbversion eq "3.0.2" )
-	{
-		upgrade_3_0_2_to_3_0_3( $repo, $db );
-		$dbversion="3.0.3";
-		$db->set_version( $dbversion );
-	}
-	if( $dbversion eq "3.0.3" )
-	{
-		upgrade_3_0_3_to_3_0_4( $repo, $db );
-		$dbversion="3.0.4";
-		$db->set_version( $dbversion );
-	}
-	if( $dbversion eq "3.0.4" )
-	{
-		upgrade_3_0_4_to_3_0_5( $repo, $db );
-		$dbversion="3.0.5";
-		$db->set_version( $dbversion );
-	}
-	if( $dbversion eq "3.0.5" )
-	{
-		upgrade_3_0_5_to_3_0_6( $repo, $db );
-		$dbversion="3.0.6";
-		$db->set_version( $dbversion );
-	}
-	if( $dbversion eq "3.0.6" )
-	{
-		upgrade_3_0_6_to_3_0_7( $repo, $db );
-		$dbversion="3.0.7";
-		$db->set_version( $dbversion );
-	}
-	if( $dbversion eq "3.0.7" )
-	{
-		upgrade_3_0_7_to_3_1_0( $repo, $db );
-		$dbversion="3.1.0";
-		$db->set_version( $dbversion );
-	}
-	if( $dbversion eq "3.1.0" )
-	{
-		upgrade_3_1_0_to_3_1_1( $repo, $db );
-		$dbversion="3.1.1";
-		$db->set_version( $dbversion );
-	}
-	if( $dbversion eq "3.1.1" )
-	{
-		upgrade_3_1_1_to_3_1_2( $repo, $db );
-		$dbversion="3.1.2";
-		$db->set_version( $dbversion );
-	}
-	if( $dbversion eq "3.1.2" )
-	{
-		upgrade_3_1_2_to_3_2_0( $repo, $db );
-		$dbversion="3.2.0";
-		$db->set_version( $dbversion );
+		if( $db->get_version() eq $versions[$i] )
+		{
+			my $f = "upgrade_".$versions[$i]."_to_".$versions[$i+1];
+			$f =~ s/\./_/g;
+			&$f( $repo, $db );
+			$db->set_version( $versions[$i+1] );
+		}
 	}
 
-
-	print $dbversion."\n";
+	print $db->get_version()."\n";
 }
 
 # This will check for any missing datasets or fields and add them
@@ -2248,6 +2206,176 @@ sub upgrade_3_1_2_to_3_2_0
 	{
 		upgrade_mysql_charset( $repoid, $db );
 	}
+
+	upgrade_add_files( $repo );
+}
+
+sub upgrade_add_files
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	my $file_ds = $repo->dataset( "file" );
+	my $history_ds = $repo->dataset( "history" );
+	my $doc_ds = $repo->dataset( "document" );
+
+	$repo->dataset( "eprint" )->search->map( sub {
+		my( undef, undef, $eprint ) = @_;
+
+		if( $noise )
+		{
+			$repo->log( "eprint.".$eprint->id );
+		}
+
+		my $local_path = $eprint->local_path();
+		my $dir;
+		my $path;
+
+		# revisions
+		$path = "$local_path/revisions";
+		$history_ds->search( filters => [
+				{ meta_fields => [qw( datasetid )], value => "eprint" },
+				{ meta_fields => [qw( objectid )], value => $eprint->id }
+			] )->map( sub {
+			my( undef, undef, $revision ) = @_;
+
+			if( $noise )
+			{
+				$repo->log( "revision.".$revision->id );
+			}
+
+			# already processed?
+			return if defined $revision->get_stored_file( "dataobj.xml" );
+
+			my $filename = $revision->value( "revision" )."xml";
+			my $filepath = "$path/$filename";
+			if( !-e $filepath )
+			{
+				$repo->log( "Revision missing source file: ".$revision->id );
+				return;
+			}
+			my $filesize = -s _;
+			$file_ds->create_dataobj( {
+				datasetid => $history_ds->base_id,
+				objectid => $revision->id,
+				filename => "dataobj.xml",
+				filesize => $filesize,
+				mime_type => "text/xml",
+				copies => [{
+					pluginid => "Storage::Local",
+					sourceid => "dataobj.xml",
+				}],
+			} );
+			if( $noise >= 2 )
+			{
+				$repo->log( "Added dataobj.xml to revision history.".$revision->id );
+			}
+		} );
+
+		# documents
+		foreach my $doc ($eprint->get_all_documents)
+		{
+			my $doc_path = $doc->local_path;
+
+			if( $noise )
+			{
+				$repo->log( "document.".$doc->id );
+			}
+
+			my %files;
+
+			# thumbnails
+			my $thumb_path = $doc_path;
+			if( !($thumb_path =~ s# /(\d+)$ #/thumbnails/$1#x) )
+			{
+				Carp::croak "Badness in path: $doc_path";
+			}
+			%files = _collect_files( $thumb_path );
+			foreach my $file (keys %files)
+			{
+				my $filename = $file;
+				substr($filename,0,length($thumb_path)+1) = "";
+				next if !($filename =~ /^(\w+)\.png$/);
+				my $size = $1;
+				my $thumb_doc = $eprint->create_subdataobj( "documents", {
+					format => "image/png",
+					main => $filename,
+					security => $doc->value( "security" ),
+				} );
+				$thumb_doc->add_file( $file, $filename );
+				unlink( $file );
+				$thumb_doc->add_object_relations( $doc,
+					EPrints::Utils::make_relation( "isVersionOf" ) =>
+					EPrints::Utils::make_relation( "hasVersion" ),
+					EPrints::Utils::make_relation( "isVolatileVersionOf" ) =>
+					EPrints::Utils::make_relation( "hasVolatileVersion" ),
+					EPrints::Utils::make_relation( "is${size}ThumbnailVersionOf" ) =>
+					EPrints::Utils::make_relation( "has${size}ThumbnailVersion" ),
+				);
+				$thumb_doc->commit();
+				if( $noise >= 2 )
+				{
+					$repo->log( "Added $filename thumbnail to document.".$doc->id );
+				}
+			}
+
+			my $files = $doc->value( "files" );
+			next if scalar @$files; # already processed?
+
+			%files = _collect_files( $doc_path );
+			foreach my $file (keys %files)
+			{
+				my $filename = $file;
+				substr($filename,0,length($doc_path)+1) = "";
+				$doc->create_subdataobj( "files", {
+					filename => $filename,
+					filesize => $files{$file},
+					copies => [{
+						pluginid => "Storage::Local",
+						sourceid => $filename,
+					}],
+				} );
+				if( $noise >= 2 )
+				{
+					$repo->log( "Added $filename to document.".$doc->id );
+				}
+			}
+
+			$doc->commit();
+		}
+
+		$eprint->commit(); # update fileinfo etc.
+	} );
+}
+
+sub _collect_files
+{
+	my( $path ) = @_;
+
+	my %files;
+
+	my $dir;
+	if( !opendir($dir, $path) )
+	{
+		print STDERR "Error opening $path: $!\n";
+		return ();
+	}
+	foreach my $file (grep { $_ !~ /^\./ } readdir $dir)
+	{
+		my $file_path = "$path/$file";
+		if( -f $file_path )
+		{
+			$files{$file_path} = -s _;
+		}
+		elsif( -d _ )
+		{
+			%files = (%files, _collect_files( $file_path ));
+		}
+	}
+	closedir($dir);
+
+	return %files;
 }
 
 sub upgrade_mysql_charset
