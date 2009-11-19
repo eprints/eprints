@@ -195,8 +195,7 @@ sub render
 	my $form = $self->render_form;
 
 	my $blister = $self->render_blister( $self->workflow->get_stage_id, 0 );
-	my $toolbox = $self->{session}->render_toolbox( undef, $blister );
-	$form->appendChild( $toolbox );
+	$form->appendChild( $blister );
 
 	$form->appendChild( $self->render_buttons );
 	$form->appendChild( $self->workflow->render );
