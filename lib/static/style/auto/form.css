@@ -21,9 +21,7 @@ select, input.ep_form_text, textarea {
 .ep_form_button_bar {
 	text-align: center;
 	padding: 4px;
-	background: #e7e9f5 url(images/toolbox.png) repeat-x;
 	clear: both;
-	border: solid 1px #d8dbef;
 	margin-top: 10px;
 	margin-bottom: 10px;
 }

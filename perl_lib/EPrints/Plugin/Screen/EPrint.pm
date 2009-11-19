@@ -114,51 +114,18 @@ sub register_furniture
 		my $my_lock = ( $eprint->get_value( "edit_lock_user" ) == $user->get_id );
 		if( $my_lock )
 		{
-			$self->{processor}->before_messages( $self->{session}->html_phrase( 
-				"Plugin/Screen/EPrint:locked_to_you" ) );
+			#$self->{processor}->before_messages( $self->{session}->html_phrase( 
+			#	"Plugin/Screen/EPrint:locked_to_you" ) );
 		}
 		else
 		{
-			$self->{processor}->before_messages( $self->{session}->html_phrase( 
+			$self->{processor}->add_message( "warning", $self->{session}->html_phrase( 
 				"Plugin/Screen/EPrint:locked_to_other", 
 				name => $eprint->render_value( "edit_lock_user" )) );
 		}
 	}
 
-	my $priv = $self->allow( "eprint/view" );
-	my $owner  = $priv & 4;
-	my $editor = $priv & 8;
-
-	unless( $owner && $editor )
-	{
-		return $self->{session}->make_doc_fragment;
-	}
-
-	my $div = $self->{session}->make_element( "div",class=>"ep_block" );
-	my $a_owner = $self->{session}->render_link( "?screen=EPrint::View::Owner&eprintid=".$self->{processor}->{eprintid} );
-	my $a_editor = $self->{session}->render_link( "?screen=EPrint::View::Editor&eprintid=".$self->{processor}->{eprintid} );
-	$div->appendChild( $self->{session}->html_phrase(
-		"cgi/users/edit_eprint:view_as_either",
-		owner_link=>$a_owner,
-		editor_link=>$a_editor ) );
-
-	if( defined $self->{staff} )
-	{
-		$div->appendChild( $self->{session}->make_text( " " ) );
-		if( $self->{staff} == 0 )
-		{
-			$div->appendChild( $self->{session}->html_phrase(
-				"cgi/users/edit_eprint:as_depositor" ));
-		}
-		else
-		{
-			$div->appendChild( $self->{session}->html_phrase(
-				"cgi/users/edit_eprint:as_editor" ));
-		}
-		
-	}
-
-	$self->{processor}->before_messages( $div );
+	return $self->{session}->make_doc_fragment;
 }
 
 sub register_error
