@@ -1339,7 +1339,8 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/NewEPrint:action:create:description">Begin a new deposit.</epp:phrase>
 	
 	<epp:phrase id="Plugin/Screen/EPrint:deposit">Deposit</epp:phrase>
-	<epp:phrase id="Plugin/Screen/EPrint/Deposit:action:move_buffer:description">As an editor of this item you can move it into review without first resolving the problems identified otherwise click <epc:phrase ref="lib/submissionform:action_save" /> to fix these problems later.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Deposit:action:save:description"><p>Before depositing this item you must resolve the problems identified.</p></epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Deposit:action:move_buffer:description"><p>As an editor of this item you can move it into review without first resolving the problems identified otherwise click <epc:phrase ref="lib/submissionform:action_save" /> to fix these problems later.</p></epp:phrase>
     	<epp:phrase id="Plugin/Screen/EPrint:owner_denied">Although you are the owner of this item you may not view this screen: <epc:pin name="screen"/>. This may be because you have deposited the item and you may no longer make changes to it.</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/EPrint:locked_to_you"><div class='ep_toolbox'><div class='ep_toolbox_content' style='padding:4px'>This item is temporarily locked to allow your modifications only.</div></div></epp:phrase>

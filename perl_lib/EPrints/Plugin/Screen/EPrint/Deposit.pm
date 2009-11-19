@@ -111,8 +111,7 @@ sub render
 	$page->appendChild( $form );
 
 	my $blister = $self->render_blister( "deposit", 0 );
-	my $toolbox = $self->{session}->render_toolbox( undef, $blister );
-	$form->appendChild( $toolbox );
+	$form->appendChild( $blister );
 
 	my $priv = $self->allow( "eprint/view" );
 	my $owner  = $priv & 4;
@@ -142,6 +141,8 @@ sub render
 	}
 	else
 	{
+		$form->appendChild( $self->html_phrase( "action:save:description" ) );
+
 		$form->appendChild( $self->{session}->render_action_buttons(
 			save => $self->{session}->phrase( "priv:action/eprint/deposit_later" ),
 			_order => [qw( save )],

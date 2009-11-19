@@ -190,16 +190,29 @@ sub screen_after_flow
 
 sub render
 {
-	my( $self ) = @_;
+	my( $self, $staff_mode ) = @_;
+
+	$staff_mode = 0 if !defined $staff_mode;
+
+	my $cur_stage_id = $self->workflow->get_stage_id;
+	my $stage = $self->workflow->get_stage( $cur_stage_id );
 
 	my $form = $self->render_form;
 
-	my $blister = $self->render_blister( $self->workflow->get_stage_id, 0 );
+	my $blister = $self->render_blister( $cur_stage_id, $staff_mode );
 	$form->appendChild( $blister );
 
-	$form->appendChild( $self->render_buttons );
+	my $action_buttons = $stage->{action_buttons};
+
+	if( $action_buttons eq "top" || $action_buttons eq "both" )
+	{
+		$form->appendChild( $self->render_buttons );
+	}
 	$form->appendChild( $self->workflow->render );
-	$form->appendChild( $self->render_buttons );
+	if( $action_buttons eq "bottom" || $action_buttons eq "both" )
+	{
+		$form->appendChild( $self->render_buttons );
+	}
 	
 	return $form;
 }

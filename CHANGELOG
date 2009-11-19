@@ -8476,3 +8476,12 @@ EPRINTS-3.1-beta-2
  * Added fix for unicode in values used to md5hash RDF URI values
  * Moved all dataobj warning, validate and change-trigger code to DataObj
     as a prelude to adding sets of triggers.
+
+2009-11-19 tdb
+ * Offer options to users and editors on the deposit screen if there are
+    problems
+ * Made it an option to provide action buttons top and bottom in workflow
+ * Display a warning only if eprint is locked by someone else in workflow
+ * Removed box around action buttons and blister bar in workflow
+ * Document upload screen now has tabs
+

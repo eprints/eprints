@@ -18,6 +18,16 @@ sub new
 	{
 		EPrints::abort( "Workflow stage with no name attribute." );
 	}
+	$self->{action_buttons} = $stage->getAttribute( "action_buttons" );
+	if( !defined $self->{action_buttons} )
+	{
+		$self->{action_buttons} = "bottom";
+	}
+	elsif( $self->{action_buttons} !~ /^(top)|(bottom)|(both)$/ )
+	{
+		$self->{session}->get_repository->log( "Warning! Workflow <stage> action_buttons attribute expected one of 'top', 'bottom' or 'both' but instead got '$self->{action_buttons}'" );
+		$self->{action_buttons} = "bottom";
+	}
 
 	# Creating a new stage
 	$self->_read_components( $stage->getChildNodes );
