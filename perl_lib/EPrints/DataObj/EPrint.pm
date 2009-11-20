@@ -973,6 +973,10 @@ sub commit
 {
 	my( $self, $force ) = @_;
 
+	# get_all_documents() is called several times during commit
+	# setting _documents will cause it to be returned instead of searching
+	local $self->{_documents} = [$self->get_all_documents];
+
 	if( $self->{changed}->{succeeds} )
 	{
 		my $old_succ = EPrints::EPrint->new( $self->{session}, $self->{changed}->{succeeds} );
@@ -1199,6 +1203,8 @@ eprint.
 sub get_all_documents
 {
 	my( $self ) = @_;
+
+	return @{$self->{_documents}} if defined $self->{_documents};
 
 	my @docs;
 
