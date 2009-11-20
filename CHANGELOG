@@ -8490,3 +8490,6 @@ EPRINTS-3.1-beta-2
 
 2009-11-19 cjg
  * Added arguments to export plugins.
+
+2009-11-20 cjg
+ * Fixed connect-to-db-as-root bug in epadmin.

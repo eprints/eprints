@@ -941,8 +941,9 @@ sub root_dbh
 				dbsock => $repo->config( "dbsock" ),
 				dbport => $repo->config( "dbport" ),
 				dbhost => $repo->config( "dbhost" ),
+			),
 			"root",
-			$password ) );
+			$password );
 
 		if( !defined $dbh )
 		{
