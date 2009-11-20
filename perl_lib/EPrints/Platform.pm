@@ -189,6 +189,9 @@ Returns undef if process identification is unsupported.
 
 sub proc_exists { &{$real_module."::proc_exists"} }
 
+# TODO: fixme!
+sub join_path { join('/', @_) }
+
 1;
 
 =back
