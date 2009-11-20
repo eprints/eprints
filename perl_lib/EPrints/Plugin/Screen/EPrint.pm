@@ -41,9 +41,12 @@ sub obtain_eprint_lock
 {
 	my( $self ) = @_;
 
-	return 0 unless defined $self->{processor}->{eprint};
+	my $eprint = $self->{processor}->{eprint};
+	return 0 unless defined $eprint;
 
-	return $self->{processor}->{eprint}->obtain_lock( $self->{session}->current_user );
+	return 1 if $self->{processor}->{locked}->{$eprint};
+
+	return $self->{processor}->{locked}->{$eprint} = $eprint->obtain_lock( $self->{session}->current_user );
 }
 
 sub allow
