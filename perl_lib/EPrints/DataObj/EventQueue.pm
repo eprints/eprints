@@ -24,6 +24,10 @@ A unique hash for this event.
 
 If set to true only one event of this type (pluginid/action/params) is allowed to be running.
 
+=item oneshot
+
+If set to true removes this event once it has finished by success or failure.
+
 =item priority
 
 The priority for this event.
@@ -83,6 +87,7 @@ sub get_system_field_info
 		{ name=>"datestamp", type=>"timestamp", required=>1, },
 		{ name=>"hash", type=>"text", sql_index=>1, },
 		{ name=>"unique", type=>"boolean", },
+		{ name=>"oneshot", type=>"boolean", },
 		{ name=>"priority", type=>"int", },
 		{ name=>"start_time", type=>"timestamp", required=>1, },
 		{ name=>"end_time", type=>"time", },

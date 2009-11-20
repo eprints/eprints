@@ -684,6 +684,10 @@ sub _run_index
 		$event->set_value( "status", "failed" );
 		$event->commit();
 	}
+	if( !$event->is_set( "oneshot" ) || $event->value( "oneshot" ) eq "TRUE" )
+	{
+		$event->remove();
+	}
 
 	return 1; # seen action, even if it is to fail
 }
