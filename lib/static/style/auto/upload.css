@@ -66,11 +66,11 @@
 
 .ep_upload_files
 {
-	border: dashed #c8cbdf 1px; 
+/*	border: dashed #c8cbdf 1px; 
 	text-align: center;
 	margin-top: 0.5em; 
 	padding: 0.5em; 
-	background-color: white;
+	background-color: white; */
 }
 
 .ep_upload_file_table 

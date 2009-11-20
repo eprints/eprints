@@ -1,6 +1,5 @@
 package EPrints::Plugin::InputForm::Component::Documents;
 
-use EPrints;
 use EPrints::Plugin::InputForm::Component;
 @ISA = ( "EPrints::Plugin::InputForm::Component" );
 
@@ -35,43 +34,41 @@ sub update_from_form
 	my $eprint = $self->{workflow}->{item};
 	my @eprint_docs = $eprint->get_all_documents;
 
+	# update the metadata for any documents that have metadata
 	foreach my $doc ( @eprint_docs )
 	{
-		my @fields = $self->doc_fields( $doc );
-		my $docid = $doc->get_id;
-		my $doc_prefix = $self->{prefix}."_doc".$docid;
+		my $doc_prefix = $self->{prefix}."_doc".$doc->id;
 		next if !$self->{session}->param( $doc_prefix );
+
+		my @fields = $self->doc_fields( $doc );
+		# "main" is pseudo-hidden on the files tab
+		push @fields, $doc->dataset->field( "main" );
+
 		foreach my $field ( @fields )
 		{
 			my $value = $field->form_value( 
 				$session, 
-				$self->{dataobj}, 
+				$eprint,
 				$doc_prefix );
 			$doc->set_value( $field->{name}, $value );
 		}
+
 		$doc->commit;
 	}
 	
-	#Get all docs including volatiles
-	my @eprint_all_docs = @{($eprint->get_value( "documents" ))};
-
 	if( $session->internal_button_pressed )
 	{
 		my $internal = $self->get_internal_button;
 		if( $internal =~ m/^doc(\d+)_(.+)$/ )
 		{
 			my( $docid, $doc_action ) = ($1, $2);
-			my $doc;
-			for(@eprint_all_docs)
-			{
-				$doc = $_, last if $_->get_id == $docid;
-			}
-			if( !defined $doc )
+			my $doc = $session->dataset( "document" )->dataobj( $docid );
+			if( !defined $doc || $doc->value( "eprintid" ) ne $eprint->id )
 			{
 				$processor->add_message( "error", $self->html_phrase( "no_document", docid => $session->make_text($docid) ) );
 				return;
 			}
-			$self->doc_update( $doc, $doc_action, \@eprint_docs, $processor );
+			$self->_doc_update( $processor, $doc, $doc_action, \@eprint_docs );
 			return;
 		}
 	}
@@ -85,23 +82,11 @@ sub get_state_params
 
 	my $params = "";
 
-	my $tounroll = {};
-	if( $processor->{notes}->{upload_plugin}->{to_unroll} )
+	my $to_unroll = $processor->{notes}->{upload_plugin}->{to_unroll};
+	$to_unroll = {} if !defined $to_unroll;
+	foreach my $docid (keys %$to_unroll)
 	{
-		$tounroll = $processor->{notes}->{upload_plugin}->{to_unroll};
-	}
-	if( $self->{session}->internal_button_pressed )
-	{
-		my $internal = $self->get_internal_button;
-		# modifying existing document
-		if( $internal =~ m/^doc(\d+)_(.*)$/ )
-		{
-			$tounroll->{$1} = 1;
-		}
-	}
-	if( scalar keys %{$tounroll} )
-	{
-		$params .= "&".$self->{prefix}."_view=".join( ",", keys %{$tounroll} );
+		$params .= "&$self->{prefix}_view=$docid";
 	}
 
 	return $params;
@@ -122,13 +107,12 @@ sub _swap_placements
 	$docs->[$r] = $t;
 }
 
-sub doc_update
+sub _doc_update
 {
-	my( $self, $doc, $doc_internal, $eprint_docs, $processor ) = @_;
+	my( $self, $processor, $doc, $doc_internal, $eprint_docs ) = @_;
 
 	my $docid = $doc->get_id;
 	my $doc_prefix = $self->{prefix}."_doc".$docid;
-	$processor->{notes}->{upload_plugin}->{to_unroll}->{$docid} = 1;
 
 	if( $doc_internal eq "up" or $doc_internal eq "down" )
 	{	
@@ -182,6 +166,8 @@ sub doc_update
 
 	if( $doc_internal eq "update_doc" )
 	{
+		$processor->{notes}->{upload_plugin}->{to_unroll}->{$docid} = 1;
+
 		return;
 	}
 
@@ -192,25 +178,26 @@ sub doc_update
 	}
 
 	if( $doc_internal eq "unlink_doc" )
-        {
-                my $relation = EPrints::Utils::make_relation( "isVolatileVersionOf" );
-                my $parent = $doc->get_related_objects($relation)->[0];
-                print STDERR "\n" . $parent->get_id . "\n";
-                $parent->remove_object_relations(
-                        $doc,
-                        EPrints::Utils::make_relation( "hasVolatileVersion" ),
-                );
-                $parent->commit;
-                $doc->remove_object_relations(
-                        $parent,
-                        EPrints::Utils::make_relation( "isVolatileVersionOf" ),
-                );
-                $doc->commit;
-                return;
-        }
+	{
+		my $relation = EPrints::Utils::make_relation( "isVolatileVersionOf" );
+		my $parent = $doc->get_related_objects($relation)->[0];
+		$parent->remove_object_relations(
+				$doc,
+				EPrints::Utils::make_relation( "hasVolatileVersion" ),
+				);
+		$parent->commit;
+		$doc->remove_object_relations(
+				$parent,
+				EPrints::Utils::make_relation( "isVolatileVersionOf" ),
+				);
+		$doc->commit;
+		return;
+	}
 
 	if( $doc_internal eq "add_file" )
 	{
+		$processor->{notes}->{upload_plugin}->{to_unroll}->{$docid} = 1;
+
 		my $success = EPrints::Apache::AnApache::upload_doc_file( 
 			$self->{session},
 			$doc,
@@ -227,16 +214,21 @@ sub doc_update
 	{
 		my $fileid = $1;
 		
-		my %files_unsorted = $doc->files();
-		my @files = sort keys %files_unsorted;
+		$processor->{notes}->{upload_plugin}->{to_unroll}->{$docid} = 1;
 
-		if( !defined $files[$fileid] )
+		my $file;
+		for(@{$doc->value( "files" )})
+		{
+			$file = $_, last if $_->id eq $fileid;
+		}
+
+		if( !defined $file )
 		{
 			$processor->add_message( "error", $self->html_phrase( "no_file" ) );
 			return;
 		}
 		
-		$doc->remove_file( $files[$fileid] );
+		$file->remove;
 		return;
 	}
 
@@ -266,31 +258,21 @@ sub doc_update
 		$new_doc->make_thumbnails();
 		$doc->commit();
 		$new_doc->commit();
+
+		$processor->{notes}->{upload_plugin}->{to_unroll}->{$new_doc->id} = 1;
+
 		return;
 	}
 
-	if( $doc_internal =~ m/^main_(\d+)$/ )
-	{
-		my $fileid = $1;
-
-		my %files_unsorted = $doc->files();
-		my @files = sort keys %files_unsorted;
-
-		if( !defined $files[$fileid] )
-		{
-			$processor->add_message( "error", $self->html_phrase( "no_file" ) );
-			return;
-		}
-		
-		# Pressed "Show First" button for this file
-		$doc->set_main( $files[$fileid] );
-		$doc->commit;
-		return ();
-	}
-			
 	$processor->add_message( "error", $self->html_phrase( "bad_doc_button", button => $self->{session}->make_text($doc_internal) ) );
 }
-	
+
+sub has_help
+{
+	my( $self, $surround ) = @_;
+	return $self->{session}->get_lang->has_phrase( $self->html_phrase_id( "help" ) );
+}
+
 sub render_help
 {
 	my( $self, $surround ) = @_;
@@ -307,7 +289,7 @@ sub render_title
 sub is_required
 {
 	my( $self ) = @_;
-	return 1;
+	return 0;
 }
 
 sub get_fields_handled
@@ -322,53 +304,54 @@ sub render_content
 	my( $self, $surround ) = @_;
 	
 	my $session = $self->{session};
+	my $eprint = $self->{workflow}->{item};
+
 	my $f = $session->make_doc_fragment;
 	
-	my $eprint = $self->{workflow}->{item};
-	my @eprint_docs = $eprint->get_all_documents;
+	@{$self->{docs}} = $eprint->get_all_documents;
 
-	my $tounroll = {};
-	my $tounrollparam = $self->{session}->param( $self->{prefix}."_view" );
-	if( EPrints::Utils::is_set( $tounrollparam ) )
-	{
-		foreach my $docid ( split( ",", $tounrollparam ) )
-		{
-			$tounroll->{$docid} = 1;
-		}
-	}
+	my %unroll = map { $_ => 1 } $session->param( $self->{prefix}."_view" );
 
 	# this overrides the prefix-dependent view. It's used when
 	# we're coming in from outside the form and is, to be honest,
 	# a dirty little hack.
-	if( defined $session->param( "docid" ) )
+	if( defined(my $docid = $session->param( "docid" ) ) )
 	{
-		$tounroll->{$session->param( "docid" )} = 1;
+		$unroll{$docid} = 1;
 	}
 
-	my $panel = $self->{session}->make_element( "div", id=>$self->{prefix}."_panels" );
+	my $panel = $session->make_element( "div", id=>$self->{prefix}."_panels" );
 	$f->appendChild( $panel );
 
-	foreach my $doc ( @eprint_docs )
-	{	
-		$panel->appendChild( _render_doc_div( $self, $doc, \@eprint_docs, $tounroll ));
+	foreach my $doc ( @{$self->{docs}} )
+	{
+		my $hide = 1;
+		if( @{$self->{docs}} == 1 || $unroll{$doc->id} )
+		{
+			$hide = 0;
+		}
 
+		$panel->appendChild( $self->_render_doc_div( $doc, $hide ));
 	}
 
 	return $f;
-
 }
 
 sub _render_doc_div 
 {
-	my ( $self, $doc, $eprint_docs, $tounroll ) = @_;
+	my( $self, $doc, $hide ) = @_;
 
 	my $session = $self->{session};
+	my $eprint_docs = $self->{docs};
 
-	my $view_id = $doc->get_id;
-	my $doc_prefix = $self->{prefix}."_doc".$view_id;
-	my $hide = 1;
-	if( $eprint_docs == 1 ) { $hide = 0; } 
-	if( $tounroll->{$view_id} ) { $hide = 0; }
+	my $docid = $doc->get_id;
+	my $doc_prefix = $self->{prefix}."_doc".$docid;
+
+	my $files = $doc->get_value( "files" );
+	do {
+		my %idx = map { $_ => $_->value( "filename" ) } @$files;
+		@$files = sort { $idx{$a} cmp $idx{$b} } @$files;
+	};
 
 	my $doc_div = $self->{session}->make_element( "div", class=>"ep_upload_doc", id=>$doc_prefix."_block" );
 
@@ -389,12 +372,12 @@ sub _render_doc_div
 	my $td_left = $session->make_element( "td", align=>"left", valign=>"middle", width=>"40%" );
 	$tr->appendChild( $td_left );
 
-	$td_left->appendChild( $self->_render_doc_icon_info( $doc ) );
+	$td_left->appendChild( $self->_render_doc_icon_info( $doc, $files ) );
 
 	my $td_right = $session->make_element( "td", align=>"right", valign=>"middle", class => "ep_upload_doc_actions" );
 	$tr->appendChild( $td_right );
 
-	$td_right->appendChild( $self->_render_doc_actions( $doc_prefix, $doc, $eprint_docs ) );
+	$td_right->appendChild( $self->_render_doc_actions( $doc ) );
 
 	my $opts_toggle = $session->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${doc_prefix}_opts',".($hide?"false":"true").",'${doc_prefix}_block');EPJS_toggle('${doc_prefix}_opts_hide',".($hide?"false":"true").",'block');EPJS_toggle('${doc_prefix}_opts_show',".($hide?"true":"false").",'block');return false" );
 	$doc_expansion_bar->appendChild( $opts_toggle );
@@ -418,22 +401,15 @@ sub _render_doc_div
 	$opts_toggle->appendChild( $h_options );
 
 
-#$doc_title->appendChild( $doc->render_description );
-
 	my $content_inner = $self->{session}->make_element( "div", id=>$doc_prefix."_opts_inner" );
 	$content->appendChild( $content_inner );
 
 	my $id_prefix = "doc.".$doc->get_id;
 
 
-	my @tabs = $self->_render_doc( $doc );
+	my @tabs = $self->_render_doc( $doc, $files );
 
-	my $volits = $self->_render_related_docs( $doc );
-
-	if (defined $volits)
-	{
-		push @tabs, $volits;
-	}
+	push @tabs, $self->_render_related_docs( $doc );
 
 	# render the tab menu
 	$content_inner->appendChild( $session->render_tabs(
@@ -471,27 +447,30 @@ sub _render_doc_div
 
 sub _render_doc_icon_info
 {
-	my( $self, $doc ) = @_;
+	my( $self, $doc, $files ) = @_;
 
 	my $session = $self->{session};
 
 	my $table = $session->make_element( "table", border=>0 );
-	my $table_tr = $session->make_element( "tr" );
-	my $table_td_left = $session->make_element( "td", align=>"center" );
-	my $table_td_right = $session->make_element( "td", align=>"left", class=>"ep_upload_doc_title" );
-	$table->appendChild( $table_tr );
-	$table_tr->appendChild( $table_td_left );
-	$table_tr->appendChild( $table_td_right );
+	my $tr = $session->make_element( "tr" );
+	my $td_left = $session->make_element( "td", align=>"center" );
+	my $td_right = $session->make_element( "td", align=>"left", class=>"ep_upload_doc_title" );
+	$table->appendChild( $tr );
+	$tr->appendChild( $td_left );
+	$tr->appendChild( $td_right );
 
-	$table_td_left->appendChild( $doc->render_icon_link( new_window=>1, preview=>1, public=>0 ) );
+	$td_left->appendChild( $doc->render_icon_link( new_window=>1, preview=>1, public=>0 ) );
 
-	$table_td_right->appendChild( $doc->render_citation);
-	my %files = $doc->files;
-	if( defined $files{$doc->get_main} )
+	$td_right->appendChild( $doc->render_citation );
+	my $size = 0;
+	foreach my $file (@$files)
 	{
-		my $size = $files{$doc->get_main};
-		$table_td_right->appendChild( $session->make_element( 'br' ) );
-		$table_td_right->appendChild( $session->make_text( EPrints::Utils::human_filesize($size) ));
+		$size += $file->value( "filesize" );
+	}
+	if( $size > 0 )
+	{
+		$td_right->appendChild( $session->make_element( 'br' ) );
+		$td_right->appendChild( $session->make_text( EPrints::Utils::human_filesize($size) ));
 	}
 
 	return $table;
@@ -499,9 +478,11 @@ sub _render_doc_icon_info
 
 sub _render_doc_actions
 {
-	my( $self, $doc_prefix, $doc, $eprint_docs ) = @_;
+	my( $self, $doc ) = @_;
 
 	my $session = $self->{session};
+
+	my $doc_prefix = $self->{prefix}."_doc".$doc->id;
 
 	my $table = $session->make_element( "table" );
 
@@ -512,7 +493,7 @@ sub _render_doc_actions
 
 	$td = $session->make_element( "td" );
 	$tr->appendChild( $td );
-	$td->appendChild( $self->_render_doc_placement( $doc, $eprint_docs ) );
+	$td->appendChild( $self->_render_doc_placement( $doc ) );
 
 	$td = $session->make_element( "td" );
 	$tr->appendChild( $td );
@@ -534,147 +515,89 @@ sub _render_doc_actions
 
 sub _render_related_docs
 {
-	my ( $self, $doc ) = @_;
-
-	my $volatiles = 0;
-
-	my $eprint = $doc->get_parent;
-
-	my @volatile_docs = get_volatile_docs($self,$eprint);
-
-	my $volatile_part = $self->{session}->make_element( "div", id=>$self->{prefix}."_panels", align=>"center" );
-
-	my $relation = EPrints::Utils::make_relation( "isVolatileVersionOf" );
-
-	foreach my $vol ( @volatile_docs )
-	{
-		foreach my $rel_doc ( @{($vol->get_related_objects($relation))} )
-		{
-			if ($rel_doc->get_id == $doc->get_id) {
-				$volatile_part->appendChild( _render_volatile_div( $self, $vol ));
-				$volatiles = 1;
-			}
-		}
-	}
-
-	if ($volatiles > 0)
-	{
-		return {
-			id => "related_".$doc->get_id,
-			   title => $self->html_phrase("related_files"),
-			   content => $volatile_part,
-		};
-	}
-	else
-	{
-		return undef;
-	}
-}
-
-sub get_volatile_docs
-{
-	my ($self,$eprint) = @_;
+	my( $self, $doc ) = @_;
 
 	my $session = $self->{session};
+	my $eprint = $self->{workflow}->{item};
 
-	#Potential Authentication Bit
-	#my $current_user = $session->current_user;
-	#if ( ! $current_user->has_role('volatile_editor')) {
-	#       return ();
-	#}
+	my $div = $session->make_element( "div", id=>$self->{prefix}."_panels" );
 
-	my $relation = EPrints::Utils::make_relation( "isVolatileVersionOf" );
+	my $relation = EPrints::Utils::make_relation( "hasVolatileVersion" );
 
-	my @docs = ();
+	foreach my $dataobj ( @{($doc->get_related_objects( $relation ))} )
+	{
+		# in the future we might get other objects coming back
+		next if !$dataobj->isa( "EPrints::DataObj::Document" );
+		# sanity check that this document actually belongs to us
+		next if $dataobj->get_parent->id ne $eprint->id;
 
-	# Filter out any documents that are volatile versions
-        foreach my $doc (@{($eprint->get_value( "documents" ))})
-        {
-                if( $doc->has_related_objects( $relation ) )
-                {
-                        push @docs, $doc;
-                }
-        }
+		$div->appendChild( $self->_render_volatile_div( $dataobj ) );
+	}
 
-        return sort { ($a->get_value( "placement" )||0) <=> ($b->get_value( "placement" )||0) } @docs;	
+	if( !$div->hasChildNodes )
+	{
+		return ();
+	}
 
+	return {
+		id => "related_".$doc->id,
+		   title => $self->html_phrase("related_files"),
+		   content => $div,
+	};
 }
 
 sub _render_volatile_div
 {
-        my ( $self, $doc ) = @_;
+	my( $self, $doc ) = @_;
 
-        my $session = $self->{session};
+	my $session = $self->{session};
 
-        my $view_id = $doc->get_id;
-        my $doc_prefix = $self->{prefix}."_doc".$view_id;
-        my $doc_div = $self->{session}->make_element( "div", class=>"ep_upload_doc", id=>$doc_prefix."_block" );
-        my $doc_title_bar = $session->make_element( "div", class=>"ep_upload_doc_title_bar" );
+	my $doc_prefix = $self->{prefix}."_doc".$doc->id;
 
-        my $table = $session->make_element( "table", width=>"100%", border=>0 );
-        my $tr = $session->make_element( "tr" );
-        $doc_title_bar->appendChild( $table );
-        $table->appendChild( $tr );
-        my $td_left = $session->make_element( "td", align=>"left", valign=>"middle", width=>"40%" );
-        $tr->appendChild( $td_left );
+	my $doc_div = $self->{session}->make_element( "div", class=>"ep_upload_doc", id=>$doc_prefix."_block" );
 
-        my $table_left = $session->make_element( "table", border=>0 );
-        $td_left->appendChild( $table_left );
-        my $table_left_tr = $session->make_element( "tr" );
-        my $table_left_td_left = $session->make_element( "td", align=>"center" );
-        my $table_left_td_right = $session->make_element( "td", align=>"left", class=>"ep_upload_doc_title" );
-	$table_left->appendChild( $table_left_tr );
-        $table_left_tr->appendChild( $table_left_td_left );
-        $table_left_tr->appendChild( $table_left_td_right );
+	my $doc_title_bar = $session->make_element( "div", class=>"ep_upload_doc_title_bar" );
 
-        $table_left_td_left->appendChild( $doc->render_icon_link( new_window=>1, preview=>1, public=>0 ) );
+	my $table = $session->make_element( "table", width=>"100%", border=>0 );
+	my $tr = $session->make_element( "tr" );
+	$doc_title_bar->appendChild( $table );
+	$table->appendChild( $tr );
+	my $td_left = $session->make_element( "td", valign=>"middle" );
+	$tr->appendChild( $td_left );
 
-        $table_left_td_right->appendChild( $doc->render_citation );
-        my %files = $doc->files;
-        if( defined $files{$doc->get_main} )
-        {
-                my $size = $files{$doc->get_main};
-                $table_left_td_right->appendChild( $session->make_element( 'br' ) );
-                $table_left_td_right->appendChild( $session->make_text( EPrints::Utils::human_filesize($size) ));
-        }
+	$td_left->appendChild( $self->_render_doc_icon_info(
+			$doc,
+			[] # $doc->value( "files" )
+		) );
 
-        my $td_right = $session->make_element( "td", align=>"right", valign=>"middle", width=>"20%" );
-        $tr->appendChild( $td_right );
-        my $msg = $self->phrase( "unlink_document_confirm" );
-        my $unlink_button = $session->render_button(
-                name => "_internal_".$doc_prefix."_unlink_doc",
-                value => $self->phrase( "unlink_document" ),
-                class => "ep_form_internal_button",
-                onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm(".EPrints::Utils::js_string($msg).");",
-                );
+	my $td_right = $session->make_element( "td", align=>"right", valign=>"middle", width=>"20%" );
+	$tr->appendChild( $td_right );
+	my $msg = $self->phrase( "unlink_document_confirm" );
+	my $unlink_button = $session->render_button(
+			name => "_internal_".$doc_prefix."_unlink_doc",
+			value => $self->phrase( "unlink_document" ),
+			class => "ep_form_internal_button",
+			onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm(".EPrints::Utils::js_string($msg).");",
+			);
 	$td_right->appendChild($unlink_button);
-#$doc_title->appendChild( $doc->render_description );
-        $doc_div->appendChild( $doc_title_bar );
+	$doc_div->appendChild( $doc_title_bar );
 
-        return $doc_div;
+	return $doc_div;
 }
 
 sub doc_fields
 {
 	my( $self, $document ) = @_;
 
-	my $ds = $self->{session}->get_repository->get_dataset('document');
-	my @fields = @{$self->{config}->{doc_fields}};
-
-	my %files = $document->files;
-	if( scalar keys %files > 1 )
-	{
-		push @fields, $ds->get_field( "main" );
-	}
-	
-	return @fields;
+	return @{$self->{config}->{doc_fields}};
 }
 
 sub _render_doc_placement
 {
-	my( $self, $doc, $eprint_docs ) = @_;
+	my( $self, $doc ) = @_;
 
 	my $session = $self->{session};	
+	my $eprint_docs = $self->{docs};
 
 	my $frag = $session->make_doc_fragment;
 
@@ -725,7 +648,7 @@ sub _render_doc_placement
 
 sub _render_doc
 {
-	my( $self, $doc ) = @_;
+	my( $self, $doc, $files ) = @_;
 
 	my $session = $self->{session};	
 
@@ -792,20 +715,24 @@ sub _render_doc
 
 	$doc_cont = $session->make_element( "div" );
 
-	my $files = $session->make_element( "div", class=>"ep_upload_files" );
-	$doc_cont->appendChild( $files );
-	$files->appendChild( $self->_render_filelist( $doc ) );
+	$doc_cont->appendChild( $self->_render_filelist( $doc, $files ) );
+
 	my $block = $session->make_element( "div", class=>"ep_block" );
-	$block->appendChild( $self->_render_add_file( $doc ) );
-	$doc_cont->appendChild( $block );
-	$block = $session->make_element( "div", class=>"ep_block" );
 	$block->appendChild( $self->_render_convert_document( $doc ) );
+	$doc_cont->appendChild( $block );
+
+	$block = $session->make_element( "div", class=>"ep_block" );
+	$block->appendChild( $session->render_button(
+		name => "_internal_".$doc_prefix."_update_doc",
+		value => $self->phrase( "update" ), 
+		class => "ep_form_internal_button",
+		) );
 	$doc_cont->appendChild( $block );
 
 	push @tabs, {
 		id => "files_".$doc->get_id,
-		   title => $self->html_phrase("Files"),
-		   content => $doc_cont,
+		title => $self->html_phrase( "Files" ),
+		content => $doc_cont,
 	};
 	return @tabs;
 }
@@ -814,7 +741,7 @@ sub _render_doc
 
 sub _render_add_file
 {
-	my( $self, $document ) = @_;
+	my( $self, $document, $files ) = @_;
 
 	my $session = $self->{session};
 	
@@ -822,9 +749,7 @@ sub _render_add_file
 	my $docid = $document->get_id;
 	my $doc_prefix = $self->{prefix}."_doc".$docid;
 
-	my $hide = 0;
-	my %files = $document->files;
-	$hide = 1 if( scalar keys %files == 1 );
+	my $hide = @$files == 1;
 
 	my $f = $session->make_doc_fragment;	
 	if( $hide )
@@ -942,73 +867,96 @@ sub _render_convert_document
 
 sub _render_filelist
 {
-	my( $self, $document ) = @_;
+	my( $self, $doc, $files ) = @_;
 
 	my $session = $self->{session};
 	
-	if( !defined $document )
+	my $doc_prefix = $self->{prefix}."_doc".$doc->id;
+
+	my $main_file = $doc->get_main;
+	
+	my $div = $session->make_element( "div", class=>"ep_upload_files" );
+
+	if( @$files == 0 ) 
 	{
-		EPrints::abort( "No document for file upload component" );
+		$div->appendChild( $self->_render_placeholder );
+		return $div;
 	}
-	
-	my %files = $document->files;
-	my $main_file = $document->get_main;
-	my $num_files = scalar keys %files;
-	
-	my $docid = $document->get_id;
-	my $doc_prefix = $self->{prefix}."_doc".$docid;
 
 	my $table = $session->make_element( "table", class => "ep_upload_file_table" );
-	my $tbody = $session->make_element( "tbody" );
-	$table->appendChild( $tbody );
+	$div->appendChild( $table );
 
-	if( !defined $document || $num_files == 0 ) 
+	my $tr = $session->make_element( "tr", class => "ep_row" );
+	$table->appendChild( $tr );
+	my @fields;
+	for(qw( filename filesize mime_type hash_type hash ))
 	{
-		$tbody->appendChild( $self->_render_placeholder );
-		return $table;
+		push @fields, $session->dataset( "file" )->field( $_ );
 	}
-
-	my $i = 0;
-	foreach my $filename ( sort keys %files )
+	push @fields, $session->dataset( "document" )->field( "main" );
+	foreach my $field (@fields)
 	{
-		my $tr = $session->make_element( "tr" );
-	
-		my $td_filename = $session->make_element( "td" );
-		my $a = $session->render_link( $document->get_url( $filename ), "_blank" );
-		$a->appendChild( $session->make_text( $filename ) );
-		
-		$td_filename->appendChild( $a );
-		$tr->appendChild( $td_filename );
-		
-		my $td_filesize = $session->make_element( "td" );
-		my $size = EPrints::Utils::human_filesize( $files{$filename} );
-		$size =~ m/^([0-9]+)([^0-9]*)$/;
-		my( $n, $units ) = ( $1, $2 );
-		$td_filesize->appendChild( $session->make_text( $n ) );
-		$td_filesize->appendChild( $session->make_text( $units ) );
-		$tr->appendChild( $td_filesize );
-		
-		my $td_delete = $session->make_element( "td" );
-		my $del_btn_text = $session->html_phrase( "lib/submissionform:delete" );
-		my $del_btn = $session->make_element( "input", 
-			type => "image", 
-			src => "$self->{imagesurl}/style/images/delete.png",
-			name => "_internal_".$doc_prefix."_delete_$i",
-			onclick => "EPJS_blur(event); return confirm( ".EPrints::Utils::js_string($self->phrase( "delete_file_confirm", filename => $filename ))." );",
-			value => $self->phrase( "delete_file" ) );
-			
-		$td_delete->appendChild( $del_btn );
-		$tr->appendChild( $td_delete );
-		
-#		my $td_filetype = $session->make_element( "td" );
-#		$td_filetype->appendChild( $session->make_text( "" ) );
-#		$tr->appendChild( $td_filetype );
-			
-		$tbody->appendChild( $tr );
-		$i++;
+		my $td = $session->make_element( "th" );
+		$tr->appendChild( $td );
+		$td->appendChild( $field->render_name( $session ) );
+	}
+	do { # actions
+		my $td = $session->make_element( "th" );
+		$tr->appendChild( $td );
+	};
+
+	foreach my $file (@$files)
+	{
+		$table->appendChild( $self->_render_file( $doc, $file ) );
 	}
 	
-	return $table;
+	my $block = $session->make_element( "div", class=>"ep_block" );
+	$block->appendChild( $self->_render_add_file( $doc, $files ) );
+	$div->appendChild( $block );
+
+	return $div;
+}
+
+sub _render_file
+{
+	my( $self, $doc, $file ) = @_;
+
+	my $session = $self->{session};
+
+	my $doc_prefix = $self->{prefix}."_doc".$doc->id;
+	my $filename = $file->value( "filename" );
+	my $is_main = $filename eq $doc->get_main;
+
+	my @values;
+
+	my $link = $session->render_link( $doc->get_url( $filename ), "_blank" );
+	$link->appendChild( $session->make_text( $filename ) );
+	push @values, $link;
+	
+	push @values, $session->make_text( EPrints::Utils::human_filesize( $file->value( "filesize" ) ) );
+	
+	push @values, $session->make_text( $file->value( "mime_type" ) );
+	
+	push @values, $session->make_text( $file->value( "hash_type" ) );
+	
+	push @values, $session->make_text( $file->value( "hash" ) );
+	
+	push @values, $session->make_element( "input",
+		type => "radio",
+		name => $doc_prefix."_main",
+		value => $filename,
+		($is_main ? (checked => "checked") : ()) );
+
+	my $button_title = $self->phrase( "delete_file" );
+	push @values, $session->make_element( "input", 
+		type => "image", 
+		src => $self->{imagesurl}."/style/images/delete.png",
+		name => "_internal_".$doc_prefix."_delete_".$file->id,
+		onclick => "EPJS_blur(event); return confirm( ".EPrints::Utils::js_string($self->phrase( "delete_file_confirm", filename => $filename ))." );",
+		value => $button_title,
+		title => $button_title );
+
+	return $session->render_row( @values );
 }
 
 sub _render_placeholder
@@ -1034,7 +982,7 @@ sub validate
 	my $eprint = $self->{workflow}->{item};
 	my $session = $self->{session};
 	
-        my @req_formats = $eprint->required_formats;
+	my @req_formats = $eprint->required_formats;
 	my @docs = $eprint->get_all_documents;
 
 	my $ok = 0;
@@ -1042,35 +990,33 @@ sub validate
 
 	my $doc;
 	foreach $doc ( @docs )
-        {
+	{
 		my $docformat = $doc->get_value( "format" );
 		foreach( @req_formats )
 		{
-                	$ok = 1 if( $docformat eq $_ );
+			$ok = 1 if( $docformat eq $_ );
 		}
-        }
+	}
 
 	if( !$ok )
 	{
-		my $doc_ds = $eprint->{session}->get_repository->get_dataset( 
-			"document" );
-		my $fieldname = $eprint->{session}->make_element( "span", class=>"ep_problem_field:documents" );
-		my $prob = $eprint->{session}->make_doc_fragment;
-		$prob->appendChild( $eprint->{session}->html_phrase( 
+		my $doc_ds = $session->get_repository->get_dataset( "document" );
+		my $fieldname = $session->make_element( "span", class=>"ep_problem_field:documents" );
+		my $prob = $session->make_doc_fragment;
+		$prob->appendChild( $session->html_phrase( 
 			"lib/eprint:need_a_format",
 			fieldname=>$fieldname ) );
-		my $ul = $eprint->{session}->make_element( "ul" );
+		my $ul = $session->make_element( "ul" );
 		$prob->appendChild( $ul );
 		
 		foreach( @req_formats )
 		{
-			my $li = $eprint->{session}->make_element( "li" );
+			my $li = $session->make_element( "li" );
 			$ul->appendChild( $li );
-			$li->appendChild( $eprint->{session}->render_type_name( "document", $_ ) );
+			$li->appendChild( $session->render_type_name( "document", $_ ) );
 		}
 			
 		push @problems, $prob;
-
 	}
 
 	foreach $doc (@docs)
@@ -1089,9 +1035,9 @@ sub validate
 			# cjg bug - not handling for_archive here.
 			if( $field->{required} && !$doc->is_set( $field->{name} ) )
 			{
-				my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:documents" );
+				my $fieldname = $session->make_element( "span", class=>"ep_problem_field:documents" );
 				$fieldname->appendChild( $field->render_name( $self->{session} ) );
-				my $problem = $self->{session}->html_phrase(
+				my $problem = $session->html_phrase(
 					"lib/eprint:not_done_field" ,
 					fieldname=>$fieldname );
 				push @{$probs}, $problem;

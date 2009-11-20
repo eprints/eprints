@@ -1,6 +1,5 @@
 package EPrints::Plugin::InputForm::Component::Upload;
 
-use EPrints;
 use EPrints::Plugin::InputForm::Component;
 @ISA = ( "EPrints::Plugin::InputForm::Component" );
 
@@ -27,6 +26,11 @@ sub update_from_form
 
 	my $session = $self->{session};
 	my $eprint = $self->{workflow}->{item};
+
+	if( defined $self->{_documents} )
+	{
+		$self->{_documents}->update_from_form( $processor );
+	}
 
 	if( $session->internal_button_pressed )
 	{
@@ -79,21 +83,6 @@ sub get_state_params
 	}
 
 	return $params;
-}
-
-sub _swap_placements
-{
-	my( $docs, $l, $r ) = @_;
-
-	my( $left, $right ) = @$docs[$l,$r];
-
-	my $t = $left->get_value( "placement" );
-	$left->set_value( "placement", $right->get_value( "placement" ) );
-	$right->set_value( "placement", $t );
-
-	$t = $docs->[$l];
-	$docs->[$l] = $docs->[$r];
-	$docs->[$r] = $t;
 }
 
 sub has_help
@@ -203,6 +192,11 @@ sub render_content
 		$first = 0;
 	}
 
+	if( defined $self->{_documents} )
+	{
+		$html->appendChild( $self->{_documents}->render_content( $surround ) );
+	}
+
 	return $html;
 }
 
@@ -285,6 +279,14 @@ sub parse_config
 		}
 	}
 
+	# backwards compatibility
+	if( $config_dom->getElementsByTagName( "field" )->length > 0 )
+	{
+		$self->{_documents} = $self->{session}->plugin( "InputForm::Component::Documents",
+			processor => $self->{processor},
+			workflow => $self->{workflow} );
+		$self->{_documents}->parse_config( $config_dom );
+	}
 }
 
 
