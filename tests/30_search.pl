@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 20;
+use Test::More tests => 21;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -254,5 +254,20 @@ $matches = $cond->process(
 	);
 
 is(scalar(@$matches), 1, "regexp username matched itself" );
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $dataset,
+	satisfy_all => 0 );
+
+$searchexp->add_field( $dataset->get_field( $EPrints::Utils::FULLTEXT ), "article", "IN" );
+$searchexp->add_field( $dataset->get_field( "title" ), "article", "IN" );
+$searchexp->add_field( $dataset->get_field( "relation_type" ), "article" );
+
+print STDERR $searchexp->get_conditions->describe;
+
+$list = $searchexp->perform_search;
+
+ok($list->count > 0, "satisfy_all => 0");
 
 $session->terminate;
