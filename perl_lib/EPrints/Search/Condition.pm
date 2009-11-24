@@ -78,6 +78,7 @@ use EPrints::Search::Condition::InSubject;
 use EPrints::Search::Condition::IsNull;
 use EPrints::Search::Condition::Comparison;
 use EPrints::Search::Condition::Regexp;
+use EPrints::Search::Condition::SubQuery;
 
 use Data::Dumper;
 
@@ -202,9 +203,9 @@ sub get_table
 
 	if( $self->{field}->get_property( "multiple" ) )
 	{	
-		return $self->{dataset}->get_sql_sub_table_name( $self->{field} );
+		return $self->{field}->{dataset}->get_sql_sub_table_name( $self->{field} );
 	}	
-	return $self->{dataset}->get_sql_table_name();
+	return $self->{field}->{dataset}->get_sql_table_name();
 }
 
 
@@ -356,7 +357,7 @@ sub process
 			push @joins, _sql_left_join($db,
 				[ $join_table, $alias ],
 				$multiple->{key},
-				[ $multiple->{table}, $multiple->{alias} ],
+				[ $multiple->{table}, $multiple->{alias}, $multiple->{subquery} ],
 				$multiple->{right_key} );
 			# now apply INNER JOINs to this field (e.g. for subjects)
 			foreach my $inner (@{$multiple->{'inner'}||=[]})
@@ -518,13 +519,33 @@ sub _sql_left_join
 	$left = [$left, $left] if !ref($left);
 	$right = [$right, $right] if !ref($right);
 
-	return sprintf("%s %s LEFT JOIN %s %s ON %s.%s=%s.%s", map { $db->quote_identifier($_) }
-		@$left,
-		@$right,
+	if( !defined $left->[1] )
+	{
+		Carp::croak "Expected table-alias in left table spec";
+	}
+	if( !defined $right->[1] )
+	{
+		Carp::croak "Expected table-alias in right table spec";
+	}
+
+	my @right_table;
+	if( defined $right->[2] ) # subquery
+	{
+		@right_table = ($right->[2], $db->quote_identifier($right->[1]));
+	}
+	else
+	{
+		@right_table = map { $db->quote_identifier($_) } @$right[0,1];
+	}
+
+	return sprintf("%s %s LEFT JOIN %s %s ON %s.%s=%s.%s",
+		(map { $db->quote_identifier($_) } @$left[0,1]),
+		@right_table[0,1],
+		(map { $db->quote_identifier($_) }
 		$left->[1],
 		$left_key,
 		$right->[1],
-		$right_key);
+		$right_key) );
 }
 
 =item ($values, $counts) = $scond->process_groupby( field => $field, %opts )
@@ -642,7 +663,7 @@ sub process_groupby
 			push @joins, _sql_left_join($db,
 				[ $join_table, $alias ],
 				$multiple->{key},
-				[ $multiple->{table}, $multiple->{alias} ],
+				[ $multiple->{table}, $multiple->{alias}, $multiple->{subquery} ],
 				$multiple->{right_key} );
 			# now apply INNER JOINs to this field (e.g. for subjects)
 			foreach my $inner (@{$multiple->{'inner'}||=[]})
@@ -722,6 +743,28 @@ sub optimise
 	my( $self, $internal ) = @_;
 
 	return $self;
+}
+
+# return the keys to join two datasets together
+sub join_keys
+{
+	my( $self, $source, $target ) = @_;
+
+	my $left_key = $source->get_key_field->get_name;
+	my $right_key = $target->get_key_field->get_name;
+
+	if( $source->has_field( $right_key ) )
+	{
+		return( $right_key, $right_key );
+	}
+	elsif( $target->has_field( $left_key ) )
+	{
+		return( $left_key, $left_key );
+	}
+	else
+	{
+		EPrints::abort( "Can't create join path for: ".$source->confid." -> ".$target->confid );
+	}
 }
 
 1;

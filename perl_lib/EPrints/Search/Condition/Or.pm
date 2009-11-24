@@ -51,10 +51,8 @@ sub optimise_specific
 {
 	my( $self ) = @_;
 
-	my $tree = $self;
-
 	my $keep_ops = [];
-	foreach my $sub_op ( @{$tree->{sub_ops}} )
+	foreach my $sub_op ( @{$self->{sub_ops}} )
 	{
 		# if an OR contains TRUE or an
 		# AND contains FALSE then we can
@@ -66,9 +64,36 @@ sub optimise_specific
 		
 		push @{$keep_ops}, $sub_op;
 	}
-	$tree->{sub_ops} = $keep_ops;
+	$self->{sub_ops} = $keep_ops;
 
-	return $tree;
+	my %tables;
+	my @core;
+	foreach my $sub_op ( @{$self->{sub_ops}} )
+	{
+		my $table = $sub_op->get_table;
+		if( !defined $table )
+		{
+			push @core, $sub_op;
+		}
+		else
+		{
+			push @{$tables{$table}||=[]}, $sub_op;
+		}
+	}
+
+	if( keys %tables > 1 )
+	{
+		my $keep_ops = \@core;
+		foreach my $table (keys %tables)
+		{
+			push @$keep_ops, EPrints::Search::Condition::SubQuery->new(
+					@{$tables{$table}}
+				);
+		}
+		$self->{sub_ops} = $keep_ops;
+	}
+
+	return $self;
 }
 
 sub item_matches

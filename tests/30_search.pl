@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 21;
+use Test::More tests => 23;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -264,10 +264,37 @@ $searchexp->add_field( $dataset->get_field( $EPrints::Utils::FULLTEXT ), "articl
 $searchexp->add_field( $dataset->get_field( "title" ), "article", "IN" );
 $searchexp->add_field( $dataset->get_field( "relation_type" ), "article" );
 
-print STDERR $searchexp->get_conditions->describe;
+#print STDERR $searchexp->get_conditions->describe;
 
 $list = $searchexp->perform_search;
 
 ok($list->count > 0, "satisfy_all => 0");
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $sample_doc->get_dataset,
+	satisfy_all => 0 );
+
+$searchexp->add_field( $dataset->get_field( "type" ), "article" );
+
+$list = $searchexp->perform_search;
+
+ok($list->count > 0, "documents.eprint.type/satisfy_all => 0");
+
+SKIP: {
+skip "No support for arbitrary dataset joins yet", 1..1;
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $sample_doc->get_dataset,
+	satisfy_all => 0 );
+
+my $file_dataset = $session->get_repository->get_dataset( "file" );
+$searchexp->add_field( $file_dataset->get_field( "mime_type" ), "application/pdf" );
+
+$list = $searchexp->perform_search;
+
+ok($list->count > 0, "documents.file.mime_type/satisfy_all => 0");
+};
 
 $session->terminate;
