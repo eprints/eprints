@@ -20,7 +20,7 @@ sub new
 		}
 	];
 
-	$self->{actions} = [qw/ col_left col_right remove_col add_col /];
+	$self->{actions} = [qw/ col_left col_right remove_col add_col set_filters /];
 
 	return $self;
 }
@@ -36,6 +36,7 @@ sub allow_col_left { return $_[0]->can_be_viewed; }
 sub allow_col_right { return $_[0]->can_be_viewed; }
 sub allow_remove_col { return $_[0]->can_be_viewed; }
 sub allow_add_col { return $_[0]->can_be_viewed; }
+sub allow_set_filters { return $_[0]->can_be_viewed; }
 
 sub action_col_left
 {
@@ -96,6 +97,32 @@ sub action_remove_col
 	$self->{session}->current_user->set_value( "review_fields", \@newlist );
 	$self->{session}->current_user->commit();
 }
+sub action_set_filters
+{
+	my( $self ) = @_;
+
+	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
+
+	my $filters_search = EPrints::Search->new(
+			allow_blank => 1,
+			dataset => $dataset,
+			session => $self->{session} );
+
+	foreach (@{$self->{session}->current_user->get_value( "review_fields" )})
+	{
+		$filters_search->add_field( $dataset->get_field($_) );
+	}
+
+	#initialise from form values
+	foreach ($filters_search->get_non_filter_searchfields)
+	{
+		$_->from_form;
+	}
+
+	$self->{session}->current_user->set_value( "review_filters", $filters_search->serialise );
+	$self->{session}->current_user->commit();
+}
+
 
 sub render_links
 {
@@ -107,6 +134,106 @@ sub render_links
 	return $style;
 }
 
+sub _build_filter_search
+{
+	my ($self) = @_;
+
+	my $session = $self->{session};
+	my $user = $session->current_user;
+
+	my $dataset = $session->get_repository->get_dataset( "archive" );
+
+	my $filters_search = EPrints::Search->new(
+			allow_blank => 1,
+			dataset => $dataset,
+			session => $session );
+
+	foreach (@{$session->current_user->get_value( "review_fields" )})
+	{
+		$filters_search->add_field( $dataset->get_field($_) );
+	}
+
+	if ($user->exists_and_set('review_filters'))
+	{
+		$filters_search->from_string($user->get_value('review_filters'));
+	}
+
+	$filters_search->add_field( $self->{session}->get_repository->get_dataset('eprint')->get_field('eprint_status'),'buffer');
+	return $filters_search;
+}
+
+sub apply_filters
+{
+	my ($self, $list) = @_;
+
+	my $newlist = $self->_build_filter_search->perform_search;
+	$list = $list->intersect($newlist);
+
+	return $list;
+}
+
+sub render_filters_box
+{
+	my ($self) = @_;
+	my $session = $self->{session};
+	my $dataset = $session->get_repository->get_dataset('eprint');
+
+	my $collapsed = 1;
+
+	my $frag = $session->make_doc_fragment;
+
+
+	my $form = $session->render_form( "post" );
+	$frag->appendChild($form);
+
+	$form->appendChild($session->render_hidden_field( "screen", "Review" ) );
+
+	my $table = $self->{session}->make_element( "table", class=>"ep_search_fields" );
+	$form->appendChild($table);
+
+	my $filters_search = $self->_build_filter_search;
+	foreach (@{$session->current_user->get_value( "review_fields" )})
+	{
+		my $sf = $filters_search->get_searchfield($_);
+
+		if (EPrints::Utils::is_set($sf->get_value))
+		{
+			$collapsed = 0;
+		}
+
+		$table->appendChild(
+			$self->{session}->render_row_with_help(
+				help_prefix => $sf->get_form_prefix."_help",
+				help => $sf->render_help,
+				label => $sf->render_name,
+				field => $sf->render,
+				no_toggle => ( $sf->{show_help} eq "always" ),
+				no_help => ( $sf->{show_help} eq "never" ),
+			)
+		);
+	}
+	my $div = $self->{session}->make_element(
+		"div" ,
+		class => "ep_search_buttons" );
+	$div->appendChild( $self->{session}->render_action_buttons(
+	       set_filters => $self->{session}->phrase( "lib/searchexpression:action_search" ) )
+	);
+	$form->appendChild($div);
+
+
+	my %options;
+	$options{session} = $session;
+	$options{id} = "ep_review_filters";
+	$options{title} = $session->make_text('Filters');
+	$options{content} = $frag;
+	$options{collapsed} = $collapsed;
+
+
+	my $box = $session->make_element( "div", style=>"text-align: left" );
+	$box->appendChild( EPrints::Box::render( %options ) );
+
+	return $box;
+}
 
 sub render
 {
@@ -120,6 +247,10 @@ sub render
 	my $list = $user->editable_eprints_list( filters => [
 		{ meta_fields => ["eprint_status"], value => "buffer" },
 		]);
+	if ($user->exists_and_set('review_filters'))
+	{
+		$list = $self->apply_filters($list);
+	}
 
 	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
 	$page->appendChild( $div );
@@ -143,6 +274,8 @@ sub render
 	my $box = $session->make_element( "div", style=>"text-align: left" );
 	$box->appendChild( EPrints::Box::render( %options ) );
 	$div->appendChild( $box );
+
+	$div->appendChild($self->render_filters_box);
 
 	my $columns = $session->current_user->get_value( "review_fields" );
 	if( !EPrints::Utils::is_set( $columns ) )

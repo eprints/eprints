@@ -201,6 +201,9 @@ sub get_system_field_info
 		{ name=>"review_fields", type=>"fields", datasetid=>"eprint", 
 			multiple=>1, input_ordered=>1, required=>1, volatile=>1 },
 
+		{ name=>"review_filters", type=>"search", datasetid=>"eprint",
+			required=>0, volatile=>1 },
+
 		{ name=>"latitude", type=>"float", required=>0 },
 
 		{ name=>"longitude", type=>"float", required=>0 },

@@ -8496,3 +8496,8 @@ EPRINTS-3.1-beta-2
 
 2009-11-24 af05v
  * Fixed Dataobj::tidy - undefined multiple fields causing crash.
+
+2009-11-24
+ * Added editorial filters feature.
+ * Added regexp prepare to Oracle database object (required for editorial filters).
+    All other regexp code previously added.

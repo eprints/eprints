@@ -415,6 +415,13 @@ sub _cache_from_TABLE
 	$self->do( $sql );
 }
 
+sub prepare_regexp
+{
+	my ($self, $col, $value) = @_;
+
+	return "REGEXP_LIKE ($col, $value)";
+}
+
 1; # For use/require success
 
 ######################################################################
