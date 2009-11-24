@@ -1547,9 +1547,12 @@ sub tidy
 		# tidy at the compound-field level only (no sub-fields)
 		next if defined $field->property( "parent_name" );
 
+		my $value_arrayref = $field->get_value( $self );
+		next if !EPrints::Utils::is_set( $value_arrayref );
+
 		my @list;
 		my $set = 0;
-		foreach my $item ( @{$field->get_value( $self )} )
+		foreach my $item ( @{$value_arrayref} )
 		{
 			if( !EPrints::Utils::is_set( $item ) )
 			{
