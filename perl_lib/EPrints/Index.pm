@@ -299,7 +299,7 @@ sub _do_ordervalues
 		my @fvals = ( $keyvalue );
 		foreach my $field ( @fields )
 		{
-			next if !$field->isa( "EPrints::MetaField::Subobject" );
+			next if $field->isa( "EPrints::MetaField::Subobject" );
 
 			my $ov = $field->ordervalue( 
 					$data->{$field->get_name()},
