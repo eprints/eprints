@@ -70,7 +70,7 @@ if( defined $list )
 	$is_ok = $list->count == 1 && $eprint->get_id == $sample_doc->get_value( "eprintid" );
 }
 
-ok($is_ok, "search for eprint id + doc format");
+ok($is_ok, "search for eprint id + doc format: " . $searchexp->get_conditions->describe);
 
 $searchexp->dispose;
 
@@ -80,7 +80,9 @@ $searchexp = EPrints::Search->new(
 	dataset => $sample_doc->get_dataset,
 );
 
-$searchexp->add_field( $sample_doc->get_dataset->get_field( "relation_type" ), EPrints::Utils::make_relation("isVolatileVersionOf")." ".EPrints::Utils::make_relation("ispreviewThumbnailVersionOf"), "EQ", "ALL" );
+$searchexp->add_field(
+	$sample_doc->get_dataset->get_field( "relation_type" ),
+	EPrints::Utils::make_relation("isVolatileVersionOf")." ".EPrints::Utils::make_relation("ispreviewThumbnailVersionOf"), "EQ", "ALL" );
 
 $list = eval { $searchexp->perform_search };
 
