@@ -17,7 +17,7 @@ my %API_METHODS = (
 	"EPrints::XML" => [qw( clone clone_node contents_of create_comment create_document_fragment create_element create_text_node dispose parse_file parse_string parse_url text_contents_of to_string )],
 	"EPrints::XHTML" => [qw( build_page form hidden_field input_field text_area_field to_xhtml )],
 	"EPrints::Page" => [qw( send write_to_file )],
-	"EPrints::DataObj" => [qw( commit create_subobject delete export id is_set render_citation render_value set_value uri url value )],
+	"EPrints::DataObj" => [qw( commit create_subdataobj delete export id is_set render_citation render_value set_value uri url value )],
 	"EPrints::MetaField" => [qw( name property render_help render_name render_value_label set_property sort_values type all_values )],
 );
 

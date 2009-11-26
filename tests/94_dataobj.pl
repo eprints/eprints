@@ -39,7 +39,7 @@ $epdata = {
 	format => $FORMAT,
 };
 
-my $doc = $eprint->create_subobject( "documents", $epdata );
+my $doc = $eprint->create_subdataobj( "documents", $epdata );
 BAIL_OUT( "Failed to create doc object" ) if !defined $doc;
 
 ok($doc->value( "format" ) eq $FORMAT, "doc created with format" );
