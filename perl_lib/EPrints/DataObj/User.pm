@@ -149,7 +149,7 @@ sub get_system_field_info
 		{ name=>"saved_searches", type=>"subobject", datasetid=>'saved_search',
 			multiple=>1 },
 
-		{ name=>"username", type=>"text", required=>1 },
+		{ name=>"username", type=>"id", required=>1 },
 
 		{ name=>"password", type=>"secret", show_in_html=>0,
 			fromform=>\&EPrints::Utils::crypt_password },
@@ -603,7 +603,7 @@ sub editable_eprints_list
 			$cond );
 	}
 
-	my $ids = $cond->process( $self->{session} );
+	my $ids = $cond->process( session => $self->{session}, dataset => $dataset );
 
 	return EPrints::List->new(
 		session => $self->{session},
