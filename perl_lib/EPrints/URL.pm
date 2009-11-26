@@ -148,6 +148,10 @@ sub get
 	# path
 	if( $opts{path} eq "auto" )
 	{
+		if( !defined $session->get_request )
+		{
+			EPrints::abort( "Attempt to use CGI path in non-CGI environment" );
+		}
 		$uri->path( $session->get_request->uri );
 	}
 	elsif( $opts{path} eq "static" )

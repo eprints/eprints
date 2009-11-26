@@ -20,6 +20,8 @@ B<EPrints::Test::OnlineSession> - Test online features of EPrints, offline
 
 package EPrints::Test::OnlineSession;
 
+use EPrints::Test::RequestRec;
+
 our @ISA = qw( EPrints::Session );
 
 my @VARS = qw( stdout uri secure );
@@ -76,6 +78,8 @@ sub new
 	my $cgi = CGI->new( $uri->query );
 	$self->{query} = $cgi;
 	$self->{offline} = 0;
+
+	$self->{request} = EPrints::Test::RequestRec->new( uri => $uri->path );
 
 	$ENV{REQUEST_METHOD} = $method;
 
