@@ -220,6 +220,7 @@ sub _logic_time
 	
 	my $session = $opts{session};
 	my $database = $session->get_database;
+	my $table = $opts{table};
 	my $sql_col = $self->{field}->get_sql_name;
 
 	my( $cmp, $eq ) = @{ { 
@@ -248,7 +249,7 @@ sub _logic_time
 			{	
 				my $o = "=";
 				if( $j==$i ) { $o = $cmp; }
-				push @and, $database->quote_identifier($self->{join}->{alias},$sql_col."_".$timemap->[$j])." ".$o." ".EPrints::Database::prep_int( $parts[$j] ); 
+				push @and, $database->quote_identifier($table,$sql_col."_".$timemap->[$j])." ".$o." ".EPrints::Database::prep_int( $parts[$j] ); 
 			}
 			push @or, "( ".join( " AND ", @and )." )";
 		}
@@ -259,7 +260,7 @@ sub _logic_time
 		my @and = ();
 		for( my $i=0;$i<$nparts;++$i )
 		{
-			push @and, $database->quote_identifier($self->{join}->{alias},$sql_col."_".$timemap->[$i])." = ".EPrints::Database::prep_int( $parts[$i] ); 
+			push @and, $database->quote_identifier($table,$sql_col."_".$timemap->[$i])." = ".EPrints::Database::prep_int( $parts[$i] ); 
 		}
 		push @or, "( ".join( " AND ", @and )." )";
 	}
@@ -356,7 +357,7 @@ sub logic
 	}
 	elsif( $field->isa( "EPrints::MetaField::Date" ) )
 	{
-		return $self->_logic_time( %opts );
+		return $self->_logic_time( %opts, table => $table );
 	}
 	elsif( $field->isa( "EPrints::MetaField::Int" ) )
 	{
