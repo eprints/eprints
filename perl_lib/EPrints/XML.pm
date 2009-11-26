@@ -341,7 +341,7 @@ sub to_string
 
 	my( $self, $node, %opts ) = @_;
 
-	my $string = $node->toString( $opts{indent} );
+	my $string = $node->toString( defined $opts{indent} ? $opts{indent} : 0 );
 	utf8::decode($string) unless utf8::is_utf8($string);
 
 	return $string;

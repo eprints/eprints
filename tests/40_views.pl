@@ -37,7 +37,9 @@ my $langid = $lang->{id};
 # Work-around to suppress the phrase warnings
 {
 my $data = $lang->_get_repositorydata;
-$data->{xml}->{"viewname_eprint_$test_id"} = $session->make_text( $test_id );
+my $phrase = $session->make_element( "phrase", id => "viewname_eprint_$test_id" );
+$phrase->appendChild( $session->make_text( $test_id ) );
+$data->{xml}->{"viewname_eprint_$test_id"} = $phrase;
 keys %{$data->{file}};
 (undef, $data->{file}->{"viewname_eprint_$test_id"}) = each %{$data->{file}};
 keys %{$data->{file}};
