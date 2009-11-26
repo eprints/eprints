@@ -327,10 +327,6 @@ sub sql
 	my @orders = $self->_split_order_by( $session, $dataset, $order );
 
 	my $key_alias = delete $opts{key_alias};
-	if( !defined $key_alias )
-	{
-		$key_alias = $key_field->get_sql_name . "_" . refaddr($self);
-	}
 
 	my $groupby = delete $opts{groupby};
 
@@ -344,7 +340,11 @@ sub sql
 	if( !defined $groupby )
 	{
 		# SELECT dataset_main_table.key_field
-		$sql .= "SELECT ".$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name ). " ".$db->quote_identifier( $key_alias );
+		$sql .= "SELECT ".$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name );
+		if( defined $key_alias )
+		{
+			$sql .= " ".$db->quote_identifier( $key_alias );
+		}
 	}
 	elsif( !$groupby->get_property( "multiple" ) )
 	{
@@ -440,23 +440,27 @@ sub sql
 		$sql .= " WHERE ".join(" AND ", @logic);
 	}
 
-	if( !defined $groupby )
+	# don't need to GROUP BY subqueries
+	if( !defined $key_alias )
 	{
-		$sql .= " GROUP BY ".$db->quote_identifier( $key_alias );
-		if( scalar @orders )
+		if( !defined $groupby )
 		{
-			foreach my $order ( @orders )
+			$sql .= " GROUP BY ".$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name );
+			if( scalar @orders )
 			{
-				$sql .= ", ".$db->quote_identifier( $ov_table, $order->[0] );
+				foreach my $order ( @orders )
+				{
+					$sql .= ", ".$db->quote_identifier( $ov_table, $order->[0] );
+				}
+				$sql .= " ORDER BY ";
+				$sql .= join(", ", map { $db->quote_identifier( $ov_table, $_->[0] ) . " " . $_->[1] } @orders );
 			}
-			$sql .= " ORDER BY ";
-			$sql .= join(", ", map { $db->quote_identifier( $ov_table, $_->[0] ) . " " . $_->[1] } @orders );
 		}
-	}
-	else
-	{
-		$sql .= " GROUP BY ";
-		$sql .= join ", ", map { $db->quote_identifier( $groupby_table, $_ ) } $groupby->get_sql_names;
+		else
+		{
+			$sql .= " GROUP BY ";
+			$sql .= join ", ", map { $db->quote_identifier( $groupby_table, $_ ) } $groupby->get_sql_names;
+		}
 	}
 
 #print STDERR "\nsql=$sql\n\n";
