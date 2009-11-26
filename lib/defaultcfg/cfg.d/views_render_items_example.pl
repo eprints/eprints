@@ -4,6 +4,8 @@
 # Note: This function needs to return a UTF-8 encoded string NOT XHTML DOM.
 # (this is to speed things up).
 
+# To use this add render_fn => "render_view_item_3col_boxes" to a view in views.pl
+
 $c->{render_view_items_3col_boxes} = sub
 {
 	my( $session, $item_list, $view_definition, $path_to_this_page, $filename ) = @_;
