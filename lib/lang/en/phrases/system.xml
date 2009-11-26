@@ -1345,7 +1345,7 @@ Titles and Help for the System Fields
     	<epp:phrase id="Plugin/Screen/EPrint:owner_denied">Although you are the owner of this item you may not view this screen: <epc:pin name="screen"/>. This may be because you have deposited the item and you may no longer make changes to it.</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/EPrint:locked_to_you"><div class='ep_toolbox'><div class='ep_toolbox_content' style='padding:4px'>This item is temporarily locked to allow your modifications only.</div></div></epp:phrase>
-    <epp:phrase id="Plugin/Screen/EPrint:locked_to_other"><div class='ep_msg_warning'><div class='ep_msg_warning_content' style='padding:4px'>This item is temporarily locked to allow modifications by <epc:pin name='name' /> only.</div></div></epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint:locked_to_other">This item is temporarily locked to allow modifications by <epc:pin name='name' /> only.</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/EPrint/TakeLock:action:take:title">Take Edit Lock</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/TakeLock:action:take:description">Take the edit lock from the user currently editing this record.</epp:phrase>
