@@ -26,12 +26,9 @@ Matches items where the field is null.
 
 package EPrints::Search::Condition::IsNull;
 
-use EPrints::Search::Condition;
+use EPrints::Search::Condition::Comparison;
 
-BEGIN
-{
-	our @ISA = qw( EPrints::Search::Condition );
-}
+@ISA = qw( EPrints::Search::Condition::Comparison );
 
 use strict;
 
@@ -39,19 +36,10 @@ sub new
 {
 	my( $class, @params ) = @_;
 
-	my $self = {};
-	$self->{op} = "is_null";
-	$self->{dataset} = shift @params;
-	$self->{field} = shift @params;
-	$self->{params} = \@params;
-
-	return bless $self, $class;
+	return $class->SUPER::new( "is_null", @params );
 }
 
-
-
-
-sub item_matches
+sub _item_matches
 {
 	my( $self, $item ) = @_;
 
@@ -72,6 +60,24 @@ sub get_query_logic
 
 	my $table = $self->{join}->{alias};
 	my $sql_name = $field->get_sql_name;
+
+	return $db->quote_identifier( $table, $sql_name )." is Null";
+}
+
+sub logic
+{
+	my( $self, %opts ) = @_;
+
+	my $prefix = $opts{prefix};
+	$prefix = "" if !defined $prefix;
+	if( !$self->{field}->get_property( "multiple" ) )
+	{
+		$prefix = "";
+	}
+
+	my $db = $opts{session}->get_database;
+	my $table = $prefix . $self->table;
+	my $sql_name = $self->{field}->get_sql_name;
 
 	return $db->quote_identifier( $table, $sql_name )." is Null";
 }

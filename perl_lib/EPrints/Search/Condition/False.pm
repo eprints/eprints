@@ -42,7 +42,7 @@ sub new
 	return bless { op=>"FALSE" }, $class;
 }
 
-sub item_matches
+sub _item_matches
 {
 	my( $self, $item ) = @_;
 
@@ -56,6 +56,11 @@ sub get_op_val
 
 # always FALSE
 sub get_query_logic
+{
+	return "1=0";
+}
+
+sub logic
 {
 	return "1=0";
 }

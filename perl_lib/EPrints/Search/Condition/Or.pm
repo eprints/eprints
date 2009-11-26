@@ -49,31 +49,35 @@ sub new
 
 sub optimise_specific
 {
-	my( $self ) = @_;
+	my( $self, %opts ) = @_;
 
 	my $keep_ops = [];
 	foreach my $sub_op ( @{$self->{sub_ops}} )
 	{
-		# if an OR contains TRUE or an
-		# AND contains FALSE then we can
-		# cancel it all out.
-		return $sub_op if( $sub_op->{op} eq "TRUE" );
+		# {ANY} OR TRUE is always TRUE
+		return $sub_op if $sub_op->{op} eq "TRUE";
 
-		# just filter these out
-		next if( $sub_op->{op} eq "FALSE" );
+		# {ANY} OR FALSE is always {ANY}
+		next if @{$keep_ops} > 0 && $sub_op->{op} eq "FALSE";
 		
 		push @{$keep_ops}, $sub_op;
 	}
 	$self->{sub_ops} = $keep_ops;
 
+	return $self if @{$self->{sub_ops}} == 1;
+
+	my $dataset = $opts{dataset};
+
 	my %tables;
-	my @core;
+	$keep_ops = [];
 	foreach my $sub_op ( @{$self->{sub_ops}} )
 	{
-		my $table = $sub_op->get_table;
-		if( !defined $table )
+		my $inner_dataset = $sub_op->dataset;
+		my $table = $sub_op->table;
+		# either don't need a LEFT JOIN (e.g. TRUE) or is on the main table
+		if( !defined $inner_dataset || $table eq $dataset->get_sql_table_name )
 		{
-			push @core, $sub_op;
+			push @$keep_ops, $sub_op;
 		}
 		else
 		{
@@ -81,22 +85,19 @@ sub optimise_specific
 		}
 	}
 
-	if( keys %tables > 1 )
+	foreach my $table (keys %tables)
 	{
-		my $keep_ops = \@core;
-		foreach my $table (keys %tables)
-		{
-			push @$keep_ops, EPrints::Search::Condition::SubQuery->new(
-					@{$tables{$table}}
-				);
-		}
-		$self->{sub_ops} = $keep_ops;
+		push @$keep_ops, EPrints::Search::Condition::SubQuery->new(
+				$tables{$table}->[0]->dataset,
+				@{$tables{$table}}
+			);
 	}
+	$self->{sub_ops} = $keep_ops;
 
 	return $self;
 }
 
-sub item_matches
+sub _item_matches
 {
 	my( $self, $item ) = @_;
 
@@ -159,5 +160,31 @@ sub get_query_logic
 	return "(" . join(") OR (", @logic) . ")";
 }
 
+sub joins
+{
+	my( $self, %opts ) = @_;
+
+	my $db = $opts{session}->get_database;
+	my $dataset = $opts{dataset};
+
+	my %joins;
+	foreach my $sub_op ( @{$self->{sub_ops}} )
+	{
+		foreach my $join ( $sub_op->joins( %opts ) )
+		{
+			$join->{type} = "left";
+			$joins{$join->{alias}} = $join;
+		}
+	}
+
+	return values %joins;
+}
+
+sub logic
+{
+	my( $self, %opts ) = @_;
+
+	return "(" . join(" OR ", map { $_->logic( %opts ) } @{$self->{sub_ops}}) . ")";
+}
 
 1;

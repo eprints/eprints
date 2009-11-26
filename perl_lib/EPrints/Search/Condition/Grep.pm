@@ -26,12 +26,9 @@ Filter using a grep table
 
 package EPrints::Search::Condition::Grep;
 
-use EPrints::Search::Condition;
+use EPrints::Search::Condition::Index;
 
-BEGIN
-{
-	our @ISA = qw( EPrints::Search::Condition );
-}
+@ISA = qw( EPrints::Search::Condition::Index );
 
 use strict;
 
@@ -48,8 +45,16 @@ sub new
 	return bless $self, $class;
 }
 
+sub table
+{
+	my( $self ) = @_;
 
-sub item_matches
+	return undef if( !defined $self->{field} );
+
+	return $self->{field}->{dataset}->get_sql_grep_table_name;
+}
+
+sub _item_matches
 {
 	my( $self, $item ) = @_;
 
@@ -125,6 +130,36 @@ sub get_query_logic
 	}
 
 	return "(($q_table.$q_fieldname = $q_fieldvalue) AND (".join( " OR ", @logic )."))";
+}
+
+sub logic
+{
+	my( $self, %opts ) = @_;
+
+	my $prefix = $opts{prefix};
+	$prefix = "" if !defined $prefix;
+	if( !$self->{field}->get_property( "multiple" ) )
+	{
+		$prefix = "";
+	}
+
+	my $db = $opts{session}->get_database;
+	my $table = $prefix . $self->table;
+	my $sql_name = $self->{field}->get_sql_name;
+
+	my @logic;
+	foreach my $cond (@{$self->{params}})
+	{
+		# escape $cond value in any way?
+		push @logic, sprintf("%s LIKE '%s'",
+			$db->quote_identifier( $table, "grepstring" ),
+			$cond );
+	}
+
+	return sprintf( "%s=%s AND (%s)",
+		$db->quote_identifier( $table, "fieldname" ),
+		$db->quote_value( $sql_name ),
+		join(" OR ", @logic));
 }
 
 1;

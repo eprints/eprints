@@ -28,10 +28,7 @@ package EPrints::Search::Condition::NameMatch;
 
 use EPrints::Search::Condition::Comparison;
 
-BEGIN
-{
-	our @ISA = qw( EPrints::Search::Condition::Comparison );
-}
+@ISA = qw( EPrints::Search::Condition::Comparison );
 
 use strict;
 
@@ -39,15 +36,8 @@ sub new
 {
 	my( $class, @params ) = @_;
 
-	my $self = {};
-	$self->{op} = "=";
-	$self->{dataset} = shift @params;
-	$self->{field} = shift @params;
-	$self->{params} = \@params;
-
-	return bless $self, $class;
+	return $class->SUPER::new( "=", @params );
 }
-
 
 sub extra_describe_bits
 {
@@ -55,24 +45,6 @@ sub extra_describe_bits
 
 	return '"'.$self->{params}->[0]->{family}.'"', 
 		'"'.$self->{params}->[0]->{given}.'"';
-}
-
-
-sub item_matches
-{
-	my( $self, $item ) = @_;
-
- 	my $keyfield = $self->{dataset}->get_key_field();
-	my $sql_col = $self->{field}->get_sql_name;
-
-	print STDERR "\n---name_match comparisson not done yet...\n";
-
-	return 1;
-}
-
-sub get_op_val
-{
-	return 4;
 }
 
 1;

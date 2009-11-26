@@ -30,10 +30,7 @@ package EPrints::Search::Condition::IndexStart;
 
 use EPrints::Search::Condition::Index;
 
-BEGIN
-{
-	our @ISA = qw( EPrints::Search::Condition::Index );
-}
+@ISA = qw( EPrints::Search::Condition::Index );
 
 use strict;
 
@@ -50,18 +47,7 @@ sub new
 	return bless $self, $class;
 }
 
-sub get_table
-{
-	my( $self ) = @_;
-
-	return undef if( !defined $self->{field} );
-
-	return $self->{dataset}->get_sql_index_table_name;
-}
-
-
-
-sub item_matches
+sub _item_matches
 {
 	my( $self, $item ) = @_;
 
@@ -99,6 +85,24 @@ sub get_query_logic
 	my $q_value = EPrints::Database::prep_like_value( $self->{params}->[0] );
 
 	return "($q_table.$q_fieldname = $q_fieldvalue AND $q_table.$q_word LIKE '$q_value\%')";
+}
+
+sub logic
+{
+	my( $self, %opts ) = @_;
+
+	my $prefix = $opts{prefix};
+	$prefix = "" if !defined $prefix;
+
+	my $db = $opts{session}->get_database;
+	my $table = $prefix . $self->table;
+	my $sql_name = $self->{field}->get_sql_name;
+
+	return sprintf( "%s=%s AND %s LIKE '%s%%'",
+		$db->quote_identifier( $table, "field" ),
+		$db->quote_value( $sql_name ),
+		$db->quote_identifier( $table, "word" ),
+		EPrints::Database::prep_like_value( $self->{params}->[0] ) );
 }
 
 1;

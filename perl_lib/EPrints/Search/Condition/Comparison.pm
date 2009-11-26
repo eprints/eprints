@@ -28,10 +28,7 @@ package EPrints::Search::Condition::Comparison;
 
 use EPrints::Search::Condition;
 
-BEGIN
-{
-	our @ISA = qw( EPrints::Search::Condition );
-}
+@ISA = qw( EPrints::Search::Condition );
 
 use strict;
 
@@ -51,7 +48,7 @@ sub new
 
 
 
-sub item_matches
+sub _item_matches
 {
 	my( $self, $item ) = @_;
 
@@ -199,7 +196,7 @@ sub get_query_logic
 	}
 	elsif( $field->isa( "EPrints::MetaField::Date" ) )
 	{
-		return $self->get_query_logic_time( %opts );
+		return $self->_logic_time( %opts );
 	}
 	elsif( $field->isa( "EPrints::MetaField::Int" ) )
 	{
@@ -217,7 +214,7 @@ sub get_query_logic
 	}
 }
 
-sub get_query_logic_time
+sub _logic_time
 {
 	my( $self, %opts ) = @_;
 	
@@ -268,6 +265,113 @@ sub get_query_logic_time
 	}
 
 	return "(".join( " OR ", @or ).")";
+}
+
+sub joins
+{
+	my( $self, %opts ) = @_;
+
+	my $db = $opts{session}->get_database;
+	my $prefix = $opts{prefix};
+	$prefix = "" if !defined $prefix;
+
+	# parent dataset
+	if( $self->dataset->confid eq $opts{dataset}->confid )
+	{
+		# parent table
+		if( !$self->{field}->get_property( "multiple" ) )
+		{
+			return ();
+		}
+		else
+		{
+			my $table = $self->table;
+			return {
+				type => "inner",
+				table => $table,
+				alias => "$prefix$table",
+				key => $self->dataset->get_key_field->get_sql_name,
+			};
+		}
+	}
+	# join to another dataset
+	else
+	{
+		my( $left_key, $right_key ) = $self->join_keys( $opts{dataset}, $self->dataset );
+		my $main_table = $self->dataset->get_sql_table_name;
+		my $main_key = $self->dataset->get_key_field->get_sql_name;
+		# join to main table of child dataset
+		if( !$self->{field}->get_property( "multiple" ) )
+		{
+			return {
+				type => "inner",
+				table => $main_table,
+				alias => "$prefix$main_table",
+				key => $right_key,
+			};
+		}
+		else
+		{
+			my $table = $self->table;
+			my $sql = "";
+			$sql .= $db->quote_identifier( $main_table ) . " " . $db->quote_identifier( "$prefix$main_table" );
+			$sql .= " INNER JOIN ". $db->quote_identifier( $table ) . " " . $db->quote_identifier( "$prefix$table" );
+			$sql .= " ON ".$db->quote_identifier( "$prefix$main_table", $main_key )."=".$db->quote_identifier( "$prefix$table", $main_key );
+			return {
+				type => "inner",
+				subquery => $sql,
+				key => $right_key
+			};
+		}
+	}
+}
+
+sub logic
+{
+	my( $self, %opts ) = @_;
+
+	my $db = $opts{session}->get_database;
+	my $prefix = $opts{prefix};
+	$prefix = "" if !defined $prefix;
+	if( $self->table eq $opts{dataset}->get_sql_table_name )
+	{
+		$prefix = "";
+	}
+
+	my $table = $prefix . $self->table;
+	my $field = $self->{field};
+	my $sql_name = $field->get_sql_name;
+
+	if( $field->isa( "EPrints::MetaField::Name" ) )
+	{
+		my @logic;
+		for(qw( given family ))
+		{
+			push @logic, sprintf("%s %s %s",
+				$db->quote_identifier( $table, "$sql_name\_$_" ),
+				$self->{op},
+				$db->quote_value( $self->{params}->[0]->{$_} ) );
+		}
+		return "(".join(") AND (", @logic).")";
+	}
+	elsif( $field->isa( "EPrints::MetaField::Date" ) )
+	{
+		return $self->_logic_time( %opts );
+	}
+	elsif( $field->isa( "EPrints::MetaField::Int" ) )
+	{
+		return sprintf("%s %s %s",
+			$db->quote_identifier( $table, $sql_name ),
+			$self->{op},
+			EPrints::Database::prep_int( $self->{params}->[0] ) );
+	}
+	else
+	{
+		return sprintf("%s %s %s",
+			$db->quote_identifier( $table, $sql_name ),
+			$self->{op},
+			$db->quote_value( $self->{params}->[0] ) );
+	}
 }
 
 1;

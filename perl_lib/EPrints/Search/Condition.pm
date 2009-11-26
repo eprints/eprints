@@ -80,7 +80,7 @@ use EPrints::Search::Condition::Comparison;
 use EPrints::Search::Condition::Regexp;
 use EPrints::Search::Condition::SubQuery;
 
-use Data::Dumper;
+use Scalar::Util qw( refaddr );
 
 # current conditional operators:
 
@@ -173,7 +173,7 @@ sub describe
 		}
 	}	
 	my $op_desc = $ind.$self->{op}."(".join( ",", @o ).")";
-	$op_desc.= " ... ".$self->get_table;
+	$op_desc.= " ... ".$self->table;
 	return $op_desc;
 }
 
@@ -184,18 +184,51 @@ sub extra_describe_bits
 	return();
 }
 
+=item $field = $scond->field
+
+Returns the field this search condition applies to.
+
+Returns undef if this condition has no field.
+
+=cut
+
+sub field
+{
+	my( $self ) = @_;
+
+	return $self->{field};
+}
+
+=item $dataset = $scond->dataset
+
+Returns the dataset this search condition applies to.
+
+Returns undef if this condition has no dataset requirement.
+
+=cut
+
+sub dataset
+{
+	my( $self ) = @_;
+
+	return undef if( !defined $self->{field} );
+
+	return $self->{field}->{dataset};
+}
+
 ######################################################################
 =pod
 
-=item $sql_table = $scond->get_table
+=item $sql_table = $scond->table
 
-Return the name of the actual SQL table which this condition is
-concerned with.
+Returns the SQL table name this condition will work on.
+
+Returns undef if this condition has no table requirement.
 
 =cut
 ######################################################################
 
-sub get_table
+sub table
 {
 	my( $self ) = @_;
 
@@ -214,6 +247,7 @@ sub get_table
 
 =item $bool = $scond->item_matches( $dataobj )
 
+DEPRECATED!
 
 =cut
 ######################################################################
@@ -222,9 +256,213 @@ sub item_matches
 {
 	my( $self, $item ) = @_;
 
-	EPrints::abort( "item_matches needs to be subclassed" );
+	my $scond = EPrints::Search::Condition::And->new(
+		EPrints::Search::Condition::Comparison->new(
+			"=",
+			$item->get_dataset,
+			$item->get_dataset->get_key_field,
+			$item->get_id
+		),
+		$self );
+
+	my $ids = $scond->process( session => $item->get_session, dataset => $item->get_dataset );
+
+	return 1 if @$ids == 1;
 }
 
+=item @joins = $scond->joins( %opts )
+
+Returns a list of joins that this condition requires.
+
+Each join is a hash containing:
+
+	table - table
+	subquery - SQL sub-query
+	alias - name to alias to
+	type - "inner" or "left"
+	key - column on alias to join against the main dataset
+
+'table' is required and will only be joined once.
+
+=cut
+
+sub joins
+{
+	my( $self, %opts ) = @_;
+
+	return ();
+}
+
+=item $logic = $scond->logic( %opts )
+
+Returns the logic part of this condition.
+
+=cut
+
+sub logic
+{
+	my( $self, %opts ) = @_;
+
+	return ();
+}
+
+
+=item $sql = $scond->sql( %opts )
+
+Generates the SQL necessary to execute this condition tree.
+
+=cut
+
+sub sql
+{
+	my( $self, %opts ) = @_;
+
+	my $session = $opts{session};
+	my $db = $session->get_database;
+
+	my $dataset = $opts{dataset};
+	my $key_field = $dataset->get_key_field;
+
+	my $order = delete $opts{order};
+	my @orders = $self->_split_order_by( $session, $dataset, $order );
+
+	my $key_alias = delete $opts{key_alias};
+	if( !defined $key_alias )
+	{
+		$key_alias = $key_field->get_sql_name . "_" . refaddr($self);
+	}
+
+	my $groupby = delete $opts{groupby};
+
+	my $ov_table = $dataset->get_ordervalues_table_name( $session->get_langid );
+
+	my $sql = "";
+	my @joins;
+
+	my $groupby_table = "groupby_".refaddr( $self );
+
+	if( !defined $groupby )
+	{
+		# SELECT dataset_main_table.key_field
+		$sql .= "SELECT ".$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name ). " ".$db->quote_identifier( $key_alias );
+	}
+	elsif( !$groupby->get_property( "multiple" ) )
+	{
+		$groupby_table = $dataset->get_sql_table_name;
+		# SELECT dataset_main_table.groupby, COUNT(DISTINCT dataset_main_table.key_field)
+		$sql .= "SELECT ";
+		$sql .= join ", ", map { $db->quote_identifier( $groupby_table, $_ ) } $groupby->get_sql_names;
+		$sql .= ", COUNT(DISTINCT ".$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name ).")";
+	}
+	else
+	{
+		# SELECT groupby_table.groupby, COUNT(DISTINCT dataset_main_table.key_field)
+		$sql .= "SELECT ";
+		$sql .= join ", ", map { $db->quote_identifier( $groupby_table, $_ ) } $groupby->get_sql_names;
+		$sql .= ", COUNT(DISTINCT ".$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name ).")";
+		push @joins, {
+			type => "inner",
+			table => $dataset->get_sql_sub_table_name( $groupby ),
+			alias => $groupby_table,
+			key => $key_field->get_sql_name
+		};
+	}
+
+	# FROM dataset_main_table
+	$sql .= " FROM ".$db->quote_identifier( $dataset->get_sql_table_name );
+	# LEFT JOIN dataset_ordervalues
+	if( scalar @orders )
+	{
+		$sql .= " LEFT JOIN ".$db->quote_identifier( $ov_table );
+		$sql .= " ON ".$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name )."=".$db->quote_identifier( $ov_table, $key_field->get_sql_name );
+	}
+
+	push @joins, $self->joins( %opts );
+
+	my @tables;
+	my @logic;
+	my $i = 0;
+	foreach my $join ( @joins )
+	{
+		push @logic, $join->{logic} if defined $join->{logic};
+
+		# FROM ..., dataset_aux {alias}
+		# WHERE dataset_main_table.key_field={alias}.join_key
+		# or
+		# FROM ..., join_table {ALIAS} INNER JOIN dataset_aux {alias} ON {ALIAS}.join_key={alias}.join_key
+		# WHERE dataset_main_table.key_field={ALIAS}.join_key
+		if( $join->{type} eq "inner" )
+		{
+			my $sql = "";
+			$sql .= defined $join->{subquery} ? $join->{subquery} : $db->quote_identifier( $join->{table} );
+			if( defined $join->{alias} )
+			{
+				$sql .= " ".$db->quote_identifier( $join->{alias} );
+			}
+			push @tables, $sql;
+			if( defined $join->{logic} ) # overridden table join logic (used by subject ancestors)
+			{
+				push @logic, $join->{logic};
+			}
+			else
+			{
+				push @logic,
+					$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name )."=".$db->quote_identifier( $join->{alias}, $join->{key} );
+			}
+		}
+		# FROM ... , dataset_main_table {ALIAS} LEFT JOIN (subquery|table) {alias} ON dataset_main_table.key_field={alias}.join_key
+		# WHERE dataset_main_table.key_field={ALIAS}.key_field
+		elsif( $join->{type} eq "left" )
+		{
+			my $main_alias = $i++ . "_" . $dataset->get_sql_table_name;
+			my $sql = "";
+			$sql .= $db->quote_identifier( $dataset->get_sql_table_name );
+			$sql .= " " . $db->quote_identifier( $main_alias );
+			$sql .= " LEFT JOIN ";
+			$sql .= defined $join->{subquery} ? $join->{subquery} : $db->quote_identifier( $join->{table} );
+			$sql .= " " . $db->quote_identifier( $join->{alias} );
+			$sql .= " ON " . $db->quote_identifier( $main_alias, $key_field->get_sql_name )."=".$db->quote_identifier( $join->{alias}, $join->{key} );
+			push @tables, $sql;
+			push @logic,
+				$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name )."=".$db->quote_identifier( $main_alias, $key_field->get_sql_name );
+		}
+		else
+		{
+			EPrints::abort( "Unknown join type '$join->{type}' in table join construction" );
+		}
+	}
+
+	$sql .= join("", map { ", $_" } @tables);
+
+	push @logic, $self->logic( %opts );
+	if( @logic )
+	{
+		$sql .= " WHERE ".join(" AND ", @logic);
+	}
+
+	if( !defined $groupby )
+	{
+		$sql .= " GROUP BY ".$db->quote_identifier( $key_alias );
+		if( scalar @orders )
+		{
+			foreach my $order ( @orders )
+			{
+				$sql .= ", ".$db->quote_identifier( $ov_table, $order->[0] );
+			}
+			$sql .= " ORDER BY ";
+			$sql .= join(", ", map { $db->quote_identifier( $ov_table, $_->[0] ) . " " . $_->[1] } @orders );
+		}
+	}
+	else
+	{
+		$sql .= " GROUP BY ";
+		$sql .= join ", ", map { $db->quote_identifier( $groupby_table, $_ ) } $groupby->get_sql_names;
+	}
+
+#print STDERR "\nsql=$sql\n\n";
+
+	return $sql;
+}
 
 # return a reference to an array of ID's
 # or ["ALL"] to represent the entire set.
@@ -249,9 +487,52 @@ need to be applied to all values in the database.
 =cut
 ######################################################################
 
+sub process
+{
+	my( $self, %opts ) = @_;
+
+	my $session = $opts{session};
+	EPrints::abort "Requires session argument" if !defined $session;
+
+	my $db = $opts{session}->get_database;
+
+	my $dataset = $opts{dataset};
+	EPrints::abort "Requires dataset argument" if !defined $dataset;
+
+	my $cachemap = delete $opts{cachemap};
+	my $limit = delete $opts{limit};
+
+	my $sql = $self->sql( %opts );
+
+	if( defined $cachemap )
+	{
+		my $key_field = $dataset->get_key_field;
+
+		my $cache_table = $db->begin_cache_table( $cachemap, $key_field );
+		$sql = "INSERT INTO ".$db->quote_identifier($cache_table)." (".$db->quote_identifier( $key_field->get_sql_name ).") ".$sql;
+#print STDERR "EXECUTING: $sql\n";
+		$db->do($sql);
+		$db->finish_cache_table( $cachemap );
+		$sql = "SELECT ".$db->quote_identifier( $key_field->get_sql_name )." FROM ".$db->quote_identifier($cache_table)." ORDER BY ".$db->quote_identifier("pos");
+	}
+
+#print STDERR "EXECUTING: $sql\n";
+	my $sth = $db->prepare_select( $sql, limit => $limit );
+	$db->execute($sth, $sql);
+
+	my @results;
+
+	while(my $row = $sth->fetch)
+	{
+		push @results, $row->[0];
+	}
+
+	return \@results;
+}
+
 # TDB: This code is very complex and probably needs to be restructured. But it
 # does make subclasses of Condition fairly simple.
-sub process
+sub _v3_process
 {
 	my( $self, %opts ) = @_;
 
@@ -452,15 +733,16 @@ sub _split_order_by
 		my $desc = 0;
 		if( $fieldname =~ s/^-// ) { $desc = 1; }
 		my $field = EPrints::Utils::field_from_config_string( $dataset, $fieldname );
-		push @orders,
-			$field->get_sql_name,
-			$desc ? "DESC" : "ASC";
+		push @orders, [
+				$field->get_sql_name,
+				$desc ? "DESC" : "ASC"
+			];
 	}
 
 	return @orders;
 }
 
-=item $cond->get_query_joins( $joins, %opts )
+=item $scond->get_query_joins( $joins, %opts )
 
 Populates $joins with the tables required for this search condition.
 
@@ -483,7 +765,7 @@ sub get_query_joins
 	my( $self, $joins, %opts ) = @_;
 }
 
-=item $sql = $cond->get_query_logic( %opts )
+=item $sql = $scond->get_query_logic( %opts )
 
 Returns a SQL string that, if longer than zero chars, will be used as the logic in the WHERE part of the SQL query.
 
@@ -557,6 +839,45 @@ Returns two array refs - the first is the list of unique values found in $field 
 =cut
 
 sub process_groupby
+{
+	my( $self, %opts ) = @_;
+
+	my $session = $opts{session};
+	EPrints::abort "Requires session argument" if !defined $session;
+
+	my $db = $opts{session}->get_database;
+
+	my $dataset = $opts{dataset};
+	EPrints::abort "Requires dataset argument" if !defined $dataset;
+
+	my $groupby = delete $opts{field};
+	if( $groupby->get_dataset->confid ne $dataset->confid )
+	{
+		EPrints::abort( "Can only only group-by on field in main dataset" );
+	}
+
+	delete $opts{order}; # doesn't make sense
+
+	my $limit = delete $opts{limit};
+
+	my $sql = $self->sql( %opts, groupby => $groupby );
+
+#print STDERR "EXECUTING: $sql\n";
+	my $sth = $db->prepare_select( $sql );
+	$db->execute($sth, $sql);
+
+	my( @values, @counts );
+
+	while(my @row = $sth->fetchrow_array)
+	{
+		push @values, $groupby->value_from_sql_row( $session, \@row );
+		push @counts, $row[0];
+	}
+
+	return( \@values, \@counts );
+}
+
+sub _v3_process_groupby
 {
 	my( $self, %opts ) = @_;
 

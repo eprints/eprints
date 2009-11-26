@@ -783,8 +783,10 @@ sub get_conditions
 		$cond = EPrints::Search::Condition->new( "AND", $fcond, $cond );
 	}
 	
-		
-	return $cond->optimise;
+	return $cond->optimise(
+		session => $self->{session},
+		dataset => $self->{dataset},
+	);
 }
 
 

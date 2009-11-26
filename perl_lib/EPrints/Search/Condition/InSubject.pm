@@ -26,12 +26,9 @@ Matches items which are in the subject or a sub-subject
 
 package EPrints::Search::Condition::InSubject;
 
-use EPrints::Search::Condition;
+use EPrints::Search::Condition::Comparison;
 
-BEGIN
-{
-	our @ISA = qw( EPrints::Search::Condition );
-}
+@ISA = qw( EPrints::Search::Condition::Comparison );
 
 use strict;
 
@@ -48,10 +45,7 @@ sub new
 	return bless $self, $class;
 }
 
-
-
-
-sub item_matches
+sub _item_matches
 {
 	my( $self, $item ) = @_;
 
@@ -144,6 +138,54 @@ sub get_query_logic
 	my $q_value = $db->quote_value( $self->{params}->[0] );
 
 	return "$q_table.$q_name = $q_value";
+}
+
+sub joins
+{
+	my( $self, %opts ) = @_;
+
+	my $prefix = $opts{prefix};
+	$prefix = "" if !defined $prefix;
+
+	my $db = $opts{session}->get_database;
+	my $sql_name = $self->{field}->get_sql_name;
+
+	my( $join ) = $self->SUPER::joins( %opts );
+
+	if( defined $join )
+	{
+		return ($join, {
+			type => "inner",
+			table => "subject_ancestors",
+			alias => "${prefix}subject_ancestors",
+			logic => $db->quote_identifier( $join->{alias}, $sql_name )."=".$db->quote_identifier( "${prefix}subject_ancestors", "subjectid" ),
+		});
+	}
+	else
+	{
+		my $main_table = $opts{dataset}->get_sql_table_name;
+		my $alias = $main_table."_".refaddr($self);
+		my $key_field = $opts{dataset}->get_key_field;
+		my $sql = "";
+		$sql = $db->quote_identifier( $main_table )." ".$db->quote_identifier( $alias );
+		$sql .= " INNER JOIN ".$db->quote_identifier( "subject_ancestors" );
+		$sql .= " ON ".$db->quote_identifier( $main_table, $sql_name )."=".$db->quote_identifier( "subject_ancestors", "subjectid" );
+		return {
+			type => "inner",
+			subquery => $sql,
+			key => $key_field->get_sql_name,
+			logic => $db->quote_identifier( $opts{dataset}->get_sql_table_name, $key_field->get_sql_name )."=".$db->quote_identifier( $alias, $key_field->get_sql_name ),
+		};
+	}
+}
+
+sub logic
+{
+	my( $self, %opts ) = @_;
+
+	my $db = $opts{session}->get_database;
+
+	return $db->quote_identifier( "subject_ancestors", "ancestors" )." = ".$db->quote_value( $self->{params}->[0] );
 }
 
 1;
