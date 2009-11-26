@@ -8504,4 +8504,5 @@ EPRINTS-3.1-beta-2
 
 2009-11-26 tdb
  * EPrints::URL will now abort if auto-path is used under non-CGI
+ * Deprecated item_matches() in favour of doing a search (reduce code)
 

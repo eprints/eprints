@@ -65,32 +65,6 @@ sub optimise_specific
 	return $self;
 }
 
-sub _item_matches
-{
-	my( $self, $item ) = @_;
-
-	foreach my $sub_op ( $self->ordered_ops )
-	{
-		my $r = $sub_op->item_matches( $item );
-		return( 0 ) if( $r == 0 );
-	}
-
-	return( 1 );
-}
-
-sub get_query_logic
-{
-	my( $self, %opts ) = @_;
-
-	my @logic;
-	foreach my $sub_op ( $self->ordered_ops )
-	{
-		push @logic, $sub_op->get_query_logic( %opts );
-	}
-
-	return "(" . join(") AND (", @logic) . ")";
-}
-
 sub joins
 {
 	my( $self, %opts ) = @_;

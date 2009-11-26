@@ -44,29 +44,6 @@ sub new
 	return bless $self, $class;
 }
 
-sub _item_matches
-{
-	my( $self, $item ) = @_;
-
-	# TODO
-
-	return( 0 );
-}
-
-sub get_query_logic
-{
-	my( $self, %opts ) = @_;
-
-	my $db = $opts{session}->get_database;
-	my $field = $self->{field};
-	my $table = $self->{join}->{alias};
-
-	# "REGEXP ($q_table.$q_name, $q_value)"
-	return $db->prepare_regexp(
-		$db->quote_identifier( $table, $field->get_sql_name ),
-		$db->quote_value( $self->{params}->[0] ) );
-}
-
 sub logic
 {
 	my( $self, %opts ) = @_;

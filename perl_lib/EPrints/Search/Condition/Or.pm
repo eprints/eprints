@@ -28,10 +28,7 @@ package EPrints::Search::Condition::Or;
 
 use EPrints::Search::Condition::Control;
 
-BEGIN
-{
-	our @ISA = qw( EPrints::Search::Condition::Control );
-}
+@ISA = qw( EPrints::Search::Condition::Control );
 
 use strict;
 
@@ -95,69 +92,6 @@ sub optimise_specific
 	$self->{sub_ops} = $keep_ops;
 
 	return $self;
-}
-
-sub _item_matches
-{
-	my( $self, $item ) = @_;
-
-	foreach my $sub_op ( $self->ordered_ops )
-	{
-		my $r = $sub_op->item_matches( $item );
-		return( 1 ) if( $r == 1 );
-	}
-
-	return( 0 );
-}
-
-sub get_query_joins
-{
-	my( $self, $joins, %opts ) = @_;
-
-	my %tables;
-
-	foreach my $sub_op ( $self->ordered_ops )
-	{
-		$sub_op->get_query_joins( $joins, %opts );
-		# note the tables used by this sub-op (if any)
-		if( defined $sub_op->{join} && defined $sub_op->{join}->{table} )
-		{
-			push @{$tables{$sub_op->{join}->{table}}||=[]}, $sub_op;
-		}
-	}
-
-	# performing an OR using table joins is very inefficient compared to
-	# table.column = 'foo' OR table.column = 'bar'
-	# The following code collapses table join ORs into a logical OR
-
-	my %remove;
-	while(my( $table, $sub_ops ) = each %tables)
-	{
-		for(my $i = 1; $i < @$sub_ops; ++$i)
-		{
-			$remove{$sub_ops->[$i]->{join}->{alias}} = 1;
-			$sub_ops->[$i]->{join} = $sub_ops->[0]->{join};
-		}
-	}
-
-	foreach my $datasetid (keys %$joins)
-	{
-		my $multiple = $joins->{$datasetid}->{multiple} || [];
-		@$multiple = grep { !exists( $remove{$_->{alias}} ) } @$multiple;
-	}
-}
-
-sub get_query_logic
-{
-	my( $self, %opts ) = @_;
-
-	my @logic;
-	foreach my $sub_op ( $self->ordered_ops )
-	{
-		push @logic, $sub_op->get_query_logic( %opts );
-	}
-
-	return "(" . join(") OR (", @logic) . ")";
 }
 
 sub joins

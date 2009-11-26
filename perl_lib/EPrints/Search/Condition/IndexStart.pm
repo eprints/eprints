@@ -47,46 +47,6 @@ sub new
 	return bless $self, $class;
 }
 
-sub _item_matches
-{
-	my( $self, $item ) = @_;
-
-	my( $codes, $grepcodes, $badwords ) =
-		$self->{field}->get_index_codes(
-			$item->get_session,
-			$item->get_value( $self->{field}->get_name ) );
-
-	my $p = $self->{params}->[0];
-	foreach my $code ( @{$codes} )
-	{
-		return( 1 ) if( substr( $code, 0, length $p ) eq $p );
-	}
-
-	return( 0 );
-}
-
-sub get_op_val
-{
-	return 1;
-}
-
-sub get_query_logic
-{
-	my( $self, %opts ) = @_;
-
-	my $db = $opts{session}->get_database;
-	my $field = $self->{field};
-	my $dataset = $field->{dataset};
-
-	my $q_table = $db->quote_identifier($self->{join}->{alias});
-	my $q_fieldname = $db->quote_identifier("field");
-	my $q_fieldvalue = $db->quote_value($field->get_sql_name);
-	my $q_word = $db->quote_identifier("word");
-	my $q_value = EPrints::Database::prep_like_value( $self->{params}->[0] );
-
-	return "($q_table.$q_fieldname = $q_fieldvalue AND $q_table.$q_word LIKE '$q_value\%')";
-}
-
 sub logic
 {
 	my( $self, %opts ) = @_;

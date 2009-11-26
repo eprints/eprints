@@ -28,10 +28,7 @@ package EPrints::Search::Condition::Control;
 
 use EPrints::Search::Condition;
 
-BEGIN
-{
-	our @ISA = qw( EPrints::Search::Condition );
-}
+@ISA = qw( EPrints::Search::Condition );
 
 use strict;
 
@@ -90,50 +87,6 @@ sub optimise
 	}
 
 	return $tree;
-}
-
-######################################################################
-=pod
-
-=item @ops = $scond->ordered_ops
-
-AND or OR conditions only. Return the sub conditions ordered by 
-approximate ease. This is used to make sure a TRUE or FALSE is
-prcessed before an index-lookup, and that everthing else is is tried 
-before a grep OP (which uses LIKE). This means that it can often
-give up before the expensive operation is needed.
-
-=cut
-######################################################################
-
-sub ordered_ops
-{
-	my( $self ) = @_;
-
-	return sort { $a->get_op_val <=> $b->get_op_val } @{$self->{sub_ops}};
-}
-
-# special handling if first item in the list is
-sub _item_matches
-{
-	my( $self, $item ) = @_;
-
-	EPrints::abort( "item_matches called on abstract Control condition.");
-}
-
-sub get_op_val
-{
-	return 3;
-}
-
-sub get_query_joins
-{
-	my( $self, $joins, %opts ) = @_;
-
-	foreach my $sub_op ( $self->ordered_ops )
-	{
-		$sub_op->get_query_joins( $joins, %opts );
-	}
 }
 
 1;
