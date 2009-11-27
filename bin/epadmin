@@ -570,10 +570,14 @@ sub run_script
 {
 	my( $repoid, $script, @opts ) = @_;
 
-	my $repo = $eprints->repository( $repoid );
-	my $bin = $repo->get_conf( "bin_path" );
+	my $dir = EPrints::Config::get( "bin_path" );
+	Carp::croak "Fatal! bin_path not defined"
+		if !defined $dir;
+	my $path = "$dir/$script";
+	Carp::croak "Fatal! Wanted to execute $path, but it doesn't exist"
+		if !-e $path;
 
-	system( "$bin/$script", @opts );
+	system( $path, @opts );
 }
 
 sub cleanup_cachemaps
