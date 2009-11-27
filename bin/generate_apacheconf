@@ -148,7 +148,7 @@ $|=1;
 my %reps = ();
 foreach my $repository_id ( EPrints::Config::get_repository_ids() )
 {
-	$reps{$repository_id} = new EPrints::Repository( $repository_id, 1 ); 
+	$reps{$repository_id} = new EPrints::Repository( $repository_id, db_connect => 0); 
 	exit( 1 ) unless( defined $reps{$repository_id} );
 }
 
