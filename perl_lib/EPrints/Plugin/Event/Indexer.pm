@@ -8,6 +8,12 @@ sub index
 {
 	my( $self, $dataobj, @fieldnames ) = @_;
 
+	if( !defined $dataobj )
+	{
+		Carp::carp "Expected dataobj argument";
+		return 0;
+	}
+
 	my $dataset = $dataobj->get_dataset;
 
 	my @fields;
@@ -24,6 +30,12 @@ sub index_all
 {
 	my( $self, $dataobj ) = @_;
 
+	if( !defined $dataobj )
+	{
+		Carp::carp "Expected dataobj argument";
+		return 0;
+	}
+
 	my $dataset = $dataobj->get_dataset;
 
 	return $self->_index_fields( $dataobj, [$dataset->get_fields] );
@@ -32,6 +44,12 @@ sub index_all
 sub index_fulltext 
 {
 	my( $self, $dataobj ) = @_;
+
+	if( !defined $dataobj )
+	{
+		Carp::carp "Expected dataobj argument";
+		return 0;
+	}
 
 	my $dataset = $dataobj->get_dataset;
 
