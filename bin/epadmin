@@ -290,6 +290,7 @@ else
 	if( $action eq "cleanup_cachemaps" ) { cleanup_cachemaps( $repoid ); }
 	elsif( $action eq "config_core" ) { config_core( $repoid ); }
 	elsif( $action eq "config_db" ) { config_db( $repoid ); }
+	elsif( $action eq "database_type_info" ) { database_type_info( $repoid ); }
 	elsif( $action eq "create_db" ) { create_db( $repoid ); }
 	elsif( $action eq "create_user" ) { create_user( $repoid ); }
 	elsif( $action eq "create_tables" ) { create_tables( $repoid ); }
@@ -964,84 +965,65 @@ sub root_dbh
 	return $dbh;
 }
 
+# debug tool to print out the database types supported by the current database
+# driver
+sub database_type_info
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	my $dbh = $repo->database->{dbh};
+
+	my @types = @{$EPrints::Database::EXPORT_TAGS{sql_types}};
+
+	print sprintf("%s\t%s\n",
+		"EPrint Type",
+		"Database Type" );
+
+	foreach my $type (@types)
+	{
+		next if $type eq "SQL_NULL" or $type eq "SQL_NOT_NULL";
+		no strict "refs";
+		my $f = "EPrints::Database::$type";
+		my $type_info = $dbh->type_info( &$f );
+
+		print sprintf("%s:\t%s\n",
+			$type,
+			defined $type_info->{TYPE_NAME} ? $type_info->{TYPE_NAME} : "UNSUPPORTED" );
+	}
+}
+
 sub create_db
 {
 	my( $repoid ) = @_;
 
-	my $dbh = root_dbh( $repoid, "mysql" );
+	my $repo = &repository( $repoid, db_connect => 0 );
 
-	if( !defined $dbh )
+	my $dbname = $repo->get_conf( "dbname" );
+
+	if( !defined $dbname )
 	{
-		print <<END;
+		EPrints::abort "Database name isn't configured";
+	}
 
-Hmmm. Problem connecting to database as root. We'll skip this but
-you should create it by hand.
+	my $username = EPrints::Utils::get_input( '^.*$', "Database Superuser Username", "root" );
+	my $password = EPrints::Utils::get_input_hidden( '^.*$', "Database Superuser Password" );
 
-END
+	my $database = EPrints::Database->new( $repo, db_connect => 0 );
+
+	if( !$database->create( $username, $password ) )
+	{
+		print "Error creating database\n";
 		exit 1;
 	}
-
-	use EPrints::Database::mysql;
-	my $mversion = EPrints::Database::mysql::mysql_version_from_dbh( $dbh );
-	my $oldpasswords = 0;
-	if( $mversion >= 40100 ) 
-	{
-		print "MySQL version id $mversion >= 40100\n";
-		print "MYSQL OLD PASSWORDS will be used for compatibility with DBI::mysql\n";
-		$oldpasswords = 1;
-	} 
-
-	EPrints::Config::init();
-	my $config = EPrints::Config::load_repository_config_module( $repoid );
-
-	my $sth = $dbh->prepare( "show databases" );
-	$sth->execute;
-	my $dbexists = 0;
-	my @row;
-	while( @row = $sth->fetchrow_array )
-	{
-		$dbexists = 1 if $row[0] eq $config->{dbname};
-	}
-	if( $dbexists )
-	{
-		print "Hmm. A database called ".$config->{dbname}." already exists, oh well.\n\n";
-		return;
-	}
-	else
-	{
-		my $SQL = "CREATE DATABASE ".$config->{dbname};
-		#print "DOING: $SQL\n";
-		$dbh->do( $SQL );
-	}
-	print "Setting MySQL privs\n";
-	#cjg @localhost ??? what about remote mysql's?
-
-	my $SQL;
-	$SQL = 'GRANT ALL ON '.$config->{dbname}.'.* TO '.$config->{dbuser}.'@localhost';
-	#print "DOING: $SQL\n";
-	$dbh->do( $SQL );
-	my $pass = '"'.$config->{dbpass}.'"';
-	if( $oldpasswords ) 
-	{
-		$pass = "OLD_PASSWORD($pass)";
-	} else {
-		$pass = "PASSWORD($pass)";
-	}
-	$SQL = 'SET PASSWORD FOR '.$config->{dbuser}.'@localhost = '.$pass;
-	#print "DOING: $SQL\n";
-	$dbh->do( $SQL );
-
-	print "Disconnecting from database.\n\n";
-	$dbh->disconnect;
 
 	my $mktables = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database tables?", "yes" );
 	if( $mktables eq "yes" )
 	{
 		create_tables( $repoid );
 	}
-
 }
- 
 
 sub create_user
 {
@@ -1268,7 +1250,7 @@ sub create_tables
 	else
 	{
 		my $error = $repo->database->error;
-		print STDERR "DB Error: $error\n";
+		print STDERR "DB Error: $error\n" if defined $error;
 		exit 1;
 	}
 }

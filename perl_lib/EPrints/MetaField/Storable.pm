@@ -82,7 +82,7 @@ sub sql_row_from_value
 
 	return undef unless defined $value;
 
-	return $self->freeze( $session, $value );
+	return $session->database->quote_binary( $self->freeze( $session, $value ) );
 }
 
 sub to_xml_basic

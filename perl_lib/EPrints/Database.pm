@@ -62,6 +62,7 @@ Variables that are database quoted are prefixed with 'Q_'.
 package EPrints::Database;
 
 use DBI ();
+use Digest::MD5;
 
 use EPrints;
 
@@ -161,6 +162,42 @@ sub build_connection_string
         return $dsn;
 }
 
+sub _new
+{
+	my( $class, $session ) = @_;
+
+	my $driver = $session->get_repository->get_conf( "dbdriver" );
+	$driver ||= "mysql";
+
+	$class = "${class}::$driver";
+	eval "use $class; 1";
+	die $@ if $@;
+
+	my $self = bless { session => $session }, $class;
+	Scalar::Util::weaken($self->{session})
+		if defined &Scalar::Util::weaken;
+
+	$self->{debug} = $DEBUG_SQL;
+	if( $session->{noise} == 3 )
+	{
+		$self->{debug} = 1;
+	}
+
+	return $self;
+}
+
+=item $db = $db->create( $username, $password )
+
+Create and connect to a new database using super user account $username and $password.
+
+=cut
+
+sub create
+{
+	my( $self, $username, $password ) = @_;
+
+	EPrints::abort( "Current database driver does not support database creation" );
+}
 
 ######################################################################
 =pod
@@ -174,34 +211,17 @@ Create a connection to the database.
 
 sub new
 {
-	my( $class , $session) = @_;
+	my( $class, $session, %opts ) = @_;
 
-	my $driver = $session->get_repository->get_conf( "dbdriver" );
-	$driver ||= "mysql";
+	my $db_connect = exists($opts{db_connect}) ? $opts{db_connect} : 1;
 
-	my $sub_class = "${class}::$driver";
-	if( eval "use $sub_class; 1" )
+	my $self = $class->_new( $session );
+
+	if( $db_connect )
 	{
-		$class = $sub_class;
+		$self->connect;
+		if( !defined $self->{dbh} ) { return( undef ); }
 	}
-	die $@ if $@;
-
-	my $self = {};
-	bless $self, $class;
-	$self->{session} = $session;
-	Scalar::Util::weaken($self->{session})
-		if defined &Scalar::Util::weaken;
-
-	$self->connect;
-
-	if( !defined $self->{dbh} ) { return( undef ); }
-
-	$self->{debug} = $DEBUG_SQL;
-	if( $session->{noise} == 3 )
-	{
-		$self->{debug} = 1;
-	}
-
 
 	return( $self );
 }
@@ -662,6 +682,29 @@ sub update_ticket_userid
 	]);
 }
 
+=item $type_info = $db->type_info( DATA_TYPE )
+
+See L<DBI/type_info>.
+
+=cut
+
+sub type_info
+{
+	my( $self, $data_type ) = @_;
+
+	if( $data_type eq SQL_BIGINT )
+	{
+		return {
+			TYPE_NAME => "bigint",
+			CREATE_PARAMS => "",
+		};
+	}
+	else
+	{
+		return $self->{dbh}->type_info( $data_type );
+	}
+}
+
 ######################################################################
 =pod
 
@@ -710,19 +753,22 @@ sub get_column_type
 	my $session = $self->{session};
 	my $repository = $session->get_repository;
 
-	my( $db_type, $params );
+	my $type_info = $self->type_info( $data_type );
+	my( $db_type, $params ) = @$type_info{
+		qw( TYPE_NAME CREATE_PARAMS )
+	};
 
-	if( $data_type ne SQL_BIGINT )
+	if( !defined $db_type )
 	{
-		my $type_info = $self->{dbh}->type_info( $data_type );
-
-		$db_type = $type_info->{TYPE_NAME};
-		$params = $type_info->{CREATE_PARAMS};
-	}
-	else
-	{
-		$db_type = "bigint";
-		$params = "";
+		no strict "refs";
+		foreach my $type (@{$EPrints::Database::EXPORT_TAGS{sql_types}})
+		{
+			if( $data_type == &$type )
+			{
+				EPrints::abort( "DBI driver does not appear to support $type" );
+			}
+		}
+		EPrints::abort( "Unknown SQL data type, must be one of: ".join(', ', @{$EPrints::Database::EXPORT_TAGS{sql_types}}) );
 	}
 
 	my $type = $self->quote_identifier($name) . " " . $db_type;
@@ -792,7 +838,6 @@ sub create_table
 	my $field;
 	my $rv = 1;
 
-
 	# build the sub-tables first
 	foreach $field (@fields)
 	{
@@ -827,10 +872,10 @@ sub create_table
 				repository=> $self->{session}->get_repository,
 				name => "pos", 
 				type => "int" );
-			push @auxfields,$pos;
+			push @auxfields, $pos;
 		}
-		push @auxfields,$auxfield;
-		my $rv = $rv && $self->create_table(	
+		push @auxfields, $auxfield;
+		$rv &&= $self->create_table(	
 			$dataset->get_sql_sub_table_name( $field ),
 			$dataset,
 			2, # use key + pos as primary key
@@ -940,7 +985,8 @@ sub create_sequence
 	my $sql = "CREATE SEQUENCE ".$self->quote_identifier($name)." " .
 		"INCREMENT BY 1 " .
 		"MINVALUE 0 " .
-		"MAXVALUE 999999999999999999999999999 " .
+		"MAXVALUE 9223372036854775807 " . # 2^63 - 1
+#		"MAXVALUE 999999999999999999999999999 " . # Oracle
 		"START WITH 1 ";
 
 	$rc &&= $self->do($sql);
@@ -1003,11 +1049,18 @@ sub create_index
 
 	return 1 unless @columns;
 
-	# Oracle maxes out at 30 chars, any other offers?
-	my $index_name = join("_",$table,@columns);
-	$index_name =~ s/^(.{15}).*(.{15})/$1$2/;
+	# max identifier length in Oracle is 30 chars
+	# we don't care about index names because they'll be dropped on table
+	# removal
+	my $index_name = substr(
+			Digest::MD5::md5_hex(join( "_", $table, @columns, "idx" )),
+			0,
+			30 );
 
-	my $sql = "CREATE INDEX $index_name ON ".$self->quote_identifier($table)."(".join(',',map { $self->quote_identifier($_) } @columns).")";
+	my $sql = sprintf("CREATE INDEX %s ON %s (%s)",
+		$self->quote_identifier( $index_name ),
+		$self->quote_identifier( $table ),
+		join(',',map { $self->quote_identifier($_) } @columns) );
 
 	return $self->do($sql);
 }
@@ -1379,9 +1432,22 @@ sub quote_int
 {
 	my( $self, $value ) = @_;
 
-	return "NULL" unless( defined $value );
+	return "NULL" if !defined $value || $value =~ /\D/;
 
 	return $value+0;
+}
+
+=item $str = $db->quote_binary( $bytes )
+
+Some databases (PostgreSQL) require weird transforms of binary data to work correctly.
+
+This method should be called on data containing nul bytes or back-slashes before being passed on L</quote_value>.
+
+=cut
+
+sub quote_binary
+{
+	return $_[1];
 }
 
 ######################################################################
@@ -2096,37 +2162,21 @@ sub _cache_from_TABLE
 	my( $self, $cachemap, $dataset, $srctable, $order, $logic ) = @_;
 
 	my $cache_table  = $cachemap->get_sql_table_name;
-	my $cache_seq = $cache_table . "_seq";
-	my $cache_trigger = $cache_table . "_trig";
 	my $keyfield = $dataset->get_key_field();
 	$logic ||= [];
 
 	my $Q_cache_table = $self->quote_identifier( $cache_table );
-	my $Q_trigger = $self->quote_identifier( $cache_trigger );
-	my $NEXTVAL = $self->quote_identifier($cache_seq).".nextval";
 	my $Q_keyname = $self->quote_identifier($keyfield->get_name());
-	my $B = $self->quote_identifier("B");
 	my $O = $self->quote_identifier("O");
 	my $Q_srctable = $self->quote_identifier($srctable);
-	my $Q_pos = $self->quote_identifier( "pos" );
+	my $Q_pos = $self->quote_identifier("pos");
 
-	$self->create_sequence( $cache_seq );
-
-	my $sql = <<EOT;
-CREATE OR REPLACE TRIGGER $Q_trigger
-  BEFORE INSERT ON $Q_cache_table
-  FOR EACH ROW
-BEGIN
-  SELECT $NEXTVAL INTO :new.$Q_pos FROM dual;
-END;
-EOT
-	$self->do($sql);
-
-	$sql = "INSERT INTO $Q_cache_table ($Q_keyname) SELECT $B.$Q_keyname FROM $Q_srctable $B";
+	my $sql;
+	$sql .= "SELECT $Q_srctable.$Q_keyname FROM $Q_srctable";
 	if( defined $order )
 	{
 		$sql .= " LEFT JOIN ".$self->quote_identifier($dataset->get_ordervalues_table_name($self->{session}->get_langid()))." $O";
-		$sql .= " ON $B.$Q_keyname = $O.$Q_keyname";
+		$sql .= " ON $Q_srctable.$Q_keyname=$O.$Q_keyname";
 	}
 	if( scalar @$logic )
 	{
@@ -2149,59 +2199,26 @@ EOT
 			$first = 0;
 		}
 	}
-	$self->do( $sql );
 
-	$self->drop_sequence( $cache_seq );
-
-	$self->do("DROP TRIGGER $Q_trigger");
+	return $self->_cache_from_SELECT( $cachemap, $dataset, $sql );
 }
 
-sub begin_cache_table
+sub _cache_from_SELECT
 {
-	my( $self, $cachemap, $keyfield ) = @_;
+	my( $self, $cachemap, $dataset, $select_sql ) = @_;
 
 	my $cache_table  = $cachemap->get_sql_table_name;
-	my $cache_seq = $cache_table . "_seq";
-	my $cache_trigger = $cache_table . "_trig";
-
-	$self->_create_table( $cache_table, ["pos"], [
-			$self->get_column_type( "pos", SQL_INTEGER, SQL_NOT_NULL ),
-			$keyfield->get_sql_type( $self->{session} ),
-			]);
-
-	$self->create_sequence( $cache_seq );
-
-	my $Q_cache_table = $self->quote_identifier( $cache_table );
-	my $Q_trigger = $self->quote_identifier( $cache_trigger );
 	my $Q_pos = $self->quote_identifier( "pos" );
-	my $NEXTVAL = $self->quote_identifier($cache_seq).".nextval";
+	my $key_field = $dataset->get_key_field();
+	my $Q_keyname = $self->quote_identifier($key_field->get_sql_name);
 
-	my $sql = <<EOT;
-CREATE OR REPLACE TRIGGER $Q_trigger
-  BEFORE INSERT ON $Q_cache_table
-  FOR EACH ROW
-BEGIN
-  SELECT $NEXTVAL INTO :new.$Q_pos FROM dual;
-END;
-EOT
-	$self->do($sql);
+	my $sql = "";
+	$sql .= "INSERT INTO ".$self->quote_identifier( $cache_table );
+	$sql .= "($Q_pos, $Q_keyname)";
+	$sql .= " SELECT ROWNUM, $Q_keyname";
+	$sql .= " FROM ($select_sql) ".$self->quote_identifier( "S" );
 
-	return $cache_table;
-}
-
-sub finish_cache_table
-{
-	my( $self, $cachemap, $keyfield ) = @_;
-
-	my $cache_table  = $cachemap->get_sql_table_name;
-	my $cache_seq = $cache_table . "_seq";
-	my $cache_trigger = $cache_table . "_trig";
-
-	$self->drop_sequence( $cache_seq );
-
-	$self->do("DROP TRIGGER ".$self->quote_identifier( $cache_trigger ));
-
-	return $cache_table;
+	$self->do( $sql );
 }
 
 ######################################################################
@@ -2573,7 +2590,15 @@ sub get_dataobjs
 
 	# we build a list of OR statements to retrieve records
 	my $Q_key_name = $self->quote_identifier( $key_name );
-	my $logic = join(' OR ',map { "$Q_key_name=".$self->quote_value($_) } @ids);
+	my $logic = "";
+	if( $key_field->isa( "EPrints::MetaField::Int" ) )
+	{
+		$logic = join(' OR ',map { "$Q_key_name=".$self->quote_int($_) } @ids);
+	}
+	else
+	{
+		$logic = join(' OR ',map { "$Q_key_name=".$self->quote_value($_) } @ids);
+	}
 
 	# we need to map the returned rows back to the input order
 	my $i = 0;
@@ -3547,11 +3572,7 @@ sub _add_field_ordervalues_lang
 
 	my $order_table = $dataset->get_ordervalues_table_name( $langid );
 
-	my $sql_field = EPrints::MetaField->new(
-		repository => $self->{ session }->get_repository,
-		name => $field->get_sql_name(),
-		type => "longtext",
-		allow_null => 1 );
+	my $sql_field = $field->create_ordervalues_field( $self->{session}, $langid );
 
 	my( $col ) = $sql_field->get_sql_type( $self->{session} );
 
@@ -4353,7 +4374,7 @@ sub prepare_regexp
 {
 	my( $self, $col, $value ) = @_;
 
-	return "REGEXP($col,$value)";
+	return "$col REGEXP $value";
 }
 
 1; # For use/require success

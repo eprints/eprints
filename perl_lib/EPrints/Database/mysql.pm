@@ -97,6 +97,43 @@ sub mysql_version_from_dbh
 	return $1*10000+$2*100+$3;
 }
 
+sub create
+{
+	my( $self, $username, $password ) = @_;
+
+	my $repo = $self->{session}->get_repository;
+
+	my $dbh = DBI->connect( EPrints::Database::build_connection_string( 
+			dbdriver => "mysql",
+			dbhost => $repo->get_conf("dbhost"),
+			dbsock => $repo->get_conf("dbsock"),
+			dbport => $repo->get_conf("dbport"),
+			dbname => "mysql", ),
+	        $username,
+	        $password,
+			{ AutoCommit => 1 } );
+
+	return undef if !defined $dbh;
+
+	my $dbuser = $repo->get_conf( "dbuser" );
+	my $dbpass = $repo->get_conf( "dbpass" );
+	my $dbname = $repo->get_conf( "dbname" );
+
+	my $rc = 1;
+	
+	$rc &&= $dbh->do( "CREATE DATABASE IF NOT EXISTS ".$self->quote_identifier( $dbname )." DEFAULT CHARACTER SET ".$self->quote_value( $self->get_default_charset ) );
+
+	$rc &&= $dbh->do( "GRANT ALL PRIVILEGES ON ".$self->quote_identifier( $dbname ).".* TO ".$self->quote_identifier( $dbuser )." IDENTIFIED BY ".$self->quote_value( $dbpass ) );
+
+	$dbh->disconnect;
+
+	$self->connect();
+
+	return 0 if !defined $self->{dbh};
+
+	return $rc;
+}
+
 ######################################################################
 =pod
 
@@ -322,47 +359,23 @@ sub counter_reset
 	$self->do( $sql );
 }
 
-sub _cache_from_TABLE
+sub _cache_from_SELECT
 {
-	my( $self, $cachemap, $dataset, $srctable, $order, $logic ) = @_;
-
-	my $sql;
+	my( $self, $cachemap, $dataset, $select_sql ) = @_;
 
 	my $cache_table  = $cachemap->get_sql_table_name;
-	my $keyfield = $dataset->get_key_field();
-	my $Q_keyname = $self->quote_identifier($keyfield->get_name);
-	$logic ||= [];
+	my $Q_pos = $self->quote_identifier( "pos" );
+	my $key_field = $dataset->get_key_field();
+	my $Q_keyname = $self->quote_identifier($key_field->get_sql_name);
 
-	$sql = "ALTER TABLE $cache_table MODIFY `pos` INT NOT NULL AUTO_INCREMENT";
-	$self->do($sql);
+	$self->do("SET \@i=0");
 
-	$sql = "INSERT INTO $cache_table ($Q_keyname) SELECT B.$Q_keyname FROM $srctable B";
-	if( defined $order )
-	{
-		$sql .= " LEFT JOIN ".$self->quote_identifier($dataset->get_ordervalues_table_name($self->{session}->get_langid()))." O";
-		$sql .= " ON B.$Q_keyname = O.$Q_keyname";
-	}
-	if( scalar @$logic )
-	{
-		$sql .= " WHERE ".join(" AND ", @$logic);
-	}
-	if( defined $order )
-	{
-		$sql .= " ORDER BY ";
-		my $first = 1;
-		foreach( split( "/", $order ) )
-		{
-			$sql .= ", " if( !$first );
-			my $desc = 0;
-			if( s/^-// ) { $desc = 1; }
-			my $field = EPrints::Utils::field_from_config_string(
-					$dataset,
-					$_ );
-			$sql .= "O.".$self->quote_identifier($field->get_sql_name());
-			$sql .= " DESC" if $desc;
-			$first = 0;
-		}
-	}
+	my $sql = "";
+	$sql .= "INSERT INTO ".$self->quote_identifier( $cache_table );
+	$sql .= "($Q_pos, $Q_keyname)";
+	$sql .= " SELECT \@i:=\@i+1, $Q_keyname";
+	$sql .= " FROM ($select_sql) ".$self->quote_identifier( "S" );
+
 	$self->do( $sql );
 }
 
@@ -457,11 +470,7 @@ sub _rename_field_ordervalues_lang
 
 	my $order_table = $dataset->get_ordervalues_table_name( $langid );
 
-	my $sql_field = EPrints::MetaField->new(
-		repository => $self->{ session }->get_repository,
-		name => $field->get_sql_name(),
-		type => "longtext",
-		allow_null => 1 );
+	my $sql_field = $field->create_ordervalues_field( $self->{session}, $langid );
 
 	my( $col ) = $sql_field->get_sql_type( $self->{session} );
 
@@ -472,33 +481,6 @@ sub _rename_field_ordervalues_lang
 		);
 
 	return $self->do( $sql );
-}
-
-sub begin_cache_table
-{
-	my( $self, $cachemap, $keyfield ) = @_;
-
-	my $cache_table  = $cachemap->get_sql_table_name;
-	my $cache_seq = $cache_table . "_seq";
-	my $cache_trigger = $cache_table . "_trig";
-
-	$self->_create_table( $cache_table, ["pos"], [
-			$self->get_column_type( "pos", SQL_INTEGER, SQL_NOT_NULL ),
-			$keyfield->get_sql_type( $self->{session} ),
-			]);
-
-	$self->do("ALTER TABLE ".$self->quote_identifier( $cache_table )." MODIFY ".$self->quote_identifier( "pos" )." INT AUTO_INCREMENT");
-
-	return $cache_table;
-}
-
-sub finish_cache_table
-{
-	my( $self, $cachemap, $keyfield ) = @_;
-
-	my $cache_table  = $cachemap->get_sql_table_name;
-
-	return $cache_table;
 }
 
 sub prepare_regexp

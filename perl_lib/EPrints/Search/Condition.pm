@@ -511,12 +511,11 @@ sub process
 	if( defined $cachemap )
 	{
 		my $key_field = $dataset->get_key_field;
+		my $cache_table = $cachemap->get_sql_table_name;
 
-		my $cache_table = $db->begin_cache_table( $cachemap, $key_field );
-		$sql = "INSERT INTO ".$db->quote_identifier($cache_table)." (".$db->quote_identifier( $key_field->get_sql_name ).") ".$sql;
 #print STDERR "EXECUTING: $sql\n";
-		$db->do($sql);
-		$db->finish_cache_table( $cachemap );
+		$db->_cache_from_SELECT( $cachemap, $dataset, $sql );
+
 		$sql = "SELECT ".$db->quote_identifier( $key_field->get_sql_name )." FROM ".$db->quote_identifier($cache_table)." ORDER BY ".$db->quote_identifier("pos");
 	}
 
