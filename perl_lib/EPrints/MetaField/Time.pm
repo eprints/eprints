@@ -363,6 +363,11 @@ sub ordervalue_basic
 {
 	my( $self , $value ) = @_;
 
+	return undef if !defined $value;
+
+	# we need the ordervalue to be consistent even if we understand both forms
+	$value =~ s/(\d{4}-\d\d-\d\d)T(\d\d:\d\d:\d\d)Z/$1 $2/;
+
 	return $value;
 }
 
