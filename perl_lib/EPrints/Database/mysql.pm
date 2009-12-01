@@ -121,9 +121,9 @@ sub create
 
 	my $rc = 1;
 	
-	$rc &&= $dbh->do( "CREATE DATABASE IF NOT EXISTS ".$self->quote_identifier( $dbname )." DEFAULT CHARACTER SET ".$self->quote_value( $self->get_default_charset ) );
+	$rc &&= $dbh->do( "CREATE DATABASE IF NOT EXISTS ".$dbh->quote_identifier( $dbname )." DEFAULT CHARACTER SET ".$dbh->quote( $self->get_default_charset ) );
 
-	$rc &&= $dbh->do( "GRANT ALL PRIVILEGES ON ".$self->quote_identifier( $dbname ).".* TO ".$self->quote_identifier( $dbuser )." IDENTIFIED BY ".$self->quote_value( $dbpass ) );
+	$rc &&= $dbh->do( "GRANT ALL PRIVILEGES ON ".$dbh->quote_identifier( $dbname ).".* TO ".$dbh->quote_identifier( $dbuser )." IDENTIFIED BY ".$dbh->quote( $dbpass ) );
 
 	$dbh->disconnect;
 
