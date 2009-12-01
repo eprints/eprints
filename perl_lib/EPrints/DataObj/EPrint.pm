@@ -2489,14 +2489,16 @@ sub obtain_lock
 		return 1;
 	}
 
-	if( $self->is_locked() )
+	if( !$self->is_locked() )
 	{
-		return 0 if $self->get_value( "edit_lock_user" ) != $user->get_id;
-	}
-	else
-	{
+		# not currently locked, so lock.
 		$self->set_value( "edit_lock_since", time );
 		$self->set_value( "edit_lock_user", $user->get_id );
+	}
+	elsif( $self->get_value( "edit_lock_user" ) != $user->get_id )
+	{
+		# is locked, and not by $user, so fail to obtain lock.
+		return 0 
 	}
 	
 	my $timeout = $self->{session}->get_repository->get_conf( "locking", "eprint", "timeout" );
