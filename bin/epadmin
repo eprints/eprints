@@ -426,6 +426,9 @@ used when the first is full.
 
 END
 	print "\n";
+
+	EPrints::Config::init(); # rescan repositories
+
 	my $config_core = EPrints::Utils::get_input( $REGEXP_YESNO, "Configure vital settings?", "yes" );
 	if( $config_core eq "yes" )
 	{
