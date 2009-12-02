@@ -52,9 +52,13 @@ sub logic
 
 	my $db = $opts{session}->get_database;
 	my $table = $prefix . $self->table;
-	my $sql_name = $self->{field}->get_sql_name;
 
-	return $db->quote_identifier( $table, $sql_name )." is Null";
+	my @sql_and = ();
+	foreach my $col_name ( $self->{field}->get_sql_names )
+	{
+		push @sql_and, $db->quote_identifier( $table, $col_name )." is Null";
+	}
+	return "( ".join( " AND ", @sql_and ).")";
 }
 
 1;
