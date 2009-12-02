@@ -1190,6 +1190,9 @@ Titles and Help for the System Fields
     <epp:phrase id="document_fieldname_relation_uri">Target identifier</epp:phrase>
     <epp:phrase id="document_fieldname_relation_type">Relation type</epp:phrase>
     <epp:phrase id="document_fieldname_permission_group">Permission Group</epp:phrase>
+    <!-- these phrases are to stop warnings in 30_search tests -->
+    <epp:phrase id="document_relation_typename_NOMATCH">NOMATCH</epp:phrase>
+    <epp:phrase id="document_relation_typename_article">article</epp:phrase>
 
 
     <epp:phrase id="document_fieldname_main">Main file</epp:phrase>
