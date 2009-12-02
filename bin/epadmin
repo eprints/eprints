@@ -181,6 +181,10 @@ with a return code of 0.
 
 Run a performance profile of I<test> using L<Devel::NYTProf>.
 
+=item B<epadmin> update_database_structure I<repository_id>
+
+This will add tables and columns to your SQL database to bring it in-line with your current configuration. It will not remove data. Use with caution on a live database. Database backup is recommended befire use on live systems.
+
 =item B<epadmin> upgrade I<repository_id>
 
 After upgrading EPrints, use this to update the database tables. It will advise any other tasks that are required.
