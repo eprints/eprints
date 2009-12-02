@@ -1164,6 +1164,13 @@ sub unescape_filename
 {
 	my( $fileid ) = @_;
 
+	if( !utf8::is_utf8( $fileid ) )
+	{
+		# should be ASCII, but we're turning into something
+		# with unicode chars in.
+		utf8::upgrade( $fileid ) ;
+	}
+
 	$fileid =~ s/_/ /g;
 	$fileid =~ s/==(....)/chr(hex($1))/eg;
 	$fileid =~ s/=(..)/chr(hex($1))/eg;
