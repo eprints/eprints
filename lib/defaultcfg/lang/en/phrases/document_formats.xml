@@ -33,5 +33,6 @@
     <epp:phrase id="document_typename_audio/ogg">Audio (OGG)</epp:phrase>
     <epp:phrase id="document_typename_audio/flac">Audio (FLAC)</epp:phrase>
     <epp:phrase id="document_typename_audio/x-ms-wma">Audio (WMA)</epp:phrase>
+    <epp:phrase id="document_typename_thumbnail_preview">Preview</epp:phrase>
 
 </epp:phrases>
