@@ -722,15 +722,6 @@ sub get_data
 {
 	my( $self ) = @_;
 
-	# update compound fields
-
-	foreach my $field ( $self->{dataset}->get_fields )
-	{
-		next unless $field->is_type( "compound", "multilang" );
-		my $name = $field->get_name;
-		$self->{data}->{$name} = $self->get_value( $name );
-	}
-	
 	return $self->{data};
 }
 
@@ -1228,7 +1219,7 @@ sub to_xml
 		{
 			$r->appendChild( $field->to_xml( 
 				$self->{session}, 
-				$self->get_value( $field->get_name() ),
+				$field->get_value( $self ),
 				$self->{dataset},
 				%opts ) );
 		}
