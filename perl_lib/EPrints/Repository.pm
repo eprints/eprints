@@ -5582,6 +5582,11 @@ sub init_from_request
 	# connect to the database
 	$self->{database} = EPrints::Database->new( $self );
 
+	if( !defined $self->{database} )
+	{
+		EPrints->abort( "Error connecting to database: ".$DBI::errstr );
+	}
+
 	# add live HTTP path configuration
 	$self->_add_live_http_paths;
 
