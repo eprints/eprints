@@ -554,9 +554,8 @@ sub get_defaults
 
 	$class->SUPER::get_defaults( $session, $data, $dataset );
 
-	my $dir = _create_directory( $session, $data->{eprintid} );
+	$data->{dir} = $session->get_store_dir . "/" . eprintid_to_path( $data->{eprintid} );
 
-	$data->{dir} = $dir;
 	$data->{status_changed} = $data->{lastmod};
 	if( $data->{eprint_status} eq "archive" )
 	{
@@ -566,127 +565,23 @@ sub get_defaults
 	return $data;
 }
 
-
-######################################################################
-# 
-# $directory =  EPrints::DataObj::EPrint::_create_directory( $session, $eprintid )
-#
-#  Create a directory on the local filesystem for the new document
-#  with the given ID. undef is returned if it couldn't be created
-#  for some reason.
-#
-#  If "df" is available then check for diskspace and mail a warning 
-#  to the admin if the threshold is passed.
-#
-######################################################################
-
-sub _create_directory
+sub store_path
 {
-	my( $session, $eprintid ) = @_;
-	
-	# Get available directories
-	my @dirs = sort $session->get_repository->get_store_dirs;
-	my $storedir;
+	my( $self ) = @_;
 
-	if( $EPrints::SystemSettings::conf->{disable_df} )
-	{
-		# df not available, use the LAST available directory, 
-		# sorting alphabetically.
-
-		$storedir = pop @dirs;
-	}
-	else
-	{
-		# Check amount of space free on each device. We'll use the 
-		# first one we find (alphabetically) that has enough space on 
-		# it.
-		my $warnsize = $session->get_repository->get_conf(
-						"diskspace_warn_threshold");
-		my $errorsize = $session->get_repository->get_conf(
-						"diskspace_error_threshold");
-
-		my $best_free_space = 0;
-		my $dir;	
-		foreach $dir (reverse sort @dirs)
-		{
-			my $free_space = $session->get_repository->
-						get_store_dir_size( $dir );
-			if( $free_space > $best_free_space )
-			{
-				$best_free_space = $free_space;
-			}
-	
-			unless( defined $storedir )
-			{
-				if( $free_space >= $errorsize )
-				{
-					# Enough space on this drive.
-					$storedir = $dir;
-				}
-			}
-		}
-
-		# Check that we do have a place for the new directory
-		if( !defined $storedir )
-		{
-			# Argh! Running low on disk space overall.
-			$session->get_repository->log(<<END);
-*** URGENT ERROR
-*** Out of disk space.
-*** All available drives have under $errorsize kilobytes remaining.
-*** No new eprints may be added until this is rectified.
-END
-			$session->mail_administrator(
-				"lib/eprint:diskout_sub" ,
-				"lib/eprint:diskout" );
-			return( undef );
-		}
-
-		# Warn the administrator if we're low on space
-		if( $best_free_space < $warnsize )
-		{
-			$session->get_repository->log(<<END);
-Running low on diskspace.
-All available drives have under $warnsize kilobytes remaining.
-END
-			$session->mail_administrator(
-				"lib/eprint:disklow_sub" ,
-				"lib/eprint:disklow" );
-		}
-	}
-
-	# Work out the directory path. It's worked out using the ID of the 
-	# EPrint.
-	my $idpath = eprintid_to_path( $eprintid );
-
-	if( !defined $idpath )
-	{
-		$session->get_repository->log(<<END);
-Failed to turn eprintid: "$eprintid" into a path.
-END
-		return( undef ) ;
-	}
-
-	my $docdir = $storedir."/".$idpath;
-
-	# Full path including doc store root
-	my $full_path = $session->get_repository->get_conf("documents_path").
-				"/".$docdir;
-	
-	if (!EPrints::Platform::mkdir( $full_path ))
-	{
-		$session->get_repository->log(<<END);
-Failed to create directory $full_path: $@
-END
-		return( undef );
-	}
-	else
-	{
-		# Return the path relative to the document store root
-		return( $docdir );
-	}
+	return eprintid_to_path( $self->id );
 }
 
+sub eprintid_to_path
+{
+	my( $id ) = @_;
+
+	my $path = sprintf("%08d", $id);
+	$path =~ s#(..)#/$1#g;
+	substr($path,0,1) = '';
+
+	return $path;
+}
 
 ######################################################################
 =pod
@@ -1587,7 +1482,7 @@ sub _htmlpath
 
 	return $self->{session}->get_repository->get_conf( "htdocs_path" ).
 		"/".$langid."/archive/".
-		eprintid_to_path( $self->get_value( "eprintid" ) );
+		$self->store_path;
 }
 
 
@@ -1811,37 +1706,6 @@ sub get_user
 		$self->get_value( "userid" ) );
 
 	return $self->{user};
-}
-
-
-######################################################################
-=pod
-
-=item $path = EPrints::DataObj::EPrint::eprintid_to_path( $eprintid )
-
-Return this eprints id converted into directories. Thousands of 
-files in one directory cause problems. For example, the eprint with the 
-id 50344 would have the path 00/05/03/44.
-
-=cut
-######################################################################
-
-sub eprintid_to_path
-{
-	my( $eprintid ) = @_;
-
-	return unless( $eprintid =~ m/^\d+$/ );
-
-	my( $a, $b, $c, $d );
-	$d = $eprintid % 100;
-	$eprintid = int( $eprintid / 100 );
-	$c = $eprintid % 100;
-	$eprintid = int( $eprintid / 100 );
-	$b = $eprintid % 100;
-	$eprintid = int( $eprintid / 100 );
-	$a = $eprintid % 100;
-	
-	return sprintf( "%02d/%02d/%02d/%02d", $a, $b, $c, $d );
 }
 
 

@@ -1566,10 +1566,11 @@ sub get_store_dirs
 
 	my $docroot = $self->config( "documents_path" );
 
-	opendir( DOCSTORE, $docroot ) || return undef;
+	opendir( DOCSTORE, $docroot )
+		or EPrints->abort( "Error opening document directory $docroot: $!" );
 
 	my( @dirs, $dir );
-	while( $dir = readdir( DOCSTORE ) )
+	foreach my $dir (sort readdir( DOCSTORE ))
 	{
 		next if( $dir =~ m/^\./ );
 		next unless( -d $docroot."/".$dir );
@@ -1579,6 +1580,66 @@ sub get_store_dirs
 	closedir( DOCSTORE );
 
 	return @dirs;
+}
+
+sub get_store_dir
+{
+	my( $self ) = @_;
+
+	my @dirs = $self->get_store_dirs;
+
+	# df not available, just return last dir found
+	return $dirs[$#dirs] if $self->config( "disable_df" );
+
+	my $root = $self->config( "documents_path" );
+
+	my $warnsize = $self->config( "diskspace_warn_threshold" );
+	my $errorsize = $self->config( "diskspace_error_threshold" );
+
+	my $warn = 1;
+	my $error = 1;
+
+	my %space;
+	foreach my $dir (@dirs)
+	{
+		my $space = EPrints::Platform::free_space( "$root/$dir" );
+		$space{$dir} = $space;
+		if( $space > $errorsize )
+		{
+			$error = 0;
+		}
+		if( $space > $warnsize )
+		{
+			$warn = 0;
+		}
+	}
+
+	@dirs = sort { $space{$a} <=> $space{$b} } @dirs;
+
+	# Check that we do have a place for the new directory
+	if( $error )
+	{
+		# Argh! Running low on disk space overall.
+		$self->log(<<END);
+*** URGENT ERROR
+*** Out of disk space.
+*** All available drives have under $errorsize kilobytes remaining.
+*** No new eprints may be added until this is rectified.
+END
+		$self->mail_administrator( "lib/eprint:diskout_sub", "lib/eprint:diskout" );
+	}
+	# Warn the administrator if we're low on space
+	elsif( $warn )
+	{
+		$self->log(<<END);
+Running low on diskspace.
+All available drives have under $warnsize kilobytes remaining.
+END
+		$self->mail_administrator( "lib/eprint:disklow_sub", "lib/eprint:disklow" );
+	}
+
+	# return the store with the most space available
+	return $dirs[$#dirs];
 }
 
 ######################################################################
