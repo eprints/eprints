@@ -166,14 +166,12 @@ sub create_from_data
 	if( defined( $content ) )
 	{
 		$self->set_file( $content, $data->{filesize} );
-		$self->commit();
 	}
 	elsif( EPrints::Utils::is_set( $data->{data} ) )
 	{
 		use bytes;
 		my $data = MIME::Base64::decode( $data->{data} );
 		$self->set_file( \$data, length($data) );
-		$self->commit();
 	}
 	elsif( EPrints::Utils::is_set( $data->{url} ) )
 	{
@@ -184,7 +182,6 @@ sub create_from_data
 		{
 			seek( $tmpfile, 0, 0 );
 			$self->set_file( $tmpfile, -s $tmpfile );
-			$self->commit();
 		}
 		else
 		{
@@ -194,6 +191,8 @@ sub create_from_data
 			return;
 		}
 	}
+
+	$self->commit();
 
 	return $self;
 }
@@ -494,8 +493,6 @@ sub update_md5
 
 	$self->set_value( "hash", $md5 );
 	$self->set_value( "hash_type", "MD5" );
-
-	$self->commit();
 }
 
 =item $digest = $file->generate_sha( [ ALGORITHM ] )
@@ -536,8 +533,6 @@ sub update_sha
 
 	$self->set_value( "hash", $digest );
 	$self->set_value( "hash_type", "SHA-$alg" );
-
-	$self->commit();
 }
 
 sub to_xml
@@ -586,7 +581,6 @@ sub add_plugin_copy
 		sourceid => $sourceid,
 	};
 	$self->set_value( "copies", $copies );
-	$self->commit();
 }
 
 =item $stored->remove_plugin_copy( $plugin )
@@ -602,7 +596,6 @@ sub remove_plugin_copy
 	my $copies = EPrints::Utils::clone( $self->get_value( "copies" ) );
 	@$copies = grep { $_->{pluginid} ne $plugin->get_id } @$copies;
 	$self->set_value( "copies", $copies );
-	$self->commit();
 }
 
 =item $success = $stored->get_file( CALLBACK )
