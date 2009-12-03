@@ -293,6 +293,12 @@ sub create_from_data
 	my $eprint = $data->{_parent} ||= delete $data->{eprint};
 
 	my $files = delete $data->{files};
+	$files = [] if !defined $files;
+
+	if( !EPrints::Utils::is_set( $data->{main} ) && @$files > 0 )
+	{
+		$data->{main} = $files->[0]->{filename};
+	}
 
 	my $document = $class->SUPER::create_from_data( $session, $data, $dataset );
 
@@ -304,27 +310,20 @@ sub create_from_data
 
 	my $files_modified = 0;
 
-	foreach my $filedata ( @{$files||[]} )
+	foreach my $filedata ( @{$files} )
 	{
 		$filedata->{objectid} = $document->get_id;
 		$filedata->{datasetid} = $document->get_dataset_id;
 		$filedata->{_parent} = $document;
-		my $fileobj = EPrints::DataObj::File->create_from_data(
-				$session,
-				$filedata,
-				$fileds,
-			);
-		if( defined( $fileobj ) )
-		{
-			$files_modified = 1;
-			# Calculate and store the MD5 checksum
-			$fileobj->update_md5();
-		}
+		my $fileobj = $fileds->create_dataobj( $filedata );
+		next if !defined $fileobj;
+
+		$files_modified = 1;
 	}
 
 	if( $files_modified )
 	{
-		$document->files_modified;
+		$document->queue_files_modified;
 	}
 
 	$document->set_under_construction( 0 );
@@ -671,16 +670,13 @@ sub remove_file
 {
 	my( $self, $filename ) = @_;
 	
-	# If it's the main file, unset it
-	$self->set_value( "main" , undef ) if( $filename eq $self->get_main() );
-
 	my $fileobj = $self->get_stored_file( $filename );
 
 	if( defined( $fileobj ) )
 	{
 		$fileobj->remove();
 
-		$self->files_modified;
+		$self->queue_files_modified;
 	}
 	else
 	{
@@ -688,40 +684,6 @@ sub remove_file
 	}
 
 	return defined $fileobj;
-}
-
-
-######################################################################
-=pod
-
-=item $success = $doc->remove_all_files
-
-Attempt to remove all files associated with this document.
-
-=cut
-######################################################################
-
-sub remove_all_files
-{
-	my( $self ) = @_;
-
-	my $full_path = $self->local_path()."/*";
-
-	my @to_delete = glob ($full_path);
-
-	my $ok = EPrints::Utils::rmtree( \@to_delete );
-
-	$self->set_main( undef );
-
-	if( !$ok )
-	{
-		$self->{session}->get_repository->log( "Error removing document files for ".$self->get_value( "docid" ).", path ".$full_path.": $!" );
-		return( 0 );
-	}
-
-	$self->files_modified;
-
-	return( 1 );
 }
 
 
@@ -830,8 +792,6 @@ sub upload
 {
 	my( $self, $filehandle, $filename, $preserve_path, $filesize ) = @_;
 
-	my $rc = 1;
-
 	# Get the filename. File::Basename isn't flexible enough (setting 
 	# internal globals in reentrant code very dodgy.)
 
@@ -870,17 +830,23 @@ sub upload
 		return 0;
 	}
 
-	my $stored = $self->add_stored_file(
+	my $fileobj = $self->add_stored_file(
 		$filename,
 		$filehandle,
 		$filesize
 	);
 
-	$rc = defined($stored);
+	if( defined $fileobj )
+	{
+		if( !$self->is_set( "main" ) )
+		{
+			$self->set_value( "main", $fileobj->value( "filename" ) );
+			$self->commit();
+		}
+		$self->queue_files_modified;
+	}
 
-	$rc &&= $self->files_modified;
-	
-	return $rc;
+	return defined $fileobj;
 }
 
 ######################################################################
@@ -966,6 +932,8 @@ sub upload_archive
 		"$zipfile",
 		$archive_format );
 
+	$self->queue_files_modified;
+
 	return $rc;
 }
 
@@ -994,8 +962,6 @@ sub add_archive
 			ARC => $file );
 	
 	$self->add_directory( "$tmpdir" );
-
-	$self->files_modified;
 
 	return( $rc==0 );
 }
@@ -1125,7 +1091,7 @@ sub upload_url
 		# have a main file.
 	}
 	
-	$self->files_modified;
+	$self->queue_files_modified;
 
 	return( 1 );
 }
@@ -1287,6 +1253,17 @@ sub get_type
 	return $self->get_value( "format" );
 }
 
+sub queue_files_modified
+{
+	my( $self ) = @_;
+
+	EPrints::DataObj::EventQueue->create_from_data( $self->{session}, {
+			pluginid => "Event::FilesModified",
+			action => "files_modified",
+			params => [$self->internal_uri],
+		});
+}
+
 ######################################################################
 =pod
 
@@ -1302,8 +1279,6 @@ sub files_modified
 {
 	my( $self ) = @_;
 
-#	$self->rehash;
-
 	# remove the now invalid cache of words from this document
 	# (see also EPrints::MetaField::Fulltext::get_index_codes_basic)
 	my $indexcodes  = $self->get_related_objects(
@@ -1311,35 +1286,18 @@ sub files_modified
 		);
 	$_->remove for @$indexcodes;
 
-	$self->get_parent->queue_fulltext();
+	my $rc = $self->make_thumbnails;
 
-	# nb. The "main" part is not automatically calculated when
-	# the item is under contruction. This means bulk imports 
-	# will have to set the name themselves.
-	unless( $self->under_construction )
+	if( $self->{session}->can_call( "on_files_modified" ) )
 	{
-		my %files = $self->files;
-
-		# Pick a file to be the one that gets linked. There will 
-		# usually only be one, if there's more than one then this
-		# uses the first alphabetically.
-		if( !$self->get_value( "main" ) || !$files{$self->get_value( "main" )} )
-		{
-			my @filenames = sort keys %files;
-			if( scalar @filenames ) 
-			{
-				$self->set_value( "main", $filenames[0] );
-			}
-		}
+		$self->{session}->call( "on_files_modified", $self->{session}, $self );
 	}
 
-	$self->make_thumbnails;
-	if( $self->{session}->get_repository->can_call( "on_files_modified" ) )
-	{
-		$self->{session}->get_repository->call( "on_files_modified", $self->{session}, $self );
-	}
+	$self->commit;
 
-	$self->commit();
+	$self->get_parent->queue_fulltext;
+
+	return $rc;
 }
 
 ######################################################################
