@@ -351,6 +351,9 @@ if( $scripted )
 	print "EPRINTS_IMPORT: BEGIN\n";
 }
 
+# improve ordervalues insertion performance
+$session->cache_subjects;
+
 eval {
 $plugin->input_file(
 		dataset=>$ds,

@@ -55,6 +55,9 @@ my( $archiveid, $datasetid, $userid ) = @ARGV;
 my $session = new EPrints::Session( 1 , $archiveid, $noise );
 exit( 1 ) unless( defined $session );
 
+# cache subjects
+$session->cache_subjects;
+
 my $db = $session->get_database;
 
 $userid = 1 unless defined $userid;
