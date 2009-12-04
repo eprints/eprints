@@ -1721,7 +1721,7 @@ sub reorder
 	$dataset->search->map( sub {
 		my( $session, $dataset, $item ) = @_;
 	
-		EPrints::Index::update_ordervalues( $session, $dataset, $item->{data} );
+		EPrints::Index::update_ordervalues( $session, $dataset, $item->{data}, $item->{data} );
 
 		if( $noise >= 2 )
 		{

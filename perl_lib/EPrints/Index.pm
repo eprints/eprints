@@ -238,21 +238,19 @@ sub add
 ######################################################################
 =pod
 
-=item EPrints::Index::update_ordervalues( $session, $dataset, $data )
+=item EPrints::Index::update_ordervalues( $session, $dataset, $data, $changed )
 
 Update the order values for an object. $data is a structure
-returned by $dataobj->get_data
+returned by $dataobj->get_data. $changed is a hash of changed fields.
 
 =cut
 ######################################################################
 
-# $tmp should not be used any more.
-
 sub update_ordervalues
 {
-	my( $session, $dataset, $data, $tmp ) = @_;
+	my( $session, $dataset, $data, $changed ) = @_;
 
-	&_do_ordervalues( $session, $dataset, $data, 0, $tmp );	
+	&_do_ordervalues( $session, $dataset, $data, $changed, 0 );
 }
 
 ######################################################################
@@ -268,9 +266,9 @@ returned by $dataobj->get_data
 
 sub insert_ordervalues
 {
-	my( $session, $dataset, $data, $tmp ) = @_;
+	my( $session, $dataset, $data ) = @_;
 
-	&_do_ordervalues( $session, $dataset, $data, 1, $tmp );	
+	&_do_ordervalues( $session, $dataset, $data, $data, 1 );	
 }
 
 # internal method to avoid code duplication. Update and insert are
@@ -278,31 +276,33 @@ sub insert_ordervalues
 
 sub _do_ordervalues
 {
-        my( $session, $dataset, $data, $insert, $tmp ) = @_;
+    my( $session, $dataset, $data, $changed, $insert ) = @_;
+
+	# nothing to do
+	return 1 if !keys %$changed;
 
 	# insert is ignored
 	# insert = 0 => update
 	# insert = 1 => insert
-	# tmp = 1 = use_tmp_table
-	# tmp = 0 = use normal table
 
-	my( $keyfield, @fields ) = $dataset->get_fields( 1 );
+	my $keyfield = $dataset->get_key_field;
 	my $keyname = $keyfield->get_sql_name;
 	my $keyvalue = $data->{$keyfield->get_name()};
 
 	foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 	{
 		my $ovt = $dataset->get_ordervalues_table_name( $langid );
-		if( $tmp ) { $ovt .= "_tmp"; }
 
-		my @fnames = ( $keyname );
-		my @fvals = ( $keyvalue );
-		foreach my $field ( @fields )
+		my @fnames;
+		my @fvals;
+		foreach my $fieldname ( keys %$changed )
 		{
+			next if $fieldname eq $keyname;
+			my $field = $dataset->field( $fieldname );
 			next if $field->is_virtual;
 
 			my $ov = $field->ordervalue( 
-					$data->{$field->get_name()},
+					$data->{$fieldname},
 					$session,
 					$langid,
 					$dataset );
@@ -311,11 +311,20 @@ sub _do_ordervalues
 			push @fvals, $ov;
 		}
 
-		if( !$insert )
+		if( $insert )
 		{
-			$session->get_database->delete_from( $ovt, [$keyname], [$keyvalue] );
+			$session->get_database->insert( $ovt,
+				[$keyname, @fnames],
+				[$keyvalue, @fvals] );
 		}
-		$session->get_database->insert( $ovt, \@fnames, \@fvals );
+		else
+		{
+			$session->get_database->_update( $ovt,
+				[$keyname],
+				[$keyvalue],
+				\@fnames,
+				\@fvals );
+		}
 	}
 }
 

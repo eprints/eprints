@@ -1331,7 +1331,7 @@ sub add_record
 	}
 
 	# Now add the ACTUAL data:
-	my $rv = $self->update( $dataset , $data, 1 );
+	my $rv = $self->update( $dataset, $data, $data, 1 );
 	
 	# Return with an error if unsuccessful
 	return( defined $rv );
@@ -1471,7 +1471,7 @@ sub quote_identifier
 ######################################################################
 =pod
 
-=item $success = $db->update( $dataset, $data, $insert )
+=item $success = $db->update( $dataset, $data, $changed, $insert )
 
 Updates a record in the database with the given $data. Obviously the
 value of the primary key must be set.
@@ -1483,54 +1483,47 @@ This also updates the text indexes and the ordering keys.
 
 sub update
 {
-	my( $self, $dataset, $data, $insert ) = @_;
+	my( $self, $dataset, $data, $changed, $insert ) = @_;
 
 	my $rv = 1;
-	my @fields = $dataset->get_fields( 1 );
 
 	my $keyfield = $dataset->get_key_field();
 	my $keyname = $keyfield->get_sql_name();
 	my $keyvalue = $data->{$keyname};
 
+	my @aux;
+
 	my @names;
 	my @values;
-
-	my @aux;
-	my $field;
-	foreach $field ( @fields ) 
+	foreach my $fieldname ( keys %$changed )
 	{
-		next if( $field->is_virtual );
-
-		if( $field->is_type( "secret" ) &&
-			!EPrints::Utils::is_set( $data->{$field->get_name()} ) )
-		{
-			# No way to blank a secret field, as a null value
-			# is totally skipped when updating.
-			next;
-		}
+		next if $fieldname eq $keyname;
+		my $field = $dataset->field( $fieldname );
+		next if $field->is_virtual;
+		# don't blank secret fields
+		next if $field->isa( "EPrints::MetaField::Secret" ) && !EPrints::Utils::is_set( $data->{$fieldname} );
 
 		if( $field->get_property( "multiple" ) )
-		{ 
-			push @aux,$field;
+		{
+			push @aux, $field;
 			next;
 		}
-	
-		my $value = $data->{$field->get_name()};
-		# clearout the freetext search index table for this field.
+
+		my $value = $data->{$fieldname};
 
 		push @names, $field->get_sql_names;
 		push @values, $field->sql_row_from_value( $self->{session}, $value );
 	}
-	
+
 	if( $insert )
 	{
-		$self->insert(
+		$rv &&= $self->insert(
 			$dataset->get_sql_table_name,
-			\@names,
-			\@values,
+			[$keyname, @names],
+			[$keyvalue, @values],
 		);
 	}
-	else
+	elsif( scalar @values )
 	{
 		$rv &&= $self->_update(
 			$dataset->get_sql_table_name,
@@ -1550,29 +1543,25 @@ sub update
 			$rv &&= $self->delete_from( $auxtable, [$keyname], [$keyvalue] );
 		}
 
-		# skip to next table if there are no values at all for this
-		# one.
-		if( !EPrints::Utils::is_set( $data->{$multifield->get_name()} ) )
+		my $values = $data->{$multifield->get_name()};
+
+		# skip if there are no values at all
+		if( !EPrints::Utils::is_set( $values ) )
 		{
 			next;
 		}
 
-		my $fieldvalue = $data->{$multifield->get_name()};
-
-		my @names = ($keyname, "pos");
-		push @names, $multifield->get_sql_names;
-
+		my @names = ($keyname, "pos", $multifield->get_sql_names);
 		my @rows;
 
 		my $position=0;
-		foreach my $value (@$fieldvalue)
+		foreach my $value (@$values)
 		{
-			my @values = (
+			push @rows, [
 				$keyvalue,
 				$position++,
 				$multifield->sql_row_from_value( $self->{session}, $value )
-			);
-			push @rows, \@values;
+			];
 		}
 
 		$rv &&= $self->insert( $auxtable, \@names, @rows );
@@ -1584,11 +1573,10 @@ sub update
 	}
 	else
 	{
-		EPrints::Index::update_ordervalues( $self->{session}, $dataset, $data );
+		EPrints::Index::update_ordervalues( $self->{session}, $dataset, $data, $changed );
 	}
 
-	# Return with an error if unsuccessful
-	return( defined $rv );
+	return $rv;
 }
 
 

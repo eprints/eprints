@@ -310,7 +310,8 @@ sub create_from_data
 		# Write the data to the database
 		$session->get_database->update(
 			$new_user->{dataset},
-			$new_user->{data} );
+			$new_user->{data},
+			$new_user->{changed} );
 	}
 
 	$session->get_database->counter_minimum( "userid", $new_user->get_id );

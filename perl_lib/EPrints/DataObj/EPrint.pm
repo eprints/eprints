@@ -437,7 +437,8 @@ sub create_from_data
 
 	$session->get_database->update(
 		$dataset,
-		$new_eprint->{data} );
+		$new_eprint->{data},
+		$new_eprint->{changed} );
 
 	$new_eprint->queue_changes;
 
