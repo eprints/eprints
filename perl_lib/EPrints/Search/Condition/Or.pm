@@ -27,6 +27,7 @@ Union of results of several sub conditions
 package EPrints::Search::Condition::Or;
 
 use EPrints::Search::Condition::Control;
+use Scalar::Util qw( refaddr );
 
 @ISA = qw( EPrints::Search::Condition::Control );
 
@@ -71,8 +72,8 @@ sub optimise_specific
 	{
 		my $inner_dataset = $sub_op->dataset;
 		my $table = $sub_op->table;
-		# either don't need a LEFT JOIN (e.g. TRUE) or is on the main table
-		if( !defined $inner_dataset || $table eq $dataset->get_sql_table_name )
+		# doesn't need a sub-query
+		if( !defined $inner_dataset )
 		{
 			push @$keep_ops, $sub_op;
 		}
@@ -101,24 +102,30 @@ sub joins
 	my $db = $opts{session}->get_database;
 	my $dataset = $opts{dataset};
 
-	my %joins;
+	my $alias = "or_".refaddr( $self );
+	my $key_name = $dataset->get_key_field->get_sql_name;
+
+	my @unions;
 	foreach my $sub_op ( @{$self->{sub_ops}} )
 	{
-		foreach my $join ( $sub_op->joins( %opts ) )
-		{
-			$join->{type} = "left";
-			$joins{$join->{alias}} = $join;
-		}
+		push @unions, $sub_op->sql( %opts, key_alias => $key_name );
 	}
 
-	return values %joins;
+	my $sql = "(".join(' UNION ', @unions).")";
+
+	return {
+		type => "inner",
+		subquery => $sql,
+		alias => $alias,
+		key => $key_name,
+	};
 }
 
 sub logic
 {
 	my( $self, %opts ) = @_;
 
-	return "(" . join(" OR ", map { $_->logic( %opts ) } @{$self->{sub_ops}}) . ")";
+	return ();
 }
 
 1;

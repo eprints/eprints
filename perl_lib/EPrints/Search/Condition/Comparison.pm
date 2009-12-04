@@ -133,28 +133,23 @@ sub joins
 		my $main_table = $self->dataset->get_sql_table_name;
 		my $main_key = $self->dataset->get_key_field->get_sql_name;
 		# join to main table of child dataset
-		if( !$self->{field}->get_property( "multiple" ) )
-		{
-			return {
-				type => "inner",
-				table => $main_table,
-				alias => "$prefix$main_table",
-				key => $right_key,
-			};
-		}
-		else
+		my $join = {
+			type => "inner",
+			table => $main_table,
+			alias => "$prefix$main_table",
+			key => $right_key,
+		};
+		if( $self->{field}->get_property( "multiple" ) )
 		{
 			my $table = $self->table;
-			my $sql = "";
-			$sql .= $db->quote_identifier( $main_table ) . " " . $db->quote_identifier( "$prefix$main_table" );
-			$sql .= " INNER JOIN ". $db->quote_identifier( $table ) . " " . $db->quote_identifier( "$prefix$table" );
-			$sql .= " ON ".$db->quote_identifier( "$prefix$main_table", $main_key )."=".$db->quote_identifier( "$prefix$table", $main_key );
-			return {
+			return ($join, {
 				type => "inner",
-				subquery => $sql,
-				key => $right_key
-			};
+				table => $table,
+				alias => "${prefix}$table",
+				logic => $db->quote_identifier( $join->{alias}, $main_key )."=".$db->quote_identifier( "${prefix}$table", $main_key ),
+			});
 		}
+		return $join;
 	}
 }
 

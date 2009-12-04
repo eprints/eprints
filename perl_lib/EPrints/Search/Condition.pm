@@ -412,20 +412,20 @@ sub sql
 		}
 		# FROM ... , dataset_main_table {ALIAS} LEFT JOIN (subquery|table) {alias} ON dataset_main_table.key_field={alias}.join_key
 		# WHERE dataset_main_table.key_field={ALIAS}.key_field
-		elsif( $join->{type} eq "left" )
-		{
-			my $main_alias = $i++ . "_" . $dataset->get_sql_table_name;
-			my $sql = "";
-			$sql .= $db->quote_identifier( $dataset->get_sql_table_name );
-			$sql .= " " . $db->quote_identifier( $main_alias );
-			$sql .= " LEFT JOIN ";
-			$sql .= defined $join->{subquery} ? $join->{subquery} : $db->quote_identifier( $join->{table} );
-			$sql .= " " . $db->quote_identifier( $join->{alias} );
-			$sql .= " ON " . $db->quote_identifier( $main_alias, $key_field->get_sql_name )."=".$db->quote_identifier( $join->{alias}, $join->{key} );
-			push @tables, $sql;
-			push @logic,
-				$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name )."=".$db->quote_identifier( $main_alias, $key_field->get_sql_name );
-		}
+#		elsif( $join->{type} eq "left" )
+#		{
+#			my $main_alias = $i++ . "_" . $dataset->get_sql_table_name;
+#			my $sql = "";
+#			$sql .= $db->quote_identifier( $dataset->get_sql_table_name );
+#			$sql .= " " . $db->quote_identifier( $main_alias );
+#			$sql .= " LEFT JOIN ";
+#			$sql .= defined $join->{subquery} ? $join->{subquery} : $db->quote_identifier( $join->{table} );
+#			$sql .= " " . $db->quote_identifier( $join->{alias} );
+#			$sql .= " ON " . $db->quote_identifier( $main_alias, $key_field->get_sql_name )."=".$db->quote_identifier( $join->{alias}, $join->{key} );
+#			push @tables, $sql;
+#			push @logic,
+#				$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name )."=".$db->quote_identifier( $main_alias, $key_field->get_sql_name );
+#		}
 		else
 		{
 			EPrints::abort( "Unknown join type '$join->{type}' in table join construction" );
