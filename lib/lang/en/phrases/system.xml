@@ -2205,4 +2205,7 @@ Each file inside this archive will be created as an <b>individual</b> document i
 <epp:phrase id="user_fieldname_captcha">Captcha Challenge</epp:phrase>
 <epp:phrase id="user_fieldhelp_captcha">To prevent robots from filling in this form you must verify this captcha.</epp:phrase>
 
+<!-- Cachemap -->
+<epp:phrase id="cachemap_fieldname_created">Creation Time</epp:phrase>
+
 </epp:phrases>

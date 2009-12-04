@@ -35,6 +35,15 @@ use EPrints;
 
 use strict;
 
+sub create_from_data
+{
+	my( $class, $session, $data, $dataset ) = @_;
+
+	$class->cleanup( $session );
+
+	return $class->SUPER::create_from_data( $session, $data, $dataset );
+}
+
 =item $thing = EPrints::DataObj::Access->get_system_field_info
 
 Core fields.
@@ -108,6 +117,59 @@ sub get_defaults
 	return $data;
 }
 
+=item $dropped = EPrints::DataObj::Cachemap->cleanup( $repository )
+
+Clean up old caches. Returns the number of caches dropped.
+
+=cut
+
+sub cleanup
+{
+	my( $class, $repo ) = @_;
+
+	my $dropped = 0;
+
+	my $dataset = $repo->dataset( $class->get_dataset_id );
+	my $cache_maxlife = $repo->config( "cache_maxlife" );
+	my $cache_max = $repo->config( "cache_max" );
+
+	my $expired_time = time() - $cache_maxlife * 3600;
+
+	# cleanup expired cachemaps
+	my $list = $dataset->search(
+		filters => [
+			{ meta_fields => [qw( created )], value => "-$expired_time" },
+		] );
+	$list->map( sub {
+		my( undef, undef, $cachemap ) = @_;
+
+		$dropped++ if $cachemap->remove();
+	} );
+
+	# enforce a limit on the maximum number of cachemaps to allow
+	if( defined $cache_max && $cache_max > 0)
+	{
+		my $count = $repo->database->count_table( $dataset->get_sql_table_name );
+		if( $count >= $cache_max )
+		{
+			my $list = $dataset->search(
+				custom_order => "created", # oldest first
+				limit => ($count - ($cache_max-1))
+			);
+			$list->map( sub {
+				my( undef, undef, $cachemap ) = @_;
+
+				if( $count-- >= $cache_max ) # LIMIT might fail!
+				{
+					$dropped++ if $cachemap->remove();
+				}
+			} );
+		}
+	}
+
+	return $dropped;
+}
+
 ######################################################################
 
 =head2 Object Methods
@@ -134,9 +196,10 @@ sub remove
 		$self->{dataset},
 		$self->get_id );
 
-	my $table = $database->cache_table( $self->get_id );
+	my $table = $self->get_sql_table_name;
 
-	$rc &&= $database->drop_table( $table );
+	# cachemap table might not exist
+	$database->drop_table( $table );
 
 	return $rc;
 }
@@ -146,6 +209,28 @@ sub get_sql_table_name
 	my( $self ) = @_;
 
 	return "cache" . $self->get_id;
+}
+
+=item $ok = $cachemap->create_sql_table( $dataset )
+
+Create the cachemap database table that can store ids from $dataset.
+
+=cut
+
+sub create_sql_table
+{
+	my( $self, $dataset ) = @_;
+
+	my $cache_table = $self->get_sql_table_name;
+	my $key_field = $dataset->get_key_field;
+	my $database = $self->{session}->get_database;
+
+	my $rc = $database->_create_table( $cache_table, ["pos"], [
+			$database->get_column_type( "pos", EPrints::Database::SQL_INTEGER, EPrints::Database::SQL_NOT_NULL ),
+			$key_field->get_sql_type( $self->{session} ),
+			]);
+
+	return $rc;
 }
 
 1;

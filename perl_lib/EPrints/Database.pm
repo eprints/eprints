@@ -2096,14 +2096,7 @@ sub cache
 		searchexp => $code,
 		oneshot => "TRUE",
 	});
-	
-	my $cache_table  = $cachemap->get_sql_table_name;
-	my $keyfield = $dataset->get_key_field();
-
-	$self->_create_table( $cache_table, ["pos"], [
-			$self->get_column_type( "pos", SQL_INTEGER, SQL_NOT_NULL ),
-			$keyfield->get_sql_type( $self->{session} ),
-			]);
+	$cachemap->create_sql_table( $dataset );
 
 	if( $srctable eq "NONE" )
 	{
@@ -2417,47 +2410,9 @@ sub from_cache
 		$cache->commit();
 	}
 
-	$self->drop_old_caches();
-
 	return \@results;
 }
 
-
-######################################################################
-=pod
-
-=item $db->drop_old_caches
-
-Drop all the expired caches.
-
-=cut
-######################################################################
-
-sub drop_old_caches
-{
-	my( $self ) = @_;
-
-	my $a = $self->{session}->get_repository;
-	my $ds = $a->get_dataset( "cachemap" );
-
-	my $Q_table = $self->quote_identifier($ds->get_sql_table_name);
-	my $Q_cachemapid = $self->quote_identifier("cachemapid");
-	my $Q_lastused = $self->quote_identifier("lastused");
-	my $Q_created = $self->quote_identifier("created");
-	my $Q_oneshot = $self->quote_identifier("oneshot");
-
-	my $sql = "SELECT $Q_cachemapid FROM $Q_table WHERE";
-	$sql.= " ($Q_lastused < ".(time() - ($a->get_conf("cache_timeout") + 5) * 60)." AND $Q_oneshot = 'FALSE')";
-	$sql.= " OR $Q_created < ".(time() - $a->get_conf("cache_maxlife") * 3600);
-	my $sth = $self->prepare( $sql );
-	$self->execute( $sth , $sql );
-	my $id;
-	while( $id  = $sth->fetchrow_array() )
-	{
-		$self->drop_cache( $id );
-	}
-	$sth->finish;
-}
 
 ######################################################################
 =pod
@@ -4069,7 +4024,7 @@ sub drop_table
 	local $self->{dbh}->{RaiseError} = 0;
 
 	my $sql = "DROP TABLE ".$self->quote_identifier($tablename);
-	return $self->{dbh}->do( $sql );
+	return defined $self->{dbh}->do( $sql );
 }
 
 ######################################################################
