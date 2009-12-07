@@ -1399,7 +1399,7 @@ sub drop_and_recreate_db
 {
 	my( $repoid ) = @_;
 
-	my $repo = &repository( $repoid, db_connect( 0 ) );
+	my $repo = &repository( $repoid, db_connect => 0 );
 	my $database = $repo->get_conf( "dbname" );
 	
 	if( $noise>=1 ) { print "Connecting to mysql...\n"; }
@@ -1787,7 +1787,7 @@ sub upgrade
 {
 	my( $repoid ) = @_;
 
-	my $repo = &repository( check_db => 0 );
+	my $repo = &repository( $repoid, check_db => 0 );
 	
 	my $db = $repo->database();
 	
@@ -1810,6 +1810,7 @@ sub upgrade
 	{
 		if( $db->get_version() eq $versions[$i] )
 		{
+			no strict 'refs';
 			my $f = "upgrade_".$versions[$i]."_to_".$versions[$i+1];
 			$f =~ s/\./_/g;
 			&$f( $repo, $db );
