@@ -39,7 +39,18 @@ sub create_from_data
 {
 	my( $class, $session, $data, $dataset ) = @_;
 
-	$class->cleanup( $session );
+	# if we're online delay clean-up until Apache cleanup, which will prevent
+	# the request blocking
+	if( $session->get_online )
+	{
+		$session->get_request->pool->cleanup_register(sub {
+				__PACKAGE__->cleanup( $session )
+			}, $session );
+	}
+	else
+	{
+		$class->cleanup( $session );
+	}
 
 	return $class->SUPER::create_from_data( $session, $data, $dataset );
 }
