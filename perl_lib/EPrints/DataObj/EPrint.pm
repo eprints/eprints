@@ -415,10 +415,10 @@ sub create_from_data
 	}
 	$new_eprint->set_value( "fileinfo", join( "|", @finfo ) );
 
-	$self->{session}->get_database->update(
-		$self->{dataset},
-		$self->{data},
-		$self->{changed} );
+	$session->get_database->update(
+		$new_eprint->{dataset},
+		$new_eprint->{data},
+		$new_eprint->{changed} );
 
 	$new_eprint->clear_changed;
 
