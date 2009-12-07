@@ -104,13 +104,14 @@ our %ORACLE_TYPES = (
 		CREATE_PARAMS => undef,
 		TYPE_NAME => "NUMBER(*,0)",
 	},
+	# NUMBER becomes FLOAT if not p,s is given
 	SQL_REAL() => {
 		CREATE_PARAMS => undef,
-		TYPE_NAME => "BINARY_FLOAT",
+		TYPE_NAME => "NUMBER",
 	},
 	SQL_DOUBLE() => {
 		CREATE_PARAMS => undef,
-		TYPE_NAME => "BINARY_DOUBLE",
+		TYPE_NAME => "NUMBER",
 	},
 	SQL_DATE() => {
 		CREATE_PARAMS => undef,
