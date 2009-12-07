@@ -292,7 +292,7 @@ sub create_from_data
 	my $eprintid = $data->{eprintid}; 
 	my $eprint = $data->{_parent} ||= delete $data->{eprint};
 
-	my $files = delete $data->{files};
+	my $files = $data->{files};
 	$files = [] if !defined $files;
 
 	if( !EPrints::Utils::is_set( $data->{main} ) && @$files > 0 )
@@ -302,31 +302,12 @@ sub create_from_data
 
 	my $document = $class->SUPER::create_from_data( $session, $data, $dataset );
 
-	return unless defined $document;
+	return undef unless defined $document;
 
-	$document->set_under_construction( 1 );
-
-	my $fileds = $session->get_repository->get_dataset( "file" );
-
-	my $files_modified = 0;
-
-	foreach my $filedata ( @{$files} )
-	{
-		$filedata->{objectid} = $document->get_id;
-		$filedata->{datasetid} = $document->get_dataset_id;
-		$filedata->{_parent} = $document;
-		my $fileobj = $fileds->create_dataobj( $filedata );
-		next if !defined $fileobj;
-
-		$files_modified = 1;
-	}
-
-	if( $files_modified )
+	if( scalar @$files )
 	{
 		$document->queue_files_modified;
 	}
-
-	$document->set_under_construction( 0 );
 
 	return $document;
 }

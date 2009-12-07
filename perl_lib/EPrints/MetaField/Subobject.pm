@@ -116,6 +116,10 @@ sub get_value
 {
 	my( $self, $parent ) = @_;
 
+	# sub-object caching
+	my $value = $self->SUPER::get_value( $parent );
+	return $value if defined $value;
+
 	my $ds = $parent->get_session->get_repository->get_dataset( $self->get_property( "datasetid" ) );
 
 	my( $keyfield ) = $ds->get_fields;

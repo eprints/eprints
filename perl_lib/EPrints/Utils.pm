@@ -1250,11 +1250,20 @@ sub chown_for_eprints
 {
 	my( $file ) = @_;
 
-	my $group = $EPrints::SystemSettings::conf->{group};
-	my $username = $EPrints::SystemSettings::conf->{user};
+	my $uid = $EPrints::SystemSettings::conf->{group_uid};
+	my $gid = $EPrints::SystemSettings::conf->{group_gid};
 
-	my(undef,undef,$uid,undef) = EPrints::Platform::getpwnam( $username );
-	my $gid = EPrints::Platform::getgrnam( $group );
+	if( !defined $uid || !defined $gid )
+	{
+		my $group = $EPrints::SystemSettings::conf->{group};
+		my $username = $EPrints::SystemSettings::conf->{user};
+
+		(undef,undef,$uid,undef) = EPrints::Platform::getpwnam( $username );
+		$gid = EPrints::Platform::getgrnam( $group );
+
+		$EPrints::SystemSettings::conf->{group_uid} = $uid;
+		$EPrints::SystemSettings::conf->{group_gid} = $gid;
+	}
 
 	EPrints::Platform::chown( $uid, $gid, $file );
 }

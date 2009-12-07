@@ -1173,10 +1173,10 @@ sub set_dataobj_xml
 	my $xml = $dataobj->to_xml;
 
 	my $data = "<?xml version='1.0' encoding='utf-8' ?>\n";
-	$data .= EPrints::XML::to_string( $xml );
+	$data .= $self->{session}->xml->to_string( $xml, indent => 1 );
 	# $data will be bytes due to "use bytes" above
 
-	EPrints::XML::dispose( $xml );
+	$self->{session}->xml->dispose( $xml );
 
 	$self->add_stored_file( "dataobj.xml", \$data, length($data) );
 }

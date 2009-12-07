@@ -401,46 +401,31 @@ sub create_from_data
 {
 	my( $class, $session, $data, $dataset ) = @_;
 
-	my $documents = delete $data->{documents};
-
 	my $new_eprint = $class->SUPER::create_from_data( $session, $data, $dataset );
 	
 	return undef unless defined $new_eprint;
 
 	$session->get_database->counter_minimum( "eprintid", $new_eprint->get_id );
 	
-	$new_eprint->set_under_construction( 1 );
-
-	return unless defined $new_eprint;
-
-	if( defined $documents )
+	my $docs = $new_eprint->get_value( "documents" );
+	my @finfo = ();
+	foreach my $doc ( @$docs )
 	{
-		my @docs;
-		my $docds = $session->get_repository->get_dataset( "document" );
-		foreach my $docdata ( @{$documents} )
-		{
-			$docdata->{eprintid} = $new_eprint->get_id;
-			$docdata->{_parent} = $new_eprint;
-			push @docs, EPrints::DataObj::Document->create_from_data( $session,$docdata,$docds );
-		}
-		my @finfo = ();
-		foreach my $doc ( @docs )
-		{
-			push @finfo, $doc->icon_url.";".$doc->get_url;
-		}
-		$new_eprint->set_value( "fileinfo", join( "|", @finfo ) );
+		push @finfo, $doc->icon_url.";".$doc->get_url;
 	}
+	$new_eprint->set_value( "fileinfo", join( "|", @finfo ) );
 
-	$new_eprint->set_under_construction( 0 );
+	$self->{session}->get_database->update(
+		$self->{dataset},
+		$self->{data},
+		$self->{changed} );
+
+	$new_eprint->clear_changed;
 
 	$new_eprint->update_triggers();
 
-	$session->get_database->update(
-		$dataset,
-		$new_eprint->{data},
-		$new_eprint->{changed} );
-
-	$new_eprint->queue_changes;
+	# we only need to update the DB and queue changes (if necessary)
+	$new_eprint->SUPER::commit();
 
 	my $user = $session->current_user;
 	my $userid = undef;
@@ -460,9 +445,6 @@ sub create_from_data
 		}
 	);
 	$event->set_dataobj_xml( $new_eprint );
-
-	# No longer needed - generates on demand.
-	# $new_eprint->generate_static;
 
 	return $new_eprint;
 }
@@ -1099,8 +1081,6 @@ eprint.
 sub get_all_documents
 {
 	my( $self ) = @_;
-
-	return @{$self->{_documents}} if defined $self->{_documents};
 
 	my @docs;
 

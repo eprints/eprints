@@ -222,8 +222,21 @@ sub create_from_data
 		"enable_import_datestamps"
 		);
 
+	my %subobjects;
+
 	foreach my $field ( $dataset->get_fields )
 	{
+		my $fieldname = $field->name;
+		next if !defined $data->{$fieldname};
+
+		# strip sub-objects and create them once we exist
+		if( $field->isa( "EPrints::MetaField::Subobject" ) )
+		{
+			$subobjects{$fieldname} = delete $data->{$fieldname};
+			next;
+		}
+
+		# strip non-importable values from $data
 		next if $field->get_property( "import" );
 
 		# This is a bit of a hack. The import script may set 
@@ -234,11 +247,11 @@ sub create_from_data
 		{
 			if( $dataset->confid eq "eprint" )
 			{
-				next if( $field->get_name eq "eprintid" );
+				next if( $fieldname eq "eprintid" );
 			}
 			if( $dataset->id eq "user" )
 			{
-				next if( $field->get_name eq "userid" );
+				next if( $fieldname eq "userid" );
 			}
 		}
 
@@ -246,13 +259,12 @@ sub create_from_data
 		{
 			if( $dataset->confid eq "eprint" )
 			{
-				next if( $field->get_name eq "datestamp" );
+				next if( $fieldname eq "datestamp" );
 			}
 		}
 
-		delete $data->{$field->get_name};
+		delete $data->{$fieldname};
 	}
-
 
 	foreach my $k ( keys %{$defaults} )
 	{
@@ -266,6 +278,29 @@ sub create_from_data
 	my $rc = $session->get_database->add_record( $dataset, $dataobj->get_data );
 	return undef unless $rc;
 
+	$dataobj->set_under_construction( 1 );
+
+	foreach my $fieldname (keys %subobjects)
+	{
+		if( ref($subobjects{$fieldname}) eq 'ARRAY' )
+		{
+			my @subobjects;
+			foreach my $epdata (@{$subobjects{$fieldname}})
+			{
+				my $subobj = $dataobj->create_subdataobj( $fieldname, $epdata );
+				push @subobjects, $subobj if defined $subobj;
+			}
+			$dataobj->set_value( $fieldname, \@subobjects );
+		}
+		else
+		{
+			my $subobj = $dataobj->create_subdataobj( $fieldname, $subobjects{$fieldname} );
+			$dataobj->set_value( $fieldname, $subobj );
+		}
+	}
+
+	$dataobj->set_under_construction( 0 );
+
 	# queue all the fields for indexing.
 	$dataobj->queue_all;
 
@@ -275,6 +310,10 @@ sub create_from_data
 =item $dataobj = $dataobj->create_subdataobj( $fieldname, $epdata )
 
 Creates and returns a new dataobj that is a sub-object of this object in field $fieldname with initial data $epdata.
+
+Clears the sub-object cache for this $fieldname which is equivalent to:
+
+	$dataobj->set_value( $fieldname, undef );
 
 =cut
 
@@ -291,6 +330,9 @@ sub create_subdataobj
 	{
 		EPrints::abort( "Cannot create sub-object on non-subobject field $fieldname" );
 	}
+
+	# sub-objects cache is now out of date
+	delete $self->{data}->{$fieldname};
 
 	my $dataset = $self->repository->dataset( $field->property( "datasetid" ) );
 
@@ -463,7 +505,7 @@ sub commit
 	my $success = $self->{session}->get_database->update(
 		$self->{dataset},
 		$self->{data},
-		$self->{changed} );
+		$force ? $self->{data} : $self->{changed} );
 
 	if( !$success )
 	{
@@ -1379,7 +1421,7 @@ sub queue_all
 
 	return unless $self->{dataset}->indexable;
 
-	EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
+	EPrints::DataObj::EventQueue->create_from_data( $self->{session}, {
 			pluginid => "Event::Indexer",
 			action => "index_all",
 			params => [$self->internal_uri],
