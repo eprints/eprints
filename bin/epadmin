@@ -2432,6 +2432,7 @@ An unexpected error occurred while attempting to convert tables to UTF-8.
 EOW
 	}
 
+	print STDERR "Converting database tables to UTF-8\n";
 	# convert all textual columns
 	foreach( $repo->get_sql_dataset_ids() )
 	{
@@ -2476,7 +2477,9 @@ EOW
 				join(", ", map { "MODIFY $_" } @{$specs->{binary}});
 			my $sql = "ALTER TABLE $Q_table ".
 				join(", ", map { "MODIFY $_" } @{$specs->{char}});
+			print STDERR "Converting $Q_table columns to BINARY\n";
 			$rc &&= $db->do($binary_sql);
+			print STDERR "Converting $Q_table columns to UTF-8\n";
 			$rc &&= $db->do($sql);
 		}
 	}
