@@ -259,4 +259,20 @@ sub clone_node
 	return EPrints::XML::clone_and_own( $node, $self->{doc}, 0 );
 }
 
+sub to_string
+{
+	if( !$_[0]->isa( "EPrints::XML" ) )
+	{
+		return &_to_string;
+	}
+
+	my( $self, $node, %opts ) = @_;
+
+	# XML:GDOME::Node doesn't support indenting
+	my $string = $node->toString();
+	utf8::decode($string) unless utf8::is_utf8($string);
+
+	return $string;
+}
+
 1;
