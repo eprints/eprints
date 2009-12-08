@@ -27,14 +27,14 @@ sub encode
 		while(1) {
 		last if pos($_) == length($_);
 
-		/\G($TeX::Encode::charmap::BIBTEX_RESERVED_RE)/ and ($tex .= $TeX::Encode::charmap::BIBTEX_RESERVED{$1}, next);
+		/\G($TeX::Encode::charmap::BIBTEX_RESERVED_RE)/gc and ($tex .= $TeX::Encode::charmap::BIBTEX_RESERVED{$1}, next);
 
 		# BibTeX requires extra braces around any LaTeX mark-up
 		# (we assume anything we substitute with will be BibTeX-safe)
-		/\G($TeX::Encode::charmap::CHAR_MAP_RE)/ and ($tex .= '{'.$TeX::Encode::charmap::CHAR_MAP{$1}.'}', next);
+		/\G($TeX::Encode::charmap::CHAR_MAP_RE)/gc and ($tex .= '{'.$TeX::Encode::charmap::CHAR_MAP{$1}.'}', next);
 
 		# basic unreserved characters
-		/\G([\sa-zA-Z0-9\.,:;'"\(\)=]+)/gc and ($tex .= $1, next);
+		/\G([\sa-zA-Z0-9\.,:;'"\(\)=\-]+)/gc and ($tex .= $1, next);
 
 		/\G(.)/gc and ($tex .= '?', next);
 

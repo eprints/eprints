@@ -8,6 +8,8 @@ See L<EPrints::Plugin::Import::BibTeX>
 
 package EPrints::Plugin::Export::BibTeX;
 
+use Encode;
+use TeX::Encode;
 use EPrints::Plugin::Export;
 
 @ISA = ( "EPrints::Plugin::Export" );
@@ -184,11 +186,20 @@ sub output_dataobj
 	my @list = ();
 	foreach my $k ( keys %{$data->{bibtex}} )
 	{
-		push @list, sprintf( "%16s = {%s}", $k, utf8_to_tex( $data->{bibtex}->{$k} ));
+		push @list, sprintf( "%16s = {%s}", $k, encode('bibtex', $data->{bibtex}->{$k} ));
 	}
 	foreach my $k ( keys %{$data->{additional}} )
 	{
-		push @list, sprintf( "%16s = {%s}", $k, remove_utf8( $data->{additional}->{$k} ));
+		my $value = $data->{additional}->{$k};
+		if( $k eq "url" )
+		{
+			$value = TeX::Encode::BibTeX->encode_url( $value );
+		}
+		else
+		{
+			$value = encode('bibtex', $value );
+		}
+		push @list, sprintf( "%16s = {%s}", $k, $value );
 	}
 
 	my $out = '@' . $data->{type} . "{" . $data->{key} . ",\n";

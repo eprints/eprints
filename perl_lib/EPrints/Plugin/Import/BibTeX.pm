@@ -214,6 +214,7 @@ L<Text::BibTeX>, <EPrints::Plugin::Export::BibTeX>
 
 package EPrints::Plugin::Import::BibTeX;
 
+use BibTeX::Parser;
 use Encode;
 use strict;
 
@@ -238,21 +239,6 @@ sub new
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint', 'dataobj/eprint' ];
 
-	my $rc = EPrints::Utils::require_if_exists("Text::BibTeX::Yapp") &&
-		EPrints::Utils::require_if_exists("Text::BibTeX::YappName");
-	unless( $rc ) 
-	{
-		$self->{visible} = "";
-		$self->{error} = "Failed to load required module Text::BibTeX::Yapp";
-	}
-
-	$self->{decode_tex} = 1;
-	$rc = EPrints::Utils::require_if_exists("TeX::Encode");
-	unless( $rc ) 
-	{
-		$self->{decode_tex} = 0;
-	}
-
 	return $self;
 }
 
@@ -262,23 +248,27 @@ sub input_text_fh
 	
 	my @ids;
 
-	my $parser = Text::BibTeX::Yapp->new;
+	my $fh = IO::Handle->new;
+	$fh->fdopen( fileno($opts{fh}), "r" )
+	 or die "Error opening input filehandle: $!";
 
-	my $bibs = $parser->parse_fh( $opts{fh} );
-	$bibs = Text::BibTeX::Yapp::expand_names( $bibs, %BIBTEX_NAMES );
+	my $parser = BibTeX::Parser->new( $fh );
 
-	foreach my $entry (@$bibs)
+	while(my $entry = $parser->next)
 	{
-		my( $type, $struct ) = @$entry;
-		next if( $type eq "STRING" );
+		if( !$entry->parse_ok )
+		{
+			$plugin->warning( "Error parsing: " . $entry->error );
+			next;
+		}
+
 		my $epdata = $plugin->convert_input( $entry );
-		next unless( defined $epdata );
+		next unless defined $epdata;
 
 		my $dataobj = $plugin->epdata_to_dataobj( $opts{dataset}, $epdata );
-		if( defined $dataobj )
-		{
-			push @ids, $dataobj->get_id;
-		}
+		next unless defined $dataobj;
+
+		push @ids, $dataobj->get_id;
 	}
 	
 	return EPrints::List->new( 
@@ -291,13 +281,22 @@ sub input_dataobj
 {
 	my( $plugin, $data ) = @_;
 
-	my $entry = Text::BibTeX::Entry->new;
-	$entry->parse_s( $data );
-	if( $entry->parse_ok )
+	my $fh = IO::String->new( $data );
+
+	my $parser = BibTeX::Parser->new( $fh );
+
+	if( my $entry = $parser->next )
 	{
+		if( !$entry->parse_ok )
+		{
+			$plugin->warning( "Error parsing: " . $entry->error );
+			next;
+		}
+
 		my $epdata = $plugin->convert_input( $entry );
 		return $plugin->epdata_to_dataobj( $plugin->{dataset}, $epdata );
 	}
+
 	return undef;
 }
 
@@ -312,179 +311,152 @@ sub decode_tex
 
 sub convert_input 
 {
-	my ( $plugin, $input_data ) = @_;
+	my ( $plugin, $entry ) = @_;
 	my $epdata = ();
 
-	my $name_parser = Text::BibTeX::YappName->new;
+	my $type = uc($entry->type);
 
-	my( $input_data_type, $content ) = @$input_data;
-	$input_data_type = lc($input_data_type);
+	return undef if $type eq "STRING";
 
 	# Entry Type
-	$epdata->{type} = "article" if $input_data_type eq "article";
-	$epdata->{type} = "book" if $input_data_type eq "book";
-	$epdata->{type} = "book" if $input_data_type eq "proceedings";
-	$epdata->{type} = "book_section" if $input_data_type eq "inbook";
-	$epdata->{type} = "book_section" if $input_data_type eq "incollection";
-	$epdata->{type} = "conference_item" if $input_data_type eq "inproceedings";
-	$epdata->{type} = "conference_item" if $input_data_type eq "conference";
-	$epdata->{type} = "other" if $input_data_type eq "misc";
-	if( $input_data_type eq "manual" )
+	$epdata->{type} = "article" if $type eq "ARTICLE";
+	$epdata->{type} = "book" if $type eq "BOOK";
+	$epdata->{type} = "book" if $type eq "PROCEEDINGS";
+	$epdata->{type} = "book_section" if $type eq "INBOOK";
+	$epdata->{type} = "book_section" if $type eq "INCOLLECTION";
+	$epdata->{type} = "conference_item" if $type eq "INPROCEEDINGS";
+	$epdata->{type} = "conference_item" if $type eq "CONFERENCE";
+	$epdata->{type} = "other" if $type eq "MISC";
+	if( $type eq "MANUAL" )
 	{
 		$epdata->{type} = "monograph";
 		$epdata->{monograph_type} = "manual";
 	}
-	if( $input_data_type eq "techreport" )
+	if( $type eq "TECHREPORT" )
 	{
 		$epdata->{type} = "monograph";
 		$epdata->{monograph_type} = "technical_report";
 	}
-	if( $input_data_type eq "mastersthesis" )
+	if( $type eq "MASTERSTHESIS" )
 	{
 		$epdata->{type} = "thesis";
 		$epdata->{thesis_type} = "masters";
 	}
-	if( $input_data_type eq "phdthesis" )
+	if( $type eq "PHDTHESIS" )
 	{
 		$epdata->{type} = "thesis";
 		$epdata->{thesis_type} = "phd";
 	}
-	if( $input_data_type eq "unpublished" )
+	if( $type eq "UNPUBLISHED" )
 	{
 		$epdata->{type} = "other";
 		$epdata->{ispublished} = "unpub";
 	}
 	if( !defined $epdata->{type} )
 	{
-		$plugin->warning( $plugin->phrase( "unsupported_cite_type", type => $input_data_type ) );
+		$plugin->warning( $plugin->phrase( "unsupported_cite_type", type => $plugin->{session}->make_text( $type ) ) );
 		return undef;
 	}
 
-	my( $identifier, $fields ) = @$content;
-
-	# Decode latex
-	while(my( $field, $value ) = each %$fields)
-	{
-		next if $field eq 'author' or $field eq 'editor';
-		if( $plugin->{decode_tex} and $field ne 'url' and $field ne 'uri' )
-		{
-			for(@$value)
-			{
-				$_ = $plugin->decode_tex( $_ );
-			}
-		}
-		$fields->{$field} = join ' ', map { "$_" } @$value;
-	}
-
 	# address
-	$epdata->{place_of_pub} = $fields->{"address"} if exists $fields->{"address"};
+	$epdata->{place_of_pub} = $entry->field( "address" );
 
-	# author/editor
-	foreach my $field (qw( author editor ))
+	$epdata->{creators} = [];
+	# author
+	foreach my $author ($entry->author)
 	{
-		next unless exists $fields->{$field} and length $fields->{$field}->[0];
-		my $names;
-		eval { $names = $name_parser->parse_string( $fields->{$field}->[0] ) };
-		if( $@ )
-		{
-			$plugin->warning("Error parsing $field names: ".$fields->{$field}->[0]);
-			next;
-		}
-		foreach my $name (@$names)
-		{
-			my $a_name;
-			$a_name->{given} = $name->first if $name->first;
-			$a_name->{family} = $name->von . " " if $name->von;
-			$a_name->{family} .= $name->last if $name->last;
-			$a_name->{lineage} = $name->jr if $name->jr;
-			if( $plugin->{decode_tex} )
-			{
-				for(values(%$a_name))
-				{
-					$_ = $plugin->decode_tex( $_ );
-				}
-			}
-			push @{$epdata->{$BIBTEX_MAPPING{$field}}}, {
-				name => $a_name,
-				id => $name->email,
-			};
-		}
+		push @{$epdata->{creators}}, { name => {
+			family => join(" ", (defined $author->von ? $author->von : ()), $author->last),
+			given => $author->first,
+			lineage => $author->jr,
+		}};
 	}
-	
+
+	$epdata->{editors} = [];
+	# editor
+	foreach my $editor ($entry->editor)
+	{
+#		push @{$epdata->{editors}}, { name => {
+#			family => join(" ", (defined $editor->von ? $editor->von : ()), $editor->last),
+#			given => $editor->first,
+#			lineage => $editor->jr,
+#		}};
+	}
+
 	# booktitle
-	if( $input_data_type eq "incollection" )
+	if( $type eq "INCOLLECTION" )
 	{
-		$epdata->{book_title} = $fields->{"booktitle"} if exists $fields->{"booktitle"};
+		$epdata->{book_title} = $entry->field( "booktitle" );
 	}
-	elsif( $input_data_type eq "inproceedings" )
+	elsif( $type eq "INPROCEEDINGS" )
 	{
-		$epdata->{event_title} = $fields->{"booktitle"} if exists $fields->{"booktitle"};
+		$epdata->{event_title} = $entry->field( "booktitle" );
 	}
 
 	# institution
-	if( $input_data_type eq "techreport" )
+	if( $type eq "TECHREPORT" )
 	{
-		$epdata->{institution} = $fields->{"institution"} if exists $fields->{"institution"};
+		$epdata->{institution} = $entry->field( "institution" );
 	}
 
 	# journal
-	$epdata->{publication} = $fields->{"journal"} if exists $fields->{"journal"};
+	$epdata->{publication} = $entry->field( "journal" );
 
 	# note	
-	$epdata->{note} = $fields->{"note"} if exists $fields->{"note"};
+	$epdata->{note} = $entry->field( "note" );
 
 	# number
-	if( $input_data_type eq "techreport" || $input_data_type eq "manual" )
+	if( $type eq "TECHREPORT" || $type eq "MANUAL" )
 	{
-		$epdata->{id_number} = $fields->{"number"} if exists $fields->{"number"};
+		$epdata->{id_number} = $entry->field( "number" );
 	}
 	else
 	{
-		$epdata->{number} = $fields->{"number"} if exists $fields->{"number"};
+		$epdata->{number} = $entry->field( "number" );
 	}
 
 	# organization
-	if( $input_data_type eq "manual" )
+	if( $type eq "MANUAL" )
 	{
-		$epdata->{institution} = $fields->{"organization"} if exists $fields->{"organization"};
+		$epdata->{institution} = $entry->field( "organization" );
 	}
 
 	# pages
-	if( exists $fields->{"pages"} )
+	if( defined $entry->field( "pages" ) )
 	{
-		$epdata->{pagerange} = $fields->{"pages"};
+		$epdata->{pagerange} = $entry->field( "pages" );
 		$epdata->{pagerange} =~ s/--/-/;
 	}
 
 	# publisher
-	$epdata->{publisher} = $fields->{"publisher"} if exists $fields->{"publisher"};
+	$epdata->{publisher} = $entry->field( "publisher" );
 
 	# school
-	if( $input_data_type eq "phdthesis" || $input_data_type eq "mastersthesis" )
+	if( $type eq "PHDTHESIS" || $type eq "MASTERSTHESIS" )
 	{
-		$epdata->{institution} = $fields->{"school"} if exists $fields->{"school"};
+		$epdata->{institution} = $entry->field( "school" );
 	}
 
 	# series
-	$epdata->{series} = $fields->{"series"} if exists $fields->{"series"};
+	$epdata->{series} = $entry->field( "series" );
 
 	# title
-	$epdata->{title} = $fields->{"title"} if exists $fields->{"title"};
+	$epdata->{title} = $entry->field( "title" );
 
 	# type
-	if( $input_data_type eq "techreport")
+	if( $type eq "TECHREPORT")
 	{
 		# TODO: regexps
 		#$epdata->{monograph_type} = $fields->{""} if exists $fields->{""};
 	}
 
 	# volume
-	$epdata->{volume} = $fields->{"volume"} if exists $fields->{"volume"};
+	$epdata->{volume} = $entry->field( "volume" );
 
 	# year
-	if( exists $fields->{"year"} )
+	if( defined $entry->field( "year" ) )
 	{
-		my $year = $fields->{"year"};
+		my $year = $entry->field( "year" );
 		if( $year =~ /^[0-9]{4}$/ )
 		{
 			$epdata->{date} = $year;
@@ -496,7 +468,7 @@ sub convert_input
 	}
 	
 	# month
-	if( exists $fields->{"month"} )
+	if( defined $entry->field( "month" ) )
 	{
 		my %months = (
 			jan => "01",
@@ -512,7 +484,7 @@ sub convert_input
 			nov => "11",
 			dec => "12",
 		);
-		my $month = substr( lc( $fields->{"month"} ), 0, 3 );
+		my $month = substr( lc( $entry->field( "month" ) ), 0, 3 );
 		if( defined $months{$month} )
 		{
 			$epdata->{date} .= "-" . $months{$month}; 
@@ -524,11 +496,41 @@ sub convert_input
 	}
 
 	# abstract
-	$epdata->{abstract} = $fields->{"abstract"} if exists $fields->{"abstract"};
+	$epdata->{abstract} = $entry->field( "abstract" );
 	# keywords
-	$epdata->{keywords} = $fields->{"keywords"} if exists $fields->{"keywords"};
+	$epdata->{keywords} = $entry->field( "keywords" );
 	# url
-	$epdata->{official_url} = $fields->{"url"} if exists $fields->{"url"};
+	$epdata->{official_url} = $entry->field( "url" );
+
+	_decode_bibtex( $epdata );
+
+	return $epdata;
+}
+
+sub _decode_bibtex
+{
+	my( $epdata ) = @_;
+
+	return undef if !defined $epdata;
+
+	if( ref($epdata) eq "HASH" )
+	{
+		for(values(%$epdata))
+		{
+			$_ = _decode_bibtex($_);
+		}
+	}
+	elsif( ref($epdata) eq "ARRAY" )
+	{
+		for(@$epdata)
+		{
+			$_ = _decode_bibtex($_);
+		}
+	}
+	else
+	{
+		$epdata = decode('bibtex', $epdata);
+	}
 
 	return $epdata;
 }

@@ -118,6 +118,8 @@ sub _decode
 	for($_[0])
 	{
 		/\G\%([^\n]+\n)?/gc and next; # comment
+# not sure about this:
+#		/\G\\ensuremath/gc and ($str .= _decode_mathmode(_decode_bracket($_)), next); # mathmode
 		/\G\$/gc and ($str .= _decode_mathmode($_), next); # mathmode
 		/\G($TeX::Encode::charmap::MACROS_RE)/gc and ($str .= $TeX::Encode::charmap::MACROS{$1}, next); # macro
 		/\G\\(.)/gc and ($str .= _decode_macro($1,$_), next); # unknown macro
@@ -254,13 +256,15 @@ sub _decode_brace
 		last if pos($_) == length($_) or $depth == 0;
 
 		/\G(\\.)/gc and ($str .= $1, next);
-		/\G\}/gc and (--$depth, next);
-		/\G\{/gc and (++$depth, next); 
+		/\G\}/gc and ($str .= '}', --$depth, next);
+		/\G\{/gc and ($str .= '{', ++$depth, next); 
 		/\G([^\\\{\}]+)/gc and ($str .= $1, next);
 
 		Carp::confess "Shouldn't happen";
 		}
 	}
+
+	chop($str); # remove trailing '}'
 
 	return decode(undef, $str);
 }

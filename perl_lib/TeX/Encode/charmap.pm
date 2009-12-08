@@ -46,6 +46,7 @@ use vars qw( %RESERVED %BIBTEX_RESERVED %CHARS %ACCENTED_CHARS %LATEX_MACROS %GR
 '<' => "\\ensuremath{<}",
 '>' => "\\ensuremath{>}",
 '|' => "\\ensuremath{|}",
+chr(0x2014) => "--", # emdash
 
 # non-accented
 chr(0x00a3) => "\\pounds", # £
@@ -695,6 +696,8 @@ chr(0x1e93) => "\\dz", # ẓ
 "\\char94" => '^',
 "\\char126" => '~',
 
+"--" => chr(0x2014), # --
+
 "\\acute{e}" => chr(0x00e9), # é
 "\\textunderscore" => chr(0x005f), # _
 "\\textbraceleft" => chr(0x007b), # {
@@ -840,7 +843,6 @@ chr(0x1e93) => "\\dz", # ẓ
 	chr(0x221a) => '\\sqrt', # square root
 	chr(0x223c) => '\\sim', # tilda/mathematical similar
 	chr(0x22c5) => '\\cdot', # dot
-	reverse(%MATH_CHARS),
 );
 
 # derived mappings
@@ -850,6 +852,10 @@ use vars qw( %CHAR_MAP $CHAR_MAP_RE );
 for(keys %MATH)
 {
 	$CHAR_MAP{$_} ||= '$' . $MATH{$_} . '$';
+}
+for(keys %MATH_CHARS)
+{
+	$CHAR_MAP{$MATH_CHARS{$_}} ||= '$' . $_ . '$';
 }
 
 $CHAR_MAP_RE = '[' . join('', map { quotemeta($_) } sort { length($b) <=> length($a) } keys %CHAR_MAP) . ']';
