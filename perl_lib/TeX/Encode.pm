@@ -2,244 +2,268 @@ package TeX::Encode;
 
 use 5.008;
 use strict;
-use warnings;
 
 #use AutoLoader qw(AUTOLOAD);
 
 use Encode::Encoding;
-use Pod::LaTeX;
-use HTML::Entities;
 use Carp;
+
+use TeX::Encode::charmap;
+use TeX::Encode::BibTeX;
 
 our @ISA = qw(Encode::Encoding);
 
-our $VERSION = '0.9';
+our $VERSION = '1.2';
 
-use constant ENCODE_CHRS => '<>&"';
+__PACKAGE__->Define(qw(LaTeX latex));
 
-__PACKAGE__->Define(qw(LaTeX BibTeX latex bibtex));
-
-use vars qw( %LATEX_Escapes %LATEX_Escapes_inv $LATEX_Escapes_inv_re %LATEX_Math_mode $LATEX_Math_mode_re $LATEX_Reserved );
-
-# Missing entities in HTML::Entities?
-@HTML::Entities::entity2char{qw(sol verbar)} = qw(\textfractionsolidus{} |);
-
-# Use the mapping from Pod::LaTeX, but we use HTML::Entities
-# to get the Unicode character
-while( my ($entity,$tex) = each %Pod::LaTeX::HTML_Escapes ) {
-	# HTML::Entities changed entity2char somewhere between 1.27 and 1.35: in 1.35
-	# there are semi-colons on all the keys in the $] > 5.007 group (#260)
-	# Regardless, using the public method is probably better karma
-	my $c = decode_entities( sprintf( "&%s;", $entity ));
-	
-	# 1.27 used UTF-8 in the source, which requires decoding
-	utf8::decode($c) if $HTML::Entities::VERSION < 1.35;
-	
-	$tex =~ s/\{\}$//; # Strip the trailing {}
-	$LATEX_Escapes{$c} = $tex;
-	if( $tex =~ s/^\$\\(.+)\$/$1/ ) {
-		$LATEX_Math_mode{$tex} = $c;
-#		warn "MM: ", quotemeta($tex), " => ", $c, "\n";
-	} elsif( $tex =~ s/^\\// ) {
-		$LATEX_Escapes_inv{$tex} = $c;
-#		warn quotemeta($tex), " => ", $c, "\n";
-	}
-}
-
-### Additional Supported Characters ###
-
+sub _bad_cp
 {
-	# Greek letters
-	my $i = 0;
-	for(qw( alpha beta gamma delta epsilon zeta eta theta iota kappa lamda mu nu xi omicron pi rho final_sigma sigma tau upsilon phi chi psi omega )) {
-		$LATEX_Escapes{$LATEX_Escapes_inv{$_} = chr(0x3b1+$i)} = "\\$_";
-		$LATEX_Escapes{$LATEX_Escapes_inv{"\u$_"} = chr(0x391+$i)} = "\\\u$_";
-		$i++;
-	}
-	# Spelling mistake in LaTeX/charmap?
-	$LATEX_Escapes{
-		$LATEX_Escapes_inv{'lambda'} = $LATEX_Escapes_inv{'lamda'}
-	} = "\\lambda";	
-	$LATEX_Escapes{
-		$LATEX_Escapes_inv{'Lambda'} = $LATEX_Escapes_inv{'Lamda'}
-	} = "\\Lambda";
-	# Special Characters from
-	# http://www.cs.wm.edu/~mliskov/texsymbols.pdf
-	my %euro = (
-		chr(0x2020) => 'dag', # Dagger
-		chr(0x2021) => 'ddag', # Double-dagger
-		chr(0xa7) => 'S', # Section mark
-		chr(0xb6) => 'P', # Paragraph
-		chr(0xdf) => 'ss', # German sharp S
-		chr(0x152) => 'OE', # French ligature OE
-		chr(0x153) => 'oe', # French ligature oe
-		chr(0x141) => 'L', # Polish suppressed-l
-		chr(0x142) => 'l', # Polish suppressed-L
-		chr(0xd8) => 'O', # Scandinavian O-with-slash
-		chr(0xf8) => 'o', # Scandinavian o-with-slash
-		chr(0xc5) => 'AA', # Scandinavian A-with-circle
-		chr(0xe5) => 'aa', # Scandinavian a-with-circle
-		chr(0x131) => 'i', # dotless i
-		chr(0x237) => 'j', # dotless j
-	);
-	while(my($c,$tex) = each %euro)
-	{
-		$LATEX_Escapes{$LATEX_Escapes_inv{$tex} = $c} = "\\$tex";
-	}
+	return sprintf("Unsupported character code point 0x%04x\n", ord($_[0]));
 }
-# Build a single regexp for LaTeX macros
-$LATEX_Escapes_inv_re =
-	join '|',
-	map { quotemeta($_) }
-	sort { length($b) <=> length($a) }
-	keys %LATEX_Escapes_inv;
 
-# Math-mode sequences
-%LATEX_Math_mode = (
-	%LATEX_Math_mode,
-	'AA' => chr(0xc5), # &aring; Angstrom
-	'sin' => 'sin', # sin (should be romanised), other trigonometric functions???
-	'to' => chr(0x2192), # -->
-	'leftarrow' => chr(0x2190), # <--
-	'rightarrow' => chr(0x2192), # -->
-	'approx' => chr(0x2248), # &asymp; Approximately equal to
-	'lesssim' => chr(0x2272), # May not exist!
-	'gtrsim' => chr(0x2273), # May not exist!
-	'simeq' => chr(0x2243),
-	'leq' => chr(0x2264),
-	'pm' => chr(0xb1), # &plusmn; Plus-minus
-	'times' => chr(0xd7), # &times; Times
-	'odot' => chr(0x2299), # odot
-	'int' => chr(0x222b), # integral
-	# Sets, http://www.unicode.org/charts/PDF/Unicode-4.1/U41-2100.pdf
-	'N' => chr(0x2115),
-	'R' => chr(0x211d),
-	'Z' => chr(0x2124),
-);
-# Build a single regexp for math mode macros
-$LATEX_Math_mode_re =
-	join '|',
-	map { quotemeta($_) }
-	sort { length($b) <=> length($a) }
-	keys %LATEX_Math_mode;
-# TODO
-# e.g. \acute{e} => \'e
-# Math-mode accents: hat, acute, bar, dot, breve, check, grave, vec, ddot, tilde
-
-# Based on http://www.aps.org/meet/abstracts/latex.cfm
-$LATEX_Reserved = quotemeta('#$%&~_^{}\\');
-
-# encode($string [,$check])
 sub encode
 {
-	use utf8;
-	my ($self,$str,$check) = @_;
-	$str =~ s/([$LATEX_Reserved])/\\$1/sog;
-	$str =~ s/([<>])/\$$1\$/sog;
-	$str =~ s/([^\x00-\x80])(?![A-Za-z0-9])/$LATEX_Escapes{$1}/sg;
-	$str =~ s/([^\x00-\x80])/$LATEX_Escapes{$1}\{\}/sg;
-	return $str;
+	my( undef, $string, $check ) = @_;
+
+	my $bad_cp = 0;
+
+	# set up a "check" sub that will determine how we handle unsupported code
+	# points
+	$check = Encode::FB_DEFAULT if !defined $check;
+	if( $check eq Encode::FB_DEFAULT )
+	{
+		$check = sub { '?' };
+	}
+	elsif( $check eq Encode::FB_CROAK )
+	{
+		$check = sub { Carp::croak(&_bad_cp(@_)) };
+	}
+	elsif( $check eq Encode::FB_QUIET )
+	{
+		$check = sub { $bad_cp = 1; '' };
+	}
+	elsif( $check eq Encode::FB_WARN )
+	{
+		$check = sub { Carp::carp(&_bad_cp(@_)); $bad_cp = 1; '' };
+	}
+	else
+	{
+		Carp::confess( "Unknown check argument: expected one of undef, FB_DEFAULT, FB_CROAK, FB_QUIET or FB_WARN" );
+	}
+
+	my $tex = "";
+
+	pos($string) = 0;
+
+	for($string)
+	{
+		while(!$bad_cp) {
+		last if pos($_) == length($_);
+
+		# escape reserved characters
+		/\G($TeX::Encode::charmap::RESERVED_RE)/gc and ($tex .= $TeX::Encode::charmap::RESERVED{$1}, next);
+
+		# escape all characters supported by tex
+		if( /\G($TeX::Encode::charmap::CHAR_MAP_RE)/gc )
+		{
+			$tex .= $TeX::Encode::charmap::CHAR_MAP{$1};
+			if( /\G[a-zA-Z_]/gc )
+			{
+				--pos($_);
+				$tex =~ /[a-zA-Z_]$/ and $tex .= '{}';
+			}
+			next;
+		}
+
+		# basic unreserved characters
+		/\G([\sa-zA-Z0-9\.,:;'"\(\)=]+)/gc and ($tex .= $1, next);
+
+		# unsupported code point (may set $bad_cp)
+		/\G(.)/gc and ($tex .= &$check(ord($1)), next);
+
+		Carp::confess "Shouldn't happen";
+		}
+	}
+
+	if( $bad_cp )
+	{
+		$_[1] = substr($string,pos($string)-1);
+	}
+
+	return $tex;
 }
 
 # decode($octets [,$check])
 sub decode
 {
-	my ($self,$str,$check) = @_;
+	my( undef, $tex, $check ) = @_;
 
-	# Convert mathmode macros to unicode
-	$str =~ s/\$([^\$]+?)\$/'$'.&_mathmode($1).'$'/seg;
+	pos($tex) = 0;
 
-	# Convert standard macros to chars
-	$str =~ s/\\($LATEX_Escapes_inv_re)/$LATEX_Escapes_inv{$1}/sg;
-	
-	# $str = encode_entities($str,'<>&"');
-	# Convert some LaTeX macros into HTML equivalents
-	return _htmlise(\$str);
-}
+	my $str = "";
 
-# Math-mode symbols
-sub _mathmode
-{
-	my $str = shift;
-	$str =~ s/\\($LATEX_Math_mode_re)/$LATEX_Math_mode{$1}/sog;
-	$str;
-}
-
-# Superscript/subscript
-# sqrt
-# Overline for /bar
-# LaTeX
-sub _htmlise
-{
-	my $str = shift;
-	my $out = '';
-	while(length($$str) > 0) {
-		if( $$str =~ s/^\$([^\$]+)\$// ) {
-			my $s = $1;
-			$out .= "<span class='mathrm'>" . _htmlise(\$s) . "</span>";
-		} elsif( $$str =~ s/^\^// ) {
-			$out .= '<sup>' . _atom($str) . '</sup>';
-		} elsif( $$str =~ s/^_// ) {
-			$out .= '<sub>' . _atom($str) . '</sub>';
-		} elsif( $$str =~ s/^\\sqrt/\\bar/ ) {
-			$out .= chr(0x221a);
-		} elsif( $$str =~ s/^\\frac\s*// ) {
-			$out .= "<sup style='text-decoration: underline'>" . _atom($str) . '</sup>';
-			$$str =~ s/^\s*//;
-			$out .= "<sub>" . _atom($str) . '</sub>';
-		} elsif( $$str =~ s/^\\(?:bar|overline)\s*// ) {
-			$out .= "<span style='text-decoration: overline'>" . _atom($str) . "</span>";
-		} elsif( $$str =~ s/^\\((?:math|text)\w{2,3})\s*// ) {
-			$out .= "<span class='$1'>" . _atom($str) . "</span>";
-		} elsif( $$str =~ s/^LaTeX// ) {
-			$out .= "L<sup>A<\/sup>T<small>E<\/small>X";
-		} elsif( $$str =~ s/^([^\^_\\\{\$]+)// ) {
-			$out .= encode_entities($1,ENCODE_CHRS);
-		} else {
-			$out .= _atom($str);
-		}
+	while(pos($tex) < length($tex))
+	{
+		$str .= _decode( $tex, $check );
 	}
-	return $out;
+
+	return $str;
 }
 
-sub _atom
+sub _decode
 {
-	my $str = shift;
-	if( $$str =~ s/^\{\\(cal|rm)(?:[^\w])/\{/ ) {
-		return "<span class='" . ($1 eq 'cal' ? 'textcal' : 'textrm') . "'>" . _atom($str) . "</span>";
-	} elsif( $$str =~ s/^\\\\// ) { # Newline
-		return "<br />";
-	} elsif( $$str =~ s/^\\(.)// ) { # Escaped character
-		return $1;
-	} elsif( $$str =~ s/^\{([^\{\}]+)\}// ) {
-		my $sstr = $1;
-		return _htmlise(\$sstr);
-	} elsif( $$str =~ s/^\{// ) {
-		# Find the closing tag
-		my $i = 1;
-		pos($$str) = 0;
-		while( $i > 0 && pos($$str) < (length($$str)-1) ) {
-			if( $$str =~ /[^\}]*\{/cg ) {
-				$i++;
-			} elsif( $$str =~ /[^\{]*\}/cg ) {
-				$i--;
-			} else {
-				last;
-			}
-		}
-		return '' if pos($$str) == 0;
-		my $sstr = substr($$str,0,pos($$str)-1);
-		$$str = substr($$str,pos($$str));
-		return _htmlise(\$sstr);
-	} elsif( $$str =~ s/^(.)// ) {
-		return encode_entities($1,ENCODE_CHRS);
+	my $str = "";
+
+	for($_[0])
+	{
+		/\G\%([^\n]+\n)?/gc and next; # comment
+		/\G\$/gc and ($str .= _decode_mathmode($_), next); # mathmode
+		/\G($TeX::Encode::charmap::MACROS_RE)/gc and ($str .= $TeX::Encode::charmap::MACROS{$1}, next); # macro
+		/\G\\(.)/gc and ($str .= _decode_macro($1,$_), next); # unknown macro
+		/\G\{/gc and ($str .= _decode_brace($_), next); # {foo}
+		/\G\[/gc and ($str .= _decode_bracket($_), next); # [foo]
+		/\G_/gc and ($str .= _subscript(&_decode), next); # _ (subscript)
+		/\G\^/gc and ($str .= _superscript(&_decode), next); # ^ (superscript)
+		/\G([^_\^\%\$\\\{\[ \t\n\r]+)/gc and $str .= $1, next;
+		/\G([ \t\n\r])+/gc and $str .= $1, next;
+
+		Carp::confess "Shouldn't happen: ".substr($_,0,10)." ...".substr($_,pos($_),10)." [".pos($_)."/".length($_)."]";
 	}
-	return '';
+
+	return $str;
+}
+
+sub _subscript
+{
+	my( $tex ) = @_;
+	return $tex if $tex =~ /[^0-9+\-]/;
+	return _subscript_digits( $tex );
+}
+
+sub _superscript
+{
+	my( $tex ) = @_;
+	return $tex if $tex =~ /[^0-9+\-]/;
+	return _superscript_digits( $tex );
+}
+
+my %SUBSCRIPTS = (
+	'+' => chr(0x208a),
+	'-' => chr(0x208b),
+);
+$SUBSCRIPTS{''.$_} = chr(0x2080+$_) for 0..9;
+sub _subscript_digits
+{
+	my( $tex ) = @_;
+	$tex =~ s/(.)/$SUBSCRIPTS{$1}/g;
+	return $tex;
+}
+
+my %SUPERSCRIPTS = (
+	'0' => chr(0x2070),
+	'1' => chr(0xb9),
+	'2' => chr(0xb2),
+	'3' => chr(0xb3),
+	'4' => chr(0x2074),
+	'5' => chr(0x2075),
+	'6' => chr(0x2076),
+	'7' => chr(0x2077),
+	'8' => chr(0x2078),
+	'9' => chr(0x2079),
+	'+' => chr(0x207a),
+	'-' => chr(0x207b),
+);
+sub _superscript_digits
+{
+	my( $tex ) = @_;
+	$tex =~ s/(.)/$SUPERSCRIPTS{$1}/g;
+	return $tex;
 }
 
 sub perlio_ok { 0 }
 
-# Autoload methods go after =cut, and are processed by the autosplit program.
+sub _decode_mathmode
+{
+	my $str = "";
+
+	for($_[0])
+	{
+		while(1) {
+		last if pos($_) == length($_);
+	
+		/\G(\\.)/gc and ($str .= $1, next);
+		/\G\$/gc and last;
+		/\G($TeX::Encode::charmap::MATH_CHARS_RE)/ and ($str .= $TeX::Encode::charmap::MATH_CHARS{$1}, next);
+		/\G([^\\\$]+)/gc and ($str .= $1, next);
+
+		Carp::confess "Shouldn't happen";
+		}
+	}
+
+	return decode(undef, $str);
+}
+
+# try again to expand a macro
+sub _decode_macro
+{
+	my( $c ) = @_;
+
+	my $str = "\\$c";
+
+	for($_[1])
+	{
+		# expand \'{e} to \'e
+		/\G\{/ and ($str .= _decode_brace( $_ ), next);
+		last;
+	}
+
+	return $TeX::Encode::charmap::MACROS{$str} || $str;
+}
+
+sub _decode_bracket
+{
+	my $str = "";
+
+	my $depth = 1;
+	for($_[0])
+	{
+		while(1) {
+		last if pos($_) == length($_) or $depth == 0;
+
+		/\G(\\.)/gc and ($str .= $1, next);
+		/\G\[/gc and (--$depth, next);
+		/\G\]/gc and (++$depth, next); 
+		/\G([^\\\[\]]+)/gc and ($str .= $1, next);
+
+		Carp::confess "Shouldn't happen";
+		}
+	}
+
+	return $str;
+}
+
+sub _decode_brace
+{
+	my $str = "";
+
+	my $depth = 1;
+	for($_[0])
+	{
+		while(1) {
+		last if pos($_) == length($_) or $depth == 0;
+
+		/\G(\\.)/gc and ($str .= $1, next);
+		/\G\}/gc and (--$depth, next);
+		/\G\{/gc and (++$depth, next); 
+		/\G([^\\\{\}]+)/gc and ($str .= $1, next);
+
+		Carp::confess "Shouldn't happen";
+		}
+	}
+
+	return decode(undef, $str);
+}
 
 1;
 __END__
@@ -266,6 +290,24 @@ I use this module to encode author names in BibTeX and to do a rough job at pres
 
 The next logical step for this module is to integrate some level of TeX grammar to improve the decoding, in particular to handle fractions and font changes (which should probably be dropped).
 
+=head1 METHODS
+
+=over 4
+
+=item TeX::Encode::encode STRING [, CHECK]
+
+Encodes a utf8 string into TeX. CHECK isn't implemented.
+
+=item TeX::Encode::decode STRING [, CHECK]
+
+Decodes a TeX string into utf8. CHECK isn't implemented.
+
+=item TeX::Encode::perlio_ok
+
+Returns 0. PerlIO isn't implemented.
+
+=back
+
 =head1 CAVEATS
 
 Proper Encode checking is not implemented.
@@ -282,7 +324,7 @@ Attempts to convert TeX symbols (e.g. \ae) to Unicode characters. As an experime
 
 =head1 SEE ALSO
 
-L<Pod::LaTeX>
+L<Encode::Encoding>, L<Pod::LaTeX>, L<Encode>
 
 =head1 AUTHOR
 
