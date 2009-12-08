@@ -132,6 +132,8 @@ sub action_import
 	return unless $self->_import( 1, 1, $tmp_file ); # quiet dry run
 	my( $import, $list ) = $self->_import( 0, 0, $tmp_file ); # real run with messages
 
+	return if !defined $list;
+
 	my $n = $list->count;
 
 	if( $n == 1 )
@@ -270,6 +272,7 @@ sub _import
 		);
 	};
 	push @problems, "Unhandled exception in ".$plugin->{id}.": $@" if $@;
+	push @problems, "Expected EPrints::List" if !defined $list;
 
 	my $count = $dryrun ? $handler->{parsed} : $handler->{wrote};
 
