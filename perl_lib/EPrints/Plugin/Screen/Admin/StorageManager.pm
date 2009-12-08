@@ -41,9 +41,9 @@ sub new
 
 sub can_be_viewed
 {
-	my( $plugin ) = @_;
+	my( $self ) = @_;
 
-	return 1;
+	return $self->allow( "storage/manager" );
 }
 
 sub wishes_to_export

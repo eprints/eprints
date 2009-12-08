@@ -1214,6 +1214,7 @@ my $PRIVMAP =
 		"metafield/edit",
 		"import/view",
 		"import/edit",
+		"storage/manager",
 	],
 
 	"toolbox" => 
