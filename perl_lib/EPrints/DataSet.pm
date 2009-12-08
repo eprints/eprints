@@ -481,8 +481,15 @@ sub register_field
 {
 	my( $self, $field, $system ) = @_;
 
+	my $fieldname = $field->name();
+
+	if( exists $self->{field_index}->{$fieldname} )
+	{
+		EPrints->abort( "Duplicate field name encountered: ".$self->base_id.".".$fieldname );
+	}
+
 	push @{$self->{fields}}, $field;
-	$self->{field_index}->{$field->get_name()} = $field;
+	$self->{field_index}->{$fieldname} = $field;
 	if( $system )
 	{
 		push @{$self->{system_fields}} , $field;
