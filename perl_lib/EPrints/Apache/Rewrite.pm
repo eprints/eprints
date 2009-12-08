@@ -59,6 +59,11 @@ sub handler
 	{
 		return DECLINED;
 	}
+	if( !$repository->get_database->is_latest_version )
+	{
+		$repository->log( "Database schema is out of date: ./bin/epadmin upgrade ".$repository->get_id );
+		return 500;
+	}
 #	$repository->check_secure_dirs( $r );
 	my $esec = $r->dir_config( "EPrints_Secure" );
 	my $secure = (defined $esec && $esec eq "yes" );
