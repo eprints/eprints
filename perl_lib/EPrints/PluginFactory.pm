@@ -75,7 +75,7 @@ sub new
 	$dir = $repository->get_conf( "base_path" )."/perl_lib";
 	if( defined $dir && !scalar keys %SYSTEM_PLUGINS )
 	{
-		$class->_load_dir( $self->{data}, $repository, $dir );
+		$self->_load_dir( $self->{data}, $repository, $dir );
 	}
 
 	# repository-specific plugins
@@ -91,10 +91,7 @@ sub new
 	foreach my $plugin ($self->get_plugins)
 	{
 		my $pluginid = $plugin->get_id();
-		if( $repository->get_conf( "plugins", $pluginid, "params", "disable" ) )
-		{
-			$self->{disabled}->{$pluginid} = 1;
-		}
+		$self->{disabled}->{$pluginid} = $plugin->param( "disable" );
 	}
 
 	return $self;
@@ -141,7 +138,9 @@ sub _load_plugin
 		return;
 	}
 
-	my $plugin = $class->new();
+	my $plugin = $class->new(
+		repository => $self->{repository},
+		session => $self->{repository} );
 
 	# disabled by class-global?
 	no strict "refs";
@@ -198,7 +197,10 @@ sub get_plugin
 		return undef;
 	}
 
-	my $plugin = $class->new( %params );
+	my $plugin = $class->new(
+		repository => $self->{repository},
+		session => $self->{repository},
+		%params );
 
 	return $plugin;
 }
