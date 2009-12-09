@@ -38,7 +38,7 @@ sub output_list
 
 	$title.= ": ".EPrints::Utils::tree_to_utf8( $list->render_description );
 
-	my $host = $session->{repository}->get_conf( 'host' );
+	my $host = $session->config( 'host' );
 
 	$response->appendChild( $session->render_data_element(
 		4,
@@ -109,7 +109,7 @@ sub output_list
 		$item->appendChild( $session->render_data_element(
 			4,
 			"id", 
-			"tag:".$host.",".$eprint->get_value( "date" ).":item:/".$eprint->get_id ) );
+			"tag:".$host.",".($eprint->get_value( "date" )||"").":item:/".$eprint->get_id ) );
 
 		my $names = $eprint->get_value( "creators" );
 		foreach my $name ( @$names )
