@@ -711,8 +711,22 @@ Return the name of the main file in this document.
 sub get_main
 {
 	my( $self ) = @_;
-	
-	return( $self->{data}->{main} );
+
+	if( defined $self->{data}->{main} )
+	{
+		return $self->{data}->{main};
+	}
+
+	# If there's only one file then just claim that's
+	# the main one!
+	my %files = $self->files;
+	my @filenames = keys %files;
+	if( scalar @filenames == 1 )
+	{
+		return $filenames[0];
+	}
+
+	return;
 }
 
 
