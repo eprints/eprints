@@ -234,6 +234,8 @@ sub handler
 		}
 
 		my $filename = EPrints::Update::Views::update_view_file( $session, $lang, $localpath, $uri );
+		return NOT_FOUND if( !defined $filename );
+
 		$r->filename( $filename );
 	}
 	else

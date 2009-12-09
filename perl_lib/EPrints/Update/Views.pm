@@ -98,7 +98,9 @@ sub update_view_file
 		{
 			return "$target$ext";
 		}
-		return update_browse_view_list( $session, $langid ) . $ext;
+		my $file = update_browse_view_list( $session, $langid );
+		return undef if( !defined $file );
+		return $file.$ext;
 	}
 	
 	$uri =~ m/^\/view(\/(([^\/]+)(\/(.*))?)?)?$/;
@@ -125,7 +127,9 @@ sub update_view_file
 			return "$target$ext";
 		}
 
-		return update_view_menu( $session, $view, $langid ) . $ext;
+		my $file = update_view_menu( $session, $view, $langid );
+		return undef if( !defined $file );
+		return $file.$ext;
 	}
 
 	if( $viewinfo =~ s/\/$// || $viewinfo =~ s/\/index[^\/]+$// )
@@ -138,7 +142,9 @@ sub update_view_file
 		# if it ends with "/" then it's a submenu
 		my @view_path = split( '/', $viewinfo );
 		
-		return update_view_menu( $session, $view, $langid, \@view_path ) . $ext;
+		my $file = update_view_menu( $session, $view, $langid, \@view_path );
+		return undef if( !defined $file );
+		return $file.$ext;
 	}
 
 	# Otherwise it's (probably) a view list
@@ -149,7 +155,9 @@ sub update_view_file
 	}
 
 	my @view_path = split( '/', $viewinfo );
-	return update_view_list( $session, $view, $langid, \@view_path ) . $ext;
+	my $file = update_view_list( $session, $view, $langid, \@view_path );
+	return undef if( !defined $file );
+	return $file.$ext;
 }
 
 
