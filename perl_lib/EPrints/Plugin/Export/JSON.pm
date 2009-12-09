@@ -114,14 +114,21 @@ sub _epdata_to_json
 
 	my $pad = "  " x $depth;
 	my $pre_pad = $in_hash ? "" : $pad;
+	
 
 	if( !ref( $epdata ) )
 	{
+		
 		if( !defined $epdata )
 		{
 			return "null"; # part of a compound field
 		}
-		elsif( $epdata =~ /['\\]/ )
+	
+		$epdata =~ s/([\r\n])/ /g;
+		$epdata =~ s/ +/ /g;
+		$epdata =~ s/\s*$//;
+	
+		if( $epdata =~ /['\\]/ )
 		{
 			return $pre_pad . EPrints::Utils::js_string( $epdata );
 		}
