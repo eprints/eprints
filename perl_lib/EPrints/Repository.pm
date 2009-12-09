@@ -4434,12 +4434,20 @@ END
 	if( defined $self->{text_page} )
 	{
 		binmode(STDOUT,":utf8");
-		print $self->{text_page};
+		eval { print $self->{text_page}; };
+		if( $@ && $@ !~ m/^Software caused connection abort/ )
+		{
+			EPrints::abort( "Error in send_page: $@" );	
+		}
 	}
 	else
 	{
 		binmode(STDOUT,":utf8");
-		print EPrints::XML::to_string( $self->{page}, undef, 1 );
+		eval { print EPrints::XML::to_string( $self->{page}, undef, 1 ); };
+		if( $@ && $@ !~ m/^Software caused connection abort/ )
+		{
+			EPrints::abort( "Error in send_page: $@" );	
+		}
 		EPrints::XML::dispose( $self->{page} );
 		delete $self->{page};
 	}

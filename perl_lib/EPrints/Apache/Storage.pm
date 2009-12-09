@@ -106,6 +106,23 @@ sub handler
 		content_type => $content_type,
 	);
 
+	my $rv = eval { $fileobj->write_copy_fh( \*STDOUT ); };
+	if( $@ )
+	{
+		# eval threw an error
+		# If the software (web client) stopped listening
+		# before we stopped sending then that's not a fail.
+		# even if $rv was not set
+		if( $@ !~ m/^Software caused connection abort/ )
+		{
+			EPrints::abort( "Error in file retrieval: $@" );
+		}
+	}
+	elsif( !$rv )
+	{
+		EPrints::abort( "Error in file retrieval: failed to get file contents" );
+	}
+
 	if( !$fileobj->write_copy_fh( \*STDOUT ) )
 	{
 		EPrints::abort( "Error in file retrieval: failed to get file contents" );
