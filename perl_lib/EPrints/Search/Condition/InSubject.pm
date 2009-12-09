@@ -90,7 +90,10 @@ sub logic
 
 	my $db = $opts{session}->get_database;
 
-	return $db->quote_identifier( "subject_ancestors", "ancestors" )." = ".$db->quote_value( $self->{params}->[0] );
+	my $prefix = $opts{prefix};
+	$prefix = "" if !defined $prefix;
+
+	return $db->quote_identifier( "${prefix}subject_ancestors", "ancestors" )." = ".$db->quote_value( $self->{params}->[0] );
 }
 
 1;
