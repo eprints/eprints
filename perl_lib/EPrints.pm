@@ -230,6 +230,8 @@ use EPrints::Search::Condition;
 use EPrints::CLIProcessor;
 use EPrints::ScreenProcessor;
 use EPrints::Script;
+use EPrints::Script::Compiler;
+use EPrints::Script::Compiled;
 use EPrints::URL;
 use EPrints::Paracite;
 use EPrints::Update::Static;
