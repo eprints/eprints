@@ -5664,7 +5664,10 @@ sub cleanup
 {
 	my( $self ) = @_;
 
-	$self->{database}->disconnect;
+	if( defined $self->{database} )
+	{
+		$self->{database}->disconnect;
+	}
 
 	for(keys %$self)
 	{
