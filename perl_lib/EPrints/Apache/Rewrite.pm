@@ -227,6 +227,12 @@ sub handler
 	$session->{preparing_static_page} = 1; 
 	if( $uri =~ m! ^/view(.*) !x )
 	{
+		# redirect /foo to /foo/ 
+		if( $uri eq "/view" || $uri =~ m! ^/view/[^/]+$ !x )
+		{
+			return redir( $r, "$uri/" );
+		}
+
 		my $filename = EPrints::Update::Views::update_view_file( $session, $lang, $localpath, $uri );
 		$r->filename( $filename );
 	}
