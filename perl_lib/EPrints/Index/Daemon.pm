@@ -672,6 +672,15 @@ sub _run_index
 	my $event = $session->get_database->dequeue_event();
 	return 0 unless defined $event;
 
+	if( $self->{noise} >= 5 )
+	{
+		my $pluginid = $event->value( "pluginid" );
+		my $action = $event->value( "action" );
+		my $params = $event->value( "params" );
+
+		$self->log( 5, $session->get_id.": ${pluginid}->${action}(".($params?join( ",",@$params):"").")");
+	}
+
 	my $rc = $event->execute;
 	if( $rc )
 	{
