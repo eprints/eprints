@@ -721,7 +721,11 @@ sub export
 		EPrints::abort( 
 "Plugin $plugin_id can't process $req_plugin_type data." );
 	}
-	
+
+	if( defined $params{fh} )
+	{
+		binmode($params{fh},":utf8");
+	}	
 	
 	return $plugin->output_list( list=>$self, %params );
 }
