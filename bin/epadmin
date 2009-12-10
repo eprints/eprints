@@ -615,7 +615,6 @@ sub config_core
 	$config{host} = undef;
 	$config{urlpath} = '/';
 	$config{archiveroot} = "archives/".$repoid;
-	$config{configmodule} = "cfg/Config.pm";
 	$config{aliases} = [];
 	$config{securehost} = undef;
 	$config{securepath} = undef;
