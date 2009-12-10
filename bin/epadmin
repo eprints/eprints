@@ -309,6 +309,7 @@ else
 	elsif( $action eq "upgrade" ) { upgrade( $repoid ); }
 	elsif( $action eq "schema" ) { schema( $repoid ); }
 	elsif( $action eq "update_database_structure" ) { update_database_structure( $repoid ); }
+	elsif( $action eq "upgrade_mysql_charset" ) { upgrade_mysql_charset( $repoid ); }
 	elsif( $action eq "recommit" ) 
 	{
 		my $datasetid = $ARGV[2];
@@ -1804,6 +1805,7 @@ sub upgrade
 			3.1.1
 			3.1.2
 			3.2.0
+			3.2.1
 		);
 
 	for(my $i = 0; $i < $#versions; ++$i)
@@ -2201,6 +2203,13 @@ sub upgrade_3_1_2_to_3_2_0
 	{
 		upgrade_mysql_charset( $repoid, $db );
 	}
+}
+
+sub upgrade_3_2_0_to_3_2_1
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
 
 	upgrade_add_files( $repo );
 }
@@ -2378,8 +2387,7 @@ sub upgrade_mysql_charset
 	my( $repoid, $db ) = @_;
 
 	my $repo = &repository( $repoid, check_db => 0 );
-
-#	$db->do("LOCK TABLES version WRITE");
+	$db ||= $repo->get_database;
 
 	print "CREATE(_utf8_test): ";
 	$db->do("CREATE TEMPORARY TABLE _utf8_test LIKE version");
@@ -2436,52 +2444,52 @@ EOW
 	# convert all textual columns
 	foreach( $repo->get_sql_dataset_ids() )
 	{
+		print STDERR "Upgrading dataset $_\n";
 		my $dataset = $repo->dataset( $_ );
 		my $key_field = $dataset->key_field();
-		my %colspecs;
-		if( $key_field->isa( "EPrints::MetaField::Text" ) ||
-			$key_field->isa( "EPrints::MetaField::Set" ) )
+		my @main;
+		my @aux;
+		foreach my $field ( $dataset->fields )
 		{
-			upgrade_mysql_charset_ordervalues( \%colspecs, $repo, $db, $dataset, $key_field, 1 );
+			next if $field->is_virtual;
+			push(@aux, $field), next if $field->get_property( "multiple" );
+
+			push @main, $field;
 		}
+
+		# main table
+		$rc &&= upgrade_mysql_charset_table( $repo, $db, $dataset->get_sql_table_name, \@main );
+
+		# aux tables
+		my $pos_field = EPrints::MetaField->new(
+			repository => $repo,
+			type => "int",
+			name => "pos" );
+		foreach my $aux_field (@aux)
+		{
+			$rc &&= upgrade_mysql_charset_table( $repo, $db, $dataset->get_sql_sub_table_name( $aux_field ), [$key_field, $pos_field, $aux_field] );
+		}
+
+		# ordervalues
+		foreach my $langid ( @{$repo->config( "languages" )} )
+		{
+			my @fields = map { $_->create_ordervalues_field( $repo, $langid ) } $dataset->fields;
+			$fields[0] = $key_field;
+			$rc &&= upgrade_mysql_charset_table( $repo, $db, $dataset->get_ordervalues_table_name( $langid ), \@fields );
+		}
+
+		# rindex and index_grep
 		if( $dataset->indexable )
 		{
-			my $Q_table = $dataset->get_sql_index_table_name;
-			$colspecs{$Q_table} = { binary => [], char => [] };
-			push @{$colspecs{$Q_table}->{binary}},
-				"`fieldword` BINARY(255)",
-				"`ids` BLOB";
-			push @{$colspecs{$Q_table}->{char}},
-				"`fieldword` VARCHAR(255) CHARACTER SET utf8",
-				"`ids` TEXT CHARACTER SET utf8";
-		}
-		foreach my $field ($dataset->get_fields)
-		{
-#print STDERR $dataset->confid.".".$field->get_name."[".$field->get_type."]\n";
-			# upgrade main table
-			if( !$field->is_virtual() &&
-				($field->isa( "EPrints::MetaField::Text" ) ||
-				$field->isa( "EPrints::MetaField::Set" )) )
-			{
-				upgrade_mysql_charset_field( \%colspecs, $repo, $db, $dataset, $field );
-			}
-			# upgrade ordervalues table
-			if( $field->get_name ne $key_field->get_name )
-			{
-				upgrade_mysql_charset_ordervalues( \%colspecs, $repo, $db, $dataset, $field );
-			}
-		}
-		while(my( $Q_table, $specs ) = each %colspecs)
-		{
-			print STDERR "Converting $Q_table columns to BINARY\n";
-			my $binary_sql = "ALTER TABLE $Q_table ".
-				join(", ", map { "MODIFY $_" } @{$specs->{binary}});
-			$rc &&= $db->do($binary_sql);
-			print STDERR "Converting $Q_table columns to UTF-8\n";
-			my $sql = "ALTER TABLE $Q_table ".
-				join(", ", map { "MODIFY $_" } @{$specs->{char}});
-			$sql .= ", DEFAULT CHARACTER SET UTF8";
-			$rc &&= $db->do($sql);
+			print STDERR "Upgrading rindex and grep tables for $_\n";
+			my $dataset = $repo->dataset( $_ );
+			my $rindex_table = $dataset->get_sql_rindex_table_name;
+			my $grep_table = $dataset->get_sql_grep_table_name;
+			my $Q_key_name = $db->quote_identifier( $key_field->get_sql_name );
+			my $sql = "ALTER TABLE $rindex_table MODIFY field VARCHAR(64) CHARACTER SET UTF8, MODIFY word VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, DROP PRIMARY KEY, ADD PRIMARY KEY(field,word,$Q_key_name)";
+			$rc &&= $db->do( $sql );
+			$sql = "ALTER TABLE $grep_table MODIFY fieldname VARCHAR(64) CHARACTER SET UTF8, MODIFY grepstring VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, DROP PRIMARY KEY, ADD PRIMARY KEY(fieldname,grepstring,$Q_key_name)";
+			$rc &&= $db->do( $sql );
 		}
 	}
 
@@ -2497,71 +2505,72 @@ EOW
 	}
 }
 
-sub upgrade_mysql_charset_field
+sub upgrade_mysql_charset_table
 {
-	my( $colspecs, $repo, $db, $dataset, $field ) = @_;
+	my( $repo, $db, $table, $fields ) = @_;
 
-	my $Q_table;
-	if( $field->get_property( "multiple" ) )
-	{
-		$Q_table = $db->quote_identifier($dataset->get_sql_sub_table_name( $field ));
-	}
-	else
-	{
-		$Q_table = $db->quote_identifier($dataset->get_sql_table_name);
-	}
+	my $rc = 1;
 
-	$colspecs->{$Q_table} ||= { binary => [], char => [] };
+	my $new_table = "new_$table";
 
-	foreach my $sql ($field->get_sql_type( $repo ))
-	{
-		push @{$colspecs->{$Q_table}->{binary}},
-			upgrade_mysql_charset_binary( $db, $Q_table, $sql );
-		push @{$colspecs->{$Q_table}->{char}}, $sql;
-	}
-}
+	my $Q_table = $db->quote_identifier( $table );
+	my $Q_new_table = $db->quote_identifier( $new_table );
 
-sub upgrade_mysql_charset_ordervalues
-{
-	my( $colspecs, $repo, $db, $dataset, $field, $key_field ) = @_;
+	print STDERR "Upgrading $Q_table by insertion\n";
 
-	my $sql_field;
-	if( $key_field )
+	# create a table LIKE $table
+	$rc &&= $db->do( "DROP TABLE IF EXISTS $Q_new_table" );
+	$rc &&= $db->do( "CREATE TABLE $Q_new_table LIKE $Q_table" );
+	if( !$rc || !$db->has_table( $new_table ) )
 	{
-		$sql_field = $field;
-	}
-	else
-	{
-		$sql_field = EPrints::MetaField->new(
-			repository => $repo,
-			name => $field->get_sql_name(),
-			type => "longtext",
-			allow_null => 1 );
+		EPrints::abort( "Error creating table $Q_new_table based on $Q_table" );
 	}
 
-	foreach my $langid ( @{$repo->config( "languages" )} )
+	my %is_text;
+
+	# change it to use UTF8
+	my @alterations;
+	foreach my $field (@$fields)
 	{
-		my $Q_table = $db->quote_identifier($dataset->get_ordervalues_table_name( $langid ));
-		$colspecs->{$Q_table} ||= { binary => [], char => [] };
-
-		my $sql = $sql_field->get_sql_type( $repo );
-		push @{$colspecs->{$Q_table}->{binary}},
-			upgrade_mysql_charset_binary( $db, $Q_table, $sql );
-		push @{$colspecs->{$Q_table}->{char}}, $sql;
+		next if !$field->isa( "EPrints::MetaField::Text" ) && !$field->isa( "EPrints::MetaField::Set" );
+		for($field->get_sql_names)
+		{
+			$is_text{$_} = 1;
+		}
+		my @parts = split /,/, $field->get_sql_type( $repo );
+		push @alterations, map { "MODIFY $_" } @parts;
 	}
-}
+#	$rc &&= $db->do( "ALTER TABLE $Q_new_table ".join(',', @alterations, "DEFAULT CHARACTER SET UTF8") );
+	if( !$db->has_table( $new_table ) )
+	{
+		EPrints::abort( "Error creating table $Q_new_table based on $Q_table" );
+	}
 
-sub upgrade_mysql_charset_binary
-{
-	my( $db, $Q_table, $sql ) = @_;
+	# copy in the data
+	my $sql = "INSERT INTO $Q_new_table";
+	my @cols;
+	my @bin_cols;
+	my $sth = $db->{dbh}->column_info( undef, undef, $table, '%' );
+	while(my $row = $sth->fetch)
+	{
+		my $name = $row->[$sth->{NAME_lc_hash}{column_name}];
+		push @cols, $db->quote_identifier( $name );
+		my $sql = "";
+		$sql .= "BINARY " if $is_text{$name};
+		$sql .= $db->quote_identifier( $name );
+		push @bin_cols, $sql;
+	}
+	$sql .= "(".join(',',@cols).") SELECT ".join(',',@bin_cols)." FROM $Q_table";
 
-	my $binary_sql = $sql;
-	$binary_sql =~ s/\btext\b/blob/i;
-	$binary_sql =~ s/\bvarchar\b/varbinary/i;
-	$binary_sql =~ s/\bchar\b/varbinary/i; # otherwise we'll get null padding
-	$binary_sql =~ s/\bcharacter set [\w_]+\b//i;
-	$binary_sql =~ s/\bcollate [\w_]+\b//i;
-	return $binary_sql;
+	$rc &&= $db->do( $sql );
+
+	my $Q_old_table = $db->quote_identifier( "old_$table" );
+	$rc &&= $db->do( "RENAME TABLES $Q_table TO $Q_old_table, $Q_new_table TO $Q_table" );
+
+	$db->do( "DROP TABLE IF EXISTS $Q_old_table" );
+	$db->do( "DROP TABLE IF EXISTS $Q_new_table" ); # in case things went wrong
+
+	return $rc;
 }
 
 # End of UPGRADE CODE
