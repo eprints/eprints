@@ -2224,7 +2224,12 @@ sub upgrade_add_files
 	my $history_ds = $repo->dataset( "history" );
 	my $doc_ds = $repo->dataset( "document" );
 
-	$repo->dataset( "eprint" )->search->map( sub {
+	my $list = $repo->dataset( "eprint" )->search;
+
+	my $total = $list->count;
+	my $count = 0;
+
+	$list->map( sub {
 		my( undef, undef, $eprint ) = @_;
 
 		if( $noise )
@@ -2350,6 +2355,8 @@ sub upgrade_add_files
 		}
 
 		$eprint->commit(); # update fileinfo etc.
+
+		print STDERR sprintf("%.2f%%\n", 100 * ++$count / $total);
 	} );
 }
 
