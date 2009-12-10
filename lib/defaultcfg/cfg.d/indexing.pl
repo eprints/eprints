@@ -52,8 +52,7 @@ $c->{indexing}->{freetext_always_words} = {
 # A-Z a-z 0-9 and single quote '
 
 # If you want to add other seperator characters then they
-# should be encoded in utf8. The Unicode::String man page
-# details some useful methods.
+# should be encoded in utf8.
 
 $c->{indexing}->{freetext_seperator_chars} = {
 	'@' => 1, 	'[' => 1, 	'\\' => 1, 	']' => 1,

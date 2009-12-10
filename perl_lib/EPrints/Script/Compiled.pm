@@ -202,7 +202,7 @@ sub run_property
 		$self->runtime_error( "can't get a property {".$value->[0]."} from undefined value" );
 	}
 	my $ref = ref($objvar->[0]);
-	if( $ref eq "HASH" )
+	if( $ref eq "HASH" || $ref eq "EPrints::RepositoryConfig" )
 	{
 		my $v = $objvar->[0]->{ $value->[0] };
 		my $type = ref( $v );

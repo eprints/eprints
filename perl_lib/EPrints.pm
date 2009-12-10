@@ -224,6 +224,7 @@ use EPrints::Plugin;
 use EPrints::PluginFactory;
 use EPrints::Probity;
 use EPrints::Repository;
+use EPrints::RepositoryConfig;
 use EPrints::Search;
 use EPrints::Search::Field;
 use EPrints::Search::Condition;

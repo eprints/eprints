@@ -249,7 +249,7 @@ sub load_repository_config_module
 	}
 
 	no strict 'refs';
-	eval '$EPrints::Config::'.$id.'::config = $info';
+	eval ' $EPrints::Config::'.$id.'::config = bless $info, "EPrints::RepositoryConfig"; ';
 	use strict 'refs';
 
 	my @oldinc = @INC;

@@ -3,8 +3,7 @@
 $c->{rdf}->{person_uri} = sub {
 	my( $eprint, $person ) = @_;
 
-
-	my $repository = $eprint->get_session->get_repository;
+	my $repository = $eprint->repository;
 	if( EPrints::Utils::is_set( $person->{id} ) )
 	{
 		# If you want to use hashed ID's to prevent people reverse engineering
@@ -18,7 +17,7 @@ $c->{rdf}->{person_uri} = sub {
 			
 	my $name = $person->{name};	
 	my $code = "eprintsrdf/".$eprint->get_id."/".($name->{family}||"")."/".($name->{given}||"");
-
-	return "epx:person/".md5_hex( utf8::encode( $code ) );
+	utf8::encode( $code ); # md5 takes bytes, not characters
+	return "epx:person/".md5_hex( $code );
 };
 

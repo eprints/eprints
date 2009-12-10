@@ -1,5 +1,5 @@
 
-push @{$c->{rdf}->{get_triples}}, sub {
+$c->add_trigger( "rdf_triples", sub {
 	my( %o ) = @_;
 	my $eprint = $o{"eprint"};
 	my $eprint_uri = "<".$eprint->uri.">";
@@ -12,5 +12,4 @@ push @{$c->{rdf}->{get_triples}}, sub {
 		push @{$o{triples}->{$eprint_uri}}, 
 			[ $eprint_uri, "rdfs:seeAlso", "<".$doc->get_url.">" ];
 	}
-
-}
+} );

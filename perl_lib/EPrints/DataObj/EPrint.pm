@@ -459,13 +459,10 @@ sub update_triggers
 
 	my $repository = $self->get_session->get_repository;
 
-	if( $self->get_value( "eprint_status" ) eq "archive" && $repository->get_conf( "rdf","get_triples" ) )
+	if( $self->get_value( "eprint_status" ) eq "archive" )
 	{
 		my $triples = {};
-		foreach my $fn ( @{$repository->get_conf( "rdf","get_triples" )} )
-		{
-			&{$fn}( eprint=>$self, triples=>$triples );
-		}
+		$repository->run_trigger( "rdf_triples", eprint=>$self, triples=>$triples );
 		my $t = [];
 		foreach my $resource ( keys %{$triples} )
 		{

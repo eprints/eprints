@@ -1421,6 +1421,30 @@ sub config($$@)
 	return $val;
 }
 
+######################################################################
+#
+# $repository->run_trigger( $event_id, %params )
+#
+# Run all the triggers with the given event id. Any return values are
+# set in the properties passed in in %params
+#
+######################################################################
+
+sub run_trigger
+{
+	my( $self, $event_id, %params ) = @_;
+	
+	my $fns = $self->config( "triggers", $event_id );
+
+	return if !defined $fns;
+	foreach my $pri ( sort { $a <=> $b } keys %{$fns} )
+	{
+		foreach my $fn ( @{$fns->{$pri}} )
+		{
+			&{$fn}( %params );
+		}
+	}
+}
 
 ######################################################################
 =pod

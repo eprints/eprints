@@ -8,7 +8,8 @@ $c->{rdf}->{event_location_uri} = sub {
 	my $ev_location = $eprint->get_value( "event_location" );
 	return if( !EPrints::Utils::is_set( $ev_location ) );
 
-	return "epx:location/".md5_hex( utf8::encode( $ev_location ) );
+	utf8::encode( $ev_location ); # md5 takes bytes, not characters
+	return "epx:location/".md5_hex( $ev_location );
 };
 	
 

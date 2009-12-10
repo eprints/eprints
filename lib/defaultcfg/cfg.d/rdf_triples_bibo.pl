@@ -2,7 +2,7 @@
 $c->{rdf}->{xmlns}->{geonames} = "http://www.geonames.org/ontology#";
 $c->{rdf}->{xmlns}->{event}    = "http://purl.org/NET/c4dm/event.owl#";
 
-push @{$c->{rdf}->{get_triples}}, sub {
+$c->add_trigger( "rdf_triples", sub {
 	my( %o ) = @_;
 	my $eprint = $o{"eprint"};
 	my $eprint_uri = "<".$eprint->uri.">";
@@ -63,14 +63,14 @@ push @{$c->{rdf}->{get_triples}}, sub {
 [ $eprint_uri,  "bibo:authorList", 	$authors_uri ],
 [ $authors_uri, "rdf:_$i", 		$creator_uri ],
 	}
-};
+} );
 
 
 ##############################
 # Event
 ##############################
 
-push @{$c->{rdf}->{get_triples}}, sub {
+$c->add_trigger( "rdf_triples", sub {
 	my( %o ) = @_;
 	my $eprint = $o{"eprint"};
 
@@ -102,5 +102,5 @@ push @{$c->{rdf}->{get_triples}}, sub {
 [ $event_loc_uri,	"geonames:name",	$event_location, "xsd:string" ],
 [ $event_loc_uri,	"dc:title",		$event_location, "xsd:string" ];
 	}
-};
+} );
 
