@@ -1815,6 +1815,7 @@ sub upgrade
 			no strict 'refs';
 			my $f = "upgrade_".$versions[$i]."_to_".$versions[$i+1];
 			$f =~ s/\./_/g;
+			print STDERR "Upgrading " . $versions[$i] . " to " . $versions[$i+1] . "\n";
 			&$f( $repo, $db );
 			$db->set_version( $versions[$i+1] );
 		}
@@ -2195,6 +2196,16 @@ sub upgrade_3_1_2_to_3_2_0
 
 	my $repo = &repository( $repoid, check_db => 0 );
 
+	upgrade_cfg_files( $repo, [qw(
+	 	indexing.pl
+		rdf.pl
+		rdf_sameas.pl
+		rdf_triples_bibo.pl
+		rdf_uri_event_location.pl
+		rdf_uri_event.pl
+		rdf_uri_person.pl
+	)]);
+
 	# We can do this now, because we only ever add columns
 	update_datasets( $repo, $db );
 	update_counters( $repo, $db );
@@ -2212,6 +2223,38 @@ sub upgrade_3_2_0_to_3_2_1
 	my $repo = &repository( $repoid, check_db => 0 );
 
 	upgrade_add_files( $repo );
+}
+
+sub upgrade_cfg_files
+{
+	my( $repo, $files ) = @_;
+
+	my $source = $repo->config( "base_path" ) . "/lib/defaultcfg/cfg.d";
+	my $target = $repo->config( "archiveroot" ) . "/cfg/cfg.d";
+
+	print STDERR "There are recommended configuration file updates:\n";
+	print STDERR map { "\t$_\n" } @$files;
+
+	return unless EPrints::Utils::get_input_confirm( "Install updated configuration files?" ); 
+
+	foreach my $file (@$files)
+	{
+		my $source_path = "$source/$file";
+		if( !-r $source_path )
+		{
+			EPrints->abort( "Missing file: $source_path" );
+		}
+		my $target_path = "$target/$file";
+		if( -e $target_path )
+		{
+			print STDERR "Renaming $target_path to $file.old\n";
+			rename( $target_path, "$target/$file.old" )
+				or die "Error renaming file: $!";
+		}
+		EPrints::Utils::copy( $source_path, $target_path );
+	}
+
+	return 1;
 }
 
 sub upgrade_add_files
@@ -2234,7 +2277,7 @@ sub upgrade_add_files
 
 		if( $noise )
 		{
-			$repo->log( "eprint.".$eprint->id );
+			$repo->log( sprintf("%.2f%% eprint.%d", 100 * ++$count / $total, $eprint->id) );
 		}
 
 		my $local_path = $eprint->local_path();
@@ -2249,13 +2292,13 @@ sub upgrade_add_files
 			] )->map( sub {
 			my( undef, undef, $revision ) = @_;
 
+			# already processed?
+			return if defined $revision->get_stored_file( "dataobj.xml" );
+
 			if( $noise )
 			{
 				$repo->log( "revision.".$revision->id );
 			}
-
-			# already processed?
-			return if defined $revision->get_stored_file( "dataobj.xml" );
 
 			my $filename = $revision->value( "revision" )."xml";
 			my $filepath = "$path/$filename";
@@ -2287,11 +2330,6 @@ sub upgrade_add_files
 		{
 			my $doc_path = $doc->local_path;
 
-			if( $noise )
-			{
-				$repo->log( "document.".$doc->id );
-			}
-
 			my %files;
 
 			# thumbnails
@@ -2300,6 +2338,13 @@ sub upgrade_add_files
 			{
 				Carp::croak "Badness in path: $doc_path";
 			}
+			next if !-e $thumb_path;
+
+			if( $noise >= 2 )
+			{
+				$repo->log( "document.".$doc->id );
+			}
+
 			%files = _collect_files( $thumb_path );
 			foreach my $file (keys %files)
 			{
@@ -2355,8 +2400,6 @@ sub upgrade_add_files
 		}
 
 		$eprint->commit(); # update fileinfo etc.
-
-		print STDERR sprintf("%.2f%%\n", 100 * ++$count / $total);
 	} );
 }
 
