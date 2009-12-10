@@ -2473,13 +2473,14 @@ EOW
 		}
 		while(my( $Q_table, $specs ) = each %colspecs)
 		{
+			print STDERR "Converting $Q_table columns to BINARY\n";
 			my $binary_sql = "ALTER TABLE $Q_table ".
 				join(", ", map { "MODIFY $_" } @{$specs->{binary}});
-			my $sql = "ALTER TABLE $Q_table ".
-				join(", ", map { "MODIFY $_" } @{$specs->{char}});
-			print STDERR "Converting $Q_table columns to BINARY\n";
 			$rc &&= $db->do($binary_sql);
 			print STDERR "Converting $Q_table columns to UTF-8\n";
+			my $sql = "ALTER TABLE $Q_table ".
+				join(", ", map { "MODIFY $_" } @{$specs->{char}});
+			$sql .= ", DEFAULT CHARACTER SET UTF8";
 			$rc &&= $db->do($sql);
 		}
 	}
