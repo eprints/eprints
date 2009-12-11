@@ -340,17 +340,20 @@ sub has_column
 {
 	my( $self, $table, $column ) = @_;
 
-	my $rc = 1;
+	my $sql = "SELECT 1 FROM USER_TAB_COLUMNS WHERE TABLE_NAME=".$self->quote_value( uc($table) )." AND COLUMN_NAME=".$self->quote_value( uc($column) );
+	my $rows = $self->{dbh}->selectall_arrayref( $sql );
 
-	my $sql = "SELECT 1 FROM USER_TAB_COLUMNS WHERE ".
-		"TABLE_NAME=".$self->quote_value( $table )." AND ".
-		"COLUMN_NAME=".$self->quote_value( $column );
-	my $sth = $self->prepare( $sql );
-	$sth->execute;
-	$rc = $sth->fetch ? 1 : 0;
-	$sth->finish;
+	return scalar @$rows;
+}
 
-	return $rc;
+sub has_table
+{
+	my( $self, $table ) = @_;
+
+	my $sql = "SELECT 1 FROM USER_TABLES WHERE TABLE_NAME=".$self->quote_value( uc($table) );
+	my $rows = $self->{dbh}->selectall_arrayref( $sql );
+
+	return scalar @$rows;
 }
 
 # Oracle doesn't support getting the "current" value of a sequence
