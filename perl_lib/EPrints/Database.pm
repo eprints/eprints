@@ -1758,7 +1758,7 @@ sub save_user_message
 
 sub get_user_messages
 {
-	my( $self, $userid ) = @_;
+	my( $self, $userid, %opts ) = @_;
 
 	my $dataset = $self->{session}->get_repository->get_dataset( "message" );
 
@@ -1801,6 +1801,8 @@ sub get_user_messages
 			type => $message->get_value( "type" ),
 			content => $content,
 		};
+
+		$message->remove() if $opts{clear};
 	};
 	$results->map( $fn, \@messages );
 

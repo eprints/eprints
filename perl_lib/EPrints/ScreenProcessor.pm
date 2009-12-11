@@ -230,8 +230,7 @@ sub render_messages
 	if( defined $cuser )
 	{
 		my $db = $self->{session}->get_database;
-		@old_messages = $db->get_user_messages( $cuser->get_id );
-		$db->clear_user_messages( $cuser->get_id );
+		@old_messages = $db->get_user_messages( $cuser->get_id, clear => 1 );
 	}
 	foreach my $message ( @old_messages, @{$self->{messages}} )
 	{
