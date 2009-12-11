@@ -577,6 +577,7 @@ sub create_dataset_index_tables
 
 	if( !$self->has_table( $dataset->get_sql_rindex_table_name ) )
 	{
+		local $keyfield->{sql_index} = 0; # Can use primary key for eprintid
 		$rv = $rv & $self->create_table(
 			$dataset->get_sql_rindex_table_name,
 			$dataset,
