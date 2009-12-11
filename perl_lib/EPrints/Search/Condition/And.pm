@@ -122,8 +122,9 @@ sub joins
 		my $table = $sub_op->table;
 		$table = "" if !defined $table;
 		if(
-			$sub_op->isa( "EPrints::Search::Condition::OrSubQuery" ) &&
-			$table ne $opts{dataset}->get_sql_table_name
+			($sub_op->isa( "EPrints::Search::Condition::OrSubQuery" ) &&
+			$table ne $opts{dataset}->get_sql_table_name) ||
+			$sub_op->isa( "EPrints::Search::Condition::Or" )
 		  )
 		{
 			push @intersects, $sub_op->sql( %opts, key_alias => $key_name );
@@ -153,8 +154,9 @@ sub logic
 	{
 		my $table = $sub_op->table;
 		if(
-		  !$sub_op->isa( "EPrints::Search::Condition::OrSubQuery" ) ||
-		  $table eq $opts{dataset}->get_sql_table_name
+		  (!$sub_op->isa( "EPrints::Search::Condition::OrSubQuery" ) ||
+		  $table eq $opts{dataset}->get_sql_table_name) &&
+		  !$sub_op->isa( "EPrints::Search::Condition::Or" )
 		  )
 		{
 			push @logic, $sub_op->logic( %opts );
