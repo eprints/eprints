@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 5;
+use Test::More tests => 7;
 use Digest::MD5;
 
 use strict;
@@ -8,6 +8,7 @@ use warnings;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
+BEGIN { use_ok( "EPrints::Test::RepositoryLog" ); }
 
 my $repoid = EPrints::Test::get_test_id();
 
@@ -18,6 +19,12 @@ if( !defined $ep ) { BAIL_OUT( "Could not obtain the EPrints System object" ); }
 my $repo = $ep->repository( $repoid );
 isa_ok( $repo, "EPrints::Repository", "Get a repository object ($repoid)" );
 if( !defined $repo ) { BAIL_OUT( "Could not obtain the Repository object" ); }
+
+EPrints::Test::RepositoryLog->logs; # clear logs
+my $phrase = $repo->phrase( "xxx_invalid" );
+my( $err ) = EPrints::Test::RepositoryLog->logs;
+diag($err);
+ok($err =~ /^Undefined phrase/, "invalid phrase triggers warning");
 
 SKIP: {
 	skip "Set EPRINTS_LANG_DUPES=n, n >= 1", 1

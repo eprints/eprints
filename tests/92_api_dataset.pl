@@ -1,12 +1,13 @@
 #!/usr/bin/perl
 
-use Test::More tests => 14;
+use Test::More tests => 15;
 
 use strict;
 use warnings;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
+BEGIN { use_ok( "EPrints::Test::RepositoryLog" ); }
 
 my $repoid = EPrints::Test::get_test_id();
 
