@@ -1095,7 +1095,7 @@ sub perform_search
 			searchexp => $self,
 		);
 		Scalar::Util::weaken( $self->{results} )
-			if defined &$Scalar::Util::weaken;
+			if defined &Scalar::Util::weaken;
 		return $self->{results};
 	}
 
@@ -1135,7 +1135,7 @@ sub perform_search
 		searchexp => $self,
 	);
 	Scalar::Util::weaken( $self->{results} )
-		if defined &$Scalar::Util::weaken;
+		if defined &Scalar::Util::weaken;
 
 	$self->{cache_id} = $self->{results}->get_cache_id;
 
