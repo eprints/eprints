@@ -1087,7 +1087,7 @@ sub perform_search
 	# cjg hmmm check cache still exists?
 	if( defined $self->{cache_id} )
 	{
-		$self->{results} = EPrints::List->new( 
+		my $results = $self->{results} = EPrints::List->new( 
 			session => $self->{session},
 			dataset => $self->{dataset},
 			encoded => $self->serialise,
@@ -1125,7 +1125,7 @@ sub perform_search
 		limit => $self->{limit},
 	);
 
-	$self->{results} = EPrints::List->new( 
+	my $results = $self->{results} = EPrints::List->new( 
 		session => $self->{session},
 		dataset => $self->{dataset},
 		encoded => $self->serialise,
