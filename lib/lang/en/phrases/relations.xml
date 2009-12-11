@@ -7,6 +7,10 @@
   <epp:phrase id="document_relation_typename_http://eprints.org/relation/hasVolatileVersion">hasVolatileVersion</epp:phrase>
   <epp:phrase id="document_relation_typename_http://eprints.org/relation/isVersionOf">isVersionOf</epp:phrase>
   <epp:phrase id="document_relation_typename_http://eprints.org/relation/hasVersion">hasVersion</epp:phrase>
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/issmallThumbnailVersionOf">issmallThumbnailVersionOf</epp:phrase>
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/hassmallThumbnailVersion">hassmallThumbnailVersion</epp:phrase>
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/ismediumThumbnailVersionOf">ismediumThumbnailVersionOf</epp:phrase>
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/hasmediumThumbnailVersion">hasmediumThumbnailVersion</epp:phrase>
   <epp:phrase id="document_relation_typename_http://eprints.org/relation/ispreviewThumbnailVersionOf">ispreviewThumbnailVersionOf</epp:phrase>
   <epp:phrase id="document_relation_typename_http://eprints.org/relation/haspreviewThumbnailVersion">haspreviewThumbnailVersion</epp:phrase>
   <epp:phrase id="document_relation_typename_http://eprints.org/relation/isIndexCodesVersionOf">isIndexCodesVersionOf</epp:phrase>
