@@ -137,7 +137,7 @@ sub joins
 			type => "inner",
 			table => $main_table,
 			alias => "$prefix$main_table",
-			key => $right_key,
+			logic => $db->quote_identifier( $opts{dataset}->get_sql_table_name, $left_key )."=".$db->quote_identifier( "$prefix$main_table", $right_key ),
 		};
 		if( $self->{field}->get_property( "multiple" ) )
 		{

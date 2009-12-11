@@ -27,7 +27,7 @@ Union of results of several sub conditions
 package EPrints::Search::Condition::Or;
 
 use EPrints::Search::Condition::Control;
-use Scalar::Util qw( refaddr );
+use Scalar::Util;
 
 @ISA = qw( EPrints::Search::Condition::Control );
 
@@ -70,10 +70,9 @@ sub optimise_specific
 	$keep_ops = [];
 	foreach my $sub_op ( @{$self->{sub_ops}} )
 	{
-		my $inner_dataset = $sub_op->dataset;
 		my $table = $sub_op->table;
 		# doesn't need a sub-query
-		if( !defined $inner_dataset )
+		if( !defined $table )
 		{
 			push @$keep_ops, $sub_op;
 		}
@@ -85,9 +84,11 @@ sub optimise_specific
 
 	foreach my $table (keys %tables)
 	{
-		push @$keep_ops, EPrints::Search::Condition::SubQuery->new(
+		# must do every condition using a subquery, otherwise we would need
+		# LEFT JOINs
+		push @$keep_ops, EPrints::Search::Condition::OrSubQuery->new(
 				$tables{$table}->[0]->dataset,
-				@{$tables{$table}}
+				@{$tables{$table}},
 			);
 	}
 	$self->{sub_ops} = $keep_ops;
@@ -102,7 +103,7 @@ sub joins
 	my $db = $opts{session}->get_database;
 	my $dataset = $opts{dataset};
 
-	my $alias = "or_".refaddr( $self );
+	my $alias = "or_".Scalar::Util::refaddr( $self );
 	my $key_name = $dataset->get_key_field->get_sql_name;
 
 	my @unions;

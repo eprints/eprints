@@ -45,48 +45,45 @@ sub optimise
 {
 	my( $self, %opts ) = @_;
 
-	my $tree = $self;
-
-	my @new_sub_ops = ();
-	foreach my $sub_op ( @{$tree->{sub_ops}} )
-	{
-		push @new_sub_ops, $sub_op->optimise( %opts );
-	}
-	$tree->{sub_ops} = \@new_sub_ops;
-
 	# flatten sub opts with the same type
 	# so OR( A, OR( B, C ) ) becomes OR(A,B,C)
-	my $flat_ops = [];
-	foreach my $sub_op ( @{$tree->{sub_ops}} )
+	my $keep_ops = [];
+	foreach my $sub_op ( @{$self->{sub_ops}} )
 	{
-		if( $sub_op->{op} eq $tree->{op} )
+		if( $sub_op->{op} eq $self->{op} )
 		{
-			push @{$flat_ops}, @{$sub_op->{sub_ops}};
+			push @{$keep_ops}, @{$sub_op->{sub_ops}};
 		}
 		else
 		{
-			push @{$flat_ops}, $sub_op;
+			push @{$keep_ops}, $sub_op;
 		}
 	}
-	$tree->{sub_ops} = $flat_ops;
+	$self->{sub_ops} = $keep_ops;
+
+	$keep_ops = [];
+	foreach my $sub_op ( @{$self->{sub_ops}} )
+	{
+		push @$keep_ops, $sub_op->optimise( %opts );
+	}
+	$self->{sub_ops} = $keep_ops;
 
 	# control-specific condition stuff
-	$tree = $tree->optimise_specific( %opts );
-
+	$self = $self->optimise_specific( %opts );
 
 	# no items, match nothing.
-	if( !defined $tree->{sub_ops} || scalar @{$tree->{sub_ops}} == 0 )
+	if( !defined $self->{sub_ops} || scalar @{$self->{sub_ops}} == 0 )
 	{
-		return EPrints::Search::Condition::True->new();
+		return EPrints::Search::Condition::Pass->new();
 	}
 
 	# only one sub option, just return it.
-	if( scalar @{$tree->{sub_ops}} == 1 )
+	if( scalar @{$self->{sub_ops}} == 1 )
 	{
-		return $tree->{sub_ops}->[0];
+		return $self->{sub_ops}->[0];
 	}
 
-	return $tree;
+	return $self;
 }
 
 1;

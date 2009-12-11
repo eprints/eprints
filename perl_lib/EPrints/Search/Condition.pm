@@ -79,6 +79,8 @@ use EPrints::Search::Condition::IsNull;
 use EPrints::Search::Condition::Comparison;
 use EPrints::Search::Condition::Regexp;
 use EPrints::Search::Condition::SubQuery;
+use EPrints::Search::Condition::AndSubQuery;
+use EPrints::Search::Condition::OrSubQuery;
 
 use Scalar::Util qw( refaddr );
 
@@ -463,6 +465,7 @@ sub sql
 		}
 	}
 
+#print STDERR $self->describe;
 #print STDERR "\nsql=$sql\n\n";
 
 	return $sql;
@@ -622,7 +625,7 @@ top level object.
 
 sub optimise
 {
-	my( $self, $internal ) = @_;
+	my( $self, %opts ) = @_;
 
 	return $self;
 }

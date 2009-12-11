@@ -27,7 +27,7 @@ SubQuery is used internally by the search optimisation to make OR queries on the
 package EPrints::Search::Condition::SubQuery;
 
 use EPrints::Search::Condition;
-use Scalar::Util qw( refaddr );
+use Scalar::Util;
 
 @ISA = qw( EPrints::Search::Condition );
 
@@ -38,10 +38,11 @@ sub new
 	my( $class, @params ) = @_;
 
 	my $self = bless {
-			op => "SubQuery",
+			op => $class,
 			dataset => shift(@params),
 			sub_ops => \@params
 		}, $class;
+	$self->{op} =~ s/^.*:://;
 
 	return $self;
 }
@@ -66,7 +67,7 @@ sub alias
 
 	my $alias = lc(ref($self));
 	$alias =~ s/^.*:://;
-	$alias .= "_".refaddr($self);
+	$alias .= "_".Scalar::Util::refaddr($self);
 
 	return $alias;
 }
@@ -77,7 +78,14 @@ sub key_alias
 
 	my $dataset = $opts{dataset};
 
-	return $dataset->get_key_field->get_sql_name . "_" . refaddr($self);
+	return $dataset->get_key_field->get_sql_name . "_" . Scalar::Util::refaddr($self);
+}
+
+sub table
+{
+	my( $self ) = @_;
+
+	return $self->{sub_ops}->[0]->table;
 }
 
 1;
