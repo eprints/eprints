@@ -1092,9 +1092,10 @@ sub perform_search
 			dataset => $self->{dataset},
 			encoded => $self->serialise,
 			cache_id => $self->{cache_id}, 
-			desc => $self->render_conditions_description,
-			desc_order => $self->render_order_description,
+			searchexp => $self,
 		);
+		Scalar::Util::weaken( $self->{results} )
+			if defined &$Scalar::Util::weaken;
 		return $self->{results};
 	}
 
@@ -1131,9 +1132,10 @@ sub perform_search
 		keep_cache => $self->{keep_cache},
 		ids => $unsorted_matches, 
 		cache_id => (defined $cachemap ? $cachemap->get_id : undef ),
-		desc => $self->render_conditions_description,
-		desc_order => $self->render_order_description,
+		searchexp => $self,
 	);
+	Scalar::Util::weaken( $self->{results} )
+		if defined &$Scalar::Util::weaken;
 
 	$self->{cache_id} = $self->{results}->get_cache_id;
 

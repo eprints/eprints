@@ -166,8 +166,7 @@ sub new
 	$self->{encoded} = $opts{encoded};
 	$self->{cache_id} = $opts{cache_id};
 	$self->{keep_cache} = $opts{keep_cache};
-	$self->{desc} = $opts{desc};
-	$self->{desc_order} = $opts{desc_order};
+	$self->{searchexp} = $opts{searchexp};
 
 	if( !defined $self->{cache_id} && !defined $self->{ids} ) 
 	{
@@ -237,7 +236,7 @@ sub reorder
 	my $new_list = EPrints::List->new( 
 		session=>$self->{session},
 		dataset=>$self->{dataset},
-		desc=>$self->{desc}, # don't pass desc_order!
+		searchexp=>$self->{searchexp},
 		order=>$new_order,
 		keep_cache=>$self->{keep_cache},
 		cache_id => $new_cache_id );
@@ -465,6 +464,8 @@ sub dispose
 			delete $self->{cache_id};
 		}
 	}
+
+	%$self = ();
 }
 
 
@@ -764,14 +765,14 @@ sub render_description
 
 	my $frag = $self->{session}->make_doc_fragment;
 
-	if( defined $self->{desc} )
+	if( defined $self->{searchexp} )
 	{
-		$frag->appendChild( $self->{session}->clone_for_me( $self->{desc}, 1 ) );
-		$frag->appendChild( $self->{session}->make_text( " " ) );
-	}
-	if( defined $self->{desc_order} )
-	{
-		$frag->appendChild( $self->{session}->clone_for_me( $self->{desc_order}, 1 ) );
+		$frag->appendChild( $self->{searchexp}->render_description );
+		if( !defined $self->{order} )
+		{
+			$frag->appendChild( $self->{session}->make_text( " " ) );
+			$frag->appendChild( $self->{searchexp}->render_order_description );
+		}
 	}
 
 	return $frag;
