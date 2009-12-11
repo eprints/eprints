@@ -15,7 +15,7 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
-	$self->{name} = "Multiline Execl";
+	$self->{name} = "Multiline Excel";
 	$self->{accept} = [ 'list/eprint' ];
 	$self->{visible} = "staff";
 	$self->{suffix} = ".xls";
