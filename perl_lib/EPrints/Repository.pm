@@ -5652,9 +5652,6 @@ sub init_from_request
 {
 	my( $self, $request ) = @_;
 
-	# ensure our output stream is UTF8
-	binmode( *STDOUT, ":utf8" );
-
 	if( defined $self->{request} )
 	{
 		# we're in a sub-request
