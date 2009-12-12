@@ -251,7 +251,7 @@ sub get_system_field_info
 
 	{ 'name' => 'sword_slug', 'type' => 'text' },
 
-	{ 'name' => 'edit_lock', 'type' => 'compound', volatile => 1,
+	{ 'name' => 'edit_lock', 'type' => 'compound', volatile => 1, export_as_xml=>0,
 		'fields' => [
 			{ 'sub_name' => 'user',  'type' => 'itemref', 'datasetid' => 'user', sql_index=>0 },
 			{ 'sub_name' => 'since', 'type' => 'int', sql_index=>0 },
@@ -263,6 +263,8 @@ sub get_system_field_info
 		'name' => 'rdf',
 		'type' => 'compound',
 		'multiple' => 1,
+		export_as_xml=>0,
+		volatile=>1,
 		'fields' => [
 			{ 'sub_name' => 'resource',  'type' => 'longtext', sql_index => 1, text_index=>0 },
 			{ 'sub_name' => 'subject',   'type' => 'longtext', sql_index => 0, text_index=>0 },
