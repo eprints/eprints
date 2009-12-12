@@ -1,3 +1,17 @@
+######################################################################
+#
+# EPrints::Apache::Storage
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2009 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
 package EPrints::Apache::Storage;
 
 # This handler serves document files and thumbnails

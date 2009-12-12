@@ -1,3 +1,17 @@
+######################################################################
+#
+# EPrints::Apache::WebDAV
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2009 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
 package EPrints::Apache::WebDAV;
 
 use EPrints;
