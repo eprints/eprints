@@ -147,6 +147,7 @@ $c->{fields}->{eprint} = [
             'name' => 'suggestions',
             'type' => 'longtext',
             'render_value' => 'EPrints::Extras::render_highlighted_field',
+            'export_as_xml' => 0, 
           },
 
           {
