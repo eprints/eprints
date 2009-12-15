@@ -4254,16 +4254,26 @@ sub get_driver_name
 	return ref($self)." [DBI $DBI::VERSION, DBD::$dbd $dbd_version]";
 }
 
-sub dequeue_event
+=pod
+
+=for INTERNAL
+
+=item @events = $db->dequeue_events( $n )
+
+Attempt to dequeue upto $n events. May return between 0 and $n events depending on parallel processes and how many events are remaining on the queue.
+
+=cut
+
+sub dequeue_events
 {
-	my( $self ) = @_;
+	my( $self, $n ) = @_;
 
 	my $session = $self->{session};
 	my $dataset = $session->get_repository->get_dataset( "event_queue" );
 
 	my $until = EPrints::Time::get_iso_timestamp();
 
-	my $event;
+	my @events;
 
 	my $searchexp = EPrints::Search->new(
 		session => $session,
@@ -4273,7 +4283,7 @@ sub dequeue_event
 			{ meta_fields => ["start_time"], value => "-$until", match => "EQ" },
 		],
 		custom_order => "-priority/-start_time",
-		limit => 1,
+		limit => $n,
 		);
 
 	my $sql = "UPDATE ".
@@ -4284,14 +4294,17 @@ sub dequeue_event
 		$self->quote_value( "inprogress" ).
 		" WHERE ".
 		$self->quote_identifier( $dataset->key_field->get_sql_name ).
-		"=?";
+		"=?".
+		" AND ".
+		$self->quote_identifier( $dataset->field( "status" )->get_sql_name ).
+		"=".
+		$self->quote_value( "waiting" );
 
-	while(1)
+	my @potential = $searchexp->perform_search->slice( 0, $n );
+
+	foreach my $event (@potential)
 	{
-		( $event ) = $searchexp->perform_search->get_records( 0, 1 );
-		last if !defined $event; # nothing to do
-
-		my $rows = $self->{dbh}->do( $sql, {}, $event->get_id );
+		my $rows = $self->{dbh}->do( $sql, {}, $event->id );
 		if( $rows == -1 )
 		{
 			EPrints::abort( "Error in SQL: $sql\n".$self->{dbh}->{errstr} );
@@ -4299,7 +4312,7 @@ sub dequeue_event
 		elsif( $rows == 1 )
 		{
 			$event->set_value( "status", "inprogress" );
-			last;
+			push @events, $event;
 		}
 		else
 		{
@@ -4307,7 +4320,7 @@ sub dequeue_event
 		}
 	}
 
-	return $event;
+	return @events;
 }
 
 =item $sql = $db->prepare_regexp( $quoted_column, $quoted_value )

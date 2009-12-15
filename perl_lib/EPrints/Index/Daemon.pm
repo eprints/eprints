@@ -669,36 +669,39 @@ sub _run_index
 {
 	my( $self, $session ) = @_;
 
-	my $event = $session->get_database->dequeue_event();
-	return 0 unless defined $event;
-
-	if( $self->{noise} >= 5 )
+	my @events = $session->get_database->dequeue_events( 10 );
+	foreach my $event (@events)
 	{
-		my $pluginid = $event->value( "pluginid" );
-		my $action = $event->value( "action" );
-		my $params = $event->value( "params" );
+		if( $self->{noise} >= 5 )
+		{
+			my $pluginid = $event->value( "pluginid" );
+			my $action = $event->value( "action" );
+			my $params = $event->value( "params" );
 
-		$self->log( 5, $session->get_id.": ${pluginid}->${action}(".($params?join( ",",@$params):"").")");
+			my $citation = $event->render_citation();
+			$self->log( 5, $session->get_id.": ".EPrints::Utils::tree_to_utf8( $citation ) );
+			$session->xml->dispose( $citation );
+		}
+
+		my $rc = $event->execute;
+		if( $rc )
+		{
+			$event->set_value( "status", "success" );
+			$event->commit;
+		}
+		else
+		{
+			$self->log( 3, "** event ".$event->get_id." failed" );
+			$event->set_value( "status", "failed" );
+			$event->commit();
+		}
+		if( !$event->is_set( "oneshot" ) || $event->value( "oneshot" ) eq "TRUE" )
+		{
+			$event->remove();
+		}
 	}
 
-	my $rc = $event->execute;
-	if( $rc )
-	{
-		$event->set_value( "status", "success" );
-		$event->commit;
-	}
-	else
-	{
-		$self->log( 3, "** event ".$event->get_id." failed" );
-		$event->set_value( "status", "failed" );
-		$event->commit();
-	}
-	if( !$event->is_set( "oneshot" ) || $event->value( "oneshot" ) eq "TRUE" )
-	{
-		$event->remove();
-	}
-
-	return 1; # seen action, even if it is to fail
+	return @events > 0; # seen action, even if it is to fail
 }
 
 # is it time to respawn the indexer/roll the logs?
