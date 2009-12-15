@@ -195,7 +195,7 @@ being mentioned in the description of the search.
 
 @EPrints::Search::OPTS = (
 	"session", 	"dataset", 	"allow_blank", 	
-	"satisfy_all", 	"fieldnames", 	"staff", 	
+	"satisfy_all", 	"staff", 	
 	"custom_order", "keep_cache", 	"cache_id", 	
 	"prefix", 	"defaults", 	"filters", 
 	"search_fields","show_zero_results", "show_help",
@@ -212,7 +212,6 @@ sub new
 	# setup defaults for the others:
 	$data{allow_blank} = 0 if ( !defined $data{allow_blank} );
 	$data{satisfy_all} = 1 if ( !defined $data{satisfy_all} );
-	$data{fieldnames} = [] if ( !defined $data{fieldnames} );
 	$data{prefix} = "" if ( !defined $data{prefix} );
 
 	if( 
@@ -258,15 +257,6 @@ END
 	$self->{filterfields} = {};
 	# Map for MetaField names -> corresponding EPrints::Search::Field objects
 	$self->{searchfieldmap} = {};
-
-	if( $self->{fieldnames} eq "editpermfields" )
-	{
-		$self->{search_fields}= [];
-		foreach( @{ $self->{session}->get_repository->get_conf( "editor_limit_fields" )} )
-		{
-			push @{$self->{search_fields}}, { meta_fields=>[$_] };	
-		}
-	}
 
 	foreach my $fielddata (@{$self->{search_fields}})
 	{

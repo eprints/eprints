@@ -180,7 +180,7 @@ sub get_system_field_info
 			input_boxes => 1,
 			type => "search", 
 			datasetid => "eprint",
-			fieldnames => "editpermfields",
+			fieldnames_config => "editor_limit_fields",
 		},
 
 		{ name => "permission_group", multiple => 1, type => "namedset", 

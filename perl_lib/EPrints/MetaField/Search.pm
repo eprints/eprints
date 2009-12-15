@@ -69,25 +69,46 @@ sub make_searchexp
 {
 	my( $self, $session, $value, $basename ) = @_;
 
-	my $ds = $session->get_repository->get_dataset( 
-			$self->{datasetid} );	
-	my $fieldnames = $self->get_property( "fieldnames" );
+	my $dataset = $session->get_repository->get_dataset( $self->{datasetid} );
 
 	my $searchexp = EPrints::Search->new(
 		session => $session,
-		dataset => $ds,
-		prefix => $basename,
-		fieldnames => $fieldnames );
+		dataset => $dataset,
+		prefix => $basename );
 
-	# don't limit the deserialising unless there are fieldnames
-	# defined.	
-	if( defined $fieldnames )
+	my $fields;
+	my $conf_key = $self->get_property( "fieldnames_config" );
+	if( defined($conf_key) )
 	{
-		$searchexp->from_string( $value );
+		$fields = $session->get_repository->get_conf( $conf_key );
 	}
 	else
 	{
-		$searchexp->from_string_raw( $value );
+		$fields = $self->get_property( "fieldnames" );
+	}
+
+	$fields = [] if !defined $fields;
+
+	foreach my $fieldname (@$fields)
+	{
+		if( !$dataset->has_field( $fieldname ) )
+		{
+			$session->get_repository->log( "Field specified in search field configuration $conf_key does not exist in dataset ".$dataset->confid.": $fieldname" );
+			next;
+		}
+		$searchexp->add_field( $dataset->get_field( $fieldname ) );
+	}
+
+	if( defined $value )
+	{
+		if( scalar @$fields )
+		{
+			$searchexp->from_string( $value );
+		}
+		else
+		{
+			$searchexp->from_string_raw( $value );
+		}
 	}
 
 	return $searchexp;
@@ -105,10 +126,7 @@ sub get_basic_input_elements
 
 	# cjg - make help an option?
 
-	my $searchexp = $self->make_searchexp( 
-		$session,
-		$value,
-		$basename."_" );
+	my $searchexp = $self->make_searchexp( $session, $value, $basename."_" );
 
 	foreach my $sf ( $searchexp->get_non_filter_searchfields )
 	{
@@ -130,13 +148,7 @@ sub form_value_basic
 {
 	my( $self, $session, $basename ) = @_;
 	
-	my $ds = $session->get_repository->get_dataset( 
-			$self->{datasetid} );	
-	my $searchexp = EPrints::Search->new(
-		session => $session,
-		dataset => $ds,
-		prefix => $basename."_",
-		fieldnames => $self->get_property( "fieldnames" ) );
+	my $searchexp = $self->make_searchexp( $session, undef, $basename."_" );
 
 	foreach my $sf ( $searchexp->get_non_filter_searchfields )
 	{
@@ -164,7 +176,8 @@ sub get_property_defaults
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{datasetid} = $EPrints::MetaField::REQUIRED;
-	$defaults{fieldnames} = $EPrints::MetaField::UNDEF;;
+	$defaults{fieldnames} = $EPrints::MetaField::UNDEF;
+	$defaults{fieldnames_config} = $EPrints::MetaField::UNDEF;
 	return %defaults;
 }
 
