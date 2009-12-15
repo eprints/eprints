@@ -978,13 +978,7 @@ sub map
 {
 	my( $self, $session, $fn, $info ) = @_;
 
-	my $searchexp = EPrints::Search->new(
-		allow_blank => 1,
-		dataset => $self,
-		session => $session );
-	$searchexp->perform_search();
-	$searchexp->map( $fn, $info );
-	$searchexp->dispose();
+	$self->search->map( $fn, $info );
 }
 
 
