@@ -69,12 +69,12 @@ sub joins
 	else
 	{
 		my $main_table = $opts{dataset}->get_sql_table_name;
-		my $alias = $main_table."_".refaddr($self);
+		my $alias = $main_table."_".Scalar::Util::refaddr($self);
 		my $key_field = $opts{dataset}->get_key_field;
 		my $sql = "";
 		$sql = $db->quote_identifier( $main_table )." ".$db->quote_identifier( $alias );
 		$sql .= " INNER JOIN ".$db->quote_identifier( "subject_ancestors" );
-		$sql .= " ON ".$db->quote_identifier( $main_table, $sql_name )."=".$db->quote_identifier( "subject_ancestors", "subjectid" );
+		$sql .= " ON ".$db->quote_identifier( $alias, $sql_name )."=".$db->quote_identifier( "subject_ancestors", "subjectid" );
 		return {
 			type => "inner",
 			subquery => $sql,

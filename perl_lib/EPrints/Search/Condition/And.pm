@@ -129,7 +129,7 @@ sub joins
 		{
 			push @intersects, $sub_op->sql( %opts, key_alias => $key_name );
 		}
-		elsif( !$seen{$table} )
+		else
 		{
 			push @joins, $sub_op->joins( %opts );
 			$seen{$table} = 1;
