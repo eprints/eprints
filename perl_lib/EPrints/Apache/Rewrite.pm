@@ -106,6 +106,14 @@ sub handler
 		return DECLINED;
 	}
 
+	# REST
+
+	if( $uri =~ m! ^$urlpath/rest !x )
+	{
+	 	$r->set_handlers(PerlResponseHandler => \&EPrints::Apache::REST::handler );
+		return DECLINED;
+	}
+
 	# URI redirection
 
 	if( $uri =~ m! ^$urlpath/id/x-(.*)$ !x )

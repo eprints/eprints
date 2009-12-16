@@ -91,6 +91,7 @@ use EPrints::Apache::Rewrite;
 use EPrints::Apache::VLit;
 use EPrints::Apache::Template;
 use EPrints::Apache::Storage;
+use EPrints::Apache::REST;
 1;';
 		if( $@ ) { abort( $@ ); }
 	}

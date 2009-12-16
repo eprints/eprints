@@ -4612,6 +4612,7 @@ sub redirect
 		$url );
 
 	EPrints::Apache::AnApache::send_http_header( $self->{"request"}, %opts );
+	return 302;
 }
 
 ######################################################################
@@ -4643,6 +4644,7 @@ sub not_found
 	}
 
 	EPrints::Apache::AnApache::send_status_line( $self->{"request"}, 404, $message );
+	return 404;
 }
 
 ######################################################################
