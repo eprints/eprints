@@ -626,7 +626,11 @@ Write the given XML node $node to file $filename with an XHTML doctype.
 
 sub write_xhtml_file
 {
-	my( $node, $filename ) = @_;
+	my( $node, $filename, %options ) = @_;
+
+	EPrints::Utils::process_parameters( \%options, {
+		   add_doctype => 1,
+	});
 
 	unless( open( XMLFILE, ">$filename" ) )
 	{
@@ -635,10 +639,16 @@ Can't open to write to XHTML file: $filename
 END
 		return;
 	}
-	print XMLFILE <<END;
+
+	binmode( XMLFILE, ":utf8" );
+
+	if( $options{add_doctype} )
+	{
+		print XMLFILE <<END;
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 END
+	}
 
 	print XMLFILE EPrints::XML::to_string( $node, "utf-8", 1 );
 

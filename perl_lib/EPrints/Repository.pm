@@ -4247,188 +4247,16 @@ template=>"The template to use instead of default."
 =cut
 ######################################################################
 # move to compat module?
+
 sub build_page
 {
 	my( $self, $title, $mainbit, $page_id, $links, $template ) = @_;
 	$self->prepare_page( { title=>$title, page=>$mainbit, pagetop=>undef,head=>$links}, page_id=>$page_id, template=>$template );
 }
-
-
 sub prepare_page
 {
 	my( $self, $map, %options ) = @_;
-
-	unless( $self->{offline} || !defined $self->{query} )
-	{
-		my $mo = $self->param( "mainonly" );
-		if( defined $mo && $mo eq "yes" )
-		{
-			$self->{page} = $map->{page};
-			return;
-		}
-
-		my $dp = $self->param( "edit_phrases" );
-		# phrase debugging code.
-
-		if( defined $dp && $dp eq "yes" )
-		{
-			my $current_user = $self->current_user;	
-			if( defined $current_user && $current_user->allow( "config/edit/phrase" ) )
-			{
-				my $phrase_screen = $self->plugin( "Screen::Admin::Phrases",
-		  			phrase_ids => [ sort keys %{$self->{used_phrases}} ] );
-				$map->{page} = $self->make_doc_fragment;
-				my $url = $self->get_full_url;
-				my( $a, $b ) = split( /\?/, $url );
-				my @parts = ();
-				foreach my $part ( split( "&", $b ) )	
-				{
-					next if( $part =~ m/^edit(_|\%5F)phrases=yes$/ );
-					push @parts, $part;
-				}
-				$url = $a."?".join( "&", @parts );
-				my $div = $self->make_element( "div", style=>"margin-bottom: 1em" );
-				$map->{page}->appendChild( $div );
-				$div->appendChild( $self->html_phrase( "lib/session:phrase_edit_back",
-					link => $self->render_link( $url ),
-					page_title => $self->clone_for_me( $map->{title},1 ) ) );
-				$map->{page}->appendChild( $phrase_screen->render );
-				$map->{title} = $self->html_phrase( "lib/session:phrase_edit_title",
-					page_title => $map->{title} );
-			}
-		}
-	}
-	
-	if( $self->get_repository->get_conf( "dynamic_template","enable" ) )
-	{
-		if( $self->get_repository->can_call( "dynamic_template", "function" ) )
-		{
-			$self->get_repository->call( [ "dynamic_template", "function" ],
-				$self,
-				$map );
-		}
-	}
-
-	my $pagehooks = $self->get_repository->get_conf( "pagehooks" );
-	$pagehooks = {} if !defined $pagehooks;
-	my $ph = $pagehooks->{$options{page_id}} if defined $options{page_id};
-	$ph = {} if !defined $ph;
-	if( defined $options{page_id} )
-	{
-		$ph->{bodyattr}->{id} = "page_".$options{page_id};
-	}
-
-	# only really useful for head & pagetop, but it might as
-	# well support the others
-
-	foreach( keys %{$map} )
-	{
-		next if( !defined $ph->{$_} );
-
-		my $pt = $self->make_doc_fragment;
-		$pt->appendChild( $map->{$_} );
-		my $ptnew = $self->clone_for_me(
-			$ph->{$_},
-			1 );
-		$pt->appendChild( $ptnew );
-		$map->{$_} = $pt;
-	}
-
-	if( !defined $options{template} )
-	{
-		if( $self->get_secure )
-		{
-			$options{template} = "secure";
-		}
-		else
-		{
-			$options{template} = "default";
-		}
-	}
-
-	my $parts = $self->get_repository->get_template_parts( 
-				$self->get_langid, 
-				$options{template} );
-	my @output = ();
-	my $is_html = 0;
-
-	foreach my $bit ( @{$parts} )
-	{
-		$is_html = !$is_html;
-
-		if( $is_html )
-		{
-			push @output, $bit;
-			next;
-		}
-
-		# either 
-		#  print:epscript-expr
-		#  pin:id-of-a-pin
-		#  pin:id-of-a-pin.textonly
-		#  phrase:id-of-a-phrase
-		my( @parts ) = split( ":", $bit );
-		my $type = shift @parts;
-
-		if( $type eq "print" )
-		{
-			my $expr = join "", @parts;
-			my $result = EPrints::XML::to_string( EPrints::Script::print( $expr, { session=>$self } ), undef, 1 );
-			push @output, $result;
-			next;
-		}
-
-		if( $type eq "phrase" )
-		{	
-			my $phraseid = join "", @parts;
-			push @output, EPrints::XML::to_string( $self->html_phrase( $phraseid ), undef, 1 );
-			next;
-		}
-
-		if( $type eq "pin" )
-		{	
-			my $pinid = shift @parts;
-			my $modifier = shift @parts;
-			if( defined $modifier && $modifier eq "textonly" )
-			{
-				my $text;
-				if( defined $map->{"utf-8.".$pinid.".textonly"} )
-				{
-					$text = $map->{"utf-8.".$pinid.".textonly"};
-				}
-				elsif( defined $map->{$pinid} )
-				{
-					# don't convert href's to <http://...>'s
-					$text = EPrints::Utils::tree_to_utf8( $map->{$pinid}, undef, undef, undef, 1 ); 
-				}
-
-				# else no title
-				next unless defined $text;
-
-				# escape any entities in the text (<>&" etc.)
-				my $xml = $self->make_text( $text );
-				push @output, EPrints::XML::to_string( $xml, undef, 1 );
-				EPrints::XML::dispose( $xml );
-				next;
-			}
-	
-			if( defined $map->{"utf-8.".$pinid} )
-			{
-				push @output, $map->{"utf-8.".$pinid};
-			}
-			elsif( defined $map->{$pinid} )
-			{
-#EPrints::XML::tidy( $map->{$pinid} );
-				push @output, EPrints::XML::to_string( $map->{$pinid}, undef, 1 );
-			}
-		}
-
-		# otherwise this element is missing. Leave it blank.
-	
-	}
-	$self->{text_page} = join( "", @output );
-
-	return;
+	$self->{page} = $self->xhtml->page( $map, %options );
 }
 
 
@@ -4450,32 +4278,9 @@ Dispose of the XML once it's sent out.
 sub send_page
 {
 	my( $self, %httpopts ) = @_;
-	$self->send_http_header( %httpopts );
-	print <<END;
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-END
-	if( defined $self->{text_page} )
-	{
-		binmode(STDOUT,":utf8");
-		eval { print $self->{text_page}; };
-		if( $@ && $@ !~ m/^Software caused connection abort/ )
-		{
-			EPrints::abort( "Error in send_page: $@" );	
-		}
-	}
-	else
-	{
-		binmode(STDOUT,":utf8");
-		eval { print EPrints::XML::to_string( $self->{page}, undef, 1 ); };
-		if( $@ && $@ !~ m/^Software caused connection abort/ )
-		{
-			EPrints::abort( "Error in send_page: $@" );	
-		}
-		EPrints::XML::dispose( $self->{page} );
-		delete $self->{page};
-	}
-	delete $self->{text_page};
+
+	$self->{page}->send( %httpopts );
+	delete $self->{page};
 }
 
 
@@ -4500,35 +4305,9 @@ sub page_to_file
 {
 	my( $self , $filename, $wrote_files ) = @_;
 	
-	if( defined $self->{text_page} )
-	{
-		unless( open( XMLFILE, ">$filename" ) )
-		{
-			EPrints::abort( <<END );
-Can't open to write to XML file: $filename
-END
-		}
-		if( defined $wrote_files )
-		{
-			$wrote_files->{$filename} = 1;
-		}
-		binmode(XMLFILE,":utf8");
-		print XMLFILE $self->{text_page};
-		close XMLFILE;
-	}
-	else
-	{
-		EPrints::XML::write_xhtml_file( $self->{page}, $filename );
-		if( defined $wrote_files )
-		{
-			$wrote_files->{$filename} = 1;
-		}
-		EPrints::XML::dispose( $self->{page} );
-	}
+	$self->{page}->write_to_file( $filename, $wrote_files );
 	delete $self->{page};
-	delete $self->{text_page};
 }
-
 
 ######################################################################
 =pod
@@ -4549,11 +4328,7 @@ sub set_page
 {
 	my( $self, $newhtml ) = @_;
 	
-	if( defined $self->{page} )
-	{
-		EPrints::XML::dispose( $self->{page} );
-	}
-	$self->{page} = $newhtml;
+	$self->{page} = EPrints::Page::DOM->new( $self, $newhtml );
 }
 
 
