@@ -611,9 +611,10 @@ sub run_index
 			eval {
 				local $SIG{ALRM} = sub { die "alarm\n" };
 				alarm($self->get_timeout);
-				$seen_action ||= $self->_run_index( $session, {
+				my $indexer_did_something = $self->_run_index( $session, {
 					loglevel => $self->{noise},
 				});
+				$seen_action = 1 if $indexer_did_something;
 				alarm(0);
 			};
 			if( $@ )
