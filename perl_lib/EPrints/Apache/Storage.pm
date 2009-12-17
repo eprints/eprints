@@ -27,29 +27,29 @@ sub handler
 
 	my $rc = OK;
 
-	my $session = EPrints::Session->new();
+	my $repo = $EPrints::HANDLE->current_repository();
 
 	my $datasetid = $r->pnotes( "datasetid" );
-	my $dataset = $session->get_repository->get_dataset( $datasetid );
+	my $dataset = $repo->dataset( $datasetid );
 	return 404 unless defined $dataset;
 
 	my $filename = $r->pnotes( "filename" );
 	return 404 unless defined $filename;
 
 	my $dataobj;
-	if( $dataset->confid eq "document" && !defined $r->pnotes( "docid" ) )
+	if( $dataset->base_id eq "document" && !defined $r->pnotes( "docid" ) )
 	{
 		$dataobj = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
-				$session,
+				$repo,
 				$r->pnotes( "eprintid" ),
 				$r->pnotes( "pos" )
 			);
 	}
 	else
 	{
-		my $id = $r->pnotes( $dataset->get_key_field->get_name );
+		my $id = $r->pnotes( $dataset->key_field->name );
 		return 404 unless defined $id;
-		$dataobj = $dataset->get_object( $session, $id );
+		$dataobj = $dataset->dataobj( $id );
 	}
 
 	return 404 unless defined $dataobj;
@@ -67,7 +67,7 @@ sub handler
 
 	$r->pnotes( dataobj => $dataobj );
 
-	$rc = check_auth( $session, $r, $dataobj );
+	$rc = check_auth( $repo, $r, $dataobj );
 
 	if( $rc != OK )
 	{
@@ -82,7 +82,7 @@ sub handler
 	my $url = $fileobj->get_remote_copy();
 	if( defined $url )
 	{
-		$session->redirect( $url );
+		$repo->redirect( $url );
 
 		return $rc;
 	}
@@ -100,7 +100,7 @@ sub handler
 	);
 
 	# Can use download=1 to force a download
-	my $download = $session->param( "download" );
+	my $download = $repo->param( "download" );
 	if( $download )
 	{
 		EPrints::Apache::AnApache::header_out(
@@ -116,7 +116,7 @@ sub handler
 		);
 	}
 
-	$session->send_http_header(
+	$repo->send_http_header(
 		content_type => $content_type,
 	);
 
@@ -137,45 +137,38 @@ sub handler
 		EPrints::abort( "Error in file retrieval: failed to get file contents" );
 	}
 
-	if( !$fileobj->write_copy_fh( \*STDOUT ) )
-	{
-		EPrints::abort( "Error in file retrieval: failed to get file contents" );
-	}
-
-	$session->terminate;
-
 	return $rc;
 }
 
 sub check_auth
 {
-	my( $session, $r, $doc ) = @_;
+	my( $repo, $r, $doc ) = @_;
 
-	my $security = $doc->get_value( "security" );
+	my $security = $doc->value( "security" );
 
-	my $result = $session->get_repository->call( "can_request_view_document", $doc, $r );
+	my $result = $repo->call( "can_request_view_document", $doc, $r );
 
 	return OK if( $result eq "ALLOW" );
 	return FORBIDDEN if( $result eq "DENY" );
 	if( $result ne "USER" )
 	{
-		$session->get_repository->log( "Response from can_request_view_document was '$result'. Only ALLOW, DENY, USER are allowed." );
+		$repo->log( "Response from can_request_view_document was '$result'. Only ALLOW, DENY, USER are allowed." );
 		return FORBIDDEN;
 	}
 
 	my $rc;
-	if( $session->get_archive->get_conf( "cookie_auth" ) ) 
+	if( $repo->config( "cookie_auth" ) ) 
 	{
-		$rc = EPrints::Apache::Auth::auth_cookie( $r, $session, 1 );
+		$rc = EPrints::Apache::Auth::auth_cookie( $r, $repo, 1 );
 	}
 	else
 	{
-		$rc = EPrints::Apache::Auth::auth_basic( $r, $session );
+		$rc = EPrints::Apache::Auth::auth_basic( $r, $repo );
 	}
 
 	if( $rc eq OK )
 	{
-		my $user = $session->current_user;
+		my $user = $repo->current_user;
 		return FORBIDDEN unless defined $user; # Shouldn't happen
 		$rc = $doc->user_can_view( $user ) ? OK : FORBIDDEN;
 	}
