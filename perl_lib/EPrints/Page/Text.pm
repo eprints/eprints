@@ -14,6 +14,10 @@
 
 package EPrints::Page::Text;
 
+@ISA = qw/ EPrints::Page /;
+
+use strict;
+
 sub new
 {
 	my( $class, $repository, $page_text, %options ) = @_;

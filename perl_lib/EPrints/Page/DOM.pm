@@ -14,7 +14,9 @@
 
 package EPrints::Page::DOM;
 
-our @ISA = qw/ EPrints::Page /;
+@ISA = qw/ EPrints::Page /;
+
+use strict;
 
 sub new
 {
