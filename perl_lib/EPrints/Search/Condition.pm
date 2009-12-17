@@ -243,6 +243,18 @@ sub table
 	return $self->{field}->{dataset}->get_sql_table_name();
 }
 
+=item $bool = $scond->is_empty()
+
+Returns true if this search condition is empty and should be ignored.
+
+=cut
+
+sub is_empty
+{
+	my( $self ) = @_;
+
+	return 0;
+}
 
 ######################################################################
 =pod

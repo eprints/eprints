@@ -71,12 +71,6 @@ sub optimise
 	# control-specific condition stuff
 	$self = $self->optimise_specific( %opts );
 
-	# no items, match nothing.
-	if( !defined $self->{sub_ops} || scalar @{$self->{sub_ops}} == 0 )
-	{
-		return EPrints::Search::Condition::Pass->new();
-	}
-
 	# only one sub option, just return it.
 	if( scalar @{$self->{sub_ops}} == 1 )
 	{
@@ -84,6 +78,18 @@ sub optimise
 	}
 
 	return $self;
+}
+
+sub is_empty
+{
+	my( $self ) = @_;
+
+	for(@{$self->{sub_ops}})
+	{
+		return 0 if !$_->is_empty();
+	}
+
+	return 1;
 }
 
 1;

@@ -373,7 +373,8 @@ sub get_conditions
 	my @r = ();
 	foreach my $value ( @parts )
 	{
-		push @r, $self->get_conditions_no_split( $value );
+		my $cond = $self->get_conditions_no_split( $value );
+		push @r, $cond if !$cond->is_empty;
 	}
 	
 	return EPrints::Search::Condition->new( 
@@ -392,14 +393,16 @@ sub get_conditions_no_split
 	my @r = ();
 	foreach my $field ( @{$self->{"fieldlist"}} )
 	{
-		push @r, $field->get_search_conditions( 
+		my $cond = $field->get_search_conditions( 
 				$self->{"session"},
 				$self->{"dataset"},
 				$search_value,
 				$self->{"match"},
 				$self->{"merge"},
 				$self->{"search_mode"} );
+		push @r, $cond if !$cond->is_empty();
 	}
+
 	return EPrints::Search::Condition->new( 'OR', @r );
 }	
 

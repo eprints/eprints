@@ -37,9 +37,9 @@ sub new
 {
 	my( $class, @params ) = @_;
 
-	my $self = bless { op=>"AND", sub_ops=>\@params }, $class;
+	@params = grep { !$_->is_empty } @params;
 
-	$self->{prefix} = $self->{op}.($self+0)."_";
+	my $self = bless { op=>"AND", sub_ops=>\@params }, $class;
 
 	return $self;
 }
@@ -57,11 +57,13 @@ sub optimise_specific
 		return $sub_op if $sub_op->{op} eq "FALSE";
 
 		# just filter these out
-		next if @$keep_ops > 0 && $sub_op->{op} eq "TRUE";
+		next if $sub_op->{op} eq "TRUE";
 		
 		push @{$keep_ops}, $sub_op;
 	}
 	$self->{sub_ops} = $keep_ops;
+
+	return EPrints::Search::Condition::True->new() if $self->is_empty;
 
 	return $self if @{$self->{sub_ops}} == 1;
 

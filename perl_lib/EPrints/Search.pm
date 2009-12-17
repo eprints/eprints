@@ -725,13 +725,28 @@ sub get_conditions
 		next unless( $sf->is_set() );
 		$any_field_set = 1;
 
-                if( $self->{filtersmap}->{$sf->get_id} )
+		my $cond = $sf->get_conditions;
+		next if $cond->is_empty;
+		if( $self->{filtersmap}->{$sf->get_id} )
 		{
-			push @filters, $sf->get_conditions;
+			push @filters, $cond;
 		}
 		else
 		{
-			push @r, $sf->get_conditions;
+			push @r, $cond;
+		}
+	}
+
+	# no terms were usable
+	if( @filters == 0 && @r == 0 )
+	{
+		if( $self->{allow_blank} )
+		{
+			return EPrints::Search::Condition->new( "TRUE" );
+		}
+		else
+		{
+			return EPrints::Search::Condition->new( "FALSE" );
 		}
 	}
 
