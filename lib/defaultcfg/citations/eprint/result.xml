@@ -9,7 +9,7 @@
     <td style="padding-left: 0.5em"><epc:print expr="$n" />.</td>
     <td style="padding-left: 0.5em">
       <epc:print expr="$item.citation('default')" />
-      <epc:if test="full_text_status = 'none'"> Item not available online.</epc:if>
+      <epc:if test="full_text_status = 'none'"> Not available from this repository.</epc:if>
       <epc:if test="full_text_status = 'restricted'"> Item availablity restricted.</epc:if>
     </td>
     <td style="padding-right: 0.5em" align="right"><epc:print expr="fileinfo"/></td>
