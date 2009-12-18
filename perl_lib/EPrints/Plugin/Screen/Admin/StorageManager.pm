@@ -103,8 +103,8 @@ sub ajax_stats
 		filters => [
 			{ meta_fields => ["copies_pluginid"], value => $pluginid },
 		]);
-	$searchexp->perform_search;
-	$searchexp->map(sub {
+	my $list = $searchexp->perform_search;
+	$list->map(sub {
 		my( undef, undef, $file ) = @_;
 
 		my $datasetid = $file->get_value( "datasetid" );
@@ -117,7 +117,7 @@ sub ajax_stats
 		$data->{parent}->{$datasetid}->{total} ++;
 		$data->{parent}->{$datasetid}->{bytes} += $filesize;
 	});
-	$searchexp->dispose;
+	$list->dispose;
 
 	my $html = $session->make_doc_fragment;
 
