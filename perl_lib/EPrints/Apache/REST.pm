@@ -729,7 +729,8 @@ sub put_field_txt
 	}
 	return unless allow_priv( $object->dataset->confid."/staff/edit", $repository, $object );
 
-	$object->set_value( $field->get_name, $repository->{putdata} );
+	my $data = join( "", <STDIN> );
+	$object->set_value( $field->get_name, $data );
 	$object->commit;
 
 	return send_plaintext( $repository, "OK" );
