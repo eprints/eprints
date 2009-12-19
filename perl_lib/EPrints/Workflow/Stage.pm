@@ -21,12 +21,12 @@ sub new
 	$self->{action_buttons} = $stage->getAttribute( "action_buttons" );
 	if( !defined $self->{action_buttons} )
 	{
-		$self->{action_buttons} = "bottom";
+		$self->{action_buttons} = "both";
 	}
-	elsif( $self->{action_buttons} !~ /^(top)|(bottom)|(both)$/ )
+	elsif( $self->{action_buttons} !~ /^(top|bottom|both)$/ )
 	{
 		$self->{session}->get_repository->log( "Warning! Workflow <stage> action_buttons attribute expected one of 'top', 'bottom' or 'both' but instead got '$self->{action_buttons}'" );
-		$self->{action_buttons} = "bottom";
+		$self->{action_buttons} = "both";
 	}
 
 	# Creating a new stage
