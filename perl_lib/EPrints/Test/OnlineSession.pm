@@ -138,15 +138,14 @@ sub send_page
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 END
-	if( defined $self->{text_page} )
+	if( $self->{page}->isa( "EPrints::Page::Text" ) )
 	{
-		$VAR{$self}->{"stdout"} .= $self->{text_page};
-		delete $self->{text_page};
+		$VAR{$self}->{"stdout"} .= $self->{page}->{page_text};
+		delete $self->{page};
 	}
 	else
 	{
-		$VAR{$self}->{"stdout"} .= EPrints::XML::to_string( $self->{page}, undef, 1 );
-		EPrints::XML::dispose( $self->{page} );
+		$VAR{$self}->{"stdout"} .= EPrints::XML::to_string( $self->{page}->{page_dom}, undef, 1 );
 		delete $self->{page};
 	}
 }
