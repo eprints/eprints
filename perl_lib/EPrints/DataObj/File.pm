@@ -119,32 +119,27 @@ Returns undef if no such record exists.
 
 sub new_from_filename
 {
-	my( $class, $session, $dataobj, $filename ) = @_;
+	my( $class, $repo, $dataobj, $filename ) = @_;
 	
-	my $ds = $session->get_repository->get_dataset( $class->get_dataset_id );
+	my $dataset = $repo->dataset( $class->get_dataset_id );
 
-	my $searchexp = new EPrints::Search(
-		session=>$session,
-		dataset=>$ds );
+	my $results = $dataset->search(
+		filters => [
+			{
+				meta_fields => [qw( datasetid )],
+				value => $dataobj->get_dataset->base_id
+			},
+			{
+				meta_fields => [qw( objectid )],
+				value => $dataobj->id
+			},
+			{
+				meta_fields => [qw( filename )],
+				value => $filename
+			},
+		]);
 
-	$searchexp->add_field(
-		$ds->get_field( "datasetid" ),
-		$dataobj->get_dataset->confid,
-		"EX" );
-	$searchexp->add_field(
-		$ds->get_field( "objectid" ),
-		$dataobj->get_id,
-		"EX" );
-	$searchexp->add_field(
-		$ds->get_field( "filename" ),
-		$filename,
-		"EX" );
-
-	my $searchid = $searchexp->perform_search;
-	my @records = $searchexp->get_records(0,1);
-	$searchexp->dispose();
-	
-	return $records[0];
+	return $results->item( 0 );
 }
 
 =item $dataobj = EPrints::DataObj::File->create_from_data( $session, $data [, $dataset ] )

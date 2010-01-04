@@ -209,26 +209,23 @@ sub main_render_option
 
 sub doc_with_eprintid_and_pos
 {
-	my( $session, $eprintid, $pos ) = @_;
+	my( $repository, $eprintid, $pos ) = @_;
 	
-	my $document_ds = $session->get_repository->get_dataset( "document" );
+	my $dataset = $repository->dataset( "document" );
 
-	my $searchexp = new EPrints::Search(
-		session=>$session,
-		dataset=>$document_ds );
+	my $results = $dataset->search(
+		filters => [
+			{
+				meta_fields => [qw( eprintid )],
+				value => $eprintid
+			},
+			{
+				meta_fields => [qw( pos )],
+				value => $pos
+			},
+		]);
 
-	$searchexp->add_field(
-		$document_ds->get_field( "eprintid" ),
-		$eprintid );
-	$searchexp->add_field(
-		$document_ds->get_field( "pos" ),
-		$pos );
-
-	my $searchid = $searchexp->perform_search;
-	my @records = $searchexp->get_records(0,1);
-	$searchexp->dispose();
-	
-	return $records[0];
+	return $results->item( 0 );
 }
 
 ######################################################################

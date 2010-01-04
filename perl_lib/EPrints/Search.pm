@@ -52,11 +52,10 @@ web page.
 
 	$results = $searchexp->perform_search;
 
-	my $count = $searchexp->count;
 	my $count = $results->count;
 
-	my $ids = $results->get_ids( 0, 10 );
-	my $ids = $results->get_ids; # Get all matching ids
+	my $ids = $results->ids( 0, 10 );
+	my $ids = $results->ids; # Get all matching ids
 
 	my $info = { matches => 0 };
 	sub fn {
@@ -65,7 +64,7 @@ web page.
 	};
 	$results->map( \&fn, $info );
 
-	$searchexp->dispose;
+	$results->dispose;
 
 See L<EPrints::List> for more.
 
@@ -1084,24 +1083,16 @@ sub perform_search
 
 	$self->{error} = undef;
 
-	if( defined $self->{results} )
-	{
-		return $self->{results};
-	}
-
 	# cjg hmmm check cache still exists?
 	if( defined $self->{cache_id} )
 	{
-		my $results = $self->{results} = EPrints::List->new( 
+		return EPrints::List->new( 
 			session => $self->{session},
 			dataset => $self->{dataset},
 			encoded => $self->serialise,
 			cache_id => $self->{cache_id}, 
 			searchexp => $self,
 		);
-		Scalar::Util::weaken( $self->{results} )
-			if defined &Scalar::Util::weaken;
-		return $self->{results};
 	}
 
 
@@ -1130,7 +1121,7 @@ sub perform_search
 		limit => $self->{limit},
 	);
 
-	my $results = $self->{results} = EPrints::List->new( 
+	my $results = EPrints::List->new( 
 		session => $self->{session},
 		dataset => $self->{dataset},
 		encoded => $self->serialise,
@@ -1139,12 +1130,10 @@ sub perform_search
 		cache_id => (defined $cachemap ? $cachemap->get_id : undef ),
 		searchexp => $self,
 	);
-	Scalar::Util::weaken( $self->{results} )
-		if defined &Scalar::Util::weaken;
 
-	$self->{cache_id} = $self->{results}->get_cache_id;
+	$self->{cache_id} = $results->get_cache_id;
 
-	return $self->{results};
+	return $results;
 }
 
 
@@ -1172,55 +1161,62 @@ sub perform_groupby
 
 
 
- ######################################################################
- # sort Legacy functions which daisy chain to the results object
- # All deprecated.
- ######################################################################
-
+######################################################################
+# Legacy functions which daisy chain to the results object
+# All deprecated.
+######################################################################
 
 sub cache_results
 {
 	my( $self ) = @_;
 
-	if( !defined $self->{result} )
-	{
-		$self->{session}->get_repository->log( "\$searchexp->cache_results() : Search has not been performed" );
-		return;
-	}
-
-	$self->{results}->cache;
+	EPrints->deprecated();
 }
 
 sub dispose
 {
 	my( $self ) = @_;
 
-	return unless defined $self->{results};
-
-	$self->{results}->dispose;
+	EPrints->deprecated();
 }
 
 sub count
 {
 	my( $self ) = @_;
 
-	return unless defined $self->{results};
+	EPrints->deprecated();
 
-	$self->{results}->count;
+	# don't create a cachemap object
+	local $self->{keep_cache} = 0;
+
+	return $self->perform_search->count;
 }
 
 sub get_records
 {
 	my( $self , $offset , $count ) = @_;
 	
-	return $self->{results}->get_records( $offset , $count );
+	EPrints->deprecated();
+
+	return $self->perform_search->slice( $offset, $count );
 }
 
 sub get_ids
 {
 	my( $self , $offset , $count ) = @_;
 	
-	return $self->{results}->get_ids( $offset , $count );
+	EPrints->deprecated();
+
+	return $self->perform_search->ids( $offset, $count );
+}
+
+sub map
+{
+	my( $self, $function, $info ) = @_;	
+
+	EPrints->deprecated();
+
+	return $self->perform_search->map( $function, $info );
 }
 
 ######################################################################
@@ -1255,13 +1251,6 @@ sub get_ids_by_field_values
 	);
 
 	return $counts;
-}
-
-sub map
-{
-	my( $self, $function, $info ) = @_;	
-
-	return $self->{results}->map( $function, $info );
 }
 
 

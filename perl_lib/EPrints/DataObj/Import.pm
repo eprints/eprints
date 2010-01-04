@@ -272,21 +272,21 @@ sub get_from_source
 {
 	my( $self, $sourceid ) = @_;
 
-	return undef unless defined $sourceid;
+	return undef if !defined $sourceid;
 
-	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
+	my $dataset = $self->{session}->dataset( "eprint" );
 
-	my $searchexp = EPrints::Search->new(
-		session => $self->{session},
-		dataset => $dataset,
-	);
+	my $results = $dataset->search(
+		filters => [
+			{
+				meta_fields => [qw( importid )], value => $self->id,
+			},
+			{
+				meta_fields => [qw( source )], value => $sourceid,
+			}
+		]);
 
-	$searchexp->add_field( $dataset->get_field( "importid" ), $self->get_id );
-	$searchexp->add_field( $dataset->get_field( "source" ), $sourceid );
-
-	my $list = $searchexp->perform_search;
-
-	return $list->count > 0 ? $list->get_records(0,1) : undef;
+	return $results->item( 0 );
 }
 
 =item $dataobj = $import->epdata_to_dataobj( $dataset, $epdata )

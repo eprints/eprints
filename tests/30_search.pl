@@ -19,8 +19,6 @@ my $list = eval { $searchexp->perform_search };
 
 ok(defined($list) && $list->count > 0, "blank found matches");
 
-$searchexp->dispose;
-
 
 $searchexp = EPrints::Search->new(
 	session => $session,
@@ -33,8 +31,6 @@ $list = eval { $searchexp->perform_search };
 
 ok(defined($list) && $list->count > 1, "search range eprintid" );
 
-$searchexp->dispose;
-
 
 $searchexp = EPrints::Search->new(
 	session => $session,
@@ -46,8 +42,6 @@ $searchexp->add_field( $dataset->get_field( "_fulltext_" ), "article", "IN" );
 $list = eval { $searchexp->perform_search };
 
 ok(defined($list) && $list->count > 0, "match testdata article full text" );
-
-$searchexp->dispose;
 
 
 $searchexp = EPrints::Search->new(
@@ -72,8 +66,6 @@ if( defined $list )
 
 ok($is_ok, "search for eprint id + doc format: " . $searchexp->get_conditions->describe);
 
-$searchexp->dispose;
-
 
 $searchexp = EPrints::Search->new(
 	session => $session,
@@ -88,8 +80,6 @@ $list = eval { $searchexp->perform_search };
 
 ok(defined($list) && $list->count > 0, "search multiple field");
 
-$searchexp->dispose;
-
 
 $searchexp = EPrints::Search->new(
 	session => $session,
@@ -101,8 +91,6 @@ $searchexp->add_field( $dataset->get_field( "creators_name" ), "Neumeier, M" );
 $list = eval { $searchexp->perform_search };
 
 ok(defined($list) && $list->count > 0, "search multiple name field");
-
-$searchexp->dispose;
 
 
 $searchexp = EPrints::Search->new(
@@ -118,8 +106,6 @@ $searchexp->add_field( $dataset->get_field( "title" ), "legend", "IN" );
 $list = eval { $searchexp->perform_search };
 
 ok(defined($list) && $list->count > 0, "satisfy-any, nomatch multiple");
-
-$searchexp->dispose;
 
 
 $searchexp = EPrints::Search->new(
@@ -137,8 +123,6 @@ $list = eval { $searchexp->perform_search };
 
 ok(defined($list) && $list->count > 0, "satisfy/multi datasets/multiple");
 
-$searchexp->dispose;
-
 
 $searchexp = EPrints::Search->new(
 	session => $session,
@@ -151,8 +135,6 @@ $list = eval { $searchexp->perform_search };
 
 ok(defined($list) && $list->count > 0, "subject hierarchy");
 
-$searchexp->dispose;
-
 
 $searchexp = EPrints::Search->new(
 	session => $session,
@@ -164,8 +146,6 @@ $searchexp->add_field( $dataset->get_field( "subjects" ), "QH" );
 my( $values, $counts ) = eval { $searchexp->perform_groupby( $dataset->get_field( "creators_name" ) ) };
 
 ok(defined($values) && scalar(@$values) > 0, "groupby");
-
-$searchexp->dispose;
 
 my $dataset_size = $dataset->count( $session );
 BAIL_OUT( "Can't test empty dataset" ) unless $dataset_size > 0;

@@ -411,33 +411,29 @@ sub get_previous
 {
 	my( $self ) = @_;
 
-	return $self->{_previous} if defined( $self->{_previous} );
+	return $self->{_previous} if exists( $self->{_previous} );
+
+	my $dataset = $self->get_dataset;
 
 	my $revision = $self->get_value( "revision" ) - 1;
 	
-	my $searchexp = EPrints::Search->new(
-		session => $self->get_session,
-		dataset => $self->get_dataset,
+	my $results = $dataset->search(
 		filters => [
 			{
 				meta_fields => [ "datasetid" ],
-				value => $self->get_value( "datasetid" ),
-			},{
+				value => $self->value( "datasetid" ),
+			},
+			{
 				meta_fields => [ "objectid" ],
-				value => $self->get_value( "objectid" ),
-			},{
+				value => $self->value( "objectid" ),
+			},
+			{
 				meta_fields => [ "revision" ],
 				value => $revision,
-			}],
-	);
+			}
+		]);
 
-	my $list = $searchexp->perform_search;
-
-	my( $event ) = $list->get_records( 0, 1 );
-
-	$searchexp->dispose;
-
-	return $self->{_previous} = $event;
+	return $self->{_previous} = $results->item( 0 );
 }
 
 ######################################################################

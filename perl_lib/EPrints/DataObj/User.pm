@@ -360,23 +360,19 @@ are not found.
 
 sub user_with_email
 {
-	my( $session, $email ) = @_;
+	my( $repo, $email ) = @_;
 	
-	my $user_ds = $session->get_repository->get_dataset( "user" );
+	my $dataset = $repo->dataset( "user" );
 
-	my $searchexp = new EPrints::Search(
-		session=>$session,
-		dataset=>$user_ds );
+	my $results = $dataset->search(
+		filters => [
+			{
+				meta_fields => [qw( email )],
+				value => $email, match => "EX"
+			}
+		]);
 
-	$searchexp->add_field(
-		$user_ds->get_field( "email" ),
-		$email );
-
-	my $list = $searchexp->perform_search;
-	my @records = $list->get_records(0,1);
-	$list->dispose();
-	
-	return $records[0];
+	return $results->item( 0 );
 }
 
 
@@ -393,23 +389,20 @@ they are not found.
 
 sub user_with_username
 {
-	my( $session, $username ) = @_;
+	my( $repo, $username ) = @_;
 	
-	my $user_ds = $session->get_repository->get_dataset( "user" );
+	my $dataset = $repo->dataset( "user" );
 
-	my $searchexp = new EPrints::Search(
-		session=>$session,
-		dataset=>$user_ds );
+	my $results = $dataset->search(
+		filters => [
+			{
+				meta_fields => [qw( username )],
+				value => $username,
+				match => "EX"
+			}
+		]);
 
-	$searchexp->add_field(
-		$user_ds->get_field( "username" ),
-		$username,
-		"EX" );
-
-	my $results = $searchexp->perform_search;
-	my @records = $results->get_records(0,1);
-	
-	return $records[0];
+	return $results->item( 0 );
 }
 
 
@@ -953,23 +946,18 @@ sub get_saved_searches
 {
 	my( $self ) = @_;
 
-	my $ds = $self->{session}->get_repository->get_dataset( 
-		"saved_search" );
+	my $dataset = $self->{session}->dataset( "saved_search" );
 
-	my $searchexp = EPrints::Search->new(
-		session=>$self->{session},
-		dataset=>$ds,
-		custom_order=>"id" );
+	my $results = $dataset->search(
+		filters => [
+			{
+				meta_fields => [qw( userid )],
+				value => $self->value( "userid" ),
+			}
+		],
+		custom_order => $dataset->key_field->name );
 
-	$searchexp->add_field(
-		$ds->get_field( "userid" ),
-		$self->get_value( "userid" ) );
-
-	my $searchid = $searchexp->perform_search;
-	my @results = $searchexp->get_records;
-	$searchexp->dispose;
-
-	return( @results );
+	return $results->slice;
 }
 
 

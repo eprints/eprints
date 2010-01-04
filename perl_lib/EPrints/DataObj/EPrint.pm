@@ -1815,21 +1815,18 @@ sub later_in_thread
 {
 	my( $self, $field ) = @_;
 
-	my $searchexp = EPrints::Search->new(
-		session => $self->{session},
-		dataset => $self->{session}->get_repository->get_dataset( 
-			"archive" ) );
-#cjg		[ "datestamp DESC" ] ) ); sort by date!
+	my $dataset = $self->{session}->dataset( "archive" );
 
-	$searchexp->add_field( 
-		$field, 
-		$self->get_value( "eprintid" ) );
+	my $results = $dataset->search(
+		filters => [
+			{
+				meta_fields => [$field->name],
+				value => $self->value( "eprintid" )
+			},
+		],
+		custom_order => "-datestamp" );
 
-	my $searchid = $searchexp->perform_search;
-	my @eprints = $searchexp->get_records;
-	$searchexp->dispose;
-
-	return @eprints;
+	return $results->slice;
 }
 
 

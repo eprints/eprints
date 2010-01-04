@@ -120,46 +120,38 @@ sub get_value
 	my $value = $self->SUPER::get_value( $parent );
 	return $value if defined $value;
 
-	my $ds = $parent->get_session->get_repository->get_dataset( $self->get_property( "datasetid" ) );
+	my $ds = $parent->get_session->dataset( $self->get_property( "datasetid" ) );
 
-	my( $keyfield ) = $ds->get_fields;
-	my $keyname = $keyfield->get_name;
+	my $searchexp = $ds->prepare_search();
 
-	my $searchexp = EPrints::Search->new(
-		session => $parent->get_session,
-		dataset => $ds,
-		custom_order => "-$keyname",
-	);
-
-	if( $ds->confid eq "document" )
+	if( $ds->base_id eq "document" )
 	{
 		$searchexp->add_field(
-			$ds->get_field( "eprintid" ),
-			$parent->get_id
+			$ds->field( "eprintid" ),
+			$parent->id
 		);
 	}
-	elsif( $ds->confid eq "saved_search" )
+	elsif( $ds->base_id eq "saved_search" )
 	{
 		$searchexp->add_field(
-			$ds->get_field( "userid" ),
-			$parent->get_id
+			$ds->field( "userid" ),
+			$parent->id
 		);
 	}
 	else
 	{
 		$searchexp->add_field(
-			$ds->get_field( "datasetid" ),
-			$parent->get_dataset->confid
+			$ds->field( "datasetid" ),
+			$parent->get_dataset->base_id
 		);
 		$searchexp->add_field(
-			$ds->get_field( "objectid" ),
-			$parent->get_id
+			$ds->field( "objectid" ),
+			$parent->id
 		);
 	}
 
-	my $list = $searchexp->perform_search;
-	my @records = $list->get_records;
-	$searchexp->dispose;
+	my $results = $searchexp->perform_search;
+	my @records = $results->slice;
 
 	foreach my $record (@records)
 	{

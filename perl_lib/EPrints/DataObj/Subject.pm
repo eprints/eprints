@@ -415,28 +415,25 @@ sub get_children
 {
 	my( $self ) = @_;
 
+	my $subjectid = $self->id;
+
 	if( $self->{session}->{subjects_cached} )
 	{
-		my $subjectid = $self->get_value( "subjectid" );
 		return @{$self->{session}->{subject_child_map}->{$subjectid}};
 	}
 
-	my $searchexp = EPrints::Search->new(
-		session=>$self->{session},
-		dataset=>$self->{dataset},
+	my $dataset = $self->get_dataset;
+
+	my $results = $dataset->search(
+		filters => [
+			{
+				meta_fields => [qw( parents )],
+				value => $subjectid
+			}
+		],
 		custom_order=>"name/name_name" );
-	# nb. name_name is a hack for 3.0.0 repositories which can't sort
-	# on compound fields.
 
-	$searchexp->add_field(
-		$self->{dataset}->get_field( "parents" ),
-		$self->get_value( "subjectid" ) );
-
-	my $searchid = $searchexp->perform_search();
-	my @children = $searchexp->get_records();
-	$searchexp->dispose();
-
-	return( @children );
+	return $results->slice;
 }
 
 
@@ -857,6 +854,8 @@ sub local_name
 sub posted_eprints
 {
 	my( $self, $dataset ) = @_;
+
+	EPrints->deprecated();
 
 	my $searchexp = new EPrints::Search(
 		session => $self->{session},
