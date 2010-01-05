@@ -90,6 +90,10 @@ sub process
 		{
 			$searchexp->add_field( $ds->get_field( "authors" ), $author );
 		}
+		elsif( $ds->has_field( "creators_name" ) )
+		{
+			$searchexp->add_field( $ds->get_field( "creators_name" ), $author );
+		}
 		elsif( $ds->has_field( "creators" ) )
 		{
 			$searchexp->add_field( $ds->get_field( "creators" ), $author );
