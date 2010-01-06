@@ -1089,9 +1089,8 @@ sub process_editor_alerts
 		}
 	};
 
-	$searchexp->perform_search;
-	$searchexp->map( $fn, {} );
-	$searchexp->dispose;
+	my $list = $searchexp->perform_search;
+	$list->map( $fn, {} );
 
 	# currently no timestamp for editor alerts 
 }

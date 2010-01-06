@@ -124,12 +124,12 @@ my $searchexp = new EPrints::Search(
 my $date = sprintf("-%04d-%02d-%02d", EPrints::Time::get_date_array( time ) );
 $searchexp->add_field( $ds->get_field( "date_embargo" ), $date );
 
-$searchexp->perform_search;
+my $list = $searchexp->perform_search;
 
 # For matching documents, remove embargo date value,
 # make documents publically accessible, and
 # re-generate abstract page
-$searchexp->map( sub {
+$list->map( sub {
 	my( $session, $dataset, $doc ) = @_;
 
 	my $eprint = $doc->get_eprint;
@@ -148,6 +148,5 @@ $searchexp->map( sub {
 	$eprint->generate_static;
 } );
 
-$searchexp->dispose();
 $session->terminate();
 

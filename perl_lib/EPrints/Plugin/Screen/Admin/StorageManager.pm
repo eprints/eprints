@@ -213,13 +213,12 @@ sub ajax_migrate
 
 	my $total = 0;
 
-	$searchexp->perform_search;
-	$searchexp->map(sub {
+	my $list = $searchexp->perform_search;
+	$list->map(sub {
 		my( undef, undef, $file ) = @_;
 
 		$total ++ if $session->get_storage->copy( $target_store, $file );
 	});
-	$searchexp->dispose;
 
 	print "$total";
 }
@@ -248,8 +247,8 @@ sub ajax_delete
 
 	my $total = 0;
 
-	$searchexp->perform_search;
-	$searchexp->map(sub {
+	my $list = $searchexp->perform_search;
+	$list->map(sub {
 		my( undef, undef, $file ) = @_;
 
 		my @copies = @{$file->get_value( "copies" )};
@@ -257,7 +256,6 @@ sub ajax_delete
 
 		$total ++ if $session->get_storage->delete_copy( $store, $file );
 	});
-	$searchexp->dispose;
 
 	print "$total";
 }

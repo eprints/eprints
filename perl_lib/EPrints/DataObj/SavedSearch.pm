@@ -401,9 +401,8 @@ sub process_set
 		$item->send_out_alert;
 	};
 
-	$searchexp->perform_search;
-	$searchexp->map( $fn, {} );
-	$searchexp->dispose;
+	my $list = $searchexp->perform_search;
+	$list->map( $fn, {} );
 
 	my $statusfile = $session->get_repository->get_conf( "variables_path" ).
 		"/alert-".$frequency.".timestamp";

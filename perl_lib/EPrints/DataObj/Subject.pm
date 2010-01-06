@@ -879,9 +879,8 @@ sub posted_eprints
 		return();
 	}
 
-	my $searchid = $searchexp->perform_search;
-	my @data = $searchexp->get_records;
-	$searchexp->dispose();
+	my $list = $searchexp->perform_search;
+	my @data = $list->get_records;
 
 	return @data;
 }
@@ -924,9 +923,8 @@ sub count_eprints
 		return( 0 );
 	}
 
-	my $searchid = $searchexp->perform_search;
-	my $count = $searchexp->count;
-	$searchexp->dispose();
+	my $list = $searchexp->perform_search;
+	my $count = $list->count;
 
 	return $count;
 

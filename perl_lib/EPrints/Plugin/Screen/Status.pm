@@ -107,9 +107,8 @@ sub render
 			$userds->get_field( "usertype" ),
 			$usertype );
 
-		$searchexp->perform_search();
-		$num_users{ $usertype } = $searchexp->count();
-		$searchexp->dispose();
+		my $result = $searchexp->perform_search();
+		$num_users{ $usertype } = $result->count();
 	}
 
 	my %num_eprints = ();
@@ -296,9 +295,8 @@ sub render
 			$userds->get_field( "frequency" ),
 			$freq );
 
-		$searchexp->perform_search();
-		my $n = $searchexp->count;
-		$searchexp->dispose;
+		my $result = $searchexp->perform_search();
+		my $n = $result->count;
 
 		my $k = $session->make_doc_fragment;
 		$k->appendChild( $session->html_phrase( "saved_search_fieldopt_frequency_".$freq ) );
