@@ -1105,12 +1105,13 @@ sub perform_search
 		my $userid = $self->{session}->current_user;
 		$userid = $userid->get_id if defined $userid;
 
-		my $cachemap = $self->{session}->get_repository->get_dataset( "cachemap" )->create_object( $self->{session}, {
+		$cachemap = $self->{session}->get_repository->get_dataset( "cachemap" )->create_object( $self->{session}, {
 			lastused => time(),
 			userid => $userid,
 			searchexp => $self->serialise,
 			oneshot => "TRUE",
 		} );
+		$cachemap->create_sql_table( $self->{dataset} );
 	}
 
 	my $unsorted_matches = $self->get_conditions->process( 
