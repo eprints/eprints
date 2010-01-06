@@ -398,8 +398,6 @@ sub sql
 	my $i = 0;
 	foreach my $join ( @joins )
 	{
-		push @logic, $join->{logic} if defined $join->{logic};
-
 		# FROM ..., dataset_aux {alias}
 		# WHERE dataset_main_table.key_field={alias}.join_key
 		# or

@@ -72,7 +72,7 @@ sub joins
 		$sql .= " INNER JOIN ".$db->quote_identifier( $table );
 		$sql .= " ON ".$db->quote_identifier( $join->{alias}, $key_field->get_sql_name )."=".$db->quote_identifier( $table, $key_field->get_sql_name );
 		$join->{subquery} = $sql;
-		# delete $join->{alias}; # now a join so don't attempt to alias
+		delete $join->{alias}; # now a join so don't attempt to alias
 		return $join;
 	}
 	else
