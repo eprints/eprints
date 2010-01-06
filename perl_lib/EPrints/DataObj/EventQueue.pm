@@ -108,7 +108,7 @@ sub create_unique
 {
 	my( $class, $session, $data, $dataset ) = @_;
 
-	$dataset ||= $session->get_repository->get_dataset( $class->get_dataset_id );
+	$dataset ||= $session->dataset( $class->get_dataset_id );
 
 	$data->{unique} = "TRUE";
 
@@ -119,15 +119,12 @@ sub create_unique
 		if EPrints::Utils::is_set( $data->{params} );
 	$data->{hash} = $md5->hexdigest;
 
-	my $searchexp = EPrints::Search->new(
-		dataset => $dataset,
-		session => $session,
+	my $results = $dataset->search(
 		filters => [
 			{ meta_fields => [qw( hash )], value => $data->{hash} },
 			{ meta_fields => [qw( status )], value => "waiting inprogress", match => "EQ", merge => "ANY" },
 		]);
-	my $count = $searchexp->perform_search->count;
-	$searchexp->dispose;
+	my $count = $results->count;
 
 	if( $count > 0 )
 	{
