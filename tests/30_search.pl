@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 23;
+use Test::More tests => 24;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -262,6 +262,17 @@ $searchexp->add_field( $dataset->get_field( "type" ), "article" );
 $list = $searchexp->perform_search;
 
 ok($list->count > 0, "documents.eprint.type/satisfy_all => 0");
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $session->dataset( "history" ),
+	satisfy_all => 0 );
+
+$searchexp->add_field( $session->dataset( "user" )->get_field( "usertype" ), "admin" );
+
+$list = $searchexp->perform_search;
+
+ok($list->count > 0, "query history by user type");
 
 SKIP: {
 skip "No support for arbitrary dataset joins yet", 1..1;
