@@ -1364,8 +1364,7 @@ sub generate_static
 		# only deleted and live records have a web page.
 		next if( $status ne "archive" && $status ne "deletion" );
 
-		my( $page, $title, $links ) = $self->render;
-
+		my( $page, $title, $links, $template ) = $self->render;
 		my @plugins = $self->{session}->plugin_list( 
 					type=>"Export",
 					can_accept=>"dataobj/".$self->{dataset}->confid, 
@@ -1390,8 +1389,8 @@ sub generate_static
 		}
 		$self->{session}->write_static_page( 
 			$full_path . "/index",
-			{title=>$title, page=>$page, head=>$links },
-			"default" );
+			{title=>$title, page=>$page, head=>$links, template=>$template },
+			 );
 	}
 	$self->{session}->change_lang( $real_langid );
 	delete $self->{session}->{preparing_static_page};
@@ -1493,7 +1492,7 @@ sub render
 {
 	my( $self, $preview ) = @_;
 
-	my( $dom, $title, $links );
+	my( $dom, $title, $links, $template );
 
 	my $status = $self->get_value( "eprint_status" );
 	if( $status eq "deletion" )
@@ -1517,7 +1516,7 @@ sub render
 	}
 	else
 	{
-		( $dom, $title, $links ) = 
+		( $dom, $title, $links, $template ) = 
 			$self->{session}->get_repository->call( 
 				"eprint_render", 
 				$self, $self->{session}, $preview );
@@ -1549,7 +1548,7 @@ sub render
 		$links = $self->{session}->make_doc_fragment;
 	}
 	
-	return( $dom, $title, $links );
+	return( $dom, $title, $links, $template );
 }
 
 sub render_box_list

@@ -4189,7 +4189,14 @@ sub write_static_page
 		if( open( CACHE, ">$file" ) )
 		{
 			binmode(CACHE,":utf8");
-			print CACHE EPrints::XML::to_string( $parts->{$part_id}, undef, 1 );
+			if( $part_id eq "template" )
+			{
+				print CACHE $parts->{$part_id};
+			}
+			else
+			{
+				print CACHE EPrints::XML::to_string( $parts->{$part_id}, undef, 1 );
+			}
 			close CACHE;
 			if( defined $wrote_files )
 			{
