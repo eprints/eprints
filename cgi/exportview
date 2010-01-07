@@ -87,7 +87,7 @@ $search->add_field( $ds->get_field('metadata_visibility'), 'show', 'EQ' );
 my $n=0;
 foreach my $filter ( @{$filters} )
 {
-	$search->add_field( $filter->{fields}, $filter->{value}, "EX", undef, "filter".($n++), 1 );
+	$search->add_field( $filter->{fields}, $filter->{value}, "EX", undef, "filter".($n++), 0 );
 }
 
 my $plugin = get_plugin( $session, $format );
