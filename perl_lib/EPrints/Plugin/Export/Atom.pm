@@ -111,17 +111,20 @@ sub output_list
 			"id", 
 			"tag:".$host.",".($eprint->get_value( "date" )||"").":item:/".$eprint->get_id ) );
 
-		my $names = $eprint->get_value( "creators" );
-		foreach my $name ( @$names )
+		if( $eprint->exists_and_set( "creators" ) )
 		{
-			my $author = $session->make_element( "author" );
-			
-			my $name_str = EPrints::Utils::make_name_string( $name->{name}, 1 );
-			$author->appendChild( $session->render_data_element(
-				4,
-				"name",
-				$name_str ) );
-			$item->appendChild( $author );
+			my $names = $eprint->get_value( "creators" );
+			foreach my $name ( @$names )
+			{
+				my $author = $session->make_element( "author" );
+				
+				my $name_str = EPrints::Utils::make_name_string( $name->{name}, 1 );
+				$author->appendChild( $session->render_data_element(
+					4,
+					"name",
+					$name_str ) );
+				$item->appendChild( $author );
+			}
 		}
 
 		$response->appendChild( $item );		
