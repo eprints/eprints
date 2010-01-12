@@ -17,10 +17,7 @@ sub print_xsd
 
 	my $plugin = $session->plugin( "Export::XML_Schema" );
 
-	my $list = EPrints::List->new(
-		dataset => $dataset,
-		session => $session,
-		ids=>["ALL"] );
+	my $list = $dataset->search();
 
 	$session->send_http_header( "content_type" => "application/xml" );
 	$plugin->initialise_fh( \*STDOUT );
