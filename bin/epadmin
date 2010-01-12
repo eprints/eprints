@@ -2535,9 +2535,27 @@ EOW
 			my $rindex_table = $dataset->get_sql_rindex_table_name;
 			my $grep_table = $dataset->get_sql_grep_table_name;
 			my $Q_key_name = $db->quote_identifier( $key_field->get_sql_name );
-			my $sql = "ALTER TABLE $rindex_table MODIFY field VARCHAR(64) CHARACTER SET UTF8, MODIFY word VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, DROP KEY $Q_key_name, DROP PRIMARY KEY, ADD PRIMARY KEY(field,word,$Q_key_name)";
+			my $sql = "ALTER TABLE $rindex_table MODIFY field VARCHAR(64) CHARACTER SET UTF8, MODIFY word VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, ADD PRIMARY KEY(field,word,$Q_key_name)";
+			if( $db->get_primary_key( $rindex_table ) )
+			{
+				$sql =~ s/(ADD PRIMARY KEY)/DROP PRIMARY KEY, $1/;
+			}
+			my %old_keys = _mysql_table_keys( $db, $rindex_table );
+			foreach my $old_key (keys %old_keys)
+			{
+				$sql .= ", DROP KEY ".$db->quote_identifier( $old_key );
+			}
 			$rc &&= $db->do( $sql );
-			$sql = "ALTER TABLE $grep_table MODIFY fieldname VARCHAR(64) CHARACTER SET UTF8, MODIFY grepstring VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, DROP KEY $Q_key_name, DROP PRIMARY KEY, ADD PRIMARY KEY(fieldname,grepstring,$Q_key_name)";
+			$sql = "ALTER TABLE $grep_table MODIFY fieldname VARCHAR(64) CHARACTER SET UTF8, MODIFY grepstring VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, ADD PRIMARY KEY(fieldname,grepstring,$Q_key_name)";
+			if( $db->get_primary_key( $grep_table ) )
+			{
+				$sql =~ s/(ADD PRIMARY KEY)/DROP PRIMARY KEY, $1/;
+			}
+			my %old_keys = _mysql_table_keys( $db, $grep_table );
+			foreach my $old_key (keys %old_keys)
+			{
+				$sql .= ", DROP KEY ".$db->quote_identifier( $old_key );
+			}
 			$rc &&= $db->do( $sql );
 		}
 	}
@@ -2552,6 +2570,24 @@ EOW
 An unexpected error occurred while attempting to convert tables to UTF-8.
 EOW
 	}
+}
+
+sub _mysql_table_keys
+{
+	my( $db, $table ) = @_;
+
+	my %keys;
+
+	my $sql = "SHOW KEYS FROM ".$db->quote_identifier( $table );
+	my $sth = $db->prepare( $sql );
+	$sth->execute;
+	while(my $row = $sth->fetch)
+	{
+		next if $row->[2] eq "PRIMARY";
+		push @{$keys{$row->[2]}}, $row->[4];
+	}
+
+	return %keys;
 }
 
 sub upgrade_mysql_charset_table
