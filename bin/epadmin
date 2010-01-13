@@ -2535,7 +2535,7 @@ EOW
 			my $rindex_table = $dataset->get_sql_rindex_table_name;
 			my $grep_table = $dataset->get_sql_grep_table_name;
 			my $Q_key_name = $db->quote_identifier( $key_field->get_sql_name );
-			my $sql = "ALTER TABLE $rindex_table MODIFY field VARCHAR(64) CHARACTER SET UTF8, MODIFY word VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, ADD PRIMARY KEY(field,word,$Q_key_name)";
+			my $sql = "ALTER IGNORE TABLE $rindex_table MODIFY field VARCHAR(64) CHARACTER SET UTF8, MODIFY word VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, ADD PRIMARY KEY(field,word,$Q_key_name)";
 			if( $db->get_primary_key( $rindex_table ) )
 			{
 				$sql =~ s/(ADD PRIMARY KEY)/DROP PRIMARY KEY, $1/;
@@ -2546,7 +2546,7 @@ EOW
 				$sql .= ", DROP KEY ".$db->quote_identifier( $old_key );
 			}
 			$rc &&= $db->do( $sql );
-			$sql = "ALTER TABLE $grep_table MODIFY fieldname VARCHAR(64) CHARACTER SET UTF8, MODIFY grepstring VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, ADD PRIMARY KEY(fieldname,grepstring,$Q_key_name)";
+			$sql = "ALTER IGNORE TABLE $grep_table MODIFY fieldname VARCHAR(64) CHARACTER SET UTF8, MODIFY grepstring VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, ADD PRIMARY KEY(fieldname,grepstring,$Q_key_name)";
 			if( $db->get_primary_key( $grep_table ) )
 			{
 				$sql =~ s/(ADD PRIMARY KEY)/DROP PRIMARY KEY, $1/;
