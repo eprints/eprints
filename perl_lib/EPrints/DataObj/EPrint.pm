@@ -199,12 +199,12 @@ sub get_system_field_info
 		fields => [
 			{
 				sub_name => "id",
-				type => "text",
+				type => "id",
 				text_index => 0,
 			},
 			{
 				sub_name => "type",
-				type => "text",
+				type => "id",
 				text_index => 0,
 			},
 			{
@@ -284,6 +284,76 @@ sub render_rdf_field
 	my( $session, $field, $value ) = @_;
 
 	return $session->make_text( sprintf( "%d Triples", scalar @{$value} ) );
+}
+
+=item $eprint->set_item_issues( $new_issues )
+
+This method updates the issues attached to this eprint based on the new issues
+passed.
+
+If an existing issue is set as "discovered" and doesn't exist in $new_issues
+its status will be updated to "autoresolved", otherwise the old issue's status
+and description are updated.
+
+Any issues in $new_issues that don't already exist will be appended.
+
+=cut
+
+sub set_item_issues
+{
+	my( $self, $new_issues ) = @_;
+
+	$new_issues = [] if !defined $new_issues;
+
+	# tidy-up issues (should this be in the calling code?)
+	for(@$new_issues)
+	{
+		# default status to "discovered"
+		$_->{status} = "discovered"
+			if !EPrints::Utils::is_set( $_->{status} );
+		# default item_issue_id to item_issue_type
+		$_->{id} = $_->{type}
+			if !EPrints::Utils::is_set( $_->{id} );
+		# default timestamp to 'now'
+		$_->{timestamp} = EPrints::Time::get_iso_timestamp();
+		# backwards compatibility
+		if( ref( $_->{description} ) )
+		{
+			$_->{description} = $self->{session}->xhtml->to_xhtml( $_->{description} );
+		}
+	}
+
+	my %issues_map = map { $_->{id} => $_ } @$new_issues;
+
+	my $current_issues = $self->value( "item_issues" );
+	$current_issues = [] if !defined $current_issues;
+	# clone, otherwise we can't detect changes
+	$current_issues = EPrints::Utils::clone( $current_issues );
+
+	# update existing issues
+	foreach my $issue (@$current_issues)
+	{
+		my $new_issue = delete $issues_map{$issue->{id}};
+		if( defined $new_issue )
+		{
+			# update description (may have changed)
+			$issue->{description} = $new_issue->{description};
+			$issue->{status} = $new_issue->{status};
+		}
+		elsif( $issue->{status} eq "discovered" )
+		{
+			$issue->{status} = "autoresolved";
+		}
+	}
+
+	# append all other new issues
+	foreach my $new_issue (@$new_issues)
+	{
+		next if !exists $issues_map{$new_issue->{id}};
+		push @$current_issues, $new_issue;
+	}
+
+	$self->SUPER::set_value( "item_issues", $current_issues );
 }
 
 sub render_issues

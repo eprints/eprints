@@ -156,7 +156,7 @@ my $list = $searchexp->perform_search;
 my @issues_plugins = $session->plugin_list(
 	type=>"Issues",
 	is_available=>1 );
-my $issues = {};
+my $item_issues = {};
 foreach my $plugin_id ( @issues_plugins )
 {
 	my $plugin = $session->plugin( $plugin_id );
@@ -166,70 +166,23 @@ foreach my $plugin_id ( @issues_plugins )
 	{
 		foreach my $issue ( @{$plugin_issues->{$itemid}} )
 		{
-			push @{$issues->{$itemid}}, $issue;
+			my $desc = $issue->{description};
+			$issue->{description} = EPrints::XML::to_string( $desc );
+			EPrints::XML::dispose( $desc );
+			push @{$item_issues->{$itemid}}, $issue;
 		}
 	}
 }
 
 # Update the issues fields
 print "Updating database\n" if $noise > 0;
-my $now = EPrints::Time::get_iso_timestamp();
-$list->map( 
-		sub { 
-			my( $session, $dataset, $item, $info ) = @_;
-		
-			my $new_issues = $issues->{$item->get_id} || [];	
-			my $current_issues = $item->get_value( "item_issues" ) || [];
-			my $map = {};
-			foreach my $issue ( @{$new_issues} )
-			{
-				$issue->{id} = $issue->{type} unless( EPrints::Utils::is_set( $issue->{id} ));
-				$map->{$issue->{id}} = $issue;	
-			}
+$list->map(sub {
+	my( undef, undef, $item ) = @_;
 
-			my $issues_out = [];
-			ISSUE: foreach my $issue ( @{$current_issues} )
-			{
-				my $newfound = $map->{$issue->{id}};
-				if( $issue->{status} =~ m/^(reported|resolved)$/ )
-				{
-					print STDERR "Odd issue reported on item ".$item->get_id." - ".$issue->{id}." has status of ".$issue->{status}." so can't be auto-modified!\n" if( $noise > 0 );
-					next ISSUE;
-				}
-				if( defined $newfound )
-				{
-					# issue used to exist, and still exists
-
-					# reopen it if needed
-					if( $issue->{status} eq "autoresolved" ) 
-					{ 
-						$issue->{status} = "discovered"; 
-						$issue->{timestamp} = $now;
-					}
-					# (if it's 'ignored' then leave it alone)
-					$issue->{description} = EPrints::XML::to_string( 
-						$newfound->{description} );
-					delete $map->{$issue->{id}};
-				}
-				else
-				{
-					# issue used to exist, but now doesn't.
-					$issue->{timestamp} = $now;
-					$issue->{status} = "autoresolved";
-				}
-			}
-			foreach my $id ( keys %{$map} )
-			{
-				my $issue = $map->{$id};	
-				$issue->{timestamp} = $now;
-				$issue->{status} = "discovered";
-				push @{$current_issues}, $issue;
-			}
-			# add new issues
-			$item->set_value( "item_issues", $current_issues );
-			$item->commit;
-		},
-	);
+	my $value = $item_issues->{$item->id};
+	$item->set_item_issues( $value );
+	$item->commit;
+});
 print "Done updating database\n" if $noise > 0;
 
 
