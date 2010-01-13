@@ -1580,7 +1580,7 @@ Each file inside this archive will be created as an <b>individual</b> document i
     <epp:phrase id="Plugin/Screen/EPrint/Issues:issues"><h3>Issues recorded</h3></epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Staff/IssueSearch:description">Search for issues discovered in current records.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Staff/IssueSearch:title">Issues Search</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Staff/IssueSearch:title">Search issues</epp:phrase>
 
     <epp:phrase id="search/issues:title">Search for issues</epp:phrase>
     <epp:phrase id="search/issues:preamble"><p>Search for items by issue. The issues are updated periodically.</p></epp:phrase>
