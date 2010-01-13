@@ -623,14 +623,14 @@ sub _load_workflows
 
 	$self->{workflows} = {};
 
-	EPrints::Workflow::load_all( 
-		$self->config( "config_path" )."/workflows",
-		$self->{workflows} );
-
-	# load any remaining workflows from the generic level.
-	# eg. saved searches
+	# load system-level workflows
 	EPrints::Workflow::load_all( 
 		$self->config( "lib_path" )."/workflows",
+		$self->{workflows} );
+
+	# load repository-specific workflows (may overwrite)
+	EPrints::Workflow::load_all( 
+		$self->config( "config_path" )."/workflows",
 		$self->{workflows} );
 
 	return 1;
@@ -732,8 +732,10 @@ sub _load_citation_specs
 
 	$self->{citation_style} = {};
 	$self->{citation_type} = {};
-	$self->_load_citation_dir( $self->config( "config_path" )."/citations" );
+	# load system-level citations
 	$self->_load_citation_dir( $self->config( "lib_path" )."/citations" );
+	# load repository-specific citations (may overwrite)
+	$self->_load_citation_dir( $self->config( "config_path" )."/citations" );
 }
 
 sub _load_citation_dir
