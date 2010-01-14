@@ -1715,7 +1715,7 @@ sub make_thumbnails
 
 	foreach my $size ( @list )
 	{
-		my @relations = ( "has${size}ThumbnailVersion", "hasVolatileVersion" );
+		my @relations = ( EPrints::Utils::make_relation( "has${size}ThumbnailVersion" ), EPrints::Utils::make_relation( "hasVolatileVersion" ) );
 
 		my( $tgt ) = @{($self->get_related_objects( @relations ))};
 
