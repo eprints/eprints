@@ -4187,18 +4187,16 @@ sub write_static_page
 	}
 	foreach my $part_id ( keys %{$parts} )
 	{
+		next if !defined $parts->{$part_id};
+		if( !ref($parts->{$part_id}) )
+		{
+			EPrints::abort( "Page parts must be DOM fragments" );
+		}
 		my $file = $filebase.".".$part_id;
 		if( open( CACHE, ">$file" ) )
 		{
 			binmode(CACHE,":utf8");
-			if( $part_id eq "template" )
-			{
-				print CACHE $parts->{$part_id};
-			}
-			else
-			{
-				print CACHE EPrints::XML::to_string( $parts->{$part_id}, undef, 1 );
-			}
+			print CACHE $self->xhtml->to_xhtml( $parts->{$part_id} );
 			close CACHE;
 			if( defined $wrote_files )
 			{
