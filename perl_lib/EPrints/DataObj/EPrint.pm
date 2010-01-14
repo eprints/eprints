@@ -1459,7 +1459,7 @@ sub generate_static
 		}
 		$self->{session}->write_static_page( 
 			$full_path . "/index",
-			{title=>$title, page=>$page, head=>$links, template=>$template },
+			{title=>$title, page=>$page, head=>$links, template=>$self->{session}->make_text($template) },
 			 );
 	}
 	$self->{session}->change_lang( $real_langid );
