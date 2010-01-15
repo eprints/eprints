@@ -20,6 +20,11 @@
     <epp:phrase id="document_typename_video/mpeg">Video (MPEG)</epp:phrase>
     <epp:phrase id="document_typename_video/quicktime">Video (QuickTime)</epp:phrase>
     <epp:phrase id="document_typename_video/x-msvideo">Video (AVI)</epp:phrase>
+    <epp:phrase id="document_typename_video/x-ms-wmv">Video (WMV)</epp:phrase>
+    <epp:phrase id="document_typename_video/x-m4v">Video (MP4)</epp:phrase>
+    <epp:phrase id="document_typename_video/mp4">Video (MP4)</epp:phrase>
+    <epp:phrase id="document_typename_video/x-flv">Video (Flash)</epp:phrase>
+    <epp:phrase id="document_typename_video/mp2t">Video (AVCHD)</epp:phrase>
     <epp:phrase id="document_typename_other">Other</epp:phrase>
     <epp:phrase id="document_typename_text/xml">XML</epp:phrase>
     <epp:phrase id="document_typename_application/rdf+xml">RDF/XML</epp:phrase>
