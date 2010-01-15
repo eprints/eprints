@@ -545,7 +545,7 @@ sub get_value
 {
 	my( $self, $fieldname ) = @_;
 	
-	my $field = EPrints::Utils::field_from_config_string( $self->{dataset}, $fieldname );
+	my $field = $self->{dataset}->field( $fieldname );
 
 	if( !defined $field )
 	{
