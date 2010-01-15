@@ -2551,7 +2551,7 @@ EOW
 			{
 				$sql =~ s/(ADD PRIMARY KEY)/DROP PRIMARY KEY, $1/;
 			}
-			my %old_keys = _mysql_table_keys( $db, $grep_table );
+			%old_keys = _mysql_table_keys( $db, $grep_table );
 			foreach my $old_key (keys %old_keys)
 			{
 				$sql .= ", DROP KEY ".$db->quote_identifier( $old_key );
