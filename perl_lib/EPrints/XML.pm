@@ -317,9 +317,30 @@ sub contents_of
 
 =item $string = $xml->text_contents_of( $node )
 
-TODO: Returns any text child nodes in $node.
+Returns the concantenated value of all text nodes in $node (or the value of $node if $node is a text node).
 
 =cut
+
+sub text_contents_of
+{
+	my( $self, $node ) = @_;
+
+	my $str = "";
+	if( $self->is( $node, "Text" ) )
+	{
+		$str = $node->toString;
+		utf8::decode($str) unless utf8::is_utf8($str);
+	}
+	elsif( $node->hasChildNodes )
+	{
+		for($node->childNodes)
+		{
+			$str .= text_contents_of( $_ );
+		}
+	}
+
+	return $str;
+}
 
 =item $utf8_string = $xml->to_string( $node, %opts )
 

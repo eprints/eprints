@@ -301,6 +301,133 @@ sub to_xhtml
 	return wantarray ? @n : join('', @n);
 }
 
+=item $string = $xhtml->to_text_dump( $tree, %opts )
+
+Dumps the XHTML contents of $tree as a utf8 string, stripping tags and converting common HTML layout elements into their plain-text equivalent.
+
+Options:
+
+	width - word-wrap after the given number of columns
+	show_links - see below
+	preformatted - equivalent to wrapping $tree in <pre></pre>
+
+XHTML elements are removed with the following exceptions:
+
+<br /> is replaced by a newline.
+
+<p>...</p> will have a blank line above and below.
+
+<img /> is replaced with the content of the I<alt> attribute.
+
+<hr /> will insert a line of dashes if B<width> is set.
+
+<a href="foo">bar</a> will be replaced by "bar <foo>" if B<show_links> is set.
+
+=cut
+
+######################################################################
+
+sub to_text_dump
+{
+	my( $self, $node, %opts ) = @_;
+
+	my $width = exists $opts{width} ? $opts{width} : undef;
+	my $show_links = exists $opts{show_links} ? $opts{show_links} : 0;
+	my $pre = exists $opts{preformatted} ? $opts{preformatted} : 0;
+
+	my $str = "";
+	$self->_to_text_dump( \$str, $node, $width, $pre, $show_links );
+	utf8::decode($str) unless utf8::is_utf8($str);
+
+	return $str;
+}
+
+sub _to_text_dump
+{
+	my( $self, $str, $node, $width, $pre, $show_links ) = @_;
+
+	if( $self->{xml}->is( $node, 'Text', 'CDataSection' ) )
+	{
+		my $v = $node->nodeValue();
+		$v =~ s/[\s\r\n\t]+/ /g unless( $pre );
+		$$str .= $v;
+		return;
+	}
+	elsif( $self->{xml}->is( $node, 'NodeList' ) )
+	{
+# Hmm, a node list, not a node.
+		for( my $i=0 ; $i<$node->length ; ++$i )
+		{
+			$self->_to_text_dump(
+					$str,
+					$node->item( $i ), 
+					$width,
+					$pre,
+					$show_links );
+		}
+		return;
+	}
+
+	my $name = lc $node->localName();
+
+	# empty tags
+	if( $name eq 'hr' )
+	{
+		# <hr /> only makes sense if we are generating a known width.
+		$$str .= "\n"."-"x$width."\n" if $width;
+		return;
+	}
+	elsif( $name eq 'br' )
+	{
+		$$str .= "\n";
+		return;
+	}
+
+	my $contents = "";
+	for( $node->childNodes )
+	{
+		$self->_to_text_dump( 
+				\$contents,
+				$_,
+				$width, 
+				( $pre || $name eq "pre" || $name eq "mail" ),
+				$show_links );
+	}
+
+	# Handle wrapping block elements if a width was set.
+	if( $width && ( $name eq "p" || $name eq "mail" ) )
+	{
+		$contents = EPrints::Utils::wrap_text( $contents, $width );
+	}
+
+	if( $name eq "fallback" )
+	{
+		$contents = "*".$contents."*";
+	}
+	elsif( $name eq "p" )
+	{
+		$contents =~ s/^(?:\n\n)?/\n\n/ if $$str !~ /\n\n$/;
+		$contents =~ s/(?:\n)?$/\n/;
+	}
+	elsif( $name eq "img" )
+	{
+		$contents = $node->getAttribute( "alt" );
+		$contents = "" if !defined $contents;
+	}
+	elsif( $name eq "a" )
+	{
+		if( $show_links )
+		{
+			my $href = $node->getAttribute( "href" );
+			$contents .= " <$href>" if( defined $href );
+		}
+	}
+
+	$$str .= $contents;
+
+	return;
+}
+
 =item $page = $xhtml->page( $map, %opts )
 
 Returns an EPrints::Page object describing an XHTML page filled out with the templates provided in $map.
