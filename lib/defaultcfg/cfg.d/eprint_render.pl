@@ -123,8 +123,11 @@ if(0){
 	my $title = $eprint->render_description();
 
 	my $links = $session->make_doc_fragment();
-	$links->appendChild( $session->plugin( "Export::Simple" )->dataobj_to_html_header( $eprint ) );
-	$links->appendChild( $session->plugin( "Export::DC" )->dataobj_to_html_header( $eprint ) );
+	if( !$preview )
+	{
+		$links->appendChild( $session->plugin( "Export::Simple" )->dataobj_to_html_header( $eprint ) );
+		$links->appendChild( $session->plugin( "Export::DC" )->dataobj_to_html_header( $eprint ) );
+	}
 
 	return( $page, $title, $links );
 };
