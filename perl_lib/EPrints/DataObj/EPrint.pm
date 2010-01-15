@@ -1625,7 +1625,11 @@ sub render_box_list
 {
 	my( $session, $eprint, $list ) = @_;
 
-	my $processor = bless { session=>$session, eprint=>$eprint, eprintid=>$eprint->get_id }, "EPrints::ScreenProcessor";
+	my $processor = EPrints::ScreenProcessor->new(
+		session => $session,
+		eprint => $eprint,
+		eprintid => $eprint->get_id,
+	);
 	my $some_plugin = $session->plugin( "Screen", processor=>$processor );
 
 	my $chunk = $session->make_doc_fragment;

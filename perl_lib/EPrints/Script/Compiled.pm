@@ -562,10 +562,10 @@ sub run_action_list
 {
 	my( $self, $state, $list_id, $item ) = @_;
 
-	my $screen_processor = bless {
+	my $screen_processor = EPrints::ScreenProcessor->new(
 		session => $state->{session},
 		screenid => "FirstTool",
-	}, "EPrints::ScreenProcessor";
+	);
 
 	my $screen = $screen_processor->screen;
 	$screen->properties_from;
