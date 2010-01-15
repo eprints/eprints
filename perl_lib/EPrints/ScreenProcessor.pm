@@ -35,7 +35,152 @@ sub new
 
 	my $self = bless \%self, $class;
 
+	$self->cache_list_items();
+
 	return $self;
+}
+
+=item $processor->cache_list_items()
+
+Caches all of the screen plugin appearances/actions.
+
+=cut
+
+sub cache_list_items
+{
+	my( $self ) = @_;
+
+	my $session = $self->{session};
+
+	return if defined $session->{screen_lists};
+
+	my $screen_lists = {};
+
+	my $p_conf = $session->config( "plugins" );
+
+	my @screens = $session->get_plugins( {
+			processor => $self,
+		},
+		type => "Screen" );
+
+	foreach my $screen (@screens)
+	{
+		my $screen_id = $screen->get_id;
+		my %app_conf = %{($p_conf->{$screen_id} || {})->{appears} || {}};
+		my %acc_conf = %{($p_conf->{$screen_id} || {})->{actions} || {}};
+		my %appears;
+		my %actions;
+		foreach my $opt (@{$screen->{appears} || []})
+		{
+			my $place = $opt->{place};
+			my $position = $opt->{position};
+			my $action = $opt->{action};
+
+			$position = 999999 if !defined $position;
+			
+			if( defined $action )
+			{
+				next if $acc_conf{$action}->{disable};
+				$actions{$place}->{$action} = $position;
+			}
+			else
+			{
+				$appears{$place} = $position;
+			}
+		}
+		foreach my $action (keys %acc_conf)
+		{
+			next if $acc_conf{$action}->{disable};
+			foreach my $place (keys %{$acc_conf{appears}})
+			{
+				$actions{$place}->{$action} = $acc_conf{appears}->{$place};
+			}
+		}
+		foreach my $place (keys %app_conf)
+		{
+			if( defined $app_conf{$place} )
+			{
+				$appears{$place} = $app_conf{$place};
+			}
+			else
+			{
+				delete $appears{$place};
+				delete $actions{$place};
+			}
+		}
+		foreach my $place (keys %appears)
+		{
+			push @{$screen_lists->{$place}}, {
+				screen_id => $screen_id,
+				position => $appears{$place},
+			};
+		}
+		foreach my $place (keys %actions)
+		{
+			foreach my $action (keys %{$actions{$place}})
+			{
+				push @{$screen_lists->{$place}}, {
+					screen_id => $screen_id,
+					position => $actions{$place}->{$action},
+					action => $action,
+				};
+			}
+		}
+	}
+
+	foreach my $item_list (values %$screen_lists)
+	{
+		@$item_list = sort { $a->{position} <=> $b->{position} } @$item_list;
+	}
+
+	$session->{screen_lists} = $screen_lists;
+}
+
+=item @screen_opts = $processor->list_items( $list_id, %opts )
+
+Returns a list of screens that appear in list $list_id ordered by their position.
+
+Each screen opt is a hash ref of:
+
+	screen - screen plugin
+	screen_id - screen id
+	position - position (positive integer)
+	action - the action, if this plugin is for an action list
+
+Incoming opts:
+
+	filter => 1 or 0 (default 1)
+
+=cut
+
+sub list_items
+{
+	my( $self, $list_id, %opts ) = @_;
+
+	my $filter = $opts{filter};
+	$filter = 1 if !defined $filter;
+
+	my $screen_lists = $self->{session}->{screen_lists};
+
+	my @list;
+	foreach my $opt (@{$screen_lists->{$list_id} || []})
+	{
+		my $screen = $self->{session}->plugin( $opt->{screen_id}, processor=>$self );
+		if( $filter )
+		{
+			next if !$screen->can_be_viewed;
+			if( defined $opt->{action} )
+			{
+				next if !$screen->allow_action( $opt->{action} );
+			}
+		}
+		push @list, {
+			%$opt,
+			screen => $screen,
+		};
+	}
+
+	return @list;
 }
 
 =item EPrints::ScreenProcessor->process( %opts )

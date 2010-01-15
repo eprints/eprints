@@ -255,7 +255,7 @@ sub render_title
 	return $self->html_phrase( "title" );
 }
 
-=item @screen_opts = $screen->ist_items( $list_id, %opts )
+=item @screen_opts = $screen->list_items( $list_id, %opts )
 
 Returns a list of screens that appear in list $list_id ordered by their position.
 
@@ -276,102 +276,7 @@ sub list_items
 {
 	my( $self, $list_id, %opts ) = @_;
 
-	my $filter = $opts{filter};
-	$filter = 1 unless defined $opts{filter};
-
-	my @screens = $self->{session}->get_plugins( {
-			processor => $self->{processor},
-		},
-		type => "Screen" );
-	my @list_items = ();
-
-	foreach my $screen ( @screens )
-	{	
-		my $screen_id = $screen->get_id;
-		my $p_conf = $self->{session}->get_repository->get_conf( 
-				"plugins", $screen_id );
-
-		if( exists $p_conf->{appears}->{$list_id} && 
-			!defined $p_conf->{appears}->{$list_id} )
-		{
-			# set to undef
-			next;
-		}
-
-		my @things_in_list = ();
-		if( defined $screen->{appears} )
-		{
-			foreach my $opt ( @{$screen->{appears}} )
-			{
-				next if( $opt->{place} ne $list_id );
-				if( defined $opt->{action} )
-				{
-					# skip if this action is disabled
-					next if( $p_conf->{actions}->{$opt->{action}}->{disable} );
-					# skip if this action/list has got an position
-					# configured
-					next if( defined $p_conf->{actions}->{$opt->{action}}->{appears}->{$list_id} );
-				}
-				else
-				{
-					# skip if this screen/list has got a position 
-					# configured.
-					next if( defined $p_conf->{appears}->{$list_id} );
-				}	
-				push @things_in_list, $opt;
-			}
-		}
-		if( defined $p_conf->{appears}->{$list_id} )
-		{
-			push @things_in_list, 
-				{
-					place => $list_id,
-					position => $p_conf->{appears}->{$list_id},
-				};
-		}
-		if( defined $p_conf->{actions} )
-		{
-			foreach my $action_id ( keys %{$p_conf->{actions}} )
-			{
-				my $a_conf = $p_conf->{actions}->{$action_id};
-				if( defined $a_conf->{appears}->{$list_id} )
-				{
-					push @things_in_list, 
-						{
-						place => $list_id,
-						position => $a_conf->{appears}->{$list_id},
-						action => $action_id,
-						};
-				}
-
-			}
-		}
-
-		next if( scalar @things_in_list == 0 );
-
-		# must be done after checking things in the list
-		# to prevent actions looping.
-		next if( $filter && !$screen->can_be_viewed );
-	
-		foreach my $opt ( @things_in_list )
-		{	
-			my $p = $opt->{position};
-			$p = 999999 if( !defined $p );
-			if( defined $opt->{action} )
-			{
- 				next if( $filter && !$screen->allow_action( $opt->{action} ) );
-			}
-
-			push @list_items, {
-				screen => $screen,
-				screen_id => $screen_id,
-				action => $opt->{action},
-				position => $p,
-			};
-		}
-	}
-
-	return sort { $a->{position} <=> $b->{position} } @list_items;
+	return $self->{processor}->list_items( $list_id, %opts );
 }	
 
 sub action_allowed
