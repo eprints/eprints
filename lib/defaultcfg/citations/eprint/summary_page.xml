@@ -39,7 +39,9 @@
 
             <ul>
             <epc:foreach expr="$doc.related_objects('http://eprints.org/relation/hasVersion')" iterator="rel">
-            <li><epc:print expr="$rel.citation_link('default')" /></li>
+			<epc:if test="$rel{relation_type}!='http://eprints.org/relation/isVolatileVersionOf'">
+				<li><epc:print expr="$rel.citation_link('default')" /></li>
+			</epc:if>
             </epc:foreach>
             </ul>
           </td>
