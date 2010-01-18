@@ -2461,6 +2461,8 @@ sub get_single
 {
 	my( $self, $dataset, $id ) = @_;
 
+	return undef if !defined $id;
+
 	return ($self->get_dataobjs( $dataset, $id ))[0];
 }
 
