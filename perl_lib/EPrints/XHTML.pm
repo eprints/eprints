@@ -346,14 +346,14 @@ sub _to_text_dump
 {
 	my( $self, $str, $node, $width, $pre, $show_links ) = @_;
 
-	if( $self->{xml}->is( $node, 'Text', 'CDataSection' ) )
+	if( $self->{repository}->{xml}->is( $node, 'Text', 'CDataSection' ) )
 	{
 		my $v = $node->nodeValue();
 		$v =~ s/[\s\r\n\t]+/ /g unless( $pre );
 		$$str .= $v;
 		return;
 	}
-	elsif( $self->{xml}->is( $node, 'NodeList' ) )
+	elsif( $self->{repository}->{xml}->is( $node, 'NodeList' ) )
 	{
 # Hmm, a node list, not a node.
 		for( my $i=0 ; $i<$node->length ; ++$i )
