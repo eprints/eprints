@@ -38,7 +38,7 @@ The event should not be executed before this time.
 
 =item end_time
 
-The event was completed at this time.
+The event was last touched at this time.
 
 =item due_time
 
@@ -144,24 +144,64 @@ sub execute
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	# commenced at
+	$self->set_value( "end_time", EPrints::Time::get_iso_timestamp() );
+	$self->commit();
 
-	my $plugin = $session->plugin( $self->get_value( "pluginid" ) );
+	my $rc = $self->_execute();
+
+	# completed at
+	$self->set_value( "end_time", EPrints::Time::get_iso_timestamp() );
+
+	if( $rc == 2 )
+	{
+		$self->set_value( "status", "waiting" );
+		$self->commit;
+	}
+	elsif( $rc == 1 )
+	{
+		if( !$self->is_set( "oneshot" ) || $self->value( "oneshot" ) eq "TRUE" )
+		{
+			$self->remove();
+		}
+		else
+		{
+			$self->set_value( "status", "success" );
+			$self->commit;
+		}
+	}
+	elsif( $rc == 0 )
+	{
+		$self->set_value( "status", "failed" );
+		$self->commit();
+	}
+
+	return $rc;
+}
+
+sub _execute
+{
+	my( $self ) = @_;
+
+	my $session = $self->{session};
+	my $xml = $session->xml;
+
+	my $plugin = $session->plugin( $self->value( "pluginid" ) );
 	if( !defined $plugin )
 	{
 		# no such plugin
-		$session->log( "Plugin not available: ".$self->get_value( "pluginid" ) );
+		$self->message( "error", $xml->create_text_node( $self->value( "pluginid" )." not available" ) );
 		return 0;
 	}
 
-	my $action = $self->get_value( "action" );
+	my $action = $self->value( "action" );
 	if( !$plugin->can( $action ) )
 	{
-		$session->log( "No such method $action on ".ref($plugin) );
+		$self->message( "error", $xml->create_text_node( "'$action' not available on ".ref($plugin) ) );
 		return 0;
 	}
 
-	my $params = $self->get_value( "params" );
+	my $params = $self->value( "params" );
 	if( !defined $params )
 	{
 		$params = [];
@@ -176,21 +216,55 @@ sub execute
 			my $dataset = $session->dataset( $1 );
 			if( !defined $dataset )
 			{
-				$session->log( "Bad parameters: No such dataset '$1'" );
+				$self->message( "error", $xml->create_text_node( "Bad parameters: No such dataset '$1'" ) );
 				return 0;
 			}
 			$param = $dataset->dataobj( $2 );
 			if( !defined $param )
 			{
-				$session->log( "Bad parameters: No such item '$2' in dataset '$1'" );
+				$self->message( "error", $xml->create_text_node( "Bad parameters: No such item '$2' in dataset '$1'" ) );
 				return 0;
+			}
+			if( $param->isa( "EPrints::DataObj::EPrint" ) )
+			{
+				if( $param->is_locked() )
+				{
+					$self->message( "warning", $xml->create_text_node( $param->get_dataset->base_id.".".$param->id." is locked" ) );
+					return 2;
+				}
 			}
 		}
 	}
 
-	$plugin->$action( @params );
+	eval { $plugin->$action( @params ) };
+	if( $@ )
+	{
+		$self->message( "error", $xml->create_text_node( "Error during execution: $@" ) );
+		$self->set_value( "description", $@ );
+		return 0;
+	}
 
 	return 1;
+}
+
+=item $event->message( $type, $xhtml )
+
+Register a message.
+
+=cut
+
+sub message
+{
+	my( $self, $type, $message ) = @_;
+
+	my $msg = "";
+	$msg = sprintf( "%s::%s: %s",
+		$self->value( "pluginid" ),
+		$self->value( "action" ),
+		$self->{session}->xhtml->to_text_dump( $message ) );
+	$self->{session}->xml->dispose( $message );
+
+	$self->{session}->log( $msg );
 }
 
 1;

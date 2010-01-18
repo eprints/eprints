@@ -670,6 +670,7 @@ sub _run_index
 {
 	my( $self, $session ) = @_;
 
+	my $seen_action = 0;
 	my @events = $session->get_database->dequeue_events( 10 );
 	foreach my $event (@events)
 	{
@@ -685,24 +686,14 @@ sub _run_index
 		}
 
 		my $rc = $event->execute;
-		if( $rc )
-		{
-			$event->set_value( "status", "success" );
-			$event->commit;
-		}
-		else
+		if( $rc == 0 )
 		{
 			$self->log( 3, "** event ".$event->get_id." failed" );
-			$event->set_value( "status", "failed" );
-			$event->commit();
 		}
-		if( !$event->is_set( "oneshot" ) || $event->value( "oneshot" ) eq "TRUE" )
-		{
-			$event->remove();
-		}
+		$seen_action ||= $rc != 2; # 2==subject is locked
 	}
 
-	return @events > 0; # seen action, even if it is to fail
+	return $seen_action; # seen action, even if it is to fail
 }
 
 # is it time to respawn the indexer/roll the logs?
