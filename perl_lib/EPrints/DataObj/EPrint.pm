@@ -206,6 +206,7 @@ sub get_system_field_info
 				sub_name => "type",
 				type => "id",
 				text_index => 0,
+				sql_index => 1,
 			},
 			{
 				sub_name => "description",
