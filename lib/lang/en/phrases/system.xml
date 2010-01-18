@@ -1376,10 +1376,10 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/Import:intro">To import items from an external source enter the required data below. To test whether the data to import is correctly formatted click <em><epc:phrase ref="Plugin/Screen/Import:action:test:title"/></em>, otherwise click <em><epc:phrase ref="Plugin/Screen/Import:action:import:title"/></em> to import.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:import_section">
 <table width="100%"><tr>
-  <td align="left">Import from <epc:pin name="menu"/><epc:pin name="button"/></td>
+  <td align="center">Import from <epc:pin name="menu"/><epc:pin name="button"/></td>
 </tr>
 <tr>
-  <td align="left">
+  <td align="center">
     <epc:pin name="tools"/>
   </td>
 </tr>
