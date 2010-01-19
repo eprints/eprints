@@ -312,6 +312,7 @@ EPrints Modules
     <epp:phrase id="lib/searchfield:desc_ignored"> (Ignoring: <epc:pin name="list"/>)</epp:phrase>
 
     <epp:phrase id="searchfield_name_q">Item</epp:phrase>
+    <epp:phrase id="lib/searchfield:n_more_values">... (<epc:pin name='n' /> not shown)</epp:phrase>
 
 <!-- Session -->
 

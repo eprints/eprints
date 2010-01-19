@@ -468,13 +468,22 @@ sub render_search_description
 	}
 
 	my $valuedesc = $session->make_doc_fragment;
+	my $max_to_show = $self->get_property( "render_max_search_values" );
 	my @list = split( ' ',  $value );
 	for( my $i=0; $i<scalar @list; ++$i )
 	{
+		if( $max_to_show && $i == $max_to_show )
+		{
+			$valuedesc->appendChild( $session->html_phrase( "lib/searchfield:n_more_values", 
+				n => $session->xml->create_text_node( scalar @list - $i ),
+				total => $session->xml->create_text_node( scalar @list ) ) );
+			last;
+		}
 		if( $i>0 )
 		{
 			$valuedesc->appendChild( $session->make_text( ", " ) );
 		}
+		
 		$valuedesc->appendChild( $session->make_text( '"' ) );
 		$valuedesc->appendChild(
 			$self->get_value_label( $session, $list[$i] ) );
@@ -513,6 +522,7 @@ sub get_property_defaults
 	$defaults{options} = $EPrints::MetaField::REQUIRED;
 	$defaults{input_tags} = $EPrints::MetaField::UNDEF;
 	$defaults{render_option} = $EPrints::MetaField::UNDEF;
+	$defaults{render_max_search_values} = 5;
 	$defaults{text_index} = 0;
 	return %defaults;
 }
