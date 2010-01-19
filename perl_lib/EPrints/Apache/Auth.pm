@@ -185,18 +185,16 @@ sub auth_cookie
 			return DONE;
 		}
 
+		$r->set_handlers(PerlResponseHandler =>[ 'EPrints::Apache::Login' ] );
+		return OK;
+	}
 
-		# bad ticket or no ticket
-		my $av =  $EPrints::SystemSettings::conf->{apache};
-		if( !defined $av || $av eq "1" ) 
-		{
-			$r->set_handlers(PerlResponseHandler =>[ 'EPrints::Apache::Login', 'Apache::Registry' ] );
-		}
-		else # apache 2
-		{
-			$r->set_handlers(PerlResponseHandler =>[ 'EPrints::Apache::Login', 'ModPerl::Registry' ] );
-		}
-
+	my $loginparams = $session->param("loginparams");
+	if( EPrints::Utils::is_set( $loginparams ) ) 
+	{
+		my $url = $session->get_url( host=>1 )."?".$loginparams;
+		$session->redirect( $url );
+		return DONE;
 	}
 
 	return OK;

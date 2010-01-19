@@ -36,15 +36,11 @@ sub handler
 			my $user = EPrints::DataObj::User::user_with_username( $session, $username );
 			$session->login( $user );
 
+			my $url = $session->get_url( host=>1 );
 			my $loginparams = $session->param("loginparams");
-
-			my $c = $r->connection;
-
-			$c->notes->set( loginparams=>$loginparams );
-
-			# Declined to render the HTML, not declined the
-			# request.
-			return DECLINED;
+			if( EPrints::Utils::is_set( $loginparams ) ) { $url .= "?".$loginparams; }
+			$session->redirect( $url );
+			return DONE;
 		}
 
 		$problems = $session->html_phrase( "cgi/login:failed" );
@@ -68,7 +64,6 @@ sub handler
 	$session->terminate;
 
 	return DONE;
-
 }
 
 
