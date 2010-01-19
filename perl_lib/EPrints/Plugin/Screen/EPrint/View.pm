@@ -78,7 +78,8 @@ sub render
 	my $chunk = $self->{session}->make_doc_fragment;
 
 	$chunk->appendChild( $self->render_status );
-	$chunk->appendChild( $self->render_common_action_buttons );
+	my $buttons = $self->render_common_action_buttons;
+	$chunk->appendChild( $buttons );
 
 	# if in archive and can request delete then do that here TODO
 
@@ -95,33 +96,30 @@ sub render
 #	my @views = qw/ summary full actions export export_staff edit edit_staff history /;
 
 
+	my $current;
+	my @screens;
 	my $tabs = [];
 	my $labels = {};
 	my $links = {};
 	my $slowlist = [];
-	my $position = {};
-	foreach my $item ( $self->list_items( "eprint_view_tabs" ) )
+	foreach my $item ( $self->list_items( "eprint_view_tabs", filter => 0 ) )
 	{
-		if( !($item->{screen}->can_be_viewed & $self->who_filter) )
-		{
-			next;
-		}
+		next if !($item->{screen}->can_be_viewed & $self->who_filter);
+		next if $item->{action} && !$item->{screen}->allow_action( $item->{action} );
 		if( $item->{screen}->{expensive} )
 		{
 			push @{$slowlist}, $item->{screen_id};
 		}
 
+		$current = $item->{screen} if defined $view && $view eq $item->{screen_id};
+		push @screens, $item->{screen};
 		push @{$tabs}, $item->{screen_id};
-		$position->{$item->{screen_id}} = $item->{position};
 		$labels->{$item->{screen_id}} = $item->{screen}->render_tab_title;
 		$links->{$item->{screen_id}} = "?screen=".$self->{processor}->{screenid}."&eprintid=".$self->{processor}->{eprintid}."&view=".substr( $item->{screen_id}, 8 );
 	}
 
-	@{$tabs} = sort { $position->{$a} <=> $position->{$b} } @{$tabs};
-	if( !defined $view )
-	{
-		$view = $tabs->[0] 
-	}
+	$current = $screens[0] if !defined $current;
+	$view = $current->get_id if !defined $view;
 
 	$chunk->appendChild( 
 		$self->{session}->render_tabs( 
@@ -137,63 +135,38 @@ sub render
 			id => "${id_prefix}_panels", 
 			class => "ep_tab_panel" );
 	$chunk->appendChild( $panel );
-	my $view_div = $self->{session}->make_element( 
-			"div", 
-			id => "${id_prefix}_panel_$view" );
 
-	my $screen = $self->{session}->plugin( 
-			$view,
-			processor => $self->{processor} );
-	if( !defined $screen )
+	if( $view ne $current->get_id )
 	{
-		$view_div->appendChild( 
-			$self->{session}->html_phrase(
-				"cgi/users/edit_eprint:view_unavailable" ) ); # error
-	}
-	elsif(! ($screen->can_be_viewed & $self->who_filter ) )
-	{
-		$view_div->appendChild( 
-			$self->{session}->html_phrase(
-				"cgi/users/edit_eprint:view_unavailable" ) );
-	}
-	else
-	{
-		$view_div->appendChild( $screen->render );
+		my $view_div = $self->{session}->make_element( "div", 
+				id => "${id_prefix}_panel_$view" );
+		$panel->appendChild( $view_div );
+		$view_div->appendChild( $self->{session}->html_phrase( "cgi/users/edit_eprint:view_unavailable" ) ); # error
 	}
 
-	$panel->appendChild( $view_div );
-
-	my $view_slow = 0;
-	foreach my $slow ( @{$slowlist} )
-	{
-		$view_slow = 1 if( $slow eq $view );
-	}
-	return $chunk if $view_slow;
-	
 	# don't render the other tabs if this is a slow tab - they must reload
-	foreach my $screen_id ( @{$tabs} )
+	foreach my $screen (@screens)
 	{
-		next if $screen_id eq $view;
-		my $other_view = $self->{session}->make_element( 
-			"div", 
-			id => "${id_prefix}_panel_$screen_id", 
+		my $view_div = $self->{session}->make_element( "div", 
+			id => "${id_prefix}_panel_".$screen->get_id, 
 			style => "display: none" );
-		$panel->appendChild( $other_view );
-
-		my $screen = $self->{session}->plugin( 
-			$screen_id,
-			processor=>$self->{processor} );
-		if( $screen->{expensive} )
+		$panel->appendChild( $view_div );
+		if( $screen eq $current )
 		{
-			$other_view->appendChild( $self->{session}->html_phrase( 
-					"cgi/users/edit_eprint:loading" ) );
-			next;
+			$view_div->setAttribute( style => "display: block" );
+			$view_div->appendChild( $screen->render );
 		}
-
-		$other_view->appendChild( $screen->render );
+		elsif( $screen->{expensive} )
+		{
+			$view_div->appendChild( $self->{session}->html_phrase( "cgi/users/edit_eprint:loading" ) );
+		}
+		else
+		{
+			$view_div->appendChild( $screen->render );
+		}
 	}
 
-	$chunk->appendChild( $self->render_common_action_buttons );
+	$chunk->appendChild( $buttons->cloneNode(1) );
 	return $chunk;
 }
 
