@@ -80,6 +80,13 @@ Parameters to pass to the action (a text serialisation).
 
 use strict;
 
+use constant {
+	INTERNAL_ERROR => 0,
+	SUCCESS => 1,
+	IS_LOCKED => 2,
+	BAD_PARAMETERS => 3,
+};
+
 sub get_system_field_info
 {
 	return (
@@ -153,12 +160,13 @@ sub execute
 	# completed at
 	$self->set_value( "end_time", EPrints::Time::get_iso_timestamp() );
 
-	if( $rc == 2 )
+	if( $rc == IS_LOCKED )
 	{
 		$self->set_value( "status", "waiting" );
 		$self->commit;
 	}
-	elsif( $rc == 1 )
+	# BAD_PARAMETERS probably means the object has gone away, which is ok
+	elsif( $rc == SUCCESS || $rc == BAD_PARAMETERS )
 	{
 		if( !$self->is_set( "oneshot" ) || $self->value( "oneshot" ) eq "TRUE" )
 		{
@@ -166,11 +174,18 @@ sub execute
 		}
 		else
 		{
-			$self->set_value( "status", "success" );
+			if( $rc == SUCCESS )
+			{
+				$self->set_value( "status", "success" );
+			}
+			else # BAD_PARAMETERS
+			{
+				$self->set_value( "status", "failed" );
+			}
 			$self->commit;
 		}
 	}
-	elsif( $rc == 0 )
+	elsif( $rc == INTERNAL_ERROR )
 	{
 		$self->set_value( "status", "failed" );
 		$self->commit();
@@ -191,14 +206,14 @@ sub _execute
 	{
 		# no such plugin
 		$self->message( "error", $xml->create_text_node( $self->value( "pluginid" )." not available" ) );
-		return 0;
+		return INTERNAL_ERROR;
 	}
 
 	my $action = $self->value( "action" );
 	if( !$plugin->can( $action ) )
 	{
 		$self->message( "error", $xml->create_text_node( "'$action' not available on ".ref($plugin) ) );
-		return 0;
+		return INTERNAL_ERROR;
 	}
 
 	my $params = $self->value( "params" );
@@ -217,20 +232,20 @@ sub _execute
 			if( !defined $dataset )
 			{
 				$self->message( "error", $xml->create_text_node( "Bad parameters: No such dataset '$1'" ) );
-				return 0;
+				return BAD_PARAMETERS;
 			}
 			$param = $dataset->dataobj( $2 );
 			if( !defined $param )
 			{
 				$self->message( "error", $xml->create_text_node( "Bad parameters: No such item '$2' in dataset '$1'" ) );
-				return 0;
+				return BAD_PARAMETERS;
 			}
 			if( $param->isa( "EPrints::DataObj::EPrint" ) )
 			{
 				if( $param->is_locked() )
 				{
 					$self->message( "warning", $xml->create_text_node( $param->get_dataset->base_id.".".$param->id." is locked" ) );
-					return 2;
+					return IS_LOCKED;
 				}
 			}
 		}
@@ -241,7 +256,7 @@ sub _execute
 	{
 		$self->message( "error", $xml->create_text_node( "Error during execution: $@" ) );
 		$self->set_value( "description", $@ );
-		return 0;
+		return INTERNAL_ERROR;
 	}
 
 	return 1;
@@ -258,7 +273,8 @@ sub message
 	my( $self, $type, $message ) = @_;
 
 	my $msg = "";
-	$msg = sprintf( "%s::%s: %s",
+	$msg = sprintf( "[%s] %s::%s: %s",
+		$self->id,
 		$self->value( "pluginid" ),
 		$self->value( "action" ),
 		$self->{session}->xhtml->to_text_dump( $message ) );

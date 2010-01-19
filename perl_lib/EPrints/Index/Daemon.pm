@@ -686,18 +686,13 @@ sub _run_index
 		}
 
 		my $rc = $event->execute;
-		if( $rc == 2 )
-		{
-			# eprint is locked
-		}
-		elsif( $rc == 1 )
-		{
-			# success
-			$seen_action = 1;
-		}
-		elsif( $rc == 0 )
+		if( $rc == 0 )
 		{
 			$self->log( 3, "** event ".$event->get_id." failed" );
+			$seen_action = 1;
+		}
+		elsif( $rc != 2 ) # eprint is locked
+		{
 			$seen_action = 1;
 		}
 	}
