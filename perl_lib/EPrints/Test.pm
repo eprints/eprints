@@ -150,4 +150,19 @@ sub get_test_document
 	return EPrints::DataObj::Document->new( $session, $id );
 }
 
+=item EPrints::Test::get_test_dataobj( $dataset )
+
+Returns the first object from the dataset $dataset.
+
+=cut
+
+sub get_test_dataobj
+{
+	my( $dataset ) = @_;
+
+	my $results = $dataset->search( limit => 1 );
+
+	return $results->item( 0 );
+}
+
 1;
