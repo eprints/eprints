@@ -1702,9 +1702,9 @@ sub make_thumbnails
 		return;
 	}
 
-	my $src = $self->get_stored_file( $self->get_main() );
+	my $src_main = $self->get_stored_file( $self->get_main() );
 
-	return unless defined $src;
+	return unless defined $src_main;
 
 	my @list = qw/ small medium preview /;
 
@@ -1713,7 +1713,7 @@ sub make_thumbnails
 		$self->{session}->get_repository->call( "thumbnail_types", \@list, $self->{session}, $self );
 	}
 
-	foreach my $size ( @list )
+	SIZE: foreach my $size ( @list )
 	{
 		my @relations = ( EPrints::Utils::make_relation( "has${size}ThumbnailVersion" ), EPrints::Utils::make_relation( "hasVolatileVersion" ) );
 
@@ -1722,10 +1722,11 @@ sub make_thumbnails
 		# remove the existing thumbnail
    		if( defined($tgt) )
 		{
-			if( $tgt->get_datestamp gt $src->get_datestamp )
+			my $tgt_main = $tgt->get_stored_file( $tgt->get_main() );
+			if( defined $tgt_main && $tgt_main->get_datestamp gt $src_main->get_datestamp )
 			{
-				next;
-				# src file is older than thumbnail
+				# ignore if tgt's main file is newer than document's main file
+				next SIZE;
 			}
 			$self->remove_object_relations( $tgt );
 			$tgt->remove;
