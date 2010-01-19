@@ -111,7 +111,7 @@ sub _read_phrases_dir
 
 	my $dh;
 	opendir( $dh, $dir ) || EPrints::abort( "Failed to read: $dir: $!" );
-	while( my $fn = readdir( $dh ) )
+	foreach my $fn (sort readdir( $dh ) )
 	{
 		next if $fn =~ m/^\./;
 		next unless $fn =~ m/\.xml$/;
