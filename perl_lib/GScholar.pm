@@ -19,6 +19,9 @@ sub get_cites
 {
 	my( $session, $eprint ) = @_;
 
+	return undef if !$eprint->is_set( "title" );
+	return undef if !$eprint->is_set( "creators_name" );
+
 	my $title = $eprint->get_value( "title" );
 	$title =~ s/^(.{30,}?):\s.*$/$1/; # strip sub-titles
 
@@ -30,6 +33,8 @@ sub get_cites
 
 	my $quri = $SCHOLAR->clone;
 
+	utf8::encode( $title );
+	utf8::encode( $creator );
 	$quri->query_form(
 			q => "$title author:$creator"
 			);

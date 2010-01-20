@@ -528,4 +528,14 @@ $c->{fields}->{eprint} = [
             'type' => 'text',
           },
 
+	{
+		name => 'gscholar',
+		type => 'compound',
+		volatile => 1,
+		fields => [
+			{ sub_name => 'cites', type => 'int', },
+			{ sub_name => 'cluster', type => 'id', },
+			{ sub_name => 'datestamp', type => 'time', },
+		],
+	},
 ];
