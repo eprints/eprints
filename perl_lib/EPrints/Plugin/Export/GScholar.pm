@@ -26,7 +26,7 @@ sub new
 	{
 		$self->{disable} = 1;
 	}
-	if( defined($self->{session}) && !$self->{session}->get_dataset( "eprint" )->has_field( "gscholar" ) )
+	if( defined($self->{session}) && !$self->{session}->get_repository->get_dataset( "eprint" )->has_field( "gscholar" ) )
 	{
 		$self->{disable} = 1;
 	}
