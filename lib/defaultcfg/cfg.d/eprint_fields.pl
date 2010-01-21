@@ -537,5 +537,6 @@ $c->{fields}->{eprint} = [
 			{ sub_name => 'cluster', type => 'id', },
 			{ sub_name => 'datestamp', type => 'time', },
 		],
+		sql_index => 0,
 	},
 ];
