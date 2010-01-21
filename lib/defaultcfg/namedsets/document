@@ -25,7 +25,7 @@ text/xml
 text/n3
 application/rdf+xml
 application/bzip2
-application/x-compressed   # tgz
+application/x-gzip   # tgz
 application/zip
 audio/x-wav
 audio/mpeg
