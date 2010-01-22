@@ -19,7 +19,7 @@ To include one phrase in another:
 To completely replace one phrase with another:
 <epp:phrase id="the/phrase/id" ref="phrase/to/copy/id" />
 
-Phrases in this file will be over-ridden by zz_web.xml which is modified via the web-based phrase editor.
+Phrases in this file will be over-ridden by zz_webcfg.xml which is modified via the web-based phrase editor.
 
 -->
 
