@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
-<!DOCTYPE phrases SYSTEM "entities.dtd">
-
-<epp:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:epp="http://eprints.org/ep3/phrase" xmlns:epc="http://eprints.org/ep3/control">
-
-    <epp:phrase id="warnings:no_documents">You have not <span class="ep_problem_field:documents">uploaded any documents</span>. While this is not essential, it is strongly recommended.</epp:phrase>
-    <epp:phrase id="warnings:no_contact_email">Not all the documents in this record are available to the general public. We suggest you provide a <span class="ep_problem_field:contact_email">contact email address</span> which will allow people to request a copy directly from you.</epp:phrase>
-
-</epp:phrases>

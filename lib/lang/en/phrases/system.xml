@@ -1,5 +1,1365 @@
-<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <!DOCTYPE phrases SYSTEM "entities.dtd">
+
+<epp:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:epp="http://eprints.org/ep3/phrase" xmlns:epc="http://eprints.org/ep3/control">
+
+    <epp:phrase id="Plugin/Screen/BatchEdit:title">Batch Editing Tool</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:action:edit">Apply Changes</epp:phrase>
+    <epp:phrase id="eprint_fieldname_batchedit_action">Action</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_batchedit_action_">Don't change</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_batchedit_action_clear">Clear all values</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_batchedit_action_delete">Delete value matching</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_batchedit_action_insert">Prepend new value</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_batchedit_action_append">Append new value</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_batchedit_action_replace">Replace value with</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:invalid_cache">The search expression could not be found - you will need to re-do your search and start again.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:no_changes">You attempted to apply some changes but didn't specify any actions to take?</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:applied">The batch edit was made: <epc:pin name="changes"/></epp:phrase>
+	<epp:phrase id="Plugin/Screen/BatchEdit:applied_clear">Cleared existing value(s) from <em><epc:pin name="fieldname"/></em>.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:applied_delete">Deleted existing value from <em><epc:pin name="fieldname"/></em> matching "<epc:pin name="value"/>".</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:applied_insert">Inserted "<epc:pin name="value"/>" into <em><epc:pin name="fieldname"/></em>.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:applied_append">Appended "<epc:pin name="value"/>" onto <em><epc:pin name="fieldname"/></em>.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:applied_replace">Replaced existing value in <em><epc:pin name="fieldname"/></em> with "<epc:pin name="value"/>".</epp:phrase>
+
+
+	<epp:phrase id="Plugin/Screen/BatchEdit:applying_to">Applying batch alterations to <epc:pin name="count" /> items (only first <epc:pin name="showing" /> shown):</epp:phrase>
+	<epp:phrase id="Plugin/Screen/BatchEdit:add_action">Add Action</epp:phrase>
+	<epp:phrase id="eprint_fieldname_batchedit_remove" />
+
+
+
+
+<!--
+
+The list of document content types. This can be copied into the repository space, but is probably more useful in the main /lib.
+
+-->
+
+
+	<epp:phrase id="content_typename_draft">Draft Version</epp:phrase>
+	<epp:phrase id="content_typename_submitted">Submitted Version</epp:phrase>
+	<epp:phrase id="content_typename_accepted">Accepted Version</epp:phrase>
+	<epp:phrase id="content_typename_published">Published Version</epp:phrase>
+	<epp:phrase id="content_typename_updated">Updated Version</epp:phrase>
+	<epp:phrase id="content_typename_supplemental">Supplemental Material</epp:phrase>
+	<epp:phrase id="content_typename_presentation">Presentation</epp:phrase>
+	<epp:phrase id="content_typename_coverimage">Cover Image</epp:phrase>
+	<epp:phrase id="content_typename_metadata">Additional Metadata</epp:phrase>
+	<epp:phrase id="content_typename_other">Other</epp:phrase>
+
+
+<!--
+
+The list of contributor types. This can be copied into the repository space, but is probably more useful in the main /lib.
+
+-->
+
+
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ACT">Actor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ADP">Adapter</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ANM">Animator</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ANN">Annotator</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/APP">Applicant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ARC">Architect</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ARR">Arranger</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ART">Artist</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ASG">Assignee</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ASN">Associated name</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ATT">Attributed name</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/AUC">Auctioneer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/AUT">Author</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/AQT">Author in quotations or text extracts</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/AFT">Author of afterword, colophon, etc.</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/AUD">Author of dialog</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/AUI">Author of introduction, etc.</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/AUS">Author of screenplay, etc.</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ANT">Bibliographic antecedent</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/BND">Binder</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/BDD">Binding designer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/BKD">Book designer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/BKP">Book producer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/BJD">Bookjacket designer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/BPD">Bookplate designer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/BSL">Bookseller</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CLL">Calligrapher</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CTG">Cartographer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CNS">Censor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CHR">Choreographer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CNG">Cinematographer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CLI">Client</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CLB">Collaborator</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/COL">Collector</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CLT">Collotyper</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CMM">Commentator</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CWT">Commentator for written text</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/COM">Compiler</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CPL">Complainant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CPT">Complainant-appellant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CPE">Complainant-appellee</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CMP">Composer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CMT">Compositor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CCP">Conceptor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CND">Conductor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CSL">Consultant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CSP">Consultant to a project</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/COS">Contestant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/COT">Contestant-appellant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/COE">Contestant-appellee</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CTS">Contestee</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CTT">Contestee-appellant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CTE">Contestee-appellee</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CTR">Contractor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CTB">Contributor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CPC">Copyright claimant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CPH">Copyright holder</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CRR">Corrector</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CRP">Correspondent</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CST">Costume designer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/COV">Cover designer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CRE">Creator</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/CUR">Curator of an exhibition</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DNC">Dancer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DTE">Dedicatee</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DTO">Dedicator</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DFD">Defendant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DFT">Defendant-appellant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DFE">Defendant-appellee</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DGG">Degree grantor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DLN">Delineator</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DPC">Depicted</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DPT">Depositor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DSR">Designer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DRT">Director</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DIS">Dissertant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DST">Distributor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DNR">Donor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DRM">Draftsman</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/DUB">Dubious author</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/EDT">Editor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ELT">Electrotyper</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ENG">Engineer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/EGR">Engraver</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ETR">Etcher</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/EXP">Expert</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/FAC">Facsimilist</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/FLM">Film editor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/FPY">First party</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/FRG">Forger</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/FMO">Former owner</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/FND">Funder</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/HNR">Honoree</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/HST">Host</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ILU">Illuminator</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ILL">Illustrator</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/INS">Inscriber</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ITR">Instrumentalist</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/IVE">Interviewee</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/IVR">Interviewer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/INV">Inventor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/LSA">Landscape architect</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/LEN">Lender</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/LIL">Libelant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/LIT">Libelant-appellant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/LIE">Libelant-appellee</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/LEL">Libelee</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/LET">Libelee-appellant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/LEE">Libelee-appellee</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/LBT">Librettist</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/LSE">Licensee</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/LSO">Licensor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/LGD">Lighting designer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/LTG">Lithographer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/LYR">Lyricist</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/MFR">Manufacturer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/MRK">Markup editor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/MDC">Metadata contact</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/MTE">Metal-engraver</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/MOD">Moderator</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/MON">Monitor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/MUS">Musician</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/NRT">Narrator</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/OPN">Opponent</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ORM">Organizer of meeting</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/ORG">Originator</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/OTH">Other</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/OWN">Owner</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PPM">Papermaker</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PTA">Patent applicant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PTH">Patent holder</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PAT">Patron</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PRF">Performer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PHT">Photographer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PTF">Plaintiff</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PTT">Plaintiff-appellant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PTE">Plaintiff-appellee</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PLT">Platemaker</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PRT">Printer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/POP">Printer of plates</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PRM">Printmaker</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PRC">Process contact</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PRO">Producer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PRD">Production personnel</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PRG">Programmer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PFR">Proofreader</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PBL">Publisher</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PBD">Publishing director</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/PPT">Puppeteer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/RCP">Recipient</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/RCE">Recording engineer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/RED">Redactor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/REN">Renderer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/RPT">Reporter</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/RTH">Research team head</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/RTM">Research team member</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/RES">Researcher</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/RSP">Respondent</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/RST">Respondent-appellant</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/RSE">Respondent-appellee</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/RPY">Responsible party</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/RSG">Restager</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/REV">Reviewer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/RBR">Rubricator</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/SCE">Scenarist</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/SAD">Scientific advisor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/SCR">Scribe</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/SCL">Sculptor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/SPY">Second party</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/SEC">Secretary</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/STD">Set designer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/SGN">Signer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/SNG">Singer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/SPK">Speaker</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/SPN">Sponsor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/STN">Standards body</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/STR">Stereotyper</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/STL">Storyteller</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/SRV">Surveyor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/TCH">Teacher</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/THS">Thesis advisor</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/TRC">Transcriber</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/TRL">Translator</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/TYD">Type designer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/TYG">Typographer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/VDG">Videographer</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/VOC">Vocalist</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/WIT">Witness</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/WDE">Wood-engraver</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/WDC">Woodcutter</epp:phrase>
+	<epp:phrase id="contributor_type_typename_http://www.loc.gov/loc.terms/relators/WAM">Writer of accompanying material</epp:phrase>
+
+
+<!--
+
+The list of dc relations used by the relation field.
+
+-->
+
+
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/isVersionOf">Is Version Of</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/hasVersion">Has Version</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/isReplacedBy">Is Replaced By</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/replaces">Replaces</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/isRequiredBy">Is Required By</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/requires">Requires</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/isPartOf">Is Part Of</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/hasPart">Has Part</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/isReferencedBy">Is Referenced By</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/references">References</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/isFormatOf">Is Format Of</epp:phrase>
+	<epp:phrase id="eprint_relation_typename_http://purl.org/dc/terms/hasFormat">Has Format</epp:phrase>
+
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/isVersionOf">Is Version Of</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/hasVersion">Has Version</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/isReplacedBy">Is Replaced By</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/replaces">Replaces</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/isRequiredBy">Is Required By</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/requires">Requires</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/isPartOf">Is Part Of</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/hasPart">Has Part</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/isReferencedBy">Is Referenced By</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/references">References</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/isFormatOf">Is Format Of</epp:phrase>
+	<epp:phrase id="document_relation_typename_http://purl.org/dc/terms/hasFormat">Has Format</epp:phrase>
+
+
+
+
+
+    <epp:phrase id="deposit_agreement_text">
+<p><strong>For work being deposited by its own author:</strong> 
+In self-archiving this collection of files and associated bibliographic 
+metadata, I grant <epc:phrase ref="archive_name" /> the right to store 
+them and to make them permanently available publicly for free on-line. 
+I declare that this material is my own intellectual property and I 
+understand that <epc:phrase ref="archive_name" /> does not assume any 
+responsibility if there is any breach of copyright in distributing these 
+files or metadata. (All authors are urged to prominently assert their 
+copyright on the title page of their work.)</p>
+
+<p><strong>For work being deposited by someone other than its 
+author:</strong> I hereby declare that the collection of files and 
+associated bibliographic metadata that I am archiving at 
+<epc:phrase ref="archive_name" />) is in the public domain. If this is 
+not the case, I accept full responsibility for any breach of copyright 
+that distributing these files or metadata may entail.</p>
+
+<p>Clicking on the deposit button indicates your agreement to these 
+terms.</p>
+    </epp:phrase>
+
+
+
+
+
+	<epp:phrase id="document_typename_indexcodes">Indexer Terms</epp:phrase>
+    <epp:phrase id="document_typename_text/html">HTML</epp:phrase>
+    <epp:phrase id="document_typename_application/pdf">PDF</epp:phrase>
+    <epp:phrase id="document_typename_application/postscript">Postscript</epp:phrase>
+    <epp:phrase id="document_typename_text/plain">Plain Text</epp:phrase>
+    <epp:phrase id="document_typename_application/vnd.ms-powerpoint">Microsoft PowerPoint</epp:phrase>
+    <epp:phrase id="document_typename_application/vnd.ms-excel">Microsoft Excel</epp:phrase>
+    <epp:phrase id="document_typename_application/msword">Microsoft Word</epp:phrase>
+    <epp:phrase id="document_typename_image/jpeg">Image (JPEG)</epp:phrase>
+    <epp:phrase id="document_typename_image/jpg">Image (JPEG)</epp:phrase>
+    <epp:phrase id="document_typename_image/png">Image (PNG)</epp:phrase>
+    <epp:phrase id="document_typename_image/gif">Image (GIF)</epp:phrase>
+    <epp:phrase id="document_typename_image/bmp">Image (BMP)</epp:phrase>
+    <epp:phrase id="document_typename_image/tiff">Image (TIFF)</epp:phrase>
+    <epp:phrase id="document_typename_video/mpeg">Video (MPEG)</epp:phrase>
+    <epp:phrase id="document_typename_video/quicktime">Video (QuickTime)</epp:phrase>
+    <epp:phrase id="document_typename_video/x-msvideo">Video (AVI)</epp:phrase>
+    <epp:phrase id="document_typename_video/x-ms-wmv">Video (WMV)</epp:phrase>
+    <epp:phrase id="document_typename_video/x-m4v">Video (MP4)</epp:phrase>
+    <epp:phrase id="document_typename_video/mp4">Video (MP4)</epp:phrase>
+    <epp:phrase id="document_typename_video/x-flv">Video (Flash)</epp:phrase>
+    <epp:phrase id="document_typename_video/mp2t">Video (AVCHD)</epp:phrase>
+    <epp:phrase id="document_typename_other">Other</epp:phrase>
+    <epp:phrase id="document_typename_text/xml">XML</epp:phrase>
+    <epp:phrase id="document_typename_application/rdf+xml">RDF/XML</epp:phrase>
+    <epp:phrase id="document_typename_text/n3">N3</epp:phrase>
+    <epp:phrase id="document_typename_application/bzip2">Archive (BZ2)</epp:phrase>
+    <epp:phrase id="document_typename_application/x-gzip">Archive (TGZ)</epp:phrase>
+    <epp:phrase id="document_typename_application/x-compressed">Archive (TGZ)</epp:phrase>
+    <epp:phrase id="document_typename_application/zip">Archive (ZIP)</epp:phrase>
+    <epp:phrase id="document_typename_application/rtf">Rich Text (RTF)</epp:phrase>
+    <epp:phrase id="document_typename_audio/x-wav">Audio (WAV)</epp:phrase>
+    <epp:phrase id="document_typename_audio/mpeg">Audio (MP3)</epp:phrase>
+    <epp:phrase id="document_typename_audio/ogg">Audio (OGG)</epp:phrase>
+    <epp:phrase id="document_typename_audio/flac">Audio (FLAC)</epp:phrase>
+    <epp:phrase id="document_typename_audio/x-ms-wma">Audio (WMA)</epp:phrase>
+    <epp:phrase id="document_typename_thumbnail_small">Thumbnail (Small)</epp:phrase>
+    <epp:phrase id="document_typename_thumbnail_medium">Thumbnail (Medium)</epp:phrase>
+    <epp:phrase id="document_typename_thumbnail_preview">Thumbnail (Preview)</epp:phrase>
+
+
+
+    <epp:phrase id="security_typename_public">Anyone</epp:phrase>
+    <epp:phrase id="security_typename_validuser">Registered users only</epp:phrase>
+    <epp:phrase id="security_typename_staffonly">Repository staff only</epp:phrase>
+
+
+
+    <epp:phrase id="dynamic:logged_in">Logged in as <epc:pin name="user"/> <epc:phrase ref="Plugin/Screen:tool_divide" /> 
+       <epc:pin name="tools" /> <epc:phrase ref="Plugin/Screen:tool_divide" /> <a href="{$config{http_cgiurl}}/logout">Logout</a> 
+    </epp:phrase>
+	<epp:phrase id="dynamic:logged_in_header"><script type="text/javascript" src="{$config{rel_path}}/javascript/logged_in.js"><!-- padder --></script>
+	<style type="text/css">@import url(<epc:print expr="$config{rel_path}"/>/style/logged_in.css);</style></epp:phrase>
+    <epp:phrase id="dynamic:not_logged_in"><a href="{$config{userhome}}">Login</a> <epc:phrase ref="Plugin/Screen:tool_divide" /> <a href="{$config{http_cgiurl}}/register">Create Account</a></epp:phrase>
+	<epp:phrase id="dynamic:not_logged_in_header"><script type="text/javascript" src="{$config{rel_path}}/javascript/not_logged_in.js"><!-- padder --></script>
+	<style type="text/css">@import url(<epc:print expr="$config{rel_path}"/>/style/not_logged_in.css);</style></epp:phrase>
+
+
+
+<!-- locally defined fields -->
+
+    <epp:phrase id="eprint_fieldname_title">Title</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_title">The title of the item. The title should not end with a full stop, but may end with a question mark. There is no way to make italic text, please enter it normally. If you have a subtitle, it should be preceded with a colon [:]. Use capitals only for the first word and for proper nouns.
+<br/>Example: <span class="ep_form_example">A brief history of time</span>
+<br/>Example: <span class="ep_form_example">Life: an unauthorised biography</span>
+<br/>Example: <span class="ep_form_example">Mathematics for engineers and scientists. 5th edition</span>
+<br/>Example: <span class="ep_form_example">Ecosystems of the world. Vol. 26. Estuaries of the world</span>
+</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_title.book">The title of the book, usually found on the title page. The title should not end with a full stop, but may end with a question mark. There is no way to make italic text, please enter it normally. If it has a subtitle, it should be preceded with a colon [:]. Use capitals only for the first word and for proper nouns.
+<br/>Example: <span class="ep_form_example">A brief history of time</span>
+<br/>Example: <span class="ep_form_example">Life: an unauthorised biography</span>
+<br/>Example: <span class="ep_form_example">Mathematics for engineers and scientists. 5th edition</span>
+<br/>Example: <span class="ep_form_example">Ecosystems of the world. Vol. 26. Estuaries of the world</span>
+</epp:phrase>
+
+
+    <epp:phrase id="eprint_fieldname_abstract">Abstract</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_abstract">A summary of the items content. If the item has a formal abstract then that is what should be entered here. No complicated text formatting is possible.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_keywords">Uncontrolled Keywords</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_keywords">Natural language terms to describe the content of the item</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_contributors">Contributors</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_contributors"></epp:phrase>
+    <epp:phrase id="eprint_fieldname_contributors_type">Contribution</epp:phrase>
+    <epp:phrase id="eprint_fieldname_contributors_id">Email</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_creators">Creators</epp:phrase>
+    <epp:phrase id="eprint_fieldname_editors">Editors</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_corp_creators">Corporate Creators</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_corp_creators">Companies that are considered authors of this item.</epp:phrase>
+    
+	<epp:phrase id="eprint_fieldname_creators_name">Creators</epp:phrase>
+    <epp:phrase id="eprint_fieldname_creators_id">Email</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_creators">Enter in the format given on the first page or title page. If there are more than four authors, click on the [More&nbsp;input&nbsp;rows] button.
+<br/>Example: [<span class="ep_form_example">Smith</span>] [<span class="ep_form_example">J.P.</span>] [<span class="ep_form_example">j.smith@soton.ac.uk</span>]
+<br/>Example: [<span class="ep_form_example">Chance-Collins</span>] [<span class="ep_form_example">Chris</span>] [<span class="ep_form_example">chris@bar.com</span>]
+<br/>Example: [<span class="ep_form_example">Fu</span>] [<span class="ep_form_example">Yan-Li</span>] []
+<br/>Example: [<span class="ep_form_example">von Höpfner</span>] [<span class="ep_form_example">Ludwig G.</span>] []
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_pages">Number of Pages</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_pages">The total number of pages of the item.
+<br/>Example: <span class="ep_form_example">123</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_pagerange">Page Range</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_pagerange">Numerals only. The sequence of pages of the item. Do not enter pp.
+<br/>Example:  <span class="ep_form_example">21</span> to <span class="ep_form_example">34</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_series">Series Name</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_series">The name of the series to which the document belongs. Enter without punctuation.
+<br/>Example:  <span class="ep_form_example">Elsevier Oceanography Series</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_publication">Journal or Publication Title</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_publication">The title of a journal, publication or magazine.
+<br/>Example:  <span class="ep_form_example">Marine Biology</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_publisher">Publisher</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_publisher">A person, firm or corporate body responsible for placing an item on the market. Do not use abbreviations, enter in full.
+<br/>Example: <span class="ep_form_example">Oxford University Press</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_place_of_pub">Place of Publication</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_place_of_pub">Locality of the publisher. Use city or town then country. If city is not known then just use country.
+<br/>Example: <span class="ep_form_example">Southampton, UK</span>
+<br/>Example: <span class="ep_form_example">Brazil</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_event_location">Event Location</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_event_location">City or town then country where event was held. If city is not known then just use country.
+<br/>Example: <span class="ep_form_example">Rome, Italy</span>
+<br/>Example: <span class="ep_form_example">Greece</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_event_dates">Event Dates</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_event_dates">Start and end dates for the event
+<br/>Example: <span class="ep_form_example">13-15 Dec 2003</span>
+<br/>Example: <span class="ep_form_example">31 Oct - 02 Nov 1999</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_event_title">Event Title</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_event_title">The title of the conference or workshop.
+<br/>Example: <span class="ep_form_example">11th Conference of Pan-Hellenic Librarians</span>
+<br/>Example: <span class="ep_form_example">SIGIR 2001</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_event_type">Event Type</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_event_type">Specific type of the event.
+</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_event_type_conference">Conference</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_event_type_workshop">Workshop</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_event_type_other">Other</epp:phrase>
+    
+    <epp:phrase id="eprint_fieldname_isbn">ISBN</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_isbn">Unique code identifying a book.
+<br/>Example: <span class="ep_form_example">1 871438 57 8</span>
+<br/>Example: <span class="ep_form_example">067157826X</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_issn">ISSN</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_issn">Unique code identifying a serial.
+<br/>Example: <span class="ep_form_example">1055-0143</span>
+<br/>Example: <span class="ep_form_example">0891-060X</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_pres_type">Presentation Type</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_pres_type">The type of the item presented at a conference or workshop.
+</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pres_type_paper">Paper</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pres_type_poster">Poster</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pres_type_speech">Speech</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pres_type_lecture">Lecture</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pres_type_keynote">Keynote</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pres_type_other">Other</epp:phrase>
+    
+    <epp:phrase id="eprint_fieldname_book_title">Title of Book</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_book_title">Title usually found on the title page (first page of book).
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_official_url">Official URL</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_official_url">The canonical URL for this item. Some journals require you to provide a link to their version.
+<!-- fnord -->
+<br/>Example: <span class="ep_form_example">http://www.stuffjournal.com/2003/3/</span>
+</epp:phrase>
+    
+	<epp:phrase id="eprint_fieldname_related_url">Related URLs</epp:phrase>
+	<epp:phrase id="eprint_fieldhelp_related_url">URLs that are related to this item.</epp:phrase>
+	<epp:phrase id="eprint_fieldname_related_url_url">URL</epp:phrase>
+	<epp:phrase id="eprint_fieldname_related_url_type">URL Type</epp:phrase>
+	<epp:phrase id="eprint_fieldopt_related_url_type_pub">Publisher</epp:phrase>
+	<epp:phrase id="eprint_fieldopt_related_url_type_org">Organisation</epp:phrase>
+	<epp:phrase id="eprint_fieldopt_related_url_type_author">Author</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_editors_name">Editors</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_editors_name">Please enter the names of the editors.<br/>
+This field is required if no creators are listed.
+</epp:phrase>
+    <epp:phrase id="eprint_fieldname_editors_id">Email</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_date">Date</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_date">The date this EPrint was completed, submitted to a publisher, published or submitted for a Ph.D.</epp:phrase>
+    
+	<epp:phrase id="eprint_fieldname_date_type">Date Type</epp:phrase>
+	<epp:phrase id="eprint_fieldhelp_date_type">The event to which the date applies.</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_date_type_published">Publication</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_date_type_submitted">Submission</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_date_type_completed">Completion</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_volume">Volume</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_volume">Enter the volume number of the journal or series in which your item appeared.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_number">Number</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_number">Enter the issue number of the journal or series in which your item appeared.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_id_number">Identification Number</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_id_number">The unique identification number of this item, or a DOI.</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_id_number.patent">The patent application number of this item.</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_id_number.monograph">The number, if any, of a technical report or similar item.</epp:phrase>
+
+
+    <epp:phrase id="eprint_fieldname_monograph_type">Monograph Type</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_monograph_type">Please select the specific type of this monograph.</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_monograph_type_technical_report">Technical Report</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_monograph_type_project_report">Project Report</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_monograph_type_documentation">Documentation</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_monograph_type_manual">Manual</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_monograph_type_working_paper">Working Paper</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_monograph_type_discussion_paper">Discussion Paper</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_monograph_type_other">Other</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_ispublished">Status</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_ispublished">Please state here whether your deposit has been published, is currently in the process of being published (<strong>in press</strong>), or has not been previously published.</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_ispublished_unpub">Unpublished</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_ispublished_submitted">Submitted</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_ispublished_inpress">In Press</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_ispublished_pub">Published</epp:phrase>
+
+
+    <epp:phrase id="eprint_fieldname_refereed">Refereed</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_refereed">Please indicate whether this version of the work been refereed below.</epp:phrase>
+    <epp:phrase id="eprint_radio_refereed"><label><epc:pin name="true"/>Yes, this version has been refereed.</label><br/><label><epc:pin name="false"/>No, this version has not been refereed.</label></epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_referencetext">References</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_referencetext">You are strongly encouraged to paste in the reference list of your item into the box below. It may be used to link your item to those it cites and to those that cite it.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_subjects">Subjects</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_subjects">Please select at least one main subject category, and optionally up to two other subject categories you think are appropriate for your submission, from the list below.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_note">Additional Information</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_note">If you think you can specify some useful information about your deposit that can't be entered anywhere else, please enter it here. This information <strong>will</strong> appear on the public summary page for this item.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_suggestions">Comments and Suggestions</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_suggestions">Any comments to the editor. This information <strong>will not</strong> be displayed to the public.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_department">Department</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_department">Please enter the department from which the item originated.
+<br/>Example: <span class="ep_form_example">School of Electronics and Computer Science</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_institution">Institution</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_institution">Please enter the institution from which the item originated.
+<br/>Example: <span class="ep_form_example">University of Southampton</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_thesis_type">Thesis Type</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_thesis_type">Please select the thesis type.</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_thesis_type_masters">Masters</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_thesis_type_phd">PhD</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_thesis_type_engd">EngD</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_thesis_type_other">Other</epp:phrase>
+
+
+    <epp:phrase id="eprint_fieldname_patent_applicant">Patent Applicant</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_patent_applicant">The name of the applicant to whom the patent was granted. May be a person or an organisation.
+<br/>Example: <span class="ep_form_example">Purdue Research Institute</span>
+<br/>Example: <span class="ep_form_example">John K. Ducklingson</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_full_text_status">Full Text Status</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_full_text_status"></epp:phrase>
+    <epp:phrase id="eprint_fieldopt_full_text_status_public">Public</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_full_text_status_none">None</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_full_text_status_restricted">Restricted</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_contact_email">Contact Email Address</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_contact_email">The contact email address for this item. If the full-text is not available to the public, then requests to view the full-text will be sent to this email. The email address will not be made public.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_funders">Funders</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_funders">The sponsoring bodies who contributed funding for the creation of this item.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_projects">Projects</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_projects">The names or codes of the projects that created this item.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_divisions">Divisions</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_divisions">The divisions with which this item should be associated.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_output_media">Media of Output</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_output_media">The media of output.
+<br/>Example: <span class="ep_form_example">CD-ROM</span>
+<br/>Example: <span class="ep_form_example">DVD</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_exhibitors">Exhibitors</epp:phrase>
+    <epp:phrase id="eprint_fieldname_exhibitors_id">Email</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_exhibitors">The exhibitors.</epp:phrase>
+    <epp:phrase id="eprint_fieldname_exhibitors_name">The exhibitors name</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_num_pieces">Number of Pieces</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_num_pieces">The number of pieces exhibited.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_composition_type">Composition Type</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_composition_type">The type of the composition
+<br/>Example: <span class="ep_form_example">Concerto</span>
+<br/>Example: <span class="ep_form_example">Opera</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_producers">Producers</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_producers"></epp:phrase>
+    <epp:phrase id="eprint_fieldname_producers_id">Email</epp:phrase>
+    <!--<epp:phrase id="eprint_fieldhelp_producers">The producers of the recording.</epp:phrase>-->
+    <epp:phrase id="eprint_fieldname_producers_name">The producers name</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_conductors">Conductors</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_conductors"></epp:phrase>
+    <epp:phrase id="eprint_fieldname_conductors_id">Email</epp:phrase>
+    <!--<epp:phrase id="eprint_fieldhelp_conductors">The conductors of the recording.</epp:phrase>-->
+    <epp:phrase id="eprint_fieldname_conductors_name">The conductors name</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_accompaniment">Accompaniment</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_accompaniment">Example: <span class="ep_form_example">BBC Singers</span></epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_lyricists">Lyricists</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_lyricists"></epp:phrase>
+    <epp:phrase id="eprint_fieldname_lyricists_id">Email</epp:phrase>
+    <epp:phrase id="eprint_fieldname_lyricists_name">The conductors name</epp:phrase>
+    <!--<epp:phrase id="eprint_fieldhelp_lyricists">The lyricists.</epp:phrase>-->
+
+    <epp:phrase id="eprint_fieldname_data_type">Type of Data</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_data_type">
+<br/>Example: <span class="ep_form_example">Geospatial</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_copyright_holders">Copyright Holders</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_copyright_holders">A person, firm or corporate body which holds the copyright for the item.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_pedagogic_type">Pedagogic Type</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_pedagogic_type">The pedagogic type that defines the resource.</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pedagogic_type_presentation">Presentation</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pedagogic_type_activity">Activity</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pedagogic_type_case">Case</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pedagogic_type_enquiry">Enquiry</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pedagogic_type_problem">Problem</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pedagogic_type_collaboration">Collaboration</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_pedagogic_type_communication">Communication</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_completion_time">Completion Time</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_completion_time">The approximate learning time required to complete.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_task_purpose">Task Purpose</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_task_purpose">Outline of the main purpose of the tasks involved.</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_skill_areas">Skill Areas</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_skill_areas">The skill areas covered.
+<br/>Example: <span class="ep_form_example">Language Learning</span>
+</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_learning_level">Learning Level</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_learning_level">The learning level. This should link to a national/international framework to allow easy comparison of resources.
+<br/>Example: <span class="ep_form_example">Breakthrough 1-3</span>
+<br/>Example: <span class="ep_form_example">GCSE</span>
+</epp:phrase>
+
+
+
+<!-- Sort Order names -->
+
+    <epp:phrase id="ordername_eprint_byyear">by year (most recent first)</epp:phrase>
+    <epp:phrase id="ordername_eprint_byyearoldest">by year (oldest first)</epp:phrase>
+    <epp:phrase id="ordername_eprint_byname">by author's name</epp:phrase>
+    <epp:phrase id="ordername_eprint_bytitle">by title</epp:phrase>
+
+    <epp:phrase id="ordername_eprint_bytitlerev">by title (reverse)</epp:phrase>
+    <epp:phrase id="ordername_eprint_bystatuschanged">by status changed (most recent first)</epp:phrase>
+    <epp:phrase id="ordername_eprint_bystatuschangedoldest">by status changed (oldest first)</epp:phrase>
+
+
+
+
+<!-- Eprint Type Names -->
+
+    <epp:phrase id="eprint_typename_book">Book</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_book">A book or a conference volume.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_book_section">Book Section</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_book_section">A chapter or section in a book.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_article">Article</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_article">An article in a journal, magazine, newspaper. Not necessarily peer-reviewed. May be an electronic-only medium, such as an online journal or news website.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_conference_item">Conference or Workshop Item</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_conference_item">A paper, poster, speech, lecture or presentation given at a conference, workshop or other event. If the conference item has been published in a journal or book then please use "Book Section" or "Article" instead.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_monograph">Monograph</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_monograph">A monograph. This may be a technical report, project report, documentation, manual, working paper or discussion paper.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_thesis">Thesis</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_thesis">A thesis or dissertation.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_patent">Patent</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_patent">A published patent. Do <em>not</em> include as yet unpublished patent applications.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_other">Other</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_other">Something within the scope of the repository, but not covered by the other categories.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_artefact">Artefact</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_artefact">An artist's artefact or work product.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_exhibition">Show/Exhibition</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_exhibition">An artist's exhibition or site specific performance-based deposit.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_composition">Composition</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_composition">A musical composition.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_performance">Performance</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_performance">Performance of a musical event.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_image">Image</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_image">A digital photograph or visual image.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_video">Video</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_video">A digital video.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_audio">Audio</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_audio">A sound recording.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_dataset">Dataset</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_dataset">A bounded collection of quantitative data (e.g. spreadsheet or XML data file).</epp:phrase>
+
+    <epp:phrase id="eprint_typename_experiment">Experiment</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_experiment">Experimental data with intermediate analyses and summary results.</epp:phrase>
+
+    <epp:phrase id="eprint_typename_teaching_resource">Teaching Resource</epp:phrase>
+    <epp:phrase id="eprint_optdetails_type_teaching_resource">Lecture notes, exercises, exam papers or course syllabuses.</epp:phrase>
+
+
+
+
+
+        <epp:phrase id="Plugin/Screen/Admin/Config/Edit:download_full_file">Download as HTML (encapsulated)</epp:phrase>
+        <epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:upload_html">Upload HTML (encapsulated)</epp:phrase>
+        <epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:upload">Upload</epp:phrase>
+        <epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:external_edit_title">Edit using external Editor</epp:phrase>
+        <epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:external_edit_description">Here you can download the entire page to edit offline using editors such as frontpage and re-upload it back into EPrints. Image manipulation is not supported.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:really_next">Next?</epp:phrase>
+        <epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:phrases_updated">Phrase update complete.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:inline_edit_title">Edit XPage code</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/Template:inline_edit_title">Edit Template code</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:change_image">Change: </epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:image_editor">Change/Upload Images</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/Perl:inline_edit_title">Edit config file</epp:phrase>
+
+
+
+<!-- this is used for the minimal users who have their username locked to their
+     email address -->
+
+    <epp:phrase id="cgi/register:intro_minimal">
+<p>As a registered user you will be able to set up
+saved searches, which are sent when new items 
+are placed in the repository.</p>
+
+<p>Please complete the details on this page to register with <epc:phrase ref="archive_name" />.</p>
+
+<p>The registration process uses email to send you details of how to activate
+your account. You must then check your email and activate your password. Once
+activated you can start to use the registered features of the repository.</p>
+
+<p>If you have already registered but have forgotten your username or password,
+<a href="reset_password">click here</a> to set a new password.</p>
+    </epp:phrase>
+
+
+
+
+
+
+
+    <!-- registration introduction. -->
+    <epp:phrase id="cgi/register:intro">
+<p>You need to register in order to be able to deposit items in the 
+repository. </p>
+
+<p>As a registered user you will be able to manage your items, up to the point
+of submitting them for Editorial Review. If the review is successful your 
+item will be deposited in the repository, if it is unsuccessful it will be 
+returned to you with editorial comments.</p>
+
+<p>In addition to managing your items a registered user can set up
+alert options, so that email notifications are sent when new items 
+are placed in the repository.</p>
+
+<p>Please complete the details on this page to register with <epc:phrase ref="archive_name" />.</p>
+
+<p>The registration process uses email to send you details of how to activate
+your account. You must then check your email and activate your password. Once
+activated you can start to use the registered features of the repository.</p>
+
+<p>If you have already registered but have forgotten your username or password,
+<a href="reset_password">click here</a> to set a new password.</p>
+    </epp:phrase>
+
+
+
+
+
+
+<epp:phrase id="mail_bounce_reason">
+No reason was given.
+</epp:phrase>
+
+
+<epp:phrase id="mail_bounce_body">
+<div style="font-size: 11pt">Item Return</div>
+<p>Unfortunately your item <b><epc:pin name="title"/></b> could not be accepted into <epc:phrase ref="archive_name" /> as-is.</p>
+<p><epc:pin name="reason" /></p>
+<p>The item has been returned to your workspace. You may wish to <epc:pin name="edit_link">edit your item</epc:pin>, fix the problem, and redeposit.</p>
+</epp:phrase>
+
+
+
+
+<epp:phrase id="mail_delete_reason">
+No reason was given.
+</epp:phrase>
+
+<epp:phrase id="mail_delete_body">
+<div style="font-size: 11pt">Item Deletion</div>
+<p>Unfortunately your item <b><epc:pin name="title"/></b> could not be accepted into <epc:phrase ref="archive_name" /> as-is.</p>
+
+<p><epc:pin name="reason" /></p>
+
+<p>The item has been deleted.</p>
+</epp:phrase>
+
+<epp:phrase id="mail_delete_body.inbox">
+<p>&apos;<epc:pin name="title"/>&apos; has been deleted from your User Area.</p>
+
+<p><epc:pin name="reason" /></p>
+</epp:phrase>
+
+
+
+
+    <epp:phrase id="mail_email_pin">
+<div style="font-size: 11pt">Email Change</div>
+<p>Dear User,</p>
+
+<p>You have requested your email to be changed to <epc:pin name="newemail"/></p> 
+
+<p>To activate this new address please <epc:pin name="confirmurl">click here</epc:pin>.</p>
+
+    </epp:phrase>
+
+
+
+
+
+
+
+    <epp:phrase id="mail_password_pin">
+<div style="font-size: 11pt">Password Activation</div>
+<p>Dear User,</p>
+
+<p>Thank you for your interest in <epc:phrase ref="archive_name" />.</p>
+
+<p>You now need to <epc:pin name="confirmurl">activate your password</epc:pin>. This will expire in <epc:pin name="maxdelta" />.</p>
+
+<p>Your username is: <b><epc:pin name="username"/></b>.</p>
+
+<p>After you have successfully confirmed your password, you can deposit items <a href="{$config{userhome}}">here</a>.</p>
+
+<p>Once you have confirmed your identity you may also subscribe to the email alerts service, to be automatically informed of new deposits in the repository in your chosen subject areas in a daily, weekly or monthly digest.</p>
+
+<p>Have your username and password ready when visiting any of the above pages.</p> <p>This message was generated automatically by software. If you have any questions, then please feel free to email a real person at:</p>
+
+<p><a href="mailto:{$config{adminemail}}"><epc:print expr="$config{adminemail}" /></a></p>
+    </epp:phrase>
+
+
+
+
+
+
+    <epp:phrase id="mail_sig">
+<div style='display: none'><hr /></div>
+<p style='padding: 0.5em; background-color: #eee; border-top: solid 2px #999; font-size: 90%'>
+<epc:phrase ref="archive_name" /><br/>
+<a href="{$config{frontpage}}"><epc:print expr="$config{frontpage}" /></a><br/>
+Contact us at <a href="mailto:{$config{adminemail}}"><epc:print expr="$config{adminemail}" /></a>
+</p>
+    </epp:phrase>
+
+
+
+
+
+<!--
+
+Phrases related to the Manage Metadata Fields tool.
+
+-->
+
+
+	<epp:phrase id="metafield_fieldopt_mfstatus_inbox">inbox</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_mfstatus_archive">archive</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_mfstatus_deletion">deletion</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_providence_core">core</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_providence_config">config</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_providence_user">user</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_mfdatasetid_document">document</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_mfdatasetid_eprint">eprint</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_mfdatasetid_user">user</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_mfdatasetid_saved_search">saved_search</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_mfdatasetid_import">import</epp:phrase>
+	<epp:phrase id="metafield_fieldopt_mfdatasetid_file">file</epp:phrase>
+
+	<epp:phrase id="metafield_compound_stylesheet"><style>
+.ep_blister_bar { margin: 0px; }
+.ep_form_button_bar { margin: 0px; text-align: left }
+.ep_sr_component .ep_form_input_grid { margin: 0px }
+.ep_tm_pagetitle { margin-left: 0px; text-align: left; }
+	</style></epp:phrase>
+	<epp:phrase id="metafield_properties_help">Metadata field properties have sensible defaults that can be overriden by specifying a value on this page. If you wish to use the default leave the value as <em>UNSPECIFIED</em>.</epp:phrase>
+	<epp:phrase id="priv:action/metafield/commit">Add field now</epp:phrase>
+	<epp:phrase id="priv:action/metafield/save">Save for Later</epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/MetaField/View:field_exists">The metadata field name you specified already exists in this dataset.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField:commit">Commit</epp:phrase>
+	<epp:phrase id="metapage_title_settings">Properties</epp:phrase>
+	<epp:phrase id="metapage_title_sub_fields">Sub-Fields</epp:phrase>
+	<epp:phrase id="metapage_title_phrases">Phrases</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Commit:commit_help">
+<p>Note: For this to work the web server must have write access to the var, phrases and workflow directories for this repository.</p>
+
+<p>When you commit this new metadata field its configuration will be written to the metadata fields configuration file and the appropriate columns added to the database. If you specified a name and help phrase for this field they will be added to the <tt>fields.xml</tt> phrases file for each language you specified (see also the <a href="http://eprints.org/d/?keyword=PhraseConfigFile&amp;filename=lang/en/phrases/fields.xml">phrases documentation</a>).</p>
+
+<p>If this field is being added to the Eprints dataset it will also be added to the Eprints submission workflow (see also the <a href="http://eprints.org/d/?keyword=WorkflowConfigFile&amp;filename=workflows/eprint/default.xml">workflow documentation</a>).</p>
+
+<p>To make use of your new field (e.g. by adding it to the abstract page) look at <a href="http://eprints.org/d/?keyword=HOW_TO:_Add_a_New_Field">HOW TO: Add a New Field</a>.</p>
+
+<p>If you don't want to add a new field now click <em>Save for Later</em>.</p>
+	</epp:phrase>
+	<epp:phrase id="Plugin/Screen/MetaField/Commit:add_to_phrases_failed">Failed to add this field's phrase, you should check that your phrases directory is writable.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/MetaField/Commit:add_to_workflow_failed">Failed to add this field to the workflow, you should check that your workflow directory is writable.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Commit:title">Adding a new metadata field</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Edit:title">Adding a new metadata field</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:title">Manage Metadata Fields</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:help">This tool allows you to add metadata fields to your repository. Only fields added using this tool can be removed by this tool. To start configuring fields choose a dataset to add/remove fields from the following list.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:description">Add or remove metadata fields</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:datasets"><h2>Datasets with Configurable Fields</h2></epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:edit_dataset">View Dataset Fields</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:new">Add</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:inbox_empty">No existing in-progress fields found ...</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:new_form">
+	<div style="margin: 20px; border: 1px dashed #aaf; padding: 5px;">
+	<h3 style="margin: 0px; font-weight: bold;">Continue an existing new field</h3>
+	<epc:pin name="inbox"/>
+	<h3 style="margin: 0px; font-weight: bold;">Create a new field</h3>
+	<epc:pin name="form"/>
+	</div>
+	</epp:phrase>
+	<epp:phrase id="Plugin/Screen/MetaField/View:rename">Rename</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:remove">Remove</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:edit">Edit</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:core_field"><em>Core Field</em></epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:config_field">From cfg.d</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:cancel">Cancel</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:confirm">Confirm</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:bad_name">The name of a field must contain only the letters a-z and underscore (requested name was "<epc:pin name="name" />")</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:invalid_field">The field "<epc:pin name="fieldid" />" you are attempting to modify doesn't appear to be configured for the dataset "<epc:pin name="datasetid"/>" (perhaps it's a system field?).</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:confirm_edit">You are about to edit the configuration and database settings for the <em><epc:pin name="fieldid"/></em> field in the <em><epc:pin name="datasetid"/></em> dataset. <b>You may permanently lose data any stored in <em><epc:pin name="fieldid"/></em>!</b> If you are sure this is what you want to do click the confirm button. <epc:pin name="confirm_button"/></epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:confirm_remove">You are about to remove the configuration and database settings for the <em><epc:pin name="fieldid"/></em> field in the <em><epc:pin name="datasetid"/></em> dataset. <b>This means you will permanently lose any data stored in <em><epc:pin name="fieldid"/></em>!</b> If you are sure this is what you want to do click the confirm button. <epc:pin name="confirm_button"/></epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Commit:metafield_committed">Added the configuration and database settings for the <em><epc:pin name="fieldid"/></em> field in the <em><epc:pin name="datasetid"/></em> dataset.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:removed_field">Removed the configuration and database settings for the <em><epc:pin name="fieldid"/></em> field in the <em><epc:pin name="datasetid"/></em> dataset.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:renamed_field">Renamed old field <em><epc:pin name="fieldid"/></em> in the configuration and database settings to <em><epc:pin name="newid"/></em> in the <em><epc:pin name="datasetid"/></em> dataset.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:deleted_field">Removed the field information for <epc:pin name="fieldid"/>.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/View:remove_failed">Failed to remove the field. You should ensure the web server has write access to the fields configuration file for this repository.</epp:phrase>
+
+<epp:phrase id="metafield_fieldopt_type_bigint">big integer</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_bigint">A 64-bit integer (bigger than an integer).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_counter">counter</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_counter">An integer that will automatically increase by 1 for every new object.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_timestamp">timestamp</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_timestamp">A date/time that will automatically be initialised to the current date/time.</epp:phrase>
+
+<epp:phrase id="metafield_fieldopt_type_base64">base64</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_nameid">nameid</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_arclanguage">arclanguage</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_arclanguage">arclanguage</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_arclanguage">Select from a list of configured languages in the repository.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_boolean">boolean</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_boolean">boolean</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_boolean">Boolean value of "TRUE" or "FALSE".</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_compound">compound</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_compound">compound</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_compound">A container for other fields. The interface for adding compound fields is complex and may allow you to create an inconsistent configuration, use with care!</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_date">date</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_date">date</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_date">A year-month-day (YYYY-MM-DD).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_email">email</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_email">email</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_email">An email address.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_fields">fields</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_fields">fields</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_fields">Select from a list of fields in a data set.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_file">file</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_file">file</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_file">Select a file from the user's file system.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_float">float</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_float">float</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_float">A floating-point number (0.2, 1.11, 3.14159265).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_id">id</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_id">id</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_id">[Deprecated] Use Itemref.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_int">int</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_int">int</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_int">An integer (1, 5, 10).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_itemref">itemref</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_itemref">itemref</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_itemref">A reference to another object in the repository.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_langid">langid</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_langid">langid</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_langid">[Internal] Used by Multilang.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_longtext">longtext</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_longtext">longtext</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_longtext">A large text field (more than 255 characters).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_multilang">multilang</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_multilang">multilang</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_multilang">A multi-lingual field behaves the same as a Compound field but always has a "lang" sub-field that is a set of the currently configured languages. Use this type of field to allow users to enter metadata in more than one language.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_name">name</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_name">name</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_name">The name of a person, consisting of honourific, given, family and lineage parts.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_namedset">namedset</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_namedset">namedset</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_namedset">A Set that takes its values from a namedset file.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_pagerange">pagerange</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_pagerange">pagerange</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_pagerange">A page range (4-10, 201-3)</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_search">search</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_search">search</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_search">A serialised search expression.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_secret">secret</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_secret">secret</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_secret">A secret (e.g. passwords).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_set">set</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_set">set</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_set">A Set of values to choose from (if you are likely to ever change the set of values use <em>namedset</em> instead).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_subject">subject</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_subject">subject</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_subject">Choose a value from the subjects hierarchy.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_subobject">subobject</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_subobject">subobject</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_subobject">A sub-object container (eprints contain documents).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_text">text</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_text">text</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_text">A free-text field (upto 255 characters).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_time">time</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_time">time</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_time">A year-month-day hour-minute-second field (YYYY-MM-DD:hh:mm:ss).</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_url">url</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_url">url</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_url">Any URL/Web link.</epp:phrase>
+<epp:phrase id="metafield_fieldopt_type_year">year</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_type_year">year</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_year">[Deprecated] Use Date.</epp:phrase>
+
+<epp:phrase id="metafield_fieldname_phrase_name">Name</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_phrase_name">The human-readable name of this field - will be shown above the field input.</epp:phrase>
+<epp:phrase id="metafield_fieldname_phrase_help">Help</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_phrase_help">The optional help text to show for this field.</epp:phrase>
+<epp:phrase id="metafield_fieldname_phrase_name_text">Text</epp:phrase>
+<epp:phrase id="metafield_fieldname_phrase_name_lang">Language</epp:phrase>
+<epp:phrase id="metafield_fieldname_phrase_help_text">Text</epp:phrase>
+<epp:phrase id="metafield_fieldname_phrase_help_lang">Language</epp:phrase>
+
+<epp:phrase id="metafield_fieldname_name">Field Name</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields">Sub-Fields</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_fields">Select the fields you would like to use as part of this compound field.</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_sub_name">Name</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_name">The name of a field should be made up of lowercase English letters.</epp:phrase>
+<epp:phrase id="metafield_fieldname_type">Type</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_type">Choose from the available metadata field types to determine the type of information you want to capture. The field type will determine the form elements used, data constraints and rendering in Web pages.<p/>
+
+Compound and Multilang are special fields that allow you to combine multiple sub-fields in a logical fashion (for instance "name" and "email"). The way fields behave can be refined by using <em>properties</em>.<p/>
+
+For more information see <a href="http://eprints.org/d/?keyword=MetaFields">MetaFields</a>.</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_type">Type</epp:phrase>
+<epp:phrase id="metafield_fieldname_help">Specify the type of data the field will contain. The available types are defined by MetaField classes.</epp:phrase>
+
+<epp:phrase id="metafield_fieldname_required">Required</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_required">Required</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_required">Whether the user is required to enter data for this field (may be overridden in the workflow).</epp:phrase>
+<epp:phrase id="metafield_fieldname_multiple">Multiple Values</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_multiple">Multiple</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_multiple">Whether this field should allow more than one value.</epp:phrase>
+<epp:phrase id="metafield_fieldname_allow_null">Allow Null Values</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_allow_null">Allow Null</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_allow_null">Whether this field can be undefined (NULL) in the database.</epp:phrase>
+<epp:phrase id="metafield_fieldname_export_as_xml">Include in XML Export</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_export_as_xml">Include in XML Export</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_export_as_xml">Whether this field should be exported in EPrints XML. You may not want to export things like passwords or other sensitive data.</epp:phrase>
+<epp:phrase id="metafield_fieldname_volatile">Volatile Field</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_volatile">Volatile</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_volatile">By default any changes to an object will trigger a new revision of that object. By setting a field as <em>volatile</em> changes made just to volatile fields will not cause new revisions to occur.</epp:phrase>
+<epp:phrase id="metafield_fieldname_min_resolution">Minimum Resolution</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_min_resolution">Resolution</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_min_resolution">Minimum required date resolution.</epp:phrase>
+<epp:phrase id="metafield_fieldname_sql_index">Index</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_sql_index">Index</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_sql_index">Whether this field should have a database index added to it.</epp:phrase>
+<epp:phrase id="metafield_fieldname_render_input">Custom Input</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_render_input">Custom Input</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_render_input">The name of a custom input render function.</epp:phrase>
+<epp:phrase id="metafield_fieldname_render_value">Custom Render</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_render_value">Custom Render</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_render_value">The name of a custom render function.</epp:phrase>
+<epp:phrase id="metafield_fieldname_input_ordered">Ordered</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_input_ordered">Order Multiple</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_input_ordered">Set to true if the order of the values is important (applicable to multiple fields).</epp:phrase>
+<epp:phrase id="metafield_fieldname_maxlength">Maximum Length</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_maxlength">Max Length</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_maxlength">Maximum number of characters to allow the user to enter. Use <em>input_cols</em> to control the size of the form input control.</epp:phrase>
+<epp:phrase id="metafield_fieldname_browse_link">Browse View Link</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_browse_link">View Link</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_browse_link">When rendering values you can add a link on the value to the browse view pages. Specify the name of the view to link the value to - this will depend on the views you have defined.</epp:phrase>
+<epp:phrase id="metafield_fieldname_top">Top Subject Entry</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_top">Top Subject</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_top">Top element of the subject hierarchy to show.</epp:phrase>
+<epp:phrase id="metafield_fieldname_datasetid">Dataset Name</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_datasetid">Dataset</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_datasetid">The repository dataset to link the object identifier to (e.g. "eprint").</epp:phrase>
+<epp:phrase id="metafield_fieldname_set_name">Named Set Filename</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_set_name">Named Set</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_set_name">The name of the file to read the option values from (in <tt>/cfg/namedsets</tt>).</epp:phrase>
+<epp:phrase id="metafield_fieldname_options">Set Options</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_options">Options</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_options">A comma-separated list of values to choose from (e.g. <em>london,paris,new_york</em>)). You will need to create phrases for every defined option.</epp:phrase>
+<epp:phrase id="metafield_fieldname_render_order">Name Render Order</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_render_order">Render Order</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_render_order">The order to render the name <b>value</b> in (family, given or given family).</epp:phrase>
+<epp:phrase id="metafield_fieldname_hide_honourific">Hide Honourific Part</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_hide_honourific">Hide Honourific</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_hide_honourific">Hide the honourific name part in the submission workflow.</epp:phrase>
+<epp:phrase id="metafield_fieldname_hide_lineage">Hide Lineage Part</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_hide_lineage">Hide Lineage</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_hide_lineage">Hide the lineage name part in the submission workflow.</epp:phrase>
+<epp:phrase id="metafield_fieldname_family_first">Family Part First</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_family_first">Family First</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_family_first">Whether to show the family first in the submission workflow.</epp:phrase>
+<epp:phrase id="metafield_fieldname_input_style">Set Input Style</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_input_style">Input Style</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_input_style">Input style of the <em>set</em> selector.</epp:phrase>
+<epp:phrase id="metafield_fieldname_input_rows">Input Rows</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_input_rows">Input Rows</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_input_rows">Input rows to show (lines of text, or options visible).</epp:phrase>
+<epp:phrase id="metafield_fieldname_input_cols">Input Columns</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_input_cols">Input Cols</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_input_cols">Input columns to show (columns of text). To restrict the maximum number of characters entered for text fields use the <em>maxlength</em> property.</epp:phrase>
+<epp:phrase id="metafield_fieldname_input_boxes">Initial Input Rows</epp:phrase>
+<epp:phrase id="metafield_fieldname_fields_input_boxes">Input Boxes</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_input_boxes">Starting number of input rows to show (if field is multiple). As users add values more rows will be shown.</epp:phrase>
+<epp:phrase id="metafield_fieldname_sql_counter">Counter Name</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_sql_counter">The name of the counter used to get the next incremented value, must be made up of lowercase English characters or underscore.</epp:phrase>
+
+<epp:phrase id="metafield_fieldopt_required_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_required_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_required_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_required_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_multiple_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_multiple_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_multiple_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_multiple_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_allow_null_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_allow_null_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_allow_null_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_allow_null_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_export_as_xml_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_export_as_xml_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_export_as_xml_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_export_as_xml_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_volatile_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_volatile_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_volatile_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_volatile_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_sql_index_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_sql_index_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_sql_index_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_sql_index_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_input_ordered_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_input_ordered_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_input_ordered_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_input_ordered_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_hide_honourific_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_hide_honourific_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_hide_honourific_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_hide_honourific_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_hide_lineage_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_hide_lineage_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_hide_lineage_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_hide_lineage_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_family_first_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_family_first_TRUE"><epc:phrase ref="lib/metafield:true"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_family_first_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_family_first_FALSE"><epc:phrase ref="lib/metafield:false"/></epp:phrase>
+
+<epp:phrase id="metafield_fieldopt_min_resolution_year">Year</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_min_resolution_year">Year</epp:phrase>
+<epp:phrase id="metafield_fieldopt_min_resolution_month">Month</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_min_resolution_month">Month</epp:phrase>
+<epp:phrase id="metafield_fieldopt_min_resolution_day">Day</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_min_resolution_day">Day</epp:phrase>
+<epp:phrase id="metafield_fieldopt_min_resolution_hour">Hour</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_min_resolution_hour">Hour</epp:phrase>
+<epp:phrase id="metafield_fieldopt_min_resolution_minute">Minute</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_min_resolution_minute">Minute</epp:phrase>
+<epp:phrase id="metafield_fieldopt_min_resolution_second">Second</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_min_resolution_second">Second</epp:phrase>
+
+<epp:phrase id="metafield_fieldopt_render_order_fg">Family, Given</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_render_order_fg">Family, Given</epp:phrase>
+<epp:phrase id="metafield_fieldopt_render_order_gf">Given Family</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_render_order_gf">Given Family</epp:phrase>
+
+<epp:phrase id="metafield_fieldopt_input_style_menu">Menu</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_input_style_menu">Menu</epp:phrase>
+<epp:phrase id="metafield_fieldopt_input_style_radio">Radio</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_input_style_radio">Radio</epp:phrase>
+<epp:phrase id="metafield_fieldopt_input_style_long">Long</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_input_style_long">Long</epp:phrase>
+<epp:phrase id="metafield_fieldopt_input_style_medium">Medium</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_input_style_medium">Medium</epp:phrase>
+<epp:phrase id="metafield_fieldopt_input_style_short">Short</epp:phrase>
+<epp:phrase id="metafield_fieldopt_fields_input_style_short">Short</epp:phrase>
+
+<epp:phrase id="validate:unknown_datasetid">Unspecified or unknown dataset id "<epc:pin name="datasetid"/>" given</epp:phrase>
+<epp:phrase id="validate:missing_property">Missing required property "<epc:pin name="property"/>"</epp:phrase>
+<epp:phrase id="validate:secret_mismatch">Check that you have entered the same secret twice.</epp:phrase>
+
+<epp:phrase id="metafield_fieldname_mfdatasetid">Parent Dataset</epp:phrase>
+<epp:phrase id="metafield_fieldname_mfstatus">Field Status</epp:phrase>
+<epp:phrase id="metafield_fieldname_providence">Field Provenance</epp:phrase>
+
+
+  <!-- phrases that describe relationships -->
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/isVolatileVersionOf">isVolatileVersionOf</epp:phrase>
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/hasVolatileVersion">hasVolatileVersion</epp:phrase>
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/isVersionOf">isVersionOf</epp:phrase>
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/hasVersion">hasVersion</epp:phrase>
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/issmallThumbnailVersionOf">issmallThumbnailVersionOf</epp:phrase>
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/hassmallThumbnailVersion">hassmallThumbnailVersion</epp:phrase>
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/ismediumThumbnailVersionOf">ismediumThumbnailVersionOf</epp:phrase>
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/hasmediumThumbnailVersion">hasmediumThumbnailVersion</epp:phrase>
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/ispreviewThumbnailVersionOf">ispreviewThumbnailVersionOf</epp:phrase>
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/haspreviewThumbnailVersion">haspreviewThumbnailVersion</epp:phrase>
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/isIndexCodesVersionOf">isIndexCodesVersionOf</epp:phrase>
+  <epp:phrase id="document_relation_typename_http://eprints.org/relation/hasIndexCodesVersion">hasIndexCodesVersion</epp:phrase>
+
+
+
+    <epp:phrase id="page:fulltext"></epp:phrase>
+    <epp:phrase id="page:nofulltext">Full text not available from this repository.</epp:phrase>
+    <epp:phrase id="page:abstract">Abstract</epp:phrase>
+    <epp:phrase id="page:deposited_by">Deposited By</epp:phrase>
+    <epp:phrase id="page:deposited_on">Deposited On</epp:phrase>
+    <epp:phrase id="page:id_code">ID Code</epp:phrase>
+    <epp:phrase id="page:invalid_user">INVALID USER</epp:phrase>
+    <epp:phrase id="page:latest_version"><p><em>This is the latest version of this item.</em></p></epp:phrase>
+    <epp:phrase id="page:not_latest_version">There is a <epc:pin name="link">more recent version of this item</epc:pin> available.</epp:phrase>
+    <epp:phrase id="page:available_versions"><h3>Available Versions of this Item</h3></epp:phrase>
+    <epp:phrase id="page:commentary_threads"><h3>Commentary/Response Threads</h3></epp:phrase>
+
+    <epp:phrase id="page:abstract_intro"><h3>This is how the metadata summary page will look:</h3></epp:phrase>
+    <epp:phrase id="page:allfields_intro"><h3>This is complete contents of all the fields in this item:</h3></epp:phrase>
+    <epp:phrase id="page:suggestions_intro"><h3>The depositing user made the following comments and suggestions:</h3></epp:phrase>
+    <epp:phrase id="page:alert">Alert</epp:phrase>
+    <epp:phrase id="page:edit_link">Repository Staff Only: <epc:pin name="link">item control page</epc:pin></epp:phrase>
+ 
+    <!-- Publisher- or funder-imposed embargos --> 
+    <epp:phrase id="page:embargo_status"><p>These documents will be made publicly accessible from <epc:pin name="date"/>.</p></epp:phrase>
+
+
+
+
+
+        <epp:phrase id="Plugin/Screen/Admin/StorageManager:title">Storage Manager</epp:phrase>
+        <epp:phrase id="Plugin/Screen/Admin/StorageManager:description">Manage your repositories hybrid storage setup, including migration of files.</epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:store_summary">There are <epc:pin name="total"/> total files stored using this back-end, taking <epc:pin name="human_bytes"/>.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:migrate">Copy to</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:delete">Delete Copies</epp:phrase>
+        
+	<!-- Platforms -->
+	
+	
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:Storage::HoneyComb">The Honeycomb Platofrm</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:Storage::Local">Local Disk Storage</epp:phrase>
+	
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:a_local_disk_storage">Local Disk Storage</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:a_local_disk_storage_pic"></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:m_local_archival_storage">Archival Storage</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:m_local_archival_storage_pic"></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:z_cloud_storage">Cloud Storage Platforms</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:z_cloud_storage_pic"></epp:phrase>
+
+
+
+
+
+
+    <epp:phrase id="Plugin/Screen/Subject/Check:name">Check Subjects</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Check:description">Check subject tree integrity</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Check:title">Check Subjects</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Check:no_errors">No problems were found with the subject tree.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Check:found_errors">Problems found with the subject tree: <epc:pin name="errors"/></epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Check:no_subjects">No subjects loaded (perhaps you need to run <em>import_subjects</em>?).</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Check:orphaned"><b><epc:pin name="subjectid"/></b> has no parent subjects.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Check:no_such_parent"><b><epc:pin name="subjectid"/></b> refers to a parent <em><epc:pin name="parentid"/></em>, but that parent doesn't appear to exist.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Check:loop">A circular reference was detected along path <b><epc:pin name="path"/></b>.</epp:phrase>
+
+
+
+
+
+   <epp:phrase id="Sword/Deposit:document_formatdesc">This is the original file deposited through SWORD.</epp:phrase>
+
+   <epp:phrase id="Sword/ServiceDocument:note_behalf"> NOTE: you are currently depositing on behalf of user '<epc:pin name="username"/>'.</epp:phrase>
+
+
+        <epp:phrase id="eprint_fieldname_sword_depositor">SWORD Depositor</epp:phrase>
+        <epp:phrase id="eprint_fieldhelp_sword_depositor">The username of the Depositor (for items sent through the SWORD interface)</epp:phrase>
+
+        <epp:phrase id="eprint_fieldname_sword_slug">SWORD Slug</epp:phrase>
+        <epp:phrase id="eprint_fieldhelp_sword_slug">A (pseudo) unique ID suggested by the client when depositing through SWORD</epp:phrase>
+
 
 <!-- 
 	English Language System Phrases File 
@@ -10,7 +1370,6 @@
 	the repository specific phrase file.
 -->
 
-<epp:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:epp="http://eprints.org/ep3/phrase" xmlns:epc="http://eprints.org/ep3/control">
 
 <!--********************************************************************** 
 EPrints Modules  
@@ -1812,7 +3171,7 @@ Each file inside this archive will be created as an <b>individual</b> document i
   <epp:phrase id="languages_typename_el">Greek</epp:phrase>  
   <epp:phrase id="languages_typename_en">English</epp:phrase>  
   <epp:phrase id="languages_typename_eo">Esperanto</epp:phrase>  
-  <epp:phrase id="languages_typename_es">Espa&ntilde;ol</epp:phrase> 
+  <epp:phrase id="languages_typename_es">Español</epp:phrase> 
   <epp:phrase id="languages_typename_et">Estonian</epp:phrase>  
   <epp:phrase id="languages_typename_eu">Basque</epp:phrase>  
 
@@ -2208,5 +3567,134 @@ Each file inside this archive will be created as an <b>individual</b> document i
 
 <!-- Cachemap -->
 <epp:phrase id="cachemap_fieldname_created">Creation Time</epp:phrase>
+
+
+
+<!-- Section Names -->
+    <epp:phrase id="user_section_account">Account Details</epp:phrase>
+	<epp:phrase id="user_section_personal">Personal Details</epp:phrase>
+
+<!-- User Field Names -->
+
+    <epp:phrase id="user_fieldname_name">Name</epp:phrase>
+    <epp:phrase id="user_fieldhelp_name"></epp:phrase>
+
+    <epp:phrase id="user_fieldname_os">Operating System</epp:phrase>
+    <epp:phrase id="user_fieldhelp_os"></epp:phrase>
+    <epp:phrase id="user_fieldopt_os_win">Windows/DOS</epp:phrase>
+    <epp:phrase id="user_fieldopt_os_unix">UNIX</epp:phrase>
+    <epp:phrase id="user_fieldopt_os_vms">VMS</epp:phrase>
+    <epp:phrase id="user_fieldopt_os_mac">Macintosh</epp:phrase>
+    <epp:phrase id="user_fieldopt_os_other">Other</epp:phrase>
+
+    <epp:phrase id="user_fieldname_hideemail">Hide Email</epp:phrase>
+    <epp:phrase id="user_fieldhelp_hideemail">This option allows or prevents a users email being shown on their public summary page.</epp:phrase>
+    <epp:phrase id="user_radio_hideemail"><label><epc:pin name="false"/> Make email visible to all.</label><br/><label><epc:pin name="true"/> Hide email to all except repository administrators.</label></epp:phrase>
+
+
+    <epp:phrase id="user_fieldname_dept">Department</epp:phrase>
+    <epp:phrase id="user_fieldhelp_dept"></epp:phrase>
+
+    <epp:phrase id="user_fieldname_org">Organisation</epp:phrase>
+    <epp:phrase id="user_fieldhelp_org"></epp:phrase>
+
+    <epp:phrase id="user_fieldname_address">Address</epp:phrase>
+    <epp:phrase id="user_fieldhelp_address"></epp:phrase>
+
+    <epp:phrase id="user_fieldname_country">Country</epp:phrase>
+    <epp:phrase id="user_fieldhelp_country"></epp:phrase>
+
+    <epp:phrase id="user_fieldname_url">Homepage URL</epp:phrase>
+    <epp:phrase id="user_fieldhelp_url"></epp:phrase>
+
+    <epp:phrase id="user_fieldname_expertise">Expertise</epp:phrase>
+    <epp:phrase id="user_fieldhelp_expertise">Please list keyword/phrases describing your areas of specialisation using the terms likely to be used by someone searching for work in those areas. Avoid over-general terms (`chemistry') and over-particular terms (`my non-quantal theory of chemical reactions') that no one is likely to search on. Enter as many keyword/phrases as you wish.</epp:phrase>
+
+    <epp:phrase id="user_section_prefs">User Preferences</epp:phrase>
+
+    <epp:phrase id="user_fieldname_items_fields"><epc:phrase ref="Plugin/Screen/Items:title" /> Fields</epp:phrase>
+    <epp:phrase id="user_fieldhelp_items_fields">The fields shown for each item on the <epc:phrase ref="Plugin/Screen/Items:title" /> page.</epp:phrase>
+
+    <epp:phrase id="user_fieldname_review_fields"><epc:phrase ref="Plugin/Screen/Review:title" /> Fields</epp:phrase>
+    <epp:phrase id="user_fieldhelp_review_fields">The fields shown for each item on the <epc:phrase ref="Plugin/Screen/Review:title" /> page.</epp:phrase>
+
+    <epp:phrase id="user_typename_minuser">Minimal User</epp:phrase>
+    <epp:phrase id="user_typename_user">User</epp:phrase>
+    <epp:phrase id="user_typename_editor">Editor</epp:phrase>
+    <epp:phrase id="user_typename_admin">Repository Administrator</epp:phrase>
+
+
+
+
+
+
+
+<!-- User Sort Order names -->
+
+    <epp:phrase id="ordername_user_byjoin">By registration date (oldest first)</epp:phrase>
+    <epp:phrase id="ordername_user_bytype">By user type</epp:phrase>
+    <epp:phrase id="ordername_user_byname">By name</epp:phrase>
+    <epp:phrase id="ordername_user_byrevjoin">By registration date (newest first)</epp:phrase>
+
+
+
+
+
+    <epp:phrase id="validate:missing_http">The URL given for <epc:pin name="fieldname"/> is invalid. Did you include the initial <strong>http://</strong>?</epp:phrase>
+    <epp:phrase id="validate:bad_email">The email given for <epc:pin name="fieldname"/> is invalid.</epp:phrase>
+    <epp:phrase id="validate:missing_family">Name in field <epc:pin name="fieldname"/> is missing the "family" part.</epp:phrase>
+    <epp:phrase id="validate:missing_given">Name in field <epc:pin name="fieldname"/> is missing the "given names/initials" part.</epp:phrase>
+    <epp:phrase id="validate:need_description">Documents of type <em><epc:pin name="type"/></em> <epc:pin name="fieldname">need a description</epc:pin>.</epp:phrase>
+    <epp:phrase id="validate:need_sub_or_issue">An item must have at least one of a <epc:pin name="fieldname">submission date</epc:pin> and an issue date.</epp:phrase>
+    <epp:phrase id="validate:need_creators_or_editors">If an item does not have any <epc:pin name="fieldname">creators</epc:pin> then it must have at least one editor.</epp:phrase>
+
+    <epp:phrase id="validate:embargo_invalid_date"><epc:pin name="fieldname">Embargo expiry date</epc:pin> must be in the future.</epp:phrase>
+    <epp:phrase id="validate:embargo_check_security">An embargo date has been specified, but the document is visible to anyone. Check the <epc:pin name="fieldname">document visibility settings</epc:pin>.</epp:phrase>
+
+
+
+     <epp:phrase id="viewname_eprint_person">Person</epp:phrase>
+
+     <epp:phrase id="viewname_eprint_status">Status</epp:phrase>
+
+     <epp:phrase id="viewname_eprint_subjects">Subject</epp:phrase>
+     <!--<epp:phrase id="viewtitle_eprint_subjects_menu_1">Browse by Subject and Year</epp:phrase>-->
+     <epp:phrase id="viewtitle_eprint_subjects_menu_2">Browse by Year where Subject is "<epc:pin name="value1" />"</epp:phrase>
+     <!--<epp:phrase id="viewtitle_eprint_subjects_list">Items where Subject is "<epc:pin name="value1" />" and Year is <epc:pin name="value2" /></epp:phrase>-->
+     <epp:phrase id="viewtitle_eprint_subjects_list">Items where Subject is "<epc:pin name="value1" />"</epp:phrase>
+
+     <epp:phrase id="viewname_eprint_year">Year</epp:phrase>
+     <epp:phrase id="viewtitle_eprint_year_menu_1">Browse by Year</epp:phrase>
+     <epp:phrase id="viewtitle_eprint_year_list">Items where Year is <epc:pin name="value1" /></epp:phrase>
+
+     <epp:phrase id="viewname_eprint_types">Type</epp:phrase>
+
+     <epp:phrase id="viewname_eprint_divisions">Division</epp:phrase>
+     <epp:phrase id="viewtitle_eprint_divisions_menu_1">Browse by Division and Year</epp:phrase>
+     <epp:phrase id="viewtitle_eprint_divisions_menu_2">Browse by Year where Division is "<epc:pin name="value1" />"</epp:phrase>
+     <epp:phrase id="viewtitle_eprint_divisions_list">Items where Division is "<epc:pin name="value1" />" and Year is <epc:pin name="value2" /></epp:phrase>
+
+     <epp:phrase id="viewname_eprint_creators">Author</epp:phrase>
+     <epp:phrase id="viewtitle_eprint_creators_menu_1">Browse by Author</epp:phrase>
+     <epp:phrase id="viewtitle_eprint_creators_list">Items where Author is "<epc:pin name="value1" />"</epp:phrase>
+
+
+
+    <epp:phrase id="warnings:no_documents">You have not <span class="ep_problem_field:documents">uploaded any documents</span>. While this is not essential, it is strongly recommended.</epp:phrase>
+    <epp:phrase id="warnings:no_contact_email">Not all the documents in this record are available to the general public. We suggest you provide a <span class="ep_problem_field:contact_email">contact email address</span> which will allow people to request a copy directly from you.</epp:phrase>
+
+
+
+<!-- Submission Form Page Titles -->
+
+    <epp:phrase id="metapage_title_type">Type</epp:phrase>
+    <epp:phrase id="metapage_title_files">Upload</epp:phrase>
+    <epp:phrase id="metapage_title_core">Details</epp:phrase>
+    <epp:phrase id="metapage_title_pubinfo">Publication</epp:phrase>
+    <epp:phrase id="metapage_title_status">Status</epp:phrase>
+    <epp:phrase id="metapage_title_event">Event</epp:phrase>
+    <epp:phrase id="metapage_title_abstract">Abstract</epp:phrase>
+    <epp:phrase id="metapage_title_subjects">Subjects</epp:phrase>
+    <epp:phrase id="metapage_title_notes">Extras</epp:phrase>
 
 </epp:phrases>
