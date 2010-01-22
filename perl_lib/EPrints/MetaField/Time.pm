@@ -70,7 +70,7 @@ sub sql_row_from_value
 	my( $self, $session, $value ) = @_;
 
 	my @parts;
-	@parts = split /[-: TZ]/, $value if defined $value;
+	@parts = split /[-: TZ]/, $value, 6 if defined $value;
 	push @parts, undef while scalar(@parts) < 6;
 
 	return @parts;
