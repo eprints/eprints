@@ -11,13 +11,15 @@ Notes:
 <epp:phrase id="the/phrase/id">New phrase content</epp:phrase>
 
 To include a pin:
-<epp:phrase ...><epc:pin name="the/pin/name" /></epp:phrase>
+<epp:phrase id="the/phrase/id"><epc:pin name="the/pin/name" /></epp:phrase>
 
 To include one phrase in another:
-<epp:phrase ...>Lorm ipssee <epc:phrase ref="the/phrase/id" /></epp:phrase>
+<epp:phrase id="the/phrase/id">Lorm ipssee <epc:phrase ref="another/phrase/id" /></epp:phrase>
 
 To completely replace one phrase with another:
 <epp:phrase id="the/phrase/id" ref="phrase/to/copy/id" />
+
+Phrases in this file will be over-ridden by zz_web.xml which is modified via the web-based phrase editor.
 
 -->
 
