@@ -70,8 +70,8 @@ sub sql_row_from_value
 	my( $self, $session, $value ) = @_;
 
 	my @parts;
-	@parts = split /[-: TZ]/, $value, 6 if defined $value;
-	push @parts, undef while scalar(@parts) < 6;
+	@parts = split /[-: TZ]/, $value if defined $value;
+	@parts = @parts[0..5];
 
 	return @parts;
 }
@@ -387,6 +387,17 @@ sub render_xml_schema_type
 	return $type;
 }
 
+sub set_value
+{
+	my( $self, $dataobj, $value ) = @_;
+
+	if( $value !~ /^\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\dZ?$/ )
+	{
+		$dataobj->{session}->log( "Badly formatted time value: $value" );
+	}
+
+	$self->SUPER::set_value( $dataobj, $value );
+}
 
 ######################################################################
 1;

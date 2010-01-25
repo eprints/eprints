@@ -69,8 +69,8 @@ sub sql_row_from_value
 	my( $self, $session, $value ) = @_;
 
 	my @parts;
-	@parts = split /[-]/, $value, 3 if defined $value;
-	push @parts, undef while scalar(@parts) < 3;
+	@parts = split /[-]/, $value if defined $value;
+	@parts = @parts[0..2];
 
 	return @parts;
 }
