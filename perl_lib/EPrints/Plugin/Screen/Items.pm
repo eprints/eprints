@@ -102,7 +102,7 @@ sub get_filters
 {
 	my( $self ) = @_;
 
-	my %f = ( inbox=>1, buffer=>1, archive=>0, deletion=>0 );
+	my %f = ( inbox=>1, buffer=>1, archive=>1, deletion=>1 );
 
 	foreach my $filter ( keys %f )
 	{
