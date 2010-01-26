@@ -7,6 +7,26 @@ use EPrints::Plugin::Screen;
 
 use strict;
 
+sub new
+{
+	my( $class, %params ) = @_;
+
+	my $self = $class->SUPER::new(%params);
+
+	$self->{icon} = "action_view.png";
+
+	$self->{appears} = [
+		{
+#			place => "import_item_actions",
+#			position => 200,
+		},
+	];
+
+	$self->{actions} = [qw/ /];
+
+	return $self;
+}
+
 sub get_view_screen
 {
 	my( $self ) = @_;
@@ -51,39 +71,41 @@ sub get_save_screen
 	return $screenid;
 }
 
-sub get_dataset_id
-{
-	my( $class ) = @_;
-
-	Carp::croak( "get_dataset_id must be overriden by $class" );
-}
-
 sub properties_from
 {
 	my( $self ) = @_;
 
 	my $processor = $self->{processor};
+	my $session = $self->{session};
 
-	my $dataset = $self->{session}->get_repository->get_dataset(
-			$self->get_dataset_id()
-		);
-	my $key_field = $dataset->get_key_field();
+	my $datasetid = $session->param( "dataset" );
+	my $id = $session->param( "dataobj" );
 
-	my $id = $self->{session}->param( "dataobj_id" );
-
-	$processor->{"dataset"} = $dataset;
-	$processor->{"dataobj_id"} = $id;
-	$processor->{"dataobj"} = $dataset->get_object( $self->{session}, $id );
-
-	if( !defined $processor->{"dataobj"} )
+	my $dataset = $session->dataset( $datasetid );
+	if( !defined $dataset )
 	{
 		$processor->{screenid} = "Error";
-		$processor->add_message( "error", $self->{session}->html_phrase(
-			"Plugin/Screen/Workflow:cant_find_it",
-			dataset=>$self->{session}->make_text( $dataset->confid ),
-			id=>$self->{session}->make_text( $id ) ) );
+		$processor->add_message( "error", $session->html_phrase(
+			"lib/history:no_such_item",
+			datasetid=>$session->make_text( $datasetid ),
+			objectid=>$session->make_text( $id ) ) );
 		return;
 	}
+
+	$processor->{"dataset"} = $dataset;
+
+	my $dataobj = $dataset->dataobj( $id );
+	if( !defined $dataobj )
+	{
+		$processor->{screenid} = "Error";
+		$processor->add_message( "error", $session->html_phrase(
+			"lib/history:no_such_item",
+			datasetid=>$session->make_text( $datasetid ),
+			objectid=>$session->make_text( $id ) ) );
+		return;
+	}
+
+	$processor->{"dataobj"} = $dataset->dataobj( $id );
 
 	$self->SUPER::properties_from;
 }
@@ -92,32 +114,25 @@ sub allow
 {
 	my( $self, $priv ) = @_;
 
-	return 0 unless defined $self->{processor}->{"dataobj"};
+	return 0 unless defined $self->{processor}->{dataobj};
 
 	return 1 if( $self->{session}->allow_anybody( $priv ) );
 	return 0 if( !defined $self->{session}->current_user );
-	return $self->{session}->current_user->allow( $priv, $self->{processor}->{"dataobj"} );
+	return $self->{session}->current_user->allow( $priv, $self->{processor}->{dataobj} );
 }
 
 sub can_be_viewed
 {
 	my( $self ) = @_;
 
-	return $self->allow( $self->get_dataset_id()."/edit" );
+	return $self->allow( $self->{processor}->{dataset}->id."/edit" );
 }
 
-sub allow_commit
+sub allow_action
 {
-	my( $self ) = @_;
+	my( $self, $action ) = @_;
 
-	return $self->can_be_viewed;
-}
-
-sub allow_save
-{
-	my( $self ) = @_;
-
-	return $self->can_be_viewed;
+	return $self->can_be_viewed();
 }
 
 sub render_tab_title
@@ -131,18 +146,17 @@ sub render_title
 {
 	my( $self ) = @_;
 
-	my $priv = $self->allow( $self->get_dataset_id()."/view" );
-
 	my $f = $self->{session}->make_doc_fragment;
-	$f->appendChild( $self->html_phrase( "title" ) );
-	$f->appendChild( $self->{session}->make_text( ": " ) );
+#	$f->appendChild( $self->html_phrase( "title" ) );
+#	$f->appendChild( $self->{session}->make_text( ": " ) );
 
 	my $screen = $self->get_view_screen();
 
-	my $title = $self->{session}->make_text( $self->{processor}->{"dataobj_id"} );
-	my $a = $self->{session}->render_link( "?screen=$screen&dataobj_id=".$self->{processor}->{"dataobj_id"} );
-	$a->appendChild( $title );
-	$f->appendChild( $a );
+	my $title = $self->{processor}->{dataobj}->render_citation( "brief" );
+	my $link = $self->{session}->render_link( "?screen=$screen&dataset=".$self->{processor}->{dataset}->id."&dataobj=".$self->{processor}->{dataobj}->id );
+	$link->appendChild( $title );
+	$f->appendChild( $link );
+
 	return $f;
 }
 
@@ -150,7 +164,7 @@ sub redirect_to_me_url
 {
 	my( $self ) = @_;
 
-	return $self->SUPER::redirect_to_me_url."&dataobj_id=".$self->{processor}->{dataobj_id};
+	return $self->SUPER::redirect_to_me_url."&dataset=".$self->{processor}->{dataset}->id."&dataobj=".$self->{processor}->{dataobj}->id;
 }
 
 sub workflow
@@ -234,10 +248,75 @@ sub render_hidden_bits
 
 	my $chunk = $self->{session}->make_doc_fragment;
 
-	$chunk->appendChild( $self->{session}->render_hidden_field( "dataobj_id", $self->{processor}->{"dataobj_id"} ) );
+	$chunk->appendChild( $self->{session}->render_hidden_field( "dataset", $self->{processor}->{dataset}->id ) );
+	$chunk->appendChild( $self->{session}->render_hidden_field( "dataobj", $self->{processor}->{dataobj}->id ) );
 	$chunk->appendChild( $self->SUPER::render_hidden_bits );
 
 	return $chunk;
 }
+
+sub _render_action_aux
+{
+	my( $self, $params, $asicon ) = @_;
+	
+	my $session = $self->{session};
+	
+	my $method = "GET";	
+	if( defined $params->{action} )
+	{
+		$method = "POST";
+	}
+
+	my $form = $session->render_form( $method, $session->current_url( path => "cgi" ) . "/users/home" );
+
+	$form->appendChild( 
+		$session->render_hidden_field( 
+			"screen", 
+			substr( $params->{screen_id}, 8 ) ) );
+	foreach my $id ( keys %{$params->{hidden}} )
+	{
+		$form->appendChild( 
+			$session->render_hidden_field( 
+				$id, 
+				$params->{hidden}->{$id} ) );
+	}
+	my( $action, $title, $icon );
+	if( defined $params->{action} )
+	{
+		$action = $params->{action};
+		$title = $params->{screen}->phrase( "action:$action:title" );
+		$icon = $params->{screen}->action_icon_url( $action );
+	}
+	else
+	{
+		$action = "null";
+		$title = $params->{screen}->phrase( "title" );
+		$icon = $params->{screen}->icon_url();
+	}
+	if( defined $icon && $asicon )
+	{
+		$form->appendChild( 
+			$session->make_element(
+				"input",
+				type=>"image",
+				class=>"ep_form_action_icon",
+				name=>"_action_$action", 
+				src=>$icon,
+				title=>$title,
+				alt=>$title,
+				value=>$title ));
+	}
+	else
+	{
+		$form->appendChild( 
+			$session->render_button(
+				class=>"ep_form_action_button",
+				name=>"_action_$action", 
+				value=>$title ));
+	}
+
+	return $form;
+}
+
 1;
 
