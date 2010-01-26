@@ -105,6 +105,10 @@ daily, weekly or monthly.
 Only relevant to staff accounts. If set to true then emails are sent
 even if there are no items matching the scope.
 
+=item preference (compound)
+
+User preferences which need to be persistent (simple key-value pairs).
+
 =back
 
 =head1 METHODS
@@ -208,6 +212,17 @@ sub get_system_field_info
 
 		{ name=>"longitude", type=>"float", required=>0 },
 
+		{
+			name => "preference",
+			type => "compound",
+			multiple => 1,
+			sql_index => 0,
+			text_index => 0,
+			fields => [
+				{ sub_name => "key", type => "id", },
+				{ sub_name => "value", type => "text", },
+			]
+		},
 	)
 };
 
@@ -960,6 +975,47 @@ sub get_saved_searches
 	return $results->slice;
 }
 
+=item $value = $user->preference( $key )
+
+Retrieve the preference $key.
+
+=cut
+
+sub preference
+{
+	my( $self, $key ) = @_;
+
+	my $rc;
+
+	for(@{$self->value( "preference" )})
+	{
+		$rc = $_->{value}, last if $_->{key} eq $key;
+	}
+
+	return $rc;
+}
+
+=item $user->set_preference( $key, $value )
+
+Set a preference $key for the user to $value.
+
+$value may be upto 255 characters long. $value may be undefined.
+
+=cut
+
+sub set_preference
+{
+	my( $self, $key, $value ) = @_;
+
+	my @prefs = grep { $_->{key} ne $key } @{$self->value( "preference" )};
+
+	if( defined $value )
+	{
+		push @prefs, { key => $key, value => $value };
+	}
+
+	$self->set_value( "preference", \@prefs );
+}
 
 ######################################################################
 =pod
