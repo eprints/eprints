@@ -103,8 +103,8 @@ sub get_system_field_info
 		{ name=>"status", type=>"set", options=>[qw( waiting inprogress success failed )], default_value=>"waiting", },
 		{ name=>"userid", type=>"itemref", datasetid=>"user", },
 		{ name=>"description", type=>"longtext", },
-		{ name=>"pluginid", type=>"text", required=>1, },
-		{ name=>"action", type=>"text", required=>1, },
+		{ name=>"pluginid", type=>"id", required=>1, },
+		{ name=>"action", type=>"id", required=>1, },
 		{ name=>"params", type=>"storable", },
 	);
 }
