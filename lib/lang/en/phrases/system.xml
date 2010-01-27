@@ -3728,5 +3728,6 @@ Each file inside this archive will be created as an <b>individual</b> document i
     <epp:phrase id="Plugin/Screen/Workflow/Destroy:sure_delete"><p>Are you sure you want to destroy <em><epc:pin name="title"/></em>? This action can not be undone.</p></epp:phrase>
 	<epp:phrase id="Plugin/Screen/Workflow/Details:title" ref="Plugin/Screen/EPrint/Details:title" />
 	<epp:phrase id="Plugin/Screen/Workflow/Commit:save" ref="lib/submissionform:action_staff_save" />
+	<epp:phrase id="Plugin/Screen/Workflow/Destroy:item_removed" ref="Plugin/Screen/EPrint/Remove:item_removed" />
 
 </epp:phrases>
