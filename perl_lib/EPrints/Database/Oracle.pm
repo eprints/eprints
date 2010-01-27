@@ -121,6 +121,10 @@ our %ORACLE_TYPES = (
 		CREATE_PARAMS => undef,
 		TYPE_NAME => "DATE",
 	},
+	SQL_BIGINT() => {
+		CREATE_PARAMS => undef,
+		TYPE_NAME => "NUMBER(19)",
+	},
 );
 
 use strict;
