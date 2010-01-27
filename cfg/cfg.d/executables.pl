@@ -1,5 +1,5 @@
 # set this to 1 if disk free doesn't work on your system
-$c->{disable_df} = 0;
+$c->{disable_df} = 0 if !defined $EPrints::SystemSettings::conf->{disable_df};
 
 # location of executables
 $c->{executables} = {
