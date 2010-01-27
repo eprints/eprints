@@ -619,8 +619,18 @@ sub _get_records
 	my @ids;
 	if( defined $self->{ids} )
 	{
-		$count = scalar @{$self->{ids}} if !defined $count;
-		@ids = grep { defined $_ } @{$self->{ids}}[$offset..$offset+$count-1];
+		if( $offset > $#{$self->{ids}} )
+		{
+			return [];
+		}
+		if( !defined $count || $offset+$count > @{$self->{ids}} )
+		{
+			@ids = @{$self->{ids}}[$offset..$#{$self->{ids}}];
+		}
+		else
+		{
+			@ids = @{$self->{ids}}[$offset..$offset+$count-1];
+		}
 	}
 	else
 	{
