@@ -1181,7 +1181,18 @@ sub _load_datasets
 	my $repository_datasets = $self->config( "datasets" );
 	foreach my $ds_id ( keys %{$repository_datasets||{}} )
 	{
-		$info{$ds_id} = $repository_datasets->{$ds_id};
+		my $dataset = $repository_datasets->{$ds_id};
+		foreach my $key (keys %$dataset)
+		{
+			if( defined $dataset->{$key} )
+			{
+				$info{$ds_id}->{$key} = $dataset->{$key};
+			}
+			else
+			{
+				delete $info{$ds_id};
+			}
+		}
 	}
 
 	# sort the datasets so that derived datasets follow (and hence share
