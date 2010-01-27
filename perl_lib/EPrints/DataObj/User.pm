@@ -214,14 +214,10 @@ sub get_system_field_info
 
 		{
 			name => "preference",
-			type => "compound",
-			multiple => 1,
+			type => "storable",
 			sql_index => 0,
 			text_index => 0,
-			fields => [
-				{ sub_name => "key", type => "id", },
-				{ sub_name => "value", type => "text", },
-			]
+			volatile => 1,
 		},
 	)
 };
@@ -985,21 +981,15 @@ sub preference
 {
 	my( $self, $key ) = @_;
 
-	my $rc;
+	my $prefs = $self->value( "preference" );
+	return undef if !defined $prefs;
 
-	for(@{$self->value( "preference" )})
-	{
-		$rc = $_->{value}, last if $_->{key} eq $key;
-	}
-
-	return $rc;
+	return $prefs->{$key};
 }
 
 =item $user->set_preference( $key, $value )
 
 Set a preference $key for the user to $value.
-
-$value may be upto 255 characters long. $value may be undefined.
 
 =cut
 
@@ -1007,14 +997,19 @@ sub set_preference
 {
 	my( $self, $key, $value ) = @_;
 
-	my @prefs = grep { $_->{key} ne $key } @{$self->value( "preference" )};
+	my $prefs = $self->value( "preference" );
+	$prefs = defined $prefs ? { %$prefs } : {};
 
-	if( defined $value )
+	if( EPrints::Utils::is_set( $value ) )
 	{
-		push @prefs, { key => $key, value => $value };
+		$prefs->{$key} = $value;
+	}
+	else
+	{
+		delete $prefs->{$key};
 	}
 
-	$self->set_value( "preference", \@prefs );
+	$self->set_value( "preference", $prefs );
 }
 
 ######################################################################
