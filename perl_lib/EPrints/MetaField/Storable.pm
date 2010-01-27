@@ -125,7 +125,9 @@ sub render_value
 {
 	my( $self, $session, $value ) = @_;
 
-	return $session->make_text( Data::Dumper::Dumper( @$value ) );
+	local $Data::Dumper::Terse = 1;
+
+	return $session->make_text( Data::Dumper::Dumper( $value ) );
 }
 
 ######################################################################

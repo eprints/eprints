@@ -121,6 +121,7 @@ my $INFO = {
 		sqlname => "event_queue",
 		class => "EPrints::DataObj::EventQueue",
 		datestamp => "datestamp",
+		columns => [qw( datestamp status pluginid action params )],
 	},
 	upload_progress => {
 		sqlname => "upload_progress",
@@ -1247,6 +1248,28 @@ sub list
 		dataset => $self,
 		ids => $ids,
 	);
+}
+
+=item $fields = $dataset->columns()
+
+Returns the default list of fields to show the user when browsing this dataset in a table. Returns an array ref of L<EPrints::MetaField> objects.
+
+=cut
+
+sub columns
+{
+	my( $self ) = @_;
+
+	my $columns = $self->{repository}->config( "datasets", $self->id, "columns" );
+	if( !defined $columns )
+	{
+		$columns = $self->{columns};
+	}
+	$columns = [] if !defined $columns;
+
+	$columns = [grep { defined $_ } map { $self->field( $_ ) } @$columns];
+
+	return $columns;
 }
 
 ######################################################################

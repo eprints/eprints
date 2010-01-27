@@ -138,8 +138,6 @@ sub render
 		$indexer_status = "running";
 	}
 
-	my $indexer_queue = $session->get_database->count_table( "event_queue" );
-	
 	my( $html , $table , $p , $span );
 	
 	# Write the results to a table
@@ -176,11 +174,16 @@ sub render
 			$session->html_phrase( "cgi/users/status:indexer" ),
 			$session->html_phrase( "cgi/users/status:indexer_".$indexer_status ) ) );
 	
-	$table->appendChild(
-		$session->render_row( 
-			$session->html_phrase( "cgi/users/status:indexer_queue" ),
-			$session->html_phrase( "cgi/users/status:indexer_queue_size", 
-				size => $session->make_text( $indexer_queue ) ) ) );
+	{
+		my $dataset = $session->dataset( "event_queue" );
+		my $n = $session->get_database->count_table( $dataset->get_sql_table_name );
+		my $link = $session->render_link( "?screen=Listing&dataset=".$dataset->id );
+		$link->appendChild( $session->html_phrase( "cgi/users/status:indexer_queue_size", size => $session->make_text( $n ) ) );
+		$table->appendChild(
+			$session->render_row( 
+				$session->html_phrase( "cgi/users/status:indexer_queue" ),
+				$link ) );
+	}
 	
 	$table->appendChild(
 		$session->render_row( 

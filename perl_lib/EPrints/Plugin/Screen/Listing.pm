@@ -19,7 +19,7 @@ sub new
 #		}
 	];
 
-	$self->{actions} = [qw/ col_left col_right remove_col add_col /];
+	$self->{actions} = [qw/ search newsearch col_left col_right remove_col add_col /];
 
 	return $self;
 }
@@ -46,7 +46,43 @@ sub properties_from
 
 	$processor->{"dataset"} = $dataset;
 
+	my $columns = $self->show_columns();
+	$processor->{"columns"} = $columns;
+
+	$self->{processor}->{search} = $dataset->prepare_search(
+		search_fields => [
+			(map { { meta_fields => [$_->name] } } @$columns)
+	]);
+
 	$self->SUPER::properties_from;
+}
+
+sub from
+{
+	my( $self ) = @_;
+
+	my $session = $self->{session};
+
+	my $search = $self->{processor}->{search};
+	my $exp = $session->param( "exp" );
+
+	if( $self->{processor}->{action} eq "search" )
+	{
+		foreach my $sf ( $search->get_non_filter_searchfields )
+		{
+			my $prob = $sf->from_form();
+			if( defined $prob )
+			{
+				$self->{processor}->add_message( "warning", $prob );
+			}
+		}
+	}
+	elsif( $exp )
+	{
+		$search->from_string( $exp );
+	}
+
+	$self->SUPER::from();
 }
 
 sub redirect_to_me_url
@@ -63,10 +99,20 @@ sub can_be_viewed
 	return $self->allow( $self->{processor}->{dataset}->id."/view" );
 }
 
-sub allow_col_left { return $_[0]->can_be_viewed; }
-sub allow_col_right { return $_[0]->can_be_viewed; }
-sub allow_remove_col { return $_[0]->can_be_viewed; }
-sub allow_add_col { return $_[0]->can_be_viewed; }
+sub allow_action
+{
+	my( $self, $action ) = @_;
+
+	return $self->can_be_viewed();
+}
+
+sub action_search
+{
+}
+
+sub action_newsearch
+{
+}
 
 sub _set_user_columns
 {
@@ -74,8 +120,11 @@ sub _set_user_columns
 
 	my $user = $self->{session}->current_user;
 
-	$user->set_preference( "screen.listings.fields.".$self->{processor}->{dataset}->id, join( " ", map { $_->name } @$columns ) );
+	$user->set_preference( "screen.listings.columns.".$self->{processor}->{dataset}->id, join( " ", map { $_->name } @$columns ) );
 	$user->commit;
+
+	# update the list of columns
+	$self->{processor}->{columns} = $self->show_columns();
 }
 
 sub action_col_left
@@ -85,7 +134,7 @@ sub action_col_left
 	my $i = $self->{session}->param( "column" );
 	return if !defined $i || $i !~ /^[0-9]+$/;
 
-	my $columns = $self->show_columns;
+	my $columns = $self->{processor}->{columns};
 	@$columns[$i-1,$i] = @$columns[$i,$i-1];
 
 	$self->_set_user_columns( $columns );
@@ -97,7 +146,7 @@ sub action_col_right
 	my $i = $self->{session}->param( "column" );
 	return if !defined $i || $i !~ /^[0-9]+$/;
 
-	my $columns = $self->show_columns;
+	my $columns = $self->{processor}->{columns};
 	@$columns[$i+1,$i] = @$columns[$i,$i+1];
 
 	$self->_set_user_columns( $columns );
@@ -110,8 +159,9 @@ sub action_add_col
 	return if !defined $name;
 	my $field = $self->{processor}->{dataset}->field( $name );
 	return if !defined $field;
+	return if !$field->get_property( "show_in_fieldlist" );
 
-	my $columns = $self->show_columns;
+	my $columns = $self->{processor}->{columns};
 	push @$columns, $field;
 
 	$self->_set_user_columns( $columns );
@@ -123,7 +173,7 @@ sub action_remove_col
 	my $i = $self->{session}->param( "column" );
 	return if !defined $i || $i !~ /^[0-9]+$/;
 
-	my $columns = $self->show_columns;
+	my $columns = $self->{processor}->{columns};
 	splice( @$columns, $i, 1 );
 
 	$self->_set_user_columns( $columns );
@@ -162,26 +212,28 @@ sub show_columns
 	my $dataset = $self->{processor}->{dataset};
 	my $user = $self->{session}->current_user;
 
-	my $columns = $user->preference( "screen.listings.fields.".$dataset->id );
+	my $columns = $user->preference( "screen.listings.columns.".$dataset->id );
 	if( defined $columns )
 	{
 		$columns = [split / /, $columns];
+		$columns = [grep { defined $_ } map { $dataset->field( $_ ) } @$columns];
 	}
 	if( !defined $columns || @{$columns} == 0 )
 	{
-		$columns = $self->{session}->config( "datasets", $dataset->id, "columns" );
-	}
-	if( defined $columns )
-	{
-		@$columns = grep { defined $_ } map { $dataset->field( $_ ) } @$columns;
-	}
-	if( !defined $columns || @{$columns} == 0)
-	{
-		$columns = [$dataset->fields()];
-		@$columns = splice(@$columns,0,4);
+		$columns = $dataset->columns();
 	}
 
 	return $columns;
+}
+
+sub render_title
+{
+	my( $self ) = @_;
+
+	my $session = $self->{session};
+
+	return $session->html_phrase( "Plugin/Screen/Listing:title",
+		dataset => $session->html_phrase( "dataset_name_".$self->{processor}->{dataset}->id ) );
 }
 
 sub render
@@ -189,10 +241,10 @@ sub render
 	my( $self ) = @_;
 
 	my $session = $self->{session};
+	my $user = $session->current_user;
+	my $imagesurl = $session->config( "rel_path" )."/style/images";
 
 	my $chunk = $session->make_doc_fragment;
-
-	my $user = $session->current_user;
 
 	if( $session->get_lang->has_phrase( $self->html_phrase_id( "intro" ), $session ) )
 	{
@@ -203,19 +255,30 @@ sub render
 		$chunk->appendChild( $intro_div_outer );
 	}
 
-	my $imagesurl = $session->config( "rel_path" )."/style/images";
-
 	# we've munged the argument list below
 	$chunk->appendChild( $self->render_action_list_bar( "dataobj_tools", {
 		dataset => $self->{processor}->{dataset}->id,
 	} ) );
 
+	$chunk->appendChild( $self->render_filters() );
+
 	### Get the items owned by the current user
 	my $ds = $self->{processor}->{dataset};
 
-	my $list = $ds->search;
+	my $exp;
+	my $list;
+	my $search = $self->{processor}->{search};
+	if( defined $search && !$search->is_blank )
+	{
+		$list = $search->perform_search;
+		$exp = $search->serialise;
+	}
+	else
+	{
+		$list = $ds->search;
+	}
 
-	my $columns = $self->show_columns;
+	my $columns = $self->{processor}->{columns};
 
 	my $len = scalar @{$columns};
 
@@ -299,7 +362,9 @@ sub render
 	my $row = 0;
 	my %opts = (
 		params => {
-			screen => $self->{screen_id},
+			screen => $self->{processor}->{screenid},
+			dataset => $self->{processor}->{dataset}->id,
+			exp => $exp,
 		},
 		columns => [(map{ $_->name } @{$columns}), undef ],
 		above_results => $session->make_doc_fragment,
@@ -452,6 +517,120 @@ sub render_hidden_bits
 	$chunk->appendChild( $self->SUPER::render_hidden_bits );
 
 	return $chunk;
+}
+
+sub render_filters
+{
+	my( $self ) = @_;
+
+	my $session = $self->{session};
+	my $xml = $session->xml;
+	my $dataset = $self->{processor}->{dataset};
+	my $imagesurl = $session->config( "rel_path" )."/style/images";
+
+	my $f = $xml->create_document_fragment;
+
+	my $form = $self->render_search_form();
+
+	my %options = (
+		session => $session,
+		id => "ep_listing_search",
+		title => $session->html_phrase( "lib/searchexpression:action_filter" ),
+		content => $form,
+		collapsed => $self->{processor}->{search}->is_blank(),
+		show_icon_url => "$imagesurl/help.gif",
+	);
+	my $box = $session->make_element( "div", style=>"text-align: left" );
+	$box->appendChild( EPrints::Box::render( %options ) );
+	$f->appendChild( $box );
+
+	return $f;
+}
+
+sub render_search_form
+{
+	my( $self ) = @_;
+
+	my $form = $self->{session}->render_form( "get" );
+	$form->appendChild( $self->render_hidden_bits );
+
+	my $table = $self->{session}->make_element( "table", class=>"ep_search_fields" );
+	$form->appendChild( $table );
+
+	$table->appendChild( $self->render_search_fields );
+
+#	$table->appendChild( $self->render_anyall_field );
+
+	$form->appendChild( $self->render_controls );
+
+	return( $form );
+}
+
+
+sub render_search_fields
+{
+	my( $self ) = @_;
+
+	my $frag = $self->{session}->make_doc_fragment;
+
+	foreach my $sf ( $self->{processor}->{search}->get_non_filter_searchfields )
+	{
+		$frag->appendChild( 
+			$self->{session}->render_row_with_help( 
+				help_prefix => $sf->get_form_prefix."_help",
+				help => $sf->render_help,
+				label => $sf->render_name,
+				field => $sf->render,
+				no_toggle => ( $sf->{show_help} eq "always" ),
+				no_help => ( $sf->{show_help} eq "never" ),
+			 ) );
+	}
+
+	return $frag;
+}
+
+
+sub render_anyall_field
+{
+	my( $self ) = @_;
+
+	my @sfields = $self->{processor}->{search}->get_non_filter_searchfields;
+	if( (scalar @sfields) < 2 )
+	{
+		return $self->{session}->make_doc_fragment;
+	}
+
+	my $menu = $self->{session}->render_option_list(
+			name=>"satisfyall",
+			values=>[ "ALL", "ANY" ],
+			default=>( defined $self->{processor}->{search}->{satisfy_all} && $self->{processor}->{search}->{satisfy_all}==0 ?
+				"ANY" : "ALL" ),
+			labels=>{ "ALL" => $self->{session}->phrase( 
+						"lib/searchexpression:all" ),
+				  "ANY" => $self->{session}->phrase( 
+						"lib/searchexpression:any" )} );
+
+	return $self->{session}->render_row_with_help( 
+			no_help => 1,
+			label => $self->{session}->html_phrase( 
+				"lib/searchexpression:must_fulfill" ),  
+			field => $menu,
+	);
+}
+
+sub render_controls
+{
+	my( $self ) = @_;
+
+	my $div = $self->{session}->make_element( 
+		"div" , 
+		class => "ep_search_buttons" );
+	$div->appendChild( $self->{session}->render_action_buttons( 
+		_order => [ "search", "newsearch" ],
+		newsearch => $self->{session}->phrase( "lib/searchexpression:action_reset" ),
+		search => $self->{session}->phrase( "lib/searchexpression:action_filter" ) )
+ 	);
+	return $div;
 }
 
 1;

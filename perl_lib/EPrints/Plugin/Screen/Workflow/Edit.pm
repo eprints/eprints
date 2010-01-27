@@ -34,6 +34,8 @@ sub can_be_viewed
 {
 	my( $self ) = @_;
 
+	return 0 if !$self->has_workflow();
+
 	return $self->allow( $self->{processor}->{dataset}->id."/edit" );
 }
 

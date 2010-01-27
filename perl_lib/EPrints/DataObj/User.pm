@@ -1253,6 +1253,11 @@ my $PRIVMAP =
 		"import/view",
 		"import/edit",
 		"storage/manager",
+#		"event_queue/create", # create indexer events by-hand?
+		"event_queue/details",
+		"event_queue/edit",
+		"event_queue/view",
+		"event_queue/destroy",
 	],
 
 	"toolbox" => 

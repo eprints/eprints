@@ -35,6 +35,8 @@ sub render
 {
 	my( $self ) = @_;
 
+	my $dataset = $self->{processor}->{dataset};
+
 	my $chunk = $self->{session}->make_doc_fragment;
 
 #	$chunk->appendChild( $self->render_status );
@@ -51,7 +53,10 @@ sub render
 
 	my $id_prefix = "ep_workflow_views";
 
-	my $listing = $self->{processor}->{dataset}->id . "_view_tabs";
+	my @items = (
+		$self->list_items( "dataobj_view_tabs", filter => 0 ),
+		$self->list_items( "dataobj_".$dataset->id."_view_tabs", filter => 0 ),
+		);
 
 	my $current;
 	my @screens;
@@ -59,7 +64,7 @@ sub render
 	my %labels;
 	my %links;
 	my @slowlist;
-	foreach my $item ( $self->list_items( $listing, filter => 0 ) )
+	foreach my $item ( @items )
 	{
 		next if !($item->{screen}->can_be_viewed & $self->who_filter);
 		next if $item->{action} && !$item->{screen}->allow_action( $item->{action} );
@@ -132,7 +137,7 @@ sub render
 		}
 	}
 
-	$chunk->appendChild( $buttons->cloneNode(1) );
+#	$chunk->appendChild( $buttons->cloneNode(1) );
 	return $chunk;
 }
 

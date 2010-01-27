@@ -107,6 +107,12 @@ sub properties_from
 
 	$processor->{"dataobj"} = $dataset->dataobj( $id );
 
+	my $plugin = $self->{session}->plugin(
+		"Screen::" . $self->get_edit_screen,
+		processor => $self->{processor},
+		);
+	$self->{processor}->{can_be_edited} = $plugin->can_be_viewed();
+
 	$self->SUPER::properties_from;
 }
 
@@ -152,7 +158,7 @@ sub render_title
 
 	my $screen = $self->get_view_screen();
 
-	my $title = $self->{processor}->{dataobj}->render_citation( "brief" );
+	my $title = $self->{processor}->{dataobj}->render_description();
 	my $link = $self->{session}->render_link( "?screen=$screen&dataset=".$self->{processor}->{dataset}->id."&dataobj=".$self->{processor}->{dataobj}->id );
 	$link->appendChild( $title );
 	$f->appendChild( $link );
@@ -165,6 +171,15 @@ sub redirect_to_me_url
 	my( $self ) = @_;
 
 	return $self->SUPER::redirect_to_me_url."&dataset=".$self->{processor}->{dataset}->id."&dataobj=".$self->{processor}->{dataobj}->id;
+}
+
+sub has_workflow
+{
+	my( $self ) = @_;
+
+	my $xml = $self->{session}->get_workflow_config( $self->{processor}->{dataset}->base_id, "default" );
+
+	return defined $xml;
 }
 
 sub workflow
