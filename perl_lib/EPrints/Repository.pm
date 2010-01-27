@@ -3210,6 +3210,7 @@ sub render_option_list
 	my $pairs = $params{pairs};
 	if( !defined $pairs )
 	{
+		$pairs = [];
 		foreach( @{$params{values}} )
 		{
 			push @{$pairs}, [ $_, $params{labels}->{$_} ];
