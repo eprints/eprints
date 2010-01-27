@@ -621,7 +621,7 @@ sub _get_records
 	{
 		if( $offset > $#{$self->{ids}} )
 		{
-			return [];
+			@ids = ();
 		}
 		if( !defined $count || $offset+$count > @{$self->{ids}} )
 		{
