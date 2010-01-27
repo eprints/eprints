@@ -59,20 +59,20 @@ sub paginate_list
 	my $sort_order = $session->param( $basename."_order" );
 	if( !defined $sort_order ) 
 	{
-		my $firstcol = $opts{columns}->[0];
-		my $field = $list->get_dataset->get_field( $firstcol );
-		if( !defined $field )
+		foreach my $sort_col (@{$opts{columns}})
 		{
-			EPrints::abort( "Unknown field in columns: $firstcol\n" );
+			my $field = $list->get_dataset->get_field( $sort_col );
+			next if !defined $field;
+
+			if( $field->should_reverse_order )
+			{
+				$sort_order = "-$sort_col";
+			}	
+			else	
+			{
+				$sort_order = "$sort_col";
+			}	
 		}
-		if( $field->should_reverse_order )
-		{
-			$sort_order = "-$firstcol";
-		}	
-		else	
-		{
-			$sort_order = "$firstcol";
-		}	
 	}	
 
 	if( defined $sort_order && $sort_order ne "" )
