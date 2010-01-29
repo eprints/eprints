@@ -76,7 +76,7 @@ sub get_system_field_info
 
 		{ name=>"userid", type=>"itemref", datasetid=>"user", required=>0, text_index=>0 },
 
-		{ name=>"searchexp", type=>"text", required=>0, text_index=>0 },
+		{ name=>"searchexp", type=>"longtext", required=>0, text_index=>0 },
 
 		{ name=>"oneshot", type=>"boolean", required=>0, text_index=>0 },
 	);
