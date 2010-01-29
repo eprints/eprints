@@ -104,6 +104,10 @@ our %ORACLE_TYPES = (
 		CREATE_PARAMS => undef,
 		TYPE_NAME => "NUMBER(*,0)",
 	},
+	SQL_BIGINT() => {
+		CREATE_PARAMS => undef,
+		TYPE_NAME => "NUMBER(19,0)",
+	},
 	# NUMBER becomes FLOAT if not p,s is given
 	SQL_REAL() => {
 		CREATE_PARAMS => undef,
@@ -120,10 +124,6 @@ our %ORACLE_TYPES = (
 	SQL_TIME() => {
 		CREATE_PARAMS => undef,
 		TYPE_NAME => "DATE",
-	},
-	SQL_BIGINT() => {
-		CREATE_PARAMS => undef,
-		TYPE_NAME => "NUMBER(19)",
 	},
 );
 
@@ -174,11 +174,14 @@ sub create_archive_tables
 {
 	my( $self ) = @_;
 
-	# dual is a 'dummy' table to allow SELECT <function> FROM dual
-	if( !$self->has_table( "dual" ) )
 	{
-		$self->_create_table( "dual", [], ["DUMMY VARCHAR2(1)"] );
-		$self->do("INSERT INTO \"dual\" VALUES ('X')");
+		local $self->{dbh}->{RaiseError};
+		local $self->{dbh}->{PrintError};
+		my $rc = $self->{dbh}->do( "SELECT 1 FROM dual" );
+		if( $rc != 1 )
+		{
+			EPrints::abort( "It appears the magic 'dual' table isn't available in the database. Contact your Oracle admin." );
+		}
 	}
 
 	return $self->SUPER::create_archive_tables();
@@ -368,11 +371,31 @@ sub counter_current
 	return undef;
 }
 
-# Oracle uppercases all non-quoted identifiers so if we want users to be able
-# to use unquoted queries we'll have to make all our identifiers uppercase
+=item $id = $db->quote_identifier( $col [, $col ] )
+
+This method quotes and returns the given database identifier. If more than one name is supplied joins them using the correct database join character (typically '.').
+
+Oracle restricts identifiers to:
+
+ 	30 chars long
+ 	start with a letter [a-z]
+ 	{ [a-z0-9], $, _, # }
+ 	case insensitive
+ 	not a reserved word (unless quoted?)
+
+Identifiers longer than 30 chars will be abbreviated to the first 5 chars of the identifier and 25 characters from an MD5 derived from the identifier. This should make name collisions unlikely.
+
+=cut
+
 sub quote_identifier
 {
-	return shift->SUPER::quote_identifier(map(uc,@_));
+	return join(".", map {
+		'"'.uc($_).'"' # foo or FOO == "FOO"
+		} map {
+			length($_) <= 30 ?
+			$_ :
+			substr($_,0,5).substr(Digest::MD5::md5_hex( $_ ),0,25) # hex MD5 is 32 chars long
+		} $_[1..$#_]);
 }
 
 sub prepare_regexp

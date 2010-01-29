@@ -1050,13 +1050,7 @@ sub create_index
 
 	return 1 unless @columns;
 
-	# max identifier length in Oracle is 30 chars
-	# we don't care about index names because they'll be dropped on table
-	# removal
-	my $index_name = substr(
-			Digest::MD5::md5_hex(join( "_", $table, @columns, "idx" )),
-			0,
-			30 );
+	my $index_name = join('_', $table, @columns );
 
 	my $sql = sprintf("CREATE INDEX %s ON %s (%s)",
 		$self->quote_identifier( $index_name ),
