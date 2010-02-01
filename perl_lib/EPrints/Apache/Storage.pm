@@ -94,6 +94,24 @@ sub handler
 
 	my $content_length = $fileobj->get_value( "filesize" );
 
+	$r->content_type( $content_type );
+
+	$repo->set_cookies();
+
+	if( $fileobj->is_set( "hash" ) )
+	{
+		my $etag = $r->headers_in->{'if-none-match'};
+		if( defined $etag && $etag eq $fileobj->value( "hash" ) )
+		{
+			$r->status_line( "304 Not Modified" );
+			return 304;
+		}
+		EPrints::Apache::AnApache::header_out(
+			$r,
+			"ETag" => $fileobj->value( "hash" )
+		);
+	}
+
 	EPrints::Apache::AnApache::header_out( 
 		$r,
 		"Content-Length" => $content_length
@@ -116,8 +134,10 @@ sub handler
 		);
 	}
 
-	$repo->send_http_header(
-		content_type => $content_type,
+	# can't go too far into the future or we'll wrap 32bit times!
+	EPrints::Apache::AnApache::header_out(
+		$r,
+		"Expires" => Apache2::Util::ht_time( $r->pool, time() + 365 * 86400 )
 	);
 
 	my $rv = eval { $fileobj->write_copy_fh( \*STDOUT ); };
