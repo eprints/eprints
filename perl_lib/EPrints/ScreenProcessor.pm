@@ -76,6 +76,12 @@ sub cache_list_items
 			my $position = $opt->{position};
 			my $action = $opt->{action};
 
+			if( !defined $place )
+			{
+				$session->log( "Warning! ".ref($screen)." wants to appear somewhere but doesn't specify the place to appear" );
+				next;
+			}
+
 			$position = 999999 if !defined $position;
 			
 			if( defined $action )
