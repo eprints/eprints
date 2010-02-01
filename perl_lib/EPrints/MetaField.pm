@@ -1203,7 +1203,11 @@ sub get_input_elements
 					"lib/metafield:assist" ) ) );
 	}
 
-	my $extra_params = "&dataset=".$self->{dataset}->id."&dataobj=".$obj->id."&field=".$self->name;
+	my $extra_params = "&dataset=".$self->{dataset}->id."&field=".$self->name;
+	if( defined $obj )
+	{
+		$extra_params .= "&dataobj=".$obj->id;
+	}
 	if( defined $self->{input_lookup_params} ) 
 	{
 		$extra_params = "&".$self->{input_lookup_params};
