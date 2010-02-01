@@ -2409,12 +2409,6 @@ General phrases, used alot
     <epp:phrase id="general:disabled_feature_body"><p>This feature has been disabled for this repository.</p></epp:phrase> 
     <epp:phrase id="general:email_failed"><p>The system is currently unable to send email. Please try again later. If this problem persists, please contact the <a href="mailto:{$config{adminemail}}">administrator</a> with details.</p></epp:phrase>
 
-    <epp:phrase id="general:dataset_object_eprint">Item</epp:phrase> 
-    <epp:phrase id="general:dataset_object_user">User</epp:phrase> 
-    <epp:phrase id="general:dataset_object_document">Format</epp:phrase> 
-    <epp:phrase id="general:dataset_object_saved_search">Saved Search</epp:phrase> 
-    <epp:phrase id="general:dataset_object_subject">Subject</epp:phrase> 
-
 <!--********************************************************************** 
 Titles and Help for the System Fields
 ***********************************************************************-->

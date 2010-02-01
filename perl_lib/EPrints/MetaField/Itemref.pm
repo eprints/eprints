@@ -28,17 +28,10 @@ not done
 
 package EPrints::MetaField::Itemref;
 
-use strict;
-use warnings;
-
-BEGIN
-{
-	our( @ISA );
-
-	@ISA = qw( EPrints::MetaField::Int );
-}
-
 use EPrints::MetaField::Int;
+@ISA = qw( EPrints::MetaField::Int );
+
+use strict;
 
 sub get_property_defaults
 {
@@ -78,24 +71,21 @@ sub render_single_value
 		return $object->render_citation_link;
 	}
 
-	my $ds = $session->get_repository->get_dataset( 
-			$self->get_property('datasetid') );
+	my $ds = $session->dataset( $self->get_property('datasetid') );
 
 	return $session->html_phrase( 
 		"lib/metafield/itemref:not_found",
 			id=>$session->make_text($value),
-			objtype=>$session->html_phrase(
-		"general:dataset_object_".$ds->confid));
+			objtype=>$session->html_phrase( "dataset_name_".$ds->base_id));
 }
 
 sub get_item
 {
 	my( $self, $session, $value ) = @_;
 
-	my $ds = $session->get_repository->get_dataset( 
-			$self->get_property('datasetid') );
+	my $ds = $session->dataset( $self->get_property('datasetid') );
 
-	return $ds->get_object( $session, $value );
+	return $ds->dataobj( $value );
 }
 
 

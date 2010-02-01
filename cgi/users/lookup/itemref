@@ -1,0 +1,62 @@
+use EPrints;
+
+use strict;
+
+my $eprints = EPrints->new;
+my $repo = $eprints->current_repository;
+exit( 0 ) if !defined $repo;
+
+# security?
+
+$repo->send_http_header( content_type=>"text/xml; charset=UTF-8" );
+my $q = $repo->param( "q" );
+
+my $database = $repo->get_database;
+
+my $dataset = $repo->dataset( $repo->param( "dataset" ) );
+warn("invalid dataset"), exit( 0 ) if !defined $dataset;
+my $field = $dataset->field( $repo->param( "field" ) );
+warn("invalid field"), exit( 0 ) if !defined $field;
+
+warn("not itemref"), exit( 0 ) if !$field->isa( "EPrints::MetaField::Itemref" );
+
+my $tdataset = $repo->dataset( $field->get_property( "datasetid" ) );
+
+my $fieldnames = $repo->config( "datasets", $tdataset->base_id, "search", "simple", "meta_fields" );
+warn("simple search fields not configured"), exit( 0 ) if !defined $fieldnames;
+
+my $results = $tdataset->search(
+	search_fields => [{
+			id => 'q',
+			meta_fields => $fieldnames,
+			default => $q,
+		}],
+	satisfy_all => 0,
+	limit => 10,
+);
+
+my @rows;
+foreach my $match ($results->slice(0, 10))
+{
+	my $item = {};
+	push @rows, $item;
+
+	my $frag = $repo->xml->create_document_fragment;
+
+	$frag->appendChild( $match->render_description );
+	$item->{xhtml} = $frag;
+	$item->{values} = [
+		"for:value:relation:".$field->name => $match->id,
+	];
+}
+
+my $ul = EPrints::Extras::render_lookup_list( $repo, \@rows );
+
+binmode(STDOUT,":utf8");
+print <<END;
+<?xml version="1.0" encoding="UTF-8" ?>
+
+END
+print EPrints::XML::to_string( $ul, "utf-8", 1 );
+
+EPrints::XML::dispose( $ul );

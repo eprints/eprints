@@ -1203,6 +1203,12 @@ sub get_input_elements
 					"lib/metafield:assist" ) ) );
 	}
 
+	my $extra_params = "&dataset=".$self->{dataset}->id."&dataobj=".$obj->id."&field=".$self->name;
+	if( defined $self->{input_lookup_params} ) 
+	{
+		$extra_params = "&".$self->{input_lookup_params};
+	}
+
 	unless( $self->get_property( "multiple" ) )
 	{
 		my $rows = $self->get_input_elements_single( 
@@ -1233,15 +1239,6 @@ sub get_input_elements
 			$lookup->appendChild( $drop_loading_div );
 
 			my @ids = $self->get_basic_input_ids($session, $basename, $staff, $obj );
-			my $extra_params = $self->{input_lookup_params};
-			if( defined $extra_params ) 
-			{
-				$extra_params = "&$extra_params";
-			}
-			else
-			{
-				$extra_params = "";
-			}
 			my @code;
 			foreach my $id ( @ids )
 			{	
@@ -1363,15 +1360,6 @@ sub get_input_elements
 				$drop_loading_div->appendChild( $session->html_phrase( "lib/metafield:drop_loading" ) );
 				$lookup->appendChild( $drop_loading_div );
 				my @ids = $self->get_basic_input_ids( $session, $ibasename, $staff, $obj );
-				my $extra_params = $self->{input_lookup_params};
-				if( defined $extra_params ) 
-				{
-					$extra_params = "&$extra_params";
-				}
-				else
-				{
-					$extra_params = "";
-				}
 				my @code;
 				foreach my $id ( @ids )
 				{	
