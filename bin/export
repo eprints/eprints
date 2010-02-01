@@ -284,7 +284,7 @@ else
 		$list = $searchexp->perform_search;
 	}
 
-	$plugin->output_list( list=>$list, fh=>*STDOUT, %args );
+	$plugin->output_list( list=>$list, fh=>*STDOUT, %arguments );
 }
 
 $session->terminate();
