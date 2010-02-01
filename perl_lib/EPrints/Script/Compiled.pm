@@ -625,4 +625,11 @@ sub run_action_title
 	}
 }
 
+sub run_phrase
+{
+	my( $self, $state, $phrase ) = @_;
+
+	return [ $state->{session}->html_phrase( $phrase->[0] ), "XHTML" ];
+}
+
 1;
