@@ -321,7 +321,7 @@ sub copy_xpage
 	{
 		my $part = $node->nodeName;
 		$part =~ s/^.*://;
-		next unless( $part eq "body" || $part eq "title" || $part eq "template" );
+		next unless( $part eq "head" || $part eq "body" || $part eq "title" || $part eq "template" );
 
 		$parts->{$part} = $session->make_doc_fragment;
 			
