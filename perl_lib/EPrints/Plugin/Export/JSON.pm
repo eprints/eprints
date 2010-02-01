@@ -17,7 +17,10 @@ sub new
 	$self->{visible} = "all";
 	$self->{suffix} = ".js";
 	$self->{mimetype} = "text/javascript; charset=utf-8";
-	$self->{arguments} = { jsonp => undef };
+	$self->{arguments}->{json} = undef;
+	$self->{arguments}->{jsonp} = undef;
+	$self->{arguments}->{callback} = undef;
+	$self->{arguments}->{hide_volatile} = 1;
 
 	return $self;
 }
@@ -27,8 +30,8 @@ sub _header
 {
 	my( $self, %opts ) = @_;
 
-	my $jsonp = $opts{jsonp};
-	if( defined $jsonp )
+	my $jsonp = $opts{json} || $opts{jsonp} || $opts{callback};
+	if( EPrints::Utils::is_set( $jsonp ) )
 	{
 		$jsonp =~ s/[^=A-Za-z0-9_]//g;
 		return "$jsonp(";
@@ -41,8 +44,8 @@ sub _footer
 {
 	my( $self, %opts ) = @_;
 
-	my $jsonp = $opts{jsonp};
-	if( defined $jsonp )
+	my $jsonp = $opts{json} || $opts{jsonp} || $opts{callback};
+	if( EPrints::Utils::is_set( $jsonp ) )
 	{
 		return ");\n";
 	}
@@ -71,7 +74,7 @@ sub output_list
 		my( $session, $dataset, $dataobj ) = @_;
 		my $part = "";
 		if( $first ) { $first = 0; } else { $part = ",\n"; }
-		$part .= $self->_epdata_to_json( $dataobj, 1 );
+		$part .= $self->_epdata_to_json( $dataobj, 1, 0, %opts );
 		if( defined $opts{fh} )
 		{
 			print {$opts{fh}} $part;
@@ -105,12 +108,12 @@ sub output_dataobj
 {
 	my( $self, $dataobj, %opts ) = @_;
 
-	return $self->_header( %opts ).$self->_epdata_to_json( $dataobj, 1 ).$self->_footer( %opts );
+	return $self->_header( %opts ).$self->_epdata_to_json( $dataobj, 1, 0, %opts ).$self->_footer( %opts );
 }
 
 sub _epdata_to_json
 {
-	my( $self, $epdata, $depth, $in_hash ) = @_;
+	my( $self, $epdata, $depth, $in_hash, %opts ) = @_;
 
 	my $pad = "  " x $depth;
 	my $pre_pad = $in_hash ? "" : $pad;
@@ -139,19 +142,25 @@ sub _epdata_to_json
 	}
 	elsif( ref( $epdata ) eq "ARRAY" )
 	{
-		return "$pre_pad\[\n" . join(",\n", map {
-			$self->_epdata_to_json( $_, $depth + 1 )
+		return "$pre_pad\[\n" . join(",\n", grep { length $_ } map {
+			$self->_epdata_to_json( $_, $depth + 1, 0, %opts )
 		} @$epdata ) . "\n$pad\]";
 	}
 	elsif( ref( $epdata ) eq "HASH" )
 	{
 		return "$pre_pad\{\n" . join(",\n", map {
-			$pad . "  " . $_ . ": " . $self->_epdata_to_json( $epdata->{$_}, $depth + 1, 1 )
+			$pad . "  " . $_ . ": " . $self->_epdata_to_json( $epdata->{$_}, $depth + 1, 1, %opts )
 		} keys %$epdata) . "\n$pad\}";
 	}
 	elsif( $epdata->isa( "EPrints::DataObj" ) )
 	{
 		my $subdata = {};
+
+		return "" if(
+			$opts{hide_volatile} &&
+			$epdata->isa( "EPrints::DataObj::Document" ) &&
+			$epdata->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) )
+		  );
 
 		foreach my $field ($epdata->get_dataset->get_fields)
 		{
@@ -164,7 +173,7 @@ sub _epdata_to_json
 
 		$subdata->{uri} = $epdata->uri;
 
-		return $self->_epdata_to_json( $subdata, $depth + 1 );
+		return $self->_epdata_to_json( $subdata, $depth + 1, 0, %opts );
 	}
 }
 

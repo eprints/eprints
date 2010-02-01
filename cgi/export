@@ -92,11 +92,14 @@ unless( $ok )
 
 my $plugin = $session->plugin( "Export::$format" );
 
-my %arguments;
+my %arguments = %{$plugin->param( "arguments" )};
 # fetch the plugin arguments, if any
-foreach my $argname (%{$plugin->param( "arguments" )||{}})
+foreach my $argname (keys %arguments)
 {
-	$arguments{$argname} = $session->param( $argname );
+	if( defined $session->param( $argname ) )
+	{
+		$arguments{$argname} = $session->param( $argname );
+	}
 }
 
 $session->send_http_header( "content_type"=>$plugin->param("mimetype") );

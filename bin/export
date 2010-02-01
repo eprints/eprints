@@ -106,7 +106,7 @@ my $purge = 1;
 my $help = 0;
 my $man = 0;
 my $single = 0;
-my %args = ();
+my %opt_args = ();
 
 Getopt::Long::Configure("permute");
 
@@ -118,7 +118,7 @@ GetOptions(
 	'silent' => \$quiet,
 	'quiet' => \$quiet,
 	'single' => \$single,
-	'arg=s' => \%args,
+	'arg=s' => \%opt_args,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "export_xml" ) if $version;
 pod2usage( 1 ) if $help;
@@ -217,14 +217,16 @@ if( $plugin->broken )
 	exit 1;
 }
 
-foreach my $argid ( keys %args )
+my %arguments = %{$plugin->param( "arguments" )};
+foreach my $argid ( keys %opt_args )
 {
-	if( !$plugin->has_argument( $argid ) )
+	if( !exists $arguments{$argid} )
 	{
 		print STDERR "Plugin $pluginid does not accept argument $argid\n";
 		$session->terminate();
 		exit 1;
 	}
+	$arguments{$argid} = $opt_args{$argid};
 }
 
 $plugin->initialise_fh( \*STDOUT );
@@ -250,7 +252,7 @@ if( $single )
 		exit 1;
 	}
 
-	print $dataobj->export( $opluginid, %args );
+	print $dataobj->export( $opluginid, %arguments );
 }
 else
 {

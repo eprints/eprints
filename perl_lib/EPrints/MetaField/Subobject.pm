@@ -183,6 +183,11 @@ sub to_xml
 		my $tag = $session->make_element( $self->get_name() );
 		foreach my $dataobj ( @{$value||[]} )
 		{
+			next if( 
+				$opts{hide_volatile} &&
+				$dataobj->isa( "EPrints::DataObj::Document" ) &&
+				$dataobj->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) )
+			  );
 			$tag->appendChild( $dataobj->to_xml( %opts ) );
 		}
 		return $tag;

@@ -17,6 +17,7 @@ sub new
 	$self->{visible} = "all";
 	$self->{xmlns} = "http://eprints.org/ep2/data/2.0";
 	$self->{qs} = 0.8;
+	$self->{arguments}->{hide_volatile} = 1;
 
 	return $self;
 }
@@ -81,11 +82,11 @@ sub output_list
 
 sub output_dataobj
 {
-	my( $plugin, $dataobj ) = @_;
+	my( $plugin, $dataobj, %opts ) = @_;
 
 	my $itemtype = $dataobj->get_dataset->confid;
 
-	my $xml = $plugin->xml_dataobj( $dataobj );
+	my $xml = $plugin->xml_dataobj( $dataobj, %opts );
 
 	EPrints::XML::tidy( $xml, {}, 1 );
 
@@ -94,9 +95,9 @@ sub output_dataobj
 
 sub xml_dataobj
 {
-	my( $plugin, $dataobj ) = @_;
+	my( $plugin, $dataobj, %opts ) = @_;
 
-	return $dataobj->to_xml;
+	return $dataobj->to_xml( %opts );
 }
 
 1;
