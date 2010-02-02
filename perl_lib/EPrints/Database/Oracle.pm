@@ -177,7 +177,7 @@ sub create_archive_tables
 	{
 		local $self->{dbh}->{RaiseError};
 		local $self->{dbh}->{PrintError};
-		my $rc = $self->{dbh}->do( "SELECT 1 FROM dual" );
+		my( $rc ) = $self->{dbh}->selectrow_array( "SELECT 1 FROM dual" );
 		if( $rc != 1 )
 		{
 			EPrints::abort( "It appears the magic 'dual' table isn't available in the database. Contact your Oracle admin." );
@@ -395,7 +395,7 @@ sub quote_identifier
 			length($_) <= 30 ?
 			$_ :
 			substr($_,0,5).substr(Digest::MD5::md5_hex( $_ ),0,25) # hex MD5 is 32 chars long
-		} $_[1..$#_]);
+		} @_[1..$#_]);
 }
 
 sub prepare_regexp
