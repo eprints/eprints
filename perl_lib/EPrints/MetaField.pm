@@ -970,6 +970,16 @@ sub value_from_sql_row
 
 Return a list of values to insert into the database based on $value.
 
+The values will normally be passed to L<DBI/bind_param>:
+
+	$sth->bind_param( $idx, $row[0] )
+
+If the value is an array ref it gets expanded:
+
+	$sth->bind_param( $idx, @{$row[0]} )
+
+This is necessary to support binding LOB data under various databases.
+
 =cut
 ######################################################################
 

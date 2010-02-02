@@ -1130,9 +1130,14 @@ sub _update
 		$self->{session}->get_repository->log( "Database execute debug: $sql" );
 	}
 
-	for(@values)
+	foreach my $row (@values)
 	{
-		$rc &&= $sth->execute(@$_);
+		my $i = 0;
+		for(@$row)
+		{
+			$sth->bind_param( ++$i, ref($_) ? @$_ : $_ );
+		}
+		$rc &&= $sth->execute();
 	}
 
 	$sth->finish;
@@ -1221,9 +1226,14 @@ sub insert
 	}
 
 	my $sth = $self->prepare($sql);
-	for(@values)
+	foreach my $row (@values)
 	{
-		$rc &&= $sth->execute( @$_ );
+		my $i = 0;
+		for(@$row)
+		{
+			$sth->bind_param( ++$i, ref($_) ? @$_ : $_ );
+		}
+		$rc &&= $sth->execute();
 	}
 
 	return $rc;

@@ -73,6 +73,15 @@ sub value_from_sql_row
 
 	return undef unless defined $value;
 
+	# Oracle needs a bind_param hint for LOBs
+	if( $session->{database}->isa( "EPrints::Database::Oracle" ) )
+	{
+		return [
+			$self->thaw( $session, $value ),
+			{ ora_type => 133 } # DBD::Oracle::ORA_BLOB
+		];
+	}
+
 	return $self->thaw( $session, $value );
 }
 
