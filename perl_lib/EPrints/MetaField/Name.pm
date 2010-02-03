@@ -59,7 +59,10 @@ sub value_from_sql_row
 	my %value;
 	@value{@PARTS} = splice(@$row,0,4);
 
-	utf8::decode($_) for values %value;
+	if( $session->{database}->isa( "EPrints::Database::mysql" ) )
+	{
+		utf8::decode($_) for values %value;
+	}
 
 	return \%value;
 }

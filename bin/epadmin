@@ -1354,38 +1354,7 @@ sub drop_tables_and_recreate_db
 
 	my $db = $repo->database;
 
-	my @tables = $db->get_tables;
-
-	foreach my $datasetid ($repo->get_sql_dataset_ids())
-	{
-		my $dataset = $repo->dataset( $datasetid );
-		my $sql_name = $dataset->get_sql_table_name;
-		if( $noise>=2 ) { print "Removing dataset $datasetid [$sql_name]\n"; }
-		foreach my $table (@tables)
-		{
-			$db->drop_table( $table )
-				if $table eq $sql_name or $table =~ /^$sql_name\_/i;
-		}
-	}
-
-	if( $noise>=2 ) { print "Cleaning up cache tables\n"; }
-	foreach my $table (@tables)
-	{
-		if( $table =~ /^cache\d+$/i )
-		{
-			if( $noise>=3 ) { print "Dropping $table\n"; }
-			$db->drop_table( $table );
-		}
-	}
-
-	if( $noise>=2 ) { print "Removing counters\n"; }
-	$db->remove_counters();
-
-	for(qw( version ))
-	{
-		if( $noise>=2 ) { print "Removing support table $_\n"; }
-		$db->drop_table( $_ ) if $db->has_table( $_ );
-	}
+	$db->drop_archive_tables();
 
 	my $mktables = $force || EPrints::Utils::get_input_confirm( "Create database tables?", 0, 1 ); # not quick, default to "yes"
 	if( $mktables )

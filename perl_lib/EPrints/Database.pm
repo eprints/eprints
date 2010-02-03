@@ -399,7 +399,39 @@ sub create_archive_tables
 
 	return( $success );
 }
-		
+
+=item $db->drop_archive_tables()
+
+Destroy all tables used by eprints in the database.
+
+=cut
+
+sub drop_archive_tables
+{
+	my( $self ) = @_;
+
+	my $success = 1;
+
+	foreach( $self->{session}->get_sql_dataset_ids )
+	{
+		$success |= $self->drop_dataset_tables( 
+			$self->{session}->dataset( $_ ) );
+	}
+
+	$success |= $self->remove_counters();
+
+	$self->drop_version_table;
+	
+	foreach my $table ($self->get_tables)
+	{
+		if( $table =~ /^cache\d+$/i )
+		{
+			$self->drop_table( $table );
+		}
+	}
+
+	return( $success );
+}
 
 ######################################################################
 =pod
@@ -485,6 +517,8 @@ sub drop_dataset_tables
 			$self->drop_table( $_ );
 		}
 	}
+
+	return 1;
 }
 
 ######################################################################
@@ -1015,6 +1049,27 @@ sub drop_sequence
 	}
 }
 
+=item $success = $db->drop_column( $table, $column )
+
+Drops a column from a table.
+
+=cut
+
+sub drop_column
+{
+	my( $self, $table, $name ) = @_;
+
+	if( $self->has_table( $table ) )
+	{
+		if( $self->has_column( $table, $name ) )
+		{
+			return defined $self->do("ALTER TABLE ".$self->quote_identifier( $table )." DROP COLUMN ".$self->quote_identifier( $name ));
+		}
+	}
+
+	return 0;
+}
+
 ######################################################################
 =pod
 
@@ -1135,7 +1190,7 @@ sub _update
 		my $i = 0;
 		for(@$row)
 		{
-			$sth->bind_param( ++$i, ref($_) ? @$_ : $_ );
+			$sth->bind_param( ++$i, ref($_) eq 'ARRAY' ? @$_ : $_ );
 		}
 		$rc &&= $sth->execute();
 	}
@@ -1231,7 +1286,7 @@ sub insert
 		my $i = 0;
 		for(@$row)
 		{
-			$sth->bind_param( ++$i, ref($_) ? @$_ : $_ );
+			$sth->bind_param( ++$i, ref($_) eq 'ARRAY' ? @$_ : $_ );
 		}
 		$rc &&= $sth->execute();
 	}
@@ -1726,6 +1781,8 @@ sub remove_counters
 	{
 		$self->drop_counter( $counter );
 	}
+
+	return 1;
 }
 
 ######################################################################
@@ -3636,13 +3693,17 @@ sub remove_field
 	my( $self, $dataset, $field ) = @_;
 
 	# If this field is virtual and has sub-fields, remove them
-	if( $field->is_virtual )
+	if( $field->isa( "EPrints::MetaField::Compound" ) )
 	{
 		my $sub_fields = $field->get_property( "fields_cache" );
 		foreach my $sub_field (@$sub_fields)
 		{
 			$self->remove_field( $dataset, $sub_field );
 		}
+	}
+	elsif( $field->is_virtual )
+	{
+		return; # isn't in the database
 	}
 	else # Remove the field itself from the metadata table
 	{
@@ -3671,11 +3732,9 @@ sub _remove_field_ordervalues_lang
 {
 	my( $self, $dataset, $field, $langid ) = @_;
 
-	my $order_table = $dataset->get_ordervalues_table_name( $langid );
-
-	my $column_sql = "DROP COLUMN ".$self->quote_identifier($field->get_sql_name);
-
-	return $self->do( "ALTER TABLE ".$self->quote_identifier($order_table)." $column_sql" );
+	$self->drop_column(
+		$dataset->get_ordervalues_table_name( $langid ),
+		$field->get_sql_name );
 }
 
 # Remove the field from the main tables
@@ -3696,7 +3755,9 @@ sub _remove_field
 
 	for($field->get_sql_names)
 	{
-		$rc &&= $self->do( "ALTER TABLE $Q_table DROP COLUMN ".$self->quote_identifier($_) );
+		$rc &&= $self->drop_column(
+			$dataset->get_sql_table_name(),
+			$_ );
 	}
 
 	return $rc;
@@ -3709,7 +3770,7 @@ sub _remove_multiple_field
 
 	my $table = $dataset->get_sql_sub_table_name( $field );
 
-	$self->do( "DROP TABLE ".$self->quote_identifier($table) );
+	$self->drop_table( $table );
 }
 
 ######################################################################
@@ -3937,6 +3998,23 @@ sub create_version_table
 	$self->create_table( $table, undef, 1, $version );
 
 	$self->insert( $table, [$column], ["0.0.0"] );
+}
+
+######################################################################
+=pod
+
+=item $db->drop_version_table
+
+Drop the version table.
+
+=cut
+######################################################################
+
+sub drop_version_table
+{
+	my( $self ) = @_;
+
+	$self->drop_table( "version" );
 }
 
 ######################################################################

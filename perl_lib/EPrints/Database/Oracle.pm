@@ -21,19 +21,33 @@ B<EPrints::Database::Oracle> - custom database methods for Oracle DB
 
 =head1 SYNOPSIS
 
-These settings are what you would use for the free Oracle developer version.
+These settings are the default settings for the free Oracle developer version:
 
 	# Oracle driver settings for database.pl
 	$c->{dbdriver} = "Oracle";
+	$c->{dbhost} = "localhost";
 	$c->{dbsid} = "XE;
 	$c->{dbuser} = "HR";
 	$c->{dbpass} = "HR";
 
 =head1 DESCRIPTION
 
-Oracle database wrapper.
+Oracle database wrapper for Oracle DB version 9+.
+
+=head2 Setting up Oracle
+
+Enable the HR user in Oracle XE.
+
+Set the ORACLE_HOME and ORACLE_SID environment variables. To add these globally edit /etc/profile.d/oracle.sh (for XE edition):
+
+	export ORACLE_HOME="/usr/lib/oracle/xe/app/oracle/product/10.2.0/server"
+	export ORACLE_SID="XE"
+
+(Will need to relog to take effect)
 
 =head2 Oracle-specific Annoyances
+
+Use the GQLPlus wrapper from http://gqlplus.sourceforge.net/ instead of sqlplus.
 
 Oracle will uppercase any identifiers that aren't quoted and is case sensitive, hence mixing quoted and unquoted identifiers will lead to problems.
 
@@ -42,6 +56,8 @@ Oracle does not support LIMIT().
 Oracle does not support AUTO_INCREMENT (MySQL) nor SERIAL (Postgres).
 
 Oracle won't ORDER BY LOBS.
+
+Oracle requires special means to insert values into CLOB/BLOB.
 
 =head1 METHODS
 
@@ -66,6 +82,9 @@ Oracle won't ORDER BY LOBS.
 ######################################################################
 
 package EPrints::Database::Oracle;
+
+$ENV{NLS_LANG} = ".AL32UTF8";
+$ENV{NLS_NCHAR} = "AL32UTF8";
 
 use EPrints;
 
@@ -325,6 +344,8 @@ sub has_sequence
 {
 	my( $self, $name ) = @_;
 
+	$name = substr($self->quote_identifier( $name ),1,-1);
+
 	my $sql = "SELECT 1 FROM ALL_SEQUENCES WHERE SEQUENCE_NAME=?";
 	my $sth = $self->prepare($sql);
 	$sth->execute( $name );
@@ -347,7 +368,10 @@ sub has_column
 {
 	my( $self, $table, $column ) = @_;
 
-	my $sql = "SELECT 1 FROM USER_TAB_COLUMNS WHERE TABLE_NAME=".$self->quote_value( uc($table) )." AND COLUMN_NAME=".$self->quote_value( uc($column) );
+	$table = substr($self->quote_identifier( $table ),1,-1);
+	$column = substr($self->quote_identifier( $column ),1,-1);
+
+	my $sql = "SELECT 1 FROM USER_TAB_COLUMNS WHERE TABLE_NAME=".$self->quote_value( $table )." AND COLUMN_NAME=".$self->quote_value( $column );
 	my $rows = $self->{dbh}->selectall_arrayref( $sql );
 
 	return scalar @$rows;
@@ -357,7 +381,9 @@ sub has_table
 {
 	my( $self, $table ) = @_;
 
-	my $sql = "SELECT 1 FROM USER_TABLES WHERE TABLE_NAME=".$self->quote_value( uc($table) );
+	$table = substr($self->quote_identifier( $table ),1,-1);
+
+	my $sql = "SELECT 1 FROM USER_TABLES WHERE TABLE_NAME=".$self->quote_value( $table );
 	my $rows = $self->{dbh}->selectall_arrayref( $sql );
 
 	return scalar @$rows;
@@ -403,6 +429,15 @@ sub prepare_regexp
 	my ($self, $col, $value) = @_;
 
 	return "REGEXP_LIKE ($col, $value)";
+}
+
+sub quote_binary
+{
+	my( $self, $value ) = @_;
+
+	use bytes;
+
+	return join('', map { sprintf("%02x",ord($_)) } split //, $value);
 }
 
 1; # For use/require success

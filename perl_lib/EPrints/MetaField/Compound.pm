@@ -480,6 +480,14 @@ sub get_search_conditions_not_ex
 	EPrints::abort( "Attempt to search compound field. Repository ID=".$session->get_repository->get_id.", dataset=". $self->{dataset}->confid . ", field=" . $self->get_name );
 }
 
+# don't know how to turn a compound into a order value
+sub ordervalue_single
+{
+	my( $self, $value, $session, $langid, $dataset ) = @_;
+
+	return "";
+}
+
 ######################################################################
 
 ######################################################################

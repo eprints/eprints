@@ -23,6 +23,8 @@ sub connect
 
 	return unless defined $self->{dbh};	
 
+	$self->{dbh}->{pg_enable_utf8} = 1;
+
 	if( $self->{session}->{noise} >= 4 )
 	{
 		$self->{dbh}->trace( 2 );

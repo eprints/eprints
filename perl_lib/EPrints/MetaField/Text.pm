@@ -195,7 +195,10 @@ sub value_from_sql_row
 {
 	my( $self, $session, $row ) = @_;
 
-	utf8::decode( $row->[0] );
+	if( $session->{database}->isa( "EPrints::Database::mysql" ) )
+	{
+		utf8::decode( $row->[0] );
+	}
 
 	return shift @$row;
 }
