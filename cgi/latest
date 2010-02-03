@@ -87,7 +87,7 @@ for( my $d=0; $d<7; ++$d )
 		}
 		$page->appendChild( $container );
 		my $n = 1;
-		$search->map( sub{ 
+		$list->map( sub{ 
 			my( $session, $dataset, $item, $info ) = @_;
 			my $row = $item->render_citation_link( 
 				$citation,
@@ -108,7 +108,6 @@ for( my $d=0; $d<7; ++$d )
 	
 		$page->appendChild( $session->render_ruler() );
 	}
-	$search->dispose();
 }
 unless( $seensome )
 {
