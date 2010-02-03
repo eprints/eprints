@@ -61,6 +61,7 @@ sub paginate_list
 	{
 		foreach my $sort_col (@{$opts{columns}})
 		{
+			next if !defined $sort_col;
 			my $field = $list->get_dataset->get_field( $sort_col );
 			next if !defined $field;
 
@@ -72,6 +73,7 @@ sub paginate_list
 			{
 				$sort_order = "$sort_col";
 			}	
+			last;
 		}
 	}	
 
