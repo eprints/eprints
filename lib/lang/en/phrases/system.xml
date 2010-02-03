@@ -1026,6 +1026,8 @@ Phrases related to the Manage Metadata Fields tool.
     <epp:phrase id="Plugin/Screen/MetaField/View:deleted_field">Removed the field information for <epc:pin name="fieldid"/>.</epp:phrase>
     <epp:phrase id="Plugin/Screen/MetaField/View:remove_failed">Failed to remove the field. You should ensure the web server has write access to the fields configuration file for this repository.</epp:phrase>
 
+<epp:phrase id="metafield_fieldopt_type_storable">serialised data</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_storable">Serialised Perl data</epp:phrase>
 <epp:phrase id="metafield_fieldopt_type_bigint">big integer</epp:phrase>
 <epp:phrase id="metafield_optdetails_type_bigint">A 64-bit integer (bigger than an integer).</epp:phrase>
 <epp:phrase id="metafield_fieldopt_type_counter">counter</epp:phrase>
