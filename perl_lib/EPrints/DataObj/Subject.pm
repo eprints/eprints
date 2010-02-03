@@ -361,18 +361,20 @@ sub _get_ancestors
 {
 	my( $self ) = @_;
 
-	my %ancestors;
-	$ancestors{$self->{data}->{subjectid}} = 1;
+	my @ancestors = ($self->{data}->{subjectid});
+	my %seen = ($self->{data}->{subjectid} => undef);
 
 	foreach my $parent ( $self->get_parents() )
 	{
 		foreach( $parent->_get_ancestors() )
 		{
-			$ancestors{$_} = 1;
+			next if exists $seen{$_};
+			push @ancestors, $_;
+			$seen{$_} = undef;
 		}
 	}
 
-	return keys %ancestors;
+	return @ancestors;
 }
 
 
