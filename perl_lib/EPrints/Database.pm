@@ -1105,7 +1105,7 @@ sub create_index
 
 	return 1 unless @columns;
 
-	my $index_name = join('_', $table, @columns );
+	my $index_name = join('_', $table, $columns[0], scalar @columns );
 
 	my $sql = sprintf("CREATE INDEX %s ON %s (%s)",
 		$self->quote_identifier( $index_name ),

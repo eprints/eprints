@@ -385,7 +385,7 @@ sub get_default_collation
 {
 	my( $self, $langid ) = @_;
 
-	return exists($I18L->{$langid}) ? $I18L->{$langid}->{collate} : undef;
+	return "utf8_bin";
 }
 
 # Not supported by DBD::mysql?
