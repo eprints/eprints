@@ -576,7 +576,8 @@ sub get_paths
 		my $subj = new EPrints::DataObj::Subject( $session, $subjectid );
 		if( !defined $subj )
 		{
-			$session->get_repository->log( "Non existant subjectid: $subjectid in parents of ".$self->get_value( "subjectid" ) );
+			$session->get_repository->log( "Non-existent subjectid: $subjectid in parents of ".$self->get_value( "subjectid" ) );
+			next;
 		}
 		push @paths, $subj->get_paths( $session, $topsubjid );
 	}
