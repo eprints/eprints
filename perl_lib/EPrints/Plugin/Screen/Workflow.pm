@@ -81,7 +81,8 @@ sub properties_from
 	my $datasetid = $session->param( "dataset" );
 	my $id = $session->param( "dataobj" );
 
-	my $dataset = $session->dataset( $datasetid );
+	my $dataset = $self->{processor}->{dataset};
+	$dataset = $session->dataset( $datasetid ) if !defined $dataset;
 	if( !defined $dataset )
 	{
 		$processor->{screenid} = "Error";
@@ -94,7 +95,8 @@ sub properties_from
 
 	$processor->{"dataset"} = $dataset;
 
-	my $dataobj = $dataset->dataobj( $id );
+	my $dataobj = $self->{processor}->{dataobj};
+	$dataobj = $dataset->dataobj( $id ) if !defined $dataobj;
 	if( !defined $dataobj )
 	{
 		$processor->{screenid} = "Error";
@@ -170,7 +172,11 @@ sub redirect_to_me_url
 {
 	my( $self ) = @_;
 
-	return $self->SUPER::redirect_to_me_url."&dataset=".$self->{processor}->{dataset}->id."&dataobj=".$self->{processor}->{dataobj}->id;
+	my $url = $self->SUPER::redirect_to_me_url;
+	$url .= "&dataset=".$self->{processor}->{dataset}->id if defined $self->{processor}->{dataset};
+	$url .= "&dataobj=".$self->{processor}->{dataobj}->id if defined $self->{processor}->{dataobj};
+
+	return $url;
 }
 
 sub has_workflow

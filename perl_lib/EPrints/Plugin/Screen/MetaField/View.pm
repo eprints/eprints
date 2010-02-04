@@ -22,6 +22,15 @@ sub new
 	return $self;
 }
 
+sub properties_from
+{
+	my( $self ) = @_;
+
+	$self->{processor}->{dataset} = $self->{session}->dataset( "metafield" );
+
+	$self->SUPER::properties_from;
+}
+
 sub can_be_viewed
 {
 	my( $self ) = @_;

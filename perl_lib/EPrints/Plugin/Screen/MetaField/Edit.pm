@@ -39,9 +39,9 @@ sub properties_from
 {
 	my( $self ) = @_;
 
-	$self->SUPER::properties_from;
+	$self->{processor}->{dataset} = $self->{session}->dataset( "metafield" );
 
-	$self->{processor}->{dataset} = $self->{processor}->{dataobj}->get_dataset;
+	$self->SUPER::properties_from;
 }
 
 sub from
