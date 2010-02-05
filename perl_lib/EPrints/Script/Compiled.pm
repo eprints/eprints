@@ -24,6 +24,8 @@ package EPrints::Script::Compiled;
 
 use Time::Local 'timelocal_nocheck';
 
+use strict;
+
 sub debug
 {
 	my( $self, $depth ) = @_;
@@ -242,6 +244,13 @@ sub run_reverse
 
 	return [ reverse $string->[0], "STRING" ];
 } 
+
+sub run_substr
+{
+        my( $self, $state, $string, $offset, $length ) = @_;
+
+        return [ substr( $string->[0], $offset->[0], $length->[0]), "STRING" ];
+}
 	
 sub run_is_set
 {
@@ -625,11 +634,133 @@ sub run_action_title
 	}
 }
 
+<<<<<<< .mine
+sub run_filter_compound_list
+{
+	my( $self, $state, $compound_list, $filter_field, $filter_value, $print_field ) = @_;
+	
+	my $f = $compound_list->[1]->get_property( "fields_cache" );
+	my $sub_field;
+	foreach my $field_conf ( @{$f} )
+	{
+		if( $field_conf->{sub_name} eq $print_field->[0] )
+		{
+			$sub_field = $field_conf;
+		}
+	}
+	if( !$sub_field )
+	{
+		$self->runtime_error( "No such sub field: ".$print_field->[0] );
+	}
+	my @r = ();
+	if( !$compound_list->[1]->isa("EPrints::MetaField") )
+	{
+		$self->runtime_error( "1st param not eprints metadata" );
+	}
+
+	foreach my $item ( @{$compound_list->[0]} )
+	{
+		my $t = $item->{$filter_field->[0]} || "";
+		if( $t eq $filter_value->[0] )
+		{
+			push @r, $item->{$print_field->[0]};
+		}
+	}
+
+	return [ \@r, $sub_field ];
+}
+
+
+sub run_to_data_array
+{
+	my( $self, $state, $val ) = @_;
+
+	if( !$val->[1]->isa("EPrints::MetaField") )
+	{
+		$self->runtime_error( "to_dataarray expects a field value" );
+	}
+
+	my $field = $val->[1]->clone;
+	$field->set_property( "multiple", 0 );
+	my @v;
+	foreach my $item ( @{$val->[0]} )
+	{
+		push @v, [ $item, $field ];
+	}
+
+	return [ \@v, "DATA_ARRAY" ];
+}
+
+sub run_pretty_list
+{
+	my( $self, $state, $list, $sep, $last_sep ) = @_;
+
+	if( $list->[1]->isa("EPrints::MetaField") )
+	{
+		$list = $self->run_to_dataarray( $state, $list );
+	}
+
+	if( $list->[1] ne "DATA_ARRAY" )
+	{
+		$self->runtime_error( "pretty list takes a Multiple Field or DATA_ARRAY" );
+	}
+
+	my $n = scalar @{$list->[0]};
+	my $r = $state->{session}->make_doc_fragment;
+
+	for( my $i=0; $i<$n; ++$i )
+	{
+		if( $i > 0 )
+		{
+			if( defined $last_sep && $i == $n-1 )
+			{
+				$r->appendChild( $state->{session}->make_text( $last_sep->[0] ) );
+			}
+			else
+			{
+				$r->appendChild( $state->{session}->make_text( $sep->[0] ) );
+			}
+		}
+		my $val = $list->[0]->[$i]->[0];
+		my $field = $list->[0]->[$i]->[1];
+		$r->appendChild( 
+			$field->render_value( $state->{session}, $val, 0, 0 ));
+	}
+
+	return [ $r, "XHTML" ];
+}
+
+sub run_array_concat
+{
+	my( $self, $state, @arrays ) = @_;
+
+	my @v = ();
+	foreach my $array ( @arrays )
+	{
+		if( $array->[1]->isa("EPrints::MetaField") )
+		{
+			$array = $self->run_to_dataarray( $state, $array );
+		}
+	
+		if( $array->[1] ne "DATA_ARRAY" )
+		{
+			$self->runtime_error( "array_concat takes a list of Multiple Field or DATA_ARRAYs" );
+		}
+
+		push @v, @{$array->[0]};
+	}
+
+	return [ \@v, "DATA_ARRAY" ];
+}
+
+
+
 sub run_phrase
 {
 	my( $self, $state, $phrase ) = @_;
 
 	return [ $state->{session}->html_phrase( $phrase->[0] ), "XHTML" ];
 }
+
 
 1;
