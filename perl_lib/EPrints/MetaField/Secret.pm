@@ -180,6 +180,18 @@ sub validate
 	return @probs;
 }
 
+sub to_xml
+{
+	my( $self, $session, $value, $dataset, %opts ) = @_;
+
+	if( !$opts{show_secrets} )
+	{
+		return $session->xml->create_document_fragment;
+	}
+
+	return $self->SUPER::to_xml( $session, $value, $dataset, %opts );
+}
+
 ######################################################################
 
 ######################################################################

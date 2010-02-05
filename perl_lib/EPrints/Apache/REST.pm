@@ -61,7 +61,8 @@ sub serve_top_level
 	# /
 	if( @path == 1 && $path[0] eq "" )
 	{
-		my @ds_ids = $repository->get_dataset_ids;
+		#my @ds_ids = $repository->get_dataset_ids;
+		my @ds_ids = qw/ eprint user subject /;
 		my $h = "<ul>\n";
 		foreach my $ds_id ( @ds_ids )
 		{
@@ -104,13 +105,18 @@ sub serve_dataset
 		if( $file eq "" )
 		{
 			return unless allowed_methods( $repository, "GET" );
-			my $ul = "<ul>";
-			foreach my $id ( sort { $a <=> $b } @{$dataset->get_item_ids( $repository )} )
+			my $sortfn = sub { $a <=> $b };
+			if( $dataset->id eq "subject" )
+			{
+				$sortfn = sub { $a cmp $b };
+			}
+			my $ul = "<ul>\n";
+			foreach my $id ( sort $sortfn @{$dataset->get_item_ids( $repository )} )
 			{
 				$ul .= "<li><a href='$id/'>$id/</a></li>\n";
 				$ul .= "<li><a href='$id.xml'>$id.xml</a></li>\n";
 			}
-			$ul .= "</ul>";
+			$ul .= "</ul>\n";
 		
 			my $title = EPrints::XML::to_string( $dataset->render_name( $repository ) )." DataSet";
 			return send_html( $repository, $ul, $title );
@@ -135,11 +141,11 @@ sub serve_dataset
 			my $method = $ENV{REQUEST_METHOD};
 			if( $method eq "GET" )
 			{
-				return get_dataobj_xml( $repository, $object );
+				return get_dataobj_xml( $repository, $object, $object );
 			}
 			if( $method eq "PUT" )
 			{
-				return put_dataobj_xml( $repository, $object );
+				return put_dataobj_xml( $repository, $object, $object );
 			}
 			return 500; # should not happen!
 		}
@@ -154,15 +160,15 @@ sub serve_dataset
 		return 404;
 	}
 
-	return serve_dataobj( $repository, $object, @path );
+	return serve_dataobj( $repository, $object, $object, @path );
 }
 
 
 sub serve_dataobj
 {
-	my( $repository, $object, @path ) = @_;
+	my( $repository, $object, $rights_object, @path ) = @_;
 
-	return unless allow_priv( $object->dataset->confid."/view", $repository, $object );
+	return DONE unless allow_priv( $rights_object->dataset->confid."/rest/get", $repository, $rights_object );
 
 	my $file = shift @path;
 	
@@ -172,28 +178,33 @@ sub serve_dataobj
 		if( $file eq "" )
 		{
 			return unless allowed_methods( $repository, "GET" );
-			my $c = "<ul>";
+			my $c = "<ul>\n";
 			foreach my $field ( $object->dataset->get_fields )
 			{
+				next if( $field->get_property( "sub_name" ) );
+				next if( $field->isa( "EPrints::MetaField::Secret" ) );
 				my $name = $field->get_name;
 				$c.="<li><a href='$name.xml'>$name.xml</a></li>";
 				if( $field->get_property( "multiple" )
 		 		 || $field->is_type( "compound","subobject","name" ) )
 				{
-					$c.="<li><a href='$name/'>$name/</a></li>";
+					$c.="<li><a href='$name/'>$name/</a></li>\n";
 				}
 				else
 				{
-					$c.="<li><a href='$name.txt'>$name.txt</a></li>";
+					$c.="<li><a href='$name.txt'>$name.txt</a></li>\n";
 				}
 			}
-			$c.= "</ul>";
+			$c.= "</ul>\n";
 			return send_html( $repository, $c );
 		}
 
 		my( $field_name, $format) = split( /\./, $file, 2 );
 		my $field = $object->dataset->get_field( $field_name );	
+		return 404 if( !defined $format );
 		return 404 if( !defined $field );
+		return 404 if( $field->get_property( "sub_name" ));
+		return 403 if( $field->isa( "EPrints::MetaField::Secret" ) );
 
 		if( $field->get_property( "multiple" )
  		 || $field->is_type( "compound","subobject","name" ) )
@@ -212,11 +223,11 @@ sub serve_dataobj
 				my $method = $ENV{REQUEST_METHOD};
 				if( $method eq "GET" )
 				{
-					return get_field_txt( $repository, $object, $field );
+					return get_field_txt( $repository, $object, $rights_object, $field );
 				}
 				if( $method eq "PUT" )
 				{
-					return put_field_txt( $repository, $object, $field );
+					return put_field_txt( $repository, $object, $rights_object, $field );
 				}
 				return 500; # never happens
 			}	
@@ -229,11 +240,11 @@ sub serve_dataobj
 			my $method = $ENV{REQUEST_METHOD};
 			if( $method eq "GET" )
 			{
-				return get_field_xml( $repository, $object, $field );
+				return get_field_xml( $repository, $object, $rights_object, $field );
 			}
 			if( $method eq "PUT" )
 			{
-				return put_field_xml( $repository, $object, $field );
+				return put_field_xml( $repository, $object, $rights_object, $field );
 			}
 			return 500;
 		}	
@@ -247,16 +258,16 @@ sub serve_dataobj
 
 	my $v = $object->get_value( $file );
 
-	return serve_field( $repository, $object, $field, $v, @path );
+	return serve_field( $repository, $object, $rights_object, $field, $v, @path );
 }
 
 sub serve_field
 {
-	my( $repository, $object, $field, $value, @path ) = @_;
+	my( $repository, $object, $rights_object, $field, $value, @path ) = @_;
 
 	if( !$field->get_property( "multiple" ) )
 	{
-		return serve_field_single( $repository, $object, $field, $value, @path );
+		return serve_field_single( $repository, $object, $rights_object, $field, $value, @path );
 	}
 
 	my $file = shift @path;
@@ -267,26 +278,26 @@ sub serve_field
 		if( $file eq "" )
 		{
 			return unless allowed_methods( $repository, "GET" );
-			my $c = "<ul>";
-			$c.= "<li><a href='size.txt'>size.txt</a></li>";
+			my $c = "<ul>\n";
+			$c.= "<li><a href='size.txt'>size.txt</a></li>\n";
 			for( my $i=0; $i<scalar @{$value}; ++$i )
 			{
 				my $n = $i + 1;
  				if( $field->is_type( "subobject" ) )
 				{
-					$c.="<li><a href='$n/'>$n/</a></li>";
-					$c.="<li><a href='$n.xml'>$n.xml/</a></li>";
+					$c.="<li><a href='$n/'>$n/</a></li>\n";
+					$c.="<li><a href='$n.xml'>$n.xml/</a></li>\n";
 				}
  				elsif( $field->is_type( "compound","name" ) )
 				{
-					$c.="<li><a href='$n/'>$n/</a></li>";
+					$c.="<li><a href='$n/'>$n/</a></li>\n";
 				}
 				else
 				{
-					$c.="<li><a href='$n.txt'>$n.txt</a></li>";
+					$c.="<li><a href='$n.txt'>$n.txt</a></li>\n";
 				}
 			}
-			$c.="</ul>";
+			$c.="</ul>\n";
 			return send_html( $repository, $c );
 		}
 
@@ -340,24 +351,24 @@ sub serve_field
 	}
 
 	# /3/
-	return serve_field_single( $repository, $object, $field, $value->[$i], @path );
+	return serve_field_single( $repository, $object, $rights_object, $field, $value->[$i], @path );
 }
 
 sub serve_field_single
 {
-	my( $repository, $object, $field, $value, @path ) = @_;
+	my( $repository, $object, $rights_object, $field, $value, @path ) = @_;
 
 	if( $field->is_type( "subobject" ) )
 	{
-		return serve_subobject( $repository, $object, $field, $value, @path );
+		return serve_subobject( $repository, $object, $rights_object, $field, $value, @path );
 	}
 	if( $field->is_type( "compound" ) )
 	{
-		return serve_compound( $repository, $object, $field, $value, @path );
+		return serve_compound( $repository, $object, $rights_object, $field, $value, @path );
 	}
 	if( $field->is_type( "name" ) )
 	{
-		return serve_name( $repository, $object, $field, $value, @path );
+		return serve_name( $repository, $object, $rights_object, $field, $value, @path );
 	}
 	
 	$repository->log( "REST: Unknown field type in serve_field_single()" );
@@ -366,17 +377,17 @@ sub serve_field_single
 
 sub serve_subobject
 {
-	my( $repository, $object, $field, $value, @path ) = @_;
+	my( $repository, $object, $rights_object, $field, $value, @path ) = @_;
 
 	my $ds = $repository->dataset( $field->get_property('datasetid') );
 
-	return serve_dataobj( $repository, $value, @path );
+	return serve_dataobj( $repository, $value, $rights_object, @path );
 }
 
 
 sub serve_compound
 {
-	my( $repository, $object, $field, $value, @path ) = @_;
+	my( $repository, $object, $rights_object, $field, $value, @path ) = @_;
 
 	my $file = shift @path;
 
@@ -390,22 +401,22 @@ sub serve_compound
 		{
 			# /
 			return unless allowed_methods( $repository, "GET" );
-			my $c = "<ul>";
+			my $c = "<ul>\n";
 			foreach my $sub_field ( @{$f} )
 			{
 				my $fieldname = $sub_field->get_name;
 				my $alias = $fieldname_to_alias{$fieldname};
 				if( $sub_field->is_type( "compound","subobject","name" ) )
 				{
-					$c.="<li><a href='$alias/'>$alias/</a></li>";
+					$c.="<li><a href='$alias/'>$alias/</a></li>\n";
 				}
 				else
 				{
-					$c.="<li><a href='$alias.txt'>$alias.txt</a></li>";
+					$c.="<li><a href='$alias.txt'>$alias.txt</a></li>\n";
 				}
 			
 			}
-			$c .= "</ul>";
+			$c .= "</ul>\n";
 			return send_html( $repository, $c );
 		}
 
@@ -440,7 +451,7 @@ sub serve_compound
 	# /foo/
 	if( $sub_field->is_type( "compound","subobject","name" ) )
 	{
-		return serve_field_single( $repository, $object, $sub_field, $value->{$file}, @path );
+		return serve_field_single( $repository, $object, $rights_object, $sub_field, $value->{$file}, @path );
 	}
 	
 	return 404;
@@ -448,7 +459,7 @@ sub serve_compound
 
 sub serve_name
 {
-	my( $repository, $object, $field, $value, @path ) = @_;
+	my( $repository, $object, $rights_object, $field, $value, @path ) = @_;
 
 	my $file = shift @path;
 
@@ -550,7 +561,10 @@ sub send_plaintext
 
 	binmode( *STDOUT, ":utf8" );
 	$repository->send_http_header( "content_type"=>"text/plain; charset=UTF-8" );
-	print $content;
+	if( defined $content )
+	{
+		print $content;
+	}
 
 	return DONE;
 }
@@ -585,16 +599,15 @@ sub allowed_methods
 
 sub allow_priv
 {
-	my( $priv, $repository, $object ) = @_;
+	my( $priv, $repository, $rights_object ) = @_;
 
 	if( $priv =~ m/^eprint\// )
 	{
-		my $status = $object->get_value( "eprint_status" );
+		my $status = $rights_object->get_value( "eprint_status" );
 		$priv =~ s/^eprint\//eprint\/$status\//;	
 	}
 
 	return 1 if( $repository->allow_anybody( $priv ) );
-	return 1 if( $priv eq "eprint/archive/view" );
 
 	my $r = $repository->get_request;
 	$r->auth_type( "Basic" );
@@ -606,7 +619,7 @@ sub allow_priv
 	{
 		$r->note_basic_auth_failure;
 		EPrints::Apache::AnApache::send_status_line( $r, 401, "Auth Required" );
-		print render_html( "Auth Required", "<p>Auth Required</p>" );
+		send_html( $repository, "<p>Auth Required</p>", "Auth Required" );
 		return 0;
 	}
 
@@ -614,14 +627,15 @@ sub allow_priv
 
 	if( !defined $user )
 	{
-		print STDERR "Unknown user.\n";
+		EPrints::Apache::AnApache::send_status_line( $r, 403, "Forbidden" );
+		send_html( $repository, "<p>Forbidden</p>", "No such user" );
 		return 0;
 	}
 
-	if( !$user->allow( $priv, $object ) )
+	if( !$user->allow( $priv, $rights_object ) )
 	{
 		EPrints::Apache::AnApache::send_status_line( $r, 403, "Forbidden" );
-		print render_html( "Forbidden", "<p>Forbidden</p>" );
+		send_html( $repository, "<p>Forbidden</p>", "Forbidden" );
 		return 0;
 	}
 
@@ -634,9 +648,9 @@ sub allow_priv
 
 sub get_dataobj_xml
 {
-	my( $repository, $object ) = @_;
+	my( $repository, $object, $rights_object ) = @_;
 
-	return unless allow_priv( $object->dataset->confid."/view", $repository, $object );
+	return DONE unless allow_priv( $rights_object->dataset->confid."/rest/get", $repository, $rights_object );
 
 	return send_xml( $repository, $object->export( "XML" ) );
 }
@@ -644,9 +658,9 @@ sub get_dataobj_xml
 
 sub put_dataobj_xml
 {
-	my( $repository, $object ) = @_;
+	my( $repository, $object, $rights_object ) = @_;
 
-	return unless allow_priv( $object->dataset->confid."/staff/edit", $repository, $object );
+	return DONE unless allow_priv( $rights_object->dataset->confid."/rest/put", $repository, $rights_object );
 
 	my $put = $repository->xml->create_element( "put", result=>"not-implemented" );
 	return send_xml( $repository, EPrints::XML::to_string( $put ) );
@@ -654,9 +668,9 @@ sub put_dataobj_xml
 
 sub get_field_txt
 {
-	my( $repository, $object, $field ) = @_;
+	my( $repository, $object, $rights_object, $field ) = @_;
 
-	return unless allow_priv( $object->dataset->confid."/view", $repository, $object );
+	return DONE unless allow_priv( $rights_object->dataset->confid."/rest/get", $repository, $rights_object );
 
 	my $v = $object->get_value( $field->get_name );
 	$v = "" if !defined $v;
@@ -665,9 +679,9 @@ sub get_field_txt
 
 sub get_field_xml
 {
-	my( $repository, $object, $field ) = @_;
+	my( $repository, $object, $rights_object, $field ) = @_;
 
-	return unless allow_priv( $object->dataset->confid."/view", $repository, $object );
+	return DONE unless allow_priv( $rights_object->dataset->confid."/rest/get", $repository, $rights_object );
 
 	my $v = $object->get_value( $field->get_name );
 	my $xml_dom = $field->to_xml( $repository, $v, $object->dataset, show_empty=>1 );
@@ -677,13 +691,13 @@ sub get_field_xml
 
 sub put_field_xml
 {
-	my( $repository, $object, $field ) = @_;
+	my( $repository, $object, $rights_object, $field ) = @_;
 
 	if( $field->get_name eq $object->dataset->get_key_field->get_name || $field->get_name eq "rev_number" )
 	{
 		return 403;
 	}
-	return unless allow_priv( $object->dataset->confid."/staff/edit", $repository, $object );
+	return DONE unless allow_priv( $rights_object->dataset->confid."/rest/put", $repository, $rights_object );
 
 	my $data = join( "", <STDIN> );
 	if( $data eq "" )
@@ -721,13 +735,13 @@ sub put_field_xml
 
 sub put_field_txt
 {
-	my( $repository, $object, $field ) = @_;
+	my( $repository, $object, $rights_object, $field ) = @_;
 
 	if( $field->get_name eq $object->dataset->get_key_field->get_name || $field->get_name eq "rev_number" )
 	{
 		return 403;
 	}
-	return unless allow_priv( $object->dataset->confid."/staff/edit", $repository, $object );
+	return DONE unless allow_priv( $rights_object->dataset->confid."/rest/put", $repository, $rights_object );
 
 	my $data = join( "", <STDIN> );
 	$object->set_value( $field->get_name, $data );

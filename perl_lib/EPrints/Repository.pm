@@ -5286,6 +5286,17 @@ sub allow_anybody
 
 	return 1 if( $PUBLIC_PRIVS->{$priv} );
 
+	# This doesn't understand actual roles, just +priv 
+	# we might extend it later if there's a need. 
+	my $public_roles = $repository->config( "public_roles" );
+	if( $public_roles ) 
+	{
+		foreach my $role_id ( @{$public_roles} )
+		{
+			return 1 if( $role_id eq "+".$priv );
+		}
+	}
+
 	return 0;
 }
 

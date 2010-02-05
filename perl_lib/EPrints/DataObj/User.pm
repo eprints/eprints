@@ -1414,6 +1414,27 @@ my $PRIVMAP =
 		"eprint/deletion/derive_version:editor",
 		"eprint/deletion/takelock:editor",
 	],
+
+	rest => [
+		"eprint/archive/rest/get:editor",
+		"eprint/archive/rest/put:editor",
+		"eprint/buffer/rest/get:editor",
+		"eprint/buffer/rest/put:editor",
+		"eprint/inbox/rest/get:editor",
+		"eprint/inbox/rest/put:editor",
+		"eprint/deletion/rest/get:editor",
+		"eprint/deletion/rest/put:editor",
+
+		"eprint/inbox/rest/get:owner",
+		"eprint/inbox/rest/put:owner",
+		"eprint/buffer/rest/get:owner",
+		"eprint/archive/rest/get:owner",
+		"eprint/deletion/rest/get:owner",
+
+		"user/rest/get:owner",
+
+		"subject/rest/get",
+	],
 	
 };
 
