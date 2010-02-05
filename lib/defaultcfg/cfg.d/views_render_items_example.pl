@@ -4,7 +4,11 @@
 # Note: This function needs to return a UTF-8 encoded string NOT XHTML DOM.
 # (this is to speed things up).
 
-# To use this add render_fn => "render_view_item_3col_boxes" to a view in views.pl
+# To use this add render_fn=render_view_items_3col_boxes" to the options of a variation of a view.
+# eg:
+#		variations => [
+#			"DEFAULT;render_fn=render_view_items_3col_boxes",
+#		],
 
 $c->{render_view_items_3col_boxes} = sub
 {
@@ -25,7 +29,7 @@ $c->{render_view_items_3col_boxes} = sub
 
 		my $link = $item->get_url;
 
-		my $td = $session->make_element( "td", style=>"padding: 1em; text-align: center; width: 200px;" );
+		my $td = $session->make_element( "td", style=>"vertical-align: top; padding: 1em; text-align: center; width: 200px;" );
 		$tr->appendChild( $td );
 
 		my $a1 = $session->render_link( $link );

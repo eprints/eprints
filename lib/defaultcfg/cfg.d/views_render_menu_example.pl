@@ -30,7 +30,7 @@ $c->{render_view_menu_3col_boxes} = sub
 		my $link = EPrints::Utils::escape_filename( $fileid );
 		if( $has_submenu ) { $link .= '/'; } else { $link .= '.html'; }
 
-		my $td = $session->make_element( "td", style=>"padding: 1em; text-align: center" );
+		my $td = $session->make_element( "td", style=>"padding: 1em; text-align: center;vertical-align:top" );
 		$tr->appendChild( $td );
 
 		my $a1 = $session->render_link( $link );
