@@ -634,7 +634,6 @@ sub run_action_title
 	}
 }
 
-<<<<<<< .mine
 sub run_filter_compound_list
 {
 	my( $self, $state, $compound_list, $filter_field, $filter_value, $print_field ) = @_;
