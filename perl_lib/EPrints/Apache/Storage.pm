@@ -16,10 +16,75 @@ package EPrints::Apache::Storage;
 
 # This handler serves document files and thumbnails
 
+=head1 NAME
+
+EPrints::Apache::Storage - deliver file objects via mod_perl
+
+=head1 DESCRIPTION
+
+This mod_perl handle supports the delivery of the content of L<EPrints::DataObj::File> objects.
+
+=head2 Defined HTTP Headers
+
+These headers will be set by this module, where possible.
+
+=over 4
+
+=item Content-Disposition
+
+The string "inline; filename=FILENAME" where FILENAME is the B<filename> value of the file object.
+
+If the I<download> CGI parameter is true disposition is changed from "inline" to "attachment", which will present a download dialog box in sane browsers.
+
+=item Content-Length
+
+The B<filesize> value of the file object.
+
+=item Content-MD5
+
+The MD5 of the file content in base-64 encoding if the B<hash> value is set and B<hash_type> is 'MD5'.
+
+=item Content-Type
+
+The B<mime_type> value of the file object, or "application/octet-stream" if not set.
+
+=item ETag
+
+The B<hash> value of the file object, if set.
+
+=item Expires
+
+The current time + 365 days, if the B<mtime> value is set.
+
+=item Last-Modified
+
+The B<mtime> of the file object, if set.
+
+=back
+
+=head2 Recognised HTTP Headers
+
+The following headers are recognised by this module.
+
+=over 4
+
+=item If-Modified-Since
+
+If greater than or equal to the B<mtime> value of the file object returns "304 Not Modified".
+
+=item If-None-Match
+
+If differs from the B<hash> value of the file object returns "304 Not Modified".
+
+=back
+
+=cut
+
 use EPrints::Apache::AnApache; # exports apache constants
+use APR::Date ();
+use APR::Base64 ();
 
 use strict;
-use warnings;
 
 sub handler
 {
@@ -110,6 +175,40 @@ sub handler
 			$r,
 			"ETag" => $fileobj->value( "hash" )
 		);
+		if( $fileobj->value( "hash_type" ) eq "MD5" )
+		{
+			my $md5 = $fileobj->value( "hash" );
+			# convert HEX-coded to Base64 (RFC1864)
+			$md5 = APR::Base64::encode( pack("H*", $md5) );
+			EPrints::Apache::AnApache::header_out(
+				$r,
+				"Content-MD5" => $md5
+			);
+		}
+	}
+
+	if( $fileobj->is_set( "mtime" ) )
+	{
+		my $cur_time = EPrints::Time::datestring_to_timet( undef, $fileobj->value( "mtime" ) );
+		my $ims = $r->headers_in->{'if-modified-since'};
+		if( defined $ims )
+		{
+			my $ims_time = APR::Date::parse_http( $ims );
+			if( $ims_time && $cur_time && $ims_time >= $cur_time )
+			{
+				$r->status_line( "304 Not Modified" );
+				return 304;
+			}
+		}
+		EPrints::Apache::AnApache::header_out(
+			$r,
+			"Last-Modified" => Apache2::Util::ht_time( $r->pool, $cur_time )
+		);
+		# can't go too far into the future or we'll wrap 32bit times!
+		EPrints::Apache::AnApache::header_out(
+			$r,
+			"Expires" => Apache2::Util::ht_time( $r->pool, time() + 365 * 86400 )
+		);
 	}
 
 	EPrints::Apache::AnApache::header_out( 
@@ -133,12 +232,6 @@ sub handler
 			"Content-Disposition" => "inline; filename=$filename",
 		);
 	}
-
-	# can't go too far into the future or we'll wrap 32bit times!
-	EPrints::Apache::AnApache::header_out(
-		$r,
-		"Expires" => Apache2::Util::ht_time( $r->pool, time() + 365 * 86400 )
-	);
 
 	my $rv = eval { $fileobj->write_copy_fh( \*STDOUT ); };
 	if( $@ )
