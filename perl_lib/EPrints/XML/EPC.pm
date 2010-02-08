@@ -95,6 +95,10 @@ sub process
 		{
 			return _process_foreach( $node, %params );
 		}
+		if( $name eq "set" )
+		{
+			return _process_set( $node, %params );
+		}
 
 	}
 
@@ -274,6 +278,38 @@ sub _process_debug
 	return $params{session}->make_doc_fragment;
 }
 
+sub _process_set
+{
+	my( $node, %params ) = @_;
+
+	if( !$node->hasAttribute( "expr" ) )
+	{
+		EPrints::abort( "In ".$params{in}.": set element with no expr attribute.\n".substr( $node->toString, 0, 100 ) );
+	}
+	my $expr = $node->getAttribute( "expr" );
+	if( $expr =~ m/^\s*$/ )
+	{
+		EPrints::abort( "In ".$params{in}.": set element with empty expr attribute.\n".substr( $node->toString, 0, 100 ) );
+	}
+
+	if( !$node->hasAttribute( "name" ) )
+	{
+		EPrints::abort( "In ".$params{in}.": set element with no name attribute.\n".substr( $node->toString, 0, 100 ) );
+	}
+	my $name = $node->getAttribute( "name" );
+	if( $name !~ m/^[a-z][a-z0-9_]*$/i )
+	{
+		EPrints::abort( "In ".$params{in}.": set element with non alphanumeric name attribute.\n".substr( $node->toString, 0, 100 ) );
+	}
+
+	my $result = EPrints::Script::execute( $expr, \%params );
+
+	my %newparams = %params;
+	$newparams{$name} = $result;
+
+	return process_child_nodes( $node, %newparams );
+}
+
 sub _process_foreach
 {
 	my( $node, %params ) = @_;
@@ -296,6 +332,11 @@ sub _process_foreach
 	if( $iterator !~ m/^[a-z][a-z0-9_]*$/i )
 	{
 		EPrints::abort( "In ".$params{in}.": foreach element with non alphanumeric iterator.\n".substr( $node->toString, 0, 100 ) );
+	}
+	my $limit = $node->getAttribute( "limit" );
+	if( defined $limit && $limit !~ m/^\d+$/i )
+	{
+		EPrints::abort( "In ".$params{in}.": foreach element with non integer limit.\n".substr( $node->toString, 0, 100 ) );
 	}
 
 	my $result = EPrints::Script::execute( $expr, \%params );
@@ -320,6 +361,7 @@ sub _process_foreach
 		$type->set_property( "multiple", 0 );
 	}
 
+	my $index = 0;
 	foreach my $item ( @{$list} )
 	{
 		my %newparams = %params;
@@ -330,8 +372,11 @@ sub _process_foreach
 			$thistype = "STRING" if( $thistype eq "" ); 	
 			$thistype = "XHTML" if( $thistype =~ /^XML::/ );
 		}
+		$newparams{"index"} = [ $index, "INTEGER" ];
 		$newparams{$iterator} = [ $item, $thistype ];
 		$output->appendChild( process_child_nodes( $node, %newparams ) );
+		$index++;
+		last if( defined $limit && $index >= $limit );
 	}
 
 	return $output;

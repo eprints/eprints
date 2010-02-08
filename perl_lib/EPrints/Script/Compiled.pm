@@ -65,13 +65,11 @@ sub run
 
 	if( $self->{id} eq "VAR" )
 	{
-		my $r = $state->{$self->{value}};
-		if( !defined $r )
+		if( !exists $state->{$self->{value}} )
 		{
-			#runtime_error( "Unknown state variable ".$self->{value} );
-		
-			return [ 0, "BOOLEAN" ];
+			$self->runtime_error( "Unknown state variable '".$self->{value}."'" );
 		}
+		my $r = $state->{$self->{value}};
 		return $r if( ref( $r ) eq "ARRAY" );
 		return [ $r ];
 	}
@@ -165,6 +163,39 @@ sub run_NOTEQUALS
 	my $r = $self->run_EQUALS( $state, $left, $right );
 	
 	return $self->run_NOT( $state, $r );
+}
+
+sub run_ADD
+{
+	my( $self, $state, $left, $right ) = @_;
+
+	return [ $left->[0] + $right->[0], "INTEGER" ];
+}
+sub run_SUBTRACT
+{
+	my( $self, $state, $left, $right ) = @_;
+
+	return [ $left->[0] - $right->[0], "INTEGER" ];
+}
+
+sub run_MULTIPLY
+{
+	my( $self, $state, $left, $right ) = @_;
+
+	return [ $left->[0] * $right->[0], "INTEGER" ];
+}
+sub run_DIVIDE
+{
+	my( $self, $state, $left, $right ) = @_;
+
+	return [ int($left->[0] / $right->[0]), "INTEGER" ];
+}
+
+sub run_MOD
+{
+	my( $self, $state, $left, $right ) = @_;
+
+	return [ $left->[0] % $right->[0], "INTEGER" ];
 }
 
 sub run_NOT
@@ -354,6 +385,11 @@ sub run_length
 		return [0,"INTEGER"];
 	}
 	
+	if( $value->[1] eq "ARRAY" || $value->[1] eq "DATA_ARRAY" )
+	{
+		return [ scalar @{$value->[0]}, "INTEGER" ];
+	}
+
 	if( !$value->[1]->isa( "EPrints::MetaField" ) )
 	{
 		return [1,"INTEGER"];
@@ -364,6 +400,7 @@ sub run_length
 		return [1,"INTEGER"];
 	}
 
+	# multiple metafield
 	return [ scalar @{$value->[0]}, "INTEGER" ];
 }
 
@@ -752,13 +789,22 @@ sub run_array_concat
 	return [ \@v, "DATA_ARRAY" ];
 }
 
-
-
 sub run_phrase
 {
 	my( $self, $state, $phrase ) = @_;
 
 	return [ $state->{session}->html_phrase( $phrase->[0] ), "XHTML" ];
+}
+
+sub run_documents
+{
+	my( $self, $state, $eprint ) = @_;
+
+	if( ! $eprint->[0]->isa( "EPrints::DataObj::EPrint") )
+	{
+		$self->runtime_error( "documents() must be called on an eprint object." );
+	}
+	return [ [$eprint->[0]->get_all_documents()],  "ARRAY" ];
 }
 
 

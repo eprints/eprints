@@ -73,6 +73,11 @@ sub tokenise
 		elsif( $code =~ s/^\)// ) { $newtoken= { pos=>$pos, id=>'CLOSE_B' };  }
 		elsif( $code =~ s/^\{// ) { $newtoken= { pos=>$pos, id=>'OPEN_C' };  }
 		elsif( $code =~ s/^\}// ) { $newtoken= { pos=>$pos, id=>'CLOSE_C' };  }
+		elsif( $code =~ s/^\%// ) { $newtoken= { pos=>$pos, id=>'MOD' };  }
+		elsif( $code =~ s/^\*// ) { $newtoken= { pos=>$pos, id=>'MULTIPLY' };  }
+		elsif( $code =~ s/^\/// ) { $newtoken= { pos=>$pos, id=>'DIVIDE' };  }
+		elsif( $code =~ s/^\+// ) { $newtoken= { pos=>$pos, id=>'ADD' };  }
+		elsif( $code =~ s/^-// ) { $newtoken= { pos=>$pos, id=>'SUBTRACT' };  }
 		elsif( $code =~ s/^=// ) { $newtoken= { pos=>$pos, id=>'EQUALS' };  }
 		elsif( $code =~ s/^!=// ) { $newtoken= { pos=>$pos, id=>'NOTEQUALS' };  }
 		elsif( $code =~ s/^gt\b// ) { $newtoken= { pos=>$pos, id=>'GREATER_THAN' };  }
@@ -81,7 +86,7 @@ sub tokenise
 		elsif( $code =~ s/^!// ) { $newtoken= { pos=>$pos, id=>'NOT' };  }
 		elsif( $code =~ s/^and\b// ) { $newtoken= { pos=>$pos, id=>'AND' };  }
 		elsif( $code =~ s/^or\b// ) { $newtoken= { pos=>$pos, id=>'OR' };  }
-		elsif( $code =~ s/^(\-?[0-9]+)// ) { $newtoken= { pos=>$pos, id=>'INTEGER', value=>$1 };  }
+		elsif( $code =~ s/^([0-9]+)// ) { $newtoken= { pos=>$pos, id=>'INTEGER', value=>$1 };  }
 		elsif( $code =~ s/^([a-zA-Z][a-zA-Z0-9_-]*)// ) { $newtoken= { pos=>$pos, id=>'IDENT', value=>$1 };  }
 		else { $self->compile_error( "Parse error near: ".substr( $code, 0, 20) ); }
 
@@ -168,7 +173,7 @@ sub compile_test_expr
 {
 	my( $self ) = @_;
 
-	my $tree = $self->compile_not_expr;
+	my $tree = $self->compile_add_expr;
 
 	foreach my $test ( qw/ EQUALS NOTEQUALS GREATER_THAN LESS_THAN / )
 	{
@@ -183,6 +188,44 @@ sub compile_test_expr
 	return $tree;
 }
 
+sub compile_add_expr
+{
+	my( $self ) = @_;
+
+	my $tree = $self->compile_mult_expr;
+
+	foreach my $test ( qw/ ADD SUBTRACT / )
+	{
+		next unless( $self->next_is( $test ) );
+		my $left = $tree;
+		my $eq = $self->give_me( $test );
+		my $right = $self->compile_add_expr;	
+		$eq->{params} = [ $left, $right ];
+		return $eq;
+	}
+
+	return $tree;
+}
+
+sub compile_mult_expr
+{
+	my( $self ) = @_;
+
+	my $tree = $self->compile_not_expr;
+
+	foreach my $test ( qw/ MULTIPLY DIVIDE MOD / )
+	{
+		next unless( $self->next_is( $test ) );
+		my $left = $tree;
+		my $eq = $self->give_me( $test );
+		my $right = $self->compile_mult_expr;	
+		$eq->{params} = [ $left, $right ];
+		return $eq;
+	}
+
+	return $tree;
+}
+
 sub compile_not_expr
 {
 	my( $self ) = @_;
@@ -190,7 +233,7 @@ sub compile_not_expr
 	if( $self->next_is( "NOT" ) )	
 	{
 		my $not = $self->give_me( "NOT" );
-		my $param = $self->compile_not_expr;
+		my $param = $self->compile_add_expr;
 		$not->{params} = [ $param ];
 		return $not;
 	}

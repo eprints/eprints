@@ -12,6 +12,19 @@
       <epc:if test="full_text_status = 'none'"> Not available from this repository.</epc:if>
       <epc:if test="full_text_status = 'restricted'"> Item availablity restricted.</epc:if>
     </td>
-    <td style="padding-right: 0.5em" align="right"><epc:print expr="fileinfo"/></td>
+    <td style="padding-left: 0.5em" align="center">
+      <epc:set name='docs' expr='$item.documents()'>
+        <epc:if test="length($docs) gt 0">
+          <div style="white-space: nowrap">
+          <epc:foreach expr="$item.documents()" iterator="doc" limit='2'>
+             <epc:print expr="$doc.icon(1,0)}" />
+          </epc:foreach>
+          </div>
+        </epc:if>
+        <epc:if test="length($docs) gt 2">
+          <div><a href='{$item.url()}'>+<epc:print expr="length($docs)-2" /> more...</a></div>
+        </epc:if>
+      </epc:set>
+    </td>
   </tr>
 </cite:citation>
