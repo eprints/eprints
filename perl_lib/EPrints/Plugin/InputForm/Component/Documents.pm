@@ -717,9 +717,14 @@ sub _render_doc
 
 	$doc_cont->appendChild( $self->_render_filelist( $doc, $files ) );
 
-	my $block = $session->make_element( "div", class=>"ep_block" );
-	$block->appendChild( $self->_render_convert_document( $doc ) );
-	$doc_cont->appendChild( $block );
+	my $block;
+
+	if( !$session->config( "hide_document_conversion" ) )
+	{
+		$block = $session->make_element( "div", class=>"ep_block" );
+		$block->appendChild( $self->_render_convert_document( $doc ) );
+		$doc_cont->appendChild( $block );
+	}
 
 	$block = $session->make_element( "div", class=>"ep_block" );
 	$block->appendChild( $session->render_button(
