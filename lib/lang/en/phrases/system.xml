@@ -3728,4 +3728,8 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="Plugin/Screen/Workflow/Commit:save" ref="lib/submissionform:action_staff_save" />
 	<epp:phrase id="Plugin/Screen/Workflow/Destroy:item_removed" ref="Plugin/Screen/EPrint/Remove:item_removed" />
 
+	<epp:phrase id="eprint_fieldname_gscholar_datestamp">Datestamp</epp:phrase>
+	<epp:phrase id="eprint_fieldname_gscholar_cluster">Cluster ID</epp:phrase>
+	<epp:phrase id="eprint_fieldname_gscholar_impact">Citations</epp:phrase>
+
 </epp:phrases>
