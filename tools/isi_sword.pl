@@ -27,13 +27,13 @@ use constant {
 	NS_APP      => 'http://www.w3.org/2007/app',
 	NS_DCTERMS  => 'http://purl.org/dc/terms/',
 	NS_ATOM     => 'http://www.w3.org/2005/Atom',
-	NS_EPDATA   => 'http://eprints.org/ep2/data/2.0',
 };
 
 our $VERSION = "1.00";
 
 use XML::LibXML;
 use XML::LibXML::XPathContext;
+use XML::LibXSLT;
 use SOAP::ISIWoK;
 use Getopt::Long;
 use Pod::Usage;
@@ -48,6 +48,10 @@ my $opt_endpoint;
 my $opt_username;
 my $opt_password;
 my $opt_max = 10;
+my $opt_dump_xml;
+my $opt_dump_out;
+my $opt_stylesheet;
+my $opt_query;
 
 GetOptions(
 	"help|?" => \$opt_help,
@@ -58,15 +62,26 @@ GetOptions(
 	"endpoint=s" => \$opt_endpoint,
 	"username=s" => \$opt_username,
 	"password=s" => \$opt_password,
-	"max=s" => \$opt_max,
+	"max=i" => \$opt_max,
+	"dump_xml" => \$opt_dump_xml,
+	"dump_out" => \$opt_dump_out,
+	"stylesheet" => \$opt_stylesheet,
+	"query" => \$opt_query,
 ) or pod2usage( 2 );
 
 pod2usage( 1 ) if $opt_help;
-pod2usage( 0 ) if @ARGV != 1;
+pod2usage( 0 ) if @ARGV != 0;
 
-pod2usage( "Requires endpoint" ) if !$opt_endpoint;
+pod2usage( "Missing endpoint argument" ) if !$opt_endpoint;
+pod2usage( "Missing stylesheet argument" ) if !$opt_stylesheet;
+pod2usage( "Missing query argument" ) if !$opt_query;
 
 my $noise = $opt_quiet ? 0 : $opt_verbose+1;
+
+if( -r $opt_stylesheet )
+{
+	die "Can't open '$opt_stylesheet' for reading\n";
+}
 
 if( $noise > 2 )
 {
@@ -74,9 +89,17 @@ if( $noise > 2 )
 	LWP::Debug::level( '+' ); # full tracing
 }
 
-my( $query ) = @ARGV;
-
 my $doc = XML::LibXML::Document->new;
+
+my $sheet_doc = XML::LibXML->new->parse_file( $opt_stylesheet );
+my $NS_REQUIRED = $sheet_doc->documentElement->getAttribute( "xmlns" );
+
+if( !$NS_REQUIRED )
+{
+	die "Stylesheet does not contain a namespace declaration, don't know how to continue";
+}
+
+my $stylesheet = XML::LibXSLT->new()->parse_stylesheet( $sheet_doc );
 
 my $ua = LWP::UserAgent->new;
 
@@ -101,11 +124,28 @@ if( !$opt_collection )
 	die "\n";
 }
 
-my $eprints = query( $query );
+my $xml = query( $opt_query );
 
-submit( $opt_endpoint . $opt_collection, $eprints );
+if( $opt_dump_xml )
+{
+	print $xml->toString( 1 );
+	exit( 0 );
+}
 
-#print $eprints->toString( 1 );
+my @records = parse_xml( $xml );
+
+foreach my $rec (@records)
+{
+	if( $opt_dump_out )
+	{
+		print $rec->toString( 1 );
+	}
+	else
+	{
+		submit( $opt_endpoint . $opt_collection, $rec );
+		print STDERR "Submitted 1 record\n" if $noise;
+	}
+}
 
 sub query
 {
@@ -113,21 +153,26 @@ sub query
 
 	my $wok = SOAP::ISIWoK->new;
 
-	my $xml = $wok->search( $query, max => $opt_max );
+	return $wok->search( $query, max => $opt_max );
+}
+
+sub parse_xml
+{
+	my( $xml ) = @_;
 
 	my @records;
 
-	my $eprints = $doc->createElement( "eprints" );
-	$eprints->setAttribute( xmlns => NS_EPDATA );
-
 	foreach my $rec ($xml->getElementsByTagName( "REC" ))
 	{
-		my $epdata = xml_to_epdata( undef, undef, $rec );
-		next if !scalar keys %$epdata;
-		$eprints->appendChild( epdata_to_xml( $epdata ) );
+		my $source = XML::LibXML::Document->new;
+		$source->setDocumentElement( my $records = $doc->createElement( "RECORDS" ) );
+		$rec->parentNode->removeChild( $rec );
+		$rec->setOwnerDocument( $source );
+		$records->appendChild( $rec );
+		push @records, $stylesheet->transform( $source );
 	}
 
-	return $eprints;
+	return @records;
 }
 
 sub xml_to_epdata
@@ -287,16 +332,30 @@ sub collections
 	my $servicedoc = XML::LibXML->new->parse_string( $res->content );
 	my $xpc = XML::LibXML::XPathContext->new( $servicedoc->documentElement );
 
-	$xpc->registerNs( 'app', NS_APP );
+	print STDERR $servicedoc->toString( 1 ) if $noise > 2;
+
+	my $app_xmlns = $servicedoc->documentElement->getAttribute( "xmlns" );
+	$xpc->registerNs( 'app', $app_xmlns );
 	$xpc->registerNs( 'dcterms', NS_DCTERMS );
 	$xpc->registerNs( 'atom', NS_ATOM );
 	$xpc->registerNs( 'sword', NS_SWORD );
 	
 	my $node;
 
+	my $version;
 	( $node ) = $xpc->findnodes( "sword:version" );
-	my $version = $node->textContent;
-	Carp::croak "Only supports version 1.3, got '$version'" if $version ne "1.3";
+	( $node ) = $xpc->findnodes( "sword:level" ) if !defined $node;
+	if( defined $node )
+	{
+		$version = $node->textContent;
+		Carp::croak "Only supports version 1.3, got '$version'" if $version ne "1.3" and $version ne "1";
+	}
+	else
+	{
+		Carp::croak "Expected sword:version or sword:level node in servicedocument:\n".$servicedoc->toString( 1 );
+	}
+
+	print STDERR "SWORD version=$version\n" if $noise > 0;
 
 	my %collections;
 
@@ -313,9 +372,9 @@ sub collections
 			my $value = trim( $prop->textContent );
 			if( $prop->namespaceURI eq NS_SWORD )
 			{
-				if( $name eq "acceptPackaging" )
+				if( $name eq "acceptPackaging" ) # version 1.3
 				{
-					$ok = 1 if $value eq NS_EPDATA;
+					$ok = 1 if $value eq $NS_REQUIRED;
 					push @{$c->{accepts}}, { prefer => $prop->getAttribute( "q" ), namespaceURI => $value };
 				}
 				elsif( $name eq "collectionPolicy" )
@@ -326,6 +385,19 @@ sub collections
 				{
 					$c->{treatment} = $value;
 				}
+				elsif( $name eq "formatNamespace" ) # level 1
+				{
+					$ok = 1 if $value eq $NS_REQUIRED;
+					push @{$c->{accepts}}, { prefer => $prop->getAttribute( "q" ), namespaceURI => $value };
+				}
+				elsif( $name eq "mediation" )
+				{
+					$c->{mediation} = $value;
+				}
+				else
+				{
+					print STDERR "Unrecognised element in collection: ".$prop->namespaceURI.":$name\n" if $noise > 1;
+				}
 			}
 			elsif( $prop->namespaceURI eq NS_ATOM )
 			{
@@ -333,6 +405,22 @@ sub collections
 				{
 					$c->{title} = $value;
 				}
+				else
+				{
+					print STDERR "Unrecognised element in collection: ".$prop->namespaceURI.":$name\n" if $noise > 1;
+				}
+			}
+			elsif( $prop->namespaceURI eq NS_DCTERMS )
+			{
+				# abstract
+			}
+			elsif( $prop->namespaceURI eq $app_xmlns )
+			{
+				# accept
+			}
+			else
+			{
+				print STDERR "Unrecognised element in collection: ".$prop->namespaceURI.":$name\n" if $noise > 1;
 			}
 		}
 		if( !$ok )
@@ -350,30 +438,16 @@ sub collections
 
 sub submit
 {
-	my( $endpoint, $eprints ) = @_;
-
-	foreach my $eprint ($eprints->getElementsByLocalName( "eprint" ) )
-	{
-		submit_eprint( $endpoint, $eprint );
-	}
-}
-
-sub submit_eprint
-{
-	my( $endpoint, $eprint ) = @_;
-
-	my $eprints = $doc->createElement( "eprints" );
-	$eprints->setAttribute( xmlns => NS_EPDATA );
-
-	$eprints->appendChild( $eprint->parentNode->removeChild( $eprint ) );
+	my( $endpoint, $xml ) = @_;
 
 	my $req = HTTP::Request->new( POST => $endpoint );
 	$req->authorization_basic( $opt_username, $opt_password ) if $opt_username;
 
-	$req->header( 'X-Packaging' => NS_EPDATA );
+	$req->header( 'X-Packaging' => $NS_REQUIRED );
+	$req->header( 'X-Format-Namespace' => $NS_REQUIRED );
 	$req->content_type( 'text/xml' );
 
-	$req->content( "<?xml version='1.0'?>\n" . $eprints->toString );
+	$req->content( $xml->toString );
 
 	my $res = $ua->request( $req );
 
