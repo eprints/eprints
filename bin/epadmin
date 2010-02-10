@@ -634,7 +634,15 @@ Example: $repoid.footle.ac.uk
 
 END
 
+	HOSTNAME:
 	$config{host} = EPrints::Utils::get_input( $REGEXP_HOSTNAME_FULL, 'Hostname', $config{host} );
+
+	if( $config{host} eq "localhost" || $config{host} =~ /^\d{1,3}(.\d{1,3}){3}$/ )
+	{
+		print "Warning! Some browsers don't support setting cookies on 'localhost' or IP-addresses, please provide a different hostname.\n";
+		undef $config{host};
+		goto HOSTNAME;
+	}
 
 print <<END;
 
