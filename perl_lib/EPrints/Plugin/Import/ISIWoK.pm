@@ -136,7 +136,8 @@ sub xml_to_epdata
 	( $node ) = $rec->findnodes( "item/abstract" );
 	$epdata->{abstract} = $node->textContent if $node;
 
-	$epdata->{note} = $rec->toString( 1 );
+	# include the complete data for debug
+	$epdata->{suggestions} = $rec->toString( 1 );
 
 	return $epdata;
 }
