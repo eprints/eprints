@@ -421,7 +421,7 @@ sub get_children
 
 	if( $self->{session}->{subjects_cached} )
 	{
-		return @{$self->{session}->{subject_child_map}->{$subjectid}};
+		return @{$self->{session}->{subject_child_map}->{$subjectid} || []};
 	}
 
 	my $dataset = $self->get_dataset;
