@@ -58,6 +58,9 @@ sub handler
 	for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
 	$opts{code} = join( "", @a );
 
+	$r->status( 401 );
+	$r->custom_response( 401, '' ); # disable the normal error document
+
 	my $title = $session->html_phrase( "cgi/login:title" );
 	$session->build_page( $title, $page, "login" );
 	$session->send_page( %opts );
