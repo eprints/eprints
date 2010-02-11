@@ -3731,5 +3731,6 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="eprint_fieldname_gscholar_datestamp">Datestamp</epp:phrase>
 	<epp:phrase id="eprint_fieldname_gscholar_cluster">Cluster ID</epp:phrase>
 	<epp:phrase id="eprint_fieldname_gscholar_impact">Citations</epp:phrase>
+	<epp:phrase id="eprint_fieldname_gscholar">Google Scholar</epp:phrase>
 
 </epp:phrases>
