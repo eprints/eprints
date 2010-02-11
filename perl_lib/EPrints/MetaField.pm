@@ -1403,23 +1403,25 @@ sub get_input_elements
 			}
 		}
 	}
-	my $more = $session->make_doc_fragment;
-	$more->appendChild( $session->render_hidden_field(
-					$self->{name}."_spaces",
-					$boxcount ) );
-	$more->appendChild( $session->render_internal_buttons(
-		$self->{name}."_morespaces" => 
-			$session->phrase( 
-				"lib/metafield:more_spaces" ) ) );
-	if( defined $assist )
+	if ($self->{input_add_boxes} > 0)
 	{
-		$more->appendChild( $assist );
+		my $more = $session->make_doc_fragment;
+		$more->appendChild( $session->render_hidden_field(
+					        $self->{name}."_spaces",
+						$boxcount ) );
+		$more->appendChild( $session->render_internal_buttons(
+        		$self->{name}."_morespaces" => 
+			        $session->phrase( 
+				        "lib/metafield:more_spaces" ) ) );
+		if( defined $assist )
+		{
+			$more->appendChild( $assist );
+		}
+		my @row = ();
+		push @row, {} if( $self->{input_ordered} );
+		push @row, {el=>$more,colspan=>3,class=>"ep_form_input_grid_wide"};
+		push @{$rows}, \@row;
 	}
-
-	my @row = ();
-	push @row, {} if( $self->{input_ordered} );
-	push @row, {el=>$more,colspan=>3,class=>"ep_form_input_grid_wide"};
-	push @{$rows}, \@row;
 
 	return $rows;
 }

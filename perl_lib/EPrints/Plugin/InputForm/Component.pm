@@ -352,7 +352,8 @@ sub xml_to_metafield
 	}
 
 	my $cloned = 0;
-	foreach my $prop ( qw/ required input_lookup_url input_lookup_params top options / )
+	foreach my $prop ( qw/ required input_lookup_url input_lookup_params top options
+                               input_boxes input_add_boxes input_ordered / )
 	{
 		my $setting = $xml->getAttribute( $prop );
 		next unless EPrints::Utils::is_set( $setting );
