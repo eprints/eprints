@@ -403,20 +403,60 @@ sub order_issues_newest_open_timestamp
 	return $v;	
 }
 
+=item $eprint->fileinfo()
+
+The special B<fileinfo> field contains the icon URL and main-file URL for each non-volatile document in the eprint. This is a performance tweak to avoid having to retrieve documents when rendering eprint citations.
+
+Example:
+
+	/style/images/fileicons/application_pdf.png;/20/1/paper.pdf|/20/4.hassmallThumbnailVersion/tdb_portrait.jpg;/20/4/tdb_portrait.jpg
+
+These URLs are relative to the current repository base path ('http_url').
+
+=cut
+
+sub fileinfo
+{
+	my( $self ) = @_;
+
+	my $base_url = $self->{session}->config( 'http_url' );
+
+	local $self->{session}->{preparing_static_page} = 1; # force full URLs
+
+	my @finfo = ();
+	foreach my $doc ( $self->get_all_documents )
+	{
+		my $icon = substr($doc->icon_url,length($base_url));
+		my $url = substr($doc->get_url,length($base_url));
+		push @finfo, "$icon;$url";
+	}
+
+	return join '|', @finfo;
+}
+
 sub render_fileinfo
 {
 	my( $session, $field, $value, $alllangs, $nolink, $eprint ) = @_;
+
+	my $baseurl = $session->config( 'rel_path' );
+	if( $session->{preparing_static_page} )
+	{
+		$baseurl = $session->config( 'http_url' );
+	}
 
 	my $f = $session->make_doc_fragment;
 	my @fileinfo = map { split /;/, $_ } split /\|/, $value;
 	for(my $i = 0; $i < @fileinfo; $i+=2)
 	{
-		my $a = $session->render_link( $fileinfo[$i+1] );
+		my( $icon, $url ) = @fileinfo[$i,$i+1];
+		$icon = $baseurl . $icon if $icon !~ /^https?:/;
+		$url = $baseurl . $url if $url !~ /^https?:/;
+		my $a = $session->render_link( $url );
 		$a->appendChild( $session->make_element( 
 			"img", 
 			class=>"ep_doc_icon",
 			alt=>"file",
-			src=>$fileinfo[$i],
+			src=>$icon,
 			border=>0 ));
 		$f->appendChild( $a );
 	}
@@ -480,13 +520,7 @@ sub create_from_data
 
 	$session->get_database->counter_minimum( "eprintid", $new_eprint->get_id );
 	
-	my $docs = $new_eprint->get_value( "documents" );
-	my @finfo = ();
-	foreach my $doc ( @$docs )
-	{
-		push @finfo, $doc->icon_url.";".$doc->get_url;
-	}
-	$new_eprint->set_value( "fileinfo", join( "|", @finfo ) );
+	$new_eprint->set_value( "fileinfo", $new_eprint->fileinfo );
 
 	$session->get_database->update(
 		$new_eprint->{dataset},
@@ -946,13 +980,7 @@ sub commit
 
 	$self->update_triggers();
 
-	my @docs = $self->get_all_documents();
-	my @finfo = ();
-	foreach my $doc ( @docs )
-	{
-		push @finfo, $doc->icon_url.";".$doc->get_url;
-	}
-	$self->set_value( "fileinfo", join( "|", @finfo ) );
+	$self->set_value( "fileinfo", $self->fileinfo );
 
 	if( !$self->is_set( "datestamp" ) && $self->get_value( "eprint_status" ) eq "archive" )
 	{

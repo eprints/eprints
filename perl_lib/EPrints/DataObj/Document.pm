@@ -1460,7 +1460,14 @@ sub thumbnail_url
 	$url .= $self->get_main
 		if defined $self->get_main;
 
-	return $url;
+	if( $self->{session}->{preparing_static_page} )
+	{
+		return $url;
+	}
+
+	$url = substr($url,length($self->{session}->config( "http_url" )));
+
+	return $self->{session}->config( "rel_path" ) . $url;
 }
 
 # size => "small","medium","preview" (small is default)
@@ -1508,7 +1515,12 @@ sub icon_url
 		}
 	}
 
-	return $session->get_repository->get_conf( "http_url" )."/$rel_path/$icon";
+	if( $session->{preparing_static_page} )
+	{
+		return $session->get_repository->get_conf( "http_url" )."/$rel_path/$icon";
+	}
+
+	return $session->get_repository->get_conf( "rel_path" )."/$rel_path/$icon";
 }
 
 =item $frag = $doc->render_icon_link( %opts )
