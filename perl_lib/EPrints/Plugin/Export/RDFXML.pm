@@ -106,7 +106,7 @@ sub cache_to_rdfxml
 		push @l, "  <$x_type rdf:about=\"".attr($subject,$namespaces)."\">\n";
 		foreach my $pred ( sort keys %{ $trips } )
 		{
-			foreach my $val ( sort values %{$trips->{$pred}} )
+			foreach my $val ( sort {$a->[0] cmp $b->[0]} values %{$trips->{$pred}} )
 			{
 				my $x_pred = el($pred,$namespaces);
 				if( $x_pred =~ m/^[a-z0-9_-]+:[a-z0-9_-]+$/i )

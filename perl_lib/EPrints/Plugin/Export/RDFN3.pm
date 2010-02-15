@@ -103,7 +103,7 @@ sub cache_to_n3
 		PREDICATE: foreach my $pred ( sort keys %{ $trips } )
 		{
 			my @objects = ();
-			OBJECT: foreach my $val ( values %{$trips->{$pred}} )
+			OBJECT: foreach my $val ( sort {$a->[0] cmp $b->[0]} values %{$trips->{$pred}} )
 			{
 				if( !defined $val->[1] )
 				{

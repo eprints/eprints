@@ -32,7 +32,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	# Main Object 
 	##############################
 
-	my @ep3s;
+	my @triples;
 	my $type="";
 	if( $eprint->dataset->has_field( "type" ) && $eprint->is_set( "type" ) )
 	{
@@ -44,37 +44,37 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 			{
 				$bibo_type = "bibo:EditedBook";
 			}
-			push @ep3s, [ $eprint_uri, "rdf:type", $bibo_type ];
+			push @triples, [ $eprint_uri, "rdf:type", $bibo_type ];
 		}
 	}
-	push @ep3s, [ $eprint_uri, "rdf:type", "bibo:Article" ];
+	push @triples, [ $eprint_uri, "rdf:type", "bibo:Article" ];
 	if( $eprint->dataset->has_field( "title" ) && $eprint->is_set( "title" ) )
 	{
-		push @ep3s, [ $eprint_uri, "dct:title", $eprint->get_value( "title" ), "literal" ];
+		push @triples, [ $eprint_uri, "dct:title", $eprint->get_value( "title" ), "literal" ];
 	}
 	if( $eprint->dataset->has_field( "abstract" ) && $eprint->is_set( "abstract" ) )
 	{
-		push @ep3s, [ $eprint_uri, "bibo:abstract", $eprint->get_value( "abstract" ), "xsd:string" ];
+		push @triples, [ $eprint_uri, "bibo:abstract", $eprint->get_value( "abstract" ), "xsd:string" ];
 	}
 	if( $eprint->dataset->has_field( "date" ) && $eprint->is_set( "date" ) )
 	{
-		push @ep3s, [ $eprint_uri, "dct:date", $eprint->get_value( "date" ), "literal" ];
+		push @triples, [ $eprint_uri, "dct:date", $eprint->get_value( "date" ), "literal" ];
 	}
 		
 	my $formats = "";
 	DOC: foreach my $doc ( $eprint->get_all_documents )
 	{
-		my $doc_uri = "<".$doc->get_url.">";
+		my $doc_uri = "<".$doc->uri.">";
 		my $format = $doc->get_value( "format" );
 		my $bibo_type = "bibo:Document";
 		if( $format && $format =~ m/^image\// ) { $bibo_type = "bibo:Image"; }
 		if( $format && $format =~ m/^video\// ) { $bibo_type = "bibo:AudioVisualDocument"; }
 		if( $format && $format =~ m/^audio\// ) { $bibo_type = "bibo:AudioDocument"; }
 		if( $format && $format eq "application/vnd.ms-powerpoint" ) { $bibo_type = "bibo:Slideshow"; }
-		push @ep3s, [ $doc_uri, "rdf:type", $bibo_type ];
+		push @triples, [ $doc_uri, "rdf:type", $bibo_type ];
 	}
 
-	push @{$o{triples}->{$eprint_uri}}, @ep3s;
+	push @{$o{triples}->{$eprint_uri}}, @triples;
 
 	# Thesis
 
@@ -91,23 +91,29 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 		{
 			my $inst_name = $eprint->get_value( "institution" );
 			my $inst_uri = &{$c->{rdf}->{org_uri}}( $eprint, $inst_name );
-			push @{$o{triples}->{$inst_uri}},
-				[ $inst_uri, "rdf:type", 	"foaf:Organization" ],
-				[ $inst_uri, "foaf:name", 	$inst_name, "literal" ],
-				[ $eprint_uri, "dct:issuer",	$inst_uri ],
-			;
-			if( $eprint->dataset->has_field( "department" ) && $eprint->is_set( "department" )  )
+			if( $inst_uri )
 			{
-				my $dept_name = $eprint->get_value( "department" ).", $inst_name";
-				my $dept_uri = &{$c->{rdf}->{org_uri}}( $eprint, $dept_name );
-				push @{$o{triples}->{$dept_uri}},
-					[ $dept_uri, "rdf:type", 	"foaf:Organization" ],
-					[ $dept_uri, "foaf:name", 	$dept_name, "literal" ],
-					[ $dept_uri, "dct:isPartOf", 	$inst_uri ],
-					[ $eprint_uri, "dct:issuer",	$dept_uri ],
-				;
 				push @{$o{triples}->{$inst_uri}},
-					[ $inst_uri, "dct:hasPart", $dept_uri ];
+					[ $inst_uri, "rdf:type", 	"foaf:Organization" ],
+					[ $inst_uri, "foaf:name", 	$inst_name, "literal" ],
+					[ $eprint_uri, "dct:issuer",	$inst_uri ],
+				;
+				if( $eprint->dataset->has_field( "department" ) && $eprint->is_set( "department" )  )
+				{
+					my $dept_name = $eprint->get_value( "department" ).", $inst_name";
+					my $dept_uri = &{$c->{rdf}->{org_uri}}( $eprint, $dept_name );
+					if( $dept_uri )
+					{
+						push @{$o{triples}->{$dept_uri}},
+							[ $dept_uri, "rdf:type", 	"foaf:Organization" ],
+							[ $dept_uri, "foaf:name", 	$dept_name, "literal" ],
+							[ $dept_uri, "dct:isPartOf", 	$inst_uri ],
+							[ $eprint_uri, "dct:issuer",	$dept_uri ],
+						;
+						push @{$o{triples}->{$inst_uri}},
+							[ $inst_uri, "dct:hasPart", $dept_uri ];
+					}
+				}
 			}
 		}
 	}
@@ -155,7 +161,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 
 	if( $eprint->dataset->has_field( "isbn" ) && $eprint->is_set( "isbn" ) )
 	{
-		my $isbn = eprint->get_value( "isbn" );
+		my $isbn = $eprint->get_value( "isbn" );
 		$isbn =~ s/[^0-9X]//g;
 		if( $type eq "book" )
 		{
@@ -169,10 +175,13 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 		}
 		my $org_name = $eprint->get_value( "publisher" );
 		my $org_uri = &{$c->{rdf}->{org_uri}}( $eprint, $org_name );
-		push @{$o{triples}->{$org_uri}},
-			[ $org_uri, "rdf:type", 	"foaf:Organization" ],
-			[ $org_uri, "foaf:name", 	$org_name, "literal" ],
-		;
+		if( $org_uri )
+		{
+			push @{$o{triples}->{$org_uri}},
+				[ $org_uri, "rdf:type", 	"foaf:Organization" ],
+				[ $org_uri, "foaf:name", 	$org_name, "literal" ],
+			;
+		}
 	}
 
 	# Publisher
@@ -182,11 +191,14 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	{
 		my $publisher_name = $eprint->get_value( "publisher" );
 		$publisher_uri = &{$c->{rdf}->{org_uri}}( $eprint, $publisher_name );
-		push @{$o{triples}->{$publisher_uri}},
-			[ $publisher_uri, "rdf:type", 	"foaf:Organization" ],
-			[ $publisher_uri, "foaf:name", 	$publisher_name, "literal" ],
-			[ $eprint_uri, "dct:publisher",	$publisher_uri ],
-		;
+		if( $publisher_uri )
+		{
+			push @{$o{triples}->{$publisher_uri}},
+				[ $publisher_uri, "rdf:type", 	"foaf:Organization" ],
+				[ $publisher_uri, "foaf:name", 	$publisher_name, "literal" ],
+				[ $eprint_uri, "dct:publisher",	$publisher_uri ],
+			;
+		}
 	}
 
 	# Publication
@@ -371,7 +383,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 [ $event_uri, 	"event:place", 		$event_loc_uri ];
 
 		push @{$o{triples}->{$event_loc_uri}},
-[ $event_uri,	"rdf:type",		"bibo:Conference" ],
+[ $event_uri,	"rdf:type",		"event:Event" ],
 [ $event_uri,	"event:place",		$event_loc_uri ],
 [ $event_loc_uri,	"foaf:name",	$event_location, "xsd:string" ];
 	}

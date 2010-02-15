@@ -41,8 +41,15 @@ sub cache_general_triples
 {
 	my( $plugin, $cache ) = @_;
 
+	$plugin->cache_trigger_triples( $cache, "general" );
+}
+
+sub cache_trigger_triples
+{
+	my( $plugin, $cache, $trigger ) = @_;
+
 	my $triples = {};
-	$plugin->{session}->run_trigger( "rdf_triples_general",  triples=>$triples );
+	$plugin->{session}->run_trigger( "rdf_triples_$trigger", triples=>$triples );
 
 	foreach my $resource ( keys %{$triples} )
 	{

@@ -1,0 +1,62 @@
+######################################################################
+#
+#  EPrints Repository Info Exporter
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+
+use strict;
+my $repository = EPrints->new->current_repository;
+exit( 0 ) unless( defined $repository );
+# $repository->get_database->set_debug( 1 );
+
+my $path_info = $repository->get_request->path_info;
+
+unless( $path_info =~ m!^/([^/]+)! )
+{
+	error( $repository, $repository->html_phrase( "cgi/repositoryinfo:no_format" ) );
+	exit;
+}
+
+my $format = $1;
+
+my $plugin = $repository->plugin( "Export::$format" );
+if( !$plugin || !$plugin->matches("handles_rdf",1) )
+{
+	error( $repository, $repository->html_phrase( "cgi/export:not_available",
+				format => $repository->make_text( $format ) ) );
+	exit;
+}
+
+my $cache = {};
+$plugin->cache_general_triples( $cache );
+$plugin->cache_trigger_triples( $cache, "repository" );
+$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
+my $namespaces = $plugin->get_namespaces();
+print $plugin->output_triple_cache( $cache, $namespaces );
+
+	
+exit;
+
+
+
+sub error
+{
+	my( $repository, $msg ) = @_;
+
+	$repository->build_page( 
+		$repository->html_phrase( "cgi/export:error_title" ),
+		$msg,
+		"export_error" );
+	$repository->send_page;
+}
+

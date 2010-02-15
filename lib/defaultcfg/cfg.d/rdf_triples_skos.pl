@@ -50,8 +50,21 @@ $c->add_trigger( "rdf_triples_subject", sub {
 
 	foreach my $parent_id ( @{$subject->get_value("parents")} )
 	{
-		next if( $parent_id eq "ROOT" );
-		push @l, [ $subject_uri, "skos:broader", "<".$subject_prefix.$parent_id.">" ];
+		if( $parent_id eq "ROOT" )
+		{
+			my $scheme_uri = "<$uri#scheme>";
+			push @l, [ $subject_uri, "skos:topConceptOf", $scheme_uri ];
+			push @l, [ $scheme_uri, "skos:hasTopConcept", $subject_uri ];
+			push @l, [ $scheme_uri, "rdf:type", "skos:ConceptScheme" ];
+			foreach my $name ( @{$subject->get_value( "name" )} )
+			{
+				push @l, [ $scheme_uri, "dct:title", $name->{name}, "literal", $name->{lang} ];
+			}
+		}
+		else
+		{
+			push @l, [ $subject_uri, "skos:broader", "<".$subject_prefix.$parent_id.">" ];
+		}
 	}
 
 	push @{$o{triples}->{$subject_uri}}, @l;

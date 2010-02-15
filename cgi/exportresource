@@ -47,6 +47,7 @@ if( !$plugin || !$plugin->matches("handles_rdf",1) )
 }
 
 my $cache = {};
+$plugin->cache_general_triples( $cache );
 RECORD: foreach my $eprint ( @records )
 {
 	$plugin->cache_dataobj_triples( $eprint, $cache, "epx:$type/$id" );

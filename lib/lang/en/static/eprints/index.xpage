@@ -90,16 +90,18 @@ EPrints Community members for advice and bug reports.</p>
 <a href="http://perl.apache.org/">mod_perl</a>,
 <a href="http://www.w3c.org/XML/">XML</a>,
 <a href="http://www.w3c.org/DOM/">DOM</a>,
+<a href="http://www.w3c.org/RDF/">RDF</a>,
 <a href="http://paracite.eprints.org/">ParaCite</a>,
-<a href="http://www.eprints.org/software/">GNU EPrints</a>.
+<a href="http://www.eprints.org/software/">EPrints</a>.
 </p>
 
 
 <p><strong>Supports:</strong>
 <a href="http://www.openarchives.org/">Open Archives Initiative Protocol for Metadata Harvesting</a>,
-<a href="vlit.html">VLit Transclusions</a>,
 <a href="http://www.w3.org/MarkUp/">Valid XHTML</a>,
-<a href="http://jigsaw.w3.org/css-validator/">Valid CSS</a>.
+<a href="http://jigsaw.w3.org/css-validator/">Valid CSS</a>,
+<a href="http://linkeddata.org/">Linked Data</a>.
+
 </p>
 
 <p><strong>Part of:</strong>
@@ -108,12 +110,9 @@ EPrints Community members for advice and bug reports.</p>
 
 <epc:phrase ref="ruler" />
 
-<div align="center">
-<table bgcolor="#ffffff" border="0" cellpadding="8" cellspacing="0"><tr><td>
-<a href="http://www.soton.ac.uk/"><img src="{$config{rel_path}}/images/uoslogo.png" border="0" alt="University of Southampton" align="top"/></a>
-<a href="http://www.ecs.soton.ac.uk/"><img src="{$config{rel_path}}/images/ecslogo.png" border="0" alt="School of Electronics and Computer Science" align="top"/></a>
-</td></tr></table>
-<p>GNU EPrints is Copyright &copy; University of Southampton, 2000-2006.</p>
+<div align="center" style='margin-top:2em'>
+<a href="http://www.ecs.soton.ac.uk/"><img src="{$config{rel_path}}/images/ecslogo.jpg" border="0" alt="School of Electronics and Computer Science, University of Southampton" align="top"/></a>
+<p>EPrints is Copyright &copy; University of Southampton, 2000-2010.</p>
 </div>
 
 

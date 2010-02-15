@@ -38,7 +38,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	# Main Object 
 	##############################
 
-	my @ep3s;
+	my @triples;
 	if( $eprint->is_set( "relation" ) )
 	{
 		foreach my $rel ( @{ $eprint->get_value( "relation" ) } )
@@ -54,27 +54,27 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 			{
 				$pred="<$pred>";
 			}
-			push @ep3s, [ $eprint_uri, $pred, "<$uri>" ];
+			push @triples, [ $eprint_uri, $pred, "<$uri>" ];
 		}
 	}
-	push @ep3s, [ $eprint_uri, "rdf:type", "ep:EPrint" ];
-	push @ep3s, [ $eprint_uri, "dct:isPartOf", "<".$c->{base_url}."/id/repository>" ];
+	push @triples, [ $eprint_uri, "rdf:type", "ep:EPrint" ];
+	push @triples, [ $eprint_uri, "dct:isPartOf", "<".$c->{base_url}."/id/repository>" ];
 		
 	DOC: foreach my $doc ( @{$eprint->get_value( "documents" )} )
 	{
 		my $doc_uri = "<".$doc->uri.">";
 
-		push @ep3s, [ $eprint_uri, "ep:hasDocument", $doc_uri ];
-		push @ep3s, [ $doc_uri, "rdf:type", "ep:Document" ];
+		push @triples, [ $eprint_uri, "ep:hasDocument", $doc_uri ];
+		push @triples, [ $doc_uri, "rdf:type", "ep:Document" ];
 
 		my $content = $doc->get_value( "content" );
 		if( $content && $c->{rdf}->{content_rel_dc}->{$content} )
 		{
-			push @ep3s, [ $eprint_uri, $c->{rdf}->{content_rel_dc}->{$content}, $doc_uri ];
+			push @triples, [ $eprint_uri, $c->{rdf}->{content_rel_dc}->{$content}, $doc_uri ];
 		}
 		if( $content && $c->{rdf}->{content_rel_ep}->{$content} )
 		{
-			push @ep3s, [ $eprint_uri, $c->{rdf}->{content_rel_ep}->{$content}, $doc_uri ];
+			push @triples, [ $eprint_uri, $c->{rdf}->{content_rel_ep}->{$content}, $doc_uri ];
 		}
 
 		if( $doc->is_set( "relation" ) )
@@ -94,7 +94,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 				{
 					$pred="<$pred>";
 				}
-				push @ep3s, [ $doc_uri, $pred, "<$uri>" ];
+				push @triples, [ $doc_uri, $pred, "<$uri>" ];
 			}
 		}
 	
@@ -104,7 +104,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 			my $license_uri = $c->{rdf}->{license_uri}->{$doc->get_value("license")};
 			if( defined $license_uri )
 			{
-				push @ep3s, [ $doc_uri, "cc:license", "<$license_uri>" ];
+				push @triples, [ $doc_uri, "cc:license", "<$license_uri>" ];
 			}
 		}
 
@@ -113,12 +113,12 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 			FILE: foreach my $file ( @{$doc->get_value( "files" )} )
 			{
 				my $url = $doc->get_url( $file->get_value( "filename" ) );
-				push @ep3s, [ $doc_uri, "ep:hasFile", "<$url>" ];
-				push @ep3s, [ $doc_uri, "dct:hasPart", "<$url>" ];
+				push @triples, [ $doc_uri, "ep:hasFile", "<$url>" ];
+				push @triples, [ $doc_uri, "dct:hasPart", "<$url>" ];
 			}
 		}
 	}	
 
-	push @{$o{triples}->{$eprint_uri}}, @ep3s;
+	push @{$o{triples}->{$eprint_uri}}, @triples;
 } );
 
