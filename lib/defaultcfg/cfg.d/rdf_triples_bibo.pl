@@ -202,11 +202,11 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 				[ $publication_uri, "foaf:name", 	$publication_name, "literal" ],
 				[ $eprint_uri, "dct:isPartOf",	$publication_uri ],
 			;
-			if( $eprint->dataset->has_field( "issn" ) )
+			if( $eprint->dataset->has_field( "issn" ) && $eprint->is_set( "issn" ))
 			{
 				my $issn = $eprint->get_value( "issn" );
 				$issn =~ s/[^0-9X]//g;
-			push @{$o{triples}->{$publication_uri}},
+				push @{$o{triples}->{$publication_uri}},
 				[ $publication_uri, "owl:sameAs", "<urn:issn:$issn>" ];
 			}
 		}
