@@ -101,8 +101,18 @@ if( !defined $plugin )
 
 $session->send_http_header( "content_type"=>$plugin->param("mimetype") );
 
+my %arguments = %{$plugin->param( "arguments" )};
+# fetch the plugin arguments, if any
+foreach my $argname (keys %arguments)
+{
+	if( defined $session->param( $argname ) )
+	{
+		$arguments{$argname} = $session->param( $argname );
+	}
+}
+
 my $list = $search->perform_search;
-print $list->export( $format );	
+print $list->export( $format, %arguments );	
 	
 $list->dispose;
 

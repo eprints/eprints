@@ -3315,15 +3315,15 @@ Each file inside this archive will be created as an <b>individual</b> document i
   <epp:phrase id="languages_typename_?">[undefined]</epp:phrase>  
 
 
-  <epp:phrase id="licenses_typename_cc_by_nd">Creative Commons Attribution No Derivatives</epp:phrase>
-  <epp:phrase id="licenses_typename_cc_by">Creative Commons Attribution</epp:phrase>
-  <epp:phrase id="licenses_typename_cc_by_nc">Creative Commons Attribution Non-commercial</epp:phrase>
-  <epp:phrase id="licenses_typename_cc_by_nc_nd">Creative Commons Attribution Non-commercial No Derivatives</epp:phrase>
-  <epp:phrase id="licenses_typename_cc_by_nc_sa">Creative Commons Attribution Non-commercial Share Alike</epp:phrase>
-  <epp:phrase id="licenses_typename_cc_by_sa">Creative Commons Attribution Share Alike</epp:phrase>
-  <epp:phrase id="licenses_typename_cc_public_domain">Creative Commons Public Domain Dedication</epp:phrase>
-  <epp:phrase id="licenses_typename_cc_gnu_gpl">Creative Commons GNU GPL (Software)</epp:phrase>
-  <epp:phrase id="licenses_typename_cc_gnu_lgpl">Creative Commons GNU LGPL (Software)</epp:phrase>
+  <epp:phrase id="licenses_typename_cc_by_nd">Creative Commons: Attribution-No Derivative Works 3.0</epp:phrase>
+  <epp:phrase id="licenses_typename_cc_by">Creative Commons: Attribution 3.0</epp:phrase>
+  <epp:phrase id="licenses_typename_cc_by_nc">Creative Commons: Attribution-Noncommercial 3.0</epp:phrase>
+  <epp:phrase id="licenses_typename_cc_by_nc_nd">Creative Commons: Attribution-Noncommercial-No Derivative Works 3.0</epp:phrase>
+  <epp:phrase id="licenses_typename_cc_by_nc_sa">Creative Commons: Attribution-Noncommercial-Share Alike 3.0</epp:phrase>
+  <epp:phrase id="licenses_typename_cc_by_sa">Creative Commons: Attribution-Share Alike 3.0</epp:phrase>
+  <epp:phrase id="licenses_typename_cc_public_domain">Creative Commons: Public Domain Dedication</epp:phrase>
+  <epp:phrase id="licenses_typename_cc_gnu_gpl">Creative Commons: GNU GPL (Software) 2.0</epp:phrase>
+  <epp:phrase id="licenses_typename_cc_gnu_lgpl">Creative Commons: GNU LGPL (Software) 2.1</epp:phrase>
 
 
   <epp:phrase id="licenses_description_cc_by_nd"><a href="http://creativecommons.org/licenses/by-nd/2.5/">Creative Commons Attribution No Derivatives</a></epp:phrase>

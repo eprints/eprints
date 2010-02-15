@@ -118,7 +118,25 @@ sub handler
 
 	if( $uri =~ m! ^$urlpath/id/x-(.*)$ !x )
 	{
-		my $url = $repository->config( "http_cgiurl" )."/exportresource/$1";
+		my $id = $1;
+		my $accept = EPrints::Apache::AnApache::header_in( $r, "Accept" );
+		$accept = "application/rdf+xml" unless defined $accept;
+
+		my $plugin = content_negotiate_best_plugin( 
+			$repository, 
+			accept_header => $accept,
+			consider_summary_page => 0,
+			plugins => [$repository->plugin_list(
+				type => "Export",
+				is_visible => "all",
+				handles_rdf => 1 )]
+		);
+
+		my $fn = $id;
+		$fn=~s/\//_/g;
+		my $url = $repository->config( "http_cgiurl" )."/exportresource/".
+			$id."/".$plugin->get_subtype."/$fn.".$plugin->param("suffix");
+
 		return redir_see_other( $r, $url );
 	}
 
@@ -136,6 +154,25 @@ sub handler
 		my $url;
 		if( defined $item )
 		{
+			# Subject URI's redirect to the top of that particular subject tree
+			# rather than the node in the tree. (the ancestor with "ROOT" as a parent).
+			if( $item->dataset->id eq "subject" )
+			{
+				ANCESTORS: foreach my $anc_subject_id ( @{$item->get_value( "ancestors" )} )
+				{
+					my $anc_subject = $repository->dataset("subject")->dataobj($anc_subject_id);
+					next ANCESTORS if( !$anc_subject );
+					next ANCESTORS if( !$anc_subject->is_set( "parents" ) );
+					foreach my $anc_subject_parent_id ( @{$anc_subject->get_value( "parents" )} )
+					{
+						if( $anc_subject_parent_id eq "ROOT" )
+						{
+							$item = $anc_subject;
+							last ANCESTORS;
+						}
+					}
+				}
+			}
 			# content negotiation. Only worries about type, not charset
 			# or language etc. at this stage.
 			#
@@ -145,6 +182,7 @@ sub handler
 			my $match = content_negotiate_best_plugin( 
 				$session, 
 				accept_header => $accept,
+				consider_summary_page => ( $dataset->confid eq "eprint" ? 1 : 0 ),
 				plugins => [$repository->plugin_list(
 					type => "Export",
 					is_visible => "all",
@@ -291,7 +329,7 @@ sub content_negotiate_best_plugin
 	my $pset = {};
 	if( $o{consider_summary_page} )
 	{
-		$pset->{"text/html"} = { qs=>0.9, DEFAULT_SUMMARY_PAGE=>1 };
+		$pset->{"text/html"} = { qs=>0.99, DEFAULT_SUMMARY_PAGE=>1 };
 	}
 
 	foreach my $a_plugin_id ( @{$o{plugins}} )
@@ -304,14 +342,13 @@ sub content_negotiate_best_plugin
 	}
 	my @pset_order = sort { $pset->{$b}->{qs} <=> $pset->{$a}->{qs} } keys %{$pset};
 
-	my $accepts = {};
+	my $accepts = { "*/*" => { q=>0.000001 }};
 	CHOICE: foreach my $choice ( split( /\s*,\s*/, $o{accept_header} ) )
 	{
 		my( $mime, %params ) = split( /\s*[;=]\s*/, $choice );
 		$params{q} = 1 unless defined $params{q};
 		$accepts->{$mime} = \%params;
 	}
-
 	my @acc_order = sort { $accepts->{$b}->{q} <=> $accepts->{$a}->{q} } keys %{$accepts};
 
 	my $match;

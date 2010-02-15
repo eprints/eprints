@@ -4,9 +4,9 @@ package EPrints::Plugin::Export::RDFXML;
 
 # documents needs magic files field
 
-use EPrints::Plugin::Export;
+use EPrints::Plugin::Export::RDF;
 
-@ISA = ( "EPrints::Plugin::Export" );
+@ISA = ( "EPrints::Plugin::Export::RDF" );
 
 use strict;
 
@@ -17,32 +17,31 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "RDF+XML";
-	$self->{accept} = [ 'list/eprint', 'dataobj/eprint' ];
+	$self->{accept} = [ 'list/eprint', 'dataobj/eprint', 'list/subject', 'dataobj/subject' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".rdf";
 	$self->{mimetype} = "application/rdf+xml";
-	$self->{qs} = 0.9;
+	$self->{qs} = 0.85;
 
 	return $self;
 }
 
+
 # static method
 sub rdf_header 
 {
-	my( $repository ) = @_;
-
-	my $xmlnss = $repository->get_conf( "rdf","xmlns");
+	my( $repository, $namespaces ) = @_;
 
 	my @r = ();
 	push @r, "<?xml version='1.0' encoding='UTF-8'?>\n";
 	push @r, "<!DOCTYPE rdf:RDF [\n";
-	foreach my $xmlns ( keys %{$xmlnss} )
+	foreach my $xmlns ( keys %{$namespaces} )
 	{
-		push @r, "\t<!ENTITY $xmlns '".$xmlnss->{$xmlns}."'>\n";
+		push @r, "\t<!ENTITY $xmlns '".$namespaces->{$xmlns}."'>\n";
 	}
 	push @r, "]>\n";
 	push @r, "<rdf:RDF";
-	foreach my $xmlns ( keys %{$xmlnss} )
+	foreach my $xmlns ( keys %{$namespaces} )
 	{
 		push @r, " xmlns:$xmlns='&$xmlns;'";
 	}
@@ -56,28 +55,16 @@ sub rdf_footer
 	return "\n\n</rdf:RDF>\n";
 }
 
-sub add_eprint_triples
-{
-	my( $eprint, $cache, $uri ) = @_;
-
-	TRIP: foreach my $trip ( @{ $eprint->get_value( "rdf" ) } )
-	{
-		next TRIP if( $uri && $trip->{resource} ne $uri );
-		my $hashkey = $trip->{object}.'^^'.($trip->{type}||"");
-		$cache->{$trip->{subject}}->{$trip->{predicate}}->{$hashkey} =
-			[ $trip->{object}, $trip->{type} ];
-	}
-}
-
 sub output_list
 {
 	my( $plugin, %opts ) = @_;
 
 	my $cache = {};
+	$plugin->cache_general_triples( $cache );
 	$opts{list}->map( sub {
 		my( $session, $dataset, $dataobj ) = @_;
 
-		add_eprint_triples( $dataobj, $cache );
+		$plugin->cache_dataobj_triples( $dataobj, $cache );
 	} );
 
 	return $plugin->output_triple_cache( $cache, %opts );
@@ -88,20 +75,20 @@ sub output_triple_cache
 	my( $plugin, $cache, %opts ) = @_;
 
 	my $repository = $plugin->{session}->get_repository;
-	my $xmlns = $repository->get_conf( "rdf","xmlns");
+	my $namespaces = $plugin->get_namespaces();
 
 	if( defined $opts{fh} )
 	{
-		print {$opts{fh}} rdf_header( $repository );
-		print {$opts{fh}} cache_to_rdfxml( $cache, $xmlns );
+		print {$opts{fh}} rdf_header( $repository, $namespaces );
+		print {$opts{fh}} cache_to_rdfxml( $cache, $namespaces );
 		print {$opts{fh}} rdf_footer( $repository );
 		return undef;
 	}
 	else
 	{
 		my $r = [];
-		push @{$r}, rdf_header( $repository );
-		push @{$r}, cache_to_rdfxml( $cache, $xmlns);
+		push @{$r}, rdf_header( $repository, $namespaces );
+		push @{$r}, cache_to_rdfxml( $cache, $namespaces);
 		push @{$r}, rdf_footer( $repository );
 		return join( '', @{$r} );
 	}
@@ -109,35 +96,48 @@ sub output_triple_cache
 
 sub cache_to_rdfxml
 {
-	my( $cache, $xmlns ) = @_;
+	my( $cache, $namespaces ) = @_;
 
 	my @l = ();
-	foreach my $subject ( keys %{$cache} )
+	foreach my $subject ( sort keys %{$cache} )
 	{
 		my $trips = $cache->{$subject};
 		my $x_type = "rdf:Description";
-		push @l, "  <$x_type rdf:about=\"".attr($subject,$xmlns)."\">\n";
-		foreach my $pred ( keys %{ $trips } )
+		push @l, "  <$x_type rdf:about=\"".attr($subject,$namespaces)."\">\n";
+		foreach my $pred ( sort keys %{ $trips } )
 		{
-			foreach my $val ( values %{$trips->{$pred}} )
+			foreach my $val ( sort values %{$trips->{$pred}} )
 			{
-				my $x_pred = el($pred,$xmlns);
-				if( !defined $val->[1] )
+				my $x_pred = el($pred,$namespaces);
+				if( $x_pred =~ m/^[a-z0-9_-]+:[a-z0-9_-]+$/i )
 				{
-					push @l, "    <$x_pred rdf:resource=\"".attr($val->[0],$xmlns)."\" />\n";
+					push @l, "    <$x_pred";
+				}
+				elsif( $x_pred =~ m/^(.*[^a-z0-9_-])([a-z0-9_-]+)$/i )
+				{
+					push @l, "    <nsx:$2 xmlns:nsx='$1'";
 				}
 				else
 				{
-					if( $val->[1] eq "plain" )
+					warn "Odd subject ID: '$x_pred'";
+					next;
+				}
+				if( !defined $val->[1] )
+				{
+					push @l, " rdf:resource=\"".attr($val->[0],$namespaces)."\" />\n";
+				}
+				else
+				{
+					if( $val->[1] ne "literal" )
 					{
-						push @l, "    <$x_pred>";
+						push @l, " rdf:datatype=\"".attr($val->[1],$namespaces)."\"";
 					}
-					else
+					if( defined $val->[2] )
 					{
-						push @l, "    <$x_pred rdf:datatype=\"".attr($val->[1],$xmlns)."\">";
+						push @l, " xml:lang=\"".$val->[2]."\"";
 					}
 					my $x_val = val( $val->[0] );
-					push @l, "$x_val</$x_pred>\n";
+					push @l, ">$x_val</$x_pred>\n";
 				}
 			}
 		}
@@ -159,7 +159,7 @@ sub val
 
 sub el 
 {
-	my( $obj_id, $xmlns ) = @_;
+	my( $obj_id, $namespaces ) = @_;
 
 	if( $obj_id =~ /^<(.*)>$/ ) { return $1; }
 
@@ -169,9 +169,9 @@ sub el
 	}
 
 	my( $ns, $value ) = split( /:/, $obj_id, 2 );
-	if( !defined $xmlns->{$ns} )
+	if( !defined $namespaces->{$ns} )
 	{
-		warn "Unknown namespace prefix in RDF data: $obj_id";
+		warn "Unknown namespace prefix '$ns' in RDF data: $obj_id";
 		return $obj_id;
 	}
 
@@ -180,7 +180,7 @@ sub el
 
 sub attr 
 {
-	my( $obj_id, $xmlns ) = @_;
+	my( $obj_id, $namespaces ) = @_;
 
 	if( $obj_id =~ /^<(.*)>$/ ) { return $1; }
 
@@ -190,13 +190,20 @@ sub attr
 	}
 
 	my( $ns, $value ) = split( /:/, $obj_id, 2 );
-	if( !defined $xmlns->{$ns} )
+	if( !defined $namespaces->{$ns} )
 	{
 		warn "Unknown namespace prefix '$ns' in RDF data: $obj_id";
 		return $obj_id;
 	}
 
 	return "&$ns;$value";
+}
+
+sub initialise_fh
+{
+	my( $plugin, $fh ) = @_;
+
+	binmode($fh, ":utf8");
 }
 
 sub output_dataobj
@@ -206,12 +213,11 @@ sub output_dataobj
 	my $repository = $plugin->{session}->get_repository;
 
 	my $cache = {};
-	add_eprint_triples( $dataobj, $cache );
-	my $xmlns = $repository->get_conf( "rdf","xmlns");
+	$plugin->cache_general_triples( $cache );
+	$plugin->cache_dataobj_triples( $dataobj, $cache );
+	my $namespaces = $plugin->get_namespaces();
 
-	return $plugin->output_triple_cache( $cache, $xmlns );
+	return $plugin->output_triple_cache( $cache, $namespaces );
 }
 
-
-	
 1;

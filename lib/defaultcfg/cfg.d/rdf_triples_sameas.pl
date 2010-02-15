@@ -1,5 +1,5 @@
 
-$c->add_trigger( "rdf_triples", sub {
+$c->add_trigger( "rdf_triples_eprint", sub {
 	my( %o ) = @_;
 	my $eprint = $o{"eprint"};
 	my $eprint_uri = "<".$eprint->uri.">";

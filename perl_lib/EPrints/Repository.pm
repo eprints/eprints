@@ -1445,9 +1445,10 @@ sub config($$@)
 
 sub run_trigger
 {
-	my( $self, $event_id, %params ) = @_;
-	
+	my( $self,$event_id, %params ) = @_;
+
 	my $fns = $self->config( "triggers", $event_id );
+	$params{repository} = $self;
 
 	return if !defined $fns;
 	foreach my $pri ( sort { $a <=> $b } keys %{$fns} )

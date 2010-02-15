@@ -1,7 +1,7 @@
-package EPrints::Plugin::Export::RDFN3;
+package EPrints::Plugin::Export::RDFNT;
 
 use EPrints::Plugin::Export::RDF;
-use EPrints::Plugin::Export::RDFXML;
+use EPrints::Plugin::Export::RDFXML
 
 @ISA = ( "EPrints::Plugin::Export::RDF" );
 
@@ -13,30 +13,15 @@ sub new
 
 	my $self = $class->SUPER::new( %params );
 
-	$self->{name} = "RDF+N3";
-	$self->{accept} = [ 'list/*', 'dataobj/*' ];
+	$self->{name} = "RDF+N-Triples";
+	$self->{accept} = [ 'list/eprint', 'dataobj/eprint', 'list/subject', 'dataobj/subject' ];
 	$self->{visible} = "all";
-	$self->{suffix} = ".n3";
-	$self->{mimetype} = "text/n3";
-	$self->{qs} = 0.84;
+	$self->{suffix} = ".nt";
+	$self->{mimetype} = "text/plain";
+	$self->{qs} = 0.5;
 
 	return $self;
 }
-
-# static method
-sub n3_header 
-{
-	my( $repository, $namespaces ) = @_;
-
-	my @r = ();
-	foreach my $xmlns ( keys %{$namespaces} )
-	{
-		push @r, "  \@prefix $xmlns: <".$namespaces->{$xmlns}."> .\n";
-	}
-
-	return join( "", @r );
-}
-
 
 sub output_dataobj
 {
@@ -78,38 +63,38 @@ sub output_triple_cache
 
 	if( defined $opts{fh} )
 	{
-		print {$opts{fh}} n3_header( $repository, $namespaces );
-		print {$opts{fh}} cache_to_n3( $cache, $namespaces );
+		print {$opts{fh}} cache_to_ntriples( $cache, $namespaces );
 		return undef;
 	}
 	else
 	{
 		my $r = [];
-		push @{$r}, n3_header( $repository, $namespaces );
-		push @{$r}, cache_to_n3( $cache, $namespaces);
+		push @{$r}, cache_to_ntriples( $cache, $namespaces);
 		return join( '', @{$r} );
 	}
 }
 
-sub cache_to_n3
+sub cache_to_ntriples
 {
 	my( $cache, $namespaces ) = @_;
 
 	my @l = ();
-	SUBJECT: foreach my $subject ( sort keys %{$cache} )
+	SUBJECT: foreach my $subject ( keys %{$cache} )
 	{
+		my $s_uri = expand_uri( $subject, $namespaces );
+		next SUBJECT if !defined $s_uri;
 		my $trips = $cache->{$subject};
-		my @preds = ();
-		PREDICATE: foreach my $pred ( sort keys %{ $trips } )
+		PREDICATE: foreach my $pred ( keys %{ $trips } )
 		{
-			my @objects = ();
+			my $p_uri = expand_uri( $pred, $namespaces );
+			next PREDICATE if !defined $p_uri;
 			OBJECT: foreach my $val ( values %{$trips->{$pred}} )
 			{
 				if( !defined $val->[1] )
 				{
 					my $uri = expand_uri($val->[0],$namespaces);
 					next OBJECT if !defined $uri;
-					push @objects, $uri;
+					push @l, "$s_uri $p_uri $uri .\n";
 				}
 				else
 				{
@@ -129,14 +114,10 @@ sub cache_to_n3
 					{
 						$data.='^^'.expand_uri( $val->[1], $namespaces );
 					}
-					push @objects, $data;
+					push @l, "$s_uri $p_uri $data .\n";
 				}
 			}
-			push @preds, "\t".$pred." ".join( ",\n		", @objects );
 		}
-		my $uri = expand_uri($subject,$namespaces);
-		next SUBJECT if !defined $uri;
-		push @l, "$uri\n".join( ";\n", @preds )." .\n\n";
 	}
 	return join ('',@l);
 }
@@ -162,7 +143,5 @@ sub expand_uri
 	return "<".$namespaces->{$ns}.$value.">";
 }
 
-	
-	
 	
 1;

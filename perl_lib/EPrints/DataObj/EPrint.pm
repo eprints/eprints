@@ -185,8 +185,7 @@ sub get_system_field_info
 		fields => [
 			{
 				sub_name => "type",
-				type => "namedset",
-				set_name => "document_relation",
+				type => "text",
 			},
 			{
 				sub_name => "uri",
@@ -272,6 +271,7 @@ sub get_system_field_info
 			{ 'sub_name' => 'predicate', 'type' => 'longtext', sql_index => 0, text_index=>0 },
 			{ 'sub_name' => 'object',    'type' => 'longtext', sql_index => 0, text_index=>0 },
 			{ 'sub_name' => 'type',      'type' => 'longtext', sql_index => 0, text_index=>0 },
+			{ 'sub_name' => 'lang',      'type' => 'text', sql_index => 0, text_index=>0 },
 		],
 		render_value=>"EPrints::DataObj::EPrint::render_rdf_field",
 	},
@@ -564,26 +564,9 @@ sub update_triggers
 
 	$self->SUPER::update_triggers();
 
-	my $repository = $self->get_session->get_repository;
-
 	if( $self->get_value( "eprint_status" ) eq "archive" )
 	{
-		my $triples = {};
-		$repository->run_trigger( "rdf_triples", eprint=>$self, triples=>$triples );
-		my $t = [];
-		foreach my $resource ( keys %{$triples} )
-		{
-			foreach my $spo ( @{$triples->{$resource}} )
-			{
-				push @{$t}, {
-					resource=>$resource,
-					subject=>$spo->[0],
-					predicate=>$spo->[1],
-					object=>$spo->[2],
-					type=>$spo->[3] };
-			}
-		}
-		$self->set_value( "rdf", $t );
+		$self->set_value( "rdf", $self->convert_to_triples );
 	}
 }
 

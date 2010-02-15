@@ -173,8 +173,7 @@ sub get_system_field_info
 			fields => [
 				{
 					sub_name => "type",
-					type => "namedset",
-					set_name => "document_relation",
+					type => "text",
 				},
 				{
 					sub_name => "uri",

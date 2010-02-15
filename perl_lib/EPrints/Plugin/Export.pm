@@ -17,6 +17,7 @@ sub new
 	$self->{visible} = "all";
 	$self->{mimetype} = "text/plain";
 	$self->{advertise} = 1;
+	$self->{handles_rdf} = 0;
 	$self->{arguments} = {};
 
 	# q is used to describe quality. Use it to increase or decrease the 
@@ -41,6 +42,21 @@ sub has_argument
 
 	return exists $self->{arguments}->{$arg};
 }
+
+sub param 
+{
+	my( $self, $paramid ) = @_;
+
+	# Allow args to override mimetype
+	if( $paramid eq "mimetype" && defined $self->{session}->param( "mimetype" ) )
+	{
+		return $self->{session}->param( "mimetype" );
+	}
+	
+	return $self->SUPER::param( $paramid );
+}
+		
+
 
 sub render_name
 {
@@ -76,6 +92,10 @@ sub matches
 	if( $test eq "is_advertised" )
 	{
 		return( $self->param( "advertise" ) == $param );
+	}
+	if( $test eq "handles_rdf" )
+	{
+		return( $self->param( "handles_rdf" ) == $param );
 	}
 
 	# didn't understand this match 
@@ -204,7 +224,7 @@ sub dataobj_export_url
 	my( $plugin, $dataobj, $staff ) = @_;
 
 	my $dataset = $dataobj->get_dataset;
-	if( $dataset->confid ne "eprint" ) {
+	if( $dataset->confid ne "eprint" && $dataset->confid ne "subject" ) {
 		# only know URLs for eprint objects
 		return undef;
 	}
@@ -220,7 +240,9 @@ sub dataobj_export_url
 
 	my $url = $plugin->{session}->get_repository->get_conf( "http_cgiurl" );
 	$url .= "/users" if $staff;
-	$url .= "/export/".$dataobj->get_id."/".$format;
+	$url .= "/export/" if $dataset->confid eq "eprint";
+	$url .= "/exportsubject/" if $dataset->confid eq "subject";
+	$url .= $dataobj->get_id."/".$format;
 	$url .= "/".$plugin->{session}->get_repository->get_id;
 	$url .= "-".$dataobj->get_dataset->confid."-".$dataobj->get_id.$plugin->param("suffix");
 

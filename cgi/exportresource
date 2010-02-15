@@ -1,37 +1,73 @@
 use EPrints;
-use EPrints::Plugin::Export::RDFXML;
 
 use Data::Dumper;
 use strict;
 my $session = new EPrints::Session;
 Apache::exit( 0 ) unless( defined $session );
 
-my $uri = $ENV{"PATH_INFO"};
+my $path_info = $ENV{"PATH_INFO"};
 
 my $repository = $session->get_repository;
 
-$uri =~ s/^\//epx:/;
+unless( $path_info =~ m!^/([^/]+)/([^/]+)/([^/]+)/! )
+{
+	error( $session, $session->html_phrase( "cgi/exportresource:no_id" ) );
+	$session->terminate;
+	exit;
+}
+
+my $type = $1;
+my $id = $2;
+my $format = $3;
+
+if( !defined $id ) 
+{
+	error( $session, $session->html_phrase( "cgi/exportresource:no_id" ) );
+	$session->terminate;
+	exit;
+}
+
+
 
 my $archive_ds = $session->get_repository->get_dataset( "archive" );
 
-my $searchexp = new EPrints::Search( session=>$session, dataset=>$archive_ds,match=>"ANY" );
-
-$searchexp->add_field( $archive_ds->get_field( "rdf_resource" ), $uri, "EX" );
+my $searchexp = new EPrints::Search( session=>$session, dataset=>$archive_ds, match=>"ANY" );
+$searchexp->add_field( $archive_ds->get_field( "rdf_resource" ), "epx:$type/$id", "EX" );
 
 my $list = $searchexp->perform_search;
 my @records = $list->get_records();
 
+my $plugin = $session->plugin( "Export::$format" );
+if( !$plugin || !$plugin->matches("handles_rdf",1) )
+{
+	error( $session, $session->html_phrase( "cgi/export:not_available",
+				format => $session->make_text( $format ) ) );
+	$session->terminate;
+	exit;
+}
+
 my $cache = {};
 RECORD: foreach my $eprint ( @records )
 {
-	EPrints::Plugin::Export::RDFXML::add_eprint_triples( $eprint, $cache, $uri );
+	$plugin->cache_dataobj_triples( $eprint, $cache, "epx:$type/$id" );
 }
 
 
-my $plugin = $session->plugin( "Export::RDFXML" );
 $session->send_http_header( "content_type" => $plugin->param( 'mimetype' ) );
-my $xmlns = $repository->get_conf( "rdf","xmlns");
-print $plugin->output_triple_cache( $cache, $xmlns );
+my $namespaces = $plugin->get_namespaces();
+print $plugin->output_triple_cache( $cache, $namespaces );
 
 $session->terminate;
+
+
+sub error
+{
+	my( $session, $msg ) = @_;
+
+	$session->build_page( 
+		$session->html_phrase( "cgi/export:error_title" ),
+		$msg,
+		"export_error" );
+	$session->send_page;
+}
 
