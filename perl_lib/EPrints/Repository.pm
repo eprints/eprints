@@ -4614,6 +4614,11 @@ sub read_params
 	my( $self ) = @_;
 
 	my $r = $self->{request};
+	if( !$r )
+	{
+		EPrints::abort( "Attempt to read_params without a mod_perl request" );
+	}
+
 	my $uri = $r->unparsed_uri;
 	my $progressid = ($uri =~ /progress_id=([a-fA-F0-9]{32})/)[0];
 

@@ -48,7 +48,9 @@ sub param
 	my( $self, $paramid ) = @_;
 
 	# Allow args to override mimetype
-	if( $paramid eq "mimetype" && defined $self->{session}->param( "mimetype" ) )
+	if( $self->{session}->get_online
+	 && $paramid eq "mimetype" 
+	 && defined $self->{session}->param( "mimetype" ) )
 	{
 		return $self->{session}->param( "mimetype" );
 	}
