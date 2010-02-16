@@ -63,7 +63,7 @@ $c->add_trigger( "rdf_triples_repository", sub {
 
 	foreach my $comment ( @{ $oai_config->{comments} } )
 	{
-		push @triples, [ $repository_uri, "rdfs:comment", "The repository adminiatrator has not yet configured an RDF policy.", "literal" ];
+		push @triples, [ $repository_uri, "rdfs:comment", $comment, "literal" ];
 	}
 
 	foreach my $id ( sort @{$o{repository}->dataset("archive")->get_item_ids( $o{repository} )} )
