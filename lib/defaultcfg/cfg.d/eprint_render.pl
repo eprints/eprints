@@ -116,8 +116,6 @@ if(0){
 
 	foreach my $key ( keys %fragments ) { $fragments{$key} = [ $fragments{$key}, "XHTML" ]; }
 	
-	$fragments{documents} = [ [$eprint->get_all_documents()], "STRING" ];
-
 	my $page = $eprint->render_citation( "summary_page", %fragments, flags=>$flags );
 
 	my $title = $eprint->render_description();

@@ -32,7 +32,7 @@ B<EPrints::XHTML> - XHTML Module
 
 	$xhtml_dom_node = $xhtml->data_element( $name, $value, indent => 4 );
 
-	$page = $xhtml->build_page( %opts );
+	$page = $xhtml->page( %opts );
 
 =head1 DESCRIPTION
 

@@ -545,7 +545,7 @@ sub run_preview_link
 
 sub run_icon
 {
-	my( $self, $state, $doc, $preview, $new_window ) = @_;
+	my( $self, $state, $doc, @opts ) = @_;
 
 	if( !defined $doc->[0] || ref($doc->[0]) ne "EPrints::DataObj::Document" )
 	{
@@ -553,7 +553,18 @@ sub run_icon
 			ref($doc->[0]) );
 	}
 
-	return [ $doc->[0]->render_icon_link( preview=>$preview->[0], new_window=>$new_window->[0] ), "XHTML" ];
+	my %args = ();
+	foreach my $opt ( @opts )
+	{
+		my $optv = $opt->[0];
+		if( $optv eq "HoverPreview" ) { $args{preview}=1; }
+		elsif( $optv eq "noHoverPreview" ) { $args{preview}=0; }
+		elsif( $optv eq "NewWindow" ) { $args{new_window}=1; }
+		elsif( $optv eq "noNewWindow" ) { $args{new_window}=0; }
+		else { $self->runtime_error( "Unknown option to doc->icon(): $optv" ); }
+	}
+
+	return [ $doc->[0]->render_icon_link( %args ), "XHTML" ];
 }
 
 
@@ -729,7 +740,7 @@ sub run_to_data_array
 
 sub run_pretty_list
 {
-	my( $self, $state, $list, $sep, $last_sep ) = @_;
+	my( $self, $state, $list, $sep, $last_sep, $finally ) = @_;
 
 	if( $list->[1]->isa("EPrints::MetaField") )
 	{
@@ -761,6 +772,10 @@ sub run_pretty_list
 		my $field = $list->[0]->[$i]->[1];
 		$r->appendChild( 
 			$field->render_value( $state->{session}, $val, 0, 0 ));
+	}
+	if( $n > 0 && defined $finally )
+	{
+		$r->appendChild( $state->{session}->make_text( $finally->[0] ) );
 	}
 
 	return [ $r, "XHTML" ];

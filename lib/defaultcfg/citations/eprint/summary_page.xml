@@ -16,39 +16,43 @@
     </div>
   </epc:if>
 
-  <epc:if test="length($documents) = 0">
-    <epc:phrase ref="page:nofulltext" />
-    <epc:if test="$item.contact_email().is_set() and eprint_status = 'archive'">
-      (<a href="{$config{http_cgiurl}}/request_doc?eprintid={eprintid}"><epc:phrase ref="request:button" /></a>)
+  <epc:set name='docs' expr='$item.documents()'>
+
+    <epc:if test="length($docs) = 0">
+      <epc:phrase ref="page:nofulltext" />
+      <epc:if test="$item.contact_email().is_set() and eprint_status = 'archive'">
+        (<a href="{$config{http_cgiurl}}/request_doc?eprintid={eprintid}"><epc:phrase ref="request:button" /></a>)
+      </epc:if>
     </epc:if>
-  </epc:if>
+  
+    <epc:if test="length($docs) gt 0">
+      <epc:phrase ref="page:fulltext" />
+      <table>
+        <epc:foreach expr="$docs" iterator="doc">
+          <tr>
+            <td valign="top" align="right"><epc:print expr="$doc.icon('HoverPreview','noNewWindow')}" /></td>
+            <td valign="top">
+              <epc:print expr="$doc.citation('default')" /><br />
+              <a href="{$doc.url()}">Download (<epc:print expr="$doc.doc_size().human_filesize()" />)</a>
+              <epc:if test="$doc.is_public() and $doc.thumbnail_url('preview').is_set()">| <epc:print expr="$doc.preview_link($doc.citation_link('default'),'docs')" /></epc:if>
+              <epc:if test="!$doc.is_public() and $item.contact_email().is_set() and eprint_status = 'archive'">
+                | <a href="{$config{http_cgiurl}}/request_doc?docid={$doc{docid}"><epc:phrase ref="request:button" /></a>
+              </epc:if>
+  
+              <ul>
+              <epc:foreach expr="$doc.related_objects('http://eprints.org/relation/hasVersion')" iterator="rel">
+                <epc:if test="$rel{relation_type}!='http://eprints.org/relation/isVolatileVersionOf'">
+                  <li><epc:print expr="$rel.citation_link('default')" /></li>
+                </epc:if>
+              </epc:foreach>
+              </ul>
+            </td>
+          </tr>
+        </epc:foreach>
+      </table>
+    </epc:if>
 
-  <epc:if test="length($documents) gt 0">
-    <epc:phrase ref="page:fulltext" />
-    <table>
-      <epc:foreach expr="$documents" iterator="doc">
-        <tr>
-          <td valign="top" align="right"><epc:print expr="$doc.icon(1,0)}" /></td>
-          <td valign="top">
-            <epc:print expr="$doc.citation('default')" /><br />
-            <a href="{$doc.url()}">Download (<epc:print expr="$doc.doc_size().human_filesize()" />)</a>
-            <epc:if test="$doc.is_public() and $doc.thumbnail_url('preview').is_set()">| <epc:print expr="$doc.preview_link($doc.citation_link('default'),'docs')" /></epc:if>
-            <epc:if test="!$doc.is_public() and $item.contact_email().is_set() and eprint_status = 'archive'">
-              | <a href="{$config{http_cgiurl}}/request_doc?docid={$doc{docid}"><epc:phrase ref="request:button" /></a>
-            </epc:if>
-
-            <ul>
-            <epc:foreach expr="$doc.related_objects('http://eprints.org/relation/hasVersion')" iterator="rel">
-			<epc:if test="$rel{relation_type}!='http://eprints.org/relation/isVolatileVersionOf'">
-				<li><epc:print expr="$rel.citation_link('default')" /></li>
-			</epc:if>
-            </epc:foreach>
-            </ul>
-          </td>
-        </tr>
-      </epc:foreach>
-    </table>
-  </epc:if>
+  </epc:set>
 
   <epc:if test="official_url">
     <div style="margin-bottom: 1em">
