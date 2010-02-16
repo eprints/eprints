@@ -7,7 +7,7 @@ $c->add_trigger( "rdf_triples_general", sub {
 	
 	my @triples;
 
-	push @triples, [ "<>", "rdfs:comment", "The repository adminiatrator has not yet configured an RDF policy.", "literal" ];
+	push @triples, [ "<>", "rdfs:comment", "The repository administrator has not yet configured an RDF policy.", "literal" ];
 
 	# Here's some possible items you may wish to add. Note that these describe 
 	# rights on the RDF data output by your repository, not on the documents. 
