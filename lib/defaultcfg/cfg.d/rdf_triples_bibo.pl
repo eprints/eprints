@@ -40,9 +40,12 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 		my $bibo_type = $c->{rdf}->{bibo_type}->{$type};
 		if( defined $bibo_type )
 		{
-			if( $bibo_type eq "bibo:Book" && $eprint->is_set( "editors" ) )
+			if( $eprint->dataset->has_field( "editors" ) && $eprint->is_set( "editors" ) )
 			{
-				$bibo_type = "bibo:EditedBook";
+				if( $bibo_type eq "bibo:Book" )
+				{
+					$bibo_type = "bibo:EditedBook";
+				}
 			}
 			push @triples, [ $eprint_uri, "rdf:type", $bibo_type ];
 		}
@@ -288,7 +291,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	# editors
 
 	my @editors;
-	if( $eprint->dataset->has_field( "creators" ) && $eprint->is_set( "creators" ) )
+	if( $eprint->dataset->has_field( "editors" ) && $eprint->is_set( "editors" ) )
 	{
 		@editors = @{$eprint->get_value( "editors" )};
 	}
