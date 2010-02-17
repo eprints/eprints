@@ -155,26 +155,38 @@ sub create_from_data
 	my $content = delete $data->{_content} || delete $data->{_filehandle};
 
 	# if things go wrong later filesize will be zero
-	my $self = do {
-		local $data->{filesize} = 0;
-		$class->SUPER::create_from_data( $session, $data, $dataset );
-	};
+	my $filesize = $data->{filesize};
+	$data->{filesize} = 0;
 
-	return unless defined $self;
+	my $self;
 
 	my $ok = 1;
+	# read from filehandle/scalar etc.
 	if( defined( $content ) )
 	{
-		$ok = $self->set_file( $content, $data->{filesize} );
+		Carp::croak( "Requires filesize" ) if !defined $filesize;
+
+		$self = $class->SUPER::create_from_data( $session, $data, $dataset );
+		return if !defined $self;
+
+		$ok = $self->set_file( $content, $filesize );
 	}
+	# read from XML (Base64 encoded)
 	elsif( EPrints::Utils::is_set( $data->{data} ) )
 	{
+		$self = $class->SUPER::create_from_data( $session, $data, $dataset );
+		return if !defined $self;
+
 		use bytes;
-		my $data = MIME::Base64::decode( $data->{data} );
+		my $data = MIME::Base64::decode( delete $data->{data} );
 		$ok = $self->set_file( \$data, length($data) );
 	}
+	# read from a URL
 	elsif( EPrints::Utils::is_set( $data->{url} ) )
 	{
+		$self = $class->SUPER::create_from_data( $session, $data, $dataset );
+		return if !defined $self;
+
 		my $tmpfile = File::Temp->new;
 
 		my $r = EPrints::Utils::wget( $session, $data->{url}, $tmpfile );
@@ -188,6 +200,12 @@ sub create_from_data
 			$session->get_repository->log( "Failed to retrieve $data->{url}: " . $r->code . " " . $r->message );
 			$ok = 0;
 		}
+	}
+	else
+	{
+		$data->{filesize} = $filesize; # callers responsibility
+		$self = $class->SUPER::create_from_data( $session, $data, $dataset );
+		return if !defined $self;
 	}
 
 	# content write failed
