@@ -1724,7 +1724,7 @@ sub group_items
 					{
 						if( $code eq "" )
 						{
-							$code_to_heading->{$code} = $session->phrase( "Update/Views:no_value" );
+							$code_to_heading->{$code} = $session->html_phrase( "Update/Views:no_value" );
 						}
 						else
 						{
