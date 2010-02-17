@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 11;
+use Test::More tests => 13;
 
 use strict;
 use warnings;
@@ -28,3 +28,26 @@ is(scalar($list->slice(0,3)), 3, "slice is 3 long");
 is(scalar($list->slice(0,5)), 3, "slice is 3 long, asked for 5");
 is(scalar($list->slice(0,2)), 2, "slice is 2 long, asked for 2");
 is($list->count, 3, "list is 3 long after slice");
+
+#3679 - 4096 [size] files issues on ECS Eprints
+{
+	my $str = 'x' x 5000;
+	my $doc = $dataobj->create_subdataobj( 'documents', {
+		format => $dataobj->{session}->{types}->{'document'}->[0]
+	});
+	my $file = $doc->create_subdataobj( 'files', {
+		_content => \$str,
+		filename => "TEST_DATA",
+		filesize => length($str),
+	});
+	my $cnt = "";
+	$file->get_file( sub { $cnt .= $_[0] } );
+	is( length($cnt), length($str), "file stored ok" );
+	my $doc_clone = $doc->clone( $dataobj );
+	my $file_clone = $doc_clone->get_stored_file( "TEST_DATA" );
+	my $clone_str = "";
+	$file_clone->get_file( sub { $clone_str .= $_[0] } );
+	is( length($clone_str), length($str), "file clones ok" );
+	$doc_clone->remove;
+	$file->remove;
+}
