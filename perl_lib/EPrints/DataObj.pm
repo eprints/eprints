@@ -1662,9 +1662,9 @@ sub tidy
 ######################################################################
 =pod
 
-=item $file = $dataobj->add_stored_file( $filename, $filehandle [, $filesize ] )
+=item $file = $dataobj->add_stored_file( $filename, $filehandle, $filesize )
 
-Convenience method to add the file record for $filename to this object. Reads data from $filehandle. If $filesize is defined it may used to determine where the file should be stored.
+Convenience method to add (or replace) the file record for $filename to this object. Reads $filesize bytes from $filehandle.
 
 Returns the file object or undef if the storage failed.
 
@@ -1682,12 +1682,19 @@ sub add_stored_file
 		$file->remove();
 	}
 
-	$file = EPrints::DataObj::File->create_from_data( $self->{session}, {
+	$file = $self->{session}->dataset( "file" )->create_dataobj( {
 		_parent => $self,
 		_content => $filehandle,
 		filename => $filename,
 		filesize => $filesize,
-	}, $self->{session}->get_repository->get_dataset( "file" ) );
+	} );
+
+	# something went wrong
+	if( defined $file && $file->value( "filesize" ) != $filesize )
+	{
+		$file->remove;
+		undef $file;
+	}
 
 	return $file;
 }

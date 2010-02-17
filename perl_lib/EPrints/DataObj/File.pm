@@ -154,19 +154,24 @@ sub create_from_data
 
 	my $content = delete $data->{_content} || delete $data->{_filehandle};
 
-	my $self = $class->SUPER::create_from_data( $session, $data, $dataset );
+	# if things go wrong later filesize will be zero
+	my $self = do {
+		local $data->{filesize} = 0;
+		$class->SUPER::create_from_data( $session, $data, $dataset );
+	};
 
 	return unless defined $self;
 
+	my $ok = 1;
 	if( defined( $content ) )
 	{
-		$self->set_file( $content, $data->{filesize} );
+		$ok = $self->set_file( $content, $data->{filesize} );
 	}
 	elsif( EPrints::Utils::is_set( $data->{data} ) )
 	{
 		use bytes;
 		my $data = MIME::Base64::decode( $data->{data} );
-		$self->set_file( \$data, length($data) );
+		$ok = $self->set_file( \$data, length($data) );
 	}
 	elsif( EPrints::Utils::is_set( $data->{url} ) )
 	{
@@ -176,15 +181,20 @@ sub create_from_data
 		if( $r->is_success )
 		{
 			seek( $tmpfile, 0, 0 );
-			$self->set_file( $tmpfile, -s $tmpfile );
+			$ok = $self->set_file( $tmpfile, -s $tmpfile );
 		}
 		else
 		{
-			# warn, cleanup and return
 			$session->get_repository->log( "Failed to retrieve $data->{url}: " . $r->code . " " . $r->message );
-			$self->remove();
-			return;
+			$ok = 0;
 		}
+	}
+
+	# content write failed
+	if( !$ok )
+	{
+		$self->remove();
+		return undef;
 	}
 
 	$self->commit();
@@ -658,27 +668,34 @@ sub set_file
 		};
 	}
 
-	$self->set_value( "filesize", $clen );
+	$self->set_value( "filesize", 0 );
 	$self->set_value( "hash", undef );
 	$self->set_value( "hash_type", undef );
 
-	my $rlen = $self->{session}->get_storage->store( $self, $f );
+	my $rlen = do {
+		local $self->{data}->{filesize} = $clen;
+		$self->{session}->get_storage->store( $self, $f );
+	};
 
+	# no storage plugin or plugins failed
 	if( !defined $rlen )
 	{
-		$self->set_value( "filesize", 0 );
+		$self->{session}->log( $self->get_dataset_id."/".$self->get_id."::set_file(".$self->get_value( "filename" ).") failed: No storage plugins succeeded" );
 		return undef;
 	}
 
+	# read failed
 	if( $rlen != $clen )
 	{
-		EPrints::abort( "Expected $clen bytes but actually got $rlen - set_file on ".$self->get_dataset_id."/".$self->get_id." (".$self->get_value( "filename" ).")" );
+		$self->{session}->log( $self->get_dataset_id."/".$self->get_id."::set_file(".$self->get_value( "filename" ).") failed: expected $clen bytes but actually got $rlen bytes" );
+		return undef;
 	}
 
+	$self->set_value( "filesize", $rlen );
 	$self->set_value( "hash", $md5->hexdigest );
 	$self->set_value( "hash_type", "MD5" );
 
-	return $clen;
+	return $rlen;
 }
 
 1;

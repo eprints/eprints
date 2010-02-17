@@ -141,7 +141,7 @@ sub store
 
 	my $rlen = 0;
 
-	return 0 unless $self->open_write( $fileobj );
+	return undef unless $self->open_write( $fileobj );
 
 	# copy the input data to each writable plugin
 	my( $buffer, $c );
@@ -151,9 +151,9 @@ sub store
 		$self->write( $fileobj, $buffer );
 	}
 
-	return 0 unless $self->close_write( $fileobj );
+	return undef unless $self->close_write( $fileobj );
 
-	return $rlen == $fileobj->get_value( "filesize" ) ? $rlen : undef;
+	return $rlen;
 }
 
 =item $success = $store->retrieve( $fileobj, CALLBACK )

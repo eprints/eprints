@@ -72,7 +72,8 @@ sub write
 	my $fh = $self->{_fh}->{$fileobj}
 		or Carp::croak "Must call open_write before write";
 
-	unless( syswrite($fh, $buffer) )
+	my $rc = syswrite($fh, $buffer);
+	if( !defined $rc || $rc != length($buffer) )
 	{
 		my $out_file = $self->{_name}->{$fileobj};
 		unlink($out_file);
