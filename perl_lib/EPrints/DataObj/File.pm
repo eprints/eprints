@@ -164,7 +164,7 @@ sub create_from_data
 	# read from filehandle/scalar etc.
 	if( defined( $content ) )
 	{
-		Carp::croak( "Requires filesize" ) if !defined $filesize;
+		EPrints->abort( "Must defined filesize when using _content" ) if !defined $filesize;
 
 		$self = $class->SUPER::create_from_data( $session, $data, $dataset );
 		return if !defined $self;
