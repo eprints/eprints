@@ -353,7 +353,7 @@ sub clone
 	my $rc = 1;
 
 	$rc &&= $storage->open_write( $new_file );
-	$self->get_file( sub { $storage->write( $new_file, $_[0] ) } );
+	$rc &&= $self->get_file( sub { $storage->write( $new_file, $_[0] ) } );
 	$rc &&= $storage->close_write( $new_file );
 
 	if( !$rc )

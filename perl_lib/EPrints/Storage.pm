@@ -430,7 +430,7 @@ sub write
 
 	$self->{_opened}->{$fileobj} = \@writable;
 
-	return scalar( @writable ) > 1;
+	return scalar( @writable ) > 0;
 }
 
 =item $ok = $storage->close_write( $fileobj );
