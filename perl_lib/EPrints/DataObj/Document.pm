@@ -348,6 +348,12 @@ sub clone
 	
 	my $data = EPrints::Utils::clone( $self->{data} );
 
+	# cloning within the same eprint, in which case get a new position!
+	if( defined $self->parent && $eprint->id eq $self->parent->id )
+	{
+		$data->{pos} = undef;
+	}
+
 	$data->{eprintid} = $eprint->get_id;
 	$data->{_parent} = $eprint;
 
