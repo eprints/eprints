@@ -560,28 +560,24 @@ sub page
 		#  pin:id-of-a-pin
 		#  pin:id-of-a-pin.textonly
 		#  phrase:id-of-a-phrase
-		my( @parts ) = split( ":", $bit );
-		my $type = shift @parts;
+		my( $type, $rest ) = split /:/, $bit, 2;
 
 		if( $type eq "print" )
 		{
-			my $expr = join "", @parts;
-			my $result = EPrints::XML::to_string( EPrints::Script::print( $expr, { session=>$self->{repository} } ), undef, 1 );
+			my $result = EPrints::XML::to_string( EPrints::Script::print( $rest, { session=>$self->{repository} } ), undef, 1 );
 			push @output, $result;
 			next;
 		}
 
 		if( $type eq "phrase" )
 		{	
-			my $phraseid = join "", @parts;
-			push @output, EPrints::XML::to_string( $self->{repository}->html_phrase( $phraseid ), undef, 1 );
+			push @output, EPrints::XML::to_string( $self->{repository}->html_phrase( $rest ), undef, 1 );
 			next;
 		}
 
 		if( $type eq "pin" )
 		{	
-			my $pinid = shift @parts;
-			my $modifier = shift @parts;
+			my( $pinid, $modifier ) = split /:/, $rest, 2;
 			if( defined $modifier && $modifier eq "textonly" )
 			{
 				my $text;
