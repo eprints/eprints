@@ -391,7 +391,7 @@ sub set_value
 {
 	my( $self, $dataobj, $value ) = @_;
 
-	if( $value !~ /^\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\dZ?$/ )
+	if( EPrints::Utils::is_set( $value ) && $value !~ /^\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\dZ?$/ )
 	{
 		$dataobj->{session}->log( "Badly formatted time value: $value" );
 	}
