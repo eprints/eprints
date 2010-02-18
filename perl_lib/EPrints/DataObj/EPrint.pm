@@ -712,9 +712,29 @@ sub clone
 
 	if( $copy_documents )
 	{
+		my %map;
+		my @clones;
 		foreach my $doc (@{$self->get_value( "documents" )})
 		{
-			$doc->clone( $new_eprint ) or $ok = 0, last;
+			my $new_doc = $doc->clone( $new_eprint );
+			$ok = 0, last if !defined $new_doc;
+			push @clones, $new_doc;
+			$map{$doc->internal_uri} = $new_doc->internal_uri;
+		}
+		# fixup the relations
+		foreach my $clone (@clones)
+		{
+			last if !$ok;
+			my $relation = EPrints::Utils::clone( $clone->value( "relation" ) );
+			foreach my $r (@$relation)
+			{
+				if( exists $map{$r->{uri}} )
+				{
+					$r->{uri} = $map{$r->{uri}};
+				}
+			}
+			$clone->set_value( "relation", $relation );
+			$clone->commit();
 		}
 	}
 
