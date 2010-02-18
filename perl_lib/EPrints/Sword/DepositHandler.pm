@@ -168,6 +168,8 @@ sub handler
 		return Apache2::Const::DONE;
 	}
 
+	$session->read_params();
+
 	# Saving the data/file sent through POST
         my $postdata = $session->{query}->{'POSTDATA'};
 
