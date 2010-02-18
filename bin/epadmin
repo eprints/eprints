@@ -414,7 +414,7 @@ END
 		$repodir."/cfg",
 		$repoid );
 
-	foreach( "var", "html", "documents", "documents/disk0" )
+	foreach( "cgi", "var", "html", "documents", "documents/disk0" )
 	{
 		my $dir = $repodir."/".$_;
 		EPrints::Platform::mkdir( $dir );

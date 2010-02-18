@@ -234,7 +234,12 @@ sub load_repository_config_module
 	my $info = {};
 	
 	%$info = %$SYSTEMCONF;
+
 	$info->{archiveroot} = $info->{arc_path}."/".$id;
+	$info->{documents_path} = $info->{archiveroot}."/documents";
+	$info->{config_path} = $info->{archiveroot}."/cfg";
+	$info->{htdocs_path} = $info->{archiveroot}."/html";
+	$info->{cgi_path} = $info->{archiveroot}."/cgi";
 
 	if( !-d $info->{archiveroot} )
 	{

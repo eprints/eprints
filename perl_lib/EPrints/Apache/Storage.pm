@@ -94,55 +94,12 @@ sub handler
 
 	my $repo = $EPrints::HANDLE->current_repository();
 
-	my $datasetid = $r->pnotes( "datasetid" );
-	my $dataset = $repo->dataset( $datasetid );
-	return 404 unless defined $dataset;
-
+	my $dataobj = $r->pnotes( "dataobj" );
 	my $filename = $r->pnotes( "filename" );
-	return 404 unless defined $filename;
-
-	my $dataobj;
-	if( $dataset->base_id eq "document" && !defined $r->pnotes( "docid" ) )
-	{
-		$dataobj = EPrints::DataObj::Document::doc_with_eprintid_and_pos(
-				$repo,
-				$r->pnotes( "eprintid" ),
-				$r->pnotes( "pos" )
-			);
-	}
-	else
-	{
-		my $id = $r->pnotes( $dataset->key_field->name );
-		return 404 unless defined $id;
-		$dataobj = $dataset->dataobj( $id );
-	}
-
-	return 404 unless defined $dataobj;
-
-	my $relations = $r->pnotes( "relations" );
-	$relations = [] unless defined $relations;
-
-	foreach my $relation (@$relations)
-	{
-		$relation = EPrints::Utils::make_relation( $relation );
-		$dataobj = $dataobj->get_related_objects( $relation )->[0];
-		return 404 unless defined $dataobj;
-		$filename = $dataobj->get_main();
-	}
-
-	$r->pnotes( dataobj => $dataobj );
-
-	$rc = check_auth( $repo, $r, $dataobj );
-
-	if( $rc != OK )
-	{
-		return $rc;
-	}
 
 	# Now get the file object itself
 	my $fileobj = $dataobj->get_stored_file( $filename );
-
-	return 404 unless defined $fileobj;
+	return NOT_FOUND unless defined $fileobj;
 
 	my $url = $fileobj->get_remote_copy();
 	if( defined $url )
@@ -248,42 +205,6 @@ sub handler
 	elsif( !$rv )
 	{
 		EPrints::abort( "Error in file retrieval: failed to get file contents" );
-	}
-
-	return $rc;
-}
-
-sub check_auth
-{
-	my( $repo, $r, $doc ) = @_;
-
-	my $security = $doc->value( "security" );
-
-	my $result = $repo->call( "can_request_view_document", $doc, $r );
-
-	return OK if( $result eq "ALLOW" );
-	return FORBIDDEN if( $result eq "DENY" );
-	if( $result ne "USER" )
-	{
-		$repo->log( "Response from can_request_view_document was '$result'. Only ALLOW, DENY, USER are allowed." );
-		return FORBIDDEN;
-	}
-
-	my $rc;
-	if( $repo->config( "cookie_auth" ) ) 
-	{
-		$rc = EPrints::Apache::Auth::auth_cookie( $r, $repo, 1 );
-	}
-	else
-	{
-		$rc = EPrints::Apache::Auth::auth_basic( $r, $repo );
-	}
-
-	if( $rc eq OK )
-	{
-		my $user = $repo->current_user;
-		return FORBIDDEN unless defined $user; # Shouldn't happen
-		$rc = $doc->user_can_view( $user ) ? OK : FORBIDDEN;
 	}
 
 	return $rc;

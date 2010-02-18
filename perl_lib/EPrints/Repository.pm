@@ -539,47 +539,8 @@ sub new_from_request
 	{
 		EPrints::abort( "Can't load EPrints repository: $repoid" );
 	}
-	$repository->check_secure_dirs( $request );
 
 	return $repository;
-}
-
-######################################################################
-#
-# $repository->check_secure_dirs( $request );
-#
-# This method triggers an abort if the secure dirs specified in 
-# the apache conf don't match those EPrints is using. This prevents
-# the risk of a security breach after moving directories.
-#
-######################################################################
-
-sub check_secure_dirs
-{
-	my( $self, $request ) = @_;
-
-	my $real_secured_cgi = EPrints::Config::get( "cgi_path" )."/users";
-	my $real_documents_path = $self->config( "documents_path" );
-
-	my $apacheconf_secured_cgi = $request->dir_config( "EPrints_Dir_SecuredCGI" );
-	my $apacheconf_documents_path = $request->dir_config( "EPrints_Dir_Documents" );
-
-	if( $real_secured_cgi ne $apacheconf_secured_cgi )
-	{
-		EPrints::abort( <<END );
-Document path is: $real_secured_cgi 
-but apache conf is securiing: $apacheconf_secured_cgi
-You probably need to run generate_apacheconf!
-END
-	}
-	if( $real_documents_path ne $apacheconf_documents_path )
-	{
-		EPrints::abort( <<END );
-Document path is: $real_documents_path 
-but apache conf is securiing: $apacheconf_documents_path
-You probably need to run generate_apacheconf!
-END
-	}
 }
 
 sub _add_http_paths
@@ -600,11 +561,12 @@ sub _add_http_paths
 			$config->{"secureport"} ||= 443;
 			$config->{"https_root"} = $config->{"securepath"}
 				if !defined($config->{"https_root"});
-			$config->{"https_cgiroot"} = $config->{"https_root"} . $config->{"http_cgiroot"}
+			$config->{"https_root"} = $config->{"http_root"}
+				if !defined($config->{"https_root"});
+			$config->{"https_cgiroot"} = $config->{"http_cgiroot"}
 				if !defined($config->{"https_cgiroot"});
 		}
 	}
-
 }
  
 ######################################################################
@@ -5390,7 +5352,6 @@ sub get_static_page_conf_file
 	my( $repository ) = @_;
 
 	my $r = $repository->get_request;
-	$repository->check_secure_dirs( $r );
 	my $esec = $r->dir_config( "EPrints_Secure" );
 	my $secure = (defined $esec && $esec eq "yes" );
 	my $urlpath;
@@ -5478,9 +5439,6 @@ sub init_from_request
 	# go online
 	$self->{request} = $request;
 	$self->{offline} = 0;
-
-	# check secured directories
-	$self->check_secure_dirs( $request );
 
 	# register a cleanup call for us
 	$request->pool->cleanup_register( \&cleanup, $self );

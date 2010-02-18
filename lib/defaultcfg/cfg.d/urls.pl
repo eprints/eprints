@@ -12,9 +12,9 @@ $c->{frontpage} = "$c->{base_url}/";
 # The user area home page URL
 $c->{userhome} = "$c->{perl_url}/users/home";
 
-# By default all paths are rewritten to the relevant language directory
-# except for /cgi/. List other exceptions here.
-# These will be used in a regular expression, so characters like
-# .()[]? have special meaning.
-$c->{rewrite_exceptions} = [ '/cgi/', '/archive/' ];
+# If you don't want EPrints to respond to a specific URL add it to the
+# exceptions here. Each exception is matched against the uri using regexp:
+#  e.g. /myspecial/cgi
+# Will match http://yourrepo/myspecial/cgi
+#$c->{rewrite_exceptions} = [];
 

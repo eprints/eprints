@@ -51,20 +51,21 @@ sub handler
 {
 	my( $r ) = @_;
 
-	# don't attempt to rewrite the URI of an internal request
-	return DECLINED unless $r->is_initial_req();
+	# don't attempt to rewrite the URI of an internal request, unless it's a 404
+	return DECLINED if !$r->is_initial_req() && $r->status != 404;
 
 	my $repository = $EPrints::HANDLE->current_repository;
 	if( !defined $repository )
 	{
 		return DECLINED;
 	}
+
 	if( !$repository->get_database->is_latest_version )
 	{
 		$repository->log( "Database schema is out of date: ./bin/epadmin upgrade ".$repository->get_id );
 		return 500;
 	}
-#	$repository->check_secure_dirs( $r );
+
 	my $esec = $r->dir_config( "EPrints_Secure" );
 	my $secure = (defined $esec && $esec eq "yes" );
 	my $urlpath;
@@ -82,40 +83,139 @@ sub handler
 
 	my $uri = $r->uri;
 
-	my $lang = EPrints::Session::get_session_language( $repository, $r );
-	my $args = $r->args;
-	if( defined $args && $args ne "" ) { $args = '?'.$args; }
-
-	# Skip rewriting the /cgi/ path and any other specified in
-	# the config file.
-	my $econf = $repository->get_conf('rewrite_exceptions');
-	my @exceptions = ();
-	if( defined $econf ) { @exceptions = @{$econf}; }
-	push @exceptions,
-		$cgipath,
-		"$urlpath/sword-app/";
-
-	foreach my $exppath ( @exceptions )
+	# Not an EPrints path (only applies if we're in a non-standard path)
+	if( $uri !~ /^(?:$urlpath)|(?:$cgipath)/ )
 	{
+		return DECLINED;
+	}
+
+	# 404 handler
+	$r->custom_response( Apache2::Const::NOT_FOUND, $repository->current_url( path => "cgi", "handle_404" ) );
+
+	my $args = $r->args;
+	$args = "" if !defined $args;
+	$args = "?$args" if length($args);
+
+	my $lang = EPrints::Session::get_session_language( $repository, $r );
+
+	# Non-EPrints paths within our tree
+	my $exceptions = $repository->config( 'rewrite_exceptions' );
+	$exceptions = [] if !defined $exceptions;
+	foreach my $exppath ( @$exceptions )
+	{
+		next if $exppath eq '/cgi/'; # legacy
+		next if $exppath eq '/archive/'; # legacy
 		return DECLINED if( $uri =~ m/^$exppath/ );
 	}
 
-	# if we're not in an EPrints path return
-	unless( $uri =~ s/^$urlpath// || $uri =~ s/^$cgipath// )
+	# /archive/ redirect
+	if( $uri =~ m! ^$urlpath/archive/(.*) !x )
+	{
+		return redir( $r, "$urlpath/$1$args" );
+	}
+
+	# don't respond to anything containing '..' or '/.'
+	if( $uri =~ /\.\./ || $uri =~ /\/\./ )
 	{
 		return DECLINED;
+	}
+
+	# /perl/ redirect
+	my $perlpath = $cgipath;
+	$perlpath =~ s! /cgi\b ! /perl !x;
+	if( $uri =~ s! ^$perlpath !!x )
+	{
+		return redir( $r, "$cgipath$uri" );
+	}
+
+	# CGI
+	if( $uri =~ s! ^$cgipath !!x )
+	{
+		# redirect secure stuff
+		if( $repository->config( "securehost" ) && !$secure && $uri =~ s! ^/(
+			(?:users/)|
+			(?:change_user)|
+			(?:confirm)|
+			(?:register)|
+			(?:reset_password)|
+			(?:set_password)
+			) !!x )
+		{
+			my $https_redirect = $repository->current_url(
+				scheme => "https", 
+				host => 1,
+				path => "cgi",
+				"$1$uri" ) . $args;
+			return redir( $r, $https_redirect );
+		}
+
+		if( $repository->config( "use_mimetex" ) && $uri eq "mimetex.cgi" )
+		{
+			$r->handler('cgi-script');
+			$r->filename( $repository->config( "executables", "mimetex" ) );
+			return OK;
+		}
+
+		$r->handler('perl-script');
+
+		my $filename = EPrints::Config::get( "cgi_path" ).$uri;
+		my @parts = split m! /+ !x, $uri;
+		for(my $i = $#parts; $i > 0; --$i)
+		{
+			if( -f join('/',$repository->config( "cgi_path" ),@parts[0..$i]) )
+			{
+				$filename = $repository->config( "cgi_path" ).$uri;
+				last;
+			}
+		}
+		$r->filename( $filename );
+
+		if( $uri =~ m! ^/users\b !x )
+		{
+			$r->push_handlers(PerlAccessHandler => [
+				\&EPrints::Apache::Auth::authen,
+				\&EPrints::Apache::Auth::authz
+				] );
+		}
+
+		$r->set_handlers(PerlResponseHandler => [ 'ModPerl::Registry' ]);
+
+		return OK;
+	}
+
+	# SWORD-APP
+	if( $uri =~ s! ^$urlpath/sword-app/ !!x )
+	{
+		$r->handler( 'perl-script' );
+
+		$r->set_handlers( PerlMapToStorageHandler => sub { OK } );
+
+		if( $uri =~ s! ^atom\b !!x )
+		{
+			$r->set_handlers( PerlResponseHandler => [ 'EPrints::Sword::AtomHandler' ] );
+		}
+		elsif( $uri =~ s! ^deposit\b !!x )
+		{
+			$r->set_handlers( PerlResponseHandler => [ 'EPrints::Sword::DepositHandler' ] );
+		}
+		elsif( $uri =~ s! ^servicedocument\b !!x )
+		{
+			$r->set_handlers( PerlResponseHandler => [ 'EPrints::Sword::ServiceDocument' ] );
+		}
+		else
+		{
+			return NOT_FOUND;
+		}
 	}
 
 	# REST
-
 	if( $uri =~ m! ^$urlpath/rest !x )
 	{
 	 	$r->set_handlers(PerlResponseHandler => \&EPrints::Apache::REST::handler );
-		return DECLINED;
+		return OK;
 	}
 
 	# URI redirection
-
 	if( $uri =~ m! ^$urlpath/id/repository$ !x )
 	{
 		my $accept = EPrints::Apache::AnApache::header_in( $r, "Accept" );
@@ -167,10 +267,9 @@ sub handler
 
 		my $dataset = $repository->get_dataset( $datasetid );
 		my $item;
-		my $session = new EPrints::Session(2); # don't open the CGI info
 		if( defined $dataset )
 		{
-			$item = $dataset->get_object( $session, $id );
+			$item = $dataset->dataobj( $id );
 		}
 		my $url;
 		if( defined $item )
@@ -201,7 +300,7 @@ sub handler
 			$accept = "text/html" unless defined $accept;
 
 			my $match = content_negotiate_best_plugin( 
-				$session, 
+				$repository, 
 				accept_header => $accept,
 				consider_summary_page => ( $dataset->confid eq "eprint" ? 1 : 0 ),
 				plugins => [$repository->plugin_list(
@@ -219,67 +318,104 @@ sub handler
 				$url = $match->dataobj_export_url( $item );	
 			}
 		}	
-		$session->terminate;
 		if( defined $url )
 		{
 			return redir_see_other( $r, $url );
 		}
+		return NOT_FOUND;
 	}
 
-	if( $uri =~ m! ^/([0-9]+)(.*)$ !x )
+	# /XX/ eprints
+	if( $uri =~ s! ^$urlpath/(0*)([1-9][0-9]*)\b !!x )  # ignore leading 0s
 	{
 		# It's an eprint...
 	
-		my $eprintid = $1;
-		my $tail = $2;
-		my $redir = 0;
-		if( $tail eq "" ) { $tail = "/"; $redir = 1; }
-
-		if( ($eprintid + 0) ne $eprintid || $redir)
+		my $eprintid = $2;
+		my $eprint = $repository->dataset( "eprint" )->dataobj( $eprintid );
+		if( !defined $eprint )
 		{
-			# leading zeros
-			return redir( $r, sprintf( "%s/%d%s",$urlpath, $eprintid, $tail ).$args );
+			return NOT_FOUND;
 		}
-		my $s8 = sprintf('%08d',$eprintid);
-		$s8 =~ m/(..)(..)(..)(..)/;	
-		my $splitpath = "$1/$2/$3/$4";
-		$uri = "/archive/$splitpath$tail";
 
-		if( $tail =~ s! ^/([0-9]+) !!x )
+		# redirect to canonical path - /XX/
+		if( length($1) || !length($uri) )
 		{
-			# it's a document....			
+			return redir( $r, "$urlpath/$eprintid/$uri$args" );
+		}
 
-			my $pos = $1;
-			if( $tail eq "" || $pos ne $pos+0 )
+		if( $uri =~ s! ^/(0*)([1-9][0-9]*)\b !!x )
+		{
+			# It's a document....			
+
+			my $pos = $2;
+			my $doc = EPrints::DataObj::Document::doc_with_eprintid_and_pos( $repository, $eprintid, $pos );
+			if( !defined $doc )
 			{
-				$tail = "/" if $tail eq "";
-				return redir( $r, sprintf( "%s/%d/%d%s",$urlpath, $eprintid, $pos, $tail ).$args );
+				return NOT_FOUND;
 			}
 
-			$tail =~ s! ^([^/]*)/ !!x;
+			if( length($1) || !length($uri) )
+			{
+				return redir( $r, "$urlpath/$eprintid/$pos/$uri$args" );
+			}
+
+			$uri =~ s! ^([^/]*)/ !!x;
 			my @relations = grep { length($_) } split /\./, $1;
 
-			my $filename = $tail;
+			my $filename = $uri;
+			foreach my $relation (@relations)
+			{
+				$relation = EPrints::Utils::make_relation( $relation );
+				$doc = $doc->get_related_objects( $relation )->[0];
+				return NOT_FOUND if !defined $doc;
+				$filename = $doc->get_main();
+			}
 
-			$r->pnotes( datasetid => "document" );
-			$r->pnotes( eprintid => $eprintid );
-			$r->pnotes( pos => $pos );
-			$r->pnotes( relations => \@relations );
+			$r->pnotes( eprint => $eprint );
+			$r->pnotes( document => $doc );
+			$r->pnotes( dataobj => $doc );
 			$r->pnotes( filename => $filename );
 
-			$r->pnotes( loghandler => "?fulltext=yes" );
+			$r->handler('perl-script');
+
+			# no real file to map to
+			$r->set_handlers(PerlMapToStorageHandler => sub { OK } );
+
+			$r->push_handlers(PerlAccessHandler => [
+				\&EPrints::Apache::Auth::authen_doc,
+				\&EPrints::Apache::Auth::authz_doc
+				] );
 
 		 	$r->set_handlers(PerlResponseHandler => \&EPrints::Apache::Storage::handler );
 
-			return DECLINED;
+			# log full-text hits
+			$r->push_handlers(PerlLogHandler => \&EPrints::Apache::LogHandler::document );
 		}
-	
-		$r->pnotes( eprintid => $eprintid );
-
-		$r->pnotes( loghandler => "?abstract=yes" );
-
 		# OK, It's the EPrints abstract page (or something whacky like /23/fish)
-		EPrints::Update::Abstract::update( $repository, $lang, $eprintid, $uri );
+		else
+		{
+			my $path = "/archive/" . $eprint->store_path();
+			EPrints::Update::Abstract::update( $repository, $lang, $eprint->id, $path );
+
+			if( $uri =~ m! /$ !x )
+			{
+				$uri .= "index.html";
+			}
+			$r->filename( $eprint->_htmlpath( $lang ) . $uri );
+
+			if( $uri =~ /\.html$/ )
+			{
+				$r->pnotes( eprint => $eprint );
+
+				$r->handler('perl-script');
+				$r->set_handlers(PerlResponseHandler => [ 'EPrints::Apache::Template' ] );
+
+				# log abstract hits
+				$r->push_handlers(PerlLogHandler => \&EPrints::Apache::LogHandler::eprint );
+			}
+		}
+
+		return OK;
 	}
 
 	# apache 2 does not automatically look for index.html so we have to do it ourselves
@@ -290,8 +426,6 @@ sub handler
 	}
 	$r->filename( $repository->get_conf( "htdocs_path" )."/".$lang.$localpath );
 
-	my $session = new EPrints::Session(2); # don't open the CGI info
-	$session->{preparing_static_page} = 1; 
 	if( $uri =~ m! ^/view(.*) !x )
 	{
 		# redirect /foo to /foo/ 
@@ -300,19 +434,23 @@ sub handler
 			return redir( $r, "$uri/" );
 		}
 
-		my $filename = EPrints::Update::Views::update_view_file( $session, $lang, $localpath, $uri );
+		local $repository->{preparing_static_page} = 1; 
+		my $filename = EPrints::Update::Views::update_view_file( $repository, $lang, $localpath, $uri );
 		return NOT_FOUND if( !defined $filename );
 
 		$r->filename( $filename );
 	}
 	else
 	{
-		EPrints::Update::Static::update_static_file( $session, $lang, $localpath );
+		local $repository->{preparing_static_page} = 1; 
+		EPrints::Update::Static::update_static_file( $repository, $lang, $localpath );
 	}
-	delete $session->{preparing_static_page};
-	$session->terminate;
 
-	$r->set_handlers(PerlResponseHandler =>[ 'EPrints::Apache::Template' ] );
+	if( $r->filename =~ /\.html$/ )
+	{
+		$r->handler('perl-script');
+		$r->set_handlers(PerlResponseHandler => [ 'EPrints::Apache::Template' ] );
+	}
 
 	return OK;
 }
@@ -321,7 +459,7 @@ sub redir
 {
 	my( $r, $url ) = @_;
 
-	EPrints::Apache::AnApache::send_status_line( $r, 302, "Close but no Cigar" );
+	EPrints::Apache::AnApache::send_status_line( $r, 302, "Found" );
 	EPrints::Apache::AnApache::header_out( $r, "Location", $url );
 	EPrints::Apache::AnApache::send_http_header( $r );
 	return DONE;
@@ -331,7 +469,7 @@ sub redir_see_other
 {
 	my( $r, $url ) = @_;
 
-	EPrints::Apache::AnApache::send_status_line( $r, 303, "See Elseware" );
+	EPrints::Apache::AnApache::send_status_line( $r, 303, "See Other" );
 	EPrints::Apache::AnApache::header_out( $r, "Location", $url );
 	EPrints::Apache::AnApache::send_http_header( $r );
 	return DONE;
