@@ -306,7 +306,7 @@ sub _get_phrase
 		next if !defined $lang;
 		foreach my $src (qw( repository_data data ))
 		{
-			my( $xml, $file ) = $self->_get_src_phrase( $src, $phraseid, $session );
+			my( $xml, $file ) = $lang->_get_src_phrase( $src, $phraseid, $session );
 			# phrase, fallback?, source, XML file
 			return( $xml, $lang ne $self, $src, $file ) if defined $xml;
 		}
