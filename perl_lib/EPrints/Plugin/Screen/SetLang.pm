@@ -35,7 +35,7 @@ sub export
 	$self->set_cookie();
 
 	my $referrer = $session->param( "referrer" );
-	$referrer = $session->config( "home_page" ) if !defined $referrer;
+	$referrer = $session->config( "home_page" ) if !EPrints::Utils::is_set( $referrer );
 
 	return $self->{session}->redirect( $referrer );
 }
@@ -77,7 +77,11 @@ sub EPrints::Script::Compiled::run_languages
 
 	my $imagesurl = $session->config( "rel_path" )."/images/flags";
 	my $scripturl = URI->new( $session->current_url( path => "cgi", "set_lang" ), 'http' );
-	my $curl = $session->current_url( host => 1, query => 1 );
+	my $curl = "";
+	if( $session->get_online )
+	{
+		$curl = $session->current_url( host => 1, query => 1 );
+	}
 
 	my $div = $xml->create_element( "div", id => "ep_tm_languages" );
 	$f->appendChild( $div );
