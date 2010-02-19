@@ -356,14 +356,30 @@ EOJ
 
 	my $defined_rows = $session->make_doc_fragment;
 	my $undefined_rows = $session->make_doc_fragment;
+	my $fallback_rows = $session->make_doc_fragment;
 	foreach my $phraseid ( @ids )
 	{
 		my $info = $session->get_lang->get_phrase_info( $phraseid, $session );
 		my $src = "null";
-		if( defined $info )
+		if( defined $info && $info->{fallback} )
 		{
 			$src = $info->{system} ? "system" : "repo";
-			$src .= $info->{fallback} ? "fallback" : "";
+			$src .= "fallback";
+			$src = "webcfg" if $info->{filename} eq $file;
+			$fallback_rows->appendChild( $self->render_row(
+				{
+					phraseid => $phraseid,
+					xml => $info->{xml},
+					langid  => $info->{langid},
+					src => $src,
+				},
+				undef,
+				"message"
+			) );
+		}
+		elsif( defined $info )
+		{
+			$src = $info->{system} ? "system" : "repo";
 			$src = "webcfg" if $info->{filename} eq $file;
 			$defined_rows->appendChild( $self->render_row(
 				{
@@ -375,7 +391,6 @@ EOJ
 				undef,
 				"message"
 			) );
-#			$defined_rows->appendChild( $session->make_text( "\n\n\n\n" ) );
 		}
 		else
 		{
@@ -387,10 +402,10 @@ EOJ
 				}, 
 				$self->html_phrase( "phrase_not_defined" ),
 				"warning" ) );
-#			$undefined_rows->appendChild( $session->make_text( "\n\n\n\n" ) );
 		}
 	}	
 	$table->appendChild( $undefined_rows );
+	$table->appendChild( $fallback_rows );
 	$table->appendChild( $defined_rows );
 	$f->appendChild( $table );	
 

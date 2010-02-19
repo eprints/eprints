@@ -91,3 +91,10 @@ ul.ep_tm_menu li a:visited {
 }
 
 /* end of search bar */
+
+#ep_tm_languages {
+	display: inline;
+}
+#ep_tm_languages a {
+	margin-left: 4px;
+}
