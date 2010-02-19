@@ -59,6 +59,8 @@ foreach my $field_data ( @fields )
 		],
 		title => "Test title",
 		abstract => "blah blah",
+		publication => "Foo Journal",
+		event_title => "BLAH2005",
 		date => "2009",
 		isbn => "1234567890",
 		issn => "12345690",
