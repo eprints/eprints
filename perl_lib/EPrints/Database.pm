@@ -873,89 +873,75 @@ sub create_table
 	my $field;
 	my $rv = 1;
 
+	my @main_fields;
+
 	# build the sub-tables first
 	foreach $field (@fields)
 	{
-		next unless ( $field->get_property( "multiple" ) );
-		next if( $field->is_virtual );
-		# make an aux. table for a multiple field
-		# which will contain the same type as the
-		# key of this table paired with the non-
-		# multiple version of this field.
-		# auxfield and keyfield must be indexed or 
-		# there's not much point. 
+		next if $field->is_virtual;
+		if( !$field->get_property( "multiple" ) )
+		{
+			push @main_fields, $field;
+			next;
+		}
+		# create an aux. table for the multiple field that contains:
+		#  keyfield | pos | field
+		# PRIMARY KEY(keyfield,pos)
 
 		my $auxfield = $field->clone;
 		$auxfield->set_property( "multiple", 0 );
-		my $keyfield = $dataset->get_key_field()->clone;
-#print $field->get_name()."\n";
-#foreach( keys %{$auxfield} ) { print "* $_ => ".$auxfield->{$_}."\n"; }
-#print "\n\n";
 
-		# cjg Hmmmm
-		#  Multiple ->
-		# [key] [cnt] [field]
-		#  Lang ->
-		# [key] [lang] [field]
-		#  Multiple + Lang ->
-		# [key] [pos] [lang] [field]
+		my $keyfield = $dataset->get_key_field();
 
-		my @auxfields = ( $keyfield );
-		if ( $field->get_property( "multiple" ) )
-		{
-			my $pos = EPrints::MetaField->new( 
-				repository=> $self->{session}->get_repository,
-				name => "pos", 
-				type => "int" );
-			push @auxfields, $pos;
-		}
-		push @auxfields, $auxfield;
+		my $pos = EPrints::MetaField->new( 
+			repository=> $self->{session}->get_repository,
+			name => "pos", 
+			type => "int",
+			sql_index => 1 );
+
 		$rv &&= $self->create_table(	
 			$dataset->get_sql_sub_table_name( $field ),
 			$dataset,
 			2, # use key + pos as primary key
-			@auxfields );
+			$keyfield, $pos, $auxfield );
 	}
 
-	# Construct the SQL statement
+	# PRIMARY KEY
 	my @primary_key;
+	foreach my $i (0..$setkey-1)
+	{
+		my $field = $main_fields[$i] = $main_fields[$i]->clone;
+
+		# PRIMARY KEY columns must be NOT NULL
+		$field->set_property( allow_null => 0 );
+		# don't need a key because the DB can use the PRIMARY KEY
+		if( $i == 0 || $i == $setkey-1 )
+		{
+			$field->set_property( sql_index => 0 );
+		}
+
+		push @primary_key, $field;
+	}
+
 	my @indices;
 	my @columns;
-	foreach $field (@fields)
+	foreach $field (@main_fields)
 	{
-		next if( $field->get_property( "multiple" ) );
-		next if( $field->is_virtual );
-
-		my $cfield = $field->clone;
-
-		# Set a PRIMARY KEY over $setkey columns
-		if( $setkey > @primary_key )
+		if( $field->get_property( "sql_index" ) )
 		{
-			push @primary_key, $field;
-			# PRIMARY KEY columns must be NOT NULL
-			$cfield->set_property( allow_null => 0 );
+			push @indices, [$field->get_sql_index()];
 		}
-		if( !$setkey || @primary_key > 1 )
-		{
-			my @index_columns = $cfield->get_sql_index();
-			if( scalar @index_columns )
-			{
-				push @indices, \@index_columns;
-			}
-		}
-		push @columns, $cfield->get_sql_type( $self->{session} );
+		push @columns, $field->get_sql_type( $self->{session} );
 	}
 	
 	@primary_key = map {
-		my $cfield = $_->clone;
-		$cfield->set_property( sql_index => 1 );
-		$cfield->get_sql_index;
+		$_->set_property( sql_index => 1 );
+		$_->get_sql_index;
 	} @primary_key;
 
 	# Send to the database
-	$rv = $rv && $self->_create_table( $tablename, \@primary_key, \@columns );
+	$rv &&= $self->_create_table( $tablename, \@primary_key, \@columns );
 	
-	my $idx = 1;
 	foreach (@indices)
 	{
 		$rv &&= $self->create_index( $tablename, @$_ );
@@ -1112,7 +1098,7 @@ sub create_index
 		$self->quote_identifier( $table ),
 		join(',',map { $self->quote_identifier($_) } @columns) );
 
-	return $self->do($sql);
+	return defined $self->do($sql);
 }
 
 ######################################################################
