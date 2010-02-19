@@ -23,13 +23,7 @@ sub wishes_to_export
 {
 	my( $self ) = @_;
 
-	my $referer = EPrints::Apache::AnApache::header_in(
-		$self->{session}->get_request,
-		'Referer' );
-
-	$self->{processor}->{referer} = $referer;
-
-	return EPrints::Utils::is_set( $referer );
+	return 1;
 }
 
 sub export
@@ -40,7 +34,10 @@ sub export
 
 	$self->set_cookie();
 
-	return $self->{session}->redirect( $self->{processor}->{referer} );
+	my $referrer = $session->param( "referrer" );
+	$referrer = $session->config( "home_page" ) if !defined $referrer;
+
+	return $self->{session}->redirect( $referrer );
 }
 
 sub set_cookie
@@ -62,19 +59,6 @@ sub set_cookie
 	$session->{request}->err_headers_out->add('Set-Cookie' => $cookie);
 }
 
-sub render
-{
-	my( $self ) = @_;
-
-	my $session = $self->{session};
-
-	$self->set_cookie();
-
-	# Don't where else to send the user
-	$session->redirect( $session->config( "home_page" ) );
-	exit( 0 );
-}
-
 sub EPrints::Script::Compiled::run_languages
 {
 	my( $self, $state ) = @_;
@@ -92,7 +76,8 @@ sub EPrints::Script::Compiled::run_languages
 	}
 
 	my $imagesurl = $session->config( "rel_path" )."/images/flags";
-	my $scripturl = $session->current_url( path => "cgi", "set_lang" );
+	my $scripturl = URI->new( $session->current_url( path => "cgi", "set_lang" ), 'http' );
+	my $curl = $session->current_url( host => 1, query => 1 );
 
 	my $div = $xml->create_element( "div", id => "ep_tm_languages" );
 	$f->appendChild( $div );
@@ -100,12 +85,16 @@ sub EPrints::Script::Compiled::run_languages
 	foreach my $langid (@$languages)
 	{
 		next if $langid eq $session->get_lang->get_id;
+		$scripturl->query_form(
+			lang => $langid,
+			referrer => $curl
+		);
 		my $clangid = $session->get_lang()->get_id;
 		$session->change_lang( $langid );
 		my $title = $session->phrase( "languages_typename_$langid" );
 		$session->change_lang( $clangid );
 		my $link = $xml->create_element( "a",
-			href => "$scripturl?lang=$langid",
+			href => "$scripturl",
 			title => $title,
 		);
 		my $img = $xml->create_element( "img",
@@ -118,9 +107,11 @@ sub EPrints::Script::Compiled::run_languages
 		$div->appendChild( $link );
 	}
 
+	$scripturl->query_form( referrer => $curl );
+
 	my $title = $session->phrase( "cgi/set_lang:clear_cookie" );
 	my $link = $xml->create_element( "a",
-		href => $scripturl,
+		href => "$scripturl",
 		title => $title,
 	);
 	my $img = $xml->create_element( "img",
