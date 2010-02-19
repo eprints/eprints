@@ -250,7 +250,7 @@ sub send_out_alert
 	{
 		$self->{session}->get_repository->log( 
 			"Attempt to send out an alert for a\n".
-			"non-existant user. SavedSearch ID#".$self->get_id."\n" );
+			"non-existent user. SavedSearch ID#".$self->get_id."\n" );
 		return;
 	}
 

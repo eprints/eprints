@@ -654,7 +654,7 @@ sub field_from_config_string
 	{
 		if( !defined $dataset )
 		{
-			EPrints::abort( "Attempt to get a field or subfield from a non existant dataset. Could be due to a sub field of a inappropriate field type." );
+			EPrints::abort( "Attempt to get a field or subfield from a non existent dataset. Could be due to a sub field of a inappropriate field type." );
 		}
 		$field = $dataset->get_field( $fname );
 		if( !defined $field )
