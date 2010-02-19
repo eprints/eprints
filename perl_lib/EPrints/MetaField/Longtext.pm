@@ -54,16 +54,6 @@ sub get_sql_type
 	);
 }
 
-# never SQL index this type
-sub get_sql_index
-{
-	my( $self ) = @_;
-
-	return ();
-}
-
-
-
 sub render_single_value
 {
 	my( $self, $session, $value ) = @_;
@@ -124,6 +114,7 @@ sub get_property_defaults
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{input_rows} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{maxlength} = 16384; # 2^16 / 4 (safely store UTF-8)
+	$defaults{sql_index} = 0;
 	return %defaults;
 }
 
