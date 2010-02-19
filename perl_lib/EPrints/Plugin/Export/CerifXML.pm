@@ -147,7 +147,7 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "Cerif XML 2008";
-	$self->{accept} = [ 'list/eprint', 'dataobj/eprint' ];
+	$self->{accept} = [ 'list/eprint' ];
 	$self->{visible} = "all";
 	$self->{advertise} = 0;
 	$self->{suffix} = ".zip";

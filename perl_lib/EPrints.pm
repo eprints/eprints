@@ -159,6 +159,7 @@ $errmsg
 END
 		$@="";
 		cluck( "EPrints System Error inducing stack dump\n" );
+		if( $EPrints::die_on_abort ) { die $errmsg; }
 		exit( 1 );
 	}
 
