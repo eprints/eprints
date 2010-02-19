@@ -240,4 +240,12 @@ sub _cache_from_SELECT
 	$self->drop_sequence( $cache_seq );
 }
 
+# unsupported
+sub index_name
+{
+	my( $self, $table, @cols ) = @_;
+
+	return 1;
+}
+
 1;

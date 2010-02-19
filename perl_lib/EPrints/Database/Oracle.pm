@@ -440,6 +440,14 @@ sub quote_binary
 	return join('', map { sprintf("%02x",ord($_)) } split //, $value);
 }
 
+# unsupported
+sub index_name
+{
+	my( $self, $table, @cols ) = @_;
+
+	return 1;
+}
+
 1; # For use/require success
 
 ######################################################################
