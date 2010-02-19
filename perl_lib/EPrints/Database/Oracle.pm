@@ -59,6 +59,8 @@ Oracle won't ORDER BY LOBS.
 
 Oracle requires special means to insert values into CLOB/BLOB.
 
+Oracle doesn't support "AS" when aliasing.
+
 =head1 METHODS
 
 =over 4
@@ -446,6 +448,13 @@ sub index_name
 	my( $self, $table, @cols ) = @_;
 
 	return 1;
+}
+
+sub alias_glue
+{
+	my( $self ) = @_;
+
+	return " ";
 }
 
 1; # For use/require success

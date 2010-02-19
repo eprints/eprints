@@ -4161,7 +4161,7 @@ sub index_name
 	foreach my $i (0..$#cols)
 	{
 		$sql .= ", " if $i > 0;
-		$sql .= "$t AS S$i";
+		$sql .= $t.$self->alias_glue."S$i";
 		push @logic,
 			"S0.index_name=S$i.index_name",
 			"S$i.table_schema=".$self->quote_value( $self->{session}->config( "dbname" ) ),
@@ -4501,6 +4501,19 @@ sub prepare_regexp
 	my( $self, $col, $value ) = @_;
 
 	return "$col REGEXP $value";
+}
+
+=item $glue = $db->alias_glue()
+
+Returns the syntactic glue to use when aliasing. SQL 92 DBs will happilly use " AS " but some DBs (Oracle!) won't accept it.
+
+=cut
+
+sub alias_glue
+{
+	my( $self ) = @_;
+
+	return " AS ";
 }
 
 1; # For use/require success

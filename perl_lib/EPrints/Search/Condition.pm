@@ -357,7 +357,7 @@ sub sql
 		$sql .= "SELECT ".$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name );
 		if( defined $key_alias )
 		{
-			$sql .= " AS ".$db->quote_identifier( $key_alias );
+			$sql .= $db->alias_glue.$db->quote_identifier( $key_alias );
 		}
 	}
 	elsif( !$groupby->get_property( "multiple" ) )
@@ -409,7 +409,7 @@ sub sql
 			$sql .= defined $join->{subquery} ? $join->{subquery} : $db->quote_identifier( $join->{table} );
 			if( defined $join->{alias} )
 			{
-				$sql .= " AS ".$db->quote_identifier( $join->{alias} );
+				$sql .= $db->alias_glue.$db->quote_identifier( $join->{alias} );
 			}
 			push @tables, $sql;
 			if( defined $join->{logic} ) # overridden table join logic (used by subject ancestors)
