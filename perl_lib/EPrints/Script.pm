@@ -160,7 +160,7 @@ sub error
 	if( defined $pos ) { $error.= " at character ".$pos; }
 	if( defined $code ) { $error .= "\n".$code; }
 	if( defined $code && defined $pos ) {  $error .=  "\n".(" "x$pos). "^ here"; }
-	EPrints::abort( $error );
+	die $error; # aimed to be caught
 }
 
 1;

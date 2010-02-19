@@ -62,44 +62,16 @@ sub process
 		my $name = $node->tagName;
 		$name =~ s/^epc://;
 
-		# new style
-		if( $name eq "if" )
+		if( $name=~m/^(if|comment|choose|print|debug|phrase|pin|foreach|set)$/ )
 		{
-			return _process_if( $node, %params );
+			my $r = eval "_process_$name( \$node, \%params );";
+			if( $@ )
+			{
+				$params{session}->log( "EPScript error: $@" );
+				return $params{session}->html_phrase( "XML/EPC:script_error" );
+			}
+			return $r;
 		}
-		if( $name eq "comment" )
-		{
-			return _process_comment( $node, %params );
-		}
-		if( $name eq "choose" )
-		{
-			return _process_choose( $node, %params );
-		}
-		if( $name eq "print" )
-		{
-			return _process_print( $node, %params );
-		}
-		if( $name eq "debug" )
-		{
-			return _process_debug( $node, %params );
-		}
-		if( $name eq "phrase" )
-		{
-			return _process_phrase( $node, %params );
-		}
-		if( $name eq "pin" )
-		{
-			return _process_pin( $node, %params );
-		}
-		if( $name eq "foreach" )
-		{
-			return _process_foreach( $node, %params );
-		}
-		if( $name eq "set" )
-		{
-			return _process_set( $node, %params );
-		}
-
 	}
 
 	my $collapsed = $params{session}->clone_for_me( $node );
@@ -111,7 +83,12 @@ sub process
 			my $attr = $attrs->item( $i );
 			my $v = $attr->nodeValue;
 			my $name = $attr->nodeName;
-			my $newv = EPrints::XML::EPC::expand_attribute( $v, $name, \%params );
+			my $newv = eval { EPrints::XML::EPC::expand_attribute( $v, $name, \%params ); };
+			if( $@ )
+			{
+				$params{session}->log( "EPScript error: $@" );
+				$newv = $params{session}->phrase( "XML/EPC:script_error" );
+			}
 			if( $v ne $newv ) { $attr->setValue( $newv ); }
 		}
 	}
