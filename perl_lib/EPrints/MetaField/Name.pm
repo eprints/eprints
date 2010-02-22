@@ -43,7 +43,7 @@ use EPrints::MetaField::Text;
 my $VARCHAR_SIZE = 255;
 
 # database order
-my @PARTS = qw( family lineage given honourific );
+our @PARTS = qw( family lineage given honourific );
 
 sub get_sql_names
 {
@@ -76,8 +76,15 @@ sub sql_row_from_value
 		return map { undef } @PARTS;
 	}
 
-	# Avoid NULL!="" name part problems
-	return map { defined($_) ? $_ : "" } @$value{@PARTS};
+	foreach my $part (@$value{@PARTS})
+	{
+		# Avoid NULL!="" name part problems
+		$part = "" if !defined $part;
+		# strip control characters
+		$part =~ s/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]/\x{fffd}/g;
+	}
+
+	return @$value{@PARTS};
 }
 
 sub get_sql_type
