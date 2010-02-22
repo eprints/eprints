@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -31,3 +31,17 @@ $eprint->set_value( "corp_creators", [
 my $corp_creators = $eprint->get_value( "corp_creators" );
 
 is( $corp_creators->[1], "second" );
+
+my $field;
+for($dataset->fields)
+{
+	$field = $_, last if $_->get_property( "multiple" ) && $_->isa( "EPrints::MetaField::Set" );
+}
+
+SKIP: {
+	skip "Missing multiple MetaField::Set", 1 unless defined $field;
+
+	$field->set_value( $eprint, [qw( one two three two five)] );
+
+	is_deeply( $field->get_value( $eprint ), [qw( one two three five )], "set field removes duplicates");
+};
