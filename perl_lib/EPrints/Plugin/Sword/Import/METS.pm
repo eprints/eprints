@@ -282,12 +282,6 @@ sub input_file
                                 $session,
 				$unpack_dir."/".$file );
 
-	       if( $doc_data{format} eq 'other' )
-	       {
-		        my $guess2 = EPrints::Sword::FileType::checktype_filename( $unpack_dir."/".$file );
-			$doc_data{format} = $guess2 unless( $guess2 eq 'application/octet-stream' );
-	       }
-		
 		$doc_data{main} = $file;
 		local $session->get_repository->{config}->{enable_file_imports} = 1;
 	        my %file_data;
