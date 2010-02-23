@@ -118,7 +118,7 @@ sub _config
 	{
 		EPrints::XML::dispose( $config->{xml} );
 		%$config = ();
-		$self->load_config_file( $file, $config );
+		$self->_load_config_file( $file, $config );
 	}
 
 	return $config->{xml};
