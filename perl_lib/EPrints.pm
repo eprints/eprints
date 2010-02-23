@@ -85,6 +85,7 @@ BEGIN {
 use Apache::DBI; # must be first! 	 	 
 #$Apache::DBI::DEBUG = 3;
 use EPrints::Apache::AnApache;
+use EPrints::Apache::LogHandler;
 use EPrints::Apache::Login;
 use EPrints::Apache::Auth;
 use EPrints::Apache::Rewrite;

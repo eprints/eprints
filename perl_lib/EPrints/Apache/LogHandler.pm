@@ -58,12 +58,56 @@ package EPrints::Apache::LogHandler;
 
 use EPrints;
 
+our @RobotsSearchIDOrder_list1 = ();
+our @RobotsSearchIDOrder_list2 = ();
+our @RobotsSearchIDOrder_listgen = ();
+our %RobotsHashIDLib = ();
+our %RobotsAffiliateLib = ();
+
+eval "do 'robots.pm'"; # load robots.pm into our namespace
+
 use strict;
 
-use EPrints;
 use EPrints::Apache::AnApache;
+use Apache2::Connection;
+
+our @USERAGENT_ROBOTS = map { qr/$_/i } @RobotsSearchIDOrder_list1;
+our %ROBOTS_CACHE; # key=IP, value=time (or -time if not a robot)
+our $TIMEOUT = 3600; # 1 hour
 
 sub handler {} # deprecated
+
+sub is_robot
+{
+	my( $r ) = @_;
+
+	my $ip = $r->connection->remote_ip;
+	my $time_t = time();
+
+	# cleanup then check the cache
+	for(keys %ROBOTS_CACHE)
+	{
+		delete $ROBOTS_CACHE{$_} if abs($ROBOTS_CACHE{$_}) < $time_t;
+	}
+
+	return $ROBOTS_CACHE{$ip} > 0 if exists $ROBOTS_CACHE{$ip};
+	$ROBOTS_CACHE{$ip} = $time_t + $TIMEOUT;
+
+	my $is_robot = 0;
+
+	my $ua = $r->headers_in->{ "User-Agent" };
+	if( $ua )
+	{
+		for(@USERAGENT_ROBOTS)
+		{
+			$is_robot = 1, last if $ua =~ $_;
+		}
+	}
+
+	$ROBOTS_CACHE{$ip} *= -1 if !$is_robot;
+
+	return $is_robot;
+}
 
 =item $handler->document( $r )
 
@@ -80,6 +124,8 @@ sub document
 	{
 		return DECLINED;
 	}
+
+	return if is_robot( $r );
 
 	my $doc = $r->pnotes( "document" );
 	my $filename = $r->pnotes->{ "filename" };
@@ -126,6 +172,8 @@ sub eprint
 	{
 		return DECLINED;
 	}
+
+	return if is_robot( $r );
 
 	my $eprint = $r->pnotes( "eprint" );
 
