@@ -256,6 +256,12 @@ sub convert
 		close($_);
 	}
 
+	if( !defined $new_doc )
+	{
+		$session->log( "Failed to create document object during conversion: check your storage configuration" );
+		return ();
+	}
+
 	$new_doc->set_value( "security", $doc->get_value( "security" ) );
 
 	$doc->add_object_relations(

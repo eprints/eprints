@@ -288,13 +288,23 @@ sub create_from_data
 			foreach my $epdata (@{$subobjects{$fieldname}})
 			{
 				my $subobj = $dataobj->create_subdataobj( $fieldname, $epdata );
-				push @subobjects, $subobj if defined $subobj;
+				if( !defined $subobj )
+				{
+					$dataobj->remove();
+					return undef;
+				}
+				push @subobjects, $subobj;
 			}
 			$dataobj->set_value( $fieldname, \@subobjects );
 		}
 		else
 		{
 			my $subobj = $dataobj->create_subdataobj( $fieldname, $subobjects{$fieldname} );
+			if( !defined $subobj )
+			{
+				$dataobj->remove();
+				return undef;
+			}
 			$dataobj->set_value( $fieldname, $subobj );
 		}
 	}
