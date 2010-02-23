@@ -420,6 +420,7 @@ $aliases
   <Location "$http_root">
     PerlSetVar EPrints_ArchiveID $repository_id
 
+    Options +ExecCGI
     Order allow,deny 
     Allow from all
   </Location>
