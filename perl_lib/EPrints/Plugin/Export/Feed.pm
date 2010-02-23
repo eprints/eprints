@@ -1,8 +1,8 @@
 package EPrints::Plugin::Export::Feed;
 
-use EPrints::Plugin::Export;
+use EPrints::Plugin::Export::XMLFile;
 
-@ISA = ( "EPrints::Plugin::Export" );
+@ISA = ( "EPrints::Plugin::Export::XMLFile" );
 
 use strict;
 
