@@ -14,6 +14,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<EPrints::MetaField> - A single metadata field.
@@ -30,6 +32,8 @@ field. For example: "text", "name" or "date".
 
 A full description of metadata types and properties is in the eprints
 documentation and will not be duplicated here.
+
+=head1 METHODS
 
 =over 4
 
