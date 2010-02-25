@@ -253,12 +253,21 @@ sub _p2w_preamble
 This page has been automatically generated from the EPrints 3.2 source. Any wiki changes made between the '$PREFIX*' and '$END_PREFIX' comments will be lost.
 EOC
 
-	my $sort_key = $package_name;
+	my $sort_key = uc($package_name);
 	$sort_key =~ s/^.*:://;
 
 	my $file = $package_name;
 	$file =~ s/::/\//g;
 	$file = "$file.pm";
+
+	my $parent = $package_name;
+	$parent =~ s/::[^:]+$//;
+	$parent =~ s#::#/#g;
+	undef $parent if $parent !~ m#/#;
+
+	my $selfcat = $package_name;
+	$selfcat =~ s#::#/#g;
+	undef $selfcat if $selfcat !~ m#/#;
 
 	return (
 		"<!-- ${PREFIX}_preamble_ \n$blurb -->",
@@ -267,6 +276,8 @@ EOC
 		"{{Pod2Wiki}}",
 		"{{API:Source|file=$file|package_name=$package_name}}",
 		"[[Category:API|$sort_key]]",
+		($parent ? "[[Category:API:$parent|$sort_key]]" : ()),
+		($selfcat ? "[[Category:API:$selfcat|$sort_key]]" : ()),
 		"<div>",
 		"<!-- $END_PREFIX -->\n\n\n",
 	);
