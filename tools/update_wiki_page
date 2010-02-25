@@ -42,6 +42,7 @@ use Pod::Usage;
 
 use EPrints;
 use EPrints::Test::Pod2Wiki;
+use File::Find;
 
 use strict;
 
@@ -70,12 +71,16 @@ for(@ARGV)
 
 if( !@ARGV )
 {
-	foreach my $class (keys %INC)
-	{
-		next if $class !~ /^EPrints\b/;
-		next if !($class =~ s/\.pm$//);
+	my $perl_lib = $EPrints::SystemSettings::conf->{base_path} . "/perl_lib";
+	File::Find::find(sub {
+		return if $File::Find::dir eq $File::Find::name;
+		my $class = $File::Find::name;
+		return if $class =~ m#/\.#;
+		return if !($class =~ s/\.pm$//);
+		substr($class,0,length($perl_lib)+1) = "";
 		$class =~ s#/#::#g;
+		return if $class !~ /^EPrints\b/;
 		print STDERR "Processing $class\n";
 		$parser->update_page( $class );
-	}
+	}, $perl_lib);
 }

@@ -63,6 +63,16 @@ Oracle requires special means to insert values into CLOB/BLOB.
 
 Oracle doesn't support "AS" when aliasing.
 
+=head2 TODO
+
+=over 4
+
+=item epadmin create
+
+=item $name = $db->index_name( $table, @columns )
+
+=back
+
 =head1 METHODS
 
 =over 4

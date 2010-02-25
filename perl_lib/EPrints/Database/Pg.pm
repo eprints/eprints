@@ -20,6 +20,20 @@
 
 B<EPrints::Database::Pg> - custom database methods for PostgreSQL DB
 
+=head1 DESCRIPTION
+
+=head2 TODO
+
+=over 4
+
+=item epadmin create
+
+=item $name = $db->index_name( $table, @columns )
+
+=back
+
+=head1 METHODS
+
 =cut
 
 package EPrints::Database::Pg;
