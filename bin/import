@@ -12,6 +12,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<import> - Import a file using an import plugin.

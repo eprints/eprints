@@ -26,6 +26,8 @@ The language class handles loading the "phrase" files for a single
 language. See the mail documentation for a full explanation of the
 format of phrase files.
 
+=head1 METHODS
+
 =over 4
 
 =cut

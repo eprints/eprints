@@ -12,6 +12,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<import_subjects> - rebuild an EPrint repository subjects list from the contents of a file

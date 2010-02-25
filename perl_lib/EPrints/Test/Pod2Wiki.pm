@@ -277,7 +277,14 @@ sub _p2w_locate_package
 {
 	my( $self, $package_name ) = @_;
 
-	my $perl_lib = $EPrints::SystemSettings::conf->{base_path} . "/perl_lib";
+	my $base_path = $EPrints::SystemSettings::conf->{base_path};
+
+	if( $package_name =~ m#/# )
+	{
+		return "$base_path/$package_name";
+	}
+
+	my $perl_lib = "$base_path/perl_lib";
 	my $file = $package_name;
 	$file =~ s/::/\//g;
 	$file = "$perl_lib/$file.pm";
@@ -574,8 +581,8 @@ sub interior_sequence
 {
 	my( $self, $seq_cmd, $seq_arg, $pod_seq ) = @_;
 
-	# shouldn't happen
-	return unless $self->{_p2w_pod_section};
+	# shouldn't happen (and breaks =item text)
+#	return unless $self->{_p2w_pod_section};
 
 	return "'''$seq_arg'''" if $seq_cmd eq 'B';
 	return "\x{00}tt\x00$seq_arg\x00" if $seq_cmd eq 'C';

@@ -12,6 +12,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<generate_abstracts> - Regenerate all the static abstract pages for an EPrint repository

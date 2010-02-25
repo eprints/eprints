@@ -13,6 +13,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<generate_static> - Generate static pages of an EPrint repository using the template.

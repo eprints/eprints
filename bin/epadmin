@@ -12,6 +12,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<epadmin> - EPrints repository admin tool

@@ -12,6 +12,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<generate_apacheconf> - Create the apache config files needed for EPrints

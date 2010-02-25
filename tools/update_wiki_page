@@ -83,4 +83,13 @@ if( !@ARGV )
 		print STDERR "Processing $class\n";
 		$parser->update_page( $class );
 	}, $perl_lib);
+	my $bin_path = $EPrints::SystemSettings::conf->{base_path} . "/bin";
+	File::Find::find(sub {
+		return if $File::Find::dir eq $File::Find::name;
+		my $class = $File::Find::name;
+		return if $class =~ m#/\.#;
+		substr($class,0,length($bin_path)+1) = "";
+		print STDERR "Processing $class\n";
+		$parser->update_page( "bin/$class" );
+	}, $bin_path);
 }
