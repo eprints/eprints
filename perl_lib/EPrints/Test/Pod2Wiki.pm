@@ -134,6 +134,7 @@ sub update_page
 	local $self->{_out} = [];
 	local $self->{_is_api} = 0;
 	local $self->{_p2w_pod_section};
+	local $self->{_p2w_format} = "";
 	local $self->{_p2w_head_depth} = 0;
 	local $self->{_p2w_methods} = 0;
 	local $self->{_wiki} = {};
@@ -401,8 +402,17 @@ sub command
 {
 	my( $self, $cmd, $text, $line_num, $pod_para ) = @_;
 
-	if( $self->{_p2w_pod_section} && $self->{_p2w_pod_section} ne "Pod2Wiki" )
+	if( $self->{_p2w_pod_section} )
 	{
+		if( $self->{_p2w_pod_section} eq "begin" )
+		{
+			if( $cmd eq "end" )
+			{
+				$self->{_p2w_format} = "";
+				delete $self->{_p2w_pod_section};
+			}
+			return;
+		}
 		my $key = delete $self->{_p2w_pod_section};
 		push @{$self->{_out}}, "<div style='$STYLE'>\n<span style='display:none'>User Comments</span>\n<!-- $END_PREFIX -->\n\n";
 		if( $self->{_wiki}->{$key} )
@@ -476,15 +486,12 @@ sub command
 	}
 	elsif( $cmd eq "begin" )
 	{
+		$self->{_p2w_pod_section} = $cmd;
 		if( $text eq "Pod2Wiki" )
 		{
-			$self->{_p2w_pod_section} = "Pod2Wiki";
+			$self->{_p2w_format} = $text;
 			push @{$self->{_out}}, "<!-- ${PREFIX}_private_ -->";
 		}
-	}
-	elsif( $cmd eq "end" )
-	{
-		delete $self->{_p2w_pod_section};
 	}
 	else
 	{
@@ -507,6 +514,7 @@ sub verbatim
 	my( $self, $text, $line_num, $pod_para ) = @_;
 
 	return unless $self->{_p2w_pod_section};
+	return if $self->{_p2w_pod_section} eq "begin" && $self->{_p2w_format} ne "Pod2Wiki";
 	$text = $self->interpolate( $text, $line_num );
 	# tabs = indented
 	$text =~ s/\t/  /g;
@@ -525,6 +533,14 @@ sub textblock
 	my( $self, $text, $line_num, $pod_para ) = @_;
 
 	return unless $self->{_p2w_pod_section};
+	if( $self->{_p2w_pod_section} eq "begin" )
+	{
+		if( $self->{_p2w_format} eq "Pod2Wiki" )
+		{
+			push @{$self->{_out}}, $text;
+		}
+		return;
+	}
 	$text = $self->interpolate( $text, $line_num );
 	push @{$self->{_out}}, $text;
 }
