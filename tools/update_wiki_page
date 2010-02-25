@@ -67,12 +67,15 @@ for(@ARGV)
 	print "Processing $_\n";
 	$parser->update_page( $_ );
 }
+
 if( !@ARGV )
 {
-	while(<>)
+	foreach my $class (keys %INC)
 	{
-		chomp($_);
-		print STDERR "Processing $_\n";
-		$parser->update_page( $_ );
+		next if $class !~ /^EPrints\b/;
+		next if !($class =~ s/\.pm$//);
+		$class =~ s#/#::#g;
+		print STDERR "Processing $class\n";
+		$parser->update_page( $class );
 	}
 }

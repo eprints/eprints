@@ -14,6 +14,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<EPrints::Language> - A Single Language supported by a repository.

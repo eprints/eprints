@@ -15,6 +15,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<EPrints::Database::mysql> - custom database methods for MySQL DB

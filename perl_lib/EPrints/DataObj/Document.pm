@@ -15,6 +15,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<EPrints::DataObj::Document> - A single format of a record.

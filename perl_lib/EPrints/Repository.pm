@@ -15,6 +15,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<EPrints::Repository> - Single connection to the EPrints system
@@ -42,6 +44,8 @@ causing this request.
 
 The session object also provides many methods for creating XHTML 
 results which can be returned via the web interface. 
+
+=head1 METHODS
 
 =over 4
 

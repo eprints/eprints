@@ -15,6 +15,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<EPrints> - Institutional Repository software
@@ -395,7 +397,7 @@ __END__
 
 =head1 SEE ALSO
 
-L<EPrints::Session>
+L<EPrints::Repository>
 
 =head1 COPYRIGHT
 

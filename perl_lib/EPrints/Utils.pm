@@ -14,6 +14,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<EPrints::Utils> - Utility functions for EPrints.

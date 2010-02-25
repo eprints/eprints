@@ -1,3 +1,27 @@
+######################################################################
+#
+# EPrints::Database::Pg
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+=pod
+
+=for Pod2Wiki
+
+=head1 NAME
+
+B<EPrints::Database::Pg> - custom database methods for PostgreSQL DB
+
+=cut
+
 package EPrints::Database::Pg;
 
 use EPrints::Database qw( :sql_types );

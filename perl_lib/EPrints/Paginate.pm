@@ -14,6 +14,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<EPrints::Paginate> - Methods for rendering a paginated List

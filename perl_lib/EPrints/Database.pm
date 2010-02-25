@@ -15,6 +15,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<EPrints::Database> - a connection to the SQL database for an eprints
@@ -38,6 +40,8 @@ $db = $session->get_database
 Any use of SQL must use quote_identifier to quote database tables and columns. The only exception to this are the Database::* modules which provide database-driver specific extensions.
 
 Variables that are database quoted are prefixed with 'Q_'.
+
+=head1 METHODS
 
 =over 4
 
