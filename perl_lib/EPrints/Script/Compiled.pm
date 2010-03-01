@@ -499,6 +499,11 @@ sub run_doc_size
 			ref($doc->[0]) );
 	}
 
+	if( !$doc->[0]->is_set( "main" ) )
+	{
+		return 0;
+	}
+
 	my %files = $doc->[0]->files;
 
 	return $files{$doc->[0]->get_main} || 0;
