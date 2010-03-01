@@ -109,6 +109,13 @@ sub new
 	return( $self );
 }
 
+sub CLONE
+{
+	my( $class ) = @_;
+
+	%SYSTEM_PHRASES = ();
+}
+
 sub _read_phrases_dir
 {
 	my( $self, $data, $repository, $dir ) = @_;

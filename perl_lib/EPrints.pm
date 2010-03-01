@@ -273,6 +273,20 @@ sub new($%)
 	return bless { opts=>\%opts }, $class;
 }
 
+sub CLONE
+{
+	my( $class ) = @_;
+
+	print STDERR "Warning! Running EPrints under threads is experimental and liable to break\n";
+
+	my $self = $EPrints::HANDLE;
+
+	foreach my $repo (values %{$self->{repository}})
+	{
+		$repo->init_from_thread();
+	}
+}
+
 =pod
 
 =item $repo = $ep->repository( $repository_id, %options );
@@ -375,7 +389,6 @@ sub load_repositories
 
 	return @ids;
 }
-
 
 sub sigusr2_cluck
 {

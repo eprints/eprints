@@ -236,8 +236,6 @@ sub new
 		}
 	}
 
-	$self->{storage} = EPrints::Storage->new( $self );
-
 	if( $self->{noise} >= 2 ) { print "done.\n"; }
 	
 	if( !$self->{offline} && (!defined $opts{consume_post} || $opts{consume_post}) )
@@ -250,6 +248,27 @@ sub new
 	$self->{loadtime} = time();
 	
 	return( $self );
+}
+
+=item $repo->init_from_thread()
+
+Do whatever needs to be done to reinstate the repository after a new thread is spawned.
+
+This is called during the CLONE() stage.
+
+=cut
+
+sub init_from_thread
+{
+	my( $self ) = @_;
+
+	delete $self->{xml}; # Don't trust XML to clone itself
+
+	$self->_load_workflows();
+	$self->_load_languages();
+	$self->_load_templates();
+	$self->_load_citation_specs();
+	$self->_load_storage();
 }
 
 # add the relative paths + http_* config if not set already by cfg.d
@@ -397,6 +416,7 @@ sub load_config
 		$self->_load_languages() || return;
 		$self->_load_templates() || return;
 		$self->_load_citation_specs() || return;
+		$self->_load_storage() || return;
 	}
 
 	$self->_load_plugins() || return;
@@ -602,7 +622,25 @@ sub _load_workflows
 	return 1;
 }
 
-	
+=begin InternalDoc
+
+=item $repo->_load_storage()
+
+Loads the storage layer which includes a XML workflow for storing items.
+
+=end
+
+=cut
+
+sub _load_storage
+{
+	my( $self ) = @_;
+
+	$self->{storage} = EPrints::Storage->new( $self );
+
+	return defined $self->{storage};
+}
+
 ######################################################################
 # 
 # $workflow_xml = $repository->get_workflow_config( $datasetid, $workflowid )
