@@ -315,7 +315,7 @@ sub _process_foreach
 	}
 	my $limit = $node->getAttribute( "limit" );
 	$limit = "" if !defined $limit;
-	if( $limit !~ m/^\d+$/i )
+	if( $limit ne "" && $limit !~ m/^\d+$/i )
 	{
 		EPrints::abort( "In ".$params{in}.": foreach element with non integer limit.\n".substr( $node->toString, 0, 100 ) );
 	}
