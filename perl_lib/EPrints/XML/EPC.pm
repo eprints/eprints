@@ -64,7 +64,10 @@ sub process
 
 		if( $name=~m/^(if|comment|choose|print|debug|phrase|pin|foreach|set)$/ )
 		{
-			my $r = eval "_process_$name( \$node, \%params );";
+			my $fn = "_process_$name";
+			no strict "refs";
+			my $r = eval { &{$fn}( $node, %params ); };
+			use strict "refs";
 			if( $@ )
 			{
 				$params{session}->log( "EPScript error: $@" );

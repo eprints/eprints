@@ -47,9 +47,8 @@ sub output_dataobj
 	my $cache = {};
 	$plugin->cache_general_triples( $cache );
 	$plugin->cache_dataobj_triples( $dataobj, $cache );
-	my $namespaces = $plugin->get_namespaces();
 
-	return $plugin->output_triple_cache( $cache, $namespaces );
+	return $plugin->output_triple_cache( $cache );
 }
 
 # Later this may print the header then output each batch of, say, 100

@@ -4,7 +4,7 @@ $c->{rdf}->{publication_uri} = sub {
 	my( $eprint ) = @_;
 
 	my $repository = $eprint->repository;
-	if( $eprint->is_set( "issn" ) )
+	if( $eprint->dataset->has_field( "issn" ) && $eprint->is_set( "issn" ) )
 	{
 		my $issn = $eprint->get_value( "issn" );
 		$issn =~ s/[^0-9X]//g;

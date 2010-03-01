@@ -242,9 +242,16 @@ sub xml_dataobj
 		$timestamp_field = "datestamp";
 	}
 
-	my $timestamp = $dataobj->get_value( $timestamp_field );
-	my( $date, $time ) = split / /, $timestamp;
-	$timestamp = "${date}T${time}Z";
+	my $timestamp;
+	if( $dataobj->dataset->has_field( $timestamp_field ) )
+	{
+		$timestamp = $dataobj->get_value( $timestamp_field );
+		if( $timestamp !~ m/T/ )
+		{
+			my( $date, $time ) = split / /, $timestamp;
+			$timestamp = "${date}T${time}Z";
+		}
+	}
 
 	# TODO: fix timestamp format
 	my $co = $session->make_element(

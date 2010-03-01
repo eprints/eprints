@@ -117,7 +117,15 @@ sub output_dataobj
 
 	my $multiple = $opts{"multiple"};
 	
-	my $title = $dataobj->get_value( "title" );
+	my $title;
+	if( $dataobj->dataset->get_field("title"))
+	{
+		$title = $dataobj->get_value( "title" );	
+	}
+	else
+	{
+		$title = "EPrint #".$dataobj->get_value( "eprintid" );	
+	}
 	my $lastmod = $dataobj->get_value( "lastmod" );
 	my $eprint_id = $dataobj->get_value( "eprintid" );
 	my $eprint_rev = $dataobj->get_value( "rev_number" );

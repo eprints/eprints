@@ -127,7 +127,15 @@ sub xml_dataobj
 
 	my $multiple = $opts{"multiple"};
 	
-	my $title = $dataobj->get_value( "title" );
+	my $title;
+	if( $dataobj->dataset->get_field("title"))
+	{
+		$title = $dataobj->get_value( "title" );	
+	}
+	else
+	{
+		$title = "EPrint #".$dataobj->get_value( "eprintid" );	
+	}
 	#my $lastmod = EPrints::Time::get_iso_timestamp()
 	my $lastmod = $dataobj->get_value( "lastmod" );
 	$lastmod =~ s/ /T/;

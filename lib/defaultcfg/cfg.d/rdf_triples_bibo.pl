@@ -176,14 +176,17 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 			push @{$o{triples}->{$eprint_uri}},
 				[ $eprint_uri, "dct:isPartOf", "<urn:isbn:$isbn>" ];
 		}
-		my $org_name = $eprint->get_value( "publisher" );
-		my $org_uri = &{$c->{rdf}->{org_uri}}( $eprint, $org_name );
-		if( $org_uri )
+		if( $eprint->dataset->has_field( "publisher" ) )
 		{
-			push @{$o{triples}->{$org_uri}},
-				[ $org_uri, "rdf:type", 	"foaf:Organization" ],
-				[ $org_uri, "foaf:name", 	$org_name, "literal" ],
-			;
+			my $org_name = $eprint->get_value( "publisher" );
+			my $org_uri = &{$c->{rdf}->{org_uri}}( $eprint, $org_name );
+			if( $org_uri )
+			{
+				push @{$o{triples}->{$org_uri}},
+					[ $org_uri, "rdf:type", 	"foaf:Organization" ],
+					[ $org_uri, "foaf:name", 	$org_name, "literal" ],
+				;
+			}
 		}
 	}
 

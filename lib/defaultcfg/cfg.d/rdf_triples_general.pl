@@ -12,7 +12,13 @@ $c->add_trigger( "rdf_triples_general", sub {
 	# Here's some possible items you may wish to add. Note that these describe 
 	# rights on the RDF data output by your repository, not on the documents. 
 	
-	# push @triples, [ "<>", "cc:license", "<http://creativecommons.org/licenses/by/3.0/>" ];
+	# Using Open Data Commons licenses as these are more sutiable for data than normal 
+	# Creative Commons. Follow the license URLs for more information.
+
+	# push @triples, [ "<>", "cc:license", "<http://www.opendatacommons.org/licenses/by/>";
+	#  OR
+	# push @triples, [ "<>", "cc:license", "<http://www.opendatacommons.org/licenses/odbl/>";
+
 	# push @triples, [ "<>", "cc:attributionName", $o{repository}->phrase( "archive_name" ), "literal" ];
 	# push @triples, [ "<>", "cc:attributionURL", "<".$o{repository}->config( "base_url" ).">" ];
 	# push @triples, [ "<>", "dc:creator", $o{repository}->phrase( "archive_name" ), "literal" ];
