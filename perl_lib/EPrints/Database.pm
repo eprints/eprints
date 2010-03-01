@@ -2610,7 +2610,7 @@ sub get_dataobjs
 	{
 		next if $field->is_virtual;
 		# never retrieve secrets
-		next if $field->isa( "EPrints::Metafield::Secret" );
+		next if $field->isa( "EPrints::MetaField::Secret" );
 
 		if( $field->get_property( "multiple" ) )
 		{

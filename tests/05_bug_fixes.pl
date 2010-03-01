@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 use strict;
 use warnings;
@@ -16,6 +16,7 @@ isa_ok( $repo, "EPrints::Repository", "Get a repository object ($repoid)" );
 
 my $dataset = $repo->dataset( "eprint" );
 my $dataobj = EPrints::Test::get_test_dataobj( $dataset );
+my $user = EPrints::Test::get_test_dataobj( $repo->dataset( "user" ) );
 my $list;
 
 #3648 - 100 in review messages
@@ -50,4 +51,9 @@ is($list->count, 3, "list is 3 long after slice");
 	is( length($clone_str), length($str), "file clones ok" );
 	$doc_clone->remove;
 	$file->remove;
+}
+
+# 3704 - Secret fields being retrieved from database
+{
+	is( $user->value( "password" ), undef, "secret (password) is undef" );
 }

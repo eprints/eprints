@@ -772,7 +772,7 @@ sub get_sql_sub_table_name
 
 =item @fields = $ds->fields
 
-Returns a list of the L<EPrints::Metafield>s belonging to this dataset.
+Returns a list of the L<EPrints::MetaField>s belonging to this dataset.
 
 =cut
 ######################################################################
