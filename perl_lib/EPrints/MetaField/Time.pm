@@ -20,7 +20,24 @@ B<EPrints::MetaField::Time> - no description
 
 =head1 DESCRIPTION
 
-not done
+Can store a time value upto seconds granularity. The time must be in UTC because this field can not store the time zone part.
+
+The value is set and returned as a string formatted as:
+
+	YYYY-MM-DD hh:mm:ss
+
+Where:
+
+	YYYY - year
+	MM - month (01-12)
+	DD - day (01-31)
+	hh - hours (00-23)
+	mm - minutes (00-59)
+	ss - seconds (00-59)
+
+Note: if you set the time using ISO datetime format (YYYY-MM-DDThh:mm:ssZ) it will automatically be converted into the native format.
+
+=head1 METHODS
 
 =over 4
 
@@ -29,17 +46,10 @@ not done
 
 package EPrints::MetaField::Time;
 
-use strict;
-use warnings;
-
-BEGIN
-{
-	our( @ISA );
-
-	@ISA = qw( EPrints::MetaField::Date );
-}
-
 use EPrints::MetaField::Date;
+@ISA = qw( EPrints::MetaField::Date );
+
+use strict;
 
 sub get_sql_names
 {
@@ -48,21 +58,35 @@ sub get_sql_names
 	return map { $self->get_name() . "_" . $_ } qw( year month day hour minute second );
 }
 
+# parse either ISO or our format and output our value
+sub _build_value
+{
+	my( $value ) = @_;
+
+	return undef if !defined $value;
+
+	my @parts = split /[-: TZ]/, $value;
+
+	$value = "";
+	$value .= sprintf("%04d",$parts[0]) if( defined $parts[0] );
+	$value .= sprintf("-%02d",$parts[1]) if( defined $parts[1] );
+	$value .= sprintf("-%02d",$parts[2]) if( defined $parts[2] );
+	$value .= sprintf(" %02d",$parts[3]) if( defined $parts[3] );
+	$value .= sprintf(":%02d",$parts[4]) if( defined $parts[4] );
+	$value .= sprintf(":%02d",$parts[5]) if( defined $parts[5] );
+
+	return $value;
+}
+
 sub value_from_sql_row
 {
 	my( $self, $session, $row ) = @_;
 
-	my @parts = splice(@$row,0,6);
+	my @parts = grep { defined $_ } splice(@$row,0,6);
 
-	my $value = "";
-	$value.= sprintf("%04d",$parts[0]) if( defined $parts[0] );
-	$value.= sprintf("-%02d",$parts[1]) if( defined $parts[1] );
-	$value.= sprintf("-%02d",$parts[2]) if( defined $parts[2] );
-	$value.= sprintf(" %02d",$parts[3]) if( defined $parts[3] );
-	$value.= sprintf(":%02d",$parts[4]) if( defined $parts[4] );
-	$value.= sprintf(":%02d",$parts[5]) if( defined $parts[5] );
+	return undef if !@parts;
 
-	return $value;
+	return _build_value( join(' ', @parts) );
 }
 
 sub sql_row_from_value
@@ -279,34 +303,18 @@ sub get_basic_input_elements
 sub form_value_basic
 {
 	my( $self, $session, $basename ) = @_;
-	
-	my $day = $session->param( $basename."_day" );
-	my $month = $session->param( $basename."_month" );
-	my $year = $session->param( $basename."_year" );
-	$month = undef if( !EPrints::Utils::is_set($month) || $month == 0 );
-	$year = undef if( !EPrints::Utils::is_set($year) || $year == 0 );
-	$day = undef if( !EPrints::Utils::is_set($day) || $day == 0 );
-	my $second = $session->param( $basename."_second" );
-	my $minute = $session->param( $basename."_minute" );
-	my $hour = $session->param( $basename."_hour" );
-	$second = undef if( !EPrints::Utils::is_set($second) || $second eq "" );
-	$minute = undef if( !EPrints::Utils::is_set($minute) || $minute eq "" );
-	$hour = undef if( !EPrints::Utils::is_set($hour) || $hour eq "" );
 
-	my $r = undef;
-	return $r if( !defined $year );
-	$r .= sprintf( "%04d", $year );
-	return $r if( !defined $month );
-	$r .= sprintf( "-%02d", $month );
-	return $r if( !defined $day );
-	$r .= sprintf( "-%02d", $day );
-	return $r if( !defined $hour );
-	$r .= sprintf( " %02d", $hour );
-	return $r if( !defined $minute );
-	$r .= sprintf( ":%02d", $minute );
-	return $r if( !defined $second );
-	$r .= sprintf( ":%02d", $second );
-	return $r;
+	my @parts;
+	for(qw( year month day hour minute second ))
+	{
+		my $part = $session->param( $basename."_$_" );
+		last if !EPrints::Utils::is_set( $part );
+		push @parts, $part;
+	}
+
+	return undef if !@parts;
+
+	return _build_value( join(' ', @parts) );
 }
 
 sub get_unsorted_values
@@ -363,12 +371,7 @@ sub ordervalue_basic
 {
 	my( $self , $value ) = @_;
 
-	return undef if !defined $value;
-
-	# we need the ordervalue to be consistent even if we understand both forms
-	$value =~ s/(\d{4}-\d\d-\d\d)T(\d\d:\d\d:\d\d)Z/$1 $2/;
-
-	return $value;
+	return _build_value( $value );
 }
 
 sub should_reverse_order { return 1; }
@@ -391,13 +394,16 @@ sub set_value
 {
 	my( $self, $dataobj, $value ) = @_;
 
-	if( EPrints::Utils::is_set( $value ) && $value !~ /^\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\dZ?$/ )
-	{
-		$dataobj->{session}->log( "Badly formatted time value: $value" );
-	}
-
-	$self->SUPER::set_value( $dataobj, $value );
+	$self->SUPER::set_value( $dataobj, _build_value( $value ) );
 }
+
+=back
+
+=head1 SEE ALSO
+
+L<EPrints::MetaField::Date>.
+
+=cut
 
 ######################################################################
 1;
