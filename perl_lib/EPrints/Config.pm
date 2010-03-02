@@ -100,9 +100,9 @@ sub init
 
 	load_system_config();
 
-	opendir( CFG, $SYSTEMCONF->{arc_path} );
+	opendir( my $dh, $SYSTEMCONF->{arc_path} );
 	my $id;
-	while( $id = readdir( CFG ) )
+	while( $id = readdir( $dh ) )
 	{
 		next if( $id =~ m/^\./ );
 		next if( !-d $SYSTEMCONF->{arc_path}."/".$id );
@@ -110,7 +110,7 @@ sub init
 		
 		$ARCHIVES{$id} = {};
 	}
-	closedir( CFG );
+	closedir( $dh );
 }
 
 =item EPrints::Config::load_system_config()

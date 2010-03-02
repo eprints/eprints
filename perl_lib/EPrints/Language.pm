@@ -132,7 +132,7 @@ sub _read_phrases_dir
 			$self->_read_phrases( $data, $file, $repository );
 		}
 	}
-	close $dh;
+	closedir $dh;
 }
 
 =item $info = $lang->get_phrase_info( $phraseid, $session )

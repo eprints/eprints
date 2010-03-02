@@ -754,7 +754,7 @@ sub _load_citation_dir
 		next if $fn =~ m/^\./;
 		push @dirs,$fn if( -d "$dir/$fn" );
 	}
-	close $dh;
+	closedir $dh;
 
 	# for each dataset dir
 	foreach my $dsid ( @dirs )
@@ -767,7 +767,7 @@ sub _load_citation_dir
 			next unless $fn =~ s/\.xml$//;
 			push @files,$fn;
 		}
-		close $dh;
+		closedir $dh;
 		if( !defined $self->{citation_style}->{$dsid} )
 		{
 			$self->{citation_style}->{$dsid} = {};
@@ -1608,18 +1608,18 @@ sub get_store_dirs
 
 	my $docroot = $self->config( "documents_path" );
 
-	opendir( DOCSTORE, $docroot )
+	opendir( my $dh, $docroot )
 		or EPrints->abort( "Error opening document directory $docroot: $!" );
 
 	my( @dirs, $dir );
-	foreach my $dir (sort readdir( DOCSTORE ))
+	foreach my $dir (sort readdir( $dh ))
 	{
 		next if( $dir =~ m/^\./ );
 		next unless( -d $docroot."/".$dir );
 		push @dirs, $dir;	
 	}
 
-	closedir( DOCSTORE );
+	closedir( $dh );
 
 	return @dirs;
 }

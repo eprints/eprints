@@ -479,6 +479,7 @@ sub load_all
 	opendir( $dh, $path ) || die "Could not open $path";
 	# This sorts the directory such that directories are last
 	my @filenames = sort { -d "$path/$a" <=> -d "$path/$b" } readdir( $dh );
+	closedir( $dh );
 	foreach my $fn ( @filenames )
 	{
 		next if( $fn =~ m/^\./ );
