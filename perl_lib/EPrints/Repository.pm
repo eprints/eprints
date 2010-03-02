@@ -262,13 +262,17 @@ sub init_from_thread
 {
 	my( $self ) = @_;
 
-	delete $self->{xml}; # Don't trust XML to clone itself
+	# force recreation of XML object
+	delete $self->{xml};
 
-	$self->_load_workflows();
-	$self->_load_languages();
-	$self->_load_templates();
-	$self->_load_citation_specs();
-	$self->_load_storage();
+	# force reload
+	$self->{loadtime} = 0;
+
+#	$self->_load_workflows();
+#	$self->_load_languages();
+#	$self->_load_templates();
+#	$self->_load_citation_specs();
+#	$self->_load_storage();
 }
 
 # add the relative paths + http_* config if not set already by cfg.d
