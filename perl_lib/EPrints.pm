@@ -251,6 +251,7 @@ use EPrints::Workflow::Stage;
 use EPrints::XML::EPC;
 
 our $__loaded;
+our $__cloned;
 
 =pod
 
@@ -278,13 +279,10 @@ sub CLONE
 	my( $class ) = @_;
 
 	print STDERR "Warning! Running EPrints under threads is experimental and liable to break\n";
+	$__cloned = 1;
 
-	my $self = $EPrints::HANDLE;
-
-	foreach my $repo (values %{$self->{repository}})
-	{
-		$repo->init_from_thread();
-	}
+	# we can't re-init here because Perl segfaults if we attempt to opendir()
+	# during CLONE()
 }
 
 =pod
@@ -325,6 +323,15 @@ Return the repository based on the current web request, or undef.
 sub current_repository($%)
 {
 	my( $self, %options ) = @_;
+
+	if( $__cloned )
+	{
+		$__cloned = 0;
+		foreach my $repo (values %{$EPrints::HANDLE->{repository}})
+		{
+			$repo->init_from_thread();
+		}
+	}
 
 	my $request = EPrints::Apache::AnApache::get_request();
 	return undef if !defined $request;

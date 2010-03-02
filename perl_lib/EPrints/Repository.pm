@@ -266,13 +266,13 @@ sub init_from_thread
 	delete $self->{xml};
 
 	# force reload
-	$self->{loadtime} = 0;
+#	$self->{loadtime} = 0;
 
-#	$self->_load_workflows();
-#	$self->_load_languages();
-#	$self->_load_templates();
-#	$self->_load_citation_specs();
-#	$self->_load_storage();
+	$self->_load_workflows();
+	$self->_load_languages();
+	$self->_load_templates();
+	$self->_load_citation_specs();
+	$self->_load_storage();
 }
 
 # add the relative paths + http_* config if not set already by cfg.d
