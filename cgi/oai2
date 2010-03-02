@@ -791,7 +791,7 @@ sub _list
 	if( defined $args->{set} )
 	{
 		my $custom_sets = $repo->config( "oai", "custom_sets" );
-		my( $info ) = grep { $_->{spec} = $args->{set} } @{$custom_sets||[]};
+		my( $info ) = grep { $_->{spec} eq $args->{set} } @{$custom_sets||[]};
 		if( defined $info )
 		{
 			my $_filters = $info->{filters};
