@@ -54,11 +54,10 @@ sub handler
 	# don't attempt to rewrite the URI of an internal request, unless it's a 404
 	return DECLINED if !$r->is_initial_req() && $r->status != 404;
 
+	return DECLINED if !defined $EPrints::HANDLE;
+
 	my $repository = $EPrints::HANDLE->current_repository;
-	if( !defined $repository )
-	{
-		return DECLINED;
-	}
+	return DECLINED if !defined $repository;
 
 	if( !$repository->get_database->is_latest_version )
 	{

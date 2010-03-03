@@ -25,11 +25,15 @@ B<EPrints> - Institutional Repository software
 
 	use EPrints qw();
 
-	my $session = EPrints::Session->new( 1, "demoprints" );
+	$eprints = EPrints->new;
+
+	# CLI
+	$repo = $eprints->repository( "demoprints" );
+
+	# CGI
+	$repo = $eprints->current_repository;
 
 	...
-
-	$session->terminate;
 
 =head1 DESCRIPTION
 
@@ -45,7 +49,7 @@ You can pass options to the EPrints package that effect the EPrints initialisati
 
 =item no_check_user
 
-Do not check the current user/group is the same as the user/group in Systemsettings.
+Do not check the current user/group is the same as the user/group in SystemSettings.
 
 =back
 
@@ -74,32 +78,13 @@ use Data::Dumper;
 use Scalar::Util;
 
 BEGIN {
-	use Carp qw(cluck);
+	use Carp;
 
 	# load the configuration - required by EPrints::Platform et al
 	EPrints::Config::init();
 
 	umask( 0002 );
 
-	if( $ENV{MOD_PERL} )
-	{
-		eval '
-use Apache::DBI; # must be first! 	 	 
-#$Apache::DBI::DEBUG = 3;
-use EPrints::Apache::AnApache;
-use EPrints::Apache::LogHandler;
-use EPrints::Apache::Login;
-use EPrints::Apache::Auth;
-use EPrints::Apache::Rewrite;
-use EPrints::Apache::VLit;
-use EPrints::Apache::Template;
-use EPrints::Apache::Storage;
-use EPrints::Apache::REST;
-1;';
-		if( $@ ) { abort( $@ ); }
-	}
-
-	# abort($err) Defined here so modules can abort even at startup
 ######################################################################
 =pod
 
@@ -118,11 +103,7 @@ used to report errors when initialising modules.
 	{
 		my( $errmsg ) = pop @_; # last parameter
 
-		my $r;
-		if( $ENV{MOD_PERL} && $EPrints::SystemSettings::loaded)
-		{
-			$r = EPrints::Apache::AnApache::get_request();
-		}
+		my $r = EPrints::Apache::AnApache::get_request();
 		if( defined $r )
 		{
 			# If we are running under MOD_PERL
@@ -161,7 +142,7 @@ $errmsg
 ------------------------------------------------------------------
 END
 		$@="";
-		cluck( "EPrints System Error inducing stack dump\n" );
+		Carp::cluck( "EPrints System Error inducing stack dump\n" );
 		if( $EPrints::die_on_abort ) { die $errmsg; }
 		exit( 1 );
 	}
@@ -178,11 +159,24 @@ END
 
 		my $r = eval { &$code };
 
-		if( $@ ) { EPrints::abort( $@ ); }
+		if( $@ ) { EPrints->abort( $@ ); }
 
 		return $r;
 	}
 }
+
+use Apache::DBI; # must be first! 	 	 
+
+use EPrints::Apache;
+use EPrints::Apache::AnApache;
+use EPrints::Apache::LogHandler;
+use EPrints::Apache::Login;
+use EPrints::Apache::Auth;
+use EPrints::Apache::Rewrite;
+use EPrints::Apache::VLit;
+use EPrints::Apache::Template;
+use EPrints::Apache::Storage;
+use EPrints::Apache::REST;
 
 use EPrints::BackCompatibility;
 use EPrints::XML;
@@ -278,11 +272,36 @@ sub CLONE
 {
 	my( $class ) = @_;
 
-	print STDERR "Warning! Running EPrints under threads is experimental and liable to break\n";
 	$__cloned = 1;
 
 	# we can't re-init here because Perl segfaults if we attempt to opendir()
 	# during CLONE()
+}
+
+=item EPrints::post_config_handler(...)
+
+Initialise the EPrints mod_perl environment.
+
+=cut
+
+sub post_config_handler
+{
+	my( $conf_pool, $log_pool, $temp_pool, $s ) = @_;
+
+	# make carp verbose
+	$Carp::Verbose = 1;
+
+	if( Apache2::MPM->is_threaded )
+	{
+		print STDERR "Warning! Running EPrints under threads is experimental and liable to break\n";
+	}
+
+	$EPrints::HANDLE = __PACKAGE__->new;
+	my @ids = $EPrints::HANDLE->load_repositories();
+
+	print STDERR "EPrints archives loaded: ".join( ", ",  @ids )."\n";
+
+	return OK;
 }
 
 =pod
