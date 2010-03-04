@@ -56,12 +56,6 @@ sub handler
 	my $repository = $EPrints::HANDLE->current_repository;
 	return DECLINED if !defined $repository;
 
-	if( !$repository->get_database->is_latest_version )
-	{
-		$repository->log( "Database schema is out of date: ./bin/epadmin upgrade ".$repository->get_id );
-		return 500;
-	}
-
 	my $esec = $r->dir_config( "EPrints_Secure" );
 	my $secure = (defined $esec && $esec eq "yes" );
 	my $urlpath;
@@ -85,15 +79,6 @@ sub handler
 		return DECLINED;
 	}
 
-	# 404 handler
-	$r->custom_response( Apache2::Const::NOT_FOUND, $repository->current_url( path => "cgi", "handle_404" ) );
-
-	my $args = $r->args;
-	$args = "" if !defined $args;
-	$args = "?$args" if length($args);
-
-	my $lang = EPrints::Session::get_session_language( $repository, $r );
-
 	# Non-EPrints paths within our tree
 	my $exceptions = $repository->config( 'rewrite_exceptions' );
 	$exceptions = [] if !defined $exceptions;
@@ -103,6 +88,22 @@ sub handler
 		next if $exppath eq '/archive/'; # legacy
 		return DECLINED if( $uri =~ m/^$exppath/ );
 	}
+
+	# database needs updating
+	if( $r->is_initial_req && !$repository->get_database->is_latest_version )
+	{
+		$repository->log( "Database schema is out of date: ./bin/epadmin upgrade ".$repository->get_id );
+		return 500;
+	}
+
+	# 404 handler
+	$r->custom_response( Apache2::Const::NOT_FOUND, $repository->current_url( path => "cgi", "handle_404" ) );
+
+	my $args = $r->args;
+	$args = "" if !defined $args;
+	$args = "?$args" if length($args);
+
+	my $lang = EPrints::Session::get_session_language( $repository, $r );
 
 	# /archive/ redirect
 	if( $uri =~ m! ^$urlpath/archive/(.*) !x )
@@ -152,19 +153,34 @@ sub handler
 			return OK;
 		}
 
-		$r->handler('perl-script');
+		$r->filename( EPrints::Config::get( "cgi_path" ).$uri );
 
-		my $filename = EPrints::Config::get( "cgi_path" ).$uri;
-		my @parts = split m! /+ !x, $uri;
-		for(my $i = $#parts; $i > 0; --$i)
+		# !!!Warning!!!
+		# If path_info is defined before the Response stage Apache will
+		# attempt to find the file identified by path_info using an internal
+		# request (presumably to get the content-type). We don't want that to
+		# happen so we delay setting path_info until just before the response
+		# is generated.
+		my $path_info;
+		# strip the leading '/'
+		my( undef, @parts ) = split m! /+ !x, $uri;
+		PATH: foreach my $path (
+				$repository->config( "cgi_path" ),
+				EPrints::Config::get( "cgi_path" ),
+			)
 		{
-			if( -f join('/',$repository->config( "cgi_path" ),@parts[0..$i]) )
+			for(my $i = $#parts; $i >= 0; --$i)
 			{
-				$filename = $repository->config( "cgi_path" ).$uri;
-				last;
+				my $filename = join('/', $path, @parts[0..$i]);
+				if( -f $filename )
+				{
+					$r->filename( $filename );
+					$path_info = join('/', @parts[$i+1..$#parts]);
+					$path_info = '/' . $path_info if length($path_info);
+					last PATH;
+				}
 			}
 		}
-		$r->filename( $filename );
 
 		if( $uri =~ m! ^/users\b !x )
 		{
@@ -174,7 +190,13 @@ sub handler
 				] );
 		}
 
-		$r->set_handlers(PerlResponseHandler => [ 'ModPerl::Registry' ]);
+		$r->handler('perl-script');
+
+		$r->set_handlers(PerlResponseHandler => [
+			# set path_info for the CGI script
+			sub { $_[0]->path_info( $path_info ); DECLINED },
+			'ModPerl::Registry'
+			]);
 
 		return OK;
 	}
