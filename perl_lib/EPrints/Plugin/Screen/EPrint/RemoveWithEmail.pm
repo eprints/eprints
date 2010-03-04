@@ -108,67 +108,72 @@ sub render
 	
 	$page->appendChild( $form );
 
-	my $reason = $self->{session}->make_doc_fragment;
-	my $reason_static = $self->{session}->make_element( "div", id=>"ep_mail_reason_fixed",class=>"ep_only_js" );
-	$reason_static->appendChild( $self->{session}->html_phrase( "mail_bounce_reason" ) );
-	$reason_static->appendChild( $self->{session}->make_text( " " ));	
-	
-	my $edit_link = $self->{session}->make_element( "a", href=>"#", onclick => "EPJS_blur(event); EPJS_toggle('ep_mail_reason_fixed',true,'block');EPJS_toggle('ep_mail_reason_edit',false,'block');\$('ep_mail_reason_edit').focus(); \$('ep_mail_reason_edit').select(); return false", );
-	$reason_static->appendChild( $self->{session}->html_phrase( "mail_edit_click",
-		edit_link => $edit_link ) ); 
-	$reason->appendChild( $reason_static );
-	
 	my $div = $self->{session}->make_element( "div", class => "ep_form_field_input" );
 
-	my $textarea = $self->{session}->make_element(
-		"textarea",
-		id => "ep_mail_reason_edit",
-		class => "ep_no_js",
-		name => "reason",
-		rows => 5,
-		cols => 60,
-		wrap => "virtual" );
-	$textarea->appendChild( $self->{session}->html_phrase( "mail_bounce_reason" ) ); 
-	$reason->appendChild( $textarea );
+	do {
+		# change language temporarily to the user's language
+		local $self->{session}->{lang} = $user->language();
 
-	# remove any markup:
-	my $title = $self->{session}->make_text( 
-		EPrints::Utils::tree_to_utf8( 
-			$eprint->render_description() ) );
-	
-	my $phraseid;
-	if( $eprint->get_dataset->id eq "inbox" )
-	{
-		$phraseid = "mail_delete_body.inbox";
-	}
-	else
-	{
-		$phraseid = "mail_delete_body";
-	}
-	
-	my $content = $self->{session}->html_phrase(
-		$phraseid,	
-		title => $title,
-		reason => $reason );
+		my $reason = $self->{session}->make_doc_fragment;
+		my $reason_static = $self->{session}->make_element( "div", id=>"ep_mail_reason_fixed",class=>"ep_only_js" );
+		$reason_static->appendChild( $self->{session}->html_phrase( "mail_bounce_reason" ) );
+		$reason_static->appendChild( $self->{session}->make_text( " " ));	
+		
+		my $edit_link = $self->{session}->make_element( "a", href=>"#", onclick => "EPJS_blur(event); EPJS_toggle('ep_mail_reason_fixed',true,'block');EPJS_toggle('ep_mail_reason_edit',false,'block');\$('ep_mail_reason_edit').focus(); \$('ep_mail_reason_edit').select(); return false", );
+		$reason_static->appendChild( $self->{session}->html_phrase( "mail_edit_click",
+			edit_link => $edit_link ) ); 
+		$reason->appendChild( $reason_static );
+		
+		my $textarea = $self->{session}->make_element(
+			"textarea",
+			id => "ep_mail_reason_edit",
+			class => "ep_no_js",
+			name => "reason",
+			rows => 5,
+			cols => 60,
+			wrap => "virtual" );
+		$textarea->appendChild( $self->{session}->html_phrase( "mail_bounce_reason" ) ); 
+		$reason->appendChild( $textarea );
 
-	my $body = $self->{session}->html_phrase(
-		"mail_body",
-		content => $content );
+		# remove any markup:
+		my $title = $self->{session}->make_text( 
+			EPrints::Utils::tree_to_utf8( 
+				$eprint->render_description() ) );
+		
+		my $phraseid;
+		if( $eprint->get_dataset->id eq "inbox" )
+		{
+			$phraseid = "mail_delete_body.inbox";
+		}
+		else
+		{
+			$phraseid = "mail_delete_body";
+		}
+		
+		my $content = $self->{session}->html_phrase(
+			$phraseid,	
+			title => $title,
+			reason => $reason );
 
-	my $to_user = $eprint->get_user();
-	my $from_user =$self->{session}->current_user;
+		my $body = $self->{session}->html_phrase(
+			"mail_body",
+			content => $content );
 
-	my $subject = $self->{session}->html_phrase( "cgi/users/edit_eprint:subject_bounce" );
+		my $to_user = $eprint->get_user();
+		my $from_user =$self->{session}->current_user;
 
-	my $view = $self->{session}->html_phrase(
-		"mail_view",
-		subject => $subject,
-		to => $to_user->render_description,
-		from => $from_user->render_description,
-		body => $body );
+		my $subject = $self->{session}->html_phrase( "cgi/users/edit_eprint:subject_bounce" );
 
-	$div->appendChild( $view );
-	
+		my $view = $self->{session}->html_phrase(
+			"mail_view",
+			subject => $subject,
+			to => $to_user->render_description,
+			from => $from_user->render_description,
+			body => $body );
+
+		$div->appendChild( $view );
+	};
+
 	$form->appendChild( $div );
 
 	$form->appendChild( $self->{session}->render_action_buttons(
@@ -204,20 +209,26 @@ sub action_send
 	
 	# Successfully removed, mail the user with the reason
 
-	my $title = $self->{session}->make_text( 
-		EPrints::Utils::tree_to_utf8( 
-			$eprint->render_description() ) );
-	
-	my $content = $self->{session}->html_phrase( 
-		"mail_delete_body",
-		title => $title, 
-		reason => $self->{session}->make_text( 
-			$self->{session}->param( "reason" ) ) );
+	my $content;
+	my $mail_ok = do {
+		# change language temporarily to the user's language
+		local $self->{session}->{lang} = $user->language();
 
-	my $mail_ok = $user->mail(
-		"cgi/users/edit_eprint:subject_bounce",
-		$content,
-		$self->{session}->current_user );
+		my $title = $self->{session}->make_text( 
+			EPrints::Utils::tree_to_utf8( 
+				$eprint->render_description() ) );
+		
+		$content = $self->{session}->html_phrase( 
+			"mail_delete_body",
+			title => $title, 
+			reason => $self->{session}->make_text( 
+				$self->{session}->param( "reason" ) ) );
+
+		$user->mail(
+			"cgi/users/edit_eprint:subject_bounce",
+			$content,
+			$self->{session}->current_user );
+	};
 	
 	if( !$mail_ok ) 
 	{

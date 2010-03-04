@@ -521,6 +521,22 @@ sub remove
 	return( $success );
 }
 
+=item $lang = $user->langauge()
+
+Get the preferred language of the user.
+
+=cut
+
+sub language
+{
+	my( $self ) = @_;
+
+	my $langid = $self->value( "lang" );
+	my $lang = $self->{session}->get_repository->get_language( $langid );
+
+	return $lang;
+}
+
 =item $list = $user->owned_eprints_list( %opts )
 
 Returns a L<EPrints::List> of all the L<EPrints::DataObj::EPrint>s owned by this user.

@@ -254,9 +254,8 @@ sub send_out_alert
 		return;
 	}
 
-	my $origlangid = $self->{session}->get_langid;
-	
-	$self->{session}->change_lang( $user->get_value( "lang" ) );
+	# change language temporarily to the user's language
+	local $self->{session}->{lang} = $user->language();
 
 	my $searchexp = $self->make_searchexp;
 	# get the description before we fiddle with searchexp
@@ -354,8 +353,6 @@ sub send_out_alert
 		EPrints::XML::dispose( $mail );
 	}
 	$list->dispose;
-
-	$self->{session}->change_lang( $origlangid );
 }
 
 

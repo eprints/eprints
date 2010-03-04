@@ -107,64 +107,70 @@ sub render
 	
 	$page->appendChild( $form );
 
-	my $reason = $self->{session}->make_doc_fragment;
-	my $reason_static = $self->{session}->make_element( "div", id=>"ep_mail_reason_fixed",class=>"ep_only_js" );
-	$reason_static->appendChild( $self->{session}->html_phrase( "mail_bounce_reason" ) );
-	$reason_static->appendChild( $self->{session}->make_text( " " ));	
-	
-	my $edit_link_a = $self->{session}->make_element( "a", href=>"#", onclick => "EPJS_blur(event); EPJS_toggle('ep_mail_reason_fixed',true,'block');EPJS_toggle('ep_mail_reason_edit',false,'block');\$('ep_mail_reason_edit').focus(); \$('ep_mail_reason_edit').select(); return false", );
-	$reason_static->appendChild( $self->{session}->html_phrase( "mail_edit_click",
-		edit_link => $edit_link_a ) ); 
-	$reason->appendChild( $reason_static );
-	
 	my $div = $self->{session}->make_element( "div", class => "ep_form_field_input" );
 
-	my $textarea = $self->{session}->make_element(
-		"textarea",
-		id => "ep_mail_reason_edit",
-		class => "ep_no_js",
-		name => "reason",
-		rows => 5,
-		cols => 60,
-		wrap => "virtual" );
-	$textarea->appendChild( $self->{session}->html_phrase( "mail_bounce_reason" ) ); 
-	$reason->appendChild( $textarea );
+	do {
+		# change language temporarily to the user's language
+		local $self->{session}->{lang} = $user->language();
+
+		my $reason = $self->{session}->make_doc_fragment;
+		my $reason_static = $self->{session}->make_element( "div", id=>"ep_mail_reason_fixed",class=>"ep_only_js" );
+		$reason_static->appendChild( $self->{session}->html_phrase( "mail_bounce_reason" ) );
+		$reason_static->appendChild( $self->{session}->make_text( " " ));	
+		
+		my $edit_link_a = $self->{session}->make_element( "a", href=>"#", onclick => "EPJS_blur(event); EPJS_toggle('ep_mail_reason_fixed',true,'block');EPJS_toggle('ep_mail_reason_edit',false,'block');\$('ep_mail_reason_edit').focus(); \$('ep_mail_reason_edit').select(); return false", );
+		$reason_static->appendChild( $self->{session}->html_phrase( "mail_edit_click",
+			edit_link => $edit_link_a ) ); 
+		$reason->appendChild( $reason_static );
+		
+		my $textarea = $self->{session}->make_element(
+			"textarea",
+			id => "ep_mail_reason_edit",
+			class => "ep_no_js",
+			name => "reason",
+			rows => 5,
+			cols => 60,
+			wrap => "virtual" );
+		$textarea->appendChild( $self->{session}->html_phrase( "mail_bounce_reason" ) ); 
+		$reason->appendChild( $textarea );
 
 
-	# remove any markup:
-	my $title = $self->{session}->make_text( 
-		EPrints::Utils::tree_to_utf8( 
-			$eprint->render_description() ) );
+		# remove any markup:
+		my $title = $self->{session}->make_text( 
+			EPrints::Utils::tree_to_utf8( 
+				$eprint->render_description() ) );
 
-	my $eprintid = $eprint->get_id;
-	my $home = $self->{session}->get_repository->get_conf( "userhome" );
-	my $target = $home."?eprintid=$eprintid&screen=EPrint::View::Owner";	
-	my $edit_link = $self->{session}->render_link( $target );
+		my $eprintid = $eprint->get_id;
+		my $home = $self->{session}->get_repository->get_conf( "userhome" );
+		my $target = $home."?eprintid=$eprintid&screen=EPrint::View::Owner";	
+		my $edit_link = $self->{session}->render_link( $target );
 
-	my $content = $self->{session}->html_phrase(
-		"mail_bounce_body",
-		title => $title,
-		reason => $reason,
-		edit_link => $edit_link );
+		my $content = $self->{session}->html_phrase(
+			"mail_bounce_body",
+			title => $title,
+			reason => $reason,
+			edit_link => $edit_link );
 
-	my $body = $self->{session}->html_phrase(
-		"mail_body",
-		content => $content );
+		my $body = $self->{session}->html_phrase(
+			"mail_body",
+			content => $content );
 
-	my $to_user = $user;
-	my $from_user =$self->{session}->current_user;
+		my $to_user = $user;
+		my $from_user =$self->{session}->current_user;
 
-	my $subject = $self->{session}->html_phrase( "cgi/users/edit_eprint:subject_bounce" );
+		my $subject = $self->{session}->html_phrase( "cgi/users/edit_eprint:subject_bounce" );
 
-	my $view = $self->{session}->html_phrase(
-		"mail_view",
-		subject => $subject,
-		to => $to_user->render_description,
-		from => $from_user->render_description,
-		body => $body );
+		my $view = $self->{session}->html_phrase(
+			"mail_view",
+			subject => $subject,
+			to => $to_user->render_description,
+			from => $from_user->render_description,
+			body => $body );
 
-	$div->appendChild( $view );
-	
+		$div->appendChild( $view );
+		
+	};
+
 	$form->appendChild( $div );
 
 	$form->appendChild( $self->{session}->render_action_buttons(
@@ -201,26 +207,32 @@ sub action_send
 
 	# Successfully transferred, mail the user with the reason
 
-	my $title = $self->{session}->make_text( 
-		EPrints::Utils::tree_to_utf8( 
-			$eprint->render_description() ) );
-	
-	my $eprintid = $eprint->get_id;
-	my $home = $self->{session}->get_repository->get_conf( "userhome" );
-	my $target = $home."?eprintid=$eprintid&screen=EPrint::View::Owner";	
-	my $edit_link = $self->{session}->render_link( $target );
+	my $content;
+	my $mail_ok = do {
+		# change language temporarily to the user's language
+		local $self->{session}->{lang} = $user->language();
 
-	my $content = $self->{session}->html_phrase(
-		"mail_bounce_body",
-		title => $title,
-		reason => $self->{session}->make_text( 
-			$self->{session}->param( "reason" ) ),
-		edit_link => $edit_link );
+		my $title = $self->{session}->make_text( 
+			EPrints::Utils::tree_to_utf8( 
+				$eprint->render_description() ) );
+		
+		my $eprintid = $eprint->get_id;
+		my $home = $self->{session}->get_repository->get_conf( "userhome" );
+		my $target = $home."?eprintid=$eprintid&screen=EPrint::View::Owner";	
+		my $edit_link = $self->{session}->render_link( $target );
 
-	my $mail_ok = $user->mail(
-		"cgi/users/edit_eprint:subject_bounce",
-		$content,
-		$self->{session}->current_user );
+		$content = $self->{session}->html_phrase(
+			"mail_bounce_body",
+			title => $title,
+			reason => $self->{session}->make_text( 
+				$self->{session}->param( "reason" ) ),
+			edit_link => $edit_link );
+
+		$user->mail(
+			"cgi/users/edit_eprint:subject_bounce",
+			$content,
+			$self->{session}->current_user );
+	};
 	
 	if( !$mail_ok ) 
 	{
