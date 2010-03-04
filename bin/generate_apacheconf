@@ -20,7 +20,7 @@ B<generate_apacheconf> - Create the apache config files needed for EPrints
 
 =head1 SYNOPSIS
 
-B<generate_apacheconf> [B<options>]
+B<generate_apacheconf> [B<options>] [I<repository_id>]
 
 =head1 DESCRIPTION
 
@@ -40,6 +40,11 @@ But the * can be changed to something different by editing the C<virtualhost> op
 
 =over 8
 
+=item repository_id
+
+Update the given repository's apache configuration. Leave blank to update all
+repositories.
+
 =back
 
 =head1 OPTIONS
@@ -49,6 +54,10 @@ But the * can be changed to something different by editing the C<virtualhost> op
 =item B<--replace>
 
 Replace existing configuration files.
+
+=item B<--system>
+
+Update the system configuration file.
 
 =item B<--help>
 
@@ -110,6 +119,7 @@ my $quiet = 0;
 my $help = 0;
 my $man = 0;
 my $replace = 0;
+my $system = 0;
 
 Getopt::Long::Configure("permute");
 
@@ -121,11 +131,14 @@ GetOptions(
 	'silent' => \$quiet,
 	'quiet' => \$quiet,
 	'replace' => \$replace,
+	'system' => \$system,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "generate_apacheconf" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
-pod2usage( 2 ) if( scalar @ARGV != 0 ); 
+pod2usage( 2 ) if( scalar @ARGV > 1 );
+
+our( $repository_id ) = @ARGV;
 
 our $noise = 1;
 $noise = 0 if( $quiet );
@@ -151,23 +164,10 @@ my $archives_path = "$base_path/archives";
 my $perl_lib = "$base_path/perl_lib";
 my $site_userfile = EPrints::Config::get( "cfg_path" )."/apache.conf";
 
-print "Creating system wide apache conf files.\n" if( $noise >= 1 );
+my $first_run = !-e $site_userfile;
 
-# Clean up old auto files. Especially old secure ones
-opendir( my $dir, EPrints::Config::get( "var_path" ) );
-while( my $file = readdir( $dir ) )
+if( ($system && $replace) || !-e $site_userfile )
 {
-	if( $file =~ m/^auto-.*\.conf$/ )
-	{
-		my $fn = EPrints::Config::get( "var_path" ).'/'.$file;
-		unlink( $fn );
-	}
-}
-closedir( $dir );
-
-if( $replace || !-e $site_userfile )
-{
-	print "Creating $site_userfile\n" if( $noise >= 2 );
 	open( CONF, ">$site_userfile" ) || die "Can't write to $site_userfile";
 	print CONF <<END;
 #
@@ -195,10 +195,18 @@ foreach my \$path (<$archives_path/*/cfg/apache.conf>)
 
 END
 	close CONF;
+	print "Wrote $site_userfile\n" if( $noise >= 1 );
 }
 else
 {
-	print "$site_userfile already exists.\n" if( $noise >= 2 );
+	if( $system )
+	{
+		print "Skipping $site_userfile (use --replace).\n" if( $noise >= 1 );
+	}
+	else
+	{
+		print "Skipping $site_userfile (use --replace --system).\n" if( $noise >= 1 );
+	}
 }
 
 ####################################################
@@ -211,6 +219,8 @@ foreach my $repository ( values %reps )
 {
 	my $id = $repository->get_id();
 
+	next if $repository_id && $repository_id ne $id;
+
 	my $cfg_path = $repository->get_conf( "config_path" );
 
 	my $userfile = $repository->get_conf( "config_path" )."/apache.conf";
@@ -218,17 +228,16 @@ foreach my $repository ( values %reps )
 
 	my $securehost = $repository->get_conf( "securehost" );
 
-	print "Creating apache conf files for repository $id\n" if( $noise >= 1 );
 	if( $replace || !-e $userfile )
 	{
-		print "Creating $userfile\n" if( $noise >= 2 );
 		open( CONF, ">$userfile" ) || die "Can't write to $userfile";
 		print CONF EPrints::Apache::apache_conf( $repository );
 		close CONF;
+		print "Wrote $userfile\n" if( $noise >= 1 );
 	}
 	else
 	{
-		print "$userfile already exists.\n" if( $noise >= 2 );
+		print "Skipping $userfile (use --replace).\n" if( $noise >= 1 );
 	}
 
 # Create secure include file
@@ -236,14 +245,14 @@ foreach my $repository ( values %reps )
 	{
 		if( $replace || !-e $securefile )
 		{
-			print "Creating $securefile\n" if( $noise >= 2 );
 			open( CONF, ">$securefile" ) || die "Can't write to $securefile";
 			print CONF EPrints::Apache::apache_secure_conf( $repository );
 			close CONF;
+			print "Wrote $securefile\n" if( $noise >= 1 );
 		}
 		else
 		{
-			print "$securefile already exists.\n" if( $noise >= 2 );
+			print "Skipping $securefile (use --replace).\n" if( $noise >= 1 );
 		}
 	}
 
@@ -262,6 +271,10 @@ foreach my $repository ( values %reps )
 
 
 
+if( $first_run )
+{
+	print "\nAdd the following line to your apache configuration:\nInclude $site_userfile\n";
+}
 
 
-print "\nYou must restart apache to cause changes to take effect!\n" if( $noise >= 1 );
+print "\nYou must restart apache for any changes to take effect!\n" if( $noise >= 1 );
