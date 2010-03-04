@@ -51,9 +51,6 @@ sub handler
 {
 	my( $r ) = @_;
 
-	# don't attempt to rewrite the URI of an internal request, unless it's a 404
-	return DECLINED if !$r->is_initial_req() && $r->status != 404;
-
 	return DECLINED if !defined $EPrints::HANDLE;
 
 	my $repository = $EPrints::HANDLE->current_repository;
