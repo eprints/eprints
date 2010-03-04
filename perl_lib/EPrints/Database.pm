@@ -389,8 +389,6 @@ sub create_archive_tables
 
 	$success = $success && $self->create_counters();
 
-	#$success = $success && $self->_create_permission_table();
-
 	$self->create_version_table;	
 	
 	$self->set_version( $EPrints::Database::DBVersion );
@@ -1882,38 +1880,6 @@ sub clear_user_messages
 	};
 	$results->map( $fn, undef );
 }
-
-######################################################################
-# 
-# $success = $db->_create_permission_table
-#
-# create the tables needed to store the permissions. 
-#
-######################################################################
-
-sub _create_permission_table
-{
-	my( $self ) = @_;
-
-	my $rc = 1;
-
-	$rc &&= $self->_create_table("permission", ["role","privilege"], [
-		$self->get_column_type( "role", SQL_VARCHAR, SQL_NOT_NULL, 64 ),
-		$self->get_column_type( "privilege", SQL_VARCHAR, SQL_NOT_NULL, 64),
-		$self->get_column_type( "net_from", SQL_INTEGER ),
-		$self->get_column_type( "net_to", SQL_INTEGER ),
-	]);
-	$rc &&= $self->create_unique_index( "permission", "privilege", "role" );
-
-	$rc &&= $self->_create_table("permission_group", ["user","role"], [
-		$self->get_column_type( "user", SQL_VARCHAR, SQL_NOT_NULL, 64),
-		$self->get_column_type( "role", SQL_VARCHAR, SQL_NOT_NULL, 64),
-	]);
-
-	return $rc;
-}
-
-#
 
 ######################################################################
 =pod

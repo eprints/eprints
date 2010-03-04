@@ -189,9 +189,6 @@ sub get_system_field_info
 			fieldnames_config => "editor_limit_fields",
 		},
 
-		{ name => "permission_group", multiple => 1, type => "namedset", 
-			set_name => "permission_group", },
-
 		{ name => "roles", multiple => 1, type => "text", text_index=>0 },
 
 		{ name=>"frequency", type=>"set", input_style=>"medium",

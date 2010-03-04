@@ -152,9 +152,6 @@ sub get_system_field_info
 		{ name=>"language", type=>"namedset", required=>1, input_rows=>1,
 			set_name=>"languages" },
 
-		{ name => "permission_group", multiple => 1, type => "namedset", 
-			set_name => "permission_group", },
-
 		{ name=>"security", type=>"namedset", required=>1, input_rows=>1,
 			set_name=>"security" },
 
