@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -60,3 +60,7 @@ $tf->set_value( $eprint, "1234-12-31 23" );
 is( $tf->get_value( $eprint ), "1234-12-31 23", "set partial time value" );
 $tf->set_value( $eprint, undef );
 is( $tf->get_value( $eprint ), undef, "set undef time value" );
+
+$tf->set_property( multiple => 1 );
+$tf->set_value( $eprint, ["1234-12-31 23:59:59"] );
+is( $tf->get_value( $eprint )->[0], "1234-12-31 23:59:59", "set multiple time value" );

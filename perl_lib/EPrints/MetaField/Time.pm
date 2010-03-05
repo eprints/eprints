@@ -394,7 +394,14 @@ sub set_value
 {
 	my( $self, $dataobj, $value ) = @_;
 
-	$self->SUPER::set_value( $dataobj, _build_value( $value ) );
+	if( ref($value) eq "ARRAY" )
+	{
+		return $self->SUPER::set_value( $dataobj, [map { _build_value( $_ ) } @$value] );
+	}
+	else
+	{
+		return $self->SUPER::set_value( $dataobj, _build_value( $value ) );
+	}
 }
 
 =back
