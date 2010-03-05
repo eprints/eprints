@@ -25,7 +25,7 @@ my $sql = "SELECT COUNT($Q_eprintid) $Q_num_matches," .
 	" WHERE " .
 	" $Q_eprint_status=" .  $database->quote_value( "archive" ) .
 	" AND $Q_event_title IS NOT NULL" .
-	" AND $Q_event_title LIKE " .
+	" AND $Q_event_title ".$database->sql_LIKE() .
 	$database->quote_value( EPrints::Database::prep_like_value( $q ) . '%' ) .
 	" GROUP BY " . join(",", map { $database->quote_identifier($_) } @fields) .
 	" ORDER BY $Q_num_matches DESC";

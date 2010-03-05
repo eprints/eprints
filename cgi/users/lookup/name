@@ -39,15 +39,15 @@ my $sql = "SELECT COUNT($Q_table.$Q_eprintid) $Q_num_matches," .
 	" $Q_table.$Q_eprint_status=".$database->quote_value( "archive" );
 if( EPrints::Utils::is_set( $family ) )
 {
-	$sql .= " AND ".$database->quote_identifier("creators_name_family")." LIKE ".$database->quote_value(EPrints::Database::prep_like_value($family).'%');
+	$sql .= " AND ".$database->quote_identifier("creators_name_family").$database->sql_LIKE().$database->quote_value(EPrints::Database::prep_like_value($family).'%');
 }
 if( EPrints::Utils::is_set( $given ) )
 {
-	$sql .= " AND ".$database->quote_identifier("creators_name_given")." LIKE ".$database->quote_value(EPrints::Database::prep_like_value($given).'%');
+	$sql .= " AND ".$database->quote_identifier("creators_name_given").$database->sql_LIKE().$database->quote_value(EPrints::Database::prep_like_value($given).'%');
 }
 if( EPrints::Utils::is_set( $id ) )
 {
-	$sql .= " AND ".$database->quote_identifier("creators_id")." LIKE ".$database->quote_value(EPrints::Database::prep_like_value($id).'%');
+	$sql .= " AND ".$database->quote_identifier("creators_id").$database->sql_LIKE().$database->quote_value(EPrints::Database::prep_like_value($id).'%');
 }
 $sql .= "GROUP BY ".join(",",map { $database->quote_identifier($_) } @fields) .
 	" ORDER BY $Q_num_matches DESC," .

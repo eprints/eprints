@@ -492,6 +492,13 @@ sub prepare_regexp
 	return "$col REGEXP $value";
 }
 
+sub sql_LIKE
+{
+	my( $self ) = @_;
+
+	return " COLLATE utf8_general_ci LIKE ";
+}
+
 1; # For use/require success
 
 ######################################################################

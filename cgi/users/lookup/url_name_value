@@ -8,9 +8,10 @@ my $session = EPrints::Session->new();
 my $string_frag = lc $session->param( "q" );
 my $table = $session->param( "table" );
 $table = $session->get_database->quote_identifier("ac_".$table);
+my $database = $session->get_database;
 my $sql;
 my $term = EPrints::Database::prep_like_value( $string_frag );
-$sql = "SELECT url,name,value from $table WHERE name LIKE '%$term%' OR value LIKE '%$term%'";
+$sql = "SELECT url,name,value from $table WHERE name ".$database->sql_LIKE()." '%$term%' OR value ".$database->sql_LIKE()." '%$term%'";
 
 my $doc = $session->make_element( 'ul' );
 

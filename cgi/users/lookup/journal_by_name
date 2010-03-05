@@ -26,7 +26,7 @@ my $sql = "SELECT COUNT($Q_eprintid) $Q_num_matches," .
 	" WHERE " .
 	" $Q_eprint_status=" .  $database->quote_value( "archive" ) .
 	" AND $Q_issn IS NOT NULL" .
-	" AND $Q_publication LIKE ".$database->quote_value( EPrints::Database::prep_like_value($q) . '%' ) .
+	" AND $Q_publication ".$database->sql_LIKE().$database->quote_value( EPrints::Database::prep_like_value($q) . '%' ) .
 	" GROUP BY $Q_publication,$Q_issn" .
 	" ORDER BY $Q_num_matches DESC";
 	

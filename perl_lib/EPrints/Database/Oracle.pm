@@ -462,7 +462,7 @@ sub index_name
 	return 1;
 }
 
-sub alias_glue
+sub sql_AS
 {
 	my( $self ) = @_;
 

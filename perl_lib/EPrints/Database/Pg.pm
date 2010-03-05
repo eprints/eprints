@@ -286,4 +286,11 @@ sub index_name
 	return 1;
 }
 
+sub sql_LIKE
+{
+	my( $self ) = @_;
+
+	return " ILIKE ";
+}
+
 1;

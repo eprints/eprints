@@ -1598,6 +1598,10 @@ sub update
 		{
 			next;
 		}
+		if( ref($values) ne "ARRAY" )
+		{
+			EPrints->abort( "Expected array reference for ".$multifield->get_name."\n".Data::Dumper::Dumper( $data ) );
+		}
 
 		my @names = ($keyname, "pos", $multifield->get_sql_names);
 		my @rows;
@@ -4131,7 +4135,7 @@ sub index_name
 	foreach my $i (0..$#cols)
 	{
 		$sql .= ", " if $i > 0;
-		$sql .= $t.$self->alias_glue."S$i";
+		$sql .= $t.$self->sql_AS."S$i";
 		push @logic,
 			"S0.index_name=S$i.index_name",
 			"S$i.table_schema=".$self->quote_value( $self->{session}->config( "dbname" ) ),
@@ -4473,17 +4477,30 @@ sub prepare_regexp
 	return "$col REGEXP $value";
 }
 
-=item $glue = $db->alias_glue()
+=item $sql = $db->sql_AS()
 
 Returns the syntactic glue to use when aliasing. SQL 92 DBs will happilly use " AS " but some DBs (Oracle!) won't accept it.
 
 =cut
 
-sub alias_glue
+sub sql_AS
 {
 	my( $self ) = @_;
 
 	return " AS ";
+}
+
+=item $sql = $db->sql_LIKE()
+
+Returns the syntactic glue to use when making a case-insensitive LIKE. PostgreSQL requires "ILIKE" while everything else uses "LIKE" and the column collation.
+
+=cut
+
+sub sql_LIKE
+{
+	my( $self ) = @_;
+
+	return " LIKE ";
 }
 
 1; # For use/require success
