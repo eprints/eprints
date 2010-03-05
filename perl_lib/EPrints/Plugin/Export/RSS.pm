@@ -78,7 +78,8 @@ sub output_list
 		"copyright", 
 		"" ) );
 
-
+	$channel->appendChild( $session->make_text( "\n    " ) );
+	
 	my $items = $session->make_element( "items" );
 	$channel->appendChild( $items );
 	my $seq = $session->make_element( "rdf:Seq" );

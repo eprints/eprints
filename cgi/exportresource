@@ -28,15 +28,6 @@ if( !defined $id )
 }
 
 
-
-my $archive_ds = $session->get_repository->get_dataset( "archive" );
-
-my $searchexp = new EPrints::Search( session=>$session, dataset=>$archive_ds, match=>"ANY" );
-$searchexp->add_field( $archive_ds->get_field( "rdf_resource" ), "epx:$type/$id", "EX" );
-
-my $list = $searchexp->perform_search;
-my @records = $list->get_records();
-
 my $plugin = $session->plugin( "Export::$format" );
 if( !$plugin || !$plugin->matches("handles_rdf",1) )
 {
@@ -46,15 +37,40 @@ if( !$plugin || !$plugin->matches("handles_rdf",1) )
 	exit;
 }
 
+
+my $sql = '
+SELECT rdf_subject,rdf_predicate,rdf_object,rdf_type,rdf_lang
+FROM eprint
+INNER JOIN eprint_rdf_resource  AS r ON (r.eprintid=eprint.eprintid)
+INNER JOIN eprint_rdf_subject   AS s ON (r.eprintid=s.eprintid AND r.pos=s.pos)
+INNER JOIN eprint_rdf_predicate AS p ON (s.eprintid=p.eprintid AND s.pos=p.pos)
+INNER JOIN eprint_rdf_object    AS o ON (p.eprintid=o.eprintid AND p.pos=o.pos)
+LEFT OUTER JOIN eprint_rdf_type AS t ON (o.eprintid=t.eprintid AND o.pos=t.pos)
+LEFT OUTER JOIN eprint_rdf_lang AS l ON (t.eprintid=l.eprintid AND t.pos=l.pos)
+WHERE eprint_status="archive" AND rdf_resource='.$repository->database->quote_value( "epx:$type/$id" );
+
 my $cache = {};
 $plugin->cache_general_triples( $cache );
-RECORD: foreach my $eprint ( @records )
+
+my $sth = $repository->database->prepare( $sql );
+$repository->database->execute( $sth, $sql );
+
+while( my $spo = $sth->fetch )
 {
-	$plugin->cache_dataobj_triples( $eprint, $cache, "epx:$type/$id" );
+        my $trip = {
+                subject=>$spo->[0],
+                predicate=>$spo->[1],
+                object=>$spo->[2],
+                type=>$spo->[3],
+                lang=>$spo->[4] };
+        my $hashkey = ($trip->{object}||"").'^^'.($trip->{type}||"").'@'.($trip->{lang}||"");
+        $cache->{$trip->{subject}}->{$trip->{predicate}}->{$hashkey} =
+                [ $trip->{object}||"", $trip->{type}, $trip->{lang} ];
 }
 
 
 $session->send_http_header( "content_type" => $plugin->param( 'mimetype' ) );
+$plugin->initialise_fh( \*STDOUT );
 my $namespaces = $plugin->get_namespaces();
 print $plugin->output_triple_cache( $cache, $namespaces );
 

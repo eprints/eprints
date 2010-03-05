@@ -270,7 +270,7 @@ sub get_system_field_info
 		export_as_xml=>0,
 		volatile=>1,
 		'fields' => [
-			{ 'sub_name' => 'resource',  'type' => 'longtext', sql_index => 1, text_index=>0 },
+			{ 'sub_name' => 'resource',  'type' => 'text', sql_index => 1, text_index=>0 },
 			{ 'sub_name' => 'subject',   'type' => 'longtext', sql_index => 0, text_index=>0 },
 			{ 'sub_name' => 'predicate', 'type' => 'longtext', sql_index => 0, text_index=>0 },
 			{ 'sub_name' => 'object',    'type' => 'longtext', sql_index => 0, text_index=>0 },

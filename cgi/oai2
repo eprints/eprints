@@ -924,7 +924,7 @@ END
 		}
 	}
 
-	$searchexp->dispose();
+	$list->dispose();
 
 	# will show a blank list if total is % $PAGESIZE
 	if( @records >= $PAGESIZE )

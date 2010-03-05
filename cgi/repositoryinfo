@@ -41,6 +41,7 @@ my $cache = {};
 $plugin->cache_general_triples( $cache );
 $plugin->cache_trigger_triples( $cache, "repository" );
 $repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
+$plugin->initialise_fh( \*STDOUT );
 my $namespaces = $plugin->get_namespaces();
 print $plugin->output_triple_cache( $cache, $namespaces );
 

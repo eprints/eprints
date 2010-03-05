@@ -43,7 +43,9 @@ $oai->{v2}->{output_plugins} = {
 	"didl" => "DIDL", 
 	"uketd_dc" =>"OAI_UKETD_DC",
 	"context_object" => "ContextObject",
-	"mets" => "METS" };
+	"mets" => "METS",
+	"rdf" => "RDFXML",
+};
 
 # Base URL of OAI 2.0
 $oai->{v2}->{base_url} = $c->{perl_url}."/oai2";

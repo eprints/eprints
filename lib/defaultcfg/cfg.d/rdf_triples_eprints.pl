@@ -60,6 +60,13 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 		}
 	}
 	push @triples, [ $eprint_uri, "rdf:type", "ep:EPrint" ];
+	if( $eprint->dataset->has_field( "type" ) && $eprint->is_set( "type" ) )
+	{
+		my $type = $eprint->get_value( "type" );
+		$type = "\u$type";
+		$type=~s/_([a-z])/\u$1/g;
+		push @triples, [ $eprint_uri, "rdf:type", "ep:${type}EPrint" ];
+	}
 	push @triples, [ $eprint_uri, "dct:isPartOf", "<".$c->{base_url}."/id/repository>" ];
 		
 	DOC: foreach my $doc ( @{$eprint->get_value( "documents" )} )

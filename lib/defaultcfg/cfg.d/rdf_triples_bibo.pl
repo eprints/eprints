@@ -1,6 +1,7 @@
 
 $c->{rdf}->{xmlns}->{event} = "http://purl.org/NET/c4dm/event.owl#";
 $c->{rdf}->{xmlns}->{bibo}  = "http://purl.org/ontology/bibo/";
+$c->{rdf}->{xmlns}->{geo}   = "http://www.w3.org/2003/01/geo/wgs84_pos#";
 $c->{rdf}->{xmlns}->{cc}    = "http://creativecommons.org/ns#";
 
 
@@ -216,7 +217,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 		if( $publication_uri )
 		{
 			push @{$o{triples}->{$publication_uri}},
-				[ $publication_uri, "rdf:type", 	"foaf:Collection" ],
+				[ $publication_uri, "rdf:type", 	"bibo:Collection" ],
 				[ $publication_uri, "foaf:name", 	$publication_name, "literal" ],
 				[ $eprint_uri, "dct:isPartOf",	$publication_uri ],
 			;
@@ -391,6 +392,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 		push @{$o{triples}->{$event_loc_uri}},
 [ $event_uri,	"rdf:type",		"event:Event" ],
 [ $event_uri,	"event:place",		$event_loc_uri ],
+[ $event_loc_uri,	"rdf:type",	"geo:SpatialThing" ],
 [ $event_loc_uri,	"foaf:name",	$event_location, "xsd:string" ];
 	}
 } );

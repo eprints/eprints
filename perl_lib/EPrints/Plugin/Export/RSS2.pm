@@ -37,7 +37,7 @@ sub output_list
 		"version" => "2.0",
 		"xmlns:content" => "http://purl.org/rss/1.0/modules/content/",
 		"xmlns:dc" => "http://purl.org/dc/elements/1.1/",
-		"xmlns:media" => "http://search.yahoo.com/mrss" );
+		"xmlns:media" => "http://search.yahoo.com/mrss/" );
 
 	my $channel = $session->make_element( "channel" );
 	$response->appendChild( $channel );
@@ -55,6 +55,18 @@ sub output_list
 		4,
 		"link",
 		$session->get_repository->get_conf( "frontpage" ) ) );
+
+	if( $session->get_online )
+	{
+		$channel->appendChild( $session->render_data_element(
+			4,
+			"atom:link",
+			"",
+			"xmlns:atom"=>"http://www.w3.org/2005/Atom",
+			"href" => $session->get_full_url,
+			"type" => "application/rss+xml",
+			"rel"  => "self" ) );
+	}
 
 	$channel->appendChild( $session->render_data_element(
 		4,
