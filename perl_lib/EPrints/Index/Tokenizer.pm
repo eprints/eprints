@@ -48,8 +48,13 @@ sub split_words
 	if( ref($utext) eq "Unicode::String" )
 	{
 		$utext = "$utext";
-		utf8::decode($utext);
 	}
+	else
+	{
+		utf8::encode($utext);
+	}
+	# fix malformed UTF-8 data
+	$utext = Encode::decode("UTF-8", $utext, Encode::FB_DEFAULT);
 
 	return split /$EPrints::Index::FREETEXT_SEPERATOR_REGEXP+/, $utext;
 }
