@@ -393,7 +393,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 [ $event_uri,	"rdf:type",		"event:Event" ],
 [ $event_uri,	"event:place",		$event_loc_uri ],
 [ $event_loc_uri,	"rdf:type",	"geo:SpatialThing" ],
-[ $event_loc_uri,	"foaf:name",	$event_location, "xsd:string" ];
+[ $event_loc_uri,	"rdfs:label",	$event_location, "xsd:string" ];
 	}
 } );
 
