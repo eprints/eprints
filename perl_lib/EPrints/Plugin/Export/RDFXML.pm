@@ -17,7 +17,7 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "RDF+XML";
-	$self->{accept} = [ 'list/eprint', 'dataobj/eprint', 'list/subject', 'dataobj/subject' ];
+	$self->{accept} = [ 'list/eprint', 'dataobj/eprint', 'list/subject', 'dataobj/subject', 'triples' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".rdf";
 	$self->{mimetype} = "application/rdf+xml";
@@ -29,11 +29,11 @@ sub new
 	return $self;
 }
 
-
-# static method
 sub rdf_header 
 {
-	my( $repository, $namespaces ) = @_;
+	my( $plugin ) = @_;
+
+	my $namespaces = $plugin->get_namespaces();
 
 	my @r = ();
 	push @r, "<?xml version='1.0' encoding='UTF-8'?>\n";
@@ -55,46 +55,9 @@ sub rdf_header
 
 sub rdf_footer 
 {
+	my( $plugin ) = @_;
+
 	return "\n\n</rdf:RDF>\n";
-}
-
-sub output_list
-{
-	my( $plugin, %opts ) = @_;
-
-	my $cache = {};
-	$plugin->cache_general_triples( $cache );
-	$opts{list}->map( sub {
-		my( $session, $dataset, $dataobj ) = @_;
-
-		$plugin->cache_dataobj_triples( $dataobj, $cache );
-	} );
-
-	return $plugin->output_triple_cache( $cache, %opts );
-}
-
-sub output_triple_cache
-{
-	my( $plugin, $cache, %opts ) = @_;
-
-	my $repository = $plugin->{session}->get_repository;
-	my $namespaces = $plugin->get_namespaces();
-
-	if( defined $opts{fh} )
-	{
-		print {$opts{fh}} rdf_header( $repository, $namespaces );
-		print {$opts{fh}} cache_to_rdfxml( $cache, $namespaces );
-		print {$opts{fh}} rdf_footer( $repository );
-		return undef;
-	}
-	else
-	{
-		my $r = [];
-		push @{$r}, rdf_header( $repository, $namespaces );
-		push @{$r}, cache_to_rdfxml( $cache, $namespaces);
-		push @{$r}, rdf_footer( $repository );
-		return join( '', @{$r} );
-	}
 }
 
 sub xml_dataobj
@@ -109,14 +72,15 @@ sub xml_dataobj
 	return $xml->clone( $doc->getDocumentElement() );
 }
 
-sub cache_to_rdfxml
+sub serialise_triples
 {
-	my( $cache, $namespaces ) = @_;
+	my( $plugin, $triples ) = @_;
 
+	my $namespaces = $plugin->get_namespaces();
 	my @l = ();
-	foreach my $subject ( sort keys %{$cache} )
+	foreach my $subject ( sort keys %{$triples} )
 	{
-		my $trips = $cache->{$subject};
+		my $trips = $triples->{$subject};
 		my $x_type = "rdf:Description";
 		push @l, "  <$x_type rdf:about=\"".attr($subject,$namespaces)."\">\n";
 		foreach my $pred ( sort keys %{ $trips } )
@@ -219,19 +183,6 @@ sub initialise_fh
 	my( $plugin, $fh ) = @_;
 
 	binmode($fh, ":utf8");
-}
-
-sub output_dataobj
-{
-	my( $plugin, $dataobj ) = @_;
-
-	my $repository = $plugin->{session}->get_repository;
-
-	my $cache = {};
-	$plugin->cache_general_triples( $cache );
-	$plugin->cache_dataobj_triples( $dataobj, $cache );
-
-	return $plugin->output_triple_cache( $cache );
 }
 
 1;

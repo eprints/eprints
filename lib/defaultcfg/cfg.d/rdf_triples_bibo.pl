@@ -26,7 +26,7 @@ $c->{rdf}->{bibo_type}->{audio} = "bibo:AudioDocument";
 
 $c->add_trigger( "rdf_triples_eprint", sub {
 	my( %o ) = @_;
-	my $eprint = $o{"eprint"};
+	my $eprint = $o{"dataobj"};
 	my $eprint_uri = "<".$eprint->uri.">";
 
 	##############################
@@ -268,7 +268,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 
 $c->add_trigger( "rdf_triples_eprint", sub {
 	my( %o ) = @_;
-	my $eprint = $o{"eprint"};
+	my $eprint = $o{"dataobj"};
 	my $eprint_uri = "<".$eprint->uri.">";
 
 	my $all_people = {};
@@ -365,7 +365,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 
 $c->add_trigger( "rdf_triples_eprint", sub {
 	my( %o ) = @_;
-	my $eprint = $o{"eprint"};
+	my $eprint = $o{"dataobj"};
 
 	return () if( !$eprint->dataset->has_field( "type" ) );
 	return () if( !$eprint->get_value( "type" ) eq "conference_item" );

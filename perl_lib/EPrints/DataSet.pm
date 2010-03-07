@@ -249,6 +249,11 @@ my $INFO = {
 		import => 1,
 		datestamp => "datestamp",
 	},
+	triple => {
+		sqlname => "triple",
+		class => "EPrints::DataObj::Triple",
+		import => 1,
+	},
 	request => {
 		sqlname => "request",	
 		class => "EPrints::DataObj::Request",
@@ -1247,6 +1252,7 @@ sub list
 	my( $self, $ids ) = @_;
 
 	return EPrints::List->new(
+		session => $self->{repository},
 		dataset => $self,
 		ids => $ids,
 	);

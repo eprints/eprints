@@ -1,0 +1,144 @@
+######################################################################
+#
+#  EPrints Repository Info Exporter
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2010 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+use Data::Dumper;
+
+use strict;
+my $repository = EPrints->new->current_repository;
+exit( 0 ) unless( defined $repository );
+# $repository->get_database->set_debug( 1 );
+
+my $path_info = $repository->get_request->path_info;
+
+# path is one of:
+# /repository/$id/$prettyname
+# /subject/$id/$format/$prettyname
+# /x-foo/$id/$format/$prettyname
+
+my @path = split( '/', $path_info );
+shift @path; # lose leading /
+my $prettyname = pop @path;
+my $format = pop @path;
+
+unless( defined $format )
+{
+	$repository->not_found;
+	exit;
+}
+
+my $plugin = $repository->plugin( "Export::$format" );
+if( !$plugin || !$plugin->matches("can_accept","triples") )
+{
+	$repository->not_found;
+	exit;
+}
+
+my %arguments = %{$plugin->param( "arguments" )};
+# fetch the plugin arguments, if any
+foreach my $argname (keys %arguments)
+{
+	if( defined $repository->param( $argname ) )
+	{
+		$arguments{$argname} = $repository->param( $argname );
+	}
+}
+
+if( $path[0] eq "repository" && scalar @path == 1 )
+{
+	rdf_repository( $repository, $plugin );
+}
+elsif( $path[0] eq "subject" && scalar @path == 2 )
+{
+	rdf_subject( $repository, $plugin, $path[1] );
+}
+elsif( $path[0] =~ s/^x-// && scalar @path == 2 )
+{
+	rdf_resource( $repository, $plugin, $path[0], $path[1] );
+}
+else
+{
+	$repository->not_found;
+}
+	
+exit;
+
+sub rdf_repository
+{
+	my( $repository, $plugin ) = @_;
+
+	my $triples = {};
+	$plugin->cache_general_triples( $triples );
+	my $repository_uri = "<".$repository->config( "base_url" )."/id/repository>";
+	$triples->{"<>"}->{"foaf:primaryTopic"}->{$repository_uri."^^@"} = [$repository_uri,undef,undef];
+	$plugin->cache_trigger_triples( $triples, "repository" );
+	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
+	$plugin->initialise_fh( \*STDOUT );
+	print $plugin->output_triples( $triples );
+}
+
+sub rdf_subject
+{
+	my( $repository, $plugin, $subject_id ) = @_;
+
+	my $subject = $repository->dataset( "subject" )->dataobj( $subject_id );
+	if( !defined $subject )
+	{
+		$repository->not_found;
+		return;
+	}
+
+	my $list = $repository->dataset( "subject" )->search( 
+		filters => [
+			{
+				meta_fields => [qw/ ancestors /],
+				value => $subject_id,
+			}
+		],
+	);
+	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
+	$plugin->initialise_fh( \*STDOUT );
+	print $list->export( $format, %arguments );
+}
+
+sub rdf_resource
+{
+	my( $repository, $plugin, $resource_type, $resource_id ) = @_;
+
+	my $uri = "epx:$resource_type/$resource_id";
+	my $list = $repository->dataset( "triple" )->search( 
+		filters => [
+			{
+				meta_fields => [qw/ secondary_resource /],
+				value => $uri,
+			}
+		],
+	);
+	my $triples = {};
+	$plugin->cache_general_triples( $triples );
+	$list->map( sub{ 
+		my( $session, $dataset, $dataobj ) = @_;
+
+		my $trip = $dataobj->get_data();
+        	my $hashkey = ($trip->{object}||"").'^^'.($trip->{type}||"").'@'.($trip->{lang}||"");
+        	$triples->{$trip->{subject}}->{$trip->{predicate}}->{$hashkey} =
+                	[ $trip->{object}||"", $trip->{type}, $trip->{lang} ];
+	} );
+	$triples->{"<>"}->{"foaf:primaryTopic"}->{$uri."^^@"} = [$uri,undef,undef];
+	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
+	$plugin->initialise_fh( \*STDOUT );
+	print $plugin->output_triples( $triples );
+}
+
+

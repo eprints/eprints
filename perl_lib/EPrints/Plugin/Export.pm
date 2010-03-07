@@ -17,7 +17,6 @@ sub new
 	$self->{visible} = "all";
 	$self->{mimetype} = "text/plain";
 	$self->{advertise} = 1;
-	$self->{handles_rdf} = 0;
 	$self->{arguments} = {};
 
 	# q is used to describe quality. Use it to increase or decrease the 
@@ -94,10 +93,6 @@ sub matches
 	if( $test eq "is_advertised" )
 	{
 		return( $self->param( "advertise" ) == $param );
-	}
-	if( $test eq "handles_rdf" )
-	{
-		return( $self->param( "handles_rdf" ) == $param );
 	}
 
 	# didn't understand this match 

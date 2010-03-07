@@ -246,10 +246,10 @@ sub handler
 			plugins => [$repository->plugin_list(
 				type => "Export",
 				is_visible => "all",
-				handles_rdf => 1 )]
+				can_accept => "triples" )]
 		);
 
-		my $url = $repository->config( "http_cgiurl" )."/repositoryinfo/".
+		my $url = $repository->config( "http_cgiurl" )."/rdf/repository/".
 			$plugin->get_subtype."/".$repository->get_id.$plugin->param("suffix");
 
 		return redir_see_other( $r, $url );
@@ -268,12 +268,12 @@ sub handler
 			plugins => [$repository->plugin_list(
 				type => "Export",
 				is_visible => "all",
-				handles_rdf => 1 )]
+				can_accept => "triples" )]
 		);
 
 		my $fn = $id;
 		$fn=~s/\//_/g;
-		my $url = $repository->config( "http_cgiurl" )."/exportresource/".
+		my $url = $repository->config( "http_cgiurl" )."/rdf/x-".
 			$id."/".$plugin->get_subtype."/$fn".$plugin->param("suffix");
 
 		return redir_see_other( $r, $url );

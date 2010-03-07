@@ -14,7 +14,7 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "RDF+N3";
-	$self->{accept} = [ 'list/*', 'dataobj/*' ];
+	$self->{accept} = [ 'list/eprint', 'dataobj/eprint', 'list/subject', 'dataobj/subject', 'triples' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".n3";
 	$self->{mimetype} = "text/n3";
@@ -24,9 +24,11 @@ sub new
 }
 
 # static method
-sub n3_header 
+sub rdf_header 
 {
-	my( $repository, $namespaces ) = @_;
+	my( $plugin ) = @_;
+
+	my $namespaces = $plugin->get_namespaces();
 
 	my @r = ();
 	foreach my $xmlns ( keys %{$namespaces} )
@@ -38,66 +40,14 @@ sub n3_header
 }
 
 
-sub output_dataobj
+sub serialise_triples
 {
-	my( $plugin, $dataobj ) = @_;
-
-	my $repository = $plugin->{session}->get_repository;
-
-	my $cache = {};
-	$plugin->cache_general_triples( $cache );
-	$plugin->cache_dataobj_triples( $dataobj, $cache );
-
-	return $plugin->output_triple_cache( $cache );
-}
-
-# Later this may print the header then output each batch of, say, 100
-# eprints so that it doesn't take up crazy memory.
-sub output_list
-{
-	my( $plugin, %opts ) = @_;
-
-	my $cache = {};
-	$plugin->cache_general_triples( $cache );
-	$opts{list}->map( sub {
-		my( $session, $dataset, $dataobj ) = @_;
-
-		$plugin->cache_dataobj_triples( $dataobj, $cache );
-	} );
-
-	return $plugin->output_triple_cache( $cache, %opts );
-}
-
-sub output_triple_cache
-{
-	my( $plugin, $cache, %opts ) = @_;
-
-	my $repository = $plugin->{session}->get_repository;
-	my $namespaces = $plugin->get_namespaces();
-
-	if( defined $opts{fh} )
-	{
-		print {$opts{fh}} n3_header( $repository, $namespaces );
-		print {$opts{fh}} cache_to_n3( $cache, $namespaces );
-		return undef;
-	}
-	else
-	{
-		my $r = [];
-		push @{$r}, n3_header( $repository, $namespaces );
-		push @{$r}, cache_to_n3( $cache, $namespaces);
-		return join( '', @{$r} );
-	}
-}
-
-sub cache_to_n3
-{
-	my( $cache, $namespaces ) = @_;
+	my( $plugin, $triples, $namespaces ) = @_;
 
 	my @l = ();
-	SUBJECT: foreach my $subject ( sort keys %{$cache} )
+	SUBJECT: foreach my $subject ( sort keys %{$triples} )
 	{
-		my $trips = $cache->{$subject};
+		my $trips = $triples->{$subject};
 		my @preds = ();
 		PREDICATE: foreach my $pred ( sort keys %{ $trips } )
 		{
@@ -106,7 +56,7 @@ sub cache_to_n3
 			{
 				if( !defined $val->[1] )
 				{
-					my $uri = expand_uri($val->[0],$namespaces);
+					my $uri = $val->[0];
 					next OBJECT if !defined $uri;
 					push @objects, $uri;
 				}
@@ -126,14 +76,14 @@ sub cache_to_n3
 					}
 					if( $val->[1] ne "literal" )
 					{
-						$data.='^^'.expand_uri( $val->[1], $namespaces );
+						$data.='^^'.$val->[1];
 					}
 					push @objects, $data;
 				}
 			}
 			push @preds, "\t".$pred." ".join( ",\n		", @objects );
 		}
-		my $uri = expand_uri($subject,$namespaces);
+		my $uri = $subject;
 		next SUBJECT if !defined $uri;
 		push @l, "$uri\n".join( ";\n", @preds )." .\n\n";
 	}

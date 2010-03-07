@@ -14,7 +14,7 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "RDF+N-Triples";
-	$self->{accept} = [ 'list/eprint', 'dataobj/eprint', 'list/subject', 'dataobj/subject' ];
+	$self->{accept} = [ 'list/eprint', 'dataobj/eprint', 'list/subject', 'dataobj/subject', 'triples' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".nt";
 	$self->{mimetype} = "text/plain";
@@ -23,66 +23,17 @@ sub new
 	return $self;
 }
 
-sub output_dataobj
+sub serialise_triples
 {
-	my( $plugin, $dataobj ) = @_;
+	my( $plugin, $triples ) = @_;
 
-	my $repository = $plugin->{session}->get_repository;
-
-	my $cache = {};
-	$plugin->cache_general_triples( $cache );
-	$plugin->cache_dataobj_triples( $dataobj, $cache );
-
-	return $plugin->output_triple_cache( $cache );
-}
-
-# Later this may print the header then output each batch of, say, 100
-# eprints so that it doesn't take up crazy memory.
-sub output_list
-{
-	my( $plugin, %opts ) = @_;
-
-	my $cache = {};
-	$plugin->cache_general_triples( $cache );
-	$opts{list}->map( sub {
-		my( $session, $dataset, $dataobj ) = @_;
-
-		$plugin->cache_dataobj_triples( $dataobj, $cache );
-	} );
-
-	return $plugin->output_triple_cache( $cache, %opts );
-}
-
-sub output_triple_cache
-{
-	my( $plugin, $cache, %opts ) = @_;
-
-	my $repository = $plugin->{session}->get_repository;
 	my $namespaces = $plugin->get_namespaces();
-
-	if( defined $opts{fh} )
-	{
-		print {$opts{fh}} cache_to_ntriples( $cache, $namespaces );
-		return undef;
-	}
-	else
-	{
-		my $r = [];
-		push @{$r}, cache_to_ntriples( $cache, $namespaces);
-		return join( '', @{$r} );
-	}
-}
-
-sub cache_to_ntriples
-{
-	my( $cache, $namespaces ) = @_;
-
 	my @l = ();
-	SUBJECT: foreach my $subject ( keys %{$cache} )
+	SUBJECT: foreach my $subject ( keys %{$triples} )
 	{
 		my $s_uri = expand_uri( $subject, $namespaces );
 		next SUBJECT if !defined $s_uri;
-		my $trips = $cache->{$subject};
+		my $trips = $triples->{$subject};
 		PREDICATE: foreach my $pred ( keys %{ $trips } )
 		{
 			my $p_uri = expand_uri( $pred, $namespaces );

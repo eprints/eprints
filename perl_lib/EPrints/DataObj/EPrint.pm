@@ -263,32 +263,8 @@ sub get_system_field_info
 		],
 		render_value=>"EPrints::DataObj::EPrint::render_edit_lock",
  	},
-	{
-		'name' => 'rdf',
-		'type' => 'compound',
-		'multiple' => 1,
-		export_as_xml=>0,
-		volatile=>1,
-		'fields' => [
-			{ 'sub_name' => 'resource',  'type' => 'text', sql_index => 1, text_index=>0 },
-			{ 'sub_name' => 'subject',   'type' => 'longtext', sql_index => 0, text_index=>0 },
-			{ 'sub_name' => 'predicate', 'type' => 'longtext', sql_index => 0, text_index=>0 },
-			{ 'sub_name' => 'object',    'type' => 'longtext', sql_index => 0, text_index=>0 },
-			{ 'sub_name' => 'type',      'type' => 'longtext', sql_index => 0, text_index=>0 },
-			{ 'sub_name' => 'lang',      'type' => 'text', sql_index => 0, text_index=>0 },
-		],
-		render_value=>"EPrints::DataObj::EPrint::render_rdf_field",
-	},
-
 
 	);
-}
-
-sub render_rdf_field 
-{
-	my( $session, $field, $value ) = @_;
-
-	return $session->make_text( sprintf( "%d Triples", scalar @{$value} ) );
 }
 
 =item $eprint->set_item_issues( $new_issues )
@@ -562,16 +538,24 @@ sub create_from_data
 
 # Update all the stuff that needs updating before an eprint
 # is written to the database.
+
 sub update_triggers
 {
 	my( $self ) = @_;
 
 	$self->SUPER::update_triggers();
 
+	my $action = "clear_triples";
 	if( $self->get_value( "eprint_status" ) eq "archive" )
 	{
-		$self->set_value( "rdf", $self->convert_to_triples );
+		$action = "update_triples";
 	}
+	$self->{session}->dataset( "event_queue" )->create_dataobj({
+			pluginid => "Event::RDF",
+			action => $action,
+			params => [$self->internal_uri],
+		});
+	
 }
 
 

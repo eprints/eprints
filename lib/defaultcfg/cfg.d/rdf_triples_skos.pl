@@ -4,7 +4,7 @@ $c->{rdf}->{xmlns}->{skos} = "http://www.w3.org/2004/02/skos/core#";
 
 $c->add_trigger( "rdf_triples_eprint", sub {
 	my( %o ) = @_;
-	my $eprint = $o{"eprint"};
+	my $eprint = $o{"dataobj"};
 	my $eprint_uri = "<".$eprint->uri.">";
 
 	return if ! $eprint->dataset->has_field( "subjects" );
@@ -31,7 +31,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 
 $c->add_trigger( "rdf_triples_subject", sub {
 	my( %o ) = @_;
-	my $subject = $o{"subject"};
+	my $subject = $o{"dataobj"};
 	my $uri = $subject->uri;
 	my $subject_uri = "<$uri>";
 	my $subject_prefix = substr( $uri, 0, length( $uri ) - length( $subject->id ) );

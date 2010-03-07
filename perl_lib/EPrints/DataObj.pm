@@ -1142,42 +1142,6 @@ sub uri
 	return $self->get_session->get_repository->get_conf( "base_url" ).$self->internal_uri;
 }
 
-sub triples
-{
-	my( $self ) = @_;
-
-	return $self->convert_to_triples;
-}
-
-sub convert_to_triples
-{
-	my( $self ) = @_;
-
-	my $repository = $self->repository;
-	my $dataset_id = $self->{dataset}->confid;
-
-	my $triples = {};
-	$repository->run_trigger( "rdf_triples_$dataset_id", $dataset_id=>$self, triples=>$triples );
-
-	my $t = [];
-	foreach my $resource ( keys %{$triples} )
-	{
-		foreach my $spo ( @{$triples->{$resource}} )
-		{
-			push @{$t}, {
-				resource=>$resource,
-				subject=>$spo->[0],
-				predicate=>$spo->[1],
-				object=>$spo->[2],
-				type=>$spo->[3],
-				lang=>$spo->[4] };
-		}
-	}
-	return $t;
-}
-
-
-
 =item $uri = $dataobj->internal_uri()
 
 Return an internal URI for this object (independent of repository hostname).
