@@ -128,17 +128,17 @@ This erases all the .words and .indexcodes cache files from your repository, for
 
 This is useful if you only setup the fulltext indexing after your repository is already live, or if you discover there has been a problem.
 
-=item B<epadmin> recommit I<repository_id> I<dataset_id>
+=item B<epadmin> recommit I<repository_id> I<dataset_id> [I<eprint_id> I<eprint_id> ...]
 
-Recommit all the records in the given dataset. What this does is cause the automatic values to be re-calculated.
+Recommit all the records in the given dataset. What this does is cause the automatic values to be re-calculated. If a list of eprint_ids is given then just recommit those.
 
-=item B<epadmin> reindex I<repository_id> I<dataset_id>
+=item B<epadmin> reindex I<repository_id> I<dataset_id> [I<eprint_id> I<eprint_id> ...]
 
-Schedule the dataset for reindexing. The indexer will do the actual indexing and it may take some time. This only schedules the reindexing.
+Schedule the dataset for reindexing. The indexer will do the actual indexing and it may take some time. This only schedules the reindexing. If a list of eprint_ids is given then just reindex those.
 
-=item B<epadmin> reorder I<repository_id> I<dataset_id>
+=item B<epadmin> reorder I<repository_id> I<dataset_id> [I<eprint_id> I<eprint_id> ...]
 
-Regenerate the order values for the dataset.
+Regenerate the order values for the dataset. If a list of eprint_ids is given then just recalculate ordervalues for those.
 
 =item B<epadmin> rehash I<repository_id> [I<document_id>]
 
@@ -316,19 +316,19 @@ else
 	{
 		my $datasetid = $ARGV[2];
 		pod2usage(1) unless defined $datasetid;
-		recommit( $repoid, $datasetid ); 
+		recommit( $repoid, $datasetid, @ARGV[3..(scalar @ARGV)-1] ); 
 	}
 	elsif( $action eq "reindex" ) 
 	{
 		my $datasetid = $ARGV[2];
 		pod2usage(1) unless defined $datasetid;
-		reindex( $repoid, $datasetid ); 
+		reindex( $repoid, $datasetid, @ARGV[3..(scalar @ARGV)-1] ); 
 	}
 	elsif( $action eq "reorder" )
 	{
 		my $datasetid = $ARGV[2];
 		pod2usage(1) unless defined $datasetid;
-		reorder( $repoid, $datasetid ); 
+		reorder( $repoid, $datasetid, @ARGV[3..(scalar @ARGV)-1] ); 
 	}
 	elsif( $action eq "rehash" ) { rehash( $repoid ); }
 	elsif( $action eq "upgrade_add_files" ) { upgrade_add_files( $repoid ) }
@@ -1642,7 +1642,7 @@ sub update_database_structure
 
 sub recommit
 {
-	my( $repoid, $datasetid ) = @_;
+	my( $repoid, $datasetid, @ids ) = @_;
 
 	my $repo = &repository( $repoid );
 
@@ -1653,23 +1653,31 @@ sub recommit
 		exit( 1 );
 	}
 
-	my $list = $dataset->search;
-
-	if( $noise > 0 )
-	{
-		print "\n";
-		print "You are about to recommit \"$datasetid\" in the $repoid repository.\n";
-		print "This can take some time.\n\n";
-		print "Number of records in set: ".$list->count."\n";
+	
+	my $list;
+	if( @ids )
+	{ 
+		$list = $dataset->list( \@ids );
 	}
-
-	my $sure = EPrints::Utils::get_input_confirm( "Continue" );
-	unless( $sure )
+	else
 	{
-		print "Aborting then.\n\n";
-		exit( 1 );
-	}
+		$list = $dataset->search;
 
+		if( $noise > 0 )
+		{
+			print "\n";
+			print "You are about to recommit \"$datasetid\" in the $repoid repository.\n";
+			print "This can take some time.\n\n";
+			print "Number of records in set: ".$list->count."\n";
+		}
+	
+		my $sure = EPrints::Utils::get_input_confirm( "Continue" );
+		unless( $sure )
+		{
+			print "Aborting then.\n\n";
+			exit( 1 );
+		}
+	}
 
 	$list->map( sub {
         	my( $session, $dataset, $item ) = @_;
@@ -1686,7 +1694,7 @@ sub recommit
 
 sub reorder
 {
-	my( $repoid, $datasetid ) = @_;
+	my( $repoid, $datasetid, @ids ) = @_;
 
 	my $repo = &repository( $repoid );
 
@@ -1697,7 +1705,17 @@ sub reorder
 		exit( 1 );
 	}
 
-	$dataset->search->map( sub {
+	my $list;
+	if( @ids )
+	{ 
+		$list = $dataset->list( \@ids );
+	}
+	else
+	{
+		$list = $dataset->search;
+	}
+
+	$list->map( sub {
 		my( $session, $dataset, $item ) = @_;
 	
 		EPrints::Index::update_ordervalues( $session, $dataset, $item->{data}, $item->{data} );
@@ -1711,7 +1729,7 @@ sub reorder
 
 sub reindex
 {
-	my( $repoid, $datasetid ) = @_;
+	my( $repoid, $datasetid, @ids ) = @_;
 
 	my $repo = &repository( $repoid );
 
@@ -1722,7 +1740,17 @@ sub reindex
 		exit( 1 );
 	}
 
-	$dataset->search->map( sub {
+	my $list;
+	if( @ids )
+	{ 
+		$list = $dataset->list( \@ids );
+	}
+	else
+	{
+		$list = $dataset->search;
+	}
+
+	$list->map( sub {
 		my( $session, $dataset, $item ) = @_;
 	
 		$item->queue_all();
