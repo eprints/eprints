@@ -58,7 +58,7 @@ sub output_dataobj
 
 	my $triples = {};
 	$plugin->cache_general_triples( $triples );
-	my $dataobj_uri = $dataobj->get_uri;
+	my $dataobj_uri = "<".$dataobj->uri.">";
 	$triples->{"<>"}->{"foaf:primaryTopic"}->{$dataobj_uri."^^@"} = [$dataobj_uri,undef,undef];
 	$plugin->cache_dataobj_triples( $dataobj, $triples );
 
