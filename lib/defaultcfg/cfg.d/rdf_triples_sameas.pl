@@ -9,7 +9,9 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	{
 		my $format = $doc->get_value( "format" );
 		next if( $format ne "application/rdf+xml" && $format ne "text/n3" );
-		push @{$o{triples}->{$eprint_uri}}, 
-			[ $eprint_uri, "rdfs:seeAlso", "<".$doc->get_url.">" ];
+		$o{graph}->add( 
+			subject => $eprint_uri,
+			predicate => "rdfs:seeAlso",
+			object => "<".$doc->get_url.">" );
 	}
 } );

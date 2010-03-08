@@ -68,25 +68,25 @@ foreach my $field_data ( @fields )
 		isbn => "1234567890",
 		issn => "12345690",
 	} ); };
-	ok( !$@, "create eprint without '$field_name' field" );
+	ok( !$@, "create eprint without '$field_name' field: $@" );
 
 	if( !defined $eprint ) { BAIL_OUT( "Could not create a new eprint object (in sans $field_name mode)" ); }
 
 	eval { $eprint->move_to_buffer(); };
-	ok( !$@, "move_to_buffer without '$field_name' field" );
+	ok( !$@, "move_to_buffer without '$field_name' field: $@" );
 
 	eval { $eprint->move_to_archive(); };
-	ok( !$@, "move_to_archive without '$field_name' field" );
+	ok( !$@, "move_to_archive without '$field_name' field: $@" );
 
 	foreach my $plugin ( @plugins ) 
 	{
 		my $plugin_id = $plugin->get_id;
 		eval { $plugin->output_dataobj( $eprint ); };
-		ok( !$@, "plugin '$plugin_id' without '$field_name' field" );
+		ok( !$@, "plugin '$plugin_id' without '$field_name' field: $@" );
 	}
 
 	eval { $eprint->move_to_deletion(); };
-	ok( !$@, "move_to_deletion without '$field_name' field" );
+	ok( !$@, "move_to_deletion without '$field_name' field: $@" );
 
 	$eprint->delete; # clean up
 }

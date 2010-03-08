@@ -39,7 +39,7 @@ unless( defined $format )
 }
 
 my $plugin = $repository->plugin( "Export::$format" );
-if( !$plugin || !$plugin->matches("can_accept","triples") )
+if( !$plugin || !$plugin->can_accept( "list/triple" ) )
 {
 	$repository->not_found;
 	exit;
@@ -78,14 +78,19 @@ sub rdf_repository
 {
 	my( $repository, $plugin ) = @_;
 
-	my $triples = {};
-	$plugin->cache_general_triples( $triples );
 	my $repository_uri = "<".$repository->config( "base_url" )."/id/repository>";
-	$triples->{"<>"}->{"foaf:primaryTopic"}->{$repository_uri."^^@"} = [$repository_uri,undef,undef];
-	$plugin->cache_trigger_triples( $triples, "repository" );
+
+	my $graph = EPrints::RDFGraph->new( repository=>$repository );
+	$graph->add( 
+		  subject => "<>",
+		predicate => "foaf:primaryTopic",
+		   object => $repository_uri );
+	$graph->add_boilerplate_triples();	
+	$graph->add_trigger_triples( "repository" );
+
 	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
 	$plugin->initialise_fh( \*STDOUT );
-	print $plugin->output_triples( $triples );
+	print $plugin->output_graph( $graph );
 }
 
 sub rdf_subject
@@ -116,7 +121,7 @@ sub rdf_resource
 {
 	my( $repository, $plugin, $resource_type, $resource_id ) = @_;
 
-	my $uri = "epx:$resource_type/$resource_id";
+	my $uri = "epid:x-$resource_type/$resource_id";
 	my $list = $repository->dataset( "triple" )->search( 
 		filters => [
 			{
@@ -125,20 +130,23 @@ sub rdf_resource
 			}
 		],
 	);
-	my $triples = {};
-	$plugin->cache_general_triples( $triples );
+
+	my $graph = EPrints::RDFGraph->new( repository=>$repository );
+	$graph->add( 
+		  subject => "<>",
+		predicate => "foaf:primaryTopic",
+		   object => $uri );
+	$graph->add_boilerplate_triples();	
+
 	$list->map( sub{ 
 		my( $session, $dataset, $dataobj ) = @_;
-
-		my $trip = $dataobj->get_data();
-        	my $hashkey = ($trip->{object}||"").'^^'.($trip->{type}||"").'@'.($trip->{lang}||"");
-        	$triples->{$trip->{subject}}->{$trip->{predicate}}->{$hashkey} =
-                	[ $trip->{object}||"", $trip->{type}, $trip->{lang} ];
+		$graph->add_dataobj_triples( $dataobj );
 	} );
-	$triples->{"<>"}->{"foaf:primaryTopic"}->{$uri."^^@"} = [$uri,undef,undef];
+
 	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
 	$plugin->initialise_fh( \*STDOUT );
-	print $plugin->output_triples( $triples );
+	
+	print $plugin->output_graph( $graph );
 }
 
 

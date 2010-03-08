@@ -9,98 +9,151 @@ $c->{rdf}->{xmlns}->{void} = "http://rdfs.org/ns/void#";
 
 $c->add_trigger( "rdf_triples_repository", sub {
 	my( %o ) = @_;
-	
-	my @triples;
+
 	my $repository_uri = "<".$o{repository}->config( "base_url" )."/id/repository>";
 
 	my @eprint_ids = sort @{$o{repository}->dataset("archive")->get_item_ids( $o{repository} )};
 
 	my $oai_config = $o{repository}->config( "oai" );
 
-	push @triples, [ $repository_uri, "rdf:type", "ep:Repository" ];
-	push @triples, [ $repository_uri, "dct:title", $o{repository}->phrase( "archive_name" ), "literal" ];
-	push @triples, [ $repository_uri, "foaf:homepage", "<".$o{repository}->config( "base_url" )."/>" ];
-	push @triples, [ $repository_uri, "ep:OAIPMH2", "<".$o{repository}->config( "base_url" )."/cgi/oai2>" ];
+	$o{graph}->add( 
+		  subject => $repository_uri,
+		predicate => "rdf:type",
+		   object => "ep:Repository" );
+	$o{graph}->add( 
+		  subject => $repository_uri,
+		predicate => "dct:title",
+		   object => $o{repository}->phrase( "archive_name" ),
+		     type => "xsd:string" );
+	$o{graph}->add( 
+		  subject => $repository_uri,
+		predicate => "foaf:homepage",
+		   object => "<".$o{repository}->config( "base_url" )."/>" );
+	$o{graph}->add( 
+		  subject => $repository_uri,
+		predicate => "ep:OAIPMH2",
+		   object => "<".$o{repository}->config( "base_url" )."/cgi/oai2>" );
 
-
-	# Do not use your homepage as your URL (one is an organisation, the other a webpage)
-	# If you can't find anything better, use "http://yoursite.org/#org" 
-	# push @triples, [ $repository_uri, "dct:rightsHolder", "<http://Your ORG URI>" ];
-	# push @triples, [ $repository_uri, "dct:publisher", "<http://Your ORG URI>" ];
+	# maybe dct:rightsHolder, dct:publisher
 
 	# voID
 
-	push @triples, [ $repository_uri, "rdf:type", "void:Dataset" ];
-	push @triples, [ $repository_uri, "void:vocabulary", "<http://purl.org/dc/terms/>" ];
+	$o{graph}->add( 
+		  subject => $repository_uri,
+		predicate => "rdf:type",
+		   object => "void:Dataset" );
 	if( @eprint_ids )
 	{
-		push @triples, [ $repository_uri, "void:exampleResource", "<".$o{repository}->config( "base_url" )."/id/eprint/".$eprint_ids[0].">" ];
+		$o{graph}->add( 
+		  	subject => $repository_uri,
+			predicate => "void:exampleResource",
+		   	object => "<".$o{repository}->config( "base_url" )."/id/eprint/".$eprint_ids[0].">" );
 	}
 	my $xmlns = $o{repository}->config( "rdf","xmlns" );
 	foreach my $nsid ( keys %{$xmlns} )
 	{
-		push @triples, [ $repository_uri, "void:vocabulary", "<".$xmlns->{$nsid}.">" ];
+		$o{graph}->add( 
+		  	subject => $repository_uri,
+			predicate => "void:vocabulary",
+		   	object => "<".$xmlns->{$nsid}.">" );
 	}
 
 	# Repository Description
 
 	if( $oai_config->{content}->{text} )
 	{
-		push @triples, [ $repository_uri, "dct:description", $oai_config->{content}->{text}, "literal" ];
+		$o{graph}->add( 
+		  	subject => $repository_uri,
+			predicate => "dct:description",
+		   	object => $oai_config->{content}->{text},
+			type => "xsd:string" );
 	}
 	if( $oai_config->{content}->{url} )
 	{
-		push @triples, [ $repository_uri, "dct:description", "<".$oai_config->{content}->{url}.">" ];
+		$o{graph}->add( 
+		  	subject => $repository_uri,
+			predicate => "dct:description",
+		   	object => "<".$oai_config->{content}->{url}.">" );
 	}
 
 	# Rights
 		
 	if( $oai_config->{metadata_policy}->{text} )
 	{
-		push @triples, [ $repository_uri, "dc:rights", $oai_config->{metadata_policy}->{text}, "literal" ];
+		$o{graph}->add( 
+		  	subject => $repository_uri,
+			predicate => "dc:rights",
+		   	object => $oai_config->{metadata_policy}->{text},
+			type => "xsd:string" );
 	}
 	if( $oai_config->{metadata_policy}->{url} )
 	{
-		push @triples, [ $repository_uri, "dct:rights", "<".$oai_config->{metadata_policy}->{url}.">" ];
+		$o{graph}->add( 
+		  	subject => $repository_uri,
+			predicate => "dct:rights",
+		   	object => "<".$oai_config->{metadata_policy}->{url}.">" );
 	}
 
 	if( $oai_config->{data_policy}->{text} )
 	{
-		push @triples, [ $repository_uri, "dc:rights", $oai_config->{data_policy}->{text}, "literal" ];
+		$o{graph}->add( 
+		  	subject => $repository_uri,
+			predicate => "dc:rights",
+		   	object => $oai_config->{data_policy}->{text},
+			type => "xsd:string" );
 	}
 	if( $oai_config->{data_policy}->{url} )
 	{
-		push @triples, [ $repository_uri, "dct:rights", "<".$oai_config->{data_policy}->{url}.">" ];
+		$o{graph}->add( 
+		  	subject => $repository_uri,
+			predicate => "dct:rights",
+		   	object => "<".$oai_config->{data_policy}->{url}.">" );
 	}
 
 	if( $oai_config->{submission_policy}->{text} )
 	{
-		push @triples, [ $repository_uri, "dc:rights", $oai_config->{submission_policy}->{text}, "literal" ];
+		$o{graph}->add( 
+		  	subject => $repository_uri,
+			predicate => "dc:rights", # <<< not ideal
+		   	object => $oai_config->{submission_policy}->{text},
+			type => "xsd:string" );
 	}
 	if( $oai_config->{submission_policy}->{url} )
 	{
-		push @triples, [ $repository_uri, "dct:rights", "<".$oai_config->{submission_policy}->{url}.">" ];
+		$o{graph}->add( 
+		  	subject => $repository_uri,
+			predicate => "dct:rights", # <<< not ideal
+		   	object => "<".$oai_config->{submission_policy}->{url}.">" );
 	}
 
 	# Comments
 
 	foreach my $comment ( @{ $oai_config->{comments} } )
 	{
-		push @triples, [ $repository_uri, "rdfs:comment", $comment, "literal" ];
+		$o{graph}->add( 
+		  	subject => $repository_uri,
+			predicate => "rdfs:comment",
+		   	object => $oai_config->{content}->{text},
+			type => "xsd:string" );
 	}
 
 	foreach my $id ( sort @eprint_ids )
 	{
 		# Not loading the actual object as that would take a crazy-long time!
-		push @triples, [ $repository_uri, "ep:hasEPrint", "<".$o{repository}->config( "base_url" )."/id/eprint/".$id.">" ];
+		$o{graph}->add( 
+		  	subject => $repository_uri,
+			predicate => "ep:hasEPrint",
+		   	object => "<".$o{repository}->config( "base_url" )."/id/eprint/".$id.">" );
 	}
 
 	my $root_subject = $o{repository}->dataset("subject")->dataobj("ROOT");
 	foreach my $top_subject ( $root_subject->get_children )
 	{
-		push @triples, [ $repository_uri, "ep:hasConceptScheme", "<".$top_subject->uri."#scheme>" ];
+		$o{graph}->add( 
+		  	subject => $repository_uri,
+			predicate => "ep:hasConceptScheme",
+		   	object => "<".$top_subject->uri."#scheme>" );
 	}
 
 
-	push @{$o{triples}->{$repository_uri}}, @triples;
 } );

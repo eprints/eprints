@@ -14,7 +14,7 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "RDF+N3";
-	$self->{accept} = [ 'list/eprint', 'dataobj/eprint', 'list/subject', 'dataobj/subject', 'triples' ];
+	$self->{accept} = [ 'list/eprint', 'dataobj/eprint', 'list/subject', 'dataobj/subject', 'list/triple' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".n3";
 	$self->{mimetype} = "text/n3";
@@ -23,7 +23,6 @@ sub new
 	return $self;
 }
 
-# static method
 sub rdf_header 
 {
 	my( $plugin ) = @_;
@@ -35,19 +34,20 @@ sub rdf_header
 	{
 		push @r, "  \@prefix $xmlns: <".$namespaces->{$xmlns}."> .\n";
 	}
-
+	push @r, "\n";
 	return join( "", @r );
 }
 
-
-sub serialise_triples
+sub serialise_graph
 {
-	my( $plugin, $triples, $namespaces ) = @_;
+	my( $plugin, $graph ) = @_;
+
+	my $struct = $plugin->graph_to_struct( $graph );
 
 	my @l = ();
-	SUBJECT: foreach my $subject ( sort keys %{$triples} )
+	SUBJECT: foreach my $subject ( sort keys %{$struct} )
 	{
-		my $trips = $triples->{$subject};
+		my $trips = $struct->{$subject};
 		my @preds = ();
 		PREDICATE: foreach my $pred ( sort keys %{ $trips } )
 		{
@@ -90,6 +90,7 @@ sub serialise_triples
 	return join ('',@l);
 }
 
+# nb. this function not currently used
 sub expand_uri 
 {
 	my( $obj_id, $namespaces ) = @_;
@@ -111,7 +112,7 @@ sub expand_uri
 	return "<".$namespaces->{$ns}.$value.">";
 }
 
-	
-	
-	
+
+
+
 1;

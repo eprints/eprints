@@ -238,7 +238,7 @@ sub dataobj_export_url
 	my $url = $plugin->{session}->get_repository->get_conf( "http_cgiurl" );
 	$url .= "/users" if $staff;
 	$url .= "/export/" if $dataset->confid eq "eprint";
-	$url .= "/exportsubject/" if $dataset->confid eq "subject";
+	$url .= "/rdf/subject/" if $dataset->confid eq "subject";
 	$url .= $dataobj->get_id."/".$format;
 	$url .= "/".$plugin->{session}->get_repository->get_id;
 	$url .= "-".$dataobj->get_dataset->confid."-".$dataobj->get_id.$plugin->param("suffix");

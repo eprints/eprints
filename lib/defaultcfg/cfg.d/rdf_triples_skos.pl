@@ -10,23 +10,32 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	return if ! $eprint->dataset->has_field( "subjects" );
 	return if ! $eprint->is_set( "subjects" );
 	
-	my @triples;
 	foreach my $subject_id ( @{$eprint->get_value( "subjects" )} )
 	{
 		my $subject = $o{repository}->dataset( "subject" )->dataobj( $subject_id );
 		if( $subject )
 		{
 			my $subject_uri = "<".$subject->uri.">";
-			push @triples, [ $subject_uri, "rdf:type", "skos:Concept" ];
+			$o{graph}->add( 
+				subject => $subject_uri,
+				predicate => "rdf:type",
+				object => "skos:Concept" );
 			foreach my $name ( @{$subject->get_value( "name" )} )
 			{
-				push @triples, [ $subject_uri, "skos:prefLabel", $name->{name}, "literal", $name->{lang} ];
+				$o{graph}->add( 
+					subject => $subject_uri,
+					predicate => "skos:prefLabel",
+					object => $name->{name},
+					type => "xsd:string",
+					lang => $name->{lang} );
 			}
-			push @triples, [ $eprint_uri, "dct:subject", $subject_uri ];
+			$o{graph}->add( 
+				subject => $eprint_uri,
+				predicate => "dct:subject",
+				object => $subject_uri );
 		}
 	}
 
-	push @{$o{triples}->{$eprint_uri}}, @triples;
 } );
 
 $c->add_trigger( "rdf_triples_subject", sub {
@@ -36,16 +45,26 @@ $c->add_trigger( "rdf_triples_subject", sub {
 	my $subject_uri = "<$uri>";
 	my $subject_prefix = substr( $uri, 0, length( $uri ) - length( $subject->id ) );
 
-	my @triples;
-	push @triples, [ $subject_uri, "rdf:type", "skos:Concept" ];
+	$o{graph}->add( 
+		subject => $subject_uri,
+		predicate => "rdf:type",
+		object => "skos:Concept" );
 	foreach my $name ( @{$subject->get_value( "name" )} )
 	{
-		push @triples, [ $subject_uri, "skos:prefLabel", $name->{name}, "literal", $name->{lang} ];
+		$o{graph}->add( 
+			subject => $subject_uri,
+			predicate => "skos:prefLabel",
+			object => $name->{name},
+			type => "xsd:string",
+			lang => $name->{lang} );
 	}
 
 	foreach my $child ( $subject->get_children() )
 	{
-		push @triples, [ $subject_uri, "skos:narrower", "<".$subject_prefix.$child->id.">" ];
+		$o{graph}->add( 
+			subject => $subject_uri,
+			predicate => "skos:narrower",
+			object => "<".$subject_prefix.$child->id.">" );
 	}
 
 	foreach my $parent_id ( @{$subject->get_value("parents")} )
@@ -53,20 +72,36 @@ $c->add_trigger( "rdf_triples_subject", sub {
 		if( $parent_id eq "ROOT" )
 		{
 			my $scheme_uri = "<$uri#scheme>";
-			push @triples, [ $subject_uri, "skos:topConceptOf", $scheme_uri ];
-			push @triples, [ $scheme_uri, "skos:hasTopConcept", $subject_uri ];
-			push @triples, [ $scheme_uri, "rdf:type", "skos:ConceptScheme" ];
+			$o{graph}->add( 
+				subject => $subject_uri,
+				predicate => "skos:topConceptOf",
+				object => $scheme_uri );
+			$o{graph}->add( 
+				subject => $scheme_uri,
+				predicate => "skos:hasTopConcept",
+				object => $subject_uri );
+			$o{graph}->add( 
+				subject => $scheme_uri,
+				predicate => "rdf:type",
+				object => "skos:ConceptScheme" );
 			foreach my $name ( @{$subject->get_value( "name" )} )
 			{
-				push @triples, [ $scheme_uri, "dct:title", $name->{name}, "literal", $name->{lang} ];
+				$o{graph}->add( 
+					subject => $scheme_uri,
+					predicate => "dct:title",
+					object => $name->{name},
+					type => "xsd:string",
+					lang => $name->{lang} );
 			}
 		}
 		else
 		{
-			push @triples, [ $subject_uri, "skos:broader", "<".$subject_prefix.$parent_id.">" ];
+			$o{graph}->add( 
+				subject => $subject_uri,
+				predicate => "skos:broader",
+				object => "<".$subject_prefix.$parent_id.">" );
 		}
 	}
 
-	push @{$o{triples}->{$subject_uri}}, @triples;
 } );
 

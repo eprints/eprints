@@ -33,7 +33,6 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	# Main Object 
 	##############################
 
-	my @triples;
 	my $type="";
 	if( $eprint->dataset->has_field( "type" ) && $eprint->is_set( "type" ) )
 	{
@@ -48,21 +47,39 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 					$bibo_type = "bibo:EditedBook";
 				}
 			}
-			push @triples, [ $eprint_uri, "rdf:type", $bibo_type ];
+			$o{"graph"}->add( 
+				  subject => $eprint_uri,
+				predicate => "rdf:type",
+				   object => $bibo_type );	
 		}
 	}
-	push @triples, [ $eprint_uri, "rdf:type", "bibo:Article" ];
+	$o{"graph"}->add( 
+		  subject => $eprint_uri,
+		predicate => "rdf:type",
+		   object => "bibo:Article" );
 	if( $eprint->dataset->has_field( "title" ) && $eprint->is_set( "title" ) )
 	{
-		push @triples, [ $eprint_uri, "dct:title", $eprint->get_value( "title" ), "literal" ];
+		$o{"graph"}->add( 
+			  subject => $eprint_uri,
+			predicate => "dct:title",
+			   object => $eprint->get_value( "title" ),
+			     type => "xsd:string" );	
 	}
 	if( $eprint->dataset->has_field( "abstract" ) && $eprint->is_set( "abstract" ) )
 	{
-		push @triples, [ $eprint_uri, "bibo:abstract", $eprint->get_value( "abstract" ), "xsd:string" ];
+		$o{"graph"}->add( 
+			  subject => $eprint_uri,
+			predicate => "bibo:abstract",
+			   object => $eprint->get_value( "abstract" ),
+			     type => "xsd:string" );	
 	}
 	if( $eprint->dataset->has_field( "date" ) && $eprint->is_set( "date" ) )
 	{
-		push @triples, [ $eprint_uri, "dct:date", $eprint->get_value( "date" ), "literal" ];
+		$o{"graph"}->add( 
+			  subject => $eprint_uri,
+			predicate => "dct:date",
+			   object => $eprint->get_value( "date" ),
+			     type => "literal" );	# not xsd:date as can be just CCYY
 	}
 		
 	my $formats = "";
@@ -75,10 +92,11 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 		if( $format && $format =~ m/^video\// ) { $bibo_type = "bibo:AudioVisualDocument"; }
 		if( $format && $format =~ m/^audio\// ) { $bibo_type = "bibo:AudioDocument"; }
 		if( $format && $format eq "application/vnd.ms-powerpoint" ) { $bibo_type = "bibo:Slideshow"; }
-		push @triples, [ $doc_uri, "rdf:type", $bibo_type ];
+		$o{"graph"}->add( 
+			  subject => $doc_uri,
+			predicate => "rdf:type",
+			   object => $bibo_type );
 	}
-
-	push @{$o{triples}->{$eprint_uri}}, @triples;
 
 	# Thesis
 
@@ -88,8 +106,10 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 		if( $eprint->dataset->has_field( "thesis_type" ) && $eprint->is_set( "thesis_type" ) 
 	 	 && $eprint->get_value( "thesis_type" ) eq "phd" )
 		{
-			push @{$o{triples}->{$eprint_uri}},
-				[ $eprint_uri, "bibo:degree", "<http://purl.org/ontology/bibo/degrees/phd>" ];
+			$o{"graph"}->add(
+				   subject => $eprint_uri,
+				 predicate => "bibo:degree",
+				    object => "<http://purl.org/ontology/bibo/degrees/phd>" );
 		}
 		if( $eprint->dataset->has_field( "institution" ) && $eprint->is_set( "institution" )  )
 		{
@@ -97,25 +117,57 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 			my $inst_uri = &{$c->{rdf}->{org_uri}}( $eprint, $inst_name );
 			if( $inst_uri )
 			{
-				push @{$o{triples}->{$inst_uri}},
-					[ $inst_uri, "rdf:type", 	"foaf:Organization" ],
-					[ $inst_uri, "foaf:name", 	$inst_name, "literal" ],
-					[ $eprint_uri, "dct:issuer",	$inst_uri ],
-				;
+				$o{"graph"}->add(
+				   	  subject => $inst_uri,
+				 	predicate => "rdf:type",
+				    	   object => "foaf:Organization",
+					secondary_resource => $inst_uri );
+				$o{"graph"}->add(
+				   	  subject => $inst_uri,
+				 	predicate => "foaf:name",
+				    	   object => $inst_name,
+					     type => "xsd:string",
+					secondary_resource => $inst_uri );
+				$o{"graph"}->add(
+				   	  subject => $eprint_uri,
+				 	predicate => "dct:issuer",
+				    	   object => $inst_uri,
+					secondary_resource => $inst_uri );
 				if( $eprint->dataset->has_field( "department" ) && $eprint->is_set( "department" )  )
 				{
 					my $dept_name = $eprint->get_value( "department" ).", $inst_name";
 					my $dept_uri = &{$c->{rdf}->{org_uri}}( $eprint, $dept_name );
 					if( $dept_uri )
 					{
-						push @{$o{triples}->{$dept_uri}},
-							[ $dept_uri, "rdf:type", 	"foaf:Organization" ],
-							[ $dept_uri, "foaf:name", 	$dept_name, "literal" ],
-							[ $dept_uri, "dct:isPartOf", 	$inst_uri ],
-							[ $eprint_uri, "dct:issuer",	$dept_uri ],
-						;
-						push @{$o{triples}->{$inst_uri}},
-							[ $inst_uri, "dct:hasPart", $dept_uri ];
+						# added to the school/dept
+						$o{"graph"}->add(
+						   	  subject => $dept_uri,
+						 	predicate => "rdf:type",
+						    	   object => "foaf:Organization",
+							secondary_resource => $dept_uri );
+						$o{"graph"}->add(
+						   	  subject => $dept_uri,
+						 	predicate => "foaf:name",
+						    	   object => $dept_name,
+							     type => "xsd:string",
+							secondary_resource => $dept_uri );
+						$o{"graph"}->add(
+						   	  subject => $dept_uri,
+						 	predicate => "dct:isPartOf",
+						    	   object => $inst_uri,
+							secondary_resource => $dept_uri );
+						$o{"graph"}->add(
+						   	  subject => $eprint_uri,
+						 	predicate => "dct:issuer",
+						    	   object => $dept_uri,
+							secondary_resource => $dept_uri );
+
+						# added to the institution
+						$o{"graph"}->add(
+						   	  subject => $inst_uri,
+						 	predicate => "dct:hasPart",
+						    	   object => $dept_uri,
+							secondary_resource => $inst_uri );
 					}
 				}
 			}
@@ -129,8 +181,10 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 		my $doi = $eprint->get_value( "id_number" );
 		if( $doi =~ s/^doi:/info:doi\// )
 		{
-			push @{$o{triples}->{$eprint_uri}},
-				[ $eprint_uri, "owl:sameAs", "<$doi>" ];
+			$o{"graph"}->add(
+			   	  subject => $eprint_uri,
+			 	predicate => "owl:sameAs",
+			    	   object => "<$doi>" );
 		}
 	}
 
@@ -140,25 +194,39 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	{
 		my $page_range = $eprint->get_value( "page_range" );
 		my( $start, $end ) = split( "-", $page_range );
-		push @{$o{triples}->{$eprint_uri}},
-			[ $eprint_uri, "bibo:pageStart", $start, "literal" ],
-			[ $eprint_uri, "bibo:pageEnd", $end, "literal" ];
+
+		$o{"graph"}->add(
+		   	  subject => $eprint_uri,
+		 	predicate => "bibo:pageStart",
+		    	   object => $start,
+			     type => "literal" );
+		$o{"graph"}->add(
+		   	  subject => $eprint_uri,
+		 	predicate => "bibo:pageEnd",
+		    	   object => $end,
+			     type => "literal" );
 	}
 
-	# Volumne
+	# Volume
 
 	if( $eprint->dataset->has_field( "volume" ) && $eprint->is_set( "volume" ) )
 	{
-		push @{$o{triples}->{$eprint_uri}},
-			[ $eprint_uri, "bibo:volume", $eprint->get_value( "volume" ), "literal" ];
+		$o{"graph"}->add(
+		   	  subject => $eprint_uri,
+		 	predicate => "bibo:volume",
+		    	   object => $eprint->get_value( "volume" ),
+			     type => "literal" );
 	}
 
 	# Issue Number
 
 	if( $eprint->dataset->has_field( "number" ) && $eprint->is_set( "number" ) )
 	{
-		push @{$o{triples}->{$eprint_uri}},
-			[ $eprint_uri, "bibo:issue", $eprint->get_value( "number" ), "literal" ];
+		$o{"graph"}->add(
+		   	  subject => $eprint_uri,
+		 	predicate => "bibo:issue",
+		    	   object => $eprint->get_value( "number" ),
+			     type => "literal" );
 	}
 
 	# ISBN
@@ -169,13 +237,17 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 		$isbn =~ s/[^0-9X]//g;
 		if( $type eq "book" )
 		{
-			push @{$o{triples}->{$eprint_uri}},
-				[ $eprint_uri, "owl:sameAs", "<urn:isbn:$isbn>" ];
+			$o{"graph"}->add(
+			   	  subject => $eprint_uri,
+			 	predicate => "owl:sameAs",
+			    	   object => "<urn:isbn:$isbn>" );
 		}
 		if( $type eq "book_chapter" )
 		{
-			push @{$o{triples}->{$eprint_uri}},
-				[ $eprint_uri, "dct:isPartOf", "<urn:isbn:$isbn>" ];
+			$o{"graph"}->add(
+			   	  subject => $eprint_uri,
+			 	predicate => "dct:isPartOf",
+			    	   object => "<urn:isbn:$isbn>" );
 		}
 		if( $eprint->dataset->has_field( "publisher" ) )
 		{
@@ -183,10 +255,17 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 			my $org_uri = &{$c->{rdf}->{org_uri}}( $eprint, $org_name );
 			if( $org_uri )
 			{
-				push @{$o{triples}->{$org_uri}},
-					[ $org_uri, "rdf:type", 	"foaf:Organization" ],
-					[ $org_uri, "foaf:name", 	$org_name, "literal" ],
-				;
+				$o{"graph"}->add(
+				   	  subject => $org_uri,
+				 	predicate => "rdf:type",
+				    	   object => "foaf:Organization",
+					secondary_resource => $org_uri );
+				$o{"graph"}->add(
+				   	  subject => $org_uri,
+				 	predicate => "foaf:name",
+				    	   object => $org_name,
+					     type => "xsd:string",
+					secondary_resource => $org_uri );
 			}
 		}
 	}
@@ -200,11 +279,22 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 		$publisher_uri = &{$c->{rdf}->{org_uri}}( $eprint, $publisher_name );
 		if( $publisher_uri )
 		{
-			push @{$o{triples}->{$publisher_uri}},
-				[ $publisher_uri, "rdf:type", 	"foaf:Organization" ],
-				[ $publisher_uri, "foaf:name", 	$publisher_name, "literal" ],
-				[ $eprint_uri, "dct:publisher",	$publisher_uri ],
-			;
+			$o{"graph"}->add(
+			   	  subject => $publisher_uri,
+			 	predicate => "rdf:type",
+			    	   object => "foaf:Organization",
+				secondary_resource => $publisher_uri );
+			$o{"graph"}->add(
+			   	  subject => $publisher_uri,
+			 	predicate => "foaf:name",
+			    	   object => $publisher_name,
+				     type => "xsd:string",
+				secondary_resource => $publisher_uri );
+			$o{"graph"}->add(
+			   	  subject => $eprint_uri,
+			 	predicate => "dct:publisher",
+			    	   object => $publisher_uri,
+				secondary_resource => $publisher_uri );
 		}
 	}
 
@@ -213,20 +303,33 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	if( $eprint->dataset->has_field( "publication" ) && $eprint->is_set( "publication" ) )
 	{
 		my $publication_uri = &{$c->{rdf}->{publication_uri}}( $eprint );
-		my $publication_name = $eprint->get_value( "publication" );
 		if( $publication_uri )
 		{
-			push @{$o{triples}->{$publication_uri}},
-				[ $publication_uri, "rdf:type", 	"bibo:Collection" ],
-				[ $publication_uri, "foaf:name", 	$publication_name, "literal" ],
-				[ $eprint_uri, "dct:isPartOf",	$publication_uri ],
-			;
+			$o{"graph"}->add(
+			   	  subject => $publication_uri,
+			 	predicate => "rdf:type",
+			    	   object => "bibo:Collection",
+				secondary_resource => $publication_uri );
+			$o{"graph"}->add(
+			   	  subject => $publication_uri,
+			 	predicate => "foaf:name",
+			    	   object => $eprint->get_value( "publication" ),
+			    	     type => "xsd:string",
+				secondary_resource => $publication_uri );
+			$o{"graph"}->add(
+			   	  subject => $eprint_uri,
+			 	predicate => "dct:isPartOf",
+			    	   object => $publication_uri,
+				secondary_resource => $publication_uri );
 			if( $eprint->dataset->has_field( "issn" ) && $eprint->is_set( "issn" ))
 			{
 				my $issn = $eprint->get_value( "issn" );
 				$issn =~ s/[^0-9X]//g;
-				push @{$o{triples}->{$publication_uri}},
-				[ $publication_uri, "owl:sameAs", "<urn:issn:$issn>" ];
+				$o{"graph"}->add(
+				   	  subject => $publication_uri,
+				 	predicate => "owl:sameAs",
+				    	   object => "<urn:issn:$issn>",
+					secondary_resource => $publication_uri );
 			}
 		}
 	}
@@ -255,8 +358,10 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	}
 	foreach my $status ( @statuses )
 	{
-		push @{$o{triples}->{$eprint_uri}},
-			[ $eprint_uri, "bibo:status", "<http://purl.org/ontology/bibo/status/$status>" ];
+		$o{"graph"}->add(
+		   	  subject => $eprint_uri,
+		 	predicate => "bibo:status",
+		    	   object => "<http://purl.org/ontology/bibo/status/$status>" );
 	}
 
 } );
@@ -284,11 +389,22 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	for( my $i=1; $i<=@creators; ++$i )
 	{
 		my $creator_uri = &{$c->{rdf}->{person_uri}}( $eprint, $creators[$i-1] );
-		push @{$o{triples}->{$creator_uri}},
-			[ $eprint_uri,  "dct:creator", 		$creator_uri ],
-			[ $eprint_uri,  "bibo:authorList", 	$authors_uri ],
-			[ $authors_uri, "rdf:_$i", 		$creator_uri ],
-		;
+
+		$o{"graph"}->add(
+			secondary_resource => $creator_uri,
+		   	  subject => $eprint_uri,
+		 	predicate => "dct:creator",
+		    	   object => $creator_uri );
+		$o{"graph"}->add(
+			secondary_resource => $creator_uri,
+		   	  subject => $eprint_uri,
+		 	predicate => "bibo:authorList",
+		    	   object => $authors_uri );
+		$o{"graph"}->add(
+			secondary_resource => $creator_uri,
+		   	  subject => $authors_uri,
+		 	predicate => "rdf:_$i",
+		    	   object => $creator_uri );
 		$all_people->{$creator_uri} = $creators[$i-1];
 	}
 
@@ -303,11 +419,21 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	for( my $i=1; $i<=@editors; ++$i )
 	{
 		my $editor_uri = &{$c->{rdf}->{person_uri}}( $eprint, $editors[$i-1] );
-		push @{$o{triples}->{$editor_uri}},
-			[ $eprint_uri,  "<http://www.loc.gov/loc.terms/relators/EDT>", 		$editor_uri ],
-			[ $eprint_uri,  "bibo:editorList", 	$editors_uri ],
-			[ $editors_uri, "rdf:_$i", 		$editor_uri ],
-		;
+		$o{"graph"}->add(
+			secondary_resource => $editor_uri,
+		   	  subject => $eprint_uri,
+		 	predicate => "<http://www.loc.gov/loc.terms/relators/EDT>",
+		    	   object => $editor_uri );
+		$o{"graph"}->add(
+			secondary_resource => $editor_uri,
+		   	  subject => $eprint_uri,
+		 	predicate => "bibo:editorList",
+		    	   object => $editors_uri );
+		$o{"graph"}->add(
+			secondary_resource => $editor_uri,
+		   	  subject => $editors_uri,
+		 	predicate => "rdf:_$i",
+		    	   object => $editor_uri );
 		$all_people->{$editor_uri} = $editors[$i-1];
 	}
 
@@ -321,8 +447,11 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	foreach my $contributor ( @contributors )
 	{
 		my $contributor_uri = &{$c->{rdf}->{person_uri}}( $eprint, $contributor );
-		push @{$o{triples}->{$contributor_uri}},
-			[ $eprint_uri,  "<".$contributor->{type}.">", $contributor_uri ];
+		$o{"graph"}->add(
+			secondary_resource => $contributor_uri,
+		   	  subject => $eprint_uri,
+		 	predicate => "<".$contributor->{type}.">",
+		    	   object => $contributor_uri );
 		$all_people->{$contributor_uri} = $contributor;
 	}
 
@@ -332,11 +461,23 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	{
 		my $e_given = $all_people->{$person_uri}->{name}->{given} || "";
 		my $e_family = $all_people->{$person_uri}->{name}->{family} || "";
-		push @{$o{triples}->{$person_uri}},
-			[ $person_uri, "rdf:type", 		"foaf:Person" ],
-			[ $person_uri, "foaf:givenname", 	$e_given, "literal" ],
-			[ $person_uri, "foaf:family_name", 	$e_family, "literal" ],
-		;
+		$o{"graph"}->add(
+			secondary_resource => $person_uri,
+		   	  subject => $person_uri,
+		 	predicate => "foaf:type",
+		    	   object => "foaf:Person" );
+		$o{"graph"}->add(
+			secondary_resource => $person_uri,
+		   	  subject => $person_uri,
+		 	predicate => "foaf:givenname",
+		    	   object => $e_given,
+			     type => "xsd:string" );
+		$o{"graph"}->add(
+			secondary_resource => $person_uri,
+		   	  subject => $person_uri,
+		 	predicate => "foaf:family_name",
+		    	   object => $e_family,
+			     type => "xsd:string" );
 	}
 
 	# Corporate Creators
@@ -349,11 +490,22 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	{
 		my $org_uri = &{$c->{rdf}->{org_uri}}( $eprint, $corp_creator );
 		next unless $org_uri;
-		push @{$o{triples}->{$org_uri}},
-			[ $org_uri, "rdf:type", 	"foaf:Organization" ],
-			[ $org_uri, "foaf:name", 	$corp_creator, "literal" ],
-			[ $eprint_uri, "dct:creator", 	$org_uri ],
-		;
+		$o{"graph"}->add(
+			secondary_resource => $org_uri,
+		   	  subject => $org_uri,
+		 	predicate => "rdf:type",
+		    	   object => "foaf:Organization" );
+		$o{"graph"}->add(
+			secondary_resource => $org_uri,
+		   	  subject => $org_uri,
+		 	predicate => "foaf:name",
+		    	   object => $corp_creator,
+			     type => "xsd:string" );
+		$o{"graph"}->add(
+			secondary_resource => $org_uri,
+		   	  subject => $eprint_uri,
+		 	predicate => "dct:creator",
+		    	   object => $org_uri );
 	}
 		
 } );
@@ -376,24 +528,59 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	my $eprint_uri = "<".$eprint->uri.">";
 	my $event_title = $eprint->get_value( "event_title" )||"";
 
-	push @{$o{triples}->{$event_uri}},
-[ $eprint_uri,	"rdf:type",		"bibo:Article" ],
-[ $eprint_uri,	"bibo:presentedAt",	$event_uri ],
-[ $event_uri,	"rdf:type",		"bibo:Conference" ],
-[ $event_uri,	"dct:title",		$event_title, "xsd:string" ],
-;
+	$o{"graph"}->add(
+		secondary_resource => $event_uri,
+	   	  subject => $eprint_uri,
+	 	predicate => "rdf:type",
+	    	   object => "bibo:Article" );
+	$o{"graph"}->add(
+		secondary_resource => $event_uri,
+	   	  subject => $eprint_uri,
+	 	predicate => "bibo:presentedAt",
+	    	   object => $event_uri );
+	$o{"graph"}->add(
+		secondary_resource => $event_uri,
+	   	  subject => $event_uri,
+	 	predicate => "rdf:type",
+	    	   object => "bibo:Conference" );
+	$o{"graph"}->add(
+		secondary_resource => $event_uri,
+	   	  subject => $event_uri,
+	 	predicate => "dct:title",
+	    	   object => $event_title,
+		     type => "xsd:string" );
+
 	my $event_loc_uri = &{$c->{rdf}->{event_location_uri}}( $eprint );
 	if( $event_loc_uri )
 	{
 		my $event_location = $eprint->get_value( "event_location" );
-		push @{$o{triples}->{$event_uri}},
-[ $event_uri, 	"event:place", 		$event_loc_uri ];
+		$o{"graph"}->add(
+			secondary_resource => $event_uri,
+		   	  subject => $event_uri,
+		 	predicate => "event:place",
+		    	   object => $event_loc_uri );
 
-		push @{$o{triples}->{$event_loc_uri}},
-[ $event_uri,	"rdf:type",		"event:Event" ],
-[ $event_uri,	"event:place",		$event_loc_uri ],
-[ $event_loc_uri,	"rdf:type",	"geo:SpatialThing" ],
-[ $event_loc_uri,	"rdfs:label",	$event_location, "xsd:string" ];
+		$o{"graph"}->add(
+			secondary_resource => $event_loc_uri,
+		   	  subject => $event_uri,
+		 	predicate => "rdf:type",
+		    	   object => "event:Event" );
+		$o{"graph"}->add(
+			secondary_resource => $event_loc_uri,
+		   	  subject => $event_uri,
+		 	predicate => "event:place",
+		    	   object => $event_loc_uri );
+		$o{"graph"}->add(
+			secondary_resource => $event_loc_uri,
+		   	  subject => $event_loc_uri,
+		 	predicate => "rdf:type",
+		    	   object => "geo:SpatialThing" );
+		$o{"graph"}->add(
+			secondary_resource => $event_loc_uri,
+		   	  subject => $event_loc_uri,
+		 	predicate => "rdfs:label",
+		    	   object => $event_location,
+			     type => "xsd:string" );
 	}
 } );
 

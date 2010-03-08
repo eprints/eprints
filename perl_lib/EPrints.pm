@@ -226,6 +226,7 @@ use EPrints::Platform;
 use EPrints::Plugin;
 use EPrints::PluginFactory;
 use EPrints::Probity;
+use EPrints::RDFGraph;
 use EPrints::Repository;
 use EPrints::RepositoryConfig;
 use EPrints::Search;

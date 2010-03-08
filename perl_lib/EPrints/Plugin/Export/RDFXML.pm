@@ -17,7 +17,7 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "RDF+XML";
-	$self->{accept} = [ 'list/eprint', 'dataobj/eprint', 'list/subject', 'dataobj/subject', 'triples' ];
+	$self->{accept} = [ 'list/eprint', 'dataobj/eprint', 'list/subject', 'dataobj/subject', 'list/triple' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".rdf";
 	$self->{mimetype} = "application/rdf+xml";
@@ -72,15 +72,17 @@ sub xml_dataobj
 	return $xml->clone( $doc->getDocumentElement() );
 }
 
-sub serialise_triples
+sub serialise_graph
 {
-	my( $plugin, $triples ) = @_;
+	my( $plugin, $graph ) = @_;
+
+	my $struct = $plugin->graph_to_struct( $graph );
 
 	my $namespaces = $plugin->get_namespaces();
 	my @l = ();
-	foreach my $subject ( sort keys %{$triples} )
+	foreach my $subject ( sort keys %{$struct} )
 	{
-		my $trips = $triples->{$subject};
+		my $trips = $struct->{$subject};
 		my $x_type = "rdf:Description";
 		push @l, "  <$x_type rdf:about=\"".attr($subject,$namespaces)."\">\n";
 		foreach my $pred ( sort keys %{ $trips } )

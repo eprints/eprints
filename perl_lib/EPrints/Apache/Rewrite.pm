@@ -246,8 +246,10 @@ sub handler
 			plugins => [$repository->plugin_list(
 				type => "Export",
 				is_visible => "all",
-				can_accept => "triples" )]
+				can_accept => "list/triple" )]
 		);
+		
+		if( !defined $plugin )  { return NOT_FOUND; }
 
 		my $url = $repository->config( "http_cgiurl" )."/rdf/repository/".
 			$plugin->get_subtype."/".$repository->get_id.$plugin->param("suffix");
@@ -268,8 +270,10 @@ sub handler
 			plugins => [$repository->plugin_list(
 				type => "Export",
 				is_visible => "all",
-				can_accept => "triples" )]
+				can_accept => "list/triple" )]
 		);
+
+		if( !defined $plugin )  { return NOT_FOUND; }
 
 		my $fn = $id;
 		$fn=~s/\//_/g;

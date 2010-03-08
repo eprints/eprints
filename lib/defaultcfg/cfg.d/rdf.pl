@@ -10,6 +10,5 @@ $c->{rdf}->{xmlns}->{rdf}  = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 $c->{rdf}->{xmlns}->{rdfs} = 'http://www.w3.org/2000/01/rdf-schema#';
 $c->{rdf}->{xmlns}->{xsd}  = 'http://www.w3.org/2001/XMLSchema#';
 
-$c->{rdf}->{xmlns}->{epx} = $c->{base_url}."/id/x-";
 $c->{rdf}->{xmlns}->{epid} = $c->{base_url}."/id/";
 

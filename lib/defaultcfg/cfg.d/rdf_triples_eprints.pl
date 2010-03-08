@@ -40,7 +40,6 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 	# Main Object 
 	##############################
 
-	my @triples;
 	if( $eprint->is_set( "relation" ) )
 	{
 		foreach my $rel ( @{ $eprint->get_value( "relation" ) } )
@@ -56,34 +55,58 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 			{
 				$pred="<$pred>";
 			}
-			push @triples, [ $eprint_uri, $pred, "<$uri>" ];
+			$o{graph}->add( 
+				  subject => $eprint_uri,
+				predicate => $pred,
+				   object => "<$uri>" );
 		}
 	}
-	push @triples, [ $eprint_uri, "rdf:type", "ep:EPrint" ];
+	$o{graph}->add( 
+		  subject => $eprint_uri,
+		predicate => "rdf:type",
+		   object => "ep:EPrint" );
 	if( $eprint->dataset->has_field( "type" ) && $eprint->is_set( "type" ) )
 	{
 		my $type = $eprint->get_value( "type" );
 		$type = "\u$type";
 		$type=~s/_([a-z])/\u$1/g;
-		push @triples, [ $eprint_uri, "rdf:type", "ep:${type}EPrint" ];
+		$o{graph}->add( 
+		  	  subject => $eprint_uri,
+			predicate => "rdf:type",
+		   	   object => "ep:${type}EPrint" );
 	}
-	push @triples, [ $eprint_uri, "dct:isPartOf", "<".$c->{base_url}."/id/repository>" ];
+	$o{graph}->add( 
+	  	  subject => $eprint_uri,
+		predicate => "dct:isPartOf",
+	   	   object => "<".$c->{base_url}."/id/repository>" );
 		
 	DOC: foreach my $doc ( @{$eprint->get_value( "documents" )} )
 	{
 		my $doc_uri = "<".$doc->uri.">";
 
-		push @triples, [ $eprint_uri, "ep:hasDocument", $doc_uri ];
-		push @triples, [ $doc_uri, "rdf:type", "ep:Document" ];
+		$o{graph}->add( 
+	  		  subject => $eprint_uri,
+			predicate => "ep:hasDocument",
+	   		   object => $doc_uri );
+		$o{graph}->add( 
+	  		  subject => $doc_uri,
+			predicate => "rdf:type",
+	   		   object => "ep:Document" );
 
 		my $content = $doc->get_value( "content" );
 		if( $content && $c->{rdf}->{content_rel_dc}->{$content} )
 		{
-			push @triples, [ $eprint_uri, $c->{rdf}->{content_rel_dc}->{$content}, $doc_uri ];
+			$o{graph}->add( 
+	  			  subject => $eprint_uri,
+				predicate => $c->{rdf}->{content_rel_dc}->{$content},
+	   			   object => $doc_uri );
 		}
 		if( $content && $c->{rdf}->{content_rel_ep}->{$content} )
 		{
-			push @triples, [ $eprint_uri, $c->{rdf}->{content_rel_ep}->{$content}, $doc_uri ];
+			$o{graph}->add( 
+	  			  subject => $eprint_uri,
+				predicate => $c->{rdf}->{content_rel_ep}->{$content},
+	   			   object => $doc_uri );
 		}
 
 		if( $doc->is_set( "relation" ) )
@@ -103,7 +126,10 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 				{
 					$pred="<$pred>";
 				}
-				push @triples, [ $doc_uri, $pred, "<$uri>" ];
+				$o{graph}->add( 
+	  			  	  subject => $doc_uri,
+					predicate => $pred,
+	   			   	   object => "<$uri>" );
 			}
 		}
 	
@@ -113,7 +139,10 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 			my $license_uri = $c->{rdf}->{license_uri}->{$doc->get_value("license")};
 			if( defined $license_uri )
 			{
-				push @triples, [ $doc_uri, "cc:license", "<$license_uri>" ];
+				$o{graph}->add( 
+	  			  	  subject => $doc_uri,
+					predicate => "cc:license",
+	   			   	   object => "<$license_uri>" );
 			}
 		}
 
@@ -122,12 +151,17 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 			FILE: foreach my $file ( @{$doc->get_value( "files" )} )
 			{
 				my $url = $doc->get_url( $file->get_value( "filename" ) );
-				push @triples, [ $doc_uri, "ep:hasFile", "<$url>" ];
-				push @triples, [ $doc_uri, "dct:hasPart", "<$url>" ];
+				$o{graph}->add( 
+	  			  	  subject => $doc_uri,
+					predicate => "ep:hasFile",
+	   			   	   object => "<$url>" );
+				$o{graph}->add( 
+	  			  	  subject => $doc_uri,
+					predicate => "dct:hasPart",
+	   			   	   object => "<$url>" );
 			}
 		}
 	}	
 
-	push @{$o{triples}->{$eprint_uri}}, @triples;
 } );
 
