@@ -1689,7 +1689,10 @@ sub recommit
         	$item->commit();
 	} );
 
-	print "All items in \"$datasetid\" have been re-commited.\n" if( $noise >= 1 );
+	if( !scalar @ids )
+	{
+		print "All items in \"$datasetid\" have been re-commited.\n" if( $noise >= 1 );
+	}
 }
 
 sub reorder
