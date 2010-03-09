@@ -63,6 +63,8 @@ Oracle requires special means to insert values into CLOB/BLOB.
 
 Oracle doesn't support "AS" when aliasing.
 
+When specifying char column lengths use (n char) to define character semantics. Otherwise oracle uses the "nls_length_semantics" setting to determine whether you meant bytes or chars.
+
 =head2 TODO
 
 =over 4
@@ -304,9 +306,8 @@ sub get_column_type
 			{
 				EPrints->abort( "Oracle does not support SQL_VARCHAR($length): maximum length is 1000 characters (4000 bytes)" );
 			}
-			$length *= 4;
 		}
-		$type .= "($length)";
+		$type .= "($length char)";
 	}
 	elsif( $params eq "precision,scale" )
 	{

@@ -32,6 +32,10 @@ B<EPrints::Database::Pg> - custom database methods for PostgreSQL DB
 
 =back
 
+=head2 PostgreSQL-specific Annoyances
+
+The L<DBD::Pg> SQL_VARCHAR type is mapped to text instead of varchar(n).
+
 =head1 METHODS
 
 =cut
@@ -87,6 +91,14 @@ sub type_info
 		return {
 			TYPE_NAME => "smallint",
 			CREATE_PARAMS => "",
+		};
+	}
+	# DBD::Pg maps SQL_VARCHAR to text rather than varchar(n)
+	elsif( $data_type eq SQL_VARCHAR )
+	{
+		return {
+			TYPE_NAME => "varchar",
+			CREATE_PARAMS => "max length",
 		};
 	}
 	elsif( $data_type eq SQL_LONGVARCHAR )
