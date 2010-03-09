@@ -1818,10 +1818,9 @@ sub ordervalue
 			$dataset );
 	}
 
-
 	if( !$self->get_property( "multiple" ) )
 	{
-		return $self->ordervalue_single( $value , $session , $langid, $dataset );
+		return $session->get_database->quote_ordervalue($self, $self->ordervalue_single( $value , $session , $langid, $dataset ));
 	}
 
 	my @r = ();	
@@ -1829,7 +1828,7 @@ sub ordervalue
 	{
 		push @r, $self->ordervalue_single( $_ , $session , $langid, $dataset );
 	}
-	return join( ":", @r );
+	return $session->get_database->quote_ordervalue($self, join( ":", @r ));
 }
 
 

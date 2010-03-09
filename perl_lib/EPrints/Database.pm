@@ -1487,7 +1487,7 @@ sub quote_int
 
 =item $str = $db->quote_binary( $bytes )
 
-Some databases (PostgreSQL) require weird transforms of binary data to work correctly.
+Some databases (Oracle/PostgreSQL) require transforms of binary data to work correctly.
 
 This method should be called on data containing nul bytes or back-slashes before being passed on L</quote_value>.
 
@@ -1496,6 +1496,17 @@ This method should be called on data containing nul bytes or back-slashes before
 sub quote_binary
 {
 	return $_[1];
+}
+
+=item $str = $db->quote_ordervalue( $field, $value )
+
+Some databases (Oracle) can't order by CLOBS so need special treatment when creating the ordervalues tables. This method allows any fixing-up required for string data before it's inserted.
+
+=cut
+
+sub quote_ordervalue
+{
+	return $_[2];
 }
 
 ######################################################################
