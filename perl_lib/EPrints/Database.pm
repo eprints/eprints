@@ -901,6 +901,7 @@ sub create_table
 			type => "int",
 			sql_index => 1 );
 
+		next if $self->has_table( $dataset->get_sql_sub_table_name( $field ) );
 		$rv &&= $self->create_table(	
 			$dataset->get_sql_sub_table_name( $field ),
 			$dataset,
@@ -942,7 +943,10 @@ sub create_table
 	} @primary_key;
 
 	# Send to the database
-	$rv &&= $self->_create_table( $tablename, \@primary_key, \@columns );
+	if( !$self->has_table( $tablename ) )
+	{
+		$rv &&= $self->_create_table( $tablename, \@primary_key, \@columns );
+	}
 	
 	foreach (@indices)
 	{
