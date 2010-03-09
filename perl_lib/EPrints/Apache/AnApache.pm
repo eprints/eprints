@@ -101,7 +101,7 @@ Return the current Apache request object.
 
 sub get_request
 {
-	return $ENV{MOD_PERL} ? Apache2::RequestUtil->request() : undef;
+	return eval { Apache2::RequestUtil->request() };
 }
 
 ######################################################################
