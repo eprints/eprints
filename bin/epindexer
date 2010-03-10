@@ -37,7 +37,7 @@ my $opt = $1;
 my $user = $EPrints::SystemSettings::conf->{'user'};
 my $group = $EPrints::SystemSettings::conf->{'group'};
 my $uid = (getpwnam($user))[2];
-my $gid = (getpwnam($group))[2];
+my $gid = (getgrnam($group))[2];
 my @sgroups = ($gid); # gid + supplementary groups
 while(my( undef, undef, $gid, $members ) = getgrent())
 {
