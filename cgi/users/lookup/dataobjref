@@ -1,3 +1,5 @@
+#!perl
+
 use EPrints;
 
 use strict;
@@ -10,26 +12,28 @@ exit( 0 ) if !defined $repo;
 
 $repo->send_http_header( content_type=>"text/xml; charset=UTF-8" );
 my $q = $repo->param( "q" );
+# also _title, _id, dataset=XX, field=XX, dataobj=XX
 
 my $database = $repo->get_database;
 
 my $dataset = $repo->dataset( $repo->param( "dataset" ) );
-warn("invalid dataset"), exit( 0 ) if !defined $dataset;
+EPrints->abort("invalid dataset") if !defined $dataset;
 my $field = $dataset->field( $repo->param( "field" ) );
-warn("invalid field"), exit( 0 ) if !defined $field;
+EPrints->abort("invalid field") if !defined $field;
 
-warn("not itemref"), exit( 0 ) if !$field->isa( "EPrints::MetaField::Itemref" );
+EPrints->abort("not itemref") if !$field->isa( "EPrints::MetaField::Dataobjref" );
 
 my $tdataset = $repo->dataset( $field->get_property( "datasetid" ) );
 
 my $fieldnames = $repo->config( "datasets", $tdataset->base_id, "search", "simple", "meta_fields" );
-warn("simple search fields not configured"), exit( 0 ) if !defined $fieldnames;
+EPrints->abort("simple search fields not configured for ".$tdataset->base_id) if !defined $fieldnames;
 
 my $results = $tdataset->search(
 	search_fields => [{
 			id => 'q',
 			meta_fields => $fieldnames,
 			default => $q,
+			match => "IN",
 		}],
 	satisfy_all => 0,
 	limit => 10,
@@ -43,10 +47,13 @@ foreach my $match ($results->slice(0, 10))
 
 	my $frag = $repo->xml->create_document_fragment;
 
-	$frag->appendChild( $match->render_description );
+	my $desc = $match->render_description;
+
+	$frag->appendChild( $desc );
 	$item->{xhtml} = $frag;
 	$item->{values} = [
-		"for:value:relation:".$field->name => $match->id,
+		"for:value:relative:_id" => $match->id,
+		"for:value:relative:_title" => $repo->xhtml->to_text_dump( $frag ),
 	];
 }
 
