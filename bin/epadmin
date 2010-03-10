@@ -2286,7 +2286,7 @@ sub upgrade_add_files
 
 		if( $noise )
 		{
-			$repo->log( sprintf("%.2f%% eprint.%d", 100 * ++$count / $total, $eprint->id) );
+			print STDERR sprintf("%.2f%% eprint.%d          \r", 100 * ++$count / $total, $eprint->id) );
 		}
 
 		my $local_path = $eprint->local_path();
@@ -2304,16 +2304,16 @@ sub upgrade_add_files
 			# already processed?
 			return if defined $revision->get_stored_file( "dataobj.xml" );
 
-			if( $noise )
+			if( $noise >= 2 )
 			{
 				$repo->log( "revision.".$revision->id );
 			}
 
-			my $filename = $revision->value( "revision" )."xml";
+			my $filename = $revision->value( "revision" ).".xml";
 			my $filepath = "$path/$filename";
 			if( !-e $filepath )
 			{
-				$repo->log( "Revision missing source file: ".$revision->id );
+				$repo->log( "Revision missing source file $filepath: ".$revision->id );
 				return;
 			}
 			my $filesize = -s _;
