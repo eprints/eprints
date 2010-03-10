@@ -2286,7 +2286,7 @@ sub upgrade_add_files
 
 		if( $noise )
 		{
-			print STDERR sprintf("%.2f%% eprint.%d          \r", 100 * ++$count / $total, $eprint->id) );
+			print STDERR sprintf("%.2f%% eprint.%d          \r", 100 * ++$count / $total, $eprint->id);
 		}
 
 		my $local_path = $eprint->local_path();
