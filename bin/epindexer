@@ -16,10 +16,12 @@
 ######################################################################
 
 use EPrints::SystemSettings;
+use English;
+use POSIX;
 
 use strict;
 
-if( $< != 0 )
+if( $REAL_USER_ID != 0 )
 {
 	print "This script is intended to start the eprints indexer as a service.\nIt should only be run as root.\nExiting.\n";
 	exit 1;
@@ -32,12 +34,18 @@ if( !defined $ARGV[0] || $ARGV[0] !~ m/^(start|stop|status)$/ )
 my $opt = $1;
 
 # These are not going via Platform, but this is a UNIX script, so meh.
-my @uinfo = getpwnam($EPrints::SystemSettings::conf->{'user'});
-my @ginfo = getgrnam($EPrints::SystemSettings::conf->{'group'});
-my $uid = $uinfo[2];
-my $gid = $ginfo[2];
-$( = $) = $gid;
-$> = $< = $uid;
+my $user = $EPrints::SystemSettings::conf->{'user'};
+my $group = $EPrints::SystemSettings::conf->{'group'};
+my $uid = (getpwnam($user))[2];
+my $gid = (getpwnam($group))[2];
+my @sgroups = ($gid); # gid + supplementary groups
+while(my( undef, undef, $gid, $members ) = getgrent())
+{
+	push @sgroups, $gid if $members =~ /\b$user\b/;
+}
+
+$REAL_GROUP_ID = $EFFECTIVE_GROUP_ID = "@sgroups";
+$REAL_USER_ID = $EFFECTIVE_USER_ID = $uid;
 
 my $indexer_cmd = $EPrints::SystemSettings::conf->{'base_path'}.'/bin/indexer';
 $| = 0;

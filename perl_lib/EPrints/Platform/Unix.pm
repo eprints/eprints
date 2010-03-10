@@ -86,13 +86,15 @@ sub mkdir
 	# Unicode::String borks mkdir
 
 	my $dir="";
-	my @parts = split( "/", "$full_path" );
+	my @parts = grep { length($_) } split( "/", "$full_path" );
 	while( scalar @parts )
 	{
 		$dir .= "/".(shift @parts );
 		if( !-d $dir )
 		{
-			my $ok = mkdir( $dir, $perms );
+			my $ok = CORE::mkdir( $dir, $perms );
+			# mkdir ignores sticky bits (01000, 02000, 04000)
+			CORE::chmod( $perms, $dir );
 			if( !$ok )
 			{
 				print STDERR "Failed to mkdir $dir: $!\n";
