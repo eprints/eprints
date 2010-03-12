@@ -514,7 +514,7 @@ sub output_project
 	print $fh $xml->to_string( $entity, indent => 1 );
 	$xml->dispose( $entity );
 
-	my $title = EPrints::Utils::is_set( $title ) ? $title : $project->value( "title" );
+	$title = EPrints::Utils::is_set( $title ) ? $title : $project->value( "title" );
 	$self->output_lang_attr( "cfProjTitle",
 		from => $id_attr,
 		name => "cfTitle",
