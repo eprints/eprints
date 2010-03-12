@@ -19,7 +19,7 @@ if( !defined $c->{datasets} )
 # $c->{fields}->{comment} = [
 # 	{
 # 		name => "commentid",
-# 		type => "int",
+# 		type => "counter",
 # 		sql_counter => "commentid",
 # 	},
 # 	{
@@ -63,7 +63,7 @@ if( !defined $c->{datasets} )
 #
 #	return
 #	(
-#		{ name=>"fooid", type=>"int", required=>1, can_clone=>0,
+#		{ name=>"fooid", type=>"counter", required=>1, can_clone=>0,
 #			sql_counter=>"fooid" },
 #		{ name=>"name", type=>"text", required=>0, },
 #		{ name=>"version", type=>"text", required=>0, },
