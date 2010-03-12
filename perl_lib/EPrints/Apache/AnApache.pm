@@ -43,6 +43,7 @@ use Apache2::Const;
 use Apache2::Connection;
 use Apache2::RequestUtil;
 use Apache2::MPM;
+use Apache2::Directive;
 
 use strict;
 
@@ -101,7 +102,7 @@ Return the current Apache request object.
 
 sub get_request
 {
-	return eval { Apache2::RequestUtil->request() };
+	return EPrints->new->request;
 }
 
 ######################################################################

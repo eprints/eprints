@@ -71,6 +71,7 @@ sub apache_secure_conf
     PerlSetVar EPrints_ArchiveID $id
     PerlSetVar EPrints_Secure yes
 
+    Options +ExecCGI
     Order allow,deny 
     Allow from all
   </Location>

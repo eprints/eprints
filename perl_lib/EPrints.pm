@@ -77,6 +77,8 @@ use EPrints::Config;
 use Data::Dumper;
 use Scalar::Util;
 
+use strict;
+
 BEGIN {
 	use Carp;
 
@@ -90,11 +92,10 @@ BEGIN {
 
 =item EPrints->abort( $errmsg )
 
-Print an error message and exit. If running under mod_perl then
-print the error as a webpage and exit.
-
 This subroutine is loaded before other modules so that it may be
 used to report errors when initialising modules.
+
+When running under Mod_Perl this method is replaced.
 
 =cut
 ######################################################################
@@ -103,36 +104,6 @@ used to report errors when initialising modules.
 	{
 		my( $errmsg ) = pop @_; # last parameter
 
-		my $r = EPrints::Apache::AnApache::get_request();
-		if( defined $r )
-		{
-			# If we are running under MOD_PERL
-			# AND this is actually a request, not startup,
-			# then we should print an explanation to the
-			# user in addition to logging to STDERR.
-			my $htmlerrmsg = $errmsg;
-			$htmlerrmsg=~s/&/&amp;/g;
-			$htmlerrmsg=~s/>/&gt;/g;
-			$htmlerrmsg=~s/</&lt;/g;
-			$htmlerrmsg=~s/\n/<br \/>/g;
-			$r->content_type( 'text/html' );
-			EPrints::Apache::AnApache::send_status_line( $r, 500, "EPrints Internal Error" );
-
-			EPrints::Apache::AnApache::send_http_header( $r );
-			print <<END;
-<html>
-  <head>
-    <title>EPrints System Error</title>
-  </head>
-  <body>
-    <h1>EPrints System Error</h1>
-    <p><tt>$htmlerrmsg</tt></p>
-  </body>
-</html>
-END
-		}
-
-		
 		print STDERR <<END;
 	
 ------------------------------------------------------------------
@@ -257,9 +228,6 @@ Construct a new EPrints system object.
 
 =cut
 
-# opts can be 
-#  cleanup (default 1) set to zero to prevent garbage collection destroying
-#  the repositories we handed out.
 sub new($%)
 {
 	my( $class, %opts ) = @_;
@@ -267,7 +235,71 @@ sub new($%)
 	# mod_perl
 	return $EPrints::HANDLE if defined $EPrints::HANDLE;
 
+	$opts{request} ||= undef;
+	$opts{repository} ||= {};
+	$opts{current_repository} ||= undef;
+
 	return bless { opts=>\%opts }, $class;
+}
+
+=begin InternalDoc
+
+=item $ep->init_from_request( $r )
+
+Initialise the EPrints environment based on the request $r.
+
+=end
+
+=cut
+
+sub init_from_request
+{
+	my( $self, $r ) = @_;
+
+	$self->{request} = $r;
+
+	# always check for cloned-ness
+	if( $__cloned )
+	{
+		$__cloned = 0;
+		foreach my $repo (values %{$EPrints::HANDLE->{repository}})
+		{
+			$repo->init_from_thread();
+		}
+	}
+
+	if( $r->is_initial_req )
+	{
+		$r->pool->cleanup_register( \&cleanup, $self );
+
+		# populate current_repository
+		my $repoid = $r->dir_config( "EPrints_ArchiveID" );
+		$self->{current_repository} = $self->{repository}->{$repoid};
+	}
+
+	# initialise the repository
+	if( defined $self->{current_repository} )
+	{
+		$self->{current_repository}->init_from_request( $r );
+	}
+}
+
+=begin InternalDoc
+
+=item $ep->cleanup()
+
+Cleanup the EPrints environment after the request is complete.
+
+=end
+
+=cut
+
+sub cleanup
+{
+	my( $self ) = @_;
+
+	undef $self->{request};
+	undef $self->{current_repository};
 }
 
 sub CLONE
@@ -280,9 +312,13 @@ sub CLONE
 	# during CLONE()
 }
 
+=begin InternalDoc
+
 =item EPrints::post_config_handler(...)
 
 Initialise the EPrints mod_perl environment.
+
+=end
 
 =cut
 
@@ -300,8 +336,61 @@ sub post_config_handler
 
 	$EPrints::HANDLE = __PACKAGE__->new;
 	my @ids = $EPrints::HANDLE->load_repositories();
+	my @repos = values %{$EPrints::HANDLE->{repository}};
+
+	# check the main apache configuration
+	my $aconf = Apache2::Directive::conftree();
+	my %aports = map { /\b([0-9]+)$/; $1 => 1 } $aconf->lookup( 'Listen' );
+	my %anvhosts = map { $_ => 1 } $aconf->lookup( 'NameVirtualHost' );
+	my %ports;
+
+	foreach my $repo (@repos)
+	{
+		 my $port = $repo->config( "port" );
+		 $ports{$port}++;
+		 if( !$aports{$port} )
+		 {
+			 $s->warn( "EPrints: ".$repo->get_id." is configured for port $port but Apache is listening on ".join(',',keys %aports).", add: Listen $port" );
+		 }
+		 if( $ports{$port} > 1 && !$anvhosts{"*:$port"} )
+		 {
+			 $s->warn( "EPrints: Multiple repositories are using the same port without named virtual hosting, add: NameVirtualHost *:$port" );
+		 }
+	}
 
 	print STDERR "EPrints archives loaded: ".join( ", ",  @ids )."\n";
+
+	eval '
+sub abort
+{
+	my( $errmsg ) = (pop @_);
+
+	my $r = EPrints->request;
+	$r->status( 500 );
+	my $htmlerrmsg = HTML::Entities::encode_entities( $errmsg,  \'<>&"\' );
+	$htmlerrmsg = <<END;
+<html>
+<head>
+<title>EPrints System Error</title>
+</head>
+<body>
+<h1>EPrints System Error</h1>
+<p><tt>$htmlerrmsg</tt></p>
+</body>
+</html>
+END
+	$r->custom_response( 500, $htmlerrmsg );
+
+	print STDERR <<END;
+------------------------------------------------------------------
+---------------- EPrints System Error ----------------------------
+------------------------------------------------------------------
+$errmsg
+------------------------------------------------------------------
+END
+	print STDERR Carp::longmess();
+	die __PACKAGE__."::abort()\n";
+}';
 
 	return OK;
 }
@@ -333,41 +422,32 @@ sub repository($$%)
 
 =pod
 
-=item $repo = $ep->current_repository( %options );
+=item $repo = $ep->current_repository();
 
-Return the repository based on the current web request, or undef.
+Returns the current repository.
 
-%options as for $ep->repository(..)
+Returns undef if there is no current repository active.
 
 =cut
 
-sub current_repository($%)
+sub current_repository
 {
-	my( $self, %options ) = @_;
+	my( $self ) = @_;
 
-	if( $__cloned )
-	{
-		$__cloned = 0;
-		foreach my $repo (values %{$EPrints::HANDLE->{repository}})
-		{
-			$repo->init_from_thread();
-		}
-	}
-
-	my $request = EPrints::Apache::AnApache::get_request();
-	return undef if !defined $request;
-		
-	my $repoid = $request->dir_config( "EPrints_ArchiveID" );
-	return undef if !defined $repoid;
-	
-	my $repository = $self->{repository}->{$repoid};
-	return undef if !defined $repository;
-
-	$repository->init_from_request( $request );
-
-	return $repository;
+	return $self->{current_repository};
 }
 
+=begin InternalDoc
+
+=item EPrints::import()
+
+Takes following pragmas:
+
+	no_check_user - don't verify effective UID is configured UID
+
+=end
+
+=cut
 
 sub import
 {
@@ -403,6 +483,16 @@ sub repository_ids
 	return EPrints::Config::get_repository_ids();
 }
 
+=begin InternalDoc
+
+=item $ep->load_repositories()
+
+Loads and caches all repositories. These are used to make L</current_repository> fast.
+
+=end
+
+=cut
+
 sub load_repositories
 {
 	my( $self ) = @_;
@@ -416,6 +506,27 @@ sub load_repositories
 	}
 
 	return @ids;
+}
+
+=begin InternalDoc
+
+=item $r = $ep->request()
+
+See $repo->request() in L<EPrints::Repository>.
+
+Returns the current mod_perl request object (note: this might be a sub-request object).
+
+Returns undef if there is no current request.
+
+=end
+
+=cut
+
+sub request
+{
+	my( $self ) = @_;
+
+	return $EPrints::HANDLE->{request};
 }
 
 sub sigusr2_cluck

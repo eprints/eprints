@@ -51,10 +51,23 @@ sub handler
 {
 	my( $r ) = @_;
 
-	return DECLINED if !defined $EPrints::HANDLE;
+	my $repoid = $r->dir_config( "EPrints_ArchiveID" );
+	return if !$repoid;
 
-	my $repository = $EPrints::HANDLE->current_repository;
-	return DECLINED if !defined $repository;
+	if( defined $EPrints::HANDLE )
+	{
+		$EPrints::HANDLE->init_from_request( $r );
+	}
+	else
+	{
+		EPrints->abort( __PACKAGE__."::handler was called before EPrints was initialised (you may need to re-run generate_apacheconf)" );
+	}
+
+	my $repository = $EPrints::HANDLE->current_repository();
+	if( !defined $repository )
+	{
+		EPrints->abort( "'$repoid' is not a valid repository identifier:\nPerlSetVar EPrints_ArchiveID $repoid" );
+	}
 
 	my $esec = $r->dir_config( "EPrints_Secure" );
 	my $secure = (defined $esec && $esec eq "yes" );

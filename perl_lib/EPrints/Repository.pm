@@ -158,14 +158,10 @@ sub new
 
 	$self->{used_phrases} = {};
 
+	$self->{offline} = 1;
 	if( $opts{cgi} )
 	{
-		$self->{request} = EPrints::Apache::AnApache::get_request();
-		$self->{offline} = 0;
-	}
-	else
-	{
-		$self->{offline} = 1;
+		EPrints->abort( __PACKAGE__."::new() called with cgi argument" );
 	}
 
 	$self->{id} = $repository_id;
@@ -4635,7 +4631,7 @@ sub read_params
 	my $params = $c->notes->get( "loginparams" );
 	if( defined $params && $params ne 'undef')
 	{
- 		$self->{query} = new CGI( $params ); 
+ 		$self->{query} = CGI->new( $r, $params ); 
 	}
 	elsif( defined( $progressid ) && $r->method eq "POST" )
 	{
@@ -4652,11 +4648,11 @@ sub read_params
 		# Something odd happened (user may have stopped/retried)
 		if( !defined $progress )
 		{
-			$self->{query} = new CGI();
+			$self->{query} = CGI->new( $r );
 		}
 		else
 		{
-			$self->{query} = new CGI( \&EPrints::DataObj::UploadProgress::update_cb, $progress );
+			$self->{query} = CGI->new( $r, \&EPrints::DataObj::UploadProgress::update_cb, $progress );
 
 			# The CGI callback doesn't include the rest of the POST that
 			# Content-Length includes
@@ -4671,11 +4667,11 @@ sub read_params
 		{
 			$self->{putdata} .= $buffer;
 		}
- 		$self->{query} = new CGI();
+ 		$self->{query} = CGI->new( $r );
 	}
 	else
 	{
- 		$self->{query} = new CGI();
+ 		$self->{query} = CGI->new( $r );
 	}
 
 	$c->notes->set( loginparams=>'undef' );
@@ -5472,12 +5468,9 @@ sub init_from_request
 {
 	my( $self, $request ) = @_;
 
-	if( defined $self->{request} )
-	{
-		# we're in a sub-request
-		$self->{request} = $request; # make sure we have the current request
-		return 1;
-	}
+	$self->{request} = $request;
+
+	return if !$request->is_initial_req;
 
 	# see if we need to reload our configuration
 	$self->check_last_changed;

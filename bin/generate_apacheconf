@@ -177,9 +177,6 @@ if( ($system && $replace) || !-e $site_userfile )
 # with the --replace option
 #
 
-# Makes the request object accessible for other objects
-PerlOptions +GlobalRequest
-
 # Load the perl modules & repository configurations
 PerlSwitches -I$perl_lib
 PerlModule EPrints
@@ -269,7 +266,18 @@ foreach my $repository ( values %reps )
 	}
 }
 
-
+if( keys %reps > 1 )
+{
+	print "\nWarning! You may need to add the following to your apache configuration (if not already done):\n";
+	my %seen;
+	foreach my $repo (values %reps)
+	{
+		my $port = $repo->config( "port" );
+		next if $seen{$port}++;
+		print "\tListen $port\n" if $port != 80;
+		print "\tNameVirtualHost *:$port\n";
+	}
+}
 
 if( $first_run )
 {
