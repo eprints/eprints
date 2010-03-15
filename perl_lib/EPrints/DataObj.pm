@@ -250,6 +250,7 @@ sub create_from_data
 			if( $dataset->confid eq "eprint" )
 			{
 				next if( $fieldname eq "eprintid" );
+				next if( $fieldname eq "dir" ); # eprintid is in dir
 			}
 			if( $dataset->id eq "user" )
 			{
