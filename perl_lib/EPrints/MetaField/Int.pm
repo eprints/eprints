@@ -216,5 +216,15 @@ sub render_xml_schema_type
 	return $session->make_doc_fragment;
 }
 
+# integer fields must be NULL or a number, can't be ''
+sub xml_to_epdata_basic
+{
+	my( $self, $session, $xml, %opts ) = @_;
+
+	my $value = EPrints::Utils::tree_to_utf8( scalar $xml->childNodes );
+
+	return EPrints::Utils::is_set( $value ) ? $value : undef;
+}
+
 ######################################################################
 1;
