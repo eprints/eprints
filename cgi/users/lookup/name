@@ -27,7 +27,7 @@ my $Q_pos = $database->quote_identifier( "pos" );
 my $Q_num_matches = $database->quote_identifier( "num_matches" );
 my $Q_eprint_status = $database->quote_identifier( "eprint_status" );
 
-my $sql = "SELECT COUNT($Q_table.$Q_eprintid) $Q_num_matches," .
+my $sql = "SELECT COUNT($Q_table.$Q_eprintid) ".$database->sql_AS." $Q_num_matches," .
 	join(",", map { $database->quote_identifier($_) } @fields) .
 	" FROM $Q_table" .
 	" LEFT JOIN $Q_name_table" .
