@@ -2151,7 +2151,7 @@ sub upgrade_3_1_0_to_3_1_1
 {
 	my( $repoid, $db ) = @_;
 
-	my $repo = EPrints::Repository->new( $repoid );
+	my $repo = &repository( $repoid );
 
 	update_datasets( $repo, $db );
 }
