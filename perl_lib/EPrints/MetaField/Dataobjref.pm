@@ -168,20 +168,20 @@ sub render_input_field_actual
 
 	my $f = $session->make_doc_fragment;
 
-	my $dataset = $self->_dataset;
-	my $priv = $dataset->id . "/view";
+	my $_dataset = $self->_dataset;
+	my $priv = $_dataset->id . "/view";
 	if(
 		!$self->get_property( "sub_name" ) &&
 		$session->current_user->allow( $priv )
 	  )
 	{
 		my $url = $session->current_url( path => "cgi", "users/home" );
-		$url .= "?screen=Listing&dataset=".$dataset->id;
+		$url .= "?screen=Listing&dataset=".$_dataset->id;
 		$f->appendChild(
 			$session->render_link( $url, target => "_new" )
 		)->appendChild(
 			$session->html_phrase( "Plugin/Screen/Listing:page_title",
-				dataset => $dataset->render_name( $session )
+				dataset => $_dataset->render_name( $session )
 			)
 		);
 	}

@@ -3535,7 +3535,7 @@ Each file inside this archive will be created as an <b>individual</b> document i
 <epp:phrase id="datasethelp_import">Stores the details of an import.</epp:phrase>
 <epp:phrase id="datasethelp_file">Technical data on files stored.</epp:phrase>
 <epp:phrase id="datasetname_event_queue">Tasks</epp:phrase>
-<epp:phrase id="datasethelp_event_queue">Technical data on files stored.</epp:phrase>
+<epp:phrase id="datasethelp_event_queue">Scheduled tasks for the indexer process.</epp:phrase>
 
 <epp:phrase id="message_fieldopt_type_message">Message</epp:phrase>
 <epp:phrase id="message_fieldopt_type_warning">Warning</epp:phrase>
