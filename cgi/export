@@ -80,6 +80,10 @@ elsif( $path[0] =~ s/^x-// && scalar @path == 2 )
 {
 	export_rdf_resource( $repository, $plugin, \%arguments, $path[0], $path[1] );
 }
+elsif( scalar @path == 2 )
+{
+	export_dataobj( $repository, $plugin, \%arguments, @path[0,1] );
+}
 else
 {
 	$repository->not_found;
@@ -205,6 +209,28 @@ sub export_rdf_resource
 	$plugin->initialise_fh( \*STDOUT );
 	
 	print $plugin->output_graph( $graph, %{$args} );
+}
+
+sub export_dataobj
+{
+	my( $repository, $plugin, $args, $datasetid, $id ) = @_;
+
+	my $dataset = $repository->dataset( $datasetid );
+	$repository->not_found, exit if !defined $dataset;
+
+	if( $datasetid ne "project" )
+	{
+		EPrints->abort( "TODO: privileges for non-authenticated users" );
+	}
+
+	$repository->not_found, exit if !$plugin->can_accept( "dataobj/".$dataset->base_id );
+
+	my $dataobj = $dataset->dataobj( $id );
+	$repository->not_found, exit if !defined $dataobj;
+
+	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
+	$plugin->initialise_fh( \*STDOUT );
+	print $plugin->output_dataobj( $dataobj );
 }
 
 sub show_eprint_export_options
