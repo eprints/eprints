@@ -40,19 +40,20 @@ sub rdf_header
 
 sub serialise_graph
 {
-	my( $plugin, $graph ) = @_;
+	my( $plugin, $graph, %opts ) = @_;
 
 	my $struct = $plugin->graph_to_struct( $graph );
 
 	my @l = ();
-	SUBJECT: foreach my $subject ( sort keys %{$struct} )
+	foreach my $subject ( EPrints::Plugin::Export::RDF::sensible_sort( keys %{$struct} ) )
 	{
+		#next SUBJECT if !defined $subject;
 		my $trips = $struct->{$subject};
 		my @preds = ();
-		PREDICATE: foreach my $pred ( sort keys %{ $trips } )
+		PREDICATE: foreach my $pred ( EPrints::Plugin::Export::RDF::sensible_sort( keys %{ $trips } ) )
 		{
 			my @objects = ();
-			OBJECT: foreach my $val ( sort {$a->[0] cmp $b->[0]} values %{$trips->{$pred}} )
+			OBJECT: foreach my $val ( EPrints::Plugin::Export::RDF::sensible_sort_head( values %{$trips->{$pred}} ) )
 			{
 				if( !defined $val->[1] )
 				{
@@ -83,9 +84,12 @@ sub serialise_graph
 			}
 			push @preds, "\t".$pred." ".join( ",\n		", @objects );
 		}
-		my $uri = $subject;
-		next SUBJECT if !defined $uri;
-		push @l, "$uri\n".join( ";\n", @preds )." .\n\n";
+		push @l, "$subject\n".join( ";\n", @preds )." .\n\n";
+		if( defined $opts{fh} )
+		{
+			print {$opts{fh}} join( '',@l );
+			@l = ();
+		}
 	}
 	return join ('',@l);
 }

@@ -72,16 +72,38 @@ sub output_list
 {
 	my( $plugin, %opts ) = @_;
 
+	my $r = [];
+	if( defined $opts{fh} )
+	{
+		print {$opts{fh}} $plugin->rdf_header();
+	}
+	else
+	{
+		push @{$r}, $plugin->rdf_header();
+	}
+
 	my $graph = EPrints::RDFGraph->new( repository=>$plugin->{session} );
 	$graph->add_boilerplate_triples();
+	push @{$r}, $plugin->serialise_graph( $graph, %opts ); # returns "" if it printed already
 	
 	$opts{list}->map( sub {
 		my( $repository, $dataset, $dataobj ) = @_;
 
+		my $graph = EPrints::RDFGraph->new( repository=>$plugin->{session} );
 		$graph->add_dataobj_triples( $dataobj );
+		push @{$r}, $plugin->serialise_graph( $graph, %opts );
 	} );
 
-	return $plugin->output_graph( $graph, %opts );
+	if( defined $opts{fh} )
+	{
+		print {$opts{fh}} $plugin->rdf_footer();
+	}
+	else
+	{
+		push @{$r}, $plugin->rdf_footer();
+	}
+
+	return join( '', @{$r} );
 }
 
 sub output_graph
@@ -91,7 +113,7 @@ sub output_graph
 	if( defined $opts{fh} )
 	{
 		print {$opts{fh}} $plugin->rdf_header();
-		print {$opts{fh}} $plugin->serialise_graph( $graph );
+		$plugin->serialise_graph( $graph, %opts );
 		print {$opts{fh}} $plugin->rdf_footer();
 		return undef;
 	}
@@ -99,7 +121,7 @@ sub output_graph
 	{
 		my $r = [];
 		push @{$r}, $plugin->rdf_header();
-		push @{$r}, $plugin->serialise_graph( $graph );
+		push @{$r}, $plugin->serialise_graph( $graph, %opts );
 		push @{$r}, $plugin->rdf_footer();
 		return join( '', @{$r} );
 	}
@@ -120,8 +142,29 @@ sub graph_to_struct
 	} );
 	return $tripletree;
 }
-	
 
+# Used to order output of RDF in some of the sub-classes
+# Maybe these should move to Utils.pm later.
+sub sensible_sort_head
+{
+	return sort {
+		my $a1=$a->[0];
+		my $b1=$b->[0]; # clone these so we don't modify originals
+		$a1 =~ s/(\d+)/sprintf("%010X",$1)/ge;
+		$b1 =~ s/(\d+)/sprintf("%010X",$1)/ge;
+		return $a1 cmp $b1;
+	} @_;
+}
+sub sensible_sort 
+{
+	return sort {
+		my $a1=$a;
+		my $b1=$b; # clone these so we don't modify originals
+		$a1 =~ s/(\d+)/sprintf("%010X",$1)/ge;
+		$b1 =~ s/(\d+)/sprintf("%010X",$1)/ge;
+		return $a1 cmp $b1;
+	} @_;
+}
 
 
 

@@ -116,7 +116,9 @@ sub handler
 	# database needs updating
 	if( $r->is_initial_req && !$repository->get_database->is_latest_version )
 	{
-		$repository->log( "Database schema is out of date: ./bin/epadmin upgrade ".$repository->get_id );
+		my $msg = "Database schema is out of date: ./bin/epadmin upgrade ".$repository->get_id;
+		$repository->log( $msg );
+		EPrints::Apache::AnApache::send_status_line( $r, 500, "EPrints Database schema is out of date" );
 		return 500;
 	}
 
@@ -275,7 +277,7 @@ sub handler
 		
 		if( !defined $plugin )  { return NOT_FOUND; }
 
-		my $url = $repository->config( "http_cgiurl" )."/rdf/repository/".
+		my $url = $repository->config( "http_cgiurl" )."/export/repository/".
 			$plugin->get_subtype."/".$repository->get_id.$plugin->param("suffix");
 
 		return redir_see_other( $r, $url );
@@ -301,7 +303,7 @@ sub handler
 
 		my $fn = $id;
 		$fn=~s/\//_/g;
-		my $url = $repository->config( "http_cgiurl" )."/rdf/x-".
+		my $url = $repository->config( "http_cgiurl" )."/export/x-".
 			$id."/".$plugin->get_subtype."/$fn".$plugin->param("suffix");
 
 		return redir_see_other( $r, $url );
@@ -317,7 +319,7 @@ sub handler
 		{
 			$item = $dataset->dataobj( $id );
 		}
-		my $url;
+
 		if( defined $item )
 		{
 			# Subject URI's redirect to the top of that particular subject tree
@@ -339,6 +341,12 @@ sub handler
 					}
 				}
 			}
+
+			if( $item->dataset->confid eq "eprint" && $item->dataset->id ne "archive" )
+			{
+				return redir_see_other( $r, $item->get_control_url );
+			}
+
 			# content negotiation. Only worries about type, not charset
 			# or language etc. at this stage.
 			#
@@ -357,17 +365,18 @@ sub handler
 
 			if( $match eq "DEFAULT_SUMMARY_PAGE" )
 			{
-				$url = $item->get_url;
+				return redir_see_other( $r, $item->get_url );
 			}
 			else
 			{
-				$url = $match->dataobj_export_url( $item );	
+				my $url = $match->dataobj_export_url( $item );	
+				if( defined $url )
+				{
+					return redir_see_other( $r, $url );
+				}
 			}
 		}	
-		if( defined $url )
-		{
-			return redir_see_other( $r, $url );
-		}
+
 		return NOT_FOUND;
 	}
 

@@ -26,7 +26,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 					subject => $subject_uri,
 					predicate => "skos:prefLabel",
 					object => $name->{name},
-					type => "xsd:string",
+					type => "literal",
 					lang => $name->{lang} );
 			}
 			$o{graph}->add( 
@@ -55,7 +55,7 @@ $c->add_trigger( "rdf_triples_subject", sub {
 			subject => $subject_uri,
 			predicate => "skos:prefLabel",
 			object => $name->{name},
-			type => "xsd:string",
+			type => "literal",
 			lang => $name->{lang} );
 	}
 
@@ -90,7 +90,7 @@ $c->add_trigger( "rdf_triples_subject", sub {
 					subject => $scheme_uri,
 					predicate => "dct:title",
 					object => $name->{name},
-					type => "xsd:string",
+					type => "literal",
 					lang => $name->{lang} );
 			}
 		}

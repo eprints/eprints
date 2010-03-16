@@ -74,20 +74,20 @@ sub xml_dataobj
 
 sub serialise_graph
 {
-	my( $plugin, $graph ) = @_;
+	my( $plugin, $graph, %opts ) = @_;
 
 	my $struct = $plugin->graph_to_struct( $graph );
 
 	my $namespaces = $plugin->get_namespaces();
 	my @l = ();
-	foreach my $subject ( sort keys %{$struct} )
+	foreach my $subject ( EPrints::Plugin::Export::RDF::sensible_sort( keys %{$struct} ) )
 	{
 		my $trips = $struct->{$subject};
 		my $x_type = "rdf:Description";
 		push @l, "  <$x_type rdf:about=\"".attr($subject,$namespaces)."\">\n";
-		foreach my $pred ( sort keys %{ $trips } )
+		foreach my $pred ( EPrints::Plugin::Export::RDF::sensible_sort( keys %{ $trips } ) )
 		{
-			foreach my $val ( sort {$a->[0] cmp $b->[0]} values %{$trips->{$pred}} )
+			foreach my $val ( EPrints::Plugin::Export::RDF::sensible_sort_head( values %{$trips->{$pred}} ) )
 			{
 				my $x_pred = el($pred,$namespaces);
 				if( $x_pred =~ m/^[a-z0-9_-]+:[a-z0-9_-]+$/i )
@@ -123,6 +123,11 @@ sub serialise_graph
 			}
 		}
 		push @l, "  </$x_type>\n";
+		if( defined $opts{fh} )
+		{
+			print {$opts{fh}} join( '',@l );
+			@l = ();
+		}
 	}
 	return join ('',@l);
 }

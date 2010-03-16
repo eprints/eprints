@@ -115,7 +115,7 @@ my $DEBUG_SQL = 0;
 
 # this may not be the current version of eprints, it's the version
 # of eprints where the current desired db configuration became standard.
-$EPrints::Database::DBVersion = "3.2.1";
+$EPrints::Database::DBVersion = "3.2.2";
 
 
 # ID of next buffer table. This can safely reset to zero each time

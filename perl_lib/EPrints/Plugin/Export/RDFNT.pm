@@ -25,7 +25,7 @@ sub new
 
 sub serialise_graph
 {
-	my( $plugin, $graph ) = @_;
+	my( $plugin, $graph, %opts ) = @_;
 
 	my $namespaces = $plugin->get_namespaces();
 	my @l = ();
@@ -58,6 +58,11 @@ sub serialise_graph
 			$data.='^^'.expand_uri( $t->{type}, $namespaces );
 		}
 		push @l, "$s_uri $p_uri $data .\n";
+		if( defined $opts{fh} )
+		{
+			print {$opts{fh}} join( '',@l );
+			@l = ();
+		}
 	});
 	
 	return join ('',@l);

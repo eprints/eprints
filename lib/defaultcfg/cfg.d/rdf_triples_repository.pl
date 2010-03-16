@@ -133,7 +133,7 @@ $c->add_trigger( "rdf_triples_repository", sub {
 		$o{graph}->add( 
 		  	subject => $repository_uri,
 			predicate => "rdfs:comment",
-		   	object => $oai_config->{content}->{text},
+		   	object => $comment,
 			type => "xsd:string" );
 	}
 

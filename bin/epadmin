@@ -1815,6 +1815,7 @@ sub upgrade
 			3.1.2
 			3.2.0
 			3.2.1
+			3.2.2
 		);
 
 	for(my $i = 0; $i < $#versions; ++$i)
@@ -2667,5 +2668,34 @@ sub upgrade_mysql_charset_table
 
 	return $rc;
 }
+
+sub upgrade_3_2_1_to_3_2_2
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	# Update new datasets (Triples)
+	update_datasets( $repo, $db );
+	update_counters( $repo, $db );
+
+	# Tell indexer to generate RDF dataset
+	my $all_eprints = $repo->dataset( "eprint" )->search;
+	$all_eprints->map( sub {
+        	my( $repository, $dataset, $eprint ) = @_;
+	
+		my $action = "clear_triples";
+		if( $eprint->get_value( "eprint_status" ) eq "archive" )
+		{
+			$action = "update_triples";
+		}
+		$repository->dataset( "event_queue" )->create_dataobj({
+			pluginid => "Event::RDF",
+			action => $action,
+			params => [$eprint->internal_uri],
+		});
+	} );
+}
+
 
 # End of UPGRADE CODE
