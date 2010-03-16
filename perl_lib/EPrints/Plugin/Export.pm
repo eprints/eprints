@@ -221,10 +221,6 @@ sub dataobj_export_url
 	my( $plugin, $dataobj, $staff ) = @_;
 
 	my $dataset = $dataobj->get_dataset;
-	if( $dataset->confid ne "eprint" && $dataset->confid ne "subject" ) {
-		# only know URLs for eprint objects
-		return undef;
-	}
 
 	my $pluginid = $plugin->{id};
 
@@ -237,11 +233,16 @@ sub dataobj_export_url
 
 	my $url = $plugin->{session}->get_repository->get_conf( "http_cgiurl" );
 	$url .= "/users" if $staff;
-	$url .= "/export/" if $dataset->confid eq "eprint";
-	$url .= "/export/subject/" if $dataset->confid eq "subject";
-	$url .= $dataobj->get_id."/".$format;
-	$url .= "/".$plugin->{session}->get_repository->get_id;
-	$url .= "-".$dataobj->get_dataset->confid."-".$dataobj->get_id.$plugin->param("suffix");
+	$url .= '/export/' . join('/', map { URI::Escape::uri_escape($_) }
+		$dataobj->get_dataset->base_id,
+		$dataobj->get_id,
+		$format,
+		join('-',
+			$plugin->{session}->get_id,
+			$dataobj->get_dataset->base_id,
+			$dataobj->get_id,
+		).$plugin->param( "suffix" )
+	);
 
 	return $url;
 }

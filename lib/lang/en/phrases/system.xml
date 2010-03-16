@@ -3709,6 +3709,7 @@ Each file inside this archive will be created as an <b>individual</b> document i
     <epp:phrase id="Plugin/Screen/Listing:remove_column_confirm" ref="Plugin/Screen/Review:remove_column_confirm" />
 	<epp:phrase id="Plugin/Screen/Listing:add" ref="Plugin/Screen/Items:add" />
     <epp:phrase id="Plugin/Screen/NewDataobj:action:create:title">Create an Item</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Workflow/Export:title" ref="Plugin/Screen/EPrint/Export:title" />
 	<epp:phrase id="Plugin/Screen/Workflow/View:title">View</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Workflow/View:page_title"><epc:pin name="listing" /> - <epc:pin name="desc" /></epp:phrase>
 	<epp:phrase id="Plugin/Screen/Workflow/Edit:title">Edit</epp:phrase>

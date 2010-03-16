@@ -218,7 +218,15 @@ sub export_dataobj
 	my $dataset = $repository->dataset( $datasetid );
 	$repository->not_found, exit if !defined $dataset;
 
-	if( $datasetid ne "project" )
+	if( $datasetid eq "eprint" )
+	{
+		return export_eprint( $repository, $plugin, $args, $id );
+	}
+	elsif( $datasetid eq "subject" )
+	{
+		return export_subject( $repository, $plugin, $args, $id );
+	}
+	elsif( $datasetid ne "project" )
 	{
 		EPrints->abort( "TODO: privileges for non-authenticated users" );
 	}

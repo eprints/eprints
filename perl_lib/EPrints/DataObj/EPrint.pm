@@ -2245,46 +2245,6 @@ sub get_type
 ######################################################################
 =pod
 
-=item $xhtml_ul_list = $eprint->render_export_links( [$staff] )
-
-Return a <ul> list containing links to all the formats this eprint
-is available in. 
-
-If $staff is true then show all formats available to staff, and link
-to the staff export URL.
-
-=cut
-######################################################################
-	
-sub render_export_links
-{
-	my( $self, $staff ) = @_;
-
-	my $vis = "all";
-	$vis = "staff" if $staff;
-	my $id = $self->get_value( "eprintid" );
-	my $ul = $self->{session}->make_element( "ul" );
-	my @plugins = $self->{session}->plugin_list( 
-					type=>"Export",
-					can_accept=>"dataobj/eprint", 
-					is_advertised=>1,
-					is_visible=>$vis );
-	foreach my $plugin_id ( @plugins ) {
-		my $li = $self->{session}->make_element( "li" );
-		my $plugin = $self->{session}->plugin( $plugin_id );
-		my $url = $plugin->dataobj_export_url( $self, $staff );
-		my $a = $self->{session}->render_link( $url );
-		$a->appendChild( $plugin->render_name );
-		$li->appendChild( $a );
-		$ul->appendChild( $li );
-	}
-	return $ul;
-}
-
-
-######################################################################
-=pod
-
 =item @roles = $eprint->user_roles( $user )
 
 Return the @roles $user has on $eprint.

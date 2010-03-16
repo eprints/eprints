@@ -143,6 +143,20 @@ sub allow_action
 	return $self->can_be_viewed();
 }
 
+sub dataset
+{
+	my( $self ) = @_;
+
+	return $self->{processor}->{dataset};
+}
+
+sub dataobj
+{
+	my( $self ) = @_;
+
+	return $self->{processor}->{dataobj};
+}
+
 sub render_tab_title
 {
 	my( $self ) = @_;
