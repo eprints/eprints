@@ -150,24 +150,6 @@ sub render_tab_title
 	return $self->html_phrase( "title" );
 }
 
-sub render_title
-{
-	my( $self ) = @_;
-
-	my $f = $self->{session}->make_doc_fragment;
-#	$f->appendChild( $self->html_phrase( "title" ) );
-#	$f->appendChild( $self->{session}->make_text( ": " ) );
-
-	my $screen = $self->get_view_screen();
-
-	my $title = $self->{processor}->{dataobj}->render_description();
-	my $link = $self->{session}->render_link( "?screen=$screen&dataset=".$self->{processor}->{dataset}->id."&dataobj=".$self->{processor}->{dataobj}->id );
-	$link->appendChild( $title );
-	$f->appendChild( $link );
-
-	return $f;
-}
-
 sub redirect_to_me_url
 {
 	my( $self ) = @_;
@@ -244,11 +226,11 @@ sub render_blister
 		my $phrase;
 		if( $stage_id eq "commit" )
 		{
-			$phrase = $session->phrase( "Plugin/Screen/MetaField:commit" );
+			$phrase = $session->phrase( "Plugin/Screen/Workflow/Commit:title" );
 		}
 		else
 		{
-			$phrase = $session->phrase( "metapage_title_".$stage_id );
+			$phrase = $self->phrase( "metapage_title_".$stage_id );
 		}
 		my $button = $session->render_button(
 			name  => "_action_jump_$stage_id", 

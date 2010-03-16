@@ -964,11 +964,11 @@ the current session.
 =cut
 ######################################################################
 
-sub render_name($$)
+sub render_name
 {
 	my( $self, $session ) = @_;
 
-        return $session->html_phrase( "dataset_name_".$self->id() );
+        return $session->html_phrase( "datasetname_".$self->id() );
 }
 
 ######################################################################

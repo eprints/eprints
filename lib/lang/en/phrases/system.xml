@@ -2569,25 +2569,19 @@ Titles and Help for the System Fields
     <epp:phrase id="history_fieldname_objectid">Object ID</epp:phrase>
     <epp:phrase id="history_fieldname_datasetid">Object Type</epp:phrase>
 
-	<epp:phrase id="dataset_name_eprint">Eprints</epp:phrase>
-    <epp:phrase id="dataset_name_archive">Repository</epp:phrase>
-    <epp:phrase id="dataset_name_deletion">Retired</epp:phrase>
-    <epp:phrase id="dataset_name_buffer">Review</epp:phrase>
-    <epp:phrase id="dataset_name_inbox">User Workareas</epp:phrase>
-    <epp:phrase id="dataset_name_document">Documents</epp:phrase>
-    <epp:phrase id="dataset_name_subject">Subjects</epp:phrase>
-    <epp:phrase id="dataset_name_saved_search">Saved Searches</epp:phrase>
-    <epp:phrase id="dataset_name_user">Users</epp:phrase>
-    <epp:phrase id="dataset_name_history">History</epp:phrase>
-	<epp:phrase id="dataset_name_file">Files</epp:phrase>
-	<epp:phrase id="dataset_name_import">Imports</epp:phrase>
-	<epp:phrase id="dataset_name_event_queue">Tasks</epp:phrase>
-	<epp:phrase id="datasets_typename_eprint"><epc:phrase ref="dataset_name_eprint"/></epp:phrase>
-	<epp:phrase id="datasets_typename_document"><epc:phrase ref="dataset_name_document"/></epp:phrase>
-	<epp:phrase id="datasets_typename_saved_search"><epc:phrase ref="dataset_name_saved_search"/></epp:phrase>
-	<epp:phrase id="datasets_typename_user"><epc:phrase ref="dataset_name_user"/></epp:phrase>
-	<epp:phrase id="datasets_typename_file"><epc:phrase ref="dataset_name_file"/></epp:phrase>
-	<epp:phrase id="datasets_typename_import"><epc:phrase ref="dataset_name_import"/></epp:phrase>
+    <epp:phrase id="datasetname_archive">Repository</epp:phrase>
+    <epp:phrase id="datasetname_deletion">Retired</epp:phrase>
+    <epp:phrase id="datasetname_buffer">Review</epp:phrase>
+    <epp:phrase id="datasetname_inbox">User Workareas</epp:phrase>
+    <epp:phrase id="datasetname_saved_search">Saved Searches</epp:phrase>
+	<epp:phrase id="datasetname_file">Files</epp:phrase>
+	<epp:phrase id="datasetname_import">Imports</epp:phrase>
+	<epp:phrase id="datasets_typename_eprint"><epc:phrase ref="datasetname_eprint"/></epp:phrase>
+	<epp:phrase id="datasets_typename_document"><epc:phrase ref="datasetname_document"/></epp:phrase>
+	<epp:phrase id="datasets_typename_saved_search"><epc:phrase ref="datasetname_saved_search"/></epp:phrase>
+	<epp:phrase id="datasets_typename_user"><epc:phrase ref="datasetname_user"/></epp:phrase>
+	<epp:phrase id="datasets_typename_file"><epc:phrase ref="datasetname_file"/></epp:phrase>
+	<epp:phrase id="datasets_typename_import"><epc:phrase ref="datasetname_import"/></epp:phrase>
 
 
 <!-- Plugin phrases -->
@@ -3538,10 +3532,10 @@ Each file inside this archive will be created as an <b>individual</b> document i
 <epp:phrase id="datasethelp_history">Stores information about revisions made to objects (eprints, users etc.)</epp:phrase>
 <epp:phrase id="datasetname_request">Full-text Requests</epp:phrase>
 <epp:phrase id="datasethelp_request">Stores requests made for full-texts to be delivered by email</epp:phrase>
-<epp:phrase id="datasetname_import">Import</epp:phrase>
 <epp:phrase id="datasethelp_import">Stores the details of an import.</epp:phrase>
-<epp:phrase id="datasetname_file">File</epp:phrase>
 <epp:phrase id="datasethelp_file">Technical data on files stored.</epp:phrase>
+<epp:phrase id="datasetname_event_queue">Tasks</epp:phrase>
+<epp:phrase id="datasethelp_event_queue">Technical data on files stored.</epp:phrase>
 
 <epp:phrase id="message_fieldopt_type_message">Message</epp:phrase>
 <epp:phrase id="message_fieldopt_type_warning">Warning</epp:phrase>
@@ -3710,10 +3704,13 @@ Each file inside this archive will be created as an <b>individual</b> document i
     <epp:phrase id="metapage_title_subjects">Subjects</epp:phrase>
     <epp:phrase id="metapage_title_notes">Extras</epp:phrase>
 
-    <epp:phrase id="Plugin/Screen/Listing:title">Viewing <epc:pin name="dataset" /></epp:phrase>
+    <epp:phrase id="Plugin/Screen/Listing:title">View</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Listing:page_title">Manage <epc:pin name="dataset" /></epp:phrase>
     <epp:phrase id="Plugin/Screen/Listing:remove_column_confirm" ref="Plugin/Screen/Review:remove_column_confirm" />
 	<epp:phrase id="Plugin/Screen/Listing:add" ref="Plugin/Screen/Items:add" />
     <epp:phrase id="Plugin/Screen/NewDataobj:action:create:title">Create an Item</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Workflow/View:title">View</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Workflow/View:page_title"><epc:pin name="listing" /> - <epc:pin name="desc" /></epp:phrase>
 	<epp:phrase id="Plugin/Screen/Workflow/Edit:title">Edit</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Workflow/Destroy:title">Destroy</epp:phrase>
     <epp:phrase id="Plugin/Screen/Workflow/Destroy:sure_delete"><p>Are you sure you want to destroy <em><epc:pin name="title"/></em>? This action can not be undone.</p></epp:phrase>
@@ -3738,5 +3735,10 @@ Each file inside this archive will be created as an <b>individual</b> document i
 
 
     <epp:phrase id="XML/EPC:script_error">[error in script]</epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/DataSets:title">Manage Records</epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/Workflow/Edit:metapage_title_default">Details</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Workflow/Commit:title" ref="Plugin/Screen/MetaField:commit" />
 
 </epp:phrases>

@@ -222,6 +222,11 @@ sub show_columns
 	{
 		$columns = $dataset->columns();
 	}
+	if( !defined $columns || @{$columns} == 0 )
+	{
+		$columns = [$dataset->fields];
+		splice(@$columns,4);
+	}
 
 	return $columns;
 }
@@ -232,8 +237,8 @@ sub render_title
 
 	my $session = $self->{session};
 
-	return $session->html_phrase( "Plugin/Screen/Listing:title",
-		dataset => $session->html_phrase( "dataset_name_".$self->{processor}->{dataset}->id ) );
+	return $session->html_phrase( "Plugin/Screen/Listing:page_title",
+		dataset => $session->html_phrase( "datasetname_".$self->{processor}->{dataset}->id ) );
 }
 
 sub render

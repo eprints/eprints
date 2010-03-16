@@ -108,7 +108,7 @@ sub render_value_no_multiple
 		{
 			return $session->html_phrase( "lib/metafield/itemref:not_found",
 				id=>$xml->create_text_node( $value->{id} ),
-				objtype=>$session->html_phrase( "dataset_name_".$ds->base_id));
+				objtype=>$session->html_phrase( "datasetname_".$ds->base_id));
 		}
 	}
 	else
@@ -129,15 +129,20 @@ sub render_value_no_multiple
 	}
 }
 
+sub _dataset
+{
+	my( $self ) = @_;
+
+	return $self->{repository}->dataset( $self->get_property('datasetid') );
+}
+
 sub dataobj
 {
 	my( $self, $value ) = @_;
 
 	return undef if !defined $value;
 
-	my $ds = $self->{repository}->dataset( $self->get_property('datasetid') );
-
-	return $ds->dataobj( $value->{id} );
+	return $self->_dataset->dataobj( $value->{id} );
 }
 
 sub get_input_elements
@@ -155,6 +160,35 @@ sub get_input_elements
 #	push @{ $input->[0] }, {el=>$buttons};
 
 	return $input;
+}
+
+sub render_input_field_actual
+{
+	my( $self, $session, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
+
+	my $f = $session->make_doc_fragment;
+
+	my $dataset = $self->_dataset;
+	my $priv = $dataset->id . "/view";
+	if(
+		!$self->get_property( "sub_name" ) &&
+		$session->current_user->allow( $priv )
+	  )
+	{
+		my $url = $session->current_url( path => "cgi", "users/home" );
+		$url .= "?screen=Listing&dataset=".$dataset->id;
+		$f->appendChild(
+			$session->render_link( $url, target => "_new" )
+		)->appendChild(
+			$session->html_phrase( "Plugin/Screen/Listing:page_title",
+				dataset => $dataset->render_name( $session )
+			)
+		);
+	}
+
+	$f->appendChild( $self->SUPER::render_input_field_actual( @_[1..$#_] ) );
+
+	return $f;
 }
 
 ######################################################################

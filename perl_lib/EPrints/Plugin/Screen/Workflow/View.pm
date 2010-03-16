@@ -31,6 +31,33 @@ sub can_be_viewed
 	return $self->allow( $self->{processor}->{dataset}->id."/view" );
 }
 
+sub render_title
+{
+	my( $self ) = @_;
+
+	my $session = $self->{session};
+
+	my $screen = $self->get_view_screen();
+
+	my $dataset = $self->{processor}->{dataset};
+	my $dataobj = $self->{processor}->{dataobj};
+
+	my $listing = $session->render_link( "?screen=Listing&dataset=".$dataset->id );
+	$listing->appendChild( $dataset->render_name( $session ) );
+
+	my $desc = $dataobj->render_description();
+	if( $self->{id} ne "Screen::$screen" )
+	{
+		my $link = $session->render_link( "?screen=$screen&dataset=".$dataset->id."&dataobj=".$dataobj->id );
+		$link->appendChild( $desc );
+	}
+
+	return $self->html_phrase( "page_title",
+		listing => $listing,
+		desc => $desc,
+	);
+}
+
 sub render
 {
 	my( $self ) = @_;

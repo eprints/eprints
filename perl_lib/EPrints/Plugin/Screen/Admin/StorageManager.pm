@@ -173,7 +173,7 @@ sub ajax_stats
 			) );
 
 		$table->appendChild( $session->render_row(
-			$session->html_phrase( "dataset_name_$datasetid" ),
+			$session->html_phrase( "datasetname_$datasetid" ),
 			$self->get_count_bar( "#00f", $total_width, $session->make_text( $ddata->{total} ) ),
 #			$self->get_count_bar( "#00f", $bytes_width, $session->make_text( EPrints::Utils::human_filesize( $ddata->{bytes} ) ) ),
 			$form

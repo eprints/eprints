@@ -76,7 +76,7 @@ sub render_single_value
 	return $session->html_phrase( 
 		"lib/metafield/itemref:not_found",
 			id=>$session->make_text($value),
-			objtype=>$session->html_phrase( "dataset_name_".$ds->base_id));
+			objtype=>$session->html_phrase( "datasetname_".$ds->base_id));
 }
 
 sub get_item
