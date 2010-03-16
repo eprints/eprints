@@ -62,10 +62,11 @@ sub new
 	$opts{suicidefile} ||= EPrints::Index::suicidefile();
 	$opts{noise} = 1 unless defined $opts{noise};
 	$opts{rollcount} = 5 unless defined $opts{rollcount};
-	$opts{maxwait} ||= 8;
-	$opts{interval} ||= 30;
-	$opts{respawn} ||= 60*60*24;
-	$opts{timeout} ||= 10*60;
+	$opts{maxwait} ||= 8; # 8 seconds
+	$opts{interval} ||= 30; # 30 seconds
+	$opts{respawn} ||= 86400; # 1 day
+	$opts{timeout} ||= 600; # 10 minutes
+	$opts{nextrespawn} = time() + $opts{respawn};
 
 	my $self = bless \%opts, $class;
 
@@ -251,19 +252,19 @@ sub roll_logs
 
 	$self->log( 0, "** End of log. Closing and rolling." );
 
-	for( my $n = $self->{rollcount}; $n > 0; --$n )
+	unlink($self->{logfile}.'.'.$self->{rollcount});
+	foreach my $n (reverse 2..$self->{rollcount})
 	{
-		my $src = $self->{logfile};
-		if( $n > 1 ) { $src.='.'.($n-1); }
-		next unless( -f $src );
+		my $src = $self->{logfile}.'.'.($n-1);
 		my $tgt = $self->{logfile}.'.'.$n;
-		if( !rename( $src, $tgt ) )
+		if( -f $src && !rename( $src, $tgt ) )
 		{
 			$self->log( 0, "*** Error in log file rotation, failed to rename $src to $tgt: $!" );
 			return;
 		}
 	}
-	close STDERR;
+	close( STDERR ) or die; # oh dear
+	rename($self->{logfile}, $self->{logfile}.'.1');
 	open( STDERR, ">>", $self->{logfile} ); # If this fails we're stuffed
 }
 
@@ -284,13 +285,12 @@ sub get_all_sessions
 
 	my $eprints = EPrints->new;
 
-	my @arc_ids = EPrints::Config::get_repository_ids();
-	foreach my $arc_id (sort @arc_ids)
+	foreach my $id (sort $eprints->repository_ids)
 	{
-		my $repository = $eprints->repository( $arc_id );
+		my $repository = $eprints->repository( $id );
 		if( !defined $repository )
 		{
-			$self->log( 0, "!! Could not open session for $arc_id" );
+			$self->log( 0, "!! Could not open session for $id" );
 			next;
 		}
 		next unless $repository->config( "index" );
@@ -517,6 +517,7 @@ sub start_daemon
 				last;
 			}
 			last if( $self->{once} );
+			$self->roll_logs if $self->should_respawn;
 		}
 		else
 		{
@@ -591,11 +592,10 @@ sub run_index
 
 	$self->log( 3, "** Worker process started: $$" );
 
-	my @sessions = $self->get_all_sessions();
+	my @repos = $self->get_all_sessions();
 
 	$SIG{TERM} = sub {
 		$self->log( 3, "** Worker process terminated: $$" );
-		$_->terminate for @sessions;
 		$self->real_exit;
 	};
 
@@ -605,13 +605,13 @@ sub run_index
 	{
 		my $seen_action = 0;
 
-		foreach my $session ( @sessions )
+		foreach my $repo ( @repos )
 		{
 			# give the next code $timeout secs to complete
 			eval {
 				local $SIG{ALRM} = sub { die "alarm\n" };
 				alarm($self->get_timeout);
-				my $indexer_did_something = $self->_run_index( $session, {
+				my $indexer_did_something = $self->_run_index( $repo, {
 					loglevel => $self->{noise},
 				});
 				$seen_action = 1 if $indexer_did_something;
@@ -630,8 +630,6 @@ sub run_index
 		# is it time to respawn yet?
 		if( $self->should_respawn )
 		{
-			$self->log( 3, "** Worker process restarting: $$" );
-			$self->roll_logs unless $self->{once};
 			last;
 		}
 
@@ -662,8 +660,10 @@ sub run_index
 	{
 		$self->log( 3, "** Worker process stopping: $$" );
 	}
-
-	$_->terminate for @sessions;
+	else
+	{
+		$self->log( 3, "** Worker process restarting: $$" );
+	}
 }
 
 sub _run_index
@@ -707,11 +707,7 @@ sub should_respawn
 
 	my $rc = 0;
 
-	if( !defined $self->{nextrespawn} )
-	{
-		$self->{nextrespawn} = time() + $self->get_respawn;
-	}
-	elsif( time() > $self->{nextrespawn} )
+	if( time() > $self->{nextrespawn} )
 	{
 		$rc = 1;
 		$self->{nextrespawn} += $self->get_respawn;

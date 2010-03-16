@@ -84,6 +84,10 @@ Set the level of detail to log. Level may be 0-6.
 
 Set the number of once-through logs that should be kept. If set to zero then indexer will never roll the logs but rather just keep writing to the main log.
 
+=item B<--respawn> I<seconds>
+
+Respawn the indexer every I<seconds> (rolls the log files).
+
 =item B<--notdaemon>
 
 Do not become a daemon, remain attached to the current terminal.
@@ -137,6 +141,7 @@ my $rollcount = 5;
 my $notdaemon = 0;
 my $once = 0;
 my $opt_clear;
+my $opt_respawn = 86400;
 
 Getopt::Long::Configure("permute");
 
@@ -154,6 +159,7 @@ GetOptions(
 	'logfile=s' => \$logfile,
 	'loglevel=s' => \$loglevel,
 	'clear' => \$opt_clear,
+	'respawn=s' => \$opt_respawn,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "indexer" ) if $version;
 pod2usage( 1 ) if $help;
@@ -167,6 +173,7 @@ $noise = 1+$verbose if( $verbose );
 my $p = {
 	loglevel => $loglevel+0,
 	rollcount => $rollcount+0,
+	respawn => $opt_respawn+0,
 	daemon => !$notdaemon,
 	noise => $noise,
 	once => $once,
@@ -179,9 +186,10 @@ $logfile ||= EPrints::Index::logfile();
 $logfile = undef if $logfile eq "-" or $notdaemon;
 
 my $daemon = EPrints::Index::Daemon->new(
-	noise => $loglevel,
-	rollcount => $rollcount,
+	loglevel => $loglevel+0,
+	respawn => $opt_respawn+0,
 	logfile => $logfile,
+	noise => $noise,
 	once => $once,
 );
 
