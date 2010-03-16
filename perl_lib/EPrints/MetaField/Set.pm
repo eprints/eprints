@@ -28,17 +28,10 @@ not done
 
 package EPrints::MetaField::Set;
 
+use EPrints::MetaField::Text;
+@ISA = EPrints::MetaField::Text;
+
 use strict;
-use warnings;
-
-BEGIN
-{
-	our( @ISA );
-
-	@ISA = qw( EPrints::MetaField );
-}
-
-use EPrints::MetaField;
 
 sub render_single_value
 {
@@ -526,6 +519,7 @@ sub get_property_defaults
 	$defaults{render_option} = $EPrints::MetaField::UNDEF;
 	$defaults{render_max_search_values} = 5;
 	$defaults{text_index} = 0;
+	$defaults{sql_index} = 1;
 	return %defaults;
 }
 

@@ -85,6 +85,17 @@ sub handler
 	}
 
 	my $uri = $r->uri;
+	{
+		use bytes;
+		if( $uri =~ /\xc3/ )
+		{
+			utf8::decode($uri);
+		}
+		else
+		{
+			$uri = Encode::decode( "iso-8859-1", $uri );
+		}
+	}
 
 	# Not an EPrints path (only applies if we're in a non-standard path)
 	if( $uri !~ /^(?:$urlpath)|(?:$cgipath)/ )

@@ -533,6 +533,7 @@ sub get_url
 	return $self->get_baseurl unless( defined $file );
 
 	# unreserved characters according to RFC 2396
+	utf8::encode($file);
 	$file =~ s/([^\/-_\.!~\*'\(\)A-Za-z0-9\/])/sprintf('%%%02X',ord($1))/ge;
 	
 	return $self->get_baseurl.$file;
@@ -1461,8 +1462,12 @@ sub thumbnail_url
 
 	my $url = $self->get_baseurl();
 	$url =~ s! /$ !.$relation/!x;
-	$url .= $self->get_main
-		if defined $self->get_main;
+	if( defined(my $file = $self->get_main) )
+	{
+		utf8::encode($file);
+		$file =~ s/([^\/-_\.!~\*'\(\)A-Za-z0-9\/])/sprintf('%%%02X',ord($1))/ge;
+		$url .= $file;
+	}
 
 	if( $self->{session}->{preparing_static_page} )
 	{
