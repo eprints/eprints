@@ -188,10 +188,13 @@ sub render
 	foreach my $f ( qw/ inbox buffer archive deletion / )
 	{
 		my $url = URI->new( $session->current_url( query => 1 ) );
-		$url->query_form( %{{
-			$url->query_form,
-			"set_show_$f" => !$filters{$f}
-		}} );
+		my %q = $url->query_form;
+		foreach my $inner_f (keys %filters)
+		{
+			delete $q{"set_show_$inner_f"};
+		}
+		$q{"set_show_$f"} = !$filters{$f};
+		$url->query_form( %q );
 		my $a = $session->render_link( $url );
 		if( $filters{$f} )
 		{
