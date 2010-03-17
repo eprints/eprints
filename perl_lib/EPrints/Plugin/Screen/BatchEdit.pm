@@ -403,16 +403,16 @@ sub ajax_edit
 
 	if( !@actions )
 	{
-		$request->print( "0\n" );
-		$request->print( "SPLIT\n" );
+		$request->print( "0 " );
+		$request->print( "f48f27cb163950bc6a7f1a3c7d87afc7" );
 		my $message = $session->render_message( "warning", $self->html_phrase( "no_changes" ) );
 		$request->print( EPrints::XML::to_string( $message ) );
 		EPrints::XML::dispose( $message );
 		return;
 	}
 
-	$request->print( $list->count() . "\n" );
-	$request->print( "0\n" );
+	$request->print( $list->count() . " " );
+	$request->print( "0 " );
 
 	my $count = 0;
 	$list->map(sub {
@@ -462,7 +462,7 @@ sub ajax_edit
 		}
 
 		$dataobj->commit;
-		$request->print( ++$count."\n" );
+		$request->print( ++$count." " );
 	});
 
 	my $ul = $session->make_element( "ul" );
@@ -482,7 +482,7 @@ sub ajax_edit
 		) );
 		EPrints::XML::dispose( $value );
 	}
-	$request->print( "SPLIT\n" );
+	$request->print( "f48f27cb163950bc6a7f1a3c7d87afc7" );
 	my $message = $session->render_message( "message", $self->html_phrase( "applied",
 		changes => $ul,
 	) );
@@ -522,7 +522,7 @@ sub render
 	$page->appendChild( $p );
 	$p->appendChild( $searchexp->render_description );
 
-	$p = $session->make_element( "p", id => "ep_batchedit_sample" );
+	$p = $session->make_element( "div", id => "ep_batchedit_sample" );
 	$page->appendChild( $p );
 
 #	$p->appendChild( $self->html_phrase( "applying_to", count => $session->make_text( $list->count ) ) );
@@ -776,8 +776,9 @@ function ep_batchedit_update_list()
 	ajax_parameters['cache'] = $F('cache');
 	ajax_parameters['ajax'] = 'list';
 
-	new Ajax.Request(
-		eprints_http_cgiroot+"/users/home",
+	new Ajax.Updater(
+		'ep_batchedit_sample',
+		eprints_http_cgiroot+'/users/home',
 		{
 			method: "get",
 			onFailure: function() { 
@@ -785,17 +786,6 @@ function ep_batchedit_update_list()
 			},
 			onException: function(req, e) { 
 				alert( "AJAX Exception " + e );
-			},
-			onSuccess: function(response){ 
-				var xml = response.responseText;
-				if( !xml )
-				{
-					alert( "No response from server: "+response.responseText );
-				}
-				else
-				{
-					$('ep_batchedit_sample').update( xml );
-				}
 			},
 			parameters: ajax_parameters
 		} 
@@ -839,9 +829,7 @@ function ep_batchedit_add_action()
 				}
 				else
 				{
-					var div = document.createElement( 'div' );
-					$('ep_batchedit_actions').appendChild( div );
-					div.update( xml );
+					$('ep_batchedit_actions').insert( xml );
 				}
 			},
 			parameters: ajax_parameters
@@ -864,13 +852,19 @@ function ep_batchedit_submitted()
 	var iframe = $('ep_batchedit_iframe');
 	var container = $('ep_batchedit_progress');
 
-	form.submit();
-
 	form.hide();
 
-	var max_action = $F('max_action');
-	for(var i = 0; i < max_action; ++i)
-		ep_batchedit_remove_action( i );
+	form.submit();
+
+	/* under !Firefox the form submission doesn't happen straight away, so we
+	 * have to delay removing form elements until after this method has
+	 * finished */
+	new PeriodicalExecuter(function(pe) {
+		pe.stop();
+		var max_action = $F('max_action');
+		for(var i = 0; i < max_action; ++i)
+			ep_batchedit_remove_action( i );
+	}, 1);
 
 	while(container.hasChildNodes())
 		container.removeChild( container.firstChild );
@@ -882,7 +876,7 @@ function ep_batchedit_submitted()
 		var content = parts[0];
 		if( content == null )
 			return;
-		var nums = content.split( '\n' );
+		var nums = content.split( ' ' );
 		var total = nums[0];
 		if( !total )
 			return;
@@ -918,7 +912,7 @@ function ep_batchedit_iframe_contents( iframe )
 
 	var content = iframe.contentWindow.document.body.firstChild.firstChild.nodeValue;
 
-	return content.split( 'SPLIT\n' );
+	return content.split( "f48f27cb163950bc6a7f1a3c7d87afc7" );
 }
 
 function ep_batchedit_finished()
