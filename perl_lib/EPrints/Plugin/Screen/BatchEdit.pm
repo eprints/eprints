@@ -329,7 +329,7 @@ sub ajax_new_field
 				$frag->appendChild( $session->make_element( "input",
 					type => "image",
 					alt => "Remove",
-					src => $session->get_url( path => "static", "/style/images/action_remove.png" ),
+					src => $session->get_url( path => "static", "style/images/action_remove.png" ),
 					onclick => "ep_batchedit_remove_action($c)",
 				) );
 
