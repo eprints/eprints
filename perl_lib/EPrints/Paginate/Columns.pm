@@ -54,7 +54,8 @@ sub paginate_list
 	}
 	$url .= join "&", @param_list;
 
-	my $offset = ($session->param( "$basename\_offset" ) || 0) + 0;
+	my $offset = defined $opts{offset} ? $opts{offset} : ($session->param( "$basename\_offset" ) || 0);
+	$offset += 0;
 	$url .= "&$basename\_offset=$offset"; # $basename\_offset used by paginate_list
 
 	# Sort param

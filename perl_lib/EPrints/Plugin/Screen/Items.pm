@@ -102,17 +102,31 @@ sub get_filters
 {
 	my( $self ) = @_;
 
-	my %f = ( inbox=>1, buffer=>1, archive=>1, deletion=>1 );
-
-	foreach my $filter ( keys %f )
+	my $pref = $self->{id}."/eprint_status";
+	my $user = $self->{session}->current_user;
+	my @f = @{$user->preference( $pref ) || []};
+	if( !scalar @f )
 	{
-		my $v = $self->{session}->param( "show_$filter" );
-		$f{$filter} = $v if defined $v;
+		@f = ( inbox=>1, buffer=>1, archive=>1, deletion=>1 );
+	}
+
+	foreach my $i (0..$#f)
+	{
+		next if $i % 2;
+		my $filter = $f[$i];
+		my $v = $self->{session}->param( "set_show_$filter" );
+		if( defined $v )
+		{
+			$f[$i+1] = $v;
+			$user->set_preference( $pref, \@f );
+			$user->commit;
+			last;
+		}
 	}	
 
-	return %f;
+	return %{{@f}};
 }
-	
+
 sub render_links
 {
 	my( $self ) = @_;
@@ -173,14 +187,12 @@ sub render
 	my $filter_div = $session->make_element( "div", class=>"ep_items_filters" );
 	foreach my $f ( qw/ inbox buffer archive deletion / )
 	{
-		my %f2 = %filters;
-		$f2{$f} = 1-$f2{$f};
-		my $url = "?screen=Items";
-		foreach my $inner_f ( qw/ inbox buffer archive deletion / )
-		{
-			$url.= "&show_$inner_f=".$f2{$inner_f};
-		}
-		my $a = $session->render_link( $url,  );
+		my $url = URI->new( $session->current_url( query => 1 ) );
+		$url->query_form( %{{
+			$url->query_form,
+			"set_show_$f" => !$filters{$f}
+		}} );
+		my $a = $session->render_link( $url );
 		if( $filters{$f} )
 		{
 			$a->appendChild( $session->make_element(
@@ -300,15 +312,15 @@ sub render
 		$final_row->appendChild( $td );
 	}
 
+	my $offset = ($session->param( "_buffer_offset" ) || 0) + 0;
+	$offset = $list->count - $list->count % 10 if $offset > $list->count;
+
 	# Paginate list
 	my %opts = (
 		params => {
 			screen => "Items",
-			show_inbox=>$filters{inbox},
-			show_buffer=>$filters{buffer},
-			show_archive=>$filters{archive},
-			show_deletion=>$filters{deletion},
 		},
+		offset => $offset,
 		columns => [@{$columns}, undef ],
 		above_results => $filter_div,
 		render_result => sub {

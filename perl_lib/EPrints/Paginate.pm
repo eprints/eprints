@@ -130,8 +130,8 @@ sub paginate_list
 	my( $class, $session, $basename, $list, %opts ) = @_;
 
 	my $n_results = $list->count();
-	my $offset = ($session->param( $basename."_offset" ) || 0) + 0;
-	#my $offset = $session->param( "_offset" ) + 0;
+	my $offset = defined $opts{offset} ? $opts{offset} : ($session->param( $basename."_offset" ) || 0);
+	$offset += 0;
 	my $pagesize = $opts{page_size} || 10; # TODO: get default from somewhere?
 	my @results = $list->get_records( $offset , $pagesize );
 	my $plast = $offset + $pagesize;

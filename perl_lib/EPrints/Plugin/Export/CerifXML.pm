@@ -531,7 +531,8 @@ sub output_lang_attr
 
 	my $entity = $xml->create_element( $type );
 	$entity->appendChild( $args{from}->cloneNode( 1 ) );
-	my $attr = $xml->create_element( $args{name}, cfLangCode => "en", cfTrans => 0 );
+	my $langid = $self->{session}->config( "defaultlanguage" );
+	my $attr = $xml->create_element( $args{name}, cfLangCode => $langid, cfTrans => 0 );
 	$attr->appendChild( $xml->create_text_node( $args{value} ) );
 	$entity->appendChild( $attr );
 
