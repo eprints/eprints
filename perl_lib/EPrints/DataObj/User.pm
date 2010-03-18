@@ -1494,8 +1494,6 @@ sub allow
 
 	if( !$if_logged_in && ( $if_editor || $if_owner ) && !defined $item )
 	{
-		$self->{session}->get_repository->log(
-"\$user->allow( $priv ) called. It needed an item to resolve the permission, but none was passed. Assuming false, but this may indicate a bug." );
 		return 0;
 	}
 
