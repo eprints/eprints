@@ -621,6 +621,105 @@ sub page
 	return EPrints::Page::Text->new( $self->{repository}, join( "", @output ) );
 }
 
+=item $node = $xhtml->tabs( $labels, $contents, %opts )
+
+Render a tabbed box where:
+
+ labels - an array of label XHTML fragments
+ contents - an array of content XHTML fragments
+
+Options:
+
+ base_url - the link to follow under non-JS (default = current URL)
+ basename - prefix for tab identifiers (default = "ep_tabs")
+
+=cut
+
+sub tabs
+{
+	my( $self, $labels, $contents, %opts ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+
+	my $frag = $xml->create_document_fragment;
+
+	my $base_url = exists($opts{base_url}) ? $opts{base_url} : $repo->current_url( query => 1 );
+	my $basename = exists($opts{basename}) ? $opts{basename} : "ep_tabs";
+
+	# our special parameter
+	my $q_current = $basename."_current";
+
+	$base_url = URI->new( $base_url );
+	{
+		# strip our parameter from the base URL
+		my @q = $base_url->query_form;
+		for(reverse 0..$#q)
+		{
+			next if $_ % 2;
+			splice(@q, $_, 2) if $q[$_] eq $q_current;
+		}
+		$base_url->query_form( @q );
+	}
+
+	# render the current page according to the request (javascript might alter
+	# the actual page shown)
+	my $current = 0;
+	if( defined($repo->param( $q_current )) )
+	{
+		$current = $repo->param( $q_current );
+	}
+
+	my $tab_block = $xml->create_element( "div", class=>"ep_only_js" );	
+	$frag->appendChild( $tab_block );
+
+	my $panel = $xml->create_element( "div", 
+			id => $basename."_panels",
+			class => "ep_tab_panel" );
+	$frag->appendChild( $panel );
+
+	my %labels;
+	my %links;
+	for(0..$#$labels)
+	{
+		$labels{$_} = $labels->[$_];
+
+		my $link = $base_url->clone();
+		$link->query_form(
+			$link->query_form,
+			$q_current => $_,
+		);
+		$link->fragment( $basename."_panel_".$_ );
+		$links{$_} = $link;
+
+		my $inner_panel = $xml->create_element( "div", 
+			id => $basename."_panel_".$_,
+		);
+		if( $_ != $current )
+		{
+			# padding for non-javascript enabled browsers
+			$panel->appendChild( $xml->create_element( "div",
+				class=>"ep_no_js",
+				style => "height: 1em",
+			) );
+			$inner_panel->setAttribute( class => "ep_no_js" );
+		}
+		$panel->appendChild( $inner_panel );
+		$inner_panel->appendChild( $contents->[$_] );
+	}
+
+	$tab_block->appendChild( 
+		$repo->render_tabs( 
+			id_prefix => $basename,
+			current => $current,
+			tabs => [0..$#$labels],
+			labels => \%labels,
+			links => \%links,
+		));
+
+	return $frag;
+}
+
 ######################################################################
 =pod
 
