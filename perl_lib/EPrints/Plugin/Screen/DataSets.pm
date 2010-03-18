@@ -18,11 +18,6 @@ sub new
 
 	$self->{actions} = [qw/ /];
 
-	if( !defined $self->{processor}->{datasets} )
-	{
-		$self->{processor}->{datasets} = [$self->datasets];
-	}
-
 	return $self;
 }
 
@@ -30,7 +25,7 @@ sub can_be_viewed
 {
 	my( $self ) = @_;
 
-	return @{$self->{processor}->{datasets}} > 0 ? 1 : 0;
+	return $self->allow( "datasets" );
 }
 
 sub render
@@ -41,7 +36,7 @@ sub render
 	my $xml = $repo->xml;
 	my $user = $repo->current_user;
 	my $imagesurl = $repo->config( "rel_path" )."/style/images";
-	my $datasets = $self->{processor}->{datasets};
+	my @datasets = $self->datasets;
 
 	my $html = $xml->create_document_fragment;
 
@@ -57,7 +52,7 @@ sub render
 	my $table = $xml->create_element( "table" );
 	$html->appendChild( $table );
 
-	foreach my $dataset (@$datasets)
+	foreach my $dataset (@datasets)
 	{
 		my $link = $xml->create_element( "a", href => $self->listing( $dataset ) );
 		$link->appendChild( $dataset->render_name( $repo ) );
@@ -73,6 +68,9 @@ sub datasets
 {
 	my( $self ) = @_;
 
+	return @{$self->{processor}->{datasets}}
+		if defined $self->{processor}->{datasets};
+
 	my @datasets;
 	
 	foreach my $datasetid ($self->{session}->get_dataset_ids)
@@ -83,6 +81,8 @@ sub datasets
 	}
 
 	@datasets = sort { $a->base_id cmp $b->base_id || $a->id cmp $b->id } @datasets;
+
+	$self->{processor}->{datasets} = \@datasets;
 
 	return @datasets;
 }

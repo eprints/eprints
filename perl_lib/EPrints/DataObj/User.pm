@@ -1173,7 +1173,7 @@ my $PRIVMAP =
 
 	general => 
 	[
-		"user/view",
+		"user/view:owner",
 	],
 
 	"edit-own-record" => 
@@ -1268,7 +1268,6 @@ my $PRIVMAP =
 		"import/view",
 		"import/edit",
 		"storage/manager",
-#		"event_queue/create", # create indexer events by-hand?
 		"event_queue/details",
 		"event_queue/edit",
 		"event_queue/view",
@@ -1366,6 +1365,8 @@ my $PRIVMAP =
 
 	editor => 
 	[
+		"datasets",
+
 		"editorial_review",
 
 		"eprint/inbox/view:editor",
