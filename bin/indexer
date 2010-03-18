@@ -70,7 +70,7 @@ May be repeated for greater effect.
 
 =item B<--clear>
 
-Clear stale event queue items (items that are "inprogress") before commencing.
+Clear broken event queue items (items that are "inprogress" or "failed") before commencing.
 
 =item B<--logfile> I<filename>
 
@@ -213,7 +213,7 @@ elsif( $ARGV[0] eq "start" )
 			my $repo = $eprints->repository( $repoid );
 			my $result = $repo->dataset( "event_queue" )->search(
 				filters => [
-					{ meta_fields => [qw( status )], value => "inprogress" },
+					{ meta_fields => [qw( status )], value => "inprogress failed", match => "IN", merge => "ANY" },
 			]);
 			$result->map(sub {
 				my( undef, undef, $event ) = @_;
