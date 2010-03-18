@@ -1174,6 +1174,8 @@ sub uri
 {
 	my( $self ) = @_;
 
+	return undef if !EPrints::Utils::is_set( $self->get_id );
+
 	my $ds_id = $self->get_dataset->confid;
 	if( $self->get_session->get_repository->can_call( "dataobj_uri", $ds_id ) )
 	{
@@ -1194,6 +1196,8 @@ To retrieve an object by internal URI use L<EPrints::DataSet>::get_object_from_u
 sub internal_uri
 {
 	my( $self ) = @_;
+
+	return undef if !EPrints::Utils::is_set( $self->get_id );
 
 	return sprintf("/id/%s/%s",
 		URI::Escape::uri_escape($self->get_dataset_id),
