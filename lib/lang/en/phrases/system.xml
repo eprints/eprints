@@ -21,7 +21,12 @@ To override a system phrase add the phrase to a file in:
 <!-- Plugin/Screen/BatchEdit -->
 
     <epp:phrase id="Plugin/Screen/BatchEdit:title">Batch Editing Tool</epp:phrase>
-    <epp:phrase id="Plugin/Screen/BatchEdit:action:edit">Apply Changes</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:action:edit">Apply Actions</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:edit_title">Modify Records</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:remove_title">Remove all Records</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:remove_help">Destroy all matching items. Once destroyed the items will be gone forever - this action <b>can not be undone</b>!</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:confirm_remove">Are you absolutely sure you want to destroy all these items (this action can not be undone)?</epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:removed">Destroyed items.</epp:phrase>
     <epp:phrase id="eprint_fieldname_batchedit_action">Action</epp:phrase>
     <epp:phrase id="eprint_fieldopt_batchedit_action_">Don't change</epp:phrase>
     <epp:phrase id="eprint_fieldopt_batchedit_action_clear">Clear all values</epp:phrase>
@@ -31,7 +36,7 @@ To override a system phrase add the phrase to a file in:
     <epp:phrase id="eprint_fieldopt_batchedit_action_replace">Replace value with</epp:phrase>
     <epp:phrase id="Plugin/Screen/BatchEdit:invalid_cache">The search expression could not be found - you will need to re-do your search and start again.</epp:phrase>
     <epp:phrase id="Plugin/Screen/BatchEdit:no_changes">You attempted to apply some changes but didn't specify any actions to take?</epp:phrase>
-    <epp:phrase id="Plugin/Screen/BatchEdit:applied">The batch edit was made: <epc:pin name="changes"/></epp:phrase>
+    <epp:phrase id="Plugin/Screen/BatchEdit:applied">The following changes were made: <epc:pin name="changes"/></epp:phrase>
 	<epp:phrase id="Plugin/Screen/BatchEdit:applied_clear">Cleared existing value(s) from <em><epc:pin name="fieldname"/></em>.</epp:phrase>
     <epp:phrase id="Plugin/Screen/BatchEdit:applied_delete">Deleted existing value from <em><epc:pin name="fieldname"/></em> matching "<epc:pin name="value"/>".</epp:phrase>
     <epp:phrase id="Plugin/Screen/BatchEdit:applied_insert">Inserted "<epc:pin name="value"/>" into <em><epc:pin name="fieldname"/></em>.</epp:phrase>

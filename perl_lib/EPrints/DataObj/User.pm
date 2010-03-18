@@ -1273,6 +1273,7 @@ my $PRIVMAP =
 		"event_queue/edit",
 		"event_queue/view",
 		"event_queue/destroy",
+		"eprint/archive/edit", # BatchEdit
 	],
 
 	"toolbox" => 
