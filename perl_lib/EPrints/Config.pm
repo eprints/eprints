@@ -121,26 +121,40 @@ Load the system configuration files.
 
 sub load_system_config
 {
-	my $dir = $SYSTEMCONF->{"cfg_path"}."/cfg.d";
+	my $syslibcfgd = $SYSTEMCONF->{"lib_path"}."/syscfg.d";
+	my $syscfgd = $SYSTEMCONF->{"cfg_path"}."/cfg.d";
 
 	$SYSTEMCONF->{set_in} = {};
-	$SYSTEMCONF->{set_in}->{$_} = "EPrints::SystemSettings"
-		for keys %$SYSTEMCONF;
-
-	opendir(my $dh, $dir) or EPrints::abort( "Error opening config directory $dir: $!" );
-	foreach my $file (sort readdir($dh))
+	foreach my $conf_id ( keys %{$SYSTEMCONF} )
 	{
-		next if $file =~ /^\./;
-		next unless $file =~ /\.pl$/;
+		$SYSTEMCONF->{set_in}->{$conf_id} = "EPrints::SystemSettings";
+	}
 
-		my $filepath = "$dir/$file";
+	my $files = {};
+
+	foreach my $dir ( $syslibcfgd, $syscfgd )
+	{
+		opendir(my $dh, $dir) or EPrints::abort( "Error opening config directory $dir: $!" );
+		foreach my $file (readdir($dh)) 
+		{
+			next if $file =~ m/^\./;
+			next if $file !~ m/\.pl$/;
+			$files->{$file} = "$dir/$file";
+		}
+		closedir($dh);
+	}
+
+	foreach my $file ( sort keys %{$files} )
+	{	
+		my $filepath = $files->{$file};
 
 		open(my $fh, "<", $filepath) or EPrints::abort( "Error reading from $filepath: $!" );
 
+		$EPrints::SystemSettings::tmp = {};
 		my $perl = <<EOP;
 package EPrints::SystemSettings;
 
-our \$c = \$EPrints::SystemSettings::conf;
+our \$c = \$EPrints::SystemSettings::tmp;
 
 EOP
 		$perl .= join "", <$fh>;
@@ -163,13 +177,12 @@ END
 			exit(1);
 		}
 
-		for(keys %$SYSTEMCONF)
+		foreach my $conf_id ( keys %{$EPrints::SystemSettings::tmp} )
 		{
-			next if exists $SYSTEMCONF->{set_in}->{$_};
-			$SYSTEMCONF->{set_in}->{$_} = $filepath;
+			$SYSTEMCONF->{$conf_id} = $EPrints::SystemSettings::tmp->{$conf_id};
+			$SYSTEMCONF->{set_in}->{$conf_id} = $filepath;
 		}
 	}
-	closedir($dh);
 }
 
 ######################################################################
@@ -261,18 +274,24 @@ sub load_repository_config_module
 	local @INC;
 	@INC = (@oldinc, $info->{archiveroot} );
 
-	my $dir = $info->{archiveroot}."/cfg/cfg.d";
+	my $repcfgd = $SYSTEMCONF->{"lib_path"}."/cfg.d";
+	my $libcfgd = $info->{archiveroot}."/cfg/cfg.d";
+	my %files_map = ();
 
-	my $dh;
-	opendir( $dh, $dir ) || EPrints::abort( "Can't read cfg.d config files from $dir: $!" );
-	my @files = ();
-	while( my $file = readdir( $dh ) )
+	foreach my $dir ( $libcfgd, $repcfgd )
 	{
-		next if $file =~ /^\./;
-		next unless $file =~ /\.pl$/;
-		push @files, "$dir/$file";
+		opendir( my $dh, $dir ) || EPrints::abort( "Can't read cfg.d config files from $dir: $!" );
+		while( my $file = readdir( $dh ) )
+		{
+			next if $file =~ /^\./;
+			next unless $file =~ /\.pl$/;
+			$files_map{$file} = "$dir/$file";
+		}
+		closedir( $dh );
 	}
-	closedir( $dh );
+
+	my @files = ();
+	foreach my $file ( sort keys %files_map ) { push @files, $files_map{$file}; }
 
 	my $metafield_pl = $info->{archiveroot}."/var/metafield.pl";
 	if( -e $metafield_pl )
