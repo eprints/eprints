@@ -47,7 +47,7 @@ The remainder of this section describes each of the output files.
 =head2 cfProjAbstr-LANG.xml
 
 	cfProjId - (see cfProj-CORE)
-	cfAbstr - project.abstract
+	cfAbstr - project.description
 	cfLangCode - 'en'
 	cfTrans - '0'
 
@@ -156,8 +156,8 @@ sub new
 
 	$self->{name} = "Cerif XML 2008";
 	$self->{accept} = [ 'list/eprint' ];
-	$self->{visible} = "all";
-	$self->{advertise} = 0;
+	$self->{visible} = "staff";
+	$self->{advertise} = 1;
 	$self->{suffix} = ".zip";
 	$self->{mimetype} = "application/zip";
 
@@ -455,6 +455,10 @@ sub output_project
 	if( defined $project )
 	{
 		$projectid = $project->uri;
+		if( $project->exists_and_set( "title" ) )
+		{
+			$title = $project->value( "title" );
+		}
 	}
 	else
 	{
@@ -494,12 +498,12 @@ sub output_project
 			$entity->appendChild( $xml->create_element( "cfURI" ) )
 				->appendChild( $xml->create_text_node( $project->value( "uri" ) ) );
 		}
-		if( $project->exists_and_set( "abstract" ) )
+		if( $project->exists_and_set( "description" ) )
 		{
 			$self->output_lang_attr( "cfProjAbstr",
 				from => $id_attr,
 				name => "cfAbstr",
-				value => $project->value( "abstract" ) );
+				value => $project->value( "description" ) );
 		}
 		if( $project->exists_and_set( "keywords" ) )
 		{
