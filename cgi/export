@@ -128,7 +128,7 @@ sub export_eprint
 		exit;
 	}
 	$repository->send_http_header( "content_type"=>"text/plain" );
-	my $eprint = $repository->eprint( $eprint_id );
+	my $eprint = $repository->dataset( "archive" )->dataobj( $eprint_id );
 	if( !defined $eprint )
 	{
 		$repository->not_found;

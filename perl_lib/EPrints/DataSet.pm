@@ -923,7 +923,22 @@ Returns the object from this dataset with the given id, or undefined.
 sub dataobj
 {
 	my( $self, $id ) = @_;
-	return $self->dataobj_class->new( $self->repository, $id, $self );
+	
+	my $dataobj = $self->dataobj_class->new( $self->repository, $id, $self );
+
+	return if !defined $dataobj;
+
+	# Hacky solution to ticket #3749. Stops an eprint in the wrong dataset 
+        # being returned. Otherwise stuff could leak out.
+	if( $self->{confid} eq "eprint" && $self->{id} ne "eprint" )
+	{
+		if( $dataobj->get_value( "eprint_status" ) ne $self->{id} )
+		{
+			return;
+		}
+	}
+
+	return $dataobj;
 }
 
 =item $dataobj = EPrints::DataSet->get_object_from_uri( $session, $uri )

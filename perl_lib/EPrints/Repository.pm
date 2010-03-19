@@ -881,6 +881,7 @@ sub _load_templates
 		{
 			my $id = $fn;
 			$id=~s/\.xml$//;
+			delete $self->{template_mtime}->{$id}->{$langid}; # force reload
 			$self->freshen_template( $langid, $id );
 		}
 
@@ -896,6 +897,9 @@ sub freshen_template
 {
 	my( $self, $langid, $id ) = @_;
 
+	my $curr_lang = $self->{lang};
+	$self->change_lang( $langid );
+
 	my $file = $self->config( "config_path" ).
 			"/lang/$langid/templates/$id.xml";
 	my @filestat = stat( $file );
@@ -904,20 +908,25 @@ sub freshen_template
 	my $old_mtime = $self->{template_mtime}->{$id}->{$langid};
 	if( defined $old_mtime && $old_mtime == $mtime )
 	{
+		$self->{lang} = $curr_lang;
 		return;
 	}
 
 	my $template = $self->_load_template( $file );
-	if( !defined $template ) { return 0; }
+	if( !defined $template ) 
+	{ 
+		$self->{lang} = $curr_lang;
+		return 0; 
+	}
 
 	$self->{html_templates}->{$id}->{$langid} = $template;
-	$self->{text_templates}->{$id}->{$langid} = $self->_template_to_text( $template );
+	$self->{text_templates}->{$id}->{$langid} = $self->_template_to_text( $template, $langid );
 	$self->{template_mtime}->{$id}->{$langid} = $mtime;
 }
 
 sub _template_to_text
 {
-	my( $self, $template ) = @_;
+	my( $self, $template, $langid ) = @_;
 
 	$template = $self->xml->clone( $template );
 
@@ -948,12 +957,13 @@ sub _template_to_text
 	}
 
         my @phrases = $template->getElementsByTagName("phrase");
+	
 	foreach my $phrase ( @phrases )
 	{
+		my $done_phrase = EPrints::XML::EPC::process( $phrase, session=>$self );
+
 		my $parent = $phrase->getParentNode;
-		my $ref = "phrase:".$phrase->getAttribute( "ref" );
-		my $textnode = $self->xml->create_text_node( $divide.$ref.$divide );
-		$parent->replaceChild( $textnode, $phrase );
+		$parent->replaceChild( $done_phrase, $phrase );
 	}
 
 	$self->_divide_attributes( $template, $divide );

@@ -47,6 +47,12 @@ sub new
 
 	my $self = bless \%params, $class;
 
+	if( !defined $self->{repository} )
+	{
+		$self->{repository} = $self->{session} 
+	}
+	$self->{session} = $self->{repository};
+
 	if( !defined $self->{id} )
 	{
 		$class =~ /^(?:EPrints::Plugin::)?(.*)$/;
@@ -76,7 +82,7 @@ sub local_uri
 
 	my $id = $self->{id};
 	$id =~ s!::!/!g;
-	return $self->{session}->get_repository->get_conf( "http_url" )."/#Plugin/".$id;
+	return $self->{repository}->get_conf( "http_url" )."/#Plugin/".$id;
 }
 
 ######################################################################
@@ -253,7 +259,7 @@ sub param
 {
 	my( $self, $paramid ) = @_;
 
-	my $pconf = $self->{session}->get_repository->get_conf( "plugins", $self->{id} );
+	my $pconf = $self->{repository}->get_conf( "plugins", $self->{id} );
 
 	if( defined $pconf->{params} && exists $pconf->{params}->{$paramid} )
 	{
@@ -304,7 +310,7 @@ sub html_phrase
 	my $base = "Plugin/".$self->{id};
 	$base =~ s/::/\//g;
 
-	return $self->{session}->html_phrase( $base.":".$id, %bits );
+	return $self->{repository}->html_phrase( $base.":".$id, %bits );
 }
 
 ######################################################################
@@ -319,7 +325,7 @@ sub icon_url
 {
 	my( $self ) = @_;
 
-	my $icon = $self->{session}->get_repository->get_conf( "plugins", $self->{id}, "icon" );
+	my $icon = $self->{repository}->get_conf( "plugins", $self->{id}, "icon" );
 	if( !defined( $icon ) )
 	{
 		$icon = $self->{icon};
@@ -327,7 +333,7 @@ sub icon_url
 
 	return undef if !defined $icon;
 
-	my $url = $self->{session}->get_url( path => "images", $icon );
+	my $url = $self->{repository}->get_url( path => "images", $icon );
 
 	return $url;
 }
@@ -352,7 +358,7 @@ sub phrase
 	my $base = "Plugin/".$self->{id};
 	$base =~ s/::/\//g;
 
-	return $self->{session}->phrase( $base.":".$id, %bits );
+	return $self->{repository}->phrase( $base.":".$id, %bits );
 }
 
 
