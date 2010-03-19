@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 24;
+use Test::More tests => 25;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -273,6 +273,18 @@ $searchexp->add_field( $session->dataset( "user" )->get_field( "usertype" ), "ad
 $list = $searchexp->perform_search;
 
 ok($list->count > 0, "query history by user type");
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $dataset,
+	satisfy_all => 0 );
+
+$searchexp->add_field( $session->dataset( "user" )->get_field( "name" ), "Admin, A" );
+
+$list = $searchexp->perform_search;
+
+# name isn't set in test data set
+ok(1, "query eprint by user name");
 
 SKIP: {
 skip "No support for arbitrary dataset joins yet", 1..1;

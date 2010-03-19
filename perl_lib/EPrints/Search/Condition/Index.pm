@@ -68,12 +68,16 @@ sub joins
 		{
 			return $join;
 		}
-		my $sql = defined $join->{subquery} ? $join->{subquery} : $db->quote_identifier( $join->{table} );
-		$sql .= " INNER JOIN ".$db->quote_identifier( $table );
-		$sql .= " ON ".$db->quote_identifier( $join->{alias}, $key_field->get_sql_name )."=".$db->quote_identifier( $table, $key_field->get_sql_name );
-		$join->{subquery} = $sql;
-		delete $join->{alias}; # now a join so don't attempt to alias
-		return $join;
+		# similar to a multiple table match in comparison
+		return (
+			$join,
+			{
+				type => "inner",
+				table => $table,
+				alias => "$prefix$table",
+				logic => $db->quote_identifier( $join->{alias}, $key_field->get_sql_name )."=".$db->quote_identifier( "$prefix$table", $key_field->get_sql_name ),
+			}
+		);
 	}
 	else
 	{

@@ -396,7 +396,8 @@ sub sql
 	my @tables;
 	my @logic;
 	my $i = 0;
-	foreach my $join ( @joins )
+	my %aliases;
+	JOIN: foreach my $join ( @joins )
 	{
 		# FROM ..., dataset_aux {alias}
 		# WHERE dataset_main_table.key_field={alias}.join_key
@@ -409,6 +410,14 @@ sub sql
 			$sql .= defined $join->{subquery} ? $join->{subquery} : $db->quote_identifier( $join->{table} );
 			if( defined $join->{alias} )
 			{
+				if( $aliases{$join->{alias}} )
+				{
+					# ::Index and subclasses can emit duplicated dataset joins
+					EPrints->abort( "Alias '$join->{alias}' reused" )
+						if $join->{table} ne $join->{alias};
+					next JOIN;
+				}
+				$aliases{$join->{alias}} = 1;
 				$sql .= $db->sql_AS.$db->quote_identifier( $join->{alias} );
 			}
 			push @tables, $sql;
