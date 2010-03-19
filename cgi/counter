@@ -36,3 +36,17 @@ foreach my $ds_id ( sort @ds_ids )
 print sprintf("version: %s (%s)\n",
 	$repo->config( "version_id" ),
 	$repo->config( "version" ) );
+
+# Indexer Status
+my $daemon = EPrints::Index::Daemon->new(
+		session => $repo,
+		logfile => EPrints::Index::logfile(),
+		noise => ($repo->{noise}||1),
+);
+
+my $status = "not-running";
+$status = "running" if $daemon->is_running();
+$status = "stalled" if $daemon->has_stalled();
+print "indexer: $status\n";
+
+exit;
