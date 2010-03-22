@@ -226,9 +226,13 @@ sub export_dataobj
 	{
 		return export_subject( $repository, $plugin, $args, $id );
 	}
-	elsif( $datasetid ne "project" )
+
+	my $priv = "$datasetid/view";
+	if( !$repository->allow_anybody( $priv ) )
 	{
-		EPrints->abort( "TODO: privileges for non-authenticated users" );
+		# perhaps should be ACCESS DENIED?
+		$repository->not_found;
+		exit;
 	}
 
 	$repository->not_found, exit if !$plugin->can_accept( "dataobj/".$dataset->base_id );
