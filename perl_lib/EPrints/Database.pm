@@ -4360,7 +4360,7 @@ Return the database server version.
 =cut
 ######################################################################
 
-sub get_server_version;
+sub get_server_version {}
 
 ######################################################################
 =pod
