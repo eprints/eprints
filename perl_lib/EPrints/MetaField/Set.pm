@@ -44,7 +44,7 @@ sub set_value
 {
 	my( $self, $object, $value ) = @_;
 
-	if( $self->get_property( "multiple" ) )
+	if( $self->get_property( "multiple" ) && !$self->get_property( "sub_name" ) )
 	{
 		$value = [] if !defined $value;
 		my %seen;
