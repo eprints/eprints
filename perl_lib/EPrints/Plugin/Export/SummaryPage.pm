@@ -30,7 +30,7 @@ sub output_dataobj
 	return "" if !$repo->get_online;
 
 	my $title = $dataobj->render_citation( "summary_title" );
-	my $page = $dataobj->render_citation( "summary" );
+	my $page = $dataobj->render_citation( "summary_page" );
 	$repo->build_page( $title, $page, "export" );
 	$repo->send_page;
 
