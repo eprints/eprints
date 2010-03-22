@@ -68,6 +68,8 @@ sub get_property_defaults
 
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{datasetid} = $EPrints::MetaField::REQUIRED; 
+	$defaults{dataset_fieldname} = "datasetid";
+	$defaults{dataobj_fieldname} = "objectid";
 	$defaults{show_in_fieldlist} = 0;
 
 	return %defaults;
@@ -140,12 +142,18 @@ sub get_value
 	}
 	else
 	{
+		my $fieldname;
+		$fieldname = $self->get_property( "dataset_fieldname" );
+		if( EPrints::Utils::is_set( $fieldname ) )
+		{
+			$searchexp->add_field(
+				$ds->field( $fieldname ),
+				$parent->get_dataset->base_id
+			);
+		}
+		$fieldname = $self->get_property( "dataobj_fieldname" );
 		$searchexp->add_field(
-			$ds->field( "datasetid" ),
-			$parent->get_dataset->base_id
-		);
-		$searchexp->add_field(
-			$ds->field( "objectid" ),
+			$ds->field( $fieldname ),
 			$parent->id
 		);
 	}
@@ -153,9 +161,12 @@ sub get_value
 	my $results = $searchexp->perform_search;
 	my @records = $results->slice;
 
-	foreach my $record (@records)
+	if( scalar @records && $records[0]->isa( "EPrints::DataObj::SubObject" ) )
 	{
-		$record->set_parent( $parent );
+		foreach my $record (@records)
+		{
+			$record->set_parent( $parent );
+		}
 	}
 
 	if( $self->get_property( "multiple" ) )
