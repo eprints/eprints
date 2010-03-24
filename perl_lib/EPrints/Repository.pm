@@ -2017,7 +2017,9 @@ sub test_config
 
 	my $tmp = File::Temp->new;
 
-	$rc = EPrints::Platform::read_perl_script( $self, $tmp, "-e", "use EPrints qw( no_check_user );" );
+	$rc = EPrints::Platform::read_perl_script( $self, $tmp, "-e", 
+'use EPrints qw( no_check_user ); my $ep = EPrints->new(); my $repo = $ep->repository( "'.$self->{id}.'" ); '
+ );
 
 	while(<$tmp>)
 	{
