@@ -118,6 +118,7 @@ sub config_file_to_type
 	return "Autocomplete" if( $configfile =~ m#^autocomplete/# );
 
 	return "Perl" if( $configfile =~ m#^cfg.d/[^/]+\.pl$# );
+	return "Perl" if( $configfile =~ m#^plugins/.*\.pm$# );
 
 	return "Citation" if( $configfile =~ m#^citations/[a-z]+/[^/]+\.xml$# );
 
