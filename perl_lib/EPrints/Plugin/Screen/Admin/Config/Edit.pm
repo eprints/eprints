@@ -955,7 +955,7 @@ sub config_edit
 	}
 	$form = $self->render_form;
 
-	my $textarea = $self->{session}->make_element( "textarea", rows=>25, cols=>80, name=>"data" );
+	my $textarea = $self->{session}->make_element( "textarea", id=>"code", width=>"100%", name=>"data", rows=>"25", cols=>"80" );
 	open( CONFIGFILE, $fn );
 	while( my $line = <CONFIGFILE> ) { $textarea->appendChild( $self->{session}->make_text( $line) ); }
 	close CONFIGFILE;
@@ -975,6 +975,25 @@ sub config_edit
 	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
 	my $div = $self->{session}->make_element( "div", align => "center" );
 	$div->appendChild($form);
+	
+	my ( $parser_files, $codemirror_style ) = $self->get_parser_files($fn);
+
+	if (defined $parser_files) {
+	
+		my $js = $self->{session}->make_element( "script", type=>"text/javascript", src=> "/javascript/codemirror/codemirror.js" );
+		$div->appendChild($js);
+		my $js2 = $self->{session}->make_javascript('
+			document.observe("dom:loaded",function(){
+			var editor = CodeMirror.fromTextArea(\'code\', {
+			height: "350px",
+			parserfile: [ '.$parser_files.' ],
+			stylesheet: "'.$codemirror_style.'",
+			path: "/javascript/codemirror/",
+			continuousScanning: 500,
+			lineNumbers: true
+			});});');
+		$div->appendChild($js2);
+	}
 	
 	my $box;	
 	if( $type eq "XPage" )
@@ -996,6 +1015,34 @@ sub config_edit
 	}
 	#$page->appendChild( $form );
 }
+
+sub get_parser_files {
+	my ( $self, $type ) = @_;
+	my $parser_files;
+	my $style;
+	if (rindex($type,".")>0) {
+		$type = substr $type,rindex($type,".")+1;
+		if ($type eq "pl" || $type eq "pm") {
+			$parser_files = '"parsephp.js", "tokenizephp.js"';
+			$style = "/style/codemirror/phpcolors.css";
+		}
+		if ($type eq "xml") {
+			$parser_files = '"parsexml.js"';
+			$style = "/style/codemirror/xmlcolors.css";
+		}
+		if ($type eq "css") {
+			$parser_files = '"parsecss.js"';
+			$style = "/style/codemirror/csscolors.css";
+		}
+		if ($type eq "js") {
+			$parser_files = '"parsejavascript.js", "tokenizejavascript.js"';
+			$style = "/style/codemirror/jscolors.css";
+		}
+	}
+	return ( $parser_files, $style );
+	
+}
+
 sub image_edit 
 {
 	my ($self,$form) = @_;
@@ -1387,6 +1434,29 @@ sub redirect_to_me_url
 	my( $self ) = @_;
 
 	return $self->SUPER::redirect_to_me_url."&configfile=".$self->{processor}->{configfile};
+}
+
+sub render_links 
+{
+	my ( $self ) = @_;
+
+	my $frag = $self->{session}->make_element( "style", type=>"text/css" );
+	$frag->appendChild($self->{session}->make_text( "
+	.CodeMirror-wrapping {
+		background-color: white;
+	}
+	.CodeMirror-line-numbers {
+		width: 2.2em;
+		color: #aaa;
+		background-color: #eee;
+		text-align: right;
+		padding-right: .3em;
+		font-size: 10pt;
+		font-family: monospace;
+		padding-top: .4em;
+	}" ));
+	
+	return $frag;
 }
 
 sub register_furniture
