@@ -199,7 +199,12 @@ sub _make_tmp_file
 
 	if( defined $import_fh )
 	{
-		$tmp_file = $import_fh;
+		# WARNING! CGI creates a "Fh" file object around the uploaded file
+		# handle which does not support read() etc. We'll get around this by
+		# holding the object open and getting the glob (file handle) from the
+		# object.
+		$self->{$import_fh} = $import_fh;
+		$tmp_file = *$import_fh;
 	}
 	else
 	{
