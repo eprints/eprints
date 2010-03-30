@@ -25,7 +25,6 @@ sub new
 	$self->{accept} = [ 'list/eprint', 'dataobj/eprint' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".enw";
-	$self->{mimetype} = "text/plain";
 
 	return $self;
 }
