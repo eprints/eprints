@@ -132,9 +132,9 @@ sub render
 	my $form = $session->render_form( "POST" );
 	$form->appendChild( $session->html_phrase( "cgi/login:page_layout", %bits ) );
 
-	my $loginparams = $session->param( "loginparams" );
+	my $login_params = $session->param( "login_params" );
 
-	if( !defined $loginparams )
+	if( !defined $login_params )
 	{
 		my @p = $session->param;
 		my @k = ();
@@ -144,9 +144,9 @@ sub render
 			$v =~ s/([^A-Z0-9])/sprintf( "%%%02X", ord($1) )/ieg;
 			push @k, $p."=".$v;
 		}
-		$loginparams = join( "&", @k );
+		$login_params = join( "&", @k );
 	}
-	$form->appendChild( $session->render_hidden_field( "loginparams", $loginparams ));
+	$form->appendChild( $session->render_hidden_field( "login_params", $login_params ));
 
 	my $target = $session->param( "target" );
 	if( defined $target )

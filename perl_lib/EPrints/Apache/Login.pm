@@ -25,18 +25,10 @@ sub handler
 
 	my $session = new EPrints::Session;
 	my $problems;
-	# ok then we need to get the cgi
+
 	if( $session->param( "login_check" ) )
 	{
-		my $url = $session->get_url( host=>1 );
-		my $login_params = $session->param("login_params");
-		if( EPrints::Utils::is_set( $login_params ) ) { $url .= "?".$login_params; }
-		if( defined $session->current_user )
-		{
-			$session->redirect( $url );
-			return DONE;
-		}
-
+		# If this is set, we didn't log in after all!
 		$problems = $session->html_phrase( "cgi/login:no_cookies" );
 	}
 
@@ -49,11 +41,9 @@ sub handler
 			my $user = EPrints::DataObj::User::user_with_username( $session, $username );
 
 			my $url = $session->get_url( host=>1 );
-			my $login_params = $session->param("login_params");
-			#if( EPrints::Utils::is_set( $login_params ) ) { $url .= "?".$login_params; }
 			$url .= "?login_params=".EPrints::Utils::url_escape( $session->param("login_params") );
 			$url .= "&login_check=1";
-
+print STDERR ">>$url\n";
 			# always set a new random cookie value when we login
 			my @a = ();
 			srand;

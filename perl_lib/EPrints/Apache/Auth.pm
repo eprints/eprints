@@ -163,6 +163,16 @@ sub auth_cookie
 
 	my $user = $repository->current_user;
 
+	# Check we logged in successfully, if so skip do the real URL
+	if( $repository->param( "login_check" ) && defined $user )
+	{
+		my $url = $repository->get_url( host=>1 );
+		my $login_params = $repository->param("login_params");
+		if( EPrints::Utils::is_set( $login_params ) ) { $url .= "?".$login_params; }
+		$repository->redirect( $url );
+		return DONE;
+	}
+
 	if( !defined $user ) 
 	{
 		my $login_url = $repository->get_url(
