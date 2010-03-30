@@ -87,6 +87,10 @@ elsif( $path[0] eq "repository" && scalar @path == 1 )
 {
 	export_rdf_repository( $repository, $plugin, \%arguments );
 }
+elsif( $path[0] eq "subject" && scalar @path == 2 )
+{
+	export_subject( $repository, $plugin, \%arguments, $path[1] );
+}
 elsif( $path[0] =~ s/^x-// && scalar @path == 2 )
 {
 	export_rdf_resource( $repository, $plugin, \%arguments, $path[0], $path[1] );
@@ -127,29 +131,6 @@ sub export_rdf_repository
 	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
 	$plugin->initialise_fh( \*STDOUT );
 	print $plugin->output_graph( $graph );
-}
-
-sub export_eprint
-{
-	my( $repository, $plugin, $args, $eprint_id ) = @_;
-
-	if( !$plugin->can_accept( "dataobj/eprint" ) )
-	{
-		$repository->not_found;
-		exit;
-	}
-	$repository->send_http_header( "content_type"=>"text/plain" );
-	my $eprint = $repository->dataset( "archive" )->dataobj( $eprint_id );
-	if( !defined $eprint )
-	{
-		$repository->not_found;
-		return;
-	}
-
-	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
-	$plugin->initialise_fh( \*STDOUT );
-
-	print $eprint->export( $plugin->get_subtype, %{$args} );
 }
 
 sub export_subject
@@ -235,6 +216,12 @@ sub export_dataobj
 	my $dataset = $repository->dataset( $datasetid );
 	$repository->not_found( "No such dataset" ), exit if !defined $dataset;
 
+	if( !$plugin->can_accept( "dataobj/".$dataset->base_id ) )
+	{
+		$repository->not_found;
+		exit;
+	}
+
 	my $dataobj = $dataset->dataobj( $id );
 	$repository->not_found( "No such dataobj" ), exit if !defined $dataobj;
 
@@ -247,10 +234,14 @@ sub export_dataobj
 
 	my $allowed = 0;
 
-	my $priv = $dataset->id."/view";
+	my $priv = "view";
 	if( $dataset->id ne $dataset->base_id )
 	{
-		$priv = $dataset->base_id."/$priv";
+		$priv = join('/', $dataset->base_id, $dataset->id, $priv );
+	}
+	else
+	{
+		$priv = join('/', $dataset->base_id, $priv );
 	}
 
 	if( $repository->allow_anybody( $priv ) )
@@ -279,7 +270,7 @@ sub export_dataobj
 
 	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
 	$plugin->initialise_fh( \*STDOUT );
-	print $plugin->output_dataobj( $dataobj );
+	print $plugin->output_dataobj( $dataobj, %$args );
 }
 
 sub show_eprint_export_options
