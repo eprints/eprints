@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 14;
+use Test::More tests => 15;
 
 use strict;
 use warnings;
@@ -55,3 +55,20 @@ isa_ok( $user3, "EPrints::DataObj::User", "Get a user object by email '$email' f
 # $query = $repo->query;
 # $string = $repo->query->param( "X" );
 # $repo->redirect( $url );
+
+my $storage = $repo->get_storage;
+
+my $doc = EPrints::Test::get_test_document( $repo );
+my $file = $doc->get_stored_file( $doc->get_main );
+my $store = $repo->plugin( "Storage::LocalCompress" );
+
+$storage->delete_copy( $store, $file );
+
+my $filename = ($store->_filename( $file ))[1];
+
+$storage->copy( $store, $file );
+
+ok( -e $filename, "storage->copy()" );
+
+$storage->delete_copy( $store, $file );
+$file->commit;

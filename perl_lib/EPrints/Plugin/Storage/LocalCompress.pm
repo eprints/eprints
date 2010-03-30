@@ -48,8 +48,6 @@ sub open_write
 
 	EPrints::Platform::mkdir( $path );
 
-	$out_file .= ".gz";
-
 	my $out_fh;
 	unless( open($out_fh, ">:gzip", $out_file) )
 	{
@@ -104,8 +102,6 @@ sub retrieve
 
 	my( $local_path, $in_file ) = $self->_filename( $fileobj );
 
-	$in_file .= ".gz";
-
 	my $in_fh;
 	unless( open($in_fh, "<:gzip", $in_file) )
 	{
@@ -134,8 +130,6 @@ sub delete
 
 	my( $local_path, $in_file ) = $self->_filename( $fileobj );
 
-	$in_file .= ".gz";
-
 	return 1 unless -e $in_file;
 
 	return unlink($in_file);
@@ -144,6 +138,17 @@ sub delete
 sub get_local_copy
 {
 	return &EPrints::Plugin::Storage::get_local_copy( @_ );
+}
+
+sub _filename
+{
+	my( $self, $fileobj ) = @_;
+
+	my( $local_path, $in_file ) = $self->SUPER::_filename( $fileobj );
+
+	$in_file .= '.gz';
+
+	return( $local_path, $in_file );
 }
 
 =back
