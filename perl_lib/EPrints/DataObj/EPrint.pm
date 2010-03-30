@@ -550,12 +550,19 @@ sub update_triggers
 	{
 		$action = "update_triples";
 	}
-	$self->{session}->dataset( "event_queue" )->create_dataobj({
-			pluginid => "Event::RDF",
-			action => $action,
-			params => [$self->internal_uri],
-		});
-	
+			
+
+	my $user = $self->{session}->current_user;
+	my $userid;
+	$userid = $user->id if defined $user;
+
+	EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
+		unique => "TRUE",
+		pluginid => "Event::RDF",
+		action => $action,
+		params => [$self->internal_uri],
+		userid => $userid,
+	});
 }
 
 
