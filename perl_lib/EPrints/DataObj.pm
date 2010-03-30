@@ -1142,7 +1142,8 @@ sub render_export_links
 					can_accept=>"dataobj/".$self->get_dataset_id, 
 					is_advertised=>1,
 					is_visible=>$vis );
-	foreach my $plugin_id ( @plugins ) {
+	foreach my $plugin_id ( @plugins ) 
+	{
 		my $li = $self->{session}->make_element( "li" );
 		my $plugin = $self->{session}->plugin( $plugin_id );
 		my $url = $plugin->dataobj_export_url( $self, $staff );
@@ -1455,8 +1456,9 @@ sub queue_changes
 
 	return unless scalar @fields;
 
-	my $userid = $self->{session}->current_user;
-	$userid = $userid->id if defined $userid;
+	my $user = $self->{session}->current_user;
+	my $userid;
+	$userid = $user->id if defined $user;
 
 	EPrints::DataObj::EventQueue->create_from_data( $self->{session}, {
 			pluginid => "Event::Indexer",
@@ -1482,8 +1484,9 @@ sub queue_all
 
 	return unless $self->{dataset}->indexable;
 
-	my $userid = $self->{session}->current_user;
-	$userid = $userid->id if defined $userid;
+	my $user = $self->{session}->current_user;
+	my $userid;
+	$userid = $user->id if defined $user;
 
 	EPrints::DataObj::EventQueue->create_from_data( $self->{session}, {
 			pluginid => "Event::Indexer",
@@ -1509,8 +1512,9 @@ sub queue_fulltext
 
 	return unless $self->{dataset}->indexable;
 
-	my $userid = $self->{session}->current_user;
-	$userid = $userid->id if defined $userid;
+	my $user = $self->{session}->current_user;
+	my $userid;
+	$userid = $user->id if defined $user;
 
 	EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
 			unique => "TRUE",
