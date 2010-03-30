@@ -54,6 +54,21 @@ if( !$plugin )
 	exit;
 }
 
+if( $plugin->param( "visible" ) eq "staff" )
+{
+	my $user = $repository->current_user;
+	if( !defined $user )
+	{
+		$repository->get_request->status( 403 );
+		exit;
+	}
+	if( $user->value( "type" ) ne "editor" && $user->value( "type" ) ne "admin" )
+	{
+		$repository->get_request->status( 403 );
+		exit;
+	}
+}
+
 my %arguments = %{$plugin->param( "arguments" )};
 # fetch the plugin arguments, if any
 foreach my $argname (keys %arguments)
@@ -66,15 +81,11 @@ foreach my $argname (keys %arguments)
 
 if( $path[0] =~ m/^\d+$/ && scalar @path == 1 )
 {
-	export_eprint( $repository, $plugin, \%arguments, $path[0] );
+	export_dataobj( $repository, $plugin, \%arguments, "eprint", $path[0] );
 }
 elsif( $path[0] eq "repository" && scalar @path == 1 )
 {
 	export_rdf_repository( $repository, $plugin, \%arguments );
-}
-elsif( $path[0] eq "subject" && scalar @path == 2 )
-{
-	export_subject( $repository, $plugin, \%arguments, $path[1] );
 }
 elsif( $path[0] =~ s/^x-// && scalar @path == 2 )
 {
@@ -222,29 +233,49 @@ sub export_dataobj
 	my( $repository, $plugin, $args, $datasetid, $id ) = @_;
 
 	my $dataset = $repository->dataset( $datasetid );
-	$repository->not_found, exit if !defined $dataset;
+	$repository->not_found( "No such dataset" ), exit if !defined $dataset;
 
-	if( $datasetid eq "eprint" )
+	my $dataobj = $dataset->dataobj( $id );
+	$repository->not_found( "No such dataobj" ), exit if !defined $dataobj;
+
+	if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
 	{
-		return export_eprint( $repository, $plugin, $args, $id );
-	}
-	elsif( $datasetid eq "subject" )
-	{
-		return export_subject( $repository, $plugin, $args, $id );
+		$dataset = $dataobj->get_dataset;
 	}
 
-	my $priv = "$datasetid/view";
-	if( !$repository->allow_anybody( $priv ) )
+	my $user = $repository->current_user;
+
+	my $allowed = 0;
+
+	my $priv = $dataset->id."/view";
+	if( $dataset->id ne $dataset->base_id )
 	{
-		# perhaps should be ACCESS DENIED?
-		$repository->not_found;
+		$priv = $dataset->base_id."/$priv";
+	}
+
+	if( $repository->allow_anybody( $priv ) )
+	{
+		$allowed = 1;
+	}
+	elsif( defined $user )
+	{
+		if(
+			$user->allow( "$priv:owner", $dataobj ) ||
+			$user->allow( "$priv:editor", $dataobj )
+		  )
+		{
+			$allowed = 1;
+		}
+	}
+
+	if( !$allowed )
+	{
+		# 403 Forbidden
+		$repository->get_request->status( 403 );
 		exit;
 	}
 
-	$repository->not_found, exit if !$plugin->can_accept( "dataobj/".$dataset->base_id );
-
-	my $dataobj = $dataset->dataobj( $id );
-	$repository->not_found, exit if !defined $dataobj;
+	$repository->not_found( "Can't export" ), exit if !$plugin->can_accept( "dataobj/".$dataset->base_id );
 
 	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
 	$plugin->initialise_fh( \*STDOUT );

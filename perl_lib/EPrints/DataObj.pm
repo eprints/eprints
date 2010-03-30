@@ -1137,15 +1137,14 @@ sub render_export_links
 	$vis = "staff" if $staff;
 	my $id = $self->get_id;
 	my $ul = $self->{session}->make_element( "ul" );
-	my @plugins = $self->{session}->plugin_list( 
+	my @plugins = $self->{session}->get_plugins( 
 					type=>"Export",
 					can_accept=>"dataobj/".$self->get_dataset_id, 
 					is_advertised=>1,
 					is_visible=>$vis );
-	foreach my $plugin_id ( @plugins ) 
+	foreach my $plugin ( sort { $a->{name} cmp $b->{name} } @plugins ) 
 	{
 		my $li = $self->{session}->make_element( "li" );
-		my $plugin = $self->{session}->plugin( $plugin_id );
 		my $url = $plugin->dataobj_export_url( $self, $staff );
 		my $a = $self->{session}->render_link( $url );
 		$a->appendChild( $plugin->render_name );

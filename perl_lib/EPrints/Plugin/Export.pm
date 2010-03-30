@@ -232,7 +232,6 @@ sub dataobj_export_url
 	my $format = $1;
 
 	my $url = $plugin->{session}->get_repository->get_conf( "http_cgiurl" );
-	$url .= "/users" if $staff;
 	$url .= '/export/' . join('/', map { URI::Escape::uri_escape($_) }
 		$dataobj->get_dataset->base_id,
 		$dataobj->get_id,
