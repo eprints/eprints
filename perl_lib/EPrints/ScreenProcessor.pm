@@ -193,6 +193,10 @@ sub list_items
 
 Renders a list of items as returned by L</list_items>.
 
+Options:
+
+	class - set the class used on the <ul>
+
 =cut
 
 sub render_item_list
@@ -203,22 +207,13 @@ sub render_item_list
 
 	my $xml = $self->{session}->xml;
 
-	my $ul = $xml->create_element( "ul", class => "ep_tm_action_menu $class" );
+	my $ul = $xml->create_element( "ul", class => $class );
 
 	foreach my $opt (@$list)
 	{
 		my $screen = $opt->{screen};
 
-		my @classes = ();
-		if( $opt eq $list->[0] )
-		{
-			push @classes, "first";
-		}
-		if( $opt eq $list->[$#$list] )
-		{
-			push @classes, "last";
-		}
-		my $li = $xml->create_element( "li", class => join( ' ', @classes ) );
+		my $li = $xml->create_element( "li" );
 		$ul->appendChild( $li );
 
 		my $link = $screen->render_action_link();

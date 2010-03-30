@@ -74,15 +74,12 @@ ul.ep_tm_menu li a:visited {
 
 ul.ep_tm_key_tools li {
 	padding: 0px .5em;
-	border-right: 1px solid #666;
+	border-left: 1px solid #666;
 }
 
-ul.ep_tm_key_tools li.first {
+ul.ep_tm_key_tools li:first-child {
 	padding-left: 0px;
-}
-
-ul.ep_tm_key_tools li.last {
-	border-right: none;
+	border-left: none;
 }
 
 /* end of Action Menu Bar */
