@@ -35,6 +35,7 @@ is( $corp_creators->[1], "second" );
 my $field;
 for($dataset->fields)
 {
+	next if $_->get_property( "sub_name" ); # compounds aren't de-duped
 	$field = $_, last if $_->get_property( "multiple" ) && $_->isa( "EPrints::MetaField::Set" );
 }
 
