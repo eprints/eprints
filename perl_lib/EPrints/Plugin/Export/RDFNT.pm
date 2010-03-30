@@ -1,7 +1,7 @@
 package EPrints::Plugin::Export::RDFNT;
 
 use EPrints::Plugin::Export::RDF;
-use EPrints::Plugin::Export::RDFXML
+use EPrints::Plugin::Export::RDFXML;
 
 @ISA = ( "EPrints::Plugin::Export::RDF" );
 
