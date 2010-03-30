@@ -193,6 +193,12 @@ sub export_rdf_resource
 		],
 	);
 
+	if( !$list->count )
+	{
+		$repository->not_found;
+		exit;
+	}
+
 	my $graph = EPrints::RDFGraph->new( repository=>$repository );
 	$graph->add( 
 		  subject => "<>",
