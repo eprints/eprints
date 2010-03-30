@@ -156,9 +156,9 @@ sub action_send
 	}
 	else
 	{
-		$langid = $self->{session}->{repository}->get_conf( "defaultlanguage" );
+		$langid = $self->{session}->get_conf( "defaultlanguage" );
 	}
-	my $lang = $self->{session}->get_repository->get_language( $langid );
+	my $lang = $self->{session}->get_language( $langid );
 
 	my %mail;
 	$mail{session} = $self->{session};
