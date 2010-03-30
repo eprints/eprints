@@ -97,9 +97,9 @@ sub cache_list_items
 		foreach my $action (keys %acc_conf)
 		{
 			next if $acc_conf{$action}->{disable};
-			foreach my $place (keys %{$acc_conf{appears}})
+			while(my( $place, $pos ) = each %{$acc_conf{$action}->{appears}})
 			{
-				$actions{$place}->{$action} = $acc_conf{appears}->{$place};
+				$actions{$place}->{$action} = $pos;
 			}
 		}
 		foreach my $place (keys %app_conf)
@@ -187,6 +187,60 @@ sub list_items
 	}
 
 	return @list;
+}
+
+=item $frag = $processor->render_item_list( $items, %opts )
+
+Renders a list of items as returned by L</list_items>.
+
+=cut
+
+sub render_item_list
+{
+	my( $self, $list, %opts ) = @_;
+
+	my $class = exists($opts{class}) ? $opts{class} : "ep_tm_key_tools";
+
+	my $xml = $self->{session}->xml;
+
+	my $ul = $xml->create_element( "ul", class => "ep_tm_action_menu $class" );
+
+	foreach my $opt (@$list)
+	{
+		my $screen = $opt->{screen};
+
+		my @classes = ();
+		if( $opt eq $list->[0] )
+		{
+			push @classes, "first";
+		}
+		if( $opt eq $list->[$#$list] )
+		{
+			push @classes, "last";
+		}
+		my $li = $xml->create_element( "li", class => join( ' ', @classes ) );
+		$ul->appendChild( $li );
+
+		my $link = $screen->render_action_link();
+		$li->appendChild( $link );
+	}
+
+	return $ul;
+}
+
+=item $frag = $processor->render_toolbar( %opts )
+
+Renders and returns a toolbar of any screens in the B<key_tools> or B<other_tools> action sets.
+
+=cut
+
+sub render_toolbar
+{
+	my( $self ) = @_;
+
+	return $self->render_item_list( [
+		$self->list_items( "key_tools" ),
+	] );
 }
 
 =item EPrints::ScreenProcessor->process( %opts )
@@ -314,6 +368,7 @@ sub process
 			title => $title, 
 			page => $page,
 			head => $links,
+			login_status => $self->render_toolbar,
 #			toolbar => $toolbar,
 		},
 		template => $self->{template},

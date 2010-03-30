@@ -13,11 +13,19 @@ sub new
 	my $self = $class->SUPER::new(%params);
 	
 	$self->{appears} = [
+# See cfg.d/dynamic_template.pl
+#		{
+#			place => "key_tools",
+#			position => 1350,
+#			action => "edit",
+#		},
 		{ 
 			place => "admin_actions_config", 
 			position => 1350, 
 		},
 	];
+
+	$self->{actions} = [qw( edit )];
 
 	return $self;
 }
@@ -28,6 +36,16 @@ sub can_be_viewed
 
 	return $self->allow( "config/edit/phrase" );
 }
+
+sub allow_edit
+{
+	my( $self ) = @_;
+
+	return
+		!$self->{session}->{preparing_static_page} &&
+		$self->can_be_viewed;
+}
+sub action_edit {} # dummy action for key_tools
 
 sub wishes_to_export
 {
@@ -295,6 +313,24 @@ sub redirect_to_me_url
 	my( $self ) = @_;
 
 	return undef;
+}
+
+sub render_action_link
+{
+	my( $self ) = @_;
+
+	my $uri = URI->new( $self->{session}->current_url( query => 1 ) );
+	$uri->query_form(
+		$uri->query_form,
+		edit_phrases => "yes"
+	);
+
+	my $link = $self->{session}->render_link( $uri );
+	$link->appendChild(
+		$self->{session}->html_phrase( "lib/session:edit_phrases" )
+	);
+
+	return $link;
 }
 
 sub render

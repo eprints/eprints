@@ -18,8 +18,6 @@ use strict;
 my $session = new EPrints::Session;
 exit( 0 ) unless( defined $session );
 
-my $page=$session->make_doc_fragment();
-
 
 
 if( $session->get_repository->can_call( 'on_logout' ) )
@@ -40,17 +38,10 @@ $session->get_database->delete_from(
 );
 $session->logout;
 
-
-
-$page->appendChild( $session->render_message( 
-	"message",
-	$session->make_text( "Logout OK!" ) ) );
-
-$page->appendChild( $session->html_phrase( "general:frontpage_link" ) );
-	
-my $title = $session->make_text( "Logout" );
-$session->build_page( $title, $page, "login" );
-$session->send_page();
+EPrints::ScreenProcessor->process(
+	session => $session,
+	screenid => "Loggedout",
+);
 
 $session->terminate;
 exit;

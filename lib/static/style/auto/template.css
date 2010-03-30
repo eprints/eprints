@@ -29,18 +29,24 @@ hr.ep_tm_last {
 
 /* Menu Bar */
 
-ul.ep_tm_menu {
+ul.ep_tm_menu, ul.ep_tm_key_tools {
 	clear: both;
-	background: #204f76;
 	list-style: none;
 	margin: 0px;
 	padding: 0px;
+}
+
+ul.ep_tm_menu {
+	background: #204f76;
 	background-image: url(images/blue_bar.png);
 }
 
-ul.ep_tm_menu li {
+ul.ep_tm_menu li, ul.ep_tm_key_tools li {
 	list-style: none;
 	display: inline;
+}
+
+ul.ep_tm_menu li {
 	padding-left: 10px;
 	padding-right: 10px;
 	border-right: solid 2px white;
@@ -49,6 +55,9 @@ ul.ep_tm_menu li {
 
 ul.ep_tm_menu li:hover {
 	background: #279ae2;
+}
+
+ul.ep_tm_menu li a, ul.ep_tm_key_tools li a {
 }
 
 ul.ep_tm_menu li a {
@@ -60,6 +69,23 @@ ul.ep_tm_menu li a:visited {
 }
 
 /* end of menu bar */
+
+/* Action Menu Bar */
+
+ul.ep_tm_key_tools li {
+	padding: 0px .5em;
+	border-right: 1px solid #666;
+}
+
+ul.ep_tm_key_tools li.first {
+	padding-left: 0px;
+}
+
+ul.ep_tm_key_tools li.last {
+	border-right: none;
+}
+
+/* end of Action Menu Bar */
 
 /* Search bar */
 

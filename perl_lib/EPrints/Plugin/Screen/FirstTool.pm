@@ -12,10 +12,12 @@ sub from
 {
 	my( $self ) = @_;
 
-	my @tools = ( $self->list_items( "key_tools" ), $self->list_items( "other_tools" ) );
-	if( scalar @tools )
+	my $screenid = $self->param( "default" );
+	$screenid = "Items" if !defined $screenid;
+	my $screen = $self->{session}->plugin( "Screen::$screenid" );
+	if( defined $screen )
 	{
-		$self->{processor}->{screenid} = substr( $tools[0]->{screen}->{id}, 8 );
+		$self->{processor}->{screenid} = $screenid;
 		$self->SUPER::from;
 	}
 }

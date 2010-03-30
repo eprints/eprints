@@ -353,6 +353,27 @@ sub action_icon_url
 	return $url;
 }
 
+=item $frag = $screen->render_action_link()
+
+Returns a link to this screen.
+
+=cut
+
+sub render_action_link
+{
+	my( $self, %opts ) = @_;
+
+	my $uri = URI->new( $self->{session}->config( "http_cgiurl" ) . "/users/home" );
+	$uri->query_form(
+		screen => substr($self->{id},8),
+	);
+
+	my $link = $self->{session}->render_link( $uri );
+	$link->appendChild( $self->render_title );
+
+	return $link;
+}
+
 sub render_action_icon
 {
 	my( $self, $params ) = @_;

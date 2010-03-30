@@ -78,14 +78,19 @@ sub handler
 		}
 	}
 
+	$session->{preparing_static_page} = 1; 
+
+	$parts->{login_status} = EPrints::ScreenProcessor->new(
+		session => $session,
+	)->render_toolbar;
 	
 	my $template = delete $parts->{"utf-8.template"};
 	chomp $template;
 	$template = 'default' if $template eq "";
-	$session->{preparing_static_page} = 1; 
 	$session->prepare_page( $parts, page_id=>"static", template=>$template );
-	delete $session->{preparing_static_page};
 	$session->send_page;
+
+	delete $session->{preparing_static_page};
 
 	$session->terminate;
 

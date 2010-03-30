@@ -3748,4 +3748,10 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="Plugin/Screen/Workflow/Edit:metapage_title_default">Details</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Workflow/Commit:title" ref="Plugin/Screen/MetaField:commit" />
 
+	<epp:phrase id="Plugin/Screen/Logout:title">Logout</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Loggedout:title">Logged out</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Loggedout:success">Logout OK!</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Login:title" ref="cgi/login:title" />
+	<epp:phrase id="Plugin/Screen/Login:title:logged_in">Logged in as <epc:pin name="user" /></epp:phrase>
+
 </epp:phrases>

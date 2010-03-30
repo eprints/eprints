@@ -491,7 +491,15 @@ sub page
 		}
 	}
 
-
+	# provide CSS/JS settings to show/hide content based on login status
+	if( defined $self->{repository}->current_user )
+	{
+		$map->{login_status_header} = $self->{repository}->html_phrase( "dynamic:logged_in_header" );
+	}
+	else
+	{
+		$map->{login_status_header} = $self->{repository}->html_phrase( "dynamic:not_logged_in_header" );
+	}
 
 	
 	if( $self->{repository}->config( "dynamic_template","enable" ) )
