@@ -2099,6 +2099,7 @@ User Area CGI Scripts
     <epp:phrase id="cgi/login:title">Login</epp:phrase>
     <epp:phrase id="cgi/login:message">Login successful.</epp:phrase>
     <epp:phrase id="cgi/login:link_text"><p>You may now view <epc:pin name="link">your requested document</epc:pin>.</p></epp:phrase>
+    <epp:phrase id="cgi/login:no_cookies">Could not log in. Your password was correct, but you have cookies turned off. You must turn cookies on to login.</epp:phrase>
 
 <!--********************************************************************** 
 Staff CGI Scripts

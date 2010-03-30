@@ -5326,19 +5326,18 @@ sub allow_anybody
 
 sub login
 {
-	my( $self,$user ) = @_;
+	my( $self,$user,$code ) = @_;
 
 	my $ip = $ENV{REMOTE_ADDR};
 
-        my $code = EPrints::Apache::AnApache::cookie( $self->get_request, "eprints_session" );
+        if(!$code)
+	{
+		$code =  EPrints::Apache::AnApache::cookie( $self->get_request, "eprints_session" );
+	}
 	return unless EPrints::Utils::is_set( $code );
 
 	my $userid = $user->get_id;
 	$self->{database}->update_ticket_userid( $code, $userid, $ip );
-
-#	my $c = $self->{request}->connection;
-#	$c->notes->set(userid=>$userid);
-#	$c->notes->set(cookie_code=>$code);
 }
 
 

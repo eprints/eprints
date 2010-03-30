@@ -26,19 +26,48 @@ sub handler
 	my $session = new EPrints::Session;
 	my $problems;
 	# ok then we need to get the cgi
+	if( $session->param( "login_check" ) )
+	{
+		my $url = $session->get_url( host=>1 );
+		my $login_params = $session->param("login_params");
+		if( EPrints::Utils::is_set( $login_params ) ) { $url .= "?".$login_params; }
+		if( defined $session->current_user )
+		{
+			$session->redirect( $url );
+			return DONE;
+		}
+
+		$problems = $session->html_phrase( "cgi/login:no_cookies" );
+	}
+
 	my $username = $session->param( "login_username" );
 	my $password = $session->param( "login_password" );
-
 	if( defined $username )
 	{
 		if( $session->valid_login( $username, $password ) )
 		{
 			my $user = EPrints::DataObj::User::user_with_username( $session, $username );
-			$session->login( $user );
 
 			my $url = $session->get_url( host=>1 );
-			my $loginparams = $session->param("loginparams");
-			if( EPrints::Utils::is_set( $loginparams ) ) { $url .= "?".$loginparams; }
+			my $login_params = $session->param("login_params");
+			#if( EPrints::Utils::is_set( $login_params ) ) { $url .= "?".$login_params; }
+			$url .= "?login_params=".EPrints::Utils::url_escape( $session->param("login_params") );
+			$url .= "&login_check=1";
+
+			# always set a new random cookie value when we login
+			my @a = ();
+			srand;
+			my $r = $session->get_request;
+			for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
+			my $code = join( "", @a );
+			$session->login( $user,$code );
+			my $cookie = $session->{query}->cookie(
+				-name    => "eprints_session",
+				-path    => "/",
+				-value   => $code,
+				-domain  => $session->get_conf("cookie_domain"),
+			);			
+			$r->err_headers_out->add('Set-Cookie' => $cookie);
 			$session->redirect( $url );
 			return DONE;
 		}
@@ -49,21 +78,12 @@ sub handler
 	my $page=$session->make_doc_fragment();
 	$page->appendChild( input_form( $session, $problems ) );
 
-        my $cookie = EPrints::Apache::AnApache::cookie( $r, "eprints_session" );
-	my %opts = ();
-
-	# always set a new random cookie value when we render the login form.
-	my @a = ();
-	srand;
-	for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
-	$opts{code} = join( "", @a );
-
 	$r->status( 401 );
 	$r->custom_response( 401, '' ); # disable the normal error document
 
 	my $title = $session->html_phrase( "cgi/login:title" );
 	$session->build_page( $title, $page, "login" );
-	$session->send_page( %opts );
+	$session->send_page();
 	$session->terminate;
 
 	return DONE;
@@ -133,9 +153,9 @@ sub input_form
 	my $form = $session->render_form( "POST" );
 	$form->appendChild( $session->html_phrase( "cgi/login:page_layout", %bits ) );
 
-	my $loginparams = $session->param( "loginparams" );
+	my $login_params = $session->param( "login_params" );
 
-	if( !defined $loginparams )
+	if( !defined $login_params )
 	{
 		my @p = $session->param;
 		my @k = ();
@@ -145,9 +165,9 @@ sub input_form
 			$v =~ s/([^A-Z0-9])/sprintf( "%%%02X", ord($1) )/ieg;
 			push @k, $p."=".$v;
 		}
-		$loginparams = join( "&", @k );
+		$login_params = join( "&", @k );
 	}
-	$form->appendChild( $session->render_hidden_field( "loginparams", $loginparams ));
+	$form->appendChild( $session->render_hidden_field( "login_params", $login_params ));
 
 	my $target = $session->param( "target" );
 	if( defined $target )
