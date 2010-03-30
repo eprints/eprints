@@ -1312,6 +1312,7 @@ my $PRIVMAP =
 		"user/history:owner",
 	
 		"eprint/inbox/view:owner",
+		"eprint/inbox/export:owner",
 		"eprint/inbox/summary:owner",
 		"eprint/inbox/deposit:owner",
 		"eprint/inbox/edit:owner",
@@ -1328,6 +1329,7 @@ my $PRIVMAP =
 	
 	
 		"eprint/buffer/view:owner",
+		"eprint/buffer/export:owner",
 		"eprint/buffer/summary:owner",
 		"eprint/buffer/move_inbox:owner",
 		"eprint/buffer/export:owner",
@@ -1353,6 +1355,7 @@ my $PRIVMAP =
 	
 
 		"eprint/deletion/view:owner",
+		"eprint/deletion/export:owner",
 		"eprint/deletion/summary:owner",
 		"eprint/deletion/export:owner",
 		"eprint/deletion/details:owner",
@@ -1370,6 +1373,7 @@ my $PRIVMAP =
 		"editorial_review",
 
 		"eprint/inbox/view:editor",
+		"eprint/inbox/export:editor",
 		"eprint/inbox/summary:editor",
 		"eprint/inbox/staff/export:editor",
 		"eprint/inbox/staff/details:editor",
@@ -1386,6 +1390,7 @@ my $PRIVMAP =
 
 
 		"eprint/buffer/view:editor",
+		"eprint/buffer/export:editor",
 		"eprint/buffer/summary:editor",
 		"eprint/buffer/staff/export:editor",
 		"eprint/buffer/staff/details:editor",
@@ -1420,6 +1425,7 @@ my $PRIVMAP =
 
 
 		"eprint/deletion/view:editor",
+		"eprint/deletion/export:editor",
 		"eprint/deletion/summary:editor",
 		"eprint/deletion/staff/export:editor",
 		"eprint/deletion/staff/details:editor",

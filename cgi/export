@@ -234,7 +234,7 @@ sub export_dataobj
 
 	my $allowed = 0;
 
-	my $priv = "view";
+	my $priv = "export";
 	if( $dataset->id ne $dataset->base_id )
 	{
 		$priv = join('/', $dataset->base_id, $dataset->id, $priv );

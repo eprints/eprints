@@ -5300,6 +5300,7 @@ sub mail_administrator
 my $PUBLIC_PRIVS =
 {
 	"eprint_search" => 1,
+	"eprint/archive/export" => 1,
 };
 
 sub allow_anybody
