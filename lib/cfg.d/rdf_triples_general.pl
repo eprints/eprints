@@ -1,16 +1,4 @@
 
-# We shuggest using Open Data Commons licenses as these are more sutiable for 
-# data than normal Creative Commons. Follow the license URLs for more 
-# information.
-
-# $c->{rdf}->{license} = "http://www.opendatacommons.org/licenses/by/";
-# OR
-# $c->{rdf}->{license} = "http://www.opendatacommons.org/licenses/odbl/";
-
-# $c->{rdf}->{attributionName} = ".....";
-# $c->{rdf}->{attributionURL} = ".....";
-
-
 
 # These triples will be supplied in any serialisation of RDF your repository
 # produces, use it to describe rights information etc.
