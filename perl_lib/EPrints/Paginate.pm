@@ -171,7 +171,6 @@ sub paginate_list
 	{
 		$pins{below_results} = $session->make_doc_fragment;
 	}
-	$pins{below_results} = $opts{searchdesc};
 
 
 	# Add params to action urls
