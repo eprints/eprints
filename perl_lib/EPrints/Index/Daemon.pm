@@ -493,7 +493,9 @@ sub start_daemon
 		$self->cleanup(1);
 		$self->real_exit;
 	};
-	$SIG{CHLD} = 'IGNORE';
+# TODO: this appears to break convert's delegate mechanism and I'm unsure why
+# we need this anyway (we always waitpid() for child workers?)
+#	$SIG{CHLD} = 'IGNORE';
 
 	$self->log( 1, "** Indexer process started" );
 
