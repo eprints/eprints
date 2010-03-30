@@ -130,15 +130,18 @@ sub new_from_filename
 		filters => [
 			{
 				meta_fields => [qw( datasetid )],
-				value => $dataobj->get_dataset->base_id
+				value => $dataobj->get_dataset->base_id,
+				match => "EX",
 			},
 			{
 				meta_fields => [qw( objectid )],
-				value => $dataobj->id
+				value => $dataobj->id,
+				match => "EX",
 			},
 			{
 				meta_fields => [qw( filename )],
-				value => $filename
+				value => $filename,
+				match => "EX",
 			},
 		]);
 
@@ -246,14 +249,14 @@ sub get_system_field_info
 		{ name=>"fileid", type=>"counter", required=>1, import=>0, show_in_html=>0,
 			can_clone=>0, sql_counter=>"fileid" },
 
-		{ name=>"datasetid", type=>"text", text_index=>0, import=>0,
+		{ name=>"datasetid", type=>"id", text_index=>0, import=>0,
 			can_clone=>0 }, 
 
 		{ name=>"objectid", type=>"int", import=>0, can_clone=>0 }, 
 
-		{ name=>"filename", type=>"text", },
+		{ name=>"filename", type=>"id", },
 
-		{ name=>"mime_type", type=>"text", },
+		{ name=>"mime_type", type=>"id", },
 
 		{ name=>"hash", type=>"longtext", },
 
