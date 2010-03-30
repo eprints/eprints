@@ -53,6 +53,20 @@ sub get_search_conditions_not_ex
 		$search_value );
 }
 
+sub value_from_sql_row
+{
+	my( $self, $session, $row ) = @_;
+
+	return $self->EPrints::MetaField::Text::value_from_sql_row( $session, $row );
+}
+
+sub sql_row_from_value
+{
+	my( $self, $session, $value ) = @_;
+
+	return $self->EPrints::MetaField::Text::sql_row_from_value( $session, $value );
+}
+
 
 
 ######################################################################
