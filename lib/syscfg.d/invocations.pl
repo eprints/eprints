@@ -1,5 +1,7 @@
 # invocation strings for available executables
-$c->{invocation} = {
+$c->{invocation} ||= {};
+{
+my %invocations = (
 	 'convert_crop_white' => '$(convert) -crop 0x0 -bordercolor white -border 4x4 $(SOURCE) $(TARGET)',
 	 'dvips' => '$(dvips) $(SOURCE) -o $(TARGET)',
 	 'sendmail' => '$(sendmail) -oi -t -odb --',
@@ -14,4 +16,10 @@ $c->{invocation} = {
 	 'wget' => '$(wget) -U "Mozilla/5.0" -r -L -q -m -nH -np --execute="robots=off" --cut-dirs=$(CUTDIRS) $(URL)',
 	 'antiword' => '$(antiword) -t -f -m UTF-8 $(SOURCE) > $(TARGET)',
 	 'rmall' => '$(rm) -rf $(TARGET)/*',
-   };
+);
+while(my( $name, $invo ) = each %invocations)
+{
+	next if exists $c->{invocation}->{$name};
+	$c->{invocation}->{$name} = $invo;
+}
+}
