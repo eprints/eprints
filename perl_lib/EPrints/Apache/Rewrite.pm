@@ -482,8 +482,9 @@ sub handler
 	}
 	$r->filename( $repository->get_conf( "htdocs_path" )."/".$lang.$localpath );
 
-	if( $uri =~ m! ^/view(.*) !x )
+	if( $uri =~ m! ^$urlpath/view(.*) !x )
 	{
+		$uri =~ s! ^$urlpath !!x;
 		# redirect /foo to /foo/ 
 		if( $uri eq "/view" || $uri =~ m! ^/view/[^/]+$ !x )
 		{

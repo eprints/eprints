@@ -16,9 +16,9 @@ Welcome to <epc:phrase ref="archive_name" />. <a href="http://www.eprints.org/d/
 </td></tr></tbody></table></div></div>
 
 <div style="text-align: right">
-<span class="ep_search_feed"><a href="/cgi/latest_tool?output=Atom"><img alt="[feed]" src="/style/images/feed-icon-14x14.png" border="0" /></a> <a href="/cgi/latest_tool?output=Atom">Atom</a></span>
-<span class="ep_search_feed"><a href="/cgi/latest_tool?output=RSS"><img alt="[feed]" src="/style/images/feed-icon-14x14.png" border="0" /></a> <a href="/cgi/latest_tool?output=RSS">RSS 1.0</a></span>
-<span class="ep_search_feed"><a href="/cgi/latest_tool?output=RSS2"><img alt="[feed]" src="/style/images/feed-icon-14x14.png" border="0" /></a> <a href="/cgi/latest_tool?output=RSS2">RSS 2.0</a></span>
+<span class="ep_search_feed"><a href="{$config{rel_cgipath}}/latest_tool?output=Atom"><img alt="[feed]" src="{$config{rel_path}}/style/images/feed-icon-14x14.png" border="0" /></a> <a href="{$config{rel_cgipath}}/latest_tool?output=Atom">Atom</a></span>
+<span class="ep_search_feed"><a href="{$config{rel_cgipath}}/latest_tool?output=RSS"><img alt="[feed]" src="{$config{rel_path}}/style/images/feed-icon-14x14.png" border="0" /></a> <a href="{$config{rel_cgipath}}/latest_tool?output=RSS">RSS 1.0</a></span>
+<span class="ep_search_feed"><a href="{$config{rel_cgipath}}/latest_tool?output=RSS2"><img alt="[feed]" src="{$config{rel_path}}/style/images/feed-icon-14x14.png" border="0" /></a> <a href="{$config{rel_cgipath}}/latest_tool?output=RSS2">RSS 2.0</a></span>
 </div>
 
 

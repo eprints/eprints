@@ -51,7 +51,7 @@ sub handler
 
 	my $filename = $r->filename;
 
-	return DECLINED unless( $filename =~ s/.html$// );
+	return DECLINED unless( $filename =~ s/\.html$// );
 
 	return DECLINED unless( -r $filename.".page" );
 
