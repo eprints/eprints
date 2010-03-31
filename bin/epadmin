@@ -294,7 +294,7 @@ else
 	my $repoid = $ARGV[1];
 	pod2usage(1) unless defined $repoid;
 	if( $action eq "cleanup_cachemaps" ) { cleanup_cachemaps( $repoid ); }
-	elsif( $action eq "config_core" ) { config_core( $repoid ); }
+	elsif( $action eq "config_core" ) { config_core( &repository($repoid) ); }
 	elsif( $action eq "config_db" ) { config_db( $repoid ); }
 	elsif( $action eq "database_type_info" ) { database_type_info( $repoid ); }
 	elsif( $action eq "create_db" ) { create_db( $repoid ); }
@@ -607,7 +607,9 @@ sub cleanup_cachemaps
 
 sub config_core
 {
-	my( $repoid ) = @_;
+	my( $repo ) = @_;
+
+	my $repoid = ref($repo) ? $repo->get_id : $repo;
 
 	print "Core configuration for $repoid\n\n";
 
@@ -615,15 +617,24 @@ sub config_core
 
 	$config{port} = 80;
 	$config{host} = undef;
-	$config{urlpath} = '/';
 	$config{archiveroot} = "archives/".$repoid;
 	$config{aliases} = [];
 	$config{securehost} = undef;
-	$config{securepath} = undef;
+	$config{secureport} = 443;
+	$config{http_root} = "";
 
 	$config{adminemail} = undef;
 
 	$config{archive_name} = "Test Repository";
+
+	if( ref($repo) )
+	{
+		for(qw( port host aliases securehost secureport adminemail http_root ))
+		{
+			$config{$_} = $repo->config( $_ );
+		}
+		$config{archive_name} = $repo->phrase( "archive_name" );
+	}
 
 print <<END;
 
@@ -728,6 +739,38 @@ END
 		print "\n";
 	}
 
+	print <<END;
+	
+Please enter the path part of the repository's base URL. This should probably
+be '/'.
+
+END
+	$config{http_root} .= "/" if defined $config{http_root};
+	$config{http_root} = EPrints::Utils::get_input( '.*', 'Path', $config{http_root} );
+	$config{http_root} =~ s! ^/? !/!x;
+	$config{http_root} =~ s! /$ !!x;
+	$config{http_root} = undef if $config{http_root} eq "";
+
+	print <<END;
+	
+Please enter the hostname of your secure (https) server. Leave blank to use
+http for login.
+
+END
+
+	$config{securehost} = EPrints::Utils::get_input( "^\$|$REGEXP_HOSTNAME_FULL", 'Hostname', $config{securehost} );
+
+	if( $config{securehost} )
+	{
+		print <<END;
+
+Please enter the port of your secure (https) server. This is probably 443.
+
+END
+
+		$config{secureport} = EPrints::Utils::get_input( $REGEXP_NUMBER, 'Secure Webserver Port', $config{secureport} );
+	}
+
 #print <<END;
 #
 #Language Configuration
@@ -797,6 +840,10 @@ END
 
 	my $corefile = "$repodir/cfg/cfg.d/10_core.pl";
 	open( CORE, ">$corefile" ) || die "Could not write to $corefile: $!";
+	print CORE <<EOF;
+# This file was created by bin/epadmin
+# You can regenerate this file by doing ./bin/epadmin config_core $repoid
+EOF
 	print CORE Data::Dumper->Dump(
 		[
 			$config{host}, 
@@ -804,13 +851,15 @@ END
 			$config{aliases},
 			$config{securehost},
 			$config{secureport},
+			$config{http_root},
 		],
 		[qw/
 			$c->{host} 
 			$c->{port} 
 			$c->{aliases} 
 			$c->{securehost} 
-			$c->{securepath}
+			$c->{secureport} 
+			$c->{http_root}
 		/]
 	);
 	close CORE;
