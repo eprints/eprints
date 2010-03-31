@@ -237,15 +237,7 @@ sub render_blister
 		{ 
 			$class="ep_blister_node_selected"; 
 		}
-		my $phrase;
-		if( $stage_id eq "commit" )
-		{
-			$phrase = $session->phrase( "Plugin/Screen/Workflow/Commit:title" );
-		}
-		else
-		{
-			$phrase = $self->phrase( "metapage_title_".$stage_id );
-		}
+		my $phrase = $session->phrase( "Plugin/Screen/Workflow:" . $self->dataset->id . ":" . $stage_id ."_stage:title" );
 		my $button = $session->render_button(
 			name  => "_action_jump_$stage_id", 
 			value => $phrase,
