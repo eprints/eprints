@@ -475,6 +475,7 @@ sub handler
 
 	# apache 2 does not automatically look for index.html so we have to do it ourselves
 	my $localpath = $uri;
+	$localpath =~ s! ^$urlpath !!x;
 	if( $uri =~ m! /$ !x )
 	{
 		$localpath.="index.html";

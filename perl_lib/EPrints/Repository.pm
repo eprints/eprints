@@ -285,12 +285,12 @@ sub _add_live_http_paths
 		path => "cgi",
 	);
 	$config->{"http_url"} ||= $self->get_url(
-		scheme => "http",
+		scheme => ($config->{host} ? "http" : "https"),
 		host => 1,
 		path => "static",
 	);
 	$config->{"http_cgiurl"} ||= $self->get_url(
-		scheme => "http",
+		scheme => ($config->{host} ? "http" : "https"),
 		host => 1,
 		path => "cgi",
 	);
@@ -573,6 +573,11 @@ sub _add_http_paths
 
 	my $config = $self->{config};
 
+	if( $config->{securehost} )
+	{
+		$config->{secureport} ||= 443;
+	}
+
 	# Backwards-compatibility: http is fairly simple, https may go wrong
 	if( !defined($config->{"http_root"}) )
 	{
@@ -580,17 +585,26 @@ sub _add_http_paths
 		$config->{"http_root"} = $u->path;
 		$u = URI->new( $config->{"perl_url"} );
 		$config->{"http_cgiroot"} = $u->path;
-		if( $config->{"securehost"} )
-		{
-			$config->{"secureport"} ||= 443;
-			$config->{"https_root"} = $config->{"securepath"}
-				if !defined($config->{"https_root"});
-			$config->{"https_root"} = $config->{"http_root"}
-				if !defined($config->{"https_root"});
-			$config->{"https_cgiroot"} = $config->{"http_cgiroot"}
-				if !defined($config->{"https_cgiroot"});
-		}
 	}
+
+	$config->{"http_cgiroot"} ||= $config->{"http_root"}."/cgi";
+
+	if( $config->{"securehost"} )
+	{
+		$config->{"https_root"} = $config->{"securepath"}
+			if !defined($config->{"https_root"});
+		$config->{"https_root"} = $config->{"http_root"}
+			if !defined($config->{"https_root"});
+		$config->{"https_cgiroot"} = $config->{"http_cgiroot"}
+			if !defined($config->{"https_cgiroot"});
+	}
+
+	# old-style configuration names
+	$config->{"urlpath"} ||= $config->{"http_root"};
+	$config->{"base_url"} ||= $config->{"http_url"} . "/";
+	$config->{"perl_url"} ||= $config->{"http_cgiurl"};
+	$config->{"frontpage"} ||= $config->{"http_root"} . "/";
+	$config->{"userhome"} ||= $config->{"http_cgiroot"} . "/users/home";
 }
  
 ######################################################################
