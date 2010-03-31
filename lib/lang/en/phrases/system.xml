@@ -805,6 +805,8 @@ This field is required if no creators are listed.
 	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/Perl:inline_edit_title">Edit config file</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/XML:inline_edit_title">Edit config file</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/Static:inline_edit_title">Edit config file</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/Citation:inline_edit_title">Edit config file</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/NamedSet:inline_edit_title">Edit config file</epp:phrase>
 
 
 
