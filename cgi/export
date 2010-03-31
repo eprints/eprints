@@ -62,7 +62,7 @@ if( $plugin->param( "visible" ) eq "staff" )
 		$repository->get_request->status( 403 );
 		exit;
 	}
-	if( $user->value( "type" ) ne "editor" && $user->value( "type" ) ne "admin" )
+	if( $user->get_type ne "editor" && $user->get_type ne "admin" )
 	{
 		$repository->get_request->status( 403 );
 		exit;

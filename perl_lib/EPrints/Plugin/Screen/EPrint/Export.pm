@@ -31,7 +31,14 @@ sub render
 {
 	my( $self ) = @_;
 
-	my ($data,$title) = $self->{processor}->{eprint}->render_export_links; 
+	my $staff = 0;
+	my $user = $self->{session}->current_user;
+	if( $user->get_type eq "editor" || $user->get_type eq "admin" )
+	{
+		$staff = 1;
+	}
+
+	my ($data,$title) = $self->{processor}->{eprint}->render_export_links( $staff ); 
 
 	my $div = $self->{session}->make_element( "div",class=>"ep_block" );
 	$div->appendChild( $data );

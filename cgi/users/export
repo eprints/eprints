@@ -15,110 +15,13 @@
 use EPrints;
 
 use strict;
-my $session = new EPrints::Session;
-exit( 0 ) unless( defined $session );
-# $session->get_database->set_debug( 1 );
 
-my $path_info = $session->get_request->path_info;
+my $repo = EPrints->new->current_repository;
+exit( 0 ) unless( defined $repo );
 
-unless( $path_info =~ m!^/([0-9]+)(/([^/]*)?)?! ) {
-	error( $session, $session->html_phrase( "cgi/export:no_id" ) );
-	$session->terminate;
-	exit;
-}
+my $path_info = $repo->get_request->path_info;
 
-my $id = $1;
-my $afterid = $2;
-my $format = $3;
-my $export_url = $session->get_repository->get_conf( "perl_url" )."/users/export";
+my $url = $repo->current_url( host => 1, path => "cgi", "export" );
+$url .= $path_info;
 
-if( !defined $id ) {
-	error( $session, $session->html_phrase( "cgi/export:no_id" ) );
-	$session->terminate;
-	exit;
-}
-if( !defined $afterid ) {
-	$session->redirect( $export_url."/".$id."/" );
-	$session->terminate;
-	exit;
-}
-
-my $eprint = EPrints::DataObj::EPrint->new( $session, $id );
-if( !defined $eprint ) {
-	error( 
-		$session, 
-		$session->html_phrase( 
-			"cgi/export:eprint_not_fount",
-			eprintid => $session->make_text( $id ) ) );
-	$session->terminate;
-	exit;
-}
-
-
-my $can_edit = $eprint->in_editorial_scope_of( $session->current_user );
-
-unless( $can_edit )
-{
-	$session->render_error( $session->html_phrase(
-		"cgi/users/edit_eprint:cant_edit",
-		id=>$session->make_text( $id ) ) );
-	return;
-}
-
-
-if( !defined $format || $format eq "" ) {
-	my $title = $session->html_phrase( "cgi/export:title",
-			shortname=>$eprint->render_description );
-	my $page = $session->html_phrase( "cgi/export:page",
-		citation => $eprint->render_citation_link,
-		formats => $eprint->render_export_links(1) ); 
-	$session->build_page( $title, $page, "export" );
-	$session->send_page;
-	$session->terminate;
-	exit;
-}
-
-my @plugins = $session->plugin_list( 
-				type=>"Export", 
-				can_accept=>"dataobj/eprint", 
-				is_visible=>"staff" );
-my $ok = 0;
-foreach( @plugins ) { if( $_ eq "Export::$format" ) { $ok = 1; last; } }
-unless( $ok ) {
-	error( $session, $session->html_phrase( "cgi/export:not_available",
-				format => $session->make_text( $format ) ) );
-	$session->terminate;
-	exit;
-}
-
-my $plugin = $session->plugin( "Export::$format" );
-
-
-my %arguments = %{$plugin->param( "arguments" )};
-# fetch the plugin arguments, if any
-foreach my $argname (keys %arguments)
-{
-	if( defined $session->param( $argname ) )
-	{
-		$arguments{$argname} = $session->param( $argname );
-	}
-}
-
-$session->send_http_header( "content_type"=>$plugin->param("mimetype") );
-$plugin->initialise_fh( \*STDOUT );
-print $eprint->export( $format, %arguments );	
-	
-$session->terminate;
-exit;
-
-sub error
-{
-	my( $session, $msg ) = @_;
-
-	$session->build_page( 
-		$session->html_phrase( "cgi/export:error_title" ),
-		$msg,
-		"export_error" );
-	$session->send_page;
-}
-
+$repo->redirect( $url );
