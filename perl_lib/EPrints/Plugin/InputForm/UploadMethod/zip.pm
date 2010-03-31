@@ -20,36 +20,51 @@ sub update_from_form
 {
 	my( $self, $processor ) = @_;
 
-	my $doc_data = {
-		_parent => $self->{dataobj},
-		eprintid => $self->{dataobj}->get_id,
-		format=>"other"
-		};
+	my $repo = $self->{session};
 
-	my $repository = $self->{session}->get_repository;
-
-	my $doc_ds = $self->{session}->get_repository->get_dataset( 'document' );
-	my $document = $doc_ds->create_object( $self->{session}, $doc_data );
-	if( !defined $document )
+	my $doc = $self->{dataobj}->create_subdataobj( "documents", {
+		format => "other",
+	} );
+	if( !defined $doc )
 	{
-		$processor->add_message( "error", $self->{session}->html_phrase( "Plugin/InputForm/Component/Upload:create_failed" ) );
+		$processor->add_message( "error", $repo->html_phrase( "Plugin/InputForm/Component/Upload:create_failed" ) );
 		return;
 	}
 
 	my $success = EPrints::Apache::AnApache::upload_doc_archive( 
-		$self->{session},
-		$document,
+		$repo,
+		$doc,
 		$self->{prefix}."_first_file_zip",
 		"zip" );
 
 	if( !$success )
 	{
-		$document->remove();
-		$processor->add_message( "error", $self->{session}->html_phrase( "Plugin/InputForm/Component/Upload:upload_failed" ) );
+		$doc->remove();
+		$processor->add_message( "error", $repo->html_phrase( "Plugin/InputForm/Component/Upload:upload_failed" ) );
 		return;
 	}
 
-	$processor->{notes}->{upload_plugin}->{to_unroll}->{$document->get_id} = 1;
+	if( !$doc->set_main( "index.html" ) && !$doc->set_main( "index.htm" ) )
+	{
+		my $files = $doc->value( "files" );
+		if( @$files )
+		{
+			my $file = $files->[0];
+			$doc->set_value( "main", $file->value( "filename" ) );
+		}
+	}
+
+	if( $doc->is_set( "main" ) )
+	{
+		my $file = $doc->get_stored_file( $doc->value( "main" ) );
+		$doc->set_value( "format", $repo->call( 'guess_doc_type',
+			$repo,
+			$file->value( "filename" ) ) );
+	}
+
+	$doc->commit;
+
+	$processor->{notes}->{upload_plugin}->{to_unroll}->{$doc->id} = 1;
 }
 
 sub render_add_document
