@@ -255,6 +255,10 @@ sub handler
 	# REST
 	if( $uri =~ m! ^$urlpath/rest !x )
 	{
+		$r->handler( 'perl-script' );
+
+		$r->set_handlers( PerlMapToStorageHandler => sub { OK } );
+
 	 	$r->set_handlers(PerlResponseHandler => \&EPrints::Apache::REST::handler );
 		return OK;
 	}

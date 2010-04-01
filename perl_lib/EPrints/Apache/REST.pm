@@ -26,6 +26,8 @@ sub handler
 	my $repository = $EPrints::HANDLE->current_repository;
 
 	my $uri = $r->uri;
+	my $urlpath = $repository->config( "http_root" );
+	$uri =~ s! ^$urlpath !!x;
 	$uri =~ s/^\/rest//;
 
 	if( $uri eq "" )
