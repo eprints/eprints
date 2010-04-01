@@ -978,17 +978,18 @@ sub config_edit
 	
 	my ( $parser_files, $codemirror_style ) = $self->get_parser_files($fn);
 
-	if (defined $parser_files) {
-	
-		my $js = $self->{session}->make_element( "script", type=>"text/javascript", src=> "/javascript/codemirror/codemirror.js" );
+	if (defined $parser_files)
+	{
+		my $rel_path = $self->{session}->config( "rel_path" );
+		my $js = $self->{session}->make_element( "script", type=>"text/javascript", src=> "$rel_path/javascript/codemirror/codemirror.js" );
 		$div->appendChild($js);
 		my $js2 = $self->{session}->make_javascript('
 			document.observe("dom:loaded",function(){
 			var editor = CodeMirror.fromTextArea(\'code\', {
 			height: "350px",
 			parserfile: [ '.$parser_files.' ],
-			stylesheet: "'.$codemirror_style.'",
-			path: "/javascript/codemirror/",
+			stylesheet: "'.$rel_path.$codemirror_style.'",
+			path: "'.$rel_path.'/javascript/codemirror/",
 			continuousScanning: 500,
 			lineNumbers: true
 			});});');
