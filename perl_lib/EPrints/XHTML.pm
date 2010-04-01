@@ -518,6 +518,14 @@ sub page
 		}
 	}
 
+	# we've been called by an older script
+	if( !defined $map->{login_status} )
+	{
+		$map->{login_status} = EPrints::ScreenProcessor->new(
+			session => $self->{repository},
+		)->render_toolbar;
+	}
+
 	my $pagehooks = $self->{repository}->config( "pagehooks" );
 	$pagehooks = {} if !defined $pagehooks;
 	my $ph = $pagehooks->{$options{page_id}} if defined $options{page_id};
