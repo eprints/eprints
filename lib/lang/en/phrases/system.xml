@@ -3657,6 +3657,7 @@ Each file inside this archive will be created as an <b>individual</b> document i
 
 
 
+	<epp:phrase id="validate:truncated">The value given for <epc:pin name="fieldname" /> is too long and has been truncated.</epp:phrase>
     <epp:phrase id="validate:missing_http">The URL given for <epc:pin name="fieldname"/> is invalid. Did you include the initial <strong>http://</strong>?</epp:phrase>
     <epp:phrase id="validate:bad_email">The email given for <epc:pin name="fieldname"/> is invalid.</epp:phrase>
     <epp:phrase id="validate:missing_family">Name in field <epc:pin name="fieldname"/> is missing the "family" part.</epp:phrase>

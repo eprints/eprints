@@ -58,7 +58,7 @@ sub get_max_input_size
 {
 	my( $self ) = @_;
 
-	return $EPrints::MetaField::VARCHAR_SIZE;
+	return $self->get_property( "maxlength" );
 }
 
 # note that this renders pages ranges differently from

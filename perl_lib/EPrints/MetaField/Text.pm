@@ -28,18 +28,11 @@ not done
 
 package EPrints::MetaField::Text;
 
+use EPrints::MetaField::Id;
+
+@ISA = qw( EPrints::MetaField::Id );
+
 use strict;
-use warnings;
-
-use EPrints::MetaField;
-
-BEGIN
-{
-	our( @ISA );
-	@ISA = qw( EPrints::MetaField );
-}
-
-
 
 sub render_search_value
 {
@@ -179,47 +172,6 @@ sub get_property_defaults
 	$defaults{text_index} = 1;
 	$defaults{sql_index} = 0;
 	return %defaults;
-}
-
-######################################################################
-=pod
-
-=item $val = $field->value_from_sql_row( $session, $row )
-
-Shift and return the utf8 value of this field from the database input $row.
-
-=cut
-######################################################################
-
-sub value_from_sql_row
-{
-	my( $self, $session, $row ) = @_;
-
-	if( $session->{database}->isa( "EPrints::Database::mysql" ) )
-	{
-		utf8::decode( $row->[0] );
-	}
-
-	return shift @$row;
-}
-
-=item @row = $field->sql_row_from_value( $session, $value )
-
-Returns the value as an appropriate value for the database.
-
-Replaces invalid XML 1.0 code points with the Unicode substitution character (0xfffd), see http://www.w3.org/International/questions/qa-controls
-
-=cut
-
-sub sql_row_from_value
-{
-	my( $self, $session, $value ) = @_;
-
-	return( undef ) if !defined $value;
-
-	$value =~ s/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]/\x{fffd}/g;
-	
-	return( $value );
 }
 
 ######################################################################

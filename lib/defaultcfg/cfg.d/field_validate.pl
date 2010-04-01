@@ -27,56 +27,76 @@ $c->{validate_field} = sub
 {
 	my( $field, $value, $session, $for_archive ) = @_;
 
+	# only apply checks if the value is set
+	return () if !EPrints::Utils::is_set( $value );
+
 	my @problems = ();
 
 	# CHECKS IN HERE
 
+	my $values = ref($value) eq "ARRAY" ? $value : [$value];
+
+	# closure for generating the field link fragment
+	my $f_fieldname = sub {
+		my $fieldname = $session->make_element( "span", class=>"ep_problem_field:".$field->get_name );
+		$fieldname->appendChild( $field->render_name( $session ) );
+		return $fieldname;
+	};
+
 	# Loop over actual individual values to check URLs, names and emails
-
-	if( $field->is_type( "url", "name", "email" ) && EPrints::Utils::is_set( $value ) )
+	foreach my $v (@$values)
 	{
-		$value = [$value] unless( $field->get_property( "multiple" ) );
-		foreach( @{$value} )
+		if( $field->isa( "EPrints::MetaField::Url" ) )
 		{
-			my $v = $_;
-
-			my $fieldname = $session->make_element( "span", class=>"ep_problem_field:".$field->get_name );
-			$fieldname->appendChild( $field->render_name( $session ) );
-			# Check a URL for correctness
-			if( $field->is_type( "url" ) && $v !~ /^\w+:/ )
+			# Valid URI check (very loose)
+			if( $v !~ /^\w+:/ )
 			{
 				push @problems,
 					$session->html_phrase( "validate:missing_http",
-						fieldname=>$fieldname );
+						fieldname=>&$f_fieldname );
 			}
-
+		}
+		elsif( $field->isa( "EPrints::MetaField::Name" ) )
+		{
 			# Check a name has a family part
-			if( $field->is_type( "name" ) && !EPrints::Utils::is_set( $v->{family} ) )
+			if( !EPrints::Utils::is_set( $v->{family} ) )
 			{
 				push @problems,
 					$session->html_phrase( "validate:missing_family",
-						fieldname=>$fieldname );
+						fieldname=>&$f_fieldname );
 			}
-
 			# Check a name has a given part
-			if( $field->is_type( "name" ) && !EPrints::Utils::is_set( $v->{given} ) )
+			elsif( !EPrints::Utils::is_set( $v->{given} ) )
 			{
 				push @problems,
 					$session->html_phrase( "validate:missing_given",
-						fieldname=>$fieldname );
+						fieldname=>&$f_fieldname );
 			}
-
+		}
+		elsif( $field->isa( "EPrints::MetaField::Email" ) )
+		{
 			# Check an email looks "ok". Just checks it has only one "@" and no
 			# spaces.
-			if( $field->is_type( "email" ) && $v !~ /^[^ \@]+\@[^ \@]+$/ )
+			if( $v !~ /^[^ \@]+\@[^ \@]+$/ )
 			{
 				push @problems,
 					$session->html_phrase( "validate:bad_email",
-						fieldname=>$fieldname );
+						fieldname=>&$f_fieldname );
+			}
+		}
+
+		# Check for overly long values
+		# Applies to all subclasses of Id: Text, Longtext, Url etc.
+		if( $field->isa( "EPrints::MetaField::Id" ) )
+		{
+			if( length($v) > $field->get_property( "maxlength" ) )
+			{
+				push @problems,
+					$session->html_phrase( "validate:truncated",
+						fieldname=>&$f_fieldname );
 			}
 		}
 	}
-
 
 	return( @problems );
 };

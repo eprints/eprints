@@ -40,8 +40,6 @@ BEGIN
 
 use EPrints::MetaField::Text;
 
-my $VARCHAR_SIZE = 255;
-
 # database order
 our @PARTS = qw( family lineage given honourific );
 
@@ -57,11 +55,9 @@ sub value_from_sql_row
 	my( $self, $session, $row ) = @_;
 
 	my %value;
-	@value{@PARTS} = splice(@$row,0,4);
-
-	if( $session->{database}->isa( "EPrints::Database::mysql" ) )
+	for(@PARTS)
 	{
-		utf8::decode($_) for values %value;
+		$value{$_} = $self->SUPER::value_from_sql_row( $session, $row );
 	}
 
 	return \%value;
@@ -76,12 +72,11 @@ sub sql_row_from_value
 		return map { undef } @PARTS;
 	}
 
-	foreach my $part (@$value{@PARTS})
+	for(@$value{@PARTS})
 	{
 		# Avoid NULL!="" name part problems
-		$part = "" if !defined $part;
-		# strip control characters
-		$part =~ s/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]/\x{fffd}/g;
+		$_ = "" if !defined $_;
+		$_ = $self->SUPER::sql_row_from_value( $session, $_ );
 	}
 
 	return @$value{@PARTS};

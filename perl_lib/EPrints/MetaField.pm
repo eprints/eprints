@@ -1533,7 +1533,9 @@ sub get_basic_input_ids
 
 sub get_max_input_size
 {
-	return $EPrints::MetaField::VARCHAR_SIZE;
+	my( $self ) = @_;
+
+	return $self->get_property( "maxlength" );
 }
 
 
