@@ -28,7 +28,7 @@
     <tr>
       <td align="left"><epc:pin ref="login_status"/></td>
       <td align="right" style="white-space: nowrap">
-	  	<epc:print expr="languages()" />
+	  	<epc:pin ref="languages" />
         <form method="get" accept-charset="utf-8" action="{$config{http_cgiurl}}/search" style="display:inline">
           <input class="ep_tm_searchbarbox" size="20" type="text" name="q"/>
           <input class="ep_tm_searchbarbutton" value="Search" type="submit" name="_action_search"/>

@@ -59,11 +59,11 @@ sub set_cookie
 	$session->{request}->err_headers_out->add('Set-Cookie' => $cookie);
 }
 
-sub EPrints::Script::Compiled::run_languages
+sub render_action_link
 {
-	my( $self, $state ) = @_;
+	my( $self ) = @_;
 
-	my $session = $state->{session};
+	my $session = $self->{session};
 
 	my $xml = $session->xml;
 	my $f = $xml->create_document_fragment;
@@ -127,7 +127,7 @@ sub EPrints::Script::Compiled::run_languages
 	$link->appendChild( $img );
 	$div->appendChild( $link );
 
-	return [ $div, "XHTML" ];
+	return $div;
 }
 
 1;

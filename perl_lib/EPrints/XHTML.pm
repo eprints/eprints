@@ -501,6 +501,12 @@ sub page
 		$map->{login_status_header} = $self->{repository}->html_phrase( "dynamic:not_logged_in_header" );
 	}
 
+	# languages pin
+	my $plugin = $self->{repository}->plugin( "Screen::SetLang" );
+	if( defined $plugin )
+	{
+		$map->{languages} = $plugin->render_action_link;
+	}
 	
 	if( $self->{repository}->config( "dynamic_template","enable" ) )
 	{
