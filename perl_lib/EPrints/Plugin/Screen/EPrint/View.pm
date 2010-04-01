@@ -17,13 +17,17 @@ sub new
 
 	$self->{icon} = "action_view.png";
 
-	if( $class eq "EPrints::Plugin::Screen::EPrint::View" )
+	if( $class eq __PACKAGE__ )
 	{
 		# don't add this for subclasses!
 		$self->{appears} = [
 			{
 				place => "eprint_summary_page_actions",
 				position => 100,
+			},
+			{
+				place => "eprint_item_actions",
+				position => 10,
 			},
 		];
 	}
