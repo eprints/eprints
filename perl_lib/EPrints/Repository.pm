@@ -284,26 +284,6 @@ sub _add_live_http_paths
 	$config->{"rel_cgipath"} = $self->get_url(
 		path => "cgi",
 	);
-	$config->{"http_url"} ||= $self->get_url(
-		scheme => ($config->{host} ? "http" : "https"),
-		host => 1,
-		path => "static",
-	);
-	$config->{"http_cgiurl"} ||= $self->get_url(
-		scheme => ($config->{host} ? "http" : "https"),
-		host => 1,
-		path => "cgi",
-	);
-	$config->{"https_url"} ||= $self->get_url(
-		scheme => "https",
-		host => 1,
-		path => "static",
-	);
-	$config->{"https_cgiurl"} ||= $self->get_url(
-		scheme => "https",
-		host => 1,
-		path => "cgi",
-	);
 }
 
 ######################################################################
@@ -598,6 +578,27 @@ sub _add_http_paths
 		$config->{"https_cgiroot"} = $config->{"http_cgiroot"}
 			if !defined($config->{"https_cgiroot"});
 	}
+
+	$config->{"http_url"} ||= $self->get_url(
+		scheme => ($config->{host} ? "http" : "https"),
+		host => 1,
+		path => "static",
+	);
+	$config->{"http_cgiurl"} ||= $self->get_url(
+		scheme => ($config->{host} ? "http" : "https"),
+		host => 1,
+		path => "cgi",
+	);
+	$config->{"https_url"} ||= $self->get_url(
+		scheme => "https",
+		host => 1,
+		path => "static",
+	);
+	$config->{"https_cgiurl"} ||= $self->get_url(
+		scheme => "https",
+		host => 1,
+		path => "cgi",
+	);
 
 	# old-style configuration names
 	$config->{"urlpath"} ||= $config->{"http_root"};

@@ -3737,12 +3737,7 @@ Each file inside this archive will be created as an <b>individual</b> document i
 
 	<epp:phrase id="template/navigation:home">Home</epp:phrase>
 	<epp:phrase id="template/navigation:about">About</epp:phrase>
-	<epp:phrase id="template:footer">
-  <div style="float: right; margin-left: 1em"><a href="http://eprints.org/software/"><img alt="EPrints Logo" src="{$config{rel_path}}/images/eprintslogo.gif" border="0"/></a></div>
-  <div style="font-size: 80%;">
-    <div><epc:phrase ref="archive_name" /> is powered by <em><a href="http://eprints.org/software/">EPrints 3</a></em> which is developed by the <a href="http://www.ecs.soton.ac.uk/">School of Electronics and Computer Science</a> at the University of Southampton. <a href="{$config{http_url}}/eprints/">More information and software credits</a>.</div>
-  </div>
-    </epp:phrase>
+	<epp:phrase id="template:about_eprints"><div><epc:phrase ref="archive_name" /> is powered by <em><a href="http://eprints.org/software/">EPrints 3</a></em> which is developed by the <a href="http://www.ecs.soton.ac.uk/">School of Electronics and Computer Science</a> at the University of Southampton. <a href="{$config{http_url}}/eprints/">More information and software credits</a>.</div></epp:phrase>
 
 
 

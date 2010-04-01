@@ -55,7 +55,10 @@
 <div class="ep_tm_footer ep_noprint">
   <epc:phrase ref="ruler" />
   <hr class="ep_tm_last"/>
-  <epc:phrase ref="template:footer" />
+  <div style="float: right; margin-left: 1em"><a href="http://eprints.org/software/"><img alt="EPrints Logo" src="{$config{rel_path}}/images/eprintslogo.gif" border="0"/></a></div>
+  <div style="font-size: 80%;">
+  <epc:phrase ref="template:about_eprints" />
+  </div>
 </div>
 
 
