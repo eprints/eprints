@@ -72,7 +72,7 @@ sub render_action_link
 
 	if( @$languages == 1 )
 	{
-		return [ $f, "XHTML" ];
+		return $f;
 	}
 
 	my $imagesurl = $session->config( "rel_path" )."/images/flags";
