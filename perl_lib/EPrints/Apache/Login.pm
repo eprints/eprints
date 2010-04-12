@@ -43,7 +43,6 @@ sub handler
 			my $url = $session->get_url( host=>1 );
 			$url .= "?login_params=".EPrints::Utils::url_escape( $session->param("login_params") );
 			$url .= "&login_check=1";
-print STDERR ">>$url\n";
 			# always set a new random cookie value when we login
 			my @a = ();
 			srand;
