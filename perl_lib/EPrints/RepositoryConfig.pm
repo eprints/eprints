@@ -14,6 +14,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<EPrints::RepositoryConfig> - Repository Configuration
@@ -33,28 +35,60 @@ Setter methods may only be used in the configuration.
 
 package EPrints::RepositoryConfig;
 
-use warnings;
 use strict;
 
-=pod
+=item $c->add_dataset_trigger( $datasetid, TRIGGER_ID, $f, %opts )
 
-=item $c->add_trigger( $event_id, $fn, [$priority] )
+Register a function reference $f to be called when the TRIGGER_ID event happens on $datasetid.
 
-Register a new trigger to occur when a certain event happens.
+See L<EPrints::Const> for available triggers.
 
-$priority can be used to cause this trigger to happen early or later than other tirggers on the same event. 0 is default. -100 is very early. 100 is very late. 
+See L</add_trigger> for %opts.
+
+=cut
+
+sub add_dataset_trigger
+{
+	my( $self, $datasetid, $type, $f, %opts ) = @_;
+
+	if( $self->read_only ) { EPrints::abort( "Configuration is read-only." ); }
+
+	if( ref($f) ne "CODEREF" && ref($f) ne "CODE" )
+	{
+		EPrints->abort( "add_dataset_trigger expected a CODEREF but got '$f'" );
+	}
+
+	my $priority = exists $opts{priority} ? $opts{priority} : 0;
+
+	push @{$self->{datasets}->{$datasetid}->{triggers}->{$type}->{$priority}}, $f;
+}
+
+=item $c->add_trigger( TRIGGER_ID, $f, %opts )
+
+Register a function reference $f to be called when the TRIGGER_ID event happens.
+
+See L<EPrints::Const> for available triggers.
+
+Options:
+
+	priority - used to determine the order triggers are executed in (defaults to 0).
 
 =cut
 
 sub add_trigger
 {
-	my( $self, $event_id, $fn, $priority ) = @_;
+	my( $self, $type, $f, %opts ) = @_;
 
 	if( $self->read_only ) { EPrints::abort( "Configuration is read-only." ); }
 
-	if( !defined $priority ) { $priority = 0; }
+	if( ref($f) ne "CODEREF" && ref($f) ne "CODE" )
+	{
+		EPrints->abort( "add_trigger expected a CODEREF but got '$f'" );
+	}
 
-	push @{$self->{triggers}->{$event_id}->{$priority}}, $fn;
+	my $priority = exists $opts{priority} ? $opts{priority} : 0;
+
+	push @{$self->{triggers}->{$type}->{$priority}}, $f;
 }
 
 =pod

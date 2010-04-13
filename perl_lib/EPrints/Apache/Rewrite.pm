@@ -448,7 +448,7 @@ sub handler
 		 	$r->set_handlers(PerlResponseHandler => \&EPrints::Apache::Storage::handler );
 
 			# log full-text hits
-			$r->push_handlers(PerlLogHandler => \&EPrints::Apache::LogHandler::document );
+			$r->push_handlers(PerlCleanupHandler => \&EPrints::Apache::LogHandler::document );
 		}
 		# OK, It's the EPrints abstract page (or something whacky like /23/fish)
 		else
@@ -470,7 +470,7 @@ sub handler
 				$r->set_handlers(PerlResponseHandler => [ 'EPrints::Apache::Template' ] );
 
 				# log abstract hits
-				$r->push_handlers(PerlLogHandler => \&EPrints::Apache::LogHandler::eprint );
+				$r->push_handlers(PerlCleanupHandler => \&EPrints::Apache::LogHandler::eprint );
 			}
 		}
 

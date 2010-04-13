@@ -107,6 +107,7 @@ $ds = $repository->get_dataset( "inbox" );
 package EPrints::DataSet;
 
 use EPrints;
+use EPrints::Const;
 
 use strict;
 
@@ -860,14 +861,17 @@ sub create_object
 {
 	my( $self , $session , $data ) = @_;
 
-	my $class = $self->get_object_class;
-
-	return $class->create_from_data( $session, $data, $self );
+	return $self->create_dataobj( $data );
 }
 sub create_dataobj
 {
 	my( $self, $data ) = @_;
-	return $self->dataobj_class->create_from_data( $self->repository, $data, $self );
+	
+	my $dataobj = $self->dataobj_class->create_from_data( $self->repository, $data, $self );
+
+	$self->run_trigger( EP_TRIGGER_CREATED, dataobj => $dataobj );
+
+	return $dataobj;
 }
 
 ######################################################################
@@ -1293,6 +1297,33 @@ sub columns
 	$columns = [grep { defined $_ } map { $self->field( $_ ) } @$columns];
 
 	return $columns;
+}
+
+=item $dataset->run_trigger( TRIGGER_ID, %params )
+
+Runs all of the registered triggers for TRIGGER_ID on this dataset.
+
+%params is passed to the trigger functions.
+
+=cut
+
+sub run_trigger
+{
+	my( $self, $type, %params ) = @_;
+
+	my $fs = $self->{repository}->config( "datasets", $self->base_id, "triggers", $type );
+	return if !defined $fs;
+
+	$params{repository} = $self->{repository};
+	$params{dataset} = $self;
+
+	foreach my $priority ( sort { $a <=> $b } keys %{$fs} )
+	{
+		foreach my $f ( @{$fs->{$priority}} )
+		{
+			&{$f}( %params );
+		}
+	}
 }
 
 ######################################################################

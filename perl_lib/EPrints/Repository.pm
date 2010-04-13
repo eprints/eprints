@@ -1463,28 +1463,31 @@ sub config($$@)
 	return $val;
 }
 
-######################################################################
-#
-# $repository->run_trigger( $event_id, %params )
-#
-# Run all the triggers with the given event id. Any return values are
-# set in the properties passed in in %params
-#
-######################################################################
+=begin InternalDoc
+
+=item $repository->run_trigger( TRIGGER_ID, %params )
+
+Run all the triggers with the given TRIGGER_ID. Any return values are
+set in the properties passed in in %params
+
+=end
+
+=cut
 
 sub run_trigger
 {
-	my( $self,$event_id, %params ) = @_;
+	my( $self, $type, %params ) = @_;
 
-	my $fns = $self->config( "triggers", $event_id );
+	my $fs = $self->config( "triggers", $type );
+	return if !defined $fs;
+
 	$params{repository} = $self;
 
-	return if !defined $fns;
-	foreach my $pri ( sort { $a <=> $b } keys %{$fns} )
+	foreach my $priority ( sort { $a <=> $b } keys %{$fs} )
 	{
-		foreach my $fn ( @{$fns->{$pri}} )
+		foreach my $f ( @{$fs->{$priority}} )
 		{
-			&{$fn}( %params );
+			&{$f}( %params );
 		}
 	}
 }

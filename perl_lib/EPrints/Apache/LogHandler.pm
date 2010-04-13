@@ -142,7 +142,7 @@ sub document
 		return DECLINED;
 	}
 
-	my $epdata = _generic( $r );
+	my $epdata = _generic( $r, { _parent => $doc } );
 
 	$epdata->{service_type_id} = "?fulltext=yes";
 	$epdata->{referent_id} = $doc->value( "eprintid" );
@@ -177,7 +177,7 @@ sub eprint
 
 	my $eprint = $r->pnotes( "eprint" );
 
-	my $epdata = _generic( $r );
+	my $epdata = _generic( $r, { _parent => $eprint } );
 
 	$epdata->{service_type_id} = "?abstract=yes";
 	$epdata->{referent_id} = $eprint->id;
@@ -187,24 +187,23 @@ sub eprint
 
 sub _generic
 {
-	my( $r ) = @_;
+	my( $r, $epdata ) = @_;
 
 	my $c = $r->connection;
 	my $ip = $c->remote_ip;
 
-	my $access = {};
-	$access->{datestamp} = EPrints::Time::get_iso_timestamp( $r->request_time );
-	$access->{requester_id} = $ip;
-	$access->{referring_entity_id} = $r->headers_in->{ "Referer" };
-	$access->{requester_user_agent} = $r->headers_in->{ "User-Agent" };
+	$epdata->{datestamp} = EPrints::Time::get_iso_timestamp( $r->request_time );
+	$epdata->{requester_id} = $ip;
+	$epdata->{referring_entity_id} = $r->headers_in->{ "Referer" };
+	$epdata->{requester_user_agent} = $r->headers_in->{ "User-Agent" };
 
 	# Sanity check referring URL (don't store non-HTTP referrals)
-	if( !$access->{referring_entity_id} || $access->{referring_entity_id} !~ /^https?:/ )
+	if( !$epdata->{referring_entity_id} || $epdata->{referring_entity_id} !~ /^https?:/ )
 	{
-		$access->{referring_entity_id} = '';
+		$epdata->{referring_entity_id} = '';
 	}
 
-	return $access;
+	return $epdata;
 }
 
 sub _create_access

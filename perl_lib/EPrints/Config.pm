@@ -154,6 +154,8 @@ sub load_system_config
 		my $perl = <<EOP;
 package EPrints::SystemSettings;
 
+use EPrints::Const;
+
 our \$c = \$EPrints::SystemSettings::tmp;
 
 EOP
@@ -315,6 +317,7 @@ sub load_repository_config_module
 		close CFGFILE;
 	 	my $todo = <<END;
 package EPrints::Config::$id; 
+use EPrints::Const;
 our \$c = \$EPrints::Config::${id}::config;
 #line 1 "$filepath"
 $cfgfile

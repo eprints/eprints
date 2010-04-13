@@ -87,7 +87,7 @@ Id of the document requested (if relevent).
 
 package EPrints::DataObj::Access;
 
-@ISA = ( 'EPrints::DataObj' );
+@ISA = ( 'EPrints::DataObj::SubObject' );
 
 use EPrints;
 
