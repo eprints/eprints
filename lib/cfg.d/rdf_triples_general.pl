@@ -3,7 +3,7 @@
 # These triples will be supplied in any serialisation of RDF your repository
 # produces, use it to describe rights information etc.
 
-$c->add_trigger( "rdf_triples_general", sub {
+$c->add_trigger( EP_TRIGGER_BOILERPLATE_RDF, sub {
 	my( %o ) = @_;
 
 	my $license_uri = $o{repository}->config( "rdf", "license" );

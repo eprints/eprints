@@ -7,7 +7,7 @@
 
 $c->{rdf}->{xmlns}->{void} = "http://rdfs.org/ns/void#";
 
-$c->add_trigger( "rdf_triples_repository", sub {
+$c->add_trigger( EP_TRIGGER_REPOSITORY_RDF, sub {
 	my( %o ) = @_;
 
 	my $repository_uri = "<".$o{repository}->config( "base_url" )."/id/repository>";

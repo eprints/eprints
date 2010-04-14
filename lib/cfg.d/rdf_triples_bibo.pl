@@ -24,7 +24,7 @@ $c->{rdf}->{bibo_type}->{audio} = "bibo:AudioDocument";
 #$c->{rdf}->{bibo_type}->{teaching_resource} = "xxx";
 #$c->{rdf}->{bibo_type}->{other} = "xxx";
 
-$c->add_trigger( "rdf_triples_eprint", sub {
+$c->add_dataset_trigger( "eprint", EP_TRIGGER_RDF, sub {
 	my( %o ) = @_;
 	my $eprint = $o{"dataobj"};
 	my $eprint_uri = "<".$eprint->uri.">";
@@ -371,7 +371,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 # Contributors
 ##############################
 
-$c->add_trigger( "rdf_triples_eprint", sub {
+$c->add_dataset_trigger( "eprint", EP_TRIGGER_RDF, sub {
 	my( %o ) = @_;
 	my $eprint = $o{"dataobj"};
 	my $eprint_uri = "<".$eprint->uri.">";
@@ -515,7 +515,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 # Event
 ##############################
 
-$c->add_trigger( "rdf_triples_eprint", sub {
+$c->add_dataset_trigger( "eprint", EP_TRIGGER_RDF, sub {
 	my( %o ) = @_;
 	my $eprint = $o{"dataobj"};
 

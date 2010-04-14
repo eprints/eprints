@@ -126,7 +126,7 @@ sub export_rdf_repository
 		predicate => "foaf:primaryTopic",
 		   object => $repository_uri );
 	$graph->add_boilerplate_triples();	
-	$graph->add_trigger_triples( "repository" );
+	$graph->add_repository_triples();
 
 	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
 	$plugin->initialise_fh( \*STDOUT );

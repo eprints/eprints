@@ -31,7 +31,7 @@ $c->{rdf}->{content_rel_ep}->{coverimage} = "ep:hasCoverImage";
 $c->{rdf}->{content_rel_ep}->{metadata} = "ep:hasMetadata";
 $c->{rdf}->{content_rel_ep}->{other} = "ep:hasOther";
 
-$c->add_trigger( "rdf_triples_eprint", sub {
+$c->add_dataset_trigger( "eprint", EP_TRIGGER_RDF, sub {
 	my( %o ) = @_;
 	my $eprint = $o{"dataobj"};
 	my $eprint_uri = "<".$eprint->uri.">";

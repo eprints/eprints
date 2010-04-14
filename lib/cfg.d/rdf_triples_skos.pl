@@ -2,7 +2,7 @@
 
 $c->{rdf}->{xmlns}->{skos} = "http://www.w3.org/2004/02/skos/core#";
 
-$c->add_trigger( "rdf_triples_eprint", sub {
+$c->add_dataset_trigger( "eprint", EP_TRIGGER_RDF, sub {
 	my( %o ) = @_;
 	my $eprint = $o{"dataobj"};
 	my $eprint_uri = "<".$eprint->uri.">";
@@ -38,7 +38,7 @@ $c->add_trigger( "rdf_triples_eprint", sub {
 
 } );
 
-$c->add_trigger( "rdf_triples_subject", sub {
+$c->add_dataset_trigger( "subject", EP_TRIGGER_RDF, sub {
 	my( %o ) = @_;
 	my $subject = $o{"dataobj"};
 	my $uri = $subject->uri;

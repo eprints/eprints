@@ -54,6 +54,8 @@ package EPrints::RDFGraph;
 
 use strict;
 
+use EPrints::Const;
+
 ######################################################################
 =pod
 
@@ -202,23 +204,6 @@ sub get_dataset
 ######################################################################
 =pod
 
-=$item $graph->add_trigger_triples( $trigger )
-
-Call all rdf_triples_$trigger triggers and add the tripples from these to the graph.
-
-=cut
-######################################################################
-
-sub add_trigger_triples
-{
-	my( $self, $trigger, %params ) = @_;
-
-	$self->{repository}->run_trigger( "rdf_triples_$trigger", graph=>$self, %params );
-}
-
-######################################################################
-=pod
-
 =$item $graph->add_boilerplate_triples()
 
 Add the boilerplate triples which are included in all RDF serialisations.
@@ -230,7 +215,28 @@ sub add_boilerplate_triples
 {
 	my( $self ) = @_;
 
-	$self->add_trigger_triples( "general" );
+	$self->{repository}->run_trigger( 
+		EP_TRIGGER_BOILERPLATE_RDF,
+		graph => $self );
+}	
+
+######################################################################
+=pod
+
+=$item $graph->add_repository_triples()
+
+Add the repository triples for the repo. itself.
+
+=cut
+######################################################################
+
+sub add_repository_triples
+{
+	my( $self ) = @_;
+
+	$self->{repository}->run_trigger( 
+		EP_TRIGGER_REPOSITORY_RDF,
+		graph => $self );
 }	
 
 ######################################################################
@@ -253,7 +259,8 @@ sub add_dataobj_triples
 		push @{$self->{triples}}, $dataobj;
 		return;
 	}
-	$self->add_trigger_triples( $dataset_id, dataobj=>$dataobj );
+
+	$dataobj->dataset->run_trigger( EP_TRIGGER_RDF, graph=>$self, dataobj=>$dataobj );
 }
 
 1;
