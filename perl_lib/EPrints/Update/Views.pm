@@ -182,6 +182,9 @@ sub update_browse_view_list
 	$page = $session->make_doc_fragment();
 	$page->appendChild( $session->html_phrase( "bin/generate_views:browseintro" ) );
 
+	my $div = $session->make_element( "div", class => "ep_view_browse_list" );
+	$page->appendChild( $div );
+
 	$ul = $session->make_element( "ul" );
 	foreach my $view ( @{$repository->get_conf( "browse_views" )} )
 	{
@@ -193,7 +196,7 @@ sub update_browse_view_list
 		$li->appendChild( $a );
 		$ul->appendChild( $li );
 	}
-	$page->appendChild( $ul );
+	$div->appendChild( $ul );
 
 	$title = $session->html_phrase( "bin/generate_views:browsetitle" );
 
