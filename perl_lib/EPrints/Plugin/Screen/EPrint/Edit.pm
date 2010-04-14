@@ -23,9 +23,11 @@ sub new
 			place => "eprint_item_actions",
 			position => 200,
 		},
+		{
+			place => "eprint_review_actions",
+			position => 100,
+		},
 	];
-
-	$self->{staff} = 0;
 
 	return $self;
 }
@@ -190,16 +192,14 @@ sub screen_after_flow
 
 sub render
 {
-	my( $self, $staff_mode ) = @_;
-
-	$staff_mode = 0 if !defined $staff_mode;
+	my( $self ) = @_;
 
 	my $cur_stage_id = $self->workflow->get_stage_id;
 	my $stage = $self->workflow->get_stage( $cur_stage_id );
 
 	my $form = $self->render_form;
 
-	my $blister = $self->render_blister( $cur_stage_id, $staff_mode );
+	my $blister = $self->render_blister( $cur_stage_id );
 	$form->appendChild( $blister );
 
 	my $action_buttons = $stage->{action_buttons};

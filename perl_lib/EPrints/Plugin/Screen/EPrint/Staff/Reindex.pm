@@ -15,7 +15,7 @@ sub new
 	$self->{actions} = [qw/ reindex /];
 
 	$self->{appears} = [ {
-		place => "eprint_actions",
+		place => "eprint_editor_actions",
 		action => "reindex",
 		position => 1850,
 	}, ];

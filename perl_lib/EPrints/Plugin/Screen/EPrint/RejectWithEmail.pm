@@ -13,11 +13,11 @@ sub new
 	$self->{icon} = "action_bounce.png";
 	$self->{appears} = [
 		{
-			place => "eprint_actions",
+			place => "eprint_editor_actions",
 			position => 200,
 		},
 		{
-			place => "eprint_actions_editor_buffer", 
+			place => "eprint_actions_bar_buffer", 
 			position => 200,
 		},
 		{

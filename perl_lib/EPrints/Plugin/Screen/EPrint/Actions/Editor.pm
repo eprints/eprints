@@ -1,6 +1,6 @@
-package EPrints::Plugin::Screen::EPrint::Actions;
+package EPrints::Plugin::Screen::EPrint::Actions::Editor;
 
-our @ISA = ( 'EPrints::Plugin::Screen::EPrint' );
+@ISA = ( 'EPrints::Plugin::Screen::EPrint::Actions' );
 
 use strict;
 
@@ -13,7 +13,7 @@ sub new
 	$self->{appears} = [
 		{
 			place => "eprint_view_tabs",
-			position => 300,
+			position => 350,
 		}
 	];
 
@@ -24,7 +24,7 @@ sub can_be_viewed
 {
 	my( $self ) = @_;
 
-	return 0 unless scalar $self->action_list( "eprint_actions" );
+	return 0 unless scalar $self->action_list( "eprint_editor_actions" );
 
 	return $self->who_filter;
 }
@@ -35,7 +35,9 @@ sub render
 
 	my $session = $self->{session};
 
-	return $self->render_action_list( "eprint_actions", ['eprintid'] );
+	my $frag = $session->make_doc_fragment;
+
+	return $self->render_action_list( "eprint_editor_actions", ['eprintid'] );
 }
 
 1;

@@ -17,6 +17,11 @@ sub new
 			position => 3000,
 		},
 		{
+			place => "eprint_editor_actions",
+			action => "take",
+			position => 3000,
+		},
+		{
 			place => "lock_tools",
 			action => "take",
 			position => 200,

@@ -2875,13 +2875,17 @@ Each file inside this archive will be created as an <b>individual</b> document i
 
     <!-- eprint view screens -->
 
-    <epp:phrase id="Plugin/Screen/EPrint/Summary:title">Summary</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/Summary:title">Preview</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/EPrint/Details:title">Details</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/Details:other">Other defined fields</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/Details:edit_field_link">Edit <epc:pin name="field"/></epp:phrase>
 
     <epp:phrase id="Plugin/Screen/EPrint/Staff/Details:title">Details</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/EPrint/Actions:title">Actions</epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/EPrint/Actions/Editor:title">Editorial Actions</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/EPrint/Staff/Actions:title">Actions</epp:phrase>
 

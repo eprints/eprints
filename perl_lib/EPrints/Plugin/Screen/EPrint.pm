@@ -150,7 +150,9 @@ sub register_error
 
 sub workflow
 {
-	my( $self, $staff ) = @_;
+	my( $self ) = @_;
+
+	my $staff = $self->allow( "eprint/edit:editor" );
 
 	my $cache_id = "workflow";
 	$cache_id.= "_staff" if( $staff ); 
@@ -176,24 +178,22 @@ sub uncache_workflow
 
 	delete $self->{session}->{id_counter};
 	delete $self->{processor}->{workflow};
-	delete $self->{processor}->{workflow_staff};
 }
 
 sub render_blister
 {
-	my( $self, $sel_stage_id, $staff_mode ) = @_;
+	my( $self, $sel_stage_id ) = @_;
 
 	my $eprint = $self->{processor}->{eprint};
 	my $session = $self->{session};
-	my $staff = 0;
 
-	my $workflow = $self->workflow( $staff_mode );
+	my $workflow = $self->workflow;
 	my $table = $session->make_element( "table", cellpadding=>0, cellspacing=>0, class=>"ep_blister_bar" );
 	my $tr = $session->make_element( "tr" );
 	$table->appendChild( $tr );
 	my $first = 1;
 	my @stages = $workflow->get_stage_ids;
-	if( !$staff_mode && $eprint->get_value( "eprint_status" ) eq "inbox" )
+	if( $eprint->get_value( "eprint_status" ) eq "inbox" )
 	{
 		push @stages, "deposit";
 	}

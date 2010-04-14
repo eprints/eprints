@@ -18,7 +18,7 @@ sub new
 			position => 100,
 		},
 		{ 
-			place => "eprint_actions_owner_inbox", 
+			place => "eprint_actions_bar_inbox", 
 			position => 100, 
 		},
 		{
@@ -117,26 +117,22 @@ sub render
 	my $owner  = $priv & 4;
 	my $editor = $priv & 8;
 
-	if( scalar @{$problems} == 0 )
+	if( scalar @{$problems} == 0 || $editor )
 	{
+		my $action = "deposit";
+
+		if( scalar @{$problems} && $editor )
+		{
+			$action = "move_buffer";
+			$form->appendChild( $self->html_phrase( "action:move_buffer:description" ) );
+		}
+
 		$form->appendChild( $self->{session}->html_phrase( "deposit_agreement_text" ) );
 	
 		$form->appendChild( $self->{session}->render_action_buttons(
-			deposit => $self->{session}->phrase( "priv:action/eprint/deposit" ),
+			$action => $self->{session}->phrase( "priv:action/eprint/deposit" ),
 			save => $self->{session}->phrase( "priv:action/eprint/deposit_later" ),
-			_order => [qw( deposit save )],
-		) );
-	}
-	elsif( $editor )
-	{
-		my $plugin = $self->{session}->plugin( "Screen::EPrint::Move" );
-
-		$form->appendChild( $self->html_phrase( "action:move_buffer:description" ) );
-
-		$form->appendChild( $self->{session}->render_action_buttons(
-			move_buffer => $plugin->phrase( "action:move_buffer:title" ),
-			save => $self->{session}->phrase( "priv:action/eprint/deposit_later" ),
-			_order => [qw( move_buffer save )],
+			_order => [$action, "save"],
 		) );
 	}
 	else

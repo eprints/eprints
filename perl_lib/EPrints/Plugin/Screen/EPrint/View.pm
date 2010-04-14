@@ -13,34 +13,40 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{staff} = 0;
-
 	$self->{icon} = "action_view.png";
 
-	if( $class eq __PACKAGE__ )
-	{
-		# don't add this for subclasses!
-		$self->{appears} = [
-			{
-				place => "eprint_summary_page_actions",
-				position => 100,
-			},
-			{
-				place => "eprint_item_actions",
-				position => 10,
-			},
-		];
-	}
+	$self->{appears} = [
+		{
+			place => "eprint_summary_page_actions",
+			position => 100,
+		},
+		{
+			place => "eprint_item_actions",
+			position => 10,
+		},
+		{
+			place => "eprint_review_actions",
+			position => 10,
+		},
+	];
 
 	return $self;
 }
-
 
 sub render_status
 {
 	my( $self ) = @_;
 
-	return $self->{session}->html_phrase( "Plugin/Screen/EPrint/View:no_subclass" );
+	my $status = $self->{processor}->{eprint}->get_value( "eprint_status" );
+
+	my $url = $self->{processor}->{eprint}->get_url;
+
+	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
+	$div->appendChild( $self->{session}->html_phrase( "cgi/users/edit_eprint:item_is_in_".$status,
+		link => $self->{session}->render_link( $url ), 
+		url  => $self->{session}->make_text( $url ) ) );
+
+	return $div;
 }
 
 sub can_be_viewed
@@ -51,29 +57,6 @@ sub can_be_viewed
 }
 
 sub who_filter { return 15; }
-
-sub about_to_render 
-{
-	my( $self ) = @_;
-
-	my $cuser  = $self->{session}->current_user;
-
-	my $priv = $self->allow( "eprint/view" );
-	my $owner  = $priv & 4;
-	my $editor = $priv & 8;
-
-	if( $editor )
-	{
-		$self->{processor}->{screenid} = "EPrint::View::Editor";	
-		return;
-	}
-	if( $owner )
-	{
-		$self->{processor}->{screenid} = "EPrint::View::Owner";	
-		return;
-	}
-	$self->{processor}->{screenid} = "EPrint::View::Other";	
-}
 
 sub render
 {
@@ -178,8 +161,19 @@ sub render_common_action_buttons
 {
 	my( $self ) = @_;
 
-	return $self->{session}->make_doc_fragment;
+	my $status = $self->{processor}->{eprint}->get_value( "eprint_status" );
+
+	my $frag = $self->{session}->make_doc_fragment;
+
+#	$frag->appendChild( $self->render_action_list_bar( "eprint_actions_editor_$status", ['eprintid'] ) );
+
+#	$frag->appendChild( $self->render_action_list_bar( "eprint_actions_owner_$status", ['eprintid'] ) );
+
+	$frag->appendChild( $self->render_action_list_bar( "eprint_actions_bar_$status", ['eprintid'] ) );
+
+	return $frag;
 }
+
 
 
 # move somewhere else

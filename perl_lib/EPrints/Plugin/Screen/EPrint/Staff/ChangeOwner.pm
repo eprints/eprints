@@ -15,7 +15,7 @@ sub new
 	$self->{actions} = [qw/ changeowner cancel setowner /];
 
 	$self->{appears} = [ {
-		place => "eprint_actions",
+		place => "eprint_editor_actions",
 		action => "changeowner",
 		position => 1875,
 	}, ];
