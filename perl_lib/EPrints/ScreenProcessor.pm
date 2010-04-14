@@ -37,6 +37,15 @@ sub new
 
 	$self->cache_list_items();
 
+	if( !defined $self{screenid} )
+	{
+		$self{screenid} = "FirstTool";
+	}
+
+	# This loads the properties of what the screen is about,
+	# Rather than parameters for the action, if any.
+	$self->screen->properties_from;
+
 	return $self;
 }
 
@@ -248,21 +257,17 @@ sub process
 {
 	my( $class, %opts ) = @_;
 
+	if( !defined $opts{screenid} ) 
+	{
+		$opts{screenid} = $opts{session}->param( "screen" );
+	}
+	if( !defined $opts{screenid} ) 
+	{
+		$opts{screenid} = "FirstTool";
+	}
+
 	my $self = $class->new( %opts );
 
-	if( !defined $self->{screenid} ) 
-	{
-		$self->{screenid} = $self->{session}->param( "screen" );
-	}
-	if( !defined $self->{screenid} ) 
-	{
-		$self->{screenid} = "FirstTool";
-	}
-
-	# This loads the properties of what the screen is about,
-	# Rather than parameters for the action, if any.
-	$self->screen->properties_from; 
-	
 	$self->{action} = $self->{session}->get_action_button;
 	$self->{internal} = $self->{session}->get_internal_button;
 	delete $self->{action} if( $self->{action} eq "" );
