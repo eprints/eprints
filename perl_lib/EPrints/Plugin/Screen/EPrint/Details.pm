@@ -234,6 +234,11 @@ sub render
 			$h3->appendChild( $session->html_phrase( "metapage_title_$stage" ) );
 		}
 
+		if( $stage ne "" )
+		{
+			$div->appendChild( $self->render_stage_warnings( $stage ) );
+		}
+
 		$div->appendChild( $table );
 
 		if( $stage ne "" && $unspec->hasChildNodes )
@@ -287,6 +292,30 @@ sub render_edit_button
 	$div->appendChild( $button );
 
 	return $div;
+}
+
+sub render_stage_warnings
+{
+	my( $self, $stage_id ) = @_;
+
+	my $session = $self->{session};
+
+	my $stage = $self->workflow->get_stage( $stage_id );
+
+	my @problems = $stage->validate( $self->{processor} );
+
+	return $session->make_doc_fragment if !scalar @problems;
+ 
+	my $ul = $session->make_element( "ul" );
+	foreach my $problem ( @problems )
+	{
+		my $li = $session->make_element( "li" );
+		$li->appendChild( $problem );
+		$ul->appendChild( $li );
+	}
+	$self->workflow->link_problem_xhtml( $ul, $self->edit_screen_id, $stage );
+
+	return $session->render_message( "warning", $ul );
 }
 
 sub workflow

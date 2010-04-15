@@ -222,24 +222,35 @@ sub render_buttons
 {
 	my( $self ) = @_;
 
+	my $session = $self->{session};
+
 	my %buttons = ( _order=>[], _class=>"ep_form_button_bar" );
 
 	if( defined $self->workflow->get_prev_stage_id )
 	{
 		push @{$buttons{_order}}, "prev";
-		$buttons{prev} = 
-			$self->{session}->phrase( "lib/submissionform:action_prev" );
+		$buttons{prev} = $session->phrase( "lib/submissionform:action_prev" );
 	}
 
-	push @{$buttons{_order}}, "save";
-	$buttons{save} = 
-		$self->{session}->phrase( "lib/submissionform:action_save" );
+	my $eprint = $self->{processor}->{eprint};
+	if( $eprint->value( "eprint_status" ) eq "inbox" )
+	{
+		push @{$buttons{_order}}, "save";
+		$buttons{save} = $session->phrase( "lib/submissionform:action_save" );
+	}
+	else
+	{
+		push @{$buttons{_order}}, "save";
+		$buttons{save} = $session->phrase( "lib/submissionform:action_staff_save" );
+	}
+
+	push @{$buttons{_order}}, "stop";
+	$buttons{stop} = $session->phrase( "lib/submissionform:action_stop" );
 
 	push @{$buttons{_order}}, "next";
-	$buttons{next} = 
-		$self->{session}->phrase( "lib/submissionform:action_next" );
+	$buttons{next} = $session->phrase( "lib/submissionform:action_next" );
 
-	return $self->{session}->render_action_buttons( %buttons );
+	return $session->render_action_buttons( %buttons );
 }
 
 1;

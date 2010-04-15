@@ -1776,6 +1776,7 @@ Enter a URL to capture a file from: <epc:pin name="url"/><br/>
     <epp:phrase id="lib/submissionform:action_doc_cancel">Stop Editing Format</epp:phrase>
     <epp:phrase id="lib/submissionform:action_save">Save for Later</epp:phrase>
     <epp:phrase id="lib/submissionform:action_staff_save">Save and Exit</epp:phrase>
+    <epp:phrase id="lib/submissionform:action_stop">Cancel</epp:phrase>
     <epp:phrase id="lib/submissionform:action_staff_stop">Exit</epp:phrase>
     <epp:phrase id="lib/submissionform:action_confirm">Confirm</epp:phrase>
     <epp:phrase id="lib/submissionform:action_edit">Edit</epp:phrase>
