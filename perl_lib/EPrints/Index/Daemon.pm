@@ -310,7 +310,7 @@ sub log
 {
 	my( $self, $level, $msg ) = @_;
 
-	return unless $self->{noise} >= $level;
+	return unless $self->{loglevel} >= $level;
 
 	if( !defined $msg )
 	{
