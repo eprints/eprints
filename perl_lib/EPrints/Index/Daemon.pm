@@ -48,7 +48,7 @@ use strict;
 
 =item EPrints::Index::Daemon->new( %opts )
 
-Return a new daemon control object. May optionally specify 'session', 'logfile', 'noise' and 'Handler' to control log output.
+Return a new daemon control object. May optionally specify 'session', 'logfile', 'loglevel' and 'Handler' to control log output.
 
 =cut
 
@@ -60,7 +60,7 @@ sub new
 	$opts{pidfile} ||= EPrints::Index::pidfile();
 	$opts{tickfile} ||= EPrints::Index::tickfile();
 	$opts{suicidefile} ||= EPrints::Index::suicidefile();
-	$opts{noise} = 1 unless defined $opts{noise};
+	$opts{loglevel} = 1 unless defined $opts{loglevel};
 	$opts{rollcount} = 5 unless defined $opts{rollcount};
 	$opts{maxwait} ||= 8; # 8 seconds
 	$opts{interval} ||= 30; # 30 seconds
@@ -302,7 +302,7 @@ sub get_all_sessions
 
 =item $daemon->log( LEVEL, MESSAGE )
 
-Prints MESSAGE to STDERR if noise >= LEVEL.
+Prints MESSAGE to STDERR if loglevel >= LEVEL.
 
 =cut
 
@@ -614,7 +614,7 @@ sub run_index
 				local $SIG{ALRM} = sub { die "alarm\n" };
 				alarm($self->get_timeout);
 				my $indexer_did_something = $self->_run_index( $repo, {
-					loglevel => $self->{noise},
+					loglevel => $self->{loglevel},
 				});
 				$seen_action = 1 if $indexer_did_something;
 				alarm(0);
@@ -676,7 +676,7 @@ sub _run_index
 	my @events = $session->get_database->dequeue_events( 10 );
 	foreach my $event (@events)
 	{
-		if( $self->{noise} >= 5 )
+		if( $self->{loglevel} >= 5 )
 		{
 			my $pluginid = $event->value( "pluginid" );
 			my $action = $event->value( "action" );
