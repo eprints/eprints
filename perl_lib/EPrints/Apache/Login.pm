@@ -41,7 +41,7 @@ sub handler
 			my $user = EPrints::DataObj::User::user_with_username( $session, $username );
 
 			my $url = $session->get_url( host=>1 );
-			$url .= "?login_params=".EPrints::Utils::url_escape( $session->param("login_params") );
+			$url .= "?login_params=".URI::Escape::uri_escape( $session->param("login_params") );
 			$url .= "&login_check=1";
 			# always set a new random cookie value when we login
 			my @a = ();

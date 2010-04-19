@@ -150,9 +150,11 @@ sub upload_doc_file
 
 	my $cgi = $session->get_query;
 
+	my $filename = Encode::decode_utf8( $cgi->param( $paramid ) );
+
 	return $document->upload( 
 		$cgi->upload( $paramid ), 
-		$cgi->param( $paramid ),
+		$filename,
 		0, # preserve_path
 		-s $cgi->upload( $paramid )
 	);	
@@ -171,9 +173,11 @@ sub upload_doc_archive
 
 	my $cgi = $session->get_query;
 
+	my $filename = Encode::decode_utf8( $cgi->param( $paramid ) );
+
 	return $document->upload_archive( 
 		$cgi->upload( $paramid ), 
-		$cgi->param( $paramid ), 
+		$filename,
 		$archive_format );	
 }
 
