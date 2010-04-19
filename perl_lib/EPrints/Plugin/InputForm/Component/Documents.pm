@@ -882,12 +882,6 @@ sub _render_filelist
 	
 	my $div = $session->make_element( "div", class=>"ep_upload_files" );
 
-	if( @$files == 0 ) 
-	{
-		$div->appendChild( $self->_render_placeholder );
-		return $div;
-	}
-
 	my $table = $session->make_element( "table", class => "ep_upload_file_table" );
 	$div->appendChild( $table );
 
@@ -962,18 +956,6 @@ sub _render_file
 		title => $button_title );
 
 	return $session->render_row( @values );
-}
-
-sub _render_placeholder
-{
-	my( $self ) = @_;
-
-	my $session = $self->{session};
-	my $placeholder = $session->make_element( "tr", id => "placeholder" );
-	my $td = $session->make_element( "td", colspan => "3" );
-	$td->appendChild( $self->html_phrase( "upload_blurb" ) );
-	$placeholder->appendChild( $td );
-	return $placeholder;
 }
 
 sub validate
