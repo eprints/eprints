@@ -230,13 +230,21 @@ foreach my $repository ( values %reps )
 	my $cfg_path = $repository->get_conf( "config_path" );
 
 	my $userfile = "$inc_path/$id.conf";
+	my $oldfile = $repository->get_conf( "config_path" )."/apache.conf";
 	my $securefile = $repository->get_conf( "config_path" )."/secure.conf";
 
 	my $securehost = $repository->get_conf( "securehost" );
 
-	if( $replace || !-e $userfile )
+	if( -e $oldfile && !-e $userfile )
 	{
-		open( CONF, ">$userfile" ) || die "Can't write to $userfile";
+		open( CONF, ">$userfile" ) or die "Can't write to $userfile: $!";
+		print CONF "Include $oldfile\n";
+		close CONF;
+		print "Wrote $userfile (-> $oldfile)\n" if $noise >= 1;
+	}
+	elsif( $replace || !-e $userfile )
+	{
+		open( CONF, ">$userfile" ) || die "Can't write to $userfile: $!";
 		print CONF EPrints::Apache::apache_conf( $repository );
 		close CONF;
 		print "Wrote $userfile\n" if( $noise >= 1 );
