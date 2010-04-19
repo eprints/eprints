@@ -392,24 +392,24 @@ sub remove
 {
 	my( $self ) = @_;
 
-	# remove dependent objects
-
-	foreach my $dataobj (@{($self->get_related_objects( EPrints::Utils::make_relation( "hasVolatileVersion" ) ))})
+	# remove dependent objects and relations
+	foreach my $dataobj (@{($self->get_related_objects())})
 	{
-		next unless $dataobj->has_object_relations( $self, EPrints::Utils::make_relation( "isVolatileVersionOf" ) );
-		$dataobj->remove();
+		if( $dataobj->has_object_relations( $self, EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
+		{
+			$dataobj->remove_object_relations( $self ); # avoid infinite loop
+			$dataobj->remove();
+		}
+		else
+		{
+			$dataobj->remove_object_relations( $self );
+			$dataobj->commit;
+		}
 	}
 
 	foreach my $file (@{($self->get_value( "files" ))})
 	{
 		$file->remove();
-	}
-
-	# remove relations to us
-	foreach my $dataobj (@{($self->get_related_objects())})
-	{
-		$dataobj->remove_object_relations( $self );
-		$dataobj->commit();
 	}
 
 	# Remove database entry
@@ -420,16 +420,6 @@ sub remove
 		my $db_error = $self->{session}->get_database->error;
 		$self->{session}->get_repository->log( "Error removing document ".$self->get_value( "docid" )." from database: $db_error" );
 		return( 0 );
-	}
-
-	# Remove directory and contents
-	my $full_path = $self->local_path();
-	my $ok = EPrints::Utils::rmtree( $full_path );
-
-	if( !$ok )
-	{
-		$self->{session}->get_repository->log( "Error removing document files for ".$self->get_value("docid").", path ".$full_path.": $!" );
-		$success = 0;
 	}
 
 	return( $success );

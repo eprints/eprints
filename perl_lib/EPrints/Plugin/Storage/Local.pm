@@ -133,7 +133,19 @@ sub delete
 
 	return 1 unless -e $in_file;
 
-	return unlink($in_file);
+	return 0 unless unlink($in_file);
+
+	# remove empty leaf directories (e.g. document dir)
+	opendir(my $dh, $local_path) or return 1;
+	my @files = readdir($dh);
+	closedir($dh);
+
+	if( scalar( grep { !/^\.\.?$/ } @files) == 0 )
+	{
+		rmdir($local_path);
+	}
+
+	return 1;
 }
 
 sub get_local_copy
