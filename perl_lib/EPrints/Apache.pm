@@ -19,7 +19,7 @@ sub apache_conf
 	my $virtualhost = $repo->config( "virtualhost" );
 	$virtualhost = "*" if !EPrints::Utils::is_set( $virtualhost );
 
-	return <<EOC
+	my $conf = <<EOC;
 #
 # apache.conf include file for $id
 #
@@ -32,6 +32,16 @@ sub apache_conf
   ServerName $host
   ServerAdmin $adminemail
 
+EOC
+
+	# backwards compatibility
+	my $apachevhost = $repo->config( "config_path" )."/apachevhost.conf";
+	if( -e $apachevhost )
+	{
+		$conf .= "  Include $apachevhost\n";
+	}
+
+	$conf .= <<EOC;
   <Location "$http_root">
     PerlSetVar EPrints_ArchiveID $id
 
@@ -48,6 +58,8 @@ sub apache_conf
 </VirtualHost>
 
 EOC
+
+	return $conf;
 }
 
 sub apache_secure_conf

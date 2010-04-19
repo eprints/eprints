@@ -174,7 +174,7 @@ if( ($system && $replace) || !-e $site_userfile )
 # apache.conf include file for EPrints
 #
 # Any changes made here will be lost if you run generate_apacheconf
-# with the --replace option
+# with the --replace --system options
 #
 
 # Load the perl modules & repository configurations
@@ -183,12 +183,7 @@ PerlModule EPrints
 PerlPostConfigHandler +EPrints::post_config_handler
 
 # Load the per-repository apache.confs
-<Perl>
-foreach my \$path (<$archives_path/*/cfg/apache.conf>)
-{
-	Apache2::ServerUtil->server->add_config( ["Include \$path"] );
-}
-</Perl>
+Include $base_path/cfg/archives/*.conf
 
 END
 	close CONF;
@@ -212,15 +207,29 @@ else
 #
 ####################################################
 
+my $inc_path = "$base_path/cfg/archives";
+EPrints::Platform::mkdir( $inc_path );
+
+my %inc_extras;
+{
+	opendir( my $dh, $inc_path ) or die "Error opening $inc_path: $!";
+	%inc_extras =
+		map { substr($_,0,-5) => 1 } # strip .conf
+		grep { !/^\./ && /\.conf$/ }
+		readdir $dh;
+	closedir($dh);
+}
+
 foreach my $repository ( values %reps ) 
 {
 	my $id = $repository->get_id();
+	delete $inc_extras{$id};
 
 	next if $repository_id && $repository_id ne $id;
 
 	my $cfg_path = $repository->get_conf( "config_path" );
 
-	my $userfile = $repository->get_conf( "config_path" )."/apache.conf";
+	my $userfile = "$inc_path/$id.conf";
 	my $securefile = $repository->get_conf( "config_path" )."/secure.conf";
 
 	my $securehost = $repository->get_conf( "securehost" );
@@ -263,6 +272,15 @@ foreach my $repository ( values %reps )
 			EPrints::Utils::copy( $default_template, $secure_template );
 			print "Copied default template to secure template, you will probably need to edit the secure template:\n$secure_template\n";
 		}
+	}
+}
+
+if( !$repository_id && scalar keys %inc_extras )
+{
+	print STDERR "Warning! The following files will be included in the apache configuration but don't appear to be live repositories:\n";
+	foreach my $id (sort keys %inc_extras)
+	{
+		print "\t$inc_path/$id.conf\n";
 	}
 }
 

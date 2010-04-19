@@ -352,9 +352,9 @@ sub post_config_handler
 		 {
 			 $s->warn( "EPrints: ".$repo->get_id." is configured for port $port but Apache is listening on ".join(',',keys %aports).", add: Listen $port" );
 		 }
-		 if( $ports{$port} > 1 && !$anvhosts{"*:$port"} )
+		 if( !$anvhosts{"*:$port"} )
 		 {
-			 $s->warn( "EPrints: Multiple repositories are using the same port without named virtual hosting, add: NameVirtualHost *:$port" );
+			 $s->warn( "EPrints: ".$repo->get_id." is configured for port $port but no NameVirtualHost exists, add: NameVirtualHost *:$port" );
 		 }
 	}
 
