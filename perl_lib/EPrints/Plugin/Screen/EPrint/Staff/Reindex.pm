@@ -42,7 +42,7 @@ sub allow_reindex
 	my( $self ) = @_;
 
 	return 0 unless $self->could_obtain_eprint_lock;
-	return $self->allow( "eprint/staff/edit" );
+	return $self->allow( "eprint/edit:editor" );
 }
 sub action_reindex
 {

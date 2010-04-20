@@ -35,7 +35,7 @@ sub allow_changeowner
 	my( $self ) = @_;
 
 	return 0 unless $self->could_obtain_eprint_lock;
-	return $self->allow( "eprint/staff/edit" );
+	return $self->allow( "eprint/edit:editor" );
 }
 sub allow_cancel
 {
