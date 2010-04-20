@@ -22,19 +22,28 @@ B<generate_apacheconf> - Create the apache config files needed for EPrints
 
 B<generate_apacheconf> [B<options>] [I<repository_id>]
 
+B<generate_apacheconf> --replace [repoid]
+
 =head1 DESCRIPTION
 
-This script generates the apache config files which will be used by EPrints. In the simple case all you need to do is run this script then add a line to your main apache configuration file - often, but not always, B</etc/httpd/conf/httpd.conf>
+This script generates the config files to include in your Apache configuration.
+
+If you have changed a repository's configuration (hostname/port/path) you can
+update the configuration for that repository with:
+
+ generate_apacheconf --replace [repoid]
+
+=head2 Adding to Apache Configuration
+
+To enable EPrints you must add the following line to your main Apache
+configuration file (I</etc/httpd/conf/httpd.conf>):
 
  Include /opt/eprints3/cfg/apache.conf
 
-Or elsewhere if you installed EPrints somewhere other than /opt/eprints3. This file then uses the "Include" directive to include all relevant apache config files from this EPrints installation.
+To enable secure (HTTPS) you must add the following line to your SSL
+VirtualHost:
 
-By default the virtualhost directives are
-
- VirtualHost *
-
-But the * can be changed to something different by editing the C<virtualhost> option in SystemSettings.pm
+ Include /opt/eprints3/cfg/apache_ssl.conf
 
 =head1 ARGUMENTS
 
@@ -42,8 +51,8 @@ But the * can be changed to something different by editing the C<virtualhost> op
 
 =item repository_id
 
-Update the given repository's apache configuration. Leave blank to update all
-repositories.
+Optionally update the given repository's apache configuration only. Will only
+replace an existing configuration file with the --replace option.
 
 =back
 
@@ -53,11 +62,11 @@ repositories.
 
 =item B<--replace>
 
-Replace existing configuration files.
+Replace existing configuration files, overwriting any changes made.
 
 =item B<--system>
 
-Update the system configuration file.
+Update the system configuration file, overwriting any changes made.
 
 =item B<--help>
 
@@ -88,17 +97,25 @@ Output version information and exit.
 
 =item B<EPRINTS/cfg/apache.conf>
 
-This file is not updated if it already exists, so you can add system-wide
-apache configuration directives here. By default it just includes the two other system wide files: auto-apache-includes.conf and auto-apache.conf
+Loads the EPrints environment and repository-specific configuration files.
 
-=item B<EPRINTS/archives/ARCHIVEDIR/cfg/apache.conf>
+=item B<EPRINTS/cfg/apache_ssl.conf>
 
-This file is not updated if it already exists, so you can add repository-specific
-apache configuration directives here. By default it just includes the automatically generated repository specific file: auto-apache.conf
+Loads the repository-specific SSL configuration files.
 
-=item B<EPRINTS/archives/ARCHIVEDIR/cfg/secure.conf>
+=item B<EPRINTS/cfg/apache/[repoid].conf>
 
-Only created if the repository has a securehost configured. This file contains all the configuration options that need to be included into the secure server virtualhost.
+A <VirtualHost> that responds to the configured hostname and port of the
+repository.
+
+=item B<EPRINTS/cfg/apache_ssl/[repoid].conf>
+
+A <Location> that responds to the configured https_root of the repository.
+
+=item B<EPRINTS/archives/[repoid]/cfg.d/10_base.pl>
+
+Default location for host and path directives used to build the Apache
+configuration files.
 
 =back
 
@@ -163,8 +180,17 @@ my $base_path = EPrints::Config::get( "base_path" );
 my $archives_path = "$base_path/archives";
 my $perl_lib = "$base_path/perl_lib";
 my $site_userfile = EPrints::Config::get( "cfg_path" )."/apache.conf";
+my $apache_ssl_conf = EPrints::Config::get( "cfg_path" )."/apache_ssl.conf";
 
 my $first_run = !-e $site_userfile;
+
+my $restart_required = 0;
+
+my $inc_path = "$base_path/cfg/apache";
+my $inc_ssl_path = "$base_path/cfg/apache_ssl";
+
+EPrints::Platform::mkdir( $inc_path );
+EPrints::Platform::mkdir( $inc_ssl_path );
 
 if( ($system && $replace) || !-e $site_userfile )
 {
@@ -182,23 +208,39 @@ PerlSwitches -I$perl_lib
 PerlModule EPrints
 PerlPostConfigHandler +EPrints::post_config_handler
 
-# Load the per-repository apache.confs
-Include $base_path/cfg/archives/*.conf
+# Load the per-repository apache configuration
+Include $inc_path/*.conf
 
 END
 	close CONF;
 	print "Wrote $site_userfile\n" if( $noise >= 1 );
+
+	$restart_required = 1;
 }
-else
+if( ($system && $replace) || !-e $apache_ssl_conf )
 {
-	if( $system )
-	{
-		print "Skipping $site_userfile (use --replace).\n" if( $noise >= 1 );
-	}
-	else
-	{
-		print "Skipping $site_userfile (use --replace --system).\n" if( $noise >= 1 );
-	}
+	open( CONF, ">$apache_ssl_conf" ) || die "Can't write to $apache_ssl_conf";
+	print CONF <<END;
+#
+# apache_ssl.conf include file for EPrints
+#
+# Any changes made here will be lost if you run generate_apacheconf
+# with the --replace --system options
+#
+
+# Note that PerlTransHandler can't go inside
+# a "Location" block as it occurs before the
+# Location is known.
+PerlTransHandler +EPrints::Apache::Rewrite
+
+# Load the per-repository apache configuration
+Include $inc_ssl_path/*.conf
+
+END
+	close CONF;
+	print "Wrote $apache_ssl_conf\n" if( $noise >= 1 );
+
+	$restart_required = 1;
 }
 
 ####################################################
@@ -207,66 +249,47 @@ else
 #
 ####################################################
 
-my $inc_path = "$base_path/cfg/archives";
-EPrints::Platform::mkdir( $inc_path );
-
-my %inc_extras;
-{
-	opendir( my $dh, $inc_path ) or die "Error opening $inc_path: $!";
-	%inc_extras =
-		map { substr($_,0,-5) => 1 } # strip .conf
-		grep { !/^\./ && /\.conf$/ }
-		readdir $dh;
-	closedir($dh);
-}
-
 foreach my $repository ( values %reps ) 
 {
 	my $id = $repository->get_id();
-	delete $inc_extras{$id};
 
 	next if $repository_id && $repository_id ne $id;
 
 	my $cfg_path = $repository->get_conf( "config_path" );
 
-	my $userfile = "$inc_path/$id.conf";
+	my $apache_conf = "$inc_path/$id.conf";
+	my $apache_ssl_conf = "$inc_ssl_path/$id.conf";
+
 	my $oldfile = $repository->get_conf( "config_path" )."/apache.conf";
-	my $securefile = $repository->get_conf( "config_path" )."/secure.conf";
 
 	my $securehost = $repository->get_conf( "securehost" );
 
-	if( -e $oldfile && !-e $userfile )
+	if( -e $oldfile && !-e $apache_conf )
 	{
-		open( CONF, ">$userfile" ) or die "Can't write to $userfile: $!";
+		open( CONF, ">$apache_conf" ) || die "Can't write to $apache_conf: $!";
 		print CONF "Include $oldfile\n";
 		close CONF;
-		print "Wrote $userfile (-> $oldfile)\n" if $noise >= 1;
 	}
-	elsif( $replace || !-e $userfile )
+	elsif( $replace || !-e $apache_conf )
 	{
-		open( CONF, ">$userfile" ) || die "Can't write to $userfile: $!";
+		open( CONF, ">$apache_conf" ) || die "Can't write to $apache_conf: $!";
 		print CONF EPrints::Apache::apache_conf( $repository );
 		close CONF;
-		print "Wrote $userfile\n" if( $noise >= 1 );
-	}
-	else
-	{
-		print "Skipping $userfile (use --replace).\n" if( $noise >= 1 );
+		print "Wrote $apache_conf\n" if( $noise >= 1 );
+
+		$restart_required = 1;
 	}
 
 # Create secure include file
 	if( $securehost )
 	{
-		if( $replace || !-e $securefile )
+		if( $replace || !-e $apache_ssl_conf )
 		{
-			open( CONF, ">$securefile" ) || die "Can't write to $securefile";
+			open( CONF, ">$apache_ssl_conf" ) || die "Can't write to $apache_ssl_conf";
 			print CONF EPrints::Apache::apache_secure_conf( $repository );
 			close CONF;
-			print "Wrote $securefile\n" if( $noise >= 1 );
-		}
-		else
-		{
-			print "Skipping $securefile (use --replace).\n" if( $noise >= 1 );
+			print "Wrote $apache_ssl_conf\n" if( $noise >= 1 );
+			$restart_required = 1;
 		}
 
 		foreach my $langid (@{$repository->config( "languages" )})
@@ -283,32 +306,16 @@ foreach my $repository ( values %reps )
 	}
 }
 
-if( !$repository_id && scalar keys %inc_extras )
-{
-	print STDERR "Warning! The following files will be included in the apache configuration but don't appear to be live repositories:\n";
-	foreach my $id (sort keys %inc_extras)
-	{
-		print "\t$inc_path/$id.conf\n";
-	}
-}
-
-if( keys %reps > 1 )
-{
-	print "\nWarning! You may need to add the following to your apache configuration (if not already done):\n";
-	my %seen;
-	foreach my $repo (values %reps)
-	{
-		my $port = $repo->config( "port" );
-		next if $seen{$port}++;
-		print "\tListen $port\n" if $port != 80;
-		print "\tNameVirtualHost *:$port\n";
-	}
-}
-
 if( $first_run )
 {
-	print "\nAdd the following line to your apache configuration:\nInclude $site_userfile\n";
+	print "\nAdd the following line to your apache configuration:\n\tInclude $site_userfile\n";
 }
 
-
-print "\nYou must restart apache for any changes to take effect!\n" if( $noise >= 1 );
+if( $restart_required )
+{
+	print "\nYou must restart apache for any changes to take effect!\n" if( $noise >= 1 );
+}
+else
+{
+	print "\nNo files were changed. For more information do ./generate_apacheconf --man\n";
+}

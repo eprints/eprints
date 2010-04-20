@@ -38,7 +38,8 @@ EOC
 	my $apachevhost = $repo->config( "config_path" )."/apachevhost.conf";
 	if( -e $apachevhost )
 	{
-		$conf .= "  Include $apachevhost\n";
+		$conf .= "  # Include any legacy directives\n";
+		$conf .= "  Include $apachevhost\n\n";
 	}
 
 	$conf .= <<EOC;
@@ -77,8 +78,6 @@ sub apache_secure_conf
 # with the --replace option
 #
 
-# Include this file inside your SSL VirtualHost directive
-
   <Location "$https_root">
     PerlSetVar EPrints_ArchiveID $id
     PerlSetVar EPrints_Secure yes
@@ -87,12 +86,6 @@ sub apache_secure_conf
     Order allow,deny 
     Allow from all
   </Location>
-
-  # Note that PerlTransHandler can't go inside
-  # a "Location" block as it occurs before the
-  # Location is known.
-  PerlTransHandler +EPrints::Apache::Rewrite
-
 EOC
 }
 
