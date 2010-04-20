@@ -2326,7 +2326,15 @@ sub upgrade_add_files
 	my $history_ds = $repo->dataset( "history" );
 	my $doc_ds = $repo->dataset( "document" );
 
-	my $list = $repo->dataset( "eprint" )->search;
+	my $list;
+	if( @ARGV > 2 )
+	{
+		$list = $repo->dataset( "eprint" )->list( [@ARGV[2..$#ARGV]] );
+	}
+	else
+	{
+		$list = $repo->dataset( "eprint" )->search;
+	}
 
 	my $total = $list->count;
 	my $count = 0;
@@ -2397,61 +2405,65 @@ sub upgrade_add_files
 			{
 				Carp::croak "Badness in path: $doc_path";
 			}
-			next if !-e $thumb_path;
 
 			if( $noise >= 2 )
 			{
 				$repo->log( "document.".$doc->id );
 			}
 
-			%files = _collect_files( $thumb_path );
-			foreach my $file (keys %files)
+			if( -e $thumb_path )
 			{
-				my $filename = $file;
-				substr($filename,0,length($thumb_path)+1) = "";
-				next if !($filename =~ /^(\w+)\.png$/);
-				my $size = $1;
-				my $thumb_doc = $eprint->create_subdataobj( "documents", {
-					format => "image/png",
-					main => $filename,
-					security => $doc->value( "security" ),
-				} );
-				$thumb_doc->add_file( $file, $filename );
-				unlink( $file );
-				$thumb_doc->add_object_relations( $doc,
-					EPrints::Utils::make_relation( "isVersionOf" ) =>
-					EPrints::Utils::make_relation( "hasVersion" ),
-					EPrints::Utils::make_relation( "isVolatileVersionOf" ) =>
-					EPrints::Utils::make_relation( "hasVolatileVersion" ),
-					EPrints::Utils::make_relation( "is${size}ThumbnailVersionOf" ) =>
-					EPrints::Utils::make_relation( "has${size}ThumbnailVersion" ),
-				);
-				$thumb_doc->commit();
-				if( $noise >= 2 )
+				%files = _collect_files( $thumb_path );
+				foreach my $file (keys %files)
 				{
-					$repo->log( "Added $filename thumbnail to document.".$doc->id );
+					my $filename = $file;
+					substr($filename,0,length($thumb_path)+1) = "";
+					next if !($filename =~ /^(\w+)\.png$/);
+					my $size = $1;
+					my $thumb_doc = $eprint->create_subdataobj( "documents", {
+						format => "image/png",
+						main => $filename,
+						security => $doc->value( "security" ),
+					} );
+					$thumb_doc->add_file( $file, $filename );
+					unlink( $file );
+					$thumb_doc->add_object_relations( $doc,
+						EPrints::Utils::make_relation( "isVersionOf" ) =>
+						EPrints::Utils::make_relation( "hasVersion" ),
+						EPrints::Utils::make_relation( "isVolatileVersionOf" ) =>
+						EPrints::Utils::make_relation( "hasVolatileVersion" ),
+						EPrints::Utils::make_relation( "is${size}ThumbnailVersionOf" ) =>
+						EPrints::Utils::make_relation( "has${size}ThumbnailVersion" ),
+					);
+					$thumb_doc->commit();
+					if( $noise >= 2 )
+					{
+						$repo->log( "Added $filename thumbnail to document.".$doc->id );
+					}
 				}
 			}
 
 			my $files = $doc->value( "files" );
-			next if scalar @$files; # already processed?
 
-			%files = _collect_files( $doc_path );
-			foreach my $file (keys %files)
+			if( !scalar @$files ) # already processed?
 			{
-				my $filename = $file;
-				substr($filename,0,length($doc_path)+1) = "";
-				$doc->create_subdataobj( "files", {
-					filename => $filename,
-					filesize => $files{$file},
-					copies => [{
-						pluginid => "Storage::Local",
-						sourceid => $filename,
-					}],
-				} );
-				if( $noise >= 2 )
+				%files = _collect_files( $doc_path );
+				foreach my $file (keys %files)
 				{
-					$repo->log( "Added $filename to document.".$doc->id );
+					my $filename = $file;
+					substr($filename,0,length($doc_path)+1) = "";
+					$doc->create_subdataobj( "files", {
+						filename => $filename,
+						filesize => $files{$file},
+						copies => [{
+							pluginid => "Storage::Local",
+							sourceid => $filename,
+						}],
+					} );
+					if( $noise >= 2 )
+					{
+						$repo->log( "Added $filename to document.".$doc->id );
+					}
 				}
 			}
 
@@ -2727,6 +2739,8 @@ sub upgrade_3_2_1_to_3_2_2
 	# Update new datasets (Triples)
 	update_datasets( $repo, $db );
 	update_counters( $repo, $db );
+
+	upgrade_add_files( $repo );
 
 	# Tell indexer to generate RDF dataset
 	my $all_eprints = $repo->dataset( "eprint" )->search;
