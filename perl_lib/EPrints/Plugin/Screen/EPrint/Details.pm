@@ -86,9 +86,7 @@ sub render
 	{
 		$stages{$stage} = {
 			count => 0,
-			table => $session->make_element( "table",
-					border=>"0",
-					cellpadding=>"3" ),
+			rows => [],
 			unspec => $session->make_doc_fragment,
 		};
 	}
@@ -103,7 +101,7 @@ sub render
 		my $stage = $self->_find_stage( $eprint, $name );
 		$stage = "" if !defined $stage;
 
-		my $table = $stages{$stage}->{table};
+		my $rows = $stages{$stage}->{rows};
 		my $unspec = $stages{$stage}->{unspec};
 		$stages{$stage}->{count}++;
 
@@ -113,9 +111,9 @@ sub render
 		{
 			if( !$field->isa( "EPrints::MetaField::Subobject" ) )
 			{
-				$table->appendChild( $session->render_row(
+				push @$rows, $session->render_row(
 					$r_name,
-					$eprint->render_value( $field->get_name(), 1 ) ) );
+					$eprint->render_value( $field->get_name(), 1 ) );
 			}
 		}
 		else
@@ -134,13 +132,13 @@ sub render
 		my $stage = $self->_find_stage( $eprint, 'documents' );
 		$stage = "" if !defined $stage;
 
-		my $table = $stages{$stage}->{table};
+		my $rows = $stages{$stage}->{rows};
 		$stages{$stage}->{count}++;
 
 		foreach my $doc (@docs)
 		{
 			my $tr = $session->make_element( "tr" );
-			$table->appendChild( $tr );
+			push @$rows, $tr;
 			my $th = $session->make_element( "th", class=>"ep_row" );
 			$tr->appendChild( $th );
 			my $td = $session->make_element( "td", class=>"ep_row" );
@@ -206,11 +204,19 @@ sub render
 		"Screen::".$self->edit_screen_id,
 		processor => $self->{processor} );
 
+	my $table = $session->make_element( "table",
+			border => "0",
+			cellpadding => "3" );
+	$page->appendChild( $table );
+
 	foreach my $stage ($self->workflow->get_stage_ids, "")
 	{
-		my $table = $stages{$stage}->{table};
 		my $unspec = $stages{$stage}->{unspec};
 		next if $stages{$stage}->{count} == 0;
+
+		my( $tr, $th, $td );
+
+		my $rows = $stages{$stage}->{rows};
 
 		my $url = URI->new( $session->current_url );
 		$url->query_form(
@@ -219,53 +225,53 @@ sub render
 			stage => $stage
 		);
 
-		my $div = $session->make_element( "div" );
-		$page->appendChild( $div );
-		my $h3 = $session->make_element( "h3" );
-		$div->appendChild( $h3 );
+		$tr = $session->make_element( "tr" );
+		$table->appendChild( $tr );
+		$th = $session->make_element( "th", colspan => 2 );
+		$tr->appendChild( $th );
 		if( $stage eq "" )
 		{
-			$h3->appendChild( $self->html_phrase( "other" ) );
+			$th->appendChild( $self->html_phrase( "other" ) );
 		}
 		else
 		{
-#			$h3->appendChild( $edit_screen->html_phrase( "title" ) );
-#			$h3->appendChild( $session->make_text( ": " ) );
-			$h3->appendChild( $session->html_phrase( "metapage_title_$stage" ) );
+			my $title = $session->html_phrase( "metapage_title_$stage" );
+			if( $self->edit_ok )
+			{
+				my $url = URI->new( $session->current_url );
+				$url->query_form(
+					screen => substr($edit_screen->{id},8),
+					eprintid => $eprint->id,
+					stage => $stage,
+				);
+				my $link = $session->render_link( $url );
+				$link->appendChild( $title );
+				$th->appendChild( $link );
+			}
+			else
+			{
+				$th->appendChild( $title );
+			}
 		}
 
 		if( $stage ne "" )
 		{
-			$div->appendChild( $self->render_stage_warnings( $stage ) );
+			$tr = $session->make_element( "tr" );
+			$table->appendChild( $tr );
+			$td = $session->make_element( "td", colspan => 2 );
+			$td->appendChild( $self->render_stage_warnings( $stage ) );
 		}
 
-		$div->appendChild( $table );
+		foreach $tr (@$rows)
+		{
+			$table->appendChild( $tr );
+		}
 
 		if( $stage ne "" && $unspec->hasChildNodes )
 		{
 			$table->appendChild( $session->render_row(
 				$session->html_phrase( "lib/dataobj:unspecified" ),
 				$unspec ) );
-		}
-
-		if( $stage ne "" && $self->edit_ok )
-		{
-			my $form = $session->render_form;
-			$div->appendChild( $form );
-			$form->appendChild( $session->render_hidden_field(
-				screen => substr($edit_screen->{id},8)
-				) );
-			$form->appendChild( $session->render_hidden_field(
-				eprintid => $eprint->id
-				) );
-			$form->appendChild( $session->render_hidden_field(
-				stage => $stage
-				) );
-			my $button = $session->make_element( "input",
-				type => "submit",
-				value => $edit_screen->phrase( "title" ).": ".$session->phrase( "metapage_title_$stage" ),
-				class => "ep_blister_node" );
-			$form->appendChild( $button );
 		}
 	}
 
