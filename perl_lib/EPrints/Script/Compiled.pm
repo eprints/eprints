@@ -205,6 +205,13 @@ sub run_NOT
 	return [ !$left->[0], "BOOLEAN" ];
 }
 
+sub run_UMINUS
+{
+	my( $self, $state, $left ) = @_;
+
+	return [ -$left->[0], "INTEGER" ];
+}
+
 sub run_AND
 {
 	my( $self, $state, $left, $right ) = @_;
@@ -729,7 +736,7 @@ sub run_to_data_array
 
 	if( !$val->[1]->isa("EPrints::MetaField") )
 	{
-		$self->runtime_error( "to_dataarray expects a field value" );
+		$self->runtime_error( "to_data_array expects a field value" );
 	}
 
 	my $field = $val->[1]->clone;
@@ -749,7 +756,7 @@ sub run_pretty_list
 
 	if( $list->[1]->isa("EPrints::MetaField") )
 	{
-		$list = $self->run_to_dataarray( $state, $list );
+		$list = $self->run_to_data_array( $state, $list );
 	}
 
 	if( $list->[1] ne "DATA_ARRAY" )
@@ -795,7 +802,7 @@ sub run_array_concat
 	{
 		if( $array->[1]->isa("EPrints::MetaField") )
 		{
-			$array = $self->run_to_dataarray( $state, $array );
+			$array = $self->run_to_data_array( $state, $array );
 		}
 	
 		if( $array->[1] ne "DATA_ARRAY" )
@@ -807,6 +814,31 @@ sub run_array_concat
 	}
 
 	return [ \@v, "DATA_ARRAY" ];
+}
+
+sub run_join
+{
+	my( $self, $state, $array, $join_string ) = @_;
+
+	my @list = ();
+	if( $array->[1]->isa("EPrints::MetaField") )
+	{
+		my $data_array = $self->run_to_data_array( $state, $array );
+		foreach my $item ( @{$data_array->[0]} )
+		{
+			push @list, $item->[0];
+		}
+	}
+	elsif( ref( $array->[0] ) eq "ARRAY" )
+	{
+		@list = @{$array->[0]};
+	}
+	else
+	{
+		$self->runtime_error( "join() expects an array" );
+	}
+
+	return [ join( $join_string->[0], @list ), "STRING" ];
 }
 
 sub run_phrase

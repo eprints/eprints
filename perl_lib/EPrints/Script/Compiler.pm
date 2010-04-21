@@ -77,7 +77,7 @@ sub tokenise
 		elsif( $code =~ s/^\*// ) { $newtoken= { pos=>$pos, id=>'MULTIPLY' };  }
 		elsif( $code =~ s/^\/// ) { $newtoken= { pos=>$pos, id=>'DIVIDE' };  }
 		elsif( $code =~ s/^\+// ) { $newtoken= { pos=>$pos, id=>'ADD' };  }
-		elsif( $code =~ s/^-// ) { $newtoken= { pos=>$pos, id=>'SUBTRACT' };  }
+		elsif( $code =~ s/^-// ) { $newtoken= { pos=>$pos, id=>'MINUS' };  }
 		elsif( $code =~ s/^=// ) { $newtoken= { pos=>$pos, id=>'EQUALS' };  }
 		elsif( $code =~ s/^!=// ) { $newtoken= { pos=>$pos, id=>'NOTEQUALS' };  }
 		elsif( $code =~ s/^gt\b// ) { $newtoken= { pos=>$pos, id=>'GREATER_THAN' };  }
@@ -194,13 +194,14 @@ sub compile_add_expr
 
 	my $tree = $self->compile_mult_expr;
 
-	foreach my $test ( qw/ ADD SUBTRACT / )
+	foreach my $test ( qw/ ADD MINUS / )
 	{
 		next unless( $self->next_is( $test ) );
 		my $left = $tree;
 		my $eq = $self->give_me( $test );
 		my $right = $self->compile_add_expr;	
 		$eq->{params} = [ $left, $right ];
+		$eq->{id} = "SUBTRACT" if $test eq "MINUS";
 		return $eq;
 	}
 
@@ -233,9 +234,25 @@ sub compile_not_expr
 	if( $self->next_is( "NOT" ) )	
 	{
 		my $not = $self->give_me( "NOT" );
-		my $param = $self->compile_add_expr;
+		my $param = $self->compile_add_expr; # possible bug?
 		$not->{params} = [ $param ];
 		return $not;
+	}
+
+	return $self->compile_uminus_expr;
+}
+
+sub compile_uminus_expr
+{
+	my( $self ) = @_;
+
+	if( $self->next_is( "MINUS" ) )	
+	{
+		my $minus = $self->give_me( "MINUS" );
+		my $param = $self->compile_uminus_expr;
+		$minus->{id} = "UMINUS";
+		$minus->{params} = [ $param ];
+		return $minus;
 	}
 
 	return $self->compile_method_expr;

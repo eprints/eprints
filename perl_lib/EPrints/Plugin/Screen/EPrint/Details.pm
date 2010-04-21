@@ -187,7 +187,7 @@ sub render
 				$td->appendChild( $doc->render_value( $name ) );
 				$td->appendChild( $session->make_text( ". " ) );
 			}
-			my $ul = $session->make_element( "ul" );
+			my $ul = $session->make_element( "ul", style=>"margin-top: 0.2em; margin-bottom:0.2em" );
 			$td->appendChild( $ul );
 			foreach my $file ( keys %files )
 			{
@@ -227,8 +227,10 @@ sub render
 
 		$tr = $session->make_element( "tr" );
 		$table->appendChild( $tr );
-		$th = $session->make_element( "th", colspan => 2 );
+		$th = $session->make_element( "th", colspan => 2, class => "ep_title_row" );
+
 		$tr->appendChild( $th );
+
 		if( $stage eq "" )
 		{
 			$th->appendChild( $self->html_phrase( "other" ) );
@@ -236,21 +238,18 @@ sub render
 		else
 		{
 			my $title = $session->html_phrase( "metapage_title_$stage" );
+			my $table_inner = $session->make_element( "table", style=>'width:100%' );
+			my $tr_inner = $session->make_element( "tr" );
+			my $td_inner_1 = $session->make_element( "td", style=>'text-align:left;margin-right:1em' );
+			$th->appendChild( $table_inner );
+			$table_inner->appendChild( $tr_inner );
+			$tr_inner->appendChild( $td_inner_1 );
+			$td_inner_1->appendChild( $title );
 			if( $self->edit_ok )
 			{
-				my $url = URI->new( $session->current_url );
-				$url->query_form(
-					screen => substr($edit_screen->{id},8),
-					eprintid => $eprint->id,
-					stage => $stage,
-				);
-				my $link = $session->render_link( $url );
-				$link->appendChild( $title );
-				$th->appendChild( $link );
-			}
-			else
-			{
-				$th->appendChild( $title );
+				my $td_inner_2  = $session->make_element( "td",style=>'text-align:right;font-size:80%' );
+				$tr_inner->appendChild( $td_inner_2 );
+				$td_inner_2->appendChild( $self->render_edit_button( $stage ) );
 			}
 		}
 
@@ -273,6 +272,11 @@ sub render
 				$session->html_phrase( "lib/dataobj:unspecified" ),
 				$unspec ) );
 		}
+
+		$tr = $session->make_element( "tr" );
+		$table->appendChild( $tr );
+		$td = $session->make_element( "td", colspan => 2, style=>'height: 1em' );
+		$tr->appendChild( $td );
 	}
 
 	return $page;
