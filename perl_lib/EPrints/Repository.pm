@@ -86,6 +86,7 @@ results which can be returned via the web interface.
 package EPrints::Repository;
 
 use EPrints;
+use EPrints::Const;
 
 #use URI::Escape;
 use CGI qw(-compile);
@@ -1483,11 +1484,14 @@ sub run_trigger
 
 	$params{repository} = $self;
 
-	foreach my $priority ( sort { $a <=> $b } keys %{$fs} )
+	my $rc;
+
+	TRIGGER: foreach my $priority ( sort { $a <=> $b } keys %{$fs} )
 	{
 		foreach my $f ( @{$fs->{$priority}} )
 		{
-			&{$f}( %params );
+			$rc = &{$f}( %params );
+			last TRIGGER if defined $rc && $rc eq EP_TRIGGER_DONE;
 		}
 	}
 }

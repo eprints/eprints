@@ -26,7 +26,21 @@ This module contains EPrints constants and enumerations.
 
 =head1 CONSTANTS
 
-=head2 Triggers
+=head2 Trigger Result Codes
+
+=over 4
+
+=item EP_TRIGGER_DONE
+
+Stop processing triggers immediately and return.
+
+=item EP_TRIGGER_OK
+
+Continue normal processing.
+
+=back
+
+=head2 Trigger Types
 
 =over 4
 
@@ -75,6 +89,11 @@ package EPrints::Const;
 use Exporter;
 @ISA = qw( Exporter );
 
+use constant {
+	EP_TRIGGER_DONE => -2,
+	EP_TRIGGER_OK => 0,
+};
+
 # Repository triggers
 use constant {
 	EP_TRIGGER_GUESS_DOC_TYPE => 1,
@@ -103,6 +122,9 @@ use constant {
 
 @EXPORT_OK = ();
 @EXPORT = qw(
+	EP_TRIGGER_DONE
+	EP_TRIGGER_OK
+
 	EP_TRIGGER_GUESS_DOC_TYPE
 	EP_TRIGGER_LOG
 	EP_TRIGGER_BOILERPLATE_RDF

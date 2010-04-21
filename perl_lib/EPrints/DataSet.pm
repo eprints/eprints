@@ -1317,11 +1317,14 @@ sub run_trigger
 	$params{repository} = $self->{repository};
 	$params{dataset} = $self;
 
-	foreach my $priority ( sort { $a <=> $b } keys %{$fs} )
+	my $rc;
+
+	TRIGGER: foreach my $priority ( sort { $a <=> $b } keys %{$fs} )
 	{
 		foreach my $f ( @{$fs->{$priority}} )
 		{
-			&{$f}( %params );
+			$rc = &{$f}( %params );
+			last TRIGGER if defined $rc && $rc eq EP_TRIGGER_DONE;
 		}
 	}
 }
