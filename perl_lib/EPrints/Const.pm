@@ -46,6 +46,8 @@ This module contains EPrints constants and enumerations.
 
 =item EP_TRIGGER_END
 
+=item EP_TRIGGER_DOC_REWRITE
+
 =item EP_TRIGGER_CREATED
 
 =item EP_TRIGGER_RDF
@@ -83,6 +85,7 @@ use constant {
 	EP_TRIGGER_BEGIN_REQUEST => 6,
 	EP_TRIGGER_END_REQUEST => 7,
 	EP_TRIGGER_END => 8,
+	EP_TRIGGER_DOC_REWRITE => 9,
 };
 
 # DataObj triggers
@@ -108,6 +111,7 @@ use constant {
 	EP_TRIGGER_BEGIN_REQUEST
 	EP_TRIGGER_END_REQUEST
 	EP_TRIGGER_END
+	EP_TRIGGER_DOC_REWRITE
 
 	EP_TRIGGER_CREATED
 	EP_TRIGGER_RDF
