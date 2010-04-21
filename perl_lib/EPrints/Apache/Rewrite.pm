@@ -423,8 +423,6 @@ sub handler
 
 			my $filename = $uri;
 
-			$r->status( OK );
-
 			$r->pnotes( eprint => $eprint );
 			$r->pnotes( document => $doc );
 			$r->pnotes( dataobj => $doc );
@@ -452,7 +450,8 @@ sub handler
 				relations => \@relations,
 			);
 
-			return $r->status;
+			# a trigger has set an error code
+			return $r->status if $r->status != 200;
 		}
 		# OK, It's the EPrints abstract page (or something whacky like /23/fish)
 		else
