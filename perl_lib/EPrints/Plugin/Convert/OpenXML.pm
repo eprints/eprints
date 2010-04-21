@@ -62,10 +62,7 @@ sub convert
 
 	my @files = $plugin->export( $dir, $doc, $type );
 
-	if( $type eq "all" || $type eq "media" )
-	{
-		push @new_docs, $plugin->_extract_bibl( $doc, $dir );
-	}
+	push @new_docs, $plugin->_extract_bibl( $doc, $dir );
 
 	foreach my $filename (@files)
 	{
@@ -225,6 +222,8 @@ sub _extract_bibl
 			mime_type => "text/xml",
 			_content => $fh,
 		};
+
+		$self->_extract_references( "$custom_dir/item$idx.xml" );
 	}
 	closedir($dh);
 
@@ -248,6 +247,24 @@ sub _extract_bibl
 			uri => $doc->internal_uri(),
 		}],
 		});
+}
+
+sub _extract_references
+{
+	my( $self, $fn ) = @_;
+
+	my $eprint = $self->{_eprint};
+	return if !$eprint->get_dataset->has_field( "bibliography" );
+	return if $eprint->is_set( "bibliography" );
+
+	my $doc = eval { $self->{session}->xml->parse_file( $fn ) };
+	return if !defined $doc;
+
+	my $Sources = $doc->documentElement;
+
+	my @bibls = map { $_->toString } $Sources->getElementsByTagName( "Source" );
+
+	$eprint->set_value( "bibliography", \@bibls );
 }
 
 sub _extract_media_files
