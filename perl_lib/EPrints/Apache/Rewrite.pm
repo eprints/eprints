@@ -423,6 +423,8 @@ sub handler
 
 			my $filename = $uri;
 
+			$r->status( OK );
+
 			$r->pnotes( eprint => $eprint );
 			$r->pnotes( document => $doc );
 			$r->pnotes( dataobj => $doc );
@@ -440,15 +442,17 @@ sub handler
 
 		 	$r->set_handlers(PerlResponseHandler => \&EPrints::Apache::Storage::handler );
 
-			my $rc = $repository->run_triggers( EPrints::Const::EP_TRIGGER_DOC_REWRITE,
+			$r->push_handlers( PerlCleanupHandler => \&EPrints::Apache::LogHandler::document );
+
+			$repository->run_trigger( EPrints::Const::EP_TRIGGER_DOC_REWRITE,
 				request => $r,
 				eprint => $eprint,
-				doc => $doc,
+				document => $doc,
 				filename => $filename,
 				relations => \@relations,
 			);
 
-			return $rc;
+			return $r->status;
 		}
 		# OK, It's the EPrints abstract page (or something whacky like /23/fish)
 		else
