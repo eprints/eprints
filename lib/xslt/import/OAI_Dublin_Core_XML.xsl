@@ -2,7 +2,20 @@
 
 <!-- dublin core import -->
 
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ep="http://eprints.org/ep2/data/2.0">
+<xsl:stylesheet
+	version="1.0"
+	ept:name="OAI Dublin Core XML"
+	ept:visible="all"
+	ept:advertise="1"
+	ept:sourceNamespace="http://www.openarchives.org/OAI/2.0/oai_dc/"
+	ept:targetNamespace="http://eprints.org/ep2/data/2.0"
+	ept:produce="dataobj/eprint list/eprint"
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:ep="http://eprints.org/ep2/data/2.0"
+	xmlns:ept="http://eprints.org/ep2/xslt/1.0"
+>
 
 <xsl:output method="xml" encoding="utf-8"/>
 <xsl:namespace-alias stylesheet-prefix="ep" result-prefix="#default"/>
