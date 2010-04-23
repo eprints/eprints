@@ -28,26 +28,13 @@ sub new
 {
 	my( $class, %params ) = @_;
 
-	my $self = $class->SUPER::new(%params);
+	$params{name} = exists $params{name} ? $params{name} : "Base import plugin: This should have been subclassed";
+	$params{visible} = exists $params{visible} ? $params{visible} : "all";
+	$params{advertise} = exists $params{advertise} ? $params{advertise} : 1;
+	$params{session} = exists $params{session} ? $params{session} : $params{processor}->{session};
+	$params{Handler} = exists $params{Handler} ? $params{Handler} : EPrints::CLIProcessor->new( session => $params{session} );
 
-	if( !$self->{session} )
-	{
-		$self->{session} = $self->{processor}->{session};
-	}
-
-	if( !$self->{Handler} )
-	{
-		$self->{Handler} = EPrints::CLIProcessor->new(
-			session => $self->{session}
-		);
-	}
-
-	$self->{name} = "Base input plugin: This should have been subclassed";
-	$self->{visible} = "all";
-	$self->{advertise} = 1;
-	$self->{mime_type} = "";
-
-	return $self;
+	return $class->SUPER::new(%params);
 }
 
 sub handler
