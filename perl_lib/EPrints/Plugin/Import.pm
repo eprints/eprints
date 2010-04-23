@@ -75,7 +75,7 @@ sub matches
 	}
 	if( $test eq "mime_type" )
 	{
-		return( $self->param( "mime_type" ) eq $param );
+		return $self->can_accept( $param );
 	}
 
 	# didn't understand this match 
@@ -102,6 +102,18 @@ sub is_visible
 	}
 
 	return 1;
+}
+
+sub can_accept
+{
+	my( $self, $format ) = @_;
+
+	for(@{$self->param( "mime_type" )||[]})
+	{
+		return 1 if $_ eq $format;
+	}
+
+	return 0;
 }
 
 sub can_produce
