@@ -35,8 +35,10 @@ against a set of restrictions.
 
 package EPrints::PluginFactory;
 
+use EPrints;
+use EPrints::Const;
+
 use strict;
-use warnings;
 
 use File::Find qw();
 
@@ -69,21 +71,24 @@ sub new
 
 	$self->{repository_data} = {};
 
+	$self->{xslt} = {};
+
 	my $dir;
+
+	my $use_xslt = EPrints::Utils::require_if_exists( "XML::LibXSLT" );
 
 	# system plugins (only load once)
 	$dir = $repository->get_conf( "base_path" )."/perl_lib";
-	if( defined $dir && !scalar keys %SYSTEM_PLUGINS )
+	if( !scalar keys %SYSTEM_PLUGINS )
 	{
 		$self->_load_dir( $self->{data}, $repository, $dir );
+		$self->_load_xslt_dir( $self->{data}, $repository, $dir );
 	}
 
 	# repository-specific plugins
 	$dir = $repository->get_conf( "config_path" )."/plugins";
-	if( defined $dir )
-	{
-		$self->_load_dir( $self->{repository_data}, $repository, $dir );
-	}
+	$self->_load_dir( $self->{repository_data}, $repository, $dir );
+	$self->_load_xslt_dir( $self->{repository_data}, $repository, $dir );
 
 	$self->{disabled} = {};
 
@@ -127,6 +132,34 @@ sub _load_dir
 	);
 }
 
+sub _load_xslt_dir
+{
+	my( $self, $data, $repository, $base_dir ) = @_;
+
+	$base_dir .= "/EPrints/Plugin";
+
+	return unless -d $base_dir;
+
+	File::Find::find({
+		wanted => sub {
+			return if $_ =~ m/^\./;
+			return if $_ eq "CVS";
+			return unless $_ =~ m/\.xslt?$/;
+			return unless -f $File::Find::name;
+			my $class = $File::Find::name;
+			substr($class,0,length($base_dir)) = "";
+			$class =~ s#^/+##;
+			$class =~ s#/#::#g;
+			$class =~ s/\.xslt?$//;
+			$class = "EPrints::Plugin::$class";
+			$self->_load_xslt( $data, $repository, $File::Find::name, $class );
+		},
+		no_chdir => 1,
+		},
+		$base_dir
+	);
+}
+
 sub _load_plugin
 {
 	my( $self, $data, $repository, $fn, $class ) = @_;
@@ -152,6 +185,78 @@ sub _load_plugin
 	return if( $disable );
 
 	$self->register_plugin( $plugin );
+}
+
+sub _load_xslt
+{
+	my( $self, $data, $repository, $fn, $class ) = @_;
+
+	if( !exists $self->{xslt}->{$fn} )
+	{
+		my $doc = eval { $repository->xml->parse_file( $fn ) };
+		if( !defined $doc )
+		{
+			$repository->log( "Error parsing $fn: $@" );
+			return;
+		}
+		my $xslt = $self->{xslt}->{$fn} = {};
+		foreach my $attr ($doc->documentElement->attributes)
+		{
+			next if $attr->isa( "XML::LibXML::Namespace" );
+			next if !defined $attr->namespaceURI;
+			next if $attr->namespaceURI ne EP_NS_XSLT;
+			$xslt->{$attr->localName} = $attr->value();
+		}
+		for(qw( produce accept ))
+		{
+			$xslt->{$_} = [split / /, $xslt->{$_}||""];
+		}
+		my $stylesheet = XML::LibXSLT->new->parse_stylesheet( $doc );
+		$xslt->{stylesheet} = $stylesheet;
+	}
+	my $xslt = $self->{xslt}->{$fn};
+
+	my $handler = $class;
+	$handler =~ s/^(EPrints::Plugin::[^:]+::XSLT).*/$1/;
+
+	my $settingsvar = $class."::SETTINGS";
+
+	eval <<EOP;
+package $class;
+
+our \@ISA = qw( $handler );
+
+sub new
+{
+	return shift->SUPER::new( \%\$$settingsvar, \@_ );
+}
+
+1
+EOP
+
+	{
+		no strict "refs";
+		${$settingsvar} = $xslt;
+	}
+
+	my $plugin = $class->new( repository => $repository );
+		
+	if( $plugin->isa( "EPrints::Plugin::Import" ) )
+	{
+		return if !@{$plugin->param( "produce" )};
+
+		$self->register_plugin( $plugin );
+	}
+	elsif( $plugin->isa( "EPrints::Plugin::Export" ) )
+	{
+		return if !@{$plugin->param( "accept" )};
+
+		$self->register_plugin( $plugin );
+	}
+	else
+	{
+		return; # unsupported
+	}
 }
 
 =item $ok = EPrints::PluginFactory->register_plugin( $plugin )

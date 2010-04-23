@@ -26,6 +26,20 @@ This module contains EPrints constants and enumerations.
 
 =head1 CONSTANTS
 
+=head2 Namespaces
+
+=over 4
+
+=item EP_NS_DATA
+
+http://eprints.org/ep2/data/2.0
+
+=item EP_NS_XSLT
+
+http://eprints.org/ep2/xslt/1.0
+
+=back
+
 =head2 Trigger Result Codes
 
 =over 4
@@ -89,6 +103,12 @@ package EPrints::Const;
 use Exporter;
 @ISA = qw( Exporter );
 
+# Namespaces
+use constant {
+	EP_NS_XSLT => "http://eprints.org/ep2/xslt/1.0",
+	EP_NS_DATA => "http://eprints.org/ep2/data/2.0",
+};
+
 use constant {
 	EP_TRIGGER_DONE => -2,
 	EP_TRIGGER_OK => 0,
@@ -122,6 +142,9 @@ use constant {
 
 @EXPORT_OK = ();
 @EXPORT = qw(
+	EP_NS_XSLT
+	EP_NS_DATA
+
 	EP_TRIGGER_DONE
 	EP_TRIGGER_OK
 
