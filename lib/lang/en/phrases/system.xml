@@ -3037,12 +3037,21 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="Plugin/InputForm/Component/Upload:from_file">File</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:from_zip">Zip File</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:from_targz">.tar.gz File</epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component/Upload:from_compressed">Archive (e.g. zip)</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:from_url">From URL</epp:phrase>
 
 	<epp:phrase id="Plugin/InputForm/Component/Upload:new_document">New document: </epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:new_from_zip">New document (from ZIP file): </epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component/Upload:new_from_compressed">New document(s) (from Archive): </epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:new_from_targz">New document (from .tar.gz file): </epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:new_from_url">Capture from URL: </epp:phrase>
+
+	<epp:phrase id="Plugin/InputForm/UploadMethod/xcompressed:extract_type">Extraction Result: </epp:phrase>
+	<epp:phrase id="Plugin/InputForm/UploadMethod/xcompressed:single">Single Document (e.g. a web page)</epp:phrase>
+	<epp:phrase id="Plugin/InputForm/UploadMethod/xcompressed:multiple">Multi-Document (e.g. a collection)</epp:phrase>
+	<epp:phrase id="Plugin/InputForm/UploadMethod/xcompressed:no_plugin">The uploaded file type is not supported by this repository.</epp:phrase>
+	<epp:phrase id="Plugin/InputForm/UploadMethod/xcompressed:failed">Upload Failed, could not uncompress uploaded file.</epp:phrase>
+	
 
 	<!-- errors -->
 	<epp:phrase id="Plugin/InputForm/Component/Upload:create_failed">Document creation failed.</epp:phrase>
