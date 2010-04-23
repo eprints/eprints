@@ -284,8 +284,6 @@ sub get_eprint_by_identifier
 
 	my $eprint = $list->item( 0 );
 
-	$searchexp->dispose;
-
 	return $eprint;
 }
 
@@ -427,7 +425,6 @@ sub Identify
 		"ANY"
 	);
 	my $sample_eprint = $searchexp->perform_search->item( 0 );
-	$searchexp->dispose;
 
 	if( defined $sample_eprint )
 	{
@@ -923,8 +920,6 @@ END
 			$token{offset} = $eprint->id() + 1;
 		}
 	}
-
-	$list->dispose();
 
 	# will show a blank list if total is % $PAGESIZE
 	if( @records >= $PAGESIZE )
