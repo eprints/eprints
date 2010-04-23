@@ -82,13 +82,19 @@ sub new
 	if( !scalar keys %SYSTEM_PLUGINS )
 	{
 		$self->_load_dir( $self->{data}, $repository, $dir );
-		$self->_load_xslt_dir( $self->{data}, $repository, $dir );
+		if( $use_xslt )
+		{
+			$self->_load_xslt_dir( $self->{data}, $repository, $dir );
+		}
 	}
 
 	# repository-specific plugins
 	$dir = $repository->get_conf( "config_path" )."/plugins";
 	$self->_load_dir( $self->{repository_data}, $repository, $dir );
-	$self->_load_xslt_dir( $self->{repository_data}, $repository, $dir );
+	if( $use_xslt )
+	{
+		$self->_load_xslt_dir( $self->{repository_data}, $repository, $dir );
+	}
 
 	$self->{disabled} = {};
 
