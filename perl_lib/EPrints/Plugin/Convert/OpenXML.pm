@@ -253,16 +253,37 @@ sub _extract_references
 {
 	my( $self, $fn ) = @_;
 
+	my $session = $self->{session};
+
 	my $eprint = $self->{_eprint};
 	return if !$eprint->get_dataset->has_field( "bibliography" );
 	return if $eprint->is_set( "bibliography" );
 
-	my $doc = eval { $self->{session}->xml->parse_file( $fn ) };
+	my $doc = eval { $session->xml->parse_file( $fn ) };
 	return if !defined $doc;
 
-	my $Sources = $doc->documentElement;
+	my $translator = $session->plugin( "Import::XSLT::OpenXMLBibl" );
+	return if !defined $translator;
 
-	my @bibls = map { $_->toString } $Sources->getElementsByTagName( "Source" );
+	my $epxml = $translator->transform( $doc );
+
+	my @bibls;
+
+	my $dataset = $eprint->get_dataset;
+	my $class = $dataset->get_object_class;
+
+	foreach my $xml ($epxml->documentElement->getElementsByTagName( 'eprint' ))
+	{
+		my $epdata = $class->xml_to_epdata( $session, $xml );
+		$epdata->{eprint_status} = 'inbox';
+		my $dataobj = $class->new_from_data(
+			$session,
+			$epdata,
+			$dataset );
+		my $citation = $dataobj->render_citation;
+		push @bibls, join '', $session->xhtml->to_xhtml( $citation );
+		$session->xml->dispose( $citation );
+	}
 
 	$eprint->set_value( "bibliography", \@bibls );
 }
