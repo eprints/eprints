@@ -11,10 +11,12 @@
 	ept:sourceNamespace="http://eprints.org/ep2/data/2.0"
 	ept:targetNamespace="http://eprints.org/ep2/data/2.0"
 	ept:accept="list/eprint"
+	ept:mime_type="text/xml; charset=UTF-8"
+	ept:qs="0.1"
 	xmlns:ept="http://eprints.org/ep2/xslt/1.0"
 >
 
-<xsl:output encoding="utf-8"/>
+<xsl:output method="xml" indent="yes" encoding="utf-8"/>
 
 <xsl:template match="*">
   <xsl:copy>

@@ -10,20 +10,17 @@ sub new
 {
 	my( $class, %params ) = @_;
 
-	my $self = $class->SUPER::new(%params);
-
-	$self->{name} = "Base output plugin: This should have been subclassed";
-	$self->{suffix} = ".txt";
-	$self->{visible} = "all";
-	$self->{mimetype} = "text/plain";
-	$self->{advertise} = 1;
-	$self->{arguments} = {};
+	$params{suffix} = exists $params{suffix} ? $params{suffix} : ".txt";
+	$params{visible} = exists $params{visible} ? $params{visible} : "all";
+	$params{mimetype} = exists $params{mimetype} ? $params{mimetype} : "text/plain";
+	$params{advertise} = exists $params{advertise} ? $params{advertise} : 1;
+	$params{arguments} = exists $params{arguments} ? $params{arguments} : {};
 
 	# q is used to describe quality. Use it to increase or decrease the 
 	# desirability of using this plugin during content negotiation.
-	$self->{qs} = 0.5; 
+	$params{qs} = exists $params{qs} ? $params{qs} : 0.5; 
 
-	return $self;
+	return $class->SUPER::new(%params);
 }
 
 # Return an array of the ID's of arguemnts this plugin accepts

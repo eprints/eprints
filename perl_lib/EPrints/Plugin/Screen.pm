@@ -12,19 +12,14 @@ sub new
 {
 	my( $class, %params ) = @_;
 
-	my $self = $class->SUPER::new(%params);
-
-	if( !defined $self->{session} ) 
-	{
-		$self->{session} = $self->{processor}->{session};
-	}
-	$self->{actions} = [];
+	$params{actions} = exists $params{actions} ? $params{actions} : [];
+	$params{session} = exists $params{session} ? $params{session} : $params{processor}->{session};
 
 	# flag to indicate that it takes some effort to make this screen, so
 	# don't make it up as a tab. eg. EPrint::History.
-	$self->{expensive} = 0; 
+	$params{expensive} = exists $params{expensive} ? $params{expensive} : 0; 
 
-	return $self;
+	return $class->SUPER::new(%params);
 }
 
 sub properties_from

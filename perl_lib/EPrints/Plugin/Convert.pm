@@ -55,14 +55,11 @@ Create a new plugin object using OPTIONS (should only be called by L<EPrints::Se
 
 sub new
 {
-	my( $class, %opts ) = @_;
+	my( $class, %params ) = @_;
 
-	my $self = $class->SUPER::new( %opts );
+	$params{visible} = exists $params{visible} ? $params{visible} : "all";
 
-	$self->{name} = "Base convert plugin";
-	$self->{visible} = "all";
-
-	return $self;
+	return $class->SUPER::new( %params );
 }
 
 ######################################################################

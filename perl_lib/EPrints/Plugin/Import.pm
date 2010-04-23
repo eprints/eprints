@@ -28,7 +28,6 @@ sub new
 {
 	my( $class, %params ) = @_;
 
-	$params{name} = exists $params{name} ? $params{name} : "Base import plugin: This should have been subclassed";
 	$params{visible} = exists $params{visible} ? $params{visible} : "all";
 	$params{advertise} = exists $params{advertise} ? $params{advertise} : 1;
 	$params{session} = exists $params{session} ? $params{session} : $params{processor}->{session};

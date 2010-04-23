@@ -6,17 +6,6 @@ our @ISA = qw/ EPrints::Plugin /;
 
 $EPrints::Plugin::Storage::DISABLE = 1;
 
-sub new
-{
-	my( $class, %params ) = @_;
-
-	my $self = $class->SUPER::new(%params);
-
-	$self->{name} = "Storage abstraction layer: this plugin should have been subclassed";
-
-	return $self;
-}
-
 sub matches 
 {
 	my( $self, $test, $param ) = @_;

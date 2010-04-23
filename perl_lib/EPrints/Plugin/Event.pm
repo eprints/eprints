@@ -8,13 +8,10 @@ sub new
 {
 	my( $class, %params ) = @_;
 
-	my $self = $class->SUPER::new(%params);
+	$params{visible} = exists $params{visible} ? $params{visible} : "all";
+	$params{advertise} = exists $params{advertise} ? $params{advertise} : 1;
 
-	$self->{name} = "Base event plugin: This should have been subclassed";
-	$self->{visible} = "all";
-	$self->{advertise} = 1;
-
-	return $self;
+	return $class->SUPER::new(%params);
 }
 
 1;

@@ -6,17 +6,6 @@ our @ISA = qw/ EPrints::Plugin /;
 
 $EPrints::Plugin::Issues::DISABLE = 1;
 
-sub new
-{
-	my( $class, %params ) = @_;
-
-	my $self = $class->SUPER::new(%params);
-
-	$self->{name} = "Parent issues-scanning plugin: This should have been subclassed";
-
-	return $self;
-}
-
 sub matches 
 {
 	my( $self, $test, $param ) = @_;
