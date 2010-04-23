@@ -45,6 +45,7 @@ sub new
 	$self->{name} = "Base input plugin: This should have been subclassed";
 	$self->{visible} = "all";
 	$self->{advertise} = 1;
+	$self->{mime_type} = "";
 
 	return $self;
 }
@@ -85,6 +86,10 @@ sub matches
 	if( $test eq "is_advertised" )
 	{
 		return( $self->param( "advertise" ) == $param );
+	}
+	if( $test eq "mime_type" )
+	{
+		return( $self->param( "mime_type" ) eq $param );
 	}
 
 	# didn't understand this match 
