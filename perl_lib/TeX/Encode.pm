@@ -113,7 +113,7 @@ sub decode
 
 sub _decode
 {
-	my $str = "";
+	my $str = Encode::decode_utf8( "" );
 
 	for($_[0])
 	{
