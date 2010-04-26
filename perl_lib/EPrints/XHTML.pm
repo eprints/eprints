@@ -654,6 +654,7 @@ Options:
 
  base_url - the link to follow under non-JS (default = current URL)
  basename - prefix for tab identifiers (default = "ep_tabs")
+ current - index of tab to show first (default = 0)
 
 =cut
 
@@ -686,11 +687,12 @@ sub tabs
 
 	# render the current page according to the request (javascript might alter
 	# the actual page shown)
-	my $current = 0;
+	my $current = $opts{current};
 	if( defined($repo->param( $q_current )) )
 	{
-		$current = $repo->param( $q_current );
+		$current = $repo->param( $q_current ) + 0;
 	}
+	$current = 0 if !defined $current;
 
 	my $tab_block = $xml->create_element( "div", class=>"ep_only_js" );	
 	$frag->appendChild( $tab_block );
