@@ -692,7 +692,7 @@ sub tabs
 	{
 		$current = $repo->param( $q_current ) + 0;
 	}
-	$current = 0 if !defined $current;
+	$current = 0 if !$current;
 
 	my $tab_block = $xml->create_element( "div", class=>"ep_only_js" );	
 	$frag->appendChild( $tab_block );
