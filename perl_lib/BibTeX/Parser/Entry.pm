@@ -1,9 +1,8 @@
 package BibTeX::Parser::Entry;
+our $VERSION = '0.4';
 
 use warnings;
 use strict;
-
-our $VERSION = '0.3';
 
 use BibTeX::Parser::Author;
 
@@ -13,7 +12,7 @@ BibTeX::Entry - Contains a single entry of a BibTeX document.
 
 =head1 VERSION
 
-version 0.3.1
+version 0.4
 
 =cut
 
@@ -138,7 +137,7 @@ sub field {
 		return $self->{ lc( $field ) };
 	} else {
 		my ($self, $key, $value) = @_;
-		$self->{ lc( $key ) } = $value;
+		$self->{ lc( $key ) } = _sanitize_field($value);
 	}
 
 }
@@ -148,7 +147,8 @@ sub _handle_author_editor {
 	my $self = shift;
 	if (@_) {
 		if (@_ == 1) { #single string
-			my @names = split /\s+and\s+/i, $_[0];
+			# my @names = split /\s+and\s+/i, $_[0];
+			my @names = _split_author_field( $_[0] );
 			$self->{"_$type"} = [map {new BibTeX::Parser::Author $_} @names];
 			$self->field($type, join " and ", @{$self->{"_$type"}});
 		} else {
@@ -165,11 +165,50 @@ sub _handle_author_editor {
 		}
 	} else {
 		unless ( defined $self->{"_$type"} ) {
-			my @names = split /\s+and\s+/i, $self->{$type} || "";
+			#my @names = split /\s+and\s+/i, $self->{$type} || "";
+			my @names = _split_author_field( $self->{$type} || "" );
 			$self->{"_$type"} = [map {new BibTeX::Parser::Author $_} @names];
 		}
 		return @{$self->{"_$type"}};
 	}
+}
+
+# _split_author_field($field)
+#
+# Split an author field into different author names.
+# Handles quoted names ({name}).
+sub _split_author_field {
+    my $field = shift;
+
+    return () if !defined $field || $field eq '';
+
+    my @names;
+
+    my $buffer;
+    while (!defined pos $field || pos $field < length $field) {
+	if ( $field =~ /\G ( .* ) ( \{ | \s+ and \s+ )/xcgi ) {
+	    my $match = $1;
+	    if ( $2 =~ /and/i ) {
+		$buffer .= $match;
+		push @names, $buffer;
+		$buffer = "";
+	    } elsif ( $2 =~ /\{/ ) {
+		$buffer .= "{" . $match;
+		if ( $field =~ /\G (.* \})/cgx ) {
+		    $buffer .= $1;
+		} else {
+		    die "Missing closing brace at " . substr( $field, pos $field, 10 );
+		}
+	    } else {
+		$buffer .= $match;
+	    }
+	} else {
+	   $buffer .= substr $field, (pos $field || 0);
+	   last;
+	}
+    }
+    push @names, $buffer if $buffer;
+    return @names;
 }
 
 =head2 author([@authors])

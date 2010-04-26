@@ -1,9 +1,8 @@
 package BibTeX::Parser::Author;
+our $VERSION = '0.4';
 
 use warnings;
 use strict;
-
-our $VERSION = '0.3';
 
 use overload
 	'""' => \&to_string;
@@ -14,7 +13,7 @@ BibTeX::Author - Contains a single author for a BibTeX document.
 
 =head1 VERSION
 
-version 0.3.1
+version 0.4
 
 =cut
 
@@ -118,6 +117,10 @@ sub split {
 
 	# remove whitespace at start and end of string
 	$name =~ s/^\s*(.*)\s*$/$1/s;
+
+	if ( $name =~ /^\{\s*(.*)\s*\}$/ ) {
+	    return (undef, undef, $1, undef);
+	}
 
 	my @parts = split /\s*,\s*/, $name;
 

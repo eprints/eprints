@@ -1,9 +1,8 @@
 package BibTeX::Parser;
-
+our $VERSION = '0.4';
+# ABSTRACT: A pure perl BibTeX parser
 use warnings;
 use strict;
-
-our $VERSION = '0.3';
 
 use BibTeX::Parser::Entry;
 
@@ -15,7 +14,7 @@ BibTeX::Parser - A pure perl BibTeX parser
 
 =head1 VERSION
 
-version 0.3.1
+version 0.4
 
 =cut
 
@@ -45,8 +44,8 @@ Parses BibTeX files.
 		    my @editors = $entry->editor;
 		    
 		    foreach my $author (@authors) {
-			    print $author->first . " " 
-			    	. $author->von . " " 
+			    print $author->first . " "
+			    	. $author->von . " "
 				. $author->last . ", "
 				. $author->jr;
 		    }
@@ -110,7 +109,7 @@ sub _parse_next {
 
         my $current_entry = new BibTeX::Parser::Entry;
         if (/@($re_name)/cgo) {
-			my $type = uc $1;
+	    my $type = uc $1;
             $current_entry->type( $type );
             my $start_pos = pos($_) - length($type) - 1;
 
