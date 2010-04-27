@@ -33,6 +33,13 @@ sub new
 	return $self;
 }
 
+sub about_to_render 
+{
+	my( $self ) = @_;
+
+	$self->{processor}->{screenid} = "EPrint::View";	
+}
+
 sub render_status
 {
 	my( $self ) = @_;
