@@ -148,7 +148,7 @@ sub handler
 	$perlpath =~ s! /cgi\b ! /perl !x;
 	if( $uri =~ s! ^$perlpath !!x )
 	{
-		return redir( $r, "$cgipath$uri" );
+		return redir( $r, "$cgipath$uri$args" );
 	}
 
 	# CGI
