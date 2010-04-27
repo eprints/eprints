@@ -67,7 +67,7 @@ sub input_fh
 	my $pdf = $parts{main} . ".pdf";
 	if( $opts{flags}->{media} && -f $pdf )
 	{
-		push @new_docs, $self->add_pdf( $pdf, %opts );
+		push @new_docs, $self->add_pdf( $main_doc, $pdf, %opts );
 	}
 
 	my $aux = $parts{main} . ".aux";
@@ -77,14 +77,21 @@ sub input_fh
 		push @new_docs, $self->add_bibl( $aux, $bib, %opts );
 	}
 
-	for(@new_docs)
+	# add the reciprocal relations
+	foreach my $new_doc ( @new_docs )
 	{
-		$_->add_object_relations( $main_doc,
-			EPrints::Utils::make_relation( "isVolatileVersionOf" ),
-			EPrints::Utils::make_relation( "hasVolatileVersion" ),
-		);
-		$_->commit;
+		foreach my $relation ( @{$new_doc->value( "relation" )} )
+		{
+			next if $relation->{uri} ne $main_doc->internal_uri;
+			my $type = $relation->{type};
+			next if $type !~ s# /is(\w+)Of$ #/has$1#x;
+			$main_doc->add_object_relations(
+				$new_doc,
+				$type
+			);
+		}
 	}
+
 
 	$main_doc->commit;
 
@@ -110,7 +117,7 @@ sub unpack
 
 sub add_pdf
 {
-	my( $self, $pdf, %opts ) = @_;
+	my( $self, $main_doc, $pdf, %opts ) = @_;
 
 	my $filename = $pdf;
 	$filename =~ s/^.*\///;
@@ -125,6 +132,10 @@ sub add_pdf
 			filename => $filename,
 			filesize => (-s $pdf),
 			_content => $fh,
+		}],
+		relation => [{
+			type => EPrints::Utils::make_relation( "isVersionOf" ),
+			uri => $main_doc->internal_uri(),
 		}],
 	});
 }
