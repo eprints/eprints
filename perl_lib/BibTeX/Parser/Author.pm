@@ -119,7 +119,7 @@ sub split {
 	$name =~ s/^\s*(.*)\s*$/$1/s;
 
 	if ( $name =~ /^\{\s*(.*)\s*\}$/ ) {
-	    return (undef, undef, $1, undef);
+	    return _nbsp(undef, undef, $1, undef);
 	}
 
 	my @parts = split /\s*,\s*/, $name;
@@ -142,13 +142,13 @@ sub split {
 			}
 
 			if (@name_parts) {
-				return ($first, $von, join(" ", @name_parts), undef);
+				return _nbsp($first, $von, join(" ", @name_parts), undef);
 			} else {
-				return (undef, undef, $name, undef);
+				return _nbsp(undef, undef, $name, undef);
 			}
 		} else {
-			if ($name =~ /^((.*)\s+)?\b(\S+)$/) {
-				return ($2, undef, $3, undef);
+			if ($name =~ /^(?:(.*)\s+)?(\S+)$/) {
+				return _nbsp($1, undef, $2, undef);
 			}
 		}
 
@@ -159,7 +159,7 @@ sub split {
 		while ( lc($von_last_parts[0]) eq $von_last_parts[0] ) {
 			$von .= $von ? ' ' . shift @von_last_parts : shift @von_last_parts;
 		}
-		return ($parts[1], $von, join(" ", @von_last_parts), undef);
+		return _nbsp($parts[1], $von, join(" ", @von_last_parts), undef);
 	} else {
 		my @von_last_parts = split /\s+/, $parts[0];
 		my $von;
@@ -167,9 +167,18 @@ sub split {
 		while ( lc($von_last_parts[0]) eq $von_last_parts[0] ) {
 			$von .= $von ? ' ' . shift @von_last_parts : shift @von_last_parts;
 		}
-		return ($parts[2], $von, join(" ", @von_last_parts), $parts[1]);
+		return _nbsp($parts[2], $von, join(" ", @von_last_parts), $parts[1]);
 	}
+}
 
+sub _nbsp
+{
+	my @parts = @_;
+	for(@parts)
+	{
+		$_ =~ s/\xa0/ /g if defined $_;
+	}
+	return @parts;
 }
 
 =head2 to_string

@@ -183,32 +183,29 @@ sub _split_author_field {
     return () if !defined $field || $field eq '';
 
     my @names;
-
-    my $buffer;
-    while (!defined pos $field || pos $field < length $field) {
-	if ( $field =~ /\G ( .* ) ( \{ | \s+ and \s+ )/xcgi ) {
-	    my $match = $1;
-	    if ( $2 =~ /and/i ) {
-		$buffer .= $match;
-		push @names, $buffer;
-		$buffer = "";
-	    } elsif ( $2 =~ /\{/ ) {
-		$buffer .= "{" . $match;
-		if ( $field =~ /\G (.* \})/cgx ) {
-		    $buffer .= $1;
-		} else {
-		    die "Missing closing brace at " . substr( $field, pos $field, 10 );
+	my $name = '';
+	my $inbrace = 0;
+	for($field)
+	{
+		pos($_) = 0;
+		while(pos $_ < length $_)
+		{
+			/\G(\{)/cg && (($name .= $1), ++$inbrace, next);
+			/\G(\})/cg && (($name .= $1), --$inbrace, next);
+			$inbrace && /\G([^\{\}]+)/cg && (($name .= _nbsp($1)), next);
+			/\G([^\{\}]*?)\sand\s+/cig && (push(@names, $name.$1), $name='', next);
+			/\G([^\{\}]+)/cg && (($name .= $1), next); # last name
 		}
-	    } else {
-		$buffer .= $match;
-	    }
-	} else {
-	   $buffer .= substr $field, (pos $field || 0);
-	   last;
 	}
-    }
-    push @names, $buffer if $buffer;
-    return @names;
+	push @names, $name if length($name);
+	return @names;
+}
+
+sub _nbsp
+{
+	my( $str ) = @_;
+	$str =~ s/\s/\xa0/g;
+	return $str;
 }
 
 =head2 author([@authors])
@@ -264,6 +261,7 @@ sub has {
 }
 
 sub _sanitize_field {
+return shift;
 	my $value = shift;	
 	for ($value) {
 		tr/\{\}//d;
