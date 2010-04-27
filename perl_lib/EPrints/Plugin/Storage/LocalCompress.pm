@@ -18,7 +18,6 @@ use strict;
 
 use URI;
 use URI::Escape;
-use File::Basename;
 
 use EPrints::Plugin::Storage::Local;
 
@@ -42,22 +41,10 @@ sub open_write
 {
 	my( $self, $fileobj ) = @_;
 
-	my( $local_path, $out_file ) = $self->_filename( $fileobj );
+	return 0 if !$self->SUPER::open_write( $fileobj );
 
-	my( $name, $path, $suffix ) = File::Basename::fileparse( $out_file );
-
-	EPrints::Platform::mkdir( $path );
-
-	my $out_fh;
-	unless( open($out_fh, ">:gzip", $out_file) )
-	{
-		$self->{error} = "Unable to write to $out_file: $!";
-		$self->{session}->get_repository->log( $self->{error} );
-		return 0;
-	}
-
-	$self->{_fh}->{$fileobj} = $out_fh;
-	$self->{_name}->{$fileobj} = $out_file;
+	my $fh = $self->{_fh}->{$fileobj};
+	binmode( $fh, ":gzip" ) or die "Setting gzip IO layer failed: $!";
 
 	return 1;
 }
@@ -72,11 +59,12 @@ sub write
 	my $fh = $self->{_fh}->{$fileobj}
 		or Carp::croak "Must call open_write before write";
 
-	unless( print $fh $buffer )
+	if( !print $fh $buffer ) # sysread ignores gzip layer
 	{
-		my $out_file = $self->{_name}->{$fileobj};
-		unlink($out_file);
-		$self->{error} = "Error writing to $out_file: $!";
+		my $path = $self->{_path}->{$fileobj};
+		my $fn = $self->{_name}->{$fileobj};
+		unlink("$path/$fn");
+		$self->{error} = "Error writing to $path/$fn: $!";
 		$self->{session}->get_repository->log( $self->{error} );
 		return 0;
 	}
@@ -84,55 +72,38 @@ sub write
 	return 1;
 }
 
-sub close_write
+sub open_read
 {
-	my( $self, $fileobj ) = @_;
+	my( $self, $fileobj, $sourceid, $f ) = @_;
 
-	delete $self->{_name}->{$fileobj};
+	return 0 if !$self->SUPER::open_read( $fileobj, $sourceid, $f );
 
-	my $fh = delete $self->{_fh}->{$fileobj};
-	close($fh);
+	my $fh = $self->{_fh}->{$fileobj};
+	binmode( $fh, ":gzip" ) or die "Setting gzip IO layer failed: $!";
 
-	return $fileobj->get_value( "filename" );
+	return 1;
 }
 
 sub retrieve
 {
 	my( $self, $fileobj, $sourceid, $f ) = @_;
 
-	my( $local_path, $in_file ) = $self->_filename( $fileobj );
+	return 0 if !$self->open_read( $fileobj, $sourceid, $f );
+	my( $path, $fn ) = $self->_filename( $fileobj, $sourceid );
 
-	my $in_fh;
-	unless( open($in_fh, "<:gzip", $in_file) )
-	{
-		$self->{error} = "Unable to read from $in_file: $!";
-		$self->{session}->get_repository->log( $self->{error} );
-		return undef;
-	}
+	my $fh = $self->{_fh}->{$fileobj};
 
 	my $rc = 1;
 
 	my $buffer;
-	while(read($in_fh,$buffer,4096))
+	while($rc && read($fh,$buffer,65536)) # sysread ignores gzip layer
 	{
 		$rc &&= &$f($buffer);
-		last unless $rc;
 	}
 
-	close($in_fh);
+	$self->close_read( $fileobj, $sourceid, $f );
 
 	return $rc;
-}
-
-sub delete
-{
-	my( $self, $fileobj, $sourceid ) = @_;
-
-	my( $local_path, $in_file ) = $self->_filename( $fileobj );
-
-	return 1 unless -e $in_file;
-
-	return unlink($in_file);
 }
 
 sub get_local_copy
@@ -142,13 +113,16 @@ sub get_local_copy
 
 sub _filename
 {
-	my( $self, $fileobj ) = @_;
+	my( $self, $fileobj, $sourceid ) = @_;
 
-	my( $local_path, $in_file ) = $self->SUPER::_filename( $fileobj );
+	my( $path, $fn ) = $self->SUPER::_filename( $fileobj, $sourceid );
 
-	$in_file .= '.gz';
+	if( !defined $sourceid ) # file creation only
+	{
+		$fn .= '.gz';
+	}
 
-	return( $local_path, $in_file );
+	return( $path, $fn );
 }
 
 =back
