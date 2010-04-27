@@ -33,6 +33,8 @@ sub from
 	my $ffname = join('_', $basename, $self->get_id, "url");
 	my $eprint = $processor->{eprint};
 
+	my $url = Encode::decode_utf8( $session->param( $ffname ) );
+
 	my $document = $eprint->create_subdataobj( "documents", {
 		format => "other",
 	});
@@ -41,7 +43,7 @@ sub from
 		$processor->add_message( "error", $self->{session}->html_phrase( "Plugin/InputForm/Component/Upload:create_failed" ) );
 		return;
 	}
-	my $success = $document->upload_url( $self->{session}->param( $ffname ) );
+	my $success = $document->upload_url( $url );
 	if( !$success )
 	{
 		$document->remove();

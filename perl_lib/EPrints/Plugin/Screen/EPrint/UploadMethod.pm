@@ -22,7 +22,7 @@ sub from
 
 	my $ffname = join(',', $basename, $self->get_id, "file");
 
-	my $filename = $session->query->param( $ffname );
+	my $filename = Encode::decode_utf8( $session->query->param( $ffname ) );
 	my $fh = $session->query->upload( $ffname );
 	my $format = defined $filename ? $session->call( "guess_doc_type", $session, $filename ) : undef;
 
