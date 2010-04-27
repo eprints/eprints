@@ -3771,4 +3771,16 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="Plugin/Screen/Workflow:event_queue:core_stage:title" ref="metapage_title_core" />
 	<epp:phrase id="Plugin/Screen/Workflow:event_queue:commit_stage:title" ref="Plugin/Screen/Workflow/Commit:title" />
 
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/OpenXML:title">OpenXML</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/OpenXML:flag:metadata">Extract metadata</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/OpenXML:flag:media">Extract generated media (images etc.)</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/OpenXML:flag:bibliography">Extract bibliography</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/OpenXML:unsupported_format">The uploaded file was not recognised.</epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Tex:title">(La)TeX</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Tex:flag:media">Extract generated PDF</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Tex:flag:bibliography">Extract bibliography</epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Expand:flag:explode">Expand archive into multiple documents containing one file each</epp:phrase>
+
 </epp:phrases>

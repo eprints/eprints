@@ -264,6 +264,7 @@ Each screen opt is a hash ref of:
 Incoming opts:
 
 	filter => 1 or 0 (default 1)
+	params => {}
 
 =cut
 

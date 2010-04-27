@@ -1,10 +1,10 @@
-package EPrints::Plugin::Convert::OpenXML;
+package EPrints::Plugin::Import::OpenXML;
+
+use EPrints::Plugin::Import;
+
+@ISA = qw( EPrints::Plugin::Import );
 
 use strict;
-use warnings;
-
-use EPrints::Plugin::Convert;
-our @ISA = qw/ EPrints::Plugin::Convert /;
 
 # adpated from Import::DSpace:
 our $GRAMMAR = {
@@ -22,171 +22,85 @@ our $SWORD_GRAMMAR = {
 		'my:contrib.' => ['creators_name']
 };
 
-
-
-sub new
+sub input_fh
 {
-	my( $class, %opts ) = @_;
+	my( $self, %opts ) = @_;
 
-	my $self = $class->SUPER::new( %opts );
+	my $session = $self->{session};
+	my $eprint = $opts{dataobj};
 
-	$self->{name} = "metadata/media extractor";
-	$self->{visible} = "all";
+	my $flags = $opts{flags};
 
-	return $self;
-}
+	my $filename = $opts{filename};
 
-sub can_convert
-{
-	my ($plugin, $doc) = @_;
+	my $format = $session->call( "guess_doc_type", $session, $filename );
 
-	# don't want to be called by the Uploader or else at this stage
-	return;
-}
-
-
-# type = { both, metadata, media } decides on what to extract
-sub convert
-{
-	my ($plugin, $eprint, $doc, $type, $user) = @_;
-
-	my $session = $plugin->{session};
-	my $doc_ds = $doc->get_dataset;
-        
-	$plugin->{dataset} = $eprint->get_dataset;
-	$plugin->{_eprint} = $eprint;
+	# create the main document
+	my $main_doc = $eprint->create_subdataobj( "documents", {
+		format => $format,
+		main => $filename,
+		files => [{
+			filename => $filename,
+			filesize => (-s $opts{fh}),
+			_content => $opts{fh}
+		}],
+	});
+	if( !defined $main_doc )
+	{
+		$self->error( $self->phrase( "create_failed" ) );
+		return;
+	}
+	
+	my $main_file = $main_doc->get_stored_file( $main_doc->get_main );
+	my $dir = $self->unpack( $main_file->get_local_copy, %opts );
 
 	my @new_docs;
 
-	my $dir = EPrints::TempDir->new( "ep-convertXXXXX", UNLINK => 1);
-
-	my @files = $plugin->export( $dir, $doc, $type );
-
-	push @new_docs, $plugin->_extract_bibl( $doc, $dir );
-
-	foreach my $filename (@files)
+	if( $flags->{metadata} )
 	{
-		my $fh;
-		unless( open($fh, "<", "$dir/$filename") )
-		{
-			$session->log( "Error reading from $dir/$filename: $!" );
-			next;
-		}
+		$self->_parse_dc( $main_doc, $dir );
+	}
 
-		# file will take care of closing $fh for us
-		push @new_docs, $eprint->create_subdataobj( "documents", {
-			files => [{
-				filename => $filename,
-				filesize => (-s "$dir/$filename"),
-				url => "file://$dir/$filename",
-				_content => $fh,
-			}],
-			main => $filename,
-			format => $session->call( "guess_doc_type", $session, $filename ),
-			formatdesc => 'extracted from openxml format',
-			security => $doc->value( "security" ),
-			relation => [{
-				type => EPrints::Utils::make_relation( "isVersionOf" ),
-				uri => $doc->internal_uri(),
-				},{
-				type => EPrints::Utils::make_relation( "isPartOf" ),
-				uri => $doc->internal_uri(),
-			}],
-			});
+	if( $flags->{media} )
+	{
+		push @new_docs, $self->_extract_media_files( $main_doc, $dir ); 
+	}
+
+	if( $flags->{bibliography} )
+	{
+		push @new_docs, $self->_extract_bibl( $main_doc, $dir );
 	}
 
 	# add the reciprocal relations
-	if( scalar(@new_docs) )
+	foreach my $new_doc ( @new_docs )
 	{
-		foreach my $new_doc ( @new_docs )
+		foreach my $relation ( @{$new_doc->value( "relation" )} )
 		{
-			foreach my $relation ( @{$new_doc->value( "relation" )} )
-			{
-				next if $relation->{uri} ne $doc->internal_uri;
-				my $type = $relation->{type};
-				next if $type !~ s# /is(\w+)Of$ #/has$1#x;
-				$doc->add_object_relations(
-					$new_doc,
-					$type
-				);
-			}
+			next if $relation->{uri} ne $main_doc->internal_uri;
+			my $type = $relation->{type};
+			next if $type !~ s# /is(\w+)Of$ #/has$1#x;
+			$main_doc->add_object_relations(
+				$new_doc,
+				$type
+			);
 		}
-		$doc->commit;
 	}
 
+	$main_doc->commit;
 	$eprint->commit;
 
-	return wantarray ? @new_docs : $new_docs[0];
-}
-
-sub export
-{
-	my ( $plugin, $dir, $doc, $type ) = @_;
-
-	my $main = $doc->get_main;
-	
-	my $repository = $plugin->get_repository();
-
-	my $file = $doc->get_stored_file( $doc->get_main )->get_local_copy();
-
-	my %opts = (
-		ARC => "$file",
-		DIR => $dir,
-	);	
-
-	if( !$repository->can_invoke( "zip", %opts ) )
-	{
-		$repository->log( "cannot invoke unzip" );
-		return;
-	}
-
-	$repository->exec( "zip", %opts );
-
-	my $dh;
-	opendir $dh, $dir;
-	unless( defined $dh )
-	{
-		$repository->log( "Unable to open directory $dir: $!" );
-		return;
-	}
-
-	my @files = grep { $_ !~ /^\./ } readdir($dh);
-	closedir $dh;
-	foreach( @files ) { EPrints::Utils::chown_for_eprints( $_ ); }
-
-	return unless( scalar(@files) );
-
-	# try to open/parse the DC
-	# try to open "word/_rels/document.xml.rels" for embedded media
-	# try to open/parse item2.xml for SWORD imports
-
-	my $content_dir;
-	$content_dir = "word" if( $main =~ /.docx$/ );
-	$content_dir = "ppt" if( $main =~ /.pptx$/ );
-	
-	return unless( defined $content_dir );
-	
-	# will attempt to parse the DC metadata, and commit to the eprint object
-	
-	if( $type eq 'both' || $type eq 'metadata' )
-	{
-		$plugin->_parse_dc( $dir ); 
-	}
-
-	my $files;
-	if( $type eq 'both' || $type eq 'media' )
-	{
-		$files = $plugin->_extract_media_files( $dir, $content_dir ); 
-	}
-	
-	return unless( defined $files );
-	
-	return @$files;
+	return EPrints::List->new(
+		session => $session,
+		dataset => $main_doc->get_dataset,
+		ids => [map { $_->id } $main_doc, @new_docs ],
+		);
 }
 
 sub _extract_bibl
 {
-	my( $self, $doc, $dir ) = @_;
+	my( $self, $main_doc, $dir ) = @_;
+
+	my $eprint = $main_doc->get_parent;
 
 	my $custom_dir = join_path( $dir, "customXml" );
 
@@ -223,44 +137,41 @@ sub _extract_bibl
 			_content => $fh,
 		};
 
-		$self->_extract_references( "$custom_dir/item$idx.xml" );
+		$self->_extract_references( $main_doc, $doc );
 	}
 	closedir($dh);
 
 	return () if !scalar @files;
 
-	return $self->{_eprint}->create_subdataobj( "documents", {
+	return $eprint->create_subdataobj( "documents", {
 		files => \@files,
 		main => $files[0]->{filename},
 		format => "text/xml",
 		formatdesc => 'extracted from openxml',
 		content => "bibliography",
-		security => $doc->value( "security" ),
+		security => $main_doc->value( "security" ),
 		relation => [{
 			type => EPrints::Utils::make_relation( "isVolatileVersionOf" ),
-			uri => $doc->internal_uri(),
+			uri => $main_doc->internal_uri(),
 			},{
 			type => EPrints::Utils::make_relation( "isVersionOf" ),
-			uri => $doc->internal_uri(),
+			uri => $main_doc->internal_uri(),
 			},{
 			type => EPrints::Utils::make_relation( "isPartOf" ),
-			uri => $doc->internal_uri(),
+			uri => $main_doc->internal_uri(),
 		}],
 		});
 }
 
 sub _extract_references
 {
-	my( $self, $fn ) = @_;
+	my( $self, $main_doc, $doc ) = @_;
 
 	my $session = $self->{session};
 
-	my $eprint = $self->{_eprint};
+	my $eprint = $main_doc->get_parent;
 	return if !$eprint->get_dataset->has_field( "bibliography" );
 	return if $eprint->is_set( "bibliography" );
-
-	my $doc = eval { $session->xml->parse_file( $fn ) };
-	return if !defined $doc;
 
 	my $translator = $session->plugin( "Import::XSLT::OpenXMLBibl" );
 	return if !defined $translator;
@@ -290,39 +201,78 @@ sub _extract_references
 
 sub _extract_media_files
 {
-	my( $self, $dir, $content_dir ) = @_;
+	my( $self, $doc, $dir ) = @_;
+
+	my $eprint = $doc->get_parent;
+	my $session = $self->{session};
+
+	my $content_dir;
+
+	my $main = $doc->get_main;
+	if( $main =~ /\.docx$/ )
+	{
+		$content_dir = "word";
+	}
+	elsif( $main =~ /\.pptx$/ )
+	{
+		$content_dir = "ppt";
+	}
+	else
+	{
+		return; # unknown doc type
+	}
 
 	my $media_dir = join_path( $dir, $content_dir, "media" );
 	
-	my $dh;
-        opendir $dh, $media_dir;
-        return unless( defined $dh );
+	my @files;
 
-        my @files = grep { $_ !~ /^\./ } readdir($dh);
-        closedir $dh;
-
-	my @real_files;
-	foreach(@files)
+	opendir( my $dh, $media_dir ) or die "Error opening $media_dir: $!";
+	foreach my $fn (readdir($dh))
 	{
-		push @real_files, join_path( $content_dir, "media", $_ );
+		next if $fn =~ /^\./;
+		push @files, [$fn => join_path( $content_dir, "media", $fn )];
 	}
+	closedir $dh;
 
 	if( $content_dir eq 'ppt' )
 	{
 		my $thumbnail = join_path( $dir, "docProps/thumbnail.jpeg" );
-		push @real_files, "docProps/thumbnail.jpeg" if( -e $thumbnail );
+		push @files, ["thumbnail.jpeg" => $thumbnail] if( -e $thumbnail );
 	}
 
-	return \@real_files;
+	my @new_docs;
+
+	foreach my $file (@files)
+	{
+		open(my $fh, "<", $$file[1]) or die "Error opening $$file[1]: $!";
+		push @new_docs, $eprint->create_subdataobj( "documents", {
+			main => $$file[0],
+			format => $session->call( "guess_doc_type", $session, $$file[0] ),
+			files => [{
+				filename => $$file[0],
+				filesize => (-s $fh),
+				_content => $fh
+			}],
+			relation => [{
+				type => EPrints::Utils::make_relation( "isVersionOf" ),
+				uri => $doc->internal_uri(),
+				},{
+				type => EPrints::Utils::make_relation( "isPartOf" ),
+				uri => $doc->internal_uri(),
+			}],
+		});
+	}
+
+	return @new_docs;
 }
 
 
 sub _parse_dc
 {
-	my ( $self, $dir ) = @_;
+	my( $self, $doc, $dir ) = @_;
 
-	my $eprint = $self->{_eprint};
-	return unless( defined $eprint );
+	my $eprint = $doc->get_parent;
+	my $dataset = $eprint->get_dataset;
 
 	my ($file,$fh);
 
@@ -383,7 +333,7 @@ sub _parse_dc
 			};
 
 			next if($@ || !defined $ep_value);
-                        next unless $self->{dataset}->has_field( $fieldname );
+                        next unless $dataset->has_field( $fieldname );
                      
 		        $eprint->set_value( $fieldname, $ep_value );
                 }
@@ -391,9 +341,9 @@ sub _parse_dc
                 {
 			my $fieldname = $f;
                         # skip this field if it isn't supported by the current repository
-                        next unless $self->{dataset}->has_field( $fieldname );
+                        next unless $dataset->has_field( $fieldname );
 
-                        my $field = $self->{dataset}->get_field( $fieldname );
+                        my $field = $dataset->get_field( $fieldname );
                         if( $field->get_property( "multiple" ) )
                         {
 				my @a = ($values);
@@ -494,6 +444,18 @@ sub join_path
 	return join('/', @_);
 }
 
+sub unpack
+{
+	my( $self, $tmpfile, %opts ) = @_;
+
+	my $dir = EPrints::TempDir->new( CLEANUP => 1 );
+
+	my $rc = $self->{session}->exec( "zip",
+		DIR => $dir,
+		ARC => $tmpfile
+	);
+
+	return $rc == 0 ? $dir : undef;
+}
+
 1;
-
-

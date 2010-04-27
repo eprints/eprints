@@ -180,7 +180,7 @@ sub list_items
 	my @list;
 	foreach my $opt (@{$screen_lists->{$list_id} || []})
 	{
-		my $screen = $self->{session}->plugin( $opt->{screen_id}, processor=>$self );
+		my $screen = $self->{session}->plugin( $opt->{screen_id}, processor=>$self, %{$opts{params}||{}} );
 		if( $filter )
 		{
 			next if !$screen->can_be_viewed;

@@ -38,17 +38,23 @@ sub update_from_form
 		if( $internal =~ m/^add_format_(.+)$/ )
 		{
 			my $method = $1;
-			my @plugins = $self->_get_upload_plugins(
-					prefix => $self->{prefix},
-					dataobj => $self->{dataobj},
-				);
-			foreach my $plugin (@plugins)
+			my @screen_opts = $self->{processor}->list_items(
+				"upload_methods",
+				params => {
+					processor => $self->{processor},
+				},
+			);
+			my @methods = map { $_->{screen} } @screen_opts;
+			my $i = 0;
+			foreach my $plugin (@methods)
 			{
 				if( $plugin->get_id eq $method )
 				{
-					$plugin->update_from_form( $processor );
+					$plugin->from( $self->{prefix} );
+					$self->{processor}->{notes}->{upload_plugin}->{ctab} = $i;
 					return;
 				}
+				$i++;
 			}
 			EPrints::abort( "'$method' is not a supported upload method" );
 		}
@@ -68,6 +74,7 @@ sub get_state_params
 	{
 		$tounroll = $processor->{notes}->{upload_plugin}->{to_unroll};
 	}
+	my $ctab = $processor->{notes}->{upload_plugin}->{ctab} || "";
 	if( $self->{session}->internal_button_pressed )
 	{
 		my $internal = $self->get_internal_button;
@@ -81,6 +88,7 @@ sub get_state_params
 	{
 		$params .= "&".$self->{prefix}."_view=".join( ",", keys %{$tounroll} );
 	}
+	$params .= "&".$self->{prefix}."_tab=".$ctab;
 
 	return $params;
 }
@@ -124,73 +132,34 @@ sub render_content
 	my $session = $self->{session};
 	my $f = $session->make_doc_fragment;
 	
-	my @methods = $self->_get_upload_plugins(
-			prefix => $self->{prefix},
-			dataobj => $self->{dataobj}
+	my @screen_opts = $self->{processor}->list_items( 
+			"upload_methods",
+			params => {
+				processor => $self->{processor},
+			},
 		);
+	my @methods = map { $_->{screen} } @screen_opts;
 
 	my $html = $session->make_doc_fragment;
 
 	# no upload methods so don't do anything
-	return $html if @methods == 0;
+	return $html if @screen_opts == 0;
 
-	my $tabs = [];
-	my $labels = {};
-	my $links = {};
+	my @labels;
+	my @tabs;
 	foreach my $plugin ( @methods )
 	{
 		my $name = $plugin->get_id;
-		push @$tabs, $name;
-		$labels->{$name} = $plugin->render_tab_title();
-		$links->{$name} = "";
+		push @labels, $plugin->render_title();
+		my $div = $session->make_element( "div", class => "ep_block" );
+		push @tabs, $div;
+		$div->appendChild( $plugin->render( $self->{prefix} ) );
 	}
 
-	my $newdoc = $self->{session}->make_element( 
-			"div", 
-			class => "ep_upload_newdoc" );
-	$html->appendChild( $newdoc );
-	my $tab_block = $session->make_element( "div", class=>"ep_only_js" );	
-	$tab_block->appendChild( 
-		$self->{session}->render_tabs( 
-			id_prefix => $self->{prefix}."_upload",
-			current => $tabs->[0],
-			tabs => $tabs,
-			labels => $labels,
-			links => $links,
-		));
-	$newdoc->appendChild( $tab_block );
-		
-	my $panel = $self->{session}->make_element( 
-			"div", 
-			id => $self->{prefix}."_upload_panels", 
-			class => "ep_tab_panel" );
-	$newdoc->appendChild( $panel );
-
-	my $first = 1;
-	foreach my $plugin ( @methods )
-	{
-		my $inner_panel;
-		if( $first )
-		{
-			$inner_panel = $self->{session}->make_element( 
-				"div", 
-				id => $self->{prefix}."_upload_panel_".$plugin->get_id );
-		}
-		else
-		{
-			# padding for non-javascript enabled browsers
-			$panel->appendChild( 
-				$session->make_element( "div", style=>"height: 1em", class=>"ep_no_js" ) );
-			$inner_panel = $self->{session}->make_element( 
-				"div", 
-				class => "ep_no_js",
-				id => $self->{prefix}."_upload_panel_".$plugin->get_id );	
-		}
-		$panel->appendChild( $inner_panel );
-
-		$inner_panel->appendChild( $plugin->render_add_document() );
-		$first = 0;
-	}
+	$html->appendChild( $self->{session}->xhtml->tabs( \@labels, \@tabs,
+		basename => $self->{prefix},
+		current => $self->{session}->param( $self->{prefix} . "_tab" ),
+	) );
 
 	if( defined $self->{_documents} )
 	{
@@ -214,51 +183,6 @@ sub doc_fields
 	}
 	
 	return @fields;
-}
-
-sub _get_upload_plugins
-{
-	my( $self, %opts ) = @_;
-
-	my %plugins;
-
-	my @plugins;
-	if( defined $self->{config}->{methods} )
-	{
-		METHOD: foreach my $method (@{$self->{config}->{methods}})
-		{
-			my $plugin = $self->{session}->plugin( "InputForm::UploadMethod::$method", %opts );
-			if( !defined $plugin )
-			{
-				$self->{session}->get_repository->log( "Unknown upload method in Component::Upload: '$method'" );
-				next METHOD;
-			}
-			push @plugins, $plugin;
-		}
-	}
-	else
-	{
-		METHOD: foreach my $plugin ( $self->{session}->plugin_list( type => 'InputForm' ) )
-		{
-			$plugin = $self->{session}->plugin( $plugin, %opts );
-			next METHOD if !$plugin->isa( "EPrints::Plugin::InputForm::UploadMethod" );
-			next METHOD if ref($plugin) eq "EPrints::Plugin::InputForm::UploadMethod";
-			push @plugins, $plugin;
-		}
-	}
-
-	foreach my $plugin ( @plugins )
-	{
-		foreach my $appearance ( @{$plugin->{appears}} )
-		{
-			$plugins{ref($plugin)} = [$appearance->{position},$plugin];
-		}
-	}
-
-	return
-		map { $plugins{$_}->[1] }
-		sort { $plugins{$a}->[0] <=> $plugins{$b}->[0] || $a cmp $b }
-		keys %plugins;
 }
 
 sub parse_config

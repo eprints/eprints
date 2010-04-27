@@ -159,7 +159,11 @@ sub workflow
 
 	if( !defined $self->{processor}->{$cache_id} )
 	{
-		my %opts = ( item=> $self->{processor}->{eprint}, session=>$self->{session} );
+		my %opts = (
+			item => $self->{processor}->{eprint},
+			session => $self->{session},
+			processor => $self->{processor},
+		);
 		$opts{STAFF_ONLY} = [$staff ? "TRUE" : "FALSE","BOOLEAN"];
  		$self->{processor}->{$cache_id} = EPrints::Workflow->new( $self->{session}, $self->workflow_id, %opts );
 	}
