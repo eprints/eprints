@@ -252,6 +252,27 @@ sub handler
 		}
 	}
 
+	# robots.txt (nb. only works if site is in root / of domain.)
+	if( $uri =~ m! ^$urlpath/robots\.txt$ !x )
+	{
+		$r->handler( 'perl-script' );
+
+	 	$r->set_handlers(PerlResponseHandler => \&EPrints::Apache::RobotsTxt::handler );
+
+		return OK;
+	}
+
+	# sitemap.xml (nb. only works if site is in root / of domain.)
+	if( $uri =~ m! ^$urlpath/sitemap\.xml$ !x )
+	{
+		$r->handler( 'perl-script' );
+
+	 	$r->set_handlers(PerlResponseHandler => \&EPrints::Apache::SiteMap::handler );
+
+		return OK;
+	}
+
+
 	# REST
 	if( $uri =~ m! ^$urlpath/rest !x )
 	{
@@ -264,8 +285,9 @@ sub handler
 	}
 
 	# URI redirection
-	if( $uri =~ m! ^$urlpath/id/repository$ !x )
+	if( $uri =~ m! ^$urlpath/id/(repository|dump)$ !x )
 	{
+		my $file = $1;
 		my $accept = EPrints::Apache::AnApache::header_in( $r, "Accept" );
 		$accept = "application/rdf+xml" unless defined $accept;
 
@@ -281,7 +303,7 @@ sub handler
 		
 		if( !defined $plugin )  { return NOT_FOUND; }
 
-		my $url = $repository->config( "http_cgiurl" )."/export/repository/".
+		my $url = $repository->config( "http_cgiurl" )."/export/$file/".
 			$plugin->get_subtype."/".$repository->get_id.$plugin->param("suffix");
 
 		return redir_see_other( $r, $url );

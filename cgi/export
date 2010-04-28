@@ -26,6 +26,7 @@ my $path_info = $repository->get_request->path_info;
 # /$id/ (eprints list of formats)
 # /$id/$format/$prettyname (eprints)
 # /repository/$format/$prettyname
+# /dump/$format/$prettyname
 # /subject/$id/$format/$prettyname
 # /x-foo/$id/$format/$prettyname
 
@@ -87,6 +88,10 @@ elsif( $path[0] eq "repository" && scalar @path == 1 )
 {
 	export_rdf_repository( $repository, $plugin, \%arguments );
 }
+elsif( $path[0] eq "dump" && scalar @path == 1 )
+{
+	export_rdf_dump( $repository, $plugin, \%arguments );
+}
 elsif( $path[0] eq "subject" && scalar @path == 2 )
 {
 	export_subject( $repository, $plugin, \%arguments, $path[1] );
@@ -106,7 +111,26 @@ else
 	
 exit;
 
+# Dump ALL eprint triples. Not Subject or repository ones, though.
+sub export_rdf_dump
+{
+	my( $repository, $plugin, $args ) = @_;
 
+	if( !$plugin->can_accept( "list/triple" ) )
+	{
+		$repository->not_found;
+		exit;
+	}
+
+	my $searchexp = EPrints::Search->new(
+			allow_blank => 1,
+			dataset => $repository->dataset( "triple" ),
+			session => $repository );
+	my $list = $searchexp->perform_search;
+	$plugin->initialise_fh( \*STDOUT );
+	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
+	$plugin->output_list( fh=>\*STDOUT, list=>$list );
+}
 
 sub export_rdf_repository
 {

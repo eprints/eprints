@@ -148,6 +148,8 @@ use EPrints::Apache::VLit;
 use EPrints::Apache::Template;
 use EPrints::Apache::Storage;
 use EPrints::Apache::REST;
+use EPrints::Apache::RobotsTxt;
+use EPrints::Apache::SiteMap;
 
 use EPrints::BackCompatibility;
 use EPrints::XML;

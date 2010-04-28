@@ -85,14 +85,33 @@ sub output_list
 	my $graph = EPrints::RDFGraph->new( repository=>$plugin->{session} );
 	$graph->add_boilerplate_triples();
 	push @{$r}, $plugin->serialise_graph( $graph, %opts ); # returns "" if it printed already
-	
+
+	$graph = EPrints::RDFGraph->new( repository=>$plugin->{session} );
+	my $n = 0;
 	$opts{list}->map( sub {
 		my( $repository, $dataset, $dataobj ) = @_;
 
-		my $graph = EPrints::RDFGraph->new( repository=>$plugin->{session} );
 		$graph->add_dataobj_triples( $dataobj );
-		push @{$r}, $plugin->serialise_graph( $graph, %opts );
+		if( $dataset->id ne "triple" )
+		{
+			push @{$r}, $plugin->serialise_graph( $graph, %opts );
+			$graph = EPrints::RDFGraph->new( repository=>$plugin->{session} );
+			return;
+		}
+
+		$n++;
+		if( $n % 1000 == 0 )
+		{
+			push @{$r}, $plugin->serialise_graph( $graph, %opts );
+			$graph = EPrints::RDFGraph->new( repository=>$plugin->{session} );
+		}
 	} );
+	if( $opts{list}->get_dataset->id eq "triple" )
+	{
+		push @{$r}, $plugin->serialise_graph( $graph, %opts );
+		$graph = EPrints::RDFGraph->new( repository=>$plugin->{session} );
+	}
+	
 
 	if( defined $opts{fh} )
 	{
