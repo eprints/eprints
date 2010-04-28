@@ -2,6 +2,8 @@ package EPrints::Plugin::Sword::Import::EPrintsXML;
 
 use strict;
 
+use Data::Dumper;
+
 our @ISA = qw/ EPrints::Plugin::Sword::Import /;
 
 our %SUPPORTED_MIME_TYPES = 
@@ -24,7 +26,6 @@ sub new
 	$self->{visible} = "";
 	return $self;
 }
-
 
 ##        $opts{file} = $file;
 ##        $opts{mime_type} = $headers->{content_type};
@@ -128,8 +129,9 @@ sub input_file
                 imported => [], 
 	};
 
+	bless $handler, "EPrints::Plugin::Import::DefaultXML::Handler";
+
 	eval {
-	        bless $handler, "EPrints::Plugin::Sword::Import::EPrintsXML::Handler";
         	EPrints::XML::event_parse( $fh, $handler );
 	};
 
@@ -193,7 +195,6 @@ sub keep_deposited_file
 }
 
 
-
 # if this is defined then it is used to check that the top
 # level XML element is correct.
 
@@ -216,7 +217,6 @@ sub xml_to_dataobj
 		$plugin->{parse_ok} = 1;
 		return;
 	}
-
 # SWORD
 	if(defined $plugin->{depositor_userid})
 	{
@@ -238,7 +238,16 @@ sub xml_to_dataobj
 	{
 		return;
 	}
-	
+
+	# SWORD - import only the first document:
+
+	my $docs = $epdata->{documents};
+	if( EPrints::Utils::is_set( $docs ) && scalar(@$docs) > 1 )
+	{
+		my @slice = @$docs[0];
+		$epdata->{documents} = \@slice;
+	}
+
 	return $plugin->epdata_to_dataobj( $dataset, $epdata );
 }
 
@@ -452,136 +461,5 @@ sub get_known_nodes
         }
         return %toreturn;
 }
-
-package EPrints::Plugin::Sword::Import::EPrintsXML::Handler;
-
-use strict;
-
-sub characters
-{
-        my( $self , $node_info ) = @_;
-
-	if( $self->{depth} > 1 )
-	{
-		if( $self->{base64} )
-		{
-			push @{$self->{base64data}}, $node_info->{Data};
-		}
-		else
-		{
-			$self->{xmlcurrent}->appendChild( $self->{plugin}->{session}->make_text( $node_info->{Data} ) );
-		}
-	}
-}
-
-sub end_element
-{
-        my( $self , $node_info ) = @_;
-
-	$self->{depth}--;
-
-	if( $self->{depth} == 1 )
-	{
-		my $item = $self->{plugin}->xml_to_dataobj( $self->{dataset}, $self->{xml} );
-
-		unless( $self->{plugin}->{parse_only} )
-		{
-		
-			if( defined $item )
-			{
-				# SWORD
-				if(scalar @{$self->{imported}} < 1)
-				{	
-					push @{$self->{imported}}, $item->get_id;
-				} 
-			}	
-		}
-
-		# don't keep tmpfiles between items...
-		foreach( @{$self->{tmpfiles}} )
-		{
-			unlink( $_ );
-		}
-	}
-
-	if( $self->{depth} > 1 )
-	{
-		if( $self->{base64} )
-		{
-			$self->{base64} = 0;
-			my $tf = $self->{tmpfilecount}++;
-			my $tmpfile = "/tmp/epimport.$$.".time.".$tf.data";
-			$self->{tmpfile} = $tmpfile;
-			push @{$self->{tmpfiles}},$tmpfile;
-			open( TMP, ">$tmpfile" );
-			print TMP MIME::Base64::decode( join('',@{$self->{base64data}}) );
-			close TMP;
-
-			$self->{xmlcurrent}->appendChild( 
-				$self->{plugin}->{session}->make_text( $tmpfile ) );
-			delete $self->{basedata};
-		}
-		pop @{$self->{xmlstack}};
-		
-		$self->{xmlcurrent} = $self->{xmlstack}->[-1]; # the end!
-	}
-
-}
-
-sub start_element
-{
-        my( $self, $node_info ) = @_;
-
-	my %params = ();
-	foreach ( keys %{$node_info->{Attributes}} )
-	{
-		$params{$node_info->{Attributes}->{$_}->{Name}} = 
-			$node_info->{Attributes}->{$_}->{Value};
-	}
-
-	if( $self->{depth} == 0 )
-	{
-		my $tlt = $self->{plugin}->top_level_tag( $self->{dataset} );
-		if( defined $tlt && $tlt ne $node_info->{Name} )
-		{
-			return undef;
-		}
-	}
-
-	if( $self->{depth} == 1 )
-	{
-		$self->{xml} = $self->{plugin}->{session}->make_element( $node_info->{Name} );
-		$self->{xmlstack} = [$self->{xml}];
-		$self->{xmlcurrent} = $self->{xml};
-	}
-
-	if( $self->{depth} > 1 )
-	{
-		my $new = $self->{plugin}->{session}->make_element( $node_info->{Name} );
-		$self->{xmlcurrent}->appendChild( $new );
-		push @{$self->{xmlstack}}, $new;
-		$self->{xmlcurrent} = $new;
-		if( $params{encoding} && $params{encoding} eq "base64" )
-		{
-			$self->{base64} = 1;
-			$self->{base64data} = [];
-		}
-	}
-
-	$self->{depth}++;
-}
-
-sub DESTROY
-{
-	my( $self ) = @_;
-
-	foreach( @{$self->{tmpfiles}} )
-	{
-		unlink( $_ );
-	}
-}
-
- 
-
 
 1;
