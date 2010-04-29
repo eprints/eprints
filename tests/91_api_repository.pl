@@ -34,11 +34,13 @@ pass( "Write to log" );
 my $dataset = $repo->dataset( "user" );
 isa_ok( $dataset, "EPrints::DataSet", "Get dataset object from the repository" );
 
-my $eprint = $repo->eprint( 23 );
-isa_ok( $eprint, "EPrints::DataObj::EPrint", "Get an eprint object from the repository" );
+my $test_eprint = EPrints::Test::get_test_dataobj( $repo->dataset( "eprint" ) );
+my $eprint = $repo->eprint( $test_eprint->id );
+isa_ok( $eprint, "EPrints::DataObj::EPrint", "Repository->eprint( id )" );
 
-my $user = $repo->user( 1 );
-isa_ok( $user, "EPrints::DataObj::User", "Get a user object from the repository" );
+my $test_user = EPrints::Test::get_test_dataobj( $repo->dataset( "user" ) );
+my $user = $repo->user( $test_user->id );
+isa_ok( $user, "EPrints::DataObj::User", "Repository->user( id )" );
 
 my $username = $user->value( "username" );
 my $user2 = $repo->user_by_username( $username );
@@ -56,19 +58,23 @@ isa_ok( $user3, "EPrints::DataObj::User", "Get a user object by email '$email' f
 # $string = $repo->query->param( "X" );
 # $repo->redirect( $url );
 
+SKIP: {
+my $store = $repo->plugin( "Storage::LocalCompress" );
+skip "Storage::LocalCompress requires PerlIO::gzip", 1 unless defined $store;
+
 my $storage = $repo->get_storage;
 
 my $doc = EPrints::Test::get_test_document( $repo );
 my $file = $doc->get_stored_file( $doc->get_main );
-my $store = $repo->plugin( "Storage::LocalCompress" );
 
 $storage->delete_copy( $store, $file );
 
-my $filename = ($store->_filename( $file ))[1];
+my( $path, $fn ) = $store->_filename( $file );
 
 $storage->copy( $store, $file );
 
-ok( -e $filename, "storage->copy()" );
+ok( -e "$path/$fn", "storage->copy()" );
 
 $storage->delete_copy( $store, $file );
 $file->commit;
+}
