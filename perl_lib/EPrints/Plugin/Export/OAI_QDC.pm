@@ -66,9 +66,18 @@ sub xml_dataobj
 	)->appendChild( $xml->create_text_node( $dataobj->uri ) );
 
 	# atom:title
-	$entry->appendChild(
-		$xml->create_element( "title" )
-	)->appendChild( $dataobj->render_value( "title" ) );
+	if( $dataobj->get_dataset->has_field( "title" ) )
+	{
+		$entry->appendChild(
+			$xml->create_element( "title" )
+		)->appendChild( $dataobj->render_value( "title" ) );
+	}
+	else
+	{
+		$entry->appendChild(
+			$xml->create_element( "title" )
+		)->appendChild( $xml->create_text_node( $dataobj->uri ) );
+	}
 
 	# atom:updated
 	my $lastmod = $dataobj->value( "lastmod" );
