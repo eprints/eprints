@@ -45,7 +45,8 @@ my $sql = "SELECT $Q_eprintid" .
 	" $Q_eprint_status=" .  $database->quote_value( "archive" ) .
 	" AND $Q_eprintid!=$eprintid" .
 	" AND $Q_title IS NOT NULL" .
-	" AND $Q_title LIKE " .
+	" AND $Q_title " .
+	$database->sql_LIKE() .
 	$database->quote_value( EPrints::Database::prep_like_value( $q ) . '%' );
 
 my $doc = $session->make_doc_fragment();
