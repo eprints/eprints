@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 7;
+use Test::More tests => 16;
 
 use strict;
 use warnings;
@@ -44,5 +44,28 @@ BAIL_OUT( "Failed to create doc object" ) if !defined $doc;
 
 ok($doc->value( "format" ) eq $FORMAT, "doc created with format" );
 ok($doc->parent->id eq $eprint->id, "doc created as subobject of eprint");
+
+my $doc2 = $eprint->create_subdataobj( "documents", $epdata );
+BAIL_OUT( "Failed to create doc object" ) if !defined $doc2;
+
+my @REL = (has => 'is', hasVersion => 'isVersionOf' );
+$doc2->add_dataobj_relations( $doc, @REL );
+
+$doc->commit;
+$doc2->commit;
+
+ok($doc2->has_related_dataobjs( $REL[0] ), "doc2 has relation" );
+ok($doc->has_related_dataobjs( $REL[1] ), "doc has relation" );
+ok(!$doc2->has_related_dataobjs( 'xxx' ), "doc2 does not have 'xxx' relation" );
+ok($doc2->has_dataobj_relations( $doc, $REL[0] ), "doc2 is related to doc");
+ok($doc->has_dataobj_relations( $doc2, $REL[1] ), "doc is related to doc2");
+my( $doc_copy ) = @{($doc2->related_dataobjs( $REL[0] ))};
+ok( defined $doc_copy && $doc_copy->id eq $doc->id, "related_dataobjs found doc" );
+( $doc_copy ) = @{($doc2->related_dataobjs( @REL[0,2] ))};
+ok( defined $doc_copy && $doc_copy->id eq $doc->id, "related_dataobjs found doc by 2 relations" );
+( $doc_copy ) = @{($doc2->related_dataobjs( @REL[0,2], 'xxx' ))};
+ok( !defined $doc_copy, "related_dataobjs didn't match 'xxx'" );
+my $docs = $doc2->related_dataobjs( @REL[0,2] );
+ok( scalar(@$docs) == 1, "related_dataobjs returns one match" );
 
 $eprint->delete(); # deletes document sub-object too
