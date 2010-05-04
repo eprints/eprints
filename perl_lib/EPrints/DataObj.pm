@@ -1726,7 +1726,7 @@ sub add_stored_file
 ######################################################################
 =pod
 
-=item $file = $dataobj->get_stored_file( $filename )
+=item $file = $dataobj->stored_file( $filename )
 
 Get the file object for $filename.
 
@@ -1735,7 +1735,8 @@ Returns the file object or undef if the file doesn't exist.
 =cut
 ######################################################################
 
-sub get_stored_file
+sub get_stored_file { &stored_file }
+sub stored_file
 {
 	my( $self, $filename ) = @_;
 
@@ -1857,13 +1858,14 @@ sub has_related_objects
 	return scalar @uris > 0;
 }
 
-=item $dataobjs = $dataobj->get_related_objects( @types )
+=item $dataobjs = $dataobj->related_objects( @types )
 
 Returns a list of objects related to this object by @types.
 
 =cut
 
-sub get_related_objects
+sub get_related_objects { &related_objects }
+sub related_objects
 {
 	my( $self, @required ) = @_;
 
