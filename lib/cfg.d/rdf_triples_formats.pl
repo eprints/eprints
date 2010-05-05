@@ -29,6 +29,9 @@ $c->add_dataset_trigger( "eprint", EP_TRIGGER_RDF, sub {
 		predicate => "foaf:primaryTopic",
   		   object => $eprint_uri );
 
+	return; 
+	# the below bit is disabled as it creates a whole heap of junk data
+
 	my @plugins = $repo->plugin_list( 
 					type=>"Export",
 					can_accept=>"dataobj/eprint",

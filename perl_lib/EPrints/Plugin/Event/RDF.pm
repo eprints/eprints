@@ -11,12 +11,14 @@ sub clear_triples
 	my( $self, $dataobj ) = @_;
 
 	# clear
+	my $uri = $dataobj->internal_uri;
+	$uri =~ s/^\/id\//epid:/;
 	
 	my $list = $self->{session}->dataset( "triple" )->search( 
 		filters => [
 			{
 				meta_fields => [qw/ primary_resource /],
-				value => $dataobj->internal_uri,
+				value => $uri,
 			}
 		],
 	);

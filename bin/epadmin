@@ -1354,6 +1354,7 @@ You are about to erase from $repoid:
   - all eprints and documents data
   - all eprint files
   - all change history
+  - all rdf data
   - the document requests
   - the access logs
   - the generated html pages
@@ -1369,7 +1370,7 @@ END
 	}
 
 	erase_eprint_files( $repoid );
-	foreach( "eprint", "history","access","request","document","file" )
+	foreach( "eprint", "history","access","request","document","file", "triple" )
 	{
 		reset_dataset( $repoid, $_ );
 	}		
