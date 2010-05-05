@@ -95,7 +95,7 @@ sub add
 {
 	my( $self, %params ) = @_;
 
-	push @{$self->{triples}}, bless( { data=>\%params } , "EPrints::DataObj::Triple" );
+	push @{$self->{triples}}, $self->{dataset}->make_object( $self->{repository}, \%params );
 }
 
 ######################################################################
