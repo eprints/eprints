@@ -1,5 +1,5 @@
 # handle relation-based document redirects
-$c->add_trigger( EP_TRIGGER_DOC_REWRITE, sub {
+$c->add_trigger( EP_TRIGGER_DOC_URL_REWRITE, sub {
 	my( %args ) = @_;
 
 	my( $request, $doc, $relations, $filename ) = @args{qw( request document relations filename )};
