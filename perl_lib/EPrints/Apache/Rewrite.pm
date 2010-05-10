@@ -464,7 +464,7 @@ sub handler
 
 			$r->push_handlers( PerlCleanupHandler => \&EPrints::Apache::LogHandler::document );
 
-			$repository->run_trigger( EPrints::Const::EP_TRIGGER_DOC_REWRITE,
+			$repository->run_trigger( EPrints::Const::EP_TRIGGER_DOC_URL_REWRITE,
 				request => $r,
 				eprint => $eprint,
 				document => $doc,
