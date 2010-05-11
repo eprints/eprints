@@ -193,6 +193,7 @@ sub action_deposit
 
 	# OK, no problems, submit it to the archive
 
+	$self->{processor}->{eprint}->set_value( "edit_lock_until", 0 );
 	my $sb = $self->{session}->get_repository->get_conf( "skip_buffer" ) || 0;	
 	my $ok = 0;
 	if( $sb )
@@ -222,6 +223,9 @@ sub action_move_buffer
 {
 	my( $self ) = @_;
 
+	$self->{processor}->{eprint}->set_value( "edit_lock_until", 0 );
+	$self->{processor}->{eprint}->commit;
+
 	$self->uncache_workflow;
 
 	$self->{processor}->{screenid} = "EPrint::Move";
@@ -232,6 +236,9 @@ sub action_save
 {
 	my( $self ) = @_;
 
+	$self->{processor}->{eprint}->set_value( "edit_lock_until", 0 );
+	$self->{processor}->{eprint}->commit;
+	
 	$self->uncache_workflow;
 
 	$self->{processor}->{screenid} = "EPrint::View";

@@ -35,7 +35,7 @@ sub obtain_lock
 {
 	my( $self ) = @_;
 
-	return $self->{processor}->{eprint}->obtain_lock( $self->{session}->current_user );
+	return $self->{processor}->{eprint}->could_obtain_lock( $self->{session}->current_user );
 }
 
 

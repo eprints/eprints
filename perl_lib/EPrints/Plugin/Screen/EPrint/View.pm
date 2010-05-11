@@ -33,6 +33,25 @@ sub new
 	return $self;
 }
 
+sub register_furniture
+{
+	my( $self ) = @_;
+
+	my $eprint = $self->{processor}->{eprint};
+	my $user = $self->{session}->current_user;
+	if( $eprint->is_locked )
+	{
+		my $my_lock = ( $eprint->get_value( "edit_lock_user" ) == $user->get_id );
+		if( $my_lock )
+		{
+			$self->{processor}->add_message( "warning", $self->{session}->html_phrase( 
+				"Plugin/Screen/EPrint:locked_to_you" ) );
+		}
+	}
+
+	return $self->SUPER::register_furniture;
+}
+
 sub about_to_render 
 {
 	my( $self ) = @_;

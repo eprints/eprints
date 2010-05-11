@@ -2413,7 +2413,7 @@ sub obtain_lock
 	}
 	
 	my $timeout = $self->{session}->get_repository->get_conf( "locking", "eprint", "timeout" );
-	$timeout = 600 unless defined $timeout;
+	$timeout = 3600 unless defined $timeout;
 	$self->set_value( "edit_lock_until", time + $timeout );
 
 	$self->commit;

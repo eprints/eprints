@@ -97,6 +97,11 @@ sub action_stop
 {
 	my( $self ) = @_;
 
+	# reload to discard changes
+	$self->{processor}->{eprint} = new EPrints::DataObj::EPrint( $self->{session}, $self->{processor}->{eprintid} );
+	$self->{processor}->{eprint}->set_value( "edit_lock_until", 0 );
+	$self->{processor}->{eprint}->commit;
+
 	$self->{processor}->{screenid} = "EPrint::View";
 }	
 
@@ -112,6 +117,7 @@ sub action_save
 {
 	my( $self ) = @_;
 
+	$self->{processor}->{eprint}->set_value( "edit_lock_until", 0 );
 	$self->workflow->update_from_form( $self->{processor} );
 	$self->uncache_workflow;
 
@@ -157,6 +163,12 @@ sub action_next
 	if( !defined $self->workflow->get_next_stage_id )
 	{
 		$self->{processor}->{screenid} = $self->screen_after_flow;
+		if( $self->{processor}->{screenid} eq "EPrint::View" )
+		{
+			$self->{processor}->{eprint}->set_value( "edit_lock_until", 0 );
+			$self->{processor}->{eprint}->commit;
+		}
+		
 		return;
 	}
 

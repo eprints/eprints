@@ -4,5 +4,5 @@
 
 $c->{locking}->{eprint}->{enable} = 1;
 
-$c->{locking}->{eprint}->{timeout} = 600;
+$c->{locking}->{eprint}->{timeout} = 3600;
 

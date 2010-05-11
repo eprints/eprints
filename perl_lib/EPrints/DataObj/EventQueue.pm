@@ -240,13 +240,20 @@ sub _execute
 				$self->message( "error", $xml->create_text_node( "Bad parameters: No such item '$2' in dataset '$1'" ) );
 				return BAD_PARAMETERS;
 			}
+			my $locked = 0;
 			if( $param->isa( "EPrints::DataObj::EPrint" ) )
 			{
-				if( $param->is_locked() )
-				{
-					$self->message( "warning", $xml->create_text_node( $param->get_dataset->base_id.".".$param->id." is locked" ) );
-					return IS_LOCKED;
-				}
+				$locked = 1 if( $param->is_locked() );
+			}
+			if( $param->isa( "EPrints::DataObj::Document" ) )
+			{
+				my $eprint = $param->get_parent;
+				$locked = 1 if( $eprint && $eprint->is_locked() );
+			}
+			if( $locked )
+			{
+				$self->message( "warning", $xml->create_text_node( $param->get_dataset->base_id.".".$param->id." is locked" ) );
+				return IS_LOCKED;
 			}
 		}
 	}

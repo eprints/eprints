@@ -27,7 +27,7 @@ sub obtain_lock
 {
 	my( $self ) = @_;
 
-	return $self->obtain_eprint_lock;
+	return $self->could_obtain_eprint_lock;
 }
 
 sub about_to_render 
