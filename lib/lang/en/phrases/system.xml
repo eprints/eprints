@@ -802,11 +802,7 @@ This field is required if no creators are listed.
 	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/Template:inline_edit_title">Edit Template code</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:change_image">Change: </epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/XPage:image_editor">Change/Upload Images</epp:phrase>
-	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/Perl:inline_edit_title">Edit config file</epp:phrase>
-	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/XML:inline_edit_title">Edit config file</epp:phrase>
-	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/Static:inline_edit_title">Edit config file</epp:phrase>
-	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/Citation:inline_edit_title">Edit config file</epp:phrase>
-	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/NamedSet:inline_edit_title">Edit config file</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/Config:inline_edit_title">Edit config file</epp:phrase>
 
 
 

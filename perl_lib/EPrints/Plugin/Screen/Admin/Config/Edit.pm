@@ -996,13 +996,20 @@ sub config_edit
 		$div->appendChild($js2);
 	}
 	
-	my $box;	
+	my $box;
+	my $phrase;
+	if ($self->{session}->get_lang->has_phrase($self->html_phrase_id("inline_edit_title"),$self->{session})) {
+		$phrase = $self->html_phrase("inline_edit_title");
+	} else {
+		$phrase = $self->{session}->html_phrase("Plugin/Screen/Admin/Config/Edit/Config:inline_edit_title");
+	}
+		
 	if( $type eq "XPage" )
 	{
 		$box = EPrints::Box::render(
 			id => "inline_edit",
 			session => $self->{session},
-			title => $self->html_phrase("inline_edit_title"), 
+			title => $phrase,
 			collapsed => "true",
 			content => $div
 		);
@@ -1010,7 +1017,7 @@ sub config_edit
 		$box = EPrints::Box::render(
 			id => "inline_edit",
 			session => $self->{session},
-			title => $self->html_phrase("inline_edit_title"), 
+			title => $phrase,
 			content => $div
 		);
 	}
