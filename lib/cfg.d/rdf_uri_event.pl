@@ -23,5 +23,5 @@ $c->{rdf}->{event_uri} = sub {
 	my $raw_id = "eprintsrdf/$ev_title/$ev_location/$ev_dates";
 	utf8::encode( $raw_id ); # md5 takes bytes, not characters
 
-	return "epid:x-event/".md5_hex( $raw_id );
+	return "epid:event/ext-".md5_hex( $raw_id );
 };

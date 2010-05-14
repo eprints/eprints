@@ -8,5 +8,5 @@ $c->{rdf}->{org_uri} = sub {
 	my $raw_id = "eprintsrdf/$org_name";
 	utf8::encode( $raw_id ); # md5 takes bytes, not characters
 
-	return "epid:x-org/".md5_hex( $raw_id );
+	return "epid:org/ext-".md5_hex( $raw_id );
 };

@@ -9,7 +9,7 @@ $c->{rdf}->{event_location_uri} = sub {
 	return if( !EPrints::Utils::is_set( $ev_location ) );
 
 	utf8::encode( $ev_location ); # md5 takes bytes, not characters
-	return "epid:x-location/".md5_hex( $ev_location );
+	return "epid:location/ext-".md5_hex( $ev_location );
 };
 	
 

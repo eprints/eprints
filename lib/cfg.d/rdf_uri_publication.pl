@@ -9,13 +9,13 @@ $c->{rdf}->{publication_uri} = sub {
 		my $issn = $eprint->get_value( "issn" );
 		$issn =~ s/[^0-9X]//g;
 		
-		return "epid:x-publication/$issn";
+		return "epid:publication/ext-$issn";
 	}
 
 	return if( !$eprint->is_set( "publication" ) );
 			
 	my $code = "eprintsrdf/".$eprint->get_value( "publication" );
 	utf8::encode( $code ); # md5 takes bytes, not characters
-	return "epid:x-publication/".md5_hex( $code );
+	return "epid:publication/ext-".md5_hex( $code );
 };
 

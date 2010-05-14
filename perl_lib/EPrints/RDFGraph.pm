@@ -86,7 +86,7 @@ sub new
 
 =item $n = $graph->add( subject=>$subjcet, predicate=>$predicate, object=>$object, [type=>$type], [lang=>$lang], [secondary_resource=>$resource] )
 
-Add a triple to the graph. Resource indicates the x-foo resource to which this triple belongs in addition to the dataobj that spawned it.
+Add a triple to the graph. Resource indicates the foo/ext- resource to which this triple belongs in addition to the dataobj that spawned it.
 
 =cut
 ######################################################################

@@ -35,7 +35,7 @@ The local URI of the EPrint that this data comes from.
 
 =item secondary_resource
 
-The URI of the other resource, if any, this data belongs to. Eg. the x-event 
+The URI of the other resource, if any, this data belongs to. Eg. the event/ext-foo
 
 =item subject, predicate, object, type, lang
 

@@ -309,9 +309,10 @@ sub handler
 		return redir_see_other( $r, $url );
 	}
 
-	if( $uri =~ m! ^$urlpath/id/x-(.*)$ !x )
+	if( $uri =~ m! ^$urlpath/id/([^\/]+)/(ext-.*)$ !x )
 	{
-		my $id = $1;
+		my $exttype = $1;
+		my $id = $2;
 		my $accept = EPrints::Apache::AnApache::header_in( $r, "Accept" );
 		$accept = "application/rdf+xml" unless defined $accept;
 
@@ -329,7 +330,7 @@ sub handler
 
 		my $fn = $id;
 		$fn=~s/\//_/g;
-		my $url = $repository->config( "http_cgiurl" )."/export/x-".
+		my $url = $repository->config( "http_cgiurl" )."/export/$exttype/".
 			$id."/".$plugin->get_subtype."/$fn".$plugin->param("suffix");
 
 		return redir_see_other( $r, $url );

@@ -96,7 +96,7 @@ elsif( $path[0] eq "subject" && scalar @path == 2 )
 {
 	export_subject( $repository, $plugin, \%arguments, $path[1] );
 }
-elsif( $path[0] =~ s/^x-// && scalar @path == 2 )
+elsif( $path[1] =~ m/^ext-/ && scalar @path == 2 )
 {
 	export_rdf_resource( $repository, $plugin, \%arguments, $path[0], $path[1] );
 }
@@ -199,7 +199,7 @@ sub export_rdf_resource
 		exit;
 	}
 
-	my $uri = "epid:x-$resource_type/$resource_id";
+	my $uri = "epid:$resource_type/$resource_id";
 	my $list = $repository->dataset( "triple" )->search( 
 		filters => [
 			{
