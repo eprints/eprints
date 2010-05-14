@@ -369,7 +369,11 @@ sub abort
 
 	my $r = EPrints->request;
 	$r->status( 500 );
-	my $htmlerrmsg = HTML::Entities::encode_entities( $errmsg,  \'<>&"\' );
+	my $htmlerrmsg = $errmsg;
+	$htmlerrmsg=~s/&/&amp;/g;
+	$htmlerrmsg=~s/>/&gt;/g;
+	$htmlerrmsg=~s/</&lt;/g;
+	$htmlerrmsg=~s/\n/<br \/>/g;
 	$htmlerrmsg = <<END;
 <html>
 <head>
