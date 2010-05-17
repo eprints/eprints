@@ -191,6 +191,27 @@ sub ordervalue_basic
 	return sprintf( "%08d-%08d", $from, $to );
 }
 
+sub render_xml_schema
+{
+	my( $self, $session ) = @_;
+
+	return $self->EPrints::MetaField::render_xml_schema( $session );
+}
+
+sub get_xml_schema_type
+{
+	my( $self, $session ) = @_;
+
+	return $self->EPrints::MetaField::get_xml_schema_type( $session );
+}
+
+sub render_xml_schema_type
+{
+	my( $self, $session ) = @_;
+
+	return $self->EPrints::MetaField::render_xml_schema_type( $session );
+}
+
 
 ######################################################################
 1;
