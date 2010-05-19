@@ -1861,7 +1861,7 @@ sub has_related_dataobjs
 	return scalar @uris > 0;
 }
 
-=item $dataobjs = $dataobj->related_dataobjs( @types )
+=item @dataobjs = $dataobj->related_dataobjs( @types )
 
 Returns a list of objects related to this object by @types.
 
@@ -1893,7 +1893,7 @@ sub related_dataobjs
 		push @matches, $dataobj;
 	}
 
-	return \@matches;
+	return wantarray ? @matches : \@matches;
 }
 
 =item $dataobj->remove_dataobj_relations( $target [, $has => $is [, $has => $is ] )
