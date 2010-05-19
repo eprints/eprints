@@ -46,9 +46,7 @@
   </when>
 
   <when test="type = 'article'">
-    <if test="publication"><print expr="publication"/><if test="volume">, <print expr="volume"/></if>
-      <if test="number"> (<print expr="number"/>)</if>.
-    </if>
+    <if test="publication"><print expr="publication"/><if test="volume">, <print expr="volume"/></if><if test="number"> (<print expr="number"/>)</if>.</if>
     <if test="pagerange"> <print expr="pagerange"/>.</if>
     <if test="issn"> ISSN <print expr="issn"/></if>
   </when>
