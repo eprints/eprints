@@ -404,6 +404,24 @@ sub set_value
 	}
 }
 
+=item $datetime = $time->iso_value( $dataobj )
+
+Returns the value of this field from $dataobj in ISO datetime format (YYYY-MM-DDThh:mm:ssZ).
+
+Returns undef if the value is unset.
+
+=cut
+
+sub iso_value
+{
+	my( $self, $dataobj ) = @_;
+
+	my $dt = $self->get_value( $dataobj );
+	return undef if !EPrints::Utils::is_set( $dt );
+
+	return join('T',split / /, $dt) . "Z";
+}
+
 =back
 
 =head1 SEE ALSO
