@@ -1699,7 +1699,26 @@ sub remove_thumbnails
 {
 	my( $self ) = @_;
 
-	EPrints::Utils::rmtree( $self->thumbnail_path );
+	my @list = qw/ small medium preview /;
+
+	if( $self->{session}->get_repository->can_call( "thumbnail_types" ) )
+	{
+		$self->{session}->get_repository->call( "thumbnail_types", \@list, $self->{session}, $self );
+	}
+
+	foreach my $size (@list)
+	{
+		my $relation = EPrints::Utils::make_relation( "has${size}ThumbnailVersion" );
+		foreach my $doc ($self->related_dataobjs( $relation ))
+		{
+			if( $doc->has_dataobj_relations( $self, EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
+			{
+				$doc->remove;
+			}
+		}
+	}
+
+	$self->commit;
 }
 
 sub make_thumbnails
