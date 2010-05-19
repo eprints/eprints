@@ -100,6 +100,8 @@ sub render_single_value
 {
 	my( $self, $session, $value ) = @_;
 
+	return $session->make_doc_fragment if !EPrints::Utils::is_set( $value );
+
 	my $res = $self->{render_res};
 	my $l = 10;
 	$l = 7 if( defined $res && $res eq "month" );
