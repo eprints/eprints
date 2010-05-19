@@ -156,7 +156,7 @@ Tell the webserver that all views pages must be regenerated. The webserver will 
 
 Tell the webserver that all abstract summary pages must be regenerated. The webserver will update them next , but won't update them again unless something on the EPrint changes or you re-run refresh abstracts. Also causes config to be reloaded.
 
-=item B<epadmin> redo_thumbnails I<repository_id> [I<eprintid], ...]
+=item B<epadmin> redo_thumbnails I<repository_id> [ I<eprintid>, ... ]
 
 Regenerate all the thumbnail and image-preview files and any other things which
 are triggered if the document file changed. Optionally supply a list of eprint
