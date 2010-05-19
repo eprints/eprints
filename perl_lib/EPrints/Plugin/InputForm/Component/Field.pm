@@ -84,6 +84,7 @@ sub validate
 	
 	my @problems;
 
+	# field requires a value
 	if( $self->is_required() && !$self->{dataobj}->is_set( $field->{name} ) )
 	{
 		my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:".$field->{name} );
@@ -94,6 +95,40 @@ sub validate
 		push @problems, $problem;
 	}
 	
+	# field sub-fields are required
+	if( $field->isa( "EPrints::MetaField::Compound" ) )
+	{
+		SUB_FIELD: foreach my $sub_field (@{$field->property( "fields_cache" )})
+		{
+			next if !$sub_field->property( "required" );
+
+			my $value = $sub_field->get_value( $self->{dataobj} );
+
+			if( !$sub_field->property( "multiple" ) )
+			{
+				next SUB_FIELD if EPrints::Utils::is_set( $value );
+			}
+			else
+			{
+				my $set = 1;
+				for(@$value)
+				{
+					$set &&= EPrints::Utils::is_set( $_ );
+				}
+				next SUB_FIELD if $set;
+			}
+
+			my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:".$field->{name} );
+			$fieldname->appendChild( $field->render_name( $self->{session} ) );
+			my $problem = $self->{session}->html_phrase(
+				"lib/eprint:not_done_part",
+				partname => $sub_field->render_name( $self->{session} ),
+				fieldname => $fieldname,
+			);
+			push @problems, $problem;
+		}
+	}
+
 	push @problems, $self->{dataobj}->validate_field( $field->{name} );
 
 	$self->{problems} = \@problems;

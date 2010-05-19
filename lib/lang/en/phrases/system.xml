@@ -1417,6 +1417,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
     <epp:phrase id="lib/eprint:no_type">You haven't selected a type for this item.</epp:phrase>
     <epp:phrase id="lib/eprint:invalid_type">This item doesn't seem to have a valid type.</epp:phrase>
     <epp:phrase id="lib/eprint:not_done_field">You haven't filled out the required <epc:pin name="fieldname"/> field.</epp:phrase>
+    <epp:phrase id="lib/eprint:not_done_part">You haven't filled out the required "<epc:pin name="partname" />" part of the <epc:pin name="fieldname"/> field.</epp:phrase>
     <epp:phrase id="lib/eprint:invalid_users">The following usernames are not valid: <epc:pin name="usernames"/>.</epp:phrase>
     <epp:phrase id="lib/eprint:least_one_sub">You need to select at least one subject from the list!</epp:phrase>
     <epp:phrase id="lib/eprint:cant_succ">You cannot succeed an item that someone else has posted</epp:phrase>
