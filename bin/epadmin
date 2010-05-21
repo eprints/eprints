@@ -2277,7 +2277,8 @@ sub upgrade_3_2_0_to_3_2_1
 
 	my $repo = &repository( $repoid, check_db => 0 );
 
-	upgrade_add_files( $repo );
+# upgrade_add_files is done in 3.2.1 -> 3.2.2
+#	upgrade_add_files( $repo );
 }
 
 sub upgrade_cfg_files
