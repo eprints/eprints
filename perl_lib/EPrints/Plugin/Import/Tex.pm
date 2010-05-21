@@ -74,7 +74,7 @@ sub input_fh
 	my $bib = $parts{main} . ".bib";
 	if( $opts{flags}->{bibliography} && -f $aux && -f $bib )
 	{
-		push @new_docs, $self->add_bibl( $aux, $bib, %opts );
+		push @new_docs, $self->add_bibl( $main_doc, $aux, $bib, %opts );
 	}
 
 	# add the reciprocal relations
@@ -142,7 +142,7 @@ sub add_pdf
 
 sub add_bibl
 {
-	my( $self, $aux, $bib, %opts ) = @_;
+	my( $self, $main_doc, $aux, $bib, %opts ) = @_;
 
 	my @new_docs;
 
@@ -172,6 +172,10 @@ sub add_bibl
 	my $dataset = $self->{session}->dataset( "eprint" );
 	my $class = $dataset->get_object_class;
 
+	my $bibl_file = File::Temp->new;
+	binmode($bibl_file, ":utf8");
+	print $bibl_file "<?xml version='1.0'?>\n<eprints>";
+
 	while(<$fh>)
 	{
 		if( /\\bibcite\{([^\}]+)\}/ )
@@ -182,15 +186,34 @@ sub add_bibl
 			my $epdata = $translator->convert_input( $entry );
 			$epdata->{eprint_status} = "inbox";
 			my $dataobj = $class->new_from_data(
-				$self->{session},
-				$epdata,
-				$dataset );
-			my $xml = $dataobj->render_citation;
-			push @bibls, join '', $self->{session}->xhtml->to_xhtml( $xml );
+					$self->{session},
+					$epdata,
+					$dataset );
+			print $bibl_file $self->{session}->xml->to_string(
+				$dataobj->to_xml
+			);
 		}
 	}
 
-	$opts{dataobj}->set_value( "bibliography", \@bibls );
+	print $bibl_file "</eprints>";
+	seek($bibl_file,0,0);
+
+	push @new_docs, $opts{dataobj}->create_subdataobj( "documents", {
+		format => "text/xml",
+		content => "bibliography",
+		relation => [{
+			type => EPrints::Utils::make_relation( "isPartOf" ),
+			uri => $main_doc->internal_uri(),
+		},{
+			type => EPrints::Utils::make_relation( "isVolatileVersionOf" ),
+			uri => $main_doc->internal_uri(),
+		}],
+		files => [{
+			filename => "eprints.xml",
+			filesize => -s $bibl_file,
+			_content => $bibl_file,
+		}],
+	} );
 
 	return @new_docs;
 }
