@@ -2258,12 +2258,7 @@ sub upgrade_3_1_2_to_3_2_0
 
 	upgrade_cfg_files( $repo, [qw(
 	 	indexing.pl
-		rdf.pl
-		rdf_triples_sameas.pl
-		rdf_triples_bibo.pl
-		rdf_uri_event_location.pl
-		rdf_uri_event.pl
-		rdf_uri_person.pl
+		rdf_license.pl
 	)]);
 
 	# We can do this now, because we only ever add columns
@@ -2291,6 +2286,9 @@ sub upgrade_cfg_files
 
 	my $source = $repo->config( "base_path" ) . "/lib/defaultcfg/cfg.d";
 	my $target = $repo->config( "archiveroot" ) . "/cfg/cfg.d";
+
+	@$files = grep { -e "$source/$_" } @$files;
+	return if !@$files;
 
 	print STDERR "There are recommended configuration file updates:\n";
 	print STDERR map { "\t$_\n" } @$files;
