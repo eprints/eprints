@@ -122,6 +122,10 @@ sub get_value
 	my $value = $self->SUPER::get_value( $parent );
 	return $value if defined $value;
 
+	# parent doesn't have an id defined
+	return $self->property( "multiple" ) ? [] : undef
+		if !EPrints::Utils::is_set( $parent->id );
+
 	my $ds = $parent->get_session->dataset( $self->get_property( "datasetid" ) );
 
 	my $searchexp = $ds->prepare_search();
