@@ -2668,6 +2668,7 @@ sub upgrade_mysql_charset_table
 	my( $repo, $db, $table, $fields ) = @_;
 
 	my $rc = 1;
+	my $sql;
 
 	my $new_table = "new_$table";
 
@@ -2679,6 +2680,9 @@ sub upgrade_mysql_charset_table
 	# create a table LIKE $table
 	$rc &&= $db->do( "DROP TABLE IF EXISTS $Q_new_table" );
 	$rc &&= $db->do( "CREATE TABLE $Q_new_table LIKE $Q_table" );
+	# change it to use UTF8
+	$rc &&= $db->do( "ALTER TABLE $Q_new_table CONVERT TO CHARACTER SET utf8 COLLATE utf8_bin" );
+
 	if( !$rc || !$db->has_table( $new_table ) )
 	{
 		EPrints::abort( "Error creating table $Q_new_table based on $Q_table" );
@@ -2686,26 +2690,8 @@ sub upgrade_mysql_charset_table
 
 	my %is_text;
 
-	# change it to use UTF8
-	my @alterations;
-	foreach my $field (@$fields)
-	{
-		next if !$field->isa( "EPrints::MetaField::Text" ) && !$field->isa( "EPrints::MetaField::Set" );
-		for($field->get_sql_names)
-		{
-			$is_text{$_} = 1;
-		}
-		my @parts = split /,/, $field->get_sql_type( $repo );
-		push @alterations, map { "MODIFY $_" } @parts;
-	}
-#	$rc &&= $db->do( "ALTER TABLE $Q_new_table ".join(',', @alterations, "DEFAULT CHARACTER SET UTF8") );
-	if( !$db->has_table( $new_table ) )
-	{
-		EPrints::abort( "Error creating table $Q_new_table based on $Q_table" );
-	}
-
 	# copy in the data
-	my $sql = "INSERT INTO $Q_new_table";
+	$sql = "INSERT INTO $Q_new_table";
 	my @cols;
 	my @bin_cols;
 	my $sth = $db->{dbh}->column_info( undef, undef, $table, '%' );
