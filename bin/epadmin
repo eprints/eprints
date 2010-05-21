@@ -2687,8 +2687,6 @@ sub upgrade_mysql_charset_table
 		EPrints::abort( "Error creating table $Q_new_table based on $Q_table" );
 	}
 
-	my %is_text;
-
 	# copy in the data
 	$sql = "INSERT INTO $Q_new_table";
 	my @cols;
@@ -2697,9 +2695,10 @@ sub upgrade_mysql_charset_table
 	while(my $row = $sth->fetch)
 	{
 		my $name = $row->[$sth->{NAME_lc_hash}{column_name}];
+		my $type = $row->[$sth->{NAME_lc_hash}{type_name}];
 		push @cols, $db->quote_identifier( $name );
 		my $sql = "";
-		$sql .= "BINARY " if $is_text{$name};
+		$sql .= "BINARY " if $type =~ /TEXT|CHAR/i;
 		$sql .= $db->quote_identifier( $name );
 		push @bin_cols, $sql;
 	}
