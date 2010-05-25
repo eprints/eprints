@@ -124,6 +124,8 @@ sub new_from_filename
 {
 	my( $class, $repo, $dataobj, $filename ) = @_;
 	
+	return undef if !EPrints::Utils::is_set( $filename );
+
 	my $dataset = $repo->dataset( $class->get_dataset_id );
 
 	my $results = $dataset->search(
