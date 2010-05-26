@@ -262,7 +262,7 @@ sub get_local_copy
 		$filename = File::Temp->new;
 		binmode($filename);
 
-		my $rc = $self->retrieve( $fileobj, 0, $filename->value( "filesize" ),
+		my $rc = $self->retrieve( $fileobj, 0, $fileobj->value( "filesize" ),
 			sub {
 				return defined syswrite($filename,$_[0])
 			} );
