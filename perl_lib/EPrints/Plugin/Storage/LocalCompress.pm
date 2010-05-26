@@ -56,7 +56,6 @@ sub write
 	my( $self, $fileobj, $buffer ) = @_;
 
 	use bytes;
-	use integer;
 
 	my $fh = $self->{_fh}->{$fileobj}
 		or Carp::croak "Must call open_write before write";

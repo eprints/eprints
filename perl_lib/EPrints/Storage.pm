@@ -139,7 +139,6 @@ sub store
 	my( $self, $fileobj, $f ) = @_;
 
 	use bytes;
-	use integer;
 
 	my $rlen = 0;
 

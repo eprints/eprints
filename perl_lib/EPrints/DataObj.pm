@@ -1716,6 +1716,7 @@ sub add_stored_file
 	# something went wrong
 	if( defined $file && $file->value( "filesize" ) != $filesize )
 	{
+		$self->{session}->log( "Error while writing file '$filename': size mismatch between caller ($filesize) and what was written: ".$file->value( "filesize" ) );
 		$file->remove;
 		undef $file;
 	}
