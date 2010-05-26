@@ -36,7 +36,6 @@ To allow for simpler local configuration Convert plugins should use SystemSettin
 use strict;
 use warnings;
 
-use EPrints::TempDir;
 use EPrints::SystemSettings;
 use EPrints::Utils;
 
@@ -200,7 +199,7 @@ sub convert
 {
 	my ($plugin, $eprint, $doc, $type) = @_;
 
-	my $dir = EPrints::TempDir->new( "ep-convertXXXXX", UNLINK => 1);
+	my $dir = File::Temp->newdir( "ep-convertXXXXX" );
 
 	my @files = $plugin->export( $dir, $doc, $type );
 	unless( @files ) {

@@ -448,7 +448,7 @@ sub unpack
 {
 	my( $self, $tmpfile, %opts ) = @_;
 
-	my $dir = EPrints::TempDir->new( CLEANUP => 1 );
+	my $dir = File::Temp->newdir();
 
 	my $rc = $self->{session}->exec( "zip",
 		DIR => $dir,

@@ -322,7 +322,7 @@ sub convert
 
 	my $repo = $self->{session};
 
-	my $dir = EPrints::TempDir->new( UNLINK => 1 );
+	my $dir = File::Temp->newdir();
 
 	my @files = $self->export( $dir, $doc, $type );
 	return if !@files;

@@ -58,7 +58,7 @@ sub input_file
 
 	if( defined $unpacker )
 	{
-	        $tmp_dir = EPrints::TempDir->new( "swordXXX", UNLINK => 0 );
+	        $tmp_dir = File::Temp->newdir( "swordXXX" );
 
         	if( !defined $tmp_dir )
 	        {

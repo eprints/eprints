@@ -168,7 +168,7 @@ sub init
 {
 	my( $self ) = @_;
 
-	my $tmpdir = EPrints::TempDir->new( CLEANUP => 1 );
+	my $tmpdir = File::Temp->newdir();
 	$self->{dir} = $tmpdir;
 
 	$self->{sourceDatabase} = $self->{session}->phrase( "archive_name" );

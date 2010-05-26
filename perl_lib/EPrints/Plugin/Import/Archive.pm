@@ -45,7 +45,7 @@ sub add_archive
 {
         my( $self, $file, $archive_format ) = @_;
 
-        my $tmpdir = EPrints::TempDir->new();
+        my $tmpdir = File::Temp->newdir();
 
         # Do the extraction
         my $rc = $self->{session}->get_repository->exec(

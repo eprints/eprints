@@ -961,7 +961,7 @@ sub add_archive
 {
 	my( $self, $file, $archive_format ) = @_;
 
-	my $tmpdir = EPrints::TempDir->new( CLEANUP => 1 );
+	my $tmpdir = File::Temp->newdir();
 
 	# Do the extraction
 	my $rc = $self->{session}->get_repository->exec( 
@@ -1052,7 +1052,7 @@ sub upload_url
 		$url->path( "/" );
 	}
 
-	my $tmpdir = EPrints::TempDir->new( CLEANUP => 1 );
+	my $tmpdir = File::Temp->newdir();
 
 	# save previous dir
 	my $prev_dir = getcwd();
