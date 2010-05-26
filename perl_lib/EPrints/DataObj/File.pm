@@ -670,7 +670,9 @@ sub set_file
 	my( $self, $content, $clen ) = @_;
 
 	use bytes;
-	use integer;
+	# on 32bit platforms this will cause wrapping at 2**31, without integer
+	# Perl will wrap at some much larger value (so use 64bit O/S!)
+#	use integer;
 
 	my $md5 = Digest::MD5->new;
 
