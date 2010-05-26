@@ -202,4 +202,73 @@ sub send_status_line
 	$request->status( $code );
 }
 
+=item @chunks = EPrints::Apache::AnApache::ranges( $r, $maxlength )
+
+Returns the byte-ranges requested by the client (if set).
+
+$maxlength is the length, in bytes, of the resource.
+
+=cut
+
+sub ranges
+{
+	my( $r, $maxlength, $chunks ) = @_;
+
+	my $ranges = EPrints::Apache::AnApache::header_in( $r, "Range" );
+	return 0 if !defined $ranges;
+
+	$ranges =~ s/\s+//g;
+	return 416 if $ranges !~ s/^bytes=//;
+	return 416 if $ranges =~ /[^0-9,\-]/;
+
+	my @ranges = map { [split /\-/, $_] } split(/,/, $ranges);
+	return 416 if !@ranges;
+
+	# handle -500 and 9500-
+	# check for broken ranges (in which case we give-up)
+	for(@ranges)
+	{
+		return 416 if @$_ > 2;
+		return 416 if !length($_->[0]) && !length($_->[1]);
+		if( !defined $_->[1] || !length $_->[1] )
+		{
+			$_->[1] = $maxlength-1;
+		}
+		if( !length($_->[0]) )
+		{
+			$_->[0] = $maxlength-$_->[1];
+			$_->[1] = $maxlength-1;
+		}
+		return 416 if $_->[0] >= $maxlength;
+		return 416 if $_->[1] >= $maxlength;
+		return 416 if $_->[0] > $_->[1];
+	}
+
+	@ranges = sort { $a->[0] <=> $b->[0] } @ranges;
+
+	for(my $i = 0; $i < $#ranges;)
+	{
+		my( $l, $r ) = @ranges[$i,$i+1];
+		# left range is superset of right range
+		if( $$l[1] >= $$r[1] )
+		{
+			splice(@ranges,$i+1,1);
+		}
+		# left range overlaps right range
+		elsif( $$l[1] >= $$r[0] )
+		{
+			$$l[1] = $$r[1];
+			splice(@ranges,$i+1,1);
+		}
+		else
+		{
+			++$i;
+		}
+	}
+
+	@$chunks = @ranges;
+
+	return 206;
+}
+
 1;

@@ -629,17 +629,24 @@ sub remove_plugin_copy
 	$self->set_value( "copies", $copies );
 }
 
-=item $success = $stored->get_file( CALLBACK )
+=item $success = $stored->get_file( CALLBACK [, $offset, $n ] )
 
-Get the contents of the stored file - see L<EPrints::Storage>::retrieve().
+Get the contents of the stored file - see L<EPrints::Storage/retrieve>.
+
+$offset is the position in bytes to start reading from, default 0.
+
+$n is the number of bytes to read, default C<filesize>.
 
 =cut
 
 sub get_file
 {
-	my( $self, $f ) = @_;
+	my( $self, $f, $offset, $n ) = @_;
 
-	return $self->{session}->get_storage->retrieve( $self, $f );
+	$offset = 0 if !defined $offset;
+	$n = $self->value( "filesize" ) if !defined $n;
+
+	return $self->{session}->get_storage->retrieve( $self, $offset, $n, $f );
 }
 
 =item $content_length = $stored->set_file( CONTENT, $content_length )

@@ -52,15 +52,17 @@ sub store
 	return $self->close_write( $fileobj );
 }
 
-=item $success = $store->retrieve( $fileobj, $sourceid, CALLBACK )
+=item $success = $store->retrieve( $fileobj, $sourceid, $offset, $len, CALLBACK )
 
-Retrieve an object using CALLBACK.
+Retrieve $n bytes of data starting at $offset from the data stored for $fileobj identified by $sourceid.
+
+CALLBACK = $rc = &f( BYTES )
 
 =cut
 
 sub retrieve
 {
-	my( $self, $fileobj, $sourceid, $f ) = @_;
+	my( $self, $fileobj, $sourceid, $offset, $n, $f ) = @_;
 
 	undef;
 }

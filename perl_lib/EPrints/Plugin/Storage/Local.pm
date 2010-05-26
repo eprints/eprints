@@ -16,6 +16,7 @@ package EPrints::Plugin::Storage::Local;
 
 use URI;
 use URI::Escape;
+use Fcntl 'SEEK_SET';
 
 use EPrints::Plugin::Storage;
 
@@ -122,7 +123,7 @@ sub open_read
 
 sub retrieve
 {
-	my( $self, $fileobj, $sourceid, $f ) = @_;
+	my( $self, $fileobj, $sourceid, $offset, $n, $f ) = @_;
 
 	return 0 if !$self->open_read( $fileobj, $sourceid, $f );
 	my( $path, $fn ) = $self->_filename( $fileobj, $sourceid );
@@ -131,11 +132,16 @@ sub retrieve
 
 	my $rc = 1;
 
+	sysseek($fh, $offset, SEEK_SET);
+
 	my $buffer;
-	while(sysread($fh,$buffer,65536))
+	my $bsize = $n > 65536 ? 65536 : $n;
+	while(sysread($fh,$buffer,$bsize))
 	{
 		$rc &&= &$f($buffer);
 		last unless $rc;
+		$n -= $bsize;
+		$bsize = $n if $bsize > $n;
 	}
 
 	$self->close_read( $fileobj, $sourceid, $f );

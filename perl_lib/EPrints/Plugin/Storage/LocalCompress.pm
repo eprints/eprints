@@ -21,6 +21,8 @@ use URI::Escape;
 
 use EPrints::Plugin::Storage::Local;
 
+use constant BUF_SIZE => 65536;
+
 our @ISA = ( "EPrints::Plugin::Storage::Local" );
 
 our $DISABLE = eval "use PerlIO::gzip; return 1" ? 0 : 1;
@@ -86,7 +88,7 @@ sub open_read
 
 sub retrieve
 {
-	my( $self, $fileobj, $sourceid, $f ) = @_;
+	my( $self, $fileobj, $sourceid, $offset, $n, $f ) = @_;
 
 	return 0 if !$self->open_read( $fileobj, $sourceid, $f );
 	my( $path, $fn ) = $self->_filename( $fileobj, $sourceid );
@@ -96,7 +98,27 @@ sub retrieve
 	my $rc = 1;
 
 	my $buffer;
-	while($rc && read($fh,$buffer,65536)) # sysread ignores gzip layer
+
+	# sysread ignores gzip layer
+
+	# sequentially move file position to $offset
+	while($rc && $offset >= BUF_SIZE)
+	{
+		$offset -= BUF_SIZE;
+		$rc &&= read($fh,$buffer,BUF_SIZE);
+	}
+	if( $offset )
+	{
+		$rc &&= read($fh,$buffer,$offset);
+	}
+
+	# read the requested chunk
+	while($rc && $n >= BUF_SIZE && read($fh,$buffer,BUF_SIZE))
+	{
+		$n -= BUF_SIZE;
+		$rc &&= &$f($buffer);
+	}
+	if($rc && read($fh,$buffer,$n))
 	{
 		$rc &&= &$f($buffer);
 	}

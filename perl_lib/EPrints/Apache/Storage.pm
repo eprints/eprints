@@ -60,6 +60,10 @@ The current time + 365 days, if the B<mtime> value is set.
 
 The B<mtime> of the file object, if set.
 
+=item Accept-Ranges
+
+Sets Accept-Ranges to bytes.
+
 =back
 
 =head2 Recognised HTTP Headers
@@ -168,11 +172,6 @@ sub handler
 		);
 	}
 
-	EPrints::Apache::AnApache::header_out( 
-		$r,
-		"Content-Length" => $content_length
-	);
-
 	# Can use download=1 to force a download
 	my $download = $repo->param( "download" );
 	if( $download )
@@ -190,7 +189,84 @@ sub handler
 		);
 	}
 
-	my $rv = eval { $fileobj->write_copy_fh( \*STDOUT ); };
+	EPrints::Apache::AnApache::header_out(
+		$r,
+		"Accept-Ranges" => "bytes"
+	);
+
+	my $rv;
+
+	my @chunks;
+	$rc = EPrints::Apache::AnApache::ranges( $r, $content_length, \@chunks );
+	if( $rc == 206 && @chunks == 1 )
+	{
+		$r->status( $rc );
+		my $chunk = shift @chunks;
+		EPrints::Apache::AnApache::header_out( $r,
+			"Content-Range" => sprintf( "bytes %d-%d/%d",
+				@$chunk[0,1],
+				$content_length
+			) );
+		EPrints::Apache::AnApache::header_out( 
+			$r,
+			"Content-Length" => $chunk->[1] - $chunk->[0] + 1
+		);
+		$rv = eval { $fileobj->get_file(
+				sub { print $_[0] }, # CALLBACK
+				$chunk->[0], # OFFSET
+				$chunk->[1] - $chunk->[0] + 1 ) # n bytes
+			};
+	}
+	elsif( $rc == 206 && @chunks > 1 )
+	{
+		$r->status( $rc );
+		my $boundary = '4876db1cd4aa85af6';
+		my @boundaries;
+		my $body_length = 0;
+		$r->content_type( "multipart/byteranges; boundary=$boundary" );
+		for(@chunks)
+		{
+			$body_length += $_->[1] - $_->[0] + 1; # 0-0 means byte zero
+			push @boundaries, sprintf("\r\n--%s\r\nContent-type: %s\r\nContent-range: bytes %d-%d/%d\r\n\r\n",
+				$boundary,
+				$content_type,
+				@$_,
+				$content_length
+			);
+			$body_length += length($boundaries[$#boundaries]);
+		}
+		push @boundaries, "\r\n--$boundary--\r\n";
+		$body_length += length($boundaries[$#boundaries]);
+		EPrints::Apache::AnApache::header_out( 
+			$r,
+			"Content-Length" => $body_length
+		);
+		for(@chunks)
+		{
+			print shift @boundaries;
+			$rv = eval { $fileobj->get_file(
+					sub { print $_[0] }, # CALLBACK
+					$_->[0], # OFFSET
+					$_->[1] - $_->[0] + 1 ) # n bytes
+				};
+			last if !$rv;
+		}
+		print shift( @boundaries ) if $rv;
+	}
+	elsif( $rc == 416 )
+	{
+		$r->status( $rc );
+		return 416;
+	}
+	else # 200 normal response
+	{
+		EPrints::Apache::AnApache::header_out( 
+			$r,
+			"Content-Length" => $content_length
+		);
+		$rv = eval { $fileobj->get_file( sub { print $_[0] } ) };
+	}
+
 	if( $@ )
 	{
 		# eval threw an error
