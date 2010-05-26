@@ -120,6 +120,39 @@ sub exec
 	return $rc;
 }	
 
+sub read_exec
+{
+	my( $repository, $tmp, $cmd_id, %map ) = @_;
+
+	no warnings; # suppress "only used once" warnings
+
+	my $command = $repository->invocation( $cmd_id, %map );
+
+	open(OLDERR,">&STDERR");
+	open(OLDOUT,">&STDOUT");
+
+	open(STDOUT,">","$tmp") or die "Can't redirect stdout to $tmp: $!";
+	open(STDERR,">&STDOUT") or die "Can't dup stdout: $!";
+
+	select(STDERR); $| = 1;
+	select(STDOUT); $| = 1;
+
+	my $rc = system($command);
+
+	if( $rc != 0 )
+	{
+		print STDERR "Error in $cmd_id: $command\n";
+	}
+
+	close(STDOUT);
+	close(STDERR);
+
+	open(STDOUT, ">&OLDOUT");
+	open(STDERR, ">&OLDERR");
+
+	return 0xffff & $rc;
+}
+
 sub read_perl_script
 {
 	my( $repository, $tmp, @args ) = @_;

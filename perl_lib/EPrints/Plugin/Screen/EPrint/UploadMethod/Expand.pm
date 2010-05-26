@@ -37,11 +37,12 @@ sub from
 	
 	return if !$self->SUPER::from( $basename );
 
-	my $upload = $processor->{notes}->{upload};
+	my $epdata = $processor->{notes}->{epdata};
+	return if !defined $epdata->{main};
 
 	my( @plugins ) = $session->get_plugins(
 		type => "Import",
-		mime_type => $upload->{format},
+		mime_type => $epdata->{format},
 	);
 
 	my $plugin = $plugins[0];
@@ -56,10 +57,11 @@ sub from
 
 	my $flags = $self->param_flags( $basename );
 
+	my $fh = $epdata->{files}->[0]->{_content};
 	if( $flags->{explode} )
 	{
 		$list = $plugin->input_fh(
-			fh => $upload->{fh},
+			fh => $fh,
 			dataobj => $eprint,
 		);
 	}
@@ -69,7 +71,7 @@ sub from
 			format => "other",
 		} );
 		$list = $plugin->input_fh(
-			fh => $upload->{fh},
+			fh => $fh,
 			dataobj => $doc	
 		);
 		$doc->remove if !defined $list;

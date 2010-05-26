@@ -24,13 +24,6 @@ sub from
 
 	my $filename = Encode::decode_utf8( $session->query->param( $ffname ) );
 	my $fh = $session->query->upload( $ffname );
-	my $format = defined $filename ? $session->call( "guess_doc_type", $session, $filename ) : undef;
-
-	$processor->{notes}->{upload} = {
-		filename => $filename,
-		fh => $fh,
-		format => $format,
-	};
 
 	if( !EPrints::Utils::is_set( $filename ) || !defined $fh )
 	{
@@ -39,6 +32,26 @@ sub from
 
 		return 0;
 	}
+
+	my $filepath = $session->query->tmpFileName( $fh );
+
+	my $epdata = {};
+
+	$session->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+		epdata => $epdata,
+		filename => $filename,
+		filepath => $filepath,
+	);
+
+	$epdata->{main} = $filename;
+	$epdata->{files} = [{
+		filename => $filename,
+		filesize => (-s $fh),
+		mime_type => $epdata->{format},
+		_content => $fh,
+	}];
+
+	$processor->{notes}->{epdata} = $epdata;
 
 	return 1;
 }

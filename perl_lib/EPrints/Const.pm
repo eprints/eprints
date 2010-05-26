@@ -94,6 +94,14 @@ Continue normal processing.
 
 =item EP_TRIGGER_FILES_MODIFED
 
+=item EP_TRIGGER_MEDIA_INFO
+
+Populate a Document epdata structure with information about a file.
+
+	epdata
+	filename
+	filepath
+
 =back
 
 =cut
@@ -125,6 +133,7 @@ use constant {
 	EP_TRIGGER_END_REQUEST => 7,
 	EP_TRIGGER_END => 8,
 	EP_TRIGGER_DOC_URL_REWRITE => 9,
+	EP_TRIGGER_MEDIA_INFO => 10,
 };
 
 # DataObj triggers
@@ -157,6 +166,7 @@ use constant {
 	EP_TRIGGER_END_REQUEST
 	EP_TRIGGER_END
 	EP_TRIGGER_DOC_URL_REWRITE
+	EP_TRIGGER_MEDIA_INFO
 
 	EP_TRIGGER_CREATED
 	EP_TRIGGER_RDF

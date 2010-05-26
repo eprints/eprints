@@ -34,18 +34,10 @@ sub from
 
 	return if !$self->SUPER::from( $basename );
 
-	my $upload = $processor->{notes}->{upload};
+	my $epdata = $processor->{notes}->{epdata};
+	return if !defined $epdata->{main};
 
-	my $filename = $upload->{filename};
-	return if !defined $filename;
-
-	my $doc = $eprint->create_subdataobj( "documents", {
-		format => $upload->{format},
-		main => $filename,
-		files => [
-			{ filename => $filename, filesize => (-s $upload->{fh}), _content => $upload->{fh} },
-		],
-	});
+	my $doc = $eprint->create_subdataobj( "documents", $epdata );
 	if( !defined $doc )
 	{
 		$processor->add_message( "error", $self->{session}->html_phrase( "Plugin/InputForm/Component/Upload:create_failed" ) );

@@ -137,6 +137,8 @@ task. (example is unpacking a .tar.gz file).
  
 sub exec { return &{$real_module."::exec"}( @_ ); }
 
+sub read_exec { return &{$real_module."::read_exec"}( @_ ); }
+
 #####################################################################
 
 =item $rc = read_perl_script( $repository, $filename, @args )

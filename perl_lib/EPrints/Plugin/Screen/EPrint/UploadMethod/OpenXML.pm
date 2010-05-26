@@ -32,9 +32,9 @@ sub from
 
 	return if !$self->SUPER::from( $basename );
 
-	my $upload = $processor->{notes}->{upload};
+	my $epdata = $processor->{notes}->{epdata};
 
-	my $filename = $upload->{filename};
+	my $filename = $epdata->{main};
 	return if !defined $filename;
 
 	if( $filename !~ /\.(docx|pptx|xlsx)$/ )
@@ -53,7 +53,7 @@ sub from
 	my $list = $plugin->input_fh(
 		dataobj => $eprint,
 		filename => $filename,
-		fh => $upload->{fh},
+		fh => $epdata->{files}->[0]->{_content},
 		flags => $self->param_flags( $basename ),
 	);
 

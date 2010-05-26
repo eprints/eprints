@@ -1856,6 +1856,19 @@ sub exec
 	return EPrints::Platform::exec( $self, $cmd_id, %map );
 }
 
+=item $returncode = $repository->read_exec( $fh, $cmd_id, %map )
+
+Executes a system command and captures the output, see L</exec>.
+
+=cut
+
+sub read_exec
+{
+	my( $self, $fh, $cmd_id, %map ) = @_;
+
+	return EPrints::Platform::read_exec( $self, $fh, $cmd_id, %map );
+}
+
 sub can_execute
 {
 	my( $self, $cmd_id ) = @_;
@@ -1914,7 +1927,7 @@ sub invocation
 
 	my $command = $self->config( "invocation" )->{ $cmd_id };
 
-	$command =~ s/\$\(([a-z]*)\)/quotemeta($map{$1})/gei;
+	$command =~ s/\$\(([a-z_]*)\)/quotemeta($map{$1})/gei;
 
 	return $command;
 }

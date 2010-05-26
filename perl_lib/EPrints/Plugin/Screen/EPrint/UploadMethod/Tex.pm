@@ -31,9 +31,9 @@ sub from
 
 	return if !$self->SUPER::from( $basename );
 
-	my $upload = $processor->{notes}->{upload};
+	my $epdata = $processor->{notes}->{epdata};
 
-	my $filename = $upload->{filename};
+	my $filename = $epdata->{main};
 	return if !defined $filename;
 
 	my $flags = $self->param_flags( $basename );
@@ -43,7 +43,7 @@ sub from
 	);
 
 	my $list = $importer->input_fh(
-		fh => $upload->{fh},
+		fh => $epdata->{files}->[0]->{_content},
 		filename => $filename,
 		dataobj => $eprint,
 		flags => $flags,
