@@ -49,7 +49,7 @@ sub render_action_link
 
 	my $conffile = $self->{processor}->{conffile};
 
-	my $uri = URI->new( $self->{session}->config( "http_cgiurl" ) );
+	my $uri = URI->new( $self->{session}->current_url( path => 'cgi' , "users/home" ) );
 	$uri->query_form(
 		screen => substr($self->{id},8),
 		configfile => $conffile,
