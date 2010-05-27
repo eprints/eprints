@@ -787,60 +787,34 @@ sub get_all
 		return ( $session->{subject_cache}, $session->{subject_child_map} );
 	}
 
-	# Retrieve all of the subjects
-	my @subjects = $session->get_database->get_all( 
-		$session->get_repository->get_dataset( "subject" ) );
-	push @subjects, EPrints::DataObj::Subject->new( $session, $EPrints::DataObj::Subject::root_subject );
-
-	return( {}, {} ) if( scalar @subjects == 0 );
-
 	my( %subjectmap ); # map subject ids to subject objects
 	my( %rmap ); # map parents to children
-	foreach my $subject (@subjects)
-	{
+
+	# callback method for result map
+	my $f = sub {
+		my( undef, undef, $subject ) = @_;
 		my $subjectid = $subject->get_id;
 		$subjectmap{$subjectid} = $subject;
-		# this should probably use value() instead of talking direct to data
-		foreach my $parentid ( @{$subject->{data}->{parents}} )
+		$rmap{$subjectid} = [] if !exists $rmap{$subjectid};
+		foreach my $pid ( @{$subject->get_value( "parents" )} )
 		{
-			$rmap{$parentid} = [] if( !defined $rmap{$parentid} );
-			push @{$rmap{$parentid}}, $subject;
+			$rmap{$pid} = [] if !exists $rmap{$pid};
+			push @{$rmap{$pid}}, $subject;
 		}
-	}
-	# sort and fill in the gaps for the child map
-	foreach my $subject (@subjects)
-	{
-		my $subjectid = $subject->get_id;
-		$rmap{$subjectid} = [] if !defined $rmap{$subjectid};
-		@{$rmap{$subjectid}} = sort {   
-			$a->local_name cmp $b->local_name
-			} @{$rmap{$subjectid}};
-	}
+	};
 	
+	my $ds = $session->get_repository->get_dataset( "subject" );
+
+	# Retrieve all of the subjects
+	my $results = $ds->search( custom_order => "name/name_name" );
+	
+	$results->map($f);
+
+	# Plus the virtual root subject
+	&$f( $session, $ds, EPrints::DataObj::Subject->new( $session, $EPrints::DataObj::Subject::root_subject ) );
+
 	return( \%subjectmap, \%rmap );
 }
-
-sub local_name
-{
-	my( $self ) = @_;
-
-	my $lang_hash = {};
-	my $value = $self->get_value( "name" );
-	foreach ( @{$value} )
-	{
-		$lang_hash->{$_->{lang}||""} = $_->{name};
-	}
-	my $namefield = $self->{dataset}->get_field( "name" );
-
-	my $r = $namefield->most_local( $self->{session}, $lang_hash );
-	return "" unless defined $r;
-	return $r;
-}
-	
-
-
-
-
 
 ######################################################################
 #
