@@ -558,7 +558,7 @@ sub call_convert
 
 	if( -s $dst )
 	{
-		return ($dst);
+		return ($fn);
 	}
 
 	return ();

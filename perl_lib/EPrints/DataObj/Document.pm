@@ -1668,8 +1668,11 @@ sub render_preview_link
 		$set = "";
 	}
 
-	my $url = $self->thumbnail_url( "preview" );
-	if( defined( $url ) )
+	my $size = $opts{size};
+	$size = "lightbox" if !defined $size;
+
+	my $url = $self->thumbnail_url( $size );
+	if( defined $url )
 	{
 		my $link = $self->{session}->make_element( "a",
 				href=>$url,

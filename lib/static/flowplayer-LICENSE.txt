@@ -1,7 +1,48 @@
-FlowPlayer is released under GNU GENERAL PUBLIC LICENSE Version 3.
+The Flowplayer Free version is released under the
+GNU GENERAL PUBLIC LICENSE Version 3 (GPL).
 
-Included flashembed Flash Embedding script is eleased under the MIT License:
-http://www.opensource.org/licenses/mit-license.php
+The GPL requires that you not remove the Flowplayer copyright notices
+from the user interface. See section 5.d below.
+
+Commercial licenses are available. The commercial player version
+does not require any Flowplayer notices or texts and also provides
+some additional features.
+
+========================================================================
+
+ADDITIONAL TERM per GPL Section 7
+If you convey this program (or any modifications of it) and assume
+contractual liability for the program to recipients of it, you agree
+to indemnify Flowplayer, Ltd. for any liability that those contractual
+assumptions impose on Flowplayer, Ltd.
+
+Except as expressly provided herein, no trademark rights are granted in
+any trademarks of Flowplayer, Ltd. Licensees are granted a limited,
+non-exclusive right to use the mark Flowplayer and the Flowplayer logos
+in connection with unmodified copies of the Program and the copyright
+notices required by section 5.d of the GPL license. For the purposes
+of this limited trademark license grant, customizing the Flowplayer
+by skinning, scripting, or including PlugIns provided by Flowplayer, Ltd.
+is not considered modifying the Program.
+
+Licensees that do modify the Program, taking advantage of the open-source
+license, may not use the Flowplayer mark or Flowplayer logos and must
+change the fullscreen notice (and the non-fullscreen notice, if that
+option is enabled), the copyright notice in the dialog box, and the
+notice on the Canvas as follows:
+
+the full screen (and non-fullscreen equivalent, if activated) notice
+should read: "Based on Flowplayer source code"; in the context menu
+(right-click menu), the link to "About Flowplayer free version #.#.#"
+can remain. The copyright notice can remain, but must be supplemented with
+an additional notice, stating that the licensee modified the Flowplayer. 
+A suitable notice might read "Flowplayer Source code modified by ModOrg 2009";
+for the canvas, the notice should read "Based on Flowplayer source code".
+In addition, licensees that modify the Program must give the modified
+Program a new name that is not confusingly similar to Flowplayer and
+may not distribute it under the name Flowplayer.
+
+========================================================================
 
 
                     GNU GENERAL PUBLIC LICENSE

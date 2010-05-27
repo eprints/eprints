@@ -34,7 +34,19 @@
             <td valign="top">
               <epc:print expr="$doc.citation('default')" /><br />
               <a href="{$doc.url()}">Download (<epc:print expr="$doc.doc_size().human_filesize()" />)</a>
-              <epc:if test="$doc.is_public() and $doc.thumbnail_url('preview').is_set()">| <epc:print expr="$doc.preview_link($doc.citation_link('default'),'docs')" /></epc:if>
+              <epc:if test="$doc.is_public()">
+			  <epc:choose>
+			  <epc:when test="$doc.thumbnail_url('video_mp4').is_set()">
+			  | <epc:print expr="$doc.preview_link($doc.citation_link('default'),'docs','video_mp4')" />
+			  </epc:when>
+			  <epc:when test="$doc.thumbnail_url('audio_mp4').is_set()">
+			  | <epc:print expr="$doc.preview_link($doc.citation_link('default'),'docs','audio_mp4')" />
+			  </epc:when>
+			  <epc:when test="$doc.thumbnail_url('lightbox').is_set()">
+			  | <epc:print expr="$doc.preview_link($doc.citation_link('default'),'docs','lightbox')" />
+			  </epc:when>
+			  </epc:choose>
+			  </epc:if>
               <epc:if test="!$doc.is_public() and $item.contact_email().is_set() and eprint_status = 'archive'">
                 | <a href="{$config{http_cgiurl}}/request_doc?docid={$doc{docid}"><epc:phrase ref="request:button" /></a>
               </epc:if>
