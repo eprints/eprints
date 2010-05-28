@@ -26,6 +26,7 @@
 
 <xsl:template match="b:Source">
 <eprint>
+<eprint_status>inbox</eprint_status>
 <xsl:apply-templates select="./*" />
 </eprint>
 </xsl:template>

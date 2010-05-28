@@ -210,7 +210,8 @@ sub add_bibl
 		}],
 		files => [{
 			filename => "eprints.xml",
-			filesize => -s $bibl_file,
+			filesize => (-s $bibl_file),
+			mime_type => "text/xml",
 			_content => $bibl_file,
 		}],
 	} );

@@ -106,6 +106,9 @@ sub _extract_bibl
 
 	my @files;
 
+	my $bibl_file = File::Temp->new;
+	binmode($bibl_file, ":utf8");
+
 	opendir(my $dh, $custom_dir) or return ();
 	while(my $fn = readdir($dh))
 	{
@@ -129,27 +132,28 @@ sub _extract_bibl
 		next if !defined $uri;
 		next if $uri ne "http://schemas.openxmlformats.org/officeDocument/2006/bibliography";
 
-		next if !open(my $fh, "<", "$custom_dir/item$idx.xml");
-		push @files, {
-			filename => "item$idx.xml",
-			filesize => (-s "$custom_dir/item$idx.xml"),
-			mime_type => "text/xml",
-			_content => $fh,
-		};
+		$doc = eval { $self->{session}->xml->parse_file( "$custom_dir/item$idx.xml" ) };
+		next if !defined $doc;
 
-		$self->_extract_references( $main_doc, $doc );
+		$self->_extract_references( $bibl_file, $doc );
+		last;
 	}
 	closedir($dh);
 
-	return () if !scalar @files;
+	seek($bibl_file,0,0);
+
+	return if !-s $bibl_file;
 
 	return $eprint->create_subdataobj( "documents", {
-		files => \@files,
-		main => $files[0]->{filename},
 		format => "text/xml",
-		formatdesc => 'extracted from openxml',
 		content => "bibliography",
 		security => $main_doc->value( "security" ),
+		files => [@files,{
+			filename => "eprints.xml",
+			filesize => (-s $bibl_file),
+			mime_type => "text/xml",
+			_content => $bibl_file,
+		}],
 		relation => [{
 			type => EPrints::Utils::make_relation( "isVolatileVersionOf" ),
 			uri => $main_doc->internal_uri(),
@@ -165,38 +169,20 @@ sub _extract_bibl
 
 sub _extract_references
 {
-	my( $self, $main_doc, $doc ) = @_;
+	my( $self, $tmp, $doc ) = @_;
 
 	my $session = $self->{session};
-
-	my $eprint = $main_doc->get_parent;
-	return if !$eprint->get_dataset->has_field( "bibliography" );
-	return if $eprint->is_set( "bibliography" );
 
 	my $translator = $session->plugin( "Import::XSLT::OpenXMLBibl" );
 	return if !defined $translator;
 
 	my $epxml = $translator->transform( $doc );
-
-	my @bibls;
-
-	my $dataset = $eprint->get_dataset;
-	my $class = $dataset->get_object_class;
-
-	foreach my $xml ($epxml->documentElement->getElementsByTagName( 'eprint' ))
+	if( !$epxml->documentElement->getElementsByTagName( 'eprint' )->length )
 	{
-		my $epdata = $class->xml_to_epdata( $session, $xml );
-		$epdata->{eprint_status} = 'inbox';
-		my $dataobj = $class->new_from_data(
-			$session,
-			$epdata,
-			$dataset );
-		my $citation = $dataobj->render_citation;
-		push @bibls, join '', $session->xhtml->to_xhtml( $citation );
-		$session->xml->dispose( $citation );
+		return;
 	}
 
-	$eprint->set_value( "bibliography", \@bibls );
+	print $tmp $session->xml->to_string( $epxml );
 }
 
 sub _extract_media_files
