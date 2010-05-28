@@ -52,11 +52,17 @@ sub new
 		# inner field's properties
 			%{$inner_field},
 		# these properties must be the same as the compound
+			parent => $self,
 			parent_name => $self->get_name(),
 			dataset => $self->get_dataset(), 
 			providence => $self->get_property( "providence" ),
 			multiple => $properties{ "multiple" },
 			volatile => $properties{ "volatile" } );
+
+		# avoid circular references if we can
+		Scalar::Utils::weaken( $field->{parent} )
+			if defined &Scalar::Utils::weaken;
+
 		push @{$self->{fields_cache}}, $field;
 	}
 

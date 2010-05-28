@@ -1807,7 +1807,7 @@ sub ordervalue
 {
 	my( $self , $value , $session , $langid , $dataset ) = @_;
 
-	return "" if( !defined $value );
+	return "" if( !EPrints::Utils::is_set( $value ) );
 
 	if( defined $self->{make_value_orderkey} )
 	{
@@ -1818,6 +1818,19 @@ sub ordervalue
 			$session, 
 			$langid,
 			$dataset );
+	}
+
+	my $parent = $self->property( "parent" );
+	if( defined $parent && $parent->isa( "EPrints::MetaField::Multilang" ) )
+	{
+		my $langs = $parent->property( "languages" );
+
+		my %values = map {
+				$langs->[$_] => $value->[$_]
+			} 0..$#$langs;
+		$value = $session->best_language( $langid, %values );
+
+		return $session->get_database->quote_ordervalue($self, $self->ordervalue_single( $value , $session , $langid, $dataset ));
 	}
 
 	if( !$self->get_property( "multiple" ) )
@@ -2234,6 +2247,7 @@ sub get_property_defaults
 		type 		=> $EPrints::MetaField::REQUIRED,
 		sub_name	=> $EPrints::MetaField::UNDEF,
 		parent_name	=> $EPrints::MetaField::UNDEF,
+		parent		=> $EPrints::MetaField::UNDEF,
 		volatile	=> 0,
 		virtual		=> 0,
 		default_value => $EPrints::MetaField::UNDEF,

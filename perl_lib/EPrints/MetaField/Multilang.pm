@@ -52,13 +52,13 @@ sub new
 			$properties{archive} ||
 			$properties{dataset}->get_repository;
 
-		$langs = $repository->get_conf('languages');
+		$properties{languages} = $repository->get_conf('languages');
 	}
 
 	push @{$properties{fields}}, {
 			sub_name=>"lang",
 			type=>"langid",
-			options => $langs,
+			options => $properties{languages},
 		};
 
 	my $self = $class->SUPER::new( %properties );
