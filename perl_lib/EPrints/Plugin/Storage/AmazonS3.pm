@@ -148,9 +148,17 @@ sub store
 
 sub retrieve
 {
-	my( $self, $fileobj, $uri, $f ) = @_;
+	my( $self, $fileobj, $uri, $offset, $n, $f ) = @_;
 
 	my $req = HTTP::Request->new( GET => $uri );
+
+	if( $offset != 0 || $n != $fileobj->value( "filesize" ) )
+	{
+		$req->header( "Range" => sprintf("bytes=%d-%d\n",
+			$offset,
+			$n - $offset - 1
+		) );
+	}
 
 	my $r = $self->request( $req, $f );
 

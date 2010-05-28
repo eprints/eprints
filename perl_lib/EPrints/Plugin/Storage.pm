@@ -40,7 +40,8 @@ sub store
 {
 	my( $self, $fileobj, $f, $croak ) = @_;
 
-	EPrints::abort ref($self)." appears not to have subclassed store() or open_write() - at least one must be implemented" if $croak;
+	EPrints->abort( ref($self)." appears not to have subclassed store() or open_write() - at least one must be implemented" )
+		if $croak;
 
 	return unless $self->open_write( $fileobj, 1 );
 
@@ -120,7 +121,8 @@ sub open_write
 {
 	my( $self, $fileobj, $croak ) = @_;
 
-	EPrints::abort ref($self)." appears not to have subclassed store() or open_write() - at least one must be implemented" if $croak;
+	EPrints->abort( ref($self)." appears not to have subclassed store() or open_write() - at least one must be implemented" )
+		if $croak;
 
 	$self->{_fh}->{$fileobj} = File::Temp->new;
 
