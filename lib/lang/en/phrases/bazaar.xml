@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<!DOCTYPE phrases SYSTEM "entities.dtd">
+
+<epp:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:epp="http://eprints.org/ep3/phrase" xmlns:epc="http://eprints.org/ep3/control">
+
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:title">The EPrints Bazaar</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:description">Manage, Update and Install EPrints add-ons from the EPrints Bazaar.</epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:installed">Installed Add-ons</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:updates">Add-on Updates</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:available">Available Add-ons</epp:phrase>
+	
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:action:remove_package:title">Remove Add-on</epp:phrase>
+	
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:version">Version</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:epm_description">Description</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:epm_home">Home Page</epp:phrase>
+	
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:Title">The EPrints Bazaar</epp:phrase>
+
+	
+
+</epp:phrases>

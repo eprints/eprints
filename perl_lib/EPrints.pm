@@ -219,6 +219,8 @@ use EPrints::Workflow;
 use EPrints::Workflow::Stage;
 use EPrints::XML::EPC;
 
+use EPrints::EPM;
+
 our $__loaded;
 our $__cloned;
 
