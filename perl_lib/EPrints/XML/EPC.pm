@@ -216,7 +216,15 @@ sub _process_phrase
 		$pins{$name} = process_child_nodes( $param, %params );
 	}
 
-	my $collapsed = $params{session}->html_phrase( $ref, %pins );
+	my $collapsed;
+	if( $node->hasAttribute( "textonly" ) && $node->getAttribute( "textonly" ) eq 'yes' )
+	{
+		$collapsed = $params{session}->make_text( $params{session}->phrase( $ref, %pins ) );
+	}
+	else
+	{
+		$collapsed = $params{session}->html_phrase( $ref, %pins );
+	}
 
 #	print $collapsed->toString."\n";
 
