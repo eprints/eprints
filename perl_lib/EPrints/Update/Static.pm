@@ -247,14 +247,18 @@ sub update_auto
 	foreach my $dir (@$dirs)
 	{
 		opendir(my $dh, $dir) or next;
+		# if a file is removed the dir mtime will change
 		$out_of_date = 1 if (stat($dir))[9] > $target_time;
 		foreach my $fn (readdir($dh))
 		{
+			next if exists $map{$fn};
 			next if $fn =~ /^\./;
+			next if $fn !~ /\.$ext$/;
 			next if -d "$dir/$fn";
-			next unless $fn =~ /\.$ext$/;
-			$map{$fn} = "$dir/$fn";
+
 			$out_of_date = 1 if (stat(_))[9] > $target_time;
+
+			$map{$fn} = "$dir/$fn";
 		}
 		closedir($dh);
 	}

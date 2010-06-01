@@ -1723,6 +1723,8 @@ END
 
 Returns a list of directories from which static files may be sourced.
 
+Directories are returned in order of importance, most important first.
+
 =cut
 ######################################################################
 
