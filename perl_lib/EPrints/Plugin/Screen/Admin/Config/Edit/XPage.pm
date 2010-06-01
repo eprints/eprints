@@ -21,7 +21,7 @@ sub new
 #		},
 	];
 
-	$self->{actions} = [qw( edit )];
+	push @{$self->{actions}}, qw( edit );
 
 	return $self;
 }
