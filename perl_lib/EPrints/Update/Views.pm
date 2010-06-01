@@ -1578,6 +1578,7 @@ sub render_export_bar
 			type=>"Export",
 			can_accept=>"list/eprint",
 			is_visible=>"all",
+			is_advertised=>1,
 	);
 	my @plugins = $session->plugin_list( %opts );
 
