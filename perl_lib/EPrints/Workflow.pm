@@ -441,7 +441,15 @@ sub link_problem_xhtml
 			return if( !defined $stage );
 			my $keyfield = $self->{dataset}->get_key_field();
 			my $kf_sql = $keyfield->get_sql_name;
-			my $url = "?screen=$screenid&$kf_sql=".$self->{item}->get_id."&stage=$stage#$1";
+			my $url = URI->new( $self->{session}->current_url );
+			$url->query_form(
+				screen => $screenid,
+				dataset => $self->{dataset}->id,
+				dataobj => $self->{item}->id,
+				$kf_sql => $self->{item}->id,
+				stage => $stage
+			);
+			$url->fragment( $1 );
 			if( defined $new_stage && $new_stage eq $stage )
 			{
 				$url = "#$1";
