@@ -9,6 +9,10 @@
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:installed">Installed Add-ons</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:updates">Add-on Updates</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:available">Available Add-ons</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:custom">Manual Install</epp:phrase>
+	
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:upload_epm_title">Manual Install / Package Check</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:upload_epm_help">Use this screen to manually upload an EPM package or check that an EPM package you are developing works correctly.</epp:phrase>
 	
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:action:remove_package:title">Remove Add-on</epp:phrase>
 	

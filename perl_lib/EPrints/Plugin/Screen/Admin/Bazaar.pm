@@ -27,7 +27,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 	
-	$self->{actions} = [qw/ remove_package install_package /]; 
+	$self->{actions} = [qw/ remove_package install_package handle_upload /]; 
 		
 	$self->{appears} = [
 		{ 
@@ -60,6 +60,53 @@ sub allow_install_package
 	return 1;
 }
 
+sub allow_handle_upload
+{
+	my ( $self ) = @_;
+		
+	return 1;
+}
+
+sub action_handle_upload
+{
+	my ( $self ) = @_;
+
+	my $session = $self->{session};
+
+	my $fname = $self->{prefix}."_first_file";
+
+	my $fh = $session->get_query->upload( $fname );
+
+	my $tmpfile = File::Temp->new( SUFFIX => ".zip" );
+
+	if( defined( $fh ) ) 
+	{
+		binmode($fh);
+		use bytes;
+
+		while(sysread($fh,my $buffer, 4096)) {
+			syswrite($tmpfile,$buffer);
+		}
+		print STDERR "\nGOT HERE " . $tmpfile . "\n\n";
+
+		my ($rc, $message) = EPrints::EPM::install($session, $tmpfile, 0);
+
+		print STDERR "GOT HERE : $rc \n" . $message . " \n\n";
+		my $type = "message";
+	
+		if ( $rc > 0 ) {
+			$type = "error";
+		}
+	
+		$self->{processor}->add_message(
+			$type,
+			$session->make_text($message)
+			);
+
+		$self->{processor}->{screenid} = "Admin::Bazaar";
+	}
+}
+
 sub action_remove_package
 {
         my ( $self ) = @_;
@@ -77,7 +124,7 @@ sub action_remove_package
 	}
 
 	$self->{processor}->add_message(
-			"message",
+			$type,
 			$session->make_text($message)
 			);
 	
@@ -206,6 +253,10 @@ sub render_app_menu
 	push @titles, $title;
 	push @contents, $content;
 
+	($title, $content) = tab_upload_epm($self);
+	push @titles, $title;
+	push @contents, $content;
+
 	my $content2 = $session->xhtml->tabs(\@titles, \@contents);
 
 	return $content2;
@@ -278,14 +329,73 @@ sub get_epm_updates
 	return undef;
 }
 
+sub tab_upload_epm
+{
+	my ( $self ) = @_;
+
+	my $session = $self->{session};
+	
+	my $inner_div = $session->make_element("div", align=>"center");
+	
+	my $p = $session->make_element(
+			"p",
+			style => "font-weight: bold;"
+			);
+	$p->appendChild($self->html_phrase("upload_epm_title"));
+	$inner_div->appendChild($p);
+	
+	$p = $session->make_element(
+			"p",
+			);
+	$p->appendChild($self->html_phrase("upload_epm_help"));
+	$inner_div->appendChild($p);
+	
+	my $screen_id = "Screen::".$self->{processor}->{screenid};
+	my $screen = $session->plugin( $screen_id, processor => $self->{processor} );
+	
+	my $upload_form = $screen->render_form("POST");
+	$inner_div->appendChild($upload_form);
+
+	my $ffname = $self->{prefix}."_first_file";
+
+	my $file_button = $session->make_element( "input",
+			name => $ffname,
+			id => $ffname,
+			type => "file",
+			size=> 40,
+			maxlength=>40,
+			);
+	my $upload_progress_url = $session->get_url( path => "cgi" ) . "/users/ajax/upload_progress";
+	my $onclick = "return startEmbeddedProgressBar(this.form,{'url':".EPrints::Utils::js_string( $upload_progress_url )."});";
+	my $add_format_button = $session->render_button(
+			value => $session->phrase( "Plugin/InputForm/Component/Upload:add_format" ),
+			class => "ep_form_internal_button",
+			name => "_action_handle_upload",
+			onclick => $onclick );
+	$upload_form->appendChild( $file_button );
+	$upload_form->appendChild( $session->make_element( "br" ));
+	$upload_form->appendChild( $add_format_button );
+	my $progress_bar = $session->make_element( "div", id => "progress" );
+	$upload_form->appendChild( $progress_bar );
+	my $script = $session->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($session->phrase("Plugin/InputForm/Component/Upload:really_next"))." ); } return true; } );" );
+	$upload_form->appendChild( $script);
+	$upload_form->appendChild( $session->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
+	$upload_form->appendChild( $session->render_hidden_field( "_action_handle_upload", "Upload" ) );
+	$inner_div->appendChild($upload_form);
+
+	my $title = $self->html_phrase("custom");
+
+	return ($title, $inner_div);
+
+
+}
+
 sub tab_update_epms 
 {
 	my ($self, $updates_epms) = @_;
 
 	my $session = $self->{session};
 	
-	my @tabs;
-
 	my $count = 0;
 
 	my $content = $session->make_element("div", align => "center");
