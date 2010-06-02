@@ -402,12 +402,26 @@ sub _render_action_aux
 		$session->render_hidden_field( 
 			"screen", 
 			substr( $params->{screen_id}, 8 ) ) );
-	foreach my $id ( @{$params->{hidden}} )
+	my $hidden = $params->{hidden};
+	if( ref($hidden) eq "ARRAY" )
 	{
-		$form->appendChild( 
-			$session->render_hidden_field( 
-				$id, 
-				$self->{processor}->{$id} ) );
+		foreach my $id ( @$hidden )
+		{
+			$form->appendChild( 
+				$session->render_hidden_field( 
+					$id, 
+					$self->{processor}->{$id} ) );
+		}
+	}
+	else
+	{
+		foreach my $id (keys %$hidden)
+		{
+			$form->appendChild(
+				$session->render_hidden_field(
+					$id,
+					$hidden->{$id} ) );
+		}
 	}
 	my( $action, $title, $icon );
 	if( defined $params->{action} )
