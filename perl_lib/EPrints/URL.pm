@@ -176,7 +176,7 @@ sub get
 		foreach my $param ($session->param)
 		{
 			my $value = $session->param( $param );
-			push @params, $param => $value;
+			push @params, $param => "$value";
 		}
 		$uri->query_form( @params );
 	}
