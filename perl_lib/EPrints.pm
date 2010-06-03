@@ -79,8 +79,10 @@ use Scalar::Util;
 
 use strict;
 
+$SIG{__DIE__} = \&Carp::confess;
+
 BEGIN {
-	use Carp;
+	use Carp qw( verbose );
 
 	# load the configuration - required by EPrints::Platform et al
 	EPrints::Config::init();
