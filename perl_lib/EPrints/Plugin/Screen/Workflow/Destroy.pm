@@ -65,23 +65,23 @@ sub action_cancel
 {
 	my( $self ) = @_;
 
-	$self->{processor}->{screenid} = "Workflow::View";
+	$self->{processor}->{screenid} = $self->view_screen;
 }
 
 sub action_remove
 {
 	my( $self ) = @_;
 
-	$self->{processor}->{screenid} = "Listing";
-
 	if( !$self->{processor}->{dataobj}->remove )
 	{
 		$self->{processor}->add_message( "message", $self->html_phrase( "item_not_removed" ) );
-		$self->{processor}->{screenid} = "Workflow::View";
+		$self->{processor}->{screenid} = $self->view_screen;
 		return;
 	}
 
 	$self->{processor}->add_message( "message", $self->html_phrase( "item_removed" ) );
+
+	$self->{processor}->{screenid} = $self->listing_screen;
 }
 
 1;

@@ -393,12 +393,6 @@ sub create_archive_tables
 	
 	$self->set_version( $EPrints::Database::DBVersion );
 	
-	if( $success )
-	{
-		my $list = EPrints::DataObj::MetaField::load_all( $self->{session} );
-		$success = $list->count > 0;
-	}
-
 	return( $success );
 }
 

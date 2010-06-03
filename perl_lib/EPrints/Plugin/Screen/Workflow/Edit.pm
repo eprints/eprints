@@ -43,7 +43,6 @@ sub from
 {
 	my( $self ) = @_;
 
-
 	if( defined $self->{processor}->{internal} )
 	{
 		$self->workflow->update_from_form( $self->{processor}, undef, 1 );
@@ -62,12 +61,6 @@ sub from
 			$self->uncache_workflow;
 		}
 
-		if( $jump_to eq "commit" )
-		{
-			$self->{processor}->{screenid} = $self->screen_after_flow;
-			return;
-		}
-
 		$self->workflow->set_stage( $jump_to );
 
 		# not checking that this succeded. Maybe we should.
@@ -81,7 +74,7 @@ sub action_stop
 {
 	my( $self ) = @_;
 
-	$self->{processor}->{screenid} = "Workflow::View";
+	$self->{processor}->{screenid} = $self->view_screen;
 }	
 
 sub action_save
@@ -91,7 +84,7 @@ sub action_save
 	$self->workflow->update_from_form( $self->{processor} );
 	$self->uncache_workflow;
 
-	$self->{processor}->{screenid} = "Workflow::View";
+	$self->{processor}->{screenid} = $self->view_screen;
 }
 
 
@@ -123,7 +116,6 @@ sub action_next
 
 	if( !defined $self->workflow->get_next_stage_id )
 	{
-		$self->{processor}->{screenid} = $self->screen_after_flow;
 		return;
 	}
 
@@ -137,13 +129,6 @@ sub redirect_to_me_url
 	return $self->SUPER::redirect_to_me_url.$self->workflow->get_state_params( $self->{processor} );
 }
 
-sub screen_after_flow
-{
-	my( $self ) = @_;
-
-	return "Workflow::Commit";
-}
-
 sub render
 {
 	my( $self ) = @_;
@@ -154,9 +139,18 @@ sub render
 	my $toolbox = $self->{session}->render_toolbox( undef, $blister );
 	$form->appendChild( $toolbox );
 
-	$form->appendChild( $self->render_buttons );
+	my $stage = $self->workflow->get_stage( $self->workflow->get_stage_id );
+	my $action_buttons = $stage->action_buttons;
+
+	if( $action_buttons eq "top" || $action_buttons eq "both" )
+	{
+		$form->appendChild( $self->render_buttons );
+	}
 	$form->appendChild( $self->workflow->render );
-	$form->appendChild( $self->render_buttons );
+	if( $action_buttons eq "bottom" || $action_buttons eq "both" )
+	{
+		$form->appendChild( $self->render_buttons );
+	}
 	
 	return $form;
 }
@@ -179,9 +173,12 @@ sub render_buttons
 	$buttons{save} = 
 		$self->{session}->phrase( "lib/submissionform:action_save" );
 
-	push @{$buttons{_order}}, "next";
-	$buttons{next} = 
-		$self->{session}->phrase( "lib/submissionform:action_next" );
+	if( defined $self->workflow->get_next_stage_id )
+	{
+		push @{$buttons{_order}}, "next";
+		$buttons{next} = 
+			$self->{session}->phrase( "lib/submissionform:action_next" );
+	}
 
 	return $self->{session}->render_action_buttons( %buttons );
 }

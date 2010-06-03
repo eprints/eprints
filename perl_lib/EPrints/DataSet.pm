@@ -459,9 +459,9 @@ sub process_field
 {
 	my( $self, $fielddata, $system ) = @_;
 
-	if( !defined $fielddata->{providence} )
+	if( !defined $fielddata->{provenance} )
 	{
-		$fielddata->{providence} = $system ? "core" : "config";
+		$fielddata->{provenance} = $system ? "core" : "config";
 	}
 
 	my $field = EPrints::MetaField->new( 

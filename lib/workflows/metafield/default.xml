@@ -9,9 +9,12 @@
 		<stage ref="sub_fields"/>
 	</epc:if>
   	<stage ref="phrases"/>
+	<stage ref="commit"/>
   </flow>
    
   <stage name="type">
+  	<component><field ref="mfdatasetid"/></component>
+  	<component><field ref="name"/></component>
   	<component><field ref="multiple"/></component>
   	<component><field ref="type"/></component>
   </stage>
@@ -87,12 +90,16 @@
   </stage>
 
   <stage name="sub_fields">
-		<component type="Field::SubFields"><field ref="fields"/></component>
+		<component type="Field::SubFields"><field ref="fields" required="yes"/></component>
   </stage>
 
   <stage name="phrases">
 		<component><field ref="phrase_name"/></component>
 		<component><field ref="phrase_help"/></component>
+  </stage>
+
+  <stage name="commit" action_buttons="none">
+  		<component type="MetaField::Commit" surround="None"></component>
   </stage>
 
 </workflow>

@@ -962,12 +962,6 @@ Phrases related to the Manage Metadata Fields tool.
 	<epp:phrase id="metafield_fieldopt_providence_core">core</epp:phrase>
 	<epp:phrase id="metafield_fieldopt_providence_config">config</epp:phrase>
 	<epp:phrase id="metafield_fieldopt_providence_user">user</epp:phrase>
-	<epp:phrase id="metafield_fieldopt_mfdatasetid_document">document</epp:phrase>
-	<epp:phrase id="metafield_fieldopt_mfdatasetid_eprint">eprint</epp:phrase>
-	<epp:phrase id="metafield_fieldopt_mfdatasetid_user">user</epp:phrase>
-	<epp:phrase id="metafield_fieldopt_mfdatasetid_saved_search">saved_search</epp:phrase>
-	<epp:phrase id="metafield_fieldopt_mfdatasetid_import">import</epp:phrase>
-	<epp:phrase id="metafield_fieldopt_mfdatasetid_file">file</epp:phrase>
 
 	<epp:phrase id="metafield_compound_stylesheet"><style>
 .ep_blister_bar { margin: 0px; }
@@ -979,11 +973,13 @@ Phrases related to the Manage Metadata Fields tool.
 	<epp:phrase id="priv:action/metafield/commit">Add field now</epp:phrase>
 	<epp:phrase id="priv:action/metafield/save">Save for Later</epp:phrase>
 
-    <epp:phrase id="Plugin/Screen/MetaField/View:field_exists">The metadata field name you specified already exists in this dataset.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:field_exists">The metadata field name you specified already exists in this dataset.</epp:phrase>
     <epp:phrase id="Plugin/Screen/MetaField:commit">Commit</epp:phrase>
-	<epp:phrase id="metapage_title_settings">Properties</epp:phrase>
-	<epp:phrase id="metapage_title_sub_fields">Sub-Fields</epp:phrase>
-	<epp:phrase id="metapage_title_phrases">Phrases</epp:phrase>
+	<epp:phrase id="metafield:workflow:stage:type:title">Type</epp:phrase>
+	<epp:phrase id="metafield:workflow:stage:settings:title">Properties</epp:phrase>
+	<epp:phrase id="metafield:workflow:stage:sub_fields:title">Sub-Fields</epp:phrase>
+	<epp:phrase id="metafield:workflow:stage:phrases:title">Phrases</epp:phrase>
+	<epp:phrase id="metafield:workflow:stage:commit:title">Commit</epp:phrase>
     <epp:phrase id="Plugin/Screen/MetaField/Commit:commit_help">
 <p>Note: For this to work the web server must have write access to the var, phrases and workflow directories for this repository.</p>
 
@@ -997,16 +993,23 @@ Phrases related to the Manage Metadata Fields tool.
 	</epp:phrase>
 	<epp:phrase id="Plugin/Screen/MetaField/Commit:add_to_phrases_failed">Failed to add this field's phrase, you should check that your phrases directory is writable.</epp:phrase>
 	<epp:phrase id="Plugin/Screen/MetaField/Commit:add_to_workflow_failed">Failed to add this field to the workflow, you should check that your workflow directory is writable.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/Commit:title">Adding a new metadata field</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/Edit:title">Adding a new metadata field</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:title">Manage Metadata Fields</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:help">This tool allows you to add metadata fields to your repository. Only fields added using this tool can be removed by this tool. To start configuring fields choose a dataset to add/remove fields from the following list.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:description">Add or remove metadata fields</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:datasets"><h2>Datasets with Configurable Fields</h2></epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:edit_dataset">View Dataset Fields</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:new">Add</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:inbox_empty">No existing in-progress fields found ...</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:new_form">
+    <epp:phrase id="Plugin/Screen/MetaField/Destroy:title" ref="Plugin/Screen/Workflow/Destroy:title" />
+	<epp:phrase id="Plugin/Screen/MetaField/Destroy:sure_delete" ref="Plugin/Screen/Workflow/Destroy:sure_delete" />
+	<epp:phrase id="Plugin/Screen/MetaField/Destroy:item_removed" ref="Plugin/Screen/Workflow/Destroy:item_removed" />
+    <epp:phrase id="Plugin/Screen/MetaField/Edit:title" ref="Plugin/Screen/Workflow/Edit:title" />
+    <epp:phrase id="Plugin/Screen/MetaField/View:page_title" ref="Plugin/Screen/Workflow/View:page_title" />
+    <epp:phrase id="Plugin/Screen/MetaField/Details:title" ref="Plugin/Screen/Workflow/Details:title" />
+    <epp:phrase id="Plugin/Screen/MetaField/Details:other" ref="Plugin/Screen/Workflow/Details:other" />
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:title">Manage Metadata Fields</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:help">This tool allows you to add metadata fields to your repository. Only fields added using this tool can be removed by this tool. To start configuring fields choose a dataset to add/remove fields from the following list.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:description">Add or remove metadata fields</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:datasets"><h2>Datasets with Configurable Fields</h2></epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:buffer">Incomplete Fields</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:repository">Live Fields</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:edit_dataset">View Dataset Fields</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:new">Add</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:inbox_empty">No existing in-progress fields found ...</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:new_form">
 	<div style="margin: 20px; border: 1px dashed #aaf; padding: 5px;">
 	<h3 style="margin: 0px; font-weight: bold;">Continue an existing new field</h3>
 	<epc:pin name="inbox"/>
@@ -1014,22 +1017,23 @@ Phrases related to the Manage Metadata Fields tool.
 	<epc:pin name="form"/>
 	</div>
 	</epp:phrase>
-	<epp:phrase id="Plugin/Screen/MetaField/View:rename">Rename</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:remove">Remove</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:edit">Edit</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:core_field"><em>Core Field</em></epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:config_field">From cfg.d</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:cancel">Cancel</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:confirm">Confirm</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:bad_name">The name of a field must contain only the letters a-z and underscore (requested name was "<epc:pin name="name" />")</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:invalid_field">The field "<epc:pin name="fieldid" />" you are attempting to modify doesn't appear to be configured for the dataset "<epc:pin name="datasetid"/>" (perhaps it's a system field?).</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:confirm_edit">You are about to edit the configuration and database settings for the <em><epc:pin name="fieldid"/></em> field in the <em><epc:pin name="datasetid"/></em> dataset. <b>You may permanently lose data any stored in <em><epc:pin name="fieldid"/></em>!</b> If you are sure this is what you want to do click the confirm button. <epc:pin name="confirm_button"/></epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:confirm_remove">You are about to remove the configuration and database settings for the <em><epc:pin name="fieldid"/></em> field in the <em><epc:pin name="datasetid"/></em> dataset. <b>This means you will permanently lose any data stored in <em><epc:pin name="fieldid"/></em>!</b> If you are sure this is what you want to do click the confirm button. <epc:pin name="confirm_button"/></epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/Commit:metafield_committed">Added the configuration and database settings for the <em><epc:pin name="fieldid"/></em> field in the <em><epc:pin name="datasetid"/></em> dataset.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:removed_field">Removed the configuration and database settings for the <em><epc:pin name="fieldid"/></em> field in the <em><epc:pin name="datasetid"/></em> dataset.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:renamed_field">Renamed old field <em><epc:pin name="fieldid"/></em> in the configuration and database settings to <em><epc:pin name="newid"/></em> in the <em><epc:pin name="datasetid"/></em> dataset.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:deleted_field">Removed the field information for <epc:pin name="fieldid"/>.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/MetaField/View:remove_failed">Failed to remove the field. You should ensure the web server has write access to the fields configuration file for this repository.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/MetaField/Listing:rename">Rename</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:remove">Remove</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:edit">Edit</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:core_field"><em>Core Field</em></epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:config_field">From cfg.d</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:cancel">Cancel</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:confirm">Confirm</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:bad_name">The name of a field must contain only the letters a-z and underscore (requested name was "<epc:pin name="name" />")</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:invalid_field">The field "<epc:pin name="field" />" you are attempting to modify doesn't appear to be configured for the dataset "<epc:pin name="dataset"/>" (perhaps it's a system field?).</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:confirm_edit">You are about to edit the configuration and database settings for the <em><epc:pin name="field"/></em> field in the <em><epc:pin name="dataset"/></em> dataset. <b>You may permanently lose data any stored in <em><epc:pin name="field"/></em>!</b> If you are sure this is what you want to do click the confirm button. <epc:pin name="confirm_button"/></epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:confirm_remove">You are about to remove the configuration and database settings for the <em><epc:pin name="field"/></em> field in the <em><epc:pin name="dataset"/></em> dataset. <b>This means you will permanently lose any data stored in <em><epc:pin name="field"/></em>!</b> If you are sure this is what you want to do click the confirm button. <epc:pin name="confirm_button"/></epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Commit:metafield_committed">Added the configuration and database settings for the <em><epc:pin name="field"/></em> field in the <em><epc:pin name="dataset"/></em> dataset.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:removed_field">Removed the configuration and database settings for the <em><epc:pin name="field"/></em> field in the <em><epc:pin name="dataset"/></em> dataset.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:renamed_field">Renamed old field <em><epc:pin name="field"/></em> in the configuration and database settings to <em><epc:pin name="newid"/></em> in the <em><epc:pin name="dataset"/></em> dataset.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:deleted_field">Removed the field information for <epc:pin name="field"/>.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:remove_failed">Failed to remove the field. You should ensure the web server has write access to the fields configuration file for this repository.</epp:phrase>
+    <epp:phrase id="Plugin/Screen/MetaField/Listing:create_field">Create a Field</epp:phrase>
 
 <epp:phrase id="metafield_fieldopt_type_storable">serialised data</epp:phrase>
 <epp:phrase id="metafield_optdetails_type_storable">Serialised Perl data</epp:phrase>
@@ -1121,6 +1125,7 @@ Phrases related to the Manage Metadata Fields tool.
 <epp:phrase id="metafield_fieldopt_fields_type_year">year</epp:phrase>
 <epp:phrase id="metafield_optdetails_type_year">[Deprecated] Use Date.</epp:phrase>
 
+<epp:phrase id="metafield_fieldname_metafieldid">Id</epp:phrase>
 <epp:phrase id="metafield_fieldname_phrase_name">Name</epp:phrase>
 <epp:phrase id="metafield_fieldhelp_phrase_name">The human-readable name of this field - will be shown above the field input.</epp:phrase>
 <epp:phrase id="metafield_fieldname_phrase_help">Help</epp:phrase>
@@ -1295,7 +1300,12 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 
 <epp:phrase id="metafield_fieldname_mfdatasetid">Parent Dataset</epp:phrase>
 <epp:phrase id="metafield_fieldname_mfstatus">Field Status</epp:phrase>
-<epp:phrase id="metafield_fieldname_providence">Field Provenance</epp:phrase>
+<epp:phrase id="metafield_fieldname_provenance">Field Provenance</epp:phrase>
+<epp:phrase id="metafield_fieldname_parent">Parent Field</epp:phrase>
+
+<epp:phrase id="metafield_fieldopt_provenance_user">Webcfg</epp:phrase>
+<epp:phrase id="metafield_fieldopt_provenance_config">From cfg.d</epp:phrase>
+<epp:phrase id="metafield_fieldopt_provenance_system">Core Field</epp:phrase>
 
 
   <!-- phrases that describe relationships -->
@@ -1521,6 +1531,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 		join_name.last  'and'
 	to get a more traditional citation style for names. -->
 		
+    <epp:phrase id="lib/metafield:join_subobject"><br /></epp:phrase>
     <epp:phrase id="lib/metafield:join_int">, </epp:phrase>
     <epp:phrase id="lib/metafield:join_year">, </epp:phrase>
     <epp:phrase id="lib/metafield:join_longtext">, </epp:phrase>
@@ -3727,6 +3738,7 @@ Each file inside this archive will be created as an <b>individual</b> document i
     <epp:phrase id="metapage_title_abstract">Abstract</epp:phrase>
     <epp:phrase id="metapage_title_subjects">Subjects</epp:phrase>
     <epp:phrase id="metapage_title_notes">Extras</epp:phrase>
+    <epp:phrase id="metapage_title_local">Custom</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Listing:title">View</epp:phrase>
     <epp:phrase id="Plugin/Screen/Listing:page_title">Manage <epc:pin name="dataset" /></epp:phrase>
@@ -3740,6 +3752,7 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="Plugin/Screen/Workflow/Destroy:title">Destroy</epp:phrase>
     <epp:phrase id="Plugin/Screen/Workflow/Destroy:sure_delete"><p>Are you sure you want to destroy <em><epc:pin name="title"/></em>? This action can not be undone.</p></epp:phrase>
 	<epp:phrase id="Plugin/Screen/Workflow/Details:title" ref="Plugin/Screen/EPrint/Details:title" />
+	<epp:phrase id="Plugin/Screen/Workflow/Details:other" ref="Plugin/Screen/EPrint/Details:other" />
 	<epp:phrase id="Plugin/Screen/Workflow/Commit:save" ref="lib/submissionform:action_staff_save" />
 	<epp:phrase id="Plugin/Screen/Workflow/Destroy:item_removed" ref="Plugin/Screen/EPrint/Remove:item_removed" />
 

@@ -183,6 +183,13 @@ sub get_value
 	}
 }
 
+sub render_single_value
+{
+	my( $self, $session, $value ) = @_;
+
+	return $value->render_citation( "default" );
+}
+
 sub to_xml
 {
 	my( $self, $session, $value, $dataset, %opts ) = @_;

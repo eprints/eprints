@@ -55,7 +55,7 @@ sub new
 			parent => $self,
 			parent_name => $self->get_name(),
 			dataset => $self->get_dataset(), 
-			providence => $self->get_property( "providence" ),
+			provenance => $self->get_property( "provenance" ),
 			multiple => $properties{ "multiple" },
 			volatile => $properties{ "volatile" } );
 

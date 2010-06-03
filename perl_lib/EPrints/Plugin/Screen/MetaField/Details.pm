@@ -1,7 +1,7 @@
-package EPrints::Plugin::Screen::MetaField::Edit;
+package EPrints::Plugin::Screen::MetaField::Details;
 
-use EPrints::Plugin::Screen::Workflow::Edit;
-@ISA = qw( EPrints::Plugin::Screen::Workflow::Edit );
+use EPrints::Plugin::Screen::Workflow::Details;
+@ISA = qw( EPrints::Plugin::Screen::Workflow::Details );
 
 sub edit_screen { "MetaField::Edit" }
 sub view_screen { "MetaField::View" }

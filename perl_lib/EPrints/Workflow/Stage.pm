@@ -19,11 +19,11 @@ sub new
 		EPrints::abort( "Workflow stage with no name attribute." );
 	}
 	$self->{action_buttons} = $stage->getAttribute( "action_buttons" );
-	if( !defined $self->{action_buttons} )
+	if( !$self->{action_buttons} )
 	{
 		$self->{action_buttons} = "both";
 	}
-	elsif( $self->{action_buttons} !~ /^(top|bottom|both)$/ )
+	elsif( $self->{action_buttons} !~ /^(top|bottom|both|none)$/ )
 	{
 		$self->{session}->get_repository->log( "Warning! Workflow <stage> action_buttons attribute expected one of 'top', 'bottom' or 'both' but instead got '$self->{action_buttons}'" );
 		$self->{action_buttons} = "both";
@@ -107,6 +107,19 @@ sub _read_components
 	}
 }
 
+=item $flag = $stage->action_buttons()
+
+Returns the action buttons setting: both, top, bottom or none.
+
+=cut
+
+sub action_buttons
+{
+	my( $self ) = @_;
+
+	return $self->{action_buttons};
+}
+
 sub get_name
 {
 	my( $self ) = @_;
@@ -119,6 +132,19 @@ sub get_title
 	return $self->{title};
 }
 
+sub render_title
+{
+	my( $self ) = @_;
+
+	my $title = $self->get_title;
+	if( !defined $title )
+	{
+		my $dataset = $self->{item}->dataset;
+		return $self->{repository}->html_phrase( $dataset->id.":workflow:stage:".$self->get_name.":title" );
+	}
+
+	return $self->{repository}->xml->create_text_node( $title );
+}
 
 sub get_short_title
 {

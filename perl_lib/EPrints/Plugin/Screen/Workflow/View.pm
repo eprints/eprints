@@ -37,18 +37,28 @@ sub render_title
 
 	my $session = $self->{session};
 
-	my $screen = $self->get_view_screen();
+	my $screen = $self->view_screen();
 
 	my $dataset = $self->{processor}->{dataset};
 	my $dataobj = $self->{processor}->{dataobj};
 
-	my $listing = $session->render_link( "?screen=Listing&dataset=".$dataset->id );
+	my $url = URI->new( $session->current_url );
+	$url->query_form(
+		screen => $self->listing_screen,
+		dataset => $dataset->id
+	);
+	my $listing = $session->render_link( $url );
 	$listing->appendChild( $dataset->render_name( $session ) );
 
 	my $desc = $dataobj->render_description();
 	if( $self->{id} ne "Screen::$screen" )
 	{
-		my $link = $session->render_link( "?screen=$screen&dataset=".$dataset->id."&dataobj=".$dataobj->id );
+		$url->query_form(
+			screen => $screen,
+			dataset => $dataset->id,
+			dataobj => $dataobj->id
+		);
+		my $link = $session->render_link( $url );
 		$link->appendChild( $desc );
 	}
 
@@ -72,6 +82,7 @@ sub render
 
 	# if in archive and can request delete then do that here TODO
 
+	# current view to show
 	my $view = $self->{session}->param( "view" );
 	if( defined $view )
 	{
