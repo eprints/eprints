@@ -29,6 +29,95 @@ sub unpack_package
 
 }
 
+sub remove_cache_package
+{
+	my ($repository,$package) = @_;
+	
+	my $archive_root = $repository->get_repository->get_conf("archiveroot");
+	my $epm_path = $archive_root . "/var/epm/cache/";
+	my $cache_package_path = $epm_path . "/" . $package;
+
+	my $rc = rmtree($cache_package_path);
+	
+	if ($rc < 1) 
+	{
+		return (1, "Failed to remove cached package");
+	}
+	return (0, "Cache Package Removed");
+
+}
+
+sub cache_package 
+{
+	my ($repository, $tmpfile) = @_;
+
+	my $directory;
+
+	$directory = File::Temp->newdir( CLEANUP => 1 );
+	my $rc = unpack_package($repository, $tmpfile, $directory);
+	if ($rc) {
+		return (1,"failed to unpack package");
+	}
+	
+	my $archive_root = $repository->get_repository->get_conf("archiveroot");
+	my $epm_path = $archive_root . "/var/epm/cache/";
+	
+	if ( !-d $epm_path ) {
+		mkpath($epm_path);
+	}
+        
+	if( !-d $epm_path )
+        {
+                return (1,"Failed to create package management cache");
+        }
+
+	my $package_name;
+	my $cache_package_path;
+
+	$rc = 1;
+
+        File::Find::find( {
+                no_chdir => 1,
+                wanted => sub {
+                        return unless $rc and !-d $File::Find::name;
+                        my $filepath = $File::Find::name;
+                        my $filename = substr($filepath, length($directory));
+                        open(my $filehandle, "<", $filepath);
+                        unless( defined( $filehandle ) )
+                        {
+                                $rc = 0;
+                                return;
+                        }
+			if ( (substr $filename, -5) eq ".spec" ) {
+				$package_name = substr $filename, 0, -5;
+				$cache_package_path = $epm_path . "/" . $package_name;
+			}
+                },
+        }, "$directory" );
+
+
+	if ( !-d $cache_package_path ) {
+		mkpath($cache_package_path);
+	} else {
+		rmtree($cache_package_path);
+		mkpath($cache_package_path);
+	}
+        
+	if( !-d $cache_package_path )
+        {
+                return (1,"Failed to create package cache");
+        }
+	
+	my $rc = unpack_package($repository, $tmpfile, $cache_package_path);
+	
+	my $message = "Package copied into cache";
+	if ($rc) {
+		$message = "Failed to unpack package to cache";
+	}
+	return ($rc,$message);
+	
+}
+
 sub install 
 {
 	my ($repository, $app_path, $force) = @_;
@@ -142,11 +231,11 @@ sub install
 
 				if ( !-e $installed_path ) {
 					write_md5s($repository,$package_path,$file_md5s); 
-					remove($repository, $package_name, 1);
+					my ($rmrc, $rmmessage) = remove($repository, $package_name, 1);
 					if ( defined $backup_directory) {
 						install($repository, $backup_directory, 1);
 					}
-					$message = "Failed to install $filepath, installation aborted and reverted";
+					$message = "Failed to install $filepath, installation aborted and reverted with message: " . $rmmessage;
 					$abort = 1;
 					return;
 				} else {
@@ -167,7 +256,7 @@ sub install
 	write_md5s($repository,$package_path,$file_md5s); 
 	
 	if (!defined $message) {
-
+		$rc = 0;
 		$message = "Package Successfully Installed";
 	
 	} 
@@ -203,7 +292,7 @@ sub get_package_version
 	open (SPECFILE, $spec_file);
 	while (<SPECFILE>) {
 		chomp;
-		my @bits = split(":",$_);
+		my @bits = split(":",$_,2);
 		my $key = $bits[0];
 		my $value = trim($bits[1]);
 		if ($key eq "version") {
@@ -332,9 +421,13 @@ sub remove
 		my @bits = split(/ /,$_);
 		my $file = $bits[0];
 		my $md5 = $bits[1];
-
+		my $config_file = 0;
+		my $file_end = substr($file, length($archive_root)+1);
+		if ( ( substr $file_end, 0, 9 ) eq "cfg/cfg.d" ) {
+			$config_file = 1;
+		}
 		push @files, $file;
-		if ( -e $file ) {
+		if ( -e $file and !$config_file) {
 			my $re_check = md5sum($file);
 			if (!($re_check eq $md5)) {
 				$pass = 0;

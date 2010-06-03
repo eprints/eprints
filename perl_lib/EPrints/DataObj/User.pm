@@ -1271,6 +1271,7 @@ my $PRIVMAP =
 		"event_queue/view",
 		"event_queue/destroy",
 		"eprint/archive/edit", # BatchEdit
+		"repository/epm", #EPrints Package Manager
 	],
 
 	"toolbox" => 

@@ -9,12 +9,23 @@
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:installed">Installed Add-ons</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:updates">Add-on Updates</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:available">Available Add-ons</epp:phrase>
-	<epp:phrase id="Plugin/Screen/Admin/Bazaar:custom">Manual Install</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:custom">Local Packages</epp:phrase>
 	
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:upload_epm_title">Manual Install / Package Check</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:upload_epm_help">Use this screen to manually upload an EPM package or check that an EPM package you are developing works correctly.</epp:phrase>
 	
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:cached_packages">Cached Packages</epp:phrase>
+	
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:action:remove_cached_package:title">Remove Package from Cache</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:action:install_cached_package:title">Install Package</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:action:submit_to_bazaar:title">Submit Package to EPrints Bazaar</epp:phrase>
+
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:action:remove_package:title">Remove Add-on</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:action:edit_config:title">Configure Add-on</epp:phrase>
+	
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:package_verified">Package Verified (this doesn't necesserily mean it will install properly)</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:package_verification_failed">Package Verification Failed</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:package_verification_missing_fields">The following fields are missing from the package specification file:</epp:phrase>
 	
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:version">Version</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:epm_description">Description</epp:phrase>
