@@ -13,10 +13,10 @@ sub unpack_package
 
 	my $type;
 
-	if ($mime_type eq "application/zip") {
-		$type = "zip";
-	} else {
+	if ($mime_type eq "application/x-tar") {
 		$type = "targz";
+	} else {
+		$type = "zip";
 	}
 
 	
@@ -108,7 +108,7 @@ sub cache_package
                 return (1,"Failed to create package cache");
         }
 	
-	my $rc = unpack_package($repository, $tmpfile, $cache_package_path);
+	$rc = unpack_package($repository, $tmpfile, $cache_package_path);
 	
 	my $message = "Package copied into cache";
 	if ($rc) {
@@ -155,8 +155,11 @@ sub install
 	my $file_md5s;
 	my $backup_directory;
 	my $abort = 0;
+	my $spec_file_in;
+       	my $spec_file;
 
-        File::Find::find( {
+        $rc = 1;
+	File::Find::find( {
                 no_chdir => 1,
                 wanted => sub {
                         return unless $rc and !-d $File::Find::name;
@@ -171,26 +174,61 @@ sub install
 			if ( (substr $filename, -5) eq ".spec" ) {
 				$package_name = substr $filename, 0, -5;
 				$package_path = $epm_path . "/" . $package_name;
-				my $spec_file = $package_path . "/" . $filename;
-
-				# CHECK EXISTS!
-				if ( -e $spec_file and $force < 1) {
+				$spec_file = $package_path . "/" . $filename;
 				
-					my $installed_version = get_package_version($repository, $spec_file);
-					my $this_version = get_package_version($repository, $filepath);
-				
-					if ($this_version lt $installed_version) {
-						$message = "Package is already installed, use --force to override";	
-						$abort = 1;
-						return;
-					}
-			
-					$backup_directory = make_backup($repository, $package_name);
-						
-				}
-				mkpath($package_path);
-				copy($filepath, $spec_file);
+				$spec_file_in = $filepath;
+			}
+		}
+        }, "$directory" );
+	
+	if (! (defined $spec_file_in)) {
+		$message = "Could not find package spec file, aborting";
+		return (1, $message);
+	}
 
+	my $keypairs_in = read_spec_file($spec_file_in);
+
+	if ( -e $spec_file and $force < 1) {
+
+		my $keypairs_installed = read_spec_file($spec_file);
+
+		my $installed_version = $keypairs_installed->{version};
+		my $this_version = $keypairs_in->{version};
+
+		if ($this_version lt $installed_version) {
+			$message = "Package is already installed, use --force to override";	
+			$abort = 1;
+			return;
+		}
+
+		$backup_directory = make_backup($repository, $package_name);
+
+	}
+
+	my $package_files;
+	my $icon_file = $directory . "/" . "$keypairs_in->{icon}";
+
+	$package_files->{$spec_file_in} = 1;
+	$package_files->{$icon_file} = 1;
+	
+	mkpath($package_path);
+	
+	$rc = 1;
+        File::Find::find( {
+                no_chdir => 1,
+                wanted => sub {
+                        return unless $rc and !-d $File::Find::name;
+                        my $filepath = $File::Find::name;
+                        my $filename = substr($filepath, length($directory));
+                        open(my $filehandle, "<", $filepath);
+                        unless( defined( $filehandle ) )
+                        {
+                                $rc = 0;
+                                return;
+                        }
+			if ($package_files->{$filepath} > 0) {
+				my $dst_file = $package_path . "/" . $filename;
+				copy($filepath, $dst_file);
 			} else {
 				my $path_separator = '/';
 			 	$filepath =~ m/[^\Q$path_separator\E]*$/;
@@ -283,25 +321,23 @@ sub check_install
 
 }
 
-sub get_package_version
+sub read_spec_file
 {
-	my ($repository, $spec_file) = @_;
+        my ($spec_file) = @_;
 
-	my $version = 100;
+        my $key_pairs;
 
-	open (SPECFILE, $spec_file);
-	while (<SPECFILE>) {
-		chomp;
-		my @bits = split(":",$_,2);
-		my $key = $bits[0];
-		my $value = trim($bits[1]);
-		if ($key eq "version") {
-			$version = $value;
-		}
-	}
-	close (SPECFILE);
-	
-	return $version;
+        open (SPECFILE, $spec_file);
+        while (<SPECFILE>) {
+                chomp;
+                my @bits = split(":",$_,2);
+                my $key = $bits[0];
+                my $value = trim($bits[1]);
+                $key_pairs->{$key} = $value;
+        }
+        close (SPECFILE);
+
+        return $key_pairs;
 
 }
 

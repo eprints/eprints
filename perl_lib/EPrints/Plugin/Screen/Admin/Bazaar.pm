@@ -165,7 +165,7 @@ sub action_install_cached_package
 	}
 	my $archive_root = $self->{session}->get_conf("archiveroot");
         my $epm_path = $archive_root . "/var/epm/cache/";
-	my $package = $epm_path . $package;
+	$package = $epm_path . $package;
 
 	my ( $rc, $message ) = EPrints::EPM::install($session,$package);
 	
@@ -343,13 +343,13 @@ sub render_app_menu
 		push @contents, $content;
 	}
 
-	my ($title, $content) = tab_installed_epms($self, $installed_epms );
+	($title, $content) = tab_installed_epms($self, $installed_epms );
 	if (defined $content) {
 		push @titles, $title;
 		push @contents, $content;
 	}
 
-	my ($title, $content) = tab_available_epms($self, $store_epms );
+	($title, $content) = tab_available_epms($self, $store_epms );
 	if (defined $content) {
 		push @titles, $title;
 		push @contents, $content;
@@ -408,7 +408,7 @@ sub get_local_epms
 		my $package_name = $fn;
 		if (!($short eq ".")) {
 			my $spec_path = $epm_path . $fn . "/" . $package_name . ".spec";
-			my $keypairs = read_spec_file($spec_path); 
+			my $keypairs = EPrints::EPM::read_spec_file($spec_path); 
 			push @packages, $keypairs;
 		}
 	}
@@ -419,34 +419,6 @@ sub get_local_epms
 
 }
 
-sub read_spec_file
-{
-        my ($spec_file) = @_;
-
-	my $key_pairs;
-
-        open (SPECFILE, $spec_file);
-        while (<SPECFILE>) {
-                chomp;
-                my @bits = split(":",$_,2);
-                my $key = $bits[0];
-                my $value = trim($bits[1]);
-        	$key_pairs->{$key} = $value;
-	}
-        close (SPECFILE);
-
-        return $key_pairs;
-
-}
-
-sub trim 
-{
-        my ($string) = @_;
-        $string =~ s/^\s+//;
-        $string =~ s/\s+$//;
-        return $string;
-
-}
 sub get_epm_updates 
 {
 	my ($self) = @_;
@@ -563,7 +535,8 @@ sub tab_installed_epms
 		my $td_img = $session->make_element("td", width => "120px", style=> "padding:1em;");
 		$tr->appendChild($td_img);
 		
-		my $img = $session->make_element( "img", width=>"96px", src => $app->{icon} );
+		my $icon_path = "packages/" . $app->{package} . "/" . $app->{icon};
+		my $img = $session->make_element( "img", width=>"96px", src => $session->get_conf("http_cgiroot") . "/epm_icon?image=" . $icon_path );
 		$td_img->appendChild( $img );
 
 		my $td_main = $session->make_element("td");
@@ -675,7 +648,8 @@ sub tab_cached_epms
 		my $td_img = $session->make_element("td", width => "120px", style=> "padding:1em; ");
 		$tr->appendChild($td_img);
 		
-		my $img = $session->make_element( "img", width=>"96px", src => $app->{icon} );
+		my $icon_path = "cache/" . $app->{package} . "/" . $app->{icon};
+		my $img = $session->make_element( "img", width=>"96px", src => $session->get_conf("http_cgiroot") . "/epm_icon?image=" . $icon_path );
 		$td_img->appendChild( $img );
 
 		my $td_main = $session->make_element("td");
