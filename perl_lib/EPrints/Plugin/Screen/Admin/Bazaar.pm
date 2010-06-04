@@ -27,7 +27,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 	
-	$self->{actions} = [qw/ remove_package install_package handle_upload install_cached_package remove_cached_package edit_config /]; 
+	$self->{actions} = [qw/ remove_package install_package handle_upload install_cached_package remove_cached_package install_bazaar_package edit_config /]; 
 		
 	$self->{appears} = [
 		{ 
@@ -61,6 +61,13 @@ sub allow_install_package
 }
 
 sub allow_install_cached_package 
+{
+	my( $self ) = @_;
+
+	return $self->allow_install_package();
+}
+
+sub allow_install_bazaar_package 
 {
 	my( $self ) = @_;
 
@@ -106,6 +113,38 @@ sub action_edit_config
 		$screen_id = $config_file;
 		$self->{processor}->{screenid} = $screen_id;
 	}
+
+}
+
+sub action_install_bazaar_package
+{
+	my ( $self ) = @_;
+	
+	my $session = $self->{session};
+
+        my $url_in = $self->{session}->param( "package" );
+
+	my ($tmpdir,$epm_file) = EPrints::EPM::download_package($session,$url_in);
+	
+	my $type = "message";
+	my ( $rc, $message);
+	if (defined ${$epm_file}) {
+		( $rc, $message ) = EPrints::EPM::install($session,${$epm_file});	
+		if ( $rc > 0 ) {
+			$type = "error";
+		}
+	} else {
+		$type = "error";
+		$message = "FAILED";
+	}
+	
+	$self->{processor}->{screenid} = "Admin::Bazaar";
+
+	$self->{processor}->add_message(
+			$type,
+			$session->make_text($message)
+			);
+
 
 }
 
@@ -259,63 +298,66 @@ sub render_app
 
 	my $app = $self->retrieve_available_epms( $appid );
 
-	if( !defined $app )
-	{
-		$html->appendChild( $session->make_element( "div", "Didn't find $appid" ) );
-		return $html;
-	}
-
-	my $table = $session->make_element("table", width=>"95%", style=>"margin: 2em;");
-	$html->appendChild($table);
+	my $table = $session->make_element("table");
 
 	my $tr = $session->make_element("tr");
 	$table->appendChild($tr);
 
-	my $td_img = $session->make_element("td", width => "240px", style=> "padding:1em;");
+	my $td_img = $session->make_element("td", width => "120px", style=> "padding:1em; ");
 	$tr->appendChild($td_img);
-	
-	my $img = $session->make_element( "img", width=>"160px", src => $app->{preview} );
+
+	my $img = $session->make_element( "img", width=>"96px", src => $app->{preview} );
 	$td_img->appendChild( $img );
 
-	my $td_buttons = $session->make_element("td", align=>"center", style=>"padding: 1em");
-	$tr->appendChild($td_buttons);
+	my $td_main = $session->make_element("td");
+	$tr->appendChild($td_main);
 
-	my $tr2 = $session->make_element("tr");
-	$table->appendChild($tr2);
+	my $package_title;
 
-	my $td2 = $session->make_element("td", colspan=>2, style=>"padding-top: 1em;");
-	$tr2->appendChild($td2);
+	if (defined $app->{title}) {
+		$package_title = $app->{title};
+	} else {
+		$package_title = $app->{package};
+	}
 
-	my $description_title = $self->html_phrase("epm_description");
-	my $tr2_title = $session->make_element("h2");
-	$tr2_title->appendChild($description_title);
-	$td2->appendChild($tr2_title);
+	my $h2 = $session->make_element("h2");
+	$h2->appendChild($session->make_text($package_title));
+	$td_main->appendChild($h2);
 
-	my $p = $session->make_element("p");
-	$p->appendChild( $session->make_text( $app->{abstract} ) );
-	$td2->appendChild($p);
+	my $screen_id = "Screen::".$self->{processor}->{screenid};
+	my $screen = $session->plugin( $screen_id, processor => $self->{processor} );
 
-	my $home_link = $session->make_element( "a", href => $app->{link} );
-	$home_link->appendChild( $session->make_text( $app->{link} ) );
+	my $install_button = $screen->render_action_button({
+			action => "install_bazaar_package",
+			screen => $screen,
+			screen_id => $screen_id,
+			hidden => {
+			package => $app->{epm},
+			},
+		});
+	$td_main->appendChild($install_button);
 	
-	my $epm_home = $self->html_phrase("epm_home");
+	$td_main->appendChild($session->make_element("br"));
+	$td_main->appendChild($session->make_element("br"));
 
-	$td2->appendChild($session->make_element("br"));
-	$td2->appendChild($epm_home);
-	$td2->appendChild($session->make_text(": "));
-	$td2->appendChild($home_link);
+	my $version = $self->html_phrase("version");
+	my $b = $session->make_element("b");
+	$b->appendChild($version);
+	my $rest = $session->make_text(": " . $app->{version});
+	$td_main->appendChild($b);
+	$td_main->appendChild($rest);
+	$td_main->appendChild($session->make_element("br"));
 
-	my $phrase = $self->html_phrase("inline_edit_title");
+	$td_main->appendChild($session->make_text($app->{description}));
 
-	my $box = EPrints::Box::render(
-			id => "epm_details",
-			session => $self->{session},
-			title => $phrase,
-			collapsed => 0,
-			content => $html
+	my $toolbox = $session->render_toolbox(
+			$session->make_text(""),
+			$table
 			);
 
-	return $box;
+	return $toolbox;
+
+
 }
 
 sub render_app_menu
@@ -837,7 +879,9 @@ sub retrieve_available_epms
 
 	my @apps;
 
-	my $url = "http://files.eprints.org/cgi/search/advanced/export_files_XML.xml?screen=Public%3A%3AEPrintSearch&_action_export=1&output=XML&exp=0|1|-date%2Fcreators_name%2Ftitle|archive|-|type%3Atype%3AANY%3AEQ%3Aplugin|-|eprint_status%3Aeprint_status%3AALL%3AEQ%3Aarchive|metadata_visibility%3Ametadata_visibility%3AALL%3AEX%3Ashow";
+	my $url = "http://training12.eprints.org/cgi/search/advanced/export_training12c_XML.xml?screen=Public%3A%3AEPrintSearch&_action_export=1&output=XML&exp=0|1|-date%2Fcreators_name%2Ftitle|archive|-|type%3Atype%3AANY%3AEQ%3Aepm|-|eprint_status%3Aeprint_status%3AALL%3AEQ%3Aarchive|metadata_visibility%3Ametadata_visibility%3AALL%3AEX%3Ashow";
+
+	#my $url = "http://files.eprints.org/cgi/search/advanced/export_files_XML.xml?screen=Public%3A%3AEPrintSearch&_action_export=1&output=XML&exp=0|1|-date%2Fcreators_name%2Ftitle|archive|-|type%3Atype%3AANY%3AEQ%3Aplugin|-|eprint_status%3Aeprint_status%3AALL%3AEQ%3Aarchive|metadata_visibility%3Ametadata_visibility%3AALL%3AEX%3Ashow";
 	$url = URI->new( $url )->canonical;
 	my $ua = LWP::UserAgent->new;
 	my $r = $ua->get( $url );
@@ -847,24 +891,27 @@ sub retrieve_available_epms
 #print Data::Dumper::Dumper($eprints);
 #return [];
 
-	foreach my $eprint (@{$eprints->{eprint}})
+#	foreach my $eprint (@{$eprints->{eprint}})
+	foreach my $eprint ($eprints->{eprint}) 
 	{
 		my $app = {};
 		$app->{id} = $eprint->{eprintid};
 		$app->{title} = $eprint->{title};
 		$app->{link} = $eprint->{id};
 		$app->{date} = $eprint->{datestamp};
-		$app->{abstract} = $eprint->{abstract};
+		$app->{package} = $eprint->{package_name};
+		$app->{description} = $eprint->{description};
+		$app->{version} = $eprint->{version};
 		foreach my $document (@{$eprint->{documents}->{document}})
 		{
 			$app->{module} = $document->{files}->{file}->[0]->{url};
 			if(
 				$document->{format} eq "image/jpeg" or
+				$document->{format} eq "image/jpg" or
 				$document->{format} eq "image/png" or
 				$document->{format} eq "image/gif"
 			)
 			{
-				#print Data::Dumper::Dumper($document->{relations});
 				my $i = 0;
 				my $url = $document->{files}->{file}->[0]->{url};
 				my $relation = $document->{relation};
@@ -875,6 +922,11 @@ sub retrieve_available_epms
 						$app->{preview} = $url;
 					}
 				}
+			}
+			if ($document->{format} eq "application/epm") 
+			{
+				my $url = $document->{files}->{file}->[0]->{url};
+				$app->{epm} = $url;
 			}
 		}
 		return $app if defined $id and $id eq $app->{id};

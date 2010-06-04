@@ -3,6 +3,7 @@ package EPrints::EPM;
 use strict;
 use File::Path;
 use File::Copy;
+use Cwd;
 use Digest::MD5;
 
 sub unpack_package 
@@ -45,6 +46,52 @@ sub remove_cache_package
 	}
 	return (0, "Cache Package Removed");
 
+}
+
+sub download_package 
+{
+	my ($repository, $url_in) = @_;
+
+	my $url = URI::Heuristic::uf_uri( $url_in );
+
+	my $tmpdir = File::Temp->newdir();
+
+# save previous dir
+	my $prev_dir = getcwd();
+
+# Change directory to destination dir., return with failure if this 
+# fails.
+	unless( chdir "$tmpdir" )
+	{
+		chdir $prev_dir;
+		return( 0 );
+	}
+
+# Work out the number of directories to cut, so top-level files go in
+# at the top level in the destination dir.
+
+# Count slashes
+	my $cut_dirs = substr($url->path,1) =~ tr"/""; # ignore leading /
+
+		my $rc = $repository->get_repository->exec(
+				"wget",
+				CUTDIRS => $cut_dirs,
+				URL => $url );
+
+	chdir $prev_dir;
+
+	my $epm_file;
+
+	my $rc = 1;
+	File::Find::find( { 
+                no_chdir => 1, 
+                wanted => sub { 
+                        return unless $rc and !-d $File::Find::name; 
+                       	$epm_file = $File::Find::name; 
+                }, 
+        }, "$tmpdir" );	
+
+	return (\$tmpdir,\$epm_file);
 }
 
 sub cache_package 
