@@ -27,7 +27,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 	
-	$self->{actions} = [qw/ remove_package install_package handle_upload install_cached_package remove_cached_package install_bazaar_package edit_config /]; 
+	$self->{actions} = [qw/ remove_package install_package handle_upload install_cached_package remove_cached_package install_bazaar_package update_bazaar_package edit_config /]; 
 		
 	$self->{appears} = [
 		{ 
@@ -74,6 +74,13 @@ sub allow_install_bazaar_package
 	return $self->allow_install_package();
 }
 
+sub allow_update_bazaar_package
+{
+	my ( $self ) = @_;
+
+	return $self->allow_install_package();
+}
+
 sub allow_remove_cached_package 
 {
 	my( $self ) = @_;
@@ -114,6 +121,13 @@ sub action_edit_config
 		$self->{processor}->{screenid} = $screen_id;
 	}
 
+}
+
+sub action_update_bazaar_package
+{
+	my ( $self ) = @_;
+
+	$self->action_install_bazaar_package();
 }
 
 sub action_install_bazaar_package
@@ -297,6 +311,19 @@ sub render_app
 	$html = $session->make_doc_fragment;
 
 	my $app = $self->retrieve_available_epms( $appid );
+	
+	my $installed_epms = $self->get_installed_epms();
+	my $action = "install_bazaar_package";
+
+	foreach my $installed_app (@$installed_epms) {
+		if ("$installed_app->{package}" eq "$app->{package}") {
+			if ($app->{version} gt $installed_app->{version}) {
+				$action = "update_bazaar_package";
+			} else {
+				$action = undef;
+			}
+		}
+	}
 
 	my $table = $session->make_element("table");
 
@@ -327,15 +354,21 @@ sub render_app
 	my $screen_id = "Screen::".$self->{processor}->{screenid};
 	my $screen = $session->plugin( $screen_id, processor => $self->{processor} );
 
-	my $install_button = $screen->render_action_button({
-			action => "install_bazaar_package",
+	if (defined $action) {
+		my $install_button = $screen->render_action_button({
+			action => $action,
 			screen => $screen,
 			screen_id => $screen_id,
 			hidden => {
 			package => $app->{epm},
 			},
 		});
-	$td_main->appendChild($install_button);
+		$td_main->appendChild($install_button);
+	} else {
+		my $b = $session->make_element("b");
+		$b->appendChild($self->html_phrase("package_installed"));
+		$td_main->appendChild($b);
+	}
 	
 	$td_main->appendChild($session->make_element("br"));
 	$td_main->appendChild($session->make_element("br"));
@@ -372,36 +405,59 @@ sub render_app_menu
 
 	my $installed_epms = $self->get_installed_epms();
 
-	my $updates_epms = $self->get_epm_updates($installed_epms);
-
 	my $store_epms = $self->retrieve_available_epms();
+	
+	my $update_epms = $self->get_epm_updates($installed_epms, $store_epms);
 
 	my @titles;
 	my @contents;
+	my $title;
 
-	my ($title, $content) = tab_update_epms($self, $updates_epms );
+	my ($count, $content) = tab_grid_epms($self, $update_epms );
+        $title = $session->make_doc_fragment();
+        $title->appendChild($self->html_phrase("updates"));
+        $title->appendChild($session->make_text(" ($count)"));
 	if (defined $content) {
 		push @titles, $title;
 		push @contents, $content;
 	}
 
-	($title, $content) = tab_installed_epms($self, $installed_epms );
+	($count, $content) = tab_list_epms($self, $installed_epms );
+        $title = $session->make_doc_fragment();
+        $title->appendChild($self->html_phrase("installed"));
+        $title->appendChild($session->make_text(" ($count)"));
 	if (defined $content) {
 		push @titles, $title;
 		push @contents, $content;
 	}
 
-	($title, $content) = tab_available_epms($self, $store_epms );
+	($count, $content) = tab_grid_epms($self, $store_epms );
+        $title = $session->make_doc_fragment();
+        $title->appendChild($self->html_phrase("available"));
+        $title->appendChild($session->make_text(" ($count)"));
 	if (defined $content) {
 		push @titles, $title;
 		push @contents, $content;
 	}
 
-	($title, $content) = tab_upload_epm($self);
+	($count, $content) = tab_upload_epm($self);
+        $title = $session->make_doc_fragment();
+        $title->appendChild($self->html_phrase("custom"));
+        $title->appendChild($session->make_text(" ($count)"));
 	push @titles, $title;
 	push @contents, $content;
 
 	my $content2 = $session->xhtml->tabs(\@titles, \@contents);
+
+	$content2->appendChild($session->make_element("br"));
+	
+	my $bazaar_config_div = $session->make_element("div", align=>"right");
+	$content2->appendChild($bazaar_config_div);
+
+	my $bazaar_config_link = $session->make_element("a", href=>"?screen=Admin::Config::View::Perl&configfile=cfg.d/epm.pl");
+	$bazaar_config_div->appendChild($bazaar_config_link);
+	$bazaar_config_link->appendChild($self->html_phrase("edit_bazaar_config"));
+	
 
 	return $content2;
 
@@ -463,9 +519,27 @@ sub get_local_epms
 
 sub get_epm_updates 
 {
-	my ($self) = @_;
+	my ( $self, $installed_epms, $store_epms ) = @_;
 
-	return undef;
+	my @apps;
+	my $count = 0;
+
+	foreach my $app (@$installed_epms) {
+		foreach my $store_app (@$store_epms) {
+			if ("$app->{package}" eq "$store_app->{package}") {
+				if ($store_app->{version} gt $app->{version}) {
+					$count++;
+					push @apps, $store_app;
+				}
+			}
+
+		}
+	}
+	if ($count < 1) {
+		return undef;
+	}
+
+	return \@apps;
 }
 
 sub tab_upload_epm
@@ -523,7 +597,7 @@ sub tab_upload_epm
 	$inner_div->appendChild($upload_form);
 	
 	my $cached_epms = $self->get_cached_epms();
-	my ($title, $cached_content) = tab_cached_epms($self, $cached_epms );
+	my ($count, $cached_content) = tab_cached_epms($self, $cached_epms );
 
 	if (defined $cached_content) {
 		$inner_div->appendChild($session->make_element("br"));
@@ -533,31 +607,11 @@ sub tab_upload_epm
 		$inner_div->appendChild($cached_content);
 	}
 
-	return ($title, $inner_div);
+	return ($count, $inner_div);
 
 }
 
-sub tab_update_epms 
-{
-	my ($self, $updates_epms) = @_;
-
-	my $session = $self->{session};
-	
-	my $count = 0;
-
-	my $content = $session->make_element("div", align => "center");
-	$content->appendChild($session->make_text("Updates Tab"));
-
-	my $title = $self->html_phrase("updates");
-
-	if ($count < 1) {
-		$content = undef;
-	}
-	return ( $title, $content );
-
-}
-
-sub tab_installed_epms 
+sub tab_list_epms 
 {
 	
 	my ($self, $installed_epms) = @_;
@@ -639,14 +693,10 @@ sub tab_installed_epms
 		
 	}
 
-	my $title = $session->make_doc_fragment();
-	$title->appendChild($self->html_phrase("installed"));
-	$title->appendChild($session->make_text(" ($count)"));
-
 	if ($count < 1) {
 		$table = undef;
 	}
-	return ( $title, $table );
+	return ( $count, $table );
 
 }
 
@@ -776,17 +826,11 @@ sub tab_cached_epms
 		
 	}
 	
-	my $title = $session->make_doc_fragment();
-	$title->appendChild($self->html_phrase("custom"));
-	if ($count > 0) {
-		$title->appendChild($session->make_text(" ($count)"));	
-	}
-
 	if ($count < 1) {
-		return ( $title, undef);
+		return ( $count, undef);
 	}
 	
-	return ( $title, $element );
+	return ( $count, $element );
 
 }
 
@@ -812,7 +856,7 @@ sub verify_app
 
 }
 
-sub tab_available_epms
+sub tab_grid_epms
 {
 	my ( $self, $store_epms, $installed_epms ) = @_;
 	
@@ -858,11 +902,10 @@ sub tab_available_epms
 			$table->appendChild( $tr );
 		}
 	}
-	
-	my $title = $self->html_phrase("available");
-	$title->appendChild($session->make_text(" (" . $count . ")"));
-
-	return ( $title, $table );
+	if ($count < 1) {
+		$table = undef;
+	}
+	return ( $count, $table );
 
 }
 
@@ -879,63 +922,81 @@ sub retrieve_available_epms
 
 	my @apps;
 
-	my $url = "http://training12.eprints.org/cgi/search/advanced/export_training12c_XML.xml?screen=Public%3A%3AEPrintSearch&_action_export=1&output=XML&exp=0|1|-date%2Fcreators_name%2Ftitle|archive|-|type%3Atype%3AANY%3AEQ%3Aepm|-|eprint_status%3Aeprint_status%3AALL%3AEQ%3Aarchive|metadata_visibility%3Ametadata_visibility%3AALL%3AEX%3Ashow";
+	foreach my $epm_source (@{$self->{session}->get_conf("epm_sources")}) {
 
-	#my $url = "http://files.eprints.org/cgi/search/advanced/export_files_XML.xml?screen=Public%3A%3AEPrintSearch&_action_export=1&output=XML&exp=0|1|-date%2Fcreators_name%2Ftitle|archive|-|type%3Atype%3AANY%3AEQ%3Aplugin|-|eprint_status%3Aeprint_status%3AALL%3AEQ%3Aarchive|metadata_visibility%3Ametadata_visibility%3AALL%3AEX%3Ashow";
-	$url = URI->new( $url )->canonical;
-	my $ua = LWP::UserAgent->new;
-	my $r = $ua->get( $url );
+		my $url = $epm_source->{base_url} . "/cgi/search/advanced/export_training12c_XML.xml?screen=Public%3A%3AEPrintSearch&_action_export=1&output=XML&exp=0|1|-date%2Fcreators_name%2Ftitle|archive|-|type%3Atype%3AANY%3AEQ%3Aepm|-|eprint_status%3Aeprint_status%3AALL%3AEQ%3Aarchive|metadata_visibility%3Ametadata_visibility%3AALL%3AEX%3Ashow";
 
-	my $eprints = XMLin( $r->content, KeyAttr => [], ForceArray => [qw( document file item)] );
+		$url = URI->new( $url )->canonical;
+		my $ua = LWP::UserAgent->new;
+		my $r = $ua->get( $url );
 
-#print Data::Dumper::Dumper($eprints);
-#return [];
+		my $eprints = XMLin( $r->content, KeyAttr => [], ForceArray => [qw( document file item)] );
+	
+		#print Data::Dumper::Dumper($eprints);
+		#return [];
+	
+		my @array;
+		use UNIVERSAL 'isa';
+		if (isa($eprints, 'ARRAY')) {
+			foreach my $eprint (@{$eprints->{eprint}})
+			{
+				my $app = $self->get_app_from_eprint($eprint);
+				return $app if defined $id and $id eq $app->{id};
+				push @apps, $app if defined $app;
+			}
+		} else {
+			my $app = $self->get_app_from_eprint($eprints->{eprint});
+			return $app if defined $id and $id eq $app->{id};
+			push @apps, $app if defined $app;
+		}
+	}
+	return undef if defined $id;
 
-#	foreach my $eprint (@{$eprints->{eprint}})
-	foreach my $eprint ($eprints->{eprint}) 
+	return \@apps;
+}
+
+sub get_app_from_eprint
+{
+	my ( $self, $eprint ) = @_;
+	my $app = {};
+	$app->{id} = $eprint->{eprintid};
+	$app->{title} = $eprint->{title};
+	$app->{link} = $eprint->{id};
+	$app->{date} = $eprint->{datestamp};
+	$app->{package} = $eprint->{package_name};
+	$app->{description} = $eprint->{description};
+	$app->{version} = $eprint->{version};
+	foreach my $document (@{$eprint->{documents}->{document}})
 	{
-		my $app = {};
-		$app->{id} = $eprint->{eprintid};
-		$app->{title} = $eprint->{title};
-		$app->{link} = $eprint->{id};
-		$app->{date} = $eprint->{datestamp};
-		$app->{package} = $eprint->{package_name};
-		$app->{description} = $eprint->{description};
-		$app->{version} = $eprint->{version};
-		foreach my $document (@{$eprint->{documents}->{document}})
-		{
-			$app->{module} = $document->{files}->{file}->[0]->{url};
-			if(
+		$app->{module} = $document->{files}->{file}->[0]->{url};
+		if(
 				$document->{format} eq "image/jpeg" or
 				$document->{format} eq "image/jpg" or
 				$document->{format} eq "image/png" or
 				$document->{format} eq "image/gif"
-			)
-			{
-				my $i = 0;
-				my $url = $document->{files}->{file}->[0]->{url};
-				my $relation = $document->{relation};
-				foreach my $item (@{$relation->{item}}) {
-					if ($item->{type} eq "http://eprints.org/relation/ismediumThumbnailVersionOf") {
-						$app->{thumbnail} = $url;
-					} elsif ($item->{type} eq "http://eprints.org/relation/ispreviewThumbnailVersionOf") {
-						$app->{preview} = $url;
-					}
+		  )
+		{
+			my $i = 0;
+			my $url = $document->{files}->{file}->[0]->{url};
+			my $relation = $document->{relation};
+			foreach my $item (@{$relation->{item}}) {
+				if ($item->{type} eq "http://eprints.org/relation/ismediumThumbnailVersionOf") {
+					$app->{thumbnail} = $url;
+				} elsif ($item->{type} eq "http://eprints.org/relation/ispreviewThumbnailVersionOf") {
+					$app->{preview} = $url;
 				}
 			}
-			if ($document->{format} eq "application/epm") 
-			{
-				my $url = $document->{files}->{file}->[0]->{url};
-				$app->{epm} = $url;
-			}
 		}
-		return $app if defined $id and $id eq $app->{id};
-		push @apps, $app; #if defined $app->{thumbnail};
+		if ($document->{format} eq "application/epm") 
+		{
+			my $url = $document->{files}->{file}->[0]->{url};
+			$app->{epm} = $url;
+		}
 	}
-
-	return undef if defined $id;
-
-	return \@apps;
+	if (!(defined $app->{id})) {
+		$app = undef;
+	}
+	return $app;
 }
 
 1;

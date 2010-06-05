@@ -16,7 +16,11 @@
 	
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:cached_packages">Cached Packages</epp:phrase>
 	
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:package_installed">Package already installed and up to date.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:edit_bazaar_config">Edit Local Bazaar Configuration</epp:phrase>
+		
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:action:install_bazaar_package:title">Install Package</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:action:update_bazaar_package:title">Update Package</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:action:remove_cached_package:title">Remove Package from Cache</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:action:install_cached_package:title">Install Package</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:action:submit_to_bazaar:title">Submit Package to EPrints Bazaar</epp:phrase>
