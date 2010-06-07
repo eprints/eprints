@@ -295,12 +295,6 @@ sub load_repository_config_module
 	my @files = ();
 	foreach my $file ( sort keys %files_map ) { push @files, $files_map{$file}; }
 
-	my $metafield_pl = $info->{archiveroot}."/var/metafield.pl";
-	if( -e $metafield_pl )
-	{
-		push @files, $metafield_pl;
-	}
-
 	$info->{set_in} = {};
 	my $set = {};
 	foreach( keys %$info ) { $set->{$_} = 1; }

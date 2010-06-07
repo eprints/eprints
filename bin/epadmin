@@ -1866,6 +1866,7 @@ sub upgrade
 			3.2.0
 			3.2.1
 			3.2.2
+			3.3.0
 		);
 
 	for(my $i = 0; $i < $#versions; ++$i)
@@ -2743,6 +2744,26 @@ sub upgrade_3_2_1_to_3_2_2
 			params => [$eprint->internal_uri],
 		});
 	} );
+}
+
+sub upgrade_3_2_2_to_3_3_0
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	# metafield dataset has been completely reworked
+	my $mf_ds = $repo->dataset( "metafield" );
+	$db->drop_dataset_tables( $mf_ds );
+
+	# Update datasets:
+	#  - metafield
+	update_datasets( $repo, $db );
+	update_counters( $repo, $db );
+
+	# move var/metafields.pl to cfg/cfg.d/metafields.pl
+	my $base_path = $repo->config( "arc_path" );
+	rename( "$base_path/var/metafield.pl", "$base_path/cfg/cfg.d/zz_webcfg_eprint_fields.pl" );
 }
 
 
