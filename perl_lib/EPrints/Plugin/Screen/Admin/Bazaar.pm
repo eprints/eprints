@@ -142,6 +142,9 @@ sub action_install_bazaar_package
 	
 	my $type = "message";
 	my ( $rc, $message);
+
+
+
 	if (defined ${$epm_file}) {
 		( $rc, $message ) = EPrints::EPM::install($session,${$epm_file});	
 		if ( $rc > 0 ) {
@@ -151,14 +154,11 @@ sub action_install_bazaar_package
 		$type = "error";
 		$message = "FAILED";
 	}
-	
-	$self->{processor}->{screenid} = "Admin::Bazaar";
 
 	$self->{processor}->add_message(
 			$type,
 			$session->make_text($message)
 			);
-
 
 }
 
@@ -289,7 +289,7 @@ sub render
 	my $session = $self->{session};
 
 	my $action = $session->param( "action" ) || "";
-
+	
 	if( $action eq "showapp" )
 	{
 		return $self->render_app( $session->param( "appid" ) );
@@ -310,9 +310,9 @@ sub render_app
 
 	$html = $session->make_doc_fragment;
 
-	my $app = $self->retrieve_available_epms( $appid );
+	my $app = EPrints::EPM::retrieve_available_epms( $session, $appid );
 	
-	my $installed_epms = $self->get_installed_epms();
+	my $installed_epms = EPrints::EPM::get_installed_epms($session);
 	my $action = "install_bazaar_package";
 
 	foreach my $installed_app (@$installed_epms) {
@@ -403,11 +403,11 @@ sub render_app_menu
 
 	$html = $session->make_doc_fragment;
 
-	my $installed_epms = $self->get_installed_epms();
+	my $installed_epms = EPrints::EPM::get_installed_epms($session);
 
-	my $store_epms = $self->retrieve_available_epms();
+	my $store_epms = EPrints::EPM::retrieve_available_epms($session);
 	
-	my $update_epms = $self->get_epm_updates($installed_epms, $store_epms);
+	my $update_epms = EPrints::EPM::get_epm_updates($installed_epms, $store_epms);
 
 	my @titles;
 	my @contents;
@@ -461,85 +461,6 @@ sub render_app_menu
 
 	return $content2;
 
-}
-
-sub get_installed_epms 
-{
-	my ($self) = @_;
-
-	my $archive_root = $self->{session}->get_conf("archiveroot");
-        my $epm_path = $archive_root . "/var/epm/packages/";
-
-	my $installed_epms = get_local_epms($self,$epm_path);
-
-	return $installed_epms;
-
-}
-
-sub get_cached_epms 
-{
-	my ($self) = @_;
-
-	my $archive_root = $self->{session}->get_conf("archiveroot");
-        my $epm_path = $archive_root . "/var/epm/cache/";
-
-	my $cached_epms = get_local_epms($self,$epm_path);
-
-	return $cached_epms;
-
-}
-
-sub get_local_epms 
-{
-	my ($self,$epm_path) = @_;
-
-	if ( !-d $epm_path ) {
-		return undef;
-	}
-
-	my @packages;
-	my $rc;
-
-	opendir(my $dh, $epm_path) || die "failed";
-	while(defined(my $fn = readdir $dh)) {
-		my $short = substr $fn, 0 , 1;
-		my $package_name = $fn;
-		if (!($short eq ".")) {
-			my $spec_path = $epm_path . $fn . "/" . $package_name . ".spec";
-			my $keypairs = EPrints::EPM::read_spec_file($spec_path); 
-			push @packages, $keypairs;
-		}
-	}
-	closedir ($dh);
-	
-	return \@packages;
-
-
-}
-
-sub get_epm_updates 
-{
-	my ( $self, $installed_epms, $store_epms ) = @_;
-
-	my @apps;
-	my $count = 0;
-
-	foreach my $app (@$installed_epms) {
-		foreach my $store_app (@$store_epms) {
-			if ("$app->{package}" eq "$store_app->{package}") {
-				if ($store_app->{version} gt $app->{version}) {
-					$count++;
-					push @apps, $store_app;
-				}
-			}
-
-		}
-	}
-	if ($count < 1) {
-		return undef;
-	}
-
-	return \@apps;
 }
 
 sub tab_upload_epm
@@ -596,7 +517,7 @@ sub tab_upload_epm
 	$upload_form->appendChild( $session->render_hidden_field( "_action_handle_upload", "Upload" ) );
 	$inner_div->appendChild($upload_form);
 	
-	my $cached_epms = $self->get_cached_epms();
+	my $cached_epms = EPrints::EPM::get_cached_epms($session);
 	my ($count, $cached_content) = tab_cached_epms($self, $cached_epms );
 
 	if (defined $cached_content) {
@@ -630,8 +551,9 @@ sub tab_list_epms
 		
 		my $td_img = $session->make_element("td", width => "120px", style=> "padding:1em;");
 		$tr->appendChild($td_img);
-		
+	
 		my $icon_path = "packages/" . $app->{package} . "/" . $app->{icon};
+		print STDERR "icon_path : " . $icon_path . "\n\n";
 		my $img = $session->make_element( "img", width=>"96px", src => $session->get_conf("http_cgiroot") . "/epm_icon?image=" . $icon_path );
 		$td_img->appendChild( $img );
 
@@ -714,7 +636,7 @@ sub tab_cached_epms
 	foreach my $app (@$cached_epms)
 	{
 	
-		my ($verified,$message) = verify_app($app);
+		my ($verified,$message) = EPrints::EPM::verify_app($app);
 
 		$count++;
 	
@@ -834,28 +756,6 @@ sub tab_cached_epms
 
 }
 
-sub verify_app
-{
-	my ( $app ) = @_;
-
-	my $message;
-
-	if (!defined $app->{package}) { $message .= " package "; }
-	if (!defined $app->{version}) { $message .= " version "; }
-	if (!defined $app->{title}) { $message .= " title "; }
-	if (!defined $app->{icon}) { $message .= " icon "; }
-	if (!defined $app->{description}) { $message .= " package description "; }
-	if (!defined $app->{creator_name}) { $message .= " creator_name "; }
-	if (!defined $app->{creator_email}) { $message .= " creator_email "; }
-
-	if (defined $message) {
-		return (0, $message);
-	}
-
-	return (1,undef);
-
-}
-
 sub tab_grid_epms
 {
 	my ( $self, $store_epms, $installed_epms ) = @_;
@@ -914,89 +814,6 @@ sub redirect_to_me_url
 	my( $plugin ) = @_;
 
 	return undef;
-}
-
-sub retrieve_available_epms
-{
-	my( $self, $id ) = @_;
-
-	my @apps;
-
-	foreach my $epm_source (@{$self->{session}->get_conf("epm_sources")}) {
-
-		my $url = $epm_source->{base_url} . "/cgi/search/advanced/export_training12c_XML.xml?screen=Public%3A%3AEPrintSearch&_action_export=1&output=XML&exp=0|1|-date%2Fcreators_name%2Ftitle|archive|-|type%3Atype%3AANY%3AEQ%3Aepm|-|eprint_status%3Aeprint_status%3AALL%3AEQ%3Aarchive|metadata_visibility%3Ametadata_visibility%3AALL%3AEX%3Ashow";
-
-		$url = URI->new( $url )->canonical;
-		my $ua = LWP::UserAgent->new;
-		my $r = $ua->get( $url );
-
-		my $eprints = XMLin( $r->content, KeyAttr => [], ForceArray => [qw( document file item)] );
-	
-		#print Data::Dumper::Dumper($eprints);
-		#return [];
-	
-		my @array;
-		use UNIVERSAL 'isa';
-		if (isa($eprints, 'ARRAY')) {
-			foreach my $eprint (@{$eprints->{eprint}})
-			{
-				my $app = $self->get_app_from_eprint($eprint);
-				return $app if defined $id and $id eq $app->{id};
-				push @apps, $app if defined $app;
-			}
-		} else {
-			my $app = $self->get_app_from_eprint($eprints->{eprint});
-			return $app if defined $id and $id eq $app->{id};
-			push @apps, $app if defined $app;
-		}
-	}
-	return undef if defined $id;
-
-	return \@apps;
-}
-
-sub get_app_from_eprint
-{
-	my ( $self, $eprint ) = @_;
-	my $app = {};
-	$app->{id} = $eprint->{eprintid};
-	$app->{title} = $eprint->{title};
-	$app->{link} = $eprint->{id};
-	$app->{date} = $eprint->{datestamp};
-	$app->{package} = $eprint->{package_name};
-	$app->{description} = $eprint->{description};
-	$app->{version} = $eprint->{version};
-	foreach my $document (@{$eprint->{documents}->{document}})
-	{
-		$app->{module} = $document->{files}->{file}->[0]->{url};
-		if(
-				$document->{format} eq "image/jpeg" or
-				$document->{format} eq "image/jpg" or
-				$document->{format} eq "image/png" or
-				$document->{format} eq "image/gif"
-		  )
-		{
-			my $i = 0;
-			my $url = $document->{files}->{file}->[0]->{url};
-			my $relation = $document->{relation};
-			foreach my $item (@{$relation->{item}}) {
-				if ($item->{type} eq "http://eprints.org/relation/ismediumThumbnailVersionOf") {
-					$app->{thumbnail} = $url;
-				} elsif ($item->{type} eq "http://eprints.org/relation/ispreviewThumbnailVersionOf") {
-					$app->{preview} = $url;
-				}
-			}
-		}
-		if ($document->{format} eq "application/epm") 
-		{
-			my $url = $document->{files}->{file}->[0]->{url};
-			$app->{epm} = $url;
-		}
-	}
-	if (!(defined $app->{id})) {
-		$app = undef;
-	}
-	return $app;
 }
 
 1;

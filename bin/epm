@@ -51,8 +51,28 @@ if ( $operation eq "install") {
 	
 	$message = EPrints::EPM::check_install($repository);
 
-}
+} elsif ($operation eq "list") {
 
+	my $installed_epms = EPrints::EPM::get_installed_epms($repository);
+	$message = "Listing Installed EPMs:\n";
+	foreach my $installed_app (@$installed_epms) {
+		$message .= $installed_app->{package} . "\n";
+	}
+
+} elsif ($operation eq "upgrade") {
+	
+	my $installed_epms = EPrints::EPM::get_installed_epms($repository);
+
+	my $store_epms = EPrints::EPM::retrieve_available_epms($repository);
+
+	my $update_epms = EPrints::EPM::get_epm_updates($installed_epms, $store_epms);
+
+	$message = "Listing Avaialble Updates, use install command on each one individually to install:\n";
+	foreach my $update_app (@$update_epms) {
+		$message .= $update_app->{package} . "\n";
+	}
+
+}
 
 print $message . "\n";
 

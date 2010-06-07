@@ -5,6 +5,8 @@ use File::Path;
 use File::Copy;
 use Cwd;
 use Digest::MD5;
+use XML::LibXML::SAX;
+use XML::Simple;
 
 sub unpack_package 
 {
@@ -334,10 +336,7 @@ sub install
 			}
                 },
         }, "$directory" );
-	if ($abort > 0) {
-		return (1,$message);
-	}
-
+	
 	write_md5s($repository,$package_path,$file_md5s); 
 	
 	if (!defined $message) {
@@ -351,6 +350,10 @@ sub install
 		my ($rc2,$extra) = remove($repository,$package_name,1);
 		$message = "Package Install Failed (compilation error), package was removed again with message: " . $extra;
 		$rc = 1;
+	}
+	
+	if ($abort > 0) {
+		return (1,$message);
 	}
 
 	return ( $rc,$message );
@@ -570,6 +573,189 @@ sub md5sum
 		return "";
 	}
 	return $digest;
+}
+
+sub get_installed_epms 
+{
+	my ($repository) = @_;
+
+	my $archive_root = $repository->get_repository->get_conf("archiveroot");
+	my $epm_path = $archive_root . "/var/epm/packages/";
+
+	my $installed_epms = get_local_epms($epm_path);
+
+	return $installed_epms;
+
+}
+
+sub get_cached_epms 
+{
+	my ($repository) = @_;
+
+	my $archive_root = $repository->get_repository->get_conf("archiveroot");
+	my $epm_path = $archive_root . "/var/epm/cache/";
+
+	my $cached_epms = get_local_epms($epm_path);
+
+	return $cached_epms;
+
+}
+
+sub get_local_epms 
+{
+	my ($epm_path) = @_;
+
+	if ( !-d $epm_path ) {
+		return undef;
+	}
+
+	my @packages;
+	my $rc;
+
+	opendir(my $dh, $epm_path) || die "failed";
+	while(defined(my $fn = readdir $dh)) {
+		my $short = substr $fn, 0 , 1;
+		my $package_name = $fn;
+		if (!($short eq ".")) {
+			my $spec_path = $epm_path . $fn . "/" . $package_name . ".spec";
+			my $keypairs = EPrints::EPM::read_spec_file($spec_path);
+			push @packages, $keypairs;
+		}
+	}
+	closedir ($dh);
+
+	return \@packages;
+
+}
+
+sub get_epm_updates 
+{
+        my ( $installed_epms, $store_epms ) = @_;
+
+        my @apps;
+        my $count = 0;
+
+        foreach my $app (@$installed_epms) {
+                foreach my $store_app (@$store_epms) {
+                        if ("$app->{package}" eq "$store_app->{package}") {
+                                if ($store_app->{version} gt $app->{version}) {
+                                        $count++;
+                                        push @apps, $store_app;
+                                }
+                        }
+
+                }
+        }
+        if ($count < 1) {
+                return undef;
+        }
+
+        return \@apps;
+}
+
+sub retrieve_available_epms
+{
+	my( $repository, $id ) = @_;
+
+	my @apps;
+
+	foreach my $epm_source (@{$repository->get_repository->get_conf("epm_sources")}) {
+
+		my $url = $epm_source->{base_url} . "/cgi/search/advanced/export_training12c_XML.xml?screen=Public%3A%3AEPrintSearch&_action_export=1&output=XML&exp=0|1|-date%2Fcreators_name%2Ftitle|archive|-|type%3Atype%3AANY%3AEQ%3Aepm|-|eprint_status%3Aeprint_status%3AALL%3AEQ%3Aarchive|metadata_visibility%3Ametadata_visibility%3AALL%3AEX%3Ashow";
+
+		$url = URI->new( $url )->canonical;
+		my $ua = LWP::UserAgent->new;
+		my $r = $ua->get( $url );
+
+		my $eprints = XMLin( $r->content, KeyAttr => [], ForceArray => [qw( document file item)] );
+	
+		#print Data::Dumper::Dumper($eprints);
+		#return [];
+	
+		my @array;
+		use UNIVERSAL 'isa';
+		if (isa($eprints, 'ARRAY')) {
+			foreach my $eprint (@{$eprints->{eprint}})
+			{
+				my $app = get_app_from_eprint($eprint);
+				return $app if defined $id and $id eq $app->{id};
+				push @apps, $app if defined $app;
+			}
+		} else {
+			my $app = get_app_from_eprint($eprints->{eprint});
+			return $app if defined $id and $id eq $app->{id};
+			push @apps, $app if defined $app;
+		}
+	}
+	return undef if defined $id;
+
+	return \@apps;
+}
+
+sub get_app_from_eprint
+{
+	my ( $eprint ) = @_;
+	my $app = {};
+	$app->{id} = $eprint->{eprintid};
+	$app->{title} = $eprint->{title};
+	$app->{link} = $eprint->{id};
+	$app->{date} = $eprint->{datestamp};
+	$app->{package} = $eprint->{package_name};
+	$app->{description} = $eprint->{description};
+	$app->{version} = $eprint->{version};
+	foreach my $document (@{$eprint->{documents}->{document}})
+	{
+		$app->{module} = $document->{files}->{file}->[0]->{url};
+		if(
+				$document->{format} eq "image/jpeg" or
+				$document->{format} eq "image/jpg" or
+				$document->{format} eq "image/png" or
+				$document->{format} eq "image/gif"
+		  )
+		{
+			my $i = 0;
+			my $url = $document->{files}->{file}->[0]->{url};
+			my $relation = $document->{relation};
+			foreach my $item (@{$relation->{item}}) {
+				if ($item->{type} eq "http://eprints.org/relation/ismediumThumbnailVersionOf") {
+					$app->{thumbnail} = $url;
+				} elsif ($item->{type} eq "http://eprints.org/relation/ispreviewThumbnailVersionOf") {
+					$app->{preview} = $url;
+				}
+			}
+		}
+		if ($document->{format} eq "application/epm") 
+		{
+			my $url = $document->{files}->{file}->[0]->{url};
+			$app->{epm} = $url;
+		}
+	}
+	if (!(defined $app->{id})) {
+		$app = undef;
+	}
+	return $app;
+}
+
+sub verify_app
+{
+	my ( $app ) = @_;
+
+	my $message;
+
+	if (!defined $app->{package}) { $message .= " package "; }
+	if (!defined $app->{version}) { $message .= " version "; }
+	if (!defined $app->{title}) { $message .= " title "; }
+	if (!defined $app->{icon}) { $message .= " icon "; }
+	if (!defined $app->{description}) { $message .= " package description "; }
+	if (!defined $app->{creator_name}) { $message .= " creator_name "; }
+	if (!defined $app->{creator_email}) { $message .= " creator_email "; }
+
+	if (defined $message) {
+		return (0, $message);
+	}
+
+	return (1,undef);
+
 }
 
 1;
