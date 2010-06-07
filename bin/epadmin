@@ -2444,27 +2444,29 @@ sub upgrade_add_files
 				}
 			}
 
-			my $files = $doc->value( "files" );
-
-			if( !scalar @$files ) # already processed?
+			my %in_db;
+			for(@{$doc->value( "files" )})
 			{
-				%files = _collect_files( $doc_path );
-				foreach my $file (keys %files)
+				$in_db{$_->value( "filename" )} = 1;
+			}
+
+			%files = _collect_files( $doc_path );
+			foreach my $file (keys %files)
+			{
+				my $filename = $file;
+				substr($filename,0,length($doc_path)+1) = "";
+				next if $in_db{$filename};
+				$doc->create_subdataobj( "files", {
+					filename => $filename,
+					filesize => $files{$file},
+					copies => [{
+						pluginid => "Storage::Local",
+						sourceid => $filename,
+					}],
+				} );
+				if( $noise >= 2 )
 				{
-					my $filename = $file;
-					substr($filename,0,length($doc_path)+1) = "";
-					$doc->create_subdataobj( "files", {
-						filename => $filename,
-						filesize => $files{$file},
-						copies => [{
-							pluginid => "Storage::Local",
-							sourceid => $filename,
-						}],
-					} );
-					if( $noise >= 2 )
-					{
-						$repo->log( "Added $filename to document.".$doc->id );
-					}
+					$repo->log( "Added $filename to document.".$doc->id );
 				}
 			}
 
@@ -2489,7 +2491,7 @@ sub _collect_files
 	}
 	foreach my $file (grep { $_ !~ /^\./ } readdir $dir)
 	{
-		my $file_path = "$path/$file";
+		my $file_path = Encode::decode_utf8( "$path/$file" );
 		if( -f $file_path )
 		{
 			$files{$file_path} = -s _;

@@ -178,14 +178,14 @@ sub handler
 	{
 		EPrints::Apache::AnApache::header_out(
 			$r,
-			"Content-Disposition" => "attachment; filename=$filename",
+			"Content-Disposition" => "attachment; filename=".URI::Escape::uri_escape_utf8( $filename ),
 		);
 	}
 	else
 	{
 		EPrints::Apache::AnApache::header_out(
 			$r,
-			"Content-Disposition" => "inline; filename=$filename",
+			"Content-Disposition" => "inline; filename=".URI::Escape::uri_escape_utf8( $filename ),
 		);
 	}
 
