@@ -347,7 +347,7 @@ sub render_app
 		$package_title = $app->{package};
 	}
 
-	my $h2 = $session->make_element("h2");
+	$h2 = $session->make_element("h2");
 	$h2->appendChild($session->make_text($package_title));
 	$td_main->appendChild($h2);
 

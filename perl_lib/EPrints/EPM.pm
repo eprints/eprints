@@ -73,16 +73,16 @@ sub download_package
 # Count slashes
 	my $cut_dirs = substr($url->path,1) =~ tr"/""; # ignore leading /
 
-		my $rc = $repository->get_repository->exec(
-				"wget",
-				CUTDIRS => $cut_dirs,
-				URL => $url );
+	my $rc = $repository->get_repository->exec(
+			"wget",
+			CUTDIRS => $cut_dirs,
+			URL => $url );
 
 	chdir $prev_dir;
 
 	my $epm_file;
 
-	my $rc = 1;
+	$rc = 1;
 	File::Find::find( { 
                 no_chdir => 1, 
                 wanted => sub { 
