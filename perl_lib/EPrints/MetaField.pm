@@ -156,18 +156,6 @@ sub new
 		Scalar::Util::weaken( $self->{repository} );
 	}
 
-	if( !defined $properties{name} )
-	{
-		if( defined $properties{sub_name} && defined $properties{parent_name} )
-		{
-			$properties{name} = $properties{parent_name}."_".$properties{sub_name};
-		}
-		else 
-		{
-			EPrints::abort( "A sub field needs sub_name and parent_name to be set." );
-		}
-	}
-
 	# This gets reset later, but we need it for potential
 	# debug messages.
 	$self->{type} = $properties{type};
