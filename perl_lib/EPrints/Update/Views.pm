@@ -459,7 +459,7 @@ sub create_single_page_menu
 	my $target = $session->get_repository->get_conf( "htdocs_path" )."/".$langid."/view/".$view->{id}."/";
 	if( defined $esc_path_values && scalar @{$esc_path_values} > 0 )
 	{
-		$target .= join( "/", @{$esc_path_values}, "index" );
+		$target .= abbr_path(join( "/", @{$esc_path_values}, "index" ));
 	}
 	else
 	{
