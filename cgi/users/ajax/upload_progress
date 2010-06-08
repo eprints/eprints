@@ -24,7 +24,7 @@ $r->headers_out->set( 'Pragma'        => 'no-cache' );
 $r->headers_out->set( 'Expires'       => 'Thu, 01 Jan 1970 00:00:00 GMT' );
 $r->headers_out->set( 'Cache-Control' => 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0' );
 
-$r->content_type( "application/x-json" );
+$r->content_type( "application/javascript" );
 $r->set_content_length( length $content );
 $r->write( $content );
 
