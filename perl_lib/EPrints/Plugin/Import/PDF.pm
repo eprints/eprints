@@ -33,11 +33,14 @@ sub input_fh
 	if( $flags->{metadata} || $flags->{bibliography} )
 	{
 		my $main_file = $main_doc->stored_file( $main_doc->get_main );
-		my $cp = quotemeta($main_file->get_local_copy);
+		my $cp = $main_file->get_local_copy;
 
-		open(my $fh, "pdftotext -f 2 -enc UTF-8 -layout -htmlmeta $cp -|") or EPrints->abort( "Error in pdftotext: $!" );
-		binmode($fh, ":utf8");
-		my $buffer = Encode::decode_utf8("");
+		my $cmd = sprintf("pdftotext -f 2 -enc UTF-8 -layout -htmlmeta %s -",
+			quotemeta($cp)
+		);
+		open(my $fh, "$cmd|") or die "Error in $cmd: $!";
+		binmode($fh);
+		my $buffer = "";
 		while(<$fh>)
 		{
 			$buffer .= $_;
@@ -102,11 +105,11 @@ sub _parse_metadata
 		next if !$value;
 		if( $name eq "keywords" )
 		{
-			$data{keywords} = $value;
+			$data{keywords} = Encode::decode_utf8( $value );
 		}
 		elsif( $name eq "author" )
 		{
-			$data{creators_name} = $value;
+			$data{creators_name} = Encode::decode_utf8( $value );
 		}
 	}
 
@@ -138,15 +141,13 @@ sub _parse_bibliography
 
 	my $eprint = $opts{dataobj};
 
-	return if !$eprint->dataset->has_field( "referencetext" );
+	return () if !$eprint->dataset->has_field( "referencetext" );
 
 	$buffer =~ s/^.*?<pre>//s;
 	$buffer =~ s/<\/pre>.*?$//s;
 
 	local $ParaTools::DocParser::Standard::DEBUG = 1;
 	my $parser = ParaTools::DocParser::Standard->new;
-
-	$buffer = Encode::encode_utf8(join "\n", $parser->decolumnize( $buffer ));
 
 	my $main_doc = $opts{document};
 
@@ -170,6 +171,10 @@ sub _parse_bibliography
 				_content => \$buffer,
 			}],
 		});
+	if( !defined $bibl_doc )
+	{
+		EPrints->abort( "Error creating bibliography document" );
+	}
 
 	my @refs = $parser->parse( Encode::decode_utf8( $buffer ) );
 
