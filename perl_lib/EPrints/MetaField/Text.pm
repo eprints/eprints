@@ -69,45 +69,10 @@ sub render_search_value
 }
 
 
-#sub split_search_value
-#{
-#	my( $self, $session, $value ) = @_;
-#
-#	my( $codes, $bad ) = _extract_words( $session, $value );
-#
-#	return @{$codes};
-#}
-
+# don't inherit from Id
 sub get_search_conditions_not_ex
 {
-	my( $self, $session, $dataset, $search_value, $match, $merge,
-		$search_mode ) = @_;
-	
-	if( $match eq "EQ" )
-	{
-		return EPrints::Search::Condition->new( 
-			'=', 
-			$dataset,
-			$self, 
-			$search_value );
-	}
-
-	# free text!
-
-	# apply stemming and stuff
-	my( $codes, $bad ) = _extract_words( $session, $search_value );
-
-	# Just go "yeah" if stemming removed the word
-	if( !EPrints::Utils::is_set( $codes->[0] ) )
-	{
-		return EPrints::Search::Condition->new( "PASS" );
-	}
-
-	return EPrints::Search::Condition->new( 
-			'index',
- 			$dataset,
-			$self, 
-			$codes->[0] );
+	return shift->EPrints::MetaField::get_search_conditions_not_ex( @_ );
 }
 
 sub get_search_group { return 'text'; }

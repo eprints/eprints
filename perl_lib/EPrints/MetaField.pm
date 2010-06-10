@@ -2354,7 +2354,9 @@ sub get_search_conditions_not_ex
 	# free text!
 
 	# apply stemming and stuff
-	my( $codes, $grep_codes, $bad ) = $self->get_index_codes( $session, $search_value );
+	# codes, grep_terms, bad
+	my( $codes, undef, undef ) = $self->get_index_codes( $session,
+		$self->property( "multiple" ) ? [$search_value] : $search_value );
 
 	# Just go "yeah" if stemming removed the word
 	if( !EPrints::Utils::is_set( $codes->[0] ) )
@@ -2362,11 +2364,20 @@ sub get_search_conditions_not_ex
 		return EPrints::Search::Condition->new( "PASS" );
 	}
 
-	return EPrints::Search::Condition->new( 
-			'index',
- 			$dataset,
-			$self, 
-			$codes->[0] );
+	if( $search_value =~ s/\*$// )
+	{
+		return EPrints::Search::Condition::IndexStart->new( 
+				$dataset,
+				$self, 
+				$codes->[0] );
+	}
+	else
+	{
+		return EPrints::Search::Condition::Index->new( 
+				$dataset,
+				$self, 
+				$codes->[0] );
+	}
 }
 
 sub get_value

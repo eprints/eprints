@@ -59,6 +59,21 @@ sub split_words
 	return split /$EPrints::Index::FREETEXT_SEPERATOR_REGEXP+/, $utext;
 }
 
+=item @terms = EPrints::Index::Tokenizer::split_search_value( $session, $value )
+
+Splits and returns $value into search terms.
+
+=cut
+
+sub split_search_value
+{
+	my( $session, $value ) = @_;
+
+	# transliterate to English
+	$value = apply_mapping( $session, $value );
+
+	return split /[^\w\*]+/, $value;
+}
 
 ######################################################################
 =pod
