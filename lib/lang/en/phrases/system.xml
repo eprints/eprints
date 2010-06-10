@@ -1305,7 +1305,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 
 <epp:phrase id="metafield_fieldopt_provenance_user">Webcfg</epp:phrase>
 <epp:phrase id="metafield_fieldopt_provenance_config">From cfg.d</epp:phrase>
-<epp:phrase id="metafield_fieldopt_provenance_system">Core Field</epp:phrase>
+<epp:phrase id="metafield_fieldopt_provenance_core">Core System</epp:phrase>
 
 
   <!-- phrases that describe relationships -->
