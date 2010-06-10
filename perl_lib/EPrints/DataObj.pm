@@ -293,6 +293,7 @@ sub create_from_data
 				my $subobj = $dataobj->create_subdataobj( $fieldname, $epdata );
 				if( !defined $subobj )
 				{
+					$session->log( "Failed to create subdataobj on $fieldname" );
 					$dataobj->remove();
 					return undef;
 				}
@@ -305,6 +306,7 @@ sub create_from_data
 			my $subobj = $dataobj->create_subdataobj( $fieldname, $subobjects{$fieldname} );
 			if( !defined $subobj )
 			{
+				$session->log( "Failed to create subdataobj on $fieldname" );
 				$dataobj->remove();
 				return undef;
 			}

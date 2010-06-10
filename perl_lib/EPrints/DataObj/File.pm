@@ -177,7 +177,7 @@ sub create_from_data
 		$self = $class->SUPER::create_from_data( $session, $data, $dataset );
 		return if !defined $self;
 
-		$ok = $self->set_file( $content, $filesize );
+		$ok = defined $self->set_file( $content, $filesize );
 	}
 	# read from XML (Base64 encoded)
 	elsif( EPrints::Utils::is_set( $data->{data} ) )
@@ -187,7 +187,7 @@ sub create_from_data
 
 		use bytes;
 		my $data = MIME::Base64::decode( delete $data->{data} );
-		$ok = $self->set_file( \$data, length($data) );
+		$ok = defined $self->set_file( \$data, length($data) );
 	}
 	# read from a URL
 	elsif( EPrints::Utils::is_set( $data->{url} ) )
