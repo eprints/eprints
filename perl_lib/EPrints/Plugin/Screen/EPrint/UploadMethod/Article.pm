@@ -1,10 +1,8 @@
-package EPrints::Plugin::Screen::EPrint::UploadMethod::OpenXML;
+package EPrints::Plugin::Screen::EPrint::UploadMethod::Article;
 
 use EPrints::Plugin::Screen::EPrint::UploadMethod;
 
 @ISA = qw( EPrints::Plugin::Screen::EPrint::UploadMethod );
-
-use strict;
 
 sub new
 {
@@ -37,16 +35,24 @@ sub from
 	my $filename = $epdata->{main};
 	return if !defined $filename;
 
-	if( $filename !~ /\.(docx|pptx|xlsx)$/ )
+	my $plugin;
+
+	if( $filename =~ /\.(docx|pptx|xlsx)$/ )
 	{
-		$processor->add_message( "error", $self->html_phrase( "unsupported_format" ) );
-		return;
+		$plugin = $self->{session}->plugin( "Import::OpenXML" );
+	}
+	elsif( $filename =~ /\.(tar\.gz|tgz|tar|tar\.bz2)$/ )
+	{
+		$plugin = $self->{session}->plugin( "Import::Tex" );
+	}
+	elsif( $filename =~ /\.(pdf)$/ )
+	{
+		$plugin = $self->{session}->plugin( "Import::PDF" );
 	}
 
-	my $plugin = $self->{session}->plugin( "Import::OpenXML" );
-	if( !$plugin )
+	if( !defined $plugin )
 	{
-		$processor->add_message( "error", $self->html_phrase( "plugin_error" ) );
+		$processor->add_message( "error", $self->html_phrase( "unsupported_format" ) );
 		return;
 	}
 

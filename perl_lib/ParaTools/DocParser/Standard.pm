@@ -335,6 +335,17 @@ print "Indent found ($indmin [$indbits{$indmin}],$indmax [$indbits{$indmax}]) ($
 					$TYPE_INDENT;
 			}
 		}
+
+		# is it a long list of lines starting with an uppercase char?
+		if( $type == $TYPE_NEWLINE )
+		{
+			my $uc_starts = grep { /^[A-Z][a-z]/ } @newlines;
+print STDERR "found $uc_starts/".@newlines." lines starting with uc chars\n" if $DEBUG;
+			if( $uc_starts/@newlines > .75 )
+			{
+				$type = $TYPE_INDENT;
+			}
+		}
 	}
 
 	# We failed to find the reference section, we'll do a last-ditch effect at finding numbered
@@ -571,7 +582,7 @@ warn "type = AUTHOR" if $DEBUG;
 		push @refs_out, $_ if /\w/s;
 	}
 
-	warn "DONE" if $DEBUG;
+	warn "DONE [".@refs_out." found]" if $DEBUG;
 	
 	# Do a last, desperate sanity check
 	# If the average length of the first 10 (or fewer) refs is greater than 500 chars give up
