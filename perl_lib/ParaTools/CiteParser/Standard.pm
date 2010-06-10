@@ -398,7 +398,7 @@ sub extract_metadata
 		"_AUTHORS_"	=> "((?:$initial_match|$name_match|$conjs)+?)",
 		"_DATE_"	=> "([[:digit:]]{2}/[[:digit:]]{2}/[[:digit]]{2})",
 		"_YEAR_" 	=> "([[:digit:]]{4})",
-		"_TITLE_" 	=> "(.+?[a-zA-Z]+.+?)",
+		"_TITLE_" 	=> "(.+?)",
 		"_SUBTITLE_" 	=> "(.+)",
 		"_CHAPTER_"	=> "([[:digit:]]+)",
 		"_UCTITLE_" 	=> "([^[:lower:]]+)",

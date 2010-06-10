@@ -125,11 +125,11 @@ sub get_content
 	else
 	{
 		# If it's local, mirror it straight to the $fromfile.
-		open(FIN, $location);
-                open(FOUT, ">$fromfile");
+		open(FIN, $location) or die $!;
+                open(FOUT, ">$fromfile") or die $!;
                 foreach(<FIN>) { print FOUT $_; }
-                close FOUT;
-                close FIN;
+                close FOUT or die $!;
+                close FIN or die $!;
 	}
 	
 	if ($type ne "txt")
@@ -157,7 +157,7 @@ sub get_content
 	my $content = "";
 	open( INPUT, $tofile ) or return;
     	read( INPUT, $content, -s INPUT );
-	close INPUT;
+	close INPUT or die $!;
 
 	return $content;
 }
@@ -172,17 +172,17 @@ URL as a parameter, and returns the encoded version.
 
 =cut
 
-sub url_escape
+sub _url_escape
 {
-        my( $url ) = @_;
+	my( $url ) = @_;
 	$url =~ s/</%3C/g;
 	$url =~ s/>/%3E/g;
 	$url =~ s/#/%23/g;
 	$url =~ s/;/%3B/g;
 	$url =~ s/&/%26/g;
-        my $uri = URI->new( $url );
+	my $uri = URI->new( $url );
 	my $out = $uri->as_string;
-        return $out;
+   	return $out;
 }
 
 __END__

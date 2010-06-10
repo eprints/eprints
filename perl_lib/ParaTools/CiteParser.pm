@@ -33,7 +33,7 @@ use vars qw($VERSION);
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = ( 'parse', 'new' );
-$VERSION = "1.00";
+$VERSION = "1.01";
 =pod
 
 =head1 NAME

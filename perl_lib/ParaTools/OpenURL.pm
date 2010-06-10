@@ -29,6 +29,7 @@ use 5.006;
 use strict;
 use warnings;
 use ParaTools::Utils;
+use URI::Escape qw/uri_escape_utf8/;
 my @validtags = ("sid", "id", "genre", "aulast", "aufirst", "auinit", "auinitm", "coden", "issn", "eissn", "isbn", "title", "stitle", "atitle", "volume", "part", "issue", "spage", "epage", "pages", "artnum", "sici", "bici", "ssn", "quarter", "date", "pid", "url", "subject", "year", "month", "day");
 
 =pod
@@ -282,29 +283,29 @@ sub create_openurl
 	if ($data->{uctitle}) { $data->{atitle} = $data->{uctitle}; }
 	($data,undef) = decompose_openurl($data);
 	my $openurl = "sid=paracite&";
-        my(@openurl_keys) = ("sici", "artnum", "spage", "stitle", "part", "date", "aufirst", "pid", "aulast", "auinitm", "volume", "quarter", "issue", "title", "pages", "ssn", "auinit", "sid", "genre", "eissn", "atitle", "id", "isbn", "bici", "issn", "epage", "coden", "url", "subject", "year", "month", "day");
+	my(@openurl_keys) = ("sici", "artnum", "spage", "stitle", "part", "date", "aufirst", "pid", "aulast", "auinitm", "volume", "quarter", "issue", "title", "pages", "ssn", "auinit", "sid", "genre", "eissn", "atitle", "id", "isbn", "bici", "issn", "epage", "coden", "url", "subject", "year", "month", "day");
 	my %data_hash = %$data;
-        foreach my $key (@openurl_keys)
-        {
-                if ($data_hash{$key})
-                {
-                        if (ref $data_hash{$key} eq "ARRAY")
-                        {
-                                foreach my $el (@{$data_hash{$key}})
-                                {
-					$el =~ s/[ ]+/ /g;
-                                        $openurl .= "$key=".ParaTools::Utils::url_escape($el)."&";
-                                }
-                        }
-                        else
-                        {
-				$data_hash{$key} =~ s/[ ]+/ /g;
-                                $openurl .= "$key=".ParaTools::Utils::url_escape($data_hash{$key})."&";
-                        }
-                }
-        }
-
-        chop $openurl;
+	foreach my $key (@openurl_keys)
+   	{
+   		if ($data_hash{$key})
+   		{
+   			if (ref $data_hash{$key} eq "ARRAY")
+   			{
+   				foreach my $el (@{$data_hash{$key}})
+   				{
+					$el =~ s/ +/ /g;
+   					$openurl .= "$key=".uri_escape_utf8($el)."&";
+   				}
+   			}
+			else
+  			{
+				$data_hash{$key} =~ s/ +/ /g;
+				$openurl .= "$key=".uri_escape_utf8($data_hash{$key})."&";
+   			}
+   		}
+   	}
+		
+	chop $openurl;
 	return $openurl;
 }
 
