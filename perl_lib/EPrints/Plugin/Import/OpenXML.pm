@@ -22,6 +22,20 @@ our $SWORD_GRAMMAR = {
 		'my:contrib.' => ['creators_name']
 };
 
+sub new
+{
+	my( $class, %opts ) = @_;
+
+	my $self = $class->SUPER::new( %opts );
+
+	$self->{name} = "Import (openxml)";
+	$self->{produce} = [qw( dataobj/document )];
+	$self->{accept} = [qw( application/vnd.openxmlformats-officedocument.wordprocessingml.document )];
+	$self->{advertise} = 0;
+
+	return $self;
+}
+
 sub input_fh
 {
 	my( $self, %opts ) = @_;

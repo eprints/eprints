@@ -42,14 +42,17 @@ sub from
 
 	my( @plugins ) = $session->get_plugins(
 		type => "Import",
-		mime_type => $epdata->{format},
+		can_produce => "dataobj/document",
+		can_accept => $epdata->{format},
 	);
 
 	my $plugin = $plugins[0];
 
 	if( !defined $plugin )
 	{
-		$processor->add_message( "error", $self->html_phrase("no_plugin"));
+		$processor->add_message( "error", $self->html_phrase("no_plugin",
+			mime_type => $session->make_text( $epdata->{format} )
+		));
 		return 0;
 	}
 

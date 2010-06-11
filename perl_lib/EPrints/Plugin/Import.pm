@@ -28,6 +28,8 @@ sub new
 {
 	my( $class, %params ) = @_;
 
+	$params{accept} = exists $params{accept} ? $params{accept} : [];
+	$params{produce} = exists $params{produce} ? $params{produce} : [];
 	$params{visible} = exists $params{visible} ? $params{visible} : "all";
 	$params{advertise} = exists $params{advertise} ? $params{advertise} : 1;
 	$params{session} = exists $params{session} ? $params{session} : $params{processor}->{session};
@@ -61,6 +63,7 @@ sub matches
 {
 	my( $self, $test, $param ) = @_;
 
+print STDERR ref($self)."::match($test)=$param\n";
 	if( $test eq "is_visible" )
 	{
 		return( $self->is_visible( $param ) );
@@ -73,7 +76,7 @@ sub matches
 	{
 		return( $self->param( "advertise" ) == $param );
 	}
-	if( $test eq "mime_type" )
+	if( $test eq "can_accept" )
 	{
 		return $self->can_accept( $param );
 	}
@@ -108,7 +111,7 @@ sub can_accept
 {
 	my( $self, $format ) = @_;
 
-	for(@{$self->param( "mime_type" )||[]})
+	for(@{$self->param( "accept" )})
 	{
 		return 1 if $_ eq $format;
 	}

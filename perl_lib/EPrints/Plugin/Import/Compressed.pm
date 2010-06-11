@@ -15,8 +15,9 @@ sub new
 
 	$self->{name} = "Import (zip)";
 	$self->{visible} = "all";
-	$self->{produce} = [ 'dataobj/document', 'list/document' ];
-	$self->{mime_type} = [ 'application/zip', 'application/x-gzip' ];
+	$self->{advertise} = 0;
+	$self->{produce} = [qw( dataobj/document list/document )];
+	$self->{accept} = [qw( application/zip application/x-gzip )];
 
 	return $self;
 }

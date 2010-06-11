@@ -1,27 +1,22 @@
 package EPrints::Plugin::Screen::EPrint::UploadMethod::URL;
 
-use EPrints::Plugin::Screen::EPrint::UploadMethod;
+use EPrints::Plugin::Screen::EPrint::UploadMethod::File;
 
-@ISA = qw( EPrints::Plugin::Screen::EPrint::UploadMethod );
+@ISA = qw( EPrints::Plugin::Screen::EPrint::UploadMethod::File );
 
 use strict;
 
 sub new
 {
-	my( $self, %params ) = @_;
+	my( $class, %opts ) = @_;
 
-	return $self->SUPER::new(
-		appears => [
+	my $self = $class->SUPER::new( %opts );
+
+	$self->{appears} = [
 			{ place => "upload_methods", position => 300 },
-		],
-		%params );
-}
+	];
 
-sub render_title
-{
-	my( $self ) = @_;
-
-	return $self->{session}->html_phrase( "Plugin/InputForm/Component/Upload:from_url" );
+	return $self;
 }
 
 sub from

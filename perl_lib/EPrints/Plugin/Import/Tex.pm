@@ -5,6 +5,20 @@ use EPrints::Plugin::Import;
 
 use strict;
 
+sub new
+{
+	my( $class, %opts ) = @_;
+
+	my $self = $class->SUPER::new( %opts );
+
+	$self->{name} = "Import (LaTeX)";
+	$self->{produce} = [qw( dataobj/document )];
+	$self->{accept} = [qw( application/x-latex )];
+	$self->{advertise} = 0;
+
+	return $self;
+}
+
 sub input_fh
 {
 	my( $self, %opts ) = @_;

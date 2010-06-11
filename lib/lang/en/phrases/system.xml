@@ -3783,12 +3783,16 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="Plugin/Screen/Workflow:event_queue:core_stage:title" ref="metapage_title_core" />
 	<epp:phrase id="Plugin/Screen/Workflow:event_queue:commit_stage:title" ref="Plugin/Screen/Workflow/Commit:title" />
 
-	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Article:title">Article</epp:phrase>
-	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Article:flag:metadata">Extract metadata</epp:phrase>
-	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Article:flag:media">Extract generated media (images etc.)</epp:phrase>
-	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Article:flag:bibliography">Extract bibliography</epp:phrase>
-	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Article:unsupported_format">The uploaded file was not recognised (must be one of .docx, .pdf or Latex archive).</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod:flag:metadata">Extract metadata</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod:flag:media">Extract generated media (images etc.)</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod:flag:bibliography">Extract bibliography</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod:flag:explode">Expand archive into multiple documents containing one file each</epp:phrase>
 
-	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Expand:flag:explode">Expand archive into multiple documents containing one file each</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/File:title" ref="Plugin/InputForm/Component/Upload:from_file" />
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/File:unsupported_format">No method available to extract data from uploaded file.</epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/URL:title" ref="Plugin/InputForm/Component/Upload:from_url" />
+
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Expand:no_plugin">No import plugin available to import file of type <epc:pin name="mime_type" /></epp:phrase>
 
 </epp:phrases>

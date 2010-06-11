@@ -6,6 +6,20 @@ use strict;
 
 use ParaTools::DocParser::Standard;
 
+sub new
+{
+	my( $class, %opts ) = @_;
+
+	my $self = $class->SUPER::new( %opts );
+
+	$self->{name} = "Import (PDF)";
+	$self->{produce} = [qw( dataobj/document )];
+	$self->{accept} = [qw( application/pdf )];
+	$self->{advertise} = 0;
+
+	return $self;
+}
+
 sub input_fh
 {
 	my( $self, %opts ) = @_;

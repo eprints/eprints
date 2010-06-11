@@ -6,6 +6,33 @@ use EPrints::Plugin::Screen::EPrint;
 
 use strict;
 
+# used to determine import plugin
+our %MIME_TYPES = reverse qw(
+    application/vnd.openxmlformats-officedocument.wordprocessingml.document	 docx
+    application/vnd.ms-word.document.macroEnabled.12	 docm
+    application/vnd.openxmlformats-officedocument.wordprocessingml.template	 dotx
+    application/vnd.ms-word.template.macroEnabled.12	 dotm
+    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	 xlsx
+    application/vnd.ms-excel.sheet.macroEnabled.12	 xlsm
+    application/vnd.openxmlformats-officedocument.spreadsheetml.template	 xltx
+    application/vnd.ms-excel.template.macroEnabled.12	 xltm
+    application/vnd.ms-excel.sheet.binary.macroEnabled.12	 xlsb
+    application/vnd.ms-excel.addin.macroEnabled.12	 xlam
+    application/vnd.openxmlformats-officedocument.presentationml.presentation	pptx
+    application/vnd.ms-powerpoint.presentation.macroEnabled.12	 pptm
+    application/vnd.openxmlformats-officedocument.presentationml.slideshow	 ppsx
+    application/vnd.ms-powerpoint.slideshow.macroEnabled.12	 ppsm
+    application/vnd.openxmlformats-officedocument.presentationml.template	 potx
+    application/vnd.ms-powerpoint.template.macroEnabled.12	 potm
+    application/vnd.ms-powerpoint.addin.macroEnabled.12	 ppam
+    application/vnd.openxmlformats-officedocument.presentationml.slide	 sldx
+    application/vnd.ms-powerpoint.slide.macroEnabled.12	 sldm
+    application/vnd.ms-officetheme	 thmx
+    application/pdf    pdf
+	application/x-latex    tar.gz
+	application/x-latex    tgz
+);
+
 sub render_title
 {
 	my( $self ) = @_;
@@ -133,7 +160,7 @@ sub render_flags
 			for => $fname,
 		);
 		$li->appendChild( $label );
-		$label->appendChild( $self->html_phrase( "flag:$$flags[$i]" ) );
+		$label->appendChild( $session->html_phrase( "Plugin/Screen/EPrint/UploadMethod:flag:$$flags[$i]" ) );
 	}
 
 	return $f;
@@ -156,6 +183,36 @@ sub param_flags
 	}
 
 	return $values;
+}
+
+sub parse_and_import
+{
+	my( $self, $basename, $epdata ) = @_;
+
+	my $session = $self->{session};
+	my $flags = $self->param_flags( $basename );
+
+	my $filename = $epdata->{main};
+	return if !defined $filename;
+
+	my $plugin;
+
+	my( $ext ) = $filename =~ /\.(.+)$/;
+	my $mime_type = $MIME_TYPES{$ext};
+	$mime_type = "application/octet-stream" if !defined $mime_type;
+
+	my @plugins = $session->get_plugins(
+		type => "Import",
+		can_produce => "dataobj/document",
+		can_accept => $mime_type );
+	return if !@plugins;
+
+	return $plugins[0]->input_fh(
+		dataobj => $self->{processor}->{eprint},
+		filename => $filename,
+		fh => $epdata->{files}->[0]->{_content},
+		flags => $flags,
+	);
 }
 
 1;
