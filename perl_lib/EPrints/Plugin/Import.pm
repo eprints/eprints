@@ -63,7 +63,6 @@ sub matches
 {
 	my( $self, $test, $param ) = @_;
 
-print STDERR ref($self)."::match($test)=$param\n";
 	if( $test eq "is_visible" )
 	{
 		return( $self->is_visible( $param ) );
