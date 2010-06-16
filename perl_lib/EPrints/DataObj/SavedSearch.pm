@@ -288,7 +288,7 @@ sub send_out_alert
 	elsif( $freq eq "monthly" )
 	{
 		# Get today's date
-		my( $year, $month, $day ) = EPrints::Time::get_iso_date( time );
+		my( $year, $month, $day ) = EPrints::Time::get_date_array( time );
 		# Substract a month		
 		$month--;
 
