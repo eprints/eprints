@@ -61,7 +61,7 @@ one place.
 
 package EPrints::XML;
 
-#use EPrints::SystemSettings;
+use EPrints::SystemSettings;
 
 use Carp;
 
@@ -69,16 +69,24 @@ $EPrints::XML::CLASS = undef;
 
 @EPrints::XML::COMPRESS_TAGS = qw/br hr img link input meta/;
 
-if( $EPrints::SystemSettings::conf->{enable_libxml} )
+sub init
 {
-	require EPrints::XML::LibXML;
-}
-elsif( $EPrints::SystemSettings::conf->{enable_gdome} )
-{
-	require EPrints::XML::GDOME;
-}
-else
-{
+	my $c = $EPrints::SystemSettings::conf;
+	my $disable_libxml = exists $c->{enable_libxml} && !$c->{enable_libxml};
+	my $disable_gdome = exists $c->{enable_gdome} && !$c->{enable_gdome};
+
+	if( !$disable_libxml )
+	{
+		eval "use EPrints::XML::LibXML; 1";
+		return 1 if !$@;
+	}
+
+	if( !$disable_gdome )
+	{
+		eval "use EPrints::XML::GDOME; 1";
+		return 1 if !$@;
+	}
+
 	require EPrints::XML::DOM; 
 }
 

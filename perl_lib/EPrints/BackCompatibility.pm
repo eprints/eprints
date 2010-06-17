@@ -437,5 +437,23 @@ sub EPrints::Session::new
 
 $INC{"EPrints/Session.pm"} = "EPrints/BackCompatibility.pm";
 
+package EPrints::Platform;
+
+$INC{"EPrints/Platform.pm"} = "EPrints/BackCompatibility.pm";
+
+sub chmod { EPrints->system->chmod( @_ ) }
+sub chown { EPrints->system->chown( @_ ) }
+sub getpwnam { EPrints->system->getpwnam( @_ ) }
+sub getgrnam { EPrints->system->getgrnam( @_ ) }
+sub test_uid { EPrints->system->test_uid( @_ ) }
+sub mkdir { EPrints->system->mkdir( @_ ) }
+sub exec { EPrints->system->exec( @_ ) }
+sub read_exec { EPrints->system->read_exec( @_ ) }
+sub read_perl_script { EPrints->system->read_perl_script( @_ ) }
+sub get_hash_name { EPrints->system->get_hash_name( @_ ) }
+sub free_space { EPrints->system->free_space( @_ ) }
+sub proc_exists { EPrints->system->proc_exists( @_ ) }
+sub join_path { EPrints->system->join_path( @_ ) }
+
 ######################################################################
 1;
