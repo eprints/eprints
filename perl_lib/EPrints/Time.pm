@@ -222,6 +222,19 @@ sub iso_datetime
 	return strftime( '%Y-%m-%dT%H:%M:%SZ', gmtime(@_ ? @_ : time()));
 }
 
+=item $datetime = EPrints::Time::rfc822_datetime( [ $seconds ] )
+
+Return the local date-time in RFC 822 format (used by e.g. RSS).
+
+$seconds is seconds since epoch or now if not given.
+
+=cut
+
+sub rfc822_datetime
+{
+	return strftime( "%a, %d %b %Y %H:%M:%S %z", localtime(@_ ? @_ : time()));
+}
+
 =item $timestamp = EPrints::Time::human_time( [$time] )
 
 Return a string describing the current local date and time in the

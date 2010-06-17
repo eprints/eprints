@@ -61,12 +61,12 @@ sub output_list
 	$channel->appendChild( $session->render_data_element(
 		4,
 		"pubDate", 
-		RFC822_time() ) );
+		EPrints::Time::rfc822_datetime() ) );
 
 	$channel->appendChild( $session->render_data_element(
 		4,
 		"lastBuildDate", 
-		RFC822_time() ) );
+		EPrints::Time::rfc822_datetime() ) );
 
 	$channel->appendChild( $session->render_data_element(
 		4,
@@ -124,11 +124,4 @@ END
 	return $rssfeed;
 }
 
-use POSIX qw(strftime);
-sub RFC822_time
-{
-	return( strftime( "%a,  %d  %b  %Y  %H:%M:%S  %z",localtime ) );
-}
-
 1;
-

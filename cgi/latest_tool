@@ -139,9 +139,3 @@ $session->send_page();
 
 $session->terminate;
 exit;
-
-use POSIX qw(strftime);
-sub RFC822_time
-{
-	return( strftime( "%a,  %d  %b  %Y  %H:%M:%S  %z",localtime ) );
-}
