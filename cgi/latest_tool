@@ -53,7 +53,8 @@ my $searchexp = new EPrints::Search(
 	session => $session,
 	filters => $filters,
 	custom_order => "-datestamp",
-	dataset => $ds );
+	dataset => $ds,
+	limit => $number_to_get );
 my $title;
 if( $show_conditions )
 {
