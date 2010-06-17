@@ -83,6 +83,7 @@ if( defined $format )
 	if( $ok ) 
 	{
 		my $plugin = $session->plugin( "Export::".$format );
+		$plugin->initialise_fh( \*STDOUT );
 		$session->send_http_header( 
 				"content_type" => $plugin->param( 'mimetype' ) );
 		print $results->export( $format );
