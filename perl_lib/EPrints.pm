@@ -79,8 +79,6 @@ use Scalar::Util;
 
 use strict;
 
-$SIG{__DIE__} = \&Carp::confess;
-
 BEGIN {
 	use Carp qw( verbose );
 
