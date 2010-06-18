@@ -130,8 +130,8 @@ sub handler
 		return redir( $r, "$urlpath/$1$args" );
 	}
 
-	# don't respond to anything containing '..' or '/.'
-	if( $uri =~ /\.\./ || $uri =~ /\/\./ )
+	# don't respond to anything containing '/.'
+	if( $uri =~ /\/\./ )
 	{
 		return DECLINED;
 	}
