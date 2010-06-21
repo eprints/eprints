@@ -752,7 +752,10 @@ sub render_value_no_multiple
 
 	my $link_id = $self->get_id_from_value( $session, $value );
 
-	if( defined $linkview->{fields} && $linkview->{fields} =~ m/,/ )
+	if(
+		(defined $linkview->{fields} && $linkview->{fields} =~ m/,/) ||
+		(defined $linkview->{menus} && scalar(@{$linkview->{menus}}) > 1)
+	  )
 	{
 		# has sub pages
 		$url .= "/view/".$self->{browse_link}."/".
