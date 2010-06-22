@@ -20,6 +20,13 @@
 
 B<EPrints::RepositoryConfig> - Repository Configuration
 
+=head1 SYNOPSIS
+
+	$c->add_dataset_field( "eprint", {
+		name => "title",
+		type => "longtext",
+	}, reuse => 1 );
+
 =head1 DESCRIPTION
 
 This provides methods for reading and setting a repository configuration.
@@ -89,6 +96,47 @@ sub add_trigger
 	my $priority = exists $opts{priority} ? $opts{priority} : 0;
 
 	push @{$self->{triggers}->{$type}->{$priority}}, $f;
+}
+
+=item $c->add_dataset_field( $datasetid, $fielddata, %opts )
+
+Add a field spec $fielddata to dataset $datasetid.
+
+This method will abort if the field already exists and 'reuse' is unspecified.
+
+Options:
+	reuse - re-use an existing field if it exists (must be same type)
+
+=cut
+
+sub add_dataset_field
+{
+	my( $c, $datasetid, $fielddata, %opts ) = @_;
+
+	$c->{fields}->{$datasetid} = [] if !exists $c->{fields}->{$datasetid};
+
+	my $reuse = $opts{reuse};
+
+	for(@{$c->{fields}->{$datasetid}})
+	{
+		if( $_->{name} eq $fielddata->{name} )
+		{
+			if( !$reuse )
+			{
+				EPrints->abort( "Duplicate field name encountered in configuration: $datasetid.$_->{name}" );
+			}
+			elsif( $_->{type} ne $fielddata->{type} )
+			{
+				EPrints->abort( "Attempt to reuse field $datasetid.$_->{name} but it is a different type: $_->{type} != $fielddata->{type}" );
+			}
+			else
+			{
+				return;
+			}
+		}
+	}
+
+	push @{$c->{fields}->{$datasetid}}, $fielddata;
 }
 
 =pod
