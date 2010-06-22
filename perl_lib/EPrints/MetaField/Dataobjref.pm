@@ -41,14 +41,18 @@ sub new
 
 	$properties{fields} = [] if !defined $properties{fields};
 
-	push @{$properties{fields}}, {
-			sub_name=>"title",
-			type=>"text",
-		}, {
-			sub_name=>"id",
-			type=>"int",
-			input_cols=>6,
-		};
+	# avoid adding these fields when cloning
+	if( !defined $properties{fields_cache} )
+	{
+		push @{$properties{fields}}, {
+				sub_name=>"title",
+				type=>"text",
+			}, {
+				sub_name=>"id",
+				type=>"int",
+				input_cols=>6,
+			};
+	}
 
 	my $self = $class->SUPER::new( %properties );
 

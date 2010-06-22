@@ -55,11 +55,15 @@ sub new
 		$properties{languages} = $repository->get_conf('languages');
 	}
 
-	push @{$properties{fields}}, {
-			sub_name=>"lang",
-			type=>"langid",
-			options => $properties{languages},
-		};
+	# avoid adding these fields when cloning
+	if( !defined $properties{fields_cache} )
+	{
+		push @{$properties{fields}}, {
+				sub_name=>"lang",
+				type=>"langid",
+				options => $properties{languages},
+			};
+	}
 
 	my $self = $class->SUPER::new( %properties );
 
