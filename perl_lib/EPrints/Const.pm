@@ -102,10 +102,6 @@ Populate a Document epdata structure with information about a file.
 	filename
 	filepath
 
-=item EP_TRIGGER_INDEX
-
-Perform extra indexing processes in addition to core EPrints indexing.
-
 =back
 
 =cut
@@ -151,7 +147,6 @@ use constant {
 	EP_TRIGGER_VALIDATE => 106,
 	EP_TRIGGER_WARNINGS => 107,
 	EP_TRIGGER_FILES_MODIFED => 108,
-	EP_TRIGGER_INDEX => 109,
 };
 
 @EXPORT_OK = ();
@@ -182,7 +177,6 @@ use constant {
 	EP_TRIGGER_VALIDATE
 	EP_TRIGGER_WARNINGS
 	EP_TRIGGER_FILES_MODIFED
-	EP_TRIGGER_INDEX
 );
 %EXPORT_TAGS = ();
 
