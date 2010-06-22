@@ -308,7 +308,7 @@ sub _read_exec
 $fn$args
 open(STDOUT,">>", \$fn);
 open(STDERR,">>", \$fn);
-exit(0xffff & system( \@\{\$args\} ));
+exit(system( \@\{\$args\} ) >> 8);
 EOP
 
 	my $rc = system( $perl, "-e", $script );
