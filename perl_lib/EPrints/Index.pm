@@ -59,44 +59,18 @@ sub remove
 
 	my $db = $session->get_database;
 
-	my $indextable = $dataset->get_sql_index_table_name();
 	my $rindextable = $dataset->get_sql_rindex_table_name();
 	my $grepindextable = $dataset->get_sql_grep_table_name();
 
 	my $keyfield = $dataset->get_key_field();
-	my $Q_keyname = $db->quote_identifier( $keyfield->get_sql_name() );
-	my $Q_field = $db->quote_identifier( "field" );
-	my $Q_word = $db->quote_identifier( "word" );
-	my $Q_fieldword = $db->quote_identifier( "fieldword" );
-	my $Q_indextable = $db->quote_identifier($indextable);
-	my $Q_rindextable = $db->quote_identifier($rindextable);
-	my $POS = $db->quote_identifier("pos");
-	my $Q_ids = $db->quote_identifier("ids");
 
-	my $where = "$Q_keyname=".$db->quote_value($objectid)." AND $Q_field=".$db->quote_value($fieldid);
-
-	$sql = "SELECT $Q_word FROM $Q_rindextable WHERE $where";
-	my $sth = $session->get_database->prepare( $sql );
-	$rv = $rv && $session->get_database->execute( $sth, $sql );
-	my @codes = ();
-	while( my( $c ) = $sth->fetchrow_array )
-	{
-		push @codes,$c;
-	}
-	$sth->finish;
-
-	foreach my $code ( @codes )
-	{
-		my $fieldword = $session->{database}->quote_value( "$fieldid:$code" );
-		my $sql = "UPDATE $Q_indextable SET $Q_ids = REPLACE($Q_ids,':$objectid:',':') WHERE $Q_fieldword=$fieldword AND $Q_ids LIKE ".$session->{database}->quote_value("\%:$objectid:\%");
-		$rv &&= $session->{database}->do($sql);
-	}
-	$sql = "DELETE FROM $Q_rindextable WHERE $where";
-	$rv = $rv && $session->get_database->do( $sql );
+	# remove from rindex table
+	$db->delete_from($rindextable,
+		[ $keyfield->get_sql_name(), "field" ],
+		[ $objectid, $fieldid ] );
 
 	# remove from grep table
-
-	$session->get_database->delete_from($grepindextable,
+	$db->delete_from($grepindextable,
 		[ $keyfield->get_sql_name, "fieldname" ],
 		[ $objectid, $fieldid ] );
 
@@ -114,12 +88,13 @@ really useful if used in conjunction with rebuilding the indexes.
 =cut
 ######################################################################
 
+# Unused?
 sub purge_index
 {
 	my( $session, $dataset ) = @_;
 
-	$session->clear_table( $dataset->get_sql_index_table_name() );
 	$session->clear_table( $dataset->get_sql_rindex_table_name() );
+	$session->clear_table( $dataset->get_sql_grep_table_name() );
 }
 
 
@@ -138,97 +113,38 @@ sub add
 {
 	my( $session, $dataset, $objectid, $fieldid, $value ) = @_;
 
-	my $database = $session->get_database;
+	my $db = $session->get_database;
 
 	my $field = $dataset->get_field( $fieldid );
 
 	my( $codes, $grepcodes, $ignored ) = $field->get_index_codes( $session, $value );
 
+	# get rid of duplicates
 	my %done = ();
+	@$codes = grep { !$done{$_}++ } @$codes;
+	%done = ();
+	@$grepcodes = grep { !$done{$_}++ } @$grepcodes;
 
 	my $keyfield = $dataset->get_key_field();
-	my $Q_keyname = $keyfield->get_sql_name();
-	my $Q_field = $database->quote_identifier( "field" );
-	my $Q_word = $database->quote_identifier( "word" );
-	my $Q_fieldword = $database->quote_identifier( "fieldword" );
-	my $Q_indextable = $database->quote_identifier($dataset->get_sql_index_table_name());
-	my $Q_rindextable = $database->quote_identifier($dataset->get_sql_rindex_table_name());
-	my $POS = $database->quote_identifier("pos");
-	my $Q_ids = $database->quote_identifier("ids");
 
-
-	my $indextable = $dataset->get_sql_index_table_name();
 	my $rindextable = $dataset->get_sql_rindex_table_name();
 	my $grepindextable = $dataset->get_sql_grep_table_name();
 
 	my $rv = 1;
 	
-	foreach my $code ( @{$codes} )
-	{
-		next if $done{$code};
-		$done{$code} = 1;
+	$rv &&= $db->insert( $rindextable, [
+		$keyfield->get_sql_name(),
+		"field",
+		"word"
+	], map { [ $objectid, $fieldid, $_ ] } @$codes );
 
-		my $fieldword = $field->get_sql_name().":$code";
-		my $where = "$Q_fieldword=".$database->quote_value($fieldword);
-
-		my $sql = "SELECT MAX($POS) FROM $Q_indextable WHERE $where"; 
-		my $sth = $session->get_database->prepare( $sql );
-		$rv = $rv && $session->get_database->execute( $sth, $sql );
-		return 0 unless $rv;
-		my ( $n ) = $sth->fetchrow_array;
-		$sth->finish;
-		my $insert = 0;
-		if( !defined $n )
-		{
-			$n = 0;
-			$insert = 1;
-		}
-		else
-		{
-			$sql = "SELECT $Q_ids FROM $Q_indextable WHERE $where AND $POS=$n"; 
-			$sth=$session->get_database->prepare( $sql );
-			$rv = $rv && $session->get_database->execute( $sth, $sql );
-			my( $ids ) = $sth->fetchrow_array;
-			$sth->finish;
-			my( @list ) = split( ":",$ids );
-			# don't forget the first and last are empty!
-			if( (scalar @list)-2 < 128 )
-			{
-				$sql = "UPDATE $Q_indextable SET $Q_ids='$ids$objectid:' WHERE $where AND $POS=$n";
-				$rv = $rv && $session->get_database->do( $sql );
-				return 0 unless $rv;
-			}
-			else
-			{
-				++$n;
-				$insert = 1;
-			}
-		}
-		if( $insert )
-		{
-			$rv &&= $session->get_database->insert( $indextable, ["fieldword","pos","ids"], [
-				$fieldword,
-				$n,
-				":$objectid:"
-			]);
-			return 0 unless $rv;
-		}
-		$rv &&= $session->get_database->insert( $rindextable, ["field","word",$keyfield->get_sql_name()], [
-			$field->get_sql_name,
-			$code,
-			$objectid
-		]);
-		return 0 unless $rv;
-
-	} 
-
-	my $name = $field->get_name;
-
-	$session->get_database->insert($grepindextable, [
+	$rv &&= $db->insert($grepindextable, [
 		$keyfield->get_sql_name(),
 		"fieldname",
 		"grepstring"
-	], map { [ $objectid, $name, $_ ] } @$grepcodes );
+	], map { [ $objectid, $fieldid, $_ ] } @$grepcodes );
+
+	return $rv;
 }
 
 
