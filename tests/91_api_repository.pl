@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 15;
+use Test::More tests => 19;
 
 use strict;
 use warnings;
@@ -78,3 +78,54 @@ ok( -e "$path/$fn", "storage->copy()" );
 $storage->delete_copy( $store, $file );
 $file->commit;
 }
+
+my @field_tests = (
+<<EOP => 1,
+\$c->add_dataset_field( 'eprint', {
+	name => "title",
+	type => "longtext",
+},
+	reuse => 1,
+);
+EOP
+<<EOP => 0,
+\$c->add_dataset_field( 'eprint', {
+	name => "title",
+	type => "longtext",
+});
+EOP
+<<EOP => 0,
+\$c->add_dataset_field( 'eprint', {
+	name => "title",
+	type => "int",
+	reuse => 1,
+});
+EOP
+<<EOP => 1,
+\$c->add_dataset_field( 'eprint', {
+	name => "add_dataset_field",
+	type => "text",
+});
+EOP
+);
+
+our $cfg_file = $repo->config( "config_path" )."/cfg.d/zz_91_api_repository.pl";
+END
+{
+	unlink($cfg_file);
+}
+
+foreach my $i (grep { $_ % 2 == 0 } 0..$#field_tests)
+{
+	open(my $fh, ">", $cfg_file) or die "Error writing to $cfg_file: $!";
+	print $fh $field_tests[$i];
+	close($fh);
+
+	my( $rc, $output ) = $repo->test_config;
+	ok(
+		($field_tests[$i+1] && $rc == 0) ||
+		(!$field_tests[$i+1] && $rc != 0)
+	, "add_dataset_field ".($i/2 + 1)." $rc\n$output" );
+}
+
+
