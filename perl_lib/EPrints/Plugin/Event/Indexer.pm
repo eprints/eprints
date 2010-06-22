@@ -69,6 +69,11 @@ sub _index_fields
 	my $session = $self->{session};
 	my $dataset = $dataobj->get_dataset;
 
+	$dataset->run_trigger( EPrints::Const::EP_TRIGGER_INDEX,
+		dataobj => $dataobj,
+		fields => $fields,
+	);
+
 	foreach my $field (@$fields)
 	{
 		EPrints::Index::remove( $session, $dataset, $dataobj->get_id, $field->get_name );
