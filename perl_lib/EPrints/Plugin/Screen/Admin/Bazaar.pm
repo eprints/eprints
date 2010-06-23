@@ -586,7 +586,6 @@ sub tab_list_epms
 		$tr->appendChild($td_img);
 	
 		my $icon_path = "packages/" . $app->{package} . "/" . $app->{icon};
-		print STDERR "icon_path : " . $icon_path . "\n\n";
 		my $img = $session->make_element( "img", width=>"96px", src => $session->get_conf("http_cgiroot") . "/epm_icon?image=" . $icon_path );
 		$td_img->appendChild( $img );
 

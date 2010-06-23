@@ -435,14 +435,12 @@ sub remove_dataset_diffs
 
 	foreach my $datasetid (keys %$before)
 	{
-print STDERR "dataset $datasetid\n";
 		my $dataset = $before->{$datasetid}->{dataset};
 		my $fields = $before->{$datasetid}->{fields};
 		if( !defined $after->{$datasetid} )
 		{
 			if( $db->has_dataset( $dataset ) )
 			{
-print STDERR "DROPING DATASET $datasetid\n";
 				$rc = $db->drop_dataset_tables( $dataset );
 			}
 		}
@@ -450,10 +448,8 @@ print STDERR "DROPING DATASET $datasetid\n";
 		{
 			foreach my $fieldid ( keys %$fields )
 			{
-print STDERR "field $fieldid\n";
 				if( !defined $after->{$datasetid}->{fields}->{$fieldid} )
 				{
-print STDERR "DROPING FIELD $fieldid\n";
 					$rc = $db->remove_field( $dataset, $fields->{$fieldid} );
 				}
 			}
@@ -642,8 +638,6 @@ sub remove
 	my $backup_directory = make_backup($repository, $package_name);
 	
 	my $schema_before = get_current_schema($repository);
-print STDERR "BEFORE OK\n" if $schema_before->{'testset'};
-
 	my $rc = 0;
 	my $failed_flag = 0;
 
@@ -675,7 +669,6 @@ print STDERR "BEFORE OK\n" if $schema_before->{'testset'};
 	
 	$repository->load_config();
 	my $schema_after = get_current_schema($repository);
-print STDERR "AFTER OK\n" if !$schema_after->{'testset'};
 	remove_dataset_diffs($repository,$schema_before,$schema_after);
 
 	rmtree($package_path);
@@ -821,8 +814,6 @@ sub get_app_from_eprint
 
 	my $epdata = EPrints::DataObj::EPM->xml_to_epdata( $repo, $node );
 
-	print STDERR $epdata;
-
 	return undef if !defined $epdata->{eprintid};
 
 	my $app = {};
@@ -841,7 +832,6 @@ sub get_app_from_eprint
 			my $url = $document->{files}->[0]->{url};
 			foreach my $relation (@{$document->{relation}})
 			{
-				print STDERR "$relation->{type} / $relation->{uri}\n\n";
 				next if $relation->{type} !~ m# ^http://eprints\.org/relation/has(\w+)ThumbnailVersion$ #x;
 				my $type = $1;
 				next if $relation->{uri} !~ m# ^/id/document/(\w+)$ #x;
