@@ -262,6 +262,11 @@ my $INFO = {
 		index => 1,
 		datestamp => "datestamp",
 	},
+	epm => {
+		sqlname => "epm",
+		class => "EPrints::DataObj::EPM",
+		virtual => 1,
+	},
 };
 
 ######################################################################

@@ -6,7 +6,6 @@ use File::Copy;
 use Cwd;
 use Digest::MD5;
 use XML::LibXML::SAX;
-use XML::Simple;
 
 sub unpack_package 
 {
@@ -261,7 +260,9 @@ sub install
 	$package_files->{$icon_file} = 1;
 	
 	mkpath($package_path);
-	
+
+	my $schema_before = get_current_schema($repository);
+
 	$rc = 1;
         File::Find::find( {
                 no_chdir => 1,
@@ -350,13 +351,116 @@ sub install
 		my ($rc2,$extra) = remove($repository,$package_name,1);
 		$message = "Package Install Failed (compilation error), package was removed again with message: " . $extra;
 		$rc = 1;
+	} else {
+		$repository->load_config();
+		my $schema_after = get_current_schema($repository);
+		my $rc = install_dataset_diffs($repository,$schema_before,$schema_after);
 	}
 	
 	if ($abort > 0) {
 		return (1,$message);
 	}
+	
+	if ( $rc > 0 ) {
+		my ($rc2,$extra) = remove($repository,$package_name,1);
+		$message = "Package Install Failed (failed to create datasets in database), package was removed again with message: " . $extra;
+	}
 
 	return ( $rc,$message );
+
+}
+
+sub get_current_schema
+{
+	my( $repo ) = @_;
+
+	my $data = {};
+
+	foreach my $datasetid ( $repo->get_sql_dataset_ids() )
+	{
+		my $dataset = $repo->dataset( $datasetid );
+		$data->{$datasetid}->{dataset} = $dataset;
+		foreach my $field ($repo->dataset( $datasetid )->fields)
+		{
+			next if defined $field->property( "sub_name" );
+			$data->{$datasetid}->{fields}->{$field->name} = $field;
+		}
+	}
+
+	return $data;
+}
+
+sub install_dataset_diffs
+{
+	my ($repo, $before, $after) = @_;
+	
+	my $db = $repo->get_db();
+
+	my $rc = 0;
+
+	foreach my $datasetid ( keys %$after )
+	{
+		my $dataset = $after->{$datasetid}->{dataset};
+		my $fields = $after->{$datasetid}->{fields};
+		if( !defined $before->{$datasetid} )
+		{
+			if( !$db->has_dataset( $dataset ) )
+			{
+				$rc = $db->create_dataset_tables( $dataset );
+			}
+		}
+		else
+		{
+			foreach my $fieldid ( keys %$fields )
+			{
+				if( !defined $before->{$datasetid}->{fields}->{$fieldid} )
+				{
+					$rc = $db->add_field( $dataset, $fields->{$fieldid} );
+				}
+			}
+		}
+	}
+	
+	return $rc;
+
+}
+
+sub remove_dataset_diffs
+{
+	my ($repo, $before, $after) = @_;
+	
+	my $db = $repo->get_db();
+
+	my $rc = 0;
+
+	foreach my $datasetid (keys %$before)
+	{
+print STDERR "dataset $datasetid\n";
+		my $dataset = $before->{$datasetid}->{dataset};
+		my $fields = $before->{$datasetid}->{fields};
+		if( !defined $after->{$datasetid} )
+		{
+			if( $db->has_dataset( $dataset ) )
+			{
+print STDERR "DROPING DATASET $datasetid\n";
+				$rc = $db->drop_dataset_tables( $dataset );
+			}
+		}
+		else
+		{
+			foreach my $fieldid ( keys %$fields )
+			{
+print STDERR "field $fieldid\n";
+				if( !defined $after->{$datasetid}->{fields}->{$fieldid} )
+				{
+print STDERR "DROPING FIELD $fieldid\n";
+					$rc = $db->remove_field( $dataset, $fields->{$fieldid} );
+				}
+			}
+		}
+	}
+	
+	return $rc;
 
 }
 
@@ -436,10 +540,10 @@ sub write_md5s
 	if ( defined $file_md5s) {
 		my $md5_file = $package_path . "/checksums";
 		open (MD5FILE, ">$md5_file");
-		print MD5FILE $file_md5s;	
+		print MD5FILE $file_md5s;
+		close(MD5FILE);
 	}
 }
-
 
 sub make_backup 
 {
@@ -451,11 +555,17 @@ sub make_backup
 	my $epm_path = $archive_root . "/var/epm/packages/";
 	my $package_path = $epm_path . "/" . $package_name;
 	
+	#TODO make this copy everything recusively
 	my $spec_file = $package_path . "/" . $package_name . ".spec";
 	my $md5_file = $package_path . "/checksums";
+	my $datasets_file = $package_path . "/dataset_changes";
 
 	copy($package_path . "/" . $package_name . ".spec", $backup_directory . "/" . $package_name . ".spec");
 	copy($package_path . "/checksums", $backup_directory . "/checksums");
+	if ( -e $datasets_file) {
+		copy($package_path . "/dataset_changes", $backup_directory . "/dataset_changes");
+	}
+	#END TODO
 
 	open (MD5FILE, $md5_file);
 	while (<MD5FILE>) {
@@ -490,6 +600,7 @@ sub remove
 	
 	my $spec_file = $package_path . "/" . $package_name . ".spec";
 	my $md5_file = $package_path . "/checksums";
+	my $dataset_file = $package_path . "/dataset_changes";
 
 	if ( !-e $spec_file or !-e $md5_file and $force < 1) {
                 
@@ -529,6 +640,9 @@ sub remove
 	}  
 	
 	my $backup_directory = make_backup($repository, $package_name);
+	
+	my $schema_before = get_current_schema($repository);
+print STDERR "BEFORE OK\n" if $schema_before->{'testset'};
 
 	my $rc = 0;
 	my $failed_flag = 0;
@@ -541,7 +655,7 @@ sub remove
 			}
 		}
 	}
-
+	
 	if ($failed_flag != 0) {
 		
 		install($repository, $backup_directory, 1);
@@ -550,6 +664,20 @@ sub remove
 			
 	}
 	
+	my $installed = check_install($repository);
+	#if ($installed > 0) {
+	#	my ($rc2,$extra) = install($repository,$package_name,1);
+	#	my $message = "Package remove Failed (compilation error), package was installed again with message: " . $extra;
+	#	$rc = 1;
+	#	return (1,$message);
+	#}
+	
+	
+	$repository->load_config();
+	my $schema_after = get_current_schema($repository);
+print STDERR "AFTER OK\n" if !$schema_after->{'testset'};
+	remove_dataset_diffs($repository,$schema_before,$schema_after);
+
 	rmtree($package_path);
 
 	return (0,"Package Successfully Removed");
@@ -659,32 +787,27 @@ sub retrieve_available_epms
 
 	my @apps;
 
-	foreach my $epm_source (@{$repository->get_repository->get_conf("epm_sources")}) {
+	SOURCE: foreach my $epm_source (@{$repository->config("epm_sources")}) {
 
 		my $url = $epm_source->{base_url} . "/cgi/search/advanced/export_training12c_XML.xml?screen=Public%3A%3AEPrintSearch&_action_export=1&output=XML&exp=0|1|-date%2Fcreators_name%2Ftitle|archive|-|type%3Atype%3AANY%3AEQ%3Aepm|-|eprint_status%3Aeprint_status%3AALL%3AEQ%3Aarchive|metadata_visibility%3Ametadata_visibility%3AALL%3AEX%3Ashow";
 
+		my $tmp = File::Temp->new;
+
 		$url = URI->new( $url )->canonical;
 		my $ua = LWP::UserAgent->new;
-		my $r = $ua->get( $url );
+		my $r = $ua->get( $url, ":content_file" => "$tmp" );
 
-		my $eprints = XMLin( $r->content, KeyAttr => [], ForceArray => [qw( document file item)] );
-	
-		#print Data::Dumper::Dumper($eprints);
-		#return [];
-	
-		my @array;
-		use UNIVERSAL 'isa';
-		if (isa($eprints, 'ARRAY')) {
-			foreach my $eprint (@{$eprints->{eprint}})
-			{
-				my $app = get_app_from_eprint($eprint);
-				return $app if defined $id and $id eq $app->{id};
-				push @apps, $app if defined $app;
-			}
-		} else {
-			my $app = get_app_from_eprint($eprints->{eprint});
-			return $app if defined $id and $id eq $app->{id};
-			push @apps, $app if defined $app;
+		seek($tmp,0,0);
+
+		my $xml = eval { $repository->xml->parse_file( "$tmp" ) };
+		next SOURCE if $@;
+
+		EPRINT: foreach my $node ($xml->documentElement->getElementsByTagName( "eprint" ))
+		{
+			my $app = get_app_from_eprint( $repository, $node );
+			next EPRINT if !defined $app;
+			return $app if defined $id && $id eq $app->{id};
+			push @apps, $app;
 		}
 	}
 	return undef if defined $id;
@@ -694,45 +817,45 @@ sub retrieve_available_epms
 
 sub get_app_from_eprint
 {
-	my ( $eprint ) = @_;
+	my( $repo, $node ) = @_;
+
+	my $epdata = EPrints::DataObj::EPM->xml_to_epdata( $repo, $node );
+
+	print STDERR $epdata;
+
+	return undef if !defined $epdata->{eprintid};
+
 	my $app = {};
-	$app->{id} = $eprint->{eprintid};
-	$app->{title} = $eprint->{title};
-	$app->{link} = $eprint->{id};
-	$app->{date} = $eprint->{datestamp};
-	$app->{package} = $eprint->{package_name};
-	$app->{description} = $eprint->{description};
-	$app->{version} = $eprint->{version};
-	foreach my $document (@{$eprint->{documents}->{document}})
+	$app->{id} = $epdata->{eprintid};
+	$app->{title} = $epdata->{title};
+	$app->{link} = $epdata->{id};
+	$app->{date} = $epdata->{datestamp};
+	$app->{package} = $epdata->{package_name};
+	$app->{description} = $epdata->{description};
+	$app->{version} = $epdata->{version};
+
+	foreach my $document (@{$epdata->{documents}})
 	{
-		$app->{module} = $document->{files}->{file}->[0]->{url};
-		if(
-				$document->{format} eq "image/jpeg" or
-				$document->{format} eq "image/jpg" or
-				$document->{format} eq "image/png" or
-				$document->{format} eq "image/gif"
-		  )
+		if( $document->{content} eq "icon" && $document->{format} =~ m#^image/# )
 		{
-			my $i = 0;
-			my $url = $document->{files}->{file}->[0]->{url};
-			my $relation = $document->{relation};
-			foreach my $item (@{$relation->{item}}) {
-				if ($item->{type} eq "http://eprints.org/relation/ismediumThumbnailVersionOf") {
-					$app->{thumbnail} = $url;
-				} elsif ($item->{type} eq "http://eprints.org/relation/ispreviewThumbnailVersionOf") {
-					$app->{preview} = $url;
-				}
+			my $url = $document->{files}->[0]->{url};
+			foreach my $relation (@{$document->{relation}})
+			{
+				print STDERR "$relation->{type} / $relation->{uri}\n\n";
+				next if $relation->{type} !~ m# ^http://eprints\.org/relation/has(\w+)ThumbnailVersion$ #x;
+				my $type = $1;
+				next if $relation->{uri} !~ m# ^/id/document/(\w+)$ #x;
+				my $thumb_url = $url;
+				substr($thumb_url, length($thumb_url) - length($document->{main}) - 1, 0) = ".has${type}ThumbnailVersion";
+				$app->{'thumbnail_'.$type} = $thumb_url;
 			}
 		}
-		if ($document->{format} eq "application/epm") 
+		elsif( $document->{format} eq "application/epm" )
 		{
-			my $url = $document->{files}->{file}->[0]->{url};
-			$app->{epm} = $url;
+			$app->{epm} = $document->{files}->[0]->{url};
 		}
 	}
-	if (!(defined $app->{id})) {
-		$app = undef;
-	}
+
 	return $app;
 }
 
@@ -747,8 +870,7 @@ sub verify_app
 	if (!defined $app->{title}) { $message .= " title "; }
 	if (!defined $app->{icon}) { $message .= " icon "; }
 	if (!defined $app->{description}) { $message .= " package description "; }
-	if (!defined $app->{creator_name}) { $message .= " creator_name "; }
-	if (!defined $app->{creator_email}) { $message .= " creator_email "; }
+	if (!defined $app->{creator}) { $message .= " creator "; }
 
 	if (defined $message) {
 		return (0, $message);

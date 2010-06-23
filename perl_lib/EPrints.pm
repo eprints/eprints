@@ -156,6 +156,7 @@ use EPrints::DataObj::Access;
 use EPrints::DataObj::Cachemap;
 use EPrints::DataObj::Document;
 use EPrints::DataObj::EPrint;
+use EPrints::DataObj::EPM;
 use EPrints::DataObj::File;
 use EPrints::DataObj::History;
 use EPrints::DataObj::Import;
@@ -548,7 +549,7 @@ sub sigusr2_cluck
 {
 	no warnings;
 	$SIG{'USR2'} = \&sigusr2_cluck;
-#	$SIG{__DIE__} = \&EPrints::abort; # uncomment this to help with debugging
+	#$SIG{__DIE__} = \&EPrints::abort; # uncomment this to help with debugging
 };
 
 umask( 0002 );
