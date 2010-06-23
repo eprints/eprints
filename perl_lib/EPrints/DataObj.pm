@@ -532,7 +532,15 @@ sub commit
 	}
 
 	# Queue changes for the indexer (if indexable)
-	$self->queue_changes();
+	if( $self->{non_volatile_change} )
+	{
+		$self->queue_changes();
+	}
+
+	$self->dataset->run_triggers( EPrints::Const::EP_TRIGGER_AFTER_COMMIT,
+		dataobj => $self,
+		changed => $self->{changed},
+	);
 
 	# clear changed fields
 	$self->clear_changed();
@@ -1444,19 +1452,6 @@ sub queue_changes
 
 	return unless $self->{dataset}->indexable;
 
-	my @fields;
-
-	foreach my $fieldname ( keys %{$self->{changed}} )
-	{
-		my $field = $self->{dataset}->get_field( $fieldname );
-
-		next unless( $field->get_property( "text_index" ) );
-
-		push @fields, $fieldname;
-	}	
-
-	return unless scalar @fields;
-
 	my $user = $self->{session}->current_user;
 	my $userid;
 	$userid = $user->id if defined $user;
@@ -1464,7 +1459,7 @@ sub queue_changes
 	EPrints::DataObj::EventQueue->create_from_data( $self->{session}, {
 			pluginid => "Event::Indexer",
 			action => "index",
-			params => [$self->internal_uri, @fields],
+			params => [$self->internal_uri, keys %{$self->{changed}}],
 			userid => $userid,
 		});
 }
