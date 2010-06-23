@@ -14,13 +14,79 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
-B<EPrints::Update::Views
+B<EPrints::Update::Views> - Update view pages
+
+=head1 SYNOPSIS
+
+	$c->{browse_views} = [
+		{
+			id => "year",
+			order => "creators_name/title",
+			menus => [
+				{
+					fields => [qw( date;res=year )],
+					reverse_order => 1,
+					allow_null => 1,
+					new_column_at => [10, 10]
+				},
+			],
+			variations => [qw(
+				creators_name;first_letter
+				type
+				DEFAULT
+			)],
+		},
+	];
 
 =head1 DESCRIPTION
 
 Update the browse-by X web pages on demand.
+
+=head1 OPTIONS
+
+=over 4
+
+=item id
+
+Set the unique id for the view, which in the URL will be /view/[id]/...
+
+=item dataset = "archive"
+
+Set the dataset id to retrieve records from.
+
+=item menus = [ ... ]
+
+An array of hierarchical menu choices.
+
+=item order = ""
+
+Order matching records by the given field structure.
+
+=item variations = [qw( DEFAULT )]
+
+Add group-bys on additional pages. "DEFAULT" shows all of the records in a list.
+
+=back
+
+=head2 Menus
+
+=over 4
+
+=item allow_null = 0
+
+=item fields = [qw( ... )]
+
+=item new_column_at = [x, y]
+
+=item reverse_order = 0
+
+=back
+
+=head1 METHODS
 
 =over 4
 
@@ -175,8 +241,6 @@ sub update_browse_view_list
 
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid."/view/index";
 
-	my $ds = $repository->get_dataset( "archive" );
-
 	my( $ul, $li, $page, $a, $file, $title );
 
 	$page = $session->make_doc_fragment();
@@ -192,6 +256,7 @@ sub update_browse_view_list
 		next if( $view->{nolink} );
 		$li = $session->make_element( "li" );
 		$a = $session->render_link( $view->{id}."/" );
+		my $ds = $repository->dataset( $view->{dataset} );
 		$a->appendChild( $session->make_text( $session->get_view_name( $ds, $view->{id} ) ) );
 		$li->appendChild( $a );
 		$ul->appendChild( $li );
@@ -313,6 +378,8 @@ sub modernise_view
 			$menu->{$confid} = $view->{$confid};
 		}
 	}
+
+	$view->{dataset} = "archive" if !defined $view->{dataset};
 }
 
 # Update a view menu - potentially expensive to do.
@@ -567,7 +634,7 @@ sub create_single_page_menu
 		$page->appendChild( $menu_xhtml );
 	}
 
-	my $ds = $session->get_repository->get_dataset( "archive" );
+	my $ds = $session->dataset( $view->{dataset} );
 	my $title;
 	my $title_phrase_id = "viewtitle_".$ds->confid()."_".$view->{id}."_menu_".( $menu_level + 1 );
 
@@ -622,13 +689,11 @@ sub get_fieldlist_sizes
 		return get_fieldlist_sizes_subject( $session, $fields, $filters );
 	}
 
-	my $ds = $session->get_repository->get_dataset( "archive" );
-
 	my %map=();
 	my %only_these_values = ();
 	FIELD: foreach my $field ( @{$fields} )
 	{
-		my $vref = $field->get_ids_by_value( $session, $ds, filters=>$filters );
+		my $vref = $field->get_ids_by_value( $session, $field->dataset, filters=>$filters );
 
 		VALUE: foreach my $value ( keys %{$vref} )
 		{
@@ -654,15 +719,13 @@ sub get_fieldlist_sizes_subject
 {
 	my( $session, $fields, $filters ) = @_;
 
-	my $ds = $session->get_repository->get_dataset( "archive" );
-
 	my( $subject_map, $subject_map_r ) = EPrints::DataObj::Subject::get_all( $session );
 
 	my %map=();
 	my %only_these_values = ();
 	FIELD: foreach my $field ( @{$fields} )
 	{
-		my $vref = $field->get_ids_by_value( $session, $ds, filters=>$filters );
+		my $vref = $field->get_ids_by_value( $session, $field->dataset, filters=>$filters );
 
 		my $top_node_id= $field->get_property( "top" );
 		SUBJECT: foreach my $subject_id ( keys %{$subject_map} )
@@ -707,12 +770,10 @@ sub get_fieldlist_values
 {
 	my( $session, $fields ) = @_;
 
-	my $ds = $session->get_repository->get_dataset( "archive" );
-
 	my $values = {};
 	foreach my $field ( @{$fields} )
 	{	
-		my @values = @{$field->get_values( $session, $ds )};
+		my @values = @{$field->all_values};
 		foreach my $value ( @values )
 		{ 
 			my $id = $fields->[0]->get_id_from_value( $session, $value );
@@ -1055,7 +1116,7 @@ sub get_fields_from_view
 
 	modernise_view( $view );
 
-	my $ds = $repository->get_dataset( "archive" );
+	my $ds = $repository->dataset( $view->{dataset} );
 	my $menus_fields = [];
 	foreach my $menu ( @{$view->{menus}} )
 	{
@@ -1102,7 +1163,7 @@ sub update_view_list
 		push @{$path_values}, EPrints::Utils::unescape_filename( $esc_value );
 	}
 
-	my $ds = $repository->get_dataset( "archive" );
+	my $ds = $repository->dataset( $view->{dataset} );
 
 	my $menus_fields = get_fields_from_view( $repository, $view );
 
@@ -1129,7 +1190,10 @@ sub update_view_list
 				satisfy_all=>1,
 				session=>$session,
 				dataset=>$ds );
-	$searchexp->add_field( $ds->get_field('metadata_visibility'), 'show', 'EQ' );
+	if( $ds->base_id eq "eprint" )
+	{
+		$searchexp->add_field( $ds->get_field('metadata_visibility'), 'show', 'EQ' );
+	}
 	my $n=0;
 	foreach my $filter ( @{$filters} )
 	{
