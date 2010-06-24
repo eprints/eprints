@@ -537,7 +537,7 @@ sub commit
 		$self->queue_changes();
 	}
 
-	$self->dataset->run_triggers( EPrints::Const::EP_TRIGGER_AFTER_COMMIT,
+	$self->dataset->run_trigger( EPrints::Const::EP_TRIGGER_AFTER_COMMIT,
 		dataobj => $self,
 		changed => $self->{changed},
 	);
