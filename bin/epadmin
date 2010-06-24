@@ -1362,7 +1362,7 @@ but NOT the configuration files, user data or subject data.
 
 END
 	
-	my $sure = EPrints::Utils::get_input_confirm( "Are you sure you want this to happen" );
+	my $sure = $force || EPrints::Utils::get_input_confirm( "Are you sure you want this to happen" );
 	unless( $sure )
 	{
 		print "Aborting then.\n";
@@ -1376,7 +1376,7 @@ END
 	}		
 	
 	my $ok;
-	$ok = EPrints::Utils::get_input( $REGEXP_YESNO, "Do you want to build the static web pages?", "yes" );
+	$ok = $force || EPrints::Utils::get_input( $REGEXP_YESNO, "Do you want to build the static web pages?", "yes" );
 	if( $ok eq "yes" )
 	{
 		run_script( $repoid, "generate_static", "--verbose", $repoid );	
