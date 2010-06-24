@@ -170,6 +170,7 @@ sub _load_plugin
 {
 	my( $self, $data, $repository, $fn, $class ) = @_;
 
+	local $SIG{__DIE__};
 	eval "use $class; 1";
 	if( $@ ne "" )
 	{
@@ -199,6 +200,7 @@ sub _load_xslt
 
 	if( !exists $self->{xslt}->{$fn} )
 	{
+		local $SIG{__DIE__};
 		my $doc = eval { $repository->xml->parse_file( $fn ) };
 		if( !defined $doc )
 		{

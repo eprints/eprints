@@ -1266,6 +1266,7 @@ sub require_if_exists
 	# perl doesn't have to build the eval environment
 	if( !exists $REQUIRED_CACHE{$module} )
 	{
+		local $SIG{__DIE__};
 		$REQUIRED_CACHE{$module} = eval "require $module";
 	}
 
