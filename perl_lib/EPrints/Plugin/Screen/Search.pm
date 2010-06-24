@@ -67,7 +67,7 @@ sub properties_from
 	}
 
 	$processor->{dataset} = $dataset;
-	$processor->{sconf} = $session->config( "search", $dataset->id );
+	$processor->{sconf} = $session->config( "datasets", $dataset->id, "search", "advanced" );
 
 	$self->SUPER::properties_from;
 }
