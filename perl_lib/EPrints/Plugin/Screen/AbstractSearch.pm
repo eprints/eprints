@@ -57,6 +57,7 @@ sub export_url
 
 	$url->query_form(
 		screen => $self->{processor}->{screenid},
+		dataset => $self->search_dataset->id,
 		_action_export => 1,
 		output => $format,
 		exp => $self->{processor}->{search}->serialise,
@@ -159,11 +160,10 @@ sub from
 	# maybe this can be removed later, but for a minor release this seems safest.
 	if( !EPrints::Utils::is_set( $self->{processor}->{action} ) )
 	{
-		my @paramlist = $self->{session}->param();
-		my $has_params = 0;
-		$has_params = 1 if( scalar @paramlist );
-		$has_params = 0 if( scalar @paramlist == 1 && $paramlist[0] eq 'screen' );
-		if( $has_params )
+		my %params = map { $_ => 1 } $self->{session}->param();
+		delete $params{screen};
+		delete $params{dataset};
+		if( scalar keys %params )
 		{
 			$self->{processor}->{action} = "search";
 		}
@@ -433,8 +433,7 @@ sub render_export_bar
 	$button->appendChild( $session->render_button(
 			name=>"_action_export_redir",
 			value=>$session->phrase( "lib/searchexpression:export_button" ) ) );
-	$button->appendChild( 
-		$session->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
+	$button->appendChild( $self->render_hidden_bits );
 	$button->appendChild( 
 		$session->render_hidden_field( "order", $order ) ); 
 	$button->appendChild( 
@@ -530,8 +529,7 @@ sub paginate_opts
 	$form->appendChild( $self->{session}->render_button(
 			name=>"_action_search",
 			value=>$self->{session}->phrase( "lib/searchexpression:reorder_button" ) ) );
-	$form->appendChild( 
-		$self->{session}->render_hidden_field( "screen", $self->{processor}->{screenid} ) ); 
+	$form->appendChild( $self->render_hidden_bits );
 	$form->appendChild( 
 		$self->{session}->render_hidden_field( "exp", $escexp, ) );
 
@@ -614,8 +612,8 @@ sub render_search_form
 	my( $self ) = @_;
 
 	my $form = $self->{session}->render_form( "get" );
-	$form->appendChild( 
-		$self->{session}->render_hidden_field ( "screen", $self->{processor}->{screenid} ) );		
+
+	$form->appendChild( $self->render_hidden_bits );
 
 	my $pphrase = $self->{processor}->{sconf}->{"preamble_phrase"};
 	if( defined $pphrase )
