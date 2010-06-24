@@ -216,7 +216,7 @@ sub epdata_to_dataobj
 
 	my $item;
 
-	if( $session->get_repository->get_conf('enable_import_ids') )
+	if( $session->config( 'enable_import_fields' ) )
 	{
 		my $ds_id = $dataset->confid;
 		if( $ds_id eq "eprint" || $ds_id eq "user" )
@@ -232,10 +232,6 @@ sub epdata_to_dataobj
 				return;
 			}
 		}
-	}
-	else
-	{
-		delete $epdata->{$dataset->get_key_field->get_name};
 	}
 
 	if( $dataset->confid eq "eprint" && exists($plugin->{import_documents}) && !$plugin->{import_documents} )

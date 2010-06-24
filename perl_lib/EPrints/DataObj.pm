@@ -217,109 +217,79 @@ sub create_from_data
 	$defaults = $class->get_defaults( $session, $defaults, $dataset );
 	
 	# cache the configuration options in variables
-	my $enable_import_ids = $session->get_repository->get_conf(
-		"enable_import_ids"
-		);
-	my $enable_import_datestamps = $session->get_repository->get_conf(
-		"enable_import_datestamps"
-		);
+	my $migration = $session->config( "enable_import_fields" );
 
-	my %subobjects;
+	my @create_subdataobjs;
 
-	foreach my $field ( $dataset->get_fields )
+	FIELD: foreach my $field ( $dataset->fields )
 	{
 		my $fieldname = $field->name;
-		next if !defined $data->{$fieldname};
 
 		# strip sub-objects and create them once we exist
 		if( $field->isa( "EPrints::MetaField::Subobject" ) )
 		{
-			$subobjects{$fieldname} = delete $data->{$fieldname};
-			next;
+			push @create_subdataobjs, [ $field, delete $data->{$fieldname} ]
+				if defined $data->{$fieldname};
+			next FIELD;
 		}
 
-		# strip non-importable values from $data
-		next if $field->get_property( "import" );
-
-		# This is a bit of a hack. The import script may set 
-		# "enable_import_ids" on session This will allow eprintids 
-		# and userids to be imported as-is rather than just being 
-		# assigned one. 
-		if( $enable_import_ids )
+		if( !$field->property( "import" ) && !$migration )
 		{
-			if( $dataset->confid eq "eprint" )
-			{
-				next if( $fieldname eq "eprintid" );
-				next if( $fieldname eq "dir" ); # eprintid is in dir
-			}
-			if( $dataset->id eq "user" )
-			{
-				next if( $fieldname eq "userid" );
-			}
+			delete $data->{$fieldname};
 		}
 
-		if( $enable_import_datestamps )
+		if( !EPrints::Utils::is_set( $data->{$fieldname} ) )
 		{
-			if( $dataset->confid eq "eprint" )
-			{
-				next if( $fieldname eq "datestamp" );
-			}
+			$data->{$fieldname} = $defaults->{$fieldname}
+				if exists $defaults->{$fieldname};
 		}
-
-		delete $data->{$fieldname};
 	}
 
-	foreach my $k ( keys %{$defaults} )
-	{
-		next if defined $data->{$k};
-		$data->{$k} = $defaults->{$k};
-	}
+	my $self = $class->new_from_data( $session, $data, $dataset );
+	return undef unless defined $self;
 
-	my $dataobj = $class->new_from_data( $session, $data, $dataset );
-	return undef unless defined $dataobj;
-
-	my $rc = $session->get_database->add_record( $dataset, $dataobj->get_data );
+	my $rc = $session->get_database->add_record( $dataset, $self->get_data );
 	return undef unless $rc;
 
-	$dataobj->set_under_construction( 1 );
+	$self->set_under_construction( 1 );
 
-	foreach my $fieldname (keys %subobjects)
+	# create sub-dataobjs
+	for(@create_subdataobjs)
 	{
-		if( ref($subobjects{$fieldname}) eq 'ARRAY' )
+		my $field = $_->[0];
+		$_->[1] = [$_->[1]] if ref($_->[1]) ne 'ARRAY';
+
+		my @dataobjs;
+
+		foreach my $epdata (@{$_->[1]})
 		{
-			my @subobjects;
-			foreach my $epdata (@{$subobjects{$fieldname}})
+			my $dataobj = $self->create_subdataobj( $field->name, $epdata );
+			if( !defined $dataobj )
 			{
-				my $subobj = $dataobj->create_subdataobj( $fieldname, $epdata );
-				if( !defined $subobj )
-				{
-					$session->log( "Failed to create subdataobj on $fieldname" );
-					$dataobj->remove();
-					return undef;
-				}
-				push @subobjects, $subobj;
-			}
-			$dataobj->set_value( $fieldname, \@subobjects );
-		}
-		else
-		{
-			my $subobj = $dataobj->create_subdataobj( $fieldname, $subobjects{$fieldname} );
-			if( !defined $subobj )
-			{
-				$session->log( "Failed to create subdataobj on $fieldname" );
-				$dataobj->remove();
+				$session->log( "Failed to create subdataobj on ".$dataset->id.".".$field->name );
+				$self->remove();
 				return undef;
 			}
-			$dataobj->set_value( $fieldname, $subobj );
+			push @dataobjs, $dataobj;
 		}
+
+		$self->set_value( $field->name, $field->property( "multiple" ) ? \@dataobjs : $dataobjs[0] );
 	}
 
-	$dataobj->set_under_construction( 0 );
+	if( $migration && $dataset->key_field->isa( "EPrints::MetaField::Counter" ) )
+	{
+		$session->get_database->counter_minimum(
+			$dataset->key_field->property( "sql_counter" ),
+			$self->id
+		);
+	}
+
+	$self->set_under_construction( 0 );
 
 	# queue all the fields for indexing.
-	$dataobj->queue_all;
+	$self->queue_all;
 
-	return $dataobj;
+	return $self;
 }
 
 =item $dataobj = $dataobj->create_subdataobj( $fieldname, $epdata )
@@ -383,10 +353,17 @@ sub get_defaults
 		$dataset = $session->get_repository->get_dataset( $class->get_dataset_id );
 	}
 
+	my $migration = $session->config( "enable_import_fields" );
+
 	# set any values that a field has a default for e.g. counters
 	foreach my $field ($dataset->get_fields)
 	{
 		next if defined $field->get_property( "sub_name" );
+
+		# avoid getting a default value if it's already set
+		next if
+			EPrints::Utils::is_set( $data->{$field->name} ) &&
+			($field->property( "import") || $migration);
 
 		my $value = $field->get_default_value( $session );
 		next unless EPrints::Utils::is_set( $value );

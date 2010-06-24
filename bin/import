@@ -72,15 +72,7 @@ Don't import, just check the file.
 
 =item B<--migration>
 
-Turn on all the options needed to correctly import an XML data file exported from version 2, using the migration toolkit. This is the same as using --enable-import-ids --enable-import-datestamps --enable-file-imports --force
-
-=item B<--enable-import-ids>
-
-By default import will generate a new eprintid, or userid for each record. This option tells it to use the id spcified in the imported data. This is generally used for importing into a new repository from an old one.
-
-=item B<--enable-import-datestamps>
-
-Normally import will set the datestamp the the time the eprint was imported. This option causes it to take the datestamp from the imported data, if available.
+Turn on all the options needed to correctly import an XML data file exported from version 2, using the migration toolkit. Implies --enable-web-imports --enable-file-imports --force
 
 =item B<--enable-file-imports>
 
@@ -150,8 +142,7 @@ my $user = undef;
 my $parse_only = 0;
 my $enable_file_imports = 0;
 my $enable_web_imports = 0;
-my $enable_import_ids = 0;
-my $enable_import_datestamps = 0;
+my $enable_import_fields = 0;
 my $migration = 0;
 my $update = 0;
 
@@ -171,8 +162,6 @@ GetOptions(
 	'parse-only' => \$parse_only,
 	'enable-file-imports' => \$enable_file_imports,
 	'enable-web-imports' => \$enable_web_imports,
-	'enable-import-ids' => \$enable_import_ids,
-	'enable-import-datestamps' => \$enable_import_datestamps,
 	'migration' => \$migration,
 	'update' => \$update,
 ) || pod2usage( 2 );
@@ -189,12 +178,11 @@ if( $migration )
 	$force = 1;
 	$enable_file_imports = 1;
 	$enable_web_imports = 1;
-	$enable_import_ids = 1;
-	$enable_import_datestamps = 1;
+	$enable_import_fields = 1;
 }
 if( $update )
 {
-	$enable_import_ids = 1;
+	$enable_import_fields = 1;
 }
 
 if( $scripted ) { $noise = 0; }
@@ -224,17 +212,10 @@ if( $enable_web_imports )
 	# doesn't use a setter method!
 	$session->get_repository->{config}->{enable_web_imports} = 1;
 }
-if( $enable_import_ids ) 
-{ 
-	# doesn't use a setter method!
-	$session->get_repository->{config}->{enable_import_ids} = 1;
+if( $enable_import_fields )
+{
+	$session->get_repository->{config}->{enable_import_fields} = 1;
 }
-if( $enable_import_datestamps ) 
-{ 
-	# doesn't use a setter method!
-	$session->get_repository->{config}->{enable_import_datestamps} = 1;
-}
-
 
 my $ds = $session->get_repository->get_dataset( $datasetid ) ;
 if( !defined $ds )

@@ -211,7 +211,7 @@ if( !defined $session )
 my $filename = $ARGV[1];
 
 # We are always going to use the ids from the imported file
-$session->get_repository->{config}->{enable_import_ids} = 1;
+$session->get_repository->{config}->{enable_import_migration} = 1;
 
 if( !defined $filename )
 {

@@ -498,8 +498,6 @@ sub create_from_data
 	
 	return undef unless defined $new_eprint;
 
-	$session->get_database->counter_minimum( "eprintid", $new_eprint->get_id );
-	
 	$new_eprint->set_value( "fileinfo", $new_eprint->fileinfo );
 
 	$session->get_database->update(
