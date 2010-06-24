@@ -179,6 +179,7 @@ sub get_system_field_info
 	{ name=>"fileinfo", type=>"longtext", 
 		text_index=>0,
 		export_as_xml=>0,
+		volatile=>1,
 		render_value=>"EPrints::DataObj::EPrint::render_fileinfo" },
 
 	{ name=>"latitude", type=>"float", required=>0 },

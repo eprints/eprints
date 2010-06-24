@@ -92,7 +92,7 @@ sub get_system_field_info
 	return (
 		{ name=>"eventqueueid", type=>"counter", sql_counter=>"eventqueueid", required=>1 },
 		{ name=>"datestamp", type=>"timestamp", required=>1, },
-		{ name=>"hash", type=>"text", sql_index=>1, },
+		{ name=>"hash", type=>"id", sql_index=>1, },
 		{ name=>"unique", type=>"boolean", },
 		{ name=>"oneshot", type=>"boolean", },
 		{ name=>"priority", type=>"int", },
@@ -130,7 +130,8 @@ sub create_unique
 		filters => [
 			{ meta_fields => [qw( hash )], value => $data->{hash} },
 			{ meta_fields => [qw( status )], value => "waiting inprogress", match => "EQ", merge => "ANY" },
-		]);
+		],
+		limit => 1);
 	my $count = $results->count;
 
 	if( $count > 0 )

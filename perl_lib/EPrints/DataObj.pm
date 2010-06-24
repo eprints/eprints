@@ -509,10 +509,7 @@ sub commit
 	}
 
 	# Queue changes for the indexer (if indexable)
-	if( $self->{non_volatile_change} )
-	{
-		$self->queue_changes();
-	}
+	$self->queue_changes();
 
 	$self->dataset->run_trigger( EPrints::Const::EP_TRIGGER_AFTER_COMMIT,
 		dataobj => $self,
@@ -1433,12 +1430,17 @@ sub queue_changes
 	my $userid;
 	$userid = $user->id if defined $user;
 
-	EPrints::DataObj::EventQueue->create_from_data( $self->{session}, {
-			pluginid => "Event::Indexer",
-			action => "index",
-			params => [$self->internal_uri, keys %{$self->{changed}}],
-			userid => $userid,
-		});
+	for(keys %{$self->{changed}})
+	{
+		next if !$self->{dataset}->field( $_ )->property( "text_index" );
+		EPrints::DataObj::EventQueue->create_from_data( $self->{session}, {
+				pluginid => "Event::Indexer",
+				action => "index",
+				params => [$self->internal_uri, keys %{$self->{changed}}],
+				userid => $userid,
+			});
+		last;
+	}
 }
 
 ######################################################################
@@ -1461,7 +1463,7 @@ sub queue_all
 	my $userid;
 	$userid = $user->id if defined $user;
 
-	EPrints::DataObj::EventQueue->create_from_data( $self->{session}, {
+	EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
 			pluginid => "Event::Indexer",
 			action => "index_all",
 			params => [$self->internal_uri],
