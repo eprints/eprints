@@ -58,20 +58,49 @@ package EPrints::Apache::LogHandler;
 
 use EPrints;
 
-our @RobotsSearchIDOrder_list1 = ();
-our @RobotsSearchIDOrder_list2 = ();
-our @RobotsSearchIDOrder_listgen = ();
-our %RobotsHashIDLib = ();
-our %RobotsAffiliateLib = ();
-
-eval "do 'robots.pm'"; # load robots.pm into our namespace
-
 use strict;
 
 use EPrints::Apache::AnApache;
 use Apache2::Connection;
 
-our @USERAGENT_ROBOTS = map { qr/$_/i } @RobotsSearchIDOrder_list1;
+our @USERAGENT_ROBOTS = map { qr/$_/i } qw{
+	Alexandria(\s|\+)prototype(\s|\+)project
+	Arachmo
+	Brutus\/AET
+	Code(\s|\+)Sample(\s|\+)Web(\s|\+)Client
+	dtSearchSpider
+	FDM(\s|\+)1
+	Fetch(\s|\+)API(\s|\+)Request
+	GetRight
+	Goldfire(\s|\+)Server
+	Googlebot
+	httpget\−5\.2\.2
+	HTTrack
+	iSiloX
+	libwww\-perl
+	LWP\:\:Simple
+	lwp\-trivial
+	Microsoft(\s|\+)URL(\s|\+)Control
+	Milbot
+	MSNBot
+	NaverBot
+	Offline(\s|\+)Navigator
+	playstarmusic.com
+	Python\-urllib
+	Readpaper
+	Strider
+	T\-H\-U\-N\-D\-E\-R\-S\-T\-O\-N\-E
+	Teleport(\s|\+)Pro
+	Teoma
+	Web(\s|\+)Downloader
+	WebCloner
+	WebCopier
+	WebReaper
+	WebStripper
+	WebZIP
+	Wget
+	Xenu(\s|\+)Link(\s|\+)Sleuth
+};
 our %ROBOTS_CACHE; # key=IP, value=time (or -time if not a robot)
 our $TIMEOUT = 3600; # 1 hour
 
