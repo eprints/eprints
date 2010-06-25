@@ -341,9 +341,8 @@ sub install
 	write_md5s($repository,$package_path,$file_md5s); 
 	
 	if (!defined $message) {
-		$rc = 0;
+		$rc = 0;	
 		$message = "Package Successfully Installed";
-	
 	} 
 	
 	my $installed = check_install($repository);
@@ -351,10 +350,35 @@ sub install
 		my ($rc2,$extra) = remove($repository,$package_name,1);
 		$message = "Package Install Failed (compilation error), package was removed again with message: " . $extra;
 		$rc = 1;
+		return ( $rc,$message );
 	} else {
 		$repository->load_config();
 		my $schema_after = get_current_schema($repository);
 		my $rc = install_dataset_diffs($repository,$schema_before,$schema_after);
+	}
+
+	my $keypairs = EPrints::EPM::read_spec_file($spec_file);
+	my $config_string = $keypairs->{configuration_file};
+	my $plugin_id = "Screen::".$config_string;
+
+	my $plugin = $repository->get_repository->plugin( $plugin_id );
+
+	my $return = 0;
+	if (defined $plugin) 
+	{
+		if ($plugin->can( "action_postinst" )) 
+		{
+			$return = $plugin->action_postinst();
+			$message = "Package Install Failed (postinst failed), package was removed again with message: ";
+		}
+	} else {
+print STDERR "NO PLUGIN\n";
+	}
+	if ($return > 0) {
+		my ($rc2,$extra) = remove($repository,$package_name,1);
+		return (1,$message . $extra);
+	} else {
+		$message = "Package Successfully Installed";
 	}
 	
 	if ($abort > 0) {
@@ -603,7 +627,36 @@ sub remove
 		return (1,"Cannot locate installed package : " . $package_name);
 		
 	}
+			
+	$repository->load_config();
 	
+	my $keypairs = EPrints::EPM::read_spec_file($spec_file);
+	my $config_string = $keypairs->{configuration_file};
+	my $plugin_id = "Screen::".$config_string;
+
+	my $plugin = $repository->get_repository->plugin( $plugin_id );
+
+	my $return = 0;
+	my $message;
+	if (defined $plugin) 
+	{
+		if ($plugin->can( "action_prerm" )) 
+		{
+			$return = $plugin->action_prerm();
+			$message = "Package cannot be removed as the packages pre-remove script failed.";
+		} 
+		if (!$return && $plugin->can( "action_removed_status" ))
+		{
+			$return = $plugin->action_removed_status();
+			$message = "Package cannot be removed as the packages pre-remove script failed.";
+		}
+	} else {
+print STDERR "NO PLUGIN";
+	}
+
+	if ($return > 0) {
+		return (1,$message);
+	}
 
 	my $pass = 1;
 	my @files;
