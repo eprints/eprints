@@ -43,7 +43,7 @@ sub new
 	my $self = $class->SUPER::new( %properties );
 
 	my %seen;
-	foreach my $inner_field ( @{$properties{fields}} )
+	foreach my $inner_field ( @{$properties{fields}}, $self->extra_subfields )
 	{
 		if( !EPrints::Utils::is_set( $inner_field->{sub_name} ) )
 		{
@@ -77,6 +77,21 @@ sub new
 	}
 
 	return $self;
+}
+
+=item @epdata = $field->extra_subfields()
+
+Returns a list of sub-field definitions that will be added to this compound field.
+
+This method should be overridden by sub-classes.
+
+=cut
+
+sub extra_subfields
+{
+	my( $self ) = @_;
+
+	return ();
 }
 
 sub render_value

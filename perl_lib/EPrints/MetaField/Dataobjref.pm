@@ -37,22 +37,12 @@ sub new
 {
 	my( $class, %properties ) = @_;
 
+	$properties{fields} = [
+		{ sub_name=>"title", type=>"text", },
+		{ sub_name=>"id", type=>"int", input_cols=>6, },
+	];
+
 	$properties{input_lookup_url} = 'lookup/dataobjref' if !defined $properties{input_lookup_url};
-
-	$properties{fields} = [] if !defined $properties{fields};
-
-	# avoid adding these fields when cloning
-	if( !defined $properties{fields_cache} )
-	{
-		push @{$properties{fields}}, {
-				sub_name=>"title",
-				type=>"text",
-			}, {
-				sub_name=>"id",
-				type=>"int",
-				input_cols=>6,
-			};
-	}
 
 	my $self = $class->SUPER::new( %properties );
 
