@@ -47,10 +47,7 @@ sub render_single_value
 {
 	my( $self, $session, $value ) = @_;
 
-	my $searchexp = $self->make_searchexp( $session, $value );
-	my $desc = $searchexp->render_description;
-	$searchexp->dispose;
-	return $desc;
+	return $self->make_searchexp( $session, $value )->render_description;
 }
 
 

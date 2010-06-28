@@ -2338,7 +2338,6 @@ sub in_editorial_scope_of
 	{
 		my $search = $ef_field->make_searchexp( $session, $s );
 		my $r = $search->get_conditions->item_matches( $self );
-		$search->dispose;
 
 		return 1 if $r;
 	}
