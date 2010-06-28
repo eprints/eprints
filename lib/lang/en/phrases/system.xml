@@ -3796,5 +3796,6 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Expand:no_plugin">No import plugin available to import file of type <epc:pin name="mime_type" /></epp:phrase>
 
 	<epp:phrase id="Plugin/Screen/Search:no_such_dataset">The dataset <em><epc:pin name="datasetid"/></em> does not exist.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Search:title">Search</epp:phrase>
 
 </epp:phrases>

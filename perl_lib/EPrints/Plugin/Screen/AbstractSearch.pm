@@ -615,11 +615,7 @@ sub render_search_form
 
 	$form->appendChild( $self->render_hidden_bits );
 
-	my $pphrase = $self->{processor}->{sconf}->{"preamble_phrase"};
-	if( defined $pphrase )
-	{
-		$form->appendChild( $self->{"session"}->html_phrase( $pphrase ));
-	}
+	$form->appendChild( $self->render_preamble );
 
 	$form->appendChild( $self->render_controls );
 
@@ -637,6 +633,18 @@ sub render_search_form
 	return( $form );
 }
 
+sub render_preamble
+{
+	my( $self ) = @_;
+
+	my $pphrase = $self->{processor}->{sconf}->{"preamble_phrase"};
+	if( defined $pphrase )
+	{
+		return $self->{"session"}->html_phrase( $pphrase );
+	}
+
+	return $self->{session}->make_doc_fragment;
+}
 
 sub render_search_fields
 {

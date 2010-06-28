@@ -25,8 +25,16 @@ EPrints->abort("not itemref") if !$field->isa( "EPrints::MetaField::Dataobjref" 
 
 my $tdataset = $repo->dataset( $field->get_property( "datasetid" ) );
 
-my $fieldnames = $repo->config( "datasets", $tdataset->base_id, "search", "simple", "meta_fields" );
-EPrints->abort("simple search fields not configured for ".$tdataset->base_id) if !defined $fieldnames;
+my $fieldnames;
+
+my $sconf = $repo->config( "datasets", $tdataset->base_id, "search", "simple" );
+EPrints->abort( "No simple search defined for ".$tdataset->id ) if !defined $sconf;
+for(@{$sconf->{search_fields}||[]})
+{
+	$fieldnames = $_->{meta_fields};
+	last;
+}
+EPrints->abort( "Simple search fields not configured for ".$tdataset->id ) if !EPrints::Utils::is_set( $fieldnames );
 
 my $results = $tdataset->search(
 	search_fields => [{

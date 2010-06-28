@@ -40,9 +40,15 @@ sub can_be_viewed
 {
 	my( $self ) = @_;
 
-	return
-		defined $self->{processor}->{dataset} &&
-		$self->allow( $self->{processor}->{dataset}->id . "/search" );
+	return 0 if !defined $self->{processor}->{dataset};
+
+	if( $self->{processor}->{dataset}->id eq "archive" )
+	{
+		return $self->allow( "eprint_search" )
+			if $self->allow( "eprint_search" );
+	}
+
+	return $self->allow( $self->{processor}->{dataset}->id . "/search" );
 }
 
 sub properties_from
@@ -66,8 +72,11 @@ sub properties_from
 		return;
 	}
 
+	my $sconf = $processor->{sconf};
+	$sconf = $session->config( "datasets", $dataset->id, "search", "advanced" ) if !defined $sconf;
+
 	$processor->{dataset} = $dataset;
-	$processor->{sconf} = $session->config( "datasets", $dataset->id, "search", "advanced" );
+	$processor->{sconf} = $sconf;
 
 	$self->SUPER::properties_from;
 }
@@ -87,10 +96,43 @@ sub render_hidden_bits
 
 	my $frag = $session->make_doc_fragment;
 
-	$frag->appendChild( $self->SUPER::render_hidden_bits );
-	$frag->appendChild( $session->xhtml->hidden_field( dataset => $self->{processor}->{dataset}->id ) );
+#	$frag->appendChild( $self->SUPER::render_hidden_bits );
+#	$frag->appendChild( $session->xhtml->hidden_field( dataset => $self->{processor}->{dataset}->id ) );
 
 	return $frag;
+}
+
+sub render_result_row
+{
+	my( $self, $session, $result, $searchexp, $n ) = @_;
+
+	return $result->render_citation_link(
+			$self->{processor}->{sconf}->{citation},  #undef unless specified
+			n => [$n,"INTEGER"] );
+}
+
+sub export_url
+{
+	my( $self, $format ) = @_;
+
+	my $plugin = $self->{session}->plugin( "Export::".$format );
+	if( !defined $plugin )
+	{
+		EPrints::abort( "No such plugin: $format\n" );	
+	}
+
+	my $url = URI->new( $self->{session}->current_url() . "/export_" . $self->{session}->get_repository->get_id . "_" . $format . $plugin->param( "suffix" ) );
+
+	$url->query_form(
+		screen => $self->{processor}->{screenid},
+		dataset => $self->search_dataset->id,
+		_action_export => 1,
+		output => $format,
+		exp => $self->{processor}->{search}->serialise,
+		n => $self->{session}->param( "n" ),
+	);
+
+	return $url;
 }
 
 1;
