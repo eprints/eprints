@@ -1812,7 +1812,7 @@ sub ordervalue
 	}
 
 	my $parent = $self->property( "parent" );
-	if( defined $parent && $parent->isa( "EPrints::MetaField::Multilang" ) )
+	if( $self->property( "multiple" ) && defined $parent && $parent->isa( "EPrints::MetaField::Multilang" ) )
 	{
 		my $langs = $parent->property( "languages" );
 
