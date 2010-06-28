@@ -302,7 +302,7 @@ else
 	elsif( $action eq "config_db" ) { config_db( $repoid ); }
 	elsif( $action eq "database_type_info" ) { database_type_info( $repoid ); }
 	elsif( $action eq "create_db" ) { create_db( $repoid ); }
-	elsif( $action eq "create_user" ) { create_user( $repoid ); }
+	elsif( $action eq "create_user" ) { create_user( $repoid, @ARGV ); }
 	elsif( $action eq "create_tables" ) { create_tables( $repoid ); }
 	elsif( $action eq "erase_data" ) { erase_data( $repoid ); }
 	elsif( $action eq "erase_eprints" ) { erase_eprints( $repoid ); }
@@ -311,7 +311,7 @@ else
 	elsif( $action eq "reload_metafields" ) { reload_metafields( $repoid ); }
 	elsif( $action eq "refresh_abstracts" ) { refresh_abstracts( $repoid ); }
 	elsif( $action eq "refresh_views" ) { refresh_views( $repoid ); }
-	elsif( $action eq "redo_thumbnails" ) { redo_thumbnails( $repoid, @ARGV[2..$#ARGV] ); }
+	elsif( $action eq "redo_thumbnails" ) { redo_thumbnails( $repoid, @ARGV ); }
 	elsif( $action eq "upgrade" ) { upgrade( $repoid ); }
 	elsif( $action eq "schema" ) { schema( $repoid ); }
 	elsif( $action eq "update_database_structure" ) { update_database_structure( $repoid ); }
@@ -335,8 +335,8 @@ else
 		pod2usage(1) unless defined $datasetid;
 		reorder( $repoid, $datasetid, @ARGV );
 	}
-	elsif( $action eq "rehash" ) { rehash( $repoid ); }
-	elsif( $action eq "upgrade_add_files" ) { upgrade_add_files( $repoid ) }
+	elsif( $action eq "rehash" ) { rehash( $repoid, @ARGV ); }
+	elsif( $action eq "upgrade_add_files" ) { upgrade_add_files( $repoid, @ARGV ) }
 	elsif( $action eq "remove_field" ) { remove_field( $repoid, @ARGV ); }
 	else { pod2usage( 1 ); }
 }
@@ -362,7 +362,7 @@ sub repository
 
 sub create
 {
-	pod2usage( 2 ) if( scalar @ARGV != 1 ); 
+	pod2usage( 2 ) if( scalar @ARGV != 0 ); 
 
 	print <<END;
 
@@ -1099,38 +1099,58 @@ sub create_db
 
 sub create_user
 {
-	my( $repoid ) = @_;
+	my( $repoid, @info ) = @_;
 
 	my $repo = &repository( $repoid );
 
-	my $user_info = {};
-	@{$user_info}{qw( username usertype password email )} = @ARGV[2..$#ARGV];
-	if( defined($user_info->{username}) &&
-		$user_info->{username} eq "_" )
+	my %info;
+	@info{qw( username usertype password email )} = @info;
+	if( defined($info{username}) && $info{username} eq "_" )
 	{
-		@{$user_info}{qw( username usertype password email )} = (
-			"admin",
-			"admin",
-			"admin",
-			"admin\@localhost",
-		);
+		if( $info{usertype} && $info{usertype} eq "editor" )
+		{
+			@info{qw( username usertype password email )} = (
+				"editor",
+				"editor",
+				"editor",
+				"editor\@localhost",
+			);
+		}
+		elsif( $info{usertype} && $info{usertype} eq "user" )
+		{
+			@info{qw( username usertype password email )} = (
+				"user",
+				"user",
+				"user",
+				"user\@localhost",
+			);
+		}
+		else
+		{
+			@info{qw( username usertype password email )} = (
+				"admin",
+				"admin",
+				"admin",
+				"admin\@localhost",
+			);
+		}
 	}
 
 	print "Creating a new user in $repoid\n\n";
-	$user_info->{username} ||= EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
-	while( defined $repo->user_by_username( $user_info->{username} ) )
+	$info{username} ||= EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
+	while( defined $repo->user_by_username( $info{username} ) )
 	{
-		print STDERR "User with username '".$user_info->{username}."' already exists.\n";
-		$user_info->{username} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
+		print STDERR "User with username '".$info{username}."' already exists.\n";
+		$info{username} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
 	}
 	my @utypes = $repo->get_types( "user" );
-	$user_info->{usertype} ||= EPrints::Utils::get_input( '^('.join( '|', @utypes ).')$', 'Select a user type ('.join( "|",@utypes).')', 'admin' );
-	$user_info->{password} ||= EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Enter Password' );
-	$user_info->{password} = EPrints::Utils::crypt_password( $user_info->{password}, $repo );
-	$user_info->{email} ||= EPrints::Utils::get_input( $REGEXP_EMAIL, 'Email' );
+	$info{usertype} ||= EPrints::Utils::get_input( '^('.join( '|', @utypes ).')$', 'Select a user type ('.join( "|",@utypes).')', 'admin' );
+	$info{password} ||= EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Enter Password' );
+	$info{password} = EPrints::Utils::crypt_password( $info{password}, $repo );
+	$info{email} ||= EPrints::Utils::get_input( $REGEXP_EMAIL, 'Email' );
 	
 	my $user_ds = $repo->dataset( "user" );
-	my $new_user = $user_ds->create_dataobj( $user_info );
+	my $new_user = $user_ds->create_dataobj( \%info );
 
 	print "\n";
 
@@ -1639,13 +1659,12 @@ sub unit_tests
 
 sub rehash
 {
-	my( $repoid ) = @_;
+	my( $repoid, $docid ) = @_;
 
 	my $repo = &repository( $repoid );
 
 	my $dataset = $repo->dataset( "document" );
 
-	my $docid = $ARGV[2];
 	if( defined $docid )
 	{
 		my $doc = $dataset->dataobj( $docid );
@@ -2352,7 +2371,7 @@ sub upgrade_cfg_files
 
 sub upgrade_add_files
 {
-	my( $repoid ) = @_;
+	my( $repoid, @ids ) = @_;
 
 	my $repo = &repository( $repoid );
 
@@ -2361,9 +2380,9 @@ sub upgrade_add_files
 	my $doc_ds = $repo->dataset( "document" );
 
 	my $list;
-	if( @ARGV > 2 )
+	if( @ids )
 	{
-		$list = $repo->dataset( "eprint" )->list( [@ARGV[2..$#ARGV]] );
+		$list = $repo->dataset( "eprint" )->list( \@ids );
 	}
 	else
 	{
