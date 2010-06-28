@@ -74,7 +74,7 @@ Where I<command> is one of:
 
 =item unit_tests
 
-=item update_database_structure
+=item update
 
 =item upgrade
 
@@ -183,7 +183,11 @@ with a return code of 0.
 
 Run a performance profile of I<test> using L<Devel::NYTProf>.
 
-=item B<epadmin> update_database_structure I<repository_id>
+=item B<epadmin> remove_field I<repository_id> I<dataset> I<field_id>
+
+Remove the database entries for the given field, can not be undone!
+
+=item B<epadmin> update I<repository_id>
 
 This will add tables and columns to your SQL database to bring it in-line with your current configuration. It will not remove data. Use with caution on a live database. Database backup is recommended befire use on live systems.
 
@@ -284,14 +288,14 @@ my @PASSWORD_CHARS = ( 'a'..'z','A'..'Z','0'..'9' );
 
 my $eprints = EPrints->new();
 
-my $action = $ARGV[0];
+my $action = shift @ARGV;
 if( $action eq "create" ) { create(); }
-elsif( $action eq "test" ) { test( $ARGV[1] ); }
-elsif( $action eq "unit_tests" ) { unit_tests( @ARGV[1..$#ARGV] ); }
-elsif( $action eq "profile" ) { profile( $ARGV[1] ); }
+elsif( $action eq "test" ) { test( @ARGV ); }
+elsif( $action eq "unit_tests" ) { unit_tests( @ARGV ); }
+elsif( $action eq "profile" ) { profile( @ARGV ); }
 else
 {
-	my $repoid = $ARGV[1];
+	my $repoid = shift @ARGV;
 	pod2usage(1) unless defined $repoid;
 	if( $action eq "cleanup_cachemaps" ) { cleanup_cachemaps( $repoid ); }
 	elsif( $action eq "config_core" ) { config_core( &repository($repoid) ); }
@@ -311,27 +315,29 @@ else
 	elsif( $action eq "upgrade" ) { upgrade( $repoid ); }
 	elsif( $action eq "schema" ) { schema( $repoid ); }
 	elsif( $action eq "update_database_structure" ) { update_database_structure( $repoid ); }
+	elsif( $action eq "update" ) { update_database_structure( $repoid ); }
 	elsif( $action eq "upgrade_mysql_charset" ) { upgrade_mysql_charset( $repoid ); }
 	elsif( $action eq "recommit" ) 
 	{
-		my $datasetid = $ARGV[2];
+		my $datasetid = shift @ARGV;
 		pod2usage(1) unless defined $datasetid;
-		recommit( $repoid, $datasetid, @ARGV[3..(scalar @ARGV)-1] ); 
+		recommit( $repoid, $datasetid, @ARGV );
 	}
 	elsif( $action eq "reindex" ) 
 	{
-		my $datasetid = $ARGV[2];
+		my $datasetid = shift @ARGV;
 		pod2usage(1) unless defined $datasetid;
-		reindex( $repoid, $datasetid, @ARGV[3..(scalar @ARGV)-1] ); 
+		reindex( $repoid, $datasetid, @ARGV );
 	}
 	elsif( $action eq "reorder" )
 	{
-		my $datasetid = $ARGV[2];
+		my $datasetid = shift @ARGV;
 		pod2usage(1) unless defined $datasetid;
-		reorder( $repoid, $datasetid, @ARGV[3..(scalar @ARGV)-1] ); 
+		reorder( $repoid, $datasetid, @ARGV );
 	}
 	elsif( $action eq "rehash" ) { rehash( $repoid ); }
 	elsif( $action eq "upgrade_add_files" ) { upgrade_add_files( $repoid ) }
+	elsif( $action eq "remove_field" ) { remove_field( $repoid, @ARGV ); }
 	else { pod2usage( 1 ); }
 }
 
@@ -1838,7 +1844,30 @@ sub schema
 	$plugin->output_list( list=>$dataset->search, fh=>*STDOUT );
 }
 
+sub remove_field
+{
+	my( $repoid, $datasetid, $fieldid ) = @_;
 
+	if( !defined $fieldid )
+	{
+		pod2usage( "Requires dataset and field ids" );
+	}
+
+	my $repo = &repository( $repoid );
+
+	my $dataset = $repo->dataset( $datasetid )
+		or die "Unknown dataset: $datasetid\n";
+
+	my $field = $dataset->field( $fieldid )
+		or die "Unknown field: $datasetid.$fieldid\n";
+
+	$force or EPrints::Utils::get_input_confirm( "Are you sure you want to remove the database tables for $datasetid.$fieldid?" ) or exit;
+
+	if( $repo->database->remove_field( $dataset, $field ) )
+	{
+		print "Removed $datasetid.$fieldid\n";
+	}
+}
 
 
 ####################################################################
