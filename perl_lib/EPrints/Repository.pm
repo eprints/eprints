@@ -605,7 +605,7 @@ sub _add_http_paths
 	$config->{"urlpath"} ||= $config->{"http_root"};
 	$config->{"base_url"} ||= $config->{"http_url"} . "/";
 	$config->{"perl_url"} ||= $config->{"http_cgiurl"};
-	$config->{"frontpage"} ||= $config->{"http_root"} . "/";
+	$config->{"frontpage"} ||= $config->{"http_url"} . "/";
 	$config->{"userhome"} ||= $config->{"http_cgiroot"} . "/users/home";
 }
  
