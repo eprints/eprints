@@ -76,7 +76,8 @@ sub render
 
 	my $chunk = $self->{session}->make_doc_fragment;
 
-#	$chunk->appendChild( $self->render_status );
+	$chunk->appendChild( $self->render_status );
+
 	my $buttons = $self->render_common_action_buttons;
 	$chunk->appendChild( $buttons );
 
@@ -177,6 +178,23 @@ sub render
 
 #	$chunk->appendChild( $buttons->cloneNode(1) );
 	return $chunk;
+}
+
+sub render_status
+{
+	my( $self ) = @_;
+
+	my $dataobj = $self->{processor}->{dataobj};
+
+	my $url = $dataobj->uri;
+
+	my $div = $self->{session}->make_element( "div", class=>"ep_block" );
+
+	my $link = $self->{session}->render_link( $url );
+	$div->appendChild( $link );
+	$link->appendChild( $self->{session}->make_text( $url ) );
+
+	return $div;
 }
 
 sub render_common_action_buttons
