@@ -38,8 +38,9 @@ $c->{validate_field} = sub
 
 	# closure for generating the field link fragment
 	my $f_fieldname = sub {
-		my $fieldname = $session->make_element( "span", class=>"ep_problem_field:".$field->get_name );
-		$fieldname->appendChild( $field->render_name( $session ) );
+		my $f = defined $field->property( "parent" ) ? $field->property( "parent" ) : $field;
+		my $fieldname = $session->make_element( "span", class=>"ep_problem_field:".$f->get_name );
+		$fieldname->appendChild( $f->render_name( $session ) );
 		return $fieldname;
 	};
 
