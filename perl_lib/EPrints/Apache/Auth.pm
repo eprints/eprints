@@ -181,6 +181,7 @@ sub auth_cookie
 		my $target_url = $repository->get_url(
 			host => 1,
 			path => "auto",
+			query => 1,
 		);
 		$login_url = URI->new( $login_url );
 		$login_url->query_form(
