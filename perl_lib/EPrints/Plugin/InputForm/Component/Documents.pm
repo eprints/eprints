@@ -406,9 +406,10 @@ sub _render_doc_div
 
 	my $id_prefix = "doc.".$doc->get_id;
 
-
-	my @tabs = $self->_render_doc( $doc, $files );
-
+	my @tabs;
+	
+	push @tabs, $self->_render_doc_metadata( $doc );
+	push @tabs, $self->_render_doc_files( $doc, $files );
 	push @tabs, $self->_render_related_docs( $doc );
 
 	# render the tab menu
@@ -646,54 +647,51 @@ sub _render_doc_placement
 	return $frag;
 }
 
-sub _render_doc
+sub _render_doc_metadata
 {
-	my( $self, $doc, $files ) = @_;
+	my( $self, $doc ) = @_;
 
 	my $session = $self->{session};	
 
-	my @tabs;
+	my @fields = $self->doc_fields( $doc );
+
+	return () if !scalar @fields;
 
 	my $doc_cont = $session->make_element( "div" );
 
 	my $docid = $doc->get_id;
 	my $doc_prefix = $self->{prefix}."_doc".$docid;
 
-	my @fields = $self->doc_fields( $doc );
-
-	if( scalar @fields )
+	my $update_doc = $session->render_hidden_field( $doc_prefix, "1" );
+	$doc_cont->appendChild( $update_doc );
+	my $table = $session->make_element( "table", class=>"ep_upload_fields ep_multi" );
+	$doc_cont->appendChild( $table );
+	my $first = 1;
+	foreach my $field ( @fields )
 	{
-		my $update_doc = $session->render_hidden_field( $doc_prefix, "1" );
-		$doc_cont->appendChild( $update_doc );
-		my $table = $session->make_element( "table", class=>"ep_upload_fields ep_multi" );
-		$doc_cont->appendChild( $table );
-		my $first = 1;
-		foreach my $field ( @fields )
+		my $label = $field->render_name($session);
+		if( $field->{required} ) # moj: Handle for_archive
 		{
-			my $label = $field->render_name($session);
-			if( $field->{required} ) # moj: Handle for_archive
-			{
-				$label = $self->{session}->html_phrase( 
-					"sys:ep_form_required",
-					label=>$label );
-			}
- 
-			$table->appendChild( $session->render_row_with_help(
-				class=>($first?"ep_first":""),
-				label=>$label,
-				field=>$field->render_input_field(
-                                	$session,
-                                	$doc->get_value( $field->get_name ),
-                                	undef,
-                                	0,
-                                	undef,
-                                	$doc,
-                                	$doc_prefix ),
-				help=>$field->render_help($session),
-				help_prefix=>$doc_prefix."_".$field->get_name."_help",
-			));
-			$first = 0;
+			$label = $self->{session}->html_phrase( 
+				"sys:ep_form_required",
+				label=>$label );
 		}
+
+		$table->appendChild( $session->render_row_with_help(
+			class=>($first?"ep_first":""),
+			label=>$label,
+			field=>$field->render_input_field(
+								$session,
+								$doc->get_value( $field->get_name ),
+								undef,
+								0,
+								undef,
+								$doc,
+								$doc_prefix ),
+			help=>$field->render_help($session),
+			help_prefix=>$doc_prefix."_".$field->get_name."_help",
+		));
+		$first = 0;
 	}
 
 	my $tool_div = $session->make_element( "div", class=>"ep_upload_doc_toolbar" );
@@ -707,13 +705,23 @@ sub _render_doc
 
 	$doc_cont->appendChild( $tool_div );
 	
-	push @tabs, {
+	return ({
 		id => "metadata_".$doc->get_id,
 		   title => $self->html_phrase("Metadata"),
 		   content => $doc_cont,
-	};
+	});
+}
 
-	$doc_cont = $session->make_element( "div" );
+sub _render_doc_files
+{
+	my( $self, $doc, $files ) = @_;
+
+	my $session = $self->{session};	
+
+	my $docid = $doc->get_id;
+	my $doc_prefix = $self->{prefix}."_doc".$docid;
+
+	my $doc_cont = $session->make_element( "div" );
 
 	$doc_cont->appendChild( $self->_render_filelist( $doc, $files ) );
 
@@ -734,15 +742,12 @@ sub _render_doc
 		) );
 	$doc_cont->appendChild( $block );
 
-	push @tabs, {
+	return ({
 		id => "files_".$doc->get_id,
 		title => $self->html_phrase( "Files" ),
 		content => $doc_cont,
-	};
-	return @tabs;
+	});
 }
-			
-
 
 sub _render_add_file
 {
