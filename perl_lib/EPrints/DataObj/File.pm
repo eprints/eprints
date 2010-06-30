@@ -186,8 +186,7 @@ sub create_from_data
 		return if !defined $self;
 
 		use bytes;
-		my $data = MIME::Base64::decode( delete $data->{data} );
-		$ok = defined $self->set_file( \$data, length($data) );
+		$ok = defined $self->set_file( \$data->{data}, length($data->{data}) );
 	}
 	# read from a URL
 	elsif( EPrints::Utils::is_set( $data->{url} ) )

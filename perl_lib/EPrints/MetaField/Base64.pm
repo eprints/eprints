@@ -26,17 +26,12 @@ B<EPrints::MetaField::Base64> - Base 64 encoded data
 
 package EPrints::MetaField::Base64;
 
-use strict;
-use warnings;
-
-BEGIN
-{
-	our( @ISA );
-
-	@ISA = qw( EPrints::MetaField::Longtext );
-}
+use MIME::Base64;
 
 use EPrints::MetaField::Longtext;
+@ISA = qw( EPrints::MetaField::Longtext );
+
+use strict;
 
 sub to_xml
 {
@@ -57,6 +52,24 @@ sub to_xml
 	}
 
 	return $tag;
+}
+
+sub xml_to_epdata
+{
+	my( $self, $session, $xml, %opts ) = @_;
+
+	my $value = $self->SUPER::xml_to_epdata( $session, $xml, %opts );
+	return if !defined $value;
+
+	if( $xml->hasAttribute( "encoding" ) && $xml->getAttribute( "encoding" ) eq "base64" )
+	{
+		for(ref($value) eq "ARRAY" ? @$value : $value)
+		{
+			$_ = MIME::Base64::decode_base64( $_ );
+		}
+	}
+
+	return $value;
 }
 
 ######################################################################
