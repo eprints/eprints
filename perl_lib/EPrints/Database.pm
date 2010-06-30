@@ -2229,7 +2229,8 @@ sub _cache_from_SELECT
 	my $sql = "";
 	$sql .= "INSERT INTO ".$self->quote_identifier( $cache_table );
 	$sql .= "($Q_pos, $Q_keyname)";
-	$sql .= " SELECT ROWNUM, $Q_keyname";
+	# ROWNUM is zero-indexed
+	$sql .= " SELECT ROWNUM-1, $Q_keyname";
 	$sql .= " FROM ($select_sql) ".$self->quote_identifier( "S" );
 
 	$self->do( $sql );
