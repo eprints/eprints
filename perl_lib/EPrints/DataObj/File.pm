@@ -186,7 +186,8 @@ sub create_from_data
 		return if !defined $self;
 
 		use bytes;
-		$ok = defined $self->set_file( \$data->{data}, length($data->{data}) );
+		my $data = MIME::Base64::decode( delete $data->{data} );
+		$ok = defined $self->set_file( \$data, length($data) );
 	}
 	# read from a URL
 	elsif( EPrints::Utils::is_set( $data->{url} ) )
@@ -730,6 +731,31 @@ sub set_file
 	$self->set_value( "hash_type", "MD5" );
 
 	return $rlen;
+}
+
+sub xml_to_epdata
+{
+	my( $class, $session, $xml, %opts ) = @_;
+
+	my $content;
+
+	my( $data ) = $xml->getElementsByTagName( "data" );
+	if( defined $data )
+	{
+		$xml->removeChild( $data );
+		
+		my $tmpfile = $data->firstChild->toString;
+		$content = $opts{tmpfiles}->{$tmpfile};
+	}
+
+	# ignore all other <data> fields
+	$xml->removeChild( $_ ) for $xml->getElementsByTagName( "data" );
+
+	my $epdata = $class->SUPER::xml_to_epdata( $session, $xml, %opts );
+
+	$epdata->{_content} = $content;
+
+	return $epdata;
 }
 
 1;

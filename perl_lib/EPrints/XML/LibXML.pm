@@ -32,7 +32,7 @@ use warnings;
 use strict;
 
 use XML::LibXML 1.63;
-use XML::LibXML::SAX::Parser;
+use XML::LibXML::SAX;
 # $XML::LibXML::skipXMLDeclaration = 1; # Same behaviour as XML::DOM
 
 $EPrints::XML::CLASS = "EPrints::XML::LibXML";
@@ -132,7 +132,7 @@ in the handler where necessary.
 sub event_parse
 {
 	my( $fh, $handler ) = @_;	
-	my $parser = new XML::LibXML::SAX::Parser->new(Handler => $handler);
+	my $parser = new XML::LibXML::SAX->new(Handler => $handler);
 	$parser->parse_file( $fh );	
 }
 

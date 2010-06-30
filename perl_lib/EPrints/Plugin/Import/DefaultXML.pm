@@ -59,7 +59,9 @@ sub input_fh
 		plugin => $plugin,
 		depth => 0,
 		tmpfiles => [],
-		imported => [], };
+		imported => [],
+		encoding => undef,
+		buffer => '' };
 	bless $handler, "EPrints::Plugin::Import::DefaultXML::Handler";
 
 	eval { EPrints::XML::event_parse( $opts{fh}, $handler ) };
@@ -73,16 +75,16 @@ sub input_fh
 
 sub xml_to_dataobj
 {
-	my( $plugin, $dataset, $xml ) = @_;
+	my( $plugin, $dataset, $xml, %opts ) = @_;
 
-	my $epdata = $plugin->xml_to_epdata( $dataset, $xml );
+	my $epdata = $plugin->xml_to_epdata( $dataset, $xml, %opts );
 
-	return $plugin->epdata_to_dataobj( $dataset, $epdata );
+	return $plugin->epdata_to_dataobj( $dataset, $epdata, %opts );
 }
 
 sub xml_to_epdata
 {
-	my( $plugin, $dataset, $xml ) = @_;
+	my( $plugin, $dataset, $xml, %opts ) = @_;
 
 	$plugin->error( $plugin->phrase( "no_subclass" ) );
 }
@@ -130,9 +132,34 @@ use strict;
 
 sub characters
 {
-        my( $self , $node_info ) = @_;
+	my( $self, $node_info ) = @_;
 
-	if( $self->{depth} > 1 )
+	return if $self->{depth} <= 1;
+
+	if( $self->{encoding} )
+	{
+		my $tmpfile = $self->{tmpfiles}->[$#{$self->{tmpfiles}}];
+		if( $self->{encoding} eq "base64" )
+		{
+			use bytes;
+			for($node_info->{Data})
+			{
+				substr($_,0,0) = $self->{buffer};
+				print $tmpfile MIME::Base64::decode_base64( substr($_,0,length($_) - length($_)%77) );
+				$_ = substr($_,length($_) - length($_)%77);
+				$self->{buffer} = $_;
+			}
+		}
+		else
+		{
+			print $tmpfile $node_info->{Data};
+		}
+	}
+	elsif( $self->{xmlcurrent}->hasChildNodes )
+	{
+		$self->{xmlcurrent}->firstChild->appendData( $node_info->{Data} );
+	}
+	else
 	{
 		$self->{xmlcurrent}->appendChild( $self->{plugin}->{session}->make_text( $node_info->{Data} ) );
 	}
@@ -146,7 +173,11 @@ sub end_element
 
 	if( $self->{depth} == 1 )
 	{
-		my $item = $self->{plugin}->xml_to_dataobj( $self->{dataset}, $self->{xml} );
+		seek($_,0,0) for @{$self->{tmpfiles}};
+
+		my $item = $self->{plugin}->xml_to_dataobj( $self->{dataset}, $self->{xml},
+			tmpfiles => { map { $_ => $_ } @{$self->{tmpfiles}} },
+		);
 		EPrints::XML::dispose( $self->{xml} );
 		delete $self->{xml};
 		if( defined $item )
@@ -160,6 +191,7 @@ sub end_element
 
 	if( $self->{depth} > 1 )
 	{
+		my $node = pop @{$self->{xmlstack}};
 		if( $self->{href} )
 		{
 			my $href = delete $self->{href};
@@ -169,7 +201,13 @@ sub end_element
 			$file->insertBefore( $url, $file->firstChild() );
 			$url->appendChild( $self->{plugin}->{session}->make_text( $href ) );
 		}
-		pop @{$self->{xmlstack}};
+		if( $self->{encoding} )
+		{
+			delete $self->{encoding};
+			my $tmpfile = $self->{tmpfiles}->[$#{$self->{tmpfiles}}];
+			print $tmpfile MIME::Base64::decode_base64( $self->{buffer} );
+			$self->{buffer} = "";
+		}
 		
 		$self->{xmlcurrent} = $self->{xmlstack}->[-1]; # the end!
 	}
@@ -208,9 +246,18 @@ sub start_element
 		$self->{xmlcurrent}->appendChild( $new );
 		push @{$self->{xmlstack}}, $new;
 		$self->{xmlcurrent} = $new;
+
 		if( $params{href} )
 		{
 			$self->{href} = $params{href};
+		}
+		if( $params{encoding} )
+		{
+			$self->{encoding} = $params{encoding};
+			push @{$self->{tmpfiles}}, my $tmpfile = File::Temp->new;
+			binmode( $tmpfile );
+			$new->setAttribute( encoding => "tmpfile" );
+			$new->appendChild( $self->{plugin}->{session}->make_text( "$tmpfile" ) );
 		}
 	}
 
