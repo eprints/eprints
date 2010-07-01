@@ -12,7 +12,7 @@ $c->add_trigger( EP_TRIGGER_BOILERPLATE_RDF, sub {
 		$o{graph}->add( 
 		  	subject => "<>",
 			predicate => "cc:license",
-		   	object => $license_uri );
+		   	object => "<$license_uri>" );
 	}
 	else
 	{
@@ -39,7 +39,7 @@ $c->add_trigger( EP_TRIGGER_BOILERPLATE_RDF, sub {
 		$o{graph}->add( 
 		  	subject => "<>",
 			predicate => "cc:attributionURL",
-		   	object => $attributionURL );
+		   	object => "<$attributionURL>" );
 	}
 
 	# [ "<>", "dc:creator", $o{repository}->phrase( "archive_name" ), "literal" ];
