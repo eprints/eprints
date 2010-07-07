@@ -56,7 +56,7 @@ sub output_list
 	$opts{list}->map( sub {
 		my( undef, undef, $item ) = @_;
 
-		$self->output_dataobj( $item, Handler => $wr );
+		$self->output_dataobj( $item, %opts, Handler => $wr );
 	});
 
 	$wr->end_element({

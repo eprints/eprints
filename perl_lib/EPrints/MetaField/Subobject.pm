@@ -208,16 +208,14 @@ sub to_sax
 		Attributes => {},
 	});
 
-	if( ref($value) eq "ARRAY" )
+	for($self->property( "multiple" ) ? @$value : $value)
 	{
-		foreach my $v (@$value)
-		{
-			$v->to_sax( %opts );
-		}
-	}
-	else
-	{
-		$value->to_sax( %opts );
+		next if(
+			$opts{hide_volatile} &&
+			$_->isa( "EPrints::DataObj::Document" ) &&
+			$_->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) )
+		);
+		$_->to_sax( %opts );
 	}
 
 	$handler->end_element( {
@@ -247,7 +245,7 @@ sub start_element
 	{
 		$epdata->{$self->name} = [];
 	}
-	elsif( $state->{depth} == 1 || ($state->{depth} == 2 && $self->property( "multiple" )) )
+	elsif( $state->{depth} == 2 )
 	{
 		my $ds = $self->{repository}->dataset( $self->property( "datasetid" ) );
 		my $class = $ds->get_object_class;
@@ -272,10 +270,7 @@ sub end_element
 		$handler->end_element( $data, $state->{epdata}, $state->{child} );
 	}
 
-	if(
-		($state->{depth} == 1 && !$self->property( "multiple" )) ||
-		($state->{depth} == 2 && $self->property( "multiple" ))
-	  )
+	if( $state->{depth} == 2 ) # single object is still: <foo><document>
 	{
 		if( $self->property( "multiple" ) )
 		{
