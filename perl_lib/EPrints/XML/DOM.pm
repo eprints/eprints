@@ -42,16 +42,30 @@ $EPrints::XML::LIB_LEN = length("XML::DOM::");
 
 # DOM spec fixes
 *XML::DOM::Document::documentElement = \&XML::DOM::Document::getDocumentElement;
+*XML::DOM::Document::setDocumentElement = sub {
+		my( $self, $node ) = @_;
+		$self->removeChild( $self->documentElement ) if $self->documentElement;
+		$self->appendChild( $node );
+	};
 *XML::DOM::Node::ownerDocument = \&XML::DOM::Node::getOwnerDocument;
-*XML::DOM::Node::attributes = sub { shift->getAttributes(@_) };
+*XML::DOM::Node::attributes = sub {
+	my $attrs = shift->getAttributes(@_);
+	return wantarray ? (map { $attrs->item( $_ ) } 0..($attrs->getLength-1) ) : $attrs;
+};
 *XML::DOM::Node::nodeName = sub { shift->getNodeName(@_) };
 *XML::DOM::Node::nodeValue = sub { shift->getNodeValue(@_) };
 *XML::DOM::Node::nodeType = sub { shift->getNodeType(@_) };
+*XML::DOM::Node::prefix = sub {
+		my $name = shift->getNodeName(@_);
+		$name =~ s/^(.*)://;
+		return $1 || '';
+	};
 *XML::DOM::Node::localName = sub {
 		my $name = shift->getNodeName(@_);
 		$name =~ s/^.*://;
 		return $name;
 	};
+*XML::DOM::Node::parentNode = sub { shift->getParentNode(@_) };
 *XML::DOM::Attr::name = \&XML::DOM::Attr::getName;
 *XML::DOM::Attr::nodeName = \&XML::DOM::Attr::getName;
 *XML::DOM::Attr::value = \&XML::DOM::Attr::getValue;
@@ -189,25 +203,34 @@ sub event_parse
 {
 	my( $fh, $handler ) = @_;	
 	
-        my $parser = new XML::Parser(
-                Style => "Subs",
-                ErrorContext => 5,
-                Handlers => {
-                        Start => sub { 
-				my( $p, $v, %a ) = @_; 
-				my $attr = {};
-				foreach my $k ( keys %a ) { $attr->{$k} = { Name=>$k, Value=>$a{$k} }; }
-				$handler->start_element( { Name=>$v, Attributes=>$attr } );
-			},
-                        End => sub { 
-				my( $p, $v ) = @_; 
-				$handler->end_element( { Name=>$v } );
-			},
-                        Char => sub { 
-				my( $p, $data ) = @_; 
-				$handler->characters( { Data=>$data } );
-			},
-                } );
+	my $parser = new XML::Parser(
+		Style => "Subs",
+		ErrorContext => 5,
+		Handlers => {
+		Start => sub { 
+			my( $p, $v, %a ) = @_; 
+			my $attr = {};
+			foreach my $k ( keys %a )
+			{
+				my( $prefix, $localname ) = split /:/, $k;
+				($prefix,$localname) = ('',$prefix) if !$localname;
+				$attr->{'{}'.$k} = { Prefix=>$prefix, LocalName=>$localname, Name=>$k, Value=>$a{$k} };
+			}
+			my( $prefix, $localname ) = split /:/, $v;
+			($prefix,$localname) = ('',$prefix) if !$localname;
+			$handler->start_element( { Prefix=>$prefix, LocalName=>$localname, Name=>$v, Attributes=>$attr } );
+		},
+		End => sub { 
+			my( $p, $v ) = @_; 
+			my( $prefix, $localname ) = split /:/, $v;
+			($prefix,$localname) = ('',$prefix) if !$localname;
+			$handler->end_element( { Prefix=>$prefix, LocalName=>$localname, Name=>$v } );
+		},
+		Char => sub { 
+			my( $p, $data ) = @_; 
+			$handler->characters( { Data=>$data } );
+		},
+	} );
 
 	$parser->parse( $fh );
 }

@@ -42,6 +42,12 @@ $EPrints::XML::LIB_LEN = length("XML::GDOME::");
 		return $name;
 	};
 
+*XML::GDOME::Document::setDocumentElement = sub {
+		my( $self, $node ) = @_;
+		$node->parentNode->removeChild( $node );
+		$self->appendChild( $node );
+	};
+
 # Need to clone children for DocumentFragment::cloneNode 
 *XML::GDOME::DocumentFragment::cloneNode = sub {
 		my( $self, $deep ) = @_;
@@ -135,25 +141,34 @@ sub event_parse
 {
 	my( $fh, $handler ) = @_;	
 	
-        my $parser = new XML::Parser(
-                Style => "Subs",
-                ErrorContext => 5,
-                Handlers => {
-                        Start => sub { 
-				my( $p, $v, %a ) = @_; 
-				my $attr = {};
-				foreach my $k ( keys %a ) { $attr->{$k} = { Name=>$k, Value=>$a{$k} }; }
-				$handler->start_element( { Name=>$v, Attributes=>$attr } );
-			},
-                        End => sub { 
-				my( $p, $v ) = @_; 
-				$handler->end_element( { Name=>$v } );
-			},
-                        Char => sub { 
-				my( $p, $data ) = @_; 
-				$handler->characters( { Data=>$data } );
-			},
-                } );
+	my $parser = new XML::Parser(
+		Style => "Subs",
+		ErrorContext => 5,
+		Handlers => {
+		Start => sub { 
+			my( $p, $v, %a ) = @_; 
+			my $attr = {};
+			foreach my $k ( keys %a )
+			{
+				my( $prefix, $localname ) = split /:/, $k;
+				($prefix,$localname) = ('',$prefix) if !$localname;
+				$attr->{'{}'.$k} = { Prefix=>$prefix, LocalName=>$localname, Name=>$k, Value=>$a{$k} };
+			}
+			my( $prefix, $localname ) = split /:/, $v;
+			($prefix,$localname) = ('',$prefix) if !$localname;
+			$handler->start_element( { Prefix=>$prefix, LocalName=>$localname, Name=>$v, Attributes=>$attr } );
+		},
+		End => sub { 
+			my( $p, $v ) = @_; 
+			my( $prefix, $localname ) = split /:/, $v;
+			($prefix,$localname) = ('',$prefix) if !$localname;
+			$handler->end_element( { Prefix=>$prefix, LocalName=>$localname, Name=>$v } );
+		},
+		Char => sub { 
+			my( $p, $data ) = @_; 
+			$handler->characters( { Data=>$data } );
+		},
+	} );
 
 	$parser->parse( $fh );
 }
