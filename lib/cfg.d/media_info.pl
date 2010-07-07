@@ -17,6 +17,7 @@ $c->add_trigger( EP_TRIGGER_MEDIA_INFO, sub {
 		close($fh);
 		chomp($output);
 		my( $mime_type, $opts ) = split /;\s*/, $output, 2;
+		$opts = "" if !defined $opts;
 		return 0 if !defined $mime_type;
 		return 0 if $mime_type eq "application/octet-stream";
 		$epdata->{format} = $mime_type;
