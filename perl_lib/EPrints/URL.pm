@@ -175,8 +175,11 @@ sub get
 		my @params;
 		foreach my $param ($session->param)
 		{
-			my $value = $session->param( $param );
-			push @params, $param => "$value";
+			foreach my $value ($session->param( $param ))
+			{
+				next if ref($value); # e.g. file handle
+				push @params, $param => $value;
+			}
 		}
 		$uri->query_form( @params );
 	}
