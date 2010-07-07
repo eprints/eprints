@@ -15,89 +15,99 @@ sub new
 	$self->{name} = "EP3 XML";
 	$self->{accept} = [ 'list/*', 'dataobj/*' ];
 	$self->{visible} = "all";
-	$self->{xmlns} = "http://eprints.org/ep2/data/2.0";
+	$self->{xmlns} = EPrints::Const::EP_NS_DATA;
 	$self->{qs} = 0.8;
 	$self->{arguments}->{hide_volatile} = 1;
 
 	return $self;
 }
 
-
-
-
-
 sub output_list
 {
-	my( $plugin, %opts ) = @_;
+	my( $self, %opts ) = @_;
 
 	my $type = $opts{list}->get_dataset->confid;
 	my $toplevel = $type."s";
-	my $namespace = EPrints::XML::namespace( "data", "2" );
 	
-	my $r = [];
+	my $output = "";
 
-	my $part;
-	$part = '<?xml version="1.0" encoding="utf-8" ?>'."\n<$toplevel xmlns=\"$namespace\">\n";
-	if( defined $opts{fh} )
-	{
-		print {$opts{fh}} $part;
-	}
-	else
-	{
-		push @{$r}, $part;
-	}
+	my $wr = EPrints::XML::SAX::PrettyPrint->new(
+		Handler => EPrints::XML::SAX::Writer->new(
+			Output => defined $opts{fh} ? $opts{fh} : \$output
+	));
 
+	$wr->start_document({});
+	$wr->xml_decl({
+		Version => '1.0',
+		Encoding => 'utf-8',
+	});
+	$wr->start_prefix_mapping({
+		Prefix => '',
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+	});
+
+	$wr->start_element({
+		Prefix => '',
+		LocalName => $toplevel,
+		Name => $toplevel,
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+		Attributes => {},
+	});
 	$opts{list}->map( sub {
-		my( $session, $dataset, $item ) = @_;
+		my( undef, undef, $item ) = @_;
 
-		my $part = $plugin->output_dataobj( $item, %opts );
-		if( defined $opts{fh} )
-		{
-			print {$opts{fh}} $part;
-		}
-		else
-		{
-			push @{$r}, $part;
-		}
-	} );
+		$self->output_dataobj( $item, Handler => $wr );
+	});
 
-	$part= "</$toplevel>\n";
-	if( defined $opts{fh} )
-	{
-		print {$opts{fh}} $part;
-	}
-	else
-	{
-		push @{$r}, $part;
-	}
+	$wr->end_element({
+		Prefix => '',
+		LocalName => $toplevel,
+		Name => $toplevel,
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+	});
+	$wr->end_prefix_mapping({
+		Prefix => '',
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+	});
+	$wr->end_document({});
 
-
-	if( defined $opts{fh} )
-	{
-		return;
-	}
-
-	return join( '', @{$r} );
+	return $output;
 }
 
 sub output_dataobj
 {
-	my( $plugin, $dataobj, %opts ) = @_;
+	my( $self, $dataobj, %opts ) = @_;
 
-	my $itemtype = $dataobj->get_dataset->confid;
+	if( $opts{Handler} )
+	{
+		return $dataobj->to_sax( %opts );
+	}
 
-	my $xml = $plugin->xml_dataobj( $dataobj, %opts );
+	my $output = "";
 
-	EPrints::XML::tidy( $xml, {}, 1 );
+	my $wr = EPrints::XML::SAX::PrettyPrint->new(
+		Handler => EPrints::XML::SAX::Writer->new(
+			Output => defined $opts{fh} ? $opts{fh} : \$output
+	));
 
-	return "  " . EPrints::XML::to_string( $xml ) . "\n";
-}
 
-sub xml_dataobj
-{
-	my( $plugin, $dataobj, %opts ) = @_;
+	$wr->start_document({});
+	$wr->xml_decl({
+		Version => '1.0',
+		Encoding => 'utf-8',
+	});
+	$wr->start_prefix_mapping({
+		Prefix => '',
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+	});
+	$dataobj->to_sax( %opts, Handler => $wr );
+	$wr->end_prefix_mapping({
+		Prefix => '',
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+	});
+	$wr->end_document({});
 
-	return $dataobj->to_xml( %opts );
+	return $output;
 }
 
 1;

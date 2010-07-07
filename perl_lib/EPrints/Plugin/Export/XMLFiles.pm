@@ -26,11 +26,11 @@ sub new
 	return $self;
 }
 
-sub xml_dataobj
+sub output_dataobj
 {
-	my( $plugin, $dataobj ) = @_;
+	my( $self, $dataobj, %opts ) = @_;
 
-	return $dataobj->to_xml( embed=>1 );
+	return $self->SUPER::output_dataobj( $dataobj, %opts, embed => 1 );
 }
 
 1;

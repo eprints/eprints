@@ -85,19 +85,32 @@ sub sql_row_from_value
 	return $session->database->quote_binary( $self->freeze( $session, $value ) );
 }
 
-sub to_xml_basic
+sub to_sax
 {
-	my( $self, $session, $value, $dataset, %opts ) = @_;
+	my( $self, $value, %opts ) = @_;
 
-	return $self->SUPER::to_xml_basic( $session, MIME::Base64::encode_base64($self->freeze( $session, $value )), $dataset, %opts );
+	# can't freeze undef
+	return if !EPrints::Utils::is_set( $value );
+
+	$self->SUPER::to_sax( MIME::Base64::encode_base64($self->freeze( $self->{repository}, $value )), %opts );
 }
 
-# return epdata for a single value of this field
-sub xml_to_epdata_basic
+sub end_element
 {
-	my( $self, $session, $xml, %opts ) = @_;
+	my( $self, $data, $epdata, $state ) = @_;
 
-	return $self->thaw( $session, MIME::Base64::decode_base64( $self->SUPER::xml_to_epdata_basic( $session, $xml, %opts ) ) );
+	if( $state->{depth} == 1 )
+	{
+		my $value = $epdata->{$self->name};
+		for(ref($value) eq "ARRAY" ? @$value : $value)
+		{
+			$_ = MIME::Base64::decode_base64( $_ );
+			$_ = $self->thaw( $self->{repository}, $_ );
+		}
+		$epdata->{$self->name} = $value;
+	}
+
+	$self->SUPER::end_element( $data, $epdata, $state );
 }
 
 sub freeze

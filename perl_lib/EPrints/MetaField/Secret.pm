@@ -184,16 +184,13 @@ sub validate
 	return @probs;
 }
 
-sub to_xml
+sub to_sax
 {
-	my( $self, $session, $value, $dataset, %opts ) = @_;
+	my( $self, $value, %opts );
 
-	if( !$opts{show_secrets} )
-	{
-		return $session->xml->create_document_fragment;
-	}
+	return if !$opts{show_secrets};
 
-	return $self->SUPER::to_xml( $session, $value, $dataset, %opts );
+	$self->SUPER::to_sax( $value, %opts );
 }
 
 ######################################################################

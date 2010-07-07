@@ -190,88 +190,116 @@ sub render_single_value
 	return $value->render_citation( "default" );
 }
 
-sub to_xml
+sub to_sax
 {
-	my( $self, $session, $value, $dataset, %opts ) = @_;
+	my( $self, $value, %opts ) = @_;
 
-	# don't show empty fields
-	if( !$opts{show_empty} && !EPrints::Utils::is_set( $value ) )
-	{
-		return $session->make_doc_fragment;
-	}
+	return if !$opts{show_empty} && !EPrints::Utils::is_set( $value );
 
-	if( $self->get_property( "multiple" ) )
+	my $handler = $opts{Handler};
+	my $dataset = $self->dataset;
+	my $name = $self->name;
+
+	$handler->start_element( {
+		Prefix => '',
+		LocalName => $name,
+		Name => $name,
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+		Attributes => {},
+	});
+
+	if( ref($value) eq "ARRAY" )
 	{
-		my $tag = $session->make_element( $self->get_name() );
-		foreach my $dataobj ( @{$value||[]} )
+		foreach my $v (@$value)
 		{
-			next if( 
-				$opts{hide_volatile} &&
-				$dataobj->isa( "EPrints::DataObj::Document" ) &&
-				$dataobj->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) )
-			  );
-			$tag->appendChild( $dataobj->to_xml( %opts ) );
-		}
-		return $tag;
-	}
-	elsif( defined $value )
-	{
-		return $value->to_xml( %opts );
-	}
-	else
-	{
-		return $session->make_doc_fragment;
-	}
-}
-
-sub xml_to_epdata
-{
-	my( $self, $session, $xml, %opts ) = @_;
-
-	my $value = undef;
-
-	if( $self->get_property( "multiple" ) )
-	{
-		$value = [];
-		foreach my $node ($xml->childNodes)
-		{
-			next unless EPrints::XML::is_dom( $node, "Element" );
-			my $epdata = $self->xml_to_epdata_basic( $session, $node, %opts );
-			if( defined $epdata )
-			{
-				push @$value, $epdata;
-			}
+			$v->to_sax( %opts );
 		}
 	}
 	else
 	{
-		$value = $self->xml_to_epdata_basic( $session, $xml, %opts );
+		$value->to_sax( %opts );
 	}
 
-	return $value;
+	$handler->end_element( {
+		Prefix => '',
+		LocalName => $name,
+		Name => $name,
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+	});
 }
 
-sub xml_to_epdata_basic
+sub empty_value
 {
-	my( $self, $session, $xml, %opts ) = @_;
+	return {};
+}
 
-	my $datasetid = $self->get_property( "datasetid" );
+sub start_element
+{
+	my( $self, $data, $epdata, $state ) = @_;
 
-	my $ds = $session->get_repository->get_dataset( $datasetid );
-	my $class = $ds->get_object_class;
+	++$state->{depth};
 
-	my $nodeName = $xml->nodeName;
-	if( $nodeName ne $datasetid )
+	if( defined(my $handler = $state->{handler}) )
 	{
-		if( defined $opts{Handler} )
-		{
-			$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:unexpected_element", name => $session->make_text( $nodeName ) ) );
-			$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:expected", elements => $session->make_text( "<$datasetid>" ) ) );
-		}
-		return undef;
+		$handler->start_element( $data, $state->{epdata}, $state->{child} );
+	}
+	elsif( $state->{depth} == 1 && $self->property( "multiple" ) )
+	{
+		$epdata->{$self->name} = [];
+	}
+	elsif( $state->{depth} == 1 || ($state->{depth} == 2 && $self->property( "multiple" )) )
+	{
+		my $ds = $self->{repository}->dataset( $self->property( "datasetid" ) );
+		my $class = $ds->get_object_class;
+
+		$state->{child} = {%$state,
+			dataset => $ds,
+			depth => 0,
+		};
+		$state->{epdata} = {};
+		$state->{handler} = $class;
+
+		$class->start_element( $data, $state->{epdata}, $state->{child} );
+	}
+}
+
+sub end_element
+{
+	my( $self, $data, $epdata, $state ) = @_;
+
+	if( defined(my $handler = $state->{handler}) )
+	{
+		$handler->end_element( $data, $state->{epdata}, $state->{child} );
 	}
 
-	return $class->xml_to_epdata( $session, $xml, %opts );
+	if(
+		($state->{depth} == 1 && !$self->property( "multiple" )) ||
+		($state->{depth} == 2 && $self->property( "multiple" ))
+	  )
+	{
+		if( $self->property( "multiple" ) )
+		{
+			push @{$epdata->{$self->name}}, delete $state->{epdata};
+		}
+		else
+		{
+			$epdata->{$self->name} = delete $state->{epdata};
+		}
+		delete $state->{child};
+		delete $state->{handler};
+	}
+
+	--$state->{depth};
+}
+
+sub characters
+{
+	my( $self, $data, $epdata, $state ) = @_;
+
+	if( defined(my $handler = $state->{handler}) )
+	{
+		$handler->characters( $data, $state->{epdata}, $state->{child} );
+	}
 }
 
 ######################################################################

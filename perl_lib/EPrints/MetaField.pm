@@ -1879,161 +1879,149 @@ sub ordervalue_basic
 	return $value;
 }
 
-
-
-
-
-
-
 # XML output methods
-
 
 sub to_xml
 {
-	my( $self, $session, $value, $dataset, %opts ) = @_;
+	my( $self, %opts ) = @_;
 
-	# we're part of a compound field that will include our value
-	if( defined $self->{parent_name} )
-	{
-		return $session->make_doc_fragment;
-	}
+	my $builder = EPrints::XML::SAX::Builder->new(
+		repository => $self->{session}
+	);
+	$builder->start_document({});
+	$builder->xml_decl({
+		Version => '1.0',
+		Encoding => 'utf-8',
+	});
+	$builder->start_prefix_mapping({
+		Prefix => '',
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+	});
+	$self->to_sax( %opts, Handler => $builder );
+	$builder->end_prefix_mapping({
+		Prefix => '',
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+	});
+	$builder->end_document({});
 
-	# don't show empty fields
-	if( !$opts{show_empty} && !EPrints::Utils::is_set( $value ) )
-	{
-		return $session->make_doc_fragment;
-	}
+	return $builder->result()->documentElement;
+}
 
-	my $tag = $session->make_element( $self->get_name );	
-	if( $self->get_property( "multiple" ) )
+sub to_sax
+{
+	my( $self, $value, %opts ) = @_;
+
+	# MetaField::Compound relies on testing this specific attribute
+	return if defined $self->{parent_name};
+
+	return if !$opts{show_empty} && !EPrints::Utils::is_set( $value );
+
+	my $handler = $opts{Handler};
+	my $name = $self->name;
+
+	$handler->start_element( {
+		Prefix => '',
+		LocalName => $name,
+		Name => $name,
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+		Attributes => {},
+	});
+
+	if( ref($value) eq "ARRAY" )
 	{
-		foreach my $single ( @{$value} )
+		foreach my $v (@$value)
 		{
-			my $item = $session->make_element( "item" );
-			$item->appendChild( $self->to_xml_basic( $session, $single, $dataset, %opts ) );
-			$tag->appendChild( $item );
+			$handler->start_element( {
+				Prefix => '',
+				LocalName => "item",
+				Name => "item",
+				NamespaceURI => EPrints::Const::EP_NS_DATA,
+				Attributes => {},
+			});
+			$self->to_sax_basic( $v, %opts );
+			$handler->end_element( {
+				Prefix => '',
+				LocalName => "item",
+				Name => "item",
+				NamespaceURI => EPrints::Const::EP_NS_DATA,
+			});
 		}
 	}
 	else
 	{
-		$tag->appendChild( $self->to_xml_basic( $session, $value, $dataset, %opts ) );
+		$self->to_sax_basic( $value, %opts );
 	}
 
-	return $tag;
+	$handler->end_element( {
+		Prefix => '',
+		LocalName => $name,
+		Name => $name,
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+	});
 }
 
-sub to_xml_basic
+sub to_sax_basic
 {
-	my( $self, $session, $value, $dataset, %opts ) = @_;
+	my( $self, $value, %opts ) = @_;
 
-	if( !defined $value ) 
-	{
-		return $session->make_text( "" );
-	}
-	return $session->make_text( $value );
+	$opts{Handler}->characters( { Data => $value } );
 }
 
-=item $epdata = $field->xml_to_epdata( $session, $xml, %opts )
-
-Populates $epdata based on $xml.
-
-=cut
-
-sub xml_to_epdata
+sub empty_value
 {
-	my( $self, $session, $xml, %opts ) = @_;
-
-	my $value = undef;
-
-	if( $self->get_property( "multiple" ) )
-	{
-		$value = [];
-		foreach my $node ($xml->childNodes)
-		{
-			next unless EPrints::XML::is_dom( $node, "Element" );
-			if( $node->nodeName ne "item" )
-			{
-				if( defined $opts{Handler} )
-				{
-					$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:unexpected_element", name => $session->make_text( $node->nodeName ) ) );
-					$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:expected", elements => $session->make_text( "<item>" ) ) );
-				}
-				next;
-			}
-			push @$value, $self->xml_to_epdata_basic( $session, $node, %opts );
-		}
-	}
-	else
-	{
-		$value = $self->xml_to_epdata_basic( $session, $xml, %opts );
-	}
-
-	return $value;
+	return "";
 }
 
-# return epdata for a single value of this field
-sub xml_to_epdata_basic
+sub start_element
 {
-	my( $self, $session, $xml, %opts ) = @_;
+	my( $self, $data, $epdata, $state ) = @_;
 
-	return EPrints::Utils::tree_to_utf8( scalar $xml->childNodes );
+	++$state->{depth};
+
+	if( $state->{depth} == 1 )
+	{
+		$epdata->{$self->name} = $self->property( "multiple" ) ? [] : $self->empty_value;
+		$state->{in_value} = !$self->property( "multiple" );
+	}
+	elsif(
+		$state->{depth} == 2 &&
+		$self->property( "multiple" ) &&
+		$data->{LocalName} eq "item"
+	  )
+	{
+		push @{$epdata->{$self->name}}, $self->empty_value;
+		$state->{in_value} = 0;
+	}
 }
 
-
-
-
-#### old xml v1
-
-sub to_xml_old
+sub end_element
 {
-	my( $self, $session, $v, $no_xmlns ) = @_;
+	my( $self, $data, $epdata, $state ) = @_;
 
-	my $r = $session->make_doc_fragment;
-
-	if( $self->is_virtual )
+	if( $state->{depth} == 1 || ($state->{depth} == 2 && $self->property( "multiple" )) )
 	{
-		return $r;
+		$state->{in_value} = 0;
 	}
 
-	if( $self->get_property( "multiple" ) )
-	{
-		my @list = @{$v};
-		# trim empty elements at end
-		while( scalar @list > 0 && !EPrints::Utils::is_set($list[(scalar @list)-1]) )
-		{
-			pop @list;
-		}
-		foreach my $item ( @list )
-		{
-			$r->appendChild( $session->make_text( "    " ) );
-			$r->appendChild( $self->to_xml_old_single( $session, $item, $no_xmlns ) );
-			$r->appendChild( $session->make_text( "\n" ) );
-		}
-	}
-	else
-	{
-		$r->appendChild( $session->make_text( "    " ) );
-		$r->appendChild( $self->to_xml_old_single( $session, $v, $no_xmlns ) );
-		$r->appendChild( $session->make_text( "\n" ) );
-	}
-	return $r;
+	--$state->{depth};
 }
 
-sub to_xml_old_single
+sub characters
 {
-	my( $self, $session, $v, $no_xmlns ) = @_;
+	my( $self, $data, $epdata, $state ) = @_;
 
-	my %attrs = ( name=>$self->get_name() );
-	$attrs{'xmlns'}="http://eprints.org/ep2/data" unless( $no_xmlns );
+	return if !$state->{in_value};
 
-	my $r = $session->make_element( "field", %attrs );
-
-	$r->appendChild( $self->to_xml_basic( $session, $v ) );
-
-	return $r;
+	my $value = $epdata->{$self->name};
+	if( $state->{depth} == 2 ) # <foo><item>XXX
+	{
+		$value->[-1] .= $data->{Data};
+	}
+	elsif( $state->{depth} == 1 ) # <foo>XXX
+	{
+		$epdata->{$self->name} = $value . $data->{Data};
+	}
 }
-
-########## end of old XML
 
 sub render_xml_schema
 {

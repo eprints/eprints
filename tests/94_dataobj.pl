@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 16;
+use Test::More tests => 18;
 
 use strict;
 use warnings;
@@ -67,5 +67,30 @@ ok( defined $doc_copy && $doc_copy->id eq $doc->id, "related_dataobjs found doc 
 ok( !defined $doc_copy, "related_dataobjs didn't match 'xxx'" );
 my $docs = $doc2->related_dataobjs( @REL[0,2] );
 ok( scalar(@$docs) == 1, "related_dataobjs returns one match" );
+
+$eprint->set_value( "creators", [
+	{ name => { family => "Smith", given => "John" }, id => "xxx" },
+	{ name => { family => "Bloggs", given => "Joe" } },
+]);
+
+#my $xml;
+#my $wr = EPrints::XML::SAX::Writer->new( Output => \$xml );
+#$wr->start_document;
+#$eprint->to_sax( Handler => $wr );
+#$wr->end_document;
+
+#diag($xml);
+
+my $dom = $eprint->to_xml;
+
+#print STDERR "\n\n\n", $dom->toString( 1 ), "\n\n\n";
+
+$epdata = EPrints::DataObj::EPrint->xml_to_epdata( $repo, $dom );
+
+is( $epdata->{title}, $eprint->value( "title" ), "xml_to_epdata" );
+
+is( eval { $epdata->{creators}->[0]->{name}->{family} }, eval { $eprint->value( "creators" )->[0]->{name}->{family} }, "xml_to_epdata - compound/multiple" );
+
+#print STDERR "\n\n", Data::Dumper::Dumper( $epdata ), "\n\n";
 
 $eprint->delete(); # deletes document sub-object too

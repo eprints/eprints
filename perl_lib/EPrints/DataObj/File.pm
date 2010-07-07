@@ -566,34 +566,90 @@ sub update_sha
 	$self->set_value( "hash_type", "SHA-$alg" );
 }
 
-sub to_xml
+sub to_sax
 {
 	my( $self, %opts ) = @_;
 
-	# This is a bit of a hack to inject the publicly accessible URL of data
-	# files in documents into XML exports.
-	# In future importers should probably use the "id" URI to retrieve
-	# file objects?
-	if( $self->get_value( "datasetid" ) eq "document" )
-	{
-		my $doc = $self->get_parent();
-		my $url = $doc->get_url( $self->get_value( "filename" ) );
-		$self->set_value( "url", $url );
+	my $handler = $opts{Handler};
+	my $dataset = $self->dataset;
+	my $name = $dataset->base_id;
 
+	$handler->start_element( {
+		Prefix => '',
+		LocalName => $name,
+		Name => $name,
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+		Attributes => {
+			('{}id') => {
+				Prefix => '',
+				LocalName => 'id',
+				Name => 'id',
+				NamespaceURI => '',
+				Value => $self->uri,
+			},
+		},
+	});
+
+	if( $self->value( "datasetid" ) eq "document" )
+	{
+		my $doc = $self->parent();
+		my $url = $doc->get_url( $self->value( "filename" ) );
+		$self->set_value( "url", $url );
+	}
+
+	foreach my $field ($dataset->fields)
+	{
+		next if !$field->property( "export_as_xml" );
+
+		$field->to_sax(
+			$field->get_value( $self ),
+			%opts
+		);
 	}
 
 	if( $opts{embed} )
 	{
-		my $data = "";
-		$self->get_file(sub {
-			$data .= $_[0];
+		$handler->start_element({
+			Prefix => '',
+			LocalName => 'data',
+			Name => 'data',
+			NamespaceURI => EPrints::Const::EP_NS_DATA,
+			Attributes => {
+				('{}encoding') => {
+					Prefix => '',
+					LocalName => 'encoding',
+					Name => 'encoding',
+					NamespaceURI => '',
+					Value => 'base64',
+				},
+			},
 		});
-		$self->set_value( "data", MIME::Base64::encode( $data ) );
+		my $buffer = "";
+		$self->get_file(sub {
+			use bytes;
+			substr($_[0],0,0) = $buffer;
+			$handler->characters({
+				Data => MIME::Base64::encode_base64( substr($_[0],0,length($_[0]) - length($_[0])%57 ) )
+			});
+			$buffer = substr($_[0],length($_[0]) - length($_[0])%57);
+		});
+		$handler->characters({
+			Data => MIME::Base64::encode_base64( $buffer )
+		});
+		$handler->end_element({
+			Prefix => '',
+			LocalName => 'data',
+			Name => 'data',
+			NamespaceURI => EPrints::Const::EP_NS_DATA,
+		});
 	}
 
-	my $file = $self->SUPER::to_xml( %opts );
-
-	return $file;
+	$handler->end_element( {
+		Prefix => '',
+		LocalName => $name,
+		Name => $name,
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+	});
 }
 
 =item $stored->add_plugin_copy( $plugin, $sourceid )
@@ -733,29 +789,59 @@ sub set_file
 	return $rlen;
 }
 
-sub xml_to_epdata
+sub start_element
 {
-	my( $class, $session, $xml, %opts ) = @_;
+	my( $self, $data, $epdata, $state ) = @_;
 
-	my $content;
+	$self->SUPER::start_element( $data, $epdata, $state );
 
-	my( $data ) = $xml->getElementsByTagName( "data" );
-	if( defined $data )
+	if( $state->{depth} == 2 )
 	{
-		$xml->removeChild( $data );
-		
-		my $tmpfile = $data->firstChild->toString;
-		$content = $opts{tmpfiles}->{$tmpfile};
+		my $attr = $data->{Attributes}->{"{}encoding"};
+		if( defined $attr && $data->{LocalName} eq "data" && $attr->{Value} eq "base64" )
+		{
+			delete $state->{handler};
+
+			$state->{encoding} = $attr->{Value};
+			$state->{buffer} = "";
+			my $tmpfile = $epdata->{_content} = File::Temp->new();
+			binmode($tmpfile);
+		}
+	}
+}
+
+sub end_element
+{
+	my( $self, $data, $epdata, $state ) = @_;
+
+	if( $state->{depth} == 2 && defined $state->{encoding} )
+	{
+		my $tmpfile = $epdata->{_content};
+		print $tmpfile MIME::Base64::decode_base64( $state->{buffer} );
+		seek($tmpfile,0,0);
+		delete $state->{encoding};
+		delete $state->{buffer};
 	}
 
-	# ignore all other <data> fields
-	$xml->removeChild( $_ ) for $xml->getElementsByTagName( "data" );
+	$self->SUPER::end_element( $data, $epdata, $state );
+}
 
-	my $epdata = $class->SUPER::xml_to_epdata( $session, $xml, %opts );
+sub characters
+{
+	my( $self, $data, $epdata, $state ) = @_;
 
-	$epdata->{_content} = $content;
+	$self->SUPER::characters( $data, $epdata, $state );
 
-	return $epdata;
+	if( $state->{depth} == 2 && defined $state->{encoding} )
+	{
+		my $tmpfile = $epdata->{_content};
+		$state->{buffer} .= $data->{Data};
+		for($state->{buffer})
+		{
+			print $tmpfile MIME::Base64::decode_base64( substr($_,0,length($_) - length($_)%77) );
+			$_ = substr($_,length($_) - length($_)%77);
+		}
+	}
 }
 
 1;

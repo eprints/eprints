@@ -633,48 +633,89 @@ sub get_value_from_id
 	return $name;
 }
 
-sub to_xml_basic
+sub to_sax_basic
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $value, %opts ) = @_;
 
-	my $r = $session->make_doc_fragment;	
+	return if !$opts{show_empty} && !EPrints::Utils::is_set( $value );
+
+	my $handler = $opts{Handler};
+	my $dataset = $self->dataset;
+	my $name = $self->name;
 
 	foreach my $part ( @PARTS )
 	{
-		my $nv = $value->{$part};
-		next unless defined $nv;
-		next unless $nv ne "";
-		my $tag = $session->make_element( $part );
-		$tag->appendChild( $session->make_text( $nv ) );
-		$r->appendChild( $tag );
+		my $v = $value->{$part};
+		next unless EPrints::Utils::is_set( $v );
+		$handler->start_element( {
+			Prefix => '',
+			LocalName => $part,
+			Name => $part,
+			NamespaceURI => EPrints::Const::EP_NS_DATA,
+			Attributes => {},
+		});
+		$self->SUPER::to_sax_basic( $v, %opts );
+		$handler->end_element( {
+			Prefix => '',
+			LocalName => $part,
+			Name => $part,
+			NamespaceURI => EPrints::Const::EP_NS_DATA,
+		});
 	}
-	
-	return $r;
 }
 
-sub xml_to_epdata_basic
+sub empty_value
 {
-	my( $self, $session, $xml, %opts ) = @_;
+	return {};
+}
 
-	my $value = {};
-	my %valid = map { $_ => 1 } @PARTS;
-	foreach my $node ($xml->childNodes)
+sub start_element
+{
+	my( $self, $data, $epdata, $state ) = @_;
+
+	$self->SUPER::start_element( $data, $epdata, $state );
+
+	if(
+		($state->{depth} == 2 && !$self->property( "multiple" )) ||
+		($state->{depth} == 3 && $self->property( "multiple" ))
+	  )
 	{
-		next unless EPrints::XML::is_dom( $node, "Element" );
-		my $nodeName = $node->nodeName;
-		if( !exists $valid{$nodeName} )
-		{
-			if( defined $opts{Handler} )
-			{
-				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:unexpected_element", name => $session->make_text( $node->nodeName ) ) );
-				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:expected", elements => $session->make_text( "<".join("> <", @PARTS).">" ) ) );
-			}
-			next;
-		}
-		$value->{$nodeName} = EPrints::Utils::tree_to_utf8( scalar $node->childNodes );
+		$state->{part} = $data->{LocalName};
+	}
+}
+
+sub end_element
+{
+	my( $self, $data, $epdata, $state ) = @_;
+
+	if(
+		($state->{depth} == 2 && !$self->property( "multiple" )) ||
+		($state->{depth} == 3 && $self->property( "multiple" ))
+	  )
+	{
+		delete $state->{part};
 	}
 
-	return $value;
+	$self->SUPER::end_element( $data, $epdata, $state );
+}
+
+sub characters
+{
+	my( $self, $data, $epdata, $state ) = @_;
+
+	my $part = $state->{part};
+	return if !defined $part;
+
+	my $value = $epdata->{$self->name};
+
+	if( $state->{depth} == 3 ) # <name><item><family>XXX
+	{
+		$value->[-1]->{$part} .= $data->{Data};
+	}
+	elsif( $state->{depth} == 2 ) # <name><family>XXX
+	{
+		$value->{$part} .= $data->{Data};
+	}
 }
 
 sub render_xml_schema_type

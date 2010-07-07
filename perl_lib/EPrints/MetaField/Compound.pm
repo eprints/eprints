@@ -167,57 +167,133 @@ sub render_single_value
 	return $table;
 }
 
-sub to_xml_basic
+sub to_sax_basic
 {
-	my( $self, $session, $value, $dataset ) = @_;
+	my( $self, $value, %opts ) = @_;
 
-	my $r = $session->make_doc_fragment;
-	if( !EPrints::Utils::is_set( $value )  )
-	{
-		return $r;
-	}
-	my $f = $self->get_property( "fields_cache" );
+	return if !EPrints::Utils::is_set( $value );
+
+	my $f = $self->property( "fields_cache" );
 	my %fieldname_to_alias = $self->get_fieldname_to_alias;
-	foreach my $field_conf ( @{$f} )
+	foreach my $field ( @{$f} )
 	{
-		my $name = $field_conf->{name};
-		my $field = $dataset->get_field( $name );
-		next unless $field->get_property( "export_as_xml" );
-		my $alias = $fieldname_to_alias{$name};
+		next if !$field->property( "export_as_xml" );
+
+		my $alias = $fieldname_to_alias{$field->name};
 		my $v = $value->{$alias};
-		my $tag = $session->make_element( $alias );
-		$tag->appendChild( $field->to_xml_basic( $session, $v, $dataset ) );
-		$r->appendChild( $tag );
+		# cause the sub-field to behave like it's a normal field
+		local $field->{multiple} = 0;
+		local $field->{parent_name};
+		local $field->{name} = $field->{sub_name};
+		$field->to_sax( $v, %opts );
 	}
-	return $r;
 }
 
-sub xml_to_epdata_basic
+sub empty_value
 {
-	my( $self, $session, $xml, %opts ) = @_;
+	return {};
+}
 
-	my $value = {};
+sub start_element
+{
+	my( $self, $data, $epdata, $state ) = @_;
+
+	++$state->{depth};
 
 	my %a_to_f = $self->get_alias_to_fieldname;
-	foreach my $node ($xml->childNodes)
+
+	# if we're inside a sub-field just call it
+	if( defined(my $field = $state->{handler}) )
 	{
-		next unless EPrints::XML::is_dom( $node, "Element" );
-		my $nodeName = $node->nodeName;
-		my $name = $a_to_f{$nodeName};
-		if( !defined $name )
+		$field->start_element( $data, $epdata, $state->{$field} );
+	}
+	# or initialise all fields at <creators>
+	elsif( $state->{depth} == 1 )
+	{
+		foreach my $field (@{$self->property( "fields_cache" )})
 		{
-			if( defined $opts{Handler} )
-			{
-				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:unexpected_element", name => $session->make_text( $nodeName ) ) );
-				$opts{Handler}->message( "warning", $session->html_phrase( "Plugin/Import/XML:expected", elements => $session->make_text( "<".join("> <", sort { $a cmp $b } keys %a_to_f).">" ) ) );
-			}
-			next;
+			local $data->{LocalName} = $field->property( "sub_name" );
+			$state->{$field} = {%$state,
+				depth => 0,
+			};
+			$field->start_element( $data, $epdata, $state->{$field} );
 		}
-		my $field = $self->get_dataset->get_field( $name );
-		$value->{$nodeName} = $field->xml_to_epdata_basic( $session, $node, %opts );
+	}
+	# add a new empty value for each sub-field at <item>
+	elsif( $state->{depth} == 2 && $self->property( "multiple" ) )
+	{
+		foreach my $field (@{$self->property( "fields_cache" )})
+		{
+			$field->start_element( $data, $epdata, $state->{$field} );
+		}
+	}
+	# otherwise we must be starting a new sub-field value
+	else
+	{
+		$state->{handler} = $self->{dataset}->field( $a_to_f{$data->{LocalName}} );
+	}
+}
+
+sub end_element
+{
+	my( $self, $data, $epdata, $state ) = @_;
+
+	# finish all fields
+	if( $state->{depth} == 1 )
+	{
+		my $value = $epdata->{$self->name} = $self->property( "multiple" ) ? [] : $self->empty_value;
+
+		foreach my $field (@{$self->property( "fields_cache" )})
+		{
+			local $data->{LocalName} = $field->property( "sub_name" );
+			$field->end_element( $data, $epdata, $state->{$field} );
+
+			my $v = delete $epdata->{$field->name};
+			if( ref($value) eq "ARRAY" )
+			{
+				foreach my $i (0..$#$v)
+				{
+					$value->[$i]->{$field->property( "sub_name" )} = $v->[$i];
+				}
+			}
+			else
+			{
+				$value->{$field->property( "sub_name" )} = $v;
+			}
+
+			delete $state->{$field};
+		}
+	}
+	# end a new <item> for every field
+	elsif( $state->{depth} == 2 && $self->property( "multiple" ) )
+	{
+		foreach my $field (@{$self->property( "fields_cache" )})
+		{
+			$field->end_element( $data, $epdata, $state->{$field} );
+		}
+	}
+	# end of a sub-field's content
+	elsif( $state->{depth} == 2 || ($state->{depth} == 3 && $self->property( "multiple" )) )
+	{
+		delete $state->{handler};
+	}
+	# otherwise call the sub-field
+	elsif( defined(my $field = $state->{handler}) )
+	{
+		$field->end_element( $data, $epdata, $state->{$field} );
 	}
 
-	return $value;
+	--$state->{depth};
+}
+
+sub characters
+{
+	my( $self, $data, $epdata, $state ) = @_;
+
+	if( defined(my $field = $state->{handler}) )
+	{
+		$field->characters( $data, $epdata, $state->{$field} );
+	}
 }
 
 # This type of field is virtual.

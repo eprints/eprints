@@ -212,6 +212,12 @@ use EPrints::XHTML;
 use EPrints::Utils;
 use EPrints::EPM;
 
+# SAX utilities
+use EPrints::XML::SAX::Builder;
+use EPrints::XML::SAX::Generator;
+use EPrints::XML::SAX::PrettyPrint;
+use EPrints::XML::SAX::Writer;
+
 our $__loaded;
 our $__cloned;
 

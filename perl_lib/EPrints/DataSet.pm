@@ -850,6 +850,16 @@ sub make_object
 		$self );
 }
 
+sub make_dataobj
+{
+	my( $self, $data ) = @_;
+
+	return $self->get_object_class->new_from_data(
+		$self->{repository},
+		$data,
+		$self );
+}
+
 ######################################################################
 =pod
 
