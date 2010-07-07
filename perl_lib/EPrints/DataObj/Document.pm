@@ -306,7 +306,7 @@ sub create_from_data
 	my( $class, $session, $data, $dataset ) = @_;
        
 	my $eprintid = $data->{eprintid}; 
-	my $eprint = $data->{_parent} ||= delete $data->{eprint};
+	$data->{_parent} ||= delete $data->{eprint};
 
 	my $files = $data->{files};
 	$files = [] if !defined $files;
@@ -323,6 +323,13 @@ sub create_from_data
 	if( scalar @$files )
 	{
 		$document->queue_files_modified;
+	}
+
+	my $eprint = $document->get_parent;
+	if( defined $eprint && !$eprint->under_construction )
+	{
+		local $eprint->{non_volatile_change} = 1;
+		$eprint->commit( 1 );
 	}
 
 	return $document;
@@ -441,6 +448,13 @@ sub remove
 		my $db_error = $self->{session}->get_database->error;
 		$self->{session}->get_repository->log( "Error removing document ".$self->get_value( "docid" )." from database: $db_error" );
 		return( 0 );
+	}
+
+	my $eprint = $self->get_parent;
+	if( defined $eprint && !$eprint->under_construction )
+	{
+		local $eprint->{non_volatile_change} = 1;
+		$eprint->commit();
 	}
 
 	return( $success );
@@ -1137,14 +1151,18 @@ sub commit
 		$self->set_value( "rev_number", ($self->get_value( "rev_number" )||0) + 1 );	
 	}
 
+	# SUPER::commit clears non_volatile_change
+	my $non_volatile_change = $self->{non_volatile_change};
+
 	my $success = $self->SUPER::commit( $force );
 	
 	my $eprint = $self->get_parent();
-	if( defined $eprint && !$eprint->under_construction )
+	if( defined $eprint && !$eprint->under_construction && $non_volatile_change )
 	{
 		# cause a new new revision of the parent eprint.
 		# if the eprint is under construction the changes will be committed
 		# after all the documents are complete
+		local $eprint->{non_volatile_change} = 1;
 		$eprint->commit( 1 );
 	}
 	
