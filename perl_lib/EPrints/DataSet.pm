@@ -815,48 +815,29 @@ sub key_field
 }
 
 
-######################################################################
-=pod
-
-=item $obj = $ds->make_object( $session, $data )
+=item $dataobj = $ds->make_dataobj( $epdata )
 
 Return an object of the class associated with this dataset, always
-a subclass of EPrints::DataObj.
+a subclass of L<EPrints::DataObj>.
 
-$data is a hash of values for fields of a record in this dataset.
+$epdata is a hash of values for fields in this dataset.
 
-Return $data if no class associated with this dataset.
+Returns $epdata if no class is associated with this dataset.
 
 =cut
-######################################################################
 
-sub make_object
+sub make_object { $_[0]->make_dataobj( $_[2] ) }
+sub make_dataobj
 {
-	my( $self , $session , $data ) = @_;
+	my( $self, $epdata ) = @_;
 
 	my $class = $self->get_object_class;
 
-	# If this table dosn't have an associated class, just
-	# return the data.	
+	return $epdata if !defined $class;
 
-	if( !defined $class ) 
-	{
-		return $data;
-	}
-
-	return $class->new_from_data( 
-		$session,
-		$data,
-		$self );
-}
-
-sub make_dataobj
-{
-	my( $self, $data ) = @_;
-
-	return $self->get_object_class->new_from_data(
+	return $class->new_from_data(
 		$self->{repository},
-		$data,
+		$epdata,
 		$self );
 }
 
