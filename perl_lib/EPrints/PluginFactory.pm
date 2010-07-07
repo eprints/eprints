@@ -75,7 +75,9 @@ sub new
 
 	my $dir;
 
-	my $use_xslt = EPrints::Utils::require_if_exists( "XML::LibXSLT" );
+	my $use_xslt =
+		$EPrints::XML::CLASS eq "EPrints::XML::LibXML" &&
+		EPrints::Utils::require_if_exists( "XML::LibXSLT" );
 
 	# system plugins (only load once)
 	$dir = $repository->get_conf( "base_path" )."/perl_lib";
