@@ -61,6 +61,15 @@ sub get_state_params
 			$self->{prefix}, );
 }
 
+sub get_state_fragment
+{
+	my( $self, $processor ) = @_;
+
+	return $self->{prefix} if $self->{config}->{field}->has_internal_action( $self->{prefix} );
+
+	return "";
+}
+
 =pod
 
 =item @problems = $fieldcomponent->validate()

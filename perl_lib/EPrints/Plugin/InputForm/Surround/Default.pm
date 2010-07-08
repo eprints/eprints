@@ -33,7 +33,7 @@ sub render
 		class => "ep_sr_component",
 		id => $component->{prefix} );
 
-
+	$surround->appendChild( $self->{session}->make_element( "a", name=>$component->{prefix} ) );
 	foreach my $field_id ( $component->get_fields_handled )
 	{
 		$surround->appendChild( $self->{session}->make_element( "a", name=>$field_id ) );

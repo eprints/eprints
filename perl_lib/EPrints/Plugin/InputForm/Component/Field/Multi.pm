@@ -217,15 +217,21 @@ sub get_state_params
 	my $params = "";
 	foreach my $field ( @{$self->{config}->{fields}} )
 	{
-		$params.= $field->get_state_params( $self->{session}, $self->{prefix}."_".$field->get_name );
+		$params .= $field->get_state_params( $self->{session}, $self->{prefix} );
 	}
 	return $params;
 }
 
-=pod
+sub get_state_fragment
+{
+	my( $self, $processor ) = @_;
+
+	foreach my $field ( @{$self->{config}->{fields}} )
+	{
+		return $self->{prefix} if $field->has_internal_action( $self->{prefix} );
+	}
+
+	return "";
+}
+
 1;
-
-
-
-
-

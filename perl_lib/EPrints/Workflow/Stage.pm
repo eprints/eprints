@@ -201,11 +201,16 @@ sub get_state_params
 	my( $self, $processor ) = @_;
 
 	my $params = "";
+	my $fragment = "";
+
 	foreach my $component (@{$self->{components}})
 	{
-		$params.= $component->get_state_params( $processor );
+		$params .= $component->get_state_params( $processor );
+		$fragment = $component->get_state_fragment( $processor )
+			if !$fragment;
 	}
-	return $params;
+
+	return $fragment ? "$params#$fragment" : $params;
 }
 
 sub render

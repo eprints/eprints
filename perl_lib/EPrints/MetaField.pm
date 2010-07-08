@@ -1293,16 +1293,6 @@ sub get_input_elements
 		}
 	}
 
-	my $swap = $session->param( $basename."_swap" );
-	if( $swap =~ m/^(\d+),(\d+)$/ )
-	{
-		my( $a, $b ) = ( $value->[$1-1], $value->[$2-1] );
-		( $value->[$1-1], $value->[$2-1] ) = ( $b, $a );
-		# If the last item was moved down then extend boxcount by 1
-		$boxcount++ if( $2 == $boxcount ); 
-	}
-
-
 	my $imagesurl = $session->get_repository->get_conf( "rel_path" )."/style/images";
 	
 	my $rows = [];
@@ -1421,7 +1411,39 @@ sub get_input_elements
 	return $rows;
 }
 
+=item $bool = $field->has_internal_action( $basename )
 
+Returns true if this field has an internal action.
+
+=cut
+
+sub has_internal_action
+{
+	my( $self, $basename ) = @_;
+
+	if( defined $basename )
+	{
+		$basename .= "_" . $self->{name}
+	}
+	else
+	{
+		$basename = $self->{name};
+	}
+
+	my $ibutton = $self->{repository}->get_internal_button;
+	return
+		$ibutton eq "${basename}_morespaces" ||
+		$ibutton =~ /^${basename}_(?:up|down)_\d+$/
+	;
+}
+
+=item $params = $field->get_state_params( $repo, $basename )
+
+Returns a query string "&foo=bar&x=y" of parameters this field needs to render the effect of an internal action correctly.
+
+Returns "" if no parameters are required.
+
+=cut
 
 sub get_state_params
 {
@@ -1437,7 +1459,6 @@ sub get_state_params
 	}
 
 	my $params = "";
-	my $jump = "";
 
 	my $ibutton = $session->get_internal_button;
 	if( $ibutton eq $basename."_morespaces" ) 
@@ -1445,20 +1466,9 @@ sub get_state_params
 		my $spaces = $session->param( $basename."_spaces" );
 		$spaces += $self->{input_add_boxes};
 		$params.= "&".$basename."_spaces=$spaces";
-		$jump = "#".$basename;
-	}
-	if( $ibutton =~ m/^${basename}_down_(\d+)$/ )
-	{
-		$params.= "&".$basename."_swap=$1,".($1+1);
-		$jump = "#".$basename;
-	}
-	if( $ibutton =~ m/^${basename}_up_(\d+)$/ )
-	{
-		$params.= "&".$basename."_swap=".($1-1).",$1";
-		$jump = "#".$basename;
 	}
 
-	return $params.$jump;	
+	return $params;
 }
 
 
@@ -1565,6 +1575,15 @@ sub form_value_actual
 		if( scalar @values == 0 )
 		{
 			return undef;
+		}
+		my $ibutton = $session->get_internal_button;
+		if( $ibutton =~ m/^${basename}_down_(\d+)$/ && $1 < @values )
+		{
+			@values[$1-1, $1] = @values[$1, $1-1];
+		}
+		elsif( $ibutton =~ m/^${basename}_up_(\d+)$/ && $1 > 1 )
+		{
+			@values[$1-1, $1-2] = @values[$1-2, $1-1];
 		}
 		return \@values;
 	}

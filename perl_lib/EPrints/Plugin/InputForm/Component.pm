@@ -387,7 +387,14 @@ sub xml_to_metafield
 
 sub get_state_params
 {
-	my( $self ) = @_;
+	my( $self, $processor ) = @_;
+
+	return "";
+}
+
+sub get_state_fragment
+{
+	my( $self, $processor ) = @_;
 
 	return "";
 }
