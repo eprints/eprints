@@ -457,7 +457,7 @@ p.intro {
   <h2>Metadata Format</h2>
   <table class="values">
     <tr><td class="key">metadataPrefix</td>
-    <td class="value"><xsl:value-of select="oai:metadataPrefix"/></td></tr>
+    <td class="value"><a class="link" href="?verb=ListRecords&amp;metadataPrefix={oai:metadataPrefix}"><xsl:value-of select="oai:metadataPrefix"/></a></td></tr>
     <tr><td class="key">metadataNamespace</td>
     <td class="value"><xsl:value-of select="oai:metadataNamespace"/></td></tr>
     <tr><td class="key">schema</td>
