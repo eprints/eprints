@@ -124,6 +124,8 @@ sub retrieve
 {
 	my( $self, $fileobj, $sourceid, $offset, $n, $f ) = @_;
 
+	EPrints->abort( "Expected CODEREF but got '$f'" ) if ref($f) ne "CODE";
+
 	return 0 if !$self->open_read( $fileobj, $sourceid, $f );
 	my( $path, $fn ) = $self->_filename( $fileobj, $sourceid );
 
