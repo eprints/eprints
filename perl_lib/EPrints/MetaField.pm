@@ -1273,7 +1273,7 @@ sub get_input_elements
 
 	# multiple field...
 
-	my $boxcount = $session->param( $self->{name}."_spaces" );
+	my $boxcount = $session->param( $basename."_spaces" );
 	if( !defined $boxcount )
 	{
 		$boxcount = $self->{input_boxes};
@@ -1293,7 +1293,7 @@ sub get_input_elements
 		}
 	}
 
-	my $swap = $session->param( $self->{name}."_swap" );
+	my $swap = $session->param( $basename."_swap" );
 	if( $swap =~ m/^(\d+),(\d+)$/ )
 	{
 		my( $a, $b ) = ( $value->[$1-1], $value->[$2-1] );
@@ -1330,7 +1330,7 @@ sub get_input_elements
 					src=> "$imagesurl/multi_down.png",
 					alt=>"down",
 					title=>"move down",
-               				name=>"_internal_".$self->{name}."_down_$i",
+               				name=>"_internal_".$basename."_down_$i",
 					value=>"1" ));
 				if( $i > 1 )
 				{
@@ -1341,7 +1341,7 @@ sub get_input_elements
 						alt=>"up",
 						title=>"move up",
 						src=> "$imagesurl/multi_up.png",
-                				name=>"_internal_".$self->{name}."_up_$i",
+                				name=>"_internal_".$basename."_up_$i",
 						value=>"1" ));
 				}
 				$lastcol = { el=>$arrows, valign=>"middle", class=>"ep_form_input_grid_arrows" };
@@ -1402,10 +1402,10 @@ sub get_input_elements
 	{
 		my $more = $session->make_doc_fragment;
 		$more->appendChild( $session->render_hidden_field(
-					        $self->{name}."_spaces",
+					        $basename."_spaces",
 						$boxcount ) );
 		$more->appendChild( $session->render_internal_buttons(
-        		$self->{name}."_morespaces" => 
+        		$basename."_morespaces" => 
 			        $session->phrase( 
 				        "lib/metafield:more_spaces" ) ) );
 		if( defined $assist )
@@ -1425,31 +1425,37 @@ sub get_input_elements
 
 sub get_state_params
 {
-	my( $self, $session, $prefix ) = @_;
+	my( $self, $session, $basename ) = @_;
+
+	if( defined $basename )
+	{
+		$basename .= "_" . $self->{name}
+	}
+	else
+	{
+		$basename = $self->{name};
+	}
 
 	my $params = "";
 	my $jump = "";
 
 	my $ibutton = $session->get_internal_button;
-	my $name = $self->{name};
-	if( $ibutton eq "${name}_morespaces" ) 
+	if( $ibutton eq $basename."_morespaces" ) 
 	{
-		my $spaces = $session->param( $self->{name}."_spaces" );
+		my $spaces = $session->param( $basename."_spaces" );
 		$spaces += $self->{input_add_boxes};
-		$params.= "&".$self->{name}."_spaces=$spaces";
-		$jump = "#".$self->{name};
+		$params.= "&".$basename."_spaces=$spaces";
+		$jump = "#".$basename;
 	}
-	my $ndown = $name."_down_";
-	if( $ibutton =~ m/^$ndown(\d+)$/ )
+	if( $ibutton =~ m/^${basename}_down_(\d+)$/ )
 	{
-		$params.= "&".$self->{name}."_swap=$1,".($1+1);
-		$jump = "#".$self->{name};
+		$params.= "&".$basename."_swap=$1,".($1+1);
+		$jump = "#".$basename;
 	}
-	my $nup = $name."_up_";
-	if( $ibutton =~ m/^$nup(\d+)$/ )
+	if( $ibutton =~ m/^${basename}_up_(\d+)$/ )
 	{
-		$params.= "&".$self->{name}."_swap=".($1-1).",$1";
-		$jump = "#".$self->{name};
+		$params.= "&".$basename."_swap=".($1-1).",$1";
+		$jump = "#".$basename;
 	}
 
 	return $params.$jump;	
@@ -1548,7 +1554,7 @@ sub form_value_actual
 	if( $self->get_property( "multiple" ) )
 	{
 		my @values = ();
-		my $boxcount = $session->param( $self->{name}."_spaces" );
+		my $boxcount = $session->param( $basename."_spaces" );
 		$boxcount = 1 if( $boxcount < 1 );
 		for( my $i=1; $i<=$boxcount; ++$i )
 		{

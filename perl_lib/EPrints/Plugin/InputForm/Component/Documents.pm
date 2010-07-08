@@ -84,6 +84,27 @@ sub get_state_params
 
 	my $to_unroll = $processor->{notes}->{upload_plugin}->{to_unroll};
 	$to_unroll = {} if !defined $to_unroll;
+
+	my $eprint = $self->{workflow}->{item};
+	my @eprint_docs = $eprint->get_all_documents;
+	foreach my $doc ( @eprint_docs )
+	{
+		my $doc_prefix = $self->{prefix}."_doc".$doc->id;
+		next if !$self->{session}->param( $doc_prefix );
+
+		my @fields = $self->doc_fields( $doc );
+		foreach my $field ( @fields )
+		{
+			my $field_params = $field->get_state_params( $self->{session}, $doc_prefix );
+			next if !$field_params;
+			$params =~ s/#.*$//;
+			$params .= $field_params;
+			$to_unroll->{$doc->id} = 1;
+		}
+	}
+
+	$params =~ s/#.*$//;
+
 	foreach my $docid (keys %$to_unroll)
 	{
 		$params .= "&$self->{prefix}_view=$docid";
@@ -263,8 +284,6 @@ sub _doc_update
 
 		return;
 	}
-
-	$processor->add_message( "error", $self->html_phrase( "bad_doc_button", button => $self->{session}->make_text($doc_internal) ) );
 }
 
 sub has_help
