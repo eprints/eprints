@@ -273,6 +273,7 @@ sub get_system_field_info
 		{ name=>"data", type=>"base64", virtual=>1 },
 
 		{
+			export_as_xml => 0,
 			name=>"copies", type=>"compound", multiple=>1,
 			fields=>[{
 				sub_name=>"pluginid",
