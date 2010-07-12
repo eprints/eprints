@@ -195,6 +195,14 @@ sub make_record
 		my $metadata = $session->make_element( "metadata" );
 		$metadata->appendChild( $session->make_indent( 6 ) );
 		$metadata->appendChild( $md );
+		# OAI-PMH requires xmlns:xsi be repeated on the <metadata> object, even
+		# though it's already declared
+		# _setAttribute() is the internal LibXML XS method, so this is very
+		# low-level stuff
+		if( $md->isa( "XML::LibXML::Element" ) && $md->can( "_setAttribute" ) )
+		{
+			$md->_setAttribute( "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance" );
+		}
 		$record->appendChild( $session->make_indent( 4 ) );
 		$record->appendChild( $metadata );
 	}
