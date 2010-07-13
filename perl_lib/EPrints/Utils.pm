@@ -982,6 +982,25 @@ sub url_escape
 	return $url;
 }
 
+=item $url = EPrints::Utils::uri_escape_utf8( $str [, $ptn ] )
+
+Escape utf8 encoded string $str for use in a URI.
+
+Valid characters are [A-Za-z0-9\-\._~"].
+
+=cut
+
+# Copied from URI::Escape::uri_escape_utf8, which may not be available on
+# systems with very old versions of URI that get into Apache before our copy
+# does.
+sub uri_escape_utf8
+{
+	my( $text ) = @_;
+
+	utf8::encode( $text );
+
+	return URI::Escape::uri_escape($text, @_);
+}
 
 ######################################################################
 
