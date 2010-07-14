@@ -1750,7 +1750,7 @@ sub recommit
 			print "Number of records in set: ".$list->count."\n";
 		}
 	
-		my $sure = EPrints::Utils::get_input_confirm( "Continue" );
+		my $sure = $force || EPrints::Utils::get_input_confirm( "Continue" );
 		unless( $sure )
 		{
 			print "Aborting then.\n\n";
@@ -1765,7 +1765,7 @@ sub recommit
         	{
                 	print STDERR "Committing item: ".$dataset->id()."/".$item->id()."\n";
         	}
-        	$item->commit();
+        	$item->commit( 1 );
 	} );
 
 	if( !scalar @ids )
