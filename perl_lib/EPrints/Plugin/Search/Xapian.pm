@@ -141,7 +141,22 @@ sub _get_records
 {
 	my( $self, $offset, $size, $ids_only ) = @_;
 
-	my @ids = grep { $_ } map { $_->get_document->get_data + 0 } $self->{enq}->matches( $offset, $size );
+	$offset = 0 if !defined $offset;
+
+	my @ids;
+	if( defined $size )
+	{
+		@ids = grep { $_ } map { $_->get_document->get_data + 0 } $self->{enq}->matches( $offset, $size );
+	}
+	else
+	{
+		# retrieve matches 1000 ids at a time
+		while((@ids % 1000) == 0)
+		{
+			push @ids, grep { $_ } map { $_->get_document->get_data + 0 } $self->{enq}->matches( $offset, 1000 );
+			$offset += 1000;
+		}
+	}
 
 	return $ids_only ? \@ids : $self->{session}->get_database->get_dataobjs( $self->{dataset}, @ids );
 }
