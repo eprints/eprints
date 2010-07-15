@@ -80,6 +80,14 @@ sub input_fh
 			ids => $handler->{imported} );
 }
 
+sub xml_to_dataobj
+{
+	my( $self, $dataset, $xml ) = @_;
+
+	my $epdata = $self->xml_to_epdata( $dataset, $xml );
+	return $self->epdata_to_dataobj( $dataset, $epdata );
+}
+
 sub xml_to_text
 {
 	my( $plugin, $xml ) = @_;
