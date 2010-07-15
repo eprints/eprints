@@ -364,12 +364,6 @@ sub render_export_bar
 {
 	my( $self ) = @_;
 
-	if( !defined $self->{processor}->{results} || 
-		ref($self->{processor}->{results}) ne "EPrints::List" )
-	{
-                return $self->{session}->make_doc_fragment;
-	}
-
 	my @plugins = $self->_get_export_plugins;
 	my $cacheid = $self->{processor}->{results}->{cache_id};
 	my $order = $self->{processor}->{search}->{custom_order};

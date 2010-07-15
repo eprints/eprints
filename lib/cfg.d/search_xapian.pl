@@ -131,5 +131,37 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 	$db->replace_document_by_term( $key, $doc );
 });
 
+$c->add_trigger( EP_TRIGGER_INDEX_REMOVED, sub {
+	my( %params ) = @_;
+
+	my $repo = $params{repository};
+	my $dataset = $params{dataset};
+	my $id = $params{id};
+
+	if( !defined $repo->{_xapian} )
+	{
+		my $path = $repo->config( "variables_path" ) . "/xapian";
+		if( !-d $path )
+		{
+			EPrints->system->mkdir( $path );
+		}
+		$repo->{_xapian} = eval { Search::Xapian::WritableDatabase->new(
+			$path,
+			Search::Xapian::DB_CREATE_OR_OPEN()
+		) };
+		$repo->log( $@ ), return if $@;
+	}
+	my $db = $repo->{_xapian};
+
+	my $key = $dataset->get_key_field->name . ':' . $id;
+	my $enq = $db->enquire( Search::Xapian::Query->new( $key ) );
+	my @matches = $enq->matches( 0, 1 );
+	if( @matches )
+	{
+		$db->delete_document( $matches[0]->get_docid );
+	}
+});
+
+
 
 } # End of require_if_exists

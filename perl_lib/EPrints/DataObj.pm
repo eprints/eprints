@@ -415,6 +415,8 @@ sub remove
 {
 	my( $self ) = @_;
 
+	$self->queue_removed;
+
 	return $self->{session}->get_database->remove(
 		$self->{dataset},
 		$self->get_id );
@@ -1542,6 +1544,8 @@ sub queue_fulltext
 {
 	my( $self ) = @_;
 
+	return unless $self->{dataset}->indexable;
+
 	# don't know how to full-text index other datasets
 	return if $self->{dataset}->base_id ne "eprint";
 
@@ -1553,6 +1557,30 @@ sub queue_fulltext
 			pluginid => "Event::Indexer",
 			action => "index",
 			params => [$self->internal_uri, "documents"],
+			userid => $userid,
+		});
+}
+
+=item $dataobj->queue_removed()
+
+Add an index removed event to the indexer's queue.
+
+=cut
+
+sub queue_removed
+{
+	my( $self ) = @_;
+
+	return unless $self->{dataset}->indexable;
+
+	my $user = $self->{session}->current_user;
+	my $userid;
+	$userid = $user->id if defined $user;
+
+	EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
+			pluginid => "Event::Indexer",
+			action => "removed",
+			params => [$self->{dataset}->base_id, $self->id],
 			userid => $userid,
 		});
 }

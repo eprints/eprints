@@ -41,6 +41,25 @@ sub index_all
 	return $self->_index_fields( $dataobj, [$dataset->get_fields] );
 }
 
+sub removed
+{
+	my( $self, $datasetid, $id ) = @_;
+
+	my $dataset = $self->{session}->dataset( $datasetid );
+	return if !defined $dataset;
+
+	my $rc = $self->{session}->run_trigger( EPrints::Const::EP_TRIGGER_INDEX_REMOVED,
+		dataset => $dataset,
+		id => $id,
+	);
+	return 1 if defined $rc && $rc eq EPrints::Const::EP_TRIGGER_DONE;
+
+	foreach my $field ($dataset->fields)
+	{
+		EPrints::Index::remove( $self->{session}, $dataset, $id, $field->name );
+	}
+}
+
 sub _index_fields
 {
 	my( $self, $dataobj, $fields ) = @_;

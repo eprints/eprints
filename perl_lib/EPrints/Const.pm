@@ -139,6 +139,13 @@ Add the changed fields for the given data object to the index engine(s).
 	dataobj = EPrints::DataObj
 	fields = ARRAYREF of field objects
 
+=item EP_TRIGGER_INDEX_REMOVED
+
+An object was removed and should now be removed from the index engine(s).
+
+	dataset = EPrints::DataSet
+	id = object id
+
 =back
 
 =cut
@@ -189,6 +196,7 @@ use constant {
 	EP_TRIGGER_DOC_URL_REWRITE => 9,
 	EP_TRIGGER_MEDIA_INFO => 10,
 	EP_TRIGGER_INDEX_FIELDS => 11,
+	EP_TRIGGER_INDEX_REMOVED => 12,
 };
 
 # DataObj triggers
@@ -237,6 +245,7 @@ use constant {
 	EP_TRIGGER_DOC_URL_REWRITE
 	EP_TRIGGER_MEDIA_INFO
 	EP_TRIGGER_INDEX_FIELDS
+	EP_TRIGGER_INDEX_REMOVED
 
 	EP_TRIGGER_CREATED
 	EP_TRIGGER_RDF
