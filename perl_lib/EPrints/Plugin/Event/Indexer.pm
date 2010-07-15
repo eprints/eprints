@@ -41,33 +41,18 @@ sub index_all
 	return $self->_index_fields( $dataobj, [$dataset->get_fields] );
 }
 
-sub index_fulltext 
-{
-	my( $self, $dataobj ) = @_;
-
-	if( !defined $dataobj )
-	{
-		Carp::carp "Expected dataobj argument";
-		return 0;
-	}
-
-	my $dataset = $dataobj->get_dataset;
-
-	my $field = EPrints::MetaField->new( 
-				dataset => $dataset, 
-				name => "_fulltext_",
-				multiple => 1,
-				type => "fulltext" );
-
-	return $self->_index_fields( $dataobj, [$field] );
-}
-
 sub _index_fields
 {
 	my( $self, $dataobj, $fields ) = @_;
 
 	my $session = $self->{session};
 	my $dataset = $dataobj->get_dataset;
+
+	my $rc = $session->run_trigger( EPrints::Const::EP_TRIGGER_INDEX_FIELDS,
+		dataobj => $dataobj,
+		fields => $fields,
+	);
+	return 1 if defined $rc && $rc eq EPrints::Const::EP_TRIGGER_DONE;
 
 	foreach my $field (@$fields)
 	{

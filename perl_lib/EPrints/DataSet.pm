@@ -544,20 +544,6 @@ sub field
 
 	# magic fields which can be searched but do
 	# not really exist.
-	if( $fieldname eq $EPrints::Utils::FULLTEXT )
-	{
-		if( !defined $self->{fulltext_field} )
-		{
-			$self->{fulltext_field} = EPrints::MetaField->new( 
-				dataset=>$self , 
-				name=>$fieldname,
-				multiple=>1,
-				type=>"fulltext" );
-			$self->{fulltext_field}->set_property( "multiple",1 );
-			$self->{fulltext_field}->final;
-		}
-		return $self->{fulltext_field};
-	}
 	if( $fieldname =~ m/^_/ )
 	{
 		my $field = EPrints::MetaField->new( 

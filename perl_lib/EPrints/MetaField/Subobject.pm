@@ -190,6 +190,52 @@ sub render_single_value
 	return $value->render_citation( "default" );
 }
 
+sub get_index_codes_basic
+{
+	my( $self, $session, $doc ) = @_;
+
+	# only know how to get index codes out of documents
+	return( [], [], [] ) if !$doc->isa( "EPrints::DataObj::Document" );
+
+	# we only supply index codes for proper documents
+	return( [], [], [] ) if $doc->has_related_objects(
+		EPrints::Utils::make_relation( "isVolatileVersionOf" )
+	);
+
+	my $main_file = $doc->get_stored_file( $doc->get_main );
+	return( [], [], [] ) unless defined $main_file;
+
+	my( $indexcodes_doc ) = @{($doc->get_related_objects(
+			EPrints::Utils::make_relation( "hasIndexCodesVersion" )
+		))};
+	my $indexcodes_file;
+	if( defined $indexcodes_doc )
+	{
+		$indexcodes_file = $indexcodes_doc->get_stored_file( "indexcodes.txt" );
+	}
+
+	# (re)generate indexcodes if it doesn't exist or is out of date
+	if( !defined( $indexcodes_doc ) ||
+		$main_file->get_datestamp() gt $indexcodes_file->get_datestamp() )
+	{
+		$indexcodes_doc = $doc->make_indexcodes();
+		if( defined( $indexcodes_doc ) )
+		{
+			$indexcodes_file = $indexcodes_doc->get_stored_file( "indexcodes.txt" );
+		}
+	}
+
+	return( [], [], [] ) unless defined $indexcodes_doc;
+
+	my $data = "";
+	$indexcodes_file->get_file(sub {
+		$data .= $_[0];
+	});
+	my @codes = split /\n/, $data;
+
+	return( \@codes, [], [] );
+}
+
 sub to_sax
 {
 	my( $self, $value, %opts ) = @_;

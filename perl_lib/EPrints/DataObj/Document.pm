@@ -1305,13 +1305,6 @@ sub files_modified
 {
 	my( $self ) = @_;
 
-	# remove the now invalid cache of words from this document
-	# (see also EPrints::MetaField::Fulltext::get_index_codes_basic)
-	my $indexcodes  = $self->get_related_objects(
-			EPrints::Utils::make_relation( "hasIndexCodesVersion" )
-		);
-	$_->remove for @$indexcodes;
-
 	my $rc = $self->make_thumbnails;
 
 	if( $self->{session}->can_call( "on_files_modified" ) )

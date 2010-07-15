@@ -1529,7 +1529,7 @@ sub erase_fulltext_index
 	my $repo = &repository( $repoid );
 
 	my $ds = $repo->dataset( "document" );
-	print "Stating to erase caches\n" if( $noise >= 1 );
+	print "Starting to erase caches\n" if( $noise >= 1 );
 
 	$ds->search->map( sub {
 			my( undef, undef, $doc ) = @_;
@@ -1849,20 +1849,16 @@ sub reindex
 
 	my $indexer = $repo->plugin( "Event::Indexer" );
 
-	$list->map( sub {
+	$list->map(sub {
 		my( undef, $dataset, $item ) = @_;
 	
 		$indexer->index_all( $item );
-		if( $item->dataset->base_id eq "eprint" )
-		{
-			$indexer->index_fulltext( $item );
-		}
 
 		if( $noise >= 2 )
 		{
 			print STDERR "Indexed item: ".$dataset->id()."/".$item->id()."\n";
 		}
-	} );
+	});
 }
 
 
@@ -2835,6 +2831,11 @@ sub upgrade_3_2_2_to_3_3_0
 	# move var/metafields.pl to cfg/cfg.d/metafields.pl
 	my $base_path = $repo->config( "arc_path" );
 	rename( "$base_path/var/metafield.pl", "$base_path/cfg/cfg.d/zz_webcfg_eprint_fields.pl" );
+
+	# rename _fulltext_ indexed values to documents
+	my $Q_table = $db->quote_identifier( "eprint__rindex" );
+	my $Q_field = $db->quote_identifier( "field" );
+	$db->do( "UPDATE $Q_table SET $Q_field='documents' WHERE $Q_field='_fulltext_'" );
 }
 
 

@@ -2285,8 +2285,29 @@ Get indexable terms from $value. $terms is a reference to an array of strings to
 
 =cut
 
-# Most types are not indexed		
 sub get_index_codes
+{
+	my( $self, $session, $value ) = @_;
+
+	return( [], [], [] ) unless( EPrints::Utils::is_set( $value ) );
+
+	if( !$self->get_property( "multiple" ) )
+	{
+		return $self->get_index_codes_basic( $session, $value );
+	}
+	my( $codes, $grepcodes, $ignored ) = ( [], [], [] );
+	foreach my $v (@{$value} )
+	{		
+		my( $c,$g,$i ) = $self->get_index_codes_basic( $session, $v );
+		push @{$codes},@{$c};
+		push @{$grepcodes},@{$g};
+		push @{$ignored},@{$i};
+	}
+
+	return( $codes, $grepcodes, $ignored );
+}
+
+sub get_index_codes_basic
 {
 	my( $self, $session, $value ) = @_;
 

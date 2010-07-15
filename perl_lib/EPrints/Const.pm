@@ -132,6 +132,13 @@ Populate a Document epdata structure with information about a file.
 	filename
 	filepath
 
+=item EP_TRIGGER_INDEX_FIELDS
+
+Add the changed fields for the given data object to the index engine(s).
+
+	dataobj = EPrints::DataObj
+	fields = ARRAYREF of field objects
+
 =back
 
 =cut
@@ -181,6 +188,7 @@ use constant {
 	EP_TRIGGER_END => 8,
 	EP_TRIGGER_DOC_URL_REWRITE => 9,
 	EP_TRIGGER_MEDIA_INFO => 10,
+	EP_TRIGGER_INDEX_FIELDS => 11,
 };
 
 # DataObj triggers
@@ -228,6 +236,7 @@ use constant {
 	EP_TRIGGER_END
 	EP_TRIGGER_DOC_URL_REWRITE
 	EP_TRIGGER_MEDIA_INFO
+	EP_TRIGGER_INDEX_FIELDS
 
 	EP_TRIGGER_CREATED
 	EP_TRIGGER_RDF

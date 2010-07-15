@@ -2,7 +2,7 @@
 $c->{search}->{advanced} = 
 {
 	search_fields => [
-		{ meta_fields => [ $EPrints::Utils::FULLTEXT ] },
+		{ meta_fields => [ "documents" ] },
 		{ meta_fields => [ "title" ] },
 		{ meta_fields => [ "creators_name" ] },
 		{ meta_fields => [ "abstract" ] },

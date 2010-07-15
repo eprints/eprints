@@ -359,14 +359,6 @@ sub do_index
 		{
 			push @fields, $dataset->get_fields();
 		}
-		elsif( $fieldid eq EPrints::DataObj::IndexQueue::FULLTEXT() )
-		{
-			push @fields, EPrints::MetaField->new( 
-				dataset => $dataset, 
-				name => $fieldid,
-				multiple => 1,
-				type => "fulltext" );
-		}
 		else
 		{
 			if( defined(my $field = $dataset->get_field( $fieldid )) )

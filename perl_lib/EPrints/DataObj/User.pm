@@ -927,7 +927,7 @@ sub get_url
 {
 	my( $self ) = @_;
 
-	return $self->{session}->get_repository->get_conf( "http_cgiurl" )."/users/home?screen=User::View&userid=".$self->get_value( "userid" );
+	return $self->uri;
 }
 
 sub get_control_url

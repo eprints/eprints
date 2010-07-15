@@ -169,7 +169,7 @@ sub from
 		}
 	}
 
-	$self->{processor}->{search} = new EPrints::Search(
+	$self->{processor}->{search} = EPrints::Search->new(
 		keep_cache => 1,
 		session => $self->{session},
 		filters => [$self->search_filters],
@@ -177,7 +177,6 @@ sub from
 		%{$self->{processor}->{sconf}} );
 
 
-	$self->{actions} = [qw/ update search newsearch export_redir export /]; 
 	if( 	$self->{processor}->{action} eq "search" || 
 	 	$self->{processor}->{action} eq "update" || 
 	 	$self->{processor}->{action} eq "export" || 
@@ -459,8 +458,14 @@ sub get_basic_controls_before
 	my $cacheid = $self->{processor}->{results}->{cache_id};
 	my $escexp = $self->{processor}->{search}->serialise;
 
-	my $baseurl = $self->{session}->get_uri . "?cache=$cacheid&exp=$escexp&screen=".$self->{processor}->{screenid};
-	$baseurl .= "&order=".$self->{processor}->{search}->{custom_order};
+	my $baseurl = URI->new( $self->{session}->get_uri );
+	$baseurl->query_form(
+		cache => $cacheid,
+		exp => $escexp,
+		screen => $self->{processor}->{screenid},
+		dataset => $self->search_dataset->id,
+		order => $self->{processor}->{search}->{custom_order},
+	);
 	my @controls_before = (
 		{
 			url => "$baseurl&_action_update=1",
@@ -485,12 +490,6 @@ sub get_controls_before
 sub paginate_opts
 {
 	my( $self ) = @_;
-
-	if( !defined $self->{processor}->{results} || 
-		ref($self->{processor}->{results}) ne "EPrints::List" )
-	{
-                return $self->{session}->make_doc_fragment;
-	}
 
 	my %bits = ();
 
@@ -563,9 +562,9 @@ sub render_results
 	my( $self ) = @_;
 
 	if( !defined $self->{processor}->{results} || 
-		ref($self->{processor}->{results}) ne "EPrints::List" )
+		!$self->{processor}->{results}->isa( "EPrints::List" ) )
 	{
-                return $self->{session}->make_doc_fragment;
+		return $self->{session}->make_doc_fragment;
 	}
 
 	my %opts = $self->paginate_opts;

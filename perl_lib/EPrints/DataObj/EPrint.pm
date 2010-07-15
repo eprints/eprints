@@ -127,7 +127,7 @@ sub get_system_field_info
 		sql_index=>0, default_value=>1 },
 
 	{ name=>"documents", type=>"subobject", datasetid=>'document',
-		multiple=>1 },
+		multiple=>1, text_index=>1 },
 
 	{ name=>"files", type=>"subobject", datasetid=>"file",
 		multiple=>1 },

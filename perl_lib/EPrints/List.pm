@@ -156,17 +156,17 @@ automatically true.
 ######################################################################
 sub new
 {
-	my( $class, %opts ) = @_;
+	my( $class, %self ) = @_;
 
-	my $self = {};
-	$self->{session} = $opts{session};
-	$self->{dataset} = $opts{dataset};
-	$self->{ids} = $opts{ids};
-	$self->{order} = $opts{order};
-	$self->{encoded} = $opts{encoded};
-	$self->{cache_id} = $opts{cache_id};
-	$self->{keep_cache} = $opts{keep_cache};
-	$self->{searchexp} = $opts{searchexp};
+	my $self = \%self;
+#	$self->{session} = $opts{session};
+#	$self->{dataset} = $opts{dataset};
+#	$self->{ids} = $opts{ids};
+#	$self->{order} = $opts{order};
+#	$self->{encoded} = $opts{encoded};
+#	$self->{cache_id} = $opts{cache_id};
+#	$self->{keep_cache} = $opts{keep_cache};
+#	$self->{searchexp} = $opts{searchexp};
 
 	if( !defined $self->{cache_id} && !defined $self->{ids} ) 
 	{
