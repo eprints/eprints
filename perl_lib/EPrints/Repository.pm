@@ -5115,6 +5115,7 @@ sub plugin
 	return $self->get_repository->get_plugin_factory->get_plugin( $pluginid,
 		%params,
 		session => $self,
+		repository => $self,
 		);
 }
 
@@ -5163,7 +5164,7 @@ sub get_plugins
 		shift(@opts) :
 		{};
 
-	$params->{session} = $self;
+	$params->{repository} = $params->{session} = $self;
 
 	return $self->get_plugin_factory->get_plugins( $params, @opts );
 }
