@@ -1750,7 +1750,7 @@ sub recommit
 			print "Number of records in set: ".$list->count."\n";
 		}
 	
-		my $sure = $force || EPrints::Utils::get_input_confirm( "Continue" );
+		my $sure = $force || EPrints::Utils::get_input_confirm( "Continue", 1 );
 		unless( $sure )
 		{
 			print "Aborting then.\n\n";
@@ -1830,20 +1830,37 @@ sub reindex
 	else
 	{
 		$list = $dataset->search;
+
+		if( $noise > 0 )
+		{
+			print "\n";
+			print "You are about to reindex \"$datasetid\" in the $repoid repository.\n";
+			print "This can take some time.\n\n";
+			print "Number of records in set: ".$list->count."\n";
+		}
+	
+		my $sure = $force || EPrints::Utils::get_input_confirm( "Continue", 1 );
+		unless( $sure )
+		{
+			print "Aborting then.\n\n";
+			exit( 1 );
+		}
 	}
 
+	my $indexer = $repo->plugin( "Event::Indexer" );
+
 	$list->map( sub {
-		my( $session, $dataset, $item ) = @_;
+		my( undef, $dataset, $item ) = @_;
 	
-		$item->queue_all();
+		$indexer->index_all( $item );
 		if( $item->dataset->base_id eq "eprint" )
 		{
-			$item->queue_fulltext();
+			$indexer->index_fulltext( $item );
 		}
 
 		if( $noise >= 2 )
 		{
-			print STDERR "Queued item: ".$dataset->id()."/".$item->id()."\n";
+			print STDERR "Indexed item: ".$dataset->id()."/".$item->id()."\n";
 		}
 	} );
 }
