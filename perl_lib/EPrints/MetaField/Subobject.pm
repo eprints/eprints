@@ -187,7 +187,7 @@ sub render_single_value
 {
 	my( $self, $session, $value ) = @_;
 
-	return $value->render_citation( "default" );
+	return $value->render_citation_link( "default" );
 }
 
 sub get_index_codes_basic

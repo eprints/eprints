@@ -29,7 +29,7 @@ Search plugins implement the features required to render search query inputs, pe
 
 =cut
 
-=item $plugin = EPrints::Plugin::Search->new( session => $session, dataset => $dataset, %opts )
+=item $searchexp = EPrints::Plugin::Search->new( session => $session, dataset => $dataset, %opts )
 
 Create a new Search plugin object. Options:
 
@@ -40,6 +40,8 @@ Create a new Search plugin object. Options:
 sub new
 {
 	my( $class, %params ) = @_;
+
+	$params{custom_order} = "" if !exists $params{custom_order};
 
 	my $self = $class->SUPER::new( %params );
 
@@ -84,7 +86,7 @@ sub can_search
 	return 0;
 }
 
-=item @probs = $plugin->from_form()
+=item @probs = $searchexp->from_form()
 
 Populate the query from an input form.
 
@@ -92,7 +94,7 @@ Populate the query from an input form.
 
 sub from_form {}
 
-=item $ok = $plugin->from_cache( $id )
+=item $ok = $searchexp->from_cache( $id )
 
 Retrieve an existing query from a cache identified by $id.
 
@@ -102,7 +104,7 @@ The cache id is set via the L<EPrints::List> object returned by L</execute> (cac
 
 sub from_cache {}
 
-=item $ok = $plugin->from_string( $exp )
+=item $ok = $searchexp->from_string( $exp )
 
 Populate the query from a previously L</serialise>d query $exp.
 
@@ -110,7 +112,7 @@ Populate the query from a previously L</serialise>d query $exp.
 
 sub from_string {}
 
-=item $exp = $plugin->serialise()
+=item $exp = $searchexp->serialise()
 
 Serialise the query and return it as a plain-string.
 
@@ -118,7 +120,7 @@ Serialise the query and return it as a plain-string.
 
 sub serialise {}
 
-=item $plugin->is_blank()
+=item $searchexp->is_blank()
 
 Returns true if no query has been specified (ignoring any dataset-specific filters).
 
@@ -126,7 +128,7 @@ Returns true if no query has been specified (ignoring any dataset-specific filte
 
 sub is_blank {}
 
-=item $results = $plugin->execute()
+=item $results = $searchexp->execute()
 
 Execute the query and return a L<EPrints::List> object (or subclass).
 
@@ -139,7 +141,7 @@ sub perform_search
 }
 sub execute {}
 
-=item $xhtml = $plugin->render_description()
+=item $xhtml = $searchexp->render_description()
 
 Return an XHTML DOM description of this search expression.
 
@@ -162,7 +164,7 @@ sub render_description
 	return $frag;
 }
 
-=item $xhtml = $plugin->render_conditions_description()
+=item $xhtml = $searchexp->render_conditions_description()
 
 Return an XHTML DOM description of just this search expression's conditions.
 
@@ -175,7 +177,7 @@ sub render_conditions_description
 	return $self->{session}->xml->create_document_fragment;
 }
 
-=item $xhtml = $plugin->render_order_description()
+=item $xhtml = $searchexp->render_order_description()
 
 Return an XHTML DOM description of how this search is ordered.
 
@@ -207,7 +209,7 @@ sub render_order_description
 		order => $frag );
 }
 	
-=item $xhtml = $plugin->render_simple_fields()
+=item $xhtml = $searchexp->render_simple_fields()
 
 Renders a single-line set of input fields for single-box input (e.g. AND/OR [text input]).
 
@@ -223,7 +225,7 @@ sub render_simple_fields
 	return $xhtml->input_field( "q", $self->{q}, type => "text", size => 60 );
 }
 
-=item $xhtml = $plugin->render_advanced_fields()
+=item $xhtml = $searchexp->render_advanced_fields()
 
 Renders a list of input fields for advanced input as table rows.
 

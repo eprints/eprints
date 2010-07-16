@@ -331,29 +331,36 @@ sub from
 		}
 	}
 
+	$sconf->{order_methods} = {} if !defined $sconf->{order_methods};
 	if( $searchexp->param( "result_order" ) )
 	{
 		$sconf->{order_methods}->{"byrelevance"} = "";
 	}
 
 	# have we been asked to reorder?
-	my $order_opt = $self->{session}->param( "order" );
-	if( defined $order_opt )
+	if( defined( my $order_opt = $self->{session}->param( "order" ) ) )
 	{
 		my $allowed_order = 0;
-		foreach my $order_key ( keys %{$sconf->{order_methods}} )
+		foreach my $custom_order ( values %{$sconf->{order_methods}} )
 		{
-			$allowed_order = 1 if( $order_opt eq $sconf->{order_methods}->{$order_key} );
+			$allowed_order = 1 if $order_opt eq $custom_order;
 		}
 
+		my $custom_order;
 		if( $allowed_order )
 		{
-			$searchexp->{custom_order} = $order_opt;
+			$custom_order = $order_opt;
+		}
+		elsif( defined $sconf->{default_order} )
+		{
+			$custom_order = $sconf->{order_methods}->{$sconf->{default_order}};
 		}
 		else
 		{
-			$searchexp->{custom_order} = $sconf->{order_methods}->{$sconf->{default_order}};
+			$custom_order = "";
 		}
+
+		$searchexp->{custom_order} = $custom_order;
 	}
 
 	# do actions

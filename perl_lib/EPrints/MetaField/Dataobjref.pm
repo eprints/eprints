@@ -37,16 +37,20 @@ sub new
 {
 	my( $class, %properties ) = @_;
 
-	$properties{fields} = [
-		{ sub_name=>"title", type=>"text", },
-		{ sub_name=>"id", type=>"int", input_cols=>6, },
-	];
-
 	$properties{input_lookup_url} = 'lookup/dataobjref' if !defined $properties{input_lookup_url};
 
 	my $self = $class->SUPER::new( %properties );
 
 	return $self;
+}
+
+sub extra_subfields
+{
+	my( $self ) = @_;
+
+	return (
+		{ sub_name=>"id", type=>"int", input_cols=>6, },
+	);
 }
 
 sub get_property_defaults
@@ -92,35 +96,61 @@ sub render_value_no_multiple
 		return $xml->create_document_fragment;
 	}
 
+	my $ds = $session->dataset( $self->get_property('datasetid') );
+
+	my $frag = $xml->create_document_fragment;
+	my $extras = $xml->create_document_fragment;
+
+	# populate extras with values that aren't part of the referenced dataobj
+	foreach my $field (@{$self->property( "fields_cache" )})
+	{
+		my $name = $field->property( "sub_name" );
+		next if $name eq "id";
+		next if $ds->has_field( $name );
+		next if !EPrints::Utils::is_set( $value->{$name} );
+		$extras->appendChild( $xml->create_text_node( ", " ) ) if $extras->hasChildNodes;
+		$extras->appendChild( $field->render_single_value( $session, $value->{$name}, $alllangs, $nolink, $object ) );
+	}
+
+	# retrieve the remote dataobj (or fake it with the data we have)
 	my $dataobj;
 	if( EPrints::Utils::is_set( $value->{id} ) )
 	{
-		my $ds = $session->dataset( $self->get_property('datasetid') );
 		$dataobj = $ds->dataobj( $value->{id} );
 
-		if( !defined $dataobj )
+		if( defined $dataobj )
 		{
-			return $session->html_phrase( "lib/metafield/itemref:not_found",
+			$frag->appendChild( $dataobj->render_citation_link() );
+		}
+		else
+		{
+			$frag->appendChild( $session->html_phrase( "lib/metafield/itemref:not_found",
 				id=>$xml->create_text_node( $value->{id} ),
-				objtype=>$session->html_phrase( "datasetname_".$ds->base_id));
+				objtype=>$session->html_phrase( "datasetname_".$ds->base_id))
+			);
 		}
 	}
 	else
 	{
-		return $xml->create_text_node( $value->{title} );
+		my $dataobj = $ds->make_dataobj({});
+		foreach my $name (keys %$value)
+		{
+			next if $name eq "id";
+			next if !$ds->has_field( $name );
+			$dataobj->set_value( $name, $value->{$name} );
+		}
+
+		$frag->appendChild( $dataobj->render_citation() );
 	}
 
-	if( EPrints::Utils::is_set( $value->{title} ) )
+	if( $extras->hasChildNodes )
 	{
-		my $link = $xml->create_element( "a", href => $dataobj->get_url );
-		$link->appendChild( $xml->create_text_node( $value->{title} ) );
+		$frag->appendChild( $xml->create_text_node( " (" ) );
+		$frag->appendChild( $extras );
+		$frag->appendChild( $xml->create_text_node( ")" ) );
+	}
 
-		return $link;
-	}
-	else
-	{
-		return $dataobj->render_citation_link;
-	}
+	return $frag;
 }
 
 sub _dataset

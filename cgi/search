@@ -84,43 +84,23 @@ else
 {
 	$sconf = $repo->config( "datasets", $datasetid, "search", $searchid );
 }
-if( !defined $sconf )
+if( defined $sconf )
 {
-	$sconf = {
-		search_fields => [],
-		order_methods => {
-			byid => $dataset->get_key_field->name,
-		},
-		default_order => "byid",
-		citation => "result",
-		show_zero_results => 1,
-	};
-	if( $searchid eq "simple" )
+	foreach my $sfs (@{$sconf->{search_fields}})
 	{
-		$sconf->{search_fields} = [{
-			id => "q",
-			meta_fields => [
-				map { $_->name }
-				grep { !$_->is_virtual && $_->property( "export_as_xml" ) }
-				$dataset->fields
-			]
-		}];
-	}
-	elsif( $searchid eq "advanced" )
-	{
-		$sconf->{search_fields} = [
-			map { { meta_fields => [$_->name] } }
-			grep { !$_->is_virtual && $_->property( "export_as_xml" ) }
-			$dataset->fields
-		];
+		for(@{$sfs->{meta_fields}})
+		{
+			$_ = "documents" if $_ eq "_fulltext_";
+		}
 	}
 }
-foreach my $sfs (@{$sconf->{search_fields}})
+elsif( $searchid eq "simple" )
 {
-	for(@{$sfs->{meta_fields}})
-	{
-		$_ = "documents" if $_ eq "_fulltext_";
-	}
+	$sconf = $dataset->_simple_search_config();
+}
+elsif( $searchid eq "advanced" )
+{
+	$sconf = $dataset->_advanced_search_config();
 }
 
 EPrints::ScreenProcessor->process( 

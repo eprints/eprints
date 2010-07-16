@@ -1311,6 +1311,58 @@ sub run_trigger
 	}
 }
 
+=item $sconf = $dataset->_simple_search_config()
+
+Returns a simple search configuration based on the dataset's fields.
+
+=cut
+
+sub _simple_search_config
+{
+	my( $self ) = @_;
+
+	return {
+		search_fields => [{
+			id => "q",
+			meta_fields => [
+				map { $_->name }
+				grep { !$_->is_virtual && $_->property( "text_index" ) }
+				$self->fields
+			],
+			match => "IN",
+		}],
+		show_zero_results => 1,
+		order_methods => {
+			byid => $self->key_field->name,
+		},
+		default_order => "byid",
+	};
+}
+
+=item $sconf = $dataset->_advanced_search_config()
+
+Returns an advanced search configuration based on the dataset's fields.
+
+=cut
+
+sub _advanced_search_config
+{
+	my( $self ) = @_;
+
+	return {
+		search_fields => [
+			map { { meta_fields => [$_->name] } }
+			grep { !$_->is_virtual && $_->property( "text_index" ) }
+			$self->fields
+		],
+		show_zero_results => 1,
+		order_methods => {
+			byid => $self->key_field->name,
+		},
+		default_order => "byid",
+	};
+}
+
 ######################################################################
 1;
 ######################################################################

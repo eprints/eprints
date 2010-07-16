@@ -28,13 +28,15 @@ my $tdataset = $repo->dataset( $field->get_property( "datasetid" ) );
 my $fieldnames;
 
 my $sconf = $repo->config( "datasets", $tdataset->base_id, "search", "simple" );
-EPrints->abort( "No simple search defined for ".$tdataset->id ) if !defined $sconf;
+$sconf = $tdataset->_simple_search_config() if !defined $sconf;
 for(@{$sconf->{search_fields}||[]})
 {
+	next if $_->{id} ne "q";
 	$fieldnames = $_->{meta_fields};
 	last;
 }
-EPrints->abort( "Simple search fields not configured for ".$tdataset->id ) if !EPrints::Utils::is_set( $fieldnames );
+
+EPrints->abort( "no fields" ) if !defined $fieldnames;
 
 my $results = $tdataset->search(
 	search_fields => [{
@@ -54,15 +56,34 @@ foreach my $match ($results->slice(0, 10))
 	push @rows, $item;
 
 	my $frag = $repo->xml->create_document_fragment;
-
 	my $desc = $match->render_description;
-
 	$frag->appendChild( $desc );
+
 	$item->{xhtml} = $frag;
 	$item->{values} = [
 		"for:value:relative:_id" => $match->id,
-		"for:value:relative:_title" => $repo->xhtml->to_text_dump( $frag ),
 	];
+	foreach my $sub_field (@{$field->property( "fields_cache" )})
+	{
+		my $name = $sub_field->property( "sub_name" );
+		next if $name eq "id";
+		my $field = $tdataset->field( $name );
+		next if !defined $field;
+		if( $field->isa( "EPrints::MetaField::Name" ) )
+		{
+			my $value = $match->value( $name );
+			push @{$item->{values}},
+				"for:value:relative:_${name}_family" => $value->{family},
+				"for:value:relative:_${name}_given" => $value->{given},
+				"for:value:relative:_${name}_honourific" => $value->{honourific},
+				"for:value:relative:_${name}_lineage" => $value->{lineage},
+		}
+		else
+		{
+			push @{$item->{values}},
+				"for:value:relative:_$name" => $match->value( $name );
+		}
+	}
 }
 
 my $ul = EPrints::Extras::render_lookup_list( $repo, \@rows );

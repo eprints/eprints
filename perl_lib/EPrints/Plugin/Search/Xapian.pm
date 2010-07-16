@@ -99,16 +99,19 @@ sub execute
 	);
 	my $enq = $xapian->enquire( $query );
 
-	if( my $order = $self->{custom_order} )
+	if( $self->{custom_order} )
 	{
-		my @fields = split m#/#, $order;
-		for(@fields)
+		my $sorter = Search::Xapian::MultiValueSorter->new;
+		for(split /\//, $self->{custom_order})
 		{
-			my $reverse = $_ =~ s/^\-//;
-			my $key = $self->{dataset}->id . '.' . $_ . '.' . $session->{lang}->get_id;
-			$enq->set_sort_by_value_then_relevance( $xapian->get_metadata( $key ), $reverse );
-			last;
+			my $reverse = $_ =~ s/^-//;
+			my $key = join '.',
+				$self->{dataset}->id,
+				$_,
+				$session->{lang}->get_id;
+			$sorter->add( $xapian->get_metadata( $key ), $reverse );
 		}
+		$enq->set_sort_by_key_then_relevance( $sorter, 0 );
 	}
 
 	return EPrints::Plugin::Search::Xapian::ResultSet->new(
