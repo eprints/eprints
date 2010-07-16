@@ -5452,7 +5452,7 @@ sub get_static_page_conf_file
 
 	my $lang = EPrints::Repository::get_session_language( $repository, $r );
 	my $args = $r->args;
-	if( $args ne "" ) { $args = '?'.$args; }
+	$args = "?$args" if defined $args;
 
 	# Skip rewriting the /cgi/ path and any other specified in
 	# the config file.
@@ -5541,7 +5541,7 @@ sub init_from_request
 	return 1;
 }
 
-my @CACHE_KEYS = qw/ id citation_mtime citation_sourcefile citation_style citation_type class config datasets field_defaults html_templates langs plugins storage template_mtime text_templates types workflows loadtime /;
+my @CACHE_KEYS = qw/ id citation_mtime citation_sourcefile citation_style citation_type class config datasets field_defaults html_templates langs plugins storage template_mtime text_templates types workflows loadtime noise /;
 my %CACHED = map { $_ => 1 } @CACHE_KEYS;
 
 sub cleanup

@@ -320,7 +320,7 @@ sub update_from_form
 	return if $quiet;
 
 	# Deposit performs a full validation, so don't repeat any warnings here
-	return if $new_stage eq 'deposit';
+	return if defined $new_stage && $new_stage eq 'deposit';
 
 	my @problems = $stage_obj->validate( $processor );
 
@@ -435,7 +435,7 @@ sub link_problem_xhtml
 	if( EPrints::XML::is_dom( $node, "Element" ) )
 	{
 		my $class = $node->getAttribute( "class" );
-		if( $class=~m/^ep_problem_field:(.*)$/ )
+		if( $class && $class=~m/^ep_problem_field:(.*)$/ )
 		{
 			my $stage = $self->{field_stages}->{$1};
 			return if( !defined $stage );
