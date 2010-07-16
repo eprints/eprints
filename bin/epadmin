@@ -367,6 +367,8 @@ sub create
 {
 	pod2usage( 2 ) if( scalar @ARGV != 0 ); 
 
+	my $system = EPrints::System->new;
+
 	print <<END;
 
 Create an EPrint Repository
@@ -398,7 +400,7 @@ END
 	unless( -e $repodir )
 	{
 		print "We need to create $repodir, doing it now...\n";
-		unless( EPrints::Platform::mkdir( $repodir ) )
+		unless( $system->mkdir( $repodir ) )
 		{
 			print "Problem creating directory\n\n";
 			exit;
@@ -409,27 +411,15 @@ END
 		print "$repodir MUST be a directory.\n\n";
 	}
 
-	my $username = EPrints::Config::get( "user" );
-	my $group = EPrints::Config::get( "group" );
-	print "Getting uid and gid information for $username\n";
-	my $uid = EPrints::Platform::getpwnam( $username );
-	my $gid = EPrints::Platform::getgrnam( $group );
-	print "UID: $uid\n";
-	print "GID: $gid\n";
 	print "\nCreating initial files:\n";
 	&install( 
+		$system,
 		EPrints::Config::get( "base_path" )."/lib/defaultcfg",
-		eval($EPrints::SystemSettings::conf->{"file_perms"}),
-		$uid,
-		$gid,
-		$repodir."/cfg",
-		$repoid );
+		$repodir."/cfg" );
 
 	foreach( "cgi", "var", "html", "documents", "documents/disk0" )
 	{
-		my $dir = $repodir."/".$_;
-		EPrints::Platform::mkdir( $dir );
-		EPrints::Platform::chown( $uid, $gid, $dir );
+		$system->mkdir( "$repodir/$_" );
 	}
 	print <<END;
 
@@ -539,51 +529,26 @@ exit;
 # eprints-install
 sub install
 {
-	my($dir, $perms, $user, $group, $dest, $repoid) = @_;
+	my($system, $dir, $dest) = @_;
 
 	print "Installing: $dest\n";
-	opendir(INDIR, $dir) or die("Unable to install directory: $dir");
-	my @dirs = ();
-	my @files = ();
-	EPrints::Platform::mkdir( $dest );
-	EPrints::Platform::chown($user, $group, $dest);
-	while(my $item = readdir(INDIR))
+	$system->mkdir( $dest );
+
+	opendir(my $dh, $dir) or die("Unable to install directory: $dir");
+	while(my $fn = readdir($dh))
 	{
-		next if $item=~m/^\./;
-		if (-d "$dir/$item") { push(@dirs, $item); }
-		else { push(@files, $item); }
-	}
-	closedir(INDIR);
-	foreach my $filename (@files)
-	{
-		if( $filename eq "Config.pm" )
+		next if $fn =~ m/^\./;
+		if( -d "$dir/$fn" )
 		{
-			open(my $i_fh, "<", "$dir/$filename");
-			open(my $o_fh, ">", "$dest/$filename")
-				or die "Can't write to $dest/$filename";
-			while(defined($_ = <$i_fh>))
-			{
-				if( /^package/ )
-				{
-					# Change the package name to the local repository ($/ = line seperator)
-					$_ = "package EPrints::Config::$repoid;$/";
-				}
-				print $o_fh $_;
-			}
-			close($i_fh);
-			close($o_fh);
+			install($system, "$dir/$fn", "$dest/$fn");
 		}
-		else
+		elsif( -f "$dir/$fn" )
 		{
-			EPrints::Utils::copy("$dir/$filename", "$dest/$filename");
+			EPrints::Utils::copy( "$dir/$fn", "$dest/$fn" );
+			$system->chown_for_eprints( "$dest/$fn" );
 		}
-		EPrints::Platform::chmod($perms, "$dest/$filename");
-		EPrints::Platform::chown($user, $group, "$dest/$filename");
 	}
-	foreach(@dirs)
-	{
-		install("$dir/".$_, $perms, $user, $group, "$dest/$_", $repoid );
-	}
+	closedir($dh);
 }
 
 sub run_script
