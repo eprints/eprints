@@ -80,6 +80,15 @@ use Carp qw( verbose );
 
 use strict;
 
+# set default global configuration values
+my $conf = $EPrints::SystemSettings::conf;
+if( !defined $conf->{base_path} )
+{
+	my $base_path = $INC{'EPrints.pm'};
+	$base_path =~ s/.perl_lib.EPrints\.pm$//; # ignore / \
+	$conf->{base_path} = $base_path;
+}
+
 =item EPrints->abort( $errmsg )
 
 This subroutine is loaded before other modules so that it may be used to report errors when initialising modules.
