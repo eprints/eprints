@@ -172,7 +172,7 @@ sub convert_input
 		];
 	}
 
-	if( defined $data->{year} )
+	if( defined $data->{year} && $data->{year} =~ /^[0-9]{4}$/ )
 	{
 		$epdata->{date} = $data->{year};
 	}
