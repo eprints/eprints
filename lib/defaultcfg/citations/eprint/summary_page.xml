@@ -92,7 +92,7 @@
        Edit the list of metadata to show in the summary page table in eprint_render.pl
     </epc:comment>
     <epc:foreach expr="$config{summary_page_metadata}" iterator="fieldname">
-      <epc:if test="$item.property($fieldname)">
+      <epc:if test="is_set($item.property($fieldname))">
         <tr>
           <th align="right"><epc:phrase ref="eprint_fieldname_{$fieldname}" />:</th>
           <td valign="top"><epc:print expr="$item.property($fieldname)" /></td>
