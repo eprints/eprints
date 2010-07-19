@@ -1,8 +1,13 @@
-
 body {
 	margin: 1em;
 	font-family: Arial,Sans-serif;
 	font-size: 80%;
+        color: #000000;
+        background-color:#ffffff;
+}
+
+img {
+        border:0;
 }
 
 .ep_no_js { 
