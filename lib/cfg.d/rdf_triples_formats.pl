@@ -17,7 +17,7 @@ $c->add_dataset_trigger( "eprint", EP_TRIGGER_RDF, sub {
 	$o{graph}->add( 
 		  subject => $eprint_url,
 		predicate => "dc:title",
-  		   object => "HTML Summary of of #".$eprint->id." $title",
+  		   object => "HTML Summary of #".$eprint->id." $title",
 		     type => "literal" );
 	$o{graph}->add( 
 		  subject => $eprint_url,
