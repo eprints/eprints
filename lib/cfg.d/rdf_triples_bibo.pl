@@ -2,7 +2,6 @@
 $c->{rdf}->{xmlns}->{event} = "http://purl.org/NET/c4dm/event.owl#";
 $c->{rdf}->{xmlns}->{bibo}  = "http://purl.org/ontology/bibo/";
 $c->{rdf}->{xmlns}->{geo}   = "http://www.w3.org/2003/01/geo/wgs84_pos#";
-$c->{rdf}->{xmlns}->{cc}    = "http://creativecommons.org/ns#";
 
 
 $c->{rdf}->{bibo_type}->{article} = "bibo:AcademicArticle"; # bit risky, but most things in a repo are.
@@ -241,6 +240,11 @@ $c->add_dataset_trigger( "eprint", EP_TRIGGER_RDF, sub {
 			   	  subject => $eprint_uri,
 			 	predicate => "owl:sameAs",
 			    	   object => "<urn:isbn:$isbn>" );
+			$o{"graph"}->add(
+			   	  subject => $eprint_uri,
+			 	predicate => "bibo:isbn",
+			    	   object => $isbn,
+				     type => "literal" );
 		}
 		if( $type eq "book_chapter" )
 		{
@@ -329,6 +333,12 @@ $c->add_dataset_trigger( "eprint", EP_TRIGGER_RDF, sub {
 				   	  subject => $publication_uri,
 				 	predicate => "owl:sameAs",
 				    	   object => "<urn:issn:$issn>",
+					secondary_resource => $publication_uri );
+				$o{"graph"}->add(
+				   	  subject => $publication_uri,
+				 	predicate => "bibo:issn",
+				    	   object => $issn,
+					     type => "literal",
 					secondary_resource => $publication_uri );
 			}
 		}
@@ -477,6 +487,12 @@ $c->add_dataset_trigger( "eprint", EP_TRIGGER_RDF, sub {
 		   	  subject => $person_uri,
 		 	predicate => "foaf:family_name",
 		    	   object => $e_family,
+			     type => "xsd:string" );
+		$o{"graph"}->add(
+			secondary_resource => $person_uri,
+		   	  subject => $person_uri,
+		 	predicate => "foaf:name",
+		    	   object => "$e_given $e_family",
 			     type => "xsd:string" );
 	}
 

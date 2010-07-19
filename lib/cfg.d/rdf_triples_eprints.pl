@@ -1,6 +1,7 @@
 
 $c->{rdf}->{xmlns}->{ep} = "http://eprints.org/ontology/";
 $c->{rdf}->{xmlns}->{eprel} = "http://eprints.org/relation/";
+$c->{rdf}->{xmlns}->{cc}    = "http://creativecommons.org/ns#";
 
 $c->{rdf}->{license_uri}->{cc_by_nd}	= "http://creativecommons.org/licenses/by-nd/3.0/";
 $c->{rdf}->{license_uri}->{cc_by}	= "http://creativecommons.org/licenses/by/3.0/";
