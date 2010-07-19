@@ -10,14 +10,26 @@ EPrints::Plugin::Search - pluggable search engines
 
 =head1 SYNOPSIS
 
-	$search = $repo->plugin( "Search::XXX",
+	$searchexp = $repo->plugin( "Search::XXX",
 		dataset => $repo->dataset( "archive" ),
 		...
 	);
 
-	# methods to set up query
+	($searchexp) = $repo->get_plugins({
+			dataset => $repo->dataset( "archive" )
+		},
+		type => "Search",
+		can_search => "simple/eprint",
+	);
 
-	$results = $search->execute();
+	# methods to set up query
+	$form->appendChild(
+		$searchexp->render_simple_fields
+	);
+
+	$searchexp->from_form();
+
+	$results = $searchexp->execute();
 
 =head1 DESCRIPTION
 
@@ -143,7 +155,7 @@ sub execute {}
 
 =item $xhtml = $searchexp->render_description()
 
-Return an XHTML DOM description of this search expression.
+Return an XHTML DOM description of this search expression. This is the combination of the condition and sort options.
 
 =cut
 
@@ -166,7 +178,7 @@ sub render_description
 
 =item $xhtml = $searchexp->render_conditions_description()
 
-Return an XHTML DOM description of just this search expression's conditions.
+Return an XHTML DOM description of this search expression's conditions.
 
 =cut
 
@@ -211,7 +223,7 @@ sub render_order_description
 	
 =item $xhtml = $searchexp->render_simple_fields()
 
-Renders a single-line set of input fields for single-box input (e.g. AND/OR [text input]).
+Renders the form input fields required for a simple search (typically just a single text input box).
 
 =cut
 
