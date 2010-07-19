@@ -1,5 +1,6 @@
 package EPrints::Plugin::Screen::Search;
 
+use EPrints::Plugin::Screen::AbstractSearch;
 @ISA = ( 'EPrints::Plugin::Screen::AbstractSearch' );
 
 use strict;
