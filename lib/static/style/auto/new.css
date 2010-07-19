@@ -1,0 +1,33 @@
+body {
+	color: #000000;
+	background-color:#ffffff;
+}
+
+img {
+	border:0;
+}
+
+.ep_tm_searchbar {
+	border-width:0; 
+	width:100%;
+}
+
+.ep_tm_searchbar td {
+	padding: 0;
+	margin: 0;
+}
+
+.ep_tm_page_content {
+	width:720px;
+	margin:auto;
+	margin-top:20px;
+}
+
+.ep_tm_eprints_logo {
+	float: right; 
+	margin-left: 1em;
+}
+
+.ep_tm_footer {
+	font-size: 80%;
+}
