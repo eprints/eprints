@@ -774,7 +774,7 @@ sub render_xml_diffs
 		{
 			$s1 = $session->make_element( "span", style=>"" );
 			$s1->appendChild( mkpad( $session, $t2, $offset, $endw, $width ) );
-			$s2 = $session->make_element( "span", style=>"background: #cfc; font: bold 15pt sans-serif" );
+			$s2 = $session->make_element( "span", style=>"background: #cfc;" );
 			$s2->appendChild( mktext( $session, $t2, $offset, $endw, $width ) );
 		}
 		elsif( $t2 eq "" )
