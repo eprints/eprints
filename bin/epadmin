@@ -726,9 +726,9 @@ END
 	$config{http_root} = undef if $config{http_root} eq "";
 
 	print <<END;
-	
-Please enter the hostname of your secure (https) server. Leave blank to use
-http for login.
+
+If you will use https for your user pages (including login) enter the https hostname
+here, or leave blank when using http only.
 
 END
 
