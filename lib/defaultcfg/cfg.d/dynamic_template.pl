@@ -29,6 +29,7 @@ $c->{dynamic_template}->{enable} = 1;
 # To support backwards-compatibility the new-style key tools plugins are
 # included here
 $c->{plugins}->{"Screen::Login"}->{appears}->{key_tools} = 100;
+$c->{plugins}->{"Screen::Register"}->{actions}->{register}->{appears}->{key_tools} = 150;
 $c->{plugins}->{"Screen::Logout"}->{appears}->{key_tools} = 10000;
 $c->{plugins}->{"Screen::Admin::Config::Edit::XPage"}->{actions}->{edit}->{appears}->{key_tools} = 1250;
 $c->{plugins}->{"Screen::Admin::Phrases"}->{actions}->{edit}->{appears}->{key_tools} = 1350;

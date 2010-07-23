@@ -2282,6 +2282,7 @@ Public CGI Scripts
 <p>Your new password  will need to confirm your email address by using a code which will be mailed to you.</p>
 <p>If you have already registered but have forgotten your username or password, <a href="reset_password">click here</a> to set a new password.</p>
 </epp:phrase>
+	<epp:phrase id="Plugin/Screen/Register:title">Create Account</epp:phrase>
     <epp:phrase id="cgi/register:action_submit">Register</epp:phrase>
     <epp:phrase id="cgi/register:title">Register</epp:phrase>
     <epp:phrase id="cgi/register:missing_field"><p>You have not filled in the &quot;<epc:pin name="fieldname"/>&quot; field.</p></epp:phrase>
