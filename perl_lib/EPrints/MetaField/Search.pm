@@ -135,8 +135,6 @@ sub get_basic_input_elements
 		$div->appendChild( $sf->render() );
 	}
 
-	$searchexp->dispose();
-
 	return [ [ { el=>$div } ] ];
 }
 
@@ -161,7 +159,6 @@ sub form_value_basic
 	{
 		$value = $searchexp->serialise;	
 	}
-	$searchexp->dispose();
 
 	return $value;
 }
