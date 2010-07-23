@@ -116,6 +116,7 @@ sub action_edit_config
 		$screen_id = "Admin::Config::View::Perl";
 		my $redirect_url = $session->current_url() . "?screen=" . $screen_id . "&configfile=" . $config_file;
 		$session->redirect( $redirect_url );
+		exit();
 	} else {
 		$screen_id = $config_file;
 		$self->{processor}->{screenid} = $screen_id;
@@ -146,8 +147,12 @@ sub action_install_bazaar_package
 
 
 	if (defined ${$epm_file}) {
-		( $rc, $message ) = EPrints::EPM::install($session,${$epm_file});	
-		if ( $rc > 0 ) {
+		( $rc, $message ) = EPrints::EPM::install($session,${$epm_file});
+		if ( $rc > 0 ) 
+		{
+			$type = "warning";
+		}
+		elsif ( $rc > 0.5 ) {
 			$type = "error";
 		}
 		else
@@ -232,10 +237,12 @@ sub action_install_cached_package
 	$package = $epm_path . $package;
 
 	my ( $rc, $message ) = EPrints::EPM::install($session,$package);
-	
 	my $type = "message";
-
-	if ( $rc > 0 ) {
+	if ( $rc > 0 ) 
+	{
+		$type = "warning";
+	}
+	elsif ( $rc > 0.5 ) {
 		$type = "error";
 	}
 	else

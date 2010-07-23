@@ -366,17 +366,30 @@ sub install
 	my $return = 0;
 	if (defined $plugin) 
 	{
+		#THIS SHOULD REALLY BE MOVED TO BEFORE THE WHOLE INSTALL IS DONE!
+		if ($plugin->can( "action_preinst" )) 
+		{
+			($return,my $preinst_msg) = $plugin->action_preinst();
+			$message = "Package Install Failed (preinst failed with error: $preinst_msg), package was removed again with message: ";
+		}
 		if ($plugin->can( "action_postinst" )) 
 		{
-			$return = $plugin->action_postinst();
-			$message = "Package Install Failed (postinst failed), package was removed again with message: ";
+			($return,my $postinst_msg) = $plugin->action_postinst();
+			print STDERR $postinst_msg;
+			if ($return < 1 && $return > 0) {
+				$message = $postinst_msg;
+			} else {
+				$message = "Package Install Failed (postinst failed), package was removed again with message: ";
+			}
 		}
 	} else {
 print STDERR "NO PLUGIN\n";
 	}
-	if ($return > 0) {
+	if ($return > 0.5) {
 		my ($rc2,$extra) = remove($repository,$package_name,1);
 		return (1,$message . $extra);
+	} elsif ($return == 0.5) {
+		return (0.5,$message);
 	} else {
 		$message = "Package Successfully Installed";
 	}
@@ -835,7 +848,7 @@ sub retrieve_available_epms
 
 	SOURCE: foreach my $epm_source (@{$repository->config("epm_sources")}) {
 
-		my $url = $epm_source->{base_url} . "/cgi/search/advanced/export_training12c_XML.xml?screen=Public%3A%3AEPrintSearch&_action_export=1&output=XML&exp=0|1|-date%2Fcreators_name%2Ftitle|archive|-|type%3Atype%3AANY%3AEQ%3Aepm|-|eprint_status%3Aeprint_status%3AALL%3AEQ%3Aarchive|metadata_visibility%3Ametadata_visibility%3AALL%3AEX%3Ashow";
+		my $url = $epm_source->{base_url} . "/cgi/search/advanced/export__XML.xml?screen=Public%3A%3AEPrintSearch&_action_export=1&output=XML&exp=0|1|-date%2Fcreators_name%2Ftitle|archive|-|type%3Atype%3AANY%3AEQ%3Aepm|-|eprint_status%3Aeprint_status%3AALL%3AEQ%3Aarchive|metadata_visibility%3Ametadata_visibility%3AALL%3AEX%3Ashow";
 
 		my $tmp = File::Temp->new;
 
