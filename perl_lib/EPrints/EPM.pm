@@ -370,12 +370,15 @@ sub install
 		if ($plugin->can( "action_preinst" )) 
 		{
 			($return,my $preinst_msg) = $plugin->action_preinst();
-			$message = "Package Install Failed (preinst failed with error: $preinst_msg), package was removed again with message: ";
+			if ($return < 1 && $return > 0) {
+				$message = $preinst_msg;
+			} else {
+				$message = "Package Install Failed (preinst failed with error: $preinst_msg), package was removed again with message: ";
+			}
 		}
 		if ($plugin->can( "action_postinst" )) 
 		{
 			($return,my $postinst_msg) = $plugin->action_postinst();
-			print STDERR $postinst_msg;
 			if ($return < 1 && $return > 0) {
 				$message = $postinst_msg;
 			} else {
@@ -655,8 +658,12 @@ sub remove
 	{
 		if ($plugin->can( "action_prerm" )) 
 		{
-			$return = $plugin->action_prerm();
-			$message = "Package cannot be removed as the packages pre-remove script failed.";
+			($return,my $prerm_msg) = $plugin->action_prerm();
+			if ($return < 1 && $return > 0) {
+				$message = $prerm_msg;
+			} else {
+				$message = "Package cannot be removed as the packages pre-remove script failed.";
+			}
 		} 
 		if (!$return && $plugin->can( "action_removed_status" ))
 		{
@@ -666,9 +673,9 @@ sub remove
 	} else {
 print STDERR "NO PLUGIN";
 	}
-
+	
 	if ($return > 0) {
-		return (1,$message);
+		return ($return,$message);
 	}
 
 	my $pass = 1;
