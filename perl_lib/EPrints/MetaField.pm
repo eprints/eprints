@@ -1524,7 +1524,6 @@ sub get_basic_input_elements
 			maxlength => $maxlength );
 		$f->appendChild( $input );
 	}
-	$f->appendChild( $session->make_element( "div", id=>$basename."_".$_."_billboard" ));
 
 	return [ [ { el=>$f } ] ];
 }
