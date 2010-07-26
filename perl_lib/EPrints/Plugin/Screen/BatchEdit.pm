@@ -198,8 +198,6 @@ sub ajax_new_field
 
 	my $session = $self->{session};
 
-	my $alias = $c . "_" . $name;
-
 	my $searchexp = $self->get_searchexp;
 	return if !defined $searchexp;
 
@@ -224,32 +222,48 @@ sub ajax_new_field
 		@options = qw( clear replace );
 	}
 
+	# construct a new field called the action number
+	# this first sub-field is the action to perform (append, clear etc.)
 	my $custom_field = {
-		name => $alias,
+		name => $c,
 		type => "compound",
 		fields => [{
-			name => "batchedit_action",
 			sub_name => "action",
 			type => "set",
 			options => \@options,
+			title_xhtml => $session->make_doc_fragment,
+			render_option => sub {
+				my( undef, $option ) = @_;
+				return $self->html_phrase( "actionopt:" . ($option||"") );
+			},
 		}],
 	};
 
+	# add the field or sub-fields that represent the field
+	# the sub name of the field is the field's name
+	# the title is the real field's title
 	if( $field->isa( "EPrints::MetaField::Compound" ) )
 	{
-		push @{$custom_field->{fields}}, @{$field->{fields}};
+		for(@{$field->property( "fields" )})
+		{
+			my $inner_field = EPrints::Utils::clone( $_ );
+			$inner_field->{sub_name} = join('_', $name, $inner_field->{sub_name});
+			push @{$custom_field->{fields}}, $inner_field;
+		}
 	}
 	else
 	{
-		delete $field->{"multiple"};
 		$field->{sub_name} = $field->{name};
 		push @{$custom_field->{fields}}, $field;
 	}
 
+	# and lastly a button to remove action entries and a hidden that tells us
+	# the field name of the action name
 	push @{$custom_field->{fields}}, {
 			name => "batchedit_remove",
 			sub_name => "remove",
 			type => "text",
+			title_xhtml => $session->make_doc_fragment,
 			render_input => sub {
 				my $frag = $session->make_doc_fragment;
 				
@@ -272,6 +286,7 @@ sub ajax_new_field
 			},
 		};
 
+	# do some tidying up and turn custom_field into a temporary field object
 	$custom_field = $self->custom_field_to_field( $dataset, $custom_field );
 
 	my $div = $session->make_element( "div", id => "action_$c" );
@@ -570,23 +585,15 @@ sub get_changes
 
 	foreach my $i (@idx)
 	{
-		my $name = $session->param( "action_$i" );
+		my $name = $session->param( "action_" . $i );
 		next if !EPrints::Utils::is_set( $name );
-		my $action = $session->param( $i . "_" . $name . "_action" );
+		my $action = $session->param( $i . "_action" );
 		next if !EPrints::Utils::is_set( $action );
 		my $field = $fields{$name};
 		next if !defined $field;
 		do {
 			local $field->{multiple} = 0;
-			my $value;
-			if( $field->isa( "EPrints::MetaField::Compound" ) )
-			{
-				$value = $field->form_value( $session, undef, $i );
-			}
-			else
-			{
-				$value = $field->form_value( $session, undef, $i."_".$name );
-			}
+			my $value = $field->form_value( $session, undef, $i );
 			push @actions, {
 				action => $action,
 				field => $field,
@@ -749,21 +756,28 @@ sub custom_field_to_field
 
 	$data->{fields_cache} = [];
 
-	foreach my $inner_field (@{$data->{fields}})
-	{
-		my $field = EPrints::MetaField->new(
-			dataset => $dataset,
-			parent_name => $data->{name},
-			show_in_html => 0,
-			%{$inner_field},
-		);
-		push @{$data->{fields_cache}}, $field;
-	}
-
 	my $field = EPrints::MetaField->new(
 		dataset => $dataset,
 		%{$data},
 	);
+
+	foreach my $inner_field (@{$field->property( "fields_cache" )})
+	{
+		next if $inner_field eq $field->property( "fields_cache" )->[0];
+		next if $inner_field eq $field->property( "fields_cache" )->[-1];
+
+		delete $inner_field->{multiple};
+		local $inner_field->{name} = $inner_field->{sub_name};
+		$inner_field->{title_xhtml} = $inner_field->render_name( $session );
+		$inner_field->{render_option} = sub {
+			my( undef, $option ) = @_;
+
+			local $inner_field->{name} = $inner_field->{sub_name};
+			local $inner_field->{render_option};
+
+			return $inner_field->render_option( $session, $option );
+		};
+	}
 
 	return $field;
 }
