@@ -172,7 +172,7 @@ sub render
 	$chunk->appendChild( $self->render_action_list_bar( "item_tools" ) );
 
 	my $import_screen = $session->plugin( "Screen::Import" );
-	$chunk->appendChild( $import_screen->render_import_bar() );
+	$chunk->appendChild( $import_screen->render_import_bar() ) if( defined $import_screen );
 
 	my %filters = $self->get_filters;
 	my @l = ();
