@@ -32,7 +32,10 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 	$tg->set_stopper( Search::Xapian::SimpleStopper->new() );
 	$tg->set_document( $doc );
 
+	my $key = "_id:" . $dataobj->internal_uri;
+
 	$doc->add_term( "_dataset:" . $dataobj->{dataset}->base_id, 0 );
+	$doc->add_term( $key, 0 );
 	$doc->set_data( $dataobj->id );
 
 	my %field_pos;
@@ -127,7 +130,6 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 		}
 	}
 
-	my $key = $dataset->get_key_field->name . ':' . $dataobj->id;
 	$db->replace_document_by_term( $key, $doc );
 });
 
@@ -153,7 +155,7 @@ $c->add_trigger( EP_TRIGGER_INDEX_REMOVED, sub {
 	}
 	my $db = $repo->{_xapian};
 
-	my $key = $dataset->get_key_field->name . ':' . $id;
+	my $key = "_id:/id/" . $dataset->base_id . "/" . $id;
 	my $enq = $db->enquire( Search::Xapian::Query->new( $key ) );
 	my @matches = $enq->matches( 0, 1 );
 	if( @matches )
