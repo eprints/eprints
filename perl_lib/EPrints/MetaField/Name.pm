@@ -41,7 +41,7 @@ BEGIN
 use EPrints::MetaField::Text;
 
 # database order
-our @PARTS = qw( family lineage given honourific );
+our @PARTS = qw( family given lineage honourific );
 
 sub get_sql_names
 {
