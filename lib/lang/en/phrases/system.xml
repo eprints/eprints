@@ -373,8 +373,7 @@ terms.</p>
     <epp:phrase id="document_typename_thumbnail_small">Thumbnail (Small)</epp:phrase>
     <epp:phrase id="document_typename_thumbnail_medium">Thumbnail (Medium)</epp:phrase>
     <epp:phrase id="document_typename_thumbnail_preview">Thumbnail (Preview)</epp:phrase>
-
-
+    <epp:phrase id="document_typename_thumbnail_video">Thumbnail (Video)</epp:phrase>
 
     <epp:phrase id="security_typename_public">Anyone</epp:phrase>
     <epp:phrase id="security_typename_validuser">Registered users only</epp:phrase>
