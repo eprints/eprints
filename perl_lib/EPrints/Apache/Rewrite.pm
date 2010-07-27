@@ -52,7 +52,7 @@ sub handler
 	my( $r ) = @_;
 
 	my $repoid = $r->dir_config( "EPrints_ArchiveID" );
-	return if !$repoid;
+	return DECLINED if !$repoid;
 
 	if( defined $EPrints::HANDLE )
 	{
