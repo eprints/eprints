@@ -1383,21 +1383,24 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
     <epp:phrase id="Plugin/Screen/Subject/Check:no_such_parent"><b><epc:pin name="subjectid"/></b> refers to a parent <em><epc:pin name="parentid"/></em>, but that parent doesn't appear to exist.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Check:loop">A circular reference was detected along path <b><epc:pin name="path"/></b>.</epp:phrase>
 
-
 <!-- Sword plugins -->
 
+        <epp:phrase id="Plugin/Sword/Import/EPrintsXML:unexpected_element">Unexpected element: &lt;<epc:pin name="name"/>&gt;</epp:phrase>
+        <epp:phrase id="Plugin/Sword/Import/EPrintsXML:unexpected_type">&lt;<epc:pin name="type"/>&gt; where &lt;<epc:pin name="expected"/>&gt; was expectedinside &lt;<epc:pin name="fieldname"/>&gt;</epp:phrase>
+        <epp:phrase id="Plugin/Sword/Import/EPrintsXML:unknown_virtual">&lt;<epc:pin name="type"/>&gt; is an unknown virtual field inside &lt;<epc:pin name="fieldname"/>&gt;</epp:phrase>
+        <epp:phrase id="Plugin/Sword/Import/EPrintsXML:dup_element">&lt;<epc:pin name="name"/>&gt; appears twice in one parent.</epp:phrase>
+        <epp:phrase id="Plugin/Sword/Import/EPrintsXML:expected_file">&lt;<epc:pin name="type"/>&gt; where &lt;file&gt; was expected inside &lt;<epc:pin name="fieldname"/>&gt;</epp:phrase>
+        <epp:phrase id="Plugin/Sword/Import/EPrintsXML:expected_item">&lt;<epc:pin name="type"/>&gt; where &lt;item&gt; was expected inside &lt;<epc:pin name="fieldname"/>&gt;</epp:phrase>
+        <epp:phrase id="Plugin/Sword/Import/EPrintsXML:expected">Expected <epc:pin name="elements"/></epp:phrase>
+        <epp:phrase id="Plugin/Sword/Import/EPrintsXML:unexpected_xml">Expected only text, found: <epc:pin name="xml" /></epp:phrase>
 
-   <epp:phrase id="Sword/Deposit:document_formatdesc">This is the original file deposited through SWORD.</epp:phrase>
-
-   <epp:phrase id="Sword/ServiceDocument:note_behalf"> NOTE: you are currently depositing on behalf of user '<epc:pin name="username"/>'.</epp:phrase>
-
+	<epp:phrase id="Sword/Deposit:document_formatdesc">This is the original file deposited through SWORD.</epp:phrase>
+	<epp:phrase id="Sword/ServiceDocument:note_behalf"> NOTE: you are currently depositing on behalf of user '<epc:pin name="username"/>'.</epp:phrase>
 
         <epp:phrase id="eprint_fieldname_sword_depositor">SWORD Depositor</epp:phrase>
         <epp:phrase id="eprint_fieldhelp_sword_depositor">The username of the Depositor (for items sent through the SWORD interface)</epp:phrase>
-
         <epp:phrase id="eprint_fieldname_sword_slug">SWORD Slug</epp:phrase>
         <epp:phrase id="eprint_fieldhelp_sword_slug">A (pseudo) unique ID suggested by the client when depositing through SWORD</epp:phrase>
-
 
 <!-- Dataset -->
 
