@@ -2995,11 +2995,11 @@ sub sort_values
 	# insert all the order values with their index in $values
 	my @pairs;
 	my $i = 0;
-	foreach(@$values)
+	foreach my $value (@$values)
 	{
 		push @pairs, [
 			$i++,
-			$field->ordervalue_single( $_, $session, $langid )
+			$field->ordervalue_single( $value, $session, $langid )
 		];
 	}
 	$self->insert( $table, [ "pos", $ofield->get_sql_names ], @pairs );
