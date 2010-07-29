@@ -1628,13 +1628,16 @@ sub update
 		$rv &&= $self->insert( $auxtable, \@names, @rows );
 	}
 
-	if( $insert )
+	if( $dataset->ordered )
 	{
-		EPrints::Index::insert_ordervalues( $self->{session}, $dataset, $data );
-	}
-	else
-	{
-		EPrints::Index::update_ordervalues( $self->{session}, $dataset, $data, $changed );
+		if( $insert )
+		{
+			EPrints::Index::insert_ordervalues( $self->{session}, $dataset, $data );
+		}
+		else
+		{
+			EPrints::Index::update_ordervalues( $self->{session}, $dataset, $data, $changed );
+		}
 	}
 
 	return $rv;
@@ -2177,20 +2180,24 @@ sub _cache_from_TABLE
 
 	my $cache_table  = $cachemap->get_sql_table_name;
 	my $keyfield = $dataset->get_key_field();
+	my $keyname = $keyfield->get_sql_name();
 	$logic ||= [];
 
-	my $Q_cache_table = $self->quote_identifier( $cache_table );
-	my $Q_keyname = $self->quote_identifier($keyfield->get_name());
-	my $O = $self->quote_identifier("O");
-	my $Q_srctable = $self->quote_identifier($srctable);
-	my $Q_pos = $self->quote_identifier("pos");
-
 	my $sql;
-	$sql .= "SELECT $Q_srctable.$Q_keyname FROM $Q_srctable";
+	$sql .= "SELECT ".$self->quote_identifier( $srctable, $keyname )." FROM ".$self->quote_identifier( $srctable );
 	if( defined $order )
 	{
-		$sql .= " LEFT JOIN ".$self->quote_identifier($dataset->get_ordervalues_table_name($self->{session}->get_langid()))." $O";
-		$sql .= " ON $Q_srctable.$Q_keyname=$O.$Q_keyname";
+		my $ov_table;
+		if( $dataset->ordered )
+		{
+			$ov_table = $dataset->get_ordervalues_table_name( $self->{session}->get_langid );
+		}
+		else
+		{
+			$ov_table = $dataset->get_sql_table_name();
+		}
+		$sql .= " LEFT JOIN ".$self->quote_identifier($ov_table).$self->sql_AS.$self->quote_identifier( "O" );
+		$sql .= " ON ".$self->quote_identifier( $srctable, $keyname )."=".$self->quote_identifier( "O", $keyname );
 	}
 	if( scalar @$logic )
 	{
@@ -2199,19 +2206,31 @@ sub _cache_from_TABLE
 	if( defined $order )
 	{
 		$sql .= " ORDER BY ";
-		my $first = 1;
+		my @parts;
 		foreach( split( "/", $order ) )
 		{
-			$sql .= ", " if( !$first );
 			my $desc = 0;
 			if( s/^-// ) { $desc = 1; }
 			my $field = EPrints::Utils::field_from_config_string(
 					$dataset,
 					$_ );
-			$sql .= "$O.".$self->quote_identifier($field->get_sql_name());
-			$sql .= " DESC" if $desc;
-			$first = 0;
+			# if the dataset isn't ordered order by the individual columns of
+			# the field
+			if( $dataset->ordered )
+			{
+				push @parts, $self->quote_identifier("O", $field->name);
+				$parts[-1] .= " DESC" if $desc;
+			}
+			else
+			{
+				foreach my $part ($field->get_sql_names)
+				{
+					push @parts, $self->quote_identifier("O", $part);
+					$parts[-1] .= " DESC" if $desc;
+				}
+			}
 		}
+		$sql .= join ', ', @parts;
 	}
 
 	return $self->_cache_from_SELECT( $cachemap, $dataset, $sql );

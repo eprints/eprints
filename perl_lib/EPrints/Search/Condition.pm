@@ -344,7 +344,15 @@ sub sql
 
 	my $groupby = delete $opts{groupby};
 
-	my $ov_table = $dataset->get_ordervalues_table_name( $session->get_langid );
+	my $ov_table;
+	if( $dataset->ordered )
+	{
+		$ov_table = $dataset->get_ordervalues_table_name( $session->get_langid );
+	}
+	else
+	{
+		$ov_table = $dataset->get_sql_table_name();
+	}
 
 	my $sql = "";
 	my @joins;
@@ -385,7 +393,7 @@ sub sql
 	# FROM dataset_main_table
 	$sql .= " FROM ".$db->quote_identifier( $dataset->get_sql_table_name );
 	# LEFT JOIN dataset_ordervalues
-	if( scalar @orders )
+	if( scalar @orders && $dataset->ordered )
 	{
 		$sql .= " LEFT JOIN ".$db->quote_identifier( $ov_table );
 		$sql .= " ON ".$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name )."=".$db->quote_identifier( $ov_table, $key_field->get_sql_name );
@@ -570,10 +578,19 @@ sub _split_order_by
 		my $desc = 0;
 		if( $fieldname =~ s/^-// ) { $desc = 1; }
 		my $field = EPrints::Utils::field_from_config_string( $dataset, $fieldname );
-		push @orders, [
-				$field->get_sql_name,
-				$desc ? "DESC" : "ASC"
-			];
+		if( $dataset->ordered )
+		{
+			push @orders, [
+					$field->get_name,
+					$desc ? "DESC" : "ASC"
+				];
+		}
+		else
+		{
+			push @orders, map {
+					[ $_, $desc ? "DESC" : "ASC" ]
+				} $field->get_sql_names;
+		}
 	}
 
 	return @orders;

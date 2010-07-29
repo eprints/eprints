@@ -167,6 +167,7 @@ my $INFO = {
 		class => "EPrints::DataObj::User",
 		import => 1,
 		index => 1,
+		order => 1,
 		datestamp => "joined",
 	},
 	archive => {
@@ -176,6 +177,7 @@ my $INFO = {
 		confid => "eprint",
 		import => 1,
 		index => 1,
+		order => 1,
 		filters => [ { meta_fields => [ 'eprint_status' ], value => 'archive', describe=>0 } ],
 		dataset_id_field => "eprint_status",
 		datestamp => "lastmod",
@@ -187,6 +189,7 @@ my $INFO = {
 		confid => "eprint",
 		import => 1,
 		index => 1,
+		order => 1,
 		filters => [ { meta_fields => [ 'eprint_status' ], value => 'buffer', describe=>0 } ],
 		dataset_id_field => "eprint_status",
 		datestamp => "lastmod",
@@ -198,6 +201,7 @@ my $INFO = {
 		confid => "eprint",
 		import => 1,
 		index => 1,
+		order => 1,
 		filters => [ { meta_fields => [ 'eprint_status' ], value => 'inbox', describe=>0 } ],
 		dataset_id_field => "eprint_status",
 		datestamp => "lastmod",
@@ -209,6 +213,7 @@ my $INFO = {
 		confid => "eprint",
 		import => 1,
 		index => 1,
+		order => 1,
 		filters => [ { meta_fields => [ 'eprint_status' ], value => 'deletion', describe=>0 } ],
 		dataset_id_field => "eprint_status",
 		datestamp => "lastmod",
@@ -217,12 +222,14 @@ my $INFO = {
 		sqlname => "eprint",
 		class => "EPrints::DataObj::EPrint",
 		index => 1,
+		order => 1,
 		datestamp => "lastmod",
 	},
 	document => {
 		sqlname => "document",
 		class => "EPrints::DataObj::Document",
 		import => 1,
+		order => 1,
 		index => 1,
 	},
 	subject => {
@@ -230,6 +237,7 @@ my $INFO = {
 		class => "EPrints::DataObj::Subject",
 		import => 1,
 		index => 1,
+		order => 1,
 	},
 	history => {
 		sqlname => "history",
@@ -1172,6 +1180,13 @@ sub indexable
 	my( $self ) = @_;
 
 	return $self->{index};
+}
+
+sub ordered
+{
+	my( $self ) = @_;
+
+	return $self->{order};
 }
 
 ######################################################################
