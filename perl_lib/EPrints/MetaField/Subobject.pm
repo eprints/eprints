@@ -190,6 +190,36 @@ sub render_single_value
 	return $value->render_citation_link( "default" );
 }
 
+sub get_search_conditions
+{
+	my( $self, $session, $dataset, $search_value, $match, $merge,
+		$search_mode ) = @_;
+
+	return EPrints::Search::Condition::False->new()
+		if $match ne "IN";
+
+	my( $codes ) = EPrints::MetaField::Text::get_index_codes_basic(
+		$self,
+		$session,
+		$search_value
+	);
+
+	if( $search_value =~ s/\*$// )
+	{
+		return EPrints::Search::Condition::IndexStart->new( 
+				$dataset,
+				$self, 
+				$codes->[0] );
+	}
+	else
+	{
+		return EPrints::Search::Condition::Index->new( 
+				$dataset,
+				$self, 
+				$codes->[0] );
+	}
+}
+
 sub get_index_codes_basic
 {
 	my( $self, $session, $doc ) = @_;

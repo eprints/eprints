@@ -66,7 +66,7 @@ use URI;
 
 use strict;
 
-$EPrints::Utils::FULLTEXT = "_fulltext_";
+$EPrints::Utils::FULLTEXT = "documents";
 
 BEGIN {
 	eval "use Term::ReadKey";

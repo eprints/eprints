@@ -37,7 +37,7 @@ $searchexp = EPrints::Search->new(
 	dataset => $dataset,
 );
 
-$searchexp->add_field( $dataset->get_field( "_fulltext_" ), "article", "IN" );
+$searchexp->add_field( $dataset->get_field( "documents" ), "article", "IN" );
 
 $list = eval { $searchexp->perform_search };
 
@@ -242,7 +242,7 @@ $searchexp = EPrints::Search->new(
 	dataset => $dataset,
 	satisfy_all => 0 );
 
-$searchexp->add_field( $dataset->get_field( $EPrints::Utils::FULLTEXT ), "article", "IN" );
+$searchexp->add_field( $dataset->get_field( "documents" ), "article", "IN" );
 $searchexp->add_field( $dataset->get_field( "title" ), "article", "IN" );
 $searchexp->add_field( $dataset->get_field( "relation_type" ), "article" );
 
