@@ -40,7 +40,7 @@ sub new
 
 	if( ref($self{Output}) eq "SCALAR" )
 	{
-		$self{_output} = sub { ${$self{Output}} .= $_[1] };
+		$self{_output} = sub { push @{$self{_buffer}}, $_[1] };
 	}
 	else
 	{
@@ -54,6 +54,7 @@ sub start_document
 {
     my( $self, $data ) = @_;
 
+	$self->{_o} = [];
     $self->{NSDecl} = [];
     $self->{NSHelper} = XML::NamespaceSupport->new({ xmlns => 1, fatal_errors => 0 });
     $self->{NSHelper}->push_context;
@@ -63,6 +64,11 @@ sub end_document
 {
     my( $self, $data ) = @_;
 
+	if( ref($self->{Output}) eq "SCALAR" )
+	{
+		${$self->{Output}} = join '', @{$self->{_buffer}};
+		utf8::encode(${$self->{Output}});
+	}
     # we may need to do a little more here
     $self->{NSHelper}->pop_context;
 }
