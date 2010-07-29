@@ -12,6 +12,16 @@
 #
 ######################################################################
 
+=head1 NAME
+
+import_rand_data - import random eprint data records
+
+=head1 SYNOPSIS
+
+import_rand_data <repoid> [dataset] [count]
+
+=cut
+
 use EPrints;
 use strict;
 
@@ -61,6 +71,7 @@ sub Text::Lorem::name {
 
 # generate standard lorems, then add some exotic UTF-8 stuff
 $lorem->{wordlist} = $lorem->generate_wordlist();
+binmode(\*DATA, ":utf8");
 push @{$lorem->{wordlist}}, map { split /\s+/, $_ } <DATA>;
 
 # nb. This syntax is subject to change in future versions.
@@ -76,7 +87,7 @@ $total ||= 1000;
 
 # Basic data
 our @TYPES = @{$session->get_repository->{types}->{eprint}};
-our @SUBJECTS = @{read_subjects( $session )};
+our @SUBJECTS = @{read_subjects( $session, "subjects" )};
 our @PUBLICATIONS;
 for(1..100)
 {
@@ -190,11 +201,17 @@ sub rand_date
 
 sub read_subjects
 {
-	my( $session ) = @_;
+	my( $session, $id ) = @_;
 
 	my $ds = $session->get_repository->get_dataset( "subject" );
 
-	return $ds->get_item_ids( $session );
+	my $root = $ds->dataobj( $id );
+
+	my $subjects = $root->get_subjects();
+
+	return[
+		map { $_->[0] } @$subjects
+	];
 }
 
 sub rand_publication
