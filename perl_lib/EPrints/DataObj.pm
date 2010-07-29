@@ -1332,7 +1332,7 @@ sub to_sax
 	my( $self, %opts ) = @_;
 
 	my $handler = $opts{Handler};
-	my $dataset = $self->dataset;
+	my $dataset = $self->{dataset};
 	my $name = $dataset->base_id;
 
 	$handler->start_element({
