@@ -106,10 +106,16 @@ sub execute
 		{
 			my $reverse = $_ =~ s/^-//;
 			my $key = join '.',
-				$self->{dataset}->id,
+				$self->{dataset}->base_id,
 				$_,
 				$session->{lang}->get_id;
-			$sorter->add( $xapian->get_metadata( $key ), $reverse );
+			my $idx = $xapian->get_metadata( $key );
+			if( !length($idx) )
+			{
+				$session->log( "Search::Xapian can't sort by $key: unknown sort key" );
+				next;
+			}
+			$sorter->add( $idx, $reverse );
 		}
 		$enq->set_sort_by_key_then_relevance( $sorter, 0 );
 	}

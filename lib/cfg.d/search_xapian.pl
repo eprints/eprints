@@ -45,14 +45,13 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 		foreach my $field ($dataset->fields)
 		{
 			my $name = $field->name;
-			my $key = $dataset->id . '.' . $name . '.' . $langid;
+			my $key = $dataset->base_id . '.' . $name . '.' . $langid;
 			$field_pos{$key} = $db->get_metadata( $key ) || 0;
 			$max_pos = $field_pos{$key} if $field_pos{$key} > $max_pos;
 		}
-		foreach my $name (keys %field_pos)
+		foreach my $key (keys %field_pos)
 		{
-			next if $field_pos{$name};
-			my $key = $dataset->id . '.' . $name . '.' . $langid;
+			next if $field_pos{$key};
 			$db->set_metadata( $key, $field_pos{$key} = ++$max_pos );
 		}
 	}
@@ -78,6 +77,7 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 			{
 				$value = $v;
 			}
+			next if !EPrints::Utils::is_set( $value );
 			$tg->index_text( $value, .5 );
 			$tg->increase_termpos();
 			if( $field->isa( "EPrints::MetaField::Text" ) )
@@ -98,7 +98,7 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 				$langid, # TODO: non-English ordervalues?
 				$dataset
 			);
-			my $key = $dataset->id . '.' . $field->name . '.' . $langid;
+			my $key = $dataset->base_id . '.' . $field->name . '.' . $langid;
 			$doc->add_value( $field_pos{$key}, $ordervalue );
 		}
 	}
