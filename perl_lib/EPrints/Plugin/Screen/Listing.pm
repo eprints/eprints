@@ -66,7 +66,7 @@ sub from
 	my $search = $self->{processor}->{search};
 	my $exp = $session->param( "exp" );
 
-	if( $self->{processor}->{action} eq "search" )
+	if( defined $self->{processor}->{action} && $self->{processor}->{action} eq "search" )
 	{
 		foreach my $sf ( $search->get_non_filter_searchfields )
 		{
