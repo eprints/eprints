@@ -877,28 +877,29 @@ sub _load_templates
 {
 	my( $self ) = @_;
 
+	$self->{html_templates} = {};
+	$self->{text_templates} = {};
+	$self->{template_mtime} = {};
+	$self->{template_path} = {};
+
 	foreach my $langid ( @{$self->config( "languages" )} )
 	{
-		my $dir = $self->config( "config_path" )."/lang/$langid/templates";
-		my $dh;
-		opendir( $dh, $dir );
-		my @template_files = ();
-		while( my $fn = readdir( $dh ) )
+		foreach my $dir ($self->get_template_dirs( $langid ))
 		{
-			next if $fn=~m/^\./;
-			push @template_files, $fn if $fn=~m/\.xml$/;
-		}
-		closedir( $dh );
-
-		#my $tmp_session = EPrints::Session->new( 1, $self->{id} );
-		#$tmp_session->terminate;
-
-		foreach my $fn ( @template_files )
-		{
-			my $id = $fn;
-			$id=~s/\.xml$//;
-			delete $self->{template_mtime}->{$id}->{$langid}; # force reload
-			$self->freshen_template( $langid, $id );
+			opendir( my $dh, $dir ) or next;
+			while( my $fn = readdir( $dh ) )
+			{
+				next if $fn =~ m/^\./;
+				next if $fn !~ /\.xml$/;
+				my $id = $fn;
+				$id =~ s/\.xml$//;
+				next if
+					exists $self->{template_mtime}->{$id} &&
+					exists $self->{template_mtime}->{$id}->{$langid};
+				$self->{template_path}->{$id}->{$langid} = "$dir/$fn";
+				$self->freshen_template( $langid, $id );
+			}
+			closedir( $dh );
 		}
 
 		if( !defined $self->{html_templates}->{default}->{$langid} )
@@ -906,6 +907,7 @@ sub _load_templates
 			EPrints::abort( "Failed to load default template for language $langid" );
 		}
 	}
+
 	return 1;
 }
 
@@ -916,9 +918,9 @@ sub freshen_template
 	my $curr_lang = $self->{lang};
 	$self->change_lang( $langid );
 
-	my $file = $self->config( "config_path" ).
-			"/lang/$langid/templates/$id.xml";
-	my @filestat = stat( $file );
+	my $path = $self->{template_path}->{$id}->{$langid};
+
+	my @filestat = stat( $path );
 	my $mtime = $filestat[9];
 
 	my $old_mtime = $self->{template_mtime}->{$id}->{$langid};
@@ -928,7 +930,7 @@ sub freshen_template
 		return;
 	}
 
-	my $template = $self->_load_template( $file );
+	my $template = $self->_load_template( $path );
 	if( !defined $template ) 
 	{ 
 		$self->{lang} = $curr_lang;
@@ -1716,6 +1718,39 @@ END
 	return $dirs[$#dirs];
 }
 
+=item @dirs = $repository->get_template_dirs( $langid )
+
+Returns a list of directories from which template files may be sourced.
+
+=cut
+
+sub get_template_dirs
+{
+	my( $self, $langid ) = @_;
+
+	my @dirs;
+
+	my $config_path = $self->config( "config_path" );
+	my $lib_path = $self->config( "lib_path" );
+
+	# repository path: /archives/[repoid]/cfg/templates/
+	push @dirs, "$config_path/lang/$langid/templates";
+	push @dirs, "$config_path/templates";
+
+	# themes path: /archives/[repoid]/cfg/themes/templates/
+	my $theme = $self->config( "theme" );
+	if( defined $theme )
+	{	
+		push @dirs, "$config_path/themes/$theme/templates";
+	}
+
+	# system path: /lib/templates/
+	push @dirs, "$lib_path/lang/$langid/templates";
+	push @dirs, "$lib_path/templates";
+
+	return @dirs;
+}
+
 ######################################################################
 =pod
 
@@ -1737,21 +1772,20 @@ sub get_static_dirs
 	my $config_path = $self->config( "config_path" );
 	my $lib_path = $self->config( "lib_path" );
 
-	# repository path: /archives/[repoid]/cfg/
-	push @dirs, "$config_path/static";
+	# repository path: /archives/[repoid]/cfg/static/
 	push @dirs, "$config_path/lang/$langid/static";
+	push @dirs, "$config_path/static";
 
-	# themes path: /lib/themes/
+	# themes path: /archives/[repoid]/cfg/themes/
 	my $theme = $self->config( "theme" );
 	if( defined $theme )
 	{	
-		push @dirs, "$lib_path/themes/$theme/static";
-		push @dirs, "$lib_path/themes/$theme/lang/$langid/static";
+		push @dirs, "$config_path/themes/$theme/static";
 	}
 
 	# system path: /lib/static/
-	push @dirs, "$lib_path/static";
 	push @dirs, "$lib_path/lang/$langid/static";
+	push @dirs, "$lib_path/static";
 
 	return @dirs;
 }
@@ -5541,7 +5575,7 @@ sub init_from_request
 	return 1;
 }
 
-my @CACHE_KEYS = qw/ id citation_mtime citation_sourcefile citation_style citation_type class config datasets field_defaults html_templates langs plugins storage template_mtime text_templates types workflows loadtime noise /;
+my @CACHE_KEYS = qw/ id citation_mtime citation_sourcefile citation_style citation_type class config datasets field_defaults html_templates template_path langs plugins storage template_mtime text_templates types workflows loadtime noise /;
 my %CACHED = map { $_ => 1 } @CACHE_KEYS;
 
 sub cleanup
