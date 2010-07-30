@@ -40,6 +40,15 @@ sub paginate_list
 
 	my %newopts = %opts;
 	
+	if( EPrints::Utils::is_set( $basename ) )
+	{
+		$basename .= '_';
+	}
+	else
+	{
+		$basename = '';
+	}
+
 	# Build base URL
 	my $url = $session->get_uri . "?";
 	my @param_list;
@@ -54,12 +63,16 @@ sub paginate_list
 	}
 	$url .= join "&", @param_list;
 
-	my $offset = defined $opts{offset} ? $opts{offset} : ($session->param( "$basename\_offset" ) || 0);
+	my $offset = defined $opts{offset} ? $opts{offset} : ($session->param( $basename."offset" ) || 0);
 	$offset += 0;
-	$url .= "&$basename\_offset=$offset"; # $basename\_offset used by paginate_list
+	$url .= "&".$basename."offset=$offset"; # $basename\_offset used by paginate_list
 
 	# Sort param
-	my $sort_order = $session->param( $basename."_order" );
+	my $sort_order = $opts{custom_order};
+	if( !defined $sort_order )
+	{
+		$sort_order = $session->param( $basename."order" );
+	}
 	if( !defined $sort_order ) 
 	{
 		foreach my $sort_col (@{$opts{columns}})
@@ -79,11 +92,13 @@ sub paginate_list
 			last;
 		}
 	}	
-
-	if( defined $sort_order && $sort_order ne "" )
+	if( EPrints::Utils::is_set( $sort_order ) )
 	{
-		$newopts{params}{ $basename."_order" } = $sort_order;
-		$list = $list->reorder( $sort_order );
+		$newopts{params}{ $basename."order" } = $sort_order;
+		if( !$opts{custom_order} )
+		{
+			$list = $list->reorder( $sort_order );
+		}
 	}
 	
 	# URL for images
@@ -105,18 +120,18 @@ sub paginate_list
 		$tr->appendChild( $th );
 		next if !defined $col;
 	
-		my $linkurl = "$url&$basename\_order=$col";
+		my $linkurl = "$url&${basename}order=$col";
 		if( $col eq $sort_order )
 		{
-			$linkurl = "$url&$basename\_order=-$col";
+			$linkurl = "$url&${basename}order=-$col";
 		}
 		my $field = $list->get_dataset->get_field( $col );
 		if( $field->should_reverse_order )
 		{
-			$linkurl = "$url&$basename\_order=-$col";
+			$linkurl = "$url&${basename}order=-$col";
 			if( "-$col" eq $sort_order )
 			{
-				$linkurl = "$url&$basename\_order=$col";
+				$linkurl = "$url&${basename}order=$col";
 			}
 		}
 		my $itable = $session->make_element( "table", cellpadding=>0, border=>0, cellspacing=>0, width=>"100%" );
