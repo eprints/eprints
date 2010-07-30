@@ -121,7 +121,7 @@ sub update_static_file
 
 	my $target_mtime = EPrints::Utils::mtime( $target );
 
-	return if( $target_mtime > $source_mtime ); # nothing to do
+	return if( defined $target_mtime && $target_mtime > $source_mtime ); # nothing to do
 
 	$target =~ m/^(.*)\/([^\/]+)/;
 	my( $target_dir, $target_file ) = ( $1, $2 );
