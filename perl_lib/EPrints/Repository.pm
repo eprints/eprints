@@ -1733,14 +1733,17 @@ sub get_template_dirs
 	my $config_path = $self->config( "config_path" );
 	my $lib_path = $self->config( "lib_path" );
 
-	# repository path: /archives/[repoid]/cfg/templates/
+	# themes path: /archives/[repoid]/cfg/lang/[langid]templates/
 	push @dirs, "$config_path/lang/$langid/templates";
+	# repository path: /archives/[repoid]/cfg/templates/
 	push @dirs, "$config_path/templates";
 
-	# themes path: /archives/[repoid]/cfg/themes/templates/
 	my $theme = $self->config( "theme" );
 	if( defined $theme )
 	{	
+		# themes path: /archives/[repoid]/cfg/themes/lang/[langid]templates/
+		push @dirs, "$config_path/themes/$theme/lang/$langid/templates";
+		# themes path: /archives/[repoid]/cfg/themes/lang/[langid]templates/
 		push @dirs, "$config_path/themes/$theme/templates";
 	}
 
