@@ -104,7 +104,7 @@ sub execute
 		my $sorter = Search::Xapian::MultiValueSorter->new;
 		for(split /\//, $self->{custom_order})
 		{
-			my $reverse = $_ =~ s/^-//;
+			my $reverse = $_ =~ s/^-// ? 1 : 0;
 			my $key = join '.',
 				$self->{dataset}->base_id,
 				$_,
@@ -117,7 +117,7 @@ sub execute
 			}
 			$sorter->add( $idx, $reverse );
 		}
-		$enq->set_sort_by_key_then_relevance( $sorter, 0 );
+		$enq->set_sort_by_key_then_relevance( $sorter );
 	}
 
 	return EPrints::Plugin::Search::Xapian::ResultSet->new(
