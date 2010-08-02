@@ -231,7 +231,7 @@ sub handler
 	}
 
 	# Create a temp directory which will be automatically removed by PERL
-	my $tmp_dir = EPrints::TempDir->new( "swordXXXX" );
+	my $tmp_dir = File::Temp->newdir( "swordXXXX", TMPDIR => 1 );
  
 	if( !defined $tmp_dir )
         {

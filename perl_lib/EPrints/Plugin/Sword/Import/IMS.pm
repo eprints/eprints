@@ -49,7 +49,7 @@ sub input_file
 
         if( defined $unpacker )
         {
-                $tmp_dir = File::Temp->newdir( "swordXXX" );
+                $tmp_dir = File::Temp->newdir( "swordXXXX", TMPDIR => 1 );
 
                 if( !defined $tmp_dir )
                 {

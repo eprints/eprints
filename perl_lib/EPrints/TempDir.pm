@@ -40,7 +40,7 @@ sub new
 {
 	my $class = shift;
 
-	return File::Temp->newdir( @_ );
+	return File::Temp->newdir( @_, TMPDIR => 1 );
 }
 
 1;
