@@ -356,21 +356,6 @@ sub can_user_behalf
 	return 0;
 }
 
-
-
-sub is_collection_valid_OBSOLETE_METHOD
-{
-	my ( $collection ) = @_;
-
-	if( $collection eq 'inbox' || $collection eq 'buffer' || $collection eq 'archive' )
-	{
-		return 1;
-	}
-
-	return 0;
-}
-
-
 sub get_collections
 {
 	my ( $session ) = @_;
@@ -421,80 +406,6 @@ sub is_mime_allowed
 	
 	return 0;
 }
-
-
-sub get_files_mime_OBSOLETE_METHOD
-{
-	my ( $session, $f ) = @_;
-
-	my $mimes = {};
-
-	foreach(@$f)
-	{
-		if( -e $_ )	# does file exist?
-                {
-			# FileType defaults to 'application/octetstream', and always returns a MIME type.
-			my $mime = EPrints::Sword::FileType::checktype_filename( $_ );
-			$mimes->{$_} = $mime;
-        	}
-	}
-
-        return $mimes;
-}
-
-
-sub get_file_to_import_OBSOLETE_METHOD
-{
-	my ( $session, $files, $mime_type, $return_all ) = @_;
-
-
-print STDERR "\nWARNING Sword::FileType::get_file_to_import was called!!";
-
-
-	my $mimes = get_files_mime( $session, $files );
-        my @candidates;
-
-	$return_all = 0 unless(defined $return_all);
-
-	# some useful transformations to the correct MIME type:
-	if( $mime_type eq 'application/xml' )
-	{
-		$mime_type = 'text/xml';
-	}
-	elsif( $mime_type eq 'application/x-zip' )
-	{
-		$mime_type = 'application/zip';
-	}
-	elsif( $mime_type eq 'application/x-zip-compressed' )
-	{
-		$mime_type = 'application/zip';
-	}
-
-        foreach(keys %$mimes)
-        {
-		if( $$mimes{$_} eq $mime_type )
-                {
-                        push @candidates, $_;
-                }
-        }
-
-	# returns all matches
-	if( $return_all )
-	{
-		return \@candidates if scalar @candidates > 0;
-		return undef;
-	}
-
-	# othwerwise, returns only ONE match (or undef if there is no match, or more than one match)
-        if( scalar @candidates != 1 )
-        {
-  		return undef;
-        }
-
-	return $candidates[0];
-
-}
-
 
 sub get_atom_url
 {
