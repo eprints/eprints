@@ -334,7 +334,7 @@ sub get_sizes
 
 	my $filters = get_filters( $session, $view, $esc_path_values );
 
-	my $sizes = get_fieldlist_sizes( $session, $menu_fields, $filters, $menu->{allow_null} );
+	my $sizes = get_fieldlist_sizes( $session, $menu_fields, $filters, $menu->{allow_null}, $view->{dataset} );
 
 	return $sizes;
 }
@@ -457,7 +457,7 @@ sub update_view_menu
 
 	# now render the menu page
 
-	my $sizes = get_fieldlist_sizes( $session, $menu_fields, $filters, $menu->{allow_null} );
+	my $sizes = get_fieldlist_sizes( $session, $menu_fields, $filters, $menu->{allow_null}, $view->{dataset} );
 
 	# Not doing submenus just yet.
 	my $has_submenu = 0;
@@ -681,19 +681,21 @@ sub create_single_page_menu
 
 sub get_fieldlist_sizes
 {
-	my( $session, $fields, $filters ) = @_;
+	my( $session, $fields, $filters, $allow_null, $datasetid ) = @_;
+
+	my $dataset = $session->dataset( $datasetid );
 
 	if( $fields->[0]->is_type( "subject" ) )
 	{
 		# this got compicated enough to need its own sub.
-		return get_fieldlist_sizes_subject( $session, $fields, $filters );
+		return get_fieldlist_sizes_subject( $session, $fields, $filters, $dataset );
 	}
 
 	my %map=();
 	my %only_these_values = ();
 	FIELD: foreach my $field ( @{$fields} )
 	{
-		my $vref = $field->get_ids_by_value( $session, $field->dataset, filters=>$filters );
+		my $vref = $field->get_ids_by_value( $session, $dataset, filters=>$filters );
 
 		VALUE: foreach my $value ( keys %{$vref} )
 		{
@@ -717,7 +719,7 @@ sub get_fieldlist_sizes
 
 sub get_fieldlist_sizes_subject
 {
-	my( $session, $fields, $filters ) = @_;
+	my( $session, $fields, $filters, $dataset ) = @_;
 
 	my( $subject_map, $subject_map_r ) = EPrints::DataObj::Subject::get_all( $session );
 
@@ -725,7 +727,7 @@ sub get_fieldlist_sizes_subject
 	my %only_these_values = ();
 	FIELD: foreach my $field ( @{$fields} )
 	{
-		my $vref = $field->get_ids_by_value( $session, $field->dataset, filters=>$filters );
+		my $vref = $field->get_ids_by_value( $session, $dataset, filters=>$filters );
 
 		my $top_node_id= $field->get_property( "top" );
 		SUBJECT: foreach my $subject_id ( keys %{$subject_map} )
