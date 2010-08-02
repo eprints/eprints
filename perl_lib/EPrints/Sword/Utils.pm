@@ -512,7 +512,7 @@ sub create_xml
 
         # ID
         my $uid = $session->make_element( "atom:id" );
-        $uid->appendChild( $session->make_text( $eprint->get_id ) );
+	$uid->appendChild( $session->make_text( $eprint->uri ) );
         $entry->appendChild( $uid );
 
         # UPDATED
