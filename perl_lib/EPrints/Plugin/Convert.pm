@@ -199,7 +199,7 @@ sub convert
 {
 	my ($plugin, $eprint, $doc, $type) = @_;
 
-	my $dir = File::Temp->newdir( "ep-convertXXXXX" );
+	my $dir = File::Temp->newdir( "ep-convertXXXXX", TMPDIR => 1 );
 
 	my @files = $plugin->export( $dir, $doc, $type );
 	unless( @files ) {
