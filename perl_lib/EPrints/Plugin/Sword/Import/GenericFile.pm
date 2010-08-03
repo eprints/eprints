@@ -101,6 +101,34 @@ sub input_file
 		$doc_data{format} = $session->get_repository->call( "guess_doc_type", $session, $file );
 	}
 
+	my $mime_type = $doc_data{format};
+	
+	my $flags;
+	$flags->{metadata} = 1;
+	$flags->{media} = 1;
+	$flags->{bibliography} = 1;
+	
+	my @plugins = $session->get_plugins(
+			type => "Import",
+			can_produce => "dataobj/document",
+			can_accept => $mime_type );
+	
+	if (@plugins) 
+	{
+		my $import_plugin = $plugins[0];
+		my $list = $import_plugin->input_file(
+			dataobj => $eprint,
+			filename => $file,
+			flags => $flags,
+			);
+		my $doc_id = $list->ids->[0];
+		$eprint->generate_static();
+		$plugin->set_deposited_file_docid( $doc_id );
+		$plugin->add_verbose( "[OK] Import plugin created the resource." );
+		return $eprint;	
+		
+	}
+	
 	local $session->get_repository->{config}->{enable_file_imports} = 1;
 
 	$doc_data{main} = $fn;
@@ -128,16 +156,6 @@ sub input_file
 	else
 	{
 		$document->make_thumbnails();
-	}
-
-	if( $fn =~ /\.docx|pptx$/ )
-	{
-		my $conv_plugin = $session->plugin( "Convert::OpenXML" );
-		if( $conv_plugin )
-		{
-			my @new_docs = $conv_plugin->convert( $eprint, $document, 'both' );
-			print STDERR "\nnew docs: ".join(",",@new_docs);
-		}
 	}
 
 	$eprint->generate_static();

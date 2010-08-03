@@ -40,7 +40,7 @@ sub handler
                 
 		if( $error->{no_auth} )
                 {
-                        $request->headers_out->{'WWW-Authenticate'} = 'Basic realm="SWORD"';
+                        $request->err_headers_out->{'WWW-Authenticate'} = 'Basic realm="SWORD"';
 			$request->status( $error->{status_code} );
 			$session->terminate;
 			return Apache2::Const::DONE;
@@ -368,7 +368,7 @@ sub handler
 			$request->headers_out->{'Content-Length'} = length $noop_xml;
 			$request->content_type( 'application/atom+xml' );
 			$request->status( 200 );        # Successful
-		        $request->print( $noop_xml );
+			$request->print( $noop_xml );
 		        $session->terminate;
 		        return Apache2::Const::OK;
 		}

@@ -230,7 +230,7 @@ sub _extract_media_files
 	foreach my $fn (readdir($dh))
 	{
 		next if $fn =~ /^\./;
-		push @files, [$fn => join_path( $content_dir, "media", $fn )];
+		push @files, [$fn => join_path( $media_dir, $fn )];
 	}
 	closedir $dh;
 
