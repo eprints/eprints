@@ -50,11 +50,23 @@ sub input_fh
 	my $format = $session->call( "guess_doc_type", $session, $filename );
 
 	# create the main document
+
+	my $fn = $filename;
+
+	if( $filename =~ /^.*\/(.*)$/ )
+	{
+		$fn = $1;
+	}
+	if( $fn =~ /^.*\\(.*)$/ )
+	{
+		$fn = $1;
+	}
+
 	my $main_doc = $eprint->create_subdataobj( "documents", {
 		format => $format,
-		main => $filename,
+		main => $fn,
 		files => [{
-			filename => $filename,
+			filename => $fn,
 			filesize => (-s $opts{fh}),
 			_content => $opts{fh}
 		}],

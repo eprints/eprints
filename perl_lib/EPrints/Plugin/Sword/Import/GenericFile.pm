@@ -88,6 +88,10 @@ sub input_file
 	{
 		$fn = $1;
 	}
+	if( $fn =~ /^.*\\(.*)$/ )
+	{
+		$fn = $1;
+	}
 
 	my %doc_data;
 	$doc_data{_parent} = $eprint;
