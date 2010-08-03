@@ -362,16 +362,21 @@ sub handler
 				}
 			}
 
-			if( $item->dataset->confid eq "eprint" && $item->dataset->id ne "archive" )
-			{
-				return redir_see_other( $r, $item->get_control_url );
-			}
+			#Section moved down to cover only requests for the summary page.
+			#if( $item->dataset->confid eq "eprint" && $item->dataset->id ne "archive" )
+			#{
+			#	return redir_see_other( $r, $item->get_control_url );
+			#}
 
 			# content negotiation. Only worries about type, not charset
 			# or language etc. at this stage.
 			#
 			my $accept = EPrints::Apache::AnApache::header_in( $r, "Accept" );
 			$accept = "text/html" unless defined $accept;
+
+			#FORCE DEBUG
+			#$accept = "text/xml";
+			#print STDERR "ACCEPT: " . $accept;
 
 			my $match = content_negotiate_best_plugin( 
 				$repository, 
@@ -382,12 +387,16 @@ sub handler
 					is_visible => "all",
 					can_accept => "dataobj/".$dataset->confid )],
 			);
-
+			
 			if( $match eq "DEFAULT_SUMMARY_PAGE" )
 			{
+				if( $item->dataset->confid eq "eprint" && $item->dataset->id ne "archive" )
+				{
+					return redir_see_other( $r, $item->get_control_url );
+				}
 				return redir_see_other( $r, $item->get_url );
 			}
-			else
+			else 
 			{
 				my $url = $match->dataobj_export_url( $item );	
 				if( defined $url )

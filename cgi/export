@@ -15,6 +15,12 @@
 use EPrints;
 use Data::Dumper;
 
+use Digest::MD5;
+use EPrints::Sword::Utils;
+ 
+use Apache2::RequestRec ();
+use Apache2::RequestIO ();
+
 use strict;
 my $repository = EPrints->new->current_repository;
 exit( 0 ) unless( defined $repository );
@@ -255,6 +261,11 @@ sub export_dataobj
 	}
 
 	my $user = $repository->current_user;
+	my $request = $repository->get_request;
+	my $response = EPrints::Sword::Utils::authenticate( $repository, $request );
+	if (!defined $user) {
+		$user = $response->{owner};
+	}
 
 	my $allowed = 0;
 
@@ -285,7 +296,33 @@ sub export_dataobj
 
 	if( !$allowed )
 	{
-		# 403 Forbidden
+		if( defined $response->{error} )
+		{
+			my $error = $response->{error};
+			if( defined $error->{x_error_code} )
+			{
+				$request->headers_out->{'X-Error-Code'} = $error->{x_error_code};
+			}
+			if( $error->{no_auth} )
+			{
+				$request->status( $error->{status_code} );
+				$request->err_headers_out->{'WWW-Authenticate'} = 'Basic realm="SWORD"';
+				$repository->terminate;
+				return Apache2::Const::DONE;
+			}
+
+			my $error_doc = EPrints::Sword::Utils::generate_error_document( $repository, 
+					summary => "Authentication error.",
+					href => $error->{error_href}
+					);
+
+			$request->status( $error->{status_code} );
+			$request->headers_out->{'Content-Length'} = length $error_doc;
+			$request->content_type('application/atom+xml');
+			$request->print( $error_doc );
+			$repository->terminate;
+		}
+# 403 Forbidden
 		$repository->get_request->status( 403 );
 		exit;
 	}
