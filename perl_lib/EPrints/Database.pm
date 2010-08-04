@@ -3197,7 +3197,7 @@ sub do
 		$self->{session}->get_repository->log( "SQL ERROR (do): $sql" );
 		$self->{session}->get_repository->log( "SQL ERROR (do): ".$self->{dbh}->errstr.' (#'.$self->{dbh}->err.')' );
 
-		return undef unless( $self->{dbh}->err == 2006 );
+		return undef unless( $self->retry_error() );
 
 		my $ccount = 0;
 		while( $ccount < 10 )
@@ -3257,8 +3257,8 @@ sub prepare
 		$self->{session}->get_repository->log( "SQL ERROR (prepare): $sql" );
 		$self->{session}->get_repository->log( "SQL ERROR (prepare): ".$self->{dbh}->errstr.' (#'.$self->{dbh}->err.')' );
 
-		# MySQL disconnect?
-		if( $self->{dbh}->err == 2006 )
+		# DB disconnect?
+		unless( $self->retry_error() )
 		{
 			EPrints::abort( $self->{dbh}->{errstr} );
 		}
@@ -4530,6 +4530,11 @@ sub sql_LIKE
 	my( $self ) = @_;
 
 	return " LIKE ";
+}
+
+sub retry_error
+{
+	return 0;
 }
 
 1; # For use/require success

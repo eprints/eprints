@@ -499,6 +499,11 @@ sub sql_LIKE
 	return " COLLATE utf8_general_ci LIKE ";
 }
 
+sub retry_error
+	my $err = $self->{'dbh'}->err;
+	return ($err == 2006);
+}
+
 1; # For use/require success
 
 ######################################################################
