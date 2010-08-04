@@ -15,6 +15,8 @@ sub apache_conf
 	my $host = $repo->config( "host" );
 	my $port = $repo->config( "port" );
 	$port = 80 if !defined $port;
+	my $hostport = $host;
+	if( $port != 80 ) { $hostport.=":$port"; }
 	my $http_root = $repo->config( "http_root" );
 	my $virtualhost = $repo->config( "virtualhost" );
 	$virtualhost = "*" if !EPrints::Utils::is_set( $virtualhost );
@@ -26,10 +28,36 @@ sub apache_conf
 # Any changes made here will be lost if you run generate_apacheconf
 # with the --replace option
 #
+EOC
+
+	my $aliasinfo;
+	my $aliases = "";
+	foreach $aliasinfo ( @{$repo->config( "aliases" )} )
+	{
+		if( $aliasinfo->{redirect} )
+		{
+			my $vname = $aliasinfo->{name};
+			$conf .= <<EOC;
+
+# Redirect to the correct hostname
+<VirtualHost $virtualhost:$port>
+  ServerName $vname
+  Redirect / http://$hostport/
+</VirtualHost>
+EOC
+		}
+		else
+		{
+			$aliases.="  ServerAlias ".$aliasinfo->{name}."\n";
+		}
+	}
+
+		$conf .= <<EOC;
 
 # The main virtual host for this repository
 <VirtualHost $virtualhost:$port>
   ServerName $host
+$aliases
   ServerAdmin $adminemail
 
 EOC
