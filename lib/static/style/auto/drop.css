@@ -19,6 +19,7 @@
 	list-style: none;
 	border-top: 1px dashed #ccc;
 	cursor: pointer;
+	width: 100%;
 }
 .ep_drop_target ul li.ep_first {
 	border-top: none;
