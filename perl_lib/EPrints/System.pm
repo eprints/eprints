@@ -28,6 +28,8 @@ B<EPrints::System> - Wrappers for system calls
 package EPrints::System;
 
 use strict;
+use File::Copy;
+use Digest::MD5;
 
 =item $sys = EPrints::System->new();
 
@@ -364,6 +366,70 @@ Returns the last part of the filename of the hashfile for a document.
 sub get_hash_name
 {
 	return EPrints::Time::get_iso_timestamp().".xsh";
+}
+
+=item $backup = write_config_file( $path, $conf, BACKUP => 1 )
+
+Write a config file containing $conf to the file located at $path.
+
+If BACKUP is true will backup $path first and return the backed-up filepath.
+
+If $conf is undefined no file will be written.
+
+=cut
+
+sub write_config_file
+{
+	my( $self, $path, $content, %opts ) = @_;
+
+	my $rc;
+
+	EPrints->abort( "Can't backup hidden or relative-path files: $path" )
+		if $path =~ /\/\./;
+
+	return if !-e $path && !defined $content;
+	EPrints->abort( "Can't backup something that is not a file: $path" )
+		if !-f _;
+
+	my $new_md5 = defined $content ? Digest::MD5::md5( $content ) : "";
+
+	if( -e _ )
+	{
+		open(my $fh, "<", $path)
+			or EPrints->abort( "Error opening file $path: $!" );
+		my $md5 = Digest::MD5->new;
+		$md5->addfile( $fh );
+		$md5 = $md5->digest;
+		close($fh);
+
+		return if $new_md5 eq $md5;
+
+		my @now = localtime();
+
+		my $newpath = sprintf("%s.%04d%02d%02d",
+			$path,
+			$now[5]+1900,
+			$now[4]+1,
+			$now[3]
+		);
+		my $i = 1;
+		while(-e sprintf("%s%02d",$newpath,$i))
+		{
+			++$i;
+		}
+		$newpath = sprintf("%s%02d", $newpath, $i);
+
+		File::Copy::copy( $path, $newpath );
+
+		$rc = $newpath;
+	}
+
+	open(my $fh, ">", $path)
+		or EPrints->abort( "Error opening $path: $!" );
+	print $fh $content;
+	close($fh);
+
+	return $rc;
 }
 
 1;

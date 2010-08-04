@@ -132,6 +132,7 @@ use EPrints;
 use strict;
 use Getopt::Long;
 use Pod::Usage;
+use Digest::MD5;
 
 my $version = 0;
 my $verbose = 0;
@@ -192,13 +193,12 @@ my $restart_required = 0;
 my $inc_path = "$base_path/cfg/apache";
 my $inc_ssl_path = "$base_path/cfg/apache_ssl";
 
-EPrints::Platform::mkdir( $inc_path );
-EPrints::Platform::mkdir( $inc_ssl_path );
+EPrints->system->mkdir( $inc_path );
+EPrints->system->mkdir( $inc_ssl_path );
 
 if( ($system && $replace) || !-e $site_userfile )
 {
-	open( CONF, ">$site_userfile" ) || die "Can't write to $site_userfile";
-	print CONF <<END;
+	my $conf = <<END;
 #
 # apache.conf include file for EPrints
 #
@@ -215,15 +215,18 @@ PerlPostConfigHandler +EPrints::post_config_handler
 Include $inc_path/*.conf
 
 END
-	close CONF;
+	my $backup = EPrints->system->write_config_file( $site_userfile, $conf, BACKUP => 1 );
+	if( $backup )
+	{
+		print "Wrote $backup\n" if $noise >= 1;
+	}
 	print "Wrote $site_userfile\n" if( $noise >= 1 );
 
 	$restart_required = 1;
 }
 if( ($system && $replace) || !-e $apache_ssl_conf )
 {
-	open( CONF, ">$apache_ssl_conf" ) || die "Can't write to $apache_ssl_conf";
-	print CONF <<END;
+	my $conf = <<END;
 #
 # apache_ssl.conf include file for EPrints
 #
@@ -240,7 +243,11 @@ PerlTransHandler +EPrints::Apache::Rewrite
 Include $inc_ssl_path/*.conf
 
 END
-	close CONF;
+	my $backup = EPrints->system->write_config_file( $apache_ssl_conf, $conf, BACKUP => 1);
+	if( $backup )
+	{
+		print "Wrote $backup\n" if $noise >= 1;
+	}
 	print "Wrote $apache_ssl_conf\n" if( $noise >= 1 );
 
 	$restart_required = 1;
@@ -275,9 +282,12 @@ foreach my $repository ( values %reps )
 	}
 	elsif( $replace || !-e $apache_conf )
 	{
-		open( CONF, ">$apache_conf" ) || die "Can't write to $apache_conf: $!";
-		print CONF EPrints::Apache::apache_conf( $repository );
-		close CONF;
+		my $conf = EPrints::Apache::apache_conf( $repository );
+		my $backup = EPrints->system->write_config_file( $apache_conf, $conf );
+		if( $backup )
+		{
+			print "Wrote $backup\n" if( $noise >= 1 );
+		}
 		print "Wrote $apache_conf\n" if( $noise >= 1 );
 
 		$restart_required = 1;
@@ -288,9 +298,12 @@ foreach my $repository ( values %reps )
 	{
 		if( $replace || !-e $apache_ssl_conf )
 		{
-			open( CONF, ">$apache_ssl_conf" ) || die "Can't write to $apache_ssl_conf";
-			print CONF EPrints::Apache::apache_secure_conf( $repository );
-			close CONF;
+			my $conf = EPrints::Apache::apache_secure_conf( $repository );
+			my $backup = EPrints->system->write_config_file( $apache_ssl_conf, $conf );
+			if( $backup )
+			{
+				print "Wrote $backup\n" if( $noise >= 1 );
+			}
 			print "Wrote $apache_ssl_conf\n" if( $noise >= 1 );
 			$restart_required = 1;
 		}

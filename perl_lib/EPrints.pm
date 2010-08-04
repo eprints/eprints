@@ -342,7 +342,7 @@ sub post_config_handler
 
 	if( Apache2::MPM->is_threaded )
 	{
-		print STDERR "Warning! Running EPrints under threads is experimental and liable to break\n";
+		$s->log->notice( "Warning! Running EPrints under threads is experimental and liable to break" );
 	}
 
 	$EPrints::HANDLE = __PACKAGE__->new;
@@ -352,8 +352,13 @@ sub post_config_handler
 	# check the main apache configuration
 	my $aconf = Apache2::Directive::conftree();
 	my %aports = map { /\b([0-9]+)$/; $1 => 1 } $aconf->lookup( 'Listen' );
-	my %anvhosts = map { $_ => 1 } $aconf->lookup( 'NameVirtualHost' );
+	my %named;
 	my %ports;
+	for($aconf->lookup( 'NameVirtualHost' ))
+	{
+		my( undef, $port ) = split /:/, $_;
+		$named{$port} = 1;
+	}
 
 	foreach my $repo (@repos)
 	{
@@ -361,17 +366,19 @@ sub post_config_handler
 		 $ports{$port}++;
 		 if( !$aports{$port} )
 		 {
-			 $s->warn( "EPrints: ".$repo->get_id." is configured for port $port but Apache is listening on ".join(',',keys %aports).", add: Listen $port" );
+			 die( "EPrints: ".$repo->get_id." is configured for port $port but Apache is missing Listen directive: Listen $port\n" );
 		 }
-		 if( !$anvhosts{"*:$port"} )
+		 if( !$named{$port} )
 		 {
-			 $s->warn( "EPrints: ".$repo->get_id." is configured for port $port but no NameVirtualHost exists, add: NameVirtualHost *:$port" );
+			 die( "EPrints: ".$repo->get_id." is configured for port $port but Apache is missing NameVirtualHost directive: NameVirtualHost *:$port\n" );
 		 }
 	}
 
-	print STDERR "EPrints archives loaded: ".join( ", ",  @ids )."\n";
+	$s->log->notice( "EPrints archives loaded: ".join( ", ",  @ids ) );
 
-	eval '
+	{
+		no warnings; # suppress the redef-warning
+		eval '
 sub abort
 {
 	my( $errmsg ) = (pop @_);
@@ -406,6 +413,7 @@ END
 	print STDERR Carp::longmess();
 	die __PACKAGE__."::abort()\n";
 }';
+	}
 
 	return OK;
 }
