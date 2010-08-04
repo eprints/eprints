@@ -490,6 +490,7 @@ sub sql_AS
 sub retry_error
 {
 	my( $self ) = @_;
+
 	my $err = $self->{'dbh'}->err;
 	# ORA-03113: end-of-file on communication channel
 	# ORA-03114: not connected to ORACLE

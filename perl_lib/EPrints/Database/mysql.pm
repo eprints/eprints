@@ -500,6 +500,9 @@ sub sql_LIKE
 }
 
 sub retry_error
+{
+	my( $self ) = @_;
+
 	my $err = $self->{'dbh'}->err;
 	return ($err == 2006);
 }
