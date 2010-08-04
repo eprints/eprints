@@ -366,11 +366,12 @@ sub post_config_handler
 		 $ports{$port}++;
 		 if( !$aports{$port} )
 		 {
-			 die( "EPrints: ".$repo->get_id." is configured for port $port but Apache is missing Listen directive: Listen $port\n" );
+			 $s->warn( "EPrints Warning! '".$repo->get_id."' is configured for port $port but Apache has not been configured to listen on that port. To fix this add to your main Apache configuration file: Listen $port" );
 		 }
 		 if( !$named{$port} )
 		 {
-			 die( "EPrints: ".$repo->get_id." is configured for port $port but Apache is missing NameVirtualHost directive: NameVirtualHost *:$port\n" );
+			 my $hostname = $repo->config( "host" );
+			 $s->warn( "EPrints Warning! '".$repo->get_id."' is configured for port $port but Apache does not have NameVirtualHosts configured for that port. This may cause the wrong repository to respond to '$hostname:$port'. To fix this add to your main Apache configuration file: NameVirtualHost *:$port" );
 		 }
 	}
 
