@@ -232,6 +232,11 @@ sub convert_input
 	{
 		$epdata->{pagerange} = $data->{"first_page"};
 	}
+	if( defined $data->{"last_page"} )
+        {
+                $epdata->{pagerange} = "" unless defined $epdata->{pagerange};
+                $epdata->{pagerange} .= "-" . $data->{"last_page"};
+        }
 
 	if( defined $data->{"doi.conference_paper"} )
 	{
