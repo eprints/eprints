@@ -229,17 +229,13 @@ sub auth_basic
 		return AUTH_REQUIRED;
 	}
 
-	my $user_ds = $repository->get_repository->get_dataset( "user" );
-
-	my $user = EPrints::DataObj::User::user_with_username( $repository, $user_sent );
-	if( !defined $user )
+	if( !$repository->valid_login( $user_sent, $passwd_sent ) )
 	{
 		$r->note_basic_auth_failure;
 		return AUTH_REQUIRED;
 	}
 
-	return $repository->valid_login( $user_sent, $passwd_sent ) ?
-			OK : AUTH_REQUIRED;
+	return OK;
 }
 
 sub authz

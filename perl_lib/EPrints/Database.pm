@@ -4349,18 +4349,20 @@ sub valid_login
 	my $Q_table = $self->quote_identifier( "user" );
 	my $Q_username = $self->quote_identifier( "username" );
 
-	my $sql = "SELECT $Q_password FROM $Q_table WHERE $Q_username=".$self->quote_value($username);
+	my $sql = "SELECT $Q_username, $Q_password FROM $Q_table WHERE LOWER($Q_username)=LOWER(".$self->quote_value($username).")";
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
-	my( $real_password ) = $sth->fetchrow_array;
+	my( $real_username, $real_password ) = $sth->fetchrow_array;
 	$sth->finish;
 
-	return 0 if( !defined $real_password );
+	return undef if( !defined $real_password );
 
 	my $salt = substr( $real_password, 0, 2 );
 
-	return $real_password eq crypt( $password , $salt );
+	return $real_password eq crypt( $password , $salt ) ?
+		$real_username :
+		undef;
 }
 
 

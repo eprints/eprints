@@ -36,9 +36,10 @@ sub handler
 	my $password = $session->param( "login_password" );
 	if( defined $username )
 	{
-		if( $session->valid_login( $username, $password ) )
+		my $real_username = $session->valid_login( $username, $password );
+		if( defined $real_username )
 		{
-			my $user = EPrints::DataObj::User::user_with_username( $session, $username );
+			my $user = $session->user_by_username( $real_username );
 
 			my $url = $session->get_url( host=>1 );
 			$url .= "?login_params=".URI::Escape::uri_escape( $session->param("login_params") );

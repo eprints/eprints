@@ -5408,21 +5408,45 @@ sub login
 	$self->{database}->update_ticket_userid( $code, $userid, $ip );
 }
 
+=item $real_username = $repository->valid_login( $username, $password )
+
+If $username and $password are a valid user account returns the real username of the user account (which may differ from $username).
+
+Returns undef if $username or $password are invalid.
+
+=cut
 
 sub valid_login
 {
 	my( $self, $username, $password ) = @_;
 
-	my $valid_login_handler = sub { 
-		my( $repository,$username,$password ) = @_;
-		return $repository->get_database->valid_login( $username, $password );
-	};
-	if( $self->get_repository->can_call( "check_user_password" ) )
+	my $real_username;
+	if( $self->can_call( "check_user_password" ) )
 	{
-		$valid_login_handler = $self->get_repository->get_conf( "check_user_password" );
+		$real_username = $self->call( "check_user_password",
+			$self,
+			$username,
+			$password
+		);
+		# check_user_password normally returns '1' or '0'
+		if( defined $real_username )
+		{
+			if( $real_username eq "1" )
+			{
+				$real_username = $username;
+			}
+			elsif( $real_username eq "0" )
+			{
+				$real_username = undef;
+			}
+		}
+	}
+	else
+	{
+		$real_username = $self->get_database->valid_login( $username, $password );
 	}
 
-	return &{$valid_login_handler}( $self, $username, $password );
+	return $real_username;
 }
 
 

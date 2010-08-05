@@ -503,6 +503,30 @@ sub sql_LIKE
 	return " COLLATE utf8_general_ci LIKE ";
 }
 
+sub valid_login
+{
+	my( $self, $username, $password ) = @_;
+
+	my $Q_password = $self->quote_identifier( "password" );
+	my $Q_table = $self->quote_identifier( "user" );
+	my $Q_username = $self->quote_identifier( "username" );
+
+	my $sql = "SELECT $Q_username, $Q_password FROM $Q_table WHERE $Q_username=".$self->quote_value($username)." COLLATE utf8_general_ci";
+
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth , $sql );
+	my( $real_username, $real_password ) = $sth->fetchrow_array;
+	$sth->finish;
+
+	return undef if( !defined $real_password );
+
+	my $salt = substr( $real_password, 0, 2 );
+
+	return $real_password eq crypt( $password , $salt ) ?
+		$real_username :
+		undef;
+}
+
 sub retry_error
 {
 	my( $self ) = @_;

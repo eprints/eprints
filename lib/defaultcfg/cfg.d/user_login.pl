@@ -14,7 +14,7 @@
 #	my( $session, $username, $password ) = @_;
 #
 #	my $user = EPrints::DataObj::User::user_with_username( $session, $username );
-#	return 0 unless $user;
+#	return unless $user;
 #
 #	my $user_type = $user->get_type;
 #	if( $user_type eq "admin" )
@@ -42,7 +42,7 @@
 #	unless( $ldap )
 #	{
 #		print STDERR "LDAP error: $@\n";
-#		return 0;
+#		return;
 #	}
 #
 #	# Start secure connection (not needed if using LDAPS)
@@ -50,17 +50,17 @@
 #	if( $ssl->code() )
 #	{
 #		print STDERR "LDAP SSL error: " . $ssl->error() . "\n";
-#		return 0;
+#		return;
 #	}
 #
 #	# Check password
 #	my $mesg = $ldap->bind( $ldap_dn, password => $password );
 #	if( $mesg->code() )
 #	{
-#		return 0;
+#		return;
 #	}
 #
-#	return 1;
+#	return $username;
 #}
 # Advanced LDAP Configuration
 #

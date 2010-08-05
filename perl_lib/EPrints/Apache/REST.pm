@@ -617,7 +617,8 @@ sub allow_priv
 	my ($status, $password) = $r->get_basic_auth_pw;
 	my $username = $r->user;
 
-	if( !$repository->valid_login( $username, $password ) )
+	my $real_username = $repository->valid_login( $username, $password );
+	if( !$real_username )
 	{
 		$r->note_basic_auth_failure;
 		EPrints::Apache::AnApache::send_status_line( $r, 401, "Auth Required" );
@@ -625,8 +626,7 @@ sub allow_priv
 		return 0;
 	}
 
-	my $user = EPrints::DataObj::User::user_with_username( $repository, $username );
-
+	my $user = $repository->user_by_username( $real_username );
 	if( !defined $user )
 	{
 		EPrints::Apache::AnApache::send_status_line( $r, 403, "Forbidden" );
