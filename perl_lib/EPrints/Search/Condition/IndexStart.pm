@@ -58,7 +58,7 @@ sub logic
 	my $table = $prefix . $self->table;
 	my $sql_name = $self->{field}->get_sql_name;
 
-	return sprintf( "%s=%s AND %s LIKE '%s%%'",
+	return sprintf( "%s=%s AND %s ".$db->sql_LIKE." '%s%%'",
 		$db->quote_identifier( $table, "field" ),
 		$db->quote_value( $sql_name ),
 		$db->quote_identifier( $table, "word" ),
