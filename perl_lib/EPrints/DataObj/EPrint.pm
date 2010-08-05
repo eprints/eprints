@@ -1200,7 +1200,7 @@ sub get_all_documents
 		}
 	}
 
-	return sort { ($a->get_value( "placement" )||0) <=> ($b->get_value( "placement" )||0) } @docs;
+	return sort { ($a->get_value( "placement" )||0) <=> ($b->get_value( "placement" )||0) || $a->id <=> $b->id } @docs;
 }
 
 
