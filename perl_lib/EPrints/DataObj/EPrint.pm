@@ -1017,7 +1017,7 @@ sub commit
 				objectid=>$self->get_id,
 				revision=>$self->get_value( "rev_number" ),
 				action=>"modify",
-				details=>undef
+				details=>join('|', sort keys %{$self->{changed}}),
 			}
 		);
 		$event->set_dataobj_xml( $self );
