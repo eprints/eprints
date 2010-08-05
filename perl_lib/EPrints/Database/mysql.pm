@@ -225,6 +225,10 @@ sub connect
 	{
 		$self->do("SET NAMES 'utf8'");
 	}
+	elsif( $DBI::err == 1040 )
+	{
+		EPrints->abort( "Error connecting to MySQL server: $DBI::errstr. To fix this increase max_connections in my.cnf:\n\n[mysqld]\nmax_connections=300\n" );
+	}
 
 	return $rc;
 }
