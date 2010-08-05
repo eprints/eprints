@@ -12,14 +12,9 @@ Uses the file extension to determine file type.
 
 =cut
 
+@ISA = qw/ EPrints::Plugin::Convert /;
+
 use strict;
-use warnings;
-
-use Carp;
-use English;
-
-use EPrints::Plugin::Convert;
-our @ISA = qw/ EPrints::Plugin::Convert /;
 
 sub new
 {
