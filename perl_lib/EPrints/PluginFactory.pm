@@ -231,6 +231,8 @@ sub _load_xslt
 
 	my $settingsvar = $class."::SETTINGS";
 
+	{
+	no warnings; # avoid redef-warnings for new()
 	eval <<EOP;
 package $class;
 
@@ -243,6 +245,8 @@ sub new
 
 1
 EOP
+	die $@ if $@;
+	}
 
 	{
 		no strict "refs";

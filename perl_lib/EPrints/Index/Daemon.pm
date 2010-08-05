@@ -609,6 +609,9 @@ sub run_index
 
 		foreach my $repo ( @repos )
 		{
+			# reload the config if requested to
+			$repo->check_last_changed;
+
 			# give the next code $timeout secs to complete
 			eval {
 				local $SIG{ALRM} = sub { die "alarm\n" };

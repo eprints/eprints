@@ -5537,9 +5537,14 @@ sub check_last_changed
 	if( defined($poketime) && $poketime > $self->{loadtime} )
 	{
 		print STDERR "$file has been modified since the repository config was loaded: reloading!\n";
-
-		$self->load_config;
-		$self->{loadtime} = time();
+		if( $self->load_config )
+		{
+			$self->{loadtime} = time();
+		}
+		else
+		{
+			warn( "Something went wrong while reloading configuration" );
+		}
 	}
 }
 
