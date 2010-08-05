@@ -952,10 +952,6 @@ sub commit
 {
 	my( $self, $force ) = @_;
 
-	# get_all_documents() is called several times during commit
-	# setting _documents will cause it to be returned instead of searching
-	local $self->{_documents} = [$self->get_all_documents];
-
 	if( $self->{changed}->{succeeds} )
 	{
 		my $old_succ = EPrints::EPrint->new( $self->{session}, $self->{changed}->{succeeds} );
@@ -975,10 +971,6 @@ sub commit
 	}
 	$self->set_value( "item_issues_count", $c );
 
-	$self->update_triggers();
-
-	$self->set_value( "fileinfo", $self->fileinfo );
-
 	if( !$self->is_set( "datestamp" ) && $self->get_value( "eprint_status" ) eq "archive" )
 	{
 		$self->set_value( 
@@ -991,6 +983,14 @@ sub commit
 		# don't do anything if there isn't anything to do
 		return( 1 ) unless $force;
 	}
+
+	# get_all_documents() is called several times during commit
+	# setting _documents will cause it to be returned instead of searching
+	local $self->{_documents} = [$self->get_all_documents];
+
+	$self->update_triggers();
+
+	$self->set_value( "fileinfo", $self->fileinfo );
 
 	if( $self->{non_volatile_change} )
 	{
