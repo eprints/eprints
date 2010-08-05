@@ -17,7 +17,7 @@ use lib "$FindBin::Bin/../perl_lib";
 
 =head1 NAME
 
-B<isseus_audit> - Update the issues field of all eprints.
+B<issues_audit> - Update the issues field of all eprints.
 
 =head1 SYNOPSIS
 
@@ -156,33 +156,58 @@ my $list = $searchexp->perform_search;
 
 
 # Run all available Issues plugins
-my @issues_plugins = $session->plugin_list(
+my @issues_plugins = $session->get_plugins(
 	type=>"Issues",
 	is_available=>1 );
-my $item_issues = {};
-foreach my $plugin_id ( @issues_plugins )
+my %item_issues;
+my %info;
+
+foreach my $plugin (@issues_plugins)
 {
-	my $plugin = $session->plugin( $plugin_id );
-	print "Running plugin: ".$plugin->get_name()."\n" if( $noise > 0 );
-	my $plugin_issues = $plugin->list_issues( list=>$list );
-	foreach my $itemid ( keys %{$plugin_issues} )
-	{
-		foreach my $issue ( @{$plugin_issues->{$itemid}} )
-		{
-			my $desc = $issue->{description};
-			$issue->{description} = EPrints::XML::to_string( $desc );
-			EPrints::XML::dispose( $desc );
-			push @{$item_issues->{$itemid}}, $issue;
-		}
-	}
+	$info{$plugin} = {
+		issues => \%item_issues,
+		opts => {
+			list => $list,
+		},
+	};
 }
+
+my $total = $list->count;
+my $i = 0;
+
+print "Running plugins: ".join(', ', map { $_->get_name() } @issues_plugins)."\n" if( $noise > 0 );
+$list->map(sub {
+	my( undef, undef, $item ) = @_;
+	foreach my $plugin ( @issues_plugins )
+	{
+		$plugin->process_item_in_list( $item, $info{$plugin} );
+	}
+	print sprintf("% 3s%%\r", sprintf("%d", $i++ / $total * 100)) if $noise > 1;
+});
+
+foreach my $plugin ( @issues_plugins )
+{
+	print "Finishing plugin ".$plugin->get_name()."\n" if( $noise > 0 );
+	$plugin->process_at_end( $info{$plugin} );
+}
+
+$i = 0;
 
 # Update the issues fields
 print "Updating database\n" if $noise > 0;
 $list->map(sub {
 	my( undef, undef, $item ) = @_;
 
-	my $value = $item_issues->{$item->id};
+	print sprintf("% 3s%%\r", sprintf("%d", $i++ / $total * 100)) if $noise > 1;
+
+	my $value = $item_issues{$item->id};
+	$value = [] if !defined $value;
+	for(@$value)
+	{
+		my $desc = $session->xml->to_string( $_->{description} );
+		$session->xml->dispose( $_->{description} );
+		$_->{description} = $desc;
+	}
 	$item->set_item_issues( $value );
 	$item->commit;
 });
