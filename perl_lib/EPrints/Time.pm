@@ -206,7 +206,7 @@ $seconds is seconds since epoch or now if not given.
 
 sub iso_date
 {
-	return strftime( '%Y-%m-%d', gmtime(@_ ? @_ : time()));
+	return strftime( '%Y-%m-%d', gmtime(@_ == 1 ? $_[0] : time()));
 }
 
 =item $datetime = EPrints::Time::iso_datetime( [ $seconds ] );
@@ -232,7 +232,7 @@ $seconds is seconds since epoch or now if not given.
 
 sub rfc822_datetime
 {
-	return strftime( "%a, %d %b %Y %H:%M:%S %z", localtime(@_ ? @_ : time()));
+	return strftime( "%a, %d %b %Y %H:%M:%S %z", localtime(@_ == 1 ? $_[0] : time()));
 }
 
 =item $timestamp = EPrints::Time::human_time( [$time] )
@@ -246,7 +246,7 @@ sub human_time
 {
 	return sprintf("%s %s",
 		scalar(localtime(@_ ? @_ : time())),
-		strftime("%Z", localtime(@_ ? @_ : time()))
+		strftime("%Z", localtime(@_ == 1 ? $_[0] : time()))
 	);
 }
 
