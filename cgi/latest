@@ -25,91 +25,95 @@ $page->appendChild( $session->html_phrase( "cgi/latest:intro" ) );
 
 my $citation = $session->get_repository->get_conf( "latest_citation" );
 
+my $date = time() - 86400 * 7; # 7 days
+$date = EPrints::Time::iso_date( $date );
+$date = "$date-".EPrints::Time::iso_date( time() ); # 7 days ago til now
+
+my @entries;
+
+$ds->search(
+	custom_order => "-datestamp",
+	filters => [
+		{ meta_fields => [qw( metadata_visibility )], value => "show" },
+		{ meta_fields => [qw( datestamp )], value => $date },
+	],
+)->map(sub {
+	my( undef, undef, $item ) = @_;
+
+	my $datestamp = $item->value( "datestamp" );
+	$datestamp = EPrints::Time::datetime_utc( EPrints::Time::split_value( $datestamp ) );
+	$datestamp -= $datestamp % 86400;
+
+	my $age = int(((time() - time() % 86400) - $datestamp) / 86400);
+
+	$entries[$age] ||= [];
+
+	push @{$entries[$age]}, $item->render_citation_link( 
+			$citation,
+			n => [scalar(@{$entries[$age]})+1, "INTEGER"] );
+});
+
 my $seensome = 0;
 for( my $d=0; $d<7; ++$d )
 {
-	my $t = time-60*60*24*$d;
-	my $search = new EPrints::Search(
-		filters => [
-			{ 
-				meta_fields=>[ 'metadata_visibility' ], 
-				value=>'show', 
-				match=>'EX', 
-				describe=>0,
-			},
-		],	
-		custom_order => "-datestamp",
-		session => $session,
-		dataset => $ds,
-	);
+	my $list = $entries[$d];
+	next if !$list;
 
-	my $date = EPrints::Time::get_iso_date( $t );
-	$search->add_field( $ds->get_field( "datestamp" ), $date );
-		
-	my $list = $search->perform_search();
+	$seensome = 1;
 
-	if( $list->count() )
+	my $day;
+	if( $d == 0 )
 	{
-		$seensome = 1;
+		$day = $session->html_phrase( "cgi/latest:today" );
+	}
+	elsif( $d == 1 )
+	{
+		$day = $session->html_phrase( "cgi/latest:yesterday" );
+	}
+	else
+	{
+		my $dow = (localtime(time-$d*86400))[6];
+		$day = $session->html_phrase( "cgi/latest:day_".$dow );
+	}
 
-		my $day;
-		if( $d == 0 )
-		{
-			$day = $session->html_phrase( "cgi/latest:today" );
-		}
-		elsif( $d == 1 )
-		{
-			$day = $session->html_phrase( "cgi/latest:yesterday" );
-		}
-		else
-		{
-			my $dow = (localtime($t))[6];
-			$day = $session->html_phrase( "cgi/latest:day_".$dow );
-		}
+	my $h2= $session->make_element( "h2" );
+	$h2->appendChild( $day );
+	$page->appendChild( $h2 );
 
-		my $h2= $session->make_element( "h2" );
-		$h2->appendChild( $day );
-		$page->appendChild( $h2 );
-
-		my $type = $session->get_citation_type( $ds, $citation );
-		my $container;
+	my $type = $session->get_citation_type( $ds, $citation );
+	my $container;
+	if( $type eq "table_row" )
+	{
+		$container = $session->make_element( 
+				"table", 
+				class=>"ep_latest_list" );
+	}
+	else
+	{
+		$container = $session->make_element( 
+				"div", 
+				class=>"ep_latest_list" );
+	}
+	$page->appendChild( $container );
+	foreach my $entry (@$list)
+	{
 		if( $type eq "table_row" )
 		{
-			$container = $session->make_element( 
-					"table", 
-					class=>"ep_latest_list" );
+			$container->appendChild( $entry );
 		}
 		else
 		{
-			$container = $session->make_element( 
-					"div", 
-					class=>"ep_latest_list" );
+			my $div = $session->make_element( 
+				"div", 
+				class=>"ep_latest_result" );
+			$div->appendChild( $entry );
+			$container->appendChild( $div );
 		}
-		$page->appendChild( $container );
-		my $n = 1;
-		$list->map( sub{ 
-			my( $session, $dataset, $item, $info ) = @_;
-			my $row = $item->render_citation_link( 
-				$citation,
-				n => [$n++, "INTEGER"] );
-			if( $type eq "table_row" )
-			{
-				$container->appendChild( $row );
-			}
-			else
-			{
-				my $div = $session->make_element( 
-					"div", 
-					class=>"ep_latest_result" );
-				$div->appendChild( $row );
-				$container->appendChild( $div );
-			}
-		} );
-	
-		$page->appendChild( $session->render_ruler() );
 	}
+
+	$page->appendChild( $session->render_ruler() );
 }
-unless( $seensome )
+if( !$seensome )
 {
 	$page->appendChild( $session->html_phrase( "cgi/latest:none" ) );
 }
