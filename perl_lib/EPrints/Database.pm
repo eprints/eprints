@@ -4330,6 +4330,30 @@ sub is_latest_version
 	return $version eq $EPrints::Database::DBVersion;
 }
 
+# This is a hacky method to support CI username/email lookups. Should be
+# implemented as an option on searching (bigger change of search mechanisms?).
+
+sub ci_lookup
+{
+	my( $self, $field, $value ) = @_;
+
+	my $table = $field->dataset->get_sql_table_name;
+	
+	my $sql =
+		"SELECT ".$self->quote_identifier( $field->get_sql_name ).
+		" FROM ".$self->quote_identifier( $table ).
+		" WHERE LOWER(".$self->quote_identifier( $field->get_sql_name ).")=LOWER(".$self->quote_value( $value ).")";
+
+	my $sth = $self->prepare( $sql );
+	$sth->execute;
+
+	my( $real_value ) = $sth->fetchrow_array;
+
+	$sth->finish;
+
+	return defined $real_value ? $real_value : $value;
+}
+
 ######################################################################
 =pod
 
@@ -4345,11 +4369,13 @@ sub valid_login
 {
 	my( $self, $username, $password ) = @_;
 
+	$username = $self->ci_lookup( $self->{session}->dataset( "user" )->field( "username" ), $username );
+
 	my $Q_password = $self->quote_identifier( "password" );
 	my $Q_table = $self->quote_identifier( "user" );
 	my $Q_username = $self->quote_identifier( "username" );
 
-	my $sql = "SELECT $Q_username, $Q_password FROM $Q_table WHERE LOWER($Q_username)=LOWER(".$self->quote_value($username).")";
+	my $sql = "SELECT $Q_username, $Q_password FROM $Q_table WHERE $Q_username=".$self->quote_value($username);
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );

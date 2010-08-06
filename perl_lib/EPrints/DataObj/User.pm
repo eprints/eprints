@@ -374,6 +374,11 @@ sub user_with_email
 	
 	my $dataset = $repo->dataset( "user" );
 
+	$email = $repo->get_database->ci_lookup(
+		$dataset->field( "email" ),
+		$email
+	);
+
 	my $results = $dataset->search(
 		filters => [
 			{
@@ -402,6 +407,11 @@ sub user_with_username
 	my( $repo, $username ) = @_;
 	
 	my $dataset = $repo->dataset( "user" );
+
+	$username = $repo->get_database->ci_lookup(
+		$dataset->field( "username" ),
+		$username
+	);
 
 	my $results = $dataset->search(
 		filters => [
