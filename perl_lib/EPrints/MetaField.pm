@@ -1688,7 +1688,10 @@ Results are sorted according to the ordervalues of the current session.
 sub all_values
 {
 	my( $self, %opts ) = @_;
-	return $self->get_values( $self->repository, $self->dataset, %opts );
+
+	my $dataset = exists $opts{dataset} ? $opts{dataset} : $self->dataset;
+
+	return $self->get_values( $self->repository, $dataset, %opts );
 }
 sub get_values
 {

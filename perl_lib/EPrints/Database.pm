@@ -2926,48 +2926,10 @@ sub get_values
 		return [];
 	}
 
-	my $M = $self->quote_identifier("M");
-	my $L = $self->quote_identifier("L");
-	my $Q_eprint_status = $self->quote_identifier( "eprint_status" );
-	my $Q_eprintid = $self->quote_identifier( "eprintid" );
+	my $searchexp = $dataset->prepare_search();
+	my( $values, $counts ) = $searchexp->perform_groupby( $field );
 
-	my $cols = join(", ", map {
-		"$M.".$self->quote_identifier($_)
-	} $field->get_sql_names);
-	my $sql = "SELECT DISTINCT $cols FROM ";
-	my $limit;
-	$limit = "archive" if( $dataset->id eq "archive" );
-	$limit = "inbox" if( $dataset->id eq "inbox" );
-	$limit = "deletion" if( $dataset->id eq "deletion" );
-	$limit = "buffer" if( $dataset->id eq "buffer" );
-	if( $field->get_property( "multiple" ) )
-	{
-		$sql.= $self->quote_identifier($dataset->get_sql_sub_table_name( $field ))." $M";
-		if( $limit )
-		{
-			$sql.=", ".$self->quote_identifier($dataset->get_sql_table_name())." $L";
-			$sql.=" WHERE $L.$Q_eprintid = $M.$Q_eprintid";
-			$sql.=" AND $L.$Q_eprint_status = '$limit'";
-		}
-	} 
-	else 
-	{
-		$sql.= $self->quote_identifier($dataset->get_sql_table_name())." $M";
-		if( $limit )
-		{
-			$sql.=" WHERE $M.$Q_eprint_status = '$limit'";
-		}
-	}
-	my $sth = $self->prepare( $sql );
-	$self->execute( $sth, $sql );
-	my @values = ();
-	my @row = ();
-	while( @row = $sth->fetchrow_array ) 
-	{
-		push @values, $field->value_from_sql_row( $self->{session}, \@row );
-	}
-	$sth->finish;
-	return \@values;
+	return $values;
 }
 
 ######################################################################
@@ -3088,54 +3050,68 @@ sub get_ids_by_field_values
 
 	my @where = ();
 
-	if( $dataset->confid eq "eprint" && $dataset->id ne $dataset->confid )
-	{
-		my $table = $dataset->get_sql_table_name();
-		$tables{$table} = 1;
-		push @where,
-			$self->quote_identifier($table, "eprint_status").
-			" = ".
-			$self->quote_value($dataset->id);
-	}
+	$opts{filters} = [] if !defined $opts{filters};
 
-	if( defined $opts{filters} )
+	if( defined $dataset->get_filters )
 	{
-		foreach my $filter (@{$opts{filters}})
+		foreach my $filter ($dataset->get_filters)
 		{
-			my @ors = ();
-			foreach my $ffield ( @{$filter->{fields}} )
-			{	
-				my $table;
-				if( $ffield->get_property( "multiple" ) )
+			my $f = {
+				fields => [],
+				value => $filter->{value},
+			};
+			foreach my $fieldname (@{$filter->{meta_fields}})
+			{
+				my $field = $dataset->field( $fieldname );
+				if( $field->property( "multiple" ) )
 				{
-					$table = $dataset->get_sql_sub_table_name( $ffield );
+					$tables{$dataset->get_sql_sub_table_name( $field )} = 1;
 				}
 				else
 				{
-					$table = $dataset->get_sql_table_name();
+					$tables{$dataset->get_sql_table_name} = 1;
 				}
-				$tables{$table} = 1;
-		
-				my @sql_cols = $ffield->get_sql_names();
-				my @sql_vals = $ffield->sql_row_from_value( $session, $filter->{value} );
-				my @ands = ();
-				for( my $i=0; $i<scalar @sql_cols; ++$i )
-				{
-					next if( !defined $sql_vals[$i] );
-					push @ands,
-						$self->quote_identifier($table,$sql_cols[$i]).
-						" = ".
-						$self->quote_value( $sql_vals[$i] );
-				}
-				if( scalar @ands )
-				{
-					push @ors, "(".join( ")  AND  (", @ands ).")";
-				}
+				push @{$f->{fields}}, $field;
 			}
-			if( scalar @ors )
+			push @{$opts{filters}}, $f;
+		}
+	}
+
+	foreach my $filter (@{$opts{filters}})
+	{
+		my @ors = ();
+		foreach my $ffield ( @{$filter->{fields}} )
+		{	
+			my $table;
+			if( $ffield->get_property( "multiple" ) )
 			{
-				push @where, "(".join( ")  OR  (", @ors ).")";
+				$table = $dataset->get_sql_sub_table_name( $ffield );
 			}
+			else
+			{
+				$table = $dataset->get_sql_table_name();
+			}
+			$tables{$table} = 1;
+	
+			my @sql_cols = $ffield->get_sql_names();
+			my @sql_vals = $ffield->sql_row_from_value( $session, $filter->{value} );
+			my @ands = ();
+			for( my $i=0; $i<scalar @sql_cols; ++$i )
+			{
+				next if( !defined $sql_vals[$i] );
+				push @ands,
+					$self->quote_identifier($table,$sql_cols[$i]).
+					" = ".
+					$self->quote_value( $sql_vals[$i] );
+			}
+			if( scalar @ands )
+			{
+				push @ors, "(".join( ")  AND  (", @ands ).")";
+			}
+		}
+		if( scalar @ors )
+		{
+			push @where, "(".join( ")  OR  (", @ors ).")";
 		}
 	}
 

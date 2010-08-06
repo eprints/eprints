@@ -284,6 +284,7 @@ sub get_filters
 	my( $session, $view, $esc_path_values ) = @_;
 
 	my $repository = $session->get_repository;
+	my $dataset = $session->dataset( $view->{dataset} );
 
 	my $menus_fields = get_fields_from_view( $repository, $view );
 
@@ -299,7 +300,7 @@ sub get_filters
 			push @{$filters}, { fields=>$menu_fields, value=>"" };
 			next;
 		}
-		my $key_values = get_fieldlist_values( $session, $menu_fields );
+		my $key_values = get_fieldlist_values( $session, $dataset, $menu_fields );
 		my $value = $key_values->{EPrints::Utils::unescape_filename( $esc_path_values->[$i] )};
 		if( !defined($value) )
 		{
@@ -435,7 +436,8 @@ sub update_view_menu
 	my $menu_fields = $menus_fields->[$menu_level];
 	my $menu = $view->{menus}->[$menu_level];
 
-	my $key_values = get_fieldlist_values( $session, $menu_fields );
+	my $dataset = $session->dataset( $view->{dataset} );
+	my $key_values = get_fieldlist_values( $session, $dataset, $menu_fields );
 	my @values = values %$key_values;
 
 	if( !$menu->{allow_null} )
@@ -770,12 +772,12 @@ sub get_fieldlist_sizes_subject
 
 sub get_fieldlist_values
 {
-	my( $session, $fields ) = @_;
+	my( $session, $dataset, $fields ) = @_;
 
 	my $values = {};
 	foreach my $field ( @{$fields} )
 	{	
-		my @values = @{$field->all_values};
+		my @values = @{$field->all_values( dataset => $dataset )};
 		foreach my $value ( @values )
 		{ 
 			my $id = $fields->[0]->get_id_from_value( $session, $value );
