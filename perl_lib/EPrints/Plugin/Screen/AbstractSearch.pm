@@ -285,7 +285,6 @@ sub _get_export_plugins
 {
 	my( $self, $include_not_advertised ) = @_;
 
-	my $is_advertised = 1;
 	my %opts =  (
 			type=>"Export",
 			can_accept=>"list/".$self->{processor}->{search}->{dataset}->confid, 
