@@ -47,6 +47,8 @@ $c->{validate_field} = sub
 	# Loop over actual individual values to check URLs, names and emails
 	foreach my $v (@$values)
 	{
+		next unless EPrints::Utils::is_set( $v );
+
 		if( $field->isa( "EPrints::MetaField::Url" ) )
 		{
 			# Valid URI check (very loose)
