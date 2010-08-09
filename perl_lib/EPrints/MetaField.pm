@@ -1907,7 +1907,7 @@ sub ordervalue_basic
 
 sub to_xml
 {
-	my( $self, %opts ) = @_;
+	my( $self, $value, %opts ) = @_;
 
 	my $builder = EPrints::XML::SAX::Builder->new(
 		repository => $self->{session}
@@ -1921,7 +1921,8 @@ sub to_xml
 		Prefix => '',
 		NamespaceURI => EPrints::Const::EP_NS_DATA,
 	});
-	$self->to_sax( %opts, Handler => $builder );
+	$self->to_sax( $value, %opts, Handler => $builder );
+
 	$builder->end_prefix_mapping({
 		Prefix => '',
 		NamespaceURI => EPrints::Const::EP_NS_DATA,
