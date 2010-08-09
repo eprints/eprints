@@ -69,6 +69,7 @@ if( !defined $view )
 {
 	EPrints::abort( "view with ID '$viewid' is not available." );
 }
+EPrints::Update::Views::modernise_view( $view );
 
 my $filters = EPrints::Update::Views::get_filters( $session, $view, \@view_path );
 if( !defined $filters )
