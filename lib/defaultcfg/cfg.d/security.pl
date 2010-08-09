@@ -101,7 +101,7 @@ $c->{can_user_view_document} = sub
 		}
 
 		# ...as can the user who deposited it...
-		if( $user->get_value( "userid" ) == $eprint->get_value( "userid" ) )
+		if( $eprint->has_owner( $user ) )
 		{
 			return "ALLOW";
 		}
