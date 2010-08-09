@@ -234,7 +234,7 @@ sub ordervalue_basic
 	my( $self , $value ) = @_;
 
 	unless( ref($value) =~ m/^HASH/ ) { 
-		EPrints::abort( "EPrints::MetaField::Name::ordervalue_basic called on something other than a hash." );
+		EPrints::abort( "EPrints::MetaField::Name::ordervalue_basic called on something other than a hash: $value" );
 	}
 
 	my @a;
@@ -628,7 +628,7 @@ sub get_value_from_id
 	@{$name}{qw( family given lineage honourific )} =
 		map { $_ ne "NULL" ? $_ : undef }
 		map { URI::Escape::uri_unescape($_) }
-		split /:/, $id;
+		split /:/, $id, 4; # if we don't specify 4 split truncates
 
 	return $name;
 }

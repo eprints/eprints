@@ -833,7 +833,7 @@ sub render_value_withopts
 ######################################################################
 =pod
 
-=item $out_list = $field->sort_values( $session, $in_list )
+=item $out_list = $field->sort_values( $in_list, $langid )
 
 Sorts the in_list into order, based on the "order values" of the 
 values in the in_list. Assumes that the values are not a list of
@@ -844,10 +844,21 @@ multiple values. [ [], [], [] ], but rather a list of single values.
 
 sub sort_values
 {
-	my( $self, $session, $in_list ) = @_;
-	$in_list = $session if !defined $in_list;
+	my( $self, $session, $in_list, $langid ) = @_;
 
-	return $self->repository->database->sort_values( $self, $in_list );
+	($in_list, $langid) = ($session, $in_list)
+		if !UNIVERSAL::isa( $session, "EPrints::Repository" );
+
+	my %ov;
+	VALUE: for(@$in_list)
+	{
+		next if !defined $_;
+		$ov{$_} = $self->ordervalue_basic( $_, $self->{repository}, $langid );
+	}
+
+	my @out_list = sort { defined $a <=> defined $b || $ov{$a} cmp $ov{$b} } @$in_list;
+
+	return \@out_list;
 }
 
 
@@ -1705,25 +1716,7 @@ sub get_values
 		$dataset,	
 		%opts );
 
-	my %orderkeys = ();
-	my @values;
-	foreach my $value ( @{$unsorted_values} )
-	{
-		my $v2 = $value;
-		$v2 = "" unless( defined $value );
-		push @values, $v2;
-
-		# uses function _basic because value will NEVER be multiple
-		my $orderkey = $self->ordervalue_basic(
-			$value, 
-			$session, 
-			$langid );
-		$orderkeys{$v2} = $orderkey || "";
-	}
-
-	my @outvalues = sort {$orderkeys{$a} cmp $orderkeys{$b}} @values;
-
-	return \@outvalues;
+	return $self->sort_values( $unsorted_values, $langid );
 }
 
 sub get_unsorted_values
@@ -1745,7 +1738,11 @@ sub get_ids_by_value
 
 =item $id = $field->get_id_from_value( $session, $value )
 
-Returns a unique id for $value or "NULL" if $value is undefined.
+Returns a key based on $value that can be used in a view.
+
+E.g. if "render_res" is "year" then the key of "2005-03-02" would be "2005".
+
+Returns "NULL" if $value is undefined.
 
 =cut
 ######################################################################

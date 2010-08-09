@@ -327,6 +327,12 @@ Generates the SQL necessary to execute this condition tree.
 
 =cut
 
+# This method is very long because it can be called in several contexts:
+#  - a root query
+#  - a sub-query
+#  - a list of matching eprints
+#  - a list of matching eprints by a field value
+#  - a count of matching eprints by a field value
 sub sql
 {
 	my( $self, %opts ) = @_;
@@ -342,6 +348,9 @@ sub sql
 
 	my $key_alias = delete $opts{key_alias};
 
+	# DISTINCTBY gets all ids by value
+	my $distinctby = delete $opts{distinctby};
+	# GROUPBY gets totals by value
 	my $groupby = delete $opts{groupby};
 
 	my $ov_table;
@@ -357,18 +366,31 @@ sub sql
 	my $sql = "";
 	my @joins;
 
-	my $groupby_table = "groupby_".refaddr( $self );
+	my $distinctby_table;
+	my $groupby_table;
 
-	if( !defined $groupby )
+	if( defined $distinctby && !$distinctby->property( "multiple" ) )
 	{
-		# SELECT dataset_main_table.key_field
-		$sql .= "SELECT ".$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name );
-		if( defined $key_alias )
-		{
-			$sql .= $db->sql_AS.$db->quote_identifier( $key_alias );
-		}
+		$distinctby_table = $dataset->get_sql_table_name;
+		# SELECT main.distinctby, main.id
+		$sql .= "SELECT ";
+		my $i = 0;
+		$sql .= join ",", map { $_.$db->sql_AS."D".$i++ } map { $db->quote_identifier( $distinctby_table, $_ ) } $distinctby->get_sql_names, $key_field->get_sql_name;
 	}
-	elsif( !$groupby->get_property( "multiple" ) )
+	elsif( defined $distinctby && $distinctby->property( "multiple" ) )
+	{
+		$distinctby_table = "distinctby_".refaddr($self);
+		$sql .= "SELECT ";
+		my $i = 0;
+		$sql .= join ",", map { $_.$db->sql_AS."D".$i++ } map { $db->quote_identifier( $distinctby_table, $_ ) } $distinctby->get_sql_names, $key_field->get_sql_name;
+		push @joins, {
+			type => "inner",
+			table => $dataset->get_sql_sub_table_name( $distinctby ),
+			alias => $distinctby_table,
+			key => $key_field->get_sql_name
+		};
+	}
+	elsif( defined $groupby && !$groupby->property( "multiple" ) )
 	{
 		$groupby_table = $dataset->get_sql_table_name;
 		# SELECT dataset_main_table.groupby, COUNT(DISTINCT dataset_main_table.key_field)
@@ -376,8 +398,9 @@ sub sql
 		$sql .= join ", ", map { $db->quote_identifier( $groupby_table, $_ ) } $groupby->get_sql_names;
 		$sql .= ", COUNT(DISTINCT ".$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name ).")";
 	}
-	else
+	elsif( defined $groupby && $groupby->property( "multiple" ) )
 	{
+		$groupby_table = "groupby_".refaddr( $self );
 		# SELECT groupby_table.groupby, COUNT(DISTINCT dataset_main_table.key_field)
 		$sql .= "SELECT ";
 		$sql .= join ", ", map { $db->quote_identifier( $groupby_table, $_ ) } $groupby->get_sql_names;
@@ -388,6 +411,15 @@ sub sql
 			alias => $groupby_table,
 			key => $key_field->get_sql_name
 		};
+	}
+	else
+	{
+		# SELECT dataset_main_table.key_field
+		$sql .= "SELECT ".$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name );
+		if( defined $key_alias )
+		{
+			$sql .= $db->sql_AS.$db->quote_identifier( $key_alias );
+		}
 	}
 
 	# FROM dataset_main_table
@@ -469,8 +501,8 @@ sub sql
 		$sql .= " WHERE ".join(" AND ", @logic);
 	}
 
-	# don't need to GROUP BY subqueries
-	if( !defined $key_alias )
+	# don't need to GROUP BY subqueries or DISTINCT BY
+	if( !defined $key_alias && !defined $distinctby )
 	{
 		if( !defined $groupby )
 		{
@@ -594,6 +626,58 @@ sub _split_order_by
 	}
 
 	return @orders;
+}
+
+=item $ids_map = $scond->process_distinctby( fields => [$field1, $field2, ... ], %opts )
+
+Gets the distinct ids by each value. Multiple fields may be given, in which case the ids for the UNION of all values in each field are given.
+
+=cut
+
+sub process_distinctby
+{
+	my( $self, %opts ) = @_;
+
+	my $session = $opts{session};
+	my $db = $session->get_database;
+	my $dataset = $opts{dataset};
+	my $table = $dataset->get_sql_table_name;
+
+	my $fields = $opts{fields};
+	EPrints->abort( "Requires at least one field in fields opt" )
+		if !defined $fields || @$fields == 0;
+	for(@$fields)
+	{
+		EPrints->abort( "Can't perform process_distinctby on virtual field" )
+			if $_->is_virtual;
+		EPrints->abort( "Can only perform process_distinctby on multiple fields with the same field type" )
+			if ref($_) ne ref($fields->[0]);
+	}
+
+	my $sql = join(' UNION ',
+		map { $self->sql( %opts, distinctby => $_ ) }
+		@$fields
+	);
+	# add DISTINCT if only one field (UNION is implicitly distinct)
+	if( @$fields == 1 )
+	{
+		my $i = 0;
+		$sql = "SELECT DISTINCT ".join(',', map { "D".$i++ } $fields->[0]->get_sql_names, $dataset->get_key_field->get_sql_name )." FROM ($sql)".$db->sql_AS."D";
+	}
+
+#print STDERR "EXECUTING: $sql\n";
+	my $sth = $db->prepare_select( $sql );
+	$db->execute( $sth, $sql );
+
+	my %ids_map;
+	while(my @row = $sth->fetchrow_array)
+	{
+		my $value = $fields->[0]->value_from_sql_row( $session, \@row );
+		my $key = $fields->[0]->get_id_from_value( $session, $value );
+		push @{$ids_map{$key}}, shift @row;
+	}
+
+	return \%ids_map;
 }
 
 =item ($values, $counts) = $scond->process_groupby( field => $field, %opts )

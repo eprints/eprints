@@ -200,11 +200,16 @@ LANGUAGE: foreach my $langid ( @{$repository->get_conf( "languages" )} )
 	{
 		next VIEW if( defined $view_opt && $view->{id} ne $view_opt );
 
+		EPrints::Update::Views::modernise_view( $view );
+
+		my $sizes = EPrints::Update::Views::get_sizes( $session, $view, [] );
+
 		push @files, update_view_by_path(
 			session => $session,
 			view => $view, 
 			langid => $langid, 
 			path => [],
+			sizes => $sizes,
 			do_menus => $do_menus,
 			do_lists => $do_lists );
 	}
@@ -234,9 +239,22 @@ sub update_view_by_path
 
 	my @files = ();
 
-	my $sizes = EPrints::Update::Views::get_sizes( $opts{session}, $opts{view}, $opts{path} );
-
-	if( defined $sizes )
+	if( scalar @{$opts{path}} == scalar @{$opts{view}->{menus}} )
+	{
+		# is a leaf node
+		if( $opts{do_lists} )
+		{
+			my @leaf_files = EPrints::Update::Views::update_view_list( $opts{session}, $opts{view}, $opts{langid}, $opts{path},
+				sizes => $opts{sizes},
+			);
+			foreach my $file ( @leaf_files )
+			{
+				print "Wrote: $file\n" if( $noise > 1 );
+			}
+			push @files, @leaf_files;
+		}
+	}
+	else
 	{
 		# has sub levels
 		if( $opts{do_menus} )
@@ -249,24 +267,15 @@ sub update_view_by_path
 			push @files, @menu_files;
 		}
 
+		my $sizes = EPrints::Update::Views::get_sizes( $opts{session}, $opts{view}, $opts{path} );
 		foreach my $menu_value ( keys %{$sizes} )
 		{
-			my %newopts = %opts;
-			$menu_value = EPrints::Utils::escape_filename( $menu_value );
-			$newopts{path} = [@{$newopts{path}}, $menu_value];
-			push @files, update_view_by_path( %newopts );
+			my $path = [@{$opts{path}}, EPrints::Utils::escape_filename( $menu_value )];
+			push @files, update_view_by_path( %opts,
+				path => [@{$opts{path}}, $menu_value],
+				sizes => $sizes,
+				);
 		}
-	}
-
-	if( !defined $sizes && $opts{do_lists} )
-	{
-		# is a leaf node
-		my @leaf_files = EPrints::Update::Views::update_view_list( $opts{session}, $opts{view}, $opts{langid}, $opts{path} );
-		foreach my $file ( @leaf_files )
-		{
-			print "Wrote: $file\n" if( $noise > 1 );
-		}
-		push @files, @leaf_files;
 	}
 
 	return @files;

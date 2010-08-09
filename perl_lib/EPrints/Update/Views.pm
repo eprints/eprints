@@ -285,6 +285,8 @@ sub get_filters
 
 	my $repository = $session->get_repository;
 	my $dataset = $session->dataset( $view->{dataset} );
+	EPrints->abort( "view is missing dataset option" )
+		if !$dataset;
 
 	my $menus_fields = get_fields_from_view( $repository, $view );
 
@@ -297,17 +299,17 @@ sub get_filters
 		my $menu_fields = $menus_fields->[$i];
 		if( $esc_path_values->[$i] eq "NULL" )
 		{
-			push @{$filters}, { fields=>$menu_fields, value=>"" };
+			push @{$filters}, { meta_fields=>[map { $_->get_name } @$menu_fields], fields=>$menu_fields, value=>"" };
 			next;
 		}
-		my $key_values = get_fieldlist_values( $session, $dataset, $menu_fields );
-		my $value = $key_values->{EPrints::Utils::unescape_filename( $esc_path_values->[$i] )};
-		if( !defined($value) )
-		{
-			$repository->log( "Invalid value id in get_filters '".$esc_path_values->[$i]."' in menu: ".$view->{id}."/".join( "/", @{$esc_path_values} )."/" );
-			return;
-		}
-		push @{$filters}, { fields=>$menu_fields, value=>$value };
+		my $id = EPrints::Utils::unescape_filename( $esc_path_values->[$i] );
+		my $value = $menu_fields->[0]->get_value_from_id( $session, $id );
+		push @{$filters}, { meta_fields=>[map { $_->get_name } @$menu_fields], fields=>$menu_fields, value=>$value };
+	}
+
+	if( $dataset->base_id eq "eprint" )
+	{
+		push @{$filters}, { meta_fields=>[qw( metadata_visibility )], fields=>[$dataset->field( "metadata_visibility" )], value=>"show" };
 	}
 
 	return $filters;
@@ -437,29 +439,28 @@ sub update_view_menu
 	my $menu = $view->{menus}->[$menu_level];
 
 	my $dataset = $session->dataset( $view->{dataset} );
-	my $key_values = get_fieldlist_values( $session, $dataset, $menu_fields );
-	my @values = values %$key_values;
 
+	my $sizes = get_fieldlist_sizes( $session, $menu_fields, $filters, $menu->{allow_null}, $view->{dataset} );
+
+	# allow 'UNSPECIFIED' entry?
 	if( !$menu->{allow_null} )
 	{
-		my @new_values = ();
-		foreach( @values ) { push @new_values,$_ unless $_ eq ""; }
-		@values = @new_values;
+		delete $sizes->{'NULL'};
 	}
+
+	my @values = map { $menu_fields->[0]->get_value_from_id( $session, $_ ) } keys %$sizes;
+	return if !@values; # nothing to show
 
 	# OK now we have a sorted list of values....
 
-	@values = @{$menu_fields->[0]->sort_values( $session, \@values )};
+	@values = @{$menu_fields->[0]->sort_values( $session, \@values, $langid )};
 
 	if( $menu->{reverse_order} )
 	{
 		@values = reverse @values;
 	}
 
-
 	# now render the menu page
-
-	my $sizes = get_fieldlist_sizes( $session, $menu_fields, $filters, $menu->{allow_null}, $view->{dataset} );
 
 	# Not doing submenus just yet.
 	my $has_submenu = 0;
@@ -547,7 +548,9 @@ sub create_single_page_menu
 
 	my $page = $session->make_element( "div", class=>"ep_view_menu" );
 
-	my $navigation_aids = render_navigation_aids( $session, $path_values, $esc_path_values, $view, $menus_fields, "menu" );
+	my $navigation_aids = render_navigation_aids( $session, $path_values, $esc_path_values, $view, $menus_fields, "menu",
+		sizes => $sizes
+	);
 	$page->appendChild( $navigation_aids );
 
 	my $phrase_id = "viewintro_".$view->{id};
@@ -618,7 +621,7 @@ sub create_single_page_menu
 		my @render_menu_opts = ( $session, $menu, $sizes, $values, $menu_fields, $has_submenu );
 
 		my $menu_xhtml;
-		if( $menu_fields->[0]->is_type( "subject" ) )
+		if( $menu_fields->[0]->isa( "EPrints::MetaField::Subject" ) )
 		{
 			$menu_xhtml = render_subj_menu( @render_menu_opts );
 		}
@@ -687,36 +690,22 @@ sub get_fieldlist_sizes
 
 	my $dataset = $session->dataset( $datasetid );
 
-	if( $fields->[0]->is_type( "subject" ) )
+	if( $fields->[0]->isa( "EPrints::MetaField::Subject" ) )
 	{
 		# this got compicated enough to need its own sub.
 		return get_fieldlist_sizes_subject( $session, $fields, $filters, $dataset );
 	}
 
-	my %map=();
-	my %only_these_values = ();
-	FIELD: foreach my $field ( @{$fields} )
-	{
-		my $vref = $field->get_ids_by_value( $session, $dataset, filters=>$filters );
+	my $searchexp = $dataset->prepare_search(
+		filters => $filters,
+	);
+	
+	my $id_map = $searchexp->perform_distinctby( $fields );
 
-		VALUE: foreach my $value ( keys %{$vref} )
-		{
-			$only_these_values{$value} = 1;
-			foreach my $itemid ( @{$vref->{$value}} ) 
-			{ 
-				$map{$value}->{$itemid} = 1; 
-			}
-		}
-	}
+	# calculate the totals
+	$_ = scalar @$_ for values %$id_map;
 
-	my $sizes = {};
-	foreach my $value ( keys %map )
-	{
-		next unless $only_these_values{$value};
-		$sizes->{$value} = scalar keys %{$map{$value}};
-	}
-
-	return $sizes;
+	return $id_map;
 }
 
 sub get_fieldlist_sizes_subject
@@ -725,49 +714,33 @@ sub get_fieldlist_sizes_subject
 
 	my( $subject_map, $subject_map_r ) = EPrints::DataObj::Subject::get_all( $session );
 
-	my %map=();
-	my %only_these_values = ();
-	FIELD: foreach my $field ( @{$fields} )
+	my $searchexp = $dataset->prepare_search(
+		filters => $filters,
+	);
+	
+	my $id_map = $searchexp->perform_distinctby( $fields );
+
+	my %subj_map;
+
+	# for every subject build a running-total for all its ancestors
+	foreach my $id (keys %$id_map)
 	{
-		my $vref = $field->get_ids_by_value( $session, $dataset, filters=>$filters );
-
-		my $top_node_id= $field->get_property( "top" );
-		SUBJECT: foreach my $subject_id ( keys %{$subject_map} )
+		my $subject = $subject_map->{$id};
+		next if !defined $subject; # Hmm, unknown subject
+		foreach my $ancestor (@{$subject->value( "ancestors" )})
 		{
-			foreach my $ancestor ( @{$subject_map->{$subject_id}->get_value( "ancestors" )} )
+			next if $ancestor eq $EPrints::DataObj::Subject::root_subject;
+			foreach my $item_id (@{$id_map->{$id}})
 			{
-				if( $ancestor eq $top_node_id )
-				{
-					$only_these_values{$subject_id} = 1;
-					next SUBJECT;
-				}
-			}
-		}
-
-		VALUE: foreach my $value ( keys %{$vref} )
-		{
-			$only_these_values{$value} = 1;
-
-			my $subject = $subject_map->{$value};
-			next VALUE if ( !defined $subject );
-			foreach my $ancestor ( @{$subject->get_value( "ancestors" )} )
-			{
-				foreach my $itemid ( @{$vref->{$value}} ) 
-				{ 
-					$map{$ancestor}->{$itemid} = 1; 
-				}
+				$subj_map{$ancestor}->{$item_id} = 1;
 			}
 		}
 	}
 
-	my $sizes = {};
-	foreach my $value ( keys %map )
-	{
-		next unless $only_these_values{$value};
-		$sizes->{$value} = scalar keys %{$map{$value}};
-	}
+	# calculate the totals
+	$_ = scalar keys %$_ for values %subj_map;
 
-	return $sizes;
+	return \%subj_map;
 }
 
 sub get_fieldlist_values
@@ -1141,17 +1114,28 @@ sub get_fields_from_view
 }
 
 
+=pod
 
-# Update a (set of) view list(s) - potentially expensive to do.
+=for InternalDoc
 
-# nb. path_values are considered escaped at this point
+Update a (set of) view list(s) - potentially expensive to do.
+
+nb. path_values are considered escaped at this point
+
+Options:
+	sizes - cached copy of the sizes at this menu level
+
+=cut
+
 sub update_view_list
 {
-	my( $session, $view, $langid, $esc_path_values ) = @_;
+	my( $session, $view, $langid, $esc_path_values, %opts ) = @_;
 
 	modernise_view( $view );
 
 	my $repository = $session->get_repository;
+	my $xml = $repository->xml;
+	my $xhtml = $repository->xhtml;
 
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid."/view/".$view->{id}."/";
 
@@ -1194,10 +1178,6 @@ sub update_view_list
 				satisfy_all=>1,
 				session=>$session,
 				dataset=>$ds );
-	if( $ds->base_id eq "eprint" )
-	{
-		$searchexp->add_field( $ds->get_field('metadata_visibility'), 'show', 'EQ' );
-	}
 	my $n=0;
 	foreach my $filter ( @{$filters} )
 	{
@@ -1208,6 +1188,39 @@ sub update_view_list
 	my $count = $list->count;
 	my @items = $list->get_records;
 	$list->dispose;
+
+	# nothing to show
+	return if !@items;
+
+	# construct the export and navigation bars, which are common to all "alt_views"
+	my $menu_fields = $menus_fields->[$menu_level-1];
+
+	my $sizes = $opts{sizes};
+	if( !defined $sizes && defined $menu_fields && $menu_fields->[0]->isa( "EPrints::MetaField::Subject" ) )
+	{
+		my @all_but_this_level_path_values = @{$path_values};
+		pop @all_but_this_level_path_values;
+		$sizes = get_sizes( $session, $view, \@all_but_this_level_path_values );
+	}
+
+	my $export_bar = render_export_bar( $session, $esc_path_values, $view );
+	my $export_bar_xhtml = $xhtml->to_xhtml( $export_bar );
+
+	my $navigation_aids = render_navigation_aids( $session, $path_values, $esc_path_values, $view, $menus_fields, "list",
+		export_bar => $xml->clone( $export_bar ),
+		sizes => $sizes,
+	);
+	my $navigation_aids_xhtml = $xhtml->to_xhtml( $navigation_aids );
+
+	# Timestamp div
+	my $time_div = "";
+	if( !$view->{notimestamp} )
+	{
+		$time_div = $xhtml->to_xhtml( $session->html_phrase(
+			"bin/generate_views:timestamp",
+				time=>$xml->create_text_node(
+					EPrints::Time::human_time() ) ) );
+	}
 
 	# modes = first_letter, first_value, all_values (default)
 	my $alt_views = $view->{variations};
@@ -1289,16 +1302,13 @@ sub update_view_list
 		}
 
 		open( EXPORT , ">:utf8", "$page_file_name.export" )  || EPrints::abort( "Failed to write $page_file_name.export: $!" );
-		print EXPORT EPrints::XML::to_string( render_export_bar( $session, $esc_path_values, $view ) , undef, 1);
+		print EXPORT $export_bar_xhtml;
 		close EXPORT;
 
 		open( PAGE, ">:utf8", "$page_file_name.page" ) || EPrints::abort( "Failed to write $page_file_name.page: $!" );
 		open( INCLUDE, ">:utf8", "$page_file_name.include" ) || EPrints::abort( "Failed to write $page_file_name.include: $!" );
 
-		my $navigation_aids = EPrints::XML::to_string( 
-		render_navigation_aids( $session, $path_values, $esc_path_values, $view, $menus_fields, "list" ) );
-
-		print PAGE $navigation_aids;
+		print PAGE $navigation_aids_xhtml;
 		
 		print PAGE "<div class='ep_view_page ep_view_page_view_".$view->{id}."'>";
 		print INCLUDE "<div class='ep_view_page ep_view_page_view_".$view->{id}."'>";
@@ -1380,23 +1390,13 @@ sub update_view_list
 		unless( $view->{nocount} )
 		{
 			my $phraseid = "bin/generate_views:blurb";
-			if( $menus_fields->[-1]->[0]->is_type( "subject" ) )
+			if( $menus_fields->[-1]->[0]->isa( "EPrints::MetaField::Subject" ) )
 			{
 				$phraseid = "bin/generate_views:subject_blurb";
 			}
 			$count_div = EPrints::XML::to_string( $session->html_phrase(
 				$phraseid,
 				n=>$session->make_text( $count ) ), undef, 1 );
-		}
-
-		# Timestamp div
-		my $time_div = "";
-		unless( $view->{notimestamp} )
-		{
-			$time_div = EPrints::XML::to_string( $session->html_phrase(
-				"bin/generate_views:timestamp",
-					time=>$session->make_text(
-						EPrints::Time::human_time() ) ), undef, 1 );
 		}
 
 
@@ -1561,7 +1561,7 @@ sub update_view_list
 # pagetype is "menu" or "list"
 sub render_navigation_aids
 {
-	my( $session, $path_values, $esc_path_values, $view, $menus_fields, $pagetype ) = @_;
+	my( $session, $path_values, $esc_path_values, $view, $menus_fields, $pagetype, %opts ) = @_;
 
 	my $f = $session->make_doc_fragment();
 
@@ -1580,9 +1580,9 @@ sub render_navigation_aids
 			url => $session->render_link( $url ) ) );
 	}
 
-	if( $pagetype eq "list" )
+	if( defined $opts{export_bar} )
 	{
-		$f->appendChild( render_export_bar( $session, $esc_path_values, $view ) );
+		$f->appendChild( $opts{export_bar} );
 	}
 
 	# this is the field of the level ABOVE this level. So we get options to 
@@ -1593,11 +1593,8 @@ sub render_navigation_aids
 		$menu_fields = $menus_fields->[$menu_level-1];
 	}
 
-	if( defined $menu_fields && $menu_fields->[0]->is_type( "subject" ) )
+	if( defined $menu_fields && $menu_fields->[0]->isa( "EPrints::MetaField::Subject" ) )
 	{
-		my @all_but_this_level_path_values = @{$path_values};
-		pop @all_but_this_level_path_values;
-		my $sizes = get_sizes( $session, $view, \@all_but_this_level_path_values );
 		my $subject = EPrints::Subject->new( $session, $path_values->[-1] );
 		my @ids= @{$subject->get_value( "ancestors" )};
 		foreach my $sub_subject ( $subject->get_children() )
@@ -1612,7 +1609,7 @@ sub render_navigation_aids
 			my @newids = ();
 			foreach my $id ( @ids )
 			{
-				push @newids, $id if $sizes->{$id};
+				push @newids, $id if $opts{sizes}->{$id};
 			}
 			@ids = @newids;
 		}
@@ -1631,7 +1628,7 @@ sub render_navigation_aids
 					$field->get_property( "top" ), 
 					$path_values->[-1], 
 					$mode, 
-					$sizes ) );
+					$opts{sizes} ) );
 		}
 	}
 
@@ -1648,25 +1645,20 @@ sub render_export_bar
 			is_visible=>"all",
 			is_advertised=>1,
 	);
-	my @plugins = $session->plugin_list( %opts );
+	my @plugins = $session->get_plugins( %opts );
 
-	if( scalar @plugins == 0 ) 
-	{
-		return $session->make_doc_fragment;
-	}
+	return $session->make_doc_fragment if scalar @plugins == 0;
 
 	my $export_url = $session->get_repository->get_conf( "perl_url" )."/exportview";
 	my $values = join( "/", @{$esc_path_values} );	
 
 	my $feeds = $session->make_doc_fragment;
 	my $tools = $session->make_doc_fragment;
-	my $options = {};
-	foreach my $plugin_id ( @plugins ) 
+	my $select = $session->make_element( "select", name=>"format" );
+	foreach my $plugin ( sort { $a->get_name cmp $b->get_name } @plugins )
 	{
-		$plugin_id =~ m/^[^:]+::(.*)$/;
-		my $id = $1;
-		my $plugin = $session->plugin( $plugin_id );
-		my $dom_name = $plugin->render_name;
+		my $id = $plugin->get_id;
+		$id =~ s/^Export:://;
 		if( $plugin->is_feed || $plugin->is_tool )
 		{
 			my $type = "feed";
@@ -1680,7 +1672,7 @@ sub render_export_bar
 			my $icon = $session->make_element( "img", src=>$plugin->icon_url(), alt=>"[$type]", border=>0 );
 			$a1->appendChild( $icon );
 			my $a2 = $session->render_link( $url );
-			$a2->appendChild( $dom_name );
+			$a2->appendChild( $plugin->render_name );
 			$span->appendChild( $a1 );
 			$span->appendChild( $session->make_text( " " ) );
 			$span->appendChild( $a2 );
@@ -1699,16 +1691,11 @@ sub render_export_bar
 		else
 		{
 			my $option = $session->make_element( "option", value=>$id );
-			$option->appendChild( $dom_name );
-			$options->{EPrints::XML::to_string($dom_name, undef, 1 )} = $option;
+			$option->appendChild( $plugin->render_name );
+			$select->appendChild( $option );
 		}
 	}
 
-	my $select = $session->make_element( "select", name=>"format" );
-	foreach my $optname ( sort keys %{$options} )
-	{
-		$select->appendChild( $options->{$optname} );
-	}
 	my $button = $session->make_doc_fragment;
 	$button->appendChild( $session->render_button(
 			name=>"_action_export_redir",
@@ -1739,7 +1726,7 @@ sub group_items
 	
 	foreach my $item ( @$items )
 	{
-		my $values = $item->get_value( $field->get_name );
+		my $values = $field->get_value( $item );
 		if( !$field->get_property( "multiple" ) )
 		{
 			$values = [$values];
@@ -1766,7 +1753,7 @@ sub group_items
 			}
 			else
 			{
-				if( $field->get_type eq "name" )
+				if( $field->isa( "EPrints::MetaField::Name" ) )
 				{
 					$code = "";
 					$code.= $value->{family} if defined $value->{family};
@@ -1816,23 +1803,18 @@ sub group_items
 
 	my $langid = $session->get_langid;
 	my $data = [];
-	my @codes;
+	my @codes = keys %$code_to_list;
 
 	if( $opts->{"string"} )
 	{
-		@codes = sort keys %{$code_to_list};
+		@codes = sort @codes;
 	}
 	else
 	{
-		@codes = sort 
-			{ 
-				my $v_a = $code_to_value->{$a};
-				my $v_b = $code_to_value->{$b};
-				my $o_a = $field->ordervalue_basic( $v_a, $session, $langid );
-				my $o_b = $field->ordervalue_basic( $v_b, $session, $langid );
-				return $o_a cmp $o_b;
-			}
-			keys %{$code_to_list};
+		my %cmp = map {
+			$_ => $field->ordervalue_basic( $code_to_value->{$_}, $session, $langid )
+		} @codes;
+		@codes = sort { $cmp{$a} cmp $cmp{$b} } @codes;
 	}
 
 	if( $opts->{reverse} )
