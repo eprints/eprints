@@ -551,7 +551,7 @@ sub create_single_page_menu
 	$page->appendChild( $navigation_aids );
 
 	my $phrase_id = "viewintro_".$view->{id};
-	if( defined $esc_path_values )
+	if( defined $esc_path_values && defined $path_values && scalar(@{$path_values}) )
 	{
 		$phrase_id.= "/".join( "/", @{$path_values} );
 	}
