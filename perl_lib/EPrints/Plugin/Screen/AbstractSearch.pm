@@ -171,11 +171,11 @@ sub from
 
 	$self->{processor}->{search} = EPrints::Search->new(
 		keep_cache => 1,
+		for_web => 1,
 		session => $self->{session},
 		filters => [$self->search_filters],
 		dataset => $self->search_dataset,
 		%{$self->{processor}->{sconf}} );
-
 
 	if( 	$self->{processor}->{action} eq "search" || 
 	 	$self->{processor}->{action} eq "update" || 

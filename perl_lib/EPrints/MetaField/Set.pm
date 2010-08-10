@@ -361,6 +361,16 @@ sub render_search_input
 				labels=>\%set_labels ) );
 	}
 
+	# IN does not make sense but EX does.
+	my $match = $searchfield->get_match;
+	if( defined $match && $match ne $self->default_web_search_match_code )
+	{
+		$frag->appendChild(
+			$session->xhtml->input_field( 
+				$searchfield->get_form_prefix."_match",
+				$match ) );
+	}
+
 	return $frag;
 }
 
@@ -413,6 +423,9 @@ sub render_search_set_input
 		values => $tags,
 		height => $height );
 }	
+
+sub default_web_search_match_code { return "EQ"; }
+sub default_web_search_merge_code { return "ANY"; }
 
 sub from_search_form
 {

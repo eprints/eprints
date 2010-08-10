@@ -293,6 +293,7 @@ sub from
 			session => $session,
 			dataset => $self->search_dataset,
 			keep_cache => 1,
+			for_web => 1,
 			%{$processor->{sconf}},
 		},
 		type => "Search",
