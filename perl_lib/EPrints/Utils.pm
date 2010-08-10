@@ -995,7 +995,7 @@ Valid characters are [A-Za-z0-9\-\._~"].
 # does.
 sub uri_escape_utf8
 {
-	my( $text ) = @_;
+	my $text = shift;
 
 	utf8::encode( $text );
 
