@@ -2638,7 +2638,7 @@ sub get_dataobjs
 		my $epdata = {};
 		foreach my $field (@fields)
 		{
-			$epdata->{$field->get_name} = $field->value_from_sql_row( $session, \@row );
+			$epdata->{$field->{name}} = $field->value_from_sql_row( $session, \@row );
 		}
 		next if !defined $epdata->{$key_name};
 		$data[$lookup{$epdata->{$key_name}}] = $epdata;
@@ -2663,7 +2663,7 @@ sub get_dataobjs
 		# multiple values are always at least empty list
 		foreach my $epdata (@data)
 		{
-			$epdata->{$field->get_name} = [];
+			$epdata->{$field->{name}} = [];
 		}
 
 		my $sth = $self->prepare( $sql );
@@ -2672,7 +2672,7 @@ sub get_dataobjs
 		{
 			my( $id, $pos ) = splice(@row,0,2);
 			my $value = $field->value_from_sql_row( $session, \@row );
-			$data[$lookup{$id}]->{$field->get_name}->[$pos] = $value;
+			$data[$lookup{$id}]->{$field->{name}}->[$pos] = $value;
 		}
 	}
 
@@ -2682,9 +2682,7 @@ sub get_dataobjs
 	# convert the epdata into objects
 	foreach my $epdata (@data)
 	{
-		my $dataobj = $dataset->make_object( $session );
-		$dataobj->{data} = $epdata;
-		$epdata = $dataobj;
+		$epdata = $dataset->make_dataobj( $epdata );
 	}
 
 	return @data;
