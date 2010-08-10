@@ -24,6 +24,7 @@ my $session = EPrints::Session->new();
 
 EPrints::ScreenProcessor->process( 
 	session=>$session, 
+	template=>$session->config( "user_area_template" ),
 	url=>$session->get_repository->get_conf( "rel_cgipath" )."/users/home" );
 
 $session->terminate;
