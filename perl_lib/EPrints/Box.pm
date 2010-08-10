@@ -131,7 +131,7 @@ sub EPrints::Box::render
 		$a = "false";
 	}
 	my $uncollapse_bar = $session->make_element( "div", class=>"ep_only_js", id=>$barid );
-	my $uncollapse_link = $session->make_element( "a", id=>$barid, class=>"ep_box_collapse_link", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${contentid}',false,'${id}');EPJS_toggle('${colbarid}',$a);EPJS_toggle('${barid}',$b);return false", href=>"#" );
+	my $uncollapse_link = $session->make_element( "a", class=>"ep_box_collapse_link", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${contentid}',false,'${id}');EPJS_toggle('${colbarid}',$a);EPJS_toggle('${barid}',$b);return false", href=>"#" );
 	$uncollapse_link->appendChild( $session->make_element( "img", alt=>"+", src=>$options{show_icon_url}, border=>0 ) );
 	$uncollapse_link->appendChild( $session->make_text( " " ) );
 	$uncollapse_link->appendChild( $session->clone_for_me( $options{title},1 ) );
