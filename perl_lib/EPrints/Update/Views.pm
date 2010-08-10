@@ -743,25 +743,6 @@ sub get_fieldlist_sizes_subject
 	return \%subj_map;
 }
 
-sub get_fieldlist_values
-{
-	my( $session, $dataset, $fields ) = @_;
-
-	my $values = {};
-	foreach my $field ( @{$fields} )
-	{	
-		my @values = @{$field->all_values( dataset => $dataset )};
-		foreach my $value ( @values )
-		{ 
-			my $id = $fields->[0]->get_id_from_value( $session, $value );
-			$id = "" if !defined $id;
-			$values->{$id} = $value;
-		}
-	}
-
-	return $values;
-}
-
 sub group_by_a_to_z 
 { 
 	my $grouping = group_by_n_chars( @_, 1 ); 
