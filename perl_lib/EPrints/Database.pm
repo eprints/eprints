@@ -2682,7 +2682,10 @@ sub get_dataobjs
 	# convert the epdata into objects
 	foreach my $epdata (@data)
 	{
-		$epdata = $dataset->make_dataobj( $epdata );
+		# this avoids a lot of calls to MetaField::set_value()
+		my $dataobj = $dataset->make_dataobj( {} );
+		$dataobj->{data} = $epdata;
+		$epdata = $dataobj;
 	}
 
 	return @data;
