@@ -89,6 +89,28 @@ sub get_property_defaults
 
 sub get_search_group { return 'set'; }
 
+=item $ov = $field->ordervalue_basic( $value, $session, $langid )
+
+Return $value as an order value that will be cmp().
+
+For Namedset this returns the values in the order they are given in the named set.
+
+=cut
+
+sub ordervalue_basic
+{
+	my( $self, $value, $session, $langid ) = @_;
+
+	my @types = $self->tags( $session );
+	foreach my $i (0..$#types)
+	{
+		return sprintf("%06d", $i)
+			if $types[$i] eq $value;
+	}
+
+	# this will always come after any known values
+	return $value;
+}
 
 
 ######################################################################
