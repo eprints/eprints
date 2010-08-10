@@ -813,9 +813,9 @@ sub _load_citation_file
 	{
 		if( $fileid eq "default" )
 		{
-			EPrints::abort( "Default citation file for '$dsid' does not exist." );
+			EPrints::abort( "Default citation file for '$dsid' does not exist. Was expecting a file at '$file'." );
 		}
-		$self->log( "Citation file '$fileid' for '$dsid' does not exist." );
+		$self->log( "Citation file '$fileid' for '$dsid' does not exist. Was expecting a file at '$file'." );
 		return;
 	}
 
