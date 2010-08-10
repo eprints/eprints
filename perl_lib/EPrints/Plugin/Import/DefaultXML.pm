@@ -217,9 +217,9 @@ sub start_element
 	{
 		$handler->start_element( $info, $self->{epdata}, $self->{state} );
 	}
-	elsif( $self->{depth} == 1 && $info->{Name} ne $self->{plugin}->top_level_tag )
+	elsif( $self->{depth} == 1 && $info->{Name} ne $self->{plugin}->top_level_tag( $self->{dataset} ) )
 	{
-		$self->{plugin}->unknown_start_element( $info->{Name}, $self->{plugin}->top_level_tag ); #dies
+		$self->{plugin}->unknown_start_element( $info->{Name}, $self->{plugin}->top_level_tag( $self->{dataset} ) ); #dies
 	}
 	elsif( $self->{depth} == 2 )
 	{
