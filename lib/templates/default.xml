@@ -44,7 +44,6 @@
 
 
 <div>
-  <epc:pin ref="toolbar" />
   <div class="ep_tm_page_content">
     <h1 class="ep_tm_pagetitle"><epc:pin ref="title"/></h1>
     <epc:pin ref="page"/>
