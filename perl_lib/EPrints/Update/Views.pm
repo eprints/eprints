@@ -1094,6 +1094,29 @@ sub get_fields_from_view
 	return $menus_fields
 }
 
+sub output_files
+{
+	my( $repo, %files ) = @_;
+
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	foreach my $fn (sort keys %files)
+	{
+		open(my $fh, ">:utf8", $fn)
+			or EPrints->abort( "Error writing to $fn: $!" );
+		if( $fn =~ /\.textonly$/ )
+		{
+			print $fh $xhtml->to_text_dump( $files{$fn} );
+		}
+		else
+		{
+			print $fh $xhtml->to_xhtml( $files{$fn} );
+		}
+		$xml->dispose( $files{$fn} );
+		close( $fh );
+	}
+}
 
 =pod
 
@@ -1185,22 +1208,23 @@ sub update_view_list
 	}
 
 	my $export_bar = render_export_bar( $session, $esc_path_values, $view );
-	my $export_bar_xhtml = $xhtml->to_xhtml( $export_bar );
 
 	my $navigation_aids = render_navigation_aids( $session, $path_values, $esc_path_values, $view, $menus_fields, "list",
 		export_bar => $xml->clone( $export_bar ),
 		sizes => $sizes,
 	);
-	my $navigation_aids_xhtml = $xhtml->to_xhtml( $navigation_aids );
 
 	# Timestamp div
-	my $time_div = "";
+	my $time_div;
 	if( !$view->{notimestamp} )
 	{
-		$time_div = $xhtml->to_xhtml( $session->html_phrase(
+		$time_div = $session->html_phrase(
 			"bin/generate_views:timestamp",
-				time=>$xml->create_text_node(
-					EPrints::Time::human_time() ) ) );
+			time=>$xml->create_text_node( EPrints::Time::human_time() ) );
+	}
+	else
+	{
+		$time_div = $xml->create_document_fragment;
 	}
 
 	# modes = first_letter, first_value, all_values (default)
@@ -1228,7 +1252,9 @@ sub update_view_list
 
 		my $title;
 		my $phrase_id = "viewtitle_".$ds->confid()."_".$view->{id}."_list";
-	
+
+		my %files;
+
 		if( $session->get_lang()->has_phrase( $phrase_id, $session ) )
 		{
 			my %o = ();
@@ -1266,33 +1292,29 @@ sub update_view_list
 
 
 		# This writes the title including HTML tags
-		open( TITLE, ">:utf8", "$page_file_name.title" ) || EPrints::abort( "Failed to write $page_file_name.title: $!" );
-		print TITLE EPrints::XML::to_string( $title, undef, 1 );
-		close TITLE;
+		$files{"$page_file_name.title"} = $title;
 
 		# This writes the title with HTML tags stripped out.
-		open( TITLETXT, ">:utf8", "$page_file_name.title.textonly" ) || EPrints::abort( "Failed to write $page_file_name.title.textonly: $!" );
-		print TITLETXT EPrints::Utils::tree_to_utf8( $title );
-		close TITLETXT;
+		$files{"$page_file_name.title.textonly"} = $title;
 
 		if( defined $view->{template} )
 		{
-			open( TEMPLATE, ">:utf8", "$page_file_name.template" ) || EPrints::abort( "Failed to write $page_file_name.template: $!" );
-			print TEMPLATE $view->{template};
-			close TEMPLATE;
+			$files{"$page_file_name.template"} = $xml->create_text_node( $view->{template} );
 		}
 
-		open( EXPORT , ">:utf8", "$page_file_name.export" )  || EPrints::abort( "Failed to write $page_file_name.export: $!" );
-		print EXPORT $export_bar_xhtml;
-		close EXPORT;
+		$files{"$page_file_name.export"} = $export_bar;
 
-		open( PAGE, ">:utf8", "$page_file_name.page" ) || EPrints::abort( "Failed to write $page_file_name.page: $!" );
-		open( INCLUDE, ">:utf8", "$page_file_name.include" ) || EPrints::abort( "Failed to write $page_file_name.include: $!" );
+		my $PAGE = $files{"$page_file_name.page"} = $xml->create_document_fragment;
+		my $INCLUDE = $files{"$page_file_name.include"} = $xml->create_document_fragment;
 
-		print PAGE $navigation_aids_xhtml;
+		$PAGE->appendChild( $xml->clone( $navigation_aids ) );
 		
-		print PAGE "<div class='ep_view_page ep_view_page_view_".$view->{id}."'>";
-		print INCLUDE "<div class='ep_view_page ep_view_page_view_".$view->{id}."'>";
+		$PAGE = $PAGE->appendChild( $xml->create_element( "div",
+			class => "ep_view_page ep_view_page_view_$view->{id}"
+		) );
+		$INCLUDE = $INCLUDE->appendChild( $xml->create_element( "div",
+			class => "ep_view_page ep_view_page_view_$view->{id}"
+		) );
 
 		# Render links to alternate groupings
 		if( scalar @{$alt_views} > 1 && $count )
@@ -1344,15 +1366,8 @@ sub update_view_list
 				$first = 0;
 			}
 
-			print PAGE EPrints::XML::to_string( $session->html_phrase( "Update/Views:group_by", groups=>$groups ), undef, 1 );
+			$PAGE->appendChild( $session->html_phrase( "Update/Views:group_by", groups=>$groups ) );
 		}
-
-		my $field;
-		if( $fieldname ne "DEFAULT" )
-		{
-			$field = $ds->get_field( $fieldname );
-		}
-
 
 		# Intro phrase, if any 
 		my $intro_phrase_id = "viewintro_".$view->{id};
@@ -1360,24 +1375,32 @@ sub update_view_list
 		{
 			$intro_phrase_id.= "/".join( "/", @{$esc_path_values} );
 		}
-		my $intro = "";
+		my $intro;
 		if( $session->get_lang()->has_phrase( $intro_phrase_id, $session ) )
 		{
-			$intro = EPrints::XML::to_string( $session->html_phrase( $intro_phrase_id ), undef, 1 );
+			$intro = $session->html_phrase( $intro_phrase_id );
+		}
+		else
+		{
+			$intro = $xml->create_document_fragment;
 		}
 
 		# Number of items div.
-		my $count_div = "";
-		unless( $view->{nocount} )
+		my $count_div;
+		if( !$view->{nocount} )
 		{
 			my $phraseid = "bin/generate_views:blurb";
 			if( $menus_fields->[-1]->[0]->isa( "EPrints::MetaField::Subject" ) )
 			{
 				$phraseid = "bin/generate_views:subject_blurb";
 			}
-			$count_div = EPrints::XML::to_string( $session->html_phrase(
+			$count_div = $session->html_phrase(
 				$phraseid,
-				n=>$session->make_text( $count ) ), undef, 1 );
+				n=>$xml->create_text_node( $count ) );
+		}
+		else
+		{
+			$count_div = $xml->create_document_fragment;
 		}
 
 
@@ -1389,22 +1412,24 @@ sub update_view_list
 					$view,
 					$path_values,
 					$opts->{filename} );
+			$block = $xml->parse_string( $block )
+				if !ref( $block );
 
-			print PAGE $intro;
-			print PAGE $count_div;
-			print PAGE $block;
-			print PAGE $time_div;
-			print PAGE "</div>\n";
-			close PAGE;
+			$PAGE->appendChild( $xml->clone( $intro ) );
+			$INCLUDE->appendChild( $xml->clone( $intro ) );
 
-			print INCLUDE $intro;
-			print INCLUDE $count_div;
-			print INCLUDE $block;
-			print INCLUDE $time_div;
-			print INCLUDE "</div>\n";
-			close INCLUDE;
+			$PAGE->appendChild( $xml->clone( $count_div ) );
+			$INCLUDE->appendChild( $count_div );
+
+			$PAGE->appendChild( $xml->clone( $block ) );
+			$INCLUDE->appendChild( $block );
+
+			$PAGE->appendChild( $xml->clone( $time_div ) );
+			$INCLUDE->appendChild( $xml->clone( $time_div ) );
 
 			$first_view = 0;
+
+			output_files( $session, %files );
 			next ALTVIEWS;
 		}
 
@@ -1412,26 +1437,26 @@ sub update_view_list
 		# If this grouping is "DEFAULT" then there is no actual grouping-- easy!
 		if( $fieldname eq "DEFAULT" ) 
 		{
-			my( $block, $n ) = render_array_of_eprints( $session, $view, \@items );
-			print PAGE $intro;
-			print PAGE $count_div;
-			print PAGE $block;
-			print PAGE $time_div;
-			print PAGE "</div>\n";
-			close PAGE;
+			my $block = render_array_of_eprints( $session, $view, \@items );
 
-			print INCLUDE $intro;
-			print INCLUDE $count_div;
-			print INCLUDE $block;
-			print INCLUDE $time_div;
-			print INCLUDE "</div>\n";
-			close INCLUDE;
+			$PAGE->appendChild( $xml->clone( $intro ) );
+			$INCLUDE->appendChild( $xml->clone( $intro ) );
+
+			$PAGE->appendChild( $xml->clone( $count_div ) );
+			$INCLUDE->appendChild( $count_div );
+
+			$PAGE->appendChild( $xml->clone( $block ) );
+			$INCLUDE->appendChild( $block );
+
+			$PAGE->appendChild( $xml->clone( $time_div ) );
+			$INCLUDE->appendChild( $xml->clone( $time_div ) );
 
 			$first_view = 0;
+			output_files( $session, %files );
 			next ALTVIEWS;
 		}
 
-		my $data = group_items( $session, \@items, $field, $opts );
+		my $data = group_items( $session, \@items, $ds->field( $fieldname ), $opts );
 
 		my $first = 1;
 		my $jumps = $session->make_doc_fragment;
@@ -1485,55 +1510,60 @@ sub update_view_list
 
 			$first = 0;
 		}
-		my $jumpmenu = "";
-		if( $opts->{"jump"} eq "plain" ) 
-		{
-			$jumpmenu = EPrints::XML::to_string( $jumps, undef, 1);
-		}
-		if( $opts->{"jump"} eq "default" )
-		{
-			$jumpmenu = EPrints::XML::to_string( $session->html_phrase( "Update/Views:jump_to", jumps=>$jumps ), undef, 1 );
-		}
-
-		# css for your convenience
-		my $viewid = $view->{id};
-		$jumpmenu =  "<div class='ep_view_jump ep_view_${viewid}_${fieldname}_jump'>$jumpmenu</div>";
 
 		if( $count )
 		{
-			print PAGE $jumpmenu;
-			print INCLUDE $jumpmenu;
+			# css for your convenience
+			my $jumpmenu = $xml->create_element( "div",
+				class => "ep_view_jump ep_view_$view->{id}_${fieldname}_jump"
+			);
+			if( $opts->{"jump"} eq "plain" ) 
+			{
+				$jumpmenu->appendChild( $jumps );
+			}
+			elsif( $opts->{"jump"} eq "default" )
+			{
+				$jumpmenu->appendChild( $session->html_phrase(
+					"Update/Views:jump_to",
+					jumps=>$jumps ) );
+			}
+
+			$PAGE->appendChild( $xml->clone( $jumpmenu ) );
+			$INCLUDE->appendChild( $jumpmenu );
 		}
 
-		print PAGE $intro;
-		print INCLUDE $intro;
+		$PAGE->appendChild( $xml->clone( $intro ) );
+		$INCLUDE->appendChild( $xml->clone( $intro ) );
 
-		print PAGE $count_div;
-		print INCLUDE $count_div;
+		$PAGE->appendChild( $xml->clone( $count_div ) );
+		$INCLUDE->appendChild( $count_div );
 
 		foreach my $group ( @{$data} )
 		{
 			my( $code, $heading, $items ) = @{$group};
 
-			print PAGE "<a name='group_".EPrints::Utils::escape_filename( $code )."'></a>\n";
-			print INCLUDE "<a name='group_".EPrints::Utils::escape_filename( $code )."'></a>\n";
+			my $link = $xml->create_element( "a",
+				name => "group_".EPrints::Utils::escape_filename( $code )
+			);
+			my $h2 = $xml->create_element( "h2" );
+			$h2->appendChild( $heading );
+			my $block = render_array_of_eprints( $session, $view, $items );
+
+			$PAGE->appendChild( $xml->clone( $link ) );
+			$INCLUDE->appendChild( $link );
 		
-			print PAGE "<h2>".EPrints::XML::to_string( $heading, undef, 1 )."</h2>";
-			print INCLUDE "<h2>".EPrints::XML::to_string( $heading, undef, 1 )."</h2>";
-			my( $block, $n ) = render_array_of_eprints( $session, $view, $items );
-			print PAGE $block;
-			print INCLUDE $block;
+			$PAGE->appendChild( $xml->clone( $h2 ) );
+			$INCLUDE->appendChild( $h2 );
+
+			$PAGE->appendChild( $xml->clone( $block ) );
+			$INCLUDE->appendChild( $block );
 		}
 
-		print PAGE $time_div;
-		print INCLUDE $time_div;
+		$PAGE->appendChild( $xml->clone( $time_div ) );
+		$INCLUDE->appendChild( $xml->clone( $time_div ) );
 
-		print PAGE "</div>\n";
-		print INCLUDE "</div>\n";
-
-		close PAGE;
-		close INCLUDE;
 		$first_view = 0;
+		output_files( $session, %files );
 	}
 
 	return $target;
@@ -1814,6 +1844,21 @@ sub render_array_of_eprints
 {
 	my( $session, $view, $items ) = @_;
 
+	my $xml = $session->xml;
+	my $frag;
+	if( defined $view->{layout} && $view->{layout} eq "orderedlist" )
+	{
+		$frag = $xml->create_element( "ol" );
+	}
+	elsif( defined $view->{layout} && $view->{layout} eq "unorderedlist" )
+	{
+		$frag = $xml->create_element( "ol" );
+	}
+	else
+	{
+		$frag = $xml->create_document_fragment;
+	}
+
 	my @r = ();
 
 	$view->{layout} = "paragraph" unless defined $view->{layout};	
@@ -1823,44 +1868,30 @@ sub render_array_of_eprints
 		my $ctype = $view->{citation}||"default";
 		if( !defined $session->{citesdone}->{$ctype}->{$item->get_id} )
 		{
-			my $cite = EPrints::XML::to_string( $item->render_citation_link( $view->{citation} ), undef, 1 );
+			my $cite = $item->render_citation_link( $view->{citation} );
 			$session->{citesdone}->{$ctype}->{$item->get_id} = $cite;
 		}
 		my $cite = $session->{citesdone}->{$ctype}->{$item->get_id};
 
 		if( $view->{layout} eq "paragraph" )
 		{
-			push @r, "<p>", $cite, "</p>\n";
+			$frag->appendChild( $xml->create_element( "p" ) )
+				->appendChild( $xml->clone( $cite ) );
 		}
 		elsif( 
 			$view->{layout} eq "orderedlist" ||
 			$view->{layout} eq "unorderedlist" )
 		{
-			push @r, "<li>", $cite, "</li>\n";
+			$frag->appendChild( $xml->create_element( "li" ) )
+				->appendChild( $xml->clone( $cite ) );
 		}
 		else
 		{
-			push @r, $cite, "\n";
+			$frag->appendChild( $xml->clone( $cite ) );
 		}
 	}
 
-	my $n = @{$items};
-	if( !defined $view->{layout} )
-	{
-		return( join( "", @r ), $n );
-	}
-	elsif( $view->{layout} eq "orderedlist" )
-	{
-		return( join( "", "<ol>",@r,"</ol>" ), $n );
-	}
-	elsif( $view->{layout} eq "unorderedlist" )
-	{
-		return( join( "", "<ul>",@r,"</ul>" ), $n );
-	}
-	else
-	{
-		return( join( "", @r ), $n );
-	}
+	return $frag;
 }
 
 

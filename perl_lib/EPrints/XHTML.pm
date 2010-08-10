@@ -48,6 +48,7 @@ The XHTML object facilitates the creation of XHTML objects.
 
 package EPrints::XHTML;
 
+use EPrints::Const; # XML node type constants
 use strict;
 
 @EPrints::XHTML::COMPRESS_TAGS = qw/br hr img link input meta/;
@@ -214,17 +215,32 @@ sub to_xhtml
 {
 	my( $self, $node, %opts ) = @_;
 
-	my $xml = $self->{repository}->xml;
+	&_to_xhtml( $node );
+}
+
+my %HTML_ENTITIES = (
+	'&' => '&amp;',
+	'>' => '&gt;',
+	'<' => '&lt;',
+	'"' => '&quot;',
+);
+
+# may take options in the future
+sub _to_xhtml
+{
+	my( $node ) = @_;
+
+	# a single call to "nodeType" is quicker than lots of calls to is()?
+	my $type = $node->nodeType;
 
 	my @n = ();
-	if( $xml->is( $node, "Element" ) )
+	if( $type == XML_ELEMENT_NODE )
 	{
 		my $tagname = $node->localName; # ignore prefixes
 
 		$tagname = lc($tagname);
 
 		push @n, '<', $tagname;
-		my $nnm = $node->attributes;
 		my $seen = {};
 
 		if( $tagname eq "html" )
@@ -232,22 +248,19 @@ sub to_xhtml
 			push @n, ' xmlns="http://www.w3.org/1999/xhtml"';
 		}
 
-		foreach my $i ( 0..$nnm->length-1 )
+		foreach my $attr ( $node->attributes )
 		{
-			my $attr = $nnm->item($i);
-			# strip all namespace definitions
-			next if $attr->nodeName =~ /^xmlns/;
-			my $name = $attr->localName;
+			my $name = $attr->nodeName;
+			# strip all namespace definitions and prefixes
+			next if $name =~ /^xmlns/;
+			$name =~ s/^.+://;
 
 			next if( exists $seen->{$name} );
 			$seen->{$name} = 1;
 
 			my $value = $attr->nodeValue;
+			$value =~ s/([&<>"])/$HTML_ENTITIES{$1}/g;
 			utf8::decode($value) unless utf8::is_utf8($value);
-			$value =~ s/&/&amp;/g;
-			$value =~ s/</&lt;/g;
-			$value =~ s/>/&gt;/g;
-			$value =~ s/"/&quot;/g;
 			push @n, ' ', $name, '="', $value, '"';
 		}
 
@@ -256,7 +269,7 @@ sub to_xhtml
 			push @n, '>';
 			foreach my $kid ( $node->childNodes )
 			{
-				push @n, $self->to_xhtml( $kid, %opts );
+				push @n, &_to_xhtml( $kid );
 			}
 			push @n, '</', $tagname, '>';
 		}
@@ -273,31 +286,21 @@ sub to_xhtml
 			push @n, '></', $tagname, '>';
 		}
 	}
-	elsif( $xml->is( $node, "DocumentFragment" ) )
+	elsif( $type == XML_DOCUMENT_FRAGMENT_NODE )
 	{
 		foreach my $kid ( $node->getChildNodes )
 		{
-			push @n, $self->to_xhtml( $kid, %opts );
+			push @n, &_to_xhtml( $kid );
 		}
 	}
-	elsif( $xml->is( $node, "Document" ) )
+	elsif( $type == XML_DOCUMENT_NODE )
 	{
-		push @n, $self->to_xhtml( $node->documentElement, %opts );
-	}
-	elsif( $xml->is( 
-			$node, 
-			"Text", 
-			"Comment",
-			"CDATASection", 
-			"ProcessingInstruction",
-			"EntityReference" ) )
-	{
-		push @n, $node->toString; 
-		utf8::decode($n[$#n]) unless utf8::is_utf8($n[$#n]);
+		push @n, &_to_xhtml( $node->documentElement );
 	}
 	else
 	{
-		print STDERR "EPrints::XHTML: Not sure how to turn node type ".ref($node)." into XHTML.\n";
+		push @n, $node->toString; 
+		utf8::decode($n[$#n]) unless utf8::is_utf8($n[$#n]);
 	}
 
 	return wantarray ? @n : join('', @n);
