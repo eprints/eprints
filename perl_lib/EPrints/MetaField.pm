@@ -853,7 +853,7 @@ sub sort_values
 	VALUE: for(@$in_list)
 	{
 		next if !defined $_;
-		$ov{$_} = $self->ordervalue_basic( $_, $self->{repository}, $langid );
+		$ov{$_} = $self->ordervalue_single( $_, $self->{repository}, $langid );
 	}
 
 	my @out_list = sort { defined $a <=> defined $b || $ov{$a} cmp $ov{$b} } @$in_list;
