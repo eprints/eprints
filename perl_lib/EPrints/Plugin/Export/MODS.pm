@@ -102,6 +102,7 @@ sub _make_creators
 	my( $session, $dataset, $dataobj ) = @_;
 	
 	my $frag = $session->make_doc_fragment;
+	return $frag unless $dataset->has_field( "creators_name" );
 	
 	my $creators = $dataobj->get_value( "creators_name" );
 	return $frag unless defined $creators;
