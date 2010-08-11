@@ -107,7 +107,18 @@ sub make_confirm_page
 			[$session->get_database->quote_identifier("newpassword"),"NULL","NULL"],
 		);
 		$page->appendChild( $session->html_phrase( "cgi/confirm:set_password" ) );
-		$session->login( $user );
+                my @a = ();
+                srand;
+                for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
+                my $code = join( "", @a );
+                my $cookie = $session->{query}->cookie(
+                        -name    => "eprints_session",
+                        -path    => "/",
+                        -value   => $code,
+                        -domain  => $session->get_repository->get_conf("cookie_domain"),
+                );
+                $session->get_request->err_headers_out->{"Set-Cookie"} = $cookie;
+                $session->get_database->update_ticket_userid( $code, $user->get_id, $ENV{REMOTE_ADDR} );
 	}
 
 	$page->appendChild( $session->html_phrase( "cgi/confirm:username",
