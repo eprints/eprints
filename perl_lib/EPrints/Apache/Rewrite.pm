@@ -422,9 +422,13 @@ sub handler
 		}
 
 		# redirect to canonical path - /XX/
-		if( length($1) || !length($uri) )
+		if( !length($uri) )
 		{
-			return redir( $r, "$urlpath/$eprintid/$uri$args" );
+			return redir( $r, "$urlpath/$eprintid/$args" );
+		}
+		elsif( length($1) )
+		{
+			return redir( $r, "$urlpath/$eprintid$uri$args" );
 		}
 
 		if( $uri =~ s! ^/(0*)([1-9][0-9]*)\b !!x )
@@ -438,9 +442,13 @@ sub handler
 				return NOT_FOUND;
 			}
 
-			if( length($1) || !length($uri) )
+			if( !length($uri) )
 			{
-				return redir( $r, "$urlpath/$eprintid/$pos/$uri$args" );
+				return redir( $r, "$urlpath/$eprintid/$pos/$args" );
+			}
+			elsif( length($1) )
+			{
+				return redir( $r, "$urlpath/$eprintid/$pos$uri$args" );
 			}
 
 			$uri =~ s! ^([^/]*)/ !!x;
