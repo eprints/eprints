@@ -403,10 +403,8 @@ sub render
 
 			my $tr = $session->make_element( "tr", class=>$class );
 
- 			my $cols = $columns,
-
 			my $first = 1;
-			for( @$cols )
+			for( @$columns ) # $columns is closure-variable
 			{
 				my $td = $session->make_element( "td", class=>"ep_columns_cell".($first?" ep_columns_cell_first":"")." ep_columns_cell_$_"  );
 				$first = 0;
