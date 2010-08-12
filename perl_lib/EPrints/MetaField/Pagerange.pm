@@ -28,38 +28,10 @@ not done
 
 package EPrints::MetaField::Pagerange;
 
-use strict;
-use warnings;
-
-BEGIN
-{
-	our( @ISA );
-
-	@ISA = qw( EPrints::MetaField::Int );
-}
-
 use EPrints::MetaField::Text;
+@ISA = qw( EPrints::MetaField::Text );
 
-sub get_sql_type
-{
-	my( $self, $session ) = @_;
-
-	return $session->get_database->get_column_type(
-		$self->get_sql_name(),
-		EPrints::Database::SQL_VARCHAR,
-		!$self->get_property( "allow_null" ),
-		$self->get_property( "maxlength" ),
-		undef,
-		$self->get_sql_properties,
-	);
-}
-
-sub get_max_input_size
-{
-	my( $self ) = @_;
-
-	return $self->get_property( "maxlength" );
-}
+use strict;
 
 # note that this renders pages ranges differently from
 # eprints 2.2
@@ -191,27 +163,17 @@ sub ordervalue_basic
 	return sprintf( "%08d-%08d", $from, $to );
 }
 
-sub render_xml_schema
+sub render_search_input
 {
-	my( $self, $session ) = @_;
-
-	return $self->EPrints::MetaField::render_xml_schema( $session );
+	my( $self, $session, $searchfield ) = @_;
+	
+	return $session->render_input_field(
+				class => "ep_form_text",
+				name=>$searchfield->get_form_prefix,
+				value=>$searchfield->get_value,
+				size=>9,
+				maxlength=>100 );
 }
-
-sub get_xml_schema_type
-{
-	my( $self, $session ) = @_;
-
-	return $self->EPrints::MetaField::get_xml_schema_type( $session );
-}
-
-sub render_xml_schema_type
-{
-	my( $self, $session ) = @_;
-
-	return $self->EPrints::MetaField::render_xml_schema_type( $session );
-}
-
 
 ######################################################################
 1;

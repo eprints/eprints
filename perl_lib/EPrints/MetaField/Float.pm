@@ -88,5 +88,14 @@ sub render_xml_schema_type
 	return $session->make_doc_fragment;
 }
 
+sub form_value_basic
+{
+	my( $self, $session, $basename, $object ) = @_;
+
+	my $value = $self->SUPER::form_value_basic( $session, $basename, $object );
+
+	return defined $value && $value =~ /^-?[0-9]*\.?[0-9]+$/ ? $value : undef;
+}
+
 ######################################################################
 1;

@@ -226,5 +226,21 @@ sub xml_to_epdata_basic
 	return EPrints::Utils::is_set( $value ) ? $value : undef;
 }
 
+sub sql_row_from_value
+{
+	my( $self, $session, $value ) = @_;
+
+	return( $value );
+}
+
+sub form_value_basic
+{
+	my( $self, $session, $basename, $object ) = @_;
+
+	my $value = $self->SUPER::form_value_basic( $session, $basename, $object );
+
+	return defined $value && $value =~ /^-?[0-9]+$/ ? $value : undef;
+}
+
 ######################################################################
 1;
