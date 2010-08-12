@@ -215,10 +215,10 @@ sub get_internal_button
 
 	my $internal_button = $self->{session}->get_internal_button;
 
-	return undef unless defined $internal_button;
+	return "" unless defined $internal_button;
 
 	my $prefix = $self->{prefix}."_";
-	return undef unless $internal_button =~ s/^$prefix//;
+	return "" unless $internal_button =~ s/^$prefix//;
 
 	return $internal_button;
 }
