@@ -43,6 +43,8 @@ sub open_write
 
 	my( $path, $fn ) = $self->_filename( $fileobj );
 
+	return undef if !defined $path;
+
 	# filename may contain directory components
 	my $filepath = "$path/$fn";
 	$filepath =~ s/[^\\\/]+$//;
@@ -106,6 +108,8 @@ sub open_read
 
 	my( $path, $fn ) = $self->_filename( $fileobj, $sourceid );
 
+	return undef if !defined $path;
+
 	my $in_fh;
 	if( !open($in_fh, "<", "$path/$fn") )
 	{
@@ -126,6 +130,8 @@ sub retrieve
 
 	return 0 if !$self->open_read( $fileobj, $sourceid, $f );
 	my( $path, $fn ) = $self->_filename( $fileobj, $sourceid );
+
+	return undef if !defined $path;
 
 	my $fh = $self->{_fh}->{$fileobj};
 
@@ -162,6 +168,8 @@ sub delete
 
 	my( $path, $fn ) = $self->_filename( $fileobj, $sourceid );
 
+	return undef if !defined $path;
+
 	return 1 if !-e "$path/$fn";
 
 	return 0 if !unlink("$path/$fn");
@@ -185,6 +193,8 @@ sub get_local_copy
 	my( $self, $fileobj, $sourceid ) = @_;
 
 	my( $path, $fn ) = $self->_filename( $fileobj, $sourceid );
+
+	return undef if !defined $path;
 
 	return -r "$path/$fn" ? "$path/$fn" : undef;
 }
@@ -212,7 +222,9 @@ sub _filename
 	}
 	elsif( $parent->isa( "EPrints::DataObj::History" ) )
 	{
-		$local_path = $parent->get_parent->local_path."/revisions";
+		my $eprint = $parent->get_parent;
+		return if !defined $eprint;
+		$local_path = $eprint->local_path."/revisions";
 		$filename = $parent->get_value( "revision" ) . ".xml";
 		$in_file = $filename;
 	}

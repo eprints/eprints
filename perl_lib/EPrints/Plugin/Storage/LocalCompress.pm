@@ -92,6 +92,8 @@ sub retrieve
 	return 0 if !$self->open_read( $fileobj, $sourceid, $f );
 	my( $path, $fn ) = $self->_filename( $fileobj, $sourceid );
 
+	return undef if !defined $path;
+
 	my $fh = $self->{_fh}->{$fileobj};
 
 	my $rc = 1;
@@ -137,6 +139,8 @@ sub _filename
 	my( $self, $fileobj, $sourceid ) = @_;
 
 	my( $path, $fn ) = $self->SUPER::_filename( $fileobj, $sourceid );
+
+	return if !defined $path;
 
 	if( !defined $sourceid ) # file creation only
 	{
