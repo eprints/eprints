@@ -33,6 +33,20 @@ field. For example: "text", "name" or "date".
 A full description of metadata types and properties is in the eprints
 documentation and will not be duplicated here.
 
+=head1 PROPERTIES
+
+=over 4
+
+=item provenance => "core" or "config"
+
+Indiciates where the field was initialised from. "core" fields are defined in L<DataObj> classes while "config" fields are defined in cfg.d files.
+
+=item replace_core => 0
+
+Normally any attempt to define two fields with the same name will fail. However, you can replace a core system field by specifying the "replace_core" property. This should be used very carefully!
+
+=back
+
 =head1 METHODS
 
 =over 4
@@ -2221,6 +2235,7 @@ sub get_property_defaults
 {
 	return (
 		provenance => $EPrints::MetaField::FROM_CONFIG,
+		replace_core => 0,
 		allow_null 	=> 1,
 		browse_link 	=> $EPrints::MetaField::UNDEF,
 		can_clone 	=> 1,
