@@ -83,10 +83,10 @@ sub new
 	$dir = $repository->get_conf( "base_path" )."/perl_lib";
 	if( !scalar keys %SYSTEM_PLUGINS )
 	{
-		$self->_load_dir( $self->{data}, $repository, $dir );
+		$self->_load_dir( \%SYSTEM_PLUGINS, $repository, $dir );
 		if( $use_xslt )
 		{
-			$self->_load_xslt_dir( $self->{data}, $repository, $dir );
+			$self->_load_xslt_dir( \%SYSTEM_PLUGINS, $repository, $dir );
 		}
 	}
 
@@ -193,7 +193,7 @@ sub _load_plugin
 	use strict "refs";
 	return if( $disable );
 
-	$self->register_plugin( $plugin , $data );
+	$self->register_plugin( $data, $plugin );
 }
 
 sub _load_xslt
@@ -259,25 +259,19 @@ EOP
 	{
 		return if !@{$plugin->param( "produce" )};
 
-		$self->register_plugin( $plugin );
+		$self->register_plugin( $data, $plugin );
 	}
 	elsif( $plugin->isa( "EPrints::Plugin::Export" ) )
 	{
 		return if !@{$plugin->param( "accept" )};
 
-		$self->register_plugin( $plugin );
+		$self->register_plugin( $data, $plugin );
 	}
 	else
 	{
 		return; # unsupported
 	}
 }
-
-=item $ok = EPrints::PluginFactory->register_plugin( $plugin )
-
-Register a new plugin with all repositories.
-
-=cut
 
 =back
 
@@ -409,15 +403,15 @@ sub _list
 	}
 }
 
-=item $ok = $plugins->register_plugin( $plugin )
+=item $ok = $plugins->register_plugin( $data, $plugin )
 
-Register a new plugin $plugin with just the current repository.
+Register a new plugin $plugin.
 
 =cut
 
 sub register_plugin
 {
-	my( $self, $plugin, $data ) = @_;
+	my( $self, $data, $plugin ) = @_;
 
 	my $id = $plugin->get_id;
 	my $type = $plugin->get_type;
