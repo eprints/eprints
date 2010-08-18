@@ -343,11 +343,14 @@ sub get_tables
 	my @tables;
 
 	my $dbuser = $self->{session}->get_repository->get_conf( "dbuser" );
-	my $sth = $self->{dbh}->table_info( '%', uc($dbuser), '%', 'TABLE' );
+	my $sql = "SELECT table_name FROM all_tables WHERE owner = ?";
+	my $sth = $self->{dbh}->prepare($sql);
+	return undef unless $sth;
+	$sth->execute(uc($dbuser));
 
-	while(my $row = $sth->fetch)
+	while(my $row = $sth->fetchrow_arrayref)
 	{
-		my $name = $row->[$sth->{NAME_lc_hash}{table_name}];
+		my $name = $row->[0];
 		next if $name =~ /\$/;
 		push @tables, $name;
 	}
