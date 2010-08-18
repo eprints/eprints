@@ -1326,8 +1326,8 @@ sub update_view_list
 				my( $fieldname2, $options2 ) = split( /;/, $alt_view2 );
 				my $opts2 = get_view_opts( $options2,$fieldname2 );
 
-				my $link_name = "$target.".$opts2->{"filename"};
-				if( $first ) { $link_name = $target; }
+				my $link_name = join '/', @$esc_path_values;
+				if( !$first ) { $link_name .= ".".$opts2->{"filename"} }
 
 				if( !$first )
 				{
