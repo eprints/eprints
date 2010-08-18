@@ -568,7 +568,7 @@ sub get_index_codes_basic
 	foreach( EPrints::Index::split_words( $session, $g ) )
 	{
 		next if( $_ eq "" );
-#		push @r, "given:\L$_";
+		push @r, "\L$_";
 		$code.= "[\L$_]";
 	}
 	return( \@r, [$code], [] );
