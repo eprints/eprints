@@ -65,6 +65,8 @@ Oracle doesn't support "AS" when aliasing.
 
 When specifying char column lengths use (n char) to define character semantics. Otherwise oracle uses the "nls_length_semantics" setting to determine whether you meant bytes or chars.
 
+DBD::Oracle can crash when using PERL_USE_SAFE_PUTENV-compiled Perls, see http://www.eprints.org/tech.php/13984.html
+
 =head2 TODO
 
 =over 4
