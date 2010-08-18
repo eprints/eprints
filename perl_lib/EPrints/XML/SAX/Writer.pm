@@ -67,7 +67,6 @@ sub end_document
 	if( ref($self->{Output}) eq "SCALAR" )
 	{
 		${$self->{Output}} = join '', @{$self->{_buffer}};
-		utf8::encode(${$self->{Output}});
 	}
     # we may need to do a little more here
     $self->{NSHelper}->pop_context;
