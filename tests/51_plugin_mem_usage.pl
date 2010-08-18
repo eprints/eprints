@@ -34,7 +34,7 @@ our @ISA = qw( EPrints::PluginFactory );
 		use strict "refs";
 		return if( $disable );
 
-		$self->register_plugin( $plugin );
+		$self->register_plugin( $data, $plugin );
 
 #		Test::More::diag( "\t_load_plugin[$class]=" . EPrints::Test::human_mem_increase() );
 	}
