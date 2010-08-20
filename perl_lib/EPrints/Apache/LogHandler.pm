@@ -166,10 +166,12 @@ sub document
 	}
 
 	# ignore volatile version downloads (e.g. thumbnails)
-	if( $doc->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
-	{
-		return DECLINED;
-	}
+        my $relations = $doc->get_value( "relation" );
+        $relations = [] unless( defined $relations );
+        foreach my $r (@$relations)
+        {
+                return DECLINED if( $r->{type} =~ /^is\w+ThumbnailVersionOf$/ );
+        }
 
 	my $epdata = _generic( $r, { _parent => $doc } );
 
