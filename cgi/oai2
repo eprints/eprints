@@ -84,7 +84,7 @@ for(@params)
 	if( scalar(@values) > 1 )
 	{
 		push @errors,
-			render_oai_error( $repo, "badArgument", "Includes a repeated argument for '$_'" );
+			render_oai_error( $repo, "badVerb", "Includes a repeated argument for '$_'" );
 	}
 	elsif( defined $values[0] && length $values[0] )
 	{
