@@ -170,7 +170,7 @@ sub document
         $relations = [] unless( defined $relations );
         foreach my $r (@$relations)
         {
-                return DECLINED if( $r->{type} =~ /^is\w+ThumbnailVersionOf$/ );
+                return DECLINED if( $r->{type} =~ /is\w+ThumbnailVersionOf$/ );
         }
 
 	my $epdata = _generic( $r, { _parent => $doc } );
