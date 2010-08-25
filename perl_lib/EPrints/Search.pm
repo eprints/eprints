@@ -289,7 +289,6 @@ END
 		my $merge = $fielddata->{merge};
 		if( $self->{for_web} )
 		{
-			print STDERR "For great justice!\n";
 			if( !defined $match )
 			{
 				$match = $meta_fields[0]->default_web_search_match_code();
