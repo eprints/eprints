@@ -119,6 +119,15 @@ if(0){
 	my $page = $eprint->render_citation( "summary_page", %fragments, flags=>$flags );
 
 	my $title = $eprint->render_description();
+	
+	# A little hack to allow the document preview section to be overwritten with a "summary_top" box but retain the citation under the title.
+	if ($session->get_repository->get_conf("default_preview_disabled"))
+	{
+		$title->appendChild($session->make_element("br"));
+		my $small = $session->make_element("small");
+		$small->appendChild($eprint->render_citation('default'));
+		$title->appendChild($small);
+	}
 
 	my $links = $session->make_doc_fragment();
 	if( !$preview )
