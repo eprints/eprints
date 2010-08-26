@@ -406,13 +406,16 @@ sub export
 
 	if( exists $self->{ffmpeg_formats}->{lc($ext)} )
 	{
-		my $seconds = 5; # default to 5 seconds (as good a place as any)
-		my $duration = 0;
+		my $seconds;
+		my $duration;
 		if( $doc->exists_and_set( "media_sample_start" ) )
 		{
 			$seconds = $doc->get_value( "media_sample_start" );
 			$duration = $doc->get_value( "media_duration" );
 		}
+		# default to 5 seconds (as good a place as any)
+		$seconds = 5 if !EPrints::Utils::is_set( $seconds );
+		$duration = 0 if !EPrints::Utils::is_set( $duration );
 		$seconds = $self->calculate_offset( $duration, $seconds );
 
 		my $src_file = $src->get_local_copy or EPrints->abort( "Error retrieving source file" );
