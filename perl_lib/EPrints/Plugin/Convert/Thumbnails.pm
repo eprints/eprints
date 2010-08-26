@@ -742,6 +742,8 @@ sub export_cell
 
 	$offset = _seconds_to_marker( $offset );
 
+	$self->{_mime_type} = "image/jpg";
+
 	# extract the frame in MJPEG format
 	my $fn = $size . '.jpg';
 	my $dst = "$dir/$fn";
