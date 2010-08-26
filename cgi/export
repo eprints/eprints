@@ -287,7 +287,8 @@ sub export_dataobj
 	{
 		if(
 			$user->allow( "$priv:owner", $dataobj ) ||
-			$user->allow( "$priv:editor", $dataobj )
+			$user->allow( "$priv:editor", $dataobj ) ||
+			$user->allow( $priv )
 		  )
 		{
 			$allowed = 1;
@@ -306,7 +307,7 @@ sub export_dataobj
 			if( $error->{no_auth} )
 			{
 				$request->status( $error->{status_code} );
-				$request->err_headers_out->{'WWW-Authenticate'} = 'Basic realm="SWORD"';
+				$request->err_headers_out->{'WWW-Authenticate'} = 'Basic realm="Authenticate"';
 				$repository->terminate;
 				return Apache2::Const::DONE;
 			}
