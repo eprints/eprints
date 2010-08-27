@@ -892,7 +892,7 @@ sub get_app_from_eprint
 	my $app = {};
 	$app->{id} = $epdata->{eprintid};
 	$app->{title} = $epdata->{title};
-	$app->{link} = $epdata->{id};
+	$app->{uri} = $epdata->{id};
 	$app->{date} = $epdata->{datestamp};
 	$app->{package} = $epdata->{package_name};
 	$app->{description} = $epdata->{description};
@@ -903,6 +903,7 @@ sub get_app_from_eprint
 		if( $document->{content} eq "icon" && $document->{format} =~ m#^image/# )
 		{
 			my $url = $document->{files}->[0]->{url};
+			$app->{'icon_url'} = $url;
 			foreach my $relation (@{$document->{relation}})
 			{
 				next if $relation->{type} !~ m# ^http://eprints\.org/relation/has(\w+)ThumbnailVersion$ #x;
