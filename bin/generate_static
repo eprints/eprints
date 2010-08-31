@@ -160,27 +160,10 @@ if( !defined $session )
 	exit 1;
 }
 
-
-my @static_dirs = ();
-
-my $theme = $session->get_repository->get_conf( "theme" );
-
-$static_dirs[0] = $session->get_repository->get_conf( "lib_path" )."/static";
-if( defined $theme )
-{	
-	$static_dirs[2] = $session->get_repository->get_conf( "lib_path" )."/themes/$theme/static";
-}
-$static_dirs[4] = $session->get_repository->get_conf( "config_path" )."/static";
-
 my $strays = 0;
 foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
 {
-	$static_dirs[1] = $session->get_repository->get_conf( "lib_path" )."/lang/$langid/static";
-	if( defined $theme )
-	{	
-		$static_dirs[3] = $session->get_repository->get_conf( "lib_path" )."/themes/$theme/lang/$langid/static";
-	}
-	$static_dirs[5] = $session->get_repository->get_conf( "config_path" )."/lang/$langid/static";
+	my @static_dirs = $session->get_static_dirs( $langid );
 
 	my $map = {};
 	foreach my $dir ( @static_dirs )
@@ -316,10 +299,9 @@ sub scan_static_dir_aux
 	opendir( $dh, $dir ) || EPrints::abort( "Failed to read dir: $dir" );
 	while( my $file = readdir( $dh ) )
 	{
-		next if $file eq ".svn";
 		next if $file eq "CVS";
-		next if $file eq ".";
-		next if $file eq "..";
+		# allow .htaccess, .htpasswd etc. via a hack
+		next if $file =~ /^\./ && $file !~ /^\.ht/;
 		if( -d "$dir/$file" ) 
 		{
 			push @dirs, $file;
