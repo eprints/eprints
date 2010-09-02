@@ -750,8 +750,7 @@ sub _load_citation_specs
 {
 	my( $self ) = @_;
 
-	$self->{citation_style} = {};
-	$self->{citation_type} = {};
+	$self->{citations} = {};
 	# load system-level citations
 	$self->_load_citation_dir( $self->config( "lib_path" )."/citations" );
 	# load repository-specific citations (may overwrite)
@@ -776,30 +775,17 @@ sub _load_citation_dir
 	foreach my $dsid ( @dirs )
 	{
 		opendir( $dh, "$dir/$dsid" );
-		my @files = ();
 		while( my $fn = readdir( $dh ) )
 		{
 			next if $fn =~ m/^\./;
-			next unless $fn =~ s/\.xml$//;
-			push @files,$fn;
-		}
-		closedir $dh;
-		if( !defined $self->{citation_style}->{$dsid} )
-		{
-			$self->{citation_style}->{$dsid} = {};
-		}
-		if( !defined $self->{citation_type}->{$dsid} )
-		{
-			$self->{citation_type}->{$dsid} = {};
-		}
-		foreach my $file ( @files )
-		{
+			my $fileid = $fn;
 			$self->_load_citation_file( 
-				"$dir/$dsid/$file.xml",
+				"$dir/$dsid/$fn",
 				$dsid,
-				$file,
+				substr($fn,0,-4),
 			);
 		}
+		closedir $dh;
 	}
 
 	return 1;
@@ -819,49 +805,26 @@ sub _load_citation_file
 		return;
 	}
 
-	my $doc = $self->parse_xml( $file , 1 );
-	if( !defined $doc )
+	if( $file =~ /\.xml$/ )
 	{
-		return;
+		$self->{citations}->{$dsid}->{$fileid} = EPrints::Citation::EPC->new(
+			$file,
+			dataset => $self->dataset( $dsid )
+		);
 	}
-
-	my $citation = ($doc->getElementsByTagName( "citation" ))[0];
-	if( !defined $citation )
+	elsif( $file =~ /\.xsl$/ && $EPrints::Citation::XSL )
 	{
-		$self->log(  "Missing <citations> tag in $file\n" );
-		$self->xml->dispose( $doc );
-		return;
+		$self->{citations}->{$dsid}->{$fileid} = EPrints::Citation::XSL->new(
+			$file,
+			dataset => $self->dataset( $dsid )
+		);
 	}
-	my $type = $citation->getAttribute( "type" );
-	$type = "default" unless defined $type;
-
-	my $frag = $self->xml->contents_of( $citation );
-
-	$self->{citation_type}->{$dsid}->{$fileid} = $type;
-	$self->{citation_style}->{$dsid}->{$fileid} = $frag;
-	$self->{citation_sourcefile}->{$dsid}->{$fileid} = $file;
-	$self->{citation_mtime}->{$dsid}->{$fileid} = EPrints::Utils::mtime( $file );
-
-	$self->xml->dispose( $doc );
 }
 
+# DEPRECATED
 sub freshen_citation
 {
 	my( $self, $dsid, $fileid ) = @_;
-
-	# this only really needs to be done once per file per session, but we
-	# don't have a handle on the current session
-
-	my $file = $self->{citation_sourcefile}->{$dsid}->{$fileid};
-	my $mtime = EPrints::Utils::mtime( $file );
-
-	my $old_mtime = $self->{citation_mtime}->{$dsid}->{$fileid};
-	if( defined $old_mtime && $old_mtime == $mtime )
-	{
-		return;
-	}
-
-	$self->_load_citation_file( $file, $dsid, $fileid );
 }
 
 
@@ -5271,20 +5234,14 @@ sub get_citation_type
 {
 	my( $self, $dataset, $style ) = @_;
 
-	my $ds_id = $dataset->confid();
-
 	$style = "default" unless defined $style;
 
-	$self->freshen_citation( $ds_id, $style );
-	my $type = $self->{citation_type}->{$ds_id}->{$style};
-	if( !defined $type )
-	{
-		$style = "default";
-		$self->freshen_citation( $ds_id, $style );
-		$type = $self->{citation_type}->{$ds_id}->{$style};
-	}
+	my $citation = $dataset->citation( $style );
+	return undef if !defined $citation;
 
-	return $type;
+	$citation->freshen;
+
+	return $citation->{type};
 }
 
 
@@ -5607,7 +5564,7 @@ sub init_from_request
 	return 1;
 }
 
-my @CACHE_KEYS = qw/ id citation_mtime citation_sourcefile citation_style citation_type class config datasets field_defaults html_templates template_path langs plugins storage template_mtime text_templates types workflows loadtime noise /;
+my @CACHE_KEYS = qw/ id citations class config datasets field_defaults html_templates template_path langs plugins storage template_mtime text_templates types workflows loadtime noise /;
 my %CACHED = map { $_ => 1 } @CACHE_KEYS;
 
 sub cleanup

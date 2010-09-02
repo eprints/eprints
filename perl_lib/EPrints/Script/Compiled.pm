@@ -310,11 +310,11 @@ sub run_citation
 {
 	my( $self, $state, $object, $citationid ) = @_;
 
-	my $stylespec = $state->{session}->get_citation_spec( $object->[0]->get_dataset, $citationid->[0] );
+	my $citation = $object->[0]->dataset->citation( $citationid->[0],
+		in => "Citation:".$object->[0]->get_dataset.".".$citationid->[0]
+	);
 
-	my $citation = EPrints::XML::EPC::process( $stylespec, item=>$object->[0], session=>$state->{session}, in=>"Citation:".$object->[0]->get_dataset.".".$citationid->[0] );
-
-	return [ $citation, "XHTML" ];
+	return [ $citation->render( $object->[0] ), "XHTML" ];
 }
 
 sub run_yesno

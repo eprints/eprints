@@ -962,15 +962,11 @@ sub render_citation
 		$style = 'default';
 	}
 
-	my $stylespec = $self->{session}->get_citation_spec(
-					$self->{dataset},
-					$style );
+	my $citation = $self->{dataset}->citation( $style );
 
-	return EPrints::Utils::render_citation( $stylespec, 
-			item=>$self, 
-			in=>"citation ".$self->{dataset}->confid."/".$style, 
-			session=>$self->{session},
-			%params );
+	return $citation->render( $self,
+		in=>"citation ".$self->{dataset}->confid."/".$style, 
+		%params );
 }
 
 

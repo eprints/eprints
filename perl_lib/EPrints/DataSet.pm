@@ -1387,6 +1387,29 @@ sub _advanced_search_config
 	};
 }
 
+=item $citation = $dataset->citation( $style )
+
+Returns the citation object (if any) for $style.
+
+=cut
+
+sub citation
+{
+	my( $self, $id ) = @_;
+
+	my $repo = $self->repository;
+
+	my $citation = $repo->{citations}->{$self->base_id}->{$id};
+	if( !defined $citation )
+	{
+		# warn?
+		$repo->log( "Unknown citation style '$id' for ".$self->base_id." dataset: using default" );
+		$citation = $repo->{citations}->{$self->base_id}->{"default"};
+	}
+
+	return $citation;
+}
+
 ######################################################################
 1;
 ######################################################################
