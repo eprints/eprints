@@ -92,7 +92,7 @@ sub form_value_basic
 {
 	my( $self, $session, $basename, $object ) = @_;
 
-	my $value = $self->SUPER::form_value_basic( $session, $basename, $object );
+	my $value = $self->EPrints::MetaField::form_value_basic( $session, $basename, $object );
 
 	return defined $value && $value =~ /^-?[0-9]*\.?[0-9]+$/ ? $value : undef;
 }
