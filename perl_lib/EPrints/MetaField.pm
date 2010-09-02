@@ -2024,12 +2024,19 @@ sub start_element
 	}
 	elsif(
 		$state->{depth} == 2 &&
-		$self->property( "multiple" ) &&
-		$data->{LocalName} eq "item"
+		$self->property( "multiple" )
 	  )
 	{
-		push @{$epdata->{$self->name}}, $self->empty_value;
-		$state->{in_value} = 0;
+		if( $data->{LocalName} eq "item" )
+		{
+			push @{$epdata->{$self->name}}, $self->empty_value;
+			$state->{in_value} = 0;
+		}
+		else
+		{
+			$state->{Handler}->message( "warning", $self->repository->xml->create_text_node( "Invalid XML element: $data->{LocalName}" ) )
+				if defined $state->{Handler};
+		}
 	}
 }
 

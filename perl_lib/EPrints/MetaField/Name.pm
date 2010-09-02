@@ -680,7 +680,15 @@ sub start_element
 		($state->{depth} == 3 && $self->property( "multiple" ))
 	  )
 	{
-		$state->{part} = $data->{LocalName};
+		if( grep { $_ eq $data->{LocalName} } @PARTS )
+		{
+			$state->{part} = $data->{LocalName};
+		}
+		else
+		{
+			$state->{Handler}->message( "warning", $self->repository->xml->create_text_node( "Invalid XML element: $data->{LocalName}" ) )
+				if defined $state->{Handler};
+		}
 	}
 }
 

@@ -1391,8 +1391,16 @@ sub start_element
 
 	if( $state->{depth} == 2 )
 	{
-		$state->{child} = {%$state, depth => 0};
-		$state->{handler} = $state->{dataset}->field( $data->{LocalName} );
+		if( $state->{dataset}->has_field( $data->{LocalName} ) )
+		{
+			$state->{child} = {%$state, depth => 0};
+			$state->{handler} = $state->{dataset}->field( $data->{LocalName} );
+		}
+		else
+		{
+			$state->{Handler}->message( "warning", $state->{dataset}->repository->xml->create_text_node( "Invalid XML element: $data->{LocalName}" ) )
+				if defined $state->{Handler};
+		}
 	}
 
 	$state->{handler}->start_element( $data, $epdata, $state->{child} )

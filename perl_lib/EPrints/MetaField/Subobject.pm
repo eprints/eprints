@@ -326,6 +326,16 @@ sub start_element
 		my $ds = $self->{repository}->dataset( $self->property( "datasetid" ) );
 		my $class = $ds->get_object_class;
 
+		if( $data->{LocalName} ne $ds->base_id )
+		{
+			if( $state->{Handler} )
+			{
+				$state->{Handler}->message( "warning", $self->{repository}->xml->create_text_node( "Invalid XML element: $data->{LocalName}" ) );
+			}
+			undef $state->{handler};
+			return;
+		}
+
 		$state->{child} = {%$state,
 			dataset => $ds,
 			depth => 0,
