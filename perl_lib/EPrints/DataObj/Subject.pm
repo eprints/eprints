@@ -435,7 +435,7 @@ sub get_children
 				value => $subjectid
 			}
 		],
-		custom_order=>"name/name_name" );
+		custom_order=>"name_name" );
 
 	return $results->slice;
 }
@@ -806,7 +806,7 @@ sub get_all
 	my $ds = $session->get_repository->get_dataset( "subject" );
 
 	# Retrieve all of the subjects
-	my $results = $ds->search( custom_order => "name/name_name" );
+	my $results = $ds->search( custom_order => "name_name" );
 	
 	$results->map($f);
 
