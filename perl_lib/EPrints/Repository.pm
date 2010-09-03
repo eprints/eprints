@@ -751,10 +751,10 @@ sub _load_citation_specs
 	my( $self ) = @_;
 
 	$self->{citations} = {};
-	# load system-level citations
-	$self->_load_citation_dir( $self->config( "lib_path" )."/citations" );
-	# load repository-specific citations (may overwrite)
+	# load repository-specific citations
 	$self->_load_citation_dir( $self->config( "config_path" )."/citations" );
+	# load system-level citations (won't overwrite)
+	$self->_load_citation_dir( $self->config( "lib_path" )."/citations" );
 }
 
 sub _load_citation_dir
@@ -778,11 +778,15 @@ sub _load_citation_dir
 		while( my $fn = readdir( $dh ) )
 		{
 			next if $fn =~ m/^\./;
-			my $fileid = $fn;
+			my $fileid = substr($fn,0,-4);
+			# prefer .xsl to .xml
+			next if $fn =~ /\.xml$/
+				&& $EPrints::Citation::XSL &&
+				-e "$dir/$dsid/$fileid.xsl";
 			$self->_load_citation_file( 
 				"$dir/$dsid/$fn",
 				$dsid,
-				substr($fn,0,-4),
+				$fileid
 			);
 		}
 		closedir $dh;
@@ -794,6 +798,8 @@ sub _load_citation_dir
 sub _load_citation_file
 {
 	my( $self, $file, $dsid, $fileid ) = @_;
+
+	return if defined $self->{citations}->{$dsid}->{$fileid};
 
 	if( !-e $file )
 	{
@@ -812,7 +818,8 @@ sub _load_citation_file
 			dataset => $self->dataset( $dsid )
 		);
 	}
-	elsif( $file =~ /\.xsl$/ && $EPrints::Citation::XSL )
+
+	if( $file =~ /\.xsl$/ && $EPrints::Citation::XSL )
 	{
 		$self->{citations}->{$dsid}->{$fileid} = EPrints::Citation::XSL->new(
 			$file,

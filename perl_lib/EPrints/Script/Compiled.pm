@@ -310,11 +310,11 @@ sub run_citation
 {
 	my( $self, $state, $object, $citationid ) = @_;
 
-	my $citation = $object->[0]->dataset->citation( $citationid->[0],
-		in => "Citation:".$object->[0]->get_dataset.".".$citationid->[0]
+	my $citation = $object->[0]->render_citation( $citationid->[0],
+		finalize => 0
 	);
 
-	return [ $citation->render( $object->[0] ), "XHTML" ];
+	return [ $citation, "XHTML" ];
 }
 
 sub run_yesno

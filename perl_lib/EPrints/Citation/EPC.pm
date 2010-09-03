@@ -75,11 +75,15 @@ sub render
 	my $collapsed = EPrints::XML::EPC::process( $style,
 		%opts,
 		item => $dataobj );
-	my $r = _render_citation_aux( $collapsed, %opts );
 
-	EPrints::XML::trim_whitespace( $r );
+	# only apply <linkhere> processing on the outer-most citation
+	if( !exists $opts{finalize} || $opts{finalize} != 0 )
+	{
+		$collapsed = _render_citation_aux( $collapsed, %opts );
+		EPrints::XML::trim_whitespace( $collapsed );
+	}
 
-	return $r;
+	return $collapsed;
 }
 
 sub _render_citation_aux
