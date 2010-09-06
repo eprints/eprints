@@ -276,8 +276,8 @@ sub load_repository_config_module
 	local @INC;
 	@INC = (@oldinc, $info->{archiveroot} );
 
-	my $repcfgd = $SYSTEMCONF->{"lib_path"}."/cfg.d";
-	my $libcfgd = $info->{archiveroot}."/cfg/cfg.d";
+	my $libcfgd = $SYSTEMCONF->{"lib_path"}."/cfg.d";
+	my $repcfgd = $info->{archiveroot}."/cfg/cfg.d";
 	my %files_map = ();
 
 	foreach my $dir ( $libcfgd, $repcfgd )
