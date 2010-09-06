@@ -53,9 +53,8 @@ foreach my $ds_id ( sort keys %counts )
 		$counts{$ds_id}
 	);
 }
-print sprintf("version: %s (%s)\n",
-	$repo->config( "version_id" ),
-	$repo->config( "version" ) );
+# version, but without the leading 'v'
+print sprintf("version: %s\n", EPrints->VERSION =~ /(\d+\.\d+\.\d+)/);
 
 # Indexer Status
 my $daemon = EPrints::Index::Daemon->new(

@@ -80,6 +80,8 @@ use Carp qw( verbose );
 
 use strict;
 
+our $VERSION = v3.3.0;
+
 # set default global configuration values
 my $conf = $EPrints::SystemSettings::conf;
 if( !defined $conf->{base_path} )
