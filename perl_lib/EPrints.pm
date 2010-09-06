@@ -25,6 +25,9 @@ B<EPrints> - Institutional Repository software
 
 	use EPrints qw();
 
+	# don't check current user (CLI only)
+	use EPrints qw( no_check_user );
+
 	$eprints = EPrints->new;
 
 	# CLI
@@ -33,7 +36,10 @@ B<EPrints> - Institutional Repository software
 	# CGI
 	$repo = $eprints->current_repository;
 
-	...
+	if( EPrints->VERSION() gt v3.2.0 )
+	{
+		...
+	}
 
 =head1 DESCRIPTION
 
@@ -596,6 +602,10 @@ EPrints::Config::init();
 1;
 
 __END__
+
+=item $version = EPrints->VERSION()
+
+Returns the version of EPrints in 'v' format.
 
 =back
 
