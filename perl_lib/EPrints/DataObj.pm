@@ -964,6 +964,14 @@ sub render_citation
 
 	my $citation = $self->{dataset}->citation( $style );
 
+	# no citation style available, not even "default"
+	if( !defined $citation )
+	{
+		return $self->{session}->html_phrase( "lib/citation:not_available",
+			dataset => $self->{dataset}->render_name( $self->{session} )
+		);
+	}
+
 	return $citation->render( $self,
 		in=>"citation ".$self->{dataset}->confid."/".$style, 
 		%params );
