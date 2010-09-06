@@ -171,8 +171,6 @@ sub new
 
 	if( $self->{noise} >= 2 ) { print "\nStarting EPrints Repository.\n"; }
 
-	$self->_add_live_http_paths;
-
 	if( $self->{offline} )
 	{
 		# Set a script to use the default language unless it 
@@ -385,6 +383,9 @@ sub load_config
 	$self->{class} = "EPrints::Config::".$self->{id};
 
 	$self->_add_http_paths;
+
+	# re-add live paths
+	$self->_add_live_http_paths;
 
 	# If loading any of the XML config files then 
 	# abort loading the config for this repository.
