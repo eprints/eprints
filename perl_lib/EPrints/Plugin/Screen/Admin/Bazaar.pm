@@ -184,7 +184,7 @@ sub action_handle_upload
 
 	my $session = $self->{session};
 
-	my $fname = $self->{prefix}."_first_file";
+	my $fname = "_first_file";
 
 	my $fh = $session->get_query->upload( $fname );
 
@@ -537,7 +537,7 @@ sub tab_upload_epm
 	my $upload_form = $screen->render_form("POST");
 	$inner_div->appendChild($upload_form);
 
-	my $ffname = $self->{prefix}."_first_file";
+	my $ffname = "_first_file";
 
 	my $file_button = $session->make_element( "input",
 			name => $ffname,
@@ -823,7 +823,7 @@ sub tab_grid_epms
 		action => "showapp",
 	);
 
-	my $vinette_url = $session->get_repository->get_conf( "rel_path" )."/images/thumbnail_surround.png";
+	#my $vinette_url = $session->get_repository->get_conf( "rel_path" )."/images/thumbnail_surround.png";
 
 	my $total = 0;
 	foreach my $app (@$store_epms)

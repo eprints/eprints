@@ -276,7 +276,7 @@ sub install
                                 $rc = 0;
                                 return;
                         }
-			if ($package_files->{$filepath} > 0) {
+			if ($package_files->{$filepath}) {
 				my $dst_file = $package_path . "/" . $filename;
 				copy($filepath, $dst_file);
 			} else {
@@ -853,7 +853,10 @@ sub retrieve_available_epms
 
 	my @apps;
 
-	SOURCE: foreach my $epm_source (@{$repository->config("epm_sources")}) {
+	my $sources = $repository->config( "epm_sources" );
+	$sources = [] if !defined $sources;
+
+	SOURCE: foreach my $epm_source (@$sources) {
 
 		my $url = $epm_source->{base_url} . "/cgi/search/advanced/export__XML.xml?screen=Public%3A%3AEPrintSearch&_action_export=1&output=XML&exp=0|1|-date%2Fcreators_name%2Ftitle|archive|-|type%3Atype%3AANY%3AEQ%3Aepm|-|eprint_status%3Aeprint_status%3AALL%3AEQ%3Aarchive|metadata_visibility%3Ametadata_visibility%3AALL%3AEX%3Ashow";
 
@@ -900,7 +903,11 @@ sub get_app_from_eprint
 
 	foreach my $document (@{$epdata->{documents}})
 	{
-		if( $document->{content} eq "icon" && $document->{format} =~ m#^image/# )
+		my $content = $document->{content};
+		$content = "" if !defined $content;
+		my $format = $document->{format};
+		$format = "" if !defined $format;
+		if( $content eq "icon" && $format =~ m#^image/# )
 		{
 			my $url = $document->{files}->[0]->{url};
 			$app->{'icon_url'} = $url;
@@ -914,7 +921,7 @@ sub get_app_from_eprint
 				$app->{'thumbnail_'.$type} = $thumb_url;
 			}
 		}
-		elsif( $document->{format} eq "application/epm" )
+		elsif( $format eq "application/epm" )
 		{
 			$app->{epm} = $document->{files}->[0]->{url};
 		}
