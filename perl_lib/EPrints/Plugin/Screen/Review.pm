@@ -150,6 +150,7 @@ sub _build_filter_search
 
 	foreach (@{$session->current_user->get_value( "review_fields" )})
 	{
+		next if !$dataset->has_field( $_ );
 		$filters_search->add_field( $dataset->get_field($_) );
 	}
 
@@ -194,6 +195,7 @@ sub render_filters_box
 	my $filters_search = $self->_build_filter_search;
 	foreach (@{$session->current_user->get_value( "review_fields" )})
 	{
+		next if !$dataset->has_field( $_ );
 		my $sf = $filters_search->get_searchfield($_);
 
 		if (EPrints::Utils::is_set($sf->get_value))
@@ -242,6 +244,7 @@ sub render
 	my $session = $self->{session};
 	my $user = $self->{session}->current_user;
 	my $page = $self->{session}->make_doc_fragment();
+	my $ds = $session->get_repository->get_dataset( "eprint" );
 
 	# Get EPrints in the submission buffer
 	my $list = $user->editable_eprints_list( filters => [
@@ -278,6 +281,7 @@ sub render
 	$div->appendChild($self->render_filters_box);
 
 	my $columns = $session->current_user->get_value( "review_fields" );
+	@$columns = grep { $ds->has_field( $_ ) } @$columns;
 	if( !EPrints::Utils::is_set( $columns ) )
 	{
 		$columns = [ "eprintid","type","status_changed", "userid" ];
@@ -439,7 +443,6 @@ sub render
 
 	my $colcurr = {};
 	foreach( @$columns ) { $colcurr->{$_} = 1; }
-        my $ds = $session->get_repository->get_dataset( "eprint" );
 	my $fieldnames = {};
         foreach my $field ( $ds->get_fields )
         {

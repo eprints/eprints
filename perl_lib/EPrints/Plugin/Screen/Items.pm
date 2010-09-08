@@ -217,6 +217,7 @@ sub render
 	}
 
 	my $columns = $session->current_user->get_value( "items_fields" );
+	@$columns = grep { $ds->has_field( $_ ) } @$columns;
 	if( !EPrints::Utils::is_set( $columns ) )
 	{
 		$columns = [ "eprintid","type","eprint_status","lastmod" ];

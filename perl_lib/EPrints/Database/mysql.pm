@@ -113,9 +113,15 @@ sub create
 			dbname => "mysql", ),
 	        $username,
 	        $password,
-			{ AutoCommit => 1 } );
+			{
+				AutoCommit => 1,
+				RaiseError => 0,
+				PrintError => 0,
+			} );
 
 	return undef if !defined $dbh;
+
+	$dbh->{RaiseError} = 1;
 
 	my $dbuser = $repo->get_conf( "dbuser" );
 	my $dbpass = $repo->get_conf( "dbpass" );

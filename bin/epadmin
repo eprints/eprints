@@ -1047,6 +1047,8 @@ sub create_db
 		EPrints::abort "Database name isn't configured";
 	}
 
+	BADPASSWORD:
+
 	my $username = EPrints::Utils::get_input( '^.*$', "Database Superuser Username", "root" );
 	my $password = EPrints::Utils::get_input_hidden( '^.*$', "Database Superuser Password" );
 
@@ -1054,7 +1056,8 @@ sub create_db
 
 	if( !$database->create( $username, $password ) )
 	{
-		print "Error creating database\n";
+		print "Error creating database: [$DBI::err] $DBI::errstr\n";
+		goto BADPASSWORD if $DBI::err == 1045;
 		exit 1;
 	}
 
