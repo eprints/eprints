@@ -20,8 +20,6 @@ sub new
 	$self->{suffix} = ".xml";
 	$self->{mimetype} = "application/rss+xml";
 
-	$self->{number_to_show} = 10;
-
 	return $self;
 }
 
@@ -73,6 +71,27 @@ sub output_list
 		"description", 
 		$session->get_repository->get_conf( "oai","content","text" ) ) );
 
+	{
+		my $image = $session->make_element( "image" );
+		$channel->appendChild( $image );
+
+		$image->appendChild( $session->render_data_element(
+			8,
+			"url",
+			$session->config( "http_url" ) . $session->config( "site_logo" )
+		) );
+
+		$image->appendChild( $session->render_data_element(
+			8,
+			"title",
+			$title ) );
+
+		$image->appendChild( $session->render_data_element(
+			8,
+			"link",
+			$session->get_repository->get_conf( "frontpage" ) ) );
+	}
+
 	$channel->appendChild( $session->render_data_element(
 		4,
 		"pubDate", 
@@ -94,8 +113,9 @@ sub output_list
 		"" ) );
 
 
-	foreach my $eprint ( $list->get_records( 0, $plugin->{number_to_show} ) )
-	{
+	$list->map(sub {
+		my( undef, undef, $eprint ) = @_;
+
 		my $item = $session->make_element( "item" );
 		
 		my $datestamp = $eprint->get_value( "datestamp" );
@@ -128,7 +148,7 @@ sub output_list
 		$item->appendChild( $plugin->render_media_content( $eprint ) );
 		
 		$channel->appendChild( $item );		
-	}	
+	});	
 
 	my $rssfeed = <<END;
 <?xml version="1.0" encoding="utf-8" ?>

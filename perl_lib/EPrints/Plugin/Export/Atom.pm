@@ -18,8 +18,6 @@ sub new
 	$self->{suffix} = ".xml";
 	$self->{mimetype} = "application/atom+xml";
 
-	$self->{number_to_show} = 10;
-
 	return $self;
 }
 
@@ -71,8 +69,9 @@ sub output_list
 		"tag:".$host.",".($year+1900).":feed:feed-title" ) );
 
 
-	foreach my $eprint ( $list->get_records( 0, $plugin->{number_to_show} ) )
-	{
+	$list->map(sub {
+		my( undef, undef, $eprint ) = @_;
+
 		my $item = $session->make_element( "entry" );
 		
 		$item->appendChild( $session->render_data_element(
@@ -128,7 +127,7 @@ sub output_list
 		}
 
 		$response->appendChild( $item );		
-	}	
+	});	
 
 	my $atomfeed = <<END;
 <?xml version="1.0" encoding="utf-8" ?>

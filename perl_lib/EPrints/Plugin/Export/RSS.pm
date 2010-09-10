@@ -18,8 +18,6 @@ sub new
 	$self->{suffix} = ".rss";
 	$self->{mimetype} = "application/rss+xml";
 
-	$self->{number_to_show} = 10;
-
 	return $self;
 }
 
@@ -85,8 +83,9 @@ sub output_list
 	my $seq = $session->make_element( "rdf:Seq" );
 	$items->appendChild( $seq );
 
-	foreach my $eprint ( $list->get_records( 0, $plugin->{number_to_show} ) )
-	{
+	$list->map(sub {
+		my( undef, undef, $eprint ) = @_;
+
 		my $li = $session->make_element( "rdf:li",
 			"rdf:resource"=>$eprint->get_url );
 		$seq->appendChild( $li );
@@ -107,7 +106,7 @@ sub output_list
 			"description",
 			EPrints::Utils::tree_to_utf8( $eprint->render_citation ) ) );
 		$response->appendChild( $item );		
-	}	
+	});	
 
 	my $rssfeed = <<END;
 <?xml version="1.0" encoding="utf-8" ?>
