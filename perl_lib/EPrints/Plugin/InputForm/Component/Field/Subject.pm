@@ -393,7 +393,7 @@ sub _render_subnode
 	if( $has_kids && !defined $whitelist )
 	{
 		my $toggle;
-		$toggle = $self->{session}->make_element( "a", href=>"#", class=>"ep_only_js ep_subjectinput_toggle" );
+		$toggle = $self->{session}->make_element( "a", href=>"#", class=>"ep_only_js_inline ep_subjectinput_toggle" );
 
 		my $hide = $self->{session}->make_element( "span", id=>$id."_hide" );
 		$hide->appendChild( $self->{session}->make_element( "img", alt=>"-", src=>"$imagesurl/style/images/minus.png", border=>0 ) );
