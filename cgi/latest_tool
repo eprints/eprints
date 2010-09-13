@@ -87,7 +87,7 @@ if( defined $format )
 		$plugin->initialise_fh( \*STDOUT );
 		$session->send_http_header( 
 				"content_type" => $plugin->param( 'mimetype' ) );
-		print $results->export( $format );
+		$results->export( $format, fh => \*STDOUT );
 	}
 	else
 	{
