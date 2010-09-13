@@ -125,7 +125,8 @@ sub execute
 		dataset => $self->{dataset},
 		enq => $enq,
 		count => $enq->get_mset( 0, $xapian->get_doccount )->get_matches_estimated,
-		ids => [] );
+		ids => [],
+		limit => $self->{limit} );
 }
 
 sub render_description
@@ -152,6 +153,18 @@ sub _get_records
 
 	$offset = 0 if !defined $offset;
 
+	if( defined $self->{limit} )
+	{
+		if( $offset > $self->{limit} )
+		{
+			$size = 0;
+		}
+		elsif( !defined $size || $offset+$size > $self->{limit} )
+		{
+			$size = $self->{limit} - $offset;
+		}
+	}
+
 	my @ids;
 	if( defined $size )
 	{
@@ -174,7 +187,18 @@ sub count
 {
 	my( $self ) = @_;
 
-	return $self->{count};
+	return (defined $self->{limit} && $self->{limit} < $self->{count}) ?
+		$self->{limit} :
+		$self->{count};
+}
+
+sub reorder
+{
+	my( $self, $new_order ) = @_;
+
+	$self->{ids} = $self->ids;
+
+	return $self->SUPER::reorder( $new_order );
 }
 
 1;

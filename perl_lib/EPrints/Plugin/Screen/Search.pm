@@ -365,6 +365,28 @@ sub from
 		$searchexp->{custom_order} = $custom_order;
 	}
 
+	# feeds are always limited and ordered by -datestamp
+	if( $self->{processor}->{action} eq "export" )
+	{
+		my $output = $self->{session}->param( "output" );
+		my $export_plugin = $self->{session}->plugin( "Export::$output" );
+		if( $export_plugin->is_feed )
+		{
+			# borrow the max from latest_tool (which we're replicating anyway)
+			my $limit = $self->{session}->config(
+				"latest_tool_modes", "default", "max"
+			);
+			$limit = 20 if !$limit;
+			my $n = $self->{session}->param( "n" );
+			if( $n && $n > 0 && $n < $limit)
+			{
+				$limit = $n;
+			}
+			$searchexp->{limit} = $limit;
+			$searchexp->{custom_order} = "-datestamp";
+		}
+	}
+
 	# do actions
 	$self->EPrints::Plugin::Screen::from;
 

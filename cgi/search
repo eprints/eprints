@@ -49,6 +49,11 @@ if( defined($repo->param( "dataset" )) )
 		$repo->redirect( $repo->config( "http_cgiroot" )."/search/".$repo->param( "dataset" )."/$datasetid$args" );
 		exit;
 	}
+	elsif( $searchid =~ /^export/ )
+	{
+		$repo->redirect( $repo->config( "http_cgiroot" )."/search/".$repo->param( "dataset" )."/$datasetid/$searchid$args" );
+		exit;
+	}
 	# handle the user changing the search dataset after a search
 	elsif( $repo->param( "dataset" ) ne $datasetid )
 	{

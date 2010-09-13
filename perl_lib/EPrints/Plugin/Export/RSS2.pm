@@ -27,18 +27,29 @@ sub output_list
 {
 	my( $plugin, %opts ) = @_;
 
-	my $list = $opts{list}->reorder( "-datestamp" );
+	my $list = $opts{list};
 
 	my $session = $plugin->{session};
 
-	my $response = $session->make_element( "rss",
-		"version" => "2.0",
-		"xmlns:content" => "http://purl.org/rss/1.0/modules/content/",
-		"xmlns:dc" => "http://purl.org/dc/elements/1.1/",
-		"xmlns:media" => "http://search.yahoo.com/mrss/" );
+	my $f;
+	my $r = [];
 
-	my $channel = $session->make_element( "channel" );
-	$response->appendChild( $channel );
+	if( defined $opts{fh} )
+	{
+		$f = sub { print {$opts{fh}} $_[0] };
+	}
+	else
+	{
+		$f = sub { push @$r, $_[0] };
+	}
+
+	&$f( <<EOX );
+<?xml version="1.0" encoding="utf-8" ?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss/">
+    <channel>
+EOX
+
+	my $channel = $session->make_doc_fragment;
 
 	my $title = $session->phrase( "archive_name" );
 
@@ -113,6 +124,9 @@ sub output_list
 		"" ) );
 
 
+	&$f( $session->xml->to_string( $channel ) );
+	$session->xml->dispose( $channel );
+
 	$list->map(sub {
 		my( undef, undef, $eprint ) = @_;
 
@@ -147,22 +161,18 @@ sub output_list
 			EPrints::Utils::tree_to_utf8( $eprint->render_citation ) ) );
 		$item->appendChild( $plugin->render_media_content( $eprint ) );
 		
-		$channel->appendChild( $item );		
+		&$f( "\n" );
+		&$f( $session->xml->to_string( $item ) );
+		$session->xml->dispose( $item );
 	});	
 
-	my $rssfeed = <<END;
-<?xml version="1.0" encoding="utf-8" ?>
-END
-	$rssfeed.= EPrints::XML::to_string( $response );
-	EPrints::XML::dispose( $response );
+&$f(<<EOX);
 
-	if( defined $opts{fh} )
-	{
-		print {$opts{fh}} $rssfeed;
-		return undef;
-	} 
+    </channel>
+</rss>
+EOX
 
-	return $rssfeed;
+	return join '', @$r;
 }
 
 sub render_media_content

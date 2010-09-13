@@ -25,7 +25,7 @@ sub output_list
 {
 	my( $plugin, %opts ) = @_;
 
-	my $list = $opts{list}->reorder( "-datestamp" );
+	my $list = $opts{list};
 
 	my $session = $plugin->{session};
 
