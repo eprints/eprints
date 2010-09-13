@@ -596,7 +596,7 @@ sub create_single_page_menu
 	{
 		foreach my $group_id ( @{$range->[1]} )
 		{
-			my @render_menu_opts = ( $session, $menu, $sizes, $groupings->{$group_id}, $menu_fields, $has_submenu );
+			my @render_menu_opts = ( $session, $menu, $sizes, $groupings->{$group_id}, $menu_fields, $has_submenu, $view );
 
 			my $h2 = $session->make_element( "h2" );
 			$h2->appendChild( $session->make_text( "$group_id..." ));
@@ -618,7 +618,7 @@ sub create_single_page_menu
 
 	if( defined $values )
 	{
-		my @render_menu_opts = ( $session, $menu, $sizes, $values, $menu_fields, $has_submenu );
+		my @render_menu_opts = ( $session, $menu, $sizes, $values, $menu_fields, $has_submenu, $view );
 
 		my $menu_xhtml;
 		if( $menu_fields->[0]->isa( "EPrints::MetaField::Subject" ) )
@@ -944,7 +944,7 @@ sub get_cols_for_menu
 
 sub render_menu
 {
-	my( $session, $menu, $sizes, $values, $fields, $has_submenu ) = @_;
+	my( $session, $menu, $sizes, $values, $fields, $has_submenu, $view ) = @_;
 
 	if( scalar @{$values} == 0 )
 	{
@@ -975,6 +975,8 @@ sub render_menu
 		$f->appendChild( $add_ul );	
 	}
 
+	my $ds = $session->dataset( $view->{dataset} );
+
 	for( my $i=0; $i<@{$values}; ++$i )
 	{
 		if( $cols>1 && $i % $col_len == 0 )
@@ -999,16 +1001,23 @@ sub render_menu
 
 		my $li = $session->make_element( "li" );
 
+		my $xhtml_value = $fields->[0]->get_value_label( $session, $value ); 
+		my $null_phrase_id = "viewnull_".$ds->confid()."_".$view->{id};
+		if( !EPrints::Utils::is_set( $value ) && $session->get_lang()->has_phrase($null_phrase_id) )
+		{
+			$xhtml_value = $session->html_phrase( $null_phrase_id );
+		}
+
 		if( defined $sizes && (!defined $sizes->{$fileid} || $sizes->{$fileid} == 0 ))
 		{
-			$li->appendChild( $fields->[0]->get_value_label( $session, $value ) );
+			$li->appendChild( $xhtml_value );
 		}
 		else
 		{
 			my $link = EPrints::Utils::escape_filename( $fileid );
 			if( $has_submenu ) { $link .= '/'; } else { $link .= '.html'; }
 			my $a = $session->render_link( $link );
-			$a->appendChild( $fields->[0]->get_value_label( $session, $value ) );
+			$a->appendChild( $xhtml_value );
 			$li->appendChild( $a );
 		}
 
@@ -1252,6 +1261,7 @@ sub update_view_list
 
 		my $title;
 		my $phrase_id = "viewtitle_".$ds->confid()."_".$view->{id}."_list";
+		my $null_phrase_id = "viewnull_".$ds->confid()."_".$view->{id};
 
 		my %files;
 
@@ -1264,6 +1274,10 @@ sub update_view_list
 				my $value = EPrints::Utils::unescape_filename($esc_path_values->[$i]);
 				$value = $menu_fields->[0]->get_value_from_id( $session, $value );
 				$o{"value".($i+1)} = $menu_fields->[0]->render_single_value( $session, $value);
+				if( !EPrints::Utils::is_set( $value ) && $session->get_lang()->has_phrase($null_phrase_id) )
+				{
+					$o{"value".($i+1)} = $session->html_phrase( $null_phrase_id );
+				}
 			}		
 			my $grouping_phrase_id = "viewgroup_".$ds->confid()."_".$view->{id}."_".$opts->{filename};
 			if( $session->get_lang()->has_phrase( $grouping_phrase_id, $session ) )
