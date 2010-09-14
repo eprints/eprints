@@ -73,6 +73,18 @@ sub make_searchexp
 		dataset => $dataset,
 		prefix => $basename );
 
+	# new-style search spec
+	if( $value =~ /^\?/ )
+	{
+		my $url = URI->new( $value );
+		my %spec = $url->query_form;
+		$value = $spec{exp};
+		$searchexp = $session->plugin( "Search::$spec{plugin}",
+			dataset => $dataset,
+			prefix => $basename,
+		);
+	}
+
 	my $fields;
 	my $conf_key = $self->get_property( "fieldnames_config" );
 	if( defined($conf_key) )

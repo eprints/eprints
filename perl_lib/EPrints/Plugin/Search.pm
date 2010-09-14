@@ -67,6 +67,17 @@ sub new
 	return $self;
 }
 
+sub plugins
+{
+	my( $self, @args ) = @_;
+
+	my @plugins = $self->{session}->get_plugins( @args, type => "Search" );
+
+	@plugins = sort { $b->param( "qs" ) <=> $a->param( "qs" ) } @plugins;
+
+	return wantarray ? @plugins : $plugins[0];
+}
+
 sub matches
 {
 	my( $self, $test, $param ) = @_;
@@ -123,6 +134,7 @@ Populate the query from a previously L</serialise>d query $exp.
 =cut
 
 sub from_string {}
+sub from_string_raw { shift->from_string( @_ ) }
 
 =item $exp = $searchexp->serialise()
 
@@ -131,6 +143,99 @@ Serialise the query and return it as a plain-string.
 =cut
 
 sub serialise {}
+
+=item $spec = $searchexp->freeze()
+
+Freeze this search spec.
+
+=cut
+
+sub freeze
+{
+	my( $self ) = @_;
+
+	my $uri = URI->new( '', 'http' );
+	$uri->query_form(
+		plugin => substr($self->get_id,8),
+		searchid => $self->{searchid},
+		dataset => $self->{dataset}->id,
+		exp => $self->serialise,
+	);
+
+	return "$uri";
+}
+
+=item $searchexp = $searchexp->thaw( $spec )
+
+Unthaw a search spec into a new L<EPrints::Plugin::Search> object.
+
+	$searchexp = $repo->plugin( "Search" )->thaw( ... );
+
+=cut
+
+sub thaw
+{
+	my( $self, $spec ) = @_;
+
+	# old-style spec
+	if( $spec !~ /^\?/ )
+	{
+		my $uri = URI->new( '', 'http' );
+		$uri->query_form(
+			plugin => "Internal",
+			searchid => "advanced",
+			dataset => "archive",
+			exp => $spec,
+		);
+		$spec = "$uri";
+	}
+
+	my $uri = URI->new( $spec );
+	my %spec = $uri->query_form;
+
+	my $sconf = {};
+
+	my $dataset = $self->{session}->dataset( $spec{dataset} );
+	if( $dataset->base_id eq "eprint" )
+	{
+		$sconf = $self->{session}->config( "search", $spec{searchid} );
+	}
+	else
+	{
+		$sconf = $self->{session}->config( "datasets", $dataset->id, "search", $spec{searchid} );
+	}
+
+	my $plugin = $self->{session}->plugin( "Search::$spec{plugin}",
+		searchid => $spec{searchid},
+		dataset => $dataset,
+		%$sconf,
+	);
+
+	$plugin->from_string( $spec{exp} );
+
+	# make sure searchid sticks
+	$plugin->{searchid} = $spec{searchid};
+
+	return $plugin;
+}
+
+sub search_url
+{
+	my( $self ) = @_;
+
+	my $path_info = "search/" . $self->{dataset}->id . "/" . $self->{searchid};
+
+	my $url = $self->{session}->current_url( path => "cgi", $path_info );
+	$url = URI->new( $url );
+	$url->query_form(
+		_action_search => 1,
+		dataset => $self->{dataset}->id,
+		exp => $self->serialise,
+		order => $self->{custom_order},
+	);
+
+	return "$url";
+}
 
 =item $searchexp->is_blank()
 

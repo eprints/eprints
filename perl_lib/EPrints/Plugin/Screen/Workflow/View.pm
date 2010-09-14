@@ -201,8 +201,10 @@ sub render_common_action_buttons
 {
 	my( $self ) = @_;
 
-	return $self->render_action_list_bar( "dataobj_view_actions", {
-					dataset => $self->{processor}->{dataset}->id,
+	my $datasetid = $self->{processor}->{dataset}->id;
+
+	return $self->render_action_list_bar( ["${datasetid}_view_actions", "dataobj_view_actions"], {
+					dataset => $datasetid,
 					dataobj => $self->{processor}->{dataobj}->id,
 				} );
 }

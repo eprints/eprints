@@ -34,64 +34,18 @@ sub can_be_viewed
 	return $self->allow( "saved_search" );
 }
 
-sub render
+sub from
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
-	
-	my $page = $session->make_doc_fragment;
+	my $url = URI->new( $self->{session}->current_url( path => "cgi", "users/home" ) );
+	$url->query_form(	
+		screen => "Listing",
+		dataset => "saved_search",
+	);
 
-	my $div = $session->make_element( "div", class=>"ep_block" );
-	$div->appendChild( $self->html_phrase( "intro" ) );
-	$page->appendChild( $div );
-
-	$page->appendChild( $self->render_saved_search_list );
-
-	return $page;
+	$self->{session}->redirect( $url );
+	exit;
 }
-
-sub render_saved_search_list
-{
-	my( $self ) = @_;
-
-	my $session = $self->{session};
-	my $user = $self->{processor}->{user};
-	my @saved_searches = $user->get_saved_searches;
-	my $ds = $session->get_repository->get_dataset( "saved_search" );
-
-	if( scalar @saved_searches == 0 )
-	{
-		return $self->html_phrase( "no_searches" );
-	}
-
-	my $page = $session->make_doc_fragment;
-	my( $table, $tr, $td, $th );
-	$table = $session->make_element( 
-		"table",
-		cellspacing=>0,
-		class => "ep_savedsearches" );
-	$page->appendChild( $table );
-	foreach my $saved_search ( sort { $a->get_value( "id" ) <=> $b->get_value( "id" ) } @saved_searches )
-	{
-		$self->{processor}->{savedsearchid} = $saved_search->get_id;
-		$self->{processor}->{savedsearch} = $saved_search;
-		my $screen = $self->{session}->plugin(
-				"Screen::User::SavedSearch::View",
-				processor=>$self->{processor} );
-
-		my $tr = $session->make_element( "tr" );
-		my $th = $session->make_element( "th" );
-		my $td = $session->make_element( "td" );
-		$table->appendChild( $tr );
-		$tr->appendChild( $th );
-		$tr->appendChild( $td );
-		$th->appendChild( $saved_search->render_citation_link( "default" ) );
-		$td->appendChild( $screen->render_action_list_bar( "saved_search_actions", ['userid','savedsearchid'] ) );
-	}
-	
-	return $page;
-}
-	
 
 1;

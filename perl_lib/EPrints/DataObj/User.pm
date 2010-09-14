@@ -1309,9 +1309,8 @@ my $PRIVMAP =
 		"saved_search",
 		"create_saved_search",
 		"saved_search/view:owner",
-		"saved_search/perform:owner",
 		"saved_search/edit:owner",
-		"saved_search/remove:owner",
+		"saved_search/destroy:owner",
 	],
 
 	deposit => 

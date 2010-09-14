@@ -68,7 +68,20 @@ sub properties_from
 			split /\//, $order;
 	}
 
+	my $filters = [];
+	my $priv = $self->{processor}->{dataset}->id . "/view";
+	if( !$self->allow( $priv ) )
+	{
+		if( $self->allow( "$priv:owner" ) )
+		{
+			push @$filters, {
+				meta_fields => [qw( userid )], value => $session->current_user->id,
+			};
+		}
+	}
+
 	$self->{processor}->{search} = $dataset->prepare_search(
+		filters => $filters,
 		search_fields => [
 			(map { { meta_fields => [$_->name] } } @$columns)
 		],
@@ -117,7 +130,9 @@ sub can_be_viewed
 {
 	my( $self ) = @_;
 
-	return $self->allow( $self->{processor}->{dataset}->id."/view" );
+	my $priv = $self->{processor}->{dataset}->id . "/view";
+
+	return $self->allow( $priv ) || $self->allow( "$priv:owner" ) || $self->allow( "$priv:editor" );
 }
 
 sub allow_action
@@ -407,11 +422,13 @@ sub render
 				$td->appendChild( $dataobj->render_value( $_ ) );
 			}
 
+			my $datasetid = $dataobj->{dataset}->base_id;
+
 			my $td = $session->make_element( "td", class=>"ep_columns_cell ep_columns_cell_last", align=>"left" );
 			$tr->appendChild( $td );
 			$td->appendChild( 
-				$self->render_action_list_icons( "dataobj_actions", {
-					dataset => $self->{processor}->{dataset}->id,
+				$self->render_action_list_icons( ["${datasetid}_item_actions", "dataobj_actions"], {
+					dataset => $datasetid,
 					dataobj => $dataobj->id,
 				} ) );
 

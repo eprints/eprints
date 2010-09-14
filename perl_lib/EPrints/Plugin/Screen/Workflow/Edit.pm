@@ -135,9 +135,12 @@ sub render
 
 	my $form = $self->render_form;
 
-	my $blister = $self->render_blister( $self->workflow->get_stage_id, 0 );
-	my $toolbox = $self->{session}->render_toolbox( undef, $blister );
-	$form->appendChild( $toolbox );
+	if( scalar $self->workflow->get_stage_ids > 1 )
+	{
+		my $blister = $self->render_blister( $self->workflow->get_stage_id, 0 );
+		my $toolbox = $self->{session}->render_toolbox( undef, $blister );
+		$form->appendChild( $toolbox );
+	}
 
 	my $stage = $self->workflow->get_stage( $self->workflow->get_stage_id );
 	my $action_buttons = $stage->action_buttons;
@@ -168,6 +171,10 @@ sub render_buttons
 		$buttons{prev} = 
 			$self->{session}->phrase( "lib/submissionform:action_prev" );
 	}
+
+	push @{$buttons{_order}}, "stop";
+	$buttons{stop} = 
+		$self->{session}->phrase( "lib/submissionform:action_stop" );
 
 	push @{$buttons{_order}}, "save";
 	$buttons{save} = 

@@ -12,7 +12,7 @@ sub new
 	my $self = $class->SUPER::new(%params);
 	
 	$self->{appears} = [];
-	push @{$self->{actions}}, "advanced";
+	push @{$self->{actions}}, "advanced", "savesearch";
 
 	return $self;
 }
@@ -52,6 +52,15 @@ sub search_filters
 sub allow_advanced { &can_be_viewed }
 sub allow_export { &can_be_viewed }
 sub allow_export_redir { &can_be_viewed }
+sub allow_savesearch
+{
+	my( $self ) = @_;
+
+	return 0 if !$self->can_be_viewed();
+
+	my $user = $self->{session}->current_user;
+	return defined $user && $user->allow( "create_saved_search" );
+}
 sub can_be_viewed
 {
 	my( $self ) = @_;
@@ -77,6 +86,18 @@ sub get_controls_before
 
 	my @controls = $self->get_basic_controls_before;
 
+	my $cacheid = $self->{processor}->{results}->{cache_id};
+	my $escexp = $self->{processor}->{search}->serialise;
+
+	my $baseurl = URI->new( $self->{session}->get_uri );
+	$baseurl->query_form(
+		cache => $cacheid,
+		exp => $escexp,
+		screen => $self->{processor}->{screenid},
+		dataset => $self->search_dataset->id,
+		order => $self->{processor}->{search}->{custom_order},
+	);
+
 # Maybe add links to the pagination controls to switch between simple/advanced
 #	if( $self->{processor}->{searchid} eq "simple" )
 #	{
@@ -85,6 +106,24 @@ sub get_controls_before
 #			label => $self->{session}->html_phrase( "lib/searchexpression:advanced_link" ),
 #		};
 #	}
+
+	my $user = $self->{session}->current_user;
+	if( defined $user && $user->allow( "create_saved_search" ) )
+	{
+		#my $cacheid = $self->{processor}->{results}->{cache_id};
+		#my $exp = $self->{processor}->{search}->serialise;
+
+		my $url = $baseurl->clone;
+		$url->query_form(
+			$url->query_form,
+			_action_savesearch => 1
+		);
+
+		push @controls, {
+			url => "$url",
+			label => $self->{session}->html_phrase( "lib/searchexpression:savesearch" ),
+		};
+	}
 
 	return @controls;
 }
@@ -153,6 +192,35 @@ sub action_advanced
 	}
 
 	$self->{processor}->{redirect} = $adv_url;
+}
+
+sub action_savesearch
+{
+	my( $self ) = @_;
+
+	my $ds = $self->{session}->dataset( "saved_search" );
+
+	my $searchexp = $self->{processor}->{search};
+	$searchexp->{searchid} = $self->{processor}->{searchid};
+
+	my $name = $searchexp->render_conditions_description;
+
+	my $savedsearch = $ds->create_dataobj( { 
+		userid => $self->{session}->current_user->id,
+		name => $self->{session}->xml->to_string( $name ),
+		spec => $searchexp->freeze
+	} );
+
+	$self->{session}->xml->dispose( $name );
+
+	my $url = URI->new( $self->{session}->config( "userhome" ) );
+	$url->query_form(
+		screen => "Workflow::Edit",
+		dataset => "saved_search",
+		dataobj => $savedsearch->id,
+	);
+	$self->{session}->redirect( $url );
+	exit;
 }
 
 sub render_search_form
@@ -288,7 +356,7 @@ sub from
 	}
 
 	my $format = $processor->{searchid} . "/" . $processor->{dataset}->base_id;
-	my @plugins = $session->get_plugins(
+	my $searchexp = $session->plugin( "Search" )->plugins(
 		{
 			session => $session,
 			dataset => $self->search_dataset,
@@ -299,19 +367,19 @@ sub from
 		type => "Search",
 		can_search => $format,
 	);
-	if( !@plugins )
+	if( !defined $searchexp )
 	{
 		EPrints->abort( "No available search plugin for $format" );
 	}
-	@plugins = sort { $b->param( "qs" ) <=> $a->param( "qs" ) } @plugins;
-	
-	my $searchexp = $processor->{search} = $plugins[0];
+
+	$processor->{search} = $searchexp;
 
 	if(
 		$self->{processor}->{action} eq "search" || 
 	 	$self->{processor}->{action} eq "update" || 
 	 	$self->{processor}->{action} eq "export" || 
-	 	$self->{processor}->{action} eq "export_redir"
+	 	$self->{processor}->{action} eq "export_redir" ||
+	 	$self->{processor}->{action} eq "savesearch"
 	  )
 	{
 		my $ok = 0;
