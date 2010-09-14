@@ -355,6 +355,9 @@ sub from
 		}
 	}
 
+	my $satisfy_all = $self->{session}->param( "satisfyall" );
+	$satisfy_all = defined $satisfy_all && $satisfy_all eq "ALL";
+
 	my $format = $processor->{searchid} . "/" . $processor->{dataset}->base_id;
 	my $searchexp = $session->plugin( "Search" )->plugins(
 		{
@@ -362,6 +365,7 @@ sub from
 			dataset => $self->search_dataset,
 			keep_cache => 1,
 			for_web => 1,
+			satisfy_all => $satisfy_all,
 			%{$processor->{sconf}},
 		},
 		type => "Search",
