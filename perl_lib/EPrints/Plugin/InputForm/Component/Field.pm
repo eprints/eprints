@@ -161,7 +161,7 @@ sub is_required
 	my $req = $self->{config}->{field}->{required};
 	# my $staff_mode = $self->{workflow}->get_parameter( "STAFF_MODE" );
 	
-	return( $req == 1 );
+	return( defined $req && $req == 1 );
 	
 	# || ( $req eq "for_archive" && $staff_mode ) );
 }
