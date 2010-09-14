@@ -124,6 +124,20 @@ sub handler
 
 	my $lang = EPrints::Session::get_session_language( $repository, $r );
 
+	my $rc = undef;
+	$repository->run_trigger( EPrints::Const::EP_TRIGGER_URL_REWRITE,
+		request => $r,
+		   lang => $lang,    # en
+		   args => $args,    # "" or "?foo=bar"
+		urlpath => $urlpath, # "" or "/subdir"
+		cgipath => $cgipath, # /cgi or /subdir/cgi
+		    uri => $uri,     # /foo/bar
+		 secure => $secure,  # boolean
+            return_code => \$rc,     # set to trigger a return
+	);
+	# if the trigger has set an return code
+	return $rc if defined $rc;
+
 	# /archive/ redirect
 	if( $uri =~ m! ^$urlpath/archive/(.*) !x )
 	{
