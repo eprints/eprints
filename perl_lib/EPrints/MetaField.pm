@@ -2168,7 +2168,8 @@ sub render_search_input
 		$frag->appendChild(
 			$session->xhtml->input_field( 
 				$searchfield->get_form_prefix."_match",
-				$match ) );
+				$match,
+				type => "hidden" ) );
 	}
 	return $frag;
 }
