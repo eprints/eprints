@@ -46,7 +46,11 @@ sub render
 {
 	my( $self ) = @_;
 
-	return $self->html_phrase( "no_render_subclass", screen => $self->{session}->make_text( $self ) );
+	my $phraseid = substr(__PACKAGE__, 9);
+	$phraseid =~ s/::/\//g;
+	$phraseid .= ":no_render_subclass";
+
+	return $self->{session}->html_phrase( $phraseid, screen => $self->{session}->make_text( $self ) );
 }
 
 sub render_links
