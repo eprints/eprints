@@ -15,18 +15,16 @@
 use EPrints;
 
 use strict;
-my $session = new EPrints::Session;
-exit( 0 ) unless( defined $session );
-# $session->get_database->set_debug( 1 );
+my $repo = EPrints->new->current_repository;
+exit( 0 ) unless( defined $repo );
 
-EPrints::ScreenProcessor->process( 
-	session => $session, 
-	url => $session->get_repository->get_conf( "perl_url" )."/ss",
-	screenid => "Public::SavedSearch",
-);
-$session->terminate;
+my $dataset = $repo->dataset( "saved_search" );
+my $saved_search = $dataset->dataobj( $repo->param( "savedsearchid" ) );
 
-exit;
+if( !$saved_search )
+{
+	$repo->not_found;
+	exit;
+}
 
-
-
+$repo->redirect( $saved_search->uri );

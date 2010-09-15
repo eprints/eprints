@@ -933,13 +933,6 @@ and modify this record.
 =cut
 ######################################################################
 
-sub get_url
-{
-	my( $self ) = @_;
-
-	return $self->uri;
-}
-
 sub get_control_url
 {
 	my( $self ) = @_;

@@ -204,18 +204,37 @@ sub action_savesearch
 	$searchexp->{searchid} = $self->{processor}->{searchid};
 
 	my $name = $searchexp->render_conditions_description;
+	my $userid = $self->{session}->current_user->id;
 
-	my $savedsearch = $ds->create_dataobj( { 
-		userid => $self->{session}->current_user->id,
-		name => $self->{session}->xml->to_string( $name ),
-		spec => $searchexp->freeze
-	} );
+	my $spec = $searchexp->freeze;
+	my $results = $ds->search(
+		filters => [
+			{ meta_fields => [qw( userid )], value => $userid, },
+			{ meta_fields => [qw( spec )], value => $spec, match => "EX" },
+	]);
+	my $savedsearch = $results->item( 0 );
+
+	my $screen;
+
+	if( defined $savedsearch )
+	{
+		$screen = "View";
+	}
+	else
+	{
+		$screen = "Edit";
+		$savedsearch = $ds->create_dataobj( { 
+			userid => $self->{session}->current_user->id,
+			name => $self->{session}->xml->to_string( $name ),
+			spec => $searchexp->freeze
+		} );
+	}
 
 	$self->{session}->xml->dispose( $name );
 
 	my $url = URI->new( $self->{session}->config( "userhome" ) );
 	$url->query_form(
-		screen => "Workflow::Edit",
+		screen => "Workflow::$screen",
 		dataset => "saved_search",
 		dataobj => $savedsearch->id,
 	);
@@ -362,33 +381,30 @@ sub from
 	my $satisfy_all = $self->{session}->param( "satisfyall" );
 	$satisfy_all = defined $satisfy_all && $satisfy_all eq "ALL";
 
-	my $format = $processor->{searchid} . "/" . $processor->{dataset}->base_id;
-	my $searchexp = $session->plugin( "Search" )->plugins(
-		{
-			session => $session,
-			dataset => $self->search_dataset,
-			keep_cache => 1,
-			for_web => 1,
-			satisfy_all => $satisfy_all,
-			%{$processor->{sconf}},
-		},
-		type => "Search",
-		can_search => $format,
-	);
+	my $searchexp = $processor->{search};
 	if( !defined $searchexp )
 	{
-		EPrints->abort( "No available search plugin for $format" );
+		my $format = $processor->{searchid} . "/" . $processor->{dataset}->base_id;
+		$searchexp = $session->plugin( "Search" )->plugins(
+			{
+				session => $session,
+				dataset => $self->search_dataset,
+				keep_cache => 1,
+				for_web => 1,
+				satisfy_all => $satisfy_all,
+				%{$processor->{sconf}},
+			},
+			type => "Search",
+			can_search => $format,
+		);
+		if( !defined $searchexp )
+		{
+			EPrints->abort( "No available search plugin for $format" );
+		}
+		$processor->{search} = $searchexp;
 	}
 
-	$processor->{search} = $searchexp;
-
-	if(
-		$self->{processor}->{action} eq "search" || 
-	 	$self->{processor}->{action} eq "update" || 
-	 	$self->{processor}->{action} eq "export" || 
-	 	$self->{processor}->{action} eq "export_redir" ||
-	 	$self->{processor}->{action} eq "savesearch"
-	  )
+	if( $searchexp->is_blank && $self->{processor}->{action} ne "newsearch" )
 	{
 		my $ok = 0;
 		if( my $id = $session->param( "cache" ) )

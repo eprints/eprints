@@ -493,11 +493,12 @@ sub has_owner
 
 sub get_url
 {
-	my( $self , $staff ) = @_;
+	my( $self, $staff ) = @_;
 
-	return undef if( $self->get_value("public") ne "TRUE" );
+	my $searchexp = $self->{session}->plugin( "Search" )->thaw( $self->value( "spec" ) );
+	return undef if !defined $searchexp;
 
-	return $self->{session}->get_repository->get_conf( "http_cgiurl" )."/saved_search?savedsearchid=".$self->get_id;
+	return $searchexp->search_url;
 }
 
 =pod
