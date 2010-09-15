@@ -723,6 +723,7 @@ sub render_order_menu
 	my( $self ) = @_;
 
 	my $raworder = $self->{processor}->{search}->{custom_order};
+	$raworder = "" if !defined $raworder;
 
 	my $order = $self->{processor}->{sconf}->{default_order};
 

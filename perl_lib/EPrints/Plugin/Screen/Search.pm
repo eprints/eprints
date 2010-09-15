@@ -353,6 +353,10 @@ sub from
 		{
 			$self->{processor}->{action} = "search";
 		}
+		else
+		{
+			$self->{processor}->{action} = "";
+		}
 	}
 
 	my $satisfy_all = $self->{session}->param( "satisfyall" );

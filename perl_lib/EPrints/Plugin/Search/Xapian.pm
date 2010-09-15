@@ -34,20 +34,23 @@ sub from_form
 	return ();
 }
 
-sub from_string
+sub from_string_fields
 {
-	my( $self, $exp ) = @_;
+	my( $self, $fields, %opts ) = @_;
 
-	($self->{custom_order}, $self->{q}) = split /\|/, $exp;
-
-	return 1;
+	$self->{q} = @$fields ? (split /:/, $fields->[0], 5)[4] : "";
 }
 
-sub serialise
+sub serialise_fields
 {
 	my( $self ) = @_;
 
-	return join '|', $self->{custom_order}, $self->{q};
+	return( join ':',
+		'q',
+		'',
+		'ALL',
+		'IN',
+		$self->{q} );
 }
 
 sub is_blank

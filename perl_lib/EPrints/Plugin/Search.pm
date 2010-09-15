@@ -129,20 +129,118 @@ sub from_cache {}
 
 =item $ok = $searchexp->from_string( $exp )
 
-Populate the query from a previously L</serialise>d query $exp.
+Populate the search values from a previously L</serialise>d query $exp.
+
+Will only set search values for those fields that have already been defined.
 
 =cut
 
-sub from_string {}
-sub from_string_raw { shift->from_string( @_ ) }
+sub from_string
+{
+	my( $self, $exp, %opts ) = @_;
 
-=item $exp = $searchexp->serialise()
+	my( $props, $fields, $filters ) = $self->split_exp( $exp );
+
+	$fields = [] if !defined $fields;
+	$filters = [] if !defined $filters;
+
+	# allow_blank is ignored
+	shift @$props;
+
+	@{$self}{qw( satisfy_all custom_order dataset_id )} = @$props;
+	if( !defined $self->{dataset} )
+	{
+		$self->{dataset} = $self->{session}->dataset( $self->{dataset_id} );
+	}
+	if( $self->{custom_order} eq "" )
+	{
+		delete $self->{custom_order};
+	}
+	
+	$self->from_string_fields( $fields, %opts );
+	$self->from_string_filters( $filters, %opts );
+
+	return 1;
+}
+
+=item $searchexp->from_string_raw( $exp )
+
+Populate the search values from a previously L</serialise>d query $exp.
+
+This will add any L<EPrints::Search::Field>s that are in $exp.
+
+=cut
+
+sub from_string_raw
+{
+	my( $self, $exp ) = @_;
+
+	return $self->from_string( $exp, init => 1 );
+}
+
+=item $searchexp->from_string_fields( $fields, %opts )
+
+Populate the field values from serialised $fields (array ref).
+
+Options:
+
+	init - initialise the fields
+
+=cut
+
+sub from_string_fields {}
+
+=item $searchexp->from_string_filters( $fields, %opts )
+
+Populate the filter field values from serialised $fields (array ref).
+
+Options:
+
+	init - initialise the fields
+
+=cut
+
+sub from_string_filters {}
+
+=item $exp = $searchexp->serialise( %opts )
 
 Serialise the query and return it as a plain-string.
 
 =cut
 
-sub serialise {}
+sub serialise
+{
+	my( $self, %opts ) = @_;
+
+	my @sections;
+	push @sections, 
+		[
+			$self->{allow_blank}?1:0,
+			$self->{satisfy_all}?1:0,
+			defined($self->{custom_order})?$self->{custom_order}:'',
+			$self->{dataset}->id,
+		];
+	push @sections, [ $self->serialise_fields ];
+	push @sections, [ $self->serialise_filters ];
+
+	return $self->join_exp( @sections );
+}
+
+=item @fields = $searchexp->serialise_fields()
+
+Returns a list of serialised field-values.
+
+=cut
+
+sub serialise_fields { () }
+
+=item @fields = $searchexp->serialise_filters()
+
+Returns a list of serialised filter field-values.
+
+=cut
+
+sub serialise_filters { () }
 
 =item $spec = $searchexp->freeze()
 
@@ -353,6 +451,59 @@ sub render_advanced_fields
 	my( $self ) = @_;
 
 	return $self->{session}->xml->create_document_fragment;
+}
+
+=item $exp = $searchexp->join_exp( @sections )
+
+=cut
+
+sub join_exp
+{
+	my( $self, @sections ) = @_;
+
+	my @parts;
+	for(@sections)
+	{
+		push @parts, "-", (@$_ ? @$_ : '');
+	}
+	shift @parts;
+
+	s/([\\\|])/\\$1/g for @parts;
+
+	return join '|', @parts;
+}
+
+=item @sections = $searchexp->split_exp( $exp )
+
+=cut
+
+sub split_exp
+{
+	my( $self, $exp ) = @_;
+
+	$exp = "-|$exp" if length($exp);
+	my @parts;
+	while( $exp =~ /\G((?:\\.|[^\\\|]+)*)(?:\||$)/sg)
+	{
+		push @parts, $1;
+	}
+
+	s/\\(.)/$1/g for @parts;
+
+	my @sections;
+	for(@parts)
+	{
+		if( $_ eq "-" )
+		{
+			push @sections, [];
+		}
+		else
+		{
+			push @{$sections[$#sections]}, $_;
+		}
+	}
+
+	return @sections;
 }
 
 1;

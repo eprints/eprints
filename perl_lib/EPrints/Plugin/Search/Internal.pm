@@ -37,6 +37,15 @@ sub from_string
 	return 1;
 }
 
+sub from_string_raw
+{
+	my( $self, $exp ) = @_;
+
+	$self->SUPER::from_string_raw( $exp );
+
+	return 1;
+}
+
 sub render_simple_fields
 {
 	my( $self ) = @_;
