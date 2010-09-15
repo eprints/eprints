@@ -391,14 +391,18 @@ sub handler
 		#$accept = "text/xml";
 		#print STDERR "ACCEPT: " . $accept;
 
-		my $consider_summary_page =
-			$dataset->base_id eq "eprint" ||
-			$dataset->base_id eq "document";
+		# get the real eprint dataset
+		if( $dataset->base_id eq "eprint" )
+		{
+			$dataset = $item->get_dataset;
+		}
+
+		my $url = $item->get_url;
 
 		my $match = content_negotiate_best_plugin( 
 			$repository, 
 			accept_header => $accept,
-			consider_summary_page => $consider_summary_page,
+			consider_summary_page => defined( $url ),
 			plugins => [$repository->get_plugins(
 				type => "Export",
 				is_visible => "all",
@@ -409,9 +413,9 @@ sub handler
 		{
 			if( $dataset->base_id eq "eprint" && $dataset->id ne "archive" )
 			{
-				return redir_see_other( $r, $item->get_control_url );
+				$url = $item->get_control_url;
 			}
-			return redir_see_other( $r, $item->get_url );
+			return redir_see_other( $r, $url );
 		}
 		else 
 		{
