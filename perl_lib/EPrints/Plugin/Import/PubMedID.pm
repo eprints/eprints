@@ -2,10 +2,11 @@ package EPrints::Plugin::Import::PubMedID;
 
 use strict;
 
-use EPrints::Plugin::Import::PubMedXML;
+
+use EPrints::Plugin::Import;
 use URI;
 
-our @ISA = qw/ EPrints::Plugin::Import::PubMedXML /;
+our @ISA = qw/ EPrints::Plugin::Import /;
 
 sub new
 {
@@ -28,6 +29,7 @@ sub input_fh
 
 	my @ids;
 
+	my $pubmedxml_plugin = $plugin->{session}->plugin( "Import::PubMedXML", Handler=>$plugin->handler );
 	my $fh = $opts{fh};
 	while( my $pmid = <$fh> )
 	{
@@ -58,7 +60,7 @@ sub input_fh
 
 		foreach my $article ($root->getElementsByTagName( "PubmedArticle" ))
 		{
-			my $item = $plugin->xml_to_dataobj( $opts{dataset}, $article );
+			my $item = $pubmedxml_plugin->xml_to_dataobj( $opts{dataset}, $article );
 			if( defined $item )
 			{
 				push @ids, $item->get_id;

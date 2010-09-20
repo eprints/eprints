@@ -26,6 +26,44 @@ sub new
 #	return "PubmedArticleSet";
 #}
 
+sub resolve_month
+{
+	my ($month) = @_;
+	my %months =
+	(
+		'jan' => '01', 'january' => '01', 
+		'feb' => '02', 'february' => '02',
+		'mar' => '03', 'march' => '03',
+		'apr' => '04', 'april' => '04',
+		'may' => '05', 
+		'jun' => '06', 'june' => '06',
+		'jul' => '07', 'july' => '07',
+		'aug' => '08', 'august' => '08',
+		'sep' => '09', 'september' => '09', 'sept' => '09',
+		'oct' => '10', 'october' => '10',
+		'nov' => '11', 'november' => '11',
+		'dec' => '12', 'december' => '12',
+	);
+	if ($month =~ /^\d$/)
+	{
+		$month = '0' . $month ;
+	}
+	elsif ($month =~ /^\d\d$/)
+	{
+		# do  nothing
+	}
+	elsif (exists $months{lc($month)}) 
+	{
+		$month = $months{ lc($month) };
+	}
+	else 
+	{
+		# do nothing !
+	}
+	return $month ;
+}
+
+
 sub xml_to_epdata
 {
 	# $xml is the PubmedArticle element
@@ -63,8 +101,33 @@ sub xml_to_epdata
 			my $pubdate = $journalissue->getElementsByTagName( "PubDate" )->item(0);
 			if( defined $pubdate )
 			{
-				my $year = $pubdate->getElementsByTagName( "Year" )->item(0);
-				$epdata->{date} = $plugin->xml_to_text( $year ) if defined $year;
+				my $year  = $pubdate->getElementsByTagName( "Year" )->item(0);
+				my $month = $pubdate->getElementsByTagName( "Month" )->item(0);
+				my $day   = $pubdate->getElementsByTagName( "Day" )->item(0);
+				if (defined $year) # some pubdates have MedlineDate subfield (non parseable date : http://www.nlm.nih.gov/bsd/licensee/elements_descriptions.html#medlinedate)
+				{
+					my $tmpDate = $plugin->xml_to_text( $year );
+					if (defined $month)
+					{
+						$month = $plugin->xml_to_text( $month );
+						$month = resolve_month($month); # can be numeric or text ! (at least taken across all pubmed date fields)
+						$tmpDate .= '-' . $month ; 
+						if (defined $day)
+						{
+							$day = $plugin->xml_to_text( $day );
+							if (length $day == 1) # convert 1 to 01
+							{
+								$day = '0' . $day ;
+							}
+							$tmpDate .= '-' . $day ;
+						}	
+					}
+					if( defined $tmpDate )
+					{
+						$epdata->{date} = $tmpDate;
+						$epdata->{date_type} = "published";
+					}
+				}
 			}
 		}
 	}
