@@ -8,19 +8,28 @@ package EPrints::Test::Repository;
 
 our @ISA = qw( EPrints::Repository );
 
+	sub _load_config
+	{
+		# reset mem usage ready for the first call to a _load method below
+		EPrints::Test::human_mem_increase();
+
+		return &EPrints::Repository::_load_config;
+	}
+	sub _load_workflows
+	{
+		Test::More::diag( "\t_load_config=" . EPrints::Test::human_mem_increase() );
+
+		my $rc = &EPrints::Repository::_load_workflows;
+
+		Test::More::diag( "\t_load_workflows=" . EPrints::Test::human_mem_increase() );
+
+		return $rc;
+	}
 	sub _load_storage
 	{
 		my $rc = &EPrints::Repository::_load_storage;
 
 		Test::More::diag( "\t_load_storage=" . EPrints::Test::human_mem_increase() );
-
-		return $rc;
-	}
-	sub _load_workflows
-	{
-		my $rc = &EPrints::Repository::_load_workflows;
-
-		Test::More::diag( "\t_load_workflows=" . EPrints::Test::human_mem_increase() );
 
 		return $rc;
 	}
