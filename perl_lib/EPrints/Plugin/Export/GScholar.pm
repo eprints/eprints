@@ -22,10 +22,6 @@ sub new
 	$self->{suffix} = ".txt";
 	$self->{mime_type} = "text/plain";
 
-	if( !EPrints::Utils::require_if_exists( "WWW::Mechanize::Sleepy" ) )
-	{
-		$self->{disable} = 1;
-	}
 	if( defined($self->{session}) && !$self->{session}->get_repository->get_dataset( "eprint" )->has_field( "gscholar" ) )
 	{
 		$self->{disable} = 1;
@@ -37,6 +33,11 @@ sub new
 sub output_dataobj
 {
 	my( $self, $eprint ) = @_;
+
+	if( !EPrints::Utils::require_if_exists( "WWW::Mechanize::Sleepy" ) )
+	{
+		EPrints->abort( "Requires WWW::Mechanize::Sleepy" );
+	}
 
 	my $field = $eprint->get_dataset->get_field( "gscholar" );
 
