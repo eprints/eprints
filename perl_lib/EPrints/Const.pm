@@ -38,6 +38,8 @@ http://eprints.org/ep2/data/2.0
 
 http://eprints.org/ep2/xslt/1.0
 
+=back
+
 =head2 XML Node Types
 
 =over 4
