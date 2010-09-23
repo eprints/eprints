@@ -168,7 +168,7 @@ sub _ep
 	$xslt->register_function(
 		EPrints::Const::EP_NS_XSLT,
 		"is_set",
-		sub { &_ctx_item; $_[0]->is_set( $_[1] ) ?
+		sub { &_ctx_item; $_[0]->exists_and_set( $_[1] ) ?
 			XML::LibXML::Boolean->True :
 			XML::LibXML::Boolean->False }
 	);
