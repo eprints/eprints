@@ -292,7 +292,7 @@ sub action_remove_package
 			$type,
 			$session->make_text($message)
 			);
-	
+
 }
 
 sub action_remove_cached_package 
@@ -857,7 +857,7 @@ sub redirect_to_me_url
 {
 	my( $plugin ) = @_;
 
-	return undef;
+	return $plugin->SUPER::redirect_to_me_url;
 }
 
 1;
