@@ -15,10 +15,10 @@ sub new
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint' ];
 
-	if( !EPrints::Utils::require_if_exists( "SOAP::ISIWoK" ) )
+	if( !EPrints::Utils::require_if_exists( "SOAP::ISIWoK::Lite" ) )
 	{
 		$self->{visible} = 0;
-		$self->{error} = "Requires SOAP::ISIWoK";
+		$self->{error} = "Requires SOAP::ISIWoK::Lite";
 	}
 
 	return $self;
@@ -36,7 +36,7 @@ sub input_text_fh
 	my $fh = $opts{fh};
 	my $query = join '', <$fh>;
 
-	my $wok = SOAP::ISIWoK->new;
+	my $wok = SOAP::ISIWoK::Lite->new;
 
 	my $xml = $wok->search( $query );
 
@@ -74,7 +74,7 @@ sub xml_to_epdata
 	if( $node )
 	{
 		$epdata->{publication} = $node->textContent;
-		$epdata->{status} = "published";
+		$epdata->{ispublished} = "pub";
 	}
 
 	foreach my $node ($rec->findnodes( "item/article_nos/article_no" ))

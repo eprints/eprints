@@ -4,7 +4,6 @@ package EPrints::Plugin::Screen::Import;
 use EPrints::Plugin::Screen;
 
 use Fcntl qw(:DEFAULT :seek);
-use File::Temp;
 
 our $MAX_ERR_LEN = 1024;
 

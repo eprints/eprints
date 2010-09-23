@@ -5,7 +5,6 @@ use File::Path;
 use File::Copy;
 use Cwd;
 use Digest::MD5;
-use XML::LibXML::SAX;
 
 sub unpack_package 
 {

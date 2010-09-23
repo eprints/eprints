@@ -81,6 +81,7 @@ use EPrints::SystemSettings;
 
 use Data::Dumper;
 use Scalar::Util;
+use File::Temp;
 
 use Carp qw( verbose );
 

@@ -16,9 +16,6 @@ package EPrints::Plugin::Screen::Admin::Bazaar;
 
 @ISA = ( 'EPrints::Plugin::Screen' );
 
-use XML::LibXML::SAX;
-use XML::Simple;
-
 use strict;
 
 sub new
