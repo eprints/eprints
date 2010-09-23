@@ -20,7 +20,6 @@ sub unpack_package
 		$type = "zip";
 	}
 
-	
 	my $rc = $repository->get_repository->exec(
 			$type,
 			DIR => $directory,
@@ -713,8 +712,15 @@ print STDERR "NO PLUGIN";
 	my $rc = 0;
 	my $failed_flag = 0;
 
+	my $remove_auto = 0;
+
 	foreach my $file (@files) {
 		if ( -e $file ) {
+
+			if (index($file,"static/style/") > 0) {
+				$remove_auto = 1;				
+			}
+
 			$rc = unlink $file;
 			if ($rc != 1) {
 				$failed_flag = 1;
@@ -730,14 +736,11 @@ print STDERR "NO PLUGIN";
 			
 	}
 	
+	if ($remove_auto > 0) {
+		remove_auto($repository);
+	}
+
 	my $installed = check_install($repository);
-	#if ($installed > 0) {
-	#	my ($rc2,$extra) = install($repository,$package_name,1);
-	#	my $message = "Package remove Failed (compilation error), package was installed again with message: " . $extra;
-	#	$rc = 1;
-	#	return (1,$message);
-	#}
-	
 	
 	$repository->load_config();
 	my $schema_after = get_current_schema($repository);
@@ -746,8 +749,22 @@ print STDERR "NO PLUGIN";
 	rmtree($package_path);
 
 	return (0,"Package Successfully Removed");
-	
 
+}
+
+sub remove_auto {
+	
+	my ( $repository ) = @_;
+
+	my $archive_root = $repository->get_repository->get_conf("archiveroot");
+	my $style_path = $archive_root . "/html/en/style/";
+
+	rmtree($style_path);
+	
+	my $javascript_path = $archive_root . "/html/en/javascript/";
+
+	rmtree($javascript_path);
+	
 }
 
 sub md5sum
