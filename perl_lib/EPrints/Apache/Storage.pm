@@ -84,7 +84,7 @@ If differs from the B<hash> value of the file object returns "304 Not Modified".
 
 =cut
 
-use EPrints::Apache::AnApache; # exports apache constants
+use EPrints::Const; # exports apache constants
 use APR::Date ();
 use APR::Base64 ();
 
@@ -103,7 +103,7 @@ sub handler
 
 	# Now get the file object itself
 	my $fileobj = $dataobj->get_stored_file( $filename );
-	return NOT_FOUND unless defined $fileobj;
+	return HTTP_NOT_FOUND unless defined $fileobj;
 
 	my $url = $fileobj->get_remote_copy();
 	if( defined $url )
@@ -129,8 +129,7 @@ sub handler
 		my $etag = $r->headers_in->{'if-none-match'};
 		if( defined $etag && $etag eq $fileobj->value( "hash" ) )
 		{
-			$r->status_line( "304 Not Modified" );
-			return 304;
+			return HTTP_NOT_MODIFIED;
 		}
 		EPrints::Apache::AnApache::header_out(
 			$r,
@@ -157,8 +156,7 @@ sub handler
 			my $ims_time = APR::Date::parse_http( $ims );
 			if( $ims_time && $cur_time && $ims_time >= $cur_time )
 			{
-				$r->status_line( "304 Not Modified" );
-				return 304;
+				return HTTP_NOT_MODIFIED;
 			}
 		}
 		EPrints::Apache::AnApache::header_out(
@@ -194,13 +192,14 @@ sub handler
 		"Accept-Ranges" => "bytes"
 	);
 
+	# did the file retrieval fail?
 	my $rv;
 
 	my @chunks;
-	$rc = EPrints::Apache::AnApache::ranges( $r, $content_length, \@chunks );
-	if( $rc == 206 && @chunks == 1 )
+	my $rres = EPrints::Apache::AnApache::ranges( $r, $content_length, \@chunks );
+	if( $rres == HTTP_PARTIAL_CONTENT && @chunks == 1 )
 	{
-		$r->status( $rc );
+		$r->status( $rres );
 		my $chunk = shift @chunks;
 		EPrints::Apache::AnApache::header_out( $r,
 			"Content-Range" => sprintf( "bytes %d-%d/%d",
@@ -217,9 +216,9 @@ sub handler
 				$chunk->[1] - $chunk->[0] + 1 ) # n bytes
 			};
 	}
-	elsif( $rc == 206 && @chunks > 1 )
+	elsif( $rres == HTTP_PARTIAL_CONTENT && @chunks > 1 )
 	{
-		$r->status( $rc );
+		$r->status( $rres );
 		my $boundary = '4876db1cd4aa85af6';
 		my @boundaries;
 		my $body_length = 0;
@@ -253,12 +252,11 @@ sub handler
 		}
 		print shift( @boundaries ) if $rv;
 	}
-	elsif( $rc == 416 )
+	elsif( $rres == HTTP_RANGE_NOT_SATISFIABLE )
 	{
-		$r->status( $rc );
-		return 416;
+		return HTTP_RANGE_NOT_SATISFIABLE;
 	}
-	else # 200 normal response
+	else # OK normal response
 	{
 		EPrints::Apache::AnApache::header_out( 
 			$r,
