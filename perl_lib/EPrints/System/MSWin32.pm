@@ -68,4 +68,31 @@ sub free_space
 
 sub proc_exists { }
 
+sub mkdir
+{
+	my( $self, $full_path, $perms ) = @_;
+
+	my( $drive, $dir ) = split /:/, $full_path, 2;
+	($drive,$dir) = ($dir,$drive) if !$dir;
+
+	if( !$drive )
+	{
+		if( $EPrints::SystemSettings::conf->{base_path} =~ /^([A-Z]):/i )
+		{
+			$drive = $1;
+		}
+	}
+
+	my @parts = grep { length($_) } split "/", $dir;
+	foreach my $i (1..$#parts)
+	{
+		my $dir = "$drive:/".join("/", @parts[0..$i]);
+		if( !-d $dir && !CORE::mkdir($dir) )
+		{
+			print STDERR "Failed to mkdir $dir: $!\n";
+			return 0;
+		}
+	}
+}
+
 1;
