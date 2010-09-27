@@ -388,13 +388,13 @@ sub write_config_file
 		if $path =~ /\/\./;
 
 	return if !-e $path && !defined $content;
-	EPrints->abort( "Can't backup something that is not a file: $path" )
-		if !-f _;
 
 	my $new_md5 = defined $content ? Digest::MD5::md5( $content ) : "";
 
-	if( -e _ )
+	if( -e $path )
 	{
+		EPrints->abort( "Can't backup something that is not a file: $path" )
+			if !-f _;
 		open(my $fh, "<", $path)
 			or EPrints->abort( "Error opening file $path: $!" );
 		my $md5 = Digest::MD5->new;
