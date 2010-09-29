@@ -1,4 +1,4 @@
-# warns of duplicates based on a simple title string match
+# warns of duplicates based on a simple string match
 
 use EPrints;
 
@@ -7,7 +7,7 @@ use warnings;
 
 my $session = EPrints::Session->new();
 
-# security?
+# security??
 
 # How many chars needed before we try and suggest duplicates?
 my $need = 5;
@@ -16,36 +16,45 @@ my $q = $session->param( "q" ) || "";
 
 exit unless length( $q ) >= $need; 
 
-my $eprintid = $session->param( "eprintid" );
-if( !defined($eprintid) )
+my $id = $session->param( "id" );
+
+my $field = $session->param( "field" );
+
+my $dataset_name = $session->param( "dataset" );
+
+print STDERR "FIELD = $dataset_name : $field  :  $id \n\n";
+
+if( !defined($id) )
 {
-	$session->get_repository->log( "title_duplicates lookup script called without eprintid argument: ".join(',',$session->param));
+	$session->get_repository->log( "duplicates lookup script called without eprintid argument: ".join(',',$session->param));
 	exit(0);
 }
-elsif( $eprintid =~ /^([0-9]+)$/ )
+elsif( $id =~ /^([0-9]+)$/ )
 {
-	$eprintid = $1;
+	$id = $1;
 }
 else
 {
-	EPrints::abort "Requires numeric eprintid argument";
+	EPrints::abort "Requires numeric id argument";
 }
 
 my $database = $session->get_database;
-my $dataset = $session->get_repository->get_dataset( "eprint" );
+my $dataset = $session->get_repository->get_dataset( $dataset_name );
 
 my $Q_table = $database->quote_identifier($dataset->get_sql_table_name);
-my $Q_eprintid = $database->quote_identifier( "eprintid" );
+my $Q_id = $database->quote_identifier( $dataset_name . "id" );
 my $Q_eprint_status = $database->quote_identifier( "eprint_status" );
-my $Q_title = $database->quote_identifier( "title" );
+my $Q_field_name = $database->quote_identifier( $field );
 
-my $sql = "SELECT $Q_eprintid" .
+my $sql = "SELECT $Q_id" .
 	" FROM $Q_table" .
-	" WHERE " .
-	" $Q_eprint_status=" .  $database->quote_value( "archive" ) .
-	" AND $Q_eprintid!=$eprintid" .
-	" AND $Q_title IS NOT NULL" .
-	" AND $Q_title " .
+	" WHERE ";
+if ($dataset_name eq "eprint") {
+	$sql .= " $Q_eprint_status=" .  $database->quote_value( "archive" );
+} 
+$sql .=	" AND $Q_id!=$id" .
+	" AND $Q_field_name IS NOT NULL" .
+	" AND $Q_field_name " .
 	$database->sql_LIKE() .
 	$database->quote_value( EPrints::Database::prep_like_value( $q ) . '%' );
 
@@ -57,7 +66,7 @@ $session->get_database->execute( $sth , $sql );
 my $base_url = $session->get_repository->get_conf( "base_url" );
 
 my $warning =<<END;
-The following records matching this title already exist in the archive.
+The following records matching this $field already exist in the archive.
 Please check that you are not entering a duplicate record.
 END
 
@@ -74,21 +83,22 @@ my $first = 1;
 
 do
 {
-	my( $eprintid, $title ) = @$row;
+	my( $id, $value ) = @$row;
 	$ul->appendChild( my $li = $session->make_element( 'li' ) );
 	if( $first )
 	{
 		$li->setAttribute( 'class', 'ep_first' );
 		$first = 0;
 	}
-	my $eprint = EPrints::DataObj::EPrint->new( $session, $eprintid );
+	
+	my $dataobj = $dataset->dataobj($id);
 	if( ++$count > 5 )
 	{
-		$li->appendChild( $eprint->render_citation_link( "brief", target => "_blank" ) );
+		$li->appendChild( $dataobj->render_citation_link( "brief", target => "_blank" ) );
 	}
 	else
 	{
-		$li->appendChild( $eprint->render_citation_link( "default", target=>"_blank" ) );
+		$li->appendChild( $dataobj->render_citation_link( "default", target=>"_blank" ) );
 	}
 } while( $count < 20 && defined($row = $sth->fetch) );
 

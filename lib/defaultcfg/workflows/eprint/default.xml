@@ -38,7 +38,7 @@ Action buttons (Previous/Save/Next) can be shown "top", "bottom" or "both":
 
   <stage name="core">
 
-    <component><field ref="title" required="yes" input_lookup_url="{$config{rel_cgipath}}/users/lookup/title_duplicates" input_lookup_params="eprintid={eprintid}" /></component>
+    <component><field ref="title" required="yes" input_lookup_url="{$config{rel_cgipath}}/users/lookup/field_duplicates" input_lookup_params="id={eprintid}&amp;dataset=eprint&amp;field=title" /></component>
     <component><field ref="abstract"/></component>
 
     <epc:if test="type = 'monograph'">
