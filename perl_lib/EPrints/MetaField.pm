@@ -2275,6 +2275,7 @@ sub get_property_defaults
 		render_dont_link	=> 0,
 		render_value 	=> $EPrints::MetaField::UNDEF,
 		required 	=> 0,
+		deny_duplicate_values   => 0,
 		requiredlangs 	=> [],
 		search_cols 	=> $EPrints::MetaField::FROM_CONFIG,
 		sql_index 	=> 1,

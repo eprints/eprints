@@ -1428,6 +1428,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
     <epp:phrase id="lib/eprint:diskout"><p>There are no available partitions with enough disk space to create new items. This needs sorting out urgently.</p><p>NO NEW ITEMS WILL BE ADDED UNTIL YOU FIX THIS.</p><p>To add more capacity, symlink a directory on a new drive into the repository "documents" directory.</p></epp:phrase>
     <epp:phrase id="lib/eprint:no_type">You haven't selected a type for this item.</epp:phrase>
     <epp:phrase id="lib/eprint:invalid_type">This item doesn't seem to have a valid type.</epp:phrase>
+    <epp:phrase id="lib/eprint:duplicate_field_value"><epc:pin name="fieldname"/> "<epc:pin name="value"/>" already exists and is owned by someone else, please choose another.</epp:phrase>
     <epp:phrase id="lib/eprint:not_done_field">You haven't filled out the required <epc:pin name="fieldname"/> field.</epp:phrase>
     <epp:phrase id="lib/eprint:not_done_part">You haven't filled out the required "<epc:pin name="partname" />" part of the <epc:pin name="fieldname"/> field.</epp:phrase>
     <epp:phrase id="lib/eprint:invalid_users">The following usernames are not valid: <epc:pin name="usernames"/>.</epp:phrase>
