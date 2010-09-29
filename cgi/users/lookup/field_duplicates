@@ -22,8 +22,6 @@ my $field = $session->param( "field" );
 
 my $dataset_name = $session->param( "dataset" );
 
-print STDERR "FIELD = $dataset_name : $field  :  $id \n\n";
-
 if( !defined($id) )
 {
 	$session->get_repository->log( "duplicates lookup script called without eprintid argument: ".join(',',$session->param));
