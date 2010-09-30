@@ -202,6 +202,7 @@ use EPrints::Language;
 use EPrints::Latex;
 use EPrints::List;
 use EPrints::MetaField;
+use EPrints::NamedSet;
 use EPrints::OpenArchives;
 use EPrints::Page;
 use EPrints::Page::Text;
