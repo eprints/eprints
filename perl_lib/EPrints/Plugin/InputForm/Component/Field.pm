@@ -103,51 +103,7 @@ sub validate
 			fieldname=>$fieldname );
 		push @problems, $problem;
 	}
-
-	#fields value cannot be a duplicate of the same field in another eprint (owned by someone else)
-	if ( $self->deny_duplicate_values() && $self->{dataobj}->is_set( $field->{name} ) )
-        {
-                my $session = $self->{session};
-
-                my $current_user = $session->current_user();
-
-                my $database = $session->get_database;
-
-                my $dataset = $self->{config}->{field}->get_dataset;
-
-                my $id = $self->{dataobj}->get_id;
-
-                my $Q_table = $database->quote_identifier($dataset->get_sql_table_name);
-                my $Q_id = $database->quote_identifier( $dataset->{id} . "id" );
-                my $Q_field_name = $database->quote_identifier( $field->{name} );
-                my $value = $self->{dataobj}->get_value( $self->{config}->{field}->{name} );
-
-                my $sql = "SELECT $Q_id FROM $Q_table WHERE $Q_id!=$id AND $Q_field_name IS NOT NULL AND $Q_field_name=".$database->quote_value( $value );
-
-                my $sth = $session->get_database->prepare_select( $sql, 'limit' => 1 );
-                $session->get_database->execute( $sth , $sql );
-
-                my $row = $sth->fetch;
-		
-		if (defined $row)
-                {
-                        my( $id ) = @$row;
-                        my $object = $self->{dataobj}->new( $session, $id );
-
-                        if (!$object->has_owner($current_user))
-                        {
-                                my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:".$field->{name} );
-                                $fieldname->appendChild( $field->render_name( $self->{session} ) );
-                                my $fieldvalue = $self->{session}->make_text( $value );
-                                my $problem = $self->{session}->html_phrase(
-                                                "lib/eprint:duplicate_field_value" ,
-                                                fieldname=>$fieldname,
-                                                value=>$fieldvalue );
-                                push @problems, $problem;
-                        }
-                }
-        }
-
+	
 	# field sub-fields are required
 	if( $field->isa( "EPrints::MetaField::Compound" ) )
 	{
@@ -208,23 +164,6 @@ sub is_required
 	return( defined $req && $req == 1 );
 	
 	# || ( $req eq "for_archive" && $staff_mode ) );
-}
-
-=pod
-
-=item $bool = $component->deny_duplicate_values()
-
-returns true if this component is not allowed to have duplicate keys in the database
-
-=cut
-
-sub deny_duplicate_values
-{
-        my( $self ) = @_;
-
-        my $req = $self->{config}->{field}->{deny_duplicate_values};
-
-        return ( $req == 1 );
 }
 
 sub get_fields_handled
