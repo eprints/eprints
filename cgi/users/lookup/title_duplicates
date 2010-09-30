@@ -19,8 +19,10 @@ exit unless length( $q ) >= $need;
 my $id = $session->param( "id" );
 
 my $field = $session->param( "field" );
+$field = 'title' if !EPrints::Utils::is_set( $field );
 
 my $dataset_name = $session->param( "dataset" );
+$dataset_name = 'eprint' if !EPrints::Utils::is_set( $dataset_name );
 
 if( !defined($id) )
 {
