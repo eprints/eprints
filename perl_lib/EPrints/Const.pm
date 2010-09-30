@@ -136,6 +136,15 @@ Continue normal processing.
 
 =item EP_TRIGGER_VALIDATE
 
+=item EP_TRIGGER_VALIDATE_FIELD
+
+Validate a field's value.
+
+	field - field to validate
+	value - value to validate
+	dataobj - parent dataobj (if available)
+	problems - ARRAYREF of DOM problems encountered
+
 =item EP_TRIGGER_WARNINGS
 
 =item EP_TRIGGER_FILES_MODIFED
@@ -215,9 +224,10 @@ use constant {
 	EP_TRIGGER_INDEX_FIELDS => 11,
 	EP_TRIGGER_INDEX_REMOVED => 12,
 	EP_TRIGGER_URL_REWRITE => 13,
+	EP_TRIGGER_VALIDATE_FIELD => 14,
 };
 
-# DataObj triggers
+# Dataset triggers
 use constant {
 	EP_TRIGGER_CREATED => 100,
 	EP_TRIGGER_RDF => 101,
@@ -265,6 +275,7 @@ use constant {
 	EP_TRIGGER_MEDIA_INFO
 	EP_TRIGGER_INDEX_FIELDS
 	EP_TRIGGER_INDEX_REMOVED
+	EP_TRIGGER_VALIDATE_FIELD
 
 	EP_TRIGGER_CREATED
 	EP_TRIGGER_RDF

@@ -2477,16 +2477,30 @@ sub is_virtual
 sub should_reverse_order { return 0; }
 
 
-# return an array of dom problems
+=item @problems = $field->validate( $session, $value, $dataobj )
+
+Returns an array of DOM problems with $value for this field.
+
+=cut
+
 sub validate
 {
 	my( $self, $session, $value, $object ) = @_;
 
-	return $session->get_repository->call(
+	my @problems = $session->get_repository->call(
 		"validate_field",
 		$self,
 		$value,
 		$session );
+
+	$self->{repository}->run_trigger( EPrints::Const::EP_TRIGGER_FIELD_VALIDATE,
+		field => $self,
+		dataobj => $object,
+		value => $value,
+		problems => \@problems,
+	);
+
+	return @problems;
 }
 
 
