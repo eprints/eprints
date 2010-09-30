@@ -98,6 +98,111 @@ sub add_trigger
 	push @{$self->{triggers}->{$type}->{$priority}}, $f;
 }
 
+=item $repository->add_nameset_field( $namesetid, $nameset_name, %opts )
+
+Add a value $nameset_name to nameset $namesetid.
+
+=cut
+
+sub add_namedset_field
+{
+	my( $repository, $namesetid, $nameset_name, %opts ) = @_;
+
+	my $reuse = $opts{reuse};
+
+	my $dir = $repository->get_repository->get_conf( "config_path" )."/namedsets";
+        
+	my $dh;
+        opendir( $dh, $dir );
+        my @type_files = ();
+        while( my $fn = readdir( $dh ) )
+        {
+                next if $fn=~m/^\./;
+                push @type_files, $fn;
+        }
+        closedir( $dh );
+
+        foreach my $tfile ( @type_files )
+        {
+		if ($tfile eq $namesetid) 
+		{
+                	my $file = $dir."/".$tfile;
+                	open( FILE, $file ) || EPrints::abort( "Could not read $file" );
+			my $flag = 0;
+	                foreach my $line (<FILE>)
+        	        {
+                	        $line =~ s/\015?\012?$//s;
+	                        $line =~ s/#.*$//;
+        	                $line =~ s/^\s+//;
+                	        $line =~ s/\s+$//;
+	                        next if $line eq "";
+				if ($line eq $nameset_name)
+				{
+					$flag = 1;	
+				}
+        	        }
+			close FILE;
+			if (!$flag) {
+				open ( FILE, ">>$file" );
+				print FILE $nameset_name."\n";
+				close FILE;
+			}
+			close FILE
+		}
+        }
+}
+
+=item $repository->remove_nameset_field( $namesetid, $nameset_name, %opts )
+
+Remove a value $nameset_name from nameset $namesetid.
+
+=cut
+
+sub remove_namedset_field
+{
+	my( $repository, $namesetid, $nameset_name, %opts ) = @_;
+	
+	my $dir = $repository->get_repository->get_conf( "config_path" )."/namedsets";
+
+        my $dh;
+        opendir( $dh, $dir );
+        my @type_files = ();
+        while( my $fn = readdir( $dh ) )
+        {
+                next if $fn=~m/^\./;
+                push @type_files, $fn;
+        }
+        closedir( $dh );
+
+        foreach my $tfile ( @type_files )
+        {
+		if ($tfile eq $namesetid) 
+		{
+                	my $file = $dir."/".$tfile;
+                	my $out;
+			my $flag = 0;
+			open( FILE, $file ) || EPrints::abort( "Could not read $file" );
+	                foreach my $line (<FILE>)
+        	        {
+                	        $line =~ s/\015?\012?$//s;
+				if (!($line eq $nameset_name))
+				{
+					$out .= $line . "\n";
+				} else {
+					$flag = 1;
+				}
+				
+        	        }
+			close FILE;
+			if ($flag) {
+				open ( FILE, ">$file" );
+				print FILE $out."\n";
+				close FILE;
+			}
+		}
+        }
+}
+
 =item $c->add_dataset_field( $datasetid, $fielddata, %opts )
 
 Add a field spec $fielddata to dataset $datasetid.
