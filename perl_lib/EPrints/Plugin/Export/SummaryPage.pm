@@ -13,7 +13,7 @@ sub new
 	my( $self ) = $class->SUPER::new( %opts );
 
 	$self->{name} = "Summary Page";
-	$self->{accept} = [ 'dataobj/*' ];
+	$self->{accept} = [];
 	$self->{visible} = "all";
 	$self->{advertise} = 0;
 	$self->{qs} = 0.9;
