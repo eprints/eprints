@@ -2492,7 +2492,7 @@ sub validate
 		$value,
 		$session );
 
-	$self->{repository}->run_trigger( EPrints::Const::EP_TRIGGER_FIELD_VALIDATE(),
+	$self->{repository}->run_trigger( EPrints::Const::EP_TRIGGER_VALIDATE_FIELD(),
 		field => $self,
 		dataobj => $object,
 		value => $value,
