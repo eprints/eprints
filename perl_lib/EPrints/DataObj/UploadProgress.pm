@@ -109,7 +109,7 @@ sub new_from_request
 	{
 		$progress = EPrints::DataObj::UploadProgress->new( $session, $progressid );
 		last if defined $progress;
-		select(0.250);
+		select(undef, undef, undef, 0.250);
 	}
 
 	return $progress;
