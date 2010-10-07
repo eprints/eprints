@@ -622,6 +622,8 @@ sub content_negotiate_best_plugin
 	{
 		my( $mime, %params ) = split( /\s*[;=]\s*/, $choice );
 		$params{q} = 1 unless defined $params{q};
+		my $match = $pset->{$mime};
+		$params{q} *= defined $match ? $match->{qs} : 0;
 		$accepts->{$mime} = \%params;
 	}
 	my @acc_order = sort { $accepts->{$b}->{q} <=> $accepts->{$a}->{q} } keys %{$accepts};
