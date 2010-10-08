@@ -545,6 +545,432 @@ sub get_workflow_config
 }
 
 
+sub _children_contain_class
+{
+	my ( $xml, $id ) = @_;
+	
+	my $found = 0;
+	foreach my $element ( $xml->getChildNodes ) {
+		my $name = $element->nodeName();
+		if ($element->hasAttributes) {
+			my @attrs = $element->getAttributes();
+			foreach my $at (@attrs) 
+			{
+				if ($at->getName() eq "required_by")
+				{
+					my $id_string = $at->getValue();
+					my @ids = split(/ /,$id_string);
+					foreach my $sids(@ids)
+					{
+						return 1 if ($sids eq $id);
+					}
+				}
+			}
+		}
+		if ($found > 0) {
+			return $found;
+		}
+		if ($element->hasChildNodes) 
+		{
+			$found = _children_contain_class($element,$id);
+		}
+		if ($found > 0) {
+			return $found;
+		}
+	}
+
+	return $found;
+
+}
+
+sub _remove_required_nodes
+{
+	my ( $xml, $id ) = @_;
+	
+	my $found = 0;
+	foreach my $element ( $xml->getChildNodes ) {
+		my $name = $element->nodeName();
+		if ($element->hasAttributes) {
+			my @attrs = $element->getAttributes();
+			foreach my $at (@attrs) 
+			{
+				if ($at->getName() eq "required_by")
+				{
+					my $id_string = $at->getValue();
+					my @ids = split(/ /,$id_string);
+					my $flag = 1;
+					my $out_ids;
+					foreach my $sids(@ids)
+					{
+						if (!($sids eq $id)) 
+						{
+							$out_ids .= $sids . " ";	
+							$flag = 0;
+						}
+					}
+					if ($flag == 1) {
+						$xml->removeChild($element);
+					} else {
+						$element->setAttribute("required_by",trim($out_ids));
+					}
+				}
+			}
+		}
+		if ($element->hasChildNodes) 
+		{
+			$found = _remove_required_nodes($element,$id);
+		}
+	}
+
+	return 0;
+
+}
+
+sub trim($)
+{
+	my $string = shift;
+	$string =~ s/^\s+//;
+	$string =~ s/\s+$//;
+	return $string;
+}
+
+sub _remove_blank_nodes
+{
+	my ( $xml_handler, $node ) = @_;
+
+	foreach my $element ( $node->getChildNodes ) {
+	 	$node->removeChild($element);
+		my $name = $element->nodeName();
+		my $value = $element->nodeValue();
+		unless (trim($name) eq "#text" && trim($value) eq "") {
+			$node->addChild($element);
+		}
+		if ($element->hasChildNodes) 
+		{
+			$node->appendChild(_remove_blank_nodes($xml_handler,$element));
+		}
+	}
+	
+	return $node;
+
+}
+
+sub _children_contain_node
+{
+	my ( $xml_handler, $xml, $node, $id, $depth ) = @_;
+	
+	my $xml = _remove_blank_nodes($xml_handler,$xml);
+	my $node = _remove_blank_nodes($xml_handler,$node);
+
+	$depth++;
+	foreach my $element ( $xml->getChildNodes ) {
+		next unless ($element->nodeName eq $node->nodeName);
+		next unless ($element->getAttribute("ref") eq $node->getAttribute("ref"));
+		next unless ($element->getAttribute("test") eq $node->getAttribute("test"));
+		next unless ($element->nodeValue eq $node->nodeValue);
+		my @nodes = $node->childNodes();
+		my $child_node_count = @nodes;
+		@nodes = $element->childNodes();
+		my $child_node_count2 = @nodes;
+		return 0 unless ($child_node_count == $child_node_count2);
+		my $good_children = 0;
+		foreach my $child_node ( $node->getChildNodes ) {
+			$good_children += _children_contain_node($xml_handler,$element,$child_node,$id,$depth);
+		}
+		return 0 unless ($good_children == $child_node_count);
+		if ($depth == 1) {
+			my $flag = 0;
+			if ($element->hasAttribute("required_by")) {
+				my $id_string = $element->getAttribute("required_by");
+				my @ids = split(/ /,$id_string);
+				foreach my $sids(@ids)
+				{
+					$flag = 1 if ($sids eq $id);
+				}
+				if ($flag < 1) 
+				{
+					$id_string .= " $id";
+					$element->setAttribute("required_by",$id_string);
+				}
+			}
+		}
+		return 1;
+	}
+
+	return 0;
+}
+
+sub _remove_orphaned_chooses
+{
+	my ( $xml ) = @_;
+	
+	my $xml = _remove_blank_nodes(undef,$xml);
+	
+	foreach my $element ( $xml->getChildNodes ) {
+		my $name = $element->nodeName;
+		my @preserve_nodes;
+		if ($name eq "epc:choose") {
+			if ($element->firstChild->nodeName eq "epc:otherwise")
+			{
+				foreach my $child ($element->firstChild->getChildNodes) 
+				{
+					$xml->appendChild($child);
+				}
+				$xml->removeChild($element);
+			}
+		}
+		if ($element->hasChildNodes) 
+		{
+			_remove_orphaned_chooses($element);
+		}
+	}
+
+	return 0;
+
+}
+
+sub _add_xml_to_workflow
+{
+	my ( $workflow, $node, $id, $depth ) = @_;
+	
+	my $ret = 0;
+
+	foreach my $element ($workflow->getChildNodes())
+	{
+		next unless (defined $element->nodeName);
+		next unless ($element->nodeName eq $node->nodeName);
+		next unless ($element->getAttribute("name") eq $node->getAttribute("name"));
+		next unless ($element->getAttribute("ref") eq $node->getAttribute("ref"));
+		next unless ($element->getAttribute("test") eq $node->getAttribute("test"));
+		next unless ($element->getAttribute("type") eq $node->getAttribute("type"));
+		next unless ($element->nodeValue eq $node->nodeValue);
+		$depth++;
+		if (!$node->hasChildNodes) {
+			if ($element->hasAttribute("required_by")) {
+				my $id_string = $element->getAttribute("required_by");
+				$id_string .= " $id";
+				$element->setAttribute("required_by",$id_string);
+				return 1;
+			} else {
+				return 2;
+			}
+		} 
+		foreach my $child_node ( $node->getChildNodes ) {
+			$ret = _add_xml_to_workflow($element,$child_node,$id,$depth);
+			if ($ret == 2) {
+				if ($element->hasAttribute("required_by")) {
+					my $id_string = $element->getAttribute("required_by");
+					$id_string .= " $id";
+					$element->setAttribute("required_by",$id_string);
+					return 1;
+				} else {
+					return 2;
+				}
+			}
+		}
+		
+	}
+	if ($ret == 2) {
+		if ($node->hasAttribute("required_by")) {
+			my $id_string = $node->getAttribute("required_by");
+			$id_string .= " $id";
+			$node->setAttribute("required_by",$id_string);
+		} else {
+			return 1;
+		}
+	}
+
+	if ($depth > 0 and $ret < 1) {
+		$node->setAttribute("required_by",$id);
+		$workflow->addChild($node);
+		return 1;
+	}
+
+	return $ret;
+}
+
+=item $repository->add_xml_to_workflow( $workflowid, $id, $xml )
+
+Adds all the children $xml to the workflow
+
+=cut
+
+sub add_xml_to_workflow
+{
+	my( $repository, $workflowid, $id, $xml ) = @_;
+
+	my $workflow = $repository->{workflows}->{$workflowid}->{default}->{workflow};
+	
+	#return 1 if (_children_contain_class($workflow,$id) > 0);
+
+        my $xml_handler = EPrints::XML->new(
+		$repository,
+		doc=>$workflow->ownerDocument()
+		);
+
+	my $ret;
+	foreach my $element ( $xml->getChildNodes ) 
+	{
+		$ret = _add_xml_to_workflow($workflow,$element,$id,0);
+		if (!$ret) {
+			$element->setAttribute("required_by",$id);
+			$workflow->appendChild($element);
+		}
+	}
+
+	return _write_xml($repository,$workflowid,$workflow);
+	
+	return 0;
+
+}
+
+=item $repository->add_workflow_flow( $workflowid, $id, $types, $stages )
+
+Add a flow to the workflow which is applicable for the types in types and contains the stages in stages. 
+
+The $id is used to remove everything relating to this is from the workflow. 
+
+=cut
+
+sub add_workflow_flow
+{
+	my( $repository, $workflowid, $id, $types, $stages ) = @_;
+
+	my $workflow = $repository->{workflows}->{$workflowid}->{default}->{workflow};
+	
+	#return 1 if (_children_contain_class($workflow,$id));
+	
+        my $xml_handler = EPrints::XML->new(
+		$repository,
+		doc=>$workflow->ownerDocument()
+		);
+	
+	my $test = "type";
+	if (!(ref($types) eq 'ARRAY')) 
+	{
+		$test .= "='".$types."'";	
+	}
+	else
+	{
+		$test .= ".one_of(";
+		foreach my $type(@{$types}) 
+		{
+			$test .= "'$type',";
+		}
+		$test = substr $test, 0,-1;
+		$test .=')';
+	}
+	
+	my $stages_dom = $xml_handler->create_document_fragment;
+	if (!(ref($stages) eq 'ARRAY')) 
+	{
+		my $stage_node = $xml_handler->create_element("stage",ref=>"$stages");
+		$stages_dom->appendChild($stage_node);
+	}
+	else
+	{
+		foreach my $stage(@{$stages}) 
+		{
+			my $stage_node = $xml_handler->create_element("stage",ref=>"$stage");
+			$stages_dom->appendChild($stage_node);
+		}
+	}
+
+	my $flow = ($workflow->getElementsByTagName("flow"))[0];
+	
+
+	if(!defined $flow)
+	{
+		return;
+	} 
+	
+	my $count = 0;
+	my $replace = 0;
+	my $when_node = $xml_handler->create_element("epc:when",test=>$test,required_by=>$id);
+	$when_node->appendChild($stages_dom);
+	
+	my $choose_node = $xml_handler->create_element("epc:choose");
+	my $otherwise_node = $xml_handler->create_element("epc:otherwise");
+	
+	foreach my $element ( $flow->getChildNodes ) {
+		my $name = $element->nodeName;
+		if ($name eq "stage" && $count < 1) {
+			$flow->appendChild($choose_node);
+			$choose_node->appendChild($when_node);
+			$choose_node->appendChild($otherwise_node);
+			$replace = 1;
+			$count++;
+		} elsif ($name eq "epc:choose" && $count < 1) {
+			unless (_children_contain_node($xml_handler,$element,$when_node,$id,0)) 
+			{
+				$count++;
+				my $blank_node = $xml_handler->create_document_fragment;
+				$blank_node->appendChild($when_node);
+				foreach my $sub_node ( $element->getChildNodes ) {
+					$blank_node->appendChild($sub_node);
+					$element->removeChild($sub_node);
+				}
+				$element->appendChild($blank_node);
+			}
+		}
+		if ($replace) {
+			$flow->removeChild($element);
+			$otherwise_node->appendChild($element);
+		}
+	}
+	
+	return _write_xml($repository,$workflowid,$workflow);
+
+}
+
+=item $repository->remove_required_workflow( $workflowid, $id )
+
+=cut
+
+sub remove_required_workflow
+{
+	my( $repository, $workflowid, $id ) = @_;
+	
+	my $workflow = $repository->{workflows}->{$workflowid}->{default}->{workflow};
+
+	my $ret = _remove_required_nodes($workflow,$id);
+	$ret = _remove_orphaned_chooses($workflow);
+	
+	return _write_xml($repository,$workflowid,$workflow);
+
+}
+
+sub _write_xml 
+{
+	my( $repository, $workflowid, $workflow ) = @_;
+	
+	my $dir = $repository->config( "config_path" )."/workflows/$workflowid/";
+
+	my $path = $dir . "default.xml";
+
+	EPrints->system->mkdir( $dir );
+	
+	$workflow = _remove_blank_nodes(undef,$workflow);
+
+	my $xml_string = $workflow->toString();
+
+	use XML::Twig;
+	use XML::Parser;
+	my $xml = XML::Twig->new(pretty_print => 'indented');
+	$xml->parse($xml_string);
+	my $workflow = $xml;
+
+	open(my $fh, ">", $path)
+		or return 0;
+	
+	print $fh '<?xml version="1.0" encoding="utf-8"?>' . "\n\n";
+	print $fh $workflow->toString();
+
+	close($fh);
+
+	return 0;
+}
+
 1;
 
 ######################################################################
