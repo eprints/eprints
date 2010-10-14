@@ -547,11 +547,12 @@ sub get_workflow_config
 
 sub _children_contain_class
 {
-	my ( $xml, $id ) = @_;
+	my ( $xml, $id, $ignor ) = @_;
 	
 	my $found = 0;
 	foreach my $element ( $xml->getChildNodes ) {
 		my $name = $element->nodeName();
+		next if ($name eq $ignor);
 		if ($element->hasAttributes) {
 			my @attrs = $element->getAttributes();
 			foreach my $at (@attrs) 
@@ -798,15 +799,15 @@ Adds all the children $xml to the workflow
 sub add_xml_to_workflow
 {
 	my( $repository, $workflowid, $id, $xml ) = @_;
-
+	
 	my $workflow = $repository->{workflows}->{$workflowid}->{default}->{workflow};
 	
-	#return 1 if (_children_contain_class($workflow,$id) > 0);
-
-        my $xml_handler = EPrints::XML->new(
+	my $xml_handler = EPrints::XML->new(
 		$repository,
 		doc=>$workflow->ownerDocument()
 		);
+	
+	return 1 if (_children_contain_class($workflow,$id,"flow") > 0);
 
 	my $ret;
 	foreach my $element ( $xml->getChildNodes ) 
@@ -838,7 +839,13 @@ sub add_workflow_flow
 
 	my $workflow = $repository->{workflows}->{$workflowid}->{default}->{workflow};
 	
-	#return 1 if (_children_contain_class($workflow,$id));
+	my $flow = ($workflow->getElementsByTagName("flow"))[0];
+	if(!defined $flow)
+	{
+		return 1;
+	} 
+	
+	return 1 if (_children_contain_class($flow,$id));
 	
         my $xml_handler = EPrints::XML->new(
 		$repository,
@@ -876,14 +883,6 @@ sub add_workflow_flow
 		}
 	}
 
-	my $flow = ($workflow->getElementsByTagName("flow"))[0];
-	
-
-	if(!defined $flow)
-	{
-		return;
-	} 
-	
 	my $count = 0;
 	my $replace = 0;
 	my $when_node = $xml_handler->create_element("epc:when",test=>$test,required_by=>$id);
