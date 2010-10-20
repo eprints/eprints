@@ -502,6 +502,57 @@ sub retry_error
 	return ($err == 3113) || ($err == 3114);
 }
 
+# Add the field to the main tables
+sub _add_field
+{
+	my( $self, $dataset, $field, $force ) = @_;
+
+	my $rc = 1;
+
+	return $rc if $field->is_virtual; # Virtual fields are still added to ordervalues???
+
+	if( $field->get_property( "multiple" ) )
+	{
+		return $self->_add_multiple_field( $dataset, $field, $force );
+	}
+
+	my $table = $dataset->get_sql_table_name;
+	my @names = $field->get_sql_names;
+	my @types = $field->get_sql_type( $self->{session} );
+
+	return $rc if $self->has_column( $table, $names[0] ) && !$force;
+
+	my @modify;
+	my @add;
+	for(my $i = 0; $i < @names; ++$i)
+	{
+		if( $self->has_column( $table, $names[$i] ) )
+		{
+			push @modify, $types[$i];
+		}
+		else
+		{
+			push @add, $types[$i];
+		}
+	}
+	
+	if( @modify )
+	{
+		$rc &&= $self->do( "ALTER TABLE ".$self->quote_identifier($table)." MODIFY (".join(",", @types).")");
+	}
+	if( @add )
+	{
+		$rc &&= $self->do( "ALTER TABLE ".$self->quote_identifier($table)." ADD (".join(",", @types).")");
+	}
+
+	if( my @columns = $field->get_sql_index )
+	{
+		$rc &&= $self->create_index( $table, @columns );
+	}
+
+	return $rc;
+}
+
 1; # For use/require success
 
 ######################################################################
