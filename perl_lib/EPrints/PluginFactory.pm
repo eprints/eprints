@@ -36,7 +36,7 @@ against a set of restrictions.
 package EPrints::PluginFactory;
 
 use EPrints;
-use EPrints::Const;
+use EPrints::Const qw( :namespace );
 
 use strict;
 

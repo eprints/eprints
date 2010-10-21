@@ -32,7 +32,7 @@ request object.
 
 package EPrints::Apache::AnApache;
 
-use EPrints::Const; # import apache constants
+use EPrints::Const qw( :http );
 
 use Exporter;
 @ISA	 = qw(Exporter);

@@ -107,7 +107,7 @@ $ds = $repository->get_dataset( "inbox" );
 package EPrints::DataSet;
 
 use EPrints;
-use EPrints::Const;
+use EPrints::Const qw( :trigger );
 
 use strict;
 

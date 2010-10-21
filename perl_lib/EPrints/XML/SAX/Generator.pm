@@ -9,7 +9,7 @@
 
 package EPrints::XML::SAX::Generator;
 
-use EPrints::Const;
+use EPrints::Const qw( :xml );
 use XML::NamespaceSupport;
 
 our %NS;

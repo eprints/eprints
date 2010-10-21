@@ -79,20 +79,18 @@ Normally any attempt to define two fields with the same name will fail. However,
 
 package EPrints::MetaField;
 
+use EPrints::Const qw( :metafield );
+
 use strict;
 
 use Text::Unidecode qw();
 
 $EPrints::MetaField::VARCHAR_SIZE 	= 255;
-# get the default value from field defaults in the config
-$EPrints::MetaField::FROM_CONFIG 	= "272b7aa107d30cfa9c67c4bdfca7005d_FROM_CONFIG";
-# don't use a default, the code may have already set this value. setting it to undef
-# has no effect rather than setting it to default value.
-$EPrints::MetaField::NO_CHANGE	 	= "272b7aa107d30cfa9c67c4bdfca7005d_NO_CHANGE";
-# this field must be explicitly set
-$EPrints::MetaField::REQUIRED 		= "272b7aa107d30cfa9c67c4bdfca7005d_REQUIRED";
-# this field defaults to undef
-$EPrints::MetaField::UNDEF 		= "272b7aa107d30cfa9c67c4bdfca7005d_UNDEF";
+
+$EPrints::MetaField::FROM_CONFIG = EP_PROPERTY_FROM_CONFIG;
+$EPrints::MetaField::NO_CHANGE   = EP_PROPERTY_NO_CHANGE;
+$EPrints::MetaField::REQUIRED    = EP_PROPERTY_REQUIRED;
+$EPrints::MetaField::UNDEF       = EP_PROPERTY_UNDEF;
 
 ######################################################################
 =pod
@@ -117,10 +115,6 @@ sub new
 	delete $properties{".final"};
 	delete $properties{"field_defaults"};
 
-	my $realclass = "EPrints::MetaField::\u$properties{type}";
-	eval 'use '.$realclass.';';
-	EPrints::abort "couldn't parse $realclass: $@" if $@;
-
 	###########################################
 	#
 	# Pre 2.4 compatibility 
@@ -136,95 +130,99 @@ sub new
 	###########################################
 
 	# allow metafields to override new()
+	my $realclass = "EPrints::MetaField::\u$properties{type}";
 	if( $class ne $realclass )
 	{
+		if( !EPrints::Utils::require_if_exists( $realclass ) )
+		{
+			EPrints->abort( "couldn't parse $realclass: $@" );
+		}
 		return $realclass->new( %properties );
 	}
 
-	my $self = {};
-	bless $self, $realclass;
-
-	$self->{confid} = delete $properties{confid};
-	$self->{repository} = delete $properties{repository};
+	my $self = bless \%properties, $realclass;
 
 	if( defined $properties{dataset} ) 
 	{ 
-		$self->{confid} = $properties{dataset}->confid(); 
-		$self->{repository} = $properties{dataset}->get_repository;
-		$self->{dataset} = delete $properties{dataset};
-		if( defined( &Scalar::Util::weaken ) )
-		{
-			Scalar::Util::weaken( $self->{dataset} );
-		}
+		$self->{confid} = $properties{dataset}->{confid}; 
+		$self->{repository} = $properties{dataset}->{repository};
 	}
 
 	if( !defined $self->{repository} )
 	{
-		EPrints::abort( 
-			"Tried to create a metafield without a ".
-			"dataset or an repository." );
+		EPrints->abort( "Tried to create a metafield without a dataset or an repository." );
 	}
+
+	my $repository = $self->{repository};
 
 	if( defined &Scalar::Util::weaken )
 	{
+		Scalar::Util::weaken( $self->{dataset} );
 		Scalar::Util::weaken( $self->{repository} );
 	}
 
-	# This gets reset later, but we need it for potential
-	# debug messages.
-	$self->{type} = $properties{type};
-	
-	$self->{field_defaults} = $self->{repository}->get_field_defaults( $properties{type} );
-	if( !defined $self->{field_defaults} )
+	my $field_defaults = $self->field_defaults;
+
+	# warn of non-applicable parameters; handy for spotting
+	# typos in the config file.
+	foreach my $p_id (keys %$self)
 	{
-		my %props = $self->get_property_defaults;
-		$self->{field_defaults} = {};
-		foreach my $p_id ( keys %props )
+		next if $p_id eq "dataset";
+		next if $p_id eq "repository";
+		if( !exists $field_defaults->{$p_id} )
 		{
-			if( defined $props{$p_id} && $props{$p_id} eq $EPrints::MetaField::FROM_CONFIG )
-			{
-				my $v = $self->{repository}->get_conf( "field_defaults" )->{$p_id};
-				if( !defined $v )
-				{
-					$v = $EPrints::MetaField::UNDEF;
-				}
-				$props{$p_id} = $v;
-			}
-			$self->{field_defaults}->{$p_id} = $props{$p_id};
+			$self->{repository}->log( "Field '".$self->{dataset}->id.".".$self->{name}."' has invalid parameter:\n$p_id => $self->{$p_id}" );
 		}
-		$self->{repository}->set_field_defaults( $properties{type}, $self->{field_defaults} );
 	}
 
-	keys %{$self->{field_defaults}}; # Reset each position
-	while(my( $p_id, $p_default ) = each %{$self->{field_defaults}})
+	keys %{$field_defaults}; # Reset each position
+	while(my( $p_id, $p_default ) = each %{$field_defaults})
 	{
-		my $p_value = delete $properties{$p_id};
-		if( defined $p_value )
-		{
-			$self->{$p_id} = $p_value;
-		}
-		elsif( $p_default eq $EPrints::MetaField::REQUIRED )
+		next if defined $self->{$p_id};
+		next if $p_default eq EP_PROPERTY_UNDEF;
+
+		if( $p_default eq EP_PROPERTY_REQUIRED )
 		{
 			EPrints::abort( "Error in field property for ".$self->{dataset}->id.".".$self->{name}.": $p_id on a ".$self->{type}." metafield can't be undefined" );
 		}
-		elsif
-		  (
-			$p_default ne $EPrints::MetaField::UNDEF &&
-			$p_default ne $EPrints::MetaField::NO_CHANGE
-		  )
+		elsif( $p_default ne EP_PROPERTY_NO_CHANGE )
 		{
 			$self->{$p_id} = $p_default;
 		}
 	}
 
-	foreach my $p_id (keys %properties)
-	{
-		# warn of non-applicable parameters; handy for spotting
-		# typos in the config file.
-		$self->{repository}->log( "Field '".$self->{dataset}->id.".".$self->{name}."' has invalid parameter:\n$p_id => $properties{$p_id}" );
-	}
+	$self->{field_defaults} = $field_defaults;
 
 	return $self;
+}
+
+=item $defaults = $field->field_defaults
+
+Returns the default properties for this field as a hash reference.
+
+=cut
+
+sub field_defaults
+{
+	my( $self ) = @_;
+
+	my $repository = $self->{repository};
+
+	my $field_defaults = $repository->get_field_defaults( $self->{type} );
+	return $field_defaults if defined $field_defaults;
+
+	$field_defaults = {$self->get_property_defaults};
+	while(my( $p_id, $p_default ) = each %$field_defaults)
+	{
+		next if !defined $p_default;
+		next if $p_default ne EP_PROPERTY_FROM_CONFIG;
+		$p_default = $repository->config( "field_defaults" )->{ $p_id };
+		$p_default = EP_PROPERTY_UNDEF if !defined $p_default;
+		$field_defaults->{$p_id} = $p_default;
+	}
+	$repository->set_field_defaults( $self->{type}, $field_defaults );
+
+	return $field_defaults;
 }
 
 ######################################################################
@@ -275,7 +273,7 @@ Field: $self->{name}, type: $self->{type}
 END
 	}
 
-	if( !defined $self->{field_defaults}->{$property} )
+	if( !exists $self->{field_defaults}->{$property} )
 	{
 		EPrints::abort( <<END );
 BAD METAFIELD get_property property name: "$property"
@@ -289,18 +287,18 @@ END
 		return;
 	}
 
-	if( $self->{field_defaults}->{$property} eq $EPrints::MetaField::NO_CHANGE )
+	if( $self->{field_defaults}->{$property} eq EP_PROPERTY_NO_CHANGE )
 	{
 		# don't set a default, just leave it alone
 		return;
 	}
 	
-	if( $self->{field_defaults}->{$property} eq $EPrints::MetaField::REQUIRED )
+	if( $self->{field_defaults}->{$property} eq EP_PROPERTY_REQUIRED )
 	{
 		EPrints::abort( "Error in field property for ".$self->{dataset}->id.".".$self->{name}.": $property on a ".$self->{type}." metafield can't be undefined" );
 	}
 
-	if( $self->{field_defaults}->{$property} eq $EPrints::MetaField::UNDEF )
+	if( $self->{field_defaults}->{$property} eq EP_PROPERTY_UNDEF )
 	{	
 		$self->{$property} = undef;
 		return;
@@ -582,7 +580,7 @@ sub property
 {
 	my( $self, $property ) = @_;
 
-	if( !defined $self->{field_defaults}->{$property} )
+	if( !exists $self->{field_defaults}->{$property} )
 	{
 		EPrints::abort( <<END );
 BAD METAFIELD get_property property name: "$property"
@@ -2242,57 +2240,57 @@ sub get_search_group { return 'basic'; }
 sub get_property_defaults
 {
 	return (
-		provenance => $EPrints::MetaField::FROM_CONFIG,
-		replace_core => 0,
-		allow_null 	=> 1,
-		browse_link 	=> $EPrints::MetaField::UNDEF,
-		can_clone 	=> 1,
-		confid 		=> $EPrints::MetaField::NO_CHANGE,
-		export_as_xml 	=> 1,
-		fromform 	=> $EPrints::MetaField::UNDEF,
-		import		=> 1,
-		input_add_boxes => $EPrints::MetaField::FROM_CONFIG,
-		input_advice_right => $EPrints::MetaField::UNDEF,
-		input_advice_below => $EPrints::MetaField::UNDEF,
-		input_assist	=> 0,
-		input_boxes 	=> $EPrints::MetaField::FROM_CONFIG,
-		input_cols 	=> $EPrints::MetaField::FROM_CONFIG,
-		input_lookup_url 	=> $EPrints::MetaField::UNDEF,
-		input_lookup_params 	=> $EPrints::MetaField::UNDEF,
-		input_ordered 	=> 1,
-		make_single_value_orderkey 	=> $EPrints::MetaField::UNDEF,
-		make_value_orderkey 		=> $EPrints::MetaField::UNDEF,
-		show_in_fieldlist	=> 1,
+		provenance => EP_PROPERTY_FROM_CONFIG,
+		replace_core => EP_PROPERTY_FALSE,
+		allow_null 	=> EP_PROPERTY_TRUE,
+		browse_link 	=> EP_PROPERTY_UNDEF,
+		can_clone 	=> EP_PROPERTY_TRUE,
+		confid 		=> EP_PROPERTY_NO_CHANGE,
+		export_as_xml 	=> EP_PROPERTY_TRUE,
+		fromform 	=> EP_PROPERTY_UNDEF,
+		import		=> EP_PROPERTY_TRUE,
+		input_add_boxes => EP_PROPERTY_FROM_CONFIG,
+		input_advice_right => EP_PROPERTY_UNDEF,
+		input_advice_below => EP_PROPERTY_UNDEF,
+		input_assist	=> EP_PROPERTY_FALSE,
+		input_boxes 	=> EP_PROPERTY_FROM_CONFIG,
+		input_cols 	=> EP_PROPERTY_FROM_CONFIG,
+		input_lookup_url 	=> EP_PROPERTY_UNDEF,
+		input_lookup_params 	=> EP_PROPERTY_UNDEF,
+		input_ordered 	=> EP_PROPERTY_TRUE,
+		make_single_value_orderkey 	=> EP_PROPERTY_UNDEF,
+		make_value_orderkey 		=> EP_PROPERTY_UNDEF,
+		show_in_fieldlist	=> EP_PROPERTY_TRUE,
 		maxlength 	=> $EPrints::MetaField::VARCHAR_SIZE,
-		multiple 	=> 0,
-		name 		=> $EPrints::MetaField::REQUIRED,
-		show_in_html	=> 1,
-		render_input 	=> $EPrints::MetaField::UNDEF,
-		render_single_value 	=> $EPrints::MetaField::UNDEF,
-		render_quiet	=> 0,
-		render_magicstop	=> 0,
-		render_noreturn	=> 0,
-		render_dont_link	=> 0,
-		render_value 	=> $EPrints::MetaField::UNDEF,
-		required 	=> 0,
+		multiple 	=> EP_PROPERTY_FALSE,
+		name 		=> EP_PROPERTY_REQUIRED,
+		show_in_html	=> EP_PROPERTY_TRUE,
+		render_input 	=> EP_PROPERTY_UNDEF,
+		render_single_value 	=> EP_PROPERTY_UNDEF,
+		render_quiet	=> EP_PROPERTY_FALSE,
+		render_magicstop	=> EP_PROPERTY_FALSE,
+		render_noreturn	=> EP_PROPERTY_FALSE,
+		render_dont_link	=> EP_PROPERTY_FALSE,
+		render_value 	=> EP_PROPERTY_UNDEF,
+		required 	=> EP_PROPERTY_FALSE,
 		requiredlangs 	=> [],
-		search_cols 	=> $EPrints::MetaField::FROM_CONFIG,
-		sql_index 	=> 1,
-		sql_langid 	=> $EPrints::MetaField::UNDEF,
-		sql_sorted	=> 0,
-		text_index 	=> 0,
-		toform 		=> $EPrints::MetaField::UNDEF,
-		type 		=> $EPrints::MetaField::REQUIRED,
-		sub_name	=> $EPrints::MetaField::UNDEF,
-		parent_name	=> $EPrints::MetaField::UNDEF,
-		parent		=> $EPrints::MetaField::UNDEF,
-		volatile	=> 0,
-		virtual		=> 0,
-		default_value => $EPrints::MetaField::UNDEF,
+		search_cols 	=> EP_PROPERTY_FROM_CONFIG,
+		sql_index 	=> EP_PROPERTY_TRUE,
+		sql_langid 	=> EP_PROPERTY_UNDEF,
+		sql_sorted	=> EP_PROPERTY_FALSE,
+		text_index 	=> EP_PROPERTY_FALSE,
+		toform 		=> EP_PROPERTY_UNDEF,
+		type 		=> EP_PROPERTY_REQUIRED,
+		sub_name	=> EP_PROPERTY_UNDEF,
+		parent_name	=> EP_PROPERTY_UNDEF,
+		parent		=> EP_PROPERTY_UNDEF,
+		volatile	=> EP_PROPERTY_FALSE,
+		virtual		=> EP_PROPERTY_FALSE,
+		default_value => EP_PROPERTY_UNDEF,
 
-		help_xhtml	=> $EPrints::MetaField::UNDEF,
-		title_xhtml	=> $EPrints::MetaField::UNDEF,
-		join_path	=> $EPrints::MetaField::UNDEF,
+		help_xhtml	=> EP_PROPERTY_UNDEF,
+		title_xhtml	=> EP_PROPERTY_UNDEF,
+		join_path	=> EP_PROPERTY_UNDEF,
 );
 }
 

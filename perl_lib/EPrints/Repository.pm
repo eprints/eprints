@@ -86,7 +86,7 @@ results which can be returned via the web interface.
 package EPrints::Repository;
 
 use EPrints;
-use EPrints::Const;
+use EPrints::Const qw( :trigger );
 
 #use URI::Escape;
 use CGI qw(-compile);

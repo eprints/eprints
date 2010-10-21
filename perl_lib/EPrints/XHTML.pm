@@ -48,7 +48,7 @@ The XHTML object facilitates the creation of XHTML objects.
 
 package EPrints::XHTML;
 
-use EPrints::Const; # XML node type constants
+use EPrints::Const qw( :xml ); # XML node type constants
 use strict;
 
 @EPrints::XHTML::COMPRESS_TAGS = qw/br hr img link input meta/;

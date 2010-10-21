@@ -20,13 +20,24 @@
 
 B<EPrints::Const> - constants and enumerations
 
+=head1 SYNOPSIS
+
+	# don't import any constants
+	use EPrints::Const qw();
+
+	# import trigger and http constants
+	use EPrints::Const qw( :trigger :http );
+
+	# import only the OK DONE DECLINED constants
+	use EPrints::Const qw( OK DONE DECLINED );
+
 =head1 DESCRIPTION
 
 This module contains EPrints constants and enumerations.
 
 =head1 CONSTANTS
 
-=head2 Namespaces
+=head2 :namespace
 
 =over 4
 
@@ -40,7 +51,7 @@ http://eprints.org/ep2/xslt/1.0
 
 =back
 
-=head2 XML Node Types
+=head2 :xml
 
 =over 4
 
@@ -70,7 +81,7 @@ http://eprints.org/ep2/xslt/1.0
 
 =back
 
-=head2 Apache Codes
+=head2 :http
 
 =over 4
 
@@ -84,7 +95,7 @@ http://eprints.org/ep2/xslt/1.0
 
 And all HTTP_* constants defined by L<Apache2::Const>.
 
-=head2 Trigger Result Codes
+=head2 :trigger
 
 =over 4
 
@@ -95,12 +106,6 @@ Stop processing triggers immediately and return.
 =item EP_TRIGGER_OK
 
 Continue normal processing.
-
-=back
-
-=head2 Trigger Types
-
-=over 4
 
 =item EP_TRIGGER_GUESS_DOC_TYPE
 
@@ -171,6 +176,32 @@ An object was removed and should now be removed from the index engine(s).
 	dataset = EPrints::DataSet
 	id = object id
 
+=head2 :metafield
+
+=item EP_PROPERTY_FROM_CONFIG
+
+Get the default value from field defaults in the config.
+
+=item EP_PROPERTY_NO_CHANGE
+
+Don't use a default, the code may have already set this value. setting it to undef has no effect rather than setting it to default value.
+
+=item EP_PROPERTY_REQUIRED
+
+This field property must be explicitly set.
+
+=item EP_PROPERTY_UNDEF
+
+This field property defaults to undef.
+
+=item EP_PROPERTY_TRUE
+
+This field property defaults to true.
+
+=item EP_PROPERTY_FALSE
+
+This field property defaults to false.
+
 =back
 
 =cut
@@ -240,11 +271,18 @@ use constant {
 	EP_TRIGGER_FILES_MODIFED => 108,
 };
 
-@EXPORT_OK = ();
-@EXPORT = qw(
-	EP_NS_XSLT
-	EP_NS_DATA
+# Field properties
+use constant {
+	EP_PROPERTY_FROM_CONFIG => "\0\1",
+	EP_PROPERTY_NO_CHANGE => "\0\2",
+	EP_PROPERTY_REQUIRED => "\0\3",
+	EP_PROPERTY_UNDEF => "\0\4",
 
+	EP_PROPERTY_TRUE => 1,
+	EP_PROPERTY_FALSE => "\0\4", # don't set hash attribute
+};
+
+@xml = qw(
 	XML_ELEMENT_NODE
 	XML_ATTRIBUTE_NODE
 	XML_TEXT_NODE
@@ -258,35 +296,14 @@ use constant {
 	XML_DOCUMENT_TYPE_NODE
 	XML_DOCUMENT_FRAGMENT_NODE
 	XML_NOTATION_NODE
+);
 
-	EP_TRIGGER_DONE
-	EP_TRIGGER_OK
+@namespace = qw(
+	EP_NS_XSLT
+	EP_NS_DATA
+);
 
-	EP_TRIGGER_GUESS_DOC_TYPE
-	EP_TRIGGER_LOG
-	EP_TRIGGER_BOILERPLATE_RDF
-	EP_TRIGGER_REPOSITORY_RDF
-	EP_TRIGGER_BEGIN
-	EP_TRIGGER_BEGIN_REQUEST
-	EP_TRIGGER_END_REQUEST
-	EP_TRIGGER_END
-	EP_TRIGGER_URL_REWRITE
-	EP_TRIGGER_DOC_URL_REWRITE
-	EP_TRIGGER_MEDIA_INFO
-	EP_TRIGGER_INDEX_FIELDS
-	EP_TRIGGER_INDEX_REMOVED
-	EP_TRIGGER_VALIDATE_FIELD
-
-	EP_TRIGGER_CREATED
-	EP_TRIGGER_RDF
-	EP_TRIGGER_DEFAULTS
-	EP_TRIGGER_STATUS_CHANGE
-	EP_TRIGGER_BEFORE_COMMIT
-	EP_TRIGGER_AFTER_COMMIT
-	EP_TRIGGER_VALIDATE
-	EP_TRIGGER_WARNINGS
-	EP_TRIGGER_FILES_MODIFED
-
+@http = qw(
 	DONE
 	DECLINED
 	OK
@@ -340,7 +357,55 @@ use constant {
 	HTTP_USE_PROXY
 	HTTP_VARIANT_ALSO_VARIES
 );
-%EXPORT_TAGS = ();
+
+@trigger = qw(
+	EP_TRIGGER_DONE
+	EP_TRIGGER_OK
+
+	EP_TRIGGER_GUESS_DOC_TYPE
+	EP_TRIGGER_LOG
+	EP_TRIGGER_BOILERPLATE_RDF
+	EP_TRIGGER_REPOSITORY_RDF
+	EP_TRIGGER_BEGIN
+	EP_TRIGGER_BEGIN_REQUEST
+	EP_TRIGGER_END_REQUEST
+	EP_TRIGGER_END
+	EP_TRIGGER_URL_REWRITE
+	EP_TRIGGER_DOC_URL_REWRITE
+	EP_TRIGGER_MEDIA_INFO
+	EP_TRIGGER_INDEX_FIELDS
+	EP_TRIGGER_INDEX_REMOVED
+	EP_TRIGGER_VALIDATE_FIELD
+
+	EP_TRIGGER_CREATED
+	EP_TRIGGER_RDF
+	EP_TRIGGER_DEFAULTS
+	EP_TRIGGER_STATUS_CHANGE
+	EP_TRIGGER_BEFORE_COMMIT
+	EP_TRIGGER_AFTER_COMMIT
+	EP_TRIGGER_VALIDATE
+	EP_TRIGGER_WARNINGS
+	EP_TRIGGER_FILES_MODIFED
+);
+
+@metafield = qw(
+	EP_PROPERTY_FROM_CONFIG
+	EP_PROPERTY_NO_CHANGE
+	EP_PROPERTY_REQUIRED
+	EP_PROPERTY_UNDEF
+	EP_PROPERTY_TRUE
+	EP_PROPERTY_FALSE
+);
+
+@EXPORT_OK = (@xml, @namespace, @http, @trigger, @metafield);
+@EXPORT = ();
+%EXPORT_TAGS = (
+	xml => \@xml,
+	namespace => \@namespace,
+	http => \@http,
+	trigger => \@trigger,
+	metafield => \@metafield,
+);
 
 use strict;
 

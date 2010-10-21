@@ -84,7 +84,7 @@ If differs from the B<hash> value of the file object returns "304 Not Modified".
 
 =cut
 
-use EPrints::Const; # exports apache constants
+use EPrints::Const qw( :http );
 use APR::Date ();
 use APR::Base64 ();
 
