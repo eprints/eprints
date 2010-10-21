@@ -1093,36 +1093,6 @@ sub get_sql_dataset_ids
 ######################################################################
 =pod
 
-=item $n = $ds->count_indexes
-
-Return the number of indexes required for the main SQL table of this
-dataset. Used to check it's not over 32 (the current maximum allowed
-by MySQL)
-
-Assumes things either have 1 or 0 indexes which might not always
-be true.
-
-=cut
-######################################################################
-
-sub count_indexes
-{
-	my( $self ) = @_;
-
-	my $n = 0;
-	foreach my $field ( $self->get_fields( 1 ) )
-	{
-		next if $field->get_property( "multiple" );
-		next if $field->isa( "EPrints::MetaField::Compound" );
-		next unless( defined $field->get_sql_index );
-		$n++;
-	}
-	return $n;
-}
-		
-######################################################################
-=pod
-
 =item @ids = $dataset->get_item_ids( $session )
 
 Return a list of the id's of all items in this set.

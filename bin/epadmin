@@ -1294,17 +1294,6 @@ sub create_tables
 		exit 1;
 	}
 
-	foreach my $dsid ( $repo->get_sql_dataset_ids )
-	{
-		my $ds = $repo->dataset( $dsid );
-		my $indexes = $ds->count_indexes;
-		if( $indexes > 32 )
-		{
-			print STDERR "WARNING: Main table of dataset \"$dsid\" requires $indexes indexes.\n";
-			EPrints::abort( "MySQL has a maximum of 32 indexes per table and the '$dsid'\ntable requires $indexes. Add an sql_index=>0 parameter to some of the\nfields in this dataset. See the Documentation for more information\non the 'sql_index' metadata parameter. --force will override this\ncheck but the SQL will probably fail anyway." );
-		}
-	}
-			
 	if( $noise>=1 ) { print "Creating database tables...\n"; }
 	if( $repo->database->create_archive_tables )
 	{
