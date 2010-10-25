@@ -660,8 +660,8 @@ sub _children_contain_node
 {
 	my ( $xml_handler, $xml, $node, $id, $depth ) = @_;
 	
-	my $xml = _remove_blank_nodes($xml_handler,$xml);
-	my $node = _remove_blank_nodes($xml_handler,$node);
+	$xml = _remove_blank_nodes($xml_handler,$xml);
+	$node = _remove_blank_nodes($xml_handler,$node);
 
 	$depth++;
 	foreach my $element ( $xml->getChildNodes ) {
@@ -705,7 +705,7 @@ sub _remove_orphaned_chooses
 {
 	my ( $xml ) = @_;
 	
-	my $xml = _remove_blank_nodes(undef,$xml);
+	$xml = _remove_blank_nodes(undef,$xml);
 	
 	foreach my $element ( $xml->getChildNodes ) {
 		my $name = $element->nodeName;
@@ -957,7 +957,7 @@ sub _write_xml
 	use XML::Parser;
 	my $xml = XML::Twig->new(pretty_print => 'indented');
 	$xml->parse($xml_string);
-	my $workflow = $xml;
+	$workflow = $xml;
 
 	open(my $fh, ">", $path)
 		or return 0;
