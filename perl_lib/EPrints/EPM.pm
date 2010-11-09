@@ -379,12 +379,14 @@ sub install
 			($return,my $postinst_msg) = $plugin->action_postinst();
 			if ($return < 1 && $return > 0) {
 				$message = $postinst_msg;
+			} elsif (defined $postinst_msg) {
+				$message = "Package Install Failed with error ($postinst_msg), package was removed again with message: ";
 			} else {
 				$message = "Package Install Failed (postinst failed), package was removed again with message: ";
 			}
 		}
 	} else {
-print STDERR "NO PLUGIN\n";
+#print STDERR "NO PLUGIN\n";
 	}
 	if ($return > 0.5) {
 		my ($rc2,$extra) = remove($repository,$package_name,1);
@@ -669,7 +671,7 @@ sub remove
 			$message = "Package cannot be removed as the packages pre-remove script failed.";
 		}
 	} else {
-print STDERR "NO PLUGIN";
+#print STDERR "NO PLUGIN";
 	}
 	
 	if ($return > 0) {

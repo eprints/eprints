@@ -629,7 +629,8 @@ sub tab_list_epms
 		});
 		$td_main->appendChild($remove_button);
 
-		if (defined $app->{configuration_file}) {
+		my $other_screen = $session->plugin("Screen::".$app->{configuration_file}, processor=>$self->{processor});
+		if (defined $app->{configuration_file} && $other_screen->can_be_viewed()) {
 			my $edit_button = $screen->render_action_button(
 					{
 					action => "edit_config",
