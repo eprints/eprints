@@ -912,8 +912,16 @@ sub add_to_xml
 
 	$xml = _remove_blank_nodes($xml);
 
-	my $main_node = $xml->firstChild();
+	my $main_node;
+
+	foreach my $element ($xml->getChildNodes()) {
+		next if ($element->nodeName() eq "#text" or $element->nodeName() eq "#comment");
+		$main_node = $element;
+		last;
+	}
 	
+	return 1 if (!defined $main_node);
+
 	my $ret = _add_node_to_xml($main_node,$node,$id,0);
 	
 	$ret = _write_xml($xml,$filename);
@@ -929,14 +937,22 @@ sub remove_package_from_xml
 
 	$xml = _remove_blank_nodes($xml);
 
-	my $main_node = $xml->firstChild();
-	
-	my $ret = _remove_required_nodes($xml,$id);
-	$ret = _remove_orphaned_chooses($xml);
-	$ret = _enable_disabled_nodes($xml,$id);
-	
-	$ret = _write_xml($xml,$filename);
+	my $main_node;
 
+	foreach my $element ($xml->getChildNodes()) {
+		next if ($element->nodeName() eq "#text" or $element->nodeName() eq "#comment");
+		$main_node = $element;
+		last;
+	}
+	
+	return 1 if (!defined $main_node);
+
+	$main_node = _remove_required_nodes($main_node,$id);
+	$main_node = _remove_orphaned_chooses($main_node);
+	$main_node = _enable_disabled_nodes($main_node,$id);
+	
+	my $ret = _write_xml($xml,$filename);
+	
 	return $ret;
 }
 
@@ -951,10 +967,11 @@ sub _add_node_to_xml
 
 	foreach my $element ($xml->getChildNodes())
 	{
-		next unless (defined $element->nodeName);
-		next unless ($element->nodeName eq $node->nodeName);
 #print STDERR "$depth : Element NAME " . $element->nodeName() . " VALUE " . $element->nodeValue() . "\n";
 #print STDERR "$depth : NODE NAME " . $node->nodeName() . " VALUE " . $node->nodeValue() . "\n";
+		
+		next unless (defined $element->nodeName);
+		next unless ($element->nodeName eq $node->nodeName);
 		my $match_count = 0;
 		my $match_type = undef;
 		foreach my $at (@attrs)
@@ -970,8 +987,9 @@ sub _add_node_to_xml
 		}
 		next unless ($match_count == $count);
 		next unless (_trim($element->nodeValue) eq _trim($node->nodeValue));
-	
+#print STDERR "HERE\n\n";
 		if ($match_type eq "replace") {
+#print STDERR "Found something to replace\n\n";
 			$element->setAttribute("disabled",1);
 			$element->setAttribute("disabled_by",$id);
 			$node->setAttribute("required_by",$id);
@@ -1114,11 +1132,11 @@ sub _enable_disabled_nodes
 		}
 		if ($element->hasChildNodes) 
 		{
-			_enable_disabled_nodes($element,$id);
+			$element = _enable_disabled_nodes($element,$id);
 		}
 	}
 
-	return 0;
+	return $xml;
 }
 
 sub _remove_required_nodes
@@ -1156,11 +1174,11 @@ sub _remove_required_nodes
 		}
 		if ($element->hasChildNodes) 
 		{
-			$found = _remove_required_nodes($element,$id);
+			$element = _remove_required_nodes($element,$id);
 		}
 	}
 
-	return 0;
+	return $xml;
 
 }
 
@@ -1185,11 +1203,11 @@ sub _remove_orphaned_chooses
 		}
 		if ($element->hasChildNodes) 
 		{
-			_remove_orphaned_chooses($element);
+			$element = _remove_orphaned_chooses($element);
 		}
 	}
 
-	return 0;
+	return $xml;
 
 }
 
