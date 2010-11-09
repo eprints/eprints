@@ -62,6 +62,9 @@ sub process
 		my $name = $node->tagName;
 		$name =~ s/^epc://;
 
+		return $params{session}->xml->create_document_fragment
+			if $node->hasAttribute( "disabled" ) && $node->getAttribute( "disabled" );
+
 		if( $name=~m/^(if|comment|choose|print|debug|phrase|pin|foreach|set)$/ )
 		{
 			my $fn = "_process_$name";
