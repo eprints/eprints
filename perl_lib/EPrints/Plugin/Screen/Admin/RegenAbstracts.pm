@@ -35,18 +35,15 @@ sub action_regen_abstracts
 	my( $self ) = @_;
 
 	my $session = $self->{session};
-
-	my $file = $session->get_repository->get_conf( "variables_path" )."/abstracts.timestamp";
-	unless( open( CHANGEDFILE, ">$file" ) )
+	
+	unless( $session->expire_abstracts() )
 	{
 		$self->{processor}->add_message( "error",
 			$self->html_phrase( "failed" ) );
 		$self->{processor}->{screenid} = "Admin";
 		return;
 	}
-	print CHANGEDFILE "This file last poked at: ".EPrints::Time::human_time()."\n";
-	close CHANGEDFILE;
-
+	
 	$self->{processor}->add_message( "message",
 		$self->html_phrase( "ok" ) );
 	$self->{processor}->{screenid} = "Admin";

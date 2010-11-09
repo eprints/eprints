@@ -5127,6 +5127,31 @@ sub plugin
 		);
 }
 
+=item $success = $repository->expire_abstracts()
+
+Cause the abstract pages to regenerate next time they are requested by expiring them.
+
+Returns success if done successfully.
+
+=cut
+
+sub expire_abstracts
+{
+	my ( $self ) = @_;
+
+	my $file = $self->get_conf( "variables_path" )."/abstracts.timestamp";
+	
+	unless( open( CHANGEDFILE, ">$file" ) )
+	{
+		return 0;
+	}
+	
+	print CHANGEDFILE "This file last poked at: ".EPrints::Time::human_time()."\n";
+	close CHANGEDFILE;
+
+	return 1;
+}
+
 
 
 ######################################################################
