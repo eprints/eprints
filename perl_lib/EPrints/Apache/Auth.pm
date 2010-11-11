@@ -190,7 +190,7 @@ sub auth_cookie
 		if( $repository->can_call( 'get_login_url' ) )
 		{
 			$login_url = $repository->call( 'get_login_url', $repository, $target_url );
-			$redir = 1;
+			$redir = 1 if( defined $login_url );
 		}
 		if( $redir )
 		{
