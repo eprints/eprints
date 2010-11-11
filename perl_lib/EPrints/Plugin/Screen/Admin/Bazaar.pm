@@ -629,18 +629,27 @@ sub tab_list_epms
 		});
 		$td_main->appendChild($remove_button);
 
-		my $other_screen = $session->plugin("Screen::".$app->{configuration_file}, processor=>$self->{processor});
-		if (defined $app->{configuration_file} && $other_screen->can_be_viewed()) {
-			my $edit_button = $screen->render_action_button(
-					{
-					action => "edit_config",
-					screen => $screen,
-					screen_id => $screen_id,
-					hidden => {
-						configfile => $app->{configuration_file},
-					}
-					});
-			$td_main->appendChild($edit_button);
+
+		my $include_button = 0;
+		if (defined $app->{configuration_file} and !((substr $app->{configuration_file}, 0,9) eq "cfg/cfg.d"))
+		{
+			my $other_screen = $session->plugin("Screen::".$app->{configuration_file}, processor=>$self->{processor});
+			eval { $other_screen->can_be_viewed() }; 
+			if (!$@ && $other_screen->can_be_viewed()){} 
+			else { $include_button = 1; }
+		}
+		if (((substr $app->{configuration_file}, 0,9) eq "cfg/cfg.d") or $include_button > 0) 
+		{
+				my $edit_button = $screen->render_action_button(
+						{
+						action => "edit_config",
+						screen => $screen,
+						screen_id => $screen_id,
+						hidden => {
+							configfile => $app->{configuration_file},
+						}
+						});
+				$td_main->appendChild($edit_button);
 		}
 
 		
