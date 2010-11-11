@@ -299,7 +299,7 @@ sub handler
 		$accept = "application/rdf+xml" unless defined $accept;
 		my $can_accept = "list/triple";
 
-		if ( $uri =~ m! ^$urlpath/id/(records)$ !x ) 
+		if ( $file eq "records" ) 
 		{
 			$can_accept = "list/eprint";
 		}
