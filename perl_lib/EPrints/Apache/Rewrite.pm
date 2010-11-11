@@ -292,12 +292,18 @@ sub handler
 	}
 
 	# URI redirection
-	if( $uri =~ m! ^$urlpath/id/(repository|dump)$ !x )
+	if( $uri =~ m! ^$urlpath/id/(repository|dump|records)$ !x )
 	{
 		my $file = $1;
 		my $accept = EPrints::Apache::AnApache::header_in( $r, "Accept" );
 		$accept = "application/rdf+xml" unless defined $accept;
+		my $can_accept = "list/triple";
 
+		if ( $uri =~ m! ^$urlpath/id/(records)$ !x ) 
+		{
+			$can_accept = "list/eprint";
+		}
+		
 		my $plugin = content_negotiate_best_plugin( 
 			$repository, 
 			accept_header => $accept,
@@ -305,9 +311,9 @@ sub handler
 			plugins => [$repository->get_plugins(
 				type => "Export",
 				is_visible => "all",
-				can_accept => "list/triple" )]
+				can_accept => $can_accept )]
 		);
-		
+	
 		if( !defined $plugin )  { return NOT_FOUND; }
 
 		my $url = $repository->config( "http_cgiurl" )."/export/$file/".
