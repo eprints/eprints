@@ -281,7 +281,6 @@ sub handler
 sub allow
 {
 	my( $session, $priv ) = @_;
-	return 0;
 	return 0 unless defined $session->{eprint};
 	my $status = $session->{eprint}->get_value( "eprint_status" );
 
