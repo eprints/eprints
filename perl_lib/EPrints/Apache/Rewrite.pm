@@ -84,6 +84,19 @@ sub handler
 		$cgipath = $repository->get_conf( "http_cgiroot" );
 	}
 
+	my $method = $r->method();
+	
+	if ($method eq "DELETE") 
+	{
+		$r->handler( 'perl-script' );
+
+		$r->set_handlers( PerlMapToStorageHandler => sub { OK } );
+
+		$r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::DeleteHandler' ] );
+			
+		return OK;
+	}
+
 	my $uri = $r->uri;
 	{
 		$uri = eval { Encode::decode_utf8( $uri ) };
