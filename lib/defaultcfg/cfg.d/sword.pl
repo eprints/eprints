@@ -39,6 +39,8 @@ $sword->{collections} =
 			sword_policy => "This collection accepts packages from any registered users on this repository.",
 			dcterms_abstract => "This is your user area.",
 			mediation => "true",	#false to turn off mediation for that collection
+			deletion => "true", #false to create a new version on a delete request
+			update => "true", #false to create a new version on a put/post request
 			treatment => "Deposited items will remain in your user inbox until you manually send them for reviewing.",
 			#accept_mime_types => [ "image/jpeg", "application/pdf" ],
 	},
@@ -49,6 +51,8 @@ $sword->{collections} =
                         sword_policy => "",
                         dcterms_abstract => "This is the repository review.",
                         mediation => "true",    #false to turn off mediation for that collection
+			deletion => "true", #false to create a new version on a delete request
+			update => "true", #false to create a new version on a put/post request
                         treatment => "Deposited items will undergo the review process. Upon approval, items will appear in the live repository.",
         },
 
@@ -58,6 +62,8 @@ $sword->{collections} =
 #			sword_policy => "Live archive policy",
 #			dcterms_abstract => "This is the live repository",
 #			mediation => "true",
+#			deletion => "false", #false to create a new version on a delete request
+#			update => "false", #false to create a new version on a put/post request
 #			treatment => "Deposited items will appear publicly.",
 #	},
 
