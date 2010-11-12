@@ -234,20 +234,6 @@ sub handler
 		return OK;
 	}
 
-	#CRUD
-	my $method = $r->method();
-	
-	if ($method eq "DELETE") 
-	{
-		$r->handler( 'perl-script' );
-
-		$r->set_handlers( PerlMapToStorageHandler => sub { OK } );
-
-		$r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::DeleteHandler' ] );
-			
-		return OK;
-	}
-
 	# SWORD-APP
 	if( $uri =~ s! ^$urlpath/sword-app/ !!x )
 	{
@@ -271,6 +257,25 @@ sub handler
 		{
 			return NOT_FOUND;
 		}
+		return OK;
+	}
+	
+	#CRUD
+	my $method = $r->method();
+	if (!($method eq "GET") and $uri !~ /^(?:$cgipath)/ ) 
+	{
+		$r->handler( 'perl-script' );
+
+		$r->set_handlers( PerlMapToStorageHandler => sub { OK } );
+
+		if ($method eq "DELETE") { 
+			$r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::DeleteHandler' ] ) };
+			return OK;
+		}
+		#if ($method eq "POST") { $r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::PostHandler' ] ) };
+		#if ($method eq "PUT") { $r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::PutHandler' ] ) };
+			
+		#return OK;
 	}
 
 	# robots.txt (nb. only works if site is in root / of domain.)
