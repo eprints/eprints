@@ -269,7 +269,7 @@ sub handler
 		$r->set_handlers( PerlMapToStorageHandler => sub { OK } );
 
 		if ($method eq "DELETE") { 
-			$r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::DeleteHandler' ] ) };
+			$r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::DeleteHandler' ] );
 			return OK;
 		}
 		#if ($method eq "POST") { $r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::PostHandler' ] ) };
