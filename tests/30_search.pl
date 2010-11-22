@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 25;
+use Test::More tests => 26;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -301,5 +301,18 @@ $list = $searchexp->perform_search;
 
 ok($list->count > 0, "documents.file.mime_type/satisfy_all => 0");
 };
+
+$searchexp = EPrints::Search->new(
+    session => $session,
+    dataset => $sample_doc->dataset,
+    satisfy_all => 0 );
+
+$searchexp->add_field( $sample_doc->dataset->field( "relation" ), "http%3A//eprints.org/relation/islightboxThumbnailVersionOf:/id/document/1", "EX" );
+
+#print STDERR $searchexp->get_conditions->sql( dataset => $sample_doc->dataset, session => $session );
+
+$list = $searchexp->perform_search;
+
+ok($list->count > 0, "compound type field query");
 
 $session->terminate;

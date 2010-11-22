@@ -115,6 +115,21 @@ sub joins
 		{
 			return ();
 		}
+		elsif( $self->{field}->isa( "EPrints::MetaField::Compound" ) )
+		{
+			my @joins;
+			foreach my $f (@{$self->{field}->property( "fields_cache" )})
+			{
+				my $table = $f->{dataset}->get_sql_sub_table_name( $f );
+				push @joins, {
+					type => "inner",
+					table => $table,
+					alias => "$prefix$table",
+					key => $self->dataset->get_key_field->get_sql_name,
+				};
+			}
+			return @joins;
+		}
 		else
 		{
 			my $table = $self->table;
@@ -173,6 +188,44 @@ sub logic
 	{
 		my @logic;
 		for(qw( given family ))
+		{
+			push @logic, sprintf("%s %s %s",
+				$db->quote_identifier( $table, "$sql_name\_$_" ),
+				$self->{op},
+				$db->quote_value( $self->{params}->[0]->{$_} ) );
+		}
+		return "(".join(") AND (", @logic).")";
+	}
+	elsif( $field->isa( "EPrints::MetaField::Compound" ) )
+	{
+		my @logic;
+		my $prev_table;
+		foreach my $f (@{$self->{field}->property( "fields_cache" )})
+		{
+			local $self->{field} = $f;
+			my $table = $prefix . $self->table;
+			if( $f->property( "multiple" ) )
+			{
+				if( $prev_table )
+				{
+					push @logic, sprintf("%s %s %s",
+						$db->quote_identifier( $prev_table, "pos" ),
+						"=",
+						$db->quote_identifier( $table, "pos" ) );
+				}
+				$prev_table = $table;
+			}
+			push @logic, sprintf("%s %s %s",
+					$db->quote_identifier( $table, $f->get_sql_name ),
+					$self->{op},
+					$db->quote_value( $self->{params}->[0]->{$f->property( "sub_name" )} ) );
+		}
+		return "(".join(") AND (", @logic).")";
+	}
+	elsif( $field->isa( "EPrints::MetaField::Multipart" ) )
+	{
+		my @logic;
+		for($field->parts)
 		{
 			push @logic, sprintf("%s %s %s",
 				$db->quote_identifier( $table, "$sql_name\_$_" ),

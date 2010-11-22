@@ -579,10 +579,20 @@ sub render_xml_schema_type
 	return $type;
 }
 
-sub get_search_conditions_not_ex
+sub get_search_conditions
 {
 	my( $self, $session, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
+
+	if( $match eq "EX" )
+	{
+		return EPrints::Search::Condition->new(
+			'=',
+			$dataset,
+			$self,
+			$self->get_value_from_id( $session, $search_value )
+		);
+	}
 
 	EPrints::abort( "Attempt to search compound field. Repository ID=".$session->get_repository->get_id.", dataset=". $self->{dataset}->confid . ", field=" . $self->get_name );
 }
@@ -593,6 +603,47 @@ sub ordervalue_single
 	my( $self, $value, $session, $langid, $dataset ) = @_;
 
 	return "";
+}
+
+sub get_value_from_id
+{
+	my( $self, $session, $id ) = @_;
+
+	return {} if $id eq "NULL";
+
+	my $value = {};
+
+	my @parts = 
+		map { URI::Escape::uri_unescape($_) }
+		split /:/, $id, scalar(@{$self->property( "fields_cache" )});
+
+	foreach my $field (@{$self->property( "fields_cache" )})
+	{
+		my $v = $field->get_value_from_id( $session, shift @parts );
+		$value->{$field->property( "sub_name" )} = $v;
+	}
+
+	return $value;
+}
+
+sub get_id_from_value
+{
+	my( $self, $session, $value ) = @_;
+
+	return "NULL" if !defined $value;
+
+	my @parts;
+	foreach my $field (@{$self->property( "fields_cache" )})
+	{
+		push @parts, $field->get_id_from_value(
+			$session,
+			$value->{$field->property( "sub_name" )}
+		);
+	}
+
+	return join(":",
+		map { URI::Escape::uri_escape($_, ":%") }
+		@parts);
 }
 
 ######################################################################
