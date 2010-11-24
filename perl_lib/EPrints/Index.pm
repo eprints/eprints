@@ -77,6 +77,40 @@ sub remove
 	return $rv;
 }
 
+=item $ok = EPrints::Index::remove_all( $session, $dataset, $objectid )
+
+Remove all indexes to the specified object.
+
+=cut
+
+sub remove_all
+{
+	my( $session, $dataset, $objectid ) = @_;
+
+	my $rv = 1;
+
+	my $sql;
+
+	my $db = $session->get_database;
+
+	my $rindextable = $dataset->get_sql_rindex_table_name();
+	my $grepindextable = $dataset->get_sql_grep_table_name();
+
+	my $keyfield = $dataset->get_key_field();
+
+	# remove from rindex table
+	$db->delete_from($rindextable,
+		[ $keyfield->get_sql_name() ],
+		[ $objectid ] );
+
+	# remove from grep table
+	$db->delete_from($grepindextable,
+		[ $keyfield->get_sql_name ],
+		[ $objectid ] );
+
+	return $rv;
+}
+
 ######################################################################
 =pod
 

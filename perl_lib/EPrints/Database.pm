@@ -1698,6 +1698,11 @@ sub remove
 
 	EPrints::Index::delete_ordervalues( $self->{session}, $dataset, $id );
 
+	if( $dataset->indexable )
+	{
+		EPrints::Index::remove_all( $self->{session}, $dataset, $id );
+	}
+
 	# Return with an error if unsuccessful
 	return( defined $rv )
 }
