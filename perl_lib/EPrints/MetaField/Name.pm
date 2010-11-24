@@ -28,80 +28,11 @@ not done
 
 package EPrints::MetaField::Name;
 
+use EPrints::MetaField::Multipart;
+
+@ISA = qw( EPrints::MetaField::Multipart );
+
 use strict;
-use warnings;
-
-BEGIN
-{
-	our( @ISA );
-
-	@ISA = qw( EPrints::MetaField::Text );
-}
-
-use EPrints::MetaField::Text;
-
-# database order
-our @PARTS = qw( family given lineage honourific );
-
-sub get_sql_names
-{
-	my( $self ) = @_;
-
-	return map { $self->get_name() . "_" . $_ } @PARTS;
-}
-
-sub value_from_sql_row
-{
-	my( $self, $session, $row ) = @_;
-
-	my %value;
-	for(@PARTS)
-	{
-		$value{$_} = $self->SUPER::value_from_sql_row( $session, $row );
-	}
-
-	return \%value;
-}
-
-sub sql_row_from_value
-{
-	my( $self, $session, $value ) = @_;
-
-	if( !EPrints::Utils::is_set( $value ) )
-	{
-		return map { undef } @PARTS;
-	}
-
-	for(@$value{@PARTS})
-	{
-		# Avoid NULL!="" name part problems
-		$_ = "" if !defined $_;
-		$_ = $self->SUPER::sql_row_from_value( $session, $_ );
-	}
-
-	return @$value{@PARTS};
-}
-
-sub get_sql_type
-{
-	my( $self, $session ) = @_;
-
-	my @parts = $self->get_sql_names;
-
-	for(@parts)
-	{
-		$_ = $session->get_database->get_column_type(
-			$_,
-			EPrints::Database::SQL_VARCHAR,
-			!$self->get_property( "allow_null" ),
-			$self->get_property( "maxlength" ),
-			undef,
-			$self->get_sql_properties,
-		);
-	}
-
-	return @parts;
-}
 
 # index the family part only...
 sub get_sql_index
@@ -152,42 +83,6 @@ sub get_input_bits
 	return @namebits;
 }
 
-sub get_basic_input_elements
-{
-	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
-
-	my $parts = [];
-	foreach( $self->get_input_bits( $session ) )
-	{
-		my $size = $self->{input_name_cols}->{$_};
-		my $f = $session->make_element( "div" );
-		push @{$parts}, {el=>$f};
-		$f->appendChild( $session->render_noenter_input_field(
-			class => "ep_form_text",
-			name => $basename."_".$_,
-			id => $basename."_".$_,
-			value => $value->{$_},
-			size => $size,
-			maxlength => $self->{maxlength} ) );
-		$f->appendChild( $session->make_element( "div", id=>$basename."_".$_."_billboard" ));
-	}
-
-	return [ $parts ];
-}
-
-sub get_basic_input_ids
-{
-	my( $self, $session, $basename, $staff, $obj ) = @_;
-
-	my @ids = ();
-	foreach( $self->get_input_bits( $session ) )
-	{
-		push @ids, $basename."_".$_;
-	}
-
-	return @ids;
-}
-
 sub get_input_col_titles
 {
 	my( $self, $session, $staff ) = @_;
@@ -202,57 +97,6 @@ sub get_input_col_titles
 	}
 	return \@r;
 }
-
-sub form_value_basic
-{
-	my( $self, $session, $basename ) = @_;
-	
-	my $data = {};
-	foreach( @PARTS )
-	{
-		$data->{$_} = 
-			$session->param( $basename."_".$_ );
-	}
-
-	unless( EPrints::Utils::is_set( $data ) )
-	{
-		return( undef );
-	}
-
-	return $data;
-}
-
-sub get_value_label
-{
-	my( $self, $session, $value ) = @_;
-
-	return $self->render_single_value( $session, $value );
-}
-
-sub ordervalue_basic
-{
-	my( $self , $value ) = @_;
-
-	unless( ref($value) =~ m/^HASH/ ) { 
-		EPrints::abort( "EPrints::MetaField::Name::ordervalue_basic called on something other than a hash: $value" );
-	}
-
-	my @a;
-	foreach( @PARTS )
-	{
-		if( defined $value->{$_} )
-		{
-			push @a, $value->{$_};
-		}
-		else
-		{
-			push @a, "";
-		}
-	}
-	return join( "\t" , @a );
-}
-
-
 
 sub split_search_value
 {
@@ -420,28 +264,13 @@ sub get_property_defaults
 {
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
+	$defaults{parts} = [qw( family given lineage honourific )];
 	$defaults{input_name_cols} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{hide_honourific} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{hide_lineage} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{family_first} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{render_order} = "fg";
 	return %defaults;
-}
-
-sub get_unsorted_values
-{
-	my( $self, $session, $dataset, %opts ) = @_;
-
-	my $list = $session->get_database->get_values( $self, $dataset );
-
-	return $list;
-
-	#my $out = [];
-	#foreach my $name ( @{$list} )
-	#{
-		#push @{$out}, $name->{family}.', '.$name->{given};
-	#}
-	#return $out;
 }
 
 my $x=<<END;
@@ -573,175 +402,6 @@ sub get_index_codes_basic
 	}
 	return( \@r, [$code], [] );
 }	
-
-sub get_values
-{
-	my( $self, $session, $dataset, %opts ) = @_;
-
-	my $langid = $opts{langid};
-	$langid = $session->get_langid unless( defined $langid );
-
-	my $unsorted_values = $self->get_unsorted_values( 
-		$session,
-		$dataset,	
-		%opts );
-
-	my %orderkeys = ();
-	my @values;
-	foreach my $value ( @{$unsorted_values} )
-	{
-		my $v2 = $value;
-		$v2 = {} unless( defined $value );
-		push @values, $v2;
-
-		# uses function _basic because value will NEVER be multiple
-		my $orderkey = $self->ordervalue_basic(
-			$value, 
-			$session, 
-			$langid );
-		$orderkeys{$self->get_id_from_value($session, $v2)} = $orderkey;
-	}
-
-	my @outvalues = sort {$orderkeys{$self->get_id_from_value($session, $a)} cmp $orderkeys{$self->get_id_from_value($session, $b)}} @values;
-	return \@outvalues;
-}
-
-sub get_id_from_value
-{
-	my( $self, $session, $name ) = @_;
-
-	return "NULL" if !defined $name;
-
-	return join(":",
-		map { URI::Escape::uri_escape($_, ":%") }
-		map { defined($_) ? $_ : "NULL" }
-		@{$name}{qw( family given lineage honourific )});
-}
-
-sub get_value_from_id
-{
-	my( $self, $session, $id ) = @_;
-
-	return undef if $id eq "NULL";
-
-	my $name = {};
-	@{$name}{qw( family given lineage honourific )} =
-		map { $_ ne "NULL" ? $_ : undef }
-		map { URI::Escape::uri_unescape($_) }
-		split /:/, $id, 4; # if we don't specify 4 split truncates
-
-	return $name;
-}
-
-sub to_sax_basic
-{
-	my( $self, $value, %opts ) = @_;
-
-	return if !$opts{show_empty} && !EPrints::Utils::is_set( $value );
-
-	my $handler = $opts{Handler};
-	my $dataset = $self->dataset;
-	my $name = $self->name;
-
-	foreach my $part ( @PARTS )
-	{
-		my $v = $value->{$part};
-		next unless EPrints::Utils::is_set( $v );
-		$handler->start_element( {
-			Prefix => '',
-			LocalName => $part,
-			Name => $part,
-			NamespaceURI => EPrints::Const::EP_NS_DATA,
-			Attributes => {},
-		});
-		$self->SUPER::to_sax_basic( $v, %opts );
-		$handler->end_element( {
-			Prefix => '',
-			LocalName => $part,
-			Name => $part,
-			NamespaceURI => EPrints::Const::EP_NS_DATA,
-		});
-	}
-}
-
-sub empty_value
-{
-	return {};
-}
-
-sub start_element
-{
-	my( $self, $data, $epdata, $state ) = @_;
-
-	$self->SUPER::start_element( $data, $epdata, $state );
-
-	if(
-		($state->{depth} == 2 && !$self->property( "multiple" )) ||
-		($state->{depth} == 3 && $self->property( "multiple" ))
-	  )
-	{
-		if( grep { $_ eq $data->{LocalName} } @PARTS )
-		{
-			$state->{part} = $data->{LocalName};
-		}
-		else
-		{
-			$state->{Handler}->message( "warning", $self->repository->xml->create_text_node( "Invalid XML element: $data->{LocalName}" ) )
-				if defined $state->{Handler};
-		}
-	}
-}
-
-sub end_element
-{
-	my( $self, $data, $epdata, $state ) = @_;
-
-	if(
-		($state->{depth} == 2 && !$self->property( "multiple" )) ||
-		($state->{depth} == 3 && $self->property( "multiple" ))
-	  )
-	{
-		delete $state->{part};
-	}
-
-	$self->SUPER::end_element( $data, $epdata, $state );
-}
-
-sub characters
-{
-	my( $self, $data, $epdata, $state ) = @_;
-
-	my $part = $state->{part};
-	return if !defined $part;
-
-	my $value = $epdata->{$self->name};
-
-	if( $state->{depth} == 3 ) # <name><item><family>XXX
-	{
-		$value->[-1]->{$part} .= $data->{Data};
-	}
-	elsif( $state->{depth} == 2 ) # <name><family>XXX
-	{
-		$value->{$part} .= $data->{Data};
-	}
-}
-
-sub render_xml_schema_type
-{
-	my( $self, $session ) = @_;
-
-	my $type = $session->make_element( "xs:complexType", name => $self->get_xml_schema_type );
-
-	my $all = $session->make_element( "xs:all" );
-	$type->appendChild( $all );
-	foreach my $part ( @PARTS )
-	{
-		my $element = $session->make_element( "xs:element", name => $part, type => "xs:string", minOccurs => "0" );
-		$all->appendChild( $element );
-	}
-
-	return $type;
-}
 
 
 
