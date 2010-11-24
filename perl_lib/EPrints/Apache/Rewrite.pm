@@ -272,12 +272,22 @@ sub handler
 			$r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::DeleteHandler' ] );
 			return OK;
 		}
-		#if ($method eq "POST") { $r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::PostHandler' ] ) };
+		if ($method eq "POST") {
+			if ($uri eq "/") {
+				my $url = $repository->config( "base_url" )."/sword-app/deposit/inbox";
+				return redir_see_other( $r, $url );
+			}
+			else 
+			{
+				$r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::PostHandler' ] );
+				return OK;
+			}
+		}
 		#if ($method eq "PUT") { $r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::PutHandler' ] ) };
 			
 		#return OK;
 	}
-
+	
 	# robots.txt (nb. only works if site is in root / of domain.)
 	if( $uri =~ m! ^$urlpath/robots\.txt$ !x )
 	{
