@@ -154,7 +154,7 @@ sub render_content
 
 	$html->appendChild( $self->{session}->xhtml->tabs( \@labels, \@tabs,
 		basename => $self->{prefix},
-		current => $self->{session}->param( $self->{prefix} . "_tab" ),
+		current => scalar($self->{session}->param( $self->{prefix} . "_tab" )),
 	) );
 
 	if( defined $self->{_documents} )
