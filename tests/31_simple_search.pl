@@ -28,7 +28,7 @@ EPrints::ScreenProcessor->process(
 	url => $session->get_repository->get_conf( "perl_url" )."/search/simple",
 	sconf => $sconf,
 	template => $sconf->{template},
-	screenid => "Public::EPrintSearch",
+	screenid => "Search",
 );
 
 #print STDERR $session->test_get_stdout;
