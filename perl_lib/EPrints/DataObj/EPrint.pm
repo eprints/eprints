@@ -2423,6 +2423,31 @@ sub obtain_lock
 ######################################################################
 =pod
 
+=item $boolean = $eprint->remove_lock( $user )
+
+=cut
+######################################################################
+
+sub remove_lock
+{
+	my( $self, $user ) = @_;
+
+	return 1 unless ( $self->is_locked() );
+	if( $self->get_value( "edit_lock_user" ) != $user->get_id )
+	{
+		# is locked, and not by $user, so fail to obtain lock.
+		return 0;
+	}
+	
+	$self->set_value("edit_lock", {} );
+	$self->commit;
+
+	return 1;
+}
+
+######################################################################
+=pod
+
 =item $boolean = $eprint->could_obtain_lock( $user )
 
 =cut
