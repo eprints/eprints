@@ -518,7 +518,7 @@ sub handler
 
 		 	$r->set_handlers(PerlResponseHandler => \&EPrints::Apache::Storage::handler );
 
-			$r->push_handlers( PerlCleanupHandler => \&EPrints::Apache::LogHandler::document );
+			$r->pool->cleanup_register(\&EPrints::Apache::LogHandler::document, $r);
 
 			$repository->run_trigger( EPrints::Const::EP_TRIGGER_DOC_URL_REWRITE,
 				request => $r,
@@ -551,7 +551,7 @@ sub handler
 				$r->set_handlers(PerlResponseHandler => [ 'EPrints::Apache::Template' ] );
 
 				# log abstract hits
-				$r->push_handlers(PerlCleanupHandler => \&EPrints::Apache::LogHandler::eprint );
+				$r->pool->cleanup_register(\&EPrints::Apache::LogHandler::eprint, $r);
 			}
 		}
 
