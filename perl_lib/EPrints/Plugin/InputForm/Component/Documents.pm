@@ -1077,12 +1077,8 @@ sub validate
 
 		foreach my $field ( @{$self->{config}->{doc_fields}} )
 		{
-			my $for_archive = 0;
-			
-			if( $field->{required} eq "for_archive" )
-			{
-				$for_archive = 1;
-			}
+			my $for_archive = defined($field->{required}) &&
+				$field->{required} eq "for_archive";
 
 			# cjg bug - not handling for_archive here.
 			if( $field->{required} && !$doc->is_set( $field->{name} ) )

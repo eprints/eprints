@@ -84,12 +84,8 @@ sub validate
 
 	my $field = $self->{config}->{field};
 	
-	my $for_archive = 0;
-	
-	if( $field->{required} eq "for_archive" )
-	{
-		$for_archive = 1;
-	}
+	my $for_archive = defined($field->{required}) &&
+		$field->{required} eq "for_archive";
 	
 	my @problems;
 
