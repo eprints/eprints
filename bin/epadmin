@@ -1586,7 +1586,10 @@ sub profile
 
 	$ENV{HARNESS_PERL_SWITCHES} = "-d:NYTProf";
 
-	exit(0) if runtests($test_file);
+	exit(1) if !runtests($test_file);
+
+	print "To generate profile reports: nytprofhtml\n";
+	exit(0);
 }
 
 sub unit_tests
