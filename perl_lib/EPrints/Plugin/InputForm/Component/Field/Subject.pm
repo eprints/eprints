@@ -159,7 +159,7 @@ sub render_content
 		delete $self->{search};
 	}
 
-	if( $self->{search} eq "" )
+	if( !EPrints::Utils::is_set($self->{search}) )
 	{
 		delete $self->{search};
 	}
