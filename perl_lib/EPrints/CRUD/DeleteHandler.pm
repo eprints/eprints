@@ -8,9 +8,6 @@ use EPrints;
 use EPrints::Sword::Utils;
 
 use EPrints::Const qw( :http );
-#use Apache2::RequestRec ();
-#use Apache2::RequestIO ();
-
 
 sub handler 
 {
@@ -55,7 +52,7 @@ sub handler
 	
 	my $uri = $request->uri;
 	
-	# SUPPORTED URIS 
+	# Suppoerted URIs: Hopeing to expand beyond these if possible 
 
 	if(!( $uri =~ m! ^/id/(eprint|document|file)/\d+$ !x ))
 	{
@@ -220,7 +217,9 @@ sub handler
 			$eprint->remove_lock( $user );
 			$eprint->commit();
 			$new_eprint->commit();
-	
+
+			#TODO - This needs to be a list of things which is exported via $list->export()
+
 			my %xml_opts;
 			$xml_opts{eprint} = $new_eprint;
 			$xml_opts{x_packaging} = $headers->{x_packaging};
@@ -242,7 +241,7 @@ sub handler
 
 		}
 	}
-	$eprint->release_lock( $user );
+	$eprint->remove_lock( $user );
 	$item->commit();
 	
 	$request->status( 400 );	
