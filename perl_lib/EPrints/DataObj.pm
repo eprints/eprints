@@ -617,7 +617,7 @@ sub set_value_raw
 		{
 			$self->{changed}->{$fieldname} = $self->{data}->{$fieldname};
 			my $field = $self->{dataset}->get_field( $fieldname );
-			if( $field->get_property( "volatile" ) == 0 )
+			if( !$field->property( "volatile" ) )
 			{
 				$self->{non_volatile_change} = 1;
 			}
