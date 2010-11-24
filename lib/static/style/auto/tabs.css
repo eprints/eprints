@@ -12,23 +12,18 @@ td.ep_tab {
 	border: solid #d8dbef 1px;
 	background-image: url(images/gray_bar.png);
 }
-td.ep_tab a {
-	display: block;
-	padding: 2px 8px 4px 8px;
-	text-decoration: none;
-	color: #000000;
-}
 
 td.ep_tab_selected {
-	text-align: center;
 	background-color: #ffffff;
 	border-left: solid #d8dbef 1px;
 	border-top: solid #d8dbef 1px;
 	border-right: solid #d8dbef 1px;
 	border-bottom: solid #ffffff 1px;
 }
-td.ep_tab_selected a {
+
+td.ep_tab a, td.ep_tab_selected a {
 	text-decoration: none;
+	display: block;
 	padding: 2px 8px 4px 8px;
 	color: #000000;
 }
@@ -45,9 +40,5 @@ td.ep_tab_spacer {
 	background: #e7e9f5 url(images/toolbox.png) repeat-x;
 	padding: 12px;
 	clear: both;
-}
-
-table.ep_tab_bar a {
-	text-decoration: none;
 }
 

@@ -4111,7 +4111,6 @@ sub render_tabs
 	$table->appendChild( $tr );
 
 	my $spacer = $self->make_element( "td", class=>"ep_tab_spacer" );
-	$spacer->appendChild( $self->render_nbsp );
 	$tr->appendChild( $spacer );
 	foreach my $tab ( @{$tabs} )
 	{	
@@ -4121,6 +4120,7 @@ sub render_tabs
 		my %td_opts = ( 
 			class=>"ep_tab",
 			id => "${id_prefix}_tab_$tab", 
+			style => "text-align: center",
 		);
 		# if the current tab is slow, or the tab we're rendering is slow then
 		# don't make a javascript toggle for it.
@@ -4136,32 +4136,33 @@ sub render_tabs
 		}
 		if( $current eq $tab ) { $td_opts{class} = "ep_tab_selected"; }
 
-		my $a = $self->make_element( "a", %a_opts );
 		my $td = $self->make_element( "td", %td_opts );
-
-		my $table2 = $self->make_element( "table", width=>"100%", cellpadding=>0, cellspacing=>0, border=>0 );
-		my $tr2 = $self->make_element( "tr" );
-		my $td2 = $self->make_element( "td", width=>"100%", style=>"text-align: center;" );
-		$table2->appendChild( $tr2 );
-		$tr2->appendChild( $td2 );
-		$a->appendChild( $labels->{$tab} );
-		$td2->appendChild( $a );
-		if( defined $params{icons} )
-		{
-			if( defined $params{icons}->{$tab} )
-			{
-				my $td3 = $self->make_element( "td", style=>"text-align: right; padding-right: 4px" );
-				$tr2->appendChild( $td3 );
-				$td3->appendChild( $params{icons}->{$tab} );
-			}
-		}
-
-		$td->appendChild( $table2 );
-
 		$tr->appendChild( $td );
 
+		my $a = $self->make_element( "a", %a_opts );
+		$a->appendChild( $labels->{$tab} );
+
+		if( defined $params{icons} && defined $params{icons}->{$tab} )
+		{
+			my $table2 = $self->make_element( "table", width=>"100%", cellpadding=>0, cellspacing=>0, border=>0 );
+			my $tr2 = $self->make_element( "tr" );
+			my $td2 = $self->make_element( "td", width=>"100%", style=>"text-align: center;" );
+			$table2->appendChild( $tr2 );
+			$tr2->appendChild( $td2 );
+			$td2->appendChild( $a );
+
+			my $td3 = $self->make_element( "td", style=>"text-align: right; padding-right: 4px" );
+			$tr2->appendChild( $td3 );
+			$td3->appendChild( $params{icons}->{$tab} );
+
+			$td->appendChild( $table2 );
+		}
+		else
+		{
+			$td->appendChild( $a );
+		}
+
 		my $spacer = $self->make_element( "td", class=>"ep_tab_spacer" );
-		$spacer->appendChild( $self->render_nbsp );
 		$tr->appendChild( $spacer );
 	}
 	$f->appendChild( $table );

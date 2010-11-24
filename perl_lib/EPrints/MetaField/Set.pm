@@ -128,16 +128,10 @@ sub render_input_field_actual
 {
 	my( $self, $session, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
 
-	my $table = $session->make_element( "table", border=>0, cellpadding=>0, cellspacing=>0, class=>"ep_form_input_grid" );
-	my $tr = $session->make_element( "tr" );
-	my $td = $session->make_element( "td" );
-	$table->appendChild( $tr );
-	$tr->appendChild( $td );
 	if( $self->get_property( "input_ordered" ) )
 	{
-		$td->appendChild(  $self->SUPER::render_input_field_actual( 
-			$session, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) );
-		return $table;
+		return $self->SUPER::render_input_field_actual( 
+			$session, $value, $dataset, $staff, $hidden_fields, $obj, $basename );
 	}
 
 	my $required = $self->get_property( "required" );
@@ -149,8 +143,7 @@ sub render_input_field_actual
 
 	# called as a seperate function because subject does this
 	# bit differently, and overrides render_set_input.
-	$td->appendChild( $self->render_set_input( $session, $default, $required, $obj, $basename ) );
-	return $table;
+	return $self->render_set_input( $session, $default, $required, $obj, $basename );
 }
 
 sub input_tags_and_labels

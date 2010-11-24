@@ -738,7 +738,6 @@ sub _render_doc_metadata
 		}
 
 		$table->appendChild( $session->render_row_with_help(
-			class=>($first?"ep_first":""),
 			label=>$label,
 			field=>$field->render_input_field(
 								$session,

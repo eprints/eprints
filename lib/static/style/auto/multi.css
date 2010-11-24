@@ -12,9 +12,9 @@ table.ep_multi
 	width: 100%;
 }
 
-tr.ep_first th.ep_multi_heading,
-tr.ep_first td.ep_multi_input, 
-tr.ep_first td.ep_multi_help 
+tr:first-child > th.ep_multi_heading,
+tr:first-child > td.ep_multi_input, 
+tr:first-child > td.ep_multi_help 
 {
 	border-top: none;
 }

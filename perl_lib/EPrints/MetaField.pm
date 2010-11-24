@@ -1147,10 +1147,10 @@ sub render_input_field_actual
 	# if there's only one element then lets not bother making
 	# a table to put it in
 
-#	if( scalar @{$elements} == 1 && scalar @{$elements->[0]} == 1 )
-#	{
-#		return $elements->[0]->[0]->{el};
-#	}
+	if( scalar @{$elements} == 1 && scalar @{$elements->[0]} == 1 )
+	{
+		return $elements->[0]->[0]->{el};
+	}
 
 	my $table = $session->make_element( "table", border=>0, cellpadding=>0, cellspacing=>0, class=>"ep_form_input_grid" );
 
@@ -1522,10 +1522,10 @@ sub get_basic_input_elements
 					$maxlength );
 
 
-	my $f = $session->make_element( "div" );
+	my $input;
 	if( defined $self->{render_input} )
 	{
-		my $input = $self->call_property( "render_input",
+		$input = $self->call_property( "render_input",
 			$self,
 			$session, 
 			$value, 
@@ -1534,21 +1534,19 @@ sub get_basic_input_elements
 			undef,
 			$obj,
 			$basename );
-		$f->appendChild( $input );
 	}
 	else
 	{
-		my $input = $session->render_noenter_input_field(
+		$input = $session->render_noenter_input_field(
 			class=>"ep_form_text",
 			name => $basename,
 			id => $basename,
 			value => $value,
 			size => $size,
 			maxlength => $maxlength );
-		$f->appendChild( $input );
 	}
 
-	return [ [ { el=>$f } ] ];
+	return [ [ { el=>$input } ] ];
 }
 
 # array of all the ids of input fields
