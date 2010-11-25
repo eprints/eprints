@@ -9,6 +9,18 @@ use EPrints::Sword::Utils;
 
 use EPrints::Const qw( :http );
 
+our $GRAMMAR = {
+	'X-Extract-Archive' => 'explode',
+	'X-Override-Metadata' => 'metadata',
+	'X-Extract-Bibliography' => 'bibliography',
+	'X-Extract-Media' => 'media',
+};
+
+sub get_grammar
+{
+	return $GRAMMAR;
+}
+
 sub handler 
 {
 	my $request = shift;
@@ -272,14 +284,25 @@ sub handler
 			$list = get_file_list($repository,\@in_ids,\@out_ids,"file");
 		}
 		if ($new_object_dataset eq "document") {
+
 			my $format = $repository->call( 'guess_doc_type', $repository, $filename );			
+			
 			my( @plugins ) = $repository->get_plugins(
 					type => "Import",
 					can_produce => "dataobj/document",
 					can_accept => $format,
 					);
-
+	
 			my $plugin = $plugins[0];
+
+			my $grammar = get_grammar();
+			my $flags = {};
+			foreach my $key (keys %{$headers}) {
+				my $value = $grammar->{$key};
+				if ((defined $value) and ($headers->{$key} eq "true")) {
+					$flags->{$value} = 1;
+				}
+			}
 
 			if( !defined $plugin )
 			{
@@ -295,30 +318,26 @@ sub handler
 						dataset => $repository->dataset( "document" ),
 						ids => [map { $_->id } @docs] );
 			} else {
-				if( $headers->{"X-Extract-Archive"} eq "true" )
-				{
-					$list = $plugin->input_fh(
-							fh => $fh,
-							dataobj => $eprint,
-							);
-				}
-				else
-				{
-					my $doc = $eprint->create_subdataobj( "documents", {
-							format => "other",
-							} );
-					$list = $plugin->input_fh(
-							fh => $fh,
-							dataobj => $doc	
-							);
-					$doc->remove if !defined $list;
-				}
+				$list = $plugin->input_fh(
+					fh => $fh,
+					filename => $filename,
+					dataset => $repository->dataset( "document" ),
+					dataobj => $eprint,
+					flags => $flags,
+				);
 			}
 		}
 		close($fh);
 	}
 	$eprint->remove_lock( $user );
 	
+	if (!defined $list) {
+		$request->status( 204 );	
+	
+		$repository->terminate;
+		return HTTP_NO_CONTENT;
+	}
+
 	my $accept = $headers->{ "Accept" };
 	$accept = "application/atom+xml" unless defined $accept;
 	my $list_dataset = $list->{dataset};
