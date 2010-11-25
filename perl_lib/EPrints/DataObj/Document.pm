@@ -552,7 +552,7 @@ sub get_url
 {
 	my( $self, $file ) = @_;
 
-	$file = $self->get_main unless( defined $file );
+	$file = $self->value( "main" ) unless( defined $file );
 
 	# just in case we don't *have* a main part yet.
 	return $self->get_baseurl unless( defined $file );
@@ -1099,18 +1099,26 @@ sub upload_url
 	$self->add_directory( "$tmpdir" );
 
 	# Otherwise set the main file if appropriate
-	if( !defined $self->get_main() || $self->get_main() eq "" )
+	if( !$self->is_set( "main" ) )
 	{
 		my $endfile = $url;
-		$endfile =~ s/.*\///;
-		$self->set_main( $endfile );
+		$endfile =~ s/^.*\///;
 
-		# If it's still undefined, try setting it to index.html or index.htm
-		$self->set_main( "index.html" ) unless( defined $self->get_main() );
-		$self->set_main( "index.htm" ) unless( defined $self->get_main() );
+		# the URL itself, otherwise index.html?
+		for( $endfile, "index.html", "index.htm" )
+		{
+			$self->set_main( $_ ), last if -s "$tmpdir/$_";
+		}
 
-		# Those are our best guesses, best leave it to the user if still don't
-		# have a main file.
+	}
+	if( !$self->is_set( "main" ) )
+	{
+		# only one file so main must be it
+		my $files = $self->value( "files" );
+		if( scalar @$files == 1 )
+		{
+			$self->set_main( $files->[0]->value( "filename" ) );
+		}
 	}
 	
 	$self->queue_files_modified;
@@ -1215,7 +1223,7 @@ sub validate
 		my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:documents" );
 		push @problems, $self->{session}->html_phrase( "lib/document:no_files", fieldname=>$fieldname );
 	}
-	elsif( !defined $self->get_main() || $self->get_main() eq "" )
+	elsif( !$self->is_set( "main" ) )
 	{
 		# No file selected as main!
 		my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:documents" );
@@ -1484,8 +1492,9 @@ sub thumbnail_url
 
 	my $url = $self->get_baseurl();
 	$url =~ s! /$ !.$relation/!x;
-	if( defined(my $file = $self->get_main) )
+	if( $self->is_set( "main" ) )
 	{
+		my $file = $self->value( "main" );
 		utf8::encode($file);
 		$file =~ s/([^\/-_\.!~\*'\(\)A-Za-z0-9\/])/sprintf('%%%02X',ord($1))/ge;
 		$url .= $file;
@@ -1775,7 +1784,7 @@ sub make_thumbnails
 		return;
 	}
 
-	my $src_main = $self->get_stored_file( $self->get_main() );
+	my $src_main = $self->get_stored_file( $self->value( "main" ) );
 
 	return unless defined $src_main;
 
@@ -1790,7 +1799,7 @@ sub make_thumbnails
 		# remove the existing thumbnail
    		if( defined($tgt) )
 		{
-			my $tgt_main = $tgt->get_stored_file( $tgt->get_main() );
+			my $tgt_main = $tgt->get_stored_file( $tgt->value( "main" ) );
 			if( defined $tgt_main && $tgt_main->get_datestamp gt $src_main->get_datestamp )
 			{
 				# ignore if tgt's main file is newer than document's main file
@@ -1829,7 +1838,7 @@ sub mime_type
 	my( $self, $file ) = @_;
 
 	# Primary doc if no filename
-	$file = $self->get_main unless( defined $file );
+	$file = $self->value( "main" ) unless( defined $file );
 
 	my $fileobj = $self->get_stored_file( $file );
 
