@@ -263,6 +263,9 @@ sub connect
 		$self->{dbh}->trace( 2 );
 	}
 
+	# always try to reconnect
+	$self->{dbh}->{mysql_auto_reconnect} = 1;
+
 	return 1;
 }
 
