@@ -197,12 +197,19 @@ sub delete
 	foreach my $copy (@{$fileobj->get_value( "copies" )})
 	{
 		my $plugin = $self->{repository}->plugin( $copy->{pluginid} );
-		unless( $plugin )
+		if( !$plugin )
 		{
 			$self->{repository}->get_repository->log( "Can not remove file copy '$copy->{sourceid}' - $copy->{pluginid} not available" );
-			next;
+			$fileobj->remove_plugin_copy( $plugin );
 		}
-		$rc &= $plugin->delete( $fileobj, $copy->{sourceid} );
+		elsif( $plugin->delete( $fileobj, $copy->{sourceid} ) )
+		{
+			$fileobj->remove_plugin_copy( $plugin );
+		}
+		else
+		{
+			$rc = 0;
+		}
 	}
 
 	return $rc;
