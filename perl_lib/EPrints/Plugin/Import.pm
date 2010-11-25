@@ -210,7 +210,7 @@ sub convert_input
 
 sub epdata_to_dataobj
 {
-	my( $plugin, $dataset, $epdata ) = @_;
+	my( $plugin, $dataset, $epdata, $dataobj ) = @_;
 
 	my $session = $plugin->{session};
 
@@ -247,7 +247,6 @@ sub epdata_to_dataobj
 		$plugin->warning( "Importing an EPrint record into 'eprint' dataset without eprint_status being set. Using 'buffer' as default." );
 		$epdata->{eprint_status} = "buffer";
 	}
-
 	# Update an existing item
 	if( defined( $item ) )
 	{
@@ -263,7 +262,12 @@ sub epdata_to_dataobj
 		}
 		$item->commit();
 	}
-	# Create a new item
+	# Add to existing
+	elsif ( defined $dataobj ) 
+	{
+		$item = $dataobj->create_subdataobj( $dataset->confid.'s', $epdata );
+	}
+	# Create a new item 
 	else
 	{
 		$item = $dataset->create_object( $plugin->{session}, $epdata );
