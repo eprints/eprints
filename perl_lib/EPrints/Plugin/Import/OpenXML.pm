@@ -30,7 +30,7 @@ sub new
 
 	$self->{name} = "Import (openxml)";
 	$self->{produce} = [qw( dataobj/document )];
-	$self->{accept} = [qw( application/vnd.openxmlformats-officedocument.wordprocessingml.document )];
+	$self->{accept} = [qw( application/vnd.openxmlformats-officedocument.wordprocessingml.document application/vnd.openxmlformats )];
 	$self->{advertise} = 0;
 
 	return $self;
