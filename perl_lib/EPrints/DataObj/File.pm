@@ -454,9 +454,14 @@ sub upload
 	}
 
 	$self->set_value( "filename", $filename );
+	my $type = $self->{session}->get_repository->call( "guess_doc_type", $self->{session}, $filename );
+	if( $type ne "other" )
+	{
+		$self->set_value( "mime_type", $type );
+	}
 
 	$filesize = $self->set_file( $fh, $filesize );
-
+	
 	$self->commit();
 
 	return $filesize;
