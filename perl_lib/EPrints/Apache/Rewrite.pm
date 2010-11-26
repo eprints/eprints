@@ -262,7 +262,7 @@ sub handler
 	
 	#CRUD
 	my $method = $r->method();
-	if (!($method eq "GET") and $uri !~ /^(?:$cgipath)/ ) 
+	if (!($method eq "GET") and $uri !~ /^(?:$cgipath)/ and $uri !~ /^\/rest\// ) 
 	{
 		$r->handler( 'perl-script' );
 
@@ -283,7 +283,10 @@ sub handler
 				return OK;
 			}
 		}
-		#if ($method eq "PUT") { $r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::PutHandler' ] ) };
+		if ($method eq "PUT") { 
+			$r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::PutHandler' ] );
+			return OK;
+		};
 			
 		#return OK;
 	}
