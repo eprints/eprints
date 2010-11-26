@@ -41,7 +41,15 @@ sub input_fh
 	my( $self, %opts ) = @_;
 
 	my $session = $self->{session};
-	my $eprint = $opts{dataobj};
+	my $dataobj = $opts{dataobj};
+	my $eprint;
+	my $main_doc;
+	if ($dataobj->isa("EPrints::DataObj::Document") ) {
+		$main_doc = $dataobj;
+		$eprint = $dataobj->parent();
+	} elsif ($dataobj->isa("EPrints::DataObj::EPrint") ) {
+		$eprint = $dataobj;
+	}
 
 	my $flags = $opts{flags};
 
@@ -62,15 +70,22 @@ sub input_fh
 		$fn = $1;
 	}
 
-	my $main_doc = $eprint->create_subdataobj( "documents", {
-		format => $format,
-		main => $fn,
-		files => [{
-			filename => $fn,
-			filesize => (-s $opts{fh}),
-			_content => $opts{fh}
-		}],
-	});
+	if (!defined $main_doc) {
+		$main_doc = $eprint->create_subdataobj( "documents", {
+			format => $format,
+			main => $fn,
+			files => [{
+				filename => $fn,
+				filesize => (-s $opts{fh}),
+				_content => $opts{fh}
+			}],
+		});
+	} else {
+		my $filesize = -s $opts{fh};
+		$main_doc->upload($opts{fh},$fn,0,$filesize);
+		$main_doc->set_value("format",$format);
+		$main_doc->set_main($fn);
+	}
 	if( !defined $main_doc )
 	{
 		$self->error( $self->phrase( "create_failed" ) );
