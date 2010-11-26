@@ -252,11 +252,12 @@ sub process_headers
 
         if(defined $filename)
         {
-		if( $filename =~ /^filename\=(.*)/)
+		if( $filename =~ /(.*)filename\=(.*)/)
 		{
-			$filename = $1;
+			$filename = $2;
 		}
-
+		$filename =~ s/^"//;
+		$filename =~ s/"$//;
 		$filename =~ s/\s/\_/g;		# replace white chars by underscores
 		
 		$response{filename} = $filename;
@@ -606,6 +607,7 @@ sub create_xml
 
 	# if docid is defined, <content> should point to that document, otherwise point to the abstract page
 	my $content;
+	my $edit_media;
 	if( defined $deposited_file_docid )
 	{
 		my $doc = EPrints::DataObj::Document->new( $session, $deposited_file_docid );
@@ -615,6 +617,9 @@ sub create_xml
 			$content = $session->make_element( "atom:content", 
 							"type" => $doc->get_value( "format" ),
 							"src" => $doc->uri );
+			$edit_media = $session->make_element( "atom:link",
+							"rel" => "edit-media",
+							"href" => $doc->uri );
 		}		
 	}
 
@@ -623,6 +628,9 @@ sub create_xml
 		$content = $session->make_element( "atom:content", "type" => "text/html", src=> $eprint->uri )
 	}
         $entry->appendChild( $content );
+	if (defined $edit_media) {
+		$entry->appendChild( $edit_media );
+	}
 
 	my $edit_link = $session->make_element( "atom:link", 
 					"rel" => "edit",
@@ -806,6 +814,18 @@ sub create_noop_xml
 
         return '<?xml version="1.0" encoding="UTF-8"?>'.$entry->toString;
 
+}
+
+our $GRAMMAR = {
+	'X-Extract-Archive' => 'explode',
+	'X-Override-Metadata' => 'metadata',
+	'X-Extract-Bibliography' => 'bibliography',
+	'X-Extract-Media' => 'media',
+};
+
+sub get_grammar
+{
+	return $GRAMMAR;
 }
 
         

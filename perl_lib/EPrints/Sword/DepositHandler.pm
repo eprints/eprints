@@ -345,6 +345,18 @@ sub handler
         $opts{depositor_id} = $depositor->get_id if(defined $depositor);
 	$opts{verbose} = $VERBOSE;
 	$opts{no_op} = $NO_OP;
+	
+	my $grammar = EPrints::Sword::Utils::get_grammar();
+	my $flags = {};
+	my $headers_in = $request->headers_in;
+	foreach my $key (keys %{$headers_in}) {
+		my $value = $grammar->{$key};
+		if ((defined $value) and ($headers_in->{$key} eq "true")) {
+			$flags->{$value} = 1;
+		}
+	}
+	$opts{flags} = $flags;
+
 	my $eprint = $import_plugin->input_file( %opts );
 	$verbose_desc .= $import_plugin->get_verbose();
 
