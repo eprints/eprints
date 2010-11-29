@@ -1131,9 +1131,11 @@ sub create_unique_index
 ######################################################################
 =pod
 
-=item  $success = $db->_update( $tablename, $keycols, $keyvals, $columns, @values )
+=item $rows = $db->_update( $tablename, $keycols, $keyvals, $columns, @values )
 
-UPDATES $tablename where $keycols equals $keyvals.
+UPDATES $tablename where $keycols equals $keyvals and returns the number of rows affected.
+
+Note! If no rows are affected the result is still 'true', see DBI's execute() method.
 
 This method is internal.
 
@@ -1143,8 +1145,6 @@ This method is internal.
 sub _update
 {
 	my( $self, $table, $keynames, $keyvalues, $columns, @values ) = @_;
-
-	my $rc = 1;
 
 	my $prefix = "UPDATE ".$self->quote_identifier($table)." SET ";
 	my @where;
@@ -1174,6 +1174,8 @@ sub _update
 		$self->{session}->get_repository->log( "Database execute debug: $sql" );
 	}
 
+	my $rv = 0;
+
 	foreach my $row (@values)
 	{
 		my $i = 0;
@@ -1181,12 +1183,14 @@ sub _update
 		{
 			$sth->bind_param( ++$i, ref($_) eq 'ARRAY' ? @$_ : $_ );
 		}
-		$rc &&= $sth->execute();
+		my $rc = $sth->execute(); # execute can return "0e0"
+		return $rc if !$rc;
+		$rv += $rc; # otherwise add up the number of rows affected
 	}
 
 	$sth->finish;
 
-	return $rc;
+	return $rv == 0 ? "0e0" : $rv;
 }
 
 ######################################################################

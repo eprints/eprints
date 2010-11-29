@@ -2415,9 +2415,26 @@ sub obtain_lock
 	$timeout = 3600 unless defined $timeout;
 	$self->set_value( "edit_lock_until", time + $timeout );
 
-	$self->commit;
+	my $dataset = $self->{dataset};
 
-	return 1;
+	# we really want locking to be quick
+	my $rv = $self->{session}->database->_update(
+		$dataset->get_sql_table_name,
+		[$dataset->get_key_field->get_sql_name],
+		[$self->id],
+		[
+			$dataset->field( "edit_lock_user" )->get_sql_name,
+			$dataset->field( "edit_lock_since" )->get_sql_name,
+			$dataset->field( "edit_lock_until" )->get_sql_name,
+		],
+		[
+			$self->value( "edit_lock_user" ),
+			$self->value( "edit_lock_since" ),
+			$self->value( "edit_lock_until" ),
+		]
+	);
+
+	return $rv == 1;
 }
 
 ######################################################################
