@@ -28,12 +28,13 @@ sub input_fh
 	my @ids;
 
 	my $root = $result->documentElement;
+
 	foreach my $node ($root->getElementsByTagName( $root_name ))
 	{
-		push @ids, $self->epdata_to_dataobj(
-			$dataset,
-			$class->xml_to_epdata( $session, $node )
-		)->id;
+		my $epdata = $class->xml_to_epdata( $session, $node );
+		my $dataobj = $self->epdata_to_dataobj( $dataset, $epdata );
+		next if !defined $dataobj;
+		push @ids, $dataobj->id;
 	}
 
 	$session->xml->dispose( $source );
