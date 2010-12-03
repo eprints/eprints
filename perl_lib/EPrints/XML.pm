@@ -1125,7 +1125,7 @@ sub _enable_disabled_nodes
 						$element->removeAttribute("disabled_by");
 						$element->removeAttribute("disabled");
 					} else {
-						$element->setAttribute("disabled_by",trim($out_ids));
+						$element->setAttribute("disabled_by",_trim($out_ids));
 					}
 				}
 			}
@@ -1167,7 +1167,7 @@ sub _remove_required_nodes
 					if ($flag == 1) {
 						$xml->removeChild($element);
 					} else {
-						$element->setAttribute("required_by",trim($out_ids));
+						$element->setAttribute("required_by",_trim($out_ids));
 					}
 				}
 			}
