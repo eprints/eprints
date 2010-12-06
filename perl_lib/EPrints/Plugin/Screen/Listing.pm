@@ -31,20 +31,26 @@ sub properties_from
 	my $processor = $self->{processor};
 	my $session = $self->{session};
 
-	my $datasetid = $session->param( "dataset" );
+	if( !defined $processor->{dataset} )
+	{
+		my $datasetid = $session->param( "dataset" );
 
-	my $dataset = $session->dataset( $datasetid );
+		if( $datasetid )
+		{
+			$processor->{"dataset"} = $session->dataset( $datasetid );
+		}
+	}
+
+	my $dataset = $processor->{"dataset"};
 	if( !defined $dataset )
 	{
 		$processor->{screenid} = "Error";
 		$processor->add_message( "error", $session->html_phrase(
 			"lib/history:no_such_item",
-			datasetid=>$session->make_text( $datasetid ),
+			datasetid=>$session->make_text( $session->param( "dataset" ) ),
 			objectid=>$session->make_text( "" ) ) );
 		return;
 	}
-
-	$processor->{"dataset"} = $dataset;
 
 	my $columns = $self->show_columns();
 	$processor->{"columns"} = $columns;
@@ -68,7 +74,7 @@ sub properties_from
 			split /\//, $order;
 	}
 
-	my $filters = [];
+	my $filters = [$self->get_filters];
 	my $priv = $self->{processor}->{dataset}->id . "/view";
 	if( !$self->allow( $priv ) )
 	{
@@ -220,17 +226,16 @@ sub get_filters
 {
 	my( $self ) = @_;
 
-	my %f = ( inbox=>1, buffer=>1, archive=>0, deletion=>0 );
-
-	foreach my $filter ( keys %f )
-	{
-		my $v = $self->{session}->param( "show_$filter" );
-		$f{$filter} = $v if defined $v;
-	}	
-
-	return %f;
+	return ();
 }
-	
+
+sub perform_search
+{
+	my( $self ) = @_;
+
+	return $self->{processor}->{search}->perform_search;
+}
+
 sub render_links
 {
 	my( $self ) = @_;
@@ -307,7 +312,7 @@ sub render
 	my $ds = $self->{processor}->{dataset};
 
 	my $search = $self->{processor}->{search};
-	my $list = $search->perform_search;
+	my $list = $self->perform_search;
 	my $exp;
 	if( !$search->is_blank )
 	{
@@ -501,7 +506,9 @@ sub _render_action_aux
 		$session->render_hidden_field( 
 			"screen", 
 			substr( $params->{screen_id}, 8 ) ) );
-	foreach my $id ( keys %{$params->{hidden}} )
+Carp::confess( Data::Dumper::Dumper( $params->{hidden} ) )
+	if ref($params->{hidden}) ne "HASH" && $params->{hidden};
+	foreach my $id ( keys %{$params->{hidden} || {}} )
 	{
 		$form->appendChild( 
 			$session->render_hidden_field( 

@@ -1,9 +1,9 @@
 
 package EPrints::Plugin::Screen::Items;
 
-use EPrints::Plugin::Screen;
+use EPrints::Plugin::Screen::Listing;
 
-@ISA = ( 'EPrints::Plugin::Screen' );
+@ISA = ( 'EPrints::Plugin::Screen::Listing' );
 
 use strict;
 
@@ -23,6 +23,18 @@ sub new
 	$self->{actions} = [qw/ col_left col_right remove_col add_col /];
 
 	return $self;
+}
+
+sub properties_from
+{
+	my( $self ) = @_;
+
+	my $processor = $self->{processor};
+	my $session = $self->{session};
+
+	$processor->{dataset} = $session->dataset( "eprint" );
+
+	$self->SUPER::properties_from();
 }
 
 sub can_be_viewed
@@ -96,7 +108,6 @@ sub action_remove_col
 	$self->{session}->current_user->set_value( "items_fields", \@newlist );
 	$self->{session}->current_user->commit();
 }
-	
 
 sub get_filters
 {
@@ -124,17 +135,33 @@ sub get_filters
 		}
 	}	
 
-	return %{{@f}};
+	my @l = map { $f[$_] } grep { $_ % 2 == 0 && $f[$_+1] } 0..$#f;
+
+	return (
+		{ meta_fields => [qw( eprint_status )], value => "@l", match => "EQ", merge => "ANY" },
+	);
 }
 
-sub render_links
+sub render_title
 {
 	my( $self ) = @_;
 
-	my $style = $self->{session}->make_element( "style", type=>"text/css" );
-	$style->appendChild( $self->{session}->make_text( ".ep_tm_main { width: 90%; }" ) );
+	return $self->EPrints::Plugin::Screen::render_title();
+}
 
-	return $style;
+sub perform_search
+{
+	my( $self ) = @_;
+
+	my $processor = $self->{processor};
+	my $search = $processor->{search};
+
+	# dirty hack to pass the internal search through to owned_eprints_list
+	my $list = $self->{session}->current_user->owned_eprints_list( %$search,
+		custom_order => $search->{order}
+	);
+
+	return $list;
 }
 
 sub render
@@ -174,16 +201,14 @@ sub render
 	my $import_screen = $session->plugin( "Screen::Import" );
 	$chunk->appendChild( $import_screen->render_import_bar() ) if( defined $import_screen );
 
-	my %filters = $self->get_filters;
-	my @l = ();
-	foreach( keys %filters ) { push @l, $_ if $filters{$_}; }
-
 	### Get the items owned by the current user
 	my $ds = $session->get_repository->get_dataset( "eprint" );
 
-	my $list = $session->current_user->owned_eprints_list( filters => [
-		{ meta_fields => [qw( eprint_status )], value => join(" ", @l), match => "EQ", merge => "ANY" },
-		]);
+	my $list = $self->perform_search;
+
+	my $pref = $self->{id}."/eprint_status";
+	my %filters = @{$session->current_user->preference( $pref ) || []};
+
 	my $filter_div = $session->make_element( "div", class=>"ep_items_filters" );
 	foreach my $f ( qw/ inbox buffer archive deletion / )
 	{
@@ -316,15 +341,11 @@ sub render
 		$final_row->appendChild( $td );
 	}
 
-	my $offset = ($session->param( "_buffer_offset" ) || 0) + 0;
-	$offset = $list->count - $list->count % 10 if $offset > $list->count;
-
 	# Paginate list
 	my %opts = (
 		params => {
 			screen => "Items",
 		},
-		offset => $offset,
 		columns => [@{$columns}, undef ],
 		above_results => $filter_div,
 		render_result => sub {
@@ -363,7 +384,7 @@ sub render
 			my $td = $session->make_element( "td", class=>"ep_columns_cell ep_columns_cell_last", align=>"left" );
 			$tr->appendChild( $td );
 			$td->appendChild( 
-				$self->render_action_list_icons( "eprint_item_actions", ['eprintid'] ) );
+				$self->render_action_list_icons( "eprint_item_actions", { 'eprintid' => $self->{processor}->{eprintid} } ) );
 			delete $self->{processor}->{eprint};
 
 			++$info->{row};
@@ -420,3 +441,4 @@ sub render
 
 
 1;
+
