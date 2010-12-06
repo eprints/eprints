@@ -617,17 +617,14 @@ sub add_workflow_flow
 			$replace = 1;
 			$count++;
 		} elsif ($name eq "epc:choose" && $count < 1) {
-			unless (_children_contain_node($xml_handler,$element,$when_node,$id,0)) 
-			{
-				$count++;
-				my $blank_node = $xml_handler->create_document_fragment;
-				$blank_node->appendChild($when_node);
-				foreach my $sub_node ( $element->getChildNodes ) {
-					$blank_node->appendChild($sub_node);
-					$element->removeChild($sub_node);
-				}
-				$element->appendChild($blank_node);
+			$count++;
+			my $blank_node = $xml_handler->create_document_fragment;
+			$blank_node->appendChild($when_node);
+			foreach my $sub_node ( $element->getChildNodes ) {
+				$blank_node->appendChild($sub_node);
+				$element->removeChild($sub_node);
 			}
+			$element->appendChild($blank_node);
 		}
 		if ($replace) {
 			$flow->removeChild($element);
