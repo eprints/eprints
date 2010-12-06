@@ -433,40 +433,42 @@ sub _render_action_aux
 	
 	my $path = $session->current_url( path => "cgi" ) . "/users/home";
 
-	my $form;
-	my $link;
-	if( $method eq "GET" )
+	my $frag;
+
+	if( $method eq "GET" && defined $icon && $asicon )
 	{
 		push @query, "_action_$action" => 1 if length($action);
 		my $uri = URI->new( $path );
 		$uri->query_form( @query );
-		$link = $session->render_link( $uri );
+		$frag = $session->render_link( $uri );
 		if( defined $icon && $asicon )
 		{
-			$link->appendChild( $session->make_element( "img",
+			$frag->appendChild( $session->make_element( "img",
 				src=>$icon,
 				title=>$title,
 				alt=>$title,
 				class=>"ep_form_action_icon",
 			) );
 		}
+		# never called because mixing <input> and <href> is ugly
 		else
 		{
-			$link->appendChild( $session->make_text( $title ) );
+			$frag->setAttribute( class => "ep_form_action_button" );
+			$frag->appendChild( $session->make_text( $title ) );
 		}
 	}
 	else
 	{
-		$form = $session->render_form( $method, $path );
+		$frag = $session->render_form( $method, $path );
 		foreach my $i (0..$#query)
 		{
 			next if $i % 2;
-			$form->appendChild( $session->render_hidden_field( 
+			$frag->appendChild( $session->render_hidden_field( 
 				@query[$i, $i+1] ) );
 		}
 		if( defined $icon && $asicon )
 		{
-			$form->appendChild( 
+			$frag->appendChild( 
 				$session->make_element(
 					"input",
 					type=>"image",
@@ -479,7 +481,7 @@ sub _render_action_aux
 		}
 		else
 		{
-			$form->appendChild( 
+			$frag->appendChild( 
 				$session->render_button(
 					class=>"ep_form_action_button",
 					name=>"_action_$action", 
@@ -487,7 +489,7 @@ sub _render_action_aux
 		}
 	}
 
-	return $method eq "GET" ? $link : $form;
+	return $frag;
 }
 
 sub render_action_button_if_allowed
