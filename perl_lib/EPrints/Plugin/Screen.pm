@@ -400,31 +400,21 @@ sub _render_action_aux
 		$method = "POST";
 	}
 
-	my $form = $session->render_form( $method, $session->current_url( path => "cgi" ) . "/users/home" );
+	my @query = (screen => substr( $params->{screen_id}, 8 ));
 
-	$form->appendChild( 
-		$session->render_hidden_field( 
-			"screen", 
-			substr( $params->{screen_id}, 8 ) ) );
 	my $hidden = $params->{hidden};
 	if( ref($hidden) eq "ARRAY" )
 	{
 		foreach my $id ( @$hidden )
 		{
-			$form->appendChild( 
-				$session->render_hidden_field( 
-					$id, 
-					$self->{processor}->{$id} ) );
+			push @query, $id => $self->{processor}->{$id};
 		}
 	}
 	else
 	{
 		foreach my $id (keys %$hidden)
 		{
-			$form->appendChild(
-				$session->render_hidden_field(
-					$id,
-					$hidden->{$id} ) );
+			push @query, $id => $hidden->{$id};
 		}
 	}
 	my( $action, $title, $icon );
@@ -436,33 +426,68 @@ sub _render_action_aux
 	}
 	else
 	{
-		$action = "null";
+		$action = "";
 		$title = $params->{screen}->phrase( "title" );
 		$icon = $params->{screen}->icon_url();
 	}
-	if( defined $icon && $asicon )
+	
+	my $path = $session->current_url( path => "cgi" ) . "/users/home";
+
+	my $form;
+	my $link;
+	if( $method eq "GET" )
 	{
-		$form->appendChild( 
-			$session->make_element(
-				"input",
-				type=>"image",
-				class=>"ep_form_action_icon",
-				name=>"_action_$action", 
+		push @query, "_action_$action" => 1 if length($action);
+		my $uri = URI->new( $path );
+		$uri->query_form( @query );
+		$link = $session->render_link( $uri );
+		if( defined $icon && $asicon )
+		{
+			$link->appendChild( $session->make_element( "img",
 				src=>$icon,
 				title=>$title,
 				alt=>$title,
-				value=>$title ));
+				class=>"ep_form_action_icon",
+			) );
+		}
+		else
+		{
+			$link->appendChild( $session->make_text( $title ) );
+		}
 	}
 	else
 	{
-		$form->appendChild( 
-			$session->render_button(
-				class=>"ep_form_action_button",
-				name=>"_action_$action", 
-				value=>$title ));
+		$form = $session->render_form( $method, $path );
+		foreach my $i (0..$#query)
+		{
+			next if $i % 2;
+			$form->appendChild( $session->render_hidden_field( 
+				@query[$i, $i+1] ) );
+		}
+		if( defined $icon && $asicon )
+		{
+			$form->appendChild( 
+				$session->make_element(
+					"input",
+					type=>"image",
+					class=>"ep_form_action_icon",
+					name=>"_action_$action", 
+					src=>$icon,
+					title=>$title,
+					alt=>$title,
+					value=>$title ));
+		}
+		else
+		{
+			$form->appendChild( 
+				$session->render_button(
+					class=>"ep_form_action_button",
+					name=>"_action_$action", 
+					value=>$title ));
+		}
 	}
 
-	return $form;
+	return $method eq "GET" ? $link : $form;
 }
 
 sub render_action_button_if_allowed
