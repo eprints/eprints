@@ -83,16 +83,16 @@ sub render
 
 	if( $edit_screen->can_be_viewed )
 	{
-		my $form = $edit_screen->render_form;
-		$page->appendChild( $form );
-		my $edit_config_button = $edit_screen->render_action_button( 
-		{
+		my $edit_config_button = $edit_screen->render_action_button( {
 			screen => $edit_screen,
 			screen_id => $edit_screen_id,
+			hidden => {
+				configfile => $self->{processor}->{configfile},
+			}
 		} );
 		my $buttons = $self->{session}->make_element( "div" );
 		$buttons->appendChild( $edit_config_button );
-		$form->appendChild( $buttons );
+		$page->appendChild( $edit_config_button );
 	}
 	else
 	{
