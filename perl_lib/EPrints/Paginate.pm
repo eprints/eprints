@@ -132,14 +132,33 @@ sub paginate_list
 	my $n_results = $list->count();
 	my $offset = defined $opts{offset} ? $opts{offset} : ($session->param( $basename."_offset" ) || 0);
 	$offset += 0;
-	my $pagesize = $opts{page_size} || 10; # TODO: get default from somewhere?
+	my $pagesize = defined $opts{page_size} ? $opts{page_size} : ($session->param( $basename."page_size" ) || 10); # TODO: get default from somewhere?
+	$pagesize += 0;
 	my @results = $list->get_records( $offset , $pagesize );
 	my $plast = $offset + $pagesize;
 	$plast = $n_results if $n_results< $plast;
 
 	my %pins;
 
-	my $matches;	
+	# Add params to action urls
+	my $url = URI->new( $session->get_uri );
+	my @param_list;
+	#push @param_list, "_cache=" . $list->get_cache_id; # if cached
+	#my $escexp = $list->{encoded}; # serialised search expression
+	#$escexp =~ s/ /+/g; # not great way...
+	#push @param_list, "_exp=$escexp";
+	if( defined $opts{params} )
+	{
+		my $params = $opts{params};
+		foreach my $key ( keys %$params )
+		{
+			my $value = $params->{$key};
+			push @param_list, $key => $value if defined $value;
+		}
+	}
+	$url->query_form( @param_list );
+
+	my $matches = $session->make_doc_fragment;	
 	if( scalar $n_results > 0 )
 	{
 		# TODO default phrase for item range
@@ -151,14 +170,32 @@ sub paginate_list
 		$numbers{to}->appendChild( $session->make_text( $plast ) );
 		$numbers{n} = $session->make_element( "span", class=>"ep_search_number" );
 		$numbers{n}->appendChild( $session->make_text( $n_results ) );
-		$matches = $session->html_phrase( "lib/searchexpression:results", %numbers );
+		$matches->appendChild( 
+			$session->html_phrase( "lib/searchexpression:results", %numbers )
+			);
+		if( !$opts{page_size} )
+		{
+			$matches->appendChild( $session->make_text( " " ) );
+			my %links;
+			for(10,25,100)
+			{
+				$links{"n_$_"} = $session->render_link( $url . "&${basename}page_size=$_" );
+				$links{"n_$_"}->appendChild( $session->make_text( $_ ) );
+			}
+			$matches->appendChild(
+				$session->html_phrase( "lib/searchexpression:results_page_size", %links )
+				);
+			if( defined $session->param( "${basename}page_size" ) )
+			{
+				$url->query_form( @param_list, $basename."page_size" => $pagesize );
+			}
+		}
 	}
 	else
 	{
 		# override default phrase with opts
-		$matches = 
-			$session->html_phrase( 
-				"lib/searchexpression:noresults" );
+		$matches->appendChild( $session->html_phrase( 
+				"lib/searchexpression:noresults" ) );
 	}
 
 	$pins{above_results} = $opts{above_results};
@@ -171,25 +208,6 @@ sub paginate_list
 	{
 		$pins{below_results} = $session->make_doc_fragment;
 	}
-
-
-	# Add params to action urls
-	my $url = $session->get_uri . "?";
-	my @param_list;
-	#push @param_list, "_cache=" . $list->get_cache_id; # if cached
-	#my $escexp = $list->{encoded}; # serialised search expression
-	#$escexp =~ s/ /+/g; # not great way...
-	#push @param_list, "_exp=$escexp";
-	if( defined $opts{params} )
-	{
-		my $params = $opts{params};
-		foreach my $key ( keys %$params )
-		{
-			my $value = $params->{$key};
-			push @param_list, "$key=$value" if defined $value;
-		}
-	}
-	$url .= join "&", @param_list;
 
 	my @controls; # page controls
 	if( defined $opts{controls_before} )
