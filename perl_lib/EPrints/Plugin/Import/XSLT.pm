@@ -18,9 +18,8 @@ sub input_fh
 	my $root_name = $dataset->base_id;
 
 	# read the source XML
-	my $source = XML::LibXML->load_xml({
-		IO => $fh
-	});
+	# note: LibXSLT will only work with LibXML, so that's what we use here
+	my $source = XML::LibXML->new->parse_fh( $fh );
 
 	# transform it using our stylesheet
 	my $result = $self->transform( $source );
