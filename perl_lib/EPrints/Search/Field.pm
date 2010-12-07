@@ -180,7 +180,7 @@ sub new
 	{
 		$session->get_repository->log( 
 "search field match value was '".$self->{match}."'. Should be EQ, IN or EX." );
-		$self->{merge} = "ALL";
+		$self->{match} = "EQ";
 	}
 
 	if( $self->{merge} ne "ALL" && $self->{merge} ne "ANY" )
