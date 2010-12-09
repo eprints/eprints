@@ -473,7 +473,7 @@ sub _render_action_aux
 					"input",
 					type=>"image",
 					class=>"ep_form_action_icon",
-					name=>"_action_$action", 
+					($action ? (name=>"_action_$action") : ()),
 					src=>$icon,
 					title=>$title,
 					alt=>$title,
@@ -484,7 +484,7 @@ sub _render_action_aux
 			$frag->appendChild( 
 				$session->render_button(
 					class=>"ep_form_action_button",
-					name=>"_action_$action", 
+					($action ? (name=>"_action_$action") : ()),
 					value=>$title ));
 		}
 	}
