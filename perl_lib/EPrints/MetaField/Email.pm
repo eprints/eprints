@@ -20,7 +20,7 @@ B<EPrints::MetaField::Email> - no description
 
 =head1 DESCRIPTION
 
-not done
+Contains an Email address that is linked when rendered.
 
 =over 4
 
@@ -28,17 +28,10 @@ not done
 
 package EPrints::MetaField::Email;
 
-use strict;
-use warnings;
-
-BEGIN
-{
-	our( @ISA );
-
-	@ISA = qw( EPrints::MetaField::Id );
-}
-
 use EPrints::MetaField::Id;
+@ISA = qw( EPrints::MetaField::Id );
+
+use strict;
 
 sub render_single_value
 {
@@ -49,21 +42,9 @@ sub render_single_value
 	return $text if !defined $value;
 	return $text if( $self->{render_dont_link} );
 
-	my $a = $session->render_link( "mailto:".$value );
-	$a->appendChild( $text );
-	return $a;
-}
-
-sub render_search_value
-{
-       my( $self, $session, $value ) = @_;
-
-       my $valuedesc = $session->make_doc_fragment;
-       $valuedesc->appendChild( $session->make_text( '"' ) );
-       $valuedesc->appendChild( $session->make_text( $value ) );
-       $valuedesc->appendChild( $session->make_text( '"' ) );
-
-       return $valuedesc;
+	my $link = $session->render_link( "mailto:".$value );
+	$link->appendChild( $text );
+	return $link;
 }
 
 ######################################################################

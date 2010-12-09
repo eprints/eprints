@@ -20,7 +20,7 @@ B<EPrints::MetaField::Url> - no description
 
 =head1 DESCRIPTION
 
-not done
+Contains a URL that is turned into a hyperlink when rendered. Same length as a L<EPrints::MetaField::Longtext>.
 
 =over 4
 
@@ -28,30 +28,17 @@ not done
 
 package EPrints::MetaField::Url;
 
-use strict;
-use warnings;
-
-BEGIN
-{
-	our( @ISA );
-
-	@ISA = qw( EPrints::MetaField::Id );
-}
-
+use EPrints::MetaField::Longtext; # get_sql_type
 use EPrints::MetaField::Id;
+@ISA = qw( EPrints::MetaField::Id );
+
+use strict;
 
 sub get_sql_type
 {
 	my( $self, $session ) = @_;
 
-	return $session->get_database->get_column_type(
-		$self->get_sql_name(),
-		EPrints::Database::SQL_LONGVARCHAR,
-		!$self->get_property( "allow_null" ),
-		undef,
-		undef,
-		$self->get_sql_properties
-	);
+	return $self->EPrints::MetaField::Longtext::get_sql_type( $session );
 }
 
 sub render_single_value
@@ -62,9 +49,9 @@ sub render_single_value
 
 	return $text if( $self->{render_dont_link} );
 
-	my $a = $session->render_link( $value );
-	$a->appendChild( $text );
-	return $a;
+	my $link = $session->render_link( $value );
+	$link->appendChild( $text );
+	return $link;
 }
 
 sub get_xml_schema_type
