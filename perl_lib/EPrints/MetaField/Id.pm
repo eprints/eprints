@@ -36,18 +36,6 @@ use EPrints::MetaField;
 
 use strict;
 
-sub get_search_conditions_not_ex
-{
-	my( $self, $session, $dataset, $search_value, $match, $merge,
-	$search_mode ) = @_;
-
-	return EPrints::Search::Condition->new(
-		'=',
-		$dataset,
-		$self,
-		$search_value );
-}
-
 ######################################################################
 =pod
 
@@ -91,6 +79,49 @@ sub sql_row_from_value
 	$value = substr( $value, 0, $self->{ "maxlength" } );
 
 	return( $value );
+}
+
+sub get_property_defaults
+{
+	my( $self ) = @_;
+	return(
+		$self->SUPER::get_property_defaults,
+		match => "EX",
+		merge => "ALL",
+	);
+}
+
+# id fields are searched whole, whether against the main table or in the index
+sub get_index_codes
+{
+       my( $self, $session, $value ) = @_;
+
+       if( !$self->get_property( "multiple" ) )
+       {
+               return( [ $value ], [], [] );
+       }
+       return( $value, [], [] );
+}
+
+sub get_search_conditions_not_ex
+{
+       my( $self, $session, $dataset, $search_value, $match, $merge,
+               $search_mode ) = @_;
+       
+       if( $match eq "EQ" )
+       {
+               return EPrints::Search::Condition->new( 
+                       '=', 
+                       $dataset,
+                       $self, 
+                       $search_value );
+       }
+
+       return EPrints::Search::Condition->new( 
+                       'index',
+                       $dataset,
+                       $self, 
+                       $search_value );
 }
 
 ######################################################################

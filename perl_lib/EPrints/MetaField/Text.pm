@@ -69,12 +69,6 @@ sub render_search_value
 }
 
 
-# don't inherit from Id
-sub get_search_conditions_not_ex
-{
-	return shift->EPrints::MetaField::get_search_conditions_not_ex( @_ );
-}
-
 sub get_search_group { return 'text'; }
 
 sub get_index_codes_basic
@@ -114,6 +108,7 @@ sub get_property_defaults
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{text_index} = 1;
 	$defaults{sql_index} = 0;
+	$defaults{match} = "IN";
 	return %defaults;
 }
 

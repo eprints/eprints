@@ -35,10 +35,10 @@ BEGIN
 {
 	our( @ISA );
 
-	@ISA = qw( EPrints::MetaField::Text );
+	@ISA = qw( EPrints::MetaField::Id );
 }
 
-use EPrints::MetaField::Text;
+use EPrints::MetaField::Id;
 
 sub render_single_value
 {
@@ -52,38 +52,6 @@ sub render_single_value
 	my $a = $session->render_link( "mailto:".$value );
 	$a->appendChild( $text );
 	return $a;
-}
-
-sub get_index_codes
-{
-       my( $self, $session, $value ) = @_;
-
-       if( !$self->get_property( "multiple" ) )
-       {
-               return( [ $value ], [], [] );
-       }
-       return( $value, [], [] );
-}
-
-sub get_search_conditions_not_ex
-{
-       my( $self, $session, $dataset, $search_value, $match, $merge,
-               $search_mode ) = @_;
-       
-       if( $match eq "EQ" )
-       {
-               return EPrints::Search::Condition->new( 
-                       '=', 
-                       $dataset,
-                       $self, 
-                       $search_value );
-       }
-
-       return EPrints::Search::Condition->new( 
-                       'index',
-                       $dataset,
-                       $self, 
-                       $search_value );
 }
 
 sub render_search_value

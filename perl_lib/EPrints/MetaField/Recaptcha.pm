@@ -35,8 +35,8 @@ You can get these keys by registering at http://recaptcha.net/.
 
 package EPrints::MetaField::Recaptcha;
 
-use EPrints::MetaField::Text;
-@ISA = qw( EPrints::MetaField::Text );
+use EPrints::MetaField::Id;
+@ISA = qw( EPrints::MetaField::Id );
 
 use strict;
 

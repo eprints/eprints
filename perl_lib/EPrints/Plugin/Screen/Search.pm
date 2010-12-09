@@ -390,7 +390,6 @@ sub from
 				session => $session,
 				dataset => $self->search_dataset,
 				keep_cache => 1,
-				for_web => 1,
 				satisfy_all => $satisfy_all,
 				%{$processor->{sconf}},
 			},

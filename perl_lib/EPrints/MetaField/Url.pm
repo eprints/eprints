@@ -35,10 +35,10 @@ BEGIN
 {
 	our( @ISA );
 
-	@ISA = qw( EPrints::MetaField::Text );
+	@ISA = qw( EPrints::MetaField::Id );
 }
 
-use EPrints::MetaField::Text;
+use EPrints::MetaField::Id;
 
 sub get_sql_type
 {

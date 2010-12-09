@@ -2138,18 +2138,21 @@ sub render_search_input
 	
 	my $frag = $session->make_doc_fragment;
 
-	# complex text types
-	my @text_tags = ( "ALL", "ANY" );
-	my %text_labels = ( 
-		"ANY" => $session->phrase( "lib/searchfield:text_any" ),
-		"ALL" => $session->phrase( "lib/searchfield:text_all" ) );
-	$frag->appendChild( 
-		$session->render_option_list(
-			name=>$searchfield->get_form_prefix."_merge",
-			values=>\@text_tags,
-			default=>$searchfield->get_merge,
-			labels=>\%text_labels ) );
-	$frag->appendChild( $session->make_text(" ") );
+	if( $searchfield->get_match ne "EX" )
+	{
+		# complex text types
+		my @text_tags = ( "ALL", "ANY" );
+		my %text_labels = ( 
+			"ANY" => $session->phrase( "lib/searchfield:text_any" ),
+			"ALL" => $session->phrase( "lib/searchfield:text_all" ) );
+		$frag->appendChild( 
+			$session->render_option_list(
+				name=>$searchfield->get_form_prefix."_merge",
+				values=>\@text_tags,
+				default=>$searchfield->get_merge,
+				labels=>\%text_labels ) );
+		$frag->appendChild( $session->make_text(" ") );
+	}
 	$frag->appendChild(
 		$session->render_input_field(
 			class => "ep_form_text",
@@ -2158,41 +2161,34 @@ sub render_search_input
 			value => $searchfield->get_value,
 			size => $self->get_property( "search_cols" ),
 			maxlength => 256 ) );
-	my $match = $searchfield->get_match;
-	if( defined $match && $match ne $self->default_web_search_match_code )
+	if( $searchfield->get_match ne $self->property( "match" ) )
 	{
 		$frag->appendChild(
-			$session->xhtml->input_field( 
-				$searchfield->get_form_prefix."_match",
-				$match,
-				type => "hidden" ) );
+			$session->render_hidden_field(
+				$searchfield->get_form_prefix . "_match",
+				$searchfield->get_match
+			) );
 	}
 	return $frag;
 }
-
-sub default_web_search_match_code { return "IN"; }
-sub default_web_search_merge_code { return "ALL"; }
 
 sub from_search_form
 {
 	my( $self, $session, $basename ) = @_;
 
-	# complex text types
+	my( $value, $match, $merge ) =
+	(
+		scalar($session->param( $basename )),
+		scalar($session->param( $basename."_match" )),
+		scalar($session->param( $basename."_merge" )),
+	);
 
-	my $val = $session->param( $basename );
-	return unless defined $val;
+	if( ($match && $match eq "EX") || $self->property( "match" ) eq "EX" )
+	{
+		$merge = "ANY";
+	}
 
-	my $search_type = $session->param( $basename."_merge" );
-	my $search_match = $session->param( $basename."_match" );
-		
-	# Default search type if none supplied (to allow searches 
-	# using simple HTTP GETs)
-	$search_type = "ALL" unless defined( $search_type );
-	$search_match = "IN" unless defined( $search_match );
-		
-	return unless( defined $val );
-
-	return( $val, $search_type, $search_match );	
+	return( $value, $match, $merge );
 }		
 
 
@@ -2285,6 +2281,8 @@ sub get_property_defaults
 		volatile	=> EP_PROPERTY_FALSE,
 		virtual		=> EP_PROPERTY_FALSE,
 		default_value => EP_PROPERTY_UNDEF,
+		match       => "EQ",
+		merge       => "ALL",
 
 		help_xhtml	=> EP_PROPERTY_UNDEF,
 		title_xhtml	=> EP_PROPERTY_UNDEF,
