@@ -59,7 +59,7 @@ sub get_system_field_info
 
 	return 
 	( 
-		{ name=>"subjectid", type=>"text", required=>1, text_index=>0, can_clone=>1, maxlength=>128 },
+		{ name=>"subjectid", type=>"id", required=>1, can_clone=>1, maxlength=>128 },
 
 		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0,
 			default_value=>1 },
@@ -74,10 +74,10 @@ sub get_system_field_info
 		},
 
 		# should be a itemid?
-		{ name=>"parents", type=>"text", required=>1, text_index=>0, 
+		{ name=>"parents", type=>"id", required=>1,
 			multiple=>1 },
 
-		{ name=>"ancestors", type=>"text", required=>0, text_index=>0,
+		{ name=>"ancestors", type=>"id", required=>0,
 			multiple=>1, export_as_xml=>0 },
 
 		{ name=>"depositable", type=>"boolean", required=>1,
