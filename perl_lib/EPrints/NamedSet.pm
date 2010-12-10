@@ -88,7 +88,6 @@ sub add_option
 	{
 		push @{$self->{options}}, $option;
 		$index = scalar(@{$self->{options}});
-		print STDERR "ADDING AT END = $index\n\n";
 	}
 	else
 	{
