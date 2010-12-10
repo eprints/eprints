@@ -907,9 +907,7 @@ sub trim_whitespace
 sub add_to_xml
 {
 	my ($filename,$node,$id) = @_;
-
-	print STDERR "CALLED WITH $filename \n\n $node \n\n $id \n\n";
-
+	
 	my $xml = EPrints::XML::parse_xml( $filename );
 
 	$xml = _remove_blank_nodes($xml);
@@ -926,9 +924,12 @@ sub add_to_xml
 
 	my $ret;
 
-	my $in_xml = EPrints::XML::parse_string( undef, $node );
-	$in_xml = EPrints::XML::_remove_blank_nodes($in_xml);
-	$node = $in_xml->getFirstChild();
+	unless (ref($node) eq "XML::LibXML::Element") {
+		my $in_xml = EPrints::XML::parse_string( undef, $node );
+		$in_xml = EPrints::XML::_remove_blank_nodes($in_xml);
+		$node = $in_xml->getFirstChild();
+	}
+
 	foreach my $child ( $node->getChildNodes() ) {
 		$ret = _add_node_to_xml( $main_node, $child, $id, 0 );
 	}
