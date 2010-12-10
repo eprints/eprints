@@ -908,6 +908,8 @@ sub add_to_xml
 {
 	my ($filename,$node,$id) = @_;
 
+	print STDERR "CALLED WITH $filename \n\n $node \n\n $id \n\n";
+
 	my $xml = EPrints::XML::parse_xml( $filename );
 
 	$xml = _remove_blank_nodes($xml);
@@ -922,8 +924,15 @@ sub add_to_xml
 	
 	return 1 if (!defined $main_node);
 
-	my $ret = _add_node_to_xml($main_node,$node,$id,0);
-	
+	my $ret;
+
+	my $in_xml = EPrints::XML::parse_string( undef, $node );
+	$in_xml = EPrints::XML::_remove_blank_nodes($in_xml);
+	$node = $in_xml->getFirstChild();
+	foreach my $child ( $node->getChildNodes() ) {
+		$ret = _add_node_to_xml( $main_node, $child, $id, 0 );
+	}
+
 	$ret = _write_xml($xml,$filename);
 	
 	return $ret;
@@ -977,7 +986,7 @@ sub _add_node_to_xml
 		foreach my $at (@attrs)
 		{
 #print STDERR $at->getName() . " : " . $at->getValue() . "\n";
-			if ($at->getName eq "mode") {
+			if ($at->getName eq "operation") {
 				$match_type = $at->getValue();
 				$count--;
 				next;
@@ -989,14 +998,19 @@ sub _add_node_to_xml
 		next unless (_trim($element->nodeValue) eq _trim($node->nodeValue));
 #print STDERR "HERE\n\n";
 		if ($match_type eq "replace") {
-#print STDERR "Found something to replace\n\n";
 			$element->setAttribute("disabled",1);
 			$element->setAttribute("disabled_by",$id);
 			$node->setAttribute("required_by",$id);
 			($element->parentNode())->insertAfter($node,$element);
 			return 1;
 		}
-
+		if ($match_type eq "disbale") {
+			$element->setAttribute("disabled",1);
+			$element->setAttribute("disabled_by",$id);
+			$node->setAttribute("required_by",$id);
+			return 1;
+		}
+		
 		$depth++;
 		if (!$node->hasChildNodes) {
 			return 1 if ($element->nodeName eq "#text" or $element->nodeName eq "#comment");
