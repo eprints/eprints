@@ -260,9 +260,9 @@ sub get_system_field_info
 
 		{ name=>"mime_type", type=>"id", },
 
-		{ name=>"hash", type=>"longtext", },
+		{ name=>"hash", type=>"id", },
 
-		{ name=>"hash_type", type=>"text", },
+		{ name=>"hash_type", type=>"id", },
 
 		{ name=>"filesize", type=>"bigint", },
 
