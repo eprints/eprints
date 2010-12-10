@@ -116,51 +116,68 @@ our %ORACLE_TYPES = (
 	SQL_VARCHAR() => {
 		CREATE_PARAMS => "max length",
 		TYPE_NAME => "VARCHAR2",
+		COLUMN_SIZE => 255,
 	},
 	SQL_LONGVARCHAR() => {
 		CREATE_PARAMS => undef,
 		TYPE_NAME => "CLOB",
+		COLUMN_SIZE => 2**31,
+	},
+	SQL_CLOB() => {
+		CREATE_PARAMS => undef,
+		TYPE_NAME => "CLOB",
+		COLUMN_SIZE => 2**31,
 	},
 	SQL_VARBINARY() => {
 		CREATE_PARAMS => undef,
 		TYPE_NAME => "BLOB",
+		COLUMN_SIZE => 2**31,
 	},
 	SQL_LONGVARBINARY() => {
 		CREATE_PARAMS => undef,
 		TYPE_NAME => "BLOB",
+		COLUMN_SIZE => 2**31,
 	},
 	SQL_TINYINT() => {
 		CREATE_PARAMS => undef,
 		TYPE_NAME => "NUMBER(3,0)",
+		COLUMN_SIZE => 3,
 	},
 	SQL_SMALLINT() => {
 		CREATE_PARAMS => undef,
 		TYPE_NAME => "NUMBER(6,0)",
+		COLUMN_SIZE => 6,
 	},
 	SQL_INTEGER() => {
 		CREATE_PARAMS => undef,
 		TYPE_NAME => "NUMBER(*,0)",
+		COLUMN_SIZE => 10,
 	},
 	SQL_BIGINT() => {
 		CREATE_PARAMS => undef,
 		TYPE_NAME => "NUMBER(19,0)",
+		COLUMN_SIZE => 19,
 	},
 	# NUMBER becomes FLOAT if not p,s is given
 	SQL_REAL() => {
 		CREATE_PARAMS => undef,
 		TYPE_NAME => "NUMBER",
+		COLUMN_SIZE => 15,
 	},
 	SQL_DOUBLE() => {
 		CREATE_PARAMS => undef,
 		TYPE_NAME => "NUMBER",
+		COLUMN_SIZE => 15,
 	},
 	SQL_DATE() => {
 		CREATE_PARAMS => undef,
 		TYPE_NAME => "DATE",
+		COLUMN_SIZE => 10,
 	},
 	SQL_TIME() => {
 		CREATE_PARAMS => undef,
 		TYPE_NAME => "DATE",
+		COLUMN_SIZE => 10,
 	},
 );
 
@@ -292,8 +309,9 @@ sub get_column_type
 		$length = 1000 if !defined($length) || $length > 1000;
 	}
 
-	$db_type = $ORACLE_TYPES{$data_type}->{TYPE_NAME};
-	$params = $ORACLE_TYPES{$data_type}->{CREATE_PARAMS};
+	my $type_info = $self->type_info( $data_type );
+	$db_type = $type_info->{TYPE_NAME};
+	$params = $type_info->{CREATE_PARAMS};
 
 	my $type = $self->quote_identifier($name) . " " . $db_type;
 
@@ -551,6 +569,13 @@ sub _add_field
 	}
 
 	return $rc;
+}
+
+sub type_info
+{
+	my( $self, $data_type ) = @_;
+
+	return $ORACLE_TYPES{$data_type};
 }
 
 1; # For use/require success

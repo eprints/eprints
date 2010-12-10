@@ -541,6 +541,24 @@ sub retry_error
 	return ($err == 2006);
 }
 
+sub type_info
+{
+	my( $self, $data_type ) = @_;
+
+	if( $data_type eq SQL_CLOB )
+	{
+		return {
+			TYPE_NAME => "longtext",
+			CREATE_PARAMS => "",
+			COLUMN_SIZE => 2 ** 31,
+		};
+	}
+	else
+	{
+		return $self->SUPER::type_info( $data_type );
+	}
+}
+
 1; # For use/require success
 
 ######################################################################

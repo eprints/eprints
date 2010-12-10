@@ -46,7 +46,7 @@ sub get_sql_type
 
 	return $session->get_database->get_column_type(
 		$self->get_sql_name(),
-		EPrints::Database::SQL_LONGVARCHAR,
+		EPrints::Database::SQL_CLOB,
 		!$self->get_property( "allow_null" ),
 		undef,
 		undef,
@@ -113,7 +113,7 @@ sub get_property_defaults
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{input_rows} = $EPrints::MetaField::FROM_CONFIG;
-	$defaults{maxlength} = 16384; # 2^16 / 4 (safely store UTF-8)
+	$defaults{maxlength} = 65535;
 	$defaults{sql_index} = 0;
 	return %defaults;
 }

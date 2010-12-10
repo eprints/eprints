@@ -1017,20 +1017,58 @@ sub database_type_info
 
 	my @types = @{$EPrints::Database::EXPORT_TAGS{sql_types}};
 
-	print sprintf("%s\t%s\n",
+	print sprintf("%30s %s\n",
 		"EPrint Type",
-		"Database Type" );
+		"Database Type",
+		);
 
 	foreach my $type (@types)
 	{
 		next if $type eq "SQL_NULL" or $type eq "SQL_NOT_NULL";
 		no strict "refs";
 		my $f = "EPrints::Database::$type";
-		my $type_info = $dbh->type_info( &$f );
+		my $type_info = $repo->database->type_info( &$f );
 
-		print sprintf("%s:\t%s\n",
-			$type,
-			defined $type_info->{TYPE_NAME} ? $type_info->{TYPE_NAME} : "UNSUPPORTED" );
+		if( !$type_info )
+		{
+			print "$type: -\n";
+		}
+		else
+		{
+			print sprintf("%30s: %s(%lu)\n",
+				$type,
+				$type_info->{TYPE_NAME},
+				$type_info->{COLUMN_SIZE},
+			);
+		}
+	}
+
+	print "\n";
+	print sprintf("%34s\t%s\n",
+		"DBI Type",
+		"Length",
+		);
+	foreach my $type (sort @{$DBI::EXPORT_TAGS{sql_types}})
+	{
+		no strict "refs";
+		my $type_info = $dbh->type_info( eval "DBI::$type()" );
+
+		if( !$type_info )
+		{
+			print sprintf("%34s: %s\n",
+				$type,
+				"-"
+			);
+		}
+		else
+		{
+			print sprintf("%34s: %s(%lu) %s\n",
+				$type,
+				uc($type_info->{TYPE_NAME}),
+				$type_info->{COLUMN_SIZE},
+				($type_info->{CREATE_PARAMS} || ''),
+			);
+		}
 	}
 }
 
@@ -1895,6 +1933,7 @@ sub upgrade
 			3.2.1
 			3.2.2
 			3.3.0
+			3.3.1
 		);
 
 	for(my $i = 0; $i < $#versions; ++$i)
@@ -2799,6 +2838,45 @@ sub upgrade_3_2_2_to_3_3_0
 	my $Q_table = $db->quote_identifier( "eprint__rindex" );
 	my $Q_field = $db->quote_identifier( "field" );
 	$db->do( "UPDATE $Q_table SET $Q_field='documents' WHERE $Q_field='_fulltext_'" );
+}
+
+sub upgrade_3_3_0_to_3_3_1
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	return if !$repo->database->isa( "EPrints::Database::mysql" );
+
+	foreach my $datasetid ($repo->get_dataset_ids)
+	{
+		my $dataset = $repo->dataset( $datasetid );
+		next if $dataset->is_virtual;
+		my @cols;
+		foreach my $field ($dataset->fields)
+		{
+			next if $field->type ne "longtext";
+			next if $field->is_virtual;
+			print "Upgrading ".$dataset->id.".".$field->name." to longtext\n"; 
+			my $sql_name = $field->get_sql_name;
+			push(@cols, $field), next
+				if !$field->property( "multiple" );
+			my $table = $dataset->get_sql_sub_table_name( $field );
+			$repo->database->do("ALTER TABLE ".
+				$repo->database->quote_identifier( $table ).
+				" MODIFY ".
+				$field->get_sql_type( $repo ));
+		}
+		next if !@cols;
+		$repo->database->do("ALTER TABLE ".
+			$repo->database->quote_identifier( $dataset->get_sql_table_name ).
+			join ",",
+			map {
+					" MODIFY ".
+					$_->get_sql_type( $repo )
+				} @cols
+			);
+	}
 }
 
 

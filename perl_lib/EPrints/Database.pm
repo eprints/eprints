@@ -88,6 +88,7 @@ use constant {
 	SQL_DOUBLE => DBI::SQL_DOUBLE,
 	SQL_DATE => DBI::SQL_DATE,
 	SQL_TIME => DBI::SQL_TIME,
+	SQL_CLOB => DBI::SQL_CLOB,
 };
 
 %EXPORT_TAGS = (
@@ -96,6 +97,7 @@ use constant {
 		SQL_NOT_NULL
 		SQL_VARCHAR
 		SQL_LONGVARCHAR
+		SQL_CLOB
 		SQL_VARBINARY
 		SQL_LONGVARBINARY
 		SQL_TINYINT
@@ -731,6 +733,7 @@ sub type_info
 		return {
 			TYPE_NAME => "bigint",
 			CREATE_PARAMS => "",
+			COLUMN_SIZE => 19,
 		};
 	}
 	else
@@ -765,7 +768,7 @@ TYPE is the SQL type. The types are constants defined by this module, to import 
 
 Supported types (n = requires LENGTH argument):
 
-Character data: SQL_VARCHAR(n), SQL_LONGVARCHAR.
+Character data: SQL_VARCHAR(n), SQL_LONGVARCHAR, SQL_CLOB.
 
 Binary data: SQL_VARBINARY(n), SQL_LONGVARBINARY.
 
@@ -821,7 +824,11 @@ sub get_column_type
 		$type .= "($length,$scale)";
 	}
 
-	if( $data_type eq SQL_VARCHAR() or $data_type eq SQL_LONGVARCHAR() )
+	if(
+		$data_type eq SQL_VARCHAR() or
+		$data_type eq SQL_LONGVARCHAR() or
+		$data_type eq SQL_CLOB()
+	  )
 	{
 		my $langid = $opts{langid};
 		if( !defined $langid )
