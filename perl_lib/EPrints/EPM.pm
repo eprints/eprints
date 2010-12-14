@@ -122,25 +122,13 @@ sub cache_package
 
 	$rc = 1;
 
-        File::Find::find( {
-                no_chdir => 1,
-                wanted => sub {
-                        return unless $rc and !-d $File::Find::name;
-                        my $filepath = $File::Find::name;
-                        my $filename = substr($filepath, length($directory));
-                        open(my $filehandle, "<", $filepath);
-                        unless( defined( $filehandle ) )
-                        {
-                                $rc = 0;
-                                return;
-                        }
-			if ( (substr $filename, -5) eq ".spec" ) {
-				$package_name = substr $filename, 0, -5;
-				$cache_package_path = $epm_path . "/" . $package_name;
-			}
-                },
-        }, "$directory" );
+	my $spec_file_incoming = _find_spec_file($directory);
+	return(1, "no_spec_file" ) if (!defined $spec_file_incoming);
+	
+	my $keypairs_in = read_spec_file($spec_file_incoming);
+	my $package_name = $keypairs_in->{package};
 
+	my $cache_package_path = $epm_path . "/" . $package_name;
 
 	if ( !-d $cache_package_path ) {
 		mkpath($cache_package_path);
@@ -155,7 +143,8 @@ sub cache_package
         }
 	
 	$rc = unpack_package($repository, $tmpfile, $cache_package_path);
-	
+	$spec_file_incoming = _find_spec_file($cache_package_path);
+
 	my $message = "Package copied into cache";
 	if ($rc) {
 		$message = "Failed to unpack package to cache";
@@ -164,7 +153,45 @@ sub cache_package
 	
 }
 
-sub install 
+sub _find_spec_file
+{
+	my ( $directory ) = @_;
+
+	my $spec_file_in;
+
+	my $rc = 1;
+	File::Find::find( {
+                no_chdir => 1,
+                wanted => sub {
+                        return unless $rc and !-d $File::Find::name;
+                        my $filepath = $File::Find::name;
+                        my $filename = substr($filepath, length($directory));
+                        open(my $filehandle, "<", $filepath);
+                        unless( defined( $filehandle ) )
+                        {
+                                $rc = 0;
+                                return;
+                        }
+			if ( (substr $filename, -5) eq ".spec" ) {
+				$spec_file_in = $filepath;
+			}
+		}
+        }, "$directory" );
+	
+	my $keypairs = read_spec_file($spec_file_in);
+	my $package_name = $keypairs->{package};
+	
+	my $dst_spec = $directory . "/$package_name.spec";
+
+	unless ($dst_spec eq $spec_file_in) {
+		copy($spec_file_in,$dst_spec);
+		unlink($spec_file_in);
+	}
+
+	return $dst_spec;
+} 
+
+sub install
 {
 	my ($repository, $app_path, $force) = @_;
 
@@ -196,43 +223,28 @@ sub install
                 return (1,"Failed to create package management cache");
         }
 
+
+	#Set up variables to be used
 	my $package_name;
 	my $package_path;
 	my $file_md5s;
 	my $backup_directory;
 	my $abort = 0;
-	my $spec_file_in;
-       	my $spec_file;
+        my $rc = 1;
 
-        $rc = 1;
-	File::Find::find( {
-                no_chdir => 1,
-                wanted => sub {
-                        return unless $rc and !-d $File::Find::name;
-                        my $filepath = $File::Find::name;
-                        my $filename = substr($filepath, length($directory));
-                        open(my $filehandle, "<", $filepath);
-                        unless( defined( $filehandle ) )
-                        {
-                                $rc = 0;
-                                return;
-                        }
-			if ( (substr $filename, -5) eq ".spec" ) {
-				$package_name = substr $filename, 0, -5;
-				$package_path = $epm_path . "/" . $package_name;
-				$spec_file = $package_path . "/" . $filename;
-				
-				$spec_file_in = $filepath;
-			}
-		}
-        }, "$directory" );
+	# Find the Package Spec File 
+
+	my $spec_file_incoming = _find_spec_file($directory);
+	return(1, "no_spec_file" ) if (!defined $spec_file_incoming);
 	
-	if (! (defined $spec_file_in)) {
-		$message = "Could not find package spec file, aborting";
-		return (1, $message);
-	}
+	my $keypairs_in = read_spec_file($spec_file_incoming);
+	my $package_name = $keypairs_in->{package};
 
-	my $keypairs_in = read_spec_file($spec_file_in);
+	my $package_path = $epm_path . "/" . $package_name;
+	my $spec_file = $package_path . "/" . $package_name . ".spec";
+
+	my $upgrading;
+	my $old_version;
 
 	if ( -e $spec_file and $force < 1) {
 
@@ -244,7 +256,11 @@ sub install
 		if ($this_version lt $installed_version) {
 			$message = "Package is already installed, use --force to override";	
 			$abort = 1;
+			# TODO, We should return such that it then cleans up automatically.
 			return;
+		} else {
+			$upgrading = 1;
+			$old_version = $installed_version;
 		}
 
 		$backup_directory = make_backup($repository, $package_name);
@@ -254,7 +270,7 @@ sub install
 	my $package_files;
 	my $icon_file = $directory . "/" . "$keypairs_in->{icon}";
 
-	$package_files->{$spec_file_in} = 1;
+	$package_files->{$spec_file_incoming} = 1;
 	$package_files->{$icon_file} = 1;
 	
 	mkpath($package_path);
@@ -293,13 +309,17 @@ sub install
 				}
 
 				if ( -e $installed_path and $force < 1) {
+					# Upgrade the installed file (if it is controlled by the previous version)
+					
 					my $installed_md5 = md5sum($installed_path);
 					my $this_md5 = md5sum($filepath);
 					my $package_managed = 1;
+				
 					if ( defined $backup_directory ) {
 						$package_managed = check_required_md5($repository,$package_name,$backup_directory,$installed_path);
 					}
-					if ($package_managed < 1 and $config_file < 1) {
+
+					if (!$package_managed and !$config_file) {
 						write_md5s($repository,$package_path,$file_md5s); 
 						remove($repository, $package_name, 1);
 						if ( defined $backup_directory) {
@@ -308,12 +328,18 @@ sub install
 						$message = "Install Failed: $installed_path has been changed outside the package manager, use --force to override";
 						$abort = 1;
 						return;
-					} elsif ($package_managed < 1 and $config_file) {
+					} elsif (!$package_managed and $config_file) {
 						$message = "Config file has changed, not installing use --force to override";
 					} 
 				}
 					
+				# Install the file, all that logic for this:
+				
 				copy($filepath, $installed_path);
+
+				# Now some more logic to check it is installed
+				# If it isn't failed and remove. 
+				# It is is, write the (new) MD5 ready for upgrade/remove.
 
 				if ( !-e $installed_path ) {
 					write_md5s($repository,$package_path,$file_md5s); 
@@ -336,6 +362,7 @@ sub install
                 },
         }, "$directory" );
 	
+	# Write the md5s out to a file. 
 	write_md5s($repository,$package_path,$file_md5s); 
 	
 	if (!defined $message) {
@@ -343,51 +370,71 @@ sub install
 		$message = "Package Successfully Installed";
 	} 
 	
+	# Check the repository reloads
 	my $installed = check_install($repository);
-	if ($installed > 0) {
+	if ($installed) {
 		my ($rc2,$extra) = remove($repository,$package_name,1);
 		$message = "Package Install Failed (compilation error), package was removed again with message: " . $extra;
 		$rc = 1;
 		return ( $rc,$message );
 	} else {
 		$repository->load_config();
+
+		# Make any dataset upgrades (this is upgrade safe :) )
 		my $schema_after = get_current_schema($repository);
 		my $rc = install_dataset_diffs($repository,$schema_before,$schema_after);
 	}
 
-	my $keypairs = EPrints::EPM::read_spec_file($spec_file);
+	# Re-read spec file (ensures we have the installed one) 
+	my $keypairs = read_spec_file($spec_file);
 	my $config_string = $keypairs->{configuration_file};
+	my $new_version = $keypairs->{version};
 	my $plugin_id = "Screen::".$config_string;
+	
+	$repository->load_config();
 
 	my $plugin = $repository->get_repository->plugin( $plugin_id );
 
 	my $return = 0;
+	
 	if (defined $plugin) 
 	{
-		#THIS SHOULD REALLY BE MOVED TO BEFORE THE WHOLE INSTALL IS DONE!
-		if ($plugin->can( "action_preinst" )) 
+		# TODO: THIS SHOULD REALLY BE MOVED TO BEFORE THE WHOLE INSTALL IS DONE, SHOULD IT BE EXECUTABLE IS ANOTHER THING (may not ever implement)
+		# if ($plugin->can( "action_preinst" )) 
+		# {
+		#	($return,my $preinst_msg) = $plugin->action_preinst();
+		#	if ($return < 1 && $return > 0) {
+		#		$message = $preinst_msg;
+		#	} else {
+		#		$message = "Package Install Failed (preinst failed with error: $preinst_msg), package was removed again with message: ";
+		#	}
+		# }
+
+		# Call Post Install or Upgrade routine.
+
+		my $inst_msg;
+		if ($plugin->can( "action_postinst" ) and !($upgrading)) 
 		{
-			($return,my $preinst_msg) = $plugin->action_preinst();
-			if ($return < 1 && $return > 0) {
-				$message = $preinst_msg;
-			} else {
-				$message = "Package Install Failed (preinst failed with error: $preinst_msg), package was removed again with message: ";
-			}
-		}
-		if ($plugin->can( "action_postinst" )) 
+			($return, $inst_msg) = $plugin->action_postinst();
+		} 
+		elsif ($upgrading && $plugin->can( "action_upgrade" )) 
 		{
-			($return,my $postinst_msg) = $plugin->action_postinst();
-			if ($return < 1 && $return > 0) {
-				$message = $postinst_msg;
-			} elsif (defined $postinst_msg) {
-				$message = "Package Install Failed with error ($postinst_msg), package was removed again with message: ";
-			} else {
-				$message = "Package Install Failed (postinst failed), package was removed again with message: ";
-			}
+			($return, $inst_msg) = $plugin->action_upgrade($old_version, $new_version);
 		}
-	} else {
-#print STDERR "NO PLUGIN\n";
+
+		# Handle the return
+		if ($return < 1 && $return > 0) {
+			$message = $inst_msg;
+		} elsif (defined $inst_msg) {
+			$message = "Package Install Failed with error ($inst_msg), package was removed again with message: ";
+		} elsif ($upgrading) {
+			$message = "Package Install Failed (upgrade failed), package was removed again with message: ";
+		} else {
+			$message = "Package Install Failed (postinst failed), package was removed again with message: ";
+		}
+
 	}
+
 	if ($return > 0.5) {
 		my ($rc2,$extra) = remove($repository,$package_name,1);
 		return (1,$message . $extra);
@@ -638,7 +685,7 @@ sub remove
 	my $md5_file = $package_path . "/checksums";
 	my $dataset_file = $package_path . "/dataset_changes";
 
-	if ( !-e $spec_file or !-e $md5_file and $force < 1) {
+	if ( !-e $spec_file and $force < 1) {
                 
 		return (1,"Cannot locate installed package : " . $package_name);
 		
@@ -670,10 +717,8 @@ sub remove
 			$return = $plugin->action_removed_status();
 			$message = "Package cannot be removed as the packages pre-remove script failed.";
 		}
-	} else {
-#print STDERR "NO PLUGIN";
-	}
-	
+	} 
+
 	if ($return > 0) {
 		return ($return,$message);
 	}
