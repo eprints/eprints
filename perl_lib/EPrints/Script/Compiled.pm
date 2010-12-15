@@ -481,7 +481,7 @@ sub run_related_objects
 	my @r = ();
 	foreach( @required ) { push @r, $_->[0]; }
 	
-	return [ $object->[0]->get_related_objects( @r ) ];
+	return [ scalar($object->[0]->get_related_objects( @r )), 'ARRAY' ];
 }
 
 sub run_url
