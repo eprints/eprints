@@ -247,10 +247,9 @@ sub install
 		my $this_version = $keypairs_in->{version};
 
 		if ($this_version lt $installed_version) {
-			$message = "Package is already installed, use --force to override";	
+			$message = "More recent version of package is already installed, use --force to override";	
 			$abort = 1;
-			# TODO, We should return such that it then cleans up automatically.
-			return;
+			return(1,$message);
 		} else {
 			$upgrading = 1;
 			$old_version = $installed_version;
@@ -383,8 +382,9 @@ sub install
 	my $config_string = $keypairs->{configuration_file};
 	my $new_version = $keypairs->{version};
 	my $plugin_id = "Screen::".$config_string;
-	
-	$repository->load_config();
+	my $plugin_path = $config_string;
+	$plugin_path =~ s/::/\//g;
+	$plugin_path = "EPrints/Plugin/Screen/" . $plugin_path . ".pm";
 
 	my $plugin = $repository->get_repository->plugin( $plugin_id );
 
@@ -392,6 +392,14 @@ sub install
 	
 	if (defined $plugin) 
 	{
+		foreach my $inkey(keys %INC) {
+			if ($inkey eq $plugin_path) {
+				delete $INC{$inkey};
+			}
+		}
+
+		$repository->load_config();
+		
 		# TODO: THIS SHOULD REALLY BE MOVED TO BEFORE THE WHOLE INSTALL IS DONE, SHOULD IT BE EXECUTABLE IS ANOTHER THING (may not ever implement)
 		# if ($plugin->can( "action_preinst" )) 
 		# {
