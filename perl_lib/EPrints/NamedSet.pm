@@ -26,14 +26,12 @@ B<EPrints::NamedSet> - Repository Configuration
 		repository => $repository
 	);
 	
-	$namedset->add_option( "performance" );
-	$namedset->remove_option( "thesis" );
+	$namedset->add_option( "performance", "my_package" );
+	$namedset->remove_option( "thesis", "my_package" );
 	
-	$namedset->write;
-
 =head1 DESCRIPTION
 
-A utility class to manipulate named sets. 
+A utility class to manipulate named sets. Add and remove methods are designed to be called by Bazaar Packages
 
 =head1 METHODS
 
@@ -143,7 +141,7 @@ sub _add_required_by
 		$line =~ s/^\s+//;
 		$line =~ s/\s+$//;
 		my @values = split(' ',$line);
-		$line = @values[0];
+		$line = $values[0];
 		next if $line eq "";
 		if ($line eq $option) {
 			foreach my $value(@values) {
@@ -200,7 +198,7 @@ sub remove_option
 		$line =~ s/^\s+//;
 		$line =~ s/\s+$//;
 		my @values = split(' ',$line);
-		my $line_option = @values[0];
+		my $line_option = $values[0];
 		next if $line_option eq "";
 		my $print_flag = 1;
 		if ($line_option eq $option) {

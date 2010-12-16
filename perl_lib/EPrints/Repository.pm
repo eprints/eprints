@@ -1128,8 +1128,8 @@ sub _load_namedsets
 			$line =~ s/^\s+//;
 			$line =~ s/\s+$//;
 			my @values = split(' ',$line);
-			$line = @values[0];
-			next if $line eq "";
+			$line = $values[0];
+			next if (!defined $line);
 			push @types, $line;
 		}
 		close FILE;

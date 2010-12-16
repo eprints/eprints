@@ -117,9 +117,6 @@ sub cache_package
                 return (1,"Failed to create package management cache");
         }
 
-	my $package_name;
-	my $cache_package_path;
-
 	$rc = 1;
 
 	my $spec_file_incoming = _find_spec_file($directory);
@@ -197,8 +194,6 @@ sub install
 
 	my $directory;
 
-	my $rc = 1;
-
 	if ( -d $app_path ) {
 		$directory = $app_path;
 	} else {
@@ -225,8 +220,6 @@ sub install
 
 
 	#Set up variables to be used
-	my $package_name;
-	my $package_path;
 	my $file_md5s;
 	my $backup_directory;
 	my $abort = 0;
