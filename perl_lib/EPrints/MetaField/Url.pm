@@ -41,6 +41,17 @@ sub get_sql_type
 	return $self->EPrints::MetaField::Longtext::get_sql_type( $session );
 }
 
+sub get_property_defaults
+{
+	my( $self ) = @_;
+	return (
+		$self->SUPER::get_property_defaults,
+		text_index => 1,
+		sql_index => 0,
+		match => "IN"
+	);
+}
+
 sub render_single_value
 {
 	my( $self, $session, $value ) = @_;
