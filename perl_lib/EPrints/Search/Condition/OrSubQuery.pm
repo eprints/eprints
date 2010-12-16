@@ -36,7 +36,9 @@ sub logic
 {
 	my( $self, %opts ) = @_;
 
-	return "(" . join(" OR ", map { $_->logic( %opts ) } @{$self->{sub_ops}} ) . ")";
+	my @logic = map { $_->logic( %opts ) } @{$self->{sub_ops}};
+
+	return @logic ? "(".join(" OR ", @logic).")" : ();
 }
 
 1;

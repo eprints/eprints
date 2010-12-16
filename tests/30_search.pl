@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 27;
+use Test::More tests => 28;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -323,6 +323,19 @@ $searchexp = EPrints::Search->new(
 $searchexp->add_field( $dataset->field( "title" ), "eagl*", "IN" );
 
 my $sf = $searchexp->get_searchfield( "title" );
-is( $sf->get_match, "index_start", "title=eagl* results in index_start" );
+# any better way to check this?
+ok( $sf->get_conditions->describe =~ "index_start", "title=eagl* results in index_start" );
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $dataset,
+	satisfy_all => 0 );
+
+$searchexp->add_field( $dataset->field( "title" ), "waxing monkey", "IN" );
+$searchexp->add_field( $dataset->field( "date" ), "2000" );
+
+$list = $searchexp->perform_search;
+
+ok($list->count > 0, "title OR date: ".$searchexp->get_conditions->describe);
 
 $session->terminate;
