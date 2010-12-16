@@ -103,26 +103,5 @@ sub get_index_codes
        return( $value, [], [] );
 }
 
-sub get_search_conditions_not_ex
-{
-       my( $self, $session, $dataset, $search_value, $match, $merge,
-               $search_mode ) = @_;
-       
-       if( $match eq "EQ" )
-       {
-               return EPrints::Search::Condition->new( 
-                       '=', 
-                       $dataset,
-                       $self, 
-                       $search_value );
-       }
-
-       return EPrints::Search::Condition->new( 
-                       'index',
-                       $dataset,
-                       $self, 
-                       $search_value );
-}
-
 ######################################################################
 1;

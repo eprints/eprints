@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 26;
+use Test::More tests => 27;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -314,5 +314,15 @@ $searchexp->add_field( $sample_doc->dataset->field( "relation" ), "http%3A//epri
 $list = $searchexp->perform_search;
 
 ok($list->count > 0, "compound type field query");
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $dataset,
+	satisfy_all => 0 );
+
+$searchexp->add_field( $dataset->field( "title" ), "eagl*", "IN" );
+
+my $sf = $searchexp->get_searchfield( "title" );
+is( $sf->get_match, "index_start", "title=eagl* results in index_start" );
 
 $session->terminate;

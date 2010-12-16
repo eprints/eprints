@@ -2404,45 +2404,23 @@ Return the search condition for a search which is not-exact ($match ne "EX").
 
 sub get_search_conditions_not_ex
 {
-	my( $self, $session, $dataset, $search_value, $match, $merge,
-		$search_mode ) = @_;
-	
-	if( $match eq "EQ" )
-	{
-		return EPrints::Search::Condition->new( 
-			'=', 
-			$dataset,
-			$self, 
-			$search_value );
-	}
+       my( $self, $session, $dataset, $search_value, $match, $merge,
+               $search_mode ) = @_;
+       
+       if( $match eq "EQ" )
+       {
+               return EPrints::Search::Condition->new( 
+                       '=', 
+                       $dataset,
+                       $self, 
+                       $search_value );
+       }
 
-	# free text!
-
-	# apply stemming and stuff
-	# codes, grep_terms, bad
-	my( $codes, undef, undef ) = $self->get_index_codes( $session,
-		$self->property( "multiple" ) ? [$search_value] : $search_value );
-
-	# Just go "yeah" if stemming removed the word
-	if( !EPrints::Utils::is_set( $codes->[0] ) )
-	{
-		return EPrints::Search::Condition->new( "PASS" );
-	}
-
-	if( $search_value =~ s/\*$// )
-	{
-		return EPrints::Search::Condition::IndexStart->new( 
-				$dataset,
-				$self, 
-				$codes->[0] );
-	}
-	else
-	{
-		return EPrints::Search::Condition::Index->new( 
-				$dataset,
-				$self, 
-				$codes->[0] );
-	}
+       return EPrints::Search::Condition->new( 
+                       'index',
+                       $dataset,
+                       $self, 
+                       $search_value );
 }
 
 sub get_value

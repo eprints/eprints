@@ -112,5 +112,56 @@ sub get_property_defaults
 	return %defaults;
 }
 
+=item $cond = $field->get_search_conditions_not_ex( $session, $dataset, $value, $match, $merge, $mode )
+
+Return the search condition for a search which is not-exact ($match ne "EX").
+
+If match is "IN" $value is split into terms and the first term is used as an index lookup.
+
+=cut
+
+sub get_search_conditions_not_ex
+{
+	my( $self, $session, $dataset, $search_value, $match, $merge,
+		$search_mode ) = @_;
+	
+	if( $match eq "EQ" )
+	{
+		return EPrints::Search::Condition->new( 
+			'=', 
+			$dataset,
+			$self, 
+			$search_value );
+	}
+
+	# free text!
+
+	# apply stemming and stuff
+	# codes, grep_terms, bad
+	my( $codes, undef, undef ) = $self->get_index_codes( $session,
+		$self->property( "multiple" ) ? [$search_value] : $search_value );
+
+	# Just go "yeah" if stemming removed the word
+	if( !EPrints::Utils::is_set( $codes->[0] ) )
+	{
+		return EPrints::Search::Condition->new( "PASS" );
+	}
+
+	if( $search_value =~ s/\*$// )
+	{
+		return EPrints::Search::Condition::IndexStart->new( 
+				$dataset,
+				$self, 
+				$codes->[0] );
+	}
+	else
+	{
+		return EPrints::Search::Condition::Index->new( 
+				$dataset,
+				$self, 
+				$codes->[0] );
+	}
+}
+
 ######################################################################
 1;
