@@ -53,6 +53,8 @@ Where I<command> is one of:
 
 =item profile
 
+=item rebuild_triples
+
 =item recommit
 
 =item reorder
@@ -130,6 +132,10 @@ Use this to produce a schema for the EP3 XML read/written by your repository.
 This erases all the .words and .indexcodes cache files from your repository, forcing the indexer to rerun the tools used to extract full text from your documents.
 
 This is useful if you only setup the fulltext indexing after your repository is already live, or if you discover there has been a problem.
+
+=item B<epadmin> rebuild_triples I<repository_id> [I<dataset_id> [I<item_id> I<item_id> ...]]
+
+Queue all the records to have their RDF triple cache rebuilt. This may tie-up the indexer for some time on a large repository. Do this if you have made changes to the way RDF triples are produced from an EPrint. 
 
 =item B<epadmin> recommit I<repository_id> I<dataset_id> [I<eprint_id> I<eprint_id> ...]
 
@@ -320,6 +326,7 @@ else
 	elsif( $action eq "update_database_structure" ) { update_database_structure( $repoid ); }
 	elsif( $action eq "update" ) { update_database_structure( $repoid ); }
 	elsif( $action eq "upgrade_mysql_charset" ) { upgrade_mysql_charset( $repoid ); }
+	elsif( $action eq "rebuild_triples" ) { rebuild_triples( $repoid, @ARGV ); }
 	elsif( $action eq "recommit" ) 
 	{
 		my $datasetid = shift @ARGV;
@@ -1809,6 +1816,52 @@ sub reorder
 		}
 	} );
 }
+
+sub rebuild_triples
+{
+	my( $repoid, $datasetid, @ids ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	if( !defined $datasetid ) { $datasetid = "eprint"; }
+
+	my $dataset = $repo->dataset( $datasetid );
+	if( !defined $dataset )
+	{
+		print "Exiting due to unknown dataset.\n" if( $noise >= 1 );
+		exit( 1 );
+	}
+
+	my $list;
+	if( @ids )
+	{ 
+		$list = $dataset->list( \@ids );
+	}
+	else
+	{
+		$list = $dataset->search;
+	}
+
+	$list->map( sub {
+        	my( $repository, $dataset, $item ) = @_;
+	
+		my $action = "clear_triples";
+		if( $item->get_value( "eprint_status" ) eq "archive" )
+		{
+			$action = "update_triples";
+		}
+		$repository->dataset( "event_queue" )->create_dataobj({
+			pluginid => "Event::RDF",
+			action => $action,
+			params => [$item->internal_uri],
+		});
+		if( $noise >= 2 )
+		{
+			print STDERR "Queued Triple Rebuild for item: ".$dataset->id()."/".$item->id()."\n";
+		}
+	} );
+}
+
 
 sub reindex
 {
