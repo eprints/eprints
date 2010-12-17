@@ -427,7 +427,6 @@ sub handler
 
 		#FORCE DEBUG
 		#$accept = "text/xml";
-		#print STDERR "ACCEPT: " . $accept;
 
 		# get the real eprint dataset
 		if( $dataset->base_id eq "eprint" )
@@ -533,15 +532,30 @@ sub handler
 
 			$r->pool->cleanup_register(\&EPrints::Apache::LogHandler::document, $r);
 
+			my $rc = undef;
 			$repository->run_trigger( EPrints::Const::EP_TRIGGER_DOC_URL_REWRITE,
+				# same as for URL_REWRITE
 				request => $r,
-				eprint => $eprint,
-				document => $doc,
-				filename => $filename,
-				relations => \@relations,
+				   lang => $lang,    # en
+				   args => $args,    # "" or "?foo=bar"
+				urlpath => $urlpath, # "" or "/subdir"
+				cgipath => $cgipath, # /cgi or /subdir/cgi
+				    uri => $uri,     # /foo/bar
+				 secure => $secure,  # boolean
+			    return_code => \$rc,     # set to trigger a return
+				# extra bits
+				 eprint => $eprint,
+			       document => $doc,
+			       filename => $filename,
+			      relations => \@relations,
 			);
 
-			# a trigger has set an error code
+			# if the trigger has set an return code
+			return $rc if defined $rc;
+	
+			# This way of getting a status from a trigger turns out to cause 
+			# problems and is included as a legacy feature only. Don't use it, 
+			# set ${$opts->{return_code}} = 404; or whatever, instead.
 			return $r->status if $r->status != 200;
 		}
 		# OK, It's the EPrints abstract page (or something whacky like /23/fish)
