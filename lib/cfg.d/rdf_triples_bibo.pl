@@ -474,7 +474,7 @@ $c->add_dataset_trigger( "eprint", EP_TRIGGER_RDF, sub {
 		$o{"graph"}->add(
 			secondary_resource => $person_uri,
 		   	  subject => $person_uri,
-		 	predicate => "foaf:type",
+		 	predicate => "rdf:type",
 		    	   object => "foaf:Person" );
 		$o{"graph"}->add(
 			secondary_resource => $person_uri,
