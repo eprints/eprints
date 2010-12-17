@@ -293,6 +293,7 @@ sub get_filters
 	my $menu_level = scalar @{$esc_path_values};
 
 	my $filters = [];
+        if( defined $view->{filters} ) { push @{$filters}, @{$view->{filters}}; }
 
 	for( my $i=0; $i<$menu_level; ++$i )
 	{
