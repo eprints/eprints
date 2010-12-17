@@ -732,7 +732,7 @@ here, or leave blank when using http only.
 
 END
 
-	$config{securehost} = EPrints::Utils::get_input( "^\$|$REGEXP_HOSTNAME_FULL", 'Hostname', $config{securehost} );
+	$config{securehost} = EPrints::Utils::get_input( "^\$|$REGEXP_HOSTNAME_FULL", 'HTTPS Hostname', $config{securehost}||"" );
 
 	if( $config{securehost} )
 	{
