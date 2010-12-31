@@ -59,6 +59,8 @@ Do not check the current user/group is the same as the user/group in SystemSetti
 
 =back
 
+=begin InternalDoc
+
 =head2 Debugging Slow Processes
 
 This module installs a signal handler that will print a stack trace if given a USR2 signal (if your system supports this signal). To print a stack trace to the error log execute:
@@ -68,6 +70,8 @@ This module installs a signal handler that will print a stack trace if given a U
 Where PID is the id number of the stalled process.
 
 A shell script will print the stack trace to the console.
+
+=end InternalDoc
 
 =head1 METHODS
 
@@ -272,7 +276,7 @@ sub new($%)
 
 Initialise the EPrints environment based on the request $r.
 
-=end
+=end InternalDoc
 
 =cut
 
@@ -314,7 +318,7 @@ sub init_from_request
 
 Cleanup the EPrints environment after the request is complete.
 
-=end
+=end InternalDoc
 
 =cut
 
@@ -342,7 +346,7 @@ sub CLONE
 
 Initialise the EPrints mod_perl environment.
 
-=end
+=end InternalDoc
 
 =cut
 
@@ -482,7 +486,7 @@ Takes following pragmas:
 
 	no_check_user - don't verify effective UID is configured UID
 
-=end
+=end InternalDoc
 
 =cut
 
@@ -505,9 +509,13 @@ sub import
 	$__loaded = 1;
 }
 
+=begin InternalDoc
+
 =item @ids = $eprints->repository_ids
 
 Returns a list of the active repository ids.
+
+=end InternalDoc
 
 =cut
 
@@ -526,7 +534,7 @@ sub repository_ids
 
 Loads and caches all repositories. These are used to make L</current_repository> fast.
 
-=end
+=end InternalDoc
 
 =cut
 
@@ -555,7 +563,7 @@ Returns the current mod_perl request object (note: this might be a sub-request o
 
 Returns undef if there is no current request.
 
-=end
+=end InternalDoc
 
 =cut
 
@@ -566,9 +574,13 @@ sub request
 	return $EPrints::HANDLE->{request};
 }
 
+=begin InternalDoc
+
 =item $sys = $ep->system()
 
 Returns the L<EPrints::System> object.
+
+=end InternalDoc
 
 =cut
 
