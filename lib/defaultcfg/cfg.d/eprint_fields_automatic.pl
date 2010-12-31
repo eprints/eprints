@@ -3,7 +3,7 @@ $c->{set_eprint_automatic_fields} = sub
 {
 	my( $eprint ) = @_;
 
-	my $type = $eprint->get_value( "type" );
+	my $type = $eprint->value( "type" );
 	if( $type eq "monograph" || $type eq "thesis" )
 	{
 		unless( $eprint->is_set( "institution" ) )

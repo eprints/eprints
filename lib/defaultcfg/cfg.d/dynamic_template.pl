@@ -22,7 +22,7 @@ $c->{dynamic_template}->{enable} = 1;
 # specified in the template as <epc:pin ref="name" />
 
 #$c->{dynamic_template}->{function} = sub {
-#	my( $session, $parts ) = @_;
+#	my( $repository, $parts ) = @_;
 #
 #};
 

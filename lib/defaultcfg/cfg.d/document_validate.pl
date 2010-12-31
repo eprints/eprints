@@ -1,12 +1,12 @@
 ######################################################################
 #
-# validate_document( $document, $session, $for_archive ) 
+# validate_document( $document, $repository, $for_archive ) 
 #
 ######################################################################
 # $document 
 # - Document object
-# $session 
-# - Session object (the current session)
+# $repository 
+# - Repository object (the current repository)
 # $for_archive
 # - boolean (see comments at the start of the validation section)
 #
@@ -22,45 +22,47 @@
 
 $c->{validate_document} = sub
 {
-	my( $document, $session, $for_archive ) = @_;
+	my( $document, $repository, $for_archive ) = @_;
 
 	my @problems = ();
+
+	my $xml = $repository->xml();
 
 	# CHECKS IN HERE
 
 	# "other" documents must have a description set
-	if( $document->get_value( "format" ) eq "other" &&
-	   !EPrints::Utils::is_set( $document->get_value( "formatdesc" ) ) )
+	if( $document->value( "format" ) eq "other" &&
+	   !EPrints::Utils::is_set( $document->value( "formatdesc" ) ) )
 	{
-		my $fieldname = $session->make_element( "span", class=>"ep_problem_field:documents" );
-		push @problems, $session->html_phrase( 
+		my $fieldname = $xml->create_element( "span", class=>"ep_problem_field:documents" );
+		push @problems, $repository->html_phrase( 
 					"validate:need_description" ,
-					type=>$document->render_description(),
+					type=>$document->render_citation("brief"),
 					fieldname=>$fieldname );
 	}
 
 	# security can't be "public" if date embargo set
-	if( $document->get_value( "security" ) eq "public" &&
-		EPrints::Utils::is_set( $document->get_value( "date_embargo" ) ) )
+	if( $document->value( "security" ) eq "public" &&
+		EPrints::Utils::is_set( $document->value( "date_embargo" ) ) )
 	{
-		my $fieldname = $session->make_element( "span", class=>"ep_problem_field:documents" );
-		push @problems, $session->html_phrase( 
+		my $fieldname = $xml->create_element( "span", class=>"ep_problem_field:documents" );
+		push @problems, $repository->html_phrase( 
 					"validate:embargo_check_security" ,
 					fieldname=>$fieldname );
 	}
 
 	# embargo expiry date must be in the future
-	if( EPrints::Utils::is_set( $document->get_value( "date_embargo" ) ) )
+	if( EPrints::Utils::is_set( $document->value( "date_embargo" ) ) )
 	{
-		my $value = $document->get_value( "date_embargo" );
+		my $value = $document->value( "date_embargo" );
 		my ($thisyear, $thismonth, $thisday) = EPrints::Time::get_date_array();
 		my ($year, $month, $day) = split( '-', $value );
 		if( $year < $thisyear || ( $year == $thisyear && $month < $thismonth ) ||
 			( $year == $thisyear && $month == $thismonth && $day <= $thisday ) )
 		{
-			my $fieldname = $session->make_element( "span", class=>"ep_problem_field:documents" );
+			my $fieldname = $xml->create_element( "span", class=>"ep_problem_field:documents" );
 			push @problems,
-				$session->html_phrase( "validate:embargo_invalid_date",
+				$repository->html_phrase( "validate:embargo_invalid_date",
 				fieldname=>$fieldname );
 		}
 	}

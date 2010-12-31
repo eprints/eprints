@@ -2,14 +2,14 @@
 
 ######################################################################
 #
-# eprint_warnings( $eprint, $session )
+# eprint_warnings( $eprint, $repository )
 #
 ######################################################################
 #
 # $eprint 
 # - EPrint object
-# $session 
-# - Session object (the current session)
+# $repository 
+# - Repository object (the current repository)
 #
 # returns: @problems
 # - ARRAY of DOM objects (may be null)
@@ -26,20 +26,20 @@
 
 $c->{eprint_warnings} = sub
 {
-	my( $eprint, $session ) = @_;
+	my( $eprint, $repository ) = @_;
 
 	my @problems = ();
 
 	my @docs = $eprint->get_all_documents;
 	if( @docs == 0 )
 	{
-		push @problems, $session->html_phrase( "warnings:no_documents" );
+		push @problems, $repository->html_phrase( "warnings:no_documents" );
 	}
 
 	my $all_public = 1;
 	foreach my $doc ( @docs )
 	{
-		if( $doc->get_value( "security" ) ne "public" ) 
+		if( $doc->value( "security" ) ne "public" ) 
 		{ 
 			$all_public = 0; 
 		}
@@ -47,7 +47,7 @@ $c->{eprint_warnings} = sub
 
 	if( !$all_public && !$eprint->is_set( "contact_email" ) )
 	{
-		push @problems, $session->html_phrase( "warnings:no_contact_email" );
+		push @problems, $repository->html_phrase( "warnings:no_contact_email" );
 	}
 		
 

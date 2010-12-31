@@ -29,7 +29,7 @@ $c->{required_formats} =
 # $c->{required_formats} = sub {
 # 	my( $eprint ) = @_;
 # 
-# 	if( $eprint->get_value( 'type' ) eq "book" )
+# 	if( $eprint->value( 'type' ) eq "book" )
 # 	{
 # 		return [];
 # 	}
@@ -56,14 +56,14 @@ $c->{diskspace_warn_threshold} = 512*1024;
 # It must return a legal document format id.
 $c->{guess_doc_type} = sub
 {
-	my( $session, $filename ) = @_;
+	my( $repository, $filename ) = @_;
 
-	my @formats = $session->get_repository->get_types( "document" );
+	my @formats = $repository->get_types( "document" );
 
 	if( $filename=~m/\.([^.]+)$/ )
 	{
 		my $suffix = "\L$1";
-		my $guess = $session->config( "mimemap", $suffix );
+		my $guess = $repository->config( "mimemap", $suffix );
 		return $guess if( defined $guess );
 	}
 
@@ -117,7 +117,7 @@ $c->{mimemap}->{wma}  = "audio/x-ms-wma";
 
 $c->{on_files_modified} = sub
 {
-	my( $session, $document ) = @_;
+	my( $repository, $document ) = @_;
 
 	# do your stuff
 };

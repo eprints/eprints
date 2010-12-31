@@ -1,12 +1,12 @@
 ######################################################################
 #
-# validate_user( $user, $session, $for_archive ) 
+# validate_user( $user, $repository, $for_archive ) 
 #
 ######################################################################
 # $user 
 # - User object
-# $session 
-# - Session object (the current session)
+# $repository 
+# - Repository object (the current repository)
 # $for_archive
 # - boolean (see comments at the start of the validation section)
 #
@@ -22,7 +22,7 @@
 
 $c->{validate_user} = sub
 {
-	my( $user, $session, $for_archive ) = @_;
+	my( $user, $repository, $for_archive ) = @_;
 
 	my @problems = ();
 
