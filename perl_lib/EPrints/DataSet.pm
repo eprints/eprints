@@ -29,6 +29,25 @@ the same metadata.
 	print sprintf("There are %d records in the inbox\n",
 		$dataset->count);
 
+	$string = $dataset->base_id; # eprint
+	$string = $dataset->id; # inbox
+
+	$dataobj = $dataset->create_dataobj( $data );
+	$user = $dataset->dataobj( 23 );
+
+	$search = $dataset->prepare_search( %options );
+	$list = $dataset->search( %options ); # prepare_search( %options )->execute
+	$list = $dataset->search; # match ALL
+
+	$metafield = $dataset->field( $fieldname );
+	$metafield = $dataset->key_field;
+	@metafields = $dataset->fields; 
+
+	$dataset->search->map( sub {}, $ctx );
+	$n = $dataset->search->count; 
+	$ids = $dataset->search->ids;
+	$list = $dataset->list( \@ids );
+
 =head1 DESCRIPTION
 
 This module describes an EPrint dataset.
@@ -46,9 +65,17 @@ but posters don't but they are both EPrints.
 
 The fields contained in a dataset are defined by the data object and by
 any additional fields defined in cfg.d. Some datasets don't have any
-fields while others may just be "virtual" datasets made from others.
+fields.
+
+Some datasets are "virtual" datasets made from others. Examples include 
+"inbox", "archive", "buffer" and "retired" which are all virtual datasets 
+of of the "eprint" dataset. That is to say "inbox" is a subset of "eprint" 
+and by inference contains EPrints::DataObj::EPrints. You can define your 
+own virtual datasets which opperate on existing datasets.
 
 =over 4
+
+=begin InternalDoc
 
 =item cachemap, counter
 
@@ -59,7 +86,11 @@ Don't have a package or metadata fields associated.
 All have the same package and metadata fields as B<eprints>, but
 are filtered by B<eprint_status>.
 
+=end InternalDoc
+
 =back
+
+=begin InternalDoc
 
 EPrints::DataSet objects are cached by the related EPrints::Repository
 object and usually obtained by calling.
@@ -70,7 +101,10 @@ $ds = $repository->get_dataset( "inbox" );
 
 =head2 Class Methods
 
+=end InternalDoc
+
 =over 4
+
 
 =cut
 
@@ -280,6 +314,8 @@ my $INFO = {
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $ds = EPrints::DataSet->new( %properties )
 
 Creates and returns a new dataset based on %properties.
@@ -340,6 +376,8 @@ Whether this dataset should be indexed.
 Whether you can import into this dataset.
 
 =back
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -426,9 +464,13 @@ sub new
 	return $self;
 }
 
+=begin InternalDoc
+
 =item $info = EPrints::DataSet::get_system_dataset_info()
 
 Returns a hash reference of core system datasets.
+
+=end InternalDoc
 
 =cut
 
@@ -461,10 +503,14 @@ sub base_id
 	return $self->{confid};
 }
 
+=begin InternalDoc
+
 =item $field = $ds->process_field( $data [, $system ] )
 
 Creates a new field in this dataset based on $data. If $system is true defines
 the new field as a "core" field.
+
+=end InternalDoc
 
 =cut
 
@@ -493,9 +539,13 @@ sub process_field
 	return $field;
 }
 
+=begin InternalDoc
+
 =item $ds->register_field( $field [, $system ] )
 
 Register a new field with this dataset.
+
+=end InternalDoc
 
 =cut
 
@@ -527,9 +577,13 @@ sub register_field
 	}
 }
 
+=begin InternalDoc
+
 =item $ds->unregister_field( $field )
 
 Unregister a field from this dataset.
+
+=end InternalDoc
 
 =cut
 
@@ -584,9 +638,13 @@ sub field
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $bool = $ds->has_field( $fieldname )
 
 True if the dataset has a field of that name.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -605,11 +663,15 @@ sub has_field
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $ordertype = $ds->default_order
 
 Return the id string of the default order for this dataset. 
 
 For example "bytitle" for eprints.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -671,10 +733,14 @@ sub count
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $tablename = $ds->get_sql_table_name
 
 Return the name of the main SQL Table containing this dataset.
 the other SQL tables names are based on this name.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -695,10 +761,14 @@ sub get_sql_table_name
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $tablename = $ds->get_sql_index_table_name
 
 Return the name of the SQL table which contains the free text indexing
 information.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -712,10 +782,14 @@ sub get_sql_index_table_name
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $tablename = $ds->get_sql_grep_table_name
 
 Reutrn the name of the SQL table which contains the strings to
 be used with LIKE in a final pass of a search.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -729,11 +803,15 @@ sub get_sql_grep_table_name
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $tablename = $ds->get_sql_rindex_table_name
 
 Reutrn the name of the SQL table which contains the reverse text
 indexing information. (Used for deleting freetext indexes when
 removing a record).
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -747,10 +825,14 @@ sub get_sql_rindex_table_name
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $tablename = $ds->get_ordervalues_table_name( $langid )
 
 Return the name of the SQL table containing values used for ordering
 this dataset.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -765,11 +847,15 @@ sub get_ordervalues_table_name
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $tablename = $ds->get_sql_sub_table_name( $field )
 
 Returns the name of the SQL table which contains the information
 on the "multiple" field. $field is an EPrints::MetaField belonging
 to this dataset.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -876,9 +962,13 @@ sub create_dataobj
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $class = $ds->get_object_class;
 
 Return the perl class to which objects in this dataset belong.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -893,9 +983,13 @@ sub dataobj_class
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $obj = $ds->get_object( $session, $id );
 
 Return the object from this dataset with the given id, or undefined.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -944,11 +1038,15 @@ sub dataobj
 	return $dataobj;
 }
 
+=begin InternalDoc
+
 =item $dataobj = EPrints::DataSet->get_object_from_uri( $session, $uri )
 
 Returns a the dataobj identified by internal URI $uri.
 
 Returns undef if $uri isn't an internal URI or the object is no longer available.
+
+=end InternalDoc
 
 =cut
 
@@ -974,10 +1072,14 @@ sub get_object_from_uri
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml = $ds->render_name( $session )
 
 Return a piece of XHTML describing this dataset, in the language of
 the current session.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -992,10 +1094,14 @@ sub render_name
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $ds->map( $session, $fn, $info )
 
 Maps the function $fn onto every record in this dataset. See 
 Search for a full explanation.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1030,12 +1136,16 @@ sub repository
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $ds->reindex( $session )
 
 Recommits all the items in this dataset. This could take a real long 
 time on a large set of records.
 
 Really should not be called reindex anymore as it doesn't.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1059,9 +1169,13 @@ sub reindex
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item @ids = EPrints::DataSet::get_dataset_ids()
 
 Deprecated, use $repository->get_dataset_ids().
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1076,9 +1190,13 @@ sub get_dataset_ids
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item @ids = EPrints::DataSet::get_sql_dataset_ids()
 
 Deprecated, use $repository->get_sql_dataset_ids().
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1093,9 +1211,13 @@ sub get_sql_dataset_ids
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item @ids = $dataset->get_item_ids( $session )
 
 Return a list of the id's of all items in this set.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1171,9 +1293,13 @@ sub ordered
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $bool = $dataset->is_virtual()
 
 Returns whether this dataset is virtual (i.e. has no database tables).
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1188,10 +1314,14 @@ sub is_virtual
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $field = $dataset->get_datestamp_field()
 
 Returns the datestamp field for this dataset which may be used for incremental
 harvesting. Returns undef if no such field is available.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1253,9 +1383,13 @@ sub list
 	);
 }
 
+=begin InternalDoc
+
 =item $fields = $dataset->columns()
 
 Returns the default list of fields to show the user when browsing this dataset in a table. Returns an array ref of L<EPrints::MetaField> objects.
+
+=end InternalDoc
 
 =cut
 
@@ -1275,11 +1409,15 @@ sub columns
 	return $columns;
 }
 
+=begin InternalDoc
+
 =item $dataset->run_trigger( TRIGGER_ID, %params )
 
 Runs all of the registered triggers for TRIGGER_ID on this dataset.
 
 %params is passed to the trigger functions.
+
+=end InternalDoc
 
 =cut
 
@@ -1305,9 +1443,13 @@ sub run_trigger
 	}
 }
 
+=begin InternalDoc
+
 =item $sconf = $dataset->_simple_search_config()
 
 Returns a simple search configuration based on the dataset's fields.
+
+=end InternalDoc
 
 =cut
 
@@ -1333,9 +1475,13 @@ sub _simple_search_config
 	};
 }
 
+=begin InternalDoc
+
 =item $sconf = $dataset->_advanced_search_config()
 
 Returns an advanced search configuration based on the dataset's fields.
+
+=end InternalDoc
 
 =cut
 
@@ -1357,9 +1503,13 @@ sub _advanced_search_config
 	};
 }
 
+=begin InternalDoc
+
 =item $citation = $dataset->citation( $style )
 
 Returns the citation object (if any) for $style.
+
+=end InternalDoc
 
 =cut
 
