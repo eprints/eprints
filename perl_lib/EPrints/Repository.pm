@@ -19,35 +19,33 @@
 
 =head1 NAME
 
-B<EPrints::Repository> - Single connection to the EPrints system
+B<EPrints::Repository> - Single connection to a specific EPrints Repository
 
 =head1 DESCRIPTION
 
-This module is not really a session. The name is out of date, but
-hard to change.
+This module is really a Repository, REALLY. The name is up to date 
+and everything :-) 
 
 EPrints::Repository represents a connection to the EPrints system. It
 connects to a single EPrints repository, and the database used by
-that repository. Thus it has an associated EPrints::Database and
-EPrints::Repository object.
+that repository.
 
-Each "session" has a "current language". If you are running in a 
+Each Repository has a "current language". If you are running in a 
 multilingual mode, this is used by the HTML rendering functions to
 choose what language to return text in.
 
-The "session" object also knows about the current apache connection,
+The Repository object also knows about the current apache connection,
 if there is one, including the CGI parameters. 
 
 If the connection requires a username and password then it can also 
 give access to the EPrints::DataObj::User object representing the user who is
-causing this request. 
+causing this request. See current_user().
 
-The session object also provides many methods for creating XHTML 
-results which can be returned via the web interface. 
+The Repository object also provides access to the XHTML class which contains
+many methods for creating XHTML results which can be returned via the web 
+interface. 
 
 =head1 METHODS
-
-=over 4
 
 =cut
 
@@ -98,6 +96,8 @@ use strict;
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $repository = EPrints::Repository->new( $mode, [$repository_id], [$noise], [$nocheckdb] )
 
 Create a connection to an EPrints repository which provides access 
@@ -129,6 +129,8 @@ Under normal conditions use "0" for online and "1" for offline.
 
 $nocheckdb - if this is set to 1 then a connection is made to the
 database without checking that the tables exist. 
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -245,11 +247,15 @@ sub new
 	return( $self );
 }
 
+=begin InternalDoc
+
 =item $repo->init_from_thread()
 
 Do whatever needs to be done to reinstate the repository after a new thread is spawned.
 
 This is called during the CLONE() stage.
+
+=end InternalDoc
 
 =cut
 
@@ -288,10 +294,14 @@ sub _add_live_http_paths
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $request = $repository->get_request;
 
 Return the Apache request object (from mod_perl) or undefined if 
 this isn't a CGI script.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -306,6 +316,8 @@ sub get_request
 
 ######################################################################
 =pod
+
+=over 4
 
 =item $query = $repository->query
 
@@ -333,10 +345,14 @@ sub query
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $repository->terminate
 
 Perform any cleaning up necessary, for example SQL cache tables which
 are no longer needed.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -522,6 +538,8 @@ sub user_by_email($$)
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $repository = EPrints::RepositoryConfig->new_from_request( $request )
 
 This creates a new repository object. It looks at the given Apache
@@ -529,6 +547,8 @@ request object and decides which repository to load based on the
 value of the PerlVar "EPrints_ArchiveID".
 
 Aborts with an error if this is not possible.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -611,13 +631,17 @@ sub _add_http_paths
 }
  
 ######################################################################
-#=pod
-#
-#=item $success = $repository_config->_load_workflows
-#
-# Attempts to load and cache the workflows for this repository
-#
-#=cut
+=pod
+
+=begin InternalDoc
+
+=item $success = $repository_config->_load_workflows
+
+ Attempts to load and cache the workflows for this repository
+
+=end InternalDoc
+
+=cut
 ######################################################################
 
 sub _load_workflows
@@ -645,7 +669,7 @@ sub _load_workflows
 
 Loads the storage layer which includes a XML workflow for storing items.
 
-=end
+=end InternalDoc
 
 =cut
 
@@ -720,10 +744,14 @@ sub _load_languages
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $language = $repository->get_language( [$langid] )
 
 Returns the EPrints::Language for the requested language id (or the
 default for this repository if $langid is not specified). 
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1031,10 +1059,14 @@ sub _load_template
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $template = $repository->get_template_parts( $langid, [$template_id] )
 
 Returns an array of utf-8 strings alternating between XML and the id
 of a pin to replace. This is used for the faster template construction.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1060,10 +1092,14 @@ END
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $template = $repository->get_template( $langid, [$template_id] )
 
 Returns the DOM document which is the webpage template for the given
 language. Do not modify the template without cloning it first.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1143,10 +1179,14 @@ sub _load_namedsets
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item @type_ids = $repository->get_types( $type_set )
 
 Return an array of keys for the named set. Comes from 
 /cfg/types/foo.xml
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1220,9 +1260,13 @@ sub _load_datasets
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item @dataset_ids = $repository->get_dataset_ids()
 
 Returns a list of dataset ids in this repository.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1237,9 +1281,13 @@ sub get_dataset_ids
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item @dataset_ids = $repository->get_sql_dataset_ids()
 
 Returns a list of dataset ids that have database tables.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1256,9 +1304,13 @@ sub get_sql_dataset_ids
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item @counter_ids = $repository->get_sql_counter_ids()
 
 Returns a list of counter ids generated by the database.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1325,9 +1377,13 @@ sub _load_plugins
 	return defined $self->{plugins};
 }
 
+=begin InternalDoc
+
 =item $plugins = $repository->get_plugin_factory()
 
 Return the plugins factory object.
+
+=end InternalDoc
 
 =cut
 
@@ -1413,7 +1469,7 @@ sub _map_oai_plugins
 
 =item $confitem = $repository->config( $key, [@subkeys] )
 
-Returns a named configuration setting. Probably set in ArchiveConfig.pm
+Returns a named configuration setting including those defined in archvies/<archive_id>/cfg/cfg.d/ 
 
 $repository->config( "stuff", "en", "foo" )
 
@@ -1446,7 +1502,7 @@ sub config($$@)
 Run all the triggers with the given TRIGGER_ID. Any return values are
 set in the properties passed in in %params
 
-=end
+=end InternalDoc
 
 =cut
 
@@ -1601,10 +1657,14 @@ sub try_call
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item @dirs = $repository->get_store_dirs
 
 Returns a list of directories available for storing documents. These
 may well be symlinks to other hard drives.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1691,9 +1751,13 @@ END
 	return $dirs[$#dirs];
 }
 
+=begin InternalDoc
+
 =item @dirs = $repository->get_template_dirs( $langid )
 
 Returns a list of directories from which template files may be sourced.
+
+=end InternalDoc
 
 =cut
 
@@ -1730,11 +1794,15 @@ sub get_template_dirs
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item @dirs = $repository->get_static_dirs( $langid )
 
 Returns a list of directories from which static files may be sourced.
 
 Directories are returned in order of importance, most important first.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1769,12 +1837,16 @@ sub get_static_dirs
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $size = $repository->get_store_dir_size( $dir )
 
 Returns the current storage (in bytes) used by a given documents dir.
 $dir should be one of the values returned by $repository->get_store_dirs.
 
 This should not be called if disable_df is set in SystemSettings.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1799,6 +1871,8 @@ sub get_store_dir_size
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $domdocument = $repository->parse_xml( $file, $no_expand );
 
 Turns the given $file into a XML DOM document. If $no_expand
@@ -1809,6 +1883,8 @@ This function also sets the path in which the Parser will look for
 DTD files to the repository's config directory.
 
 Returns undef if an error occurs during parsing.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1852,11 +1928,15 @@ sub get_id
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $returncode = $repository->exec( $cmd_id, %map )
 
 Executes a system command. $cmd_id is the id of the command as
 set in SystemSettings and %map contains a list of things to "fill in
 the blanks" in the invocation line in SystemSettings. 
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1868,9 +1948,13 @@ sub exec
 	return EPrints::Platform::exec( $self, $cmd_id, %map );
 }
 
+=begin InternalDoc
+
 =item $returncode = $repository->read_exec( $fh, $cmd_id, %map )
 
 Executes a system command and captures the output, see L</exec>.
+
+=end InternalDoc
 
 =cut
 
@@ -1915,6 +1999,8 @@ sub can_invoke
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $commandstring = $repository->invocation( $cmd_id, %map )
 
 Finds the invocation for the specified command from SystemSetting and
@@ -1923,6 +2009,8 @@ as a system call.
 
 All arguments are ESCAPED using quotemeta() before being used (i.e. don't
 pre-escape arguments in %map).
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1947,10 +2035,14 @@ sub invocation
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $defaults = $repository->get_field_defaults( $fieldtype )
 
 Return the cached default properties for this metadata field type.
 or undef.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1965,9 +2057,13 @@ sub get_field_defaults
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $repository->set_field_defaults( $fieldtype, $defaults )
 
 Cache the default properties for this metadata field type.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1984,9 +2080,13 @@ sub set_field_defaults
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $success = $repository->generate_dtd
 
 DEPRECATED
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2042,6 +2142,8 @@ END
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item ( $returncode, $output) = $repository->test_config
 
 This runs "epadmin test" as an external script to test if the current
@@ -2051,6 +2153,8 @@ to test if changes to config. files may be saved, or not.
 $returncode will be zero if everything seems OK.
 
 If not, then $output will contain the output of epadmin test 
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2085,7 +2189,11 @@ sub test_config
 
 =back
 
+=begin InternalDoc
+
 =head2 Language Related Methods
+
+=end InternalDoc
 
 =over 4
 
@@ -2096,6 +2204,8 @@ sub test_config
 
 ######################################################################
 =pod
+
+=begin InternalDoc
 
 =item $langid = EPrints::Repository::get_session_language( $repository, $request )
 
@@ -2108,6 +2218,8 @@ failing that it looks at the default language for the repository.
 
 The language ID it returns is the highest on the list that the given
 eprint repository actually supports.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2168,12 +2280,16 @@ END
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $repository->change_lang( $newlangid )
 
 Change the current language of the session. $newlangid should be a
 valid country code for the current repository.
 
 An invalid code will cause eprints to terminate with an error.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2199,6 +2315,8 @@ sub change_lang
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml_phrase = $repository->html_phrase( $phraseid, %inserts )
 
 Return an XHTML DOM object describing a phrase from the phrase files.
@@ -2211,6 +2329,8 @@ If the phrase contains <ep:pin> elements, then each one should have
 an entry in %inserts where the key is the "ref" of the pin and the
 value is an XHTML DOM object describing what the pin should be 
 replaced with.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2237,6 +2357,8 @@ sub html_phrase
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $utf8_text = $repository->phrase( $phraseid, %inserts )
 
 Performs the same function as html_phrase, but returns plain text.
@@ -2244,6 +2366,8 @@ Performs the same function as html_phrase, but returns plain text.
 All HTML elements will be removed, <br> and <p> will be converted 
 into breaks in the text. <img> tags will be replaced with their 
 "alt" values.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2266,10 +2390,14 @@ sub phrase
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $language = $repository->get_lang
 
 Return the EPrints::Language object for this sessions current 
 language.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2285,9 +2413,13 @@ sub get_lang
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $langid = $repository->get_langid
 
 Return the ID code of the current language of this session.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2305,6 +2437,8 @@ sub get_langid
 
 ######################################################################
 =pod
+
+=begin InternalDoc
 
 =item $value = EPrints::Repository::best_language( $repository, $lang, %values )
 
@@ -2327,6 +2461,8 @@ Otherwise, if possible return the value for "en" (English).
 Otherwise just return any one value.
 
 This means that the view sees the best possible phrase. 
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2360,10 +2496,14 @@ sub best_language
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $viewname = $repository->get_view_name( $dataset, $viewid )
 
 Return a UTF8 encoded string containing the human readable name
 of the /view/ section with the ID $viewid.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2387,8 +2527,6 @@ sub get_view_name
 
 =head2 Accessor Methods
 
-=over 4
-
 =cut
 #############################################################
 #############################################################
@@ -2397,9 +2535,13 @@ sub get_view_name
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $db = $repository->get_database
 
 Return the current EPrints::Database connection object.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2412,9 +2554,13 @@ sub get_database
 	return $self->{database};
 }
 
+=begin InternalDoc
+
 =item $store = $repository->get_storage
 
 Return the storage control object.
+
+=end InternalDoc
 
 =cut
 
@@ -2429,9 +2575,13 @@ sub get_storage
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $repository = $repository->get_repository
 
 Return the EPrints::Repository object associated with the Repository.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2446,6 +2596,8 @@ sub get_repository
 
 ######################################################################
 =pod
+
+=begin InternalDoc
 
 =item $url = $repository->current_url( [ @OPTS ] [, $page] )
 
@@ -2468,6 +2620,8 @@ With no arguments returns the current full URL without any query part.
 	# Return a full URL to the image 'foo.png'
 	$repository->current_url( host => 1, path => "images", "foo.png" );
 
+=end InternalDoc
+
 =cut
 ######################################################################
 
@@ -2484,9 +2638,13 @@ sub current_url
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $uri = $repository->get_uri
 
 Returns the URL of the current script. Or "undef".
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2503,9 +2661,13 @@ sub get_uri
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $uri = $repository->get_full_url
 
 Returns the URL of the current script plus the CGI params.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2536,10 +2698,14 @@ sub get_full_url
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $noise_level = $repository->get_noise
 
 Return the noise level for the current session. See the explaination
 under EPrints::Repository->new()
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2555,10 +2721,14 @@ sub get_noise
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $boolean = $repository->get_online
 
 Return true if this script is running via CGI, return false if we're
 on the command line.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2573,9 +2743,13 @@ sub get_online
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $secure = $repository->get_secure
 
 Returns true if we're using HTTPS/SSL (checks get_online first).
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2595,6 +2769,8 @@ sub get_secure
 #############################################################
 =pod
 
+=begin InternalDoc
+
 =back
 
 =head2 DOM Related Methods
@@ -2603,6 +2779,8 @@ These methods help build XML. Usually, but not always XHTML.
 
 =over 4
 
+=end InternalDoc
+
 =cut
 #############################################################
 #############################################################
@@ -2610,6 +2788,8 @@ These methods help build XML. Usually, but not always XHTML.
 
 ######################################################################
 =pod
+
+=begin InternalDoc
 
 =item $dom = $repository->make_element( $element_name, %attribs )
 
@@ -2622,6 +2802,8 @@ Will return the DOM object describing:
 <img src="/foo.gif" alt="my pic" />
 
 Note that in the call we use "=>" not "=".
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2636,10 +2818,14 @@ sub make_element
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $dom = $repository->make_indent( $width )
 
 Return a DOM object describing a C.R. and then $width spaces. This
 is used to make nice looking XML for things like the OAI interface.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2653,6 +2839,8 @@ sub make_indent
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $dom = $repository->make_comment( $text )
 
 Return a DOM object describing a comment containing $text.
@@ -2660,6 +2848,8 @@ Return a DOM object describing a comment containing $text.
 eg.
 
 <!-- this is a comment -->
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2676,6 +2866,8 @@ sub make_comment
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $DOM = $repository->make_text( $text )
 
 Return a DOM object containing the given text. $text should be
@@ -2690,6 +2882,8 @@ $repository->make_text( "This is <b> an example" );
 Would return a DOM object representing the XML:
 
 "This is &lt;b&gt; an example"
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2706,6 +2900,8 @@ sub make_text
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $DOM = $repository->make_javascript( $code, %attribs )
 
 Return a new DOM "script" element containing $code in javascript. %attribs will
@@ -2718,6 +2914,8 @@ E.g.
 	alert("Hello, World!");
 	// ]]>
 	</script>
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2743,6 +2941,8 @@ sub make_javascript
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $fragment = $repository->make_doc_fragment
 
 Return a new XML document fragment. This is an item which can have
@@ -2750,6 +2950,8 @@ XML elements added to it, but does not actually get rendered itself.
 
 If appended to an element then it disappears and its children join
 the element at that point.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2769,6 +2971,8 @@ sub make_doc_fragment
 #############################################################
 =pod
 
+=begin InternalDoc
+
 =back
 
 =head2 XHTML Related Methods
@@ -2776,6 +2980,8 @@ sub make_doc_fragment
 These methods help build XHTML.
 
 =over 4
+
+=end InternalDoc
 
 =cut
 #############################################################
@@ -2787,10 +2993,14 @@ These methods help build XHTML.
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $ruler = $repository->render_ruler
 
 Return an HR.
 in ruler.xml
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2805,9 +3015,13 @@ sub render_ruler
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $nbsp = $repository->render_nbsp
 
 Return an XHTML &nbsp; character.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2824,6 +3038,8 @@ sub render_nbsp
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml = $repository->render_data_element( $indent, $elementname, $value, [%opts] )
 
 This is used to help render neat XML data. It returns a fragment 
@@ -2837,6 +3053,8 @@ $repository->render_data_element( 4, "foo", "bar", class=>"fred" )
 
 would return a XML DOM object describing:
     <foo class="fred">bar</foo>
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2854,10 +3072,14 @@ sub render_data_element
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml = $repository->render_link( $uri, [$target] )
 
 Returns an HTML link to the given uri, with the optional $target if
 it needs to point to a different frame or window.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2875,11 +3097,15 @@ sub render_link
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $table_row = $repository->render_row( $key, @values );
 
 Return the key and values in a DOM encoded HTML table row. eg.
 
  <tr><th>$key:</th><td>$value[0]</td><td>...</td></tr>
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -3136,9 +3362,13 @@ sub render_toolbar
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml = $repository->render_language_name( $langid ) 
 Return a DOM object containing the description of the specified language
 in the current default language, or failing that from languages.xml
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -3155,10 +3385,14 @@ sub render_language_name
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml = $repository->render_type_name( $type_set, $type ) 
 
 Return a DOM object containing the description of the specified type
 in the type set. eg. "eprint", "article"
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -3173,10 +3407,14 @@ sub render_type_name
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $string = $repository->get_type_name( $type_set, $type ) 
 
 As above, but return a utf-8 string. Used in <option> elements, for
 example.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -3191,6 +3429,8 @@ sub get_type_name
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml_name = $repository->render_name( $name, [$familylast] )
 
 $name is a ref. to a hash containing family, given etc.
@@ -3200,6 +3440,8 @@ of the repository. Usually "John Smith".
 
 If $familylast is set then the family and given parts are reversed, eg.
 "Smith, John"
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -3220,10 +3462,14 @@ sub render_name
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml_select = $repository->render_option_list( %params )
 
 This method renders an XHTML <select>. The options are complicated
 and may change, so it's better not to use it.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -3359,9 +3605,13 @@ sub render_option_list
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $option = $repository->render_single_option( $key, $desc, $selected )
 
 Used by render_option_list.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -3384,12 +3634,16 @@ sub render_single_option
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml_hidden = $repository->render_hidden_field( $name, $value )
 
 Return the XHTML DOM describing an <input> element of type "hidden"
 and name and value as specified. eg.
 
 <input type="hidden" name="foo" value="bar" />
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -3429,12 +3683,16 @@ sub render_noenter_input_field
 ######################################################################
 =pod
 
-=item $xhtml_uploda = $repository->render_upload_field( $name )
+=begin InternalDoc
+
+=item $xhtml_upload = $repository->render_upload_field( $name )
 
 Render into XHTML DOM a file upload form button with the given name. 
 
 eg.
 <input type="file" name="foo" />
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -3451,6 +3709,8 @@ sub render_upload_field
 
 ######################################################################
 =pod
+
+=begin InternalDoc
 
 =item $dom = $repository->render_action_buttons( %buttons )
 
@@ -3470,6 +3730,8 @@ _class => "my_css_class"
 will add a class attribute to the <div> containing the buttons to 
 allow additional styling.
 
+=end InternalDoc
+
 =cut
 ######################################################################
 
@@ -3484,6 +3746,8 @@ sub render_action_buttons
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $dom = $repository->render_internal_buttons( %buttons )
 
 As for render_action_buttons, but creates buttons for actions which
@@ -3492,6 +3756,8 @@ process the form is part of.
 
 eg. the "More Spaces" button and the up and down arrows on multiple
 type fields.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -3569,6 +3835,8 @@ sub render_button
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $dom = $repository->render_form( $method, $dest )
 
 Return a DOM object describing an HTML form element. 
@@ -3591,6 +3859,8 @@ enctype="multipart/form-data"
 This just controls how the data is passed from the browser to the
 CGI library. You don't need to worry about it.
 
+=end InternalDoc
+
 =cut
 ######################################################################
 
@@ -3604,6 +3874,8 @@ sub render_form
 
 ######################################################################
 =pod
+
+=begin InternalDoc
 
 =item $ul = $repository->render_subjects( $subject_list, [$baseid], [$currentid], [$linkmode], [$sizes] )
 
@@ -3637,6 +3909,8 @@ subjects with a size of more than one are linked.
 $sizes may be a ref. to hash mapping the subjectid's to the number
 of items in that subject which will be rendered in brackets next to
 each subject.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -3732,11 +4006,15 @@ sub _render_subjects_aux
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $repository->render_error( $error_text, $back_to, $back_to_text )
 
 Renders an error page with the given error text. A link, with the
 text $back_to_text, is offered, the destination of this is $back_to,
 which should take the user somewhere sensible.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -3811,6 +4089,8 @@ my %INPUT_FORM_DEFAULTS = (
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $dom = $repository->render_input_form( %params )
 
 Return a DOM object representing an entire input form.
@@ -3858,6 +4138,8 @@ form elements to be set, so additional information can be passed.
 object: The DataObj which this form is editing, if any.
 
 comment: not yet used.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -4213,11 +4495,15 @@ sub get_next_id
 #############################################################
 =pod
 
+=begin InternalDoc
+
 =back
 
 =head2 Methods relating to the current XHTML page
 
 =over 4
+
+=end InternalDoc
 
 =cut
 #############################################################
@@ -4225,6 +4511,8 @@ sub get_next_id
 
 ######################################################################
 =pod
+
+=begin InternalDoc
 
 =item $repository->write_static_page( $filebase, $parts, [$page_id], [$wrote_files] )
 
@@ -4236,6 +4524,8 @@ File base is the name of the page without the .html suffix.
 parts is a reference to a hash containing DOM trees.
 
 If $wrote_files is defined then any filenames written are logged in it as keys.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -4303,6 +4593,8 @@ sub write_static_page
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $repository->prepare_page( $parts, %options )
 
 Create an XHTML page for this session. 
@@ -4319,6 +4611,8 @@ Options include:
 
 page_id=>"id to put in body tag"
 template=>"The template to use instead of default."
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -4339,6 +4633,8 @@ sub prepare_page
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $repository->send_page( %httpopts )
 
 Send a web page out by HTTP. Only relevant if this is a CGI script.
@@ -4347,6 +4643,8 @@ build_page must have been called first.
 See send_http_header for an explanation of %httpopts
 
 Dispose of the XML once it's sent out.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -4363,6 +4661,8 @@ sub send_page
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $repository->page_to_file( $filename, [$wrote_files] )
 
 Write out the current webpage to the given filename.
@@ -4373,6 +4673,8 @@ Dispose of the XML once it's sent out.
 
 If $wrote_files is set then keys are created in it for each file
 created.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -4388,6 +4690,8 @@ sub page_to_file
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $repository->set_page( $newhtml )
 
 Erase the current page for this session, if any, and replace it with
@@ -4396,6 +4700,8 @@ the XML DOM structure described by $newhtml.
 This page is what is output by page_to_file or send_page.
 
 $newhtml is a normal DOM Element, not a document object.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -4411,6 +4717,8 @@ sub set_page
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $copy_of_node = $repository->clone_for_me( $node, [$deep] )
 
 XML DOM items can only be added to the document which they belong to.
@@ -4422,6 +4730,8 @@ to this sessions document.
 
 If $deep is set then the children, (and their children etc.), are 
 copied too.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -4439,9 +4749,13 @@ sub clone_for_me
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $repository->redirect( $url, [%opts] )
 
 Redirects the browser to $url.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -4469,11 +4783,15 @@ sub redirect
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $repository->not_found( [ $message ] )
 
 Send a 404 Not Found header. If $message is undef sets message to
 'Not Found' but does B<NOT> print an error message, otherwise
 defaults to the normal 404 Not Found type response.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -4501,6 +4819,8 @@ sub not_found
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $repository->send_http_header( %opts )
 
 Send the HTTP header. Only makes sense if this is running as a CGI 
@@ -4513,6 +4833,8 @@ the http content type header.
 
 lang. If this is set then a cookie setting the language preference
 is set in the http header.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -4589,6 +4911,8 @@ sub set_cookies
 #############################################################
 =pod
 
+=begin InternalDoc
+
 =back
 
 =head2 Input Methods
@@ -4596,6 +4920,8 @@ sub set_cookies
 These handle input from the user, browser and apache.
 
 =over 4
+
+=end InternalDoc
 
 =cut
 #############################################################
@@ -4606,6 +4932,8 @@ These handle input from the user, browser and apache.
 
 ######################################################################
 =pod
+
+=over
 
 =item $value or @values = $repository->param( $name )
 
@@ -4732,9 +5060,13 @@ sub read_params
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $bool = $repository->have_parameters
 
 Return true if the current script had any parameters (post or get)
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -4878,6 +5210,8 @@ sub _current_user_auth_cookie
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $boolean = $repository->seen_form
 
 Return true if the current request contains the values from a
@@ -4885,6 +5219,8 @@ form generated by EPrints.
 
 This is identified by a hidden field placed into forms named
 _seen with value "true".
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -4905,6 +5241,8 @@ sub seen_form
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $boolean = $repository->internal_button_pressed( $buttonid )
 
 Return true if a button has been pressed in a form which is intended
@@ -4912,6 +5250,8 @@ to reload the current page with some change.
 
 Examples include the "more spaces" button on multiple fields, the 
 "lookup" button on succeeds, etc.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -4952,6 +5292,8 @@ sub internal_button_pressed
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $action_id = $repository->get_action_button
 
 Return the ID of the eprint action button which has been pressed in
@@ -4962,6 +5304,8 @@ This also handles the .x and .y inserted in image submit.
 
 This is designed to get back the name of an action button created
 by render_action_buttons.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -4993,10 +5337,14 @@ sub get_action_button
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $button_id = $repository->get_internal_button
 
 Return the id of the internal button which has been pushed, or 
 undef if one wasn't.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -5029,6 +5377,8 @@ sub get_internal_button
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $client = $repository->client
 
 Return a string representing the kind of browser that made the 
@@ -5042,6 +5392,8 @@ GECKO covers mozilla and firefox.
 
 These divisions are intended for modifying the way pages are rendered
 not logging what browser was used. Hence merging mozilla and firefox.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -5073,9 +5425,13 @@ sub client
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $status = $repository->get_http_status
 
 Return the status of the current HTTP request.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -5097,11 +5453,15 @@ sub get_http_status
 #############################################################
 =pod
 
+=begin InternalDoc
+
 =back
 
 =head2 Methods related to Plugins
 
 =over 4
+
+=end InternalDoc
 
 =cut
 #############################################################
@@ -5111,10 +5471,14 @@ sub get_http_status
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $plugin = $repository->plugin( $pluginid )
 
 Return the plugin with the given pluginid, in this repository or, failing
 that, from the system level plugins.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -5130,11 +5494,15 @@ sub plugin
 		);
 }
 
+=begin InternalDoc
+
 =item $success = $repository->expire_abstracts()
 
 Cause the abstract pages to regenerate next time they are requested by expiring them.
 
 Returns success if done successfully.
+
+=end InternalDoc
 
 =cut
 
@@ -5160,6 +5528,8 @@ sub expire_abstracts
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item @plugin_ids  = $repository->plugin_list( %restrictions )
 
 Return either a list of all the plugins available to this repository or
@@ -5168,6 +5538,8 @@ restrictions.
 
 Restictions:
  vary depending on the type of the plugin.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -5184,11 +5556,15 @@ sub plugin_list
 		);
 }
 
+=begin InternalDoc
+
 =item @plugins = $repository->get_plugins( [ $params, ] %restrictions )
 
 Returns a list of plugin objects that conform to %restrictions (may be empty).
 
 If $params is given uses that hash reference to initialise the plugins. Always passes this session to the plugin constructor method.
+
+=end InternalDoc
 
 =cut
 
@@ -5213,7 +5589,11 @@ sub get_plugins
 
 =back
 
+=begin InternalDoc
+
 =head2 Other Methods
+
+=end InternalDoc
 
 =over 4
 
@@ -5284,6 +5664,8 @@ sub get_citation_type
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $time = EPrints::Repository::microtime();
 
 This function is currently buggy so just returns the time in seconds.
@@ -5291,6 +5673,8 @@ This function is currently buggy so just returns the time in seconds.
 Return the time of day in seconds, but to a precision of microseconds.
 
 Accuracy depends on the operating system etc.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -5320,6 +5704,8 @@ sub microtime
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $foo = $repository->mail_administrator( $subjectid, $messageid, %inserts )
 
 Sends a mail to the repository administrator with the given subject and
@@ -5333,6 +5719,8 @@ basis for the mail body.
 
 %inserts is a hash. The keys are the pins in the messageid phrase and
 the values the utf8 strings to replace the pins with.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -5401,11 +5789,15 @@ sub login
 	$self->{database}->update_ticket_userid( $code, $userid, $ip );
 }
 
+=begin InternalDoc
+
 =item $real_username = $repository->valid_login( $username, $password )
 
 If $username and $password are a valid user account returns the real username of the user account (which may differ from $username).
 
 Returns undef if $username or $password are invalid.
+
+=end InternalDoc
 
 =cut
 
@@ -5451,9 +5843,13 @@ sub valid_login
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $repository->DESTROY
 
 Destructor. Don't call directly.
+
+=end InternalDoc
 
 =cut
 ######################################################################
