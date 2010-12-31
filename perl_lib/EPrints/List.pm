@@ -20,10 +20,6 @@ B<EPrints::List> - List of data objects, usually a search result.
 
 =head1 SYNOPSIS
 
-	use EPrints::List;
-
-	$list = EPrints::List->new( session => $session, dataset => $dataset, ids => $ids); # ref to an array of ids to populate the list with
-
 	$new_list = $list->reorder( "-creation_date" ); # makes a new list ordered by reverse order creation_date
 
 	$new_list = $list->union( $list2, "creation_date" ) # makes a new list by adding the contents of $list to $list2. the resulting list is ordered by "creation_date"
@@ -47,6 +43,8 @@ dataset. Usually this is the results of a search.
 
 =head1 SEE ALSO
 	L<EPrints::Search>
+
+=head1 METHODS
 
 =cut
 ######################################################################
@@ -94,6 +92,8 @@ use strict;
 ######################################################################
 =pod
 
+=over
+
 =item $list = EPrints::List->new( 
 			session => $session,
 			dataset => $dataset,
@@ -119,20 +119,18 @@ encoded is the serialised version of the searchExpression which
 created this list, if there was one.
 
 If keep_cache is set then the cache will not be disposed of at the
-end of the current $session. If cache_id is set then keep_cache is
+end of the current $repository operation. If cache_id is set then keep_cache is
 automatically true.
 
 =cut
 ######################################################################
 =pod
 
-=over 4
-
 =item $list = EPrints::List->new( 
 			session => $session,
 			dataset => $dataset,
-			ids => $ids, # a ref to the array of ids
-			[order => $order] ); # the field on which to order the list
+			ids => $ids, 
+			[order => $order] ); 
 
 =item $list = EPrints::List->new( 
 			session => $session,
@@ -140,6 +138,9 @@ automatically true.
 			[desc => $desc],
 			[desc_order => $desc_order],
 			cache_id => $cache_id );
+
+Note the new() method will be called very rarely since lists will
+usually created by an EPrints::Search.
 
 Creates a new list object in memory only. Lists will be
 cached if any method requiring order is called, or an explicit 
@@ -283,7 +284,7 @@ sub union
 
 =item $new_list = $list->remainder( $list2, [$order] );
 
-Create a new list from this one minus another one. If order is not set
+Create a new list from $list with elements from $list2 removed. If order is not set
 then this list will not be in any certain order.
 
 Remove all items in $list2 from $list and return the result as a
@@ -353,11 +354,13 @@ sub intersect
 }
 
 ######################################################################
-=for InternalDoc
+=begin InternalDoc
 
 =item $list->cache
 
 Cause this list to be cached in the database.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -420,11 +423,13 @@ sub cache
 }
 
 ######################################################################
-=for InternalDoc
+=begin InternalDoc
 
 =item $cache_id = $list->get_cache_id
 
 Return the ID of the cache table for this list, or undef.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -439,11 +444,13 @@ sub get_cache_id
 
 
 ######################################################################
-=for InternalDoc
+=begin InternalDoc
 
 =item $list->dispose
 
 Clean up the cache table if appropriate.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -544,8 +551,9 @@ sub slice
 
 =item $ids = $list->ids( [$offset], [$count] )
 
-Return a reference to an array containing the ids of the specified
-range from the list. This is more efficient if you just need the ids.
+Return a reference to an array containing the object ids of the items 
+in the list. You can specify a range of ids using $offset and $count.
+This is more efficient if you just need the ids.
 
 $offset - what index through the list to start from.
 $count - the maximum to return.
@@ -739,9 +747,13 @@ sub export
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $dataset = $list->get_dataset
 
 Return the EPrints::DataSet which this list relates to.
+
+=end InternalDoc
 
 =cut
 ######################################################################
