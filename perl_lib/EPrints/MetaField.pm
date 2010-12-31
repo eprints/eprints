@@ -20,9 +20,36 @@
 
 B<EPrints::MetaField> - A single metadata field.
 
+=head1 SYNOPSIS
+
+my $field = $dataset->field( $fieldname );
+
+$dataset = $field->dataset;
+
+$repo = $field->repository;
+
+$field->set_property( $property, $value );
+
+$value = $field->property( $property );
+
+$name = $field->name;
+
+$type = $field->type;
+
+$xhtml = $field->render_name;
+
+$xhtml = $field->render_help;
+
+$xhtml = $field->render_value_label( $value );
+
+$values = $field->all_values( %opts );
+
+$sorted_list = $field->sort_values( $unsorted_list );
+
+
 =head1 DESCRIPTION
 
-Theis object represents a single metadata field, not the value of
+This object represents a single metadata field, not the value of
 that field. A field belongs (usually) to a dataset and has a large
 number of properties. Optional and required properties vary between 
 types.
@@ -32,6 +59,8 @@ field. For example: "text", "name" or "date".
 
 A full description of metadata types and properties is in the eprints
 documentation and will not be duplicated here.
+
+=begin InternalDoc
 
 =head1 PROPERTIES
 
@@ -47,9 +76,9 @@ Normally any attempt to define two fields with the same name will fail. However,
 
 =back
 
-=head1 METHODS
+=end InternalDoc
 
-=over 4
+=head1 METHODS
 
 =cut
 
@@ -95,6 +124,8 @@ $EPrints::MetaField::UNDEF       = EP_PROPERTY_UNDEF;
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $field = EPrints::MetaField->new( %properties )
 
 Create a new metafield. %properties is a hash of the properties of the 
@@ -103,6 +134,8 @@ field, with the addition of "dataset", or if "dataset" is not set then
 
 Some field types require certain properties to be explicitly set. See
 the main documentation.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -196,9 +229,13 @@ sub new
 	return $self;
 }
 
+=begin InternalDoc
+
 =item $defaults = $field->field_defaults
 
 Returns the default properties for this field as a hash reference.
+
+=end InternalDoc
 
 =cut
 
@@ -228,10 +265,14 @@ sub field_defaults
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $field->final
 
 This method tells the metafield that it is now read only. Any call to
 set_property will produce a abort error.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -311,12 +352,16 @@ END
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $newfield = $field->clone
 
 Clone the field, so the clone can be edited without affecting the
 original. Does not deep copy properties which are references - these
 should be set to new values, rather than the contents altered. Eg.
 don't push to a cloned options list, replace it.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -328,6 +373,7 @@ sub clone
 	return EPrints::MetaField->new( %{$self} );
 }
 
+=over 4
 
 =item $repository = $field->repository
 
@@ -384,6 +430,8 @@ sub render_name
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $label = $field->display_name( $session )
 
 DEPRECATED! Can't be removed because it's used in 2.2's default
@@ -391,6 +439,8 @@ ArchiveRenderConfig.pm
 
 Return the UTF-8 encoded name of this field, in the language of
 the $session.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -435,6 +485,8 @@ sub render_help
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml = $field->render_input_field( $session, $value, [$dataset], [$staff], [$hidden_fields], $obj, [$basename] )
 
 Return the XHTML of the fields for an form which will allow a user
@@ -442,6 +494,8 @@ to input metadata to this field. $value is the default value for
 this field.
 
 The actual function called may be overridden from the config.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -491,10 +545,14 @@ sub render_input_field
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $value = $field->form_value( $session, $object, [$prefix] )
 
 Get a value for this field from the CGI parameters, assuming that
 the form contained the input fields for this metadata field.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -595,9 +653,13 @@ END
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $boolean = $field->is_type( @typenames )
 
 Return true if the type of this field is one of @typenames.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -620,6 +682,8 @@ sub is_type
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml = $field->render_value( $session, $value, [$alllangs], [$nolink], $object )
 
 Render the given value of this given string as XHTML DOM. If $alllangs 
@@ -630,6 +694,8 @@ might otherwise link to the subject view page.
 
 If render_value or render_single_value properties are set then these
 control the rendering instead.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -722,12 +788,16 @@ sub render_value_actual
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml = $field->render_value_no_multiple( $session, $value, $alllangs, $nolink, $object )
 
 Render the XHTML for a non-multiple value. Can be either a from
 a non-multiple field, or a single value from a multiple field.
 
 Usually just used internally.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -790,6 +860,8 @@ sub render_value_no_multiple
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml = $field->render_value_withopts( $session, $value, $nolink, $object )
 
 Render a single value but adding the render_opts features.
@@ -798,6 +870,8 @@ This uses either the field specific render_single_value or, if one
 is configured, the render_single_value specified in the config.
 
 Usually just used internally.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -877,6 +951,8 @@ sub sort_values
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item @values = $field->list_values( $value )
 
 Return a list of every distinct value in this field. 
@@ -885,6 +961,8 @@ Return a list of every distinct value in this field.
  - for multiple fields: return @{$value}
 
 This function is used by the item_matches method in Search.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -911,6 +989,8 @@ sub list_values
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $value = $field->most_local( $session, $value )
 
 If this field is a multilang field then return the version of the 
@@ -918,6 +998,8 @@ value most useful for the language of the session. In order of
 preference: The language of the session, the default language for
 the repository, any language at all. If it is not a multilang field
 then just return $value.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -936,6 +1018,8 @@ sub most_local
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $value2 = $field->call_property( $property, @args )
 
 Call the method described by $property. Pass it the arguments and
@@ -943,6 +1027,8 @@ return the result.
 
 The property may contain either a code reference, or the scalar name
 of a method.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -967,9 +1053,13 @@ sub call_property
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $val = $field->value_from_sql_row( $session, $row )
 
 Shift and return the value of this field from the database input $row.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -983,6 +1073,8 @@ sub value_from_sql_row
 
 ######################################################################
 =pod
+
+=begin InternalDoc
 
 =item @row = $field->sql_row_from_value( $session, $value )
 
@@ -998,6 +1090,8 @@ If the value is an array ref it gets expanded:
 
 This is necessary to support binding LOB data under various databases.
 
+=end InternalDoc
+
 =cut
 ######################################################################
 
@@ -1011,9 +1105,13 @@ sub sql_row_from_value
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item %opts = $field->get_sql_properties( $session )
 
 Map the relevant SQL properties for this field to options passed to L<EPrints::Database>::get_column_type().
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1032,9 +1130,13 @@ sub get_sql_properties
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item @types = $field->get_sql_type( $session )
 
 Return the SQL column types of this field, used for creating tables.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1058,9 +1160,13 @@ sub get_sql_type
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $field = $field->create_ordervalues_field( $session [, $langid ] )
 
 Return a new field object that this field can use to store order values, optionally for language $langid.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1081,9 +1187,13 @@ sub create_ordervalues_field
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $sql = $field->get_sql_index
 
 Return the columns that an index should be created over.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1103,10 +1213,14 @@ sub get_sql_index
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml_dom = $field->render_single_value( $session, $value )
 
 Returns the XHTML representation of the value. The value will be
 non-multiple. Just the  simple value.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1122,6 +1236,8 @@ sub render_single_value
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml = $field->render_input_field_actual( $session, $value, [$dataset], [$staff], [$hidden_fields], [$obj], [$basename] )
 
 Return the XHTML of the fields for an form which will allow a user
@@ -1133,6 +1249,8 @@ property, even if it's set.
 
 The $obj is the current state of the object this field is associated 
 with, if any.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1434,9 +1552,13 @@ sub get_input_elements
 	return $rows;
 }
 
+=begin InternalDoc
+
 =item $bool = $field->has_internal_action( $basename )
 
 Returns true if this field has an internal action.
+
+=end InternalDoc
 
 =cut
 
@@ -1460,11 +1582,15 @@ sub has_internal_action
 	;
 }
 
+=begin InternalDoc
+
 =item $params = $field->get_state_params( $repo, $basename )
 
 Returns a query string "&foo=bar&x=y" of parameters this field needs to render the effect of an internal action correctly.
 
 Returns "" if no parameters are required.
+
+=end InternalDoc
 
 =cut
 
@@ -1653,9 +1779,13 @@ sub form_value_basic
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item @sqlnames = $field->get_sql_names
 
 Return the names of this field's columns as they appear in a SQL table.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1678,9 +1808,13 @@ sub get_sql_name
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $boolean = $field->is_browsable
 
 Return true if this field can be "browsed". ie. Used as a view.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1746,6 +1880,8 @@ sub get_ids_by_value
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $id = $field->get_id_from_value( $session, $value )
 
 Returns a key based on $value that can be used in a view.
@@ -1753,6 +1889,8 @@ Returns a key based on $value that can be used in a view.
 E.g. if "render_res" is "year" then the key of "2005-03-02" would be "2005".
 
 Returns "NULL" if $value is undefined.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1767,9 +1905,13 @@ sub get_id_from_value
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $value = $field->get_value_from_id( $session, $id )
 
 Returns the value from $id or undef if $id is "NULL".
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1784,11 +1926,15 @@ sub get_value_from_id
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $xhtml = $field->render_value_label( $value )
 
 Return an XHTML DOM object describing the given value. Normally this
 is just the value, but in the case of something like a "set" field 
 this returns the name of the option in the current language.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1820,10 +1966,14 @@ sub get_value_label
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $ov = $field->ordervalue( $value, $session, $langid, $dataset )
 
 Return a string representing this value which can be used to sort
 it into order by comparing it alphabetically.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -2290,6 +2440,8 @@ sub get_property_defaults
 );
 }
 
+=begin InternalDoc
+
 =item $value = $field->get_default_value( $session )
 
 Return the default value for this field. This is only applicable to very simple
@@ -2297,6 +2449,8 @@ cases such as timestamps, auto-incremented values etc.
 
 Any complex initialisation should be done in the "set_eprint_automatic_fields"
 callback (or the equivalent for the given object).
+
+=end InternalDoc
 
 =cut
 
@@ -2307,9 +2461,13 @@ sub get_default_value
 	return $self->get_property( "default_value" );
 }
 
+=begin InternalDoc
+
 =item ( $terms, $grep_terms, $ignored ) = $field->get_index_codes( $session, $value )
 
 Get indexable terms from $value. $terms is a reference to an array of strings to index. $grep_terms is a reference to an array of terms to add to the grep index. $ignored is a reference to an array of terms that should be ignored (e.g. stop words in a free-text field).
+
+=end InternalDoc
 
 =cut
 
@@ -2342,9 +2500,13 @@ sub get_index_codes_basic
 	return( [], [], [] );
 }
 
+=begin InternalDoc
+
 =item @terms = $field->split_search_value( $session, $value )
 
 Split $value into terms that can be used to search against this field.
+
+=end InternalDoc
 
 =cut
 
@@ -2359,9 +2521,13 @@ sub split_search_value
 	return split /\s+/, $value;
 }
 
+=begin InternalDoc
+
 =item $cond = $field->get_search_conditions( $session, $dataset, $value, $match, $merge, $mode )
 
 Return a L<Search::Condition> for $value based on this field.
+
+=end InternalDoc
 
 =cut
 
@@ -2396,9 +2562,13 @@ sub get_search_conditions
 			$search_mode );
 }
 
+=begin InternalDoc
+
 =item $cond = $field->get_search_conditions_not_ex( $session, $dataset, $value, $match, $merge, $mode )
 
 Return the search condition for a search which is not-exact ($match ne "EX").
+
+=end InternalDoc
 
 =cut
 
@@ -2448,9 +2618,13 @@ sub is_virtual
 sub should_reverse_order { return 0; }
 
 
+=begin InternalDoc
+
 =item @problems = $field->validate( $session, $value, $dataobj )
 
 Returns an array of DOM problems with $value for this field.
+
+=end InternalDoc
 
 =cut
 
