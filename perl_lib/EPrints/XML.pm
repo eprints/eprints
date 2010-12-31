@@ -46,7 +46,7 @@ B<EPrints::XML> - XML Abstraction Module
 
 	$xml->dispose( $dom_node );
 
-head1 DESCRIPTION
+=head1 DESCRIPTION
 
 EPrints can use either XML::DOM, XML::LibXML or XML::GDOME modules to generate
 and process XML. Some of the functionality of these modules differs so this
@@ -280,9 +280,13 @@ sub clone
 
 Returns a clone of $node only (no children). The new node will be owned by this object.
 
+=begin InternalDoc
+
 =item $node = EPrints::XML::clone_node( $node [, $deep ] )
 
 DEPRECATED.
+
+=end InternalDoc
 
 =cut
 
@@ -381,6 +385,8 @@ sub to_string
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $string = EPrints::XML::to_string( $node, [$enc], [$noxmlns] )
 
 Return the given node (and its children) as a UTF8 encoded string.
@@ -394,6 +400,8 @@ Papers over some cracks, specifically that XML::GDOME does not
 support toString on a DocumentFragment, and that XML::GDOME does
 not insert a space before the / in tags with no children, which
 confuses some browsers. Eg. <br/> vs <br />
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -523,6 +531,8 @@ sub dispose
 	_dispose( $node );
 }
 
+=begin InternalDoc
+
 =item $doc = EPrints::XML::parse_xml( $file, $basepath, $no_expand )
 
 Return a DOM document describing the XML file specified by $file.
@@ -535,6 +545,8 @@ instead.
 In the event of an error in the XML file, report to STDERR and
 return undef.
 
+=end InternalDoc
+
 =cut
 ######################################################################
 
@@ -543,10 +555,14 @@ return undef.
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item event_parse( $fh, $handler )
 
 Parses the XML from filehandle $fh, calling the appropriate events
 in the handler where necessary.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -556,6 +572,8 @@ in the handler where necessary.
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $boolean = is_dom( $node, @nodestrings )
 
  return true if node is an object of type XML::DOM/GDOME::$nodestring
@@ -563,6 +581,8 @@ in the handler where necessary.
 
  if $nodestring is not defined then return true if $node is any 
  XML::DOM/GDOME object.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -592,6 +612,8 @@ sub is_dom
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $newnode = EPrints::XML::clone_and_own( $doc, $node, $deep )
 
 This function abstracts the different ways that XML::DOM and 
@@ -603,6 +625,8 @@ matter what document $node belongs to.
 If $deep is true then the clone will also clone all nodes belonging
 to $node, recursively.
 
+=end InternalDoc
+
 =cut
 ######################################################################
 
@@ -611,11 +635,15 @@ to $node, recursively.
 
 ######################################################################
 =pod
+
+=begin InternalDoc
 
 =item $document = EPrints::XML::make_document()
 
 Create and return an empty document.
 
+=end InternalDoc
+
 =cut
 ######################################################################
 
@@ -624,9 +652,13 @@ Create and return an empty document.
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item EPrints::XML::write_xml_file( $node, $filename )
 
 Write the given XML node $node to file $filename.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -648,9 +680,13 @@ END
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item EPrints::XML::write_xhtml_file( $node, $filename )
 
 Write the given XML node $node to file $filename with an XHTML doctype.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -690,6 +726,8 @@ END
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item EPrints::XML::tidy( $domtree, { collapse=>['element','element'...] }, [$indent] )
 
 Neatly indent the DOM tree. 
@@ -701,6 +739,8 @@ This method modifies the tree it is given. Possibly there should be
 a version which returns a new version without modifying the tree.
 
 Indent is the number of levels to ident by.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -796,9 +836,13 @@ sub tidy
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $namespace = EPrints::XML::namespace( $thing, $version )
 
 Return the namespace for the given version of the eprints xml.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -817,9 +861,13 @@ sub namespace
 	return undef;
 }
 
+=begin InternalDoc
+
 =item $v = EPrints::XML::version()
 
 Returns a string description of the current XML library and version.
+
+=end InternalDoc
 
 =cut
 
