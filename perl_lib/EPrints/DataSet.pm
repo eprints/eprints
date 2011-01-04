@@ -57,9 +57,9 @@ The list of dataset ids can be obtained from the repository object
 (see L<EPrints::Repository>).
 
 A normal dataset (eg. "user") has a package associated with it 
-(eg. EPrints::DataObj::User) which must be a subclass of EPrints::DataObj 
+(eg. L<EPrints::DataObj::User>) which must be a subclass of L<EPrints::DataObj> 
 and a number of SQL tables which are prefixed with the dataset name.
-Most datasets also have a set of associated EPrints::MetaField's which
+Most datasets also have a set of associated L<EPrints::MetaField>'s which
 may be optional or compulsary depending on the type eg. books have editors
 but posters don't but they are both EPrints.
 
@@ -70,7 +70,7 @@ fields.
 Some datasets are "virtual" datasets made from others. Examples include 
 "inbox", "archive", "buffer" and "retired" which are all virtual datasets 
 of of the "eprint" dataset. That is to say "inbox" is a subset of "eprint" 
-and by inference contains EPrints::DataObj::EPrints. You can define your 
+and by inference contains L<EPrints::DataObj::EPrints>. You can define your 
 own virtual datasets which opperate on existing datasets.
 
 =over 4
