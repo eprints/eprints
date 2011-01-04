@@ -438,9 +438,9 @@ END
 
 =pod
 
-=item $repo = $ep->repository( $repository_id, %options );
+=item $repo = $ep->repository( $repository_id, [%options] );
 
-Return the repository with the given ID, or undef. Options are... optional.
+Return the L<EPrints::Repository> with the given ID, or undef. Options are... optional.
 
 Options noise=>1, etc.
 
@@ -465,7 +465,8 @@ sub repository($$%)
 
 =item $repo = $ep->current_repository();
 
-Returns the current repository.
+Returns the current L<EPrints::Repository>. The current 
+repository is determined by the apache request.
 
 Returns undef if there is no current repository active.
 
