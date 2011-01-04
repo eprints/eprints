@@ -139,19 +139,17 @@ sub render_single_value_row
 {
 	my( $self, $session, $value, $object ) = @_;
 
-	my $f = $self->get_property( "fields_cache" );
-
-	my %fieldname_to_alias = $self->get_fieldname_to_alias;
 	my $tr = $session->make_element( "tr" );
-	foreach my $field ( @{$f} )
+
+	foreach my $field (@{$self->{fields_cache}})
 	{
-		my $name = $field->get_name;
+		my $alias = $field->property( "sub_name" );
 		my $td = $session->make_element( "td" );
 		$tr->appendChild( $td );
 		$td->appendChild( 
 			$field->render_single_value( 
 				$session, 
-				$value->{$fieldname_to_alias{$name}}, 
+				$value->{$alias}, 
 				$object ) );
 	}
 
@@ -173,13 +171,11 @@ sub to_sax_basic
 
 	return if !EPrints::Utils::is_set( $value );
 
-	my $f = $self->property( "fields_cache" );
-	my %fieldname_to_alias = $self->get_fieldname_to_alias;
-	foreach my $field ( @{$f} )
+	foreach my $field (@{$self->{fields_cache}})
 	{
 		next if !$field->property( "export_as_xml" );
 
-		my $alias = $fieldname_to_alias{$field->name};
+		my $alias = $field->property( "sub_name" );
 		my $v = $value->{$alias};
 		# cause the sub-field to behave like it's a normal field
 		local $field->{multiple} = 0;
@@ -199,8 +195,6 @@ sub start_element
 	my( $self, $data, $epdata, $state ) = @_;
 
 	++$state->{depth};
-
-	my %a_to_f = $self->get_alias_to_fieldname;
 
 	# if we're inside a sub-field just call it
 	if( defined(my $field = $state->{handler}) )
@@ -230,7 +224,14 @@ sub start_element
 	# otherwise we must be starting a new sub-field value
 	else
 	{
-		$state->{handler} = $self->{dataset}->field( $a_to_f{$data->{LocalName}} );
+		foreach my $field (@{$self->property( "fields_cache" )})
+		{
+			if( $field->property( "sub_name" ) eq $data->{LocalName} )
+			{
+				$state->{handler} = $field;
+				last;
+			}
+		}
 	}
 }
 
@@ -311,6 +312,7 @@ sub get_sql_type
 	return undef;
 }
 
+# UNUSED
 sub get_alias_to_fieldname
 {
 	my( $self ) = @_;
@@ -326,17 +328,12 @@ sub get_alias_to_fieldname
 	return %addr;
 }
 
+# UNUSED
 sub get_fieldname_to_alias
 {
 	my( $self ) = @_;
 
-	my %addr = $self->get_alias_to_fieldname;
-	my %raddr = ();
-	foreach( keys %addr )
-	{
-		$raddr{$addr{$_}} = $_;
-	}
-	return %raddr;
+	return reverse $self->get_alias_to_fieldname;
 }
 
 # Get the value of this field from the object. In this case this
@@ -345,44 +342,32 @@ sub get_value
 {
 	my( $self, $object ) = @_;
 
-	my $values = {};
-	my %alias_to_fieldname = $self->get_alias_to_fieldname;
-	foreach my $as ( keys %alias_to_fieldname )
-	{
-		$values->{$as} = $object->get_value_raw( $alias_to_fieldname{$as} );
-	}
+	my $value;
 
-	if( !$self->get_property( "multiple" ) )
+	if( $self->property( "multiple" ) )
 	{
-		return $values;
-	}
-
-	my $lists = {};
-	my $len = 0;
-	foreach my $as ( keys %alias_to_fieldname )
-	{
-		$lists->{$as} = [];
-		next unless defined $values->{$as};
-		if( scalar @{$values->{$as}} > $len )
+		$value = [];
+		foreach my $field (@{$self->{fields_cache}})
 		{
-			$len = scalar @{$values->{$as}};
+			my $alias = $field->property( "sub_name" );
+			my $v = $field->get_value( $object );
+			foreach my $i (0..$#$v)
+			{
+				$value->[$i]->{$alias} = $v->[$i];
+			}
+		}
+	}
+	else
+	{
+		$value = {};
+		foreach my $field (@{$self->{fields_cache}})
+		{
+			my $alias = $field->property( "sub_name" );
+			$value->{$alias} = $field->get_value( $object );
 		}
 	}
 
-	my $list = [];
-	for( my $i=0; $i<$len; ++$i )
-	{
-		my $v = {};
-		foreach my $as ( keys %alias_to_fieldname )
-		{
-			next if( !defined $values->{$as} );
-			next if( !defined $values->{$as}->[$i] );
-			$v->{$as} = $values->{$as}->[$i];
-		}
-		push @{$list}, $v;
-	}
-
-	return $list;
+	return $value;
 }
 
 
@@ -390,35 +375,23 @@ sub set_value
 {
 	my( $self, $object, $value ) = @_;
 
-	my %alias_to_fieldname = $self->get_alias_to_fieldname;
-	my %fieldname_to_alias = $self->get_fieldname_to_alias;
-	my $f = $self->get_property( "fields_cache" );
-	my $values = {};
 	if( $self->get_property( "multiple" ) )
 	{
-		foreach my $as ( keys %alias_to_fieldname )
+		foreach my $field (@{$self->{fields_cache}})
 		{
-			$values->{$as} = [];
-		}
-		foreach my $row ( @{$value} )
-		{
-			foreach my $as ( keys %alias_to_fieldname )
-			{
-				push @{$values->{$alias_to_fieldname{$as}}}, $row->{$as};
-			}
+			my $alias = $field->property( "sub_name" );
+			$field->set_value( $object, [
+				map { $_->{$alias} } @$value
+			] );
 		}
 	}
 	else
 	{
-		foreach my $as ( keys %alias_to_fieldname )
+		foreach my $field (@{$self->{fields_cache}})
 		{
-			$values->{$alias_to_fieldname{$as}} = $value->{$as};
+			my $alias = $field->property( "sub_name" );
+			$field->set_value( $object, $value->{$alias} );
 		}
-	}
-	foreach my $fieldname ( keys %fieldname_to_alias )
-	{
-		my $field = $object->get_dataset->get_field( $fieldname );
-		$field->set_value( $object, $values->{$fieldname} );
 	}
 }
 
@@ -449,17 +422,14 @@ sub get_basic_input_elements
 {
 	my( $self, $session, $value, $basename, $staff, $object ) = @_;
 
-	my $f = $self->get_property( "fields_cache" );
 	my $grid_row = [];
 
-	my %fieldname_to_alias = $self->get_fieldname_to_alias;
-	foreach my $field ( @{$f} )
+	foreach my $field (@{$self->{fields_cache}})
 	{
-		my $fieldname = $field->get_name;
-		my $alias = $fieldname_to_alias{$fieldname};
+		my $alias = $field->property( "sub_name" );
 		my $part_grid = $field->get_basic_input_elements( 
 					$session, 
-					$value->{$fieldname_to_alias{$fieldname}}, 
+					$value->{$alias}, 
 					$basename."_".$alias, 
 					$staff, 
 					$object );
@@ -476,13 +446,9 @@ sub get_basic_input_ids
 
 	my @ids = ();
 
-	my $f = $self->get_property( "fields_cache" );
-	my %fieldname_to_alias = $self->get_fieldname_to_alias;
-	foreach my $field_conf ( @{$f} )
+	foreach my $field (@{$self->{fields_cache}})
 	{
-		my $fieldname = $field_conf->{name};
-		my $alias = $fieldname_to_alias{$fieldname};
-		my $field = $obj->get_dataset->get_field( $fieldname );
+		my $alias = $field->property( "sub_name" );
 		push @ids, $field->get_basic_input_ids( 
 					$session, 
 					$basename."_".$alias, 
@@ -500,12 +466,9 @@ sub form_value_basic
 	
 	my $value = {};
 
-	my $f = $self->get_property( "fields_cache" );
-	my %fieldname_to_alias = $self->get_fieldname_to_alias;
-	foreach my $field ( @{$f} )
+	foreach my $field (@{$self->{fields_cache}})
 	{
-		my $fieldname = $field->get_name;
-		my $alias = $fieldname_to_alias{$fieldname};
+		my $alias = $field->property( "sub_name" );
 		my $v = $field->form_value_basic( $session, $basename."_".$alias, $object );
 		$value->{$alias} = $v;
 	}

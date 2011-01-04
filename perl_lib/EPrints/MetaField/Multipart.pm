@@ -28,40 +28,56 @@ not done
 
 package EPrints::MetaField::Multipart;
 
-use EPrints::MetaField::Text;
+use EPrints::MetaField;
 
-@ISA = qw( EPrints::MetaField::Text );
+@ISA = qw( EPrints::MetaField );
 
 use strict;
+
+sub new
+{
+	my( $class, %properties ) = @_;
+
+	$properties{fields_cache} = [];
+	$properties{fields_index} = {};
+
+	my $self = $class->SUPER::new( %properties );
+
+	foreach my $fconf (@{$self->property( "fields" )})
+	{
+		my $field = EPrints::MetaField->new(
+				%$fconf,
+				name => join('_', $self->name, $fconf->{sub_name}),
+				repository => $self->{repository},
+				dataset => $self->{dataset},
+				parent => $self,
+			);
+		push @{$self->{fields_cache}}, $field;
+		$self->{fields_index}->{$field->property( "sub_name" )} = $field;
+
+		# avoid circular references if we can
+		Scalar::Utils::weaken( $field->{parent} )
+			if defined &Scalar::Utils::weaken;
+	}
+
+	return $self;
+}
 
 sub get_property_defaults
 {
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
-	$defaults{parts} = [];
-	$defaults{maxlength} = 64; # to allow key(@parts)
+	$defaults{fields} = $EPrints::MetaField::REQUIRED;
+	$defaults{fields_cache} = $EPrints::MetaField::REQUIRED;
+	$defaults{fields_index} = {};
 	return %defaults;
-}
-
-=item @parts = $field->parts()
-
-Convenience method to get the parts property as a list.
-
-=cut
-
-sub parts
-{
-	my( $self ) = @_;
-
-	my $parts = $self->property( "parts" );
-	return @$parts;
 }
 
 sub get_sql_names
 {
 	my( $self ) = @_;
 
-	return map { $self->get_name() . "_" . $_ } $self->parts;
+	return map { $_->get_sql_names } @{$self->{fields_cache}};
 }
 
 sub value_from_sql_row
@@ -69,9 +85,11 @@ sub value_from_sql_row
 	my( $self, $session, $row ) = @_;
 
 	my %value;
-	for($self->parts)
+
+	for(@{$self->{fields_cache}})
 	{
-		$value{$_} = $self->SUPER::value_from_sql_row( $session, $row );
+		$value{$_->property( "sub_name" )} =
+			$_->value_from_sql_row( $session, $row );
 	}
 
 	return \%value;
@@ -81,40 +99,22 @@ sub sql_row_from_value
 {
 	my( $self, $session, $value ) = @_;
 
-	if( !EPrints::Utils::is_set( $value ) )
+	my @row;
+
+	for(@{$self->{fields_cache}})
 	{
-		return map { undef } $self->parts;
+		push @row,
+			$_->sql_row_from_value( $session, $value->{$_->property( "sub_name" )} );
 	}
 
-	for(@$value{$self->parts})
-	{
-		# Avoid NULL!="" name part problems
-		$_ = "" if !defined $_;
-		$_ = $self->SUPER::sql_row_from_value( $session, $_ );
-	}
-
-	return @$value{$self->parts};
+	return @row;
 }
 
 sub get_sql_type
 {
 	my( $self, $session ) = @_;
 
-	my @parts = $self->get_sql_names;
-
-	for(@parts)
-	{
-		$_ = $session->get_database->get_column_type(
-			$_,
-			EPrints::Database::SQL_VARCHAR,
-			!$self->get_property( "allow_null" ),
-			$self->get_property( "maxlength" ),
-			undef,
-			$self->get_sql_properties,
-		);
-	}
-
-	return @parts;
+	return map { $_->get_sql_type( $session ) } @{$self->{fields_cache}};
 }
 
 sub get_sql_index
@@ -131,47 +131,29 @@ sub render_single_value
 	my( $self, $session, $value ) = @_;
 
 	no warnings; # suppress undef warnings
-	return $session->make_text(join ', ', @{$value}{$self->parts});
-}
-
-sub get_input_bits
-{
-	my( $self, $session ) = @_;
-
-	return $self->parts;
+	return $session->make_text(join ', ', @{$value}{
+		keys %{$self->{fields_index}}
+	});
 }
 
 sub get_basic_input_elements
 {
 	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
 
-	my $parts = [];
-	foreach( $self->get_input_bits( $session ) )
-	{
-		my $size = $self->{input_name_cols}->{$_};
-		my $f = $session->make_element( "div" );
-		push @{$parts}, {el=>$f};
-		$f->appendChild( $session->render_noenter_input_field(
-			class => "ep_form_text",
-			name => $basename."_".$_,
-			id => $basename."_".$_,
-			value => $value->{$_},
-			size => $size,
-			maxlength => $self->{maxlength} ) );
-		$f->appendChild( $session->make_element( "div", id=>$basename."_".$_."_billboard" ));
-	}
-
-	return [ $parts ];
+	return $self->EPrints::MetaField::Compound::get_basic_input_elements(
+		$session, $value, $basename, $staff, $obj
+	);
 }
 
 sub get_basic_input_ids
 {
 	my( $self, $session, $basename, $staff, $obj ) = @_;
 
-	my @ids = ();
-	foreach( $self->get_input_bits( $session ) )
+	my @ids;
+
+	foreach my $field (@{$self->{fields_cache}})
 	{
-		push @ids, $basename."_".$_;
+		push @ids, $field->get_basic_input_ids( $session, $basename, $staff, $obj );
 	}
 
 	return @ids;
@@ -181,11 +163,13 @@ sub get_input_col_titles
 {
 	my( $self, $session, $staff ) = @_;
 
-	my @r = ();
-	foreach my $bit ( $self->get_input_bits( $session ) )
+	my @r;
+
+	foreach my $field (@{$self->{fields_cache}})
 	{
-		push @r, $session->html_phrase(	"lib/metafield:".$bit );
+		push @r, $field->get_input_col_titles( $session, $staff );
 	}
+
 	return \@r;
 }
 
@@ -193,18 +177,7 @@ sub form_value_basic
 {
 	my( $self, $session, $basename ) = @_;
 	
-	my $data = {};
-	foreach( $self->parts )
-	{
-		$data->{$_} = $session->param( $basename."_".$_ );
-	}
-
-	unless( EPrints::Utils::is_set( $data ) )
-	{
-		return( undef );
-	}
-
-	return $data;
+	return $self->EPrints::MetaField::Compound::form_value_basic( $session, $basename );
 }
 
 sub get_value_label
@@ -219,21 +192,16 @@ sub ordervalue_basic
 	my( $self , $value ) = @_;
 
 	if( ref($value) ne "HASH" ) {
-		EPrints::abort( "EPrints::MetaField::Name::ordervalue_basic called on something other than a hash: $value" );
+		EPrints::abort( "ordervalue_basic called on something other than a hash: $value" );
 	}
 
 	my @ov;
-	foreach( $self->parts )
+	foreach( @{$self->{fields_cache}} )
 	{
-		if( defined $value->{$_} )
-		{
-			push @ov, $value->{$_};
-		}
-		else
-		{
-			push @ov, "";
-		}
+		push @ov, $_->ordervalue_basic( $value->{$_->property( "sub_name" )} );
 	}
+
+	no warnings; # avoid undef warnings
 	return join( "\t" , @ov );
 }
 
@@ -317,14 +285,15 @@ sub get_values
 
 sub get_id_from_value
 {
-	my( $self, $session, $name ) = @_;
+	my( $self, $session, $value ) = @_;
 
-	return "NULL" if !defined $name;
+	return "NULL" if !defined $value;
 
 	return join(":",
 		map { URI::Escape::uri_escape($_, ":%") }
 		map { defined($_) ? $_ : "NULL" }
-		@{$name}{$self->parts});
+		map { $value->{$_->property( "sub_name" )} } @{$self->{fields_cache}}
+	);
 }
 
 sub get_value_from_id
@@ -333,13 +302,18 @@ sub get_value_from_id
 
 	return undef if $id eq "NULL";
 
-	my $name = {};
-	@{$name}{$self->parts} =
-		map { $_ ne "NULL" ? $_ : undef }
-		map { URI::Escape::uri_unescape($_) }
-		split /:/, $id, scalar($self->parts); # if we don't specify 4 split truncates
+	my %value;
 
-	return $name;
+	my @parts = split /:/, $id, scalar(@{$self->{fields_cache}});
+	foreach my $field (@{$self->{fields_cache}})
+	{
+		my $part = shift @parts;
+		$part = URI::Escape::uri_unescape( $part );
+		$part = undef if $part eq "NULL";
+		$value{$field->property( "sub_name" )} = $part;
+	}
+
+	return \%value;
 }
 
 sub to_sax_basic
@@ -352,22 +326,23 @@ sub to_sax_basic
 	my $dataset = $self->dataset;
 	my $name = $self->name;
 
-	foreach my $part ( $self->parts )
+	foreach my $field (@{$self->{fields_cache}})
 	{
-		my $v = $value->{$part};
+		my $alias = $field->property( "sub_name" );
+		my $v = $value->{$alias};
 		next unless EPrints::Utils::is_set( $v );
 		$handler->start_element( {
 			Prefix => '',
-			LocalName => $part,
-			Name => $part,
+			LocalName => $alias,
+			Name => $alias,
 			NamespaceURI => EPrints::Const::EP_NS_DATA,
 			Attributes => {},
 		});
 		$self->SUPER::to_sax_basic( $v, %opts );
 		$handler->end_element( {
 			Prefix => '',
-			LocalName => $part,
-			Name => $part,
+			LocalName => $alias,
+			Name => $alias,
 			NamespaceURI => EPrints::Const::EP_NS_DATA,
 		});
 	}
@@ -389,9 +364,9 @@ sub start_element
 		($state->{depth} == 3 && $self->property( "multiple" ))
 	  )
 	{
-		if( grep { $_ eq $data->{LocalName} } $self->parts )
+		if( exists $self->{fields_index}->{$data->{LocalName}} )
 		{
-			$state->{part} = $data->{LocalName};
+			$state->{alias} = $data->{LocalName};
 		}
 		else
 		{
@@ -410,7 +385,7 @@ sub end_element
 		($state->{depth} == 3 && $self->property( "multiple" ))
 	  )
 	{
-		delete $state->{part};
+		delete $state->{alias};
 	}
 
 	$self->SUPER::end_element( $data, $epdata, $state );
@@ -420,18 +395,18 @@ sub characters
 {
 	my( $self, $data, $epdata, $state ) = @_;
 
-	my $part = $state->{part};
-	return if !defined $part;
+	my $alias = $state->{alias};
+	return if !defined $alias;
 
 	my $value = $epdata->{$self->name};
 
 	if( $state->{depth} == 3 ) # <name><item><family>XXX
 	{
-		$value->[-1]->{$part} .= $data->{Data};
+		$value->[-1]->{$alias} .= $data->{Data};
 	}
 	elsif( $state->{depth} == 2 ) # <name><family>XXX
 	{
-		$value->{$part} .= $data->{Data};
+		$value->{$alias} .= $data->{Data};
 	}
 }
 
@@ -443,10 +418,9 @@ sub render_xml_schema_type
 
 	my $all = $session->make_element( "xs:all" );
 	$type->appendChild( $all );
-	foreach my $part ( $self->parts )
+	foreach my $field (@{$self->{fields_cache}})
 	{
-		my $element = $session->make_element( "xs:element", name => $part, type => "xs:string", minOccurs => "0" );
-		$all->appendChild( $element );
+		$all->appendChild( $field->render_xml_schema_type( $session ) );
 	}
 
 	return $type;

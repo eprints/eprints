@@ -60,7 +60,7 @@ sub render_single_value
 
 sub get_input_bits
 {
-	my( $self, $session ) = @_;
+	my( $self ) = @_;
 
 	my @namebits;
 	unless( $self->get_property( "hide_honourific" ) )
@@ -83,12 +83,34 @@ sub get_input_bits
 	return @namebits;
 }
 
+sub get_basic_input_elements
+{
+	my( $self, $session, $value, $basename, $staff, $object ) = @_;
+
+	my $grid_row = [];
+
+	foreach my $alias ($self->get_input_bits)
+	{
+		my $field = $self->{fields_index}->{$alias};
+		my $part_grid = $field->get_basic_input_elements( 
+					$session, 
+					$value->{$alias}, 
+					$basename."_".$alias, 
+					$staff, 
+					$object );
+		my $top_row = $part_grid->[0];
+		push @{$grid_row}, @{$top_row};
+	}
+
+	return [ $grid_row ];
+}
+
 sub get_input_col_titles
 {
 	my( $self, $session, $staff ) = @_;
 
 	my @r = ();
-	foreach my $bit ( $self->get_input_bits( $session ) )
+	foreach my $bit ( $self->get_input_bits() )
 	{
 		# deal with some legacy in the phrase id's
 		$bit = "given_names" if( $bit eq "given" );
@@ -264,7 +286,12 @@ sub get_property_defaults
 {
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
-	$defaults{parts} = [qw( family given lineage honourific )];
+	$defaults{fields} = [
+		{ sub_name => "family", type => "text", maxlength => 64, input_cols => 25, },
+		{ sub_name => "given", type => "text", maxlength => 64, input_cols => 25, },
+		{ sub_name => "lineage", type => "text", maxlength => 10, },
+		{ sub_name => "honourific", type => "text", maxlength => 10, },
+	];
 	$defaults{input_name_cols} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{hide_honourific} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{hide_lineage} = $EPrints::MetaField::FROM_CONFIG;
