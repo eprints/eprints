@@ -38,10 +38,10 @@ The Repository object also knows about the current apache connection,
 if there is one, including the CGI parameters. 
 
 If the connection requires a username and password then it can also 
-give access to the EPrints::DataObj::User object representing the user who is
+give access to the L<EPrints::DataObj::User> object representing the user who is
 causing this request. See current_user().
 
-The Repository object also provides access to the XHTML class which contains
+The Repository object also provides access to the L<EPrints::XHTML> class which contains
 many methods for creating XHTML results which can be returned via the web 
 interface. 
 
@@ -432,7 +432,7 @@ sub load_config
 
 =item $xml = $repo->xml
 
-Return an XML object for working with XML.
+Return an L<EPrints::XML> object for working with XML.
 
 =cut
 ######################################################################
@@ -451,7 +451,7 @@ sub xml($)
 
 =item $xhtml = $repo->xhtml
 
-Return an XHTML object for working with XHTML.
+Return an L<EPrints::XHTML> object for working with XHTML.
 
 =cut
 ######################################################################
@@ -470,7 +470,10 @@ sub xhtml($)
 
 =item $eprint = $repository->eprint( $eprint_id );
 
-Return the eprint with the given ID, or undef.
+A convience method to return the L<EPrints::DataObj::EPrint> with 
+the given ID, or undef.
+
+Equivent to $repository->dataset("eprint")->dataobj( $eprint_id )
 
 =cut
 ######################################################################
@@ -481,13 +484,64 @@ sub eprint($$)
 
 	return $repository->dataset( "eprint" )->get_object( $repository, $eprint_id );
 }
+
+######################################################################
+=pod
+
+=item $user = $repository->current_user
+
+Return the current logged in L<EPrints::DataObj::User> for this session.
+
+Return undef if there isn't one.
+
+=cut
+######################################################################
+
+sub current_user
+{
+	my( $self ) = @_;
+
+	if( $self->{offline} )
+	{
+		return undef;
+	}
+
+	if( $self->{logged_out} )
+	{	
+		return undef;
+	}
+
+	if( !defined $self->{current_user} )
+	{
+		return undef if( $self->{already_in_current_user} );
+		$self->{already_in_current_user} = 1;
+
+		if( $self->get_repository->can_call( 'get_current_user' ) )
+		{
+			$self->{current_user} = $self->get_repository->call( 'get_current_user', $self );
+		}
+		elsif( $self->get_archive->get_conf( "cookie_auth" ) ) 
+		{
+			$self->{current_user} = $self->_current_user_auth_cookie;
+		}
+		else
+		{
+			$self->{current_user} = $self->_current_user_auth_basic;
+		}
+		$self->{already_in_current_user} = 0;
+	}
+	return $self->{current_user};
+}
 	
 ######################################################################
 =pod
 
 =item $user = $repository->user( $user_id );
 
-Return the user with the given ID, or undef.
+A convience method to return the L<EPrints::DataObj::User> with 
+the given ID, or undef.
+
+Equivent to $repository->dataset("user")->dataobj( $user_id )
 
 =cut
 ######################################################################
@@ -521,7 +575,7 @@ sub user_by_username($$)
 
 =item $user = $repository->user_by_email( $email );
 
-Return the user with the given email, or undef.
+Return the L<EPrints::DataObj::User> with the given email, or undef.
 
 =cut
 ######################################################################
@@ -1340,7 +1394,7 @@ sub get_sql_counter_ids
 
 =item $dataset = $repository->dataset( $setname )
 
-Return a given dataset or undef if it doesn't exist.
+Return a given L<EPrints::DataSet> or undef if it doesn't exist.
 
 =cut
 ######################################################################
@@ -1910,9 +1964,13 @@ sub parse_xml
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $id = $repository->get_id 
 
 Returns the id string of this repository.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -5096,54 +5154,6 @@ sub reload_current_user
 	my( $self ) = @_;
 
 	delete $self->{current_user};
-}
-
-######################################################################
-=pod
-
-=item $user = $repository->current_user
-
-Return the current EPrints::DataObj::User for this session.
-
-Return undef if there isn't one.
-
-=cut
-######################################################################
-
-sub current_user
-{
-	my( $self ) = @_;
-
-	if( $self->{offline} )
-	{
-		return undef;
-	}
-
-	if( $self->{logged_out} )
-	{	
-		return undef;
-	}
-
-	if( !defined $self->{current_user} )
-	{
-		return undef if( $self->{already_in_current_user} );
-		$self->{already_in_current_user} = 1;
-
-		if( $self->get_repository->can_call( 'get_current_user' ) )
-		{
-			$self->{current_user} = $self->get_repository->call( 'get_current_user', $self );
-		}
-		elsif( $self->get_archive->get_conf( "cookie_auth" ) ) 
-		{
-			$self->{current_user} = $self->_current_user_auth_cookie;
-		}
-		else
-		{
-			$self->{current_user} = $self->_current_user_auth_basic;
-		}
-		$self->{already_in_current_user} = 0;
-	}
-	return $self->{current_user};
 }
 
 sub _current_user_auth_basic
