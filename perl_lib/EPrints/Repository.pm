@@ -345,6 +345,60 @@ sub query
 ######################################################################
 =pod
 
+=item $value or @values = $repository->param( $name )
+
+Passes through to CGI.pm param method.
+
+$value = $repository->param( $name ): returns the value of CGI parameter
+$name.
+
+$value = $repository->param( $name ): returns the value of CGI parameter
+$name.
+
+@values = $repository->param: returns an array of the names of all the
+CGI parameters in the current request.
+
+=cut
+######################################################################
+
+sub param
+{
+	my( $self, $name ) = @_;
+
+	if( !defined $self->{query} ) 
+	{
+		$self->read_params;
+	}
+
+	if( !wantarray )
+	{
+		my $value = ( $self->{query}->param( $name ) );
+		utf8::decode($value);
+		return $value;
+	}
+	
+	# Called in an array context
+	my @result;
+
+	if( defined $name )
+	{
+		@result = $self->{query}->param( $name );
+	}
+	else
+	{
+		@result = $self->{query}->param;
+	}
+
+	utf8::decode($_) for @result;
+
+	return( @result );
+
+}
+
+
+######################################################################
+=pod
+
 =begin InternalDoc
 
 =item $repository->terminate
@@ -2238,28 +2292,6 @@ sub test_config
 	return ($rc/256, $output);
 }
 
-
-
-
-#############################################################
-#############################################################
-=pod
-
-=back
-
-=begin InternalDoc
-
-=head2 Language Related Methods
-
-=end InternalDoc
-
-=over 4
-
-=cut
-#############################################################
-#############################################################
-
-
 ######################################################################
 =pod
 
@@ -2573,22 +2605,6 @@ sub get_view_name
         return $self->phrase( 
 		"viewname_".$dataset->confid()."_".$viewid );
 }
-
-
-
-
-#############################################################
-#############################################################
-=pod
-
-=back
-
-=head2 Accessor Methods
-
-=cut
-#############################################################
-#############################################################
-
 
 ######################################################################
 =pod
@@ -4962,85 +4978,6 @@ sub set_cookies
 				$self->{"request"},
 				"Set-Cookie" => $cookie );
 	}
-}
-
-
-#############################################################
-#############################################################
-=pod
-
-=begin InternalDoc
-
-=back
-
-=head2 Input Methods
-
-These handle input from the user, browser and apache.
-
-=over 4
-
-=end InternalDoc
-
-=cut
-#############################################################
-#############################################################
-
-
-
-
-######################################################################
-=pod
-
-=over
-
-=item $value or @values = $repository->param( $name )
-
-Passes through to CGI.pm param method.
-
-$value = $repository->param( $name ): returns the value of CGI parameter
-$name.
-
-$value = $repository->param( $name ): returns the value of CGI parameter
-$name.
-
-@values = $repository->param: returns an array of the names of all the
-CGI parameters in the current request.
-
-=cut
-######################################################################
-
-sub param
-{
-	my( $self, $name ) = @_;
-
-	if( !defined $self->{query} ) 
-	{
-		$self->read_params;
-	}
-
-	if( !wantarray )
-	{
-		my $value = ( $self->{query}->param( $name ) );
-		utf8::decode($value);
-		return $value;
-	}
-	
-	# Called in an array context
-	my @result;
-
-	if( defined $name )
-	{
-		@result = $self->{query}->param( $name );
-	}
-	else
-	{
-		@result = $self->{query}->param;
-	}
-
-	utf8::decode($_) for @result;
-
-	return( @result );
-
 }
 
 # $repository->read_params
