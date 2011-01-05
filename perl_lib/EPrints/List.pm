@@ -14,6 +14,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<EPrints::List> - List of data objects, usually a search result.
@@ -172,6 +174,10 @@ sub new
 	if( !defined $self->{cache_id} && !defined $self->{ids} ) 
 	{
 		EPrints::abort( "cache_id or ids must be defined in a EPrints::List->new()" );
+	}
+	if( !defined $self->{repository} )
+	{
+		$self->{session} = $self->{repository};
 	}
 	if( !defined $self->{session} )
 	{
