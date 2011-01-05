@@ -57,7 +57,7 @@ $dataobj = $dataobj->create_subobject( $fieldname, $epdata );
 =head1 DESCRIPTION
 
 This module is a base class which is inherited by L<EPrints::DataObj::EPrint>,
-L<EPrints::User>, L<EPrints::DataObj::Subject> and
+L<EPrints::DataObj::User>, L<EPrints::DataObj::Subject> and
 L<EPrints::DataObj::Document> and several other classes.
 
 It is ABSTRACT - its methods should not be called directly.
