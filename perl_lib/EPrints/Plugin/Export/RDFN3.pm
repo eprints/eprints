@@ -65,7 +65,6 @@ sub serialise_graph
 				{
 					my $v = $val->[0];
 					$v =~ s/\\/\\\\/g;
-					$v =~ s/\'/\\'/g;
 					$v =~ s/\"/\\"/g;
 					$v =~ s/\n/\\n/g;
 					$v =~ s/\r/\\r/g;

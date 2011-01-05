@@ -43,7 +43,6 @@ sub serialise_graph
 
 		my $v = $t->{object};
 		$v =~ s/\\/\\\\/g;
-		$v =~ s/\'/\\'/g;
 		$v =~ s/\"/\\"/g;
 		$v =~ s/\n/\\n/g;
 		$v =~ s/\r/\\r/g;
