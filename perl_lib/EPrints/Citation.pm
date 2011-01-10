@@ -52,6 +52,9 @@ sub new
 
 	my $self = bless \%self, $class;
 
+	Scalar::Util::weaken($self{repository})
+		if defined &Scalar::Util::weaken;
+
 	return undef if !$self->freshen();
 
 	return $self;

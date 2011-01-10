@@ -70,8 +70,8 @@ sub new
 			volatile => $properties{ "volatile" } );
 
 		# avoid circular references if we can
-		Scalar::Utils::weaken( $field->{parent} )
-			if defined &Scalar::Utils::weaken;
+		Scalar::Util::weaken( $field->{parent} )
+			if defined &Scalar::Util::weaken;
 
 		push @{$self->{fields_cache}}, $field;
 	}

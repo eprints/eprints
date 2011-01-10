@@ -56,8 +56,8 @@ sub new
 		$self->{fields_index}->{$field->property( "sub_name" )} = $field;
 
 		# avoid circular references if we can
-		Scalar::Utils::weaken( $field->{parent} )
-			if defined &Scalar::Utils::weaken;
+		Scalar::Util::weaken( $field->{parent} )
+			if defined &Scalar::Util::weaken;
 	}
 
 	return $self;
