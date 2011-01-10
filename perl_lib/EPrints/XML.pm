@@ -1139,26 +1139,17 @@ sub _remove_blank_nodes
 
 sub _write_xml 
 {
-        my( $xml_in, $filename ) = @_;
+	my( $xml_in, $filename ) = @_;
 
-        $xml_in = _remove_blank_nodes($xml_in);
+	$xml_in = _remove_blank_nodes($xml_in);
 
-        my $xml_string = $xml_in->toString();
+	open(my $fh, ">", $filename) or return 0;
 
-        use XML::Twig;
-        use XML::Parser;
-        my $xml = XML::Twig->new(pretty_print => 'indented');
-        $xml->parse($xml_string);
-        $xml_in = $xml;
+	print $fh EPrints::XML::to_string( $xml_in );
 
-        open(my $fh, ">", $filename)
-                or return 0;
+	close($fh);
 
-        print $fh $xml_in->toString();
-
-        close($fh);
-
-        return 0;
+	return 1;
 }
 
 sub _enable_disabled_nodes
