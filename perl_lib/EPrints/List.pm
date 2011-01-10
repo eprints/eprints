@@ -128,6 +128,8 @@ sub new
 {
 	my( $class, %self ) = @_;
 
+	$self{session} = $self{repository} if !defined $self{session};
+
 	my $self = \%self;
 #	$self->{session} = $opts{session} || $opts{repository};
 #	$self->{dataset} = $opts{dataset};
@@ -141,10 +143,6 @@ sub new
 	if( !defined $self->{cache_id} && !defined $self->{ids} ) 
 	{
 		EPrints::abort( "cache_id or ids must be defined in a EPrints::List->new()" );
-	}
-	if( !defined $self->{repository} )
-	{
-		$self->{session} = $self->{repository};
 	}
 	if( !defined $self->{session} )
 	{
