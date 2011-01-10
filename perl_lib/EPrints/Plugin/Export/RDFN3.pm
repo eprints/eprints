@@ -43,6 +43,7 @@ sub serialise_graph
 	my( $plugin, $graph, %opts ) = @_;
 
 	my $struct = $plugin->graph_to_struct( $graph );
+	my $namespaces = $plugin->get_namespaces();
 
 	my @l = ();
 	foreach my $subject ( EPrints::Plugin::Export::RDF::sensible_sort( keys %{$struct} ) )
@@ -59,7 +60,7 @@ sub serialise_graph
 				{
 					my $uri = $val->[0];
 					next OBJECT if !defined $uri;
-					push @objects, $uri;
+					push @objects, expand_uri_if_needed($uri,$namespaces);
 				}
 				else
 				{
@@ -76,14 +77,14 @@ sub serialise_graph
 					}
 					if( $val->[1] ne "literal" )
 					{
-						$data.='^^'.$val->[1];
+						$data.='^^'.expand_uri_if_needed($val->[1],$namespaces);
 					}
 					push @objects, $data;
 				}
 			}
-			push @preds, "\t".$pred." ".join( ",\n		", @objects );
+			push @preds, "\t".expand_uri_if_needed($pred,$namespaces)." ".join( ",\n		", @objects );
 		}
-		push @l, "$subject\n".join( ";\n", @preds )." .\n\n";
+		push @l, expand_uri_if_needed($subject,$namespaces)."\n".join( ";\n", @preds )." .\n\n";
 		if( defined $opts{fh} )
 		{
 			print {$opts{fh}} join( '',@l );
@@ -93,26 +94,29 @@ sub serialise_graph
 	return join ('',@l);
 }
 
-# nb. this function not currently used
-sub expand_uri 
+sub expand_uri_if_needed
 {
 	my( $obj_id, $namespaces ) = @_;
 
-	if( $obj_id =~ /^<(.*)>$/ ) { return $obj_id; }
+	if( $obj_id =~ /^</ ) { return $obj_id; }
 
 	if( ! $obj_id =~ m/:/ ) { 
 		warn "Neither <uri> nor namespace prefix in RDF data: $obj_id";
-		return;
+		return "<error..$obj_id>";
 	}
 
 	my( $ns, $value ) = split( /:/, $obj_id, 2 );
 	if( !defined $namespaces->{$ns} )
 	{
 		warn "Unknown namespace prefix '$ns' in RDF data: $obj_id";
-		return;
+		return "<error..$ns..$obj_id>";
 	}
-
-	return "<".$namespaces->{$ns}.$value.">";
+	if( $value =~ m/[\/#]/ )
+	{
+		# expand out if value contains / or #
+		return "<".$namespaces->{$ns}.$value.">";
+	}
+	return $obj_id;
 }
 
 
