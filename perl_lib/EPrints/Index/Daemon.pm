@@ -39,8 +39,6 @@ package EPrints::Index::Daemon;
 use EPrints;
 
 use POSIX 'setsid';
-eval 'use Win32::Service' if $^O eq 'MSWin32';
-our $WIN32_SERVICENAME = 'EPrintsIndexer';
 
 use strict;
 
@@ -175,25 +173,10 @@ Returns true if the indexer appears to be running. Returns undef if no PID was f
 sub is_running
 {
 	my( $self ) = @_;
-
-	return $self->_is_running_win32() if $^O eq 'MSWin32';
-
 	my $pid = $self->get_pid or return undef;
 	return 1 if kill(0, $pid); # Running as the same uid as us
 	return 1 if EPrints::Platform::proc_exists( $pid );
 	return 0;
-}
-
-sub _is_running_win32
-{
-	my( $self ) = @_;
-
-	my $status = {};
-	if( !Win32::Service::GetStatus('',$WIN32_SERVICENAME,$status) )
-	{
-		$self->_error_win32( "EPrints Indexer service state" );
-	}
-	return $status->{'CurrentState'} == 0x04; # running
 }
 
 =item $daemon->is_child_running()
@@ -352,8 +335,6 @@ sub start
 {
 	my( $self, $session ) = @_;
 
-	return $self->_start_daemon_win32() if $^O eq 'MSWin32';
-
 	my $rc = 0;
 
 	my $perl = $EPrints::SystemSettings::conf->{executables}->{perl};
@@ -471,8 +452,6 @@ sub start_daemon
 {
 	my( $self ) = @_;
 
-	return $self->_start_daemon_win32() if $^O eq 'MSWin32';
-
 	my $pid = $self->safe_fork;
 	if( $pid )
 	{
@@ -555,27 +534,6 @@ sub start_daemon
 	$self->real_exit;
 }
 
-sub _start_daemon_win32
-{
-	my( $self, $session ) = @_;
-
-	if( !Win32::Service::StartService('',$WIN32_SERVICENAME) )
-	{
-		$self->_error_win32( "Starting EPrints Indexer service" );
-	}
-
-	for(1..$self->{maxwait})
-	{
-		if( $self->_is_running_win32 )
-		{
-			return 1;
-		}
-		sleep(1);
-	}
-
-	return 0;
-}
-
 =item $daemon->stop_daemon
 
 Stops the indexer process from the current process. You should check the indexer is running before calling this method.
@@ -611,11 +569,7 @@ END
 	unlink($self->{suicidefile});
 
 	# That didn't work, lets try killing it
-	if( $^O eq 'MSWin32' )
-	{
-		$self->_stop_daemon_win32();
-	}
-	elsif( my $pid = $self->get_pid )
+	if( my $pid = $self->get_pid )
 	{
 		kill 15, $pid;
 	}
@@ -626,18 +580,6 @@ END
 	}
 
 	return 1;
-}
-
-sub _stop_daemon_win32
-{
-	my( $self, $session ) = @_;
-
-	if( !Win32::Service::StopService('',$WIN32_SERVICENAME) )
-	{
-		$self->_error_win32( "Stopping EPrints Indexer service" );
-	}
-
-	return !$self->is_running();
 }
 
 =item $daemon->run_index
@@ -777,13 +719,6 @@ sub should_respawn
 	}
 
 	return $rc;
-}
-
-sub _error_win32
-{
-	my( $self, $msg ) = @_;
-
-	EPrints->abort( "$msg: $^E" );
 }
 
 1;
