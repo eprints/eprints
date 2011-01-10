@@ -283,6 +283,8 @@ use Time::HiRes;
 
 our \$c = \$${class}::config;
 
+{
+no warnings; # suppress redef warnings when re-loading
 sub load_config_file
 {
 	my( \$filepath ) = \@_;
@@ -299,6 +301,7 @@ sub load_config_file
 	\$err =~ s/,[^,]+\$//;
 	\$err =~ s/\\([^)]+\\)(.*?)\$/\$filepath\$1/;
 	return \$err;
+}
 }
 
 EOP
