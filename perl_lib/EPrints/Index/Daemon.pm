@@ -56,6 +56,11 @@ sub new
 {
 	my( $class, %opts ) = @_;
 
+	if( $^O eq 'MSWin32' )
+	{
+		$class = "${class}::MSWin32";
+	}
+
 #	$opts{logfile} = EPrints::Index::logfile();
 	$opts{pidfile} ||= EPrints::Index::pidfile();
 	$opts{tickfile} ||= EPrints::Index::tickfile();

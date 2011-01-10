@@ -27,6 +27,12 @@ package EPrints::System::MSWin32;
 
 @ISA = qw( EPrints::System );
 
+use Win32::Service;
+use Win32::Process;
+use Win32::Daemon;
+
+use EPrints::Index::Daemon::MSWin32;
+
 use strict;
 
 sub init { }
@@ -66,7 +72,14 @@ sub free_space
 	return $free_space;
 }
 
-sub proc_exists { }
+sub proc_exists
+{
+	my( $self, $pid ) = @_;
+
+	return 1 if Win32::Process::Open(my $obj, $pid, 0) != 0;
+	return 1 if $^E == 5; # Access is denied
+	return 0;
+}
 
 sub mkdir
 {

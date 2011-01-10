@@ -145,6 +145,7 @@ my $notdaemon = 0;
 my $once = 0;
 my $opt_clear;
 my $opt_respawn = 86400;
+my $opt_service = 0; # start windows service loop
 
 Getopt::Long::Configure("permute");
 
@@ -163,6 +164,7 @@ GetOptions(
 	'loglevel=s' => \$loglevel,
 	'clear' => \$opt_clear,
 	'respawn=s' => \$opt_respawn,
+	'service' => \$opt_service,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "indexer" ) if $version;
 pod2usage( 1 ) if $help;
@@ -232,6 +234,14 @@ elsif( $ARGV[0] eq "start" )
 elsif( $ARGV[0] eq "stop" )
 {
 	stop();
+}
+elsif( $ARGV[0] eq "install" && $^O eq 'MSWin32' )
+{
+	install();
+}
+elsif( $ARGV[0] eq "uninstall" && $^O eq 'MSWin32' )
+{
+	uninstall();
 }
 else
 {
@@ -318,10 +328,24 @@ END
 	{
 		$daemon->run_index();
 	}
+	elsif( $opt_service )
+	{
+		$daemon->start_service();
+	}
 	else
 	{
 		$daemon->start_daemon();
 	}
+}
+
+sub install
+{
+	$daemon->create_service();
+}
+
+sub uninstall
+{
+	$daemon->delete_service();
 }
 
 ####################################################################################
