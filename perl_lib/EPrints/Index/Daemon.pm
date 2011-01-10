@@ -39,6 +39,8 @@ package EPrints::Index::Daemon;
 use EPrints;
 
 use POSIX 'setsid';
+eval 'use Win32::Service' if $^O eq 'MSWin32';
+our $WIN32_SERVICENAME = 'EPrintsIndexer';
 
 use strict;
 
@@ -173,10 +175,22 @@ Returns true if the indexer appears to be running. Returns undef if no PID was f
 sub is_running
 {
 	my( $self ) = @_;
+
+	return $self->_is_running_win32() if $^O eq 'MSWin32';
+
 	my $pid = $self->get_pid or return undef;
 	return 1 if kill(0, $pid); # Running as the same uid as us
 	return 1 if EPrints::Platform::proc_exists( $pid );
 	return 0;
+}
+
+sub _is_running_win32
+{
+	my( $self ) = @_;
+
+	my $status = {};
+	return if !Win32::Service::GetStatus('localhost',$WIN32_SERVICENAME,$status);
+	return $status->{'CurrentStatus'} == 0x04; # running
 }
 
 =item $daemon->is_child_running()
@@ -335,6 +349,8 @@ sub start
 {
 	my( $self, $session ) = @_;
 
+	return $self->_start_win32( $session ) if $^O eq 'MSWin32';
+
 	my $rc = 0;
 
 	my $perl = $EPrints::SystemSettings::conf->{executables}->{perl};
@@ -373,6 +389,24 @@ END
 	return $rc;
 }
 
+sub _start_win32
+{
+	my( $self, $session ) = @_;
+
+	Win32::Service::StartService('localhost',$WIN32_SERVICENAME);
+
+	for(1..$self->{maxwait})
+	{
+		if( $self->_is_running_win32 )
+		{
+			return 1;
+		}
+		sleep(1);
+	}
+
+	return 0;
+}
+
 =item $daemon->stop( $session )
 
 Stops the indexer process from an existing EPrints session.
@@ -383,7 +417,27 @@ sub stop
 {
 	my( $self, $session ) = @_;
 
+	return $self->_stop_win32( $session ) if $^O eq 'MSWin32';
+
 	return $self->stop_daemon;
+}
+
+sub _stop_win32
+{
+	my( $self, $session ) = @_;
+
+	Win32::Service::StopService('localhost',$WIN32_SERVICENAME);
+
+	for(1..$self->{maxwait})
+	{
+		if( !$self->_is_running_win32 )
+		{
+			return 1;
+		}
+		sleep(1);
+	}
+
+	return 0;
 }
 
 # Make sure the child has quit and remove our control files
