@@ -37,6 +37,8 @@ sub render_single_value
 {
 	my( $self, $session, $value ) = @_;
 	
+	return $session->make_doc_fragment if !EPrints::Utils::is_set( $value );
+
 	my $text = $session->make_text( $value );
 
 	return $text if !defined $value;
