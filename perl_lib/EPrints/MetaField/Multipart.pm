@@ -309,7 +309,7 @@ sub get_value_from_id
 	{
 		my $part = shift @parts;
 		$part = URI::Escape::uri_unescape( $part );
-		$part = undef if $part eq "NULL";
+		next if $part eq "NULL";
 		$value{$field->property( "sub_name" )} = $part;
 	}
 
