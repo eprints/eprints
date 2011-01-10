@@ -64,6 +64,9 @@ sub new($$)
 
 	my $self = bless { repository => $repository }, $class;
 
+	Scalar::Util::weaken( $self->{repository} )
+		if defined &Scalar::Util::weaken;
+
 	return $self;
 }
 

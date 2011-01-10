@@ -59,10 +59,9 @@ sub new
 
 	# we need repository for logging errors
 	$self->{repository} = $repository;
-	if( defined &Scalar::Util::weaken )
-	{
-		Scalar::Util::weaken( $repository );
-	}
+
+	Scalar::Util::weaken( $self->{repository} )
+		if defined &Scalar::Util::weaken;
 
 	$self->{alias} = $repository->get_conf( "plugin_alias_map" );
 	$self->{alias} = {} unless defined $self->{alias};

@@ -104,6 +104,9 @@ sub new($$)
 
 	my $self = bless { repository => $repository, %opts }, $class;
 
+	Scalar::Util::weaken( $self->{repository} )
+		if defined &Scalar::Util::weaken;
+
 	if( !defined $self->{doc} )
 	{
 		$self->{doc} = make_document();
