@@ -45,7 +45,7 @@ sub test_uid { }
 
 sub free_space
 {
-	my( $dir ) = @_;
+	my( $self, $dir ) = @_;
 
 	my $free_space = 0;
 
