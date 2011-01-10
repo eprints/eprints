@@ -93,6 +93,8 @@ sub mkdir
 			return 0;
 		}
 	}
+
+	return 1;
 }
 
 1;
