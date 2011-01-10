@@ -569,7 +569,7 @@ sub run_script
 	Carp::croak "Fatal! Wanted to execute $path, but it doesn't exist"
 		if !-e $path;
 
-	system( $path, @opts );
+	system( 'perl', $path, @opts );
 }
 
 sub cleanup_cachemaps
