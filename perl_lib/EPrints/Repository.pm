@@ -5926,7 +5926,7 @@ sub check_developer_mode
 			warn( "Something went wrong while reloading configuration" );
 		}
 		
-		my $file = $self->config( "variables_path" )."/abstracts.timestamp"
+		my $file = $self->config( "variables_path" )."/abstracts.timestamp";
 	
 		unless( open( CHANGEDFILE, ">$file" ) )
         	{
