@@ -75,6 +75,8 @@ Where I<command> is one of:
 
 =item schema
 
+=item set_developer_mode
+
 =item test
 
 =item unit_tests
@@ -156,6 +158,10 @@ Recalculate the hashes of the files in this document and write it to a probity l
 =item B<epadmin> reload I<repository_id>
 
 Cause the web server to reload the repository configuration.
+
+=item B<epadmin> set_developer_mode I<repository_id> <on|off>
+
+While set to on developer mode causes the web server to reload the repository configuration on every page request. This makes development much quicker but must not be left switched on in a production environment since it increases server load dramatically.
 
 =item B<epadmin> refresh_views I<repository_id>
 
@@ -321,6 +327,7 @@ else
 	elsif( $action eq "refresh_abstracts" ) { refresh_abstracts( $repoid ); }
 	elsif( $action eq "refresh_views" ) { refresh_views( $repoid ); }
 	elsif( $action eq "redo_thumbnails" ) { redo_thumbnails( $repoid, @ARGV ); }
+	elsif( $action eq "set_developer_mode" ) { set_developer_mode( $repoid, @ARGV ); }
 	elsif( $action eq "upgrade" ) { upgrade( $repoid ); }
 	elsif( $action eq "schema" ) { schema( $repoid ); }
 	elsif( $action eq "update_database_structure" ) { update_database_structure( $repoid ); }
@@ -1955,6 +1962,46 @@ sub remove_field
 	}
 }
 
+sub set_developer_mode
+{
+	my ( $repoid, $set_to ) = @_;
+
+	if( !defined $set_to )
+        {
+                pod2usage( "Do you want to set developer mode to 'on' or 'off'?" );
+        }
+
+	my $repo = &repository( $repoid );
+
+        my $file = $repo->config( "variables_path" )."/developer_mode_on";
+
+	if($set_to eq "on")
+	{
+		unless( open( CHANGEDFILE, ">$file" ) )
+		{
+			EPrints::abort( "Cannot write to file $file" );
+		}
+		print CHANGEDFILE "This file was created at: ".EPrints::Time::human_time()."\n";
+		close CHANGEDFILE;
+		print "Developer mode is for $repoid is set to on\n";
+		return;	
+	}
+
+	if($set_to eq "off"){
+		if( -e $file && !unlink( $file ) )
+                {
+                        EPrints::abort( "Cannot remove file $file" );
+                }
+		print "Developer mode is for $repoid is set to off\n";
+		
+		return;	
+	}
+
+	pod2usage( "The only valid options for developer mode are 'on' or 'off'?" );
+
+
+
+}
 
 ####################################################################
 #
