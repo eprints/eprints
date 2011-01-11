@@ -5908,6 +5908,36 @@ sub check_last_changed
 	}
 }
 
+sub check_developer_mode
+{
+	my( $self ) = @_;
+
+	my $file = $self->{config}->{variables_path}."/developer_mode_on";
+	
+	if( -e $file )
+        {
+                print STDERR .$self->{id}." repository has developer mode switched on. The config will be reloaded every request and abstract pages will be generated on demand. Turn this off when you finish development\n";
+		if( $self->load_config( 1 ) )
+		{
+			$self->{loadtime} = time();
+		}
+		else
+		{
+			warn( "Something went wrong while reloading configuration" );
+		}
+		
+		my $file = $self->config( "variables_path" )."/abstracts.timestamp"
+	
+		unless( open( CHANGEDFILE, ">$file" ) )
+        	{
+                	EPrints::abort( "Cannot write to file $file" );
+        	}
+        	print CHANGEDFILE "This file last poked at: ".EPrints::Time::human_time()."\n";
+        	close CHANGEDFILE;
+
+        }
+}
+
 sub init_from_request
 {
 	my( $self, $request ) = @_;
@@ -5917,6 +5947,7 @@ sub init_from_request
 	return if !$request->is_initial_req;
 
 	# see if we need to reload our configuration
+	$self->check_developer_mode;
 	$self->check_last_changed;
 
 	# go online
