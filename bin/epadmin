@@ -256,6 +256,7 @@ use EPrints;
 use Sys::Hostname;
 use DBI;
 use Data::Dumper;
+use File::Path;
 
 use strict;
 use Getopt::Long;
@@ -1528,8 +1529,10 @@ sub erase_eprint_files
 	foreach my $dir (@doomeddirs)
 	{
 		if( $noise>=2 ) { print "Removing stuff in: $dir\n"; }
-		my $rc = $repo->exec( "rmall", TARGET=>$dir );
-		print STDERR "Warning: Cleaning $dir didn't go smoothly\n" unless( $rc==0 );
+		if( !File::Path::rmtree( $dir ) )
+		{
+			print STDERR "Warning: Cleaning $dir didn't go smoothly\n";
+		}
 	}
 	if( $noise>=1 ) { print "...done erasing eprint files.\n"; }
 }
