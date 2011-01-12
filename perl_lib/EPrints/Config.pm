@@ -287,6 +287,7 @@ our \$c = \$${class}::config;
 no warnings; # suppress redef warnings when re-loading
 sub load_config_file
 {
+	use warnings; # but still show warnings when loading files
 	my( \$filepath ) = \@_;
 
 	my \$cfgfile;
