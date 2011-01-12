@@ -1,6 +1,7 @@
 package EPrints::Index::Daemon::MSWin32;
 
 use Win32::Daemon;
+use Win32::Process;
 
 use EPrints::Index::Daemon;
 @ISA = qw( EPrints::Index::Daemon );
@@ -144,6 +145,8 @@ sub start_master
 		start => sub {
 			my( $e, $context ) = @_;
 
+			Win32::Service::StartService('', $WORKER_SERVICE);
+
 			$context->{last_state} = SERVICE_RUNNING;
 			Win32::Daemon::State( SERVICE_RUNNING );
 		},
@@ -154,12 +157,7 @@ sub start_master
 
 			return if SERVICE_RUNNING != Win32::Daemon::State();
 
-			if( $self->suicidal )
-			{
-				Win32::Service::StopService('', $WORKER_SERVICE);
-				Win32::Daemon::StopService();
-			}
-			elsif( $self->should_respawn )
+			if( $self->should_respawn )
 			{
 				Win32::Service::StopService('', $WORKER_SERVICE);
 				$context->{roll_logs} = 1;
@@ -172,7 +170,8 @@ sub start_master
 					$context->{roll_logs} = 0;
 				}
 				$self->log( 2, "*** Starting indexer sub-process" );
-				Win32::Service::StartService('', $WORKER_SERVICE); 
+
+				Win32::Service::StartService('', $WORKER_SERVICE);
 			}
 			Win32::Daemon::State($context->{last_state});
 		},
@@ -209,7 +208,7 @@ sub start_master
 		self => $self,
 	);
 
-	Win32::Daemon::StartService( \%context, 2000 );
+	Win32::Daemon::StartService( \%context, 30000 );
 
 	unlink($self->{suicidefile});
 	$self->remove_pid;
@@ -231,10 +230,11 @@ sub start_worker
 
 	Win32::Daemon::RegisterCallbacks( {
 		start => \&callback_start,
-		running => \&callback_running,
+		timer => \&callback_running,
 		stop => \&callback_stop,
 		pause => \&callback_pause,
 		continue => \&callback_continue,
+		interrogate => \&callback_interrogate,
 	} );
 
 	my %context = (
@@ -294,6 +294,9 @@ sub callback_start
 
 	my $self = $context->{self};
 
+	$self->log( 3, "* tick: $$" );
+	$self->tick;
+
 	$self->{repositories} = [$self->get_all_sessions];
 
 	$context->{last_state} = SERVICE_RUNNING;
@@ -324,6 +327,14 @@ sub callback_stop
 	Win32::Daemon::State( SERVICE_STOPPED );
 
 	Win32::Daemon::StopService();
+}
+
+sub callback_interrogate
+{
+	my( $event, $context ) = @_;
+
+	$context->{last_state} = SERVICE_RUNNING;
+	Win32::Daemon::State( SERVICE_RUNNING );
 }
 
 1;
