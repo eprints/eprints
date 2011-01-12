@@ -28,8 +28,8 @@ package EPrints::System::MSWin32;
 @ISA = qw( EPrints::System );
 
 use Win32::Service;
-use Win32::Process;
 use Win32::Daemon;
+use Win32::DriveInfo;
 
 use EPrints::Index::Daemon::MSWin32;
 
@@ -53,21 +53,16 @@ sub free_space
 {
 	my( $self, $dir ) = @_;
 
-	my $free_space = 0;
-
 	$dir =~ s/\//\\/g;
 
-	open(my $fh, "dir $dir|") or die "Error in open: $!";
-	while(<$fh>)
-	{
-		if( $_ =~ /\s([0-9,]+)\sbytes\sfree/ )
-		{
-			$free_space = $1;
-		}
-	}
-	close($fh);
+	my $drive = $dir =~ /^([a-z]):/i ? $1 : 'c';
 
-	$free_space =~ s/\D//g;
+	my $free_space = (Win32::DriveInfo::DriveSpace($drive))[6];
+
+	if( !defined $free_space )
+	{
+		EPrints->abort( "Win32::DriveSpace::DriveSpace $dir: $^E" );
+	}
 
 	return $free_space;
 }
