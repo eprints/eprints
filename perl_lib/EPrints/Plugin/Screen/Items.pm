@@ -207,7 +207,9 @@ sub render
 	my $list = $self->perform_search;
 
 	my $pref = $self->{id}."/eprint_status";
-	my %filters = @{$session->current_user->preference( $pref ) || []};
+	my %filters = @{$session->current_user->preference( $pref ) || [
+		inbox=>1, buffer=>1, archive=>1, deletion=>1
+	]};
 
 	my $filter_div = $session->make_element( "div", class=>"ep_items_filters" );
 	foreach my $f ( qw/ inbox buffer archive deletion / )
