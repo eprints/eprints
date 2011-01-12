@@ -115,9 +115,9 @@ sub serialise_graph
 					}
 					if( defined $val->[2] )
 					{
-						push @l, " xml:lang=\"".$val->[2]."\"";
+						push @l, " xml:lang=\"".xmlesc($val->[2])."\"";
 					}
-					my $x_val = val( $val->[0] );
+					my $x_val = xmlesc( $val->[0] );
 					push @l, ">$x_val</$x_pred>\n";
 				}
 			}
@@ -132,7 +132,7 @@ sub serialise_graph
 	return join ('',@l);
 }
 
-sub val 
+sub xmlesc 
 {
 	my( $val ) = @_;
 
@@ -168,21 +168,22 @@ sub attr
 {
 	my( $obj_id, $namespaces ) = @_;
 
-	if( $obj_id =~ /^<(.*)>$/ ) { return $1; }
+	if( $obj_id =~ /^<(.*)>$/ ) { return "<".xmlesc($1).">"; }
 
-	if( ! $obj_id =~ m/:/ ) { 
+	if( ! $obj_id =~ m/:/ ) 
+	{ 
 		warn "Neither <uri> nor namespace prefix in RDF data: $obj_id";
-		return $obj_id;
+		return xmlesc($obj_id);
 	}
 
 	my( $ns, $value ) = split( /:/, $obj_id, 2 );
 	if( !defined $namespaces->{$ns} )
 	{
 		warn "Unknown namespace prefix '$ns' in RDF data: $obj_id";
-		return $obj_id;
+		return xmlesc($obj_id);
 	}
 
-	return "&$ns;$value";
+	return "&$ns;".xmlesc($value);
 }
 
 sub initialise_fh

@@ -98,28 +98,37 @@ sub expand_uri_if_needed
 {
 	my( $obj_id, $namespaces ) = @_;
 
-	if( $obj_id =~ /^</ ) { return $obj_id; }
+	if( $obj_id =~ /^<(.*)>$/ ) { return "<".uriesc($1).">"; }
 
 	if( ! $obj_id =~ m/:/ ) { 
 		warn "Neither <uri> nor namespace prefix in RDF data: $obj_id";
-		return "<error..$obj_id>";
+		return "<error..".uriesc($obj_id).">";
 	}
 
 	my( $ns, $value ) = split( /:/, $obj_id, 2 );
 	if( !defined $namespaces->{$ns} )
 	{
 		warn "Unknown namespace prefix '$ns' in RDF data: $obj_id";
-		return "<error..$ns..$obj_id>";
+		return "<error..$ns..".uriesc($obj_id).">";
 	}
 	if( $value =~ m/[\/#]/ )
 	{
 		# expand out if value contains / or #
-		return "<".$namespaces->{$ns}.$value.">";
+		return "<".$namespaces->{$ns}.uriesc($value).">";
 	}
-	return $obj_id;
+	return uriesc($obj_id);
 }
 
+# this is not a full URI escape, but just removes < \n \r and > which should
+# not appear in URIs in the first place but break n3 parsing
+sub uriesc
+{
+	my( $uri ) = @_;
 
+	$uri =~ s/([<>\n\r])/sprintf( "%%%02X", ord($1) )/ge;
+
+	return $uri;
+}
 
 
 1;

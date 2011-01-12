@@ -71,7 +71,7 @@ sub expand_uri
 {
 	my( $obj_id, $namespaces ) = @_;
 
-	if( $obj_id =~ /^<(.*)>$/ ) { return $obj_id; }
+	if( $obj_id =~ /^<(.*)>$/ ) { return "<".uriesc($1).">"; }
 
 	if( ! $obj_id =~ m/:/ ) { 
 		warn "Neither <uri> nor namespace prefix in RDF data: $obj_id";
@@ -85,7 +85,17 @@ sub expand_uri
 		return;
 	}
 
-	return "<".$namespaces->{$ns}.$value.">";
+	return "<".$namespaces->{$ns}.uriesc($value).">";
+}
+
+# just deal with < > \n and \r
+sub uriesc
+{
+	my( $uri ) = @_;
+
+	$uri =~ s/([<>\n\r])/sprintf( "%%%02X", ord($1) )/ge;
+
+	return $uri;
 }
 
 	
