@@ -268,8 +268,10 @@ sub roll_logs
 			return;
 		}
 	}
-	close( STDERR ) or die; # oh dear
+	close( STDOUT ) or die "Error closing STDOUT: $!";
+	close( STDERR ) or die "Error closing STDERR: $!";
 	rename($self->{logfile}, $self->{logfile}.'.1');
+	open( STDOUT, ">>", $self->{logfile} ); # If this fails we're stuffed
 	open( STDERR, ">>", $self->{logfile} ); # If this fails we're stuffed
 }
 
