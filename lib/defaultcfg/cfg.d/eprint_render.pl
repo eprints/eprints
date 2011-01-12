@@ -120,7 +120,7 @@ if(0){
 
 	my $title = $eprint->render_citation("brief");
 
-	my $links = $repository->xml()->create_doc_fragment();
+	my $links = $repository->xml()->create_document_fragment();
 	if( !$preview )
 	{
 		$links->appendChild( $repository->plugin( "Export::Simple" )->dataobj_to_html_header( $eprint ) );

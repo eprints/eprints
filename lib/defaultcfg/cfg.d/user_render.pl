@@ -24,7 +24,7 @@ $c->{user_render} = sub
 	my $html;	
 
 	my( $info, $p, $a );
-	$info = $xml->create_doc_fragment;
+	$info = $xml->create_document_fragment;
 
 
 	# Render the public information about this user.
