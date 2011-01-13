@@ -74,7 +74,7 @@ my $infile = $datapath."/data.xml.gz";
 
 
 my $fh;
-open( $fh, "gunzip -c $infile |" ) || die "Can't gunzip file.";
+open( $fh, "gzip -d -c $infile |" ) || die "Can't gunzip file.";
 my $list = $plugin->input_fh( dataset=>$ds, fh=>$fh, filename=>$infile );
 close $fh; 
 
