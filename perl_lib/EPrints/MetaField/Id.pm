@@ -96,7 +96,7 @@ sub get_index_codes_basic
 {
        my( $self, $session, $value ) = @_;
 
-       return( $value, [], [] );
+       return( [ $value ], [], [] );
 }
 
 ######################################################################
