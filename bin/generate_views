@@ -272,7 +272,7 @@ sub update_view_by_path
 		{
 			my $path = [@{$opts{path}}, EPrints::Utils::escape_filename( $menu_value )];
 			push @files, update_view_by_path( %opts,
-				path => [@{$opts{path}}, $menu_value],
+				path => $path,
 				sizes => $sizes,
 				);
 		}
