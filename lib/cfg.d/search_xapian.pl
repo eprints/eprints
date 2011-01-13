@@ -28,8 +28,11 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 	my $tg = Search::Xapian::TermGenerator->new();
 	my $doc = Search::Xapian::Document->new();
 
-	$tg->set_stemmer( Search::Xapian::Stem->new( "english" ) );
-	$tg->set_stopper( Search::Xapian::SimpleStopper->new() );
+	my $stemmer = Search::Xapian::Stem->new( "english" );
+	my $stopper = Search::Xapian::SimpleStopper->new();
+
+	$tg->set_stemmer( $stemmer );
+	$tg->set_stopper( $stopper );
 	$tg->set_document( $doc );
 
 	my $key = "_id:" . $dataobj->internal_uri;
@@ -78,11 +81,11 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 				$value = $v;
 			}
 			next if !EPrints::Utils::is_set( $value );
-			$tg->index_text( $value, .5 );
+			$tg->index_text( $value );
 			$tg->increase_termpos();
 			if( $field->isa( "EPrints::MetaField::Text" ) )
 			{
-				$tg->index_text( $value, 1, $prefix );
+				$tg->index_text( $value, 2, $prefix );
 				$tg->increase_termpos();
 			}
 			else
