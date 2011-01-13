@@ -382,6 +382,8 @@ sub process
 		template => $self->{template},
  	);
 	$self->{session}->send_page();
+
+	return $self; # useful for unit-tests
 }
 
 

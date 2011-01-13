@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 12;
+use Test::More tests => 13;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -24,7 +24,7 @@ $session = EPrints::Test::OnlineSession->new( $session, {
 my $processor = EPrints::ScreenProcessor->new(
 	session => $session,
 	url => $session->get_repository->get_conf( "base_url" ) . "/cgi/users/home",
-	screenid => "!!!test!!!",
+	screenid => "FirstTool",
 	);
 
 my $screen = EPrints::Plugin::Screen->new(
@@ -94,6 +94,25 @@ ok( defined($ne_screen), "item_tools contains $screen_id" );
 
 	ok( defined($t), "enabled $screen_id in __TEST__ list" );
 }
+
+# check that a blank search form really is blank
+$session = EPrints::Test::OnlineSession->new( $session, {
+	method => "GET",
+	path => "/cgi/users/home",
+	username => "admin",
+	query => {
+		screen => "Listing",
+		dataset => "event_queue",
+	},
+});
+
+$processor = EPrints::ScreenProcessor->process(
+	session => $session,
+	url => $session->get_repository->get_conf( "base_url" ) . "/cgi/users/home",
+	screenid => "Listing",
+	);
+
+ok($processor->{search}->is_blank, "blank search from form is blank: ".$processor->{search}->get_conditions->describe);
 
 $session->terminate;
 
