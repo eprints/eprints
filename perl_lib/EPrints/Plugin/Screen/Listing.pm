@@ -106,7 +106,11 @@ sub from
 	my $search = $self->{processor}->{search};
 	my $exp = $session->param( "exp" );
 
-	if( defined $self->{processor}->{action} && $self->{processor}->{action} eq "search" )
+	if( $exp )
+	{
+		$search->from_string( $exp );
+	}
+	else
 	{
 		foreach my $sf ( $search->get_non_filter_searchfields )
 		{
@@ -116,10 +120,6 @@ sub from
 				$self->{processor}->add_message( "warning", $prob );
 			}
 		}
-	}
-	elsif( $exp )
-	{
-		$search->from_string( $exp );
 	}
 
 	$self->SUPER::from();
