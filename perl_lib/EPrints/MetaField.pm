@@ -2176,7 +2176,7 @@ sub start_element
 		if( $data->{LocalName} eq "item" )
 		{
 			push @{$epdata->{$self->name}}, $self->empty_value;
-			$state->{in_value} = 0;
+			$state->{in_value} = 1;
 		}
 		else
 		{
