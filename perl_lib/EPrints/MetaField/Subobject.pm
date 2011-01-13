@@ -261,7 +261,7 @@ sub get_index_codes_basic
 	$indexcodes_file->get_file(sub {
 		$data .= $_[0];
 	});
-	my @codes = split /\n/, $data;
+	my @codes = split /\r?\n/, $data;
 
 	return( \@codes, [], [] );
 }
