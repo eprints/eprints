@@ -532,31 +532,31 @@ sub call_convert
 		EPrints::abort("NO GEOM");
 	}
 
-	my $fn = $size . ".png";
+	my $fn = $size . ".jpg";
 	my $dst = "$dir/$fn";
 
 	$geom = "$geom->[0]x$geom->[1]";
-# PNG8
+# JPEG
 	if( $size eq "small" )
 	{
 		# attempt to create a thumbnail that fits within the given dimensions
 		# geom^ requires 6.3.8
 		if( $version > 6.3 )
 		{
-			$self->_system($convert, "-strip", "-colorspace", "RGB", "-background", "white", "-bordercolor", "gray", "-border", "1x1", "-thumbnail","$geom^", "-gravity", "center", "-extent", $geom, $src."[0]", "PNG8:$dst");
+			$self->_system($convert, "-strip", "-colorspace", "RGB", "-background", "white", "-bordercolor", "gray", "-border", "1x1", "-thumbnail","$geom^", "-gravity", "center", "-extent", $geom, $src."[0]", "JPEG:$dst");
 		}
 		else
 		{
-			$self->_system($convert, "-strip", "-colorspace", "RGB", "-background", "white", "-bordercolor", "gray", "-border", "1x1", "-thumbnail","$geom>", "-extract", $geom, $src."[0]", "PNG8:$dst");
+			$self->_system($convert, "-strip", "-colorspace", "RGB", "-background", "white", "-bordercolor", "gray", "-border", "1x1", "-thumbnail","$geom>", "-extract", $geom, $src."[0]", "JPEG:$dst");
 		}
 	}
 	elsif( $size eq "medium" )
 	{
-		$self->_system($convert, "-strip", "-colorspace", "RGB", "-bordercolor", "white", "-border", "1x1", "-trim", "+repage", "-size", "$geom", "-thumbnail","$geom>", "-background", "white", "-gravity", "center", "-extent", $geom, $src."[0]", "PNG8:$dst");
+		$self->_system($convert, "-strip", "-colorspace", "RGB", "-bordercolor", "white", "-border", "1x1", "-trim", "+repage", "-size", "$geom", "-thumbnail","$geom>", "-background", "white", "-gravity", "center", "-extent", $geom, $src."[0]", "JPEG:$dst");
 	}
 	else
 	{
-		$self->_system($convert, "-strip", "-colorspace", "RGB", "-background", "white", "-thumbnail","$geom>", "-extract", $geom, $src."[0]", "PNG8:$dst");
+		$self->_system($convert, "-strip", "-colorspace", "RGB", "-background", "white", "-thumbnail","$geom>", "-extract", $geom, $src."[0]", "JPEG:$dst");
 	}
 
 	if( -s $dst )
@@ -733,7 +733,7 @@ sub export_video
 
 =item $plugin->export_cell( $dir, $doc, $src, $geom, $size, $offset )
 
-Export $src to $dst in PNG8 format in dimensions $geom from offset $offset.
+Export $src to $dst in JPG format in dimensions $geom from offset $offset.
 
 =cut
 
