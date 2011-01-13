@@ -92,14 +92,10 @@ sub get_property_defaults
 }
 
 # id fields are searched whole, whether against the main table or in the index
-sub get_index_codes
+sub get_index_codes_basic
 {
        my( $self, $session, $value ) = @_;
 
-       if( !$self->get_property( "multiple" ) )
-       {
-               return( [ $value ], [], [] );
-       }
        return( $value, [], [] );
 }
 
