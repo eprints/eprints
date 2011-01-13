@@ -99,6 +99,11 @@ sub is_worker_running
 	return $status->{'CurrentState'} != SERVICE_STOPPED;
 }
 
+sub start
+{
+	shift->start_daemon( @_ );
+}
+
 sub start_daemon
 {
 	my( $self ) = @_;
@@ -109,6 +114,11 @@ sub start_daemon
 	}
 
 	return 1;
+}
+
+sub stop
+{
+	shift->stop_daemon( @_ );
 }
 
 sub stop_daemon
