@@ -3892,7 +3892,7 @@ sub render_button
 {
 	my( $self, %opts ) = @_;
 
-	if( !defined $opts{onclick} )
+	if( !defined $opts{onclick} && defined $opts{name} )
 	{
 		$opts{onclick} = "return EPJS_button_pushed( '$opts{name}' )";	
 	}
