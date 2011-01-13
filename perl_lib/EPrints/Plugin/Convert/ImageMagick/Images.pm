@@ -95,7 +95,7 @@ sub export
 	my $src = $doc->get_stored_file( $doc->get_main() );
 
 	# Call imagemagick to do the conversion
-	my $cmd = sprintf("%s - %s", quotemeta($convert), quotemeta("$dir/$fn"));
+	my $cmd = sprintf("%s - %s", EPrints->system->quotemeta($convert), EPrints->system->quotemeta("$dir/$fn"));
 	open( my $out, "|$cmd" ) or return;
 	binmode($out);
 

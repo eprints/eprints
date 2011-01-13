@@ -105,4 +105,14 @@ sub mkdir
 	return 1;
 }
 
+sub quotemeta
+{
+	my( $self, $str ) = @_;
+
+	$str =~ s/"//g; # safe but means you can't pass "
+	$str = "\"$str\"" if $str =~ /[\s&|<>?]/;
+
+	return $str;
+}
+
 1;

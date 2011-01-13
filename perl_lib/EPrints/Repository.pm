@@ -2132,14 +2132,15 @@ sub invocation
 	my( $self, $cmd_id, %map ) = @_;
 
 	my $execs = $self->config( "executables" );
-	foreach( keys %{$execs} )
-	{
-		$map{$_} = $execs->{$_};
-	}
 
 	my $command = $self->config( "invocation" )->{ $cmd_id };
 
-	$command =~ s/\$\(([a-z_]*)\)/quotemeta($map{$1})/gei;
+	# platform-specific quoting
+	$command =~ s/\$\(([a-z_]+)\)/
+		exists($map{$1}) ?
+			EPrints->system->quotemeta($map{$1}) :
+			EPrints->system->quotemeta($execs->{$1})
+	/gei;
 
 	return $command;
 }

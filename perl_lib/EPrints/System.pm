@@ -332,7 +332,7 @@ sub free_space
 
 	# use -P for most UNIX platforms to get POSIX-compatible block counts
 
-	$dir = quotemeta($dir);
+	$dir = $self->quotemeta($dir);
 	open(my $fh, "df -P $dir|") or EPrints->abort( "Error calling df: $!" );
 
 	my @output = <$fh>;
@@ -430,6 +430,19 @@ sub write_config_file
 	close($fh);
 
 	return $rc;
+}
+
+=item $quoted = $sys->quotemeta( $str )
+
+Quote $str so it is safe to be used in a shell call.
+
+=cut
+
+sub quotemeta
+{
+	my( $self, $path ) = @_;
+
+	return CORE::quotemeta($path);
 }
 
 1;
