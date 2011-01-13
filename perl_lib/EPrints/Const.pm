@@ -89,6 +89,8 @@ http://eprints.org/ep2/xslt/1.0
 
 =item DECLINED
 
+=item NOT_FOUND
+
 =item OK
 
 =back
@@ -306,6 +308,7 @@ use constant {
 @http = qw(
 	DONE
 	DECLINED
+	NOT_FOUND
 	OK
 
 	HTTP_ACCEPTED
