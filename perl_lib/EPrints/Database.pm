@@ -610,14 +610,24 @@ sub create_dataset_index_tables
 		maxlength => 128,
 		allow_null => 0 );
 
-	if( !$self->has_table( $dataset->get_sql_rindex_table_name ) )
+	my $rindex_table = $dataset->get_sql_rindex_table_name;
+
+	if( !$self->has_table( $rindex_table ) )
 	{
-		local $keyfield->{sql_index} = 0; # Can use primary key for eprintid
+		local $keyfield->{sql_index} = 0; # See KEY added below
 		$rv = $rv & $self->create_table(
-			$dataset->get_sql_rindex_table_name,
+			$rindex_table,
 			$dataset,
 			3, # primary key over all fields
 			( $field_field, $field_word, $keyfield ) );
+	}
+	if( !defined($self->index_name( $rindex_table, $keyfield->get_sql_name, $field_field->get_sql_name )) )
+	{
+		# KEY(id,field) - used by deletion
+		$rv = $rv & $self->create_index(
+			$dataset->get_sql_rindex_table_name,
+			$keyfield->get_sql_name, $field_field->get_sql_name
+		);
 	}
 
 	return $rv;
@@ -3264,7 +3274,27 @@ sub has_dataset
 		$rc &&= $self->has_table( $order_table );
 	}
 
+	$rc &&= $self->has_dataset_index_tables( $dataset );
+
 	return $rc;
+}
+
+sub has_dataset_index_tables
+{
+	my( $self, $dataset ) = @_;
+
+	return 1 if !$dataset->indexable;
+
+	my $table = $dataset->get_sql_rindex_table_name;
+	return 0 if !$self->has_table( $table );
+
+	return 0 if !defined($self->index_name(
+		$table,
+		$dataset->get_key_field->get_sql_name,
+		"field"
+	));
+
+	return 1;
 }
 
 ######################################################################
