@@ -2610,11 +2610,11 @@ sub get_dataobjs
 	my $logic = "";
 	if( $key_field->isa( "EPrints::MetaField::Int" ) )
 	{
-		$logic = join(' OR ',map { "$Q_key_name=".$self->quote_int($_) } @ids);
+		$logic = $Q_key_name . " IN (".join(',',map { $self->quote_int($_) } @ids).")";
 	}
 	else
 	{
-		$logic = join(' OR ',map { "$Q_key_name=".$self->quote_value($_) } @ids);
+		$logic = $Q_key_name . " IN (".join(',',map { $self->quote_value($_) } @ids).")";
 	}
 
 	# we need to map the returned rows back to the input order
