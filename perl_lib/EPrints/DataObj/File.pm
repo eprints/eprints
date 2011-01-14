@@ -258,13 +258,13 @@ sub get_system_field_info
 
 		{ name=>"filename", type=>"id", },
 
-		{ name=>"mime_type", type=>"id", },
+		{ name=>"mime_type", type=>"id", sql_index=>0, },
 
-		{ name=>"hash", type=>"id", },
+		{ name=>"hash", type=>"id", maxlength=>64, },
 
-		{ name=>"hash_type", type=>"id", },
+		{ name=>"hash_type", type=>"id", maxlength=>32, },
 
-		{ name=>"filesize", type=>"bigint", },
+		{ name=>"filesize", type=>"bigint", sql_index=>0, },
 
 		{ name=>"mtime", type=>"timestamp", },
 
@@ -273,14 +273,13 @@ sub get_system_field_info
 		{ name=>"data", type=>"base64", virtual=>1 },
 
 		{
-			export_as_xml => 0,
-			name=>"copies", type=>"compound", multiple=>1,
+			name=>"copies", type=>"compound", multiple=>1, export_as_xml=>0,
 			fields=>[{
 				sub_name=>"pluginid",
-				type=>"text",
+				type=>"id",
 			},{
 				sub_name=>"sourceid",
-				type=>"text",
+				type=>"id",
 			}],
 		},
 	);
