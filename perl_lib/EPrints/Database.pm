@@ -3476,11 +3476,11 @@ sub _has_field_index
 		$table = $dataset->get_sql_table_name;
 	}
 
-	my @cols = $field->get_sql_names;
+	my @cols = $field->get_sql_index;
 
 	# see if it's already part of a PRIMARY KEY
 	my @primary_key = $self->get_primary_key( $table );
-	if( @primary_key && ($primary_key[0] eq $cols[0] || $primary_key[$#primary_key] eq $cols[0] ) )
+	if( @primary_key && $primary_key[0] eq $cols[0] )
 	{
 		return 1;
 	}
@@ -3511,7 +3511,7 @@ sub _add_field_index
 		$table = $dataset->get_sql_table_name;
 	}
 
-	my @cols = $field->get_sql_names;
+	my @cols = $field->get_sql_index;
 
 	return $self->create_index( $table, @cols );
 }
