@@ -39,6 +39,15 @@ sub xml_tests
 	$xml_str = EPrints::XML::to_string( $doc );
 	ok(utf8::is_utf8($xml_str), "to_string utf8 document");
 
+	my $eprint = EPrints::Test::get_test_dataobj( $repo->dataset( "eprint" ) );
+
+	my $xml_dump = $eprint->to_xml;
+	my $epdata = $eprint->xml_to_epdata( $repo, $xml_dump );
+	delete $epdata->{documents}; # to_xml() won't work with non-objects
+	my $eprint2 = $repo->dataset( "eprint" )->make_dataobj( $epdata );
+
+	is( $xml_dump->toString(), $eprint2->to_xml->toString(), "to_xml==xml_to_epdata" );
+
 	ok(1, "complete");
 }
 
