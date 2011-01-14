@@ -135,6 +135,10 @@ sub get_search_conditions_not_ex
 	}
 
 	# free text!
+	if( !$self->dataset->indexable )
+	{
+		EPrints->abort( "Can't perform index search on ".$self->dataset->id.".".$self->name." when the ".$self->dataset->id." dataset is not set as indexable" );
+	}
 
 	# apply stemming and stuff
 	# codes, grep_terms, bad

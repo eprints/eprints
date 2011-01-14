@@ -72,8 +72,8 @@ sub get_system_field_info
 		{ name=>"tripleid", type=>"counter", required=>1, can_clone=>0,
 			sql_counter=>"tripleid" },
 
-		{ name=>"primary_resource", type=>"text", required=>1, text_index=>0, sql_index=>1 },
-		{ name=>"secondary_resource", type=>"text", required=>0, text_index=>0, sql_index=>1 },
+		{ name=>"primary_resource", type=>"id", required=>1, text_index=>0, sql_index=>1 },
+		{ name=>"secondary_resource", type=>"id", required=>0, text_index=>0, sql_index=>1 },
 
 		{ name=>"subject",   type=>"longtext", required=>1, text_index=>0, },
 		{ name=>"predicate", type=>"longtext", required=>1, text_index=>0, },
