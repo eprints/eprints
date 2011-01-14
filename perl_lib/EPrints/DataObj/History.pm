@@ -113,7 +113,7 @@ sub get_system_field_info
 		{ name=>"actor", type=>"text", text_index=>0, },
 	
 		# should maybe be a set?
-		{ name=>"datasetid", type=>"text", text_index=>0, }, 
+		{ name=>"datasetid", type=>"id", text_index=>0, }, 
 
 		# is this required?
 		{ name=>"objectid", type=>"int", }, 

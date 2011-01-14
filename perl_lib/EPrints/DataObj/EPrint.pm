@@ -124,7 +124,7 @@ sub get_system_field_info
 		sql_counter=>"eprintid" },
 
 	{ name=>"rev_number", type=>"int", required=>1, can_clone=>0,
-		sql_index=>0, default_value=>1 },
+		sql_index=>0, default_value=>1, volatile=>1 },
 
 	{ name=>"documents", type=>"subobject", datasetid=>'document',
 		multiple=>1, text_index=>1 },
@@ -153,7 +153,7 @@ sub get_system_field_info
 		render_res=>"minute", render_style=>"short", can_clone=>0 },
 
 	{ name=>"lastmod", type=>"timestamp", required=>0, import=>0,
-		render_res=>"minute", render_style=>"short", can_clone=>0 },
+		render_res=>"minute", render_style=>"short", can_clone=>0, volatile=>1 },
 
 	{ name=>"status_changed", type=>"time", required=>0, import=>0,
 		render_res=>"minute", render_style=>"short", can_clone=>0 },
