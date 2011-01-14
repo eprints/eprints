@@ -2957,7 +2957,7 @@ sub upgrade_3_2_2_to_3_2_3
 	$db->do(
 		"ALTER TABLE ".
 		$db->quote_identifier($table).
-		" MODIFY ".$db->quote_identifier($field->get_sql_name)." ".
+		" CHANGE ".$db->quote_identifier($field->get_sql_name)." ".
 		$field->get_sql_type($repo)
 	);
 }
