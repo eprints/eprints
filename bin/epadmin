@@ -2097,6 +2097,32 @@ sub update_datasets
 				}
 			}
 		}
+		# check the __rindex collation
+		if( $dataset->indexable && $db->isa( "EPrints::Database::mysql" ) )
+		{
+			my $database = $repo->config( "dbname" );
+			my $table = $dataset->get_sql_rindex_table_name();
+			foreach my $col (qw( field word ))
+			{
+				my $sth = $db->prepare(<<EOS);
+SELECT
+	COLLATION_NAME
+FROM
+	information_schema.COLUMNS
+WHERE
+	TABLE_SCHEMA='$database' AND
+	TABLE_NAME='$table' AND
+	COLUMN_NAME='$col' AND
+	LOWER(COLLATION_NAME)!='utf8_bin'
+LIMIT 1
+EOS
+				$db->execute( $sth );
+				my( $collate ) = $sth->fetchrow_array or next;
+				$db->do("ALTER TABLE ".$db->quote_identifier($table)." CONVERT TO CHARACTER SET utf8 COLLATE utf8_bin");
+				print "Fixed $table.$col collation\n" if $noise;
+				last;
+			}
+		}
 	}
 
 	print "$count datasets added\n" if $noise;
