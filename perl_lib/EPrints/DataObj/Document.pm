@@ -1794,7 +1794,14 @@ sub make_thumbnails
 	{
 		my @relations = ( EPrints::Utils::make_relation( "has${size}ThumbnailVersion" ), EPrints::Utils::make_relation( "hasVolatileVersion" ) );
 
-		my( $tgt ) = @{($self->get_related_objects( @relations ))};
+		my( $tgt, @dupes ) = @{($self->get_related_objects( @relations ))};
+
+		# This shouldn't happen but I've seen it on roar.eprints.org
+		foreach my $dupe (@dupes)
+		{
+			$self->remove_object_relations( $dupe );
+			$dupe->remove;
+		}
 
 		# remove the existing thumbnail
    		if( defined($tgt) )
