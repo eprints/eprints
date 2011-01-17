@@ -86,6 +86,7 @@ use EPrints::SystemSettings;
 use Data::Dumper;
 use Scalar::Util;
 use File::Temp;
+use version 0.77;
 
 use Carp qw( verbose );
 
@@ -115,7 +116,7 @@ Returns the EPrints version in a human-readable form.
 
 sub human_version
 {
-	return sprintf("%d.%d.%d", map { ord($_) } split(//, EPrints->VERSION));
+	return version->parse(EPrints->VERSION)->normal;
 }
 
 =item EPrints->abort( $errmsg )
