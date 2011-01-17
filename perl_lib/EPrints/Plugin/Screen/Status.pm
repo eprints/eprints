@@ -151,7 +151,7 @@ sub render
 	
 	$table->appendChild( $session->render_row( 
 			$session->html_phrase( "cgi/users/status:release" ),
-			$session->make_text( EPrints->VERSION ) ) );
+			$session->make_text( EPrints->human_version ) ) );
 
 	$table->appendChild(
 		$session->render_row( 

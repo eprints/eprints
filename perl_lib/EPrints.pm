@@ -103,6 +103,21 @@ if( !defined $conf->{base_path} )
 	$conf->{base_path} = $base_path;
 }
 
+=item $version = EPrints->VERSION()
+
+Returns the version of EPrints in 'v' format (this is the UNIVERSAL method).
+
+=item EPrints->human_version()
+
+Returns the EPrints version in a human-readable form.
+
+=cut
+
+sub human_version
+{
+	return sprintf("%d.%d.%d", map { ord($_) } split(//, EPrints->VERSION));
+}
+
 =item EPrints->abort( $errmsg )
 
 This subroutine is loaded before other modules so that it may be used to report errors when initialising modules.
@@ -617,10 +632,6 @@ EPrints::Config::init();
 1;
 
 __END__
-
-=item $version = EPrints->VERSION()
-
-Returns the version of EPrints in 'v' format.
 
 =back
 
