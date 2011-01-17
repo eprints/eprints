@@ -116,7 +116,7 @@ Returns the EPrints version in a human-readable form.
 sub human_version
 {
 	return EPrints->VERSION =~ /^v/ ?
-		EPrints->VERSION :
+		substr(EPrints->VERSION,1) :
 		join('.', map { ord($_) } split(//, EPrints->VERSION));
 }
 
