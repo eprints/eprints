@@ -6,7 +6,7 @@ EPrints::Plugin::Export::EAP - Eprints Application Profile
 
 =head1 DESCRIPTION
 
-Not to be confused with Eprints (this software).
+Not to be confused with EPrints (this software).
 
 http://www.ukoln.ac.uk/repositories/digirep/index/Eprints_Application_Profile
 
@@ -127,7 +127,7 @@ sub new
 	my $self = $class->SUPER::new( %opts );
 
 	$self->{name} = "Eprints Application Profile";
-	$self->{accept} = [ 'list/eprint', 'dataobj/eprint' ];
+	$self->{accept} = [ 'dataobj/eprint' ];
 	$self->{visible} = "all";
 	
 	$self->{xmlns} = "http://purl.org/eprint/epdcx/2006-11-16/";
@@ -140,10 +140,12 @@ sub new
 sub output_dataobj
 {
 	my( $self, $dataobj ) = @_;
+	
+	my $md = $self->description_set;
 
-	my $xml = $self->xml_dataobj( $dataobj );
+	$md->appendChild($self->xml_dataobj( $dataobj ));
 
-	return EPrints::XML::to_string( $xml );
+	return EPrints::XML::to_string( $md );
 }
 
 
@@ -157,14 +159,7 @@ sub xml_dataobj
 	
 	my $data = $main_dc_plugin->convert_dataobj( $dataobj );
 
-	my $xmlns = $self->{xmlns};
-	my $schemaLocation = $self->{schemaLocation};
-
-	my $md = $self->{session}->make_element(
-			"$prefix:descriptionSet",
-			"xmlns:$prefix" => "$xmlns",
-			"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
-			"xsi:schemaLocation" => "$xmlns $schemaLocation" );
+	my $frag = $session->make_doc_fragment;
 
 	my $id = $dataobj->get_id;
 
@@ -178,23 +173,65 @@ sub xml_dataobj
 		$manifestations{ "manifestation_${id}_" . $doc->get_id } = $doc;
 	}
 
-	$md->appendChild( $self->scholarly_work( $dataobj, $dataobj->get_url, \%expressions ) );
+	$frag->appendChild( $self->scholarly_work( $dataobj, $dataobj->get_url, \%expressions ) );
 
 	while(my( $id, $eprint ) = each %expressions )
 	{
-		$md->appendChild( $self->expression( $eprint, $id, \%manifestations ) );
+		$frag->appendChild( $self->expression( $eprint, $id, \%manifestations ) );
 	}
 
 	while(my( $id, $doc ) = each %manifestations)
 	{
-		$md->appendChild( $self->manifestation( $doc, $id ) );
-		$md->appendChild( $self->available( $doc, $id ) );
+		$frag->appendChild( $self->manifestation( $doc, $id ) );
+		$frag->appendChild( $self->available( $doc, $id ) );
 	}
 
-	EPrints::XML::tidy( $md );
+	EPrints::XML::tidy( $frag );
 
-	return $md;
+	return $frag;
 }
+
+sub output_list
+{
+        my( $plugin, %opts ) = @_;
+
+	my $md = $plugin->description_set;
+
+        $opts{list}->map( sub {
+                my( $session, $dataset, $item ) = @_;
+
+                my $part = $plugin->xml_dataobj( $item, %opts );
+		$md->appendChild($part);
+        } );
+
+	my $description_set = "<?xml version='1.0'?>\n";
+
+	$description_set .= EPrints::XML::to_string( $md ); 
+
+	if( defined $opts{fh} )
+        {
+                print {$opts{fh}} $description_set;
+                return undef;
+        }
+
+
+        return $description_set;
+}
+
+sub description_set
+{
+	my ( $self ) = @_;
+
+	my $xmlns = $self->{xmlns};
+	my $schemaLocation = $self->{schemaLocation};
+	return $self->{session}->make_element(
+                        "$prefix:descriptionSet",
+                        "xmlns:$prefix" => "$xmlns",
+                        "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
+                        "xsi:schemaLocation" => "$xmlns $schemaLocation" );
+
+}
+
 
 sub scholarly_work
 {
