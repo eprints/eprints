@@ -137,7 +137,7 @@ sub _epdata_to_json
 		}
 		else
 		{
-			return $pre_pad . "'$epdata'";
+			return $pre_pad . "\"$epdata\"";
 		}
 	}
 	elsif( ref( $epdata ) eq "ARRAY" )
@@ -149,7 +149,7 @@ sub _epdata_to_json
 	elsif( ref( $epdata ) eq "HASH" )
 	{
 		return "$pre_pad\{\n" . join(",\n", map {
-			$pad . "  " . $_ . ": " . $self->_epdata_to_json( $epdata->{$_}, $depth + 1, 1, %opts )
+			$pad . "  \"" . $_ . "\": " . $self->_epdata_to_json( $epdata->{$_}, $depth + 1, 1, %opts )
 		} keys %$epdata) . "\n$pad\}";
 	}
 	elsif( $epdata->isa( "EPrints::DataObj" ) )
