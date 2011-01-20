@@ -990,7 +990,10 @@ sub commit
 
 	$self->update_triggers();
 
-	$self->set_value( "fileinfo", $self->fileinfo );
+	if( !$self->under_construction )
+	{
+		$self->set_value( "fileinfo", $self->fileinfo );
+	}
 
 	if( $self->{non_volatile_change} )
 	{
