@@ -549,11 +549,15 @@ sub get_search_conditions
 
 	if( $match eq "EX" )
 	{
+		if( ref($search_value) ne "HASH" )
+		{
+			$search_value = $self->get_value_from_id( $session, $search_value );
+		}
 		return EPrints::Search::Condition->new(
 			'=',
 			$dataset,
 			$self,
-			$self->get_value_from_id( $session, $search_value )
+			$search_value
 		);
 	}
 
