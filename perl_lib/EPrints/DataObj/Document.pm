@@ -1762,7 +1762,10 @@ sub remove_thumbnails
 	my $under_construction = $self->parent->under_construction;
 	local $self->parent->{under_construction} = 1;
 
-	my $regexp = EPrints::Utils::make_relation( "is\\w+ThumbnailVersionOf" );
+	my @sizes = $self->thumbnail_types;
+	my %lookup = map { $_ => 1 } @sizes;
+
+	my $regexp = EPrints::Utils::make_relation( "is(\\w+)ThumbnailVersionOf" );
 	$regexp = qr/^$regexp$/;
 
 	$self->search_related->map(sub {
@@ -1773,9 +1776,15 @@ sub remove_thumbnails
 			next if $_->{uri} ne $self->internal_uri;
 			next if $_->{type} !~ $regexp;
 
-			$doc->set_parent( $self->parent );
-			$doc->remove_relation( $self );
-			$doc->remove;
+			# only remove configured sizes (otherwise we can nuke externally
+			# generated thumbnails)
+			if( exists($lookup{$1}) )
+			{
+				$doc->set_parent( $self->parent );
+				$doc->remove_relation( $self );
+				$doc->remove;
+				return;
+			}
 		}
 	});
 
@@ -1916,13 +1925,17 @@ sub add_relation
 
 =item $doc->remove_relation( $tgt [, @types ] )
 
-Removes the relations in $doc to $tgt. If @types isn't given removes all relations to $tgt.
+Removes the relations in $doc to $tgt. If @types isn't given removes all relations to $tgt. If $tgt is undefined removes all relations given in @types.
+
+If you want to remove all relations do $doc->set_value( "relation", [] );
 
 =cut
 
 sub remove_relation
 {
 	my( $self, $tgt, @types ) = @_;
+
+	return if !defined($tgt) && !@types;
 
 	@types = map { EPrints::Utils::make_relation( $_ ) } @types;
 
@@ -1931,9 +1944,14 @@ sub remove_relation
 	my @relation;
 	for(@{$self->value( "relation" )})
 	{
-		next if
-			defined($tgt) && $_->{uri} eq $tgt->internal_uri &&
-			(!@types || exists($lookup{$_->{type}}));
+# logic:
+#  we remove the relation if uri and type match
+#  we remove the relation if uri and type=* match
+#  we remove the relation if uri=* and type match
+# otherwise we keep it
+		next if defined($tgt) && $_->{uri} eq $tgt->internal_uri && exists($lookup{$_->{type}});
+		next if defined($tgt) && $_->{uri} eq $tgt->internal_uri && !@types;
+		next if !defined($tgt) && exists($lookup{$_->{type}});
 		push @relation, $_;
 	}
 
