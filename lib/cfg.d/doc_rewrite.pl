@@ -6,8 +6,8 @@ $c->add_trigger( EP_TRIGGER_DOC_URL_REWRITE, sub {
 
 	foreach my $r (@$relations)
 	{
-		my $relation = EPrints::Utils::make_relation( $r );
-		$doc = $doc->get_related_objects( $relation )->[0];
+		$r =~ s/^has(.+)$/is$1Of/;
+		$doc = $doc->search_related( $r )->item( 0 );
 		if( !defined $doc )
 		{
 			$request->status( 404 );

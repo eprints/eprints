@@ -228,16 +228,12 @@ sub get_index_codes_basic
 	return( [], [], [] ) if !$doc->isa( "EPrints::DataObj::Document" );
 
 	# we only supply index codes for proper documents
-	return( [], [], [] ) if $doc->has_related_objects(
-		EPrints::Utils::make_relation( "isVolatileVersionOf" )
-	);
+	return( [], [], [] ) if $doc->has_relation( undef, "isVolatileVersionOf" );
 
 	my $main_file = $doc->get_stored_file( $doc->get_main );
 	return( [], [], [] ) unless defined $main_file;
 
-	my( $indexcodes_doc ) = @{($doc->get_related_objects(
-			EPrints::Utils::make_relation( "hasIndexCodesVersion" )
-		))};
+	my $indexcodes_doc = $doc->search_related( "isIndexCodesVersion" )->item( 0 );
 	my $indexcodes_file;
 	if( defined $indexcodes_doc )
 	{
@@ -289,7 +285,7 @@ sub to_sax
 		next if(
 			$opts{hide_volatile} &&
 			$_->isa( "EPrints::DataObj::Document" ) &&
-			$_->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) )
+			$_->has_relation( undef, "isVolatileVersionOf" )
 		);
 		$_->to_sax( %opts );
 	}

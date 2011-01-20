@@ -176,11 +176,11 @@ sub get_system_field_info
 			fields => [
 				{
 					sub_name => "type",
-					type => "text",
+					type => "id",
 				},
 				{
 					sub_name => "uri",
-					type => "text",
+					type => "id",
 				},
 			],
 		},
@@ -421,19 +421,21 @@ sub remove
 	my( $self ) = @_;
 
 	# remove dependent objects and relations
-	foreach my $dataobj (@{($self->get_related_objects())})
-	{
-		if( $dataobj->has_object_relations( $self, EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
-		{
-			$dataobj->remove_object_relations( $self ); # avoid infinite loop
-			$dataobj->remove();
-		}
-		else
-		{
-			$dataobj->remove_object_relations( $self );
-			$dataobj->commit;
-		}
-	}
+	$self->search_related->map(sub {
+			my( undef, undef, $doc ) = @_;
+
+			$doc->set_parent( $self->parent );
+			if( $doc->has_relation( $self, "isVolatileVersionOf" ) )
+			{
+				$doc->remove_relation( $self );
+				$doc->remove;
+			}
+			else
+			{
+				$doc->remove_relation( $self );
+				$doc->commit;
+			}
+		});
 
 	foreach my $file (@{($self->get_value( "files" ))})
 	{
@@ -1375,7 +1377,7 @@ sub make_indexcodes
 	my( $self ) = @_;
 
 	# if we're a volatile version of another document, don't make indexcodes 
-	if( $self->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
+	if( $self->has_relation( undef, "isVolatileVersionOf" ) )
 	{
 		return undef;
 	}
@@ -1397,11 +1399,7 @@ sub make_indexcodes
 	return undef unless defined $doc;
 
 	# relate the new document to us
-	$self->add_object_relations( $doc,
-			EPrints::Utils::make_relation( "hasIndexCodesVersion" ) =>
-			EPrints::Utils::make_relation( "isIndexCodesVersionOf" ),
-		);
-	$self->commit();
+	$doc->add_relation( $self, "isIndexCodesVersionOf" );
 	$doc->commit();
 
 	return $doc;
@@ -1423,19 +1421,24 @@ sub remove_indexcodes
 	my( $self ) = @_;
 
 	# if we're a volatile version of another document, don't make indexcodes 
-	if( $self->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
+	if( $self->has_relation( undef, "isVolatileVersionOf" ) )
 	{
 		return 0;
 	}
 
+	my $c = 0;
+
 	# remove any existing indexcodes documents
-	my $docs = $self->get_related_objects(
-			EPrints::Utils::make_relation( "hasIndexCodesVersion" )
-		);
-	$_->remove() for @$docs;
-	$self->commit() if scalar @$docs; # Commit changes to relations
+	$self->search_related( "isIndexCodesVersionOf" )->map(sub {
+			my( undef, undef, $doc ) = @_;
+
+			$doc->remove_relation( $self );
+			$doc->remove;
+
+			++$c;
+		});
 	
-	return scalar (@$docs);
+	return $c;
 }
 
 ######################################################################
@@ -1484,11 +1487,11 @@ sub thumbnail_url
 
 	$size = "small" unless defined $size;
 
-	my $relation = "has${size}ThumbnailVersion";
+	my $relation = "is${size}ThumbnailVersionOf";
 
-	my( $thumbnail ) = @{($self->get_related_objects( EPrints::Utils::make_relation( $relation ) ))};
+	my $thumbnails = $self->search_related( $relation );
 
-	return undef if !defined $thumbnail;
+	return undef if $thumbnails->count == 0;
 
 	my $url = $self->get_baseurl();
 	$url =~ s! /$ !.$relation/!x;
@@ -1756,19 +1759,27 @@ sub remove_thumbnails
 {
 	my( $self ) = @_;
 
-	my @list = $self->thumbnail_types;
+	my $under_construction = $self->parent->under_construction;
+	local $self->parent->{under_construction} = 1;
 
-	foreach my $size (@list)
-	{
-		my $relation = EPrints::Utils::make_relation( "has${size}ThumbnailVersion" );
-		foreach my $doc ($self->related_dataobjs( $relation ))
+	my $regexp = EPrints::Utils::make_relation( "is\\w+ThumbnailVersionOf" );
+	$regexp = qr/^$regexp$/;
+
+	$self->search_related->map(sub {
+		my( undef, undef, $doc ) = @_;
+
+		for(@{$doc->value( "relation" )})
 		{
-			if( $doc->has_dataobj_relations( $self, EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
-			{
-				$doc->remove;
-			}
+			next if $_->{uri} ne $self->internal_uri;
+			next if $_->{type} !~ $regexp;
+
+			$doc->set_parent( $self->parent );
+			$doc->remove_relation( $self );
+			$doc->remove;
 		}
-	}
+	});
+
+	$self->parent->{under_construction} = $under_construction;
 
 	$self->commit;
 }
@@ -1779,7 +1790,7 @@ sub make_thumbnails
 
 	# If we're a volatile version of another document, don't make thumbnails 
 	# otherwise we'll cause a recursive loop
-	if( $self->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
+	if( $self->has_relation( undef, "isVolatileVersionOf" ) )
 	{
 		return;
 	}
@@ -1788,20 +1799,32 @@ sub make_thumbnails
 
 	return unless defined $src_main;
 
+	my $under_construction = $self->parent->under_construction;
+	local $self->parent->{under_construction} = 1;
+
+	my %thumbnails;
+
+	my $regexp = EPrints::Utils::make_relation( "has(\\w+)ThumbnailVersion" );
+	$regexp = qr/^$regexp$/;
+
+	$self->search_related->map(sub {
+		my( undef, undef, $doc ) = @_;
+
+		for(@{$doc->value( "relation" )})
+		{
+			next if $_->{uri} ne $self->internal_uri;
+			next if $_->{type} !~ $regexp;
+
+			$doc->set_parent( $self->parent );
+			$thumbnails{$1} = $doc;
+		}
+	});
+
 	my @list = $self->thumbnail_types;
 
 	SIZE: foreach my $size ( @list )
 	{
-		my @relations = ( EPrints::Utils::make_relation( "has${size}ThumbnailVersion" ), EPrints::Utils::make_relation( "hasVolatileVersion" ) );
-
-		my( $tgt, @dupes ) = @{($self->get_related_objects( @relations ))};
-
-		# This shouldn't happen but I've seen it on roar.eprints.org
-		foreach my $dupe (@dupes)
-		{
-			$self->remove_object_relations( $dupe );
-			$dupe->remove;
-		}
+		my $tgt = $thumbnails{$size};
 
 		# remove the existing thumbnail
    		if( defined($tgt) )
@@ -1812,7 +1835,7 @@ sub make_thumbnails
 				# ignore if tgt's main file is newer than document's main file
 				next SIZE;
 			}
-			$self->remove_object_relations( $tgt );
+			$tgt->remove_relation( $self );
 			$tgt->remove;
 		}
 
@@ -1820,22 +1843,19 @@ sub make_thumbnails
 
 		next if !defined $plugin;
 
-		my $doc = $plugin->convert( $self->get_parent, $self, 'thumbnail_'.$size );
-		next if !defined $doc;
+		$tgt = $plugin->convert( $self->get_parent, $self, 'thumbnail_'.$size );
+		next if !defined $tgt;
 
-		$self->add_object_relations(
-				$doc,
-				EPrints::Utils::make_relation( "has${size}ThumbnailVersion" ) =>
-				EPrints::Utils::make_relation( "is${size}ThumbnailVersionOf" )
-			);
-
-		$doc->commit();
+		$tgt->add_relation( $self, "is${size}ThumbnailVersionOf" );
+		$tgt->commit();
 	}
 
 	if( $self->{session}->get_repository->can_call( "on_generate_thumbnails" ) )
 	{
 		$self->{session}->get_repository->call( "on_generate_thumbnails", $self->{session}, $self );
 	}
+
+	$self->parent->{under_construction} = $under_construction;
 
 	$self->commit();
 }
@@ -1864,6 +1884,122 @@ sub get_parent_id
 	my( $self ) = @_;
 
 	return $self->get_value( "eprintid" );
+}
+
+=item $doc->add_relation( $tgt, @types )
+
+Add one or more relations to $doc pointing to $tgt (does not modify $tgt).
+
+=cut
+
+sub add_relation
+{
+	my( $self, $tgt, @types ) = @_;
+
+	@types = map { EPrints::Utils::make_relation( $_ ) } @types;
+
+	my %lookup = map { $_ => 1 } @types;
+
+	my @relation;
+	for(@{$self->value( "relation" )})
+	{
+		next if
+			$_->{uri} eq $tgt->internal_uri &&
+			exists($lookup{$_->{type}});
+		push @relation, $_;
+	}
+	push @relation,
+		map { { uri => $tgt->internal_uri, type => $_ } } @types;
+	
+	$self->set_value( "relation", \@relation );
+}
+
+=item $doc->remove_relation( $tgt [, @types ] )
+
+Removes the relations in $doc to $tgt. If @types isn't given removes all relations to $tgt.
+
+=cut
+
+sub remove_relation
+{
+	my( $self, $tgt, @types ) = @_;
+
+	@types = map { EPrints::Utils::make_relation( $_ ) } @types;
+
+	my %lookup = map { $_ => 1 } @types;
+
+	my @relation;
+	for(@{$self->value( "relation" )})
+	{
+		next if
+			defined($tgt) && $_->{uri} eq $tgt->internal_uri &&
+			(!@types || exists($lookup{$_->{type}}));
+		push @relation, $_;
+	}
+
+	$self->set_value( "relation", \@relation );
+}
+
+=item $bool = $doc->has_relation( $tgt [, @types ] )
+
+Returns true if $doc has relations to $tgt. If @types is given checks that $doc satisfies all of the given types. $tgt may be undefined.
+
+=cut
+
+sub has_relation
+{
+	my( $self, $tgt, @types ) = @_;
+
+	@types = map { EPrints::Utils::make_relation( $_ ) } @types;
+
+	my %lookup = map { $_ => 1 } @types;
+	for(@{$self->value( "relation" )})
+	{
+		next if defined($tgt) && $_->{uri} ne $tgt->internal_uri;
+		return 1 if !@types;
+		delete $lookup{$_->{type}};
+	}
+
+	return !scalar(keys %lookup);
+}
+
+=item $list = $doc->search_related( [ $type ] )
+
+Return a L<EPrints::List> that contains all documents related to this document. If $type is defined returns only those documents related by $type.
+
+=cut
+
+sub search_related
+{
+	my( $self, $type ) = @_;
+
+	if( $type )
+	{
+		return $self->dataset->search(
+			filters => [{
+				meta_fields => [qw( relation )],
+				value => {
+					uri => $self->internal_uri,
+					type => EPrints::Utils::make_relation( $type )
+				},
+				match => "EX",
+			},{
+				meta_fields => [qw( eprintid )],
+				value => $self->parent->id,
+			}]);
+	}
+	else
+	{
+		return $self->dataset->search(
+			filters => [{
+				meta_fields => [qw( relation_uri )],
+				value => $self->internal_uri,
+				match => "EX",
+			},{
+				meta_fields => [qw( eprintid )],
+				value => $self->parent->id,
+			}]);
+	}
 }
 
 1;

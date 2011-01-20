@@ -237,17 +237,7 @@ sub _doc_update
 
 	if( $doc_internal eq "unlink_doc" )
 	{
-		my $relation = EPrints::Utils::make_relation( "isVolatileVersionOf" );
-		my $parent = $doc->get_related_objects($relation)->[0];
-		$parent->remove_object_relations(
-				$doc,
-				EPrints::Utils::make_relation( "hasVolatileVersion" ),
-				);
-		$parent->commit;
-		$doc->remove_object_relations(
-				$parent,
-				EPrints::Utils::make_relation( "isVolatileVersionOf" ),
-				);
+		$doc->remove_relation( undef, "isVolatileVersionOf" );
 		$doc->commit;
 		return;
 	}
@@ -308,13 +298,8 @@ sub _doc_update
 			$processor->add_message( "error", $self->html_phrase( "conversion_failed" ) );
 			return;
 		}
-		$doc->remove_object_relations(
-				$new_doc,
-				EPrints::Utils::make_relation( "hasVolatileVersion" ) =>
-				EPrints::Utils::make_relation( "isVolatileVersionOf" )
-			);
+		$new_doc->remove_relation( undef, "isVolatileVersionOf" );
 		$new_doc->make_thumbnails();
-		$doc->commit();
 		$new_doc->commit();
 
 		$processor->{notes}->{upload_plugin}->{to_unroll}->{$new_doc->id} = 1;
@@ -585,17 +570,14 @@ sub _render_related_docs
 
 	my $div = $session->make_element( "div", id=>$self->{prefix}."_panels" );
 
-	my $relation = EPrints::Utils::make_relation( "hasVolatileVersion" );
+	$doc->search_relation( "isVolatileVersionOf" )->map(sub {
+			my( undef, undef, $dataobj ) = @_;
 
-	foreach my $dataobj ( @{($doc->get_related_objects( $relation ))} )
-	{
-		# in the future we might get other objects coming back
-		next if !$dataobj->isa( "EPrints::DataObj::Document" );
-		# sanity check that this document actually belongs to us
-		next if $dataobj->get_parent->id ne $eprint->id;
+			# in the future we might get other objects coming back
+			next if !$dataobj->isa( "EPrints::DataObj::Document" );
 
-		$div->appendChild( $self->_render_volatile_div( $dataobj ) );
-	}
+			$div->appendChild( $self->_render_volatile_div( $dataobj ) );
+		});
 
 	if( !$div->hasChildNodes )
 	{

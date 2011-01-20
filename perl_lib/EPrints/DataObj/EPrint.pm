@@ -1170,10 +1170,7 @@ sub prune_documents
 
 =item @documents = $eprint->get_all_documents
 
-Return an array of all EPrint::Document objects associated with this
-eprint.
-
-Documents that have a relation of "isVolatileVersionOf" will only be returned if there is no reciprocal document in this EPrint (i.e. orphaned).
+Return a list of all L<EPrint::Document> objects associated with this eprint excluding documents with a "isVolatileVersionOf" relation (e.g. thumbnails).
 
 =cut
 ######################################################################
@@ -1184,23 +1181,11 @@ sub get_all_documents
 
 	my @docs;
 
-	my $relation = EPrints::Utils::make_relation( "isVolatileVersionOf" );
-	my $irelation = EPrints::Utils::make_relation( "hasVolatileVersion" );
-
 	# Filter out any documents that are volatile versions
-	foreach my $doc (@{($self->get_value( "documents" ))})
+	foreach my $doc (@{($self->value( "documents" ))})
 	{
-		if( my @dataobjs = @{$doc->get_related_objects( $relation )} )
-		{
-			if( !$dataobjs[0]->has_object_relations( $doc, $irelation ) )
-			{
-				push @docs, $doc;
-			}
-		}
-		else
-		{
-			push @docs, $doc;
-		}
+		next if $doc->has_relation( undef, "isVolatileVersionOf" );
+		push @docs, $doc;
 	}
 
 	my @sdocs = sort { ($a->get_value( "placement" )||0) <=> ($b->get_value( "placement" )||0) || $a->id <=> $b->id } @docs;

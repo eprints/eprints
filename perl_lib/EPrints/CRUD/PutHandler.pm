@@ -240,7 +240,10 @@ sub handler
 			# remove dependent objects and relations
 			foreach my $dataobj (@{($item->get_related_objects())})
 			{
-				if( $dataobj->has_object_relations( $item, EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) or $dataobj->has_object_relations( $item, EPrints::Utils::make_relation( "isPartOf" ) ) )
+				if(
+					$dataobj->has_object_relations( $item, EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) ||
+					$dataobj->has_object_relations( $item, EPrints::Utils::make_relation( "isPartOf" ) )
+				  )
 				{
 					$dataobj->remove_object_relations( $item ); # avoid infinite loop
 					$dataobj->remove();

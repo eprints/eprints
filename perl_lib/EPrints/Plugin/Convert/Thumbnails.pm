@@ -360,12 +360,6 @@ sub convert
 		close $_->{_content};
 	}
 
-	$doc->add_dataobj_relations(
-		$new_doc,
-		EPrints::Utils::make_relation( "hasVersion" ) => undef,
-		EPrints::Utils::make_relation( "hasVolatileVersion" ) => undef,
-	);
-
 	return $new_doc;
 }
 

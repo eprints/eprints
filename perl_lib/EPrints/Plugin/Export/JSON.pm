@@ -159,7 +159,7 @@ sub _epdata_to_json
 		return "" if(
 			$opts{hide_volatile} &&
 			$epdata->isa( "EPrints::DataObj::Document" ) &&
-			$epdata->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) )
+			$epdata->has_relation( undef, "isVolatileVersionOf" )
 		  );
 
 		foreach my $field ($epdata->get_dataset->get_fields)
