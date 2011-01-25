@@ -461,7 +461,7 @@ sub render_row
 
 	my $xml = $phrase->{xml};
 	my %seen = ($phrase->{phraseid} => 1);
-	while($xml->hasAttribute( "ref" ))
+	while($xml->can( "hasAttribute" ) && $xml->hasAttribute( "ref" ))
 	{
 		my $info = $session->get_lang->get_phrase_info( $xml->getAttribute( "ref" ), $session );
 		last if !defined $info;
