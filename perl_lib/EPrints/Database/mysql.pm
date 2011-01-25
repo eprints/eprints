@@ -516,6 +516,8 @@ sub ci_lookup
 {
 	my( $self, $field, $value ) = @_;
 
+	return if !defined $value; # Can't do a CI match on 'NULL'
+
 	my $table = $field->dataset->get_sql_table_name;
 	
 	my $sql =
@@ -524,7 +526,7 @@ sub ci_lookup
 		" WHERE ".$self->quote_identifier( $field->get_sql_name )."=".$self->quote_value( $value )." COLLATE utf8_general_ci";
 
 	my $sth = $self->prepare( $sql );
-	$sth->execute;
+	$self->execute( $sth, $sql );
 
 	my( $real_value ) = $sth->fetchrow_array;
 
