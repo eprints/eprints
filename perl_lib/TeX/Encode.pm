@@ -77,7 +77,7 @@ sub encode
 		}
 
 		# basic unreserved characters
-		/\G([\sa-zA-Z0-9\.,:;'"\(\)=]+)/gc and ($tex .= $1, next);
+		/\G([\sa-zA-Z0-9\.,:;'"\(\)=\/]+)/gc and ($tex .= $1, next);
 
 		# unsupported code point (may set $bad_cp)
 		/\G(.)/gc and ($tex .= &$check(ord($1)), next);
