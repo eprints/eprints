@@ -593,13 +593,15 @@ sub run_control_url
 {
 	my( $self, $state, $eprint ) = @_;
 
-	if( !defined $eprint->[0] || ref($eprint->[0]) ne "EPrints::DataObj::EPrint" )
+	$eprint = $eprint->[0];
+
+	if( !defined $eprint || !UNIVERSAL::can( $eprint, "get_control_url" ) )
 	{
-		$self->runtime_error( "Can only call control_url() on eprint objects not ".
-			ref($eprint->[0]) );
+		$self->runtime_error( "Can only call control_url() on objects not ".
+			ref($eprint) );
 	}
 
-	return [ $eprint->[0]->get_control_url(), "STRING" ];
+	return [ $eprint->get_control_url(), "STRING" ];
 }
 
 sub run_contact_email
