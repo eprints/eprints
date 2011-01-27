@@ -140,7 +140,7 @@ sub update_view_file
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid.$localpath;
 	my $ext = "";
 	# remove extension from target, if there is one
-	if( $target =~ s/(\..*)// ) { $ext = $1; }
+	if( $target =~ s/(\.[^\.]*)// ) { $ext = $1; }
 	my $age;
 	if( -e "$target.page" ) 
 	{
