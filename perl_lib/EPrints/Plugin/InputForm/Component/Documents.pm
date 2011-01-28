@@ -570,7 +570,7 @@ sub _render_related_docs
 
 	my $div = $session->make_element( "div", id=>$self->{prefix}."_panels" );
 
-	$doc->search_relation( "isVolatileVersionOf" )->map(sub {
+	$doc->search_related( "isVolatileVersionOf" )->map(sub {
 			my( undef, undef, $dataobj ) = @_;
 
 			# in the future we might get other objects coming back
