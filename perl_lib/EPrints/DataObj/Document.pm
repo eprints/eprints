@@ -455,7 +455,7 @@ sub remove
 	my $eprint = $self->get_parent;
 	if( defined $eprint && !$eprint->under_construction )
 	{
-		local $eprint->{non_volatile_change} = 1;
+		$eprint->set_value( "fileinfo", $eprint->fileinfo );
 		$eprint->commit();
 	}
 
@@ -1149,31 +1149,34 @@ sub commit
 
 	my $dataset = $self->{session}->get_repository->get_dataset( "document" );
 
-	$self->update_triggers();
+	$self->update_triggers(); # might cause a new revision
 
-	if( !defined $self->{changed} || scalar( keys %{$self->{changed}} ) == 0 )
+	if( scalar( keys %{$self->{changed}} ) == 0 )
 	{
 		# don't do anything if there isn't anything to do
 		return( 1 ) unless $force;
 	}
+
 	if( $self->{non_volatile_change} )
 	{
 		$self->set_value( "rev_number", ($self->get_value( "rev_number" )||0) + 1 );	
 	}
 
 	# SUPER::commit clears non_volatile_change
-	my $non_volatile_change = $self->{non_volatile_change};
-
-	my $success = $self->SUPER::commit( $force );
-	
-	my $eprint = $self->get_parent();
-	if( defined $eprint && !$eprint->under_construction && $non_volatile_change )
+	my $success;
 	{
-		# cause a new new revision of the parent eprint.
-		# if the eprint is under construction the changes will be committed
-		# after all the documents are complete
-		local $eprint->{non_volatile_change} = 1;
-		$eprint->commit( 1 );
+		local $self->{non_volatile_change};
+		$success = $self->SUPER::commit( $force );
+	}
+	
+	if( $self->{non_volatile_change} )
+	{
+		my $eprint = $self->parent();
+		if( defined $eprint && !$eprint->under_construction )
+		{
+			$eprint->set_value( "fileinfo", $eprint->fileinfo );
+			$eprint->commit( $force );
+		}
 	}
 	
 	return( $success );
@@ -1382,6 +1385,9 @@ sub make_indexcodes
 		return undef;
 	}
 
+	my $eprint = $self->parent;
+	local $eprint->{under_construction} = 1; # prevent parent commit
+
 	$self->remove_indexcodes();
 	
 	# find a conversion plugin to convert us to indexcodes
@@ -1392,7 +1398,7 @@ sub make_indexcodes
 
 	# convert us to indexcodes
 	my $doc = $plugin->convert(
-			$self->get_parent,
+			$eprint,
 			$self,
 			$type
 		);
@@ -1428,9 +1434,14 @@ sub remove_indexcodes
 
 	my $c = 0;
 
+	my $eprint = $self->parent;
+	local $eprint->{under_construction} = 1; # prevent parent commit
+
 	# remove any existing indexcodes documents
 	$self->search_related( "isIndexCodesVersionOf" )->map(sub {
 			my( undef, undef, $doc ) = @_;
+
+			$doc->set_parent( $eprint );
 
 			$doc->remove_relation( $self );
 			$doc->remove;
@@ -1759,8 +1770,10 @@ sub remove_thumbnails
 {
 	my( $self ) = @_;
 
-	my $under_construction = $self->parent->under_construction;
-	local $self->parent->{under_construction} = 1;
+	my $eprint = $self->parent;
+
+	my $under_construction = $eprint->under_construction;
+	$eprint->{under_construction} = 1;
 
 	my @sizes = $self->thumbnail_types;
 	my %lookup = map { $_ => 1 } @sizes;
@@ -1788,9 +1801,13 @@ sub remove_thumbnails
 		}
 	});
 
-	$self->parent->{under_construction} = $under_construction;
+	$eprint->{under_construction} = $under_construction;
 
-	$self->commit;
+	$eprint->set_value( "fileinfo", $eprint->fileinfo );
+
+	# we don't want to do anything heavy after changing thumbnails
+	local $eprint->{non_volatile_change};
+	$eprint->commit();
 }
 
 sub make_thumbnails
@@ -1808,8 +1825,9 @@ sub make_thumbnails
 
 	return unless defined $src_main;
 
-	my $under_construction = $self->parent->under_construction;
-	local $self->parent->{under_construction} = 1;
+	my $eprint = $self->parent;
+	my $under_construction = $eprint->under_construction;
+	$eprint->{under_construction} = 1;
 
 	my %thumbnails;
 
@@ -1864,9 +1882,13 @@ sub make_thumbnails
 		$self->{session}->get_repository->call( "on_generate_thumbnails", $self->{session}, $self );
 	}
 
-	$self->parent->{under_construction} = $under_construction;
+	$eprint->{under_construction} = $under_construction;
 
-	$self->commit();
+	$eprint->set_value( "fileinfo", $eprint->fileinfo );
+
+	# we don't want to do anything heavy after changing thumbnails
+	local $eprint->{non_volatile_change};
+	$eprint->commit();
 }
 
 sub mime_type

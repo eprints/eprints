@@ -1166,7 +1166,7 @@ sub set_dataobj_xml
 
 	use bytes;
 
-	my $xml = $dataobj->to_xml;
+	my $xml = $dataobj->to_xml( hide_volatile => 1 );
 
 	my $data = "<?xml version='1.0' encoding='utf-8' ?>\n";
 	$data .= $self->{session}->xml->to_string( $xml, indent => 1 );

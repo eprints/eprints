@@ -124,7 +124,7 @@ sub get_system_field_info
 		sql_counter=>"eprintid" },
 
 	{ name=>"rev_number", type=>"int", required=>1, can_clone=>0,
-		sql_index=>0, default_value=>1, volatile=>1 },
+		sql_index=>0, default_value=>0, volatile=>1 },
 
 	{ name=>"documents", type=>"subobject", datasetid=>'document',
 		multiple=>1, text_index=>1 },
@@ -179,7 +179,6 @@ sub get_system_field_info
 	{ name=>"fileinfo", type=>"longtext", 
 		text_index=>0,
 		export_as_xml=>0,
-		volatile=>1,
 		render_value=>"EPrints::DataObj::EPrint::render_fileinfo" },
 
 	{ name=>"latitude", type=>"float", required=>0 },
@@ -495,44 +494,20 @@ sub create_from_data
 {
 	my( $class, $session, $data, $dataset ) = @_;
 
-	my $new_eprint = $class->SUPER::create_from_data( $session, $data, $dataset );
+	my $self = $class->SUPER::create_from_data( $session, $data, $dataset );
 	
-	return undef unless defined $new_eprint;
+	return undef unless defined $self;
 
-	$new_eprint->set_value( "fileinfo", $new_eprint->fileinfo );
+	$self->set_value( "fileinfo", $self->fileinfo );
 
-	$session->get_database->update(
-		$new_eprint->{dataset},
-		$new_eprint->{data},
-		$new_eprint->{changed} );
+	$self->update_triggers();
 
-	$new_eprint->clear_changed;
-
-	$new_eprint->update_triggers();
+	$self->save_revision( action => "create" );
 
 	# we only need to update the DB and queue changes (if necessary)
-	$new_eprint->SUPER::commit();
+	$self->SUPER::commit();
 
-	my $user = $session->current_user;
-	my $userid = undef;
-	$userid = $user->get_id if defined $user;
-
-	my $history_ds = $session->get_repository->get_dataset( "history" );
-	my $event = $history_ds->create_object( 
-		$session,
-		{
-			_parent=>$new_eprint,
-			userid=>$userid,
-			datasetid=>"eprint",
-			objectid=>$new_eprint->get_id,
-			revision=>$new_eprint->get_value( "rev_number" ),
-			action=>"create",
-			details=>undef,
-		}
-	);
-	$event->set_dataobj_xml( $new_eprint );
-
-	return $new_eprint;
+	return $self;
 }
 
 # Update all the stuff that needs updating before an eprint
@@ -544,24 +519,28 @@ sub update_triggers
 
 	$self->SUPER::update_triggers();
 
-	my $action = "clear_triples";
-	if( $self->get_value( "eprint_status" ) eq "archive" )
+	if( $self->{non_volatile_change} )
 	{
-		$action = "update_triples";
+		$self->set_value( "lastmod", EPrints::Time::get_iso_timestamp() );
+
+		my $action = "clear_triples";
+		if( $self->value( "eprint_status" ) eq "archive" )
+		{
+			$action = "update_triples";
+		}
+
+		my $user = $self->{session}->current_user;
+		my $userid;
+		$userid = $user->id if defined $user;
+
+		EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
+			unique => "TRUE",
+			pluginid => "Event::RDF",
+			action => $action,
+			params => [$self->internal_uri],
+			userid => $userid,
+		});
 	}
-			
-
-	my $user = $self->{session}->current_user;
-	my $userid;
-	$userid = $user->id if defined $user;
-
-	EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
-		unique => "TRUE",
-		pluginid => "Event::RDF",
-		action => $action,
-		params => [$self->internal_uri],
-		userid => $userid,
-	});
 }
 
 
@@ -938,12 +917,31 @@ sub remove
 
 =item $success = $eprint->commit( [$force] );
 
-Commit any changes that might have been made to the database.
+Commit any changes to the database.
 
-If the item has not be changed then this function does nothing unless
-$force is true.
+Calls L</update_triggers> just before the database is updated.
 
-Calls L</set_eprint_automatic_fields> just before the C<$eprint> is committed.
+The actions this method does are dependent on some object attributes:
+
+	changed - HASH of changed fields (from L<EPrints::DataObj>)
+	non_volatile_change - BOOL (from L<EPrints::DataObj>)
+	under_construction - BOOL
+
+If B<datestamp> is unset and this eprint is in the B<archive> dataset datestamp will always be set which will in turn set B<datestamp> as changed.
+
+If no field values were changed and C<$force> is false returns.
+
+If C<under_construction> is false:
+ - static files updated
+
+If C<non_volatile_change> is true:
+ - B<lastmod> field updated
+ - triples update queued
+
+If C<under_construction> is false and C<non_volatile_change> is true:
+ - revision generated
+
+The goal of these controls is to only trigger expensive processes in response to user actions. Revisions need to be generated when the user changes metadata or uploads new files (see L<EPrints::DataObj::Document/commit).
 
 =cut
 ######################################################################
@@ -962,73 +960,38 @@ sub commit
 	}
 
 	# recalculate issues number
-	my $issues = $self->get_value( "item_issues" ) || [];
-	my $c = 0;
-	foreach my $issue ( @{$issues} )
+	if( $self->{changed}->{item_issues} )
 	{
-		$c+=1 if( $issue->{status} eq "discovered" );
-		$c+=1 if( $issue->{status} eq "reported" );
-	}
-	$self->set_value( "item_issues_count", $c );
-
-	if( !$self->is_set( "datestamp" ) && $self->get_value( "eprint_status" ) eq "archive" )
-	{
-		$self->set_value( 
-			"datestamp" , 
-			EPrints::Time::get_iso_timestamp() );
+		my $issues = $self->value( "item_issues" ) || [];
+		my $c = 0;
+		foreach my $issue ( @{$issues} )
+		{
+			$c+=1 if( $issue->{status} eq "discovered" );
+			$c+=1 if( $issue->{status} eq "reported" );
+		}
+		$self->set_value( "item_issues_count", $c );
 	}
 
-	if( !defined $self->{changed} || scalar( keys %{$self->{changed}} ) == 0 )
+	if( !$self->is_set( "datestamp" ) && $self->value( "eprint_status" ) eq "archive" )
+	{
+		$self->set_value( "datestamp", EPrints::Time::get_iso_timestamp() );
+	}
+
+	if( scalar(keys %{$self->{changed}}) == 0 )
 	{
 		# don't do anything if there isn't anything to do
 		return( 1 ) unless $force;
 	}
 
-	# get_all_documents() is called several times during commit
-	# setting _documents will cause it to be returned instead of searching
-	local $self->{_documents} = [$self->get_all_documents];
-
-	$self->update_triggers();
+	$self->update_triggers(); # might cause a new revision
 
 	if( !$self->under_construction )
 	{
-		$self->set_value( "fileinfo", $self->fileinfo );
-	}
-
-	if( $self->{non_volatile_change} )
-	{
-		my $rev_number = $self->get_value( "rev_number" ) || 0;
-		$rev_number += 1;
-	
-		$self->set_value( "rev_number", $rev_number );
-
-		$self->set_value( 
-			"lastmod" , 
-			EPrints::Time::get_iso_timestamp() );
-
-		my $user = $self->{session}->current_user;
-		my $userid = undef;
-		$userid = $user->get_id if defined $user;
-	
-		my $history_ds = $self->{session}->get_repository->get_dataset( "history" );
-		my $event = $history_ds->create_object( 
-			$self->{session},
-			{
-				_parent=>$self,
-				userid=>$userid,
-				datasetid=>"eprint",
-				objectid=>$self->get_id,
-				revision=>$self->get_value( "rev_number" ),
-				action=>"modify",
-				details=>join('|', sort keys %{$self->{changed}}),
-			}
-		);
-		$event->set_dataobj_xml( $self );
-	}
-
-	unless( $self->under_construction )
-	{
 		$self->remove_static;
+		if( $self->{non_volatile_change} )
+		{
+			$self->save_revision;
+		}
 	}
 
 	# commit changes and clear changed fields
@@ -1040,31 +1003,55 @@ sub commit
 ######################################################################
 =pod
 
-=item $eprint->write_revision
+=item $eprint->save_revision( %opts )
 
-Write out a snapshot of the XML describing the current state of the
-eprint.
+Increase the eprint revision number and save a complete copy of the record into the history (see L<EPrints::DataObj::History>).
+
+Options:
+
+	user - user that caused the action to occur, defaults to current user
+	action - see history.action, defaults to "modify"
+	details - see history.details, defaults to a description of changed fields
 
 =cut
 ######################################################################
 
-sub write_revision
+sub save_revision
 {
-	my( $self ) = @_;
+	my( $self, %opts ) = @_;
 
-	my $tmpfile = File::Temp->new;
-	my $filename = "eprint.xml";
+	my $repo = $self->repository;
 
-	binmode($tmpfile, ":utf8");
+	my $action = exists $opts{action} ? $opts{action} : "modify";
+	my $user = exists $opts{user} ? $opts{user} : $repo->current_user;
+	my $details = exists $opts{details} ? $opts{details} : join('|', sort keys %{$self->{changed}}),
 
-	print $tmpfile '<?xml version="1.0" encoding="utf-8" ?>'."\n";
-	print $tmpfile $self->export( "XML" );
+	my $userid = defined $user ? $user->id : undef;
 
-	seek($tmpfile,0,0);
+	my $rev_number = $self->value( "rev_number" ) || 0;
+	++$rev_number;
+	$self->set_value( "rev_number", $rev_number );
 
-	$self->add_stored_file( $filename, $tmpfile, -s "$tmpfile" );
+	my $event = $repo->dataset( "history" )->create_dataobj( 
+		{
+			_parent=>$self,
+			userid=>$userid,
+			datasetid=>$self->dataset->base_id,
+			objectid=>$self->id,
+			revision=>$rev_number,
+			action=>$action,
+			details=>$details,
+		}
+	);
+	$event->set_dataobj_xml( $self );
+
+	# make sure the revision number is correct in the database
+	$repo->database->update(
+		$self->{dataset},
+		$self->{data},
+		{ rev_number => delete $self->{changed}->{rev_number} }
+	);
 }
-
 
 ######################################################################
 =pod
