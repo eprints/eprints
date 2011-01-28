@@ -1679,23 +1679,17 @@ sub render_history
 
 	my $page = $self->{session}->make_doc_fragment;
 
-	my $ds = $self->{session}->get_repository->get_dataset( "history" );
-	my $searchexp = EPrints::Search->new(
-		session=>$self->{session},
-		dataset=>$ds,
-		custom_order=>"-timestamp/-historyid" );
-	
-	$searchexp->add_field(
-		$ds->get_field( "objectid" ),
-		$self->get_id );
-	$searchexp->add_field(
-		$ds->get_field( "datasetid" ),
-		'eprint' );
-	
-	my $results = $searchexp->perform_search;
-	
-	$results->map( sub {
-		my( $session, $dataset, $item ) = @_;
+	my @filters = (
+		{ meta_fields => [qw( datasetid )], value => 'eprint', },
+		{ meta_fields => [qw( objectid )], value => $self->id, },
+	);
+
+	$self->repository->dataset( "history" )->search(
+		filters => \@filters,
+		custom_order=>"-historyid",
+		limit => 10,
+	)->map(sub {
+		my( undef, undef, $item ) = @_;
 	
 		$item->set_parent( $self );
 		$page->appendChild( $item->render );
