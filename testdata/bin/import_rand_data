@@ -1,4 +1,7 @@
-#!/usr/bin/perl -w -I/opt/eprints3/perl_lib 
+#!/usr/bin/perl -w
+
+use FindBin;
+use lib "$FindBin::Bin/../../perl_lib";
 
 #-d:DProf
 
@@ -52,7 +55,7 @@ GetOptions(
 EPrints::Utils::cmd_version( "import_test_data" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
-#pod2usage( 2 ) if( scalar @ARGV != 1 ); 
+pod2usage( 2 ) if( scalar @ARGV < 1 ); 
 
 my $noise = 1;
 $noise = 0 if( $quiet );
@@ -96,6 +99,42 @@ for(1..100)
 
 my $datapath = $EPrints::SystemSettings::conf->{base_path}."/testdata/data";
 
+our @DOCUMENTS = (
+	{
+		format => "application/pdf",
+		language => "en",
+		security => "public",
+		main => "paper.pdf",
+		files => [ {
+			filename => "paper.pdf",
+			filesize => "12174",
+			url => "file:$datapath/paper.pdf",
+		} ],
+	},
+	{
+		format => "image/jpeg",
+		language => "en",
+		security => "public",
+		main => "picture.jpg",
+		files => [ {
+			filename => "picture.jpg",
+			filesize => "7927",
+			url => "file:$datapath/picture.jpg",
+		} ],
+	},
+	{
+		format => "text/plain",
+		language => "en",
+		security => "public",
+		main => "text.txt",
+		files => [ {
+			filename => "text.txt",
+			filesize => "35",
+			url => "file:$datapath/text.txt",
+		} ],
+	},
+);
+
 my $ds = $session->get_repository->get_dataset( $datasetid );
 
 $session->get_repository->{config}->{enable_file_imports} = 1;
@@ -117,17 +156,7 @@ for(1..$total)
 		date => rand_date(),
 		refereed => "TRUE",
 		publication => rand_publication(),
-		documents => [ {
-			format => "application/pdf",
-			language => "en",
-			security => "public",
-			main => "paper.pdf",
-			files => [ {
-				filename => "paper.pdf",
-				filesize => "12174",
-				url => "file:$datapath/paper.pdf",
-			} ],
-		} ],
+		documents => rand_documents(),
 	};
 	$session->get_database->begin;
 	my $eprint = $ds->create_object( $session, $data );
@@ -217,6 +246,19 @@ sub read_subjects
 sub rand_publication
 {
 	return $PUBLICATIONS[int(rand(@PUBLICATIONS))];
+}
+
+sub rand_documents
+{
+	my @docs = (0..$#DOCUMENTS);
+	for(my $i = @docs; --$i; ) {
+		my $j = int rand ($i+1);
+		next if $i == $j;
+		@docs[$i,$j] = @docs[$j,$i];
+	}
+	@docs = @docs[0..int(rand($#DOCUMENTS))];
+
+	return [@DOCUMENTS[@docs]];
 }
 
 =pod
