@@ -17,11 +17,23 @@ sub validate_config_file
 {
 	my( $self, $data ) = @_;
 
-	my @issues = $self->SUPER::validate_config_file( $data );
+	my $clean_data;
+	if( EPrints::Utils::require_if_exists( 'HTML::Entities' ) )
+	{
+		$clean_data = HTML::Entities::encode_numeric( HTML::Entities::decode( $data ), '^\n\x20-\x25\x27-\x7e\xc0-\xff' );
+	}
+	else
+	{	
+		# can't help!
+		$clean_data = $data;
+	}
+
+	my @issues = $self->SUPER::validate_config_file( $clean_data );
 
 	my $tmpfile = "/tmp/tmp_ep_config_file.$$";
 	open( TMP, ">$tmpfile" );
-	print TMP $data;
+	binmode( TMP, ":utf8" );
+	print TMP $clean_data;
 	close TMP;
 	eval {
 		my $doc = EPrints::XML::parse_xml( 

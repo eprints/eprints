@@ -191,6 +191,7 @@ sub action_save_config
 				filename=>$self->{session}->make_text( $self->{processor}->{configfilepath} ) ) );
 		return;
 	}
+	binmode( DATA, ":utf8" );
 	print DATA $data;
 	close DATA;
 
