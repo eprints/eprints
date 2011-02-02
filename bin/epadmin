@@ -2973,7 +2973,7 @@ sub upgrade_3_2_3_to_3_2_4
 	my $dataset = $repo->dataset( "subject" );
 	my $table = $db->quote_identifier($dataset->get_sql_rindex_table_name);
 	my $Q_key_name = $dataset->key_field->get_sql_name;
-	$db->do( "ALTER IGNORE TABLE $table MODIFY $Q_key_name VARCHAR(128) CHARACTER SET UTF8 COLLATE utf8_bin NOT NULL, MODIFY field VARCHAR(64)CHARACTER SET UTF8 COLLATE utf8_bin NOT NULL , MODIFY word VARCHAR(128) CHARACTER SET UTF8 COLLATE utf8_bin NOT NULL, DEFAULT CHARACTER SET UTF8 COLLATE utf8_bin, ADD PRIMARY KEY(field,word,$Q_key_name)" );
+	$db->do( "ALTER IGNORE TABLE $table MODIFY $Q_key_name VARCHAR(128) CHARACTER SET UTF8 COLLATE utf8_bin NOT NULL, MODIFY field VARCHAR(64)CHARACTER SET UTF8 COLLATE utf8_bin NOT NULL , MODIFY word VARCHAR(128) CHARACTER SET UTF8 COLLATE utf8_bin NOT NULL, DEFAULT CHARACTER SET UTF8 COLLATE utf8_bin, DROP PRIMARY KEY, ADD PRIMARY KEY(field,word,$Q_key_name)" );
 }
 
 sub upgrade_3_2_3_to_3_3_0
