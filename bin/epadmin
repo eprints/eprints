@@ -2036,6 +2036,7 @@ sub upgrade
 			3.2.1
 			3.2.2
 			3.2.3
+			3.2.4
 			3.3.0
 			3.3.1
 		);
@@ -2960,6 +2961,19 @@ sub upgrade_3_2_2_to_3_2_3
 		" CHANGE ".$db->quote_identifier($field->get_sql_name)." ".
 		$field->get_sql_type($repo)
 	);
+}
+
+sub upgrade_3_2_3_to_3_2_4
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	# fixup the subjects index table
+	my $dataset = $repo->dataset( "subject" );
+	my $table = $db->quote_identifier($dataset->get_sql_rindex_table_name);
+	my $Q_key_name = $dataset->key_field->get_sql_name;
+	$db->do( "ALTER IGNORE TABLE $table MODIFY $Q_key_name VARCHAR(128) CHARACTER SET UTF8 COLLATE utf8_bin NOT NULL, MODIFY field VARCHAR(64)CHARACTER SET UTF8 COLLATE utf8_bin NOT NULL , MODIFY word VARCHAR(128) CHARACTER SET UTF8 COLLATE utf8_bin NOT NULL, DEFAULT CHARACTER SET UTF8 COLLATE utf8_bin, ADD PRIMARY KEY(field,word,$Q_key_name)" );
 }
 
 sub upgrade_3_2_3_to_3_3_0
