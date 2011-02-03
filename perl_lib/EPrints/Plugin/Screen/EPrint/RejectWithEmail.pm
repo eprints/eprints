@@ -142,7 +142,7 @@ sub render
 
 		my $eprintid = $eprint->get_id;
 		my $home = $self->{session}->get_repository->get_conf( "userhome" );
-		my $target = $home."?eprintid=$eprintid&screen=EPrint::View::Owner";	
+		my $target = $home."?eprintid=$eprintid&screen=EPrint::View";	
 		my $edit_link = $self->{session}->render_link( $target );
 
 		my $content = $self->{session}->html_phrase(
@@ -218,7 +218,7 @@ sub action_send
 		
 		my $eprintid = $eprint->get_id;
 		my $home = $self->{session}->get_repository->get_conf( "userhome" );
-		my $target = $home."?eprintid=$eprintid&screen=EPrint::View::Owner";	
+		my $target = $home."?eprintid=$eprintid&screen=EPrint::View";	
 		my $edit_link = $self->{session}->render_link( $target );
 
 		$content = $self->{session}->html_phrase(
