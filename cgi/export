@@ -63,10 +63,11 @@ if( !$plugin )
 
 if( $plugin->param( "visible" ) eq "staff" )
 {
-	my $user = $repository->current_user;
-	if( !defined $user )
+	my $user = basic_auth($repository);
+	if (!defined $user) 
 	{
-		$repository->get_request->status( 403 );
+		$repository->terminate();
+		#$repository->get_request->status( 403 );
 		exit;
 	}
 	if( $user->get_type ne "editor" && $user->get_type ne "admin" )
@@ -102,6 +103,10 @@ elsif( $path[0] eq "subject" && scalar @path == 2 )
 {
 	export_subject( $repository, $plugin, \%arguments, $path[1] );
 }
+elsif( $path[0] eq "records" && scalar @path == 1) 
+{
+	export_eprints( $repository, $plugin, \%arguments );
+}
 elsif( $path[1] =~ m/^ext-/ && scalar @path == 2 )
 {
 	export_rdf_resource( $repository, $plugin, \%arguments, $path[0], $path[1] );
@@ -116,6 +121,79 @@ else
 }
 	
 exit;
+
+sub basic_auth 
+{
+	my ( $repository ) = @_;
+	
+	my $user = $repository->current_user;
+	my $request = $repository->get_request;
+	my $response = EPrints::Sword::Utils::authenticate( $repository, $request );
+	if (!defined $user) {
+		$user = $response->{owner};
+	}
+	
+	if ($user) {
+		return $user;
+	}
+	
+	if (!defined $user) 
+	{
+		if( defined $response->{error} )
+		{
+			my $error = $response->{error};
+			if( defined $error->{x_error_code} )
+			{
+				$request->headers_out->{'X-Error-Code'} = $error->{x_error_code};
+			}
+			if( $error->{no_auth} )
+			{
+				$request->status( $error->{status_code} );
+				$request->err_headers_out->{'WWW-Authenticate'} = 'Basic realm="Authenticate"';
+				return undef;
+				#return Apache2::Const::DONE;
+			}
+
+			my $error_doc = EPrints::Sword::Utils::generate_error_document( $repository, 
+					summary => "Authentication error.",
+					href => $error->{error_href}
+					);
+
+			$request->status( $error->{status_code} );
+			$request->headers_out->{'Content-Length'} = length $error_doc;
+			$request->content_type('application/atom+xml');
+			$request->print( $error_doc );
+			$repository->terminate;
+		}
+
+		$repository->get_request->status( 403 );
+		exit;
+	}
+}
+
+
+# Export all eprints owned by logged in user
+sub export_eprints 
+{	
+	my( $repository, $plugin, $args ) = @_;
+
+	my $user = basic_auth($repository);
+	if (!defined $user) 
+	{
+		#$repository->get_request->status( 403 );
+		$repository->terminate();
+		exit;
+	}
+
+	my $list = $user->owned_eprints_list();
+	
+	$plugin->initialise_fh( \*STDOUT );
+	
+	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
+	
+	$plugin->output_list( fh=>\*STDOUT, list=>$list );
+}
+
 
 # Dump ALL eprint triples. Not Subject or repository ones, though.
 sub export_rdf_dump
@@ -260,11 +338,12 @@ sub export_dataobj
 		$dataset = $dataobj->get_dataset;
 	}
 
-	my $user = $repository->current_user;
-	my $request = $repository->get_request;
-	my $response = EPrints::Sword::Utils::authenticate( $repository, $request );
-	if (!defined $user) {
-		$user = $response->{owner};
+	my $user = basic_auth($repository);
+	if (!defined $user) 
+	{
+		$repository->terminate();
+		#$repository->get_request->status( 403 );
+		exit;
 	}
 
 	my $allowed = 0;
@@ -297,33 +376,7 @@ sub export_dataobj
 
 	if( !$allowed )
 	{
-		if( defined $response->{error} )
-		{
-			my $error = $response->{error};
-			if( defined $error->{x_error_code} )
-			{
-				$request->headers_out->{'X-Error-Code'} = $error->{x_error_code};
-			}
-			if( $error->{no_auth} )
-			{
-				$request->status( $error->{status_code} );
-				$request->err_headers_out->{'WWW-Authenticate'} = 'Basic realm="Authenticate"';
-				$repository->terminate;
-				return Apache2::Const::DONE;
-			}
-
-			my $error_doc = EPrints::Sword::Utils::generate_error_document( $repository, 
-					summary => "Authentication error.",
-					href => $error->{error_href}
-					);
-
-			$request->status( $error->{status_code} );
-			$request->headers_out->{'Content-Length'} = length $error_doc;
-			$request->content_type('application/atom+xml');
-			$request->print( $error_doc );
-			$repository->terminate;
-		}
-# 403 Forbidden
+		# 403 Forbidden
 		$repository->get_request->status( 403 );
 		exit;
 	}

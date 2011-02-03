@@ -61,7 +61,7 @@ sub output_list
 	$response->appendChild( $session->render_data_element(
 		4,
 		"id", 
-		"tag:".$host.",".($year+1900).":feed:feed-title" ) );
+		$session->get_repository->get_conf( "frontpage" ) ) );
 
 	if ($list_dataset_id eq "file") {
 		$list->map(sub {
@@ -114,7 +114,6 @@ sub output_list
 	} elsif ($list_dataset_id eq "eprint")  {
 		$list->map(sub {
 				my( undef, undef, $eprint ) = @_;
-
 				my $item = $session->make_element( "entry" );
 
 				$item->appendChild( $session->render_data_element(
@@ -125,7 +124,7 @@ sub output_list
 						2,
 						"link",
 						"",
-						href => $eprint->get_url ) );
+						href => $eprint->uri ) );
 				$item->appendChild( $session->render_data_element(
 						2,
 						"summary",
@@ -139,7 +138,6 @@ sub output_list
 				}
 				else
 				{
-					print STDERR "Invalid date\n";
 					$updated =  EPrints::Time::get_iso_timestamp();
 				}
 
@@ -151,7 +149,7 @@ sub output_list
 				$item->appendChild( $session->render_data_element(
 							4,
 							"id", 
-							"tag:".$host.",".($eprint->get_value( "date" )||"").":item:/".$eprint->get_id ) );
+							$eprint->uri ) );
 
 				if( $eprint->exists_and_set( "creators" ) )
 				{

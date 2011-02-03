@@ -558,7 +558,7 @@ Returns a L<EPrints::List> of all the L<EPrints::DataObj::EPrint>s owned by this
 sub owned_eprints_list
 {
 	my( $self, %opts ) = @_;
-
+		
 	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
 
 	my $searchexp = EPrints::Search->new(
@@ -580,7 +580,7 @@ sub owned_eprints_list
 	}
 	
 	my $list = &$fn( $self->{session}, $self, $dataset );
-	$list = $list->intersect( $searchexp->perform_search );
+	if (!$searchexp->is_blank()) { $list = $list->intersect( $searchexp->perform_search ); }
 
 	return $list;
 }
