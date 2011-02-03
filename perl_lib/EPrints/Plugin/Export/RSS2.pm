@@ -156,13 +156,12 @@ EOX
 			"guid",
 			$eprint->get_url ) );
 		
-		my $citation = $eprint->render_citation;
-		$citation = EPrints::Utils::tree_to_utf8( $citation );
-		utf8::decode( $citation );
 		$item->appendChild( $session->render_data_element(
 			2,
 			"description",
-			$citation ) );
+			EPrints::Utils::tree_to_utf8( $eprint->render_citation ) 
+		) );
+
 		$item->appendChild( $plugin->render_media_content( $eprint ) );
 		
 		&$f( "\n" );
