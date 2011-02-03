@@ -1149,6 +1149,8 @@ sub update_view_list
 
 	push @{$esc_path_values}, $value;
 
+	my $menu_level = scalar @{$esc_path_values};
+	my $filters = get_filters( $session, $view, $esc_path_values );
 	my $path_values = [];
 	foreach my $esc_value (@{$esc_path_values})
 	{
@@ -1158,15 +1160,6 @@ sub update_view_list
 	my $ds = $repository->dataset( $view->{dataset} );
 
 	my $menus_fields = get_fields_from_view( $repository, $view );
-
-	my $menu_level = 0;
-	my $filters;
-	if( defined $esc_path_values )
-	{
-		$filters = get_filters( $session, $view, $esc_path_values );
-		return if !defined $filters;
-		$menu_level = scalar @{$esc_path_values};
-	}
 
 	# if number of fields is 1 then menu_level must be 1
 	# if number of fields is 2 then menu_level must be 2
