@@ -195,7 +195,7 @@ sub update_view_file
 			return "$target$ext";
 		}
 
-		my $file = update_view_menu( $session, $view, $langid );
+		my $file = update_view_menu( $session, $view, $langid, [] );
 		return undef if( !defined $file );
 		return $file.$ext;
 	}
@@ -406,23 +406,13 @@ sub update_view_menu
 		$target .= "index";
 	}
 
-	my $menu_level = 0;
+	my $menu_level = scalar @{$esc_path_values};
+	my $filters = get_filters( $session, $view, $esc_path_values );
 	my $path_values = [];
-	my $filters;
-	if( defined $esc_path_values )
+	foreach my $esc_value (@{$esc_path_values})
 	{
-		$filters = [];
-		$menu_level = scalar @{$esc_path_values};
-
-		$filters = get_filters( $session, $view, $esc_path_values );
-	
-		return if !defined $filters;
-
-		foreach my $esc_value (@{$esc_path_values})
-		{
-			push @{$path_values}, EPrints::Utils::unescape_filename( $esc_value );
-		}
-	}	
+		push @{$path_values}, EPrints::Utils::unescape_filename( $esc_value );
+	}
 
 	my $menus_fields = get_fields_from_view( $repository, $view );
 
