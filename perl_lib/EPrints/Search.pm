@@ -1092,6 +1092,7 @@ sub perform_search
 			encoded => $self->serialise,
 			cache_id => $self->{cache_id}, 
 			searchexp => $self,
+			order => $self->{custom_order},
 		);
 	}
 
@@ -1130,6 +1131,7 @@ sub perform_search
 		ids => $unsorted_matches, 
 		cache_id => (defined $cachemap ? $cachemap->get_id : undef ),
 		searchexp => $self,
+		order => $self->{custom_order},
 	);
 
 	$self->{cache_id} = $results->get_cache_id;
