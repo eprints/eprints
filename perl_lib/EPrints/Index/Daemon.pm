@@ -666,6 +666,14 @@ sub run_index
 			}
 			sleep 5;
 		}
+
+		# re-connect the databases
+		# if we lose connection while sleeping we can lose any connection
+		# settings on an auto-reconnect
+		foreach my $repo (@repos)
+		{
+			$repo->database->connect();
+		}
 	}
 
 	if( $suicidal )
