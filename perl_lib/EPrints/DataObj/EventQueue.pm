@@ -129,7 +129,6 @@ sub create_unique
 	my $results = $dataset->search(
 		filters => [
 			{ meta_fields => [qw( hash )], value => $data->{hash} },
-			{ meta_fields => [qw( status )], value => "waiting inprogress", match => "EQ", merge => "ANY" },
 		],
 		limit => 1);
 	my $count = $results->count;
