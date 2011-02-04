@@ -1642,7 +1642,7 @@ sub queue_changes
 	for(keys %{$self->{changed}})
 	{
 		next if !$self->{dataset}->field( $_ )->property( "text_index" );
-		EPrints::DataObj::EventQueue->create_from_data( $self->{session}, {
+		EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
 				pluginid => "Event::Indexer",
 				action => "index",
 				params => [$self->internal_uri, keys %{$self->{changed}}],
@@ -1711,7 +1711,7 @@ sub queue_fulltext
 	my $userid;
 	$userid = $user->id if defined $user;
 
-	EPrints::DataObj::EventQueue->create_from_data( $self->{session}, {
+	EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
 			pluginid => "Event::Indexer",
 			action => "index",
 			params => [$self->internal_uri, "documents"],

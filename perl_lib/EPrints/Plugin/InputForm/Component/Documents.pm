@@ -299,8 +299,8 @@ sub _doc_update
 			return;
 		}
 		$new_doc->remove_relation( undef, "isVolatileVersionOf" );
-		$new_doc->make_thumbnails();
 		$new_doc->commit();
+		$new_doc->queue_files_modified();
 
 		$processor->{notes}->{upload_plugin}->{to_unroll}->{$new_doc->id} = 1;
 

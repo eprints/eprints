@@ -1296,7 +1296,13 @@ sub queue_files_modified
 {
 	my( $self ) = @_;
 
-	EPrints::DataObj::EventQueue->create_from_data( $self->{session}, {
+	# volatile documents shouldn't be modified after creation
+	if( $self->has_relation( undef, "isVolatileVersionOf" ) )
+	{
+		return;
+	}
+
+	EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
 			pluginid => "Event::FilesModified",
 			action => "files_modified",
 			params => [$self->internal_uri],
