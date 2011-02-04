@@ -238,6 +238,7 @@ sub convert
 		eprintid => $eprint->get_id,
 		_parent => $eprint,
 		format => $type,
+		security => $doc->value( "security" ),
 		formatdesc => $plugin->{name} . ' conversion from ' . $doc->get_type . ' to ' . $type,
 		relation => [{
 			type => EPrints::Utils::make_relation( "isVersionOf" ),
@@ -257,8 +258,6 @@ sub convert
 		$session->log( "Failed to create document object during conversion: check your storage configuration" );
 		return ();
 	}
-
-	$new_doc->set_value( "security", $doc->get_value( "security" ) );
 
 	return wantarray ? ($new_doc) : $new_doc;
 }
