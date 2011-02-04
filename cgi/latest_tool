@@ -48,13 +48,15 @@ if( $n > 0 && $n <= $max )
 {
 	$number_to_get = $n;
 }
+my $indexOffset = $session->param( "indexOffset" );
+$indexOffset = 1 if !$indexOffset || $indexOffset =~ /\D/;
 my $searchexp = new EPrints::Search(
 	allow_blank => 1,
 	session => $session,
 	filters => $filters,
 	custom_order => "-datestamp",
 	dataset => $ds,
-	limit => $number_to_get );
+	limit => ($indexOffset+$number_to_get-1) );
 my $title;
 if( $show_conditions )
 {
@@ -71,6 +73,10 @@ else
 }
 
 my $results = $searchexp->perform_search();
+$results = EPrints::List->new(
+	%$results,
+	ids => $results->get_ids( $indexOffset-1, $number_to_get )
+);
 my $format = $session->param( "output" );
 if( defined $format )
 {
@@ -87,7 +93,27 @@ if( defined $format )
 		$plugin->initialise_fh( \*STDOUT );
 		$session->send_http_header( 
 				"content_type" => $plugin->param( 'mimetype' ) );
-		$results->export( $format, fh => \*STDOUT );
+		# offset links
+		my %offsets;
+		my $base_url = URI->new( $session->current_url( host => 1 ) );
+		$base_url->query_form(
+			output => $format,
+			n => $number_to_get
+		);
+		$offsets{first} = "$base_url";
+		$offsets{next} = "$base_url&indexOffset=".($indexOffset+$number_to_get);
+		if( $indexOffset-$number_to_get >= 1 )
+		{
+			$offsets{previous} = "$base_url&indexOffset=".($indexOffset-$number_to_get);
+		}
+		$results->export( $format,
+			fh => \*STDOUT,
+			link_self => "$base_url",
+			totalResults => $results->{dataset}->count( $session ),
+			itemsPerPage => $number_to_get,
+			startIndex => $indexOffset,
+			offsets => \%offsets,
+		);
 	}
 	else
 	{

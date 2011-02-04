@@ -13,7 +13,11 @@ sub new
 	my $self = $class->SUPER::new( %opts );
 
 	$self->{name} = "Atom";
-	$self->{accept} = [ 'list/eprint', 'list/document', 'list/file' ];
+	$self->{accept} = [qw(
+		list/eprint dataobj/eprint
+		list/document dataobj/document
+		list/file dataobj/file
+	)];
 	$self->{visible} = "all";
 	$self->{suffix} = ".xml";
 	$self->{mimetype} = "application/atom+xml";
@@ -23,167 +27,254 @@ sub new
 
 sub output_list
 {
-	my( $plugin, %opts ) = @_;
+	my( $self, %opts ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $r = '';
+	my $f = defined($opts{fh}) ?
+		sub { print {$opts{fh}} "$_[0]\n" } :
+		sub { $r .= "$_[0]\n" };
+	my $fx = sub { &$f( $xml->to_string( $_[0] ) ); $xml->dispose( $_[0] ); };
 
 	my $list = $opts{list};
-	my $list_dataset = $list->{dataset};
-	my $list_dataset_id = $list_dataset->id;
+	my $dataset = $list->{dataset};
+	my $dataset_id = $dataset->base_id;
 
-	my $session = $plugin->{session};
-
-	my $response = $session->make_element( "feed",
-		"xmlns"=>"http://www.w3.org/2005/Atom" );
+	&$f( '<?xml version="1.0" encoding="utf-8" ?>' );
+	&$f( '<feed xmlns="http://www.w3.org/2005/Atom" xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1">' );
 	
-	my $title = $session->phrase( "archive_name" );
-
-	$title.= ": ".EPrints::Utils::tree_to_utf8( $list->render_description );
-
-	my $host = $session->config( 'host' );
-
-	$response->appendChild( $session->render_data_element(
-		4,
+	# title
+	my $title = $repo->phrase( "archive_name" );
+	$title.= ": ".$xhtml->to_text_dump( $list->render_description );
+	&$fx( $xml->create_data_element(
 		"title",
 		$title ) );
-	
-	$response->appendChild( $session->render_data_element(
-		4,
+
+	# self link
+	if( exists $opts{link_self} )
+	{
+		&$fx( $xml->create_data_element(
+			"link",
+			undef,
+			rel => "self",
+			href => $opts{link_self} ) );
+	}
+
+	# front-page link
+	&$fx( $xml->create_data_element(
 		"link",
-		"",
-		href => $session->get_repository->get_conf( "frontpage" ) ) );
+		undef,
+		rel => "alternate",
+		href => $repo->config( "frontpage" ) ) );
 	
-	$response->appendChild( $session->render_data_element(
-		4,
+	# feed last-update
+	&$fx( $xml->create_data_element(
 		"updated", 
 		EPrints::Time::get_iso_timestamp() ) );
 
-	my( $sec,$min,$hour,$mday,$mon,$year ) = localtime;
+	# feed generator
+	&$fx( $xml->create_data_element(
+		"generator",
+		"EPrints",
+		uri => "http://www.eprints.org/",
+		version => EPrints->human_version ) );
 
-	$response->appendChild( $session->render_data_element(
-		4,
+	# feed logo
+	my $site_logo = $self->param( "logo" ) || $repo->config( "site_logo" );
+	$site_logo = URI->new_abs( $site_logo, $repo->current_url( host => 1, path => 'static' ) );
+	&$fx( $xml->create_data_element(
+		"logo",
+		$site_logo ) );
+
+	# feed id
+	&$fx( $xml->create_data_element(
 		"id", 
-		$session->get_repository->get_conf( "frontpage" ) ) );
+		$repo->config( "frontpage" ) ) );
 
-	if ($list_dataset_id eq "file") {
-		$list->map(sub {
-				my( undef, undef, $file ) = @_;
-				my $doc = $file->parent();
-
-				my $item = $session->make_element( "entry" );
-				
-				$item->appendChild( $session->render_data_element(
-						2,
-						"id",
-						$file->uri ) );
-				$item->appendChild( $session->render_data_element(
-						2,
-						"title",
-						$file->get_value("filename") ) );
-				$item->appendChild( $session->render_data_element(
-						2,
-						"link",
-						"",
-						href => $doc->get_url( $file->get_value( "filename" ) ) ) );
-				$response->appendChild( $item );		
-		});	
-	} elsif ($list_dataset_id eq "document") {
-		$list->map(sub {
-				my( undef, undef, $document ) = @_;
-
-				my $item = $session->make_element( "entry" );
-				
-				$item->appendChild( $session->render_data_element(
-						2,
-						"id",
-						$document->uri ) );
-				$item->appendChild( $session->render_data_element(
-						2,
-						"title",
-						EPrints::Utils::tree_to_utf8( $document->render_description ) ) );
-				$item->appendChild( $session->render_data_element(
-						2,
-						"link",
-						"",
-						href => $document->get_url ) );
-				$item->appendChild( $session->render_data_element(
-						2,
-						"summary",
-						EPrints::Utils::tree_to_utf8( $document->render_citation ) ) );
-
-				$response->appendChild( $item );		
-		});		
-	} elsif ($list_dataset_id eq "eprint")  {
-		$list->map(sub {
-				my( undef, undef, $eprint ) = @_;
-				my $item = $session->make_element( "entry" );
-
-				$item->appendChild( $session->render_data_element(
-						2,
-						"title",
-						EPrints::Utils::tree_to_utf8( $eprint->render_description ) ) );
-				$item->appendChild( $session->render_data_element(
-						2,
-						"link",
-						"",
-						href => $eprint->uri ) );
-				$item->appendChild( $session->render_data_element(
-						2,
-						"summary",
-						EPrints::Utils::tree_to_utf8( $eprint->render_citation ) ) );
-
-				my $updated;
-				my $datestamp = $eprint->get_value( "datestamp" );
-				if( $datestamp =~ /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})$/ )
-				{
-					$updated = "$1T$2Z";
-				}
-				else
-				{
-					$updated =  EPrints::Time::get_iso_timestamp();
-				}
-
-				$item->appendChild( $session->render_data_element(
-							2,
-							"updated",
-							$updated ) );	
-
-				$item->appendChild( $session->render_data_element(
-							4,
-							"id", 
-							$eprint->uri ) );
-
-				if( $eprint->exists_and_set( "creators" ) )
-				{
-					my $names = $eprint->get_value( "creators" );
-					foreach my $name ( @$names )
-					{
-						my $author = $session->make_element( "author" );
-
-						my $name_str = EPrints::Utils::make_name_string( $name->{name}, 1 );
-						$author->appendChild( $session->render_data_element(
-									4,
-									"name",
-									$name_str ) );
-						$item->appendChild( $author );
-					}
-				}
-
-				$response->appendChild( $item );		
-		});	
+	# opensearch
+	local $_;
+	for(qw( totalResults itemsPerPage startIndex ))
+	{
+		if( exists $opts{$_} )
+		{
+			&$fx( $xml->create_data_element(
+				"opensearch:$_",
+				$opts{$_}
+				) );
+		}
+	}
+	if( exists $opts{offsets} )
+	{
+		foreach my $key (sort keys %{$opts{offsets}})
+		{
+			&$fx( $xml->create_data_element(
+				"link",
+				undef,
+				rel => $key,
+				type => $self->param( "mimetype" ),
+				href => $opts{offsets}->{$key} ) );
+		}
 	}
 
-	my $atomfeed = <<END;
-<?xml version="1.0" encoding="utf-8" ?>
-END
-	$atomfeed.= EPrints::XML::to_string( $response );
-	EPrints::XML::dispose( $response );
+	# entries
+	my $fn = "output_$dataset_id";
+	$list->map(sub {
+		my( undef, undef, $dataobj ) = @_;
 
-	if( defined $opts{fh} )
+		&$f( $self->$fn( $dataobj, %opts ) );
+	});
+
+	&$f( '</feed>' );
+
+	return $r;
+}
+
+sub output_dataobj
+{
+	my( $self, $dataobj, %opts ) = @_;
+
+	my $dataset_id = $dataobj->get_dataset_id;
+	my $fn = "output_$dataset_id";
+
+	return $self->$fn( $dataobj, %opts );
+}
+
+sub output_eprint
+{
+	my( $self, $dataobj, %opts ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $entry = $xml->create_element( "entry" );
+
+	$entry->appendChild( $xml->create_data_element(
+			"title",
+			$xhtml->to_text_dump( $dataobj->render_description ) ) );
+	$entry->appendChild( $xml->create_data_element(
+			"link",
+			undef,
+			rel => "self",
+			href => $self->dataobj_export_url( $dataobj ) ) );
+	$entry->appendChild( $xml->create_data_element(
+			"link",
+			undef,
+			rel => "alternate",
+			href => $dataobj->uri ) );
+	$entry->appendChild( $xml->create_data_element(
+			"summary",
+			$xhtml->to_text_dump( $dataobj->render_citation ) ) );
+
+	my $updated;
+	my $datestamp = $dataobj->get_value( "datestamp" );
+	if( $datestamp =~ /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})$/ )
 	{
-		print {$opts{fh}} $atomfeed;
-		return undef;
-	} 
+		$updated = "$1T$2Z";
+	}
+	else
+	{
+		$updated =  EPrints::Time::get_iso_timestamp();
+	}
 
-	return $atomfeed;
+	$entry->appendChild( $xml->create_data_element(
+				"updated",
+				$updated ) );	
+
+	$entry->appendChild( $xml->create_data_element(
+				"id", 
+				$dataobj->uri ) );
+
+	$entry->appendChild( $xml->create_data_element(
+		"category",
+		undef,
+		term => $dataobj->value( "type" ),
+		scheme => $repo->config( "base_url" )."/data/eprint#type"
+	) );
+
+	if( $dataobj->exists_and_set( "creators" ) )
+	{
+		my $names = $dataobj->get_value( "creators" );
+		foreach my $name ( @$names )
+		{
+			my $author = $xml->create_element( "author" );
+
+			my $name_str = EPrints::Utils::make_name_string( $name->{name}, 1 );
+			$author->appendChild( $xml->create_data_element(
+						"name",
+						$name_str ) );
+			$entry->appendChild( $author );
+		}
+	}
+
+	my $r = $xml->to_string( $entry, indent => 1 );
+	$xml->dispose( $entry );
+
+	return $r;
+}
+
+sub output_document
+{
+	my( $self, $dataobj, %opts ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $entry = $xml->create_element( "entry" );
+	
+	$entry->appendChild( $xml->create_data_element(
+			"id",
+			$dataobj->uri ) );
+	$entry->appendChild( $xml->create_data_element(
+			"title",
+			$xhtml->to_text_dump( $dataobj->render_description ) ) );
+	$entry->appendChild( $xml->create_data_element(
+			"link",
+			undef,
+			rel => "alternate",
+			href => $dataobj->get_url ) );
+	$entry->appendChild( $xml->create_data_element(
+			"summary",
+			$xhtml->to_text_dump( $dataobj->render_citation ) ) );
+
+	my $r = $xml->to_string( $entry, indent => 1 );
+	$xml->dispose( $entry );
+
+	return $r;
+}
+
+sub output_file
+{
+	my( $self, $dataobj, %opts ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $doc = $dataobj->parent();
+
+	my $entry = $xml->create_element( "entry" );
+	
+	$entry->appendChild( $xml->create_data_element(
+			"id",
+			$dataobj->uri ) );
+	$entry->appendChild( $xml->create_data_element(
+			"title",
+			$dataobj->get_value("filename") ) );
+	$entry->appendChild( $xml->create_data_element(
+			"link",
+			undef,
+			rel => "alternate",
+			href => $doc->get_url( $dataobj->value( "filename" ) ) ) );
+
+	my $r = $xml->to_string( $entry, indent => 1 );
+	$xml->dispose( $entry );
+
+	return $r;
 }
 
 1;
