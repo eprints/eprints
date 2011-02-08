@@ -96,8 +96,6 @@ sub render
 
 	# if in archive and can request delete then do that here TODO
 
-	my $sb = $self->{session}->get_repository->get_conf( "skip_buffer" ) || 0;
-	
 	my $view = $self->{session}->param( "view" );
 	if( defined $view )
 	{

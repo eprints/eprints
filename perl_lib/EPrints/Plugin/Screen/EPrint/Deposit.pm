@@ -27,7 +27,7 @@ sub new
 		},
 	];
 
-	$self->{actions} = [qw/ deposit move_buffer save /];
+	$self->{actions} = [qw/ deposit move_buffer move_archive save /];
 
 	return $self;
 }
@@ -51,6 +51,8 @@ sub from
 		$self->workflow->set_stage( $jump_to );
 		return;
 	}
+
+	$self->{processor}->{skip_buffer} = $self->{session}->config( "skip_buffer" ) || 0;	
 
 	$self->EPrints::Plugin::Screen::from;
 }
@@ -123,8 +125,16 @@ sub render
 
 		if( scalar @{$problems} && $editor )
 		{
-			$action = "move_buffer";
-			$form->appendChild( $self->html_phrase( "action:move_buffer:description" ) );
+			if( $self->{processor}->{skip_buffer} )
+			{
+				$action = "move_archive";
+				$form->appendChild( $self->html_phrase( "action:move_archive:description" ) );
+			}
+			else
+			{
+				$action = "move_buffer";
+				$form->appendChild( $self->html_phrase( "action:move_buffer:description" ) );
+			}
 		}
 
 		$form->appendChild( $self->{session}->html_phrase( "deposit_agreement_text" ) );
@@ -162,6 +172,13 @@ sub allow_move_buffer
 	return $self->allow( "eprint/move_buffer" );
 }
 
+sub allow_move_archive
+{
+	my( $self ) = @_;
+
+	return $self->allow( "eprint/move_archive" );
+}
+
 sub allow_save
 {
 	my( $self ) = @_;
@@ -194,9 +211,8 @@ sub action_deposit
 	# OK, no problems, submit it to the archive
 
 	$self->{processor}->{eprint}->set_value( "edit_lock_until", 0 );
-	my $sb = $self->{session}->get_repository->get_conf( "skip_buffer" ) || 0;	
 	my $ok = 0;
-	if( $sb )
+	if( $self->{processor}->{skip_buffer} )
 	{
 		$ok = $self->{processor}->{eprint}->move_to_archive;
 	}
@@ -208,7 +224,7 @@ sub action_deposit
 	if( $ok )
 	{
 		$self->{processor}->add_message( "message", $self->html_phrase( "item_deposited" ) );
-		if( !$sb ) 
+		if( !$self->{processor}->{skip_buffer} ) 
 		{
 			$self->{processor}->add_message( "warning", $self->html_phrase( "in_buffer" ) );
 		}
@@ -230,6 +246,19 @@ sub action_move_buffer
 
 	$self->{processor}->{screenid} = "EPrint::Move";
 	$self->{processor}->{redirect} = $self->redirect_to_me_url() . "&_action_move_buffer=1";
+}
+
+sub action_move_archive
+{
+	my( $self ) = @_;
+
+	$self->{processor}->{eprint}->set_value( "edit_lock_until", 0 );
+	$self->{processor}->{eprint}->commit;
+
+	$self->uncache_workflow;
+
+	$self->{processor}->{screenid} = "EPrint::Move";
+	$self->{processor}->{redirect} = $self->redirect_to_me_url() . "&_action_move_archive=1";
 }
 
 sub action_save
