@@ -7,7 +7,7 @@ $c->{check_user_password} = sub {
 
 	... check whether $password is ok
 
-	return $ok ? $username : $password;
+	return $ok ? $username : undef;
 };
 
 =cut
