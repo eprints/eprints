@@ -243,6 +243,41 @@ sub dataobj_export_url
 	return $url;
 }
 
+# if this an output plugin can output results for a list of dataobjs (defined
+# as the contents as the parent object then this routine returns a URL which 
+# will export it. This routine does not check that it's actually possible.
+sub list_export_url
+{
+	my( $plugin, $dataobj, $staff ) = @_;
+
+	my $dataset = $dataobj->get_dataset;
+
+	my $pluginid = $plugin->{id};
+
+	unless( $pluginid =~ m# ^Export::(.*)$ #x )
+	{
+		$plugin->{session}->get_repository->log( "Bad pluginid in dataobj_export_url: ".$pluginid );
+		return undef;
+	}
+	my $format = $1;
+
+	my $url = $plugin->{session}->get_repository->get_conf( "http_cgiurl" );
+	$url .= '/export/' . join('/', map { URI::Escape::uri_escape($_) }
+		$dataobj->get_dataset->base_id,
+		$dataobj->get_id,
+		'contents',
+		$format,
+		join('-',
+			$plugin->{session}->get_id,
+			$dataobj->get_dataset->base_id,
+			$dataobj->get_id,
+			'contents',
+		).$plugin->param( "suffix" )
+	);
+
+	return $url;
+}
+
 =item $plugin->initialise_fh( FH )
 
 Initialise the file handle FH for writing. This may be used to manipulate the Perl IO layers in effect.

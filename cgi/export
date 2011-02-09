@@ -115,6 +115,10 @@ elsif( scalar @path == 2 )
 {
 	export_dataobj( $repository, $plugin, \%arguments, @path[0,1] );
 }
+elsif( $path[2] eq "contents" ) 
+{
+	export_contents( $repository, $plugin, \%arguments, @path[0,1] );
+}
 else
 {
 	$repository->not_found;
@@ -386,6 +390,102 @@ sub export_dataobj
 	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
 	$plugin->initialise_fh( \*STDOUT );
 	print $plugin->output_dataobj( $dataobj, %$args );
+}
+
+sub export_contents
+{
+	my( $repository, $plugin, $args, $datasetid, $id ) = @_;
+
+	my $parent_dataset = $repository->dataset( $datasetid );
+	my $dataset = undef;
+
+	if ($parent_dataset->base_id eq "eprint") {
+		$dataset = $repository->dataset( "document" );
+	} 
+#TODO, support file exports from documents.
+#elsif ($parent_dataset->base_id eq "document") {
+#		$dataset = $repository->dataset( "file" );
+#	}
+
+	$repository->not_found( "No such dataset" ), exit if !defined $dataset;
+
+	if( !$plugin->can_accept( "list/".$dataset->base_id ) )
+	{
+		$repository->not_found;
+		exit;
+	}
+
+	my $parent_dataobj = $parent_dataset->dataobj( $id );
+	$repository->not_found( "No such dataobj" ), exit if !defined $parent_dataobj;
+
+	if( $parent_dataobj->isa( "EPrints::DataObj::EPrint" ) )
+	{
+		$parent_dataset = $parent_dataobj->get_dataset;
+	}
+	
+	my @items;
+	if ($dataset->base_id eq "document") {
+		@items = $parent_dataobj->get_all_documents();
+	}
+
+	if (!defined @items) {
+		$repository->not_found;
+		exit;
+	}
+
+	my $list = EPrints::List->new(
+		session => $repository,
+		dataset => $repository->dataset( "document" ),
+		ids => [map { $_->id } @items] );	
+
+	my $user = basic_auth($repository);
+	if (!defined $user) 
+	{
+		$repository->terminate();
+		#$repository->get_request->status( 403 );
+		exit;
+	}
+
+	my $allowed = 0;
+
+	my $priv = "export";
+	if( $parent_dataset->id ne $parent_dataset->base_id )
+	{
+		$priv = join('/', $parent_dataset->base_id, $parent_dataset->id, $priv );
+	}
+	else
+	{
+		$priv = join('/', $parent_dataset->base_id, $priv );
+	}
+
+	if( $repository->allow_anybody( $priv ) )
+	{
+		$allowed = 1;
+	}
+	elsif( defined $user )
+	{
+		if(
+			$user->allow( "$priv:owner", $parent_dataobj ) ||
+			$user->allow( "$priv:editor", $parent_dataobj ) ||
+			$user->allow( $priv )
+		  )
+		{
+			$allowed = 1;
+		}
+	}
+
+	if( !$allowed )
+	{
+		# 403 Forbidden
+		$repository->get_request->status( 403 );
+		exit;
+	}
+
+	$repository->not_found( "Can't export" ), exit if !$plugin->can_accept( "list/".$dataset->base_id );
+
+	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
+	$plugin->initialise_fh( \*STDOUT );
+	print $plugin->output_list( list=>$list, %$args );
 }
 
 sub show_eprint_export_options

@@ -163,6 +163,11 @@ sub output_eprint
 	$entry->appendChild( $xml->create_data_element(
 			"link",
 			undef,
+			rel => "contents",
+			href => $dataobj->uri . "/contents" ) );
+	$entry->appendChild( $xml->create_data_element(
+			"link",
+			undef,
 			rel => "alternate",
 			href => $dataobj->uri ) );
 	$entry->appendChild( $xml->create_data_element(

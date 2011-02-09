@@ -384,6 +384,15 @@ sub handler
 	if( $uri =~ m! ^$urlpath/id/([^/]+)/(.*)$ !x )
 	{
 		my( $datasetid, $id ) = ( $1, $2 );
+		
+		my $export_contents = 0;
+		my $dataobj_type = "dataobj";
+		if (length($id) > length ("contents")) {
+			if (substr($id,-8) eq "contents") {
+				$id = substr($id,0,-9);
+				$export_contents = 1;
+			}
+		}
 
 		my $dataset = $repository->get_dataset( $datasetid );
 		my $item;
@@ -443,7 +452,7 @@ sub handler
 			plugins => [$repository->get_plugins(
 				type => "Export",
 				is_visible => "all",
-				can_accept => "dataobj/".$dataset->base_id )],
+				can_accept => "$dataobj_type/".$dataset->base_id )],
 		);
 		
 		if( $match eq "DEFAULT_SUMMARY_PAGE" )
@@ -454,13 +463,16 @@ sub handler
 			}
 			return redir_see_other( $r, $url );
 		}
-		else 
+		elsif ($export_contents) {
+			$url = $match->list_export_url( $item );
+		} 
+		else
 		{
-			my $url = $match->dataobj_export_url( $item );	
-			if( defined $url )
-			{
-				return redir_see_other( $r, $url );
-			}
+			$url = $match->dataobj_export_url( $item );	
+		}
+		if( defined $url )
+		{
+			return redir_see_other( $r, $url );
 		}
 
 		return NOT_FOUND;
