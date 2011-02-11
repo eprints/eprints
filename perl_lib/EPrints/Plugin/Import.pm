@@ -242,7 +242,7 @@ sub epdata_to_dataobj
 	$plugin->handler->parsed( $epdata );
 	return if( $plugin->{parse_only} );
 
-	if( $dataset->id eq "eprint" && !defined $epdata->{eprint_status} )
+	if( $dataset->id eq "eprint" && !defined $epdata->{eprint_status} && !defined $item )
 	{
 		$plugin->warning( "Importing an EPrint record into 'eprint' dataset without eprint_status being set. Using 'buffer' as default." );
 		$epdata->{eprint_status} = "buffer";
