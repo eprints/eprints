@@ -211,6 +211,11 @@ sub handler
 		}
 	}
 
+	my $content_type;
+	if (defined $headers->{"Content-Type"}) {
+		$content_type = $headers->{"Content-Type"};
+	}
+
 	my $file = $tmp_dir.'/'. $filename;
 
         if (open( TMP, '>'.$file ))
@@ -264,8 +269,11 @@ sub handler
 			# build a blank epdata for the doc ?
 	
 			# The rest is as POST
-
-			my $format = $repository->call( 'guess_doc_type', $repository, $filename );			
+			my $format = $content_type;
+			if (!defined $format) 
+			{
+				$format = $repository->call( 'guess_doc_type', $repository, $filename );		
+			}
 			
 			my( @plugins ) = $repository->get_plugins(
 					type => "Import",
@@ -304,6 +312,56 @@ sub handler
 					dataobj => $item,
 					flags => $flags,
 				);
+			}
+		}
+		if ($dataset->base_id eq "eprint") {
+			my $format = $content_type;
+			if (!defined $format) 
+			{
+				$format = $repository->call( 'guess_doc_type', $repository, $filename );		
+			}
+
+			my $handler = EPrints::CRUD::PutHandler::Handler->new();
+			
+			my( @plugins ) = $repository->get_plugins(
+{
+	parse_only => 1,
+	Handler => $handler
+},
+				type => "Import",
+				can_produce => "dataobj/eprint",
+				can_accept => $format,
+			);
+			
+			my $plugin = $plugins[0];
+			if (!defined $plugin) {
+				$eprint->remove_lock( $user );
+				$request->status( 415 );	
+				$repository->terminate;
+				return HTTP_UNSUPPORTED_MEDIA_TYPE;
+			} 
+			
+			$plugin->input_fh(
+				fh => $fh,
+				filename => $filename,
+				dataobj => $item,
+				dataset => $dataset,
+			);
+			my $epdata = $handler->{epdata};
+
+			if( defined( $item ) )
+			{	
+				foreach my $fieldname (keys %$epdata)
+				{
+					if( $dataset->has_field( $fieldname ) )
+					{
+						# Can't currently set_value on subobjects
+						my $field = $dataset->get_field( $fieldname );
+						next if $field->is_type( "subobject" );
+						$item->set_value( $fieldname, $epdata->{$fieldname} );
+					}
+				}
+				$item->commit();
 			}
 		}
 		close($fh);
@@ -379,6 +437,45 @@ sub _trim($)
 	$string =~ s/^"//;
 	$string =~ s/"$//;
 	return $string;
+}
+
+package EPrints::CRUD::PutHandler::Handler;
+
+sub new
+{
+	my( $class, %self ) = @_;
+
+	$self{wrote} = 0;
+	$self{parsed} = 0;
+
+	bless \%self, $class;
+}
+
+sub message
+{
+	my( $self, $type, $msg ) = @_;
+
+	unless( $self->{quiet} )
+	{
+		$self->{processor}->add_message( $type, $msg );
+	}
+}
+
+sub parsed
+{
+	my( $self, $epdata ) = @_;
+
+	$self->{epdata} = $epdata;
+
+	$self->{parsed}++;
+}
+
+sub object
+{
+	my( $self, $dataset, $dataobj ) = @_;
+
+	$self->{wrote}++;
+
 }
 
 1;
