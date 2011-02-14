@@ -381,18 +381,10 @@ sub handler
 		return redir_see_other( $r, $url );
 	}
 
-	if( $uri =~ m! ^$urlpath/id/([^/]+)/(.*)$ !x )
+	if( $uri =~ s! ^$urlpath/id/([^/]+)/([^/]+)(?:/([^/]+))? !!x )
 	{
-		my( $datasetid, $id ) = ( $1, $2 );
-		
-		my $export_contents = 0;
-		my $dataobj_type = "dataobj";
-		if (length($id) > length ("contents")) {
-			if (substr($id,-8) eq "contents") {
-				$id = substr($id,0,-9);
-				$export_contents = 1;
-			}
-		}
+		my( $datasetid, $id, $part ) = ( $1, $2, $3 );
+		$part = '' if !defined $part;
 
 		my $dataset = $repository->get_dataset( $datasetid );
 		my $item;
@@ -443,7 +435,34 @@ sub handler
 			$dataset = $item->get_dataset;
 		}
 
-		my $url = $item->get_url;
+		my $accept_type = "dataobj/".$dataset->base_id;
+
+		my $url;
+
+		if( $part eq "contents" )
+		{
+			if( $item->isa( "EPrints::DataObj::EPrint" ) )
+			{
+				$part = "documents";
+			}
+			elsif( $item->isa( "EPrint::DataObj::Document" ) )
+			{
+				$part = "files";
+			}
+		}
+
+		if( $part )
+		{
+			my $field = $dataset->field( $part );
+			return NOT_FOUND if !defined $field;
+			return NOT_FOUND if !$field->isa( "EPrints::MetaField::Subobject" );
+			$accept_type = "list/".$field->property( "datasetid" );
+			$r->pnotes->{field} = $field;
+		}
+		else
+		{
+			$url = $item->get_url;
+		}
 
 		my $match = content_negotiate_best_plugin( 
 			$repository, 
@@ -452,7 +471,7 @@ sub handler
 			plugins => [$repository->get_plugins(
 				type => "Export",
 				is_visible => "all",
-				can_accept => "$dataobj_type/".$dataset->base_id )],
+				can_accept => $accept_type )],
 		);
 		
 		if( $match eq "DEFAULT_SUMMARY_PAGE" )
@@ -463,12 +482,25 @@ sub handler
 			}
 			return redir_see_other( $r, $url );
 		}
-		elsif ($export_contents) {
-			$url = $match->list_export_url( $item );
-		} 
 		else
 		{
-			$url = $match->dataobj_export_url( $item );	
+			$r->pnotes->{dataset} = $dataset;
+			$r->pnotes->{dataobj} = $item;
+			$r->pnotes->{plugin} = $match;
+
+			$r->handler('perl-script');
+
+			# no real file to map to
+			$r->set_handlers(PerlMapToStorageHandler => sub { OK } );
+
+			$r->push_handlers(PerlAccessHandler => [
+				\&EPrints::Apache::Export::authen,
+				\&EPrints::Apache::Export::authz
+				] );
+
+		 	$r->set_handlers(PerlResponseHandler => \&EPrints::Apache::Export::handler );
+
+			return OK;
 		}
 		if( defined $url )
 		{

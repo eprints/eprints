@@ -13,7 +13,7 @@
 ######################################################################
 
 use EPrints;
-use Data::Dumper;
+use EPrints::Const qw( :http );
 
 use Digest::MD5;
 use EPrints::Sword::Utils;
@@ -63,16 +63,20 @@ if( !$plugin )
 
 if( $plugin->param( "visible" ) eq "staff" )
 {
-	my $user = basic_auth($repository);
-	if (!defined $user) 
+	my $user = $repository->current_user;
+	if( !defined $user )
 	{
-		$repository->terminate();
-		#$repository->get_request->status( 403 );
-		exit;
+		my $rc = EPrints::Apache::Auth::authen( $repository->get_request );
+		if( $rc != OK )
+		{
+			$repository->get_request->status( $rc );
+			exit;
+		}
+		$user = $repository->current_user;
 	}
 	if( $user->get_type ne "editor" && $user->get_type ne "admin" )
 	{
-		$repository->get_request->status( 403 );
+		$repository->get_request->status( HTTP_FORBIDDEN );
 		exit;
 	}
 }
@@ -115,10 +119,6 @@ elsif( scalar @path == 2 )
 {
 	export_dataobj( $repository, $plugin, \%arguments, @path[0,1] );
 }
-elsif( $path[2] eq "contents" ) 
-{
-	export_contents( $repository, $plugin, \%arguments, @path[0,1] );
-}
 else
 {
 	$repository->not_found;
@@ -126,67 +126,20 @@ else
 	
 exit;
 
-sub basic_auth 
-{
-	my ( $repository ) = @_;
-	
-	my $user = $repository->current_user;
-	my $request = $repository->get_request;
-	my $response = EPrints::Sword::Utils::authenticate( $repository, $request );
-	if (!defined $user) {
-		$user = $response->{owner};
-	}
-	
-	if ($user) {
-		return $user;
-	}
-	
-	if (!defined $user) 
-	{
-		if( defined $response->{error} )
-		{
-			my $error = $response->{error};
-			if( defined $error->{x_error_code} )
-			{
-				$request->headers_out->{'X-Error-Code'} = $error->{x_error_code};
-			}
-			if( $error->{no_auth} )
-			{
-				$request->status( $error->{status_code} );
-				$request->err_headers_out->{'WWW-Authenticate'} = 'Basic realm="Authenticate"';
-				return undef;
-				#return Apache2::Const::DONE;
-			}
-
-			my $error_doc = EPrints::Sword::Utils::generate_error_document( $repository, 
-					summary => "Authentication error.",
-					href => $error->{error_href}
-					);
-
-			$request->status( $error->{status_code} );
-			$request->headers_out->{'Content-Length'} = length $error_doc;
-			$request->content_type('application/atom+xml');
-			$request->print( $error_doc );
-			$repository->terminate;
-		}
-
-		$repository->get_request->status( 403 );
-		exit;
-	}
-}
-
-
 # Export all eprints owned by logged in user
 sub export_eprints 
 {	
 	my( $repository, $plugin, $args ) = @_;
 
-	my $user = basic_auth($repository);
-	if (!defined $user) 
+	my $user = $repository->current_user;
+	if( !defined $user )
 	{
-		#$repository->get_request->status( 403 );
-		$repository->terminate();
-		exit;
+		my $rc = EPrints::Apache::Auth::authen( $repository->get_request );
+		if( $rc != OK )
+		{
+			$repository->get_request->status( $rc );
+			exit;
+		}
 	}
 
 	my $list = $user->owned_eprints_list(order=>"datestamp");
@@ -325,6 +278,8 @@ sub export_dataobj
 {
 	my( $repository, $plugin, $args, $datasetid, $id ) = @_;
 
+	my $r = $repository->get_request;
+
 	my $dataset = $repository->dataset( $datasetid );
 	$repository->not_found( "No such dataset" ), exit if !defined $dataset;
 
@@ -342,165 +297,19 @@ sub export_dataobj
 		$dataset = $dataobj->get_dataset;
 	}
 
-	my $allowed = 0;
+	$r->pnotes->{dataset} = $dataset;
+	$r->pnotes->{dataobj} = $dataobj;
+	$r->pnotes->{plugin} = $plugin;
 
-	my $priv = "export";
-	if( $dataset->id ne $dataset->base_id )
-	{
-		$priv = join('/', $dataset->base_id, $dataset->id, $priv );
-	}
-	else
-	{
-		$priv = join('/', $dataset->base_id, $priv );
-	}
+	my $rc = EPrints::Apache::Export::authen( $r );
+	$r->status( $rc );
+	return if $rc != EPrints::Const::OK;
 
-	my $user = basic_auth($repository);
-	if( $repository->allow_anybody( $priv ) )
-	{
-		$allowed = 1;
-	}
-	else
-	{
-		exit if !defined $user;
-		if(
-			$user->allow( "$priv:owner", $dataobj ) ||
-			$user->allow( "$priv:editor", $dataobj ) ||
-			$user->allow( $priv )
-		  )
-		{
-			$allowed = 1;
-		}
-	}
-	if( $dataobj->isa( "EPrints::DataObj::Document" ) )
-	{
-		my $r = $repository->get_request();
-		my $result = $repository->call( "can_request_view_document", $dataobj, $r );
-		if( $result eq "ALLOW" )
-		{
-			$allowed = 1;
-		}
-		elsif( $result eq "USER" && defined $user && $dataobj->user_can_view( $user ) )
-		{
-			$allowed = 1;
-		}
+	my $rc = EPrints::Apache::Export::authz( $r );
+	$r->status( $rc );
+	return if $rc != EPrints::Const::OK;
 
-	}
-	if( !$allowed )
-	{
-		# 403 Forbidden
-		$repository->get_request->status( 403 );
-		exit;
-	}
-
-	$repository->not_found( "Can't export" ), exit if !$plugin->can_accept( "dataobj/".$dataset->base_id );
-
-	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
-	$plugin->initialise_fh( \*STDOUT );
-	if( my $field = $dataset->get_datestamp_field() )
-	{
-		my $r = $repository->get_request;
-		$r->headers_out->{'Last-Modified'} = Apache2::Util::ht_time(
-			$r->pool,
-			EPrints::Time::datestring_to_timet( undef, $field->get_value( $dataobj ) )
-		);
-	}
-	print $plugin->output_dataobj( $dataobj, %$args );
-}
-
-sub export_contents
-{
-	my( $repository, $plugin, $args, $datasetid, $id ) = @_;
-
-	my $parent_dataset = $repository->dataset( $datasetid );
-	my $dataset = undef;
-
-	if ($parent_dataset->base_id eq "eprint") {
-		$dataset = $repository->dataset( "document" );
-	} 
-#TODO, support file exports from documents.
-#elsif ($parent_dataset->base_id eq "document") {
-#		$dataset = $repository->dataset( "file" );
-#	}
-
-	$repository->not_found( "No such dataset" ), exit if !defined $dataset;
-
-	if( !$plugin->can_accept( "list/".$dataset->base_id ) )
-	{
-		$repository->not_found;
-		exit;
-	}
-
-	my $parent_dataobj = $parent_dataset->dataobj( $id );
-	$repository->not_found( "No such dataobj" ), exit if !defined $parent_dataobj;
-
-	if( $parent_dataobj->isa( "EPrints::DataObj::EPrint" ) )
-	{
-		$parent_dataset = $parent_dataobj->get_dataset;
-	}
-	
-	my @items;
-	if ($dataset->base_id eq "document") {
-		@items = $parent_dataobj->get_all_documents();
-	}
-
-	if (!defined @items) {
-		$repository->not_found;
-		exit;
-	}
-
-	my $list = EPrints::List->new(
-		session => $repository,
-		dataset => $repository->dataset( "document" ),
-		ids => [map { $_->id } @items] );	
-
-	my $user = basic_auth($repository);
-	if (!defined $user) 
-	{
-		$repository->terminate();
-		#$repository->get_request->status( 403 );
-		exit;
-	}
-
-	my $allowed = 0;
-
-	my $priv = "export";
-	if( $parent_dataset->id ne $parent_dataset->base_id )
-	{
-		$priv = join('/', $parent_dataset->base_id, $parent_dataset->id, $priv );
-	}
-	else
-	{
-		$priv = join('/', $parent_dataset->base_id, $priv );
-	}
-
-	if( $repository->allow_anybody( $priv ) )
-	{
-		$allowed = 1;
-	}
-	elsif( defined $user )
-	{
-		if(
-			$user->allow( "$priv:owner", $parent_dataobj ) ||
-			$user->allow( "$priv:editor", $parent_dataobj ) ||
-			$user->allow( $priv )
-		  )
-		{
-			$allowed = 1;
-		}
-	}
-
-	if( !$allowed )
-	{
-		# 403 Forbidden
-		$repository->get_request->status( 403 );
-		exit;
-	}
-
-	$repository->not_found( "Can't export" ), exit if !$plugin->can_accept( "list/".$dataset->base_id );
-
-	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
-	$plugin->initialise_fh( \*STDOUT );
-	print $plugin->output_list( list=>$list, %$args );
+	return EPrints::Apache::Export::handler( $r );
 }
 
 sub show_eprint_export_options

@@ -172,6 +172,7 @@ use EPrints::Apache::AnApache;
 use EPrints::Apache::LogHandler;
 use EPrints::Apache::Login;
 use EPrints::Apache::Auth;
+use EPrints::Apache::Export;
 use EPrints::Apache::Rewrite;
 use EPrints::Apache::VLit;
 use EPrints::Apache::Template;
