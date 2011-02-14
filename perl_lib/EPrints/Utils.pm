@@ -1329,13 +1329,27 @@ sub mtime
 
 # return a quoted string safe to go in javascript
 
+my %JSON_ESC = (
+	"\b" => "\\b",
+	"\f" => "\\f",
+	"\n" => "\\n",
+	"\r" => "\\r",
+	"\t" => "\\t",
+	"\"" => "\\\"",
+	"\'" => "\\'",
+	"\\" => "\\\\",
+	"\/" => "\\\/",
+);
 sub js_string
 {
 	my( $string ) = @_;
 
-	$string =~ s/([^a-z0-9])/sprintf( "%%%02x", ord( $1 ) )/egi;
-	
-	return "unescape('$string')";
+	return 'null' if !defined $string || $string eq '';
+
+	$string =~ s/([\x2f\x22\x5c\n\r\t\f\b])/$JSON_ESC{$1}/g;
+	$string =~ s/([\x00-\x08\x0b\x0e-\x1f])/'\\u00' . unpack('H2', $1)/eg;
+
+	return "\"$string\"";
 }
 
 # EPrints::Utils::process_parameters( $params, $defaults );
