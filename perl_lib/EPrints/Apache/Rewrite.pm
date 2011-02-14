@@ -394,26 +394,6 @@ sub handler
 		}
 		return NOT_FOUND if !defined $item;
 
-		# Subject URI's redirect to the top of that particular subject tree
-		# rather than the node in the tree. (the ancestor with "ROOT" as a parent).
-		if( $dataset->id eq "subject" )
-		{
-			ANCESTORS: foreach my $anc_subject_id ( @{$item->get_value( "ancestors" )} )
-			{
-				my $anc_subject = $dataset->dataobj($anc_subject_id);
-				next ANCESTORS if( !$anc_subject );
-				next ANCESTORS if( !$anc_subject->is_set( "parents" ) );
-				foreach my $anc_subject_parent_id ( @{$anc_subject->get_value( "parents" )} )
-				{
-					if( $anc_subject_parent_id eq "ROOT" )
-					{
-						$item = $anc_subject;
-						last ANCESTORS;
-					}
-				}
-			}
-		}
-
 		#Section moved down to cover only requests for the summary page.
 		#if( $item->dataset->confid eq "eprint" && $item->dataset->id ne "archive" )
 		#{

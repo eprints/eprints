@@ -5700,6 +5700,7 @@ my $PUBLIC_PRIVS =
 {
 	"eprint_search" => 1,
 	"eprint/archive/export" => 1,
+	"subject/export" => 1,
 };
 
 sub allow_anybody
