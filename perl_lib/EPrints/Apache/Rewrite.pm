@@ -394,20 +394,10 @@ sub handler
 		}
 		return NOT_FOUND if !defined $item;
 
-		#Section moved down to cover only requests for the summary page.
-		#if( $item->dataset->confid eq "eprint" && $item->dataset->id ne "archive" )
-		#{
-		#	return redir_see_other( $r, $item->get_control_url );
-		#}
-
 		# content negotiation. Only worries about type, not charset
 		# or language etc. at this stage.
-		#
 		my $accept = EPrints::Apache::AnApache::header_in( $r, "Accept" );
 		$accept = "" if !defined $accept;
-
-		#FORCE DEBUG
-		#$accept = "text/xml";
 
 		# get the real eprint dataset
 		if( $dataset->base_id eq "eprint" )
@@ -481,10 +471,6 @@ sub handler
 		 	$r->set_handlers(PerlResponseHandler => \&EPrints::Apache::Export::handler );
 
 			return OK;
-		}
-		if( defined $url )
-		{
-			return redir_see_other( $r, $url );
 		}
 
 		return NOT_FOUND;
