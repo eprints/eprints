@@ -189,7 +189,7 @@ sub export_eprints
 		exit;
 	}
 
-	my $list = $user->owned_eprints_list();
+	my $list = $user->owned_eprints_list(order=>"datestamp");
 	
 	$plugin->initialise_fh( \*STDOUT );
 	
@@ -341,7 +341,6 @@ sub export_dataobj
 	{
 		$dataset = $dataobj->get_dataset;
 	}
-
 	my $user = basic_auth($repository);
 	if (!defined $user) 
 	{
@@ -377,7 +376,20 @@ sub export_dataobj
 			$allowed = 1;
 		}
 	}
+	if( $dataobj->isa( "EPrints::DataObj::Document" ) )
+	{
+		my $r = $repository->get_request();
+		my $result = $repository->call( "can_request_view_document", $dataobj, $r );
+		if( $result eq "ALLOW" )
+		{
+			$allowed = 1;
+		}
+		elsif( $result eq "USER" && defined $user && $dataobj->user_can_view( $user ) )
+		{
+			$allowed = 1;
+		}
 
+	}
 	if( !$allowed )
 	{
 		# 403 Forbidden
