@@ -139,7 +139,19 @@ sub output_dataobj
 	my $dataset_id = $dataobj->get_dataset_id;
 	my $fn = "output_$dataset_id";
 
-	return $self->$fn( $dataobj, %opts );
+	$opts{single} = 1;
+
+	my $return = '<?xml version="1.0" encoding="utf-8" ?>' . "\n" . $self->$fn( $dataobj, %opts );
+	
+	my $r = $self->{repository}->get_request;
+	my $ctx = Digest::MD5->new;
+	$ctx->add($return);
+	my $digest = $ctx->hexdigest;
+	$r->headers_out->{'ETag'} = $digest;
+	$r->headers_out->{'Content-Length'} = length($return);
+
+	return $return;
+	#return $self->$fn( $dataobj, %opts );
 }
 
 sub output_eprint
@@ -150,7 +162,12 @@ sub output_eprint
 	my $xml = $repo->xml;
 	my $xhtml = $repo->xhtml;
 
-	my $entry = $xml->create_element( "entry" );
+	my $entry;
+	if ($opts{single}) {
+		$entry = $xml->create_element( "entry", xmlns=> "http://www.w3.org/2005/Atom" );
+	} else {
+		$entry = $xml->create_element( "entry" );
+	}
 
 	$entry->appendChild( $xml->create_data_element(
 			"title",
@@ -175,7 +192,7 @@ sub output_eprint
 			$xhtml->to_text_dump( $dataobj->render_citation ) ) );
 
 	my $updated;
-	my $datestamp = $dataobj->get_value( "datestamp" );
+	my $datestamp = $dataobj->get_value( "lastmod" );
 	if( $datestamp =~ /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})$/ )
 	{
 		$updated = "$1T$2Z";
