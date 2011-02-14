@@ -139,7 +139,8 @@ sub export_eprints
 		{
 			$repository->get_request->status( $rc );
 			exit;
-		}
+		} 
+		$user = $repository->current_user;
 	}
 
 	my $list = $user->owned_eprints_list(order=>"datestamp");
