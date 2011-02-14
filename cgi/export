@@ -341,13 +341,6 @@ sub export_dataobj
 	{
 		$dataset = $dataobj->get_dataset;
 	}
-	my $user = basic_auth($repository);
-	if (!defined $user) 
-	{
-		$repository->terminate();
-		#$repository->get_request->status( 403 );
-		exit;
-	}
 
 	my $allowed = 0;
 
@@ -361,12 +354,14 @@ sub export_dataobj
 		$priv = join('/', $dataset->base_id, $priv );
 	}
 
+	my $user = basic_auth($repository);
 	if( $repository->allow_anybody( $priv ) )
 	{
 		$allowed = 1;
 	}
-	elsif( defined $user )
+	else
 	{
+		exit if !defined $user;
 		if(
 			$user->allow( "$priv:owner", $dataobj ) ||
 			$user->allow( "$priv:editor", $dataobj ) ||
@@ -401,6 +396,14 @@ sub export_dataobj
 
 	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
 	$plugin->initialise_fh( \*STDOUT );
+	if( my $field = $dataset->get_datestamp_field() )
+	{
+		my $r = $repository->get_request;
+		$r->headers_out->{'Last-Modified'} = Apache2::Util::ht_time(
+			$r->pool,
+			EPrints::Time::datestring_to_timet( undef, $field->get_value( $dataobj ) )
+		);
+	}
 	print $plugin->output_dataobj( $dataobj, %$args );
 }
 
