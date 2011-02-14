@@ -634,7 +634,9 @@ sub create_xml
 
 	my $edit_link = $session->make_element( "atom:link", 
 					"rel" => "edit",
-					"href" => EPrints::Sword::Utils::get_atom_url( $session, $eprint ) );
+					"href" => $eprint->uri 
+					);
+#					"href" => EPrints::Sword::Utils::get_atom_url( $session, $eprint ) );
 
 	$entry->appendChild( $edit_link );
 
