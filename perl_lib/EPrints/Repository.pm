@@ -574,7 +574,7 @@ sub current_user
 		{
 			$self->{current_user} = $self->get_repository->call( 'get_current_user', $self );
 		}
-		elsif( $self->get_archive->get_conf( "cookie_auth" ) ) 
+		elsif( !EPrints::Apache::Auth::_use_auth_basic( $self->get_request, $self ) )
 		{
 			$self->{current_user} = $self->_current_user_auth_cookie;
 		}
