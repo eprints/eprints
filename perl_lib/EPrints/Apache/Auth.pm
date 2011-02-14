@@ -232,6 +232,11 @@ sub auth_basic
 {
 	my( $r, $repository, $realm ) = @_;
 
+	if( !EPrints::Utils::is_set( $realm ) )
+	{
+		$realm = $repository->phrase( "archive_name" );
+	}
+
 	my $authorization = $r->headers_in->{'Authorization'};
 	$authorization = '' if !defined $authorization;
 
