@@ -99,6 +99,9 @@ sub _use_auth_basic
 		}
 	}
 	# if the user agent doesn't support text/html then use Basic Auth
+	# NOTE: browsers requesting objects in <img src> will also not specify
+	# text/html, so we always look for a cookie-authentication before checking
+	# basic auth
 	if( !$rc )
 	{
 		my $accept = $r->headers_in->{'Accept'} || '';
@@ -231,6 +234,10 @@ sub auth_cookie
 sub auth_basic
 {
 	my( $r, $repository, $realm ) = @_;
+
+	# user has been logged in by some other means
+	my $user = $repository->current_user;
+	return OK if defined $user;
 
 	if( !EPrints::Utils::is_set( $realm ) )
 	{
