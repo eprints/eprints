@@ -18,7 +18,6 @@ sub authen
 	my $dataobj = $r->pnotes->{dataobj};
 	my $dataset = $r->pnotes->{dataset};
 	my $plugin = $r->pnotes->{plugin};
-	my $field = $r->pnotes->{field};
 
 	if( $plugin->param( "visible" ) eq "staff" )
 	{
@@ -62,7 +61,6 @@ sub authz
 	my $dataobj = $r->pnotes->{dataobj};
 	my $dataset = $r->pnotes->{dataset};
 	my $plugin = $r->pnotes->{plugin};
-	my $field = $r->pnotes->{field};
 
 	my $user = $repo->current_user;
 
