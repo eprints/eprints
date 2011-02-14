@@ -77,7 +77,7 @@ sub _use_auth_basic
 	{
 		$rc = 1;
 	}
-	else
+	if( !$rc )
 	{
 		my $uri = URI->new( $r->uri, "http" );
 		my $script = $uri->path;
@@ -95,6 +95,16 @@ sub _use_auth_basic
 				$rc = 1;
 				last;
 			}
+		}
+	}
+	# if the user agent doesn't support text/html then use Basic Auth
+	if( !$rc )
+	{
+		my $accept = $r->headers_in->{'Accept'} || '';
+		my @types = split /\s*,\s*/, $accept;
+		if( !grep { m#^text/html\b# } @types )
+		{
+			$rc = 1;
 		}
 	}
 
