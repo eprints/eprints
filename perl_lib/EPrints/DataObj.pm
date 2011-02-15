@@ -765,26 +765,22 @@ sub get_values
 {
 	my( $self, $fieldnames ) = @_;
 
-	my %values = ();
+	my %seen;
+	my @values;
 	foreach my $fieldname ( split( "/" , $fieldnames ) )
 	{
 		my $field = EPrints::Utils::field_from_config_string( 
 					$self->{dataset}, $fieldname );
-		my $v = $self->{data}->{$field->get_name()};
-		if( $field->get_property( "multiple" ) )
+		my $value = $field->get_value( $self );
+		$value = [$value] if ref($value) ne 'ARRAY';
+		foreach my $v (@$value)
 		{
-			foreach( @{$v} )
-			{
-				$values{$_} = 1;
-			}
-		}
-		else
-		{
-			$values{$v} = 1
+			next if $seen{$field->get_id_from_value( $self->{session}, $v )}++;
+			push @values, $v;
 		}
 	}
 
-	return keys %values;
+	return @values;
 }
 
 

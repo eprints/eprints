@@ -137,6 +137,7 @@ sub make_header
 				}
 				else
 				{
+					$v = $afield->get_id_from_value( $session, $v );
 					@l = ( encode_setspec( $v ) );
 				}
 
@@ -314,13 +315,8 @@ Converts a string into hex. eg. "A" becomes "41".
 
 sub text2bytestring
 {
-	my( $string ) = @_;
-	my $encstring = "";
-	for(my $i=0; $i<length($string); $i++)
-	{
-		$encstring.=sprintf("%02X", ord(substr($string, $i, 1)));
-	}
-	return $encstring;
+	use bytes;
+	return join '', map { sprintf("%02X", ord($_) ) } split //, $_[0];
 }
 
 
@@ -336,14 +332,9 @@ Does the reverse of text2bytestring.
 
 sub bytestring2text
 {
-	my( $encstring ) = @_;
-
-	my $string = "";
-	for(my $i=0; $i<length($encstring); $i+=2)
-	{
-		$string.=pack("H*",substr($encstring,$i,2));
-	}
-	return $string;
+	my( $text ) = @_;
+	$text =~ s/(..)/pack("H*", $1)/eg;
+	return $text;
 }
 
 

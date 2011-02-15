@@ -648,8 +648,8 @@ sub ListSets
 				my $v2 = $delfield->get_values( $repo, $ds_del );
 				foreach( @{$v1}, @{$v2} )
 				{
-					my $key = EPrints::OpenArchives::encode_setspec( $_ );
-					if( !defined $key ) { $key=""; }
+					my $key = $field->get_id_from_value( $repo, $_ );
+					$key = EPrints::OpenArchives::encode_setspec( $key );
 					$v{$key} = EPrints::Utils::tree_to_utf8( $field->get_value_label( $repo, $_ ) );
 				}
 			}
@@ -865,6 +865,7 @@ END
 				$match = "EQ";
 			}
 		}
+		$value = $fields[0]->get_value_from_id( $repo, $value );
 		$searchexp->add_field( \@fields, $value, $match );
 	}
 	
