@@ -12,7 +12,6 @@
 <xsl:output method="xml" indent="yes" encoding="utf-8"/>
 
 <xsl:template match="/">
-<xhtml>
   <tr class="ep_search_result">
     <td style="padding-left: 0.5em"><xsl:copy-of select="ept:param('n')" />.</td>
     <td style="padding-left: 0.5em">
@@ -35,7 +34,6 @@
 		</div>
     </td>
   </tr>
-</xhtml>
 </xsl:template>
 
 <xsl:template match="text()" />

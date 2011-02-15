@@ -95,7 +95,7 @@ sub render
 
 	$EPrints::Citation::XSL::CTX = $ctx;
 
-	return $self->{repository}->xml->contents_of( $r->documentElement );
+	return $self->{repository}->xml->contents_of( $r );
 }
 
 sub _ep

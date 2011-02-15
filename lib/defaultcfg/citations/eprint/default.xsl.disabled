@@ -10,13 +10,11 @@
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	xmlns:ept="http://eprints.org/ep2/xslt/1.0"
 	xmlns:ep="http://eprints.org/ep2/data/2.0"
-	ept:type="table_row"
 >
 
 <xsl:output method="xml" indent="yes" encoding="utf-8"/>
 
 <xsl:template match="/">
-<xhtml>
 <xsl:choose>
 
   <xsl:when test="ept:value('type') = 'book'">
@@ -106,7 +104,6 @@
   <xsl:if test="ept:one_of(ept:value('ispublished'),'unpub','submitted','inpress')"> (<xsl:copy-of select="ept:render_value('ispublished')"/>)</xsl:if>
 </xsl:if>
 
-</xhtml>
 </xsl:template>
 
 <xsl:template match="text()" />
