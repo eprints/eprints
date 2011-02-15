@@ -103,6 +103,10 @@ elsif( $path[0] eq "dump" && scalar @path == 1 )
 {
 	export_rdf_dump( $repository, $plugin, \%arguments );
 }
+elsif( $path[0] eq "subject" && scalar @path == 2 )
+{
+	export_subject( $repository, $plugin, \%arguments, $path[1] );
+}
 elsif( $path[0] eq "records" && scalar @path == 1) 
 {
 	export_eprints( $repository, $plugin, \%arguments );
@@ -193,6 +197,38 @@ sub export_rdf_repository
 	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
 	$plugin->initialise_fh( \*STDOUT );
 	print $plugin->output_graph( $graph );
+}
+
+sub export_subject
+{
+	my( $repository, $plugin, $args, $subject_id ) = @_;
+
+	if( !$plugin->can_accept( "list/subject" ) )
+	{
+		$repository->not_found;
+		exit;
+	}
+
+	my $subject = $repository->dataset( "subject" )->dataobj( $subject_id );
+	if( !defined $subject )
+	{
+		$repository->not_found;
+		return;
+	}
+
+	my $list = $repository->dataset( "subject" )->search( 
+		filters => [
+			{
+				meta_fields => [qw/ ancestors /],
+				value => $subject_id,
+			}
+		],
+	);
+
+	$repository->send_http_header( "content_type"=>$plugin->param("mimetype") );
+	$plugin->initialise_fh( \*STDOUT );
+
+	print $list->export( $plugin->get_subtype, %{$args} );
 }
 
 sub export_rdf_resource

@@ -394,6 +394,26 @@ sub handler
 		}
 		return NOT_FOUND if !defined $item;
 
+		# Subject URI's redirect to the top of that particular subject tree
+		# rather than the node in the tree. (the ancestor with "ROOT" as a parent).
+		if( $dataset->id eq "subject" )
+		{
+ANCESTORS: foreach my $anc_subject_id ( @{$item->get_value( "ancestors" )} )
+		   {
+			   my $anc_subject = $dataset->dataobj($anc_subject_id);
+			   next ANCESTORS if( !$anc_subject );
+			   next ANCESTORS if( !$anc_subject->is_set( "parents" ) );
+			   foreach my $anc_subject_parent_id ( @{$anc_subject->get_value( "parents" )} )
+			   {
+				   if( $anc_subject_parent_id eq "ROOT" )
+				   {
+					   $item = $anc_subject;
+					   last ANCESTORS;
+				   }
+			   }
+		   }
+		}
+
 		# content negotiation. Only worries about type, not charset
 		# or language etc. at this stage.
 		my $accept = EPrints::Apache::AnApache::header_in( $r, "Accept" );
@@ -451,6 +471,10 @@ sub handler
 				$url = $item->get_control_url;
 			}
 			return redir_see_other( $r, $url );
+		}
+		elsif( $dataset->base_id eq "subject" )
+		{
+			return redir_see_other( $r, $match->dataobj_export_url( $item ) );
 		}
 		else
 		{
