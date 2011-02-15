@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 29;
+use Test::More tests => 30;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -31,6 +31,18 @@ $list = eval { $searchexp->perform_search };
 
 ok(defined($list) && $list->count > 1, "search range eprintid" );
 
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $dataset,
+	satisfy_all => 1
+);
+
+$searchexp->add_field( $dataset->get_field( "subjects" ), "GR" );
+$searchexp->add_field( $dataset->get_field( "divisions" ), "sch_mat" );
+
+$list = eval { $searchexp->perform_search };
+
+ok(defined($list) && $list->count > 0, "subjects and divisions: " . $searchexp->get_conditions->describe );
 
 $searchexp = EPrints::Search->new(
 	session => $session,

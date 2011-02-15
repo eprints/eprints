@@ -50,7 +50,7 @@ sub joins
 	my( $self, %opts ) = @_;
 
 	my $prefix = $opts{prefix};
-	$prefix = "" if !defined $prefix;
+	$prefix = Scalar::Util::refaddr($self) if !defined $prefix;
 
 	my $db = $opts{session}->get_database;
 	my $sql_name = $self->{field}->get_sql_name;
@@ -91,7 +91,7 @@ sub logic
 	my $db = $opts{session}->get_database;
 
 	my $prefix = $opts{prefix};
-	$prefix = "" if !defined $prefix;
+	$prefix = Scalar::Util::refaddr($self) if !defined $prefix;
 
 	return $db->quote_identifier( "${prefix}subject_ancestors", "ancestors" )." = ".$db->quote_value( $self->{params}->[0] );
 }
