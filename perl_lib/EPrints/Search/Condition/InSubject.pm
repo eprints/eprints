@@ -70,11 +70,13 @@ sub joins
 	{
 		my $main_table = $opts{dataset}->get_sql_table_name;
 		my $alias = $main_table."_".Scalar::Util::refaddr($self);
+		my $ancestors_alias = "${prefix}subject_ancestors";
 		my $key_field = $opts{dataset}->get_key_field;
 		my $sql = "";
-		$sql = $db->quote_identifier( $main_table )." ".$db->quote_identifier( $alias );
+		$sql = $db->quote_identifier( $main_table ).$db->sql_AS.$db->quote_identifier( $alias );
 		$sql .= " INNER JOIN ".$db->quote_identifier( "subject_ancestors" );
-		$sql .= " ON ".$db->quote_identifier( $alias, $sql_name )."=".$db->quote_identifier( "subject_ancestors", "subjectid" );
+		$sql .= $db->sql_AS.$db->quote_identifier( $ancestors_alias );
+		$sql .= " ON ".$db->quote_identifier( $alias, $sql_name )."=".$db->quote_identifier( $ancestors_alias, "subjectid" );
 		return {
 			type => "inner",
 			subquery => $sql,
