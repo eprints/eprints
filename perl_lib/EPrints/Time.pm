@@ -384,10 +384,12 @@ sub _render_date
 		return $session->html_phrase( "lib/utils:date_unspecified" );
 	}
 
-	my $t = datetime_utc( @l );
-	my( $sec, $min, $hour, $day, $mon, $year ) = localtime( $t ); # switch to local time
-	$year += 1900;
-	$mon += 1;
+	my( $year, $mon, $day, $hour, $min, $sec ) = @l;
+
+#	my $t = datetime_utc( @l );
+#	my( $sec, $min, $hour, $day, $mon, $year ) = localtime( $t ); # switch to local time
+#	$year += 1900;
+#	$mon += 1;
 
 	# 1999
 	my $r = $year;
@@ -425,12 +427,7 @@ sub _render_date
 
 	if( @l > 3 && !$short )
 	{
-		my $diff = timegm_nocheck(localtime()) - timegm_nocheck(gmtime());
-		$r = "$r ".sprintf('%s%02d:%02d',
-			($diff >= 0 ? '+' : '-'),
-			$diff / 3600,
-			($diff % 3600) / 60
-		);
+		$r .= " UTC";
 	}
 
 	return $session->make_text( $r );
