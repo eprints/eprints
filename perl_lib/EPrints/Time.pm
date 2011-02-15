@@ -386,11 +386,6 @@ sub _render_date
 
 	my( $year, $mon, $day, $hour, $min, $sec ) = @l;
 
-#	my $t = datetime_utc( @l );
-#	my( $sec, $min, $hour, $day, $mon, $year ) = localtime( $t ); # switch to local time
-#	$year += 1900;
-#	$mon += 1;
-
 	# 1999
 	my $r = $year;
 
