@@ -141,17 +141,20 @@ sub output_dataobj
 
 	$opts{single} = 1;
 
-	my $return = '<?xml version="1.0" encoding="utf-8" ?>' . "\n" . $self->$fn( $dataobj, %opts );
+	my $xml = '<?xml version="1.0" encoding="utf-8" ?>' . "\n" . $self->$fn( $dataobj, %opts );
 	
-	my $r = $self->{repository}->get_request;
-	my $ctx = Digest::MD5->new;
-	$ctx->add($return);
-	my $digest = $ctx->hexdigest;
-	$r->headers_out->{'ETag'} = $digest;
-	$r->headers_out->{'Content-Length'} = length($return);
+	if( $self->{repository}->get_online )
+	{
+		my $r = $self->{repository}->get_request;
+		use bytes;
+		my $ctx = Digest::MD5->new;
+		$ctx->add( Encode::encode_utf8( $xml ) );
+		$r->headers_out->{'ETag'} = $ctx->hexdigest;
+		$r->headers_out->{'Content-MD5'} = $ctx->b64digest;
+		$r->headers_out->{'Content-Length'} = length($xml);
+	}
 
-	return $return;
-	#return $self->$fn( $dataobj, %opts );
+	return $xml;
 }
 
 sub output_eprint
