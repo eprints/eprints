@@ -94,8 +94,9 @@ Add group-bys on additional pages. "DEFAULT" shows all of the records in a list.
 
 package EPrints::Update::Views;
 
-use Data::Dumper;
 use Unicode::Collate;
+# TODO replace this with a system config
+our $DEBUG = 0;
 
 use strict;
   
@@ -115,9 +116,8 @@ This internal method replaces any part of $path that is longer than 40 character
 
 sub abbr_path
 {
-	my( $path ) = @_;
+	my( @parts ) = @_;
 
-	my @parts = split /\//, $path;
 	foreach my $part (@parts)
 	{
 		next if length($part) < 40;
@@ -126,7 +126,7 @@ sub abbr_path
 		$part .= ".$ext" if defined $ext;
 	}
 
-	return join "/", @parts;
+	return @parts;
 }
 
 sub update_view_file
@@ -135,12 +135,12 @@ sub update_view_file
 
 	my $repository = $session->get_repository;
 
-	$localpath = abbr_path( $localpath );
+	$localpath = join '/', abbr_path( split '/', $localpath );
 
 	my $target = $repository->get_conf( "htdocs_path" )."/".$langid.$localpath;
 	my $ext = "";
-	# remove extension from target, if there is one
-	if( $target =~ s/(\.[^\.]*)// ) { $ext = $1; }
+	# remove extension from target e.g. .type.html [grouping + HTML]
+	if( $target =~ s/(\..*)$// ) { $ext = $1; }
 	my $age;
 	if( -e "$target.page" ) 
 	{
@@ -157,6 +157,9 @@ sub update_view_file
 			$age = undef if( $target_timestamp < $poketime );
 		}		
 	}
+
+# TODO replace this with a system config
+undef $age if $DEBUG;
 
 	if( $uri eq "/view/" )
 	{
@@ -200,6 +203,10 @@ sub update_view_file
 		return $file.$ext;
 	}
 
+	$viewinfo =~ s/\..*$//; # strip extension
+	my @view_path = split( '/', $viewinfo );
+
+	# if it ends with "/" then it's a submenu
 	if( $viewinfo =~ s/\/$// || $viewinfo =~ s/\/index[^\/]+$// )
 	{
 		if( defined $age && $age < $max_menu_age )
@@ -207,9 +214,6 @@ sub update_view_file
 			return "$target$ext";
 		}
 
-		# if it ends with "/" then it's a submenu
-		my @view_path = split( '/', $viewinfo );
-		
 		my $file = update_view_menu( $session, $view, $langid, \@view_path );
 		return undef if( !defined $file );
 		return $file.$ext;
@@ -222,7 +226,6 @@ sub update_view_file
 		return "$target$ext";
 	}
 
-	my @view_path = split( '/', $viewinfo );
 	my $file = update_view_list( $session, $view, $langid, \@view_path );
 	return undef if( !defined $file );
 	return $file.$ext;
@@ -281,7 +284,7 @@ sub update_browse_view_list
 
 sub get_filters
 {
-	my( $session, $view, $esc_path_values ) = @_;
+	my( $session, $view, $path_values ) = @_;
 
 	my $repository = $session->get_repository;
 	my $dataset = $session->dataset( $view->{dataset} );
@@ -290,7 +293,7 @@ sub get_filters
 
 	my $menus_fields = get_fields_from_view( $repository, $view );
 
-	my $menu_level = scalar @{$esc_path_values};
+	my $menu_level = scalar @{$path_values};
 
 	my $filters = [];
         if( defined $view->{filters} ) { push @{$filters}, @{$view->{filters}}; }
@@ -298,49 +301,22 @@ sub get_filters
 	for( my $i=0; $i<$menu_level; ++$i )
 	{
 		my $menu_fields = $menus_fields->[$i];
-		if( $esc_path_values->[$i] eq "NULL" )
+		if( $path_values->[$i] eq "NULL" )
 		{
-			push @{$filters}, { meta_fields=>[map { $_->get_name } @$menu_fields], fields=>$menu_fields, value=>"" };
+			push @{$filters}, { meta_fields=>[map { $_->get_name } @$menu_fields], value=>"" };
 			next;
 		}
-		my $id = EPrints::Utils::unescape_filename( $esc_path_values->[$i] );
+		my $id = $path_values->[$i];
 		my $value = $menu_fields->[0]->get_value_from_id( $session, $id );
-		push @{$filters}, { meta_fields=>[map { $_->get_name } @$menu_fields], fields=>$menu_fields, value=>$value };
+		push @{$filters}, { meta_fields=>[map { $_->get_name } @$menu_fields], value=>$value, match => "EX" };
 	}
 
 	if( $dataset->base_id eq "eprint" )
 	{
-		push @{$filters}, { meta_fields=>[qw( metadata_visibility )], fields=>[$dataset->field( "metadata_visibility" )], value=>"show" };
+		push @{$filters}, { meta_fields=>[qw( metadata_visibility )], value=>"show" };
 	}
 
 	return $filters;
-}
-
-# return a hash mapping keys at this level to number of items in db
-# if a leaf level, return undef
-
-# path_values is escaped 
-sub get_sizes
-{
-	my( $session, $view, $esc_path_values ) = @_;
-
-	my $menus_fields = get_fields_from_view( $session->get_repository, $view );
-
-	my $menu_level = scalar @{$esc_path_values};
-
-	my $menu_fields = $menus_fields->[$menu_level];
-	my $menu = $view->{menus}->[$menu_level];
-	if( !defined $menu_fields )
-	{
-		# no sub pages at this level
-		return undef;
-	}
-
-	my $filters = get_filters( $session, $view, $esc_path_values );
-
-	my $sizes = get_fieldlist_sizes( $session, $menu_fields, $filters, $menu->{allow_null}, $view->{dataset} );
-
-	return $sizes;
 }
 
 # Update View Config to new structure
@@ -396,23 +372,11 @@ sub update_view_menu
 	modernise_view( $view );
 
 	my $repository = $session->get_repository;
-	my $target = $repository->get_conf( "htdocs_path" )."/".$langid."/view/".$view->{id}."/";
-	if( defined $esc_path_values && scalar @$esc_path_values )
-	{
-		$target .= abbr_path(join( "/", @{$esc_path_values}, "index" ));
-	}
-	else
-	{
-		$target .= "index";
-	}
+	my $target = join '/', $repository->get_conf( "htdocs_path" ), $langid, "view", $view->{id}, abbr_path( @$esc_path_values ), "index";
 
 	my $menu_level = scalar @{$esc_path_values};
-	my $filters = get_filters( $session, $view, $esc_path_values );
-	my $path_values = [];
-	foreach my $esc_value (@{$esc_path_values})
-	{
-		push @{$path_values}, EPrints::Utils::unescape_filename( $esc_value );
-	}
+	my $path_values = [ map { EPrints::Utils::unescape_filename( $_ ) } @$esc_path_values ];
+	my $filters = get_filters( $session, $view, $path_values );
 
 	my $menus_fields = get_fields_from_view( $repository, $view );
 
@@ -431,7 +395,7 @@ sub update_view_menu
 
 	my $dataset = $session->dataset( $view->{dataset} );
 
-	my $sizes = get_fieldlist_sizes( $session, $menu_fields, $filters, $menu->{allow_null}, $view->{dataset} );
+	my $sizes = fieldlist_sizes( $session, $view, $path_values, $menu_level );
 
 	# allow 'UNSPECIFIED' entry?
 	if( !$menu->{allow_null} )
@@ -440,7 +404,10 @@ sub update_view_menu
 	}
 
 	my @values = map { $menu_fields->[0]->get_value_from_id( $session, $_ ) } keys %$sizes;
-	return if !@values; # nothing to show
+
+# nothing to show at this level or anywhere below a subject tree
+# TODO check this
+return if !@values && !exists $sizes->{$path_values->[$#$path_values]};
 
 	# OK now we have a sorted list of values....
 
@@ -517,15 +484,7 @@ sub create_single_page_menu
 	my $menu = $view->{menus}->[$menu_level];
 
 	# work out filename
-	my $target = $session->get_repository->get_conf( "htdocs_path" )."/".$langid."/view/".$view->{id}."/";
-	if( defined $esc_path_values && scalar @{$esc_path_values} > 0 )
-	{
-		$target .= abbr_path(join( "/", @{$esc_path_values}, "index" ));
-	}
-	else
-	{
-		$target .= "index";
-	}
+	my $target = join '/', $session->get_repository->get_conf( "htdocs_path" ), $langid, "view", $view->{id}, abbr_path( @$esc_path_values ), "index";
 	if( defined $range )
 	{
 		$target .= ".".EPrints::Utils::escape_filename( $range->[0] );
@@ -539,13 +498,20 @@ sub create_single_page_menu
 
 	my $page = $session->make_element( "div", class=>"ep_view_menu" );
 
+	# the navigation menu needs to be rendered for the previous menu level
+	my $nav_sizes = fieldlist_sizes(
+		$session,
+		$view, 
+		$path_values,
+		$menu_level-1 );
+
 	my $navigation_aids = render_navigation_aids( $session, $path_values, $esc_path_values, $view, $menus_fields, "menu",
-		sizes => $sizes
+		sizes => $nav_sizes
 	);
 	$page->appendChild( $navigation_aids );
 
 	my $phrase_id = "viewintro_".$view->{id};
-	if( defined $esc_path_values && defined $path_values && scalar(@{$path_values}) )
+	if( scalar(@{$path_values}) )
 	{
 		$phrase_id.= "/".join( "/", @{$path_values} );
 	}
@@ -607,7 +573,7 @@ sub create_single_page_menu
 		}
 	}
 
-	if( defined $values )
+	if( @$values )
 	{
 		my @render_menu_opts = ( $session, $menu, $sizes, $values, $menu_fields, $has_submenu, $view );
 
@@ -675,63 +641,75 @@ sub create_single_page_menu
 	return $target;
 }
 
-sub get_fieldlist_sizes
+=item $id_map fieldlist_sizes( $repo, $view_config, $values, $menu_level )
+
+Returns a map of values (encoded as ids) to counts.
+
+$menu_level is the level you want to get value-counts for.
+
+=cut
+
+sub fieldlist_sizes
 {
-	my( $session, $fields, $filters, $allow_null, $datasetid ) = @_;
+	my( $repo, $view, $path_values, $menu_level ) = @_;
 
-	my $dataset = $session->dataset( $datasetid );
+	my $filters = get_filters( $repo, $view, $path_values );
+	my $dataset = $repo->dataset( $view->{dataset} );
 
-	if( $fields->[0]->isa( "EPrints::MetaField::Subject" ) )
+	my $menus_fields = get_fields_from_view( $repo, $view );
+	my $menu_fields = $menus_fields->[$menu_level];
+
+	# for everything that doesn't have a value we may need to check if it is
+	# set or not
+	for(my $i = @$path_values; $i < @$menus_fields; ++$i)
 	{
-		# this got compicated enough to need its own sub.
-		return get_fieldlist_sizes_subject( $session, $fields, $filters, $dataset );
+		my $menu_fields = $menus_fields->[$i];
+		my $menu = $view->{menus}->[$i];
+		if( !$menu->{allow_null} )
+		{
+			push @$filters, 
+				{ meta_fields => [map { $_->name } @$menu_fields], match => "SET" };
+		}
 	}
 
 	my $searchexp = $dataset->prepare_search(
 		filters => $filters,
 	);
 	
-	my $id_map = $searchexp->perform_distinctby( $fields );
+	# get the id/counts for the menu level requested
+	my $id_map = $searchexp->perform_distinctby( $menu_fields );
+
+	if( $menu_fields->[0]->isa( "EPrints::MetaField::Subject" ) )
+	{
+		my( $subject_map, $subject_map_r ) = EPrints::DataObj::Subject::get_all( $repo );
+
+		my %subj_map;
+
+		# for every subject build a running-total for all its ancestors
+		foreach my $id (keys %$id_map)
+		{
+			my $subject = $subject_map->{$id};
+			next if !defined $subject; # Hmm, unknown subject
+			foreach my $ancestor (@{$subject->value( "ancestors" )})
+			{
+				next if $ancestor eq $EPrints::DataObj::Subject::root_subject;
+				foreach my $item_id (@{$id_map->{$id}})
+				{
+					$subj_map{$ancestor}->{$item_id} = 1;
+				}
+			}
+		}
+
+		# calculate the totals
+		$_ = scalar keys %$_ for values %subj_map;
+
+		return \%subj_map;
+	}
 
 	# calculate the totals
 	$_ = scalar @$_ for values %$id_map;
 
 	return $id_map;
-}
-
-sub get_fieldlist_sizes_subject
-{
-	my( $session, $fields, $filters, $dataset ) = @_;
-
-	my( $subject_map, $subject_map_r ) = EPrints::DataObj::Subject::get_all( $session );
-
-	my $searchexp = $dataset->prepare_search(
-		filters => $filters,
-	);
-	
-	my $id_map = $searchexp->perform_distinctby( $fields );
-
-	my %subj_map;
-
-	# for every subject build a running-total for all its ancestors
-	foreach my $id (keys %$id_map)
-	{
-		my $subject = $subject_map->{$id};
-		next if !defined $subject; # Hmm, unknown subject
-		foreach my $ancestor (@{$subject->value( "ancestors" )})
-		{
-			next if $ancestor eq $EPrints::DataObj::Subject::root_subject;
-			foreach my $item_id (@{$id_map->{$id}})
-			{
-				$subj_map{$ancestor}->{$item_id} = 1;
-			}
-		}
-	}
-
-	# calculate the totals
-	$_ = scalar keys %$_ for values %subj_map;
-
-	return \%subj_map;
 }
 
 sub group_by_a_to_z 
@@ -1141,21 +1119,11 @@ sub update_view_list
 	my $xml = $repository->xml;
 	my $xhtml = $repository->xhtml;
 
-	my $target = $repository->get_conf( "htdocs_path" )."/".$langid."/view/".$view->{id}."/";
-
-	my $filename = pop @{$esc_path_values};
-	my( $value, $suffix ) = split( /\./, $filename );
-	$target .= abbr_path( join "/", @$esc_path_values, $value );
-
-	push @{$esc_path_values}, $value;
+	my $target = join '/', $repository->get_conf( "htdocs_path" ), $langid, "view", $view->{id}, abbr_path( @$esc_path_values );
 
 	my $menu_level = scalar @{$esc_path_values};
-	my $filters = get_filters( $session, $view, $esc_path_values );
-	my $path_values = [];
-	foreach my $esc_value (@{$esc_path_values})
-	{
-		push @{$path_values}, EPrints::Utils::unescape_filename( $esc_value );
-	}
+	my $path_values = [ map { EPrints::Utils::unescape_filename( $_ ) } @$esc_path_values ];
+	my $filters = get_filters( $session, $view, $path_values );
 
 	my $ds = $repository->dataset( $view->{dataset} );
 
@@ -1170,24 +1138,15 @@ sub update_view_list
 		return;
 	}
 
-	my $searchexp = new EPrints::Search(
-				custom_order=>$view->{order},
-				satisfy_all=>1,
-				session=>$session,
-				dataset=>$ds );
-	my $n=0;
-	foreach my $filter ( @{$filters} )
-	{
-     		$searchexp->add_field( $filter->{fields}, $filter->{value}, "EX", undef, "filter".($n++), 1 );
-	}
-      	my $list = $searchexp->perform_search;
+	# we need to make all filters exact
+	my $list = $ds->search(
+		custom_order=>$view->{order},
+		satisfy_all=>1,
+		filters=>[map { { %$_, match => "EX" } } @$filters] );
 
 	my $count = $list->count;
 	my @items = $list->get_records;
 	$list->dispose;
-
-	# nothing to show
-	return if !@items;
 
 	# construct the export and navigation bars, which are common to all "alt_views"
 	my $menu_fields = $menus_fields->[$menu_level-1];
@@ -1197,8 +1156,12 @@ sub update_view_list
 	{
 		my @all_but_this_level_path_values = @{$path_values};
 		pop @all_but_this_level_path_values;
-		$sizes = get_sizes( $session, $view, \@all_but_this_level_path_values );
+		$sizes = fieldlist_sizes( $session, $view, $path_values, $menu_level - 1);
 	}
+
+# nothing to show at this level or anywhere below a subject tree
+# TODO check this
+return if !@items && !exists $sizes->{$path_values->[$#$path_values]};
 
 	my $export_bar = render_export_bar( $session, $esc_path_values, $view );
 
@@ -1605,6 +1568,10 @@ sub render_navigation_aids
 	if( defined $menu_fields && $menu_fields->[0]->isa( "EPrints::MetaField::Subject" ) )
 	{
 		my $subject = EPrints::Subject->new( $session, $path_values->[-1] );
+		if( !defined $subject )
+		{
+			EPrints->abort( "Weird, no subject match for: '".$path_values->[-1]."'" );
+		}
 		my @ids= @{$subject->get_value( "ancestors" )};
 		foreach my $sub_subject ( $subject->get_children() )
 		{
