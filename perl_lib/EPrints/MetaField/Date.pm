@@ -389,6 +389,11 @@ sub get_search_conditions
 	my( $self, $session, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 
+	if( $match eq "SET" )
+	{
+		return $self->SUPER::get_search_conditions( @_[1..$#_] );
+	}
+
 	if( $match eq "EX" )
 	{
 		if( !EPrints::Utils::is_set( $search_value ) )
@@ -413,7 +418,7 @@ sub get_search_conditions_not_ex
 {
 	my( $self, $session, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
-	
+
 	# DATETIME
 	# DATETIME-
 	# -DATETIME

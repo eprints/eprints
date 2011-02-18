@@ -165,6 +165,11 @@ sub get_search_conditions
 	my( $self, $session, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 
+	if( $match eq "SET" )
+	{
+		return $self->SUPER::get_search_conditions( @_[1..$#_] );
+	}
+
 	if( $match eq "EX" )
 	{
 		# not correct yet. Only used for browse-by-name

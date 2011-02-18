@@ -61,6 +61,10 @@ empty, as oppose to skipping this search field.
 In the case of subjects, match the specified subjects, but not their
 decendants.
 
+=item match=SET
+
+If the value is non-empty.
+
 =item match=NO
 
 This is only really used internally, it means the search field will
@@ -186,7 +190,7 @@ sub new
 	$self->{"merge"} = $merge ? $merge : (defined $self->{field} ?
 				$self->{field}->property( "merge" ) : "ALL");
 
-	if( $self->{match} ne "EQ" && $self->{match} ne "IN" && $self->{match} ne "EX" )
+	if( $self->{match} ne "EQ" && $self->{match} ne "IN" && $self->{match} ne "EX" && $self->{match} ne "SET" )
 	{
 		$session->get_repository->log( 
 "search field match value was '".$self->{match}."'. Should be EQ, IN or EX." );
@@ -306,7 +310,7 @@ sub from_form
 			$self->{"form_name_prefix"} );
 
 	$self->{value} = defined $value ? $value : "";
-	$self->{match} = $match if $match && $match =~ /^EQ|IN|EX$/;
+	$self->{match} = $match if $match && $match =~ /^EQ|IN|EX|SET$/;
 	$self->{merge} = $merge if $merge && $merge =~ /^ANY|ALL$/;
 
 	# match = NO? if value==""
@@ -344,6 +348,11 @@ sub get_conditions
 	}
 
 	if( $self->{"match"} eq "EX" )
+	{
+		return $self->get_conditions_no_split( $self->{"value"} );
+	}
+
+	if( $self->{"match"} eq "SET" )
 	{
 		return $self->get_conditions_no_split( $self->{"value"} );
 	}
@@ -686,9 +695,10 @@ sub is_set
 {
 	my( $self ) = @_;
 
-	return EPrints::Utils::is_set( $self->{"value"} ) || (
-		$self->{"match"} eq "EX" && $self->{"merge"} eq "ALL"
-	);
+	return
+		EPrints::Utils::is_set( $self->{"value"} ) ||
+		($self->{"match"} eq "EX" && $self->{"merge"} eq "ALL") ||
+		$self->{"match"} eq "SET";
 }
 
 

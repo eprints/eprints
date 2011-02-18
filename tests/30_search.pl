@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 30;
+use Test::More tests => 31;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -30,6 +30,21 @@ $searchexp->add_field( $dataset->get_field( "eprintid" ), "1-" );
 $list = eval { $searchexp->perform_search };
 
 ok(defined($list) && $list->count > 1, "search range eprintid" );
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $dataset,
+);
+
+$searchexp->add_field( $dataset->get_field( "creators_name" ), "", "SET" );
+$searchexp->add_field( $dataset->get_field( "metadata_visibility" ), "show" );
+$searchexp->add_field( $dataset->get_field( "eprint_status" ), "archive" );
+
+$list = eval { $searchexp->perform_search };
+
+#print STDERR $searchexp->get_conditions->sql( dataset => $dataset, session => $session )."\n";
+
+ok(defined($list) && $list->count > 1, "SET match" );
 
 $searchexp = EPrints::Search->new(
 	session => $session,
