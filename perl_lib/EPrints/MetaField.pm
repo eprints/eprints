@@ -2536,6 +2536,14 @@ sub get_search_conditions
 	my( $self, $session, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 
+	if( $match eq "SET" )
+	{
+		return EPrints::Search::Condition->new(
+				"is_not_null",
+				$dataset,
+				$self );
+	}
+
 	if( $match eq "EX" )
 	{
 		if( !EPrints::Utils::is_set( $search_value ) )
