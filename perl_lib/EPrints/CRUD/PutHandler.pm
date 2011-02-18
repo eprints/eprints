@@ -43,7 +43,8 @@ sub handler
                 
 		if( $error->{no_auth} )
                 {
-                        $request->err_headers_out->{'WWW-Authenticate'} = 'Basic realm="SWORD"';
+			my $realm = $repository->phrase( "archive_name" );
+                        $request->err_headers_out->{'WWW-Authenticate'} = 'Basic realm="'.$realm.'"';
 			$request->status( $error->{status_code} );
 			$repository->terminate;
 			return DONE;

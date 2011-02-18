@@ -43,7 +43,8 @@ sub handler
                 
 		if( $error->{no_auth} )
                 {
-                        $request->err_headers_out->{'WWW-Authenticate'} = 'Basic realm="SWORD"';
+			my $realm = $repository->phrase( "archive_name" );
+                        $request->err_headers_out->{'WWW-Authenticate'} = 'Basic realm="'.$realm.'"';
 			$request->status( $error->{status_code} );
 			$repository->terminate;
 			return DONE;
@@ -66,13 +67,13 @@ sub handler
 
 	# Suppoerted URIs: Hopeing to expand beyond these if possible 
 
-	if(!( $uri =~ m! ^/id/(eprint|document|file)/\d+$ !x ))
+	if(!( $uri =~ m! ^/id/(eprint|document|file)/\d+$ !x ) && !( $uri =~ m! ^/id/(eprint|document|file)/\d+/.*$ !x ))
 	{
 		$request->status( 400 );
 		$repository->terminate;
 		return HTTP_BAD_REQUEST;
 	}
-
+	
 	# Processing HTTP headers in order to retrieve SWORD options
 	my $headers = $request->headers_in;
 	
@@ -83,10 +84,12 @@ sub handler
 	#GET THE EPRINT/DOCUMENT/FILE/WHATEVER FROM THE ID URI
 	my $datasetid;
 	my $id;
+	my $contents;
 
-	if( $uri =~ m! ^/id/([^/]+)/(.*)$ !x )
+	if( $uri =~ m! ^/id/([^/]+)/([^/]+)\b !x )
 	{
 		( $datasetid, $id ) = ( $1, $2 );
+print STDERR "Matched 2 $datasetid, $id\n";
 	}
 
 	my $dataset = $repository->dataset( $datasetid );
@@ -338,10 +341,20 @@ sub handler
 		return HTTP_NO_CONTENT;
 	}
 
+	my $item;
+	if ($list->count() == 1) {
+		$item = $list->item(0);
+	}
+
 	my $accept = $headers->{ "Accept" };
 	$accept = "application/atom+xml" unless defined $accept;
 	my $list_dataset = $list->{dataset};
 	my $can_accept = "list/" . $list_dataset->id;
+	if (defined $item) {
+		$can_accept = "dataobj/" . $item->get_dataset->base_id;
+		$request->headers_out->{'Location'} = $item->uri;
+	}
+	
 
 	my $plugin = EPrints::Apache::Rewrite::content_negotiate_best_plugin( 
 		$repository, 
@@ -354,12 +367,25 @@ sub handler
 	);
 
 	if (!defined $plugin) {
-
-		$xml = $list->export("Atom");
+		if (defined $item) 
+		{
+			$xml = $item->export("Atom");
+		}
+		else 
+		{
+			$xml = $list->export("Atom");
+		}
 
 	} else {
 	
-		$xml = $list->export($plugin->{name});
+		if (defined $item) 
+		{
+			$xml = $item->export($plugin->{name});
+		}
+		else 
+		{
+			$xml = $list->export($plugin->{name});
+		}
 
 	}
 
