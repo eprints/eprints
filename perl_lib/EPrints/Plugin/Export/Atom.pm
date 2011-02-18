@@ -180,10 +180,15 @@ sub output_eprint
 			undef,
 			rel => "self",
 			href => $self->dataobj_export_url( $dataobj ) ) );
-	$entry->appendChild( $xml->create_data_element(
+	$entry->appendChild( $xml->create_data_element( 
 			"link",
 			undef,
-			rel => "contents",
+			rel => "edit",
+			href => $dataobj->uri ) );
+	$entry->appendChild( $xml->create_data_element( 
+			"link",
+			undef,
+			rel => "edit-media",
 			href => $dataobj->uri . "/contents" ) );
 	$entry->appendChild( $xml->create_data_element(
 			"link",
@@ -257,11 +262,31 @@ sub output_document
 	$entry->appendChild( $xml->create_data_element(
 			"title",
 			$xhtml->to_text_dump( $dataobj->render_description ) ) );
-	$entry->appendChild( $xml->create_data_element(
+	
+	my @files = @{$dataobj->get_value( "files" )};
+
+	if ((scalar @files) > 1) 
+	{
+		$entry->appendChild( $xml->create_data_element( 
+			"link",
+			undef,
+			rel => "edit-media",
+			href => $dataobj->uri . "/contents" ) );	
+	} 
+	else 
+	{
+		$entry->appendChild( $xml->create_data_element( 
+			"link",
+			undef,
+			rel => "edit-media",
+			href => $dataobj->uri ) );
+		$entry->appendChild( $xml->create_data_element(
 			"link",
 			undef,
 			rel => "alternate",
 			href => $dataobj->get_url ) );
+	}
+
 	$entry->appendChild( $xml->create_data_element(
 			"summary",
 			$xhtml->to_text_dump( $dataobj->render_citation ) ) );
@@ -295,7 +320,7 @@ sub output_file
 			undef,
 			rel => "alternate",
 			href => $doc->get_url( $dataobj->value( "filename" ) ) ) );
-
+	
 	my $r = $xml->to_string( $entry, indent => 1 );
 	$xml->dispose( $entry );
 
