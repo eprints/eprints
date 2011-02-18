@@ -89,7 +89,6 @@ sub handler
 	if( $uri =~ m! ^/id/([^/]+)/([^/]+)\b !x )
 	{
 		( $datasetid, $id ) = ( $1, $2 );
-print STDERR "Matched 2 $datasetid, $id\n";
 	}
 
 	my $dataset = $repository->dataset( $datasetid );
