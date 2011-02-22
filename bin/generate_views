@@ -200,26 +200,24 @@ LANGUAGE: foreach my $langid ( @{$repository->get_conf( "languages" )} )
 	{
 		next VIEW if( defined $view_opt && $view->{id} ne $view_opt );
 
-		EPrints::Update::Views::modernise_view( $view );
+		$view = EPrints::Update::Views->new(
+			repository => $session,
+			view => $view
+		);
 
-		my $sizes = EPrints::Update::Views::get_sizes( $session, $view, [] );
-
-		push @files, update_view_by_path(
-			session => $session,
-			view => $view, 
+		$view->update_view_by_path(
+			on_write => sub { print "Wrote: $_[0]\n" if $noise > 1 },
 			langid => $langid, 
-			path => [],
-			sizes => $sizes,
 			do_menus => $do_menus,
 			do_lists => $do_lists );
 	}
 
+	my $target = join "/", $session->config( "htdocs_path" ), $langid, "view";
 	if( $do_menus )
 	{
 		# make views index page
-		my $file = EPrints::Update::Views::update_browse_view_list( $session, $langid );
-		print "Wrote: $file\n" if( $noise > 1 );
-		push @files, $file;
+		EPrints::Update::Views::update_browse_view_list( $session, $target, $langid );
+		print "Wrote: $target\n" if( $noise > 1 );
 	}
 
 
@@ -233,52 +231,5 @@ $session->terminate();
 exit;
 
 
-sub update_view_by_path
-{
-	my( %opts ) = @_;
-
-	my @files = ();
-
-	if( scalar @{$opts{path}} == scalar @{$opts{view}->{menus}} )
-	{
-		# is a leaf node
-		if( $opts{do_lists} )
-		{
-			my @leaf_files = EPrints::Update::Views::update_view_list( $opts{session}, $opts{view}, $opts{langid}, $opts{path},
-				sizes => $opts{sizes},
-			);
-			foreach my $file ( @leaf_files )
-			{
-				print "Wrote: $file\n" if( $noise > 1 );
-			}
-			push @files, @leaf_files;
-		}
-	}
-	else
-	{
-		# has sub levels
-		if( $opts{do_menus} )
-		{
-			my @menu_files = EPrints::Update::Views::update_view_menu( $opts{session}, $opts{view}, $opts{langid}, $opts{path} );
-			foreach my $file ( @menu_files )
-			{
-				print "Wrote: $file\n" if( $noise > 1 );
-			}
-			push @files, @menu_files;
-		}
-
-		my $sizes = EPrints::Update::Views::get_sizes( $opts{session}, $opts{view}, $opts{path} );
-		foreach my $menu_value ( keys %{$sizes} )
-		{
-			my $path = [@{$opts{path}}, EPrints::Utils::escape_filename( $menu_value )];
-			push @files, update_view_by_path( %opts,
-				path => $path,
-				sizes => $sizes,
-				);
-		}
-	}
-
-	return @files;
-}
 
 	
