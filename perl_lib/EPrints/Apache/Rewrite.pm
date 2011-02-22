@@ -634,7 +634,7 @@ ANCESTORS: foreach my $anc_subject_id ( @{$item->get_value( "ancestors" )} )
 		# redirect /foo to /foo/ 
 		if( $uri eq "/view" || $uri =~ m! ^/view/[^/]+$ !x )
 		{
-			return redir( $r, "$uri/" );
+			return redir( $r, "$urlpath$uri/" );
 		}
 
 		local $repository->{preparing_static_page} = 1; 
