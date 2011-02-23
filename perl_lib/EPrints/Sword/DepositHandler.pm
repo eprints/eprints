@@ -359,48 +359,48 @@ sub handler
 	$opts{flags} = $flags;
 
 	my $eprint = $import_plugin->input_file( %opts );
-#	$verbose_desc .= $import_plugin->get_verbose();
-#
-#	if( $NO_OP )
-#	{
-#		my $code = $import_plugin->get_status_code();
-#		$code = 400 unless( defined $code );	
-#
-#		if( $code == 200 )
-#		{
-#			my %xml_opts;
-#			$xml_opts{user_agent} = $headers->{user_agent};
-#			$xml_opts{x_packaging} = $headers->{x_packaging};
-#			$xml_opts{sword_treatment} = $sword_treatment;
-#			$xml_opts{owner} = $owner;
-#			$xml_opts{depositor} = $depositor if( defined $depositor );
-#			$xml_opts{verbose_desc} = $verbose_desc if( $VERBOSE );
-#
-#			my $noop_xml = EPrints::Sword::Utils::create_noop_xml( $session, %xml_opts );
-#
-#			$request->headers_out->{'Content-Length'} = length $noop_xml;
-#			$request->content_type( 'application/atom+xml' );
-#			$request->status( 200 );        # Successful
-#			$request->print( $noop_xml );
-#		        $session->terminate;
-#		        return Apache2::Const::OK;
-#		}
-#
-#                my $error_doc = EPrints::Sword::Utils::generate_error_document( $session,
-#					user_agent => $headers->{user_agent},
-#                                       href => "http://purl.org/net/sword/error/ErrorContent",
-#                                       summary => "Import plugin failed in no-op mode.",
-#					verbose_desc => ($VERBOSE ? $verbose_desc : undef) );
-#
-#                $request->headers_out->{'Content-Length'} = length $error_doc;
-#                $request->content_type('application/atom+xml');
-#                $request->print( $error_doc );
-#
-#		$request->status( $code );
-#		$session->terminate;
-#                return Apache2::Const::OK;
-#
-#	}
+	$verbose_desc .= $import_plugin->get_verbose();
+
+	if( $NO_OP )
+	{
+		my $code = $import_plugin->get_status_code();
+		$code = 400 unless( defined $code );	
+
+		if( $code == 200 )
+		{
+			my %xml_opts;
+			$xml_opts{user_agent} = $headers->{user_agent};
+			$xml_opts{x_packaging} = $headers->{x_packaging};
+			$xml_opts{sword_treatment} = $sword_treatment;
+			$xml_opts{owner} = $owner;
+			$xml_opts{depositor} = $depositor if( defined $depositor );
+			$xml_opts{verbose_desc} = $verbose_desc if( $VERBOSE );
+
+			my $noop_xml = EPrints::Sword::Utils::create_noop_xml( $session, %xml_opts );
+
+			$request->headers_out->{'Content-Length'} = length $noop_xml;
+			$request->content_type( 'application/atom+xml' );
+			$request->status( 200 );        # Successful
+			$request->print( $noop_xml );
+		        $session->terminate;
+		        return Apache2::Const::OK;
+		}
+
+                my $error_doc = EPrints::Sword::Utils::generate_error_document( $session,
+					user_agent => $headers->{user_agent},
+                                        href => "http://purl.org/net/sword/error/ErrorContent",
+                                        summary => "Import plugin failed in no-op mode.",
+					verbose_desc => ($VERBOSE ? $verbose_desc : undef) );
+
+                $request->headers_out->{'Content-Length'} = length $error_doc;
+                $request->content_type('application/atom+xml');
+                $request->print( $error_doc );
+
+		$request->status( $code );
+		$session->terminate;
+                return Apache2::Const::OK;
+
+	}
 
 	unless(defined $eprint)
 	{
