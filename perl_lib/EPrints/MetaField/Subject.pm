@@ -208,6 +208,7 @@ sub render_search_set_input
 	}
 
 	return $session->render_option_list( 
+		checkbox => $self->property( "search_input_style" ) eq "checkbox",
 		name => $prefix,
 		defaults_at_top => 1,
 		default => \@defaults,
@@ -261,6 +262,7 @@ sub get_property_defaults
 {
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
+	$defaults{search_input_style} = "default"; # "checkbox"
 	$defaults{input_style} = 0;
 	$defaults{showall} = 0;
 	$defaults{showtop} = 0;
