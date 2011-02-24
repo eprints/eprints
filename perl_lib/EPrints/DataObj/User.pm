@@ -161,12 +161,15 @@ sub get_system_field_info
 			fromform=>\&EPrints::Utils::crypt_password },
 
 		{ name=>"usertype", type=>"namedset", required=>1, 
-			set_name=>"user", input_style=>"medium" },
+			set_name=>"user", input_style=>"medium", default_value=>"user" },
 	
 		{ name=>"newemail", type=>"email", show_in_html=>0 },
 	
 		{ name=>"newpassword", type=>"secret", show_in_html=>0, 
 			fromform=>\&EPrints::Utils::crypt_password },
+
+		{ name=>"openid_identifier", type=>"text", virtual=>1,
+			show_in_html=>0, export_as_xml=>0, },
 
 		{ name=>"pin", type=>"text", show_in_html=>0 },
 

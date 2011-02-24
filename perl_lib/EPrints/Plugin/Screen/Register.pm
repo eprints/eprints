@@ -1,6 +1,6 @@
 package EPrints::Plugin::Screen::Register;
 
-# This plugin just adds a link to the /cgi/register script
+# User registration
 
 use EPrints::Plugin::Screen;
 
@@ -21,17 +21,42 @@ sub new
 #			position => 100,
 #		},
 	];
-	$self->{actions} = [qw( register )];
+	$self->{actions} = [qw( register confirm )];
 
 	return $self;
 }
 
 sub allow_register { shift->can_be_viewed }
+sub allow_confirm { shift->can_be_viewed }
 sub can_be_viewed
 {
 	my( $self ) = @_;
 
-	return !defined $self->{session}->current_user;
+	return
+		$self->{session}->config( "allow_web_signup" ) &&
+		!defined $self->{session}->current_user;
+}
+
+sub from
+{
+	my( $self ) = @_;
+
+	my $processor = $self->{processor};
+	my $repo = $self->{repository};
+
+	# dummy item used to produce a workflow
+	$processor->{item} = $repo->dataset( "user" )->make_dataobj( {} );
+
+	$processor->{dataset} = $repo->dataset( "user" );
+
+	# default to showing whatever the previous attempted registration method
+	# was
+	$processor->{show} = $self->get_subtype;
+
+	my $signup_style = $repo->config( "signup_style" );
+	$processor->{min} = defined $signup_style && $signup_style eq "minimal";
+
+	$self->SUPER::from();
 }
 
 sub render_action_link
@@ -46,6 +71,328 @@ sub render_action_link
 	$link->appendChild( $self->render_title );
 
 	return $link;
+}
+
+sub action_register
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	my $processor = $self->{processor};
+
+	$processor->{screenid} = 'Register';
+
+	my $workflow = $self->workflow;
+
+	$workflow->update_from_form( $processor, $workflow->get_stage_id, 1 );
+
+	my @problems = $workflow->validate;
+	if( @problems )
+	{
+		my $error = $repo->xml->create_element( "ul" );
+		foreach my $problem (@problems)
+		{
+			$error->appendChild( $repo->xml->create_element( "li" ))
+				->appendChild( $problem );
+		}
+		$processor->add_message( "error", $error );
+		return;
+	}
+
+	return 1;
+}
+
+sub action_confirm
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	my $processor = $self->{processor};
+
+	my $user_ds = $repo->get_dataset( "user" );
+
+	# Process the form.
+	my $userid = $repo->param( "userid" )+0;
+	my $pin = $repo->param( "pin" );
+
+	my $user = new EPrints::User( $repo, $userid );
+
+	if( !defined $user )
+	{
+		$processor->add_message( "error", $repo->html_phrase( "cgi/confirm:bad_user" ) );
+		$processor->{screenid} = "Error";
+		return;
+	}
+
+	my $userpin = $user->get_value( "pin" );
+	my $pinsettime = $user->get_value( "pinsettime" );
+	my $delta = (time - $pinsettime);
+
+	if( !defined $userpin )
+	{
+		$processor->add_message( "error", $repo->html_phrase( "cgi/confirm:no_pin" ) );
+		$processor->{screenid} = "Error";
+		return;
+	}
+	if( $userpin ne $pin)
+	{
+		$processor->add_message( "error", $repo->html_phrase( "cgi/confirm:pin_mismatch" ) );
+		$processor->{screenid} = "Error";
+		return;
+	}
+	my $maxdelta = $repo->config( "pin_timeout" );
+	if( ( $maxdelta != 0 ) && ( $maxdelta * 60 * 60 < $delta ) )
+	{
+		$processor->add_message( "error", $repo->html_phrase( "cgi/confirm:pin_timeout" ) );
+		$processor->{screenid} = "Error";
+		return;
+	}
+
+	$processor->{user} = $user;
+
+	# Only ONE of these should be set, as the two set_* scripts should zero the
+	# other value when they set theirs.
+
+	# This script hacks the SQL directly, as normally "secret" fields are not
+	# accessable to eprints. 
+	
+	if( $user->is_set( "newemail" ) )
+	{
+		$processor->{newemail} = $user->value( "newemail" );
+		# check no one else has this email! cjg
+		$user->set_value( "email", $user->get_value( "newemail" ) );
+		$user->set_value( "newemail", undef );
+		$user->set_value( "pin", undef );
+		if( $user->has_priv( "lock-username-to-email" ) )# cjg change to new system
+		{
+			# shim the username in the current user object
+			$user->set_value( "username", $user->get_value( "email" ) );
+		}
+		# write the changes
+		$user->commit();
+	} 
+	else
+	{
+		# Must be password then. Can't see it 'cus it's a "secret".
+		$repo->get_database->_update_quoted(
+			$user_ds->get_sql_table_name,
+			["userid"],
+			[$repo->get_database->quote_value($userid)],
+			["password","newpassword","pin"],
+			[$repo->get_database->quote_identifier("newpassword"),"NULL","NULL"],
+		);
+		my @a = ();
+		srand;
+		for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
+		my $code = join( "", @a );
+		my $cookie = $repo->{query}->cookie(
+				-name    => "eprints_session",
+				-path    => "/",
+				-value   => $code,
+				-domain  => $repo->config("cookie_domain"),
+		);
+		$repo->get_request->err_headers_out->{"Set-Cookie"} = $cookie;
+		$repo->get_database->update_ticket_userid( $code, $user->get_id, $ENV{REMOTE_ADDR} );
+	}
+}
+
+sub workflow
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	my $processor = $self->{processor};
+
+	return EPrints::Workflow->new( $repo, "register",
+		processor => $processor,
+		item => $processor->{item},
+		method => [ $self->get_subtype, "STRING" ],
+	);
+}
+
+sub render_register_form
+{
+	my( $self ) = @_;
+
+	my $processor = $self->{processor};
+	my $repo = $self->{repository};
+
+	my $form = $repo->render_form( "POST" );
+	$form->appendChild( $self->render_hidden_bits );
+
+	# avoid getting the 'stage' hidden input
+	my $workflow = $self->workflow;
+	my $stage = $workflow->get_stage( $workflow->get_first_stage_id );
+
+	$form->appendChild( $stage->render( $repo, $workflow ) );
+
+	$form->appendChild( $repo->render_hidden_field( "_default_action", "register" ) );
+	$form->appendChild( $repo->render_action_buttons(
+		register => $repo->phrase( "cgi/register:action_submit" )
+		) );
+
+	return $form;
+}
+
+sub render
+{
+	my( $self ) = @_;
+
+	my $processor = $self->{processor};
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+
+	my $page = $xml->create_document_fragment;
+
+	if( !$repo->config("allow_web_signup") )
+	{
+		return $repo->render_message( "error", $repo->html_phrase( "cgi/register:no_web_signup" ) );
+	}
+
+	my $user = $processor->{user};
+
+	my $action = $repo->get_action_button || '';
+	if( $action eq "register" && defined $user )
+	{
+		$page->appendChild( $repo->html_phrase( 
+			"cgi/register:created_new_user",
+				email=>$user->render_value( "email" ),
+				username=>$user->render_value( "username" ) ) );
+	}
+	elsif( $action eq "confirm" && defined $user )
+	{
+		if( $processor->{newemail} )
+		{
+			$page->appendChild( $repo->html_phrase( 
+				"cgi/confirm:set_email",
+				newemail=>$repo->make_text( $processor->{newemail} ) ) );
+		}
+		else
+		{
+			$page->appendChild( $repo->html_phrase( "cgi/confirm:set_password" ) );
+		}
+
+		$page->appendChild( $repo->html_phrase( "cgi/confirm:username",
+			username => $user->render_value( "username" ) ) );
+
+		$page->appendChild( $repo->html_phrase( "cgi/confirm:go_login" ) );
+	}
+	else
+	{
+		if( $processor->{min} )
+		{
+			$page->appendChild( $repo->html_phrase( "cgi/register:intro_minimal" ) );
+		}
+		else
+		{
+			$page->appendChild( $repo->html_phrase( "cgi/register:intro" ) );
+		}
+
+		$page->appendChild( $self->make_reg_form() );
+	}
+		
+	return $page;
+}
+
+sub make_reg_form
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+
+	my @tools = map { $_->{screen} } $self->list_items( 'register_tools' );
+
+
+
+	my @tabs = map { $_->{screen} } $self->list_items( 'register_tabs' );
+
+	my $show = $self->{processor}->{show};
+	$show = '' if !defined $show;
+	my $current = 0;
+	for($current = 0; $current < @tabs; ++$current)
+	{
+		last if $tabs[$current]->get_subtype eq $show;
+	}
+	$current = 0 if $current == @tabs;
+
+	return $tabs[0]->render_register_form if @tabs == 1;
+
+	return $repo->xhtml->tabs(
+		[map { $_->render_title } @tabs],
+		[map { $_->render_register_form } @tabs],
+		current => $current
+		);
+}
+
+=item $user = $register->register_user( $epdata )
+
+Create a user account using $epdata augmented with any form field values defined by this module.
+
+Sends a confirmation email for either the new password or new email address.
+
+If the email can't be sent returns undef.
+
+=cut
+
+sub register_user
+{
+	my( $self, $epdata ) = @_;
+
+	my $repo = $self->{repository};
+	my $dataset = $repo->dataset( "user" );
+
+	my $pin = sprintf( "%04X%04X%04X%04X",int rand 0xffff,int rand 0xffff,int rand 0xffff,int rand 0xffff );
+	$epdata->{usertype} = $repo->config( "default_user_type" );
+	$epdata->{pin} = $pin;
+	$epdata->{pinsettime} = time();
+
+	my $user = $dataset->create_object( $repo, $epdata );
+
+	my $maxdelta = EPrints::Time::human_delay( $repo->config( "pin_timeout" ) );
+
+	# If email fails then we should abort
+	my $rc;
+	
+	if( $user->is_set( "newpassword" ) )
+	{
+		$rc = $user->mail( 
+			"cgi/register:account",
+			$repo->html_phrase( 
+				"mail_password_pin", 
+				confirmurl => $repo->render_link( $repo->config( "perl_url" )."/confirm?userid=".$user->value( "userid" )."&pin=".$user->value( "pin" ) ),
+				username => $user->render_value( "username" ),
+				maxdelta => $repo->make_text( $maxdelta ) ) );
+	}
+	elsif( $user->is_set( "newemail" ) )
+	{
+		$rc = $user->mail( 
+			"cgi/register:account",
+			$repo->html_phrase( 
+				"mail_email_pin", 
+				confirmurl => $repo->render_link( $repo->config( "perl_url" )."/confirm?userid=".$user->value( "userid" )."&pin=".$user->value( "pin" ) ),
+				newemail => $repo->make_text( $user->value( "newemail" ) ),
+				username => $user->render_value( "username" ),
+				maxdelta => $repo->make_text( $maxdelta ) ),
+			undef,
+			$user->value( "newemail" ) );
+	}
+	else
+	{
+		EPrints->abort( "expected newpassword or newemail to be set" );
+	}
+
+	if( !$rc )
+	{
+		# couldn't send email, so remove the user object again
+		# and apologise
+		$user->remove();
+		$self->{processor}->add_message( "error", $repo->html_phrase(
+			"general:email_failed",
+			) );
+		return;
+	}
+
+	return $user;
 }
 
 1;

@@ -193,7 +193,7 @@ sub from
 
 	# If you hit reload after login you can cause a
 	# login action, so we'll just ignore it.
-	return if( $action_id eq "login" );
+#	return if( $action_id eq "login" );
 
 	my $ok = 0;
 	foreach my $an_action ( @{$self->{actions}} )

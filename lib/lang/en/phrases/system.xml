@@ -2301,12 +2301,12 @@ Public CGI Scripts
     <epp:phrase id="cgi/register:account">Registration</epp:phrase>
     <epp:phrase id="cgi/register:error">Error</epp:phrase>
 
+	<epp:phrase id="register_fieldname_name" ref="user_fieldname_name"/>
+	<epp:phrase id="register_fieldhelp_name" ref="user_fieldhelp_name"/>
+
     <epp:phrase id="register_fieldname_lang">Your preferred language</epp:phrase>
     <epp:phrase id="register_fieldhelp_lang">This will set which language is used for automated emails</epp:phrase>
 
-
-    <epp:phrase id="register_fieldname_email">Your email address</epp:phrase>
-    <epp:phrase id="register_fieldhelp_email">This must be a valid email address.</epp:phrase>
 
     <epp:phrase id="register_fieldname_username">Select a username</epp:phrase>
     <epp:phrase id="register_fieldhelp_username">A username must begin with a letter and only contain letters and numerals.</epp:phrase>
@@ -2516,8 +2516,7 @@ Titles and Help for the System Fields
     <epp:phrase id="user_fieldname_userid">User ID Number</epp:phrase>
     <epp:phrase id="user_fieldname_rev_number">Revision</epp:phrase>
     <epp:phrase id="user_fieldname_username">Username</epp:phrase>
-    <epp:phrase id="user_fieldhelp_newemail">Enter your new email address</epp:phrase>
-    <epp:phrase id="user_fieldhelp_username"></epp:phrase>
+    <epp:phrase id="user_fieldhelp_username">Username must be a combination of letters and numbers. This may be your email address.</epp:phrase>
     <epp:phrase id="user_fieldname_password">Password</epp:phrase>
     <epp:phrase id="user_fieldhelp_password">Leaving this field blank will not affect the password.</epp:phrase>
     <epp:phrase id="user_fieldname_newpassword"><epc:phrase ref="user_fieldname_password"/></epp:phrase>
@@ -2531,10 +2530,16 @@ Titles and Help for the System Fields
     <epp:phrase id="user_fieldhelp_joined"></epp:phrase>
     <epp:phrase id="user_fieldname_email">Email address</epp:phrase>
     <epp:phrase id="user_fieldhelp_email">The email address for this user</epp:phrase>
+    <epp:phrase id="user_fieldname_newemail" ref="user_fieldname_email"></epp:phrase>
+    <epp:phrase id="user_fieldhelp_newemail">This must be a valid email address.</epp:phrase>
+
     <epp:phrase id="user_fieldname_lang">Preferred Language</epp:phrase>
     <epp:phrase id="user_fieldhelp_lang">Your preferred language. Where possible information will be mailed in this language.</epp:phrase>
     <epp:phrase id="user_fieldname_roles">Roles</epp:phrase>
     <epp:phrase id="user_fieldhelp_roles">This field allows an administrator to assign roles to a user. It may ealso be used to assign (and remove) indiviudal privilidges by prefixing the priv string with plus (+) or minus (-).</epp:phrase>
+
+	<epp:phrase id="user_fieldname_openid_identifier">OpenID Endpoint</epp:phrase>
+	<epp:phrase id="user_fieldhelp_openid_identifier">This must be a valid OpenID endpoint e.g. https://www.google.com/accounts/o8/id</epp:phrase>
 
     <!-- These fields are only used by users with "editor" privs -->
     <epp:phrase id="user_fieldname_editperms">Editorial Rights Restriction</epp:phrase>
@@ -3814,5 +3819,14 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="lib/citation:not_available">No default citation style available for <epc:pin name="dataset" /></epp:phrase>
 
 	<epp:phrase id="lib/saved_search:bad_search">The saved search could not be re-instated - a search engine or field it depends on may no longer be available.</epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/Login/OpenID:input"><input name="openid_identifier" type="text" /> <epc:pin name="login_button"/></epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/Login/Internal:title">Login</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Login/OpenID:title">OpenID</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Register/Internal:title">Register</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Register/OpenID:title">Register with OpenID</epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/Login/OpenID:bad_response">There was a problem talking to the OpenID service: <epc:pin name="error"/></epp:phrase>
 
 </epp:phrases>
