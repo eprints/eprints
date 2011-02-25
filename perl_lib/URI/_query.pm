@@ -32,7 +32,7 @@ sub query_form {
             $key = '' unless defined $key;
 	    $key =~ s/([;\/?:@&=+,\$%])/$URI::Escape::escapes{$1}/g;
 	    $key =~ s/ /+/g;
-	    $vals = [ref($vals) ? @$vals : $vals];
+	    $vals = [ref($vals) eq 'ARRAY' ? @$vals : $vals];
             for my $val (@$vals) {
                 $val = '' unless defined $val;
 		$val =~ s/([;\/?:@&=+,\$%])/$URI::Escape::escapes{$1}/g;
