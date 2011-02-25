@@ -79,4 +79,11 @@ sub action_register
 	return 1;
 }
 
+sub render
+{
+	my( $self ) = @_;
+
+	return $self->SUPER::render_workflow();
+}
+
 1;

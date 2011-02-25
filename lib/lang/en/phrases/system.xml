@@ -3820,13 +3820,14 @@ Each file inside this archive will be created as an <b>individual</b> document i
 
 	<epp:phrase id="lib/saved_search:bad_search">The saved search could not be re-instated - a search engine or field it depends on may no longer be available.</epp:phrase>
 
-	<epp:phrase id="Plugin/Screen/Login/OpenID:input"><input name="openid_identifier" type="text" /> <epc:pin name="login_button"/></epp:phrase>
-
 	<epp:phrase id="Plugin/Screen/Login/Internal:title">Login</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Login/OpenID:title">OpenID</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Register/Internal:title">Register</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Register/OpenID:title">Register with OpenID</epp:phrase>
 
 	<epp:phrase id="Plugin/Screen/Login/OpenID:bad_response">There was a problem talking to the OpenID service: <epc:pin name="error"/></epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/Login/OpenID:failed">OpenID authentication failed (perhaps your OpenID service doesn't support 2.0?)</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Login/OpenID:no_email">Account has not been activated yet (waiting for email confirmation)</epp:phrase>
 
 </epp:phrases>

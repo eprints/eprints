@@ -27,6 +27,42 @@ sub new
 sub allow_login { 1 }
 sub can_be_viewed { 1 }
 
+sub finished
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+
+	my $user = $self->{processor}->{user};
+
+	my $uri = URI->new( $repo->current_url( host => 1 ) );
+	$uri->query($repo->param( "login_params" ) );
+
+	if( defined $user )
+	{
+		$uri->query_form(
+			$uri->query_form,
+			login_check => 1
+			);
+		# always set a new random cookie value when we login
+		my @a = ();
+		srand;
+		for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
+		my $code = join( "", @a );
+		$repo->login( $user,$code );
+		my $cookie = $repo->{query}->cookie(
+			-name    => "eprints_session",
+			-path    => "/",
+			-value   => $code,
+			-domain  => $repo->get_conf("cookie_domain"),
+		);			
+		$repo->get_request->err_headers_out->add('Set-Cookie' => $cookie);
+	}
+
+	$repo->redirect( "$uri" );
+	exit(0);
+}
+
 sub render_title
 {
 	my( $self ) = @_;
@@ -81,25 +117,6 @@ sub action_login
 	}
 
 	$self->{processor}->{user} = $user;
-
-	my $url = $repo->get_url( host=>1 );
-	$url .= "?login_params=".URI::Escape::uri_escape( $repo->param("login_params") );
-	$url .= "&login_check=1";
-	# always set a new random cookie value when we login
-	my @a = ();
-	srand;
-	for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
-	my $code = join( "", @a );
-	$repo->login( $user,$code );
-	my $cookie = $repo->{query}->cookie(
-		-name    => "eprints_session",
-		-path    => "/",
-		-value   => $code,
-		-domain  => $repo->get_conf("cookie_domain"),
-	);			
-	$r->err_headers_out->add('Set-Cookie' => $cookie);
-	$repo->redirect( $url );
-	exit(0);
 }
 
 sub render
@@ -108,7 +125,11 @@ sub render
 
 	my $processor = $self->{processor};
 	my $repo = $self->{repository};
+	my $xml = $repo->xml;
 	my $r = $repo->get_request;
+
+	# catch inifinite recursion on tab rendering
+	return $xml->create_document_fragment if ref($self) ne __PACKAGE__;
 
 	$r->status( 401 );
 	$r->custom_response( 401, '' ); # disable the normal error document
@@ -128,13 +149,13 @@ sub render
 
 	if( @tabs == 1 )
 	{
-		$page->appendChild( $tabs[0]->render_login_form );
+		$page->appendChild( $tabs[0]->render );
 	}
 	elsif( @tabs )
 	{
 		$page->appendChild( $repo->xhtml->tabs(
 			[map { $_->render_title } @tabs],
-			[map { $_->render_login_form } @tabs],
+			[map { $_->render } @tabs],
 			current => $current
 			) );
 	}
@@ -155,21 +176,6 @@ sub render
 	return $page;
 }
 
-=item $xhtml = $login->render_login()
-
-Render the form components to log in via this method e.g. username and password.
-
-=cut
-
-sub render_login_form
-{
-	my( $self ) = @_;
-
-	my $repo = $self->{repository};
-
-	return $repo->make_doc_fragment;
-}
-
 sub hidden_bits
 {
 	my( $self ) = @_;
@@ -184,11 +190,9 @@ sub hidden_bits
 	if( !defined $login_params )
 	{
 		$login_params = $repo->get_request->args;
+		$login_params = "" if !defined $login_params;
 	}
-	if( $login_params )
-	{
-		push @params, login_params => $login_params;
-	}
+	push @params, login_params => $login_params;
 
 	my $target = $repo->param( "target" );
 	if( $target )

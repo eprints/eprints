@@ -210,7 +210,8 @@ sub workflow
 	);
 }
 
-sub render_register_form
+# this method is just a utility for sub-classes
+sub render_workflow
 {
 	my( $self ) = @_;
 
@@ -242,6 +243,9 @@ sub render
 	my $repo = $self->{repository};
 	my $xml = $repo->xml;
 
+	# catch infinite recursion on tab rendering
+	return $xml->create_document_fragment if ref($self) ne __PACKAGE__;
+
 	my $page = $xml->create_document_fragment;
 
 	if( !$repo->config("allow_web_signup") )
@@ -251,7 +255,8 @@ sub render
 
 	my $user = $processor->{user};
 
-	my $action = $repo->get_action_button || '';
+	my $action = $processor->{action};
+	$action = "" if !defined $action;
 	if( $action eq "register" && defined $user )
 	{
 		$page->appendChild( $repo->html_phrase( 
@@ -300,8 +305,18 @@ sub make_reg_form
 
 	my $repo = $self->{repository};
 
+	my $page = $repo->make_doc_fragment;
+
 	my @tools = map { $_->{screen} } $self->list_items( 'register_tools' );
 
+	my $div = $repo->make_element( "div", class => "ep_block" );
+
+	my $internal;
+	foreach my $tool ( @tools )
+	{
+		$div->appendChild( $tool->render_action_link );
+	}
+	$page->appendChild( $div );
 
 
 	my @tabs = map { $_->{screen} } $self->list_items( 'register_tabs' );
@@ -315,13 +330,21 @@ sub make_reg_form
 	}
 	$current = 0 if $current == @tabs;
 
-	return $tabs[0]->render_register_form if @tabs == 1;
+	return $tabs[0]->render if @tabs == 1;
+	if( @tabs == 1 )
+	{
+		$page->appendChild( $tabs[0]->render );
+	}
+	elsif( @tabs )
+	{
+		$page->appendChild( $repo->xhtml->tabs(
+			[map { $_->render_title } @tabs],
+			[map { $_->render } @tabs],
+			current => $current
+			) );
+	}
 
-	return $repo->xhtml->tabs(
-		[map { $_->render_title } @tabs],
-		[map { $_->render_register_form } @tabs],
-		current => $current
-		);
+	return $page;
 }
 
 =item $user = $register->register_user( $epdata )

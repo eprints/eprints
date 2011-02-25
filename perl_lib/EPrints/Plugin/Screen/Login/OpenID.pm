@@ -18,41 +18,58 @@ sub new
 			position => 1000,
 		},
 	];
+	$self->{endpoints} = [{
+			url => "https://www.google.com/accounts/o8/id",
+			title => "Google",
+		},{
+			url => "https://me.yahoo.com/",
+			icon_url => "images/external/openid-yahoo.png",
+			title => "Yahoo",
+		}];
+	push @{$self->{actions}}, "return";
 
 	return $self;
 }
+
+sub allow_return { shift->allow_login }
 
 sub action_login
 {
 	my( $self ) = @_;
 
 	my $repo = $self->{repository};
+	my $processor = $self->{processor};
+
+	$processor->{screenid} = 'Login';
 
 	my $openid = $repo->param( "openid_identifier" );
-	my $username;
+	$self->finished if !$openid;
+
+	$self->_init_openid( $openid );
+}
+
+sub action_return
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	my $processor = $self->{processor};
+
+	$processor->{screenid} = 'Login';
 
 	my $mode = $repo->param( 'openid.mode' );
 	$mode = '' if !defined $mode;
 
 	if( $mode eq 'cancel' )
 	{
-		my $uri = URI->new( $repo->current_url( host => 1 ) );
-		$uri->query($repo->param( "login_params" ) );
-		$repo->redirect( "$uri" );
-		exit(0);
-	}
-	elsif( defined( $repo->param( 'openid.signed' ) ) )
-	{
-		$username = $self->_valid_openid();
-	}
-	elsif( defined $openid )
-	{
-		$self->_init_openid( $openid );
+		return $self->finished;
 	}
 
-	if( defined $openid && !defined $username )
+	my $username = $self->_valid_openid();
+	if( !defined $username )
 	{
 		$self->{processor}->add_message( "error", $self->html_phrase( "failed" ) );
+		return;
 	}
 
 	$self->{processor}->{username} = $username;
@@ -60,13 +77,16 @@ sub action_login
 	$self->SUPER::action_login;
 
 	my $user = $self->{processor}->{user};
-	return if !defined $user;
 
 	# we require the user to validate their email address via OpenID
 	if( !$user->is_set( "email" ) )
 	{
+		$self->{processor}->add_message( "error", $self->html_phrase( "no_email" ) );
 		undef $self->{processor}->{user};
+		return;
 	}
+
+	$self->finished;
 }
 
 sub _init_openid
@@ -109,7 +129,8 @@ sub _init_openid
 	my $return_to = URI->new( $repo->current_url( scheme => "http", host => 1 ) );
 	$return_to->query_form(
 		$self->hidden_bits,
-		_action_login => 1,
+		openid_identifier => $openid_identifier,
+		_action_return => 1,
 	);
 	$ext{'openid.return_to'} ||= $return_to;
 	$ext{'openid.return_to'} .= ""; # URI breaks with objects
@@ -170,17 +191,33 @@ sub _valid_openid
 		expires => $openid->value( "expires" ),
 	});
 
-	my $identity = URI->new( $repo->param( "openid.identity" ) );
-	$op_endpoint = URI->new( $op_endpoint );
+	my $return_to = URI->new( $repo->param( "openid.return_to" ) );
+	my $openid_identifier = {$return_to->query_form}->{"openid_identifier"};
+	return if !$openid_identifier; # bad return_to
 
-	if( !$identity->host || $identity->host ne $op_endpoint->host )
+	my $username;
+
+	my $identity = $repo->param( "openid.identity" );
+	if( $identity && $identity ne $openid_identifier )
 	{
-		$processor->add_message( 'error', $self->html_phrase( "bad_response",
-			error => $repo->xml->create_text_node( "OpenID provided an identity outside of its realm" ) ) );
-		return;
+		$identity = URI->new( $identity );
+		$openid_identifier = URI->new( $openid_identifier );
+
+		if( !$identity->host || $identity->host ne $openid_identifier->host )
+		{
+			$processor->add_message( 'error', $self->html_phrase( "bad_response",
+				error => $repo->xml->create_text_node( "OpenID provided an identity outside of its realm: ".$identity ) ) );
+			return;
+		}
+
+		$username = $identity;
+	}
+	else
+	{
+		$username = $openid_identifier;
 	}
 
-	return $repo->param( "openid.identity" );
+	return $username;
 }
 
 sub resolve_openid_identifier
@@ -192,6 +229,11 @@ sub resolve_openid_identifier
 
 	my $ua = LWP::UserAgent->new;
 	my $r = $ua->get( $openid_identifier, Accept => 'application/xrds+xml' );
+
+	if( $r->header( 'X-XRDS-Location' ) )
+	{
+		$r = $ua->get( $r->header( 'X-XRDS-Location' ), Accept => 'application/xrds+xml' );
+	}
 
 	if(
 		$r->is_error ||
@@ -241,7 +283,7 @@ sub resolve_openid_identifier
 		push @services, $service;
 	}
 	@services =
-		sort { $b->{priority} <=> $a->{priority} }
+		sort { $a->{priority} <=> $b->{priority} }
 		grep { $_->{type}->{'http://specs.openid.net/auth/2.0/server'} }
 		@services;
 
@@ -262,32 +304,73 @@ sub render_action_link
 	my( $self, %bits ) = @_;
 
 	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
 
-	my $title = $self->render_title;
-	$bits{login_button} = $repo->render_button(
-			name => "_action_login",
-			value => $repo->xhtml->to_text_dump( $title ),
-			class => 'ep_form_action_button', );
-	$bits{login_button} = $repo->make_element( "input",
-		name => "_action_login",
-		type => "image",
-		src => $self->icon_url );
-
-	$repo->xml->dispose( $title );
+	my $table = $xml->create_element( "table" );
+	my $tr = $xml->create_element( "tr" );
+	$table->appendChild( $tr );
+	my $td = $xml->create_element( "td" );
+	$tr->appendChild( $td );
 
 	my $form = $repo->render_form( "POST" );
+	$td->appendChild( $form );
 
-	$form->appendChild( $self->html_phrase( "input", %bits ) );
 	$form->appendChild( $self->render_hidden_bits );
+	$form->appendChild( $xhtml->input_field(
+		"openid_identifier",
+		"",
+		type => "text",
+		style => "background-image: url('".$self->icon_url."'); background-repeat: no-repeat; padding-left: 20px;",
+		) );
 
-	return $form;
+	my $title = $self->render_title;
+	$form->appendChild( $repo->render_button(
+			name => "_action_login",
+			value => $xhtml->to_text_dump( $title ),
+			class => 'ep_form_action_button' ) );
+	$xml->dispose( $title );
+
+	my $endpoints = $self->param( "endpoints" );
+	my $base_url = URI->new( $repo->current_url() );
+	$base_url->query_form(
+		$self->hidden_bits,
+		_action_login => 1,
+		);
+	foreach my $endpoint( @$endpoints )
+	{
+		my $td = $xml->create_element( "td" );
+		$tr->appendChild( $td );
+		my $url = $base_url->clone;
+		$url->query_form(
+			$url->query_form,
+			openid_identifier => $endpoint->{url},
+			);
+		my $link = $xml->create_element( "a", href => "$url" );
+		$td->appendChild( $link );
+		if( $endpoint->{icon_url} )
+		{
+			$link->appendChild( $xml->create_element( "img",
+				src => $repo->current_url( path => "static", $endpoint->{icon_url} ),
+				alt => $endpoint->{title},
+				title => $endpoint->{title},
+				border => 0,
+				) );
+		}
+		else
+		{
+			$link->appendChild( $xml->create_text_node( $endpoint->{title} ) );
+		}
+	}
+
+	return $table;
 }
 
 sub icon_url
 {
 	my( $self ) = @_;
 
-	return $self->{repository}->current_url( path => "static", "images/external/openid-logo-wordmark-icon.jpg" );
+	return $self->{repository}->current_url( path => "static", "images/external/openid-logo-icon.png" );
 }
 
 1;

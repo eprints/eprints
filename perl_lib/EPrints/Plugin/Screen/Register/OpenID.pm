@@ -164,8 +164,16 @@ sub action_return
 	my $user = $self->register_user( $item->get_data );
 
 	$processor->{user} = $user;
+	$processor->{action} = "register";
 
 	return 1;
+}
+
+sub render
+{
+	my( $self ) = @_;
+
+	return $self->SUPER::render_workflow();
 }
 
 1;

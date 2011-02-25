@@ -20,7 +20,7 @@ sub new
 	return $self;
 }
 
-sub render_login_form
+sub render
 {
 	my( $self, %bits ) = @_;
 
@@ -108,7 +108,9 @@ sub action_login
 
 	$self->{processor}->{username} = $real_username;
 
-	return $self->SUPER::action_login;
+	$self->SUPER::action_login;
+
+	return $self->finished;
 }
 
 1;
