@@ -89,13 +89,7 @@ sub action_register
 	my @problems = $workflow->validate;
 	if( @problems )
 	{
-		my $error = $repo->xml->create_element( "ul" );
-		foreach my $problem (@problems)
-		{
-			$error->appendChild( $repo->xml->create_element( "li" ))
-				->appendChild( $problem );
-		}
-		$processor->add_message( "error", $error );
+		$processor->add_message( "error", $self->render_problems( @problems ) );
 		return;
 	}
 
@@ -361,6 +355,7 @@ sub register_user
 {
 	my( $self, $epdata ) = @_;
 
+	my $processor = $self->{processor};
 	my $repo = $self->{repository};
 	my $dataset = $repo->dataset( "user" );
 
@@ -370,6 +365,14 @@ sub register_user
 	$epdata->{pinsettime} = time();
 
 	my $user = $dataset->create_object( $repo, $epdata );
+
+	my @problems = $user->validate;
+	if( @problems )
+	{
+		$user->remove;
+		$processor->add_message( "error", $self->render_problems( @problems ) );
+		return;
+	}
 
 	my $maxdelta = EPrints::Time::human_delay( $repo->config( "pin_timeout" ) );
 
@@ -416,6 +419,21 @@ sub register_user
 	}
 
 	return $user;
+}
+
+sub render_problems
+{
+	my( $self, @problems ) = @_;
+
+	my $repo = $self->{repository};
+
+	my $error = $repo->xml->create_element( "ul" );
+	foreach my $problem (@problems)
+	{
+		$error->appendChild( $repo->xml->create_element( "li" ))
+			->appendChild( $problem );
+	}
+	return $error;
 }
 
 1;
