@@ -157,6 +157,8 @@ sub render_content
 			
 		  );
 
+		@parts{qw( no_help no_toggle )} = @$self{qw( no_help no_toggle )};
+
 		$parts{help_prefix} = $self->{prefix}."_help_".$field->get_name;
 
 		$table->appendChild( $self->{session}->render_row_with_help( %parts ) );
