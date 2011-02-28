@@ -13,11 +13,35 @@ sub new
 	$self->{appears} = [
 		{
 			place => "eprint_view_tabs",
-			position => 100,
+			position => 200,
 		},
 	];
 
+	my $session = $self->{session};
+	if( $session )
+	{
+		$self->{title} = $session->make_element( "span" );
+		$self->{title}->appendChild( $self->SUPER::render_tab_title );
+	}
+
 	return $self;
+}
+
+sub DESTROY
+{
+	my( $self ) = @_;
+
+	if( $self->{title} )
+	{
+		$self->{session}->xml->dispose( $self->{title} );
+	}
+}
+
+sub render_tab_title
+{
+	my( $self ) = @_;
+
+	return $self->{title};
 }
 
 sub can_be_viewed
@@ -200,6 +224,8 @@ sub render
 		}
 	}
 
+	my $has_problems = 0;
+
 	my $edit_screen = $session->plugin(
 		"Screen::".$self->edit_screen_id,
 		processor => $self->{processor} );
@@ -209,20 +235,22 @@ sub render
 			cellpadding => "3" );
 	$page->appendChild( $table );
 
-	foreach my $stage ($self->workflow->get_stage_ids, "")
+	foreach my $stage_id ($self->workflow->get_stage_ids, "")
 	{
-		my $unspec = $stages{$stage}->{unspec};
-		next if $stages{$stage}->{count} == 0;
+		my $unspec = $stages{$stage_id}->{unspec};
+		next if $stages{$stage_id}->{count} == 0;
+
+		my $stage = $self->workflow->get_stage( $stage_id );
 
 		my( $tr, $th, $td );
 
-		my $rows = $stages{$stage}->{rows};
+		my $rows = $stages{$stage_id}->{rows};
 
 		my $url = URI->new( $session->current_url );
 		$url->query_form(
 			screen => $self->edit_screen_id,
 			eprintid => $eprint->id,
-			stage => $stage
+			stage => $stage_id
 		);
 
 		$tr = $session->make_element( "tr" );
@@ -231,13 +259,13 @@ sub render
 
 		$tr->appendChild( $th );
 
-		if( $stage eq "" )
+		if( $stage_id eq "" )
 		{
 			$th->appendChild( $self->html_phrase( "other" ) );
 		}
 		else
 		{
-			my $title = $session->html_phrase( "metapage_title_$stage" );
+			my $title = $session->html_phrase( "metapage_title_$stage_id" );
 			my $table_inner = $session->make_element( "table", style=>'width:100%' );
 			my $tr_inner = $session->make_element( "tr" );
 			my $td_inner_1 = $session->make_element( "td", style=>'text-align:left;margin-right:1em' );
@@ -249,16 +277,23 @@ sub render
 			{
 				my $td_inner_2  = $session->make_element( "td",style=>'text-align:right;font-size:80%' );
 				$tr_inner->appendChild( $td_inner_2 );
-				$td_inner_2->appendChild( $self->render_edit_button( $stage ) );
+				$td_inner_2->appendChild( $self->render_edit_button( $stage_id ) );
 			}
 		}
 
-		if( $stage ne "" )
+		if( $stage_id ne "" )
 		{
 			$tr = $session->make_element( "tr" );
 			$table->appendChild( $tr );
 			$td = $session->make_element( "td", colspan => 2 );
-			$td->appendChild( $self->render_stage_warnings( $stage ) );
+			$tr->appendChild( $td );
+			my @problems = $stage->validate( $self->{processor} );
+			if( @problems )
+			{
+				$has_problems = 1;
+				$td->appendChild(
+					$self->render_stage_warnings( $stage, @problems ) );
+			}
 		}
 
 		foreach $tr (@$rows)
@@ -266,7 +301,7 @@ sub render
 			$table->appendChild( $tr );
 		}
 
-		if( $stage ne "" && $unspec->hasChildNodes )
+		if( $stage_id ne "" && $unspec->hasChildNodes )
 		{
 			$table->appendChild( $session->render_row(
 				$session->html_phrase( "lib/dataobj:unspecified" ),
@@ -277,6 +312,12 @@ sub render
 		$table->appendChild( $tr );
 		$td = $session->make_element( "td", colspan => 2, style=>'height: 1em' );
 		$tr->appendChild( $td );
+	}
+
+	if( $has_problems )
+	{
+		my $span = $self->{title};
+		$span->setAttribute( style => "padding-left: 20px; background: url('".$session->current_url( path => "static", "style/images/warning-icon.png" )."') no-repeat;" );
 	}
 
 	return $page;
@@ -306,16 +347,10 @@ sub render_edit_button
 
 sub render_stage_warnings
 {
-	my( $self, $stage_id ) = @_;
+	my( $self, $stage, @problems ) = @_;
 
 	my $session = $self->{session};
 
-	my $stage = $self->workflow->get_stage( $stage_id );
-
-	my @problems = $stage->validate( $self->{processor} );
-
-	return $session->make_doc_fragment if !scalar @problems;
- 
 	my $ul = $session->make_element( "ul" );
 	foreach my $problem ( @problems )
 	{
