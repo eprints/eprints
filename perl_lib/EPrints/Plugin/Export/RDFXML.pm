@@ -168,7 +168,7 @@ sub attr
 {
 	my( $obj_id, $namespaces ) = @_;
 
-	if( $obj_id =~ /^<(.*)>$/ ) { return "<".xmlesc($1).">"; }
+	if( $obj_id =~ /^<(.*)>$/ ) { return xmlesc($1); }
 
 	if( ! $obj_id =~ m/:/ ) 
 	{ 
@@ -179,7 +179,7 @@ sub attr
 	my( $ns, $value ) = split( /:/, $obj_id, 2 );
 	if( !defined $namespaces->{$ns} )
 	{
-		warn "Unknown namespace prefix '$ns' in RDF data: $obj_id";
+		warn "Unknown namespace prefix '$ns' in RDF data: $obj_id ($obj_id)";
 		return xmlesc($obj_id);
 	}
 
