@@ -93,6 +93,17 @@ $c->add_dataset_trigger( "eprint", EP_TRIGGER_RDF, sub {
 	  		  subject => $doc_uri,
 			predicate => "rdf:type",
 	   		   object => "ep:Document" );
+		my $label = "EPrints #".$eprint->id()." Document";
+		if( $eprint->dataset->has_field( "title" ) && $eprint->is_set( "title" ) )
+		{
+			$label = $eprint->get_value( "title" );
+		}
+		$label .= " (".$eprint->repository->xml->to_string( $doc->render_value( "format" ) ).")";
+		$o{"graph"}->add( 
+		  	subject => $doc_uri,
+			predicate => "rdfs:label",
+		   	object => $label,
+		     	type => "xsd:string" );	
 
 		my $content = $doc->get_value( "content" );
 		if( $content && $c->{rdf}->{content_rel_dc}->{$content} )
@@ -160,6 +171,11 @@ $c->add_dataset_trigger( "eprint", EP_TRIGGER_RDF, sub {
 	  			  	  subject => $doc_uri,
 					predicate => "dct:hasPart",
 	   			   	   object => "<$url>" );
+				$o{graph}->add( 
+	  			  	  subject => "<$url>",
+					predicate => "rdfs:label",
+	   			   	   object => $file->get_value( "filename" ),
+		     			     type => "xsd:string" );	
 			}
 		}
 	}	

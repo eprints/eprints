@@ -479,13 +479,13 @@ $c->add_dataset_trigger( "eprint", EP_TRIGGER_RDF, sub {
 		$o{"graph"}->add(
 			secondary_resource => $person_uri,
 		   	  subject => $person_uri,
-		 	predicate => "foaf:givenname",
+		 	predicate => "foaf:givenName",
 		    	   object => $e_given,
 			     type => "xsd:string" );
 		$o{"graph"}->add(
 			secondary_resource => $person_uri,
 		   	  subject => $person_uri,
-		 	predicate => "foaf:family_name",
+		 	predicate => "foaf:familyName",
 		    	   object => $e_family,
 			     type => "xsd:string" );
 		$o{"graph"}->add(
