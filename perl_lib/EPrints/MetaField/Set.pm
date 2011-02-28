@@ -212,6 +212,7 @@ sub render_set_input
 	if( $input_style eq "short" )
 	{
 		return( $session->render_option_list(
+				checkbox => ($self->{form_input_style} eq "checkbox" ?1:0),
 				values => $tags,
 				labels => $labels,
 				name => $basename,
@@ -503,6 +504,7 @@ sub get_property_defaults
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{input_style} = "short";
 	$defaults{search_input_style} = "checkbox";
+	$defaults{form_input_style} = "select";
 	$defaults{input_rows} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{input_ordered} = 0;
 	$defaults{search_rows} = $EPrints::MetaField::FROM_CONFIG;
