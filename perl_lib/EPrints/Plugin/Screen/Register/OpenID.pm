@@ -17,7 +17,22 @@ sub new
 			place => "register_tabs",
 			position => 1000,
 		},
+		{
+			place => "register_tools",
+			position => 1000,
+		},
 	];
+	$self->{endpoints} = [{
+			# No permission to re-use Google's logo:
+			# http://www.google.com/support/forum/p/apps-apis/thread?tid=37119cb988edbb78&hl=en
+			url => "https://www.google.com/accounts/o8/id",
+			title => "Google",
+		},{
+			# http://developer.yahoo.com/openid/faq.html
+			url => "https://me.yahoo.com/",
+			icon_url => "images/external/openid-yahoo.png",
+			title => "Yahoo",
+		}];
 	push @{$self->{actions}}, qw( return );
 
 	return $self;
@@ -37,9 +52,9 @@ sub update_from_ax
 
 	my $item = $processor->{item};
 
-	if( !$item->is_set( "newemail" ) && $attr{'value.email'} )
+	if( !$item->is_set( "email" ) && $attr{'value.email'} )
 	{
-		$item->set_value( "newemail", $attr{'value.email'} );
+		$item->set_value( "email", $attr{'value.email'} );
 	}
 	if( !$item->is_set( "name" ) && $attr{'value.lastname'} )
 	{
@@ -67,10 +82,17 @@ sub action_register
 
 	if( !$item->is_set( "openid_identifier" ) )
 	{
-		$processor->add_message( "error", $self->{session}->html_phrase(
-			"lib/eprint:not_done_field" ,
-			fieldname=>$item->{dataset}->field( "openid_identifier" )->render_name( $repo ) ) );
-		return;
+		if( $repo->param( "openid_identifier" ) )
+		{
+			$item->set_value( "openid_identifier", $repo->param( "openid_identifier" ) );
+		}
+		else
+		{
+			$processor->add_message( "error", $self->{session}->html_phrase(
+				"lib/eprint:not_done_field" ,
+				fieldname=>$item->{dataset}->field( "openid_identifier" )->render_name( $repo ) ) );
+			return;
+		}
 	}
 
 	my $plugin = $repo->plugin( "Screen::Login::OpenID",
@@ -79,10 +101,10 @@ sub action_register
 	my $dataset = $repo->dataset( "user" );
 
 	my %args;
-	foreach my $field ( $dataset->fields )
+	foreach my $param ($repo->param)
 	{
-		next if !$item->is_set( $field->name );
-		$args{$field->name} = $field->get_id_from_value( $repo, $field->get_value( $item ) );
+		next if $param =~ /^_/;
+		$args{$param} = $repo->param( $param );
 	}
 	$args{screen} = $self->get_subtype;
 	$args{_action_return} = 1;
@@ -126,6 +148,12 @@ sub action_return
 	my $workflow = $self->workflow;
 
 	$workflow->update_from_form( $processor, $workflow->get_stage_id, 1 );
+
+	# action links aren't prefixed
+	if( !$item->is_set( "openid_identifier" ) )
+	{
+		$item->set_value( "openid_identifier", $repo->param( "openid_identifier" ) );
+	}
 
 	$self->update_from_ax();
 
@@ -174,6 +202,49 @@ sub render
 	my( $self ) = @_;
 
 	return $self->SUPER::render_workflow();
+}
+
+sub render_action_link
+{
+	my( $self ) = @_;
+
+	my $processor = $self->{processor};
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+
+	my $frag = $xml->create_document_fragment;
+
+	my $endpoints = $self->param( "endpoints" );
+	my $base_url = URI->new( $repo->current_url() );
+	$base_url->query_form(
+		screen => $self->get_subtype,
+		_action_register => 1,
+		);
+	foreach my $endpoint( @$endpoints )
+	{
+		my $url = $base_url->clone;
+		$url->query_form(
+			$url->query_form,
+			openid_identifier => $endpoint->{url},
+			);
+		my $link = $xml->create_element( "a", href => "$url" );
+		$frag->appendChild( $link );
+		if( $endpoint->{icon_url} )
+		{
+			$link->appendChild( $xml->create_element( "img",
+				src => $repo->current_url( path => "static", $endpoint->{icon_url} ),
+				alt => $endpoint->{title},
+				title => $endpoint->{title},
+				border => 0,
+				) );
+		}
+		else
+		{
+			$link->appendChild( $xml->create_text_node( $endpoint->{title} ) );
+		}
+	}
+
+	return $frag;
 }
 
 1;

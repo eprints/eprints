@@ -27,21 +27,29 @@ sub new
 sub allow_login { 1 }
 sub can_be_viewed { 1 }
 
+# also used by Screen::Register
 sub finished
 {
-	my( $self ) = @_;
+	my( $self, $uri ) = @_;
 
 	my $repo = $self->{repository};
 
 	my $user = $self->{processor}->{user};
 
-	my $uri = URI->new( $repo->current_url( host => 1 ) );
-	$uri->query($repo->param( "login_params" ) );
+	if( !$uri )
+	{
+		$uri = URI->new( $repo->current_url( host => 1 ) );
+		$uri->query($repo->param( "login_params" ) );
+	}
+	else
+	{
+		$uri = URI->new( $uri );
+	}
 
 	if( defined $user )
 	{
 		$uri->query_form(
-			$uri->query_form,
+			login_params => $uri->query,
 			login_check => 1
 			);
 		# always set a new random cookie value when we login
@@ -163,7 +171,7 @@ sub render
 
 	my @tools = map { $_->{screen} } $self->list_items( "login_tools" );
 
-	my $div = $repo->make_element( "div", class => "ep_block" );
+	my $div = $repo->make_element( "div", class => "ep_block ep_login_tools" );
 
 	my $internal;
 	foreach my $tool ( @tools )

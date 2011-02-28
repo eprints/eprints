@@ -19,9 +19,12 @@ sub new
 		},
 	];
 	$self->{endpoints} = [{
+			# No permission to re-use Google's logo:
+			# http://www.google.com/support/forum/p/apps-apis/thread?tid=37119cb988edbb78&hl=en
 			url => "https://www.google.com/accounts/o8/id",
 			title => "Google",
 		},{
+			# http://developer.yahoo.com/openid/faq.html
 			url => "https://me.yahoo.com/",
 			icon_url => "images/external/openid-yahoo.png",
 			title => "Yahoo",
@@ -75,16 +78,7 @@ sub action_return
 	$self->{processor}->{username} = $username;
 
 	$self->SUPER::action_login;
-
-	my $user = $self->{processor}->{user};
-
-	# we require the user to validate their email address via OpenID
-	if( !$user->is_set( "email" ) )
-	{
-		$self->{processor}->add_message( "error", $self->html_phrase( "no_email" ) );
-		undef $self->{processor}->{user};
-		return;
-	}
+	return if !defined $self->{processor}->{user};
 
 	$self->finished;
 }
@@ -93,10 +87,14 @@ sub _init_openid
 {
 	my( $self, $openid_identifier, %ext ) = @_;
 
-	return if $openid_identifier !~ /^https:/; # only HTTP support atm
-
 	my $repo = $self->{repository};
 	my $processor = $self->{processor};
+
+	if( $openid_identifier !~ /^https:/ )
+	{
+		$processor->add_message( "error", $self->html_phrase( "invalid_openid" ) );
+		return;
+	}
 
 	EPrints::DataObj::OpenID->cleanup( $repo );
 
@@ -307,14 +305,40 @@ sub render_action_link
 	my $xml = $repo->xml;
 	my $xhtml = $repo->xhtml;
 
-	my $table = $xml->create_element( "table" );
-	my $tr = $xml->create_element( "tr" );
-	$table->appendChild( $tr );
-	my $td = $xml->create_element( "td" );
-	$tr->appendChild( $td );
+	my $frag = $xml->create_document_fragment;
+
+	my $endpoints = $self->param( "endpoints" );
+	my $base_url = URI->new( $repo->current_url() );
+	$base_url->query_form(
+		$self->hidden_bits,
+		_action_login => 1,
+		);
+	foreach my $endpoint( @$endpoints )
+	{
+		my $url = $base_url->clone;
+		$url->query_form(
+			$url->query_form,
+			openid_identifier => $endpoint->{url},
+			);
+		my $link = $xml->create_element( "a", href => "$url" );
+		$frag->appendChild( $link );
+		if( $endpoint->{icon_url} )
+		{
+			$link->appendChild( $xml->create_element( "img",
+				src => $repo->current_url( path => "static", $endpoint->{icon_url} ),
+				alt => $endpoint->{title},
+				title => $endpoint->{title},
+				border => 0,
+				) );
+		}
+		else
+		{
+			$link->appendChild( $xml->create_text_node( $endpoint->{title} ) );
+		}
+	}
 
 	my $form = $repo->render_form( "POST" );
-	$td->appendChild( $form );
+	$frag->appendChild( $form );
 
 	$form->appendChild( $self->render_hidden_bits );
 	$form->appendChild( $xhtml->input_field(
@@ -331,39 +355,7 @@ sub render_action_link
 			class => 'ep_form_action_button' ) );
 	$xml->dispose( $title );
 
-	my $endpoints = $self->param( "endpoints" );
-	my $base_url = URI->new( $repo->current_url() );
-	$base_url->query_form(
-		$self->hidden_bits,
-		_action_login => 1,
-		);
-	foreach my $endpoint( @$endpoints )
-	{
-		my $td = $xml->create_element( "td" );
-		$tr->appendChild( $td );
-		my $url = $base_url->clone;
-		$url->query_form(
-			$url->query_form,
-			openid_identifier => $endpoint->{url},
-			);
-		my $link = $xml->create_element( "a", href => "$url" );
-		$td->appendChild( $link );
-		if( $endpoint->{icon_url} )
-		{
-			$link->appendChild( $xml->create_element( "img",
-				src => $repo->current_url( path => "static", $endpoint->{icon_url} ),
-				alt => $endpoint->{title},
-				title => $endpoint->{title},
-				border => 0,
-				) );
-		}
-		else
-		{
-			$link->appendChild( $xml->create_text_node( $endpoint->{title} ) );
-		}
-	}
-
-	return $table;
+	return $frag;
 }
 
 sub icon_url

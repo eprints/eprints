@@ -253,10 +253,19 @@ sub render
 	$action = "" if !defined $action;
 	if( $action eq "register" && defined $user )
 	{
-		$page->appendChild( $repo->html_phrase( 
-			"cgi/register:created_new_user",
-				email=>$user->render_value( "email" ),
-				username=>$user->render_value( "username" ) ) );
+		if( $user->is_set( "newpassword" ) || $user->is_set( "newemail" ) )
+		{
+			$page->appendChild( $repo->html_phrase( 
+				"cgi/register:created_new_user",
+					email=>$user->render_value( "email" ),
+					username=>$user->render_value( "username" ) ) );
+		}
+		else
+		{
+			$self->EPrints::Plugin::Screen::Login::finished(
+				$repo->current_url( host => 1, path => "cgi", "users/home" )
+				);
+		}
 	}
 	elsif( $action eq "confirm" && defined $user )
 	{
@@ -303,7 +312,7 @@ sub make_reg_form
 
 	my @tools = map { $_->{screen} } $self->list_items( 'register_tools' );
 
-	my $div = $repo->make_element( "div", class => "ep_block" );
+	my $div = $repo->make_element( "div", class => "ep_login_tools", style => "text-align: right" );
 
 	my $internal;
 	foreach my $tool ( @tools )
@@ -366,14 +375,6 @@ sub register_user
 
 	my $user = $dataset->create_object( $repo, $epdata );
 
-	my @problems = $user->validate;
-	if( @problems )
-	{
-		$user->remove;
-		$processor->add_message( "error", $self->render_problems( @problems ) );
-		return;
-	}
-
 	my $maxdelta = EPrints::Time::human_delay( $repo->config( "pin_timeout" ) );
 
 	# If email fails then we should abort
@@ -404,7 +405,7 @@ sub register_user
 	}
 	else
 	{
-		EPrints->abort( "expected newpassword or newemail to be set" );
+		$rc = 1;
 	}
 
 	if( !$rc )

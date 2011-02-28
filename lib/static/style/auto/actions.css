@@ -17,3 +17,7 @@ td.ep_act_list_button {
 	padding: 0.25em 0 0.25em 0;
 }
 
+.ep_login_tools img {
+	vertical-align: middle;
+	margin: 0px 25px;
+}
