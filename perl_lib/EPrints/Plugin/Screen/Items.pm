@@ -214,32 +214,28 @@ sub render
 	my $filter_div = $session->make_element( "div", class=>"ep_items_filters" );
 	foreach my $f ( qw/ inbox buffer archive deletion / )
 	{
-		my $url = URI->new( $session->current_url( query => 1 ) );
-		my %q = $url->query_form;
-		foreach my $inner_f (keys %filters)
-		{
-			delete $q{"set_show_$inner_f"};
-		}
+		my $url = URI->new( $session->current_url() );
+		my %q = $self->hidden_bits;
 		$q{"set_show_$f"} = !$filters{$f};
 		$url->query_form( %q );
-		my $a = $session->render_link( $url );
+		my $link = $session->render_link( $url );
 		if( $filters{$f} )
 		{
-			$a->appendChild( $session->make_element(
+			$link->appendChild( $session->make_element(
 				"img",
 				src=> "$imagesurl/checkbox_tick.png",
 				alt=>"Showing" ) );
 		}
 		else
 		{
-			$a->appendChild( $session->make_element(
+			$link->appendChild( $session->make_element(
 				"img",
 				src=> "$imagesurl/checkbox_empty.png",
 				alt=>"Not showing" ) );
 		}
-		$a->appendChild( $session->make_text( " " ) );
-		$a->appendChild( $session->html_phrase( "eprint_fieldopt_eprint_status_$f" ) );
-		$filter_div->appendChild( $a );
+		$link->appendChild( $session->make_text( " " ) );
+		$link->appendChild( $session->html_phrase( "eprint_fieldopt_eprint_status_$f" ) );
+		$filter_div->appendChild( $link );
 		$filter_div->appendChild( $session->make_text( ". " ) );
 	}
 

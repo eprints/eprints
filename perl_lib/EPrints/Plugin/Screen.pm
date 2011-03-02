@@ -76,16 +76,36 @@ sub register_error
 		screen=>$self->{session}->make_text( $self->{processor}->{screenid} ) ) );
 }
 
+=item @params = $screen->hidden_bits()
+
+Returns a key-value list of values that must be set when referring to this screen.
+
+At the top-level this is just the 'screen' id.
+
+=cut
+
+sub hidden_bits
+{
+	my( $self ) = @_;
+
+	return(
+		screen => $self->get_subtype
+	);
+}
+
 sub render_hidden_bits
 {
 	my( $self ) = @_;
 
 	my $chunk = $self->{session}->make_doc_fragment;
 
-	$chunk->appendChild( 
-		$self->{session}->render_hidden_field( 
-			"screen", 
-			substr($self->{id},8) ) );
+	my @params = $self->hidden_bits;
+	for(my $i = 0; $i < @params; $i+=2)
+	{
+		$chunk->appendChild( $self->{session}->render_hidden_field( 
+				@params[$i,$i+1]
+			) );
+	}
 
 	return $chunk;
 }

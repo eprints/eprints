@@ -190,9 +190,7 @@ sub hidden_bits
 
 	my $repo = $self->{repository};
 
-	my @params;
-
-	push @params, screen => $self->get_subtype;
+	my @params = $self->hidden_bits;
 
 	my $login_params = $repo->param( "login_params" );
 	if( !defined $login_params )
@@ -209,23 +207,6 @@ sub hidden_bits
 	}
 
 	return @params;
-}
-
-sub render_hidden_bits
-{
-	my( $self ) = @_;
-
-	my $repo = $self->{repository};
-
-	my $frag = $repo->make_doc_fragment;
-
-	my @params = $self->hidden_bits;
-	while(@params)
-	{
-		$frag->appendChild( $repo->render_hidden_field( splice(@params,0,2) ) );
-	}
-
-	return $frag;
 }
 
 1;
