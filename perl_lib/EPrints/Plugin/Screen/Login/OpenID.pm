@@ -77,8 +77,25 @@ sub action_return
 
 	$self->{processor}->{username} = $username;
 
-	$self->SUPER::action_login;
-	return if !defined $self->{processor}->{user};
+	my $user = $repo->user_by_username( $username );
+	if( !defined $user )
+	{
+		my $plugin = $repo->plugin( "Screen::Register::OpenID",
+				processor => $processor,
+			);
+		if( $plugin && $plugin->can_be_viewed )
+		{
+			my $uri = URI->new( $repo->current_url( host => 1, path => "cgi", "register" ) );
+			$uri->query_form(
+				screen => $plugin->get_subtype,
+				openid_identifier => $repo->param( "openid_identifier" ),
+				_action_register => 1,
+				);
+			$self->finished( $uri );
+		}
+	}
+
+	$self->{processor}->{user} = $user;
 
 	$self->finished;
 }

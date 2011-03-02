@@ -190,7 +190,7 @@ sub hidden_bits
 
 	my $repo = $self->{repository};
 
-	my @params = $self->hidden_bits;
+	my @params = $self->SUPER::hidden_bits;
 
 	my $login_params = $repo->param( "login_params" );
 	if( !defined $login_params )
