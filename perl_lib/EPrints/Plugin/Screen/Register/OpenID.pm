@@ -179,6 +179,11 @@ sub action_return
 	my @problems = $workflow->validate();
 	if( @problems )
 	{
+		# change the openid back to the original submitted value, otherwise
+		# we're asking the user to sign in with their assigned id rather than
+		# the endpoint (should they be different)
+		$item->set_value( "openid_identifier", $repo->param( "openid_identifier" ) );
+
 		my $error = $repo->xml->create_element( "ul" );
 		foreach my $problem (@problems)
 		{
