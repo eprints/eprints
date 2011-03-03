@@ -1238,8 +1238,57 @@ sub render_export_links
 	return $ul;
 }
 
+=item $xhtml = $dataobj->render_export_bar( [ $staff ] )
 
+Render a drop-down list of exports.
 
+=cut
+
+sub render_export_bar
+{
+	my( $self, $staff ) = @_;
+
+	my $repo = $self->{session};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $vis = "all";
+	$vis = "staff" if $staff;
+	my $id = $self->get_id;
+
+	my $frag = $xml->create_document_fragment;
+	my $uri = $repo->config( "http_cgiurl" ) . "/export_redirect";
+	my $form = $repo->render_form( "GET", $uri );
+	$frag->appendChild( $form );
+	$form->appendChild( $xhtml->hidden_field( dataset => $self->get_dataset_id ) );
+	$form->appendChild( $xhtml->hidden_field( dataobj => $self->id ) );
+	my $select = $xml->create_element( "select", name => "format" );
+	$form->appendChild( $select );
+
+	my @plugins = $self->{session}->get_plugins( 
+					type=>"Export",
+					can_accept=>"dataobj/".$self->get_dataset_id, 
+					is_advertised=>1,
+					is_visible=>$vis );
+	foreach my $plugin ( sort { $a->{name} cmp $b->{name} } @plugins ) 
+	{
+		$select->appendChild(
+			$xml->create_element( "option", value => $plugin->get_subtype )
+		)->appendChild(
+			$plugin->render_name
+		);
+	}
+
+	$form->appendChild(
+		$xml->create_element( "input",
+			type => "submit",
+			value => $repo->phrase( "lib/searchexpression:export_button" ),
+			class => "ep_form_action_button"
+		)
+	);
+
+	return $frag;
+}
 
 ######################################################################
 =pod
