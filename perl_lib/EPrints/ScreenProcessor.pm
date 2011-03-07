@@ -42,9 +42,12 @@ sub new
 		$self{screenid} = "FirstTool";
 	}
 
-	# This loads the properties of what the screen is about,
-	# Rather than parameters for the action, if any.
-	$self->screen->properties_from;
+	my $user = $self{session}->current_user;
+	if( defined $user )
+	{
+		$self{user} = $user;
+		$self{userid} = $user->id;
+	}
 
 	return $self;
 }
@@ -275,6 +278,10 @@ sub process
 	}
 
 	my $self = $class->new( %opts );
+
+	# This loads the properties of what the screen is about,
+	# Rather than parameters for the action, if any.
+	$self->screen->properties_from;
 
 	$self->{action} = $self->{session}->get_action_button;
 	$self->{internal} = $self->{session}->get_internal_button;
