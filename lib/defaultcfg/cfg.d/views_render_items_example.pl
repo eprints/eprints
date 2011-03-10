@@ -36,7 +36,7 @@ $c->{render_view_items_3col_boxes} = sub
 
 		my $a1 = $repository->render_link( $link );
 		my $piccy = $xml->create_element( "span", style=>"display: block; width: 200px; height: 150px; border: solid 1px #888; background-color: #ccf; padding: 0.25em" );
-		$piccy->appendChild( $xml->create_text( "Imagine I'm a picture!" ));
+		$piccy->appendChild( $xml->create_text_node( "Imagine I'm a picture!" ));
 		$a1->appendChild( $piccy );
 		$td->appendChild( $a1 );
 

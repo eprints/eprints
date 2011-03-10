@@ -57,7 +57,7 @@ $c->{user_render} = sub
 	{
 		$p = $xml->create_element( "p" );
 		$p->appendChild( $repository->html_phrase( "user_fieldname_usertype" ) );
-		$p->appendChild( $xml->create_text( ": " ) );
+		$p->appendChild( $xml->create_text_node( ": " ) );
 		$p->appendChild( $user->render_value( "usertype" ) );
 		$info->appendChild( $p );
 	}
