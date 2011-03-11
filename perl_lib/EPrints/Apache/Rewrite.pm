@@ -452,6 +452,7 @@ ANCESTORS: foreach my $anc_subject_id ( @{$item->get_value( "ancestors" )} )
 		else
 		{
 			$url = $item->get_url;
+			undef $url if $url eq $item->uri; # item's summary page *is* it's id location
 		}
 
 		my $match = content_negotiate_best_plugin( 
