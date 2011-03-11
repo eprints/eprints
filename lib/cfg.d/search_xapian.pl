@@ -55,7 +55,7 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 		foreach my $key (keys %field_pos)
 		{
 			next if $field_pos{$key};
-			$db->set_metadata( $key, $field_pos{$key} = ++$max_pos );
+			$db->set_metadata( $key, "" . ($field_pos{$key} = ++$max_pos) );
 		}
 	}
 
