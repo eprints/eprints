@@ -7,8 +7,6 @@ use EPrints::Plugin::Export::Grid;
 
 use strict;
 
-use Data::Dumper;
-
 sub new
 {
 	my( $class, %opts ) = @_;
@@ -33,6 +31,8 @@ sub output_list
 
 	my $r = [];
 
+	binmode( $opts{fh}, ":utf8" );
+
 	if( defined $opts{fh} )
 	{
 		print {$opts{fh}} $part;
@@ -41,7 +41,6 @@ sub output_list
 	{
 		push @{$r}, $part;
 	}
-
 
 	# list of things
 
@@ -89,10 +88,11 @@ sub csv
 	{
 		if( !defined $item )
 		{
-			push @r, "";
+			push @r, '""';
 			next;
 		}
 		$item =~ s/(["\\])/\\$1/g;
+		$item =~ s/\r?\n//g;
 		push @r, '"'.$item.'"';
 	}
 	return join( ",", @r )."\n";
