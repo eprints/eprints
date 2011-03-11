@@ -177,7 +177,11 @@ undef $age if $DEBUG;
 	{
 		$view = $a_view, last if( $a_view->{id} eq $viewid );
 	}
-	return undef if !defined $view;
+	if( !defined $view )
+	{
+		$repo->log( "'$viewid' was not found in browse_views configuration" );
+		return;
+	}
 
 	my $max_menu_age = $view->{max_menu_age} || 24*60*60;
 	my $max_list_age = $view->{max_list_age} || 24*60*60;
@@ -311,7 +315,13 @@ sub update_view_menu
 	}
 
 	# no values to show at this level nor a navigation tree (subjects)
-	return NOT_FOUND if !scalar(keys(%$sizes)) && !scalar(keys(%$nav_sizes));
+	if( !scalar(keys(%$sizes)) && !scalar(keys(%$nav_sizes)) )
+	{
+		$repo->log( sprintf( "Warning! No values were found for %s [%s] - configuration may be wrong",
+			$view->name,
+			join(',', map { $_->[0]->name } @{$menus_fields}[0..$nav_level])
+		) );
+	}
 
 	# translate ids to values
 	my @values = map { $menu_fields->[0]->get_value_from_id( $repo, $_ ) } keys %$sizes;
@@ -1827,6 +1837,22 @@ sub new
 		_repository => $opts{repository},
 		_citescache => {},
 	}, __PACKAGE__;
+}
+
+=item $desc = $view->name
+
+Returns a human-readable name of this view (for debugging).
+
+=cut
+
+sub name
+{
+	my( $self ) = @_;
+
+	return sprintf("%s.view.%s",
+		$self->dataset->base_id,
+		$self->{id},
+	);
 }
 
 sub escape_path_values
