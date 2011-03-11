@@ -51,6 +51,8 @@ sub output_list
 		die("Unable to create spreadsheet: $!")unless defined $workbook;
 	}
 
+	$workbook->set_properties( utf8 => 1 );
+
 	my $worksheet = $workbook->add_worksheet();
 
 	my $col_id = 0;
