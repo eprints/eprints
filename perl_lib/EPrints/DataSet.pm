@@ -1533,6 +1533,13 @@ sub citation
 		$citation = $repo->{citations}->{$self->base_id}->{"default"};
 	}
 
+	# reload the citation if it needs to be
+	if( !$repo->{fresh}->{$citation} )
+	{
+		$repo->{fresh}->{$citation} = 1;
+		$citation->freshen;
+	}
+
 	return $citation;
 }
 
