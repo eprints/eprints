@@ -146,16 +146,23 @@ sub get_value
 	}
 	else
 	{
-		my $fieldname;
-		$fieldname = $self->get_property( "dataset_fieldname" );
+		my $fieldname = $self->get_property( "dataset_fieldname" );
 		if( EPrints::Utils::is_set( $fieldname ) )
 		{
+			if( !$ds->has_field( $fieldname ) )
+			{
+				EPrints->abort( "dataset_fieldname property on ".$self->{dataset}->id.".".$self->{name}." is not a valid field on ".$ds->id );
+			}
 			$searchexp->add_field(
 				$ds->field( $fieldname ),
 				$parent->get_dataset->base_id
 			);
 		}
 		$fieldname = $self->get_property( "dataobj_fieldname" );
+		if( !$ds->has_field( $fieldname ) )
+		{
+			EPrints->abort( "dataset_fieldname property on ".$self->{dataset}->id.".".$self->{name}." is not a valid field on ".$ds->id );
+		}
 		$searchexp->add_field(
 			$ds->field( $fieldname ),
 			$parent->id
