@@ -80,39 +80,9 @@ if( !defined $dataset )
 	exit;
 }
 
-my $sconf;
-if( $datasetid eq "archive" )
-{
-	$sconf = $repo->config( "search", $searchid );
-}
-else
-{
-	$sconf = $repo->config( "datasets", $datasetid, "search", $searchid );
-}
-if( defined $sconf )
-{
-	foreach my $sfs (@{$sconf->{search_fields}})
-	{
-		for(@{$sfs->{meta_fields}})
-		{
-			$_ = "documents" if $_ eq "_fulltext_";
-		}
-	}
-}
-elsif( $searchid eq "simple" )
-{
-	$sconf = $dataset->_simple_search_config();
-}
-elsif( $searchid eq "advanced" )
-{
-	$sconf = $dataset->_advanced_search_config();
-}
-
 EPrints::ScreenProcessor->process( 
 	session => $repo, 
 	url => $repo->config( "http_cgiroot" )."/search/$datasetid/$searchid",
-	sconf => $sconf,
-	template => $sconf->{template},
 	screenid => "Search",
 	searchid => $searchid,
 	dataset => $dataset,

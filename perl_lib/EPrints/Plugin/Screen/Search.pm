@@ -351,6 +351,50 @@ sub render_dataset
 	return $frag;
 }
 
+sub properties_from
+{
+	my( $self ) = @_;
+
+	$self->SUPER::properties_from();
+
+	my $processor = $self->{processor};
+	my $repo = $self->{session};
+
+	my $dataset = $processor->{dataset};
+	my $searchid = $processor->{searchid};
+
+	my $sconf;
+	if( $dataset->id eq "archive" )
+	{
+		$sconf = $repo->config( "search", $searchid );
+	}
+	else
+	{
+		$sconf = $repo->config( "datasets", $dataset->id, "search", $searchid );
+	}
+	if( defined $sconf )
+	{
+		foreach my $sfs (@{$sconf->{search_fields}})
+		{
+			for(@{$sfs->{meta_fields}})
+			{
+				$_ = "documents" if $_ eq "_fulltext_";
+			}
+		}
+	}
+	elsif( $searchid eq "simple" )
+	{
+		$sconf = $dataset->_simple_search_config();
+	}
+	elsif( $searchid eq "advanced" )
+	{
+		$sconf = $dataset->_advanced_search_config();
+	}
+
+	$processor->{sconf} = $sconf;
+	$processor->{template} = $sconf->{template};
+}
+
 sub from
 {
 	my( $self ) = @_;
