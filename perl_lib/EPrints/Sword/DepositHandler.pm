@@ -299,6 +299,10 @@ sub handler
 			return Apache2::Const::DONE;
 		}
 	}
+	
+	if($headers->{content_type} eq "application/atom+xml") {
+		$import_plugin_id = "Import::XSLT::Atom";
+	}
 
 	unless(defined $import_plugin_id)
 	{
@@ -340,8 +344,10 @@ sub handler
 
 	my %opts;
 	$opts{file} = $file;
+	$opts{filename} = $file;
 	$opts{mime_type} = $headers->{content_type};
         $opts{dataset_id} = $target_collection;
+	$opts{dataset} = $session->get_repository()->get_dataset( $target_collection );
         $opts{owner_id} = $owner->get_id;
         $opts{depositor_id} = $depositor->get_id if(defined $depositor);
 	$opts{verbose} = $VERBOSE;
@@ -357,17 +363,42 @@ sub handler
 		}
 	}
 	$opts{flags} = $flags;
+	$import_plugin->{parse_only} = $NO_OP;
+
+	my $handler = EPrints::CLIProcessor->new(
+			session => $session,
+			scripted => 0,
+	);
+	$import_plugin->set_handler($handler);
 
 	my $eprint = $import_plugin->input_file( %opts );
-	$verbose_desc .= $import_plugin->get_verbose();
+	
+	my $count = $NO_OP ? $handler->{parsed} : $handler->{wrote};
+
+	if ($eprint->isa( "EPrints::List" )) {
+		$eprint = $eprint->item(0);
+	}
+	if (defined $eprint) {
+		print STDERR "SETTING VALUES\n\n";
+		$eprint->set_value( "userid", $owner->get_id);
+		if (defined $depositor) {
+			$eprint->set_value( "sword_depositor", $depositor->get_id);
+		}
+		$eprint->commit();
+	}
+
+#	$verbose_desc .= $import_plugin->get_verbose();
 
 	if( $NO_OP )
 	{
-		my $code = $import_plugin->get_status_code();
-		$code = 400 unless( defined $code );	
 
-		if( $code == 200 )
+#		my $code = $import_plugin->get_status_code();
+#		$code = 400 unless( defined $code );	
+
+		my $code = 400;
+		if($count > 0)
 		{
+			$code = 200;
 			my %xml_opts;
 			$xml_opts{user_agent} = $headers->{user_agent};
 			$xml_opts{x_packaging} = $headers->{x_packaging};
@@ -384,7 +415,7 @@ sub handler
 			$request->print( $noop_xml );
 		        $session->terminate;
 		        return Apache2::Const::OK;
-		}
+		} 
 
                 my $error_doc = EPrints::Sword::Utils::generate_error_document( $session,
 					user_agent => $headers->{user_agent},
@@ -404,10 +435,10 @@ sub handler
 
 	unless(defined $eprint)
 	{
-		my $code = $import_plugin->get_status_code();
-		$code = 400 unless(defined $code);
-	        $request->status( $code );
-                
+#		my $code = $import_plugin->get_status_code();
+#		$code = 400 unless(defined $code);
+#	        $request->status( $code );
+                my $code = 400;
                 my $error_doc = EPrints::Sword::Utils::generate_error_document( $session,
 					user_agent => $headers->{user_agent},
                                         href => "http://purl.org/net/sword/error/ErrorContent",
@@ -422,7 +453,6 @@ sub handler
                 return Apache2::Const::DONE;
         }
 	
-
 #	my %xml_opts;
 #	$xml_opts{eprint} = $eprint;
 #	$xml_opts{x_packaging} = $headers->{x_packaging};
