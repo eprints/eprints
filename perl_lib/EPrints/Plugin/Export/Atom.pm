@@ -197,7 +197,8 @@ sub output_eprint
 			href => $dataobj->uri ) );
 	$entry->appendChild( $xml->create_data_element(
 			"summary",
-			$xhtml->to_text_dump( $dataobj->render_citation ) ) );
+#			$xhtml->to_text_dump( $dataobj->render_citation ) ) );
+			$dataobj->get_value("abstract") ) );
 
 	my $updated;
 	my $datestamp = $dataobj->get_value( "lastmod" );
@@ -236,6 +237,11 @@ sub output_eprint
 			$author->appendChild( $xml->create_data_element(
 						"name",
 						$name_str ) );
+			
+			$author->appendChild( $xml->create_data_element(
+						"email",
+						$name->{id} ) );
+
 			$entry->appendChild( $author );
 		}
 	}
