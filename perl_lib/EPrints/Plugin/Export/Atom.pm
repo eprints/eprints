@@ -223,7 +223,16 @@ sub output_eprint
 		"category",
 		undef,
 		term => $dataobj->value( "type" ),
-		scheme => $repo->config( "base_url" )."/data/eprint#type"
+		label => $dataobj->value( "type" ),
+		scheme => $repo->config( "base_url" )."/data/eprint/type/"
+	) );
+	
+	$entry->appendChild( $xml->create_data_element(
+		"category",
+		undef,
+		term => $dataobj->value( "eprint_status" ),
+		label => $dataobj->value( "eprint_status" ),
+		scheme => $repo->config( "base_url" )."/data/eprint/status/"
 	) );
 
 	if( $dataobj->exists_and_set( "creators" ) )
