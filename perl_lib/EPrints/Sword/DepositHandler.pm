@@ -379,7 +379,6 @@ sub handler
 		$eprint = $eprint->item(0);
 	}
 	if (defined $eprint) {
-		print STDERR "SETTING VALUES\n\n";
 		$eprint->set_value( "userid", $owner->get_id);
 		if (defined $depositor) {
 			$eprint->set_value( "sword_depositor", $depositor->get_id);
