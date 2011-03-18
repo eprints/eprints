@@ -11,6 +11,7 @@ sub new
 	$self->{workflow} = $workflow;
 	$self->{session} = $workflow->{session};
 	$self->{item} = $workflow->{item};
+	$self->{required_only} = $workflow->{required_only};
 	$self->{repository} = $self->{session}->get_repository;
 
 	$self->{name} = $stage->getAttribute("name");
@@ -87,14 +88,21 @@ sub _read_components
 			$params{prefix} = $id;
 			
 			my $pluginid = "InputForm::Component::$type";
-
+			
 			my $plugin = $self->{session}->plugin( $pluginid, %params );
 			if( !defined $plugin )
 			{
 				$params{placeholding} = $type;
 				$plugin = $self->{session}->plugin( "InputForm::Component::PlaceHolder", %params );
 			}
-			push @{$self->{components}}, $plugin;
+			
+			if ($self->{repository}->{required_only} && !($self->{session}->param("stage") eq "files")) {
+				if ($plugin->is_required()) {
+					push @{$self->{components}}, $plugin;
+				}
+			} else {
+				push @{$self->{components}}, $plugin;
+			}
 		}
 		elsif( $name eq "title" )
 		{

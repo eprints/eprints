@@ -12,6 +12,9 @@ sub properties_from
 	my( $self ) = @_;
 
 	$self->{processor}->{eprintid} = $self->{session}->param( "eprintid" );
+	unless (defined $self->{repository}->{required_only}) {
+		$self->{repository}->{required_only} = $self->{session}->param( "required_only" );
+	}
 	$self->{processor}->{eprint} = new EPrints::DataObj::EPrint( $self->{session}, $self->{processor}->{eprintid} );
 
 	if( !defined $self->{processor}->{eprint} )
@@ -245,6 +248,7 @@ sub render_hidden_bits
 	my $chunk = $self->{session}->make_doc_fragment;
 
 	$chunk->appendChild( $self->{session}->render_hidden_field( "eprintid", $self->{processor}->{eprintid} ) );
+
 	$chunk->appendChild( $self->SUPER::render_hidden_bits );
 
 	return $chunk;

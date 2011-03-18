@@ -73,7 +73,14 @@ sub parse_config
 		if( $node->nodeName eq "field" ) 
 		{
 			my $field = $self->xml_to_metafield( $node );
-			push @{$self->{config}->{fields}}, $field;
+			if ($self->{repository}->{required_only}) {
+				if ($field->get_property( "required" ) ) {
+					$self->{config}->{field}->{required} = 1;
+					push @{$self->{config}->{fields}}, $field;
+				}
+			} else {
+				push @{$self->{config}->{fields}}, $field;
+			}
 		}
 
 		if( $node->nodeName eq "title" ) 
