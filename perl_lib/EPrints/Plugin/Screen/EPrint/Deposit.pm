@@ -119,6 +119,8 @@ sub render
 	my $owner  = $priv & 4;
 	my $editor = $priv & 8;
 
+	my $div = $self->{session}->make_element("div",align=>"center");
+
 	if( scalar @{$problems} == 0 || $editor )
 	{
 		my $action = "deposit";
@@ -139,20 +141,24 @@ sub render
 
 		$form->appendChild( $self->{session}->html_phrase( "deposit_agreement_text" ) );
 	
-		$form->appendChild( $self->{session}->render_action_buttons(
+		$div->appendChild( $self->{session}->render_action_buttons(
 			$action => $self->{session}->phrase( "priv:action/eprint/deposit" ),
 			save => $self->{session}->phrase( "priv:action/eprint/deposit_later" ),
 			_order => [$action, "save"],
 		) );
+		
+		$form->appendChild($div);
 	}
 	else
 	{
 		$form->appendChild( $self->html_phrase( "action:save:description" ) );
 
-		$form->appendChild( $self->{session}->render_action_buttons(
+		$div->appendChild( $self->{session}->render_action_buttons(
 			save => $self->{session}->phrase( "priv:action/eprint/deposit_later" ),
 			_order => [qw( save )],
 		) );
+
+		$form->appendChild($div);
 	}
 
 	return $page;
