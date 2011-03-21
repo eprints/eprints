@@ -66,6 +66,7 @@ sub get_property_defaults
 	$defaults{dataset_fieldname} = "datasetid";
 	$defaults{dataobj_fieldname} = "objectid";
 	$defaults{show_in_fieldlist} = 0;
+	$defaults{match} = "IN";
 
 	return %defaults;
 }
@@ -205,6 +206,9 @@ sub get_search_conditions
 		$session,
 		$search_value
 	);
+
+	return EPrints::Search::Condition::Pass->new()
+		if !@$codes;
 
 	if( $search_value =~ s/\*$// )
 	{
