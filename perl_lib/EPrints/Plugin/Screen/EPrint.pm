@@ -18,8 +18,8 @@ sub properties_from
 	my( $self ) = @_;
 
 	$self->{processor}->{eprintid} = $self->{session}->param( "eprintid" );
-	unless (defined $self->{repository}->{required_only}) {
-		$self->{repository}->{required_only} = $self->{session}->param( "required_only" );
+	unless (defined $self->{processor}->{required_fields_only}) {
+		$self->{processor}->{required_fields_only} = $self->{session}->param( "required_only" );
 	}
 	$self->{processor}->{eprint} = new EPrints::DataObj::EPrint( $self->{session}, $self->{processor}->{eprintid} );
 
