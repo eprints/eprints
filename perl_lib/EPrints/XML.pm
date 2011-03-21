@@ -379,7 +379,7 @@ sub text_contents_of
 	{
 		for($node->childNodes)
 		{
-			$str .= text_contents_of( $_ );
+			$str .= $self->text_contents_of( $_ );
 		}
 	}
 
