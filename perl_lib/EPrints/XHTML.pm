@@ -455,10 +455,6 @@ sub page
 	unless( $self->{repository}->{offline} || !defined $self->{repository}->{query} )
 	{
 		my $mo = $self->{repository}->param( "mainonly" );
-		if ($self->{repository}->{mainonlycss} ) {
-			$options{template} =  "mainonlycss";
-		}
-		
 		if( defined $mo && $mo eq "yes" )
 		{
 			return EPrints::Page::DOM->new( $self->{repository}, $map->{page}, add_doctype=>0 );
