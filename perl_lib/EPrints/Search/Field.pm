@@ -363,6 +363,20 @@ sub get_conditions
 		@parts = EPrints::Index::Tokenizer::split_search_value( 
 			$self->{"session"},
 			$self->{"value"} );
+		# unless we strip stop-words 'the' will get passed through to name
+		# matches causing no results (doesn't help in the search description)
+		my $freetext_stop_words = $self->{session}->config(
+				"indexing",
+				"freetext_stop_words"
+			);
+		my $freetext_always_words = $self->{session}->config(
+				"indexing",
+				"freetext_always_words"
+			);
+		@parts = grep {
+				$freetext_always_words->{lc($_)} ||
+				!$freetext_stop_words->{lc($_)}
+			} @parts;
 	}
 	else
 	{
