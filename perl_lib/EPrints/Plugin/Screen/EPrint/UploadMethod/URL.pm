@@ -12,20 +12,23 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
+	$self->{actions} = [qw( add_format )];
 	$self->{appears} = [
-			{ place => "upload_methods", position => 300 },
+		{ place => "upload_methods", position => 300 },
 	];
 
 	return $self;
 }
 
-sub from
+sub allow_add_format { shift->can_be_viewed }
+
+sub action_add_format
 {
-	my( $self, $basename ) = @_;
+	my( $self ) = @_;
 
 	my $session = $self->{session};
 	my $processor = $self->{processor};
-	my $ffname = join('_', $basename, $self->get_id, "url");
+	my $ffname = join('_', $self->{prefix}, "url");
 	my $eprint = $processor->{eprint};
 
 	my $url = Encode::decode_utf8( $session->param( $ffname ) );
@@ -57,13 +60,13 @@ sub from
 
 sub render
 {
-	my( $self, $basename ) = @_;
+	my( $self ) = @_;
 
 	my $f = $self->{session}->make_doc_fragment;
 
 	$f->appendChild( $self->{session}->html_phrase( "Plugin/InputForm/Component/Upload:new_from_url" ) );
 
-	my $ffname = join('_', $basename, $self->get_id, "url");
+	my $ffname = join('_', $self->{prefix}, "url");
 	my $file_button = $self->{session}->make_element( "input",
 		name => $ffname,
 		size => "30",
@@ -72,7 +75,7 @@ sub render
 	my $add_format_button = $self->{session}->render_button(
 		value => $self->{session}->phrase( "Plugin/InputForm/Component/Upload:add_format" ), 
 		class => "ep_form_internal_button",
-		name => "_internal_".$basename."_add_format_".$self->get_id );
+		name => "_internal_".$self->{prefix}."_add_format" );
 	$f->appendChild( $file_button );
 	$f->appendChild( $self->{session}->make_text( " " ) );
 	$f->appendChild( $add_format_button );

@@ -40,14 +40,14 @@ sub render_title
 	return $self->html_phrase( "title" );
 }
 
-sub from
+sub action_add_format
 {
-	my( $self, $basename ) = @_;
+	my( $self ) = @_;
 
 	my $session = $self->{session};
 	my $processor = $self->{processor};
 
-	my $ffname = join(',', $basename, $self->get_id, "file");
+	my $ffname = join('_', $self->{prefix}, "file");
 
 	my $filename = Encode::decode_utf8( $session->query->param( $ffname ) );
 	my $fh = $session->query->upload( $ffname );
@@ -85,11 +85,11 @@ sub from
 
 sub render
 {
-	my( $self, $basename ) = @_;
+	my( $self ) = @_;
 
 	my $session = $self->{session};
 	my $xml = $session->xml;
-	my $ffname = join(',', $basename, $self->get_id, "file");
+	my $ffname = join('_', $self->{prefix}, "file");
 
 	my $f = $xml->create_document_fragment;
 
@@ -109,14 +109,14 @@ sub render
 	my $add_format_button = $session->render_button(
 		value => $self->{session}->phrase( "Plugin/InputForm/Component/Upload:add_format" ), 
 		class => "ep_form_internal_button",
-		name => "_internal_".$basename."_add_format_".$self->get_id,
+		name => "_internal_".$self->{prefix}."_add_format",
 		onclick => $onclick );
 	$f->appendChild( $file_button );
 	$f->appendChild( $session->make_text( " " ) );
 	$f->appendChild( $add_format_button );
 	$f->appendChild( $session->make_element( "div", id => "progress" ) );
 
-	$f->appendChild( $self->render_flags( $basename ) );
+	$f->appendChild( $self->render_flags() );
 
 	# warn if the user selected a file but didn't upload it
 	my $script = $session->make_javascript( "EPJS_register_button_code( '_action_next', function() { el = \$('$ffname'); if( el.value != '' ) { return confirm( ".EPrints::Utils::js_string($session->phrase("Plugin/InputForm/Component/Upload:really_next"))." ); } return true; } );" );
@@ -128,7 +128,7 @@ sub render
 # metadata, media, bibliography
 sub render_flags
 {
-	my( $self, $basename ) = @_;
+	my( $self ) = @_;
 
 	my $session = $self->{session};
 	my $xml = $session->xml;
@@ -145,7 +145,7 @@ sub render_flags
 		my $li = $xml->create_element( "li" );
 		$ul->appendChild( $li );
 
-		my $fname = join('_', $basename, $self->get_id, "flag", $$flags[$i]);
+		my $fname = join('_', $self->{prefix}, "flag", $$flags[$i]);
 		my $input = $xml->create_element( "input",
 			type => "checkbox",
 			name => $fname,
@@ -168,7 +168,7 @@ sub render_flags
 
 sub param_flags
 {
-	my( $self, $basename ) = @_;
+	my( $self ) = @_;
 
 	my $values = {};
 
@@ -178,7 +178,7 @@ sub param_flags
 
 	foreach my $i (grep { !($_ % 2) } 0..$#$flags)
 	{
-		my $fname = join('_', $basename, $self->get_id, "flag", $$flags[$i]);
+		my $fname = join('_', $self->{prefix}, "flag", $$flags[$i]);
 		$values->{$$flags[$i]} = $session->param( $fname );
 	}
 
@@ -187,10 +187,10 @@ sub param_flags
 
 sub parse_and_import
 {
-	my( $self, $basename, $epdata ) = @_;
+	my( $self, $epdata ) = @_;
 
 	my $session = $self->{session};
-	my $flags = $self->param_flags( $basename );
+	my $flags = $self->param_flags();
 
 	my $filename = $epdata->{main};
 	return if !defined $filename;
@@ -213,6 +213,13 @@ sub parse_and_import
 		fh => $epdata->{files}->[0]->{_content},
 		flags => $flags,
 	);
+}
+
+sub get_state_params
+{
+	my( $self ) = @_;
+
+	return "";
 }
 
 1;

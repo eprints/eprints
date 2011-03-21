@@ -35,28 +35,27 @@ sub update_from_form
 	if( $session->internal_button_pressed )
 	{
 		my $internal = $self->get_internal_button;
-		if( $internal =~ m/^add_format_(.+)$/ )
+		my @screen_opts = $self->{processor}->list_items(
+			"upload_methods",
+			params => {
+				processor => $self->{processor},
+				parent => $self,
+			},
+		);
+		my @methods = map { $_->{screen} } @screen_opts;
+		my $method_ok = 0;
+		foreach my $plugin (@methods)
 		{
-			my $method = $1;
-			my @screen_opts = $self->{processor}->list_items(
-				"upload_methods",
-				params => {
-					processor => $self->{processor},
-				},
-			);
-			my @methods = map { $_->{screen} } @screen_opts;
-			my $i = 0;
-			foreach my $plugin (@methods)
-			{
-				if( $plugin->get_id eq $method )
-				{
-					$plugin->from( $self->{prefix} );
-					$self->{processor}->{notes}->{upload_plugin}->{ctab} = $i;
-					return;
-				}
-				$i++;
-			}
-			EPrints::abort( "'$method' is not a supported upload method" );
+			my $method = $plugin->get_id;
+			next if $internal !~ /^$method\_([^:]+)$/;
+			my $action = $1;
+			$method_ok = 1;
+			local $self->{processor}->{action} = $action;
+			$plugin->{prefix} = join '_', $self->{prefix}, $plugin->get_id;
+			$plugin->from();
+			$self->{processor}->{notes}->{upload_plugin}->{ctab} = $method;
+			$self->{processor}->{notes}->{upload_plugin}->{state_params} = $plugin->get_state_params;
+			last;
 		}
 	}
 
@@ -67,14 +66,13 @@ sub get_state_params
 {
 	my( $self, $processor ) = @_;
 
-	my $params = "";
+	my @params;
 
 	my $tounroll = {};
 	if( $processor->{notes}->{upload_plugin}->{to_unroll} )
 	{
 		$tounroll = $processor->{notes}->{upload_plugin}->{to_unroll};
 	}
-	my $ctab = $processor->{notes}->{upload_plugin}->{ctab} || "";
 	if( $self->{session}->internal_button_pressed )
 	{
 		my $internal = $self->get_internal_button;
@@ -84,7 +82,20 @@ sub get_state_params
 			$tounroll->{$1} = 1;
 		}
 	}
-	$params .= "&".$self->{prefix}."_tab=".$ctab;
+	my $ctab = $processor->{notes}->{upload_plugin}->{ctab};
+	if( $ctab )
+	{
+		push @params, $self->{prefix}."_tab", $ctab;
+	}
+
+	my $uri = URI->new( 'http:' );
+	$uri->query_form( @params );
+
+	my $params = $uri->query ? '&' . $uri->query : '';
+	if( $processor->{notes}->{upload_plugin}->{state_params} )
+	{
+		$params .= $processor->{notes}->{upload_plugin}->{state_params};
+	}
 
 	return $params;
 }
@@ -132,6 +143,7 @@ sub render_content
 			"upload_methods",
 			params => {
 				processor => $self->{processor},
+				parent => $self,
 			},
 		);
 	my @methods = map { $_->{screen} } @screen_opts;
@@ -141,20 +153,26 @@ sub render_content
 	# no upload methods so don't do anything
 	return $html if @screen_opts == 0;
 
+	my $ctab = $self->{session}->param( $self->{prefix} . "_tab" );
+	$ctab = '' if !defined $ctab;
+
 	my @labels;
 	my @tabs;
-	foreach my $plugin ( @methods )
+	my $current;
+	for(my $i = 0; $i < @methods; ++$i)
 	{
-		my $name = $plugin->get_id;
+		my $plugin = $methods[$i];
+		$plugin->{prefix} = join '_', $self->{prefix}, $plugin->get_id;
 		push @labels, $plugin->render_title();
 		my $div = $session->make_element( "div", class => "ep_block" );
 		push @tabs, $div;
 		$div->appendChild( $plugin->render( $self->{prefix} ) );
+		$current = $i if $ctab eq $plugin->get_id;
 	}
 
 	$html->appendChild( $self->{session}->xhtml->tabs( \@labels, \@tabs,
 		basename => $self->{prefix},
-		current => scalar($self->{session}->param( $self->{prefix} . "_tab" )),
+		current => $current,
 	) );
 
 	if( defined $self->{_documents} )

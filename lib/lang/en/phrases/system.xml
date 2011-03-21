@@ -3831,4 +3831,8 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="Plugin/Screen/Login/OpenID:failed">OpenID authentication failed (perhaps your OpenID service doesn't support 2.0?)</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Login/OpenID:no_email">Account has not been activated yet (waiting for email confirmation)</epp:phrase>
 
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Google:title">Google Docs</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Google:remote_error">Error while talking to the remote server:<br /><pre style="overflow: scroll; width: 60em; max-height: 200px;"><epc:pin name="request"/>
+<epc:pin name="response"/></pre></epp:phrase>
+
 </epp:phrases>

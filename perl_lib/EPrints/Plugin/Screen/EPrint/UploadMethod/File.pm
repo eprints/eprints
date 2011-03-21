@@ -19,19 +19,22 @@ sub new
 		appears => [
 			{ place => "upload_methods", position => 200 },
 		],
+		actions => [qw( add_format )],
 		%params );
 }
 
-sub from
+sub allow_add_format { shift->can_be_viewed }
+
+sub action_add_format
 {
-	my( $self, $basename ) = @_;
+	my( $self ) = @_;
 	
 	my $session = $self->{session};
 	my $processor = $self->{processor};
 	my $eprint = $processor->{eprint};
-	my $flags = $self->param_flags( $basename );
+	my $flags = $self->param_flags();
 
-	return if !$self->SUPER::from( $basename );
+	return if !$self->SUPER::action_add_format();
 
 	my $epdata = $processor->{notes}->{epdata};
 
@@ -41,7 +44,7 @@ sub from
 	my $list;
 	if( scalar grep { $_ } values %$flags )
 	{
-		$list = $self->parse_and_import( $basename, $epdata );
+		$list = $self->parse_and_import( $epdata );
 		if( !defined($list) )
 		{
 			$processor->add_message( "warning", $self->html_phrase( "unsupported_format" ) );

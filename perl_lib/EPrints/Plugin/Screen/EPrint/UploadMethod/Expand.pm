@@ -17,6 +17,7 @@ sub new
 		appears => [
 			{ place => "upload_methods", position => 1000 },
 		],
+		actions => [qw( add_format )],
 		%params );
 }
 
@@ -27,15 +28,17 @@ sub render_title
 	return $self->{session}->html_phrase( "Plugin/InputForm/Component/Upload:from_compressed" );
 }
 
-sub from
+sub allow_add_format { shift->can_be_viewed }
+
+sub action_add_format
 {
-	my( $self, $basename ) = @_;
+	my( $self ) = @_;
 
 	my $session = $self->{session};
 	my $processor = $self->{processor};
 	my $eprint = $processor->{eprint};
 	
-	return if !$self->SUPER::from( $basename );
+	return if !$self->SUPER::action_add_format();
 
 	my $epdata = $processor->{notes}->{epdata};
 	return if !defined $epdata->{main};
@@ -58,7 +61,7 @@ sub from
 
 	my $list;
 
-	my $flags = $self->param_flags( $basename );
+	my $flags = $self->param_flags();
 
 	my $fh = $epdata->{files}->[0]->{_content};
 	if( $flags->{explode} )

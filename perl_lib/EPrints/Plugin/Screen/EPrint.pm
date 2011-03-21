@@ -241,17 +241,15 @@ sub render_blister
 	return $table;
 }
 
-sub render_hidden_bits
+sub hidden_bits
 {
 	my( $self ) = @_;
 
-	my $chunk = $self->{session}->make_doc_fragment;
-
-	$chunk->appendChild( $self->{session}->render_hidden_field( "eprintid", $self->{processor}->{eprintid} ) );
-
-	$chunk->appendChild( $self->SUPER::render_hidden_bits );
-
-	return $chunk;
+	return(
+		$self->SUPER::hidden_bits,
+		eprintid => $self->{processor}->{eprintid},
+	);
 }
+
 1;
 

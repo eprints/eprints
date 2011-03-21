@@ -315,6 +315,13 @@ my $INFO = {
 		index => 0,
 		order => 0,
 	},
+	oauth => {
+		sqlname => "oauth",
+		class => "EPrints::DataObj::OAuth",
+		import => 0,
+		index => 0,
+		order => 0,
+	},
 };
 
 ######################################################################
