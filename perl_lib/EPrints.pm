@@ -1,25 +1,8 @@
-######################################################################
-#
-# EPrints
-#
-######################################################################
-#
-#  __COPYRIGHT__
-#
-# Copyright 2000-2008 University of Southampton. All Rights Reserved.
-# 
-#  __LICENSE__
-#
-######################################################################
-
-
-=pod
-
 =for Pod2Wiki
 
 =head1 NAME
 
-B<EPrints> - Institutional Repository software
+EPrints - Institutional Repository software
 
 =head1 SYNOPSIS
 
@@ -646,8 +629,28 @@ L<EPrints::Repository>
 
 =head1 COPYRIGHT
 
-__COPYRIGHT__
+=for COPYRIGHT OPEN
 
-Copyright 2000-2008 University of Southampton. All Rights Reserved.
+Copyright 2000-2011 University of Southampton.
 
-__LICENSE__
+=for COPYRIGHT CLOSE
+
+=for LICENSE OPEN
+
+This file is part of EPrints <http://www.eprints.org/>.
+
+EPrints is free software: you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+EPrints is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with EPrints.  If not, see <http://www.gnu.org/licenses/>.
+
+=for LICENSE CLOSE
+
