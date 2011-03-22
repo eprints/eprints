@@ -70,6 +70,11 @@ sub render_option
 		return $self->SUPER::render_option( $session, $value );
 	}
 
+        if( defined $self->get_property("render_option") )
+        {
+                return $self->call_property( "render_option", $session, $value );
+        }
+
 	return $session->render_type_name( $self->{set_name}, $value );
 }
 
