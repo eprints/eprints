@@ -125,7 +125,7 @@ sub render
 	my $owner  = $priv & 4;
 	my $editor = $priv & 8;
 
-	my $div = $self->{session}->make_element("div",align=>"center");
+	my $div = $self->{session}->make_element("div",class=>"ep_form_button_bar");
 
 	if( scalar @{$problems} == 0 || $editor )
 	{
