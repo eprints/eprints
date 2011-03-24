@@ -196,6 +196,11 @@ sub output_eprint
 			undef,
 			rel => "edit-media",
 			href => $dataobj->uri . "/contents" ) );
+	$entry->appendChild( $xml->create_data_element( 
+			"link",
+			undef,
+			rel => "contents",
+			href => $dataobj->uri . "/contents" ) );
 	$entry->appendChild( $xml->create_data_element(
 			"link",
 			undef,
@@ -286,6 +291,11 @@ sub output_document
 	
 	my @files = @{$dataobj->get_value( "files" )};
 
+	$entry->appendChild( $xml->create_data_element( 
+		"link",
+		undef,
+		rel => "contents",
+		href => $dataobj->uri . "/contents" ) );	
 	if ((scalar @files) > 1) 
 	{
 		$entry->appendChild( $xml->create_data_element( 
