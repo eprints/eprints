@@ -371,7 +371,7 @@ sub render_app
 	my $td_img = $session->make_element("td", width => "120px", style=> "padding:1em; ");
 	$tr->appendChild($td_img);
 
-	my $thumbnail = $app->{thumbnail_medium} || $app->{icon_url} || "http://files.eprints.org/style/images/fileicons/other.png";
+	my $thumbnail = $app->{icon_url} || "http://files.eprints.org/style/images/fileicons/other.png";
 	my $img = $session->make_element( "img", width=>"96px", src => $thumbnail );
 	$td_img->appendChild( $img );
 
@@ -844,7 +844,7 @@ sub tab_grid_epms
 		#$td->appendChild( $session->make_element( "img", src => $vinette_url, style => "position: absolute; z-index: 10" ) );
 		my $link = $session->make_element( "a", href => $show_url, title => $app->{title} );
 		
-		my $thumbnail = $app->{thumbnail_medium} || $app->{icon_url} || "http://files.eprints.org/style/images/fileicons/other.png";
+		my $thumbnail = $app->{icon_url} || "http://files.eprints.org/style/images/fileicons/other.png";
 		$link->appendChild( $session->make_element( "img", src => $thumbnail, style => "border: none; height: 100px; width: 100px; z-index: 0" ) );
 		$td->appendChild( $link );
 		my $title_div = $session->make_element( "div" );

@@ -129,8 +129,8 @@ sub get_system_field_info
 	{ name=>"link", type=>"text" },
 	{ name=>"date", type=>"text" },
 	{ name=>"package_name", type=>"text" },
-	{ name=>"description", type=>"text" },
-	{ name=>"version", type=>"text" },
+	{ name=>"package_version", type=>"text" },
+	{ name=>"abstract", type=>"text" },
 	
 	{ name=>"relation", type=>"compound", multiple=>1,
 		fields => [

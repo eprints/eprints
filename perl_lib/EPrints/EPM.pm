@@ -968,32 +968,35 @@ sub get_app_from_eprint
 	$app->{uri} = $epdata->{id};
 	$app->{date} = $epdata->{datestamp};
 	$app->{package} = $epdata->{package_name};
-	$app->{description} = $epdata->{description};
-	$app->{version} = $epdata->{version};
+	$app->{description} = $epdata->{abstract};
+	$app->{version} = $epdata->{package_version};
 
+	my $match_id;
 	foreach my $document (@{$epdata->{documents}})
 	{
 		my $content = $document->{content};
 		$content = "" if !defined $content;
 		my $format = $document->{format};
 		$format = "" if !defined $format;
-		if( $content eq "icon" && $format =~ m#^image/# )
-		{
-			my $url = $document->{files}->[0]->{url};
-			$app->{'icon_url'} = $url;
-			foreach my $relation (@{$document->{relation}})
-			{
-				next if $relation->{type} !~ m# ^http://eprints\.org/relation/has(\w+)ThumbnailVersion$ #x;
-				my $type = $1;
-				next if $relation->{uri} !~ m# ^/id/document/(\w+)$ #x;
-				my $thumb_url = $url;
-				substr($thumb_url, length($thumb_url) - length($document->{main}) - 1, 0) = ".has${type}ThumbnailVersion";
-				$app->{'thumbnail_'.$type} = $thumb_url;
-			}
-		}
-		elsif( $format eq "application/epm" )
+		if( $format eq "archive/zip+eprints_package" )
 		{
 			$app->{epm} = $document->{files}->[0]->{url};
+		
+			$match_id = $document->{docid};
+		} else {
+			foreach my $relation (@{$document->{relation}})
+			{
+				next if $relation->{type} !~ m# ^http://eprints\.org/relation/is(\w+)ThumbnailVersionOf$ #x;
+				my $type = $1;
+				next if $relation->{uri} !~ m# ^/id/document/$match_id$ #x;
+				my $thumb_url = $document->{files}->[0]->{url};
+				if ($type eq "preview") {
+					$app->{'icon_url'} = $thumb_url;
+				}
+				$app->{'thumbnail_'.$type} = $thumb_url;
+				#substr($thumb_url, length($thumb_url) - length($document->{main}) - 1, 0) = ".has${type}ThumbnailVersion";
+				#print STDERR "Thumb URL: " . $thumb_url . "\n\n";
+			}
 		}
 	}
 
