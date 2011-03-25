@@ -1365,6 +1365,30 @@ sub prepare_search
 
 Short-cut to L</prepare_search>( %options )->execute.
 
+=over 4
+
+=item "satisfy_all"=>1 
+
+Satify all conditions specified. 0 means satisfy any of the conditions specified. Default is 1
+
+=item "staff"=>1
+
+Do search as an adminstrator means you get everything back
+
+=item "custom_order" => "field1/-field2/field3"
+
+Order the search results by field order. prefixing the field name with a "-" results in reverse ordering
+
+=item "search_fields" => \@({meta_fields=>[ "field1", "field2" "document.field3" ], merge=>"ANY", match=>"EX", value=>"bees"}, {meta_fields=>[ "field4" ], value=>"honey"});
+
+Return values where field1 field2 or field3 is "bees" and field2  is "honey" (assuming satisfy all is set)
+
+=item "limit" => 10
+
+Only return 10 results
+
+=back
+
 =cut
 
 sub search
