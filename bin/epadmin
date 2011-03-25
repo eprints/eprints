@@ -1413,8 +1413,8 @@ END
 	}		
 	
 	my $ok;
-	$ok = $force || EPrints::Utils::get_input( $REGEXP_YESNO, "Do you want to build the static web pages?", "yes" );
-	if( $ok eq "yes" )
+	$ok = $force || EPrints::Utils::get_input_confirm( "Do you want to build the static web pages" );
+	if( $ok )
 	{
 		run_script( $repoid, "generate_static", "--verbose", $repoid );	
 	}
