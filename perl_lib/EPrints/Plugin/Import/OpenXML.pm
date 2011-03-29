@@ -255,8 +255,12 @@ sub _extract_media_files
 		return; # unknown doc type
 	}
 
-	my $media_dir = join_path( $dir, $content_dir, "media" );
+	my @new_docs;
 	
+	my $media_dir = join_path( $dir, $content_dir, "media" );
+
+	return @new_docs if (!(-d $media_dir));
+
 	my @files;
 
 	opendir( my $dh, $media_dir ) or die "Error opening $media_dir: $!";
@@ -272,8 +276,6 @@ sub _extract_media_files
 		my $thumbnail = join_path( $dir, "docProps/thumbnail.jpeg" );
 		push @files, ["thumbnail.jpeg" => $thumbnail] if( -e $thumbnail );
 	}
-
-	my @new_docs;
 
 	foreach my $file (@files)
 	{
