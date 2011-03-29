@@ -174,43 +174,64 @@ sub render
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $repo = $self->{session};
+	my $user = $repo->current_user;
+	my $chunk = $repo->make_doc_fragment;
+	my $imagesurl = $repo->current_url( path => "static", "style/images" );
 
-	my $chunk = $session->make_doc_fragment;
+	### Get the items owned by the current user
+	my $list = $self->perform_search;
 
-	my $user = $session->current_user;
+	my $has_eprints = $user->owned_eprints_list()->count > 0;
 
-	if( $session->get_lang->has_phrase( $self->html_phrase_id( "intro" ), $session ) )
+	if( $repo->get_lang->has_phrase( $self->html_phrase_id( "intro" ), $repo ) )
 	{
-		my $intro_div_outer = $session->make_element( "div", class => "ep_toolbox" );
-		my $intro_div = $session->make_element( "div", class => "ep_toolbox_content" );
+		my $intro_div_outer = $repo->make_element( "div", class => "ep_toolbox" );
+		my $intro_div = $repo->make_element( "div", class => "ep_toolbox_content" );
 		$intro_div->appendChild( $self->html_phrase( "intro" ) );
 		$intro_div_outer->appendChild( $intro_div );
 		$chunk->appendChild( $intro_div_outer );
 	}
 
-	my $imagesurl = $session->get_repository->get_conf( "rel_path" )."/style/images";
-
-	my %options;
- 	$options{session} = $session;
-	$options{id} = "ep_review_instructions";
-	$options{title} = $session->html_phrase( "Plugin/Screen/Items:help_title" );
-	$options{content} = $session->html_phrase( "Plugin/Screen/Items:help" );
-	$options{collapsed} = 1;
-	$options{show_icon_url} = "$imagesurl/help.gif";
-	my $box = $session->make_element( "div", style=>"text-align: left" );
-	$box->appendChild( EPrints::Box::render( %options ) );
-	$chunk->appendChild( $box );
+	{
+		my $phraseid = $has_eprints ? "Plugin/Screen/Items:help" : "Plugin/Screen/Items:help_no_items";
+		my %options;
+		if( $repo->get_lang->has_phrase( $phraseid ) )
+		{
+			$options{session} = $repo;
+			$options{id} = "ep_review_instructions";
+			$options{title} = $self->html_phrase( "help_title" );
+			$options{content} = $repo->html_phrase( $phraseid );
+			$options{collapsed} = 1;
+			$options{show_icon_url} = "$imagesurl/help.gif";
+			my $box = $repo->make_element( "div", style=>"text-align: left" );
+			$box->appendChild( EPrints::Box::render( %options ) );
+			$chunk->appendChild( $box );
+		}
+	}
 
 	$chunk->appendChild( $self->render_action_list_bar( "item_tools" ) );
 
-	my $import_screen = $session->plugin( "Screen::Import" );
+	my $import_screen = $repo->plugin( "Screen::Import" );
 	$chunk->appendChild( $import_screen->render_import_bar() ) if( defined $import_screen );
 
-	### Get the items owned by the current user
-	my $ds = $session->get_repository->get_dataset( "eprint" );
+	if( $has_eprints )
+	{
+		$chunk->appendChild( $self->render_items( $list ) );
+	}
 
-	my $list = $self->perform_search;
+	return $chunk;
+}
+
+sub render_items
+{
+	my( $self, $list ) = @_;
+
+	my $session = $self->{session};
+	my $user = $session->current_user;
+	my $chunk = $session->make_doc_fragment;
+	my $imagesurl = $session->current_url( path => "static", "style/images" );
+	my $ds = $session->dataset( "eprint" );
 
 	my $pref = $self->{id}."/eprint_status";
 	my %filters = @{$session->current_user->preference( $pref ) || [
