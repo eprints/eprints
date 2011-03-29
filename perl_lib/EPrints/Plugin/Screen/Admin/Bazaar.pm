@@ -636,8 +636,7 @@ sub tab_list_epms
 		{
 			my $other_screen = $session->plugin("Screen::".$app->{configuration_file}, processor=>$self->{processor});
 			eval { $other_screen->can_be_viewed() }; 
-			if (!$@ && $other_screen->can_be_viewed()){} 
-			else { $include_button = 1; }
+			if (!$@ && $other_screen->can_be_viewed()){ $include_button = 1; } 
 		}
 		if (((substr $app->{configuration_file}, 0,9) eq "cfg/cfg.d") or $include_button > 0) 
 		{
