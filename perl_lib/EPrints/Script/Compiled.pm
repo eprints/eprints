@@ -632,7 +632,7 @@ sub run_action_list
 
 	my $screen_processor = EPrints::ScreenProcessor->new(
 		session => $state->{session},
-		screenid => "FirstTool",
+		screenid => "Error",
 	);
 
 	my $screen = $screen_processor->screen;
