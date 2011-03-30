@@ -67,6 +67,14 @@ sub init
 {
 	my( $self ) = @_;
 
+	if(
+		!defined($EPrints::SystemSettings::conf->{user}) ||
+		!defined($EPrints::SystemSettings::conf->{user})
+	  )
+	{
+		EPrints->abort( "'user' and 'group' must be configured. Perhaps you need to add them to perl_lib/EPrints/SystemSettings.pm?" );
+	}
+
 	if( !defined $self->{uid} )
 	{
 		$self->{uid} = ($self->getpwnam( $EPrints::SystemSettings::conf->{user} ))[2];

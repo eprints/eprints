@@ -33,11 +33,6 @@ use EPrints::Apache::AnApache; # exports apache constants
 use URI;
 use MIME::Base64;
 
-#use EPrints::Session;
-#use EPrints::SystemSettings;
-
-
-
 sub authen
 {
 	my( $r, $realm ) = @_;

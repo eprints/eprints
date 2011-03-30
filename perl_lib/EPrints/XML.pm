@@ -56,8 +56,6 @@ one place.
 
 package EPrints::XML;
 
-use EPrints::SystemSettings;
-
 use Carp;
 
 $EPrints::XML::CLASS = undef;

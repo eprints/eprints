@@ -36,7 +36,6 @@ To allow for simpler local configuration Convert plugins should use SystemSettin
 use strict;
 use warnings;
 
-use EPrints::SystemSettings;
 use EPrints::Utils;
 
 our @ISA = qw/ EPrints::Plugin /;

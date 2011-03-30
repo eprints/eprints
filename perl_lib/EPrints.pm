@@ -64,7 +64,22 @@ A shell script will print the stack trace to the console.
 
 package EPrints;
 
-use EPrints::SystemSettings;
+my $conf;
+
+BEGIN
+{
+	$conf = $EPrints::SystemSettings::conf = {};
+	eval "use EPrints::SystemSettings;";
+
+	# set default global configuration values
+	if( !defined $conf->{base_path} )
+	{
+		my $base_path = $INC{'EPrints.pm'};
+		$base_path =~ s#[^/]+/\.\.(/|$)##g;
+		$base_path =~ s/.perl_lib.EPrints\.pm$//; # ignore / \
+		$conf->{base_path} = $base_path;
+	}
+}
 
 use Data::Dumper;
 use Scalar::Util;
@@ -75,16 +90,8 @@ use Carp qw( verbose );
 use strict;
 
 our $VERSION = v3.3.0;
-
-# set default global configuration values
-my $conf = $EPrints::SystemSettings::conf;
-if( !defined $conf->{base_path} )
-{
-	my $base_path = $INC{'EPrints.pm'};
-	$base_path =~ s#[^/]+/\.\.(/|$)##g;
-	$base_path =~ s/.perl_lib.EPrints\.pm$//; # ignore / \
-	$conf->{base_path} = $base_path;
-}
+$conf->{version} = "EPrints ".EPrints->human_version;
+$conf->{versionid} = "eprints-".EPrints->human_version;
 
 =item $version = EPrints->VERSION()
 
