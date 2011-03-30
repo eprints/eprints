@@ -128,6 +128,11 @@ sub export
 		else
 		{
 			my $infile = $file->get_local_copy;
+			if( !$infile )
+			{
+				$repository->log( "get_local_copy failed for file.".$file->id );
+				return ();
+			}
 			$repository->exec( $cmd_id,
 				SOURCE => $infile,
 				TARGET_DIR => $dir,

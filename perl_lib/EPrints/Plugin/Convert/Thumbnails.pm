@@ -412,14 +412,24 @@ sub export
 		$duration = 0 if !EPrints::Utils::is_set( $duration );
 		$seconds = $self->calculate_offset( $duration, $seconds );
 
-		my $src_file = $src->get_local_copy or EPrints->abort( "Error retrieving source file" );
+		my $src_file = $src->get_local_copy;
+		if( !$src_file )
+		{
+			$self->{session}->log( "get_local_copy failed for file.".$src->id );
+			return ();
+		}
 		@files = &{$self->{call_ffmpeg}}( $self, $dir, $doc, $src_file, $geom, $size, $seconds );
 	}
 	else
 	{
 		($doc, $src) = $self->intermediate( $doc, $src, $geom, $size );
 
-		my $src_file = $src->get_local_copy or EPrints->abort( "Error retrieving source file" );
+		my $src_file = $src->get_local_copy;
+		if( !$src_file )
+		{
+			$self->{session}->log( "get_local_copy failed for file.".$src->id );
+			return ();
+		}
 		@files = &{$self->{call_convert}}( $self, $dir, $doc, $src_file, $geom, $size );
 	}
 
