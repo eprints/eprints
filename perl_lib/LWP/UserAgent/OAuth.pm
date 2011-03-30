@@ -26,7 +26,7 @@ LWP::UserAgent::OAuth - generate signatures for OAuth requests
 	die $r->as_string if $r->is_error;
 	
 	# update the token secret from the HTTP response
-	$ua->oauth_token_secret( $r );
+	$ua->oauth_update_from_response( $r );
 	
 	# open a browser for the user 
 	
@@ -48,7 +48,7 @@ LWP::UserAgent::OAuth - generate signatures for OAuth requests
 	]);
 	
 	# update the token secret from the HTTP response
-	$ua->oauth_token_secret( $r );
+	$ua->oauth_update_from_response( $r );
 	
 	# now use the $ua to perform whatever actions you want
 
