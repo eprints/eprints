@@ -200,6 +200,12 @@ sub tick
 {
 	my( $self ) = @_;
 
+	# tick at most every 30 seconds
+	return if $self->{tick} && $self->{tick} > time();
+	$self->{tick} = time() + 30;
+
+	$self->log( 4, "* tick: $$" );
+
 	open( TICK, ">", $self->{tickfile} ) or die "Error opening tick file $self->{tickfile}: $!";
 	print TICK <<END;
 # This file is by the indexer to indicate
@@ -529,6 +535,7 @@ sub start_daemon
 		else
 		{
 			# child
+			$0 .= '-worker';
 			setsid() or die "Can't start a new worker: $!";
 			$self->run_index();
 			$self->real_exit();
@@ -638,9 +645,8 @@ sub run_index
 			}
 		}
 
-		last MAINLOOP if $self->{once};
+		last MAINLOOP if $self->{once} && !$seen_action;
 
-		$self->log( 4, "* tick: $$" );
 		$self->tick;
 
 		# is it time to respawn yet?
@@ -712,7 +718,6 @@ sub _run_index
 			$seen_action = 1;
 		}
 
-		$self->log( 4, "* tick: $$" );
 		$self->tick;
 	}
 

@@ -74,6 +74,10 @@ May be repeated for greater effect.
 
 Clear broken event queue items (items that are "inprogress" or "failed") before commencing.
 
+=item B<--retry>
+
+Retry broken event queue items (items that are "inprogress" or "failed") before commencing.
+
 =item B<--logfile> I<filename>
 
 Log to I<filename> rather than default indexer log.
@@ -142,6 +146,7 @@ my $rollcount = 5;
 my $notdaemon = 0;
 my $once = 0;
 my $opt_clear;
+my $opt_retry;
 my $opt_respawn = 86400;
 
 Getopt::Long::Configure("permute");
@@ -160,6 +165,7 @@ GetOptions(
 	'logfile=s' => \$logfile,
 	'loglevel=s' => \$loglevel,
 	'clear' => \$opt_clear,
+	'retry' => \$opt_retry,
 	'respawn=s' => \$opt_respawn,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "indexer" ) if $version;
@@ -205,10 +211,10 @@ elsif( $ARGV[0] eq "start" )
 		$daemon->remove_pid;
 	}
 
-	if( $opt_clear )
+	if( $opt_clear || $opt_retry )
 	{
 		my $eprints = EPrints->new;
-		print "Clearing stale events\n" if $verbose;
+		print "Processing stale events\n" if $verbose;
 		foreach my $repoid ($eprints->repository_ids())
 		{
 			my $repo = $eprints->repository( $repoid );
@@ -219,9 +225,17 @@ elsif( $ARGV[0] eq "start" )
 			$result->map(sub {
 				my( undef, undef, $event ) = @_;
 
-				$event->remove();
+				if( $opt_clear )
+				{
+					$event->remove();
+				}
+				else
+				{
+					$event->set_value( "status", "waiting" );
+					$event->commit;
+				}
 			});
-			print "Removed ".$result->count()." stale events\n" if $verbose;
+			print "".($opt_clear ? "Removed " : "Retrying ").$result->count()." stale events\n" if $verbose;
 		}
 	}
 
