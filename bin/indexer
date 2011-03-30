@@ -25,6 +25,10 @@ B<indexer> stop
 
 B<indexer> status
 
+B<indexer> install
+
+B<indexer> uninstall
+
 B<indexer> --help
 
 =head1 DESCRIPTION
@@ -139,9 +143,6 @@ my $notdaemon = 0;
 my $once = 0;
 my $opt_clear;
 my $opt_respawn = 86400;
-# MSWin32 options
-my $opt_master = 0;
-my $opt_worker = 0; 
 
 Getopt::Long::Configure("permute");
 
@@ -160,8 +161,6 @@ GetOptions(
 	'loglevel=s' => \$loglevel,
 	'clear' => \$opt_clear,
 	'respawn=s' => \$opt_respawn,
-	'master' => \$opt_master,
-	'worker' => \$opt_worker,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "indexer" ) if $version;
 pod2usage( 1 ) if $help;
@@ -240,6 +239,11 @@ elsif( $ARGV[0] eq "uninstall" && $^O eq 'MSWin32' )
 {
 	uninstall();
 }
+elsif( $daemon->can( "run_".$ARGV[0] ) )
+{
+	my $f = "run_".shift(@ARGV);
+	$daemon->$f( @ARGV );
+}
 else
 {
 	pod2usage( 2 );
@@ -295,11 +299,7 @@ END
 
 sub start
 {
-	if( $opt_worker )
-	{
-		$daemon->start_worker();
-	}
-	elsif( $daemon->is_running )
+	if( $daemon->is_running )
 	{
 		my $pid = $daemon->get_pid();
 		my $pidfile = $daemon->get_pidfile();
@@ -327,10 +327,6 @@ END
 	elsif( $notdaemon )
 	{
 		$daemon->run_index();
-	}
-	elsif( $opt_master )
-	{
-		$daemon->start_master();
 	}
 	else
 	{

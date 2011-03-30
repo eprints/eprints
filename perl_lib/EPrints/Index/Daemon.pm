@@ -67,6 +67,7 @@ sub new
 	$opts{respawn} ||= 86400; # 1 day
 	$opts{timeout} ||= 600; # 10 minutes
 	$opts{nextrespawn} = time() + $opts{respawn};
+	$opts{interupt} = 0; # break out of any loops
 
 	my $self = bless \%opts, $class;
 
@@ -238,9 +239,11 @@ sub get_last_tick
 }
 
 # true if we've been asked to exit
-sub suicidal
+sub interupted
 {
-	return -e $_[0]->{suicidefile};
+	my( $self ) = @_;
+
+	return $self->{interupt} ||= -e $_[0]->{suicidefile};
 }
 
 # roll the log files then reopen the main log file
@@ -515,7 +518,7 @@ sub start_daemon
 			delete $self->{child};
 			$self->log( 2, "*** Indexer sub-process stopped" );
 
-			if( $self->suicidal )
+			if( $self->interupted )
 			{
 				$self->log( 1, "** Indexer process stopping" );
 				last;
@@ -602,15 +605,19 @@ sub run_index
 		$self->log( 3, "** Worker process terminated: $$" );
 		$self->real_exit;
 	};
+	$SIG{INT} = sub {
+		$self->log( 3, "** Worker process interupted: $$" );
+		$self->{interupt} = 1;
+	};
 
-	my $suicidal = $self->suicidal;
-
-	while( !$suicidal )
+	MAINLOOP: while( 1 )
 	{
 		my $seen_action = 0;
 
 		foreach my $repo ( @repos )
 		{
+			last MAINLOOP if $self->interupted;
+
 			# reload the config if requested to
 			$repo->check_last_changed;
 
@@ -631,34 +638,21 @@ sub run_index
 			}
 		}
 
+		last MAINLOOP if $self->{once};
+
 		$self->log( 4, "* tick: $$" );
 		$self->tick;
 
 		# is it time to respawn yet?
-		if( $self->should_respawn )
-		{
-			last;
-		}
+		last MAINLOOP if $self->should_respawn;
 
-		if( $self->suicidal )
-		{
-			$suicidal = 1;
-			last;
-		}
+		next MAINLOOP if $seen_action;
 
-		next if( $seen_action );
-
-		last if( $self->{once} );
-
-		# wait interval seconds. Check suicide requests every 5 seconds.
+		# wait interval seconds. Check interupt requests every 5 seconds.
 		my $stime = time();
 		while( ($stime + $self->{interval}) > time() )
 		{
-			if( $self->suicidal )
-			{
-				$suicidal = 1;
-				last;
-			}
+			last MAINLOOP if $self->interupted;
 			sleep 5;
 		}
 
@@ -671,11 +665,11 @@ sub run_index
 		}
 	}
 
-	if( $suicidal )
+	if( $self->interupted )
 	{
 		$self->log( 3, "** Worker process stopping: $$" );
 	}
-	else
+	elsif( !$self->{once} )
 	{
 		$self->log( 3, "** Worker process restarting: $$" );
 	}
@@ -687,8 +681,15 @@ sub _run_index
 
 	my $seen_action = 0;
 	my @events = $session->get_database->dequeue_events( 10 );
-	foreach my $event (@events)
+	EVENT: foreach my $event (@events)
 	{
+		# reset events on interuption
+		if( $self->interupted )
+		{
+			$event->set_value( "status", "waiting" );
+			$event->commit;
+			next EVENT;
+		}
 		if( $self->{loglevel} >= 5 )
 		{
 			my $pluginid = $event->value( "pluginid" );
@@ -710,6 +711,9 @@ sub _run_index
 		{
 			$seen_action = 1;
 		}
+
+		$self->log( 4, "* tick: $$" );
+		$self->tick;
 	}
 
 	return $seen_action; # seen action, even if it is to fail

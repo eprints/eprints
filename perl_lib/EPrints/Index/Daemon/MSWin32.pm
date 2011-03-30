@@ -8,6 +8,8 @@ package EPrints::Index::Daemon::MSWin32;
 
 use Win32::Daemon;
 use Win32::Process;
+use Win32::Process qw( STILL_ACTIVE );
+use Win32::Console;
 
 use EPrints::Index::Daemon;
 @ISA = qw( EPrints::Index::Daemon );
@@ -23,14 +25,31 @@ sub win32_error
 	EPrints->abort( "$msg: $^E" );
 }
 
-sub create_service
+sub is_worker_running
 {
 	my( $self ) = @_;
+
+	return if !$self->{worker};
+
+	$self->{worker}->GetExitCode( my $exitcode );
+	return $exitcode == STILL_ACTIVE;
+}
+
+sub indexer_cmd
+{
+	my( $self, $cmd ) = @_;
 
 	my $path = $EPrints::SystemSettings::conf->{base_path} . "/bin/indexer";
 	my $params = '';
 
 	$params .= " --loglevel=".$self->{loglevel};
+
+	return "perl $path $params $cmd";
+}
+
+sub create_service
+{
+	my( $self ) = @_;
 
 	my $rc = Win32::Daemon::CreateService({
 		machine => '',
@@ -40,20 +59,7 @@ sub create_service
 		user => '',
 		pwd => '',
 		description => 'EPrints Indexer master service',
-		parameters => "$path $params --master start",
-	});
-       
-	$rc &&= Win32::Daemon::CreateService({
-		machine => '',
-		name => $WORKER_SERVICE,
-		display => 'EPrints Indexer Worker',
-		path => $^X,
-		user => '',
-		pwd => '',
-		description => 'EPrints Indexer worker service',
-		parameters => "$path $params --worker start",
-		start_type => SERVICE_DEMAND_START,
-#		dependencies => [$MASTER_SERVICE], # we'll just end up fighting with windows
+		parameters => $self->indexer_cmd( "service" ),
 	});
        
 	if( !$rc )
@@ -69,7 +75,7 @@ sub delete_service
 	my( $self ) = @_;
 
 	my $rc = Win32::Daemon::DeleteService('', $MASTER_SERVICE);
-	$rc &= Win32::Daemon::DeleteService('', $WORKER_SERVICE);
+	#Win32::Daemon::DeleteService('', $WORKER_SERVICE);
 
 	if( !$rc )
 	{
@@ -87,19 +93,6 @@ sub is_running
 	if( !Win32::Service::GetStatus('',$MASTER_SERVICE,$status) )
 	{
 		$self->win32_error( "EPrints Indexer master state" );
-	}
-
-	return $status->{'CurrentState'} != SERVICE_STOPPED;
-}
-
-sub is_worker_running
-{
-	my( $self ) = @_;
-
-	my $status = {};
-	if( !Win32::Service::GetStatus('',$WORKER_SERVICE,$status) )
-	{
-		$self->win32_error( "EPrints Indexer worker state" );
 	}
 
 	return $status->{'CurrentState'} != SERVICE_STOPPED;
@@ -139,9 +132,52 @@ sub stop_daemon
 	return 1;
 }
 
-sub start_master
+sub start_worker
 {
 	my( $self ) = @_;
+
+	my $cmd = $self->indexer_cmd( "worker" );
+
+	my $processObj;
+	Win32::Process::Create($processObj,
+		$^X,
+		$cmd,
+		0,
+		NORMAL_PRIORITY_CLASS,
+		"."
+	) or $self->win32_error( $cmd );
+
+	return $self->{worker} = $processObj;
+}
+
+sub stop_worker
+{
+	my( $self ) = @_;
+
+	return if !$self->{worker};
+
+	open(FH, ">", $self->{suicidefile})
+		or EPrints->abort( "Error writing to $self->{suicidefile}: $!" );
+	close(FH);
+
+	# wait 30 seconds for the indexer to stop
+	$self->{worker}->Wait( 30000 );
+	if( $self->is_worker_running )
+	{
+		# terminate stops the indexer dead
+		$self->log( 1, "** Worker failed to respond to INTERUPT, terminating" );
+		$self->{worker}->Kill( 0 );
+	}
+
+	delete $self->{worker};
+	unlink($self->{suicidefile});
+}
+
+sub run_service
+{
+	my( $self ) = @_;
+
+	$self->cleanup;
 
 	if( $self->{logfile} )
 	{
@@ -161,7 +197,9 @@ sub start_master
 		start => sub {
 			my( $e, $context ) = @_;
 
-			Win32::Service::StartService('', $WORKER_SERVICE);
+			my $self = $context->{self};
+
+			$self->start_worker;
 
 			$context->{last_state} = SERVICE_RUNNING;
 			Win32::Daemon::State( SERVICE_RUNNING );
@@ -173,21 +211,15 @@ sub start_master
 
 			return if SERVICE_RUNNING != Win32::Daemon::State();
 
-			if( $self->should_respawn )
+			if( !$self->is_worker_running || $self->has_stalled )
 			{
-				Win32::Service::StopService('', $WORKER_SERVICE);
-				$context->{roll_logs} = 1;
-			}
-			elsif( !$self->is_worker_running )
-			{
-				if( $context->{roll_logs} )
+				if( $self->should_respawn )
 				{
 					$self->roll_logs;
-					$context->{roll_logs} = 0;
 				}
 				$self->log( 2, "*** Starting indexer sub-process" );
 
-				Win32::Service::StartService('', $WORKER_SERVICE);
+				$self->start_worker;
 			}
 			Win32::Daemon::State($context->{last_state});
 		},
@@ -196,7 +228,7 @@ sub start_master
 
 			$context->{self}->log( 1, "** Indexer process stopping" );
 
-			Win32::Service::StopService('', $WORKER_SERVICE); 
+			$self->stop_worker;
 
 			$context->{last_state} = SERVICE_STOPPED;
 			Win32::Daemon::State( SERVICE_STOPPED );
@@ -217,20 +249,30 @@ sub start_master
 		},
 	} );
 
+	Win32::Console->Alloc
+		or $self->win32_error;
+
 	my %context = (
 		last_state => SERVICE_STOPPED,
 		start_time => time(),
-		roll_logs => 0,
 		self => $self,
 	);
 
 	Win32::Daemon::StartService( \%context, 30000 );
 
+	$self->cleanup;
+}
+
+sub cleanup
+{
+	my( $self ) = @_;
+
+	unlink($self->{tickfile});
 	unlink($self->{suicidefile});
 	$self->remove_pid;
 }
 
-sub start_worker
+sub run_worker
 {
 	my( $self ) = @_;
 
@@ -244,113 +286,9 @@ sub start_worker
 
 	$self->log( 3, "** Worker process started: $$" );
 
-	Win32::Daemon::RegisterCallbacks( {
-		start => \&callback_start,
-		timer => \&callback_running,
-		stop => \&callback_stop,
-		pause => \&callback_pause,
-		continue => \&callback_continue,
-		interrogate => \&callback_interrogate,
-	} );
+	$self->run_index;
 
-	my %context = (
-		last_state => SERVICE_STOPPED,
-		start_time => time(),
-		self => $self,
-	);
-
-	Win32::Daemon::StartService( \%context, 5000 );
-
-	# this reached on StopService
 	unlink($self->{tickfile});
-}
-
-# called every 5 seconds
-sub callback_running
-{
-	my( $event, $context ) = @_;
-
-	my $self = $context->{self};
-
-	while( SERVICE_RUNNING == Win32::Daemon::State() )
-	{
-		$self->log( 3, "* tick: $$" );
-		$self->tick;
-
-		my $seen_action = 0;
-
-		foreach my $repo (@{$self->{repositories}})
-		{
-			$repo->check_last_changed;
-
-			eval {
-				local $SIG{ALRM} = sub { die "alarm\n" };
-				alarm($self->get_timeout);
-				$seen_action |= $self->_run_index( $repo, {
-					loglevel => $self->{loglevel},
-				} );
-				alarm(0);
-			};
-			if( $@ )
-			{
-				die unless $@ eq "alarm\n";
-				$self->log( 1, "**  Timed out processing index entry: some indexing failed" );
-			}
-		}
-
-		last if !$seen_action;
-	}
-
-	Win32::Daemon::State($context->{last_state});
-}
-
-sub callback_start
-{
-	my( $event, $context ) = @_;
-
-	my $self = $context->{self};
-
-	$self->log( 3, "* tick: $$" );
-	$self->tick;
-
-	$self->{repositories} = [$self->get_all_sessions];
-
-	$context->{last_state} = SERVICE_RUNNING;
-	Win32::Daemon::State( SERVICE_RUNNING );
-}
-
-sub callback_pause
-{
-	my( $event, $context ) = @_;
-
-	$context->{last_state} = SERVICE_PAUSED;
-	Win32::Daemon::State( SERVICE_PAUSED );
-}
-
-sub callback_continue
-{
-	my( $event, $context ) = @_;
-
-	$context->{last_state} = SERVICE_RUNNING;
-	Win32::Daemon::State( SERVICE_RUNNING );
-}
-
-sub callback_stop
-{
-	my( $event, $context ) = @_;
-
-	$context->{last_state} = SERVICE_STOPPED;
-	Win32::Daemon::State( SERVICE_STOPPED );
-
-	Win32::Daemon::StopService();
-}
-
-sub callback_interrogate
-{
-	my( $event, $context ) = @_;
-
-	$context->{last_state} = SERVICE_RUNNING;
-	Win32::Daemon::State( SERVICE_RUNNING );
 }
 
 1;
