@@ -85,7 +85,6 @@ use EPrints::Const qw( :trigger );
 use CGI qw(-compile);
 
 use strict;
-#require 'sys/syscall.ph';
 
 
 ######################################################################
@@ -2185,70 +2184,6 @@ sub set_field_defaults
 
 	$self->{field_defaults}->{$fieldtype} = $defaults;
 }
-
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $success = $repository->generate_dtd
-
-DEPRECATED
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub generate_dtd
-{
-	my( $self ) = @_;
-
-	my $src_dtdfile = $self->config("lib_path")."/xhtml-entities.dtd";
-	my $tgt_dtdfile = $self->config( "variables_path" )."/entities.dtd";
-
-	my $src_mtime = EPrints::Utils::mtime( $src_dtdfile );
-	my $tgt_mtime = EPrints::Utils::mtime( $tgt_dtdfile );
-	if( $tgt_mtime > $src_mtime )
-	{
-		# as this file doesn't change anymore, except possibly after an
-		# upgrade, only update the var/entities.dtd file if the one in
-		# the lib directory is newer.
-		return 1;
-	}
-
-	open( XHTMLENTITIES, "<", $src_dtdfile ) ||
-		die "Failed to open system DTD ($src_dtdfile) to include ".
-			"in repository DTD";
-	my $xhtmlentities = join( "", <XHTMLENTITIES> );
-	close XHTMLENTITIES;
-
-	my $tmpfile = File::Temp->new;
-
-	print $tmpfile <<END;
-<!-- 
-	XHTML Entities
-
-	*** DO NOT EDIT, This is auto-generated ***
--->
-<!--
-	Generic XHTML entities 
--->
-
-END
-	print $tmpfile $xhtmlentities;
-	close $tmpfile;
-
-	copy( "$tmpfile", $tgt_dtdfile );
-
-	EPrints::Utils::chown_for_eprints( $tgt_dtdfile );
-
-	return 1;
-}
-
-
 
 ######################################################################
 =pod
@@ -5193,54 +5128,6 @@ sub get_internal_button
 
 =begin InternalDoc
 
-=item $client = $repository->client
-
-Return a string representing the kind of browser that made the 
-current request.
-
-Options are GECKO, LYNX, MSIE4, MSIE5, MSIE6, ?.
-
-GECKO covers mozilla and firefox.
-
-? is what's returned if none of the others were matched.
-
-These divisions are intended for modifying the way pages are rendered
-not logging what browser was used. Hence merging mozilla and firefox.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub client
-{
-	my( $self ) = @_;
-
-	my $client = $ENV{HTTP_USER_AGENT};
-
-	# we return gecko, rather than mozilla, as
-	# other browsers may use gecko renderer and
-	# that's what why tailor output, on how it gets
-	# rendered.
-
-	# This isn't very rich in it's responses!
-
-	return "GECKO" if( $client=~m/Gecko/i );
-	return "LYNX" if( $client=~m/Lynx/i );
-	return "MSIE4" if( $client=~m/MSIE 4/i );
-	return "MSIE5" if( $client=~m/MSIE 5/i );
-	return "MSIE6" if( $client=~m/MSIE 6/i );
-
-	return "?";
-}
-
-# return the HTTP status.
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
 =item $status = $repository->get_http_status
 
 Return the status of the current HTTP request.
@@ -5473,47 +5360,6 @@ sub get_citation_type
 
 	return $citation->{type};
 }
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $time = EPrints::Repository::microtime();
-
-This function is currently buggy so just returns the time in seconds.
-
-Return the time of day in seconds, but to a precision of microseconds.
-
-Accuracy depends on the operating system etc.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub microtime
-{
-        # disabled due to bug.
-        return time();
-
-        my $TIMEVAL_T = "LL";
-	my $t = "";
-	my @t = ();
-
-        $t = pack($TIMEVAL_T, ());
-
-	syscall( &SYS_gettimeofday, $t, 0) != -1
-                or die "gettimeofday: $!";
-
-        @t = unpack($TIMEVAL_T, $t);
-        $t[1] /= 1_000_000;
-
-        return $t[0]+$t[1];
-}
-
-
 
 ######################################################################
 =pod
