@@ -139,13 +139,6 @@ sub render
 	return( 1 );
 }
 
-sub DESTROY
-{
-	my( $self ) = @_;
-
-	EPrints::Utils::destroy( $self );
-}
-
 1;
 
 ######################################################################

@@ -5648,34 +5648,6 @@ sub valid_login
 	return $real_username;
 }
 
-
-
-
-
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $repository->DESTROY
-
-Destructor. Don't call directly.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub DESTROY
-{
-	my( $self ) = @_;
-
-	EPrints::Utils::destroy( $self );
-}
-
-
 sub cache_subjects
 {
   my( $self ) = @_;
