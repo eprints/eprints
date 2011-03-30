@@ -535,7 +535,6 @@ sub start_daemon
 		else
 		{
 			# child
-			$0 .= '-worker';
 			setsid() or die "Can't start a new worker: $!";
 			$self->run_index();
 			$self->real_exit();
