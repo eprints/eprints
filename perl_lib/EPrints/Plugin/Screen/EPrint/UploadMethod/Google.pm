@@ -7,7 +7,7 @@ EPrints::Plugin::Screen::EPrint::UploadMethod::Google
 package EPrints::Plugin::Screen::EPrint::UploadMethod::Google;
 
 use URI::Escape;
-use LWP::UserAgent::OAuth;
+use LWP::Authen::OAuth;
 use EPrints::Plugin::Screen::EPrint::UploadMethod::File;
 
 @ISA = qw( EPrints::Plugin::Screen::EPrint::UploadMethod::File );
@@ -103,7 +103,7 @@ sub action_login
 	);
 
 	# get a request token
-	my $ua = LWP::UserAgent::OAuth->new(
+	my $ua = LWP::Authen::OAuth->new(
 		oauth_consumer_secret => "anonymous",
 	);
 	my $r = $ua->post($OAuthGetRequestToken, [
@@ -146,7 +146,7 @@ sub action_verify
 	return if $oauth->is_set( "oauth_token_secret" );
 
 	# upgrade to access token
-	my $ua = LWP::UserAgent::OAuth->new(
+	my $ua = LWP::Authen::OAuth->new(
 		oauth_consumer_key => "anonymous",
 		oauth_consumer_secret => "anonymous",
 		oauth_token => $oauth->value( "oauth_token" ),
@@ -407,7 +407,7 @@ sub user_agent
 {
 	my( $self, $oauth ) = @_;
 
-	my $ua = LWP::UserAgent::OAuth->new(
+	my $ua = LWP::Authen::OAuth->new(
 		oauth_consumer_key => "anonymous",
 		oauth_consumer_secret => "anonymous",
 		oauth_token => $oauth->value( "oauth_token" ),

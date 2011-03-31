@@ -1,16 +1,18 @@
-package LWP::UserAgent::OAuth;
+package LWP::Authen::OAuth;
 
 =head1 NAME
 
-LWP::UserAgent::OAuth - generate signatures for OAuth requests
+LWP::Authen::OAuth - generate signed OAuth requests
 
 =head1 SYNOPSIS
 
-	require LWP::UserAgent::OAuth;
-	
+	require LWP::Authen::OAuth;
+
+=head2 Google
+
 	# Google uses 'anonymous' for unregistered Web/offline applications or the
 	# domain name for registered Web applications
-	my $ua = LWP::UserAgent::OAuth->new(
+	my $ua = LWP::Authen::OAuth->new(
 		oauth_consumer_secret => "anonymous",
 	);
 	
@@ -52,23 +54,82 @@ LWP::UserAgent::OAuth - generate signatures for OAuth requests
 	
 	# now use the $ua to perform whatever actions you want
 
+=head2 Twitter
+
+Sending status updates to a single account is quite easy if you create an application. The C<oauth_consumer_key> and C<oauth_consumer_secret> come from the 'Application Details' page and the C<oauth_token> and C<oauth_token_secret> from the 'My Access Token' page.
+
+	my $ua = LWP::Authen::OAuth->new(
+		oauth_consumer_key => 'xxx1',
+		oauth_consumer_secret => 'xxx2',
+		oauth_token => 'yyy1',
+		oauth_token_secret => 'yyy2',
+	);
+	
+	$ua->post( 'http://api.twitter.com/1/statuses/update.json', [
+		status => 'Posted this using LWP::Authen::OAuth!'
+	]);
+
+=head1 DESCRIPTION
+
+This module provides a lightweight sub-class of L<LWP::UserAgent> to generate OAuth signed requests. It has a utility method to populate the C<oauth_token> and C<oauth_token_secret> from OAuth request-token/access-token responses.
+
+If you want a complete OAuth implementation look at L<Net::OAuth>.
+
+This module currently only supports hmac_sha1 signing.
+
 =head1 METHODS
 
 =over 4
 
-=item $ua->oauth_token_secret( HTTP::Response OR token string )
+=item $ua = LWP::Authen::OAuth->new( ... )
 
-Set the token secret, auto-magically from an L<HTTP::Response> if given.
+Takes the same options as L<LWP::UserAgent/new> plus optionally:
+
+	oauth_consumer_key
+	oauth_consumer_secret
+	oauth_token
+	oauth_token_secret
+
+Most services will require some or all of these to be set even if it's just 'anonymous'.
+
+=item $ua->oauth_update_from_response( $r )
+
+Update the C<oauth_token> and C<oauth_token_secret> from an L<HTTP::Response> object returned by a previous request e.g. when converting a request token into an access token.
+
+=item $key = $ua->oauth_consumer_key( [ KEY ] )
+
+Get and optionally set the consumer key.
+
+=item $secret = $ua->oauth_consumer_secret( [ SECRET ] )
+
+Get and optionally set the consumer secret.
+
+=item $token = $ua->oauth_token( [ TOKEN ] )
+
+Get and optionally set the oauth token.
+
+=item $secret = $ua->oauth_token_secret( [ SECRET ] )
+
+Get and optionally set the oauth token secret.
 
 =back
 
 =head1 SEE ALSO
 
-L<LWP::UserAgent>
+L<LWP::UserAgent>, L<Net::OAuth>, L<MIME::Base64>, L<Digest::SHA>, L<URI>, L<URI::Escape>
+
+=head1 AUTHOR
+
+Timothy D Brody <tdb2@ecs.soton.ac.uk>
+
+Copyright 2011 University of Southampton, UK
+
+This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
 =cut
 
 use LWP::UserAgent;
+use URI;
 use URI::Escape;
 use Digest::SHA;
 use MIME::Base64;
