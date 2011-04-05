@@ -915,7 +915,7 @@ sub _load_citation_dir
 			my $fileid = substr($fn,0,-4);
 			# prefer .xsl to .xml
 			next if $fn =~ /\.xml$/
-				&& $EPrints::Citation::XSL &&
+				&& $EPrints::XSLT &&
 				-e "$dir/$dsid/$fileid.xsl";
 			$self->_load_citation_file( 
 				"$dir/$dsid/$fn",
@@ -953,7 +953,7 @@ sub _load_citation_file
 		);
 	}
 
-	if( $file =~ /\.xsl$/ && $EPrints::Citation::XSL )
+	if( $file =~ /\.xsl$/ && $EPrints::XSLT )
 	{
 		$self->{citations}->{$dsid}->{$fileid} = EPrints::Citation::XSL->new(
 			$file,

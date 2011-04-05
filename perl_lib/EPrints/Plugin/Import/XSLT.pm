@@ -12,6 +12,15 @@ use EPrints::Plugin::Import;
 
 use strict;
 
+sub init_xslt
+{
+	my( $class, $repo, $xslt ) = @_;
+
+	my $stylesheet = XML::LibXSLT->new->parse_stylesheet( $xslt->{doc} );
+	$xslt->{stylesheet} = $stylesheet;
+	delete $xslt->{doc};
+}
+
 sub input_fh
 {
 	my( $self, %opts ) = @_;

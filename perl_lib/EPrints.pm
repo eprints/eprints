@@ -176,6 +176,7 @@ use EPrints::BackCompatibility;
 use EPrints::Config;
 use EPrints::System;
 use EPrints::XML;
+use EPrints::XSLT;
 use EPrints::Time;
 
 use EPrints::Box;
@@ -183,7 +184,7 @@ use EPrints::Database;
 use EPrints::Storage;
 use EPrints::Citation;
 use EPrints::Citation::EPC;
-eval "use EPrints::Citation::XSL"; # only works if XML::LibXSLT is available
+use EPrints::Citation::XSL;
 use EPrints::DataObj;
 use EPrints::DataObj::SubObject;
 use EPrints::DataObj::Access;

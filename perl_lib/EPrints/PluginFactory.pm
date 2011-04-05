@@ -194,32 +194,6 @@ sub _load_xslt
 {
 	my( $self, $data, $repository, $fn, $class ) = @_;
 
-	if( !exists $self->{xslt}->{$fn} )
-	{
-		local $SIG{__DIE__};
-		my $doc = eval { $repository->xml->parse_file( $fn ) };
-		if( !defined $doc )
-		{
-			$repository->log( "Error parsing $fn: $@" );
-			return;
-		}
-		my $xslt = $self->{xslt}->{$fn} = {};
-		foreach my $attr ($doc->documentElement->attributes)
-		{
-			next if $attr->isa( "XML::LibXML::Namespace" );
-			next if !defined $attr->namespaceURI;
-			next if $attr->namespaceURI ne EP_NS_XSLT;
-			$xslt->{$attr->localName} = $attr->value();
-		}
-		for(qw( produce accept ))
-		{
-			$xslt->{$_} = [split / /, $xslt->{$_}||""];
-		}
-		my $stylesheet = XML::LibXSLT->new->parse_stylesheet( $doc );
-		$xslt->{stylesheet} = $stylesheet;
-	}
-	my $xslt = $self->{xslt}->{$fn};
-
 	my $handler = $class;
 	$handler =~ s/^(EPrints::Plugin::[^:]+::XSLT).*/$1/;
 
@@ -242,9 +216,35 @@ EOP
 	die $@ if $@;
 	}
 
+	my $xslt = {};
+
 	{
 		no strict "refs";
 		${$settingsvar} = $xslt;
+	}
+
+	{
+		local $SIG{__DIE__};
+		my $doc = eval { $repository->xml->parse_file( $fn ) };
+		if( !defined $doc )
+		{
+			$repository->log( "Error parsing $fn: $@" );
+			return;
+		}
+		foreach my $attr ($doc->documentElement->attributes)
+		{
+			next if $attr->isa( "XML::LibXML::Namespace" );
+			next if !defined $attr->namespaceURI;
+			next if $attr->namespaceURI ne EP_NS_XSLT;
+			$xslt->{$attr->localName} = $attr->value();
+		}
+		for(qw( produce accept ))
+		{
+			$xslt->{$_} = [split / /, $xslt->{$_}||""];
+		}
+
+		$xslt->{doc} = $doc;
+		$class->init_xslt( $repository, $xslt );
 	}
 
 	my $plugin = $class->new( repository => $repository );
