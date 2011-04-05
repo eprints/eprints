@@ -263,6 +263,38 @@ sub output_dataobj
 	}
 }
 
+sub xml_dataobj
+{
+	my( $self, $dataobj, %opts ) = @_;
+
+	return $self->{session}->xml->create_document_fragment
+		if $self->{method} ne "xml";
+
+	my $xml = $dataobj->to_xml;
+	my $doc = $xml->ownerDocument;
+
+	my $toplevel = $dataobj->dataset->base_id . "s";
+	my $root = $doc->createElementNS( EPrints::Const::EP_NS_DATA, $toplevel );
+	$root->appendChild( $xml );
+	$doc->setDocumentElement( $root );
+
+	my $xslt = EPrints::XSLT->new(
+		repository => $self->{session},
+		stylesheet => $self->{stylesheet},
+		dataobj => $dataobj,
+	);
+
+	my $result = $xslt->transform( $doc, 
+			dataset => $dataobj->dataset->base_id,
+			total => $opts{total},
+			position => $opts{position}
+		);
+
+	$xml = $self->{session}->xml->clone( $result->documentElement );
+
+	return $xml;
+}
+
 1;
 
 =head1 COPYRIGHT
