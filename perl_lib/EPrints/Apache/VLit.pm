@@ -83,7 +83,7 @@ sub handler
 	# undo eprints rewrite!
 	my $uri = $r->uri;	
 	$uri =~ s#/([0-9]+)/([0-9][0-9])/([0-9][0-9])/([0-9][0-9])/#/$1$2$3$4/#;
-	my $repository = EPrints::Repository->new_from_request( $r );
+	my $repository = EPrints->new->current_repository;
 	my $baseurl = $repository->get_conf( "http_url" ).$uri;
 	
 	my $LSMAP = {
@@ -172,7 +172,7 @@ sub ls_charrange
 {
 	my( $filename, $param, $locspec, $r, $baseurl, $args ) = @_;
 
-	my $repository = EPrints::Repository->new_from_request( $r );
+	my $repository = EPrints->new->current_repository( $r );
 	
 #	if( $r->content_type !~ m#^text/# )
 #	{
@@ -420,7 +420,7 @@ sub ls_area
 		hrange => { start=>0 },
 		vrange => { start=>0 }
 	};
-	my $repository = EPrints::Repository->new_from_request( $r );
+	my $repository = EPrints->new->current_repository( $r );
 
 	my $mode = $args->{mode};
 

@@ -637,42 +637,6 @@ sub user_by_email($$)
 
 	return EPrints::DataObj::User::user_with_email( $repository, $email )
 }
-	
-	
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $repository = EPrints::RepositoryConfig->new_from_request( $request )
-
-This creates a new repository object. It looks at the given Apache
-request object and decides which repository to load based on the 
-value of the PerlVar "EPrints_ArchiveID".
-
-Aborts with an error if this is not possible.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub new_from_request
-{
-	my( $class, $request ) = @_;
-		
-	my $repoid = $request->dir_config( "EPrints_ArchiveID" );
-
-	my $repository = EPrints::RepositoryConfig->new( $repoid );
-
-	if( !defined $repository )
-	{
-		EPrints::abort( "Can't load EPrints repository: $repoid" );
-	}
-
-	return $repository;
-}
 
 sub _add_http_paths
 {
