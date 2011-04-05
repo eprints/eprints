@@ -28,6 +28,7 @@ sub new
 	$self->{suffix} = ".xml";
 	$self->{mimetype} = "text/xml";
 	
+	$self->{metadataPrefix} = "oai_dc";
 	$self->{xmlns} = "http://www.openarchives.org/OAI/2.0/oai_dc/";
 	$self->{schemaLocation} = "http://www.openarchives.org/OAI/2.0/oai_dc.xsd";
 

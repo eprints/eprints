@@ -70,7 +70,7 @@ if( $md{ "aulast" } )
 }
 if( defined($rft->id) )
 {
-	my $oai_id = $session->get_repository->get_conf( "oai" )->{ "v2" }->{ "archive_id" };
+	my $oai_id = EPrints::OpenArchives::archive_id( $session );
 	if( defined($rft->id) and $rft->id =~ /^(?:info:ofi\/nam:info:)?oai:$oai_id:(\d+)$/ )
 	{
 		$searchexp->add_field(
@@ -145,10 +145,7 @@ if( $svc->val_fmt and $svc->val_fmt eq 'info:ofi/fmt:kev:mtx:oai_pmh' )
 	$url = URI->new( $url );
 
 	# Get the OAI identifier for this eprint
-	my $oai_id = $session->get_repository->get_conf( 
-			"oai", 
-			"v2", 
-			"archive_id" );
+	my $oai_id = EPrints::OpenArchives::archive_id( $session );
 	$oai_id = EPrints::OpenArchives::to_oai_identifier( $oai_id, $eprint->get_id );
 
 	# Add the OAI-PMH arguments

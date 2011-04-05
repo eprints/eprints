@@ -21,6 +21,8 @@ sub new
 	$self->{accept} = [qw( dataobj/eprint )];
 	$self->{visible} = "";
 
+	$self->{metadataPrefix} = "oai_bibl";
+
 	return $self;
 }
 

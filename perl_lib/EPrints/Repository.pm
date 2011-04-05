@@ -467,9 +467,6 @@ sub load_config
 
 	$self->_load_plugins() || return;
 
-	# Map OAI plugins to functions, namespaces etc.
-	$self->_map_oai_plugins() || return;
-
 	$self->{field_defaults} = {};
 
 	return $self;
@@ -1495,42 +1492,6 @@ sub get_plugin_ids
 		map { $_->get_id() }
 		$self->{plugins}->get_plugin_factory();
 }
-
-######################################################################
-# 
-# $success = $repository->_map_oai_plugins
-#
-# The OAI interface now uses plugins. This checks each OAI plugin and
-# stores its namespace, and a function to render with it.
-#
-######################################################################
-
-sub _map_oai_plugins
-{
-	my( $self ) = @_;
-	
-	my $plugin_list = $self->{config}->{oai}->{v2}->{output_plugins};
-	
-	return( 1 ) unless( defined $plugin_list );
-
-	foreach my $plugin_id ( keys %{$plugin_list} )
-	{
-		my $full_plugin_id = "Export::".$plugin_list->{$plugin_id};
-		my $plugin = $self->{plugins}->get_plugin( $full_plugin_id );
-		$self->{config}->{oai}->{v2}->{metadata_namespaces}->{$plugin_id} = $plugin->{xmlns};
-		$self->{config}->{oai}->{v2}->{metadata_schemas}->{$plugin_id} = $plugin->{schemaLocation};
-		$self->{config}->{oai}->{v2}->{metadata_functions}->{$plugin_id} = sub {
-			my( $eprint, $session ) = @_;
-
-			my $plugin = $session->plugin( $full_plugin_id );
-			my $xml = $plugin->xml_dataobj( $eprint );
-			return $xml;
-		};
-	}
-
-	return 1;
-}
-
 
 
 ######################################################################

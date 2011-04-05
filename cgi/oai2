@@ -36,8 +36,7 @@ our $IDENTIFIER_REGEXP = qr/^[a-z]+:.*$/;
 our $DATETIME_REGEXP = qr/^\d\d\d\d-\d\d-\d\d(T\d\d:\d\d:\d\dZ)?$/;
 
 our $DATESTAMP_FIELD = $repo->dataset( "eprint")->get_datestamp_field;
-our $ARCHIVE_ID = $repo->config( "oai", "v2", "archive_id" );
-our %FORMATS = %{$repo->config( "oai", "v2", "output_plugins" )};
+our $ARCHIVE_ID = EPrints::OpenArchives::archive_id( $repo );
 
 # OAI-PMH grammar
 our %GRAMMAR = (
@@ -300,22 +299,20 @@ sub check_metadataprefix
 
 	my @errors;
 
-	if( !defined $repo->config( "oai", "v2", "metadata_namespaces" )->{$value} || !defined($FORMATS{$value}) )
+	my( $plugin ) = $repo->get_plugins(
+		metadataPrefix => $value
+	);
+
+	if( defined $plugin )
+	{
+		$_[1] = $plugin;
+	}
+	else
 	{
 		push @errors, render_oai_error(
 				$repo,
 				"cannotDisseminateFormat",
 				"Record not available as metadata type: '$value'" );
-	}
-
-	$_[1] = $FORMATS{$value};
-	if( defined $_[1] )
-	{
-		my $plugin = $repo->plugin( "Export::".$_[1] );
-		if( !defined $plugin )
-		{
-			EPrints::abort( "$value is a configured OAI-PMH export format but the plugin $_[1] doesn't exist" );
-		}
 	}
 
 	return @errors;
@@ -407,7 +404,6 @@ sub Identify
 {
 	my( $repo, $response, $args ) = @_;
 
-	my $sample_identifier = $repo->config( "oai","v2","sample_identifier" );
 	my $earliest_datestamp = "0001-01-01T00:00:00Z";
 
 	my $dataset = $repo->dataset( "eprint" );
@@ -420,16 +416,17 @@ sub Identify
 	);
 	$searchexp->add_field(
 		$dataset->field( "eprint_status" ),
-		"archive deletion",
+		"archive",
 		"EQ",
 		"ANY"
 	);
 	my $sample_eprint = $searchexp->perform_search->item( 0 );
+	my $sample_identifier;
 
 	if( defined $sample_eprint )
 	{
 		$sample_identifier = EPrints::OpenArchives::to_oai_identifier(
-			$ARCHIVE_ID,
+			EPrints::OpenArchives::archive_id( $repo ),
 			$sample_eprint->id
 			);
 		if( $sample_eprint->is_set( $DATESTAMP_FIELD->get_name ) )
@@ -546,7 +543,7 @@ sub GetRecord
 	# if the metadataFormat isn't available for
 	# this record, only the header will be output.
 
-	my $plugin = $repo->plugin( "Export::" . $args->{metadataPrefix} );
+	my $plugin = $args->{metadataPrefix};
 
 	$response->appendChild( 
 		EPrints::OpenArchives::make_record(
@@ -564,14 +561,18 @@ sub ListMetadataFormats
 	
 	my $eprint = $args->{identifier};
 
-	foreach my $mdp ( sort keys %FORMATS )
+	my @plugins = sort {
+		$a->param( "metadataPrefix" ) cmp $b->param( "metadataPrefix" )
+	} $repo->get_plugins(
+		metadataPrefix => "*",
+		is_advertised => 1,
+	);
+
+	foreach my $plugin (@plugins)
 	{
-		my $plugin_id = "Export::" . $FORMATS{ $mdp };
-		my $plugin = $repo->plugin( $plugin_id );
-		next if !defined $plugin;
 		if( defined($eprint) )
 		{
-			my $xml = $eprint->export( $FORMATS{ $mdp } );
+			my $xml = $plugin->xml_dataobj( $eprint );
 			next if !defined $xml;
 		}
 		
@@ -579,16 +580,17 @@ sub ListMetadataFormats
 
 		$mdf->appendChild( $repo->xhtml->data_element(
 			"metadataPrefix",
-			$mdp ) );
-
+			$plugin->param( "metadataPrefix" )
+		));
 		$mdf->appendChild( $repo->xhtml->data_element(
 			"schema",
-			$plugin->{ 'schemaLocation' }
+			$plugin->param( "schemaLocation" )
 		));
 		$mdf->appendChild( $repo->xhtml->data_element(
 			"metadataNamespace",
-			$plugin->{ 'xmlns' }
+			$plugin->param( "xmlns" )
 		));
+
 		$response->appendChild( $mdf );
 	}
 	
@@ -891,7 +893,7 @@ END
 			"No items match. None. None at all. Not even deleted ones." ) );
 	}	
 
-	my $plugin = $repo->plugin( "Export::" . $args->{metadataPrefix} );
+	my $plugin = $args->{metadataPrefix};
 
 	# speed up header generation
 	$repo->cache_subjects;

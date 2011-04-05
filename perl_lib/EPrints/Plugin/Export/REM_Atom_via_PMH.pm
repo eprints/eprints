@@ -41,6 +41,7 @@ sub new
 	$self->{suffix} = ".xml";
 	$self->{mimetype} = "application/atom+xml";
 	
+	$self->{metadataPrefix} = "rem_atom";
 	$self->{xmlns} = "http://www.w3.org/2005/Atom";
 	$self->{schemaLocation} = "http://exyus.com/xcs/tasklist/source/?f=put_atom.xsd";
 

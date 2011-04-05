@@ -31,6 +31,18 @@ use EPrints;
 
 use strict;
 
+sub archive_id
+{
+	my( $repo, $any ) = @_;
+
+	my $v1 = $repo->config( "oai", "archive_id" );
+	my $v2 = $repo->config( "oai", "v2", "archive_id" );
+
+	$v1 ||= $repo->config( "host" );
+	$v2 ||= $v1;
+
+	return $any ? ($v1, $v2) : $v2;
+}
 
 
 ######################################################################
@@ -51,20 +63,7 @@ sub make_header
 	my ( $session, $eprint, $oai2 ) = @_;
 
 	my $header = $session->make_element( "header" );
-	my $oai_id;
-	if( $oai2 )
-	{
-		$oai_id = $session->get_repository->get_conf( 
-			"oai", 
-			"v2", 
-			"archive_id" );
-	}
-	else
-	{
-		$oai_id = $session->get_repository->get_conf( 
-			"oai", 
-			"archive_id" );
-	}
+	my $oai_id = archive_id( $session );
 	
 	$header->appendChild( $session->render_data_element(
 		6,
@@ -246,8 +245,7 @@ identifier is suitable.
 sub from_oai_identifier
 {
         my( $session , $oai_identifier ) = @_;
-        my $arcid = $session->get_repository->get_conf( "oai", "archive_id" );
-        my $arcid2 = $session->get_repository->get_conf( "oai", "v2", "archive_id" );
+		my( $arcid, $arcid2 ) = archive_id( $session, 1 );
         if( $oai_identifier =~ /^oai:($arcid|$arcid2):(\d+)$/ )
         {
                 return( $2 );

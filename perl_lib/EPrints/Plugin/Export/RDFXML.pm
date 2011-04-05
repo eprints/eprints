@@ -29,6 +29,7 @@ sub new
 	$self->{mimetype} = "application/rdf+xml";
 	$self->{qs} = 0.85;
 
+	$self->{metadataPrefix} = "rdf";
 	$self->{xmlns} = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 	$self->{schemaLocation} = "http://www.openarchives.org/OAI/2.0/rdf.xsd";
 

@@ -12,8 +12,6 @@
 #
 ######################################################################
 
-use EPrints::OpenArchives;
-
 my $oai = {};
 $c->{oai} = $oai;
 
@@ -30,29 +28,10 @@ $c->{oai} = $oai;
 # sites domain as (part of) the base ID - which is pretty darn unique.
 
 # IMPORTANT: Do not register an archive with the default archive_id! 
-$oai->{v2}->{archive_id} = "generic.eprints.org";
-
-# The output plugins must be loaded for the archive and have
-# the methods xml_dataobj and properties for xmlns and schemaLocation.
-#
-# The keys of this hash are the OAI metadataPrefix to use, and the values
-# are the ID of the output plugin to use for that prefix.
-$oai->{v2}->{output_plugins} = { 
-	"oai_dc" => "OAI_DC",
-	"rem_atom" => "REM_Atom_via_PMH", 
-	"didl" => "DIDL", 
-	"uketd_dc" =>"OAI_UKETD_DC",
-	"context_object" => "ContextObject",
-	"mets" => "METS",
-	"rdf" => "RDFXML",
-};
+#$oai->{v2}->{archive_id} = "generic.eprints.org";
 
 # Base URL of OAI 2.0
 $oai->{v2}->{base_url} = $c->{perl_url}."/oai2";
-
-$oai->{v2}->{sample_identifier} = EPrints::OpenArchives::to_oai_identifier(
-	$oai->{v2}->{archive_id},
-	"23" );
 
 ##########################################################################
 # GENERAL OAI CONFIGURATION

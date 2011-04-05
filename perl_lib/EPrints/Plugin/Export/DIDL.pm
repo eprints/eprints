@@ -26,6 +26,7 @@ sub new
 	$self->{accept} = [ 'dataobj/eprint' ];
 	$self->{visible} = "all";
 
+	$self->{metadataPrefix} = "didl";
 	$self->{xmlns} = "urn:mpeg:mpeg21:2002:02-DIDL-NS",
 	$self->{schemaLocation} = "http://standards.iso.org/ittf/PubliclyAvailableStandards/MPEG-21_schema_files/did/didmodel.xsd";
 

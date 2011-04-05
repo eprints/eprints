@@ -293,7 +293,7 @@ sub xml_eprint
 	my $oai = $session->get_repository->get_conf( "oai" );
 
 	my $oai_id = EPrints::OpenArchives::to_oai_identifier( 
-			$oai->{v2}->{ "archive_id" }, 
+			EPrints::OpenArchives::archive_id( $session ),
 			$eprint->get_id );
 
 	$rft->appendChild( 

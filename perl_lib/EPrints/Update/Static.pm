@@ -169,7 +169,7 @@ sub update_secure_auto_js
 	my $js = "";
 	$js .= "var eprints_http_root = ".EPrints::Utils::js_string( $session->get_url( scheme => "https", host => 1, path => "static" ) ).";\n";
 	$js .= "var eprints_http_cgiroot = ".EPrints::Utils::js_string( $session->get_url( scheme => "https", host => 1, path => "cgi" ) ).";\n";
-	$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( $session->get_repository->get_conf('oai','v2','archive_id') ).";\n";
+	$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( EPrints::OpenArchives::archive_id( $session ) ).";\n";
 	$js .= "\n";
 
 	update_auto(
@@ -189,7 +189,7 @@ sub update_auto_js
 	my $js = "";
 	$js .= "var eprints_http_root = ".EPrints::Utils::js_string( $session->get_url( scheme => "http", host => 1, path => "static" ) ).";\n";
 	$js .= "var eprints_http_cgiroot = ".EPrints::Utils::js_string( $session->get_url( scheme => "http", host => 1, path => "cgi" ) ).";\n";
-	$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( $session->get_repository->get_conf('oai','v2','archive_id') ).";\n";
+	$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( EPrints::OpenArchives::archive_id( $session ) ).";\n";
 
 	update_auto(
 			"$target_dir/javascript/auto.js",

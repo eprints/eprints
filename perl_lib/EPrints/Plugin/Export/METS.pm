@@ -31,6 +31,7 @@ sub new
 	$self->{accept} = [ 'dataobj/eprint', 'list/eprint' ];
 	$self->{visible} = "all";
 	
+	$self->{metadataPrefix} = "mets";
 	$self->{xmlns} = "http://www.loc.gov/METS/";
 	$self->{schemaLocation} = "http://www.loc.gov/standards/mets/mets.xsd";
 

@@ -46,6 +46,7 @@ sub new
 	$self->{suffix} = ".xml";
 	$self->{mimetype} = "text/xml";
 	
+	$self->{metadataPrefix} = "uketd_dc";
 	$self->{xmlns} = "http://naca.central.cranfield.ac.uk/ethos-oai/2.0/";
 	$self->{schemaLocation} = "http://naca.central.cranfield.ac.uk/ethos-oai/2.0/uketd_dc.xsd";
 
