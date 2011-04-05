@@ -45,7 +45,7 @@ The stylesheet will be called with a document containing this:
 	<?xml version='1.0'?>
 	<template xmlns="http://eprints.org/ep2/xslt/1.0" />
 
-If the resulting document contains the value of the $result parameter it will be treated as a template for output. The value of $result will be replaced with the output from the following step.
+If the resulting document contains the value of the $results parameter it will be treated as a template for output. The value of $results will be replaced with the output from the following step.
 
 The stylesheet is called once for every item with the full XML record:
 
@@ -57,9 +57,9 @@ The stylesheet is called once for every item with the full XML record:
 	</eprint>
 	</eprints>
 
-Each result document is appended to $result.
+Each result document is appended to $results.
 
-If your export format does not require any header or footer wrapping you do not need to implement ept:template - $result will be output as-is.
+If your export format does not require any header or footer wrapping you do not need to implement ept:template - $results will be output as-is.
 
 =head2 Controlling XML Declarations
 
