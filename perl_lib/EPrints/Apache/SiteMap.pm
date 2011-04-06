@@ -57,6 +57,10 @@ sub handler
 			$top_subject->uri ) );
 	}
 
+       	# adds local sitemap URLs
+	$repository->run_trigger( EPrints::Const::EP_TRIGGER_LOCAL_SITEMAP_URLS,
+		urlset => $urlset,
+	); 
 
 	binmode( *STDOUT, ":utf8" );
 	$repository->send_http_header( "content_type"=>"text/xml; charset=UTF-8" );

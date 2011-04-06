@@ -1310,6 +1310,37 @@ sub make_relation
 	return "http://eprints.org/relation/" . $_[0];
 }
 
+# Creates a sitemap URL given the following attributes:
+# 	$urldef->{loc} (required)
+# 	$urldef->{lastmod} (optional)
+# 	$urldef->{changefreq} (optional)
+# 	$urldef->{priority} (optional)
+#
+# See http://www.sitemaps.org/protocol.php
+#
+sub make_sitemap_url
+{
+	my( $repo, $urldef ) = @_;
+
+	return $repo->make_doc_fragment unless( EPrints::Utils::is_set( $urldef ) && defined $urldef->{loc} );
+
+	my $url = $repo->make_element( 'url' );
+	my $loc = $repo->make_element( 'loc' );	
+	$loc->appendChild( $repo->make_text( $urldef->{loc} ) );
+	$url->appendChild( $loc );
+
+	foreach my $attribute ( "lastmod", "changefreq", "priority" )
+	{
+		next unless( EPrints::Utils::is_set( $urldef->{$attribute} ) );
+
+		my $tag = $repo->make_element( $attribute );
+		$tag->appendChild( $repo->make_text( $urldef->{$attribute} ) );
+		$url->appendChild( $tag );
+	}
+
+	return $url;
+}
+
 1;
 
 =head1 COPYRIGHT
