@@ -47,12 +47,13 @@ sub new
 	$self->{appears} = [
 			{ place => "upload_methods", position => 1000 },
 	];
-	$self->{actions} = [qw( login verify search upload )];
+	$self->{actions} = [qw( login logout verify search upload )];
 
 	return $self;
 }
 
 sub allow_login { shift->can_be_viewed }
+sub allow_logout { shift->can_be_viewed }
 sub allow_verify { shift->can_be_viewed }
 sub allow_search { shift->can_be_viewed }
 sub allow_upload { shift->can_be_viewed }
@@ -133,6 +134,14 @@ sub action_login
 	);
 
 	$self->{processor}->{redirect} = "$verify";
+}
+
+sub action_logout
+{
+	my( $self ) = @_;
+
+	my $oauth = $self->oauth;
+	$oauth->remove if $oauth;
 }
 
 sub action_verify
@@ -312,6 +321,10 @@ sub render
 		value => $repo->phrase( "lib/searchexpression:action_search" ),
 		class => "ep_form_internal_button",
 		name => "_internal_".$self->{prefix}."_search" ) );
+	$f->appendChild( $repo->render_button(
+		value => $repo->phrase( "Plugin/Screen/Logout:title" ),
+		class => "ep_form_internal_button",
+		name => "_internal_".$self->{prefix}."_logout" ) );
 
 	my $table = $xml->create_element( "table" );
 	$f->appendChild( $table );
