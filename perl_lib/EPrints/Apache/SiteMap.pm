@@ -25,6 +25,29 @@ sub handler
 	my( $r ) = @_;
 
 	my $repository = $EPrints::HANDLE->current_repository;
+
+        my $langid = EPrints::Session::get_session_language( $repository, $r );
+        my @static_dirs = $repository->get_static_dirs( $langid );
+        my $sitemap;
+        foreach my $static_dir ( @static_dirs )
+        {
+                my $file = "$static_dir/sitemap.xml";
+                next if( !-e $file );
+
+                open( SITEMAP, $file ) || EPrints::abort( "Can't read $file: $!" );
+                $sitemap = join( "", <SITEMAP> );
+                close SITEMAP;
+                last;
+        }
+
+	if( defined $sitemap )
+	{
+	        binmode( *STDOUT, ":utf8" );
+        	$repository->send_http_header( "content_type"=>"text/xml; charset=UTF-8" );
+	        print $sitemap;
+        	return DONE;
+	}
+
 	my $xml = $repository->xml;
 
 	my $urlset = $xml->create_element( "urlset", 
