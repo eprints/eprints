@@ -19,6 +19,8 @@ package EPrints::Plugin::Screen::Admin::Bazaar;
 
 use strict;
 
+our $previous = undef;
+
 sub new
 {
 	my( $class, %params ) = @_;
@@ -126,6 +128,8 @@ sub action_update_bazaar_package
 {
 	my ( $self ) = @_;
 
+	$previous = "updates";
+
 	$self->action_install_bazaar_package();
 }
 
@@ -134,6 +138,8 @@ sub action_install_bazaar_package
 	my ( $self ) = @_;
 	
 	my $session = $self->{session};
+
+	$previous = "available" if (!defined $previous);
 
         my $url_in = $self->{session}->param( "package" );
 
@@ -180,6 +186,8 @@ sub action_handle_upload
 {
 	my ( $self ) = @_;
 
+	$previous = "custom";
+
 	my $session = $self->{session};
 
 	my $fname = "_first_file";
@@ -220,6 +228,8 @@ sub action_install_cached_package
 	my ( $self ) = @_;
         
 	my $session = $self->{session};
+
+	$previous = "custom";
 
         my $package = $self->{session}->param( "package" );
 
@@ -266,6 +276,8 @@ sub action_remove_package
 {
         my ( $self ) = @_;
 
+	$previous = "installed";
+
         my $session = $self->{session};
 
         my $package = $self->{session}->param( "package" );
@@ -301,6 +313,8 @@ sub action_remove_cached_package
 	my ( $self ) = @_;
 
         my $session = $self->{session};
+
+	$previous = "custom";
 
         my $package = $self->{session}->param( "package" );
 	
@@ -458,6 +472,9 @@ sub render_app_menu
 	my @contents;
 	my $title;
 
+	my $tab_count = 0;
+	my $current = 0;
+
 	my ($count, $content) = tab_grid_epms($self, $update_epms );
         $title = $session->make_doc_fragment();
         $title->appendChild($self->html_phrase("updates"));
@@ -465,6 +482,8 @@ sub render_app_menu
 	if (defined $content) {
 		push @titles, $title;
 		push @contents, $content;
+		$current = $tab_count if ($previous eq "updates");
+		$tab_count++;
 	}
 
 	($count, $content) = tab_list_epms($self, $installed_epms );
@@ -474,6 +493,8 @@ sub render_app_menu
 	if (defined $content) {
 		push @titles, $title;
 		push @contents, $content;
+		$current = $tab_count if ($previous eq "installed");
+		$tab_count++;
 	}
 
 	($count, $content) = tab_grid_epms($self, $store_epms );
@@ -483,6 +504,8 @@ sub render_app_menu
 	if (defined $content) {
 		push @titles, $title;
 		push @contents, $content;
+		$current = $tab_count if ($previous eq "available");
+		$tab_count++;
 	}
 
 	($count, $content) = tab_upload_epm($self);
@@ -491,8 +514,9 @@ sub render_app_menu
         $title->appendChild($session->make_text(" ($count)"));
 	push @titles, $title;
 	push @contents, $content;
+	$current = $tab_count if ($previous eq "custom");
 
-	my $content2 = $session->xhtml->tabs(\@titles, \@contents);
+	my $content2 = $session->xhtml->tabs(\@titles, \@contents,current=>$current);
 
 	$content2->appendChild($session->make_element("br"));
 	
