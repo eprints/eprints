@@ -44,6 +44,7 @@ package EPrints::Storage;
 
 use URI;
 use URI::Escape;
+use File::Temp qw();
 
 use strict;
 
@@ -258,7 +259,17 @@ sub get_local_copy
 		last if defined $filename;
 	}
 
-	if( !defined $filename )
+	if( defined $filename )
+	{
+		# see File::Temp::new
+		# by doing this calling code can treat the return in a consistent way
+		open(my $fh, "<", $filename) or return undef;
+		${*$fh} = $filename;
+		bless $fh, "File::Temp";
+		$fh->unlink_on_destroy( 0 );
+		$filename = $fh;
+	}
+	else
 	{
 		$filename = File::Temp->new;
 		binmode($filename);
