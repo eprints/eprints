@@ -9,6 +9,8 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<EPrints::Workflow> - Models the submission process used by an repository. 
@@ -17,6 +19,86 @@ B<EPrints::Workflow> - Models the submission process used by an repository.
 
 The workflow class handles loading the workflow configuration for a 
 single repository. 
+
+=head1 WORKFLOW FORMAT
+
+=over 4
+
+=item component
+
+Parents: L</stage>
+
+Children: L</field>
+
+Attributes: type
+
+	<component type="Field::Multi">
+		<field ref="title" />
+		<field ref="abstract" />
+	</component>
+
+=item field
+
+Parents: L</component>
+
+Children: L</sub_field>
+
+Attributes: ref
+
+	<field ref="title" input_cols="40" />
+
+C<field> includes a metafield in the workflow. Any property can be set for the field by supplying it as an attribute.
+
+=item flow
+
+Parents: L</workflow>
+
+Children: L</stage>
+
+	<flow>
+		<stage ref="files" />
+		<stage ref="details" />
+	</flow>
+
+=item stage
+
+Parents: L</workflow>, L</flow>
+
+Children: L</component>
+
+Attributes: ref, name
+
+	<stage name="details">
+		<component><field ref="title"/></component>
+	</stage>
+
+=item sub_field
+
+Parents: L</field>
+
+C<sub_field> allows properties to be set for sub-fields of L<EPrints::MetaField::Compound> and sub-classed field types.
+
+See L</field> for possible attributes.
+
+=item workflow
+
+Children: L</flow>, L</stage>
+
+	<workflow xmlns="http://eprints.org/ep3/workflow">
+		<flow>
+			...
+		</flow>
+		<stage name="files">
+			...
+		</stage>
+		<stage name="details">
+			...
+		</stage>
+	</workflow>
+
+=back
+
+=head1 METHODS
 
 =over 4
 
