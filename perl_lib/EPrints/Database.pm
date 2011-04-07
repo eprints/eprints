@@ -1196,7 +1196,11 @@ sub _update
 			$sth->bind_param( ++$i, ref($_) eq 'ARRAY' ? @$_ : $_ );
 		}
 		my $rc = $sth->execute(); # execute can return "0e0"
-		return $rc if !$rc;
+		if( !$rc )
+		{
+			$self->{session}->log( Carp::longmess( $sth->{Statement} . ": " . $self->{dbh}->err ) );
+			return $rc;
+		}
 		$rv += $rc; # otherwise add up the number of rows affected
 	}
 

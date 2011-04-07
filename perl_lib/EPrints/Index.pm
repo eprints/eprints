@@ -262,7 +262,7 @@ sub _do_ordervalues
 				[$keyname, @fnames],
 				[$keyvalue, @fvals] );
 		}
-		else
+		elsif( @fnames )
 		{
 			$session->get_database->_update( $ovt,
 				[$keyname],
