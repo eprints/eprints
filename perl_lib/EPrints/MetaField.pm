@@ -612,7 +612,12 @@ sub type
 	return $self->{type};
 }
 
+sub has_property
+{
+	my( $self, $property ) = @_;
 
+	return exists $self->{field_defaults}->{$property};
+}
 
 ######################################################################
 =pod

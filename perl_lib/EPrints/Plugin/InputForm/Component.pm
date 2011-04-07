@@ -346,37 +346,72 @@ sub xml_to_metafield
 			"xml_to_metafield config error: Invalid field ref attribute($ref)" );
 	}
 
-	my $cloned = 0;
-	foreach my $prop ( qw/ required input_lookup_url input_lookup_params top options
-                               input_boxes input_add_boxes input_ordered / )
-	{
-		my $setting = $xml->getAttribute( $prop );
-		next unless EPrints::Utils::is_set( $setting );
+	my %props;
 
-		if( $prop eq "required" && $setting eq "yes" ) { $setting = 1; }
-		if( $prop eq "required" && $setting eq "no" ) { $setting = 0; }
-		if( $prop eq "options" ) { $setting = [split( ",", $setting )]; }
-		
-		if( !$cloned ) { $field = $field->clone; $cloned = 1; }	
-		$field->set_property( $prop, $setting );
-	}
-	foreach my $child ( $xml->getChildNodes )
+	# e.g. required input_lookup_url input_lookup_params top options
+	# input_boxes input_add_boxes input_ordered
+	foreach my $attr ($xml->attributes)
 	{
-		if( $child->nodeName eq "help" )
+		my $value = $attr->nodeValue;
+		next if !EPrints::Utils::is_set( $value );
+		my $name = $attr->nodeName;
+		if( $name eq "required" )
 		{
-			if( !$cloned ) { $field = $field->clone; $cloned = 1; }	
-			$field->set_property( 
-				"help_xhtml", 
-				EPrints::XML::contents_of( $child ) );
+			$value = $value eq "yes";
 		}
-		if( $child->nodeName eq "title" )
+		elsif( $name eq "options" )
 		{
-			if( !$cloned ) { $field = $field->clone; $cloned = 1; }	
-			$field->set_property( 
-				"title_xhtml", 
-				EPrints::XML::contents_of( $child ) );
+			$value = [split ',', $value];
+		}
+		$props{$name} = $value;
+	}
+	foreach my $child ( $xml->childNodes )
+	{
+		my $name = $child->nodeName;
+		if( $name eq "help" )
+		{
+			$props{help_xhtml} = EPrints::XML::contents_of( $child );
+		}
+		elsif( $name eq "title" )
+		{
+			$props{title_xhtml} = EPrints::XML::contents_of( $child );
+		}
+		elsif( $name eq "sub_field" )
+		{
+			if( !$field->isa( "EPrints::MetaField::Compound" ) )
+			{
+				EPrints->abort( "xml_to_metafield config error: can only create a nested field definition for Compound fields (".$field->name." is not of type compound)" ); 
+			}
+			my $c = $child->cloneNode( 1 );
+			$c->setName( "field" );
+			my $sub_name = $c->getAttribute( "ref" );
+			$c->setAttribute( "ref", $field->name . "_" . $sub_name );
+			my $sub_field = $self->xml_to_metafield( $c, $dataset );
+			$sub_field = $sub_field->clone;
+			$props{$sub_field} = $sub_field;
+			EPrints::XML::dispose( $c );
 		}
 	}
+
+	return $field if !%props;
+
+	$field = $field->clone;
+	while(my( $name, $value ) = each %props)
+	{
+		if( UNIVERSAL::isa( $value, "EPrints::MetaField" ) )
+		{
+			foreach my $f (@{$field->property( "fields_cache" )})
+			{
+				$f = $value, last if $f->name eq $value->name;
+			}
+		}
+		elsif( $field->has_property( $name ) )
+		{
+			$field->set_property( $name, $value );
+		}
+		# should maybe warn here?
+	}
+
 	return $field;
 }
 
