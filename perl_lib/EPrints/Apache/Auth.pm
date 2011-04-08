@@ -100,6 +100,13 @@ sub _use_auth_basic
 		{
 			$rc = 1;
 		}
+		# Microsoft Internet Explorer - Accept: */*
+		my $agent = $r->headers_in->{'User-Agent'} || '';
+		# http://msdn.microsoft.com/en-us/library/ms537509(v=vs.85).aspx
+		if( $agent =~ /\bMSIE ([0-9]{1,}[\.0-9]{0,})/ )
+		{
+			$rc = 0;
+		}
 	}
 
 	return $rc;
