@@ -875,7 +875,7 @@ sub render_conditions_description
 	my( $self ) = @_;
 
 	my @bits = ();
-	foreach my $sf ( $self->get_searchfields )
+	foreach my $sf ( $self->get_non_filter_searchfields )
 	{
 		next unless( $sf->is_set );
 		next unless( $sf->get_include_in_description );
