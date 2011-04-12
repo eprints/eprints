@@ -435,13 +435,17 @@ sub from
 	if( !defined $searchexp )
 	{
 		my $format = $processor->{searchid} . "/" . $processor->{dataset}->base_id;
+		if( !defined $sconf )
+		{
+			EPrints->abort( "No such search type $format" );
+		}
 		$searchexp = $session->plugin( "Search" )->plugins(
 			{
 				session => $session,
 				dataset => $self->search_dataset,
 				keep_cache => 1,
 				satisfy_all => $satisfy_all,
-				%{$processor->{sconf}},
+				%{$sconf},
 			},
 			type => "Search",
 			can_search => $format,
