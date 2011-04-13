@@ -258,6 +258,11 @@ sub exec
 
 	my $rc = 0xffff & system $command;
 
+	if( $rc != 0 )
+	{
+		$repository->log( Carp::longmess("Error ".($rc>>8)." from $cmd_id command: $command") );
+	}
+
 	return $rc;
 }	
 
