@@ -35,6 +35,7 @@ sub export
 	{
 		push @json, {
 			id => $doc->id,
+			placement => $doc->value( "placement" ),
 		};
 	}
 

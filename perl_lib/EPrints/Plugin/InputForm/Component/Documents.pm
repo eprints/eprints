@@ -90,6 +90,10 @@ sub update_from_form
 			$self->_doc_update( $processor, $doc, $doc_action, \@eprint_docs );
 			return;
 		}
+		elsif( $internal eq "reorder" )
+		{
+			$self->_reorder( $processor );
+		}
 	}
 
 	return;
@@ -199,6 +203,29 @@ sub _doc_update
 		return_to => $return_to,
 	);
 	$processor->{redirect} = $uri;
+}
+
+sub _reorder
+{
+	my( $self, $processor ) = @_;
+
+	my @order = $self->{session}->param( join('_',$self->{prefix},'order') );
+	return if !@order;
+
+	my @docs = $self->{workflow}->{item}->get_all_documents;
+	my %docids = map { $_->id => 1 } @docs;
+
+	@order = grep { $docids{$_} } @order;
+	return if !@order;
+
+	my $i = 1;
+	my %order = map { $_ => $i++ } @order;
+
+	foreach my $doc (@docs)
+	{
+		$doc->set_value( "placement", $order{$doc->id} || $i++ );
+		$doc->commit;
+	}
 }
 
 sub has_help

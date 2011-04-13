@@ -47,6 +47,19 @@ sub from
 		{
 			last if $doc->id == $docs[$i]->id;
 		}
+		if( $i == $#docs )
+		{
+			my $t = $docs[0]->value( "placement" );
+			for($i = 0; $i < $#docs; ++$i)
+			{
+				$docs[$i]->set_value( "placement",
+					$docs[$i+1]->value( "placement" )
+				);
+			}
+			$docs[$#docs]->set_value( "placement", $t );
+			$_->commit for @docs;
+			return;
+		}
 		my( $left, $right ) = @docs[($i+1)%@docs, $i];
 		my $t = $left->value( "placement" );
 		$left->set_value( "placement", $right->value( "placement" ) );
