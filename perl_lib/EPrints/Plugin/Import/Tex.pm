@@ -18,7 +18,7 @@ sub new
 	my $self = $class->SUPER::new( %opts );
 
 	$self->{name} = "Import (LaTeX)";
-	$self->{produce} = [qw( dataobj/document )];
+	$self->{produce} = [qw( dataobj/eprint )];
 	$self->{accept} = [qw( application/x-latex )];
 	$self->{advertise} = 0;
 
@@ -29,38 +29,33 @@ sub input_fh
 {
 	my( $self, %opts ) = @_;
 
-	my $eprint = $opts{dataobj};
+	my $filename = $opts{filename};
+	my %flags = map { $_ => 1 } @{$opts{actions}};
 
-	my @new_docs;
-
-	my $tmpfile = File::Temp->new;
-	binmode($tmpfile);
-
-	while(sysread($opts{fh}, my $buffer, 4096))
-	{
-		syswrite($tmpfile, $buffer);
-	}
-	seek($tmpfile,0,0);
-
-	my $filename = $opts{filename} || "main.tgz";
-
-	my $main_doc = $eprint->create_subdataobj( "documents", {
+	my $epdata = {
 		format => "application/x-gzip",
 		main => $filename,
 		files => [{
 			filename => $filename,
-			filesize => (-s "$tmpfile"),
-			_content => $tmpfile,
+			filesize => (-s $opts{fh}),
+			_content => $opts{fh},
 		}],
-	});
-	if( !defined $main_doc )
+	};
+
+	my $filepath = "$opts{fh}";
+	if( !-f $filepath ) # need to make a copy for our purposes :-(
 	{
-		$self->error( $self->phrase( "create_failed" ) );
+		$filepath = File::Temp->new;
+		binmode($filepath);
+		while(sysread($opts{fh},$_,4096))
+		{
+			syswrite($filepath,$_);
+		}
+		seek($opts{fh},0,0);
+		seek($filepath,0,0);
 	}
 
-	$opts{document} = $main_doc;
-
-	my $dir = $self->unpack( $tmpfile, %opts );
+	my $dir = $self->unpack( $filepath, %opts );
 
 	my %parts;
 
@@ -85,40 +80,27 @@ sub input_fh
 	}
 
 	my $pdf = $parts{main} . ".pdf";
-	if( $opts{flags}->{media} && -f $pdf )
+	if( $flags{media} && -f $pdf )
 	{
-		push @new_docs, $self->add_pdf( $main_doc, $pdf, %opts );
+		$self->add_pdf( $pdf, %opts, epdata => $epdata );
 	}
 
 	my $aux = $parts{main} . ".aux";
 	my $bib = $parts{main} . ".bib";
-	if( $opts{flags}->{bibliography} && -f $aux && -f $bib )
+	if( $flags{bibliography} && -f $aux && -f $bib )
 	{
-		push @new_docs, $self->add_bibl( $main_doc, $aux, $bib, %opts );
+		$self->add_bibl( $aux, $bib, %opts, epdata => $epdata );
 	}
 
-	# add the reciprocal relations
-	foreach my $new_doc ( @new_docs )
-	{
-		foreach my $relation ( @{$new_doc->value( "relation" )} )
-		{
-			next if $relation->{uri} ne $main_doc->internal_uri;
-			my $type = $relation->{type};
-			next if $type !~ s# /is(\w+)Of$ #/has$1#x;
-			$main_doc->add_object_relations(
-				$new_doc,
-				$type
-			);
-		}
-	}
-
-
-	$main_doc->commit;
+	my @ids;
+	my $dataobj = $self->epdata_to_dataobj( $opts{dataset}, $epdata );
+	push @ids, $dataobj->id if $dataobj;
 
 	return EPrints::List->new(
 		session => $self->{session},
-		dataset => $main_doc->get_dataset,
-		ids => [map { $_->id } $main_doc, @new_docs] );
+		dataset => $opts{dataset},
+		ids => \@ids
+	);
 }
 
 sub unpack
@@ -137,15 +119,14 @@ sub unpack
 
 sub add_pdf
 {
-	my( $self, $main_doc, $pdf, %opts ) = @_;
+	my( $self, $pdf, %opts ) = @_;
 
 	my $filename = $pdf;
 	$filename =~ s/^.*\///;
 
-	my $fh;
-	open($fh, "<", $pdf) or EPrints->abort( "Error opening $pdf: $!" );
+	open(my $fh, "<", $pdf) or EPrints->abort( "Error opening $pdf: $!" );
 
-	return $opts{dataobj}->create_subdataobj( "documents", {
+	push @{$opts{epdata}->{documents}}, {
 		format => "application/pdf",
 		main => $filename,
 		files => [{
@@ -153,18 +134,12 @@ sub add_pdf
 			filesize => (-s $pdf),
 			_content => $fh,
 		}],
-		relation => [{
-			type => EPrints::Utils::make_relation( "isVersionOf" ),
-			uri => $main_doc->internal_uri(),
-		}],
-	});
+	};
 }
 
 sub add_bibl
 {
-	my( $self, $main_doc, $aux, $bib, %opts ) = @_;
-
-	my @new_docs;
+	my( $self, $aux, $bib, %opts ) = @_;
 
 	my $fh;
 
@@ -218,25 +193,16 @@ sub add_bibl
 	print $bibl_file "</eprints>";
 	seek($bibl_file,0,0);
 
-	push @new_docs, $opts{dataobj}->create_subdataobj( "documents", {
+	push @{$opts{epdata}->{documents}}, {
 		format => "text/xml",
 		content => "bibliography",
-		relation => [{
-			type => EPrints::Utils::make_relation( "isPartOf" ),
-			uri => $main_doc->internal_uri(),
-		},{
-			type => EPrints::Utils::make_relation( "isVolatileVersionOf" ),
-			uri => $main_doc->internal_uri(),
-		}],
 		files => [{
 			filename => "eprints.xml",
 			filesize => (-s $bibl_file),
 			mime_type => "text/xml",
 			_content => $bibl_file,
 		}],
-	} );
-
-	return @new_docs;
+	};
 }
 
 1;

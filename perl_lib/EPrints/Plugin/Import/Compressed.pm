@@ -24,6 +24,7 @@ sub new
 	$self->{advertise} = 0;
 	$self->{produce} = [qw( dataobj/document list/document )];
 	$self->{accept} = [qw( application/zip application/x-gzip )];
+	$self->{actions} = [qw( unpack )];
 
 	return $self;
 }
@@ -105,10 +106,12 @@ sub upload_archive
         my $zipfile = File::Temp->new();
         binmode($zipfile);
 
-        while(sysread($fh, $_, 4096))
+	my $rc;
+        while($rc = sysread($fh, $_, 4096))
         {
                 syswrite($zipfile, $_);
         }
+	EPrints->abort( "Error reading from file handle: $!" ) if !defined $rc;
 
 	return $zipfile;
 

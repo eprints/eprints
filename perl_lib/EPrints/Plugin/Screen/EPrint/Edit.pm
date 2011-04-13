@@ -38,6 +38,16 @@ sub new
 	return $self;
 }
 
+sub properties_from
+{
+	my( $self ) = @_;
+
+	$self->SUPER::properties_from;
+
+	$self->{processor}->{stage} = $self->{session}->param( "stage" );
+	$self->{processor}->{component} = $self->{session}->param( "component" );
+}
+
 sub obtain_lock
 {
 	my( $self ) = @_;
@@ -61,7 +71,14 @@ sub from
 
 	if( defined $self->{processor}->{internal} )
 	{
-		$self->workflow->update_from_form( $self->{processor}, undef, 1 );
+		if( my $component = $self->current_component )
+		{
+			$component->update_from_form( $self->{processor} );
+		}
+		else
+		{
+			$self->workflow->update_from_form( $self->{processor}, undef, 1 );
+		}
 		$self->uncache_workflow;
 		return;
 	}
@@ -181,10 +198,41 @@ sub action_next
 	$self->workflow->next;
 }
 
+sub wishes_to_export
+{
+	my( $self ) = @_;
+
+	return $self->current_component->wishes_to_export
+		if $self->current_component;
+
+	return $self->SUPER::wishes_to_export;
+}
+
+sub export_mimetype
+{
+	my( $self ) = @_;
+
+	return $self->current_component->export_mimetype
+		if $self->current_component;
+
+	return $self->SUPER::export_mimetype;
+}
+
+sub export
+{
+	my( $self ) = @_;
+
+	return $self->current_component->export
+		if $self->current_component;
+
+	return $self->SUPER::export;
+}
 
 sub redirect_to_me_url
 {
 	my( $self ) = @_;
+
+	return undef if $self->current_component;
 
 	return $self->SUPER::redirect_to_me_url.$self->workflow->get_state_params( $self->{processor} );
 }
@@ -216,6 +264,12 @@ sub render
 	my $stage = $self->workflow->get_stage( $cur_stage_id );
 
 	my $form = $self->render_form;
+
+	if( my $component = $self->current_component )
+	{
+		$form->appendChild( $component->render );
+		return $form;
+	}
 
 	my $blister = $self->render_blister( $cur_stage_id );
 	$form->appendChild( $blister );
@@ -269,6 +323,30 @@ sub render_buttons
 	$buttons{next} = $session->phrase( "lib/submissionform:action_next" );
 
 	return $session->render_action_buttons( %buttons );
+}
+
+sub current_component
+{
+	my( $self ) = @_;
+
+	return unless $self->{processor}->{component};
+	my $stage = $self->workflow->get_stage( $self->workflow->get_stage_id );
+	return unless $stage;
+	foreach my $component ($stage->get_components)
+	{
+		return $component if $component->{prefix} eq $self->{processor}->{component};
+	}
+	return undef;
+}
+
+sub hidden_bits
+{
+	my( $self ) = @_;
+
+	return(
+		$self->SUPER::hidden_bits,
+		stage => $self->workflow->get_stage_id,
+	);
 }
 
 1;

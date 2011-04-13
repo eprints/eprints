@@ -170,24 +170,6 @@ sub update_cb
 	}
 }
 
-=item $javascript = $progress->render_json()
-
-Return a JSON serialisation of this object.
-
-=cut
-
-sub render_json
-{
-	my( $self ) = @_;
-
-	my $content = sprintf('{"size":%d,"received":%d}',
-		$self->get_value( "size" ),
-		$self->get_value( "received" )
-	);
-
-	return $content;
-}
-
 1;
 
 __END__

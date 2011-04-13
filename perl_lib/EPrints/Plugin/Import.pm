@@ -39,6 +39,7 @@ sub new
 	$params{visible} = exists $params{visible} ? $params{visible} : "all";
 	$params{advertise} = exists $params{advertise} ? $params{advertise} : 1;
 	$params{session} = exists $params{session} ? $params{session} : $params{processor}->{session};
+	$params{actions} = exists $params{actions} ? $params{actions} : [];
 	$params{Handler} = exists $params{Handler} ? $params{Handler} : EPrints::CLIProcessor->new( session => $params{session} );
 
 	return $class->SUPER::new(%params);
@@ -85,11 +86,23 @@ sub matches
 	{
 		return $self->can_accept( $param );
 	}
+	if( $test eq "can_action" )
+	{
+		return $self->can_action( $param );
+	}
 
 	# didn't understand this match 
 	return $self->SUPER::matches( $test, $param );
 }
 
+sub can_action
+{
+	my( $self, $action ) = @_;
+
+	return $action eq "*" ?
+		scalar(@{$self->param( "actions" )}) > 0 :
+		scalar(grep { $_ eq $action } @{$self->param( "actions" )}) > 0;
+}
 
 # all, staff or ""
 sub is_visible

@@ -280,6 +280,8 @@ sub process
 
 	my $self = $class->new( %opts );
 
+	my $current_user = $self->{session}->current_user;
+
 	# This loads the properties of what the screen is about,
 	# Rather than parameters for the action, if any.
 	$self->screen->properties_from;
@@ -307,6 +309,16 @@ sub process
 
 	if( defined $self->{redirect} )
 	{
+		if( defined $current_user )
+		{
+			foreach my $message ( @{$self->{messages}} )
+			{
+				$self->{session}->get_database->save_user_message( 
+					$current_user->get_id,
+					$message->{type},
+					$message->{content} );
+			}
+		}
 		$self->{session}->redirect( $self->{redirect} );
 		return;
 	}
@@ -314,7 +326,6 @@ sub process
 	# used to swap to a different screen if appropriate
 	$self->screen->about_to_render;
 
-	my $current_user = $self->{session}->current_user;
 	if( $ENV{REQUEST_METHOD} eq "POST" && defined $current_user )
 	{
 		my $url = $self->screen->redirect_to_me_url;

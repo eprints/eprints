@@ -433,17 +433,6 @@ sub render
 #	}
 	
 	my $fragment = $self->{session}->make_doc_fragment;
-		
-	my $hidden_fields = {
-		stage => $self->get_stage_id,
-	};
-
-	foreach my $name ( keys %$hidden_fields )
-	{
-		$fragment->appendChild( $self->{session}->render_hidden_field(
-		$name,
-		$hidden_fields->{$name} ) );
-	}
 
 	# Add the stage components
 

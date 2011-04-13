@@ -19,9 +19,10 @@ sub new
 	my $self = $class->SUPER::new( %opts );
 
 	$self->{name} = "Import (PDF)";
-	$self->{produce} = [qw( dataobj/document )];
+	$self->{produce} = [qw( dataobj/eprint )];
 	$self->{accept} = [qw( application/pdf )];
 	$self->{advertise} = 0;
+	$self->{actions} = [qw( metadata bibliography )];
 
 	return $self;
 }
@@ -31,32 +32,38 @@ sub input_fh
 	my( $self, %opts ) = @_;
 
 	my $session = $self->{session};
-	my $eprint = $opts{dataobj};
 	my $filename = $opts{filename};
 
-	my $flags = $opts{flags};
+	my %flags = map { $_ => 1 } @{$opts{actions}};
 
-	my $main_doc = $eprint->create_subdataobj( 'documents', {
-		format => 'application/pdf',
-		main => $filename,
-		files => [{
-			filename => $filename,
-			filesize => (-s $opts{fh}),
-			_content => $opts{fh}
+	my $epdata = {
+		documents => [{
+			format => 'application/pdf',
+			main => $filename,
+			files => [{
+				filename => $filename,
+				filesize => (-s $opts{fh}),
+				_content => $opts{fh}
+			}],
 		}],
-	} );
+	};
 
-	$opts{document} = $main_doc;
-
-	my @new_docs;
-
-	if( $flags->{metadata} || $flags->{bibliography} )
+	if( $flags{metadata} || $flags{bibliography} )
 	{
-		my $main_file = $main_doc->stored_file( $main_doc->get_main );
-		my $cp = $main_file->get_local_copy;
+		my $filepath = "$opts{fh}";
+		if( !-f $filepath ) # need to make a copy for our purposes :-(
+		{
+			$filepath = File::Temp->new;
+			while(sysread($opts{fh},$_,4096))
+			{
+				syswrite($filepath,$_);
+			}
+			seek($opts{fh},0,0);
+			seek($filepath,0,0);
+		}
 
 		my $cmd = sprintf("pdftotext -f 2 -enc UTF-8 -layout -htmlmeta %s -",
-			quotemeta($cp)
+			quotemeta($filepath)
 		);
 		open(my $fh, "$cmd|") or die "Error in $cmd: $!";
 		binmode($fh);
@@ -68,39 +75,25 @@ sub input_fh
 		}
 		close($fh);
 
-		if( $flags->{metadata} )
+		if( $flags{metadata} )
 		{
-			$self->_parse_metadata( $buffer, %opts );
+			$self->_parse_metadata( $buffer, %opts, epdata => $epdata );
 		}
 
-		if( $flags->{bibliography} )
+		if( $flags{bibliography} )
 		{
-			push @new_docs, $self->_parse_bibliography( $buffer, %opts );
-		}
-	}
-
-	# add the reciprocal relations
-	foreach my $new_doc ( @new_docs )
-	{
-		foreach my $relation ( @{$new_doc->value( "relation" )} )
-		{
-			next if $relation->{uri} ne $main_doc->internal_uri;
-			my $type = $relation->{type};
-			next if $type !~ s# /is(\w+)Of$ #/has$1#x;
-			$main_doc->add_object_relations(
-				$new_doc,
-				$type
-			);
+			$self->_parse_bibliography( $buffer, %opts, epdata => $epdata );
 		}
 	}
 
-	$main_doc->commit;
-	$eprint->commit;
+	my @ids;
+	my $dataobj = $self->epdata_to_dataobj( $opts{dataset}, $epdata );
+	push @ids, $dataobj->id if $dataobj;
 
 	return EPrints::List->new(
 		session => $self->{session},
-		dataset => $main_doc->dataset,
-		ids => [map { $_->id } $main_doc, @new_docs ]
+		dataset => $opts{dataset},
+		ids => \@ids
 	);
 }
 
@@ -108,14 +101,12 @@ sub _parse_metadata
 {
 	my( $self, $buffer, %opts ) = @_;
 
-	my $eprint = $opts{dataobj};
-
-	my %data;
+	my $epdata = $opts{epdata};
 
 	$buffer =~ /<title>([^<]+)<\/title>/;
 	if( $1 )
 	{
-		$data{title} = $1;
+		$epdata->{title} = $1;
 	}
 
 	pos($buffer) = 0;
@@ -125,33 +116,20 @@ sub _parse_metadata
 		next if !$value;
 		if( $name eq "keywords" )
 		{
-			$data{keywords} = Encode::decode_utf8( $value );
+			$epdata->{keywords} = Encode::decode_utf8( $value );
 		}
 		elsif( $name eq "author" )
 		{
-			$data{creators_name} = Encode::decode_utf8( $value );
-		}
-	}
-
-	while(my( $n, $v ) = each %data)
-	{
-		next if !$eprint->dataset->has_field( $n );
-		next if $eprint->is_set( $n );
-		if( $n eq "creators_name" )
-		{
-			my @names = split /\s*,\s*/, $v;
+			$epdata->{creators} = [];
+			my @names = split /\s*,\s*/, Encode::decode_utf8( $value );
 			for(@names)
 			{
 				s/\s*(\S+)$//;
-				$_ = {
-					family => $1,
-					given => $_,
+				push @{$epdata->{creators}}, {
+					name => { family => $1, given => $_, }
 				};
 			}
-			$v = \@names;
 		}
-
-		$eprint->set_value( $n, $v );
 	}
 }
 
@@ -159,9 +137,7 @@ sub _parse_bibliography
 {
 	my( $self, $buffer, %opts ) = @_;
 
-	my $eprint = $opts{dataobj};
-
-	return () if !$eprint->dataset->has_field( "referencetext" );
+	my $epdata = $opts{epdata};
 
 	$buffer =~ s/^.*?<pre>//s;
 	$buffer =~ s/<\/pre>.*?$//s;
@@ -169,41 +145,35 @@ sub _parse_bibliography
 	local $ParaTools::DocParser::Standard::DEBUG = 1;
 	my $parser = ParaTools::DocParser::Standard->new;
 
-	my $main_doc = $opts{document};
+	$epdata->{documents} ||= [];
 
-	my $bibl_doc = $eprint->create_subdataobj( "documents", {
+	push @{$epdata->{documents}}, {
 			format => "text/plain",
 			content => "bibliography",
 			main => "bibliography.txt",
-			relation => [{
-				type => EPrints::Utils::make_relation( "isVolatileVersionOf" ),
-				uri => $main_doc->internal_uri(),
-				},{
-				type => EPrints::Utils::make_relation( "isVersionOf" ),
-				uri => $main_doc->internal_uri(),
-				},{
-				type => EPrints::Utils::make_relation( "isPartOf" ),
-				uri => $main_doc->internal_uri(),
-			}],
+#			relation => [{
+#				type => EPrints::Utils::make_relation( "isVolatileVersionOf" ),
+#				uri => $main_doc->internal_uri(),
+#				},{
+#				type => EPrints::Utils::make_relation( "isVersionOf" ),
+#				uri => $main_doc->internal_uri(),
+#				},{
+#				type => EPrints::Utils::make_relation( "isPartOf" ),
+#				uri => $main_doc->internal_uri(),
+#			}],
 			files => [{
 				filename => "bibliography.txt",
 				filesize => length( $buffer ),
 				_content => \$buffer,
 			}],
-		});
-	if( !defined $bibl_doc )
-	{
-		EPrints->abort( "Error creating bibliography document" );
-	}
+	};
 
 	my @refs = $parser->parse( Encode::decode_utf8( $buffer ) );
 
 	if( @refs )
 	{
-		$eprint->set_value( "referencetext", join("\n\n", @refs ) );
+		$epdata->{referencetext} = join("\n\n", @refs );
 	}
-
-	return( $bibl_doc );
 }
 
 1;

@@ -17,11 +17,6 @@ sub new
 	my( $self, %params ) = @_;
 
 	return $self->SUPER::new(
-		flags => [
-			metadata => "",
-			media => "",
-			bibliography => "",
-		],
 		appears => [
 			{ place => "upload_methods", position => 200 },
 		],
@@ -29,7 +24,37 @@ sub new
 		%params );
 }
 
+sub redirect_to_me_url { }
+
 sub allow_add_format { shift->can_be_viewed }
+
+sub wishes_to_export
+{
+	my( $self ) = @_;
+
+	return $self->{session}->get_request->unparsed_uri =~ /\bprogress_id=([a-fA-F0-9]{32})\b/;
+}
+
+sub export_mimetype { "text/html" }
+
+sub export
+{
+	my( $self ) = @_;
+
+	$self->{session}->get_request->unparsed_uri =~ /\bprogress_id=([a-fA-F0-9]{32})\b/;
+	my $doc = $self->{processor}->{notes}->{upload_plugin}->{document};
+	my $docid = defined $doc ? $doc->id : 'null';
+
+	print <<EOH;
+<html>
+<body>
+<script type="text/javascript">
+window.top.window.UploadMethod_file_stop( '$1', $docid );
+</script>
+</body>
+</html>
+EOH
+}
 
 sub action_add_format
 {
@@ -38,7 +63,6 @@ sub action_add_format
 	my $session = $self->{session};
 	my $processor = $self->{processor};
 	my $eprint = $processor->{eprint};
-	my $flags = $self->param_flags();
 
 	return if !$self->SUPER::action_add_format();
 
@@ -48,25 +72,15 @@ sub action_add_format
 	return if !defined $filename;
 
 	my $list;
-	if( scalar grep { $_ } values %$flags )
+	my $doc = $eprint->create_subdataobj( "documents", $epdata );
+	if( defined $doc )
 	{
-		$list = $self->parse_and_import( $epdata );
-		if( !defined($list) )
-		{
-			$processor->add_message( "warning", $self->html_phrase( "unsupported_format" ) );
-		}
-	}
-	if( !defined $list )
-	{
-		my $doc = $eprint->create_subdataobj( "documents", $epdata );
-		if( defined $doc )
-		{
-			$list = EPrints::List->new(
-				session => $session,
-				dataset => $doc->dataset,
-				ids => [$doc->id]
-			);
-		}
+		$list = EPrints::List->new(
+			session => $session,
+			dataset => $doc->dataset,
+			ids => [$doc->id]
+		);
+		$processor->{notes}->{upload_plugin}->{document} = $doc;
 	}
 
 	if( !defined $list || $list->count == 0 )
@@ -79,6 +93,46 @@ sub action_add_format
 	{
 		$processor->{notes}->{upload_plugin}->{to_unroll}->{$_} = 1;
 	}
+}
+
+sub render
+{
+	my( $self ) = @_;
+
+	my $session = $self->{session};
+	my $xml = $session->xml;
+	my $ffname = join('_', $self->{prefix}, "file");
+
+	my $f = $xml->create_document_fragment;
+
+	my $container = $xml->create_element( "div",
+		class => "UploadMethod_file_container"
+	);
+	$f->appendChild( $container );
+
+	# upload help
+	$container->appendChild( $session->html_phrase( "Plugin/InputForm/Component/Upload:new_document" ) );
+
+	# file selection button
+	my $file_button = $xml->create_element( "input",
+		name => $ffname,
+		id => $ffname,
+		type => "file",
+		onchange => "UploadMethod_file_change(this,'$self->{parent}->{prefix}','$self->{prefix}')",
+		);
+	$container->appendChild( $file_button );
+
+	# upload button
+	my $add_format_button = $session->render_button(
+		value => $self->{session}->phrase( "Plugin/InputForm/Component/Upload:add_format" ), 
+		class => "ep_form_internal_button",
+		name => "_internal_".$self->{prefix}."_add_format",
+		id => "_internal_".$self->{prefix}."_add_format",
+		);
+	$container->appendChild( $session->make_text( " " ) );
+	$container->appendChild( $add_format_button );
+
+	return $f;
 }
 
 1;

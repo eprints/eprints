@@ -31,6 +31,13 @@ sub new
 	return $self;
 }
 
+sub wishes_to_export
+{
+	my( $self ) = @_;
+
+	return $self->{session}->param( $self->{prefix} . "_export" );
+}
+
 # only returns a value if it belongs to this component
 sub update_from_form
 {
@@ -38,6 +45,8 @@ sub update_from_form
 
 	my $session = $self->{session};
 	my $eprint = $self->{workflow}->{item};
+	# cache documents
+	$eprint->set_value( "documents", $eprint->value( "documents" ) );
 	my @eprint_docs = $eprint->get_all_documents;
 
 	my %update = map { $_ => 1 } $session->param( $self->{prefix} . "_update_doc" );
@@ -156,162 +165,40 @@ sub get_state_fragment
 	return "";
 }
 
-sub _swap_placements
-{
-	my( $docs, $l, $r ) = @_;
-
-	my( $left, $right ) = @$docs[$l,$r];
-
-	my $t = $left->get_value( "placement" );
-	$left->set_value( "placement", $right->get_value( "placement" ) );
-	$right->set_value( "placement", $t );
-
-	$t = $docs->[$l];
-	$docs->[$l] = $docs->[$r];
-	$docs->[$r] = $t;
-}
-
 sub _doc_update
 {
 	my( $self, $processor, $doc, $doc_internal, $eprint_docs ) = @_;
 
-	my $docid = $doc->get_id;
-	my $doc_prefix = $self->{prefix}."_doc".$docid;
-
-	if( $doc_internal eq "up" or $doc_internal eq "down" )
-	{	
-		return if scalar @$eprint_docs < 2;
-		foreach my $eprint_doc (@$eprint_docs)
-		{
-			next if $eprint_doc->is_set( "placement" );
-			$eprint_doc->set_value( "placement", $eprint_doc->get_value( "pos" ) );
-		}
-		my $loc;
-		for($loc = 0; $loc < @$eprint_docs; ++$loc)
-		{
-			last if $eprint_docs->[$loc]->get_id == $doc->get_id;
-		}
-		if( $doc_internal eq "up" )
-		{
-			if( $loc == 0 )
-			{
-				for(my $i = 0; $i < $#$eprint_docs; ++$i)
-				{
-					_swap_placements( $eprint_docs, $i, $i+1 );
-				}
-			}
-			else
-			{
-				_swap_placements( $eprint_docs, $loc, $loc-1 );
-			}
-		}
-		if( $doc_internal eq "down" )
-		{
-			if( $loc == $#$eprint_docs )
-			{
-				for(my $i = $#$eprint_docs; $i > 0; --$i)
-				{
-					_swap_placements( $eprint_docs, $i, $i-1 );
-				}
-			}
-			else
-			{
-				_swap_placements( $eprint_docs, $loc, $loc+1 );
-			}
-		}
-		# We don't need to create lots of commits on the parent eprint
-		my $eprint = $eprint_docs->[0]->get_parent;
-		$eprint->set_under_construction( 1 );
-		$_->commit() for @$eprint_docs;
-		$eprint->set_under_construction( 0 );
-		$eprint->commit(1);
-		return;
-	}
-
-	if( $doc_internal eq "update_doc" )
+	local $processor->{document} = $doc;
+	my $plugin;
+	foreach my $params ($processor->screen->action_list( "document_item_actions" ))
 	{
-		$processor->{notes}->{upload_plugin}->{to_unroll}->{$docid} = 1;
-
-		return;
+		$plugin = $params->{screen}, last
+			if $params->{screen}->get_subtype eq $doc_internal;
 	}
+	return if !defined $plugin;
 
-	if( $doc_internal eq "delete_doc" )
+	my $uri = URI->new( $self->{session}->current_url( host => 1 ) );
+	$uri->query_form(
+		$processor->screen->hidden_bits
+	);
+	my $return_to = $uri->query;
+
+	if( $plugin->param( "ajax" ) && $self->wishes_to_export )
 	{
-		$doc->remove();
+		$self->set_note( "document", $doc );
+		$self->set_note( "action", $plugin );
+		$self->set_note( "return_to", $return_to );
 		return;
 	}
 
-	if( $doc_internal eq "unlink_doc" )
-	{
-		$doc->remove_relation( undef, "isVolatileVersionOf" );
-		$doc->commit;
-		return;
-	}
-
-	if( $doc_internal eq "add_file" )
-	{
-		$processor->{notes}->{upload_plugin}->{to_unroll}->{$docid} = 1;
-
-		my $success = EPrints::Apache::AnApache::upload_doc_file( 
-			$self->{session},
-			$doc,
-			$doc_prefix."_file" );
-		if( !$success )
-		{
-			$processor->add_message( "error", $self->html_phrase( "upload_failed" ) );
-			return;
-		}
-		return;
-	}
-
-	if( $doc_internal =~ m/^delete_(\d+)$/ )
-	{
-		my $fileid = $1;
-		
-		$processor->{notes}->{upload_plugin}->{to_unroll}->{$docid} = 1;
-
-		my $file;
-		for(@{$doc->value( "files" )})
-		{
-			$file = $_, last if $_->id eq $fileid;
-		}
-
-		if( !defined $file )
-		{
-			$processor->add_message( "error", $self->html_phrase( "no_file" ) );
-			return;
-		}
-		
-		$file->remove;
-		return;
-	}
-
-	if( $doc_internal eq "convert_document" )
-	{
-		my $eprint = $self->{workflow}->{item};
-		my $target = $self->{session}->param( $doc_prefix . "_convert_to" );
-		$target ||= '-';
-		my( $plugin_id, $type ) = split /-/, $target, 2;
-		my $plugin = $self->{session}->plugin( $plugin_id );
-		if( !$plugin )
-		{
-			$processor->add_message( "error", $self->html_phrase( "plugin_error" ) );
-			return;
-		}
-		my $new_doc = $plugin->convert( $eprint, $doc, $type );
-		if( !$new_doc )
-		{
-			$processor->add_message( "error", $self->html_phrase( "conversion_failed" ) );
-			return;
-		}
-		$new_doc->remove_relation( undef, "isVolatileVersionOf" );
-		$new_doc->commit();
-		$new_doc->queue_files_modified();
-
-		$processor->{notes}->{upload_plugin}->{to_unroll}->{$new_doc->id} = 1;
-
-		return;
-	}
+	$uri->query_form(
+		screen => $plugin->get_subtype,
+		eprintid => $self->{workflow}->{item}->id,
+		documentid => $doc->id,
+		return_to => $return_to,
+	);
+	$processor->{redirect} = $uri;
 }
 
 sub has_help
@@ -352,9 +239,19 @@ sub render_content
 	
 	my $session = $self->{session};
 	my $eprint = $self->{workflow}->{item};
+	# cache documents
+	$eprint->set_value( "documents", $eprint->value( "documents" ) );
 
 	my $f = $session->make_doc_fragment;
 	
+	my $script = $f->appendChild( $self->{session}->make_element(
+		"script",
+		type => "text/javascript",
+	) );
+	$script->appendChild( $self->{session}->make_text(
+		"Event.observe(window, 'load', function() { new Component_Documents('".$self->{prefix}."') });"
+	) );
+
 	@{$self->{docs}} = $eprint->get_all_documents;
 
 	my %unroll = map { $_ => 1 } $session->param( $self->{prefix}."_view" );
@@ -367,7 +264,10 @@ sub render_content
 		$unroll{$docid} = 1;
 	}
 
-	my $panel = $session->make_element( "div", id=>$self->{prefix}."_panels" );
+	my $panel = $session->make_element( "div",
+		id=>$self->{prefix}."_panels",
+		class=>"Component_Documents",
+	);
 	$f->appendChild( $panel );
 
 	foreach my $doc ( @{$self->{docs}} )
@@ -382,6 +282,57 @@ sub render_content
 	}
 
 	return $f;
+}
+
+sub export_mimetype
+{
+	my( $self ) = @_;
+
+	my $plugin = $self->note( "action" );
+	if( defined($plugin) && $plugin->param( "ajax" ) eq "automatic" )
+	{
+		return $plugin->export_mimetype;
+	}
+
+	binmode(STDOUT, ":utf8");
+
+	# always text/html because we only do AJAX
+	return "text/html; charset=UTF-8";
+}
+
+sub export
+{
+	my( $self ) = @_;
+
+	my $frag;
+
+	if( defined(my $plugin = $self->note( "action" )) )
+	{
+		local $self->{processor}->{document} = $self->note( "document" );
+		if( $plugin->param( "ajax" ) eq "automatic" )
+		{
+			$plugin->from; # call actions
+			delete $self->{processor}->{redirect}; # exports don't redirect
+			return $plugin->export; # generate the export
+		}
+		local $self->{processor}->{return_to} = $self->note( "return_to" );
+		$frag = $plugin->render;
+	}
+	else
+	{
+		my $docid = $self->{session}->param( $self->{prefix} . '_export' );
+		return unless $docid;
+
+		my $doc = $self->{session}->dataset( "document" )->dataobj( $docid );
+		return $self->{session}->not_found if !defined $doc;
+
+		return if $doc->value( "eprintid" ) != $self->{workflow}->{item}->id;
+
+		$frag = $self->_render_doc_div( $doc, 1 ); # hide
+	}
+
+	print $self->{session}->xhtml->to_xhtml( $frag );
+	$self->{session}->xml->dispose( $frag );
 }
 
 sub _render_doc_div 
@@ -407,6 +358,9 @@ sub _render_doc_div
 
 	# note which documents should be updated
 	$doc_div->appendChild( $session->render_hidden_field( $self->{prefix}."_update_doc", $docid ) );
+
+	# note the document placement
+	$doc_div->appendChild( $session->render_hidden_field( $self->{prefix}."_doc_placement", $doc->value( "placement" ) ) );
 
 	my $doc_title_bar = $session->make_element( "div", class=>"ep_upload_doc_title_bar" );
 	$doc_div->appendChild( $doc_title_bar );
@@ -545,24 +499,34 @@ sub _render_doc_actions
 	$tr = $session->make_element( "tr" );
 	$table->appendChild( $tr );
 
-	$td = $session->make_element( "td" );
-	$tr->appendChild( $td );
-	$td->appendChild( $self->_render_doc_placement( $doc ) );
+	my $screen = $self->{processor}->screen;
+	my $uri = URI->new( 'http:' );
+	$uri->query_form( $screen->hidden_bits );
 
-	$td = $session->make_element( "td" );
-	$tr->appendChild( $td );
-	my $msg = $self->phrase( "delete_document_confirm" );
-	my $button_title = $self->phrase( "delete_document" );
-	my $delete_fmt_button = $session->render_input_field(
-		name => "_internal_".$doc_prefix."_delete_doc",
-		value => $button_title,
-		type => "image",
-		title => $button_title,
-		alt => $button_title,
-		src => "$self->{imagesurl}/style/images/action_remove.png",
-		onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm(".EPrints::Utils::js_string($msg).");",
-		);
-	$td->appendChild( $delete_fmt_button );
+	# allow document actions to test the document for viewing
+	local $self->{processor}->{document} = $doc;
+
+	foreach my $params ($screen->action_list( "document_item_actions" ))
+	{
+		$td = $session->make_element( "td" );
+		$tr->appendChild( $td );
+
+		my $aux = $params->{screen};
+		my $action = $params->{action};
+		my $name = "_internal_".$doc_prefix."_".$aux->get_subtype;
+		my $title = $action ? $aux->phrase( "action:$action:title" ) : $aux->phrase( "title" );
+		my $icon = $action ? $aux->action_icon_url( $action ) : $aux->icon_url;
+		my $input = $td->appendChild(
+			$session->make_element( "input",
+				type => "image",
+				class => "ep_form_action_icon",
+				name => $name,
+				src => $icon,
+				title => $title,
+				alt => $title,
+				value => $title,
+				rel => ($aux->param( "ajax" ) ? $aux->param( "ajax" ) : "") ) );
+	}
 
 	return $table;
 }
@@ -643,60 +607,6 @@ sub doc_fields
 	return @{$self->{config}->{doc_fields}};
 }
 
-sub _render_doc_placement
-{
-	my( $self, $doc ) = @_;
-
-	my $session = $self->{session};	
-	my $eprint_docs = $self->{docs};
-
-	my $frag = $session->make_doc_fragment;
-
-	return $frag unless scalar @$eprint_docs > 1;
-
-	my $prefix = $self->{prefix};
-
-	my $table = $session->make_element( "table" );
-	$frag->appendChild( $table );
-
-	if( $doc->get_id != $eprint_docs->[0]->get_id )
-	{
-		my $tr = $session->make_element( "tr" );
-		$table->appendChild( $tr );
-		my $td = $session->make_element( "td" );
-		$tr->appendChild( $td );
-		my $button_title = $self->phrase( "move_up" );
-		my $up_button = $session->render_input_field(
-				name => "_internal_".$prefix."_doc".$doc->get_id."_up",
-				value => $button_title,
-				type => "image",
-				title => $button_title,
-				alt => $button_title,
-				src => "$self->{imagesurl}/style/images/multi_up.png",
-			);
-		$td->appendChild( $up_button );
-	}
-	if( $doc->get_id != $eprint_docs->[$#$eprint_docs]->get_id )
-	{
-		my $tr = $session->make_element( "tr" );
-		$table->appendChild( $tr );
-		my $td = $session->make_element( "td" );
-		$tr->appendChild( $td );
-		my $button_title = $self->phrase( "move_down" );
-		my $down_button = $session->render_input_field(
-				name => "_internal_".$prefix."_doc".$doc->get_id."_down",
-				value => $button_title,
-				type => "image",
-				title => $button_title,
-				alt => $button_title,
-				src => "$self->{imagesurl}/style/images/multi_down.png",
-			);
-		$td->appendChild( $down_button );
-	}
-
-	return $frag;
-}
-
 sub _render_doc_metadata
 {
 	my( $self, $doc ) = @_;
@@ -774,13 +684,6 @@ sub _render_doc_files
 
 	my $block;
 
-	if( !$session->config( "hide_document_conversion" ) )
-	{
-		$block = $session->make_element( "div", class=>"ep_block" );
-		$block->appendChild( $self->_render_convert_document( $doc ) );
-		$doc_cont->appendChild( $block );
-	}
-
 	$block = $session->make_element( "div", class=>"ep_block" );
 	$block->appendChild( $session->render_button(
 		name => "_internal_".$doc_prefix."_update_doc",
@@ -839,88 +742,6 @@ sub _render_add_file
 
 	return $f; 
 }
-
-sub _render_convert_document
-{
-	my( $self, $document ) = @_;
-
-	my $session = $self->{session};
-	
-	# Create a document-specific prefix
-	my $docid = $document->get_id;
-	my $doc_prefix = $self->{prefix}."_doc".$docid;
-
-	my $convert_plugin = $session->plugin( 'Convert' );
-
-	my $dataset = $document->get_dataset();
-	my $field = $dataset->get_field( 'format' );
-	my %document_formats = map { ($_ => 1) } $field->tags( $session );
-
-	my %available = $convert_plugin->can_convert( $document );
-
-	# Only provide conversion for plugins that
-	#  1) Provide a phrase (i.e. are public-facing)
-	#  2) Provide a conversion to a format in document_types
-	foreach my $type (keys %available)
-	{
-		unless( exists($available{$type}->{'phraseid'}) and
-				exists($document_formats{$type}) )
-		{
-			delete $available{$type}
-		}
-	}
-
-	my $f = $session->make_doc_fragment;	
-
-	unless( scalar(%available) )
-	{
-		return $f;
-	}
-
-	my $select_button = $session->make_element( "select",
-		name => $doc_prefix."_convert_to",
-		id => "format",
-		);
-	my $option = $session->make_element( "option" );
-	$select_button->appendChild( $option );
-	# Use $available{$a}->{preference} for ordering?
-	foreach my $type (keys %available)
-	{
-		my $plugin_id = $available{$type}->{ "plugin" }->get_id();
-		my $phrase_id = $available{$type}->{ "phraseid" };
-		my $option = $session->make_element( "option",
-			value => $plugin_id . '-' . $type
-		);
-		$option->appendChild( $session->html_phrase( $phrase_id ));
-		$select_button->appendChild( $option );
-	}
-	my $upload_button = $session->render_button(
-		name => "_internal_".$doc_prefix."_convert_document",
-		class => "ep_form_internal_button",
-		value => $self->phrase( "convert_document_button" ),
-		);
-
-	my $table = $session->make_element( "table", class=>"ep_multi" );
-	$f->appendChild( $table );
-
-	my %l = ( id=>$doc_prefix."_af2", class=>"ep_convert_document_toolbar" );
-	my $toolbar = $session->make_element( "div", %l );
-
-	$toolbar->appendChild( $select_button );
-	$toolbar->appendChild( $session->make_text( " " ) );
-	$toolbar->appendChild( $upload_button );
-
-	$table->appendChild( $session->render_row_with_help(
-				label=>$self->html_phrase( "convert_document" ),
-				field=>$toolbar,
-				help=>$self->html_phrase( "convert_document_help" ),
-				help_prefix=>$doc_prefix."_convert_document_help",
-				));
-
-	return $f; 
-}
-
-
 
 sub _render_filelist
 {

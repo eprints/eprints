@@ -17,8 +17,8 @@ our $GRAMMAR = {
                 'dcterms:created' => [ 'date' ],
                 'dc:publisher' => [ 'publisher' ],
                 'dc:title' => [ 'title' ],
-                'dc:description' => [ \&ep_dc_join, 'abstract' ],
-                'dc:creator' => [ \&ep_dc_creator, 'creators_name' ],
+                'dc:description' => [ 'abstract', \&ep_dc_join ],
+                'dc:creator' => [ 'creators_name', \&ep_dc_creator ],
                 'dc:rights' => [ 'notes' ],
 };
 
@@ -35,9 +35,10 @@ sub new
 	my $self = $class->SUPER::new( %opts );
 
 	$self->{name} = "Import (openxml)";
-	$self->{produce} = [qw( dataobj/document )];
-	$self->{accept} = [qw( application/vnd.openxmlformats-officedocument.wordprocessingml.document application/vnd.openxmlformats )];
+	$self->{produce} = [qw( dataobj/eprint )];
+	$self->{accept} = [qw( application/vnd.openxmlformats-officedocument.wordprocessingml.document application/vnd.openxmlformats application/msword )];
 	$self->{advertise} = 0;
+	$self->{actions} = [qw( metadata media bibliography )];
 
 	return $self;
 }
@@ -47,116 +48,86 @@ sub input_fh
 	my( $self, %opts ) = @_;
 
 	my $session = $self->{session};
-	my $dataobj = $opts{dataobj};
-	my $eprint;
-	my $main_doc;
-	if ($dataobj->isa("EPrints::DataObj::Document") ) {
-		$main_doc = $dataobj;
-		$eprint = $dataobj->parent();
-	} elsif ($dataobj->isa("EPrints::DataObj::EPrint") ) {
-		$eprint = $dataobj;
-	}
 
-	my $flags = $opts{flags};
-
+	my %flags = map { $_ => 1 } @{$opts{actions}};
 	my $filename = $opts{filename};
 
 	my $format = $session->call( "guess_doc_type", $session, $filename );
 
-	# create the main document
-
-	my $fn = $filename;
-
-	if( $filename =~ /^.*\/(.*)$/ )
-	{
-		$fn = $1;
-	}
-	if( $fn =~ /^.*\\(.*)$/ )
-	{
-		$fn = $1;
-	}
-
-	if (!defined $main_doc) {
-		$main_doc = $eprint->create_subdataobj( "documents", {
+	my $epdata = {
+		documents => [{
 			format => $format,
-			main => $fn,
+			main => $filename,
 			files => [{
-				filename => $fn,
+				filename => $filename,
 				filesize => (-s $opts{fh}),
 				_content => $opts{fh}
 			}],
-		});
-	} else {
-		my $filesize = -s $opts{fh};
-		$main_doc->upload($opts{fh},$fn,0,$filesize);
-		$main_doc->set_value("format",$format);
-		$main_doc->set_main($fn);
-	}
-	if( !defined $main_doc )
+		}],
+	};
+
+	my $filepath = "$opts{fh}";
+	if( !-f $filepath ) # need to make a copy for our purposes :-(
 	{
-		$self->error( $self->phrase( "create_failed" ) );
-		return;
+		$filepath = File::Temp->new;
+		binmode($filepath);
+		while(sysread($opts{fh},$_,4096))
+		{
+			syswrite($filepath,$_);
+		}
+		seek($opts{fh},0,0);
+		seek($filepath,0,0);
 	}
-	
-	my $main_file = $main_doc->get_stored_file( $main_doc->get_main );
-	my $dir = $self->unpack( $main_file->get_local_copy, %opts );
+
+	my $dir = $self->unpack( $filepath, %opts );
+	if( !$dir )
+	{
+		$self->error( $self->phrase( "zip_failed" ) );
+	}
+	$epdata->{$dir} = $dir; # keep our temp files as long as epdata exists
 
 	my @new_docs;
 
-	if( $flags->{metadata} )
+	if( $flags{metadata} )
 	{
-		$self->_parse_dc( $main_doc, $dir );
+		$self->_parse_dc( $dir, %opts, epdata => $epdata );
 	}
 
-	if( $flags->{media} )
+	if( $flags{media} )
 	{
-		push @new_docs, $self->_extract_media_files( $main_doc, $dir ); 
+		$self->_extract_media_files( $dir, %opts, epdata => $epdata );
 	}
 
-	if( $flags->{bibliography} )
+	if( $flags{bibliography} )
 	{
-		push @new_docs, $self->_extract_bibl( $main_doc, $dir );
+		$self->_extract_bibl( $dir, %opts, epdata => $epdata );
 	}
 
-	# add the reciprocal relations
-	foreach my $new_doc ( @new_docs )
-	{
-		foreach my $relation ( @{$new_doc->value( "relation" )} )
-		{
-			next if $relation->{uri} ne $main_doc->internal_uri;
-			my $type = $relation->{type};
-			next if $type !~ s# /is(\w+)Of$ #/has$1#x;
-			$main_doc->add_object_relations(
-				$new_doc,
-				$type
-			);
-		}
-	}
-
-	$main_doc->commit;
-	$eprint->commit;
+	my @ids;
+	my $dataobj = $self->epdata_to_dataobj( $opts{dataset}, $epdata );
+	push @ids, $dataobj->id if $dataobj;
 
 	return EPrints::List->new(
 		session => $session,
-		dataset => $main_doc->get_dataset,
-		ids => [map { $_->id } $main_doc, @new_docs ],
-		);
+		dataset => $opts{dataset},
+		ids => \@ids,
+	);
 }
 
 sub _extract_bibl
 {
-	my( $self, $main_doc, $dir ) = @_;
+	my( $self, $dir, %opts ) = @_;
 
-	my $eprint = $main_doc->get_parent;
-
-	my $custom_dir = join_path( $dir, "customXml" );
-
-	my @files;
+	my $session = $self->{session};
+	my $xml = $session->xml;
+	my $epdata = $opts{epdata};
 
 	my $bibl_file = File::Temp->new;
 	binmode($bibl_file, ":utf8");
 
-	opendir(my $dh, $custom_dir) or return ();
+	my $custom_dir = "$dir/customXml";
+
+	opendir(my $dh, $custom_dir) or return;
 	while(my $fn = readdir($dh))
 	{
 		next if $fn !~ /^itemProps(\d+)\.xml$/;
@@ -164,7 +135,7 @@ sub _extract_bibl
 
 		next if !-e "$custom_dir/item$idx.xml";
 
-		my $doc = eval { $self->{session}->xml->parse_file( "$custom_dir/$fn" ) };
+		my $doc = eval { $xml->parse_file( "$custom_dir/$fn" ) };
 		next if !defined $doc;
 
 		my( $schemaRef ) = $doc->documentElement->getElementsByTagNameNS(
@@ -179,7 +150,7 @@ sub _extract_bibl
 		next if !defined $uri;
 		next if $uri ne "http://schemas.openxmlformats.org/officeDocument/2006/bibliography";
 
-		$doc = eval { $self->{session}->xml->parse_file( "$custom_dir/item$idx.xml" ) };
+		$doc = eval { $xml->parse_file( "$custom_dir/item$idx.xml" ) };
 		next if !defined $doc;
 
 		$self->_extract_references( $bibl_file, $doc );
@@ -188,30 +159,28 @@ sub _extract_bibl
 	closedir($dh);
 
 	seek($bibl_file,0,0);
-
 	return if !-s $bibl_file;
 
-	return $eprint->create_subdataobj( "documents", {
+	push @{$epdata->{documents}}, {
 		format => "text/xml",
 		content => "bibliography",
-		security => $main_doc->value( "security" ),
-		files => [@files,{
+		files => [{
 			filename => "eprints.xml",
 			filesize => (-s $bibl_file),
 			mime_type => "text/xml",
 			_content => $bibl_file,
 		}],
-		relation => [{
-			type => EPrints::Utils::make_relation( "isVolatileVersionOf" ),
-			uri => $main_doc->internal_uri(),
-			},{
-			type => EPrints::Utils::make_relation( "isVersionOf" ),
-			uri => $main_doc->internal_uri(),
-			},{
-			type => EPrints::Utils::make_relation( "isPartOf" ),
-			uri => $main_doc->internal_uri(),
-		}],
-		});
+#		relation => [{
+#			type => EPrints::Utils::make_relation( "isVolatileVersionOf" ),
+#			uri => $main_doc->internal_uri(),
+#			},{
+#			type => EPrints::Utils::make_relation( "isVersionOf" ),
+#			uri => $main_doc->internal_uri(),
+#			},{
+#			type => EPrints::Utils::make_relation( "isPartOf" ),
+#			uri => $main_doc->internal_uri(),
+#		}],
+	};
 }
 
 sub _extract_references
@@ -234,19 +203,18 @@ sub _extract_references
 
 sub _extract_media_files
 {
-	my( $self, $doc, $dir ) = @_;
+	my( $self, $dir, %opts ) = @_;
 
-	my $eprint = $doc->get_parent;
 	my $session = $self->{session};
+	my $epdata = $opts{epdata};
 
 	my $content_dir;
 
-	my $main = $doc->get_main;
-	if( $main =~ /\.docx$/ )
+	if( -d "$dir/word" )
 	{
 		$content_dir = "word";
 	}
-	elsif( $main =~ /\.pptx$/ )
+	elsif( -d "$dir/ppt" )
 	{
 		$content_dir = "ppt";
 	}
@@ -257,226 +225,160 @@ sub _extract_media_files
 
 	my @new_docs;
 	
-	my $media_dir = join_path( $dir, $content_dir, "media" );
+	my $media_dir = "$dir/$content_dir/media";
 
-	return @new_docs if (!(-d $media_dir));
+	return @new_docs if !-d $media_dir;
 
 	my @files;
 
-	opendir( my $dh, $media_dir ) or die "Error opening $media_dir: $!";
+	opendir( my $dh, $media_dir ) or return; # error ?
 	foreach my $fn (readdir($dh))
 	{
 		next if $fn =~ /^\./;
-		push @files, [$fn => join_path( $media_dir, $fn )];
+		push @files, [$fn => "$media_dir/$fn"];
 	}
 	closedir $dh;
 
 	if( $content_dir eq 'ppt' )
 	{
-		my $thumbnail = join_path( $dir, "docProps/thumbnail.jpeg" );
-		push @files, ["thumbnail.jpeg" => $thumbnail] if( -e $thumbnail );
+		my $thumbnail = "$dir/docProps/thumbnail.jpeg";
+		if( -e $thumbnail )
+		{
+			push @files, ["thumbnail.jpeg" => $thumbnail];
+		}
 	}
 
 	foreach my $file (@files)
 	{
-		open(my $fh, "<", $$file[1]) or die "Error opening $$file[1]: $!";
-		push @new_docs, $eprint->create_subdataobj( "documents", {
-			main => $$file[0],
-			format => $session->call( "guess_doc_type", $session, $$file[0] ),
+		my( $filename, $filepath ) = @$file;
+		open(my $fh, "<", $filename) or die "Error opening $filename: $!";
+		push @{$epdata->{documents}}, {
+			main => $filename,
+			format => $session->call( "guess_doc_type", $session, $filename ),
 			files => [{
-				filename => $$file[0],
+				filename => $filename,
 				filesize => (-s $fh),
 				_content => $fh
 			}],
-			relation => [{
-				type => EPrints::Utils::make_relation( "isVersionOf" ),
-				uri => $doc->internal_uri(),
-				},{
-				type => EPrints::Utils::make_relation( "isPartOf" ),
-				uri => $doc->internal_uri(),
-			}],
-		});
+#			relation => [{
+#				type => EPrints::Utils::make_relation( "isVersionOf" ),
+#				uri => $doc->internal_uri(),
+#				},{
+#				type => EPrints::Utils::make_relation( "isPartOf" ),
+#				uri => $doc->internal_uri(),
+#			}],
+		};
 	}
-
-	return @new_docs;
 }
-
 
 sub _parse_dc
 {
-	my( $self, $doc, $dir ) = @_;
+	my( $self, $dir, %opts ) = @_;
 
-	my $eprint = $doc->get_parent;
-	my $dataset = $eprint->get_dataset;
+	my $epdata = $opts{epdata};
+	my $xml = $self->{session}->xml;
 
-	my ($file,$fh);
+	my $dom_doc = eval { $xml->parse_file( "$dir/docProps/core.xml" ) };
+	return if !defined $dom_doc;
 
-	$file = join_path( $dir, "docProps/core.xml" );
+	my $root = $dom_doc->documentElement;
 
-        return unless( open( $fh, $file ) );
+	return if lc($root->tagName) ne 'cp:coreproperties';
 
-        my ($xml,$dom_doc);
-        while( my $d = <$fh> )
-        {
-                $xml .= $d;
-        }
-        close $fh;	
-        eval
-        {
-                $dom_doc = EPrints::XML::parse_xml_string( $xml );
-        };
+	my %dc;
 
-        return if($@ || !defined $dom_doc);
-
-        my $dom_top = $dom_doc->getDocumentElement;
-
-        return if( (lc $dom_top->tagName) ne 'cp:coreproperties' );
-
-	my @nodes = $dom_top->childNodes;
-
-	my $dcdata = {};
-
-	foreach(@nodes)
+	foreach my $node ($root->childNodes)
 	{
-		my @v = $_->childNodes();
-		next unless( scalar( @v ) );
-		next unless( defined $v[0]->nodeValue );
-		$dcdata->{$_->tagName} = $v[0]->nodeValue;
+		my $name = lc($node->nodeName);
+		next unless exists $GRAMMAR->{$name};
+		my $value = $xml->text_contents_of( $node );
+		next unless EPrints::Utils::is_set( $value );
 
+		push @{$dc{$name}}, $value;
 	}
 
-	my $grammar = $self->get_grammar;
-
-	foreach my $dc (keys %$dcdata)
+	while(my( $name, $values ) = each %dc)
 	{
-		my $opts = $grammar->{$dc};
-		next if( !defined $opts || scalar(@$opts) == 0 );
-		my $f = $$opts[0];
-		delete $$opts[0];
-		my $ep_value = {};
+		my( $fieldname, $f ) = @{$GRAMMAR->{$name}};
+		next unless $opts{dataset}->has_field( $fieldname );
+		my $field = $opts{dataset}->field( $fieldname );
 
-		my $values = $dcdata->{$dc};
-		next unless( defined $values );
-
-                if( ref($f) eq "CODE" )
-                {	
-			my $fieldname = $$opts[1];
-			next unless(defined $fieldname);
-				
-			eval {
-	                        $ep_value = &$f( $self, $values, $fieldname );
-			};
-
-			next if($@ || !defined $ep_value);
-                        next unless $dataset->has_field( $fieldname );
-                     
-		        $eprint->set_value( $fieldname, $ep_value );
-                }
-                else
-                {
-			my $fieldname = $f;
-                        # skip this field if it isn't supported by the current repository
-                        next unless $dataset->has_field( $fieldname );
-
-                        my $field = $dataset->get_field( $fieldname );
-                        if( $field->get_property( "multiple" ) )
-                        {
-				my @a = ($values);
-				$eprint->set_value( $fieldname, \@a );
-                        }
-                        else
-                        {
-				$eprint->set_value( $fieldname, $values );
-                        }
+		if( defined $f )
+		{
+			$values = &$f( $self, $values, $fieldname );
 		}
+
+		$epdata->{$fieldname} = $field->property( "multiple" ) ?
+			$values :
+			$values->[0];
 	}
-	
-	$file = "file://" . $dir . "/word/document.xml";
-	$dom_doc = eval { EPrints::XML::parse_url( $file ) };
+
+	$dom_doc = eval { $xml->parse_file( "$dir/word/document.xml" ) };
 
 	if( defined $dom_doc )
 	{
-		$dom_top = $dom_doc->documentElement;
+		$root = $dom_doc->documentElement;
 
-		my %alias_sections;
-
-		foreach my $alias ($dom_top->getElementsByLocalName( "alias" ))
+		foreach my $alias ($root->getElementsByTagName( "w:alias" ))
 		{
-			my $type = $alias->getAttribute( "w:val" );
+			my $type = lc($alias->getAttribute( "w:val" ));
 
-			my $sdt = $alias->parentNode;
-			$sdt = $sdt->parentNode while $sdt->localName ne "sdt";
-
-			$alias_sections{lc($type)} = $sdt->textContent;
-		}
-		if( defined $alias_sections{"title"} )
-		{
-			$eprint->set_value( "title", $alias_sections{"title"} );
-		}
-		if( defined $alias_sections{"abstract"} )
-		{
-			$eprint->set_value( "abstract", $alias_sections{"abstract"} );
+			if( $type eq "title" || $type eq "abstract" )
+			{
+				my $sdt = $alias;
+				while( $sdt && $sdt->nodeName ne "w:sdt" )
+				{
+					$sdt = $sdt->parentNode;
+				}
+				next if !defined $sdt;
+				$epdata->{$type} = $xml->text_contents_of( $sdt );
+			}
 		}
 	}
 
-#	$eprint->commit(1);
-
-	$file = "file://" . $dir . "/customXml/item2.xml";
-	$dom_doc = eval { EPrints::XML::parse_url( $file ) };
-
-	if( defined $dom_doc )
-	{
-		$dom_top = $dom_doc->documentElement;
-
-		my @names;
-
-		foreach my $name ($dom_top->getElementsByLocalName("name."))
-		{
-			my( $surname ) = $name->getElementsByLocalName("surname.");
-			my( $given ) = $name->getElementsByLocalName("given-names.");
-			push @names, {
-				family => $surname->textContent,
-				given => $given->textContent };
-		}
-		$eprint->set_value( "creators_name", \@names ) if scalar @names;
-	}
-
-	$eprint->commit(1);
-
-	return;
-}
-
-sub get_grammar
-{
-        return $GRAMMAR;
+#	$dom_doc = eval { $xml->parse_file( "$dir/customXml/item2.xml" ) };
+#
+# item2.xml in docx appears to be the bibliography, this section doesn't make
+# sense
+#	if( defined $dom_doc )
+#	{
+#		$root = $dom_doc->documentElement;
+#
+#		my @names;
+#
+#		foreach my $name ($root->getElementsByLocalName("name."))
+#		{
+#			my( $surname ) = $name->getElementsByLocalName("surname.");
+#			my( $given ) = $name->getElementsByLocalName("given-names.");
+#			push @names, {
+#				family => $surname->textContent,
+#				given => $given->textContent
+#			};
+#		}
+#
+#		$eprint->set_value( "creators_name", \@names ) if scalar @names;
+#	}
 }
 
 # there's only one creator in openxml (the owner of the doc I guess)
 sub ep_dc_creator
 {
-        my( $self, $values, $fieldname ) = @_;
+	my( $self, $values, $fieldname ) = @_;
 
-        my @names;
-
-        my( $given, $family ) = split /\s* \s*/, $values;
-
-	push @names, {
-		family => $family,
-		given => $given,
-	};
-
-	return \@names;
+	return [map {
+		my( $given, $family ) = split /\s* \s*/, $_;
+		{
+			family => $family,
+			given => $given,
+		}
+	} @$values];
 }
 
 sub ep_dc_join
 {
-        my( $self, $values, $fieldname ) = @_;
-	return join("\n", @$values );
-}
+	my( $self, $values, $fieldname ) = @_;
 
-sub join_path
-{
-	return join('/', @_);
+	return [join("\n", @$values)];
 }
 
 sub unpack

@@ -2860,6 +2860,7 @@ Each file inside this archive will be created as an <b>individual</b> document i
     <epp:phrase id="Plugin/Screen/EPrint/RemoveWithEmail:title">Destroy item (with notification)</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/RemoveWithEmail:description">Remove this item from the system forever, but send an email to the user who deposited it to inform them why.</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/RemoveWithEmail:item_removed">Item has been removed.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/Remove:item_removed" ref="Plugin/Screen/EPrint/RemoveWithEmail:item_removed"/>
     <epp:phrase id="Plugin/Screen/EPrint/RemoveWithEmail:item_not_removed">Item could not be removed.</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/EPrint/RejectWithEmail:title">Return item (with notification)</epp:phrase>
@@ -3097,7 +3098,9 @@ Each file inside this archive will be created as an <b>individual</b> document i
 
 	<!-- options -->
 	<epp:phrase id="Plugin/InputForm/Component/Documents:move_up">Move Up</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/MoveUp:title" ref="Plugin/InputForm/Component/Documents:move_up" />
 	<epp:phrase id="Plugin/InputForm/Component/Documents:move_down">Move Down</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/MoveDown:title" ref="Plugin/InputForm/Component/Documents:move_down" />
 	<epp:phrase id="Plugin/InputForm/Component/Documents:show_options">Show options</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Documents:hide_options">Hide options</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:add_format">Upload</epp:phrase>
@@ -3105,6 +3108,7 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="Plugin/InputForm/Component/Documents:delete_file">Delete</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Documents:delete_file_confirm">Delete file <epc:pin name="filename"/>: are you sure?</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Documents:delete_document">Delete document</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/Remove:title" ref="Plugin/InputForm/Component/Documents:delete_document" />
 	<epp:phrase id="Plugin/InputForm/Component/Documents:delete_document_confirm">Delete entire document: are you sure?</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:upload_blurb">Please upload a file.</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Documents:update">Update Metadata</epp:phrase>
@@ -3801,11 +3805,6 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="Plugin/Screen/Workflow:event_queue:core_stage:title" ref="metapage_title_core" />
 	<epp:phrase id="Plugin/Screen/Workflow:event_queue:commit_stage:title" ref="Plugin/Screen/Workflow/Commit:title" />
 
-	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod:flag:metadata">Extract metadata</epp:phrase>
-	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod:flag:media">Extract generated media (images etc.)</epp:phrase>
-	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod:flag:bibliography">Extract bibliography</epp:phrase>
-	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod:flag:explode">Expand archive into multiple documents containing one file each</epp:phrase>
-
 	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/File:title" ref="Plugin/InputForm/Component/Upload:from_file" />
 	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/File:unsupported_format">No method available to extract data from uploaded file.</epp:phrase>
 
@@ -3834,5 +3833,21 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Google:title">Google Docs</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/Google:remote_error">Error while talking to the remote server:<br /><pre style="overflow: scroll; width: 60em; max-height: 200px;"><epc:pin name="request"/>
 <epc:pin name="response"/></pre></epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/EPrint/Document/Unpack:title">Unpack</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/Unpack:help">Would you like to unpack this archive into a single document (e.g. an HTML document) or multiple documents with one file per document (e.g. a collection of images)?</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/Unpack:action_unpack">Single</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/Unpack:action_explode">Multiple</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/Convert:title" ref="Plugin/InputForm/Component/Documents:convert_document"></epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/Convert:help">To convert this document to another format select the format to convert to and click Convert.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/Convert:action_convert" ref="Plugin/InputForm/Component/Documents:convert_document_button"/>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/Extract:title">Extract data</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/Extract:help">Attempt to extract the following information from this document:</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/Extract:action_merge">Merge with existing data</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/Extract:action_replace">Replace existing data</epp:phrase>
+	<epp:phrase id="Plugin/Import/OpenXML:action_metadata">Metadata</epp:phrase>
+	<epp:phrase id="Plugin/Import/OpenXML:action_media">Generated media (images etc.)</epp:phrase>
+	<epp:phrase id="Plugin/Import/OpenXML:action_bibliography">Bibliography</epp:phrase>
+	<epp:phrase id="Plugin/Import/OpenXML:zip_failed">Failed to process file - perhaps it isn't an OpenXML document?</epp:phrase>
 
 </epp:phrases>

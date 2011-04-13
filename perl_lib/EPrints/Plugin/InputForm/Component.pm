@@ -70,6 +70,20 @@ sub new
 	return $self;
 }
 
+sub set_note
+{
+	my( $self, $name, $value ) = @_;
+
+	$self->{processor}->{notes}->{$self->{prefix}}->{$name} = $value;
+}
+
+sub note
+{
+	my( $self, $name ) = @_;
+
+	return $self->{processor}->{notes}->{$self->{prefix}}->{$name};
+}
+
 =pod
 
 =item $bool = $component->parse_config( $config_dom )
@@ -249,6 +263,52 @@ Returns the unique name of this field (for prefixes, etc).
 sub get_name
 {
 	my( $self ) = @_;
+}
+
+=item $bool = $component->wishes_to_export
+
+See L<EPrints::Plugin::Screen/wishes_to_export>.
+
+=cut
+
+sub wishes_to_export
+{
+	shift->EPrints::Plugin::Screen::wishes_to_export( @_ );
+}
+
+=item $mime_type = $component->export_mimetype
+
+See L<EPrints::Plugin::Screen/export_mimetype>.
+
+=cut
+
+sub export_mimetype
+{
+	shift->EPrints::Plugin::Screen::export_mimetype( @_ );
+}
+
+=item $component->export
+
+See L<EPrints::Plugin::Screen/export>.
+
+=cut
+
+sub export
+{
+	shift->EPrints::Plugin::Screen::export( @_ );
+}
+
+=item $xhtml = $component->render
+
+Renders the component in its surround.
+
+=cut
+
+sub render
+{
+	my( $self ) = @_;
+
+	return $self->get_surround->render( $self, $self->{session} );
 }
 
 =pod

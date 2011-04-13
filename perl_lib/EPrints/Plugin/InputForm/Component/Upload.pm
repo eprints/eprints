@@ -25,6 +25,34 @@ sub new
 	return $self;
 }
 
+sub wishes_to_export
+{
+	my( $self ) = @_;
+
+	my $plugin = $self->{processor}->{notes}->{upload_plugin}->{plugin};
+	
+	return $plugin ? $plugin->wishes_to_export : $self->SUPER::wishes_to_export;
+}
+
+sub export_mimetype
+{
+	my( $self ) = @_;
+
+	my $plugin = $self->{processor}->{notes}->{upload_plugin}->{plugin};
+	
+	return $plugin ? $plugin->export_mimetype : $self->SUPER::export_mimetype;
+}
+
+sub export
+{
+	my( $self ) = @_;
+
+	my $plugin = $self->{processor}->{notes}->{upload_plugin}->{plugin};
+	
+	return $plugin ? $plugin->export : $self->SUPER::export;
+}
+
+
 # only returns a value if it belongs to this component
 sub update_from_form
 {
@@ -59,6 +87,7 @@ sub update_from_form
 			local $self->{processor}->{action} = $action;
 			$plugin->{prefix} = join '_', $self->{prefix}, $plugin->get_id;
 			$plugin->from();
+			$self->{processor}->{notes}->{upload_plugin}->{plugin} = $plugin;
 			$self->{processor}->{notes}->{upload_plugin}->{ctab} = $method;
 			$self->{processor}->{notes}->{upload_plugin}->{state_params} = $plugin->get_state_params;
 			last;

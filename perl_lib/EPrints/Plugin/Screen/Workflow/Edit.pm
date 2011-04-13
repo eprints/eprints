@@ -196,6 +196,16 @@ sub render_buttons
 	return $self->{session}->render_action_buttons( %buttons );
 }
 
+sub hidden_bits
+{
+	my( $self ) = @_;
+
+	return(
+		$self->SUPER::hidden_bits,
+		stage => $self->workflow->get_stage_id
+	);
+}
+
 1;
 
 =head1 COPYRIGHT

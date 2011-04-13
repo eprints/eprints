@@ -51,3 +51,21 @@ div#progress {
     font-size: 18px;
     font-weight: bold;
 }
+
+.UploadMethod_file_container {
+	clear: both;
+}
+
+.UploadMethod_file_progress {
+	width: 500px;
+	height: 30px;
+	margin: 0 auto;
+}
+
+.UploadMethod_file_progress_bar {
+	float: left;
+}
+
+.UploadMethod_file_progress_info {
+	float: right;
+}
