@@ -110,6 +110,20 @@ sub render_xml_schema_type
 	return $session->make_doc_fragment;
 }
 
+=item $field->set_value( $dataobj, $value )
+
+B<Cache> the $value in the data object. To actually update the value in the database you must commit the $value objects.
+
+=cut
+
+sub set_value
+{
+	my( $self, $dataobj, $value ) = @_;
+
+	# don't populate changed nor perform an _equal for object caching
+	$dataobj->{data}->{$self->get_name} = $value;
+}
+
 sub get_value
 {
 	my( $self, $parent ) = @_;

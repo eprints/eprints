@@ -736,7 +736,7 @@ sub _equal
 		return 1;
 	}
 
-	print STDERR "Warning: can't compare $a and $b\n";
+	Carp::cluck( "Warning: can't compare $a and $b" );
 	return 0;
 }
 
