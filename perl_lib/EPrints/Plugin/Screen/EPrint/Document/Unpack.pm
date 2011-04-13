@@ -27,6 +27,8 @@ sub new
 	
 	$self->{actions} = [qw/ cancel unpack explode /];
 
+	$self->{ajax} = "interactive";
+
 	return $self;
 }
 
@@ -87,18 +89,12 @@ sub render
 	return( $frag );
 }	
 
-sub action_cancel
-{
-	my( $self ) = @_;
-
-	$self->{processor}->{redirect} = $self->{processor}->{return_to};
-}
-
 sub action_unpack
 {
 	my( $self ) = @_;
 
-	$self->{processor}->{redirect} = $self->{processor}->{return_to};
+	$self->{processor}->{redirect} = $self->{processor}->{return_to}
+		if !$self->wishes_to_export;
 
 	my $eprint = $self->{processor}->{eprint};
 	my $doc = $self->{processor}->{document};
@@ -113,7 +109,8 @@ sub action_explode
 {
 	my( $self ) = @_;
 
-	$self->{processor}->{redirect} = $self->{processor}->{return_to};
+	$self->{processor}->{redirect} = $self->{processor}->{return_to}
+		if !$self->wishes_to_export;
 
 	my $eprint = $self->{processor}->{eprint};
 	my $doc = $self->{processor}->{document};
@@ -126,8 +123,6 @@ sub action_explode
 sub _expand
 {
 	my( $self, $dataobj ) = @_;
-
-	$self->{processor}->{redirect} = $self->{processor}->{return_to};
 
 	my $eprint = $self->{processor}->{eprint};
 	my $doc = $self->{processor}->{document};
@@ -154,7 +149,8 @@ sub _expand
 	);
 	return if !$list || !$list->count;
 
-	$self->{processor}->{redirect} .= "&docid=".$list->item( 0 )->id;
+	$self->{processor}->{redirect} .= "&docid=".$list->item( 0 )->id
+		if !$self->wishes_to_export;
 
 	return 1;
 }
