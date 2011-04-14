@@ -40,6 +40,23 @@ sub parse_config
 	}
 }
 
+sub wishes_to_export
+{
+	my( $self ) = @_;
+
+	return $self->{session}->param( $self->{prefix} . "_export" );
+}
+
+sub export
+{
+	my( $self ) = @_;
+
+	my $frag = $self->render_content;
+
+	print $self->{session}->xhtml->to_xhtml( $frag );
+	$self->{session}->xml->dispose( $frag );
+}
+
 =pod
 
 =item $fieldcomponent->update_from_form($processor)
@@ -269,7 +286,9 @@ sub render_content
 		$value = $self->{default};
 	}
 
-	return $self->{config}->{field}->render_input_field( 
+	my $frag = $self->{session}->make_doc_fragment;
+
+	$frag->appendChild( $self->{config}->{field}->render_input_field( 
 			$self->{session}, 
 			$value, 
 			$self->{dataobj}->get_dataset,
@@ -277,7 +296,13 @@ sub render_content
 			undef,
 			$self->{dataobj},
 			$self->{prefix},
- 	);
+ 	) );
+
+	$frag->appendChild( $self->{session}->make_javascript( <<EOJ ) );
+new Component_Field ('$self->{prefix}');
+EOJ
+
+	return $frag;
 }
 
 sub could_collapse

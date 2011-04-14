@@ -71,10 +71,12 @@ sub get_basic_input_elements
 {
 	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
 
+	my @classes = ( join('_', 'ep', $self->dataset->base_id, $self->name) );
 	my $textarea = $session->make_element(
 		"textarea",
 		name => $basename,
 		id => $basename,
+		class => join(' ', @classes),
 		rows => $self->{input_rows},
 		cols => $self->{input_cols},
 		wrap => "virtual" );

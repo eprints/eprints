@@ -284,7 +284,11 @@ See L<EPrints::Plugin::Screen/export_mimetype>.
 
 sub export_mimetype
 {
-	shift->EPrints::Plugin::Screen::export_mimetype( @_ );
+	my( $self ) = @_;
+
+	binmode(STDOUT, ":utf8");
+
+	return "text/html; charset=UTF-8";
 }
 
 =item $component->export

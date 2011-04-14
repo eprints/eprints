@@ -3582,7 +3582,7 @@ sub _render_buttons_aux
 	my( $self, $btype, %buttons ) = @_;
 
 	#my $frag = $self->make_doc_fragment();
-	my $class = "";
+	my $class;
 	if( defined $buttons{_class} )
 	{
 		$class = $buttons{_class};
@@ -3619,11 +3619,6 @@ sub render_button
 {
 	my( $self, %opts ) = @_;
 
-	if( !defined $opts{onclick} && defined $opts{name} )
-	{
-		$opts{onclick} = "return EPJS_button_pushed( '$opts{name}' )";	
-	}
-	
 	if( !defined $opts{class} )
 	{
 		$opts{class} = "ep_form_action_button";

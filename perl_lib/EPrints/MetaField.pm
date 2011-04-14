@@ -1259,16 +1259,10 @@ sub render_input_field_actual
 {
 	my( $self, $session, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
 
+	# Note: if there is only one element we still need the table to
+	# centre-align the input
 
 	my $elements = $self->get_input_elements( $session, $value, $staff, $obj, $basename );
-
-	# if there's only one element then lets not bother making
-	# a table to put it in
-
-	if( scalar @{$elements} == 1 && scalar @{$elements->[0]} == 1 )
-	{
-		return $elements->[0]->[0]->{el};
-	}
 
 	my $table = $session->make_element( "table", border=>0, cellpadding=>0, cellspacing=>0, class=>"ep_form_input_grid" );
 
@@ -1339,15 +1333,8 @@ sub get_input_elements
 {
 	my( $self, $session, $value, $staff, $obj, $basename ) = @_;	
 
-	my $assist;
-	if( $self->{input_assist} )
-	{
-		$assist = $session->make_doc_fragment;
-		$assist->appendChild( $session->render_internal_buttons(
-			$self->{name}."_assist" => 
-				$session->phrase( 
-					"lib/metafield:assist" ) ) );
-	}
+	my $n = length( $basename) - length( $self->{name}) - 1;
+	my $componentid = substr( $basename, 0, $n );
 
 	my $extra_params = "&dataset=".$self->{dataset}->id."&field=".$self->name;
 	if( defined $obj )
@@ -1367,20 +1354,11 @@ sub get_input_elements
 				$basename,
 				$staff,
 				$obj );
-		if( defined $self->{input_advice_right} )
-		{
-			my $advice = $self->call_property( "input_advice_right", $session, $self, $value );
-			my $row = pop @{$rows};
-			push @{$row}, { el=>$advice };
-			push @{$rows}, $row;
-		}
 
 
 		my $cols = scalar @{$rows->[0]};
 		if( defined $self->{input_lookup_url} )
 		{
-			my $n = length( $basename) - length( $self->{name}) - 1;
-			my $componentid = substr( $basename, 0, $n );
 			my $lookup = $session->make_doc_fragment;
 			my $drop_div = $session->make_element( "div", id=>$basename."_drop", class=>"ep_drop_target" );
 			$lookup->appendChild( $drop_div );
@@ -1399,16 +1377,7 @@ sub get_input_elements
 			$lookup->appendChild( $script );
 			push @{$rows}, [ {el=>$lookup,colspan=>$cols,class=>"ep_form_input_grid_wide"} ];
 		}
-		if( defined $self->{input_advice_below} )
-		{
-			my $advice = $self->call_property( "input_advice_below", $session, $self, $value );
-			push @{$rows}, [ {el=>$advice,colspan=>$cols,class=>"ep_form_input_grid_wide"} ];
-		}
 
-		if( defined $assist )
-		{
-			push @{$rows}, [ {el=>$assist,colspan=>3,class=>"ep_form_input_grid_wide"} ];
-		}
 		return $rows;
 	}
 
@@ -1432,6 +1401,11 @@ sub get_input_elements
 		{
 			$boxcount = $cnt+$self->{input_add_boxes};
 		}
+	}
+	my $ibutton = $session->get_internal_button;
+	if( $ibutton eq $basename."_morespaces" ) 
+	{
+		$boxcount += $self->{input_add_boxes};
 	}
 
 	my $imagesurl = $session->get_repository->get_conf( "rel_path" )."/style/images";
@@ -1461,7 +1435,8 @@ sub get_input_elements
 					src=> "$imagesurl/multi_down.png",
 					alt=>"down",
 					title=>"move down",
-               				name=>"_internal_".$basename."_down_$i",
+               		name=>"_internal_".$basename."_down_$i",
+					class => "epjs_ajax",
 					value=>"1" ));
 				if( $i > 1 )
 				{
@@ -1472,16 +1447,12 @@ sub get_input_elements
 						alt=>"up",
 						title=>"move up",
 						src=> "$imagesurl/multi_up.png",
-                				name=>"_internal_".$basename."_up_$i",
+                		name=>"_internal_".$basename."_up_$i",
+						class => "epjs_ajax",
 						value=>"1" ));
 				}
 				$lastcol = { el=>$arrows, valign=>"middle", class=>"ep_form_input_grid_arrows" };
 				$row =  [ $col1, @{$section->[$n]}, $lastcol ];
-			}
-			if( defined $self->{input_advice_right} )
-			{
-				my $advice = $self->call_property( "input_advice_right", $session, $self, $value->[$i-1] );
-				push @{$row}, { el=>$advice };
 			}
 			push @{$rows}, $row;
 
@@ -1522,11 +1493,6 @@ sub get_input_elements
 				push @{$rows}, \@row;
 			#, {afterUpdateElement: updated}); " ));
 			}
-			if( defined $self->{input_advice_below} )
-			{
-				my $advice = $self->call_property( "input_advice_below", $session, $self, $value->[$i-1] );
-				push @{$rows}, [ {},{el=>$advice,colspan=>$cols-1, class=>"ep_form_input_grid_wide"} ];
-			}
 		}
 	}
 	if ($self->{input_add_boxes} > 0)
@@ -1535,14 +1501,12 @@ sub get_input_elements
 		$more->appendChild( $session->render_hidden_field(
 					        $basename."_spaces",
 						$boxcount ) );
-		$more->appendChild( $session->render_internal_buttons(
-        		$basename."_morespaces" => 
-			        $session->phrase( 
-				        "lib/metafield:more_spaces" ) ) );
-		if( defined $assist )
-		{
-			$more->appendChild( $assist );
-		}
+		$more->appendChild( $session->render_button(
+			name => "_internal_".$basename."_morespaces",
+			value => $session->phrase( "lib/metafield:more_spaces" ),
+			class => "ep_form_internal_button epjs_ajax"
+		) );
+
 		my @row = ();
 		push @row, {} if( $self->{input_ordered} );
 		push @row, {el=>$more,colspan=>3,class=>"ep_form_input_grid_wide"};
@@ -1663,8 +1627,12 @@ sub get_basic_input_elements
 	}
 	else
 	{
+		my @classes = (
+			"ep_form_text",
+			join('_', 'ep', $self->dataset->base_id, $self->name)
+		);
 		$input = $session->render_noenter_input_field(
-			class=>"ep_form_text",
+			class=> join(' ', @classes),
 			name => $basename,
 			id => $basename,
 			value => $value,
@@ -2394,9 +2362,6 @@ sub get_property_defaults
 		fromform 	=> EP_PROPERTY_UNDEF,
 		import		=> EP_PROPERTY_TRUE,
 		input_add_boxes => EP_PROPERTY_FROM_CONFIG,
-		input_advice_right => EP_PROPERTY_UNDEF,
-		input_advice_below => EP_PROPERTY_UNDEF,
-		input_assist	=> EP_PROPERTY_FALSE,
 		input_boxes 	=> EP_PROPERTY_FROM_CONFIG,
 		input_cols 	=> EP_PROPERTY_FROM_CONFIG,
 		input_lookup_url 	=> EP_PROPERTY_UNDEF,
@@ -2437,6 +2402,12 @@ sub get_property_defaults
 		help_xhtml	=> EP_PROPERTY_UNDEF,
 		title_xhtml	=> EP_PROPERTY_UNDEF,
 		join_path	=> EP_PROPERTY_UNDEF,
+
+		# http://wiki.eprints.org/w/Category:EPrints_Metadata_Fields
+		# deprecated or "buggy"
+		input_advice_right => EP_PROPERTY_UNDEF,
+		input_advice_below => EP_PROPERTY_UNDEF,
+		input_assist	=> EP_PROPERTY_FALSE,
 );
 }
 

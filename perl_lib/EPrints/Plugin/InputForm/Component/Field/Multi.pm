@@ -24,6 +24,23 @@ sub new
 	return $self;
 }
 
+sub wishes_to_export
+{
+	my( $self ) = @_;
+
+	return $self->{session}->param( $self->{prefix} . "_export" );
+}
+
+sub export
+{
+	my( $self ) = @_;
+
+	my $frag = $self->render_content;
+
+	print $self->{session}->xhtml->to_xhtml( $frag );
+	$self->{session}->xml->dispose( $frag );
+}
+
 sub update_from_form
 {
 	my( $self, $processor ) = @_;
@@ -126,7 +143,11 @@ sub render_content
 {
 	my( $self, $surround ) = @_;
 
+	my $frag = $self->{session}->make_doc_fragment;
+
 	my $table = $self->{session}->make_element( "table", class => "ep_multi" );
+	$frag->appendChild( $table );
+
 	my $tbody = $self->{session}->make_element( "tbody" );
 	$table->appendChild( $tbody );
 	my $first = 1;
@@ -176,7 +197,12 @@ sub render_content
 
 		$table->appendChild( $self->{session}->render_row_with_help( %parts ) );
 	}
-	return $table;
+
+	$frag->appendChild( $self->{session}->make_javascript( <<EOJ ) );
+new Component_Field ('$self->{prefix}');
+EOJ
+
+	return $frag;
 }
 
 
