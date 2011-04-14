@@ -164,7 +164,8 @@ use EPrints::Apache::Login;
 use EPrints::Apache::Auth;
 use EPrints::Apache::Export;
 use EPrints::Apache::Rewrite;
-use EPrints::Apache::VLit;
+# If someone really wants VLit they can enable it via Apache conf
+# use EPrints::Apache::VLit;
 use EPrints::Apache::Template;
 use EPrints::Apache::Storage;
 use EPrints::Apache::REST;

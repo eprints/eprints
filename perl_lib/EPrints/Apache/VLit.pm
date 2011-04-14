@@ -28,7 +28,6 @@ configuration if you object to it for some reason.
 
 package EPrints::Apache::VLit;
 
-use CGI;
 use Digest::MD5;
 use FileHandle;
 

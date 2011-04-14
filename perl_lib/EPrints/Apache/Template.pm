@@ -25,9 +25,6 @@ EPrints template.
 
 package EPrints::Apache::Template;
 
-use CGI;
-use FileHandle;
-
 use EPrints::Apache::AnApache; # exports apache constants
 
 use strict;
