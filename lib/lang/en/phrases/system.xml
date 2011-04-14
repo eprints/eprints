@@ -3848,6 +3848,8 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="Plugin/Import/OpenXML:action_metadata">Metadata</epp:phrase>
 	<epp:phrase id="Plugin/Import/OpenXML:action_media">Generated media (images etc.)</epp:phrase>
 	<epp:phrase id="Plugin/Import/OpenXML:action_bibliography">Bibliography</epp:phrase>
+	<epp:phrase id="Plugin/Import/PDF:action_bibliography" ref="Plugin/Import/OpenXML:action_bibliography"/>
+	<epp:phrase id="Plugin/Import/PDF:action_metadata" ref="Plugin/Import/OpenXML:action_metadata"/>
 	<epp:phrase id="Plugin/Import/OpenXML:zip_failed">Failed to process file - perhaps it isn't an OpenXML document?</epp:phrase>
 
 </epp:phrases>
