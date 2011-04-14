@@ -79,6 +79,7 @@ sub from
 		{
 			$self->workflow->update_from_form( $self->{processor}, undef, 1 );
 		}
+		$self->workflow->{item}->commit;
 		$self->uncache_workflow;
 		return;
 	}
