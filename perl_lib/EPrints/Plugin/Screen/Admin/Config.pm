@@ -43,7 +43,7 @@ sub render
 	my $session = $self->{session};
 	my $user = $session->current_user;
 
-	my $path = $session->get_repository->get_conf( "config_path" );
+	my $path = $session->config( "config_path" );
 
 	my $page = $session->make_doc_fragment;
 

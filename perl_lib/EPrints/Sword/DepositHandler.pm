@@ -272,7 +272,7 @@ sub handler
 
 	if(defined $xpackage)
 	{
-		$import_plugin_conf = $session->get_repository->get_conf( "sword", "supported_packages" )->{$xpackage};
+		$import_plugin_conf = $session->config( "sword", "supported_packages" )->{$xpackage};
 		if( defined $import_plugin_conf )
 		{
 			$import_plugin_id = $import_plugin_conf->{plugin};
@@ -282,7 +282,7 @@ sub handler
 	}
 	else
 	{
-		my $enable_generic = $session->get_repository->get_conf( "sword", "enable_generic_importer" );
+		my $enable_generic = $session->config( "sword", "enable_generic_importer" );
 		if( $enable_generic )
 		{
 			$verbose_desc .= "[WARNING] X-Packaging not set (I will just import the uploaded file).\n";

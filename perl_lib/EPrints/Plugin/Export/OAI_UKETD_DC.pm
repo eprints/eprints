@@ -203,7 +203,7 @@ sub eprint_to_uketd_dc
 	
 	
 		my @documents = $eprint->get_all_documents();
-		my $mimetypes = $session->get_repository->get_conf( "oai", "mime_types" );
+		my $mimetypes = $session->config( "oai", "mime_types" );
 		foreach( @documents )
 		{
 			my $format = $mimetypes->{$_->get_value("format")};

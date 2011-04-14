@@ -14,7 +14,7 @@ if( !defined $lookup_file )
 }
 $lookup_file=~s/\///sg;
 $lookup_file=~s/^\.+//s;
-my $filepath = $session->get_repository->get_conf( "config_path" )."/autocomplete/$lookup_file";
+my $filepath = $session->config( "config_path" )."/autocomplete/$lookup_file";
 open( DATA, '<', $filepath ) || EPrints::abort "can't read $filepath: $!";
 my @filtered_lookup_names;
 if( $mode eq "phrase" )

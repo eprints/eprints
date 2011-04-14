@@ -336,7 +336,7 @@ sub can_user_behalf
 {
 	my ( $session, $username, $behalf_username ) = @_;
 
-	my $allowed = $session->get_repository->get_conf( "sword", "allowed_mediations" );
+	my $allowed = $session->config( "sword", "allowed_mediations" );
 
 	# test if ALL mediations are allowed
 	my $all_allowed = $allowed->{'*'};
@@ -367,11 +367,11 @@ sub get_collections
 {
 	my ( $session ) = @_;
 
-	my $coll_conf = $session->get_repository->get_conf( "sword","collections" );
+	my $coll_conf = $session->config( "sword","collections" );
 	return undef unless(defined $coll_conf);
 	
-	my $mime_types = $session->get_repository->get_conf( "sword", "accept_mime_types" );
-	my $packages = $session->get_repository->get_conf( "sword", "supported_packages" );
+	my $mime_types = $session->config( "sword", "accept_mime_types" );
+	my $packages = $session->config( "sword", "supported_packages" );
 
 	my $coll_count = 0;
 	foreach my $c (keys %$coll_conf)
@@ -417,7 +417,7 @@ sub is_mime_allowed
 sub get_atom_url
 {
 	my ( $session, $eprint ) = @_;
-	return $session->get_repository->get_conf( "base_url" )."/sword-app/atom/".$eprint->get_id.".atom";
+	return $session->config( "base_url" )."/sword-app/atom/".$eprint->get_id.".atom";
 }
 
 
@@ -425,13 +425,13 @@ sub get_atom_url
 sub get_deposit_url
 {
 	my ( $session ) = @_;
-	return $session->get_repository->get_conf( "base_url" )."/sword-app/deposit/"
+	return $session->config( "base_url" )."/sword-app/deposit/"
 }
 
 sub get_collections_url
 {
         my ( $session ) = @_;
-        return $session->get_repository->get_conf( "base_url" )."/id/eprint/";
+        return $session->config( "base_url" )."/id/eprint/";
 }
 
 
@@ -456,14 +456,14 @@ sub generate_error_document
         $updated->appendChild( $session->make_text( EPrints::Time::get_iso_timestamp() ) );
         $error->appendChild( $updated );
 
-        my $source_gen = $session->get_repository->get_conf( "sword", "service_conf" )->{generator};
+        my $source_gen = $session->config( "sword", "service_conf" )->{generator};
         unless( defined $source_gen )
         {
-                $source_gen = $session->phrase( "archive_name" )." [".$session->get_repository->get_conf( "version_id" )."]";
+                $source_gen = $session->phrase( "archive_name" )." [".$session->config( "version_id" )."]";
         }
 
         my $generator = $session->make_element( "atom:generator" );
-        $generator->setAttribute( "uri", $session->get_repository->get_conf( "base_url" ) );
+        $generator->setAttribute( "uri", $session->config( "base_url" ) );
         $generator->setAttribute( "version", "1.3" );
         $generator->appendChild($session->make_text( $source_gen ) );
         $error->appendChild( $generator );
@@ -648,14 +648,14 @@ sub create_xml
 
 
         # SOURCE GENERATOR
-	my $source_gen = $session->get_repository->get_conf( "sword", "service_conf" )->{generator};
+	my $source_gen = $session->config( "sword", "service_conf" )->{generator};
 	unless( defined $source_gen )
 	{
-	        $source_gen = $session->phrase( "archive_name" )." [".$session->get_repository->get_conf( "version_id" )."]";
+	        $source_gen = $session->phrase( "archive_name" )." [".$session->config( "version_id" )."]";
 	}
 
         my $generator = $session->make_element( "atom:generator" );
-        $generator->setAttribute( "uri", $session->get_repository->get_conf( "base_url" ) );
+        $generator->setAttribute( "uri", $session->config( "base_url" ) );
 	$generator->setAttribute( "version", "1.3" );
         $generator->appendChild($session->make_text( $source_gen ) );
         $entry->appendChild( $generator );
@@ -772,12 +772,12 @@ sub create_noop_xml
         }
 
         # SOURCE GENERATOR
-	my $source_gen = $session->get_repository->get_conf( "sword", "service_conf" )->{generator};
+	my $source_gen = $session->config( "sword", "service_conf" )->{generator};
         $source_gen = $session->phrase( "archive_name" ) unless(defined $source_gen);
 
         my $source = $session->make_element( "atom:source" );
         my $generator = $session->make_element( "atom:generator" );
-        $generator->setAttribute( "uri", $session->get_repository->get_conf( "base_url" ) );
+        $generator->setAttribute( "uri", $session->config( "base_url" ) );
         $generator->appendChild($session->make_text( $source_gen ) );
         $source->appendChild( $generator );
         $entry->appendChild( $source );

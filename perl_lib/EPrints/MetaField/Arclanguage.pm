@@ -41,14 +41,14 @@ sub tags
 {
 	my( $self, $session ) = @_;
 
-	return @{$session->get_repository->get_conf( "languages" )};
+	return @{$session->config( "languages" )};
 }
 
 sub get_unsorted_values
 {
 	my( $self, $session, $dataset, %opts ) = @_;
 
-	return @{$session->get_repository->get_conf( "languages" )};
+	return @{$session->config( "languages" )};
 }
 
 sub render_option

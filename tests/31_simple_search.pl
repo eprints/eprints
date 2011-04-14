@@ -21,11 +21,11 @@ $session = EPrints::Test::OnlineSession->new( $session, {
 	},
 });
 
-my $sconf = $session->get_repository->get_conf( "search", "simple" );
+my $sconf = $session->config( "search", "simple" );
 
 EPrints::ScreenProcessor->process( 
 	session => $session, 
-	url => $session->get_repository->get_conf( "perl_url" )."/search/simple",
+	url => $session->config( "perl_url" )."/search/simple",
 	sconf => $sconf,
 	template => $sconf->{template},
 	screenid => "Search",

@@ -37,13 +37,13 @@ if( defined($show) and !$show )
 }
 
 my $newurl;
-my $fn = $session->get_repository->get_conf( "catch404" );
+my $fn = $session->config( "catch404" );
 if( defined $fn )
 {
 	$newurl = &{$fn}( $session, $url );
 }
 
-my $urlpath = $session->get_repository->get_conf( "rel_path" );
+my $urlpath = $session->config( "rel_path" );
 if( defined $newurl )
 {
 	$session->redirect( $newurl );

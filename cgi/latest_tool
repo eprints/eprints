@@ -20,13 +20,13 @@ exit( 0 ) unless( defined $session );
 
 my $ds = $session->get_repository->get_dataset( "archive" );
 
-my $citation = $session->get_repository->get_conf( "latest_tool_citation" );
+my $citation = $session->config( "latest_tool_citation" );
 
 my $max = 20;
 my $mode = $session->param( "mode" );
 $mode = "default" if( !defined $mode );
 my $filters = [];
-my $conf = $session->get_repository->get_conf( "latest_tool_modes", $mode );
+my $conf = $session->config( "latest_tool_modes", $mode );
 my $show_conditions = 0;
 if( defined $conf )
 {

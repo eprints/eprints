@@ -394,7 +394,7 @@ sub _render_subnode
 		push @classes, "ep_subjectinput_selected";
 	}
 
-	my $imagesurl = $session->get_repository->get_conf( "rel_path" );
+	my $imagesurl = $session->config( "rel_path" );
 
 	if( $has_kids && !defined $whitelist )
 	{

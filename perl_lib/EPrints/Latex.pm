@@ -119,7 +119,7 @@ sub render_string
 		{
 			my $url;
 
-			if( $session->get_repository->get_conf( "use_mimetex" ) ) 
+			if( $session->config( "use_mimetex" ) ) 
 			{
 				my $param = $buffer;
 
@@ -129,7 +129,7 @@ sub render_string
 				# Mimetex can't handle whitespace. Change it to ~'s.
 				$param =~ s/\\?\s/~/g;     
 
-				$url = $session->get_repository->get_conf( 
+				$url = $session->config( 
         				"http_cgiurl" )."/mimetex.cgi?".$param;
 			}
 			else
@@ -142,7 +142,7 @@ sub render_string
 				# strip $ from begining and end.
 				$param =~ s/^\$(.*)\$$/$1/; 
 	
-				$url = $session->get_repository->get_conf( 
+				$url = $session->config( 
 					"http_cgiurl" )."/latex2png?latex=".$param;
 			}
 

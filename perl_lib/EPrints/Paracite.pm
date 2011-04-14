@@ -48,9 +48,9 @@ sub render_reference
 	my $i=0;
 	my $mode = 0;
 	my $html = $session->make_doc_fragment();
-	my $perlurl = $session->get_repository->get_conf( 
+	my $perlurl = $session->config( 
 		"http_cgiurl" );
-	my $baseurl = $session->get_repository->get_conf( 
+	my $baseurl = $session->config( 
 		"http_url" );
 
 	# Loop through all references

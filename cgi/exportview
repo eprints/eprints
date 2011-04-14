@@ -37,7 +37,7 @@ if( defined $session->param( "view" ) )
 		exit;
 	}
 
-	my $export_url = $session->get_repository->get_conf( "perl_url" )."/exportview";
+	my $export_url = $session->config( "perl_url" )."/exportview";
 	my $fn = $values;
 	$fn =~ s/\//_/g;
 	$export_url .= "/$viewid/$values/$format/$fn".$plugin->param("suffix");
@@ -68,7 +68,7 @@ if( !defined $plugin )
 }
 
 my $view;
-foreach my $a_view ( @{$session->get_repository->get_conf( "browse_views" )} )
+foreach my $a_view ( @{$session->config( "browse_views" )} )
 {
 	$view = $a_view if( $a_view->{id} eq $viewid );
 }

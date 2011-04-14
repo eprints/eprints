@@ -111,7 +111,7 @@ sub new
 			depositable => "FALSE" 
 		};
 		my $name;
-		foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
+		foreach my $langid ( @{$session->config( "languages" )} )
 		{
  			my $top_level_name = EPrints::XML::to_string( 
 				$session->get_repository->get_language( $langid )->phrase( 

@@ -124,7 +124,7 @@ our $MAX_AGE = 86400;
 our $DOI_REGEXP = qr/(?:DOI:\s*|http:\/\/(?:dx\.doi\.org|doi\.acm\.org|doi\.ieeecomputersociety\.org)\/)([^&;]+)/i;
 
 # use a meaningful user agent
-$UA->agent( "EPrints/".$session->get_repository->get_conf( "version_id" )." (mailto:".$session->get_repository->get_conf( "adminemail" ).")" );
+$UA->agent( "EPrints/".$session->config( "version_id" )." (mailto:".$session->get_repository->get_conf( "adminemail" ).")" );
 
 # start from the last access or --from, if greater than zero
 our $CUR_ID = $from || get_max_accessid( $session );

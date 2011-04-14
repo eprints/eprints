@@ -39,7 +39,7 @@ sub render_input_field_actual
 {
 	my( $self, $session, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
 
-	my $public_key = $session->get_repository->get_conf( "recaptcha", "public_key" );
+	my $public_key = $session->config( "recaptcha", "public_key" );
 
 	if( !defined $public_key )
 	{
@@ -91,7 +91,7 @@ sub form_value_actual
 {
 	my( $self, $session, $object, $basename ) = @_;
 
-	my $private_key = $session->get_repository->get_conf( "recaptcha", "private_key" );
+	my $private_key = $session->config( "recaptcha", "private_key" );
 	my $remote_ip = $session->get_request->connection->remote_ip;
 	my $challenge = $session->param( "recaptcha_challenge_field" );
 	my $response = $session->param( "recaptcha_response_field" );

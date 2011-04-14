@@ -54,7 +54,7 @@ sub action_reload_config
 		return;
 	}
 
-	my $file = $session->get_repository->get_conf( "variables_path" )."/last_changed.timestamp";
+	my $file = $session->config( "variables_path" )."/last_changed.timestamp";
 	unless( open( CHANGEDFILE, ">$file" ) )
 	{
 		$self->{processor}->add_message( "error",

@@ -8,7 +8,7 @@ my $session = new EPrints::Session();
 exit( 1 ) unless( defined $session );
 
 my $url = "http://www.google.com/search?q=".$session->param( "q" );
-$url .= "+site:".$session->get_repository->get_conf( "host" );
+$url .= "+site:".$session->config( "host" );
 
 $session->redirect( $url );
 

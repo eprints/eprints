@@ -212,7 +212,7 @@ $session->get_repository->{config}->{enable_import_migration} = 1;
 
 if( !defined $filename )
 {
-	$filename = $session->get_repository->get_conf( "config_path" )."/subjects";
+	$filename = $session->config( "config_path" )."/subjects";
 }
 
 my $subds = $session->get_repository->get_dataset( "subject" );

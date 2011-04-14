@@ -69,7 +69,7 @@ EOX
 	$channel->appendChild( $session->render_data_element(
 		4,
 		"link",
-		$session->get_repository->get_conf( "frontpage" ) ) );
+		$session->config( "frontpage" ) ) );
 
 	if( $session->get_online )
 	{
@@ -86,7 +86,7 @@ EOX
 	$channel->appendChild( $session->render_data_element(
 		4,
 		"description", 
-		$session->get_repository->get_conf( "oai","content","text" ) ) );
+		$session->config( "oai","content","text" ) ) );
 
 	{
 		my $image = $session->make_element( "image" );
@@ -106,7 +106,7 @@ EOX
 		$image->appendChild( $session->render_data_element(
 			8,
 			"link",
-			$session->get_repository->get_conf( "frontpage" ) ) );
+			$session->config( "frontpage" ) ) );
 	}
 
 	$channel->appendChild( $session->render_data_element(

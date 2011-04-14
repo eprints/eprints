@@ -440,12 +440,12 @@ sub wget
 
 	if( $url->scheme eq "file" )
 	{
-		if( !$session->get_repository->get_conf( "enable_file_imports" ) )
+		if( !$session->config( "enable_file_imports" ) )
 		{
 			return HTTP::Response->new( 403, "Access denied by configuration: file imports disabled" );
 		}
 	}
-	elsif( !$session->get_repository->get_conf( "enable_web_imports" ) )
+	elsif( !$session->config( "enable_web_imports" ) )
 	{
 		return HTTP::Response->new( 403, "Access denied by configuration: web imports disabled" );
 	}

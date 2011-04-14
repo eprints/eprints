@@ -320,7 +320,7 @@ sub render
 	$div = $session->make_element( "div", id => $LOADING_DIV, style => "display: none" );
 	$html->appendChild( $div );
 	$div->appendChild( $session->make_element( "img",
-		src => $session->get_repository->get_conf( "rel_path" )."/style/images/loading.gif"
+		src => $session->config( "rel_path" )."/style/images/loading.gif"
 		) );
 
 	my @plugins = $session->get_plugins( type => "Storage" );
@@ -459,7 +459,7 @@ sub render_plugin
 	$html->appendChild( $stats );
 
 	$stats->appendChild( $session->make_element( "img",
-		src => $session->get_repository->get_conf( "rel_path" )."/style/images/loading.gif"
+		src => $session->config( "rel_path" )."/style/images/loading.gif"
 		) );
 
 	return $html;

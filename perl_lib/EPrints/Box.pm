@@ -90,7 +90,7 @@ sub EPrints::Box::render
 
 
 	my $session = $options{session};
-	my $imagesurl = $session->get_repository->get_conf( "rel_path" );
+	my $imagesurl = $session->config( "rel_path" );
 	if( !defined $options{show_icon_url} ) { $options{show_icon_url} = "$imagesurl/style/images/plus.png"; }
 	if( !defined $options{hide_icon_url} ) { $options{hide_icon_url} = "$imagesurl/style/images/minus.png"; }
 

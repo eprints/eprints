@@ -246,7 +246,7 @@ sub Identify
 	$response->appendChild( $session->render_data_element(
 		4,
 		"adminEmail",
-		$session->get_repository->get_conf( "adminemail" ) ) );
+		$session->config( "adminemail" ) ) );
 
 	# Later this may be either calcualted from the
 	# database, or configurable.
@@ -287,7 +287,7 @@ sub Identify
 	$oaiid->appendChild( $session->render_data_element(
 		8,
 		"repositoryIdentifier",
-		$session->get_repository->get_conf( "oai","v2","archive_id" ) ) );
+		$session->config( "oai","v2","archive_id" ) ) );
 
 	$oaiid->appendChild( $session->render_data_element(
 		8,
@@ -297,7 +297,7 @@ sub Identify
 	$oaiid->appendChild( $session->render_data_element(
 		8,
 		"sampleIdentifier",
-		$session->get_repository->get_conf( "oai","v2","sample_identifier" ) ) );
+		$session->config( "oai","v2","sample_identifier" ) ) );
 
 	my $d2 = $session->make_element( "description" );
 	my $eprints = $session->make_element( 	
@@ -313,24 +313,24 @@ sub Identify
 	$eprints->appendChild( render_text_url( 
 		$session,
 		"content", 
-		$session->get_repository->get_conf( "oai","content" ) ) );
+		$session->config( "oai","content" ) ) );
                           
 	$eprints->appendChild( render_text_url( 
 		$session,
 		"metadataPolicy", 
-		$session->get_repository->get_conf( "oai","metadata_policy" ) ) );
+		$session->config( "oai","metadata_policy" ) ) );
 
 	$eprints->appendChild( render_text_url( 
 		$session,
 		"dataPolicy", 
-		$session->get_repository->get_conf( "oai","data_policy" ) ) );
+		$session->config( "oai","data_policy" ) ) );
 
 	$eprints->appendChild( render_text_url( 
 		$session,
 		"submissionPolicy", 
-		$session->get_repository->get_conf( "oai","submission_policy" ) ) );
+		$session->config( "oai","submission_policy" ) ) );
 
-	foreach( @{$session->get_repository->get_conf( "oai","comments" )} ) 
+	foreach( @{$session->config( "oai","comments" )} ) 
 	{
 		$eprints->appendChild( $session->render_data_element(
 			8,
@@ -610,7 +610,7 @@ sub _list
 	$datasetid = $datasetids[0];
 	$dataset = $DATASETS{ $datasetid };
 
-	my $filters => $session->get_repository->get_conf( "oai", "filters" );
+	my $filters => $session->config( "oai", "filters" );
 	$filters = [] unless defined $filters;
 
 	if( defined $session->param( "resumptionToken" ) )
@@ -731,7 +731,7 @@ sub _list
 		{	
 			my $nextdatasetid = shift(@datasetids);
 			my $dataset = $DATASETS{ $nextdatasetid };
-			my $filters => $session->get_repository->get_conf( "oai", "filters" );
+			my $filters => $session->config( "oai", "filters" );
 			$filters = [] unless defined $filters;
 			$nextsearchexp = new EPrints::Search(
 					session => $session,
@@ -1267,7 +1267,7 @@ sub get_export_plugins
 
 	my %seen;
 
-	my $oai = $session->get_repository->get_conf( "oai", "v2", "output_plugins");
+	my $oai = $session->config( "oai", "v2", "output_plugins");
 	while(my( $mdp, $plugin_id ) = each %$oai)
 	{
 		$plugin_id = "Export::$plugin_id";
@@ -1304,7 +1304,7 @@ sub parse_identifier
 {
 	my( $session, $identifier ) = @_;
 
-	my $base = $session->get_repository->get_conf( "oai","v2","archive_id" );
+	my $base = $session->config( "oai","v2","archive_id" );
 	$base = "oai:$base:";
 	$identifier =~ s/^$base//;
 
@@ -1323,7 +1323,7 @@ sub build_identifier
 {
 	my( $session, $dataset, $identifier ) = @_;
 
-	my $base = $session->get_repository->get_conf( "oai","v2","archive_id" );
+	my $base = $session->config( "oai","v2","archive_id" );
 	$identifier = "oai:" . $base . ":" . $dataset->id . ":" . $identifier;
 
 	return $identifier;
@@ -1402,7 +1402,7 @@ sub add_set_filter
 	my( $head , @tail ) = EPrints::OpenArchives::decode_setspec( $set );
 	my( $key , $value ) = split( /=/ , $head );
 	$value = pop @tail if( scalar @tail > 0 );
-	my $views = $session->get_repository->get_conf( "oai","sets" ); #cjg
+	my $views = $session->config( "oai","sets" ); #cjg
 		my $info;
 	foreach( @{$views} )
 	{
@@ -1438,7 +1438,7 @@ sub get_baseurl
 {
 	my( $session ) = @_;
 
-	my $url = $session->get_repository->get_conf( "http_cgiurl" );
+	my $url = $session->config( "http_cgiurl" );
 	$url .= "/oai_accesslogs";
 
 	return $url;

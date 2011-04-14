@@ -76,7 +76,7 @@ sub handler
 	my $owner = $response->{owner};
 	my $depositor = $response->{depositor};		# can be undef if no X-On-Behalf-Of in the request
 
-	my $service_conf = $session->get_repository->get_conf( "sword","service_conf" );
+	my $service_conf = $session->config( "sword","service_conf" );
 
 	# Load some default values if those were not set in the sword.pl configuration file
 	if(!defined $service_conf || !defined $service_conf->{title})

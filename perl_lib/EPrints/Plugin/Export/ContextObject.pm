@@ -290,7 +290,7 @@ sub xml_eprint
 	# Referent
 	my $rft = $session->make_element( "ctx:referent" );
 	
-	my $oai = $session->get_repository->get_conf( "oai" );
+	my $oai = $session->config( "oai" );
 
 	my $oai_id = EPrints::OpenArchives::to_oai_identifier( 
 			EPrints::OpenArchives::archive_id( $session ),

@@ -252,7 +252,7 @@ sub render
 			$best_size = $size if( $size > $best_size );
 		}
 		
-		if( $best_size < $session->get_repository->get_conf( 
+		if( $best_size < $session->config( 
 						"diskspace_error_threshold" ) )
 		{
 			$p = $session->make_element( "p" );
@@ -261,7 +261,7 @@ sub render
 				$session->html_phrase( 
 					"cgi/users/status:out_of_space" ) );
 		}
-		elsif( $best_size < $session->get_repository->get_conf( 
+		elsif( $best_size < $session->config( 
 							"diskspace_warn_threshold" ) )
 		{
 			$p = $session->make_element( "p" );

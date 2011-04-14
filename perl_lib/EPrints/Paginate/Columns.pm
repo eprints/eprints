@@ -97,7 +97,7 @@ sub paginate_list
 	}
 	
 	# URL for images
-	my $imagesurl = $session->get_repository->get_conf( "rel_path" )."/style/images";
+	my $imagesurl = $session->config( "rel_path" )."/style/images";
 
 	# Container for list
 	my $table = $session->make_element( "table", border=>0, cellpadding=>4, cellspacing=>0, class=>"ep_columns" );

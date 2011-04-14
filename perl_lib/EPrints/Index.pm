@@ -234,7 +234,7 @@ sub _do_ordervalues
 	my $keyname = $keyfield->get_sql_name;
 	my $keyvalue = $data->{$keyfield->get_name()};
 
-	foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
+	foreach my $langid ( @{$session->config( "languages" )} )
 	{
 		my $ovt = $dataset->get_ordervalues_table_name( $langid );
 
@@ -297,7 +297,7 @@ sub delete_ordervalues
 	my $keyfield = $dataset->get_key_field();
 	my $keyvalue = $id;
 
-	foreach my $langid ( @{$session->get_repository->get_conf( "languages" )} )
+	foreach my $langid ( @{$session->config( "languages" )} )
 	{
 		# cjg raw SQL!
 		my $ovt = $dataset->get_ordervalues_table_name( $langid );

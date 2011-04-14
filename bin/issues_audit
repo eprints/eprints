@@ -120,7 +120,7 @@ if( !defined $session )
 
 ##############################
 
-my $file = $session->get_repository->get_conf( "config_path" )."/issues.xml";
+my $file = $session->config( "config_path" )."/issues.xml";
 if( -e $file )
 {
 	my $doc = $session->get_repository->parse_xml( $file , 1 );

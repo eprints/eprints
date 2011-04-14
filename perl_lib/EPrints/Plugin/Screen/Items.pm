@@ -282,7 +282,7 @@ sub render_items
 	if( $len > 1 )
 	{	
 		$final_row = $session->make_element( "tr" );
-		my $imagesurl = $session->get_repository->get_conf( "rel_path" )."/style/images";
+		my $imagesurl = $session->config( "rel_path" )."/style/images";
 		for(my $i=0; $i<$len;++$i )
 		{
 			my $col = $columns->[$i];

@@ -84,7 +84,7 @@ sub make_searchexp
 	my $conf_key = $self->get_property( "fieldnames_config" );
 	if( defined($conf_key) )
 	{
-		$fields = $session->get_repository->get_conf( $conf_key );
+		$fields = $session->config( $conf_key );
 	}
 	else
 	{

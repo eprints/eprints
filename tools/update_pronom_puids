@@ -11,7 +11,7 @@ my $session = EPrints::Session->new( 1, $repoid );
 
 my $dataset = $session->get_repository->get_dataset( "file" );
 
-unless( $session->get_repository->get_conf( "invocation", "droid" ) )
+unless( $session->config( "invocation", "droid" ) )
 {
 	die <<EOH;
 You do not have droid configured in your SystemSettings, you need to add:
@@ -55,7 +55,7 @@ while(1)
 						print "Found file: ".$file->get_value( "filename" )."/".($file->get_value("pronom_uid")||"(null)")."\n";
 						print "FH:" .$fh ."\n";		
 						my $droid_xml = File::Temp->new();
-						my $sig = $session->get_repository->get_conf( "droid_sig_file" );
+						my $sig = $session->config( "droid_sig_file" );
 						$session->get_repository->exec( "droid",
 							SOURCE => $fh,
 							TARGET => "$droid_xml",

@@ -142,7 +142,7 @@ sub xml_dataobj
 	my $eprint_url = $dataobj->get_url;
 	my $resmap_url = $plugin->dataobj_export_url( $dataobj );
 	my $session = $plugin->{session};
-	my $base_url = $session->get_repository->get_conf("base_url");
+	my $base_url = $session->config("base_url");
 	my $archive_id = $session->get_repository->get_id;
 	my $archive_name = $session->phrase( "archive_name" );
 	my $response = $session->make_doc_fragment;

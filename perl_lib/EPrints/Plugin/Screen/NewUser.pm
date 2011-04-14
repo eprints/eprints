@@ -85,7 +85,7 @@ sub action_create
 		return;
 	}
 
-	my $usertype = $session->get_repository->get_conf( "default_user_type" ); 
+	my $usertype = $session->config( "default_user_type" ); 
 
 	# Attempt to create a new account
 

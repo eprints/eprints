@@ -424,7 +424,7 @@ sub render
 	my $page = $session->make_doc_fragment;
 
 	# Preamble
-	my $imagesurl = $session->get_repository->get_conf( "rel_path" )."/style/images";
+	my $imagesurl = $session->config( "rel_path" )."/style/images";
 
 	my $box = $session->make_element( "div", style=>"text-align: left" );
 	$page->appendChild( $box );
@@ -502,7 +502,7 @@ sub render
 		}
 	}
 
-	if( $session->get_repository->get_conf( "enable_web_imports" ) )
+	if( $session->config( "enable_web_imports" ) )
 	{
 		$form->appendChild( $session->make_element( "br" ) );
 		my $importfiles = $session->render_input_field( type=>"checkbox", name=>"import_documents", value=>"yes", class=>"ep_form_checkbox", id=>"import_documents" );

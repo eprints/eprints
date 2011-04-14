@@ -71,7 +71,7 @@ sub export
 
 	my( $message, $error_level ) = $self->write_phrase;
 
-	my $file = $session->get_repository->get_conf( "config_path" )."/lang/".$session->get_lang->{id}."/phrases/zz_webcfg.xml";
+	my $file = $session->config( "config_path" )."/lang/".$session->get_lang->{id}."/phrases/zz_webcfg.xml";
 
 	my $phraseid = $session->param( "phraseid" );
 	my $info = $session->get_lang->get_phrase_info( $phraseid, $session );
@@ -119,7 +119,7 @@ sub write_phrase
 	my $phrase = $session->param( "phrase" );
 	return unless defined $phrase;
 
-	my $file = $session->get_repository->get_conf( "config_path" )."/lang/".$lang->{id}."/phrases/zz_webcfg.xml";
+	my $file = $session->config( "config_path" )."/lang/".$lang->{id}."/phrases/zz_webcfg.xml";
 
 	my $info = $lang->get_phrase_info( $phraseid, $session );
 
@@ -130,7 +130,7 @@ sub write_phrase
 		$reload = 0;
 	}
 
-	my $lib_path = $session->get_repository->get_conf( "lib_path" );
+	my $lib_path = $session->config( "lib_path" );
 
 	# check the phrase is valid XML
 	my $phrase_xml_str = "<?xml version='1.0' encoding='utf-8' standalone='no' ?>
@@ -348,7 +348,7 @@ sub render
 
 	my $session = $self->{session};
 
-	my $file = $session->get_repository->get_conf( "config_path" )."/lang/".$session->get_lang->{id}."/phrases/zz_webcfg.xml";
+	my $file = $session->config( "config_path" )."/lang/".$session->get_lang->{id}."/phrases/zz_webcfg.xml";
 
 	my $f = $session->make_doc_fragment;
 	
@@ -529,7 +529,7 @@ sub render_new_phrase
 	
 	my $add_div = $session->make_element( "div", id=>"ep_phraseedit_addbar" );
 	my $form = $session->render_form( "get",
-		$session->get_repository->get_conf( "rel_cgipath" )."/users/home" );
+		$session->config( "rel_cgipath" )."/users/home" );
 	$form->appendChild( $self->render_hidden_bits );
 	$form->appendChild(
 		$session->render_noenter_input_field( 

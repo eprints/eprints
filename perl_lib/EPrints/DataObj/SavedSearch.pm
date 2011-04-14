@@ -315,7 +315,7 @@ sub send_out_alert
 		my( $session, $dataset, $item, $info ) = @_;
 
 		my $p = $session->make_element( "p" );
-		$p->appendChild( $item->render_citation_link( $session->get_repository->get_conf( "saved_search_citation" )));
+		$p->appendChild( $item->render_citation_link( $session->config( "saved_search_citation" )));
 		$info->{matches}->appendChild( $p );
 #		$info->{matches}->appendChild( $session->make_text( $item->get_url ) );
 	};
@@ -396,7 +396,7 @@ sub process_set
 	my $list = $searchexp->perform_search;
 	$list->map( $fn, {} );
 
-	my $statusfile = $session->get_repository->get_conf( "variables_path" ).
+	my $statusfile = $session->config( "variables_path" ).
 		"/alert-".$frequency.".timestamp";
 
 	unless( open( TIMESTAMP, ">$statusfile" ) )
@@ -439,7 +439,7 @@ sub get_last_timestamp
 		return;
 	}
 
-	my $statusfile = $session->get_repository->get_conf( "variables_path" ).
+	my $statusfile = $session->config( "variables_path" ).
 		"/alert-".$frequency.".timestamp";
 
 	unless( open( TIMESTAMP, $statusfile ) )

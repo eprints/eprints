@@ -85,8 +85,8 @@ for(qw( wos creators_name title ))
 
 my $soap = SOAP::Lite->new();
 $soap->proxy( $ISI_ENDPOINT,
-	agent => "eprints.org/".$session->get_repository->get_conf("version_id"),
-	from => $session->get_repository->get_conf("adminemail"),
+	agent => "eprints.org/".$session->config("version_id"),
+	from => $session->config("adminemail"),
 	);
 
 # don't include namespace in actions
@@ -100,9 +100,9 @@ $soap->readable(1);
 # put everything in the ISI namespace
 $soap->default_ns($ISI_NS);
 
-my $searchconf = $session->get_repository->get_conf( "wos", "filters" );
+my $searchconf = $session->config( "wos", "filters" );
 
-my $query_builder = $session->get_repository->get_conf( "wos", "build_query" );
+my $query_builder = $session->config( "wos", "build_query" );
 
 # lets get updating
 if( scalar(@idlist) )

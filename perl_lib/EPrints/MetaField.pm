@@ -814,9 +814,9 @@ sub render_value_no_multiple
 		return $rendered;
 	}
 
-	my $url = $session->get_repository->get_conf(
+	my $url = $session->config(
 			"http_url" );
-	my $views = $session->get_repository->get_conf( "browse_views" );
+	my $views = $session->config( "browse_views" );
 	my $linkview;
 	foreach my $view ( @{$views} )
 	{
@@ -1408,7 +1408,7 @@ sub get_input_elements
 		$boxcount += $self->{input_add_boxes};
 	}
 
-	my $imagesurl = $session->get_repository->get_conf( "rel_path" )."/style/images";
+	my $imagesurl = $session->config( "rel_path" )."/style/images";
 	
 	my $rows = [];
 	for( my $i=1 ; $i<=$boxcount ; ++$i )

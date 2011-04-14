@@ -854,7 +854,7 @@ sub tab_grid_epms
 		action => "showapp",
 	);
 
-	#my $vinette_url = $session->get_repository->get_conf( "rel_path" )."/images/thumbnail_surround.png";
+	#my $vinette_url = $session->config( "rel_path" )."/images/thumbnail_surround.png";
 
 	my $total = 0;
 	foreach my $app (@$store_epms)

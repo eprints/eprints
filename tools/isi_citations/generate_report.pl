@@ -80,7 +80,7 @@ for(qw( wos creators_name title ))
 	}
 }
 
-my $searchconf = $session->get_repository->get_conf( "wos", "filters" );
+my $searchconf = $session->config( "wos", "filters" );
 
 my $plugin = $session->plugin( "Export::CitationReport" );
 

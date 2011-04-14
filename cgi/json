@@ -5,7 +5,7 @@ use strict;
 my $session = new EPrints::Session;
 Apache::exit( 0 ) unless( defined $session );
 
-if( !$session->get_repository->get_conf( "json","enable" ) )
+if( !$session->config( "json","enable" ) )
 {
 	EPrints::Apache::AnApache::send_status_line( $session->get_request, 403, "Not allowed" );
 	EPrints::Apache::AnApache::send_http_header( $session->get_request );

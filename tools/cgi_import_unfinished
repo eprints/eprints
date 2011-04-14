@@ -17,7 +17,7 @@ if( defined $button && $button eq "submit" )
 	my $pluginid = $session->param( "pluginid" );
 	my $plugin = $session->plugin( $pluginid, dataset=>$ds );
 
-	my $home = $session->get_repository->get_conf( "userhome" );
+	my $home = $session->config( "userhome" );
 	if( !defined $plugin )
 	{
 		$session->render_error( $session->html_phrase( "general:bad_param" ),

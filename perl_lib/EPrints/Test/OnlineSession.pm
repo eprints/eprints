@@ -52,7 +52,7 @@ sub new
 	my $path = defined $opts->{path} ? $opts->{path} : "";
 	my $query = defined $opts->{query} ? $opts->{query} : "";
 
-	my $uri = URI->new( $session->get_repository->get_conf( "base_url" ) );
+	my $uri = URI->new( $session->config( "base_url" ) );
 	if( $path !~ m#^/# )
 	{
 		$path = $uri->path . "/" . $path;

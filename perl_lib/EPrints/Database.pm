@@ -167,7 +167,7 @@ sub _new
 {
 	my( $class, $session ) = @_;
 
-	my $driver = $session->get_repository->get_conf( "dbdriver" );
+	my $driver = $session->config( "dbdriver" );
 	$driver ||= "mysql";
 
 	$class = "${class}::$driver";

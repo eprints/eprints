@@ -1572,10 +1572,10 @@ sub icon_url
 
 	if( $session->{preparing_static_page} )
 	{
-		return $session->get_repository->get_conf( "http_url" )."/$rel_path/$icon";
+		return $session->config( "http_url" )."/$rel_path/$icon";
 	}
 
-	return $session->get_repository->get_conf( "rel_path" )."/$rel_path/$icon";
+	return $session->config( "rel_path" )."/$rel_path/$icon";
 }
 
 =item $frag = $doc->render_icon_link( %opts )

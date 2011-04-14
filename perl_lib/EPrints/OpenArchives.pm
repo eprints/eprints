@@ -97,7 +97,7 @@ sub make_header
 			return $header;
 		}
 
-		my $viewconf = $session->get_repository->get_conf( "oai","sets" );
+		my $viewconf = $session->config( "oai","sets" );
         	foreach my $info ( @{$viewconf} )
         	{
 			my @values = $eprint->get_values( $info->{fields} );

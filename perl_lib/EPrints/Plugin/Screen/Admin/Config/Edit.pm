@@ -251,7 +251,7 @@ sub action_process_image_upload
 	
 	my $url = $self->{session}->get_repository->get_conf("base_url");
 	$image_location =~ s/$url//g;
-	$image_location = $session->get_repository->get_conf( "config_path" ) . "/static" . $image_location;
+	$image_location = $session->config( "config_path" ) . "/static" . $image_location;
 	
 	my $fh = $session->get_query->upload( $fname );
 
@@ -396,7 +396,7 @@ sub action_process_upload
 				my $original = "";
 				my $string = $self->{processor}->{configfile};
 				if ($doc eq "page") {
-					$original = $session->get_repository->get_conf( "config_path" ) . "/" . $string;
+					$original = $session->config( "config_path" ) . "/" . $string;
 					open (FH,$original);
 					my $tmpfile = File::Temp->new( SUFFIX => ".txt" );
 					binmode($tmpfile);
@@ -426,7 +426,7 @@ sub action_process_upload
 				} elsif ($doc eq "template") {
 					my $lang = substr $string,0,rindex($string,"/");
 					$lang = substr $lang,0,rindex($lang,"/");
-					$original = $session->get_repository->get_conf( "config_path" ) . "/" . $lang . "/templates/default.xml";
+					$original = $session->config( "config_path" ) . "/" . $lang . "/templates/default.xml";
 					#print $node_collection->{$doc};	
 					#exit;
 					my $tmpfile = File::Temp->new( SUFFIX => ".txt" );
@@ -692,7 +692,7 @@ sub action_download_full_file {
 
 	my $filename = substr $string, $index+1, $length;
 
-	my $from = $session->get_repository->get_conf( "config_path" ) . "/" . $string;
+	my $from = $session->config( "config_path" ) . "/" . $string;
 	my $doc = $session->get_repository->parse_xml( $from );
 
 	if( !defined $doc )
@@ -1267,7 +1267,7 @@ sub get_images
 
 	my $filename = substr $string, $index+1, $length;
 
-	my $from = $session->get_repository->get_conf( "config_path" ) . "/" . $string;
+	my $from = $session->config( "config_path" ) . "/" . $string;
 
 	my $doc = $session->get_repository->parse_xml( $from );
 

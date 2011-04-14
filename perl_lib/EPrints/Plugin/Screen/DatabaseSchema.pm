@@ -92,7 +92,7 @@ sub render
 
 	my %all_tables = map { $_ => 1 } $session->get_database->get_tables;
 
-	my $langs = $session->get_repository->get_conf( "languages" );
+	my $langs = $session->config( "languages" );
 
 	$html->appendChild( $session->html_phrase( "cgi/users/status:dataset_tables" ) );
 

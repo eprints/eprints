@@ -391,8 +391,8 @@ END
 
 	# Grant ALTER
 
-	my $dbname = $session->get_repository->get_conf( "dbname" );
-	my $dbuser = $session->get_repository->get_conf( "dbuser" );
+	my $dbname = $session->config( "dbname" );
+	my $dbuser = $session->config( "dbuser" );
 	my $SQL = 'GRANT ALTER ON '.$dbname.'.* TO '.$dbuser.'@localhost';
 	$rootdbh->do( $SQL );
 
@@ -740,10 +740,10 @@ END
 	print "Connecting to the database [as root]\n";
         my $dbh = DBI->connect(
                 EPrints::Database::build_connection_string(
-                        dbname=>$session->get_repository->get_conf("dbname"),
-                        dbsock=>$session->get_repository->get_conf("dbsock"),
-                        dbport=>$session->get_repository->get_conf("dbport"),
-                        dbhost=>$session->get_repository->get_conf("dbhost") ),
+                        dbname=>$session->config("dbname"),
+                        dbsock=>$session->config("dbsock"),
+                        dbport=>$session->config("dbport"),
+                        dbhost=>$session->config("dbhost") ),
                 "root",
                 $mysqlrootpass );
 

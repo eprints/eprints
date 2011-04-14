@@ -23,7 +23,7 @@ my $page=$session->make_doc_fragment();
 
 $page->appendChild( $session->html_phrase( "cgi/latest:intro" ) );
 
-my $citation = $session->get_repository->get_conf( "latest_citation" );
+my $citation = $session->config( "latest_citation" );
 
 my $date = time() - 86400 * 7; # 7 days
 $date = EPrints::Time::iso_date( $date );

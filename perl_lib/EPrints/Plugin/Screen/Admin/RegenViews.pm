@@ -42,7 +42,7 @@ sub action_regen_views
 
 	my $session = $self->{session};
 
-	my $file = $session->get_repository->get_conf( "variables_path" )."/views.timestamp";
+	my $file = $session->config( "variables_path" )."/views.timestamp";
 	unless( open( CHANGEDFILE, ">$file" ) )
 	{
 		$self->{processor}->add_message( "error",

@@ -23,7 +23,7 @@ $session = EPrints::Test::OnlineSession->new( $session, {
 
 my $processor = EPrints::ScreenProcessor->new(
 	session => $session,
-	url => $session->get_repository->get_conf( "base_url" ) . "/cgi/users/home",
+	url => $session->config( "base_url" ) . "/cgi/users/home",
 	screenid => "FirstTool",
 	);
 
@@ -108,7 +108,7 @@ $session = EPrints::Test::OnlineSession->new( $session, {
 
 $processor = EPrints::ScreenProcessor->process(
 	session => $session,
-	url => $session->get_repository->get_conf( "base_url" ) . "/cgi/users/home",
+	url => $session->config( "base_url" ) . "/cgi/users/home",
 	screenid => "Listing",
 	);
 

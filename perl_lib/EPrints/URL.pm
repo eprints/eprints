@@ -129,15 +129,15 @@ sub get
 		if( $opts{scheme} eq "https" )
 		{
 			$uri->scheme( "https" );
-			$uri->host( $session->get_repository->get_conf( "securehost" ) );
-			my $port = $session->get_repository->get_conf( "secureport" ) || 443;
+			$uri->host( $session->config( "securehost" ) );
+			my $port = $session->config( "secureport" ) || 443;
 			$uri->port( $port ) if $port != 443;
 		}
 		else
 		{
 			$uri->scheme( "http" );
-			$uri->host( $session->get_repository->get_conf( "host" ) );
-			my $port = $session->get_repository->get_conf( "port" ) || 80;
+			$uri->host( $session->config( "host" ) );
+			my $port = $session->config( "port" ) || 80;
 			$uri->port( $port ) if $port != 80;
 		}
 	}
@@ -153,15 +153,15 @@ sub get
 	}
 	elsif( $opts{path} eq "static" )
 	{
-		$uri->path( $session->get_repository->get_conf( "$opts{scheme}_root" ) );
+		$uri->path( $session->config( "$opts{scheme}_root" ) );
 	}
 	elsif( $opts{path} eq "cgi" )
 	{
-		$uri->path( $session->get_repository->get_conf( "$opts{scheme}_cgiroot" ) );
+		$uri->path( $session->config( "$opts{scheme}_cgiroot" ) );
 	}
 	elsif( $opts{path} eq "images" )
 	{
-		$uri->path( $session->get_repository->get_conf( "$opts{scheme}_root" ) . "/style/images" );
+		$uri->path( $session->config( "$opts{scheme}_root" ) . "/style/images" );
 	}
 
 	# query
