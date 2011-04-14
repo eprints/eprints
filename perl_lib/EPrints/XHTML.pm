@@ -106,28 +106,18 @@ sub input_field
 {
 	my( $self, $name, $value, @opts ) = @_;
 
-	my @classes;
-	my $class;
+	my $noenter;
 	for(my $i = 0; $i < @opts; $i+=2)
 	{
-		if( lc($opts[$i]) eq 'noenter' )
+		if( $opts[$i] eq 'noenter' )
 		{
-			(undef, my $noenter) = splice(@opts,$i,2);
-			push @classes, "epjs_block_enter";
-		}
-		elsif( lc($opts[$i]) eq 'class' )
-		{
-			$class = \$opts[$i+1];
+			(undef, $noenter) = splice(@opts,$i,2);
+			last;
 		}
 	}
-	if( @classes )
+	if( $noenter )
 	{
-		if( !defined($class) )
-		{
-			push @opts, class => "";
-			$class = \$opts[$#opts];
-		}
-		$$class = join(' ', split(' ', $$class), @classes);
+		push @opts, onKeyPress => 'return EPJS_block_enter( event )';
 	}
 
 	return $self->{repository}->xml->create_element( "input",
