@@ -4762,15 +4762,6 @@ sub read_params
 			$progress->commit;
 		}
 	}
-	elsif( $r->method eq "PUT" )
-	{
-		my $buffer;
-		while( $r->read( $buffer, 1024*1024 ) )
-		{
-			$self->{putdata} .= $buffer;
-		}
- 		$self->{query} = CGI->new( $r );
-	}
 	else
 	{
  		$self->{query} = CGI->new( $r );
