@@ -2685,6 +2685,7 @@ Titles and Help for the System Fields
 </epp:phrase>
     <epp:phrase id="Plugin/Screen/Review:remove_column_confirm">Really remove this column from the display?</epp:phrase>
     <epp:phrase id="Plugin/Screen/Review:add">Add Column</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Review:ep_review_filters_title">Filters</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Status:title">Status</epp:phrase>
     <epp:phrase id="Plugin/Screen/DatabaseSchema:title">Database Schema</epp:phrase>

@@ -232,7 +232,7 @@ sub render_filters_box
 	my %options;
 	$options{session} = $session;
 	$options{id} = "ep_review_filters";
-	$options{title} = $session->make_text('Filters');
+	$options{title} = $self->html_phrase( "ep_review_filters_title" );
 	$options{content} = $frag;
 	$options{collapsed} = $collapsed;
 
@@ -271,7 +271,7 @@ sub render
 			scope=>$user->render_value( "editperms" ) ) );
 	}
 
-	my $imagesurl = $session->get_repository->get_conf( "rel_path" )."/style/images";
+	my $imagesurl = $session->config( "rel_path" )."/style/images";
 
 	my %options;
  	$options{session} = $session;
