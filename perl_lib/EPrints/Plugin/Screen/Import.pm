@@ -245,7 +245,7 @@ sub _import
 	my $import;
 	if( !$dryrun )
 	{
-		$import = $session->get_repository->get_dataset( "import" )->create_object( $session, {} );
+		$import = $session->dataset( "import" )->create_object( $session, {} );
 	}
 
 	my $handler = EPrints::Plugin::Screen::Import::Handler->new(

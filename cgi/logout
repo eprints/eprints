@@ -29,7 +29,7 @@ if( $session->get_repository->can_call( 'on_logout' ) )
 
 my $ticketid = EPrints::Apache::AnApache::cookie( $session->get_request, "eprints_session" );
 
-my $dataset = $session->get_repository->get_dataset( "loginticket" );
+my $dataset = $session->dataset( "loginticket" );
 
 $session->get_database->delete_from(
 	$dataset->get_sql_table_name(),

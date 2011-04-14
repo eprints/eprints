@@ -8,7 +8,7 @@ BEGIN { use_ok( "EPrints::ScreenProcessor" ); }
 my $session = EPrints::Test::get_test_session();
 
 # find an example eprint
-my $dataset = $session->get_repository->get_dataset( "eprint" );
+my $dataset = $session->dataset( "eprint" );
 my( $eprintid ) = @{ $dataset->get_item_ids( $session ) };
 
 $session = EPrints::Test::OnlineSession->new( $session, {

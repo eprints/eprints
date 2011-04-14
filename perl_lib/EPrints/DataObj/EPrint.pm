@@ -2289,7 +2289,7 @@ sub in_editorial_scope_of
 
 	my $session = $self->{session};
 
-	my $user_ds = $session->get_repository->get_dataset( "user" );
+	my $user_ds = $session->dataset( "user" );
 
 	my $ef_field = $user_ds->get_field( 'editperms' );
 

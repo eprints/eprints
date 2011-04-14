@@ -221,7 +221,7 @@ sub create
 	return EPrints::DataObj::History->create_from_data( 
 		$session, 
 		$data,
-		$session->get_repository->get_dataset( "history" ) );
+		$session->dataset( "history" ) );
 }
 
 ######################################################################

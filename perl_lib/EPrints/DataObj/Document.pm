@@ -281,7 +281,7 @@ sub create
 			_parent => $eprint,
 			eprintid => $eprint->get_id
 		},
-		$session->get_repository->get_dataset( "document" ) );
+		$session->dataset( "document" ) );
 }
 
 ######################################################################

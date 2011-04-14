@@ -20,7 +20,7 @@ use strict;
 my $session = new EPrints::Session;
 exit( 0 ) unless( defined $session );
 
-my $ds = $session->get_repository->get_dataset( "archive" );
+my $ds = $session->dataset( "archive" );
 
 &process( $session );
 

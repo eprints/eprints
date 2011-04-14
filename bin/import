@@ -214,7 +214,7 @@ if( $enable_import_fields )
 	$session->get_repository->{config}->{enable_import_fields} = 1;
 }
 
-my $ds = $session->get_repository->get_dataset( $datasetid ) ;
+my $ds = $session->dataset( $datasetid ) ;
 if( !defined $ds )
 {
 	print STDERR "Unknown Dataset ID: $datasetid\n";

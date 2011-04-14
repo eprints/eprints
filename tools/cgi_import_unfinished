@@ -5,7 +5,7 @@ use strict;
 my $session = new EPrints::Session;
 exit( 1 ) unless defined $session;
 
-my $ds = $session->get_repository->get_dataset( "inbox" ) ;
+my $ds = $session->dataset( "inbox" ) ;
 
 my $title = $session->html_phrase( "cgi/users/import:title"  );
 my $page = $session->make_doc_fragment();

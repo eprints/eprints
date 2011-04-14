@@ -216,7 +216,7 @@ sub _do_search
 	
 	# Carry out search
 
-	my $subject_ds = $session->get_repository->get_dataset( "subject" );
+	my $subject_ds = $session->dataset( "subject" );
 	my $searchexp = new EPrints::Search(
 		session=>$session,
 		dataset=>$subject_ds );

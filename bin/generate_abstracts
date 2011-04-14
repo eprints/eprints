@@ -130,7 +130,7 @@ if( defined $ARGV[1] )
 else
 {
 	print "Writing abstracts\n" if( $noise > 0);
-	my $dataset = $session->get_repository->get_dataset( "eprint" );
+	my $dataset = $session->dataset( "eprint" );
 	my $info = { count=>0 };
 	$dataset->map( $session , \&make_static, $info );
 	if( $noise > 0)

@@ -116,7 +116,7 @@ sub render
 
 	my $form = $session->render_input_form(
 			fields => [
-				$session->get_repository->get_dataset( "user" )->get_field( "username" ),
+				$session->dataset( "user" )->get_field( "username" ),
 			],
 			hidden_fields => {
 				eprintid => $eprint->get_id,

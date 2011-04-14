@@ -93,7 +93,7 @@ sub render
 
 	my $form = $session->render_input_form(
 		fields => [
-			$session->get_repository->get_dataset( "request" )->get_field( "requester_email" ),
+			$session->dataset( "request" )->get_field( "requester_email" ),
 		],
 		show_names => 1,
 		show_help => 1,

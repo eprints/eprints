@@ -9,7 +9,7 @@ my $session = EPrints::Session->new();
 my $q = $session->param( "q" ) || "";
 
 my $database = $session->get_database;
-my $dataset = $session->get_repository->get_dataset( "eprint" );
+my $dataset = $session->dataset( "eprint" );
 
 my @fields = qw( event_title event_location event_dates event_type );
 

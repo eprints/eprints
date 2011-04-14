@@ -21,7 +21,7 @@ my $eprintid = $session->param( "eprintid" );
 my $eprint = EPrints::DataObj::EPrint->new( 
 			$session, 
 			$eprintid, 
-			$session->get_repository->get_dataset( "archive" ) );
+			$session->dataset( "archive" ) );
 $session->send_http_header( "content_type"=>"text/javascript" );
 print $callback."(\n";
 if( defined $eprint )

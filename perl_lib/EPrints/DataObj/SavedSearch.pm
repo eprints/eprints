@@ -119,7 +119,7 @@ sub create
 	return EPrints::DataObj::SavedSearch->create_from_data( 
 		$session, 
 		{ userid=>$userid },
-		$session->get_repository->get_dataset( "saved_search" ) );
+		$session->dataset( "saved_search" ) );
 }
 
 ######################################################################
@@ -377,7 +377,7 @@ sub process_set
 		return;
 	}
 
-	my $subs_ds = $session->get_repository->get_dataset( "saved_search" );
+	my $subs_ds = $session->dataset( "saved_search" );
 
 	my $searchexp = EPrints::Search->new(
 		session => $session,

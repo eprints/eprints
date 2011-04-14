@@ -237,7 +237,7 @@ sub new
 	my( $class, $session, $userid ) = @_;
 
 	return $session->get_database->get_single( 
-		$session->get_repository->get_dataset( "user" ),
+		$session->dataset( "user" ),
 		$userid );
 }
 
@@ -262,7 +262,7 @@ sub new_from_data
 	return $class->SUPER::new_from_data(
 			$session,
 			$known,
-			$session->get_repository->get_dataset( "user" ) );
+			$session->dataset( "user" ) );
 }
 
 
@@ -285,7 +285,7 @@ sub create
 	return EPrints::DataObj::User->create_from_data( 
 		$session, 
 		{ usertype=>$user_type },
-		$session->get_repository->get_dataset( "user" ) );
+		$session->dataset( "user" ) );
 }
 
 ######################################################################
@@ -1134,7 +1134,7 @@ sub process_editor_alerts
 		return;
 	}
 
-	my $subs_ds = $session->get_repository->get_dataset( "user" );
+	my $subs_ds = $session->dataset( "user" );
 
 	my $searchexp = EPrints::Search->new(
 		session => $session,

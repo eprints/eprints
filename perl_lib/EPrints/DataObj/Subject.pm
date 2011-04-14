@@ -128,7 +128,7 @@ sub new
 	}
 
 	return $session->get_database->get_single( 
-			$session->get_repository->get_dataset( "subject" ), 
+			$session->dataset( "subject" ), 
 			$subjectid );
 
 }
@@ -154,7 +154,7 @@ sub new_from_data
 	return $class->SUPER::new_from_data(
 			$session,
 			$known,
-			$session->get_repository->get_dataset( "subject" ) );
+			$session->dataset( "subject" ) );
 }
 
 
@@ -264,7 +264,7 @@ sub remove_all
 {
 	my( $session ) = @_;
 
-	my $ds = $session->get_repository->get_dataset( "subject" );
+	my $ds = $session->dataset( "subject" );
 	my @subjects = $session->get_database->get_all( $ds );
 	foreach( @subjects )
 	{
@@ -307,7 +307,7 @@ sub create
 	return EPrints::User->create_from_data( 
 		$session, 
 		$data,
-		$session->get_repository->get_dataset( "subject" ) );
+		$session->dataset( "subject" ) );
 }
 
 ######################################################################
@@ -724,7 +724,7 @@ sub subject_label
 
 	while( $tag ne $EPrints::DataObj::Subject::root_subject )
 	{
-		my $ds = $session->get_repository->get_dataset();
+		my $ds = $session->dataset();
 		my $data = $session->{database}->get_single( $ds, $tag );
 		
 		# If we can't find it, the tag must be invalid.
@@ -798,7 +798,7 @@ sub get_all
 		}
 	};
 	
-	my $ds = $session->get_repository->get_dataset( "subject" );
+	my $ds = $session->dataset( "subject" );
 
 	# Retrieve all of the subjects
 	my $results = $ds->search( custom_order => "name_name" );

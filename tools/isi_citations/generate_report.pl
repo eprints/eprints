@@ -71,7 +71,7 @@ pod2usage( 2 ) unless defined $repoid;
 my $session = EPrints::Session->new( 1, $repoid, $noise );
 exit( 1 ) unless defined $session;
 
-my $dataset = $session->get_repository->get_dataset( "archive" );
+my $dataset = $session->dataset( "archive" );
 for(qw( wos creators_name title ))
 {
 	if( !$dataset->has_field( $_ ) )

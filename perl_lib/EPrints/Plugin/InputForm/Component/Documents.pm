@@ -887,7 +887,7 @@ sub validate
 
 	if( !$ok )
 	{
-		my $doc_ds = $session->get_repository->get_dataset( "document" );
+		my $doc_ds = $session->dataset( "document" );
 		my $fieldname = $session->make_element( "span", class=>"ep_problem_field:documents" );
 		my $prob = $session->make_doc_fragment;
 		$prob->appendChild( $session->html_phrase( 

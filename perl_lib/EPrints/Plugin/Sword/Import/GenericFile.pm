@@ -150,7 +150,7 @@ sub input_file
 
 	$doc_data{files} = [ \%file_data ];
 
-	my $doc_dataset = $session->get_repository->get_dataset( "document" );
+	my $doc_dataset = $session->dataset( "document" );
 
 	my $document = EPrints::DataObj::Document->create_from_data( $session, \%doc_data, $doc_dataset );
 

@@ -29,7 +29,7 @@ web page.
 
 =head2 Searching for Eprints
 
-	$ds = $session->get_repository->get_dataset( "archive" );
+	$ds = $session->dataset( "archive" );
 
 	$searchexp = EPrints::Search->new(
 		satisfy_all => 1,

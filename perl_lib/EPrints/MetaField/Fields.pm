@@ -53,7 +53,7 @@ sub get_unsorted_values
 {
 	my( $self, $session, $dataset, %opts ) = @_;
 
-	my $ds = $session->get_repository->get_dataset( 
+	my $ds = $session->dataset( 
 			$self->get_property('datasetid') );
 
 	my @types = ();
@@ -79,7 +79,7 @@ sub render_option
 	{
 		return $session->make_text( $text );
 	}
-	my $ds = $session->get_repository->get_dataset( 
+	my $ds = $session->dataset( 
 			$self->get_property('datasetid') );
 
 	if( !$ds->has_field( $value ) )

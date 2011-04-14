@@ -1222,7 +1222,7 @@ sub get_datasets
 	foreach my $datasetid (@datasetids)
 	{
 		next if $datasetid eq "eprint";
-		my $dataset = $session->get_repository->get_dataset( $datasetid );
+		my $dataset = $session->dataset( $datasetid );
 		if( can_view( $session, $dataset ) &&
 			defined($dataset->get_datestamp_field) )
 		{

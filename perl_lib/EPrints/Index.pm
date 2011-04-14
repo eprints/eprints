@@ -353,7 +353,7 @@ sub do_index
 	my $seen_action = 0; # have we done anything
 	my $loop_max = 10; # max times to loop
 
-	my $index_queue = $session->get_repository->get_dataset( "index_queue" );
+	my $index_queue = $session->dataset( "index_queue" );
 	my $searchexp = EPrints::Search->new(
 		allow_blank => 1,
 		session => $session,
@@ -372,7 +372,7 @@ sub do_index
 
 		$iq->remove();
 	
-		my $dataset = $session->get_repository->get_dataset( $datasetid );
+		my $dataset = $session->dataset( $datasetid );
 		if( !defined $dataset )
 		{
 			EPrints::Index::indexlog( "Could not make dataset: $datasetid ($fieldcode)" );

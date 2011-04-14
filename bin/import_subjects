@@ -215,7 +215,7 @@ if( !defined $filename )
 	$filename = $session->config( "config_path" )."/subjects";
 }
 
-my $subds = $session->get_repository->get_dataset( "subject" );
+my $subds = $session->dataset( "subject" );
 
 my $oldids = $subds->get_item_ids( $session );
 my $existing = scalar(@$oldids) > 0;

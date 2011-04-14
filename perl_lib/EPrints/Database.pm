@@ -4371,7 +4371,7 @@ sub dequeue_events
 	my( $self, $n ) = @_;
 
 	my $session = $self->{session};
-	my $dataset = $session->get_repository->get_dataset( "event_queue" );
+	my $dataset = $session->dataset( "event_queue" );
 
 	my $until = EPrints::Time::get_iso_timestamp();
 

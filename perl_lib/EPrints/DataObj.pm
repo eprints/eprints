@@ -126,7 +126,7 @@ sub new
 
 	if( !defined($dataset) )
 	{
-		$dataset = $session->get_repository->get_dataset( $class->get_dataset_id );
+		$dataset = $session->dataset( $class->get_dataset_id );
 	}
 
 	return $session->get_database->get_single( 
@@ -165,7 +165,7 @@ sub new_from_data
 	}
 	else
 	{
-		$self->{dataset} = $session->get_repository->get_dataset( $class->get_dataset_id );
+		$self->{dataset} = $session->dataset( $class->get_dataset_id );
 	}
 	bless( $self, ref($class) || $class );
 
@@ -241,7 +241,7 @@ sub create_from_data
 	my( $class, $session, $data, $dataset ) = @_;
 
 	$data = EPrints::Utils::clone( $data );
-	$dataset ||= $session->get_repository->get_dataset( $class->get_dataset_id );
+	$dataset ||= $session->dataset( $class->get_dataset_id );
 
 	# If there is a field which indicates the virtual dataset,
 	# set that now, so it's visible to get_defaults.
@@ -397,7 +397,7 @@ sub get_defaults
 
 	if( !defined $dataset )
 	{
-		$dataset = $session->get_repository->get_dataset( $class->get_dataset_id );
+		$dataset = $session->dataset( $class->get_dataset_id );
 	}
 
 	my $migration = $session->config( "enable_import_fields" );

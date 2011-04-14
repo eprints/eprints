@@ -61,7 +61,7 @@ sub render
 			$session->html_phrase( "cgi/users/status:cachedate" ),
 			$session->html_phrase( "cgi/users/status:cachesize" ) ) );
 
-	my $cache_ds = $session->get_repository->get_dataset( "cachemap" );
+	my $cache_ds = $session->dataset( "cachemap" );
 	foreach my $name ($session->get_database->get_tables)
 	{
 		next unless $name =~ /^cache(\d+)$/;
@@ -101,7 +101,7 @@ sub render
 
 	foreach my $datasetid (sort { $a cmp $b } $session->get_repository->get_sql_dataset_ids())
 	{
-		my $dataset = $session->get_repository->get_dataset( $datasetid );
+		my $dataset = $session->dataset( $datasetid );
 
 		my $table_name = $dataset->get_sql_table_name;
 		delete $all_tables{$table_name};

@@ -88,7 +88,7 @@ sub check_subjects
 
 	my @errors;
 
-	my $dataset = $session->get_repository->get_dataset( "subject" );
+	my $dataset = $session->dataset( "subject" );
 
 	my %subjects = (
 		ROOT => {

@@ -8,7 +8,7 @@ my $session = EPrints::Test::get_test_session( 0 );
 ok(defined $session, 'opened an EPrints::Session object (noisy, no_check_db)');
 
 # a dataset that won't mind being broken
-my $dataset = $session->get_repository->get_dataset( "upload_progress" );
+my $dataset = $session->dataset( "upload_progress" );
 
 my $db = $session->get_db;
 

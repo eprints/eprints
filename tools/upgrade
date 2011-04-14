@@ -183,7 +183,7 @@ END
 		}
 	}
 	print "Making new subscription tables.\n";
-	my $subs_ds = $session->get_repository->get_dataset( "subscription" );
+	my $subs_ds = $session->dataset( "subscription" );
 	$ok = $ok && $db->create_dataset_tables( $subs_ds );
 	print "Creating subscriptionid counter.\n";
 	$sql = "DELETE FROM counters WHERE countername = 'subscriptionid'"; 
@@ -449,7 +449,7 @@ $db->set_debug(1);
 	print "Adding rev_number field to every dataset.\n";
 	foreach my $datasetid ( @epds, qw/ user document subscription subject / )
 	{
-		my $dataset = $session->get_repository->get_dataset( $datasetid );
+		my $dataset = $session->dataset( $datasetid );
 		my $pkey = $dataset->get_key_field->get_sql_name;
 		my $tablename = $datasetid; # dataset will now say "inbox" as SQL table of "eprint".
 
@@ -591,7 +591,7 @@ $db->set_debug(1);
 	}
 	
 	print "Creating eprint dataset tables.\n";
-	$db->create_dataset_tables( $session->get_repository->get_dataset( "eprint" ) );
+	$db->create_dataset_tables( $session->dataset( "eprint" ) );
 
 	print "Moving data from archive,inbox,deletion and buffer into eprint.\n";
 	foreach my $table ( $db->get_tables )
@@ -645,7 +645,7 @@ $db->set_debug(1);
 	foreach my $datasetid ( qw/ eprint user document subscription subject / )
 	{
 		print "Making new index tables: $datasetid\n";
-		my $dataset = $session->get_repository->get_dataset( $datasetid );
+		my $dataset = $session->dataset( $datasetid );
 		$db->create_dataset_index_tables( $dataset );
 
 		# queue all items for indexing

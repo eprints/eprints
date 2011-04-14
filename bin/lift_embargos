@@ -111,7 +111,7 @@ if( !defined $session )
 	exit 1;
 }
 
-my $ds = $session->get_repository->get_dataset( "document" );
+my $ds = $session->dataset( "document" );
 
 # Search for expired embargos
 my $searchexp = new EPrints::Search( 

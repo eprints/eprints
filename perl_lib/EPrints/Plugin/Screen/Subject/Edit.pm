@@ -68,7 +68,7 @@ sub render_editbox
 
 	my $session = $self->{session};
 
-	my $subject_ds = $session->get_repository->get_dataset( "subject" );
+	my $subject_ds = $session->dataset( "subject" );
 	my $subject = $self->{processor}->{subject};
 
 	my $form = $session->render_form( "post" );
@@ -142,7 +142,7 @@ sub action_save
 
 	my $session = $self->{session};
 	my $subject = $self->{processor}->{subject};
-	my $subject_ds = $session->get_repository->get_dataset( "subject" );
+	my $subject_ds = $session->dataset( "subject" );
 	my $name = $subject_ds->get_field( "name" )->form_value( $session, $subject, "update" );
 	$subject->set_value( "name", $name );
 
@@ -181,9 +181,9 @@ sub render_subject_children
 	my( $self ) = @_;
 
 	my $session = $self->{session};
-	my $archive_ds = $session->get_repository->get_dataset( "archive" );
-	my $buffer_ds = $session->get_repository->get_dataset( "buffer" );
-	my $subject_ds = $session->get_repository->get_dataset( "subject" );
+	my $archive_ds = $session->dataset( "archive" );
+	my $buffer_ds = $session->dataset( "buffer" );
+	my $subject_ds = $session->dataset( "subject" );
 	my $subject = $self->{processor}->{subject};
 
 	my $page = $session->make_doc_fragment();
@@ -273,7 +273,7 @@ sub render_subject_add_node
 	my( $self ) = @_;
 
 	my $session = $self->{session};
-	my $subject_ds = $session->get_repository->get_dataset( "subject" );
+	my $subject_ds = $session->dataset( "subject" );
 	my $subject = $self->{processor}->{subject};
 
 	my $form = $session->render_form( "post" );
@@ -321,7 +321,7 @@ sub action_add
 
 	my $session = $self->{session};
 	my $newid = $session->param( "newnode_subjectid" );
-	my $subject_ds = $session->get_repository->get_dataset( "subject" );
+	my $subject_ds = $session->dataset( "subject" );
 	my $subject = $self->{processor}->{subject};
 	
 	if( !EPrints::Utils::is_set( $newid ) )
@@ -367,7 +367,7 @@ sub redirect_to_me_url
 	my( $self ) = @_;
 
 	my $session = $self->{session};
-	my $subject_ds = $session->get_repository->get_dataset( "subject" );
+	my $subject_ds = $session->dataset( "subject" );
 	my $field = $subject_ds->get_field( "name" );
 	return $self->SUPER::redirect_to_me_url.$field->get_state_params( $self->{session} );
 }
@@ -453,7 +453,7 @@ sub mkpage_editsubject
 {
 	my( $self, $session, $subid ) = @_;
 
-	my $subject_ds = $session->get_repository->get_dataset( "subject" );
+	my $subject_ds = $session->dataset( "subject" );
 
 	my $subject;	
 	

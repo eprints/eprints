@@ -18,7 +18,7 @@ use strict;
 my $session = new EPrints::Session;
 exit( 0 ) unless( defined $session );
 
-my $ds = $session->get_repository->get_dataset( "archive" );
+my $ds = $session->dataset( "archive" );
 my $page=$session->make_doc_fragment();
 
 $page->appendChild( $session->html_phrase( "cgi/latest:intro" ) );

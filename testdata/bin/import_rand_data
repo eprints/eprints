@@ -135,7 +135,7 @@ our @DOCUMENTS = (
 	},
 );
 
-my $ds = $session->get_repository->get_dataset( $datasetid );
+my $ds = $session->dataset( $datasetid );
 
 $session->get_repository->{config}->{enable_file_imports} = 1;
 $session->get_repository->{config}->{enable_web_imports} = 1;
@@ -232,7 +232,7 @@ sub read_subjects
 {
 	my( $session, $id ) = @_;
 
-	my $ds = $session->get_repository->get_dataset( "subject" );
+	my $ds = $session->dataset( "subject" );
 
 	my $root = $ds->dataobj( $id );
 

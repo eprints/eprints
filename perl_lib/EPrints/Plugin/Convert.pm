@@ -230,7 +230,7 @@ sub convert
 		push @handles, $fh;
 	}
 
-	my $doc_ds = $session->get_repository->get_dataset( "document" );
+	my $doc_ds = $session->dataset( "document" );
 	my $new_doc = $doc_ds->create_object( $session, { 
 		files => \@filedata,
 		main => $main_file,

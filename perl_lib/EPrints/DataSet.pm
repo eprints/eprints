@@ -1067,7 +1067,7 @@ sub get_object_from_uri
 
 	$datasetid = URI::Escape::uri_unescape( $datasetid );
 
-	my $dataset = $session->get_repository->get_dataset( $datasetid );
+	my $dataset = $session->dataset( $datasetid );
 	return unless defined $dataset;
 
 	$id = URI::Escape::uri_unescape( $id );

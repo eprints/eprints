@@ -13,7 +13,7 @@ my $given = $session->param( "_name_given" );
 my $id = $session->param( "_id" );
 
 my $database = $session->get_database;
-my $dataset = $session->get_repository->get_dataset( "eprint" );
+my $dataset = $session->dataset( "eprint" );
 my $name_field = $dataset->get_field( "creators_name" );
 my $id_field = $dataset->get_field( "creators_id" );
 

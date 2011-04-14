@@ -39,7 +39,7 @@ else
 }
 
 my $database = $session->get_database;
-my $dataset = $session->get_repository->get_dataset( $dataset_name );
+my $dataset = $session->dataset( $dataset_name );
 
 my $Q_table = $database->quote_identifier($dataset->get_sql_table_name);
 my $Q_id = $database->quote_identifier( $dataset_name . "id" );

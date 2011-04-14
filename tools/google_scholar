@@ -120,7 +120,7 @@ my $repoid = shift @ARGV;
 my $session = new EPrints::Session( 1, $repoid, $noise );
 exit( 1 ) unless defined $session;
 
-my $dataset = $session->get_repository->get_dataset( "archive" );
+my $dataset = $session->dataset( "archive" );
 
 my $searchexp = EPrints::Search->new(
 	session => $session,

@@ -79,7 +79,7 @@ sub get_cache
 
 	my $cacheid = $session->param( "cache" );
 
-	my $dataset = $session->get_repository->get_dataset( "cachemap" );
+	my $dataset = $session->dataset( "cachemap" );
 	my $cache = $dataset->get_object( $session, $cacheid );
 
 	return $cache;
@@ -98,7 +98,7 @@ sub get_searchexp
 
 	my $searchexp = EPrints::Search->new(
 		session => $session,
-		dataset => $session->get_repository->get_dataset( "eprint" ),
+		dataset => $session->dataset( "eprint" ),
 		keep_cache => 1,
 	);
 

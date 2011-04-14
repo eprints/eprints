@@ -147,7 +147,7 @@ sub _build_filter_search
 	my $session = $self->{session};
 	my $user = $session->current_user;
 
-	my $dataset = $session->get_repository->get_dataset( "archive" );
+	my $dataset = $session->dataset( "archive" );
 
 	my $filters_search = EPrints::Search->new(
 			allow_blank => 1,
@@ -183,7 +183,7 @@ sub render_filters_box
 {
 	my ($self) = @_;
 	my $session = $self->{session};
-	my $dataset = $session->get_repository->get_dataset('eprint');
+	my $dataset = $session->dataset('eprint');
 
 	my $collapsed = 1;
 
@@ -250,7 +250,7 @@ sub render
 	my $session = $self->{session};
 	my $user = $self->{session}->current_user;
 	my $page = $self->{session}->make_doc_fragment();
-	my $ds = $session->get_repository->get_dataset( "eprint" );
+	my $ds = $session->dataset( "eprint" );
 
 	# Get EPrints in the submission buffer
 	my $list = $user->editable_eprints_list( filters => [

@@ -159,7 +159,7 @@ sub get_max_accessid
 	my( $session ) = @_;
 
 	my $database = $session->get_database();
-	my $dataset = $session->get_repository->get_dataset( "access" );
+	my $dataset = $session->dataset( "access" );
 	my $table = $dataset->get_sql_table_name;
 
 	my $sql = "SELECT MAX(".$database->quote_identifier($dataset->get_key_field->get_sql_name).") FROM ".$database->quote_identifier($table);
@@ -281,7 +281,7 @@ sub get_accesses
 
 	my $database = $session->get_database;
 
-	my $dataset = $session->get_repository->get_dataset( "access" );
+	my $dataset = $session->dataset( "access" );
 
 	my $Q_accessid = $database->quote_identifier( $dataset->get_key_field->get_sql_name );
 

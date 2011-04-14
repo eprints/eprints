@@ -156,7 +156,7 @@ sub action_confirm
 	}
 	
 	# Log response event
-	my $history_ds = $session->get_repository->get_dataset( "history" );
+	my $history_ds = $session->dataset( "history" );
 	my $user = $self->{processor}->{contact};
 	$history_ds->create_object(
 		$session,

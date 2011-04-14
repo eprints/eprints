@@ -135,7 +135,7 @@ my $processor = EPrints::CLIProcessor->new( session => $session );
 
 if( $list )
 {
-	my $dataset = $session->get_repository->get_dataset( "import" );
+	my $dataset = $session->dataset( "import" );
 	if( $dataset->count( $session ) == 0 )
 	{
 		print "No imports defined\n";
@@ -155,7 +155,7 @@ if( $list )
 
 my $importid = $ARGV[1] or pod2usage( 2 );
 
-my $import = $session->get_repository->get_dataset( "import" )->get_object( $session, $importid );
+my $import = $session->dataset( "import" )->get_object( $session, $importid );
 
 if( !$import )
 {

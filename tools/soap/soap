@@ -422,8 +422,8 @@ sub putEprint
 	$data->{type} = "article" unless defined $data->{type};
 	$data->{userid} = 1;
 
-	my $eprint_ds = $session->get_repository->get_dataset( "inbox" );
-	my $document_ds = $session->get_repository->get_dataset( "document" );
+	my $eprint_ds = $session->dataset( "inbox" );
+	my $document_ds = $session->dataset( "document" );
 	my $eprint = $eprint_ds->create_object( $session, $data );
 	if( !defined $eprint ) 
 	{
@@ -467,7 +467,7 @@ sub addDocument
 		die "eprint $params->{eprintID} does not exist";
 	}
 
-	my $document_ds = $session->get_repository->get_dataset( "document" );
+	my $document_ds = $session->dataset( "document" );
 
 	$params->{document}->{eprintid} = $eprint->get_id;
 	my $files = delete $params->{document}->{files};

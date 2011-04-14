@@ -114,7 +114,7 @@ sub remove_expired
 {
 	my( $class, $session ) = @_;
 
-	my $dataset = $session->get_repository->get_dataset( $class->get_dataset_id );
+	my $dataset = $session->dataset( $class->get_dataset_id );
 
 	my $dbh = $session->get_database;
 

@@ -89,7 +89,7 @@ sub ajax_stats
 	my $store = $session->plugin( $pluginid );
 	return "$pluginid is not a valid plugin name" unless defined $store;
 
-	my $dataset = $session->get_repository->get_dataset( "file" );
+	my $dataset = $session->dataset( "file" );
 
 	my $data = {
 			total => 0,
@@ -202,7 +202,7 @@ sub ajax_migrate
 	return "$target is not a valid plugin name" unless defined $target_store;
 	my $datasetid = $session->param( "datasetid" );
 
-	my $dataset = $session->get_repository->get_dataset( "file" );
+	my $dataset = $session->dataset( "file" );
 
 	my $searchexp = EPrints::Search->new(
 		session => $session,
@@ -236,7 +236,7 @@ sub ajax_delete
 	return "$pluginid is not a valid plugin name" unless defined $store;
 	my $datasetid = $session->param( "datasetid" );
 
-	my $dataset = $session->get_repository->get_dataset( "file" );
+	my $dataset = $session->dataset( "file" );
 
 	my $searchexp = EPrints::Search->new(
 		session => $session,
@@ -275,7 +275,7 @@ sub fetch_data
 
 	my $session = $plugin->{session};
 
-	my $dataset = $session->get_repository->get_dataset( "file" );
+	my $dataset = $session->dataset( "file" );
 
 	my $plugin_datasets = {};
 

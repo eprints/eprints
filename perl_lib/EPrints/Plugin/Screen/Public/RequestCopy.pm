@@ -124,7 +124,7 @@ sub action_request
 	my $reason = $session->param( "reason" );
 	$data->{reason} = $reason if EPrints::Utils::is_set( $reason );
 
-	my $request = $session->get_repository->get_dataset( "request" )->create_object( $session, $data );
+	my $request = $session->dataset( "request" )->create_object( $session, $data );
 
 	my $history_data = {
 		datasetid=>"request",
@@ -142,7 +142,7 @@ sub action_request
 	}
 
 	# Log request creation event
-	my $history_ds = $session->get_repository->get_dataset( "history" );
+	my $history_ds = $session->dataset( "history" );
 	$history_ds->create_object( $session, $history_data );
 
 	# Send request email
@@ -268,8 +268,8 @@ sub render
 
 	my $form = $session->render_input_form(
 		fields => [ 
-			$session->get_repository->get_dataset( "request" )->get_field( "requester_email" ),
-			$session->get_repository->get_dataset( "request" )->get_field( "reason" ),
+			$session->dataset( "request" )->get_field( "requester_email" ),
+			$session->dataset( "request" )->get_field( "reason" ),
 		],
 		show_names => 1,
 		show_help => 1,

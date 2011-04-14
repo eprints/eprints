@@ -61,7 +61,7 @@ sub make_searchexp
 {
 	my( $self, $session, $value, $basename ) = @_;
 
-	my $dataset = $session->get_repository->get_dataset( $self->{datasetid} );
+	my $dataset = $session->dataset( $self->{datasetid} );
 
 	my $searchexp = EPrints::Search->new(
 		session => $session,

@@ -247,7 +247,7 @@ sub xml_to_dataobj
 				eprintid => $eprint->get_id,
 				format => $content_type,
 			},
-			$session->get_repository->get_dataset( "document" )
+			$session->dataset( "document" )
 		);
 
 		my( $ext ) = $mime_type->extensions;

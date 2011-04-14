@@ -9,7 +9,7 @@ my( $repoid ) = @ARGV;
 
 my $session = EPrints::Session->new( 1, $repoid );
 
-my $dataset = $session->get_repository->get_dataset( "file" );
+my $dataset = $session->dataset( "file" );
 
 unless( $session->config( "invocation", "droid" ) )
 {

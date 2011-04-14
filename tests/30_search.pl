@@ -7,7 +7,7 @@ BEGIN { use_ok( "EPrints::Test" ); }
 my $session = EPrints::Test::get_test_session( 0 );
 ok(defined $session, 'opened an EPrints::Session object (noisy, no_check_db)');
 
-my $dataset = $session->get_repository->get_dataset( "eprint" );
+my $dataset = $session->dataset( "eprint" );
 
 my $searchexp = EPrints::Search->new(
 	session => $session,
@@ -203,7 +203,7 @@ $matches = $cond->process(
 
 ok(@$matches == $dataset_size, "TRUE OR FALSE is TRUE");
 
-my $hdataset = $session->get_repository->get_dataset( "history" );
+my $hdataset = $session->dataset( "history" );
 
 my $db = $session->get_database;
 
@@ -227,8 +227,8 @@ $searchexp = EPrints::Search->new(
 $list = $searchexp->perform_search;
 ok($list->count > 0, "history object by username subquery");
 
-my $udataset = $session->get_repository->get_dataset( "user" );
-my $ssdataset = $session->get_repository->get_dataset( "saved_search" );
+my $udataset = $session->dataset( "user" );
+my $ssdataset = $session->dataset( "saved_search" );
 my @usertypes = $session->get_repository->get_types( "user" );
 
 $searchexp = EPrints::Search->new(
@@ -307,7 +307,7 @@ $searchexp = EPrints::Search->new(
 	dataset => $sample_doc->get_dataset,
 	satisfy_all => 0 );
 
-my $file_dataset = $session->get_repository->get_dataset( "file" );
+my $file_dataset = $session->dataset( "file" );
 $searchexp->add_field( $file_dataset->get_field( "mime_type" ), "application/pdf" );
 
 $list = $searchexp->perform_search;

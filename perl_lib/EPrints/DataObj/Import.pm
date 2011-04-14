@@ -188,7 +188,7 @@ sub run
 
 	my $list = $plugin->input_file(
 			filename => "$file",
-			dataset => $session->get_repository->get_dataset( "eprint" ),
+			dataset => $session->dataset( "eprint" ),
 		);
 
 	$self->set_value( "last_success", EPrints::Time::get_iso_timestamp() );

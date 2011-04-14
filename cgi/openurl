@@ -52,7 +52,7 @@ my %md = $rft->metadata;
 # Set up a new search expression
 # NB I'm not worrying about filtering because this script will only
 # redirect?
-my $ds = $session->get_repository->get_dataset( "archive" );
+my $ds = $session->dataset( "archive" );
 my $searchexp = new EPrints::Search(
 	keep_cache => 1,
 	session => $session,

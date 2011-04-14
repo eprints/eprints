@@ -97,11 +97,11 @@ sub render
 	my $rows;
 
 	# Number of users in each group
-	my $total_users = $session->get_repository->get_dataset( "user" )->count( $session );
+	my $total_users = $session->dataset( "user" )->count( $session );
 
 	my %num_users = ();
-	my $userds = $session->get_repository->get_dataset( "user" );
-	my $subds = $session->get_repository->get_dataset( "saved_search" );
+	my $userds = $session->dataset( "user" );
+	my $subds = $session->dataset( "saved_search" );
 	my @usertypes = $session->get_repository->get_types( "user" );
 	foreach my $usertype ( @usertypes )
 	{
@@ -123,7 +123,7 @@ sub render
 	foreach( @esets )
 	{
 		# Number of submissions in dataset
-		$num_eprints{$_} = $session->get_repository->get_dataset( $_ )->count( $session );
+		$num_eprints{$_} = $session->dataset( $_ )->count( $session );
 	}
 	
 	my $db_status = ( $total_users > 0 ? "ok" : "down" );

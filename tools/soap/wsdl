@@ -316,7 +316,7 @@ sub dataset_schema
 
 	my $data = "";
 
-	my $ds = $session->get_repository->get_dataset( $dsid );
+	my $ds = $session->dataset( $dsid );
 
 	$data.= "<xsd:complexType name=\"List\u$dsid\">\n";
 	$data.= "  <xsd:sequence>\n";

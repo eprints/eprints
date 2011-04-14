@@ -64,7 +64,7 @@ sub action_create
 	my( $self ) = @_;
 
 	my $session = $self->{session};
-	my $ds = $session->get_repository->get_dataset( "user" );
+	my $ds = $session->dataset( "user" );
 
 	my $candidate_username = $session->param( "username" );
 
@@ -126,7 +126,7 @@ sub render
 	my $form = $session->render_form( "GET" );
 	$form->appendChild( 
 		$session->render_hidden_field ( "screen", "NewUser" ) );		
-	my $ds = $session->get_repository->get_dataset( "user" );
+	my $ds = $session->dataset( "user" );
 	my $username_field = $ds->get_field( "username" );
 	my $usertype_field = $ds->get_field( "usertype" );
 	my $div = $session->make_element( "div", style=>"margin-bottom: 1em" );
