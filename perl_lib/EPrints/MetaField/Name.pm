@@ -100,6 +100,15 @@ sub get_basic_input_elements
 	return [ $grid_row ];
 }
 
+sub get_basic_input_ids
+{
+	my( $self, $session, $basename, $staff, $obj ) = @_;
+
+	return map {
+		join('_', $basename, $_)
+	} $self->get_input_bits;
+}
+
 sub get_input_col_titles
 {
 	my( $self, $session, $staff ) = @_;

@@ -148,7 +148,7 @@ sub get_basic_input_ids
 
 	foreach my $field (@{$self->{fields_cache}})
 	{
-		push @ids, $field->get_basic_input_ids( $session, $basename, $staff, $obj );
+		push @ids, join('_', $basename, $field->property( "sub_name" ));
 	}
 
 	return @ids;
