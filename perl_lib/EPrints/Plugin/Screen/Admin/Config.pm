@@ -104,11 +104,6 @@ sub action_add_file
 	$self->{processor}->{screenid} = $screen->get_subtype;
 }
 
-sub redirect_to_me_url
-{
-	EPrints->abort( "barf" );
-}
-
 sub edit_plugin
 {
 	my( $self, $relpath, $filename ) = @_;
