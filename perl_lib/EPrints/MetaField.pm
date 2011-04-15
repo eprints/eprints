@@ -1337,7 +1337,7 @@ sub render_input_field_actual
 		push @params, dataset => $self->{dataset}->id;
 	}
 	$extra_params->query_form( @params );
-	$extra_params = $extra_params->query;
+	$extra_params = "&" . $extra_params->query;
 
 	my $componentid = substr($basename, 0, length($basename)-length($self->{name})-1);
 	my $url = EPrints::Utils::js_string( $self->{input_lookup_url} );
