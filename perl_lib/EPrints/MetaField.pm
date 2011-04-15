@@ -1264,7 +1264,10 @@ sub render_input_field_actual
 
 	my $elements = $self->get_input_elements( $session, $value, $staff, $obj, $basename );
 
+	my $frag = $session->make_doc_fragment;
+
 	my $table = $session->make_element( "table", border=>0, cellpadding=>0, cellspacing=>0, class=>"ep_form_input_grid" );
+	$frag->appendChild ($table);
 
 	my $col_titles = $self->get_input_col_titles( $session, $staff );
 	if( defined $col_titles )
@@ -1319,7 +1322,17 @@ sub render_input_field_actual
 		$y++;
 	}
 
-	return $table;
+	my $componentid = substr($basename, 0, length($basename)-length($self->{name})-1);
+	my $url = EPrints::Utils::js_string( $self->{input_lookup_url} );
+	my $params = EPrints::Utils::js_string( $self->{input_lookup_params} );
+	$frag->appendChild( $session->make_javascript( <<EOJ ) );
+new Metafield ('$componentid', '$self->{name}', {
+	input_lookup_url: $url,
+	input_lookup_params: $params
+});
+EOJ
+
+	return $frag;
 }
 
 sub get_input_col_titles
@@ -1348,37 +1361,12 @@ sub get_input_elements
 
 	unless( $self->get_property( "multiple" ) )
 	{
-		my $rows = $self->get_input_elements_single( 
+		return $self->get_input_elements_single( 
 				$session, 
 				$value,
 				$basename,
 				$staff,
 				$obj );
-
-
-		my $cols = scalar @{$rows->[0]};
-		if( defined $self->{input_lookup_url} )
-		{
-			my $lookup = $session->make_doc_fragment;
-			my $drop_div = $session->make_element( "div", id=>$basename."_drop", class=>"ep_drop_target" );
-			$lookup->appendChild( $drop_div );
-			my $drop_loading_div = $session->make_element( "div", id=>$basename."_drop_loading", class=>"ep_drop_loading", style=>"display: none" );
-			$drop_loading_div->appendChild( $session->html_phrase( "lib/metafield:drop_loading" ) );
-			$lookup->appendChild( $drop_loading_div );
-
-			my @ids = $self->get_basic_input_ids($session, $basename, $staff, $obj );
-			my @code;
-			foreach my $id ( @ids )
-			{	
-				my @wcells = ( $id );
-				push @code, 'ep_autocompleter( "'.$id.'", "'.$basename.'_drop", "'.$self->{input_lookup_url}.'", {relative: "'.$basename.'", component: "'.$componentid.'" }, [ $("'.join('"),$("',@wcells).'")], [], "'.$extra_params.'" );'."\n";
-			}
-			my $script = $session->make_javascript( join "", @code );
-			$lookup->appendChild( $script );
-			push @{$rows}, [ {el=>$lookup,colspan=>$cols,class=>"ep_form_input_grid_wide"} ];
-		}
-
-		return $rows;
 	}
 
 	# multiple field...
@@ -1455,44 +1443,6 @@ sub get_input_elements
 				$row =  [ $col1, @{$section->[$n]}, $lastcol ];
 			}
 			push @{$rows}, $row;
-
-			# additional rows
-			my $y = scalar @{$rows}-1;
-			my $cols = scalar @{$row};
-			if( defined $self->{input_lookup_url} )
-			{
-				my $n = length( $basename) - length( $self->{name}) - 1;
-				my $componentid = substr( $basename, 0, $n );
-				my $ibasename = $basename."_".$i;
-				my $lookup = $session->make_doc_fragment;
-				my $drop_div = $session->make_element( "div", id=>$ibasename."_drop", class=>"ep_drop_target" );
-				$lookup->appendChild( $drop_div );
-				my $drop_loading_div = $session->make_element( "div", id=>$ibasename."_drop_loading", class=>"ep_drop_loading", style=>"display: none" );
-				$drop_loading_div->appendChild( $session->html_phrase( "lib/metafield:drop_loading" ) );
-				$lookup->appendChild( $drop_loading_div );
-				my @ids = $self->get_basic_input_ids( $session, $ibasename, $staff, $obj );
-				my @code;
-				foreach my $id ( @ids )
-				{	
-					my @wcells = ();
-					for( 1..scalar(@{$row})-2 ) { push @wcells, $basename."_cell_".$_."_".$y; }
-					my @relfields = ();
-					foreach ( @ids )
-					{
-						my $id2 = $_; # prevent changing it!
-						$id2=~s/^$ibasename//;
-						push @relfields, $id2;
-					}
-					push @code, 'ep_autocompleter( "'.$id.'", "'.$ibasename.'_drop", "'.$self->{input_lookup_url}.'", { relative: "'.$ibasename.'", component: "'.$componentid.'" }, [$("'.join('"),$("',@wcells).'")], [ "'.join('","',@relfields).'"],"'.$extra_params.'" );'."\n";
-				}
-				my $script = $session->make_javascript( join "", @code );
-				$lookup->appendChild( $script );
-				my @row = ();
-				push @row, {} if( $self->{input_ordered} );
-				push @row, {el=>$lookup,colspan=>$cols-1, class=>"ep_form_input_grid_wide"};
-				push @{$rows}, \@row;
-			#, {afterUpdateElement: updated}); " ));
-			}
 		}
 	}
 	if ($self->{input_add_boxes} > 0)
