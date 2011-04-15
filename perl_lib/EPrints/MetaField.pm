@@ -1322,9 +1322,26 @@ sub render_input_field_actual
 		$y++;
 	}
 
+	my $extra_params = URI->new( 'http:' );
+	$extra_params->query( $self->{input_lookup_params} );
+	my @params = (
+		$extra_params->query_form,
+		field => $self->name
+	);
+	if( defined $obj )
+	{
+		push @params, dataobj => $obj->id;
+	}
+	if( defined $self->{dataset} )
+	{
+		push @params, dataset => $self->{dataset}->id;
+	}
+	$extra_params->query_form( @params );
+	$extra_params = $extra_params->query;
+
 	my $componentid = substr($basename, 0, length($basename)-length($self->{name})-1);
 	my $url = EPrints::Utils::js_string( $self->{input_lookup_url} );
-	my $params = EPrints::Utils::js_string( $self->{input_lookup_params} );
+	my $params = EPrints::Utils::js_string( $extra_params );
 	$frag->appendChild( $session->make_javascript( <<EOJ ) );
 new Metafield ('$componentid', '$self->{name}', {
 	input_lookup_url: $url,
@@ -1348,16 +1365,6 @@ sub get_input_elements
 
 	my $n = length( $basename) - length( $self->{name}) - 1;
 	my $componentid = substr( $basename, 0, $n );
-
-	my $extra_params = "&dataset=".$self->{dataset}->id."&field=".$self->name;
-	if( defined $obj )
-	{
-		$extra_params .= "&dataobj=".$obj->id;
-	}
-	if( defined $self->{input_lookup_params} ) 
-	{
-		$extra_params = "&".$self->{input_lookup_params};
-	}
 
 	unless( $self->get_property( "multiple" ) )
 	{
@@ -1579,8 +1586,12 @@ sub get_basic_input_elements
 	{
 		my @classes = (
 			"ep_form_text",
-			join('_', 'ep', $self->dataset->base_id, $self->name)
 		);
+		if( defined($self->{dataset}) )
+		{
+			push @classes,
+				join('_', 'ep', $self->{dataset}->base_id, $self->name);
+		}
 		$input = $session->render_noenter_input_field(
 			class=> join(' ', @classes),
 			name => $basename,
