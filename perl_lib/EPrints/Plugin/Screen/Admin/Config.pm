@@ -24,9 +24,26 @@ sub new
 			position => 1300, 
 		},
 	];
+
+	$self->{actions} = [qw( add_file )];
+
 	return $self;
 }
 
+sub properties_from
+{
+	my( $self ) = @_;
+
+	$self->SUPER::properties_from;
+
+	$self->{processor}->{relpath} = $self->{session}->param( "relpath" );
+	$self->{processor}->{relpath} = ""
+		if !defined $self->{processor}->{relpath};
+	my $filename = $self->{session}->param( "filename" );
+	if( $filename =~ /^[a-zA-Z0-9_][a-zA-Z0-9_\.]+$/ ) {
+		$self->{processor}->{filename} = $filename;
+	}
+}
 
 sub can_be_viewed
 {
@@ -35,6 +52,75 @@ sub can_be_viewed
 	return $self->allow( "config/view" );
 }
 
+sub allow_add_file
+{
+	my( $self ) = @_;
+
+	# allows error to go through to the action
+	return 1 if !defined $self->{processor}->{filename};
+
+	my $screen = $self->edit_plugin(
+		$self->{processor}->{relpath},
+		$self->{processor}->{filename}
+	);
+
+	return defined($screen) && $screen->can_be_viewed;
+}
+
+sub action_add_file
+{
+	my( $self ) = @_;
+
+	my $processor = $self->{processor};
+
+	my $filename = $processor->{filename};
+	if( !defined $filename )
+	{
+		$processor->add_message( "error", $self->html_phrase( "bad_file") );
+		return;
+	}
+ 
+	my $relpath = $self->{processor}->{relpath};
+
+	my $path = $self->{session}->config( "config_path" );
+	my $filepath = "$path/$relpath$filename";
+
+	if( !-e $filepath )
+	{
+		if( open(my $fh, ">", $filepath) )
+		{
+			close($fh);
+		}
+		else
+		{
+			$processor->add_message( "error", $self->{session}->make_text( $! ) );
+			return;
+		}
+	}
+
+	my $screen = $self->edit_plugin( $relpath, $filename );
+
+	$self->{processor}->{configfile} = "$relpath$filename";
+	$self->{processor}->{screenid} = $screen->get_subtype;
+}
+
+sub redirect_to_me_url
+{
+	EPrints->abort( "barf" );
+}
+
+sub edit_plugin
+{
+	my( $self, $relpath, $filename ) = @_;
+
+	return if !EPrints::Utils::is_set( $filename );
+
+	my $configtype = config_file_to_type( "$relpath$filename" );
+
+	return $self->{session}->plugin( 
+		"Screen::Admin::Config::View::$configtype",
+		processor => $self->{processor} );
+}
 
 sub render
 {
@@ -61,6 +147,8 @@ sub render_dir
 {
 	my( $self, $realpath, $relpath ) = @_;
 
+	my $xhtml = $self->{session}->xhtml;
+
 	my $dh;
 	opendir( $dh, $realpath );
 	my @files = ();
@@ -74,6 +162,9 @@ sub render_dir
 	closedir( $dh );
 
 	my $div = $self->{session}->make_element( "div", style=>"margin-left: 3em; padding: 0.5em 0 0.5em 0; border-left: 1px solid blue" );
+	$div->appendChild($self->{session}->make_element( "a",
+		name => $relpath
+	));
 	foreach my $file ( sort @files )
 	{
 		my $div_title = $self->{session}->make_element( "div", style=>"padding: 0.25em 0 0.25em 0;" );
@@ -106,11 +197,27 @@ sub render_dir
 			next;
 		}
 	
-		my $url = "?screen=Admin::Config::View::$configtype&configfile=$relpath$file";
+		my $url = URI->new( $self->{session}->current_url );
+		$url->query_form(
+			screen => "Admin::Config::View::$configtype",
+			configfile => "$relpath$file",
+		);
 		my $link = $self->{session}->render_link( $url );
 		$div_title->appendChild( $link );
 		$link->appendChild( $self->{session}->make_text( $file ) );
 	}
+	my $form = $self->render_form;
+	$div->appendChild( $form );
+	$form->appendChild( $xhtml->hidden_field( "relpath", $relpath ) );
+	$form->appendChild( $xhtml->input_field( "text", undef,
+		name => "filename",
+	) );
+	$form->appendChild( $self->{session}->render_button(
+		type => "submit",
+		name => "_action_add_file",
+		value => $self->phrase( "add_file" )
+	) );
+
 	return $div;
 }
 

@@ -66,7 +66,7 @@ sub redirect_to_me_url
 {
 	my( $self ) = @_;
 
-	return $self->SUPER::redirect_to_me_url."&eprintid=".$self->{processor}->{eprintid};
+	return $self->SUPER::redirect_to_me_url."&configfile=".$self->{processor}->{configfile};
 }
 
 sub render
