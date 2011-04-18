@@ -182,6 +182,11 @@ sub new
 	$self{fields} = [$self{fields}] if ref($self{fields}) ne "ARRAY";
 	$self{field} = $self{fields}->[0];
 
+	if( !defined $self{field} || !UNIVERSAL::isa( $self{field}, 'EPrints::MetaField' ) )
+	{
+		EPrints->abort( "fields must be a MetaField or list of MetaFields" );
+	}
+
 	$self{repository} ||= $self{dataset}->repository;
 
 	my $repository = $self{repository};
@@ -789,6 +794,7 @@ sub unserialise
 			EPrints::Utils::field_from_config_string( $opts{dataset}, $fname );
 		return if !defined $fields[$#fields];
 	}
+	return if !@fields;
 
 	return $class->new(
 		%$data,
