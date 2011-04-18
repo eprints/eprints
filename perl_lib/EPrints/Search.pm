@@ -276,15 +276,15 @@ END
 			$show_help = $fielddata->{show_help};
 		}
 
+		my %opts = %$fielddata;
+		$opts{value} = delete $opts{default}
+			if exists $opts{default};
+
 		# Add a reference to the list
-		my $sf = $self->add_field( 
-			\@meta_fields, 
-			$fielddata->{default},
-			$fielddata->{match},
-			$fielddata->{merge},
-			$fielddata->{id},
-			0,
-			$show_help );
+		$self->add_field( %opts,
+			fields => \@meta_fields,
+			show_help => $show_help,
+		);
 	}
 	$self->{filters} = [] unless defined $self->{filters};
 	my @filters = @{$self->{filters}};
@@ -299,14 +299,15 @@ END
 	EPrints::Utils::field_from_config_string( $self->{dataset}, $fieldname );
 		}
 	
+		my %opts = %$filterdata;
+		$opts{value} = delete $opts{default}
+			if exists $opts{default};
+
 		# Add a reference to the list
-		my $sf = $self->add_field(
-			\@meta_fields, 
-			$filterdata->{value},
-			$filterdata->{match},
-			$filterdata->{merge},
-			$filterdata->{id},
-			1 );
+		my $sf = $self->add_field( %opts,
+			fields => \@meta_fields,
+			filter => 1,
+			);
 		$sf->set_include_in_description( $filterdata->{describe} );
 	}
 
@@ -351,9 +352,17 @@ sub from_cache
 ######################################################################
 =pod
 
-=item $searchfield = $searchexp->add_field( $metafields, $value, $match, $merge, $id, $filter, $show_help )
+=item $searchfield = $searchexp->add_field( %opts )
 
-Adds a new search in $metafields which is either a single L<EPrints::MetaField>
+	fields - one or more fields to search over
+	match - match type
+	merge - merge type
+	value - value to match against (for EX matches, NULL = is_null!)
+	id - search field id, if not the name of the first field
+	filter - is filter-type
+	show_help - show help in search input
+
+Adds a new search in $fields which is either a single L<EPrints::MetaField>
 or a list of fields in an array ref with default $value. If a search field
 already exists, the value of that field is replaced with $value.
 
@@ -363,43 +372,41 @@ already exists, the value of that field is replaced with $value.
 
 sub add_field
 {
-	my( $self, $metafields, $value, $match, $merge, $id, $filter, $show_help ) = @_;
+	my( $self, @args ) = @_;
+
+	# old-style argument list
+	my %opts = @args % 2 == 0 ? @args : ();
+	if( !exists($opts{fields}) )
+	{
+		@opts{qw( fields value match merge id filter show_help )} = @args;
+	}
+	$opts{prefix} = $self->{prefix} if !exists $opts{prefix};
+	$opts{repository} = $self->{session};
+	$opts{dataset} = $self->{dataset} if !exists $opts{dataset};
+	my $filter = delete $opts{filter};
 
 	# metafields may be a field OR a ref to an array of fields
 
 	# Create a new searchfield
-	my $searchfield = EPrints::Search::Field->new( 
-					$self->{session},
-					$self->{dataset},
-					$metafields,
-					$value,
-					$match,
-					$merge,
-					$self->{prefix},
-					$id,
-					$show_help );
+	my $searchfield = EPrints::Search::Field->new( %opts );
 
-	my $sf_id = $searchfield->get_id();
-	unless( defined $self->{searchfieldmap}->{$sf_id} )
-	{
-		push @{$self->{searchfields}}, $sf_id;
-	}
-	# Put it in the name -> searchfield map
-	# (possibly replacing an old one)
-	$self->{searchfieldmap}->{$sf_id} = $searchfield;
-
-	if( $filter )
-	{
-		$self->{filtersmap}->{$sf_id} = $searchfield;
-	}
+	$self->_add_field( $searchfield );
 
 	return $searchfield;
 }
 
+sub _add_field
+{
+	my( $self, $sf, $filter ) = @_;
 
+	push @{$self->{searchfields}}, $sf->get_id
+		if !exists $self->{searchfieldmap}->{$sf->get_id};
 
-######################################################################
-=for InternalDoc
+	$self->{searchfieldmap}->{$sf->get_id} = $sf;
+	$self->{filtersmap}->{$sf->get_id} = $sf if $filter;
+}
+
+=begin InternalDoc
 
 =item $searchfield = $searchexp->get_searchfield( $sf_id )
 
@@ -407,6 +414,8 @@ Return a L<EPrints::Search::Field> belonging to this Search with
 the given id. 
 
 Return undef if not searchfield of that ID belongs to this search. 
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -585,25 +594,23 @@ sub from_string
 #	$self->{allow_blank} = $parts[0];
 #	$self->{dataset} = $self->{session}->get_repository->get_dataset( $parts[3] ); 
 
-	my $sf_data = {};
-	if( defined $field_string )
+	foreach( split /\|/ , $field_string )
 	{
-		foreach( split /\|/ , $field_string )
-		{
-			my $data = EPrints::Search::Field->unserialise( $_ );
-			$sf_data->{$data->{"id"}} = $data;	
-		}
-	}
+		my $sf = EPrints::Search::Field->unserialise(
+			repository => $self->{session},
+			dataset => $self->{dataset},
+			string => $_ );
+		next if !defined $sf; # bad serialisation
 
-	foreach my $sf ( $self->get_non_filter_searchfields )
-	{
-		my $data = $sf_data->{$sf->get_id};
-		$self->add_field( 
-			$sf->get_fields(), 
-			$data->{"value"},
-			$data->{"match"},
-			$data->{"merge"},
-			$sf->get_id() );
+		my $id = $sf->get_id;
+
+		# not an existing field
+		next if !defined $self->{searchfieldmap}->{$id};
+
+		# don't override filters
+		next if $self->{filtersmap}->{$id};
+
+		$self->_add_field( $sf );
 	}
 }
 
@@ -628,34 +635,25 @@ sub from_string_raw
 
 	foreach( split /\|/ , $field_string )
 	{
-		my $data = EPrints::Search::Field->unserialise( $_ );
-		my $fields = [];
-		foreach my $fname ( split( "/", $data->{rawid} ) )
-		{
-                        push @{$fields}, EPrints::Utils::field_from_config_string( $self->{dataset}, $fname );
-		}
-		$self->add_field( 
-			$fields,
-			$data->{"value"},
-			$data->{"match"},
-			$data->{"merge"},
-			$data->{"id"}, );
+		my $sf = EPrints::Search::Field->unserialise(
+			repository => $self->{session},
+			dataset => $self->{dataset},
+			string => $_,
+		);
+		EPrints->abort( "Failed to unserialise search field from '$_'" )
+			if !defined $sf;
+		$self->_add_field( $sf );
 	}
 	foreach( split /\|/ , $filter_string )
 	{
-		my $data = EPrints::Search::Field->unserialise( $_ );
-		my $fields = [];
-		foreach my $fname ( split( "/", $data->{rawid} ) )
-		{
-                        push @{$fields}, EPrints::Utils::field_from_config_string( $self->{dataset}, $fname );
-		}
-		my $sf = $self->add_field( 
-			$fields,
-			$data->{"value"},
-			$data->{"match"},
-			$data->{"merge"},
-			$data->{"id"}, 
-			1, );
+		my $sf = EPrints::Search::Field->unserialise(
+			repository => $self->{session},
+			dataset => $self->{dataset},
+			string => $_,
+		);
+		EPrints->abort( "Failed to unserialise filter field from '$_'" )
+			if !defined $sf;
+		$self->_add_field( $sf, 1 );
 		$sf->set_include_in_description( 0 );
 	}
 

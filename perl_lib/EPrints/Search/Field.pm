@@ -108,7 +108,7 @@ Match an item only if all of the words in the value match.
 #  $searchfield->{"value"}
 #     see above.
 #
-#  $searchfield->{"fieldlist"}
+#  $searchfield->{"fields"}
 #     The list of EPrints::MetaField to search.
 #
 #  $searchfield->{"field"}
@@ -140,6 +140,18 @@ use strict;
 ######################################################################
 =pod
 
+=item $sf = EPrints::Search::Field->new( %opts )
+
+	repository
+	dataset
+	fields - field or fields to search
+	value - value to search for
+	match
+	merge
+	prefix
+	show_help
+	id
+
 =item $thing = EPrints::Search::Field->new( $session, $dataset, $fields, $value, [$match], [$merge], [$prefix], [$show_help] )
 
 Create a new search field object. 
@@ -162,56 +174,48 @@ $show_help is used to control if the help shows up on the search form. A value o
 
 sub new
 {
-	my( $class, $session, $dataset, $fields, $value, $match, $merge, $prefix, $id, $show_help ) = @_;
-	
-	my $self = {};
-	bless $self, $class;
-	
-	if( ref( $fields ) ne "ARRAY" )
-	{
-		$fields = [ $fields ];
-	}
-	$self->{"fieldlist"} = $fields;
-	$self->{"field"} = $fields->[0];
+#	my( $class, $session, $dataset, $fields, $value, $match, $merge, $prefix, $id, $show_help ) = @_;
+	my( $class, %self ) = @_;
 
-	$self->{"session"} = $session;
-	$self->{"dataset"} = $dataset;
+	my $self = bless \%self, $class;
+	
+	$self{fields} = [$self{fields}] if ref($self{fields}) ne "ARRAY";
+	$self{field} = $self{fields}->[0];
 
-	$self->{"value"} = $value;
+	$self{repository} ||= $self{dataset}->repository;
+
+	my $repository = $self{repository};
 
 	# argument or field default or EQ/ALL
-	$self->{"match"} = $match ? $match : (defined $self->{field} ?
-				$self->{field}->property( "match" ) : "EQ");
-	$self->{"merge"} = $merge ? $merge : (defined $self->{field} ?
-				$self->{field}->property( "merge" ) : "ALL");
+	$self{match} = $self{match} ? $self{match} : (defined $self{field} ?
+				$self{field}->property( "match" ) : "EQ");
+	$self{merge} = $self{merge} ? $self{merge} : (defined $self{field} ?
+				$self{field}->property( "merge" ) : "ALL");
 
-	if( $self->{match} ne "EQ" && $self->{match} ne "IN" && $self->{match} ne "EX" && $self->{match} ne "SET" )
+	if( $self{match} ne "EQ" && $self{match} ne "IN" && $self{match} ne "EX" && $self{match} ne "SET" )
 	{
-		$session->get_repository->log( 
-"search field match value was '".$self->{match}."'. Should be EQ, IN or EX." );
-		$self->{match} = "EQ";
+		$repository->log( 
+"search field match value was '".$self{match}."'. Should be EQ, IN or EX." );
+		$self{match} = "EQ";
 	}
 
-	if( $self->{merge} ne "ALL" && $self->{merge} ne "ANY" )
+	if( $self{merge} ne "ALL" && $self{merge} ne "ANY" )
 	{
-		$session->get_repository->log( 
-"search field merge value was '".$self->{merge}."'. Should be ALL or ANY." );
-		$self->{merge} = "ALL";
+		$repository->log( 
+"search field merge value was '".$self{merge}."'. Should be ALL or ANY." );
+		$self{merge} = "ALL";
 	}
 
-	$self->{"show_help"} = $show_help;
-	$self->{"show_help"} = "toggle" unless defined $self->{"show_help"};
-	if( $self->{"show_help"} ne "toggle" && $self->{"show_help"} ne "always" && $self->{"show_help"} ne "never" )
+	$self{show_help} = "toggle" unless defined $self{show_help};
+	if( $self{show_help} ne "toggle" && $self{show_help} ne "always" && $self{show_help} ne "never" )
 	{
-		$session->get_repository->log( 
-"search field show_help value was '".$self->{"show_help"}."'. Should be toggle, always or never." );
-		$self->{"show_help"} = "toggle";
+		$repository->log( 
+"search field show_help value was '".$self{show_help}."'. Should be toggle, always or never." );
+		$self{show_help} = "toggle";
 	}
 
-	$prefix = "" unless defined $prefix;
-		
 	my( @fieldnames );
-	foreach my $f (@{$self->{"fieldlist"}})
+	foreach my $f (@{$self{fields}})
 	{
 		if( !defined $f ) { EPrints::abort( "field not defined" ); }
 		my $jp = $f->get_property( "join_path" );
@@ -230,27 +234,30 @@ sub new
 
 		push @fieldnames, $f->get_sql_name();
 	}
-	$self->{rawid} = join '/', sort @fieldnames;
+	$self{rawid} = join '/', sort @fieldnames;
 
-	$self->{"id"} = $id || $self->{rawid};
+	$self{id} = $self{rawid} if !defined $self{id};
 
-	$self->{"form_name_prefix"} = $prefix.$self->{"id"};
+	my $prefix = $self{prefix};
+	$prefix = "" unless defined $prefix;
+		
+	$self{form_name_prefix} = $prefix.$self{id};
 
 	# a search is "simple" if it contains a mix of fields. 
 	# 'text indexable" fields (longtext,text,url & email) all count 
 	# as one type. int & year count as one type.
 
-	foreach my $f (@{$fields})
+	foreach my $f (@{$self{fields}})
 	{
 		my $f_searchgroup = $f->get_search_group;
-		if( !defined $self->{"search_mode"} ) 
+		if( !defined $self{"search_mode"} ) 
 		{
-			$self->{"search_mode"} = $f_searchgroup;
+			$self{search_mode} = $f_searchgroup;
 			next;
 		}
-		if( $self->{"search_mode"} ne $f_searchgroup )
+		if( $self{search_mode} ne $f_searchgroup )
 		{
-			$self->{"search_mode"} = 'simple';
+			$self{search_mode} = 'simple';
 			last;
 		}
 	}
@@ -276,7 +283,7 @@ sub clear
 	my( $self ) = @_;
 	
 	$self->{"match"} = "NO";
-	$self->{"value"} = undef;
+	delete $self->{value};
 }
 
 
@@ -301,10 +308,10 @@ sub from_form
 
 	my( $value, $match, $merge, $problem) =
 		$self->{"field"}->from_search_form( 
-			$self->{"session"}, 
+			$self->{"repository"}, 
 			$self->{"form_name_prefix"} );
 
-	$self->{value} = defined $value ? $value : "";
+	$self->{value} = $value if EPrints::Utils::is_set( $value );
 	$self->{match} = $match if $match && $match =~ /^EQ|IN|EX|SET$/;
 	$self->{merge} = $merge if $merge && $merge =~ /^ANY|ALL$/;
 
@@ -317,10 +324,6 @@ sub from_form
 
 	return $problem;
 }
-	
-	
-
-
 
 ######################################################################
 =pod
@@ -361,15 +364,15 @@ sub get_conditions
 	if( $self->{"search_mode"} eq "simple" )
 	{
 		@parts = EPrints::Index::Tokenizer::split_search_value( 
-			$self->{"session"},
+			$self->{"repository"},
 			$self->{"value"} );
 		# unless we strip stop-words 'the' will get passed through to name
 		# matches causing no results (doesn't help in the search description)
-		my $freetext_stop_words = $self->{session}->config(
+		my $freetext_stop_words = $self->{repository}->config(
 				"indexing",
 				"freetext_stop_words"
 			);
-		my $freetext_always_words = $self->{session}->config(
+		my $freetext_always_words = $self->{repository}->config(
 				"indexing",
 				"freetext_always_words"
 			);
@@ -381,7 +384,7 @@ sub get_conditions
 	else
 	{
 		@parts = $self->{"field"}->split_search_value( 
-			$self->{"session"},
+			$self->{"repository"},
 			$self->{"value"} );
 	}
 
@@ -406,10 +409,10 @@ sub get_conditions_no_split
 	# special case for name?
 
 	my @r = ();
-	foreach my $field ( @{$self->{"fieldlist"}} )
+	foreach my $field ( @{$self->{"fields"}} )
 	{
 		my $cond = $field->get_search_conditions( 
-				$self->{"session"},
+				$self->{"repository"},
 				$self->{"dataset"},
 				$search_value,
 				$self->{"match"},
@@ -511,7 +514,7 @@ this search field is going to search.
 sub get_fields
 {
 	my( $self ) = @_;
-	return $self->{"fieldlist"};
+	return $self->{"fields"};
 }
 
 
@@ -532,7 +535,7 @@ sub render
 {
 	my( $self ) = @_;
 
-	return $self->{"field"}->render_search_input( $self->{"session"}, $self );
+	return $self->{"field"}->render_search_input( $self->{"repository"}, $self );
 }
 
 ######################################################################
@@ -570,12 +573,12 @@ sub render_description
 {
 	my( $self ) = @_;
 
-	my $frag = $self->{"session"}->make_doc_fragment;
+	my $frag = $self->{"repository"}->make_doc_fragment;
 
 	my $sfname = $self->render_name;
 
 	return $self->{"field"}->render_search_description(
-			$self->{"session"},
+			$self->{"repository"},
 			$sfname,
 			$self->{"value"},
 			$self->{"merge"},
@@ -599,25 +602,25 @@ sub render_name
 	if( defined $self->{"id"} )
 	{
 		my $phraseid = "searchfield_name_".$self->{"id"};
-		if( $self->{"session"}->get_lang->has_phrase( $phraseid, $self->{"session"} ) )
+		if( $self->{"repository"}->get_lang->has_phrase( $phraseid, $self->{"repository"} ) )
 		{
-			return $self->{"session"}->html_phrase( $phraseid );
+			return $self->{"repository"}->html_phrase( $phraseid );
 		}
 	}
 
 	# No id was set, gotta make a normal name from 
 	# the metadata fields.
-	my( $sfname ) = $self->{"session"}->make_doc_fragment;
+	my( $sfname ) = $self->{"repository"}->make_doc_fragment;
 	my( $first ) = 1;
-	foreach my $f (@{$self->{"fieldlist"}})
+	foreach my $f (@{$self->{"fields"}})
 	{
 		if( !$first ) 
 		{ 
 			$sfname->appendChild( 
-				$self->{"session"}->make_text( "/" ) );
+				$self->{"repository"}->make_text( "/" ) );
 		}
 		$first = 0;
-		$sfname->appendChild( $f->render_name( $self->{"session"} ) );
+		$sfname->appendChild( $f->render_name( $self->{"repository"} ) );
 	}
 	return $sfname;
 }
@@ -640,12 +643,12 @@ sub render_help
 
 	my $custom_help = "searchfield_help_".$self->{"id"};
 	my $phrase_id = "lib/searchfield:help_".$self->{"field"}->get_type();
-	if( $self->{"session"}->get_lang->has_phrase( $custom_help, $self->{"session"} ) )
+	if( $self->{"repository"}->get_lang->has_phrase( $custom_help, $self->{"repository"} ) )
 	{
 		$phrase_id = $custom_help;
 	}
 		
-	return $self->{"session"}->html_phrase( $phrase_id );
+	return $self->{"repository"}->html_phrase( $phrase_id );
 }
 
 
@@ -704,6 +707,8 @@ sub is_set
 {
 	my( $self ) = @_;
 
+	return 0 if !exists( $self->{value} );
+
 	return
 		EPrints::Utils::is_set( $self->{"value"} ) ||
 		($self->{"match"} eq "EX" && $self->{"merge"} eq "ALL") ||
@@ -741,36 +746,55 @@ sub serialise
 	return join( ":" , @escapedparts );
 }
 
-
-
 ######################################################################
 =pod
 
-=item $params = EPrints::Search::Field->unserialise( $string )
+=item $sf = EPrints::Search::Field->unserialise( %opts )
 
-Convert a serialised searchfield into a hash reference containing the 
-params: id, merge, match, value.
+	repository
+	dataset
+	string
 
-Does not return a EPrints::Search::Field object.
+Convert a serialised searchfield back into a search field.
 
 =cut
 ######################################################################
 
 sub unserialise
 {
-	my( $class, $string ) = @_;
+	my( $class, %opts ) = @_;
 
-	$string=~m/^([^:]*):([^:]*):([^:]*):(.*):(.*)$/;
+	my $string = delete $opts{string};
+
 	my $data = {};
-	$data->{"id"} = $1;
-	$data->{"rawid"} = $2;
-	$data->{"merge"} = $3;
-	$data->{"match"} = $4;
-	$data->{"value"} = $5;
-	# Un-escape (cjg, not very tested)
-	$data->{"value"} =~ s/\\(.)/$1/g;
+	if( $string =~ m/^([^:]*):([^:]*):([^:]*):(.*):(.*)$/ )
+	{
+		$data->{"id"} = $1;
+		$data->{"rawid"} = $2;
+		$data->{"merge"} = $3;
+		$data->{"match"} = $4;
+		$data->{"value"} = $5;
+		# Un-escape (cjg, not very tested)
+		$data->{"value"} =~ s/\\(.)/$1/g;
+	}
+	else
+	{
+		return;
+	}
 
-	return $data;
+	my @fields;
+	foreach my $fname ( split( "/", $data->{rawid} ) )
+	{
+		push @fields,
+			EPrints::Utils::field_from_config_string( $opts{dataset}, $fname );
+		return if !defined $fields[$#fields];
+	}
+
+	return $class->new(
+		%$data,
+		fields => \@fields,
+		%opts,
+	);
 }
 
 ######################################################################
