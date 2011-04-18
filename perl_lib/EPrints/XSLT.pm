@@ -131,7 +131,7 @@ sub dataobj_ctx
 	if( UNIVERSAL::isa( $_[0], "XML::LibXML::NodeList" ) )
 	{
 		my $uri = shift @_;
-		$uri = $uri->dataobj( 0 );
+		$uri = $uri->item( 0 );
 		$uri = $uri->toString;
 		unshift @_, $self->{dataobjs}->{$uri};
 	}
