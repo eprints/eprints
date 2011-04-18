@@ -36,6 +36,7 @@ sub input_fh
 	my @ids;
 
 	my $pubmedxml_plugin = $plugin->{session}->plugin( "Import::PubMedXML", Handler=>$plugin->handler );
+	$pubmedxml_plugin->{parse_only} = $plugin->{parse_only};
 	my $fh = $opts{fh};
 	while( my $pmid = <$fh> )
 	{
