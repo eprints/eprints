@@ -45,29 +45,28 @@ sub redirect_to_me_url
 
 	return undef;
 
-	my $cacheid = $self->{processor}->{session}->param( "cache" );
+	my $cacheid = $self->{processor}->{cacheid};
 
 	return $self->SUPER::redirect_to_me_url."&cache=$cacheid";
 }
 
-sub render_hidden_bits
+sub hidden_bits
 {
-	my( $self, %extra ) = @_;
+	my( $self ) = @_;
 
-	my $xml = $self->{session}->xml;
-	my $xhtml = $self->{session}->xhtml;
+	return(
+		$self->SUPER::hidden_bits,
+		cache => $self->get_searchexp->get_cache_id,
+	);
+}
 
-	my $frag = $xml->create_document_fragment;
+sub properties_from
+{
+	my( $self ) = @_;
 
-	$extra{screen} = exists($extra{screen}) ? $extra{screen} : $self->{processor}->{screenid};
-	$extra{cache} = exists($extra{cache}) ? $extra{cache} : $self->get_searchexp->get_cache_id;
+	$self->SUPER::properties_from;
 
-	foreach my $key (keys %extra)
-	{
-		$frag->appendChild( $xhtml->hidden_field( $key => $extra{$key} ) );
-	}
-
-	return $frag;
+	$self->{processor}->{cacheid} = $self->{session}->param( "cache" );
 }
 
 sub get_cache
@@ -77,12 +76,7 @@ sub get_cache
 	my $processor = $self->{processor};
 	my $session = $processor->{session};
 
-	my $cacheid = $session->param( "cache" );
-
-	my $dataset = $session->dataset( "cachemap" );
-	my $cache = $dataset->get_object( $session, $cacheid );
-
-	return $cache;
+	return $session->dataset( "cachemap" )->dataobj( $processor->{cacheid} );
 }
 
 sub get_searchexp
@@ -92,9 +86,10 @@ sub get_searchexp
 	my $processor = $self->{processor};
 	my $session = $processor->{session};
 
-	my $cacheid = $session->param( "cache" );
+	my $cacheid = $processor->{cacheid};
 
 	my $cache = $self->get_cache();
+	return if !defined $cache;
 
 	my $searchexp = EPrints::Search->new(
 		session => $session,
