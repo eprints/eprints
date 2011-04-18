@@ -103,7 +103,7 @@ $searchexp->add_field( $dataset->get_field( "creators_name" ), "Neumeier, M" );
 
 $list = eval { $searchexp->perform_search };
 
-ok(defined($list) && $list->count > 0, "search multiple name field");
+ok(defined($list) && $list->count > 0, "search multiple name field".sql($searchexp));
 
 
 $searchexp = EPrints::Search->new(
@@ -378,3 +378,11 @@ ok(defined($list) && $list->count > 0, "search multiple field");
 
 
 $session->terminate;
+
+sub sql
+{
+	return "\n: ".$_[0]->get_conditions->sql(
+		session => $_[0]->{session},
+		dataset => $_[0]->{dataset},
+	);
+}
