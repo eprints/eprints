@@ -722,7 +722,7 @@ sub count
 {
 	my( $self, $session ) = @_;
 
-	if( defined $self->get_filters )
+	if( $self->get_filters )
 	{
 		my $searchexp = EPrints::Search->new(
 			allow_blank => 1,
@@ -1234,7 +1234,7 @@ sub get_item_ids
 {
 	my( $self, $session ) = @_;
 
-	if( defined $self->get_filters )
+	if( $self->get_filters )
 	{
 		my $searchexp = EPrints::Search->new(
 			allow_blank => 1,
@@ -1281,7 +1281,7 @@ sub get_filters
 
 	my $f = $self->{filters};
 
-	return defined $f ? @{$f} : undef;
+	return defined $f ? @{$f} : ();
 }
 
 sub indexable
