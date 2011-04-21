@@ -14,19 +14,17 @@ use Digest::MD5;
 
 sub unpack_package 
 {
-	my ($repository, $app_path, $directory) = @_;
+	my ( $repository, $app_path, $directory ) = @_;
 	
 	my $mime_type = $repository->call('guess_doc_type',$repository ,$app_path );
 
-	my $type;
+	my $type = "zip";
 
 	if ($mime_type eq "application/x-tar") {
 		$type = "targz";
-	} else {
-		$type = "zip";
 	}
 
-	my $rc = $repository->get_repository->exec(
+	my $rc = $repository->exec(
 			$type,
 			DIR => $directory,
 			ARC => $app_path );
@@ -37,9 +35,9 @@ sub unpack_package
 
 sub remove_cache_package
 {
-	my ($repository,$package) = @_;
+	my ( $repository, $package ) = @_;
 	
-	my $archive_root = $repository->get_repository->get_conf("archiveroot");
+	my $archive_root = $repository->get_conf("archiveroot");
 	my $epm_path = $archive_root . "/var/epm/cache/";
 	my $cache_package_path = $epm_path . "/" . $package;
 
@@ -103,9 +101,8 @@ sub cache_package
 {
 	my ($repository, $tmpfile) = @_;
 
-	my $directory;
+	my $directory = File::Temp->newdir( CLEANUP => 1 );
 
-	$directory = File::Temp->newdir( CLEANUP => 1 );
 	my $rc = unpack_package($repository, $tmpfile, $directory);
 	if ($rc) {
 		return (1,"failed to unpack package");
@@ -133,12 +130,10 @@ sub cache_package
 
 	my $cache_package_path = $epm_path . "/" . $package_name;
 
-	if ( !-d $cache_package_path ) {
-		mkpath($cache_package_path);
-	} else {
+	if ( -d $cache_package_path ) {
 		rmtree($cache_package_path);
-		mkpath($cache_package_path);
 	}
+	mkpath($cache_package_path);
         
 	if( !-d $cache_package_path )
         {
@@ -198,11 +193,8 @@ sub install
 {
 	my ($repository, $app_path, $force) = @_;
 
-	my $directory;
-
-	if ( -d $app_path ) {
-		$directory = $app_path;
-	} else {
+	my $directory = $app_path;
+	if ( !-d $directory ) {
 		$directory = File::Temp->newdir( CLEANUP => 1 );
 		my $rc = unpack_package($repository, $app_path, $directory);
 		if ($rc) {
@@ -212,7 +204,7 @@ sub install
 
 	my $message;
 	
-	my $archive_root = $repository->get_repository->get_conf("archiveroot");
+	my $archive_root = $repository->get_conf("archiveroot");
 	my $epm_path = $archive_root . "/var/epm/packages/";
 	
 	if ( !-d $epm_path ) {
@@ -245,6 +237,7 @@ sub install
 	my $upgrading;
 	my $old_version;
 
+	# if the package is already installed...
 	if ( -e $spec_file and $force < 1) {
 
 		my $keypairs_installed = read_spec_file($spec_file);
@@ -254,12 +247,11 @@ sub install
 
 		if ($this_version lt $installed_version) {
 			$message = "More recent version of package is already installed, use --force to override";	
-			$abort = 1;
 			return(1,$message);
-		} else {
-			$upgrading = 1;
-			$old_version = $installed_version;
 		}
+		
+		$upgrading = 1;
+		$old_version = $installed_version;
 
 		$backup_directory = make_backup($repository, $package_name);
 
@@ -496,22 +488,17 @@ sub install_dataset_diffs
 	{
 		my $dataset = $after->{$datasetid}->{dataset};
 		my $fields = $after->{$datasetid}->{fields};
-		if( !defined $before->{$datasetid} )
+
+		if( !defined $before->{$datasetid} && !$db->has_dataset( $dataset ) )
 		{
-			if( !$db->has_dataset( $dataset ) )
-			{
-				$rc = $db->create_dataset_tables( $dataset );
-			}
+			$rc = $db->create_dataset_tables( $dataset );
+			next;
 		}
-		else
+
+		foreach my $fieldid ( keys %$fields )
 		{
-			foreach my $fieldid ( keys %$fields )
-			{
-				if( !defined $before->{$datasetid}->{fields}->{$fieldid} )
-				{
-					$rc = $db->add_field( $dataset, $fields->{$fieldid} );
-				}
-			}
+			next if( defined $before->{$datasetid}->{fields}->{$fieldid} );
+			$rc = $db->add_field( $dataset, $fields->{$fieldid} );
 		}
 	}
 	
@@ -531,22 +518,17 @@ sub remove_dataset_diffs
 	{
 		my $dataset = $before->{$datasetid}->{dataset};
 		my $fields = $before->{$datasetid}->{fields};
-		if( !defined $after->{$datasetid} )
+
+		if( !defined $after->{$datasetid} && $db->has_dataset( $dataset ) )
 		{
-			if( $db->has_dataset( $dataset ) )
-			{
-				$rc = $db->drop_dataset_tables( $dataset );
-			}
+			$rc = $db->drop_dataset_tables( $dataset );
+			next;
 		}
-		else
+
+		foreach my $fieldid ( keys %$fields )
 		{
-			foreach my $fieldid ( keys %$fields )
-			{
-				if( !defined $after->{$datasetid}->{fields}->{$fieldid} )
-				{
-					$rc = $db->remove_field( $dataset, $fields->{$fieldid} );
-				}
-			}
+			next if( defined $after->{$datasetid}->{fields}->{$fieldid} );
+			$rc = $db->remove_field( $dataset, $fields->{$fieldid} );
 		}
 	}
 	
@@ -880,11 +862,12 @@ sub get_local_epms
 	while(defined(my $fn = readdir $dh)) {
 		my $short = substr $fn, 0 , 1;
 		my $package_name = $fn;
-		if (!($short eq ".")) {
-			my $spec_path = $epm_path . $fn . "/" . $package_name . ".spec";
-			my $keypairs = EPrints::EPM::read_spec_file($spec_path);
-			push @packages, $keypairs;
-		}
+
+		next if ($short eq ".");
+
+		my $spec_path = $epm_path . $fn . "/" . $package_name . ".spec";
+		my $keypairs = EPrints::EPM::read_spec_file($spec_path);
+		push @packages, $keypairs;
 	}
 	closedir ($dh);
 
@@ -897,20 +880,16 @@ sub get_epm_updates
         my ( $installed_epms, $store_epms ) = @_;
 
         my @apps;
-        my $count = 0;
 
         foreach my $app (@$installed_epms) {
                 foreach my $store_app (@$store_epms) {
-                        if ("$app->{package}" eq "$store_app->{package}") {
-                                if ($store_app->{version} gt $app->{version}) {
-                                        $count++;
-                                        push @apps, $store_app;
-                                }
-                        }
+                        next if ("$app->{package}" ne "$store_app->{package}" && !$store_app->{version} gt $app->{version}); 
+                      	push @apps, $store_app;
 
                 }
         }
-        if ($count < 1) {
+
+        if ( scalar @apps < 1) {
                 return undef;
         }
 
@@ -983,21 +962,23 @@ sub get_app_from_eprint
 			$app->{epm} = $document->{files}->[0]->{url};
 		
 			$match_id = $document->{docid};
-		} else {
-			foreach my $relation (@{$document->{relation}})
-			{
-				next if $relation->{type} !~ m# ^http://eprints\.org/relation/is(\w+)ThumbnailVersionOf$ #x;
-				my $type = $1;
-				next if $relation->{uri} !~ m# ^/id/document/$match_id$ #x;
-				my $thumb_url = $document->{files}->[0]->{url};
-				if ($type eq "preview") {
-					$app->{'icon_url'} = $thumb_url;
-				}
-				$app->{'thumbnail_'.$type} = $thumb_url;
-				#substr($thumb_url, length($thumb_url) - length($document->{main}) - 1, 0) = ".has${type}ThumbnailVersion";
-				#print STDERR "Thumb URL: " . $thumb_url . "\n\n";
+			next;
+		} 
+
+		foreach my $relation (@{$document->{relation}})
+		{
+			next if $relation->{type} !~ m# ^http://eprints\.org/relation/is(\w+)ThumbnailVersionOf$ #x;
+			my $type = $1;
+			next if $relation->{uri} !~ m# ^/id/document/$match_id$ #x;
+			my $thumb_url = $document->{files}->[0]->{url};
+			if ($type eq "preview") {
+				$app->{'icon_url'} = $thumb_url;
 			}
+			$app->{'thumbnail_'.$type} = $thumb_url;
+			#substr($thumb_url, length($thumb_url) - length($document->{main}) - 1, 0) = ".has${type}ThumbnailVersion";
+			#print STDERR "Thumb URL: " . $thumb_url . "\n\n";
 		}
+		
 	}
 
 	return $app;
