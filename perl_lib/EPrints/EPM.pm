@@ -193,6 +193,13 @@ sub install
 {
 	my ($repository, $app_path, $force) = @_;
 
+	my $message;
+	my $archive_root = $repository->get_conf("archiveroot");
+	my $epm_path = $archive_root . "/var/epm/packages";
+	#Set up variables to be used
+	my $file_md5s;
+	my $backup_directory;
+
 	my $directory = $app_path;
 	if ( !-d $directory ) {
 		$directory = File::Temp->newdir( CLEANUP => 1 );
@@ -202,181 +209,137 @@ sub install
 		}
 	}
 
-	my $message;
-	
-	my $archive_root = $repository->get_conf("archiveroot");
-	my $epm_path = $archive_root . "/var/epm/packages/";
-	
-	if ( !-d $epm_path ) {
-		mkpath($epm_path);
-	}
-        
-	if( !-d $epm_path )
-        {
-                return (1,"Failed to create package management cache");
-        }
-
-
-	#Set up variables to be used
-	my $file_md5s;
-	my $backup_directory;
-	my $abort = 0;
-        my $rc = 1;
-
 	# Find the Package Spec File 
 
 	my $spec_file_incoming = _find_spec_file($directory);
 	return(1, "no_spec_file" ) if (!defined $spec_file_incoming);
 	
-	my $keypairs_in = read_spec_file($spec_file_incoming);
-	my $package_name = $keypairs_in->{package};
+	my $new_specs = read_spec_file($spec_file_incoming);
+	my $package_name = $new_specs->{package};
 
 	my $package_path = $epm_path . "/" . $package_name;
-	my $spec_file = $package_path . "/" . $package_name . ".spec";
+	my $installed_spec_file = $package_path . "/" . $package_name . ".spec";
 
-	my $upgrading;
 	my $old_version;
 
 	# if the package is already installed...
-	if ( -e $spec_file and $force < 1) {
+	if ( -e $installed_spec_file || $force ) {
 
-		my $keypairs_installed = read_spec_file($spec_file);
+		my $installed_specs = read_spec_file($installed_spec_file);
 
-		my $installed_version = $keypairs_installed->{version};
-		my $this_version = $keypairs_in->{version};
-
-		if ($this_version lt $installed_version) {
+		if ($new_specs->{version} lt $installed_specs->{version}) {
 			$message = "More recent version of package is already installed, use --force to override";	
 			return(1,$message);
 		}
 		
-		$upgrading = 1;
-		$old_version = $installed_version;
+		$old_version = $installed_specs->{version};
 
 		$backup_directory = make_backup($repository, $package_name);
 
 	}
-
-	my $package_files;
-	my $icon_file = $directory . "/" . "$keypairs_in->{icon}";
-
-	$package_files->{$spec_file_incoming} = 1;
-	$package_files->{$icon_file} = 1;
 	
 	mkpath($package_path);
 
+	copy($spec_file_incoming, $package_path."/".$package_name.".spec");
+	copy($directory."/"."$new_specs->{icon}", $package_path."/"."$new_specs->{icon}");
+
 	my $schema_before = get_current_schema($repository);
 
-	$rc = 1;
+	my @package_files = ();
         File::Find::find( {
                 no_chdir => 1,
                 wanted => sub {
-                        return unless $rc and !-d $File::Find::name;
-                        my $filepath = $File::Find::name;
-                        my $filename = substr($filepath, length($directory));
-                        open(my $filehandle, "<", $filepath);
-                        unless( defined( $filehandle ) )
-                        {
-                                $rc = 0;
-                                return;
-                        }
-			if ($package_files->{$filepath}) {
-				my $dst_file = $package_path . "/" . $filename;
-				copy($filepath, $dst_file);
-			} else {
-				my $path_separator = '/';
-			 	$filepath =~ m/[^\Q$path_separator\E]*$/;
-				my $required_dir = substr ($`, length($directory));
-				my $required_path = $archive_root . "/" . $required_dir;
-
-				mkpath($required_path);
-				
-				my $installed_path = $archive_root . $filename;
-				my $config_file = 0;
-
-				if ( ( substr $filename. 0, 9 ) eq "cfg/cfg.d" ) {
-					$config_file = 1;
-				}
-
-				if ( -e $installed_path and $force < 1) {
-					# Upgrade the installed file (if it is controlled by the previous version)
-					
-					my $installed_md5 = md5sum($installed_path);
-					my $this_md5 = md5sum($filepath);
-					my $package_managed = 1;
-				
-					if ( defined $backup_directory ) {
-						$package_managed = check_required_md5($repository,$package_name,$backup_directory,$installed_path);
-					}
-
-					if (!$package_managed and !$config_file) {
-						write_md5s($repository,$package_path,$file_md5s); 
-						remove($repository, $package_name, 1);
-						if ( defined $backup_directory) {
-							install($repository, $backup_directory, 1);
-						}
-						$message = "Install Failed: $installed_path has been changed outside the package manager, use --force to override";
-						$abort = 1;
-						return;
-					} elsif (!$package_managed and $config_file) {
-						$message = "Config file has changed, not installing use --force to override";
-					} 
-				}
-					
-				# Install the file, all that logic for this:
-				
-				copy($filepath, $installed_path);
-
-				# Now some more logic to check it is installed
-				# If it isn't failed and remove. 
-				# It is is, write the (new) MD5 ready for upgrade/remove.
-
-				if ( !-e $installed_path ) {
-					write_md5s($repository,$package_path,$file_md5s); 
-					my ($rmrc, $rmmessage) = remove($repository, $package_name, 1);
-					if ( defined $backup_directory) {
-						install($repository, $backup_directory, 1);
-					}
-					$message = "Failed to install $filepath, installation aborted and reverted with message: " . $rmmessage;
-					$abort = 1;
-					return;
-				} else {
-					my $md5 = "-";
-					if ( ( substr $filename. 0, 9 ) eq "cfg/cfg.d" ) {
-					} else {
-						$md5 = md5sum($filepath);
-					}
-					$file_md5s .= $installed_path . " " . $md5 . "\n"
-				}
-			}
+                        return if -d $File::Find::name;
+			push @package_files, $File::Find::name;
                 },
         }, "$directory" );
-	
-	# Write the md5s out to a file. 
-	write_md5s($repository,$package_path,$file_md5s); 
-	
-	if (!defined $message) {
-		$rc = 0;	
-		$message = "Package Successfully Installed";
-	} 
-	
-	# Check the repository reloads
-	my $installed = check_install($repository);
-	if ($installed) {
-		my ($rc2,$extra) = remove($repository,$package_name,1);
-		$message = "Package Install Failed (compilation error), package was removed again with message: " . $extra;
-		$rc = 1;
-		return ( $rc,$message );
-	} else {
-		$repository->load_config();
 
-		# Make any dataset upgrades (this is upgrade safe :) )
-		my $schema_after = get_current_schema($repository);
-		my $rc = install_dataset_diffs($repository,$schema_before,$schema_after);
+	foreach my $filepath (@package_files){
+
+		my $filename = substr($filepath, length($directory));
+		open(my $filehandle, "<", $filepath);
+		unless( defined( $filehandle ) )
+		{
+			next;
+		}
+		close($filehandle);
+
+		$filepath =~ m/[^\/]*$/;
+		my $required_path = $archive_root . "/" . substr ($`, length($directory));
+
+		mkpath($required_path);
+		
+		my $installed_path = $archive_root . $filename;
+
+		if ( -e $installed_path and defined $backup_directory and !$force) {
+			# Upgrade the installed file (if it is controlled by the previous version)
+			
+		# PATRICK what might this be doing?
+			if( ! check_required_md5($repository,$package_name,$backup_directory,$installed_path) )
+			{
+				$message = "Config file has changed, not installing use --force to override";
+				if ( ( substr $filename, 0, 9 ) ne "cfg/cfg.d" ) 
+				{
+					write_md5s($repository,$package_path,$file_md5s); 
+					
+					remove($repository, $package_name, 1);
+					
+					install($repository, $backup_directory, 1);
+
+					$message = "Install Failed: $installed_path has been changed outside the package manager, use --force to override";
+					return (1, $message);
+				} 
+			}
+		}
+			
+		# Install the file, all that logic for this:
+		copy($filepath, $installed_path);
+
+		# Now some more logic to check it is installed
+		# If it isn't failed and remove. 
+		# It is is, write the (new) MD5 ready for upgrade/remove.
+
+		if ( !-e $installed_path ) {
+			#something went wrong time to pack up and go home...
+			write_md5s($repository,$package_path,$file_md5s); 
+			my ($rmrc, $rmmessage) = remove($repository, $package_name, 1);
+			if ( defined $backup_directory) {
+				install($repository, $backup_directory, 1);
+			}
+			$message = "Failed to install $filepath, installation aborted and reverted with message: " . $rmmessage;
+			return(1, $message);
+		} 
+
+		my $md5 = "-";
+		$md5 = md5sum($filepath);
+		$file_md5s .= $installed_path . " " . $md5 . "\n"
 	}
 
+
+	# Write the md5s out to a file. 
+	write_md5s($repository,$package_path,$file_md5s); 
+
+	# Check the repository reloads
+	my $install_failed = check_install($repository);
+	if ($install_failed) {
+		my ($rc2,$extra) = remove($repository,$package_name,1);
+		$message = "Package Install Failed (compilation error), package was removed again with message: " . $extra;
+		return ( 1, $message );
+	}
+
+	$repository->load_config();
+
+	# Make any dataset upgrades (this is upgrade safe :) )
+	my $schema_after = get_current_schema($repository);
+	my $rc = install_dataset_diffs($repository,$schema_before,$schema_after);
+	if ( $rc > 0 ) {
+		my ($rc, $extra) = remove($repository,$package_name,1);
+		return( 1, "Package Install Failed (failed to create datasets in database), package was removed again with message: " . $extra );
+	}
+
+
 	# Re-read spec file (ensures we have the installed one) 
-	my $keypairs = read_spec_file($spec_file);
+	my $keypairs = read_spec_file($installed_spec_file);
 	my $config_string = $keypairs->{configuration_file};
 	my $new_version = $keypairs->{version};
 	my $plugin_id = "Screen::".$config_string;
@@ -386,8 +349,6 @@ sub install
 
 	my $plugin = $repository->get_repository->plugin( $plugin_id );
 
-	my $return = 0;
-	
 	if (defined $plugin) 
 	{
 		foreach my $inkey(keys %INC) {
@@ -411,48 +372,24 @@ sub install
 
 		# Call Post Install or Upgrade routine.
 
-		my $inst_msg;
-		if ($plugin->can( "action_postinst" ) and !($upgrading)) 
+		if ($plugin->can( "action_postinst" ) and !$old_version) 
 		{
-			($return, $inst_msg) = $plugin->action_postinst();
+			my ($return, $inst_msg) = $plugin->action_postinst();
+			return( $return, "Package Install Failed with error ($inst_msg), package was removed again with message: " );
 		} 
-		elsif ($upgrading && $plugin->can( "action_upgrade" )) 
+		
+		if ($old_version && $plugin->can( "action_upgrade" )) 
 		{
-			($return, $inst_msg) = $plugin->action_upgrade($old_version, $new_version);
+			my ($return, $inst_msg) = $plugin->action_upgrade($old_version, $new_version);
+			return( $return, "Package Install Failed with error ($inst_msg), package was removed again with message: " );
 		}
 
-		# Handle the return
-		if ($return < 1 && $return > 0) {
-			$message = $inst_msg;
-		} elsif (defined $inst_msg) {
-			$message = "Package Install Failed with error ($inst_msg), package was removed again with message: ";
-		} elsif ($upgrading) {
-			$message = "Package Install Failed (upgrade failed), package was removed again with message: ";
-		} else {
-			$message = "Package Install Failed (postinst failed), package was removed again with message: ";
-		}
+		# PATRICK im concerned we dont actually remove the package here.....
+		return( 1, "Package Install Failed (postinst failed), package was removed again with message: " );
 
 	}
 
-	if ($return > 0.5) {
-		my ($rc2,$extra) = remove($repository,$package_name,1);
-		return (1,$message . $extra);
-	} elsif ($return == 0.5) {
-		return (0.5,$message);
-	} else {
-		$message = "Package Successfully Installed";
-	}
-	
-	if ($abort > 0) {
-		return (1,$message);
-	}
-	
-	if ( $rc > 0 ) {
-		my ($rc2,$extra) = remove($repository,$package_name,1);
-		$message = "Package Install Failed (failed to create datasets in database), package was removed again with message: " . $extra;
-	}
-
-	return ( $rc,$message );
+	return ( 0, "Package Successfully Installed" );
 
 }
 
