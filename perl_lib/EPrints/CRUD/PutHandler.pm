@@ -70,10 +70,24 @@ sub handler
         }
 	
 	my $uri = $request->uri;
+	
+	my $datasetid;
+	my $id;
+	my $contents;
 
-	# Suppoerted URIs: Hopeing to expand beyond these if possible 
+	if( $uri =~ m! ^/id/([^/]+)/(.*)$ !x )
+	{
+		( $datasetid, $id ) = ( $1, $2 );
+	}
 
-	if(!( $uri =~ m! ^/id/(eprint|document|file)/\d+$ !x ))
+	if( $uri =~ s! ^/id/(eprint|document)/(\d+)/contents$ !!x ) 
+	{
+		 ( $datasetid, $id, $contents ) = ( $1, $2, $3 );
+		 $contents = 1;
+	}
+
+	if (!defined $datasetid or !defined $id)
+#	if(!( $uri =~ m! ^/id/(eprint|document|file)/\d+$ !x ))
 	{
 		$request->status( 400 );
 		$repository->terminate;
@@ -86,15 +100,6 @@ sub handler
 	$verbose_desc .= $headers->{verbose_desc};
 
 	my $VERBOSE = $headers->{x_verbose};
-
-	#GET THE EPRINT/DOCUMENT/FILE/WHATEVER FROM THE ID URI
-	my $datasetid;
-	my $id;
-
-	if( $uri =~ m! ^/id/([^/]+)/(.*)$ !x )
-	{
-		( $datasetid, $id ) = ( $1, $2 );
-	}
 
 	my $dataset = $repository->dataset( $datasetid );
 	my $item;
@@ -131,7 +136,7 @@ sub handler
 		$repository->terminate;
 		return HTTP_INTERNAL_SERVER_ERROR;
 	}
-
+	
 	my $owner = $response->{owner};
 	$repository->{current_user} = EPrints::DataObj::User->new($repository, $owner->get_value("userid"));
 	my $user = $repository->current_user();
@@ -321,7 +326,56 @@ sub handler
 				);
 			}
 		}
-		if ($dataset->base_id eq "eprint") {
+		if ($dataset->base_id eq "eprint" and $contents) 
+		{
+			#Replace all documents associated with this EPrint with the one which was PUT
+			foreach my $doc ( @{($item->get_value( "documents" ))} )
+			{
+				$doc->remove;
+			}
+			my $format = $repository->call( 'guess_doc_type', $repository, $filename );			
+			
+			my( @plugins ) = $repository->get_plugins(
+					type => "Import",
+					can_produce => "dataobj/document",
+					can_accept => $format,
+					);
+	
+			my $plugin = $plugins[0];
+
+			my $grammar = get_grammar();
+			my $flags = {};
+			foreach my $key (keys %{$headers}) {
+				my $value = $grammar->{$key};
+				if ((defined $value) and ($headers->{$key} eq "true")) {
+					$flags->{$value} = 1;
+				}
+			}
+
+			if( !defined $plugin )
+			{
+				#create a blank doc and add the file.
+				my $doc = $eprint->create_subdataobj( "documents", {
+						format => $format,
+						} );
+				$doc->upload($fh,$filename,0,$headers->{"Content-Length"});
+				my @docs;
+				push (@docs,$doc);
+				$list = EPrints::List->new(
+						session => $repository,
+						dataset => $repository->dataset( "document" ),
+						ids => [map { $_->id } @docs] );
+			} else {
+				$list = $plugin->input_fh(
+					fh => $fh,
+					filename => $filename,
+					dataset => $repository->dataset( "document" ),
+					dataobj => $eprint,
+					flags => $flags,
+				);
+			}
+		}
+		elsif ($dataset->base_id eq "eprint") {
 			my $format = $content_type;
 			if (!defined $format) 
 			{
@@ -331,10 +385,10 @@ sub handler
 			my $handler = EPrints::CRUD::PutHandler::Handler->new();
 			
 			my( @plugins ) = $repository->get_plugins(
-{
-	parse_only => 1,
-	Handler => $handler
-},
+			{
+				parse_only => 1,
+				Handler => $handler
+			},
 				type => "Import",
 				can_produce => "dataobj/eprint",
 				can_accept => $format,
