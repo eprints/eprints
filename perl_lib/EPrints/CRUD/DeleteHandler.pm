@@ -59,17 +59,6 @@ sub handler
 	
 	my $uri = $request->uri;
 	
-	# Suppoerted URIs: Hopeing to expand beyond these if possible 
-
-	if(!( $uri =~ m! ^/id/(eprint|document|file)/\d+$ !x ))
-	{
-		
-		$request->status( 400 );
-		$repository->terminate;
-		return HTTP_BAD_REQUEST;
-
-	}
-
 	# Processing HTTP headers in order to retrieve SWORD options
 	my $headers = $request->headers_in;
 	$verbose_desc .= $headers->{verbose_desc};
@@ -79,10 +68,24 @@ sub handler
 	#GET THE EPRINT/DOCUMENT/FILE/WHATEVER FROM THE ID URI
 	my $datasetid;
 	my $id;
-
+	my $contents;
+	
 	if( $uri =~ m! ^/id/([^/]+)/(.*)$ !x )
 	{
 		( $datasetid, $id ) = ( $1, $2 );
+	}
+
+	if( $uri =~ s! ^/id/(eprint|document)/(\d+)/contents$ !!x ) 
+	{
+		 ( $datasetid, $id, $contents ) = ( $1, $2, $3 );
+		 $contents = 1;
+	}
+
+	if (!defined $datasetid or !defined $id)
+	{
+		$request->status( 400 );
+		$repository->terminate;
+		return HTTP_BAD_REQUEST;
 	}
 
 	my $dataset = $repository->dataset( $datasetid );
@@ -143,6 +146,27 @@ sub handler
 	
 	if ($collec_conf->{deletion} eq 'true') 
 	{
+		if ($dataset->{id} eq "eprint" and $contents) {
+			foreach my $doc ( @{($item->get_value( "documents" ))} )
+			{
+				$doc->remove;
+			}
+			$request->status( 204 );
+			$repository->terminate;
+			return HTTP_NO_CONTENT;
+		}
+		if ($dataset->{id} eq "document" and $contents) {
+			foreach my $file (@{($item->value( "files" ))})
+			{
+				$file->remove();
+			}
+			$item->set_value("format",undef);
+			$item->set_main(undef);
+			$item->commit();
+			$request->status( 204 );
+			$repository->terminate;
+			return HTTP_NO_CONTENT;
+		}
 		if ($item->remove()) {
 			$request->status( 204 );
 			$repository->terminate;
@@ -151,7 +175,7 @@ sub handler
 	}
 	else 
 	{
-		if ($dataset->{id} eq "eprint") 
+		if ($dataset->{id} eq "eprint" and !$contents) 
 		{
 			if (allow( $eprint, "eprint/move_deletion" ))
 			{
@@ -185,14 +209,12 @@ sub handler
 			# Clone the eprint you want to remove the item from
 			# Remove the item from the new eprint by searching for the flag
 			# Set it back in the old eprint
-
 			my $original_value;
 			if ($dataset->{id} eq "file") {
 				$original_value = $item->value("hash");
 			} else {
 				$original_value = $item->value("pos");
 			}
-			$item->commit;
 
 			my $dest_dataset = "buffer";
 			if ($collection eq "inbox") {
@@ -202,21 +224,51 @@ sub handler
 			my $ds = $repository->get_archive()->get_dataset( $dest_dataset );
 			my $new_eprint = $eprint->clone($ds,1,undef);
 			
-			my @eprint_docs = $new_eprint->get_all_documents;
-			foreach my $doc ( @eprint_docs )
+			if ($contents) 
 			{
-				if ($dataset->{id} eq "document" && $doc->value("pos") eq $original_value)
+				if ($dataset->{id} eq "eprint") 
 				{
-					$doc->remove();
-					$item->set_value("formatdesc", $original_value);
-				} 
-				else
-				{
-					foreach my $file (@{($doc->value( "files" ))})
+					foreach my $doc ( @{($new_eprint->get_value( "documents" ))} )
 					{
-						if ($file->value("hash") eq $original_value)
+						$doc->remove;
+					}
+				}
+				if ($dataset->{id} eq "document")
+				{
+					my @eprint_docs = $new_eprint->get_all_documents;
+					foreach my $doc ( @eprint_docs )
+					{
+						if ($doc->value("pos") eq $original_value)
 						{
-							$file->remove();
+							foreach my $file (@{($doc->value( "files" ))})
+							{
+								$file->remove();
+							}
+							$doc->set_value("format",undef);
+							$doc->set_main(undef);
+							$doc->commit();
+						}
+					}
+				}
+			}
+			else 
+			{
+				my @eprint_docs = $new_eprint->get_all_documents;
+				foreach my $doc ( @eprint_docs )
+				{
+					if ($dataset->{id} eq "document" && $doc->value("pos") eq $original_value)
+					{
+						$doc->remove();
+						$item->set_value("formatdesc", $original_value);
+					} 
+					else
+					{
+						foreach my $file (@{($doc->value( "files" ))})
+						{
+							if ($file->value("hash") eq $original_value)
+							{
+								$file->remove();
+							}
 						}
 					}
 				}
