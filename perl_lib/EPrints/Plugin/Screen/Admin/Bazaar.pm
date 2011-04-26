@@ -137,21 +137,21 @@ sub action_install_bazaar_package
 {
 	my ( $self ) = @_;
 	
-	my $session = $self->{session};
+	my $repo = $self->{session};
 
 	$previous = "available" if (!defined $previous);
 
-        my $url_in = $self->{session}->param( "package" );
+        my $url_in = $repo->param( "package" );
 
-	my ($tmpdir,$epm_file) = EPrints::EPM::download_package($session,$url_in);
+	my $epm_file = EPrints::EPM::download_package($repo,$url_in);
 	
 	my $type = "message";
 	my ( $rc, $message);
 
 
 
-	if (defined ${$epm_file}) {
-		( $rc, $message ) = EPrints::EPM::install($session,${$epm_file});
+	if (defined $epm_file) {
+		( $rc, $message ) = EPrints::EPM::install($repo, $epm_file);
 		if ( $rc > 0 ) 
 		{
 			$type = "warning";
@@ -161,7 +161,7 @@ sub action_install_bazaar_package
 		}
 		else
 		{
-			my $plugin = $session->plugin( "Screen::Admin::Reload",
+			my $plugin = $repo->plugin( "Screen::Admin::Reload",
 				processor => $self->{processor}
 				);
 			if( defined $plugin )
@@ -177,7 +177,7 @@ sub action_install_bazaar_package
 
 	$self->{processor}->add_message(
 			$type,
-			$session->make_text($message)
+			$repo->xml->make_text($message)
 			);
 
 }
