@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -w -I/usr/share/eprints3/perl_lib
 
 use FindBin;
 use lib "$FindBin::Bin/../perl_lib";
@@ -10,7 +10,7 @@ use EPrints;
 if(!defined $ARGV[0] || !defined $ARGV[1])
 {
        print "\nUsage is:";
-       print "\n\tepm repository_id [install|remove] [app_name|app_path|app_url] [--force]\n\n";
+       print "\n\tepm repository_id <install|remove> [app_name|app_path|app_url] [--force]\n\n";
        exit(1);
 }
 
@@ -36,10 +36,10 @@ if ( $operation eq "install") {
 	
 	if ((substr $path_in, 0,7) eq "http://")  
 	{
-		my ($tmpdir,$epm_file) = EPrints::EPM::download_package($repository,$path_in);
-		($rc, $message) = EPrints::EPM::install($repository,${$epm_file},$force);
+		my $epm_file = EPrints::EPM::download_package($repository,$path_in);
+		$message = EPrints::EPM::install($repository,$epm_file,$force);
 	} else {
-		($rc, $message) = EPrints::EPM::install($repository,$path_in,$force);
+		$message = EPrints::EPM::install($repository,$path_in,$force);
 	}
 
 } elsif ($operation eq "remove" ) {

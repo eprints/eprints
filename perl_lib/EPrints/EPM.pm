@@ -23,11 +23,8 @@ sub unpack_package
 	if ($mime_type eq "application/x-tar") {
 		$type = "targz";
 	}
-
-	my $rc = $repository->exec(
-			$type,
-			DIR => $directory,
-			ARC => $app_path );
+	
+	my $rc = $repository->exec($type, DIR => $directory, ARC => $app_path );
 
 	return $rc;
 
@@ -55,9 +52,11 @@ sub download_package
 {
         my ($repository, $url) = @_;
 
-        my $tmpdir = File::Temp->newdir();
+        my $tmpdir = File::Temp->newdir(CLEANUP=>0);
 
         my $filepath = $tmpdir."/temp.epm";
+
+	$repository->{config}->{enable_web_imports} = 1;
 
         my $response = EPrints::Utils::wget($repository, $url, $filepath);
 
@@ -65,7 +64,7 @@ sub download_package
                 return( $filepath );
         }
 
-        return ();
+        return;
 }
 
 sub cache_package 
@@ -176,14 +175,14 @@ sub install
 		$directory = File::Temp->newdir( CLEANUP => 1 );
 		my $rc = unpack_package($repository, $app_path, $directory);
 		if ($rc) {
-			return (1,"failed to unpack package");
+			return ('epm_error_unpack_failed');
 		}
 	}
 
 	# Find the Package Spec File 
 
 	my $spec_file_incoming = _find_spec_file($directory);
-	return(1, "no_spec_file" ) if (!defined $spec_file_incoming);
+	return('epm_error_no_spec_file' ) if (!defined $spec_file_incoming);
 	
 	my $new_specs = read_spec_file($spec_file_incoming);
 	my $package_name = $new_specs->{package};
@@ -199,8 +198,7 @@ sub install
 		my $installed_specs = read_spec_file($installed_spec_file);
 
 		if ($new_specs->{version} lt $installed_specs->{version}) {
-			$message = "More recent version of package is already installed, use --force to override";	
-			return(1,$message);
+			return('epm_error_later_version_installed');
 		}
 		
 		$old_version = $installed_specs->{version};
@@ -248,7 +246,7 @@ sub install
 		# PATRICK what might this be doing?
 			if( ! check_required_md5($repository,$package_name,$backup_directory,$installed_path) )
 			{
-				$message = "Config file has changed, not installing use --force to override";
+				$message = 'epm_warning_config_changed';
 				if ( ( substr $filename, 0, 9 ) ne "cfg/cfg.d" ) 
 				{
 					write_md5s($repository,$package_path,$file_md5s); 
@@ -257,8 +255,7 @@ sub install
 					
 					install($repository, $backup_directory, 1);
 
-					$message = "Install Failed: $installed_path has been changed outside the package manager, use --force to override";
-					return (1, $message);
+					return ('epm_error_file_altered');
 				} 
 			}
 		}
@@ -273,12 +270,12 @@ sub install
 		if ( !-e $installed_path ) {
 			#something went wrong time to pack up and go home...
 			write_md5s($repository,$package_path,$file_md5s); 
-			my ($rmrc, $rmmessage) = remove($repository, $package_name, 1);
+			remove($repository, $package_name, 1);
 			if ( defined $backup_directory) {
 				install($repository, $backup_directory, 1);
 			}
-			$message = "Failed to install $filepath, installation aborted and reverted with message: " . $rmmessage;
-			return(1, $message);
+
+			return("epm_error_copy_failed");
 		} 
 
 		my $md5 = "-";
@@ -293,9 +290,8 @@ sub install
 	# Check the repository reloads
 	my $install_failed = check_install($repository);
 	if ($install_failed) {
-		my ($rc2,$extra) = remove($repository,$package_name,1);
-		$message = "Package Install Failed (compilation error), package was removed again with message: " . $extra;
-		return ( 1, $message );
+		remove($repository,$package_name,1);
+		return ('epm_error_compilation_failed');
 	}
 
 	$repository->load_config();
@@ -304,8 +300,8 @@ sub install
 	my $schema_after = get_current_schema($repository);
 	my $rc = install_dataset_diffs($repository,$schema_before,$schema_after);
 	if ( $rc > 0 ) {
-		my ($rc, $extra) = remove($repository,$package_name,1);
-		return( 1, "Package Install Failed (failed to create datasets in database), package was removed again with message: " . $extra );
+		remove($repository,$package_name,1);
+		return('epm_error_datasets_failed');
 	}
 
 
@@ -318,7 +314,7 @@ sub install
 	$plugin_path =~ s/::/\//g;
 	$plugin_path = "EPrints/Plugin/Screen/" . $plugin_path . ".pm";
 
-	my $plugin = $repository->get_repository->plugin( $plugin_id );
+	my $plugin = $repository->plugin( $plugin_id );
 
 	if (defined $plugin) 
 	{
@@ -345,22 +341,23 @@ sub install
 
 		if ($plugin->can( "action_postinst" ) and !$old_version) 
 		{
-			my ($return, $inst_msg) = $plugin->action_postinst();
-			return( $return, "Package Install Failed with error ($inst_msg), package was removed again with message: " );
+			$plugin->action_postinst();
+			return( 'epm_error_postinst_failed');
 		} 
 		
 		if ($old_version && $plugin->can( "action_upgrade" )) 
 		{
-			my ($return, $inst_msg) = $plugin->action_upgrade($old_version, $new_version);
-			return( $return, "Package Install Failed with error ($inst_msg), package was removed again with message: " );
+			$plugin->action_upgrade($old_version, $new_version);
+			return('epm_error_upgrade_failed');
 		}
 
 		# PATRICK im concerned we dont actually remove the package here.....
-		return( 1, "Package Install Failed (postinst failed), package was removed again with message: " );
+		return('epm_error_postinst_failed');
 
 	}
 
-	return ( 0, "Package Successfully Installed" );
+	# package installed! message is either a warning or undef for complete success
+	return $message;
 
 }
 

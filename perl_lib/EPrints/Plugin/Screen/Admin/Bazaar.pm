@@ -141,44 +141,36 @@ sub action_install_bazaar_package
 
 	$previous = "available" if (!defined $previous);
 
-        my $url_in = $repo->param( "package" );
+        my $url = $repo->param( "package" );
 
-	my $epm_file = EPrints::EPM::download_package($repo,$url_in);
+	my $epm_file = EPrints::EPM::download_package($repo,$url);
 	
-	my $type = "message";
-	my ( $rc, $message);
+	my $message;
 
-
-
-	if (defined $epm_file) {
-		( $rc, $message ) = EPrints::EPM::install($repo, $epm_file);
-		if ( $rc > 0 ) 
-		{
-			$type = "warning";
-		}
-		elsif ( $rc > 0.5 ) {
-			$type = "error";
-		}
-		else
-		{
-			my $plugin = $repo->plugin( "Screen::Admin::Reload",
-				processor => $self->{processor}
-				);
-			if( defined $plugin )
-			{
-				local $self->{processor}->{screenid};
-				$plugin->action_reload_config;
-			}
-		}
-	} else {
-		$type = "error";
-		$message = "FAILED";
+	print STDERR "EPM file:.$epm_file.\n";
+	if (!defined $epm_file) {
+		$self->{processor}->add_message( "error", $repo->html_phrase( "epm_error_no_package" ) );
+		return;
 	}
 
-	$self->{processor}->add_message(
-			$type,
-			$repo->xml->make_text($message)
+	$message = EPrints::EPM::install($repo, $epm_file);
+
+	if(!defined $message)
+	{
+		$message = 'epm_message_install_successful';
+		my $plugin = $repo->plugin( "Screen::Admin::Reload",
+			processor => $self->{processor}
 			);
+		if( defined $plugin )
+		{
+			local $self->{processor}->{screenid};
+			$plugin->action_reload_config;
+		}
+	}
+
+	$message =~ /epm_([^_]*)/;
+
+	$self->{processor}->add_message( $1, $repo->html_phrase($message) );
 
 }
 
