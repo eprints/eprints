@@ -728,7 +728,12 @@ sub md5sum
 
 sub get_installed_epms 
 {
-	my ($repository) = @_;
+	my ($self, $repository) = @_;
+
+	if (!defined $repository)
+	{
+		$repository = $self;
+	}
 
 	my $archive_root = $repository->get_repository->get_conf("archiveroot");
 	my $epm_path = $archive_root . "/var/epm/packages/";

@@ -68,4 +68,16 @@ $status = "running" if $daemon->is_running();
 $status = "stalled" if $daemon->has_stalled();
 print "indexer: $status\n";
 
+my $packages = EPrints::EPM->get_installed_epms($repo);
+if (defined $packages) 
+{
+	my $package_string;
+	foreach my $package (@$packages) 
+	{
+		$package_string .= $package->{package} . ", ";
+	}
+	$package_string = substr($package_string,0,length($package_string)-2);
+	print "installed_epms: $package_string\n";
+}
+
 exit;
