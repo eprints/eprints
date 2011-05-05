@@ -180,39 +180,47 @@ sub action_handle_upload
 
 	$previous = "custom";
 
-	my $session = $self->{session};
+	my $repo = $self->{session};
 
 	my $fname = "_first_file";
 
-	my $fh = $session->get_query->upload( $fname );
+	my $fh = $repo->get_query->upload( $fname );
+
+	if( !defined( $fh ) ) 
+	{
+		$self->{processor}->add_message(
+			'error',
+			$repo->html_phrase('epm_error_failed_to_cache_package')
+			);
+	}
+
+	binmode($fh);
+	use bytes;
 
 	my $tmpfile = File::Temp->new( SUFFIX => ".zip" );
 
-	if( defined( $fh ) ) 
-	{
-		binmode($fh);
-		use bytes;
-
-		while(sysread($fh,my $buffer, 4096)) {
-			syswrite($tmpfile,$buffer);
-		}
-
-		my ($rc, $message) = EPrints::EPM::cache_package($session, $tmpfile);
-
-		my $type = "message";
-	
-		if ( $rc > 0 ) {
-			$type = "error";
-		}
-	
-		$self->{processor}->{screenid} = "Admin::Bazaar";
-		
-		$self->{processor}->add_message(
-			$type,
-			$session->make_text($message)
-			);
-
+	while(sysread($fh,my $buffer, 4096)) {
+		syswrite($tmpfile,$buffer);
 	}
+
+	my $message = EPrints::EPM::cache_package($repo, $tmpfile);
+
+	$self->{processor}->{screenid} = "Admin::Bazaar";
+
+	if ( $message ) {
+		$self->{processor}->add_message(
+			'error',
+			$repo->html_phrase($message)
+			);
+		return();
+	}
+
+	
+	$self->{processor}->add_message(
+		'message',
+		$repo->html_phrase('epm_message_package_cached')
+		);
+
 }
 
 sub action_install_cached_package
@@ -304,24 +312,27 @@ sub action_remove_cached_package
 {
 	my ( $self ) = @_;
 
-        my $session = $self->{session};
+        my $repo = $self->{session};
 
 	$previous = "custom";
 
-        my $package = $self->{session}->param( "package" );
+        my $package = $repo->param( "package" );
 	
-	my ( $rc, $message ) = EPrints::EPM::remove_cache_package($session,$package);
+	my $message = EPrints::EPM::remove_cache_package($repo,$package);
 	
-	my $type = "message";
-
-	if ( $rc > 0 ) {
-		$type = "error";
+	if ( $message ) {
+		$self->{processor}->add_message(
+				'error',
+				$repo->html_phrase($message)
+				);
+		return;
 	}
 
 	$self->{processor}->add_message(
-			$type,
-			$session->make_text($message)
+			'message',
+			$repo->html_phrase('epm_message_cached_package_removed')
 			);
+
 
 }
 

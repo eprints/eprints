@@ -42,9 +42,9 @@ sub remove_cache_package
 	
 	if ($rc < 1) 
 	{
-		return (1, "Failed to remove cached package");
+		return ('epm_error_remove_cache_failed');
 	}
-	return (0, "Cache Package Removed");
+	return ();
 
 }
 
@@ -78,27 +78,22 @@ sub cache_package
 		return (1,"failed to unpack package");
 	}
 	
-	my $archive_root = $repository->get_repository->get_conf("archiveroot");
+	my $archive_root = $repository->get_conf("archiveroot");
 	my $epm_path = $archive_root . "/var/epm/cache/";
 	
 	if ( !-d $epm_path ) {
-		mkpath($epm_path);
+		return('epm_error_no_cache_dir');
+		#mkpath($epm_path);
 	}
-        
-	if( !-d $epm_path )
-        {
-                return (1,"Failed to create package management cache");
-        }
 
 	$rc = 1;
 
 	my $spec_file_incoming = _find_spec_file($directory);
-	return(1, "no_spec_file" ) if (!defined $spec_file_incoming);
+	return("epm_error_no_spec_file" ) if (!defined $spec_file_incoming);
 	
-	my $keypairs_in = read_spec_file($spec_file_incoming);
-	my $package_name = $keypairs_in->{package};
+	my $package_specs = read_spec_file($spec_file_incoming);
 
-	my $cache_package_path = $epm_path . "/" . $package_name;
+	my $cache_package_path = $epm_path . "/" . $package_specs->{package};
 
 	if ( -d $cache_package_path ) {
 		rmtree($cache_package_path);
@@ -107,17 +102,14 @@ sub cache_package
         
 	if( !-d $cache_package_path )
         {
-                return (1,"Failed to create package cache");
+                return ('epm_error_failed_to_cache_package');
         }
 	
 	$rc = unpack_package($repository, $tmpfile, $cache_package_path);
-	$spec_file_incoming = _find_spec_file($cache_package_path);
 
-	my $message = "Package copied into cache";
 	if ($rc) {
-		$message = "Failed to unpack package to cache";
+		return('epm_error_failed_to_cache_package');
 	}
-	return ($rc,$message);
 	
 }
 
@@ -591,7 +583,7 @@ sub remove
 	my $config_string = $keypairs->{configuration_file};
 	my $plugin_id = "Screen::".$config_string;
 
-	my $plugin = $repository->get_repository->plugin( $plugin_id );
+	my $plugin = $repository->plugin( $plugin_id );
 
 	my $return = 0;
 	my $message;
