@@ -785,9 +785,11 @@ sub get_epm_updates
 
         foreach my $app (@$installed_epms) {
                 foreach my $store_app (@$store_epms) {
-                        next if ("$app->{package}" ne "$store_app->{package}" && !$store_app->{version} gt $app->{version}); 
+			my $app_name = $app->{package};
+			my $store_app_name = $store_app->{package};
+                        next if ($app_name ne $store_app_name);
+			next if !($store_app->{version} gt $app->{version});
                       	push @apps, $store_app;
-
                 }
         }
 
