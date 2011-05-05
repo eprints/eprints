@@ -828,10 +828,20 @@ sub retrieve_available_epms
 		{
 			my $app = get_app_from_eprint( $repository, $node );
 			next EPRINT if !defined $app;
-			return $app if defined $id && $id eq $app->{id};
-			push @apps, $app;
+			my $count = 0;
+			my $skip;
+			foreach my $lapp(@apps) {
+				splice(@apps,$count,1) if ($lapp->{package} eq $app->{package} && $lapp->{version} lt $app->{version});
+				$skip = 1 if ($lapp->{package} eq $app->{package} && $lapp->{version} gt $app->{version});
+				$count++;
+			}
+			push @apps, $app unless $skip;
 		}
 	}
+	foreach my $app(@apps) {
+		return $app if defined $id && $id eq $app->{id};
+	}
+
 	return undef if defined $id;
 
 	return \@apps;
@@ -879,8 +889,6 @@ sub get_app_from_eprint
 				$app->{'icon_url'} = $thumb_url;
 			}
 			$app->{'thumbnail_'.$type} = $thumb_url;
-			#substr($thumb_url, length($thumb_url) - length($document->{main}) - 1, 0) = ".has${type}ThumbnailVersion";
-			#print STDERR "Thumb URL: " . $thumb_url . "\n\n";
 		}
 		
 	}
