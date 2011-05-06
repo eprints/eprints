@@ -74,7 +74,7 @@ if (defined $packages)
 	my $package_string;
 	foreach my $package (@$packages) 
 	{
-		$package_string .= $package->{package} . ", ";
+		$package_string .= $package->{package} . " (" . $package->{version} . "), ";
 	}
 	$package_string = substr($package_string,0,length($package_string)-2);
 	print "installed_epms: $package_string\n";
