@@ -2013,7 +2013,7 @@ sub upgrade
 	my $repo = &repository( $repoid, check_db => 0 );
 	
 	my $db = $repo->database();
-	
+
 	my @versions = qw(
 			3.0
 			3.0.1
@@ -2044,6 +2044,7 @@ sub upgrade
 			$f =~ s/\./_/g;
 			print STDERR "Upgrading " . $versions[$i] . " to " . $versions[$i+1] . "\n";
 			&$f( $repo, $db );
+			migrate_to_epm_packages($repoid,$versions[$i],$versions[$i+1]);
 			$db->set_version( $versions[$i+1] );
 		}
 	}
@@ -3034,6 +3035,186 @@ sub upgrade_3_3_0_to_3_3_1
 	}
 }
 
+sub migrate_to_epm_packages 
+{
+	
+	my( $repoid, $old_version, $new_version ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	my $packages = get_packages($old_version, $new_version);
+
+	my $base_path = $repo->get_conf( "base_path" ) . "/";
+	my $arc_path = $repo->get_conf( "arc_path" ) . "/";
+
+	foreach my $key (keys %$packages) {
+		
+		my $package = $packages->{$key};
+
+# 		TODO
+		next if (EPrints::EPM::is_installed($repo,$package->{'name'}));
+		
+		my $files = $package->{'files'};
+		my $exists_count = 0;
+		foreach my $file(@$files) {
+			my $file_path = $base_path . $file;
+			$exists_count++ if ( -e $file_path );
+		}
+
+		my $phrase = "The functionality provided by this package has been removed from the EPrints base code, however is provided as an extension package, would you like to install this package and retain the functionality provided by this package?";	
+
+		if ($exists_count > 0) {
+			$phrase .= "\n\nWARNING: A number of files associated with this package were detected still in your EPrints install. If you choose to continue these will be backed up (under var/package_backups) before the upgrade is done, you cannot continue with these in place, thus if you wish to keep these files and NOT install the newer package, please enter 'no'\n\n";
+		}
+		
+		print "\nPACKAGE: " . $package->{'name'} . "\n";
+		print "=======================================\n";
+		my $install_package = EPrints::Utils::get_input( $REGEXP_YESNO, $phrase , "yes" );
+		if( $install_package eq "yes" )
+		{
+			my $moved_files;
+			if ($exists_count > 0) {
+				$moved_files = backup_core_package( $repo, $package );
+			}
+			if ($exists_count > 0 && !defined $moved_files) 
+			{
+				print "Backup/remove of " . $package->{'name'} . " failed, aborting...\n";
+				next;
+			} 
+			else 
+			{
+				print "Installing Package...\n\n";
+				my $ok = EPrints::EPM::command_line_install_package( $repo, $package->{'name'} );
+				if (!$ok) {
+					# Restore the Backup, assume this works since the original backup succeeded. 
+					print "Install Failed, restoring previous state...\n";
+					if (defined $moved_files) {
+						$ok = restore_backup_package_files($repo, $moved_files);
+					}
+				} else {
+					print "Install Succeeded\n\n";
+				}
+
+			}
+		}
+	}
+}
+
+sub restore_backup_package_files
+{
+	my ( $repo, $moved_files ) = @_;
+	
+	use File::Copy;
+	
+	my $base_path = $repo->get_conf( "base_path" ) . "/";
+	my $backup_path = $base_path . "/var/package_backups";
+	my $help_file = $backup_path . "/README.txt";
+
+	open IN, "<$help_file";
+	my @contents = <IN>;
+	close IN;
+
+	foreach my $src(keys %$moved_files) 
+	{
+		my $dst = $moved_files->{$src};
+		copy($src,$dst);
+		unlink($src);
+
+		my $count = 0;
+		foreach my $line(@contents) 
+		{
+			splice(@contents,$count,1) if ($base_path . substr($line,0,index($line," ")) eq $dst);
+			$count++;
+		}			
+
+	}
+
+	open OUT, ">$help_file";
+	print OUT @contents;
+	close OUT;
+
+	return 1;
+
+}
+
+sub backup_core_package
+{
+	my ( $repo, $package ) = @_;
+	
+	use File::Copy;
+
+	my $base_path = $repo->get_conf( "base_path" ) . "/";
+	my $backup_path = $base_path . "/var/package_backups";
+	my $help_file = $backup_path . "/README.txt";
+	mkdir($backup_path);
+
+	open FILE, ">>$help_file" or return undef;
+
+	my $moved_files = {};
+
+	my $files = $package->{'files'};
+	foreach my $file(@$files) {
+		
+		my $file_path = $base_path . $file;
+		
+		next if (!( -e $file_path ));
+		
+		my $path = substr($file,0,rindex($file,"/"));
+		$path = $backup_path . "/" . $path;
+		
+		my $filename = substr($file,rindex($file,"/")+1,length($file));
+
+		use File::Path qw(mkpath);
+		mkpath($path);
+
+		my $dst = $path . "/" . $filename;
+
+		copy($file_path,$dst);
+		$moved_files->{$dst} = $file_path;
+		unlink($file_path);
+
+		if ( -e $file_path )
+		{
+			return undef;
+		}
+
+		print FILE $file . " is backup of " . $file_path . " relating to the package: " . $package->{'name'} . "\n";
+
+	}
+	
+	close FILE;
+	return $moved_files;
+
+}
+
+sub get_packages
+{
+	my ($old_version, $new_version);
+	my $packages = {};
+
+	if ($new_version eq "3.3.1") 
+	{
+		my @files = ('perl_lib/EPrints/Plugin/Export/BibTeX.pm','perl_lib/EPrints/Plugin/Import/BibTeX.pm');
+		$packages->{'BibTeX'}->{'files'} = \@files;
+		$packages->{'BibTeX'}->{'name'} = 'BibTeX';
+		
+		@files = ('perl_lib/EPrints/Plugin/Export/REM_Atom.pm','perl_lib/EPrints/Plugin/Export/REM_Atom_via_PMH.pm', ,'perl_lib/EPrints/Plugin/Export/REM_RDF.pm','perl_lib/EPrints/Plugin/Import/OREResource.pm');
+		$packages->{'ORE_Tools'}->{'files'} = \@files;
+		$packages->{'ORE_Tools'}->{'name'} = 'ORE_Tools';
+		
+		@files = ('perl_lib/EPrints/Plugin/Export/DIDL.pm');
+		$packages->{'DIDL_export'}->{'files'} = \@files;
+		$packages->{'DIDL_export'}->{'name'} = 'DIDL_export';
+		
+		@files = ('perl_lib/EPrints/Plugin/Storage/AmazonS3.pm');
+		$packages->{'AmazonS3'}->{'files'} = \@files;
+		$packages->{'AmazonS3'}->{'name'} = 'AmazonS3';
+
+
+	}
+
+	return $packages;
+}
 
 # End of UPGRADE CODE
 

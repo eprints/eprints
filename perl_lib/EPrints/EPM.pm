@@ -353,6 +353,31 @@ sub install
 
 }
 
+sub command_line_install_package
+{
+	my ( $repo, $package ) = @_;
+
+	my $app = retrieve_available_epms($repo,undef,$package);
+
+	return 0 if (!defined $app);
+
+	my $url = $app->{epm};
+
+	my $epm_file = download_package($repo,$url);
+        
+        if (!defined $epm_file) {
+                return 0;
+        }
+
+        my $message = install($repo, $epm_file);
+
+        return 1 if(!defined $message);
+	
+	$message =~ /epm_([^_]*)/;
+        print $repo->phrase($message) . "\n\n";
+	return 0;
+}
+
 sub get_current_schema
 {
 	my( $repo ) = @_;
@@ -718,6 +743,21 @@ sub md5sum
 	return $digest;
 }
 
+
+sub is_installed
+{
+	my ($repo, $package_name) = @_;
+
+	my $installed_epms = get_installed_epms($repo);
+
+	foreach my $app(@$installed_epms) 
+	{
+		return 1 if ($app->{'package'} eq $package_name);
+	}
+
+	return 0;
+}
+
 sub get_installed_epms 
 {
 	my ($self, $repository) = @_;
@@ -802,7 +842,7 @@ sub get_epm_updates
 
 sub retrieve_available_epms
 {
-	my( $repository, $id ) = @_;
+	my( $repository, $id, $package_name) = @_;
 
 	my @apps;
 
@@ -827,6 +867,7 @@ sub retrieve_available_epms
 		EPRINT: foreach my $node ($xml->documentElement->getElementsByTagName( "eprint" ))
 		{
 			my $app = get_app_from_eprint( $repository, $node );
+
 			next EPRINT if !defined $app;
 			my $count = 0;
 			my $skip;
@@ -840,9 +881,11 @@ sub retrieve_available_epms
 	}
 	foreach my $app(@apps) {
 		return $app if defined $id && $id eq $app->{id};
+		return $app if defined $package_name && $package_name eq $app->{package};
 	}
 
 	return undef if defined $id;
+	return undef if defined $package_name;
 
 	return \@apps;
 }
