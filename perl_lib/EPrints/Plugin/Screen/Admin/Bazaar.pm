@@ -147,7 +147,6 @@ sub action_install_bazaar_package
 	
 	my $message;
 
-	print STDERR "EPM file:.$epm_file.\n";
 	if (!defined $epm_file) {
 		$self->{processor}->add_message( "error", $repo->html_phrase( "epm_error_no_package" ) );
 		return;
