@@ -117,38 +117,17 @@ sub _find_spec_file
 {
 	my ( $directory ) = @_;
 
-	my $spec_file_in;
+	opendir(PACKAGEDIR, $directory) || return();
 
-	my $rc = 1;
-	File::Find::find( {
-                no_chdir => 1,
-                wanted => sub {
-                        return unless $rc and !-d $File::Find::name;
-                        my $filepath = $File::Find::name;
-                        my $filename = substr($filepath, length($directory));
-                        open(my $filehandle, "<", $filepath);
-                        unless( defined( $filehandle ) )
-                        {
-                                $rc = 0;
-                                return;
-                        }
-			if ( (substr $filename, -5) eq ".spec" ) {
-				$spec_file_in = $filepath;
-			}
+	foreach my $file (readdir(PACKAGEDIR))
+	{
+		if($file =~ /\.spec$/)
+		{
+			return $directory.'/'.$file;
 		}
-        }, "$directory" );
-	
-	my $keypairs = read_spec_file($spec_file_in);
-	my $package_name = $keypairs->{package};
-	
-	my $dst_spec = $directory . "/$package_name.spec";
-
-	unless ($dst_spec eq $spec_file_in) {
-		copy($spec_file_in,$dst_spec);
-		unlink($spec_file_in);
 	}
 
-	return $dst_spec;
+	return;
 } 
 
 sub install
