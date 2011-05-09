@@ -10,8 +10,6 @@ use EPrints::Plugin::Screen;
 
 @ISA = ( 'EPrints::Plugin::Screen' );
 
-my $JAVASCRIPT = join "", <DATA>;
-
 use strict;
 
 sub new
@@ -302,7 +300,6 @@ sub ajax_new_field
 
 	my $inputs = $custom_field->render_input_field( $session );
 	$div->appendChild( $inputs );
-	$inputs->setAttribute( 'id', "action_$c" );
 
 	$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
 	binmode(STDOUT, ":utf8");
@@ -317,26 +314,25 @@ sub ajax_edit
 	my $processor = $self->{processor};
 	my $session = $processor->{session};
 
+	my $progressid = $session->param( "progressid" );
+
 	my $searchexp = $self->get_searchexp;
-	if( !$searchexp )
-	{
-		return;
-	}
+	EPrints->abort( "Missing search expression" ) if !defined $searchexp;
 
 	my $list = $searchexp->perform_search;
-
-	if( $list->count == 0 )
-	{
-		return;
-	}
-
-	select(STDOUT);
-	local $| = 1;
+	my $progress = $session->dataset( "upload_progress" )->create_dataobj({
+		progressid => $progressid,
+		received => 0,
+		size => $list->count
+	}) or EPrints->abort( "Error creating progress object" );
 
 	my $request = $session->get_request;
 
-	$request->content_type( "text/plain; charset=UTF-8" );
-	$request->rflush;
+	$request->content_type( "text/html; charset=UTF-8" );
+	my $html = $session->make_element( "html" );
+	my $body = $html->appendChild( $session->make_element( "body",
+		onload => "window.top.window.ep_batchedit_finished()"
+	) );
 
 	my $dataset = $searchexp->get_dataset;
 
@@ -344,18 +340,13 @@ sub ajax_edit
 
 	if( !@actions )
 	{
-		$request->print( "0 " );
-		$request->print( "f48f27cb163950bc6a7f1a3c7d87afc7" );
-		my $message = $session->render_message( "warning", $self->html_phrase( "no_changes" ) );
-		$request->print( EPrints::XML::to_string( $message ) );
-		EPrints::XML::dispose( $message );
+		$progress->remove();
+		$body->appendChild( $session->render_message( "warning", $self->html_phrase( "no_changes" ) ) );
+		print $session->xhtml->to_xhtml( $html );
+		EPrints::XML::dispose( $html );
 		return;
 	}
 
-	$request->print( $list->count() . " " );
-	$request->print( "0 " );
-
-	my $count = 0;
 	$list->map(sub {
 		my( $session, $dataset, $dataobj ) = @_;
 
@@ -403,7 +394,9 @@ sub ajax_edit
 		}
 
 		$dataobj->commit;
-		$request->print( ++$count." " );
+
+		$progress->set_value( "received", $progress->value( "received" ) + 1 );
+		$progress->commit;
 	});
 
 	my $ul = $session->make_element( "ul" );
@@ -423,12 +416,14 @@ sub ajax_edit
 		) );
 		EPrints::XML::dispose( $value );
 	}
-	$request->print( "f48f27cb163950bc6a7f1a3c7d87afc7" );
-	my $message = $session->render_message( "message", $self->html_phrase( "applied",
+	$body->applied( $session->render_message( "message", $self->html_phrase( "applied",
 		changes => $ul,
-	) );
-	$request->print( EPrints::XML::to_string( $message ) );
-	EPrints::XML::dispose( $message );
+	) ) );
+
+	$progress->remove;
+
+	print EPrints::XHTML::to_xhtml( $html );
+	EPrints::XML::dispose( $html );
 }
 
 sub ajax_remove
@@ -438,45 +433,43 @@ sub ajax_remove
 	my $processor = $self->{processor};
 	my $session = $processor->{session};
 
+	my $progressid = $session->param( "progressid" );
+
 	my $searchexp = $self->get_searchexp;
-	if( !$searchexp )
-	{
-		return;
-	}
+	EPrints->abort( "Missing search expression" ) if !defined $searchexp;
 
 	my $list = $searchexp->perform_search;
-
-	if( $list->count == 0 )
-	{
-		return;
-	}
-
-	select(STDOUT);
-	local $| = 1;
+	my $progress = $session->dataset( "upload_progress" )->create_dataobj({
+		progressid => $progressid,
+		received => 0,
+		size => $list->count
+	}) or EPrints->abort( "Error creating progress object" );
 
 	my $request = $session->get_request;
+	my $html = $session->make_element( "html" );
+	my $body = $html->appendChild( $session->make_element( "body",
+		onload => "window.top.window.ep_batchedit_finished()"
+	) );
 
-	$request->content_type( "text/plain; charset=UTF-8" );
-	$request->rflush;
+	$request->content_type( "text/html; charset=UTF-8" );
 
 	my $dataset = $searchexp->get_dataset;
 
-	$request->print( $list->count() . " " );
-	$request->print( "0 " );
-
-	my $count = 0;
 	$list->map(sub {
 		my( $session, $dataset, $dataobj ) = @_;
 
 		$dataobj->remove;
 
-		$request->print( ++$count." " );
+		$progress->set_value( "received", $progress->value( "received" ) + 1 );
+		$progress->commit;
 	});
 
-	$request->print( "f48f27cb163950bc6a7f1a3c7d87afc7" );
-	my $message = $session->render_message( "message", $self->html_phrase( "removed" ) );
-	$request->print( EPrints::XML::to_string( $message ) );
-	EPrints::XML::dispose( $message );
+	$body->appendChild( $session->render_message( "message", $self->html_phrase( "removed" ) ) );
+
+	$progress->remove;
+
+	print EPrints::XHTML::to_xhtml( $html );
+	EPrints::XML::dispose( $html );
 }
 
 sub render
@@ -512,8 +505,6 @@ sub render
 			style => "border: 0px;",
 	);
 	$page->appendChild( $iframe );
-
-	$page->appendChild( $session->make_javascript ( $JAVASCRIPT ) );
 
 	$page->appendChild( $self->render_cancel_form( $searchexp ) );
 
@@ -635,9 +626,11 @@ sub render_changes_form
 			cache => $searchexp->get_cache_id,
 			max_action => 0,
 			ajax => "edit",
+			progressid => "", # set by JavaScript
 		},
 	);
 	$page->appendChild( $form );
+	$form->setAttribute( id => "ep_batchedit_form" );
 	$form->setAttribute( target => "ep_batchedit_iframe" );
 	$form->setAttribute( onsubmit => "return ep_batchedit_submitted();" );
 
@@ -819,6 +812,19 @@ sub _cmp_hash
 	return $rc;
 }
 
+sub render_links
+{
+	my( $self ) = @_;
+
+	my $frag = $self->SUPER::render_links;
+
+	$frag->appendChild( $self->{session}->make_javascript( undef,
+		src => $self->{session}->current_url( path => "static", "javascript/screen_batchedit.js" ) )
+	);
+
+	return $frag;
+}
+
 1;
 
 
@@ -851,224 +857,3 @@ License along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
 
 =cut
 
-__DATA__
-
-Event.observe(window, 'load', ep_batchedit_update_list);
-
-function ep_batchedit_update_list()
-{
-	var container = $('ep_batchedit_sample');
-	if( !container )
-		return;
-
-	container.update( '<img src="' + eprints_http_root + '/style/images/lightbox/loading.gif" />' );
-
-	var ajax_parameters = {};
-	ajax_parameters['screen'] = $F('screen');
-	ajax_parameters['cache'] = $F('cache');
-	ajax_parameters['ajax'] = 'list';
-
-	new Ajax.Updater(
-		container,
-		eprints_http_cgiroot+'/users/home',
-		{
-			method: "get",
-			onFailure: function() { 
-				alert( "AJAX request failed..." );
-			},
-			onException: function(req, e) { 
-				alert( "AJAX Exception " + e );
-			},
-			parameters: ajax_parameters
-		} 
-	);
-}
-
-var ep_batchedit_c = 1;
-
-/* the user clicked to add an action */
-function ep_batchedit_add_action()
-{
-	var name = $('ep_batchedit_field_name').value;
-
-	var form = $('ep_batchedit_form');
-	Element.extend(form);
-
-	var ajax_parameters = {};
-	ajax_parameters['screen'] = $F('screen');
-	ajax_parameters['cache'] = $F('cache');
-	ajax_parameters['ajax'] = 'new_field';
-	ajax_parameters['field_name'] = name;
-	ajax_parameters['c'] = ep_batchedit_c++;
-
-	$('max_action').value = ep_batchedit_c;
-
-	new Ajax.Request(
-		eprints_http_cgiroot+"/users/home",
-		{
-			method: "get",
-			onFailure: function() { 
-				alert( "AJAX request failed..." );
-			},
-			onException: function(req, e) { 
-				alert( "AJAX Exception " + e );
-			},
-			onSuccess: function(response){ 
-				var xml = response.responseText;
-				if( !xml )
-				{
-					alert( "No response from server: "+response.responseText );
-				}
-				else
-				{
-					$('ep_batchedit_actions').insert( xml );
-				}
-			},
-			parameters: ajax_parameters
-		} 
-	);
-}
-
-/* the user clicked to remove an action */
-function ep_batchedit_remove_action(idx)
-{
-	var action = $('action_' + idx);
-	if( action != null )
-		action.parentNode.removeChild( action );
-}
-
-/* the user submitted the changes form */
-function ep_batchedit_submitted()
-{
-	var iframe = $('ep_batchedit_iframe');
-	var container = $('ep_progress_container');
-
-	$('ep_batchedit_inputs').hide();
-
-	/* under !Firefox the form submission doesn't happen straight away, so we
-	 * have to delay removing form elements until after this method has
-	 * finished */
-	new PeriodicalExecuter(function(pe) {
-		pe.stop();
-		var max_action = $F('max_action');
-		for(var i = 0; i < max_action; ++i)
-			ep_batchedit_remove_action( i );
-	}, 1);
-
-	while(container.hasChildNodes())
-		container.removeChild( container.firstChild );
-
-	var progress = new EPrintsProgressBar({bar: 'progress_bar_orange.png'}, container);
-
-	var pe = new PeriodicalExecuter(function(pe) {
-		var parts = ep_batchedit_iframe_contents( iframe );
-		var content = parts[0];
-		if( content == null )
-			return;
-		var nums = content.split( ' ' );
-		var total = nums[0];
-		if( !total )
-			return;
-		nums.pop();
-		var current = nums[nums.length-1];
-
-		var percent = current / total;
-		progress.update( percent, Math.round(percent*100) + '%' );
-	}, .2);
-
-	Event.observe(iframe, 'load', function() {
-		Event.stopObserving( iframe, 'load' );
-		pe.stop();
-
-		progress.update( 1, '100%' );
-
-		// reduce UI flicker by adding a short delay before we refresh
-		new PeriodicalExecuter(function(pe_f) {
-			pe_f.stop();
-
-			ep_batchedit_finished();
-		}, .5);
-	});
-
-	return true;
-}
-
-function ep_batchedit_iframe_contents( iframe )
-{
-	if(
-		iframe.contentWindow.document == null ||
-		iframe.contentWindow.document.body.firstChild == null
-	  )
-		return [];
-
-	var content = iframe.contentWindow.document.body.firstChild.firstChild.nodeValue;
-
-	return content.split( "f48f27cb163950bc6a7f1a3c7d87afc7" );
-}
-
-function ep_batchedit_finished()
-{
-	var iframe = $('ep_batchedit_iframe');
-	var container = $('ep_progress_container');
-
-	while(container.hasChildNodes())
-		container.removeChild( container.firstChild );
-
-	var parts = ep_batchedit_iframe_contents( iframe );
-
-	container.innerHTML = parts[1];
-
-	iframe.contentWindow.document.body.removeChild(
-		iframe.contentWindow.document.body.firstChild
-	);
-
-	ep_batchedit_update_list();
-
-	$('ep_batchedit_inputs').show();
-}
-
-function ep_batchedit_remove_submitted( message )
-{
-	var form = $('ep_batchedit_form');
-	var iframe = $('ep_batchedit_iframe');
-	var container = $('ep_progress_container');
-
-	if( confirm( message ) != true )
-		return false;
-
-	$('ep_batchedit_inputs').hide();
-
-	var progress = new EPrintsProgressBar({bar: 'progress_bar_orange.png'}, container);
-
-	var pe = new PeriodicalExecuter(function(pe) {
-		var parts = ep_batchedit_iframe_contents( iframe );
-		var content = parts[0];
-		if( content == null )
-			return;
-		var nums = content.split( ' ' );
-		var total = nums[0];
-		if( !total )
-			return;
-		nums.pop();
-		var current = nums[nums.length-1];
-
-		var percent = current / total;
-		progress.update( percent, Math.round(percent*100) + '%' );
-	}, .2);
-
-	Event.observe(iframe, 'load', function() {
-		Event.stopObserving( iframe, 'load' );
-		pe.stop();
-
-		progress.update( 1, '100%' );
-
-		// reduce UI flicker by adding a short delay before we refresh
-		new PeriodicalExecuter(function(pe_f) {
-			pe_f.stop();
-
-			ep_batchedit_finished();
-		}, .5);
-	});
-
-	return true;
-}
