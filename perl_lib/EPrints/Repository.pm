@@ -2857,16 +2857,18 @@ sub make_javascript
 {
 	my( $self, $text, %attr ) = @_;
 
-	if( !defined( $text ) )
-	{
-		$text = "";
-	}
-	chomp($text);
-
 	my $script = $self->xml->create_element( "script", type => "text/javascript", %attr );
 
-	$script->appendChild( $self->xml->create_text_node( "\n// " ) );
-	$script->appendChild( $self->xml->create_cdata_section( "\n$text\n// " ) );
+	if( defined $text )
+	{
+		chomp($text);
+		$script->appendChild( $self->xml->create_text_node( "\n// " ) );
+		$script->appendChild( $self->xml->create_cdata_section( "\n$text\n// " ) );
+	}
+	else
+	{
+		$script->appendChild( $self->xml->create_comment( "padder" ) );
+	}
 
 	return $script;
 }
