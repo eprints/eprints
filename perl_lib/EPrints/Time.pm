@@ -399,7 +399,7 @@ sub _render_date
 	}
 	if( @l > 2 )
 	{
-		$r = $short ? sprintf( "%02d", $day ) . " $r" : "$day $r";
+		$r = ($short ? sprintf( "%02d", $day ) : 0+$day)." $r";
 	}
 
 	if( @l > 3 )
