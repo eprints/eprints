@@ -277,33 +277,38 @@ sub action_remove_package
 
 	$previous = "installed";
 
-        my $session = $self->{session};
+        my $repo = $self->{session};
 
-        my $package = $self->{session}->param( "package" );
+        my $package = $repo->param( "package" );
 	
-	my ( $rc, $message ) = EPrints::EPM::remove($session,$package);
+	my $message = EPrints::EPM::remove($repo,$package);
 	
-	my $type = "message";
-
-	if ( $rc > 0 ) {
-		$type = "error";
-	}
-	else
+	if( $message =~ /epm_([^_]*)/ )
 	{
-		my $plugin = $session->plugin( "Screen::Admin::Reload",
-			processor => $self->{processor}
-			);
-		if( defined $plugin )
-		{
-			local $self->{processor}->{screenid};
-			$plugin->action_reload_config;
-		}
+		$self->{processor}->add_message(
+				$1,
+				$repo->html_phrase($message)
+				);
+		return;
+
+	}
+
+	my $plugin = $repo->plugin( "Screen::Admin::Reload",
+		processor => $self->{processor}
+		);
+
+	if( defined $plugin )
+	{
+		local $self->{processor}->{screenid};
+		$plugin->action_reload_config;
 	}
 
 	$self->{processor}->add_message(
-			$type,
-			$session->make_text($message)
+			'message',
+			$repo->html_phrase('epm_message_package_removed')
 			);
+
+	return;
 
 }
 

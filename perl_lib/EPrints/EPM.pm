@@ -162,6 +162,7 @@ sub install
 	my $installed_spec_file = $package_path . "/" . $package_name . ".spec";
 
 	my $old_version;
+	my $md5_sums;
 
 	# if the package is already installed...
 	if ( -e $installed_spec_file || $force ) {
@@ -175,6 +176,8 @@ sub install
 		$old_version = $installed_specs->{version};
 
 		$backup_directory = make_backup($repository, $package_name);
+
+		$md5_sums = package_md5s($repository, $package_path);
 
 	}
 	
@@ -215,12 +218,13 @@ sub install
 			# Upgrade the installed file (if it is controlled by the previous version)
 			
 		# PATRICK what might this be doing?
-			if( ! check_required_md5($repository,$package_name,$backup_directory,$installed_path) )
+			if( $md5_sums->{$installed_path} ne md5sum($installed_path) )
 			{
+#PATRICK this overwrites the config file even if it has changed currently....
 				$message = 'epm_warning_config_changed';
 				if ( ( substr $filename, 0, 9 ) ne "cfg/cfg.d" ) 
 				{
-					write_md5s($repository,$package_path,$file_md5s); 
+					write_md5s($repository,$package_path,$md5_sums); 
 					
 					remove($repository, $package_name, 1);
 					
@@ -240,7 +244,7 @@ sub install
 
 		if ( !-e $installed_path ) {
 			#something went wrong time to pack up and go home...
-			write_md5s($repository,$package_path,$file_md5s); 
+			write_md5s($repository,$package_path,$md5_sums); 
 			remove($repository, $package_name, 1);
 			if ( defined $backup_directory) {
 				install($repository, $backup_directory, 1);
@@ -249,14 +253,12 @@ sub install
 			return("epm_error_copy_failed");
 		} 
 
-		my $md5 = "-";
-		$md5 = md5sum($filepath);
-		$file_md5s .= $installed_path . " " . $md5 . "\n"
+		$md5_sums->{$installed_path} = md5sum($installed_path);
 	}
 
 
 	# Write the md5s out to a file. 
-	write_md5s($repository,$package_path,$file_md5s); 
+	write_md5s($repository,$package_path,$md5_sums); 
 
 	# Check the repository reloads
 	my $install_failed = check_install($repository);
@@ -506,16 +508,39 @@ sub check_required_md5
 
 } 
 
+sub package_md5s
+{
+	my ( $repository, $directory) = @_;
+
+	my $md5_sums;
+
+	open (MD5FILE, $directory . "/checksums");
+	while (<MD5FILE>) {
+		chomp;
+		my @bits = split(/ /,$_);
+		$md5_sums->{$bits[0]} = $bits[1];
+		#$file =~ s/$archive_root//;
+	}
+	close (MD5FILE);
+	
+	return $md5_sums;
+
+} 
+
 sub write_md5s 
 {
 	my ( $repository, $package_path, $file_md5s ) = @_;
 
-	if ( defined $file_md5s) {
-		my $md5_file = $package_path . "/checksums";
-		open (MD5FILE, ">$md5_file");
-		print MD5FILE $file_md5s;
-		close(MD5FILE);
+	my $md5_file = $package_path . "/checksums";
+
+	open (MD5FILE, ">$md5_file");
+
+	foreach my $file (keys %{$file_md5s})
+	{
+		print MD5FILE $file." ".$file_md5s->{$file}."\n";;
 	}
+
+	close(MD5FILE);
 }
 
 sub make_backup 
@@ -572,34 +597,33 @@ sub remove
 	my $package_path = $epm_path . "/" . $package_name;
 	
 	my $spec_file = $package_path . "/" . $package_name . ".spec";
-	my $md5_file = $package_path . "/checksums";
 	my $dataset_file = $package_path . "/dataset_changes";
 
 	if ( !-e $spec_file and $force < 1) {
                 
-		return (1,"Cannot locate installed package : " . $package_name);
+		return ('epm_error_no_spec_file');
 		
 	}
 			
 	$repository->load_config();
 	
-	my $keypairs = EPrints::EPM::read_spec_file($spec_file);
-	my $config_string = $keypairs->{configuration_file};
-	my $plugin_id = "Screen::".$config_string;
+	my $package_specs = EPrints::EPM::read_spec_file($spec_file);
+	my $plugin_id = "Screen::".$package_specs->{configuration_file};
 
 	my $plugin = $repository->plugin( $plugin_id );
 
-	my $return = 0;
-	my $message;
 	if (defined $plugin) 
 	{
+#PATRICK - Not at all happy about this prerm return set is way to complex
+		my $message;
+		my $return = 0;
 		if ($plugin->can( "action_prerm" )) 
 		{
 			($return,my $prerm_msg) = $plugin->action_prerm();
-			if ($return < 1 && $return > 0) {
-				$message = $prerm_msg;
-			} else {
-				$message = "Package cannot be removed as the packages pre-remove script failed.";
+			$message = $prerm_msg;
+			if ( $return >= 1 ) 
+			{
+				return('epm_error_prerm_failed');
 			}
 		} 
 		if (!$return && $plugin->can( "action_removed_status" ))
@@ -607,70 +631,41 @@ sub remove
 			$return = $plugin->action_removed_status();
 			$message = "Package cannot be removed as the packages pre-remove script failed.";
 		}
+		if ($return > 0) {
+			return ($return,$message);
+		}
 	} 
 
-	if ($return > 0) {
-		return ($return,$message);
-	}
+	my $md5_sums = package_md5s($repository, $package_path); 
 
-	my $pass = 1;
-	my @files;
-
-	open (MD5FILE, $md5_file);
-	while (<MD5FILE>) {
-		chomp;
-		my @bits = split(/ /,$_);
-		my $file = $bits[0];
-		my $md5 = $bits[1];
-		my $config_file = 0;
-		my $file_end = substr($file, length($archive_root)+1);
-		if ( ( substr $file_end, 0, 9 ) eq "cfg/cfg.d" ) {
-			$config_file = 1;
-		}
-		push @files, $file;
-		if ( -e $file and !$config_file) {
-			my $re_check = md5sum($file);
-			if (!($re_check eq $md5)) {
-				$pass = 0;
-			}
+	foreach my $file (keys %{$md5_sums})
+	{
+		if($md5_sums->{$file} eq md5sum($file) && ( substr $file, 0, 9 ) eq "cfg/cfg.d" )
+		{
+			return('epm_error_package_changed');
 		}
 	}
-	close (MD5FILE);
-
-	if ($pass != 1 and $force != 1 ) {
-	
-                return (1,"Warning: Package has changed since install! Use --force to override");
-
-	}  
 	
 	my $backup_directory = make_backup($repository, $package_name);
 	
 	my $schema_before = get_current_schema($repository);
-	my $rc = 0;
-	my $failed_flag = 0;
 
 	my $remove_auto = 0;
 
-	foreach my $file (@files) {
-		if ( -e $file ) {
+	foreach my $file (keys %{$md5_sums})
+	{
+		if ( ! -e $file ) { next ;}
 
-			if (index($file,"static/style/") > 0) {
-				$remove_auto = 1;				
-			}
-
-			$rc = unlink $file;
-			if ($rc != 1) {
-				$failed_flag = 1;
-			}
+		if (index($file,"static/style/") > 0) {
+			$remove_auto = 1;				
 		}
-	}
-	
-	if ($failed_flag != 0) {
-		
-		install($repository, $backup_directory, 1);
 
-		return (1,"Warning: Failed to remove package! Use --force to override");
-			
+		my $rc = unlink $file;
+		if ($rc != 1) {
+			install($repository, $backup_directory, 1);
+
+			return ('epm_error_remove_failed');
+		}
 	}
 	
 	if ($remove_auto > 0) {
@@ -685,7 +680,7 @@ sub remove
 
 	rmtree($package_path);
 
-	return (0,"Package Successfully Removed");
+	return ();
 
 }
 
