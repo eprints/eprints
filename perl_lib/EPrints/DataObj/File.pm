@@ -259,7 +259,8 @@ sub get_system_field_info
 
 		{ name=>"hash_type", type=>"id", maxlength=>32, },
 
-		{ name=>"filesize", type=>"bigint", sql_index=>0, },
+		{ name=>"filesize", type=>"bigint", sql_index=>0,
+			render_value => \&render_filesize },
 
 		{ name=>"mtime", type=>"timestamp", },
 
@@ -842,6 +843,14 @@ sub characters
 			$_ = substr($_,length($_) - length($_)%77);
 		}
 	}
+}
+
+sub render_filesize
+{
+	my( $repo, $field, $value ) = @_;
+
+	return $repo->make_doc_fragment if !EPrints::Utils::is_set( $value );
+	return $repo->make_text( EPrints::Utils::human_filesize( $value ) );
 }
 
 1;
