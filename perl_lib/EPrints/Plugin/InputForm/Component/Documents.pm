@@ -23,11 +23,6 @@ sub new
 	# a list of documents to unroll when rendering, 
 	# this is used by the POST processing, not GET
 
-	if( defined $self->{session} )
-	{
-		$self->{imagesurl} = $self->{session}->get_url( path => "static" );
-	}
-
 	return $self;
 }
 
@@ -60,8 +55,6 @@ sub update_from_form
 		my $doc_prefix = $self->{prefix}."_doc".$doc->id;
 
 		my @fields = $self->doc_fields( $doc );
-		# "main" is pseudo-hidden on the files tab
-		push @fields, $doc->dataset->field( "main" );
 
 		foreach my $field ( @fields )
 		{
@@ -87,9 +80,10 @@ sub update_from_form
 				$processor->add_message( "error", $self->html_phrase( "no_document", docid => $session->make_text($docid) ) );
 				return;
 			}
-			$self->_doc_update( $processor, $doc, $doc_action, \@eprint_docs );
+			$self->_doc_action( $processor, $doc, $doc_action );
 			return;
 		}
+		# reorder by dragging/dropping
 		elsif( $internal eq "reorder" )
 		{
 			$self->_reorder( $processor );
@@ -169,9 +163,9 @@ sub get_state_fragment
 	return "";
 }
 
-sub _doc_update
+sub _doc_action
 {
-	my( $self, $processor, $doc, $doc_internal, $eprint_docs ) = @_;
+	my( $self, $processor, $doc, $doc_internal ) = @_;
 
 	local $processor->{document} = $doc;
 	my $plugin;
@@ -234,31 +228,10 @@ sub has_help
 	return $self->{session}->get_lang->has_phrase( $self->html_phrase_id( "help" ) );
 }
 
-sub render_help
-{
-	my( $self, $surround ) = @_;
-	return $self->html_phrase( "help" );
-}
-
-sub render_title
-{
-	my( $self, $surround ) = @_;
-	return $self->html_phrase( "title" );
-}
-
 # hmmm. May not be true!
-sub is_required
-{
-	my( $self ) = @_;
-	return 0;
-}
+sub is_required { 0 }
 
-sub get_fields_handled
-{
-	my( $self ) = @_;
-
-	return ( "documents" );
-}
+sub get_fields_handled { qw( documents ) }
 
 sub render_content
 {
@@ -271,15 +244,11 @@ sub render_content
 
 	my $f = $session->make_doc_fragment;
 	
-	my $script = $f->appendChild( $self->{session}->make_element(
-		"script",
-		type => "text/javascript",
-	) );
-	$script->appendChild( $self->{session}->make_text(
+	$f->appendChild( $self->{session}->make_javascript(
 		"Event.observe(window, 'load', function() { new Component_Documents('".$self->{prefix}."') });"
 	) );
 
-	@{$self->{docs}} = $eprint->get_all_documents;
+	my @docs = $eprint->get_all_documents;
 
 	my %unroll = map { $_ => 1 } $session->param( $self->{prefix}."_view" );
 
@@ -293,17 +262,12 @@ sub render_content
 
 	my $panel = $session->make_element( "div",
 		id=>$self->{prefix}."_panels",
-		class=>"Component_Documents",
 	);
 	$f->appendChild( $panel );
 
-	foreach my $doc ( @{$self->{docs}} )
+	foreach my $doc ( @docs )
 	{
-		my $hide = 1;
-		if( @{$self->{docs}} == 1 || $unroll{$doc->id} )
-		{
-			$hide = 0;
-		}
+		my $hide = @docs > 1 && !$unroll{$doc->id};
 
 		$panel->appendChild( $self->_render_doc_div( $doc, $hide ));
 	}
@@ -321,10 +285,7 @@ sub export_mimetype
 		return $plugin->export_mimetype;
 	}
 
-	binmode(STDOUT, ":utf8");
-
-	# always text/html because we only do AJAX
-	return "text/html; charset=UTF-8";
+	return $self->SUPER::export_mimetype();
 }
 
 sub export
@@ -355,7 +316,9 @@ sub export
 
 		return if $doc->value( "eprintid" ) != $self->{workflow}->{item}->id;
 
-		$frag = $self->_render_doc_div( $doc, 1 ); # hide
+		my $hide = $self->{session}->param( "docid" );
+		$hide = !defined($hide) || $hide ne $docid;
+		$frag = $self->_render_doc_div( $doc, $hide );
 	}
 
 	print $self->{session}->xhtml->to_xhtml( $frag );
@@ -367,10 +330,11 @@ sub _render_doc_div
 	my( $self, $doc, $hide ) = @_;
 
 	my $session = $self->{session};
-	my $eprint_docs = $self->{docs};
 
 	my $docid = $doc->get_id;
 	my $doc_prefix = $self->{prefix}."_doc".$docid;
+
+	my $imagesurl = $session->current_url( path => "static" );
 
 	my $files = $doc->get_value( "files" );
 	do {
@@ -421,7 +385,7 @@ sub _render_doc_div
 	$s_options->appendChild( $session->make_text( " " ) );
 	$s_options->appendChild( 
 			$session->make_element( "img",
-				src=>"$self->{imagesurl}/style/images/plus.png",
+				src=>"$imagesurl/style/images/plus.png",
 				) );
 	$opts_toggle->appendChild( $s_options );
 
@@ -430,7 +394,7 @@ sub _render_doc_div
 	$h_options->appendChild( $session->make_text( " " ) );
 	$h_options->appendChild( 
 			$session->make_element( "img",
-				src=>"$self->{imagesurl}/style/images/minus.png",
+				src=>"$imagesurl/style/images/minus.png",
 				) );
 	$opts_toggle->appendChild( $h_options );
 
@@ -438,45 +402,7 @@ sub _render_doc_div
 	my $content_inner = $self->{session}->make_element( "div", id=>$doc_prefix."_opts_inner" );
 	$content->appendChild( $content_inner );
 
-	my $id_prefix = "doc.".$doc->get_id;
-
-	my @tabs;
-	
-	push @tabs, $self->_render_doc_metadata( $doc );
-	push @tabs, $self->_render_doc_files( $doc, $files );
-	push @tabs, $self->_render_related_docs( $doc );
-
-	# render the tab menu
-	$content_inner->appendChild( $session->render_tabs(
-				id_prefix => $id_prefix,
-				current => $tabs[0]->{id},
-				tabs => [map { $_->{id} } @tabs],
-				labels => {map { $_->{id} => $_->{title} } @tabs},
-				links => {map { $_->{id} => "" } @tabs},
-				) );
-
-	# panel that all the tab content sits in
-	my $panel = $session->make_element( "div",
-			id => "${id_prefix}_panels",
-			class => "ep_tab_panel",
-			style => "min-height: 250px",
-			);
-	$content_inner->appendChild( $panel );
-
-	foreach my $tab (@tabs)
-	{
-		my $view_div = $session->make_element( "div",
-				id => "${id_prefix}_panel_".$tab->{id},
-				);
-		if( $tab ne $tabs[0] )
-		{
-			$view_div->setAttribute( "style", "display: none" );
-		}
-		$view_div->appendChild( $tab->{content} );
-
-		$panel->appendChild( $view_div );
-	}
-
+	$content_inner->appendChild( $self->_render_doc_metadata( $doc )->{content} );
 	return $doc_div;
 }
 
@@ -696,168 +622,6 @@ sub _render_doc_metadata
 	});
 }
 
-sub _render_doc_files
-{
-	my( $self, $doc, $files ) = @_;
-
-	my $session = $self->{session};	
-
-	my $docid = $doc->get_id;
-	my $doc_prefix = $self->{prefix}."_doc".$docid;
-
-	my $doc_cont = $session->make_element( "div" );
-
-	$doc_cont->appendChild( $self->_render_filelist( $doc, $files ) );
-
-	my $block;
-
-	$block = $session->make_element( "div", class=>"ep_block" );
-	$block->appendChild( $session->render_button(
-		name => "_internal_".$doc_prefix."_update_doc",
-		value => $self->phrase( "update" ), 
-		class => "ep_form_internal_button",
-		) );
-	$doc_cont->appendChild( $block );
-
-	return ({
-		id => "files_".$doc->get_id,
-		title => $self->html_phrase( "Files" ),
-		content => $doc_cont,
-	});
-}
-
-sub _render_add_file
-{
-	my( $self, $document, $files ) = @_;
-
-	my $session = $self->{session};
-	
-	# Create a document-specific prefix
-	my $docid = $document->get_id;
-	my $doc_prefix = $self->{prefix}."_doc".$docid;
-
-	my $hide = @$files == 1;
-
-	my $f = $session->make_doc_fragment;	
-	if( $hide )
-	{
-		my $hide_add_files = $session->make_element( "div", id=>$doc_prefix."_af1" );
-		my $show = $self->{session}->make_element( "a", class=>"ep_only_js", href=>"#", onclick => "EPJS_blur(event); if(!confirm(".EPrints::Utils::js_string($self->phrase("really_add")).")) { return false; } EPJS_toggle('${doc_prefix}_af1',true);EPJS_toggle('${doc_prefix}_af2',false);return false", );
-		$hide_add_files->appendChild( $self->html_phrase( 
-			"add_files",
-			link=>$show ));
-		$f->appendChild( $hide_add_files );
-	}
-
-	my %l = ( id=>$doc_prefix."_af2", class=>"ep_upload_add_file_toolbar" );
-	$l{class} .= " ep_no_js" if( $hide );
-	my $toolbar = $session->make_element( "div", %l );
-	my $file_button = $session->make_element( "input",
-		name => $doc_prefix."_file",
-		id => "filename",
-		type => "file",
-		);
-	my $upload_button = $session->render_button(
-		name => "_internal_".$doc_prefix."_add_file",
-		class => "ep_form_internal_button",
-		value => $self->phrase( "add_file" ),
-		);
-	$toolbar->appendChild( $file_button );
-	$toolbar->appendChild( $session->make_text( " " ) );
-	$toolbar->appendChild( $upload_button );
-	$f->appendChild( $toolbar );
-
-	return $f; 
-}
-
-sub _render_filelist
-{
-	my( $self, $doc, $files ) = @_;
-
-	my $session = $self->{session};
-	
-	my $doc_prefix = $self->{prefix}."_doc".$doc->id;
-
-	my $main_file = $doc->get_main;
-	
-	my $div = $session->make_element( "div", class=>"ep_upload_files" );
-
-	my $table = $session->make_element( "table", class => "ep_upload_file_table" );
-	$div->appendChild( $table );
-
-	my $tr = $session->make_element( "tr", class => "ep_row" );
-	$table->appendChild( $tr );
-	my @fields;
-	for(qw( filename filesize mime_type hash_type hash ))
-	{
-		push @fields, $session->dataset( "file" )->field( $_ );
-	}
-	push @fields, $session->dataset( "document" )->field( "main" );
-	foreach my $field (@fields)
-	{
-		my $td = $session->make_element( "th" );
-		$tr->appendChild( $td );
-		$td->appendChild( $field->render_name( $session ) );
-	}
-	do { # actions
-		my $td = $session->make_element( "th" );
-		$tr->appendChild( $td );
-	};
-
-	foreach my $file (@$files)
-	{
-		$table->appendChild( $self->_render_file( $doc, $file ) );
-	}
-	
-	my $block = $session->make_element( "div", class=>"ep_block" );
-	$block->appendChild( $self->_render_add_file( $doc, $files ) );
-	$div->appendChild( $block );
-
-	return $div;
-}
-
-sub _render_file
-{
-	my( $self, $doc, $file ) = @_;
-
-	my $session = $self->{session};
-
-	my $doc_prefix = $self->{prefix}."_doc".$doc->id;
-	my $filename = $file->value( "filename" );
-	my $is_main = $filename eq $doc->get_main;
-
-	my @values;
-
-	my $link = $session->render_link( $doc->get_url( $filename ), "_blank" );
-	$link->appendChild( $session->make_text( $filename ) );
-	push @values, $link;
-	
-	push @values, $session->make_text( EPrints::Utils::human_filesize( $file->value( "filesize" ) ) );
-	
-	push @values, $session->make_text( $file->value( "mime_type" ) );
-	
-	push @values, $session->make_text( $file->value( "hash_type" ) );
-	
-	push @values, $session->make_text( $file->value( "hash" ) );
-	
-	push @values, $session->make_element( "input",
-		type => "radio",
-		name => $doc_prefix."_main",
-		value => $filename,
-		($is_main ? (checked => "checked") : ()) );
-
-	my $button_title = $self->phrase( "delete_file" );
-	push @values, $session->make_element( "input", 
-		type => "image", 
-		src => $self->{imagesurl}."/style/images/delete.png",
-		name => "_internal_".$doc_prefix."_delete_".$file->id,
-		onclick => "EPJS_blur(event); return confirm( ".EPrints::Utils::js_string($self->phrase( "delete_file_confirm", filename => $filename ))." );",
-		value => $button_title,
-		title => $button_title );
-
-	return $session->render_row( @values );
-}
-
 sub validate
 {
 	my( $self ) = @_;
@@ -949,7 +713,7 @@ sub parse_config
 
 	my @fields = $config_dom->getElementsByTagName( "field" );
 
-	my $doc_ds = $self->{session}->get_repository->get_dataset( "document" );
+	my $doc_ds = $self->{session}->get_dataset( "document" );
 
 	foreach my $field_tag ( @fields )
 	{

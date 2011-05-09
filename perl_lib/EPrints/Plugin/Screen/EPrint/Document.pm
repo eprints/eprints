@@ -26,7 +26,7 @@ sub wishes_to_export
 
 sub export_mimetype { "application/json" }
 
-sub export
+sub json
 {
 	my( $self ) = @_;
 
@@ -38,9 +38,15 @@ sub export
 			placement => $doc->value( "placement" ),
 		};
 	}
+	return \@json;
+}
+
+sub export
+{
+	my( $self ) = @_;
 
 	my $plugin = $self->{session}->plugin( "Export::JSON" );
-	print $plugin->output_dataobj( \@json );
+	print $plugin->output_dataobj( $self->json );
 }
 
 sub action_cancel
@@ -106,7 +112,7 @@ sub hidden_bits
 	return(
 		$self->SUPER::hidden_bits,
 		documentid => $self->{processor}->{document}->id,
-		return_to => $self->{session}->param( "return_to" ),
+		return_to => $self->{processor}->{return_to},
 	);
 }
 
