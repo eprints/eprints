@@ -68,8 +68,15 @@ my $conf;
 
 BEGIN
 {
-	$conf = $EPrints::SystemSettings::conf = {};
-	eval "use EPrints::SystemSettings;";
+	# SystemSettings can be overridden by loading it before EPrints, which is
+	# used by some unit tests
+	if( !defined($EPrints::SystemSettings::conf) )
+	{
+		$EPrints::SystemSettings::conf = {};
+		eval "use EPrints::SystemSettings;";
+	}
+
+	$conf = $EPrints::SystemSettings::conf;
 
 	# set default global configuration values
 	if( !defined $conf->{base_path} )
