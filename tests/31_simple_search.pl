@@ -21,14 +21,12 @@ $session = EPrints::Test::OnlineSession->new( $session, {
 	},
 });
 
-my $sconf = $session->config( "search", "simple" );
-
 EPrints::ScreenProcessor->process( 
 	session => $session, 
 	url => $session->config( "perl_url" )."/search/simple",
-	sconf => $sconf,
-	template => $sconf->{template},
 	screenid => "Search",
+	searchid => "simple",
+	dataset => $session->dataset( "archive" ),
 );
 
 #print STDERR $session->test_get_stdout;
