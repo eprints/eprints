@@ -520,15 +520,15 @@ sub render_modify
 	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || $DEFAULT_MAX_WIDTH;
 
 	my $r_file = $self->get_stored_file( "dataobj.xml" );
+	my $r_file_new = defined($r_file) ? $r_file->get_local_copy() : undef;
 
-	unless( defined( $r_file ) )
+	if( !defined $r_file || !defined $r_file_new )
 	{
 		my $div = $self->{session}->make_element( "div" );
 		$div->appendChild( $self->{session}->html_phrase( "lib/history:no_file" ) );
 		return $div;
 	}
 
-	my $r_file_new = $r_file->get_local_copy();
 	my $file_new = EPrints::XML::parse_xml( "$r_file_new" );
 	my $dom_new = $file_new->getFirstChild;
 
