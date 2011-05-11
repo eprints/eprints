@@ -3856,6 +3856,7 @@ Each file inside this archive will be created as an <b>individual</b> document i
 	<epp:phrase id="Plugin/Screen/Admin/Config:bad_file">Missing or badly named file name (can only contain [A-Za-z0-9_.]).</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Document/Files:help">Add or remove files or change the main file for this document.</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Document/Files:update">Apply</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/Files:title">Files</epp:phrase>
 
 
 </epp:phrases>
