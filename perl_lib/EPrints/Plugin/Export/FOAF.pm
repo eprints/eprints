@@ -44,7 +44,7 @@ sub output_dataobj
 	
 	my %fields = (
 		nick => $session->make_text( $dataobj->get_value( "username" ) ),
-		name => $dataobj->get_value( "name" ),
+		name => $dataobj->render_value( "name" ),
 	);
 
 	foreach my $field ( keys %fields )
