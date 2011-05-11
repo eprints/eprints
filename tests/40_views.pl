@@ -57,6 +57,11 @@ my $test_view =
 		"DEFAULT" ],
 };
 
+my $view = EPrints::Update::Views->new(
+	repository => $session,
+	view => $test_view
+);
+
 $VIEW_DIR = $repository->get_conf( "htdocs_path" )."/".$langid."/view/$test_id";
 
 my @files;
@@ -64,11 +69,9 @@ my @files;
 EPrints::Test::mem_increase();
 Test::More::diag( "memory footprint\n" );
 
-push @files, update_view_by_path(
-		session => $session,
-		view => $test_view, 
+$view->update_view_by_path(
+		on_write => sub { push @files, $_[0]; diag( $_[0] ); },
 		langid => $langid, 
-		path => [],
 		do_menus => 1,
 		do_lists => 1 );
 
@@ -84,40 +87,4 @@ $session->terminate;
 
 ok(1);
 
-sub update_view_by_path
-{
-	my( %opts ) = @_;
-
-	my @files = ();
-
-	my $sizes = EPrints::Update::Views::get_sizes( $opts{session}, $opts{view}, $opts{path} );
-
-	if( defined $sizes )
-	{
-		# has sub levels
-		if( $opts{do_menus} )
-		{
-			my @menu_files = EPrints::Update::Views::update_view_menu( $opts{session}, $opts{view}, $opts{langid}, $opts{path} );
-			push @files, @menu_files;
-		}
-
-		foreach my $menu_value ( keys %{$sizes} )
-		{
-			my %newopts = %opts;
-			$menu_value = EPrints::Utils::escape_filename( $menu_value );
-			$newopts{path} = [@{$newopts{path}}, $menu_value];
-			push @files, update_view_by_path( %newopts );
-			last; # only do one branch
-		}
-	}
-
-	if( !defined $sizes && $opts{do_lists} )
-	{
-		# is a leaf node
-		my @leaf_files = EPrints::Update::Views::update_view_list( $opts{session}, $opts{view}, $opts{langid}, $opts{path} );
-		push @files, @leaf_files;
-	}
-
-	return @files;
-}
 
