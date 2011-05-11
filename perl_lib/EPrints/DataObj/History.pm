@@ -549,6 +549,11 @@ sub render_modify
 	}
 
 	my $r_file_old = $r_file->get_local_copy();
+	if( !defined $r_file_old )
+	{
+		return $self->render_create;
+	}
+
 	my $file_old = EPrints::XML::parse_xml( "$r_file_old" );
 	my $dom_old = $file_old->getFirstChild;
 
