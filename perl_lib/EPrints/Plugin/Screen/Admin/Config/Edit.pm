@@ -988,9 +988,8 @@ sub config_edit
 	if (defined $parser_files)
 	{
 		my $rel_path = $self->{session}->config( "rel_path" );
-		my $js = $self->{session}->make_element( "script", type=>"text/javascript", src=> "$rel_path/javascript/codemirror/codemirror.js" );
-		$div->appendChild($js);
-		my $js2 = $self->{session}->make_javascript('
+		$div->appendChild( $self->{session}->make_javascript( undef, src=> "$rel_path/javascript/codemirror/codemirror.js" ) );
+		$div->appendChild( $self->{session}->make_javascript('
 			document.observe("dom:loaded",function(){
 			var editor = CodeMirror.fromTextArea(\'code\', {
 			height: "350px",
@@ -999,8 +998,7 @@ sub config_edit
 			path: "'.$rel_path.'/javascript/codemirror/",
 			continuousScanning: 500,
 			lineNumbers: true
-			});});');
-		$div->appendChild($js2);
+			});});') );
 	}
 	
 	my $box;

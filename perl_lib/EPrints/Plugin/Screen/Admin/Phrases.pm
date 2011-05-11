@@ -376,18 +376,16 @@ sub render
 			$session->get_lang->get_phrase_ids( 1 );
 	}
 
-	my $script = $session->make_element( "script", type=>"text/javascript" );
 	my $ep_save_phrase = EPrints::Utils::js_string( $self->phrase( "save" ) );
 	my $ep_reset_phrase = EPrints::Utils::js_string( $self->phrase( "reset" ) );
 	my $ep_cancel_phrase = EPrints::Utils::js_string( $self->phrase( "cancel" ) );
-	$script->appendChild( $session->make_text( <<EOJ ) );
+	$f->appendChild( $session->make_javascript( <<EOJ ) );
 var ep_phraseedit_phrases = {
 	save: $ep_save_phrase,
 	reset: $ep_reset_phrase,
 	cancel: $ep_cancel_phrase
 };
 EOJ
-	$f->appendChild( $script );	
 
 	my $table = $session->make_element( "table", id=>"ep_phraseedit_table" );
 	my $tr = $session->make_element( "tr" );

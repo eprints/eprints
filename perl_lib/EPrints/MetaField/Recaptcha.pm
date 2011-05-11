@@ -55,8 +55,7 @@ sub render_input_field_actual
 		error => $value,
 		);
 
-	my $script = $frag->appendChild( $session->make_element( "script",
-		type => "text/javascript",
+	my $script = $frag->appendChild( $session->make_javascript( undef,
 		src => $url ) );
 
 	$url = URI->new( "https://api-secure.recaptcha.net/noscript" );
