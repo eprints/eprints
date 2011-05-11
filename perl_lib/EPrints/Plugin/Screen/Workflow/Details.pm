@@ -23,6 +23,13 @@ sub new
 		},
 	];
 
+	my $session = $self->{session};
+	if( $session )
+	{
+		$self->{title} = $session->make_element( "span" );
+		$self->{title}->appendChild( $self->SUPER::render_tab_title );
+	}
+
 	return $self;
 }
 
@@ -81,6 +88,23 @@ sub _render_name_maybe_with_link
 	return $link;
 }
 
+sub DESTROY
+{
+	my( $self ) = @_;
+
+	if( $self->{title} )
+	{
+		$self->{session}->xml->dispose( $self->{title} );
+	}
+}
+
+sub render_tab_title
+{
+	my( $self ) = @_;
+
+	return $self->{title};
+}
+
 sub render
 {
 	my( $self ) = @_;
@@ -90,6 +114,8 @@ sub render
 	my $workflow = $self->workflow;
 
 	my $page = $session->make_doc_fragment;
+
+	my $has_problems = 0;
 
 	#$self->{edit_ok} = $self->could_obtain_eprint_lock; # hmm
 	my $plugin = $session->plugin( "Screen::" . $self->edit_screen,
@@ -206,6 +232,7 @@ sub render
 			$td = $session->make_element( "td", colspan => 2 );
 			$tr->appendChild( $td );
 			$td->appendChild( $self->render_stage_warnings( $stage ) );
+			$has_problems = 1 if $td->hasChildNodes;
 		}
 
 		foreach $tr (@$rows)
@@ -224,6 +251,12 @@ sub render
 		$table->appendChild( $tr );
 		$td = $session->make_element( "td", colspan => 2, style=>'height: 1em' );
 		$tr->appendChild( $td );
+	}
+
+	if( $has_problems )
+	{
+		my $span = $self->{title};
+		$span->setAttribute( style => "padding-left: 20px; background: url('".$session->current_url( path => "static", "style/images/warning-icon.png" )."') no-repeat;" );
 	}
 
 	return $page;
