@@ -188,7 +188,17 @@ sub create_element
 
 Returns a new XML element named $name with $value for contents and optional attribute pairs @attrs.
 
-$value may be undef, an XML tree otherwise it is stringified and appended as a text node.
+$value may be undef, an XML tree or an array ref of children, otherwise it is stringified and appended as a text node. Child entries are passed de-referenced to L</create_data_element>.
+
+	$xml->create_data_element(
+		"html",
+		[
+			[ "body",
+				[ "div", undef, id => "contents" ]
+			],
+		],
+		xmlns => "http://www.w3.org/1999/xhtml"
+	);
 
 =cut
 
@@ -199,7 +209,14 @@ sub create_data_element
 	my $node = $self->create_element( $name, @attrs );
 	return $node if !defined $value;
 
-	if( UNIVERSAL::can( $value, "hasChildNodes" ) ) # supported by all libraries
+	if( ref($value) eq "ARRAY" )
+	{
+		foreach my $child (@$value)
+		{
+			$node->appendChild( $self->create_data_element( @$child ) );
+		}
+	}
+	elsif( UNIVERSAL::can( $value, "hasChildNodes" ) ) # supported by all libraries
 	{
 		$node->appendChild( $value );
 	}
