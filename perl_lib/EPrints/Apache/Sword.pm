@@ -42,13 +42,9 @@ sub handler_servicedocument
 	my $depositor = $response->{depositor};		# can be undef if no X-On-Behalf-Of in the request
 
 	my $service_conf = $repo->config( "sword","service_conf" );
+	$service_conf = {} if !defined $service_conf;
 
-# Load some default values if those were not set in the sword.pl configuration file
-	if(!defined $service_conf || !defined $service_conf->{title})
-	{
-		$service_conf = {};
-		$service_conf->{title} = $repo->phrase( "archive_name" );
-	}
+	$service_conf->{title} = $repo->phrase( "archive_name" ) if !defined $service_conf->{title};
 
 # SERVICE and WORKSPACE DEFINITION
 
@@ -714,26 +710,9 @@ sub authenticate
 		return \%response;
 	}
 
-	my $username;
-	my $password;
+	my( $username, $password ) = split ':', $decode_authen, 2;
 
-	if($decode_authen =~ /^(\w+)\:(\w+)$/)
-	{
-		$username = $1;
-		$password = $2;
-	}
-	else
-	{
-		$response{error} = { 	
-			status_code => HTTP_UNAUTHORIZED, 
-			x_error_code => "ErrorAuth",
-			error_href => "http://eprints.org/sword/error/ErrorAuth",
-		};
-		$response{verbose_desc} .= "[ERROR] Authentication failed (invalid base64 encoding).\n";
-		return \%response;
-	}
-
-	unless( $repo->valid_login( $username, $password ) )
+	if( !$repo->valid_login( $username, $password ) )
 	{
 		$response{error} = {
 			status_code => HTTP_UNAUTHORIZED, 
