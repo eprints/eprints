@@ -7,9 +7,9 @@ EPrints::Plugin::Screen::User::SavedSearches
 
 package EPrints::Plugin::Screen::User::SavedSearches;
 
-use EPrints::Plugin::Screen::User;
+use EPrints::Plugin::Screen;
 
-@ISA = ( 'EPrints::Plugin::Screen::User' );
+@ISA = ( 'EPrints::Plugin::Screen' );
 
 use strict;
 
@@ -48,6 +48,7 @@ sub from
 	$url->query_form(	
 		screen => "Listing",
 		dataset => "saved_search",
+		userid => $self->{session}->current_user->id,
 	);
 
 	$self->{session}->redirect( $url );

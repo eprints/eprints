@@ -6,7 +6,9 @@ EPrints::Plugin::Screen::User::History
 
 package EPrints::Plugin::Screen::User::History;
 
-our @ISA = ( 'EPrints::Plugin::Screen::User' );
+use EPrints::Plugin::Screen::Workflow;
+
+@ISA = ( 'EPrints::Plugin::Screen::Workflow' );
 
 use strict;
 
@@ -19,8 +21,8 @@ sub new
 	$self->{expensive} = 1;
 	$self->{appears} = [
 		{
-			place => "user_actions",
-			position => 300,
+			place => "dataobj_user_view_tabs",
+			position => 600,
 		}
 	];
 
@@ -65,45 +67,39 @@ sub get_history
 	return $self->{processor}->{$cache_id};
 }
 
-
-
 sub render
 {
 	my( $self ) = @_;
 
 	my $list = $self->get_history;
-
-
 	my $cacheid = $list->{cache_id};
 
 	my $container = $self->{session}->make_element( 
 				"div", 
 				class=>"ep_paginate_list" );
+
+	# a tab's screen is the parent screen
+	my %params = (
+		$self->hidden_bits,
+		screen => $self->{processor}->{screenid},
+		view => $self->get_subtype,
+	);
+
 	my %opts =
 	(
-		params => { 
-			screen => $self->{processor}->{screenid},
-			_cache => $cacheid,
-		},
+		params => \%params,
 		render_result => sub { return $self->render_result_row( @_ ); },
 		render_result_params => $self,
 		page_size => 50,
 		container => $container,
 	);
 
-
-
-	my $page = $self->{session}->render_form( "GET" );
-	$page->appendChild( 
-		EPrints::Paginate->paginate_list( 
+	return EPrints::Paginate->paginate_list( 
 			$self->{session}, 
 			"_history", 
 			$list,
-			%opts ) );
-
-	return $page;
+			%opts );
 }	
-
 
 sub render_result_row
 {
@@ -113,9 +109,6 @@ sub render_result_row
 	$div->appendChild( $result->render_citation( "default" ) );
 	return $div;
 }
-
-
-
 
 1;
 

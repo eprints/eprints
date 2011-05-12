@@ -169,18 +169,28 @@ sub has_workflow
 
 sub workflow
 {
-	my( $self, $staff ) = @_;
+	my( $self ) = @_;
 
 	my $cache_id = "workflow";
 
+	my $user = $self->{session}->current_user;
+	my $staff = 0;
+	if( defined $user )
+	{
+		my $priv = $self->{processor}->{dataset}->id . '/edit';
+		# staff mode if user is an admin or has editorial privileges for this
+		# object
+		$staff =
+			$user->value( "usertype" ) eq "admin" ||
+			($user->allow( $priv, $self->{processor}->{dataobj} ) & 8);
+	}
+
 	if( !defined $self->{processor}->{$cache_id} )
 	{
-		my %opts = (
-			session => $self->{session},
+ 		$self->{processor}->{$cache_id} = EPrints::Workflow->new( $self->{session}, "default",
 			item => $self->{processor}->{"dataobj"},
 			STAFF_ONLY => [$staff ? "TRUE" : "FALSE", "BOOLEAN"],
 		);
- 		$self->{processor}->{$cache_id} = EPrints::Workflow->new( $self->{session}, "default", %opts );
 	}
 
 	return $self->{processor}->{$cache_id};
@@ -197,12 +207,11 @@ sub uncache_workflow
 
 sub render_blister
 {
-	my( $self, $sel_stage_id, $staff_mode ) = @_;
+	my( $self, $sel_stage_id ) = @_;
 
 	my $session = $self->{session};
-	my $staff = 0;
 
-	my $workflow = $self->workflow( $staff_mode );
+	my $workflow = $self->workflow();
 	my $table = $session->make_element( "table", cellpadding=>0, cellspacing=>0, class=>"ep_blister_bar" );
 	my $tr = $session->make_element( "tr" );
 	$table->appendChild( $tr );
@@ -240,17 +249,15 @@ sub render_blister
 	return $table;
 }
 
-sub render_hidden_bits
+sub hidden_bits
 {
 	my( $self ) = @_;
 
-	my $chunk = $self->{session}->make_doc_fragment;
-
-	$chunk->appendChild( $self->{session}->render_hidden_field( "dataset", $self->{processor}->{dataset}->id ) );
-	$chunk->appendChild( $self->{session}->render_hidden_field( "dataobj", $self->{processor}->{dataobj}->id ) );
-	$chunk->appendChild( $self->SUPER::render_hidden_bits );
-
-	return $chunk;
+	return(
+		$self->SUPER::hidden_bits,
+		dataset => $self->{processor}->{dataset}->id,
+		dataobj => $self->{processor}->{dataobj}->id,
+	);
 }
 
 sub _render_action_aux

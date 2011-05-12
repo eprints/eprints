@@ -240,9 +240,7 @@ sub run_property
 	if( $ref eq "HASH" || $ref eq "EPrints::RepositoryConfig" )
 	{
 		my $v = $objvar->[0]->{ $value->[0] };
-		my $type = ref( $v );
-		$type = "STRING" if( $type eq "" ); 	
-		$type = "XHTML" if( $type =~ /^XML::/ );
+		my $type = ref( $v ) =~ /^XML::/ ? "XHTML" : "STRING";
 		return [ $v, $type ];
 	}
 	if( $ref !~ m/::/ )

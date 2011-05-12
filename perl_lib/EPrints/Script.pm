@@ -142,6 +142,10 @@ sub print
 		return $state->{session}->make_text( "[No type for value '$result->[0]' from '$code']" );
 	}
 
+	if( !UNIVERSAL::isa( $field, "EPrints::MetaField" ) )
+	{
+		EPrints->abort( "Expected MetaField but got '$field'" );
+	}
 	return $field->render_value( $state->{session}, $result->[0], 0, 0, $result->[2] );
 }
 

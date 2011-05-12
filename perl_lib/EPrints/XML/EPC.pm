@@ -342,7 +342,7 @@ sub _process_foreach
 		$list = [ $list ];
 	}
 
-	if( ref( $type ) =~ m/EPrints::MetaField/ && $type->get_property( "multiple" ) )
+	if( UNIVERSAL::isa( $type, "EPrints::MetaField" ) && $type->get_property( "multiple" ) )
 	{
 		$type = $type->clone;
 		$type->set_property( "multiple", 0 );
@@ -355,9 +355,7 @@ sub _process_foreach
 		my $thistype = $type;
 		if( !defined $thistype || $thistype eq "ARRAY" )
 		{
-			$thistype = ref( $item );
-			$thistype = "STRING" if( $thistype eq "" ); 	
-			$thistype = "XHTML" if( $thistype =~ /^XML::/ );
+			$thistype = ref( $item ) =~ /^XML::/ ? "XHTML" : "STRING";
 		}
 		$newparams{"index"} = [ $index, "INTEGER" ];
 		$newparams{$iterator} = [ $item, $thistype ];

@@ -48,25 +48,24 @@ sub render_title
 	my $dataset = $self->{processor}->{dataset};
 	my $dataobj = $self->{processor}->{dataobj};
 
-	my $url = URI->new( $session->current_url );
-	$url->query_form(
-		screen => $self->listing_screen,
-		dataset => $dataset->id
-	);
-	my $listing = $session->render_link( $url );
-	$listing->appendChild( $dataset->render_name( $session ) );
+	my $listing;
+	my $priv = $dataset->id . "/view";
+	if( $self->EPrints::Plugin::Screen::allow( $priv ) )
+	{
+		my $url = URI->new( $session->current_url );
+		$url->query_form(
+			screen => $self->listing_screen,
+			dataset => $dataset->id
+		);
+		$listing = $session->render_link( $url );
+		$listing->appendChild( $dataset->render_name( $session ) );
+	}
+	else
+	{
+		$listing = $dataset->render_name( $session );
+	}
 
 	my $desc = $dataobj->render_description();
-	if( $self->{id} ne "Screen::$screen" )
-	{
-		$url->query_form(
-			screen => $screen,
-			dataset => $dataset->id,
-			dataobj => $dataobj->id
-		);
-		my $link = $session->render_link( $url );
-		$link->appendChild( $desc );
-	}
 
 	return $self->html_phrase( "page_title",
 		listing => $listing,

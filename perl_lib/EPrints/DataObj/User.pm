@@ -1175,6 +1175,8 @@ my $PRIVMAP =
 	general => 
 	[
 		"user/view:owner",
+		"user/details:owner",
+		"user/history:owner",
 	],
 
 	"edit-own-record" => 
@@ -1237,11 +1239,6 @@ my $PRIVMAP =
 		"indexer/stop",
 		"indexer/start",
 		"indexer/force_start",
-		"user/remove",
-		"user/edit",
-		"user/view",
-		"user/history",
-		"user/staff/edit",
 		"create_user",
 		"subject/edit:editor",
 		"staff/user_search",
@@ -1265,15 +1262,35 @@ my $PRIVMAP =
 		"config/regen_abstracts",
 		"config/regen_views",
 		"config/edit/perl",
-		"import/view",
-		"import/edit",
+
 		"storage/manager",
+		"repository/epm", #EPrints Package Manager
+
+		"event_queue/destroy",
 		"event_queue/details",
 		"event_queue/edit",
+		"event_queue/export",
 		"event_queue/view",
-		"event_queue/destroy",
+		"eprint/destroy",
+		"eprint/details",
+		"eprint/edit",
+		"eprint/export",
+		"eprint/view",
 		"eprint/archive/edit", # BatchEdit
-		"repository/epm", #EPrints Package Manager
+		"import/view",
+		"import/edit",
+		"saved_search/destroy",
+		"saved_search/details",
+		"saved_search/edit",
+		"saved_search/export",
+		"saved_search/view",
+		"user/remove",
+		"user/edit",
+		"user/view",
+		"user/details",
+		"user/destroy",
+		"user/history",
+		"user/staff/edit",
 	],
 
 	"toolbox" => 
