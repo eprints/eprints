@@ -236,22 +236,15 @@ sub handler
 
 		$r->set_handlers( PerlMapToStorageHandler => sub { OK } );
 
-		if( $uri =~ s! ^atom\b !!x )
-		{
-			$r->set_handlers( PerlResponseHandler => [ 'EPrints::Sword::AtomHandler' ] );
-		}
-		elsif( $uri =~ s! ^deposit\b !!x )
-		{
-			$r->set_handlers( PerlResponseHandler => [ 'EPrints::Sword::DepositHandler' ] );
-		}
-		elsif( $uri =~ s! ^servicedocument\b !!x )
-		{
-			$r->set_handlers( PerlResponseHandler => [ 'EPrints::Sword::ServiceDocument' ] );
-		}
-		else
+		if( $uri !~ s! ^(atom|deposit|servicedocument)(?:/|$) !!x )
 		{
 			return NOT_FOUND;
 		}
+
+		my $f = "EPrints::Apache::Sword::handler_$1";
+		$r->pnotes( uri => $uri );
+		$r->set_handlers( PerlResponseHandler => [ \&$f ] );
+
 		return OK;
 	}
 	

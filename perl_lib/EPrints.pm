@@ -178,6 +178,7 @@ use EPrints::Apache::Storage;
 use EPrints::Apache::REST;
 use EPrints::Apache::RobotsTxt;
 use EPrints::Apache::SiteMap;
+use EPrints::Apache::Sword;
 
 use EPrints::BackCompatibility;
 
