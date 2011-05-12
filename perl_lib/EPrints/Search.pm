@@ -248,7 +248,7 @@ END
 
 	# Arrays for the Search::Field objects
 	$self->{searchfields} = [];
-	$self->{filterfields} = {};
+	$self->{filtersmap} = {};
 	# Map for MetaField names -> corresponding EPrints::Search::Field objects
 	$self->{searchfieldmap} = {};
 
@@ -390,7 +390,7 @@ sub add_field
 	# Create a new searchfield
 	my $searchfield = EPrints::Search::Field->new( %opts );
 
-	$self->_add_field( $searchfield );
+	$self->_add_field( $searchfield, $filter );
 
 	return $searchfield;
 }
