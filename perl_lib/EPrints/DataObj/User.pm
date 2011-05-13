@@ -1291,6 +1291,7 @@ my $PRIVMAP =
 		"user/destroy",
 		"user/history",
 		"user/staff/edit",
+		"repository/epm-submit", #EPrints Package Manager - Bazaar Package Submission
 	],
 
 	"toolbox" => 

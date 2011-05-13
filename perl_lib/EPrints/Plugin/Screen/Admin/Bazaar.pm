@@ -27,7 +27,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 	
-	$self->{actions} = [qw/ remove_package install_package handle_upload install_cached_package remove_cached_package install_bazaar_package update_bazaar_package edit_config /]; 
+	$self->{actions} = [qw/ remove_package install_package handle_upload install_cached_package remove_cached_package install_bazaar_package update_bazaar_package edit_config submit_to_bazaar /]; 
 		
 	$self->{appears} = [
 		{ 
@@ -102,6 +102,69 @@ sub allow_edit_config
 	return $self->allow( "repository/epm" );
 }
 
+sub allow_submit_to_bazaar
+{
+	my( $self ) = @_;
+
+	return $self->allow( "repository/epm-submit" );
+}
+
+sub action_submit_to_bazaar
+{
+	my ( $self ) = @_;
+
+	my $repo = $self->{repository};
+        
+	my $config_file = $repo->param( "configfile" );
+	my $store_url = $repo->param( "store_url" );
+	my $username = $repo->param( "store_user" );
+	my $password = $repo->param( "store_pass" );
+        
+	my $package = $repo->param( "package" );
+
+	if (!defined $store_url || !defined $username || !defined $password) 
+	{
+		my $action_url = URI::http->new;
+		$action_url->query_form(
+			screen => $self->{processor}->{screenid},
+			action => "submit_to_bazaar",
+			package => $package,
+		);
+
+		my $show_url = $action_url->clone;
+		$repo->redirect($action_url);	
+		exit();
+	}
+	my $archive_root = $repo->get_conf("archiveroot");
+        my $epm_path = $archive_root . "/var/epm/cache/";
+	my $package_path = $epm_path . $package;
+	if (!defined $package) 
+	{
+		$self->{processor}->add_message( "error", $repo->html_phrase( "epm_error_no_package" ) );
+		return;
+	}
+	unless ( -e $package_path )
+	{
+		$self->{processor}->add_message( "error", $repo->html_phrase( "epm_error_no_package" ) );
+		return;
+	}
+
+	my $uri = EPrints::EPM::submit_to_store($repo,$store_url,$username,$password,$package_path);
+
+	my $phrase = $repo->make_doc_fragment();
+	$phrase->appendChild($self->html_phrase( "submitted" ));
+	$phrase->appendChild($repo->make_text( " @ "));
+	my $a = $repo->make_element( "a", href=>$uri );
+	$a->appendChild($repo->make_text($uri));
+	$phrase->appendChild($a);
+
+	$self->{processor}->add_message( "message", $phrase );
+	
+	return;
+
+}
+
+
 sub action_edit_config 
 {
 	my ( $self ) = @_;
@@ -121,7 +184,6 @@ sub action_edit_config
 		$screen_id = $config_file;
 		$self->{processor}->{screenid} = $screen_id;
 	}
-
 }
 
 sub action_update_bazaar_package
@@ -348,15 +410,100 @@ sub render
 	my $session = $self->{session};
 
 	my $action = $session->param( "action" ) || "";
-	
+
 	if( $action eq "showapp" )
 	{
 		return $self->render_app( $session->param( "appid" ) );
+	} 
+	elsif ($action eq "submit_to_bazaar")
+	{
+		return $self->submission_properties( $session->param( "package" ) );
 	}
 	else
 	{
 		return $self->render_app_menu;
 	}
+}
+
+sub submission_properties
+{
+	my( $self, $package ) = @_;
+
+	my $repo = $self->{repository};
+	
+	my $archive_root = $repo->get_conf("archiveroot");
+        my $epm_path = $archive_root . "/var/epm/cache/";
+	my $package_path = $epm_path . $package;
+	unless ( -e $package_path )
+	{
+		$self->{processor}->add_message( "error", $repo->html_phrase( "epm_error_no_package" ) );
+		return;
+	}
+
+	my $html = $repo->make_doc_fragment;
+
+	my $p = $repo->make_element("p");
+	$html->appendChild($p);
+	$p->appendChild($self->html_phrase("bazaar_submission_text"));
+	
+	my $screen_id = "Screen::".$self->{processor}->{screenid};
+	my $screen = $repo->plugin( $screen_id, processor => $self->{processor} );
+
+	my $form = $screen->render_form("POST");
+	$html->appendChild($form);
+
+	my $sources = $repo->config( "epm_sources" );
+	$sources = [] if !defined $sources;
+
+	unless (defined $sources) {
+		$self->{processor}->add_message( "error", $repo->html_phrase( "epm_error_no_stores" ) );
+		return;
+	}
+
+	$form->appendChild($self->html_phrase("select_store"));
+	my $select = $form->appendChild( $repo->xml->create_element( "select",
+				name => 'store_url'
+				));
+	SOURCE: foreach my $epm_source (@$sources) 
+	{
+		my $option = $repo->xml->create_element( "option",
+				value => $epm_source->{base_url},
+				);
+		$option->appendChild($repo->make_text($epm_source->{name}));
+		$select->appendChild($option);
+	}	
+	$form->appendChild($repo->make_element("br"));
+	
+	my $user_field = $repo->make_element(
+				"input",
+				name=>"store_user",
+				type=>"text"
+				);
+	my $pass_field = $repo->make_element(
+				"input",
+				name=>"store_pass",
+				type=>"password"
+				);
+	$form->appendChild($repo->html_phrase("user_fieldname_username"));
+	$form->appendChild($user_field);
+	$form->appendChild($repo->make_element("br"));
+	$form->appendChild($repo->html_phrase("user_fieldname_password"));
+	$form->appendChild($pass_field);
+	$form->appendChild($repo->make_element("br"));
+	$form->appendChild($repo->make_element("br"));
+
+	my $submit_to_bazaar_button = $screen->render_action_button({
+		action => "submit_to_bazaar",
+		screen => $screen,
+		screen_id => $screen_id,
+		hidden => {
+			package => $package,
+		},
+	} );
+	$form->appendChild($submit_to_bazaar_button);
+	
+
+	return $html;
 }
 
 sub render_app
@@ -790,7 +937,7 @@ sub tab_cached_epms
 				},
 			});
 			$td_main->appendChild($install_button);
-			#$td_main->appendChild($session->make_element("br"));
+			$td_main->appendChild($session->make_element("br"));
 			my $submit_to_bazaar_button = $screen->render_action_button({
 				action => "submit_to_bazaar",
 				screen => $screen,
@@ -799,7 +946,7 @@ sub tab_cached_epms
 					package => $app->{package},
 				},
 			} );
-			#$td_main->appendChild($submit_to_bazaar_button);
+			$td_main->appendChild($submit_to_bazaar_button);
 		}
 		$td_main->appendChild($session->make_element("br"));
 		$td_main->appendChild($session->make_element("br"));

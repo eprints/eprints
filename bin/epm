@@ -75,6 +75,64 @@ if ( $operation eq "install") {
 		$message .= $update_app->{package} . "\n";
 	}
 
+} elsif ($operation eq "submit") {
+
+	my $sources = $repository->config( "epm_sources" );
+
+	if (!defined $sources) 
+	{
+		print "No stores defined\n";
+		exit();
+	}
+		
+	my $count = 0;
+	my $string;
+	my $store_url;
+        SOURCE: foreach my $epm_source (@$sources)
+        {
+		$count++;
+		$string .= $count . ": " . $epm_source->{name} . "\n";
+		$store_url = $epm_source->{base_url};
+        }
+
+	unless ($count < 2) {
+		$store_url = undef;
+		print "Please select a store to submit to:\n\n";
+		print $string
+		print "[1-$count]? \n";
+		my $selection_count = Term::ReadKey::ReadLine( 0 );
+
+		$count = 0;	
+		SOURCE: foreach my $epm_source (@$sources)
+		{
+			$count++;
+			if ("$count" eq "$selection_count") {
+				$store_url = $epm_source->{base_url};
+			}
+		}
+	}
+
+	print "Please enter your credentials for your chosen store ($store_url):\n\n";
+# credentials:
+	print "Username: ";
+	my $username = Term::ReadKey::ReadLine( 0 );
+	BEGIN {
+		eval "use Term::ReadKey";
+		eval "use Compat::Term::ReadKey" if $@;
+	}
+	print "Enter your password: ";
+	Term::ReadKey::ReadMode('noecho');
+	my $password = Term::ReadKey::ReadLine( 0 );
+	Term::ReadKey::ReadMode('normal');
+	print "\n";
+
+	chomp $username;
+	chomp $password;
+	
+	my $ret = EPrints::EPM::submit_to_store($repository,$store_url,$username,$password,$path_in);
+#	my $ret = EPrints::Sword::DepositTools::deposit_file($store_url,$username,$password,$path_in,undef);
+
+	print "\n\n$ret\n\n";
 }
 
 print $message . "\n";

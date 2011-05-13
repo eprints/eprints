@@ -913,6 +913,52 @@ sub get_app_from_eprint
 	return $app;
 }
 
+sub submit_to_store
+{
+	my ( $repository, $store_url, $store_user, $store_pass, $epm_path ) = @_;
+	
+	my $archive_root = $repository->get_conf("archiveroot");
+
+	my $epm = $epm_path;
+	if ( -d $epm_path ) 
+	{
+		use Cwd;
+		my $cwd = getcwd();
+		#my $full_path = $archive_root . "/" . $epm_path;	
+		chdir($epm_path);
+		opendir(DIR, $epm_path) || die "Couldn't opendir: $!\n";
+		my @files2 = grep { $_ ne '.' && $_ ne '..' } readdir DIR;
+		$epm = compress(\@files2);
+		chdir($cwd);
+	}
+
+	use EPrints::Sword::DepositClient;
+	my $uri = EPrints::Sword::DepositClient::deposit_file($store_url,$store_user,$store_pass,$epm,undef);
+
+	return $uri;
+}
+
+sub compress { 
+	my $epm = '/tmp/foo.epm';
+	#my $epm = File::Temp->new( SUFFIX => ".epm", UNLINK => 0 );
+	use Archive::Zip;
+	my @add_array=@{ $_[0] };  
+	#my ($fh,$name) = Archive::Zip->tempFile(); # new instance
+	my $obj = Archive::Zip->new();
+	foreach (@add_array) {
+		if ( -d $_ ) {
+			$obj->addDirectory($_); # add files
+		} 
+		else 
+		{
+			$obj->addFile($_); # add files
+		}
+	}
+	$obj->writeToFileNamed($epm);
+	return $epm;
+}
+
+
 sub verify_app
 {
 	my ( $app ) = @_;
