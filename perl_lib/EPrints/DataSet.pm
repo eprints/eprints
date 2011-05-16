@@ -1094,9 +1094,9 @@ the current session.
 
 sub render_name
 {
-	my( $self, $session ) = @_;
+	my( $self ) = @_;
 
-        return $session->html_phrase( "datasetname_".$self->id() );
+	return $self->{repository}->html_phrase( "datasetname_".$self->id() );
 }
 
 ######################################################################
