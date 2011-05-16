@@ -49,7 +49,7 @@ sub render_input_field_actual
 
 	my $frag = $session->make_doc_fragment;
 
-	my $url = URI->new( "https://api-secure.recaptcha.net/challenge" );
+	my $url = URI->new( "https://www.google.com/recaptcha/api/challenge" );
 	$url->query_form(
 		k => $public_key,
 		error => $value,
@@ -58,7 +58,7 @@ sub render_input_field_actual
 	my $script = $frag->appendChild( $session->make_javascript( undef,
 		src => $url ) );
 
-	$url = URI->new( "https://api-secure.recaptcha.net/noscript" );
+	$url = URI->new( "https://www.google.com/recaptcha/api/noscript" );
 	$url->query_form(
 		k => $public_key,
 		error => $value,
@@ -107,7 +107,7 @@ sub form_value_actual
 		return "invalid-captcha-sol";
 	}
 
-	my $url = URI->new( "http://api-verify.recaptcha.net/verify" );
+	my $url = URI->new( "http://www.google.com/recaptcha/api/verify" );
 
 	my $ua = LWP::UserAgent->new();
 
