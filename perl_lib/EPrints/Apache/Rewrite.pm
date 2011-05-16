@@ -230,24 +230,29 @@ sub handler
 	}
 
 	# SWORD-APP
-	if( $uri =~ s! ^$urlpath/sword-app/ !!x )
+	if( $uri =~ s! ^$urlpath/(sword-app/servicedocument)|(id/records)\b !!x )
 	{
 		$r->handler( 'perl-script' );
 
 		$r->set_handlers( PerlMapToStorageHandler => sub { OK } );
 
-		if( $uri !~ s! ^(atom|deposit|servicedocument)(?:/|$) !!x )
-		{
-			return NOT_FOUND;
-		}
+		$r->push_handlers(PerlAccessHandler => [
+			\&EPrints::Apache::Auth::authen,
+			\&EPrints::Apache::Auth::authz
+			] );
 
-		my $f = "EPrints::Apache::Sword::handler_$1";
-		$r->pnotes( uri => $uri );
-		$r->set_handlers( PerlResponseHandler => [ \&$f ] );
+		if( $1 )
+		{
+			$r->set_handlers( PerlResponseHandler => [ \&EPrints::Apache::Sword::handler_servicedocument ] );
+		}
+		else
+		{
+			$r->set_handlers( PerlResponseHandler => [ \&EPrints::Apache::Sword::handler_records ] );
+		}
 
 		return OK;
 	}
-	
+
 	#CRUD
 	my $method = $r->method();
 	if (!($method eq "GET") and $uri !~ /^(?:$cgipath)/ and $uri !~ /^\/rest\// ) 

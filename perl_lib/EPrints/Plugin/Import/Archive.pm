@@ -78,28 +78,28 @@ by default this is index.html or the first file
 sub set_main_file
 {
 	my ($self, $doc) = @_;
-	
+
 	my $repo = $self->{session};
 
 	if( !$doc->set_main( "index.html" ) && !$doc->set_main( "index.htm" ) )
-        {
-                my $files = $doc->value( "files" );
-                if( @$files )
-                {
-                        my $file = $files->[0];
-                        $doc->set_value( "main", $file->value( "filename" ) );
-                }
-        }
-	
-	if( $doc->is_set( "main" ) )
-        {
-                my $file = $doc->get_stored_file( $doc->value( "main" ) );
-                $doc->set_value( "format", $repo->call( 'guess_doc_type',
-			$repo,
-                        $file->value( "filename" ) ) );
-        }
+	{
+		my $files = $doc->value( "files" );
+		if( @$files )
+		{
+			my $file = $files->[0];
+			$doc->set_value( "main", $file->value( "filename" ) );
+		}
+	}
 
-        $doc->commit;
+	if( $doc->is_set( "main" ) )
+	{
+		my $file = $doc->get_stored_file( $doc->value( "main" ) );
+		$doc->set_value( "format", $repo->call( 'guess_doc_type',
+					$repo,
+					$file->value( "filename" ) ) );
+	}
+
+	$doc->commit;
 }
 
 
@@ -155,6 +155,46 @@ sub add_directory_to_document
         }, $directory );
 
         return $rc;
+}
+
+sub create_epdata_from_directory
+{
+	my( $self, $dir, $single ) = @_;
+
+	my $epdata = $single ?
+		{ files => [] } :
+		[];
+
+	eval { File::Find::find( {
+		no_chdir => 1,
+		wanted => sub {
+			return if -d $File::Find::name;
+			my $filepath = $File::Find::name;
+			my $filename = substr($filepath, length($dir) + 1);
+			open(my $fh, "<", $filepath) or die "Error opening $filename: $!";
+			if( $single )
+			{
+				push @{$epdata->{files}}, {
+					filename => $filename,
+					filesize => -s $fh,
+					_content => $fh,
+				};
+			}
+			else
+			{
+				push @{$epdata}, {
+					files => [{
+						filename => $filename,
+						filesize => -s $fh,
+						_content => $fh,
+					}],
+				};
+			}
+			die "Too many files" if @{$epdata->{files}} > 100;
+		},
+	}, $dir ) };
+
+	return !$@ ? $epdata : undef;
 }
 
 ######################################################################

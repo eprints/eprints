@@ -19,12 +19,11 @@ sub new
 
 	my $self = $class->SUPER::new( %params );
 
-	$self->{name} = "Import (zip)";
+	$self->{name} = "Unpack an archive (.zip or .tar.gz)";
 	$self->{visible} = "all";
-	$self->{advertise} = 0;
-	$self->{produce} = [qw( dataobj/document list/document )];
-	$self->{accept} = [qw( application/zip application/x-gzip )];
-	$self->{actions} = [qw( unpack )];
+	$self->{advertise} = 1;
+	$self->{produce} = [qw( dataobj/document dataobj/eprint )];
+	$self->{accept} = [qw( application/zip application/x-gzip sword:http://purl.org/net/sword/package/SimpleZip )];
 
 	return $self;
 }
@@ -34,50 +33,41 @@ sub input_fh
 	my( $self, %opts ) = @_;
 
 	my $fh = $opts{fh};
-	
-	my $dataobj = $opts{dataobj};
+	my $dataset = $opts{dataset};
 	
 	my $rc = 0;
 
-	my $zipfile = $self->upload_archive($fh);
+	my( $type, $zipfile ) = $self->upload_archive($fh);
 
 	my $repo = $self->{session};
 
-	my $cgi = $repo->get_query;
-
-	my $mime_type = $repo->call('guess_doc_type',$repo,$fh );
-
-	my $type = "";
-	if ($mime_type eq "application/zip") {
-		$type = "zip";
-	} else {
-		$type = "targz";
-	}
-
 	my $dir = $self->add_archive($zipfile, $type );
 
-	my @docs;
+	my $epdata;
 
-	if ($dataobj->isa("EPrints::DataObj::Document") ) {
-		$rc = $self->add_directory_to_document($dir,$dataobj);
-		if ($rc != 0) {
-			$rc = $self->set_main_file($dataobj);
-			push @docs, $dataobj;
-		}
-		
-	} elsif ($dataobj->isa("EPrints::DataObj::EPrint") ) {
-		 @docs = $self->add_directory_to_eprint($dir,$dataobj);
+	if( $dataset->base_id eq "document" )
+	{
+		$epdata = $self->create_epdata_from_directory( $dir, 1 );
+		warn($@), return if !defined $epdata;
+	}
+	elsif( $dataset->base_id eq "eprint" )
+	{
+		$epdata = $self->create_epdata_from_directory( $dir, 0 );
+		warn($@), return if !defined $epdata;
+		$epdata => {
+			documents => $epdata,
+		};
 	}
 	
-	unlink $dir;
-	
-	return undef if !scalar @docs;
+	my @ids;
+
+	my $dataobj = $self->epdata_to_dataobj( $dataset, $epdata );
+	push @ids, $dataobj->id if defined $dataobj;
 
 	return EPrints::List->new(
 		session => $repo,
-		dataset => $repo->dataset( "document" ),
-		ids => [map { $_->id } @docs] );
-
+		dataset => $dataset,
+		ids => \@ids );
 }
 
 
@@ -97,24 +87,27 @@ in this context we mean ".zip" or ".tar.gz" archive.)
 
 sub upload_archive
 {
-        my( $self, $fh ) = @_;
+	my( $self, $fh ) = @_;
 
-        use bytes;
+	use bytes;
 
-        binmode($fh);
+	binmode($fh);
 
-        my $zipfile = File::Temp->new();
-        binmode($zipfile);
+	my $zipfile = File::Temp->new();
+	binmode($zipfile);
 
 	my $rc;
-        while($rc = sysread($fh, $_, 4096))
-        {
-                syswrite($zipfile, $_);
-        }
+	my $lead;
+	while($rc = sysread($fh, my $buffer, 4096))
+	{
+		$lead = $buffer if !defined $lead;
+		syswrite($zipfile, $buffer);
+	}
 	EPrints->abort( "Error reading from file handle: $!" ) if !defined $rc;
 
-	return $zipfile;
+	my $type = substr($lead,0,2) eq "PK" ? "zip" : "targz";
 
+	return($type, $zipfile);
 }
 
 1;

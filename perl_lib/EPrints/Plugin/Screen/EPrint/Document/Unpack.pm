@@ -6,6 +6,9 @@ EPrints::Plugin::Screen::EPrint::Document::Unpack
 
 package EPrints::Plugin::Screen::EPrint::Document::Unpack;
 
+# Use the Handler from Extract
+use EPrints::Plugin::Screen::EPrint::Document::Extract;
+
 our @ISA = ( 'EPrints::Plugin::Screen::EPrint::Document' );
 
 use strict;
@@ -45,10 +48,12 @@ sub can_be_viewed
 
 	return 0 if !$self->SUPER::can_be_viewed;
 
-	my @plugins = $self->{session}->get_plugins(
+	my @plugins = grep {
+		$_->can_produce( "dataobj/document" ) &&
+		$_->can_produce( "dataobj/eprint" )
+	} $self->{session}->get_plugins(
 		type => "Import",
 		can_accept => $doc->value( "format" ),
-		can_action => "unpack",
 	);
 
 	return scalar(@plugins) > 0;
@@ -129,10 +134,44 @@ sub _expand
 
 	return if !$doc;
 
-	my( $plugin ) = $self->{session}->get_plugins(
+	# we ask the plugin to import into either documents or eprints
+	# -> produce a single document or
+	# -> produce lots of documents
+	# the normal epdata_to_dataobj is intercepted (parse_only=>1) and we merge
+	# the new documents into our eprint
+	my $handler = EPrints::Plugin::Screen::EPrint::Document::Extract::Handler->new(
+		processor => $self->{processor},
+		parsed => sub {
+			my( $epdata ) = @_;
+
+			$epdata = [$epdata];
+			if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
+			{
+				$epdata = $epdata->[0]->{documents};
+			}
+
+			foreach my $docdata (@$epdata)
+			{
+				$docdata->{relation} ||= [];
+				push @{$docdata->{relation}}, {
+					type => EPrints::Utils::make_relation( "isPartOf" ),
+					uri => $doc->internal_uri
+				};
+
+				return $eprint->create_subdataobj( "documents", $docdata );
+			}
+		},
+	);
+
+	my( $plugin ) = grep {
+		$_->can_produce( "dataobj/document" ) &&
+		$_->can_produce( "dataobj/eprint" )
+	} $self->{session}->get_plugins({
+			Handler => $handler,
+			parse_only => 1,
+		},
 		type => "Import",
 		can_accept => $doc->value( "format" ),
-		can_action => "unpack",
 	);
 
 	return if !$plugin;
@@ -143,9 +182,8 @@ sub _expand
 	my $fh = $file->get_local_copy;
 
 	my $list = $plugin->input_fh(
-		action => ["unpack"],
 		fh => $fh,
-		dataobj => $dataobj,
+		dataset => $dataobj->get_dataset,
 	);
 	return if !$list || !$list->count;
 

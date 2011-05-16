@@ -258,6 +258,8 @@ sub parsed
 {
 	my( $self, $epdata ) = @_;
 
+	$self->{parsed}( $epdata ) if $self->{parsed};
+
 	$self->{epdata} = $epdata;
 }
 
