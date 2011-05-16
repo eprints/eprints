@@ -556,6 +556,41 @@ sub type_info
 	}
 }
 
+# use MySQL 4.0 compatible "SHOW INDEX"
+# This method gets the entire SHOW INDEX response and builds a look-up table of
+# keys with their *ordered* columns. This ensures even if MySQL is weird and
+# returns out of order results we won't break.
+sub index_name
+{
+	my( $self, $table, @cols ) = @_;
+
+	my $hash = sub { join ':', map { $self->quote_identifier( $_ ) } @_ }; 
+
+	my $needle = &$hash( @cols );
+	my %indexes;
+
+	my $sth = $self->prepare("SHOW INDEX FROM ".$self->quote_identifier( $table ));
+	$sth->execute;
+
+	my( $key_name, $seq, $col_name );
+	$sth->bind_col( $sth->{NAME_uc_hash}->{KEY_NAME} + 1, \$key_name );
+	$sth->bind_col( $sth->{NAME_uc_hash}->{SEQ_IN_INDEX} + 1, \$seq );
+	$sth->bind_col( $sth->{NAME_uc_hash}->{COLUMN_NAME} + 1, \$col_name );
+
+	while($sth->fetch)
+	{
+		$indexes{$key_name} ||= [];
+		$indexes{$key_name}[$seq - 1] = $col_name;
+	}
+	foreach $key_name (keys %indexes)
+	{
+		return $key_name if
+			$needle eq &$hash( @{$indexes{$key_name}} );
+	}
+
+	return undef;
+}
+
 1; # For use/require success
 
 ######################################################################
