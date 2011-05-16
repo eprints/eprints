@@ -160,6 +160,19 @@ sub try
 	return $r;
 }
 
+=item EPrints->dump( $VAR1 [, $VAR2 ... ] )
+
+Use L<Data::Dumper> to dump the passed variables to STDERR.
+
+=cut
+
+sub dump
+{
+	shift(@_) if @_ eq __PACKAGE__;
+
+	warn Data::Dumper::Dumper( @_ );
+}
+
 use Apache::DBI; # must be first! 	 	 
 
 use EPrints::Const; # must be before any use of constants
