@@ -54,7 +54,7 @@ sub input_fh
 	{
 		$epdata = $self->create_epdata_from_directory( $dir, 0 );
 		warn($@), return if !defined $epdata;
-		$epdata => {
+		$epdata = {
 			documents => $epdata,
 		};
 	}
