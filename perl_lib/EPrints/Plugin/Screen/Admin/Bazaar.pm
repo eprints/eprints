@@ -230,8 +230,15 @@ sub action_install_bazaar_package
 	}
 
 	$message =~ /epm_([^_]*)/;
-
-	$self->{processor}->add_message( $1, $repo->html_phrase($message) );
+	if (substr($message,0,length("epm_warning_custom_")) eq "epm_warning_custom_" || substr($message,0,length("epm_error_custom_")) eq "epm_error_custom_") 
+	{
+		$message = substr($message,index($message,"custom_")+7,length($message));
+		$self->{processor}->add_message( $1, $repo->make_text($message) );
+	}
+ 	else 
+	{
+		$self->{processor}->add_message( $1, $repo->html_phrase($message) );
+	}
 
 }
 
@@ -304,19 +311,13 @@ sub action_install_cached_package
 	my $archive_root = $self->{session}->get_conf("archiveroot");
         my $epm_path = $archive_root . "/var/epm/cache/";
 	$package = $epm_path . $package;
+	
+	my $message = EPrints::EPM::install($repo, $epm_file);
 
-	my ( $rc, $message ) = EPrints::EPM::install($session,$package);
-	my $type = "message";
-	if ( $rc > 0 ) 
+	if(!defined $message)
 	{
-		$type = "warning";
-	}
-	elsif ( $rc > 0.5 ) {
-		$type = "error";
-	}
-	else
-	{
-		my $plugin = $session->plugin( "Screen::Admin::Reload",
+		$message = 'epm_message_install_successful';
+		my $plugin = $repo->plugin( "Screen::Admin::Reload",
 			processor => $self->{processor}
 			);
 		if( defined $plugin )
@@ -326,10 +327,16 @@ sub action_install_cached_package
 		}
 	}
 
-	$self->{processor}->add_message(
-			$type,
-			$session->make_text($message)
-			);
+	$message =~ /epm_([^_]*)/;
+	if (substr($message,0,length("epm_warning_custom_")) eq "epm_warning_custom_" || substr($message,0,length("epm_error_custom_")) eq "epm_error_custom_") 
+	{
+		$message = substr($message,index($message,"custom_")+7,length($message));
+		$self->{processor}->add_message( $1, $repo->make_text($message) );
+	}
+ 	else 
+	{
+		$self->{processor}->add_message( $1, $repo->html_phrase($message) );
+	}
 	
 }
 
@@ -347,11 +354,15 @@ sub action_remove_package
 	
 	if( $message =~ /epm_([^_]*)/ )
 	{
-		$self->{processor}->add_message(
-				$1,
-				$repo->html_phrase($message)
-				);
-		return;
+		if (substr($message,0,7) eq "custom_") 
+		{
+			$self->{processor}->add_message( $1, $message );
+		}
+		else 
+		{
+			$self->{processor}->add_message( $1, $repo->html_phrase($message) );
+		}
+		return if ($1 == "error");
 
 	}
 

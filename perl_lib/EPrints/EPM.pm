@@ -217,10 +217,8 @@ sub install
 		if ( -e $installed_path and defined $backup_directory and !$force) {
 			# Upgrade the installed file (if it is controlled by the previous version)
 			
-		# PATRICK what might this be doing?
 			if( $md5_sums->{$installed_path} ne md5sum($installed_path) )
 			{
-#PATRICK this overwrites the config file even if it has changed currently....
 				$message = 'epm_warning_config_changed';
 				if ( ( substr $filename, 0, 9 ) ne "cfg/cfg.d" ) 
 				{
@@ -235,7 +233,8 @@ sub install
 			}
 		}
 			
-		# Install the file, all that logic for this:
+#Davetaz: this overwrites the config file even if it has changed currently... yes here it does
+
 		copy($filepath, $installed_path);
 
 		# Now some more logic to check it is installed
@@ -264,6 +263,9 @@ sub install
 	my $install_failed = check_install($repository);
 	if ($install_failed) {
 		remove($repository,$package_name,1);
+		if ( defined $backup_directory) {
+			install($repository, $backup_directory, 1);
+		}
 		return ('epm_error_compilation_failed');
 	}
 
@@ -272,11 +274,13 @@ sub install
 	# Make any dataset upgrades (this is upgrade safe :) )
 	my $schema_after = get_current_schema($repository);
 	my $rc = install_dataset_diffs($repository,$schema_before,$schema_after);
-	if ( $rc > 0 ) {
+	if ( $rc < 1 ) {
 		remove($repository,$package_name,1);
+		if ( defined $backup_directory) {
+			install($repository, $backup_directory, 1);
+		}
 		return('epm_error_datasets_failed');
 	}
-
 
 	# Re-read spec file (ensures we have the installed one) 
 	my $keypairs = read_spec_file($installed_spec_file);
@@ -288,7 +292,6 @@ sub install
 	$plugin_path = "EPrints/Plugin/Screen/" . $plugin_path . ".pm";
 
 	my $plugin = $repository->plugin( $plugin_id );
-
 	if (defined $plugin) 
 	{
 		foreach my $inkey(keys %INC) {
@@ -312,20 +315,31 @@ sub install
 
 		# Call Post Install or Upgrade routine.
 
+		my $ok = 1;
+		my $plugin_message;
 		if ($plugin->can( "action_postinst" ) and !$old_version) 
 		{
-			$plugin->action_postinst();
-			return( 'epm_error_postinst_failed');
+			($ok, $message) = $plugin->action_postinst();
 		} 
 		
 		if ($old_version && $plugin->can( "action_upgrade" )) 
 		{
-			$plugin->action_upgrade($old_version, $new_version);
-			return('epm_error_upgrade_failed');
+			($ok, $message) = $plugin->action_upgrade($old_version, $new_version);
 		}
 
 		# PATRICK im concerned we dont actually remove the package here.....
-		return('epm_error_postinst_failed');
+		# Davetaz this is ugly but the command line module will need a full processor to do it neater. Also plug-ins should not return phrases as these may be gone by the time they are displayed (see prerm)
+		# This next section creates a custom message if the plug-in returned one and there was an error. 
+		return("epm_warning_custom_" . $message) if ($ok == 0.5 and $message);
+		return("epm_error_custom_" . $message) if ($ok == 0 and $message);
+		return('epm_warning_postinst_failed') if ($ok == 0.5);
+		if (!$ok) {
+			remove($repository,$package_name,1);
+			if ( defined $backup_directory) {
+				install($repository, $backup_directory, 1);
+			}
+			return('epm_error_postinst_failed');
+		}
 
 	}
 
@@ -385,7 +399,7 @@ sub install_dataset_diffs
 	
 	my $db = $repo->get_db();
 
-	my $rc = 0;
+	my $rc = 1;
 
 	foreach my $datasetid ( keys %$after )
 	{
@@ -591,7 +605,9 @@ sub make_backup
 sub remove
 {
 	my ($repository, $package_name, $force) = @_;
-	
+
+	my $message;
+
 	my $archive_root = $repository->get_repository->get_conf("archiveroot");
 	my $epm_path = $archive_root . "/var/epm/packages/";
 	my $package_path = $epm_path . "/" . $package_name;
@@ -614,33 +630,24 @@ sub remove
 
 	if (defined $plugin) 
 	{
-#PATRICK - Not at all happy about this prerm return set is way to complex
-		my $message;
-		my $return = 0;
+		my $ok = 1;
 		if ($plugin->can( "action_prerm" )) 
 		{
-			($return,my $prerm_msg) = $plugin->action_prerm();
-			$message = $prerm_msg;
-			if ( $return >= 1 ) 
-			{
-				return('epm_error_prerm_failed');
-			}
+			($ok, $message) = $plugin->action_prerm();
 		} 
-		if (!$return && $plugin->can( "action_removed_status" ))
-		{
-			$return = $plugin->action_removed_status();
-			$message = "Package cannot be removed as the packages pre-remove script failed.";
-		}
-		if ($return > 0) {
-			return ($return,$message);
-		}
+		
+		$message = "epm_warning_custom_" . $message if ($ok == 0.5 and $message);
+		$message = 'epm_warning_prerm_failed' if ($ok == 0.5);
+		return("epm_error_custom_" . $message) if ($ok == 0 and $message and !$force);
+		return('epm_error_prerm_failed') if ($ok == 0 and !$force);
+
 	} 
 
 	my $md5_sums = package_md5s($repository, $package_path); 
 
 	foreach my $file (keys %{$md5_sums})
 	{
-		if($md5_sums->{$file} eq md5sum($file) && ( substr $file, 0, 9 ) eq "cfg/cfg.d" )
+		if($md5_sums->{$file} eq md5sum($file) && ( substr $file, 0, 9 ) eq "cfg/cfg.d" and !$force)
 		{
 			return('epm_error_package_changed');
 		}
@@ -664,7 +671,7 @@ sub remove
 		if ($rc != 1) {
 			install($repository, $backup_directory, 1);
 
-			return ('epm_error_remove_failed');
+			return ('epm_error_remove_failed') if (!$force);
 		}
 	}
 	
@@ -680,7 +687,7 @@ sub remove
 
 	rmtree($package_path);
 
-	return ();
+	return $message;
 
 }
 
