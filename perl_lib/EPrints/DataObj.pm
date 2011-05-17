@@ -669,6 +669,10 @@ sub set_value_raw
 		if( !_equal( $self->{data}->{$fieldname}, $value ) )
 		{
 			$self->{changed}->{$fieldname} = $self->{data}->{$fieldname};
+			# FIXME: IF $self->{data}->{$fieldname} is undef then any check for a simple change will FAIL!
+			if (!defined $self->{data}->{$fieldname}) {
+				$self->{changed}->{$fieldname} = "CHANGED BUT NOT AN ID!";
+			}
 			my $field = $self->{dataset}->get_field( $fieldname );
 			if( !$field->property( "volatile" ) )
 			{
