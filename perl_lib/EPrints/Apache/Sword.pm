@@ -145,7 +145,7 @@ sub handler_records
 		my @plugins;
 		if( $headers->{packaging} )
 		{
-			@plugins = plugins( $repo, can_accept => $headers->{packaging} );
+			@plugins = plugins( $repo, can_accept => $PACKAGING_PREFIX.$headers->{packaging} );
 			return sword_error( $repo, $r,
 				status => HTTP_BAD_REQUEST,
 				href => "http://purl.org/net/sword/error/ErrorContent",
