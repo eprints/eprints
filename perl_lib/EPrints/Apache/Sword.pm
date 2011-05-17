@@ -71,7 +71,7 @@ sub handler_servicedocument
 		[ "dcterms:abstract", $service_conf->{dcterms_abstract} ],
 # COLLECTION TREATMENT
 		[ "sword:treatment", $treatment ],
-	], "href" => $repo->current_url( host => 1, path => "static", "sword-app/collection" ),
+	], "href" => $repo->current_url( host => 1, path => "static", "id/records" ),
 	);
 	$service->appendChild( $collection );
 
