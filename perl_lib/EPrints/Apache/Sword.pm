@@ -523,7 +523,7 @@ sub send_response
 
 	use bytes;
 
-	$r->status( $status );
+	$r->status( $status == OK ? HTTP_OK : $status );
 	$r->content_type( $content_type );
 	if( defined $content )
 	{
