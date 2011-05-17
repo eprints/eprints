@@ -295,24 +295,24 @@ sub action_install_cached_package
 {
 	my ( $self ) = @_;
         
-	my $session = $self->{session};
+	my $repo = $self->{session};
 
 	$previous = "custom";
 
-        my $package = $self->{session}->param( "package" );
+        my $package = $repo->param( "package" );
 
 	if (!defined $package) {
 		$self->{processor}->add_message(
 			"error",
-			$session->make_text("No package specified")
+			$repo->make_text("No package specified")
 			);
 		return; 
 	}
-	my $archive_root = $self->{session}->get_conf("archiveroot");
+	my $archive_root = $repo->get_conf("archiveroot");
         my $epm_path = $archive_root . "/var/epm/cache/";
 	$package = $epm_path . $package;
 	
-	my $message = EPrints::EPM::install($repo, $epm_file);
+	my $message = EPrints::EPM::install($repo, $package);
 
 	if(!defined $message)
 	{

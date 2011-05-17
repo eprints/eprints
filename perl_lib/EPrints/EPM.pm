@@ -635,7 +635,6 @@ sub remove
 		{
 			($ok, $message) = $plugin->action_prerm();
 		} 
-		
 		$message = "epm_warning_custom_" . $message if ($ok == 0.5 and $message);
 		$message = 'epm_warning_prerm_failed' if ($ok == 0.5);
 		return("epm_error_custom_" . $message) if ($ok == 0 and $message and !$force);
