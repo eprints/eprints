@@ -4650,7 +4650,7 @@ sub send_http_header
 
 	if( !defined $opts{content_type} )
 	{
-		$opts{content_type} = 'text/html; charset=UTF-8';
+		$opts{content_type} = 'text/html; charset=utf-8';
 	}
 	$self->{request}->content_type( $opts{content_type} );
 
@@ -5321,6 +5321,7 @@ sub mail_administrator
 my $PUBLIC_PRIVS =
 {
 	"eprint_search" => 1,
+	"eprint/archive/view" => 1,
 	"eprint/archive/export" => 1,
 };
 
