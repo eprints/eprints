@@ -16,7 +16,7 @@ sub new
 
 	my $self = $class->SUPER::new( %params );
 
-	$self->{mimetype} = "text/xml; charset=utf-8";
+	$self->{mimetype} = "application/xml; charset=utf-8";
 	$self->{suffix} = ".xml";
 
 	return $self;

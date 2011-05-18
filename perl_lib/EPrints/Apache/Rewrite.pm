@@ -230,7 +230,7 @@ sub handler
 	}
 
 	# SWORD-APP
-	if( $uri =~ s! ^$urlpath/(sword-app/servicedocument)|(id/records)\b !!x )
+	if( $uri =~ s! ^$urlpath/sword-app/servicedocument$ !!x )
 	{
 		$r->handler( 'perl-script' );
 
@@ -241,49 +241,11 @@ sub handler
 			\&EPrints::Apache::Auth::authz
 			] );
 
-		if( $1 )
-		{
-			$r->set_handlers( PerlResponseHandler => [ \&EPrints::Apache::Sword::handler_servicedocument ] );
-		}
-		else
-		{
-			$r->set_handlers( PerlResponseHandler => [ \&EPrints::Apache::Sword::handler_records ] );
-		}
+		$r->set_handlers( PerlResponseHandler => [ \&EPrints::Apache::CRUD::servicedocument ] );
 
 		return OK;
 	}
 
-	#CRUD
-	my $method = $r->method();
-	if (!($method eq "GET") and $uri !~ /^(?:$cgipath)/ and $uri !~ /^\/rest\// ) 
-	{
-		$r->handler( 'perl-script' );
-
-		$r->set_handlers( PerlMapToStorageHandler => sub { OK } );
-
-		if ($method eq "DELETE") { 
-			$r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::DeleteHandler' ] );
-			return OK;
-		}
-		if ($method eq "POST") {
-			if ($uri eq "/") {
-				my $url = $repository->config( "base_url" )."/sword-app/deposit/inbox";
-				return redir_see_other( $r, $url );
-			}
-			else 
-			{
-				$r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::PostHandler' ] );
-				return OK;
-			}
-		}
-		if ($method eq "PUT") { 
-			$r->set_handlers( PerlResponseHandler => [ 'EPrints::CRUD::PutHandler' ] );
-			return OK;
-		};
-			
-		#return OK;
-	}
-	
 	# robots.txt (nb. only works if site is in root / of domain.)
 	if( $uri =~ m! ^$urlpath/robots\.txt$ !x )
 	{
@@ -317,18 +279,13 @@ sub handler
 	}
 
 	# URI redirection
-	if( $uri =~ m! ^$urlpath/id/(repository|dump|records)$ !x )
+	if( $uri =~ m! ^$urlpath/id/(repository|dump)$ !x )
 	{
 		my $file = $1;
 		my $accept = EPrints::Apache::AnApache::header_in( $r, "Accept" );
 		$accept = "application/rdf+xml" unless defined $accept;
 		my $can_accept = "list/triple";
 
-		if ( $file eq "records" ) 
-		{
-			$can_accept = "list/eprint";
-		}
-		
 		my $plugin = content_negotiate_best_plugin( 
 			$repository, 
 			accept_header => $accept,
@@ -374,124 +331,71 @@ sub handler
 		return redir_see_other( $r, $url );
 	}
 
-	if( $uri =~ s! ^$urlpath/id/([^/]+)/([^/]+)(?:/([^/]+))? !!x )
+	if( $uri =~ s! ^$urlpath/id/records$ !!x )
 	{
-		my( $datasetid, $id, $part ) = ( $1, $2, $3 );
-		$part = '' if !defined $part;
+		$r->pnotes( dataset => $repository->dataset( "eprint" ) );
+		$r->pnotes( uri => $uri );
+
+		my( $rc, $plugin ) =
+			EPrints::Apache::CRUD::content_negotiate_best_plugin( $r );
+
+		return $rc if $rc != OK;
+
+		$r->pnotes( plugin => $plugin );
+
+		$r->handler( 'perl-script' );
+
+		$r->set_handlers( PerlMapToStorageHandler => sub { OK } );
+
+		$r->push_handlers(PerlAccessHandler => [
+			\&EPrints::Apache::CRUD::authen,
+			\&EPrints::Apache::CRUD::authz
+			] );
+
+		$r->set_handlers( PerlResponseHandler => [ "EPrints::Apache::CRUD" ] );
+
+		return OK;
+	}
+
+	if( $uri =~ s! ^$urlpath/id/([^/]+)/([^/]+) !!x )
+	{
+		my( $datasetid, $id ) = ( $1, $2 );
 
 		my $dataset = $repository->get_dataset( $datasetid );
-		my $item;
-		if( defined $dataset )
-		{
-			$item = $dataset->dataobj( $id );
-		}
-		return NOT_FOUND if !defined $item;
+		return NOT_FOUND if !defined $dataset;
 
-		# Subject URI's redirect to the top of that particular subject tree
-		# rather than the node in the tree. (the ancestor with "ROOT" as a parent).
-		if( $dataset->id eq "subject" )
-		{
-ANCESTORS: foreach my $anc_subject_id ( @{$item->get_value( "ancestors" )} )
-		   {
-			   my $anc_subject = $dataset->dataobj($anc_subject_id);
-			   next ANCESTORS if( !$anc_subject );
-			   next ANCESTORS if( !$anc_subject->is_set( "parents" ) );
-			   foreach my $anc_subject_parent_id ( @{$anc_subject->get_value( "parents" )} )
-			   {
-				   if( $anc_subject_parent_id eq "ROOT" )
-				   {
-					   $item = $anc_subject;
-					   last ANCESTORS;
-				   }
-			   }
-		   }
-		}
-
-		# content negotiation. Only worries about type, not charset
-		# or language etc. at this stage.
-		my $accept = EPrints::Apache::AnApache::header_in( $r, "Accept" );
-		$accept = "" if !defined $accept;
+		my $dataobj = $dataset->dataobj( $id );
+		return NOT_FOUND if !defined $dataobj;
 
 		# get the real eprint dataset
 		if( $dataset->base_id eq "eprint" )
 		{
-			$dataset = $item->get_dataset;
+			$dataset = $dataobj->get_dataset;
 		}
 
-		my $accept_type = "dataobj/".$dataset->base_id;
+		$r->pnotes( dataset => $dataset );
+		$r->pnotes( dataobj => $dataobj );
+		$r->pnotes( uri => $uri );
 
-		my $url;
+		my( $rc, $plugin ) =
+			EPrints::Apache::CRUD::content_negotiate_best_plugin( $r );
 
-		if( $part eq "contents" )
-		{
-			if( $item->isa( "EPrints::DataObj::EPrint" ) )
-			{
-				$part = "documents";
-			}
-			elsif( $item->isa( "EPrint::DataObj::Document" ) )
-			{
-				$part = "files";
-			}
-		}
+		return $rc if $rc != OK;
 
-		if( $part )
-		{
-			my $field = $dataset->field( $part );
-			return NOT_FOUND if !defined $field;
-			return NOT_FOUND if !$field->isa( "EPrints::MetaField::Subobject" );
-			$accept_type = "list/".$field->property( "datasetid" );
-			$r->pnotes->{field} = $field;
-		}
-		else
-		{
-			$url = $item->get_url;
-			undef $url if $url eq $item->uri; # item's summary page *is* it's id location
-		}
+		$r->pnotes( plugin => $plugin );
 
-		my $match = content_negotiate_best_plugin( 
-			$repository, 
-			accept_header => $accept,
-			consider_summary_page => defined( $url ),
-			plugins => [$repository->get_plugins(
-				type => "Export",
-				is_visible => "all",
-				can_accept => $accept_type )],
-		);
-		
-		if( $match eq "DEFAULT_SUMMARY_PAGE" )
-		{
-			if( $dataset->base_id eq "eprint" && $dataset->id ne "archive" )
-			{
-				$url = $item->get_control_url;
-			}
-			return redir_see_other( $r, $url );
-		}
-		elsif( $dataset->base_id eq "subject" )
-		{
-			return redir_see_other( $r, $match->dataobj_export_url( $item ) );
-		}
-		else
-		{
-			$r->pnotes->{dataset} = $dataset;
-			$r->pnotes->{dataobj} = $item;
-			$r->pnotes->{plugin} = $match;
+		$r->handler( 'perl-script' );
 
-			$r->handler('perl-script');
+		$r->set_handlers( PerlMapToStorageHandler => sub { OK } );
 
-			# no real file to map to
-			$r->set_handlers(PerlMapToStorageHandler => sub { OK } );
+		$r->push_handlers(PerlAccessHandler => [
+			\&EPrints::Apache::CRUD::authen,
+			\&EPrints::Apache::CRUD::authz
+			] );
 
-			$r->push_handlers(PerlAccessHandler => [
-				\&EPrints::Apache::Export::authen,
-				\&EPrints::Apache::Export::authz
-				] );
+		$r->set_handlers( PerlResponseHandler => [ "EPrints::Apache::CRUD" ] );
 
-		 	$r->set_handlers(PerlResponseHandler => \&EPrints::Apache::Export::handler );
-
-			return OK;
-		}
-
-		return NOT_FOUND;
+		return OK;
 	}
 
 	# /XX/ eprints

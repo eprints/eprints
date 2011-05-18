@@ -11,7 +11,7 @@
 	ept:sourceNamespace="http://www.w3.org/2005/Atom"
 	ept:targetNamespace="http://eprints.org/ep2/data/2.0"
 	ept:produce="dataobj/eprint"
-	ept:accept="application/atom+xml"
+	ept:accept="application/atom+xml; type=entry"
 	ept:type="import"
 	xmlns:ept="http://eprints.org/ep2/xslt/1.0"
 	xmlns:atom="http://www.w3.org/2005/Atom"

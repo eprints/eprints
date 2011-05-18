@@ -168,7 +168,7 @@ Use L<Data::Dumper> to dump the passed variables to STDERR.
 
 sub dump
 {
-	shift(@_) if @_ eq __PACKAGE__;
+	shift(@_) if $_[0] eq __PACKAGE__;
 
 	warn Data::Dumper::Dumper( @_ );
 }
@@ -182,7 +182,6 @@ use EPrints::Apache::AnApache;
 use EPrints::Apache::LogHandler;
 use EPrints::Apache::Login;
 use EPrints::Apache::Auth;
-use EPrints::Apache::Export;
 use EPrints::Apache::Rewrite;
 # If someone really wants VLit they can enable it via Apache conf
 # use EPrints::Apache::VLit;
@@ -191,7 +190,7 @@ use EPrints::Apache::Storage;
 use EPrints::Apache::REST;
 use EPrints::Apache::RobotsTxt;
 use EPrints::Apache::SiteMap;
-use EPrints::Apache::Sword;
+use EPrints::Apache::CRUD;
 
 use EPrints::BackCompatibility;
 

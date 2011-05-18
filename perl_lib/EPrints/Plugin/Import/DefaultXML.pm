@@ -71,7 +71,6 @@ sub input_fh
 	}
 
 	my $handler = $class->new(
-		dataobj => $opts{dataobj},
 		dataset => $opts{dataset},
 		plugin => $plugin,
 		depth => 0,

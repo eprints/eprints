@@ -179,18 +179,20 @@ sub create_epdata_from_directory
 					filesize => -s $fh,
 					_content => $fh,
 				};
+				die "Too many files" if @{$epdata->{files}} > 100;
 			}
 			else
 			{
 				push @{$epdata}, {
+					main => $filename,
 					files => [{
 						filename => $filename,
 						filesize => -s $fh,
 						_content => $fh,
 					}],
 				};
+				die "Too many files" if @{$epdata} > 100;
 			}
-			die "Too many files" if @{$epdata->{files}} > 100;
 		},
 	}, $dir ) };
 

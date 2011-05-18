@@ -27,7 +27,8 @@ sub new
 	$self->{visible} = "staff";
 
 	$self->{suffix} = ".xml";
-	$self->{mimetype} = "text/xml";
+	$self->{mimetype} .= "; files";
+	$self->{qs} = 0.1;
 
 	return $self;
 }

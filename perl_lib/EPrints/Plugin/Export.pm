@@ -89,6 +89,10 @@ sub matches
 	{
 		return( $self->can_accept( $param ) );
 	}
+	if( $test eq "can_produce" )
+	{
+		return( $self->can_produce( $param ) );
+	}
 	if( $test eq "has_xmlns" )
 	{
 		return( $self->has_xmlns( $param ) );
@@ -165,6 +169,13 @@ sub can_accept
 	return 0;
 }
 
+sub can_produce
+{
+	my( $self, $mime_type ) = @_;
+
+	return $self->param( "mimetype" ) eq $mime_type;
+}
+
 sub has_xmlns
 {
 	my( $plugin, $unused ) = @_;
@@ -205,11 +216,7 @@ sub output_dataobj
 {
 	my( $plugin, $dataobj ) = @_;
 	
-	my $r = "error. output_dataobj not subclassed";
-
-	$plugin->{session}->get_repository->log( $r );
-
-	return $r;
+	EPrints->abort( "output_dataobj not subclassed on $plugin" );
 }
 
 sub xml_dataobj

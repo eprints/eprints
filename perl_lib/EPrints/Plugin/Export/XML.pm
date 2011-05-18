@@ -91,6 +91,9 @@ sub output_dataobj
 
 	my $output = "";
 
+	my $type = $dataobj->get_dataset->base_id;
+	my $toplevel = $type."s";
+	
 	my $wr = EPrints::XML::SAX::PrettyPrint->new(
 		Handler => EPrints::XML::SAX::Writer->new(
 			Output => defined $opts{fh} ? $opts{fh} : \$output
@@ -106,7 +109,20 @@ sub output_dataobj
 		Prefix => '',
 		NamespaceURI => EPrints::Const::EP_NS_DATA,
 	});
+	$wr->start_element({
+		Prefix => '',
+		LocalName => $toplevel,
+		Name => $toplevel,
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+		Attributes => {},
+	});
 	$dataobj->to_sax( %opts, Handler => $wr );
+	$wr->end_element({
+		Prefix => '',
+		LocalName => $toplevel,
+		Name => $toplevel,
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+	});
 	$wr->end_prefix_mapping({
 		Prefix => '',
 		NamespaceURI => EPrints::Const::EP_NS_DATA,

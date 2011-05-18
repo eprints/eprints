@@ -21,7 +21,7 @@ sub new
 	$self->{name} = "XML";
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/*', 'dataobj/*' ];
-	$self->{accept} = [qw( text/xml )];
+	$self->{accept} = ["application/xml; charset=utf-8"];
 
 	return $self;
 }
