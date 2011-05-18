@@ -195,8 +195,9 @@ sub _load_xslt
 	my( $self, $data, $repository, $fn, $class ) = @_;
 
 	my $handler = $class;
-	$handler =~ s/^(EPrints::Plugin::[^:]+::XSLT).*/$1/;
+	$handler =~ s/^(EPrints::Plugin::([^:]+)::XSLT).*/$1/;
 
+	my $type = $2;
 	my $settingsvar = $class."::SETTINGS";
 
 	{
@@ -238,9 +239,18 @@ EOP
 			next if $attr->namespaceURI ne EP_NS_XSLT;
 			$xslt->{$attr->localName} = $attr->value();
 		}
-		for(qw( produce accept ))
+		if( $type eq "Export" )
 		{
-			$xslt->{$_} = [split / /, $xslt->{$_}||""];
+			$xslt->{accept} = [split / /, $xslt->{accept}||""];
+		}
+		elsif( $type eq "Import" )
+		{
+			$xslt->{accept} = [map {
+					HTTP::Headers::Util::join_header_words(@$_)
+				}
+				HTTP::Headers::Util::split_header_words($xslt->{accept}||"")
+			];
+			$xslt->{produce} = [split / /, $xslt->{produce}||""];
 		}
 
 		$xslt->{doc} = $doc;
