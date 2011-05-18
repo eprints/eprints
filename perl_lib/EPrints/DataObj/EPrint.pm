@@ -72,12 +72,6 @@ been an int and may be changed in a later upgrade.
 The ID of the eprint (if any) which this eprint is a commentary on.  This 
 field should have been an int and may be changed in a later upgrade.
 
-=item replacedby (itemref)
-
-The ID of the eprint (if any) which has replaced this eprint. This is only set
-on records in the "deletion" dataset.  This field should have
-been an int and may be changed in a later upgrade.
-
 =back
 
 =head1 METHODS
@@ -162,12 +156,9 @@ sub get_system_field_info
 	{ name=>"commentary", type=>"itemref", required=>0,
 		datasetid=>"eprint", can_clone=>0, sql_index=>0 },
 
-	{ name=>"replacedby", type=>"itemref", required=>0,
-		datasetid=>"eprint", can_clone=>0 },
-
 	{ name=>"metadata_visibility", type=>"set", required=>1,
 		default_value => "show",
-		options=>[ "show", "no_search" ] },
+		options=>[ "show", "no_search", "hide" ] },
 
 	{ name=>"contact_email", type=>"email", required=>0, can_clone=>0 },
 
@@ -649,6 +640,11 @@ sub clone
 		delete $data->{$field->get_name};
 	}
 
+	if( !$nolink )
+	{
+		$data->{succeeds} = $self->id;
+	}
+
 	# Create the new EPrint record
 	my $new_eprint = $dest_dataset->create_object(
 		$self->{session},
@@ -662,18 +658,6 @@ sub clone
 	$new_eprint->{under_construction} = 1;
 
 	my $status = $self->get_value( "eprint_status" );
-	unless( $nolink )
-	{
-		# We assume the new eprint will be a later version of this one,
-		# so we'll fill in the succeeds field, provided this one is
-		# already in the main repository.
-#		if( $status eq "archive" || $status eq "deletion" )
-#		{
-#		}
-#		cjg disabled this condtion.
-
-		$new_eprint->set_value( "succeeds" , $self->get_value( "eprintid" ) );
-	}
 
 	# Attempt to copy the documents, if appropriate
 	my $ok = 1;
@@ -743,6 +727,17 @@ sub _transfer
 		"eprint_status" , 
 		$new_status );
 
+	my $update_threads = $old_status eq "archive" || $new_status eq "archive";
+
+	# visibility has changed so force commit to update our threads 
+	if( $update_threads )
+	{
+		$self->{changed}->{succeeds} = undef
+			if !exists $self->{changed}->{succeeds};
+		$self->{changed}->{commentary} = undef
+			if !exists $self->{changed}->{commentary};
+	}
+
 	# Write self
 	$self->commit( 1 );
 
@@ -765,11 +760,15 @@ sub _transfer
 		}
 	);
 
-	# Need to clean up stuff if we move this record out of the
-	# archive.
-	if( $old_status eq "archive" )
+	# visibility has changed which means all threaded eprints need updating
+	if( $update_threads )
 	{
-		$self->_move_from_archive;
+		$self->map_thread( $self->{dataset}->field( "succeeds" ), sub {
+			$_[2]->remove_static;
+		});
+		$self->map_thread( $self->{dataset}->field( "commentary" ), sub {
+			$_[2]->remove_static;
+		});
 	}
 
 	# Trigger any actions which are configured for eprints status
@@ -783,13 +782,6 @@ sub _transfer
 			$new_status );
 	}
 
-	# if this succeeds something then update its metadata visibility
-	my $successor = EPrints::EPrint->new( $self->{session}, $self->{data}->{succeeds} );
-	$successor->succeed_thread_modified if( defined $successor );
-
-	# update this eprints metadata visibility if needed.
-	$self->succeed_thread_modified;
-	
 	return( 1 );
 }
 
@@ -945,15 +937,6 @@ sub commit
 {
 	my( $self, $force ) = @_;
 
-	if( $self->{changed}->{succeeds} )
-	{
-		my $old_succ = EPrints::EPrint->new( $self->{session}, $self->{changed}->{succeeds} );
-		$old_succ->succeed_thread_modified if( defined $old_succ );
-
-		my $new_succ = EPrints::EPrint->new( $self->{session}, $self->{data}->{succeeds} );
-		$new_succ->succeed_thread_modified if( defined $new_succ );
-	}
-
 	# recalculate issues number
 	if( $self->{changed}->{item_issues} )
 	{
@@ -989,8 +972,21 @@ sub commit
 		}
 	}
 
+	my( $succeeds_old, $succeeds_new );
+	if( exists $self->{changed}->{succeeds} )
+	{
+		$succeeds_old = $self->{session}->eprint( $self->{changed}->{succeeds} );
+		$succeeds_new = $self->{session}->eprint( $self->value( "succeeds" ) );
+	}
+
 	# commit changes and clear changed fields
 	my $success = $self->SUPER::commit( $force );
+
+	my $succeeds = $self->{dataset}->field( "succeeds" );
+	$succeeds_old->removed_from_thread( $succeeds, $self )
+		if defined $succeeds_old;
+	$succeeds_new->added_to_thread( $succeeds, $self )
+		if defined $succeeds_new;
 
 	return( $success );
 }
@@ -1223,25 +1219,8 @@ sub move_to_deletion
 
 	my $ds = $self->{session}->get_repository->get_dataset( "eprint" );
 	
-	my $last_in_thread = $self->last_in_thread( $ds->get_field( "succeeds" ) );
-	my $replacement_id = $last_in_thread->get_value( "eprintid" );
-
-	if( $replacement_id == $self->get_value( "eprintid" ) )
-	{
-		# This IS the last in the thread, so we should redirect
-		# enquirers to the one this replaced, if any.
-		$replacement_id = $self->get_value( "succeeds" );
-	}
-
-	$self->set_value( "replacedby" , $replacement_id );
-
 	my $success = $self->_transfer( "deletion" );
 
-	if( $success )
-	{
-		$self->generate_static_all_related;
-	}
-	
 	return $success;
 }
 
@@ -1300,23 +1279,6 @@ sub move_to_buffer
 
 
 ######################################################################
-# 
-# $eprint->_move_from_archive
-#
-# Called when an item leaves the main archive. Removes the static 
-# pages.
-#
-######################################################################
-
-sub _move_from_archive
-{
-	my( $self ) = @_;
-
-	$self->generate_static_all_related;
-}
-
-
-######################################################################
 =pod
 
 =item $success = $eprint->move_to_archive
@@ -1342,8 +1304,6 @@ sub move_to_archive
 				"update_archived_eprint", $self );
 			$self->commit;
 		}
-
-		$self->generate_static_all_related;
 	}
 	
 	return( $success );
@@ -1476,34 +1436,6 @@ sub generate_static
 ######################################################################
 =pod
 
-=item $eprint->generate_static_all_related
-
-Generate the static pages for this eprint plus any it's related to,
-by succession or commentary.
-
-=cut
-######################################################################
-
-sub generate_static_all_related
-{
-	my( $self ) = @_;
-
-	$self->generate_static;
-
-	# Generate static pages for everything in threads, if 
-	# appropriate
-	my @to_update = $self->get_all_related;
-	
-	# Do the actual pdates
-	foreach my $related (@to_update)
-	{
-		$related->generate_static;
-	}
-}
-
-######################################################################
-=pod
-
 =item $eprint->remove_static
 
 Remove the static web page or pages.
@@ -1579,16 +1511,25 @@ sub render
 		$dom = $self->{session}->make_doc_fragment;
 		$dom->appendChild( $self->{session}->html_phrase( 
 			"lib/eprint:eprint_gone" ) );
-		my $replacement = new EPrints::DataObj::EPrint(
-			$self->{session},
-			$self->get_value( "replacedby" ) );
+		my $replacement;
+		my $succeeds = $self->{dataset}->field( "succeeds" );
+		my $later = $self->later_in_thread( $succeeds );
+		if( $later->count > 0 )
+		{
+			$replacement = $later->item( 0 );
+		}
+		elsif( $self->is_set( "succeeds" ) )
+		{
+			$replacement = $self->{session}->eprint( $self->value( "succeeds" ) );
+			undef $replacement
+				if $replacement->value( "eprint_status" ) ne "archive";
+		}
 		if( defined $replacement )
 		{
-			my $cite = $replacement->render_citation_link;
 			$dom->appendChild( 
 				$self->{session}->html_phrase( 
 					"lib/eprint:later_version", 
-					citation => $cite ) );
+					citation => $replacement->render_citation_link ) );
 		}
 	}
 	else
@@ -1763,127 +1704,11 @@ sub get_user
 }
 
 
-######################################################################
-=pod
+=item $list = $eprint->later_in_thread( $field )
 
-=item @eprints = $eprint->get_all_related
-
-Return the eprints that are related in some way to this in a succession
-or commentary thread. The returned list does NOT include this EPrint.
+Return a L<EPrints::List> of the immediately later items in the thread. 
 
 =cut
-######################################################################
-
-sub get_all_related
-{
-	my( $self ) = @_;
-
-	my $succeeds_field = $self->{dataset}->get_field( "succeeds" );
-	my $commentary_field = $self->{dataset}->get_field( "commentary" );
-
-	my @related = ();
-
-	if( $self->in_thread( $succeeds_field ) )
-	{
-		push @related, $self->all_in_thread( $succeeds_field );
-	}
-	
-	if( $self->in_thread( $commentary_field ) )
-	{
-		push @related, $self->all_in_thread( $commentary_field );
-	}
-	
-	# Remove duplicates, just in case
-	my %related_uniq;
-	my $eprint;	
-	my $ownid = $self->get_value( "eprintid" );
-	foreach $eprint (@related)
-	{
-		# We don't want to re-update ourself
-		next if( $ownid eq $eprint->get_value( "eprintid" ) );
-		
-		$related_uniq{$eprint->get_value("eprintid")} = $eprint;
-	}
-
-	return( values %related_uniq );
-}
-
-
-######################################################################
-=pod
-
-=item $boolean = $eprint->in_thread( $field )
-
-Return true if this eprint is part of a thread of $field. $field
-should be an EPrint::MetaField representing either "commentary" or
-"succeeds".
-
-=cut
-######################################################################
-
-sub in_thread
-{
-	my( $self, $field ) = @_;
-	
-	if( defined $self->get_value( $field->get_name ) )
-	{
-		return( 1 );
-	}
-
-	my @later = $self->later_in_thread( $field );
-
-	return( 1 ) if( scalar @later > 0 );
-	
-	return( 0 );
-}
-
-
-######################################################################
-=pod
-
-=item $eprint = $eprint->first_in_thread( $field )
-
-Return the first (earliest) version or first paper in the thread
-of commentaries of this paper in the repository.
-
-=cut
-######################################################################
-
-sub first_in_thread
-{
-	my( $self, $field ) = @_;
-	
-	my $first = $self;
-	my $below = {};	
-	while( defined $first->get_value( $field->get_name ) )
-	{
-		if( $below->{$first->get_id} )
-		{
-			$self->loop_error( $field, keys %{$below} );
-			last;
-		}
-		$below->{$first->get_id} = 1;
-		my $prev = EPrints::DataObj::EPrint->new( 
-				$self->{session},
-				$first->get_value( $field->get_name ) );
-
-		return( $first ) unless( defined $prev );
-		$first = $prev;
-	}
-			
-	return( $first );
-}
-
-
-######################################################################
-=pod
-
-=item @eprints = $eprint->later_in_thread( $field )
-
-Return a list of the immediately later items in the thread. 
-
-=cut
-######################################################################
 
 sub later_in_thread
 {
@@ -1891,7 +1716,7 @@ sub later_in_thread
 
 	my $dataset = $self->{session}->dataset( "archive" );
 
-	my $results = $dataset->search(
+	return $dataset->search(
 		filters => [
 			{
 				meta_fields => [$field->name],
@@ -1899,205 +1724,142 @@ sub later_in_thread
 			},
 		],
 		custom_order => "-datestamp" );
-
-	return $results->slice;
 }
 
+=item $bool = $eprint->in_thread( $field )
 
-######################################################################
-=pod
-
-=item @eprints = $eprint->all_in_thread( $field )
-
-Return all of the EPrints in the given thread.
+Returns true if this eprint is in the $field thread.
 
 =cut
-######################################################################
 
-sub all_in_thread
+sub in_thread
 {
 	my( $self, $field ) = @_;
 
-	my $above = {};
-	my $set = {};
-	
-	my $first = $self->first_in_thread( $field );
-	
-	$self->_collect_thread( $field, $first, $set, $above );
-
-	return( values %{$set} );
+	return $self->is_set( $field->name ) || $self->later_in_thread( $field )->count > 0;
 }
 
-######################################################################
-# 
-# $eprint->_collect_thread( $field, $current, $eprints, $set, $above )
-#
-# $above is a hash which contains all the ids eprints above the current
-# one as keys.
-# $set contains all the eprints found.
-#
-######################################################################
+=item $eprint = $eprint->first_in_thread( $field )
 
-sub _collect_thread
+Return the first (earliest) version or first paper in the thread
+of commentaries of this paper in the repository.
+
+=cut
+
+sub first_in_thread
 {
-	my( $self, $field, $current, $set, $above ) = @_;
-
-	if( defined $above->{$current->get_id} )
-	{
-		$self->loop_error( $field, keys %{$above} );
-		return;
-	}
-	$set->{$current->get_id} = $current;	
-	my %above2 = %{$above};
-	$above2{$current->get_id} = $current; # copy the hash contents
-	$set->{$current->get_id} = $current;	
+	my( $self, $field ) = @_;
 	
-	my @later = $current->later_in_thread( $field );
-	foreach my $later_eprint (@later)
+	my %seen;
+
+	while( $self->is_set( $field->name ) )
 	{
-		$self->_collect_thread( $field, $later_eprint, $set, \%above2 );
+		my $id = $field->get_value( $self );
+
+		$self->loop_error( $field, keys %seen ), last if $seen{$id}++;
+
+		my $first = $self->{dataset}->dataobj( $id );
+		last if !defined $first;
+
+		$self = $first;
 	}
+			
+	return $self;
 }
-
-
-######################################################################
-=pod
 
 =item $eprint = $eprint->last_in_thread( $field )
 
-Return the last item in the specified thread.
+Returns the latest item in the $field thread on this eprint's branch of the thread tree.
 
 =cut
-######################################################################
 
 sub last_in_thread
 {
 	my( $self, $field ) = @_;
-	
-	my $latest;
-	my @later = ( $self );
-	my $above = {};
-	while( scalar @later > 0 )
+
+	my %seen = ($self->id => 1);
+	while( 1 )
 	{
-		$latest = $later[0];
-		if( defined $above->{$latest->get_id} )
-		{
-			$self->loop_error( $field, keys %{$above} );
-			last;
-		}
-		$above->{$latest->get_id} = 1;
-		@later = $latest->later_in_thread( $field );
+		my $later = $self->later_in_thread( $field );
+		my $item = $later->item( 0 );
+		last if !defined $item || $seen{$item->id}++;
+		$self = $item;
 	}
 
-	return( $latest );
+	return $self;
 }
 
+=item $eprint->removed_from_thread( $field, $parent )
 
-######################################################################
-=pod
+Update this $eprint now its $parent no longer points to it in the $field thread.
 
-=item $eprint->remove_from_threads
-
-Extract the eprint from any threads it's in. i.e., if any other
-paper is a later version of or commentary on this paper, the link
-from that paper to this will be removed.
-
-Abstract pages are updated if needed.
+The change in $parent must be committed before L</removed_from_thread> is called.
 
 =cut
-######################################################################
 
-sub remove_from_threads
+sub removed_from_thread
 {
-	my( $self ) = @_;
+	my( $self, $field, $parent ) = @_;
 
-	return unless( $self->get_value( "eprint_status" ) eq "archive" );
+	my $later = $self->later_in_thread( $field );
 
-	# Remove thread info in this eprint
-	$self->set_value( "succeeds", undef );
-	$self->set_value( "commentary", undef );
-	$self->commit;
-
-	my @related = $self->get_all_related;
-	my $eprint;
-	# Remove all references to this eprint
-	my $this_id = $self->get_value( "eprintid" );
-
-	foreach $eprint ( @related )
+	# if we are no longer in a thread we become visible again
+	if( $later->count == 0 )
 	{
-		# Update the objects if they refer to us (the objects were 
-		# retrieved before we unlinked ourself)
-		my $changed = 0;
-		if( $eprint->get_value( "succeeds" ) eq $this_id )
-		{
-			$self->set_value( "succeeds", undef );
-			$changed = 1;
-		}
-		if( $eprint->get_value( "commentary" ) eq $this_id )
-		{
-			$self->set_value( "commentary", undef );
-			$changed = 1;
-		}
-		if( $changed )
-		{
-			$eprint->commit;
-		}
-	}
-
-	# Update static pages for each eprint
-	foreach $eprint (@related)
-	{
-		next if( $eprint->get_value( "eprintid" ) eq $this_id );
-		$eprint->generate_static; 
+		$self->set_value( "metadata_visibility", "show" )
+			if $self->value( "metadata_visibility" ) eq "no_search";
 	}
 }
 
-#
-# $eprint->succeed_thread_modified
-#
-# Something either started or stopped succeeding this eprint.
-# Update the metadata_visibility flag accordingly.
-# If metadata visibility is "hide" then do nothing as this must not
-# be overridden.
+=item $eprint->added_to_thread( $field, $parent )
 
-sub succeed_thread_modified
+Update this $eprint now $parent has it in the $field thread.
+
+=cut
+
+sub added_to_thread
 {
-	my( $self ) = @_;
+	my( $self, $field, $parent ) = @_;
 
-	my $mvis = $self->get_value( "metadata_visibility" );
+	return if $parent->value( "eprint_status" ) ne "archive";
 
-	if( $mvis eq "hide" )
-	{
-		# do nothing
-		return;
-	}
+	# we are no longer visible
+	$self->set_value( "metadata_visibility", "no_search" )
+		if $self->value( "metadata_visibility" ) eq "show";
+}
 
-	my $ds = $self->{session}->get_repository->get_dataset( "eprint" );
+=item $eprint->map_thread( $field, $f )
 
-	my $last_in_thread = $self->last_in_thread( $ds->get_field( "succeeds" ) );
-	my $replacement_id = $last_in_thread->get_value( "eprintid" );
+Apply function $f to every eprint in the $field thread that this eprint is a member of (including itself).
 
-	if( $replacement_id == $self->get_value( "eprintid" ) )
-	{
-		# This IS the last in the thread, so we should make
-		# the metadata discoverable, if it isn't already.
-		if( $mvis eq "no_search" )
-		{
-			$self->set_value( "metadata_visibility", "show" );
-			$self->commit;
-		}
-		return;
-	}
+=cut
 
-	# this is _not_ the last in its thread, so we should hide the
-	# metadata from searches and browsing.
-	
-	if( $mvis eq "show" )
-	{
-		$self->set_value( "metadata_visibility", "no_search" );
-		$self->commit;
-	}
-	return;
+sub map_thread
+{
+	my( $self, $field, $f ) = @_;
+
+	my $first = $self->first_in_thread( $field );
+
+	my %seen = ( $first->id => 1 );
+	&$f( $self->{session}, $self->{dataset}, $first, 0 );
+	$first->_map_thread( $field, $f, \%seen, 1 );
+}
+
+# WARNING! render_version_thread uses this and relies on $level to build the
+# tree
+sub _map_thread
+{
+	my( $self, $field, $f, $seen, $level ) = @_;
+
+	$self->later_in_thread( $field )->map(sub {
+		my( undef, undef, $item ) = @_;
+
+		$self->loop_error( $field, keys %$seen), return if $seen->{$item->id};
+		$seen->{$item->id} = 1;
+
+		&$f( $self->{session}, $self->{dataset}, $item, $level );
+		$item->_map_thread( $field, $f, $seen, $level + 1 );
+	});
 }
 
 ######################################################################
@@ -2116,69 +1878,49 @@ sub render_version_thread
 
 	my $html;
 
-	my $first_version = $self->first_in_thread( $field );
-
-	my $ul = $self->{session}->make_element( "ul" );
-	
-	$ul->appendChild( $first_version->_render_version_thread_aux( $field, $self, {} ) );
-	
-	return( $ul );
-}
-
-######################################################################
-# 
-# $xhtml = $eprint->_render_version_thread_aux( $field, $eprint_shown, $above )
-#
-# $above is a hash ref, the keys of which are ID's of eprints already 
-# seen above this item. One item CAN appear twice, just not as it's
-#  own decentant.
-#
-######################################################################
-
-sub _render_version_thread_aux
-{
-	my( $self, $field, $eprint_shown, $above ) = @_;
-
-	my $li = $self->{session}->make_element( "li" );
-
-	if( defined $above->{$self->get_id} )
-	{
-		$self->loop_error( $field, keys %{$above} );
-		$li->appendChild( $self->{session}->make_text( "ERROR, THREAD LOOPS: ".join( ", ",keys %{$above} ) ));
-		return $li;
-	}
-	
 	my $cstyle = "thread_".$field->get_name;
 
-	if( $self->get_value( "eprintid" ) != $eprint_shown->get_value( "eprintid" ) )
-	{
-		$li->appendChild( $self->render_citation_link( $cstyle ) );
-	}
-	else
-	{
-		$li->appendChild( $self->render_citation( $cstyle ) );
-		$li->appendChild( $self->{session}->make_text( " " ) );
-		$li->appendChild( $self->{session}->html_phrase( "lib/eprint:curr_disp" ) );
-	}
+	my $ul = $self->{session}->make_element( "ul" );
 
-	my @later = $self->later_in_thread( $field );
+	my $clevel = 0;
+	$self->map_thread( $field, sub {
+		my( $session, undef, $item, $level ) = @_;
 
-	# Are there any later versions in the thread?
-	if( scalar @later > 0 )
-	{
-		my %above2 = %{$above};
-		$above2{$self->get_id} = 1;
-		# if there are, start a new list
-		my $ul = $self->{session}->make_element( "ul" );
-		foreach my $version (@later)
+		# move down a level
+		while( $clevel < $level )
 		{
-			$ul->appendChild( $version->_render_version_thread_aux(
-				$field, $eprint_shown, \%above2 ) );
+			++$clevel;
+			$ul = $ul->lastChild->appendChild( $session->make_element( "ul" ) );
 		}
-		$li->appendChild( $ul );
+		# move up a level
+		while( $clevel > $level )
+		{
+			--$clevel;
+			$ul = $ul->parentNode->parentNode; # ul -> li -> ul
+		}
+
+		my $li = $session->make_element( "li" );
+		$ul->appendChild( $li );
+
+		my $citation;
+		if( $item->id ne $self->id )
+		{
+			$li->appendChild( $item->render_citation_link( $cstyle ) );
+		}
+		else
+		{
+			$li->appendChild( $item->render_citation( $cstyle ) );
+			$li->appendChild( $item->{session}->make_text( " " ) );
+			$li->appendChild( $item->{session}->html_phrase( "lib/eprint:curr_disp" ) );
+		}
+	});
+
+	while( defined $ul->parentNode )
+	{
+		$ul = $ul->parentNode;
 	}
-	
-	return( $li );
+
+	return $ul;
 }
 
 ######################################################################
