@@ -1332,6 +1332,7 @@ my $PRIVMAP =
 		"eprint/inbox/view:owner",
 		"eprint/inbox/export:owner",
 		"eprint/inbox/summary:owner",
+		"eprint/inbox/destroy:owner",
 		"eprint/inbox/deposit:owner",
 		"eprint/inbox/edit:owner",
 		"eprint/inbox/remove:owner",
