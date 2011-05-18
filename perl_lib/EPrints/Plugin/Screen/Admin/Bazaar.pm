@@ -27,7 +27,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 	
-	$self->{actions} = [qw/ remove_package install_package handle_upload install_cached_package remove_cached_package install_bazaar_package update_bazaar_package edit_config submit_to_bazaar /]; 
+	$self->{actions} = [qw/ remove_package install_package handle_upload install_cached_package remove_cached_package install_bazaar_package update_bazaar_package edit_config submit_to_bazaar update_package_cache /]; 
 		
 	$self->{appears} = [
 		{ 
@@ -54,6 +54,13 @@ sub allow_remove_package
 }
 
 sub allow_install_package 
+{
+	my( $self ) = @_;
+
+	return $self->allow( "repository/epm" );
+}
+
+sub allow_update_package_cache 
 {
 	my( $self ) = @_;
 
@@ -107,6 +114,23 @@ sub allow_submit_to_bazaar
 	my( $self ) = @_;
 
 	return $self->allow( "repository/epm-submit" );
+}
+
+sub action_update_package_cache
+{
+	my ( $self ) = @_;
+
+	my $repo = $self->{repository};
+	
+	EPrints::EPM::retrieve_available_epms( $repo, undef, undef, 1 );
+
+	$self->{processor}->add_message( "message", $self->html_phrase( "package_cache_updated" ) );
+
+	my $screen_id = "Admin::Bazaar";
+	my $redirect_url = $repo->current_url() . "?screen=" . $screen_id;
+	$repo->redirect( $redirect_url );
+	
+	return;
 }
 
 sub action_submit_to_bazaar
@@ -430,6 +454,11 @@ sub render
 	{
 		return $self->submission_properties( $session->param( "package" ) );
 	}
+	elsif ($action eq "update_package_cache")
+	{
+		$self->action_update_package_cache();
+		return $self->render_app_menu;
+	}
 	else
 	{
 		return $self->render_app_menu;
@@ -687,6 +716,11 @@ sub render_app_menu
 	
 	my $bazaar_config_div = $session->make_element("div", align=>"right");
 	$content2->appendChild($bazaar_config_div);
+	
+	my $update_packages_link = $session->make_element("a", href=>"?screen=Admin::Bazaar&action=update_package_cache");
+	$bazaar_config_div->appendChild($update_packages_link);
+	$update_packages_link->appendChild($self->html_phrase("update_bazaar_packages"));
+	$bazaar_config_div->appendChild($session->make_element("br"));
 
 	my $bazaar_config_link = $session->make_element("a", href=>"?screen=Admin::Config::View::Perl&configfile=cfg.d/epm.pl");
 	$bazaar_config_div->appendChild($bazaar_config_link);

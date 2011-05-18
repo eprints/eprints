@@ -17,6 +17,8 @@
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:cached_packages">Cached Packages</epp:phrase>
 	
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:package_installed">Package already installed and up to date.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:update_bazaar_packages">Update Package Cache</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:package_cache_updated">Pacakge cache update successful</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:edit_bazaar_config">Edit Local Bazaar Configuration</epp:phrase>
 		
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:action:install_bazaar_package:title">Install Package</epp:phrase>
