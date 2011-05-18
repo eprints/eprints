@@ -471,6 +471,32 @@ sub remove
 		$self->get_id );
 }
 
+=item $dataobj->empty()
+
+Remove all of this object's contents and values except for its id.
+
+=cut
+
+sub empty
+{
+	my( $self ) = @_;
+
+	foreach my $field ($self->dataset->fields)
+	{
+		if( $field->isa( "EPrints::MetaField::Subobject" ) )
+		{
+			foreach my $item (@{$field->get_value( $self )})
+			{
+				$item->remove;
+			}
+		}
+	}
+
+	$self->{data} = {
+		$self->dataset->key_field->name => $self->id,
+	};
+}
+
 # $dataobj->set_under_construction( $boolean )
 #
 # Set a flag to indicate this object is being constructed and 
