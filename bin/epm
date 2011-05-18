@@ -68,6 +68,15 @@ if ( $operation eq "install") {
 	EPrints::EPM::retrieve_available_epms($repository,undef,undef,1);
 	print "COMPLETE\n";
 
+} elsif ($operation eq "search") {
+	$message = "No search defined\n";
+	next if (!$path_in);
+	my $apps = EPrints::EPM::search($repository,$path_in);
+
+	foreach my $app (@$apps) {
+		output_package($app);
+	}
+	$message = undef;
 } elsif ($operation eq "upgrade") {
 	
 	my $installed_epms = EPrints::EPM::get_installed_epms($repository);
@@ -141,7 +150,24 @@ if ( $operation eq "install") {
 	print "\n\n$ret\n\n";
 }
 
-print $message . "\n";
+sub output_package
+{
+	my ( $app ) = @_;
+	
+	print "\n";
+	print "Package ID: " . $app->{package} . "\n";
+	print "Package Name: " . $app->{title} . "\n";
+	print "Package Version: " . $app->{version} . "\n";
+	print "Package Description: " . $app->{description} . "\n";
+	foreach my $key(keys %$app) {
+		if ($key eq "category") {
+			print $key . " : " . $app->{$key} . "\n" if (defined ($app->{$key}));
+		}
+	}
+	print "\n";
+}
+
+print $message . "\n" if defined $message;
 
 1;
 

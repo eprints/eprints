@@ -822,9 +822,36 @@ sub get_epm_updates
 
 sub retrieve_available_epms
 {
-	my( $repository, $id, $package_name) = @_;
-
+	my( $repository, $id, $package_name, $update_cache) = @_;
+	
 	my @apps;
+
+	my $archive_root = $repository->get_conf("archiveroot");
+	my $epm_path = $archive_root . "/var/epm/cache/";
+	my $cache_file = $epm_path . "packages";
+	my $last_mod = (stat($cache_file))[9];
+	if ($last_mod > (time-86400) and !$update_cache)
+	{
+		my $app;
+		open (FILE,$cache_file);
+		while (<FILE>) {
+			chomp;
+			my $line = $_;
+			push @apps, $app if ($line eq "========");
+			$app = undef if ($line eq "========");
+			next if ($line eq "========");
+			my $key = trim(substr($line,0,index($line,":")));
+			my $value = trim(substr($line,index($line,":")+1,length($line)));
+			$app->{$key} = $value;
+		}
+		foreach my $app(@apps) {
+			return $app if defined $id && $id eq $app->{id};
+			return $app if defined $package_name && $package_name eq $app->{package};
+		}
+		return \@apps;
+	}
+
+	unlink($cache_file);
 
 	my $sources = $repository->config( "epm_sources" );
 	$sources = [] if !defined $sources;
@@ -866,6 +893,15 @@ sub retrieve_available_epms
 
 	return undef if defined $id;
 	return undef if defined $package_name;
+	
+	open (FILE, ">$cache_file");
+	foreach my $app (@apps) {
+		foreach my $key (keys %$app) {
+			print FILE $key . " : " . $app->{$key} . "\n" if (defined $app->{$key});
+		}
+		print FILE "========\n";
+	}
+	close(FILE);
 
 	return \@apps;
 }
@@ -964,6 +1000,32 @@ sub compress {
 	return $epm;
 }
 
+# This is a VERY simple search routine!
+sub search
+{
+	my ( $repo , $search_string ) = @_;
+
+	my $apps = retrieve_available_epms($repo);
+
+	$search_string = lc($search_string);
+
+	my @ret_apps;
+
+	foreach my $app(@$apps) {
+		my $done = 0;
+		foreach my $key(keys %$app) {
+			next if $done;
+			my $value = lc($app->{$key});
+			if (!(index($value,$search_string) < 0) and !$done and defined($value)) {
+				push @ret_apps, $app;
+				$done = 1;
+			}
+		}
+	}
+
+	return \@ret_apps;
+	
+}
 
 sub verify_app
 {

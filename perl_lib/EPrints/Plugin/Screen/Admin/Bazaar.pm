@@ -27,7 +27,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 	
-	$self->{actions} = [qw/ remove_package install_package handle_upload install_cached_package remove_cached_package install_bazaar_package update_bazaar_package edit_config submit_to_bazaar update_package_cache /]; 
+	$self->{actions} = [qw/ remove_package install_package handle_upload install_cached_package remove_cached_package install_bazaar_package update_bazaar_package edit_config submit_to_bazaar update_package_cache search/]; 
 		
 	$self->{appears} = [
 		{ 
@@ -61,6 +61,13 @@ sub allow_install_package
 }
 
 sub allow_update_package_cache 
+{
+	my( $self ) = @_;
+
+	return $self->allow( "repository/epm" );
+}
+
+sub allow_search 
 {
 	my( $self ) = @_;
 
@@ -437,6 +444,71 @@ sub action_remove_cached_package
 
 }
 
+sub action_search
+{
+	my ( $self, $no_warning ) = @_;
+	
+        my $repo = $self->{repository};
+
+	my $search = $repo->param( "search" );
+	
+	return if ((!defined $search or $search eq "") and $no_warning);
+
+	if (!defined $search or $search eq "")
+	{
+		$self->{processor}->add_message(
+			'warning',
+			$self->html_phrase('epm_warning_no_search_defined')
+			);
+
+		return $repo->make_doc_fragment();
+	}
+
+	my $ret_apps = EPrints::EPM::search( $repo, $search );
+
+	my $count = 0;
+	foreach my $app(@$ret_apps){
+		$count++;
+	}
+	
+	return if ((!defined $ret_apps or $count < 1) and $no_warning);
+
+	if (!defined $ret_apps or $count < 1) 
+	{
+		$self->{processor}->add_message(
+			'warning',
+			$self->html_phrase('epm_warning_no_search_matches')
+			);
+
+		return $repo->make_doc_fragment();
+	}
+
+	my $table = $repo->make_element("table");
+	my $tr = $repo->make_element("tr");
+	my $td = $repo->make_element("td", align=>"center", width=>"100%", colspan=>"2");
+	my $h2 = $repo->make_element("h2");
+	$h2->appendChild($self->html_phrase("epm_search_results"));
+	$td->appendChild($h2);
+	$tr->appendChild($td);
+	$table->appendChild($tr);
+
+	foreach my $app(@$ret_apps){
+		my $tr = $repo->make_element("tr");
+		my $td = $repo->make_element("td", align=>"center", width=>"100%", colspan=>"2");
+		$td->appendChild($repo->make_text("-----------------------"));
+		$tr->appendChild($td);
+		$table->appendChild($tr);
+		$table->appendChild($self->render_app_row($app));
+	}
+	
+	my $toolbox = $repo->render_toolbox(
+			$repo->make_text(""),
+			$table
+			);
+
+	return $toolbox;
+
+}
 
 sub render
 {
@@ -445,6 +517,9 @@ sub render
 	my $session = $self->{session};
 
 	my $action = $session->param( "action" ) || "";
+	if ($action eq "" and $session->param("_action_search")) {
+		$action = "search";
+	}
 
 	if( $action eq "showapp" )
 	{
@@ -458,6 +533,12 @@ sub render
 	{
 		$self->action_update_package_cache();
 		return $self->render_app_menu;
+	}
+	elsif ($action eq "search") 
+	{
+		my $ret = $self->action_search(1);
+		return $ret if (defined $ret);
+		return $self->render_app_menu if (!defined $ret);
 	}
 	else
 	{
@@ -552,15 +633,34 @@ sub render_app
 
 	my $session = $self->{session};
 
-	my( $html, $div, $h2, $h3 );
+	my( $html );
 
 	$html = $session->make_doc_fragment;
 
 	my $app = EPrints::EPM::retrieve_available_epms( $session, $appid );
 	
-	my $installed_epms = EPrints::EPM::get_installed_epms($session);
+	my $table = $session->make_element("table");
+	
+	$table->appendChild($self->render_app_row($app));
+	
+	my $toolbox = $session->render_toolbox(
+			$session->make_text(""),
+			$table
+			);
+
+	return $toolbox;
+	
+}
+
+sub render_app_row
+{
+	my ( $self, $app ) = @_;
+	
+	my $session = $self->{session};
+	
 	my $action = "install_bazaar_package";
 
+	my $installed_epms = EPrints::EPM::get_installed_epms($session);
 	foreach my $installed_app (@$installed_epms) {
 		if ("$installed_app->{package}" eq "$app->{package}") {
 			if ($app->{version} gt $installed_app->{version}) {
@@ -571,10 +671,7 @@ sub render_app
 		}
 	}
 
-	my $table = $session->make_element("table");
-
 	my $tr = $session->make_element("tr");
-	$table->appendChild($tr);
 
 	my $td_img = $session->make_element("td", width => "120px", style=> "padding:1em; ");
 	$tr->appendChild($td_img);
@@ -594,7 +691,7 @@ sub render_app
 		$package_title = $app->{package};
 	}
 
-	$h2 = $session->make_element("h2");
+	my $h2 = $session->make_element("h2");
 	$h2->appendChild($session->make_text($package_title));
 	$td_main->appendChild($h2);
 
@@ -636,13 +733,7 @@ sub render_app
 	$a->appendChild($session->make_text($link));
 	$td_main->appendChild($a);
 
-	my $toolbox = $session->render_toolbox(
-			$session->make_text(""),
-			$table
-			);
-
-	return $toolbox;
-
+	return $tr;
 
 }
 
@@ -709,13 +800,42 @@ sub render_app_menu
 	push @titles, $title;
 	push @contents, $content;
 	$current = $tab_count if ($previous eq "custom");
+	
+	my $screen_id = "Screen::".$self->{processor}->{screenid};
+	my $screen = $session->plugin( $screen_id, processor => $self->{processor} );
 
 	my $content2 = $session->xhtml->tabs(\@titles, \@contents,current=>$current);
 
 	$content2->appendChild($session->make_element("br"));
+
+	my $bazaar_bottom_table = $session->make_element("table", width=>"100%");
+	$content2->appendChild($bazaar_bottom_table);
+
+	my $tr = $session->make_element("tr");
+	$bazaar_bottom_table->appendChild($tr);
+
+	my $search_td = $session->make_element("td");
+	my $form = $screen->render_form();
+	$form->setAttribute( method => "get" );
+	$form->appendChild( $session->make_element( "input",
+			name => "search",
+			id => "search",
+			type => "text",
+			size=> 40,
+			maxlength=>40,
+	));
+	$form->appendChild( $session->render_button(
+		name => "_action_search",
+		value => $session->phrase( "lib/searchexpression:action_search" )
+	));
+	$search_td->appendChild($form);
+	$tr->appendChild($search_td);
+
+	my $td2 = $session->make_element("td");
+	$tr->appendChild($td2);
 	
 	my $bazaar_config_div = $session->make_element("div", align=>"right");
-	$content2->appendChild($bazaar_config_div);
+	$td2->appendChild($bazaar_config_div);
 	
 	my $update_packages_link = $session->make_element("a", href=>"?screen=Admin::Bazaar&action=update_package_cache");
 	$bazaar_config_div->appendChild($update_packages_link);
@@ -1086,12 +1206,12 @@ sub tab_grid_epms
 
 }
 
-sub redirect_to_me_url
-{
-	my( $plugin ) = @_;
-
-	return $plugin->SUPER::redirect_to_me_url;
-}
+#sub redirect_to_me_url
+#{
+#	my( $plugin ) = @_;
+#
+#	return $plugin->SUPER::redirect_to_me_url;
+#}
 
 1;
 
