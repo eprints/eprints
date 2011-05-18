@@ -948,10 +948,10 @@ sub commit
 	if( $self->{changed}->{succeeds} )
 	{
 		my $old_succ = EPrints::EPrint->new( $self->{session}, $self->{changed}->{succeeds} );
-		$old_succ->succeed_thread_modified("show") if( defined $old_succ );
+		$old_succ->succeed_thread_modified if( defined $old_succ );
 
 		my $new_succ = EPrints::EPrint->new( $self->{session}, $self->{data}->{succeeds} );
-		$new_succ->succeed_thread_modified("no_search") if( defined $new_succ );
+		$new_succ->succeed_thread_modified if( defined $new_succ );
 	}
 
 	# recalculate issues number
@@ -991,7 +991,7 @@ sub commit
 
 	# commit changes and clear changed fields
 	my $success = $self->SUPER::commit( $force );
-	
+
 	return( $success );
 }
 
@@ -2062,27 +2062,16 @@ sub remove_from_threads
 
 sub succeed_thread_modified
 {
-	my( $self, $op ) = @_;
+	my( $self ) = @_;
 
 	my $mvis = $self->get_value( "metadata_visibility" );
+
 	if( $mvis eq "hide" )
 	{
 		# do nothing
 		return;
 	}
-	
-	if (defined $op and $op eq "show") {
-		$self->set_value( "metadata_visibility", "show" );
-		$self->commit;
-		return;
-	}
-	if (defined $op and $op eq "no_search") {
-		$self->set_value( "metadata_visibility", "no_search" );
-		$self->commit;
-		return;
-	}
 
-	# FIXME: LEGACY code which hasn't been working in ages!
 	my $ds = $self->{session}->get_repository->get_dataset( "eprint" );
 
 	my $last_in_thread = $self->last_in_thread( $ds->get_field( "succeeds" ) );
