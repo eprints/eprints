@@ -291,18 +291,18 @@ sub content_negotiate_best_plugin
 	}
 	else
 	{
-		# summary page is higher priority than anything else
-		unshift @pset_order, "text/html";
-		unshift @{$pset{"text/html"}}, {
-			charset => 'utf-8',
-			q => 1.0,
-			plugin => undef,
-		};
+		if( !defined $field )
+		{
+			# summary page is higher priority than anything else
+			unshift @pset_order, "text/html";
+			unshift @{$pset{"text/html"}}, {
+				charset => 'utf-8',
+				q => 1.0,
+				plugin => undef,
+			};
+		}
 
-		$accept = $r->headers_in->{Accept};
-		
-		# !!! default to Atom if no negotiation was given !!!
-		$accept = "application/atom+xml" if !$accept;
+		$accept = $r->headers_in->{Accept} || "*/*";
 	}
 
 	my @accept = parse_media_range( $accept || "" );
@@ -326,12 +326,14 @@ sub content_negotiate_best_plugin
 				}
 			}
 			$match = (sort { $b->{q} <=> $a->{q} } @$plugins)[0]->{plugin};
+			$r->pnotes->{mime_type} = $mime_type;
 			last CHOICE;
 		}
 		# */*
 		elsif( $type eq '*' && $subtype eq '*' )
 		{
 			$match = $pset{$pset_order[0]}->[0]->{plugin};
+			$r->pnotes->{mime_type} = $mime_type;
 			last CHOICE;
 		}
 		# text/*
@@ -339,7 +341,12 @@ sub content_negotiate_best_plugin
 		{
 			for(@pset_order)
 			{
-				$match = $pset{$_}->[0]->{plugin}, last CHOICE if m#^$type/#;
+				if( m#^$type/# )
+				{
+					$match = $pset{$_}->[0]->{plugin};
+					$r->pnotes->{mime_type} = $mime_type;
+					last CHOICE;
+				}
 			}
 		}
 	}
@@ -430,27 +437,47 @@ ANCESTORS: foreach my $anc_subject_id ( @{$dataobj->get_value( "ancestors" )} )
 		}
 		return GET( $r, $owner );
 	}
-	# /id/records or */contents but negotiation failed
-	elsif( !defined $dataobj || defined $field )
+	# /id/records but negotiation failed
+	elsif( !defined $dataobj )
 	{
-		return HTTP_UNSUPPORTED_MEDIA_TYPE;
+		return HTTP_NOT_ACCEPTABLE if $r->pnotes->{mime_type} ne '*/*';
+		$r->pnotes->{plugin} = $repo->plugin( "Export::Atom" );
+		return GET( $r, $owner );
 	}
-	# try summary page
-	else
-	{
-		my $url = $dataobj->get_url;
-		# this dataobj can only be exported
-		return HTTP_UNSUPPORTED_MEDIA_TYPE if $url eq $dataobj->uri;
 
-		if( $dataset->base_id eq "eprint" && $dataset->id ne "archive" )
+	# */contents but negotiation failed
+	if( defined $field )
+	{
+		if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
 		{
-			$url = $dataobj->get_control_url;
+			my @docs = $dataobj->get_all_documents;
+			if( @docs > 1 )
+			{
+				return HTTP_NOT_ACCEPTABLE if $r->pnotes->{mime_type} ne '*/*';
+				$r->pnotes->{plugin} = $repo->plugin( "Export::Atom" );
+				return GET( $r, $owner );
+			}
+			elsif( @docs > 0 )
+			{
+				$dataobj = $docs[0];
+			}
+			else
+			{
+				return HTTP_NOT_ACCEPTABLE;
+			}
 		}
-
-		return EPrints::Apache::Rewrite::redir_see_other( $r, $url );
 	}
 
-	return NOT_FOUND;
+	# try summary page
+	my $url = $dataobj->get_url;
+	return HTTP_NOT_ACCEPTABLE if !defined $url;
+
+	if( $dataset->base_id eq "eprint" && $dataset->id ne "archive" )
+	{
+		$url = $dataobj->get_control_url;
+	}
+
+	return EPrints::Apache::Rewrite::redir_see_other( $r, $url );
 }
 
 sub DELETE
@@ -736,9 +763,8 @@ sub PUT
 	my $plugin = $r->pnotes->{plugin};
 	my $field = $r->pnotes->{field};
 
-	# can only POST to /contents
+	# need an object to update
 	return HTTP_METHOD_NOT_ALLOWED if !defined $dataobj;
-	return HTTP_METHOD_NOT_ALLOWED if defined $field;
 
 	my $headers = process_headers( $repo, $r );
 
@@ -765,12 +791,23 @@ sub PUT
 		epdata_to_dataobj => sub {
 			my( undef, $epdata ) = @_;
 
-			$dataobj->empty();
+			if( defined $field )
+			{
+				foreach my $item (@{$field->get_value( $dataobj )})
+				{
+					$item->remove;
+				}
+			}
+			if( $headers->{metadata_relevant} || !defined $field )
+			{
+				$dataobj->empty();
+			}
 			foreach my $fieldname (keys %{$epdata})
 			{
-				my $field = $dataset->field( $fieldname ) or next;
+				next if !$dataset->has_field( $fieldname );
+				my $f = $dataset->field( $fieldname );
 				my $value = $epdata->{$fieldname};
-				if( $field->isa( "EPrints::MetaField::Subobject" ) )
+				if( $f->isa( "EPrints::MetaField::Subobject" ) )
 				{
 					$value = [$value] if ref($value) ne "ARRAY";
 					foreach my $v (@$value)
@@ -778,9 +815,9 @@ sub PUT
 						$dataobj->create_subdataobj( $field->name, $v );
 					}
 				}
-				else
+				elsif( $headers->{metadata_relevant} || !defined $field )
 				{
-					$field->set_value( $dataobj, $value );
+					$f->set_value( $dataobj, $value );
 				}
 			}
 			$dataobj->commit;
@@ -1038,6 +1075,9 @@ sub process_headers
 
 # userAgent
 	$response{user_agent} = $r->headers_in->{'User-Agent'};
+
+# Metadata-relevant
+	$response{metadata_relevant} = is_true($r->headers_in->{'Metadata-Relevant'});
 
 	return \%response;
 }

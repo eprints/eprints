@@ -296,27 +296,11 @@ sub output_document
 		undef,
 		rel => "contents",
 		href => $dataobj->uri . "/contents" ) );	
-	if ((scalar @files) > 1) 
-	{
-		$entry->appendChild( $xml->create_data_element( 
-			"link",
-			undef,
-			rel => "edit-media",
-			href => $dataobj->uri . "/contents" ) );	
-	} 
-	else 
-	{
-		$entry->appendChild( $xml->create_data_element( 
-			"link",
-			undef,
-			rel => "edit-media",
-			href => $dataobj->uri ) );
-		$entry->appendChild( $xml->create_data_element(
-			"link",
-			undef,
-			rel => "alternate",
-			href => $dataobj->get_url ) );
-	}
+	$entry->appendChild( $xml->create_data_element( 
+		"link",
+		undef,
+		rel => "edit-media",
+		href => $dataobj->uri . "/contents" ) );	
 
 	$entry->appendChild( $xml->create_data_element(
 			"summary",

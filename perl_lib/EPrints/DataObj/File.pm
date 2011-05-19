@@ -853,6 +853,14 @@ sub render_filesize
 	return $repo->make_text( EPrints::Utils::human_filesize( $value ) );
 }
 
+sub get_url
+{
+	my( $self ) = @_;
+
+	my $doc = $self->parent or return;
+	return $doc->get_url( $self->value( "filename" ) );
+}
+
 1;
 
 __END__

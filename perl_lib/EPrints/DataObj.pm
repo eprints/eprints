@@ -473,24 +473,13 @@ sub remove
 
 =item $dataobj->empty()
 
-Remove all of this object's contents and values except for its id.
+Remove all of this object's values except for its id.
 
 =cut
 
 sub empty
 {
-	my( $self ) = @_;
-
-	foreach my $field ($self->dataset->fields)
-	{
-		if( $field->isa( "EPrints::MetaField::Subobject" ) )
-		{
-			foreach my $item (@{$field->get_value( $self )})
-			{
-				$item->remove;
-			}
-		}
-	}
+	my( $self, $all ) = @_;
 
 	$self->{data} = {
 		$self->dataset->key_field->name => $self->id,
