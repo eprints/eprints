@@ -72,6 +72,16 @@ been an int and may be changed in a later upgrade.
 The ID of the eprint (if any) which this eprint is a commentary on.  This 
 field should have been an int and may be changed in a later upgrade.
 
+=item metadata_visibility (set)
+
+This field is automatically set.
+
+	show - appears normally
+	no_search - hidden from search/views
+
+The 'hide' option may be used to force an eprint to not appear in search/views
+but is not considered a stable option.
+
 =back
 
 =head1 METHODS
@@ -928,7 +938,7 @@ If C<non_volatile_change> is true:
 If C<under_construction> is false and C<non_volatile_change> is true:
  - revision generated
 
-The goal of these controls is to only trigger expensive processes in response to user actions. Revisions need to be generated when the user changes metadata or uploads new files (see L<EPrints::DataObj::Document/commit).
+The goal of these controls is to only trigger expensive processes in response to user actions. Revisions need to be generated when the user changes metadata or uploads new files (see L<EPrints::DataObj::Document/commit>).
 
 =cut
 ######################################################################
@@ -1703,10 +1713,13 @@ sub get_user
 	return $self->{user};
 }
 
+=begin InternalDoc
 
 =item $list = $eprint->later_in_thread( $field )
 
 Return a L<EPrints::List> of the immediately later items in the thread. 
+
+=end InternalDoc
 
 =cut
 
@@ -1789,11 +1802,15 @@ sub last_in_thread
 	return $self;
 }
 
+=begin InternalDoc
+
 =item $eprint->removed_from_thread( $field, $parent )
 
 Update this $eprint now its $parent no longer points to it in the $field thread.
 
 The change in $parent must be committed before L</removed_from_thread> is called.
+
+=end InternalDoc
 
 =cut
 
@@ -1811,9 +1828,13 @@ sub removed_from_thread
 	}
 }
 
+=begin InternalDoc
+
 =item $eprint->added_to_thread( $field, $parent )
 
 Update this $eprint now $parent has it in the $field thread.
+
+=end InternalDoc
 
 =cut
 
@@ -1828,9 +1849,13 @@ sub added_to_thread
 		if $self->value( "metadata_visibility" ) eq "show";
 }
 
+=begin InternalDoc
+
 =item $eprint->map_thread( $field, $f )
 
 Apply function $f to every eprint in the $field thread that this eprint is a member of (including itself).
+
+=end InternalDoc
 
 =cut
 
@@ -1923,16 +1948,16 @@ sub render_version_thread
 	return $ul;
 }
 
-######################################################################
-=pod
+=begin InternalDoc
 
 =item $eprint->loop_error( $field, @looped_ids )
 
 This eprint is part of a threading loop which is not allowed. Log a
 warning.
 
+=end InternalDoc
+
 =cut
-######################################################################
 
 sub loop_error
 {
@@ -1992,24 +2017,15 @@ sub user_roles
 	return @roles;
 }
 
-######################################################################
-=pod
+=begin InternalDoc
 
 =item $eprint->datestamp
 
-DEPRECATED.
+=end InternalDoc
 
 =cut
-######################################################################
 
-sub datestamp
-{
-	my( $self ) = @_;
-
-	my( $package,$filename,$line,$subroutine ) = caller(2);
-	$self->{session}->get_repository->log( 
-"The \$eprint->datestamp method is deprecated. It was called from $filename line $line." );
-}
+sub datestamp { EPrints->deprecated }
 
 ######################################################################
 =pod
