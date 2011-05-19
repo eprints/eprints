@@ -1015,9 +1015,9 @@ sub process_headers
 	my @values = HTTP::Headers::Util::split_header_words( $r->headers_in->{'Content-Disposition'} || '' );
 	for(my $i = 0; $i < @values; $i += 2)
 	{
-		if( $values[$_] eq "filename" )
+		if( $values[$i] eq "filename" )
 		{
-			$response{filename} = $values[$_+1];
+			$response{filename} = $values[$i+1];
 		}
 	}
 	$response{filename} = "main.bin"
