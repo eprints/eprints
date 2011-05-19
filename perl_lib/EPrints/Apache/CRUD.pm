@@ -1012,7 +1012,7 @@ sub process_headers
 	$response{content_md5} = $r->headers_in->{'Content-MD5'};
 
 # Content-Disposition
-	my @values = HTTP::Headers::Util::split_header_words( $r->headers_in->{'Content-Disposition'} || '' );
+	my @values = @{(HTTP::Headers::Util::split_header_words( $r->headers_in->{'Content-Disposition'} || '' ))[0]};
 	for(my $i = 0; $i < @values; $i += 2)
 	{
 		if( $values[$i] eq "filename" )
