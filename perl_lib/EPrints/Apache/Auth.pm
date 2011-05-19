@@ -200,10 +200,10 @@ sub auth_cookie
 		);
 		if( $repository->can_call( 'get_login_url' ) )
 		{
-			$login_url = $repository->call( 'get_login_url', $repository, $target_url );
-			$redir = 1 if( defined $login_url );
+			my $ext_url = $repository->call( 'get_login_url', $repository, $target_url );
+			$login_url = $ext_url if defined $ext_url;
 		}
-		if( $redir )
+		if( $repository->current_url ne $repository->current_url( path => "cgi", "users/login" ) )
 		{
 			EPrints::Apache::AnApache::send_status_line( $r, 302, "Need to login first" );
 			EPrints::Apache::AnApache::header_out( $r, "Location", $login_url );
@@ -211,6 +211,7 @@ sub auth_cookie
 			return DONE;
 		}
 
+		# redirect otherwise we might ask for a password on a non-secure page
 		$r->handler( 'perl-script' );
 		$r->set_handlers(PerlResponseHandler =>[ 'EPrints::Apache::Login' ] );
 		return OK;
