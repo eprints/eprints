@@ -786,6 +786,7 @@ sub get_local_epms
 		my $package_name = $fn;
 
 		next if ($short eq ".");
+		next if ( !-d $epm_path . $fn );
 
 		my $spec_path = $epm_path . $fn . "/" . $package_name . ".spec";
 		my $keypairs = EPrints::EPM::read_spec_file($spec_path);
