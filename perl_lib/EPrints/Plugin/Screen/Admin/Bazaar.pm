@@ -234,7 +234,9 @@ sub action_install_bazaar_package
 
 	$previous = "available" if (!defined $previous);
 
-        my $url = $repo->param( "package" );
+        my $package_name = $repo->param( "package" );
+	my $app = EPrints::EPM::retrieve_available_epms($repo,undef,$package_name);
+	my $url = $app->{epm};
 
 	my $epm_file = EPrints::EPM::download_package($repo,$url);
 	
@@ -245,7 +247,38 @@ sub action_install_bazaar_package
 		return;
 	}
 
-	$message = EPrints::EPM::install($repo, $epm_file);
+	my $others = EPrints::EPM::installed_on_other_repository($repo,$app);
+
+	my $error_flag = undef;
+	foreach my $repo_id(keys %$others) {
+		next if (defined $message and substr($message,0,length("epm_error_")));
+		$message = undef;
+		my $other_repo = new EPrints::Session( 1, $repo_id );	
+		$message = EPrints::EPM::install($other_repo, $epm_file);
+		if (defined $message) {	
+			$error_flag = 1 if (defined $message and substr($message,0,length("epm_error_")));
+			$message =~ /epm_([^_]*)/;
+			if (substr($message,0,length("epm_warning_custom_")) eq "epm_warning_custom_" || substr($message,0,length("epm_error_custom_")) eq "epm_error_custom_") 
+			{
+				$message = substr($message,index($message,"custom_")+7,length($message));
+				$self->{processor}->add_message( $1, $repo->make_text($message) );
+			}
+		 	else 
+			{
+				$self->{processor}->add_message( $1, $repo->html_phrase($message) );
+			}
+		}
+	}
+
+	$message = undef;
+	unless($error_flag) 
+	{
+		$message = EPrints::EPM::install($repo, $epm_file);
+	}
+	else 
+	{
+		return;
+	}
 
 	if(!defined $message)
 	{
@@ -339,11 +372,50 @@ sub action_install_cached_package
 			);
 		return; 
 	}
+	
+	my $others = EPrints::EPM::installed_on_other_repository($repo,undef,$package);
+	
 	my $archive_root = $repo->get_conf("archiveroot");
         my $epm_path = $archive_root . "/var/epm/cache/";
 	$package = $epm_path . $package;
 	
-	my $message = EPrints::EPM::install($repo, $package);
+	my $message;
+
+	if (!defined $package) {
+		$self->{processor}->add_message( "error", $repo->html_phrase( "epm_error_no_package" ) );
+		return;
+	}
+
+	my $error_flag = undef;
+	foreach my $repo_id(keys %$others) {
+		next if (defined $message and substr($message,0,length("epm_error_")));
+		$message = undef;
+		my $other_repo = new EPrints::Session( 1, $repo_id );	
+		$message = EPrints::EPM::install($other_repo, $package);
+		if (defined $message) {	
+			$error_flag = 1 if (defined $message and substr($message,0,length("epm_error_")));
+			$message =~ /epm_([^_]*)/;
+			if (substr($message,0,length("epm_warning_custom_")) eq "epm_warning_custom_" || substr($message,0,length("epm_error_custom_")) eq "epm_error_custom_") 
+			{
+				$message = substr($message,index($message,"custom_")+7,length($message));
+				$self->{processor}->add_message( $1, $repo->make_text($message) );
+			}
+		 	else 
+			{
+				$self->{processor}->add_message( $1, $repo->html_phrase($message) );
+			}
+		}
+	}
+
+	$message = undef;
+	unless($error_flag) 
+	{
+		$message = EPrints::EPM::install($repo, $package);
+	}
+	else 
+	{
+		return;
+	}
 
 	if(!defined $message)
 	{
@@ -657,8 +729,43 @@ sub render_app_row
 	my ( $self, $app ) = @_;
 	
 	my $session = $self->{session};
-	
+
 	my $action = "install_bazaar_package";
+
+	my $package_warning;
+	my $others = EPrints::EPM::installed_on_other_repository($session,$app);
+
+	my $other_version;
+	if (defined $others) {
+		foreach my $key(keys %$others) {
+			$other_version = $others->{$key};
+		}
+	}
+
+	my $repo_text = undef;
+	if (($app->{version} gt $other_version) and (defined($other_version))) {
+		$repo_text = $session->make_doc_fragment();
+		$repo_text->appendChild($self->html_phrase("gt_install_warning"));
+	}
+	if (($app->{version} lt $other_version) and (defined($other_version))) {
+		$repo_text = $session->make_doc_fragment();
+		$repo_text->appendChild($self->html_phrase("lt_install_warning"));
+	}
+	if (defined $repo_text) 
+	{
+		my $text;
+		foreach my $key(keys %$others) {
+			$text .= $key . ", ";
+		}
+		if (defined $text) {
+			$text = substr($text,0,length($text)-2);
+			$repo_text->appendChild($session->make_text($text));
+		}
+
+		$package_warning = $session->render_message(
+				"warning",
+				$repo_text);
+	}
 
 	my $installed_epms = EPrints::EPM::get_installed_epms($session);
 	foreach my $installed_app (@$installed_epms) {
@@ -695,6 +802,8 @@ sub render_app_row
 	$h2->appendChild($session->make_text($package_title));
 	$td_main->appendChild($h2);
 
+	$td_main->appendChild($package_warning) if defined($package_warning);
+
 	my $screen_id = "Screen::".$self->{processor}->{screenid};
 	my $screen = $session->plugin( $screen_id, processor => $self->{processor} );
 
@@ -704,7 +813,7 @@ sub render_app_row
 			screen => $screen,
 			screen_id => $screen_id,
 			hidden => {
-			package => $app->{epm},
+			package => $app->{package},
 			},
 		});
 		$td_main->appendChild($install_button);
@@ -1048,7 +1157,42 @@ sub tab_cached_epms
 			$message_content->appendChild($session->make_element("br"));
 			$message_content->appendChild($self->html_phrase("package_verification_missing_fields"));
 			$message_content->appendChild($session->make_text(" [ " . $message . " ]"));
-		}	
+		}
+
+		my $package_warning;
+		my $others = EPrints::EPM::installed_on_other_repository($session,$app);
+
+		my $other_version;
+		if (defined $others) {
+			foreach my $key(keys %$others) {
+				$other_version = $others->{$key};
+			}
+		}
+
+		my $repo_text = undef;
+		if (($app->{version} gt $other_version) and (defined($other_version))) {
+			$repo_text = $session->make_doc_fragment();
+			$repo_text->appendChild($self->html_phrase("gt_install_warning"));
+		}
+		if (($app->{version} lt $other_version) and (defined($other_version))) {
+			$repo_text = $session->make_doc_fragment();
+			$repo_text->appendChild($self->html_phrase("lt_install_warning"));
+		}
+		if (defined $repo_text) 
+		{
+			my $text;
+			foreach my $key(keys %$others) {
+				$text .= $key . ", ";
+			}
+			if (defined $text) {
+				$text = substr($text,0,length($text)-2);
+				$repo_text->appendChild($session->make_text($text));
+			}
+
+			$package_warning = $session->render_message(
+					"warning",
+					$repo_text);
+		}
 
 		my $table = $session->make_element("table");
 		
@@ -1076,6 +1220,8 @@ sub tab_cached_epms
 		my $h2 = $session->make_element("h2");
 		$h2->appendChild($session->make_text($package_title));
 		$td_main->appendChild($h2);
+	
+		$td_main->appendChild($package_warning) if defined($package_warning);
 	
 		my $screen_id = "Screen::".$self->{processor}->{screenid};
 		my $screen = $session->plugin( $screen_id, processor => $self->{processor} );

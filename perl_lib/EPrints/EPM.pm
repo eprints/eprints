@@ -179,6 +179,20 @@ sub install
 
 		$md5_sums = package_md5s($repository, $package_path);
 
+		# Check to see if OLD version is still package managed (excluding config files)
+		foreach my $file_path(keys %$md5_sums) 
+		{
+			if( $md5_sums->{$file_path} ne md5sum($file_path) )
+			{
+				my $filename = substr($file_path, length($directory));
+				$message = 'epm_warning_config_changed';
+				if ( ( substr $filename, 0, 9 ) ne "cfg/cfg.d" ) 
+				{
+					return ('epm_error_file_altered');
+				} 
+			}
+		}
+
 	}
 	
 	mkpath($package_path);
@@ -214,25 +228,6 @@ sub install
 		
 		my $installed_path = $archive_root . $filename;
 
-		if ( -e $installed_path and defined $backup_directory and !$force) {
-			# Upgrade the installed file (if it is controlled by the previous version)
-			
-			if( $md5_sums->{$installed_path} ne md5sum($installed_path) )
-			{
-				$message = 'epm_warning_config_changed';
-				if ( ( substr $filename, 0, 9 ) ne "cfg/cfg.d" ) 
-				{
-					write_md5s($repository,$package_path,$md5_sums); 
-					
-					remove($repository, $package_name, 1);
-					
-					install($repository, $backup_directory, 1);
-
-					return ('epm_error_file_altered');
-				} 
-			}
-		}
-			
 #Davetaz: this overwrites the config file even if it has changed currently... yes here it does
 
 		copy($filepath, $installed_path);
@@ -738,6 +733,21 @@ sub is_installed
 	return 0;
 }
 
+sub get_installed_version
+{
+	my ($repo, $package_name) = @_;
+
+	my $installed_epms = get_installed_epms($repo);
+
+	foreach my $app(@$installed_epms) 
+	{
+		return $app->{version} if ($app->{'package'} eq $package_name);
+	}
+
+	return undef;
+}
+
+
 sub get_installed_epms 
 {
 	my ($self, $repository) = @_;
@@ -750,7 +760,7 @@ sub get_installed_epms
 	my $archive_root = $repository->get_repository->get_conf("archiveroot");
 	my $epm_path = $archive_root . "/var/epm/packages/";
 
-	my $installed_epms = get_local_epms($epm_path);
+	my $installed_epms = get_local_epms($repository, $epm_path);
 
 	return $installed_epms;
 
@@ -763,7 +773,7 @@ sub get_cached_epms
 	my $archive_root = $repository->get_repository->get_conf("archiveroot");
 	my $epm_path = $archive_root . "/var/epm/cache/";
 
-	my $cached_epms = get_local_epms($epm_path);
+	my $cached_epms = get_local_epms($repository,$epm_path);
 
 	return $cached_epms;
 
@@ -771,7 +781,7 @@ sub get_cached_epms
 
 sub get_local_epms 
 {
-	my ($epm_path) = @_;
+	my ($repository, $epm_path) = @_;
 
 	if ( !-d $epm_path ) {
 		return undef;
@@ -789,13 +799,39 @@ sub get_local_epms
 		next if ( !-d $epm_path . $fn );
 
 		my $spec_path = $epm_path . $fn . "/" . $package_name . ".spec";
-		my $keypairs = EPrints::EPM::read_spec_file($spec_path);
-		push @packages, $keypairs;
+		my $app = EPrints::EPM::read_spec_file($spec_path);
+		
+		push @packages, $app;
 	}
 	closedir ($dh);
 
 	return \@packages;
 
+}
+
+sub installed_on_other_repository
+{
+	
+	my ( $repository, $app, $package_name ) = @_;
+	
+	my $repos = {};
+	$package_name = $app->{package} if defined($app);
+
+	foreach my $repo_id ( EPrints::Config::get_repository_ids() ) {
+		next if $repo_id eq $repository->{id};
+		my $other_repo = new EPrints::Session( 1, $repo_id );
+		my $other_version = get_installed_version($other_repo,$package_name);
+		next if (!defined $other_version);
+		$repos->{$repo_id} = $other_version;
+	}
+	
+	my $count = 0;
+	foreach my $key(keys %$repos) {
+		$count++;
+	}
+	return undef if ($count < 1);
+
+	return ($repos);
 }
 
 sub get_epm_updates 
