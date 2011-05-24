@@ -857,12 +857,29 @@ sub get_epm_updates
         return \@apps;
 }
 
+sub store_online
+{	
+	my $url = "http://bazaar.eprints.org";
+	my $ua = LWP::UserAgent->new();
+	my $req = HTTP::Request->new( GET => $url );
+	my $res = $ua->request($req);
+
+	return 0 if (!$res->is_success);
+
+	if (index($res->content,"Browse Packages") > 0) {
+		return 1;
+	}
+
+	return 0;
+}
+
 sub retrieve_available_epms
 {
 	my( $repository, $id, $package_name, $update_cache) = @_;
 	
 	my @apps;
 
+	my $store_state;
 	my $archive_root = $repository->get_conf("archiveroot");
 	my $epm_path = $archive_root . "/var/epm/cache/";
 	my $cache_file = $epm_path . "packages";
@@ -874,8 +891,17 @@ sub retrieve_available_epms
 		while (<FILE>) {
 			chomp;
 			my $line = $_;
-			push @apps, $app if ($line eq "========");
-			$app = undef if ($line eq "========");
+			my $app_ok = 1;
+			if ($line eq "========") {
+				my $store_url = $app->{epm};
+				$store_url = substr($store_url,0,index($store_url,"/",8));
+				if (!defined $store_state->{$store_url}) {
+					$store_state->{$store_url} = store_online($store_url);
+				}
+				$app_ok = $store_state->{$store_url};
+				push @apps, $app if ($app_ok);
+				$app = undef; 
+			}
 			next if ($line eq "========");
 			my $key = trim(substr($line,0,index($line,":")));
 			my $value = trim(substr($line,index($line,":")+1,length($line)));
@@ -894,7 +920,9 @@ sub retrieve_available_epms
 	$sources = [] if !defined $sources;
 
 	SOURCE: foreach my $epm_source (@$sources) {
-
+		
+		next unless(store_online($epm_source->{base_url}));
+			
 		my $url = $epm_source->{base_url} . "/cgi/search/advanced/export__XML.xml?screen=Public%3A%3AEPrintSearch&_action_export=1&output=XML&exp=0|1|-date%2Fcreators_name%2Ftitle|archive|-|type%3Atype%3AANY%3AEQ%3Aepm|-|eprint_status%3Aeprint_status%3AALL%3AEQ%3Aarchive|metadata_visibility%3Ametadata_visibility%3AALL%3AEX%3Ashow";
 
 		my $tmp = File::Temp->new;

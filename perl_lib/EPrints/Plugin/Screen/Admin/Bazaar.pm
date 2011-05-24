@@ -20,6 +20,7 @@ package EPrints::Plugin::Screen::Admin::Bazaar;
 use strict;
 
 our $previous = undef;
+our $store_state = {};
 
 sub new
 {
@@ -582,12 +583,57 @@ sub action_search
 
 }
 
+sub update_store_states
+{
+	my( $self ) = @_;
+
+	my $repository = $self->{repository};
+	
+	my $sources = $repository->config( "epm_sources" );
+	$sources = [] if !defined $sources;
+
+	my @offlines;
+
+	SOURCE: foreach my $epm_source (@$sources) {
+		
+		my $lstore_state = EPrints::EPM::store_online($epm_source->{base_url});
+		$store_state->{$epm_source->{base_url}} = $lstore_state;
+		push @offlines, $epm_source->{name} if (!$lstore_state);
+	
+	}
+
+	return \@offlines;
+
+}
+
+
 sub render
 {
 	my( $self ) = @_;
 
 	my $session = $self->{session};
 
+	my $dom = $session->make_doc_fragment;
+
+	my $offlines = $self->update_store_states();
+	my $warning_list = $session->make_element("ul");
+
+	foreach my $store(@$offlines) {
+		my $offline_element = $session->make_element("li");
+		$offline_element->appendChild($session->make_text($store));
+		$warning_list->appendChild($offline_element);
+	}
+
+	if (scalar(@$offlines) > 0) {
+		my $warning_content = $session->make_doc_fragment;
+		$warning_content->appendChild($self->html_phrase("no_store"));
+		$warning_content->appendChild($warning_list);
+		my $package_warning = $session->render_message(
+			"warning",
+			$warning_content);
+		$dom->appendChild( $package_warning );
+	}
+	
 	my $action = $session->param( "action" ) || "";
 	if ($action eq "" and $session->param("_action_search")) {
 		$action = "search";
@@ -595,27 +641,29 @@ sub render
 
 	if( $action eq "showapp" )
 	{
-		return $self->render_app( $session->param( "appid" ) );
+		$dom->appendChild( $self->render_app( $session->param( "appid" ) ) );
 	} 
 	elsif ($action eq "submit_to_bazaar")
 	{
-		return $self->submission_properties( $session->param( "package" ) );
+		$dom->appendChild( $self->submission_properties( $session->param( "package" ) ) );
 	}
 	elsif ($action eq "update_package_cache")
 	{
 		$self->action_update_package_cache();
-		return $self->render_app_menu;
+		$dom->appendChild( $self->render_app_menu );
 	}
 	elsif ($action eq "search") 
 	{
 		my $ret = $self->action_search(1);
-		return $ret if (defined $ret);
-		return $self->render_app_menu if (!defined $ret);
+		$dom->appendChild( $ret ) if (defined $ret);
+		$dom->appendChild( $self->render_app_menu ) if (!defined $ret);
 	}
 	else
 	{
-		return $self->render_app_menu;
+		$dom->appendChild( $self->render_app_menu );
 	}
+
+	return $dom;
 }
 
 sub submission_properties

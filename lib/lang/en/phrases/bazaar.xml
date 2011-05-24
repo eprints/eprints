@@ -21,6 +21,8 @@
 	
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:gt_install_warning">Warning: Installing this version WILL ALSO upgrade this pacakge on the following repositories:<br/></epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:lt_install_warning">Warning: Installing this package is not advisable and may cause problems. A later version is already installed on the following repositories (note the list excludes the local repository):<br/></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:no_store">Warning: The following stores appear to be offline, thus packages are not being shown for install:</epp:phrase>
+
 
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:package_installed">Package already installed and up to date.</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:update_bazaar_packages">Update Package Cache</epp:phrase>
