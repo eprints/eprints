@@ -1551,7 +1551,9 @@ sub icon_url
 
 	# e.g. audio/mp3 will look for "audio_mp3.png" then "audio.png" then
 	# "unknown.png"
-	my( $major, $minor ) = split /\//, $self->get_value( "format" ), 2;
+	my $format = $self->value( "format" );
+	$format = "application/octet-stream" if !defined $format;
+	my( $major, $minor ) = split /\//, $format, 2;
 	$minor = "" if !defined $minor;
 	$minor =~ s/\//_/g;
 
