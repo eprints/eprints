@@ -334,18 +334,25 @@ sub _parse_dc
 			}
 		}
 	}
+	
+	my @names;
+	my @emails;
+	my $keys;
 
-	$dom_doc = eval { $xml->parse_file( "$dir/customXml/item2.xml" ) };
-#
-# item2.xml in docx contains information added by the authoring add-in tool @ http://research.microsoft.com/authoring
-# This includes author details and keywords
-#
-	if( defined $dom_doc )
+	my $custom_dir = "$dir/customXml";
+
+	opendir(my $dh, $custom_dir) or return;
+	while(my $fn = readdir($dh))
 	{
-		$root = $dom_doc->documentElement;
+		next if $fn !~ /^item(\d+)\.xml$/;
+		my $idx = $1;
 
-		my @names;
-		my @emails;
+		next if !-e "$custom_dir/item$idx.xml";
+
+		my $dom_doc = eval { $xml->parse_file( "$custom_dir/$fn" ) };
+		next if !defined $dom_doc;
+	
+		$root = $dom_doc->documentElement;
 
 		foreach my $contrib ($root->getElementsByLocalName("contrib."))
 		{
@@ -362,10 +369,6 @@ sub _parse_dc
 			push @emails, $email->textContent;
 		}
 
-		$epdata->{creators_id} = \@emails if scalar @emails;
-		$epdata->{creators_name} = \@names if scalar @names;
-
-		my $keys;
 		my $kwd_node = ($root->getElementsByLocalName("kwd-group."))[0];
 		if (defined $kwd_node) {
 			foreach my $keyword($kwd_node->getElementsByLocalName("title.controltype.richtextbox.")) {
@@ -376,10 +379,12 @@ sub _parse_dc
 				$keys .= $keyword->textContent . ", ";
 			}
 		}
-		if (defined $keys) {
-			$keys =  substr($keys,0,length($keys)-2);
-			$epdata->{keywords} = $keys;
-		}
+	}
+	$epdata->{creators_id} = \@emails if scalar @emails;
+	$epdata->{creators_name} = \@names if scalar @names;
+	if (defined $keys) {
+		$keys =  substr($keys,0,length($keys)-2);
+		$epdata->{keywords} = $keys;
 	}
 }
 
