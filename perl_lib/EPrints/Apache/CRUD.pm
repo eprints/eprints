@@ -702,6 +702,7 @@ sub POST
 				dataset => $dataset,
 				fh => $tmpfile,
 				filename => $headers->{filename},
+				actions => $plugin->param( "actions" ),
 			) };
 			if( $@ || !defined $list )
 			{
@@ -876,6 +877,7 @@ sub PUT
 		dataset => $dataset,
 		filename => $headers->{filename},
 		mime_type => $headers->{content_type},
+		actions => $plugin->param( "actions" ),
 	) };
 	if( !defined $list )
 	{
