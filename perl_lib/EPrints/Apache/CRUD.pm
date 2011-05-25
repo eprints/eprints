@@ -42,6 +42,26 @@ sub _priv
 		$priv = "view";
 	}
 
+	if(
+		UNIVERSAL::isa( $dataobj, "EPrints::DataObj::File" ) &&
+		UNIVERSAL::isa( $dataobj->parent, "EPrints::DataObj::Document" )
+	  )
+	{
+		$dataobj = $dataobj->parent;
+	}
+	if(
+		UNIVERSAL::isa( $dataobj, "EPrints::DataObj::Document" ) &&
+		UNIVERSAL::isa( $dataobj->parent, "EPrints::DataObj::EPrint" )
+	  )
+	{
+		$dataobj = $dataobj->parent;
+		$dataset = $dataobj->get_dataset;
+		if( $priv eq "destroy" )
+		{
+			$priv = "edit";
+		}
+	}
+
 	if( $dataset->id ne $dataset->base_id )
 	{
 		$priv = join('/', $dataset->base_id, $dataset->id, $priv );
