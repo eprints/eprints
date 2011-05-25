@@ -37,7 +37,7 @@ sub new
 	$self->{name} = "Import (openxml)";
 	$self->{produce} = [qw( dataobj/eprint )];
 	$self->{accept} = [qw( application/vnd.openxmlformats-officedocument.wordprocessingml.document application/vnd.openxmlformats application/msword )];
-	$self->{advertise} = 0;
+	$self->{advertise} = 1;
 	$self->{actions} = [qw( metadata media bibliography )];
 
 	return $self;
@@ -251,7 +251,7 @@ sub _extract_media_files
 	foreach my $file (@files)
 	{
 		my( $filename, $filepath ) = @$file;
-		open(my $fh, "<", $filename) or die "Error opening $filename: $!";
+		open(my $fh, "<", $filepath) or die "Error opening $filename: $!";
 		push @{$epdata->{documents}}, {
 			main => $filename,
 			format => $session->call( "guess_doc_type", $session, $filename ),
@@ -280,7 +280,6 @@ sub _parse_dc
 
 	my $dom_doc = eval { $xml->parse_file( "$dir/docProps/core.xml" ) };
 	return if !defined $dom_doc;
-
 	my $root = $dom_doc->documentElement;
 
 	return if lc($root->tagName) ne 'cp:coreproperties';
@@ -290,8 +289,8 @@ sub _parse_dc
 	foreach my $node ($root->childNodes)
 	{
 		my $name = lc($node->nodeName);
-		next unless exists $GRAMMAR->{$name};
 		my $value = $xml->text_contents_of( $node );
+		next unless exists $GRAMMAR->{$name};
 		next unless EPrints::Utils::is_set( $value );
 
 		push @{$dc{$name}}, $value;
@@ -318,9 +317,9 @@ sub _parse_dc
 	if( defined $dom_doc )
 	{
 		$root = $dom_doc->documentElement;
-
-		foreach my $alias ($root->getElementsByTagName( "w:alias" ))
+		foreach my $alias ($root->getElementsByLocalName( "alias" ))
 		{
+
 			my $type = lc($alias->getAttribute( "w:val" ));
 
 			if( $type eq "title" || $type eq "abstract" )
@@ -336,28 +335,52 @@ sub _parse_dc
 		}
 	}
 
-#	$dom_doc = eval { $xml->parse_file( "$dir/customXml/item2.xml" ) };
+	$dom_doc = eval { $xml->parse_file( "$dir/customXml/item2.xml" ) };
 #
-# item2.xml in docx appears to be the bibliography, this section doesn't make
-# sense
-#	if( defined $dom_doc )
-#	{
-#		$root = $dom_doc->documentElement;
+# item2.xml in docx contains information added by the authoring add-in tool @ http://research.microsoft.com/authoring
+# This includes author details and keywords
 #
-#		my @names;
-#
-#		foreach my $name ($root->getElementsByLocalName("name."))
-#		{
-#			my( $surname ) = $name->getElementsByLocalName("surname.");
-#			my( $given ) = $name->getElementsByLocalName("given-names.");
-#			push @names, {
-#				family => $surname->textContent,
-#				given => $given->textContent
-#			};
-#		}
-#
-#		$eprint->set_value( "creators_name", \@names ) if scalar @names;
-#	}
+	if( defined $dom_doc )
+	{
+		$root = $dom_doc->documentElement;
+
+		my @names;
+		my @emails;
+
+		foreach my $contrib ($root->getElementsByLocalName("contrib."))
+		{
+			my $name = ($contrib->getChildrenByLocalName("name."))[0];
+			my( $surname ) = $name->getElementsByLocalName("surname.");
+			my( $given ) = $name->getElementsByLocalName("given-names.");
+			my $address = ($contrib->getChildrenByLocalName("address."))[0];
+			my $email_node = ($address->getElementsByLocalName("email-details"))[0];
+			my( $email ) = ($email_node->getElementsByLocalName("email."))[0];
+			push @names, {
+				family => $surname->textContent,
+				given => $given->textContent,
+			};
+			push @emails, $email->textContent;
+		}
+
+		$epdata->{creators_id} = \@emails if scalar @emails;
+		$epdata->{creators_name} = \@names if scalar @names;
+
+		my $keys;
+		my $kwd_node = ($root->getElementsByLocalName("kwd-group."))[0];
+		if (defined $kwd_node) {
+			foreach my $keyword($kwd_node->getElementsByLocalName("title.controltype.richtextbox.")) {
+				$keys .= $keyword->textContent . ", ";
+			}
+			foreach my $node($kwd_node->getElementsByLocalName("kwd")) {
+				my $keyword = ($node->getElementsByLocalName("kwd.controltype.richtextbox."))[0];
+				$keys .= $keyword->textContent . ", ";
+			}
+		}
+		if (defined $keys) {
+			$keys =  substr($keys,0,length($keys)-2);
+			$epdata->{keywords} = $keys;
+		}
+	}
 }
 
 # there's only one creator in openxml (the owner of the doc I guess)
