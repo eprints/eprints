@@ -1204,7 +1204,7 @@ sub send_response
 		print $content;
 	}
 
-	return $status;
+	return OK;
 }
 
 package EPrints::Apache::CRUD::Handler;
