@@ -187,7 +187,7 @@ sub content_negotiate_best_plugin
 	my $write = $r->method eq 'POST' || $r->method eq 'PUT';
 
 	my $accept_type = "dataobj/".$dataset->base_id;
-	if( !defined $dataobj && ($r->method eq "GET" || $r->method eq "HEAD") )
+	if( !defined $dataobj && !$write )
 	{
 		$accept_type = "list/".$dataset->base_id;
 	}
@@ -208,7 +208,10 @@ sub content_negotiate_best_plugin
 			return( HTTP_NOT_FOUND, undef );
 		}
 		$r->pnotes->{field} = $field;
-		$accept_type = "list/".$field->property( "datasetid" );
+		if( !$write )
+		{
+			$accept_type = "list/".$field->property( "datasetid" );
+		}
 	}
 	elsif( length($uri) )
 	{
@@ -783,6 +786,12 @@ sub PUT
 		return OK;
 	}
 
+	# we can import any file type into /contents
+	if( !defined $plugin && defined $field )
+	{
+		$plugin = $repo->plugin( "Import::Binary" );
+	}
+
 	return HTTP_UNSUPPORTED_MEDIA_TYPE if !defined $plugin;
 
 	my $status;
@@ -799,10 +808,7 @@ sub PUT
 
 			if( defined $field )
 			{
-				foreach my $item (@{$field->get_value( $dataobj )})
-				{
-					$item->remove;
-				}
+				$_->remove for @{$field->get_value( $dataobj )};
 			}
 			if( $headers->{metadata_relevant} || !defined $field )
 			{
@@ -849,6 +855,7 @@ sub PUT
 		fh => $tmpfile,
 		dataset => $dataset,
 		filename => $headers->{filename},
+		mime_type => $headers->{content_type},
 	) };
 	if( !defined $list )
 	{

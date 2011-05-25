@@ -331,7 +331,7 @@ sub handler
 		return redir_see_other( $r, $url );
 	}
 
-	if( $uri =~ s! ^$urlpath/id/records$ !!x )
+	if( $uri =~ s! ^$urlpath/id/contents$ !!x )
 	{
 		$r->pnotes( dataset => $repository->dataset( "eprint" ) );
 		$r->pnotes( uri => $uri );
