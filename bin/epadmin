@@ -2052,6 +2052,45 @@ sub upgrade
 	print $db->get_version()."\n";
 }
 
+# if a field's definition changes from single to multiple values, this attempts to migrate the field's values (if any)
+sub migrate_to_multiple_values
+{
+	my( $db, $dataset, $field ) = @_;
+	
+	print "\tMigrating ".$field->get_name." to multiple values... ";
+
+	my $rc = 1;
+	my $Q_key = $db->quote_identifier( $dataset->key_field->get_name );
+	my $Q_fn = $db->quote_identifier( $field->get_name );
+	my $Q_table = $db->quote_identifier( $dataset->get_sql_table_name );
+
+	my $sql = "SELECT $Q_key, $Q_fn FROM $Q_table";
+
+	my $sth = $db->prepare_select( $sql );
+	$db->execute( $sth , $sql );
+
+	my $c=0;
+	while( my @row = $sth->fetchrow )
+	{
+			my $tablename = $dataset->get_sql_table_name ."_".$field->get_name;
+			next unless( defined $row[1] );
+			if( $rc &&= $db->insert( $tablename, [$dataset->key_field->get_name, 'pos', $field->get_name], ([$row[0],0,$row[1]] ) ) )
+			{
+				$c++;
+			}
+	}
+	if( $rc )
+	{
+		print " OK";
+		print ", migrated $c values" if( $c );
+	}
+	else
+	{
+		print " ERRORS";
+	}
+	print "\n";
+}
+
 # This will check for any missing datasets or fields and add them
 sub update_datasets
 {
@@ -2086,6 +2125,14 @@ sub update_datasets
 				{
 					++$field_count;
 					print "Added ".$field->get_name." to dataset $_\n" if $noise;
+
+					if( $field->get_property( 'multiple' ) && !$field->is_virtual )
+					{
+						if( $db->has_column( $dataset->get_sql_table_name, $field->get_name ) )
+						{
+							migrate_to_multiple_values( $db, $dataset, $field );
+						}
+					}
 				}
 				else
 				{
