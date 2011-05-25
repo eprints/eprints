@@ -94,7 +94,7 @@ sub authen
 		return EPrints::Apache::Auth::authen( $r );
 	}
 
-	# /id/records implicitly requires a user
+	# /id/contents implicitly requires a user
 	if( !defined $dataobj )
 	{
 		return EPrints::Apache::Auth::authen( $r );
@@ -440,7 +440,7 @@ ANCESTORS: foreach my $anc_subject_id ( @{$dataobj->get_value( "ancestors" )} )
 		}
 		return GET( $r, $owner );
 	}
-	# /id/records but negotiation failed
+	# /id/contents but negotiation failed
 	elsif( !defined $dataobj )
 	{
 		return HTTP_NOT_ACCEPTABLE if $r->pnotes->{mime_type} ne '*/*';
@@ -497,7 +497,7 @@ sub DELETE
 	my $plugin = $r->pnotes->{plugin};
 	my $field = $r->pnotes->{field};
 
-	# /id/records
+	# /id/contents
 	return HTTP_METHOD_NOT_ALLOWED if !defined $dataobj;
 
 	# obtain lock, if available
@@ -643,7 +643,7 @@ sub POST
 	my $plugin = $r->pnotes->{plugin};
 	my $field = $r->pnotes->{field};
 
-	# can only post to XX/contents and /id/records
+	# can only post to XX/contents and /id/contents
 	if( defined($dataobj) && !defined $field )
 	{
 		return HTTP_METHOD_NOT_ALLOWED;
@@ -959,7 +959,7 @@ sub servicedocument
 		[ "dcterms:abstract", $service_conf->{dcterms_abstract} ],
 # COLLECTION TREATMENT
 		[ "sword:treatment", $treatment ],
-	], "href" => $repo->current_url( host => 1, path => "static", "id/records" ),
+	], "href" => $repo->current_url( host => 1, path => "static", "id/contents" ),
 	);
 	$workspace->appendChild( $collection );
 
