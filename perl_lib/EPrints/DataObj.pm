@@ -473,17 +473,20 @@ sub remove
 
 =item $dataobj->empty()
 
-Remove all of this object's values except for its id.
+Remove all of this object's values that may be imported.
 
 =cut
 
 sub empty
 {
-	my( $self, $all ) = @_;
+	my( $self ) = @_;
 
-	$self->{data} = {
-		$self->dataset->key_field->name => $self->id,
-	};
+	foreach my $field ($self->dataset->fields)
+	{
+		next if $field->is_virtual;
+		next if !$field->property( "import" );
+		delete $self->{data}->{$field->name};
+	}
 }
 
 # $dataobj->set_under_construction( $boolean )

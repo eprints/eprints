@@ -785,6 +785,12 @@ sub PUT
 
 	return HTTP_UNSUPPORTED_MEDIA_TYPE if !defined $plugin;
 
+	my $status;
+	if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
+	{
+		$status = $dataobj->value( "eprint_status" );
+	}
+
 	$plugin->{parse_only} = 1;
 	$plugin->{Handler} = EPrints::Apache::CRUD::Handler->new(
 		dataset => $dataset,
@@ -818,6 +824,21 @@ sub PUT
 				elsif( $headers->{metadata_relevant} || !defined $field )
 				{
 					$f->set_value( $dataobj, $value );
+				}
+			}
+			# block any attempts to change eprint status
+			if( defined($status) )
+			{
+				$dataobj->set_value( "eprint_status", $status );
+				my $new_status = $epdata->{eprint_status};
+				if( EPrints::Utils::is_set( $new_status ) )
+				{
+					my $priv = "eprint/$status/move_$new_status";
+					if( $user->allow( $priv, $dataobj ) )
+					{
+						$dataobj->commit;
+						$dataobj->_transfer( $new_status );
+					}
 				}
 			}
 			$dataobj->commit;

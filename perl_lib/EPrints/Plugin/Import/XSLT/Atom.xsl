@@ -67,6 +67,12 @@ Rights: <xsl:value-of select="atom:entry/atom:rights"/>
 </eprints>
 </xsl:template>
 
+<xsl:template match="atom:category">
+<xsl:if test="@scheme='http://yomiko.ecs.soton.ac.uk:8080/data/eprint/status/'">
+	<eprint_status><xsl:value-of select="@term" /></eprint_status>
+</xsl:if>
+</xsl:template>
+
 <xsl:template match="atom:title">
 <title><xsl:value-of select="." /></title>
 </xsl:template>
