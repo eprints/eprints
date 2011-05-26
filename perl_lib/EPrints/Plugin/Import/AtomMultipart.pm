@@ -7,7 +7,7 @@ EPrints::Plugin::Import::AtomMultipart
 package EPrints::Plugin::Import::AtomMultipart;
 
 use HTTP::Headers::Util;
-use MIME::Parser;
+use MIME::Multipart::Parser;
 
 use strict;
 
@@ -23,72 +23,11 @@ sub new
 	$self->{visible} = "all";
 	$self->{advertise} = 0;
 	$self->{produce} = [qw( dataobj/eprint )];
-	$self->{accept} = [qw( multipart/related )];
+	$self->{accept} = ['multipart/related; type="application/atom+xml"'];
 	$self->{arguments}->{boundary} = undef;
+	$self->{arguments}->{start} = undef;
 
 	return $self;
-}
-
-sub read_line
-{
-	my( $self, $fh ) = @_;
-
-	use bytes;
-	local $_;
-
-	for($self->{_buffer})
-	{
-		while( length($_) < 8092 )
-		{
-			last if !sysread($fh, $_, 8092, length($_));
-		}
-
-		$_ =~ s#^((?:[^\n]*\n)|.+)##s;
-
-		return length($1) ? $1 : undef;
-	}
-}
-
-sub read_part
-{
-	my( $self, $fh, $boundary ) = @_;
-
-	local $_;
-
-	my @headers;
-	while(defined($_ = $self->read_line($fh)))
-	{
-		s/\r?\n$//;
-		last if $_ eq "";
-		$headers[$#headers][1] .= $_, next if s/^ //;
-		push @headers, [split ':', $_, 2];
-	}
-	return if !defined $_;
-	for(@headers)
-	{
-		$_->[0] = lc $_->[0];
-		$_->[1] = [ HTTP::Headers::Util::split_header_words( $_->[1] ) ];
-	}
-	my %headers = map { @$_ } @headers;
-
-	my $tmpfile = File::Temp->new;
-
-	my $le = "";
-	while(defined($_ = $self->read_line($fh)))
-	{
-		last if /^--$boundary/;
-		syswrite($tmpfile, $le);
-		s/(\r?\n)$//;
-		$le = $1;
-		syswrite($tmpfile, $_);
-	}
-
-	seek($tmpfile,0,0);
-
-	return {
-		headers => \%headers,
-		_content => $tmpfile,
-	};
 }
 
 sub input_fh
@@ -98,16 +37,37 @@ sub input_fh
 	my $fh = $opts{fh};
 	my $dataset = $opts{dataset};
 	my $boundary = delete $opts{boundary};
+	my $start = delete $opts{start};
 	local $self->{epdata};
 	local $self->{_buffer} = "";
 	
-	my @parts;
-	while(my $part = $self->read_part($fh, $boundary))
-	{
-		push @parts, $part;
-	}
+	my @parts = MIME::Multipart::Parser->new->parse( $fh, $boundary );
 
 	shift @parts; # discard text-part
+
+	foreach my $part (@parts)
+	{
+		my @headers = @{$part->{headers}};
+		foreach my $i (0..$#headers)
+		{
+			$headers[$i] = $i % 2 ?
+				[ HTTP::Headers::Util::split_header_words( $headers[$i] ) ]
+				: lc($headers[$i])
+		}
+		$part->{headers} = { @headers };
+	}
+
+	if( $start )
+	{
+		for(my $i = 0; $i < @parts; ++$i)
+		{
+			if( $parts[$i]{headers}{'content-id'}[0][0] eq $start )
+			{
+				unshift @parts, splice(@parts,$i,1);
+				last;
+			}
+		}
+	}
 
 	my $ct = eval { $parts[0]{headers}{'content-type'}[0][0] };
 	if( !$ct || $ct ne 'application/atom+xml' )
@@ -137,7 +97,7 @@ sub input_fh
 
 	my $list = $atom->input_fh(
 		%opts,
-		fh => $parts[0]{_content},
+		fh => $parts[0]{tmpfile},
 	);
 	return if !defined $list;
 
@@ -163,9 +123,9 @@ sub input_fh
 		main => $filename,
 		files => [{
 			filename => $filename,
-			filesize => -s $parts[1]{_content},
+			filesize => -s $parts[1]{tmpfile},
 			mime_type => $mime_type,
-			_content => $parts[1]{_content},
+			_content => $parts[1]{tmpfile},
 		}],
 	};
 

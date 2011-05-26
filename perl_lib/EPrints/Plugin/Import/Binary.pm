@@ -31,15 +31,17 @@ sub input_fh
 
 	my $fh = $opts{fh};
 	my $dataset = $opts{dataset};
+	my $mime_type = $opts{mime_type};
+	my( $format ) = split /[;,]/, $mime_type;
 	
 	my $rc = 0;
 
 	my $epdata = {
 		main => $opts{filename},
-		format => $opts{mime_type},
+		format => $format,
 		files => [{
 			filename => $opts{filename},
-			mime_type => $opts{mime_type},
+			mime_type => $format,
 			filesize => -s $fh,
 			_content => $fh,
 		}],

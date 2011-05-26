@@ -701,7 +701,7 @@ sub POST
 	}
 
 	# we can import any file type into /contents
-	if( !defined $plugin && defined $field )
+	if( !defined $plugin && (defined $field || !defined $dataobj) )
 	{
 		$plugin = $repo->plugin( "Import::Binary" );
 	}
@@ -716,12 +716,23 @@ sub POST
 	{
 		$status = $dataobj->value( "eprint_status" );
 	}
+	elsif( !defined $dataobj )
+	{
+		$status = $headers->{in_progress} ? "inbox" : "buffer";
+	}
 
 	$plugin->{parse_only} = 1;
 	$plugin->{Handler} = EPrints::Apache::CRUD::Handler->new(
 		dataset => $dataset,
 		epdata_to_dataobj => sub {
 			my( undef, $epdata ) = @_;
+
+			if( $dataset->base_id eq "eprint" )
+			{
+				$epdata->{userid} = $owner->id;
+				$epdata->{sword_depositor} = $user->id;
+				$epdata->{eprint_status} = $status;
+			}
 
 			if( defined $dataobj )
 			{
@@ -759,14 +770,22 @@ sub POST
 			}
 			else
 			{
-				@items = ($dataset->create_dataobj( $epdata ));
+				push @items, $dataset->create_dataobj( $epdata );
 			}
 		}
 	);
 
 	my $atom = $repo->plugin( "Export::Atom" );
 
+	my %content_type_params;
+	for(keys %{$headers->{content_type_params}})
+	{
+		next if !$plugin->has_argument( $_ );
+		$content_type_params{$_} = $headers->{content_type_params}->{$_};
+	}
+
 	my $list = eval { $plugin->input_fh(
+		%content_type_params,
 		dataset => $dataset,
 		fh => $tmpfile,
 		filename => $headers->{filename},
@@ -805,7 +824,7 @@ sub POST
 
 sub PUT 
 {
-	my( $r ) = @_;
+	my( $r, $owner ) = @_;
 
 	my $repo = $EPrints::HANDLE->current_repository();
 	return NOT_FOUND if !defined $repo;
@@ -866,6 +885,13 @@ sub PUT
 		epdata_to_dataobj => sub {
 			my( undef, $epdata ) = @_;
 
+			if( $dataset->base_id eq "eprint" )
+			{
+				$epdata->{userid} = $owner->id;
+				$epdata->{sword_depositor} = $user->id;
+				$epdata->{eprint_status} = $status;
+			}
+
 			if( defined $field )
 			{
 				$_->remove for @{$field->get_value( $dataobj )};
@@ -884,7 +910,7 @@ sub PUT
 					$value = [$value] if ref($value) ne "ARRAY";
 					foreach my $v (@$value)
 					{
-						$dataobj->create_subdataobj( $field->name, $v );
+						$dataobj->create_subdataobj( $fieldname, $v );
 					}
 				}
 				elsif( !defined $field || $headers->{flags}->{metadata} )
@@ -893,7 +919,7 @@ sub PUT
 				}
 			}
 			# fix the eprint status
-			if( defined($status) )
+			if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
 			{
 				$dataobj->set_value( "eprint_status", $status );
 				my $new_status = $epdata->{eprint_status};
@@ -1023,7 +1049,7 @@ sub servicedocument
 				}
 				else
 				{
-					$collection->appendChild( $xml->create_data_element( "accept", $mime_type ) );
+					$collection->appendChild( $xml->create_data_element( "accept", $mime_type, alternate => "multipart-related" ) );
 				}
 			}
 		}
@@ -1117,6 +1143,8 @@ sub process_headers
 	$response{content_type} = $r->headers_in->{'Content-Type'};
 	$response{content_type} = "application/octet-stream"
 		if !EPrints::Utils::is_set( $response{content_type} );
+	my( $content_type, %params ) = @{(HTTP::Headers::Util::split_header_words($response{content_type}))[0]};
+	$response{content_type_params} = \%params;
 
 # Content-Length
 	$response{content_length} = $r->headers_in->{'Content-Length'};
