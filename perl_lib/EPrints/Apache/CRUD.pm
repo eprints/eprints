@@ -33,7 +33,7 @@ sub _priv
 	{
 		$priv = "destroy";
 	}
-	elsif( defined($plugin) )
+	elsif( defined($plugin) && $plugin->get_subtype ne "SummaryPage" )
 	{
 		$priv = "export";
 	}
@@ -213,7 +213,7 @@ sub content_negotiate_best_plugin
 	}
 
 	my $field;
-	if( $uri eq "/contents" )
+	if( $uri eq "contents" )
 	{
 		if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
 		{
@@ -249,12 +249,13 @@ sub content_negotiate_best_plugin
 				type => "Import",
 				can_accept => $PACKAGING_PREFIX.$package,
 				can_produce => $accept_type,
+				can_action => $headers->{actions},
 			);
 		}
 		else
 		{
 			($plugin) = $repo->get_plugins(
-				type => "Import",
+				type => "Export",
 				can_accept => $accept_type,
 				can_produce => $PACKAGING_PREFIX.$package,
 			);
@@ -268,6 +269,7 @@ sub content_negotiate_best_plugin
 		@plugins = $repo->get_plugins(
 			type => "Import",
 			can_produce => $accept_type,
+			can_action => $headers->{actions},
 		);
 	}
 	else
@@ -321,7 +323,7 @@ sub content_negotiate_best_plugin
 			unshift @{$pset{"text/html"}}, {
 				charset => 'utf-8',
 				q => 1.0,
-				plugin => undef,
+				plugin => $repo->plugin( "Export::SummaryPage" ),
 			};
 		}
 
@@ -413,6 +415,8 @@ sub handler
 	my( $rc, $owner ) = on_behalf_of( $repo, $r, $user );
 	return $rc if $rc != OK;
 
+	my $write = $r->method ne "GET" && $r->method ne "HEAD";
+
 	my $dataset = $r->pnotes->{dataset};
 	my $dataobj = $r->pnotes->{dataobj};
 	my $plugin = $r->pnotes->{plugin};
@@ -451,56 +455,72 @@ ANCESTORS: foreach my $anc_subject_id ( @{$dataobj->get_value( "ancestors" )} )
 	{
 		return PUT( $r, $owner );
 	}
-	# GET / HEAD
-	elsif( defined $plugin )
+	# GET/HEAD XX/contents
+	elsif( defined $field )
 	{
-		if( $dataset->base_id eq "subject" )
+		if( $r->pnotes->{mime_type} eq "*/*" )
 		{
-			return redir_see_other( $r, $plugin->dataobj_export_url( $dataobj ) );
+			if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
+			{
+				my @docs = $dataobj->get_all_documents;
+				if( @docs == 0 )
+				{
+					return HTTP_NOT_FOUND;
+				}
+				elsif( @docs == 1 )
+				{
+					$dataobj = $docs[0];
+				}
+				else
+				{
+					return sword_error($repo, $r,
+						status => HTTP_NOT_ACCEPTABLE,
+						summary => "More than one resource at this location",
+					);
+				}
+			}
+			return EPrints::Apache::Rewrite::redir_see_other( $r, $dataobj->get_url );
 		}
+
+		# negotiation failed
+		return HTTP_UNSUPPORTED_MEDIA_TYPE if !defined $plugin;
+
 		return GET( $r, $owner );
 	}
-	# /id/contents but negotiation failed
+	# GET/HEAD /id/contents
 	elsif( !defined $dataobj )
 	{
-		return HTTP_NOT_ACCEPTABLE if $r->pnotes->{mime_type} ne '*/*';
-		$r->pnotes->{plugin} = $repo->plugin( "Export::Atom" );
+		# force Atom if match was */*
+		if( $r->pnotes->{mime_type} eq "*/*" )
+		{
+			$plugin = $repo->plugin( "Export::Atom" );
+		}
+
+		# negotiation failed
+		return HTTP_UNSUPPORTED_MEDIA_TYPE if !defined $plugin;
+
 		return GET( $r, $owner );
 	}
 
-	# */contents but negotiation failed
-	if( defined $field )
-	{
-		if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
-		{
-			my @docs = $dataobj->get_all_documents;
-			if( @docs > 1 )
-			{
-				return HTTP_NOT_ACCEPTABLE if $r->pnotes->{mime_type} ne '*/*';
-				$r->pnotes->{plugin} = $repo->plugin( "Export::Atom" );
-				return GET( $r, $owner );
-			}
-			elsif( @docs > 0 )
-			{
-				$dataobj = $docs[0];
-			}
-			else
-			{
-				return HTTP_NOT_ACCEPTABLE;
-			}
-		}
-	}
+	# GET / HEAD
+	return HTTP_UNSUPPORTED_MEDIA_TYPE if !defined $plugin;
 
-	# try summary page
 	my $url = $dataobj->get_url;
-	return HTTP_NOT_ACCEPTABLE if !defined $url;
-
-	if( $dataset->base_id eq "eprint" && $dataset->id ne "archive" )
+	if( $plugin->get_subtype eq "SummaryPage" && defined $url )
 	{
-		$url = $dataobj->get_control_url;
+		if( $dataset->base_id eq "eprint" && $dataset->id ne "archive" )
+		{
+			$url = $dataobj->get_control_url;
+		}
+		return EPrints::Apache::Rewrite::redir_see_other( $r, $url );
 	}
 
-	return EPrints::Apache::Rewrite::redir_see_other( $r, $url );
+	if( $dataset->base_id eq "subject" )
+	{
+		return redir_see_other( $r, $plugin->dataobj_export_url( $dataobj ) );
+	}
+
+	return GET( $r, $owner );
 }
 
 sub DELETE
@@ -671,106 +691,116 @@ sub POST
 
 	my $headers = process_headers( $repo, $r );
 
+	if( $headers->{packaging} && !defined $plugin )
+	{
+		return sword_error( $repo, $r,
+			status => HTTP_BAD_REQUEST,
+			href => "http://purl.org/net/sword/error/ErrorContent",
+			summary => "No support for packaging '$headers->{packaging}'",
+		);
+	}
+
+	# we can import any file type into /contents
+	if( !defined $plugin && defined $field )
+	{
+		$plugin = $repo->plugin( "Import::Binary" );
+	}
+
 	my( $rc, $tmpfile ) = _read_content( $repo, $r, $headers );
 	return $rc if $rc != OK;
 
-	my $file = {
-		filename => $headers->{filename},
-		filesize => -s $tmpfile,
-		_content => $tmpfile,
-		mime_type => $headers->{content_type},
-	};
+	my @items;
 
-	my $item;
-
-	if( !defined $dataobj )
+	my $status;
+	if( UNIVERSAL::isa( $dataobj, "EPrints::DataObj::EPrint" ) )
 	{
-		if( $headers->{packaging} && !defined $plugin )
-		{
-			return sword_error( $repo, $r,
-				status => HTTP_BAD_REQUEST,
-				href => "http://purl.org/net/sword/error/ErrorContent",
-				summary => "No support for packaging '$headers->{packaging}'",
-			);
-		}
+		$status = $dataobj->value( "eprint_status" );
+	}
 
-		my $dataset = $repo->dataset( "inbox" );
+	$plugin->{parse_only} = 1;
+	$plugin->{Handler} = EPrints::Apache::CRUD::Handler->new(
+		dataset => $dataset,
+		epdata_to_dataobj => sub {
+			my( undef, $epdata ) = @_;
 
-		if( defined $plugin )
-		{
-			my $list = eval { $plugin->input_fh(
-				dataset => $dataset,
-				fh => $tmpfile,
-				filename => $headers->{filename},
-				actions => $plugin->param( "actions" ),
-			) };
-			if( $@ || !defined $list )
+			if( defined $dataobj )
 			{
-				return sword_error( $repo, $r,
-					summary => $@
-				);
+				if( $headers->{flags}->{metadata} )
+				{
+					$dataobj->empty();
+				}
+				foreach my $fieldname (keys %{$epdata})
+				{
+					next if !$dataset->has_field( $fieldname );
+					my $f = $dataset->field( $fieldname );
+					my $value = $epdata->{$fieldname};
+					if( $f->isa( "EPrints::MetaField::Subobject" ) )
+					{
+						$value = [$value] if ref($value) ne "ARRAY";
+						foreach my $v (@$value)
+						{
+							my $item = $dataobj->create_subdataobj(
+								$fieldname, $v
+							);
+							push @items, $item if $fieldname eq $field->name;
+						}
+					}
+					elsif( $headers->{flags}->{metadata} )
+					{
+						$f->set_value( $dataobj, $value );
+					}
+				}
+				# block any attempts to change eprint status
+				if( defined($status) )
+				{
+					$dataobj->set_value( "eprint_status", $status );
+				}
+				$dataobj->commit;
 			}
-
-			$item = $list->item( 0 );
+			else
+			{
+				@items = ($dataset->create_dataobj( $epdata ));
+			}
 		}
-		else
-		{
-			$item = $dataset->create_dataobj({
-				eprint_status => "inbox",
-				documents => [{
-					format => $file->{mime_type},
-					main => $headers->{filename},
-					files => [$file],
-				}],
-			});
-		}
-
-		if( !defined $item )
-		{
-			return sword_error( $repo, $r,
-				summary => "No data found"
-			);
-		}
-
-		$item->set_value( "userid", $owner->id );
-		if( $owner->id ne $user->id )
-		{
-			$item->set_value( "sword_depositor", $user->id );
-		}
-		$item->commit;
-
-		if(
-			!$headers->{in_progress} &&
-			$user->allow( "eprint/inbox/deposit", $item )
-		  )
-		{
-			$item->move_to_buffer;
-		}
-	}
-	elsif( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
-	{
-		$item = $dataobj->create_subdataobj( $field->name, {
-			main => $headers->{filename},
-			format => $headers->{content_type},
-			files => [$file],
-		});
-	}
-	elsif( $dataobj->isa( "EPrints::DataObj::Document" ) )
-	{
-		$item = $dataobj->create_subdataobj( $field->name, $file );
-	}
-
-	return HTTP_INTERNAL_SERVER_ERROR if !defined $item;
-
-	$r->err_headers_out->{'Location'} = $item->uri;
+	);
 
 	my $atom = $repo->plugin( "Export::Atom" );
 
-	return send_response( $r,
-		HTTP_CREATED,
-		$atom->param( "mimetype" ),
-		$atom->output_dataobj( $item ),
-	);
+	my $list = eval { $plugin->input_fh(
+		dataset => $dataset,
+		fh => $tmpfile,
+		filename => $headers->{filename},
+		mime_type => $headers->{content_type},
+		actions => $headers->{actions},
+	) };
+	return plugin_error( $repo, $r, $plugin ) if !defined $list;
+
+	EPrints->abort( "Import plugin didn't create anything" ) if !@items;
+
+	# producing more than one item (potentially)
+	if( defined $dataobj && $headers->{flags}->{unpack} )
+	{
+		$list = EPrints::List->new(
+			session => $repo,
+			dataset => $items[0]->get_dataset,
+			ids => [map { $_->id } @items]
+		);
+		return send_response( $r,
+			HTTP_CREATED,
+			$atom->param( "mimetype" ),
+			$atom->output_list( list => $list ),
+		);
+	}
+	else
+	{
+		$r->err_headers_out->{'Location'} = $items[0]->uri;
+
+		return send_response( $r,
+			HTTP_CREATED,
+			$atom->param( "mimetype" ),
+			$atom->output_dataobj( $items[0] ),
+		);
+	}
 }
 
 sub PUT 
@@ -791,6 +821,15 @@ sub PUT
 	return HTTP_METHOD_NOT_ALLOWED if !defined $dataobj;
 
 	my $headers = process_headers( $repo, $r );
+
+	if( $headers->{packaging} && !defined $plugin )
+	{
+		return sword_error( $repo, $r,
+			status => HTTP_BAD_REQUEST,
+			href => "http://purl.org/net/sword/error/ErrorContent",
+			summary => "No support for packaging '$headers->{packaging}'",
+		);
+	}
 
 	my( $rc, $tmpfile ) = _read_content( $repo, $r, $headers );
 	return $rc if $rc != OK;
@@ -831,7 +870,7 @@ sub PUT
 			{
 				$_->remove for @{$field->get_value( $dataobj )};
 			}
-			if( $headers->{metadata_relevant} || !defined $field )
+			if( !defined $field || $headers->{flags}->{metadata} )
 			{
 				$dataobj->empty();
 			}
@@ -848,12 +887,12 @@ sub PUT
 						$dataobj->create_subdataobj( $field->name, $v );
 					}
 				}
-				elsif( $headers->{metadata_relevant} || !defined $field )
+				elsif( !defined $field || $headers->{flags}->{metadata} )
 				{
 					$f->set_value( $dataobj, $value );
 				}
 			}
-			# block any attempts to change eprint status
+			# fix the eprint status
 			if( defined($status) )
 			{
 				$dataobj->set_value( "eprint_status", $status );
@@ -877,22 +916,9 @@ sub PUT
 		dataset => $dataset,
 		filename => $headers->{filename},
 		mime_type => $headers->{content_type},
-		actions => $plugin->param( "actions" ),
+		actions => $headers->{actions},
 	) };
-	if( !defined $list )
-	{
-		$plugin->{Handler}->message( "error", $@ ) if $@ ne "\n";
-		my $ul = $repo->xml->create_element( "ul" );
-		for(@{$plugin->{Handler}->{messages}}) {
-			$ul->appendChild( $repo->xml->create_data_element( "li", $_ ) );
-		}
-		my $err = $repo->xhtml->to_xhtml( $ul );
-		$repo->xml->dispose( $ul );
-		return sword_error( $repo, $r,
-			status => HTTP_INTERNAL_SERVER_ERROR,
-			summary => $err
-		);
-	}
+	return plugin_error( $repo, $r, $plugin ) if !defined $list;
 
 	return OK;
 }
@@ -1129,6 +1155,12 @@ sub process_headers
 # Metadata-relevant
 	$response{metadata_relevant} = is_true($r->headers_in->{'Metadata-Relevant'});
 
+# actions
+	my $actions = $response{actions} = [];
+	push @$actions, "metadata" if $response{metadata_relevant};
+	push @$actions, "unpack" if $response{packaging} && $response{packaging} eq "http://purl.org/net/sword/package/SimpleZip";
+	$response{flags} = {map { $_ => 1 } @$actions};
+
 	return \%response;
 }
 
@@ -1146,6 +1178,24 @@ sub sword_error
 		$opts{status},
 		'application/xml; charset=UTF-8',
 		$xml
+	);
+}
+
+# input_fh() failed
+sub plugin_error
+{
+	my( $repo, $r, $plugin ) = @_;
+
+	$plugin->{Handler}->message( "error", $@ ) if $@ ne "\n";
+	my $ul = $repo->xml->create_element( "ul" );
+	for(@{$plugin->{Handler}->{messages}}) {
+		$ul->appendChild( $repo->xml->create_data_element( "li", $_ ) );
+	}
+	my $err = $repo->xhtml->to_xhtml( $ul );
+	$repo->xml->dispose( $ul );
+	return sword_error( $repo, $r,
+		status => HTTP_INTERNAL_SERVER_ERROR,
+		summary => $err
 	);
 }
 

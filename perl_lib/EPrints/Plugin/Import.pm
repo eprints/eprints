@@ -40,10 +40,14 @@ sub new
 	$params{advertise} = exists $params{advertise} ? $params{advertise} : 1;
 	$params{session} = exists $params{session} ? $params{session} : $params{processor}->{session};
 	$params{actions} = exists $params{actions} ? $params{actions} : [];
+	$params{arguments} = exists $params{arguments} ? $params{arguments} : {};
 	$params{Handler} = exists $params{Handler} ? $params{Handler} : EPrints::CLIProcessor->new( session => $params{session} );
 
 	return $class->SUPER::new(%params);
 }
+
+sub arguments { shift->EPrints::Plugin::Export::arguments( @_ ) }
+sub has_argument { shift->EPrints::Plugin::Export::has_argument( @_ ) }
 
 sub handler
 {
@@ -97,11 +101,20 @@ sub matches
 
 sub can_action
 {
-	my( $self, $action ) = @_;
+	my( $self, $actions ) = @_;
 
-	return $action eq "*" ?
+	if( ref($actions) eq "ARRAY" )
+	{
+		for(@$actions)
+		{
+			return 0 if !$self->can_action( $_ );
+		}
+		return 1;
+	}
+
+	return $actions eq "*" ?
 		scalar(@{$self->param( "actions" )}) > 0 :
-		scalar(grep { $_ eq $action } @{$self->param( "actions" )}) > 0;
+		scalar(grep { $_ eq $actions } @{$self->param( "actions" )}) > 0;
 }
 
 # all, staff or ""
@@ -131,7 +144,7 @@ sub can_accept
 
 	for(@{$self->param( "accept" )})
 	{
-		return 1 if $_ eq $format;
+		return 1 if (split /;/, $_)[0] eq $format;
 	}
 
 	return 0;

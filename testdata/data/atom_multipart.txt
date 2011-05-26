@@ -1,0 +1,24 @@
+
+Media Post
+--===============1605871705==
+Content-Type: application/atom+xml; charset="utf-8"
+MIME-Version: 1.0
+
+<?xml version="1.0"?>
+<entry xmlns="http://www.w3.org/2005/Atom">
+ <title>The Beach</title>
+ <id>urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a</id>
+ <updated>2005-10-07T17:17:08Z</updated>
+ <author><name>Daffy</name></author>
+ <summary type="text">
+	 A nice sunset picture over the water.
+ </summary>
+ <content src="cid:99334422@example.com" type="image/gif" />
+</entry>
+--===============1605871705==
+Content-Type: text/plain
+MIME-Version: 1.0
+Content-ID: <99334422@example.com>
+
+Sample content data
+--===============1605871705==--

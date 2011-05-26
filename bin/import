@@ -64,6 +64,10 @@ If this is an integer then it is assumed to be the userid of the user, otherwise
 
 You may wish to create one or more "bulk import" users and make imported eprint records belong to them.
 
+=item B<--arg key=value>
+
+Add an argument to the import plugin. May be repeated. Effects depend on the import plugin.
+
 =item B<--parse-only>
 
 Don't import, just check the file.
@@ -142,6 +146,7 @@ my $enable_web_imports = 0;
 my $enable_import_fields = 0;
 my $migration = 0;
 my $update = 0;
+my %opt_args;
 
 Getopt::Long::Configure("permute");
 
@@ -161,6 +166,7 @@ GetOptions(
 	'enable-web-imports' => \$enable_web_imports,
 	'migration' => \$migration,
 	'update' => \$update,
+	'arg=s' => \%opt_args,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "export_xml" ) if $version;
 pod2usage( 1 ) if $help;
@@ -309,7 +315,7 @@ if( !defined $plugin )
 	exit 1;
 }
 	
-my $req_plugin_type = "list/".$ds->confid;
+my $req_plugin_type = ($single ? "dataobj/" : "list/").$ds->confid;
 	
 unless( $plugin->can_produce( $req_plugin_type ) )
 {
@@ -326,6 +332,18 @@ if( $plugin->broken )
 	exit 1;
 }
 
+my %arguments = %{$plugin->param( "arguments" )};
+foreach my $argid ( keys %opt_args )
+{
+	if( !exists $arguments{$argid} )
+	{
+		print STDERR "Plugin $pluginid does not accept argument $argid\n";
+		$session->terminate();
+		exit 1;
+	}
+	$arguments{$argid} = $opt_args{$argid};
+}
+
 if( $scripted )
 {
 	print "EPRINTS_IMPORT: BEGIN\n";
@@ -336,6 +354,7 @@ $session->cache_subjects;
 
 eval {
 $plugin->input_file(
+		%arguments,
 		dataset=>$ds,
 		filename=>$filename,
 		user=>$userobj,

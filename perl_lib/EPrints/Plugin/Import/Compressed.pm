@@ -8,6 +8,7 @@ package EPrints::Plugin::Import::Compressed;
 
 use strict;
 
+use EPrints::Plugin::Import::Binary;
 use EPrints::Plugin::Import::Archive;
 use URI;
 
@@ -24,6 +25,7 @@ sub new
 	$self->{advertise} = 1;
 	$self->{produce} = [qw( dataobj/document dataobj/eprint )];
 	$self->{accept} = [qw( application/zip application/x-gzip sword:http://purl.org/net/sword/package/SimpleZip )];
+	$self->{actions} = [qw( unpack )];
 
 	return $self;
 }
@@ -35,6 +37,13 @@ sub input_fh
 	my $fh = $opts{fh};
 	my $dataset = $opts{dataset};
 	
+	my %flags = map { $_ => 1 } @{$opts{actions} || []};
+
+	# default behaviour is just to create a one-file object (either eprint or
+	# document)
+	return $self->EPrints::Plugin::Import::Binary::input_fh( %opts )
+		if !$flags{unpack};
+
 	my $rc = 0;
 
 	my( $type, $zipfile ) = $self->upload_archive($fh);

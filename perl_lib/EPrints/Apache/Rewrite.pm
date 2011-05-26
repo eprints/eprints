@@ -357,7 +357,7 @@ sub handler
 		return OK;
 	}
 
-	if( $uri =~ s! ^$urlpath/id/([^/]+)/([^/]+) !!x )
+	if( $uri =~ s! ^$urlpath/id/([^/]+)/([^/]+)/? !!x )
 	{
 		my( $datasetid, $id ) = ( $1, $2 );
 
