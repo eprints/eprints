@@ -713,9 +713,11 @@ sub POST
 	my @items;
 
 	my $status;
+	my $rev_number;
 	if( UNIVERSAL::isa( $dataobj, "EPrints::DataObj::EPrint" ) )
 	{
 		$status = $dataobj->value( "eprint_status" );
+		$rev_number = $dataobj->value( "rev_number" );
 	}
 	elsif( !defined $dataobj )
 	{
@@ -733,6 +735,7 @@ sub POST
 				$epdata->{userid} = $owner->id;
 				$epdata->{sword_depositor} = $user->id;
 				$epdata->{eprint_status} = $status;
+				$epdata->{rev_number} = $rev_number;
 			}
 
 			if( defined $dataobj )
@@ -891,6 +894,7 @@ sub PUT
 				$epdata->{userid} = $owner->id;
 				$epdata->{sword_depositor} = $user->id;
 				$epdata->{eprint_status} = $status;
+				$epdata->{rev_number} = $dataobj->value( "rev_number" );
 			}
 
 			if( defined $field )
@@ -905,6 +909,8 @@ sub PUT
 			{
 				next if !$dataset->has_field( $fieldname );
 				my $f = $dataset->field( $fieldname );
+				next if !$f->property( "import" );
+
 				my $value = $epdata->{$fieldname};
 				if( $f->isa( "EPrints::MetaField::Subobject" ) )
 				{

@@ -485,7 +485,7 @@ sub empty
 	{
 		next if $field->is_virtual;
 		next if !$field->property( "import" );
-		delete $self->{data}->{$field->name};
+		$field->set_value( $self, $field->property( "multiple" ) ? [] : undef );
 	}
 }
 
