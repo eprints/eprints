@@ -613,6 +613,7 @@ sub GET
 
 		my $list = $owner->owned_eprints_list(
 			limit => $indexOffset + $page_size,
+			custom_order => "-lastmod",
 		);
 		$list->{ids} = $list->ids( $indexOffset, $page_size );
 
