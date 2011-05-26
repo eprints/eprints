@@ -993,10 +993,6 @@ sub servicedocument
 	}
 	$on_behalf_of = $on_behalf_of->{on_behalf_of};
 
-	my $service_conf = $repo->config( "sword", "service_conf" ) || {};
-
-	$service_conf->{title} = $repo->phrase( "archive_name" ) if !defined $service_conf->{title};
-
 # SERVICE and WORKSPACE DEFINITION
 
 	my $service = $xml->create_element( "service", 
@@ -1005,34 +1001,30 @@ sub servicedocument
 			"xmlns:sword" => "http://purl.org/net/sword/",
 			"xmlns:dcterms" => "http://purl.org/dc/terms/" );
 
+	my $title = $repo->phrase( "archive_name" ) . ": " . $repo->phrase( "Plugin/Screen/Items:title" );
+
 	my $workspace = $xml->create_data_element( "workspace", [
-		[ "atom:title", $service_conf->{title} ],
+		[ "atom:title", $title ],
 # SWORD LEVEL
 		[ "sword:version", "2.0" ],
 # SWORD VERBOSE	(Unsupported)
-		[ "sword:verbose", "true" ],
+#		[ "sword:verbose", "true" ],
 # SWORD NOOP (Unsupported)
-		[ "sword:noOp", "true" ],
+#		[ "sword:noOp", "true" ],
 	]);
 	$service->appendChild( $workspace );
-
-	my $treatment = $service_conf->{treatment};
-	if( defined $on_behalf_of )
-	{
-		$treatment .= $repo->phrase( "Sword/ServiceDocument:note_behalf", username=>$on_behalf_of->value( "username" ));
-	}
 
 	my $collection = $xml->create_data_element( "collection", [
 # COLLECTION TITLE
 		[ "atom:title", $repo->dataset( "eprint" )->render_name ],
 # COLLECTION POLICY
-		[ "sword:collectionPolicy", $service_conf->{sword_policy} ],
+#		[ "sword:collectionPolicy", $service_conf->{sword_policy} ],
 # COLLECTION MEDIATED
 		[ "sword:mediation", "true" ],
 # DCTERMS ABSTRACT
-		[ "dcterms:abstract", $service_conf->{dcterms_abstract} ],
+#		[ "dcterms:abstract", $service_conf->{dcterms_abstract} ],
 # COLLECTION TREATMENT
-		[ "sword:treatment", $treatment ],
+#		[ "sword:treatment", $treatment ],
 	], "href" => $repo->current_url( host => 1, path => "static", "id/contents" ),
 	);
 	$workspace->appendChild( $collection );
@@ -1056,7 +1048,7 @@ sub servicedocument
 
 		# we always accept simple files
 		$collection->appendChild( $xml->create_data_element( "acceptPackaging", "http://purl.org/net/sword/package/Binary" ) );
-		$collection->appendChild( $xml->create_data_element( "accept", "application/octet-stream" ) );
+		$collection->appendChild( $xml->create_data_element( "accept", "application/octet-stream", alternate => "multipart-related" ) );
 	}
 	else
 	{
