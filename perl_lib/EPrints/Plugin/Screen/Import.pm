@@ -538,6 +538,7 @@ sub _get_import_plugins
 
 	my %opts =  (
 			type=>"Import",
+			is_advertised => 1,
 #			can_produce=>"list/eprint",
 			is_visible=>$self->_vis_level,
 	);
