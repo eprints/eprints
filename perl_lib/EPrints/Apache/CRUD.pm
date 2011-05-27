@@ -811,7 +811,7 @@ sub POST
 	{
 		$r->err_headers_out->{Location} = $items[0]->uri;
 # DEBUG CODE
-if( $headers->{mime_type} ne "application/atom+xml" )
+if( defined $field && $headers->{mime_type} ne "application/atom+xml" )
 {
 $r->err_headers_out->{Location} = $items[0]->uri . '/contents';
 }
