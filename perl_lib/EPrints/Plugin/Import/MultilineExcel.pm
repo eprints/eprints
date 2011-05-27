@@ -19,6 +19,7 @@ sub new
 	$self->{name} = "Multiline Excel";
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint' ];
+	$self->{advertise} = 0;
 
 	my $rc = EPrints::Utils::require_if_exists('Spreadsheet::ParseExcel');
 	unless ($rc)

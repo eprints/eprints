@@ -18,7 +18,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{name} = "XML";
+	$self->{name} = "EPrints XML";
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/*', 'dataobj/*' ];
 	$self->{accept} = ["application/xml; charset=utf-8", "sword:http://eprints.org/ep2/data/2.0"];

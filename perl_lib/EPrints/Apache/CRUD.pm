@@ -227,10 +227,17 @@ sub content_negotiate_best_plugin
 		{
 			return( HTTP_NOT_FOUND, undef );
 		}
+		$dataset = $repo->dataset( $field->property( "datasetid" ) );
+
+		$r->pnotes->{dataset} = $dataset;
 		$r->pnotes->{field} = $field;
-		if( !$write )
+		if( $write )
 		{
-			$accept_type = "list/".$field->property( "datasetid" );
+			$accept_type = "dataobj/".$dataset->base_id;
+		}
+		else
+		{
+			$accept_type = "list/".$dataset->base_id;
 		}
 	}
 	elsif( length($uri) )
@@ -702,7 +709,7 @@ sub POST
 	}
 
 	# we can import any file type into /contents
-	if( !defined $plugin && (defined $field || !defined $dataobj) )
+	if( !defined $plugin )
 	{
 		$plugin = $repo->plugin( "Import::Binary" );
 	}
@@ -726,9 +733,8 @@ sub POST
 
 	$plugin->{parse_only} = 1;
 	$plugin->{Handler} = EPrints::Apache::CRUD::Handler->new(
-		dataset => $dataset,
 		epdata_to_dataobj => sub {
-			my( undef, $epdata ) = @_;
+			my( $epdata ) = @_;
 
 			if( $dataset->base_id eq "eprint" )
 			{
@@ -740,37 +746,7 @@ sub POST
 
 			if( defined $dataobj )
 			{
-				if( $headers->{flags}->{metadata} )
-				{
-					$dataobj->empty();
-				}
-				foreach my $fieldname (keys %{$epdata})
-				{
-					next if !$dataset->has_field( $fieldname );
-					my $f = $dataset->field( $fieldname );
-					my $value = $epdata->{$fieldname};
-					if( $f->isa( "EPrints::MetaField::Subobject" ) )
-					{
-						$value = [$value] if ref($value) ne "ARRAY";
-						foreach my $v (@$value)
-						{
-							my $item = $dataobj->create_subdataobj(
-								$fieldname, $v
-							);
-							push @items, $item if $fieldname eq $field->name;
-						}
-					}
-					elsif( $headers->{flags}->{metadata} )
-					{
-						$f->set_value( $dataobj, $value );
-					}
-				}
-				# block any attempts to change eprint status
-				if( defined($status) )
-				{
-					$dataobj->set_value( "eprint_status", $status );
-				}
-				$dataobj->commit;
+				push @items, $dataobj->create_subdataobj( $field->name, $epdata );
 			}
 			else
 			{
@@ -793,12 +769,30 @@ sub POST
 		dataset => $dataset,
 		fh => $tmpfile,
 		filename => $headers->{filename},
-		mime_type => $headers->{content_type},
+		mime_type => $headers->{mime_type},
+		content_type => $headers->{content_type},
 		actions => $headers->{actions},
 	) };
 	return plugin_error( $repo, $r, $plugin ) if !defined $list;
 
 	EPrints->abort( "Import plugin didn't create anything" ) if !@items;
+
+	if( $headers->{metadata_relevant} )
+	{
+		my $file = $items[0];
+		if( $file->isa( "EPrints::DataObj::EPrint" ) )
+		{
+			$file = ($file->get_all_documents())[0];
+		}
+		if( defined $file && $file->isa( "EPrints::DataObj::Document" ) )
+		{
+			$file = $file->stored_file( $file->value( "main" ) );
+		}
+		if( defined $file && $file->isa( "EPrints::DataObj::File" ) )
+		{
+			metadata_relevant( $repo, $r, $file );
+		}
+	}
 
 	# producing more than one item (potentially)
 	if( defined $dataobj && $headers->{flags}->{unpack} )
@@ -816,7 +810,13 @@ sub POST
 	}
 	else
 	{
-		$r->err_headers_out->{'Location'} = $items[0]->uri;
+		$r->err_headers_out->{Location} = $items[0]->uri;
+# DEBUG CODE
+if( $headers->{mime_type} ne "application/atom+xml" )
+{
+$r->err_headers_out->{Location} = $items[0]->uri . '/contents';
+}
+# DEBUG CODE
 
 		return send_response( $r,
 			HTTP_CREATED,
@@ -883,13 +883,15 @@ sub PUT
 		$status = $dataobj->value( "eprint_status" );
 	}
 
+	my @items;
+
 	$plugin->{parse_only} = 1;
 	$plugin->{Handler} = EPrints::Apache::CRUD::Handler->new(
-		dataset => $dataset,
 		epdata_to_dataobj => sub {
-			my( undef, $epdata ) = @_;
+			my( $epdata ) = @_;
 
-			if( $dataset->base_id eq "eprint" )
+			my $new_status = delete $epdata->{eprint_status};
+			if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
 			{
 				$epdata->{userid} = $owner->id;
 				$epdata->{sword_depositor} = $user->id;
@@ -899,37 +901,27 @@ sub PUT
 
 			if( defined $field )
 			{
-				$_->remove for @{$field->get_value( $dataobj )};
+				# PUT /XX/contents implies DELETE existing contents
+				if( !@items )
+				{
+					$_->remove for @{$field->get_value( $dataobj )};
+				}
+				push @items, $dataobj->create_subdataobj( $field->name, $epdata );
 			}
-			if( !defined $field || $headers->{flags}->{metadata} )
+			else
 			{
-				$dataobj->empty();
-			}
-			foreach my $fieldname (keys %{$epdata})
-			{
-				next if !$dataset->has_field( $fieldname );
-				my $f = $dataset->field( $fieldname );
-				next if !$f->property( "import" );
+				@items = ($dataobj);
 
-				my $value = $epdata->{$fieldname};
-				if( $f->isa( "EPrints::MetaField::Subobject" ) )
+				$dataobj->empty();
+				foreach my $fieldname (keys %{$epdata})
 				{
-					$value = [$value] if ref($value) ne "ARRAY";
-					foreach my $v (@$value)
-					{
-						$dataobj->create_subdataobj( $fieldname, $v );
-					}
+					next if !$dataset->has_field( $fieldname );
+					my $f = $dataset->field( $fieldname );
+					next if !$f->property( "import" );
+					next if $f->isa( "EPrints::MetaField::Subobject" );
+
+					$f->set_value( $dataobj, $epdata->{$fieldname} );
 				}
-				elsif( !defined $field || $headers->{flags}->{metadata} )
-				{
-					$f->set_value( $dataobj, $value );
-				}
-			}
-			# fix the eprint status
-			if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
-			{
-				$dataobj->set_value( "eprint_status", $status );
-				my $new_status = $epdata->{eprint_status};
 				if( EPrints::Utils::is_set( $new_status ) )
 				{
 					my $priv = "eprint/$status/move_$new_status";
@@ -939,8 +931,8 @@ sub PUT
 						$dataobj->_transfer( $new_status );
 					}
 				}
+				$dataobj->commit;
 			}
-			$dataobj->commit;
 		}
 	);
 
@@ -953,7 +945,94 @@ sub PUT
 	) };
 	return plugin_error( $repo, $r, $plugin ) if !defined $list;
 
+	EPrints->abort( "Import plugin didn't create anything" ) if !@items;
+
+	if( defined $field && $headers->{metadata_relevant} )
+	{
+		my $file = $items[0];
+		if( $file->isa( "EPrints::DataObj::EPrint" ) )
+		{
+			$file = ($file->get_all_documents())[0];
+		}
+		if( defined $file && $file->isa( "EPrints::DataObj::Document" ) )
+		{
+			$file = $file->stored_file( $file->value( "main" ) );
+		}
+		if( defined $file )
+		{
+			metadata_relevant( $repo, $r, $file );
+		}
+	}
+
 	return OK;
+}
+
+sub metadata_relevant
+{
+	my( $repo, $r, $file ) = @_;
+
+	my $eprint = eval { $file->parent->parent };
+	return if !defined $eprint;
+
+	my $fh = $file->get_local_copy;
+	return if !defined $fh;
+
+	my $dataset = $repo->dataset( "eprint" );
+
+	my $epdata = {};
+
+	my @plugins = $repo->get_plugins(
+		type => "Import",
+		can_accept => $file->value( "mime_type" ),
+		can_produce => "dataobj/".$dataset->base_id,
+		can_action => "metadata",
+	);
+	@plugins = sort { $a->{qs} <=> $b->{qs} } @plugins;
+
+	my $handler = EPrints::Apache::CRUD::Handler->new(
+		epdata_to_dataobj => sub {
+			my( $data ) = @_;
+
+			foreach my $fieldname (keys %$data)
+			{
+				next if !$dataset->has_field( $fieldname );
+				my $f = $dataset->field( $fieldname );
+				delete $epdata->{$fieldname} if exists $epdata->{$fieldname};
+				$epdata->{$fieldname} = $data->{$fieldname};
+			}
+		}
+	);
+
+	foreach my $plugin ( @plugins )
+	{
+		$plugin->{parse_only} = 1;
+		$plugin->{Handler} = $handler;
+
+		seek($fh,0,0);
+		$plugin->input_fh(
+			fh => $fh,
+			dataset => $dataset,
+			filename => $file->value( "filename" ),
+			actions => ["metadata"],
+		);
+	}
+
+	for(qw( eprint_status userid sword_depositor rev_number ))
+	{
+		$epdata->{$_} = $eprint->value( $_ );
+	}
+
+	$eprint->empty();
+
+	foreach my $fieldname (keys %$epdata)
+	{
+		my $f = $dataset->field( $fieldname );
+		my $v = $epdata->{$fieldname};
+		next if $f->isa( "EPrints::MetaField::Subobject" );
+		$f->set_value( $eprint, $v );
+	}
+
+	$eprint->commit;
 }
 
 sub _read_content
@@ -1142,7 +1221,7 @@ sub process_headers
 	$response{content_type} = $r->headers_in->{'Content-Type'};
 	$response{content_type} = "application/octet-stream"
 		if !EPrints::Utils::is_set( $response{content_type} );
-	my( $content_type, %params ) = @{(HTTP::Headers::Util::split_header_words($response{content_type}))[0]};
+	( $response{mime_type}, my %params ) = @{(HTTP::Headers::Util::split_header_words($response{content_type}))[0]};
 	$response{content_type_params} = \%params;
 
 # Content-Length
@@ -1184,7 +1263,7 @@ sub process_headers
 
 # actions
 	my $actions = $response{actions} = [];
-	push @$actions, "metadata" if $response{metadata_relevant};
+#	push @$actions, "metadata" if $response{metadata_relevant};
 	push @$actions, "unpack" if $response{packaging} && $response{packaging} eq "http://purl.org/net/sword/package/SimpleZip";
 	$response{flags} = {map { $_ => 1 } @$actions};
 
@@ -1299,7 +1378,7 @@ sub parsed
 {
 	my( $self, $epdata ) = @_;
 
-	$self->{epdata_to_dataobj}( $self->{dataset}, $epdata );
+	$self->{epdata_to_dataobj}( $epdata );
 }
 
 sub message

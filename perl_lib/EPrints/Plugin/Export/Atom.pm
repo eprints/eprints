@@ -280,6 +280,8 @@ sub output_document
 	my $xml = $repo->xml;
 	my $xhtml = $repo->xhtml;
 
+	my $main = $dataobj->stored_file( $dataobj->value( "main" ) );
+
 	my $entry = $xml->create_element( "entry" );
 	
 	$entry->appendChild( $xml->create_data_element(
@@ -305,6 +307,12 @@ sub output_document
 	$entry->appendChild( $xml->create_data_element(
 			"summary",
 			$xhtml->to_text_dump( $dataobj->render_citation ) ) );
+
+	$entry->appendChild( $xml->create_data_element(
+		"content",
+		undef,
+		type => ($main ? $main->value( "mime_type" ) : undef),
+		src => $dataobj->uri . "/contents" ) );
 
 	my $r = $xml->to_string( $entry, indent => 1 );
 	$xml->dispose( $entry );

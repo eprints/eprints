@@ -31,30 +31,35 @@ sub input_fh
 
 	my $fh = $opts{fh};
 	my $dataset = $opts{dataset};
+	my $filename = $opts{filename};
 	my $mime_type = $opts{mime_type};
 	my( $format ) = split /[;,]/, $mime_type;
 	
 	my $rc = 0;
 
 	my $epdata = {
-		main => $opts{filename},
-		format => $format,
-		files => [{
-			filename => $opts{filename},
-			mime_type => $format,
-			filesize => -s $fh,
-			_content => $fh,
+		documents => [{
+			main => $filename,
+			format => $format,
+			files => [{
+				filename => $filename,
+				mime_type => $format,
+				filesize => -s $fh,
+				_content => $fh,
+			}],
 		}],
 	};
 
-	if( $dataset->base_id eq "document" )
+	if( $dataset->base_id eq "eprint" )
 	{
 	}
-	elsif( $dataset->base_id eq "eprint" )
+	elsif( $dataset->base_id eq "document" )
 	{
-		$epdata = {
-			documents => [$epdata],
-		};
+		$epdata = $epdata->{documents}->[0];
+	}
+	elsif( $dataset->base_id eq "file" )
+	{
+		$epdata = $epdata->{documents}->[0]->{files}->[0];
 	}
 	
 	my @ids;
