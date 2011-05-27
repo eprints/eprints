@@ -23,6 +23,9 @@ sub _priv
 
 	my $dataobj = $r->pnotes->{dataobj};
 	my $plugin = $r->pnotes->{plugin};
+	my $field = $r->pnotes->{field};
+
+	my $write = $r->method ne "GET" && $r->method ne "HEAD";
 
 	my $priv;
 	if( $r->method eq "POST" || $r->method eq "PUT" )
@@ -42,21 +45,16 @@ sub _priv
 		$priv = "view";
 	}
 
-	if(
-		UNIVERSAL::isa( $dataobj, "EPrints::DataObj::File" ) &&
-		UNIVERSAL::isa( $dataobj->parent, "EPrints::DataObj::Document" )
-	  )
+	# for /XX/contents we always want dataobj/edit for POST/PUT/DELETE and not
+	# POST/PUT/DELETE on the dataset we're working on
+	if( defined $field )
 	{
-		$dataobj = $dataobj->parent;
-	}
-	if(
-		UNIVERSAL::isa( $dataobj, "EPrints::DataObj::Document" ) &&
-		UNIVERSAL::isa( $dataobj->parent, "EPrints::DataObj::EPrint" )
-	  )
-	{
-		$dataobj = $dataobj->parent;
+		if( $dataobj->isa( "EPrints::DataObj::Document" ) )
+		{
+			$dataobj = $dataobj->parent;
+		}
 		$dataset = $dataobj->get_dataset;
-		if( $priv eq "destroy" )
+		if( $write )
 		{
 			$priv = "edit";
 		}
@@ -70,8 +68,6 @@ sub _priv
 	{
 		$priv = join('/', $dataset->base_id, $priv );
 	}
-
-	my $write = $r->method ne "GET" && $r->method ne "HEAD";
 
 	if( !defined $dataobj )
 	{
@@ -546,6 +542,9 @@ sub DELETE
 
 	# /id/contents
 	return HTTP_METHOD_NOT_ALLOWED if !defined $dataobj;
+
+	# /XX/contents
+	return HTTP_METHOD_NOT_ALLOWED if defined $field;
 
 	# obtain lock, if available
 	my $lock_obj = $dataobj;
