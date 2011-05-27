@@ -1258,7 +1258,9 @@ sub process_headers
 	$response{user_agent} = $r->headers_in->{'User-Agent'};
 
 # Metadata-relevant
-	$response{metadata_relevant} = is_true($r->headers_in->{'Metadata-Relevant'});
+	$response{metadata_relevant} =
+		is_true($r->headers_in->{'Metadata-Relevant'}) || # SWORD 2.0
+		is_true($r->headers_in->{'X-Override-Metadata'}); # SWORD 2.0a
 
 # actions
 	my $actions = $response{actions} = [];
