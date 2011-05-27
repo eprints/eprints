@@ -34,7 +34,7 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
-	$self->{name} = "Import (openxml)";
+	$self->{name} = "Microsoft .docx";
 	$self->{produce} = [qw( dataobj/eprint )];
 	$self->{accept} = [qw( application/vnd.openxmlformats-officedocument.wordprocessingml.document application/vnd.openxmlformats application/msword )];
 	$self->{advertise} = 1;
