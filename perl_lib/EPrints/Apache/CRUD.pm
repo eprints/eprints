@@ -328,6 +328,13 @@ sub content_negotiate_best_plugin
 				q => 1.0,
 				plugin => $repo->plugin( "Export::SummaryPage" ),
 			};
+			#chrome
+			unshift @pset_order, "application/xhtml+xml";
+			unshift @{$pset{"application/xhtml+xml"}}, {
+				charset => 'utf-8',
+				q => 1.0,
+				plugin => $repo->plugin( "Export::SummaryPage" ),
+			};
 		}
 
 		$accept = $r->headers_in->{Accept} || "*/*";
