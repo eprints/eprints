@@ -4667,22 +4667,13 @@ sub set_cookies
 {
 	my( $self, %opts ) = @_;
 
-	my $r = $self->{request};
-	my $c = $r->connection;
-	
-	# from apache notes (cgi script)
-	my $code = $c->notes->get( "cookie_code" );
-	$c->notes->set( cookie_code=>'undef' );
-
 	# from opts (document)
-	$code = $opts{code} if( defined $opts{code} );
-	
-	if( defined $code && $code ne 'undef')
+	if( defined $opts{code} )
 	{
 		my $cookie = $self->{query}->cookie(
 			-name    => "eprints_session",
 			-path    => "/",
-			-value   => $code,
+			-value   => $opts{code},
 			-domain  => $self->get_conf("cookie_domain"),
 		);	
 		EPrints::Apache::AnApache::header_out( 
