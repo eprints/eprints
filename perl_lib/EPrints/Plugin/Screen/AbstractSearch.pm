@@ -752,8 +752,14 @@ sub render_order_menu
 		labels=>\%labels );
 }
 
-	
-	
+# redirecting from a POST will lose all our parameters, although we always use
+# GET internally so this doesn't normally affect anything
+sub redirect_to_me_url
+{
+	my( $self ) = @_;
+
+	return undef;
+}
 
 # $method_map = $searche->order_methods
 
