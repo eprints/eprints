@@ -137,13 +137,13 @@ sub _epdata_to_json
 		$epdata =~ s/ +/ /g;
 		$epdata =~ s/\s*$//;
 	
-		if( $epdata =~ /['\\]/ )
+		if( $epdata =~ /^[-+]?[0-9]*\.?[0-9]+$/ )
 		{
-			return $pre_pad . EPrints::Utils::js_string( $epdata );
+			return $pre_pad . $epdata;
 		}
 		else
 		{
-			return $pre_pad . "\"$epdata\"";
+			return $pre_pad . EPrints::Utils::js_string( $epdata );
 		}
 	}
 	elsif( ref( $epdata ) eq "ARRAY" )
