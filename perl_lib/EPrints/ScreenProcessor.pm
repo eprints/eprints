@@ -457,7 +457,7 @@ sub render_messages
 {	
 	my( $self ) = @_;
 
-	my $chunk = $self->{session}->make_doc_fragment;
+	my $chunk = $self->{session}->make_element( "div", id => "ep_messages" );
 
 	my @old_messages;
 	my $cuser = $self->{session}->current_user;

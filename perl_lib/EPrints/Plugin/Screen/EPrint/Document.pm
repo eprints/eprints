@@ -30,15 +30,26 @@ sub json
 {
 	my( $self ) = @_;
 
-	my @json;
+	my %json = ( documents => [], messages => [] );
+
 	foreach my $doc ($self->{processor}->{eprint}->get_all_documents)
 	{
-		push @json, {
+		push @{$json{documents}}, {
 			id => $doc->id,
 			placement => $doc->value( "placement" ),
 		};
 	}
-	return \@json;
+
+	foreach my $msg (@{$self->{processor}->{messages}})
+	{
+		my $content = $self->{repository}->render_message(
+			$msg->{type}, $msg->{content}
+		);
+		push @{$json{messages}}, $content->toString();
+		$self->{repository}->xml->dispose( $content );
+	}
+
+	return \%json;
 }
 
 sub export
@@ -112,7 +123,7 @@ sub hidden_bits
 	return(
 		$self->SUPER::hidden_bits,
 		documentid => $self->{processor}->{document}->id,
-		return_to => $self->{processor}->{return_to},
+		return_to => $self->{processor}->{return_to}->query,
 	);
 }
 

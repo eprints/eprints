@@ -27,7 +27,8 @@ sub new
 	
 	$self->{actions} = [qw/ merge replace cancel /];
 
-	$self->{ajax} = "interactive";
+# Extract updates metadata which is troublesome in AJAX
+#	$self->{ajax} = "interactive";
 
 	return $self;
 }
@@ -140,8 +141,7 @@ sub _action
 
 	my $session = $self->{session};
 
-	$self->{processor}->{redirect} = $self->{processor}->{return_to}
-		if !$self->wishes_to_export;
+	$self->action_cancel; # return_to the workflow
 
 	my $eprint = $self->{processor}->{eprint};
 	my $doc = $self->{processor}->{document};
@@ -182,6 +182,8 @@ sub _action
 	}
 
 	$eprint->commit;
+
+	$self->{processor}->add_message( "message", $self->html_phrase( "done" ) );
 }
 
 sub available

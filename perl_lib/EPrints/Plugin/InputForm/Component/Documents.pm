@@ -176,11 +176,10 @@ sub _doc_action
 	}
 	return if !defined $plugin;
 
-	my $uri = URI->new( $self->{session}->current_url( host => 1 ) );
-	$uri->query_form(
+	my $return_to = URI->new( $self->{session}->current_url( host => 1 ) );
+	$return_to->query_form(
 		$processor->screen->hidden_bits
 	);
-	my $return_to = $uri->query;
 
 	if( $plugin->param( "ajax" ) && $self->wishes_to_export )
 	{
@@ -190,13 +189,14 @@ sub _doc_action
 		return;
 	}
 
-	$uri->query_form(
+	$return_to->query_form(
 		screen => $plugin->get_subtype,
 		eprintid => $self->{workflow}->{item}->id,
 		documentid => $doc->id,
-		return_to => $return_to,
+		return_to => $return_to->query,
 	);
-	$processor->{redirect} = $uri;
+
+	$processor->{redirect} = $return_to;
 }
 
 sub _reorder

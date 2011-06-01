@@ -55,7 +55,7 @@ sub json
 	my $json = $self->SUPER::json;
 	return $json if !$self->{processor}->{refresh};
 
-	for(@$json)
+	for(@{$json->{documents}})
 	{
 		$_->{refresh} = 1, last
 			if $_->{id} == $self->{processor}->{document}->id;
