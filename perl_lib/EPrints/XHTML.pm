@@ -656,6 +656,7 @@ Options:
  base_url - the link to follow under non-JS (default = current URL)
  basename - prefix for tab identifiers (default = "ep_tabs")
  current - index of tab to show first (default = 0)
+ expensive - array of tabs to not javascript-link
 
 =cut
 
@@ -740,6 +741,7 @@ sub tabs
 			tabs => [0..$#$labels],
 			labels => \%labels,
 			links => \%links,
+			slow_tabs => $opts{expensive},
 		));
 
 	return $frag;
