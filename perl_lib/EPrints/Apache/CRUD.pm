@@ -735,6 +735,7 @@ sub POST
 	elsif( !defined $dataobj )
 	{
 		$status = $headers->{in_progress} ? "inbox" : "buffer";
+		$status = "archive" if ($repo->config("skip_buffer") and $status eq "buffer");
 	}
 
 	$plugin->{parse_only} = 1;
