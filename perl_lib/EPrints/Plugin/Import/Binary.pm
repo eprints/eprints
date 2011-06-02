@@ -22,6 +22,9 @@ sub new
 	$self->{produce} = [qw()];
 	$self->{accept} = [qw()];
 
+	$self->{arguments}->{filename} = undef;
+	$self->{arguments}->{mime_type} = undef;
+
 	return $self;
 }
 
@@ -35,6 +38,8 @@ sub input_fh
 	my $mime_type = $opts{mime_type};
 	my( $format ) = split /[;,]/, $mime_type;
 	
+	EPrints->abort( "Requires filename argument" ) if !defined $filename;
+
 	my $rc = 0;
 
 	my $epdata = {
