@@ -161,6 +161,8 @@ sub create_epdata_from_directory
 {
 	my( $self, $dir, $single ) = @_;
 
+	my $repo = $self->{repository};
+
 	my $epdata = $single ?
 		{ files => [] } :
 		[];
@@ -171,6 +173,7 @@ sub create_epdata_from_directory
 			return if -d $File::Find::name;
 			my $filepath = $File::Find::name;
 			my $filename = substr($filepath, length($dir) + 1);
+
 			open(my $fh, "<", $filepath) or die "Error opening $filename: $!";
 			if( $single )
 			{
@@ -191,6 +194,11 @@ sub create_epdata_from_directory
 						_content => $fh,
 					}],
 				};
+				$repo->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+					epdata => $epdata->[$#$epdata],
+					filename => $filename,
+					filepath => $filepath,
+					);
 				die "Too many files" if @{$epdata} > 100;
 			}
 		},
