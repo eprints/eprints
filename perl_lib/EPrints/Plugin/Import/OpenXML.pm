@@ -78,6 +78,7 @@ sub input_fh
 
 	my $epdata = {
 		documents => [{
+			_id => "main",
 			format => $format,
 			main => $filename,
 			files => [{
@@ -170,16 +171,16 @@ sub _extract_bibl
 			mime_type => "text/xml",
 			_content => $bibl_file,
 		}],
-#		relation => [{
+		relation => [{
 #			type => EPrints::Utils::make_relation( "isVolatileVersionOf" ),
 #			uri => $main_doc->internal_uri(),
 #			},{
 #			type => EPrints::Utils::make_relation( "isVersionOf" ),
 #			uri => $main_doc->internal_uri(),
 #			},{
-#			type => EPrints::Utils::make_relation( "isPartOf" ),
-#			uri => $self->{_main},
-#		}],
+			type => EPrints::Utils::make_relation( "isPartOf" ),
+			uri => "main"
+		}],
 	};
 }
 
@@ -260,13 +261,13 @@ sub _extract_media_files
 				filesize => (-s $fh),
 				_content => $fh
 			}],
-#			relation => [{
+			relation => [{
 #				type => EPrints::Utils::make_relation( "isVersionOf" ),
 #				uri => $doc->internal_uri(),
 #				},{
-#				type => EPrints::Utils::make_relation( "isPartOf" ),
-#				uri => $doc->internal_uri(),
-#			}],
+				type => EPrints::Utils::make_relation( "isPartOf" ),
+				uri => "main",
+			}],
 		};
 	}
 }

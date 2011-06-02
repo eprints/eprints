@@ -243,6 +243,9 @@ sub create_from_data
 	$data = EPrints::Utils::clone( $data );
 	$dataset ||= $session->dataset( $class->get_dataset_id );
 
+	# <document id="/xx" />
+	delete $data->{_id};
+
 	# If there is a field which indicates the virtual dataset,
 	# set that now, so it's visible to get_defaults.
 	my $ds_id_field = $dataset->get_dataset_id_field;
@@ -300,6 +303,7 @@ sub create_from_data
 		$_->[1] = [$_->[1]] if ref($_->[1]) ne 'ARRAY';
 
 		my @dataobjs;
+		my %id_map;
 
 		foreach my $epdata (@{$_->[1]})
 		{
@@ -311,6 +315,21 @@ sub create_from_data
 				return undef;
 			}
 			push @dataobjs, $dataobj;
+			$id_map{$epdata->{_id}} = $dataobj->internal_uri
+				if defined $epdata->{_id};
+		}
+
+		foreach my $dataobj (@dataobjs)
+		{
+			next if !$dataobj->exists_and_set( "relation_uri" );
+			my $value = $dataobj->value( "relation_uri" );
+			$value = EPrints::Utils::clone( $value );
+			foreach my $v (@$value)
+			{
+				$v = $id_map{$v} if exists $id_map{$v};
+			}
+			$dataobj->set_value( "relation_uri", $value );
+			$dataobj->commit;
 		}
 
 		$self->set_value( $field->name, $field->property( "multiple" ) ? \@dataobjs : $dataobjs[0] );
@@ -1578,7 +1597,11 @@ sub start_element
 
 	$state->{depth}++;
 
-	if( $state->{depth} == 2 )
+	if( $state->{depth} == 1 )
+	{
+		$epdata->{_id} = eval { $data->{Attributes}{'{}id'}{Value} };
+	}
+	elsif( $state->{depth} == 2 )
 	{
 		if( $state->{dataset}->has_field( $data->{LocalName} ) )
 		{

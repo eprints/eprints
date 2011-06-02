@@ -167,18 +167,7 @@ sub get_system_field_info
 		{ name=>"content", type=>"namedset", required=>0, input_rows=>1,
 			set_name=>"content" },
 
-		{ name=>"relation", type=>"compound", multiple=>1,
-			fields => [
-				{
-					sub_name => "type",
-					type => "id",
-				},
-				{
-					sub_name => "uri",
-					type => "id",
-				},
-			],
-		},
+		{ name=>"relation", type=>"relation", multiple=>1, },
 
 		{
 			name => "media",
