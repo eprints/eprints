@@ -305,7 +305,7 @@ sub create_from_data
 			my $dataobj = $self->create_subdataobj( $field->name, $epdata );
 			if( !defined $dataobj )
 			{
-				$session->log( "Failed to create subdataobj on ".$dataset->id.".".$field->name );
+				Carp::carp( "Failed to create subdataobj on ".$dataset->id.".".$field->name );
 				$self->remove();
 				return undef;
 			}
