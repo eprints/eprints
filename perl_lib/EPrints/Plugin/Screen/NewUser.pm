@@ -103,8 +103,9 @@ sub action_create
 		return;
 	}
 
-	$self->{processor}->{userid} = $self->{processor}->{user}->get_id;
-	$self->{processor}->{screenid} = "User::Staff::Edit";
+	$self->{processor}->{dataset} = $ds;
+	$self->{processor}->{dataobj} = $self->{processor}->{user};
+	$self->{processor}->{screenid} = "Workflow::Edit";
 }
 
 sub render
