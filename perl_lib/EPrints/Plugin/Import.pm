@@ -240,77 +240,29 @@ sub convert_input
 	$plugin->log( $r );
 }
 
+=item $dataobj = $plugin->epdata_to_dataobj( $epdata, %opts )
+
+Turn $epdata into a L<EPrints::DataObj> with the dataset passed in %opts.
+
+Calls handler to perform the actual creation.
+
+=cut
+
 sub epdata_to_dataobj
 {
-	my( $plugin, $dataset, $epdata, $dataobj ) = @_;
+	# backwards compatibility
+	my( $dataset ) = splice(@_,1,1)
+		if UNIVERSAL::isa( $_[1], "EPrints::DataSet" );
+	my( $self, $epdata, %opts ) = @_;
+	$opts{dataset} ||= $dataset;
 
-	my $session = $plugin->{session};
-
-	my $item;
-
-	if( $session->config( 'enable_import_fields' ) )
+	if( $dataset->id eq "eprint" && !defined $epdata->{eprint_status} )
 	{
-		my $ds_id = $dataset->confid;
-		if( $ds_id eq "eprint" || $ds_id eq "user" )
-		{
-			my $id = $epdata->{$dataset->get_key_field->get_name};
-			if( $plugin->{update} )
-			{
-				$item = $dataset->get_object( $session, $id );
-			}
-			elsif( $session->get_database->exists( $dataset, $id ) )
-			{
-				$plugin->error("Failed attampt to import existing $ds_id.$id");
-				return;
-			}
-		}
-	}
-
-	if( $dataset->confid eq "eprint" && exists($plugin->{import_documents}) && !$plugin->{import_documents} )
-	{
-		delete $epdata->{documents};
-	}
-
-	$plugin->handler->parsed( $epdata );
-	return if( $plugin->{parse_only} );
-
-	if( $dataset->id eq "eprint" && !defined $epdata->{eprint_status} && !defined $item )
-	{
-		$plugin->warning( "Importing an EPrint record into 'eprint' dataset without eprint_status being set. Using 'buffer' as default." );
+		$self->warning( "Importing an EPrint record into 'eprint' dataset without eprint_status being set. Using 'buffer' as default." );
 		$epdata->{eprint_status} = "buffer";
 	}
-	# Update an existing item
-	if( defined( $item ) )
-	{
-		foreach my $fieldname (keys %$epdata)
-		{
-			if( $dataset->has_field( $fieldname ) )
-			{
-				# Can't currently set_value on subobjects
-				my $field = $dataset->get_field( $fieldname );
-				next if $field->is_type( "subobject" );
-				$item->set_value( $fieldname, $epdata->{$fieldname} );
-			}
-		}
-		$item->commit();
-	}
-	# Add to existing
-	elsif ( defined $dataobj ) 
-	{
-		$item = $dataobj->create_subdataobj( $dataset->confid.'s', $epdata );
-	}
-	# Create a new item 
-	else
-	{
-		$item = $dataset->create_object( $plugin->{session}, $epdata );
-	}
-
-	if( defined( $item ) )
-	{
-		$plugin->handler->object( $dataset, $item );
-	}
-
-	return $item;
+	
+	return $self->handler->epdata_to_dataobj( $epdata, %opts );
 }
 
 sub warning

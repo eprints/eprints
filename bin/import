@@ -147,6 +147,7 @@ my $enable_import_fields = 0;
 my $migration = 0;
 my $update = 0;
 my %opt_args;
+my @actions;
 
 Getopt::Long::Configure("permute");
 
@@ -167,6 +168,7 @@ GetOptions(
 	'migration' => \$migration,
 	'update' => \$update,
 	'arg=s' => \%opt_args,
+	'action=s' => \@actions,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "export_xml" ) if $version;
 pod2usage( 1 ) if $help;
@@ -181,10 +183,6 @@ if( $migration )
 	$force = 1;
 	$enable_file_imports = 1;
 	$enable_web_imports = 1;
-	$enable_import_fields = 1;
-}
-if( $update )
-{
 	$enable_import_fields = 1;
 }
 
@@ -298,13 +296,33 @@ END
 	}
 }
 
+my $count = 0;
+
 my $handler = EPrints::CLIProcessor->new(
 	session => $session,
-	scripted => $scripted,
+	epdata_to_dataobj => sub {
+		my( $epdata, %opts ) = @_;
+
+		if( $opts{dataset}->base_id eq "eprint" )
+		{
+			$epdata->{userid} = $userobj->id if defined $userobj;
+		}
+
+		print "EPRINTS_IMPORT: ITEM_PARSED\n" if $scripted;
+
+		$count++, return if $parse_only;
+
+		my $item = $opts{dataset}->create_dataobj( $epdata );
+		return if !defined $item;
+
+		print "EPRINTS_IMPORT: ITEM_IMPORTED ".$item->get_id."\n" if $scripted;
+
+		$count++, return $item;
+	},
 );
 
 my $pluginid = "Import::".$ipluginid;
-my $plugin = $session->plugin( $pluginid, parse_only=>$parse_only, update=>$update, Handler=>$handler );
+my $plugin = $session->plugin( $pluginid, parse_only=>$parse_only, Handler=>$handler );
 
 if( !defined $plugin )
 {
@@ -352,20 +370,17 @@ if( $scripted )
 # improve ordervalues insertion performance
 $session->cache_subjects;
 
-eval {
-$plugin->input_file(
+my $list = eval { $plugin->input_file(
 		%arguments,
 		dataset=>$ds,
 		filename=>$filename,
 		user=>$userobj,
-	);
-};
+		actions=>\@actions,
+) };
 if( $@ )
 {
 	$handler->message( "error", $session->make_text( "Unhandled exception in ".$plugin->{id}.": $@" ) );
 }
-
-my $count = $parse_only ? $handler->{parsed} : $handler->{wrote};
 
 if( $scripted )
 {
@@ -385,28 +400,9 @@ if( $count > 0 )
 			print "Number of records imported: $count\n";
 			if( $noise > 1 )
 			{
-				print join( ",", @{$handler->{ids}})."\n";
+				print join( ",", @{$list->ids})."\n";
 			}
 		}
-	}
-	if( @{$handler->{ids}} && defined $userobj && $ds->confid eq "eprint" )
-	{
-		my $user_id = $userobj->get_id;
-
-		my $list = EPrints::List->new(
-			session => $session,
-			dataset => $ds,
-			ids => $handler->{ids}
-		);
-
-		$list->map(
-			sub {
-				my( $session, $dataset, $eprint ) = @_;
-				$eprint->set_value( "userid", $user_id );
-				$eprint->commit;
-			} );
-
-		$list->dispose;
 	}
 }
 

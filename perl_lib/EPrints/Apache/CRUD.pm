@@ -738,8 +738,11 @@ sub POST
 		$status = "archive" if ($repo->config("skip_buffer") and $status eq "buffer");
 	}
 
+	my @messages;
+
 	$plugin->{parse_only} = 1;
-	$plugin->{Handler} = EPrints::Apache::CRUD::Handler->new(
+	$plugin->set_handler( EPrints::CLIProcessor->new(
+		message => sub { push @messages, $_[1] },
 		epdata_to_dataobj => sub {
 			my( $epdata ) = @_;
 
@@ -760,7 +763,7 @@ sub POST
 				push @items, $dataset->create_dataobj( $epdata );
 			}
 		}
-	);
+	) );
 
 	my $atom = $repo->plugin( "Export::Atom" );
 
@@ -780,7 +783,7 @@ sub POST
 		content_type => $headers->{content_type},
 		actions => $headers->{actions},
 	) };
-	return plugin_error( $repo, $r, $plugin ) if !defined $list;
+	return plugin_error( $repo, $r, $plugin, \@messages ) if !defined $list;
 
 	EPrints->abort( "Import plugin didn't create anything" ) if !@items;
 
@@ -892,8 +895,11 @@ sub PUT
 
 	my @items;
 
+	my @messages;
+
 	$plugin->{parse_only} = 1;
-	$plugin->{Handler} = EPrints::Apache::CRUD::Handler->new(
+	$plugin->set_handler( EPrints::CLIProcessor->new(
+		message => sub { push @messages, $_[1] },
 		epdata_to_dataobj => sub {
 			my( $epdata ) = @_;
 
@@ -941,7 +947,7 @@ sub PUT
 				$dataobj->commit;
 			}
 		}
-	);
+	) );
 
 	my $list = eval { $plugin->input_fh(
 		fh => $tmpfile,
@@ -950,7 +956,7 @@ sub PUT
 		mime_type => $headers->{content_type},
 		actions => $headers->{actions},
 	) };
-	return plugin_error( $repo, $r, $plugin ) if !defined $list;
+	return plugin_error( $repo, $r, $plugin, \@messages ) if !defined $list;
 
 	EPrints->abort( "Import plugin didn't create anything" ) if !@items;
 
@@ -996,7 +1002,10 @@ sub metadata_relevant
 	);
 	@plugins = sort { $a->{qs} <=> $b->{qs} } @plugins;
 
-	my $handler = EPrints::Apache::CRUD::Handler->new(
+	my @messages;
+
+	my $handler = EPrints::CLIProcessor->new(
+		message => sub { push @messages, $_[1] },
 		epdata_to_dataobj => sub {
 			my( $data ) = @_;
 
@@ -1013,7 +1022,7 @@ sub metadata_relevant
 	foreach my $plugin ( @plugins )
 	{
 		$plugin->{parse_only} = 1;
-		$plugin->{Handler} = $handler;
+		$plugin->set_handler( $handler );
 
 		seek($fh,0,0);
 		$plugin->input_fh(
@@ -1299,11 +1308,11 @@ sub sword_error
 # input_fh() failed
 sub plugin_error
 {
-	my( $repo, $r, $plugin ) = @_;
+	my( $repo, $r, $plugin, $messages ) = @_;
 
-	$plugin->{Handler}->message( "error", $@ ) if $@ ne "\n";
+	$plugin->handler->message( "error", $@ ) if $@ ne "\n";
 	my $ul = $repo->xml->create_element( "ul" );
-	for(@{$plugin->{Handler}->{messages}}) {
+	for(@{$messages}) {
 		$ul->appendChild( $repo->xml->create_data_element( "li", $_ ) );
 	}
 	my $err = $repo->xhtml->to_xhtml( $ul );
@@ -1372,29 +1381,6 @@ sub send_response
 	}
 
 	return OK;
-}
-
-package EPrints::Apache::CRUD::Handler;
-
-sub new
-{
-	my( $class, %self ) = @_;
-
-	return bless \%self, $class;
-}
-
-sub parsed
-{
-	my( $self, $epdata ) = @_;
-
-	$self->{epdata_to_dataobj}( $epdata );
-}
-
-sub message
-{
-	my( $self, $type, $msg ) = @_;
-
-	push @{$self->{messages}}, $msg;
 }
 
 1;

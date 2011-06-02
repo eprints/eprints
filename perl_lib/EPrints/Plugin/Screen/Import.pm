@@ -57,9 +57,6 @@ sub properties_from
 	# dataset to import into
 	$self->{processor}->{dataset} = $self->{session}->get_repository->get_dataset( "inbox" );
 
-	my $value = $self->{session}->param( "import_documents" );
-	$self->{processor}->{import_documents} = defined $value && $value eq "yes";
-	
 	if( defined $plugin_id )
 	{
 		my $plugin = $self->{session}->plugin(
@@ -67,7 +64,6 @@ sub properties_from
 			session => $self->{session},
 			dataset => $self->{processor}->{dataset},
 			processor => $self->{processor},
-			import_documents => $self->{processor}->{import_documents},
 		);
 		if( !defined $plugin || $plugin->broken )
 		{
@@ -135,7 +131,7 @@ sub action_import
 	return if !defined $tmp_file;
 
 	return unless $self->_import( 1, 1, $tmp_file ); # quiet dry run
-	my( $import, $list ) = $self->_import( 0, 0, $tmp_file ); # real run with messages
+	my $list = $self->_import( 0, 0, $tmp_file ); # real run with messages
 
 	return if !defined $list;
 
@@ -147,7 +143,6 @@ sub action_import
 		# remove the bulk import object
 		$eprint->set_value( "importid", undef );
 		$eprint->commit;
-		$import->remove;
 		# add in eprint/eprintid for backwards compatibility
 		$processor->{dataobj} = $processor->{eprint} = $eprint;
 		$processor->{dataobj_id} = $processor->{eprintid} = $eprint->get_id;
@@ -155,8 +150,6 @@ sub action_import
 	}
 	elsif( $n > 1 )
 	{
-		$processor->{dataobj} = $import;
-		$processor->{dataobj_id} = $import->get_id;
 		$processor->{screenid} = $self->{post_bulk_import_screen};
 	}
 }
@@ -242,21 +235,28 @@ sub _import
 	my $user = $self->{processor}->{user};
 	my $plugin = $self->{processor}->{plugin};
 
-	my $import;
-	if( !$dryrun )
-	{
-		$import = $session->dataset( "import" )->create_object( $session, {} );
-	}
+	my $count = 0;
 
-	my $handler = EPrints::Plugin::Screen::Import::Handler->new(
-		processor => $self->{processor},
-		user => $user,
-		quiet => $quiet,
-		import => $import,
-	);
-
-	$plugin->{Handler} = $handler;
 	$plugin->{parse_only} = $dryrun;
+	$plugin->set_handler( EPrints::CLIProcessor->new(
+		message => sub { $quiet && $self->{processor}->add_message( @_ ) },
+		epdata_to_dataobj => sub {
+			my( $epdata, %opts ) = @_;
+
+			$count++;
+
+			return if $dryrun;
+
+			my $dataset = $opts{dataset};
+			if( $dataset->base_id eq "eprint" )
+			{
+				$epdata->{userid} = $user->id;
+				$epdata->{eprint_status} = "inbox";
+			}	
+
+			return $dataset->create_dataobj( $epdata );
+		},
+	) );
 
 	my $err_file = File::Temp->new(
 		UNLINK => 1
@@ -283,8 +283,6 @@ sub _import
 	};
 	push @problems, "Unhandled exception in ".$plugin->{id}.": $@" if $@;
 	push @problems, "Expected EPrints::List" if !defined $list;
-
-	my $count = $dryrun ? $handler->{parsed} : $handler->{wrote};
 
 	open(STDERR,">&OLD_STDERR") or die "Failed to restore STDERR";
 
@@ -348,7 +346,7 @@ sub _import
 		}
 	}
 
-	return( $import, $list );
+	return $list;
 }
 
 sub redirect_to_me_url { }
@@ -502,20 +500,6 @@ sub render
 		}
 	}
 
-	if( $session->config( "enable_web_imports" ) )
-	{
-		$form->appendChild( $session->make_element( "br" ) );
-		my $importfiles = $session->render_input_field( type=>"checkbox", name=>"import_documents", value=>"yes", class=>"ep_form_checkbox", id=>"import_documents" );
-		if( $self->{processor}->{import_documents} )
-		{
-			$importfiles->setAttribute( "checked", "yes" );
-		}
-		$importfiles->appendChild( $session->make_element( "label", 
-			for => "import_documents",
-		) )->appendChild( $self->html_phrase( "import_documents" ) );
-		$form->appendChild( $session->render_toolbox( undef, $importfiles ) );
-	}
-
 	$form->appendChild( $session->render_action_buttons( 
 		_class => "ep_form_button_bar",
 		test => $self->phrase( "action:test:title" ), 
@@ -643,29 +627,28 @@ sub message
 	}
 }
 
-sub parsed
+sub epdata_to_dataobj
 {
-	my( $self, $epdata ) = @_;
+	my( $self, $epdata, %opts ) = @_;
 
 	$self->{parsed}++;
-}
 
-sub object
-{
-	my( $self, $dataset, $dataobj ) = @_;
+	return if $self->{dryrun};
+
+	my $dataset = $opts{dataset};
+	if( $dataset->base_id eq "eprint" )
+	{
+		$epdata->{userid} = $self->{user}->id;
+		$epdata->{eprint_status} = "inbox";
+	}	
 
 	$self->{wrote}++;
 
-	if( $dataset->confid eq "eprint" )
-	{
-		$dataobj->set_value( "userid", $self->{user}->get_id );
-		if( defined $self->{import} )
-		{
-			$dataobj->set_value( "importid", $self->{import}->get_id );
-		}
-		$dataobj->commit;
-	}	
+	return $dataset->create_dataobj( $epdata );
 }
+
+sub parsed { }
+sub object { }
 
 1;
 

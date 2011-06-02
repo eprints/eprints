@@ -287,6 +287,7 @@ sub create_from_data
 	my $self = $class->new_from_data( $session, $data, $dataset );
 	return undef unless defined $self;
 
+	# this checks whether the object exists
 	my $rc = $session->get_database->add_record( $dataset, $self->get_data );
 	return undef unless $rc;
 
@@ -666,7 +667,7 @@ sub set_value
 	{
 		if( $self->{session}->get_noise > 0 )
 		{
-			$self->{session}->get_repository->log( "Attempt to set value on not existent field: ".$self->{dataset}->id()."/$fieldname" );
+			Carp::carp( "Attempt to set value on not existent field: ".$self->{dataset}->id().".$fieldname" );
 		}
 		return;
 	}

@@ -91,7 +91,7 @@ sub xml_to_dataobj
 	my( $self, $dataset, $xml ) = @_;
 
 	my $epdata = $self->xml_to_epdata( $dataset, $xml );
-	return $self->epdata_to_dataobj( $dataset, $epdata, undef );
+	return $self->epdata_to_dataobj( $dataset, $epdata );
 }
 
 sub xml_to_text
@@ -251,7 +251,7 @@ sub end_element
 			$handler->end_document;
 			my $xml = $handler->result;
 			my $epdata = $self->{plugin}->xml_to_epdata( $self->{dataset}, $xml );
-			my $dataobj = $self->{plugin}->epdata_to_dataobj( $self->{dataset}, $epdata, $self->{dataobj} );
+			my $dataobj = $self->{plugin}->epdata_to_dataobj( $self->{dataset}, $epdata );
 			push @{$self->{imported}}, $dataobj->id if defined $dataobj;
 		}
 	}

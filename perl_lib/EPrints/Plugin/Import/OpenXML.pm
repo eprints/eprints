@@ -54,6 +54,28 @@ sub input_fh
 
 	my $format = $session->call( "guess_doc_type", $session, $filename );
 
+	my $filepath = "$opts{fh}";
+	if( !-f $filepath ) # need to make a copy for our purposes :-(
+	{
+		$filepath = File::Temp->new;
+		binmode($filepath);
+		while(sysread($opts{fh},$_,4096))
+		{
+			syswrite($filepath,$_);
+		}
+		seek($filepath,0,0);
+		$opts{fh} = $filepath;
+	}
+
+	my $dir = $self->unpack( $filepath, %opts );
+	if( !$dir )
+	{
+		$self->error( $self->phrase( "zip_failed" ) );
+	}
+
+	# better way to keep $dir around until $opts{fh} has gone away?
+	${*{$opts{fh}}}{PARENT} = $dir;
+
 	my $epdata = {
 		documents => [{
 			format => $format,
@@ -65,28 +87,6 @@ sub input_fh
 			}],
 		}],
 	};
-
-	my $filepath = "$opts{fh}";
-	if( !-f $filepath ) # need to make a copy for our purposes :-(
-	{
-		$filepath = File::Temp->new;
-		binmode($filepath);
-		while(sysread($opts{fh},$_,4096))
-		{
-			syswrite($filepath,$_);
-		}
-		seek($opts{fh},0,0);
-		seek($filepath,0,0);
-	}
-
-	my $dir = $self->unpack( $filepath, %opts );
-	if( !$dir )
-	{
-		$self->error( $self->phrase( "zip_failed" ) );
-	}
-	$epdata->{$dir} = $dir; # keep our temp files as long as epdata exists
-
-	my @new_docs;
 
 	if( $flags{metadata} )
 	{
@@ -178,7 +178,7 @@ sub _extract_bibl
 #			uri => $main_doc->internal_uri(),
 #			},{
 #			type => EPrints::Utils::make_relation( "isPartOf" ),
-#			uri => $main_doc->internal_uri(),
+#			uri => $self->{_main},
 #		}],
 	};
 }

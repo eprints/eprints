@@ -49,6 +49,8 @@ sub color
 Create a new processor object. Supported options:
 
   scripted - backwards compatibility for import scripted interface
+  epdata_to_dataobj - replace L</epdata_to_dataobj>
+  message - replace L</message>
 
 =cut
 
@@ -74,10 +76,27 @@ sub message
 {
     my( $self, $type, $msg ) = @_;
 
+	return $self->{message}( $type, $msg ) if defined $self->{message};
+
 	print STDERR color($type);
 	$msg = EPrints::Utils::tree_to_utf8( $msg );
 	print STDERR "\u$type! $msg\n";
 	print STDERR color('reset');
+}
+
+=item $dataobj = $processor->epdata_to_dataobj( $epdata, %opts )
+
+Requests the handler create the new object from $epdata.
+
+=cut
+
+sub epdata_to_dataobj
+{
+	my( $self, $epdata, %opts ) = @_;
+
+	return $self->{epdata_to_dataobj}( $epdata, %opts ) if defined $self->{epdata_to_dataobj};
+
+	return $opts{dataset}->create_dataobj( $epdata );
 }
 
 =item $processor->parsed( [ $epdata ] )

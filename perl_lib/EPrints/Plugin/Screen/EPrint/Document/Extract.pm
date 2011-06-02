@@ -153,10 +153,12 @@ sub _action
 	my $fh = $file->get_local_copy;
 	return if !$fh;
 
-	my $handler = EPrints::Plugin::Screen::EPrint::Document::Extract::Handler->new( processor => $self->{processor} );
-
+	my $epdata;
 	my @available = $self->available( $doc,
-		Handler => $handler,
+		Handler => EPrints::CLIProcessor->new(
+			message => sub { $self->{processor}->add_message( @_ ) },
+			epdata_to_dataobj => sub { $epdata = $_[0] },
+		),
 		parse_only => 1
 	);
 
@@ -176,9 +178,11 @@ sub _action
 			filename => "MAINFILE",
 		);
 		seek($fh,0,0);
+		next if !defined $epdata;
 
-		my $epdata = $handler->{epdata} or next;
 		$self->update_eprint( $eprint, $doc, $epdata, $replace );
+
+		undef $epdata;
 	}
 
 	$eprint->commit;
@@ -239,33 +243,6 @@ sub update_eprint
 		push @{$self->{processor}->{docids}}, $new_doc->id;
 	}
 }
-
-package EPrints::Plugin::Screen::EPrint::Document::Extract::Handler;
-
-sub new
-{
-	my( $class, %self ) = @_;
-
-	return bless \%self, $class;
-}
-
-sub message
-{
-	my( $self, $type, $message ) = @_;
-
-	$self->{processor}->add_message( $type, $message );
-}
-
-sub parsed
-{
-	my( $self, $epdata ) = @_;
-
-	$self->{parsed}( $epdata ) if $self->{parsed};
-
-	$self->{epdata} = $epdata;
-}
-
-sub object {}
 
 1;
 
