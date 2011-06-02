@@ -157,7 +157,7 @@ sub _action
 	my @available = $self->available( $doc,
 		Handler => EPrints::CLIProcessor->new(
 			message => sub { $self->{processor}->add_message( @_ ) },
-			epdata_to_dataobj => sub { $epdata = $_[0] },
+			epdata_to_dataobj => sub { $epdata = $_[0]; undef },
 		),
 		parse_only => 1
 	);
@@ -175,7 +175,7 @@ sub _action
 			fh => $fh,
 			dataset => $eprint->dataset,
 			actions => \@actions,
-			filename => "MAINFILE",
+			filename => $doc->value( "main" ),
 		);
 		seek($fh,0,0);
 		next if !defined $epdata;
@@ -230,17 +230,33 @@ sub update_eprint
 		}
 	}
 
+	my %id_map;
+
+	my @docs;
 	foreach my $docdata (@documents)
 	{
-		next if $docdata->{main} eq "MAINFILE";
-		$docdata->{relation} ||= [];
-		push @{$docdata->{relation}}, {
-			type => EPrints::Utils::make_relation( "isPartOf" ),
-			uri => $doc->internal_uri
-		};
+		if( $docdata->{main} eq $doc->value( "main" ) )
+		{
+			$id_map{$docdata->{_id}} = $doc->internal_uri;
+			next;
+		}
 		my $new_doc = $eprint->create_subdataobj( "documents", $docdata );
-		next if !$new_doc;
-		push @{$self->{processor}->{docids}}, $new_doc->id;
+		next if !defined $new_doc;
+		push @docs, $new_doc;
+		$id_map{$docdata->{_id}} = $new_doc->internal_uri;
+	}
+
+	push @{$self->{processor}->{docids}}, map { $_->id } @docs;
+
+	foreach my $new_doc (@docs)
+	{
+		$new_doc->set_value( "relation", [
+			map { {
+				type => $_->{type},
+				uri => exists($id_map{$_->{uri}}) ? $id_map{$_->{uri}} : $_->{uri}
+			} } @{$new_doc->value( "relation" )}
+		]);
+		$new_doc->commit;
 	}
 }
 

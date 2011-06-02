@@ -106,7 +106,7 @@ sub input_fh
 
 	my @ids;
 	my $dataobj = $self->epdata_to_dataobj( $opts{dataset}, $epdata );
-	push @ids, $dataobj->id if $dataobj;
+	push @ids, $dataobj->id if defined $dataobj;
 
 	return EPrints::List->new(
 		session => $session,
