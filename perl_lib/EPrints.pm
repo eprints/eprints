@@ -92,7 +92,7 @@ use Data::Dumper;
 use Scalar::Util;
 use File::Temp;
 
-use Carp qw( verbose );
+use Carp;
 
 use strict;
 
