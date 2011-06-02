@@ -184,6 +184,9 @@ sub _expand
 	my $list = $plugin->input_fh(
 		fh => $fh,
 		dataset => $dataobj->get_dataset,
+		filename => $file->value( "filename" ),
+		mime_type => $file->value( "mime_type" ),
+		actions => [qw( unpack )],
 	);
 	return if !$list || !$list->count;
 
