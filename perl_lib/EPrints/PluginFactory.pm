@@ -198,19 +198,12 @@ sub _load_xslt
 	$handler =~ s/^(EPrints::Plugin::([^:]+)::XSLT).*/$1/;
 
 	my $type = $2;
-	my $settingsvar = $class."::SETTINGS";
 
 	{
-	no warnings; # avoid redef-warnings for new()
 	eval <<EOP;
 package $class;
 
 our \@ISA = qw( $handler );
-
-sub new
-{
-	return shift->SUPER::new( \%\$$settingsvar, \@_ );
-}
 
 1
 EOP
@@ -218,11 +211,6 @@ EOP
 	}
 
 	my $xslt = {};
-
-	{
-		no strict "refs";
-		${$settingsvar} = $xslt;
-	}
 
 	{
 		local $SIG{__DIE__};
@@ -254,6 +242,8 @@ EOP
 		}
 
 		$xslt->{doc} = $doc;
+		$xslt->{_filename} = $fn;
+		$xslt->{_mtime} = EPrints::Utils::mtime( $fn );
 		$class->init_xslt( $repository, $xslt );
 	}
 
@@ -318,6 +308,26 @@ sub get_plugin
 		repository => $self->{repository},
 		session => $self->{repository},
 		%params );
+
+	if( ref($plugin) =~ /^EPrints::Plugin::(Import|Export)::XSLT::/ )
+	{
+		if( EPrints::Utils::mtime( $plugin->{_filename} ) > $plugin->{_mtime} )
+		{
+			my $ok = $self->_load_xslt(
+				$self->{repository_data},
+				$self->{repository},
+				$plugin->{_filename},
+				$class
+			);
+			if( $ok )
+			{
+				$plugin = $class->new(
+					repository => $self->{repository},
+					session => $self->{repository},
+					%params );
+			}
+		}
+	}
 
 	return $plugin;
 }

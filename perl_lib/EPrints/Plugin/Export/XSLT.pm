@@ -123,6 +123,19 @@ use EPrints::Plugin::Export;
 
 use strict;
 
+# class-specific settings (e.g. the stylesheets)
+our %SETTINGS;
+
+sub new
+{
+	my( $class, @args ) = @_;
+
+	return $class->SUPER::new(
+		%{$SETTINGS{$class}},
+		@args
+	);
+}
+
 sub init_xslt
 {
 	my( $class, $repo, $xslt ) = @_;
@@ -170,6 +183,8 @@ sub init_xslt
 
 	my $stylesheet = XML::LibXSLT->new->parse_stylesheet( $doc );
 	$xslt->{stylesheet} = $stylesheet;
+
+	$SETTINGS{$class} = $xslt;
 }
 
 sub padding
@@ -274,8 +289,8 @@ sub output_dataobj
 	my $result = $xslt->transform( $doc, 
 			single => defined($opts{list}),
 			dataset => $opts{dataset}->base_id,
-			total => $opts{total},
-			position => $opts{position}
+			total => (defined($opts{total}) ? $opts{total} : 1),
+			position => (defined($opts{position}) ? $opts{position} : 1)
 		);
 
 	if( !$opts{list} )

@@ -12,6 +12,18 @@ use EPrints::Plugin::Import;
 
 use strict;
 
+our %SETTINGS; # class-specific settings
+
+sub new
+{
+	my( $class, @args ) = @_;
+
+	return $class->SUPER::new(
+		%{$SETTINGS{class}},
+		@args
+	);
+}
+
 sub init_xslt
 {
 	my( $class, $repo, $xslt ) = @_;
@@ -19,6 +31,8 @@ sub init_xslt
 	my $stylesheet = XML::LibXSLT->new->parse_stylesheet( $xslt->{doc} );
 	$xslt->{stylesheet} = $stylesheet;
 	delete $xslt->{doc};
+
+	${$SETTINGS{$class}} = $xslt;
 }
 
 sub input_fh
