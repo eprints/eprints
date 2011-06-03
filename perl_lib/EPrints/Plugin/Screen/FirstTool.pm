@@ -4,11 +4,19 @@ EPrints::Plugin::Screen::FirstTool - the first screen to show
 
 =head1 DESCRIPTION
 
-This plugin is the screen shown by the ScreenProcessor if there is no 'screen' parameter.
+This plugin is the screen shown by the L<EPrints::ScreenProcessor> if there is no 'screen' parameter.
 
-This plugin redirects to the "Items" screen by default. To change this use:
+By default this plugin redirects to L<EPrints::Plugin::Screen::Items> or L<EPrints::Plugin::Screen::User::View> for minusers. To override this use:
 
 	$c->{plugins}->{"Screen::FirstTool"}->{params}->{default} = "Screen::First";
+
+Or for a customisable screen supply a callback (which will be passed the FirstTool screen):
+
+	$c->{plugins}->{"Screen::FirstTool"}->{params}->{default} = sub {
+		my( $screen ) = @_;
+
+		return "Items";
+	};
 
 =cut
 
@@ -25,10 +33,38 @@ sub properties_from
 	my( $self ) = @_;
 
 	my $screenid = $self->param( "default" );
-	$screenid = "Items" if !defined $screenid;
-	my $screen = $self->{session}->plugin( "Screen::$screenid",
-			processor => $self->{processor},
-		);
+	my $screen;
+
+	# we will always try to show the custom screen even if it gets an access
+	# denied
+	if( defined $screenid )
+	{
+		if( ref($screenid) eq "CODE" )
+		{
+			$screenid = &$screenid( $self );
+		}
+		if( defined $screenid )
+		{
+			$screen = $self->{session}->plugin( "Screen::$screenid",
+					processor => $self->{processor},
+				);
+		}
+	}
+	else
+	{
+		# the old behaviour was to pick out the first "key_tool" but that isn't
+		# helpful when the first key_tool is now Login (/Logout)
+		for(qw( Items User::View ))
+		{
+			$screenid = $_;
+			$screen = $self->{session}->plugin( "Screen::$screenid",
+					processor => $self->{processor},
+				);
+			next if !defined $screen;
+			undef $screen if !$screen->can_be_viewed;
+			last;
+		}
+	}
 	if( defined $screen )
 	{
 		$self->{processor}->{screenid} = $screenid;
