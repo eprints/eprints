@@ -40,26 +40,31 @@ Create a file in C<Plugins/Export/XSLT/> called 'Title.xsl' containing:
 
 =head1 DESCRIPTION
 
-The stylesheet will be called with a document containing this:
+This export plugin allows you to use XSL Transforms to export data from EPrints. The plugin is fed EPrints XML and can output any resulting data supported by XSLT.
 
-	<?xml version='1.0'?>
-	<template xmlns="http://eprints.org/ep2/xslt/1.0" />
+This is the inverse process of L<EPrints::Plugin::Import::XSLT>.
 
-If the resulting document contains the value of the $results parameter it will be treated as a template for output. The value of $results will be replaced with the output from the following step.
+=head2 Headers and Footers
 
-The stylesheet is called once for every item with the full XML record:
+You can specify a template to use for your output:
 
-	<?xml version='1.0'?>
-	<eprints xmlns="http://eprints.org/ep2/data/2.0">
-	<eprint>
-	<title>The eprint title</title>
-	...
-	</eprint>
-	</eprints>
+	<xsl:template match="ept:template">
+		<html>
+			<body>
+				<xsl:value-of select="$results"/>
+			</body>
+		</html>
+	</xsl:template>
 
-Each result document is appended to $results.
+Note: you can output unbalanced XML by using disable-output-escaping:
 
-If your export format does not require any header or footer wrapping you do not need to implement ept:template - $results will be output as-is.
+	<xsl:template match="ept:template">
+		<xsl:text disable-output-escaping="yes">
+			&lt;html&gt;
+				&lt;body&gt;
+		</xsl:text>
+		<xsl:value-of select="$results"/>
+	</xsl:template>
 
 =head2 Controlling XML Declarations
 
@@ -81,16 +86,9 @@ To output as XML and suppress the XML declaration entirely define an empty prefi
 All attributes on <xsl:stylesheet> that are in the EPT namespace are treated as plugin parameters. In addition to those parameters used by all L<EPrints::Plugin::Export> plugins XSLT uses:
 
 	prefix
-		Value is printed before any content.
+		Value is printed before any content (defaults to XML decl.)
 	postfix
 		Value is printed after any content.
-
-=head1 TEMPLATE PARAMETERS
-
-The following parameters are passed to the transform for the template:
-
-	results
-		Key-value to be replaced by item results.
 
 =head1 STYLESHEET PARAMETERS
 
@@ -115,6 +113,10 @@ L<EPrints::Plugin::Export>
 
 package EPrints::Plugin::Export::XSLT;
 
+use constant {
+	NS_XSLT => "http://www.w3.org/1999/XSL/Transform",
+};
+
 use EPrints::Plugin::Export;
 
 @ISA = ( "EPrints::Plugin::Export" );
@@ -126,15 +128,16 @@ sub init_xslt
 	my( $class, $repo, $xslt ) = @_;
 
 	my $doc = delete $xslt->{doc};
+	my $root = $doc->documentElement;
+
+	my $ep_xsl_prefix = $root->lookupNamespacePrefix( EPrints::Const::EP_NS_XSLT );
 
 	# omit XML declarations (which we add by hand)
-	my( $output ) = $doc->documentElement->getElementsByTagName( "output" );
+	my( $output ) = $root->getElementsByTagNameNS( NS_XSLT, "output" );
 	if( !$output )
 	{
-		$output = $doc->documentElement->appendChild(
-			$doc->createElementNS(
-				"http://www.w3.org/1999/XSL/Transform",
-				"output"
+		$output = $root->appendChild(
+			$doc->createElementNS( NS_XSLT, "output"
 			) );
 	}
 	if( !$output->hasAttribute( "method" ) )
@@ -154,6 +157,14 @@ sub init_xslt
 		$output->setAttribute( "omit-xml-declaration" => "yes" );
 	}
 
+	# header/footer
+	$xslt->{template} = 0;
+	foreach my $template ($root->getElementsByTagNameNS( NS_XSLT, "template" ))
+	{
+		my $match = $template->getAttribute( "match" ) or next;
+		$xslt->{template} = 1 if $match eq "$ep_xsl_prefix:template";
+	}
+
 	$xslt->{prefix} = "" if !defined $xslt->{prefix};
 	$xslt->{postfix} = "" if !defined $xslt->{postfix};
 
@@ -163,33 +174,47 @@ sub init_xslt
 
 sub padding
 {
-	my( $self ) = @_;
+	my( $self, %opts ) = @_;
+
+	my( $prefix, $postfix ) = ($self->{prefix}, $self->{postfix});
 
 	my $xslt = EPrints::XSLT->new(
 		repository => $self->{session},
 		stylesheet => $self->{stylesheet},
 	);
 
-	my $key = "374fa0728ac61f704b666713c0abc174";
-
-	my $template = XML::LibXML::Document->new;
-	$template->setDocumentElement( $template->createElementNS( EPrints::Const::EP_NS_XSLT, "template" ) );
-	my $result = $xslt->transform( $template, 
-		results => $key
-	);
-
-	my( $prefix, $postfix ) = split $key, $xslt->output_as_bytes( $result ), 2;
-	if( defined( $postfix ) )
+	# header
+	if( $self->{template} )
 	{
-		return( $self->{prefix} . $prefix, $self->{postfix} . $postfix );
+		my $key = "d0a1cb555951d9f88fb03fc4247d9ba0";
+		my $template = XML::LibXML::Document->new;
+		$template->setDocumentElement( $template->createElementNS(
+			EPrints::Const::EP_NS_XSLT, "template"
+			) );
+		my $result = $xslt->transform( $template,
+			dataset => $opts{dataset}->base_id,
+			results => $key,
+			);
+		my @parts = split $key, $xslt->output_as_bytes( $result ), 2;
+		if( defined $parts[1] )
+		{
+			$prefix = $prefix . $parts[0];
+			$postfix = $parts[1] . $postfix;
+		}
+		else
+		{
+			Carp::carp( "ept:template used but missing \$result" );
+		}
 	}
 
-	return( $self->{prefix}, $self->{postfix} );
+	return( $prefix, $postfix );
 }
 
 sub output_list
 {
 	my( $self, %opts ) = @_;
+
+	$opts{dataset} ||= $opts{list}->{dataset};
 
 	my $r = "";
 
@@ -197,7 +222,7 @@ sub output_list
 		sub { print {$opts{fh}} $_[0] } :
 		sub { $r .= $_[0] };
 
-	my( $prefix, $postfix ) = $self->padding;
+	my( $prefix, $postfix ) = $self->padding( %opts );
 
 	&$f( $prefix );
 
@@ -224,10 +249,12 @@ sub output_dataobj
 
 	local $self->{session}->{xml};
 
+	$opts{dataset} ||= $opts{list} ? $opts{list}->{dataset} : $dataobj->dataset;
+
 	my( $prefix, $postfix );
 	if( !$opts{list} )
 	{
-		( $prefix, $postfix ) = $self->padding;
+		( $prefix, $postfix ) = $self->padding( %opts );
 	}
 
 	my $xml = $dataobj->to_xml;
@@ -245,7 +272,8 @@ sub output_dataobj
 	);
 
 	my $result = $xslt->transform( $doc, 
-			dataset => $dataobj->dataset->base_id,
+			single => defined($opts{list}),
+			dataset => $opts{dataset}->base_id,
 			total => $opts{total},
 			position => $opts{position}
 		);
