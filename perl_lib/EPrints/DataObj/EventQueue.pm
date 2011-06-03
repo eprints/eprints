@@ -162,6 +162,18 @@ sub execute
 
 	if( $rc == IS_LOCKED )
 	{
+		my $start_time = $self->value( "start_time" );
+		if( defined $start_time )
+		{
+			$start_time = EPrints::Time::datetime_utc(
+				EPrints::Time::split_value( $start_time )
+			);
+		}
+		$start_time = time() if !defined $start_time;
+		$start_time += 10 * 60; # try again in 10 minutes time
+		$self->set_value( "start_time",
+			EPrints::Time::iso_datetime( $start_time )
+		);
 		$self->set_value( "status", "waiting" );
 		$self->commit;
 	}
