@@ -39,6 +39,33 @@ sub new
 	return $self;
 }
 
+sub wishes_to_export { shift->{repository}->param( "ajax" ) }
+
+sub export_mime_type { "text/html;charset=utf-8" }
+
+sub export
+{
+	my( $self ) = @_;
+
+	my $id_prefix = "ep_eprint_views";
+
+	my $current = $self->{session}->param( "${id_prefix}_current" );
+	$current = 0 if !defined $current;
+
+	my @screens;
+	foreach my $item ( $self->list_items( "eprint_view_tabs", filter => 0 ) )
+	{
+		next if !($item->{screen}->can_be_viewed & $self->who_filter);
+		next if $item->{action} && !$item->{screen}->allow_action( $item->{action} );
+		push @screens, $item->{screen};
+	}
+
+	my $content = $screens[$current]->render;
+	binmode(STDOUT, ":utf8");
+	print $self->{repository}->xhtml->to_xhtml( $content );
+	$self->{repository}->xml->dispose( $content );
+}
+
 sub register_furniture
 {
 	my( $self ) = @_;

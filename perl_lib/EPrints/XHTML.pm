@@ -696,6 +696,20 @@ sub tabs
 	}
 	$current = 0 if !$current;
 
+	my $table = $xml->create_element( "table",
+		class => "ep_tab_bar",
+		cellspacing => 0,
+		cellpadding => 0
+	);
+	$frag->appendChild( $table );
+	my $tr = $table->appendChild( $xml->create_element( "tr",
+		id => "${basename}_tabs"
+	) );
+	
+	$tr->appendChild( $xml->create_element( "td",
+		class => "ep_tab_spacer"
+	) );
+
 	my $tab_block = $xml->create_element( "div", class=>"ep_only_js" );	
 	$frag->appendChild( $tab_block );
 
@@ -704,19 +718,37 @@ sub tabs
 			class => "ep_tab_panel" );
 	$frag->appendChild( $panel );
 
+	my %expensive = map { $_ => 1 } @{$opts{expensive}||[]};
+
 	my %labels;
 	my %links;
 	for(0..$#$labels)
 	{
-		$labels{$_} = $labels->[$_];
+		my $td = $tr->appendChild( $xml->create_element( "td",
+			class => ($current == $_ ? "ep_tab_selected" : "ep_tab"),
+			id => "${basename}_tab_$_",
+			style => "text-align: center",
+		) );
 
-		my $link = $base_url->clone();
-		$link->query_form(
-			$link->query_form,
+		my $href = $base_url->clone();
+		$href->query_form(
+			$href->query_form,
 			$q_current => $_,
 		);
-		$link->fragment( $basename."_panel_".$_ );
-		$links{$_} = $link;
+#		$href->fragment( $basename."_current_".$_ );
+		$links{$_} = $href;
+
+		my $link = $td->appendChild( $xml->create_data_element( "a",
+			$labels->[$_],
+			href => $href,
+			onclick => "return ep_showTab('$basename',$_,".($expensive{$_}?1:0).");",
+		) );
+
+		$tr->appendChild( $xml->create_element( "td",
+			class => "ep_tab_spacer"
+		) );
+
+		$labels{$_} = $labels->[$_];
 
 		my $inner_panel = $xml->create_element( "div", 
 			id => $basename."_panel_".$_,
@@ -733,16 +765,6 @@ sub tabs
 		$panel->appendChild( $inner_panel );
 		$inner_panel->appendChild( $contents->[$_] );
 	}
-
-	$tab_block->appendChild( 
-		$repo->render_tabs( 
-			id_prefix => $basename,
-			current => $current,
-			tabs => [0..$#$labels],
-			labels => \%labels,
-			links => \%links,
-			slow_tabs => $opts{expensive},
-		));
 
 	return $frag;
 }
