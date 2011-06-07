@@ -22,7 +22,7 @@ sub new
 	$self->{accept} = [ 'list/*', 'dataobj/*' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".js";
-	$self->{mimetype} = "text/javascript; charset=utf-8";
+	$self->{mimetype} = "application/json; charset=utf-8";
 	$self->{arguments}->{json} = undef;
 	$self->{arguments}->{jsonp} = undef;
 	$self->{arguments}->{callback} = undef;

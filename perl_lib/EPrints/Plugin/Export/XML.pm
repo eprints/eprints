@@ -23,7 +23,7 @@ sub new
 	$self->{visible} = "all";
 	$self->{xmlns} = EPrints::Const::EP_NS_DATA;
 	$self->{qs} = 0.8;
-	$self->{mimetype} = 'application/vnd.eprints.data+xml; charset="utf-8"';
+	$self->{mimetype} = 'application/vnd.eprints.data+xml; charset=utf-8';
 	$self->{arguments}->{hide_volatile} = 1;
 
 	return $self;
