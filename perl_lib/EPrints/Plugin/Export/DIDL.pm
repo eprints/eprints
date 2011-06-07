@@ -2,6 +2,10 @@
 
 EPrints::Plugin::Export::DIDL
 
+=head1 DESCRIPTION
+
+Based on L<http://wiki.surffoundation.nl/display/DRIVERguidelines/Use+of+MPEG-21+DIDL+%28xml-container%29+-+Compound+object+wrapping>.
+
 =cut
 
 package EPrints::Plugin::Export::DIDL;
