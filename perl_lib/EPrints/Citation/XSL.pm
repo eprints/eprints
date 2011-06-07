@@ -69,6 +69,8 @@ sub render
 	my $doc = XML::LibXML::Document->new( '1.0', 'utf-8' );
 	$doc->setDocumentElement( $doc->createElement( 'root' ) );
 
+	local $self->{messages} = [];
+
 	my $xslt = EPrints::XSLT->new(
 		repository => $self->{repository},
 		stylesheet => $self->{stylesheet},
@@ -80,7 +82,22 @@ sub render
 
 	my $r = $xslt->transform( $doc );
 
+	for( @{$self->{messages}} )
+	{
+		return $self->{repository}->xml->create_text_node( "$self->{filename}: $_->{type} - $_->{message}" );
+	}
+
 	return $self->{repository}->xml->contents_of( $r );
+}
+
+sub error
+{
+	my( $self, $type, $message ) = @_;
+
+	push @{$self->{messages}}, {
+		type => $type,
+		message => $message,
+	};
 }
 
 1;

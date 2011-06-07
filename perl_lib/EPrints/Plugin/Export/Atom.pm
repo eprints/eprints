@@ -206,10 +206,12 @@ sub output_eprint
 			undef,
 			rel => "alternate",
 			href => $dataobj->uri ) );
-	$entry->appendChild( $xml->create_data_element(
-			"summary",
-#			$xhtml->to_text_dump( $dataobj->render_citation ) ) );
-			$dataobj->get_value("abstract") ) );
+	if( $dataobj->exists_and_set( "abstract" ) )
+	{
+		$entry->appendChild( $xml->create_data_element(
+				"summary",
+				$dataobj->get_value("abstract") ) );
+	}
 
 	my $updated;
 	my $datestamp = $dataobj->get_value( "lastmod" );

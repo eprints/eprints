@@ -1718,6 +1718,13 @@ sub get_store_dirs
 
 	closedir( $dh );
 
+	if( !@dirs )
+	{
+		EPrints->system->mkdir( "$docroot/disk0" )
+			or EPrints->abort( "No storage directories found in $docroot" );
+		push @dirs, "disk0";
+	}
+
 	return @dirs;
 }
 
