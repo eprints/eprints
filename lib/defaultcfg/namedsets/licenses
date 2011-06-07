@@ -1,0 +1,11 @@
+# types for document licenses
+
+cc_by_nd
+cc_by
+cc_by_nc
+cc_by_nc_nd
+cc_by_nc_sa
+cc_by_sa
+cc_public_domain
+cc_gnu_gpl
+cc_gnu_lgpl

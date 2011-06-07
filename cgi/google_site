@@ -1,0 +1,15 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
+
+use EPrints;
+
+use strict;
+
+my $session = new EPrints::Session();
+exit( 1 ) unless( defined $session );
+
+my $url = "http://www.google.com/search?q=".$session->param( "q" );
+$url .= "+site:".$session->config( "host" );
+
+$session->redirect( $url );
+
+$session->terminate();

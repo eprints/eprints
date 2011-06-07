@@ -1,0 +1,120 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib 
+
+use EPrints;
+use EPrints::Database;
+
+use strict;
+
+my $session = new EPrints::Session( 1 , $ARGV[0] );
+exit( 1 ) unless( defined $session );
+
+my $repository = $session->get_repository;
+
+my $db = $session->get_database;
+
+my $ds = $repository->get_dataset( "archive" );
+
+my @table_names = ();
+foreach my $field ( $ds->get_fields )
+{
+	next if $field->is_virtual;
+	my $table_name = "mspace_".$field->{name};
+	push @table_names, $table_name;
+	if( $field->is_type( "date", "time" ) )
+	{
+		push @table_names, $table_name."_day";
+		push @table_names, $table_name."_month";
+		push @table_names, $table_name."_year";
+		push @table_names, $table_name."_decade";
+	}
+}
+
+foreach my $table_name ( @table_names )
+{
+	if( $db->has_table( $table_name ) )
+	{
+		$db->drop_table( $table_name );
+	}
+	print "making $table_name\n";
+	my $rc = $db->_create_table($table_name, [], [
+		$db->get_column_type( "eprintid", SQL_INTEGER, SQL_NULL ),
+		$db->get_column_type( "value", SQL_VARCHAR, SQL_NULL, 255 ),
+		$db->get_column_type( "desc", SQL_VARCHAR, SQL_NULL, 255 ),
+	]);
+	if( !$rc ) { die "Make table failed: $table_name"; }
+	$db->create_index( $table_name, "eprintid" );
+	$db->create_index( $table_name, "value" );
+	$db->create_index( $table_name, "desc" );
+}
+
+my $table_name;
+my $rc;
+
+$table_name = "mspace_citation";
+if( $db->has_table( $table_name ) )
+{
+	$db->drop_table( $table_name );
+}
+print "making $table_name\n";
+$rc = $db->_create_table($table_name, [], [
+	$db->get_column_type( "eprintid", SQL_INTEGER, SQL_NULL ),
+	$db->get_column_type( "citation", SQL_LONGVARCHAR, SQL_NULL ),
+	$db->get_column_type( "short", SQL_LONGVARCHAR, SQL_NULL ),
+	$db->get_column_type( "url", SQL_VARCHAR, SQL_NULL, 255 ),
+]);
+if( !$rc ) { die "Make table failed: $table_name"; }
+$db->create_index( $table_name, "eprintid" );
+
+
+$table_name = "mspace_documents";
+if( $db->has_table( $table_name ) )
+{
+	$db->drop_table( $table_name );
+}
+print "making $table_name\n";
+$rc = $db->_create_table($table_name, [], [
+	$db->get_column_type( "eprintid", SQL_INTEGER, SQL_NULL ),
+	$db->get_column_type( "documentid", SQL_INTEGER, SQL_NULL ),
+	$db->get_column_type( "formatid", SQL_VARCHAR, SQL_NULL, 255 ),
+	$db->get_column_type( "formatdesc", SQL_LONGVARCHAR, SQL_NULL ),
+	$db->get_column_type( "contentid", SQL_VARCHAR, SQL_NULL, 255 ),
+	$db->get_column_type( "contentdesc", SQL_LONGVARCHAR, SQL_NULL ),
+	$db->get_column_type( "url", SQL_VARCHAR, SQL_NULL, 255 ),
+	$db->get_column_type( "iconurl", SQL_VARCHAR, SQL_NULL, 255 ),
+]);
+if( !$rc ) { die "Make table failed: $table_name"; }
+$db->create_index( $table_name, "eprintid" );
+$db->create_index( $table_name, "formatid" );
+$db->create_index( $table_name, "contentid" );
+
+$db->drop_table( "mspace_cache" );
+$db->do( <<END );
+CREATE TABLE `mspace_cache` (
+  `id` int(11) NOT NULL auto_increment,
+  `in` varchar(255) NOT NULL default '',
+  `out` longtext NOT NULL,
+  `kb` varchar(255) NOT NULL default '',
+  `lastdate` datetime default NULL,
+  PRIMARY KEY  (`id`),
+  KEY `in` (`in`),
+  KEY `kb` (`kb`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+END
+
+$db->drop_table( "mspace_sphinx" );
+$db->do( <<END );
+CREATE TABLE `mspace_sphinx` (
+  `id` int(11) NOT NULL,
+  `weight` int(11) NOT NULL,
+  `query` varchar(3072) NOT NULL,
+  `group_id` int(11) default NULL,
+  KEY `query` (`query`)
+) ENGINE=SPHINX DEFAULT CHARSET=latin1 CONNECTION='sphinx://localhost:3312/eprints_mspace';
+END
+
+
+
+
+$session->terminate();
+exit;
+

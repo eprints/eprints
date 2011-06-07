@@ -1,0 +1,91 @@
+######################################################################
+#
+#  EPrints Simple Search Form
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+
+use strict;
+use warnings;
+my $repo = EPrints->new->current_repository;
+exit( 0 ) unless( defined $repo );
+
+my $path_info = $repo->get_request->path_info;
+# lose a leading slash
+$path_info =~ s#^/##;
+
+my $args = $repo->get_request->args;
+$args = "" if !defined $args;
+$args = "?$args" if length( $args );
+
+my( $datasetid, $searchid ) = split /\//, $path_info;
+
+if( !defined $datasetid )
+{
+	$repo->redirect( $repo->config( "http_cgiroot" )."/search/simple$args" );
+	exit;
+}
+
+# cover the old systems sins...
+if( $datasetid eq "advsearch" )
+{
+	$repo->redirect( $repo->config( "http_cgiroot" )."/search/advanced$args" );
+	exit;
+}
+
+if( defined($repo->param( "dataset" )) )
+{
+	if( !$searchid )
+	{
+		$repo->redirect( $repo->config( "http_cgiroot" )."/search/".$repo->param( "dataset" )."/$datasetid$args" );
+		exit;
+	}
+	elsif( $searchid =~ /^export/ )
+	{
+		$repo->redirect( $repo->config( "http_cgiroot" )."/search/".$repo->param( "dataset" )."/$datasetid/$searchid$args" );
+		exit;
+	}
+	# handle the user changing the search dataset after a search
+	elsif( $repo->param( "dataset" ) ne $datasetid )
+	{
+		$repo->redirect( $repo->config( "http_cgiroot" )."/search/".$repo->param( "dataset" )."/$searchid$args" );
+		exit;
+	}
+}
+
+if( $datasetid =~ /^(advanced)|(simple)$/ )
+{
+	$searchid = $datasetid;
+	$datasetid = "archive";
+}
+elsif( !defined $searchid )
+{
+	$repo->redirect( $repo->config( "http_cgiroot" )."/search/$datasetid/simple$args" );
+	exit;
+}
+
+my $dataset = $repo->dataset( $datasetid );
+if( !defined $dataset )
+{
+	$repo->not_found;
+	exit;
+}
+
+EPrints::ScreenProcessor->process( 
+	session => $repo, 
+	url => $repo->config( "http_cgiroot" )."/search/$datasetid/$searchid",
+	screenid => "Search",
+	searchid => $searchid,
+	dataset => $dataset,
+);
+
+exit;

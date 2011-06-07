@@ -1,0 +1,12 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+opendir( DIR, "." );
+while( my $file = readdir( DIR ) )
+{
+	next if( $file =~ /^\./ );
+	print "$file\n";
+	`~/trunk/system/tools/entity_convert $file > $file.new`;
+	`mv $file.new $file`;
+}

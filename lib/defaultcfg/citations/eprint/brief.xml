@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+
+<!-- 
+	Brief citation for an eprint. Just gives the title or the type and ID number.
+-->
+
+<cite:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:cite="http://eprints.org/ep3/citation" xmlns:epc="http://eprints.org/ep3/control">
+
+<cite:linkhere><epc:choose>
+  <epc:when test="title"><epc:print expr="title"/></epc:when>
+  <epc:otherwise><epc:print expr="type"/> #<epc:print expr="eprintid"/></epc:otherwise>
+</epc:choose></cite:linkhere>
+
+</cite:citation>

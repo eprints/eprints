@@ -1,0 +1,90 @@
+#!/usr/bin/perl
+
+use EPrints;
+
+use strict;
+
+my $repo = EPrints->new->current_repository;
+exit( 0 ) unless( defined $repo );
+
+my $xml = $repo->xml;
+
+$repo->send_http_header( "content_type" => "application/xml; charset=utf-8" );
+binmode(STDOUT, ":utf8");
+
+print <<EOX;
+<?xml version='1.0'?>
+
+<xs:schema
+	targetNamespace="http://eprints.org/ep2/data/2.0"
+	xmlns="http://eprints.org/ep2/data/2.0"
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified"
+>
+EOX
+
+my %elements;
+my %types;
+
+foreach my $datasetid ($repo->get_dataset_ids)
+{
+	my $dataset = $repo->dataset( $datasetid );
+	next if $dataset->is_virtual;
+	foreach my $field ($dataset->fields)
+	{
+		push @{$elements{$datasetid}}, $field->render_xml_schema( $repo );
+		my $type = $field->get_xml_schema_type();
+		if( $type !~ /^xs:/ )
+		{
+			$types{$type} ||= $field->render_xml_schema_type( $repo );
+		}
+		foreach my $sub_field (@{$field->{fields_cache}||[]})
+		{
+			my $type = $sub_field->get_xml_schema_type();
+			if( $type !~ /^xs:/ )
+			{
+				$types{$type} ||= $sub_field->render_xml_schema_type( $repo );
+			}
+		}
+	}
+}
+
+foreach my $datasetid (sort keys %elements)
+{
+	# root element for this dataset
+	my $root = $xml->create_element( "xs:element", name => "${datasetid}s" );
+	my $complexType = $xml->create_element( "xs:complexType" );
+	$root->appendChild( $complexType );
+	my $choice = $xml->create_element( "xs:choice" );
+	$complexType->appendChild( $choice );
+	my $element = $xml->create_element( "xs:element", name => $datasetid, type => "dataset_$datasetid", minOccurs => "0", maxOccurs => "unbounded" );
+	$choice->appendChild( $element );
+
+	# dataset schema
+	$complexType = $xml->create_element( "xs:complexType", name => "dataset_$datasetid" );
+
+	# dataset fields
+	# TODO: this should be xs:all, but the DTD won't accept minOccurs=0
+	my $datasetAll = $xml->create_element( "xs:choice", minOccurs => 0, maxOccurs => "unbounded" );
+	$complexType->appendChild( $datasetAll );
+	foreach my $field_schemas (@{$elements{$datasetid}})
+	{
+		$datasetAll->appendChild( $field_schemas );
+	}
+
+	# dataset "id" attribute (attributes follow elements in schema)
+	my $id = $xml->create_element( "xs:attribute", name => "id", type => "xs:anyURI" );
+	$complexType->appendChild( $id );
+
+	print $repo->xml->to_string( $root, indent => 1 ) . "\n";
+	print $repo->xml->to_string( $complexType, indent => 1 ) . "\n";
+}
+
+foreach my $type (sort keys %types)
+{
+	print $repo->xml->to_string( $types{$type}, indent => 1 ) . "\n";
+}
+
+print <<EOX;
+</xs:schema>
+EOX

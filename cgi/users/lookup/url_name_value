@@ -1,0 +1,56 @@
+use EPrints;
+
+use strict;
+use warnings;
+
+my $session = EPrints::Session->new();
+
+my $string_frag = lc $session->param( "q" );
+my $table = $session->param( "table" );
+$table = $session->get_database->quote_identifier("ac_".$table);
+my $database = $session->get_database;
+my $sql;
+my $term = EPrints::Database::prep_like_value( $string_frag );
+$sql = "SELECT url,name,value from $table WHERE name ".$database->sql_LIKE()." '%$term%' OR value ".$database->sql_LIKE()." '%$term%'";
+
+my $doc = $session->make_element( 'ul' );
+
+print <<END;
+<?xml version="1.0" encoding="UTF-8" ?>
+
+END
+my $sth = $session->get_database->prepare_select( $sql, 'limit' => 10 );
+$session->get_database->execute( $sth , $sql );
+my $first = 1;
+while( my( $url,$name,$value ) = $sth->fetchrow_array )
+{
+	$doc->appendChild( my $li = $session->make_element( 'li' ) );
+	if( $first )
+	{
+		$li->setAttribute( 'class', 'ep_first' );
+	}
+	$first= 0;
+	$li->appendChild( $session->make_text( $name . ' ' ) );
+	if( $value ne $name )
+	{
+		$li->appendChild( $session->make_text( sprintf('(%s) ', $value )));
+	}
+	if( defined( $url ) )
+	{
+		$li->appendChild( my $a = $session->make_element( 'a',
+			href => $url,
+			target => '_new',
+		));
+		$a->appendChild( $session->make_text( 'More Info' ) );
+	}
+	$li->appendChild( my $data = $session->make_element( 'ul' ) );
+	$data->appendChild( $session->make_element( 'li',
+		id => 'for:value:relative:'
+	) )->appendChild( $session->make_text( $value ) );
+}
+
+print EPrints::XML::to_string( $doc );
+
+EPrints::XML::dispose( $doc );
+
+$session->terminate;

@@ -1,0 +1,120 @@
+This file describes the major changes between versions. In addition you
+can assume every new version fixes minor bugs and typos. If you want to
+see the blow by blow account of every single change see the file called
+CHANGELOG.
+======================================================================
+
+=========================================================================
+EPRINTS 3.2.0
+=========================================================================
+
+See: http://wiki.eprints.org/w/New_Features_in_EPrints_3.2
+
+=========================================================================
+EPRINTS 3.1.0
+=========================================================================
+
+See: http://wiki.eprints.org/w/New_Features_in_EPrints_3.1
+
+=========================================================================
+EPRINTS 3.0-RC-1                                               2006-12-18
+=========================================================================
+
+ * Import via CGI
+ * More basic types of eprint:
+    Artefact, Exhibition, Composition, Performance, Image, Video,
+    Audio, Dataset, Experiment, Teaching Resource.
+ * Import via PubMed ID.
+ * Import via DOI. 
+ * When you enter a title the system checks for possible duplicates as
+    you type and lists them as a warning.
+ * New autocomplete scripts which can use a file or a database table for
+    the lookup.
+ * Added a multilingual field type for multilingual titles, abstracts 
+    etc.
+ * Import and Export via XML of multilingual and compound fields now 
+    treats compound fields as one field. 
+ * Import subjects via XML now works.
+ * "epadmin create" now offers to run the required scripts for you, to
+     make setup even easier.
+ * Fixed bug which left many cache tables lying around.
+ * Tool to edit the subject tree
+ * Non-required boolean fields now show a third option to allow them to
+    be set to unspecified.
+ * Plugins may now have an "advertise" flag. If this is false then the
+    plugin is not advertised in the user interface but is still 
+    available.
+ * Plugins may now be disabled by default. This is used if you have 
+    several repositories and only want to enable the plugin on one.
+ * XML Export now makes the XML nicely indented.
+ * The workflow may now conditionally limit the options available for a 
+    set. This allows, for example, to make certain options only available
+    on some types of EPrint or only to certain users.
+ * The workflow may modify the top subject node so that different parts
+    of the subject tree are available for different eprints or users.
+ * New default fields for projects and funders and organisational 
+    divisions.
+ * Added more metadata to the <head> of the summary pages, for the 
+    benefit of search engines.
+
+=========================================================================
+EPRINTS 3.0-beta-3                                             2006-12-05
+=========================================================================
+
+ * Improvements to the look of email sent by the system.
+ * METS export plugin
+ * MODS export plugin
+ * Atom Feeds (similar to RSS)
+ * RSS2.0 Feeds
+ * Global Feeds, in addition to Atom/RSS feeds for search results.
+ * Thumbnails for images
+ * Pop-up previews for images and PDFs
+ * View user history (changes they have made to eprints)
+ * Added built-in lat/long values for users + eprints to support geodata.
+ * Improvements to autocomplete system
+ * Added "feed" icons to search results page.
+ * Added option to reorder a search without going back to the form.
+ * Redesigned all icons to look more professional.
+ * Redesigned file upload to be more straight forward.
+ * "Unrolling" javascript elements now scroll the screen if they were 
+    about to disappear off the bottom.
+ * Simplified the logged-in toolbar.
+ * Better debug messages for embedded scripts.
+ * New configuration options to disable plugins.
+ * Option to change where action links appear.
+ * All POST requests redirect after completion to eliminate errors 
+    caused by browser "back" buttons.
+ * Added web-based import tool.
+ * Create new version of EPrint based on existing EPrint.
+ * Use EPrint as Template.
+ * Bug fixes.
+ * UI tweaks.
+ * Minor changes to default configuration.
+
+=========================================================================
+EPRINTS 3.0-beta-2                                             2006-11-14
+=========================================================================
+
+ * Redesigned search forms.
+ * Added experimental support for XML::LibXML.
+ * Basic autocomplete now works on creators and journals
+ * Using the progress bar to jump stages now saves current changes.
+ * OpenURL resolver.
+ * Improved interface for file upload screen.
+ * Improved interface for subject stage.
+ * Added "Add User" administration screen.
+ * Redesigned user interface for Items and Review screens.
+ * Fixed bug which prevented EP3 working with Apache >= v2.2.2
+ * Added <link>'s to alternate versions in head of search results and
+    item summary pages.
+ * Redesigned document security configuration to be easier to understand.
+ * Improved the reject/remove notification screens and emails.
+ * Added staff search screens for eprints, users and history.
+ * Other bugfixes.
+ * Other user interface improvements.
+
+=========================================================================
+EPRINTS 3.0-beta-1                                             2006-10-27
+=========================================================================
+
+Too many changes from 2.3 to document. Major rewrite!

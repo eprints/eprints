@@ -1,0 +1,40 @@
+
+/* Items Screen */
+
+.ep_items_filters {
+	text-align: center;
+	margin-top: 10px;
+}
+
+.ep_items_filters img {
+	border-width: 0px;
+	margin-left: 10px;
+	vertical-align: -2px;
+}
+
+.ep_items_filters a {
+	color: #000000;
+	text-decoration: none;
+}
+
+
+td.ep_columns_cell_inbox {
+	background-color: #ffc;
+	border-left: 1px dashed #ccc;
+	border-bottom: 1px solid #888;
+}
+td.ep_columns_cell_buffer {
+	background-color: #dde;
+	border-left: 1px dashed #ccc;
+	border-bottom: 1px solid #888;
+}
+td.ep_columns_cell_archive {
+	background-color: #cfc;
+	border-left: 1px dashed #ccc;
+	border-bottom: 1px solid #888;
+}
+td.ep_columns_cell_deletion {
+	background-color: #ccc;
+	border-left: 1px dashed #ccc;
+	border-bottom: 1px solid #888;
+}

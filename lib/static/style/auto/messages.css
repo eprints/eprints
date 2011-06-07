@@ -1,0 +1,54 @@
+
+/* Message styles - used to provide alerts and errors */
+
+.ep_msg_message, .ep_msg_warning, .ep_msg_error, .ep_msg_other {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.ep_msg_message_icon, .ep_msg_warning_icon, .ep_msg_error_icon {
+	padding: 10px;
+}
+/*
+
+Not currently using titles
+
+.ep_msg_message_title {
+	color: #70cf70;
+	padding: 2px 10px 2px 10px;
+}
+.ep_msg_error_title {
+	color: #ff8080;
+	padding: 2px 10px 2px 10px;
+}
+.ep_msg_warning_title {
+	color: #cf9070;
+	padding: 2px 10px 2px 10px;
+}
+
+*/
+
+.ep_msg_message_content {
+	background-image: url(images/green_back.png);
+	background-color: #c0ffc0;
+	border: solid 1px #80ff80;
+}
+
+.ep_msg_error_content {
+	background-image: url(images/red_back.png);
+	background-color: #ffe0e0;
+	border: solid 1px #ffc0c0;
+}
+
+.ep_msg_warning_content {
+	background-image: url(images/orange_back.png);
+	background-color: #ffe0c0;
+	border: solid 1px #ffc080;
+}
+
+.ep_msg_other_content {
+	background-image: url(images/blue_back.png);
+	background-color: #9999FF;
+	border: solid 1px #9999FF;
+}
+

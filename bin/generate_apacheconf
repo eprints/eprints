@@ -1,0 +1,359 @@
+#!/usr/bin/perl -w
+
+use FindBin;
+use lib "$FindBin::Bin/../perl_lib";
+
+######################################################################
+#
+#
+######################################################################
+
+=pod
+
+=for Pod2Wiki
+
+=head1 NAME
+
+B<generate_apacheconf> - Create the apache config files needed for EPrints
+
+=head1 SYNOPSIS
+
+B<generate_apacheconf> [B<options>] [I<repository_id>]
+
+B<generate_apacheconf> --replace [repoid]
+
+=head1 DESCRIPTION
+
+This script generates the config files to include in your Apache configuration.
+
+If you have changed a repository's configuration (hostname/port/path) you can
+update the configuration for that repository with:
+
+ generate_apacheconf --replace [repoid]
+
+=head2 Adding to Apache Configuration
+
+To enable EPrints you must add the following line to your main Apache
+configuration file (I</etc/httpd/conf/httpd.conf>):
+
+ Include /opt/eprints3/cfg/apache.conf
+
+To enable secure (HTTPS) you must add the following line to your SSL
+VirtualHost:
+
+ Include /opt/eprints3/cfg/apache_ssl.conf
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item repository_id
+
+Optionally update the given repository's apache configuration only. Will only
+replace an existing configuration file with the --replace option.
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--replace>
+
+Replace existing configuration files, overwriting any changes made.
+
+=item B<--system>
+
+Update the system configuration file, overwriting any changes made.
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<--verbose>
+
+Explain in detail what is going on.
+May be repeated for greater effect.
+
+=item B<--version>
+
+Output version information and exit.
+
+=back   
+
+=head1 FILES
+
+=over 4
+
+=item B<EPRINTS/cfg/apache.conf>
+
+Loads the EPrints environment and repository-specific configuration files.
+
+=item B<EPRINTS/cfg/apache_ssl.conf>
+
+Loads the repository-specific SSL configuration files.
+
+=item B<EPRINTS/cfg/apache/[repoid].conf>
+
+A <VirtualHost> that responds to the configured hostname and port of the
+repository.
+
+=item B<EPRINTS/cfg/apache_ssl/[repoid].conf>
+
+A <Location> that responds to the configured https_root of the repository.
+
+=item B<EPRINTS/archives/[repoid]/cfg.d/10_base.pl>
+
+Default location for host and path directives used to build the Apache
+configuration files.
+
+=back
+
+
+=cut
+
+
+use EPrints;
+
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+use Digest::MD5;
+
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+my $replace = 0;
+my $system = 0;
+
+Getopt::Long::Configure("permute");
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'quiet' => \$quiet,
+	'replace' => \$replace,
+	'system' => \$system,
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "generate_apacheconf" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV > 1 );
+
+our( $repository_id ) = @ARGV;
+
+our $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+#cjg Write a more simple conf if only one language involved?
+
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
+my $eprints = EPrints->new;
+
+# Load up the repositories
+my %reps = ();
+foreach my $id ( $eprints->repository_ids() )
+{
+	$reps{$id} = $eprints->repository( $id, db_connect => 0); 
+	EPrints->abort( "Error loading $id" ) if !defined $reps{$id};
+}
+
+my $base_path = EPrints::Config::get( "base_path" );
+my $archives_path = "$base_path/archives";
+my $perl_lib = "$base_path/perl_lib";
+my $site_userfile = EPrints::Config::get( "cfg_path" )."/apache.conf";
+my $apache_ssl_conf = EPrints::Config::get( "cfg_path" )."/apache_ssl.conf";
+
+my $first_run = !-e $site_userfile;
+
+my $restart_required = 0;
+
+my $inc_path = "$base_path/cfg/apache";
+my $inc_ssl_path = "$base_path/cfg/apache_ssl";
+
+EPrints->system->mkdir( $inc_path );
+EPrints->system->mkdir( $inc_ssl_path );
+
+if( ($system && $replace) || !-e $site_userfile )
+{
+	my $conf = <<END;
+#
+# apache.conf include file for EPrints
+#
+# Any changes made here will be lost if you run generate_apacheconf
+# with the --replace --system options
+#
+
+# Load the perl modules & repository configurations
+PerlSwitches -I$perl_lib
+PerlModule EPrints
+PerlPostConfigHandler +EPrints::post_config_handler
+
+# Load the per-repository apache configuration
+Include $inc_path/*.conf
+
+END
+	my $backup = EPrints->system->write_config_file( $site_userfile, $conf, BACKUP => 1 );
+	if( $backup )
+	{
+		print "Wrote $backup\n" if $noise >= 1;
+	}
+	print "Wrote $site_userfile\n" if( $noise >= 1 );
+
+	$restart_required = 1;
+}
+if( ($system && $replace) || !-e $apache_ssl_conf )
+{
+	my $conf = <<END;
+#
+# apache_ssl.conf include file for EPrints
+#
+# Any changes made here will be lost if you run generate_apacheconf
+# with the --replace --system options
+#
+
+# Note that PerlTransHandler can't go inside
+# a "Location" block as it occurs before the
+# Location is known.
+PerlTransHandler +EPrints::Apache::Rewrite
+
+# Load the per-repository apache configuration
+Include $inc_ssl_path/*.conf
+
+END
+	my $backup = EPrints->system->write_config_file( $apache_ssl_conf, $conf, BACKUP => 1);
+	if( $backup )
+	{
+		print "Wrote $backup\n" if $noise >= 1;
+	}
+	print "Wrote $apache_ssl_conf\n" if( $noise >= 1 );
+
+	$restart_required = 1;
+}
+
+####################################################
+# 
+#   Write apache conf files for each repository
+#
+####################################################
+
+foreach my $repository ( values %reps ) 
+{
+	my $id = $repository->get_id();
+
+	next if $repository_id && $repository_id ne $id;
+
+	my $cfg_path = $repository->get_conf( "config_path" );
+
+	my $apache_conf = "$inc_path/$id.conf";
+	my $apache_ssl_conf = "$inc_ssl_path/$id.conf";
+
+	my $oldfile = $repository->get_conf( "config_path" )."/apache.conf";
+
+	my $securehost = $repository->get_conf( "securehost" );
+
+	if( -e $oldfile && !-e $apache_conf )
+	{
+		open( CONF, ">$apache_conf" ) || die "Can't write to $apache_conf: $!";
+		print CONF "Include $oldfile\n";
+		close CONF;
+	}
+	elsif( $replace || !-e $apache_conf )
+	{
+		my $conf = EPrints::Apache::apache_conf( $repository );
+		my $backup = EPrints->system->write_config_file( $apache_conf, $conf );
+		if( $backup )
+		{
+			print "Wrote $backup\n" if( $noise >= 1 );
+		}
+		print "Wrote $apache_conf\n" if( $noise >= 1 );
+
+		$restart_required = 1;
+	}
+
+# Create secure include file
+	if( $securehost )
+	{
+		if( $replace || !-e $apache_ssl_conf )
+		{
+			my $conf = EPrints::Apache::apache_secure_conf( $repository );
+			my $backup = EPrints->system->write_config_file( $apache_ssl_conf, $conf );
+			if( $backup )
+			{
+				print "Wrote $backup\n" if( $noise >= 1 );
+			}
+			print "Wrote $apache_ssl_conf\n" if( $noise >= 1 );
+			$restart_required = 1;
+		}
+
+		foreach my $langid (@{$repository->config( "languages" )})
+		{
+			my $secure_template = "$cfg_path/lang/$langid/templates/secure.xml";
+			my $default_template = "$cfg_path/lang/$langid/templates/default.xml";
+
+			if( !-e $secure_template && -e $default_template )
+			{
+				EPrints::Utils::copy( $default_template, $secure_template );
+				print "Copied default template to secure template, you will probably need to edit the secure template:\n$secure_template\n";
+			}
+		}
+	}
+}
+
+if( $first_run )
+{
+	print "\nAdd the following line to your apache configuration:\n\tInclude $site_userfile\n";
+}
+
+if( $restart_required )
+{
+	print "\nYou must restart apache for any changes to take effect!\n" if( $noise >= 1 );
+}
+else
+{
+	print "\nNo files were changed. For more information do ./generate_apacheconf --man\n";
+}
+
+=head1 COPYRIGHT
+
+=for COPYRIGHT BEGIN
+
+Copyright 2000-2011 University of Southampton.
+
+=for COPYRIGHT END
+
+=for LICENSE BEGIN
+
+This file is part of EPrints L<http://www.eprints.org/>.
+
+EPrints is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+EPrints is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+License for more details.
+
+You should have received a copy of the GNU General Public License
+along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
+
+=for LICENSE END
+

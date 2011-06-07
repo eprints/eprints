@@ -1,0 +1,103 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use EPrints;
+
+my( $repoid ) = @ARGV;
+
+my $session = EPrints::Session->new( 1, $repoid );
+
+my $dataset = $session->dataset( "file" );
+
+unless( $session->config( "invocation", "droid" ) )
+{
+	die <<EOH;
+You do not have droid configured in your SystemSettings, you need to add:
+	'droid_sig_file' => 'absolute/path/to/signature_file.xml';
+	in executables:
+		'java' => 'path/to/bin/java';
+		'droid' => 'path/to/droid.jar';
+	in invocation:
+		
+EOH
+}
+
+while(1)
+{
+	#my $check = 10;
+	my $searchexp = EPrints::Search->new(
+		session => $session,
+		dataset => $dataset,
+	);
+	$searchexp->add_field( $dataset->get_field( "datasetid" ), "document" );
+	my $list = $searchexp->perform_search;
+	$list->map(
+		sub {
+		my( $session, $dataset, $file ) = @_;
+		#if( 1 || $check-- == 0 )
+		{
+			#$check = 10;
+			my $list = &fetch_unset();
+			if( $list->count > 0 )
+			{
+				my $todo = $list->count;
+				
+				if ($file->get_value("pronom_uid") eq "") 
+				{
+					my $fh = $file->get_local_copy();
+					if ( -e $fh) {
+						print "\n\n";
+						print $todo." unset files remaining.\n";
+						print "============================\n";
+						$todo--;
+						print "Found file: ".$file->get_value( "filename" )."/".($file->get_value("pronom_uid")||"(null)")."\n";
+						print "FH:" .$fh ."\n";		
+						my $droid_xml = File::Temp->new();
+						my $sig = $session->config( "droid_sig_file" );
+						$session->get_repository->exec( "droid",
+							SOURCE => $fh,
+							TARGET => "$droid_xml",
+							SIGFILE => "$sig", 
+						);
+						my $doc = EPrints::XML::parse_xml("$droid_xml.xml");
+						my $PUID_node = ($doc->getElementsByTagName( "PUID" ))[0];
+						my $PUID = EPrints::Utils::tree_to_utf8($PUID_node);
+						print "FOUND A PUID: " . $PUID . "\n\n";
+						# getElemntsByTagName & getChildNode 
+						# $list->map(sub { ... });
+						$file->set_value( "pronom_uid", $PUID );
+						my $temp = $file->get_value("pronom_uid");
+						$file->commit;
+						unlink("$droid_xml.xml");
+						EPrints::XML::dispose($doc);
+					}
+				}
+			}
+		}
+	});
+	last;
+}
+
+sub fetch_unset
+{
+	my $searchexp = EPrints::Search->new(
+		session => $session,
+		dataset => $dataset,
+		custom_order => "-mtime",
+	);
+
+	$searchexp->add_field( $dataset->get_field( "datasetid" ), "document" );
+#	$searchexp->add_field( $dataset->get_field( "bucket" ), "data" );
+	$searchexp->add_field( $dataset->get_field( "pronom_uid" ), "", "EX" );
+
+	my $list = $searchexp->perform_search;
+
+	return $list;
+}
+
+END
+{
+	$session->terminate;
+}

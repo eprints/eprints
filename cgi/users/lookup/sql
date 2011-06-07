@@ -1,0 +1,45 @@
+use EPrints;
+
+use strict;
+use warnings;
+
+my $session = EPrints::Session->new();
+
+my $string_frag = lc($session->param( "q" ) || "");
+my $table = $session->param( "table" );
+my $mode = $session->param( "mode" ) || "phrase";
+if( !defined $table )
+{
+	EPrints::abort( "table" );
+}
+my $Q_table = $session->get_database->quote_identifier("ac_$table");
+my $Q_xml = $session->get_database->quote_identifier( "xml" );
+my $Q_value = $session->get_database->quote_identifier( "value" );
+my $Q_string_frag = EPrints::Database::prep_like_value( $string_frag );
+if( $mode eq "phrase" )
+{
+	$Q_string_frag = "\%$Q_string_frag\%";
+}
+elsif( $mode eq "prefix" )
+{
+	$Q_string_frag = "$Q_string_frag\%";
+}
+$Q_string_frag = $session->get_database->quote_value( $Q_string_frag );
+
+my $sql = "SELECT $Q_xml from $Q_table WHERE $Q_value ".$session->get_database->sql_LIKE()." $Q_string_frag";
+
+print <<END;
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ul>
+END
+my $sth = $session->get_database->prepare_select( $sql, 'limit' => 40 );
+$session->get_database->execute( $sth , $sql );
+my $first = 1;
+while( my( $xml ) = $sth->fetchrow_array )
+{
+	print $xml."\n";
+}
+print '</ul>';
+
+$session->terminate;

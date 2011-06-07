@@ -1,0 +1,58 @@
+
+
+.ep_view_page h2 {
+	margin-top: 3em;
+	border-bottom: solid 1px #808080;
+}
+
+.ep_view_timestamp {
+	margin-top: 3em;
+	text-align: right;
+}
+
+.ep_view_subjects {
+	padding: 10px;
+	background: #e7e9f5 url(images/toolbox.png) repeat-x;
+	border: solid 1px #d8dbef;
+	margin-bottom: 20px;
+}
+
+.ep_view_blurb {
+	margin-top: 20px;
+}
+
+.ep_view_group_by_current {
+	font-weight: bold;
+}
+
+.ep_view_group_by {
+	border-top: 1px solid rgb(216, 219, 239); 
+	border-bottom: 1px solid rgb(216, 219, 239);
+	text-align: center;
+	background: #e7e9f5 url(images/toolbox.png) repeat-x;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	margin-bottom: 0.75em;
+	margin-top: 0.25em;
+}
+
+.ep_view_cols {
+	width: 100%;
+	margin-top: 1em;
+}
+
+.ep_view_cols_2 td { width: 50%; }
+.ep_view_cols_3 td { width: 33.3%; }
+.ep_view_cols_4 td { width: 25%; }
+.ep_view_cols_5 td { width: 20%; }
+.ep_view_cols_6 td { width: 16.6%; }
+.ep_view_cols_7 td { width: 14.28%; }
+.ep_view_cols_8 td { width: 12.5%; }
+
+.ep_view_cols ul {
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+
+	

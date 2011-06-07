@@ -1,0 +1,252 @@
+# BibTeX yapp grammar version 0.01
+# Copyright 2008 Tim Brody <tdb01r@ecs.soton.ac.uk>
+
+# header
+%{
+
+=pod
+
+=head1 NOTE
+
+This parser was generated using L<Parse::Yapp>.
+
+
+The BibTeX grammar described here is based on btparse:
+
+http://search.cpan.org/~gward/btparse-0.34/doc/bt_language.pod
+
+And from testing against the xampl.bib file:
+
+http://www.ctan.org/tex-archive/biblio/bibtex/distribs/doc/xampl.bib
+
+=head1 AUTHOR
+
+Copyright 2008 Tim Brody <tdb01r@ecs.soton.ac.uk>
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
+
+our $LEVEL = 1;
+%}
+
+%token NUM
+%token STRING
+%token NAME
+%token AT				/* '@' */
+%token LBRACE			/* '{' */
+%token RBRACE			/* '}' */
+%token LPAREN			/* '(' */
+%token RPAREN			/* ')' */
+%token EQUALS			/* '=' */
+%token HASH				/* '#' */
+%token COMMA			/* ',' */
+%%
+# rules
+
+bibfile: #empty
+	| bibfile entry { return [ @{$_[1]||[]}, @{$_[2]} ] }
+;
+
+entry: AT { $LEVEL = 2 } NAME body { $LEVEL = 1; return [ $_[3], $_[4] ] };
+
+body: STRING
+	| LBRACE contents RBRACE { $_[2] }
+	| LPAREN contents RPAREN { $_[2] }
+;
+
+contents: NAME COMMA fields { return [ $_[1], $_[3] ] }
+	| NUM COMMA fields { return [ $_[1], $_[3] ] }
+	| fields { return [ undef, $_[1] ] }
+	| value { return [ undef, $_[1] ] }
+;
+
+fields: field
+	| field COMMA
+	| field COMMA fields { return { %{$_[1]}, %{$_[3]} } }
+;
+
+field: NAME EQUALS { $LEVEL = 3 } value { $LEVEL = 2; return { $_[1] => $_[4] } };
+
+value: simple_value { [ $_[1] ] }
+	| simple_value HASH value { return [ $_[1], @{$_[3]} ] }
+;
+
+simple_value: STRING
+	| NUM
+	| NAME
+;
+
+%%
+# footer
+
+sub _Error
+{
+	my( $self ) = @_;
+
+	exists $_[0]->YYData->{ERRMSG}
+	and do {
+		print $_[0]->YYData->{ERRMSG};
+		delete $_[0]->YYData->{ERRMSG};
+		return;
+	};
+	print "Syntax error.\n";
+}
+
+sub _Lexer
+{
+	my( $self ) = @_;
+
+#warn "$LEVEL<<< ".$self->YYData->{INPUT}." >>>\n";
+
+	my( $token, $value ) = _Lexer_real( @_ );
+
+#warn(("\t" x $LEVEL) . "$token [$value]\n");
+
+	return( $token, $value );
+}
+
+sub _Lexer_real
+{
+	my( $self ) = @_;
+
+	REREAD:
+
+	length($self->YYData->{INPUT})
+	or defined($self->YYData->{INPUT} = <STDIN>)
+	or return( '', undef );
+
+	$self->YYData->{INPUT} =~ s/^[ \r\t]+//;
+	$self->YYData->{INPUT} =~ s/[ \r\n\t]+$//;
+
+# top-level
+	if( $LEVEL == 1 )
+	{
+	for( $self->YYData->{INPUT} )
+	{
+		s/^(\@)//
+			and return( 'AT', $1 );
+		s/^%([^\n]*)\n?//
+			and goto REREAD;
+		s/^([^\@]+)\n?//
+			and goto REREAD;
+		length($_) == 0
+			and goto REREAD;
+	}
+	}
+
+# in-entry
+	if( $LEVEL == 2 )
+	{
+	for( $self->YYData->{INPUT} )
+	{
+		s/^(\d+)//
+			and return( 'NUM', $1 );
+		s/^(\{)//
+			and return( 'LBRACE', $1 );
+		s/^(\})//
+			and return( 'RBRACE', $1 );
+		s/^(\()//
+			and return( 'LPAREN', $1 );
+		s/^(\))//
+			and return( 'RPAREN', $1 );
+		s/^(#)//
+			and return( 'HASH', $1 );
+		s/^(=)//
+			and return( 'EQUALS', $1 );
+		s/^(,)//
+			and return( 'COMMA', $1 );
+		s/^([a-zA-Z0-9\!\$\&\*\+\-\.\/\:\;\<\>\?\[\]\^\_\`\|]+)//
+			and return( 'NAME', $1 );
+		s/^"//
+			and return( 'STRING', _Lexer_string_quote( $self ));
+	}
+	}
+
+# strings
+	if( $LEVEL == 3 )
+	{
+	for( $self->YYData->{INPUT} )
+	{
+		s/^(\d+)//
+			and return( 'NUM', $1 );
+		s/^(#)//
+			and return( 'HASH', $1 );
+		s/^"//
+			and return( 'STRING', _Lexer_string_quote( $self ));
+		s/^([a-zA-Z0-9\!\$\&\*\+\-\.\/\:\;\<\>\?\[\]\^\_\`\|]+)//
+			and return( 'NAME', $1 );
+		s/^{//
+			and return( 'STRING', _Lexer_string_brace( $self ));
+	}
+	}
+
+	return ();
+}
+
+sub _Lexer_string_brace
+{
+	my( $self ) = @_;
+
+	my $level = 1;
+	my $buffer = "";
+
+	while($level > 0)
+	{
+		length($self->YYData->{INPUT})
+		or defined($self->YYData->{INPUT} = <STDIN>)
+		or last;
+
+		for( $self->YYData->{INPUT} )
+		{
+			s/^(\{)// and ++$level and $buffer .= "{";
+			s/^([^\{\}]+)// and $buffer .= $1;
+			s/^(\})// and --$level and $buffer .= "}";
+		}
+	}
+
+	return $buffer;
+}
+
+sub _Lexer_string_quote
+{
+	my( $self ) = @_;
+
+	my $buffer = "";
+
+	while(1)
+	{
+		length($self->YYData->{INPUT})
+		or defined($self->YYData->{INPUT} = <STDIN>)
+		or last;
+
+		for( $self->YYData->{INPUT} )
+		{
+			s/^(\\.)// and $buffer .= $1;
+			s/^([^\\"]+)// and $buffer .= $1;
+			s/^"// and return $buffer;
+		}
+	}
+
+	return $buffer;
+}
+
+sub Run
+{
+	my( $self ) = @_;
+
+	$self->YYParse( yylex => \&_Lexer, yyerror => \&_Error,
+#		yydebug => 0x1F
+	);
+}
+
+use Data::Dumper;
+
+my( $parser ) = new bibtex;
+my $r = $parser->Run;
+
+print Data::Dumper::Dumper( $r );
+
+# End of the grammar

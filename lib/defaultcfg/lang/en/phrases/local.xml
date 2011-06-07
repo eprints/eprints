@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE phrases SYSTEM "entities.dtd">
+<epp:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:epp="http://eprints.org/ep3/phrase" xmlns:epc="http://eprints.org/ep3/control">
+
+  <!-- To override system phrases add them here -->
+
+<!--
+
+Notes:
+
+<epp:phrase id="the/phrase/id">New phrase content</epp:phrase>
+
+To include a pin:
+<epp:phrase id="the/phrase/id"><epc:pin name="the/pin/name" /></epp:phrase>
+
+To include one phrase in another:
+<epp:phrase id="the/phrase/id">Lorm ipssee <epc:phrase ref="another/phrase/id" /></epp:phrase>
+
+To completely replace one phrase with another:
+<epp:phrase id="the/phrase/id" ref="phrase/to/copy/id" />
+
+Phrases in this file will be over-ridden by zz_webcfg.xml which is modified via the web-based phrase editor.
+
+-->
+
+</epp:phrases>

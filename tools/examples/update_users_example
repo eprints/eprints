@@ -1,0 +1,105 @@
+#!/usr/bin/perl -w
+
+######################################################################
+#
+#  Update the user table based on the contents of a 
+#  UNIX password file. 
+#
+#  This file is provide as a demonstration only; you are expected
+#  to modfiy it, but if you update the software it will be overwritten
+#  so make sure your local version has a different name.
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+
+use strict;
+
+print "Don't run this program. Rename it and edit it.\n\n";
+print "If you don't rename it, it will be over-written next";
+print "time you upgrade.\n\n";
+exit 1;
+
+my $session = EPrints::Session->new( 1 );
+
+open( PASSWD, "/etc/password" ) ||
+	die( "Couldn't open password file" );
+
+my %passfile = ();
+while( $currline = <PASSWD> ) 
+{
+	my @data = split( ":" , $currline );
+	$passfile{$data[0]} = $_;
+}
+close PASSWD;
+
+my @users = EPrints::DataObj::User::retrieve_users( $session , undef , undef );
+foreach $user ( @users ) 
+{
+	if ( defined $passfile{$user->{username}} )
+	{
+		my @data = split( ":" , $passfile{$user->{username}} );
+		$user->{password} = $data[1];
+		my $name = $data[4];
+		$name =~ s/^(.*) ([^ ]+)$/$2,$1/;
+		$user->{name} = ":$name:";
+		delete $passfile{$user->{username}};
+	}
+	else
+	{
+		# You may want to delete users when they disappear
+		# from the password file, but I would suggest not
+		# as this will delete all their eprints too.
+
+		# We'll remove their password but leave their info
+		# in the system.
+		$user->{password} = "-CLAMPED-";
+	}
+	if ( $user->commit ) 
+	{
+		print "MODIFIED USER: $user->{username}\n";
+	} 
+	else
+	{
+		print "MODIFIED TO ADD USER: $user->{username}\n";
+	} 
+	print "\n";
+}
+my $userid;
+foreach $userid ( keys %passfile ) {
+
+	# Note, we use the username as a email address - 
+	# you'll probably want to do something more clever
+	# specific to your site.
+
+	my $email = $userid;
+	my $new_user = EPrints::DataObj::User::create_user( $session,
+	                                           $userid,
+	                                           $email,
+	                                           "User" );
+	my @data = split( ":" , $passfile{$userid} );
+	$new_user->{password} = $data[1];
+	my $name = $data[4];
+	$name =~ s/^(.*) ([^ ]+)$/$2,$1/;
+	$new_user->{name} = ":$name:";
+	
+	if ( $new_user->commit ) 
+	{
+		print "ADDED USER: $userid\n";
+	} 
+	else
+	{
+		print "FAILED TO ADD USER: $userid\n";
+	} 
+}
+
+$session->terminate();
+

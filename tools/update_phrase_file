@@ -1,0 +1,127 @@
+#!/usr/bin/perl -w -I/opt/eprints2/perl_lib
+
+######################################################################
+#
+#  __LICENSE__
+#
+######################################################################
+
+=pod
+
+=head1 NAME
+
+B<update_phrase_file> - Not DOCd
+
+=head1 SYNOPSIS
+
+B<update_phrase_file> I<archive_cfg_directory> I<old_english_phrase_file> I<new_english_phrase_file> I<old_translated_phrase_file>
+
+=head1 DESCRIPTION
+
+=back   
+
+__GENERICPOD__
+
+=cut
+
+use EPrints::XML;
+
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "update_phrase_file" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 4 ); 
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
+my $old_phr_en = EPrints::XML::parse_xml( $ARGV[1], $ARGV[0], 1);
+my $new_phr_en = EPrints::XML::parse_xml( $ARGV[2], $ARGV[0], 1);
+my $old_phr_other = EPrints::XML::parse_xml( $ARGV[3], $ARGV[0], 1);
+
+my $phrases;
+
+my $old_phr_en_phrases = {};
+$phrases = ( $old_phr_en->getElementsByTagName( "phrases" ) )[0];
+foreach my $node ( $phrases->getChildNodes )
+{
+	next unless( EPrints::XML::is_dom( $node, "Element" ) );
+	my $ref= $node->getAttribute( "ref" );
+	$old_phr_en_phrases->{$ref} = $node;
+}
+
+my $old_phr_other_phrases = {};
+$phrases = ( $old_phr_other->getElementsByTagName( "phrases" ) )[0];
+foreach my $node ( $phrases->getChildNodes )
+{
+	next unless( EPrints::XML::is_dom( $node, "Element" ) );
+	my $ref= $node->getAttribute( "ref" );
+	$old_phr_other_phrases->{$ref} = $node;
+}
+
+$phrases = ( $new_phr_en->getElementsByTagName( "phrases" ) )[0];
+foreach my $node ( $phrases->getChildNodes )
+{
+	next unless( EPrints::XML::is_dom( $node, "Element" ) );
+	my $ref= $node->getAttribute( "ref" );
+	print $ref."   ";
+	if( !defined $old_phr_en_phrases->{$ref} )
+	{
+		my $c1 = $new_phr_en->createComment( " TRANSLATE $ref (New) " );
+		$phrases->insertBefore( $c1, $node );
+		$phrases->insertBefore( $new_phr_en->createTextNode( "\n" ), $node );
+		print "NEW";
+	}
+	elsif( $node->toString eq $old_phr_en_phrases->{$ref}->toString )
+	{
+		my $forign = EPrints::XML::clone_and_own( $old_phr_other_phrases->{$ref}, $new_phr_en, 1 );
+		print "same";
+		$phrases->replaceChild( $forign, $node );
+	}
+	else
+	{
+		my @c = ();
+		push @c, "\nTRANSLATE $ref (Changed)\nOLD ENGLISH: ";
+		foreach( $old_phr_en_phrases->{$ref}->getChildNodes )
+		{
+			push @c, $_->toString;
+		}
+		push @c, "\nOLD TRANSLATION: ";
+		foreach( $old_phr_other_phrases->{$ref}->getChildNodes )
+		{
+			push @c, $_->toString;
+		}
+		push @c, "\n";
+
+		my $c1 = $new_phr_en->createComment( join( "", @c ) );
+		$phrases->insertBefore( $c1, $node );
+		$phrases->insertBefore( $new_phr_en->createTextNode( "\n" ), $node );
+		print "DIFF";
+	}
+	print "\n";
+}
+
+print $new_phr_en->toString;
+
+exit;

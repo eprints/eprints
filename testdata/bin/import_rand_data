@@ -1,0 +1,290 @@
+#!/usr/bin/perl -w
+
+use FindBin;
+use lib "$FindBin::Bin/../../perl_lib";
+
+#-d:DProf
+
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+=head1 NAME
+
+import_rand_data - import random eprint data records
+
+=head1 SYNOPSIS
+
+import_rand_data <repoid> [dataset] [count]
+
+=cut
+
+use EPrints;
+use strict;
+
+
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+use Text::Lorem;
+
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+my $userid = 1;
+
+Getopt::Long::Configure("permute");
+
+GetOptions( 
+	'user=s' => \$userid,
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "import_test_data" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV < 1 ); 
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+
+srand(1); # Reproduce the exact same set of data
+
+our $lorem = Text::Lorem->new();
+sub Text::Lorem::name {
+	my( $lorem ) = @_;
+
+	my $word = $lorem->words(1);
+	return "\u$word";
+};
+
+# generate standard lorems, then add some exotic UTF-8 stuff
+$lorem->{wordlist} = $lorem->generate_wordlist();
+binmode(\*DATA, ":utf8");
+push @{$lorem->{wordlist}}, map { split /\s+/, $_ } <DATA>;
+
+# nb. This syntax is subject to change in future versions.
+my( $archiveid, $datasetid, $total ) = @ARGV;
+
+my $session = new EPrints::Session( 1 , $archiveid, $noise );
+exit( 1 ) unless( defined $session );
+
+my $db = $session->get_database;
+
+$datasetid = "archive" unless defined $datasetid;
+$total ||= 1000;
+
+# Basic data
+our @TYPES = @{$session->get_repository->{types}->{eprint}};
+our @SUBJECTS = @{read_subjects( $session, "subjects" )};
+our @PUBLICATIONS;
+for(1..100)
+{
+	push @PUBLICATIONS, $lorem->sentences(1);
+}
+
+my $datapath = $EPrints::SystemSettings::conf->{base_path}."/testdata/data";
+
+our @DOCUMENTS = (
+	{
+		format => "application/pdf",
+		language => "en",
+		security => "public",
+		main => "paper.pdf",
+		files => [ {
+			filename => "paper.pdf",
+			filesize => "12174",
+			url => "file:$datapath/paper.pdf",
+		} ],
+	},
+	{
+		format => "image/jpeg",
+		language => "en",
+		security => "public",
+		main => "picture.jpg",
+		files => [ {
+			filename => "picture.jpg",
+			filesize => "7927",
+			url => "file:$datapath/picture.jpg",
+		} ],
+	},
+	{
+		format => "text/plain",
+		language => "en",
+		security => "public",
+		main => "text.txt",
+		files => [ {
+			filename => "text.txt",
+			filesize => "35",
+			url => "file:$datapath/text.txt",
+		} ],
+	},
+);
+
+my $ds = $session->dataset( $datasetid );
+
+$session->get_repository->{config}->{enable_file_imports} = 1;
+$session->get_repository->{config}->{enable_web_imports} = 1;
+
+
+for(1..$total)
+{
+	my $data = {
+		eprint_status => $datasetid,
+		userid => $userid,
+		type => rand_type(),
+		title => rand_title(),
+		creators => rand_names(),
+		ispublished => "pub",
+		subjects => [ rand_subjects() ],
+		full_text_status => "public",
+		abstract => rand_abstract(),
+		date => rand_date(),
+		refereed => "TRUE",
+		publication => rand_publication(),
+		documents => rand_documents(),
+	};
+	$session->get_database->begin;
+	my $eprint = $ds->create_object( $session, $data );
+	$session->get_database->commit;
+	print $eprint->get_id, "\n";
+}
+
+$session->terminate;
+
+exit;
+
+sub rand_names
+{
+	my @names;
+	my $max = int(rand(6))+1;
+	while($max--)
+	{
+		my $name = {
+			name => {
+				family => $lorem->name,
+				given => $lorem->name,
+			},
+		};
+		push @names, $name;
+	}
+	return \@names;
+}
+
+sub rand_type
+{
+	$TYPES[int(rand(@TYPES))];
+}
+
+sub rand_subjects
+{
+	my @subjects;
+	my $max = int(rand(4))+1;
+	while($max--)
+	{
+		push @subjects, $SUBJECTS[int(rand(@SUBJECTS))];
+	}
+	return @subjects;
+}
+
+sub rand_title
+{
+	my $title = $lorem->sentences( 1 );
+	$title =~ s/\.$//;
+	return $title;
+}
+
+sub rand_abstract
+{
+	return $lorem->paragraphs(int(rand(3))+2);
+}
+
+sub rand_date
+{
+	my $res = int(rand(2));
+	my $date = 1950 + int(rand(50));
+	if( $res > 0 )
+	{
+		$date .= sprintf("-%02d",1+int(rand(12)));
+	}
+	if( $res > 1 )
+	{
+		$date .= sprintf("-%02d",1+int(rand(29)));
+	}
+	return $date;
+}
+
+sub read_subjects
+{
+	my( $session, $id ) = @_;
+
+	my $ds = $session->dataset( "subject" );
+
+	my $root = $ds->dataobj( $id );
+
+	my $subjects = $root->get_subjects();
+
+	return[
+		map { $_->[0] } @$subjects
+	];
+}
+
+sub rand_publication
+{
+	return $PUBLICATIONS[int(rand(@PUBLICATIONS))];
+}
+
+sub rand_documents
+{
+	my @docs = (0..$#DOCUMENTS);
+	for(my $i = @docs; --$i; ) {
+		my $j = int rand ($i+1);
+		next if $i == $j;
+		@docs[$i,$j] = @docs[$j,$i];
+	}
+	@docs = @docs[0..int(rand($#DOCUMENTS))];
+
+	return [@DOCUMENTS[@docs]];
+}
+
+=pod
+
+=cut
+
+__DATA__
+Πιο κι άγχος συνηθίζουν χαρακτηριστικό μια μιας σελίδων περιμένουν τι αρέσει
+γνωρίζει καθυστερούσε τι ροή Μη πως ίδιο θυμάμαι επιτυχία μου μη χαρτιού
+γνωρίζουμε τελικών αντιλήφθηκαν νέα μη Βγήκε κεντρικό κακόκεφος ως μην το
+μου ποια προσλάμβανες προσπαθήσεις Όλα βάζοντας εργασίας σημαίνει μα την τη
+νόμιζες βρίσκονται Ώρα ας πάρεις φακέλους περιμένουν όχι ως χώρου αρχεία
+τοπικές σας γεγονός κακόκεφους με
+खयालात परिवहन संपुर्ण प्राण कलइस अपने कार्य हुएआदि प्राधिकरन खयालात वर्णित मुश्किल पेदा देखने औषधिक दुनिया
+आंतरजाल करके(विशेष ।क नवंबर नयेलिए दिनांक बारे उन्हे विषय ऎसाजीस शारिरिक बीसबतेबोध बाजार क्षमता। भेदनक्षमता
+मार्गदर्शन करते क्षमता। विश्लेषण केन्द्रित बाधा मुक्त
+Об том яйце расположенной ушёл всего остальные до или Всех отнимет проходят
+за эти так ну адрес человек покидали об лет может команда Нее даже сказать
+остальных во ну был фирме колёса задаче заведено качества работать две то
+Нет кровью проектировать программировать во опа ну опять сайта конечного
+Люсита количества программистом нет ну те уже случае работал отнимет
+стратегические ты бог Чем голос процессорах не вы малой вообще поработать
+нью уже во совсем раннего предназначенная
+Rout ugedon d'Vullen nei an ké d'Loft Scholl fergiess den ston d'Hierz
+Hemecht wat jo Jo wuel aremt Poufank rei och Noper päift iw'rem wa rou jo
+onser Scholl rëschten Mier spilt blénken an bei iech Mier d'Beem un rei am
+Hunn Minutt Freiesch den Ze Frot laacht d'Lëtzebuerger rei mä iwerall
+d'Kanner schéinen och Hir dé koum päift Scholl zwé wait Säiten Fuesent as do
+gin d'Hierz schaddreg De hin Gart Kënnt onser Ierd Halm Gaas do och

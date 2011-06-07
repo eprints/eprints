@@ -1,0 +1,39 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE page SYSTEM "entities.dtd" >
+<xpage:page xmlns="http://www.w3.org/1999/xhtml" xmlns:xpage="http://eprints.org/ep3/xpage" xmlns:epc="http://eprints.org/ep3/control">
+<xpage:title>Transcopyright Permission</xpage:title>
+<xpage:body>
+
+<!-- ************************************************************* -->
+<!-- You should remove this block bto show that you approve of     -->
+<!-- the transcopyright statement below. (or edit the statement)   -->
+
+<epc:phrase ref="ruler" /> <h2>The <epc:phrase ref="archive_name" /> admin has not yet approved the statement 
+below. Please contact them for confirmation of this copyright statement: 
+<a href="mailto:{$config{adminemail}}"><epc:print expr="$config{adminemail}" /></a>.</h2> <epc:phrase ref="ruler" />
+<!-- ************************************************************* -->
+
+<p>When using the VLit interface the contents may be quoted on line virtually and indirectly,
+ in any amount and any new context, provided that</p>
+<ul>
+<li>only the electronic locations (URLs) of these contents are distributed in files sent out;</li>
+<li>actual download of quoted content material is from this server;</li>
+</ul>
+<p>thus maintaining and offering the original context of such quotations.</p>
+
+<h2>Remarks</h2>
+
+<p>This server will send out arbitrary quotations into new windows
+ and allow users to jump to the original contexts of such quotations.
+ (Unfortunately as yet no file formats or mechanisms currently support
+ compositing of such quotations into pages in the browser.)</p>
+
+<p>See original copyright article at
+<a href="http://www.sfc.keio.ac.jp/~ted/transcopyright/transcopy.html">http://www.sfc.keio.ac.jp/~ted/transcopyright/transcopy.html</a>
+ and "Xanadu Model" and "Virtual Literary Format" at
+<a href="http://www.xanadu.com">http://www.xanadu.com</a>.</p>
+
+
+
+</xpage:body>
+</xpage:page>

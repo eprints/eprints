@@ -1,0 +1,15 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE page SYSTEM "entities.dtd" >
+<xpage:page xmlns="http://www.w3.org/1999/xhtml" xmlns:xpage="http://eprints.org/ep3/xpage" xmlns:epc="http://eprints.org/ep3/control">
+<xpage:title>About the Repository</xpage:title>
+<xpage:body>
+
+<p>This site is powered by <a href="{$config{base_url}}/eprints/">EPrints 3</a>, free software developed by the University of Southampton.</p>
+
+<h2>Contact Information</h2>
+
+<p>Any correspondence concerning this specific repository should be sent to <a href="mailto:{$config{adminemail}}"><epc:print expr="$config{adminemail}" /></a>.</p>
+
+
+</xpage:body>
+</xpage:page>

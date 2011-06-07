@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="iso-8859-1"  standalone="no"  ?>
+<!DOCTYPE page SYSTEM "entities.dtd" >
+<xpage:page xmlns="http://www.w3.org/1999/xhtml" xmlns:xpage="http://eprints.org/ep3/xpage" xmlns:epc="http://eprints.org/ep3/control">
+<xpage:title>About EPrints</xpage:title>
+<xpage:body>
+
+<h2>About this software</h2>
+
+
+<p>This site is running <epc:print expr="$config{version}" />.</p>
+
+<p>EPrints is free software developed at the <a href="http://www.ecs.soton.ac.uk/">School of Electronics and Computer Science</a> at the <a href="http://www.soton.ac.uk/">University of Southampton</a>, England.</p>
+
+<p>Other institutions are invited (and encouraged) to set up their own open repositories for author <a href="http://www.eprints.org/self-faq/">self-archiving</a>, using the freely-distributable <a href="http://www.eprints.org/software/">EPrints software</a> used at this site. The Southampton EPrints team can also provide <a href="http://www.eprints.org/services/">hosting, training and consultancy services</a>.</p>
+
+
+<h2>Credits</h2>
+
+<h3>Lead Developer + Software Architect</h3>
+<ul>
+<li><a href="http://www.ecs.soton.ac.uk/people/cjg">Christopher Gutteridge</a></li>
+</ul>
+
+<h3>Developers</h3>
+<ul>
+<li><a href="http://www.ecs.soton.ac.uk/people/tmb">Dr Timothy Miles-Board</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/tdb2">Dr Tim Brody</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/dct05r">Dave Tarrant</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/af05v">Adam Field</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/sf2">Seb Francois</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/pm5">Patrick McSweeney</a></li>
+</ul>
+
+<h3>Contributors</h3>
+<ul>
+<li>Alexander Bergolth (Vienna University of Economics)</li>
+<li><a href="http://www.ecs.soton.ac.uk/people/jmnh">Dr Jessie Hey</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/moj">Dr Michael O. Jewell</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/hjm03r">Dr Harry Mason</a></li>
+ <li>Al Riddoch</li>
+ <li>Dr Gui Power</li>
+ <li>Pauline Simpson</li>
+ <li>Robert Tansley</li>
+ <li>Adam White</li>
+ <li>Wendy White</li>
+</ul>
+
+<h3>user experience consultant</h3>
+<ul>
+<li><a href="http://www.ecs.soton.ac.uk/people/mc">dr mc schraefel</a></li>
+</ul>
+
+<h3>Project Management</h3>
+<ul>
+<li><a href="http://www.ecs.soton.ac.uk/people/lac">Dr Leslie Carr</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/jd">John Darlington</a></li>
+</ul>
+
+<h3>Community Manager</h3>
+<ul>
+<li><a href="http://www.ecs.soton.ac.uk/people/sh94r">Steve Hitchcock</a></li>
+</ul>
+
+<h3>Visionary and Software Specifications</h3>
+<ul>
+<li><a href="http://www.ecs.soton.ac.uk/people/harnad">Professor Stevan Harnad</a></li>
+</ul>
+
+<p>...and also thanks to the members of the eprints-tech mailing list and the
+EPrints Community members for advice and bug reports.</p>
+
+
+
+
+
+
+
+
+
+
+
+<epc:phrase ref="ruler" />
+
+<h2>Technologies employed and supported:</h2>
+
+<p><strong>Powered by:</strong>
+<a href="http://www.mysql.com/">MySQL</a>,
+<a href="http://www.apache.org/">Apache Webserver</a>,
+<a href="http://www.perl.org/">Perl</a>,
+<a href="http://perl.apache.org/">mod_perl</a>,
+<a href="http://www.w3c.org/XML/">XML</a>,
+<a href="http://www.w3c.org/DOM/">DOM</a>,
+<a href="http://www.w3c.org/RDF/">RDF</a>,
+<a href="http://paracite.eprints.org/">ParaCite</a>,
+<a href="http://www.eprints.org/software/">EPrints</a>.
+</p>
+
+
+<p><strong>Supports:</strong>
+<a href="http://www.openarchives.org/">Open Archives Initiative Protocol for Metadata Harvesting</a>,
+<a href="http://www.w3.org/MarkUp/">Valid XHTML</a>,
+<a href="http://jigsaw.w3.org/css-validator/">Valid CSS</a>,
+<a href="http://linkeddata.org/">Linked Data</a>.
+
+</p>
+
+<p><strong>Part of:</strong>
+<a href="http://www.gnu.org/">The GNU Project</a>.
+</p>
+
+<epc:phrase ref="ruler" />
+
+<div align="center" style='margin-top:2em'>
+<a href="http://www.ecs.soton.ac.uk/"><img src="{$config{rel_path}}/images/ecslogo.jpg" border="0" alt="School of Electronics and Computer Science, University of Southampton" align="top"/></a>
+<p>EPrints is Copyright &copy; University of Southampton, 2000-2010.</p>
+</div>
+
+
+
+</xpage:body>
+</xpage:page>

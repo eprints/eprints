@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="iso-8859-1"  standalone="no"  ?>
+<!DOCTYPE page SYSTEM "entities.dtd" >
+<xpage:page xmlns="http://www.w3.org/1999/xhtml" xmlns:xpage="http://eprints.org/ep3/xpage" xmlns:epc="http://eprints.org/ep3/control">
+<xpage:head>
+  <link rel="alternate" type="application/rss+xml" title="Items in {phrase('archive_name')}" href="{$config{http_cgiurl}}/latest_tool?output=RSS2"></link>
+  <link rel="alternate" type="application/atom+xml" title="Items in {phrase('archive_name')}" href="{$config{http_cgiurl}}/latest_tool?output=Atom"></link>
+  <link rel="alternate" type="application/rdf+xml" title="Repository Summary RDF+XML" href="{$config{http_cgiurl}}/export/repository/RDFXML/devel.rdf"></link>
+  <link rel="alternate" type="text/n3" title="Repository Summary RDF+N3" href="{$config{http_cgiurl}}/export/repository/RDFN3/devel.n3"></link>
+</xpage:head>
+<xpage:title>Welcome to <epc:phrase ref="archive_name" /></xpage:title>
+<xpage:body>
+
+<div class="ep_msg_message"><div class="ep_msg_message_content"><table><tbody><tr><td>
+<img alt="Message" src="{$config{rel_path}}/style/images/message.png" /></td><td>
+Welcome to <epc:phrase ref="archive_name" />. <a href="http://www.eprints.org/d/?keyword=NewRepository&amp;version={$config{version_id}}">Click here to start customising this repository</a>.
+</td></tr></tbody></table></div></div>
+
+<div style="text-align: right">
+<span class="ep_search_feed"><a href="{$config{rel_cgipath}}/latest_tool?output=Atom"><img alt="[feed]" src="{$config{rel_path}}/style/images/feed-icon-14x14.png" border="0" /></a> <a href="{$config{rel_cgipath}}/latest_tool?output=Atom">Atom</a></span>
+<span class="ep_search_feed"><a href="{$config{rel_cgipath}}/latest_tool?output=RSS"><img alt="[feed]" src="{$config{rel_path}}/style/images/feed-icon-14x14.png" border="0" /></a> <a href="{$config{rel_cgipath}}/latest_tool?output=RSS">RSS 1.0</a></span>
+<span class="ep_search_feed"><a href="{$config{rel_cgipath}}/latest_tool?output=RSS2"><img alt="[feed]" src="{$config{rel_path}}/style/images/feed-icon-14x14.png" border="0" /></a> <a href="{$config{rel_cgipath}}/latest_tool?output=RSS2">RSS 2.0</a></span>
+</div>
+
+
+<div class="ep_toolbox" ><div class="ep_toolbox_content" >
+  <a href="{$config{perl_url}}/latest">Latest Additions</a><br /><br />
+  View items added to the repository in the past week.  
+</div></div>
+
+<div class="ep_toolbox"><div class="ep_toolbox_content" >
+ <a href="{$config{perl_url}}/search/advanced">Search Repository</a><br /><br />
+ Search the repository using a full range of fields. Use the search field at the top of the page for a quick search.
+</div></div>
+
+<div class="ep_toolbox"><div class="ep_toolbox_content" >
+ <a href="{$config{base_url}}/view/subjects/">Browse Repository</a><br /><br />
+ Browse the items in the repository by subject.
+</div></div>
+
+<div class="ep_toolbox"><div class="ep_toolbox_content" >
+ <a href="{$config{base_url}}/information.html">About this Repository</a><br /><br />
+ More information about this site.
+</div></div>
+
+<div class="ep_toolbox"><div class="ep_toolbox_content" >
+ <a href="{$config{base_url}}/policies.html">Repository Policies</a><br /><br />
+ Policy for use of material in this repository.
+</div></div>
+
+<p style="margin-top: 2em; font-size: 90%">
+<epc:phrase ref="archive_name" /> supports <a href="http://www.openarchives.org"><abbr title="Open Archives Protocol for Metadata Harvesting v2.0">OAI 2.0</abbr></a> with a base URL of <tt><epc:print expr="$config{perl_url}" />/oai2</tt>
+</p>
+
+
+</xpage:body>
+</xpage:page>

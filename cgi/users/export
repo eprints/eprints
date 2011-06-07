@@ -1,0 +1,27 @@
+######################################################################
+#
+#  EPrints Object Exporter
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+
+use strict;
+
+my $repo = EPrints->new->current_repository;
+exit( 0 ) unless( defined $repo );
+
+my $path_info = $repo->get_request->path_info;
+
+my $url = $repo->current_url( host => 1, path => "cgi", "export" );
+$url .= $path_info;
+
+$repo->redirect( $url );

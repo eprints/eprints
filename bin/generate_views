@@ -1,0 +1,257 @@
+#!/usr/bin/perl -w
+
+use FindBin;
+use lib "$FindBin::Bin/../perl_lib";
+
+######################################################################
+#
+#
+######################################################################
+
+=pod
+
+=for Pod2Wiki
+
+=head1 NAME
+
+B<generate_views> - Generate static browse pages for an EPrint repository
+
+=head1 SYNOPSIS
+
+B<generate_views> I<repository_id> [B<options>] 
+
+=head1 DESCRIPTION
+
+This script creates some or all of the pages used in the /view/ section of the website. Since 3.1 these pages update themselves if they get only than a certain age, but this can cause delays for the viewer, so this script is still provided to pre-prepare them to provide a smoother experience.
+
+Note: Since EPrints 3.1 it is not essential to run generate_views periodically, but it is still recommended.
+
+What this does is generate browse pages for each field configured as browsable in B<ArchiveConfig.pm>. It creates a static web page for each value of that field, and index pages to navigate to them. 
+
+For example, if we make "year" browseable then this script will generate one page for each unique value of the year field. So a user can then view the 1995 page and see links to all the 1995 eprints.
+
+Advantages of this are that this puts less load on the database than user searches. Assuming you pick two or three sensible fields to make browsable. 
+
+This script should be run every hour or so, but that should once a day or even once a week on large repositories, as the more eprints the longer it will take to run. The rough length of time to run this is of the order of O( B<languages> * B<eprints> * B<browsable fields> ).  You can automate running this with the B<cron> system.
+
+If viewid is specified then only that view is updated. This can be useful if some views need updating more often then others. The top /view/ page which links to each view is always updated.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item B<repository_id> 
+
+The ID of the eprint repository to use.
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--generate menus> 
+
+Only generate the menu pages, not the pages with links to records.
+
+=item B<--generate lists> 
+
+Only generate the pages with lists of records, not the menu pages.
+
+=item B<--view> I<view_id>
+
+Generate only the view with this ID.
+
+=item B<--lang> I<lang_id>
+
+Generate only pages for the language with this ID. 
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<--verbose>
+
+Explain in detail what is going on.
+May be repeated for greater effect.
+
+=item B<--version>
+
+Output version information and exit.
+
+=back   
+
+
+=cut
+
+
+use EPrints;
+
+use File::Copy;
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+my $generate_opt;
+my $view_opt;
+my $lang_opt;
+
+Getopt::Long::Configure("permute");
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'quiet' => \$quiet,
+	'generate=s' => \$generate_opt,
+	'view=s' => \$view_opt,
+	'lang=s' => \$lang_opt,
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "generate_views" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 1 ); 
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+my $do_menus = 1;
+my $do_lists = 1;
+if( defined $generate_opt )
+{
+	if( $generate_opt eq "menus" ) { $do_lists = 0; }
+	elsif( $generate_opt eq "lists" ) { $do_menus = 0; }
+	else 
+	{
+		print STDERR "--generate must be either menus or lists.\n";
+		exit 1;
+	}
+}
+
+my $PATH = "view";
+
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
+binmode( STDOUT, ":utf8" );
+
+my $repoid = $ARGV[0];
+
+my $session = new EPrints::Session( 1 , $repoid , $noise );
+if( !defined $session )
+{
+	print STDERR "Failed to load repository: $repoid\n";
+	exit 1;
+}
+
+$session->cache_subjects;
+
+my $repository = $session->get_repository;
+
+my $views = $repository->get_conf( "browse_views" );
+
+my $ds = $repository->get_dataset( "archive" );
+
+if( defined $view_opt )
+{
+	my $ok = 0;
+	foreach my $view ( @{$views} )
+	{
+		$ok = 1 if( $view->{id} eq $view_opt );
+	}
+	if( !$ok )
+	{
+		EPrints::abort( "Unknown view: $view_opt" );
+	}
+}
+
+LANGUAGE: foreach my $langid ( @{$repository->get_conf( "languages" )} )
+{
+	next LANGUAGE if( defined $lang_opt && $langid ne $lang_opt );
+
+	$session->change_lang( $langid );
+
+	my @files = ();
+	my $dir =  $repository->get_conf( "htdocs_path" )."/".$langid."/view";
+
+	VIEW: foreach my $view ( @{$views} )
+	{
+		next VIEW if( defined $view_opt && $view->{id} ne $view_opt );
+
+		$view = EPrints::Update::Views->new(
+			repository => $session,
+			view => $view
+		);
+
+		$view->update_view_by_path(
+			on_write => sub { print "Wrote: $_[0]\n" if $noise > 1 },
+			langid => $langid, 
+			do_menus => $do_menus,
+			do_lists => $do_lists );
+	}
+
+	my $target = join "/", $session->config( "htdocs_path" ), $langid, "view";
+	if( $do_menus )
+	{
+		# make views index page
+		EPrints::Update::Views::update_browse_view_list( $session, $target, $langid );
+		print "Wrote: $target\n" if( $noise > 1 );
+	}
+
+
+	# TODO: remove any pages we didn't create.0l
+	
+
+	print "done\n" if( $noise > 1 );
+}
+
+$session->terminate();
+exit;
+
+
+
+	
+
+=head1 COPYRIGHT
+
+=for COPYRIGHT BEGIN
+
+Copyright 2000-2011 University of Southampton.
+
+=for COPYRIGHT END
+
+=for LICENSE BEGIN
+
+This file is part of EPrints L<http://www.eprints.org/>.
+
+EPrints is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+EPrints is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+License for more details.
+
+You should have received a copy of the GNU General Public License
+along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
+
+=for LICENSE END
+

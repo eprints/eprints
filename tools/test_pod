@@ -1,0 +1,190 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
+
+=head1 NAME
+
+test_pod - Test Eprints POD coverage
+
+=head1 SYNOPSIS
+
+B<test_pod> [B<options>] [EPrints::Utils[, EPrints::DataObj[, ...]]]
+
+=head1 DESCRIPTION
+
+This script tests for Eprints POD coverage in core modules (i.e. things that
+form the 'Eprints API').
+
+If no arguments are provided tests all modules in the EPrints::* space that are
+included by L<EPrints>.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item --help
+
+Show help for this script.
+
+=item --detail
+
+Show which functions are missing documentation.
+
+=item --pretty
+
+Pretty-print output for printing.
+
+=item --verbose
+
+Be more verbose (i.e. show functions that do have POD).
+
+=back
+
+=cut
+
+use strict;
+use warnings;
+
+use EPrints;
+
+use Getopt::Long;
+use Pod::Usage;
+use Pod::Coverage;
+
+my( $opt_help, $opt_verbose, $opt_detail, $opt_pretty );
+
+GetOptions(
+	"help" => \$opt_help,
+	"verbose" => \$opt_verbose,
+	"detail" => \$opt_detail,
+	"pretty" => \$opt_pretty,
+) or pod2usage( 2 );
+
+pod2usage( 1 ) if $opt_help;
+
+our @VICTIMS = ();
+our %OLD = map { $_ => 1 } qw(
+	EPrints::AnApache
+	EPrints::Subscription
+	EPrints::Archive
+	EPrints::User
+	EPrints::EPrint
+	EPrints::SearchField
+	EPrints::Subject
+	EPrints::Document
+	EPrints::SystemSettings
+	EPrints::SearchCondition
+	EPrints::SearchExpression
+	EPrints::Auth
+);
+
+# Find modules currently loaded in Perl
+sub grep_namespace
+{
+	my( $path ) = @_;
+	my @spaces;
+	my @k;
+	eval "\@k = keys \%$path";
+	for(grep { /^[A-Z]/ and $_ !~ /^DESTROY|AUTOLOAD|CLONE|SUPER::$/ } @k)
+	{
+		my $space = "$path$_";
+		push @spaces, $space, grep_namespace($space);
+	}
+	return grep { /::$/ } @spaces;
+}
+
+our @NAMESPACES = grep_namespace("EPrints::");
+
+# Build a list of modules to test (by checking whether they can be required)
+for(@NAMESPACES)
+{
+	$_ =~ s/::$//;
+	eval "require $_";
+	unless( $OLD{$_} or $@ )
+	{
+		push @VICTIMS, $_;
+	}
+}
+
+@VICTIMS = @ARGV if @ARGV;
+
+our $RES_COL = 60;
+
+for(sort @VICTIMS)
+{
+	if( $opt_pretty )
+	{
+		print "$_\n";
+	}
+	else
+	{
+		print STDERR $_, '_' x ($RES_COL-length($_));
+	}
+	my $pc = Pod::Coverage->new(package => $_);
+	if( !defined $pc->coverage )
+	{
+		print &FAILED unless $opt_pretty;
+		if( $opt_detail )
+		{
+			print "\tUnable to parse: " . $pc->why_unrated . "\n";
+		}
+	}
+	elsif( $pc->coverage < 1 )
+	{
+		print &FAILED unless $opt_pretty;
+		if( $opt_detail )
+		{
+			print "\tPOD missing for: ", join(', ', sort $pc->uncovered), "\n";
+			if( $opt_verbose )
+			{
+				print "\tPOD found for: ", join(', ', sort $pc->covered), "\n";
+			}
+		}
+	}
+	else
+	{
+		if( $opt_pretty )
+		{
+			print "\tDocumentation appears complete.\n";
+		}
+		else
+		{
+			print &OK;
+		}
+	}
+	print "\n" if $opt_pretty;
+}
+
+sub OK()
+{
+	&MOVE_TO_COL, "[", &SETCOLOR_SUCCESS, "OK", &SETCOLOR_NORMAL, "]\n";
+}
+
+sub FAILED()
+{
+	&MOVE_TO_COL, "[", &SETCOLOR_FAILURE, "FAILED", &SETCOLOR_NORMAL, "]\n";
+}
+
+sub MOVE_TO_COL()
+{
+	"\033[${RES_COL}G";
+}
+
+sub SETCOLOR_SUCCESS()
+{
+	"\033[1;32m";
+}
+
+sub SETCOLOR_FAILURE()
+{
+	"\033[1;31m";
+}
+
+sub SETCOLOR_WARNING()
+{
+	"\033[1;33m";
+}
+
+sub SETCOLOR_NORMAL()
+{
+	"\033[0;39m";
+}
+

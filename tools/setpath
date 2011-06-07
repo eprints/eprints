@@ -1,0 +1,21 @@
+#!/usr/bin/perl -w
+use strict;
+
+my $dest = $ARGV[0];
+
+foreach my $filename (<*>)
+{
+  if(-f $filename)
+  {
+    next if ($filename eq "setpath");
+    print "Updating $filename\n";
+    undef $/;
+    open(FIN, $filename);
+    my $content = <FIN>;
+    $content =~ s/eprints/$dest/gs;
+    close FIN;
+    open(FOUT, ">$filename");
+    print FOUT $content;
+    close FOUT;
+  }
+}

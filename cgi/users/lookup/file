@@ -1,0 +1,65 @@
+use EPrints;
+
+use strict;
+use warnings;
+
+my $session = EPrints::Session->new();
+
+my $string_frag = lc $session->param( "q" );
+my $lookup_file = $session->param( "file" );
+my $mode = $session->param( "mode" ) || "phrase";
+if( !defined $lookup_file )
+{
+	EPrints::abort( "no filename" );
+}
+my $lookup_xml ={};
+my $lookup_lc_names = [];
+$lookup_file=~s/\///sg;
+$lookup_file=~s/^\.+//s;
+my $filepath = $session->config( "config_path" )."/autocomplete/$lookup_file";
+open( DATA, '<', $filepath ) || EPrints::abort "can't read $filepath: $!";
+while( <DATA> )
+{
+	my( $key, $xml ) = split( /\t/, $_, 2 );
+	$key = lc $key;
+	$lookup_xml->{$key} = $xml;
+	push @{$lookup_lc_names}, $key;
+}
+close DATA;
+
+my @filtered_lookup_names;
+if( $mode eq "phrase" )
+{
+	@filtered_lookup_names = grep 
+		{ index( $_, $string_frag ) != -1 }  
+		@{$lookup_lc_names};
+}
+if( $mode eq "prefix" )
+{
+	my $l = length $string_frag;
+	@filtered_lookup_names = grep 
+		{ substr( $_, 0, $l ) eq $string_frag }  
+		@{$lookup_lc_names};
+}
+
+print <<END;
+<?xml version="1.0" encoding="UTF-8" ?>
+
+END
+print '<ul>';
+my $togo = 20;
+my $first = 1;
+foreach (@filtered_lookup_names){
+	my $line = $lookup_xml->{$_};
+	if( $first )
+	{
+		$line=~s/^<li/<li class='ep_first'/;
+	}
+	print $line;
+	$first= 0;
+	--$togo;
+	last unless $togo;
+}
+print '</ul>';
+
+$session->terminate;

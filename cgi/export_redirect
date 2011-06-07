@@ -1,0 +1,19 @@
+#!/usr/bin/perl
+
+use EPrints;
+use URI::Escape;
+
+use strict;
+
+my $repo = EPrints->new->current_repository;
+
+my $plugin = $repo->plugin( "Export::".$repo->param( "format" ) );
+$repo->not_found, exit if !defined $plugin;
+
+my $dataset = $repo->dataset( $repo->param( "dataset" ) );
+$repo->not_found, exit if !defined $dataset;
+
+my $dataobj = $dataset->dataobj( $repo->param( "dataobj" ) );
+$repo->not_found, exit if !defined $dataobj;
+
+$repo->redirect( $plugin->dataobj_export_url( $dataobj ) );

@@ -1,0 +1,311 @@
+# Some initial subjects for an archive. This list
+# is based on the Library of Congress subject tree.
+# An example organisational structure is also 
+# provided, which you should change to suit the
+# structure of your own organisation.
+# 
+# This file is only used by bin/import_subjects 
+#
+# Format is KEY:TITLE:PARENTS_KEY(S):CANADD?
+#
+# If you need to make subjects with titles in
+# more than one language see the manual page
+# for import subjects - you'll need to make
+# a subjects.xml file.
+#
+# Non ASCII characters may cause problems. If this
+# is the case, use subjects.xml
+
+###################################################
+#
+# ORGANISATIONAL STRUCTURE
+#
+###################################################
+
+divisions:University Structure:ROOT:0
+fac_eng:Faculty of Engineering, Science and Mathematics:divisions:0
+sch_che:School of Chemistry:fac_eng:1
+sch_civ:School of Civil Engineering and the Environment:fac_eng:1
+sch_ecs:School of Electronics and Computer Science:fac_eng:1
+sch_eng:School of Engineering Sciences:fac_eng:1
+sch_geo:School of Geography:fac_eng:1
+sch_mat:School of Mathematics:fac_eng:1
+sch_phy:School of Physics:fac_eng:1
+fac_law:Faculty of Law, Arts and Social Sciences:divisions:0
+sch_art:School of Art:fac_law:1
+sch_edu:School of Education:fac_law:1
+sch_hum:School of Humanities:fac_law:1
+sch_law:School of Law:fac_law:1
+sch_man:School of Management:fac_law:1
+sch_soc:School of Social Sciences:fac_law:1
+fac_med:Faculty of Medicine, Health and Life Sciences:divisions:0
+sch_psy:School of Psychology:fac_med:1
+sch_bio:School of Biological Sciences:fac_med:1
+sch_med:School of Medicine:fac_med:1
+
+###################################################
+#
+# LIBRARY OF CONGRESS SUBJECTS
+#
+###################################################
+
+subjects:Library of Congress Subject Areas:ROOT:0
+A:A General Works:subjects:0
+AC:AC Collections. Series. Collected works:A:1
+AI:AI Indexes (General):A:1
+AM:AM Museums (General). Collectors and collecting (General):A:1
+AS:AS Academies and learned societies (General):A:1
+AZ:AZ History of Scholarship The Humanities:A:1
+B:B Philosophy. Psychology. Religion:subjects:0
+B1:B Philosophy (General):B:1
+BC:BC Logic:B:1
+BD:BD Speculative Philosophy:B:1
+BF:BF Psychology:B:1
+BH:BH Aesthetics:B:1
+BJ:BJ Ethics:B:1
+BL:BL Religion:B:1
+BM:BM Judaism:B:1
+BP:BP Islam. Bahaism. Theosophy, etc:B:1
+BQ:BQ Buddhism:B:1
+BR:BR Christianity:B:1
+BS:BS The Bible:B:1
+BT:BT Doctrinal Theology:B:1
+BV:BV Practical Theology:B:1
+BV1460:BV1460 Religious Education:BV:1
+BX:BX Christian Denominations:B:1
+C:C Auxiliary Sciences of History:subjects:0
+C1:C Auxiliary sciences of history (General):C:1
+CB:CB History of civilization:C:1
+CC:CC Archaeology:C:1
+CD:CD Diplomatics. Archives. Seals:C:1
+CD921:CD921 Archives:CD:1
+CE:CE Technical chronology. Calendar:C:1
+CJ:CJ Numismatics:C:1
+CN:CN Inscriptions. Epigraphy.:C:1
+CR:CR Heraldry:C:1
+CS:CS Genealogy:C:1
+CT:CT Biography:C:1
+D:D History General and Old World:subjects:0
+D1:D History (General):D:1
+D051:D051 Ancient History:D1:1
+D111:D111 Medieval History:D1:1
+D204:D204 Modern History:D1:1
+D501:D501 World War I:D1:1
+D731:D731 World War II:D1:1
+D839:D839 Post-war History, 1945 on:D1:1
+D880:D880 Developing Countries:D1:1
+D890:D890 Eastern Hemisphere:D1:1
+D901:D901 Europe (General):D1:1
+DA:DA Great Britain:D:1
+DAW:DAW Central Europe:DA:1
+DB:DB Austria:D:1
+DC:DC France:D:1
+DD:DD Germany:D:1
+DE:DE The Mediterranean Region. The Greco-Roman World:D:1
+DF:DF Greece:D:1
+DG:DG Italy:D:1
+DH:DH Netherlands (The Low Countries):D:1
+DJ:DJ Netherlands (Holland):D:1
+DJK:DJK Eastern Europe:DJ:1
+DK:DK Russia. Soviet Union. Former Soviet Republics:D:1
+DL:DL Northern Europe. Scandinavia:D:1
+DP:DP Spain:D:1
+DR:DR Balkan Peninsula:D:1
+DS:DS Asia:D:1
+DT:DT Africa:D:1
+DU:DU Oceania (South Seas):D:1
+E:E History America:subjects:0
+E11:E11 America (General):E:1
+E151:E151 United States (General):E:1
+F:F History United States, Canada, Latin America:subjects:0
+F001:F001 United States local history:F:1
+F1001:F1001 Canada (General):F:1
+F1201:F1201 Latin America (General):F:1
+G:G Geography. Anthropology. Recreation:subjects:0
+G1:G Geography (General):G:1
+GA:GA Mathematical geography. Cartography:G:1
+GB:GB Physical geography:G:1
+GC:GC Oceanography:G:1
+GE:GE Environmental Sciences:G:1
+GF:GF Human ecology. Anthropogeography:G:1
+GN:GN Anthropology:G:1
+GR:GR Folklore:G:1
+GT:GT Manners and customs:G:1
+GV:GV Recreation Leisure:G:1
+H:H Social Sciences:subjects:0
+H1:H Social Sciences (General):H:1
+HA:HA Statistics:H:1
+HB:HB Economic Theory:H:1
+HC:HC Economic History and Conditions:H:1
+HD:HD Industries. Land use. Labor:H:1
+HD28:HD28 Management. Industrial Management:HD:1
+HD61:HD61 Risk Management:HD:1
+HE:HE Transportation and Communications:H:1
+HF:HF Commerce:H:1
+HF5601:HF5601 Accounting:HF:1
+HG:HG Finance:H:1
+HJ:HJ Public Finance:H:1
+HM:HM Sociology:H:1
+HN:HN Social history and conditions. Social problems. Social  reform:H:1
+HQ:HQ The family. Marriage. Woman:H:1
+HS:HS Societies secret benevolent etc:H:1
+HT:HT Communities. Classes. Races:H:1
+HV:HV Social pathology. Social and public welfare:H:1
+HX:HX Socialism. Communism. Anarchism:H:1
+J:J Political Science:subjects:0
+J1:J General legislative and executive papers:J:1
+JA:JA Political science (General):J:1
+JC:JC Political theory:J:1
+JF:JF Political institutions (General):J:1
+JK:JK Political institutions (United States):J:1
+JL:JL Political institutions (America except United States):J:1
+JN:JN Political institutions (Europe):J:1
+JN101:JN101 Great Britain:JN:1
+JN1187:JN1187 Scotland:JN:1
+JQ:JQ Political institutions Asia:J:1
+JS:JS Local government Municipal government:J:1
+JV:JV Colonies and colonization. Emigration and immigration. International migration:J:1
+JX:JX International law:J:1
+JZ:JZ International relations:J:1
+K:K Law:subjects:0
+K1:K Law (General):K:1
+KD:KD England and Wales:K:1
+KDC:KDC Scotland:KD:1
+KF:KF United States Federal Law:K:1
+KZ:KZ Law of Nations:K:1
+L:L Education:subjects:0
+L1:L Education (General):L:1
+LA:LA History of education:L:1
+LB:LB Theory and practice of education:L:1
+LB1501:LB1501 Primary Education:LB:1
+LB1603:LB1603 Secondary Education. High schools:LB:1
+LB2300:LB2300 Higher Education:LB:1
+LB2361:LB2361 Curriculum:LB:1
+LC:LC Special aspects of education:L:1
+LC5201:LC5201 Education extension. Adult education. Continuing education:LC:1
+LD:LD Individual institutions (United States):L:1
+LE:LE Individual institutions (America except United States):L:1
+LF:LF Individual institutions (Europe):L:1
+LG:LG Individual institutions (Asia. Africa):L:1
+LT:LT Textbooks:L:1
+M:M Music and Books on Music:subjects:0
+M1:M Music:M:1
+ML:ML Literature of music:M:1
+MT:MT Musical instruction and study:M:1
+N:N Fine Arts:subjects:0
+N1:N Visual arts (General) For photography, see TR:N:1
+NA:NA Architecture:N:1
+NB:NB Sculpture:N:1
+NC:NC Drawing Design Illustration:N:1
+ND:ND Painting:N:1
+NE:NE Print media:N:1
+NK:NK Decorative arts Applied arts Decoration and ornament:N:1
+NX:NX Arts in general:N:1
+P:P Language and Literature:subjects:0
+P1:P Philology. Linguistics:P:1
+PA:PA Classical philology:P:1
+PB:PB Modern European Languages:P:1
+PB1501:PB1501 Gaelic (Scottish Gaelic, Erse):PB:1
+PC:PC Romance languages:P:1
+PD:PD Germanic languages:P:1
+PE:PE English:P:1
+PF:PF West Germanic:P:1
+PG:PG Slavic, Baltic, Albanian languages and literature:P:1
+PH:PH Finno-Ugrian, Basque languages and literatures:P:1
+PI:PI Oriental languages and literatures:P:1
+PJ:PJ Semitic:P:1
+PK:PK Indo-Iranian:P:1
+PL:PL Languages and literatures of Eastern Asia, Africa, Oceania:P:1
+PM:PM Hyperborean, Indian, and Artificial languages:P:1
+PN:PN Literature (General):P:1
+PN0080:PN0080 Criticism:PN:1
+PN0441:PN0441 Literary History:PN:1
+PN1990:PN1990 Broadcasting:PN:1
+PN1993:PN1993 Motion Pictures:PN:1
+PN2000:PN2000 Dramatic representation. The Theater:PN:1
+PQ:PQ Romance literatures:P:1
+PR:PR English literature:P:1
+PS:PS American literature:P:1
+PT:PT Germanic literature:P:1
+PZ:PZ Childrens literature:P:1
+Q:Q Science:subjects:0
+Q1:Q Science (General):Q:1
+QA:QA Mathematics:Q:1
+QA75:QA75 Electronic computers. Computer science:QA:1
+QA76:QA76 Computer software:QA:1
+QB:QB Astronomy:Q:1
+QC:QC Physics:Q:1
+QD:QD Chemistry:Q:1
+QE:QE Geology:Q:1
+QH:QH Natural history:Q:1
+QH301:QH301 Biology:QH:1
+QH426:QH426 Genetics:QH:1
+QK:QK Botany:Q:1
+QL:QL Zoology:Q:1
+QM:QM Human anatomy:Q:1
+QP:QP Physiology:Q:1
+QR:QR Microbiology:Q:1
+QR180:QR180 Immunology:QR:1
+QR355:QR355 Virology:QR:1
+R:R Medicine:subjects:0
+R1:R Medicine (General):R:1
+RA:RA Public aspects of medicine:R:1
+RA0421:RA0421 Public health. Hygiene. Preventive Medicine:RA:1
+RA1001:RA1001 Forensic Medicine. Medical jurisprudence. Legal medicine:RA:1
+RB:RB Pathology:R:1
+RC:RC Internal medicine:R:1
+RC0254:RC0254 Neoplasms. Tumors. Oncology (including Cancer):RC:1
+RC0321:RC0321 Neuroscience. Biological psychiatry. Neuropsychiatry:RC:1
+RC1200:RC1200 Sports Medicine:RC:1
+RD:RD Surgery:R:1
+RE:RE Ophthalmology:R:1
+RF:RF Otorhinolaryngology:R:1
+RG:RG Gynecology and obstetrics:R:1
+RJ:RJ Pediatrics:R:1
+RJ101:RJ101 Child Health. Child health services:RJ:1
+RK:RK Dentistry:R:1
+RL:RL Dermatology:R:1
+RM:RM Therapeutics. Pharmacology:R:1
+RS:RS Pharmacy and materia medica:R:1
+RT:RT Nursing:R:1
+RV:RV Botanic, Thomsonian, and eclectic medicine:R:1
+RX:RX Homeopathy:R:1
+RZ:RZ Other systems of medicine:R:1
+S:S Agriculture:subjects:0
+S1:S Agriculture (General):S:1
+SB:SB Plant culture:S:1
+SD:SD Forestry:S:1
+SF:SF Animal culture:S:1
+SH:SH Aquaculture. Fisheries. Angling:S:1
+SK:SK Hunting sports:S:1
+T:T Technology:subjects:0
+T1:T Technology (General):T:1
+T201:T201 Patents. Trademarks:T1:1
+TA:TA Engineering (General). Civil engineering (General):T:1
+TC:TC Hydraulic engineering. Ocean engineering:T:1
+TD:TD Environmental technology. Sanitary engineering:T:1
+TE:TE Highway engineering. Roads and pavements:T:1
+TF:TF Railroad engineering and operation:T:1
+TG:TG Bridge engineering:T:1
+TH:TH Building construction:T:1
+TJ:TJ Mechanical engineering and machinery:T:1
+TK:TK Electrical engineering. Electronics Nuclear engineering:T:1
+TL:TL Motor vehicles. Aeronautics. Astronautics:T:1
+TN:TN Mining engineering. Metallurgy:T:1
+TP:TP Chemical technology:T:1
+TR:TR Photography:T:1
+TS:TS Manufactures:T:1
+TT:TT Handicrafts Arts and crafts:T:1
+TX:TX Home economics:T:1
+U:U Military Science:subjects:0
+U1:U Military Science (General):U:1
+V:V Naval Science:subjects:0
+V1:V Naval Science (General):V:1
+VM:VM Naval architecture. Shipbuilding. Marine engineering:V:1
+Z:Z Bibliography. Library Science. Information Resources:subjects:0
+Z004:Z004 Books. Writing. Paleography:Z:1
+Z665:Z665 Library Science. Information Science:Z:1
+Z719:Z719 Libraries (General):Z:1
+ZA:ZA Information resources:Z:1
+ZA4050:ZA4050 Electronic information resources:ZA:1
+ZA4450:ZA4450 Databases:ZA:1

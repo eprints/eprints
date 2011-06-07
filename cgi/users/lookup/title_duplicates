@@ -1,0 +1,117 @@
+# warns of duplicates based on a simple string match
+
+use EPrints;
+
+use strict;
+use warnings;
+
+my $session = EPrints::Session->new();
+
+# security??
+
+# How many chars needed before we try and suggest duplicates?
+my $need = 5;
+
+my $q = $session->param( "q" ) || "";
+
+exit unless length( $q ) >= $need; 
+
+my $id = $session->param( "id" );
+
+my $field = $session->param( "field" );
+$field = 'title' if !EPrints::Utils::is_set( $field );
+
+my $dataset_name = $session->param( "dataset" );
+$dataset_name = 'eprint' if !EPrints::Utils::is_set( $dataset_name );
+
+if( !defined($id) )
+{
+	$session->get_repository->log( "duplicates lookup script called without eprintid argument: ".join(',',$session->param));
+	exit(0);
+}
+elsif( $id =~ /^([0-9]+)$/ )
+{
+	$id = $1;
+}
+else
+{
+	EPrints::abort "Requires numeric id argument";
+}
+
+my $database = $session->get_database;
+my $dataset = $session->dataset( $dataset_name );
+
+my $Q_table = $database->quote_identifier($dataset->get_sql_table_name);
+my $Q_id = $database->quote_identifier( $dataset_name . "id" );
+my $Q_eprint_status = $database->quote_identifier( "eprint_status" );
+my $Q_field_name = $database->quote_identifier( $field );
+
+my $sql = "SELECT $Q_id" .
+	" FROM $Q_table" .
+	" WHERE ";
+if ($dataset_name eq "eprint") {
+	$sql .= " $Q_eprint_status=" .  $database->quote_value( "archive" );
+} 
+$sql .=	" AND $Q_id!=$id" .
+	" AND $Q_field_name IS NOT NULL" .
+	" AND $Q_field_name " .
+	$database->sql_LIKE() .
+	$database->quote_value( EPrints::Database::prep_like_value( $q ) . '%' );
+
+my $doc = $session->make_doc_fragment();
+
+my $sth = $session->get_database->prepare_select( $sql, 'limit' => 10 );
+$session->get_database->execute( $sth , $sql );
+
+my $base_url = $session->config( "base_url" );
+
+my $warning =<<END;
+The following records matching this $field already exist in the archive.
+Please check that you are not entering a duplicate record.
+END
+
+my $row = $sth->fetch;
+
+exit unless defined $row;
+
+$doc->appendChild( my $div = $session->render_message( "warning", $session->make_text( $warning) ) );
+
+$div->appendChild( my $ul = $session->make_element( 'ul' ));
+
+my $count = 0;
+my $first = 1;
+
+do
+{
+	my( $id, $value ) = @$row;
+	$ul->appendChild( my $li = $session->make_element( 'li' ) );
+	if( $first )
+	{
+		$li->setAttribute( 'class', 'ep_first' );
+		$first = 0;
+	}
+	
+	my $dataobj = $dataset->dataobj($id);
+	if( ++$count > 5 )
+	{
+		$li->appendChild( $dataobj->render_citation_link( "brief", target => "_blank" ) );
+	}
+	else
+	{
+		$li->appendChild( $dataobj->render_citation_link( "default", target=>"_blank" ) );
+	}
+} while( $count < 20 && defined($row = $sth->fetch) );
+
+$sth->finish;
+
+$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
+
+print <<END,
+<?xml version="1.0" encoding="UTF-8" ?>
+
+END
+	EPrints::XML::to_string( $doc, "utf-8", 1 );
+
+EPrints::XML::dispose( $doc );
+
+$session->terminate;

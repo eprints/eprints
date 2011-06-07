@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+
+__COPYRIGHT__
+
+Copyright (c) 2008 University of Southampton, UK. SO17 1BJ
+
+All Rights Reserved.
+
+__LICENSE__
+
+-->
+
+<!--
+
+This configuration file controls where files are stored. It uses normal EPC
+scripting to determine which Storage plugin to use to store a file.
+
+-->
+
+<store xmlns="http://eprints.org/ep3/storage" xmlns:epc="http://eprints.org/ep3/control">
+	<!-- This is entirely contrived -->
+	<epc:choose>
+		<epc:when test="datasetid = 'document'">
+			<plugin name="Local"/>
+		</epc:when>
+		<epc:otherwise>
+			<plugin name="Local"/>
+		</epc:otherwise>
+	</epc:choose>
+</store>

@@ -1,0 +1,26 @@
+=head1 AUTHOR
+
+This is part of this EPrints 3 system. EPrints 3 is developed by Christopher Gutteridge.
+
+=head1 VERSION
+
+EPrints Version: __VERSION__
+
+=head1 CONTACT
+
+For more information goto B<http://www.eprints.org/> which give information on mailing lists and the like.
+
+Chris Gutteridge may be contacted at B<support@eprints.org>
+
+Should you need a real world address for some reason, EPrints can be contacted in the real world at
+
+ EPrints c/o Christopher Gutteridge
+ Department of Electronics and Computer Science
+ University of Southampton
+ SO17 1BJ
+ United Kingdom
+
+=head1 COPYRIGHT
+
+__LICENSE__
+

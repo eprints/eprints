@@ -1,0 +1,773 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib
+
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+=pod
+
+=head1 NAME
+
+B<upgrade> - Upgrade the stucture of the database to be compatable with
+a newer version of eprints.
+
+If upgrading requires more than one step then the system will perform
+the upgrade step by step. If a step fails then you can continue from
+where it left off.
+
+=head1 SYNOPSIS
+
+B<upgrade> I<repository_id> [B<options>]
+
+=head1 DESCRIPTION
+
+Some versions of eprints require modifications to be made to the database
+tables used by earlier versions. 
+
+Run this script on each repository after upgrading the eprints software. 
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item I<repository_id> 
+
+The ID of the EPrint repository to effect.
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--quiet>
+
+This option doesn't do anything. You REALLY don't want to run this
+script without knowing what's happening.
+
+=item B<--verbose>
+
+Explain in detail what is going on. 
+May be repeated for greater effect.
+
+=item B<--version>
+
+Output version information and exit.
+
+=back   
+
+__GENERICPOD__
+
+=cut
+
+
+
+use EPrints;
+
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+
+my $TARGET = $EPrints::Database::DBVersion;
+
+my $verbose = 0;
+my $version = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => => \$man,
+	'verbose+' => \$verbose,
+	'version' => \$version,
+	'silent' => \$quiet,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "upgrade" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 1 ); 
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
+my $session = new EPrints::Session( 1, $ARGV[0], $noise, 1 );
+exit( 1 ) unless defined $session;
+
+if( $noise>=1 ) { print "What is the current compatability of the DB?\n"; }
+my $db = $session->get_database;
+my $dbversion = $db->get_version();
+if( !defined $dbversion )
+{
+	if( $noise>=1 ) { print "...No version flag. Must be pre 2.1\n"; }
+	$dbversion = "2.0";
+	if( $noise>=1 ) { print "Setting version to be 2.0\n"; }
+	$db->create_version_table;
+	$db->set_version( $dbversion );
+}
+else
+{
+	print "...DB Tables compatable with ".$dbversion."\n"; 
+}	
+if( $noise>=1 ) 
+{ 
+	print "Target compatibility is ".$TARGET."\n"; 
+}
+
+my $rootdbh = undef;
+
+if( $dbversion eq "2.0" )
+{
+	my $sql;
+	print <<END;
+======================================================================
+About to upgrade tables from 2.0 to 2.1
+
+This will:
+
+ * Erase the subscription tables. (If you have an active subscription
+   service running on this repository then somethings wrong. Stop right
+   now and figure it out.
+
+ * Rebuild the subscription dataset tables how v2.1 wants them.
+
+ * Set the subscription ID counter to zero.
+
+ * Alter the columns "commentary", "replacedby" and "succeeds" in the
+   tables "archive","deletion","inbox" and "buffer" from VARCHAR to
+   INTEGER. These fields should have been INT's in the first place.
+
+END
+	
+	my $sure = EPrints::Utils::get_input_confirm( "Are you sure you want to do this" );
+	unless( $sure )
+	{
+		print "Aborting then.\n";
+		$session->terminate();
+		exit( 1 );
+	}
+
+	$rootdbh = &getrootdbh( $session ) unless( defined $rootdbh );
+
+	my $ok = 1;
+	$ok = $ok && defined $rootdbh;
+
+	print "Dropping old subscription tables.\n";
+	# drop all the old subscription tables
+	my @tables = $db->get_tables;
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^subscription/ )
+		{
+			$sql = "DROP TABLE ".$table;
+			$ok = $ok && $db->do( $sql );
+		}
+	}
+	print "Making new subscription tables.\n";
+	my $subs_ds = $session->dataset( "subscription" );
+	$ok = $ok && $db->create_dataset_tables( $subs_ds );
+	print "Creating subscriptionid counter.\n";
+	$sql = "DELETE FROM counters WHERE countername = 'subscriptionid'"; 
+	$ok = $ok && $db->do( $sql );
+	$sql = "INSERT INTO counters (countername,counter) VALUES ".
+		"( 'subscriptionid' , 0 )";
+	$ok = $ok && $db->do( $sql );
+	foreach my $table_id ( "archive","inbox","buffer","deletion" )
+	{
+		$sql = "SELECT eprintid,succeeds,replacedby,commentary FROM ".
+			$table_id;
+		my $sth = $db->prepare( $sql );
+		$ok = $ok && $db->execute( $sth, $sql );
+		my $file = "/tmp/valuedump-".$session->get_repository->get_id."-".
+			$table_id;
+		open( VDUMP, ">$file" );
+		print VDUMP "eprintid,succeeds,replacedby,commentary\n";
+		my @row;
+		while( @row = $sth->fetchrow_array )
+		{
+			foreach( @row ) 
+			{
+				$_ = 'NULL' if( !defined $_ );
+			}
+			print VDUMP join( ",", @row )."\n";
+		}
+		close VDUMP;
+        	$sth->finish;
+		print "Saved backup of affected fileds to $file\n";
+		print "Altering columns of ".$table_id."\n";
+		foreach my $col_id ( "succeeds","replacedby","commentary" )
+		{
+			$sql = "ALTER TABLE ".$table_id." MODIFY ".
+				$col_id." INTEGER";
+			$ok = $ok && $rootdbh->do( $sql );
+		}
+	}
+	if( !$ok )
+	{
+		print "\nFailed.\n";
+		print "Please investigate cause of errors then try again.\n";
+	}
+	else
+	{
+		print "\n2.0 -> 2.1 done!\n";
+		$dbversion = "2.1";
+		$db->set_version( $dbversion );
+	}
+}
+
+if( $dbversion eq "2.1" )
+{
+	my $sql;
+	print <<END;
+======================================================================
+About to upgrade tables from 2.1 to 2.2
+
+This will:
+
+ * in dataset "subscription"
+    - add a new boolean field "mailempty"
+
+ * in dataset "user"
+    - remove the field "editorsubjects"
+    - add the following fields:
+       + editperms (search) 
+       + mailempty (boolean) 
+       + frequency (set) 
+
+END
+	
+	my $sure = EPrints::Utils::get_input_confirm( "Are you sure you want to do this" );
+	unless( $sure )
+	{
+		print "Aborting then.\n";
+		$session->terminate();
+		exit( 1 );
+	}
+
+	$rootdbh = &getrootdbh( $session ) unless( defined $rootdbh );
+
+	my $ok = 1;
+	$ok = $ok && defined $rootdbh;
+
+	my @tables = $db->get_tables;
+
+	# add "mailempty" to subscription
+
+	$sql = "ALTER TABLE subscription ADD mailempty set('TRUE','FALSE') default NULL AFTER frequency";
+	$ok = $ok && $rootdbh->do( $sql );
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^subscription__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD mailempty text AFTER frequency",
+			$ok = $ok && $rootdbh->do( $sql );
+		}
+	}
+
+
+	# remove users "editorsubjects"
+
+	$sql = "DROP TABLE users_editorsubjects";
+	$ok = $ok && $rootdbh->do( $sql );
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^users__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table DROP editorsubjects";
+			$ok = $ok && $rootdbh->do( $sql );
+		}
+	}
+
+
+	# add "editperms","frequency" & "mailempty" to subscription
+
+	$sql = "CREATE TABLE users_editperms ( userid INT NOT NULL, pos INT, editperms TEXT default NULL, KEY userid (userid), KEY pos (pos) )  ";
+	$ok = $ok && $rootdbh->do( $sql );
+
+	$sql = "ALTER TABLE users ADD frequency varchar(255) default NULL AFTER lang";
+	$ok = $ok && $rootdbh->do( $sql );
+	$sql = "ALTER TABLE users ADD mailempty set('TRUE','FALSE') default NULL AFTER frequency";
+	$ok = $ok && $rootdbh->do( $sql );
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^users__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD editperms TEXT AFTER lang";
+			$ok = $ok && $rootdbh->do( $sql );
+			$sql = "ALTER TABLE $table ADD frequency TEXT AFTER editperms";
+			$ok = $ok && $rootdbh->do( $sql );
+			$sql = "ALTER TABLE $table ADD mailempty TEXT AFTER frequency";
+			$ok = $ok && $rootdbh->do( $sql );
+		}
+	}
+
+
+#	# add "hash" to document
+#
+#	$sql = "ALTER TABLE document ADD hash TEXT default NULL AFTER main";
+#	$ok = $ok && $rootdbh->do( $sql );
+#	foreach my $table ( @tables )
+#	{
+#		if( $table =~ m/^document__ordervalues_.*$/ )
+#		{
+#			$sql = "ALTER TABLE $table ADD hash text AFTER main",
+#			$ok = $ok && $rootdbh->do( $sql );
+#		}
+#	}
+
+
+	if( !$ok )
+	{
+		print "\nFailed.\n";
+		print "Please investigate cause of errors then try again.\n";
+	}
+	else
+	{
+		print "\n2.1 -> 2.2 done!\n";
+		$dbversion = "2.2";
+		$db->set_version( $dbversion );
+	}
+}
+
+if( $dbversion eq "2.2" )
+{
+	my $sql;
+	print <<END;
+======================================================================
+About to upgrade tables from 2.2 to 2.3
+
+This will:
+
+ * Remove the no longer used "rindex" tables. 
+
+ * Grant ALTER permissions to the database user. 
+
+END
+	
+	my $sure = EPrints::Utils::get_input_confirm( "Are you sure you want to do this" );
+	unless( $sure )
+	{
+		print "Aborting then.\n";
+		$session->terminate();
+		exit( 1 );
+	}
+
+	$rootdbh = &getrootdbh( $session ) unless( defined $rootdbh );
+
+	my $ok = 1;
+	$ok = $ok && defined $rootdbh;
+
+	my @tables = $db->get_tables;
+
+	# remove rindex tables
+
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/__rindex$/ )
+		{
+			$sql = "DROP TABLE $table";
+			$ok = $ok && $rootdbh->do( $sql );
+		}
+	}
+
+	# Grant ALTER
+
+	my $dbname = $session->config( "dbname" );
+	my $dbuser = $session->config( "dbuser" );
+	my $SQL = 'GRANT ALTER ON '.$dbname.'.* TO '.$dbuser.'@localhost';
+	$rootdbh->do( $SQL );
+
+	if( !$ok )
+	{
+		print "\nFailed.\n";
+		print "Please investigate cause of errors then try again.\n";
+	}
+	else
+	{
+		print "\n2.2 -> 2.3 done!\n";
+		$dbversion = "2.3";
+		$db->set_version( $dbversion );
+	}
+}
+
+
+
+
+
+if( $dbversion eq "2.3" )
+{
+	my $sql;
+	print <<END;
+======================================================================
+About to upgrade tables from 2.3 to 3.a.1
+
+This will:
+
+ * Do some stuff.. 
+
+END
+	
+#	my $sure = EPrints::Utils::get_input_confirm( "Are you sure you want to do this" );
+#	unless( $sure )
+#	{
+#		print "Aborting then.\n";
+#		$session->terminate();
+#		exit( 1 );
+#	}
+
+$db->set_debug(1);
+
+	my @epds = qw/ archive buffer inbox deletion /;
+
+	print "Renaming the users* tables to user*.\n";
+	foreach my $table ( $db->get_tables )
+	{
+		next unless( $table =~ m/^users(.*)/ );
+		$sql = "RENAME TABLE users$1 TO user$1";
+		$db->do( $sql );
+	}
+
+	print "Adding rev_number field to every dataset.\n";
+	foreach my $datasetid ( @epds, qw/ user document subscription subject / )
+	{
+		my $dataset = $session->dataset( $datasetid );
+		my $pkey = $dataset->get_key_field->get_sql_name;
+		my $tablename = $datasetid; # dataset will now say "inbox" as SQL table of "eprint".
+
+		$sql = "ALTER TABLE $tablename ADD rev_number INTEGER DEFAULT 1 AFTER $pkey";
+		$db->do( $sql );
+
+		# add the ordervalues for rev_number
+		foreach my $table ( $db->get_tables )
+		{
+			if( $table =~ m/^($tablename)__ordervalues_.*$/ )
+			{
+				$sql = "ALTER TABLE $table ADD rev_number text AFTER $pkey",
+				$db->do( $sql );
+			}
+		}
+
+	}
+
+
+	print "Adding the License field to the document object\n";
+	add_single_field_after( $db, "document","license","VARCHAR(255) DEFAULT NULL","security" );
+
+	print "Adding the embargo field to the document object.\n";
+	add_single_field_after( $db, "document","date_embargo","DATE DEFAULT NULL","license" );
+
+	print "Adding the embargo field to the eprint object.\n";
+	foreach( @epds ) { add_single_field_after( $db, $_,"metadata_visibility","VARCHAR(255) DEFAULT 'show'","replacedby" ); }
+
+	print "Adding the contact_email field to the eprint object.\n";
+	foreach( @epds ) { add_single_field_after( $db, $_,"contact_email","VARCHAR(255) DEFAULT NULL","metadata_visibility" ); }
+
+	print "Altering the joined date of a user to be time instead of date.\n";
+	$sql = "ALTER TABLE user MODIFY joined DATETIME";
+	$db->do( $sql );
+
+	print "Alter the system DATE fields to use DATETIME instead.\n";
+	foreach my $table_id ( @epds )
+	{
+		$sql = "ALTER TABLE $table_id MODIFY datestamp DATETIME";
+		$db->do( $sql );
+		add_single_field_after( $db, $table_id,"lastmod","DATETIME DEFAULT NULL","datestamp" );
+		add_single_field_after( $db, $table_id,"status_changed","DATETIME DEFAULT NULL","lastmod" );
+		$sql = "UPDATE $table_id SET lastmod = datestamp";
+		$db->do( $sql );
+		$sql = "UPDATE $table_id SET status_changed = datestamp";
+		$db->do( $sql );
+	}
+
+	print "Clearing the datestamp field for items which are not yet live.\n";
+	foreach my $table_id ( "inbox","buffer" )
+	{
+		$sql = "UPDATE $table_id SET datestamp = NULL";
+		$db->do( $sql );
+	}
+
+	print "Convert DATE fields into 3 integers and TIME fields into 6.\n";
+	my @timefields;
+	my @datefields;
+	foreach my $table ( $db->get_tables )
+	{
+		next unless( $table =~ m/^(archive|buffer|inbox|deletion|user|document|subscription|subject)/ );
+
+		$sql = "DESCRIBE $table";
+		my $sth = $db->prepare( $sql );
+		$db->execute( $sth, $sql );
+		while( my @row = $sth->fetchrow_array )
+		{
+			if( $row[1] eq "date" )
+			{
+				push @datefields, [ $table, $row[0] ];
+			}
+			if( $row[1] eq "datetime" )
+			{
+				push @timefields, [ $table, $row[0] ];
+			}
+		}
+        	$sth->finish;
+	}
+
+	print "Creating new INT style dates\n";
+	foreach my $pair ( @datefields, @timefields )
+	{
+		my( $table, $col ) = @{$pair};
+		print $pair->[0]." .. ".$pair->[1]."\n";
+		$sql = "ALTER TABLE $table ADD ${col}_year INTEGER AFTER $col";
+		$db->do( $sql );
+		$sql = "ALTER TABLE $table ADD ${col}_month INTEGER AFTER ${col}_year";
+		$db->do( $sql );
+		$sql = "ALTER TABLE $table ADD ${col}_day INTEGER AFTER ${col}_month";
+		$db->do( $sql );
+	}
+	foreach my $pair ( @timefields )
+	{
+		my( $table, $col ) = @{$pair};
+		print "TIME: ".$pair->[0]." .. ".$pair->[1]."\n";
+		$sql = "ALTER TABLE $table ADD ${col}_hour INTEGER AFTER ${col}_day";
+		$db->do( $sql );
+		$sql = "ALTER TABLE $table ADD ${col}_minute INTEGER AFTER ${col}_hour";
+		$db->do( $sql );
+		$sql = "ALTER TABLE $table ADD ${col}_second INTEGER AFTER ${col}_minute";
+		$db->do( $sql );
+	}
+
+	print "Populating new INT style dates\n";
+	foreach my $pair ( @datefields, @timefields )
+	{
+		my( $table, $col ) = @{$pair};
+
+		$sql = "UPDATE $table SET ".
+				"${col}_year=IF( year($col), year($col), NULL), ".
+				"${col}_month=IF( month($col), month($col), NULL), ".
+				"${col}_day=IF( day($col), day($col), NULL)";
+		$db->do( $sql );
+	}
+
+	print "Removing old DATE and DATETIME columns.\n";
+	foreach my $pair ( @datefields, @timefields )
+	{
+		my( $table, $col ) = @{$pair};
+
+		$sql = "ALTER TABLE $table DROP COLUMN ${col}";
+		$db->do( $sql );
+	}
+
+	print "Removing old index index_grep rindex and temporary index tables\n";
+	foreach my $table ( $db->get_tables )
+	{
+		next unless $table =~ m/__index(_grep)?(_tmp)?$|__rindex$/;
+		$sql = "DROP TABLE $table";
+		$db->do( $sql );
+		
+		print "REMOVING: $table\n";
+	}
+
+	print "Add eprint_status to eprint, and default it the the old dataset.\n";
+	foreach my $table_id ( @epds )
+	{
+		add_single_field_after( $db, $table_id,"eprint_status","VARCHAR(255) DEFAULT '$table_id'","rev_number" );
+	}
+	
+	print "Creating eprint dataset tables.\n";
+	$db->create_dataset_tables( $session->dataset( "eprint" ) );
+
+	print "Moving data from archive,inbox,deletion and buffer into eprint.\n";
+	foreach my $table ( $db->get_tables )
+	{
+		next unless( $table=~m/^(archive|inbox|deletion|buffer)(_[^_].*)?$/ );
+		my $from_table = $table;
+		my $to_table = "eprint";
+		$to_table.=$2 if defined $2;
+		$sql = "INSERT INTO $to_table SELECT * FROM $from_table";
+		$db->do( $sql );
+	}
+
+	print "Removing archive,inbox,deletion and buffer.\n";
+	foreach my $table ( $db->get_tables )
+	{
+		next unless( $table=~m/^(archive|inbox|deletion|buffer)(_[^_].*)?$/ );
+		$sql = "DROP TABLE $table";
+		$db->do( $sql );
+	}
+		
+	
+
+
+#do this for every eprint?
+
+#	my $rev_file = $dir."/".$eprint->get_value("rev_number").".xml";
+#	unless( open( REVFILE, ">$rev_file" ) )
+#	{
+#		$eprint->{session}->get_repo->log( "Error writing file: $!" );
+#		return;
+#	}
+#	print REVFILE '<?xml version="1.0" encoding="utf-8" ?>'."\n";
+#	print REVFILE $eprint->export( "XML", fh=>*REVFILE );
+#	close REVFILE;
+
+#Text not integer?
+
+#historyid and accessid
+
+#	# add user_permissions and user_groups
+#	$sql = "CREATE TABLE user_permissions (role char(64) not null, privilege char(64) not null, net_from long, net_to long, PRIMARY KEY(role,privilege), UNIQUE(privilege,role))";
+#	$db->do( $sql );
+#	$sql = "CREATE TABLE user_groups (user char(64) not null, role char(64) not null, PRIMARY KEY(user,role))";
+#	$db->do( $sql );
+
+
+
+
+
+	$db->_create_indexqueue_table;
+	foreach my $datasetid ( qw/ eprint user document subscription subject / )
+	{
+		print "Making new index tables: $datasetid\n";
+		my $dataset = $session->dataset( $datasetid );
+		$db->create_dataset_index_tables( $dataset );
+
+		# queue all items for indexing
+		$dataset->map( $session, sub {
+			my( $session, $dataset, $item ) = @_;
+		
+			foreach my $field ( $dataset->get_fields() )
+			{
+				next unless( $field->get_property( "text_index" ) );
+				# skip fields we've not added yet.
+				next if( $field->get_name eq "license" && $datasetid eq "document" );
+				next if( $field->get_name eq "rev_number" );
+		
+				$session->get_database->index_queue( 
+					$dataset->id,
+					$item->get_id,
+					$field->get_name );
+			}	
+			if( $dataset->confid eq "eprint" )
+			{
+				$session->get_database->index_queue( 
+					$dataset->id,
+					$item->get_id,
+					$EPrints::Utils::FULLTEXT );
+			}
+
+		} );
+
+	}
+
+
+
+	print "Adding table to store login tickets.\n";
+	$db->create_login_tickets_table();
+
+	if(0 )
+	{
+		print "\nFailed.\n";
+		print "Please investigate cause of errors then try again.\n";
+	}
+	else
+	{
+		print "\n2.3 -> 3.a.1 done!\n";
+		$dbversion = "3.a.1";
+		$db->set_version( $dbversion );
+	}
+}
+
+
+
+
+
+
+if( $TARGET eq $dbversion)
+{
+	if( $noise>=1 )
+	{
+		print "Target compatability reached.\n";
+	}
+}
+else
+{
+	print <<END;
+**********************************************************************
+WARNING: Target compatibility NOT reached. That probably means 
+something bad happend.
+**********************************************************************
+END
+}
+
+if( defined $rootdbh )
+{
+	$rootdbh->disconnect;
+}
+
+$session->terminate();
+exit;
+
+
+sub getrootdbh
+{
+	my( $session ) = @_;
+	print <<END;
+
+We will need to do some stuff to the database as root. Please enter
+the MySQL root password. (Warning: It will not be ****'d out when you 
+type it).
+
+END
+	my $mysqlrootpass = EPrints::Utils::get_input( '^.*$', "MySQL Root Password" );
+
+	print "Connecting to the database [as root]\n";
+        my $dbh = DBI->connect(
+                EPrints::Database::build_connection_string(
+                        dbname=>$session->config("dbname"),
+                        dbsock=>$session->config("dbsock"),
+                        dbport=>$session->config("dbport"),
+                        dbhost=>$session->config("dbhost") ),
+                "root",
+                $mysqlrootpass );
+
+	return $dbh;
+}
+
+sub add_single_field_after
+{
+	my( $db, $datasetid, $fieldname, $type, $after ) = @_;
+
+	# add the ordervalues for $fieldname after $after
+
+	my $sql = "ALTER TABLE $datasetid ADD $fieldname $type AFTER $after";
+	$db->do( $sql );
+	foreach my $table ( $db->get_tables )
+	{
+		if( $table =~ m/^$datasetid\__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD $fieldname TEXT AFTER $after",
+			$db->do( $sql );
+		}
+	}
+}
+
+
+
+

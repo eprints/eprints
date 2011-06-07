@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<workflow xmlns="http://eprints.org/ep3/workflow" xmlns:epc="http://eprints.org/ep3/control">
+
+  <flow>
+    <epc:if test="$STAFF_ONLY = 'TRUE'"><stage ref="usertype"/></epc:if>
+    <stage ref="default"/>
+  </flow>
+   
+  <stage name="usertype">
+      <component><field ref="usertype"/></component>
+      <component><field ref="username"/></component>
+      <component><field ref="roles"/></component>
+  </stage>
+
+  <stage name="default">
+    <component type="Field::Multi">
+      <title><epc:phrase ref="user_section_account" /></title>
+      <epc:if test="usertype != 'minuser'"><field ref="email"/></epc:if>
+      <field ref="hideemail"/>
+      <field ref="password"/>
+    </component>
+
+    <component type="Field::Multi">
+      <title><epc:phrase ref="user_section_personal" /></title>
+      <field ref="name" required="yes" />
+      <field ref="dept"/>
+      <field ref="org"/>
+      <field ref="address"/>
+      <field ref="country"/>
+      <field ref="url"/>
+    </component>
+
+    <epc:if test="usertype = 'editor'">
+      <epc:if test="$STAFF_ONLY = 'TRUE'"><component><field ref="editperms"/></component></epc:if>
+      <component type="Field::Multi">
+        <title>Editorial Alerts</title>
+        <field ref="frequency" required="yes" />
+        <field ref="mailempty" required="yes" />
+      </component>
+    </epc:if>
+
+    <epc:if test="usertype = 'admin'">
+      <component><field ref="editperms" /></component>
+      <component type="Field::Multi">
+        <title>Editorial Alerts</title>
+        <field ref="frequency" required="yes" />
+        <field ref="mailempty" required="yes" />
+      </component>
+    </epc:if>
+
+  </stage>
+</workflow>

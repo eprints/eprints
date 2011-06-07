@@ -1,0 +1,200 @@
+#!/usr/bin/perl -w -I/usr/share/eprints3/perl_lib
+
+use FindBin;
+use lib "$FindBin::Bin/../perl_lib";
+
+use strict;
+
+use EPrints;
+
+if(!defined $ARGV[0] || !defined $ARGV[1])
+{
+       print "\nUsage is:";
+       print "\n\tepm repository_id <install|remove> [app_name|app_path|app_url] [--force]\n\n";
+       exit(1);
+}
+
+my $repository = new EPrints::Session( 1, $ARGV[0] ) or die("cant create Session object");
+
+my $operation = $ARGV[1];
+
+my $path_in = $ARGV[2];
+
+my $force = 0;
+
+if (defined $ARGV[3]) {
+	if ( "$ARGV[3]" eq "--force" ) {
+
+		$force = 1;
+
+	}
+}
+my $rc = 0;
+my $message = "";
+my $package_name = "";
+if ( $operation eq "install") {
+	
+	if ((substr $path_in, 0,7) eq "http://")  
+	{
+		my $epm_file = EPrints::EPM::download_package($repository,$path_in);
+		$message = EPrints::EPM::install($repository,$epm_file,$force);
+	} else {
+		$message = EPrints::EPM::install($repository,$path_in,$force);
+	}
+
+} elsif ($operation eq "remove" ) {
+	
+	($rc, $message) = EPrints::EPM::remove($repository,$path_in,$force);
+
+} elsif ($operation eq "backup" ) {
+	
+	$message = EPrints::EPM::make_backup($repository, $path_in);
+
+} elsif ($operation eq "check_install") {
+	
+	$message = EPrints::EPM::check_install($repository);
+
+} elsif ($operation eq "list") {
+
+	my $installed_epms = EPrints::EPM::get_installed_epms($repository);
+	$message = "Listing Installed EPMs:\n";
+	foreach my $installed_app (@$installed_epms) {
+		$message .= $installed_app->{package} . "\n";
+	}
+
+} elsif ($operation eq "update") {
+
+	print "Fetching updated list of available packages...\n";
+	EPrints::EPM::retrieve_available_epms($repository,undef,undef,1);
+	print "COMPLETE\n";
+
+} elsif ($operation eq "search") {
+	$message = "No search defined\n";
+	next if (!$path_in);
+	my $apps = EPrints::EPM::search($repository,$path_in);
+
+	foreach my $app (@$apps) {
+		output_package($app);
+	}
+	$message = undef;
+} elsif ($operation eq "upgrade") {
+	
+	my $installed_epms = EPrints::EPM::get_installed_epms($repository);
+
+	my $store_epms = EPrints::EPM::retrieve_available_epms($repository);
+
+	my $update_epms = EPrints::EPM::get_epm_updates($installed_epms, $store_epms);
+
+	$message = "Listing Avaialble Updates, use install command on each one individually to install:\n";
+	foreach my $update_app (@$update_epms) {
+		$message .= $update_app->{package} . "\n";
+	}
+
+} elsif ($operation eq "submit") {
+
+	my $sources = $repository->config( "epm_sources" );
+
+	if (!defined $sources) 
+	{
+		print "No stores defined\n";
+		exit();
+	}
+		
+	my $count = 0;
+	my $string;
+	my $store_url;
+        SOURCE: foreach my $epm_source (@$sources)
+        {
+		$count++;
+		$string .= $count . ": " . $epm_source->{name} . "\n";
+		$store_url = $epm_source->{base_url};
+        }
+
+	unless ($count < 2) {
+		$store_url = undef;
+		print "Please select a store to submit to:\n\n";
+		print $string
+		print "[1-$count]? \n";
+		my $selection_count = Term::ReadKey::ReadLine( 0 );
+
+		$count = 0;	
+		SOURCE: foreach my $epm_source (@$sources)
+		{
+			$count++;
+			if ("$count" eq "$selection_count") {
+				$store_url = $epm_source->{base_url};
+			}
+		}
+	}
+
+	print "Please enter your credentials for your chosen store ($store_url):\n\n";
+# credentials:
+	print "Username: ";
+	my $username = Term::ReadKey::ReadLine( 0 );
+	BEGIN {
+		eval "use Term::ReadKey";
+		eval "use Compat::Term::ReadKey" if $@;
+	}
+	print "Enter your password: ";
+	Term::ReadKey::ReadMode('noecho');
+	my $password = Term::ReadKey::ReadLine( 0 );
+	Term::ReadKey::ReadMode('normal');
+	print "\n";
+
+	chomp $username;
+	chomp $password;
+	
+	my $ret = EPrints::EPM::submit_to_store($repository,$store_url,$username,$password,$path_in);
+#	my $ret = EPrints::Sword::DepositTools::deposit_file($store_url,$username,$password,$path_in,undef);
+
+	print "\n\n$ret\n\n";
+}
+
+sub output_package
+{
+	my ( $app ) = @_;
+	
+	print "\n";
+	print "Package ID: " . $app->{package} . "\n";
+	print "Package Name: " . $app->{title} . "\n";
+	print "Package Version: " . $app->{version} . "\n";
+	print "Package Description: " . $app->{description} . "\n";
+	foreach my $key(keys %$app) {
+		if ($key eq "category") {
+			print $key . " : " . $app->{$key} . "\n" if (defined ($app->{$key}));
+		}
+	}
+	print "\n";
+}
+
+print $message . "\n" if defined $message;
+
+1;
+
+=head1 COPYRIGHT
+
+=for COPYRIGHT BEGIN
+
+Copyright 2000-2011 University of Southampton.
+
+=for COPYRIGHT END
+
+=for LICENSE BEGIN
+
+This file is part of EPrints L<http://www.eprints.org/>.
+
+EPrints is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+EPrints is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+License for more details.
+
+You should have received a copy of the GNU General Public License
+along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
+
+=for LICENSE END
+

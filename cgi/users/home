@@ -1,0 +1,31 @@
+######################################################################
+#
+#  EPrint Editor
+#
+#   Allows staff to remove EPrints or transfer them back to the
+#   submission buffer.
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+
+use strict;
+
+use EPrints::ScreenProcessor;
+my $session = EPrints::Session->new();
+
+EPrints::ScreenProcessor->process( 
+	session=>$session, 
+	template=>$session->config( "user_area_template" ),
+	url=>$session->config( "rel_cgipath" )."/users/home" );
+
+$session->terminate;
+

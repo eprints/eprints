@@ -1,0 +1,12 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE page SYSTEM "entities.dtd" >
+<xpage:page xmlns="http://www.w3.org/1999/xhtml" xmlns:xpage="http://eprints.org/ep3/xpage">
+<xpage:title>Authorisation Required</xpage:title>
+<xpage:body>
+
+<p>In order to access some areas of the repository you require a username and password.</p>
+
+<p><a href="{$config{perl_url}}/set_password">Register / Reset my password</a></p>
+
+</xpage:body>
+</xpage:page>

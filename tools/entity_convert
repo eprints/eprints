@@ -1,0 +1,168 @@
+#!/usr/bin/perl -w 
+
+use strict;
+
+my %confs = (
+	adminemail => "adminemail",
+	userhome => "userhome",
+	base_url => "base_url",
+	version => "version", 
+	perl_url => "perl_url",
+	frontpage => "frontpage",
+	https_base_url => "https_base_url",
+);
+
+my %phrases = (
+	archivename => "archive_name",
+	ruler => "ruler",
+	logo => "logo",
+);
+
+my $file = join( '', <> );
+
+while( $file ne "" )
+{
+	if( $file =~ s/^([^<]+)//s )
+	{
+		text( $1 );
+		next;
+	}
+	
+	if( $file =~ s/^<!([^>]*)>//s )
+	{
+		doctype( $1 ); 
+		next;
+	}
+
+	if( $file =~ s/^<\?(.*)\?>//s )
+	{
+		pdir( $1 ); 
+		next;
+	}
+	if( $file =~ s/^<!--(.*)-->//s )
+	{
+		comment( $1 );
+		next;
+	}
+
+	if( $file =~ s/<(([^>'"]*|"[^"]*"|'[^']*')+)>//s )
+	{
+		tag( $1 );
+		next;
+	}
+
+	print "DAMN:$file\n";
+	exit;
+}
+
+
+sub text
+{
+	my( $val ) = @_;
+	$val =~ s/&([^;]+);/replace_text_entity($1)/ge;
+	print $val;
+}
+
+sub doctype
+{
+	print "<!".$_[0].">";
+}
+		
+sub pdir
+{
+	print "<?".$_[0]."?>";
+}
+
+sub comment
+{
+	print "<!--".$_[0]."-->";
+}
+
+sub tag
+{
+	my $tag = $_[0];
+	if( $tag =~ m/^\// )
+	{
+		print "<$tag>";
+		return;
+	}	
+
+	print "<";
+	$tag =~ s/^([^\s>]+)//;
+
+	my $tagname = $1;
+
+	print $tagname;
+	
+	while( $tag ne "" )
+	{
+		next if( $tag=~s/^\s// );
+		if( $tag=~s/^([^\s=]+)\s*=\s*'([^']+)'// )
+		{
+			sattr( $1, $2 );
+			next;
+		}
+		if( $tag=~s/^([^\s=]+)\s*=\s*"([^"]+)"// )
+		{
+			dattr( $1, $2 );
+			next;
+		}
+		if( $tag=~s/^\/// )
+		{
+			print "/";
+			next;
+		}
+		print "DAMN! ($tag)\n";
+		exit;
+	}
+	print ">";
+}
+
+sub sattr
+{
+	my( $name, $val ) = @_;
+
+	$val =~ s/&([^;]+);/replace_attr_entity($1)/ge;
+
+	print " ".$name."='".$val."'";
+}
+sub dattr
+{
+	my( $name, $val ) = @_;
+	$val =~ s/&([^;]+);/replace_attr_entity($1)/ge;
+	print " ".$name.'="'.$val.'"';
+}
+
+sub replace_attr_entity
+{
+	my( $entid ) = @_;
+
+	return "&$entid;" unless( $confs{$entid} );
+
+	my $id = $confs{$1};
+	return "{\$config{$id}}";
+}
+
+
+sub replace_text_entity
+{
+	my( $entid ) = @_;
+
+
+	if( $confs{$entid} )
+	{
+		my $id = $confs{$entid};
+		return "<ep:print expr=\"\$config{$id}\" />";
+	}
+	
+	if( $phrases{$entid} )
+	{
+		my $id = $phrases{$entid};
+		return "<ep:phrase ref=\"$id\" />";
+	}
+	
+	return "&$entid;"; 
+
+}
+
+

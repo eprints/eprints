@@ -1,0 +1,30 @@
+######################################################################
+#
+#  EPrints Register Account 
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+use strict;
+
+my $repo = EPrints->new->current_repository;
+exit( 0 ) unless( defined $repo );
+
+my $screenid = $repo->param( "screen" );
+if( !defined $screenid || $screenid !~ /^Register::/ )
+{
+	$screenid = "Register";
+}
+
+EPrints::ScreenProcessor->process(
+	session => $repo,
+	screenid => $screenid
+);

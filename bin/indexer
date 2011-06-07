@@ -1,0 +1,390 @@
+#!/usr/bin/perl -w
+
+use FindBin;
+use lib "$FindBin::Bin/../perl_lib";
+
+######################################################################
+#
+#
+######################################################################
+
+
+=pod
+
+=for Pod2Wiki
+
+=head1 NAME
+
+B<indexer> - Indexing daemon for EPrints
+
+=head1 SYNOPSIS
+
+B<indexer> start [B<options>]
+
+B<indexer> stop 
+
+B<indexer> status
+
+B<indexer> install
+
+B<indexer> uninstall
+
+B<indexer> --help
+
+=head1 DESCRIPTION
+
+This daemon runs in the background and creates index files for all eprints repositories.
+
+Messages and errors are logged to /opt/eprints3/var/indexer.log unless you change the log options. If it appears to be having problems try raising the log level and examining the log.
+
+Once every 24 hours, the indexer rolls the logs (up to logfile.5) and then starts again. See --rollcount for ways to customise this.
+
+=over 8
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<--force>
+
+Start up, even if the PID file exists (implying another copy is running). This
+is useful for starting after a crash, but be carefully not to run to copies at
+once as BAD THINGS will happen.
+
+=item B<--verbose>
+
+Explain in detail what is going on.
+May be repeated for greater effect.
+
+=item B<--clear>
+
+Clear broken event queue items (items that are "inprogress" or "failed") before commencing.
+
+=item B<--retry>
+
+Retry broken event queue items (items that are "inprogress" or "failed") before commencing.
+
+=item B<--logfile> I<filename>
+
+Log to I<filename> rather than default indexer log.
+
+=item B<--loglevel> I<level>
+
+Set the level of detail to log. Level may be 0-6.
+
+=item B<--rollcount> I<number>
+
+Set the number of once-through logs that should be kept. If set to zero then indexer will never roll the logs but rather just keep writing to the main log.
+
+=item B<--respawn> I<seconds>
+
+Respawn the indexer every I<seconds> (rolls the log files).
+
+=item B<--notdaemon>
+
+Do not become a daemon, remain attached to the current terminal.
+
+Log goes to STDERR instead of the log file.
+
+Does not create a .pid file.
+
+=item B<--once>
+
+Only clear the current queue of things needing indexing then exit.
+
+=item B<--version>
+
+Output version information and exit.
+
+=back   
+
+=head1 Making into a service 
+
+This has only been tested under redhat linux. It make work on other OS's, but not promise.
+
+To make the indexer into a service which starts and stops on reboots etc. like httpd and mysqld do the following (as root):
+
+ ln -s /opt/eprints3/bin/epindexer /etc/init.d/epindexer 
+ chkconfig --add epindexer
+ chkconfig epindexer on
+
+The epindexer script runs as root, changes user to "eprints" (or whatever uid your eprints install runs as) and then calls indexer. 
+
+
+=cut
+
+use EPrints;
+use POSIX;
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+
+my $force = 0;
+my $logfile;
+my $loglevel = 2;
+my $rollcount = 5;
+my $notdaemon = 0;
+my $once = 0;
+my $opt_clear;
+my $opt_retry;
+my $opt_respawn = 86400;
+
+Getopt::Long::Configure("permute");
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'force' => \$force,
+	'quiet' => \$quiet,
+	'notdaemon' => \$notdaemon,
+	'once' => \$once,
+	'rollcount=s' => \$rollcount,
+	'logfile=s' => \$logfile,
+	'loglevel=s' => \$loglevel,
+	'clear' => \$opt_clear,
+	'retry' => \$opt_retry,
+	'respawn=s' => \$opt_respawn,
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "indexer" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 1 );
+
+our $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+my $p = {
+	loglevel => $loglevel+0,
+	rollcount => $rollcount+0,
+	respawn => $opt_respawn+0,
+	daemon => !$notdaemon,
+	noise => $noise,
+	once => $once,
+	logfile => EPrints::Index::logfile(), 
+	pidfile => EPrints::Index::pidfile(),
+	tickfile => EPrints::Index::tickfile(),
+};
+
+$logfile ||= EPrints::Index::logfile();
+$logfile = undef if $logfile eq "-" or $notdaemon;
+
+my $daemon = EPrints::Index::Daemon->new(
+	loglevel => $loglevel+0,
+	respawn => $opt_respawn+0,
+	logfile => $logfile,
+	noise => $noise,
+	once => $once,
+);
+
+if( $ARGV[0] eq "status" )
+{
+	status();
+}
+elsif( $ARGV[0] eq "start" )
+{
+	if( $force )
+	{
+		$daemon->remove_pid;
+	}
+
+	if( $opt_clear || $opt_retry )
+	{
+		my $eprints = EPrints->new;
+		print "Processing stale events\n" if $verbose;
+		foreach my $repoid ($eprints->repository_ids())
+		{
+			my $repo = $eprints->repository( $repoid );
+			my $result = $repo->dataset( "event_queue" )->search(
+				filters => [
+					{ meta_fields => [qw( status )], value => "inprogress failed", match => "IN", merge => "ANY" },
+			]);
+			$result->map(sub {
+				my( undef, undef, $event ) = @_;
+
+				if( $opt_clear )
+				{
+					$event->remove();
+				}
+				else
+				{
+					$event->set_value( "status", "waiting" );
+					$event->commit;
+				}
+			});
+			print "".($opt_clear ? "Removed " : "Retrying ").$result->count()." stale events\n" if $verbose;
+		}
+	}
+
+	start();
+}
+elsif( $ARGV[0] eq "stop" )
+{
+	stop();
+}
+elsif( $ARGV[0] eq "install" && $^O eq 'MSWin32' )
+{
+	install();
+}
+elsif( $ARGV[0] eq "uninstall" && $^O eq 'MSWin32' )
+{
+	uninstall();
+}
+elsif( $daemon->can( "run_".$ARGV[0] ) )
+{
+	my $f = "run_".shift(@ARGV);
+	$daemon->$f( @ARGV );
+}
+else
+{
+	pod2usage( 2 );
+}
+
+sub status
+{
+	if( !$daemon->is_running )
+	{
+		print "Indexer is not running\n";
+	} 
+	elsif( $daemon->has_stalled() )
+	{
+		print "Indexer appears to have stalled. It may need restarting.\n";
+	}	
+	else
+	{
+		my $last_tick = $daemon->get_last_tick();
+		my $pid = $daemon->get_pid;
+		my $interval = $daemon->get_interval;
+		if( $last_tick > $interval )
+		{
+			print "Indexer is running with PID $pid but the next index is overdue by ".($last_tick-$interval)." seconds.\n";
+		}
+		else
+		{
+			print "Indexer is running with PID $pid. Next index in ".($interval-$last_tick)." seconds.\n";
+		}
+	}
+}
+
+
+sub stop
+{
+	if( !$daemon->is_running )
+	{
+		exit 1;
+	}
+
+	if( !$daemon->stop_daemon )
+	{
+		my $pid = $daemon->get_pid();
+		print STDERR <<END;
+The indexer process with process ID $pid failed to stop. You may
+need to stop it (and any child processes) by hand.
+END
+		exit 1;
+	}
+
+	exit 0;
+}
+
+
+sub start
+{
+	if( $daemon->is_running )
+	{
+		my $pid = $daemon->get_pid();
+		my $pidfile = $daemon->get_pidfile();
+		print <<END;
+
+EPrints indexer appears to be running with process ID $pid. 
+It may have crashed. 
+
+To check if the process is still running (on a linux system)
+use:
+
+ps auwx | grep indexer
+
+Options to "ps" vary on other systems. You may also try:
+
+ps -ef | grep indexer
+
+If indexer is not already running you may either:
+ * delete the PID file: $pidfile
+ * run indexer with the --force option
+
+END
+		exit 1;
+	}
+	elsif( $notdaemon )
+	{
+		$daemon->run_index();
+	}
+	else
+	{
+		$daemon->start_daemon();
+	}
+}
+
+sub install
+{
+	$daemon->create_service();
+}
+
+sub uninstall
+{
+	$daemon->delete_service();
+}
+
+####################################################################################
+
+
+=head1 COPYRIGHT
+
+=for COPYRIGHT BEGIN
+
+Copyright 2000-2011 University of Southampton.
+
+=for COPYRIGHT END
+
+=for LICENSE BEGIN
+
+This file is part of EPrints L<http://www.eprints.org/>.
+
+EPrints is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+EPrints is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+License for more details.
+
+You should have received a copy of the GNU General Public License
+along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
+
+=for LICENSE END
+

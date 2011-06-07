@@ -1,0 +1,12 @@
+
+Please note that, with the exception of the EPrints/ directory, the contents
+of this directory are required by, but not part of, the EPrints system or the 
+GNU project and are provided under their own respective licenses and the 
+University of Southampton does not hold the copyright. 
+
+The file XML/DOM.pm has been slightly modified to disable features which
+require LWP::UserAgent.
+
+The contents of the EPrints/ directory are part of the EPrints 3 system and
+are copyright 2000-2006 University of Southampton.
+

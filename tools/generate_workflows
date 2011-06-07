@@ -1,0 +1,570 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib 
+
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+
+
+# note - this should be combined with upgrade before beta release.
+
+
+=pod
+
+=head1 NAME
+
+B<generate_workflows> - Regenerate workflow configurations for an EPrint repository
+
+=head1 SYNOPSIS
+
+B<generate_abstracts> I<repository_id> [B<options>]
+
+=head1 DESCRIPTION
+
+This script generates workflow configurations for an archive which is using the prior metadata-types.xml configurations for workflow definition. Two files are created in the archive's cfg directory: workflow-eprint.xml for EPrints submission and workflow-user.xml for User editing. You should not need to run this script unless you are upgrading from a version of EPrints prior to v3.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item B<repository_id> 
+
+The ID of the eprint repository to use.
+
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--quiet>
+
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+
+=item B<--verbose>
+
+Explain in detail what is going on.
+May be repeated for greater effect.
+
+=item B<--version>
+
+Output version information and exit.
+
+=back   
+
+__GENERICPOD__
+
+=cut
+
+
+use EPrints;
+
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "generate_workflows" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 1 && scalar @ARGV != 2 ); 
+
+our $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
+my $repos = EPrints::Repository->new( $ARGV[0], 1 );
+_update_workflow_conf( $repos );
+
+sub _update_workflow_conf
+{
+	my( $repos ) = @_;
+
+	my $file = $repos->get_conf( "config_path" ).
+			"/metadata-types.xml";
+	
+
+	my $doc = $repos->parse_xml( $file );
+	if( !defined $doc )
+	{
+		return 0;
+	}
+
+	my $types_tag = ($doc->getElementsByTagName( "metadatatypes" ))[0];
+	if( !defined $types_tag )
+	{
+		EPrints::XML::dispose( $doc );
+		print STDERR "Missing <metadatatypes> tag in $file\n";
+		return 0;
+	}
+
+	my $dsconf = {};
+	my $ds_tag;	
+	foreach $ds_tag ( $types_tag->getElementsByTagName( "dataset" ) )
+	{
+		my $ds_id = $ds_tag->getAttribute( "name" );
+		$dsconf->{$ds_id}->{_order} = [];
+		my $type_tag;
+		foreach $type_tag ( $ds_tag->getElementsByTagName( "type" ) )
+		{
+			my $type_id = $type_tag->getAttribute( "name" );
+			$dsconf->{$ds_id}->{$type_id} = {};
+			push @{$dsconf->{$ds_id}->{_order}}, $type_id;
+
+			my $pageid = undef;
+			my $typedata = $dsconf->{$ds_id}->{$type_id}; #ref
+			$typedata->{pages} = {};
+			$typedata->{page_order} = [];
+			$typedata->{fields} = {};
+			if( $ds_id eq "eprint" )
+			{
+				push @{$typedata->{page_order}}, "type";
+				$typedata->{pages}->{type} = ['type'];
+				$typedata->{fields}->{type} = { id=>"type", required=>1 };
+			}
+			foreach my $node ( $type_tag->getChildNodes )
+			{
+				next unless( EPrints::XML::is_dom( $node, "Element" ) );
+				my $el = $node->getTagName;
+				if( $el eq "field" )
+				{
+					if( !defined $pageid )
+					{
+						# we have a "default" page then
+						$pageid = "default";
+						push @{$typedata->{page_order}}, $pageid;
+					}
+					my $finfo = {};
+					$finfo->{id} = $node->getAttribute( "name" );
+					if( $node->getAttribute( "required" ) eq "yes" )
+					{
+						$finfo->{required} = 1;
+					}
+					if( $node->getAttribute( "staffonly" ) eq "yes" )
+					{
+						$finfo->{staffonly} = 1;
+					}
+					$typedata->{fields}->{$finfo->{id}} = $finfo;
+					push @{$typedata->{pages}->{$pageid}}, $finfo->{id};
+				}
+				elsif( $el eq "page" )
+				{
+					my $n = $node->getAttribute( "name" );
+					unless( defined  $n )
+					{
+						print STDERR "No name attribute in <page> tag in $type_tag\n";
+					}
+					else
+					{
+						$pageid = $n;
+						push @{$typedata->{page_order}}, $pageid;
+					}
+				}
+				else
+				{
+					print STDERR "Unknown element <$el> in No name attribute in <page> tag in $type_tag\n";
+				}
+			}
+		}
+	}
+
+	my $basepath = $repos->get_conf( "config_path" )."/workflows";
+	mkdir( $basepath ) unless -d $basepath;
+
+	foreach my $dataset_id ( "eprint", "user" ) 
+	{
+		$EPrints::generate_workflow_ds_id = $dataset_id;
+		# Check for timestamp and skip if up to date
+		my $topath = "$basepath/$dataset_id";
+		mkdir( $topath ) unless -d $topath;
+
+		my $to = "$topath/default.xml";
+
+		# If the file exists and it's newer or the same age as the config, skip.
+	#	next if( -e $to && -M $file >= -M $to );
+
+		print STDERR "Regenerating $to\n";
+		my $workflow_doc = EPrints::XML::make_document();
+		my $workflow_root = $workflow_doc->createElement( "workflow" );
+		$workflow_root->setAttribute( "xmlns", "http://eprints.org/ep2/workflow" );
+		$workflow_root->setAttribute( "xmlns:ep", "http://eprints.org/ep2/" );
+
+		my $flow = $workflow_doc->createElement( "flow" );
+		
+		$workflow_root->appendChild( $flow );
+		
+		my $conf = $dsconf->{$dataset_id};
+use Data::Dumper;
+#print STDERR Dumper( $conf );
+		my $pages = new OptList();
+
+		foreach my $type ( @{$conf->{_order}} )
+		{
+			my $cond = new OptCondition( $type );
+			$pages->add( $cond );
+			my $typeconf = $conf->{$type};
+			if( !$typeconf->{page_order} )
+			{
+				print STDERR "no page order";
+				exit;
+			}
+			foreach my $page ( @{ $typeconf->{page_order} } )
+			{
+				my $stageref = $workflow_doc->createElement( "stage" );
+				$stageref->setAttribute( "ref", $page );
+				$cond->list->add( new OptData($stageref) );
+			}
+		}
+
+		$pages->optimise($doc,$conf->{_order});
+		my $xml = EPrints::XML::clone_and_own( $pages->xml($doc), $workflow_doc, 1 );
+		$flow->appendChild( $xml );
+
+	
+		my @stage_order = ();	
+		my %stages = ();
+		foreach my $type ( @{$conf->{_order}} )
+		{
+			my $typeconf = $conf->{$type};
+			foreach my $page ( @{ $typeconf->{page_order} } )
+			{
+				if( !defined $stages{$page} )
+				{
+					push @stage_order, $page;
+					$stages{$page} = new OptList();
+				}
+				my $cond = new OptCondition( $type );
+				$stages{$page}->add( $cond );
+
+				my $fields = $typeconf->{pages}->{$page};
+				foreach my $field ( @$fields )
+				{
+					my $component = $workflow_doc->createElement( "component" );
+					#$component->setAttribute( "type", "default" );
+						
+					my $field_el = $workflow_doc->createElement( "field" );
+					my $params = $typeconf->{fields}->{$field};
+					$field_el->setAttribute( "ref", $params->{id} );
+					if( $params->{required} )
+					{
+						$field_el->appendChild( $workflow_doc->createElement( "required" ) );
+					}
+					$component->appendChild( $field_el );
+					if( $params->{staffonly} )
+					{
+						my $if = $workflow_doc->createElement( "ep:ifmatch" );
+						$if->setAttribute( "name", '$STAFF_ONLY' );
+						$if->setAttribute( "value", "TRUE" );
+						$if->appendChild( $component );
+						$component = $if;
+					}
+					$cond->list->add( new OptData($component) );
+				}
+			}
+		}
+
+		foreach my $stage ( @stage_order )
+		{
+			my $stageref = $workflow_doc->createElement( "stage" );
+			$stageref->setAttribute( "name", $stage );
+			$stages{$stage}->optimise($doc,$conf->{_order});
+			my $xml = EPrints::XML::clone_and_own( $stages{$stage}->xml($doc), $workflow_doc, 1 );
+			$stageref->appendChild( $xml );
+			$workflow_root->appendChild( $stageref );
+		}
+
+		EPrints::XML::tidy( $workflow_root, { collapse=>['component'] } );
+		$workflow_doc->appendChild( $workflow_root );
+		
+		open( TO, ">$to" ) ||  EPrints::Config::abort( "can't write file $to: $!" );
+		print TO EPrints::XML::to_string( $workflow_doc );
+		print EPrints::XML::to_string( $workflow_doc );
+		close TO;
+	}
+
+	
+
+	EPrints::XML::dispose( $doc );
+	return 1;
+	
+}
+
+sub _make_value
+{
+	my( $doc, $name, $val ) = @_;
+	my $value = $doc->createElement( $name );
+	$value->setAttribute( "value", $val );
+	# $value->appendChild( $doc->createTextNode( $val ) );
+	return $value;
+}
+
+package OptList;
+
+sub new
+{
+	my( $class ) = @_;
+
+	return bless { items=>[] }, $class;
+}
+
+sub add
+{
+	my( $self,@adds ) = @_;
+
+	push @{$self->{items}}, @adds;
+}
+
+sub xml
+{
+	my( $self, $doc ) = @_;
+
+	my $f = $doc->createDocumentFragment;
+
+	foreach my $item ( @{$self->{items}} )
+	{
+		$f->appendChild( $item->xml( $doc ) );
+	}
+
+	return $f;
+}
+
+sub optimise
+{
+	my( $self, $doc, $opts ) = @_;
+
+	my $newitems = [];
+
+	while( 1 )
+	{
+		# analyse first item in each if.
+		my $map = [];
+		my $imap = [];
+		foreach my $if ( @{$self->{items}} )
+		{
+			my $type = $if->{type};
+			my $i = 0;
+			foreach my $item ( @{$if->list->{items}} )
+			{
+				my $value = $item->xml($doc)->toString;
+				push @{$map->[$i]->{$value}}, $type;
+				push @{$imap->[$i]->{$type}}, $value;
+				++$i
+			}
+		}
+
+	
+		last if( scalar keys %{$map->[0]} == 0 );
+
+		my @keys0 = keys %{$map->[0]};
+		# only one choice and it covers ALL types
+		if( scalar @keys0 == 1 && scalar( @{$map->[0]->{$keys0[0]}} ) == scalar @{$opts} )
+		{
+			my @a;
+			foreach my $if ( @{$self->{items}} )
+                	{
+				@a = splice( @{$if->{list}->{items}}, 0, 1 );
+			}
+			push @{$newitems}, $a[0];
+			next;
+		} 
+
+		# no easy answer. produce a score for removing each if block and see which scores highest
+		# score = biggest resulting block if the condition was removed from the head
+
+		my $score = -100;
+		my $top = "";
+		foreach my $value ( @keys0 )
+		{
+			my $blocks = {};
+			foreach my $value2 ( @keys0 )
+			{
+				my @l = @{$map->[0]->{$value2}};
+				$blocks->{$value2} = \@l; 
+			}
+			# remove the candidate
+			delete $blocks->{$value};
+
+			foreach my $type ( @{$map->[0]->{$value}} )
+			{
+				foreach my $add_to_if (@{ $imap->[1]->{$type}} )
+				{
+					push @{$blocks->{$add_to_if}}, $type;
+				}
+			}
+			my $this_score = 0;
+			foreach( keys %{$blocks} )
+			{
+				my $s = scalar @{$blocks->{$_}};
+				$this_score = $s if( $s > $this_score );	
+			}
+
+			# tie breaker - if we can remove a big chunk or a little
+			# chunk then take the little one.
+			$this_score -= ( scalar @{$map->[0]->{$value}} )/100.0;
+			if( $this_score > $score )
+			{
+				$score = $this_score;
+				$top = $value;
+			}
+	
+		}
+		my @removed;
+		foreach my $if ( @{$self->{items}} )
+               	{
+			my $head  = $if->{list}->{items}->[0];
+			next if( !defined $head );
+			if( $head->{data}->toString eq $top )
+			{
+				@removed = splice( @{$if->{list}->{items}}, 0, 1 );
+			}
+		}
+		my @types = @{$map->[0]->{$top}};
+		foreach my $type ( @types )
+		{
+			my $cond = OptCondition->new( $type );
+			$cond->{list}->add( $removed[0] );
+			push @{$newitems}, $cond;
+		}
+		next;	
+	}
+
+	$self->{items} = $newitems;
+
+	# now sort the items into blocks of the list which are restricted and blocks that are not.
+	#  Then collect the fields by type in the conditional block (preserving order within the
+	# type) and then make them into lists in a single condition.
+
+	$newitems = [];
+
+	my $current = {};
+	foreach my $item ( @{$self->{items}} )
+	{
+		if( $item->isa( "OptData" ) )
+		{
+			push @{$newitems}, $self->skoodge( $current, $doc );
+			$current = {};
+
+			push @{$newitems}, $item;
+			next;
+		}
+
+		# OptCondition
+use Data::Dumper;
+		#print STDERR $item->{type}."!\n";
+		#print STDERR Dumper($item)."!\n";
+		push @{$current->{$item->{type}}}, @{$item->{list}->{items}};
+	}
+	push @{$newitems}, $self->skoodge( $current, $doc );
+	$self->{items} = $newitems;
+}
+
+sub skoodge
+{
+	my( $self, $current, $doc ) = @_;
+
+	my %adds = ();
+	my %lists = ();
+	foreach my $type ( keys %{$current} )
+	{
+		my $id = "";
+		foreach my $i ( @{$current->{$type}} ) { print "($i)\n"; $id.=$i->xml($doc)->toString; }
+		push @{$adds{$id}}, $type;
+		$lists{$id} = $current->{$type};	
+	}
+	#print Dumper( \%adds,\%lists );
+	my @r = ();
+	foreach my $id ( keys %adds )
+	{
+		my @types = @{$adds{$id}};
+		my @list = @{$lists{$id}};
+		my $cond = OptCondition->new( join( " ", @types ) );
+		$cond->{list}->add( @list );
+		push @r, $cond;
+	}
+	return @r;
+}
+			
+package OptData;
+
+sub new
+{
+	my( $class, $data ) = @_;
+
+	return bless { data=>$data }, $class;
+}
+
+sub xml
+{
+	my( $self, $doc ) = @_;
+	my $node = EPrints::XML::clone_and_own( $self->{data}, $doc, 1 );
+	return $node;
+}
+
+	
+
+package OptCondition;
+
+sub new
+{
+	my( $class, $type ) = @_;
+
+	return bless { list=>new OptList(), type=>$type }, $class;
+}
+
+sub list
+{
+	my( $self ) = @_;
+
+	return $self->{list};
+}
+
+sub xml
+{
+	my( $self, $doc ) = @_;
+
+	my $if = $doc->createElement( "ep:ifmatch" );
+
+	if( $EPrints::generate_workflow_ds_id eq "user" )
+	{
+		$if->setAttribute( "name", "usertype" );
+	}
+	else
+	{
+		$if->setAttribute( "name", "type" );
+	}
+	$if->setAttribute( "merge", "ANY" ); # otherwise it'll require them all to be true
+	$if->setAttribute( "value", $self->{type} );
+	$if->appendChild( $self->{list}->xml( $doc ) );
+	return $if;
+}

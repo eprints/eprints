@@ -1,0 +1,55 @@
+
+/* paginated columns */
+
+.ep_columns {
+	margin: auto;
+}
+
+td.ep_columns_cell {
+	border-left: 1px dashed #ccc;
+	border-bottom: 1px solid #ccc;
+}
+td.ep_columns_cell_first {
+}
+td.ep_columns_cell_last {
+	border-right: 1px dashed #ccc;
+}
+
+th.ep_columns_title {
+	background: url(images/gray_bar.png) repeat-x;
+	font-weight: normal;
+	border-top: solid 1px #888;	
+	border-bottom: solid 1px #888;	
+	border-left: solid 1px #888;	
+}
+th.ep_columns_title a {
+	color: #000;
+	font-weight: normal;
+}
+th.ep_columns_title_last {
+	border-right: solid 1px #888;	
+}
+
+
+td.ep_columns_alter {
+	background: url(images/gray_bar.png) repeat-x;
+	border-left: solid 1px #888;
+	border-bottom: solid 1px #888;
+}
+td.ep_columns_alter_last {
+	border-right: solid 1px #888;
+}
+
+td.ep_columns_no_items {
+	border-bottom: 1px solid #ccc;
+	border-left: 1px solid #ccc;
+	border-right: 1px solid #ccc;
+	padding: 0.5em;
+	text-align: center;
+	font-size: 120%;
+}
+
+.ep_columns_add {
+	text-align: center;
+}
+

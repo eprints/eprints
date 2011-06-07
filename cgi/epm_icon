@@ -1,0 +1,33 @@
+use EPrints;
+use Data::Dumper;
+
+use strict;
+my $repository = EPrints->new->current_repository;
+exit( 0 ) unless( defined $repository );
+
+my $archive_root = $repository->get_conf("archiveroot");
+my $epm_path = $archive_root . "/var/epm/";
+
+my $image_path = $epm_path . $repository->param( 'image' );
+
+if ( -e $image_path )
+{
+	my $mime_type = $repository->call('guess_doc_type',$repository ,$image_path );
+	my $r = $repository->get_request();
+	if ((substr $mime_type,0,5) eq "image") {
+		open IMAGE, $image_path;
+		my ($image, $buff); 
+		while (read IMAGE, $buff, 1024) {
+			$image .= $buff;
+		}
+		close IMAGE;
+		$r->content_type($mime_type);
+		binmode STDOUT;
+		print $image;
+	} else {
+		$r->content_type("text/plain");
+		binmode STDOUT;
+		print "Access Denied";
+	}
+
+}

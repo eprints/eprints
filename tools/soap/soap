@@ -1,0 +1,736 @@
+#!/usr/bin/perl -w -I/opt/eprints3/perl_lib 
+
+use EPrints;
+use Data::Dumper;
+
+use strict;
+my $session = new EPrints::Session;
+exit( 0 ) unless( defined $session );
+
+my $POSTDATA = $session->param( "POSTDATA" );
+my $xPOSTDATA=<<END;
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="http://devel.eprints.org/EPrints/WebServices" xmlns:types="http://devel.eprints.org/EPrints/WebServices/encodedTypes" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <soap:Body soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+    <tns:echo>
+      <inputString xsi:type="xsd:string">hello</inputString>
+      <stringDuplicationCount xsi:type="xsd:int">2</stringDuplicationCount>
+    </tns:echo>
+  </soap:Body>
+</soap:Envelope>
+END
+
+my $doc = EPrints::XML::parse_xml_string( $POSTDATA );
+if( !defined $doc )
+{
+	EPrints::abort( "No SOAP request block." );
+}
+my $dom = $doc->getDocumentElement;
+print STDERR "\n\n". $doc->toString."\n\n";
+my @bodys = $dom->getElementsByTagNameNS( "http://schemas.xmlsoap.org/soap/envelope/", "Body" );
+my $body = $bodys[0];
+print STDERR "\n\n";
+$session->send_http_header( content_type=>"text/xml" );
+
+my $response = '<soap:Envelope 
+	xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" 
+	xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance" 
+	xmlns:xsd="http://www.w3.org/1999/XMLSchema" 
+>';
+$response.= '<soap:Body>';
+my $action = $body->getFirstChild;
+my $map = {};
+foreach my $kid ( $body->getChildNodes )
+{
+
+	if( EPrints::XML::is_dom($kid,"Element") && $kid->hasAttribute( "id" ) )
+	{
+		my $id = $kid->getAttribute( "id" );
+		print STDERR "mapping:$id\n";
+		$map->{$id} = $kid;
+	}
+}
+
+my $tn = (split( ":",$action->getTagName))[-1];
+my $params = unsoap( $action, $map );
+print STDERR Dumper( $params );
+print STDERR "-$ttargetNamespacen\n";
+my $result;
+# hacky hole!
+$tn=~s/[^a-z]//gi;
+
+$result = echo($session,$params) if( $tn eq "echo" );
+
+$result = getEprint($session,$params) if( $tn eq "getEprint" );
+$result = getEprintFiles($session,$params) if( $tn eq "getEprintFiles" );
+$result = putEprint($session,$params) if( $tn eq "putEprint" );
+$result = modifyEprint($session,$params) if( $tn eq "modifyEprint" );
+$result = removeEprint($session,$params) if( $tn eq "removeEprint" );
+
+$result = addDocument($session,$params) if( $tn eq "addDocument" );
+$result = modifyDocument($session,$params) if( $tn eq "modifyDocument" );
+$result = removeDocument($session,$params) if( $tn eq "removeDocument" );
+
+$result = addFile($session,$params) if( $tn eq "addFile" );
+$result = removeFile($session,$params) if( $tn eq "removeFile" );
+
+$result = searchEprint($session,$params) if( $tn eq "searchEprint" );
+
+# devel hard coded <<<<<<<<<<<<<<<<<<<<<<<<<< TODO
+my $ns = "http://devel.eprints.org/EPrints/WebServices";
+$tn.= "Output";
+$response.= '<'.$tn.' xmlns="'.$ns.'">';
+$response.= $result->toString if defined $result;
+$response.= '</'.$tn.'>';
+
+$response.= '</soap:Body>';
+$response.= '</soap:Envelope>';
+
+print $response;
+open( TMP, ">/tmp/lastsoap.xml" ) ||die"can't write to lastsoap.xml";
+print TMP "Request\n\n";
+print TMP $doc->toString."\n\n";
+print TMP "Reesponse\n\n";
+print TMP $response;
+print TMP "\n";
+close TMP;
+
+$session->terminate;
+my $null = <<END;
+<soap:Envelope 
+	xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" 
+	xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance" 
+	xmlns:xsd="http://www.w3.org/1999/XMLSchema" 
+  <soap:Body>
+    <namesp1:searchEprint xmlns:namesp1="http://devel.eprints.org/EPrints/WebServices">
+      <varr xmlns:pm="http://devel.eprints.org/EPrints/WebServices" xsi:type="SOAP-ENC:Array" SOAP-ENC:arrayType="namesp2:SearchField[1]">
+        <item xsi:type="namesp2:SearchField">
+          <fields xsi:type="SOAP-ENC:Array" SOAP-ENC:arrayType="xsd:string[1]">
+            <item xsi:type="xsd:string">title</item>
+          </fields>
+          <value xsi:type="xsd:string">man</value>
+        </item>
+      </varr>
+    </namesp1:searchEprint>
+  </soap:Body>
+</soap:Envelope>
+END
+exit;
+
+sub unsoap
+{
+	my( $thing,$map ) = @_;
+
+	#my $type = $thing->getAttributeNS( "http://www.w3.org/1999/XMLSchema-instance", "type" );
+	my $type = $thing->getAttribute( "type" );
+	my $href = $thing->getAttribute( "href" );
+	my $name = $thing->getName();
+
+	if( $href =~ m/^#(.*)$/ )
+	{
+		print STDERR "Looking up: $1\n";
+		my $newnode = $map->{$1};
+		print STDERR "NEW:$newnode\n";
+		return unsoap( $newnode, $map );
+	}
+#print STDERR "Unsoap:\n".$thing->toString."\ntype:$type\n\n";
+print STDERR "$type...\n";
+
+	if( $type eq "xsd:string" )
+	{
+		return unsoap_string( $thing );
+	}
+
+	if( $type eq "xsd:base64Binary" )
+	{
+		return unsoap_base64( $thing );
+	}
+
+	if( $type eq "xsd:int" )
+	{
+		return unsoap_string( $thing )+0;
+	}
+
+	if( $name =~ m/:Array$/ )
+	{
+print STDERR "Probably array:$type\n";
+		return unsoap_array( $thing, $map );
+	}
+print STDERR "Probably hash:$type\n";
+	return unsoap_hash( $thing, $map );
+}
+
+sub unsoap_base64
+{
+	my( $thing ) = @_;
+
+	my $string = unsoap_string( $thing );
+
+	# decode
+
+	return $string;
+}
+
+sub unsoap_string
+{
+	my( $thing ) = @_;
+
+	my @elements = $thing->getChildNodes;
+	my @parts = ();
+	foreach my $element ( @elements ) 
+	{
+		my $value = $element->toString;
+		push @parts, $value; # unicode?
+	}
+	return join( "", @parts );
+}
+
+sub unsoap_array
+{
+	my( $thing, $map ) = @_;
+
+	my @elements = $thing->getChildNodes;
+	my $array = [];
+	foreach my $element ( @elements ) 
+	{
+		my $value = unsoap( $element, $map );
+		push @{$array}, $value;
+	}
+	return $array;
+}
+
+sub unsoap_hash
+{
+	my( $thing, $map ) = @_;
+
+	my @elements = $thing->getChildNodes;
+	my $hash = {};
+	foreach my $element ( @elements ) 
+	{
+		my $key = (split( ":",$element->getTagName))[-1];
+		my $value = unsoap( $element, $map );
+		$hash->{$key} = $value;	
+	}
+	return $hash;
+}
+
+
+sub echo
+{
+	my( $session, $params ) = @_;
+
+	my $count = $params->{stringDuplicationCount} || 1;
+	my $result = $params->{inputString} x $count;
+
+	my $return = $session->make_element( "return" );
+	$return->appendChild( $session->make_text( $result ) );
+	return $return;
+}
+
+
+sub modifyEprint
+{
+	my( $session, $params ) = @_;
+
+	my $repository = $session->get_repository;
+	my $dataset = $repository->get_dataset( 'eprint' ); 
+	my $eprint = $dataset->get_object( $session, $params->{eprintID} );
+	
+	if( !defined $eprint )
+	{
+		$session->terminate;
+		die "eprint $params->{eprintID} does not exist";
+	}
+	foreach( keys %{$params->{eprint}} )
+	{
+		next if( $_ eq "documents" );
+		$eprint->set_value( $_, $params->{eprint}->{$_} );
+	}
+	$eprint->commit;
+
+	$eprint->generate_static;
+		
+	return;
+}
+
+
+sub modifyDocument
+{
+	my( $session, $params ) = @_;
+
+	my $repository = $session->get_repository;
+	my $dataset = $repository->get_dataset( 'document' ); 
+	my $document = $dataset->get_object( $session, $params->{documentID} );
+	
+	if( !defined $document )
+	{
+		$session->terminate;
+		die "document $params->{documentID} does not exist";
+	}
+
+	foreach( keys %{$params->{document}} )
+	{
+		next if( $_ eq "files" );
+		$document->set_value( $_, $params->{document}->{$_} );
+	}
+	$document->commit;
+
+	$document->get_eprint->generate_static;
+		
+	return;
+}
+
+
+sub removeDocument
+{
+	my( $session, $params ) = @_;
+
+	my $repository = $session->get_repository;
+	my $dataset = $repository->get_dataset( 'document' ); 
+	my $document = $dataset->get_object( $session, $params->{documentID} );
+	
+	if( !defined $document )
+	{
+		$session->terminate;
+		die "document $params->{documentID} does not exist";
+	}
+	if( !$document->remove )
+	{
+		$session->terminate;
+		die "failed to remove document";
+	}
+	$document->get_eprint->generate_static;
+		
+	return; 
+}
+
+sub addFile
+{
+	my( $session, $params ) = @_;
+
+	my $repository = $session->get_repository;
+	my $dataset = $repository->get_dataset( 'document' ); 
+	my $document = $dataset->get_object( $session, $params->{documentID} );
+	
+	if( !defined $document )
+	{
+		$session->terminate;
+		die "document $params->{documentID} does not exist";
+	}
+	my $filename = $params->{filename};
+	if( $filename =~ m#[\?\*\ \t\/]# )
+	{
+		$session->terminate;
+		die "$filename contains illegal characters";
+	}
+	unless( open( FH, ">".$document->local_path."/".$filename ) )
+	{
+		$session->terminate;
+		die "Could not add $filename: $!";
+	}
+	print FH $params->{data};
+	close FH;
+
+	$document->get_eprint->generate_static;
+	$document->files_modified;
+
+	return;
+}
+
+sub removeFile
+{
+	my( $session, $params ) = @_;
+
+	my $repository = $session->get_repository;
+	my $dataset = $repository->get_dataset( 'document' ); 
+	my $document = $dataset->get_object( $session, $params->{documentID} );
+	if( !defined $document )
+	{
+		$session->terminate;
+		die "document $params->{documentID} does not exist";
+	}
+	my $filename = $params->{filename};
+	if( $filename =~ m#[\?\*\ \t\/]# )
+	{
+		$session->terminate;
+		die "$filename contains illegal characters";
+	}
+	unless( $document->remove_file( $filename ) )
+	{
+		$session->terminate;
+		die "Could not remove $filename: $!";
+	}
+		
+	$document->get_eprint->generate_static;
+
+	return;
+}
+
+sub removeEprint
+{
+	my( $session, $params ) = @_;
+
+	print STDERR "remove_eprint(".join(",",@_).")\n";
+
+	my $repository = $session->get_repository;
+	my $dataset = $repository->get_dataset( 'eprint' ); 
+	my $eprint = $dataset->get_object( $session, $params->{eprintID} );
+	if( !defined $eprint )
+	{
+		$session->terminate;
+		die "eprint $params->{eprintID} does not exist";
+	}
+	$eprint->remove;
+
+	return;
+}
+	
+
+sub getEprintFiles
+{
+	my( $session, $params ) = @_;
+
+	return getEprint( $session, $params, 1 );
+}
+	
+sub getEprint
+{
+	my( $session, $params, $whole_files ) = @_;
+
+	if( !defined $whole_files || $whole_files != 1 ) { $whole_files = 0; }
+	#$whole_files = 0;# hack!
+
+	my $repository = $session->get_repository;
+	my $dataset = $repository->get_dataset( 'eprint' ); 
+	my $eprint = $dataset->get_object( $session, $params->{eprintID} );
+	if( !defined $eprint )
+	{
+		$session->terminate;
+		die "eprint $params->{eprintID} does not exist";
+	}
+	return object_to_soap( $eprint, $whole_files );
+}
+
+# takes eprints data, returns an eprintid
+sub putEprint
+{
+	my( $session, $p ) = @_;
+
+	print STDERR "put_eprint(".join(",",@_).")\n";
+	my $data = clone( $p->{eprint} );
+
+	$data->{type} = "article" unless defined $data->{type};
+	$data->{userid} = 1;
+
+	my $eprint_ds = $session->dataset( "inbox" );
+	my $document_ds = $session->dataset( "document" );
+	my $eprint = $eprint_ds->create_object( $session, $data );
+	if( !defined $eprint ) 
+	{
+		die "Failed to create eprint";
+	}
+
+	foreach my $doc_data ( @{$data->{documents}} )
+	{
+		$doc_data->{eprintid} = $eprint->get_id;
+		my $files = delete $doc_data->{files};
+		my $doc = $document_ds->create_object( $session, $doc_data );
+		
+		foreach my $filedata ( @{$files} )
+		{
+			my $fn = $doc->local_path."/".$filedata->{filename};
+			open( FILE, ">$fn" ) || die "can't write file $fn: $!";
+			print FILE $filedata->{data};
+			close FILE;
+		}
+	}
+
+
+	my $id = $eprint->get_id;
+	$eprint->generate_static;
+
+	my $eprintID = $session->make_element( "eprintID", "xsi:type"=>"xsd:string" );
+	$eprintID->appendChild( $session->make_text( $id ) );
+	return $eprintID;
+}
+
+sub addDocument
+{
+	my( $session, $params ) = @_;
+
+	my $repository = $session->get_repository;
+	my $dataset = $repository->get_dataset( 'eprint' ); 
+	my $eprint = $dataset->get_object( $session, $params->{eprintID} );
+	if( !defined $eprint )
+	{
+		$session->terminate;
+		die "eprint $params->{eprintID} does not exist";
+	}
+
+	my $document_ds = $session->dataset( "document" );
+
+	$params->{document}->{eprintid} = $eprint->get_id;
+	my $files = delete $params->{document}->{files};
+	my $doc = $document_ds->create_object( $session, $params->{document} );
+	
+	foreach my $filedata ( @{$files} )
+	{
+		my $fn = $doc->local_path."/".$filedata->{filename};
+		open( FILE, ">$fn" ) || die "can't write file $fn: $!";
+		print FILE $filedata->{data};
+		close FILE;
+	}
+
+	my $id = $doc->get_id;
+	$eprint->generate_static;
+	
+	my $documentID = $session->make_element( "documentID", "xsi:type"=>"xsd:string" );
+	$documentID->appendChild( $session->make_text( $id ) );
+	return $documentID;
+}
+
+sub searchEprint
+{
+	my( $session, $params ) = @_;
+
+	my $repository = $session->get_repository;
+	my $dataset = $repository->get_dataset( 'archive' ); 
+	my %p = ();
+	my $searchparamlist = $params->{params};
+	$searchparamlist = [] unless defined $searchparamlist;
+	foreach my $pair ( @{$searchparamlist} )
+	{
+		next unless defined $pair->{name};
+		$p{$pair->{name}} = $pair->{value};
+	}
+	# page_size?
+	my %params = (
+		session=>$session,
+		dataset=>$dataset
+	);
+	foreach( qw/ allow_blank satisfy_all custom_order / )
+	{
+		next unless defined $p{$_};
+		$params{$_} = $p{$_};	
+	}
+	my $sexp = new EPrints::Search( %params );
+	foreach my $sf ( @{$params->{searchFields}} )
+	{
+		my @fields = ();
+		foreach my $fieldid ( @{$sf->{fields}} )
+		{
+			# needs a test first!
+			my $field = EPrints::Utils::field_from_config_string( $dataset, $fieldid );
+			push @fields, $field;
+		}
+		$sf->{match} = "IN" unless EPrints::Utils::is_set( $sf->{match} );
+		$sf->{merge} = "ALL" unless EPrints::Utils::is_set( $sf->{merge} );
+print STDERR Dumper( $sf );
+		$sexp->add_field( \@fields, $sf->{value}, $sf->{match}, $sf->{merge} );
+	}
+	my $list = $sexp->perform_search;
+
+	my $host = $repository->get_conf( "base_url" );
+	my $results = $session->make_element( "results", "xmlns:eprints"=>"$host/EPrints/WebServices" );
+	$list->map( sub {
+		my( $session, $dataset, $item ) = @_;
+		$results->appendChild( object_to_soap( $item, 0 ) );
+	} );
+	$list->dispose;	
+
+	return $results;
+}
+	
+
+
+
+sub object_to_soap
+{
+	my( $obj, $whole_files ) = @_;
+
+	my $data = EPrints::Utils::clone( $obj->get_data );
+
+	my $datasetid = $obj->get_dataset->confid;
+	my $session = $obj->get_session;
+
+	my $host = $obj->get_session->get_repository->get_conf( "base_url" );
+	my $soaped_obj = $session->make_element( $datasetid, "xmlns:eprints"=>"$host/EPrints/WebServices" );
+
+	if( $datasetid eq "eprint" )
+	{
+		my @docs = $obj->get_all_documents;
+		my $documents = $session->make_element( "documents" );
+		foreach my $doc ( @docs )
+		{
+			$documents->appendChild( object_to_soap( $doc, $whole_files ) );
+		}
+		$soaped_obj->appendChild( $documents );	
+	}
+
+	if( $datasetid eq "document" )
+	{
+		my %filelist = $obj->files;
+		my $files = $session->make_element( "documents" );
+		foreach my $filename ( keys %filelist )
+		{
+			my $item = $session->make_element( "item", "xsi:type"=>"eprints:DocumentFilesItem" );
+	
+			my $filename_el = $session->make_element( "filename", "xsi:type"=>"xsd:string" );
+			$filename_el->appendChild( $session->make_text( $filename ) );
+			$item->appendChild( $filename_el );
+
+			my $filesize_el = $session->make_element( "filesize", "xsi:type"=>"xsd:string" );
+			$filesize_el->appendChild( $session->make_text( $filelist{$filename} ) );
+			$item->appendChild( $filesize_el );
+
+			my $url_el = $session->make_element( "url", "xsi:type"=>"xsd:string" );
+			$url_el->appendChild( $session->make_text( $obj->get_url( $filename ) ) );
+			$item->appendChild( $url_el );
+
+			if( $whole_files )
+			{
+				my $file = $obj->local_path."/".$filename;
+				open( FH, $file ) || die "file '$file' read error: $!";
+				close FH;
+
+				my $data_el = $session->make_element( "data", "xsi:type"=>"xsd:string" );
+				$data_el->appendChild( $session->make_text( $data ) );
+				$item->appendChild( $data_el );
+			}
+			$files->appendChild( $item );
+		}	
+		$soaped_obj->appendChild( $files );	
+	}
+
+	foreach my $field ( $obj->get_dataset->get_fields )
+	{
+		my $fname = $field->get_name;
+		$soaped_obj->appendChild( soapy_field( $session, $field, $data->{$fname} ) );
+	}
+
+	return $soaped_obj;
+}
+
+sub soapy_field
+{
+	my( $session, $field, $value ) = @_;
+
+	my $fname = $field->get_name;
+
+	if( $field->get_property( "multiple" ) )
+	{
+		my $itemtype = xsd_type_item( $field );
+		$value = [] if( !defined $value );
+		#my $arraytype=$itemtype."[".(scalar @{$value})."]";
+		my $soaped = $session->make_element( $fname );
+		foreach my $v ( @{$value} )
+		{
+			my $item = $session->make_element( "item", "xsi:type"=>$itemtype );
+			$item->appendChild( soapy_value( $session, $field, $v ) );
+			$soaped->appendChild( $item );
+		}
+		return $soaped;
+	}
+
+	my $f = $session->make_element( $fname, "xsi:type"=>xsd_type_single( $field ) );
+	$f->appendChild( soapy_value( $session, $field, $value ) );
+	return $f;
+}
+
+sub soapy_value
+{
+	my( $session, $field, $value ) = @_;
+
+	if( $field->get_search_group eq "name" )
+	{
+		my $f = $session->make_doc_fragment;
+		foreach my $partid ( qw/ family given honouricic lineage / )
+		{
+			my $p = $session->make_element( $partid, "xsi:type"=>"xsd:string" );
+			my $string = $value->{$partid} || "";
+			$p->appendChild( $session->make_text( $string ) );
+			$f->appendChild( $p );
+		}
+		return $f;
+	}
+	
+	return $session->make_text( $value );
+}
+
+sub xsd_type_item 
+{
+	my( $field ) = @_;
+
+	my $dsid = $field->get_dataset->confid;
+	my $fn = $field->get_name;
+	$fn =~ s/_([a-z])/\u$1/g;
+	my $name ="eprints:\u$dsid\u$fn";
+
+	return &xsd_type_single( $field, $name."Item" );
+}
+
+sub xsd_type
+{
+	my( $field ) = @_;
+
+	my $dsid = $field->get_dataset->confid;
+	my $fn = $field->get_name;
+	$fn =~ s/_([a-z])/\u$1/g;
+	my $name ="eprints:\u$dsid\u$fn";
+
+	unless( $field->get_property( "multiple" ) )
+	{
+		return &xsd_type_single( $field, $name );
+	}
+
+	return $name;
+}
+
+
+sub xsd_type_single
+{
+	my( $field, $name ) = @_;
+
+	if( $field->get_search_group eq "name" )
+	{
+		return "eprints:NameValue";
+	}
+
+	return( 'xsd:string' );
+}
+
+
+use UNIVERSAL qw(isa);
+sub clone
+{
+	my( $data ) = @_;
+
+	if( ref($data) eq "" )
+	{
+		return $data;
+	}
+	if( isa( $data, "ARRAY" ) )
+	{
+		my $r = [];
+		foreach( @{$data} )
+		{
+			push @{$r}, clone( $_ );
+		}
+		return $r;
+	}
+	if( isa( $data, "HASH" ) )
+	{
+		my $r = {};
+		foreach( keys %{$data} )
+		{
+			$r->{$_} = clone( $data->{$_} );
+		}
+		return $r;
+	}
+
+
+	# dunno
+	return $data;			
+}
+
+

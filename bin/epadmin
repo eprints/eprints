@@ -1,0 +1,3294 @@
+#!/usr/bin/perl -w
+
+use FindBin;
+use lib "$FindBin::Bin/../perl_lib";
+
+######################################################################
+#
+#
+######################################################################
+
+=pod
+
+=for Pod2Wiki
+
+=head1 NAME
+
+B<epadmin> - EPrints repository admin tool
+
+=head1 SYNOPSIS
+
+B<epadmin> I<command> I<repository_id> [B<options>]
+
+Where I<command> is one of:
+
+=over 4
+
+=item cleanup_cachemaps
+
+=item config_core
+
+=item config_db
+
+=item create
+
+=item create_db
+
+=item create_tables
+
+=item create_user
+
+=item erase_data
+
+=item erase_eprints
+
+=item erase_fulltext_index
+
+=item help
+
+=item profile
+
+=item rebuild_triples
+
+=item recommit
+
+=item reorder
+
+=item redo_thumbnails
+
+=item refresh_abstracts
+
+=item refresh_views
+
+=item rehash
+
+=item reindex
+
+=item reload
+
+=item reload_metafields
+
+=item schema
+
+=item set_developer_mode
+
+=item test
+
+=item unit_tests
+
+=item update
+
+=item upgrade
+
+=back
+
+Type I<epadmin help> for further help.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item B<epadmin> create
+
+START HERE! This option will walk you through the tasks needed to create your repository.
+
+=item B<epadmin> test I<repository_id>
+
+A null operation which just checks your configuration files are OK and that you can connect to the database. If no I<repository_id> is specified loads each repository in turn.
+
+=item B<epadmin> cleanup_cachemaps I<repository_id>
+
+Drop any orphaned cache tables.
+
+=item B<epadmin> config_core I<repository_id>
+
+Set hostname, contact email and repository name. 
+
+=item B<epadmin> config_db I<repository_id>
+
+Set database connection properties and, optionally, to create database and database user.
+
+=item B<epadmin> create_db I<repository_id>
+
+Create a database and database user with the current settings.
+
+=item B<epadmin> create_tables I<repository_id>
+
+Create the database tables.
+
+=item B<epadmin> create_user I<repository_id>
+
+Create a new user. You need to do this to create your first admin account.
+
+=item B<epadmin> schema I<repository_id>
+
+Use this to produce a schema for the EP3 XML read/written by your repository. 
+
+=item B<epadmin> erase_fulltext_index I<repository_id>
+
+This erases all the .words and .indexcodes cache files from your repository, forcing the indexer to rerun the tools used to extract full text from your documents.
+
+This is useful if you only setup the fulltext indexing after your repository is already live, or if you discover there has been a problem.
+
+=item B<epadmin> rebuild_triples I<repository_id> [I<dataset_id> [I<item_id> I<item_id> ...]]
+
+Queue all the records to have their RDF triple cache rebuilt. This may tie-up the indexer for some time on a large repository. Do this if you have made changes to the way RDF triples are produced from an EPrint. 
+
+=item B<epadmin> recommit I<repository_id> I<dataset_id> [I<eprint_id> I<eprint_id> ...]
+
+Recommit all the records in the given dataset. What this does is cause the automatic values to be re-calculated. If a list of eprint_ids is given then just recommit those.
+
+=item B<epadmin> reindex I<repository_id> I<dataset_id> [I<eprint_id> I<eprint_id> ...]
+
+Schedule the dataset for reindexing. The indexer will do the actual indexing and it may take some time. This only schedules the reindexing. If a list of eprint_ids is given then just reindex those.
+
+=item B<epadmin> reorder I<repository_id> I<dataset_id> [I<eprint_id> I<eprint_id> ...]
+
+Regenerate the order values for the dataset. If a list of eprint_ids is given then just recalculate ordervalues for those.
+
+=item B<epadmin> rehash I<repository_id> [I<document_id>]
+
+Recalculate the hashes of the files in this document and write it to a probity log file. If a document id is given then just generate the hash for that document.
+
+=item B<epadmin> reload I<repository_id>
+
+Cause the web server to reload the repository configuration.
+
+=item B<epadmin> set_developer_mode I<repository_id> <on|off>
+
+While set to on developer mode causes the web server to reload the repository configuration on every page request. This makes development much quicker but must not be left switched on in a production environment since it increases server load dramatically.
+
+=item B<epadmin> refresh_views I<repository_id>
+
+Tell the webserver that all views pages must be regenerated. The webserver will update them next time they are requested. Also causes config to be reloaded.
+
+=item B<epadmin> refresh_abstracts I<repository_id>
+
+Tell the webserver that all abstract summary pages must be regenerated. The webserver will update them next , but won't update them again unless something on the EPrint changes or you re-run refresh abstracts. Also causes config to be reloaded.
+
+=item B<epadmin> redo_thumbnails I<repository_id> [ I<eprintid>, ... ]
+
+Regenerate all the thumbnail and image-preview files and any other things which
+are triggered if the document file changed. Optionally supply a list of eprint
+ids to re-generate thumbnails for.
+
+=item B<epadmin> reload_metafields I<repository_id>
+
+Reload the metafields dataset, based on the current configuration.
+
+=item B<epadmin> erase_data I<repository_id>
+
+Erases and recreates the database. Removes all documents and files. Does not touch the configuration files.
+
+=item B<epadmin> erase_eprints I<repository_id>
+
+Erases all the documents and eprints (including their files). Recreates the eprint and document tables. Leaves configuration files and the users and subjects tables alone.
+
+=item B<epadmin> unit_tests
+
+Run unit tests, printing the results to STDOUT. If everything passed will exit
+with a return code of 0.
+
+=item B<epadmin> profile I<test>
+
+Run a performance profile of I<test> using L<Devel::NYTProf>.
+
+=item B<epadmin> remove_field I<repository_id> I<dataset> I<field_id>
+
+Remove the database entries for the given field, can not be undone!
+
+=item B<epadmin> update I<repository_id>
+
+This will add tables and columns to your SQL database to bring it in-line with your current configuration. It will not remove data. Use with caution on a live database. Database backup is recommended befire use on live systems.
+
+=item B<epadmin> upgrade I<repository_id>
+
+After upgrading EPrints, use this to update the database tables. It will advise any other tasks that are required.
+
+=item B<epadmin> --help
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--quiet>
+
+This option does not do anything.
+
+=item B<--verbose>
+
+Explain in detail what is going on. May be repeated for greater effect.
+
+=item B<--force>
+
+Be more forceful (don't ask for confirmation).
+
+=item B<--version>
+
+Output version information and exit.
+
+=back   
+
+
+=cut
+
+#cjg Does not use noise levels
+
+
+use EPrints;
+
+use Sys::Hostname;
+use DBI;
+use Data::Dumper;
+use File::Path;
+
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+my $version = 0;
+my $force = 0;
+
+Getopt::Long::Configure("permute");
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'quiet' => \$quiet,
+	'force' => \$force,
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "epadmin" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV == 0 ); 
+
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+my $REGEXP_HOSTNAME_MIDDLE = '[a-z0-9-]+(\.[a-z0-9-]+)*';
+my $REGEXP_HOSTNAME = '^'.$REGEXP_HOSTNAME_MIDDLE.'$';
+my $REGEXP_EMAIL = '^[^@]+@'.$REGEXP_HOSTNAME_MIDDLE.'$';
+my $REGEXP_HOSTNAME_FULL = '^[a-z0-9-]+(\.[a-z0-9-]+)*$';
+my $REGEXP_VARNAME = '^[a-zA-Z][_A-Za-z0-9]*$';
+my $REGEXP_NUMBER = '^[0-9]+$';
+my $REGEXP_YESNO = '^(yes|no)$';
+my $REGEXP_ANY = '^.*$';
+my @PASSWORD_CHARS = ( 'a'..'z','A'..'Z','0'..'9' );
+
+my $eprints = EPrints->new();
+
+my $action = shift @ARGV;
+if( $action eq "create" ) { create(); }
+elsif( $action eq "test" ) { test( @ARGV ); }
+elsif( $action eq "unit_tests" ) { unit_tests( @ARGV ); }
+elsif( $action eq "profile" ) { profile( @ARGV ); }
+else
+{
+	my $repoid = shift @ARGV;
+	pod2usage(1) unless defined $repoid;
+	if( $action eq "cleanup_cachemaps" ) { cleanup_cachemaps( $repoid ); }
+	elsif( $action eq "config_core" ) { config_core( &repository($repoid) ); }
+	elsif( $action eq "config_db" ) { config_db( $repoid ); }
+	elsif( $action eq "database_type_info" ) { database_type_info( $repoid ); }
+	elsif( $action eq "create_db" ) { create_db( $repoid ); }
+	elsif( $action eq "create_user" ) { create_user( $repoid, @ARGV ); }
+	elsif( $action eq "create_tables" ) { create_tables( $repoid ); }
+	elsif( $action eq "erase_data" ) { erase_data( $repoid ); }
+	elsif( $action eq "erase_eprints" ) { erase_eprints( $repoid ); }
+	elsif( $action eq "erase_fulltext_index" ) { erase_fulltext_index( $repoid ); }
+	elsif( $action eq "reload" ) { reload( $repoid ); }
+	elsif( $action eq "reload_metafields" ) { reload_metafields( $repoid ); }
+	elsif( $action eq "refresh_abstracts" ) { refresh_abstracts( $repoid ); }
+	elsif( $action eq "refresh_views" ) { refresh_views( $repoid ); }
+	elsif( $action eq "redo_thumbnails" ) { redo_thumbnails( $repoid, @ARGV ); }
+	elsif( $action eq "set_developer_mode" ) { set_developer_mode( $repoid, @ARGV ); }
+	elsif( $action eq "upgrade" ) { upgrade( $repoid ); }
+	elsif( $action eq "schema" ) { schema( $repoid ); }
+	elsif( $action eq "update_database_structure" ) { update_database_structure( $repoid ); }
+	elsif( $action eq "update" ) { update_database_structure( $repoid ); }
+	elsif( $action eq "upgrade_mysql_charset" ) { upgrade_mysql_charset( $repoid ); }
+	elsif( $action eq "rebuild_triples" ) { rebuild_triples( $repoid, @ARGV ); }
+	elsif( $action eq "recommit" ) 
+	{
+		my $datasetid = shift @ARGV;
+		pod2usage(1) unless defined $datasetid;
+		recommit( $repoid, $datasetid, @ARGV );
+	}
+	elsif( $action eq "reindex" ) 
+	{
+		my $datasetid = shift @ARGV;
+		pod2usage(1) unless defined $datasetid;
+		reindex( $repoid, $datasetid, @ARGV );
+	}
+	elsif( $action eq "reorder" )
+	{
+		my $datasetid = shift @ARGV;
+		pod2usage(1) unless defined $datasetid;
+		reorder( $repoid, $datasetid, @ARGV );
+	}
+	elsif( $action eq "rehash" ) { rehash( $repoid, @ARGV ); }
+	elsif( $action eq "upgrade_add_files" ) { upgrade_add_files( $repoid, @ARGV ) }
+	elsif( $action eq "remove_field" ) { remove_field( $repoid, @ARGV ); }
+	else { pod2usage( 1 ); }
+}
+
+
+exit;
+
+sub repository
+{
+	my( $repoid, %opts ) = @_;
+
+	return $repoid if ref($repoid) && $repoid->isa( "EPrints::Repository" );
+
+	my $repo = $eprints->repository( $repoid, noise => $noise, %opts );
+	if( !defined $repo )
+	{
+		print STDERR "Failed to load repository: $repoid\n";
+		exit 1;
+	}
+
+	return $repo;
+}
+
+sub create
+{
+	pod2usage( 2 ) if( scalar @ARGV != 0 ); 
+
+	my $system = EPrints::System->new;
+
+	print <<END;
+
+Create an EPrint Repository
+
+Please select an ID for the repository, which will be used to create a directory
+and identify the repository. Lower case letters and numbers, may not start with
+a number. examples: "lemurprints" or "test3"
+
+END
+	if( scalar EPrints::Config::get_repository_ids() )
+	{
+		print "Existing repositories:\n";
+		print join( ", ", EPrints::Config::get_repository_ids() )."\n\n";
+	}
+
+	my $repoid = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Archive ID' );
+
+	my $repodir = EPrints::Config::get( "base_path" )."/archives/".$repoid;
+
+	my $loaded_config = EPrints::Config::get_repository_config( $repoid );		
+	my $exists = ( defined $loaded_config );
+
+	if( $exists )
+	{
+		print "A repository with that ID already exist.\n";
+		exit;	
+	}
+
+	unless( -e $repodir )
+	{
+		print "We need to create $repodir, doing it now...\n";
+		unless( $system->mkdir( $repodir ) )
+		{
+			print "Problem creating directory\n\n";
+			exit;
+		}
+	}
+	unless( -d $repodir )
+	{	
+		print "$repodir MUST be a directory.\n\n";
+	}
+
+	print "\nCreating initial files:\n";
+	&install( 
+		$system,
+		EPrints::Config::get( "base_path" )."/lib/defaultcfg",
+		$repodir."/cfg" );
+
+	foreach( "cgi", "var", "html", "documents", "documents/disk0" )
+	{
+		$system->mkdir( "$repodir/$_" );
+	}
+	print <<END;
+
+Ok. I've created the initial config files and directory structure. 
+I've also created a "disk0" directory under documents/ if you want
+your full texts to be stored on a different partition then remove 
+the disk0, and create a symbolic link to the directory you wish to
+store the full texts in. Additional links may be placed here to be
+used when the first is full.
+
+END
+	print "\n";
+
+	EPrints::Config::init(); # rescan repositories
+
+	my $config_core = EPrints::Utils::get_input( $REGEXP_YESNO, "Configure vital settings?", "yes" );
+	if( $config_core eq "yes" )
+	{
+		config_core( $repoid );	
+	}
+	else
+	{
+		print "OK, but you'll need to edit 10_core.pl by hand in that case.\n";
+	}
+
+	print "\n";
+	my $config_db = EPrints::Utils::get_input( $REGEXP_YESNO, "Configure database?", "yes" );
+	if( $config_db eq "yes" )
+	{
+		config_db( $repoid );	
+	}
+	else
+	{
+		print "OK, but you'll need to edit database.pl by hand in that case, and make sure the database exists.\n";
+	}
+
+
+	print "\n";
+	my $create_user = EPrints::Utils::get_input( $REGEXP_YESNO, "Create an initial user?", "yes" );
+	if( $create_user eq "yes" )
+	{
+		create_user( $repoid );	
+	}
+	else
+	{
+		print "OK, but you will not be able to log into the website. You can always run 'epadmin create_user $repoid' later.\n"
+	}
+# cjg: Register with website!
+
+	my $ok;
+	$ok = EPrints::Utils::get_input( $REGEXP_YESNO, "Do you want to build the static web pages?", "yes" );
+	if( $ok eq "yes" )
+	{
+		run_script( $repoid, "generate_static", "--verbose", $repoid );	
+	}
+
+	$ok = EPrints::Utils::get_input( $REGEXP_YESNO, "Do you want to import the LOC subjects?", "yes" );
+	if( $ok eq "yes" )
+	{
+		run_script( $repoid, "import_subjects", "--verbose", "--force", $repoid );	
+	}
+
+	$ok = EPrints::Utils::get_input( $REGEXP_YESNO, "Do you want to update the apache config files? (you still need to add the 'Include' line)", "yes" );
+	if( $ok eq "yes" )
+	{
+		run_script( $repoid, "generate_apacheconf", "--verbose" );
+	}
+
+	my $base_path = EPrints::Config::get( "base_path" );
+print <<END;
+
+--------------------------------------------------------------------------
+That seemed to more or less work...
+--------------------------------------------------------------------------
+
+Now make any required changes to the cfg files. 
+
+Note that changing the metadata configuration may require the database
+tables to be regenerated. epadmin erase_data will regenerate the 
+eprints and documents tables only. erase_data will regenerate everything.
+(nb. these also do erase the contents of the tables, and any uploaded 
+files).
+
+Make sure that your main apache config file contains the line:
+
+ Include $base_path/cfg/apache.conf
+
+Then stop and start your webserver:
+Often:
+ /etc/rc.d/init.d/httpd stop
+ /etc/rc.d/init.d/httpd start
+(or maybe /usr/local/apache/bin/apachectl stop & start)
+
+And then try connecting to your repository.
+--------------------------------------------------------------------------
+
+Don't forget to register your repository at http://roar.eprints.org/
+
+END
+
+exit;
+
+}
+
+	
+# don't be fooled. This isn't the same as the install() in
+# eprints-install
+sub install
+{
+	my($system, $dir, $dest) = @_;
+
+	print "Installing: $dest\n";
+	$system->mkdir( $dest );
+
+	opendir(my $dh, $dir) or die("Unable to install directory: $dir");
+	while(my $fn = readdir($dh))
+	{
+		next if $fn =~ m/^\./;
+		if( -d "$dir/$fn" )
+		{
+			install($system, "$dir/$fn", "$dest/$fn");
+		}
+		elsif( -f "$dir/$fn" )
+		{
+			EPrints::Utils::copy( "$dir/$fn", "$dest/$fn" );
+			$system->chown_for_eprints( "$dest/$fn" );
+		}
+	}
+	closedir($dh);
+}
+
+sub run_script
+{
+	my( $repoid, $script, @opts ) = @_;
+
+	my $dir = EPrints::Config::get( "bin_path" );
+	Carp::croak "Fatal! bin_path not defined"
+		if !defined $dir;
+	my $path = "$dir/$script";
+	Carp::croak "Fatal! Wanted to execute $path, but it doesn't exist"
+		if !-e $path;
+
+	system( 'perl', $path, @opts );
+}
+
+sub cleanup_cachemaps
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	my $c = $repo->database->drop_orphan_cache_tables;
+
+	if( $c == 0 )
+	{
+		$repo->log( "No orphaned cache tables found" );
+	}
+}
+
+sub config_core
+{
+	my( $repo ) = @_;
+
+	my $repoid = ref($repo) ? $repo->get_id : $repo;
+
+	print "Core configuration for $repoid\n\n";
+
+	my %config = ();
+
+	$config{port} = 80;
+	$config{host} = undef;
+	$config{archiveroot} = "archives/".$repoid;
+	$config{aliases} = [];
+	$config{securehost} = undef;
+	$config{secureport} = 443;
+	$config{http_root} = "";
+
+	$config{adminemail} = undef;
+
+	$config{archive_name} = "Test Repository";
+
+	if( ref($repo) )
+	{
+		for(qw( port host aliases securehost secureport adminemail http_root ))
+		{
+			$config{$_} = $repo->config( $_ );
+		}
+		$config{archive_name} = $repo->phrase( "archive_name" );
+	}
+
+print <<END;
+
+Please enter the fully qualified hostname of the repository. 
+
+For a production system we recommend against using the real hostname of the 
+machine. 
+
+Example: $repoid.footle.ac.uk
+
+END
+
+	HOSTNAME:
+	$config{host} = EPrints::Utils::get_input( $REGEXP_HOSTNAME_FULL, 'Hostname', $config{host} );
+
+	if( $config{host} eq "localhost" || $config{host} =~ /^\d{1,3}(.\d{1,3}){3}$/ )
+	{
+		print "Warning! Some browsers don't support setting cookies on 'localhost' or IP-addresses, please provide a different hostname.\n";
+		undef $config{host};
+		goto HOSTNAME;
+	}
+
+print <<END;
+
+Please enter the port of the webserver. This is probably 80, but you may wish 
+to run apache on a different port if you are experimenting.
+
+END
+
+	$config{port} = EPrints::Utils::get_input( $REGEXP_NUMBER, 'Webserver Port', $config{port} );
+
+
+	# calculate example aliases
+	my $realhostname = hostname();
+	if( $realhostname !~ m/\./ )
+	{
+		# No dots in the actual hostname! Lets try and got the
+		# domain from resolv.conf
+		my $domain = "";
+		if( open( RESOLV, "/etc/resolv.conf" ) && 0)
+		{
+			while( <RESOLV> )
+			{
+				if( m/^search\s+([^\s]+)/ )
+				{
+					$domain = $1;	
+					last;
+				}
+			}
+			close RESOLV;
+		}
+		$domain = "mydomain.com" if( $domain eq "" );
+		$realhostname.=".".$domain;
+	}
+	my @example_aliases = ();
+	push @example_aliases,$realhostname;
+	
+	$realhostname=~m/^(([^\.]*)\.[^\.]*)(\.|$)?/;
+	push @example_aliases,$1 if( $3 eq ".");
+	push @example_aliases,$2;
+	
+	$config{host}=~m/^(([^\.]*)\.[^\.]*)(\.|$)?/;
+	push @example_aliases,$1 if( $3 eq "." );
+	push @example_aliases,$2;
+	print <<END;
+	
+Please enter all the aliases which could reach the repository, and indicate if 
+you would like EPrints to write a Redirect Rule to redirect requests to this
+alias to the correct URL.
+END
+	if( scalar @{$config{aliases}}==0 )
+	{
+		print "Some suggestions:\n";
+		foreach( @example_aliases )
+		{
+			print $_."\n";
+		}
+	}
+	print <<END;
+	
+Enter a single hash (#) when you're done.
+
+END
+
+	my @aliases = @{$config{aliases}};
+	$config{aliases} = [];
+
+	for(;;)
+	{
+		my $default = shift @aliases;
+		my $alias = EPrints::Utils::get_input( '^('.$REGEXP_HOSTNAME_MIDDLE.'|#)$', 'Alias (enter # when done)',
+			(defined $default ? $default->{name} : '#' ) );
+		last if( $alias eq "#" );
+		my $aliasrecord = {};
+		$aliasrecord->{name} = $alias;
+		$aliasrecord->{redirect} = 
+			EPrints::Utils::get_input( 
+				$REGEXP_YESNO,
+				"Redirect $alias to $config{host}",
+				(defined $default && !$default->{redirect} ? 'no' : 'yes' ) );
+		push @{$config{aliases}},$aliasrecord;
+		print "\n";
+	}
+
+	print <<END;
+	
+Please enter the path part of the repository's base URL. This should probably
+be '/'.
+
+END
+	$config{http_root} .= "/" if defined $config{http_root};
+	$config{http_root} = EPrints::Utils::get_input( '.*', 'Path', $config{http_root} );
+	$config{http_root} =~ s! ^/? !/!x;
+	$config{http_root} =~ s! /$ !!x;
+	$config{http_root} = undef if $config{http_root} eq "";
+
+	print <<END;
+
+If you will use https for your user pages (including login) enter the https hostname
+here, or leave blank when using http only.
+
+END
+
+	$config{securehost} = EPrints::Utils::get_input( "^\$|$REGEXP_HOSTNAME_FULL", 'HTTPS Hostname', $config{securehost}||"" );
+
+	if( $config{securehost} )
+	{
+		print <<END;
+
+Please enter the port of your secure (https) server. This is probably 443.
+
+END
+
+		$config{secureport} = EPrints::Utils::get_input( $REGEXP_NUMBER, 'Secure Webserver Port', $config{secureport} );
+	}
+
+#print <<END;
+#
+#Language Configuration
+#
+#Please enter the primary language and other supported languages for the 
+#repository. Supporting other languages represents a serious commitment to 
+#translate all the phrases and templates etc. into each of these other 
+#languages.
+#
+#Available languages: (please use the ID to refer to them)
+#END
+#my @langs = EPrints::Config::get_supported_languages();
+#foreach( @langs )
+#{
+#	my $title = utf8("");
+#	$title->utf8( "".EPrints::Config::lang_title( $_ ) );
+#	print $_." - ".($title->latin1)."\n";
+#}
+#print <<END;
+#
+#If you plan to add support for another language, you will need to edit the 
+#languages.xml file to indicate that this language is supported, and create 
+#the relevant phrase and template files. 
+#
+#END
+
+	print "\n";
+	print "\n";
+
+	$config{adminemail} = EPrints::Utils::get_input( $REGEXP_EMAIL, 'Administrator Email',  $config{adminemail} );
+	print <<END;
+
+Enter the name of the repository in the default language. If you wish to enter 
+other titles for other languages or enter non ascii characters then you may
+enter something as a placeholder and edit the XML config file which this
+script generates.
+
+END
+	$config{archive_name} = EPrints::Utils::get_input( '^.+$', 'Archive Name',  $config{archive_name} );
+
+	# Write files?
+
+	print "\n";
+	my $config_core = EPrints::Utils::get_input( $REGEXP_YESNO, "Write these core settings?", "yes" );
+	if( $config_core eq "no" )
+	{
+		print "\nOK. Not writing after all.\n";
+		return;
+	}
+
+	# Write files!
+
+	my $repodir = EPrints::Config::get( "base_path" )."/archives/".$repoid;
+
+	my $aemailfile = "$repodir/cfg/cfg.d/adminemail.pl";
+	open( AEMAIL, ">$aemailfile" ) || die "Could not write to $aemailfile: $!";
+	print AEMAIL Data::Dumper->Dump(
+		[
+			$config{adminemail}, 
+		],
+		[qw/
+			$c->{adminemail} 
+		/]
+	);
+	close AEMAIL;
+	print "Wrote $aemailfile\n";
+
+	my $corefile = "$repodir/cfg/cfg.d/10_core.pl";
+	open( CORE, ">$corefile" ) || die "Could not write to $corefile: $!";
+	print CORE <<EOF;
+# This file was created by bin/epadmin
+# You can regenerate this file by doing ./bin/epadmin config_core $repoid
+EOF
+	print CORE Data::Dumper->Dump(
+		[
+			$config{host}, 
+			$config{port},
+			$config{aliases},
+			$config{securehost},
+			$config{secureport},
+			$config{http_root},
+		],
+		[qw/
+			$c->{host} 
+			$c->{port} 
+			$c->{aliases} 
+			$c->{securehost} 
+			$c->{secureport} 
+			$c->{http_root}
+		/]
+	);
+	close CORE;
+	print "Wrote $corefile\n";
+
+	my $anamefile = "$repodir/cfg/lang/en/phrases/archive_name.xml";
+	open( ANAME, ">$anamefile" ) || die "Could not write to $anamefile: $!";
+	print ANAME <<END;
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<!DOCTYPE phrases SYSTEM "entities.dtd">
+
+<epp:phrases xmlns="http://www.w3.org/1999/xhtml"
+            xmlns:epp="http://eprints.org/ep3/phrase">
+
+    <epp:phrase id="archive_name">$config{archive_name}</epp:phrase>
+
+</epp:phrases>
+END
+	close( ANAME );
+	print "Wrote $anamefile\n";
+}
+
+sub config_db
+{
+	my( $repoid ) = @_;
+
+	my %config = ();
+	$config{dbname} = $repoid;
+	$config{dbhost} = "localhost";
+	$config{dbport} = undef;
+	$config{dbsock} = undef;
+	$config{dbuser} = $repoid;
+	$config{dbpass} = undef;
+
+	print "\nConfiguring Database for: $repoid\n";
+
+	$config{dbname} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database Name',  $config{dbname} );
+	$config{dbhost} = EPrints::Utils::get_input( $REGEXP_HOSTNAME, 'MySQL Host',  $config{dbhost} );
+
+	print "\nYou probably don't need to set socket and port (unless you do!?).\n";
+	$config{dbport} = "#" if( !defined $config{dbport} );
+	$config{dbport} = EPrints::Utils::get_input( '^[0-9]+|#$', 'MySQL Port (# for no setting)',  $config{dbport} );
+	$config{dbport} = undef if( $config{dbport} eq "#" );
+
+	$config{dbsock} = "#" if( !defined $config{dbsock} );
+	# can't remember what is a legal mysql socket... cjg
+	$config{dbsock} = EPrints::Utils::get_input( '^.*$', 'MySQL Socket (# for no setting)',  $config{dbsock} );
+	$config{dbsock} = undef if( $config{dbsock} eq "#" );
+
+	my $defaultpass = $config{dbpass};
+	if( !defined $config{dbpass} || $config{dbpass} eq "" )
+	{
+		$defaultpass = "";
+		srand;
+		for( 1..8 )
+		{
+			$defaultpass .= $PASSWORD_CHARS[int rand scalar @PASSWORD_CHARS];
+		}
+	}
+	$config{dbuser} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database User',  $config{dbuser} );
+	$config{dbpass} = EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Database Password',  $defaultpass );
+
+	print "\n";
+	my $config_db = EPrints::Utils::get_input( $REGEXP_YESNO, "Write these database settings?", "yes" );
+	if( $config_db eq "no" )
+	{
+		print "\nOK. Not writing after all.\n";
+		return;
+	}
+
+	my $repodir = EPrints::Config::get( "base_path" )."/archives/".$repoid;
+	my $dbfile = "$repodir/cfg/cfg.d/database.pl";
+	open( DBCONF, ">$dbfile" ) || die "Could not write to $dbfile: $!";
+	print DBCONF Data::Dumper->Dump(
+		[
+			$config{dbname}, 
+			$config{dbhost},
+			$config{dbport},
+			$config{dbsock},
+			$config{dbuser},
+			$config{dbpass},
+		],
+		[qw/
+			$c->{dbname} 
+			$c->{dbhost}
+			$c->{dbport}
+			$c->{dbsock}
+			$c->{dbuser}
+			$c->{dbpass}
+		/]
+	);
+	close DBCONF;
+	print "Wrote $dbfile\n";
+
+	print <<END;
+
+EPrints can create the database, and grant the correct permissions.
+	
+END
+	my $makedb = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database \"$config{dbname}\"", "yes" );
+	if( $makedb eq "yes" )
+	{
+		create_db( $repoid );
+	}
+	else
+	{
+		print "\nWell, OK. But you'll need to do it yourself then.\n";
+	}
+
+}
+
+my $mysql_root_password;
+# subroutine so that it can cache if we do several operations
+sub get_mysql_root_password
+{
+	return $mysql_root_password if( defined $mysql_root_password );
+
+	#cjg hide password from display?
+	print <<END;
+
+Ok, I'll need to connect to the mysql database as root. What is the root 
+password? 
+	
+END
+	$mysql_root_password = EPrints::Utils::get_input_hidden( '^.*$', "MySQL Root Password" );
+
+	return $mysql_root_password;
+}
+
+sub root_dbh
+{
+	my( $repoid, $dbname ) = @_;
+
+	my $repo = &repository( $repoid, db_connect => 0 );
+
+	if( !defined $dbname )
+	{
+		$dbname = $repo->config( "dbname" );
+	}
+
+	my $dbh;
+	
+	while( !defined $dbh )
+	{
+		my $password = get_mysql_root_password();
+		print "Connecting to the database...\n";
+		$dbh = DBI->connect(
+			EPrints::Database::build_connection_string(
+				dbname => $dbname,
+				dbsock => $repo->config( "dbsock" ),
+				dbport => $repo->config( "dbport" ),
+				dbhost => $repo->config( "dbhost" ),
+			),
+			"root",
+			$password );
+
+		if( !defined $dbh )
+		{
+			$mysql_root_password = undef;
+			print "\nCould not connect to database: $DBI::errstr\n\n";
+			my $try_again = EPrints::Utils::get_input( $REGEXP_YESNO, "Try again?", "yes" );
+			if( $try_again eq "no" )
+			{
+				exit( 1 );
+			}
+		}
+	}
+
+	return $dbh;
+}
+
+# debug tool to print out the database types supported by the current database
+# driver
+sub database_type_info
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	my $dbh = $repo->database->{dbh};
+
+	my @types = @{$EPrints::Database::EXPORT_TAGS{sql_types}};
+
+	print sprintf("%30s %s\n",
+		"EPrint Type",
+		"Database Type",
+		);
+
+	foreach my $type (@types)
+	{
+		next if $type eq "SQL_NULL" or $type eq "SQL_NOT_NULL";
+		no strict "refs";
+		my $f = "EPrints::Database::$type";
+		my $type_info = $repo->database->type_info( &$f );
+
+		if( !$type_info )
+		{
+			print "$type: -\n";
+		}
+		else
+		{
+			print sprintf("%30s: %s(%lu)\n",
+				$type,
+				$type_info->{TYPE_NAME},
+				$type_info->{COLUMN_SIZE},
+			);
+		}
+	}
+
+	print "\n";
+	print sprintf("%34s\t%s\n",
+		"DBI Type",
+		"Length",
+		);
+	foreach my $type (sort @{$DBI::EXPORT_TAGS{sql_types}})
+	{
+		no strict "refs";
+		my $type_info = $dbh->type_info( eval "DBI::$type()" );
+
+		if( !$type_info )
+		{
+			print sprintf("%34s: %s\n",
+				$type,
+				"-"
+			);
+		}
+		else
+		{
+			print sprintf("%34s: %s(%lu) %s\n",
+				$type,
+				uc($type_info->{TYPE_NAME}),
+				$type_info->{COLUMN_SIZE},
+				($type_info->{CREATE_PARAMS} || ''),
+			);
+		}
+	}
+}
+
+sub create_db
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid, db_connect => 0 );
+
+	my $dbname = $repo->get_conf( "dbname" );
+
+	if( !defined $dbname )
+	{
+		EPrints::abort "Database name isn't configured";
+	}
+
+	BADPASSWORD:
+
+	my $username = EPrints::Utils::get_input( '^.*$', "Database Superuser Username", "root" );
+	my $password = EPrints::Utils::get_input_hidden( '^.*$', "Database Superuser Password" );
+
+	my $database = EPrints::Database->new( $repo, db_connect => 0 );
+
+	if( !$database->create( $username, $password ) )
+	{
+		print "Error creating database: [$DBI::err] $DBI::errstr\n";
+		goto BADPASSWORD if $DBI::err == 1045;
+		exit 1;
+	}
+
+	my $mktables = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database tables?", "yes" );
+	if( $mktables eq "yes" )
+	{
+		create_tables( $repoid );
+	}
+}
+
+sub create_user
+{
+	my( $repoid, @info ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	my %info;
+	@info{qw( username usertype password email )} = @info;
+	if( defined($info{username}) && $info{username} eq "_" )
+	{
+		if( $info{usertype} && $info{usertype} eq "editor" )
+		{
+			@info{qw( username usertype password email )} = (
+				"editor",
+				"editor",
+				"editor",
+				"editor\@localhost",
+			);
+		}
+		elsif( $info{usertype} && $info{usertype} eq "user" )
+		{
+			@info{qw( username usertype password email )} = (
+				"user",
+				"user",
+				"user",
+				"user\@localhost",
+			);
+		}
+		else
+		{
+			@info{qw( username usertype password email )} = (
+				"admin",
+				"admin",
+				"admin",
+				"admin\@localhost",
+			);
+		}
+	}
+
+	print "Creating a new user in $repoid\n\n";
+	$info{username} ||= EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
+	while( defined $repo->user_by_username( $info{username} ) )
+	{
+		print STDERR "User with username '".$info{username}."' already exists.\n";
+		$info{username} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
+	}
+	my @utypes = $repo->get_types( "user" );
+	$info{usertype} ||= EPrints::Utils::get_input( '^('.join( '|', @utypes ).')$', 'Select a user type ('.join( "|",@utypes).')', 'admin' );
+	$info{password} ||= EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Enter Password' );
+	$info{password} = EPrints::Utils::crypt_password( $info{password}, $repo );
+	$info{email} ||= EPrints::Utils::get_input( $REGEXP_EMAIL, 'Email' );
+	
+	my $user_ds = $repo->dataset( "user" );
+	my $new_user = $user_ds->create_dataobj( \%info );
+
+	print "\n";
+
+	if( defined $new_user )
+	{
+		if( $noise >= 1 )
+		{
+			print "Successfully created new user:\n";
+			print "       ID: ".$new_user->get_value( "userid" )."\n";
+		}
+		if( $noise >= 2 )
+		{
+			print " Username: ".$new_user->get_value( "username" )."\n";
+			print "     Type: ".$new_user->get_value( "usertype" )."\n";
+		}
+	}
+	else
+	{
+		my $db_error = $repo->database->error;
+		print STDERR "Error creating user: $db_error\n";
+	}
+}
+
+
+sub redo_thumbnails
+{
+	my( $repoid, @ids ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	my $f = sub {
+		my( undef, undef, $doc ) = @_;
+
+		if( $noise >= 2 )
+		{
+			print "Redoing thumbnails for document ".$doc->id."\n";
+		}
+
+		$doc->remove_thumbnails; #ouch!
+		$doc->make_thumbnails;
+	};
+
+	my $dataset = $repo->dataset( "document" );
+	if( !@ids )
+	{
+		$dataset->search->map( $f );
+	}
+	else
+	{
+		my $eprint_dataset = $repo->dataset( "eprint" );
+		for(@ids)
+		{
+			my $eprint = $eprint_dataset->dataobj( $_ );
+			if( !defined $eprint )
+			{
+				print STDERR "No such eprint '$_'\n";
+				next;
+			}
+			foreach my $doc ($eprint->get_all_documents)
+			{
+				&$f( $repo, $dataset, $doc );
+			}
+		}
+	}
+}	
+
+
+sub refresh_views
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid );
+	
+	my $file = $repo->config( "variables_path" )."/views.timestamp";
+	unless( open( CHANGEDFILE, ">$file" ) )
+	{
+		EPrints::abort( "Cannot write to file $file" );
+	}
+	print CHANGEDFILE "This file last poked at: ".EPrints::Time::human_time()."\n";
+	close CHANGEDFILE;
+	if( $noise > 0 )
+	{
+		print <<END;
+View (Browse) pages will be updated when they are requested. The 
+webserver will now be told to reload the apache configuration, although 
+restarting the server at this point is slightly more efficient.
+
+END
+	}
+
+	reload( $repoid );
+}	
+
+
+sub refresh_abstracts
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid );
+	
+	my $file = $repo->config( "variables_path" )."/abstracts.timestamp";
+	unless( open( CHANGEDFILE, ">$file" ) )
+	{
+		EPrints::abort( "Cannot write to file $file" );
+	}
+	print CHANGEDFILE "This file last poked at: ".EPrints::Time::human_time()."\n";
+	close CHANGEDFILE;
+	if( $noise > 0 )
+	{
+		print <<END;
+Abstract (Summary) pages will be updated when they are requested. The 
+webserver will now be told to reload the apache configuration, although 
+restarting the server at this point is slightly more efficient.
+
+END
+	}
+
+	reload( $repoid );
+}	
+
+sub reload
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid );
+	
+	my $file = $repo->config( "variables_path" )."/last_changed.timestamp";
+	unless( open( CHANGEDFILE, ">$file" ) )
+	{
+		EPrints::abort( "Cannot write to file $file" );
+	}
+	print CHANGEDFILE "This file last poked at: ".EPrints::Time::human_time()."\n";
+	close CHANGEDFILE;
+	if( $noise > 0 )
+	{
+		print <<END;
+The repository config will be reloaded, but you should still restart apache as
+soon as possible.
+
+END
+	}
+}	
+
+sub reload_metafields
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	my $dataset = $repo->dataset( "metafield" );
+	$dataset->search->map( sub {
+		my( undef, undef, $mf ) = @_;
+		$mf->remove();
+	});
+
+	my $list = EPrints::DataObj::MetaField::load_all( $repo );
+	print "Loaded ".$list->count." metafields\n";
+}	
+
+sub create_tables
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	if( $repo->database->has_table( "eprint" ) )
+	{
+		print "WARNING: Database is NOT empty. Contains an \"eprint\" table.\n";
+		print "You might consider running 'epadmin erase_data $repoid' instead.\n";
+		exit 1;
+	}
+
+	if( $noise>=1 ) { print "Creating database tables...\n"; }
+	if( $repo->database->create_archive_tables )
+	{
+		if( $noise>=1 ) { print "Done creating database tables.\n\n"; }
+	}
+	else
+	{
+		my $error = $repo->database->error;
+		print STDERR "DB Error: $error\n" if defined $error;
+		exit 1;
+	}
+}
+
+sub erase_data
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	print <<END;
+You are about to erase from $repoid:
+  - all database tables
+  - all eprint files
+  - the generated html pages
+but NOT the configuration files.
+
+END
+	
+	my $sure = $force || EPrints::Utils::get_input_confirm( "Are you sure you want this to happen" );
+	unless( $sure )
+	{
+		print "Aborting then.\n";
+		exit( 1 );
+	}
+
+	erase_eprint_files( $repo );
+	drop_tables_and_recreate_db( $repo );
+}
+
+sub erase_eprints
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	print <<END;
+You are about to erase from $repoid:
+  - all eprints and documents data
+  - all eprint files
+  - all change history
+  - all rdf data
+  - the document requests
+  - the access logs
+  - the generated html pages
+but NOT the configuration files, user data or subject data.
+
+END
+	
+	my $sure = $force || EPrints::Utils::get_input_confirm( "Are you sure you want this to happen" );
+	unless( $sure )
+	{
+		print "Aborting then.\n";
+		exit( 1 );
+	}
+
+	erase_eprint_files( $repo );
+	foreach( "eprint", "history","access","request","document","file", "triple" )
+	{
+		reset_dataset( $repo, $_ );
+	}		
+	
+	my $ok;
+	$ok = $force || EPrints::Utils::get_input_confirm( "Do you want to build the static web pages" );
+	if( $ok )
+	{
+		run_script( $repoid, "generate_static", "--verbose", $repoid );	
+	}
+}
+
+sub reset_dataset
+{
+	my( $repoid, $datasetid ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	my $db = $repo->database;
+	my @tables = $db->get_tables;
+	print "Erasing dataset $datasetid\n" if( $noise >= 1 );
+	foreach my $table ( @tables )
+	{
+		next unless( $table =~ m/^$datasetid/ );
+		print "Erasing table $table\n" if( $noise >= 2 );
+		$db->clear_table($table);
+	}
+
+	if( $datasetid ne "subject" )
+	{
+		print "Resetting counter ${datasetid}id\n";
+		$db->counter_reset( $datasetid."id" );
+	}
+}
+
+sub drop_tables_and_recreate_db
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	my $db = $repo->database;
+
+	$db->drop_archive_tables();
+
+	my $mktables = $force || EPrints::Utils::get_input_confirm( "Create database tables?", 0, 1 ); # not quick, default to "yes"
+	if( $mktables )
+	{
+		create_tables( $repoid );
+	}
+}
+
+# not an option directly!
+sub drop_and_recreate_db
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid, db_connect => 0 );
+	my $database = $repo->get_conf( "dbname" );
+	
+	if( $noise>=1 ) { print "Connecting to mysql...\n"; }
+
+	my $dbh = root_dbh( $repoid, "mysql" );
+
+	if( !defined $dbh )
+	{
+		print STDERR "\n\nFailed to connect to database. Aborting.\n\n";
+		exit( 1 );
+	}
+
+	if( $noise>=1 ) { print "Dropping database \"$database\"\n"; }
+	$dbh->do( "drop database $database" );
+	if( $noise>=1 ) { print "Re-creating database \"$database\"\n"; }
+	$dbh->do( "create database $database" );
+	$dbh->disconnect;
+
+	if( $noise>=1 ) { print "Done recreating database\n\n"; }
+
+	my $mktables = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database tables?", "yes" );
+	if( $mktables eq "yes" )
+	{
+		create_tables( $repoid );
+	}
+}
+
+# not an option directly!
+sub erase_eprint_files
+{
+	my( $repoid ) = @_;
+
+	if( $noise>=1 ) { print "Erasing eprint files...\n"; }
+
+	my $repo = &repository( $repoid, check_db => 0 );
+	my $documents_path = $repo->config( "documents_path" );
+	my $htdocs_path = $repo->config( "htdocs_path" );
+	
+	# Get available directories
+	opendir DOCSTORE, $documents_path
+		or print STDERR "Can't open DOCSTORE\n";
+	
+	my @doomeddirs;
+	foreach( readdir DOCSTORE )
+	{
+		next if m/^\./; # skip . and .. and any hidden directories
+		push @doomeddirs,
+			$documents_path."/".$_;
+	}
+	closedir DOCSTORE;
+	
+	# Remove the contents of each of the directories.
+
+	push @doomeddirs, $htdocs_path;
+	foreach my $dir (@doomeddirs)
+	{
+		if( $noise>=2 ) { print "Removing stuff in: $dir\n"; }
+		if( !File::Path::rmtree( $dir ) )
+		{
+			print STDERR "Warning: Cleaning $dir didn't go smoothly\n";
+		}
+	}
+	if( $noise>=1 ) { print "...done erasing eprint files.\n"; }
+}
+
+sub erase_fulltext_index
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	my $ds = $repo->dataset( "document" );
+	print "Starting to erase caches\n" if( $noise >= 1 );
+
+	$ds->search->map( sub {
+			my( undef, undef, $doc ) = @_;
+
+			if( $noise >= 2 )
+			{
+				print "Removing fulltext index for: ".$doc->id."\n";
+			}
+			
+			$doc->remove_indexcodes();
+		} );
+
+	print "Done erasing\n" if( $noise >= 1 );
+	print "Queuing records for re-indexing\n" if( $noise >= 1 );
+
+	my $fn = sub {
+		my( $session, $dataset, $item ) = @_;
+	
+		$item->queue_fulltext();
+
+		if( $noise >= 2 )
+		{
+			print STDERR "Queued item: ".$dataset->id()."/".$item->get_id()."\n";
+		}
+	};
+
+	my $ep_ds = $repo->dataset( "eprint" );
+	$ep_ds->search->map( $fn );
+
+	print "Done queuing\n" if( $noise >= 1 );
+}
+
+sub test
+{
+	my( $repoid ) = @_;
+
+	if( !defined $repoid )
+	{
+		foreach( EPrints::Config::get_repository_ids() )
+		{
+			print "REPOID: $_\n" if $noise > 1;
+			test( $_ );
+		}
+		return;
+	}
+
+	my $repo = &repository( $repoid );
+	
+	if( $noise > 1 )
+	{
+		print "PID: $$\n";
+		eval "use GTop";
+		if( !$@ )
+		{
+			my $size = GTop->new->proc_mem( $$ )->resident;
+			print "SIZE: $size\n";
+		}
+	}
+
+	print "Everything seems OK.\n";
+}
+
+sub profile
+{
+	my( $test ) = @_;
+
+	unless( defined $test )
+	{
+		die "Requires test argument\n";
+	}
+
+	eval "use Test::Harness";
+	if( $@ )
+	{
+		die "Can't do profiling without Test::Harness: $@";
+	}
+
+	eval "use Devel::NYTProf";
+	if( $@ )
+	{
+		die "Can't do profiling without Devel::NYTProf: $@";
+	}
+
+	my $base_path = $EPrints::SystemSettings::conf->{base_path};
+	my $test_path = "$base_path/tests";
+
+	my $test_file = "$test_path/$test";
+	$test_file =~ s/(\.pl)?$/.pl/;
+
+	unless( -f $test_file )
+	{
+		die "Test '$test' not found in $test_path/\n";
+	}
+
+	$ENV{HARNESS_PERL_SWITCHES} = "-d:NYTProf";
+
+	exit(1) if !runtests($test_file);
+
+	print "To generate profile reports: nytprofhtml\n";
+	exit(0);
+}
+
+sub unit_tests
+{
+	my( @todo ) = @_;
+
+	my %todo = map { $_ => 1 } @todo;
+
+	eval "use Test::Harness";
+	if( $@ )
+	{
+		die "Can't do unit tests without Test::Harness: $@";
+	}
+
+	my $base_path = $EPrints::SystemSettings::conf->{base_path};
+	my $test_path = "$base_path/tests";
+
+	opendir( DIR, $test_path ) or die "Unable to open unit test path $test_path: $!";
+	my @test_files = grep { -f "$test_path/$_" && $_ !~ /^\./ && $_ =~ /\.pl$/ } readdir( DIR );
+	closedir( DIR );
+
+	@test_files = sort { $a cmp $b } @test_files;
+	if( scalar(@todo) )
+	{
+		@test_files = grep { $todo{$_} or $todo{substr($_,0,-3)} } @test_files;
+	}
+
+	exit(0) if runtests(map { "$test_path/$_" } @test_files);
+}
+
+sub rehash
+{
+	my( $repoid, $docid ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	my $dataset = $repo->dataset( "document" );
+
+	if( defined $docid )
+	{
+		my $doc = $dataset->dataobj( $docid );
+		if( !defined $doc )
+		{
+			$repo->log( "Document #$docid not found. Can't rehash." );
+		}
+		else
+		{
+			$doc->rehash;
+			print "Rehashed document #$docid\n" if( $noise > 0);
+		}
+	}
+	else
+	{
+		print "Rehashing documents\n" if( $noise > 0);
+		my $count = 0;
+		$dataset->search->map( sub {
+				my( $session, $dataset, $doc ) = @_;
+				$doc->rehash;
+				if( $noise > 1 )
+				{
+					print "Rehashed ".$doc->id."\n";
+				}
+				$count++;
+			} );
+
+		if( $noise > 0)
+		{
+			print "Done rehashing ".$count." documents\n";
+		}
+	}
+}
+
+# undocumented option - use with caution!
+sub update_database_structure
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid );
+	
+	my $db = $repo->get_db();
+
+	update_datasets( $repo, $db );
+	update_counters( $repo, $db );
+}
+
+###################################
+#
+# DATASET related utilities
+#
+###################################
+
+
+sub recommit
+{
+	my( $repoid, $datasetid, @ids ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	my $dataset = $repo->dataset( $datasetid );
+	if( !defined $dataset )
+	{
+		print "Exiting due to unknown dataset.\n" if( $noise >= 1 );
+		exit( 1 );
+	}
+
+	
+	my $list;
+	if( @ids )
+	{ 
+		$list = $dataset->list( \@ids );
+	}
+	else
+	{
+		$list = $dataset->search;
+
+		if( $noise > 0 )
+		{
+			print "\n";
+			print "You are about to recommit \"$datasetid\" in the $repoid repository.\n";
+			print "This can take some time.\n\n";
+			print "Number of records in set: ".$list->count."\n";
+		}
+	
+		my $sure = $force || EPrints::Utils::get_input_confirm( "Continue", 1 );
+		unless( $sure )
+		{
+			print "Aborting then.\n\n";
+			exit( 1 );
+		}
+	}
+
+	$list->map( sub {
+        	my( $session, $dataset, $item ) = @_;
+	
+        	if( $noise >= 2 )
+        	{
+                	print STDERR "Committing item: ".$dataset->id()."/".$item->id()."\n";
+        	}
+        	$item->commit( 1 );
+	} );
+
+	if( !scalar @ids )
+	{
+		print "All items in \"$datasetid\" have been re-commited.\n" if( $noise >= 1 );
+	}
+}
+
+sub reorder
+{
+	my( $repoid, $datasetid, @ids ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	my $dataset = $repo->dataset( $datasetid );
+	if( !defined $dataset )
+	{
+		print "Exiting due to unknown dataset.\n" if( $noise >= 1 );
+		exit( 1 );
+	}
+
+	my $list;
+	if( @ids )
+	{ 
+		$list = $dataset->list( \@ids );
+	}
+	else
+	{
+		$list = $dataset->search;
+	}
+
+	$list->map( sub {
+		my( $session, $dataset, $item ) = @_;
+	
+		EPrints::Index::update_ordervalues( $session, $dataset, $item->{data}, $item->{data} );
+
+		if( $noise >= 2 )
+		{
+			print STDERR "Re-ordered item: ".$dataset->id()."/".$item->id()."\n";
+		}
+	} );
+}
+
+sub rebuild_triples
+{
+	my( $repoid, $datasetid, @ids ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	if( !defined $datasetid ) { $datasetid = "eprint"; }
+
+	my $dataset = $repo->dataset( $datasetid );
+	if( !defined $dataset )
+	{
+		print "Exiting due to unknown dataset.\n" if( $noise >= 1 );
+		exit( 1 );
+	}
+
+	my $list;
+	if( @ids )
+	{ 
+		$list = $dataset->list( \@ids );
+	}
+	else
+	{
+		$list = $dataset->search;
+	}
+
+	$list->map( sub {
+        	my( $repository, $dataset, $item ) = @_;
+	
+		my $action = "clear_triples";
+		if( $item->get_value( "eprint_status" ) eq "archive" )
+		{
+			$action = "update_triples";
+		}
+		$repository->dataset( "event_queue" )->create_dataobj({
+			pluginid => "Event::RDF",
+			action => $action,
+			params => [$item->internal_uri],
+		});
+		if( $noise >= 2 )
+		{
+			print STDERR "Queued Triple Rebuild for item: ".$dataset->id()."/".$item->id()."\n";
+		}
+	} );
+}
+
+
+sub reindex
+{
+	my( $repoid, $datasetid, @ids ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	my $dataset = $repo->dataset( $datasetid );
+	if( !defined $dataset )
+	{
+		print "Exiting due to unknown dataset.\n" if( $noise >= 1 );
+		exit( 1 );
+	}
+
+	my $list;
+	if( @ids )
+	{ 
+		$list = $dataset->list( \@ids );
+	}
+	else
+	{
+		$list = $dataset->search;
+
+		if( $noise > 0 )
+		{
+			print "\n";
+			print "You are about to reindex \"$datasetid\" in the $repoid repository.\n";
+			print "This can take some time.\n\n";
+			print "Number of records in set: ".$list->count."\n";
+		}
+	
+		my $sure = $force || EPrints::Utils::get_input_confirm( "Continue", 1 );
+		unless( $sure )
+		{
+			print "Aborting then.\n\n";
+			exit( 1 );
+		}
+	}
+
+	my $indexer = $repo->plugin( "Event::Indexer" );
+
+	$list->map(sub {
+		my( undef, $dataset, $item ) = @_;
+	
+		$indexer->index_all( $item );
+
+		if( $noise >= 2 )
+		{
+			print STDERR "Indexed item: ".$dataset->id()."/".$item->id()."\n";
+		}
+	});
+}
+
+
+sub schema 
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	my $dataset = $repo->dataset( "metafield" );
+
+	my $plugin = $repo->plugin( "Export::XML_Schema" );
+
+	$plugin->initialise_fh( *STDOUT );
+	$plugin->output_list( list=>$dataset->search, fh=>*STDOUT );
+}
+
+sub remove_field
+{
+	my( $repoid, $datasetid, $fieldid ) = @_;
+
+	if( !defined $fieldid )
+	{
+		pod2usage( "Requires dataset and field ids" );
+	}
+
+	my $repo = &repository( $repoid );
+
+	my $dataset = $repo->dataset( $datasetid )
+		or die "Unknown dataset: $datasetid\n";
+
+	my $field = $dataset->field( $fieldid )
+		or die "Unknown field: $datasetid.$fieldid\n";
+
+	$force or EPrints::Utils::get_input_confirm( "Are you sure you want to remove the database tables for $datasetid.$fieldid?" ) or exit;
+
+	if( $repo->database->remove_field( $dataset, $field ) )
+	{
+		print "Removed $datasetid.$fieldid\n";
+	}
+}
+
+sub set_developer_mode
+{
+	my ( $repoid, $set_to ) = @_;
+
+	if( !defined $set_to )
+        {
+                pod2usage( "Do you want to set developer mode to 'on' or 'off'?" );
+        }
+
+	my $repo = &repository( $repoid );
+
+        my $file = $repo->config( "variables_path" )."/developer_mode_on";
+
+	if($set_to eq "on")
+	{
+		unless( open( CHANGEDFILE, ">$file" ) )
+		{
+			EPrints::abort( "Cannot write to file $file" );
+		}
+		print CHANGEDFILE "This file was created at: ".EPrints::Time::human_time()."\n";
+		close CHANGEDFILE;
+		print "Developer mode is for $repoid is set to on\n";
+		return;	
+	}
+
+	if($set_to eq "off"){
+		if( -e $file && !unlink( $file ) )
+                {
+                        EPrints::abort( "Cannot remove file $file" );
+                }
+		print "Developer mode is for $repoid is set to off\n";
+		
+		return;	
+	}
+
+	pod2usage( "The only valid options for developer mode are 'on' or 'off'?" );
+
+
+
+}
+
+####################################################################
+#
+#  UPGRADE CODE	
+#
+####################################################################
+
+sub upgrade
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+	
+	my $db = $repo->database();
+
+	my @versions = qw(
+			3.0
+			3.0.1
+			3.0.2
+			3.0.3
+			3.0.4
+			3.0.5
+			3.0.6
+			3.0.7
+			3.1.0
+			3.1.1
+			3.1.2
+			3.2.0
+			3.2.1
+			3.2.2
+			3.2.3
+			3.2.4
+			3.3.0
+			3.3.1
+		);
+
+	for(my $i = 0; $i < $#versions; ++$i)
+	{
+		if( $db->get_version() eq $versions[$i] )
+		{
+			no strict 'refs';
+			my $f = "upgrade_".$versions[$i]."_to_".$versions[$i+1];
+			$f =~ s/\./_/g;
+			print STDERR "Upgrading " . $versions[$i] . " to " . $versions[$i+1] . "\n";
+			&$f( $repo, $db );
+			migrate_to_epm_packages($repoid,$versions[$i],$versions[$i+1]);
+			$db->set_version( $versions[$i+1] );
+		}
+	}
+
+	print $db->get_version()."\n";
+}
+
+# if a field's definition changes from single to multiple values, this attempts to migrate the field's values (if any)
+sub migrate_to_multiple_values
+{
+	my( $db, $dataset, $field ) = @_;
+	
+	print "\tMigrating ".$field->get_name." to multiple values... ";
+
+	my $rc = 1;
+	my $Q_key = $db->quote_identifier( $dataset->key_field->get_name );
+	my $Q_fn = $db->quote_identifier( $field->get_name );
+	my $Q_table = $db->quote_identifier( $dataset->get_sql_table_name );
+
+	my $sql = "SELECT $Q_key, $Q_fn FROM $Q_table";
+
+	my $sth = $db->prepare_select( $sql );
+	$db->execute( $sth , $sql );
+
+	my $c=0;
+	while( my @row = $sth->fetchrow )
+	{
+			my $tablename = $dataset->get_sql_table_name ."_".$field->get_name;
+			next unless( defined $row[1] );
+			if( $rc &&= $db->insert( $tablename, [$dataset->key_field->get_name, 'pos', $field->get_name], ([$row[0],0,$row[1]] ) ) )
+			{
+				$c++;
+			}
+	}
+	if( $rc )
+	{
+		print " OK";
+		print ", migrated $c values" if( $c );
+	}
+	else
+	{
+		print " ERRORS";
+	}
+	print "\n";
+}
+
+# This will check for any missing datasets or fields and add them
+sub update_datasets
+{
+	my( $repo, $db ) = @_;
+
+	my $success = 1;
+	my $count = 0;
+	my $field_count = 0;
+
+	foreach( $repo->get_sql_dataset_ids() )
+	{
+		my $dataset = $repo->dataset( $_ );
+		if( !$db->has_dataset( $dataset ) )
+		{
+			if( $db->create_dataset_tables( $dataset ) )
+			{
+				++$count;
+				print "Added dataset $_\n" if $noise;
+			}
+			else
+			{
+				$success = 0;
+				print STDERR "Failed adding dataset $_\n";
+			}
+		}
+		foreach my $field ($dataset->get_fields)
+		{
+			next if defined $field->get_property( "sub_name" );
+			if( !$db->has_field( $dataset, $field ) )
+			{
+				if( $db->add_field( $dataset, $field ) )
+				{
+					++$field_count;
+					print "Added ".$field->get_name." to dataset $_\n" if $noise;
+
+					if( $field->get_property( 'multiple' ) && !$field->is_virtual )
+					{
+						if( $db->has_column( $dataset->get_sql_table_name, $field->get_name ) )
+						{
+							migrate_to_multiple_values( $db, $dataset, $field );
+						}
+					}
+				}
+				else
+				{
+					$success = 0;
+					print STDERR "Failed adding ".$field->get_name." to dataset $_\n";
+				}
+			}
+		}
+		# check the __rindex collation
+		if( $dataset->indexable && $db->isa( "EPrints::Database::mysql" ) )
+		{
+			my $database = $repo->config( "dbname" );
+			my $table = $dataset->get_sql_rindex_table_name();
+			foreach my $col (qw( field word ))
+			{
+				my $sth = $db->prepare(<<EOS);
+SELECT
+	COLLATION_NAME
+FROM
+	information_schema.COLUMNS
+WHERE
+	TABLE_SCHEMA='$database' AND
+	TABLE_NAME='$table' AND
+	COLUMN_NAME='$col' AND
+	LOWER(COLLATION_NAME)!='utf8_bin'
+LIMIT 1
+EOS
+				$db->execute( $sth );
+				my( $collate ) = $sth->fetchrow_array or next;
+				$db->do("ALTER TABLE ".$db->quote_identifier($table)." CONVERT TO CHARACTER SET utf8 COLLATE utf8_bin");
+				print "Fixed $table.$col collation\n" if $noise;
+				last;
+			}
+		}
+	}
+
+	print "$count datasets added\n" if $noise;
+	print "$field_count fields added\n" if $noise;
+
+	return $success;
+}
+
+# This will check for any missing counters and add them
+sub update_counters
+{
+	my( $repo, $db ) = @_;
+
+	my $success = 1;
+	my $count = 0;
+
+	foreach( $repo->get_sql_counter_ids )
+	{
+		if( !$db->has_counter( $_ ) )
+		{
+			if( $db->create_counter( $_ ) )
+			{
+				++$count;
+				print "Added counter $_\n" if $noise;
+			}
+			else
+			{
+				$success = 0;
+				print STDERR "Failed adding counter $_\n";
+			}
+		}
+	}
+
+	print "$count counters were added\n" if $noise;
+
+	return $success;
+}
+
+sub upgrade_3_0_to_3_0_1
+{
+	my( $repoid, $db ) = @_;
+
+	my $rootdbh = root_dbh( $repoid );
+	if( !defined $rootdbh ) { die "Could not open database as root"; }
+	my @tables = $db->get_tables;
+	my $sql;
+
+	$sql = "ALTER TABLE saved_search ADD public set('TRUE','FALSE') default 'FALSE' AFTER mailempty";
+	$rootdbh->do( $sql );
+
+	$sql = "CREATE TABLE user_items_fields ( userid INT NOT NULL, pos INT, items_fields VARCHAR(255) default NULL, KEY userid (userid), KEY pos (pos) )  ";
+	$rootdbh->do( $sql );
+
+	$sql = "CREATE TABLE user_review_fields ( userid INT NOT NULL, pos INT, review_fields VARCHAR(255) default NULL, KEY userid (userid), KEY pos (pos) )  ";
+	$rootdbh->do( $sql );
+
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^saved_search__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD public TEXT AFTER mailempty",
+			$rootdbh->do( $sql );
+		}
+		if( $table =~ m/^user__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD items_fields TEXT AFTER mailempty",
+			$rootdbh->do( $sql );
+			$sql = "ALTER TABLE $table ADD review_fields TEXT AFTER items_fields",
+			$rootdbh->do( $sql );
+		}
+	}
+
+	$rootdbh->disconnect;
+}
+
+
+
+sub upgrade_3_0_1_to_3_0_2
+{
+	my( $repoid, $db ) = @_;
+
+	my $rootdbh = root_dbh( $repoid );
+	if( !defined $rootdbh ) { die "Could not open database as root"; }
+	my @tables = $db->get_tables;
+	my $sql;
+
+	$sql = "ALTER TABLE saved_search ADD name VARCHAR(255) NOT NULL AFTER pos";
+	$rootdbh->do( $sql );
+
+	$sql = "ALTER TABLE cachemap ADD userid INTEGER AFTER lastused";
+	$rootdbh->do( $sql );
+
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^saved_search__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD name TEXT AFTER pos",
+			$rootdbh->do( $sql );
+		}
+	}
+
+	$rootdbh->disconnect;
+}
+
+sub upgrade_3_0_2_to_3_0_3
+{
+	my( $repoid, $db ) = @_;
+
+	my $rootdbh = root_dbh( $repoid );
+	if( !defined $rootdbh ) { die "Could not open database as root"; }
+	my @tables = $db->get_tables;
+	my $sql;
+
+	$sql = "ALTER TABLE eprint DROP fileinfo";
+	$rootdbh->do( $sql );
+
+	$sql = "ALTER TABLE eprint ADD fileinfo TEXT AFTER contact_email";
+	$rootdbh->do( $sql );
+
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^eprint__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table DROP fileinfo";
+			$rootdbh->do( $sql );
+			$sql = "ALTER TABLE $table ADD fileinfo TEXT AFTER contact_email",
+			$rootdbh->do( $sql );
+		}
+	}
+
+	$rootdbh->disconnect;
+}
+
+
+
+sub upgrade_3_0_3_to_3_0_4
+{
+	my( $repoid, $db ) = @_;
+
+	my $rootdbh = root_dbh( $repoid );
+	if( !defined $rootdbh ) { die "Could not open database as root"; }
+	my @tables = $db->get_tables;
+	my $sql;
+
+	$sql = "ALTER TABLE eprint ADD latitude FLOAT AFTER fileinfo";
+	$rootdbh->do( $sql );
+	$sql = "ALTER TABLE eprint ADD longitude FLOAT AFTER latitude";
+	$rootdbh->do( $sql );
+	$sql = "ALTER TABLE user ADD latitude FLOAT AFTER mailempty";
+	$rootdbh->do( $sql );
+	$sql = "ALTER TABLE user ADD longitude FLOAT AFTER latitude";
+	$rootdbh->do( $sql );
+
+	foreach my $table ( @tables )
+	{
+		if( $table =~ m/^eprint__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD latitude TEXT AFTER fileinfo";
+			$rootdbh->do( $sql );
+			$sql = "ALTER TABLE $table ADD longitude TEXT AFTER latitude";
+			$rootdbh->do( $sql );
+		}
+		if( $table =~ m/^user__ordervalues_.*$/ )
+		{
+			$sql = "ALTER TABLE $table ADD latitude TEXT AFTER review_fields";
+			$rootdbh->do( $sql );
+			$sql = "ALTER TABLE $table ADD longitude TEXT AFTER latitude";
+			$rootdbh->do( $sql );
+		}
+	}
+
+	$rootdbh->disconnect;
+}
+
+
+sub upgrade_3_0_4_to_3_0_5
+{
+	my( $repoid, $db ) = @_;
+
+	$db->_create_messages_table;
+}
+
+
+
+sub upgrade_3_0_5_to_3_0_6
+{
+	my( $repoid, $db ) = @_;
+
+	reset_dataset( $repoid, 'subject' );
+}
+
+
+sub upgrade_3_0_6_to_3_0_7
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+	foreach my $datasetid ( qw/
+			access document eprint history
+			request saved_search subject user /)
+	{
+		my $dataset = $repo->dataset( $datasetid );
+		$db->add_index_to_indextable( $dataset );
+	}
+
+}
+
+sub upgrade_3_0_7_to_3_1_0
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	# Expand id primary keys to id-pos on multiple fields
+	foreach my $datasetid ( qw/
+			access document eprint history
+			request saved_search subject user /)
+	{
+		my $dataset = $repo->dataset( $datasetid );
+		foreach my $field ($dataset->fields)
+		{
+			next unless $field->property( "multiple" );
+			next if $field->is_virtual;
+			my $table = $dataset->get_sql_sub_table_name( $field );
+			next unless $db->has_table( $table );
+			my $keyfield = $dataset->get_key_field;
+			unless( $db->get_primary_key( $table ) )
+			{
+				$db->do("ALTER TABLE $table DROP PRIMARY KEY");
+			}
+			$db->do("ALTER TABLE $table ADD PRIMARY KEY(".$keyfield->get_sql_name.",pos)");
+		}
+	}
+
+	# access dataset changes
+	my $dataset = $repo->get_dataset( "access" );
+	my $table = $dataset->get_sql_table_name;
+
+	# remove the 'urn:ip:' and 'info:oai:...:' bits
+	$db->do("UPDATE $table SET
+		referent_id=SUBSTRING_INDEX(referent_id,':',-1),
+		referent_docid=SUBSTRING_INDEX(referent_docid,'-',-1),
+		requester_id=SUBSTRING_INDEX(requester_id,'urn:ip:',-1)
+	");
+	my $changes_sql = '';
+	$changes_sql .= "MODIFY referring_entity_id LONG,";
+	$changes_sql .= "MODIFY referent_id INT,";
+	$changes_sql .= "MODIFY referent_docid INT,";
+	chop($changes_sql);
+	$db->do("ALTER TABLE $table $changes_sql");
+
+	# remove the index and order tables
+	for(qw(__index __index_grep __rindex))
+	{
+		$db->drop_table("$table$_");
+	}
+
+	for($db->get_tables)
+	{
+		$db->drop_table($_) if /^cache(\d+)$/;
+	}
+
+	$db->drop_table( "messages" );
+	$db->drop_table( "login_tickets" );
+	$db->drop_table( "cachemap" );
+
+	update_datasets( $repo, $db );
+	update_counters( $repo, $db );
+}
+
+
+sub upgrade_3_1_0_to_3_1_1
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	update_datasets( $repo, $db );
+}
+
+sub upgrade_3_1_1_to_3_1_2
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	update_datasets( $repo, $db );
+	update_counters( $repo, $db );
+
+	foreach( $repo->get_sql_dataset_ids() )
+	{
+		my $dataset = $repo->dataset( $_ );
+
+		foreach my $field ($dataset->fields)
+		{
+			next unless $field->isa( "EPrints::MetaField::Name" );
+
+			my $table;
+			if( $field->property( "multiple" ) )
+			{
+				$table = $dataset->get_sql_sub_table_name( $field );
+			}
+			else
+			{
+				$table = $dataset->get_sql_table_name();
+			}
+			my @logic;
+			for($field->get_sql_names)
+			{
+				my $q_name = $db->quote_identifier( $_ );
+				push @logic, "($q_name is not Null AND $q_name != '')";
+			}
+			my $logic = "(" . join(" OR ", @logic) . ")";
+			for($field->get_sql_names)
+			{
+				my $q_name = $db->quote_identifier( $_ );
+				my $q_table = $db->quote_identifier( $table );
+				my $sql = "UPDATE $q_table SET $q_name='' WHERE $q_name is Null AND $logic";
+				$db->do( $sql );
+			}
+		}
+	}
+}
+
+sub upgrade_3_1_2_to_3_2_0
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	upgrade_cfg_files( $repo, [qw(
+	 	indexing.pl
+		rdf_license.pl
+	)]);
+
+	# We can do this now, because we only ever add columns
+	update_datasets( $repo, $db );
+	update_counters( $repo, $db );
+
+	if( ref($db) eq "EPrints::Database::mysql" )
+	{
+		upgrade_mysql_charset( $repoid, $db );
+	}
+}
+
+sub upgrade_3_2_0_to_3_2_1
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+# upgrade_add_files is done in 3.2.1 -> 3.2.2
+#	upgrade_add_files( $repo );
+}
+
+sub upgrade_cfg_files
+{
+	my( $repo, $files ) = @_;
+
+	my $source = $repo->config( "base_path" ) . "/lib/defaultcfg/cfg.d";
+	my $target = $repo->config( "archiveroot" ) . "/cfg/cfg.d";
+
+	@$files = grep { -e "$source/$_" } @$files;
+	return if !@$files;
+
+	print STDERR "There are recommended configuration file updates:\n";
+	print STDERR map { "\t$_\n" } @$files;
+
+	return unless EPrints::Utils::get_input_confirm( "Install updated configuration files?" ); 
+
+	foreach my $file (@$files)
+	{
+		my $source_path = "$source/$file";
+		if( !-r $source_path )
+		{
+			EPrints->abort( "Missing file: $source_path" );
+		}
+		my $target_path = "$target/$file";
+		if( -e $target_path )
+		{
+			print STDERR "Renaming $target_path to $file.old\n";
+			rename( $target_path, "$target/$file.old" )
+				or die "Error renaming file: $!";
+		}
+		EPrints::Utils::copy( $source_path, $target_path );
+	}
+
+	return 1;
+}
+
+sub upgrade_add_files
+{
+	my( $repoid, @ids ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	my $file_ds = $repo->dataset( "file" );
+	my $history_ds = $repo->dataset( "history" );
+	my $doc_ds = $repo->dataset( "document" );
+
+	my $list;
+	if( @ids )
+	{
+		$list = $repo->dataset( "eprint" )->list( \@ids );
+	}
+	else
+	{
+		$list = $repo->dataset( "eprint" )->search;
+	}
+
+	my $total = $list->count;
+	my $count = 0;
+
+	$list->map( sub {
+		my( undef, undef, $eprint ) = @_;
+
+		if( $noise )
+		{
+			print STDERR sprintf("%.2f%% eprint.%d          \r", 100 * ++$count / $total, $eprint->id);
+		}
+
+		my $local_path = $eprint->local_path();
+		my $dir;
+		my $path;
+
+		# revisions
+		$path = "$local_path/revisions";
+		$history_ds->search( filters => [
+				{ meta_fields => [qw( datasetid )], value => "eprint" },
+				{ meta_fields => [qw( objectid )], value => $eprint->id }
+			] )->map( sub {
+			my( undef, undef, $revision ) = @_;
+
+			# already processed?
+			return if defined $revision->get_stored_file( "dataobj.xml" );
+
+			if( $noise >= 2 )
+			{
+				$repo->log( "revision.".$revision->id );
+			}
+
+			my $filename = $revision->value( "revision" ).".xml";
+			my $filepath = "$path/$filename";
+			if( !-e $filepath )
+			{
+				$repo->log( "Revision missing source file $filepath: ".$revision->id );
+				return;
+			}
+			my $filesize = -s _;
+			$file_ds->create_dataobj( {
+				datasetid => $history_ds->base_id,
+				objectid => $revision->id,
+				filename => "dataobj.xml",
+				filesize => $filesize,
+				mime_type => "text/xml",
+				copies => [{
+					pluginid => "Storage::Local",
+					sourceid => "dataobj.xml",
+				}],
+			} );
+			if( $noise >= 2 )
+			{
+				$repo->log( "Added dataobj.xml to revision history.".$revision->id );
+			}
+		} );
+
+		# documents
+		foreach my $doc ($eprint->get_all_documents)
+		{
+			my $doc_path = $doc->local_path;
+
+			my %files;
+
+			# thumbnails
+			my $thumb_path = $doc_path;
+			if( !($thumb_path =~ s# /(\d+)$ #/thumbnails/$1#x) )
+			{
+				Carp::croak "Badness in path: $doc_path";
+			}
+
+			if( $noise >= 2 )
+			{
+				$repo->log( "document.".$doc->id );
+			}
+
+			if( -e $thumb_path )
+			{
+				%files = _collect_files( $thumb_path );
+				foreach my $file (keys %files)
+				{
+					my $filename = $file;
+					substr($filename,0,length($thumb_path)+1) = "";
+					next if !($filename =~ /^(\w+)\.png$/);
+					my $size = $1;
+					my $thumb_doc = $eprint->create_subdataobj( "documents", {
+						format => "image/png",
+						main => $filename,
+						security => $doc->value( "security" ),
+					} );
+					$thumb_doc->add_file( $file, $filename );
+					unlink( $file );
+					$thumb_doc->add_object_relations( $doc,
+						EPrints::Utils::make_relation( "isVersionOf" ) =>
+						EPrints::Utils::make_relation( "hasVersion" ),
+						EPrints::Utils::make_relation( "isVolatileVersionOf" ) =>
+						EPrints::Utils::make_relation( "hasVolatileVersion" ),
+						EPrints::Utils::make_relation( "is${size}ThumbnailVersionOf" ) =>
+						EPrints::Utils::make_relation( "has${size}ThumbnailVersion" ),
+					);
+					$thumb_doc->commit();
+					if( $noise >= 2 )
+					{
+						$repo->log( "Added $filename thumbnail to document.".$doc->id );
+					}
+				}
+			}
+
+			my %in_db;
+			for(@{$doc->value( "files" )})
+			{
+				$in_db{$_->value( "filename" )} = 1;
+			}
+
+			%files = _collect_files( $doc_path );
+			foreach my $file (keys %files)
+			{
+				my $filename = $file;
+				substr($filename,0,length($doc_path)+1) = "";
+				next if $in_db{$filename};
+				$doc->create_subdataobj( "files", {
+					filename => $filename,
+					filesize => $files{$file},
+					copies => [{
+						pluginid => "Storage::Local",
+						sourceid => $filename,
+					}],
+				} );
+				if( $noise >= 2 )
+				{
+					$repo->log( "Added $filename to document.".$doc->id );
+				}
+			}
+
+			$doc->commit();
+		}
+
+		$eprint->commit(); # update fileinfo etc.
+	} );
+}
+
+sub _collect_files
+{
+	my( $path ) = @_;
+
+	my %files;
+
+	my $dir;
+	if( !opendir($dir, $path) )
+	{
+		print STDERR "Error opening $path: $!\n";
+		return ();
+	}
+	foreach my $file (grep { $_ !~ /^\./ } readdir $dir)
+	{
+		my $file_path = Encode::decode_utf8( "$path/$file" );
+		if( -f $file_path )
+		{
+			$files{$file_path} = -s _;
+		}
+		elsif( -d _ )
+		{
+			%files = (%files, _collect_files( $file_path ));
+		}
+	}
+	closedir($dir);
+
+	return %files;
+}
+
+sub upgrade_mysql_charset
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+	$db ||= $repo->get_database;
+
+	print "CREATE(_utf8_test): ";
+	$db->do("CREATE TEMPORARY TABLE _utf8_test LIKE version");
+
+	my $collation = $db->get_column_collation( "_utf8_test", "version" );
+	if( !defined $collation )
+	{
+		EPrints::abort "Error interogating current collation";
+	}
+
+	print " collation is $collation: ";
+	if( 0 && $collation =~ /^utf8_/ )
+	{
+		print " [ Failed ]\n";
+		print STDERR <<EOW;
+Warning! It looks like your database tables are already set to use
+UTF-8. If this is unexpected then any non-English characters in
+your database may be double-encoded. You would see this as corrupt
+characters when viewed from EPrints or a MySQL client. This
+situation is recoverable but can not be identified or fixed by
+this upgrade.
+
+The upgrade will continue.
+
+EOW
+		return;
+	}
+	elsif( 0 && $collation !~ /^latin1_/ )
+	{
+		print " [ Failed ]\n";
+		EPrints::abort <<EOW;
+I don't understand the '$collation' collation. Your MySQL server
+is configured in a way that this upgrade script doesn't support.
+You need to manually correct this problem before an upgrade can
+succeed.
+
+EOW
+		return;
+	}
+
+	print " [ OK ]\n";
+
+	my $rc = $db->do("ALTER TABLE _utf8_test MODIFY version BINARY(255)");
+	$rc &&= $db->do("ALTER TABLE _utf8_test MODIFY version VARCHAR(255) CHARACTER SET utf8");
+
+	if( !$rc )
+	{
+		EPrints::abort <<EOW;
+An unexpected error occurred while attempting to convert tables to UTF-8.
+EOW
+	}
+
+	print STDERR "Converting database tables to UTF-8\n";
+	# convert all textual columns
+	foreach( $repo->get_sql_dataset_ids() )
+	{
+		print STDERR "Upgrading dataset $_\n";
+		my $dataset = $repo->dataset( $_ );
+		my $key_field = $dataset->key_field();
+		my @main;
+		my @aux;
+		foreach my $field ( $dataset->fields )
+		{
+			next if $field->is_virtual;
+			push(@aux, $field), next if $field->get_property( "multiple" );
+
+			push @main, $field;
+		}
+
+		# main table
+		$rc &&= upgrade_mysql_charset_table( $repo, $db, $dataset->get_sql_table_name, \@main );
+
+		# aux tables
+		my $pos_field = EPrints::MetaField->new(
+			repository => $repo,
+			type => "int",
+			name => "pos" );
+		foreach my $aux_field (@aux)
+		{
+			$rc &&= upgrade_mysql_charset_table( $repo, $db, $dataset->get_sql_sub_table_name( $aux_field ), [$key_field, $pos_field, $aux_field] );
+		}
+
+		# ordervalues
+		foreach my $langid ( @{$repo->config( "languages" )} )
+		{
+			my @fields = map { $_->create_ordervalues_field( $repo, $langid ) } $dataset->fields;
+			$fields[0] = $key_field;
+			$rc &&= upgrade_mysql_charset_table( $repo, $db, $dataset->get_ordervalues_table_name( $langid ), \@fields );
+		}
+
+		# rindex and index_grep
+		if( $dataset->indexable )
+		{
+			print STDERR "Upgrading rindex and grep tables for $_\n";
+			my $dataset = $repo->dataset( $_ );
+			my $rindex_table = $dataset->get_sql_rindex_table_name;
+			my $grep_table = $dataset->get_sql_grep_table_name;
+			my $Q_key_name = $db->quote_identifier( $key_field->get_sql_name );
+			my $sql = "ALTER IGNORE TABLE $rindex_table MODIFY field VARCHAR(64) CHARACTER SET UTF8, MODIFY word VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, ADD PRIMARY KEY(field,word,$Q_key_name)";
+			if( $db->get_primary_key( $rindex_table ) )
+			{
+				$sql =~ s/(ADD PRIMARY KEY)/DROP PRIMARY KEY, $1/;
+			}
+			my %old_keys = _mysql_table_keys( $db, $rindex_table );
+			foreach my $old_key (keys %old_keys)
+			{
+				$sql .= ", DROP KEY ".$db->quote_identifier( $old_key );
+			}
+			$rc &&= $db->do( $sql );
+			$sql = "ALTER IGNORE TABLE $grep_table MODIFY fieldname VARCHAR(64) CHARACTER SET UTF8, MODIFY grepstring VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, ADD PRIMARY KEY(fieldname,grepstring,$Q_key_name)";
+			if( $db->get_primary_key( $grep_table ) )
+			{
+				$sql =~ s/(ADD PRIMARY KEY)/DROP PRIMARY KEY, $1/;
+			}
+			%old_keys = _mysql_table_keys( $db, $grep_table );
+			foreach my $old_key (keys %old_keys)
+			{
+				$sql .= ", DROP KEY ".$db->quote_identifier( $old_key );
+			}
+			$rc &&= $db->do( $sql );
+		}
+	}
+
+	# don't need to go via binary because these should only contain US-ASCII
+	$rc &&= $db->do("ALTER TABLE `version` MODIFY `version` VARCHAR(255) CHARACTER SET utf8");
+	$rc &&= $db->do("ALTER TABLE `counters` MODIFY `countername` VARCHAR(255) CHARACTER SET utf8");
+
+	if( !$rc )
+	{
+		EPrints::abort <<EOW;
+An unexpected error occurred while attempting to convert tables to UTF-8.
+EOW
+	}
+}
+
+sub _mysql_table_keys
+{
+	my( $db, $table ) = @_;
+
+	my %keys;
+
+	my $sql = "SHOW KEYS FROM ".$db->quote_identifier( $table );
+	my $sth = $db->prepare( $sql );
+	$sth->execute;
+	while(my $row = $sth->fetch)
+	{
+		next if $row->[2] eq "PRIMARY";
+		push @{$keys{$row->[2]}}, $row->[4];
+	}
+
+	return %keys;
+}
+
+sub upgrade_mysql_charset_table
+{
+	my( $repo, $db, $table, $fields ) = @_;
+
+	my $rc = 1;
+	my $sql;
+
+	my $new_table = "new_$table";
+
+	my $Q_table = $db->quote_identifier( $table );
+	my $Q_new_table = $db->quote_identifier( $new_table );
+
+	print STDERR "Upgrading $Q_table by insertion\n";
+
+	# create a table LIKE $table
+	$rc &&= $db->do( "DROP TABLE IF EXISTS $Q_new_table" );
+	$rc &&= $db->do( "CREATE TABLE $Q_new_table LIKE $Q_table" );
+	# change it to use UTF8
+	$rc &&= $db->do( "ALTER TABLE $Q_new_table CONVERT TO CHARACTER SET utf8 COLLATE utf8_bin" );
+
+	if( !$rc || !$db->has_table( $new_table ) )
+	{
+		EPrints::abort( "Error creating table $Q_new_table based on $Q_table" );
+	}
+
+	# copy in the data
+	$sql = "INSERT INTO $Q_new_table";
+	my @cols;
+	my @bin_cols;
+	my $sth = $db->{dbh}->column_info( undef, undef, $table, '%' );
+	while(my $row = $sth->fetch)
+	{
+		my $name = $row->[$sth->{NAME_lc_hash}{column_name}];
+		my $type = $row->[$sth->{NAME_lc_hash}{type_name}];
+		push @cols, $db->quote_identifier( $name );
+		my $sql = "";
+		$sql .= "BINARY " if $type =~ /TEXT|CHAR/i;
+		$sql .= $db->quote_identifier( $name );
+		push @bin_cols, $sql;
+	}
+	$sql .= "(".join(',',@cols).") SELECT ".join(',',@bin_cols)." FROM $Q_table";
+
+	$rc &&= $db->do( $sql );
+
+	my $Q_old_table = $db->quote_identifier( "old_$table" );
+	$rc &&= $db->do( "RENAME TABLES $Q_table TO $Q_old_table, $Q_new_table TO $Q_table" );
+
+	$db->do( "DROP TABLE IF EXISTS $Q_old_table" );
+	$db->do( "DROP TABLE IF EXISTS $Q_new_table" ); # in case things went wrong
+
+	return $rc;
+}
+
+sub upgrade_3_2_1_to_3_2_2
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	# Update new datasets (Triples)
+	update_datasets( $repo, $db );
+	update_counters( $repo, $db );
+
+	upgrade_add_files( $repo );
+
+	# Tell indexer to generate RDF dataset
+	my $all_eprints = $repo->dataset( "eprint" )->search;
+	$all_eprints->map( sub {
+        	my( $repository, $dataset, $eprint ) = @_;
+	
+		my $action = "clear_triples";
+		if( $eprint->get_value( "eprint_status" ) eq "archive" )
+		{
+			$action = "update_triples";
+		}
+		$repository->dataset( "event_queue" )->create_dataobj({
+			pluginid => "Event::RDF",
+			action => $action,
+			params => [$eprint->internal_uri],
+		});
+	} );
+}
+
+sub upgrade_3_2_2_to_3_2_3
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	# file.hash.longtext => file.hash.id
+	my $table = $repo->dataset( "file" )->get_sql_table_name;
+	my $field = $repo->dataset( "file" )->field( "hash" );
+	$db->do(
+		"ALTER TABLE ".
+		$db->quote_identifier($table).
+		" CHANGE ".$db->quote_identifier($field->get_sql_name)." ".
+		$field->get_sql_type($repo)
+	);
+}
+
+sub upgrade_3_2_3_to_3_2_4
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	# fixup the subjects index table
+	my $dataset = $repo->dataset( "subject" );
+	my $table = $db->quote_identifier($dataset->get_sql_rindex_table_name);
+	my $Q_key_name = $dataset->key_field->get_sql_name;
+	$db->do( "ALTER IGNORE TABLE $table MODIFY $Q_key_name VARCHAR(128) CHARACTER SET UTF8 COLLATE utf8_bin NOT NULL, MODIFY field VARCHAR(64)CHARACTER SET UTF8 COLLATE utf8_bin NOT NULL , MODIFY word VARCHAR(128) CHARACTER SET UTF8 COLLATE utf8_bin NOT NULL, DEFAULT CHARACTER SET UTF8 COLLATE utf8_bin, DROP PRIMARY KEY, ADD PRIMARY KEY(field,word,$Q_key_name)" );
+}
+
+sub upgrade_3_2_3_to_3_3_0
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	# metafield dataset has been completely reworked
+	my $mf_ds = $repo->dataset( "metafield" );
+	$db->drop_dataset_tables( $mf_ds );
+
+	# Update datasets:
+	#  - metafield
+	update_datasets( $repo, $db );
+	update_counters( $repo, $db );
+
+	# move var/metafields.pl to cfg/cfg.d/metafields.pl
+	my $base_path = $repo->config( "arc_path" );
+	rename( "$base_path/var/metafield.pl", "$base_path/cfg/cfg.d/zz_webcfg_eprint_fields.pl" );
+
+	# rename _fulltext_ indexed values to documents
+	my $Q_table = $db->quote_identifier( "eprint__rindex" );
+	my $Q_field = $db->quote_identifier( "field" );
+	$db->do( "UPDATE $Q_table SET $Q_field='documents' WHERE $Q_field='_fulltext_'" );
+}
+
+sub upgrade_3_3_0_to_3_3_1
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	return if !$repo->database->isa( "EPrints::Database::mysql" );
+
+	foreach my $datasetid ($repo->get_dataset_ids)
+	{
+		my $dataset = $repo->dataset( $datasetid );
+		next if $dataset->is_virtual;
+		my @cols;
+		foreach my $field ($dataset->fields)
+		{
+			next if $field->type ne "longtext";
+			next if $field->is_virtual;
+			print "Upgrading ".$dataset->id.".".$field->name." to longtext\n"; 
+			my $sql_name = $field->get_sql_name;
+			push(@cols, $field), next
+				if !$field->property( "multiple" );
+			my $table = $dataset->get_sql_sub_table_name( $field );
+			$repo->database->do("ALTER TABLE ".
+				$repo->database->quote_identifier( $table ).
+				" MODIFY ".
+				$field->get_sql_type( $repo ));
+		}
+		next if !@cols;
+		$repo->database->do("ALTER TABLE ".
+			$repo->database->quote_identifier( $dataset->get_sql_table_name ).
+			join ",",
+			map {
+					" MODIFY ".
+					$_->get_sql_type( $repo )
+				} @cols
+			);
+	}
+}
+
+sub migrate_to_epm_packages 
+{
+	
+	my( $repoid, $old_version, $new_version ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	my $packages = get_packages($old_version, $new_version);
+
+	my $base_path = $repo->get_conf( "base_path" ) . "/";
+	my $arc_path = $repo->get_conf( "arc_path" ) . "/";
+
+	foreach my $key (keys %$packages) {
+		
+		my $package = $packages->{$key};
+
+# 		TODO
+		next if (EPrints::EPM::is_installed($repo,$package->{'name'}));
+		
+		my $files = $package->{'files'};
+		my $exists_count = 0;
+		foreach my $file(@$files) {
+			my $file_path = $base_path . $file;
+			$exists_count++ if ( -e $file_path );
+		}
+
+		my $phrase = "The functionality provided by this package has been removed from the EPrints base code, however is provided as an extension package, would you like to install this package and retain the functionality provided by this package?";	
+
+		if ($exists_count > 0) {
+			$phrase .= "\n\nWARNING: A number of files associated with this package were detected still in your EPrints install. If you choose to continue these will be backed up (under var/package_backups) before the upgrade is done, you cannot continue with these in place, thus if you wish to keep these files and NOT install the newer package, please enter 'no'\n\n";
+		}
+		
+		print "\nPACKAGE: " . $package->{'name'} . "\n";
+		print "=======================================\n";
+		my $install_package = EPrints::Utils::get_input( $REGEXP_YESNO, $phrase , "yes" );
+		if( $install_package eq "yes" )
+		{
+			my $moved_files;
+			if ($exists_count > 0) {
+				$moved_files = backup_core_package( $repo, $package );
+			}
+			if ($exists_count > 0 && !defined $moved_files) 
+			{
+				print "Backup/remove of " . $package->{'name'} . " failed, aborting...\n";
+				next;
+			} 
+			else 
+			{
+				print "Installing Package...\n\n";
+				my $ok = EPrints::EPM::command_line_install_package( $repo, $package->{'name'} );
+				if (!$ok) {
+					# Restore the Backup, assume this works since the original backup succeeded. 
+					print "Install Failed, restoring previous state...\n";
+					if (defined $moved_files) {
+						$ok = restore_backup_package_files($repo, $moved_files);
+					}
+				} else {
+					print "Install Succeeded\n\n";
+				}
+
+			}
+		}
+	}
+}
+
+sub restore_backup_package_files
+{
+	my ( $repo, $moved_files ) = @_;
+	
+	use File::Copy;
+	
+	my $base_path = $repo->get_conf( "base_path" ) . "/";
+	my $backup_path = $base_path . "/var/package_backups";
+	my $help_file = $backup_path . "/README.txt";
+
+	open IN, "<$help_file";
+	my @contents = <IN>;
+	close IN;
+
+	foreach my $src(keys %$moved_files) 
+	{
+		my $dst = $moved_files->{$src};
+		copy($src,$dst);
+		unlink($src);
+
+		my $count = 0;
+		foreach my $line(@contents) 
+		{
+			splice(@contents,$count,1) if ($base_path . substr($line,0,index($line," ")) eq $dst);
+			$count++;
+		}			
+
+	}
+
+	open OUT, ">$help_file";
+	print OUT @contents;
+	close OUT;
+
+	return 1;
+
+}
+
+sub backup_core_package
+{
+	my ( $repo, $package ) = @_;
+	
+	use File::Copy;
+
+	my $base_path = $repo->get_conf( "base_path" ) . "/";
+	my $backup_path = $base_path . "/var/package_backups";
+	my $help_file = $backup_path . "/README.txt";
+	mkdir($backup_path);
+
+	open FILE, ">>$help_file" or return undef;
+
+	my $moved_files = {};
+
+	my $files = $package->{'files'};
+	foreach my $file(@$files) {
+		
+		my $file_path = $base_path . $file;
+		
+		next if (!( -e $file_path ));
+		
+		my $path = substr($file,0,rindex($file,"/"));
+		$path = $backup_path . "/" . $path;
+		
+		my $filename = substr($file,rindex($file,"/")+1,length($file));
+
+		use File::Path qw(mkpath);
+		mkpath($path);
+
+		my $dst = $path . "/" . $filename;
+
+		copy($file_path,$dst);
+		$moved_files->{$dst} = $file_path;
+		unlink($file_path);
+
+		if ( -e $file_path )
+		{
+			return undef;
+		}
+
+		print FILE $file . " is backup of " . $file_path . " relating to the package: " . $package->{'name'} . "\n";
+
+	}
+	
+	close FILE;
+	return $moved_files;
+
+}
+
+sub get_packages
+{
+	my ($old_version, $new_version);
+	my $packages = {};
+
+	if ($new_version eq "3.3.1") 
+	{
+		my @files = ('perl_lib/EPrints/Plugin/Export/BibTeX.pm','perl_lib/EPrints/Plugin/Import/BibTeX.pm');
+		$packages->{'BibTeX'}->{'files'} = \@files;
+		$packages->{'BibTeX'}->{'name'} = 'BibTeX';
+		
+		@files = ('perl_lib/EPrints/Plugin/Export/REM_Atom.pm','perl_lib/EPrints/Plugin/Export/REM_Atom_via_PMH.pm', ,'perl_lib/EPrints/Plugin/Export/REM_RDF.pm','perl_lib/EPrints/Plugin/Import/OREResource.pm');
+		$packages->{'ORE_Tools'}->{'files'} = \@files;
+		$packages->{'ORE_Tools'}->{'name'} = 'ORE_Tools';
+		
+		@files = ('perl_lib/EPrints/Plugin/Export/DIDL.pm');
+		$packages->{'DIDL_export'}->{'files'} = \@files;
+		$packages->{'DIDL_export'}->{'name'} = 'DIDL_export';
+		
+		@files = ('perl_lib/EPrints/Plugin/Storage/AmazonS3.pm');
+		$packages->{'AmazonS3'}->{'files'} = \@files;
+		$packages->{'AmazonS3'}->{'name'} = 'AmazonS3';
+
+
+	}
+
+	return $packages;
+}
+
+# End of UPGRADE CODE
+
+=head1 COPYRIGHT
+
+=for COPYRIGHT BEGIN
+
+Copyright 2000-2011 University of Southampton.
+
+=for COPYRIGHT END
+
+=for LICENSE BEGIN
+
+This file is part of EPrints L<http://www.eprints.org/>.
+
+EPrints is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+EPrints is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+License for more details.
+
+You should have received a copy of the GNU General Public License
+along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
+
+=for LICENSE END
+

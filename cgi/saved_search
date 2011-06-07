@@ -1,0 +1,30 @@
+######################################################################
+#
+#  Saved Search
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+
+use strict;
+my $repo = EPrints->new->current_repository;
+exit( 0 ) unless( defined $repo );
+
+my $dataset = $repo->dataset( "saved_search" );
+my $saved_search = $dataset->dataobj( $repo->param( "savedsearchid" ) );
+
+if( !$saved_search )
+{
+	$repo->not_found;
+	exit;
+}
+
+$repo->redirect( $saved_search->uri );

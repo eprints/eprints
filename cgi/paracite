@@ -1,0 +1,147 @@
+######################################################################
+#
+#  Paracitation Module
+#
+######################################################################
+#
+#  __COPYRIGHT__
+#
+# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# 
+#  __LICENSE__
+#
+######################################################################
+
+use EPrints;
+use ParaTools::CiteParser::Standard;
+use URI;
+
+use strict;
+my $session = new EPrints::Session;
+exit( 0 ) unless( defined $session );
+
+my $ds = $session->dataset( "archive" );
+
+&process( $session );
+
+$session->terminate;
+
+exit;
+
+
+sub process
+{
+	my( $session ) = @_;
+	
+	my $title = $session->html_phrase( "cgi/paracite:title" );
+
+	unless( EPrints::Utils::is_set( $session->param("ref") ) )
+	{
+		$session->build_page( 
+			$title, 
+			$session->html_phrase( "cgi/paracite:no_reference" ),
+			"paracite" );
+		$session->send_page();
+		return;
+	}
+
+
+	my $ref = $session->param("ref");
+
+	my $parser = new ParaTools::CiteParser::Standard();
+	my $metadata = $parser->parse($ref);
+	my ($year, $author) = ($metadata->{year}, $metadata->{aulast});
+
+	if (!defined $year || $year eq "") 
+	{
+		$_ = $ref;
+		/\b(\d{4})\b/;
+		$year = $1;
+		if ($year !~ /^\d{4}/) { $year = ""; }
+	}
+	if (!defined $author || $author eq "")
+	{
+		$ref =~ m/^([a-zA-Z]+)/;
+		$author = $1;
+	}
+
+       	my $url = $ref;
+	my $uri = URI->new( $url );
+       	$url =  $uri->as_string;
+	$url =~ s/&/%26/g;
+	my $paraurl = 'http://paracite.eprints.org/cgi-bin/paracite.cgi?ref='.$url;
+
+	unless( EPrints::Utils::is_set( $author ) )
+	{
+		$session->redirect( $paraurl );
+		return;
+	}
+
+	my $searchexp = new EPrints::Search(
+		filters => [
+			{ meta_fields=>[ 'metadata_visibility' ], value=>'show', match=>'EQ', merge=>"ANY", describe=>0 },
+		],
+		session => $session,
+		dataset => $ds );
+
+	if( EPrints::Utils::is_set( $author ) )
+	{
+		if( $ds->has_field( "authors" ) )
+		{
+			$searchexp->add_field( $ds->get_field( "authors" ), $author );
+		}
+		elsif( $ds->has_field( "creators_name" ) )
+		{
+			$searchexp->add_field( $ds->get_field( "creators_name" ), $author );
+		}
+		elsif( $ds->has_field( "creators" ) )
+		{
+			$searchexp->add_field( $ds->get_field( "creators" ), $author );
+		}
+		# otherwise dunno what to do.
+	}
+
+	if( EPrints::Utils::is_set( $year ) )
+	{
+		if( $ds->has_field( "year" ) )
+		{
+			$searchexp->add_field( $ds->get_field( "year" ), $year );
+		}
+		elsif( $ds->has_field( "date" ) )
+		{
+			$searchexp->add_field( $ds->get_field( "date" ), $year );
+		}
+		# otherwise dunno what to do
+	}
+
+	$searchexp->perform_search();
+	my $count = $searchexp->count();
+	if( $count == 0 )
+	{
+		$session->redirect( $paraurl );
+		$searchexp->dispose;
+		return;
+	}
+
+	my $page = $session->make_doc_fragment();
+	my $p = $session->make_element( "p" );
+	$p->appendChild( $session->make_text( $ref ) );
+	$page->appendChild( $p );
+	my @matches = $searchexp->get_records( 0, 10 );
+	$page->appendChild( $session->html_phrase( "cgi/paracite:possible_matches" ) );
+	foreach my $m ( @matches )
+	{
+		my $p = $session->make_element( "p" );
+		$p->appendChild( $m->render_citation_link );
+		$page->appendChild( $p );
+	}
+	$page->appendChild( $session->render_ruler );
+	my $a = $session->make_element( "a", href=>$paraurl );
+	$page->appendChild( $session->html_phrase( 
+		"cgi/paracite:paracite_link",
+		link=>$a ));
+
+	$session->build_page( $title, $page, "paracite" );
+	$session->send_page();
+	return;
+}

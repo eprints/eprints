@@ -1,0 +1,35 @@
+# types for document 
+
+text/html
+application/pdf
+application/postscript
+text/plain
+application/rtf
+application/vnd.ms-powerpoint
+application/vnd.ms-excel
+application/msword
+image/jpeg
+image/png
+image/gif
+image/bmp
+image/tiff
+video/mpeg
+video/quicktime
+video/x-msvideo
+video/x-ms-wmv
+video/x-m4v
+video/mp4
+video/x-flv
+video/mp2t
+text/xml
+text/n3
+application/rdf+xml
+application/bzip2
+application/x-gzip   # tgz
+application/zip
+audio/x-wav
+audio/mpeg
+audio/ogg
+audio/flac
+audio/x-ms-wma
+other
