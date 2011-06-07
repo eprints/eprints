@@ -1505,28 +1505,24 @@ sub erase_eprint_files
 	my $htdocs_path = $repo->config( "htdocs_path" );
 	
 	# Get available directories
-	opendir DOCSTORE, $documents_path
-		or print STDERR "Can't open DOCSTORE\n";
+	opendir my $dh1, $documents_path or Carp::croak( "Can't open DOCSTORE: $!" );
 	
-	my @doomeddirs;
-	foreach( readdir DOCSTORE )
+	# delete every directory below the parent dirs (otherwise we'll clobber the
+	# actual storage directories)
+	foreach my $dir (readdir $dh1)
 	{
-		next if m/^\./; # skip . and .. and any hidden directories
-		push @doomeddirs,
-			$documents_path."/".$_;
-	}
-	closedir DOCSTORE;
-	
-	# Remove the contents of each of the directories.
-
-	push @doomeddirs, $htdocs_path;
-	foreach my $dir (@doomeddirs)
-	{
-		if( $noise>=2 ) { print "Removing stuff in: $dir\n"; }
-		if( !File::Path::rmtree( $dir ) )
+		next if $dir =~ /^\./;
+		if( $noise>=2 ) { print "Removing stuff in: $documents_path/$dir\n"; }
+		opendir my $dh2, "$documents_path/$dir" or next;
+		for(readdir $dh2)
 		{
-			print STDERR "Warning: Cleaning $dir didn't go smoothly\n";
+			next if /^\./;
+			if( !File::Path::rmtree( "$documents_path/$dir/$_" ) )
+			{
+				warn "Error removing $documents_path/$dir/$_: $!";
+			}
 		}
+		closedir $dh2;
 	}
 	if( $noise>=1 ) { print "...done erasing eprint files.\n"; }
 }
@@ -2012,6 +2008,9 @@ sub upgrade
 
 	my $repo = &repository( $repoid, check_db => 0 );
 	
+	print STDERR "Stopping indexer ...\n";
+	run_script( $repoid, "indexer", "stop" );	
+
 	my $db = $repo->database();
 
 	my @versions = qw(
@@ -2049,6 +2048,7 @@ sub upgrade
 		}
 	}
 
+	print STDERR "Please restart the indexer\n";
 	print $db->get_version()."\n";
 }
 
