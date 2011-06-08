@@ -371,7 +371,9 @@ sub _to_text_dump
 		return;
 	}
 
-	my $name = lc $node->localName();
+	my $name = $node->localName();
+	# documentFragment has no localName
+	$name = defined $name ? lc($name) : "";
 
 	# empty tags
 	if( $name eq 'hr' )
