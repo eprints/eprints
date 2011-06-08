@@ -762,6 +762,8 @@ sub POST
 			{
 				push @items, $dataset->create_dataobj( $epdata );
 			}
+
+			return $items[$#items];
 		}
 	) );
 

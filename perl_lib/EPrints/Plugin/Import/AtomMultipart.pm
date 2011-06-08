@@ -8,6 +8,8 @@ package EPrints::Plugin::Import::AtomMultipart;
 
 use HTTP::Headers::Util;
 use MIME::Multipart::Parser;
+use MIME::Base64;
+use MIME::QuotedPrint;
 
 use strict;
 
@@ -41,27 +43,42 @@ sub input_fh
 	local $self->{epdata};
 	local $self->{_buffer} = "";
 	
+	if( !$boundary && $self->{repository}->get_online )
+	{
+		my $content_type = $self->{repository}->get_request->headers_in->{'Content-Type'};
+		my( $mime_type, undef, @params ) = @{(HTTP::Headers::Util::split_header_words($content_type))[0]};
+		my %params = @params;
+		$boundary = $params{boundary};
+	}
+	if( !$boundary )
+	{
+		$self->error( "No boundary was found in the content-type" );
+		return;
+	}
+
+	# read the content of the text-part
+	my $fpos = 0;
+	while(<$fh>)
+	{
+		$fpos += length($_);
+		last if /^--$boundary/;
+	}
+	sysseek($fh,$fpos,0); # Multipart::Parser does sysread
+
 	my @parts = MIME::Multipart::Parser->new->parse( $fh, $boundary );
 
-	shift @parts; # discard text-part
-
-	foreach my $part (@parts)
+	if( @parts != 2 )
 	{
-		my @headers = @{$part->{headers}};
-		foreach my $i (0..$#headers)
-		{
-			$headers[$i] = $i % 2 ?
-				[ HTTP::Headers::Util::split_header_words( $headers[$i] ) ]
-				: lc($headers[$i])
-		}
-		$part->{headers} = { @headers };
+		$self->error( "Expected exactly 2 MIME parts but actually got ".@parts );
+		return;
 	}
 
 	if( $start )
 	{
 		for(my $i = 0; $i < @parts; ++$i)
 		{
-			if( $parts[$i]{headers}{'content-id'}[0][0] eq $start )
+			no warnings;
+			if( $parts[$i]{headers}->header( 'Content-ID' ) eq $start )
 			{
 				unshift @parts, splice(@parts,$i,1);
 				last;
@@ -69,15 +86,10 @@ sub input_fh
 		}
 	}
 
-	my $ct = eval { $parts[0]{headers}{'content-type'}[0][0] };
-	if( !$ct || $ct ne 'application/atom+xml' )
+	my $ct = $parts[0]{headers}->header( 'Content-Type' );
+	if( !$ct || $ct !~ m#^\s*application/atom\+xml\b# )
 	{
 		$self->error( "Expected application/atom+xml as first part but got '$ct'" );
-		return;
-	}
-	if( !$parts[1] )
-	{
-		$self->error( "Expected content part" );
 		return;
 	}
 
@@ -109,12 +121,14 @@ sub input_fh
 	}
 
 	# eval otherwise we'll need a lot of if-defineds
-	my $mime_type = eval { $parts[1]{headers}{'content-type'}[0][0] };
-	$mime_type = 'application/octet-stream' if !defined $ct;
+	my $mime_type = $parts[1]{headers}->header( 'Content-Type' );
+	$mime_type = 'application/octet-stream' if !defined $mime_type;
+	$mime_type =~ s/\s*;.*$//;
 
-	my $filename = eval {
-		({ @{ $parts[1]{headers}{'content-disposition'}[0] } })->{filename}
-	};
+	my $disposition = $parts[1]{headers}->header( 'Content-Disposition' ) || "";
+	$disposition = (HTTP::Headers::Util::split_header_words( $disposition ))[0];
+	$disposition = { @$disposition };
+	my $filename = $disposition->{filename};
 	$filename = 'main.bin' if !defined $filename;
 
 	$epdata->{documents} ||= [];
@@ -131,7 +145,7 @@ sub input_fh
 
 	my @ids;
 
-	my $dataobj = $self->epdata_to_dataobj( $dataset, $epdata );
+	my $dataobj = $self->SUPER::epdata_to_dataobj( $dataset, $epdata );
 	push @ids, $dataobj->id if defined $dataobj;
 
 	return EPrints::List->new(
@@ -140,11 +154,18 @@ sub input_fh
 		ids => \@ids );
 }
 
-sub parsed
+sub epdata_to_dataobj
 {
 	my( $self, $epdata ) = @_;
 
 	$self->{epdata} = $epdata;
+
+	return undef;
+}
+
+sub message
+{
+	shift->handler->message( @_ );
 }
 
 1;

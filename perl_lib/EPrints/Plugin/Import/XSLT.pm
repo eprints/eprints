@@ -19,7 +19,7 @@ sub new
 	my( $class, @args ) = @_;
 
 	return $class->SUPER::new(
-		%{$SETTINGS{class}},
+		%{$SETTINGS{$class}},
 		@args
 	);
 }
@@ -32,7 +32,7 @@ sub init_xslt
 	$xslt->{stylesheet} = $stylesheet;
 	delete $xslt->{doc};
 
-	${$SETTINGS{$class}} = $xslt;
+	$SETTINGS{$class} = $xslt;
 }
 
 sub input_fh
