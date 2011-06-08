@@ -2043,7 +2043,7 @@ sub upgrade
 			$f =~ s/\./_/g;
 			print STDERR "Upgrading " . $versions[$i] . " to " . $versions[$i+1] . "\n";
 			&$f( $repo, $db );
-			migrate_to_epm_packages($repoid,$versions[$i],$versions[$i+1]);
+#			migrate_to_epm_packages($repoid,$versions[$i],$versions[$i+1]);
 			$db->set_version( $versions[$i+1] );
 		}
 	}
@@ -3236,7 +3236,7 @@ sub backup_core_package
 
 sub get_packages
 {
-	my ($old_version, $new_version);
+	my ($old_version, $new_version) = @_;
 	my $packages = {};
 
 	if ($new_version eq "3.3.1") 
