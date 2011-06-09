@@ -49,6 +49,8 @@ sub new
 	}
 
 	$params{name} = exists $params{name} ? $params{name} : $params{id} . " plugin is missing the name parameter";
+	# aliases for this plugin (allows overriding of core plugins)
+	$params{alias} = exists $params{alias} ? $params{alias} : [];
 
 	return bless \%params, $class;
 }

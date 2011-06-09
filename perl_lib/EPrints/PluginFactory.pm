@@ -67,13 +67,15 @@ sub new
 
 	$self->{xslt} = {};
 
+	$self->{disabled} = {};
+
 	my $dir;
 
 	my $use_xslt =
 		$EPrints::XML::CLASS eq "EPrints::XML::LibXML" &&
 		EPrints::Utils::require_if_exists( "XML::LibXSLT" );
 
-	# system plugins (only load once)
+	# system plugins (don't reload)
 	$dir = $repository->get_conf( "base_path" )."/perl_lib";
 	if( !scalar keys %SYSTEM_PLUGINS )
 	{
@@ -81,6 +83,25 @@ sub new
 		if( $use_xslt )
 		{
 			$self->_load_xslt_dir( \%SYSTEM_PLUGINS, $repository, $dir );
+		}
+	}
+
+	# extension plugins
+	$dir = $repository->get_conf( "base_path" )."/lib/plugins";
+	my @loaded = $self->_load_dir( \%SYSTEM_PLUGINS, $repository, $dir );
+	if( $use_xslt )
+	{
+		push @loaded,
+			$self->_load_xslt_dir( \%SYSTEM_PLUGINS, $repository, $dir );
+	}
+	# default to disabled
+	my $conf = $repository->config( "plugins" );
+	foreach my $plugin (@loaded)
+	{
+		my $pluginid = $plugin->get_id();
+		if( !defined $conf->{$pluginid}{params}{disabled} )
+		{
+			$conf->{$pluginid}{params}{disable} = 1;
 		}
 	}
 
@@ -92,13 +113,19 @@ sub new
 		$self->_load_xslt_dir( $self->{repository_data}, $repository, $dir );
 	}
 
-	$self->{disabled} = {};
-
-	# build a cheat-sheet of config-disabled plugins
 	foreach my $plugin ($self->get_plugins)
 	{
+		# build a cheat-sheet of config-disabled plugins
 		my $pluginid = $plugin->get_id();
 		$self->{disabled}->{$pluginid} = $plugin->param( "disable" );
+		# plugin-defined aliases
+		if( !$plugin->param( "disable" ) )
+		{
+			foreach my $alias (@{$plugin->param( "alias" )||[]})
+			{
+				$self->{alias}->{$alias} = $pluginid;
+			}
+		}
 	}
 
 	return $self;
@@ -108,11 +135,13 @@ sub _load_dir
 {
 	my( $self, $data, $repository, $base_dir ) = @_;
 
-	return unless -d $base_dir;
-
 	local @INC = ($base_dir, @INC);
 
 	$base_dir .= "/EPrints/Plugin";
+
+	return unless -d $base_dir;
+
+	my @plugins;
 
 	File::Find::find({
 		wanted => sub {
@@ -126,12 +155,15 @@ sub _load_dir
 			$class =~ s#/#::#g;
 			$class =~ s/\.pm$//;
 			$class = "EPrints::Plugin::$class";
-			$self->_load_plugin( $data, $repository, $File::Find::name, $class );
+			my $plugin = $self->_load_plugin( $data, $repository, $File::Find::name, $class );
+			push @plugins, $plugin if defined $plugin;
 		},
 		no_chdir => 1,
 		},
 		$base_dir
 	);
+
+	return @plugins;
 }
 
 sub _load_xslt_dir
@@ -141,6 +173,8 @@ sub _load_xslt_dir
 	$base_dir .= "/EPrints/Plugin";
 
 	return unless -d $base_dir;
+
+	my @plugins;
 
 	File::Find::find({
 		wanted => sub {
@@ -154,12 +188,15 @@ sub _load_xslt_dir
 			$class =~ s#/#::#g;
 			$class =~ s/\.xslt?$//;
 			$class = "EPrints::Plugin::$class";
-			$self->_load_xslt( $data, $repository, $File::Find::name, $class );
+			my $plugin = $self->_load_xslt( $data, $repository, $File::Find::name, $class );
+			push @plugins, $plugin if defined $plugin;
 		},
 		no_chdir => 1,
 		},
 		$base_dir
 	);
+
+	return @plugins;
 }
 
 sub _load_plugin
@@ -187,7 +224,7 @@ sub _load_plugin
 	use strict "refs";
 	return if( $disable );
 
-	$self->register_plugin( $data, $plugin );
+	return $self->register_plugin( $data, $plugin );
 }
 
 sub _load_xslt
@@ -253,13 +290,13 @@ EOP
 	{
 		return if !@{$plugin->param( "produce" )};
 
-		$self->register_plugin( $data, $plugin );
+		return $self->register_plugin( $data, $plugin );
 	}
 	elsif( $plugin->isa( "EPrints::Plugin::Export" ) )
 	{
 		return if !@{$plugin->param( "accept" )};
 
-		$self->register_plugin( $data, $plugin );
+		return $self->register_plugin( $data, $plugin );
 	}
 	else
 	{
@@ -417,7 +454,7 @@ sub _list
 	}
 }
 
-=item $ok = $plugins->register_plugin( $data, $plugin )
+=item $plugin = $plugins->register_plugin( $data, $plugin )
 
 Register a new plugin $plugin.
 
@@ -433,6 +470,8 @@ sub register_plugin
 
 	push @{$data->{$type}||=[]}, $id;
 	$data->{"_class_"}->{$id} = $class;
+
+	return $plugin;
 }
 
 1;
