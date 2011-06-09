@@ -10,6 +10,8 @@ use LWP::UserAgent;
 
 @ISA = qw( EPrints::Plugin::Screen::Register );
 
+$DISABLE = 1;
+
 use strict;
 
 sub new
