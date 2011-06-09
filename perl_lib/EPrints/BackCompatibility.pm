@@ -450,6 +450,15 @@ sub free_space { EPrints->system->free_space( @_ ) }
 sub proc_exists { EPrints->system->proc_exists( @_ ) }
 sub join_path { EPrints->system->join_path( @_ ) }
 
+package EPrints::Repository;
+
+# phrase-based dynamic_templates.pl
+sub render_toolbar {
+	EPrints::ScreenProcessor->new(
+			session => shift,
+		)->render_toolbar;
+}
+
 ######################################################################
 1;
 

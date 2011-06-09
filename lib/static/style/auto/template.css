@@ -35,6 +35,9 @@ hr.ep_tm_last {
 	margin: 0px;
 	padding: 0px;
 }
+.ep_tm_key_tools {
+	display: inline;
+}
 
 .ep_tm_menu {
 	background: #204f76;
