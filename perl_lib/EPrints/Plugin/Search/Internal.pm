@@ -31,7 +31,15 @@ sub from_form
 {
 	my( $self ) = @_;
 
-	return map { $_->from_form() } $self->get_non_filter_searchfields;
+	my @problems;
+
+	foreach my $sf ($self->get_non_filter_searchfields)
+	{
+		my $problem = $sf->from_form;
+		push @problems, $problem if defined $problem;
+	}
+
+	return @problems;
 }
 
 sub from_string
