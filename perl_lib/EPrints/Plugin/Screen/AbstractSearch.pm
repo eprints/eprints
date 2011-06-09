@@ -67,7 +67,7 @@ sub export_url
 		_action_export => 1,
 		output => $format,
 		exp => $self->{processor}->{search}->serialise,
-		n => $self->{session}->param( "n" ),
+		n => scalar($self->{session}->param( "n" )),
 	);
 
 	return $url;
