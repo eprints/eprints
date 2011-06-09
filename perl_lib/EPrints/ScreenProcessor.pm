@@ -424,6 +424,9 @@ sub add_message
 {
 	my( $self, $type, $message ) = @_;
 
+	# we'll sanity check now, otherwise it becomes hard to trace later on
+	EPrints->abort( "Requires message argument" ) if !defined $message;
+
 	push @{$self->{messages}},{type=>$type,content=>$message};
 }
 
