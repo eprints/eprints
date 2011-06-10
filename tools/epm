@@ -1,0 +1,337 @@
+#!/usr/bin/perl
+
+use FindBin;
+use lib "$FindBin::Bin/../perl_lib";
+
+=pod
+
+=for Pod2Wiki
+
+=head1 NAME
+
+epm - EPrints Package Manager
+
+=head1 SYNOPSIS
+
+epm I<command> [B<options>]
+
+Where I<command> is one of:
+
+	build
+	disable
+	enable
+	install
+	list
+	uninstall
+
+=head1 OPTIONS
+
+=over 4
+
+=item --verbose
+
+=item --force
+
+=item --help
+
+=item --man
+
+=item --epm L<package_path>
+
+Read metadata from the epm at L<package_path> when building.
+
+=item --version
+
+Set the version when building.
+
+=back
+
+=head1 COMMANDS
+
+=over 4
+
+=cut
+
+use EPrints;
+use Getopt::Long;
+use Pod::Usage;
+use Digest::MD5;
+use MIME::Base64;
+
+use strict;
+use warnings;
+
+my $opt_version;
+my $opt_verbose = 0;
+my $opt_force = 0;
+my $opt_help;
+my $opt_man;
+my $opt_epm;
+
+GetOptions(
+	'epm=s' => \$opt_epm,
+	'version=s' => \$opt_version,
+	'verbose+' => \$opt_verbose,
+	'force' => \$opt_force,
+	'help' => \$opt_help,
+	'man' => \$opt_man,
+) or pod2usage( 2 );
+
+pod2usage(-verbose => 1) if $opt_help;
+pod2usage(-verbose => 2) if $opt_man;
+
+pod2usage( 2 ) if !@ARGV;
+my $cmd = shift @ARGV;
+
+my $noise = $opt_verbose + 1;
+my $force = $opt_force;
+
+my $f = "action_$cmd";
+if( !defined &$f )
+{
+	pod2usage( "Unknown or unsupported command '$cmd'" );
+}
+
+my $repo = EPrints::Repository->new;
+my $handler = EPrints::CLIProcessor->new(
+	repository => $repo,
+);
+my $dataset = $repo->dataset( "epm" );
+
+{
+no strict "refs";
+&$f( $repo );
+}
+
+=item build I<package> I<file1> I<file2> ...
+
+Build a new package called C<package> from a list of files.
+
+	./epm build endnote \
+		lib/plugins/EPrints/Plugin/Export/EndNote.pm \
+		lib/epm/endnote.pl
+
+Where C<lib/epm/endnote.pl> contains:
+
+	$c->{plugins}{"Export::EndNote"}{params}{disable} = 0;
+
+=cut
+
+sub action_build
+{
+	my( $repo ) = @_;
+
+	pod2usage( 2 ) if @ARGV < 2;
+	my( $name, @manifest ) = @ARGV;
+
+	my $epdata = {};
+	if( $opt_epm )
+	{
+		if(open(my $fh, "<", $opt_epm))
+		{
+			sysread($fh, my $xml, -s $fh);
+			close($fh);
+			my $epm = $dataset->dataobj_class->new_from_xml( $repo, $xml );
+			$epdata = $epm->get_data;
+		}
+		else
+		{
+			die "Error reading from $opt_epm: $!";
+		}
+	}
+	# sanity check they aren't bundling "installed" epms
+	if( my @bad = grep { $_ =~ m# ^lib/epm/[^/]+\.epmi?$ #x } @manifest )
+	{
+		die "Can not bundle installed package files: @bad";
+	}
+
+	delete $epdata->{documents};
+	$epdata->{package_name} = $name;
+	$epdata->{date} = EPrints::Time::iso_datetime();
+	$epdata->{package_version} = $opt_version if $opt_version;
+	$epdata->{package_version} = '1.0'
+		if !EPrints::Utils::is_set( $epdata->{package_version} );
+
+	my $pkg_cache = $repo->config( "base_path" ) . "/var/cache/epm";
+	EPrints->system->mkdir( $pkg_cache )
+		or die "Error creating directory $pkg_cache: $!";
+
+	my $epm = $dataset->dataobj_class->new_from_manifest(
+		$repo, $epdata, @manifest
+	);
+
+	my $output = sprintf("%s/%s-%s.epm",
+		$pkg_cache,
+		$epm->value( "package_name" ),
+		$epm->value( "package_version" )
+	);
+
+	open(my $fhout, ">", $output) or die "Error writing to $output: $!";
+
+	binmode($fhout, ":utf8");
+	syswrite($fhout, $epm->serialise( 1 ));
+
+	print "$output\n";
+}
+
+=item disable I<repository> I<package>
+
+Disable the I<package> for I<repository>. This will trigger a configuration
+reload.
+
+=cut
+
+sub action_disable
+{
+	my( $repo ) = @_;
+
+	pod2usage() if @ARGV != 2;
+	my( $repoid, $name ) = @ARGV;
+
+	$repo = EPrints->repository( $repoid ) or die "Unknown repository $repoid";
+
+	my $epm = $repo->dataset( "epm" )->dataobj_class->new_from_name( $repo, $name );
+	die "Unknown package $name" if !defined $epm;
+
+	if( $epm->disable( $handler ) )
+	{
+		print "Disabled $name\n";
+	}
+}
+
+=item enable I<repository> I<package>
+
+Enable the I<package> for I<repository>. This will trigger a configuration
+reload.
+
+=cut
+
+sub action_enable
+{
+	my( $repo ) = @_;
+
+	pod2usage() if @ARGV != 2;
+	my( $repoid, $name ) = @ARGV;
+
+	$repo = EPrints->repository( $repoid ) or die "Unknown repository $repoid";
+
+	my $epm = $repo->dataset( "epm" )->dataobj_class->new_from_name( $repo, $name );
+	die "Unknown package $name" if !defined $epm;
+
+	if( $epm->enable( $handler ) )
+	{
+		print "Enabled $name\n";
+	}
+}
+
+=item install I<package_path>
+
+Install a package located at I<package_path>.
+
+=cut
+
+sub action_install
+{
+	my( $repo ) = @_;
+
+	pod2usage( 2 ) if @ARGV != 1;
+
+	my( $source ) = @ARGV;
+
+	open(my $fh, "<", $source) or die "Error reading $source: $!";
+	sysread($fh, my $xml, -s $fh);
+	close($fh);
+
+	my $epm = $repo->dataset( "epm" )->dataobj_class->new_from_xml( $repo, $xml );
+
+	if( $epm->install( $handler, $force ) )
+	{
+		print "Installed ".$epm->value( "package_name" )." [$source]\n";
+	}
+}
+
+=item list
+
+List all installed packages.
+
+=cut
+
+sub action_list
+{
+	my( $repo ) = @_;
+
+	$repo->dataset( "epm" )->dataobj_class->map($repo, sub {
+		my( undef, undef, $epm ) = @_;
+
+		print sprintf("%s\t%s\n", $epm->value( "package_name" ), $epm->value( "package_version" ));
+	});
+}
+
+=item uninstall I<package>
+
+Uninstall the installed package I<package>.
+
+=cut
+
+sub action_uninstall
+{
+	my( $repo ) = @_;
+
+	pod2usage( 2 ) if @ARGV != 1;
+
+	my( $name ) = @ARGV;
+
+	my $epm = $repo->dataset( "epm" )->dataobj_class->new_from_name( $repo, $name );
+	die "Unknown or unsupported package $name" if !defined $epm;
+
+	my @enabled_in;
+	foreach my $repoid (EPrints->repository_ids)
+	{
+		last if $force;
+		my $repo = EPrints->repository( $repoid );
+		my $repo_epm = $repo->dataset( "epm" )->make_dataobj( $epm->get_data );
+
+		if( $repo_epm->is_enabled )
+		{
+			push @enabled_in, $repoid;
+		}
+	}
+	die "Can't uninstall while package is enabled in: ".join(', ', @enabled_in) if @enabled_in;
+
+	if( $epm->uninstall( $handler, $force ) )
+	{
+		print "Uninstalled $name\n";
+	}
+}
+
+=back
+
+=cut
+
+=head1 COPYRIGHT
+
+=for COPYRIGHT BEGIN
+
+Copyright 2000-2011 University of Southampton.
+
+=for COPYRIGHT END
+
+=for LICENSE BEGIN
+
+This file is part of EPrints L<http://www.eprints.org/>.
+
+EPrints is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+EPrints is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+License for more details.
+
+You should have received a copy of the GNU General Public License
+along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
+
+=for LICENSE END
+
