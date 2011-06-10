@@ -150,6 +150,18 @@ sub load_system_config
 	}
 }
 
+=item $conf = EPrints::Config::system_config()
+
+Returns the system configuration variable. To access a specific configuration
+option use L</get>.
+
+=cut
+
+sub system_config
+{
+	return $SYSTEMCONF;
+}
+
 ######################################################################
 =pod
 
