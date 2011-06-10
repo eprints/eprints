@@ -3849,4 +3849,6 @@ Each file inside this archive will be created as an <b>individual</b> document i
 
 	<epp:phrase id="Plugin/Screen/EPrint/Document/Extract:done">Finished extracting information from the document.</epp:phrase>
 
+	<epp:phrase id="epm:file_exists">File exists <epc:pin name="filename"/></epp:phrase>
+
 </epp:phrases>

@@ -90,41 +90,21 @@ use strict;
 ######################################################################
 =pod
 
-=begin InternalDoc
+=item $repository = EPrints::Repository->new( %opts )
 
-=item $repository = EPrints::Repository->new( $mode, [$repository_id], [$noise], [$nocheckdb] )
+Creates and returns a new repository object. This is a utility object only and
+will only have the basic system configuration available.
 
-Create a connection to an EPrints repository which provides access 
-to the database and to the repository configuration.
+=item $repository = EPrints::Repository->new( $repository_id, %opts )
 
-This method can be called in two modes. Setting $mode to 0 means this
-is a connection via a CGI web page. $repository_id is ignored, instead
-the value is taken from the "PerlSetVar EPrints_ArchiveID" option in
-the apache configuration for the current directory.
+Create a connection to an EPrints repository $repository_id which provides
+access to the database and to the repository configuration.
 
-If this is being called from a command line script, then $mode should
-be 1, and $repository_id should be the ID of the repository we want to
-connect to.
+Options:
 
-$mode :
-mode = 0    - We are online (CGI script)
-mode = 1    - We are offline (bin script) $repository_id is repository_id
-mode = 2    - We are online, but don't create a CGI query (so we
- don't consume the data).
-
-$noise is the level of debugging output.
-0 - silent
-1 - quietish
-2 - noisy
-3 - debug all SQL statements
-4 - debug database connection
- 
-Under normal conditions use "0" for online and "1" for offline.
-
-$nocheckdb - if this is set to 1 then a connection is made to the
-database without checking that the tables exist. 
-
-=end InternalDoc
+	db_connect - 1
+	check_db - 1
+	noise - 0
 
 =cut
 ######################################################################
@@ -138,7 +118,14 @@ database without checking that the tables exist.
 #
 sub new
 {
-	my( $class, $repository_id, %opts ) = @_;
+	my $class = shift;
+
+	if( @_ % 2 == 0 )
+	{
+		return $class->_new( @_ );
+	}
+
+	my( $repository_id, %opts ) = @_;
 
 	EPrints::Utils::process_parameters( \%opts, {
 		  consume_post => 1,
@@ -239,6 +226,31 @@ sub new
 	$self->{loadtime} = time();
 	
 	return( $self );
+}
+
+sub _new
+{
+	my( $class, %opts ) = @_;
+
+	my $self = bless {}, $class;
+
+	$self->{offline} = 1;
+
+	$self->{config} = EPrints::Config::system_config();
+	$self->{config}->{field_defaults} = {}
+		if !defined $self->{config}->{field_defaults};
+
+	$self->{config}->{defaultlanguage} = 'en';
+	$self->{config}->{languages} = [qw( en )];
+
+	$self->_load_datasets or EPrints->abort( "Failed to load datasets" );
+	$self->_load_languages or EPrints->abort( "Failed to load languages" );
+
+	$self->change_lang( $self->config( "defaultlanguage" ) );
+
+	$self->{loadtime} = time();
+
+	return $self;
 }
 
 =begin InternalDoc
@@ -1583,7 +1595,14 @@ sub log
 		$msg = join("\n",@m2);
 	}
 
-	$self->call( 'log', $self, $msg );
+	if( $self->can_call( 'log' ) )
+	{
+		$self->call( 'log', $self, $msg );
+	}
+	else
+	{
+		print STDERR "$msg\n";
+	}
 }
 
 
@@ -1616,7 +1635,7 @@ sub call
 	if( !defined $fn || ref $fn ne "CODE" )
 	{
 		# Can't log, as that could cause a loop.
-		print STDERR "Undefined or invalid function: $cmd\n";
+		Carp::carp( "Undefined or invalid function: $cmd\n" );
 		return;
 	}
 
