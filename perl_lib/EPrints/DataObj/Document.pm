@@ -1494,6 +1494,8 @@ sub thumbnail_url
 
 	return undef if $thumbnails->count == 0;
 
+	$relation = "has${size}ThumbnailVersion";
+
 	my $url = $self->get_baseurl();
 	$url =~ s! /$ !.$relation/!x;
 	if( $self->is_set( "main" ) )
