@@ -99,7 +99,6 @@ package EPrints::DataObj::Document;
 use EPrints;
 use EPrints::Search;
 
-use File::Basename;
 use File::Copy;
 use File::Find;
 use Cwd;
