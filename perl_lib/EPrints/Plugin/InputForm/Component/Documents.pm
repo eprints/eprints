@@ -367,7 +367,7 @@ sub _render_doc_div
 	my $tr = $session->make_element( "tr" );
 	$doc_title_bar->appendChild( $table );
 	$table->appendChild( $tr );
-	my $td_left = $session->make_element( "td", align=>"left", valign=>"middle", width=>"40%" );
+	my $td_left = $session->make_element( "td", align=>"left", valign=>"middle", width=>"60%" );
 	$tr->appendChild( $td_left );
 
 	$td_left->appendChild( $self->_render_doc_icon_info( $doc, $files ) );
