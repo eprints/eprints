@@ -97,35 +97,20 @@ sub render
 
 	my $id_prefix = "ep_workflow_views";
 
+	my $current = $self->{session}->param( "${id_prefix}_current" );
+	$current = 0 if !defined $current;
+
 	my @items = (
 		$self->list_items( "dataobj_view_tabs", filter => 0 ),
 		$self->list_items( "dataobj_".$dataset->id."_view_tabs", filter => 0 ),
 		);
 
-	my $current;
 	my @screens;
-	my @tabs;
-	my %labels;
-	my %links;
-	my @slowlist;
-	foreach my $item ( @items )
+	foreach my $item (@items)
 	{
 		next if !($item->{screen}->can_be_viewed & $self->who_filter);
 		next if $item->{action} && !$item->{screen}->allow_action( $item->{action} );
-		if( $item->{screen}->{expensive} )
-		{
-			push @slowlist, $item->{screen_id};
-		}
-
-		if( defined $view && $view eq $item->{screen_id} )
-		{
-			$current = $item->{screen};
-		}
-
 		push @screens, $item->{screen};
-		push @tabs, $item->{screen_id};
-		$labels{$item->{screen_id}} = $item->{screen}->render_tab_title;
-		$links{$item->{screen_id}} = "?screen=".$self->{processor}->{screenid}."&dataset=".$self->{processor}->{dataset}->id."&dataobj=".$self->{processor}->{dataobj}->id."&view=".substr( $item->{screen_id}, 8 );
 	}
 
 	if( !@screens )
@@ -133,53 +118,34 @@ sub render
 		return $chunk;
 	}
 
-	$current = $screens[0] if !defined $current;
-	$view = $current->get_id if !defined $view;
+	my @labels;
+	my @contents;
+	my @expensive;
 
-	$chunk->appendChild( 
-		$self->{session}->render_tabs( 
-			id_prefix => $id_prefix,
-			current => $view,
-			tabs => \@tabs,
-			labels => \%labels,
-			links => \%links,
-			slow_tabs => \@slowlist ) );
-			
-	my $panel = $self->{session}->make_element( 
-			"div", 
-			id => "${id_prefix}_panels", 
-			class => "ep_tab_panel" );
-	$chunk->appendChild( $panel );
-
-	if( $view ne $current->get_id )
+	for(my $i = 0; $i < @screens; ++$i)
 	{
-		my $view_div = $self->{session}->make_element( "div", 
-				id => "${id_prefix}_panel_$view" );
-		$panel->appendChild( $view_div );
-		$view_div->appendChild( $self->{session}->html_phrase( "cgi/users/edit_eprint:view_unavailable" ) ); # error
-	}
-
-	# don't render the other tabs if this is a slow tab - they must reload
-	foreach my $screen (@screens)
-	{
-		my $view_div = $self->{session}->make_element( "div", 
-			id => "${id_prefix}_panel_".$screen->get_id, 
-			style => "display: none" );
-		$panel->appendChild( $view_div );
-		if( $screen eq $current )
+		my $screen = $screens[$i];
+		push @labels, $screen->render_tab_title;
+		push @expensive, $i if $screen->{expensive};
+		if( $screen->{expensive} && $i != $current )
 		{
-			$view_div->setAttribute( style => "display: block" );
-			$view_div->appendChild( $screen->render );
-		}
-		elsif( $screen->{expensive} )
-		{
-			$view_div->appendChild( $self->{session}->html_phrase( "cgi/users/edit_eprint:loading" ) );
+			push @contents, $self->{session}->html_phrase(
+				"cgi/users/edit_eprint:loading"
+			);
 		}
 		else
 		{
-			$view_div->appendChild( $screen->render );
+			push @contents, $screen->render;
 		}
 	}
+
+	$chunk->appendChild( $self->{session}->{xhtml}->tabs(
+		\@labels,
+		\@contents,
+		basename => $id_prefix,
+		current => $current,
+		expensive => \@expensive,
+		) );
 
 #	$chunk->appendChild( $buttons->cloneNode(1) );
 	return $chunk;
