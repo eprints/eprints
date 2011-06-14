@@ -1,0 +1,64 @@
+
+#ep_tm_menu_js
+{	margin: 0;
+	padding: 0;
+	z-index: 30;
+	height: 21px;
+	background: url('images/blue_bar.png') repeat scroll 0 0 #204F76;
+	list-style: none outside none;
+	clear: both;
+}
+
+#ep_tm_menu_js li
+{	margin: 0;
+	padding: 0;
+	list-style: none;
+	float: left;
+	font: bold 11px arial;
+	border-right:2px solid #FFFFFF;
+}
+
+#ep_tm_menu_js li a
+{	display: block;
+	margin: 0px;
+	padding: 4px 10px;
+	width: 60px;
+	color: #FFF;
+	text-align: center;
+	text-decoration: none;
+}
+
+#ep_tm_menu_js li a:hover, #ep_tm_menu_js li a.ep_tm_menu_selected
+{
+	background: #269AE3;
+}
+
+#ep_tm_menu_js div
+{	position: absolute;
+	margin: 0;
+	padding: 0;
+	background: #CCCCCC;
+	border: 1px solid #269AE3;
+}
+
+#ep_tm_menu_js div a
+{
+	position: relative;
+	display: block;
+	margin: 0;
+	padding: 5px 10px;
+	width: auto;
+	white-space: nowrap;
+	text-align: left;
+	text-decoration: none;
+	background: #EEEEEE;
+	color: #269AE3;
+	font: 11px arial;
+}
+
+#ep_tm_menu_js div a:hover
+{
+	background: #269AE3;
+	color: #FFFFFF;
+}
+
