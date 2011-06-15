@@ -28,7 +28,7 @@
   <ul id="ep_tm_menu_js">
 	<li><a href="{$config{http_url}}"><epc:phrase ref="template/navigation:home" /></a></li>
 	<li><a href="{$config{http_url}}/information.html"><epc:phrase ref="template/navigation:about" /></a></li>
-	<li><a href="#" menu="menu_browse">Browse</a>
+	<li><a href="{$config{http_url}}/view/" menu="menu_browse"><epc:phrase ref="template/navigation:browse"/></a>
         <div id="menu_browse" style="display:none;">
                 <a href="{$config{http_url}}/view/year/"><epc:phrase ref="bin/generate_views:indextitleprefix" /><epc:phrase ref="viewname_eprint_year" /></a>
                 <a href="{$config{http_url}}/view/subjects/"><epc:phrase ref="bin/generate_views:indextitleprefix" /><epc:phrase ref="viewname_eprint_subjects" /></a>
