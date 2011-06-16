@@ -151,14 +151,7 @@ sub input_tags_and_labels
 		@tags = $self->call_property( "input_tags", $session, $obj );
 	}
 
-	my %labels = ();
-	foreach( @tags )
-	{
-		$labels{$_} = EPrints::Utils::tree_to_utf8( 
-			$self->render_option( $session, $_ ) );
-	}
-
-	return( \@tags, \%labels );
+	return $self->tags_and_labels( $session );
 }
 
 # this is only called by the compound renderer
