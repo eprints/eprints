@@ -4,6 +4,11 @@ body {
 	font-size: 80%;
 }
 
+/* left-align if we're in a div (e.g. ep_block) that centres */
+ul {
+	text-align: left;
+}
+
 img {
         border:0;
 }
