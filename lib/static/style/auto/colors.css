@@ -1,0 +1,97 @@
+/*
+ *
+ * EPrints Default Colour Scheme
+ *
+ */
+
+body {
+	color: #000000;
+	background-color: #ffffff;
+}
+a, .ep_tm_key_tools a:visited {
+	color: #0645ad;
+}
+a:visited {
+	color: #0b0080;
+}
+a:hover, .ep_tm_key_tools a:hover {
+	color: #3366bb;
+}
+a:active, .ep_tm_key_tools a:active {
+	color: red;
+}
+h1, h2, h3, h4 {
+    color: #606060;
+}
+
+/* template.css */
+
+.ep_tm_header {
+	background-color: #152d4e;
+	background-image: url(images/header_background.png);
+	background-repeat: repeat-y;
+}
+.ep_tm_footer {
+	border-color: #152d4e;
+}
+.ep_tm_menu {
+	/* fixed to 30px high */
+	background-color: #204f76;
+	background-color: rgba(32, 79, 118, 0.4);
+	background-image: url(images/bar_glass.png) ;
+	background-position: 0px 5px;
+}
+.ep_tm_menu ul {
+	background-color: #204f76;
+}
+.ep_tm_menu li:hover {
+	background-color: #279ae2;
+	background-image: url(images/bar_glass.png);
+	background-position: 0px 5px;
+}
+.ep_tm_menu a, .ep_tm_menu a:visited {
+	color: white;
+}
+.ep_tm_searchbar {
+	color: #606060;
+	background-color: #ccc;
+	background-image: url(images/gray_bar.png);
+}
+.ep_tm_searchbarbox {
+	border-color: #606060;
+}
+.ep_tm_key_tools li {
+	border-left: 1px solid #e8e8e8;
+	border-right: 1px solid #606060;
+}
+.ep_tm_key_tools li:first-child {
+	border-left: none;
+}
+.ep_tm_key_tools li:last-child {
+	border-right: none;
+}
+
+/* form.css */
+
+.ep_form_action_button, .ep_form_internal_button, .ep_tm_searchbarbutton, .ep_blister_node_selected {
+	border-color: #5b97c7 #13324a #13324a #5287b3;
+	background-image: url(images/bar.png);
+	background-color: #1f4f76;
+	color: white;
+}
+.ep_form_action_button:active, .ep_form_internal_button:active, .ep_tm_searchbarbutton:active, .ep_blister_node_selected:active {
+	border-color: #13324a #5287b3 #5287b3 #13324a;
+	background-color: #276496;
+}
+
+/* blister.css */
+
+.ep_blister_node {
+	border-color: #cccccc;
+	background-color: #e8e8e8;
+	background-image: url(images/bar.png);
+	color: #000000;
+}
+.ep_blister_node:active {
+	border-color: #276496;
+}

@@ -1,9 +1,7 @@
 body {
-	margin: 1em;
-	font-family: Arial,Sans-serif;
+	margin: 0;
+	font-family: Sans-serif;
 	font-size: 80%;
-        color: #000000;
-        background-color:#ffffff;
 }
 
 img {
@@ -26,26 +24,23 @@ img {
 	display: none; 
 }
 
+h1, h2 {
+	font-weight: bold;
+}
 h1 {
-	margin: 0px 0px 10px 0px;
-        font: bold 130% Arial,Sans-serif;
+	margin: 0px;
+	margin-top: 10px;
+	font-size: 130%;
 	text-align: center;
-        color: #606060;
 }
-
 h2 {
-        font: bold 110% Arial,Sans-serif;
-        color: #606060;
+	font-size: 110%;
 }
-
 h3 {
-        font: 120% Arial,Sans-serif;
-        color: #606060;
+	font-size: 120%;
 }
-
 h4 {
-        font: 100% Arial,Sans-serif;
-        color: #606060;
+	font-size: 100%;
 }
 
 hr {
@@ -99,9 +94,6 @@ th.ep_title_row {
 	text-align: center;
 }
 .ep_block td {
-	text-align: left;
-}
-ul {
 	text-align: left;
 }
 .ep_doc_icon
