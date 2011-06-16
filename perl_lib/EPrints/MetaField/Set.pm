@@ -74,6 +74,14 @@ sub tags_and_labels
 		$labels{$_} = EPrints::Utils::tree_to_utf8( 
 			$self->render_option( $session, $_ ) );
 	}
+
+        if( $self->get_property( 'order_labels' ) )
+        {
+                # Order the labels alphabetically
+                my @otags = sort { $a ne 'other' && $b ne 'other' && ($labels{$a} cmp $labels{$b}) } @tags;
+                return (\@otags, \%labels );
+        }
+
 	return (\@tags, \%labels);
 }
 
@@ -504,6 +512,7 @@ sub get_property_defaults
 	$defaults{sql_index} = 1;
 	$defaults{match} = "EQ";
 	$defaults{merge} = "ANY";
+	$defaults{order_labels} = 0;
 	return %defaults;
 }
 
