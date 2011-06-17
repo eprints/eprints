@@ -302,15 +302,28 @@ sub export_dataobj
 	$r->pnotes->{dataobj} = $dataobj;
 	$r->pnotes->{plugin} = $plugin;
 
-	my $rc = EPrints::Apache::CRUD::authen( $r );
-	$r->status( $rc );
-	return if $rc != EPrints::Const::OK;
+	my $rc;
 
-	my $rc = EPrints::Apache::CRUD::authz( $r );
-	$r->status( $rc );
-	return if $rc != EPrints::Const::OK;
+	$rc = EPrints::Apache::CRUD::authen( $r );
+	if( $rc != OK )
+	{
+		$r->status( $rc );
+		return;
+	}
 
-	return EPrints::Apache::CRUD::handler( $r );
+	$rc = EPrints::Apache::CRUD::authz( $r );
+	if( $rc != OK )
+	{
+		$r->status( $rc );
+		return;
+	}
+
+	$rc = EPrints::Apache::CRUD::handler( $r );
+	if( $rc != OK )
+	{
+		$r->status( $rc );
+		return;
+	}
 }
 
 sub show_eprint_export_options
