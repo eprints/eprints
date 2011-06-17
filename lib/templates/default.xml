@@ -18,6 +18,9 @@
     <epc:pin ref="head"/>
     <style type='text/css' media="screen">@import url(<epc:print expr="$config{rel_path}"/>/style/nojs.css);</style>
     <script type="text/javascript" src="{$config{rel_path}}/javascript/jscss.js"><!-- padder --></script>
+	<!--[if lte IE 6]>
+		<link rel="stylesheet" type="text/css" href="/style/ie6.css" />
+	<![endif]-->
   </head>
   <body>
     <epc:pin ref="pagetop"/>
