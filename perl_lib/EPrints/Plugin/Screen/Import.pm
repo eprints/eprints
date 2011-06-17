@@ -466,38 +466,22 @@ sub render
 	# render tabbed input
 	elsif( @tabs > 1 )
 	{
-		# render the input tabs
-		my $id_prefix = "import_data_input";
-
-		$form->appendChild( $session->render_tabs(
-			id_prefix => $id_prefix,
-			current => $tabs[$default_tab]->{id},
-			tabs => [map { $_->{id} } @tabs],
-			labels => {map { $_->{id} => $_->{title} } @tabs},
-			links => {map { $_->{id} => "" } @tabs},
-			) );
-
-		# panel that all the tab content sits in
-		my $panel = $session->make_element( "div",
-			id => "${id_prefix}_panels",
-			class => "ep_tab_panel",
-		);
-		$form->appendChild( $panel );
+		my @labels;
+		my @panels;
 
 		# populate each of the panels
 		foreach my $tab (@tabs)
 		{
-			my $view_div = $session->make_element( "div",
-				id => "${id_prefix}_panel_".$tab->{id},
-			);
-			if( $tab ne $tabs[$default_tab] )
-			{
-				$view_div->setAttribute( "style", "display: none" );
-			}
-			$view_div->appendChild( $tab->{content} );
-
-			$panel->appendChild( $view_div );
+			push @labels, $tab->{title};
+			push @panels, $tab->{content};
 		}
+
+		$form->appendChild( $session->xhtml->tabs(
+			\@labels,
+			\@panels,
+			current => $default_tab,
+			basename => "ep_import",
+		) );
 	}
 
 	$form->appendChild( $session->render_action_buttons( 

@@ -674,6 +674,10 @@ sub tabs
 	my $base_url = exists($opts{base_url}) ? $opts{base_url} : $repo->current_url( query => 1 );
 	my $basename = exists($opts{basename}) ? $opts{basename} : "ep_tabs";
 
+	# compatibility with Session::render_tabs()
+	my $aliases = $opts{aliases};
+	my $links = $opts{links};
+
 	# our special parameter
 	my $q_current = $basename."_current";
 
@@ -698,74 +702,68 @@ sub tabs
 	}
 	$current = 0 if !$current;
 
-	my $table = $xml->create_element( "table",
+	my $ul = $xml->create_element( "ul",
+		id=>$basename."_tabs",
 		class => "ep_tab_bar",
-		cellspacing => 0,
-		cellpadding => 0
 	);
-	$frag->appendChild( $table );
-	my $tr = $table->appendChild( $xml->create_element( "tr",
-		id => "${basename}_tabs"
-	) );
-	
-	$tr->appendChild( $xml->create_element( "td",
-		class => "ep_tab_spacer"
-	) );
+	$frag->appendChild( $ul );
 
-	my $tab_block = $xml->create_element( "div", class=>"ep_only_js" );	
-	$frag->appendChild( $tab_block );
-
-	my $panel = $xml->create_element( "div", 
-			id => $basename."_panels",
-			class => "ep_tab_panel" );
-	$frag->appendChild( $panel );
+	my $panel;
+	if( @$contents )
+	{
+		$panel = $xml->create_element( "div", 
+				id => $basename."_panels",
+				class => "ep_tab_panel" );
+		$frag->appendChild( $panel );
+	}
 
 	my %expensive = map { $_ => 1 } @{$opts{expensive}||[]};
 
-	my %labels;
-	my %links;
 	for(0..$#$labels)
 	{
-		my $td = $tr->appendChild( $xml->create_element( "td",
-			class => ($current == $_ ? "ep_tab_selected" : "ep_tab"),
-			id => "${basename}_tab_$_",
-			style => "text-align: center",
+		my $label = defined($aliases) ? $aliases->{$_} : $_;
+		my $width = int( 100 / @$labels );
+		$width += 100 % @$labels if $_ == 0;
+		my $tab = $ul->appendChild( $xml->create_element( "li",
+			($current == $_ ? (class => "ep_tab_selected") : ()),
+			id => $basename."_tab_".$label,
+			style => "width: $width\%",
 		) );
 
 		my $href = $base_url->clone();
 		$href->query_form(
 			$href->query_form,
-			$q_current => $_,
+			$q_current => $label,
 		);
-#		$href->fragment( $basename."_current_".$_ );
-		$links{$_} = $href;
+		if( defined $links && defined $links->{$label} )
+		{
+			$href = $links->{$label};
+		}
+#		$href->fragment( "ep_tabs:".$basename.":".$_ );
 
-		my $link = $td->appendChild( $xml->create_data_element( "a",
+		my $link = $tab->appendChild( $xml->create_data_element( "a",
 			$labels->[$_],
 			href => $href,
-			onclick => "return ep_showTab('$basename',$_,".($expensive{$_}?1:0).");",
+			onclick => "return ep_showTab('$basename','$label',".($expensive{$_}?1:0).");",
 		) );
 
-		$tr->appendChild( $xml->create_element( "td",
-			class => "ep_tab_spacer"
-		) );
-
-		$labels{$_} = $labels->[$_];
-
-		my $inner_panel = $xml->create_element( "div", 
-			id => $basename."_panel_".$_,
-		);
-		if( $_ != $current )
+		if( defined $panel )
 		{
-			# padding for non-javascript enabled browsers
-			$panel->appendChild( $xml->create_element( "div",
-				class=>"ep_no_js",
-				style => "height: 1em",
-			) );
-			$inner_panel->setAttribute( class => "ep_no_js" );
+			my $inner_panel = $xml->create_element( "div", 
+				id => $basename."_panel_".$label,
+			);
+			if( $_ != $current )
+			{
+				# padding for non-javascript enabled browsers
+				$panel->appendChild( $xml->create_element( "div",
+					class=>"ep_no_js",
+					style => "height: 1em",
+				) );
+				$inner_panel->setAttribute( class => "ep_no_js" );
+			}
+			$panel->appendChild( $inner_panel );
+			$inner_panel->appendChild( $contents->[$_] );
 		}
-		$panel->appendChild( $inner_panel );
-		$inner_panel->appendChild( $contents->[$_] );
 	}
 
 	return $frag;

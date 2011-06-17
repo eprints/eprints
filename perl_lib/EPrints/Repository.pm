@@ -4196,83 +4196,22 @@ sub render_tabs
 {
 	my( $self, %params ) = @_;
 
-	my $id_prefix = $params{id_prefix};
-	my $current = $params{current};
 	my $tabs = $params{tabs};
+	my $current = $params{current} || $tabs->[0];
 	my $labels = $params{labels};
-	my $links = $params{links};
-	
-	my $f = $self->make_doc_fragment;
-	my $st = {};
-	if( defined $params{slow_tabs} )
-	{
-		foreach( @{$params{slow_tabs}} ) { $st->{$_} = 1; }
-	}
+	my %expensive = map { $_ => 1 } @{$params{slow_tabs}||[]};
 
-	my $table = $self->make_element( "table", class=>"ep_tab_bar", cellspacing=>0, cellpadding=>0 );
-	#my $script = $self->make_element( "script", type=>"text/javascript" );
-	my $tr = $self->make_element( "tr", id=>"${id_prefix}_tabs" );
-	$table->appendChild( $tr );
-
-	my $spacer = $self->make_element( "td", class=>"ep_tab_spacer" );
-	$tr->appendChild( $spacer );
-	foreach my $tab ( @{$tabs} )
-	{	
-		my %a_opts = ( 
-			href    => $links->{$tab},
-		);
-		my %td_opts = ( 
-			class=>"ep_tab",
-			id => "${id_prefix}_tab_$tab", 
-			style => "text-align: center",
-		);
-		# if the current tab is slow, or the tab we're rendering is slow then
-		# don't make a javascript toggle for it.
-
-		if( !$st->{$current} && !$st->{$tab} )
-		{
-			# stop the actual link from causing a reload.
-			$a_opts{onclick} = "return ep_showTab('${id_prefix}','$tab' );",
-		}
-		elsif( $st->{$tab} )
-		{
-			$a_opts{onclick} = "ep_showTab('${id_prefix}','$tab' ); return true;",
-		}
-		if( $current eq $tab ) { $td_opts{class} = "ep_tab_selected"; }
-
-		my $td = $self->make_element( "td", %td_opts );
-		$tr->appendChild( $td );
-
-		my $a = $self->make_element( "a", %a_opts );
-		$a->appendChild( $labels->{$tab} );
-
-		if( defined $params{icons} && defined $params{icons}->{$tab} )
-		{
-			my $table2 = $self->make_element( "table", width=>"100%", cellpadding=>0, cellspacing=>0, border=>0 );
-			my $tr2 = $self->make_element( "tr" );
-			my $td2 = $self->make_element( "td", width=>"100%", style=>"text-align: center;" );
-			$table2->appendChild( $tr2 );
-			$tr2->appendChild( $td2 );
-			$td2->appendChild( $a );
-
-			my $td3 = $self->make_element( "td", style=>"text-align: right; padding-right: 4px" );
-			$tr2->appendChild( $td3 );
-			$td3->appendChild( $params{icons}->{$tab} );
-
-			$td->appendChild( $table2 );
-		}
-		else
-		{
-			$td->appendChild( $a );
-		}
-
-		my $spacer = $self->make_element( "td", class=>"ep_tab_spacer" );
-		$tr->appendChild( $spacer );
-	}
-	$f->appendChild( $table );
-	#$f->appendChild( $script );
-
-	return $f;
+	# TODO support $params{icons}, $params{links}
+	return $self->xhtml->tabs(
+		[@{$labels}{@$tabs}],
+		[],
+		basename => $params{id_prefix},
+		expensive => [grep { $expensive{$tabs->[$_]} } 0..$#$tabs],
+		current => (grep { $tabs->[$_] eq $current } 0..$#$tabs)[0],
+		aliases => { map { $_ => $tabs->[$_] } 0..$#$tabs },
+		links => $params{links},
+		icons => $params{icons},
+	);
 }
 
 ######################################################################

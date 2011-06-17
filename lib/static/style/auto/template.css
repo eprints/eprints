@@ -2,29 +2,33 @@
 /* EPrints 3 template styles */
 /* prefix all styles with ep_tm */
 
+hr.ep_tm_last {
+	color: #152d4e;
+	background-color: #152d4e;
+}
+
+
+/* deprecated in 3.3 */
 .ep_tm_logo img {
 	float: right;
-	padding-bottom: 4px;
+	padding: 4px;
 	border-style: none;
 }
 
-.ep_tm_archivetitle {
-        font: 40px Arial,Sans-serif;
-	color: #269ae3;
+.ep_tm_site_logo img {
+	border-style: none;
+	padding: 10px 10px;
+}
+
+.ep_tm_archivetitle, .ep_tm_archivetitle:visited {
+	font-size: 40px;
+	color: white;
 	text-decoration: none;
+	margin: 10px;
 }
 
 .ep_tm_main {
         margin: 1em;
-}
-
-hr.ep_tm_last {
-	color: #240f78;
-	background-color: #240f78;
-}
-
-.ep_tm_footer {
-	clear: both;
 }
 
 /* Menu Bar */
@@ -36,39 +40,61 @@ hr.ep_tm_last {
 	padding: 0px;
 }
 .ep_tm_key_tools {
-	display: inline;
+	display: block;
 }
 
 .ep_tm_menu {
-	background: #204f76;
-	background-image: url(images/blue_bar.png);
+	height: 30px;
+	line-height: 30px;
 }
 
-.ep_tm_menu li, .ep_tm_key_tools li {
-	list-style: none;
-	display: inline;
+.ep_tm_menu, .ep_tm_menu ul {
+/*	background-color: #204f76; */
 }
 
 .ep_tm_menu li {
-	padding-left: 10px;
-	padding-right: 10px;
-	border-right: solid 2px white;
+	float: left;
+}
+.ep_tm_menu ul {
+}
+
+.ep_tm_menu a, .ep_tm_menu a:visited {
+	display: block;
+	padding: 0px 20px;
+	text-decoration: none;
+	white-space: nowrap;
 	font-weight: bold;
 }
 
-.ep_tm_menu li:hover {
-	background: #279ae2;
+.ep_tm_menu ul
+{
+	list-style: none;
+	position: absolute;
+	margin: 0;
+	padding: 0;
 }
 
-.ep_tm_menu li a, .ep_tm_key_tools li a {
+.ep_tm_menu ul li {
+	float: none;
 }
 
-.ep_tm_menu li a {
-	text-decoration: none;
-	color: white;
+.ep_tm_menu ul a
+{
+	text-align: left;
 }
-.ep_tm_menu li a:visited {
-	color: white;
+
+.ep_tm_key_tools li {
+	list-style: none;
+	display: inline;
+	padding: 0;
+	margin: 0;
+}
+
+.ep_tm_key_tools li a:hover {
+}
+
+.ep_tm_key_tools a {
+/*	white-space: nowrap; */
 }
 
 /* end of menu bar */
@@ -76,13 +102,11 @@ hr.ep_tm_last {
 /* Action Menu Bar */
 
 .ep_tm_key_tools li {
-	padding: 0px .5em;
-	border-left: 1px solid #666;
+	padding: 0px 6px;
 }
 
 .ep_tm_key_tools li:first-child {
 	padding-left: 0px;
-	border-left: none;
 }
 
 /* end of Action Menu Bar */
@@ -90,30 +114,25 @@ hr.ep_tm_last {
 /* Search bar */
 
 .ep_tm_searchbar {
-	color: #606060;
-	padding-left: 10px;
-	padding-right: 10px;
-	padding-top: 4px;
-	padding-bottom: 4px;
-	border-top: solid 4px white;
-	background: #ccc;
-	background-image: url(images/gray_bar.png);
+	padding: 4px 10px;
 }
 
 .ep_tm_searchbarbutton {
 	text-align: center;
-	background-image: url(images/blue_bar.png);
-	background-color: #1f4f76;
-	color: white;
-	font-weight: normal;
-	font-size: 80%;
-	padding: 0px;
+	padding: 1px 4px;
+	margin: 0px;
+	margin-left: 4px;
+	font-size: 85%;
+	background-position: 0px -2px;
+	border-width: 1px;
+	border-radius: 3px;
 }
 
 .ep_tm_searchbarbox {
 	font-size: 80%;
 	padding: 2px;
-	border: #606060 1px solid;
+	border-width: 1px;
+	border-style: solid;
 }
 
 /* end of search bar */
@@ -136,9 +155,10 @@ hr.ep_tm_last {
 }
 
 .ep_tm_page_content {
-        width:720px;
-        margin:auto;
-        margin-top:20px;
+        width:770px;
+        margin-left: auto;
+		margin-right: auto;
+        margin-top:10px;
 }
 
 .ep_tm_eprints_logo {
@@ -147,5 +167,13 @@ hr.ep_tm_last {
 }
 
 .ep_tm_footer {
-        font-size: 80%;
+	clear: both;
+	margin-top: 20px;
+	font-size: 80%;
+	border-top-width: 2px;
+	border-top-style: solid;
+	padding: 10px 10px 0px 10px;
+}
+.ep_tm_footer hr {
+	display: none;
 }
