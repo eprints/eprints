@@ -39,6 +39,17 @@ sub action_add_format
 		return 0;
 	}
 
+	# strip the filepath from the uploaded filename parameter
+	if( $filename =~ /^C:/ )
+	{
+		$filename =~ s/^.*\\//;
+	}
+	else
+	{
+		$filename =~ s/^.*\///;
+	}
+	$filename =~ s/^\.+//;
+
 	my $filepath = $session->query->tmpFileName( $fh );
 
 	my $epdata = {};
