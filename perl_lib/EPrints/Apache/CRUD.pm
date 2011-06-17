@@ -611,7 +611,7 @@ sub GET
 		}
 	}
 
-	$repo->send_http_header( "content_type"=>$plugin->param("mimetype") );
+	$r->headers_out->{'Content-Type'} = $plugin->param( "mimetype" );
 	$plugin->initialise_fh( \*STDOUT );
 	if( !defined $dataobj )
 	{
@@ -677,7 +677,12 @@ sub GET
 				EPrints::Time::datestring_to_timet( undef, $datestamp )
 			);
 		}
-		print $plugin->output_dataobj( $dataobj, %args );
+		my $output = $plugin->output_dataobj( $dataobj,
+			%args,
+			fh => \*STDOUT,
+		);
+		# optional for output_dataobj to support 'fh'
+		print $output if defined $output;
 	}
 
 	return OK;
