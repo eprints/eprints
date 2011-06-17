@@ -125,6 +125,7 @@ hr.ep_tm_last {
 	font-size: 85%;
 	background-position: 0px -2px;
 	border-width: 1px;
+	border-radius: 3px;
 }
 
 .ep_tm_searchbarbox {

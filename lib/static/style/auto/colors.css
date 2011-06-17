@@ -37,7 +37,8 @@ h1, h2, h3, h4 {
 .ep_tm_menu {
 	/* fixed to 30px high */
 	background-color: #204f76;
-	background-color: rgba(32, 79, 118, 0.4);
+	border-top: 1px solid #0f3d5a;
+	border-bottom: 1px solid #fff;
 	background-image: url(images/bar_glass.png) ;
 	background-position: 0px 5px;
 }
