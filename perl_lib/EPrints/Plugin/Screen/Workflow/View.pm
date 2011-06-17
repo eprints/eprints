@@ -37,6 +37,40 @@ sub can_be_viewed
 	return $self->allow( $self->{processor}->{dataset}->id."/view" );
 }
 
+sub wishes_to_export { shift->{repository}->param( "ajax" ) }
+
+sub export_mime_type { "text/html;charset=utf-8" }
+
+sub export
+{
+	my( $self ) = @_;
+
+	my $dataset = $self->{processor}->{dataset};
+
+	my $id_prefix = "ep_workflow_views";
+
+	my $current = $self->{session}->param( "${id_prefix}_current" );
+	$current = 0 if !defined $current;
+
+	my @items = (
+		$self->list_items( "dataobj_view_tabs", filter => 0 ),
+		$self->list_items( "dataobj_".$dataset->id."_view_tabs", filter => 0 ),
+	);
+
+	my @screens;
+	foreach my $item ( @items )
+	{
+		next if !($item->{screen}->can_be_viewed & $self->who_filter);
+		next if $item->{action} && !$item->{screen}->allow_action( $item->{action} );
+		push @screens, $item->{screen};
+	}
+
+	my $content = $screens[$current]->render;
+	binmode(STDOUT, ":utf8");
+	print $self->{repository}->xhtml->to_xhtml( $content );
+	$self->{repository}->xml->dispose( $content );
+}
+
 sub render_title
 {
 	my( $self ) = @_;
