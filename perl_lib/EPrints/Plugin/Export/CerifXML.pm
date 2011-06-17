@@ -168,7 +168,7 @@ sub init
 {
 	my( $self ) = @_;
 
-	my $tmpdir = File::Temp->newdir();
+	my $tmpdir = File::Temp->newdir;
 	$self->{dir} = $tmpdir;
 
 	$self->{sourceDatabase} = $self->{session}->phrase( "archive_name" );
@@ -191,17 +191,21 @@ sub finish
 	}
 
 	my $readme_txt = "$self->{dir}/README.TXT";
-	my $cmd = "perldoc -l ".__PACKAGE__;
-	my $source = `$cmd`;
+	my $source = __PACKAGE__;
+	$source =~ s/::/\//g;
+	$source .= ".pm";
+	$source = $INC{$source};
 	system("pod2text", $source, $readme_txt);
 
-	push @files, $readme_txt;
+	unshift @files, $readme_txt;
 
 	my $tmpfile = File::Temp->new( SUFFIX => ".zip" );
-
+	close($tmpfile);
 	unlink($tmpfile);
-	system("zip", "-q", "-FF", "-j", $tmpfile, @files);
-	open($tmpfile, "<", $tmpfile);
+
+	system("zip", "-q", "-j", $tmpfile, @files);
+	open($tmpfile, "<", $tmpfile)
+		or die "Error re-opening $tmpfile: $!";
 
 	$self->{files} = {};
 	undef $self->{dir};
