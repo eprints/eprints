@@ -677,10 +677,12 @@ sub GET
 				EPrints::Time::datestring_to_timet( undef, $datestamp )
 			);
 		}
-		$plugin->output_dataobj( $dataobj,
+		my $output = $plugin->output_dataobj( $dataobj,
 			%args,
 			fh => \*STDOUT,
 		);
+		# optional for output_dataobj to support 'fh'
+		print $output if defined $output;
 	}
 
 	return OK;
