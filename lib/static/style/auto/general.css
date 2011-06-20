@@ -60,30 +60,28 @@ hr {
 
 .ep_toggle a, a.ep_toggle {
 	text-decoration: none;
-	color: #44c;
 }
 
 th.ep_row {
-	border-bottom: dashed #bbf 1px;
 	padding-right: 0.25em;
 	text-align: right;
 	width: 20%;
+	border-width: 1px;
 }
 td.ep_row {
-	border-left: dashed #bbf 1px;
-	border-bottom: dashed #bbf 1px;
 	padding-left: 0.25em;
 	text-align: left;
+	border-width: 1px;
 }
+
 th.ep_title_row {
-	border-top: solid 1px #999999;
-	border-bottom: solid 1px #999999;
+	border-width: 1px;
+	border-style: solid;
+	border-left: none;
+	border-right: none;
 	padding: 0.1em 0.5em 0.1em 0.5em;
 	font-size: 100%;
 	height: 2em;
-	background-image: url(images/gray_bar.png);
-	background-color: #808080;
-	color: #333;
 	font-weight: normal;
 }
 

@@ -5,15 +5,10 @@
 
 .ep_sr_component {
 	padding: 0px;
-	background-color: transparent;
 	margin-top: 10px;
 }
 .ep_sr_component .ep_sr_title_bar {
-	background-image: url(images/toolbox_title.png);
 	padding: 2px 6px 2px 6px; 
-	border-left: solid 1px #d8dbef;
-	border-top: solid 1px #d8dbef;
-	border-right: solid 1px #d8dbef;
 }
 
 .ep_sr_component .ep_sr_title_bar table {
@@ -25,20 +20,20 @@
 }
 .ep_sr_component .ep_sr_content {
 	clear: both;
-	background: #e7e9f5 url(images/toolbox.png) repeat-x;
-	border: solid 1px #d8dbef;
 	padding: 6px;
+	border-style: none solid solid solid;
+	border-width: 1px;
 }
 
 /* collapse bar */
 
 .ep_sr_collapse_bar {
-	background-image: url(images/toolbox_title.png);
 	padding: 2px 6px 2px 6px; 
-	border: solid 1px #d8dbef;
 	font-weight: bold;
 	font-size: 115%;
 	margin-top: 10px;
+	border-style: solid;
+	border-width: 1px;
 }
 .ep_sr_collapse_bar a {
 	text-decoration: none;
@@ -69,6 +64,8 @@
 	text-decoration: none;
 }	
 .ep_sr_component .ep_sr_title_bar {
+	border-style: solid;
+	border-width: 1px;
 }
 .ep_sr_show_help img {
 	vertical-align: -2px;
