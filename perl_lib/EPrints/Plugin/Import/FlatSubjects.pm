@@ -30,6 +30,7 @@ sub input_text_fh
 	my( $plugin, %opts ) = @_;
 
 	my $fh = $opts{fh};
+	binmode( $fh, ":utf8" );
 
 	my @ids = ();
 	my $input_data;
