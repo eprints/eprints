@@ -32,6 +32,7 @@ select, input.ep_form_text, textarea {
 	border-style: solid;
 	border-radius: 3px;
 	padding: 2px 20px;
+	cursor: pointer;
 }
 .ep_form_internal_button {
 	padding: 1px 14px;
