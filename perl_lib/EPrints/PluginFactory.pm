@@ -135,7 +135,10 @@ sub _load_dir
 {
 	my( $self, $data, $repository, $base_dir ) = @_;
 
-	local @INC = ($base_dir, @INC);
+	if( !grep { $_ eq $base_dir } @INC )
+	{
+		@INC = ($base_dir, @INC);
+	}
 
 	$base_dir .= "/EPrints/Plugin";
 
