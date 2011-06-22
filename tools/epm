@@ -146,11 +146,11 @@ sub action_build
 	}
 
 	delete $epdata->{documents};
-	$epdata->{package_name} = $name;
-	$epdata->{date} = EPrints::Time::iso_datetime();
-	$epdata->{package_version} = $opt_version if $opt_version;
-	$epdata->{package_version} = '1.0'
-		if !EPrints::Utils::is_set( $epdata->{package_version} );
+	$epdata->{epmid} = $name;
+	$epdata->{datestamp} = EPrints::Time::iso_datetime();
+	$epdata->{version} = $opt_version if $opt_version;
+	$epdata->{version} = '1.0.0'
+		if !EPrints::Utils::is_set( $epdata->{version} );
 
 	my $pkg_cache = $repo->config( "base_path" ) . "/var/cache/epm";
 	EPrints->system->mkdir( $pkg_cache )
@@ -162,8 +162,8 @@ sub action_build
 
 	my $output = sprintf("%s/%s-%s.epm",
 		$pkg_cache,
-		$epm->value( "package_name" ),
-		$epm->value( "package_version" )
+		$epm->value( "epmid" ),
+		$epm->value( "version" )
 	);
 
 	open(my $fhout, ">", $output) or die "Error writing to $output: $!";
@@ -246,7 +246,7 @@ sub action_install
 
 	if( $epm->install( $handler, $force ) )
 	{
-		print "Installed ".$epm->value( "package_name" )." [$source]\n";
+		print "Installed ".$epm->value( "epmid" )." [$source]\n";
 	}
 }
 
@@ -263,7 +263,7 @@ sub action_list
 	$repo->dataset( "epm" )->dataobj_class->map($repo, sub {
 		my( undef, undef, $epm ) = @_;
 
-		print sprintf("%s\t%s\n", $epm->value( "package_name" ), $epm->value( "package_version" ));
+		print sprintf("%s\t%s\n", $epm->value( "epmid" ), $epm->value( "version" ));
 	});
 }
 

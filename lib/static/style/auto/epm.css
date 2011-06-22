@@ -1,0 +1,13 @@
+.ep_epm_actions {
+	float: right;
+}
+.ep_epm_icon img {
+	max-width: 100px;
+}
+.ep_epm_icon {
+	float: left;
+	margin-right: 20px;
+}
+.ep_epm {
+	clear: left; /* clear icon float */
+}

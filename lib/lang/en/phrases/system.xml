@@ -3850,6 +3850,56 @@ Each file inside this archive will be created as an <b>individual</b> document i
 
 	<epp:phrase id="Plugin/Screen/EPrint/Document/Extract:done">Finished extracting information from the document.</epp:phrase>
 
+	<epp:phrase id="Plugin/Screen/Admin/EPM:title">EPrints Bazaar</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM:description">Manage, Update and Install add-ons from the EPrints Bazaar.</epp:phrase>
+
+
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Installed:title">Installed</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Installed:action_enable">Enable</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Installed:action_disable">Disable</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Installed:action_uninstall">Uninstall</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Installed:action_cancel" ref="lib/submissionform:action_cancel"></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Installed:action_confirm" ref="Plugin/Screen/Admin/EPM/Installed:action_uninstall"></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Installed:error:enabled">Can not uninstall while this add-on is enabled in: <epc:pin name="repoids" /></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Installed:confirm">Are you sure you want to uninstall this add-on? This will remove all files associated with this add-on and can not be undone. A copy of the add-on will be placed in var/cache/epm.<br /><epc:pin name="actions" /></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Installed:uninstalled">Add-on removed</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Installed:action_configure">Configure</epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Available:title">Available</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Available:action_install">Install</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Available:error:upload" ref="Plugin/InputForm/Component/Upload:upload_failed"></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Available:error:corrupted">Corrupted or unrecognised package format</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Available:installed">Installed <epc:pin name="epm" /></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Available:upload_form"><h2>Upload and Install</h2>
+Select a file from your local system and click <epc:phrase ref="Plugin/Screen/Admin/EPM/Available:action_install" />.<br /><epc:pin name="form" /></epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Developer:title">Developer Tools</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Developer:action_edit" ref="lib/submissionform:action_edit"></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Developer:action_download">Download</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Developer:action_create">Create</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Developer:create_form"><h2>Create a new EPM</h2>
+To create a blank EPM entire a new id in the input and click <epc:phrase ref="Plugin/Screen/Admin/EPM/Developer:action_create" />. EPM ids may only contain the characters A-Za-z0-9_.<br /><epc:pin name="form" /></epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Edit:title">Edit</epp:phrase>
+
 	<epp:phrase id="epm:file_exists">File exists <epc:pin name="filename"/></epp:phrase>
+	<epp:phrase id="epm:no_files">No files found in package</epp:phrase>
+	<epp:phrase id="epm:bad_checksum">Checksum mismatch encountered for <epc:pin name="filename"/></epp:phrase>
+	<epp:phrase id="epm:missing">Missing referenced file <epc:pin name="filename"/></epp:phrase>
+
+	<epp:phrase id="epm_fieldname_title">Title</epp:phrase>
+	<epp:phrase id="epm_fieldhelp_title"></epp:phrase>
+	<epp:phrase id="epm_fieldname_description">Description</epp:phrase>
+	<epp:phrase id="epm_fieldhelp_description"></epp:phrase>
+	<epp:phrase id="epm_fieldname_version">Version</epp:phrase>
+	<epp:phrase id="epm_fieldhelp_version">Must be in form x.y.z</epp:phrase>
+	<epp:phrase id="epm_fieldname_controller">Control Screen</epp:phrase>
+	<epp:phrase id="epm_fieldhelp_controller"></epp:phrase>
+	<epp:phrase id="epm_fieldname_requirements">Requirements</epp:phrase>
+	<epp:phrase id="epm_fieldhelp_requirements"></epp:phrase>
+	<epp:phrase id="epm_fieldname_home_page">Home Page</epp:phrase>
+	<epp:phrase id="epm_fieldhelp_home_page"></epp:phrase>
+
+	<epp:phrase id="Plugin/InputForm/Component/FileSelector:title" ref="Plugin/Screen/EPrint/Document/Files:title"></epp:phrase>
 
 </epp:phrases>

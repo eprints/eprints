@@ -1,0 +1,25 @@
+.ep_fileselector dl {
+	margin: 0;
+}
+.ep_fileselector ul {
+	clear: left; /* clear the floated input */
+	list-style: none;
+	margin: 0;
+	padding: 0; 
+}
+.ep_fileselector li {
+	padding: 0;
+	margin: 0;
+}
+.ep_fileselector input {
+	float: left;
+	margin-left: -20px;
+}
+.ep_fileselector dt {
+	clear: left; /* clear the floated input */
+	display: block;
+	cursor: pointer;
+	text-decoration: underline;
+}
+.ep_fileselector dd {
+}
