@@ -53,6 +53,12 @@ sub action_install
 	{
 		return $self->action_upload;
 	}
+
+	my $eprintid = $repo->param( "eprintid" );
+	if( defined $eprintid )
+	{
+		return $self->action_remote( $eprintid );
+	}
 }
 
 sub action_upload
@@ -104,6 +110,16 @@ sub action_upload
 	$controller->action_enable;
 }
 
+sub action_remote
+{
+	my( $self, $eprintid ) = @_;
+
+	# retrieve from repository
+	# install
+	# validate
+	# uninstall on failure
+}
+
 sub render
 {
 	my( $self ) = @_;
@@ -115,6 +131,10 @@ sub render
 	my $basename = $self->get_subtype;
 
 	my $frag = $xml->create_document_fragment;
+
+	$frag->appendChild( $self->render_remote );
+
+	$frag->appendChild( $xml->create_element( "div", style => "clear: left" ) );
 
 	my $ffname = $basename."_file";
 	my $form = $self->render_form;
@@ -132,6 +152,51 @@ sub render
 	$frag->appendChild( $self->html_phrase( "upload_form",
 		form => $form,
 		) );
+
+	return $frag;
+}
+
+sub render_remote
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $frag = $xml->create_document_fragment;
+
+	my $url = URI->new( "http://bazaar.eprints.org/cgi/latest_tool?output=XML" );
+	my $xdoc = eval { $xml->parse_url( $url ) };
+warn $@ if !defined $xdoc;
+	return $frag if !defined $xdoc;
+
+	foreach my $eprint ($xdoc->documentElement->getElementsByTagName( "eprint" ))
+	{
+		my $epm = $xml->clone( $eprint );
+		$epm->setNodeName( "epm" );
+		$epm = $repo->dataset( "epm" )->dataobj_class->new_from_xml(
+			$repo,
+			$epm->toString()
+		);
+		foreach my $doc (@{$epm->value( "documents" )})
+		{
+			if( $doc->value( "format" ) eq "image/png" )
+			{
+				$epm->set_value( "icon", $doc->value( "files" )->[0]->value( "url" ) );
+			}
+		}
+		my $form = $self->render_form;
+		$form->appendChild( $xhtml->hidden_field( "eprintid", $epm->value( "eprintid" ) ) );
+		$form->appendChild( $repo->render_action_buttons(
+			install => $self->phrase( "action_install" )
+		) );
+		$frag->appendChild( $epm->render_citation( "control",
+			pindata => { inserts => {
+				actions => $form,
+			} },
+		) );
+	}
 
 	return $frag;
 }

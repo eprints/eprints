@@ -6,8 +6,8 @@
 }
 .ep_epm_icon {
 	float: left;
-	margin-right: 20px;
+	margin: 5px 20px;
 }
-.ep_epm {
-	clear: left; /* clear icon float */
+.ep_epm_control {
+	clear: both;
 }

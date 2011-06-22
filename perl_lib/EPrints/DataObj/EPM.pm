@@ -108,8 +108,12 @@ sub render_icon
 
 	$value = "images/epm/unknown.png" if !EPrints::Utils::is_set( $value );
 
+	my $url = $value =~ /^https?:/ ?
+		$value :
+		$repo->current_url( host => 1, path => "static", $value );
+
 	return $repo->xml->create_element( "img",
-		src => $repo->current_url( host => 1, path => "static", $value )
+		src => $url,
 	);
 }
 
@@ -157,7 +161,8 @@ sub _upgrade
 				}
 				else
 				{
-					Carp::carp( "Package is missing file content" );
+					next;
+#					Carp::carp( "Package is missing file content" );
 				}
 			}
 		}
@@ -430,6 +435,23 @@ sub installed_files
 	return @{$install->value( "files" )};
 }
 
+=item @files = $epm->config_files()
+
+Returns the list of configuration files used to enable/configure an $epm.
+
+=cut
+
+sub config_files
+{
+	my( $self ) = @_;
+
+	my $epmid = $self->id;
+
+	return grep {
+			$_->value( "filename" ) =~ m# ^epm/$epmid/cfg\.d/[^\/]+\.pl$ #x
+		} $self->installed_files;
+}
+
 =item $screen = $epm->control_screen( %params )
 
 Returns the control screen for this $epm. %params are passed to the plugin constructor.
@@ -653,11 +675,11 @@ sub enable
 	my $base_path = $repo->config( "base_path" ) . "/lib";
 	my $epmid = $self->id;
 
-	FILE: foreach my $file ($self->installed_files)
+	FILE: foreach my $file ($self->config_files)
 	{
 		my $filename = $file->value( "filename" );
 		my $filepath = $base_path . "/$filename";
-		next if $filename !~ m#^epm/$epmid/cfg\.d/(.*)#;
+		next if $filename !~ m# /([^\/]+)$ #x;
 
 		my $targetpath = $repo->config( "archiveroot" ) . "/cfg/cfg.d/$1";
 		my $data;
@@ -734,10 +756,10 @@ sub disable
 
 	my $epmid = $self->id;
 
-	foreach my $file ($self->installed_files)
+	foreach my $file ($self->config_files)
 	{
 		my $filename = $file->value( "filename" );
-		next if $filename !~ m#^epm/$epmid/cfg\.d/(.*)#;
+		next if $filename !~ m# /([^\/]+)$ #x;
 		my $targetpath = $repo->config( "archiveroot" ) . "/cfg/cfg.d/$1";
 		next if !-f $targetpath;
 		unlink( $targetpath );

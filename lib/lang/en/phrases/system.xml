@@ -3902,4 +3902,7 @@ To create a blank EPM entire a new id in the input and click <epc:phrase ref="Pl
 
 	<epp:phrase id="Plugin/InputForm/Component/FileSelector:title" ref="Plugin/Screen/EPrint/Document/Files:title"></epp:phrase>
 
+	<epp:phrase id="Plugin/Screen/EPMC:saved"><epc:pin name="filename" /> has been changed and was saved at <epc:pin name="saved" />.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPMC:restored">An existing <epc:pin name="filename" /> has been restored and the new entry saved at <epc:pin name="saved" />.</epp:phrase>
+
 </epp:phrases>

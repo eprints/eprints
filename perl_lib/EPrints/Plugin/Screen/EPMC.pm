@@ -68,26 +68,94 @@ sub hidden_bits
 	);
 }
 
+=item $screen->action_enable( [ SKIP_RELOAD ] )
+
+Enable the L<EPrints::DataObj::EPM> for the current repository.
+
+If SKIP_RELOAD is true will not reload the repository configuration.
+
+=cut
+
 sub action_enable
 {
 	my( $self, $skip_reload ) = @_;
 
-	$self->{processor}->{dataobj}->enable( $self->{processor} );
+	my $repo = $self->{repository};
+	my $epm = $self->{processor}->{dataobj};
 
-	$self->reload_config if !$skip_reload;
+	my $base_path = $repo->config( "archiveroot" ) . '/cfg/cfg.d';
 
 	$self->{processor}->{screenid} = "Admin::EPM";
+
+	$epm->enable( $self->{processor} );
+
+	# restore any backed-up files
+	foreach my $file ($epm->config_files)
+	{
+		my $filename = $file->value( "filename" );
+		$filename =~ s/^.*\///;
+		my $filepath = "$base_path/$filename";
+		next if !-f $filepath;
+		next if !-f "$filepath.epmsave";
+		rename($filepath, "$filepath.epmnew");
+		rename("$filepath.epmsave", $filepath);
+		$self->{processor}->add_message( "warning", $repo->html_phrase( "Plugin/Screen/EPMC:restored",
+			filename => $repo->xml->create_text_node( $filepath ),
+			saved => $repo->xml->create_text_node( "$filepath.epmnew" ),
+		) );
+	}
+
+	$self->reload_config if !$skip_reload;
 }
+
+=item $screen->action_disable( [ SKIP_RELOAD ] )
+
+Disable the L<EPrints::DataObj::EPM> for the current repository.
+
+If SKIP_RELOAD is true will not reload the repository configuration.
+
+=cut
 
 sub action_disable
 {
 	my( $self, $skip_reload ) = @_;
 
-	$self->{processor}->{dataobj}->disable( $self->{processor} );
+	my $repo = $self->{repository};
+	my $epm = $self->{processor}->{dataobj};
 
-	$self->reload_config if !$skip_reload;
+	my $base_path = $repo->config( "archiveroot" ) . '/cfg/cfg.d';
+
+	# backup any changed files
+	foreach my $file ($epm->config_files)
+	{
+		next if !$file->is_set( "hash" );
+		my $filename = $file->value( "filename" );
+		$filename =~ s/^.*\///;
+		my $filepath = "$base_path/$filename";
+		next if !-f $filepath;
+		my $data;
+		if( open(my $fh, "<", $filepath) )
+		{
+			sysread($fh, $data, -s $fh);
+			close($fh);
+		}
+		next if Digest::MD5::md5_hex( $data ) eq $file->value( "hash" );
+		if( open(my $fh, ">", "$filepath.epmsave") )
+		{
+			syswrite($fh, $data);
+			close($fh);
+		}
+		$self->{processor}->add_message( "warning", $repo->html_phrase( "Plugin/Screen/EPMC:saved",
+			filename => $repo->xml->create_text_node( $filepath ),
+			saved => $repo->xml->create_text_node( "$filepath.epmsave" ),
+		) );
+	}
 
 	$self->{processor}->{screenid} = "Admin::EPM";
+
+	$epm->disable( $self->{processor} );
+
+	$self->reload_config if !$skip_reload;
 }
 
 sub render_action_link

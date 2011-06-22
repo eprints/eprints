@@ -5,7 +5,6 @@
 -->
 
 <cite:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:cite="http://eprints.org/ep3/citation" xmlns:epc="http://eprints.org/ep3/control">
-	<div class="ep_epm">
 	<span class="ep_epm_icon"><epc:print expr="icon" /></span>
 	<epc:choose>
 	<epc:when test="is_set(title)">
@@ -18,5 +17,4 @@
 	<epc:print expr="version" />
 	<epc:if test="is_set(home_page)"><p><epc:print expr="home_page" /></p></epc:if>
 	<epc:if test="is_set(description)"><p><epc:print expr="description" /></p></epc:if>
-	</div>
 </cite:citation>
