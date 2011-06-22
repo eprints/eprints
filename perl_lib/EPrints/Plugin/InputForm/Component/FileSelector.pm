@@ -96,17 +96,25 @@ Event.observe(window, 'load', function() {
 			var dd = this.next('dd');
 			if( !dd ) return;
 			if( dd.visible() ) {
+				this.removeClassName( 'ep_fileselector_open' );
 				new Effect.SlideUp(dd, {
-					duration: 0.5,
+					duration: 0.2,
 					afterFinish: (function () {
 						this.descendants().each(function(ele) {
+							if( ele.nodeName == 'DT' )
+								ele.removeClassName( 'ep_fileselector_open' );
 							if( ele.nodeName == 'DD' )
 								ele.hide();
 						});
 					}).bind(dd)
 				});
-			} else
-				new Effect.SlideDown(dd);
+			}
+			else {
+				this.addClassName( 'ep_fileselector_open' );
+				new Effect.SlideDown(dd, {
+					duration: 0.2
+				});
+			}
 		}).bind(ele);
 	});
 });
@@ -174,11 +182,15 @@ sub _render_tree
 				!exists $exclude->{$_}
 			} readdir($dh);
 		closedir($dh);
-		$dl->appendChild( $xml->create_data_element( "dt", ($path[$#path] || '') . '/' ) );
+		my $dt = $dl->appendChild( $xml->create_data_element( "dt", ($path[$#path] || $root) . '/' ) );
 		my $dd = $dl->appendChild( $xml->create_element( "dd" ) );
 		if( !defined $tree )
 		{
 			$dd->setAttribute( style => "display: none" );
+		}
+		else
+		{
+			$dt->setAttribute( class => "ep_fileselector_open" );
 		}
 		my $ul = $dd->appendChild( $xml->create_element( "ul" ) );
 		foreach my $filename (@filenames)
