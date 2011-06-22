@@ -76,6 +76,7 @@ my $part = HTTP::Message->new(
 	<STDIN>
 );
 $part->encode( 'base64' );
+${$part->content_ref} =~ s/\r?\n$//;
 $part->headers->header( Content_Transfer_Encoding => ($part->headers->remove_header( 'Content-Encoding' ))[0] );
 $mess->add_part( $part );
 }
