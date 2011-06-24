@@ -11,9 +11,10 @@
     <link rel="icon" href="{$config{rel_path}}/favicon.ico" type="image/x-icon"/>
     <link rel="shortcut icon" href="{$config{rel_path}}/favicon.ico" type="image/x-icon"/>
     <link rel="Top" href="{$config{frontpage}}"/>
-    <link rel="Search" href="{$config{http_cgiurl}}/search"/>
     <link rel="Sword" href="{$config{http_url}}/sword-app/servicedocument"/>
     <link rel="SwordDeposit" href="{$config{http_url}}/id/contents"/>
+    <link rel="search" type="text/html" href="{$config{http_cgiurl}}/search"/>
+    <link rel="search" type="application/opensearchdescription+xml" href="{$config{http_url}}/cgi/opensearchdescription"/>
 
     <epc:pin ref="head"/>
     <style type='text/css' media="screen">@import url(<epc:print expr="$config{rel_path}"/>/style/nojs.css);</style>

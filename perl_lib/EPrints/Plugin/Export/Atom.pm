@@ -26,7 +26,7 @@ sub new
 	)];
 	$self->{visible} = "all";
 	$self->{suffix} = ".xml";
-	$self->{mimetype} = "application/atom+xml";
+	$self->{mimetype} = "application/atom+xml;charset=utf-8";
 
 	return $self;
 }
@@ -49,8 +49,12 @@ sub output_list
 	my $dataset = $list->{dataset};
 	my $dataset_id = $dataset->base_id;
 
-	&$f( '<?xml version="1.0" encoding="utf-8" ?>' );
-	&$f( '<feed xmlns="http://www.w3.org/2005/Atom" xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1">' );
+	&$f( "<?xml version=\"1.0\" encoding=\"utf-8\" ?>" );
+	&$f( '<feed
+	xmlns="http://www.w3.org/2005/Atom"
+	xmlns:opensearch="'.EPrints::Const::EP_NS_OPENSEARCH.'"
+	xmlns:xhtml="http://www.w3.org/1999/xhtml"
+>' );
 	
 	# title
 	my $title = $repo->phrase( "archive_name" );
@@ -100,6 +104,11 @@ sub output_list
 		"id", 
 		$repo->config( "frontpage" ) ) );
 
+	if( exists $opts{links} )
+	{
+		&$fx( $opts{links} );
+	}
+
 	# opensearch
 	local $_;
 	for(qw( totalResults itemsPerPage startIndex ))
@@ -114,6 +123,15 @@ sub output_list
 	}
 	if( exists $opts{offsets} )
 	{
+		if( my $search = delete $opts{offsets}{search} )
+		{
+			&$fx( $xml->create_data_element(
+				"link",
+				undef,
+				rel => "search",
+				%$search,
+			) );
+		}
 		foreach my $key (sort keys %{$opts{offsets}})
 		{
 			&$fx( $xml->create_data_element(
@@ -121,6 +139,9 @@ sub output_list
 				undef,
 				rel => $key,
 				type => $self->param( "mimetype" ),
+				title => $repo->phrase( "lib/searchexpression:$key",
+					n => "",
+				),
 				href => $opts{offsets}->{$key} ) );
 		}
 	}
@@ -206,6 +227,16 @@ sub output_eprint
 			undef,
 			rel => "alternate",
 			href => $dataobj->uri ) );
+	foreach my $doc ($dataobj->get_all_documents)
+	{
+		if( $doc->exists_and_set( "content" ) && $doc->value( "content" ) eq "coverimage" && defined($doc->thumbnail_url) )
+		{
+			$entry->appendChild( $xml->create_data_element(
+				"icon",
+				$repo->current_url( host => 1, path => 0 ).$doc->thumbnail_url,
+			) );
+		}
+	}
 	if( $dataobj->exists_and_set( "abstract" ) )
 	{
 		$entry->appendChild( $xml->create_data_element(
