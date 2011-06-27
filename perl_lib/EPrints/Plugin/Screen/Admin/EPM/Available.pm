@@ -166,26 +166,17 @@ sub render_remote
 
 	my $frag = $xml->create_document_fragment;
 
-	my $url = URI->new( "http://bazaar.eprints.org/cgi/latest_tool?output=XML" );
+	my $url = URI->new( "http://bazaar.eprints.org/cgi/latest_tool?output=EPMI" );
 	my $xdoc = eval { $xml->parse_url( $url ) };
 warn $@ if !defined $xdoc;
 	return $frag if !defined $xdoc;
 
-	foreach my $eprint ($xdoc->documentElement->getElementsByTagName( "eprint" ))
+	foreach my $epm ($xdoc->documentElement->getElementsByTagName( "epm" ))
 	{
-		my $epm = $xml->clone( $eprint );
-		$epm->setNodeName( "epm" );
 		$epm = $repo->dataset( "epm" )->dataobj_class->new_from_xml(
 			$repo,
 			$epm->toString()
 		);
-		foreach my $doc (@{$epm->value( "documents" )})
-		{
-			if( $doc->value( "format" ) eq "image/png" )
-			{
-				$epm->set_value( "icon", $doc->value( "files" )->[0]->value( "url" ) );
-			}
-		}
 		my $form = $self->render_form;
 		$form->appendChild( $xhtml->hidden_field( "eprintid", $epm->value( "eprintid" ) ) );
 		$form->appendChild( $repo->render_action_buttons(

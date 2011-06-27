@@ -16,7 +16,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 	
-	$self->{actions} = [qw/ edit download create /];
+	$self->{actions} = [qw/ edit download publish create /];
 		
 	$self->{appears} = [
 		{ 
@@ -32,6 +32,7 @@ sub can_be_viewed { shift->EPrints::Plugin::Screen::Admin::EPM::can_be_viewed( @
 sub allow_create { shift->can_be_viewed( @_ ) }
 sub allow_edit { shift->can_be_viewed( @_ ) }
 sub allow_download { shift->can_be_viewed( @_ ) }
+sub allow_publish { shift->can_be_viewed( @_ ) }
 
 sub properties_from
 {
@@ -89,6 +90,13 @@ sub action_download
 	exit(0);
 }
 
+sub action_publish
+{
+	my( $self ) = @_;
+
+	$self->{processor}->{screenid} = "Admin::EPM::Publish";
+}
+
 sub render
 {
 	my( $self ) = @_;
@@ -120,7 +128,8 @@ sub render
 		$form->appendChild( $repo->render_action_buttons(
 			edit => $self->phrase( "action_edit" ),
 			download => $self->phrase( "action_download" ),
-			_order => [qw( edit download )],
+			publish => $self->phrase( "action_publish" ),
+			_order => [qw( edit download publish )],
 		) );
 
 		$frag->appendChild( $epm->render_citation( "developer",

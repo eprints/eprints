@@ -284,7 +284,7 @@ sub new_from_manifest
 		{
 			$self->set_value( "icon", $1 );
 			my $icon = $repo->dataset( "document" )->make_dataobj({
-				content => "icon",
+				content => "coverimage",
 				files => [],
 			});
 			$icon->set_value( "files", [
@@ -867,6 +867,63 @@ sub update_datasets
 	}
 	
 	return 1;
+}
+
+=item $ok = $epm->publish( $handler, $base_url, %opts )
+
+Publish this EPM to a remote system using SWORD.
+
+$base_url is the URL of the SWORD endpoint or a page containing a SWORD <link>.
+
+Options:
+
+	username - username for Basic auth
+	password - password for Basic auth
+
+=cut
+
+sub publish
+{
+	my( $self, $handler, $url, %opts ) = @_;
+
+	my $username = $opts{username};
+	my $password = $opts{password};
+
+	my $filename = sprintf("%s-%s.epm", $self->id, $self->value( "version" ) );
+
+	my $ua = LWP::UserAgent->new;
+
+	$url = URI->new( $url );
+
+	$ua->credentials( $url->host . ":" . ($url->port || '80'), '*', $username, $password );
+
+	my $req = HTTP::Request->new( POST => $url );
+
+	$req->header( Accept => 'application/atom+xml' );
+	$req->header( 'Content-Type' => "application/vnd.eprints.epm+xml;charset=utf-8" );
+	$req->header( 'Content-Disposition' => "attachment; filename=\"$filename\"" );
+	$req->header( 'Metadata-Relevant' => "true" );
+	if( defined $username )
+	{
+		$password = '' if !defined $password;
+		$req->header( Authorization => "Basic ".MIME::Base64::encode(join(":",
+			$username,
+			$password,
+		), "") );
+	}
+	$req->content( $self->serialise( 1 ) );
+
+	my $r = $ua->request( $req );
+	if( $r->code != 201 )
+	{
+		$handler->add_message( "error", $self->html_phrase( "publish_failed",
+			base_url => $self->{session}->xml->create_text_node( $url ),
+			summary => $self->{session}->xml->create_text_node( $r->status_line ),
+			) );
+		return undef;
+	}
+
+	return $r->header( 'Location' );
 }
 
 =head1 COPYRIGHT

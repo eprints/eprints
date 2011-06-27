@@ -3880,6 +3880,7 @@ Select a file from your local system and click <epc:phrase ref="Plugin/Screen/Ad
 	<epp:phrase id="Plugin/Screen/Admin/EPM/Developer:action_edit" ref="lib/submissionform:action_edit"></epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/EPM/Developer:action_download">Download</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/EPM/Developer:action_create">Create</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Developer:action_publish">Publish</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/EPM/Developer:create_form"><h2>Create a new EPM</h2>
 To create a blank EPM entire a new id in the input and click <epc:phrase ref="Plugin/Screen/Admin/EPM/Developer:action_create" />. EPM ids may only contain the characters A-Za-z0-9_.<br /><epc:pin name="form" /></epp:phrase>
 
@@ -3907,5 +3908,13 @@ To create a blank EPM entire a new id in the input and click <epc:phrase ref="Pl
 
 	<epp:phrase id="Plugin/Screen/EPMC:saved"><epc:pin name="filename" /> has been changed and was saved at <epc:pin name="saved" />.</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPMC:restored">An existing <epc:pin name="filename" /> has been restored and the new entry saved at <epc:pin name="saved" />.</epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Publish:title">Publish Add-on</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Publish:source">Repository</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Publish:action_publish" ref="Plugin/Screen/Admin/EPM/Developer:action_publish"></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Publish:action_cancel" ref="lib/submissionform:action_cancel"></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Publish:bad_endpoint">Unable to locate SwordDeposit endpoint at <epc:pin name="base_url" /></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/EPM/Publish:success">Package published at <epc:pin name="uri" /></epp:phrase>
+	<epp:phrase id="epm:publish_failed">An error occurred while publishing to <epc:pin name="base_url" />: <epc:pin name="summary" /></epp:phrase>
 
 </epp:phrases>
