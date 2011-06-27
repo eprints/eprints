@@ -70,7 +70,7 @@ sub get_system_field_info
 	{ name=>"controller", type=>"text", render_value => \&render_controller, },
 
 	# change to functional content
-	{ name=>"datestamp", type=>"date" },
+	{ name=>"datestamp", type=>"time" },
 
 	# human-readable title
 	{ name=>"title", type=>"longtext", },
