@@ -106,8 +106,7 @@ sub action_unpack
 
 	return if !$doc;
 
-	my $newdoc = $eprint->create_subdataobj( "documents", {} );
-	$newdoc->remove if !$self->_expand( $newdoc );
+	$self->_expand( $doc->get_dataset );
 }
 
 sub action_explode
@@ -122,12 +121,12 @@ sub action_explode
 
 	return if !$doc;
 
-	$self->_expand( $eprint );
+	$self->_expand( $eprint->get_dataset );
 }
 
 sub _expand
 {
-	my( $self, $dataobj ) = @_;
+	my( $self, $dataset ) = @_;
 
 	my $eprint = $self->{processor}->{eprint};
 	my $doc = $self->{processor}->{document};
@@ -145,7 +144,7 @@ sub _expand
 			my( $epdata ) = @_;
 
 			$epdata = [$epdata];
-			if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
+			if( $dataset->base_id eq "eprint" )
 			{
 				$epdata = $epdata->[0]->{documents};
 			}
@@ -178,7 +177,6 @@ sub _expand
 		can_accept => $doc->value( "format" ),
 	);
 
-warn $plugin;
 	return if !$plugin;
 
 	my $file = $doc->stored_file( $doc->value( "main" ) );
@@ -188,7 +186,7 @@ warn $plugin;
 
 	my $list = $plugin->input_fh(
 		fh => $fh,
-		dataset => $dataobj->get_dataset,
+		dataset => $dataset,
 		filename => $file->value( "filename" ),
 		mime_type => $file->value( "mime_type" ),
 		actions => [qw( unpack )],
