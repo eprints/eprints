@@ -1,5 +1,19 @@
 #!/usr/bin/perl
 
+=head1 SYNOPSIS
+
+	cat test.bin | ./tools/atom_multipart.pl > atom_multipart.txt
+
+	# find the boundary in atom_multipart.txt then do
+
+	cat atom_multipart.txt | \
+	POST \
+	-C username:password \
+	-c 'multipart/related; type="application/atom+xml"; boundary=$BOUNDARY$' \
+	http://myrepo.org/id/contents
+
+=cut
+
 use strict;
 use warnings;
 
@@ -7,6 +21,7 @@ use Getopt::Long;
 use HTTP::Message;
 use XML::LibXML;
 use Encode;
+use Pod::Usage;
 
 my $content_type = 'application/octet-stream';
 my $filename = 'main.bin';
