@@ -139,9 +139,9 @@ sub _expand
 	# -> produce lots of documents
 	# the normal epdata_to_dataobj is intercepted (parse_only=>1) and we merge
 	# the new documents into our eprint
-	my $handler = EPrints::Plugin::Screen::EPrint::Document::Extract::Handler->new(
-		processor => $self->{processor},
-		parsed => sub {
+	my $handler = EPrints::CLIProcessor->new(
+		message => sub {},
+		epdata_to_dataobj => sub {
 			my( $epdata ) = @_;
 
 			$epdata = [$epdata];
