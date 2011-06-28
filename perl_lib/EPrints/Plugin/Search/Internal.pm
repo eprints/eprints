@@ -12,6 +12,24 @@ sub new
 {
 	my( $class, %params ) = @_;
 
+	# default to simple search
+	if( !defined $params{search_fields} && defined $params{dataset} )
+	{
+		my $sconf;
+		if( $params{dataset}->id eq "archive" )
+		{
+			$sconf = $params{repository}->config( "search", "simple" );
+		}
+		else
+		{
+			$sconf = $params{dataset}->_simple_search_config;
+		}
+		%params = (
+			%$sconf,
+			%params,
+		);
+	}
+
 	# needs a bit of hackery to wrap EPrints::Search
 	my $self = defined $params{dataset} ?
 		$class->SUPER::new( %params ) :
