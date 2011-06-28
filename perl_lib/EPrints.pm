@@ -269,7 +269,7 @@ use EPrints::Workflow::Stage;
 use EPrints::XML::EPC;
 use EPrints::XHTML;
 use EPrints::Utils;
-use EPrints::EPM;
+use EPrints::EPM::Source;
 
 # SAX utilities
 use EPrints::XML::SAX::Builder;
