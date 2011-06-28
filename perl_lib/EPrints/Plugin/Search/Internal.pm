@@ -67,6 +67,8 @@ sub render_simple_fields
 	return ($self->get_non_filter_searchfields)[0]->render;
 }
 
+sub execute { shift->perform_search( @_ ) }
+
 1;
 
 =head1 COPYRIGHT
