@@ -2139,8 +2139,6 @@ sub set_field_defaults
 ######################################################################
 =pod
 
-=begin InternalDoc
-
 =item ( $returncode, $output) = $repository->test_config
 
 This runs "epadmin test" as an external script to test if the current
@@ -2150,8 +2148,6 @@ to test if changes to config. files may be saved, or not.
 $returncode will be zero if everything seems OK.
 
 If not, then $output will contain the output of epadmin test 
-
-=end InternalDoc
 
 =cut
 ######################################################################
@@ -2175,6 +2171,33 @@ sub test_config
 	}
 
 	return ($rc/256, $output);
+}
+
+=item $ok = $repository->reload_config
+
+Trigger a configuration reload on the next request/index.
+
+To reload the configuration right now just call L</load_config>.
+
+=cut
+
+sub reload_config
+{
+	my( $self ) = @_;
+
+	my $file = $self->config( "variables_path" )."/last_changed.timestamp";
+	if( open(my $fh, ">", $file) )
+	{
+		print $fh "This file last poked at: ".EPrints::Time::human_time()."\n";
+		close $fh;
+	}
+	else
+	{
+		$self->log( "Error writing to $file: $!" );
+		return 0;
+	}
+
+	return 1;
 }
 
 ######################################################################

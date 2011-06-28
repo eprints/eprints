@@ -45,6 +45,11 @@ sub properties_from
 	{
 		$processor->{dataobj} = $dataset->dataobj( $epmid );
 	}
+
+	$processor->{sources} = $repo->config( "epm", "sources" );
+	$processor->{sources} = [
+		{ name => "EPrints Bazaar", base_url => "http://bazaar.eprints.org/" },
+	] if !defined $processor->{sources};
 }
 
 sub wishes_to_export { shift->{repository}->param( "ajax" ) }

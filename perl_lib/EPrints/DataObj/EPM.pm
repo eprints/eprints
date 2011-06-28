@@ -34,6 +34,8 @@ package EPrints::DataObj::EPM;
 
 use strict;
 
+our $MAX_SIZE = 2097152;
+
 ######################################################################
 =pod
 
@@ -317,6 +319,7 @@ sub commit
 	my( $self ) = @_;
 
 	EPrints->system->mkdir( $self->epm_dir );
+	EPrints->system->mkdir( $self->epm_dir . "/cfg.d" );
 
 	if( open(my $fh, ">", $self->epm_dir . "/" . $self->id . ".epm") )
 	{
@@ -353,6 +356,24 @@ sub rebuild
 	{
 		$self->set_value( $_, $epm->value( $_ ) );
 	}
+}
+
+=item $v = $epm->version
+
+Returns a stringified version suitable for string gt/lt matching.
+
+=cut
+
+sub version
+{
+	my( $self ) = @_;
+
+	my $v = $self->value( "version" );
+	$v = "0.0.0" if !defined $v;
+
+	$v = join('.', map { sprintf("%04d", $_||0) } split /\./, $v, 3);
+
+	return $v;
 }
 
 =item $bool = $epm->is_enabled
@@ -902,7 +923,6 @@ sub publish
 	$req->header( Accept => 'application/atom+xml' );
 	$req->header( 'Content-Type' => "application/vnd.eprints.epm+xml;charset=utf-8" );
 	$req->header( 'Content-Disposition' => "attachment; filename=\"$filename\"" );
-	$req->header( 'Metadata-Relevant' => "true" );
 	if( defined $username )
 	{
 		$password = '' if !defined $password;

@@ -6,7 +6,7 @@ EPrints::Plugin::Screen::Admin::EPM::Available
 
 package EPrints::Plugin::Screen::Admin::EPM::Available;
 
-@ISA = ( 'EPrints::Plugin::Screen' );
+@ISA = ( 'EPrints::Plugin::Screen::Admin::EPM' );
 
 use strict;
 
@@ -16,7 +16,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 	
-	$self->{actions} = [qw/ install /];
+	$self->{actions} = [qw/ install upload upgrade search /];
 		
 	$self->{appears} = [
 		{ 
@@ -30,40 +30,19 @@ sub new
 	return $self;
 }
 
-sub can_be_viewed { shift->EPrints::Plugin::Screen::Admin::EPM::can_be_viewed( @_ ) }
 sub allow_install { shift->can_be_viewed( @_ ) }
+sub allow_upgrade { shift->can_be_viewed( @_ ) }
+sub allow_upload { shift->can_be_viewed( @_ ) }
+sub allow_search { shift->can_be_viewed( @_ ) }
 
-sub properties_from
-{
-	shift->EPrints::Plugin::Screen::Admin::EPM::properties_from();
-}
-
-sub action_install
-{
-	my( $self ) = @_;
-
-	$self->{processor}->{screenid} = "Admin::EPM";
-
-	my $repo = $self->{repository};
-	my $basename = $self->get_subtype;
-
-	my $ffname = $basename."_file";
-	my $filename = $repo->param( $ffname );
-	if( defined $filename )
-	{
-		return $self->action_upload;
-	}
-
-	my $eprintid = $repo->param( "eprintid" );
-	if( defined $eprintid )
-	{
-		return $self->action_remote( $eprintid );
-	}
-}
+sub wishes_to_export { shift->{repository}->param( "ajax" ) }
+sub export_mimetype { "text/html; charset=utf-8" }
 
 sub action_upload
 {
 	my( $self ) = @_;
+
+	$self->{processor}->{screenid} = "Admin::EPM";
 
 	my $repo = $self->{repository};
 	my $basename = $self->get_subtype;
@@ -81,7 +60,7 @@ sub action_upload
 	my $xml;
 	while(sysread($fh,$xml,65536,length($xml)))
 	{
-		if(length($xml) > 2097152) # sanity-check
+		if(length($xml) > $EPrints::DataObj::EPM::MAX_SIZE) # sanity-check
 		{
 			$self->{processor}->add_message( "error", $self->html_phrase( "error:upload" ) );
 			return;
@@ -95,29 +74,134 @@ sub action_upload
 		return;
 	}
 
-	return if !$epm->install( $self->{processor} );
-
-	$self->{processor}->{dataobj} = $epm;
-	my $controller = $epm->control_screen( processor => $self->{processor} );
-
-	# load the add-on classes post-install
-	$controller->reload_config;
-
-	$self->{processor}->add_message( "message", $self->html_phrase( "installed",
-		epm => $epm->render_citation( "brief" ),
-	) );
-
-	$controller->action_enable;
+	$self->_install( $epm );
 }
 
-sub action_remote
+sub action_install
 {
 	my( $self, $eprintid ) = @_;
 
+	my $repo = $self->{repository};
+
+	$self->{processor}->{screenid} = "Admin::EPM";
+
+	my $base_url = $repo->param( "base_url" );
+	my $eprintid = $repo->param( "eprintid" );
+
+	my $source;
+	EPrints::EPM::Source->map( $repo, sub {
+		$source = $_[1] if $_[1]->{base_url} eq $base_url;
+	});
+	EPrints->abort( "Source not found" ) if !defined $source;
+
 	# retrieve from repository
+	my $epm = $source->epm_by_eprintid( $eprintid );
+	EPrints->abort( "EPM not found: $source->{err}" ) if !defined $epm;
+
+	$self->_install( $epm );
+}
+
+sub _install
+{
+	my( $self, $epm ) = @_;
+
+	my $repo = $self->{repository};
+
+	$self->{processor}->{dataobj} = $epm;
+
+	# don't clobber an existing epm
+	if( defined $repo->dataset( "epm" )->dataobj( $epm->value( "epmid" ) ) )
+	{
+		$self->{processor}->add_message( 
+			$self->html_phrase( "exists",
+				epm => $epm->render_citation
+		) );
+		return;	
+	}
+
 	# install
+	return if !$epm->install( $self->{processor} );
+
 	# validate
+	my( $rc, $err ) = $repo->test_config;
+
 	# uninstall on failure
+	if( $rc != 0 )
+	{
+		$self->{processor}->add_message( "error",
+			$repo->html_phrase( "Plugin/Screen/Admin/Reload:reload_bad_config",
+				output => $repo->xml->create_text_node( $err )
+		) );
+		$epm->uninstall( $self->{processor} );
+		return;
+	}
+
+	$repo->load_config;
+
+	my $controller = $epm->control_screen( processor => $self->{processor} );
+	# enable if not already enabled
+	$controller->action_enable( 1 ) if !$epm->is_enabled;
+
+	# now trigger a reload for everyone
+	$repo->reload_config;
+
+	$self->{processor}->add_message( "message", $self->html_phrase( "installed",
+		epm => $epm->render_citation
+	) );
+
+	return 1;
+}
+
+sub action_upgrade
+{
+	my( $self ) = @_;
+
+	$self->{processor}->{screenid} = "Admin::EPM";
+
+	my $repo = $self->{repository};
+
+	my $base_url = $repo->param( "base_url" );
+	my $eprintid = $repo->param( "eprintid" );
+
+	my $source;
+	EPrints::EPM::Source->map( $repo, sub {
+		$source = $_[1] if $_[1]->{base_url} eq $base_url;
+	});
+	EPrints->abort( "Source not found" ) if !defined $source;
+
+	# retrieve from repository
+	my $epm = $source->epm_by_eprintid( $eprintid );
+	EPrints->abort( "EPM not found: $source->{err}" ) if !defined $epm;
+
+	my $iepm = $repo->dataset( "epm" )->dataobj( $epm->value( "epmid" ) );
+	EPrints->abort( "Installed EPM not found" ) if !defined $iepm;
+
+	return if !$iepm->uninstall( $self->{processor} );
+
+	if( !$self->_install( $epm ) )
+	{
+		return $iepm->install( $self->{processor} );
+	}
+}
+
+sub action_search
+{
+	my( $self ) = @_;
+
+	$self->{processor}->{screenid} = "Admin::EPM";
+
+}
+
+sub redirect_to_me_url
+{
+	my( $self ) = @_;
+
+	my $url = URI->new( $self->SUPER::redirect_to_me_url );
+	$url->query_form(
+		$url->query_form,
+		ref($self)."_q" => scalar($self->{repository}->param(ref($self)."_q")),
+	);
+	return "$url";
 }
 
 sub render
@@ -132,7 +216,47 @@ sub render
 
 	my $frag = $xml->create_document_fragment;
 
-	$frag->appendChild( $self->render_remote );
+	my $prefix = ref($self);
+	my $screen = $self->get_subtype;
+
+	$frag->appendChild( $repo->make_javascript( <<EOJ ) );
+js_admin_epm_available_update = function(e) {
+		var container = \$('${prefix}_results');
+		var loading = \$('loading').cloneNode( 1 );
+		container.insertBefore( loading, container.firstChild );
+		loading.style.position = 'absolute';
+		loading.clonePosition( container );
+		loading.show();
+
+		var qvalue = Event.element(e).value;
+		new Ajax.Updater(container, eprints_http_cgiroot+'/users/home', {
+			method: 'get',
+			parameters: {
+				screen: '$screen',
+				ajax: 1,
+				'${prefix}_q': qvalue
+			}
+		});
+};
+EOJ
+
+	my $div = $frag->appendChild( $xml->create_element( "div", class => "ep_block" ) );
+
+	my $form = $div->appendChild( $self->render_form );
+	$form->appendChild( $xhtml->input_field(
+		"${prefix}_q" => scalar($repo->param( "${prefix}_q" )),
+		onkeyup => 'js_admin_epm_available_update(event)'
+	) );
+	$form->appendChild( $xhtml->input_field(
+		"_action_search" => $repo->phrase( "lib/searchexpression:action_search" ),
+		type => "submit",
+		class => "ep_form_action_button",
+	) );
+
+	$frag->appendChild( $xml->create_data_element( "div",
+		$self->render_results,
+		id => ref($self)."_results"
+	) );
 
 	$frag->appendChild( $xml->create_element( "div", style => "clear: left" ) );
 
@@ -147,7 +271,7 @@ sub render
 	);
 	$form->appendChild( $file_button );
 	$form->appendChild( $repo->render_action_buttons(
-		install => $self->phrase( "action_install" ),
+		upload => $self->phrase( "action_install" ),
 	) );
 	$frag->appendChild( $self->html_phrase( "upload_form",
 		form => $form,
@@ -156,7 +280,7 @@ sub render
 	return $frag;
 }
 
-sub render_remote
+sub render_results
 {
 	my( $self ) = @_;
 
@@ -166,30 +290,66 @@ sub render_remote
 
 	my $frag = $xml->create_document_fragment;
 
-	my $url = URI->new( "http://bazaar.eprints.org/cgi/latest_tool?output=EPMI" );
-	my $xdoc = eval { $xml->parse_url( $url ) };
-warn $@ if !defined $xdoc;
-	return $frag if !defined $xdoc;
+	my %installed;
 
-	foreach my $epm ($xdoc->documentElement->getElementsByTagName( "epm" ))
-	{
-		$epm = $repo->dataset( "epm" )->dataobj_class->new_from_xml(
-			$repo,
-			$epm->toString()
-		);
-		my $form = $self->render_form;
-		$form->appendChild( $xhtml->hidden_field( "eprintid", $epm->value( "eprintid" ) ) );
-		$form->appendChild( $repo->render_action_buttons(
-			install => $self->phrase( "action_install" )
-		) );
-		$frag->appendChild( $epm->render_citation( "control",
-			pindata => { inserts => {
-				actions => $form,
-			} },
-		) );
-	}
+	$repo->dataset( "epm" )->dataobj_class->map( $repo, sub {
+		my( undef, undef, $epm ) = @_;
+
+		$installed{$epm->id} = $epm;
+	});
+
+	EPrints::EPM::Source->map( $repo, sub {
+		my( undef, $source ) = @_;
+
+		my $epms = $source->query( scalar($repo->param( ref($self)."_q" )) );
+		if( !defined $epms )
+		{
+			$self->{processor}->add_message( "warning", $self->html_phrase( "source_error",
+				name => $xml->create_text_node( $source->{name} ),
+				base_url => $xml->create_text_node( $source->{base_url} ),
+				error => $xml->create_text_node( $source->{err} ),
+			) );
+			return;
+		}
+
+		foreach my $epm (@$epms)
+		{
+			my $iepm = $installed{$epm->id};
+			next if defined($iepm) && !($epm->version gt $iepm->version);
+
+			my $form = $self->render_form;
+			$form->appendChild( $xhtml->hidden_field(
+				"base_url",
+				$source->{base_url}
+			) );
+			$form->appendChild( $xhtml->hidden_field(
+				"eprintid",
+				$epm->value( "eprintid" )
+			) );
+			$form->appendChild( $repo->render_action_buttons(
+				(defined($iepm) ?
+						(upgrade => $self->phrase( "action_upgrade" )) :
+						(install => $self->phrase( "action_install" )))
+			) );
+			$frag->appendChild( $epm->render_citation( "control",
+				pindata => { inserts => {
+					actions => $form,
+				} },
+			) );
+		}
+	});
 
 	return $frag;
+}
+
+sub export
+{
+	my( $self ) = @_;
+
+	binmode(STDOUT, ":utf8");
+	my $xhtml = $self->render_results;
+	print $self->{repository}->xhtml->to_xhtml( $xhtml );
+	$self->{repository}->xml->dispose( $xhtml );
 }
 
 1;

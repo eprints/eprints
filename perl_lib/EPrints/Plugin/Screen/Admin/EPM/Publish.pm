@@ -74,6 +74,8 @@ sub action_publish
 			uri => $self->{repository}->xml->create_data_element( "a", $uri, href => $uri )
 			) );
 	}
+
+	$self->{processor}->{screenid} = 'Admin::EPM';
 }
 
 sub redirect_to_me_url
@@ -105,10 +107,7 @@ sub render
 	my $xhtml = $repo->xhtml;
 	my $xml = $repo->xml;
 
-	my $sources = $repo->config( "epm", "sources" );
-	$sources = [
-		{ name => "EPrints Bazaar", base_url => "http://bazaar.eprints.org/", },
-	] if !defined $sources;
+	my $sources = $self->{processor}->{sources};
 
 	my $epm = $self->{processor}->{dataobj};
 
