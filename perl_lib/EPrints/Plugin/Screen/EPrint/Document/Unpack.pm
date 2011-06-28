@@ -150,6 +150,8 @@ sub _expand
 				$epdata = $epdata->[0]->{documents};
 			}
 
+			my @items;
+
 			foreach my $docdata (@$epdata)
 			{
 				$docdata->{relation} ||= [];
@@ -158,8 +160,10 @@ sub _expand
 					uri => $doc->internal_uri
 				};
 
-				return $eprint->create_subdataobj( "documents", $docdata );
+				push @items, $eprint->create_subdataobj( "documents", $docdata );
 			}
+
+			return $items[$#items];
 		},
 	);
 
@@ -174,6 +178,7 @@ sub _expand
 		can_accept => $doc->value( "format" ),
 	);
 
+warn $plugin;
 	return if !$plugin;
 
 	my $file = $doc->stored_file( $doc->value( "main" ) );
