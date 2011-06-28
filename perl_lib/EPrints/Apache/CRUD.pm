@@ -611,7 +611,7 @@ sub GET
 		}
 	}
 
-	$r->headers_out->{'Content-Type'} = $plugin->param( "mimetype" );
+	$r->content_type( $plugin->param( "mimetype" ) );
 	$plugin->initialise_fh( \*STDOUT );
 	if( !defined $dataobj )
 	{
