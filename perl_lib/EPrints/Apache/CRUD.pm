@@ -953,6 +953,7 @@ sub PUT
 				}
 				$dataobj->commit;
 			}
+			return undef;
 		}
 	) );
 
@@ -1023,6 +1024,7 @@ sub metadata_relevant
 				delete $epdata->{$fieldname} if exists $epdata->{$fieldname};
 				$epdata->{$fieldname} = $data->{$fieldname};
 			}
+			return undef;
 		}
 	);
 
