@@ -1881,6 +1881,7 @@ sub get_static_dirs
 	if( defined $theme )
 	{	
 		push @dirs, "$config_path/themes/$theme/static";
+		push @dirs, "$lib_path/themes/$theme/static";
 	}
 
 	# system path: /lib/static/
