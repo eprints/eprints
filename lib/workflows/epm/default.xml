@@ -16,6 +16,7 @@ Action buttons (Previous/Save/Next) can be shown "top", "bottom" or "both":
   </flow>
 
   <stage name="details">
+  	<component><field ref="creators" /></component>
   	<component><field ref="title" /></component>
   	<component><field ref="description" /></component>
   	<component><field ref="version" required="yes" /></component>

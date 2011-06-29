@@ -71,6 +71,12 @@ sub get_system_field_info
 	# 	render [configuration]
 	{ name=>"controller", type=>"text", render_value => \&render_controller, },
 
+	# creators
+	{ name=>"creators", type=>"compound", multiple=>1, fields=>[
+		{ sub_name=>"name", type=>"name", hide_honourific=>1, },
+		{ sub_name=>"id", type=>"id", input_cols=>20, },
+		]},
+
 	# change to functional content
 	{ name=>"datestamp", type=>"time" },
 
