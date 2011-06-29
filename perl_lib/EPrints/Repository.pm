@@ -1838,6 +1838,7 @@ sub get_template_dirs
 		push @dirs, "$config_path/themes/$theme/lang/$langid/templates";
 		# themes path: /archives/[repoid]/cfg/themes/lang/[langid]templates/
 		push @dirs, "$config_path/themes/$theme/templates";
+		push @dirs, "$lib_path/themes/$theme/templates";
 	}
 
 	# system path: /lib/templates/
