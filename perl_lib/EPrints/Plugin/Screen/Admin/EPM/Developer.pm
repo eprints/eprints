@@ -139,8 +139,6 @@ sub render
 		) );
 	});
 
-	$frag->appendChild( $xml->create_element( "div", style => "clear: left" ) );
-
 	my $form = $self->render_form;
 	my $field = $dataset->key_field;
 	$form->appendChild( $field->render_input_field(

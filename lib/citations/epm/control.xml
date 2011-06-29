@@ -5,8 +5,6 @@
 -->
 
 <cite:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:cite="http://eprints.org/ep3/citation" xmlns:epc="http://eprints.org/ep3/control">
-	<div class="ep_epm_control">
-		<div class="ep_epm_actions"><epc:pin name="actions" /></div>
-		<epc:print expr="$item.citation('default')" />
-	</div>
+	<div style="float: right;"><epc:pin name="actions" /></div>
+	<epc:print expr="$item.citation('default')" />
 </cite:citation>

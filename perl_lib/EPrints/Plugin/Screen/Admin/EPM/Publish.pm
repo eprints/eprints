@@ -114,7 +114,6 @@ sub render
 	my $frag = $xml->create_document_fragment;
 
 	$frag->appendChild( $epm->render_citation );
-	$frag->appendChild( $xml->create_element( "div", style => "clear: left" ) );
 
 	my $form = $self->render_form;
 	$frag->appendChild( $form );

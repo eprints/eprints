@@ -121,6 +121,7 @@ sub render_icon
 		$repo->current_url( host => 1, path => "static", $value );
 
 	return $repo->xml->create_element( "img",
+		width => "70px",
 		src => $url,
 	);
 }

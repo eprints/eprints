@@ -218,8 +218,6 @@ sub render
 		) );
 	});
 
-	$frag->appendChild( $xml->create_element( "div", style => "clear: left" ) );
-
 	return $frag;
 }
 
