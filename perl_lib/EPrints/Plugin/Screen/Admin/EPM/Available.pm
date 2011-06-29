@@ -261,7 +261,7 @@ EOJ
 	$frag->appendChild( $xml->create_element( "div", style => "clear: left" ) );
 
 	my $ffname = $basename."_file";
-	my $form = $self->render_form;
+	$form = $self->render_form;
 	my $file_button = $xml->create_element( "input",
 			name => $ffname,
 			id => $ffname,
