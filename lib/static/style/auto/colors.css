@@ -34,21 +34,21 @@ h1, h2, h3, h4 {
 .ep_tm_footer {
 	border-color: #152d4e;
 }
+.ep_tm_menu, .ep_tm_menu li:hover {
+	background-image: url(images/bar_glass.png) ;
+	background-position: 0px 5px;
+}
 .ep_tm_menu {
 	/* fixed to 30px high */
 	background-color: #204f76;
 	border-top: 1px solid #0f3d5a;
 	border-bottom: 1px solid #fff;
-	background-image: url(images/bar_glass.png) ;
-	background-position: 0px 5px;
 }
 .ep_tm_menu ul {
 	background-color: #204f76;
 }
 .ep_tm_menu li:hover {
 	background-color: #279ae2;
-	background-image: url(images/bar_glass.png);
-	background-position: 0px 5px;
 }
 .ep_tm_menu a, .ep_tm_menu a:visited {
 	color: white;
@@ -56,7 +56,7 @@ h1, h2, h3, h4 {
 .ep_tm_searchbar {
 	color: #606060;
 	background-color: #ccc;
-	background-image: url(images/bar_long.png);
+	background-image: url(images/bar_24px.png);
 	background-repeat: repeat-x;
 }
 .ep_tm_searchbarbox {
@@ -77,7 +77,7 @@ h1, h2, h3, h4 {
 
 .ep_form_action_button, .ep_form_internal_button, .ep_tm_searchbarbutton, .ep_blister_node_selected {
 	border-color: #5b97c7 #13324a #13324a #5287b3;
-	background-image: url(images/bar.png);
+	background-image: url(images/bar_12px.png);
 	background-color: #1f4f76;
 	color: white;
 }
@@ -91,7 +91,7 @@ h1, h2, h3, h4 {
 .ep_blister_node {
 	border-color: #cccccc;
 	background-color: #e8e8e8;
-	background-image: url(images/bar_solid.png);
+	background-image: url(images/bar_solid_12px.png);
 	color: #000000;
 }
 .ep_blister_node:active {
@@ -104,11 +104,11 @@ h1, h2, h3, h4 {
 	background-color: #e8e8e8;
 }
 .ep_summary_box_title, .ep_sr_title_bar, .ep_sr_collapse_bar {
-	background-image: url(images/bar_solid.png);
+	background-image: url(images/bar_solid_12px.png);
 	background-repeat: repeat-x;
 }
 .ep_sr_content, .ep_summary_box_body, .ep_tab_panel {
-	background-image: url(images/bar_long_solid.png);
+	background-image: url(images/bar_solid_24px.png);
 	background-repeat: repeat-x;
 }
 .ep_summary_box_title, .ep_summary_box_body, .ep_sr_title_bar, .ep_sr_content, .ep_sr_collapse_bar,
@@ -118,25 +118,26 @@ h1, h2, h3, h4 {
 
 /* tabs.css */
 
-.ep_tab_bar a {
-/* color: #000; */
+.ep_tab_bar li a {
+	background-image: url(images/bar_solid_24px.png);
+	background-repeat: repeat-x;
 }
 
 /* unselected tab */
 .ep_tab_bar li a {
-	background: #bbb url(images/bar_long_solid.png) repeat-x;
+	background-color: #bbb;
 }
 
 /* selected tab */
 .ep_tab_bar li.ep_tab_selected a {
-	background: #ffffff;
+	background-color: #fff;
 }
 
 /* general.css */
 
 th.ep_title_row {
 	border-color: #808080;
-	background-image: url(images/bar_long.png);
+	background-image: url(images/bar_24px.png);
 	background-color: #ccc;
 	color: #333;
 }
@@ -150,3 +151,30 @@ th.ep_row, td.ep_row {
 td.ep_row {
 	border-left-style: dashed;
 }
+
+/* messages.css */
+
+.ep_msg_message_content, .ep_msg_warning_content, .ep_msg_error_content, .ep_msg_other_content {
+	background-image: url(images/bar_solid_48px.png);
+	background-repeat: repeat-x;
+}
+
+.ep_msg_message_content {
+	background-color: #80ff80;
+	border-color: #80ff80;
+}
+.ep_msg_error_content {
+	background-color: #ffc0c0;
+	border-color: #ffc0c0;
+}
+
+.ep_msg_warning_content {
+	background-color: #ffc080;
+	border-color: #ffc080;
+}
+
+.ep_msg_other_content {
+	background-color: #9999ff;
+	border-color: #9999ff;
+}
+
