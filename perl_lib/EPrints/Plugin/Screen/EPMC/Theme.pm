@@ -72,6 +72,12 @@ sub _static
 			elsif( $filename =~ m#^style/auto/# ) {
 				unlink("$path/$langid/style/auto.css");
 			}
+			elsif( $filename =~ m/^(.+)\.xpage$/ ) {
+				for(qw( html head page title title.textonly ))
+				{
+					unlink("$path/$langid/$1.$_");
+				}
+			}
 		}
 	}
 }
