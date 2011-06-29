@@ -45,6 +45,7 @@ sub action_publish
 	my( $self ) = @_;
 
 	my $epm = $self->{processor}->{dataobj};
+	$epm->rebuild; # make sure we send latest versions of files
 
 	my $source = $self->{repository}->param( "source" );
 

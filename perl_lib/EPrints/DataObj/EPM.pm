@@ -265,44 +265,57 @@ sub new_from_manifest
 
 	my $install = $repo->dataset( "document" )->make_dataobj({
 		content => "install",
+		format => "other",
 		files => [],
 	});
 	$self->set_value( "documents", [ $install ]);
 
-	for(@manifest)
+	foreach my $filename (@manifest)
 	{
-		my $filepath = "$base_path/$_";
+		my $filepath = "$base_path/$filename";
 		use bytes;
 		open(my $fh, "<", $filepath) or die "Error opening $filepath: $!";
 		sysread($fh, my $data, -s $fh);
 		close($fh);
 		my $md5 = Digest::MD5::md5_hex( $data );
 
+		my $media_info = {};
+		$repo->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+			epdata => $media_info,
+			filename => $filename,
+			filepath => $filepath,
+		);
+
 		$install->set_value( "files", [
 			@{$install->value( "files")},
 			$repo->dataset( "file" )->make_dataobj({
-				filename => $_,
+				filename => $filename,
 				filesize => length($data),
 				data => MIME::Base64::encode_base64( $data ),
 				hash => $md5,
 				hash_type => "MD5",
+				mime_type => $media_info->{format},
 			})
 		]);
+		$install->set_value( "main", $filename );
 
-		if( m#^static/(images/epm/.*)# )
+		if( $filename =~ m#^static/(images/epm/.*)# )
 		{
 			$self->set_value( "icon", $1 );
 			my $icon = $repo->dataset( "document" )->make_dataobj({
 				content => "coverimage",
+				main => $filename,
 				files => [],
+				format => $media_info->{format},
 			});
 			$icon->set_value( "files", [
 				$repo->dataset( "file" )->make_dataobj({
-					filename => $_,
+					filename => $filename,
 					filesize => length($data),
 					data => MIME::Base64::encode_base64( $data ),
 					hash => $md5,
 					hash_type => "MD5",
+					mime_type => $media_info->{format},
 				})
 			]);
 			$self->set_value( "documents", [
