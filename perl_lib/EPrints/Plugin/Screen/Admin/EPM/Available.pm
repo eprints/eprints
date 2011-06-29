@@ -79,7 +79,7 @@ sub action_upload
 
 sub action_install
 {
-	my( $self, $eprintid ) = @_;
+	my( $self ) = @_;
 
 	my $repo = $self->{repository};
 
