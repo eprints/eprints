@@ -339,7 +339,8 @@ sub commit
 	my( $self ) = @_;
 
 	EPrints->system->mkdir( $self->epm_dir );
-	EPrints->system->mkdir( $self->epm_dir . "/cfg.d" );
+	# give the user a hint for where to put cfg.d.s
+	EPrints->system->mkdir( $self->epm_dir . "/cfg/cfg.d" );
 
 	if( open(my $fh, ">", $self->epm_dir . "/" . $self->id . ".epm") )
 	{
@@ -476,20 +477,20 @@ sub installed_files
 	return @{$install->value( "files" )};
 }
 
-=item @files = $epm->config_files()
+=item @files = $epm->repository_files()
 
 Returns the list of configuration files used to enable/configure an $epm.
 
 =cut
 
-sub config_files
+sub repository_files
 {
 	my( $self ) = @_;
 
 	my $epmid = $self->id;
 
 	return grep {
-			$_->value( "filename" ) =~ m# ^epm/$epmid/cfg\.d/[^\/]+\.pl$ #x
+			$_->value( "filename" ) =~ m# ^epm/$epmid/ #x
 		} $self->installed_files;
 }
 
@@ -713,17 +714,18 @@ sub enable
 
 	my $datasets = $self->current_datasets;
 
-	my $base_path = $repo->config( "base_path" ) . "/lib";
 	my $epmid = $self->id;
+	my $epmdir = "epm/".$epmid;
 
-	FILE: foreach my $file ($self->config_files)
+	FILE: foreach my $file ($self->repository_files)
 	{
 		my $filename = $file->value( "filename" );
-		my $filepath = $base_path . "/$filename";
-		next if $filename !~ m# /([^\/]+)$ #x;
+		my $filepath = $repo->config( "base_path" ) . "/lib/" . $filename;
+		next if $filename !~ m# ^$epmdir(.+)$ #x;
 
-		my $targetpath = $repo->config( "archiveroot" ) . "/cfg/cfg.d/$1";
+		my $targetpath = $repo->config( "archiveroot" ) . $1;
 		my $data;
+warn "$filepath => $targetpath";
 		if(open(my $fh, "<", $filepath))
 		{
 			sysread($fh, $data, -s $fh);
@@ -768,6 +770,9 @@ sub enable
 				return 0;
 			}
 		}
+		my $targetdir = $targetpath;
+		$targetdir =~ s/[^\/]+$//;
+		EPrints->system->mkdir( $targetdir );
 		if(open(my $fh, ">", $targetpath))
 		{
 			syswrite($fh, $data);
@@ -796,12 +801,13 @@ sub disable
 	my $datasets = $self->current_datasets;
 
 	my $epmid = $self->id;
+	my $epmdir = "epm/".$epmid;
 
-	foreach my $file ($self->config_files)
+	foreach my $file ($self->repository_files)
 	{
 		my $filename = $file->value( "filename" );
-		next if $filename !~ m# /([^\/]+)$ #x;
-		my $targetpath = $repo->config( "archiveroot" ) . "/cfg/cfg.d/$1";
+		next if $filename !~ m# ^$epmdir(.+)$ #x;
+		my $targetpath = $repo->config( "archiveroot" ) . $1;
 		next if !-f $targetpath;
 		unlink( $targetpath );
 	}

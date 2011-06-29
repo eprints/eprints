@@ -229,7 +229,7 @@ sub _render_tree
 				(defined $tree ? (checked => "checked") : ())
 		) );
 		$input->setAttribute( id => $id );
-		$li->appendChild( $xml->create_data_element( "label", join('/',@path),
+		$li->appendChild( $xml->create_data_element( "label", $path[$#path],
 			for => $id
 		) );
 		return $li;

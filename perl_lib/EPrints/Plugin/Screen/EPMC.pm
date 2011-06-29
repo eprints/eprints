@@ -83,18 +83,18 @@ sub action_enable
 	my $repo = $self->{repository};
 	my $epm = $self->{processor}->{dataobj};
 
-	my $base_path = $repo->config( "archiveroot" ) . '/cfg/cfg.d';
-
 	$self->{processor}->{screenid} = "Admin::EPM";
 
 	$epm->enable( $self->{processor} );
 
+	my $epmdir = "epm/".$epm->id;
+
 	# restore any backed-up files
-	foreach my $file ($epm->config_files)
+	foreach my $file ($epm->repository_files)
 	{
 		my $filename = $file->value( "filename" );
-		$filename =~ s/^.*\///;
-		my $filepath = "$base_path/$filename";
+		$filename =~ s/^$epmdir//;
+		my $filepath = $repo->config( "archiveroot" ) . $filename;
 		next if !-f $filepath;
 		next if !-f "$filepath.epmsave";
 		rename($filepath, "$filepath.epmnew");
@@ -123,15 +123,15 @@ sub action_disable
 	my $repo = $self->{repository};
 	my $epm = $self->{processor}->{dataobj};
 
-	my $base_path = $repo->config( "archiveroot" ) . '/cfg/cfg.d';
+	my $epmdir = "epm/".$epm->id;
 
 	# backup any changed files
-	foreach my $file ($epm->config_files)
+	foreach my $file ($epm->repository_files)
 	{
 		next if !$file->is_set( "hash" );
 		my $filename = $file->value( "filename" );
-		$filename =~ s/^.*\///;
-		my $filepath = "$base_path/$filename";
+		$filename =~ s/^$epmdir//;
+		my $filepath = $repo->config( "archiveroot" ) . $filename;
 		next if !-f $filepath;
 		my $data;
 		if( open(my $fh, "<", $filepath) )
