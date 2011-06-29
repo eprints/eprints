@@ -11,7 +11,7 @@
     <epc:pin ref="login_status_header"/>
     <script type="text/javascript" src="{$config{rel_path}}/javascript/secure_auto.js"><!-- padder --></script>
     <link rel="stylesheet" type="text/css" href="{$config{rel_path}}/style/auto.css"/>
-    <link rel="stylesheet" type="text/css" media="print" href="{$config{rel_path}}/style/print.css"/>
+    <style type="text/css" media="print">.ep_noprint { display: none }</style>
     <link rel="icon" href="{$config{rel_path}}/favicon.ico" type="image/x-icon"/>
     <link rel="shortcut icon" href="{$config{rel_path}}/favicon.ico" type="image/x-icon"/>
     <epc:pin ref="head"/>
