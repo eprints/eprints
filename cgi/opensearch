@@ -35,6 +35,9 @@ my $dataset = $repo->dataset( "archive" );
 
 my $search = $repo->plugin( 'Search' )->plugins(
 	{
+		filters => [
+			{ meta_fields => [qw( metadata_visibility )], value => "show" },
+		],
 		dataset => $dataset,
 		limit => $limit,
 	},
