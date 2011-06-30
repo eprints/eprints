@@ -3931,4 +3931,6 @@ To create a blank EPM entire a new id in the input and click <epc:phrase ref="Pl
 	<epp:phrase id="Plugin/Screen/Admin/EPM/Publish:bad_endpoint">Unable to locate SwordDeposit endpoint at <epc:pin name="base_url" /></epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/EPM/Publish:success">Package published at <epc:pin name="uri" /></epp:phrase>
 
+	<epp:phrase id="Plugin/Screen/EPMC/Cfgd:missing">No configuration file found to configure.</epp:phrase>
+
 </epp:phrases>

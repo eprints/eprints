@@ -39,7 +39,7 @@ sub action_configure
 	foreach my $file ($epm->installed_files)
 	{
 		my $filename = $file->value( "filename" );
-		next if $filename !~ m#^epm/$epmid/cfg\.d/(.*)#;
+		next if $filename !~ m#^epm/$epmid/cfg/cfg\.d/(.*)#;
 		my $url = $self->{repository}->current_url( host => 1 );
 		$url->query_form(
 			screen => "Admin::Config::View::Perl",
@@ -48,6 +48,8 @@ sub action_configure
 		$self->{repository}->redirect( $url );
 		exit( 0 );
 	}
+
+	$self->{processor}->{screenid} = "Admin::EPM";
 
 	$self->{processor}->add_message( "error", $self->html_phrase( "missing" ) );
 }
