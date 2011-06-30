@@ -387,7 +387,7 @@ sub get_user
 		}
 	}
 
-	$self->{user} = EPrints::User->new( 
+	$self->{user} = EPrints::DataObj::User->new( 
 		$self->{session}, 
 		$self->get_value( "userid" ) );
 

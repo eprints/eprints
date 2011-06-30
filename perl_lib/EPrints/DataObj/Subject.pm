@@ -304,7 +304,7 @@ sub create
 		  "ancestors"=>[],
 		  "depositable"=>($depositable ? "TRUE" : "FALSE" ) };
 
-	return EPrints::User->create_from_data( 
+	return EPrints::DataObj::User->create_from_data( 
 		$session, 
 		$data,
 		$session->dataset( "subject" ) );

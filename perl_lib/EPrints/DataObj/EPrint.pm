@@ -1730,7 +1730,7 @@ sub get_url
 
 =item $user = $eprint->get_user
 
-Return the EPrints::User to whom this eprint belongs (if any).
+Return the EPrints::DataObj::User to whom this eprint belongs (if any).
 
 =cut
 ######################################################################
@@ -1750,7 +1750,7 @@ sub get_user
 		}
 	}
 
-	$self->{user} = EPrints::User->new( 
+	$self->{user} = EPrints::DataObj::User->new( 
 		$self->{session}, 
 		$self->get_value( "userid" ) );
 
