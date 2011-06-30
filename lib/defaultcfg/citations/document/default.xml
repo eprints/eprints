@@ -10,8 +10,8 @@
 
 
 <span class="ep_document_citation">
-<epc:if test="main"><span class="document_filename"><print expr="main"/></span> - </epc:if>
 <cite:linkhere><span class="document_format"><epc:print expr='format'/><epc:if test="formatdesc"> (<epc:print expr="formatdesc"/>)</epc:if></span></cite:linkhere>
+<epc:if test="main"><br/><span class="document_filename"><print expr="main"/></span></epc:if>
 <epc:if test="content"> - <epc:print expr="content" /></epc:if>
 <epc:if test="security != 'public'">
   <br />Restricted to <epc:print expr="security"/><epc:if test="date_embargo"> until <epc:print expr="date_embargo"/>.</epc:if>
