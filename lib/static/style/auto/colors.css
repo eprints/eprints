@@ -27,8 +27,8 @@ h1, h2, h3, h4 {
 /* template.css */
 
 .ep_tm_header {
-	background-color: #152d4e;
-	background-image: url(images/header_background.png);
+	background-color: #fff;
+	background-image: url(images/logo_background_light.png);
 	background-repeat: repeat-y;
 }
 .ep_tm_menu, .ep_tm_menu li:hover {
@@ -43,7 +43,6 @@ h1, h2, h3, h4 {
 }
 .ep_tm_menu {
 	/* fixed to 30px high */
-	border-top: 1px solid #0f3d5a;
 	border-bottom: 1px solid #fff;
 }
 .ep_tm_menu li:hover {
