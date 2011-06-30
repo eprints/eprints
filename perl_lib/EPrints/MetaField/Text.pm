@@ -73,6 +73,7 @@ sub get_index_codes_basic
 	return( [], [], [] ) unless( EPrints::Utils::is_set( $value ) );
 
 	my( $codes, $badwords ) = _extract_words( $session, $value );
+	$_ = lc($_) for @$codes;
 
 	return( $codes, [], $badwords );
 }

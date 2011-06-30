@@ -2450,7 +2450,7 @@ sub split_search_value
 #			$session,
 #			EPrints::Index::apply_mapping( $session, $value ) );
 
-	return split /\s+/, $value;
+	return split /\s+/, lc($value);
 }
 
 =begin InternalDoc
