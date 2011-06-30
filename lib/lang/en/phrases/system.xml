@@ -3895,6 +3895,7 @@ To create a blank EPM entire a new id in the input and click <epc:phrase ref="Pl
 
 	<epp:phrase id="Plugin/Screen/Admin/EPM/Edit:title">Edit</epp:phrase>
 
+	<epp:phrase id="epm:file_error">Error operating on <epc:pin name="filename"/>: <epc:pin name="error" /></epp:phrase>
 	<epp:phrase id="epm:file_exists">File exists <epc:pin name="filename"/></epp:phrase>
 	<epp:phrase id="epm:no_files">No files found in package</epp:phrase>
 	<epp:phrase id="epm:bad_checksum">Checksum mismatch encountered for <epc:pin name="filename"/></epp:phrase>
