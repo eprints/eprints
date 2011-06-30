@@ -115,7 +115,7 @@ sub action_confirm
 	my $userid = $repo->param( "userid" )+0;
 	my $pin = $repo->param( "pin" );
 
-	my $user = new EPrints::User( $repo, $userid );
+	my $user = new EPrints::DataObj::User( $repo, $userid );
 
 	if( !defined $user )
 	{

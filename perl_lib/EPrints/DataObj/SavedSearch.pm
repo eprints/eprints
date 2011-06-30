@@ -162,7 +162,7 @@ sub commit
 
 =item $user = $saved_search->get_user
 
-Return the EPrints::User which owns this saved search.
+Return the EPrints::DataObj:;User which owns this saved search.
 
 =cut
 ######################################################################
@@ -182,7 +182,7 @@ sub get_user
 		}
 	}
 
-	$self->{user} = EPrints::User->new( 
+	$self->{user} = EPrints::DataObj::User->new( 
 		$self->{session}, 
 		$self->get_value( "userid" ) );
 
