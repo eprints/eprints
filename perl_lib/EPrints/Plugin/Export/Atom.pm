@@ -194,7 +194,7 @@ sub output_eprint
 
 	my $entry;
 	if ($opts{single}) {
-		$entry = $xml->create_element( "entry", xmlns=> "http://www.w3.org/2005/Atom" );
+		$entry = $xml->create_element( "entry", xmlns=> "http://www.w3.org/2005/Atom", "xmlns:sword"=> "http://purl.org/net/sword/" );
 	} else {
 		$entry = $xml->create_element( "entry" );
 	}
@@ -278,6 +278,71 @@ sub output_eprint
 		label => $dataobj->value( "eprint_status" ),
 		scheme => $repo->config( "base_url" )."/data/eprint/status/"
 	) );
+	
+	$entry->appendChild( $xml->create_data_element(
+		"link",
+		undef,
+		rel => "http://purl.org/net/sword/terms/statement",
+		href => $dataobj->uri
+	) );
+	
+	$entry->appendChild( $xml->create_data_element(
+		"sword:state",
+		undef,
+		href => $repo->config( "base_url" )."/data/eprint/status/" . $dataobj->value( "eprint_status" )
+	) );
+
+	$entry->appendChild( $xml->create_data_element(
+		"sword:stateDescription",
+		$repo->html_phrase("cgi/users/edit_eprint:staff_item_is_in_" . $dataobj->value( "eprint_status" ), link=> $repo->make_text($dataobj->uri), url=>$repo->make_text("") )
+	) );
+	
+	my $original_deposit = $xml->create_data_element(
+		"sword:originalDeposit",
+		undef,
+		href => $dataobj->uri
+	);
+	$entry->appendChild($original_deposit);
+	
+	$updated = undef;
+	if ( $dataobj->exists_and_set( "datestamp" ) )
+	{
+		if( $datestamp =~ /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})$/ )
+		{
+			$updated = "$1T$2Z";
+		}
+	}
+	if (defined $updated) 
+	{
+		$original_deposit->appendChild( $xml->create_data_element(
+			"sword:depositedOn",
+			$updated
+		) );
+	}
+
+	if ( $dataobj->exists_and_set( "sword_depositor" ) ) 
+	{
+		my $user = $repo->user($dataobj->value( "sword_depositor" ));
+		if (defined $user) 
+		{
+			$original_deposit->appendChild( $xml->create_data_element(
+				"sword:depositedBy",
+				$user->value("username")
+			) );
+		
+			my $owner = $repo->user($dataobj->value("userid"));
+			
+			if (!($user->id eq $owner->id))
+			{
+				$original_deposit->appendChild( $xml->create_data_element(
+					"sword:depositedOnBehalfOf",
+					$owner->value("username")
+				) );
+			}
+
+
+		}
+	}
 
 	if( $dataobj->exists_and_set( "creators" ) )
 	{

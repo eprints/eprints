@@ -2190,7 +2190,7 @@ The following eprint has been deleted from your User Area:
 
     <epp:phrase id="cgi/users/edit_eprint:staff_item_is_in_inbox">This item is still in the user's work area.</epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:staff_item_is_in_buffer">This item is in review. It will not appear in the repository until it has been approved by an editor.</epp:phrase>
-    <epp:phrase id="cgi/users/edit_eprint:staff_item_is_in_archive">This item is in the repository with the URL:<br /><epc:pin name="link"><epc:pin name="url" /></epc:pin></epp:phrase>
+    <epp:phrase id="cgi/users/edit_eprint:staff_item_is_in_archive">This item is in the repository with the URL: <epc:pin name="link"><epc:pin name="url" /></epc:pin></epp:phrase>
     <epp:phrase id="cgi/users/edit_eprint:staff_item_is_in_deletion">This item has been retired from the repository.</epp:phrase>
 
     <epp:phrase id="cgi/users/edit_eprint:item_is_in_inbox">This item is still in your work area. It will not appear in the repository until you deposit it.</epp:phrase>
