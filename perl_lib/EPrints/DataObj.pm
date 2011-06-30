@@ -585,6 +585,11 @@ sub commit
 
 	# Remove empty slots in multiple fields
 	$self->tidy;
+	
+	$self->dataset->run_trigger( EPrints::Const::EP_TRIGGER_BEFORE_COMMIT,
+		dataobj => $self,
+		changed => $self->{changed},
+	);
 
 	# Write the data to the database
 	my $success = $self->{session}->get_database->update(

@@ -829,6 +829,13 @@ sub _transfer
 			$new_status );
 	}
 
+	# the call to 'eprint_status_change' above should be encapsulated in a trigger
+        $self->{dataset}->run_trigger( EPrints::Const::EP_TRIGGER_STATUS_CHANGE,
+		dataobj => $self,
+		old_status => $old_status,
+		new_status => $new_status
+	);
+
 	return( 1 );
 }
 
