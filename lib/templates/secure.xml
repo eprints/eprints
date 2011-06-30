@@ -41,10 +41,10 @@
           </a>
         </li>
         <li>
-          <a href="{$config{http_url}}/view/" menu="menu_browse">
+          <a href="{$config{http_url}}/view/" menu="ep_tm_menu_browse">
             <epc:phrase ref="template/navigation:browse"/>
           </a>
-          <ul id="menu_browse" style="display:none;">
+          <ul id="ep_tm_menu_browse" style="display:none;">
             <li>
               <a href="{$config{http_url}}/view/year/">
                 <epc:phrase ref="bin/generate_views:indextitleprefix"/>
