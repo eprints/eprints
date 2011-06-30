@@ -1367,6 +1367,7 @@ my $PRIVMAP =
 	
 		"eprint/archive/view:owner",
 		"eprint/archive/export:owner",
+		"eprint/archive/summary:owner",
 		"eprint/archive/details:owner",
 		"eprint/archive/history:owner",
 		"eprint/archive/messages:owner",
