@@ -86,6 +86,8 @@ BEGIN
 		$base_path =~ s/.perl_lib.EPrints\.pm$//; # ignore / \
 		$conf->{base_path} = $base_path;
 	}
+
+	unshift @INC, $conf->{base_path} . "/lib/plugins";
 }
 
 use Data::Dumper;

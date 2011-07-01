@@ -725,7 +725,6 @@ sub enable
 
 		my $targetpath = $repo->config( "archiveroot" ) . $1;
 		my $data;
-warn "$filepath => $targetpath";
 		if(open(my $fh, "<", $filepath))
 		{
 			sysread($fh, $data, -s $fh);
