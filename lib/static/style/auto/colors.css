@@ -51,7 +51,7 @@ h1, h2, h3, h4 {
 .ep_tm_menu a, .ep_tm_menu a:visited {
 	color: white;
 }
-.ep_tm_searchbar {
+.ep_tm_searchbar, .ep_columns_title, td.ep_columns_alter {
 	color: #606060;
 	background-color: #ccc;
 	background-image: url(images/bar_24px.png);
@@ -176,3 +176,11 @@ td.ep_row {
 	border-color: #9999ff;
 }
 
+/* columns.css */
+
+th.ep_columns_title, td.ep_columns_alter {
+	border-color: #888;
+}
+td.ep_columns_cell {
+	border-color: #888 #ccc;
+}
