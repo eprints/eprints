@@ -149,12 +149,17 @@ sub _upgrade
 	my $document_dataset = $repo->dataset( "document" );
 	my $file_dataset = $repo->dataset( "file" );
 
+	# can't retrieve documents if they weren't included
+	return if !defined $self->{data}->{documents};
+
 	foreach my $doc (@{$self->value( "documents" )})
 	{
 		if( !UNIVERSAL::isa( $doc, "EPrints::DataObj" ) )
 		{
 			$doc = $document_dataset->make_dataobj( $doc );
 		}
+		# can't retrieve files if they weren't included
+		next if !defined $doc->{data}->{files};
 		foreach my $file (@{$doc->value( "files" )})
 		{
 			if( !UNIVERSAL::isa( $file, "EPrints::DataObj" ) )
@@ -222,7 +227,7 @@ sub new
 {
 	my( $class, $repo, $id ) = @_;
 
-	my $filepath = $repo->config( "base_path" ) . "/lib/epm/$id/$id.epm";
+	my $filepath = $repo->config( "base_path" ) . "/lib/epm/$id/$id.epmi";
 	if( open(my $fh, "<", $filepath) )
 	{
 		sysread($fh, my $xml, -s $fh);
@@ -264,6 +269,7 @@ sub new_from_manifest
 	my $base_path = $self->repository->config( "base_path" ) . "/lib";
 
 	my $install = $repo->dataset( "document" )->make_dataobj({
+		_parent => $self,
 		content => "install",
 		format => "other",
 		files => [],
@@ -286,15 +292,19 @@ sub new_from_manifest
 			filepath => $filepath,
 		);
 
+		my $copy = { pluginid => "Storage::Local", sourceid => $filename };
+
 		$install->set_value( "files", [
 			@{$install->value( "files")},
 			$repo->dataset( "file" )->make_dataobj({
+				_parent => $install,
 				filename => $filename,
 				filesize => length($data),
-				data => MIME::Base64::encode_base64( $data ),
+#				data => MIME::Base64::encode_base64( $data ),
 				hash => $md5,
 				hash_type => "MD5",
 				mime_type => $media_info->{format},
+				copies => [$copy],
 			})
 		]);
 		$install->set_value( "main", $filename );
@@ -303,6 +313,7 @@ sub new_from_manifest
 		{
 			$self->set_value( "icon", $1 );
 			my $icon = $repo->dataset( "document" )->make_dataobj({
+				_parent => $self,
 				content => "coverimage",
 				main => $filename,
 				files => [],
@@ -310,12 +321,14 @@ sub new_from_manifest
 			});
 			$icon->set_value( "files", [
 				$repo->dataset( "file" )->make_dataobj({
+					_parent => $icon,
 					filename => $filename,
 					filesize => length($data),
-					data => MIME::Base64::encode_base64( $data ),
+#					data => MIME::Base64::encode_base64( $data ),
 					hash => $md5,
 					hash_type => "MD5",
 					mime_type => $media_info->{format},
+					copies => [$copy],
 				})
 			]);
 			$self->set_value( "documents", [
@@ -377,6 +390,14 @@ sub rebuild
 	{
 		$self->set_value( $_, $epm->value( $_ ) );
 	}
+}
+
+# we can behave like a normal eprint
+sub local_path
+{
+	my( $self ) = @_;
+
+	return $self->repository->config( "base_path" ) . "/lib";
 }
 
 =item $v = $epm->version
@@ -526,10 +547,12 @@ sub serialise
 {
 	my( $self, $files ) = @_;
 
-	local $self->{data}->{documents} = [] if !$files;
+	# we need to temporarily override Document's default behaviour, otherwise
+	# the file location will get a '/00/' in it
+	local *EPrints::DataObj::Document::local_path = sub { $self->local_path };
 
 	return "<?xml version='1.0'?>\n".$self->repository->xml->to_string(
-		$self->to_xml,
+		$self->to_xml( embed => $files ),
 		indent => 1
 	);
 }
@@ -895,7 +918,7 @@ sub update_datasets
 	# destroy removed datasets/fields tables
 	foreach my $datasetid ( keys %$before )
 	{
-		my $dataset = $before->{$datasetid};
+		my $dataset = $before->{$datasetid}->{dataset};
 		if( !defined $repo->dataset( $datasetid ) )
 		{
 			$db->drop_dataset_tables( $dataset );
