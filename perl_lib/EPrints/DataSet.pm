@@ -303,13 +303,6 @@ my $INFO = {
 		class => "EPrints::DataObj::EPM",
 		virtual => 1,
 	},
-	openid => {
-		sqlname => "openid",
-		class => "EPrints::DataObj::OpenID",
-		import => 0,
-		index => 0,
-		order => 0,
-	},
 	oauth => {
 		sqlname => "oauth",
 		class => "EPrints::DataObj::OAuth",

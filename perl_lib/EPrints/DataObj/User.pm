@@ -163,9 +163,6 @@ sub get_system_field_info
 		{ name=>"newpassword", type=>"secret", show_in_html=>0, 
 			fromform=>\&EPrints::Utils::crypt_password },
 
-		{ name=>"openid_identifier", type=>"text", virtual=>1,
-			show_in_html=>0, export_as_xml=>0, },
-
 		{ name=>"pin", type=>"text", show_in_html=>0 },
 
 		{ name=>"pinsettime", type=>"int", show_in_html=>0 },
