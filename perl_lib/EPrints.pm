@@ -227,7 +227,6 @@ use EPrints::DataObj::SavedSearch;
 use EPrints::DataObj::Triple;
 use EPrints::DataObj::UploadProgress;
 use EPrints::DataObj::User;
-use EPrints::DataObj::OpenID;
 use EPrints::DataObj::OAuth;
 use EPrints::DataSet;
 use EPrints::Email;
