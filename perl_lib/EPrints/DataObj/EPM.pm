@@ -490,7 +490,7 @@ sub repository_files
 	my $epmid = $self->id;
 
 	return grep {
-			$_->value( "filename" ) =~ m# ^epm/$epmid/ #x
+			$_->value( "filename" ) =~ m# ^epm/$epmid/[^/]+/ #x
 		} $self->installed_files;
 }
 

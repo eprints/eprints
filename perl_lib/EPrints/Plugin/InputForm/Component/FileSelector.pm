@@ -147,11 +147,18 @@ EOJ
 		}
 	}
 
+	my $epmid = $epm->id;
 	my %exclude = (
 		defaultcfg => {},
 		'syscfg.d' => {},
 		'entities.dtd' => {},
 		'mime.types' => {},
+		epm => {
+			$epmid => {
+				"$epmid.epm" => {},
+				"$epmid.epmi" => {},
+			},
+		},
 	);
 
 	$f->appendChild( $repo->xml->create_data_element( 'div', $self->_render_tree(
@@ -179,7 +186,8 @@ sub _render_tree
 		opendir(my $dh, $filepath);
 		my @filenames = sort grep {
 				$_ !~ /^\./ &&
-				!exists $exclude->{$_}
+				(!exists $exclude->{$_} ||
+				scalar(keys(%{$exclude->{$_}})))
 			} readdir($dh);
 		closedir($dh);
 		my $dt = $dl->appendChild( $xml->create_data_element( "dt", ($path[$#path] || $root) . '/' ) );
