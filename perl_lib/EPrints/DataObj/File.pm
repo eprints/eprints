@@ -608,7 +608,7 @@ sub to_sax
 		);
 	}
 
-	if( $opts{embed} )
+	if( $opts{embed} && !$self->is_set( "data" ) )
 	{
 		$handler->start_element({
 			Prefix => '',

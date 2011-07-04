@@ -111,10 +111,7 @@ sub repository
 	my $repo = EPrints->repository( $repoid );
 	if( !defined $repo )
 	{
-		$handler->add_message( "error", $repo->xml->create_text_node(
-			"'$repoid' is not enabled or is an invalid repository identifier"
-		) );
-		exit(1);
+		die "'$repoid' is not a valid repository identifier";
 	}
 	return $repo;
 }
@@ -240,9 +237,11 @@ sub action_enable
 	my $repo = &repository( $repoid );
 	my $epm = &epm( $repo, $name );
 
+	local $handler->{dataobj} = $epm;
+
 	$epm->control_screen(
 		processor => $handler,
-	)->action_disable;
+	)->action_enable;
 }
 
 =item install I<package_path>

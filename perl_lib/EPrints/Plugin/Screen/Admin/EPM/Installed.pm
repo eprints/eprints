@@ -144,7 +144,11 @@ sub action_confirm
 	}
 	elsif( @repoids )
 	{
-		return if !$epm->disable( $self->{processor} );
+		my $controller = $epm->control_screen(
+			processor => $self->{processor}
+		);
+
+		return if !$controller->action_disable;
 	}
 
 	# save a copy of the extension in case the user is developing this and

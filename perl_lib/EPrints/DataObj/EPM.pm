@@ -547,9 +547,33 @@ sub serialise
 {
 	my( $self, $files ) = @_;
 
+	my $repo = $self->repository;
+
 	# we need to temporarily override Document's default behaviour, otherwise
 	# the file location will get a '/00/' in it
 	local *EPrints::DataObj::Document::local_path = sub { $self->local_path };
+
+	if( $files )
+	{
+		my $libpath = $repo->config( "base_path" ) . "/lib";
+		if( defined $self->{documents} )
+		{
+		foreach my $doc (@{$self->value( "documents" )})
+		{
+			next if !defined $doc->{files};
+			foreach my $file (@{$doc->value( "files" )})
+			{
+				next if $file->is_set( "data" );
+				my $filepath = $libpath . "/" . $file->value( "filename" );
+				next if !-f $filepath;
+				$file->set_value( "copies", [{
+					pluginid => "Storage::Local",
+					sourceid => $file->value( "filename" ),
+				}]);
+			}
+		}
+		}
+	}
 
 	return "<?xml version='1.0'?>\n".$self->repository->xml->to_string(
 		$self->to_xml( embed => $files ),
