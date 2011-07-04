@@ -1450,6 +1450,12 @@ sub _load_plugins
 {
 	my( $self ) = @_;
 
+	# if we're reloading we need to reset the system plugins
+	if( defined $self->{plugins} )
+	{
+		$self->{plugins}->reset;
+	}
+
 	$self->{plugins} = EPrints::PluginFactory->new( $self );
 
 	return defined $self->{plugins};

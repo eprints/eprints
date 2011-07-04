@@ -76,32 +76,32 @@ sub new
 		EPrints::Utils::require_if_exists( "XML::LibXSLT" );
 
 	# system plugins (don't reload)
-	$dir = $repository->get_conf( "base_path" )."/perl_lib";
 	if( !scalar keys %SYSTEM_PLUGINS )
 	{
+		$dir = $repository->config( "base_path" )."/perl_lib";
 		$self->_load_dir( \%SYSTEM_PLUGINS, $repository, $dir );
 		if( $use_xslt )
 		{
 			$self->_load_xslt_dir( \%SYSTEM_PLUGINS, $repository, $dir );
 		}
-	}
 
-	# extension plugins
-	$dir = $repository->get_conf( "base_path" )."/lib/plugins";
-	my @loaded = $self->_load_dir( \%SYSTEM_PLUGINS, $repository, $dir );
-	if( $use_xslt )
-	{
-		push @loaded,
-			$self->_load_xslt_dir( \%SYSTEM_PLUGINS, $repository, $dir );
-	}
-	# default to disabled
-	my $conf = $repository->config( "plugins" );
-	foreach my $plugin (@loaded)
-	{
-		my $pluginid = $plugin->get_id();
-		if( !defined $conf->{$pluginid}{params}{disable} )
+		# extension plugins
+		$dir = $repository->config( "base_path" )."/lib/plugins";
+		my @loaded = $self->_load_dir( \%SYSTEM_PLUGINS, $repository, $dir );
+		if( $use_xslt )
 		{
-			$conf->{$pluginid}{params}{disable} = 1;
+			push @loaded,
+				$self->_load_xslt_dir( \%SYSTEM_PLUGINS, $repository, $dir );
+		}
+		# default to disabled
+		my $conf = $repository->config( "plugins" );
+		foreach my $plugin (@loaded)
+		{
+			my $pluginid = $plugin->get_id();
+			if( !defined $conf->{$pluginid}{params}{disable} )
+			{
+				$conf->{$pluginid}{params}{disable} = 1;
+			}
 		}
 	}
 
@@ -129,6 +129,31 @@ sub new
 	}
 
 	return $self;
+}
+
+=begin InternalDoc
+
+=item $v = $plugins->cache( $k [, $v ] )
+
+Cache a value in the PluginFactory. This is a convenient way to cache information about plugins that will automatically get reset if plugins are reloaded.
+
+=end InternalDoc
+
+=cut
+
+sub cache
+{
+	my( $self, $key, $value ) = @_;
+
+	return $self->{_cache}->{$key} if @_ == 2;
+	return $self->{_cache}->{$key} = $value;
+}
+
+sub reset
+{
+	my( $self ) = @_;
+
+	%SYSTEM_PLUGINS = ();
 }
 
 sub _load_dir
