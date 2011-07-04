@@ -943,6 +943,7 @@ sub is_empty
 	return !$node->hasChildNodes();
 }
 
+# DEPRECATED, do not use
 sub trim_whitespace
 {
 	my( $node, $inner ) = @_;

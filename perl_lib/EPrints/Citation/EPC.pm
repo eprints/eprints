@@ -75,7 +75,6 @@ sub render
 	if( !exists $opts{finalize} || $opts{finalize} != 0 )
 	{
 		$collapsed = _render_citation_aux( $collapsed, %opts );
-		EPrints::XML::trim_whitespace( $collapsed );
 	}
 
 	return $collapsed;
