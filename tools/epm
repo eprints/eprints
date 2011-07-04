@@ -291,28 +291,19 @@ sub action_link_lib
 	my $sourcedir = $epm->epm_dir . '/lib';
 	my $targetdir = $repo->config( "base_path" ) . '/lib';
 
-	foreach my $file ($epm->installed_files)
-	{
-		my $filename = $file->value( "filename" );
-		next if $filename =~ m#^epm/#;
-		my $sourcepath = "$sourcedir/$filename";
-		if( !-e $sourcepath )
-		{
-			warn "Missing source file $sourcepath\n";
-			next;
-		}
-		my $targetpath = "$targetdir/$filename";
-		if( -f $targetpath )
-		{
-			warn "$targetpath already exists\n";
-			next;
-		}
-		my $targetdir = $targetpath;
-		$targetdir =~ s/[^\/]+$//;
-		EPrints->system->mkdir( $targetdir );
-		symlink($sourcepath, $targetpath);
-		print "$targetpath\n";
-	}
+	File::Find::find(sub {
+		return if $File::Find::name =~ /\/\./;
+		return if -d $File::Find::name;
+
+		my $path = $targetdir;
+		$path .= "/" . substr($File::Find::dir,length($sourcedir)+1);
+
+		EPrints->system->mkdir( $path );
+
+		symlink($File::Find::name, "$path/$_");
+
+		print "$path/$_\n";
+	}, $sourcedir);
 }
 
 =item list
