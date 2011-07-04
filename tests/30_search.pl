@@ -374,10 +374,15 @@ $searchexp->add_field(
 
 $list = eval { $searchexp->perform_search };
 
-ok(defined($list) && $list->count > 0, "search multiple field");
+ok(defined($list) && $list->count > 0, "search multiple field".&describe($searchexp).&sql($searchexp));
 
 
 $session->terminate;
+
+sub describe
+{
+	return "\n: ".$_[0]->get_conditions->describe;
+}
 
 sub sql
 {

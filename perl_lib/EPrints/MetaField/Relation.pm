@@ -34,8 +34,8 @@ sub new
 	my( $self, %params ) = @_;
 
 	$params{fields} = [
-		{ sub_name=>"type", type=>"text", },
-		{ sub_name=>"uri", type=>"text", },
+		{ sub_name=>"type", type=>"id", },
+		{ sub_name=>"uri", type=>"id", },
 	];
 
 	return $self->SUPER::new( %params );
