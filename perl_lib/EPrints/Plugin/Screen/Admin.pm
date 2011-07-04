@@ -24,23 +24,22 @@ sub new
 			position => 1000,
 		},
 	];
+	$self->{action_lists} = [qw(
+		admin_actions_editorial
+		admin_actions_system
+		admin_actions_config
+		admin_actions
+	)];
 
 	return $self;
-}
-
-sub action_lists
-{
-	return ( "editorial", "system", "config", "misc");
 }
 
 sub can_be_viewed
 {
 	my( $self ) = @_;
 	
-	foreach my $tab_id ( $self->action_lists )
+	foreach my $list_id ( @{$self->param( "action_lists" )} )
 	{
-		my $list_id = "admin_actions_$tab_id";
-		$list_id = "admin_actions" if $tab_id eq "misc";
 		return 1 if scalar $self->action_list( $list_id );
 	}
 	return 0;
@@ -53,13 +52,11 @@ sub render
 	my @labels;
 	my @panels;
 
-	foreach my $tab_id ( $self->action_lists )
+	foreach my $list_id ( @{$self->param( "action_lists" )} )
 	{
-		my $list_id = "admin_actions_$tab_id";
-		$list_id = "admin_actions" if $tab_id eq "misc";
 		next unless scalar $self->action_list( $list_id );
-		push @labels, $self->html_phrase( "tab_$tab_id" );
-		push @panels, $self->render_action_list( "admin_actions_$tab_id" );
+		push @labels, $self->html_phrase( $list_id );
+		push @panels, $self->render_action_list( $list_id );
 	}
 
 	return $self->{repository}->xhtml->tabs(
