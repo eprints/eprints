@@ -203,7 +203,7 @@ sub map
 
 	my $epm_dir = $repo->config( "base_path" ) . "/lib/epm";
 	opendir(my $dh, $epm_dir) or return;
-	while(defined(my $file = readdir($dh)))
+	foreach my $file (sort readdir($dh))
 	{
 		next if $file =~ /^\./;
 		next if !-f "$epm_dir/$file/$file.epmi";
