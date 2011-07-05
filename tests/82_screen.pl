@@ -16,7 +16,7 @@ $session = EPrints::Test::OnlineSession->new( $session, {
 	path => "/cgi/users/home",
 	username => "admin",
 	query => {
-		screen => "EPrint::Staff::Edit",
+		screen => "EPrint::Edit",
 		eprintid => $eprintid,
 	},
 });
@@ -55,8 +55,8 @@ is( defined($items_screen->{screen_id}) && $items_screen->{screen_id}, $screen_i
 
 # disable
 {
-	local $session->get_repository->{config}->{plugins}->{$screen_id}->{appears}->{"key_tools"} = undef;
-	delete $session->{screen_lists};
+	local $session->config( "plugins" )->{$screen_id}{appears}{key_tools};
+	$session->get_plugin_factory->cache( "screen_lists", undef );
 	$processor->cache_list_items();
 
 	my( $t ) = grep { $_->{screen_id} eq $screen_id } $screen->list_items( "key_tools" );
@@ -75,7 +75,7 @@ ok( defined($ne_screen), "item_tools contains $screen_id" );
 # disable action
 {
 	local $session->get_repository->{config}->{plugins}->{$screen_id}->{appears}->{"item_tools"} = undef;
-	delete $session->{screen_lists};
+	$session->get_plugin_factory->cache( "screen_lists", undef );
 	$processor->cache_list_items();
 
 	my( $t ) = grep { $_->{screen_id} eq $screen_id } $screen->action_list( "item_tools" );
@@ -87,7 +87,7 @@ ok( defined($ne_screen), "item_tools contains $screen_id" );
 {
 	# note we also check based on definedness, not trueness
 	local $session->get_repository->{config}->{plugins}->{$screen_id}->{appears}->{"__TEST__"} = 0;
-	delete $session->{screen_lists};
+	$session->get_plugin_factory->cache( "screen_lists", undef );
 	$processor->cache_list_items();
 
 	my( $t ) = grep { $_->{screen_id} eq $screen_id } $screen->action_list( "__TEST__" );
