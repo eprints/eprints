@@ -86,6 +86,8 @@ BEGIN
 		$base_path =~ s/.perl_lib.EPrints\.pm$//; # ignore / \
 		$conf->{base_path} = $base_path;
 	}
+
+	unshift @INC, $conf->{base_path} . "/lib/plugins";
 }
 
 use Data::Dumper;
@@ -96,7 +98,7 @@ use Carp;
 
 use strict;
 
-our $VERSION = v3.3.1;
+our $VERSION = v3.4.0;
 $conf->{version} = "EPrints ".EPrints->human_version;
 $conf->{versionid} = "eprints-".EPrints->human_version;
 
@@ -227,8 +229,6 @@ use EPrints::DataObj::SavedSearch;
 use EPrints::DataObj::Triple;
 use EPrints::DataObj::UploadProgress;
 use EPrints::DataObj::User;
-use EPrints::DataObj::OpenID;
-use EPrints::DataObj::OAuth;
 use EPrints::DataSet;
 use EPrints::Email;
 use EPrints::Extras;
@@ -269,7 +269,7 @@ use EPrints::Workflow::Stage;
 use EPrints::XML::EPC;
 use EPrints::XHTML;
 use EPrints::Utils;
-use EPrints::EPM;
+use EPrints::EPM::Source;
 
 # SAX utilities
 use EPrints::XML::SAX::Builder;

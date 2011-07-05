@@ -1450,6 +1450,12 @@ sub _load_plugins
 {
 	my( $self ) = @_;
 
+	# if we're reloading we need to reset the system plugins
+	if( defined $self->{plugins} )
+	{
+		$self->{plugins}->reset;
+	}
+
 	$self->{plugins} = EPrints::PluginFactory->new( $self );
 
 	return defined $self->{plugins};
@@ -1838,6 +1844,7 @@ sub get_template_dirs
 		push @dirs, "$config_path/themes/$theme/lang/$langid/templates";
 		# themes path: /archives/[repoid]/cfg/themes/lang/[langid]templates/
 		push @dirs, "$config_path/themes/$theme/templates";
+		push @dirs, "$lib_path/themes/$theme/templates";
 	}
 
 	# system path: /lib/templates/
@@ -1881,6 +1888,7 @@ sub get_static_dirs
 	if( defined $theme )
 	{	
 		push @dirs, "$config_path/themes/$theme/static";
+		push @dirs, "$lib_path/themes/$theme/static";
 	}
 
 	# system path: /lib/static/
@@ -2139,8 +2147,6 @@ sub set_field_defaults
 ######################################################################
 =pod
 
-=begin InternalDoc
-
 =item ( $returncode, $output) = $repository->test_config
 
 This runs "epadmin test" as an external script to test if the current
@@ -2150,8 +2156,6 @@ to test if changes to config. files may be saved, or not.
 $returncode will be zero if everything seems OK.
 
 If not, then $output will contain the output of epadmin test 
-
-=end InternalDoc
 
 =cut
 ######################################################################
@@ -2175,6 +2179,33 @@ sub test_config
 	}
 
 	return ($rc/256, $output);
+}
+
+=item $ok = $repository->reload_config
+
+Trigger a configuration reload on the next request/index.
+
+To reload the configuration right now just call L</load_config>.
+
+=cut
+
+sub reload_config
+{
+	my( $self ) = @_;
+
+	my $file = $self->config( "variables_path" )."/last_changed.timestamp";
+	if( open(my $fh, ">", $file) )
+	{
+		print $fh "This file last poked at: ".EPrints::Time::human_time()."\n";
+		close $fh;
+	}
+	else
+	{
+		$self->log( "Error writing to $file: $!" );
+		return 0;
+	}
+
+	return 1;
 }
 
 ######################################################################

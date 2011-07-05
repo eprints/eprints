@@ -1,0 +1,134 @@
+#!perl
+
+use EPrints;
+
+use strict;
+
+my $repo = EPrints->new->current_repository;
+exit( 0 ) unless( defined $repo );
+
+my $pageSize = 20;
+
+my $q = $repo->param( 'q' );
+my $startPage = $repo->param( 'startPage' );
+my $format = $repo->param( 'format' );
+
+$q = '' if !defined $q;
+$q = substr($q,0,128);
+
+$startPage = 1 if !EPrints::Utils::is_set( $startPage );
+$startPage = 1 if $startPage =~ /\D/;
+
+$format = 'Atom' if !EPrints::Utils::is_set( $format );
+$format = $repo->plugin( "Export::$format" );
+if( !defined($format) || $format->param( 'visible' ) ne 'all' )
+{
+	$format = $repo->plugin( 'Export::Atom' );
+}
+EPrints->abort( 'Missing Atom export plugin' ) if !defined $format;
+
+# calculate the range to retrieve
+my $startOffset = $pageSize * ($startPage - 1);
+my $limit = $pageSize * $startPage;
+
+my $dataset = $repo->dataset( "archive" );
+
+my $search = $repo->plugin( 'Search' )->plugins(
+	{
+		filters => [
+			{ meta_fields => [qw( metadata_visibility )], value => "show" },
+		],
+		dataset => $dataset,
+		limit => $limit,
+	},
+	type => "Search",
+	can_search => "simple/".$dataset->id,
+);
+EPrints->abort( 'No available search engine' ) if !defined $search;
+
+$search->from_form();
+
+my $list = $search->execute;
+$list = EPrints::List->new(
+	session => $repo,
+	dataset => $dataset,
+	ids => $list->ids( $startOffset, $pageSize ),
+);
+
+my $xml = $repo->xml;
+my $links = $xml->create_document_fragment;
+$links->appendChild( $xml->create_element( 'opensearch:Query',
+	role => 'request',
+	searchTerms => $q,
+	startPage => $startPage,
+	) );
+$links->appendChild( $xml->create_text_node( "\n" ) );
+$links->appendChild( $xml->create_data_element( 'opensearch:itemsPerPage',
+	$pageSize,
+	) );
+$links->appendChild( $xml->create_text_node( "\n" ) );
+$links->appendChild( $xml->create_data_element( 'opensearch:startIndex',
+	$startOffset+1,
+	) );
+$links->appendChild( $xml->create_text_node( "\n" ) );
+$links->appendChild( $xml->create_element( 'link',
+	rel => 'self',
+	type => 'application/atom+xml',
+	href => $repo->current_url( host => 1, query => 1 ),
+	) );
+$links->appendChild( $xml->create_text_node( "\n" ) );
+$links->appendChild( $xml->create_element( 'link',
+	rel => 'search',
+	type => 'application/opensearchdescription+xml',
+	title => $repo->phrase( "lib/searchexpression:search" ),
+	href => $repo->current_url( host => 1, path => 'cgi', 'opensearchdescription' ),
+	) );
+
+my %offsets;
+
+{
+my $base_url = $repo->current_url( host => 1, query => 1 );
+my @query = $base_url->query_form;
+foreach my $i (reverse(0 .. int($#query/2)))
+{
+	splice(@query, $i*2, 2) if $query[$i*2] eq 'startPage';
+}
+$base_url->query_form( @query );
+$base_url->query( undef ) if !@query;
+
+$offsets{first} = "$base_url";
+
+if( $startOffset >= $pageSize )
+{
+	$offsets{previous} = $base_url->clone;
+	$offsets{previous}->query_form(
+		$base_url->query_form,
+		startPage => $startPage-1,
+	);
+}
+if( $list->count == $pageSize )
+{
+	$offsets{next} = $base_url->clone;
+	$offsets{next}->query_form(
+		$base_url->query_form,
+		startPage => $startPage+1,
+	);
+}
+}
+
+my %arguments;
+foreach my $argument ($format->arguments)
+{
+	$arguments{$argument} = $repo->param( $argument );
+}
+
+$repo->send_http_header( content_type => $format->param( 'mimetype' ) );
+$format->initialise_fh( \*STDOUT );
+$format->output_list(
+	%arguments,
+	dataset => $dataset,
+	list => $list,
+	fh => \*STDOUT,
+	links => $links,
+	offsets => \%offsets,
+	);

@@ -44,6 +44,10 @@ http://eprints.org/ep2/data/2.0
 
 http://eprints.org/ep2/xslt/1.0
 
+=item EP_NS_OPENSEARCH
+
+http://a9.com/-/spec/opensearch/1.1/
+
 =back
 
 =head2 :xml
@@ -213,6 +217,7 @@ use Exporter;
 use constant {
 	EP_NS_XSLT => "http://eprints.org/ep2/xslt/1.0",
 	EP_NS_DATA => "http://eprints.org/ep2/data/2.0",
+	EP_NS_OPENSEARCH => "http://a9.com/-/spec/opensearch/1.1/",
 };
 
 # XML Node Types
@@ -299,6 +304,7 @@ use constant {
 @namespace = qw(
 	EP_NS_XSLT
 	EP_NS_DATA
+	EP_NS_OPENSEARCH
 );
 
 @http = qw(

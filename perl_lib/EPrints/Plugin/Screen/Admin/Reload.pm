@@ -40,6 +40,8 @@ sub action_reload_config
 {
 	my( $self ) = @_;
 
+	$self->{processor}->{screenid} = "Admin";
+
 	my $session = $self->{session};
 
 	my( $result, $msg ) = $session->get_repository->test_config;
@@ -47,27 +49,20 @@ sub action_reload_config
 	if( $result != 0 )
 	{
 		$self->{processor}->add_message( "error",
-			$self->html_phrase( 
-				"reload_bad_config",
+			$self->html_phrase( "reload_bad_config",
 				output=>$self->{session}->make_text( $msg ) ) );
-		$self->{processor}->{screenid} = "Admin";
 		return;
 	}
 
-	my $file = $session->config( "variables_path" )."/last_changed.timestamp";
-	unless( open( CHANGEDFILE, ">$file" ) )
+	if( !$session->reload_config )
 	{
 		$self->{processor}->add_message( "error",
 			$self->html_phrase( "reload_write_failed" ) );
-		$self->{processor}->{screenid} = "Admin";
 		return;
 	}
-	print CHANGEDFILE "This file last poked at: ".EPrints::Time::human_time()."\n";
-	close CHANGEDFILE;
 
 	$self->{processor}->add_message( "message",
 		$self->html_phrase( "reloaded" ) );
-	$self->{processor}->{screenid} = "Admin";
 }	
 
 

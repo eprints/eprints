@@ -515,8 +515,14 @@ ANCESTORS: foreach my $anc_subject_id ( @{$dataobj->get_value( "ancestors" )} )
 	# GET / HEAD
 	return HTTP_UNSUPPORTED_MEDIA_TYPE if !defined $plugin;
 
+	# if there's a static page for this object and the user is asking for the
+	# SummaryPage then redirect them
 	my $url = $dataobj->get_url;
-	if( $plugin->get_subtype eq "SummaryPage" && defined $url )
+	if(
+		defined( $url ) && 
+		$plugin->get_subtype eq "SummaryPage" &&
+		$url ne $dataobj->uri
+	  )
 	{
 		if( $dataset->base_id eq "eprint" && $dataset->id ne "archive" )
 		{
@@ -611,7 +617,7 @@ sub GET
 		}
 	}
 
-	$r->headers_out->{'Content-Type'} = $plugin->param( "mimetype" );
+	$r->content_type( $plugin->param( "mimetype" ) );
 	$plugin->initialise_fh( \*STDOUT );
 	if( !defined $dataobj )
 	{
@@ -953,6 +959,7 @@ sub PUT
 				}
 				$dataobj->commit;
 			}
+			return undef;
 		}
 	) );
 
@@ -1023,6 +1030,7 @@ sub metadata_relevant
 				delete $epdata->{$fieldname} if exists $epdata->{$fieldname};
 				$epdata->{$fieldname} = $data->{$fieldname};
 			}
+			return undef;
 		}
 	);
 

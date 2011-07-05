@@ -555,8 +555,6 @@ sub render_citation
 	my $collapsed = EPrints::XML::EPC::process( $cstyle, %params, in=>"render_citation" );
 	my $r = _render_citation_aux( $collapsed, %params );
 
-	EPrints::XML::trim_whitespace( $r );
-
 	return $r;
 }
 

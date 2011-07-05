@@ -27,7 +27,7 @@ sub new
 	$self->{visible} = "staff";
 
 	$self->{suffix} = ".xml";
-	$self->{mimetype} .= '; files="embed"';
+	$self->{mimetype} .= '; files="base64"';
 	$self->{qs} = 0.1;
 
 	return $self;

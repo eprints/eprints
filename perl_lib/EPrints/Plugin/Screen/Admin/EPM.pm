@@ -1,19 +1,10 @@
 =head1 NAME
 
-EPrints::Plugin::Screen::Admin::Bazaar
+EPrints::Plugin::Screen::Admin::EPM
 
 =cut
 
-######################################################################
-#
-# EPrints::Plugin::Screen::Admin::Bazaar
-#
-######################################################################
-#
-#
-######################################################################
-
-package EPrints::Plugin::Screen::Admin::Bazaar;
+package EPrints::Plugin::Screen::Admin::EPM;
 
 @ISA = ( 'EPrints::Plugin::Screen' );
 
@@ -39,6 +30,31 @@ sub new
 
 	return $self;
 }
+
+sub properties_from
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	my $processor = $self->{processor};
+
+	my $dataset = $processor->{dataset} = $repo->dataset( "epm" );
+
+	my $epmid = $repo->param( "dataobj" );
+	if( defined $epmid )
+	{
+		$processor->{dataobj} = $dataset->dataobj( $epmid );
+	}
+
+	$processor->{sources} = $repo->config( "epm", "sources" );
+	$processor->{sources} = [
+		{ name => "EPrints Bazaar", base_url => "http://bazaar.eprints.org/" },
+	] if !defined $processor->{sources};
+}
+
+sub wishes_to_export { shift->{repository}->param( "ajax" ) }
+
+sub export_mime_type { "text/html;charset=utf-8" }
 
 sub can_be_viewed
 {
@@ -606,8 +622,72 @@ sub update_store_states
 
 }
 
+sub export
+{
+	my( $self ) = @_;
+
+	my $current = $self->{repository}->param( "ep_tabs_current" );
+	$current = 0 if !defined $current;
+
+	my @screens;
+
+	foreach my $item ($self->list_items( "admin_epm_tabs" ))
+	{
+		next if !$item->{screen}->can_be_viewed;
+		push @screens, $item->{screen};
+	}
+
+	return if !defined $screens[$current];
+
+	my $content = $screens[$current]->render;
+	binmode(STDOUT, ":utf8");
+	print $self->{repository}->xhtml->to_xhtml( $content );
+	$self->{repository}->xml->dispose( $content );
+}
 
 sub render
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $frag = $xml->create_document_fragment;
+
+	my $current = $repo->param( "ep_tabs_current" );
+	$current = 0 if !defined $current;
+
+	my @labels;
+	my @tabs;
+	my @expensive;
+
+	my $i = 0;
+	foreach my $item ($self->list_items( "admin_epm_tabs" ))
+	{
+		next if !$item->{screen}->can_be_viewed;
+		my $screen = $item->{screen};
+
+		push @labels, $screen->render_title;
+		if( $i != $current && $screen->param( "expensive" ) )
+		{
+			push @tabs, $repo->html_phrase( "cgi/users/edit_eprint:loading" );
+			push @expensive, $i;
+		}
+		else
+		{
+			push @tabs, $screen->render;
+		}
+		++$i;
+	}
+
+	return $xhtml->tabs( \@labels, \@tabs,
+		current => $current,
+		expensive => \@expensive,
+	);
+}
+
+sub _render
 {
 	my( $self ) = @_;
 

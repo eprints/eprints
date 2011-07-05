@@ -31,6 +31,24 @@ sub from_form
 {
 	my( $self ) = @_;
 
+	# default to simple search
+	if( !$self->get_non_filter_searchfields )
+	{
+		my $sconf;
+		if( $params{dataset}->id eq "archive" )
+		{
+			$sconf = $params{repository}->config( "search", "simple" );
+		}
+		else
+		{
+			$sconf = $params{dataset}->_simple_search_config;
+		}
+		%params = (
+			%$sconf,
+			%params,
+		);
+	}
+
 	my @problems;
 
 	foreach my $sf ($self->get_non_filter_searchfields)
@@ -66,6 +84,8 @@ sub render_simple_fields
 
 	return ($self->get_non_filter_searchfields)[0]->render;
 }
+
+sub execute { shift->perform_search( @_ ) }
 
 1;
 

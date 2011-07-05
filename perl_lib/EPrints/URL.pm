@@ -173,7 +173,7 @@ sub get
 			foreach my $value ($session->param( $param ))
 			{
 				next if ref($value); # e.g. file handle
-				push @params, $param => $value;
+				push @params, $param => Encode::encode_utf8( $value );
 			}
 		}
 		$uri->query_form( @params );

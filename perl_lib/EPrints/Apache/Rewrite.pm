@@ -547,8 +547,24 @@ sub handler
 		EPrints::Update::Static::update_static_file( $repository, $lang, $localpath );
 	}
 
+	# set all static files to +1 month expiry
+	$r->headers_out->{Expires} = Apache2::Util::ht_time(
+		$r->pool,
+		time + 30 * 86400
+	);
+	# let Firefox cache secure, static files
+	if( $repository->get_secure )
+	{
+		$r->headers_out->{'Cache-Control'} = 'public';
+	}
+
 	if( $r->filename =~ /\.html$/ )
 	{
+		my $ua = $r->headers_in->{'User-Agent'};
+		if( $ua && $ua =~ /MSIE ([0-9]{1,}[\.0-9]{0,})/ && $1 >= 8.0 )
+		{
+			$r->headers_out->{'X-UA-Compatible'} = "IE=9";
+		}
 		$r->handler('perl-script');
 		$r->set_handlers(PerlResponseHandler => [ 'EPrints::Apache::Template' ] );
 	}

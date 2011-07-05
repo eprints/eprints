@@ -73,8 +73,16 @@ sub get_index_codes_basic
 	return( [], [], [] ) unless( EPrints::Utils::is_set( $value ) );
 
 	my( $codes, $badwords ) = _extract_words( $session, $value );
+	$_ = lc($_) for @$codes;
 
 	return( $codes, [], $badwords );
+}
+
+sub split_search_value
+{
+	my( $self, $session, $value ) = @_;
+
+	return $self->SUPER::split_search_value( $session, lc($value) );
 }
 
 # internal function to paper over some cracks in 2.2 

@@ -100,7 +100,8 @@ sub render_value
 			$self, 
 			$value, 
 			$alllangs, 
-			$nolink );
+			$nolink,
+			$object );
 	}
 
 	my $table = $session->make_element( "table", border=>1, cellspacing=>0, cellpadding=>2 );

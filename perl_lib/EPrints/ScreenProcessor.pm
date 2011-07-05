@@ -65,9 +65,11 @@ sub cache_list_items
 
 	my $session = $self->{session};
 
-	return if defined $session->{screen_lists};
+	my $screen_lists = $session->get_plugin_factory->cache( "screen_lists" );
 
-	my $screen_lists = {};
+	return $screen_lists if defined $screen_lists;
+
+	$screen_lists = {};
 
 	my $p_conf = $session->config( "plugins" );
 
@@ -152,7 +154,7 @@ sub cache_list_items
 		@$item_list = sort { $a->{position} <=> $b->{position} } @$item_list;
 	}
 
-	$session->{screen_lists} = $screen_lists;
+	return $session->get_plugin_factory->cache( "screen_lists", $screen_lists );
 }
 
 =item @screen_opts = $processor->list_items( $list_id, %opts )
@@ -181,7 +183,7 @@ sub list_items
 	my $filter = $opts{filter};
 	$filter = 1 if !defined $filter;
 
-	my $screen_lists = $self->{session}->{screen_lists};
+	my $screen_lists = $self->{session}->get_plugin_factory->cache( "screen_lists" );
 
 	my @opts;
 	for(ref($list_id) eq "ARRAY" ? @$list_id : $list_id)

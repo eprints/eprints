@@ -34,6 +34,8 @@ package EPrints::DataObj::EPM;
 
 use strict;
 
+our $MAX_SIZE = 2097152;
+
 ######################################################################
 =pod
 
@@ -50,35 +52,77 @@ sub get_system_field_info
 
 	return ( 
 	
-	{ name=>"eprintid", type=>"counter", required=>1, import=>0, can_clone=>0,
-		sql_counter=>"eprintid" },
+	# a unique name for this package
+	{ name=>"epmid", type=>"id", required=>1, import=>0, can_clone=>0, },
 
+	# bazaar.eprint.eprintid
+	{ name=>"eprintid", type=>"int", can_clone=>0, },
+
+	# package contents
 	{ name=>"documents", type=>"subobject", datasetid=>'document',
 		multiple=>1 },
 
-	{ name=>"files", type=>"subobject", datasetid=>"file",
-		multiple=>1 },
+	# version in x.y.z
+	{ name=>"version", type=>"text" },
 
-	{ name=>"title", type=>"text" },
-	{ name=>"link", type=>"text" },
-	{ name=>"date", type=>"text" },
-	{ name=>"package_name", type=>"text" },
-	{ name=>"package_version", type=>"text" },
-	{ name=>"abstract", type=>"text" },
+	# control 'Screen' plugin
+	# 	action_enable, action_disable
+	# 	render_action_link [configure link]
+	# 	render [configuration]
+	{ name=>"controller", type=>"text", render_value => \&render_controller, },
+
+	# creators
+	{ name=>"creators", type=>"compound", multiple=>1, fields=>[
+		{ sub_name=>"name", type=>"name", hide_honourific=>1, },
+		{ sub_name=>"id", type=>"id", input_cols=>20, },
+		]},
+
+	# change to functional content
+	{ name=>"datestamp", type=>"time" },
+
+	# human-readable title
+	{ name=>"title", type=>"longtext", },
+
+	# human-readable description
+	{ name=>"description", type=>"longtext", },
 	
-	{ name=>"relation", type=>"compound", multiple=>1,
-		fields => [
-			{
-				sub_name => "type",
-				type => "text",
-			},
-			{
-				sub_name => "uri",
-				type => "text",
-			},
-		],
-	},
+	# human-readable description of requirements
+	{ name=>"requirements", type=>"longtext", },
 
+	# add-on home-page
+	{ name=>"home_page", type=>"url" },
+
+	# icon filename
+	{ name=>"icon", type=>"url", render_value => \&render_icon, },
+
+	);
+}
+
+sub render_controller
+{
+	my( $repo, $field, $value, undef, undef, $epm ) = @_;
+
+	$value = "EPMC" if !defined $value;
+
+	my $plugin = $repo->plugin( "Screen::$value" );
+	return $repo->xml->create_document_fragment if !defined $plugin;
+
+	return $plugin->render_action_link;
+}
+
+sub render_icon
+{
+	my( $repo, $field, $value, undef, undef, $epm ) = @_;
+
+	$value = "images/epm/unknown.png" if !EPrints::Utils::is_set( $value );
+
+	my $url = $value =~ /^https?:/ ?
+		$value :
+		$repo->current_url( host => 1, path => "static", $value );
+
+	return $repo->xml->create_element( "img",
+		width => "70px",
+		src => $url,
 	);
 }
 
@@ -105,22 +149,35 @@ sub _upgrade
 	my $document_dataset = $repo->dataset( "document" );
 	my $file_dataset = $repo->dataset( "file" );
 
+	# can't retrieve documents if they weren't included
+	return if !defined $self->{data}->{documents};
+
 	foreach my $doc (@{$self->value( "documents" )})
 	{
 		if( !UNIVERSAL::isa( $doc, "EPrints::DataObj" ) )
 		{
 			$doc = $document_dataset->make_dataobj( $doc );
 		}
+		# can't retrieve files if they weren't included
+		next if !defined $doc->{data}->{files};
 		foreach my $file (@{$doc->value( "files" )})
 		{
 			if( !UNIVERSAL::isa( $file, "EPrints::DataObj" ) )
 			{
 				my $content = delete $file->{_content};
-				sysread($content,my $data,-s $content);
 				$file = $file_dataset->make_dataobj( $file );
-				$file->set_value( "data",
-					MIME::Base64::encode_base64( $data )
-				);
+				if( defined $content )
+				{
+					sysread($content,my $data,-s $content);
+					$file->set_value( "data",
+						MIME::Base64::encode_base64( $data )
+					);
+				}
+				else
+				{
+					next;
+#					Carp::carp( "Package is missing file content" );
+				}
 			}
 		}
 	}
@@ -146,11 +203,11 @@ sub map
 
 	my $epm_dir = $repo->config( "base_path" ) . "/lib/epm";
 	opendir(my $dh, $epm_dir) or return;
-	while(defined(my $file = readdir($dh)))
+	foreach my $file (sort readdir($dh))
 	{
 		next if $file =~ /^\./;
-		next if $file !~ /\.epmi$/;
-		if(open(my $fh, "<", "$epm_dir/$file"))
+		next if !-f "$epm_dir/$file/$file.epmi";
+		if(open(my $fh, "<", "$epm_dir/$file/$file.epmi"))
 		{
 			sysread($fh, my $xml, -s $fh);
 			close($fh);
@@ -160,17 +217,17 @@ sub map
 	closedir($dh);
 }
 
-=item $epm = EPrints::DataObj::EPM->new_from_name( $repo, $name )
+=item $epm = EPrints::DataObj::EPM->new( $repo, $id )
 
-Returns a new object representing the installed package $name.
+Returns a new object representing the installed package $id.
 
 =cut
 
-sub new_from_name
+sub new
 {
-	my( $class, $repo, $name ) = @_;
+	my( $class, $repo, $id ) = @_;
 
-	my $filepath = $repo->config( "base_path" ) . "/lib/epm/$name.epm";
+	my $filepath = $repo->config( "base_path" ) . "/lib/epm/$id/$id.epmi";
 	if( open(my $fh, "<", $filepath) )
 	{
 		sysread($fh, my $xml, -s $fh);
@@ -209,44 +266,69 @@ sub new_from_manifest
 
 	my $self = $class->SUPER::new_from_data( $repo, $epdata );
 
+	my $base_path = $self->repository->config( "base_path" ) . "/lib";
+
 	my $install = $repo->dataset( "document" )->make_dataobj({
+		_parent => $self,
 		content => "install",
+		format => "other",
 		files => [],
 	});
 	$self->set_value( "documents", [ $install ]);
 
-	for(@manifest)
+	foreach my $filename (@manifest)
 	{
+		my $filepath = "$base_path/$filename";
 		use bytes;
-		open(my $fh, "<", $_) or die "Error opening $_: $!";
+		open(my $fh, "<", $filepath) or die "Error opening $filepath: $!";
 		sysread($fh, my $data, -s $fh);
 		close($fh);
 		my $md5 = Digest::MD5::md5_hex( $data );
 
+		my $media_info = {};
+		$repo->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+			epdata => $media_info,
+			filename => $filename,
+			filepath => $filepath,
+		);
+
+		my $copy = { pluginid => "Storage::Local", sourceid => $filename };
+
 		$install->set_value( "files", [
 			@{$install->value( "files")},
 			$repo->dataset( "file" )->make_dataobj({
-				filename => $_,
+				_parent => $install,
+				filename => $filename,
 				filesize => length($data),
-				data => MIME::Base64::encode_base64( $data ),
+#				data => MIME::Base64::encode_base64( $data ),
 				hash => $md5,
 				hash_type => "MD5",
+				mime_type => $media_info->{format},
+				copies => [$copy],
 			})
 		]);
+		$install->set_value( "main", $filename );
 
-		if( m#^lib/static/images/epm/# )
+		if( $filename =~ m#^static/(images/epm/.*)# )
 		{
+			$self->set_value( "icon", $1 );
 			my $icon = $repo->dataset( "document" )->make_dataobj({
-				content => "icon",
+				_parent => $self,
+				content => "coverimage",
+				main => $filename,
 				files => [],
+				format => $media_info->{format},
 			});
 			$icon->set_value( "files", [
 				$repo->dataset( "file" )->make_dataobj({
-					filename => $_,
+					_parent => $icon,
+					filename => $filename,
 					filesize => length($data),
-					data => MIME::Base64::encode_base64( $data ),
+#					data => MIME::Base64::encode_base64( $data ),
 					hash => $md5,
 					hash_type => "MD5",
+					mime_type => $media_info->{format},
+					copies => [$copy],
 				})
 			]);
 			$self->set_value( "documents", [
@@ -259,6 +341,83 @@ sub new_from_manifest
 	return $self;
 }
 
+=item $epm->commit
+
+Commit any changes to the installed .epm, .epmi files.
+
+=cut
+
+sub commit
+{
+	my( $self ) = @_;
+
+	EPrints->system->mkdir( $self->epm_dir );
+	# give the user a hint for where to put cfg.d.s
+	EPrints->system->mkdir( $self->epm_dir . "/cfg/cfg.d" );
+
+	if( open(my $fh, ">", $self->epm_dir . "/" . $self->id . ".epm") )
+	{
+		syswrite($fh, $self->serialise( 1 ));
+		close($fh);
+	}
+	if( open(my $fh, ">", $self->epm_dir . "/" . $self->id . ".epmi") )
+	{
+		syswrite($fh, $self->serialise( 0 ));
+		close($fh);
+	}
+}
+
+=item $epm->rebuild
+
+Reload all of the installed files (regenerating hashes if necessary).
+
+=cut
+
+sub rebuild
+{
+	my( $self ) = @_;
+
+	my @files = $self->installed_files;
+
+	my $epm = ref($self)->new_from_manifest(
+		$self->repository,
+		$self->get_data,
+		map { $_->value( "filename" ) } @files
+	);
+
+	$self->set_value( "documents", $epm->value( "documents" ) );
+	for(keys %{$epm->{changed}})
+	{
+		$self->set_value( $_, $epm->value( $_ ) );
+	}
+}
+
+# we can behave like a normal eprint
+sub local_path
+{
+	my( $self ) = @_;
+
+	return $self->repository->config( "base_path" ) . "/lib";
+}
+
+=item $v = $epm->version
+
+Returns a stringified version suitable for string gt/lt matching.
+
+=cut
+
+sub version
+{
+	my( $self ) = @_;
+
+	my $v = $self->value( "version" );
+	$v = "0.0.0" if !defined $v;
+
+	$v = join('.', map { sprintf("%04d", $_||0) } split /\./, $v, 3);
+
+	return $v;
+}
+
 =item $bool = $epm->is_enabled
 
 Returns true if the $epm is enabled for the current repository.
@@ -269,25 +428,46 @@ sub is_enabled
 {
 	my( $self ) = @_;
 
-	return -f $self->_cfg_d_file;
+	return -f $self->_is_enabled_filepath;
 }
 
-=item $filename = $epm->filename
+=item @repoids = $epm->repositories
 
-Filename to use for this package.
+Returns a list of repository ids this $epm is enabled in.
 
 =cut
 
-sub filename
+sub repositories
 {
 	my( $self ) = @_;
 
-	return $self->value( "package_name" );
+	my @repoids;
+
+	foreach my $repoid (EPrints->repository_ids)
+	{
+		local $self->{session} = EPrints->repository( $repoid );
+		push @repoids, $repoid if $self->is_enabled;
+	}
+
+	return @repoids;
+}
+
+=item $filename = $epm->package_filename()
+
+Returns the complete package filename.
+
+=cut
+
+sub package_filename
+{
+	my( $self ) = @_;
+
+	return $self->id . '-' . $self->value( "version" ) . '.epm';
 }
 
 =item $dir = $epm->epm_dir
 
-Path to lib/epm.
+Path to the epm directory for this $epm.
 
 =cut
 
@@ -295,7 +475,7 @@ sub epm_dir
 {
 	my( $self ) = @_;
 
-	return $self->repository->config( "base_path" ) . "/lib/epm";
+	return $self->repository->config( "base_path" ) . "/lib/epm/" . $self->id;
 }
 
 =item @files = $epm->installed_files()
@@ -318,6 +498,45 @@ sub installed_files
 	return @{$install->value( "files" )};
 }
 
+=item @files = $epm->repository_files()
+
+Returns the list of configuration files used to enable/configure an $epm.
+
+=cut
+
+sub repository_files
+{
+	my( $self ) = @_;
+
+	my $epmid = $self->id;
+
+	return grep {
+			$_->value( "filename" ) =~ m# ^epm/$epmid/[^/]+/ #x
+		} $self->installed_files;
+}
+
+=item $screen = $epm->control_screen( %params )
+
+Returns the control screen for this $epm. %params are passed to the plugin constructor.
+
+=cut
+
+sub control_screen
+{
+	my( $self, %params ) = @_;
+
+	my $controller = $self->value( "controller" );
+	$controller = "EPMC" if !defined $controller;
+	$controller = $self->repository->plugin( "Screen::$controller",
+			%params,
+		);
+	$controller = $self->repository->plugin( "Screen::EPM",
+			%params,
+		) if !defined $controller;
+
+	return $controller;
+}
+
 =item $xml = $epm->serialise( [ FILES ] )
 
 Returns the XML serialisation of $epm. If FILES is true files are included.
@@ -328,10 +547,36 @@ sub serialise
 {
 	my( $self, $files ) = @_;
 
-	local $self->{data}->{documents} = [] if !$files;
+	my $repo = $self->repository;
+
+	# we need to temporarily override Document's default behaviour, otherwise
+	# the file location will get a '/00/' in it
+	local *EPrints::DataObj::Document::local_path = sub { $self->local_path };
+
+	if( $files )
+	{
+		my $libpath = $repo->config( "base_path" ) . "/lib";
+		if( defined $self->{documents} )
+		{
+		foreach my $doc (@{$self->value( "documents" )})
+		{
+			next if !defined $doc->{files};
+			foreach my $file (@{$doc->value( "files" )})
+			{
+				next if $file->is_set( "data" );
+				my $filepath = $libpath . "/" . $file->value( "filename" );
+				next if !-f $filepath;
+				$file->set_value( "copies", [{
+					pluginid => "Storage::Local",
+					sourceid => $file->value( "filename" ),
+				}]);
+			}
+		}
+		}
+	}
 
 	return "<?xml version='1.0'?>\n".$self->repository->xml->to_string(
-		$self->to_xml,
+		$self->to_xml( embed => $files ),
 		indent => 1
 	);
 }
@@ -360,10 +605,12 @@ sub install
 
 	my %files;
 
+	my $base_path = $repo->config( "base_path" ) . "/lib";
+
 	for(@files)
 	{
 		my $filename = $_->value( "filename" );
-		if( $filename =~ m#[\/]\.# || $filename !~ m#^lib/# )
+		if( $filename =~ m#[\/]\.# )
 		{
 			$handler->add_message( "error", $self->html_phrase( "bad_filename",
 					filename => $repo->xml->create_text_node( $filename ),
@@ -379,10 +626,10 @@ sub install
 				) );
 			return 0;
 		}
-		$filename = $repo->config( "base_path" )."/".$filename;
-		if( !$force && -e $filename )
+		my $filepath = "$base_path/$filename";
+		if( !$force && -e $filepath )
 		{
-			open(my $fh, "<", $filename)
+			open(my $fh, "<", $filepath)
 				or die "Error reading from $filename: $!";
 			sysread($fh, my $rdata, -s $fh);
 			close($fh);
@@ -394,7 +641,7 @@ sub install
 				return 0;
 			}
 		}
-		my $directory = $filename;
+		my $directory = $filepath;
 		$directory =~ s/[^\/]+$//;
 		if( !-d $directory && !EPrints->system->mkdir( $directory ) )
 		{
@@ -404,16 +651,16 @@ sub install
 				) );
 			return 0;
 		}
-		$files{$filename} = $data;
+		$files{$filepath} = $data;
 	}
 
-	while(my( $filename, $data ) = each %files)
+	while(my( $filepath, $data ) = each %files)
 	{
 		my $fh;
-		if( !open($fh, ">", $filename) )
+		if( !open($fh, ">", $filepath) )
 		{
 			$handler->add_message( "error", $self->html_phrase( "file_error",
-					filename => $repo->xml->create_text_node( $filename ),
+					filename => $repo->xml->create_text_node( $filepath ),
 					error => $repo->xml->create_text_node( $! ),
 				) );
 			return 0;
@@ -422,18 +669,7 @@ sub install
 		close($fh);
 	}
 
-	EPrints->system->mkdir( $self->epm_dir );
-
-	if( open(my $fh, ">", $self->epm_dir . "/" . $self->filename . ".epm") )
-	{
-		binmode($fh, ":utf8");
-		syswrite($fh, $self->serialise( 1 ));
-	}
-	if( open(my $fh, ">", $self->epm_dir . "/" . $self->filename . ".epmi") )
-	{
-		binmode($fh, ":utf8");
-		syswrite($fh, $self->serialise( 0 ));
-	}
+	$self->commit;
 
 	return 1;
 }
@@ -454,21 +690,18 @@ sub uninstall
 	$self->_upgrade;
 
 	my @files = $self->installed_files;
-	if( !@files )
-	{
-		$handler->add_message( "error", $self->html_phrase( "no_files" ) );
-		return 0;
-	}
 
 	my %files;
+
+	my $base_path = $repo->config( "base_path" ) . "/lib";
 
 	for(@files)
 	{
 		my $filename = $_->value( "filename" );
-		$filename = $repo->config( "base_path" )."/".$filename;
-		next if !-e $filename; # skip missing files
+		my $filepath = "$base_path/$filename";
+		next if !-e $filepath; # skip missing files
 		my $data = "";
-		if( open(my $fh, "<", $filename) )
+		if( open(my $fh, "<", $filepath) )
 		{
 			sysread($fh,$data,-s $fh);
 			close($fh);
@@ -480,34 +713,38 @@ sub uninstall
 				) );
 			return 0;
 		}
-		$files{$filename} = 1;
+		$files{$filepath} = 1;
 	}
 
-	foreach my $filename (keys %files)
+	foreach my $filepath (keys %files)
 	{
-		if( !unlink($filename) )
+		if( !unlink($filepath) )
 		{
 			$handler->add_message( "error", $self->html_phrase( "unlink_failed",
-					filename => $repo->xml->create_text_node( $filename ),
+					filename => $repo->xml->create_text_node( $filepath ),
 				) );
 		}
 	}
 
 	for(qw( .epm .epmi ))
 	{
-		unlink($self->epm_dir . "/" . $self->filename . $_);
+		unlink($self->epm_dir . "/" . $self->id . $_);
+	}
+
+	# sanity check
+	if( length($self->id) )
+	{
+		EPrints::Utils::rmtree( "$base_path/epm/".$self->id );
 	}
 
 	return 1;
 }
 
-sub _cfg_d_file
+sub _is_enabled_filepath
 {
 	my( $self ) = @_;
 
-	my $repo = $self->repository;
-
-	return $repo->config( "archiveroot" ) . "/cfg/cfg.d/zz_epm_" . $self->filename . ".pl";
+	return $self->{session}->config( "archiveroot" ) . "/cfg/epm/" . $self->id;
 }
 
 =item $ok = $epm->enable( $handler )
@@ -522,36 +759,76 @@ sub enable
 
 	my $repo = $self->repository;
 
-	my $sourcepath = $self->epm_dir . "/" . $self->filename . ".pl";
-	my $targetpath = $self->_cfg_d_file;
-
-	if( !-f $sourcepath )
-	{
-		$handler->add_message( "error", $self->html_phrase( "missing_cfg_d",
-				filename => $repo->xml->create_text_node( $sourcepath ),
-			) );
-		return 0;
-	}
-	if( -f $targetpath )
-	{
-		$handler->add_message( "error", $self->html_phrase( "file_exists",
-				filename => $repo->xml->create_text_node( $targetpath ),
-			) );
-		return 0;
-	}
-
 	my $datasets = $self->current_datasets;
 
-	if(open(my $fh, "<", $sourcepath))
+	my $epmid = $self->id;
+	my $epmdir = "epm/".$epmid;
+
+	FILE: foreach my $file ($self->repository_files)
 	{
-		sysread($fh, my $data, -s $fh);
-		close($fh);
+		my $filename = $file->value( "filename" );
+		my $filepath = $repo->config( "base_path" ) . "/lib/" . $filename;
+		next if $filename !~ m# ^$epmdir(.+)$ #x;
+
+		my $targetpath = $repo->config( "archiveroot" ) . $1;
+		my $data;
+		if(open(my $fh, "<", $filepath))
+		{
+			sysread($fh, $data, -s $fh);
+			close($fh);
+		}
+		else
+		{
+			$handler->add_message( "warning", $self->html_phrase( "missing",
+					filename => $repo->xml->create_text_node( $filepath ),
+				) );
+			next FILE;
+		}
+		if( !$file->is_set( "hash" ) )
+		{
+			$file->set_value( "hash", Digest::MD5::md5_hex( $data ) );
+			$file->set_value( "hash_type", "MD5" );
+		}
+		elsif( $file->value( "hash" ) ne Digest::MD5::md5_hex( $data ) )
+		{
+			$handler->add_message( "error", $self->html_phrase( "bad_checksum",
+					filename => $repo->xml->create_text_node( $filename ),
+				) );
+			return 0;
+		}
+		if( -f $targetpath )
+		{
+			my $tdata;
+			if(open(my $fh, "<", $targetpath))
+			{
+				sysread($fh, $tdata, -s $fh);
+				close($fh);
+			}
+			if( $file->value( "hash" ) eq Digest::MD5::md5_hex( $tdata ) )
+			{
+				next FILE;
+			}
+			else
+			{
+				$handler->add_message( "error", $self->html_phrase( "file_exists",
+						filename => $repo->xml->create_text_node( $targetpath ),
+					) );
+				return 0;
+			}
+		}
+		my $targetdir = $targetpath;
+		$targetdir =~ s/[^\/]+$//;
+		EPrints->system->mkdir( $targetdir );
 		if(open(my $fh, ">", $targetpath))
 		{
 			syswrite($fh, $data);
 			close($fh);
 		}
 	}
+
+	EPrints->system->mkdir( $repo->config( "archiveroot" ) . "/cfg/epm" );
+	open( my $fh, ">", $self->_is_enabled_filepath );
+	close( $fh );
 
 	# reload the configuration
 	$repo->load_config;
@@ -567,12 +844,21 @@ sub disable
 
 	my $repo = $self->repository;
 
-	my $targetpath = $self->_cfg_d_file;
-	return 1 if !-f $targetpath;
-
 	my $datasets = $self->current_datasets;
 
-	unlink( $targetpath );
+	my $epmid = $self->id;
+	my $epmdir = "epm/".$epmid;
+
+	foreach my $file ($self->repository_files)
+	{
+		my $filename = $file->value( "filename" );
+		next if $filename !~ m# ^$epmdir(.+)$ #x;
+		my $targetpath = $repo->config( "archiveroot" ) . $1;
+		next if !-f $targetpath;
+		unlink( $targetpath );
+	}
+
+	unlink( $self->_is_enabled_filepath );
 
 	# reload the configuration
 	$repo->load_config;
@@ -656,7 +942,7 @@ sub update_datasets
 	# destroy removed datasets/fields tables
 	foreach my $datasetid ( keys %$before )
 	{
-		my $dataset = $before->{$datasetid};
+		my $dataset = $before->{$datasetid}->{dataset};
 		if( !defined $repo->dataset( $datasetid ) )
 		{
 			$db->drop_dataset_tables( $dataset );
@@ -674,6 +960,62 @@ sub update_datasets
 	}
 	
 	return 1;
+}
+
+=item $ok = $epm->publish( $handler, $base_url, %opts )
+
+Publish this EPM to a remote system using SWORD.
+
+$base_url is the URL of the SWORD endpoint or a page containing a SWORD <link>.
+
+Options:
+
+	username - username for Basic auth
+	password - password for Basic auth
+
+=cut
+
+sub publish
+{
+	my( $self, $handler, $url, %opts ) = @_;
+
+	my $username = $opts{username};
+	my $password = $opts{password};
+
+	my $filename = sprintf("%s-%s.epm", $self->id, $self->value( "version" ) );
+
+	my $ua = LWP::UserAgent->new;
+
+	$url = URI->new( $url );
+
+	$ua->credentials( $url->host . ":" . ($url->port || '80'), '*', $username, $password );
+
+	my $req = HTTP::Request->new( POST => $url );
+
+	$req->header( Accept => 'application/atom+xml' );
+	$req->header( 'Content-Type' => "application/vnd.eprints.epm+xml;charset=utf-8" );
+	$req->header( 'Content-Disposition' => "attachment; filename=\"$filename\"" );
+	if( defined $username )
+	{
+		$password = '' if !defined $password;
+		$req->header( Authorization => "Basic ".MIME::Base64::encode(join(":",
+			$username,
+			$password,
+		), "") );
+	}
+	$req->content( $self->serialise( 1 ) );
+
+	my $r = $ua->request( $req );
+	if( $r->code != 201 )
+	{
+		$handler->add_message( "error", $self->html_phrase( "publish_failed",
+			base_url => $self->{session}->xml->create_text_node( $url ),
+			summary => $self->{session}->xml->create_text_node( $r->status_line ),
+			) );
+		return undef;
+	}
+
+	return $r->header( 'Location' );
 }
 
 =head1 COPYRIGHT

@@ -1989,7 +1989,7 @@ sub ordervalue_basic
 {
 	my( $self, $value, $session, $langid ) = @_;
 
-	return $value;
+	return defined $value ? $value : "";
 }
 
 # XML output methods

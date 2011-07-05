@@ -21,6 +21,7 @@ Where I<command> is one of:
 	disable
 	enable
 	install
+	link_lib
 	list
 	uninstall
 
@@ -103,6 +104,33 @@ no strict "refs";
 &$f( $repo );
 }
 
+sub repository
+{
+	my( $repoid ) = @_;
+	return $repoid if UNIVERSAL::isa( $repoid, "EPrints::Repository" );
+	my $repo = EPrints->repository( $repoid );
+	if( !defined $repo )
+	{
+		die "'$repoid' is not a valid repository identifier";
+	}
+	return $repo;
+}
+
+sub epm
+{
+	my( $repo, $name ) = @_;
+
+	my $epm = $repo->dataset( 'epm' )->dataobj( $name );
+	if( !defined $epm )
+	{
+		$handler->add_message( "error", $repo->xml->create_text_node(
+			"'$name' is not installed or is an invalid epm identifier"
+		) );
+		exit(1);
+	}
+	return $epm;
+}
+
 =item build I<package> I<file1> I<file2> ...
 
 Build a new package called C<package> from a list of files.
@@ -146,11 +174,11 @@ sub action_build
 	}
 
 	delete $epdata->{documents};
-	$epdata->{package_name} = $name;
-	$epdata->{date} = EPrints::Time::iso_datetime();
-	$epdata->{package_version} = $opt_version if $opt_version;
-	$epdata->{package_version} = '1.0'
-		if !EPrints::Utils::is_set( $epdata->{package_version} );
+	$epdata->{epmid} = $name;
+	$epdata->{datestamp} = EPrints::Time::iso_datetime();
+	$epdata->{version} = $opt_version if $opt_version;
+	$epdata->{version} = '1.0.0'
+		if !EPrints::Utils::is_set( $epdata->{version} );
 
 	my $pkg_cache = $repo->config( "base_path" ) . "/var/cache/epm";
 	EPrints->system->mkdir( $pkg_cache )
@@ -162,8 +190,8 @@ sub action_build
 
 	my $output = sprintf("%s/%s-%s.epm",
 		$pkg_cache,
-		$epm->value( "package_name" ),
-		$epm->value( "package_version" )
+		$epm->value( "epmid" ),
+		$epm->value( "version" )
 	);
 
 	open(my $fhout, ">", $output) or die "Error writing to $output: $!";
@@ -183,20 +211,15 @@ reload.
 
 sub action_disable
 {
-	my( $repo ) = @_;
-
 	pod2usage() if @ARGV != 2;
 	my( $repoid, $name ) = @ARGV;
 
-	$repo = EPrints->repository( $repoid ) or die "Unknown repository $repoid";
+	my $repo = &repository( $repoid );
+	my $epm = &epm( $repo, $name );
 
-	my $epm = $repo->dataset( "epm" )->dataobj_class->new_from_name( $repo, $name );
-	die "Unknown package $name" if !defined $epm;
-
-	if( $epm->disable( $handler ) )
-	{
-		print "Disabled $name\n";
-	}
+	$epm->control_screen(
+		processor => $handler,
+	)->action_disable;
 }
 
 =item enable I<repository> I<package>
@@ -208,20 +231,17 @@ reload.
 
 sub action_enable
 {
-	my( $repo ) = @_;
-
 	pod2usage() if @ARGV != 2;
 	my( $repoid, $name ) = @ARGV;
 
-	$repo = EPrints->repository( $repoid ) or die "Unknown repository $repoid";
+	my $repo = &repository( $repoid );
+	my $epm = &epm( $repo, $name );
 
-	my $epm = $repo->dataset( "epm" )->dataobj_class->new_from_name( $repo, $name );
-	die "Unknown package $name" if !defined $epm;
+	local $handler->{dataobj} = $epm;
 
-	if( $epm->enable( $handler ) )
-	{
-		print "Enabled $name\n";
-	}
+	$epm->control_screen(
+		processor => $handler,
+	)->action_enable;
 }
 
 =item install I<package_path>
@@ -246,8 +266,43 @@ sub action_install
 
 	if( $epm->install( $handler, $force ) )
 	{
-		print "Installed ".$epm->value( "package_name" )." [$source]\n";
+		print "Installed ".$epm->value( "epmid" )." [$source]\n";
 	}
+}
+
+=item link_lib I<package>
+
+Soft-link all files in the package under lib/ to a directory tree lib/ below
+the package's home directory. This is a utility method for developers.
+
+=cut
+
+sub action_link_lib
+{
+	my( $repo ) = @_;
+
+	pod2usage( 2 ) if @ARGV != 1;
+
+	my( $name ) = @ARGV;
+
+	my $epm = &epm( $repo, $name );
+
+	my $sourcedir = $epm->epm_dir . '/lib';
+	my $targetdir = $repo->config( "base_path" ) . '/lib';
+
+	File::Find::find(sub {
+		return if $File::Find::name =~ /\/\./;
+		return if -d $File::Find::name;
+
+		my $path = $targetdir;
+		$path .= "/" . substr($File::Find::dir,length($sourcedir)+1);
+
+		EPrints->system->mkdir( $path );
+
+		symlink($File::Find::name, "$path/$_");
+
+		print "$path/$_\n";
+	}, $sourcedir);
 }
 
 =item list
@@ -260,10 +315,10 @@ sub action_list
 {
 	my( $repo ) = @_;
 
-	$repo->dataset( "epm" )->dataobj_class->map($repo, sub {
+	$dataset->dataobj_class->map($repo, sub {
 		my( undef, undef, $epm ) = @_;
 
-		print sprintf("%s\t%s\n", $epm->value( "package_name" ), $epm->value( "package_version" ));
+		print sprintf("%s\t%s\n", $epm->id, $epm->value( "version" ));
 	});
 }
 
@@ -281,8 +336,7 @@ sub action_uninstall
 
 	my( $name ) = @ARGV;
 
-	my $epm = $repo->dataset( "epm" )->dataobj_class->new_from_name( $repo, $name );
-	die "Unknown or unsupported package $name" if !defined $epm;
+	my $epm = &epm( $repo, $name );
 
 	my @enabled_in;
 	foreach my $repoid (EPrints->repository_ids)

@@ -106,8 +106,7 @@ sub action_unpack
 
 	return if !$doc;
 
-	my $newdoc = $eprint->create_subdataobj( "documents", {} );
-	$newdoc->remove if !$self->_expand( $newdoc );
+	$self->_expand( $doc->get_dataset );
 }
 
 sub action_explode
@@ -122,12 +121,12 @@ sub action_explode
 
 	return if !$doc;
 
-	$self->_expand( $eprint );
+	$self->_expand( $eprint->get_dataset );
 }
 
 sub _expand
 {
-	my( $self, $dataobj ) = @_;
+	my( $self, $dataset ) = @_;
 
 	my $eprint = $self->{processor}->{eprint};
 	my $doc = $self->{processor}->{document};
@@ -139,16 +138,18 @@ sub _expand
 	# -> produce lots of documents
 	# the normal epdata_to_dataobj is intercepted (parse_only=>1) and we merge
 	# the new documents into our eprint
-	my $handler = EPrints::Plugin::Screen::EPrint::Document::Extract::Handler->new(
-		processor => $self->{processor},
-		parsed => sub {
+	my $handler = EPrints::CLIProcessor->new(
+		message => sub {},
+		epdata_to_dataobj => sub {
 			my( $epdata ) = @_;
 
 			$epdata = [$epdata];
-			if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
+			if( $dataset->base_id eq "eprint" )
 			{
 				$epdata = $epdata->[0]->{documents};
 			}
+
+			my @items;
 
 			foreach my $docdata (@$epdata)
 			{
@@ -158,8 +159,10 @@ sub _expand
 					uri => $doc->internal_uri
 				};
 
-				return $eprint->create_subdataobj( "documents", $docdata );
+				push @items, $eprint->create_subdataobj( "documents", $docdata );
 			}
+
+			return $items[$#items];
 		},
 	);
 
@@ -183,7 +186,7 @@ sub _expand
 
 	my $list = $plugin->input_fh(
 		fh => $fh,
-		dataset => $dataobj->get_dataset,
+		dataset => $dataset,
 		filename => $file->value( "filename" ),
 		mime_type => $file->value( "mime_type" ),
 		actions => [qw( unpack )],

@@ -1,0 +1,38 @@
+#!perl
+
+use EPrints;
+
+use strict;
+
+my $repo = EPrints->new->current_repository;
+
+$repo->send_http_header( content_type => 'application/opensearchdescription+xml' );
+
+binmode(STDOUT, ":utf8");
+print '<?xml version="1.0" encoding="UTF-8"?>', "\n";
+
+my $url = $repo->current_url( host => 1, path => 'cgi', 'opensearch' );
+$url .= '?q={searchTerms}&startPage={startPage}';
+
+my $osd = $repo->xml->create_data_element(
+	'OpenSearchDescription',
+	[
+		[ 'ShortName', substr($repo->phrase( 'archive_name' ),0,16) ],
+		[ 'LongName', substr($repo->phrase( 'archive_name' ),0,48) ],
+		[ 'Contact', $repo->config( 'adminemail' ) ],
+		[ 'Url', undef,
+			template => "$url&format=Atom",
+			type => 'application/atom+xml',
+		],
+		[ 'Url', undef,
+			template => "$url&format=JSON",
+			type => 'application/json',
+		],
+		[ 'Developer', 'http://www.eprints.org/' ],
+		[ 'OutputEncoding', 'UTF-8' ],
+		[ 'InputEncoding', 'UTF-8' ],
+	],
+	xmlns => EPrints::Const::EP_NS_OPENSEARCH
+);
+
+print $repo->xml->to_string( $osd, indent => 1 );

@@ -26,7 +26,7 @@ sub new
 	)];
 	$self->{visible} = "all";
 	$self->{suffix} = ".xml";
-	$self->{mimetype} = "application/atom+xml";
+	$self->{mimetype} = "application/atom+xml;charset=utf-8";
 
 	return $self;
 }
@@ -49,8 +49,12 @@ sub output_list
 	my $dataset = $list->{dataset};
 	my $dataset_id = $dataset->base_id;
 
-	&$f( '<?xml version="1.0" encoding="utf-8" ?>' );
-	&$f( '<feed xmlns="http://www.w3.org/2005/Atom" xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1">' );
+	&$f( "<?xml version=\"1.0\" encoding=\"utf-8\" ?>" );
+	&$f( '<feed
+	xmlns="http://www.w3.org/2005/Atom"
+	xmlns:opensearch="'.EPrints::Const::EP_NS_OPENSEARCH.'"
+	xmlns:xhtml="http://www.w3.org/1999/xhtml"
+>' );
 	
 	# title
 	my $title = $repo->phrase( "archive_name" );
@@ -100,6 +104,11 @@ sub output_list
 		"id", 
 		$repo->config( "frontpage" ) ) );
 
+	if( exists $opts{links} )
+	{
+		&$fx( $opts{links} );
+	}
+
 	# opensearch
 	local $_;
 	for(qw( totalResults itemsPerPage startIndex ))
@@ -114,6 +123,15 @@ sub output_list
 	}
 	if( exists $opts{offsets} )
 	{
+		if( my $search = delete $opts{offsets}{search} )
+		{
+			&$fx( $xml->create_data_element(
+				"link",
+				undef,
+				rel => "search",
+				%$search,
+			) );
+		}
 		foreach my $key (sort keys %{$opts{offsets}})
 		{
 			&$fx( $xml->create_data_element(
@@ -121,6 +139,9 @@ sub output_list
 				undef,
 				rel => $key,
 				type => $self->param( "mimetype" ),
+				title => $repo->phrase( "lib/searchexpression:$key",
+					n => "",
+				),
 				href => $opts{offsets}->{$key} ) );
 		}
 	}
@@ -173,7 +194,7 @@ sub output_eprint
 
 	my $entry;
 	if ($opts{single}) {
-		$entry = $xml->create_element( "entry", xmlns=> "http://www.w3.org/2005/Atom" );
+		$entry = $xml->create_element( "entry", xmlns=> "http://www.w3.org/2005/Atom", "xmlns:sword"=> "http://purl.org/net/sword/" );
 	} else {
 		$entry = $xml->create_element( "entry" );
 	}
@@ -206,6 +227,16 @@ sub output_eprint
 			undef,
 			rel => "alternate",
 			href => $dataobj->uri ) );
+	foreach my $doc ($dataobj->get_all_documents)
+	{
+		if( $doc->exists_and_set( "content" ) && $doc->value( "content" ) eq "coverimage" && defined($doc->thumbnail_url) )
+		{
+			$entry->appendChild( $xml->create_data_element(
+				"icon",
+				$repo->current_url( host => 1, path => 0 ).$doc->thumbnail_url,
+			) );
+		}
+	}
 	if( $dataobj->exists_and_set( "abstract" ) )
 	{
 		$entry->appendChild( $xml->create_data_element(
@@ -247,6 +278,71 @@ sub output_eprint
 		label => $dataobj->value( "eprint_status" ),
 		scheme => $repo->config( "base_url" )."/data/eprint/status/"
 	) );
+	
+	$entry->appendChild( $xml->create_data_element(
+		"link",
+		undef,
+		rel => "http://purl.org/net/sword/terms/statement",
+		href => $dataobj->uri
+	) );
+	
+	$entry->appendChild( $xml->create_data_element(
+		"sword:state",
+		undef,
+		href => $repo->config( "base_url" )."/data/eprint/status/" . $dataobj->value( "eprint_status" )
+	) );
+
+	$entry->appendChild( $xml->create_data_element(
+		"sword:stateDescription",
+		$repo->html_phrase("cgi/users/edit_eprint:staff_item_is_in_" . $dataobj->value( "eprint_status" ), link=> $repo->make_text($dataobj->uri), url=>$repo->make_text("") )
+	) );
+	
+	my $original_deposit = $xml->create_data_element(
+		"sword:originalDeposit",
+		undef,
+		href => $dataobj->uri
+	);
+	$entry->appendChild($original_deposit);
+	
+	$updated = undef;
+	if ( $dataobj->exists_and_set( "datestamp" ) )
+	{
+		if( $datestamp =~ /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})$/ )
+		{
+			$updated = "$1T$2Z";
+		}
+	}
+	if (defined $updated) 
+	{
+		$original_deposit->appendChild( $xml->create_data_element(
+			"sword:depositedOn",
+			$updated
+		) );
+	}
+
+	if ( $dataobj->exists_and_set( "sword_depositor" ) ) 
+	{
+		my $user = $repo->user($dataobj->value( "sword_depositor" ));
+		if (defined $user) 
+		{
+			$original_deposit->appendChild( $xml->create_data_element(
+				"sword:depositedBy",
+				$user->value("username")
+			) );
+		
+			my $owner = $repo->user($dataobj->value("userid"));
+			
+			if (!($user->id eq $owner->id))
+			{
+				$original_deposit->appendChild( $xml->create_data_element(
+					"sword:depositedOnBehalfOf",
+					$owner->value("username")
+				) );
+			}
+
+
+		}
+	}
 
 	if( $dataobj->exists_and_set( "creators" ) )
 	{

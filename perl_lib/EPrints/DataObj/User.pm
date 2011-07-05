@@ -163,9 +163,6 @@ sub get_system_field_info
 		{ name=>"newpassword", type=>"secret", show_in_html=>0, 
 			fromform=>\&EPrints::Utils::crypt_password },
 
-		{ name=>"openid_identifier", type=>"text", virtual=>1,
-			show_in_html=>0, export_as_xml=>0, },
-
 		{ name=>"pin", type=>"text", show_in_html=>0 },
 
 		{ name=>"pinsettime", type=>"int", show_in_html=>0 },
@@ -1276,6 +1273,7 @@ my $PRIVMAP =
 		"eprint/edit",
 		"eprint/export",
 		"eprint/view",
+		"eprint/archive/remove",
 		"eprint/archive/edit", # BatchEdit
 		"file/destroy",
 		"file/details",
@@ -1366,6 +1364,7 @@ my $PRIVMAP =
 	
 		"eprint/archive/view:owner",
 		"eprint/archive/export:owner",
+		"eprint/archive/summary:owner",
 		"eprint/archive/details:owner",
 		"eprint/archive/history:owner",
 		"eprint/archive/messages:owner",

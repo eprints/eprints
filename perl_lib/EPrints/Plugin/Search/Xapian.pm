@@ -96,16 +96,19 @@ sub execute
 			Search::Xapian::Query->new( $fieldname . ':' . $_->{value} )
 		);
 	}
-	$query = Search::Xapian::Query->new(
-		Search::Xapian::OP_AND(),
-		$query,
-		$qp->parse_query( $self->{q},
-			Search::Xapian::FLAG_PHRASE() |
-			Search::Xapian::FLAG_BOOLEAN() | 
-			Search::Xapian::FLAG_LOVEHATE() | 
-			Search::Xapian::FLAG_WILDCARD()
-		)
-	);
+	if( EPrints::Utils::is_set( $self->{q} ) )
+	{
+		$query = Search::Xapian::Query->new(
+			Search::Xapian::OP_AND(),
+			$query,
+			$qp->parse_query( $self->{q},
+				Search::Xapian::FLAG_PHRASE() |
+				Search::Xapian::FLAG_BOOLEAN() | 
+				Search::Xapian::FLAG_LOVEHATE() | 
+				Search::Xapian::FLAG_WILDCARD()
+			)
+		);
+	}
 	my $enq = $xapian->enquire( $query );
 
 	if( $self->{custom_order} )

@@ -324,6 +324,13 @@ sub ordervalue_basic
 	return EPrints::Utils::tree_to_utf8( $label );
 }
 
+sub split_search_value
+{
+	my( $self, $session, $value ) = @_;
+
+	return $self->EPrints::MetaField::split_search_value( $session, $value );
+}
+
 sub render_search_input
 {
 	my( $self, $session, $searchfield ) = @_;
