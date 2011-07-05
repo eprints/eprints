@@ -23,8 +23,8 @@
 .ep_upload_doc
 {
 	margin-bottom: 0.5em;
-	background: #e7e9f5 url(images/toolbox.png) repeat-x;
-	border: solid 1px #d8dbef;
+	border-style: solid;
+	border-width: 1px;
 }
 
 .ep_upload_doc .ep_upload_doc_title_bar {

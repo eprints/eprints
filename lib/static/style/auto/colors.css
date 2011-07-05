@@ -23,6 +23,9 @@ a:active, .ep_tm_key_tools a:active {
 h1, h2, h3, h4 {
     color: #606060;
 }
+.ep_view_page h2 {
+	border-bottom: solid 1px #606060;
+}
 
 /* template.css */
 
@@ -51,8 +54,10 @@ h1, h2, h3, h4 {
 .ep_tm_menu a, .ep_tm_menu a:visited {
 	color: white;
 }
-.ep_tm_searchbar, .ep_columns_title, td.ep_columns_alter {
+.ep_tm_searchbar, .ep_columns_title, td.ep_columns_alter, .ep_toolbox_title {
 	color: #606060;
+}
+.ep_tm_searchbar, .ep_columns_title, td.ep_columns_alter {
 	background-color: #ccc;
 	background-image: url(images/bar_24px.png);
 	background-repeat: repeat-x;
@@ -88,7 +93,7 @@ h1, h2, h3, h4 {
 
 .ep_blister_node {
 	border-color: #cccccc;
-	background-color: #e8e8e8;
+	background-color: #e8e8ff;
 	background-image: url(images/bar_solid_12px.png);
 	color: #000000;
 }
@@ -98,19 +103,32 @@ h1, h2, h3, h4 {
 
 /* summary.css surround.css */
 
-.ep_summary_box_title, .ep_summary_box_body, .ep_sr_title_bar, .ep_sr_content, .ep_sr_collapse_bar, .ep_tab_panel {
-	background-color: #e8e8e8;
+.ep_summary_box_title, .ep_summary_box_body, .ep_sr_title_bar, .ep_sr_content, .ep_sr_collapse_bar
+,.ep_tab_panel
+,.ep_toolbox_content /* toolbox.css */
+,.ep_upload_doc /* upload.css */
+,.ep_search_buttons, .ep_search_controls, .ep_search_controls_bottom /* search.css */
+,.ep_view_group_by /* view.css */
+{
+	background-color: #e8e8ff;
 }
 .ep_summary_box_title, .ep_sr_title_bar, .ep_sr_collapse_bar {
 	background-image: url(images/bar_solid_12px.png);
 	background-repeat: repeat-x;
 }
-.ep_sr_content, .ep_summary_box_body, .ep_tab_panel {
+.ep_sr_content, .ep_summary_box_body,
+.ep_tab_panel,
+.ep_toolbox_content /* toolbox.css */
+,.ep_upload_doc /* upload.css */
+{
 	background-image: url(images/bar_solid_24px.png);
 	background-repeat: repeat-x;
 }
-.ep_summary_box_title, .ep_summary_box_body, .ep_sr_title_bar, .ep_sr_content, .ep_sr_collapse_bar,
-.ep_tab_panel, .ep_tab_bar li, .ep_tab_bar li a {
+.ep_summary_box_title, .ep_summary_box_body, .ep_sr_title_bar, .ep_sr_content, .ep_sr_collapse_bar
+,.ep_tab_panel, .ep_tab_bar li, .ep_tab_bar li a
+,.ep_toolbox_content /* toolbox.css */
+,.ep_upload_doc /* upload.css */
+{
 	border-color: #ccc;
 }
 
@@ -123,7 +141,7 @@ h1, h2, h3, h4 {
 
 /* unselected tab */
 .ep_tab_bar li a {
-	background-color: #bbb;
+	background-color: #bbf;
 }
 
 /* selected tab */
@@ -133,7 +151,8 @@ h1, h2, h3, h4 {
 
 /* general.css */
 
-th.ep_title_row {
+th.ep_title_row
+{
 	border-color: #808080;
 	background-image: url(images/bar_24px.png);
 	background-color: #ccc;
@@ -183,4 +202,11 @@ th.ep_columns_title, td.ep_columns_alter {
 }
 td.ep_columns_cell {
 	border-color: #888 #ccc;
+}
+
+.ep_search_buttons, .ep_search_controls, .ep_search_controls_bottom /* search.css */
+,.ep_view_group_by /* view.css */
+{
+	border-color: #cccccc;
+	background-image: url(images/bar_24px.png);
 }
