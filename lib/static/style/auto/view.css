@@ -1,24 +1,15 @@
 
 
+/* spacing between page elements */
 .ep_view_page h2 {
-	margin-top: 3em;
-	border-bottom: solid 1px #808080;
+	margin-top: 30px;
 }
-
-.ep_view_timestamp {
-	margin-top: 3em;
-	text-align: right;
-}
-
-.ep_view_subjects {
-	padding: 10px;
-	background: #e7e9f5 url(images/toolbox.png) repeat-x;
-	border: solid 1px #d8dbef;
-	margin-bottom: 20px;
-}
-
 .ep_view_blurb {
 	margin-top: 20px;
+}
+.ep_view_timestamp {
+	margin-top: 30px;
+	text-align: right;
 }
 
 .ep_view_group_by_current {
@@ -26,14 +17,11 @@
 }
 
 .ep_view_group_by {
-	border-top: 1px solid rgb(216, 219, 239); 
-	border-bottom: 1px solid rgb(216, 219, 239);
+	border-style: solid none;
+	border-width: 1px;
 	text-align: center;
-	background: #e7e9f5 url(images/toolbox.png) repeat-x;
-	padding-top: 4px;
-	padding-bottom: 4px;
-	margin-bottom: 0.75em;
-	margin-top: 0.25em;
+	padding: 4px 0px;
+	margin: 4px 0px 12px 0px;
 }
 
 .ep_view_cols {

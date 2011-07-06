@@ -7,11 +7,10 @@
 
 .ep_toolbox_title {
 	padding: 2px 10px 2px 10px;
-	color: #808080;
 }
 
 .ep_toolbox_content {
 	padding: 10px;
-	background: #e7e9f5 url(images/toolbox.png) repeat-x;
-	border: solid 1px #d8dbef;
+	border-width: 1px;
+	border-style: solid;
 }

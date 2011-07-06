@@ -5,14 +5,11 @@
 
 /* buttons are on the form, controls on the results */
 .ep_search_buttons, .ep_search_controls, .ep_search_controls_bottom {
-	border-top: 1px solid rgb(216, 219, 239); 
-	border-bottom: 1px solid rgb(216, 219, 239);
+	border-style: solid none;
+	border-width: 1px;
 	text-align: center;
-	background: #e7e9f5 url(images/toolbox.png) repeat-x;
-	padding-top: 4px;
-	padding-bottom: 4px;
-	margin-bottom: 0.25em;
-	margin-top: 0.25em;
+	padding: 4px 0px;
+	margin: 4px 0px 12px 0px;
 }
 
 .ep_search_fields {
