@@ -49,6 +49,20 @@ sub properties_from
 	] if !defined $processor->{sources};
 }
 
+sub redirect_to_me_url
+{
+	my( $self ) = @_;
+
+	my $url = URI->new( $self->SUPER::redirect_to_me_url );
+
+	$url->query_form(
+		$url->query_form,
+		%{$self->{processor}->{notes}},
+	);
+
+	return $url;
+}
+
 sub wishes_to_export { shift->{repository}->param( "ajax" ) }
 
 sub export_mime_type { "text/html;charset=utf-8" }
@@ -65,19 +79,20 @@ sub export
 	my( $self ) = @_;
 
 	my $current = $self->{repository}->param( "ep_tabs_current" );
-	$current = 0 if !defined $current;
+	$current = "" if !defined $current;
 
-	my @screens;
+	my $screen;
 
 	foreach my $item ($self->list_items( "admin_epm_tabs" ))
 	{
 		next if !$item->{screen}->can_be_viewed;
-		push @screens, $item->{screen};
+		$screen = $item->{screen}, last
+			if $item->{screen}->get_subtype eq $current;
 	}
 
-	return if !defined $screens[$current];
+	return if !defined $screen;
 
-	my $content = $screens[$current]->render;
+	my $content = $screen->render;
 	binmode(STDOUT, ":utf8");
 	print $self->{repository}->xhtml->to_xhtml( $content );
 	$self->{repository}->xml->dispose( $content );
@@ -94,11 +109,12 @@ sub render
 	my $frag = $xml->create_document_fragment;
 
 	my $current = $repo->param( "ep_tabs_current" );
-	$current = 0 if !defined $current;
+	$current = "" if !defined $current;
 
 	my @labels;
 	my @tabs;
 	my @expensive;
+	my %aliases;
 
 	my $i = 0;
 	foreach my $item ($self->list_items( "admin_epm_tabs" ))
@@ -107,7 +123,7 @@ sub render
 		my $screen = $item->{screen};
 
 		push @labels, $screen->render_title;
-		if( $i != $current && $screen->param( "expensive" ) )
+		if( $screen->get_subtype ne $current && $screen->param( "expensive" ) )
 		{
 			push @tabs, $repo->html_phrase( "cgi/users/edit_eprint:loading" );
 			push @expensive, $i;
@@ -116,12 +132,14 @@ sub render
 		{
 			push @tabs, $screen->render;
 		}
+		$aliases{$i} = $screen->get_subtype;
 		++$i;
 	}
 
 	return $xhtml->tabs( \@labels, \@tabs,
 		current => $current,
 		expensive => \@expensive,
+		aliases => \%aliases,
 	);
 }
 

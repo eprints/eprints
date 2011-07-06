@@ -33,6 +33,24 @@ sub properties_from
 	shift->EPrints::Plugin::Screen::Admin::EPM::properties_from();
 }
 
+sub action_stop
+{
+	my( $self ) = @_;
+
+	$self->{processor}->{notes}->{ep_tabs_current} = "Admin::EPM::Developer";
+
+	$self->SUPER::action_stop;
+}
+
+sub action_save
+{
+	my( $self ) = @_;
+
+	$self->{processor}->{notes}->{ep_tabs_current} = "Screen::Admin::EPM::Developer";
+
+	$self->SUPER::action_save;
+}
+
 sub view_screen { "Admin::EPM" }
 
 1;
