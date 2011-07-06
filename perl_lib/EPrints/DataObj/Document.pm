@@ -1824,7 +1824,7 @@ sub make_thumbnails
 
 	my %thumbnails;
 
-	my $regexp = EPrints::Utils::make_relation( "has(\\w+)ThumbnailVersion" );
+	my $regexp = EPrints::Utils::make_relation( "is(\\w+)ThumbnailVersionOf" );
 	$regexp = qr/^$regexp$/;
 
 	$self->search_related->map(sub {
@@ -1836,6 +1836,12 @@ sub make_thumbnails
 			next if $_->{type} !~ $regexp;
 
 			$doc->set_parent( $self->parent );
+			# remove multiple thumbnails of the same type, keeping the first
+			if( defined $thumbnails{$1} )
+			{
+				$doc->remove;
+				return;
+			}
 			$thumbnails{$1} = $doc;
 		}
 	});
