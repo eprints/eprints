@@ -150,7 +150,7 @@ sub _upgrade
 	my $file_dataset = $repo->dataset( "file" );
 
 	# can't retrieve documents if they weren't included
-	return if !defined $self->{data}->{documents};
+	return if !$self->is_set( "documents" );
 
 	foreach my $doc (@{$self->value( "documents" )})
 	{
@@ -159,7 +159,7 @@ sub _upgrade
 			$doc = $document_dataset->make_dataobj( $doc );
 		}
 		# can't retrieve files if they weren't included
-		next if !defined $doc->{data}->{files};
+		next if !$doc->is_set( "files" );
 		foreach my $file (@{$doc->value( "files" )})
 		{
 			if( !UNIVERSAL::isa( $file, "EPrints::DataObj" ) )
@@ -487,6 +487,8 @@ Returns a list of installed files as L<EPrints::DataObj::File>.
 sub installed_files
 {
 	my( $self ) = @_;
+
+	return if !$self->is_set( "documents" );
 
 	my $install;
 	for(@{$self->value( "documents" )})
