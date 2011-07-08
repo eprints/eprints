@@ -590,7 +590,7 @@ sub serialise
 							sysread($fh, my $data, -s $fh);
 							close($fh);
 							$epdata{filesize} = length($data);
-							$epdata{data} = MIME::Base64::base64_encode( $data );
+							$epdata{data} = MIME::Base64::encode_base64( $data );
 						}
 						else
 						{
