@@ -632,8 +632,10 @@ sub sigusr2_cluck
 {
 	no warnings;
 	$SIG{'USR2'} = \&sigusr2_cluck;
-	#$SIG{__DIE__} = \&EPrints::abort; # uncomment this to help with debugging
 };
+
+# Die with stack trace if Carp is verbose
+$SIG{__DIE__} = \&Carp::croak if $Carp::Verbose;
 
 umask( 0002 );
 

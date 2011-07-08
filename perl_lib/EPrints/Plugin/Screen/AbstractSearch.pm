@@ -365,6 +365,85 @@ sub render_links
 	return $links;
 }
 
+sub render_export_links
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+
+	my $q = $repo->param( "q" );
+	return $xml->create_document_fragment if !defined $q;
+
+	my $mime_type = $self->{processor}->{export_plugin}->param( "mimetype" );
+	my $offset = $self->{processor}->{export_offset};
+	my $n = $self->{processor}->{export_n};
+
+	my $links = $xml->create_document_fragment;
+
+	my $base_url = $repo->current_url( host => 1, query => 1 );
+	my @query = $base_url->query_form;
+	foreach my $i (reverse(0 .. int($#query/2)))
+	{
+		splice(@query, $i*2, 2) if $query[$i*2] eq 'search_offset';
+	}
+	$base_url->query_form( @query );
+	$base_url->query( undef ) if !@query;
+
+	$links->appendChild( $xml->create_element( 'link',
+		rel => 'first',
+		type => $mime_type,
+		href => "$base_url",
+		) );
+	if( $offset >= $n )
+	{
+		$links->appendChild( $xml->create_text_node( "\n" ) );
+		$links->appendChild( $xml->create_element( 'link',
+			rel => 'prev',
+			type => $mime_type,
+			href => "$base_url&search_offset=".($offset-$n),
+			) );
+	}
+	if( $self->{processor}->{results}->count >= ($offset+$n) )
+	{
+		$links->appendChild( $xml->create_text_node( "\n" ) );
+		$links->appendChild( $xml->create_element( 'link',
+			rel => 'next',
+			type => $mime_type,
+			href => "$base_url&search_offset=".($offset+$n),
+			) );
+	}
+	$links->appendChild( $xml->create_text_node( "\n" ) );
+	$links->appendChild( $xml->create_element( 'opensearch:Query',
+		role => 'request',
+		searchTerms => $q,
+		startIndex => $self->{processor}->{export_offset},
+		) );
+	$links->appendChild( $xml->create_text_node( "\n" ) );
+	$links->appendChild( $xml->create_data_element( 'opensearch:itemsPerPage',
+		$self->{processor}->{export_n},
+		) );
+	$links->appendChild( $xml->create_text_node( "\n" ) );
+	$links->appendChild( $xml->create_data_element( 'opensearch:startIndex',
+		$self->{processor}->{export_offset},
+		) );
+	$links->appendChild( $xml->create_text_node( "\n" ) );
+	$links->appendChild( $xml->create_element( 'link',
+		rel => 'self',
+		type => $self->{processor}->{export_plugin}->param( "mimetype" ),
+		href => $repo->current_url( host => 1, query => 1 ),
+		) );
+	$links->appendChild( $xml->create_text_node( "\n" ) );
+	$links->appendChild( $xml->create_element( 'link',
+		rel => 'search',
+		type => 'application/opensearchdescription+xml',
+		title => $repo->phrase( "lib/searchexpression:search" ),
+		href => $repo->current_url( host => 1, path => 'cgi', 'opensearchdescription' ),
+		) );
+
+	return $links;
+}
+
 sub render_export_bar
 {
 	my( $self ) = @_;
@@ -770,7 +849,6 @@ sub wishes_to_export
 	return 0 unless $self->{processor}->{search_subscreen} eq "export";
 
 	my $format = $self->{session}->param( "output" );
-	my $n = $self->{session}->param( "n" );
 
 	my @plugins = $self->_get_export_plugins( 1 );
 		
@@ -785,9 +863,10 @@ sub wishes_to_export
 		return;
 	}
 	
-	$self->{processor}->{export_plugin} = $self->{session}->plugin( "Export::$format" );
 	$self->{processor}->{export_format} = $format;
-	$self->{processor}->{export_n} = $n;
+	$self->{processor}->{export_plugin} = $self->{session}->plugin( "Export::$format" );
+	$self->{processor}->{export_offset} = $self->{session}->param( "search_offset" ) || 0;
+	$self->{processor}->{export_n} = $self->{session}->param( "n" ) || 20;
 	
 	return 1;
 }
@@ -798,28 +877,32 @@ sub export
 	my( $self ) = @_;
 
 	my $results = $self->{processor}->{results};
+
+	my $offset = $self->{processor}->{export_offset};
+	$offset += 0;
 	my $n = $self->{processor}->{export_n};
-	if( $n && $n > 0 )
-	{
-		my $ids = $results->get_ids( 0, $n );
-		$results = EPrints::List->new(
-			session => $self->{session},
-			dataset => $results->{dataset},
-			ids => $ids );
-	}
+	$n += 0;
+
+	my $ids = $results->get_ids( $offset, $n );
+	$results = EPrints::List->new(
+		session => $self->{session},
+		dataset => $results->{dataset},
+		ids => $ids );
 
 	my $format = $self->{processor}->{export_format};
 	my $plugin = $self->{session}->plugin( "Export::" . $format );
+
+	my %arguments = map {
+		$_ => scalar($self->{session}->param( $_ ))
+	} $plugin->arguments;
+
 	$plugin->initialise_fh( *STDOUT );
-
-	my %opts = ( fh => *STDOUT );
-	foreach my $arg_id ( $plugin->arguments() )
-	{
-		my $v = $self->{session}->param( $arg_id );
-		if( $v ) { $opts{$arg_id} = $v; }
-	}
-	$results->export( $format, %opts );
-
+	$plugin->output_list(
+		list => $results,
+		fh => *STDOUT,
+		links => $self->render_export_links,
+		%arguments
+	);
 }
 
 sub export_mimetype

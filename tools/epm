@@ -24,6 +24,7 @@ Where I<command> is one of:
 	link_lib
 	list
 	uninstall
+	unpack
 
 =head1 OPTIONS
 
@@ -58,6 +59,7 @@ use Getopt::Long;
 use Pod::Usage;
 use Digest::MD5;
 use MIME::Base64;
+use Cwd;
 
 use strict;
 use warnings;
@@ -355,6 +357,54 @@ sub action_uninstall
 	if( $epm->uninstall( $handler, $force ) )
 	{
 		print "Uninstalled $name\n";
+	}
+}
+
+=item unpack I<package_path>
+
+Unpack the files contained in package_path to the current directory. This is
+equivalent to tar -xf package_path.
+
+=cut
+
+sub action_unpack
+{
+	my( $repo ) = @_;
+
+	pod2usage( 2 ) if @ARGV != 1;
+
+	my( $source ) = @ARGV;
+
+	open(my $fh, "<", $source) or die "Error reading $source: $!";
+	sysread($fh, my $xml, -s $fh);
+	close($fh);
+
+	my $epm = $repo->dataset( "epm" )->dataobj_class->new_from_xml( $repo, $xml );
+
+	foreach my $file ($epm->installed_files)
+	{
+		my $filepath = $file->value( "filename" );
+		if( $filepath =~ m#^/# || $filepath =~ m#/\.# )
+		{
+			warn "Won't unpack root-pathed or hidden file: $filepath";
+			next;
+		}
+		$filepath = 'lib/' . $filepath;
+		my( @path, $filename ) = split '/', getcwd() . '/' . $filepath;
+		for(0..($#path-1))
+		{
+			my $path = join '/', @path[0..$_];
+			EPrints->system->mkdir($path)
+				or die "mkdir $path: $!";
+		}
+		if( !$opt_force && -e $filepath )
+		{
+			die "Use --force to overwrite $filepath\n";
+		}
+		open(my $fh, ">", $filepath) or die "Error writing to $filepath: $!";
+		syswrite($fh, $file->value( "data" ));
+		close($fh);
+		print "$filepath\n" if $noise;
 	}
 }
 

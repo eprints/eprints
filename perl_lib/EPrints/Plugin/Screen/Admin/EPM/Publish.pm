@@ -37,6 +37,8 @@ sub action_cancel
 {
 	my( $self ) = @_;
 
+	$self->{processor}->{notes}->{ep_tabs_current} = "Admin::EPM::Developer";
+
 	$self->{processor}->{screenid} = "Admin::EPM";
 }
 
@@ -75,6 +77,8 @@ sub action_publish
 			uri => $self->{repository}->xml->create_data_element( "a", $uri, href => $uri )
 			) );
 	}
+
+	$self->{processor}->{notes}->{ep_tabs_current} = "Admin::EPM::Developer";
 
 	$self->{processor}->{screenid} = 'Admin::EPM';
 }

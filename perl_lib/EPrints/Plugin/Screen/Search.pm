@@ -418,7 +418,11 @@ sub from
 		my %params = map { $_ => 1 } $self->{session}->param();
 		delete $params{screen};
 		delete $params{dataset};
-		if( scalar keys %params )
+		if( EPrints::Utils::is_set( $self->{session}->param( "output" ) ) )
+		{
+			$self->{processor}->{action} = "export";
+		}
+		elsif( scalar keys %params )
 		{
 			$self->{processor}->{action} = "search";
 		}
@@ -515,7 +519,7 @@ sub from
 	{
 		my $output = $self->{session}->param( "output" );
 		my $export_plugin = $self->{session}->plugin( "Export::$output" );
-		if( $export_plugin->is_feed )
+		if( !defined($self->{session}->param( "order" )) && defined($export_plugin) && $export_plugin->is_feed )
 		{
 			# borrow the max from latest_tool (which we're replicating anyway)
 			my $limit = $self->{session}->config(
@@ -535,7 +539,7 @@ sub from
 	# do actions
 	$self->EPrints::Plugin::Screen::from;
 
-	if( $searchexp->is_blank )
+	if( $searchexp->is_blank && $self->{processor}->{action} ne "export" )
 	{
 		if( $self->{processor}->{action} eq "search" )
 		{

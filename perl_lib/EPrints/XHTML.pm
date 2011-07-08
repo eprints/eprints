@@ -659,6 +659,7 @@ Options:
  basename - prefix for tab identifiers (default = "ep_tabs")
  current - index of tab to show first (default = 0)
  expensive - array of tabs to not javascript-link
+ aliases - map tab index to alias name
 
 =cut
 
@@ -698,9 +699,14 @@ sub tabs
 	my $current = $opts{current};
 	if( defined($repo->param( $q_current )) )
 	{
-		$current = $repo->param( $q_current ) + 0;
+		$current = $repo->param( $q_current );
 	}
 	$current = 0 if !$current;
+	if( defined $aliases )
+	{
+		my %raliases = reverse %$aliases;
+		$current = exists $raliases{$current} ? $raliases{$current} : 0;
+	}
 
 	my $ul = $xml->create_element( "ul",
 		id=>$basename."_tabs",

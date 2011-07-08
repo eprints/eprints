@@ -188,20 +188,11 @@ sub action_search
 {
 	my( $self ) = @_;
 
+	$self->{processor}->{notes}->{$self->get_subtype."_q"} =
+		$self->{repository}->param($self->get_subtype."_q");
+	$self->{processor}->{notes}->{ep_tabs_current} = $self->get_subtype;
+
 	$self->{processor}->{screenid} = "Admin::EPM";
-
-}
-
-sub redirect_to_me_url
-{
-	my( $self ) = @_;
-
-	my $url = URI->new( $self->SUPER::redirect_to_me_url );
-	$url->query_form(
-		$url->query_form,
-		ref($self)."_q" => scalar($self->{repository}->param(ref($self)."_q")),
-	);
-	return "$url";
 }
 
 sub render
@@ -216,7 +207,7 @@ sub render
 
 	my $frag = $xml->create_document_fragment;
 
-	my $prefix = ref($self);
+	my $prefix = $self->get_subtype;
 	my $screen = $self->get_subtype;
 
 	$frag->appendChild( $repo->make_javascript( <<EOJ ) );
@@ -243,6 +234,7 @@ EOJ
 	my $div = $frag->appendChild( $xml->create_element( "div", class => "ep_block" ) );
 
 	my $form = $div->appendChild( $self->render_form );
+	$form->appendChild( $xhtml->hidden_field( "ep_tabs_current", $self->get_subtype ) );
 	$form->appendChild( $xhtml->input_field(
 		"${prefix}_q" => scalar($repo->param( "${prefix}_q" )),
 		onkeyup => 'js_admin_epm_available_update(event)'
@@ -255,7 +247,7 @@ EOJ
 
 	$frag->appendChild( $xml->create_data_element( "div",
 		$self->render_results,
-		id => ref($self)."_results"
+		id => $self->get_subtype."_results"
 	) );
 
 	my $ffname = $basename."_file";
@@ -299,7 +291,7 @@ sub render_results
 	EPrints::EPM::Source->map( $repo, sub {
 		my( undef, $source ) = @_;
 
-		my $epms = $source->query( scalar($repo->param( ref($self)."_q" )) );
+		my $epms = $source->query( scalar($repo->param( $self->get_subtype."_q" )) );
 		if( !defined $epms )
 		{
 			$self->{processor}->add_message( "warning", $self->html_phrase( "source_error",

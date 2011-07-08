@@ -6,13 +6,30 @@ use strict;
 
 my $repo = EPrints->new->current_repository;
 
-$repo->send_http_header( content_type => 'application/opensearchdescription+xml' );
+my $url = $repo->current_url( host => 1, path => 'cgi', 'search/simple' );
+$url .= '?q={searchTerms}&search_offset={startIndex}';
 
-binmode(STDOUT, ":utf8");
-print '<?xml version="1.0" encoding="UTF-8"?>', "\n";
+my @formats;
 
-my $url = $repo->current_url( host => 1, path => 'cgi', 'opensearch' );
-$url .= '?q={searchTerms}&startPage={startPage}';
+my $user = $repo->current_user;
+my $is_visible = "all";
+if( defined $user && ($user->value( "usertype" ) eq "admin" || $user->value( "usertype" ) eq "editor") )
+{
+	$is_visible = "staff";
+}
+
+foreach my $plugin (sort { ref($a) cmp ref($b) } $repo->get_plugins(
+	type => "Export",
+	can_accept => "list/eprint",
+	is_visible => $is_visible,
+))
+{
+	push @formats, [ 'Url', undef,
+		indexOffset => 0,
+		template => "$url&output=".URI::Escape::uri_escape( $plugin->get_subtype ),
+		type => $plugin->param( "mimetype" )
+	];
+}
 
 my $osd = $repo->xml->create_data_element(
 	'OpenSearchDescription',
@@ -20,14 +37,7 @@ my $osd = $repo->xml->create_data_element(
 		[ 'ShortName', substr($repo->phrase( 'archive_name' ),0,16) ],
 		[ 'LongName', substr($repo->phrase( 'archive_name' ),0,48) ],
 		[ 'Contact', $repo->config( 'adminemail' ) ],
-		[ 'Url', undef,
-			template => "$url&format=Atom",
-			type => 'application/atom+xml',
-		],
-		[ 'Url', undef,
-			template => "$url&format=JSON",
-			type => 'application/json',
-		],
+		@formats,
 		[ 'Developer', 'http://www.eprints.org/' ],
 		[ 'OutputEncoding', 'UTF-8' ],
 		[ 'InputEncoding', 'UTF-8' ],
@@ -35,4 +45,8 @@ my $osd = $repo->xml->create_data_element(
 	xmlns => EPrints::Const::EP_NS_OPENSEARCH
 );
 
+$repo->send_http_header( content_type => 'application/opensearchdescription+xml' );
+
+binmode(STDOUT, ":utf8");
+print '<?xml version="1.0" encoding="UTF-8"?>', "\n";
 print $repo->xml->to_string( $osd, indent => 1 );
