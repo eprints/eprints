@@ -4012,7 +4012,7 @@ sub render_input_form
 	my( $form );
 
 	$form =	$self->render_form( "post", $p{dest} );
-	if( defined $p{default_action} && $self->client() ne "LYNX" )
+	if( defined $p{default_action} )
 	{
 		my $imagesurl = $self->get_repository->get_conf( "rel_path" )."/images";
 		# This button will be the first on the page, so
