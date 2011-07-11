@@ -351,7 +351,8 @@ sub commit
 {
 	my( $self ) = @_;
 
-	EPrints->system->mkdir( $self->epm_dir );
+	EPrints->system->mkdir( $self->epm_dir )
+		or EPrints->abort( "Error creating directory ".$self->epm_dir.": $!" );
 	# give the user a hint for where to put cfg.d.s
 	EPrints->system->mkdir( $self->epm_dir . "/cfg/cfg.d" );
 
