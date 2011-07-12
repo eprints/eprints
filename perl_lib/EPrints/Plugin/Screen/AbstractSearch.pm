@@ -881,10 +881,10 @@ sub export
 	my $offset = $self->{processor}->{export_offset};
 	my $n = $self->{processor}->{export_n};
 
-	if( defined $offset || defined $n )
+	if( EPrints::Utils::is_set( $offset ) || EPrints::Utils::is_set( $n ) )
 	{
-		$offset = 0 if !defined $offset;
-		$n = $results->count if !defined $n;
+		$offset = 0 if !EPrints::Utils::is_set( $offset );
+		$n = $results->count if !EPrints::Utils::is_set( $n );
 		$offset += 0 if defined $offset;
 		$n += 0 if defined $n;
 		my $ids = $results->get_ids( $offset, $n );
