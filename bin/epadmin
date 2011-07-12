@@ -580,6 +580,14 @@ sub cleanup_cachemaps
 
 	my $repo = &repository( $repoid );
 
+	if( $force )
+	{
+		$repo->dataset( "cachemap" )->search->map(sub {
+			$_[2]->remove;
+			$repo->log( "Removed ".$_[2]->id );
+		});
+	}
+
 	my $c = $repo->database->drop_orphan_cache_tables;
 
 	if( $c == 0 )
