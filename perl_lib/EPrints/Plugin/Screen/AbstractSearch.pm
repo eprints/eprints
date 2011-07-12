@@ -865,8 +865,8 @@ sub wishes_to_export
 	
 	$self->{processor}->{export_format} = $format;
 	$self->{processor}->{export_plugin} = $self->{session}->plugin( "Export::$format" );
-	$self->{processor}->{export_offset} = $self->{session}->param( "search_offset" ) || 0;
-	$self->{processor}->{export_n} = $self->{session}->param( "n" ) || 20;
+	$self->{processor}->{export_offset} = $self->{session}->param( "search_offset" );
+	$self->{processor}->{export_n} = $self->{session}->param( "n" );
 	
 	return 1;
 }
@@ -879,15 +879,20 @@ sub export
 	my $results = $self->{processor}->{results};
 
 	my $offset = $self->{processor}->{export_offset};
-	$offset += 0;
 	my $n = $self->{processor}->{export_n};
-	$n += 0;
 
-	my $ids = $results->get_ids( $offset, $n );
-	$results = EPrints::List->new(
-		session => $self->{session},
-		dataset => $results->{dataset},
-		ids => $ids );
+	if( defined $offset || defined $n )
+	{
+		$offset = 0 if !defined $offset;
+		$n = $results->count if !defined $n;
+		$offset += 0 if defined $offset;
+		$n += 0 if defined $n;
+		my $ids = $results->get_ids( $offset, $n );
+		$results = EPrints::List->new(
+			session => $self->{session},
+			dataset => $results->{dataset},
+			ids => $ids );
+	}
 
 	my $format = $self->{processor}->{export_format};
 	my $plugin = $self->{session}->plugin( "Export::" . $format );
