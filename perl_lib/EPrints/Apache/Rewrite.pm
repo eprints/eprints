@@ -364,6 +364,8 @@ sub handler
 		my $dataset = $repository->get_dataset( $datasetid );
 		return NOT_FOUND if !defined $dataset;
 
+		($id, my @relations) = split /\./, $id;
+
 		my $dataobj = $dataset->dataobj( $id );
 		return NOT_FOUND if !defined $dataobj;
 
@@ -375,6 +377,7 @@ sub handler
 
 		$r->pnotes( dataset => $dataset );
 		$r->pnotes( dataobj => $dataobj );
+		$r->pnotes( relations => \@relations );
 		$r->pnotes( uri => $uri );
 
 		my( $rc, $plugin ) =

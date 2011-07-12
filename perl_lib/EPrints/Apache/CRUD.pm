@@ -528,6 +528,17 @@ ANCESTORS: foreach my $anc_subject_id ( @{$dataobj->get_value( "ancestors" )} )
 		{
 			$url = $dataobj->get_control_url;
 		}
+		my @relations = @{$r->pnotes( "relations" ) || []};
+		if( $dataset->base_id eq "document" && @relations )
+		{
+			for(@relations)
+			{
+				s/^has(.+)$/is$1Of/;
+				$dataobj = $dataobj->search_related( $_ )->item( 0 );
+				return HTTP_NOT_FOUND if !defined $dataobj;
+			}
+			$url = $dataobj->get_url;
+		}
 		return EPrints::Apache::Rewrite::redir_see_other( $r, $url );
 	}
 
