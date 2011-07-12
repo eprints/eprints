@@ -50,6 +50,12 @@ sub joins
 	my $prefix = $opts{prefix};
 	$prefix = "" if !defined $prefix;
 
+	my $field = $self->{field};
+	if( !$field->{dataset}->indexable )
+	{
+		EPrints->abort( "Can not perform index query on non-indexed dataset for ".$field->{dataset}->base_id.".".$field->name );
+	}
+
 	my $db = $opts{session}->get_database;
 	my $table = $self->table;
 	my $key_field = $self->dataset->get_key_field;
