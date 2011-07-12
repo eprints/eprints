@@ -98,7 +98,7 @@ sub new
 		foreach my $plugin (@loaded)
 		{
 			my $pluginid = $plugin->get_id();
-			if( !defined $conf->{$pluginid}{params}{disable} )
+			if( !defined $plugin->param( "disable" ) )
 			{
 				$conf->{$pluginid}{params}{disable} = 1;
 			}

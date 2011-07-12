@@ -535,7 +535,7 @@ sub control_screen
 	$controller = $self->repository->plugin( "Screen::$controller",
 			%params,
 		);
-	$controller = $self->repository->plugin( "Screen::EPM",
+	$controller = $self->repository->plugin( "Screen::EPMC",
 			%params,
 		) if !defined $controller;
 
