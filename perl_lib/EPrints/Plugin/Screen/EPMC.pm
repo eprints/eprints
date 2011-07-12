@@ -12,7 +12,7 @@ Configuration is the default view for this screen.
 
 package EPrints::Plugin::Screen::EPMC;
 
-use EPrints::Plugin::Screen::EPrint;
+use EPrints::Plugin::Screen;
 
 @ISA = ( 'EPrints::Plugin::Screen' );
 
@@ -25,6 +25,7 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{actions} = [qw( enable disable )];
+	$self->{disable} = 0; # always enabled, even in lib/plugins
 
 	return $self;
 }
@@ -156,6 +157,13 @@ sub action_disable
 	$epm->disable( $self->{processor} );
 
 	$self->reload_config if !$skip_reload;
+}
+
+sub render_messages
+{
+	my( $self ) = @_;
+
+	return $self->{repository}->xml->create_document_fragment;
 }
 
 sub render_action_link

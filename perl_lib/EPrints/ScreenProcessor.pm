@@ -29,6 +29,7 @@ sub new
 	$self{after_messages} = [];
 	$self{before_messages} = [];
 
+	$self{session} = ($self{repository} ||= $self{session});
 	if( !defined $self{session} ) 
 	{
 		EPrints::abort( "session not passed to EPrints::ScreenProcessor->process" );

@@ -1544,20 +1544,26 @@ sub to_sax
 	my $dataset = $self->{dataset};
 	my $name = $dataset->base_id;
 
+	my %Attributes;
+
+	my $uri = $self->uri;
+	if( defined $uri )
+	{
+		$Attributes{'{}id'} = {
+				Prefix => '',
+				LocalName => 'id',
+				Name => 'id',
+				NamespaceURI => '',
+				Value => $uri,
+			};
+	}
+
 	$handler->start_element({
 		Prefix => '',
 		LocalName => $name,
 		Name => $name,
 		NamespaceURI => EPrints::Const::EP_NS_DATA,
-		Attributes => {
-			('{}id') => {
-				Prefix => '',
-				LocalName => 'id',
-				Name => 'id',
-				NamespaceURI => '',
-				Value => $self->uri,
-			},
-		},
+		Attributes => \%Attributes,
 	});
 
 	foreach my $field ($dataset->fields)

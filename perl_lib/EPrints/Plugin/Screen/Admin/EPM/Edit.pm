@@ -46,7 +46,7 @@ sub action_save
 {
 	my( $self ) = @_;
 
-	$self->{processor}->{notes}->{ep_tabs_current} = "Screen::Admin::EPM::Developer";
+	$self->{processor}->{notes}->{ep_tabs_current} = "Admin::EPM::Developer";
 
 	$self->SUPER::action_save;
 }

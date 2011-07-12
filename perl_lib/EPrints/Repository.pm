@@ -881,6 +881,7 @@ sub _load_citation_dir
 	# for each dataset dir
 	foreach my $dsid ( @dirs )
 	{
+		next if !exists $self->{datasets}->{$dsid};
 		opendir( $dh, "$dir/$dsid" );
 		while( my $fn = readdir( $dh ) )
 		{

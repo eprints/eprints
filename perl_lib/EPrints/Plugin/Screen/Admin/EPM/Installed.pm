@@ -220,6 +220,8 @@ sub render
 				actions => $form,
 			} },
 		) );
+
+		$frag->appendChild( $controller->render_messages );
 	});
 
 	return $frag;
