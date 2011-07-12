@@ -526,30 +526,28 @@ sub serialise
 	push @parts, $self->{satisfy_all}?1:0;
 	push @parts, $self->{custom_order};
 	push @parts, $self->{dataset}->id();
-	# This inserts an "-" field which we use to spot the join between
-	# the properties and the fields, so in a pinch we can add a new 
-	# property in a later version without breaking when we upgrade.
-	push @parts, "-";
-	my $search_field;
-	my @filters = ();
+	my( @fields, @filters );
 	foreach my $sf_id (sort @{$self->{searchfields}})
 	{
-		my $search_field = $self->get_searchfield( $sf_id );
-		my $fieldstring = $search_field->serialise();
-		next unless( defined $fieldstring );
-                if( $self->{filtersmap}->{$sf_id} )
+		my $fieldstring = $self->get_searchfield( $sf_id )->serialise;
+		next if !defined $fieldstring;
+		if( $self->{filtersmap}->{$sf_id} )
 		{
 			push @filters, $fieldstring;
 		}
 		else
 		{
-			push @parts, $fieldstring;
+			push @fields, $fieldstring;
 		}
 	}
-	if( scalar @filters )
-	{
-		push @parts, "-", @filters;
-	}
+	# This inserts an "-" field which we use to spot the join between
+	# the properties and the fields, so in a pinch we can add a new 
+	# property in a later version without breaking when we upgrade.
+	push @parts,
+		"-",
+		(@fields ? @fields : ''),
+		"-",
+		(@filters ? @filters : '');
 	my @escapedparts;
 	foreach( @parts )
 	{
