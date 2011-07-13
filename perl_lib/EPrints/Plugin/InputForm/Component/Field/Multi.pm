@@ -79,8 +79,6 @@ sub validate
 		push @problems, $self->{dataobj}->validate_field( $field->{name} );
 	}
 	
-	$self->{problems} = \@problems;
-	
 	return @problems;
 }
 
