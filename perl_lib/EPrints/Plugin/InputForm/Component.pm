@@ -48,6 +48,8 @@ sub new
 {
 	my( $class, %opts ) = @_;
 
+	$opts{problems} = [] if !exists $opts{problems};
+
 	my $self = $class->SUPER::new( %opts );
 
 	$self->{name} = "Base component plugin: This should have been subclassed";
@@ -65,7 +67,6 @@ sub new
 		$self->{dataset} = $opts{dataobj}->get_dataset;
 		$self->parse_config( $opts{xml_config} );
 	}
-	$self->{problems} = [];	
 
 	return $self;
 }
@@ -95,6 +96,8 @@ Parses the supplied DOM object and populates $component->{config}
 sub parse_config
 {
 	my( $self, $config_dom ) = @_;
+
+	return 1;
 }
 
 =pod
@@ -232,10 +235,11 @@ sub get_internal_button
 	return $internal_button;
 }
 
-sub get_problems
+sub problems
 {
 	my( $self ) = @_;
-	return $self->{problems};
+
+	return @{$self->{problems}};
 }
 
 =pod
@@ -340,6 +344,8 @@ Returns the DOM for the content of this component.
 sub render_content
 {
 	my( $self, $surround ) = @_;
+
+	return $self->{repository}->xml->create_document_fragment;
 }
 
 =pod
@@ -384,30 +390,33 @@ sub xml_to_metafield
 {
 	my( $self, $xml, $dataset ) = @_;
 
+	my $repo = $self->{repository};
+
 	if( !defined $dataset )
 	{
 		$dataset = $self->{dataset};
 	}
 
-	# Do a few validation checks.
-	if( $xml->nodeName ne "field" )
-	{
-		EPrints::abort(
-			"xml_to_metafield config error: Not a field node" );
-	}
 	my $ref = $xml->getAttribute( "ref" );	
 	if( !EPrints::Utils::is_set( $ref ) )
 	{
-		EPrints::abort(
-			"xml_to_metafield config error: No field ref attribute" );
+		# xml_to_metafield config error: No field ref attribute
+		push @{$self->{problems}}, $repo->html_phrase( "Plugin/InputForm/Component:error_missing_field_ref",
+			xml => $repo->xml->create_text_node( $repo->xml->to_string( $xml ) ),
+		);
+		return;
 	}
 
 	my $field = $dataset->get_field( $ref );
 	
 	if( !defined $field )
 	{
-		EPrints::abort(
-			"xml_to_metafield config error: Invalid field ref attribute($ref)" );
+		# xml_to_metafield config error: Invalid field ref attribute($ref)
+		push @{$self->{problems}}, $repo->html_phrase( "Plugin/InputForm/Component:error_invalid_field_ref",
+			ref => $repo->xml->create_text_node( $ref ),
+			xml => $repo->xml->create_text_node( $repo->xml->to_string( $xml ) ),
+		);
+		return;
 	}
 
 	my %props;
@@ -444,13 +453,17 @@ sub xml_to_metafield
 		{
 			if( !$field->isa( "EPrints::MetaField::Compound" ) )
 			{
-				EPrints->abort( "xml_to_metafield config error: can only create a nested field definition for Compound fields (".$field->name." is not of type compound)" ); 
+				push @{$self->{problems}}, $self->{repository}->xml->create_text_node(
+					"xml_to_metafield config error: can only create a nested field definition for Compound fields (".$field->name." is not of type compound)"
+				);
+				return;
 			}
 			my $c = $child->cloneNode( 1 );
 			$c->setName( "field" );
 			my $sub_name = $c->getAttribute( "ref" );
 			$c->setAttribute( "ref", $field->name . "_" . $sub_name );
 			my $sub_field = $self->xml_to_metafield( $c, $dataset );
+			return if !defined $sub_field;
 			$sub_field = $sub_field->clone;
 			$props{$sub_field} = $sub_field;
 			EPrints::XML::dispose( $c );

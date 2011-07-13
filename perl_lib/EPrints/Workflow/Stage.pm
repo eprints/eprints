@@ -97,10 +97,22 @@ sub _read_components
 			my $plugin = $self->{session}->plugin( $pluginid, %params );
 			if( !defined $plugin )
 			{
-				$params{placeholding} = $type;
-				$plugin = $self->{session}->plugin( "InputForm::Component::PlaceHolder", %params );
+				$plugin = $self->{session}->plugin( "InputForm::Component::Error",
+					%params,
+					problems => [$self->{session}->html_phrase( "Plugin/InputForm/Component:error_invalid_component",
+						placeholding => $self->{session}->xml->create_text_node( $type ),
+						xml => $self->{session}->xml->create_text_node( $self->{session}->xml->to_string( $params{xml_config} ) ),
+					)],
+				);
 			}
-			
+			elsif( $plugin->problems )
+			{
+				$plugin = $self->{session}->plugin( "InputForm::Component::Error",
+					%params,
+					problems => [$plugin->problems],
+				);
+			}
+
 			if ($self->{workflow}->{processor}->{required_fields_only}) {
 				if ($plugin->is_required()) {
 					push @{$self->{components}}, $plugin;

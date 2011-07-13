@@ -3128,11 +3128,13 @@ Each file inside this archive will be created as an <b>individual</b> document i
     <epp:phrase id="Plugin/InputForm/Component/Field/Subject:remove">Remove</epp:phrase>
 	
 
-	<!-- PlaceHolder component -->
+	<!-- Component errors -->
 	
-	<epp:phrase id="Plugin/InputForm/Component/PlaceHolder:title">Problem loading component: <epc:pin name="placeholding"/></epp:phrase>
-	<epp:phrase id="Plugin/InputForm/Component/PlaceHolder:help">Help placeholder for <epc:pin name="placeholding"/> component</epp:phrase>
-	<epp:phrase id="Plugin/InputForm/Component/PlaceHolder:content">This is a placeholder for the <epc:pin name="placeholding"/> component</epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component/Error:title">Error in <epc:pin name="filename" /></epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component:error_invalid_component">Unknown component type <em><epc:pin name="placeholding"/></em> in <pre><epc:pin name="xml" /></pre></epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component/Field:error_missing_field">Field component is missing field element in <pre><epc:pin name="xml"/></pre></epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component:error_missing_field_ref">Missing <em>ref</em> attribute in <pre><epc:pin name="xml" /></pre></epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component:error_invalid_field_ref">Unknown field reference <em><epc:pin name="ref" /></em> in <pre><epc:pin name="xml" /></pre></epp:phrase>
 
 	<!-- Surround -->
 

@@ -33,7 +33,6 @@ sub render
 	my( $self, $component ) = @_;
 
 	my $comp_name = $component->get_name();
-	my @problems = @{$component->get_problems()};
 
 	my $surround = $self->{session}->make_element( "div",
 		class => "ep_sr_component",
@@ -69,18 +68,6 @@ sub render
 	if( $component->has_help && !$component->{no_help} )
 	{
 		$self->_render_help( $component, $title_bar, $content_inner );
-	}
-
-	# Problem rendering
-
-	if( scalar @problems > 0 )
-	{
-		my $problem_div = $self->{session}->make_element( "div", class => "wf_problems" );
-		foreach my $problem ( @problems )
-		{
-			$problem_div->appendChild( $problem );
-		}
-		$surround->appendChild( $problem_div );
 	}
 
 	my $imagesurl = $self->{session}->get_repository->get_conf( "rel_path" );
