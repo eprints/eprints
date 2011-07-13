@@ -71,7 +71,9 @@ sub get_basic_input_elements
 {
 	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
 
-	my @classes = ( join('_', 'ep', $self->dataset->base_id, $self->name) );
+	my @classes = defined $self->{dataset} ?
+		join('_', 'ep', $self->dataset->base_id, $self->name) :
+		();
 	my $textarea = $session->make_element(
 		"textarea",
 		name => $basename,
