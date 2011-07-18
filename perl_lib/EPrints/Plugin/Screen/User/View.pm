@@ -41,11 +41,14 @@ sub from
 {
 	my( $self ) = @_;
 
+	my $userid = $self->{session}->param( "userid" );
+	$userid = $self->{session}->current_user->id if !defined $userid;
+
 	my $url = $self->{session}->current_url( path => "cgi", "users/home" );
 	$url->query_form(
 		screen => 'Workflow::View',
 		dataset => 'user',
-		dataobj => $self->{session}->current_user->id
+		dataobj => $userid,
 	);
 
 	$self->{session}->redirect( $url );
