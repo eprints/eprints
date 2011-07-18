@@ -39,7 +39,19 @@ sub action_register
 
 	my $item = $processor->{item};
 
-	my $email = $item->value( "newemail" );
+	my $email;
+	if( $item->is_set( "newemail" ) )
+	{
+		$email = $item->value( "newemail" );
+
+		# registering, so don't send a "new email address" email
+		$item->set_value( "email", $email );
+		$item->set_value( "newemail", undef );
+	}
+	else
+	{
+		$email = $item->value( "email" );
+	}
 
 	if( $processor->{min} )
 	{
@@ -75,10 +87,7 @@ sub action_register
 		return;
 	}
 
-	my $user_data = $item->get_data;
-	$user_data->{email} = delete $user_data->{newemail};
-
-	my $user = $self->register_user( $user_data );
+	my $user = $self->register_user( $item->get_data );
 
 	$processor->{user} = $user;
 
