@@ -1193,14 +1193,18 @@ sub human_filesize
 my %REQUIRED_CACHE;
 sub require_if_exists
 {
-	my( $module ) = @_;
+	my( $module, @params ) = @_;
 
 	# this is very slightly faster than just calling eval-require, because
 	# perl doesn't have to build the eval environment
 	if( !exists $REQUIRED_CACHE{$module} )
 	{
 		local $SIG{__DIE__};
-		$REQUIRED_CACHE{$module} = eval "require $module";
+		$REQUIRED_CACHE{$module} = @params ?
+		# require_if_exists( "Foo::Bar", "1.2" )
+			eval "use $module @params; 1" :
+		# require_if_exists( "Foo::Bar" )
+			eval "require $module";
 	}
 
 	return $REQUIRED_CACHE{$module};

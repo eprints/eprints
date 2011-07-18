@@ -453,6 +453,40 @@ sub quotemeta
 	return CORE::quotemeta($path);
 }
 
+=item $tmpfile = $sys->capture_stderr()
+
+Captures STDERR output to $tmpfile.
+
+=cut
+
+sub capture_stderr
+{
+	my( $self ) = @_;
+
+	no warnings; # stop perl moaning about OLD_STDERR
+	my $tmpfile = File::Temp->new;
+
+	open(OLD_STDERR, ">&STDERR") or die "Error saving STDERR: $!";
+	open(STDERR, ">", $tmpfile) or die "Error redirecting STDERR: $!";
+
+	return $tmpfile;
+}
+
+=item $sys->restore_stderr( $tmpfile )
+
+Restores STDERR after capturing.
+
+=cut
+
+sub restore_stderr
+{
+	my( $self, $tmpfile ) = @_;
+
+	open(STDERR, ">&OLD_STDERR") or die "Error restoring STDERR: $!";
+
+	seek($tmpfile, 0, 0), sysseek($tmpfile, 0, 0) if defined $tmpfile;
+}
+
 1;
 
 =head1 COPYRIGHT
