@@ -43,6 +43,8 @@ sub new
 		$self->{post_bulk_import_screen} ||= "Items";
 	}
 
+	$self->{show_stderr} = 1;
+
 	return $self;
 }
 
@@ -218,6 +220,13 @@ sub run_import
 	my $dataset = $self->{processor}->{dataset};
 	my $user = $self->{processor}->{user};
 	my $plugin = $self->{processor}->{plugin};
+	my $show_stderr = $session->config(
+		"plugins",
+		"Screen::Import",
+		"params",
+		"show_stderr"
+		);
+	$show_stderr = $self->{show_stderr} if !defined $show_stderr;
 
 	$self->{processor}->{count} = 0;
 
@@ -245,16 +254,25 @@ sub run_import
 			user=>$user,
 		);
 	};
+
+	EPrints->system->restore_stderr( $err_file );
+
 	if( $@ )
 	{
-		push @problems, "Unhandled exception in ".$plugin->{id}.": $@";
+		if( $show_stderr )
+		{
+			push @problems, "Unhandled exception in ".$plugin->{id}.": $@";
+		}
+		else
+		{
+			$session->log( $@ );
+			push @problems, "The import plugin failed with an unknown error";
+		}
 	}
 	elsif( !defined $list )
 	{
 		push @problems, "Expected EPrints::List";
 	}
-
-	EPrints->system->restore_stderr( $err_file );
 
 	my $count = $self->{processor}->{count};
 
@@ -262,7 +280,7 @@ sub run_import
 	sysread($err_file, $err, $MAX_ERR_LEN);
 	$err =~ s/\n\n+/\n/g;
 
-	if( length($err) )
+	if( length($err) && $show_stderr )
 	{
 		push @problems, "Unhandled warning in ".$plugin->{id}.": $err";
 	}
