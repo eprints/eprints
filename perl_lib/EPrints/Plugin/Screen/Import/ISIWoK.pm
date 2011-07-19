@@ -251,7 +251,7 @@ sub render_results
 			my( undef, $eprint, undef, $n ) = @_;
 			my @dupes = $self->find_duplicate( $eprint );
 			my $row = $eprint->render_citation( "result",
-				n => $xml->create_text_node( $n ),
+				n => [$n, "INTEGER"],
 			);
 			my( $tr ) = $row->getElementsByTagName( "tr" );
 			my $td = $tr->appendChild( $xml->create_element( "td" ) );
