@@ -23,7 +23,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{actions} = [qw/ import_from test import /];
+	$self->{actions} = [qw/ import_from test_data import_data test_upload import_upload /];
 
 #	$self->{appears} = [
 #		{
@@ -43,6 +43,8 @@ sub new
 		$self->{post_bulk_import_screen} ||= "Items";
 	}
 
+	$self->{show_stderr} = 1;
+
 	return $self;
 }
 
@@ -52,7 +54,7 @@ sub properties_from
 	
 	$self->SUPER::properties_from;
 
-	my $plugin_id = $self->{session}->param( "plugin_id" );
+	my $plugin_id = $self->{session}->param( "format" );
 
 	# dataset to import into
 	$self->{processor}->{dataset} = $self->{session}->get_repository->get_dataset( "inbox" );
@@ -88,61 +90,90 @@ sub can_be_viewed
 	return $self->allow( "create_eprint" );
 }
 
-sub allow_import_from
-{
-	my( $self ) = @_;
-	return $self->can_be_viewed;
-}
-
-sub allow_test
-{
-	my( $self ) = @_;
-	return $self->can_be_viewed;
-}
-
-sub allow_import
-{
-	my( $self ) = @_;
-	return $self->can_be_viewed;
-}
+sub allow_import_from { shift->can_be_viewed }
+sub allow_test_data { shift->can_be_viewed }
+sub allow_import_data { shift->can_be_viewed }
+sub allow_test_upload { shift->can_be_viewed }
+sub allow_import_upload { shift->can_be_viewed }
 
 sub action_import_from
 {
 	my( $self ) = @_;
+
+	my $plugin = $self->{processor}->{plugin};
+	
+	my $screen = $plugin->screen;
+	if( defined $screen )
+	{
+		$self->{processor}->{screenid} = $screen->get_subtype;
+	}
 }
 
-sub action_test
+sub action_test_data
 {
 	my ( $self ) = @_;
 
-	my $tmp_file = $self->_make_tmp_file;
-	return if !defined $tmp_file;
+	my $tmpfile = File::Temp->new;
+	syswrite($tmpfile, scalar($self->{repository}->param( "data" )));
+	sysseek($tmpfile, 0, 0);
 
-	$self->_import( 1, 0, $tmp_file ); # dry run with messages
+	my $list = $self->run_import( 1, 0, $tmpfile ); # dry run with messages
+	$self->{processor}->{results} = $list;
 }
 
-sub action_import
+sub action_test_upload
+{
+	my ( $self ) = @_;
+
+	my $tmpfile = $self->{repository}->get_query->upload( "file" );
+	return if !defined $tmpfile;
+
+	my $list = $self->run_import( 1, 0, $tmpfile ); # dry run with messages
+	$self->{processor}->{results} = $list;
+}
+
+sub action_import_data
 {
 	my( $self ) = @_;
 
-	my $processor = $self->{processor};
+	my $tmpfile = File::Temp->new;
+	syswrite($tmpfile, scalar($self->{repository}->param( "data" )));
+	sysseek($tmpfile, 0, 0);
 
-	my $tmp_file = $self->_make_tmp_file;
-	return if !defined $tmp_file;
-
-	return unless $self->_import( 1, 1, $tmp_file ); # quiet dry run
-	my $list = $self->_import( 0, 0, $tmp_file ); # real run with messages
-
+	my $list = $self->run_import( 0, 0, $tmpfile ); # real run with messages
 	return if !defined $list;
+
+	$self->{processor}->{results} = $list;
+
+	$self->post_import( $list );
+}
+
+sub action_import_upload
+{
+	my( $self ) = @_;
+
+	my $tmpfile = $self->{repository}->get_query->upload( "file" );
+	return if !defined $tmpfile;
+
+	my $list = $self->run_import( 0, 0, $tmpfile ); # real run with messages
+	return if !defined $list;
+
+	$self->{processor}->{results} = $list;
+
+	$self->post_import( $list );
+}
+
+sub post_import
+{
+	my( $self, $list ) = @_;
+
+	my $processor = $self->{processor};
 
 	my $n = $list->count;
 
 	if( $n == 1 )
 	{
 		my( $eprint ) = $list->get_records( 0, 1 );
-		# remove the bulk import object
-		$eprint->set_value( "importid", undef );
-		$eprint->commit;
 		# add in eprint/eprintid for backwards compatibility
 		$processor->{dataobj} = $processor->{eprint} = $eprint;
 		$processor->{dataobj_id} = $processor->{eprintid} = $eprint->get_id;
@@ -154,77 +185,32 @@ sub action_import
 	}
 }
 
-sub _make_tmp_file
+sub epdata_to_dataobj
+{
+	my( $self, $epdata, %opts ) = @_;
+
+	$self->{processor}->{count}++;
+			
+	my $dataset = $opts{dataset};
+	if( $dataset->base_id eq "eprint" )
+	{
+		$epdata->{userid} = $self->{repository}->current_user->id;
+		$epdata->{eprint_status} = "inbox";
+	}	
+
+	return undef if $opts{parse_only};
+
+	return $dataset->create_dataobj( $epdata );
+}
+
+sub arguments
 {
 	my( $self ) = @_;
 
-	my $query = $self->{session}->get_query;
-	my $tmp_file;
-	my $import_fh;
-	my $import_data;
-
-	my $filled_in = 0;
-	for(qw( import_filename bulk_import_filename ))
-	{
-		if( EPrints::Utils::is_set( $query->param( $_ ) ) )
-		{
-			$filled_in++;
-			$import_fh = $query->upload( $_ );
-		}
-	}
-
-	for(qw( import_data bulk_import_data import_uri bulk_import_uri ))
-	{
-		if( EPrints::Utils::is_set( $query->param( $_ ) ) )
-		{
-			$filled_in++;
-			$import_data = $query->param( $_ );
-		}
-	}
-
-	# nothing supplied
-	if( $filled_in == 0 )
-	{
-		$self->{processor}->add_message( "error", $self->html_phrase( "nothing_to_import" ) );
-		return undef;
-	}
-	# more than one thing filled in?!
-	elsif( $filled_in > 1 )
-	{
-		$self->{processor}->add_message( "error", $self->html_phrase( "multiple_inputs" ) );
-		return undef;
-	}
-
-	if( defined $import_fh )
-	{
-		# WARNING! CGI creates a "Fh" file object around the uploaded file
-		# handle which does not support read() etc. We'll get around this by
-		# holding the object open and getting the glob (file handle) from the
-		# object.
-		$self->{$import_fh} = $import_fh;
-		$tmp_file = *$import_fh;
-	}
-	else
-	{
-		# Write import records to temp file
-		$tmp_file = File::Temp->new( UNLINK => 1 );
-		$tmp_file->autoflush;
-
-		# Write a Byte Order Mark for utf-8 if the plugin is a TextFile type,
-		# which will cause utf-8 to be read correctly
-		my $plugin = $self->{processor}->{plugin};
-		if( $plugin->isa( "EPrints::Plugin::Import::TextFile" ) )
-		{
-			binmode($tmp_file);
-			print $tmp_file pack("CCC", 0xef, 0xbb, 0xbf);
-		}
-		print $tmp_file $import_data;
-	}
-
-	return $tmp_file;
+	return ();
 }
 
-sub _import
+sub run_import
 {
 	my( $self, $dryrun, $quiet, $tmp_file ) = @_;
 
@@ -234,71 +220,67 @@ sub _import
 	my $dataset = $self->{processor}->{dataset};
 	my $user = $self->{processor}->{user};
 	my $plugin = $self->{processor}->{plugin};
+	my $show_stderr = $session->config(
+		"plugins",
+		"Screen::Import",
+		"params",
+		"show_stderr"
+		);
+	$show_stderr = $self->{show_stderr} if !defined $show_stderr;
 
-	my $count = 0;
+	$self->{processor}->{count} = 0;
 
 	$plugin->{parse_only} = $dryrun;
 	$plugin->set_handler( EPrints::CLIProcessor->new(
 		message => sub { $quiet && $self->{processor}->add_message( @_ ) },
 		epdata_to_dataobj => sub {
-			my( $epdata, %opts ) = @_;
-
-			$count++;
-
-			return if $dryrun;
-
-			my $dataset = $opts{dataset};
-			if( $dataset->base_id eq "eprint" )
-			{
-				$epdata->{userid} = $user->id;
-				$epdata->{eprint_status} = "inbox";
-			}	
-
-			return $dataset->create_dataobj( $epdata );
+			return $self->epdata_to_dataobj(
+				@_,
+				parse_only => $dryrun,
+			);
 		},
 	) );
 
-	my $err_file = File::Temp->new(
-		UNLINK => 1
-	);
-
-	# We'll capture anything from STDERR that an import library may
-	# spew out
-	{
-	# Perl complains about OLD_STDERR being used only once with warnings
-	no warnings;
-	open(OLD_STDERR, ">&STDERR") or die "Failed to save STDERR";
-	}
-	open(STDERR, ">$err_file") or die "Failed to redirect STDERR";
+	my $err_file = EPrints->system->capture_stderr();
 
 	my @problems;
 
 	# Don't let an import plugin die() on us
 	my $list = eval {
 		$plugin->input_fh(
+			$self->arguments,
 			dataset=>$dataset,
 			fh=>$tmp_file,
 			user=>$user,
 		);
 	};
-	push @problems, "Unhandled exception in ".$plugin->{id}.": $@" if $@;
-	push @problems, "Expected EPrints::List" if !defined $list;
 
-	open(STDERR,">&OLD_STDERR") or die "Failed to restore STDERR";
+	EPrints->system->restore_stderr( $err_file );
 
-	seek( $err_file, 0, SEEK_SET );
-
-	my $err = "";
-
-	while(<$err_file>)
+	if( $@ )
 	{
-		$_ =~ s/\s+$//;
-		next unless length($_);
-		$err .= "$_\n";
-		last if length($err) > $MAX_ERR_LEN;
+		if( $show_stderr )
+		{
+			push @problems, "Unhandled exception in ".$plugin->{id}.": $@";
+		}
+		else
+		{
+			$session->log( $@ );
+			push @problems, "The import plugin failed with an unknown error";
+		}
+	}
+	elsif( !defined $list )
+	{
+		push @problems, "Expected EPrints::List";
 	}
 
-	if( length($err) )
+	my $count = $self->{processor}->{count};
+
+	my $err;
+	sysread($err_file, $err, $MAX_ERR_LEN);
+	$err =~ s/\n\n+/\n/g;
+
+	if( length($err) && $show_stderr )
 	{
 		push @problems, "Unhandled warning in ".$plugin->{id}.": $err";
 	}
@@ -319,14 +301,14 @@ sub _import
 	{
 		if( $ok )
 		{
-			$self->{processor}->add_message( "message", $self->html_phrase(
-				"test_completed", 
+			$self->{processor}->add_message( "message", $session->html_phrase(
+				"Plugin/Screen/Import:test_completed", 
 				count => $session->make_text( $count ) ) ) unless $quiet;
 		}
 		else
 		{
-			$self->{processor}->add_message( "warning", $self->html_phrase( 
-				"test_failed", 
+			$self->{processor}->add_message( "warning", $session->html_phrase( 
+				"Plugin/Screen/Import:test_failed", 
 				count => $session->make_text( $count ) ) );
 		}
 	}
@@ -334,14 +316,14 @@ sub _import
 	{
 		if( $ok )
 		{
-			$self->{processor}->add_message( "message", $self->html_phrase( 
-				"import_completed", 
+			$self->{processor}->add_message( "message", $session->html_phrase( 
+				"Plugin/Screen/Import:import_completed", 
 				count => $session->make_text( $count ) ) );
 		}
 		else
 		{
-			$self->{processor}->add_message( "warning", $self->html_phrase( 
-				"import_failed", 
+			$self->{processor}->add_message( "warning", $session->html_phrase( 
+				"Plugin/Screen/Import:import_failed", 
 				count => $session->make_text( $count ) ) );
 		}
 	}
@@ -355,61 +337,8 @@ sub render_title
 {
 	my( $self ) = @_;
 
-	return $self->html_phrase( "title",
-		input => $self->{session}->make_text( $self->{processor}->{plugin_id} ) );
-}
-
-sub _render_input_data_tab
-{
-	my( $self, $prefix, $plugin ) = @_;
-
-	my $session = $self->{session};
-
-	my $value;
-	my $set = 0;
-
-	my $textarea = $session->make_element(
-		"textarea",
-		name => $prefix."import_data",
-		rows => 10,
-		cols => 50,
-		wrap => "virtual" );
-	$value = $session->param( $prefix."import_data" );
-	if( EPrints::Utils::is_set($value) )
-	{
-		$set = 1;
-		$textarea->appendChild( $session->make_text( $value ) );
-	}
-
-	$value = $session->param( $prefix."import_uri" );
-	my $inputuri = $session->make_element(
-		"input",
-		type => "text",
-		name => $prefix."import_uri",
-		value => $value );
-	$set = 1 if EPrints::Utils::is_set( $value );
-
-	my $fileupload = $session->render_upload_field( $prefix."import_filename" );
-
-	my $phrase_id = $plugin->html_phrase_id( $prefix."input:form" );
-	if( !$session->get_lang->has_phrase( $phrase_id ) )
-	{
-		$phrase_id = $self->html_phrase_id( $prefix."input:form" );
-	}
-
-	my $content = $session->html_phrase(
-		$phrase_id,
-		$prefix.input_text_area => $textarea,
-		$prefix.input_uri => $inputuri,
-		$prefix.input_file_upload => $fileupload,
-	);
-
-	return {
-		id => $prefix."input_tab",
-		title => $self->html_phrase( $prefix."input:title" ),
-		content => $content,
-		set => $set,
-	};
+	return $self->{session}->html_phrase( "Plugin/Screen/Import:title",
+		input => $self->{processor}->{plugin}->render_name );
 }
 
 sub render
@@ -419,78 +348,68 @@ sub render
 	my $session = $self->{session};
 	my $plugin = $self->{processor}->{plugin};
 
-	my $page = $session->make_doc_fragment;
+	my @labels;
+	my @panels;
 
-	# Preamble
-	my $imagesurl = $session->config( "rel_path" )."/style/images";
+	push @labels, $self->html_phrase( "data" );
+	push @panels, $self->render_import_form;
 
-	my $box = $session->make_element( "div", style=>"text-align: left" );
-	$page->appendChild( $box );
-	$box->appendChild( EPrints::Box::render( 
- 		session => $session,
-		id => "ep_review_instructions",
-		title => $session->html_phrase( "Plugin/Screen/Items:help_title" ),
-		content => $self->html_phrase( "intro" ),
-		collapsed => 1,
-		show_icon_url => "$imagesurl/help.gif",
+	push @labels, $self->html_phrase( "upload" );
+	push @panels, $self->render_upload_form;
+
+	return $session->xhtml->tabs( \@labels, \@panels );
+}
+
+sub render_import_form
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $div = $xml->create_element( "div", class => "ep_block" );
+
+	my $form = $div->appendChild( $self->{processor}->screen->render_form );
+	$form->appendChild(EPrints::MetaField->new(
+			name => "data",
+			type => "longtext",
+			repository => $repo,
+		)->render_input_field(
+			$repo,
+			scalar($repo->param( "data" )),
+		) );
+	$form->appendChild( $repo->render_action_buttons(
+		test_data => $repo->phrase( "Plugin/Screen/Import:action_test_data" ),
+		import_data => $repo->phrase( "Plugin/Screen/Import:action_import_data" ),
+		_order => [qw( test_data import_data )],
 	) );
 
-	my $form = $session->render_form( "post" );
-	$page->appendChild( $form );
-	# add hidden values
-	$form->appendChild( $session->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
-	$form->appendChild( $session->render_hidden_field( "plugin_id", $self->{processor}->{plugin_id} ) );
+	return $div;
+}
 
-	my @tabs;
-	my $default_tab = 0;
+sub render_upload_form
+{
+	my( $self ) = @_;
 
-	# build a list of tabs containing the available data input methods
-	if( $plugin->can_produce( "dataobj/eprint" ) )
-	{
-		push @tabs, $self->_render_input_data_tab( "", $plugin );
-		$default_tab = $#tabs if $tabs[$#tabs]->{set};
-	}
-	if( $plugin->can_produce( "list/eprint" ) )
-	{
-		push @tabs, $self->_render_input_data_tab( "bulk_", $plugin );
-		$default_tab = $#tabs if $tabs[$#tabs]->{set};
-	}
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
 
-	# with no tabs just render a toolbox
-	if( @tabs == 1 )
-	{
-		# unused title
-		EPrints::XML::dispose( $tabs[0]->{title} );
-		$form->appendChild( $session->render_toolbox( undef, $tabs[0]->{content} ) );
-	}
-	# render tabbed input
-	elsif( @tabs > 1 )
-	{
-		my @labels;
-		my @panels;
+	my $div = $xml->create_element( "div", class => "ep_block" );
 
-		# populate each of the panels
-		foreach my $tab (@tabs)
-		{
-			push @labels, $tab->{title};
-			push @panels, $tab->{content};
-		}
-
-		$form->appendChild( $session->xhtml->tabs(
-			\@labels,
-			\@panels,
-			current => $default_tab,
-			basename => "ep_import",
+	my $form = $div->appendChild( $self->{processor}->screen->render_form );
+	$form->appendChild( $xhtml->input_field(
+		file => undef,
+		type => "file"
 		) );
-	}
+	$form->appendChild( $repo->render_action_buttons(
+		test_upload => $repo->phrase( "Plugin/Screen/Import:action_test_upload" ),
+		import_upload => $repo->phrase( "Plugin/Screen/Import:action_import_upload" ),
+		_order => [qw( test_upload import_upload )],
+	) );
 
-	$form->appendChild( $session->render_action_buttons( 
-		_class => "ep_form_button_bar",
-		test => $self->phrase( "action:test:title" ), 
-		import => $self->phrase( "action:import:title" ),
-		_order => [qw( test import )] ) );
-
-	return $page;
+	return $div;
 }
 
 sub _vis_level
@@ -568,7 +487,7 @@ sub render_import_bar
 		}
 	}
 
-	my $select = $session->make_element( "select", name=>"plugin_id" );
+	my $select = $session->make_element( "select", name=>"format" );
 	foreach my $optname ( sort keys %{$options} )
 	{
 		$select->appendChild( $options->{$optname} );
@@ -587,6 +506,16 @@ sub render_import_bar
 					button => $button ));
 
 	return $form;
+}
+
+sub hidden_bits
+{
+	my( $self ) = @_;
+
+	return(
+		$self->SUPER::hidden_bits,
+		format => scalar($self->{repository}->param( "format" )),
+	);
 }
 
 package EPrints::Plugin::Screen::Import::Handler;

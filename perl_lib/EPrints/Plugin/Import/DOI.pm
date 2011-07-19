@@ -28,6 +28,13 @@ sub new
 	return $self;
 }
 
+sub screen
+{
+	my( $self, %params ) = @_;
+
+	return $self->{repository}->plugin( "Screen::Import::DOI", %params );
+}
+
 sub input_text_fh
 {
 	my( $plugin, %opts ) = @_;

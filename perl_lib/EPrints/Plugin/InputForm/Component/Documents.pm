@@ -718,6 +718,7 @@ sub parse_config
 	foreach my $field_tag ( @fields )
 	{
 		my $field = $self->xml_to_metafield( $field_tag, $doc_ds );
+		return if !defined $field;
 		push @{$self->{config}->{doc_fields}}, $field;
 	}
 }

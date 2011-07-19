@@ -32,7 +32,9 @@ sub parse_config
 
 	if( scalar @fields != 1 )
 	{
-		EPrints::abort( "Bad configuration for Field Component\n".$config_dom->toString );
+		push @{$self->{problems}}, $self->{repository}->html_phrase( "Plugin/InputForm/Component/Field:error_missing_field",
+			xml => $self->{repository}->xml->create_text_node( $self->{repository}->xml->to_string( $config_dom ) )
+		);
 	}
 	else
 	{
@@ -158,8 +160,6 @@ sub validate
 	}
 
 	push @problems, $self->{dataobj}->validate_field( $field->{name} );
-
-	$self->{problems} = \@problems;
 
 	return @problems;
 }

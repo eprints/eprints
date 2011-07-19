@@ -21,13 +21,20 @@ sub new
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint' ];
 
-	if( !EPrints::Utils::require_if_exists( "SOAP::ISIWoK::Lite" ) )
+	if( !EPrints::Utils::require_if_exists( "SOAP::ISIWoK::Lite", "1.05" ) )
 	{
 		$self->{visible} = 0;
-		$self->{error} = "Requires SOAP::ISIWoK::Lite";
+		$self->{error} = "Requires SOAP::ISIWoK::Lite 1.05";
 	}
 
 	return $self;
+}
+
+sub screen
+{
+	my( $self, %params ) = @_;
+
+	return $self->{repository}->plugin( "Screen::Import::ISIWoK", %params );
 }
 
 sub input_text_fh
@@ -44,7 +51,10 @@ sub input_text_fh
 
 	my $wok = SOAP::ISIWoK::Lite->new;
 
-	my $xml = $wok->search( $query );
+	my $xml = $wok->search( $query,
+		offset => $opts{offset},
+	);
+	$self->{total} = $xml->documentElement->getAttribute( "recordsFound" );
 
 	foreach my $rec ($xml->getElementsByTagName( "REC" ))
 	{
@@ -67,6 +77,9 @@ sub xml_to_epdata
 	my $epdata = {};
 
 	my $node;
+
+	( $node ) = $rec->findnodes( "item/ut" );
+	$epdata->{source} = $node->textContent if $node;
 
 	( $node ) = $rec->findnodes( "item/item_title" );
 	$epdata->{title} = $node->textContent if $node;

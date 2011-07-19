@@ -2774,13 +2774,14 @@ Titles and Help for the System Fields
 
     <epp:phrase id="Plugin/Import/ExplodeArchive:input:form">Select an archive from your system: <epc:pin name="input_file_upload"/> e.g. my_photos.zip<br />
 Each file inside this archive will be created as an <b>individual</b> document inside the resulting eprint.</epp:phrase>
-    <epp:phrase id="Plugin/Import/DOI:input:form">
-<table>
-<tr>
-<td>Enter a DOI:</td><td><epc:pin name="input_uri"/> e.g. doi:10.1006/jmbi.1998.2354</td>
-</tr>
-</table>
-	</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Import/DOI:help">Enter a DOI or DOIs, one per line e.g. doi:10.1006/jmbi.1998.2354</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Import/ISIWoK:help">Enter an ISI query string:<br />
+AU = (Carr) and TI = (open access)<br />
+PY = 2006 and OG = (Cambridge)<br />
+</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Import/ISIWoK:results">Results</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Import/ISIWoK:action_import_single">Import</epp:phrase>
+
 	<epp:phrase id="Plugin/Import/DOI:bulk_input:form">
 <table>
 <tr>
@@ -2823,11 +2824,15 @@ Each file inside this archive will be created as an <b>individual</b> document i
 </table>
 	</epp:phrase>
 
+	<epp:phrase id="Plugin/Screen/Import:data">Paste data</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Import:upload">Upload from file</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:input:title">Import a single item</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:bulk_input:title">Import more than one item</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:action:import_from:title">Import</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Import:action:test:title">Test without Importing</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Import:action:import:title">Import Items</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:action_test_data">Test without Importing</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:action_test_upload" ref="Plugin/Screen/Import:action_test_data"></epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:action_import_data">Import Items</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:action_import_upload" ref="Plugin/Screen/Import:action_import_data"></epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:nothing_to_import">You must specify something to import!</epp:phrase>
 
 	<epp:phrase id="Plugin/Screen/Import:multiple_inputs">Encountered more than one set of input - make sure you haven't filled in more than one field.</epp:phrase>
@@ -3129,11 +3134,13 @@ Each file inside this archive will be created as an <b>individual</b> document i
     <epp:phrase id="Plugin/InputForm/Component/Field/Subject:remove">Remove</epp:phrase>
 	
 
-	<!-- PlaceHolder component -->
+	<!-- Component errors -->
 	
-	<epp:phrase id="Plugin/InputForm/Component/PlaceHolder:title">Problem loading component: <epc:pin name="placeholding"/></epp:phrase>
-	<epp:phrase id="Plugin/InputForm/Component/PlaceHolder:help">Help placeholder for <epc:pin name="placeholding"/> component</epp:phrase>
-	<epp:phrase id="Plugin/InputForm/Component/PlaceHolder:content">This is a placeholder for the <epc:pin name="placeholding"/> component</epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component/Error:title">Error in <epc:pin name="filename" /></epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component:error_invalid_component">Unknown component type <em><epc:pin name="placeholding"/></em> in <pre><epc:pin name="xml" /></pre></epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component/Field:error_missing_field">Field component is missing field element in <pre><epc:pin name="xml"/></pre></epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component:error_missing_field_ref">Missing <em>ref</em> attribute in <pre><epc:pin name="xml" /></pre></epp:phrase>
+	<epp:phrase id="Plugin/InputForm/Component:error_invalid_field_ref">Unknown field reference <em><epc:pin name="ref" /></em> in <pre><epc:pin name="xml" /></pre></epp:phrase>
 
 	<!-- Surround -->
 

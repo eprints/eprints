@@ -1,56 +1,44 @@
 =head1 NAME
 
-EPrints::Plugin::InputForm::Component::PlaceHolder
+EPrints::Plugin::Screen::Import::DOI
 
 =cut
 
-package EPrints::Plugin::InputForm::Component::PlaceHolder;
+package EPrints::Plugin::Screen::Import::DOI;
 
-use EPrints::Plugin::InputForm::Component;
-
-@ISA = ( "EPrints::Plugin::InputForm::Component" );
+@ISA = ( 'EPrints::Plugin::Screen::Import' );
 
 use strict;
 
 sub new
 {
-	my( $class, %opts ) = @_;
+	my( $class, %params ) = @_;
 
-	my $self = $class->SUPER::new( %opts );
+	my $self = $class->SUPER::new(%params);
 
-	$self->{name} = "PlaceHolder";
-	$self->{visible} = "all";
+	$self->{actions} = [qw/ test_data import_data /];
 
 	return $self;
 }
 
-sub render_content
+sub render
 {
 	my( $self ) = @_;
 
-	return $self->html_phrase( "content", placeholding => $self->{session}->make_text( $self->{placeholding} ) );
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $frag = $xml->create_document_fragment;
+
+	$frag->appendChild( $self->html_phrase( "help" ) );
+
+	$frag->appendChild( $self->render_import_form );
+
+	return $frag;
 }
 
-sub render_help
-{
-	my( $self, $surround ) = @_;
-	
-	return $self->html_phrase( "help", placeholding => $self->{session}->make_text( $self->{placeholding} ) );
-}
-
-sub render_title
-{
-	my( $self, $surround ) = @_;
-
-	return $self->html_phrase( "title", placeholding => $self->{session}->make_text( $self->{placeholding} ) );
-}
-	
 1;
-
-
-
-
-
 
 =head1 COPYRIGHT
 

@@ -284,6 +284,16 @@ sub is_tool
 	return 0;
 }
 
+=item $screen = $plugin->screen( %params )
+
+Return the import screen to gather date for this import.
+
+If $screen is undef L<EPrints::Plugin::Screen::Import> will be used.
+
+=cut
+
+sub screen {}
+
 1;
 
 =head1 COPYRIGHT

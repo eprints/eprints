@@ -79,8 +79,6 @@ sub validate
 		push @problems, $self->{dataobj}->validate_field( $field->{name} );
 	}
 	
-	$self->{problems} = \@problems;
-	
 	return @problems;
 }
 
@@ -96,6 +94,7 @@ sub parse_config
 		if( $node->nodeName eq "field" ) 
 		{
 			my $field = $self->xml_to_metafield( $node );
+			return if !defined $field;
 			$self->{config}->{field}->{required} = 1 if $field->get_property( "required" );
 			if ($self->{workflow}->{processor}->{required_fields_only}) {
 				if ($field->get_property( "required" ) ) {
