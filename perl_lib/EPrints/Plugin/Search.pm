@@ -54,6 +54,7 @@ sub new
 	my( $class, %params ) = @_;
 
 	$params{custom_order} = "" if !exists $params{custom_order};
+	$params{filters} = [] if !exists $params{filters};
 
 	my $self = $class->SUPER::new( %params );
 
