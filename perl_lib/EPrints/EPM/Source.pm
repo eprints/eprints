@@ -66,8 +66,8 @@ sub query
 	my @epms;
 
 	my $url = URI->new( $base_url );
-	$url->path( $url->path . "cgi/opensearch" );
-	$url->query_form( q => $q, format => "EPMI" );
+	$url->path( $url->path . "cgi/search" );
+	$url->query_form( q => $q, output => "EPMI" );
 
 	my $r = $ua->get( $url );
 	$self->{err} = $r->request->uri . " " . $r->status_line, return if !$r->is_success;
