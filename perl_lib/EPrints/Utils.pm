@@ -648,7 +648,7 @@ sub field_from_config_string
 			{
 				my( $k, $v ) = split( /=/, $render_pair );
 				$v = 1 unless defined $v;
-				$q{"render_$k"} = $v;
+				$q{($k eq "top"?"top":"render_$k")} = $v;
 			}
 		}
 	}
