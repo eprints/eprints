@@ -87,7 +87,10 @@ sub execute
 	}
 
 	my $query = Search::Xapian::Query->new( "_dataset:".$self->{dataset}->base_id );
-	for(@{$self->{dataset}->{filters}||[]})
+	for(
+		@{$self->{dataset}->{filters}||[]},
+		@{$self->{filters}||[]},
+	   )
 	{
 		my $fieldname = $_->{meta_fields}->[0];
 		$query = Search::Xapian::Query->new(

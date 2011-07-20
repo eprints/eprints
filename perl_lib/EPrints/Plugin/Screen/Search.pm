@@ -48,6 +48,8 @@ sub search_dataset
 	return $self->{processor}->{dataset};
 }
 
+# DEPRECATED
+# Use the configuration to add per-dataset filters
 sub search_filters
 {
 	my( $self ) = @_;
@@ -386,6 +388,11 @@ sub properties_from
 			{
 				$_ = "documents" if $_ eq "_fulltext_";
 			}
+		}
+		if( $dataset->base_id eq "eprint" )
+		{
+			push @{$sconf->{filters}}, 
+				{ meta_fields => ["metadata_visibility"], value => "show" };
 		}
 	}
 	elsif( $searchid eq "simple" )

@@ -168,6 +168,7 @@ sub get_system_field_info
 
 	{ name=>"metadata_visibility", type=>"set", required=>1,
 		default_value => "show",
+		volatile => 1,
 		options=>[ "show", "no_search", "hide" ] },
 
 	{ name=>"contact_email", type=>"email", required=>0, can_clone=>0 },
@@ -948,6 +949,14 @@ sub remove
 
 	# remove the webpages associated with this record.
 	$self->remove_static;
+
+	# fix visibility of succeeded item
+	if( $self->is_set( "succeeds" ) )
+	{
+		my $succeeds = $self->{session}->eprint( $self->value( "succeeds" ) );
+		my $field = $self->{dataset}->field( "succeeds" );
+		$succeeds->removed_from_thread( $field, $self ) if defined $succeeds;
+	}
 
 	return $success;
 }
@@ -1867,8 +1876,11 @@ sub removed_from_thread
 	# if we are no longer in a thread we become visible again
 	if( $later->count == 0 )
 	{
-		$self->set_value( "metadata_visibility", "show" )
-			if $self->value( "metadata_visibility" ) eq "no_search";
+		if( $self->value( "metadata_visibility" ) eq "no_search" )
+		{
+			$self->set_value( "metadata_visibility", "show" );
+			$self->commit;
+		}
 	}
 }
 
@@ -1889,8 +1901,11 @@ sub added_to_thread
 	return if $parent->value( "eprint_status" ) ne "archive";
 
 	# we are no longer visible
-	$self->set_value( "metadata_visibility", "no_search" )
-		if $self->value( "metadata_visibility" ) eq "show";
+	if( $self->value( "metadata_visibility" ) eq "show" )
+	{
+		$self->set_value( "metadata_visibility", "no_search" );
+		$self->commit;
+	}
 }
 
 =begin InternalDoc
