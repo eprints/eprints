@@ -45,7 +45,10 @@ sub get_history
 {
 	my( $self ) = @_;
 
-	my $cache_id = "history_".$self->{processor}->{user}->get_id;
+	my $user = $self->{processor}->{dataobj};
+	$user = $self->{processor}->{user} if !defined $user;
+
+	my $cache_id = "history_".$user->id;
 
 	if( !defined $self->{processor}->{$cache_id} )
 	{
@@ -57,7 +60,7 @@ sub get_history
 		
 		$searchexp->add_field(
 			$ds->get_field( "userid" ),
-			$self->{processor}->{user}->get_id );
+			$user->id );
 		$searchexp->add_field(
 			$ds->get_field( "datasetid" ),
 			'eprint' );
