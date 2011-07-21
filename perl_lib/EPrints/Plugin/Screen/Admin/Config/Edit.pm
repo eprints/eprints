@@ -29,7 +29,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{actions} = [ "save_config", "revert_config", "download_full_file", "process_upload", "process_image_upload" ];
+	$self->{actions} = [ "save_config", "revert_config", "download_full_file", "process_upload", "process_image_upload", "reload_config" ];
 
 	return $self;
 }
@@ -100,6 +100,13 @@ sub allow_process_image_upload
 	return $self->can_be_viewed;
 }
 
+sub allow_reload_config
+{
+	my( $self ) = @_;
+
+	return $self->allow( "config/reload" );
+}
+
 # return an array of DOM explanations of issues with this file
 # empty array if it's OK
 # this does not test in context, just validates XML etc.
@@ -128,6 +135,19 @@ sub save_broken
 	close DATA;
 }
 
+sub action_reload_config
+{
+	my ( $self ) = @_;
+	
+	my $repository = $self->{repository};
+	
+	$repository->reload_config();
+	
+	$self->{processor}->add_message(
+			"message",
+			$self->{session}->html_phrase( "Plugin/Screen/Admin/Reload:reloaded" )
+			);
+}
 
 sub action_revert_config
 {
@@ -921,18 +941,24 @@ sub render
 
 	my $page = $self->{session}->make_doc_fragment;
 
-	
 	$page->appendChild( $self->html_phrase( "intro" ));
+
+	my %buttons;
+       	
+	push @{$buttons{_order}}, "reload_config";
+       	$buttons{reload_config} = $self->{session}->phrase( "Plugin/Screen/Admin/Reload:title" );
 	
+	my $form = $self->render_form;
+	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
+
+	$page->appendChild( $form ) if ($self->allow( "config/reload" ));
+
 	$self->{processor}->{screenid}=~m/::Edit::(.*)$/;
 	my $type = $1;
 	my $doc_link = $self->{session}->render_link("http://eprints.org/d/?keyword=${1}ConfigFile&filename=".$self->{processor}->{configfile});
 	$page->appendChild( $self->{session}->html_phrase( "Plugin/Screen/Admin/Config/Edit:documentation", link=>$doc_link ));
 	
-
-	my $form = $self->render_form;
-	#$page->appendChild( $form );
-
+	$form = $self->render_form;
 	if( $type eq "XPage" )
 	{
 	$page->appendChild( $self->html_edit($form) );
@@ -972,7 +998,7 @@ sub config_edit
 
        	push @{$buttons{_order}}, "save_config";
        	$buttons{save_config} = $self->{session}->phrase( "Plugin/Screen/Admin/Config/Edit:save_config_button" );
-
+       	
 	if( $broken )
 	{
         	push @{$buttons{_order}}, "revert_config";
