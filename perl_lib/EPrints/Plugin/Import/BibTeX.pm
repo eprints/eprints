@@ -258,6 +258,8 @@ sub input_text_fh
 	$fh->fdopen( fileno($opts{fh}), "r" )
 	 or die "Error opening input filehandle: $!";
 
+	binmode( $fh, ":utf8" );
+
 	my $parser = BibTeX::Parser->new( $fh );
 
 	while(my $entry = $parser->next)
@@ -523,9 +525,10 @@ sub _decode_bibtex
 
 	if( ref($epdata) eq "HASH" )
 	{
-		for(values(%$epdata))
+		while( my($k,$v) = each(%$epdata) )
 		{
-			$_ = _decode_bibtex($_);
+			next if( $k eq 'type' );
+			$v = _decode_bibtex( $v );
 		}
 	}
 	elsif( ref($epdata) eq "ARRAY" )
