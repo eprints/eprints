@@ -61,9 +61,6 @@ sub get_system_field_info
 		{ name=>"id", type=>"counter", required=>1, import=>0, can_clone=>1,
 			sql_counter=>"savedsearchid" },
 
-		{ name=>"rev_number", type=>"int", required=>1, can_clone=>0,
-			default_value=>1 },
-
 		{ name=>"userid", type=>"itemref", 
 			datasetid=>"user", required=>1 },
 
@@ -145,10 +142,6 @@ sub commit
 	{
 		# don't do anything if there isn't anything to do
 		return( 1 ) unless $force;
-	}
-	if( $self->{non_volatile_change} )
-	{
-		$self->set_value( "rev_number", ($self->get_value( "rev_number" )||0) + 1 );	
 	}
 
 	my $success = $self->SUPER::commit( $force );
