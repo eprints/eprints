@@ -3752,6 +3752,14 @@ PY = 2006 and OG = (Cambridge)<br />
     <epp:phrase id="warnings:no_documents">You have not <span class="ep_problem_field:documents">uploaded any documents</span>. While this is not essential, it is strongly recommended.</epp:phrase>
     <epp:phrase id="warnings:no_contact_email">Not all the documents in this record are available to the general public. We suggest you provide a <span class="ep_problem_field:contact_email">contact email address</span> which will allow people to request a copy directly from you.</epp:phrase>
 
+    <epp:phrase id="import_fieldname_importid">ID</epp:phrase>
+    <epp:phrase id="import_fieldname_datestamp">Date</epp:phrase>
+    <epp:phrase id="import_fieldname_userid">User ID</epp:phrase>
+    <epp:phrase id="import_fieldname_source_repository">Source Repository</epp:phrase>
+    <epp:phrase id="import_fieldname_description">Description</epp:phrase>
+    <epp:phrase id="import_fieldname_last_run">Last Run</epp:phrase>
+    <epp:phrase id="import_fieldname_last_success">Last Successful Import</epp:phrase>
+    <epp:phrase id="import_fieldname_url">URL</epp:phrase>
 
 
 <!-- Submission Form Page Titles -->
@@ -3766,6 +3774,17 @@ PY = 2006 and OG = (Cambridge)<br />
     <epp:phrase id="metapage_title_subjects">Subjects</epp:phrase>
     <epp:phrase id="metapage_title_notes">Extras</epp:phrase>
     <epp:phrase id="metapage_title_local">Custom</epp:phrase>
+    
+    <epp:phrase id="archive:workflow:stage:type:title">Type</epp:phrase>
+    <epp:phrase id="archive:workflow:stage:files:title">Upload</epp:phrase>
+    <epp:phrase id="archive:workflow:stage:core:title">Details</epp:phrase>
+    <epp:phrase id="archive:workflow:stage:pubinfo:title">Publication</epp:phrase>
+    <epp:phrase id="archive:workflow:stage:status:title">Status</epp:phrase>
+    <epp:phrase id="archive:workflow:stage:event:title">Event</epp:phrase>
+    <epp:phrase id="archive:workflow:stage:abstract:title">Abstract</epp:phrase>
+    <epp:phrase id="archive:workflow:stage:subjects:title">Subjects</epp:phrase>
+    <epp:phrase id="archive:workflow:stage:notes:title">Extras</epp:phrase>
+    <epp:phrase id="archive:workflow:stage:local:title">Custom</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Listing:title">View</epp:phrase>
     <epp:phrase id="Plugin/Screen/Listing:page_title">Manage <epc:pin name="dataset" /></epp:phrase>
