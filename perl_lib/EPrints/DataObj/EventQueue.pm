@@ -80,13 +80,6 @@ Parameters to pass to the action (a text serialisation).
 
 use strict;
 
-use constant {
-	INTERNAL_ERROR => 0,
-	SUCCESS => 1,
-	IS_LOCKED => 2,
-	BAD_PARAMETERS => 3,
-};
-
 sub get_system_field_info
 {
 	return (
@@ -160,7 +153,7 @@ sub execute
 	# completed at
 	$self->set_value( "end_time", EPrints::Time::get_iso_timestamp() );
 
-	if( $rc == IS_LOCKED )
+	if( $rc == EPrints::Const::HTTP_LOCKED )
 	{
 		my $start_time = $self->value( "start_time" );
 		if( defined $start_time )
@@ -177,30 +170,42 @@ sub execute
 		$self->set_value( "status", "waiting" );
 		$self->commit;
 	}
-	# BAD_PARAMETERS probably means the object has gone away, which is ok
-	elsif( $rc == SUCCESS || $rc == BAD_PARAMETERS )
+	elsif( $rc == EPrints::Const::HTTP_RESET_CONTENT )
 	{
+		$self->set_value( "status", "waiting" );
+		$self->commit;
+	}
+	elsif( $rc == EPrints::Const::HTTP_INTERNAL_SERVER_ERROR )
+	{
+		$self->set_value( "status", "failed" );
+		$self->commit();
+	}
+	# OK or NOT_FOUND, which is ok
+	else
+	{
+		if(
+			$rc != EPrints::Const::HTTP_OK &&
+			$rc != EPrints::Const::HTTP_NOT_FOUND
+		  )
+		{
+			$self->message( "warning", $self->{session}->xml->create_text_node( "Unrecognised result code (check your action return): $rc" ) );
+		}
 		if( !$self->is_set( "oneshot" ) || $self->value( "oneshot" ) eq "TRUE" )
 		{
 			$self->remove();
 		}
 		else
 		{
-			if( $rc == SUCCESS )
+			if( $rc == EPrints::Const::HTTP_OK )
 			{
 				$self->set_value( "status", "success" );
 			}
-			else # BAD_PARAMETERS
+			else # NOT_FOUND
 			{
 				$self->set_value( "status", "failed" );
 			}
 			$self->commit;
 		}
-	}
-	elsif( $rc == INTERNAL_ERROR )
-	{
-		$self->set_value( "status", "failed" );
-		$self->commit();
 	}
 
 	return $rc;
@@ -213,19 +218,21 @@ sub _execute
 	my $session = $self->{session};
 	my $xml = $session->xml;
 
-	my $plugin = $session->plugin( $self->value( "pluginid" ) );
+	my $plugin = $session->plugin( $self->value( "pluginid" ),
+		event => $self,
+	);
 	if( !defined $plugin )
 	{
 		# no such plugin
 		$self->message( "error", $xml->create_text_node( $self->value( "pluginid" )." not available" ) );
-		return INTERNAL_ERROR;
+		return EPrints::Const::HTTP_INTERNAL_SERVER_ERROR;
 	}
 
 	my $action = $self->value( "action" );
 	if( !$plugin->can( $action ) )
 	{
 		$self->message( "error", $xml->create_text_node( "'$action' not available on ".ref($plugin) ) );
-		return INTERNAL_ERROR;
+		return EPrints::Const::HTTP_INTERNAL_SERVER_ERROR;
 	}
 
 	my $params = $self->value( "params" );
@@ -244,13 +251,13 @@ sub _execute
 			if( !defined $dataset )
 			{
 				$self->message( "error", $xml->create_text_node( "Bad parameters: No such dataset '$1'" ) );
-				return BAD_PARAMETERS;
+				return EPrints::Const::HTTP_NOT_FOUND;
 			}
 			$param = $dataset->dataobj( $2 );
 			if( !defined $param )
 			{
 				$self->message( "error", $xml->create_text_node( "Bad parameters: No such item '$2' in dataset '$1'" ) );
-				return BAD_PARAMETERS;
+				return EPrints::Const::HTTP_NOT_FOUND;
 			}
 			my $locked = 0;
 			if( $param->isa( "EPrints::DataObj::EPrint" ) )
@@ -265,20 +272,20 @@ sub _execute
 			if( $locked )
 			{
 				$self->message( "warning", $xml->create_text_node( $param->get_dataset->base_id.".".$param->id." is locked" ) );
-				return IS_LOCKED;
+				return EPrints::Const::HTTP_LOCKED;
 			}
 		}
 	}
 
-	eval { $plugin->$action( @params ) };
+	my $rc = eval { $plugin->$action( @params ) };
 	if( $@ )
 	{
 		$self->message( "error", $xml->create_text_node( "Error during execution: $@" ) );
 		$self->set_value( "description", $@ );
-		return INTERNAL_ERROR;
+		return EPrints::Const::HTTP_INTERNAL_SERVER_ERROR;
 	}
 
-	return 1;
+	return defined($rc) ? $rc : EPrints::Const::HTTP_OK;
 }
 
 =item $event->message( $type, $xhtml )

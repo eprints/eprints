@@ -14,12 +14,6 @@ sub index
 {
 	my( $self, $dataobj, @fieldnames ) = @_;
 
-	if( !defined $dataobj )
-	{
-		Carp::carp "Expected dataobj argument";
-		return 0;
-	}
-
 	my $dataset = $dataobj->get_dataset;
 
 	my @fields;
@@ -35,12 +29,6 @@ sub index
 sub index_all
 {
 	my( $self, $dataobj ) = @_;
-
-	if( !defined $dataobj )
-	{
-		Carp::carp "Expected dataobj argument";
-		return 0;
-	}
 
 	my $dataset = $dataobj->get_dataset;
 
@@ -58,12 +46,14 @@ sub removed
 		dataset => $dataset,
 		id => $id,
 	);
-	return 1 if defined $rc && $rc eq EPrints::Const::EP_TRIGGER_DONE;
+	return if defined $rc && $rc eq EPrints::Const::EP_TRIGGER_DONE;
 
 	foreach my $field ($dataset->fields)
 	{
 		EPrints::Index::remove( $self->{session}, $dataset, $id, $field->name );
 	}
+
+	return;
 }
 
 sub _index_fields
@@ -77,7 +67,7 @@ sub _index_fields
 		dataobj => $dataobj,
 		fields => $fields,
 	);
-	return 1 if defined $rc && $rc eq EPrints::Const::EP_TRIGGER_DONE;
+	return if defined $rc && $rc eq EPrints::Const::EP_TRIGGER_DONE;
 
 	foreach my $field (@$fields)
 	{
@@ -90,7 +80,7 @@ sub _index_fields
 		EPrints::Index::add( $session, $dataset, $dataobj->get_id, $field->get_name, $value );
 	}
 
-	return 1;
+	return;
 }	
 
 1;

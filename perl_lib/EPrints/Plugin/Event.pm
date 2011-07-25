@@ -20,6 +20,21 @@ sub new
 	return $class->SUPER::new(%params);
 }
 
+# debug utility, just log whatever the parameters are
+sub echo
+{
+	my( $class, @params ) = @_;
+
+	for(@params)
+	{
+		$_ = $_->internal_uri if UNIVERSAL::isa( $_, "EPrints::DataObj" );
+	}
+
+	warn join ', ', @params;
+
+	return;
+}
+
 1;
 
 =head1 COPYRIGHT
