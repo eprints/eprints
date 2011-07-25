@@ -214,7 +214,7 @@ $seconds is seconds since epoch or now if not given.
 
 sub iso_datetime
 {
-	return strftime( '%Y-%m-%dT%H:%M:%SZ', gmtime(@_ ? @_ : time()));
+	return strftime( '%Y-%m-%dT%H:%M:%SZ', gmtime(@_ ? $_[0] : time()));
 }
 
 =item $datetime = EPrints::Time::rfc822_datetime( [ $seconds ] )
