@@ -1801,6 +1801,7 @@ Enter a URL to capture a file from: <epc:pin name="url"/><br/>
     <epp:phrase id="lib/submissionform:action_firstdoc">Add a Format to this Item</epp:phrase>
     <epp:phrase id="lib/submissionform:action_verify">Verify ID's</epp:phrase>
     <epp:phrase id="lib/submissionform:action_remove">Remove</epp:phrase>
+    <epp:phrase id="lib/submissionform:action_create">Create</epp:phrase>
     <epp:phrase id="lib/submissionform:action_later">Deposit Item Later</epp:phrase>
     <epp:phrase id="lib/submissionform:title_type">Edit item: Item Type</epp:phrase>
     <epp:phrase id="lib/submissionform:title_meta">Edit item: Bibliographic Information</epp:phrase>
@@ -2599,7 +2600,7 @@ Titles and Help for the System Fields
     <epp:phrase id="subject_fieldhelp_depositable">Can users add items to this subject?</epp:phrase>
     <epp:phrase id="subject_radio_depositable"><label><epc:pin name="true"/>Yes, users can add items to this subject.</label><br/><label><epc:pin name="false"/>No. (In which case it should probably have some children.</label></epp:phrase>
     <epp:phrase id="subject_fieldname_subjectid">Subject ID String</epp:phrase>
-    <epp:phrase id="subject_fieldhelp_subjectid">This is the internal key for this subject. It is used in the database and to generate the "views" filenames. It should contain only a-z, 0-9 and dash "/"and underscore "_". If you enter the ID of an existing subject then that subject will be linked as a child of the current subject.</epp:phrase>
+    <epp:phrase id="subject_fieldhelp_subjectid">This is the internal key for this subject. It is used in the database and to generate the "views" filenames. It should contain only a-z, 0-9 and dash "/"and underscore "_".</epp:phrase>
 
     <epp:phrase id="history_fieldname_objectid">Object ID</epp:phrase>
     <epp:phrase id="history_fieldname_datasetid">Object Type</epp:phrase>
@@ -3012,6 +3013,7 @@ PY = 2006 and OG = (Cambridge)<br />
     <epp:phrase id="Plugin/Screen/Public/SavedSearch:not_public">This saved search is not available to the public.</epp:phrase>
 
     <!-- Subject Editor -->
+	<epp:phrase id="Plugin/Screen/Subject/Edit:action_link">Link</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:no_such_subject">No such subject: <epc:pin name="id" />.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:title">Edit subject</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:subjectid"><p>Subject ID: <epc:pin name="id"/></p></epp:phrase>
@@ -3019,7 +3021,6 @@ PY = 2006 and OG = (Cambridge)<br />
     <epp:phrase id="Plugin/Screen/Subject/Edit:problem_ancestor">New child is an ancestor of this subject (This would cause a loop)</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:problem_noid">No ID given for new child</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:problems"><h2>Problems</h2></epp:phrase>
-    <epp:phrase id="Plugin/Screen/Subject/Edit:location">Location(s) in Hierarchy</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:subject">Subject</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:inarchive">Items in Repository</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:inbuffer">Items in Review</epp:phrase>
@@ -3030,7 +3031,8 @@ PY = 2006 and OG = (Cambridge)<br />
     <epp:phrase id="Plugin/Screen/Subject/Edit:children">Children</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:add_child">Add child to subject node: <epc:pin name="subid"/></epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:add_child_help"><p>Enter the ID of an existing child which is NOT an ancestor of the subject, or enter an unused subject id to create a new subject.</p></epp:phrase>
-    <epp:phrase id="Plugin/Screen/Subject/Edit:action_add">Add Child</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:action_add">Create New Child</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Subject/Edit:exists">A subject with that id already exists.</epp:phrase>
     <epp:phrase id="subject_fieldname_name_name">Name</epp:phrase>
     <epp:phrase id="subject_fieldname_name_lang">Language</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:modify">Modify subject node</epp:phrase>
@@ -3042,6 +3044,7 @@ PY = 2006 and OG = (Cambridge)<br />
     <epp:phrase id="Plugin/Screen/Subject/Edit:added">Created new subject node with ID "<epc:pin name="newchild" />". Please now enter a subject name and set the subject to be depositable, if applicable.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:linked">Linked the existing subject node "<epc:pin name="newchild" />" as a child of this subject node.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:description">Modify the subject tree(s)</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Subject/Edit:confirm_form">Unlinking this subject will cause it to be permanently deleted. Are you sure you want to do this? <epc:pin name="form" /></epp:phrase>
 
 
     <!-- other screens -->
