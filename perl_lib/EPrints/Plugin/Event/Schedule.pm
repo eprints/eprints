@@ -81,15 +81,20 @@ sub _increment
 	# month
 	if( !exists $entry[3]{$t[4]} )
 	{
-		$_[0] -= 86400 * $t[3];
+		$_[0] -= 86400 * ($t[3] - 1);
 		$_[0] -= $_[0] % 86400;
-		if( $t[3] == 12 )
+		if( $t[4] == 12 )
 		{
-			$_[0] = Time::Local::timegm(@t[0..3],0,$t[5]+1);
+			@t = (gmtime($_[0]))[0..7];
+			$t[4] = 0; # month
+			$t[5]++; # year
+			$_[0] = Time::Local::timegm(@t);
 		}
 		else
 		{
-			$_[0] = Time::Local::timegm(@t[0..5]);
+			@t = (gmtime($_[0]))[0..7];
+			$t[4]++; # month
+			$_[0] = Time::Local::timegm(@t);
 		}
 		return 1;
 	}
