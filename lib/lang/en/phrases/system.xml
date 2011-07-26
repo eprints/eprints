@@ -3020,22 +3020,14 @@ PY = 2006 and OG = (Cambridge)<br />
 
     <epp:phrase id="Plugin/Screen/Subject/Edit:problem_ancestor">New child is an ancestor of this subject (This would cause a loop)</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:problem_noid">No ID given for new child</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Subject/Edit:problems"><h2>Problems</h2></epp:phrase>
-    <epp:phrase id="Plugin/Screen/Subject/Edit:subject">Subject</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Subject/Edit:inarchive">Items in Repository</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Subject/Edit:inbuffer">Items in Review</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Subject/Edit:nparents">Number of Parents</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Subject/Edit:nchildren">Number of Children</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:eprints" ref="datasetname_eprint"></epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:action_delete">Delete</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:action_unlink">Unlink</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:children">Children</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Subject/Edit:add_child">Add child to subject node: <epc:pin name="subid"/></epp:phrase>
-    <epp:phrase id="Plugin/Screen/Subject/Edit:add_child_help"><p>Enter the ID of an existing child which is NOT an ancestor of the subject, or enter an unused subject id to create a new subject.</p></epp:phrase>
-    <epp:phrase id="Plugin/Screen/Subject/Edit:action_add">Create New Child</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:existing">Link Existing Subject</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Subject/Edit:exists">A subject with that id already exists.</epp:phrase>
     <epp:phrase id="subject_fieldname_name_name">Name</epp:phrase>
     <epp:phrase id="subject_fieldname_name_lang">Language</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Subject/Edit:modify">Modify subject node</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:action_save">Save changes</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:saved">Saved changes</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:error_badsubject">The specified subject does not exist, or a database error has occurred.</epp:phrase>
