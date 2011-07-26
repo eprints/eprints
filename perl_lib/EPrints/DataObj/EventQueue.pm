@@ -2,7 +2,7 @@ package EPrints::DataObj::EventQueue;
 
 =head1 NAME
 
-EPrints::DataObj::EventQueue - Scheduler queue
+EPrints::DataObj::EventQueue - scheduler/indexer event queue
 
 =head1 FIELDS
 
@@ -18,7 +18,7 @@ A unique hash for this event.
 
 =item cleanup
 
-If set to true removes this event once it has finished by success or failure. Defaults to true.
+If set to true removes this event once it has finished. Defaults to true.
 
 =item priority
 
@@ -42,7 +42,7 @@ The user (if any) that was responsible for creating this event.
 
 =item description
 
-A human-readable description of this event.
+A human-readable description of this event (or error).
 
 =item pluginid
 
@@ -115,6 +115,15 @@ sub create_unique
 =item $ok = $event->execute()
 
 Execute the action this event describes.
+
+The return from the L<EPrints::Plugin::Event> plugin action is treated as:
+
+	undef - equivalent to HTTP_OK
+	HTTP_OK - action succeeded, event is removed if cleanup is TRUE
+	HTTP_RESET_CONTENT - action succeeded, event is set 'waiting'
+	HTTP_NOT_FOUND - action failed, event is removed if cleanup is TRUE
+	HTTP_LOCKED - action failed, event is re-scheduled for 10 minutes time
+	HTTP_INTERNAL_SERVER_ERROR - action failed, event is 'failed' and kept
 
 =cut
 
