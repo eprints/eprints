@@ -2284,8 +2284,13 @@ sub upgrade_add_files
 			print STDERR sprintf("%.2f%% eprint.%d          \r", 100 * ++$count / $total, $eprint->id);
 		}
 
-		# maybe should fix this?
-		return if !$eprint->is_set( "dir" );
+		# no directory will cause all sorts of issues further on
+		if( !$eprint->is_set( "dir" ) )
+		{
+			my $epdata = EPrints::Utils::clone( $eprint->get_data );
+			$eprint->get_defaults( $eprint->{session}, $epdata, $eprint->{dataset} );
+			$eprint->set_value( "dir", $epdata->{dir} );
+		}
 
 		my $local_path = $eprint->local_path();
 		my $dir;
