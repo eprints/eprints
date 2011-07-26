@@ -1313,6 +1313,9 @@ sub files_modified
 	{
 		$self->{session}->call( "on_files_modified", $self->{session}, $self );
 	}
+	$self->{dataset}->run_trigger( EPrints::Const::EP_TRIGGER_FILES_MODIFIED,
+		dataobj => $self,
+	);
 
 	$self->commit;
 
