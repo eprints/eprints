@@ -1896,7 +1896,7 @@ sub reindex
 		if( $noise > 0 )
 		{
 			print "\n";
-			print "You are about to reindex \"$datasetid\" in the $repoid repository.\n";
+			print "You are about to reindex \"$datasetid\" in the ".$repo->get_id." repository.\n";
 			print "This can take some time.\n\n";
 			print "Number of records in set: ".$list->count."\n";
 		}
@@ -2010,54 +2010,41 @@ sub set_developer_mode
 #
 ####################################################################
 
-sub upgrade
+sub populate_search_format
 {
-	my( $repoid ) = @_;
+	my( $repo ) = @_;
 
-	my $repo = &repository( $repoid, check_db => 0 );
-	
-	print STDERR "Stopping indexer ...\n";
-	run_script( $repoid, "indexer", "stop" );	
+	return unless( $repo->dataset( 'eprint' )->has_field( 'search_format' ) );
 
-	my $db = $repo->database();
+	$repo->dataset( 'eprint' )->map( $repo, sub { 
 
-	my @versions = qw(
-			3.0
-			3.0.1
-			3.0.2
-			3.0.3
-			3.0.4
-			3.0.5
-			3.0.6
-			3.0.7
-			3.1.0
-			3.1.1
-			3.1.2
-			3.2.0
-			3.2.1
-			3.2.2
-			3.2.3
-			3.2.4
-			3.3.0
-			3.3.1
-		);
+		my( $session, $ds, $eprint, $info ) = @_;
 
-	for(my $i = 0; $i < $#versions; ++$i)
-	{
-		if( $db->get_version() eq $versions[$i] )
+		my @search_formats = ();
+			
+		foreach my $doc ( $eprint->get_all_documents  )
 		{
-			no strict 'refs';
-			my $f = "upgrade_".$versions[$i]."_to_".$versions[$i+1];
-			$f =~ s/\./_/g;
-			print STDERR "Upgrading " . $versions[$i] . " to " . $versions[$i+1] . "\n";
-			&$f( $repo, $db );
-#			migrate_to_epm_packages($repoid,$versions[$i],$versions[$i+1]);
-			$db->set_version( $versions[$i+1] );
-		}
-	}
+			unless( $doc->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
+			{
+				my $format = $doc->get_value( 'format' );
 
-	print STDERR "Please restart the indexer\n";
-	print $db->get_version()."\n";
+				if( $format =~ m#^application/.*zip.*$# )        #
+				{
+					$format = 'archive';
+				}
+				else
+				{
+					$format =~ s/^(image|video|audio)\/.*/$1/gi;
+				}
+
+				push @search_formats, $format;
+			}
+		}
+
+	        $eprint->set_value( "search_format", \@search_formats );
+		$eprint->commit;
+
+	}, {} );	
 }
 
 # if a field's definition changes from single to multiple values, this attempts to migrate the field's values (if any)
@@ -2127,6 +2114,20 @@ sub update_datasets
 		foreach my $field ($dataset->get_fields)
 		{
 			next if defined $field->get_property( "sub_name" );
+			if( !$field->is_virtual && $field->property( "multiple" ) )
+			{
+				my $table = $dataset->get_sql_sub_table_name( $field );
+				my @cols = $db->get_primary_key( $table );
+				if( @cols && (@cols != 2 || $cols[0] ne $dataset->key_field->get_sql_name || $cols[1] ne "pos") )
+				{
+					if( @cols )
+					{
+						$db->do("ALTER TABLE ".$db->quote_identifier($table)." DROP PRIMARY KEY");
+					}
+					$db->do("ALTER TABLE ".$db->quote_identifier($table)." ADD PRIMARY KEY (".$db->quote_identifier($dataset->key_field->get_sql_name).",".$db->quote_identifier("pos").")");
+					print "Fixed PRIMARY KEY on $table\n";
+				}
+			}
 			if( !$db->has_field( $dataset, $field ) )
 			{
 				if( $db->add_field( $dataset, $field ) )
@@ -2211,323 +2212,6 @@ sub update_counters
 	print "$count counters were added\n" if $noise;
 
 	return $success;
-}
-
-sub upgrade_3_0_to_3_0_1
-{
-	my( $repoid, $db ) = @_;
-
-	my $rootdbh = root_dbh( $repoid );
-	if( !defined $rootdbh ) { die "Could not open database as root"; }
-	my @tables = $db->get_tables;
-	my $sql;
-
-	$sql = "ALTER TABLE saved_search ADD public set('TRUE','FALSE') default 'FALSE' AFTER mailempty";
-	$rootdbh->do( $sql );
-
-	$sql = "CREATE TABLE user_items_fields ( userid INT NOT NULL, pos INT, items_fields VARCHAR(255) default NULL, KEY userid (userid), KEY pos (pos) )  ";
-	$rootdbh->do( $sql );
-
-	$sql = "CREATE TABLE user_review_fields ( userid INT NOT NULL, pos INT, review_fields VARCHAR(255) default NULL, KEY userid (userid), KEY pos (pos) )  ";
-	$rootdbh->do( $sql );
-
-	foreach my $table ( @tables )
-	{
-		if( $table =~ m/^saved_search__ordervalues_.*$/ )
-		{
-			$sql = "ALTER TABLE $table ADD public TEXT AFTER mailempty",
-			$rootdbh->do( $sql );
-		}
-		if( $table =~ m/^user__ordervalues_.*$/ )
-		{
-			$sql = "ALTER TABLE $table ADD items_fields TEXT AFTER mailempty",
-			$rootdbh->do( $sql );
-			$sql = "ALTER TABLE $table ADD review_fields TEXT AFTER items_fields",
-			$rootdbh->do( $sql );
-		}
-	}
-
-	$rootdbh->disconnect;
-}
-
-
-
-sub upgrade_3_0_1_to_3_0_2
-{
-	my( $repoid, $db ) = @_;
-
-	my $rootdbh = root_dbh( $repoid );
-	if( !defined $rootdbh ) { die "Could not open database as root"; }
-	my @tables = $db->get_tables;
-	my $sql;
-
-	$sql = "ALTER TABLE saved_search ADD name VARCHAR(255) NOT NULL AFTER pos";
-	$rootdbh->do( $sql );
-
-	$sql = "ALTER TABLE cachemap ADD userid INTEGER AFTER lastused";
-	$rootdbh->do( $sql );
-
-	foreach my $table ( @tables )
-	{
-		if( $table =~ m/^saved_search__ordervalues_.*$/ )
-		{
-			$sql = "ALTER TABLE $table ADD name TEXT AFTER pos",
-			$rootdbh->do( $sql );
-		}
-	}
-
-	$rootdbh->disconnect;
-}
-
-sub upgrade_3_0_2_to_3_0_3
-{
-	my( $repoid, $db ) = @_;
-
-	my $rootdbh = root_dbh( $repoid );
-	if( !defined $rootdbh ) { die "Could not open database as root"; }
-	my @tables = $db->get_tables;
-	my $sql;
-
-	$sql = "ALTER TABLE eprint DROP fileinfo";
-	$rootdbh->do( $sql );
-
-	$sql = "ALTER TABLE eprint ADD fileinfo TEXT AFTER contact_email";
-	$rootdbh->do( $sql );
-
-	foreach my $table ( @tables )
-	{
-		if( $table =~ m/^eprint__ordervalues_.*$/ )
-		{
-			$sql = "ALTER TABLE $table DROP fileinfo";
-			$rootdbh->do( $sql );
-			$sql = "ALTER TABLE $table ADD fileinfo TEXT AFTER contact_email",
-			$rootdbh->do( $sql );
-		}
-	}
-
-	$rootdbh->disconnect;
-}
-
-
-
-sub upgrade_3_0_3_to_3_0_4
-{
-	my( $repoid, $db ) = @_;
-
-	my $rootdbh = root_dbh( $repoid );
-	if( !defined $rootdbh ) { die "Could not open database as root"; }
-	my @tables = $db->get_tables;
-	my $sql;
-
-	$sql = "ALTER TABLE eprint ADD latitude FLOAT AFTER fileinfo";
-	$rootdbh->do( $sql );
-	$sql = "ALTER TABLE eprint ADD longitude FLOAT AFTER latitude";
-	$rootdbh->do( $sql );
-	$sql = "ALTER TABLE user ADD latitude FLOAT AFTER mailempty";
-	$rootdbh->do( $sql );
-	$sql = "ALTER TABLE user ADD longitude FLOAT AFTER latitude";
-	$rootdbh->do( $sql );
-
-	foreach my $table ( @tables )
-	{
-		if( $table =~ m/^eprint__ordervalues_.*$/ )
-		{
-			$sql = "ALTER TABLE $table ADD latitude TEXT AFTER fileinfo";
-			$rootdbh->do( $sql );
-			$sql = "ALTER TABLE $table ADD longitude TEXT AFTER latitude";
-			$rootdbh->do( $sql );
-		}
-		if( $table =~ m/^user__ordervalues_.*$/ )
-		{
-			$sql = "ALTER TABLE $table ADD latitude TEXT AFTER review_fields";
-			$rootdbh->do( $sql );
-			$sql = "ALTER TABLE $table ADD longitude TEXT AFTER latitude";
-			$rootdbh->do( $sql );
-		}
-	}
-
-	$rootdbh->disconnect;
-}
-
-
-sub upgrade_3_0_4_to_3_0_5
-{
-	my( $repoid, $db ) = @_;
-
-	$db->_create_messages_table;
-}
-
-
-
-sub upgrade_3_0_5_to_3_0_6
-{
-	my( $repoid, $db ) = @_;
-
-	reset_dataset( $repoid, 'subject' );
-}
-
-
-sub upgrade_3_0_6_to_3_0_7
-{
-	my( $repoid, $db ) = @_;
-
-	my $repo = &repository( $repoid, check_db => 0 );
-	foreach my $datasetid ( qw/
-			access document eprint history
-			request saved_search subject user /)
-	{
-		my $dataset = $repo->dataset( $datasetid );
-		$db->add_index_to_indextable( $dataset );
-	}
-
-}
-
-sub upgrade_3_0_7_to_3_1_0
-{
-	my( $repoid, $db ) = @_;
-
-	my $repo = &repository( $repoid );
-
-	# Expand id primary keys to id-pos on multiple fields
-	foreach my $datasetid ( qw/
-			access document eprint history
-			request saved_search subject user /)
-	{
-		my $dataset = $repo->dataset( $datasetid );
-		foreach my $field ($dataset->fields)
-		{
-			next unless $field->property( "multiple" );
-			next if $field->is_virtual;
-			my $table = $dataset->get_sql_sub_table_name( $field );
-			next unless $db->has_table( $table );
-			my $keyfield = $dataset->get_key_field;
-			unless( $db->get_primary_key( $table ) )
-			{
-				$db->do("ALTER TABLE $table DROP PRIMARY KEY");
-			}
-			$db->do("ALTER TABLE $table ADD PRIMARY KEY(".$keyfield->get_sql_name.",pos)");
-		}
-	}
-
-	# access dataset changes
-	my $dataset = $repo->get_dataset( "access" );
-	my $table = $dataset->get_sql_table_name;
-
-	# remove the 'urn:ip:' and 'info:oai:...:' bits
-	$db->do("UPDATE $table SET
-		referent_id=SUBSTRING_INDEX(referent_id,':',-1),
-		referent_docid=SUBSTRING_INDEX(referent_docid,'-',-1),
-		requester_id=SUBSTRING_INDEX(requester_id,'urn:ip:',-1)
-	");
-	my $changes_sql = '';
-	$changes_sql .= "MODIFY referring_entity_id LONG,";
-	$changes_sql .= "MODIFY referent_id INT,";
-	$changes_sql .= "MODIFY referent_docid INT,";
-	chop($changes_sql);
-	$db->do("ALTER TABLE $table $changes_sql");
-
-	# remove the index and order tables
-	for(qw(__index __index_grep __rindex))
-	{
-		$db->drop_table("$table$_");
-	}
-
-	for($db->get_tables)
-	{
-		$db->drop_table($_) if /^cache(\d+)$/;
-	}
-
-	$db->drop_table( "messages" );
-	$db->drop_table( "login_tickets" );
-	$db->drop_table( "cachemap" );
-
-	update_datasets( $repo, $db );
-	update_counters( $repo, $db );
-}
-
-
-sub upgrade_3_1_0_to_3_1_1
-{
-	my( $repoid, $db ) = @_;
-
-	my $repo = &repository( $repoid );
-
-	update_datasets( $repo, $db );
-}
-
-sub upgrade_3_1_1_to_3_1_2
-{
-	my( $repoid, $db ) = @_;
-
-	my $repo = &repository( $repoid );
-
-	update_datasets( $repo, $db );
-	update_counters( $repo, $db );
-
-	foreach( $repo->get_sql_dataset_ids() )
-	{
-		my $dataset = $repo->dataset( $_ );
-
-		foreach my $field ($dataset->fields)
-		{
-			next unless $field->isa( "EPrints::MetaField::Name" );
-
-			my $table;
-			if( $field->property( "multiple" ) )
-			{
-				$table = $dataset->get_sql_sub_table_name( $field );
-			}
-			else
-			{
-				$table = $dataset->get_sql_table_name();
-			}
-			my @logic;
-			for($field->get_sql_names)
-			{
-				my $q_name = $db->quote_identifier( $_ );
-				push @logic, "($q_name is not Null AND $q_name != '')";
-			}
-			my $logic = "(" . join(" OR ", @logic) . ")";
-			for($field->get_sql_names)
-			{
-				my $q_name = $db->quote_identifier( $_ );
-				my $q_table = $db->quote_identifier( $table );
-				my $sql = "UPDATE $q_table SET $q_name='' WHERE $q_name is Null AND $logic";
-				$db->do( $sql );
-			}
-		}
-	}
-}
-
-sub upgrade_3_1_2_to_3_2_0
-{
-	my( $repoid, $db ) = @_;
-
-	my $repo = &repository( $repoid, check_db => 0 );
-
-	upgrade_cfg_files( $repo, [qw(
-	 	indexing.pl
-		rdf_license.pl
-	)]);
-
-	# We can do this now, because we only ever add columns
-	update_datasets( $repo, $db );
-	update_counters( $repo, $db );
-
-	if( ref($db) eq "EPrints::Database::mysql" )
-	{
-		upgrade_mysql_charset( $repoid, $db );
-	}
-}
-
-sub upgrade_3_2_0_to_3_2_1
-{
-	my( $repoid, $db ) = @_;
-
-	my $repo = &repository( $repoid, check_db => 0 );
-
-# upgrade_add_files is done in 3.2.1 -> 3.2.2
-#	upgrade_add_files( $repo );
 }
 
 sub upgrade_cfg_files
@@ -2966,11 +2650,183 @@ sub upgrade_mysql_charset_table
 	return $rc;
 }
 
+sub upgrade
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+	
+	print STDERR "Stopping indexer ...\n";
+	run_script( $repoid, "indexer", "stop" );	
+
+	my $db = $repo->database();
+
+	my @versions = qw(
+			3.0
+			3.0.1
+			3.0.2
+			3.0.3
+			3.0.4
+			3.0.5
+			3.0.6
+			3.0.7
+			3.1.0
+			3.1.1
+			3.1.2
+			3.2.0
+			3.2.1
+			3.2.2
+			3.2.3
+			3.2.4
+			3.3.0
+			3.3.1
+		);
+
+	for(my $i = 0; $i < $#versions; ++$i)
+	{
+		if( $db->get_version() eq $versions[$i] )
+		{
+			no strict 'refs';
+			my $f = "upgrade_".$versions[$i]."_to_".$versions[$i+1];
+			$f =~ s/\./_/g;
+			print STDERR "Upgrading " . $versions[$i] . " to " . $versions[$i+1] . "\n";
+			&$f( $repo, $db );
+			$db->set_version( $versions[$i+1] );
+		}
+	}
+
+	print STDERR "Please restart the indexer\n";
+	print $db->get_version()."\n";
+}
+
+sub upgrade_3_0_to_3_0_1 { }
+sub upgrade_3_0_1_to_3_0_2 { }
+sub upgrade_3_0_2_to_3_0_3 { }
+sub upgrade_3_0_3_to_3_0_4 { }
+sub upgrade_3_0_4_to_3_0_5 { }
+
+sub upgrade_3_0_5_to_3_0_6
+{
+	my( $repoid, $db ) = @_;
+
+	reset_dataset( $repoid, 'subject' );
+}
+
+sub upgrade_3_0_6_to_3_0_7 { }
+
+sub upgrade_3_0_7_to_3_1_0
+{
+	my( $repo, $db ) = @_;
+
+	$db->drop_table( "messages" );
+	$db->drop_table( "login_tickets" );
+	$db->drop_table( "cachemap" );
+
+	# access dataset changes
+	my $dataset = $repo->get_dataset( "access" );
+	my $table = $dataset->get_sql_table_name;
+
+	# remove the 'urn:ip:' and 'info:oai:...:' bits
+	if( $db->has_table( $table ) )
+	{
+		$db->do("UPDATE $table SET
+			referent_id=SUBSTRING_INDEX(referent_id,':',-1),
+			referent_docid=SUBSTRING_INDEX(referent_docid,'-',-1),
+			requester_id=SUBSTRING_INDEX(requester_id,'urn:ip:',-1)
+		");
+		my $changes_sql = '';
+		$changes_sql .= "MODIFY referring_entity_id LONG,";
+		$changes_sql .= "MODIFY referent_id INT,";
+		$changes_sql .= "MODIFY referent_docid INT,";
+		chop($changes_sql);
+		$db->do("ALTER TABLE $table $changes_sql");
+
+		# remove the index and order tables
+		for(qw(__index __index_grep __rindex))
+		{
+			$db->drop_table("$table$_");
+		}
+	}
+}
+
+sub upgrade_3_1_0_to_3_1_1 { }
+
+sub upgrade_3_1_1_to_3_1_2
+{
+	my( $repo, $db ) = @_;
+
+	foreach( $repo->get_sql_dataset_ids() )
+	{
+		my $dataset = $repo->dataset( $_ );
+
+		foreach my $field ($dataset->fields)
+		{
+			next unless $field->isa( "EPrints::MetaField::Name" );
+
+			my $table;
+			if( $field->property( "multiple" ) )
+			{
+				$table = $dataset->get_sql_sub_table_name( $field );
+			}
+			else
+			{
+				$table = $dataset->get_sql_table_name();
+			}
+
+			next unless $db->has_table( $table );
+
+			my @logic;
+			for($field->get_sql_names)
+			{
+				my $q_name = $db->quote_identifier( $_ );
+				push @logic, "($q_name is not Null AND $q_name != '')";
+			}
+			my $logic = "(" . join(" OR ", @logic) . ")";
+			for($field->get_sql_names)
+			{
+				my $q_name = $db->quote_identifier( $_ );
+				my $q_table = $db->quote_identifier( $table );
+				my $sql = "UPDATE $q_table SET $q_name='' WHERE $q_name is Null AND $logic";
+				$db->do( $sql );
+			}
+		}
+	}
+}
+
+sub upgrade_3_1_2_to_3_2_0
+{
+	my( $repoid, $db ) = @_;
+
+	my $repo = &repository( $repoid, check_db => 0 );
+
+	upgrade_cfg_files( $repo, [qw(
+	 	indexing.pl
+		rdf_license.pl
+	)]);
+
+	my $dataset = $repo->dataset( "subject" );
+	$db->drop_table( $dataset->get_sql_rindex_table_name );
+
+	# We can do this now, because we only ever add columns
+	update_datasets( $repo, $db );
+	update_counters( $repo, $db );
+
+	if( ref($db) eq "EPrints::Database::mysql" )
+	{
+		upgrade_mysql_charset( $repoid, $db );
+	}
+}
+
+sub upgrade_3_2_0_to_3_2_1 { }
+
 sub upgrade_3_2_1_to_3_2_2
 {
 	my( $repoid, $db ) = @_;
 
 	my $repo = &repository( $repoid, check_db => 0 );
+
+	my $dataset = $repo->dataset( "subject" );
+	$db->drop_table( $dataset->get_sql_rindex_table_name );
 
 	# Update new datasets (Triples)
 	update_datasets( $repo, $db );
@@ -3013,37 +2869,29 @@ sub upgrade_3_2_2_to_3_2_3
 	);
 }
 
-sub upgrade_3_2_3_to_3_2_4
-{
-	my( $repoid, $db ) = @_;
-
-	my $repo = &repository( $repoid, check_db => 0 );
-
-	# fixup the subjects index table
-	my $dataset = $repo->dataset( "subject" );
-	my $table = $db->quote_identifier($dataset->get_sql_rindex_table_name);
-	my $Q_key_name = $dataset->key_field->get_sql_name;
-	$db->do( "ALTER IGNORE TABLE $table MODIFY $Q_key_name VARCHAR(128) CHARACTER SET UTF8 COLLATE utf8_bin NOT NULL, MODIFY field VARCHAR(64)CHARACTER SET UTF8 COLLATE utf8_bin NOT NULL , MODIFY word VARCHAR(128) CHARACTER SET UTF8 COLLATE utf8_bin NOT NULL, DEFAULT CHARACTER SET UTF8 COLLATE utf8_bin, DROP PRIMARY KEY, ADD PRIMARY KEY(field,word,$Q_key_name)" );
-}
+sub upgrade_3_2_3_to_3_2_4 { }
 
 sub upgrade_3_2_4_to_3_3_0
 {
-	my( $repoid, $db ) = @_;
-
-	my $repo = &repository( $repoid, check_db => 0 );
+	my( $repo, $db ) = @_;
 
 	# metafield dataset has been completely reworked
-	my $mf_ds = $repo->dataset( "metafield" );
-	$db->drop_dataset_tables( $mf_ds );
+	$db->drop_table( "mf" );
+	for(qw( __index __index_grep __rindex ))
+	{
+		$db->drop_table( "mf$_" );
+	}
+
+	# move var/metafields.pl to cfg/cfg.d/metafields.pl
+	my $base_path = $repo->config( "arc_path" );
+	rename( "$base_path/var/metafield.pl", "$base_path/cfg/cfg.d/zz_webcfg_eprint_fields.pl" );
+
+	$repo->load_config;
 
 	# Update datasets:
 	#  - metafield
 	update_datasets( $repo, $db );
 	update_counters( $repo, $db );
-
-	# move var/metafields.pl to cfg/cfg.d/metafields.pl
-	my $base_path = $repo->config( "arc_path" );
-	rename( "$base_path/var/metafield.pl", "$base_path/cfg/cfg.d/zz_webcfg_eprint_fields.pl" );
 
 	# rename _fulltext_ indexed values to documents
 	my $Q_table = $db->quote_identifier( "eprint__rindex" );
@@ -3052,14 +2900,22 @@ sub upgrade_3_2_4_to_3_3_0
 
 	# populating new field 'eprint.search_format' used on the Advanced Search
 	&populate_search_format( $repo );
-
 }
 
 sub upgrade_3_3_0_to_3_3_1
 {
-	my( $repoid, $db ) = @_;
+	my( $repo, $db ) = @_;
 
-	my $repo = &repository( $repoid, check_db => 0 );
+	$force = 1; # don't YES/NO on reindex
+	reindex( $repo, "subject" );
+	if( eval "require Search::Xapian; 1" )
+	{
+		print STDERR "Reindexing datasets for Xapian\n";
+		for(qw( eprint user ))
+		{
+			reindex( $repo, $_ );
+		}
+	}
 
 	return if !$repo->database->isa( "EPrints::Database::mysql" );
 
@@ -3092,225 +2948,6 @@ sub upgrade_3_3_0_to_3_3_1
 				} @cols
 			);
 	}
-}
-
-sub populate_search_format
-{
-	my( $repo ) = @_;
-
-	return unless( $repo->dataset( 'eprint' )->has_field( 'search_format' ) );
-
-	$repo->dataset( 'eprint' )->map( $repo, sub { 
-
-		my( $session, $ds, $eprint, $info ) = @_;
-
-		my @search_formats = ();
-			
-		foreach my $doc ( $eprint->get_all_documents  )
-		{
-			unless( $doc->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
-			{
-				my $format = $doc->get_value( 'format' );
-
-				if( $format =~ m#^application/.*zip.*$# )        #
-				{
-					$format = 'archive';
-				}
-				else
-				{
-					$format =~ s/^(image|video|audio)\/.*/$1/gi;
-				}
-
-				push @search_formats, $format;
-			}
-		}
-
-	        $eprint->set_value( "search_format", \@search_formats );
-		$eprint->commit;
-
-	}, {} );	
-}
-
-
-sub migrate_to_epm_packages 
-{
-	
-	my( $repoid, $old_version, $new_version ) = @_;
-
-	my $repo = &repository( $repoid, check_db => 0 );
-
-	my $packages = get_packages($old_version, $new_version);
-
-	my $base_path = $repo->get_conf( "base_path" ) . "/";
-	my $arc_path = $repo->get_conf( "arc_path" ) . "/";
-
-	foreach my $key (keys %$packages) {
-		
-		my $package = $packages->{$key};
-
-# 		TODO
-		next if (EPrints::EPM::is_installed($repo,$package->{'name'}));
-		
-		my $files = $package->{'files'};
-		my $exists_count = 0;
-		foreach my $file(@$files) {
-			my $file_path = $base_path . $file;
-			$exists_count++ if ( -e $file_path );
-		}
-
-		my $phrase = "The functionality provided by this package has been removed from the EPrints base code, however is provided as an extension package, would you like to install this package and retain the functionality provided by this package?";	
-
-		if ($exists_count > 0) {
-			$phrase .= "\n\nWARNING: A number of files associated with this package were detected still in your EPrints install. If you choose to continue these will be backed up (under var/package_backups) before the upgrade is done, you cannot continue with these in place, thus if you wish to keep these files and NOT install the newer package, please enter 'no'\n\n";
-		}
-		
-		print "\nPACKAGE: " . $package->{'name'} . "\n";
-		print "=======================================\n";
-		my $install_package = EPrints::Utils::get_input( $REGEXP_YESNO, $phrase , "yes" );
-		if( $install_package eq "yes" )
-		{
-			my $moved_files;
-			if ($exists_count > 0) {
-				$moved_files = backup_core_package( $repo, $package );
-			}
-			if ($exists_count > 0 && !defined $moved_files) 
-			{
-				print "Backup/remove of " . $package->{'name'} . " failed, aborting...\n";
-				next;
-			} 
-			else 
-			{
-				print "Installing Package...\n\n";
-				my $ok = EPrints::EPM::command_line_install_package( $repo, $package->{'name'} );
-				if (!$ok) {
-					# Restore the Backup, assume this works since the original backup succeeded. 
-					print "Install Failed, restoring previous state...\n";
-					if (defined $moved_files) {
-						$ok = restore_backup_package_files($repo, $moved_files);
-					}
-				} else {
-					print "Install Succeeded\n\n";
-				}
-
-			}
-		}
-	}
-}
-
-sub restore_backup_package_files
-{
-	my ( $repo, $moved_files ) = @_;
-	
-	use File::Copy;
-	
-	my $base_path = $repo->get_conf( "base_path" ) . "/";
-	my $backup_path = $base_path . "/var/package_backups";
-	my $help_file = $backup_path . "/README.txt";
-
-	open IN, "<$help_file";
-	my @contents = <IN>;
-	close IN;
-
-	foreach my $src(keys %$moved_files) 
-	{
-		my $dst = $moved_files->{$src};
-		copy($src,$dst);
-		unlink($src);
-
-		my $count = 0;
-		foreach my $line(@contents) 
-		{
-			splice(@contents,$count,1) if ($base_path . substr($line,0,index($line," ")) eq $dst);
-			$count++;
-		}			
-
-	}
-
-	open OUT, ">$help_file";
-	print OUT @contents;
-	close OUT;
-
-	return 1;
-
-}
-
-sub backup_core_package
-{
-	my ( $repo, $package ) = @_;
-	
-	use File::Copy;
-
-	my $base_path = $repo->get_conf( "base_path" ) . "/";
-	my $backup_path = $base_path . "/var/package_backups";
-	my $help_file = $backup_path . "/README.txt";
-	mkdir($backup_path);
-
-	open FILE, ">>$help_file" or return undef;
-
-	my $moved_files = {};
-
-	my $files = $package->{'files'};
-	foreach my $file(@$files) {
-		
-		my $file_path = $base_path . $file;
-		
-		next if (!( -e $file_path ));
-		
-		my $path = substr($file,0,rindex($file,"/"));
-		$path = $backup_path . "/" . $path;
-		
-		my $filename = substr($file,rindex($file,"/")+1,length($file));
-
-		use File::Path qw(mkpath);
-		mkpath($path);
-
-		my $dst = $path . "/" . $filename;
-
-		copy($file_path,$dst);
-		$moved_files->{$dst} = $file_path;
-		unlink($file_path);
-
-		if ( -e $file_path )
-		{
-			return undef;
-		}
-
-		print FILE $file . " is backup of " . $file_path . " relating to the package: " . $package->{'name'} . "\n";
-
-	}
-	
-	close FILE;
-	return $moved_files;
-
-}
-
-sub get_packages
-{
-	my ($old_version, $new_version) = @_;
-	my $packages = {};
-
-	if ($new_version eq "3.3.1") 
-	{
-		my @files = ('perl_lib/EPrints/Plugin/Export/BibTeX.pm','perl_lib/EPrints/Plugin/Import/BibTeX.pm');
-		$packages->{'BibTeX'}->{'files'} = \@files;
-		$packages->{'BibTeX'}->{'name'} = 'BibTeX';
-		
-		@files = ('perl_lib/EPrints/Plugin/Export/REM_Atom.pm','perl_lib/EPrints/Plugin/Export/REM_Atom_via_PMH.pm', ,'perl_lib/EPrints/Plugin/Export/REM_RDF.pm','perl_lib/EPrints/Plugin/Import/OREResource.pm');
-		$packages->{'ORE_Tools'}->{'files'} = \@files;
-		$packages->{'ORE_Tools'}->{'name'} = 'ORE_Tools';
-		
-		@files = ('perl_lib/EPrints/Plugin/Export/DIDL.pm');
-		$packages->{'DIDL_export'}->{'files'} = \@files;
-		$packages->{'DIDL_export'}->{'name'} = 'DIDL_export';
-		
-		@files = ('perl_lib/EPrints/Plugin/Storage/AmazonS3.pm');
-		$packages->{'AmazonS3'}->{'files'} = \@files;
-		$packages->{'AmazonS3'}->{'name'} = 'AmazonS3';
-
-
-	}
-
-	return $packages;
 }
 
 # End of UPGRADE CODE
