@@ -119,15 +119,10 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 			my $plugin = $types{$type}->{plugin};
 			FILE: foreach my $fn ($plugin->export( $tempdir, $doc, $type ))
 			{
-				open(my $fh, "<:utf8", "$tempdir/$fn") or next FILE;
-				my $chars = 0;
-				while(<$fh>)
-				{
-					$chars += length($_);
-					last if $chars > 2 * 1024 * 1024;
-					$tg->index_text( $_ );
-				}
+				open(my $fh, "<", "$tempdir/$fn") or next FILE;
+				sysread($fh, my $buffer, 2 * 1024 * 1024);
 				close($fh);
+				$tg->index_text( Encode::decode_utf8( $buffer ) );
 				$tg->increase_termpos();
 			}
 		}

@@ -1,0 +1,130 @@
+#!/usr/bin/perl
+
+use FindBin;
+use lib "$FindBin::Bin/../perl_lib";
+
+=pod
+
+=for Pod2Wiki
+
+=head1 NAME
+
+schedule - schedule a job for the indexer
+
+=head1 SYNOPSIS
+
+	schedule <repoid> <pluginid> <action> [parameters]
+
+=head1 OPTIONS
+
+=over 4
+
+=item --cron="15 12 * * *"
+
+=item --verbose
+
+=item --force
+
+=item --help
+
+=item --man
+
+=back
+
+=head1 COMMANDS
+
+=over 4
+
+=cut
+
+use EPrints;
+use Getopt::Long;
+use Pod::Usage;
+
+use strict;
+use warnings;
+
+my $opt_version;
+my $opt_verbose = 0;
+my $opt_force = 0;
+my $opt_help;
+my $opt_man;
+my $opt_cron;
+
+GetOptions(
+	'version=s' => \$opt_version,
+	'verbose+' => \$opt_verbose,
+	'force' => \$opt_force,
+	'help' => \$opt_help,
+	'man' => \$opt_man,
+	'cron=s' => \$opt_cron,
+) or pod2usage( 2 );
+
+pod2usage(-verbose => 1) if $opt_help;
+pod2usage(-verbose => 2) if $opt_man;
+
+pod2usage if @ARGV < 3;
+
+my $repo = EPrints->new->repository( $ARGV[0] )
+	or die "Unknown repository '$ARGV[0]'";
+
+my $plugin = $repo->plugin( $ARGV[1] )
+	or die "Unknown plugin '$ARGV[1]'";
+
+$plugin->can( $ARGV[2] )
+	or die "$ARGV[1] can not $ARGV[2]";
+
+my $event;
+
+if( $opt_cron )
+{
+	$event = EPrints::DataObj::EventQueue->create_unique( $repo, {
+		pluginid => "Event",
+		action => "cron",
+		params => [$opt_cron, @ARGV[1..$#ARGV]],
+	});
+}
+else
+{
+	$event = EPrints::DataObj::EventQueue->create_unique( $repo, {
+		pluginid => $ARGV[1],
+		action => $ARGV[2],
+		params => [@ARGV[3..$#ARGV]],
+	});
+}
+
+die "Event already exists" if !defined $event;
+
+print $event->id, "\n";
+
+=back
+
+=cut
+
+=head1 COPYRIGHT
+
+=for COPYRIGHT BEGIN
+
+Copyright 2000-2011 University of Southampton.
+
+=for COPYRIGHT END
+
+=for LICENSE BEGIN
+
+This file is part of EPrints L<http://www.eprints.org/>.
+
+EPrints is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+EPrints is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+License for more details.
+
+You should have received a copy of the GNU General Public License
+along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
+
+=for LICENSE END
+

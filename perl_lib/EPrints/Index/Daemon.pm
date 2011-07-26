@@ -661,11 +661,14 @@ sub run_index
 			sleep 5;
 		}
 
-		# re-connect the databases
+		# re-connect the databases and clear temporary values
 		# if we lose connection while sleeping we can lose any connection
 		# settings on an auto-reconnect
+		# some session variables may need to clear e.g. xapian may not write
+		# anything until its object goes away
 		foreach my $repo (@repos)
 		{
+			$repo->cleanup;
 			$repo->database->connect();
 		}
 	}

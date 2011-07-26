@@ -17,7 +17,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{actions} = [qw/ save add /];
+	$self->{actions} = [qw/ cancel save create link unlink remove /];
 
 	$self->{appears} = [
 		{
@@ -37,6 +37,14 @@ sub can_be_viewed
 	return $self->allow( "subject/edit" );
 }
 
+sub allow_cancel { 1 }
+sub action_cancel {}
+
+sub allow_save { 1 }
+sub allow_create { 1 }
+sub allow_link { 1 }
+sub allow_unlink { 1 }
+sub allow_remove { 1 }
 
 sub render
 {
@@ -47,17 +55,14 @@ sub render
 
 	my $page = $session->make_doc_fragment;
 
-	$page->appendChild( $self->html_phrase( "subjectid", 
-		id=>$session->make_text( $subject->get_value( "subjectid" ) ) ) );
+#	$page->appendChild( $self->html_phrase( "subjectid", 
+#		id=>$session->make_text( $subject->get_value( "subjectid" ) ) ) );
 
+	$page->appendChild( $self->render_subject_tree );
 	if( $subject->get_id ne $EPrints::DataObj::Subject::root_subject )
 	{
 		$page->appendChild( $self->render_editbox );
 	}
-	$page->appendChild( $self->render_links );
-	$page->appendChild( $self->render_subject_tree );
-	$page->appendChild( $self->render_subject_children );
-	$page->appendChild( $self->render_subject_add_node );
 
 	return $page;
 }
@@ -81,6 +86,7 @@ sub render_editbox
 	my $first = 1;
 	my $prefix = "update";
 	foreach my $field (
+				$subject_ds->get_field( "subjectid" ),
 				$subject_ds->get_field( "name" ),
 				$subject_ds->get_field( "depositable" )
 	) {
@@ -112,15 +118,22 @@ sub render_editbox
 			$value = "FALSE";
 		}
 
-		$parts{field} = $field->render_input_field( 
-			$self->{session}, 
-			$value, 
-			undef,
-			0,
-			undef,
-			$subject,
-			$prefix,
-		  );
+		if( $field eq $subject_ds->key_field )
+		{
+			$parts{field} = $field->render_value( $self->{session}, $value );
+		}
+		else
+		{
+			$parts{field} = $field->render_input_field( 
+				$self->{session}, 
+				$value, 
+				undef,
+				0,
+				undef,
+				$subject,
+				$prefix,
+			  );
+		}
 
 		$parts{help_prefix} = $prefix."_help_".$field->get_name;
 
@@ -130,11 +143,9 @@ sub render_editbox
                 save => $self->phrase( "action_save" ) ) );
 
 	return $self->{session}->render_toolbox( 
-		$self->html_phrase( "modify" ),
+		undef,
 		$form );
 }
-
-sub allow_save { 1 };
 
 sub action_save
 {
@@ -160,22 +171,233 @@ sub render_subject_tree
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
 
 	my $subject = $self->{processor}->{subject};
+	my $dataset = $subject->get_dataset;
 
-	my $page = $session->make_doc_fragment();
+	my $tree = {
+		$EPrints::DataObj::Subject::root_subject => $self->render_subject( $dataset->dataobj( $EPrints::DataObj::Subject::root_subject ), 1 ),
+	};
 
-	my @ids = @{$subject->get_value( "ancestors" )};
-	foreach( $subject->get_children )
-	{
-		push @ids, $_->get_value( "subjectid" );
-	}
-	return $session->render_toolbox( 
-		$self->html_phrase( "location" ),
-		$session->render_subjects( \@ids, undef, $subject->get_id, 1 ) );
+	$self->_render_subject_tree( $tree, $subject );
+
+	return $tree->{$EPrints::DataObj::Subject::root_subject};
 }
 
+sub _render_subject_tree
+{
+	my( $self, $tree, $current ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $subject = $self->{processor}->{subject};
+	my $dataset = $subject->get_dataset;
+
+	my $ul;
+
+	my $first = 1;
+	foreach my $parent ($current->get_parents)
+	{
+		my $container = $tree->{$parent->id};
+		if( !defined $container )
+		{
+			$container = $self->_render_subject_tree( $tree, $parent );
+			$tree->{$parent->id} = $container;
+		}
+		# ul -> li
+		$container->firstChild->appendChild( $ul = $self->render_subject( $current, $first ) );
+		$first = 0;
+	}
+
+	return defined $ul ? $ul : $self->render_subject( $current );
+}
+
+sub render_subject
+{
+	my( $self, $current, $show_children ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $subject = $self->{processor}->{subject};
+	my $dataset = $subject->get_dataset;
+
+	my $ul = $xml->create_element( "ul" );
+
+	my $li = $ul->appendChild( $xml->create_element( "li" ) );
+	if( $current->id eq $subject->id )
+	{
+		$li->appendChild( $xml->create_data_element( "strong",
+			$current->render_citation( "edit",
+				pindata => {
+					inserts => {
+						n => $xml->create_text_node( $current->count_eprints( $repo->dataset( "eprint" ) ) )
+					},
+				},
+			)
+		) );
+		$li->appendChild( $self->render_children )
+			if $show_children;
+	}
+	else
+	{
+		my $url = $repo->current_url( path => "cgi", "users/home" );
+		$url->query_form(
+			$self->hidden_bits,
+			subjectid => $current->id,
+		);
+		$li->appendChild( $current->render_citation( "edit",
+			url => $url,
+			pindata => {
+				inserts => {
+					n => $xml->create_text_node( $current->count_eprints( $repo->dataset( "eprint" ) ) )
+				},
+			},
+		) );
+	}
+
+	return $ul;
+}
+
+sub render_children
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $subject = $self->{processor}->{subject};
+	my $dataset = $subject->get_dataset;
+
+	my $table = $xml->create_element( "table" );
+
+	# child subjects
+	foreach my $child ($subject->get_children)
+	{
+		my $tr = $table->appendChild( $xml->create_element( "tr", class => "ep_row" ) );
+		my $url = $repo->current_url( path => "cgi", "users/home" );
+		$url->query_form(
+			$self->hidden_bits,
+			subjectid => $child->id,
+		);
+		my $td = $tr->appendChild( $xml->create_element( "td", class => "ep_row" ) );
+		$td->appendChild( $child->render_citation( "edit",
+			url => $url,
+		) );
+		$td = $tr->appendChild( $xml->create_element( "td", class => "ep_row", style => "text-align: right" ) );
+		$td->appendChild( $xml->create_text_node( $child->count_eprints( $repo->dataset( "eprint" ) ) ) );
+		$td = $tr->appendChild( $xml->create_element( "td", class => "ep_row" ) );
+		my $form = $td->appendChild( $self->render_form );
+		$form->appendChild( $xhtml->hidden_field( childid => $child->id ) );
+		$form->appendChild( $xhtml->action_button(
+			unlink => $self->phrase( "action_unlink" )
+		) );
+	}
+
+	# create new child
+	{
+		my $tr = $table->appendChild( $xml->create_element( "tr", class => "ep_row" ) );
+		my $td = $tr->appendChild( $xml->create_element( "td", class => "ep_row", colspan => 3 ) );
+		my $form = $td->appendChild( $self->render_form );
+		$form->appendChild( $dataset->field( "subjectid" )->render_name );
+		$form->appendChild( $xml->create_text_node( ": " ) );
+		$form->appendChild( $xhtml->input_field( childid => undef ) );
+		$form->appendChild( $xhtml->action_button(
+			create => $repo->phrase( "lib/submissionform:action_create" )
+		) );
+	}
+
+	# link existing child
+	{
+		my $tr = $table->appendChild( $xml->create_element( "tr", class => "ep_row" ) );
+		my $td = $tr->appendChild( $xml->create_element( "td", class => "ep_row", colspan => 3 ) );
+		my $form = $td->appendChild( $self->render_form );
+		my $select = $form->appendChild( $xml->create_element( "select",
+			name => "childid",
+		) );
+		$subject->get_dataset->search->map(sub {
+			my( undef, undef, $child ) = @_;
+
+			$select->appendChild( $xml->create_data_element( "option",
+				$child->id,
+				value => $child->id,
+			) );
+		});
+		$form->appendChild( $xhtml->action_button(
+			link => $self->phrase( "action_link" )
+		) );
+	}
+
+	return $table;
+}
+
+sub _render_children
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	
+	my @labels;
+	my @panels;
+
+	push @labels, $self->html_phrase( "children" );
+	push @panels, $self->render_subject_children;
+
+	push @labels, $self->html_phrase( "action_link" );
+	push @panels, $self->render_link_child;
+
+	push @labels, $self->html_phrase( "action_add" );
+	push @panels, $self->render_subject_add_node;
+
+	return $repo->xhtml->tabs(
+		\@labels,
+		\@panels,
+	);
+}
+
+sub render_link_child
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+
+	my $subject_ds = $repo->dataset( "subject" );
+	my $subject = $self->{processor}->{subject};
+
+	my $form = $self->render_form;
+
+	my $ancestors = $subject->value( "ancestors" );
+	$form->appendChild( EPrints::MetaField->new(
+		name => "subjectid",
+		type => "subject",
+		dataset => $subject->get_dataset,
+		repository => $repo,
+		top => $ancestors->[$#$ancestors - 1],
+		input_rows => 8,
+		showall => 1,
+	)->render_input_field(
+			$repo,
+			undef,
+			undef,
+			0,
+			undef,
+			undef,
+			"oldnode"
+	) );
+
+	$form->appendChild( $repo->render_action_buttons(
+				link => $self->phrase( "action_link" ) ) );
+
+	return $form;
+}
+	
 sub render_subject_children
 {
 	my( $self ) = @_;
@@ -189,8 +411,8 @@ sub render_subject_children
 	my $page = $session->make_doc_fragment();
 
 	my $form = $session->render_form( "post" );
-	$form->appendChild( $session->render_hidden_field( "subjectid", $subject->get_id ) );
-	$form->appendChild( $session->render_hidden_field( "screen", "Subject::Edit" ) );
+	$form->appendChild( $self->render_hidden_bits );
+	$form->appendChild( $session->render_hidden_field( "_action_unlink", "1" ) );
 	$page->appendChild( $form );
 
 	my( $table, $tr, $td, $th, $a );
@@ -251,20 +473,14 @@ sub render_subject_children
 		$tr->appendChild( $td );
 		
 		$td = $session->make_element( "td" );
-		if( $children_n == 0 )
-		{
-			$td->appendChild( $session->render_action_buttons( 
-				"unlink_".$_->get_value( "subjectid" ) =>
-					$self->phrase( "action_".($parents_n == 1?"delete":"unlink") ) ) );
-		}
+		$td->appendChild( $session->render_action_buttons( 
+				"unlink_".$_->id => $self->phrase( "action_unlink" ) ) );
 		$tr->appendChild( $td );
 		$table->appendChild( $tr );
 	}
 	$form->appendChild( $table );
 
-	return $session->render_toolbox(
-		$self->html_phrase( "children" ),
-		$form );
+	return $form;
 }
 
 
@@ -276,9 +492,7 @@ sub render_subject_add_node
 	my $subject_ds = $session->dataset( "subject" );
 	my $subject = $self->{processor}->{subject};
 
-	my $form = $session->render_form( "post" );
-	$form->appendChild( $session->render_hidden_field( "subjectid", $subject->get_id ) );
-	$form->appendChild( $session->render_hidden_field( "screen", "Subject::Edit" ) );
+	my $form = $self->render_form;
 
 	my $field = $subject_ds->get_field( "subjectid" );
 
@@ -308,59 +522,65 @@ sub render_subject_add_node
         $form->appendChild( $session->render_action_buttons(
                 add => $self->phrase( "action_add" ) ) );
 
-	return $self->{session}->render_toolbox( 
-		$self->html_phrase( "add_child", subid=>$subject->render_value( "subjectid" ) ),
-		$form );
+	return $form;
 }
 
-sub allow_add { 1 };
-
-sub action_add
+sub action_create
 {
 	my( $self ) = @_;
 
 	my $session = $self->{session};
-	my $newid = $session->param( "newnode_subjectid" );
 	my $subject_ds = $session->dataset( "subject" );
 	my $subject = $self->{processor}->{subject};
 	
-	if( !EPrints::Utils::is_set( $newid ) )
+	my $childid = $session->param( "childid" );
+	return if !EPrints::Utils::is_set( $childid );
+
+	my $child = $subject_ds->dataobj( $childid );
+	if( defined $child )
 	{
-		$self->{processor}->add_message( "error", $self->html_phrase( "problem_noid" ) );
-		return;
-	}
-
-	my $newchild = EPrints::DataObj::Subject->new( $session, $newid );
-	if( defined $newchild )
-	{
-		if( grep( /^$newid$/, @{$subject->get_value( "ancestors" )} ) )
-		{
-			$self->{processor}->add_message( "error", $self->html_phrase( "problem_ancestor" ) );
-			return;
-		}
-
-		my @parents = @{$newchild->get_value( "parents" )}; 
-		push @parents, $subject->get_value( "subjectid" );
-		$newchild->set_value( "parents", \@parents );
-		$newchild->commit();
-
-		$self->{processor}->add_message( "message", $self->html_phrase( "linked", newchild=>$newchild->render_description ) );
+		$self->{processor}->add_message( "error", $self->html_phrase( "exists" ) );
 		return;
 	}
 
 	# new subject node
-	my $newsubject = $subject_ds->create_object( $session, {
-		subjectid => $newid,
-		parents => [ $subject->get_value( "subjectid" ) ],
+	$child = $subject_ds->create_dataobj( {
+		subjectid => $childid,
+		parents => [ $subject->id ],
 		depositable => 1 } );
-	$newsubject->commit;
 
-	$self->{processor}->add_message( "message", $self->html_phrase( "added", newchild=>$newsubject->render_value( "subjectid" ) ) );
-	$self->{processor}->{subject} = $newsubject;
-	$self->{processor}->{subjectid} = $newid;
+	$self->{processor}->add_message( "message", $self->html_phrase( "added", newchild=>$child->render_value( "subjectid" ) ) );
+	$self->{processor}->{subject} = $child;
+	$self->{processor}->{subjectid} = $child->id;
 }
 
+sub action_link
+{
+	my( $self ) = @_;
 
+	my $session = $self->{session};
+	my $subject_ds = $session->dataset( "subject" );
+	my $subject = $self->{processor}->{subject};
+	
+	my $childid = $session->param( "childid" );
+	return if !EPrints::Utils::is_set( $childid );
+
+	my $child = $subject_ds->dataobj( $childid );
+
+	if( grep { $_ eq $childid } @{$subject->get_value( "ancestors" )} )
+	{
+		$self->{processor}->add_message( "error", $self->html_phrase( "problem_ancestor" ) );
+		return;
+	}
+
+	$child->set_value( "parents", [
+		@{$child->value( "parents" )},
+		$subject->id,
+	]);
+	$child->commit();
+
+	$self->{processor}->add_message( "message", $self->html_phrase( "linked", newchild=>$child->render_description ) );
+}
 
 sub redirect_to_me_url
 {
@@ -372,6 +592,63 @@ sub redirect_to_me_url
 	return $self->SUPER::redirect_to_me_url.$field->get_state_params( $self->{session} );
 }
 
+sub action_unlink
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	my $subject_ds = $repo->dataset( "subject" );
+	my $subject = $self->{processor}->{subject};
+	
+	my $childid = $repo->param( "childid" );
+
+	# already deleted?
+	my $child = $subject_ds->dataobj( $childid );
+	return if !defined $child;
+
+	# already unlinked?
+	return if !grep { $_ eq $subject->id } @{$child->value( "ancestors" )};
+
+	# are we deleting?
+	if( @{$child->value( "parents" )} < 2 )
+	{
+		my $form = $self->render_form;
+		$form->appendChild( $repo->xhtml->hidden_field( childid => $childid ) );
+		$form->appendChild( $repo->render_action_buttons(
+			remove => $repo->phrase( "lib/submissionform:action_remove" ),
+			cancel => $repo->phrase( "lib/submissionform:action_cancel" ),
+			_order => [qw( remove cancel )],
+		) );
+		$self->{processor}->add_message( "warning", $self->html_phrase( "confirm_form",
+			form => $form,
+		) );
+		return;
+	}
+
+	$child->set_value( "parents", [
+		grep { $_ ne $subject->id } @{$child->value( "parents" )}
+		]);
+	$child->commit;
+	$self->{processor}->add_message( "message", $self->html_phrase( "unlinked" ) );
+}
+
+sub action_remove
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	my $subject_ds = $repo->dataset( "subject" );
+	my $subject = $self->{processor}->{subject};
+	my $childid = $repo->param( "childid" );
+	
+	my $child = $subject_ds->dataobj( $childid );
+
+	# already removed?
+	return if !defined $child;
+
+	$child->remove();
+	$self->{processor}->add_message( "message", $self->html_phrase( "removed" ) );
+}
 
 sub from
 {
@@ -384,107 +661,8 @@ sub from
 		return;
 	}
 
-	my $session = $self->{session};
-	my $action = $session->get_action_button();
-	if( defined $action && $action =~ m/^unlink_(.*)$/ )
-	{
-		my $victimid = $1;
-		my $victim = EPrints::DataObj::Subject->new( $session, $victimid );
-#		foreach( @{$victim->get_value( "parents" )} )
-#		{
-#		}
-		if( !defined $victim )
-		{
-			$self->{processor}->add_message( "error", $self->html_phrase( "error_badsubject" ) );
-			return;
-		}
-		elsif( scalar @{$victim->get_value( "parents" )}==1 )
-		{
-			$victim->remove();
-			$self->{processor}->add_message( "message", $self->html_phrase( "removed" ) );
-		}
-		else
-		{
-			my @newparents = ();
-			foreach( @{$victim->get_value( "parents" )} )
-			{
-				push @newparents,$_ if($_ ne $self->{processor}->{subject}->get_value("subjectid"));
-			}
-			$victim->set_value( "parents", \@newparents );
-			$victim->commit();
-			$self->{processor}->add_message( "message", $self->html_phrase( "unlinked" ) );
-		}
-		return;
-	}
-
 	$self->EPrints::Plugin::Screen::from;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#######################################################
-
-sub mkpage_editsubject
-{
-	my( $self, $session, $subid ) = @_;
-
-	my $subject_ds = $session->dataset( "subject" );
-
-	my $subject;	
-	
-	my( $title );
-	my $page = $session->make_doc_fragment();
-
-	my $action = $session->get_action_button();
-	my @problems = ();
-
-	if( defined $action )
-	{
-		if( $action eq "add" )
-		{
-		}
-	}
-	if( scalar @problems )
-	{	
-		my $probdiv = $session->make_element( "div", class=>"problems" );
-		my $ul = $session->make_element( "ul" );
-		$probdiv->appendChild( $self->html_phrase( "problems" ) );
-		$probdiv->appendChild( $ul );
-		foreach( @problems )
-		{
-			my $li = $session->make_element( "li" );
-			$li->appendChild( $_ );
-			$ul->appendChild( $li );
-		}
-		$page->appendChild( $probdiv );
-	}
-}		
-		
 
 =head1 COPYRIGHT
 

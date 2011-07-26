@@ -59,7 +59,7 @@ sub _logic_time
 
 	my @parts = split( /[-: TZ]/, $self->{params}->[0] );
 	my $nparts = scalar @parts;
-	if( $self->{field}->isa( "EPrints::MetaField::Date" ) && $nparts > 3 )
+	if( !$self->{field}->isa( "EPrints::MetaField::Time" ) && $nparts > 3 )
 	{
 		$nparts = 3;
 	}

@@ -33,6 +33,8 @@ sub clear_triples
 		my( $repository, $dataset, $dataobj ) = @_;
 		$dataobj->remove;
 	} );
+
+	return;
 }
 
 sub update_triples
@@ -69,6 +71,8 @@ sub update_triples
 		delete $data{tripleid};
 		$self->{session}->dataset( "triple" )->create_dataobj( \%data );
 	});
+
+	return;
 }
 
 sub uri_compress

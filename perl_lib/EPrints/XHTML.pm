@@ -145,6 +145,28 @@ sub hidden_field
 		@opts );
 }
 
+=item $node = $xhtml->action_button( $name, $value, %opts )
+
+Creates a submit button that is styled to an EPrints form button.
+
+$value is the text shown on the button.
+
+=cut
+
+sub action_button
+{
+	my( $self, $name, $value, %opts ) = @_;
+
+	$opts{class} = join ' ', 'ep_form_action_button', ($opts{class}||());
+
+	return $self->{repository}->xml->create_element( "input",
+		name => "_action_$name",
+		value => $value,
+		type => "submit",
+		%opts,
+	);
+}
+
 =item $node = $xhtml->text_area_field( $name, $value, %opts )
 
 Returns an XHTML textarea input.

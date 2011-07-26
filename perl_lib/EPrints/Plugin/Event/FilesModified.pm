@@ -16,7 +16,7 @@ sub files_modified
 
 	my $rc = $doc->files_modified();
 
-	return $rc;
+	return;
 }
 
 1;

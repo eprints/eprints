@@ -568,7 +568,6 @@ sub update_triggers
 		$userid = $user->id if defined $user;
 
 		EPrints::DataObj::EventQueue->create_unique( $self->{session}, {
-			unique => "TRUE",
 			pluginid => "Event::RDF",
 			action => $action,
 			params => [$self->internal_uri],
