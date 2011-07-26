@@ -2114,20 +2114,6 @@ sub update_datasets
 		foreach my $field ($dataset->get_fields)
 		{
 			next if defined $field->get_property( "sub_name" );
-			if( !$field->is_virtual && $field->property( "multiple" ) )
-			{
-				my $table = $dataset->get_sql_sub_table_name( $field );
-				my @cols = $db->get_primary_key( $table );
-				if( @cols && (@cols != 2 || $cols[0] ne $dataset->key_field->get_sql_name || $cols[1] ne "pos") )
-				{
-					if( @cols )
-					{
-						$db->do("ALTER TABLE ".$db->quote_identifier($table)." DROP PRIMARY KEY");
-					}
-					$db->do("ALTER TABLE ".$db->quote_identifier($table)." ADD PRIMARY KEY (".$db->quote_identifier($dataset->key_field->get_sql_name).",".$db->quote_identifier("pos").")");
-					print "Fixed PRIMARY KEY on $table\n";
-				}
-			}
 			if( !$db->has_field( $dataset, $field ) )
 			{
 				if( $db->add_field( $dataset, $field ) )
@@ -2148,6 +2134,24 @@ sub update_datasets
 					$success = 0;
 					print STDERR "Failed adding ".$field->get_name." to dataset $_\n";
 				}
+			}
+		}
+		# check multiple field PRIMARY KEYs
+		foreach my $field ($dataset->get_fields)
+		{
+			next if $field->is_virtual;
+			next if !$field->property( "multiple" );
+
+			my $table = $dataset->get_sql_sub_table_name( $field );
+			my @cols = $db->get_primary_key( $table );
+			if( @cols != 2 || $cols[0] ne $dataset->key_field->get_sql_name || $cols[1] ne "pos" )
+			{
+				if( @cols )
+				{
+					$db->do("ALTER TABLE ".$db->quote_identifier($table)." DROP PRIMARY KEY");
+				}
+				$db->do("ALTER TABLE ".$db->quote_identifier($table)." ADD PRIMARY KEY (".$db->quote_identifier($dataset->key_field->get_sql_name).",".$db->quote_identifier("pos").")");
+				print "Fixed PRIMARY KEY on $table\n";
 			}
 		}
 		# check the __rindex collation
