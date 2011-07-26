@@ -920,13 +920,13 @@ sub create_single_page_menu
 		my @render_menu_opts = ( $repo, $menu, $sizes, $values, $menu_fields, $has_submenu, $view );
 
 		my $menu_xhtml;
-		if( $menu_fields->[0]->isa( "EPrints::MetaField::Subject" ) )
-		{
-			$menu_xhtml = render_subj_menu( @render_menu_opts );
-		}
-		elsif( $menu->{render_menu} )
+		if( $menu->{render_menu} )
 		{
 			$menu_xhtml = $repo->call( $menu->{render_menu}, @render_menu_opts );
+		}
+		elsif( $menu_fields->[0]->isa( "EPrints::MetaField::Subject" ) )
+		{
+			$menu_xhtml = render_subj_menu( @render_menu_opts );
 		}
 		else
 		{
