@@ -2284,6 +2284,9 @@ sub upgrade_add_files
 			print STDERR sprintf("%.2f%% eprint.%d          \r", 100 * ++$count / $total, $eprint->id);
 		}
 
+		# maybe should fix this?
+		return if !$eprint->is_set( "dir" );
+
 		my $local_path = $eprint->local_path();
 		my $dir;
 		my $path;
