@@ -12,21 +12,13 @@ EPrints::DataObj::EventQueue - Scheduler queue
 
 A unique id for this event.
 
-=item datestamp
-
-The date/time the event was created.
-
 =item hash
 
 A unique hash for this event.
 
-=item unique
+=item cleanup
 
-If set to true only one event of this type (pluginid/action/params) is allowed to be running.
-
-=item oneshot
-
-If set to true removes this event once it has finished by success or failure.
+If set to true removes this event once it has finished by success or failure. Defaults to true.
 
 =item priority
 
@@ -39,14 +31,6 @@ The event should not be executed before this time.
 =item end_time
 
 The event was last touched at this time.
-
-=item due_time
-
-Do not start this event if we have gone beyond due_time.
-
-=item repetition
-
-Repetition number of seconds will be added to start_time until it is greater than now and a new event created, when this event is completed.
 
 =item status
 
@@ -84,15 +68,11 @@ sub get_system_field_info
 {
 	return (
 		{ name=>"eventqueueid", type=>"counter", sql_counter=>"eventqueueid", required=>1 },
-		{ name=>"datestamp", type=>"timestamp", required=>1, },
 		{ name=>"hash", type=>"id", sql_index=>1, },
-		{ name=>"unique", type=>"boolean", },
-		{ name=>"oneshot", type=>"boolean", },
+		{ name=>"cleanup", type=>"boolean", default_value=>"TRUE", },
 		{ name=>"priority", type=>"int", },
 		{ name=>"start_time", type=>"timestamp", required=>1, },
 		{ name=>"end_time", type=>"time", },
-		{ name=>"due_time", type=>"time", },
-		{ name=>"repetition", type=>"int", sql_index=>0, },
 		{ name=>"status", type=>"set", options=>[qw( waiting inprogress success failed )], default_value=>"waiting", },
 		{ name=>"userid", type=>"itemref", datasetid=>"user", },
 		{ name=>"description", type=>"longtext", },
@@ -109,8 +89,6 @@ sub create_unique
 	my( $class, $session, $data, $dataset ) = @_;
 
 	$dataset ||= $session->dataset( $class->get_dataset_id );
-
-	$data->{unique} = "TRUE";
 
 	my $md5 = Digest::MD5->new;
 	$md5->add( $data->{pluginid} );
@@ -190,7 +168,7 @@ sub execute
 		{
 			$self->message( "warning", $self->{session}->xml->create_text_node( "Unrecognised result code (check your action return): $rc" ) );
 		}
-		if( !$self->is_set( "oneshot" ) || $self->value( "oneshot" ) eq "TRUE" )
+		if( !$self->is_set( "cleanup" ) || $self->value( "cleanup" ) eq "TRUE" )
 		{
 			$self->remove();
 		}

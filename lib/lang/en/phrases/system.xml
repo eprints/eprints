@@ -3608,25 +3608,21 @@ PY = 2006 and OG = (Cambridge)<br />
 
 <!-- Scheduler Queue -->
 
+<epp:phrase id="event_queue_fieldname_eventqueueid">Id</epp:phrase>
+<epp:phrase id="event_queue_fieldname_status">Status</epp:phrase>
 <epp:phrase id="event_queue_fieldopt_status_success">Success</epp:phrase>
 <epp:phrase id="event_queue_fieldopt_status_inprogress">In Progress</epp:phrase>
 <epp:phrase id="event_queue_fieldopt_status_waiting">Waiting</epp:phrase>
 <epp:phrase id="event_queue_fieldopt_status_failed">Failed</epp:phrase>
-<epp:phrase id="event_queue_fieldname_status">Status</epp:phrase>
 <epp:phrase id="event_queue_fieldname_priority">Priority</epp:phrase>
 <epp:phrase id="event_queue_fieldname_start_time">Start Time</epp:phrase>
-<epp:phrase id="event_queue_fieldname_hash">Unique Hash</epp:phrase>
-<epp:phrase id="event_queue_fieldname_eventqueueid">Id</epp:phrase>
-<epp:phrase id="event_queue_fieldname_datestamp">Datestamp</epp:phrase>
+<epp:phrase id="event_queue_fieldname_end_time">Completed</epp:phrase>
+<epp:phrase id="event_queue_fieldname_hash">Event Hash</epp:phrase>
 <epp:phrase id="event_queue_fieldname_action">Action</epp:phrase>
 <epp:phrase id="event_queue_fieldname_params">Parameters</epp:phrase>
 <epp:phrase id="event_queue_fieldname_description">Description</epp:phrase>
-<epp:phrase id="event_queue_fieldname_due_time">Due</epp:phrase>
-<epp:phrase id="event_queue_fieldname_end_time">Completed</epp:phrase>
-<epp:phrase id="event_queue_fieldname_oneshot">Remove on Completion</epp:phrase>
+<epp:phrase id="event_queue_fieldname_cleanup">Remove on Completion</epp:phrase>
 <epp:phrase id="event_queue_fieldname_pluginid">Plugin</epp:phrase>
-<epp:phrase id="event_queue_fieldname_repetition">Repeated</epp:phrase>
-<epp:phrase id="event_queue_fieldname_unique">Unique</epp:phrase>
 <epp:phrase id="event_queue_fieldname_userid">Owner</epp:phrase>
 
 <!-- Captcha -->
