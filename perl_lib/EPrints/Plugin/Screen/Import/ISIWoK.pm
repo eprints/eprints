@@ -274,6 +274,10 @@ sub render_results
 			$form->appendChild( $repo->render_action_buttons(
 				import_single => $self->phrase( "action_import_single" ),
 			) );
+			if( @dupes )
+			{
+				$td->appendChild( $self->html_phrase( "duplicates" ) );
+			}
 			foreach my $dupe (@dupes)
 			{
 				$td->appendChild( $xml->create_data_element( "a",

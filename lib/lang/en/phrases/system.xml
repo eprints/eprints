@@ -2781,6 +2781,7 @@ AU = (Carr) and TI = (open access)<br />
 PY = 2006 and OG = (Cambridge)<br />
 </epp:phrase>
 	<epp:phrase id="Plugin/Screen/Import/ISIWoK:results">Results</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Import/ISIWoK:duplicates"><strong>Possible duplicates: </strong></epp:phrase>
 	<epp:phrase id="Plugin/Screen/Import/ISIWoK:action_import_single">Import</epp:phrase>
 
 	<epp:phrase id="Plugin/Import/DOI:bulk_input:form">
