@@ -8,7 +8,7 @@ Event plugins are called by the indexer to actually do work. L<EPrints::DataObj:
 
 Action is the sub called on the plugin. This sub must return undef or a valid response constant recognised by L<EPrints::DataObj::EventQueue/execute>.
 
-Parameters can contain any Perl data structure that can be serialised by L<Storable>. As a special case parameters that are a sub-class of L<EPrints::DataObj> are stored using their internal id then re-instatiated as the object when the plugin is called.
+Parameters can contain any Perl data structure that can be serialised by L<Storable>. As a special case parameters that look like an internal id are re-instantiated as the referenced object before the plugin action is called.
 
 Events also support scheduled (or repeating) events by calling L</cron> on this class with the actual plugin id/action/parameters to call. The scheduled event isn't called directly but is triggered via a new event object with a start_time of now.
 
