@@ -79,8 +79,8 @@ my $event;
 if( $opt_cron )
 {
 	$event = EPrints::DataObj::EventQueue->create_unique( $repo, {
-		pluginid => "Event::Schedule",
-		action => "execute",
+		pluginid => "Event",
+		action => "cron",
 		params => [$opt_cron, @ARGV[1..$#ARGV]],
 	});
 }
