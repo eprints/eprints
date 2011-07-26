@@ -196,7 +196,7 @@ sub auth_cookie
 		);
 		$login_url = URI->new( $login_url );
 		$login_url->query_form(
-			target => $target_url
+			target => "$target_url"
 		);
 		if( $repository->can_call( 'get_login_url' ) )
 		{
