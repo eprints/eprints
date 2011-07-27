@@ -193,6 +193,15 @@ sub action_search
 	$self->{processor}->{screenid} = "Admin::EPM";
 }
 
+sub render_links
+{
+	my( $self ) = @_;
+
+	return $self->{repository}->make_javascript( undef,
+		src => $self->{repository}->current_url( path => "static", "javascript/screen_admin_epm_available.js" ),
+	);
+}
+
 sub render
 {
 	my( $self ) = @_;
@@ -206,28 +215,6 @@ sub render
 	my $frag = $xml->create_document_fragment;
 
 	my $prefix = $self->get_subtype;
-	my $screen = $self->get_subtype;
-
-	$frag->appendChild( $repo->make_javascript( <<EOJ ) );
-js_admin_epm_available_update = function(e) {
-		var container = \$('${prefix}_results');
-		var loading = \$('loading').cloneNode( 1 );
-		container.insertBefore( loading, container.firstChild );
-		loading.style.position = 'absolute';
-		loading.clonePosition( container );
-		loading.show();
-
-		var qvalue = Event.element(e).value;
-		new Ajax.Updater(container, eprints_http_cgiroot+'/users/home', {
-			method: 'get',
-			parameters: {
-				screen: '$screen',
-				ajax: 1,
-				'${prefix}_q': qvalue
-			}
-		});
-};
-EOJ
 
 	my $div = $frag->appendChild( $xml->create_element( "div", class => "ep_block" ) );
 
@@ -235,7 +222,7 @@ EOJ
 	$form->appendChild( $xhtml->hidden_field( "ep_tabs_current", $self->get_subtype ) );
 	$form->appendChild( $xhtml->input_field(
 		"${prefix}_q" => scalar($repo->param( "${prefix}_q" )),
-		onkeyup => 'js_admin_epm_available_update(event)'
+		id => "${prefix}_q",
 	) );
 	$form->appendChild( $xhtml->input_field(
 		"_action_search" => $repo->phrase( "lib/searchexpression:action_search" ),
@@ -245,7 +232,7 @@ EOJ
 
 	$frag->appendChild( $xml->create_data_element( "div",
 		$self->render_results,
-		id => $self->get_subtype."_results"
+		id => "${prefix}_results"
 	) );
 
 	my $ffname = $basename."_file";

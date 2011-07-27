@@ -98,6 +98,21 @@ sub export
 	$self->{repository}->xml->dispose( $content );
 }
 
+sub render_links
+{
+	my( $self ) = @_;
+
+	my $frag = $self->{repository}->xml->create_document_fragment;
+
+	foreach my $item ($self->list_items( "admin_epm_tabs" ))
+	{
+		next if !$item->{screen}->can_be_viewed;
+		$frag->appendChild( $item->{screen}->render_links );
+	}
+
+	return $frag;
+}
+
 sub render
 {
 	my( $self ) = @_;
