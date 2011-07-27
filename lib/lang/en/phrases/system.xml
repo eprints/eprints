@@ -717,10 +717,6 @@ This field is required if no creators are listed.
 <br/>Example: <span class="ep_form_example">GCSE</span>
 </epp:phrase>
 
-    <epp:phrase id="eprint_fieldname_search_format">Format</epp:phrase>
-    <epp:phrase id="eprint_fieldhelp_search_format">The pseudo MIME type used for searching.</epp:phrase>
-
-
 <!-- Sort Order names -->
 
     <epp:phrase id="ordername_eprint_byyear">by year (most recent first)</epp:phrase>
@@ -731,8 +727,6 @@ This field is required if no creators are listed.
     <epp:phrase id="ordername_eprint_bytitlerev">by title (reverse)</epp:phrase>
     <epp:phrase id="ordername_eprint_bystatuschanged">by status changed (most recent first)</epp:phrase>
     <epp:phrase id="ordername_eprint_bystatuschangedoldest">by status changed (oldest first)</epp:phrase>
-
-
 
 
 <!-- Eprint Type Names, see also 'eprint' named set -->

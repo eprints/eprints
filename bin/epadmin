@@ -2010,43 +2010,6 @@ sub set_developer_mode
 #
 ####################################################################
 
-sub populate_search_format
-{
-	my( $repo ) = @_;
-
-	return unless( $repo->dataset( 'eprint' )->has_field( 'search_format' ) );
-
-	$repo->dataset( 'eprint' )->map( $repo, sub { 
-
-		my( $session, $ds, $eprint, $info ) = @_;
-
-		my @search_formats = ();
-			
-		foreach my $doc ( $eprint->get_all_documents  )
-		{
-			unless( $doc->has_related_objects( EPrints::Utils::make_relation( "isVolatileVersionOf" ) ) )
-			{
-				my $format = $doc->get_value( 'format' );
-
-				if( $format =~ m#^application/.*zip.*$# )        #
-				{
-					$format = 'archive';
-				}
-				else
-				{
-					$format =~ s/^(image|video|audio)\/.*/$1/gi;
-				}
-
-				push @search_formats, $format;
-			}
-		}
-
-	        $eprint->set_value( "search_format", \@search_formats );
-		$eprint->commit;
-
-	}, {} );	
-}
-
 # if a field's definition changes from single to multiple values, this attempts to migrate the field's values (if any)
 sub migrate_to_multiple_values
 {
@@ -2910,8 +2873,6 @@ sub upgrade_3_2_4_to_3_3_0
 	my $Q_field = $db->quote_identifier( "field" );
 	$db->do( "UPDATE $Q_table SET $Q_field='documents' WHERE $Q_field='_fulltext_'" );
 
-	# populating new field 'eprint.search_format' used on the Advanced Search
-	&populate_search_format( $repo );
 }
 
 sub upgrade_3_3_0_to_3_3_1
