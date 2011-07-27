@@ -260,11 +260,6 @@ sub get_system_field_info
 		],
 		render_value=>"EPrints::DataObj::EPrint::render_edit_lock",
  	},
-
-        { 'name' => 'search_format', 'multiple' => 1, 'type' => 'namedset', 'set_name' => 'eprint_search_format',
-          'render_single_value' => 'EPrints::DataObj::EPrint::render_search_format',
-	  'render_option' => 'EPrints::DataObj::EPrint::render_search_format_option',
-	},
 	
 	)
 }
@@ -444,40 +439,6 @@ sub render_fileinfo
 	}
 
 	return $f;
-}
-
-=item $eprint->render_search_format
-
-The special B<search_format> field contains the pseudo MIME types of the documents contained in this eprint. This is used for searching only, in order to categorise different MIME types (e.g. have all video formats under a common 'video' category.
-
-=cut
-
-sub render_search_format
-{
-	my( $session , $field , $value, $alllangs, $nolink, $object ) = @_;
-
-	unless( EPrints::Utils::is_set( $value ) )
-	{
-		if( $field->{render_quiet} )
-		{
-			return $session->make_doc_fragment;
-		}
-		else
-		{
-			return $session->html_phrase(
-				"lib/metafield:unspecified",
-				fieldname => $field->render_name( $session ) );
-		}
-	}
-
-	return $session->html_phrase( "document_typename_$value" );
-}
-
-sub render_search_format_option
-{
-	my( $session, $value ) = @_;
-
-	return $session->html_phrase( "document_typename_$value" );
 }
 
 ######################################################################

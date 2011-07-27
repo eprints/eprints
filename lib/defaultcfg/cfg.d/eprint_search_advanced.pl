@@ -15,7 +15,7 @@ $c->{search}->{advanced} =
 		{ meta_fields => [ "ispublished" ] },
 		{ meta_fields => [ "refereed" ] },
 		{ meta_fields => [ "publication" ] },
-		{ meta_fields => [ "search_format" ] },
+		{ meta_fields => [ "documents.format" ] },
 	],
 	preamble_phrase => "cgi/advsearch:preamble",
 	title_phrase => "cgi/advsearch:adv_search",
