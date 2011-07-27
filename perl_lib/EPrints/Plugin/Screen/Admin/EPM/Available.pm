@@ -57,17 +57,15 @@ sub action_upload
 		return;
 	}
 
-	my $xml;
-	while(sysread($fh,$xml,65536,length($xml)))
+	# CGI's file handles don't work with event_parse()
+	my $tmpfile = File::Temp->new;
+	while(sysread($fh, my $buffer, 4092))
 	{
-		if(length($xml) > $EPrints::DataObj::EPM::MAX_SIZE) # sanity-check
-		{
-			$self->{processor}->add_message( "error", $self->html_phrase( "error:upload" ) );
-			return;
-		}
+		syswrite($tmpfile, $buffer);
 	}
+	sysseek($tmpfile, 0, 0);
+	my $epm = $repo->dataset( "epm" )->dataobj_class->new_from_file( $repo, $tmpfile );
 
-	my $epm = $repo->dataset( "epm" )->dataobj_class->new_from_xml( $repo, $xml );
 	if( !defined $epm )
 	{
 		$self->{processor}->add_message( "error", $self->html_phrase( "error:corrupted" ) );
@@ -322,6 +320,8 @@ sub render_results
 						(install => $self->phrase( "action_install" )))
 			) );
 			$frag->appendChild( $epm->render_citation( "control",
+				url => $epm->value( "uri" ),
+				target => "_blank",
 				pindata => { inserts => {
 					actions => $form,
 				} },

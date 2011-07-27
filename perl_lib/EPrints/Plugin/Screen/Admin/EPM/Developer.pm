@@ -85,7 +85,7 @@ sub action_download
 	$epm->rebuild;
 
 	binmode(STDOUT, ":utf8");
-	print $epm->serialise( 1 );
+	$epm->serialise( \*STDOUT, 1 );
 
 	exit(0);
 }

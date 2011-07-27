@@ -276,24 +276,57 @@ sub render_children
 	my $subject = $self->{processor}->{subject};
 	my $dataset = $subject->get_dataset;
 
-	my $table = $xml->create_element( "table" );
+	my $table = $xml->create_element( "table",
+		border => 0,
+		cellpadding => 4,
+		cellspacing => 0,
+		class => "ep_columns",
+		style => "margin: 0px 0px",
+	);
+
+	my $tr = $table->appendChild( $xml->create_element( "tr",
+		class => "",
+	) );
+
+	$tr->appendChild( $xml->create_data_element( "th",
+		$self->phrase( "children" ),
+		class => "ep_columns_title",
+	) );
+
+	$tr->appendChild( $xml->create_data_element( "th",
+		$self->phrase( "eprints" ),
+		class => "ep_columns_title",
+	) );
+
+	$tr->appendChild( $xml->create_element( "th",
+		class => "ep_columns_title",
+	) );
 
 	# child subjects
 	foreach my $child ($subject->get_children)
 	{
-		my $tr = $table->appendChild( $xml->create_element( "tr", class => "ep_row" ) );
+		my $tr = $table->appendChild( $xml->create_element( "tr",
+			class => ""
+		) );
 		my $url = $repo->current_url( path => "cgi", "users/home" );
 		$url->query_form(
 			$self->hidden_bits,
 			subjectid => $child->id,
 		);
-		my $td = $tr->appendChild( $xml->create_element( "td", class => "ep_row" ) );
+		my $td = $tr->appendChild( $xml->create_element( "td",
+			class => "ep_columns_cell",
+		) );
 		$td->appendChild( $child->render_citation( "edit",
 			url => $url,
 		) );
-		$td = $tr->appendChild( $xml->create_element( "td", class => "ep_row", style => "text-align: right" ) );
+		$td = $tr->appendChild( $xml->create_element( "td",
+			class => "ep_columns_cell",
+			style => "text-align: right",
+		) );
 		$td->appendChild( $xml->create_text_node( $child->count_eprints( $repo->dataset( "eprint" ) ) ) );
-		$td = $tr->appendChild( $xml->create_element( "td", class => "ep_row" ) );
+		$td = $tr->appendChild( $xml->create_element( "td",
+			class => "ep_columns_cell",
+		) );
 		my $form = $td->appendChild( $self->render_form );
 		$form->appendChild( $xhtml->hidden_field( childid => $child->id ) );
 		$form->appendChild( $xhtml->action_button(
@@ -303,8 +336,13 @@ sub render_children
 
 	# create new child
 	{
-		my $tr = $table->appendChild( $xml->create_element( "tr", class => "ep_row" ) );
-		my $td = $tr->appendChild( $xml->create_element( "td", class => "ep_row", colspan => 3 ) );
+		my $tr = $table->appendChild( $xml->create_element( "tr",
+			class => "",
+		) );
+		my $td = $tr->appendChild( $xml->create_element( "td",
+			class => "ep_columns_cell",
+			colspan => 3,
+		) );
 		my $form = $td->appendChild( $self->render_form );
 		$form->appendChild( $dataset->field( "subjectid" )->render_name );
 		$form->appendChild( $xml->create_text_node( ": " ) );
@@ -316,9 +354,16 @@ sub render_children
 
 	# link existing child
 	{
-		my $tr = $table->appendChild( $xml->create_element( "tr", class => "ep_row" ) );
-		my $td = $tr->appendChild( $xml->create_element( "td", class => "ep_row", colspan => 3 ) );
+		my $tr = $table->appendChild( $xml->create_element( "tr",
+			class => "",
+		) );
+		my $td = $tr->appendChild( $xml->create_element( "td",
+			class => "ep_columns_cell",
+			colspan => 3,
+		) );
 		my $form = $td->appendChild( $self->render_form );
+		$form->appendChild( $self->html_phrase( "existing" ) );
+		$form->appendChild( $xml->create_text_node( ": " ) );
 		my $select = $form->appendChild( $xml->create_element( "select",
 			name => "childid",
 		) );
@@ -336,193 +381,6 @@ sub render_children
 	}
 
 	return $table;
-}
-
-sub _render_children
-{
-	my( $self ) = @_;
-
-	my $repo = $self->{repository};
-	
-	my @labels;
-	my @panels;
-
-	push @labels, $self->html_phrase( "children" );
-	push @panels, $self->render_subject_children;
-
-	push @labels, $self->html_phrase( "action_link" );
-	push @panels, $self->render_link_child;
-
-	push @labels, $self->html_phrase( "action_add" );
-	push @panels, $self->render_subject_add_node;
-
-	return $repo->xhtml->tabs(
-		\@labels,
-		\@panels,
-	);
-}
-
-sub render_link_child
-{
-	my( $self ) = @_;
-
-	my $repo = $self->{repository};
-
-	my $subject_ds = $repo->dataset( "subject" );
-	my $subject = $self->{processor}->{subject};
-
-	my $form = $self->render_form;
-
-	my $ancestors = $subject->value( "ancestors" );
-	$form->appendChild( EPrints::MetaField->new(
-		name => "subjectid",
-		type => "subject",
-		dataset => $subject->get_dataset,
-		repository => $repo,
-		top => $ancestors->[$#$ancestors - 1],
-		input_rows => 8,
-		showall => 1,
-	)->render_input_field(
-			$repo,
-			undef,
-			undef,
-			0,
-			undef,
-			undef,
-			"oldnode"
-	) );
-
-	$form->appendChild( $repo->render_action_buttons(
-				link => $self->phrase( "action_link" ) ) );
-
-	return $form;
-}
-	
-sub render_subject_children
-{
-	my( $self ) = @_;
-
-	my $session = $self->{session};
-	my $archive_ds = $session->dataset( "archive" );
-	my $buffer_ds = $session->dataset( "buffer" );
-	my $subject_ds = $session->dataset( "subject" );
-	my $subject = $self->{processor}->{subject};
-
-	my $page = $session->make_doc_fragment();
-
-	my $form = $session->render_form( "post" );
-	$form->appendChild( $self->render_hidden_bits );
-	$form->appendChild( $session->render_hidden_field( "_action_unlink", "1" ) );
-	$page->appendChild( $form );
-
-	my( $table, $tr, $td, $th, $a );
-	$table = $session->make_element( "table", border=>1, cellpadding=>4, cellspacing=>0 );
-
-	$tr = $session->make_element( "tr" );
-	
-	$th = $session->make_element( "th" );
-	$th->appendChild( $self->html_phrase( "subject" ) );
-	$tr->appendChild( $th );
-
-	$th = $session->make_element( "th" );
-	$th->appendChild( $self->html_phrase( "inarchive" ) );
-	$tr->appendChild( $th );
-
-#	$th = $session->make_element( "th" );
-#	$th->appendChild( $self->html_phrase( "cgi/users/edit_subject:inbuffer" ) );
-#	$tr->appendChild( $th );
-
-	$th = $session->make_element( "th" );
-	$th->appendChild( $self->html_phrase( "nparents" ) );
-	$tr->appendChild( $th );
-
-	$th = $session->make_element( "th" );
-	$th->appendChild( $self->html_phrase( "nchildren" ) );
-	$tr->appendChild( $th );
-
-	$table->appendChild( $tr );
-
-
-	foreach( $subject->get_children )
-	{
-		$tr = $session->make_element( "tr" );
-
-		$td = $session->make_element( "td", align=>"left");
-		$a = $session->render_link( "?screen=Subject::Edit&subjectid=".$_->get_value( "subjectid" ) );
-		$a->appendChild( $_->render_description() );
-		$td->appendChild( $a );
-		$tr->appendChild( $td );
-		
-		$td = $session->make_element( "td", align=>"center");
-		$td->appendChild( $session->make_text( $_->count_eprints( $archive_ds ) ) );
-		$tr->appendChild( $td );
-
-#		$td = $session->make_element( "td", align=>"center");
-#		$td->appendChild( $session->make_text( $_->count_eprints( $buffer_ds ) ) );
-#		$tr->appendChild( $td );
-
-		my $parents_n = scalar @{$_->get_value( "parents" )};
-		my $children_n = scalar $_->get_children;
-
-		$td = $session->make_element( "td", align=>"center");
-		$td->appendChild( $session->make_text( $parents_n ) );
-		$tr->appendChild( $td );
-		
-		$td = $session->make_element( "td", align=>"center");
-		$td->appendChild( $session->make_text( $children_n ) );
-		$tr->appendChild( $td );
-		
-		$td = $session->make_element( "td" );
-		$td->appendChild( $session->render_action_buttons( 
-				"unlink_".$_->id => $self->phrase( "action_unlink" ) ) );
-		$tr->appendChild( $td );
-		$table->appendChild( $tr );
-	}
-	$form->appendChild( $table );
-
-	return $form;
-}
-
-
-sub render_subject_add_node
-{
-	my( $self ) = @_;
-
-	my $session = $self->{session};
-	my $subject_ds = $session->dataset( "subject" );
-	my $subject = $self->{processor}->{subject};
-
-	my $form = $self->render_form;
-
-	my $field = $subject_ds->get_field( "subjectid" );
-
-	my $table = $session->make_element( "table", width=>"100%" );
-	$form->appendChild( $table );
-	my $prefix = "newnode";
-
-	my %parts;
-	$parts{class} = "ep_first";
-	$parts{label} = $field->render_name( $self->{session} );
-	$parts{help} = $field->render_help( $self->{session} );
-
-	$parts{field} = $field->render_input_field( 
-		$self->{session}, 
-		undef, 
-		undef,
-		0,
-		undef,
-		undef,
-		$prefix,
-	  );
-
-	$parts{help_prefix} = $prefix."_help_".$field->get_name;
-
-	$table->appendChild( $self->{session}->render_row_with_help( %parts ) );
-
-        $form->appendChild( $session->render_action_buttons(
-                add => $self->phrase( "action_add" ) ) );
-
-	return $form;
 }
 
 sub action_create

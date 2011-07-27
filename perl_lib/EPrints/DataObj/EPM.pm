@@ -58,6 +58,9 @@ sub get_system_field_info
 	# bazaar.eprint.eprintid
 	{ name=>"eprintid", type=>"int", can_clone=>0, },
 
+	# bazaar.uri
+	{ name=>"uri", type=>"url", can_clone=>0, },
+
 	# package contents
 	{ name=>"documents", type=>"subobject", datasetid=>'document',
 		multiple=>1 },
@@ -178,15 +181,21 @@ sub _upgrade
 				});
 				if( defined $content )
 				{
-					sysread($content,my $data,-s $content);
-					$file->set_value( "data",
-						MIME::Base64::encode_base64( $data )
-					);
+					if( !$content->isa( "File::Temp" ) )
+					{
+						EPrints->abort( "Expected File::Temp in file content but got: $content" );
+					}
+					$file->set_value( "copies", [{
+							pluginid => "Storage::EPM",
+							sourceid => $content,
+					}]);
 				}
 				else
 				{
-					next;
-#					Carp::carp( "Package is missing file content" );
+					# get the file from the installed location
+					$file->set_value( "copies", [{
+							pluginid => "Storage::EPM",
+					}]);
 				}
 			}
 		}
@@ -217,12 +226,7 @@ sub map
 	{
 		next if $file =~ /^\./;
 		next if !-f "$epm_dir/$file/$file.epmi";
-		if(open(my $fh, "<", "$epm_dir/$file/$file.epmi"))
-		{
-			sysread($fh, my $xml, -s $fh);
-			close($fh);
-			&$f( $repo, $dataset, $class->new_from_xml( $repo, $xml ), $ctx );
-		}
+		&$f( $repo, $dataset, $class->new( $repo, $file ) );
 	}
 	closedir($dh);
 }
@@ -240,12 +244,29 @@ sub new
 	my $filepath = $repo->config( "base_path" ) . "/lib/epm/$id/$id.epmi";
 	if( open(my $fh, "<", $filepath) )
 	{
-		sysread($fh, my $xml, -s $fh);
+		my $dataobj = $class->new_from_file( $repo, $fh );
 		close($fh);
-		return $class->new_from_xml( $repo, $xml );
+
+		return $dataobj;
 	}
 
 	return;
+}
+
+sub new_from_data
+{
+	my( $class, $repo, $epdata, $dataset ) = @_;
+
+	my $uri = delete $epdata->{_id};
+
+	my $self = $class->SUPER::new_from_data( $repo, $epdata, $dataset );
+	return undef if !defined $self;
+
+	$self->_upgrade;
+
+	$self->set_value( "uri", $uri );
+
+	return $self;
 }
 
 sub new_from_xml
@@ -258,10 +279,23 @@ sub new_from_xml
 		$repo, $doc->documentElement
 	);
 
-	my $epm = $repo->dataset( "epm" )->make_dataobj( $epdata );
-	$epm->_upgrade;
+	return $repo->dataset( "epm" )->make_dataobj( $epdata );
+}
 
-	return $epm;
+sub new_from_file
+{
+	my( $class, $repo, $fh ) = @_;
+
+	my $epdata = {};
+	EPrints::XML::event_parse( $fh, EPrints::DataObj::SAX::Handler->new(
+		$class,
+		$epdata = {},
+		{ dataset => $repo->dataset( "epm" ) }
+	) );
+	return if !keys %$epdata;
+	return $class->new_from_data( $repo, $epdata );
+
+	return;
 }
 
 =item $epm = EPrint::DataObj::EPM->new_from_manifest( $repo, $epdata [, @manifest ] )
@@ -302,7 +336,7 @@ sub new_from_manifest
 			filepath => $filepath,
 		);
 
-		my $copy = { pluginid => "Storage::Local", sourceid => $filename };
+		my $copy = { pluginid => "Storage::EPM", sourceid => $filepath };
 
 		$install->set_value( "files", [
 			@{$install->value( "files")},
@@ -368,12 +402,12 @@ sub commit
 
 	if( open(my $fh, ">", $self->epm_dir . "/" . $self->id . ".epm") )
 	{
-		syswrite($fh, $self->serialise( 1 ));
+		$self->serialise( $fh, 1 );
 		close($fh);
 	}
 	if( open(my $fh, ">", $self->epm_dir . "/" . $self->id . ".epmi") )
 	{
-		syswrite($fh, $self->serialise( 0 ));
+		$self->serialise( $fh, 0 );
 		close($fh);
 	}
 }
@@ -542,73 +576,24 @@ sub control_screen
 	return $controller;
 }
 
-=item $xml = $epm->serialise( [ FILES ] )
+=item $epm->serialise( $fh, [ FILES ] )
 
-Returns the XML serialisation of $epm. If FILES is true files are included.
+Serialises this EPM to the open file handle $fh. If FILES is true file contents are included.
 
 =cut
 
 sub serialise
 {
-	my( $self, $files ) = @_;
+	my( $self, $fh, $files ) = @_;
 
 	my $repo = $self->repository;
 
-	my @docs;
-	if( $self->is_set( "documents" ) )
-	{
-		my $libpath = $repo->config( "base_path" ) . "/lib";
-		foreach my $doc (@{$self->value( "documents" )})
-		{
-			my %epdata = (_parent => $self);
-			foreach my $field ($doc->dataset->fields)
-			{
-				next if $field->isa( "EPrints::MetaField::Subobject" );
-				next if $field->property( "sub_name" );
-				$epdata{$field->name} = $field->get_value( $doc );
-			}
-			my $ndoc = $doc->dataset->make_dataobj(\%epdata);
-			push @docs, $ndoc;
-			if( $doc->is_set( "files" ) )
-			{
-				my @files;
-				foreach my $file (@{$doc->value( "files" )})
-				{
-					my %epdata = (_parent => $ndoc);
-					foreach my $field ($file->dataset->fields)
-					{
-						next if $field->isa( "EPrints::MetaField::Subobject" );
-						next if $field->property( "sub_name" );
-						next if !$files && $field->name eq "data";
-						$epdata{$field->name} = $field->get_value( $file );
-					}
-					if( $files && !EPrints::Utils::is_set($epdata{data}) )
-					{
-						my $filepath = $libpath . "/" . $file->value( "filename" );
-						if( open(my $fh, "<", $filepath ) )
-						{
-							use bytes;
-							sysread($fh, my $data, -s $fh);
-							close($fh);
-							$epdata{filesize} = length($data);
-							$epdata{data} = MIME::Base64::encode_base64( $data );
-						}
-						else
-						{
-							$self->repository->log( "$filepath does not exist" );
-						}
-					}
-					push @files, $file->dataset->make_dataobj(\%epdata);
-				}
-				$ndoc->set_value( "files", \@files );
-			}
-		}
-	}
-	local $self->{data}->{documents} = \@docs;
+	$self->_upgrade;
 
-	return "<?xml version='1.0'?>\n".$self->repository->xml->to_string(
-		$self->to_xml(),
-		indent => 1
+	$self->export( "XML",
+		fh => $fh,
+		omit_root => 1,
+		embed => $files,
 	);
 }
 
@@ -648,9 +633,10 @@ sub install
 				) );
 			return 0;
 		}
-		my $data = MIME::Base64::decode_base64( $_->value( "data" ) );
-		my $md5 = Digest::MD5::md5_hex( $data );
-		if( $md5 ne $_->value( "hash" ) )
+		my $ctx = Digest::MD5->new;
+		$_->get_file(sub { $ctx->add( $_[0] ) });
+		my $hash = $ctx->hexdigest;
+		if( $hash ne $_->value( "hash" ) )
 		{
 			$handler->add_message( "error", $self->html_phrase( "bad_checksum",
 					filename => $repo->xml->create_text_node( $filename ),
@@ -662,9 +648,10 @@ sub install
 		{
 			open(my $fh, "<", $filepath)
 				or die "Error reading from $filename: $!";
-			sysread($fh, my $rdata, -s $fh);
+			my $ctx = Digest::MD5->new;
+			$ctx->addfile( $fh );
 			close($fh);
-			if( Digest::MD5::md5_hex( $rdata ) ne $md5 )
+			if( $ctx->hexdigest ne $hash )
 			{
 				$handler->add_message( "error", $self->html_phrase( "file_exists",
 						filename => $repo->xml->create_text_node( $filename ),
@@ -682,10 +669,10 @@ sub install
 				) );
 			return 0;
 		}
-		$files{$filepath} = $data;
+		$files{$filepath} = $_;
 	}
 
-	while(my( $filepath, $data ) = each %files)
+	while(my( $filepath, $file ) = each %files)
 	{
 		my $fh;
 		if( !open($fh, ">", $filepath) )
@@ -696,7 +683,7 @@ sub install
 				) );
 			return 0;
 		}
-		syswrite($fh, $data);
+		$file->get_file(sub { syswrite($fh, $_[0]) });
 		close($fh);
 	}
 
@@ -802,25 +789,21 @@ sub enable
 		next if $filename !~ m# ^$epmdir(.+)$ #x;
 
 		my $targetpath = $repo->config( "archiveroot" ) . $1;
-		my $data;
-		if(open(my $fh, "<", $filepath))
-		{
-			sysread($fh, $data, -s $fh);
-			close($fh);
-		}
-		else
+		if(!-f $filepath)
 		{
 			$handler->add_message( "warning", $self->html_phrase( "missing",
 					filename => $repo->xml->create_text_node( $filepath ),
 				) );
 			next FILE;
 		}
+		my $ctx = Digest::MD5->new;
+		$file->get_file(sub { $ctx->add( $_[0] ) });
+		my $hash = $ctx->hexdigest;
 		if( !$file->is_set( "hash" ) )
 		{
-			$file->set_value( "hash", Digest::MD5::md5_hex( $data ) );
-			$file->set_value( "hash_type", "MD5" );
+			$file->set_value( "hash", $hash );
 		}
-		elsif( $file->value( "hash" ) ne Digest::MD5::md5_hex( $data ) )
+		elsif( $file->value( "hash" ) ne $hash )
 		{
 			$handler->add_message( "error", $self->html_phrase( "bad_checksum",
 					filename => $repo->xml->create_text_node( $filename ),
@@ -829,13 +812,15 @@ sub enable
 		}
 		if( -f $targetpath )
 		{
-			my $tdata;
+			my $thash;
 			if(open(my $fh, "<", $targetpath))
 			{
-				sysread($fh, $tdata, -s $fh);
+				my $ctx = Digest::MD5->new;
+				$ctx->addfile( $fh );
+				$thash = $ctx->hexdigest;
 				close($fh);
 			}
-			if( $file->value( "hash" ) eq Digest::MD5::md5_hex( $tdata ) )
+			if( $file->value( "hash" ) eq $thash )
 			{
 				next FILE;
 			}
@@ -852,7 +837,7 @@ sub enable
 		EPrints->system->mkdir( $targetdir );
 		if(open(my $fh, ">", $targetpath))
 		{
-			syswrite($fh, $data);
+			$file->get_file(sub { syswrite($fh, $_[0]) });
 			close($fh);
 		}
 	}
@@ -1034,7 +1019,11 @@ sub publish
 			$password,
 		), "") );
 	}
-	$req->content( $self->serialise( 1 ) );
+	my $tmpfile = File::Temp->new;
+	syswrite($tmpfile, $self->serialise( $tmpfile, 1 ));
+	sysseek($tmpfile, 0, 0);
+	sysread($tmpfile, my $buffer, -s $tmpfile);
+	$req->content_ref( \$buffer );
 
 	my $r = $ua->request( $req );
 	if( $r->code != 201 )
