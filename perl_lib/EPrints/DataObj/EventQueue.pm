@@ -90,6 +90,24 @@ sub create_unique
 
 	$dataset ||= $session->dataset( $class->get_dataset_id );
 
+	my $event = $class->new_from_hash( $session, $data, $dataset );
+	return undef if defined $event;
+
+	return $class->create_from_data( $session, $data, $dataset );
+}
+
+=item $event = EPrints::DataObj::EventQueue->new_from_hash( $repo, $epdata [, $dataset ] )
+
+Returns the event that corresponds to the hash of the data provided in $epdata.
+
+=cut
+
+sub new_from_hash
+{
+	my( $class, $session, $data, $dataset ) = @_;
+
+	$dataset ||= $session->dataset( $class->get_dataset_id );
+
 	my $md5 = Digest::MD5->new;
 	$md5->add( $data->{pluginid} );
 	$md5->add( $data->{action} );
@@ -97,19 +115,12 @@ sub create_unique
 		if EPrints::Utils::is_set( $data->{params} );
 	$data->{hash} = $md5->hexdigest;
 
-	my $results = $dataset->search(
+	return $dataset->search(
 		filters => [
 			{ meta_fields => [qw( hash )], value => $data->{hash} },
 		],
-		limit => 1);
-	my $count = $results->count;
-
-	if( $count > 0 )
-	{
-		return undef;
-	}
-
-	return $class->create_from_data( $session, $data, $dataset );
+		limit => 1
+	)->item( 0 );
 }
 
 =item $ok = $event->execute()
