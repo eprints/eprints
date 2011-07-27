@@ -69,6 +69,7 @@ sub resolve_month
 	return $month ;
 }
 
+sub handler_class { "EPrints::Plugin::Import::DefaultXML::DOMHandler" }
 
 sub xml_to_epdata
 {

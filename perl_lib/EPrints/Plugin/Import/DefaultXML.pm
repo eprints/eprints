@@ -54,25 +54,26 @@ sub unknown_start_element
 	die "\n"; # Break out of the parsing
 }
 
+=item $class = $import->handler_class
+
+Returns the class to use as the SAX handler for parsing.
+
+This class provides two handlers:
+
+	::DOMHandler - calls xml_to_epdata with a DOM of the complete object
+	::Handler - calls dataobj class with SAX events
+
+=cut
+
+sub handler_class { __PACKAGE__ . "::Handler" }
+
 sub input_fh
 {
-	my( $plugin, %opts ) = @_;
+	my( $self, %opts ) = @_;
 
-	# to support sub-classes that expect xml_to_epdata( DOM ) we'll spot
-	# that and give them a DOM to convert
-	my $class;
-	if( $plugin->can( "xml_to_epdata" ) )
-	{
-		$class = "EPrints::Plugin::Import::DefaultXML::DOMHandler";
-	}
-	else
-	{
-		$class = "EPrints::Plugin::Import::DefaultXML::Handler";
-	}
-
-	my $handler = $class->new(
+	my $handler = $self->handler_class->new(
 		dataset => $opts{dataset},
-		plugin => $plugin,
+		plugin => $self,
 		depth => 0,
 		imported => [],
 	);
@@ -82,7 +83,7 @@ sub input_fh
 
 	return EPrints::List->new(
 			dataset => $opts{dataset},
-			session => $plugin->{session},
+			session => $self->{session},
 			ids => $handler->{imported} );
 }
 
@@ -182,7 +183,7 @@ sub end_element
 			delete $self->{handler};
 
 			my $epdata = delete $self->{epdata};
-			my $dataobj = $self->{plugin}->epdata_to_dataobj( $self->{dataset}, $epdata, $self->{dataobj} );
+			my $dataobj = $self->{plugin}->epdata_to_dataobj( $self->{dataset}, $epdata );
 			push @{$self->{imported}}, $dataobj->id if defined $dataobj;
 		}
 	}
