@@ -69,20 +69,28 @@ sub query
 	$url->path( $url->path . "cgi/search" );
 	$url->query_form( q => $q, output => "EPMI" );
 
-	my $r = $ua->get( $url );
+	my $tmpfile = File::Temp->new;
+
+	my $r = $ua->get( $url,
+		':content_file' => "$tmpfile",
+	);
 	$self->{err} = $r->request->uri . " " . $r->status_line, return if !$r->is_success;
 
-	my $xml = eval { $repo->xml->parse_string( $r->content ) };
-	$self->{err} = $@, return if $@;
+	sysseek($tmpfile, 0, 0);
 
-	foreach my $epm ($xml->documentElement->getElementsByTagName( "epm" ))
-	{
-		my $dataobj = $repo->dataset( "epm" )->dataobj_class->new_from_xml(
-			$repo,
-			$epm->toString()
-		);
-		push @epms, $dataobj if defined $dataobj;
-	}
+	my @epms;
+
+	$repo->plugin( "Import::XML",
+		Handler => EPrints::CLIProcessor->new(
+			epdata_to_dataobj => sub {
+				push @epms, $repo->dataset( "epm" )->make_dataobj( $_[0] );
+				return undef;
+			},
+		),
+	)->input_fh(
+		fh => $tmpfile,
+		dataset => $repo->dataset( "epm" ),
+	);
 
 	return \@epms;
 }
@@ -99,27 +107,46 @@ sub epm_by_eprintid
 
 	my $repo = $self->{repository};
 
+	my $tmpfile = File::Temp->new;
+
 	my $url = URI->new( $self->{base_url} );
 	$url->path( $url->path . "id/eprint/" . $eprintid );
 
-	my $r = $self->{ua}->request( HTTP::Request->new(
-		GET => $url,
-		[ Accept => 'application/vnd.eprints.epm+xml' ]
-		) );
-	$self->{err} = $r->request->uri . " " . $r->status_line, return
-		if !$r->is_success;
+	my $req = HTTP::Request->new(
+			GET => $url,
+			[ Accept => 'application/vnd.eprints.epm+xml' ]
+		);
+
+	my $r = $self->{ua}->request( $req, "$tmpfile" );
+
+	if( !$r->is_success )
+	{
+		$self->{err} = $r->request->uri . " " . $r->status_line;
+		return;
+	}
 	if( $r->header( 'Content-Type' ) !~ m#^application/vnd\.eprints\.epm\+xml# )
 	{
 		$self->{err} = $r->request->uri . " expected application/vnd.eprints.epm+xml but got " . $r->header( 'Content-Type' );
 		return;
 	}
 
-	my $xml = eval { $repo->xml->parse_string( $r->content ) };
-	$self->{err} = $@, return if $@;
+	sysseek($tmpfile, 0, 0);
 
-	return EPrints::DataObj::EPM->new_from_xml( $self->{repository},
-		$xml->toString()
-	);
+	my $epdata = {};
+	eval { EPrints::XML::event_parse($tmpfile, EPrints::DataObj::SAX::Handler->new(
+		'EPrints::DataObj::EPM',
+		$epdata = {},
+		{
+			dataset => $repo->dataset( "epm" ),
+		},
+	) ) };
+	if( $@ )
+	{
+		$self->{err} = $@;
+		return;
+	}
+
+	return $repo->dataset( "epm" )->make_dataobj( $epdata );
 }
 
 1;

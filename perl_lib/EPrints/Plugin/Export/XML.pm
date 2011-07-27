@@ -44,34 +44,43 @@ sub output_list
 	));
 
 	$wr->start_document({});
-	$wr->xml_decl({
-		Version => '1.0',
-		Encoding => 'utf-8',
-	});
+	if( !$opts{omit_declaration} )
+	{
+		$wr->xml_decl({
+			Version => '1.0',
+			Encoding => 'utf-8',
+		});
+	}
 	$wr->start_prefix_mapping({
 		Prefix => '',
 		NamespaceURI => EPrints::Const::EP_NS_DATA,
 	});
 
-	$wr->start_element({
-		Prefix => '',
-		LocalName => $toplevel,
-		Name => $toplevel,
-		NamespaceURI => EPrints::Const::EP_NS_DATA,
-		Attributes => {},
-	});
+	if( !$opts{omit_root} )
+	{
+		$wr->start_element({
+			Prefix => '',
+			LocalName => $toplevel,
+			Name => $toplevel,
+			NamespaceURI => EPrints::Const::EP_NS_DATA,
+			Attributes => {},
+		});
+	}
 	$opts{list}->map( sub {
 		my( undef, undef, $item ) = @_;
 
 		$self->output_dataobj( $item, %opts, Handler => $wr );
 	});
 
-	$wr->end_element({
-		Prefix => '',
-		LocalName => $toplevel,
-		Name => $toplevel,
-		NamespaceURI => EPrints::Const::EP_NS_DATA,
-	});
+	if( !$opts{omit_root} )
+	{
+		$wr->end_element({
+			Prefix => '',
+			LocalName => $toplevel,
+			Name => $toplevel,
+			NamespaceURI => EPrints::Const::EP_NS_DATA,
+		});
+	}
 	$wr->end_prefix_mapping({
 		Prefix => '',
 		NamespaceURI => EPrints::Const::EP_NS_DATA,
@@ -102,28 +111,37 @@ sub output_dataobj
 
 
 	$wr->start_document({});
-	$wr->xml_decl({
-		Version => '1.0',
-		Encoding => 'utf-8',
-	});
+	if( !$opts{omit_declaration} )
+	{
+		$wr->xml_decl({
+			Version => '1.0',
+			Encoding => 'utf-8',
+		});
+	}
 	$wr->start_prefix_mapping({
 		Prefix => '',
 		NamespaceURI => EPrints::Const::EP_NS_DATA,
 	});
-	$wr->start_element({
-		Prefix => '',
-		LocalName => $toplevel,
-		Name => $toplevel,
-		NamespaceURI => EPrints::Const::EP_NS_DATA,
-		Attributes => {},
-	});
+	if( !$opts{omit_root} )
+	{
+		$wr->start_element({
+			Prefix => '',
+			LocalName => $toplevel,
+			Name => $toplevel,
+			NamespaceURI => EPrints::Const::EP_NS_DATA,
+			Attributes => {},
+		});
+	}
 	$dataobj->to_sax( %opts, Handler => $wr );
-	$wr->end_element({
-		Prefix => '',
-		LocalName => $toplevel,
-		Name => $toplevel,
-		NamespaceURI => EPrints::Const::EP_NS_DATA,
-	});
+	if( !$opts{omit_root} )
+	{
+		$wr->end_element({
+			Prefix => '',
+			LocalName => $toplevel,
+			Name => $toplevel,
+			NamespaceURI => EPrints::Const::EP_NS_DATA,
+		});
+	}
 	$wr->end_prefix_mapping({
 		Prefix => '',
 		NamespaceURI => EPrints::Const::EP_NS_DATA,

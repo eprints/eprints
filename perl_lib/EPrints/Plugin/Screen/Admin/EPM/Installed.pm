@@ -162,7 +162,7 @@ sub action_confirm
 	}
 	open(my $fh, ">", $filepath)
 		or die "Can't write to $path: $!";
-	syswrite($fh, $epm->serialise( 1 ));
+	$epm->serialise( $fh, 1 );
 	close($fh);
 
 	if( $epm->uninstall( $self->{processor} ) )
