@@ -21,7 +21,7 @@ sub new
 	$self->{name} = "EPrints XML";
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/*', 'dataobj/*' ];
-	$self->{accept} = ["application/xml; charset=utf-8", "sword:http://eprints.org/ep2/data/2.0"];
+	$self->{accept} = ["application/vnd.eprints.data+xml; charset=utf-8", "sword:http://eprints.org/ep2/data/2.0"];
 
 	return $self;
 }
