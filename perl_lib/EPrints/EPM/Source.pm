@@ -78,8 +78,6 @@ sub query
 
 	sysseek($tmpfile, 0, 0);
 
-	my @epms;
-
 	$repo->plugin( "Import::XML",
 		Handler => EPrints::CLIProcessor->new(
 			epdata_to_dataobj => sub {
