@@ -35,8 +35,6 @@ BEGIN
 
 use EPrints::MetaField;
 
-
-
 sub get_sql_type
 {
 	my( $self, $session ) = @_;
@@ -88,17 +86,18 @@ sub from_search_form
 {
 	my( $self, $session, $prefix ) = @_;
 
-	my $val = $session->param( $prefix );
-	return unless defined $val;
+	my $value = $session->param( $prefix );
+	return $value unless EPrints::Utils::is_set( $value );
 
-	my $number = '[0-9]+\.?[0-9]*';
+	my $regexp = $self->property( "regexp" );
+	my $range = qr/-|(?:\.\.)/;
 
-	if( $val =~ m/^($number)?\-?($number)?/ )
+	if( $value !~ /^(?:$regexp$range?)|(?:$regexp?$range$regexp)$/ )
 	{
-		return( $val );
+		return( undef,undef,undef, $session->html_phrase( "lib/searchfield:int_err" ) );
 	}
-			
-	return( undef,undef,undef, $session->html_phrase( "lib/searchfield:int_err" ) );
+
+	return( $value );
 }
 
 sub render_search_value
@@ -107,9 +106,10 @@ sub render_search_value
 
 	my $type = $self->get_type;
 
-	my $number = '[0-9]+\.?[0-9]*';
+	my $regexp = $self->property( "regexp" );
+	my $range = qr/-|(?:\.\.)/;
 
-	if( $value =~ m/^($number)-($number)$/ )
+	if( $value =~ m/^($regexp)$range($regexp)$/ )
 	{
 		return $session->html_phrase(
 			"lib/searchfield:desc:".$type."_between",
@@ -117,14 +117,14 @@ sub render_search_value
 			to => $session->make_text( $2 ) );
 	}
 
-	if( $value =~ m/^-($number)$/ )
+	if( $value =~ m/^$range($regexp)$/ )
 	{
 		return $session->html_phrase(
 			"lib/searchfield:desc:".$type."_orless",
 			to => $session->make_text( $1 ) );
 	}
 
-	if( $value =~ m/^($number)-$/ )
+	if( $value =~ m/^($regexp)$range$/ )
 	{
 		return $session->html_phrase(
 			"lib/searchfield:desc:".$type."_ormore",
@@ -140,13 +140,14 @@ sub get_search_conditions_not_ex
 		$search_mode ) = @_;
 	
 	# N
-	# N-
-	# -N
-	# N-N
+	# N..
+	# ..N
+	# N..N
 
-	my $number = '[0-9]+\.?[0-9]*';
+	my $regexp = $self->property( "regexp" );
+	my $range = qr/-|(?:\.\.)/;
 
-	if( $search_value =~ m/^$number$/ )
+	if( $search_value =~ m/^$regexp$/ )
 	{
 		return EPrints::Search::Condition->new( 
 			'=', 
@@ -155,13 +156,10 @@ sub get_search_conditions_not_ex
 			$search_value );
 	}
 
-	unless( $search_value=~ m/^($number)?\-($number)?$/ )
-	{
-		return EPrints::Search::Condition->new( 'FALSE' );
-	}
+	$search_value =~ m/^($regexp)?$range($regexp)?$/;
 
 	my @r = ();
-	if( defined $1 && $1 ne "" )
+	if( defined $1 )
 	{
 		push @r, EPrints::Search::Condition->new( 
 				'>=',
@@ -169,8 +167,7 @@ sub get_search_conditions_not_ex
 				$self,
 				$1);
 	}
-
-	if( defined $2 && $2 ne "" )
+	if( defined $2 )
 	{
 		push @r, EPrints::Search::Condition->new( 
 				'<=',
@@ -179,13 +176,18 @@ sub get_search_conditions_not_ex
 				$2 );
 	}
 
-	if( scalar @r == 1 ) { return $r[0]; }
-	if( scalar @r == 0 )
+	if( !@r )
 	{
 		return EPrints::Search::Condition->new( 'FALSE' );
 	}
-
-	return EPrints::Search::Condition->new( "AND", @r );
+	elsif( @r == 1 )
+	{
+		return $r[0];
+	}
+	else
+	{
+		return EPrints::Search::Condition->new( "AND", @r );
+	}
 }
 
 sub get_search_group { return 'number'; } 
@@ -196,6 +198,7 @@ sub get_property_defaults
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{digits} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{text_index} = 0;
+	$defaults{regexp} = qr/-?[0-9]+/;
 	return %defaults;
 }
 
@@ -234,7 +237,9 @@ sub form_value_basic
 
 	my $value = $self->SUPER::form_value_basic( $session, $basename, $object );
 
-	return defined $value && $value =~ /^-?[0-9]+$/ ? $value : undef;
+	return defined $value && $value =~ $self->property( "regexp" ) ?
+			$value :
+			undef;
 }
 
 ######################################################################

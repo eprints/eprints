@@ -56,7 +56,7 @@ sub get_sql_names
 # parse either ISO or our format and output our value
 sub _build_value
 {
-	my( $value ) = @_;
+	my( $self, $value ) = @_;
 
 	return undef if !defined $value;
 
@@ -81,7 +81,7 @@ sub value_from_sql_row
 
 	return undef if !@parts;
 
-	return _build_value( join(' ', @parts) );
+	return $self->_build_value( join(' ', @parts) );
 }
 
 sub sql_row_from_value
@@ -303,13 +303,13 @@ sub form_value_basic
 	for(qw( year month day hour minute second ))
 	{
 		my $part = $session->param( $basename."_$_" );
-		last if !EPrints::Utils::is_set( $part );
+		last if !EPrints::Utils::is_set( $part ) || $part == 0;
 		push @parts, $part;
 	}
 
 	return undef if !@parts;
 
-	return _build_value( join(' ', @parts) );
+	return $self->_build_value( join(' ', @parts) );
 }
 
 sub get_unsorted_values
@@ -359,14 +359,8 @@ sub get_property_defaults
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{min_resolution} = "second";
 	$defaults{render_res} = "second";
+	$defaults{regexp} = qr/\d\d\d\d(?:-\d\d(?:-\d\d(?:[ T]\d\d(?::\d\d(?::\d\dZ?)?)?)?)?)?/;
 	return %defaults;
-}
-
-sub ordervalue_basic
-{
-	my( $self , $value ) = @_;
-
-	return _build_value( $value );
 }
 
 sub should_reverse_order { return 1; }
@@ -383,20 +377,6 @@ sub render_xml_schema_type
 	$restriction->appendChild( $pattern );
 
 	return $type;
-}
-
-sub set_value
-{
-	my( $self, $dataobj, $value ) = @_;
-
-	if( ref($value) eq "ARRAY" )
-	{
-		return $self->SUPER::set_value( $dataobj, [map { _build_value( $_ ) } @$value] );
-	}
-	else
-	{
-		return $self->SUPER::set_value( $dataobj, _build_value( $value ) );
-	}
 }
 
 =item $datetime = $time->iso_value( $dataobj )

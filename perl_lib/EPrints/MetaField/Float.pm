@@ -68,6 +68,7 @@ sub get_property_defaults
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{text_index} = 0;
+	$defaults{regexp} = qr/-?[0-9]+(\.[0-9]+)?/;
 	return %defaults;
 }
 
@@ -81,15 +82,6 @@ sub render_xml_schema_type
 	my( $self, $session ) = @_;
 
 	return $session->make_doc_fragment;
-}
-
-sub form_value_basic
-{
-	my( $self, $session, $basename, $object ) = @_;
-
-	my $value = $self->EPrints::MetaField::form_value_basic( $session, $basename, $object );
-
-	return defined $value && $value =~ /^-?[0-9]*\.?[0-9]+$/ ? $value : undef;
 }
 
 ######################################################################
