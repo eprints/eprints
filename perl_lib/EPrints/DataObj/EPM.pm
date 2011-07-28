@@ -154,6 +154,8 @@ sub _upgrade
 	my $document_dataset = $repo->dataset( "document" );
 	my $file_dataset = $repo->dataset( "file" );
 
+	my $libpath = $repo->config( "base_path" ) . "/lib";
+
 	# can't retrieve documents if they weren't included
 	return if !$self->is_set( "documents" );
 
@@ -179,6 +181,7 @@ sub _upgrade
 					datasetid => "document",
 					%$file,
 				});
+				# get the file from the included temp file
 				if( defined $content )
 				{
 					if( !UNIVERSAL::isa( $content, "File::Temp" ) )
@@ -190,9 +193,9 @@ sub _upgrade
 							sourceid => $content,
 					}]);
 				}
-				else
+				# get the file from the installed location
+				elsif( -f "$libpath/".$file->value( "filename" ) )
 				{
-					# get the file from the installed location
 					$file->set_value( "copies", [{
 							pluginid => "Storage::EPM",
 					}]);
@@ -1019,18 +1022,25 @@ sub publish
 			$password,
 		), "") );
 	}
-	my $tmpfile = File::Temp->new;
-	syswrite($tmpfile, $self->serialise( $tmpfile, 1 ));
-	sysseek($tmpfile, 0, 0);
-	sysread($tmpfile, my $buffer, -s $tmpfile);
+	my $buffer;
+	open(my $fh, ">", \$buffer) or die "Error opening scalar: $!";
+	$self->serialise( $fh, 1 );
+	close($fh);
 	$req->content_ref( \$buffer );
 
 	my $r = $ua->request( $req );
 	if( $r->code != 201 )
 	{
+		my $err = $self->{session}->xml->create_document_fragment;
+		$err->appendChild( $self->{session}->xml->create_text_node(
+				$r->status_line,
+			) );
+		$err->appendChild( $self->{session}->xml->create_data_element( "pre",
+				$r->content,
+			) );
 		$handler->add_message( "error", $self->html_phrase( "publish_failed",
 			base_url => $self->{session}->xml->create_text_node( $url ),
-			summary => $self->{session}->xml->create_text_node( $r->status_line ),
+			summary => $err,
 			) );
 		return undef;
 	}
