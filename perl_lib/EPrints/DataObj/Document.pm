@@ -184,7 +184,6 @@ sub get_system_field_info
 				{ sub_name => "sample_stop", type => "id", sql_index => 0},
 			],
 		},
-		
 	);
 
 }
@@ -2044,7 +2043,6 @@ sub search_related
 			}]);
 	}
 }
-
 
 1;
 
