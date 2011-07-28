@@ -952,6 +952,7 @@ sub PUT
 				$dataobj->empty();
 				foreach my $fieldname (keys %{$epdata})
 				{
+					next if $fieldname =~ /^_/;
 					next if !$dataset->has_field( $fieldname );
 					my $f = $dataset->field( $fieldname );
 					next if !$f->property( "import" );

@@ -181,7 +181,7 @@ sub _upgrade
 				});
 				if( defined $content )
 				{
-					if( !$content->isa( "File::Temp" ) )
+					if( !UNIVERSAL::isa( $content, "File::Temp" ) )
 					{
 						EPrints->abort( "Expected File::Temp in file content but got: $content" );
 					}
