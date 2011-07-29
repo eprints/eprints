@@ -37,9 +37,7 @@ $searchexp = EPrints::Search->new(
 	satisfy_all => 1 );
 
 $searchexp->add_field( $dataset->field( "title" ), "eagle", "IN" );
-$searchexp->add_field( $dataset->field( "creators_name" ), "Maury, W", "EQ" );
-
-$list = eval { $searchexp->perform_search };
+$searchexp->add_field( $dataset->field( "creators_name" ), "Maury, W Parkes, F", "EQ" );
 
 ok(defined($list) && $list->count, "title IN + creators_name GREP\n".$searchexp->get_conditions->describe);
 

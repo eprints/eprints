@@ -183,6 +183,27 @@ sub logic
 	return join(' AND ', @logic);
 }
 
+# Can't do Index AND Index, so let our parent know we're working on this table
+# which will cause an AndSubQuery to be generated
+# We do this here so Grep queries remain tightly bound to their Index lookup
+sub table
+{
+	my( $self ) = @_;
+
+	foreach my $sub_op (@{$self->{sub_ops}})
+	{
+		my $table = $sub_op->table;
+		return $table if
+			defined $table &&
+			(
+				ref($sub_op) eq "EPrints::Search::Condition::Index" ||
+				ref($sub_op) eq "EPrints::Search::Condition::IndexStart"
+			);
+	}
+
+	return undef;
+}
+
 1;
 
 =head1 COPYRIGHT
