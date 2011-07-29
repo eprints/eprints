@@ -156,10 +156,10 @@ sub get_search_conditions_not_ex
 			$search_value );
 	}
 
-	$search_value =~ m/^($regexp)?$range($regexp)?$/;
+	my( $lower, $higher ) = $search_value =~ m/^($regexp)?$range($regexp)?$/;
 
 	my @r = ();
-	if( defined $1 )
+	if( defined $lower )
 	{
 		push @r, EPrints::Search::Condition->new( 
 				'>=',
@@ -167,7 +167,7 @@ sub get_search_conditions_not_ex
 				$self,
 				$1);
 	}
-	if( defined $2 )
+	if( defined $higher )
 	{
 		push @r, EPrints::Search::Condition->new( 
 				'<=',

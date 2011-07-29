@@ -1,6 +1,9 @@
 if( EPrints::Utils::require_if_exists( "Search::Xapian" ) )
 {
-$c->{plugins}->{"Search::Xapian"}->{params}->{disable} = 0;
+if( !defined $c->{plugins}{"Search::Xapian"}{params}{disable} )
+{
+	$c->{plugins}{"Search::Xapian"}{params}{disable} = 0;
+}
 
 $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 	my( %params ) = @_;

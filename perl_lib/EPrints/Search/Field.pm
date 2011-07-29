@@ -365,33 +365,14 @@ sub get_conditions
 		return EPrints::Search::Condition->new( 'FALSE' );
 	}
 
-	my @parts;
 	if( $self->{"search_mode"} eq "simple" )
 	{
-		@parts = EPrints::Index::Tokenizer::split_search_value( 
+		return $self->get_conditions_simple( $self->{value} );
+	}
+
+	my @parts = $self->{"field"}->split_search_value( 
 			$self->{"repository"},
 			$self->{"value"} );
-		# unless we strip stop-words 'the' will get passed through to name
-		# matches causing no results (doesn't help in the search description)
-		my $freetext_stop_words = $self->{repository}->config(
-				"indexing",
-				"freetext_stop_words"
-			);
-		my $freetext_always_words = $self->{repository}->config(
-				"indexing",
-				"freetext_always_words"
-			);
-		@parts = grep {
-				$freetext_always_words->{lc($_)} ||
-				!$freetext_stop_words->{lc($_)}
-			} @parts;
-	}
-	else
-	{
-		@parts = $self->{"field"}->split_search_value( 
-			$self->{"repository"},
-			$self->{"value"} );
-	}
 
 	my @r = ();
 	foreach my $value ( @parts )
@@ -429,8 +410,121 @@ sub get_conditions_no_split
 	return EPrints::Search::Condition->new( 'OR', @r );
 }	
 
+# get conditions for a simple search
+#  - split out field-specific queries e.g. title:(amazonian turtles)
+#  - split remaining terms and apply a MERGE of each term ORed across all
+#  fields
+#  - join all the queries together according to the current MERGE
+sub get_conditions_simple
+{
+	my( $self, $q ) = @_;
 
+	# generate a regexp to match aliased search terms
+	my %aliases;
+	foreach my $field ( @{$self->{"fields"}} )
+	{
+		$aliases{$field->name} = $field;
+	}
+	my $alias = join '|', map { "(?:$_)" } keys %aliases;
+	$alias = qr/$alias/i;
+
+	my @r = ();
+
+	# pull out field-specific values
+	my %values;
+	while( $q =~ s/($alias):((?:"[^"]+")|(?:\([^\)]+\))|\S+)// )
+	{
+		push @{$values{lc($1)}}, $2;
+	}
+
+	foreach my $name (keys %values)
+	{
+		my $field = $aliases{$name};
+		foreach my $value (@{$values{$name}})
+		{
+			my @inner;
+			foreach my $v ($field->split_search_value( $self->{repository}, $value ))
+			{
+				my $cond = $field->get_search_conditions( 
+							$self->{"repository"},
+							$self->{"dataset"},
+							$v,
+							$field->property( "match" ),
+							$field->property( "merge" ),
+							"advanced" # equivalent to advanced search
+							);
+				push @inner, $cond if !$cond->is_empty();
+			}
+			next if !@inner;
+			if( $field->property( "merge" ) eq "ALL" )
+			{
+				push @r, EPrints::Search::Condition->new( 'AND', @inner );
+			}
+			else
+			{
+				push @r, EPrints::Search::Condition->new( 'OR', @inner );
+			}
+		}
+	}
+
+	my @values = $self->split_value( $q );
 	
+	foreach my $value (@values)
+	{
+		my @inner;
+		foreach my $field (@{$self->{fields}})
+		{
+			next if $values{$field->name}; # already searching
+
+			my $cond = $field->get_search_conditions( 
+					$self->{"repository"},
+					$self->{"dataset"},
+					$value,
+					$self->{"match"},
+					$self->{"merge"},
+					$self->{"search_mode"} );
+			push @inner, $cond if !$cond->is_empty();
+		}
+		next if !@inner;
+		if( $self->{merge} eq "ALL" )
+		{
+			push @r, EPrints::Search::Condition->new( 'OR', @inner );
+		}
+		else
+		{
+			push @r, @inner;
+		}
+	}
+
+	return EPrints::Search::Condition->new( $self->{merge} eq "ANY" ? "OR" : "AND", @r );
+}
+
+sub split_value
+{
+	my( $self, $value ) = @_;
+
+	my @values = EPrints::Index::Tokenizer::split_search_value( 
+		$self->{"repository"},
+		$value );
+	# unless we strip stop-words 'the' will get passed through to name
+	# matches causing no results (doesn't help in the search description)
+	my $freetext_stop_words = $self->{repository}->config(
+			"indexing",
+			"freetext_stop_words"
+		);
+	my $freetext_always_words = $self->{repository}->config(
+			"indexing",
+			"freetext_always_words"
+		);
+	@values = grep {
+			EPrints::Utils::is_set( $_ ) &&
+			($freetext_always_words->{lc($_)} ||
+			!$freetext_stop_words->{lc($_)})
+		} @values;
+
+	return @values;
+}
+
 ######################################################################
 =pod
 
@@ -745,8 +839,7 @@ sub serialise
 		$self->{"value"} )
 	{
 		my $item = defined $_ ? $_ : "";
-		$item =~ s/[\\\:]/\\$&/g;
-		push @escapedparts, $item;
+		push @escapedparts, URI::Escape::uri_escape( $item, ':' );
 	}
 	return join( ":" , @escapedparts );
 }
@@ -772,20 +865,9 @@ sub unserialise
 	my $string = delete $opts{string};
 
 	my $data = {};
-	if( $string =~ m/^([^:]*):([^:]*):([^:]*):(.*):(.*)$/ )
-	{
-		$data->{"id"} = $1;
-		$data->{"rawid"} = $2;
-		$data->{"merge"} = $3;
-		$data->{"match"} = $4;
-		$data->{"value"} = $5;
-		# Un-escape (cjg, not very tested)
-		$data->{"value"} =~ s/\\(.)/$1/g;
-	}
-	else
-	{
-		return;
-	}
+	@{$data}{qw( id rawid merge match value )} = split ':', $string, 5;
+	return if !defined $data->{value};
+	$data->{value} = URI::Escape::uri_unescape( $data->{value} );
 
 	my @fields;
 	foreach my $fname ( split( "/", $data->{rawid} ) )
