@@ -57,6 +57,7 @@ $c->{eprint_render} = sub
 		my $latest = $eprint->last_in_thread( $succeeds_field );
 		if( $latest->value( "eprintid" ) == $eprint->value( "eprintid" ) )
 		{
+			$flags->{latest_version} = 1;
 			$fragments{multi_info} = $repository->html_phrase( "page:latest_version" );
 		}
 		else
