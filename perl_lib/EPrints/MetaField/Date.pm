@@ -36,8 +36,6 @@ BEGIN
 
 use EPrints::MetaField;
 
-our $REGEXP_DATETIME = qr/\d\d\d\d(?:-\d\d(?:-\d\d(?:[ T]\d\d(?::\d\d(?::\d\dZ?)?)?)?)?)?/;
-
 sub get_sql_names
 {
 	my( $self ) = @_;
@@ -45,18 +43,32 @@ sub get_sql_names
 	return map { $self->get_name . "_" . $_ } qw( year month day );
 }
 
+# parse either ISO or our format and output our value
+sub _build_value
+{
+	my( $self, $value ) = @_;
+
+	return undef if !defined $value;
+
+	my @parts = split /[-: TZ]/, $value;
+
+	$value = "";
+	$value .= sprintf("%04d",$parts[0]) if( defined $parts[0] );
+	$value .= sprintf("-%02d",$parts[1]) if( defined $parts[1] );
+	$value .= sprintf("-%02d",$parts[2]) if( defined $parts[2] );
+
+	return $value;
+}
+
 sub value_from_sql_row
 {
 	my( $self, $session, $row ) = @_;
 
-	my @parts = splice(@$row,0,3);
+	my @parts = grep { defined $_ } splice(@$row,0,3);
 
-	my $value = "";
-	$value.= sprintf("%04d",$parts[0]) if( defined $parts[0] );
-	$value.= sprintf("-%02d",$parts[1]) if( defined $parts[1] );
-	$value.= sprintf("-%02d",$parts[2]) if( defined $parts[2] );
+	return undef if !@parts;
 
-	return $value;
+	return $self->_build_value( join(' ', @parts) );
 }
 
 sub sql_row_from_value
@@ -221,21 +233,17 @@ sub form_value_basic
 {
 	my( $self, $session, $basename ) = @_;
 	
-	my $day = $session->param( $basename."_day" );
-	my $month = $session->param( 
-				$basename."_month" );
-	my $year = $session->param( $basename."_year" );
-	$month = undef if( !EPrints::Utils::is_set($month) || $month == 0 );
-	$year = undef if( !EPrints::Utils::is_set($year) || $year == 0 );
-	$day = undef if( !EPrints::Utils::is_set($day) || $day == 0 );
-	my $r = undef;
-	return $r if( !defined $year );
-	$r .= sprintf( "%04d", $year );
-	return $r if( !defined $month );
-	$r .= sprintf( "-%02d", $month );
-	return $r if( !defined $day );
-	$r .= sprintf( "-%02d", $day );
-	return $r;
+	my @parts;
+	for(qw( year month day ))
+	{
+		my $part = $session->param( $basename."_$_" );
+		last if !EPrints::Utils::is_set( $part ) || $part == 0;
+		push @parts, $part;
+	}
+
+	return undef if !@parts;
+
+	return $self->_build_value( join('-', @parts) );
 }
 
 
@@ -311,19 +319,7 @@ sub from_search_form
 {
 	my( $self, $session, $basename ) = @_;
 
-	my $val = $session->param( $basename );
-	return unless defined $val;
-
-	my $drange = $val;
-	$drange =~ s/-(\d\d\d\d(-\d\d(-\d\d)?)?)$/-/;
-	$drange =~ s/^(\d\d\d\d(-\d\d(-\d\d)?)?)(-?)$/$4/;
-
-	if( $drange eq "" || $drange eq "-" )
-	{
-		return( $val );
-	}
-			
-	return( undef,undef,undef, $session->html_phrase( "lib/searchfield:date_err" ) );
+	return $self->EPrints::MetaField::Int::from_search_form( $session, $basename );
 }
 
 
@@ -331,47 +327,37 @@ sub render_search_value
 {
 	my( $self, $session, $value ) = @_;
 
-	# still not very pretty
-	my $drange = $value;
-	my $lastdate;
-	my $firstdate;
-	if( $drange =~ s/-($REGEXP_DATETIME)$/-/ )
-	{	
-		$lastdate = $1;
-	}
-	if( $drange =~ s/^($REGEXP_DATETIME)(-?)$/$2/ )
-	{
-		$firstdate = $1;
-	}
+	my $regexp = $self->property( "regexp" );
+	my $range = qr/-|(?:\.\.)/;
 
-	if( defined $firstdate && defined $lastdate )
+	if( $value =~ /^($regexp)$range($regexp)$/ )
 	{
 		return $session->html_phrase(
 			"lib/searchfield:desc:date_between",
 			from => EPrints::Time::render_date( 
 					$session, 
-					$firstdate ),
+					$1 ),
 			to => EPrints::Time::render_date( 
 					$session, 
-					$lastdate ) );
+					$2 ) );
 	}
 
-	if( defined $lastdate )
+	if( $value =~ /^$range($regexp)$/ )
 	{
 		return $session->html_phrase(
 			"lib/searchfield:desc:date_orless",
 			to => EPrints::Time::render_date( 
 					$session,
-					$lastdate ) );
+					$1 ) );
 	}
 
-	if( defined $firstdate && $drange eq "-" )
+	if( $value =~ /^($regexp)$range$/ )
 	{
 		return $session->html_phrase(
 			"lib/searchfield:desc:date_ormore",
 			from => EPrints::Time::render_date( 
 					$session,
-					$firstdate ) );
+					$1 ) );
 	}
 	
 	return EPrints::Time::render_date( $session, $value );
@@ -420,61 +406,9 @@ sub get_search_conditions_not_ex
 	# DATETIME-DATETIME
 	# DATETIME := YEAR-MON-DAY{'T',' '}HOUR:MIN:SEC{'Z'}
 
-	my $drange = $search_value;
-	my $lastdate;
-	my $firstdate;
-	if( $drange =~ s/-($REGEXP_DATETIME)$/-/o )
-	{	
-		$lastdate = $1;
-	}
-	if( $drange =~ s/^($REGEXP_DATETIME)(-?)$/$2/o )
-	{
-		$firstdate = $1;
-	}
-
-	if( !defined $firstdate && !defined $lastdate )
-	{
-		return EPrints::Search::Condition->new( 'FALSE' );
-	}
-
-	# not a range.
-	if( $drange ne "-" )
-	{
-		return EPrints::Search::Condition->new( 
-				'=',
-				$dataset,
-				$self,
-				$firstdate );
-	}		
-
-	my @r = ();
-
-	if( defined $firstdate )
-	{
-		push @r, EPrints::Search::Condition->new( 
-				'>=',
-				$dataset,
-				$self,
-				$firstdate);
-	}
-
-	if( defined $lastdate )
-	{
-		push @r, EPrints::Search::Condition->new( 
-				'<=',
-				$dataset,
-				$self,
-				$lastdate);
-	}
-
-	if( scalar @r == 0 )
-	{
-		return EPrints::Search::Condition->new( 'FALSE' );
-	}
-	if( scalar @r == 1 ) { return $r[0]; }
-
-	return EPrints::Search::Condition->new( "AND", @r );
-	# error if @r is empty?
+	return $self->EPrints::MetaField::Int::get_search_conditions_not_ex(
+		$session, $dataset, $search_value, $match, $merge, $search_mode
+	);
 }
 
 sub get_search_group { return 'date'; } 
@@ -487,6 +421,7 @@ sub get_property_defaults
 	$defaults{render_res} = "day";
 	$defaults{render_style} = "long";
 	$defaults{text_index} = 0;
+	$defaults{regexp} = qr/\d\d\d\d(?:-\d\d(?:-\d\d)?)?/;
 	return %defaults;
 }
 
@@ -504,6 +439,20 @@ sub trim_date
 	return substr( $date, 0, 19 ) if $resolution == 6;
 
 	return $date;
+}
+
+sub ordervalue_basic
+{
+	my( $self , $value ) = @_;
+
+	return $self->_build_value( $value );
+}
+
+sub set_value
+{
+	my( $self, $dataobj, $value ) = @_;
+
+	$self->SUPER::set_value( $dataobj, $self->_build_value( $value ) );
 }
 
 sub get_resolution
