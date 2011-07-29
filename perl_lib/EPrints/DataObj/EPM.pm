@@ -727,7 +727,7 @@ sub uninstall
 			sysread($fh,$data,-s $fh);
 			close($fh);
 		}
-		if( !$force && Digest::MD5::md5_hex($data) ne $_->value( "hash" ) )
+		if( !-f $filepath && !$force && Digest::MD5::md5_hex($data) ne $_->value( "hash" ) )
 		{
 			$handler->add_message( "error", $self->html_phrase( "bad_checksum",
 					filename => $repo->xml->create_text_node( $filename ),

@@ -13,7 +13,6 @@
   </flow>
    
   <stage name="type">
-  	<component><field ref="mfdatasetid"/></component>
   	<component><field ref="name"/></component>
   	<component><field ref="multiple"/></component>
   	<component><field ref="type"/></component>
