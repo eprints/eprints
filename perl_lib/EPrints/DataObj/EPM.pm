@@ -721,13 +721,15 @@ sub uninstall
 		my $filename = $_->value( "filename" );
 		my $filepath = "$base_path/$filename";
 		next if !-e $filepath; # skip missing files
-		my $data = "";
+		my $hash;
 		if( open(my $fh, "<", $filepath) )
 		{
-			sysread($fh,$data,-s $fh);
+			my $ctx = Digest::MD5->new;
+			$ctx->addfile( $fh );
 			close($fh);
+			$hash = $ctx->hexdigest;
 		}
-		if( !-f $filepath && !$force && Digest::MD5::md5_hex($data) ne $_->value( "hash" ) )
+		if( !$force && defined($hash) && $hash ne $_->value( "hash" ) )
 		{
 			$handler->add_message( "error", $self->html_phrase( "bad_checksum",
 					filename => $repo->xml->create_text_node( $filename ),
