@@ -163,7 +163,7 @@ sub render
 		}
 	}
 
-	$chunk->appendChild( $self->{session}->{xhtml}->tabs(
+	$chunk->appendChild( $self->{session}->xhtml->tabs(
 		\@labels,
 		\@contents,
 		basename => $id_prefix,
