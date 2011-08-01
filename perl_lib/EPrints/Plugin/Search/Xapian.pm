@@ -18,8 +18,9 @@ sub new
 
 	$self->{name} = "xapian";
 	$self->{search} = [qw( simple/* )];
-	$self->{disable} = 1; # enabled by cfg.d/search_xapian.pl
 	$self->{result_order} = 1; # whether to default to showing by engine result order
+
+	$self->{disable} = !EPrints::Utils::require_if_exists( "Search::Xapian" );
 	
 	return $self;
 }

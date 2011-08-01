@@ -1,10 +1,5 @@
 if( EPrints::Utils::require_if_exists( "Search::Xapian" ) )
 {
-if( !defined $c->{plugins}{"Search::Xapian"}{params}{disable} )
-{
-	$c->{plugins}{"Search::Xapian"}{params}{disable} = 0;
-}
-
 $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 	my( %params ) = @_;
 
@@ -12,6 +7,9 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 	my $dataobj = $params{dataobj};
 	my $dataset = $dataobj->dataset;
 	my $fields = $params{fields};
+
+	# if plugin disabled, don't continue
+	return if !defined $repo->plugin( "Search::Xapian" );
 
 	if( !defined $repo->{_xapian} )
 	{
@@ -140,6 +138,9 @@ $c->add_trigger( EP_TRIGGER_INDEX_REMOVED, sub {
 	my $repo = $params{repository};
 	my $dataset = $params{dataset};
 	my $id = $params{id};
+
+	# if plugin disabled, don't continue
+	return if !defined $repo->plugin( "Search::Xapian" );
 
 	if( !defined $repo->{_xapian} )
 	{
