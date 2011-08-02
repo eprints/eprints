@@ -783,6 +783,7 @@ sub enable
 	my $repo = $self->repository;
 
 	my $datasets = $self->current_datasets;
+	my $counters = $self->current_counters;
 
 	my $epmid = $self->id;
 	my $epmdir = "epm/".$epmid;
@@ -855,6 +856,7 @@ sub enable
 	$repo->load_config;
 
 	$self->update_datasets( $datasets );
+	$self->update_counters( $counters );
 
 	return 1;
 }
@@ -866,6 +868,7 @@ sub disable
 	my $repo = $self->repository;
 
 	my $datasets = $self->current_datasets;
+	my $counters = $self->current_counters;
 
 	my $epmid = $self->id;
 	my $epmdir = "epm/".$epmid;
@@ -885,6 +888,7 @@ sub disable
 	$repo->load_config;
 
 	$self->update_datasets( $datasets );
+	$self->update_counters( $counters );
 
 	return 1;
 }
@@ -896,6 +900,17 @@ sub disable
 =over 4
 
 =cut
+
+=item $conf = $epm->current_counters()
+
+=cut
+
+sub current_counters
+{
+	my( $self ) = @_;
+
+	return [$self->{session}->get_sql_counter_ids];
+}
 
 =item $conf = $epm->current_datasets()
 
@@ -921,6 +936,34 @@ sub current_datasets
 	}
 
 	return $data;
+}
+
+=item $ok = $epm->update_counters( $conf )
+
+=cut
+
+sub update_counters
+{
+	my( $self, $before ) = @_;
+
+	my $repo = $self->repository;
+	
+	my $db = $repo->get_db();
+
+	my %before = map { $_ => 1 } @$before;
+	my %after = map { $_ => 1 } $repo->get_sql_counter_ids;
+
+	foreach my $id (keys %before)
+	{
+		if( !defined delete $after{$id} )
+		{
+			$db->drop_counter( $id );
+		}
+	}
+	foreach my $id (keys %after)
+	{
+		$db->create_counter( $id );
+	}
 }
 
 =item $ok = $epm->update_datasets( $conf )
