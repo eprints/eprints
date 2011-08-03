@@ -458,7 +458,7 @@ sub get_parents
 	{
 		push @parents, new EPrints::DataObj::Subject( $self->{session}, $_ );
 	}
-	return( @parents );
+	return grep { defined } ( @parents );
 }
 
 
