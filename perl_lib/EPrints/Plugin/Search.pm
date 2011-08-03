@@ -270,6 +270,8 @@ Unthaw a search spec into a new L<EPrints::Plugin::Search> object.
 
 	$searchexp = $repo->plugin( "Search" )->thaw( ... );
 
+Returns undef if $spec is invalid.
+
 =cut
 
 sub thaw
@@ -309,6 +311,8 @@ sub thaw
 		dataset => $dataset,
 		%$sconf,
 	);
+
+	return undef if !defined $plugin;
 
 	$plugin->from_string( $spec{exp} );
 
