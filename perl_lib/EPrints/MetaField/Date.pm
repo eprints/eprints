@@ -452,7 +452,14 @@ sub set_value
 {
 	my( $self, $dataobj, $value ) = @_;
 
-	$self->SUPER::set_value( $dataobj, $self->_build_value( $value ) );
+	# reformat date/time values so they are always consistently stored
+	local $_;
+	for(ref($value) eq "ARRAY" ? @$value : $value)
+	{
+		$_ = $self->_build_value( $_ );
+	}
+
+	$self->SUPER::set_value( $dataobj, $value );
 }
 
 sub get_resolution
