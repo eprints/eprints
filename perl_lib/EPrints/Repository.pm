@@ -4647,45 +4647,11 @@ sub send_http_header
 	}
 	$self->{request}->content_type( $opts{content_type} );
 
-	$self->set_cookies( %opts );
-
 	EPrints::Apache::AnApache::header_out( 
 		$self->{"request"},
 		"Cache-Control" => "no-store, no-cache, must-revalidate" );
 
 	EPrints::Apache::AnApache::send_http_header( $self->{request} );
-}
-
-sub set_cookies
-{
-	my( $self, %opts ) = @_;
-
-	# from opts (document)
-	if( defined $opts{code} )
-	{
-		my $cookie = $self->{query}->cookie(
-			-name    => "eprints_session",
-			-path    => "/",
-			-value   => $opts{code},
-			-domain  => $self->get_conf("cookie_domain"),
-		);	
-		EPrints::Apache::AnApache::header_out( 
-			$self->{"request"},
-			"Set-Cookie" => $cookie );
-	}
-
-	if( defined $opts{lang} )
-	{
-		my $cookie = $self->{query}->cookie(
-			-name    => "eprints_lang",
-			-path    => "/",
-			-value   => $opts{lang},
-			-expires => "+10y", # really long time
-			-domain  => $self->get_conf("cookie_domain") );
-		EPrints::Apache::AnApache::header_out( 
-				$self->{"request"},
-				"Set-Cookie" => $cookie );
-	}
 }
 
 # $repository->read_params
