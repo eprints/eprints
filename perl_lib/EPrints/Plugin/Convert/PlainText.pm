@@ -24,7 +24,7 @@ our @ISA = qw/ EPrints::Plugin::Convert /;
 # xml = ?
 %EPrints::Plugin::Convert::PlainText::APPS = qw(
 pdf		pdftotext
-doc		antiword
+doc		doc2txt
 htm		elinks
 html		elinks
 xml		elinks

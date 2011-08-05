@@ -2093,7 +2093,7 @@ sub invocation
 	my $command = $self->config( "invocation" )->{ $cmd_id };
 
 	# platform-specific quoting
-	$command =~ s/\$\(([a-z_]+)\)/
+	$command =~ s/\$\(([a-z0-9_]+)\)/
 		exists($map{$1}) ?
 			EPrints->system->quotemeta($map{$1}) :
 			EPrints->system->quotemeta($execs->{$1})

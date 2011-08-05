@@ -15,12 +15,13 @@ my %executables = (
 	  'elinks' => '/usr/bin/elinks',
 	  'cp' => '/bin/cp',
 	  'latex' => '/usr/bin/latex',
-	  'perl' => '/usr/bin/perl',
+	  'perl' => $^X,
 	  'pdftotext' => '/usr/bin/pdftotext',
 	  'wget' => '/usr/bin/wget',
 	  'antiword' => '/usr/bin/antiword',
 	  'ffmpeg' => '/usr/bin/ffmpeg',
 	  'file' => '/usr/bin/file',
+	  'doc2txt' => "$c->{base_path}/tools/doc2txt",
 	);
 while(my( $name, $path ) = each %executables)
 {
