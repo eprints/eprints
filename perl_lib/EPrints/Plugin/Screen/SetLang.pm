@@ -11,42 +11,7 @@ use EPrints::Plugin::Screen;
 
 use strict;
 
-sub new
-{
-	my( $class, %params ) = @_;
-
-	my $self = $class->SUPER::new(%params);
-
-	return $self;
-}
-
-sub redirect_to_me_url
-{
-	return undef;
-}
-
-sub wishes_to_export
-{
-	my( $self ) = @_;
-
-	return 1;
-}
-
-sub export
-{
-	my( $self ) = @_;
-
-	my $session = $self->{session};
-
-	$self->set_cookie();
-
-	my $referrer = $session->param( "referrer" );
-	$referrer = $session->config( "home_page" ) if !EPrints::Utils::is_set( $referrer );
-
-	return $self->{session}->redirect( $referrer );
-}
-
-sub set_cookie
+sub from
 {
 	my( $self ) = @_;
 
@@ -63,6 +28,11 @@ sub set_cookie
 		-expires => ($langid ? "+10y" : "+0s"), # really long time
 		-domain  => $session->config("cookie_domain") );
 	$session->{request}->err_headers_out->add('Set-Cookie' => $cookie);
+
+	my $referrer = $session->param( "referrer" );
+	$referrer = $session->config( "home_page" ) if !EPrints::Utils::is_set( $referrer );
+
+	$self->{processor}->{redirect} = $referrer;
 }
 
 sub render_action_link

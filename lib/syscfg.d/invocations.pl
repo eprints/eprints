@@ -15,6 +15,7 @@ my %invocations = (
 	 'cpall' => '$(cp) -pR $(SOURCE)/* $(TARGET)',
 	 'wget' => '$(wget) -U "Mozilla/5.0" -r -L -q -m -nH -np --execute="robots=off" --cut-dirs=$(CUTDIRS) $(URL)',
 	 'antiword' => '$(antiword) -t -f -m UTF-8 $(SOURCE) > $(TARGET)',
+	 'doc2txt' => '$(perl) $(doc2txt) $(SOURCE) $(TARGET)',
 	 'rmall' => '$(rm) -rf $(TARGET)/*',
 	 'ffmpeg_i' => '$(ffmpeg) -i $(SOURCE)',
 	 'ffmpeg_video_mp4' => '$(ffmpeg) -y -i $(SOURCE) -acodec $(audio_codec) -ac 2 -ar $(audio_sampling) -ab $(audio_bitrate) -f $(container) -vcodec $(video_codec) -vpre default -r $(video_frame_rate) -b $(video_bitrate) -s $(width)x$(height) $(TARGET)',
@@ -22,6 +23,7 @@ my %invocations = (
 	 'ffmpeg_audio_mp4' => '$(ffmpeg) -y -i $(SOURCE) -acodec $(audio_codec) -ac 2 -ar $(audio_sampling) -ab $(audio_bitrate) -f $(container) $(TARGET)',
 	 'ffmpeg_audio_ogg' => '$(ffmpeg) -y -i $(SOURCE) -acodec $(audio_codec) -ac 2 -ar $(audio_sampling) -ab $(audio_bitrate) -f $(container) $(TARGET)',
 	 'ffmpeg_cell' => '$(ffmpeg) -y -i $(SOURCE) -an -f mjpeg -ss $(offset) -t 00:00:01 -r 1 -s $(width)x$(height) $(TARGET)',
+	 'unoconv' => '$(unoconv) -f $(FORMAT) $(SOURCE)',
 );
 while(my( $name, $invo ) = each %invocations)
 {

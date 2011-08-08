@@ -12,19 +12,17 @@ Uses the file extension to determine file type.
 
 =cut
 
-use strict;
-use warnings;
-
-use Carp;
-use English;
-
 use EPrints::Plugin::Convert;
-our @ISA = qw/ EPrints::Plugin::Convert /;
+use XML::SAX::Base;
+
+@ISA = qw/ EPrints::Plugin::Convert XML::SAX::Base /;
+
+use strict;
 
 # xml = ?
 %EPrints::Plugin::Convert::PlainText::APPS = qw(
 pdf		pdftotext
-doc		antiword
+doc		doc2txt
 htm		elinks
 html		elinks
 xml		elinks
@@ -59,7 +57,7 @@ sub can_convert
 		phraseid => $plugin->html_phrase_id( $mimetype ),
 	});
 
-	if( $fn =~ /\.txt$/ )
+	if( $fn =~ /\.txt$/ || $fn =~ /\.docx$/ )
 	{
 		return @type;
 	}
@@ -87,6 +85,11 @@ sub export
 	# What to call the temporary file
 	my $main = $doc->get_main;
 	
+	if( $main =~ /\.docx$/ )
+	{
+		return $plugin->export_docx( $dir, $doc, $type );
+	}
+
 	my( $file_extension, $cmd_id );
 	
 	my $repository = $plugin->get_repository();
@@ -164,6 +167,63 @@ sub export
 	}
 
 	return @txt_files;
+}
+
+# docx is quite simple to export so we'll do it directly here
+sub export_docx
+{
+	my ( $self, $dir, $doc, $type ) = @_;
+
+	my $main = $doc->value( "main" );
+
+	my $file = $doc->stored_file( $main );
+	return() if !defined $file;
+
+	my $src = $file->get_local_copy;
+	return() if !defined $src;
+
+	my $repo = $self->repository();
+
+	my $tmpdir = File::Temp->newdir();
+	$repo->exec( "zip",
+		ARC => "$src",
+		DIR => "$tmpdir",
+	);
+
+	my $fh;
+	if( !open($fh, "<", "$tmpdir/word/document.xml") )
+	{
+		$repo->log( "Expected word/document.xml in ".$doc->internal_uri );
+		return();
+	}
+
+	my $tgt = $main;
+	$tgt =~ s/\.[^\.]+$/.txt/;
+
+	open($self->{_fh}, ">", "$dir/$tgt")
+		or die "Error writing to $dir/$tgt: $!";
+	binmode($self->{_fh}, ":utf8");
+	EPrints::XML::event_parse( $fh, $self );
+	close($self->{_fh});
+
+	return( $tgt );
+}
+
+sub start_element
+{
+	my( $self, $data ) = @_;
+
+	if( $data->{Name} eq 'w:p' )
+	{
+		print {$self->{_fh}} "\n";
+	}
+}
+
+sub characters
+{
+	my( $self, $data ) = @_;
+
+	print {$self->{_fh}} $data->{Data};
 }
 
 1;

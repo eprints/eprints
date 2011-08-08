@@ -55,7 +55,7 @@ sub create_service
 		machine => '',
 		name => $MASTER_SERVICE,
 		display => 'EPrints Indexer',
-		path => $^X,
+		path => $EPrints::SystemSettings::conf->{executables}->{perl},
 		user => '',
 		pwd => '',
 		description => 'EPrints Indexer master service',

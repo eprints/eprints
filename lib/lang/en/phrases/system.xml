@@ -3082,7 +3082,7 @@ PY = 2006 and OG = (Cambridge)<br />
 	<epp:phrase id="Plugin/InputForm/Component/Upload:no_file">File does not exist.</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:bad_button">Unknown internal button: <epc:pin name="button"/></epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:bad_doc_button">Unknown internal document button: <epc:pin name="button"/></epp:phrase>
-	<epp:phrase id="Plugin/InputForm/Component/Documents:conversion_failed">Document conversion failed.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/Document/Convert:conversion_failed">Document conversion failed.</epp:phrase>
 	
 	<!-- tabs -->
 	<epp:phrase id="Plugin/InputForm/Component/Documents:Metadata">Metadata</epp:phrase>

@@ -1,0 +1,72 @@
+#!/usr/bin/perl
+
+use FindBin;
+use lib "$FindBin::Bin/../perl_lib";
+
+use Text::Extract::Word;
+use Pod::Usage;
+use Getopt::Long;
+use Encode;
+
+=head1 NAME
+
+doc2txt - extract plain text from .doc files
+
+=head1 SYNOPSIS
+
+doc2txt <input.doc> <output.txt | ->
+
+=head1 OPTIONS
+
+=over 4
+
+=item --enc=UTF-8
+
+Set the output encoding (any supported by Encode). Defaults to UTF-8.
+
+=cut
+
+use strict;
+use warnings;
+
+my(
+	$opt_enc,
+	$opt_help,
+);
+
+GetOptions(
+	'enc=s' => \$opt_enc,
+	'help' => \$opt_help,
+) or pod2usage();
+
+pod2usage(1) if $opt_help;
+pod2usage() if @ARGV != 2;
+
+my( $ofh );
+-r $ARGV[0] or die "Can't read file $ARGV[0]";
+if( $ARGV[1] eq '-' )
+{
+	$ofh = \*STDOUT;
+}
+else
+{
+	open($ofh, ">", $ARGV[1]) or die "Error opening $ARGV[1]: $!";
+}
+
+if( $opt_enc )
+{
+	if( !binmode($ofh, ":encoding($opt_enc)") )
+	{
+		die join(', ', Encode->encodings(":all"))."\n";
+	}
+}
+else
+{
+	binmode($ofh, ":utf8");
+}
+
+my $doc = Text::Extract::Word->new( $ARGV[0] );
+my $text = $doc->get_text();
+$text = Encode::decode( "iso-8859-1", $text );
+
+print $ofh $text;

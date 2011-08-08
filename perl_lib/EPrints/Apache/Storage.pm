@@ -117,8 +117,6 @@ sub handler
 
 	$r->content_type( $content_type );
 
-	$repo->set_cookies();
-
 	if( $fileobj->is_set( "hash" ) )
 	{
 		my $etag = $r->headers_in->{'if-none-match'};
