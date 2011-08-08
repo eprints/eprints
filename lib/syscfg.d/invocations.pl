@@ -23,6 +23,7 @@ my %invocations = (
 	 'ffmpeg_audio_mp4' => '$(ffmpeg) -y -i $(SOURCE) -acodec $(audio_codec) -ac 2 -ar $(audio_sampling) -ab $(audio_bitrate) -f $(container) $(TARGET)',
 	 'ffmpeg_audio_ogg' => '$(ffmpeg) -y -i $(SOURCE) -acodec $(audio_codec) -ac 2 -ar $(audio_sampling) -ab $(audio_bitrate) -f $(container) $(TARGET)',
 	 'ffmpeg_cell' => '$(ffmpeg) -y -i $(SOURCE) -an -f mjpeg -ss $(offset) -t 00:00:01 -r 1 -s $(width)x$(height) $(TARGET)',
+	 'unoconv' => '$(unoconv) -f $(FORMAT) $(SOURCE)',
 );
 while(my( $name, $invo ) = each %invocations)
 {

@@ -23,6 +23,7 @@ my %executables = (
 	  'ffmpeg' => '/usr/bin/ffmpeg',
 	  'file' => '/usr/bin/file',
 	  'doc2txt' => "$c->{base_path}/tools/doc2txt",
+	  'unoconv' => '/usr/bin/unoconv',
 	);
 while(my( $name, $path ) = each %executables)
 {

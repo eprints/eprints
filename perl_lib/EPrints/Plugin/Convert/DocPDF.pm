@@ -70,7 +70,7 @@ sub export
 		my $tgt = $filename;
 		$tgt=~s/\.doc$/\.pdf/;
 		my $infile = $file->get_local_copy();
-		my $outfile = EPrints::Utils::join_path( $dir, $tgt );
+		my $outfile = "$dir/$tgt";
 		$repository->exec( "antiwordpdf",
 			SOURCE => $infile,
 			TARGET_DIR => $dir,
