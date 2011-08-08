@@ -179,14 +179,14 @@ sub export_docx
 	my $file = $doc->stored_file( $main );
 	return() if !defined $file;
 
-	my $fh = $file->get_local_copy;
-	return() if !defined $fh;
+	my $src = $file->get_local_copy;
+	return() if !defined $src;
 
 	my $repo = $self->repository();
 
 	my $tmpdir = File::Temp->newdir();
 	$repo->exec( "zip",
-		ARC => "$fh",
+		ARC => "$src",
 		DIR => "$tmpdir",
 	);
 
@@ -215,7 +215,7 @@ sub start_element
 
 	if( $data->{Name} eq 'w:p' )
 	{
-		print ${$self->{_fh}} "\n";
+		print {$self->{_fh}} "\n";
 	}
 }
 
@@ -223,7 +223,7 @@ sub characters
 {
 	my( $self, $data ) = @_;
 
-	print ${$self->{_fh}} $data->{Data};
+	print {$self->{_fh}} $data->{Data};
 }
 
 1;
