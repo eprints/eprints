@@ -12,14 +12,11 @@ Uses the file extension to determine file type.
 
 =cut
 
-use strict;
-use warnings;
-
-use Carp;
-use English;
-
 use EPrints::Plugin::Convert;
-our @ISA = qw/ EPrints::Plugin::Convert /;
+
+@ISA = qw/ EPrints::Plugin::Convert /;
+
+use strict;
 
 # xml = ?
 %EPrints::Plugin::Convert::PlainText::APPS = qw(
