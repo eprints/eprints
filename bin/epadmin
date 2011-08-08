@@ -94,7 +94,7 @@ START HERE! This option will walk you through the tasks needed to create your re
 
 =item B<epadmin> test I<repository_id>
 
-A null operation which just checks your configuration files are OK and that you can connect to the database. If no I<repository_id> is specified loads each repository in turn.
+A null operation which just checks your configuration files are OK and that you can connect to the database. If no I<repository_id> is specified loads each repository in turn. Use --verbose to generate more information.
 
 =item B<epadmin> cleanup_cachemaps I<repository_id>
 
@@ -1599,6 +1599,17 @@ sub test
 		{
 			my $size = GTop->new->proc_mem( $$ )->resident;
 			print "SIZE: $size\n";
+		}
+	}
+	if( $noise > 3 )
+	{
+		foreach my $package (sort keys %INC)
+		{
+			next if $package =~ /^EPrints\//;
+			my $source = $INC{$package};
+			$package =~ s/\.[^\.]+$//;
+			$package =~ s/\//::/g;
+			print "$package\t$source\n";
 		}
 	}
 
