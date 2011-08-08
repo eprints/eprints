@@ -4,6 +4,7 @@ $c->{executables} ||= {};
 
 # location of executables
 {
+use Config; # for perlpath
 my %executables = (
 	  'convert' => '/usr/bin/convert',
 	  'tar' => '/bin/tar',
@@ -15,7 +16,7 @@ my %executables = (
 	  'elinks' => '/usr/bin/elinks',
 	  'cp' => '/bin/cp',
 	  'latex' => '/usr/bin/latex',
-	  'perl' => $^X,
+	  'perl' => $Config{perlpath},
 	  'pdftotext' => '/usr/bin/pdftotext',
 	  'wget' => '/usr/bin/wget',
 	  'antiword' => '/usr/bin/antiword',
