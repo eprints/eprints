@@ -55,6 +55,14 @@ sub new
 	return bless \%params, $class;
 }
 
+*get_repository = \&repository;
+sub repository
+{
+	my( $self ) = @_;
+
+	return $self->{repository};
+}
+
 ######################################################################
 =pod
 

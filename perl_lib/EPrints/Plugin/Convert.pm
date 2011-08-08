@@ -102,19 +102,6 @@ sub is_visible
 	return 1;
 }
 
-=item $repository = $p->get_repository
-
-Returns the current respository
-
-=cut
-
-sub get_repository
-{
-	my( $plugin ) = @_;
-	
-	return $plugin->{ "session" }->get_repository;
-}
-
 =pod
 
 =item %types = $p->can_convert( $doc )
