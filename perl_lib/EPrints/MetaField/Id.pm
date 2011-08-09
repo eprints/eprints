@@ -89,9 +89,11 @@ sub get_property_defaults
 # id fields are searched whole, whether against the main table or in the index
 sub get_index_codes_basic
 {
-       my( $self, $session, $value ) = @_;
+	my( $self, $session, $value ) = @_;
 
-       return( [ $value ], [], [] );
+	return( [], [], [] ) if !EPrints::Utils::is_set( $value );
+
+	return( [ $value ], [], [] );
 }
 
 ######################################################################
