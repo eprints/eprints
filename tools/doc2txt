@@ -67,6 +67,9 @@ else
 
 my $doc = Text::Extract::Word->new( $ARGV[0] );
 my $text = $doc->get_text();
-$text = Encode::decode( "iso-8859-1", $text );
+if( !utf8::is_utf8( $text ) )
+{
+	$text = Encode::decode( "iso-8859-1", $text );
+}
 
 print $ofh $text;

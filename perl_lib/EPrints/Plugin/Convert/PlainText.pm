@@ -115,6 +115,7 @@ sub export
 		my $filename = $file->get_value( "filename" );
 		my $tgt = $filename;
 		next unless $tgt =~ s/\.$file_extension$/\.txt/;
+		$tgt =~ s/^.*\///; # strip directories
 		my $outfile = "$dir/$tgt";
 		
 		if( $file->get_value( "mime_type" ) eq "text/plain" )
