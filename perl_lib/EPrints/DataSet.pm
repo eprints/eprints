@@ -152,8 +152,8 @@ my $INFO = {
 	event_queue => {
 		sqlname => "event_queue",
 		class => "EPrints::DataObj::EventQueue",
-		datestamp => "datestamp",
-		columns => [qw( datestamp status pluginid action params )],
+		datestamp => "start_time",
+		columns => [qw( status start_time pluginid action params )],
 	},
 	upload_progress => {
 		sqlname => "upload_progress",
