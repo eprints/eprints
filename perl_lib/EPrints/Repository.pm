@@ -1496,24 +1496,6 @@ sub get_plugin_class
 }
 
 ######################################################################
-# 
-# @list = $repository->get_plugin_ids
-#
-# Returns a list of plugin ids available to this repository.
-#
-######################################################################
-
-sub get_plugin_ids
-{
-	my( $self ) = @_;
-
-	return
-		map { $_->get_id() }
-		$self->{plugins}->get_plugin_factory();
-}
-
-
-######################################################################
 =pod
 
 =item $confitem = $repository->config( $key, [@subkeys] )
