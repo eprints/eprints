@@ -82,6 +82,7 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 				$value = $v;
 			}
 			next if !EPrints::Utils::is_set( $value );
+			next if length($value) > 200; # Xapian term length limit-ish
 			$tg->index_text( $value );
 			$tg->increase_termpos();
 			if( $field->isa( "EPrints::MetaField::Text" ) )
