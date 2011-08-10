@@ -42,7 +42,11 @@ sub render_single_value
 {
 	my( $self, $session, $value ) = @_;
 
-	return $self->make_searchexp( $session, $value )->render_description;
+	my $searchexp = $self->make_searchexp( $session, $value );
+
+	return $session->make_text( $value ) if !defined $searchexp;
+
+	return $searchexp->render_description;
 }
 
 
@@ -73,11 +77,16 @@ sub make_searchexp
 	{
 		my $url = URI->new( $value );
 		my %spec = $url->query_form;
-		$value = $spec{exp};
 		$searchexp = $session->plugin( "Search::$spec{plugin}",
 			dataset => $dataset,
 			prefix => $basename,
 		);
+		if( !defined $searchexp )
+		{
+			$session->log( "Unknown search plugin in: $value" );
+			return;
+		}
+		$value = $spec{exp};
 	}
 
 	my $fields;
