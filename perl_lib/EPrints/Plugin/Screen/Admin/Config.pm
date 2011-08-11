@@ -25,7 +25,7 @@ sub new
 		},
 	];
 
-	$self->{actions} = [qw( add_file add_directory )];
+	$self->{actions} = [qw( add_file add_directory delete confirm cancel )];
 
 	return $self;
 }
@@ -52,6 +52,9 @@ sub can_be_viewed
 	return $self->allow( "config/view" );
 }
 
+sub allow_cancel { 1 }
+sub action_cancel {}
+
 sub allow_add_file
 {
 	my( $self ) = @_;
@@ -72,6 +75,13 @@ sub allow_add_directory
 
 	# allows error to go through to the action
 	return 1 if !defined $self->{processor}->{filename};
+
+	return $self->allow( "config/edit/static" );
+}
+sub allow_confirm { return shift->allow_delete( @_ ); }
+sub allow_delete
+{
+	my( $self ) = @_;
 
 	return $self->allow( "config/edit/static" );
 }
@@ -144,6 +154,63 @@ sub action_add_directory
 	}
 }
 
+sub action_delete
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+
+	my $path = $repo->config( "config_path" );
+	my $relpath = $repo->param( "configfile" );
+
+	my $frag = $repo->xml->create_document_fragment;
+
+	$frag->appendChild( $repo->html_phrase( "Plugin/Screen/Workflow/Destroy:sure_delete",
+		title => $repo->xml->create_text_node( "$path/$relpath" ),
+	) );
+	my $form = $frag->appendChild( $self->render_form );
+	$form->appendChild( $repo->xhtml->hidden_field( "configfile", $relpath ) );
+	$form->appendChild( $repo->render_action_buttons(
+		confirm => $repo->phrase( "lib/submissionform:action_confirm" ),
+		cancel => $repo->phrase( "lib/submissionform:action_cancel" ),
+		_order => [qw( confirm cancel )],
+	) );
+
+	$self->{processor}->add_message( "warning", $frag );
+}
+
+sub action_confirm
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+
+	my $path = $repo->config( "config_path" );
+
+	my $relpath = $repo->param( "configfile" );
+	return if $relpath =~ /^\./ || $relpath =~ m#[\\/]\.#;
+
+	my $rc = 0;
+
+	if( -d "$path/$relpath" )
+	{
+		$rc = rmdir( "$path/$relpath" );
+	}
+	else
+	{
+		$rc = scalar unlink( "$path/$relpath" );
+	}
+
+	if( $rc )
+	{
+		$self->{processor}->add_message( "message", $repo->html_phrase( "Plugin/Screen/EPrint/RemoveWithEmail:item_removed" ) );
+	}
+	else
+	{
+		$self->{processor}->add_message( "error", $repo->xml->create_text_node( $! ) );
+	}
+}
+
 sub edit_plugin
 {
 	my( $self, $relpath, $filename ) = @_;
@@ -180,10 +247,14 @@ sub render
 	File::Find::find({
 		no_chdir => 1,
 		preprocess => sub {
-			my $ctree = [substr($File::Find::dir,$dirlen), []];
+			my $filename = substr($File::Find::dir, $dirlen);
+			my $ctree = [{
+				filename => $filename,
+				path => substr($File::Find::dir,length($path)+1)
+			}, []];
 			push @{$tree->[1]}, $ctree;
 			push @stack, $tree = $ctree;
-			$dirlen += length($tree->[0]) + 1;
+			$dirlen += length($filename) + 1;
 			return sort grep {
 				$_ !~ /^\./ &&
 				$_ !~ /\.backup$/ &&
@@ -191,6 +262,7 @@ sub render
 			} @_;
 		},
 		wanted => sub {
+			$tree->[0]->{contents}++;
 			return if -d $File::Find::name;
 			my $filename = substr($File::Find::name,length($File::Find::dir)+1);
 			my $relpath = substr($File::Find::dir,length($path)+1);
@@ -205,7 +277,7 @@ sub render
 			my $relpath = substr($File::Find::dir,length($path)+1);
 			$relpath .= '/' if $relpath;
 			push @{$tree->[1]}, $self->render_add_file( $relpath );
-			$dirlen -= length($tree->[0]) + 1;
+			$dirlen -= length($tree->[0]->{filename}) + 1;
 			pop @stack;
 			$tree = $stack[$#stack];
 		},
@@ -213,7 +285,10 @@ sub render
 
 	# move to the first directory and set it to the complete path name
 	$tree = $tree->[1];
-	$tree->[0]->[0] = $path;
+	$tree->[0]->[0] = {
+		filename => $path,
+		path => undef,
+	};
 
 	# open the root directory (suppress default display:none)
 	push @{$tree->[0]},
@@ -241,11 +316,40 @@ Event.observe( window, 'load', function() {
 EOJ
 
 	$div->appendChild( $session->xhtml->tree( $tree,
+		render_dt => sub {
+			my( $ctx ) = @_;
+
+			my $filename = $ctx->{filename};
+			my $relpath = $ctx->{path};
+
+			my $frag = $session->make_doc_fragment;
+
+			$frag->appendChild( $session->make_text( $filename ) );
+
+			if( defined $relpath && !$ctx->{contents} )
+			{
+				my $url = URI->new( $session->current_url );
+				$frag->appendChild( $session->make_text( " [ " ) );
+				$url->query_form(
+					$self->hidden_bits,
+					configfile => $relpath,
+					_action_delete => "1",
+				);
+				my $link = $session->render_link( $url );
+				$link->appendChild( $session->html_phrase( "lib/submissionform:delete" ) );
+				$frag->appendChild( $link );
+				$frag->appendChild( $session->make_text( " ] " ) );
+			}
+
+			return $frag;
+		},
 		render_li => sub {
 			my( $ctx ) = @_;
 
 			my $filename = $ctx->{filename};
 			my $relpath = $ctx->{path};
+
+			my $frag = $session->make_doc_fragment;
 
 			my $configtype = config_file_to_type( "$relpath$filename" );
 			if( defined $configtype )
@@ -259,12 +363,24 @@ EOJ
 					target => "_blank",
 				);
 				$link->appendChild( $session->make_text( $filename ) );
-				return $link;
+				$frag->appendChild( $link );
+				$frag->appendChild( $session->make_text( " [ " ) );
+				$url->query_form(
+					$self->hidden_bits,
+					configfile => "$relpath$filename",
+					_action_delete => "1",
+				);
+				$link = $session->render_link( $url );
+				$link->appendChild( $session->html_phrase( "lib/submissionform:delete" ) );
+				$frag->appendChild( $link );
+				$frag->appendChild( $session->make_text( " ] " ) );
 			}
 			else
 			{
-				return $session->make_text( $filename );
+				$frag->appendChild( $session->make_text( $filename ) );
 			}
+
+			return $frag;
 		},
 	) );
 
