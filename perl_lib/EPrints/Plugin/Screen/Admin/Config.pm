@@ -25,7 +25,7 @@ sub new
 		},
 	];
 
-	$self->{actions} = [qw( add_file )];
+	$self->{actions} = [qw( add_file add_directory )];
 
 	return $self;
 }
@@ -66,6 +66,15 @@ sub allow_add_file
 
 	return defined($screen) && $screen->can_be_viewed;
 }
+sub allow_add_directory
+{
+	my( $self ) = @_;
+
+	# allows error to go through to the action
+	return 1 if !defined $self->{processor}->{filename};
+
+	return $self->allow( "config/edit/static" );
+}
 
 sub action_add_file
 {
@@ -104,6 +113,37 @@ sub action_add_file
 	$self->{processor}->{screenid} = $screen->get_subtype;
 }
 
+sub action_add_directory
+{
+	my( $self ) = @_;
+
+	my $processor = $self->{processor};
+
+	my $filename = $processor->{filename};
+	if( !defined $filename )
+	{
+		$processor->add_message( "error", $self->html_phrase( "bad_file") );
+		return;
+	}
+ 
+	my $relpath = $self->{processor}->{relpath};
+
+	my $path = $self->{session}->config( "config_path" );
+	my $filepath = "$path/$relpath$filename";
+
+	if( !-e $filepath )
+	{
+		if( EPrints->system->mkdir( $filepath ) )
+		{
+		}
+		else
+		{
+			$processor->add_message( "error", $self->{session}->make_text( $! ) );
+			return;
+		}
+	}
+}
+
 sub edit_plugin
 {
 	my( $self, $relpath, $filename ) = @_;
@@ -128,12 +168,108 @@ sub render
 
 	my $page = $session->make_doc_fragment;
 
-	my $path_div = $session->make_element( "div", style=>"padding-bottom: 0.5em" );
-	$path_div->appendChild( $session->make_text( $path ));
-	$page->appendChild( $path_div );
+#	my $path_div = $session->make_element( "div", style=>"padding-bottom: 0.5em" );
+#	$path_div->appendChild( $session->make_text( $path ));
+#	$page->appendChild( $path_div );
+
+	# build a tree of all of the configuration files
+	my $tree = [ undef, [] ]; # this is a dummy root element
+	my @stack = ($tree);
+	my $dirlen = length($path) - 1;
+
+	File::Find::find({
+		no_chdir => 1,
+		preprocess => sub {
+			my $ctree = [substr($File::Find::dir,$dirlen), []];
+			push @{$tree->[1]}, $ctree;
+			push @stack, $tree = $ctree;
+			$dirlen += length($tree->[0]) + 1;
+			return sort grep {
+				$_ !~ /^\./ &&
+				$_ !~ /\.backup$/ &&
+				$_ !~ /\.broken$/
+			} @_;
+		},
+		wanted => sub {
+			return if -d $File::Find::name;
+			my $filename = substr($File::Find::name,length($File::Find::dir)+1);
+			my $relpath = substr($File::Find::dir,length($path)+1);
+			$relpath .= '/' if $relpath;
+			# must use HASH because ARRAYs mean more tree structure
+			push @{$tree->[1]}, {
+				filename => $filename,
+				path => $relpath,
+			};
+		},
+		postprocess => sub {
+			my $relpath = substr($File::Find::dir,length($path)+1);
+			$relpath .= '/' if $relpath;
+			push @{$tree->[1]}, $self->render_add_file( $relpath );
+			$dirlen -= length($tree->[0]) + 1;
+			pop @stack;
+			$tree = $stack[$#stack];
+		},
+	}, $path);
+
+	# move to the first directory and set it to the complete path name
+	$tree = $tree->[1];
+	$tree->[0]->[0] = $path;
+
+	# open the root directory (suppress default display:none)
+	push @{$tree->[0]},
+		dt => {
+			class => "ep_fileselector_open",
+		},
+		dd => {
+		},
+	;
+
+#EPrints->dump( $tree );
+
+	# use the ep_fileselector CSS
+	my $div = $session->make_element( "div",
+		class => "ep_fileselector",
+		id => "ep_fileselector",
+	);
+	$page->appendChild( $div );
+
+	# enable the tree for click-to open/close
+	$page->appendChild( $session->make_javascript( <<EOJ ) );
+Event.observe( window, 'load', function() {
+	ep_js_init_dl( 'ep_fileselector', 'ep_fileselector_open' );
+});
+EOJ
+
+	$div->appendChild( $session->xhtml->tree( $tree,
+		render_li => sub {
+			my( $ctx ) = @_;
+
+			my $filename = $ctx->{filename};
+			my $relpath = $ctx->{path};
+
+			my $configtype = config_file_to_type( "$relpath$filename" );
+			if( defined $configtype )
+			{
+				my $url = URI->new( $session->current_url );
+				$url->query_form(
+					screen => "Admin::Config::View::$configtype",
+					configfile => "$relpath$filename",
+				);
+				my $link = $session->render_link( $url,
+					target => "_blank",
+				);
+				$link->appendChild( $session->make_text( $filename ) );
+				return $link;
+			}
+			else
+			{
+				return $session->make_text( $filename );
+			}
+		},
+	) );
 
 	# some text like "EPrints configuration editor; with great power comes great responsibility" ?
-	$page->appendChild( $self->render_dir( $path, "" ) );
+#	$page->appendChild( $self->render_dir( $path, "" ) );
 
 	return $page;
 }
@@ -214,6 +350,31 @@ sub render_dir
 	) );
 
 	return $div;
+}
+
+sub render_add_file
+{
+	my( $self, $relpath ) = @_;
+
+	my $xhtml = $self->{session}->xhtml;
+
+	my $form = $self->render_form;
+	$form->appendChild( $xhtml->hidden_field( "relpath", $relpath ) );
+	$form->appendChild( $xhtml->input_field( "text", undef,
+		name => "filename",
+	) );
+	$form->appendChild( $self->{session}->render_button(
+		type => "submit",
+		name => "_action_add_file",
+		value => $self->phrase( "add_file" )
+	) );
+	$form->appendChild( $self->{session}->render_button(
+		type => "submit",
+		name => "_action_add_directory",
+		value => $self->phrase( "add_directory" )
+	) );
+
+	return $form;
 }
 
 sub config_file_to_type

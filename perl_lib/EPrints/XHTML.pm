@@ -31,6 +31,57 @@ B<EPrints::XHTML> - XHTML Module
 
 	$page = $xhtml->page( %opts );
 
+=head2 tree()
+
+	$xhtml->tree([ # dl
+		[ "fruit", # dt
+			[ "apple", "orange", ], # ul {li, li}
+		],
+		[ "vegetable", # dt
+			[ "potato", "carrot", ], # ul {li, li}
+		],
+		[ "animal", # dt
+			[ "cat", # dt
+				[ "lion", "leopard", ], # ul {li, li}
+			],
+		],
+		"soup", # ul {li}
+		$xml->create_element( "p" ), # <p> is appended
+	]);
+	
+	<dl>
+		<dt>fruit</dt>
+		<dd>
+			<ul>
+				<li>apple</li>
+				<li>orange</li>
+			</ul>
+		</dd>
+		<dt>vegetable</dt>
+		<dd>
+			<ul>
+				<li>potato</li>
+				<li>carrot</li>
+			</ul>
+		</dd>
+		<dt>animal</dt>
+		<dd>
+			<dl>
+				<dt>cat</dt>
+				<dd>
+					<ul>
+						<li>lion</li>
+						<li>leopard</li>
+					</ul>
+				</dd>
+			</dl>
+		</dd>
+	</dl>
+	<ul>
+		<li>soup</li>
+	</ul>
+	<p />
+
 =head1 DESCRIPTION
 
 The XHTML object facilitates the creation of XHTML objects.
@@ -793,6 +844,66 @@ sub tabs
 			$inner_panel->appendChild( $contents->[$_] );
 		}
 	}
+
+	return $frag;
+}
+
+=item $node = $xhtml->tree( $root [, OPTIONS ] )
+ 
+Render a tree using a combination of definition lists (DLs) and unordered lists (ULs).
+
+Options:
+
+	render_li - custom render method for leaf nodes
+	render_dt - custom render method for root elements
+
+=cut
+
+sub tree
+{
+	my( $self, $root, %opts ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+
+	$opts{render_dt} ||= sub { $xml->create_text_node( $_[0] ) };
+	$opts{render_li} ||= sub { $xml->create_text_node( $_[0] ) };
+
+	my $frag = $xml->create_document_fragment;
+	return $frag if !defined $root;
+
+	my $dl = $frag->appendChild( $xml->create_element( "dl" ) );
+	my $ul = $frag->appendChild( $xml->create_element( "ul" ) );
+
+	foreach my $node (@$root)
+	{
+		if( ref($node) eq "ARRAY" )
+		{
+			my( $key, $children, %nopts ) = @$node;
+
+			my $dt = $dl->appendChild( $xml->create_element( "dt",
+				%{$nopts{dt}||{}},
+			) );
+			$dt->appendChild( $opts{render_dt}( $key ) );
+			my $dd = $dl->appendChild( $xml->create_element( "dd",
+				%{$nopts{dd}||{ style => "display: none" }},
+			) );
+			$dd->appendChild( $self->tree( $children, %opts ) );
+		}
+		elsif( UNIVERSAL::can( $node, "hasChildNodes" ) )
+		{
+			$frag->appendChild( $node );
+		}
+		else
+		{
+			my $li = $ul->appendChild( $xml->create_element( "li" ) );
+			$li->appendChild( $opts{render_li}( $node ) );
+		}
+	}
+
+	# clean-up empty uls, dls
+	$xml->dispose( $frag->removeChild( $ul ) ) if !$ul->hasChildNodes;
+	$xml->dispose( $frag->removeChild( $dl ) ) if !$dl->hasChildNodes;
 
 	return $frag;
 }

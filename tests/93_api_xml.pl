@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 16;
+use Test::More tests => 17;
 
 use strict;
 use warnings;
@@ -71,3 +71,23 @@ ok( $clone->hasChildNodes, "deep clone clones child nodes" );
 
 $clone = $xml->clone_node( $node );
 ok( !$clone->hasChildNodes, "shallow clone doesn't clone children" );
+
+$node = eval { $xhtml->tree([ # dl
+	[ "fruit", # dt
+		[ "apple", "orange", ], # ul {li, li}
+	],
+	[ "vegetable", # dt
+		[ "potato", "carrot", ], # ul {li, li}
+		],
+	[ "animal", # dt
+		[ # dl
+			[ "cat", # dt
+				[ "lion", "leopard", ], # ul {li, li}
+			],
+		],
+	],
+	"soup", # ul {li}
+	$xml->create_element( "p" ), # <p> is appended
+]) };
+
+ok( defined $node && $node->toString =~ /leopard/, "XHTML::tree" );
