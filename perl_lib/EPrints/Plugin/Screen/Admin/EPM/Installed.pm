@@ -28,7 +28,23 @@ sub new
 	return $self;
 }
 
-sub can_be_viewed { shift->EPrints::Plugin::Screen::Admin::EPM::can_be_viewed( @_ ) }
+sub can_be_viewed
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+
+	my $has_epms = 0;
+	local $SIG{__DIE__};
+	eval { $repo->dataset( "epm" )->dataobj_class->map( $repo, sub {
+		$has_epms = 1;
+		die;
+	}) };
+
+	return
+		$has_epms &&
+		$self->EPrints::Plugin::Screen::Admin::EPM::can_be_viewed();
+}
 sub allow_configure { shift->can_be_viewed( @_ ) }
 sub allow_enable { shift->can_be_viewed( @_ ) }
 sub allow_disable { shift->can_be_viewed( @_ ) }
