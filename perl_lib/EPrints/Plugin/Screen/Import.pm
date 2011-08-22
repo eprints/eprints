@@ -126,6 +126,7 @@ sub action_test_upload
 	my ( $self ) = @_;
 
 	my $tmpfile = $self->{repository}->get_query->upload( "file" );
+	$tmpfile = *$tmpfile; # CGI file handles aren't proper handles
 	return if !defined $tmpfile;
 
 	my $list = $self->run_import( 1, 0, $tmpfile ); # dry run with messages
@@ -153,6 +154,7 @@ sub action_import_upload
 	my( $self ) = @_;
 
 	my $tmpfile = $self->{repository}->get_query->upload( "file" );
+	$tmpfile = *$tmpfile; # CGI file handles aren't proper handles
 	return if !defined $tmpfile;
 
 	my $list = $self->run_import( 0, 0, $tmpfile ); # real run with messages
