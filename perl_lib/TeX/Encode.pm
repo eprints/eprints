@@ -196,7 +196,7 @@ sub _decode_mathmode
 	
 		/\G(\\.)/gc and ($str .= $1, next);
 		/\G\$/gc and last;
-		/\G($TeX::Encode::charmap::MATH_CHARS_RE)/ and ($str .= $TeX::Encode::charmap::MATH_CHARS{$1}, next);
+		/\G($TeX::Encode::charmap::MATH_CHARS_RE)/gc and ($str .= $TeX::Encode::charmap::MATH_CHARS{$1}, next);
 		/\G([^\\\$]+)/gc and ($str .= $1, next);
 
 		Carp::confess "Shouldn't happen";
