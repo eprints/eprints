@@ -133,13 +133,9 @@ sub _epdata_to_json
 			return "null"; # part of a compound field
 		}
 	
-		$epdata =~ s/([\r\n])/ /g;
-		$epdata =~ s/ +/ /g;
-		$epdata =~ s/\s*$//;
-	
-		if( $epdata =~ /^[-+]?[0-9]*\.?[0-9]+$/ )
+		if( $epdata =~ /^-?[0-9]*\.?[0-9]+(?:e[-+]?[0-9]+)?$/i )
 		{
-			return $pre_pad . $epdata;
+			return $pre_pad . ($epdata + 0);
 		}
 		else
 		{
