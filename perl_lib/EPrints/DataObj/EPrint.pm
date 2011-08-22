@@ -961,14 +961,14 @@ sub commit
 	my( $self, $force ) = @_;
 
 	# recalculate issues number
-	if( $self->{changed}->{item_issues} )
+	if( exists $self->{changed}->{item_issues_status} )
 	{
-		my $issues = $self->value( "item_issues" ) || [];
+		my $issues_status = $self->value( "item_issues_status" ) || [];
 		my $c = 0;
-		foreach my $issue ( @{$issues} )
+		foreach my $issue_status ( @{$issues_status} )
 		{
-			$c+=1 if( $issue->{status} eq "discovered" );
-			$c+=1 if( $issue->{status} eq "reported" );
+			$c+=1 if( $issue_status eq "discovered" );
+			$c+=1 if( $issue_status eq "reported" );
 		}
 		$self->set_value( "item_issues_count", $c );
 	}

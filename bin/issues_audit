@@ -16,7 +16,7 @@ B<issues_audit> - Update the issues field of all eprints.
 
 =head1 SYNOPSIS
 
-B<isseus_audit> I<repository_id> [B<options>] 
+B<issues_audit> I<repository_id> [B<options>] [eprint ids]
 
 =head1 DESCRIPTION
 
@@ -99,7 +99,7 @@ GetOptions(
 EPrints::Utils::cmd_version( "send_alerts" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
-pod2usage( 2 ) if( scalar @ARGV != 1 ); 
+pod2usage( 2 ) if( @ARGV < 1 ); 
 
 my $noise = 1;
 $noise = 0 if( $quiet );
@@ -108,7 +108,7 @@ $noise = 1+$verbose if( $verbose );
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;
 
-my $repoid = $ARGV[0];
+my $repoid = shift(@ARGV);
 my $session = new EPrints::Session( 1 , $repoid , $noise );
 if( !defined $session )
 {
@@ -141,13 +141,23 @@ else
 }
 
 my $ds = $session->get_archive()->get_dataset( 'eprint' );
-my $searchexp = new EPrints::SearchExpression(
-       	session=>$session,
-       	allow_blank => 1,
-       	dataset=>$ds );
-$searchexp->add_field( $ds->get_field( "eprint_status" ), 'archive buffer', 'EQ','ANY' );
-my $list = $searchexp->perform_search;
-
+my $list;
+if( @ARGV )
+{
+	$list = EPrints::List->new(
+		session => $session,
+		dataset => $ds,
+		ids => \@ARGV,
+	);
+}
+else
+{
+	$list = $ds->search(
+		filters => [
+			{ meta_fields => [qw( eprint_status )], value => "archive buffer",
+			match => "EQ", merge => "ANY", }
+		]);
+}
 
 # Run all available Issues plugins
 my @issues_plugins = $session->get_plugins(

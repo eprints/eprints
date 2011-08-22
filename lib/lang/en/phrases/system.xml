@@ -3863,7 +3863,8 @@ PY = 2006 and OG = (Cambridge)<br />
 	<epp:phrase id="Plugin/Import/PDF:action_bibliography" ref="Plugin/Import/OpenXML:action_bibliography"/>
 	<epp:phrase id="Plugin/Import/PDF:action_metadata" ref="Plugin/Import/OpenXML:action_metadata"/>
 	<epp:phrase id="Plugin/Import/OpenXML:zip_failed">Failed to process file - perhaps it isn't an OpenXML document?</epp:phrase>
-	<epp:phrase id="Plugin/Screen/Admin/Config:add_file">Create file</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Config:add_file">File</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Config:add_directory">Directory</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Config:bad_file">Missing or badly named file name (can only contain [A-Za-z0-9_.]).</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Document/Files:help">Add or remove files or change the main file for this document.</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Document/Files:update">Apply</epp:phrase>
