@@ -110,6 +110,7 @@ $DEFAULT{convert_formats} = {qw(
 	jpeg image/jpeg
 	jpe image/jpeg
 	jpg image/jpeg
+	jp2	image/jp2
 	png image/png
 	tiff image/tiff
 	tif image/tiff
