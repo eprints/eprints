@@ -2,6 +2,8 @@
 
 EPrints::Plugin::Event
 
+=for Pod2Wiki
+
 =head1 DESCRIPTION
 
 Event plugins are called by the indexer to actually do work. L<EPrints::DataObj::EventQueue> objects are stored in the database and executed once their start_time is due. The object contains the plugin ID, action and optionally parameters.
