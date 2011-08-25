@@ -121,19 +121,19 @@ sub render_value
 	{
 		foreach my $row ( @{$value} )
 		{
-			$table->appendChild( $self->render_single_value_row( $session, $row, $object ) );
+			$table->appendChild( $self->render_single_value_row( $session, $row, $alllangs, $nolink, $object ) );
 		}
 	}
 	else
 	{
-		$table->appendChild( $self->render_single_value_row( $session, $value, $object ) );
+		$table->appendChild( $self->render_single_value_row( $session, $value, $alllangs, $nolink, $object ) );
 	}
 	return $table;
 }
 
 sub render_single_value_row
 {
-	my( $self, $session, $value, $object ) = @_;
+	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
 
 	my $tr = $session->make_element( "tr" );
 
@@ -143,9 +143,11 @@ sub render_single_value_row
 		my $td = $session->make_element( "td" );
 		$tr->appendChild( $td );
 		$td->appendChild( 
-			$field->render_single_value( 
+			$field->render_value_no_multiple( 
 				$session, 
 				$value->{$alias}, 
+				$alllangs,
+				$nolink,
 				$object ) );
 	}
 
