@@ -669,7 +669,7 @@ sub run_index
 		foreach my $repo (@repos)
 		{
 			$repo->cleanup;
-			$repo->database->connect();
+			$repo->{database} = EPrints::Database->new( $repo );
 		}
 	}
 
