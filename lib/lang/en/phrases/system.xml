@@ -1623,6 +1623,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 
 <!-- Search::Field (Used to be SearchField)-->
 
+	<epp:phrase id="lib/searchfield:help_subobject" ref="lib/searchfield:help_text"></epp:phrase>
     <epp:phrase id="lib/searchfield:year_err">A year search must be specified as a single year, e.g. `2000', or a range of years, e.g. `1990-2000', `1990-' or `-2000'</epp:phrase>
     <epp:phrase id="lib/searchfield:int_err">A numerical search must be specified as a single integer number, e.g. `23', or a range of numbers, e.g. `9-21', `17-' or `-93'</epp:phrase>
     <epp:phrase id="lib/searchfield:date_err">A date search must be specified as a single date or a range.</epp:phrase>
