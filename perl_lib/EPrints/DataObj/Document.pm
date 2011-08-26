@@ -1380,25 +1380,70 @@ sub make_indexcodes
 	my $eprint = $self->parent;
 	local $eprint->{under_construction} = 1; # prevent parent commit
 
-	$self->remove_indexcodes();
-	
 	# find a conversion plugin to convert us to indexcodes
 	my $type = "indexcodes";
 	my %types = $self->{session}->plugin( "Convert" )->can_convert( $self, $type );
-	return undef unless exists($types{$type});
+	if( !exists $types{$type} )
+	{
+		$self->remove_indexcodes;
+		return undef;
+	}
 	my $plugin = $types{$type}->{"plugin"};
 
-	# convert us to indexcodes
-	my $doc = $plugin->convert(
-			$eprint,
-			$self,
-			$type
-		);
-	return undef unless defined $doc;
+	my $doc = $self->search_related( "isIndexCodesVersionOf" )->item( 0 );
 
-	# relate the new document to us
-	$doc->add_relation( $self, "isIndexCodesVersionOf" );
-	$doc->commit();
+	# update the indexcodes file
+	if( defined $doc )
+	{
+		$doc->set_parent( $eprint );
+
+		my $dir = File::Temp->newdir;
+		my @files = $plugin->export( $dir, $self, $type );
+
+		if( !@files )
+		{
+			$self->remove_indexcodes;
+			return;
+		}
+
+		open(my $fh, "<", "$dir/$files[0]" );
+		my $file = $doc->stored_file( "indexcodes.txt" );
+		if( !defined $file )
+		{
+			$doc->add_stored_file( "indexcodes.txt", $fh, -s $fh );
+		}
+		else
+		{
+			$file->set_file( sub {
+				return "" if !sysread($fh, my $buffer, 4092);
+				return $buffer;
+			}, -s $fh);
+		}
+		close($fh);
+	}
+	# convert us to indexcodes
+	else
+	{
+		my $epdata = {
+			relation => [{
+				type => EPrints::Utils::make_relation( "isVersionOf" ),
+				uri => $self->internal_uri(),
+			},{
+				type => EPrints::Utils::make_relation( "isVolatileVersionOf" ),
+				uri => $self->internal_uri(),
+			},{
+				type => EPrints::Utils::make_relation( "isIndexCodesVersionOf" ),
+				uri => $self->internal_uri(),
+			}],
+		};
+
+		$doc = $plugin->convert(
+				$eprint,
+				$self,
+				$type,
+				$epdata
+			);
+	}
 
 	return $doc;
 }

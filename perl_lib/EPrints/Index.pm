@@ -46,7 +46,9 @@ Remove all indexes to the field in the specified object.
 
 sub remove
 {
-	my( $session, $dataset, $objectid, $fieldid ) = @_;
+	my( $session, $dataset, $objectid, $fieldids ) = @_;
+
+	$fieldids = [$fieldids] if ref($fieldids) ne "ARRAY";
 
 	my $rv = 1;
 
@@ -60,14 +62,24 @@ sub remove
 	my $keyfield = $dataset->get_key_field();
 
 	# remove from rindex table
-	$db->delete_from($rindextable,
-		[ $keyfield->get_sql_name(), "field" ],
-		[ $objectid, $fieldid ] );
+	$db->do(
+		"DELETE FROM " . 
+			$db->quote_identifier( $rindextable ) . 
+		" WHERE " . 
+			$db->quote_identifier( $keyfield->get_sql_name )."=".$db->quote_value( $objectid ) . 
+			" AND " . 
+			$db->quote_identifier( "field" )." IN (".join(',', map { $db->quote_value( $_ ) } @$fieldids).")"
+	);
 
 	# remove from grep table
-	$db->delete_from($grepindextable,
-		[ $keyfield->get_sql_name, "fieldname" ],
-		[ $objectid, $fieldid ] );
+	$db->do(
+		"DELETE FROM " . 
+			$db->quote_identifier( $grepindextable ) . 
+		" WHERE " . 
+			$db->quote_identifier( $keyfield->get_sql_name )."=".$db->quote_value( $objectid ) . 
+			" AND " . 
+			$db->quote_identifier( "fieldname" )." IN (".join(',', map { $db->quote_value( $_ ) } @$fieldids).")"
+	);
 
 	return $rv;
 }

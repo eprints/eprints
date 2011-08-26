@@ -2878,19 +2878,15 @@ sub upgrade_3_2_4_to_3_3_0
 	#  - metafield
 	update_datasets( $repo, $db );
 	update_counters( $repo, $db );
-
-	# rename _fulltext_ indexed values to documents
-	my $Q_table = $db->quote_identifier( "eprint__rindex" );
-	my $Q_field = $db->quote_identifier( "field" );
-	$db->do( "UPDATE $Q_table SET $Q_field='documents' WHERE $Q_field='_fulltext_'" );
-
 }
 
 sub upgrade_3_3_0_to_3_3_1
 {
 	my( $repo, $db ) = @_;
 
+	my @local = ($force, $noise);
 	$force = 1; # don't YES/NO on reindex
+	$noise = 2; # show progress
 	reindex( $repo, "subject" );
 	if( eval "require Search::Xapian; 1" )
 	{
@@ -2900,6 +2896,14 @@ sub upgrade_3_3_0_to_3_3_1
 			reindex( $repo, $_ );
 		}
 	}
+	else
+	{
+		# rename _fulltext_ indexed values to documents
+		my $Q_table = $db->quote_identifier( "eprint__rindex" );
+		my $Q_field = $db->quote_identifier( "field" );
+		$db->do( "UPDATE $Q_table SET $Q_field='documents' WHERE $Q_field='_fulltext_'" );
+	}
+	($force, $noise) = @local;
 
 	return if !$repo->database->isa( "EPrints::Database::mysql" );
 

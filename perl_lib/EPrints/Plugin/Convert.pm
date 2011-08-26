@@ -175,15 +175,17 @@ sub export
 
 =pod
 
-=item $doc = $p->convert( $eprint, $doc, $type )
+=item $doc = $p->convert( $eprint, $doc, $type [, $epdata ] )
 
 Convert $doc to format $type (as returned by can_convert). Stores the resulting $doc in $eprint, and returns the new document or undef on failure.
+
+Optionally initialise the new document with $epdata. Specifying 'files' in $epdata will cause the converted file content to be discarded.
 
 =cut
 
 sub convert
 {
-	my ($plugin, $eprint, $doc, $type) = @_;
+	my ($plugin, $eprint, $doc, $type, $epdata) = @_;
 
 	my $dir = File::Temp->newdir( "ep-convertXXXXX", TMPDIR => 1 );
 
@@ -232,7 +234,9 @@ sub convert
 		},{
 			type => EPrints::Utils::make_relation( "isVolatileVersionOf" ),
 			uri => $doc->internal_uri(),
-		}] } );
+		}],
+		%{$epdata||{}},
+	} );
 
 	for(@handles)
 	{
