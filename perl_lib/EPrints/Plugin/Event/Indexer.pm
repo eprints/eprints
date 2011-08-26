@@ -69,9 +69,12 @@ sub _index_fields
 	);
 	return if defined $rc && $rc eq EPrints::Const::EP_TRIGGER_DONE;
 
+	EPrints::Index::remove( $session, $dataset, $dataobj->get_id,
+		[map { $_->name } @$fields]
+	);
+
 	foreach my $field (@$fields)
 	{
-		EPrints::Index::remove( $session, $dataset, $dataobj->get_id, $field->get_name );
 		next unless( $field->get_property( "text_index" ) );
 
 		my $value = $field->get_value( $dataobj );

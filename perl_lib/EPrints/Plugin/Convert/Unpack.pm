@@ -41,7 +41,10 @@ sub new
 
 sub can_convert
 {
-	my ($plugin, $doc) = @_;
+	my ( $plugin, $doc, $type ) = @_;
+
+	# we can't convert to a given 'target' type
+	return () if defined $type;
 
 	my $mimetype = $doc->mime_type();
 
