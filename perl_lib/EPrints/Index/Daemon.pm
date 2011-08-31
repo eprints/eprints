@@ -624,8 +624,8 @@ sub run_index
 		{
 			last MAINLOOP if $self->interupted;
 
-			# reload the config if requested to
-			$repo->check_last_changed;
+			# (re)init the repository object e.g. reconnect timed-out DBI
+			$repo->init_from_indexer( $self );
 
 			# give the next code $timeout secs to complete
 			eval {
@@ -661,7 +661,7 @@ sub run_index
 			sleep 5;
 		}
 
-		# re-connect the databases and clear temporary values
+		# clear temporary values, database connection, language
 		# if we lose connection while sleeping we can lose any connection
 		# settings on an auto-reconnect
 		# some session variables may need to clear e.g. xapian may not write
@@ -669,7 +669,6 @@ sub run_index
 		foreach my $repo (@repos)
 		{
 			$repo->cleanup;
-			$repo->{database} = EPrints::Database->new( $repo );
 		}
 	}
 

@@ -1,5 +1,7 @@
 if( EPrints::Utils::require_if_exists( "Search::Xapian" ) )
 {
+my $FLUSH_LIMIT = 1000;
+
 $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 	my( %params ) = @_;
 
@@ -11,7 +13,7 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 	# if plugin disabled, don't continue
 	return if !defined $repo->plugin( "Search::Xapian" );
 
-	if( !defined $repo->{_xapian} )
+	if( !defined $repo->{_xapian} || $repo->{_xapian_limit}++ > $FLUSH_LIMIT )
 	{
 		my $path = $repo->config( "variables_path" ) . "/xapian";
 		if( !-d $path )
@@ -23,6 +25,7 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 			Search::Xapian::DB_CREATE_OR_OPEN()
 		) };
 		$repo->log( $@ ), return if $@;
+		$repo->{_xapian_limit} = 0;
 	}
 	my $db = $repo->{_xapian};
 

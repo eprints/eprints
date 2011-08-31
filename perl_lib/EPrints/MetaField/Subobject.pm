@@ -253,7 +253,7 @@ sub get_index_codes_basic
 	my $main_file = $doc->get_stored_file( $doc->get_main );
 	return( [], [], [] ) unless defined $main_file;
 
-	my $indexcodes_doc = $doc->search_related( "isIndexCodesVersion" )->item( 0 );
+	my $indexcodes_doc = $doc->search_related( "isIndexCodesVersionOf" )->item( 0 );
 	my $indexcodes_file;
 	if( defined $indexcodes_doc )
 	{
