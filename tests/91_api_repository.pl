@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 19;
+use Test::More tests => 20;
 
 use strict;
 use warnings;
@@ -13,6 +13,8 @@ my $ep = EPrints->new();
 isa_ok( $ep, "EPrints", "EPrints->new()" );
 my $repo = $ep->repository( $repoid );
 isa_ok( $repo, "EPrints::Repository", "Get a repository object ($repoid)" );
+
+is( $repo->id, $repoid, "\$repo->id" );
 
 # Real tests below:
 
