@@ -5432,6 +5432,28 @@ sub check_developer_mode
 	close CHANGEDFILE;
 }
 
+=item $repo->init_from_indexer( $daemon )
+
+(Re)initialise the repository object for use by the indexer.
+
+Calls L</check_last_changed>.
+
+=cut
+
+sub init_from_indexer
+{
+	my( $self ) = @_;
+
+	# see if we need to reload our configuration
+	$self->check_last_changed;
+
+	# connect to the database
+	$self->{database} = EPrints::Database->new( $self );
+
+	# set the language to default
+	$self->change_lang();
+}
+
 sub init_from_request
 {
 	my( $self, $request ) = @_;
