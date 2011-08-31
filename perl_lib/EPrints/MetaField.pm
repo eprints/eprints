@@ -882,9 +882,16 @@ sub render_value_withopts
 
 	if( !EPrints::Utils::is_set( $value ) )
 	{
-		return $session->html_phrase( 
-			"lib/metafield:unspecified",
-			fieldname => $self->render_name( $session ) );
+		if( $self->{render_quiet} )
+		{
+			return $session->make_doc_fragment;
+		}
+		else
+		{
+			return $session->html_phrase( 
+				"lib/metafield:unspecified",
+				fieldname => $self->render_name( $session ) );
+		}
 	}
 
 	if( $self->{render_magicstop} )
