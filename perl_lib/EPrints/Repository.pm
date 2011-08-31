@@ -1957,18 +1957,15 @@ sub parse_xml
 ######################################################################
 =pod
 
-=begin InternalDoc
-
-=item $id = $repository->get_id 
+=item $id = $repository->id 
 
 Returns the id string of this repository.
-
-=end InternalDoc
 
 =cut
 ######################################################################
 
-sub get_id 
+*get_id = \&id;
+sub id 
 {
 	my( $self ) = @_;
 
@@ -1979,15 +1976,11 @@ sub get_id
 ######################################################################
 =pod
 
-=begin InternalDoc
-
 =item $returncode = $repository->exec( $cmd_id, %map )
 
 Executes a system command. $cmd_id is the id of the command as
 set in SystemSettings and %map contains a list of things to "fill in
 the blanks" in the invocation line in SystemSettings. 
-
-=end InternalDoc
 
 =cut
 ######################################################################
