@@ -752,30 +752,33 @@ sub render_value_actual
 	my $first = 1;
 	my $html = $session->make_doc_fragment();
 	
-	for(my $i=0; $i<scalar(@$value); ++$i )
+	my @value = @{$value};
+	if( $self->{render_quiet} )
 	{
-		my $sv = $value->[$i];
-		unless( $i == 0 )
+		@value = grep { EPrints::Utils::is_set( $_ ) } @value;
+	}
+
+	foreach my $i (0..$#value)
+	{
+		if( $i > 0 )
 		{
-			my $phrase = "lib/metafield:join_".$self->get_type;
-			my $basephrase = $phrase;
-			if( $i == 1 && $session->get_lang->has_phrase( 
-						$basephrase.".first", $session ) ) 
+			my $phraseid = "lib/metafield:join_".$self->get_type;
+			if( $i == $#value && $session->get_lang->has_phrase( 
+						"$phraseid.last", $session ) ) 
 			{ 
-				$phrase = $basephrase.".first";
+				$phraseid .= ".last";
 			}
-			if( $i == scalar(@$value)-1 && 
-					$session->get_lang->has_phrase( 
-						$basephrase.".last", $session ) ) 
+			elsif( $i == 1 && $session->get_lang->has_phrase( 
+						"$phraseid.first", $session ) ) 
 			{ 
-				$phrase = $basephrase.".last";
+				$phraseid .= ".first";
 			}
-			$html->appendChild( $session->html_phrase( $phrase ) );
+			$html->appendChild( $session->html_phrase( $phraseid ) );
 		}
 		$html->appendChild( 
 			$self->render_value_no_multiple( 
 				$session, 
-				$sv, 
+				$value[$i], 
 				$alllangs, 
 				$nolink,
 				$object ) );
