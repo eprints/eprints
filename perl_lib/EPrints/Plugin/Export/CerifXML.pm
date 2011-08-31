@@ -110,6 +110,24 @@ If eprint.type is 'book' or ResPubl is a journal/publication link:
 	cfLangCode - 'en'
 	cfTrans - '0'
 
+=head2 cfProj_OrgUnit-LINK.xml
+
+	cfProjId - project.projectid
+	cfOrgUnitId - org_unit.org_unitid
+	cfClassId - 'Funder'
+	cfClassSchemeId - 'cfOrganisationUnit-Project'
+	cfFraction -
+
+=head2 cfOrgUnit-CORE.xml
+
+	cfOrgUnitId - org_unit.org_unitid
+	cfAcro - org_unit.acronym
+
+=head2 cfOrgUnitName-LANG.xml
+
+	cfOrgUnitId - org_unit.org_unitid
+	cfName - org_unit.title
+
 =head1 METHODS
 
 =over 4
@@ -141,6 +159,8 @@ $GRAMMAR{eprint} = [
 	cfURI => { value => sub { $_[0]->uri } },
 ];
 $GRAMMAR{project} = [
+];
+$GRAMMAR{org_unit} = [
 ];
 
 our %cfPublicationTypes = (
@@ -434,6 +454,74 @@ sub output_eprint
 	}
 }
 
+sub output_org_unit
+{
+	my( $self, $dataobj, $value, %opts ) = @_;
+
+	my $xml = $self->{session}->xml;
+	my $field = $opts{field};
+
+	my $id;
+	my $title;
+	my $org_unit;
+	if( $field->isa( "EPrints::MetaField::Dataobjref" ) )
+	{
+		$id = $value->{id};
+		$title = $value->{title};
+		$org_unit = $field->dataobj( $value );
+	}
+	else
+	{
+		$title = $value;
+	}
+
+	my $org_unitid;
+	if( defined $org_unit )
+	{
+		$org_unitid = $org_unit->uri;
+		if( $org_unit->exists_and_set( "title" ) )
+		{
+			$title = $org_unit->value( "title" );
+		}
+	}
+	else
+	{
+		$org_unitid = join('_', $dataobj->dataset->base_id, $dataobj->id, $title);
+		utf8::encode($org_unitid);
+		$org_unitid = Digest::MD5::md5_hex( $org_unitid );
+	}
+
+	my $id_attr = $xml->create_element( "cfProjId" );
+	$id_attr->appendChild( $xml->create_text_node( $org_unitid ) );
+
+	return $id_attr if $self->{org_units}->{$org_unitid};
+	$self->{org_units}->{$org_unitid} = 1;
+
+	my $entity = $xml->create_element( "cfOrgUnit" );
+	$entity->appendChild( $id_attr );
+
+	if( defined $org_unit )
+	{
+		if( $org_unit->exists_and_set( "acronym" ) )
+		{
+			$entity->appendChild( $xml->create_element( "cfAcro" ) )
+				->appendChild( $xml->create_text_node( $org_unit->value( "acronym" ) ) );
+		}
+	}
+
+	my $fh = $self->open_cerif_file( "cfOrgUnit-CORE" );
+	print $fh $xml->to_string( $entity, indent => 1 );
+	$xml->dispose( $entity );
+
+	$title = EPrints::Utils::is_set( $title ) ? $title : $org_unit->value( "title" );
+	$self->output_lang_attr( "cfOrgUnitName",
+		from => $id_attr,
+		name => "cfName",
+		value => $title );
+
+	return $id_attr;
+}
+
 sub output_project
 {
 	my( $self, $dataobj, $value, %opts ) = @_;
@@ -515,6 +603,21 @@ sub output_project
 				from => $id_attr,
 				name => "cfKeyw",
 				value => $project->value( "keywords" ) );
+		}
+		if( $project->exists_and_set( "org_units" ) )
+		{
+		foreach my $org_unit (@{$project->value( "org_units" )})
+		{
+			my $fid_attr = $self->output_org_unit( $project, $org_unit, %opts,
+					field => $project->dataset->field( "org_units" ),
+				);
+			$self->output_relation( "cfProj_OrgUnit",
+				from => $fid_attr,
+				to => $id_attr,
+				class => "Funder",
+				scheme => "cfOrganisationUnit-Project"
+			);
+		}
 		}
 	}
 
