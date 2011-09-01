@@ -117,7 +117,7 @@ sub _get_property_fields
 		{ name=>"datasetid", type=>"text", input_cols=>10, },
 
 		{ name=>"set_name", type=>"text", input_cols=>10, },
-		{ name=>"options", type=>"text", fromform=>\&options_fromform, toform=>\&options_toform, },
+		{ name=>"options", type=>"text", },
 
 		{ name=>"render_order", type=>"set", input_rows=>1,
 			options => [qw( fg gf )]
@@ -169,7 +169,7 @@ sub options_toform
 {
 	my( $value ) = @_;
 
-	return join ',', @{$value||[]};
+	return join ',', @{ref($value) eq "ARRAY" ? $value : []};
 }
 
 sub boolean_fromform
@@ -205,6 +205,7 @@ sub _get_field_types
 
 	return qw(
 			arclanguage
+			bigint
 			boolean
 			compound
 			counter
@@ -322,6 +323,11 @@ sub new_from_field
 		next if $_->is_virtual;
 		next if !exists $field->{$_->name};
 		$epdata->{$_->name} = EPrints::Utils::clone( $field->{$_->name} );
+	}
+
+	if( $epdata->{type} eq "set" )
+	{
+		$epdata->{options} = join ',', @{$epdata->{options}||[]};
 	}
 
 	$epdata->{mfdatasetid} = $field->dataset->id;
@@ -551,9 +557,9 @@ sub add_to_phrases
 				$phrases{$langid}->{$phraseid} = $phrase;
 			}
 		}
-		if( $type eq "set" )
+		if( $type eq "set" && defined $field_data->{options} )
 		{
-			for(@{$field_data->{"options"}||[]})
+			for(split /\s*,\s*/, $field_data->{options})
 			{
 				my $phraseid = join('_', $dataset->base_id, "fieldopt", $field_name, $_ );
 				my $phrase = _opt_to_phrase($_);
@@ -951,9 +957,16 @@ EPrints->abort( $self ) if !$dataset;
 	}
 
 	# Fix for document.main (options => [])
-	if( $data->{type} eq "set" && !defined $data->{options} )
+	if( $data->{type} eq "set" )
 	{
-		$data->{options} = [];
+		if( !defined $data->{options} )
+		{
+			$data->{options} = [];
+		}
+		else
+		{
+			$data->{options} = [split /\s*,\s*/, $data->{options}];
+		}
 	}
 
 	if( defined $prefix )
