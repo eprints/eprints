@@ -77,8 +77,11 @@ sub convert_dataobj
 {
 	my( $plugin, $eprint ) = @_;
 
+	my $dataset = $eprint->{dataset};
+
 	my @dcdata = ();
-	push @dcdata, [ "title", $eprint->get_value( "title" ) ] if( $eprint->exists_and_set( "title" ) ); 
+
+	push @dcdata, $plugin->simple_value( $eprint, title => "title" );
 
 	# grab the creators without the ID parts so if the site admin
 	# sets or unsets creators to having and ID part it will make
@@ -109,8 +112,8 @@ sub convert_dataobj
 		}
 	}
 
-	push @dcdata, [ "description", $eprint->get_value( "abstract" ) ] if( $eprint->exists_and_set( "abstract" ) ); 
-	push @dcdata, [ "publisher", $eprint->get_value( "publisher" ) ] if( $eprint->exists_and_set( "publisher" ) ); 
+	push @dcdata, $plugin->simple_value( $eprint, abstract => "description" );
+	push @dcdata, $plugin->simple_value( $eprint, publisher => "publisher" );
 
 	if( $eprint->exists_and_set( "editors_name" ) )
 	{
@@ -160,10 +163,7 @@ sub convert_dataobj
 	}
 
 	# Most commonly a DOI or journal link
-	if( $eprint->exists_and_set( "official_url" ) )
-	{
-		push @dcdata, [ "relation", $eprint->get_value( "official_url" ) ];
-	}
+	push @dcdata, $plugin->simple_value( $eprint, official_url => "relation" );
 	
 	# The citation for this eprint
 	push @dcdata, [ "identifier",
@@ -183,6 +183,43 @@ sub convert_dataobj
 	return \@dcdata;
 }
 
+# map eprint values directly into DC equivalents
+sub simple_value
+{
+	my( $self, $eprint, $fieldid, $term ) = @_;
+
+	my @dcdata;
+
+	return () if !$eprint->exists_and_set( $fieldid );
+
+	my $dataset = $eprint->dataset;
+	my $field = $dataset->field( $fieldid );
+
+	if( $field->isa( "EPrints::MetaField::Multilang" ) )
+	{
+		my( $values, $langs ) =
+			map { $_->get_value( $eprint ) }
+			@{$field->property( "fields_cache" )};
+		$values = [$values] if ref($values) ne "ARRAY";
+		$langs = [$langs] if ref($values) ne "ARRAY";
+		foreach my $i (0..$#$values)
+		{
+			push @dcdata, [ $term, $values->[$i], { lang => $langs->[$i] } ];
+		}
+	}
+	elsif( $field->property( "multiple" ) )
+	{
+		push @dcdata, map { 
+			[ $term, $_ ]
+		} @{ $field->get_value( $eprint ) };
+	}
+	else
+	{
+		push @dcdata, [ $term, $field->get_value( $eprint ) ];
+	}
+
+	return @dcdata;
+}
 
 1;
 
