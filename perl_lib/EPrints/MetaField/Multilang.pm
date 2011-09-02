@@ -49,9 +49,8 @@ sub get_search_conditions_not_ex
 	my( $self, $session, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 	
-	my $f = $self->get_property( "fields_cache" );
-	my $first_name = $f->[0]->{name};
-	my $field = $dataset->get_field( $first_name );
+	my $field = $self->property( "fields_cache" )->[0];
+
 	return $field->get_search_conditions_not_ex( 
 		$session, $dataset,$search_value,$match,$merge,$search_mode );
 }
@@ -132,6 +131,7 @@ sub get_property_defaults
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{input_ordered} = 0;
 	$defaults{input_boxes} = 1;
+	$defaults{match} = "IN";
 	return %defaults;
 }
 
