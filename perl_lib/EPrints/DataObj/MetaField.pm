@@ -327,7 +327,9 @@ sub new_from_field
 
 	if( $epdata->{type} eq "set" )
 	{
-		$epdata->{options} = join ',', @{$epdata->{options}||[]};
+		$epdata->{options} = join ',', @{
+			ref($epdata->{options}) eq 'ARRAY' ? $epdata->{options} : []
+		};
 	}
 
 	$epdata->{mfdatasetid} = $field->dataset->id;
