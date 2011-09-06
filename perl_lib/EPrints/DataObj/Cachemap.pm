@@ -144,7 +144,7 @@ sub cleanup
 	# cleanup expired cachemaps
 	my $list = $dataset->search(
 		filters => [
-			{ meta_fields => [qw( created )], value => "-$expired_time" },
+			{ meta_fields => [qw( created )], value => "..$expired_time" },
 		] );
 	$list->map( sub {
 		my( undef, undef, $cachemap ) = @_;
