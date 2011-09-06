@@ -1055,15 +1055,34 @@ sub cmd_version
 {
 	my( $progname ) = @_;
 
-	my $version_id = $EPrints::SystemSettings::conf->{version_id};
-	my $version = $EPrints::SystemSettings::conf->{version};
-	
-	print <<END;
-$progname (GNU EPrints $version_id)
-$version
+	$progname = $0;
+	$progname =~ s/^.*\///;
 
-__LICENSE__
-END
+	print $progname." ".EPrints->human_version." [Schema $EPrints::Database::DBVersion]\n\n";
+
+	my $license_bin = $EPrints::SystemSettings::conf->{base_path} . "/bin/epadmin";
+	open(my $fh, "<", $license_bin) or die "Error opening $license_bin: $!";
+	COPYRIGHT: while(<$fh>)
+	{
+		next if $_ !~ /^=for COPYRIGHT BEGIN/;
+		<$fh>;
+		while(<$fh>)
+		{
+			last COPYRIGHT if $_ =~ /^=for COPYRIGHT END/;
+			print $_;
+		}
+	}
+	LICENSE: while(<$fh>)
+	{
+		next if $_ !~ /^=for LICENSE BEGIN/;
+		<$fh>;
+		while(<$fh>)
+		{
+			last LICENSE if $_ =~ /^=for LICENSE END/;
+			print $_;
+		}
+	}
+	close($fh);
 	exit;
 }
 

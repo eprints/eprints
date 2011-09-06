@@ -170,7 +170,7 @@ GetOptions(
 	'arg=s' => \%opt_args,
 	'action=s' => \@actions,
 ) || pod2usage( 2 );
-EPrints::Utils::cmd_version( "export_xml" ) if $version;
+EPrints::Utils::cmd_version() if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
 pod2usage( 2 ) if( scalar @ARGV != 2 && scalar @ARGV !=4 );
