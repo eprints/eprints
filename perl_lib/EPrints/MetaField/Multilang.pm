@@ -35,32 +35,12 @@ BEGIN
 
 use EPrints::MetaField::Compound;
 
-sub new
-{
-	my( $class, %properties ) = @_;
-
-	my $langs = $properties{languages};
-	if( !defined $properties{languages} )
-	{
-		my $repository =
-			$properties{repository} ||
-			$properties{archive} ||
-			$properties{dataset}->get_repository;
-
-		$properties{languages} = $repository->get_conf('languages');
-	}
-
-	my $self = $class->SUPER::new( %properties );
-
-	return $self;
-}
-
 sub extra_subfields
 {
 	my( $self ) = @_;
 
 	return (
-		{ sub_name=>"lang", type=>"langid", options => $self->property( "languages" ) },
+		{ sub_name=>"lang", type=>"namedset", set_name => "languages", input_style => "short", maxlength => 16, },
 	);
 }
 
@@ -69,11 +49,29 @@ sub get_search_conditions_not_ex
 	my( $self, $session, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 	
-	my $f = $self->get_property( "fields_cache" );
-	my $first_name = $f->[0]->{name};
-	my $field = $dataset->get_field( $first_name );
+	my $field = $self->property( "fields_cache" )->[0];
+
 	return $field->get_search_conditions_not_ex( 
 		$session, $dataset,$search_value,$match,$merge,$search_mode );
+}
+
+=item $value = $field->lang_value( $langid, $value )
+
+Returns the most local language value for $langid.
+
+If $langid is undefined uses the current language.
+
+=cut
+
+sub lang_value
+{
+	my( $self, $langid, $value ) = @_;
+
+	$langid = $self->{repository}->get_langid if !defined $langid;
+
+	return $self->{repository}->best_language( $langid, %{
+		$self->value_to_langhash( $value )
+	});
 }
 
 sub render_value
@@ -87,43 +85,44 @@ sub render_value
 	}
 
 	my $f = $self->get_property( "fields_cache" );
-	my $first_name = $f->[0]->{name};
 
-	my $map = $self->value_to_langhash( $value );
+	$value = $self->lang_value( undef, $value )
+		if $self->property( "multiple" );
 
-	my $best = $self->most_local( $session, $map );
-
-	my $field = $object->get_dataset->get_field( $first_name );
-	return $field->render_single_value( $session, $best );
+	if( @$f > 2 ) # value + lang
+	{
+		return $self->render_single_value( $session, $value );
+	}
+	else
+	{
+		$value = $value->{$f->[0]->property( "sub_name" )};
+		return $f->[0]->render_single_value( $session, $value );
+	}
 }
 
 sub value_to_langhash
 {
 	my( $self, $value ) = @_;
 
-	my $f = $self->get_property( "fields_cache" );
-	my $first_name = $f->[0]->{name};
-	my %fieldname_to_alias = $self->get_fieldname_to_alias;
-	my $map = ();
-	foreach my $row ( @{$value} )
-	{
-		my $lang = $row->{lang};
-		$lang = "undef" unless defined $lang;	
-		$map->{$lang} = $row->{$fieldname_to_alias{$first_name}};
-	}
-
-	return $map;
+	no warnings; # suppress undef lang
+	return { map {
+		$_->{lang} => $_
+	} @$value };
 }
 
 sub ordervalue
 {
-	my( $self , $value , $session , $langid, $dataset ) = @_;
+	my( $self, $value, $session, $langid, $dataset ) = @_;
 
-	my $langhash = $self->value_to_langhash( $value );
+	# custom or only one value which we don't do anything special with
+	if( defined $self->{make_value_orderkey} || !$self->property( "multiple" ) )
+	{
+		return $self->SUPER::ordervalue( $value, $session, $langid, $dataset );
+	}
 
-	my $best = $self->most_local( $session, $langhash );
-	
-	return $best;
+	$value = $self->lang_value( $langid, $value );
+
+	return $session->get_database->quote_ordervalue($self, $self->ordervalue_single( $value, $session, $langid, $dataset ));
 }
 
 sub get_property_defaults
@@ -131,8 +130,8 @@ sub get_property_defaults
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{input_ordered} = 0;
-	$defaults{languages} = $EPrints::MetaField::UNDEF;
 	$defaults{input_boxes} = 1;
+	$defaults{match} = "IN";
 	return %defaults;
 }
 

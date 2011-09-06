@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 32;
+use Test::More tests => 33;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -337,6 +337,24 @@ $searchexp->add_field( $sample_doc->dataset->field( "relation" ), "http%3A//epri
 $list = $searchexp->perform_search;
 
 ok($list->count > 0, "compound type field query");
+
+SKIP: {
+	skip "not implemented yet", 1;
+
+	$searchexp = EPrints::Search->new(
+		session => $session,
+		dataset => $dataset,
+		satisfy_all => 0 );
+
+	$searchexp->add_field( $dataset->field( "contributors" ), {
+		type => "http://www.loc.gov/loc.terms/relators/ACT",
+		name => { family => "Léricolais", given => "I." },
+	}, "EX" );
+
+	$list = $searchexp->perform_search;
+
+	ok($list->count > 1, "compound type with name query\n".$searchexp->get_conditions->describe."\n".$searchexp->get_conditions->sql( dataset => $dataset, session => $session ));
+};
 
 $searchexp = EPrints::Search->new(
 	session => $session,

@@ -69,8 +69,18 @@ if( $datasetid =~ /^(advanced)|(simple)$/ )
 }
 elsif( !defined $searchid )
 {
-	$repo->redirect( $repo->config( "http_cgiroot" )."/search/$datasetid/simple$args" );
-	exit;
+	# /cgi/search/quicksearch i.e. repository-specific search spec. that
+	# hopefully doesn't match an existing dataset id
+	if( !defined $repo->dataset( $datasetid ) )
+	{
+		$searchid = $datasetid;
+		$datasetid = "archive";
+	}
+	else
+	{
+		$repo->redirect( $repo->config( "http_cgiroot" )."/search/$datasetid/simple$args" );
+		exit;
+	}
 }
 
 my $dataset = $repo->dataset( $datasetid );

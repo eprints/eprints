@@ -1001,35 +1001,6 @@ sub list_values
 
 =begin InternalDoc
 
-=item $value = $field->most_local( $session, $value )
-
-If this field is a multilang field then return the version of the 
-value most useful for the language of the session. In order of
-preference: The language of the session, the default language for
-the repository, any language at all. If it is not a multilang field
-then just return $value.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub most_local
-{
-	my( $self, $session, $value ) = @_;
-
-	my $bestvalue =  EPrints::Session::best_language( 
-		$session->get_repository, $session->get_langid(), %{$value} );
-	return $bestvalue;
-}
-
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
 =item $value2 = $field->call_property( $property, @args )
 
 Call the method described by $property. Pass it the arguments and
@@ -1932,19 +1903,6 @@ sub ordervalue
 			$session, 
 			$langid,
 			$dataset );
-	}
-
-	my $parent = $self->property( "parent" );
-	if( $self->property( "multiple" ) && defined $parent && $parent->isa( "EPrints::MetaField::Multilang" ) )
-	{
-		my $langs = $parent->property( "languages" );
-
-		my %values = map {
-				$langs->[$_] => $value->[$_]
-			} 0..$#$langs;
-		$value = $session->best_language( $langid, %values );
-
-		return $session->get_database->quote_ordervalue($self, $self->ordervalue_single( $value , $session , $langid, $dataset ));
 	}
 
 	if( !$self->get_property( "multiple" ) )

@@ -124,7 +124,6 @@ sub render
 	my $frag = $xml->create_document_fragment;
 
 	my $current = $repo->param( "ep_tabs_current" );
-	$current = "" if !defined $current;
 
 	my @labels;
 	my @tabs;
@@ -136,6 +135,8 @@ sub render
 	{
 		next if !$item->{screen}->can_be_viewed;
 		my $screen = $item->{screen};
+
+		$current = $screen->get_subtype if !EPrints::Utils::is_set( $current );
 
 		push @labels, $screen->render_title;
 		if( $screen->get_subtype ne $current && $screen->param( "expensive" ) )

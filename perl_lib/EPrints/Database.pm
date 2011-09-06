@@ -4382,7 +4382,7 @@ sub dequeue_events
 		dataset => $dataset,
 		filters => [
 			{ meta_fields => ["status"], value => "waiting" },
-			{ meta_fields => ["start_time"], value => "-$until", match => "EQ" },
+			{ meta_fields => ["start_time"], value => "..$until", match => "EQ" },
 		],
 		custom_order => "-priority/-start_time",
 		limit => $n,

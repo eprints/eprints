@@ -63,6 +63,8 @@ sub action_reload_config
 
 	$self->{processor}->add_message( "message",
 		$self->html_phrase( "reloaded" ) );
+
+	return 1; # useful for other Screen plugins calling us
 }	
 
 

@@ -66,7 +66,7 @@ sub xml_dataobj
 	# them to the DC element.
 	foreach( @{$data} )
 	{
-		$dc->appendChild(  $plugin->{session}->render_data_element( 8, "dc:".$_->[0], $_->[1] ) );
+		$dc->appendChild(  $plugin->{session}->render_data_element( 8, "dc:".$_->[0], $_->[1], %{$_->[2]} ) );
 		# produces <key>value</key>
 	}
 

@@ -3351,8 +3351,6 @@ PY = 2006 and OG = (Cambridge)<br />
   <epp:phrase id="languages_typename_zh">Chinese</epp:phrase>  
   <epp:phrase id="languages_typename_zu">Zulu</epp:phrase>  
 
-  <epp:phrase id="languages_typename_?">[undefined]</epp:phrase>  
-
 
   <epp:phrase id="licenses_typename_cc_by_nd">Creative Commons: Attribution-No Derivative Works 3.0</epp:phrase>
   <epp:phrase id="licenses_typename_cc_by">Creative Commons: Attribution 3.0</epp:phrase>
@@ -3954,5 +3952,13 @@ To create a blank EPM entire a new id in the input and click <epc:phrase ref="Pl
 	<epp:phrase id="user_fieldname_saved_searches">Saved Searches</epp:phrase>
 	<epp:phrase id="user_fieldname_review_filters">Editorial Privileges</epp:phrase>
 	<epp:phrase id="user_fieldname_preference">Preferences</epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/Admin/UpdateDatabase:nochanges">No changes were applied to the database.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/UpdateDatabase:action:update:title">Update Database</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/UpdateDatabase:action:update:description">Update database to reflect current configuration.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/UpdateDatabase:error:dataset">Database update of dataset <em><epc:pin name="dataset" /></em> failed.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/UpdateDatabase:error:field">Database update of field <em><epc:pin name="dataset" />.<epc:pin name="field" /></em> failed.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/UpdateDatabase:updated">Added/updated the database:<dl><dt>Datasets</dt><dd><epc:pin name="datasets"/></dd><dt>Fields</dt><dd><epc:pin name="fields"/></dd></dl></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/UpdateDatabase:migrated">Migrated singular values to multiple for <em><epc:pin name="dataset" />.<epc:pin name="field" /></em>.</epp:phrase>
 
 </epp:phrases>
