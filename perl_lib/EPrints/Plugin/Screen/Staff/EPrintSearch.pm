@@ -65,6 +65,8 @@ sub from
 	};
 		
 	my $adv_fields = $self->{session}->get_repository->get_conf( "search","advanced","search_fields" );
+	my $extra_fields = $self->param( "extra_fields" );
+	$extra_fields = [] if !defined $extra_fields;
 	$sconf->{"search_fields"} = [
 		{ meta_fields => [ "eprintid" ] },
 		{ meta_fields => [ "userid.username" ] },
@@ -72,6 +74,7 @@ sub from
 		{ meta_fields => [ "eprint_status" ], default=>'archive buffer' },
 		{ meta_fields => [ "dir" ] },
 		@{$adv_fields},
+		@{$extra_fields},
 	];
 
 	$self->{processor}->{sconf} = $sconf;
