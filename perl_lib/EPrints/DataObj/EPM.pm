@@ -770,6 +770,48 @@ sub _is_enabled_filepath
 	return $self->{session}->config( "archiveroot" ) . "/cfg/epm/" . $self->id;
 }
 
+=item $ok = $epm->disable_unchanged()
+
+Remove unchanged files from the repository directory. This allows a new version of the EPM to be installed/enabled.
+
+=cut
+
+sub disable_unchanged
+{
+	my( $self ) = @_;
+
+	my $repo = $self->repository;
+
+	my $epmid = $self->id;
+	my $epmdir = "epm/".$epmid;
+
+	foreach my $file ($self->repository_files)
+	{
+		my $filename = $file->value( "filename" );
+		next if $filename !~ m# ^$epmdir(.+)$ #x;
+		my $targetpath = $repo->config( "archiveroot" ) . $1;
+		next if !-f $targetpath;
+
+		# be safe and don't clobber an unknown file
+		next if !$file->is_set( "hash" );
+
+		my $ctx = Digest::MD5->new;
+		open(my $fh, "<", $targetpath) or next;
+		$ctx->addfile( $fh );
+		close($fh);
+
+		# it was changed by the user
+		next if $file->value( "hash") ne $ctx->hexdigest;
+
+		# can safely remove it
+		unlink( $targetpath );
+	}
+
+	unlink( $self->_is_enabled_filepath );
+
+	return 1;
+}
+
 =item $ok = $epm->enable( $handler )
 
 Enables the $epm for the current repository.
