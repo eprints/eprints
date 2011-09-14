@@ -72,7 +72,32 @@ sub action_upload
 		return;
 	}
 
-	$self->_install( $epm );
+	my $iepm = $repo->dataset( "epm" )->dataobj( $epm->value( "epmid" ) );
+
+	if( defined $iepm )
+	{
+		# remove unchanged repository files
+		return if !$iepm->disable_unchanged( $self->{processor} );
+
+		# remove system-level files
+		return if !$iepm->uninstall( $self->{processor} );
+	}
+
+	# install system-level and repository files
+	if( !$self->_install( $epm ) )
+	{
+		if( defined $iepm )
+		{
+			$iepm->install( $self->{processor} );
+			$iepm->enable( $self->{processor} );
+		}
+		return;
+	}
+
+	if( defined $iepm )
+	{
+		$self->_upgrade_all( $iepm, $epm );
+	}
 }
 
 sub action_install
@@ -174,11 +199,38 @@ sub action_upgrade
 	my $iepm = $repo->dataset( "epm" )->dataobj( $epm->value( "epmid" ) );
 	EPrints->abort( "Installed EPM not found" ) if !defined $iepm;
 
+	# remove unchanged repository files
+	return if !$iepm->disable_unchanged( $self->{processor} );
+
+	# remove system-level files
 	return if !$iepm->uninstall( $self->{processor} );
 
+	# install system-level and repository files
 	if( !$self->_install( $epm ) )
 	{
-		return $iepm->install( $self->{processor} );
+		$iepm->install( $self->{processor} );
+		$iepm->enable( $self->{processor} );
+		return;
+	}
+
+	$self->_upgrade_all( $iepm, $epm );
+}
+
+sub _upgrade_all
+{
+	my( $self, $iepm, $epm ) = @_;
+
+	my $repo = $self->{repository};
+
+	# upgrading has to upgrade all repositories
+	foreach my $repoid ( $iepm->repositories )
+	{
+		next if $repoid eq $repo->id;
+		my $repo2 = EPrints->new->repository( $repoid );
+		local $iepm->{session} = local $iepm->{repository} = $repo2;
+		local $epm->{session} = local $epm->{repository} = $repo2;
+		$iepm->disable_unchanged( $self->{processor} );
+		$epm->enable( $self->{processor} );
 	}
 }
 
