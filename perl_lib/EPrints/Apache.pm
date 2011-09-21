@@ -38,7 +38,7 @@ EOC
 
 	my $aliasinfo;
 	my $aliases = "";
-	foreach $aliasinfo ( @{$repo->config( "aliases" )} )
+	foreach $aliasinfo ( @{$repo->config( "aliases" ) || []} )
 	{
 		if( $aliasinfo->{redirect} )
 		{

@@ -1,7 +1,8 @@
-#!/usr/bin/perl -T -w
+#!@PERL_PATH@ -T -w
 
-use FindBin;
-use lib "$FindBin::Bin/../perl_lib";
+my $user = "@INSTALL_USER@";
+my $group = "@INSTALL_GROUP@";
+my $prefix = "@PREFIX@";
 
 ######################################################################
 #
@@ -13,7 +14,6 @@ use lib "$FindBin::Bin/../perl_lib";
 #
 ######################################################################
 
-use EPrints::SystemSettings;
 use English;
 use POSIX;
 
@@ -32,8 +32,6 @@ if( !defined $ARGV[0] || $ARGV[0] !~ m/^(start|stop|status)$/ )
 my $opt = $1;
 
 # These are not going via Platform, but this is a UNIX script, so meh.
-my $user = $EPrints::SystemSettings::conf->{'user'};
-my $group = $EPrints::SystemSettings::conf->{'group'};
 my $uid = (getpwnam($user))[2];
 my $gid = (getgrnam($group))[2];
 my @sgroups = ($gid); # gid + supplementary groups
@@ -45,7 +43,7 @@ while(my( undef, undef, $gid, $members ) = getgrent())
 $REAL_GROUP_ID = $EFFECTIVE_GROUP_ID = "@sgroups";
 $REAL_USER_ID = $EFFECTIVE_USER_ID = $uid;
 
-my $indexer_cmd = $EPrints::SystemSettings::conf->{'base_path'}.'/bin/indexer';
+my $indexer_cmd = "$prefix/bin/indexer";
 $| = 0;
 if( $opt eq 'start' )
 {
