@@ -487,6 +487,19 @@ sub restore_stderr
 	seek($tmpfile, 0, 0), sysseek($tmpfile, 0, 0) if defined $tmpfile;
 }
 
+=item $path = $sys->join_path( @parts )
+
+Returns @parts joined together using the current system's path separator.
+
+=cut
+
+sub join_path
+{
+	my( $self, @parts ) = @_;
+
+	return join '/', @parts;
+}
+
 1;
 
 =head1 COPYRIGHT
