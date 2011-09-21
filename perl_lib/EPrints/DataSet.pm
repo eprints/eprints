@@ -1604,6 +1604,12 @@ sub citation
 		$citation = $repo->{citations}->{$self->base_id}->{"default"};
 	}
 
+	if( !defined $citation )
+	{
+		$repo->log( "No default citation style for ".$self->base_id." dataset" );
+		return;
+	}
+
 	# reload the citation if it needs to be
 	if( !$repo->{fresh}->{$citation} )
 	{
