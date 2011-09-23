@@ -6,16 +6,21 @@ EPrints::Plugin::Import::TextFile
 
 package EPrints::Plugin::Import::TextFile;
 
+use Encode;
+
 use strict;
 
 our @ISA = qw/ EPrints::Plugin::Import /;
 
 $EPrints::Plugin::Import::DISABLE = 1;
 
-if( $^V gt v5.8.0 )
-{
-	eval "use File::BOM";
-}
+our %BOM2ENC = map { Encode::encode($_, "\x{feff}") => $_ } qw(
+		UTF-8
+		UTF-16BE
+		UTF-16LE
+		UTF-32BE
+		UTF-32LE
+	);
 
 sub new
 {
@@ -37,15 +42,23 @@ sub input_fh
 
 	if( $^V gt v5.8.0 and seek( $fh, 0, 1 ) )
 	{
-		# Strip the Byte Order Mark and set the encoding appropriately
-		# See http://en.wikipedia.org/wiki/Byte_Order_Mark
-		File::BOM::defuse($fh);
+		use bytes;
 
-		# Read a line from the file handle and reset the fp
-		my $start = tell( $fh );
 		my $line = <$fh>;
-		seek( $fh, $start, 0 )
-			or die "Unable to reset file handle for crlf detection.";
+		seek( $fh, 0, 0 )
+			or die "Unable to reset file handle after BOM/CRLF read";
+
+		# Detect the Byte Order Mark and set the encoding appropriately
+		# See http://en.wikipedia.org/wiki/Byte_Order_Mark
+		for(2..4)
+		{
+			if( defined( my $enc = $BOM2ENC{substr($line,0,$_)} ) )
+			{
+				seek( $fh, $_, 0 );
+				binmode($fh, ":encoding($enc)");
+				last;
+			}
+		}
 
 		# If the line ends with return add the crlf layer
 		if( $line =~ /\r$/ )
