@@ -23,6 +23,7 @@ sub properties_from
 		$self->{processor}->{subjectid} = "ROOT";
 	}
 	$self->{processor}->{subject} = new EPrints::DataObj::Subject( $self->{session}, $self->{processor}->{subjectid} );
+	$self->{processor}->{item} = $self->{processor}->{subject};
 
 	if( !defined $self->{processor}->{subject} )
 	{

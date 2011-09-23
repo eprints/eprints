@@ -46,6 +46,20 @@ sub allow_link { 1 }
 sub allow_unlink { 1 }
 sub allow_remove { 1 }
 
+sub workflow
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	my $processor = $self->{processor};
+
+	return EPrints::Workflow->new( $repo, "screen_subject_edit",
+		processor => $processor,
+		item => $processor->{subject},
+		method => [ $self->get_subtype, "STRING" ],
+	);
+}
+
 sub render
 {
 	my( $self ) = @_;
@@ -73,93 +87,43 @@ sub render_editbox
 
 	my $session = $self->{session};
 
-	my $subject_ds = $session->dataset( "subject" );
-	my $subject = $self->{processor}->{subject};
+	my $form = $session->render_form( "POST" );
+	$form->appendChild( $self->render_hidden_bits );
 
-	my $form = $session->render_form( "post" );
-	$form->appendChild( $session->render_hidden_field( "subjectid", $subject->get_id ) );
-	$form->appendChild( $session->render_hidden_field( "screen", "Subject::Edit" ) );
-	my $table = $self->{session}->make_element( "table", class => "ep_multi" );
-	$form->appendChild( $table );
-	my $tbody = $self->{session}->make_element( "tbody" );
-	$table->appendChild( $tbody );
-	my $first = 1;
-	my $prefix = "update";
-	foreach my $field (
-				$subject_ds->get_field( "subjectid" ),
-				$subject_ds->get_field( "name" ),
-				$subject_ds->get_field( "depositable" )
-	) {
-		my %parts;
-		$parts{class} = "";
-		$parts{class} = "ep_first" if $first;
-		$first = 0;
+	my $workflow = $self->workflow;
 
-		$parts{label} = $field->render_name( $self->{session} );
+	my $stage = $workflow->get_stage( $workflow->get_first_stage_id );
 
-		if( $field->{required} eq "yes" ) # moj: Handle for_archive
-		{
-			$parts{label} = $self->{session}->html_phrase( 
-				"sys:ep_form_required",
-				label=>$parts{label} );
-		}
- 
-		$parts{help} = $field->render_help( $self->{session} );
+	# prepend subjectid ???
+	$form->appendChild( $stage->render( $session, $workflow ) );
 
+	$form->appendChild( $session->render_hidden_field( "_default_action", "register" ) );
+	$form->appendChild( $session->render_action_buttons(
+		save => $self->phrase( "action_save" )
+		) );
 
-		# Get the field and its value/default
-		my $value;
-		if( $subject )
-		{
-			$value = $subject->get_value( $field->{name} );
-		}
-		if( $field->get_name eq "depositable" && !EPrints::Utils::is_set($value))
-		{
-			$value = "FALSE";
-		}
-
-		if( $field eq $subject_ds->key_field )
-		{
-			$parts{field} = $field->render_value( $self->{session}, $value );
-		}
-		else
-		{
-			$parts{field} = $field->render_input_field( 
-				$self->{session}, 
-				$value, 
-				undef,
-				0,
-				undef,
-				$subject,
-				$prefix,
-			  );
-		}
-
-		$parts{help_prefix} = $prefix."_help_".$field->get_name;
-
-		$table->appendChild( $self->{session}->render_row_with_help( %parts ) );
-	}
-        $form->appendChild( $session->render_action_buttons(
-                save => $self->phrase( "action_save" ) ) );
-
-	return $self->{session}->render_toolbox( 
-		undef,
-		$form );
+	return $form;
 }
 
 sub action_save
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
-	my $subject = $self->{processor}->{subject};
-	my $subject_ds = $session->dataset( "subject" );
-	my $name = $subject_ds->get_field( "name" )->form_value( $session, $subject, "update" );
-	$subject->set_value( "name", $name );
+	my $processor = $self->{processor};
+	my $subject = $processor->{subject};
 
-	my $depositable = $subject_ds->get_field( "depositable" )->form_value( $session, $subject, "update" );
-	$subject->set_value( "depositable", $depositable );
-	$self->{processor}->add_message( "message", $self->html_phrase( "saved" ) );
+	my $workflow = $self->workflow;
+
+	$workflow->update_from_form( $processor, $workflow->get_stage_id, 1 );
+
+	my @problems = $workflow->validate;
+	if( @problems )
+	{
+		$processor->add_message( "error", $self->render_problems( @problems ) );
+		return;
+	}
+
+	$processor->add_message( "message", $self->html_phrase( "saved" ) );
 
 	$subject->commit();
 }
