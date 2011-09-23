@@ -101,6 +101,17 @@ sub render
 	my( $self, $dataobj, %opts ) = @_;
 }
 
+=item $type = $citation->type()
+
+Returns the type of this citation. Only supported value is "table_row".
+
+=cut
+
+sub type
+{
+	shift->{type};
+}
+
 1;
 
 =head1 COPYRIGHT

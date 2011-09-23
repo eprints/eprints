@@ -1596,6 +1596,8 @@ sub citation
 
 	my $repo = $self->repository;
 
+	$id = "default" if !defined $id;
+
 	my $citation = $repo->{citations}->{$self->base_id}->{$id};
 	if( !defined $citation )
 	{
