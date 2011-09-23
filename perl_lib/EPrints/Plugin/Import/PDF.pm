@@ -10,7 +10,7 @@ package EPrints::Plugin::Import::PDF;
 
 use strict;
 
-use ParaTools::DocParser::Standard;
+our $MAX_SIZE = 1024 * 1024; # 1MB
 
 sub new
 {
@@ -142,10 +142,24 @@ sub _parse_bibliography
 	$buffer =~ s/^.*?<pre>//s;
 	$buffer =~ s/<\/pre>.*?$//s;
 
-	local $ParaTools::DocParser::Standard::DEBUG = 1;
-	my $parser = ParaTools::DocParser::Standard->new;
-
 	$epdata->{documents} ||= [];
+
+	my $ifh = File::Temp->new;
+	syswrite($ifh, $buffer);
+	sysseek($ifh, 0, 0);
+
+	my $referencetext;
+	my $ofh = File::Temp->new;
+	$self->{repository}->exec( "txt2refs",
+		SOURCE => "$ifh",
+		TARGET => "$ofh",
+	);
+	sysseek($ofh, 0, 0);
+	sysread($ofh, $buffer, (-s $ofh) > $MAX_SIZE ? $MAX_SIZE : -s $ofh);
+
+	return if $buffer !~ /\S/;
+
+	$epdata->{referencetext} = Encode::decode_utf8( $buffer );
 
 	push @{$epdata->{documents}}, {
 			format => "text/plain",
@@ -167,13 +181,6 @@ sub _parse_bibliography
 				_content => \$buffer,
 			}],
 	};
-
-	my @refs = $parser->parse( Encode::decode_utf8( $buffer ) );
-
-	if( @refs )
-	{
-		$epdata->{referencetext} = join("\n\n", @refs );
-	}
 }
 
 1;

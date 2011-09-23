@@ -1,0 +1,86 @@
+#!/usr/bin/perl
+
+use FindBin;
+use lib "$FindBin::Bin/../perl_lib";
+
+use ParaTools::DocParser::Standard;
+use Pod::Usage;
+use Getopt::Long;
+use Encode;
+
+=head1 NAME
+
+txt2refs - extract bibliography from plain text
+
+=head1 SYNOPSIS
+
+doc2txt <input.txt | -> <output.txt | ->
+
+=head1 OPTIONS
+
+=over 4
+
+=item --enc=UTF-8
+
+Set the output encoding (any supported by Encode). Defaults to UTF-8.
+
+=cut
+
+use strict;
+use warnings;
+
+my(
+	$opt_enc,
+	$opt_help,
+);
+
+GetOptions(
+	'enc=s' => \$opt_enc,
+	'help' => \$opt_help,
+) or pod2usage();
+
+pod2usage(1) if $opt_help;
+pod2usage() if @ARGV != 2;
+
+my( $ifh, $ofh );
+if( $ARGV[0] eq "-" )
+{
+	$ifh = \*STDIN;
+}
+else
+{
+	open($ifh, "<", $ARGV[0]) or die "Error open $ARGV[0]: $!";
+}
+if( $ARGV[1] eq '-' )
+{
+	$ofh = \*STDOUT;
+}
+else
+{
+	open($ofh, ">", $ARGV[1]) or die "Error opening $ARGV[1]: $!";
+}
+
+binmode($ifh, ":utf8");
+if( $opt_enc )
+{
+	if( !binmode($ofh, ":encoding($opt_enc)") )
+	{
+		die join(', ', Encode->encodings(":all"))."\n";
+	}
+}
+else
+{
+	binmode($ofh, ":utf8");
+}
+
+#local $ParaTools::DocParser::Standard::DEBUG = 1;
+my $parser = ParaTools::DocParser::Standard->new;
+my $buffer;
+{
+local $/;
+$buffer = <$ifh>;
+}
+
+my @refs = $parser->parse( $buffer );
+
+print $ofh join("\n\n", @refs);
