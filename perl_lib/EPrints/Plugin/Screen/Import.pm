@@ -234,7 +234,7 @@ sub run_import
 
 	$plugin->{parse_only} = $dryrun;
 	$plugin->set_handler( EPrints::CLIProcessor->new(
-		message => sub { $quiet && $self->{processor}->add_message( @_ ) },
+		message => sub { !$quiet && $self->{processor}->add_message( @_ ) },
 		epdata_to_dataobj => sub {
 			return $self->epdata_to_dataobj(
 				@_,
@@ -263,17 +263,35 @@ sub run_import
 	{
 		if( $show_stderr )
 		{
-			push @problems, "Unhandled exception in ".$plugin->{id}.": $@";
+			push @problems, [
+				"error",
+				$session->phrase( "Plugin/Screen/Import:exception",
+					plugin => $plugin->{id},
+					error => $@,
+				),
+			];
 		}
 		else
 		{
 			$session->log( $@ );
-			push @problems, "The import plugin failed with an unknown error";
+			push @problems, [
+				"error",
+				$session->phrase( "Plugin/Screen/Import:exception",
+					plugin => $plugin->{id},
+					error => "See Apache error log file",
+				),
+			];
 		}
 	}
-	elsif( !defined $list )
+	elsif( !defined $list && !@{$self->{processor}->{messages}} )
 	{
-		push @problems, "Expected EPrints::List";
+		push @problems, [
+			"error",
+			$session->phrase( "Plugin/Screen/Import:exception",
+				plugin => $plugin->{id},
+				error => "Plugin returned undef",
+			),
+		];
 	}
 
 	my $count = $self->{processor}->{count};
@@ -284,17 +302,24 @@ sub run_import
 
 	if( length($err) && $show_stderr )
 	{
-		push @problems, "Unhandled warning in ".$plugin->{id}.": $err";
+		push @problems, [
+			"warning",
+			$session->phrase( "Plugin/Screen/Import:warning",
+				plugin => $plugin->{id},
+				warning => $err,
+			),
+		];
 	}
 
-	for(@problems)
+	foreach my $problem (@problems)
 	{
-		s/^(.{$MAX_ERR_LEN}).*$/$1 .../s;
-		s/\t/        /g; # help _mktext out a bit
-		my @lines = EPrints::DataObj::History::_mktext( $session, $_, 0, 0, 80 );
+		my( $type, $message ) = @$problem;
+		$message =~ s/^(.{$MAX_ERR_LEN}).*$/$1 .../s;
+		$message =~ s/\t/        /g; # help _mktext out a bit
+		$message = join "\n", EPrints::DataObj::History::_mktext( $session, $message, 0, 0, 80 );
 		my $pre = $session->make_element( "pre" );
-		$pre->appendChild( $session->make_text( join( "\n", @lines )));
-		$self->{processor}->add_message( "warning", $pre );
+		$pre->appendChild( $session->make_text( $message ) );
+		$self->{processor}->add_message( $type, $pre );
 	}
 
 	my $ok = (scalar(@problems) == 0 and $count > 0);
