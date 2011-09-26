@@ -178,7 +178,7 @@ sub commit
 {
 	my( $self, $force ) = @_;
 
-	my @ancestors = $self->_get_ancestors();
+	my @ancestors = $self->_get_ancestors( {} );
 	$self->set_value( "ancestors", \@ancestors );
 
 	if( !defined $self->{changed} || scalar( keys %{$self->{changed}} ) == 0 )
@@ -356,19 +356,16 @@ END
 
 sub _get_ancestors
 {
-	my( $self ) = @_;
+	my( $self, $seen ) = @_;
+
+	return () if exists $seen->{$self->{data}->{subjectid}};
+	$seen->{$self->{data}->{subjectid}} = undef;
 
 	my @ancestors = ($self->{data}->{subjectid});
-	my %seen = ($self->{data}->{subjectid} => undef);
 
 	foreach my $parent ( $self->get_parents() )
 	{
-		foreach( $parent->_get_ancestors() )
-		{
-			next if exists $seen{$_};
-			push @ancestors, $_;
-			$seen{$_} = undef;
-		}
+		push @ancestors, $parent->_get_ancestors( $seen );
 	}
 
 	return @ancestors;
