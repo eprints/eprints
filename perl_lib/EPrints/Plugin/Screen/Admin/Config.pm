@@ -291,103 +291,85 @@ sub render
 	};
 
 	# open the root directory (suppress default display:none)
-	push @{$tree->[0]},
-		dt => {
-			class => "ep_fileselector_open",
-		},
-		dd => {
-		},
-	;
+	push @{$tree->[0]}, show => 1;
 
 #EPrints->dump( $tree );
 
-	# use the ep_fileselector CSS
-	my $div = $session->make_element( "div",
-		class => "ep_fileselector",
-		id => "ep_fileselector",
-	);
-	$page->appendChild( $div );
-
-	# enable the tree for click-to open/close
-	$page->appendChild( $session->make_javascript( <<EOJ ) );
-Event.observe( window, 'load', function() {
-	ep_js_init_dl( 'ep_fileselector', 'ep_fileselector_open' );
-});
-EOJ
-
-	$div->appendChild( $session->xhtml->tree( $tree,
-		render_dt => sub {
-			my( $ctx ) = @_;
-
-			my $filename = $ctx->{filename};
-			my $relpath = $ctx->{path};
-
-			my $frag = $session->make_doc_fragment;
-
-			$frag->appendChild( $session->make_text( $filename ) );
-
-			if( defined $relpath && !$ctx->{contents} )
-			{
-				my $url = URI->new( $session->current_url );
-				$frag->appendChild( $session->make_text( " [ " ) );
-				$url->query_form(
-					$self->hidden_bits,
-					configfile => $relpath,
-					_action_delete => "1",
-				);
-				my $link = $session->render_link( $url );
-				$link->appendChild( $session->html_phrase( "lib/submissionform:delete" ) );
-				$frag->appendChild( $link );
-				$frag->appendChild( $session->make_text( " ] " ) );
-			}
-
-			return $frag;
-		},
-		render_li => sub {
-			my( $ctx ) = @_;
-
-			my $filename = $ctx->{filename};
-			my $relpath = $ctx->{path};
-
-			my $frag = $session->make_doc_fragment;
-
-			my $configtype = config_file_to_type( "$relpath$filename" );
-			if( defined $configtype )
-			{
-				my $url = URI->new( $session->current_url );
-				$url->query_form(
-					screen => "Admin::Config::View::$configtype",
-					configfile => "$relpath$filename",
-				);
-				my $link = $session->render_link( $url,
-					target => "_blank",
-				);
-				$link->appendChild( $session->make_text( $filename ) );
-				$frag->appendChild( $link );
-				$frag->appendChild( $session->make_text( " [ " ) );
-				$url->query_form(
-					$self->hidden_bits,
-					configfile => "$relpath$filename",
-					_action_delete => "1",
-				);
-				$link = $session->render_link( $url );
-				$link->appendChild( $session->html_phrase( "lib/submissionform:delete" ) );
-				$frag->appendChild( $link );
-				$frag->appendChild( $session->make_text( " ] " ) );
-			}
-			else
-			{
-				$frag->appendChild( $session->make_text( $filename ) );
-			}
-
-			return $frag;
-		},
+	$page->appendChild( $session->xhtml->tree( $tree,
+		prefix => "ep_fileselector",
+		render_value => sub { $self->_render_value( @_ ) },
 	) );
 
 	# some text like "EPrints configuration editor; with great power comes great responsibility" ?
 #	$page->appendChild( $self->render_dir( $path, "" ) );
 
 	return $page;
+}
+
+sub _render_value
+{
+	my( $self, $ctx, $children ) = @_;
+
+	return $ctx if ref($ctx) ne "HASH";
+
+	my $session = $self->{session};
+
+	my $filename = $ctx->{filename};
+	my $relpath = $ctx->{path};
+
+	my $frag = $session->make_doc_fragment;
+
+	# directory
+	if( defined $children )
+	{
+		$frag->appendChild( $session->make_text( $filename ) );
+
+		if( defined $relpath && !$ctx->{contents} )
+		{
+			my $url = URI->new( $session->current_url );
+			$frag->appendChild( $session->make_text( " [ " ) );
+			$url->query_form(
+				$self->hidden_bits,
+				configfile => $relpath,
+				_action_delete => "1",
+			);
+			my $link = $session->render_link( $url );
+			$link->appendChild( $session->html_phrase( "lib/submissionform:delete" ) );
+			$frag->appendChild( $link );
+			$frag->appendChild( $session->make_text( " ] " ) );
+		}
+	}
+	# editable file
+	elsif( defined(my $configtype = config_file_to_type( "$relpath$filename" )) )
+	{
+		my $url = URI->new( $session->current_url );
+		$url->query_form(
+			screen => "Admin::Config::View::$configtype",
+			configfile => "$relpath$filename",
+		);
+		my $link = $session->render_link( $url,
+			target => "_blank",
+		);
+		$link->appendChild( $session->make_text( $filename ) );
+		$frag->appendChild( $link );
+		$frag->appendChild( $session->make_text( " [ " ) );
+		$url->query_form(
+			$self->hidden_bits,
+			configfile => "$relpath$filename",
+			_action_delete => "1",
+		);
+		$link = $session->render_link( $url );
+		$link->appendChild( $session->html_phrase( "lib/submissionform:delete" ) );
+		$frag->appendChild( $link );
+		$frag->appendChild( $session->make_text( " ] " ) );
+	}
+	# plain file
+	else
+	{
+		$frag->appendChild( $session->make_text( $filename ) );
+	}
+
+	return $frag;
 }
 
 sub render_dir

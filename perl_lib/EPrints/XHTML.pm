@@ -854,14 +854,14 @@ sub tabs
 	return $frag;
 }
 
-=item $node = $xhtml->tree( $root [, OPTIONS ] )
+=item $node = $xhtml->tree( $root, OPTIONS )
  
-Render a tree using a combination of definition lists (DLs) and unordered lists (ULs).
+Render a tree using definition lists (DLs).
 
 Options:
 
-	render_li - custom render method for leaf nodes
-	render_dt - custom render method for root elements
+	prefix - id to use for the parent <div> and class prefix
+	render_value - custom renderer for values
 
 =cut
 
@@ -872,46 +872,66 @@ sub tree
 	my $repo = $self->{repository};
 	my $xml = $repo->xml;
 
-	$opts{render_dt} ||= sub { $xml->create_text_node( $_[0] ) };
-	$opts{render_li} ||= sub { $xml->create_text_node( $_[0] ) };
+	my $frag = $xml->create_document_fragment;
+
+	$frag->appendChild( $xml->create_data_element( "div",
+		$self->tree2( $root,
+			class => $opts{prefix},
+			%opts,
+		),
+		id => $opts{prefix},
+		class => $opts{prefix},
+	) );
+	$frag->appendChild( $repo->make_javascript(<<"EOJ") );
+Event.observe( window, 'load', function() {
+	ep_js_init_dl_tree('$opts{prefix}', '$opts{prefix}_open');
+});
+EOJ
+
+	return $frag;
+}
+
+sub tree2
+{
+	my( $self, $root, %opts ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
 
 	my $frag = $xml->create_document_fragment;
-	return $frag if !defined $root;
+	return $frag if !defined $root || !scalar(@$root);
+
+	$opts{render_value} ||= sub { $xml->create_text_node( $_[0] ) };
 
 	my $dl = $frag->appendChild( $xml->create_element( "dl" ) );
-	my $ul = $frag->appendChild( $xml->create_element( "ul" ) );
-
+	
 	foreach my $node (@$root)
 	{
 		if( ref($node) eq "ARRAY" )
 		{
 			my( $key, $children, %nopts ) = @$node;
 
-			my $dt = $dl->appendChild( $xml->create_element( "dt",
-				%{$nopts{dt}||{}},
+			$dl->appendChild( $xml->create_data_element( "dt",
+				$opts{render_value}( @$node ),
+				class => ($nopts{show} ? "$opts{class} $opts{class}_open" : $opts{class}),
 			) );
-			$dt->appendChild( $opts{render_dt}( $key ) );
-			my $dd = $dl->appendChild( $xml->create_element( "dd",
-				%{$nopts{dd}||{ style => "display: none" }},
+			$dl->appendChild( $xml->create_data_element( "dd",
+				$self->tree2( $children, %opts ),
+				class => ($nopts{show} ? "" : "ep_no_js"),
 			) );
-			$dd->appendChild( $self->tree( $children, %opts ) );
-		}
-		elsif( UNIVERSAL::can( $node, "hasChildNodes" ) )
-		{
-			$frag->appendChild( $node );
 		}
 		else
 		{
-			my $li = $ul->appendChild( $xml->create_element( "li" ) );
-			$li->appendChild( $opts{render_li}( $node ) );
+			$dl->appendChild( $xml->create_data_element( "dt",
+				$opts{render_value}( $node ),
+			) );
+			$dl->appendChild( $xml->create_element( "dd",
+				class => "ep_no_js",
+			) );
 		}
 	}
 
-	# clean-up empty uls, dls
-	$xml->dispose( $frag->removeChild( $ul ) ) if !$ul->hasChildNodes;
-	$xml->dispose( $frag->removeChild( $dl ) ) if !$dl->hasChildNodes;
-
-	return $frag;
+	return $dl;
 }
 
 ######################################################################

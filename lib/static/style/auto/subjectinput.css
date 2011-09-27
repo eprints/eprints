@@ -6,6 +6,29 @@
 
 */
 
+div.ep_subjectinput_tree {
+	margin-left: 25px;
+}
+.ep_subjectinput_tree dl {
+	margin: 0px 0px 0px 15px;
+	padding: 0px 0px;
+}
+.ep_subjectinput_tree dl dt {
+	margin: 0px 0px;
+	padding-left: 18px;
+	line-height: 18px;
+}
+.ep_subjectinput_tree dl dd {
+	margin-left: 0px;
+}
+.ep_subjectinput_tree dl dt.ep_subjectinput_tree {
+	cursor: pointer;
+	background: url(images/plus.png) no-repeat;
+}
+.ep_subjectinput_tree dl dt.ep_subjectinput_tree_open {
+	background: url(images/minus.png) no-repeat;
+}
+
 .ep_subjectinput_toggle {
 	text-decoration: none;
 	color: #000000;
