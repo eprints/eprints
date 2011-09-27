@@ -64,6 +64,8 @@ sub new
 	$self->{search} = [];
 	# whether the search engine supports "result order" (e.g. relevance)
 	$self->{result_order} = 0;
+	# fully-qualified basename
+	$self->{basename} = defined($params{prefix}) ? $params{prefix}."_" : "";
 
 	return $self;
 }
@@ -348,6 +350,14 @@ Returns true if no query has been specified (ignoring any dataset-specific filte
 
 sub is_blank {}
 
+=item $searchexp->clear()
+
+Clears values from the query from e.g. L</from_form>.
+
+=cut
+
+sub clear {}
+
 =item $results = $searchexp->execute()
 
 Execute the query and return a L<EPrints::List> object (or subclass).
@@ -429,20 +439,28 @@ sub render_order_description
 		order => $frag );
 }
 	
-=item $xhtml = $searchexp->render_simple_fields()
+=item $xhtml = $searchexp->render_simple_fields( [ %opts ] )
 
-Renders the form input fields required for a simple search (typically just a single text input box).
+Renders the form input field(s) required for a simple search (typically just a single text input box).
+
+Options are as passed to L<EPrints::XHTML/input_field>.
 
 =cut
 
 sub render_simple_fields
 {
-	my( $self ) = @_;
+	my( $self, %opts ) = @_;
 
 	my $xml = $self->{session}->xml;
 	my $xhtml = $self->{session}->xhtml;
 
-	return $xhtml->input_field( "q", $self->{q}, type => "text", size => 60 );
+	return $xhtml->input_field(
+		$self->{basename}."q",
+		$self->{q},
+		type => "text",
+		size => 60,
+		%opts,
+	);
 }
 
 =item $xhtml = $searchexp->render_advanced_fields()

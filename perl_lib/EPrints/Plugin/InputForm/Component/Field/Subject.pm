@@ -146,40 +146,21 @@ sub render_content
 	
 	# Render the search box
 
-	$self->{search} = undef;
+	$self->{search} = $self->_prepare_search;
 	
-	if( $session->param( $self->{prefix}."_searchstore" ) )
-	{
-		$self->{search} = $session->param( $self->{prefix}."_searchstore" );
-	}
-
 	my $ibutton = $session->param( $self->{prefix}."_action" );
 	$ibutton = "" unless defined $ibutton;
 
-	if( $ibutton eq "search" )
-	{
-		$self->{search} = $session->param( $self->{prefix}."_searchtext" );
-	}
 	if( $ibutton eq "clear" )
 	{
-		delete $self->{search};
+		$self->{search}->clear;
 	}
 
-	if( !EPrints::Utils::is_set($self->{search}) )
-	{
-		delete $self->{search};
-	}
-	
 	$out->appendChild( $self->_render_search );
-	
-	if( $self->{search} )
+
+	if( !$self->{search}->is_blank )
 	{
-		my $search_store = $session->render_hidden_field( 
-			$self->{prefix}."_searchstore",
-			$self->{search} );
-		$out->appendChild( $search_store );
-		
-		my $results = $self->_do_search;
+		my $results = $self->{search}->perform_search;
 		
 		if( !$results->count )
 		{
@@ -189,13 +170,14 @@ sub render_content
 		else
 		{
 			my $whitelist = {};
-			foreach my $subj ( $results->get_records )
-			{
-				foreach my $ancestor ( @{$subj->get_value( "ancestors" )} )
+			$results->map(sub {
+				(undef, undef, my $subject) = @_;
+
+				foreach my $ancestor ( @{$subject->value( "ancestors" )} )
 				{	
 					$whitelist->{$ancestor} = 1;
 				}
-			}
+			});
 			$out->appendChild( $self->_render_subnodes( $self->{top_subj}, 0, $whitelist ) );
 		}
 	}	
@@ -209,30 +191,39 @@ sub render_content
 	return $out;
 }
 
-sub _do_search
+sub _prepare_search
 {
 	my( $self ) = @_;
 	my $session = $self->{session};
 	
 	# Carry out search
+	my $dataset = $session->dataset( "subject" );
 
-	my $subject_ds = $session->dataset( "subject" );
-	my $searchexp = new EPrints::Search(
-		session=>$session,
-		dataset=>$subject_ds );
+	my $sconf = $session->config( "datasets", "subject", "search", "simple" );
 
-	$searchexp->add_field(
-	$subject_ds->get_field( "name" ),
-		$self->{search},
-		"IN",
-		"ALL" );
+	# default search over subject name
+	$sconf ||= {
+		search_fields => [{
+			id => "q",
+			meta_fields => [qw( name )],
+		}],
+	};
 
-	$searchexp->add_field(
-		$subject_ds->get_field( "ancestors" ),
-		$self->{top_subj}->get_id,
-		"EQ" );
+	my $searchexp = $session->plugin( "Search" )->plugins(
+		{
+			dataset => $dataset,
+			prefix => $self->{prefix},
+			filters => [
+				{ meta_fields => [qw( ancestors )], value => $self->{top_subj}->id },
+			],
+			%$sconf,
+		},
+		can_search => "simple/subject",
+	);
 
-	return $searchexp->perform_search;
+	$searchexp->from_form;
+
+	return $searchexp;
 }
 
 # Params:
@@ -300,12 +291,10 @@ sub _render_search
 	my $field = $self->{config}->{field};
 	my $bar = $self->html_phrase(
 		$field->get_name."_search_bar",
-		input=>$session->render_noenter_input_field( 
-			class=>"ep_form_text",
-			name=>$prefix."_searchtext", 
-			type=>"text", 
-			value=>$self->{search},
-			onKeyPress=>"return EPJS_enter_click( event, '_internal_".$prefix."_search' )" ),
+		input => $self->{search}->render_simple_fields(
+			noenter => 1,
+			size => 40,
+		),
 		search_button=>$session->render_button( 
 			name=>"_internal_".$prefix."_search",
 			id=>"_internal_".$prefix."_search",
@@ -469,10 +458,7 @@ sub get_state_params
 	my( $self ) = @_;
 
 	my $params = "";
-	foreach my $id ( 
- 		$self->{prefix}."_searchstore",
-		$self->{prefix}."_searchtext",
-	)
+	foreach my $id ( $self->{prefix}."_q" )
 	{
 		my $v = $self->{session}->param( $id );
 		next unless defined $v;
