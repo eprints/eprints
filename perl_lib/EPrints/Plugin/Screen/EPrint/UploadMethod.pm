@@ -40,7 +40,7 @@ sub action_add_format
 	}
 
 	# strip the filepath from the uploaded filename parameter
-	if( $filename =~ /^C:/ )
+	if( $filename =~ /^[A-Z]:/i )
 	{
 		$filename =~ s/^.*\\//;
 	}
