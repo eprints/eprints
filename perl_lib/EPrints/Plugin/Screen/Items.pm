@@ -196,7 +196,7 @@ sub render
 	{
 		my $phraseid = $has_eprints ? "Plugin/Screen/Items:help" : "Plugin/Screen/Items:help_no_items";
 		my %options;
-		if( $repo->get_lang->has_phrase( $phraseid ) )
+		if( $repo->get_lang->has_phrase( $phraseid, $repo ) )
 		{
 			$options{session} = $repo;
 			$options{id} = "ep_review_instructions";
