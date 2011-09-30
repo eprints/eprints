@@ -134,6 +134,11 @@ sub _authen_doc
 	my $document = $r->pnotes( "document" );
 	return NOT_FOUND if( !defined $document );
 
+	# Internet Explorer launches Office with a URL, which then performs an
+	# OPTIONS on the URL. By returning FORBIDDEN we stop some annoying
+	# challenge-dialogs.
+	return FORBIDDEN if $r->method eq "OPTIONS";
+
 	my $security = $document->get_value( "security" );
 
 	my $result = $repository->call( "can_request_view_document", $document, $r );
