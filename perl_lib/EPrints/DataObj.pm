@@ -1380,6 +1380,19 @@ sub internal_uri
 		);
 }
 
+=item $path = $dataobj->path
+
+Returns the relative path to this object from the repository's base URL, if the object has a URL.
+
+Does not include any leading slash.
+
+=cut
+
+sub path
+{
+	return undef;
+}
+
 ######################################################################
 =pod
 

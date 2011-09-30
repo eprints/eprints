@@ -485,17 +485,9 @@ sub get_baseurl
 {
 	my( $self ) = @_;
 
-	# The $staff param is ignored.
+	my $repo = $self->{session};
 
-	my $eprint = $self->get_parent();
-
-	return( undef ) if( !defined $eprint );
-
-	my $repository = $self->{session}->get_repository;
-
-	my $docpath = $self->get_value( "pos" );
-
-	return $eprint->url_stem.$docpath.'/';
+	return $repo->config( "base_url" ).$self->path;
 }
 
 ######################################################################
@@ -521,6 +513,49 @@ sub is_public
 	return 1;
 }
 
+=item $path = $doc->path
+
+Returns the relative path to the document WITHOUT any file.
+
+=cut
+
+sub path
+{
+	my( $self ) = @_;
+
+	my $eprint = $self->parent;
+	return undef if !defined $eprint;
+
+	return sprintf("%s%i/",
+		$eprint->path,
+		$self->value( "pos" ),
+	);
+}
+
+=item $path = $doc->file_path( [ $filename ] )
+
+Returns the relative path to $filename stored in this document. If $filename is undefined returns the path to the main file.
+
+This is an efficient shortcut to this:
+
+	my $file = $doc->stored_file( $filename );
+	my $path = $file->path;
+
+=cut
+
+sub file_path
+{
+	my( $self, $file ) = @_;
+
+	$file = $self->value( "main" ) if !defined $file;
+	return $self->path if !defined $file;
+
+	return $self->path . URI::Escape::uri_escape_utf8(
+		$file,
+		"^A-Za-z0-9\-\._~\/" # don't escape /
+	);
+}
+
 ######################################################################
 =pod
 
@@ -537,26 +572,23 @@ sub get_url
 {
 	my( $self, $file ) = @_;
 
-	$file = $self->value( "main" ) unless( defined $file );
-
-	# just in case we don't *have* a main part yet.
-	return $self->get_baseurl unless( defined $file );
-
-	# unreserved characters according to RFC 2396
-	utf8::encode($file);
-	$file =~ s/([^\/-_\.!~\*'\(\)A-Za-z0-9\/])/sprintf('%%%02X',ord($1))/ge;
-	
-	return $self->get_baseurl.$file;
+	return $self->{session}->config( "http_url" ) . "/" . $self->file_path( $file );
 }
 
 
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $path = $doc->local_path
 
 Return the full path of the directory where this document is stored
 in the filesystem.
+
+DEPRECATED
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1492,9 +1524,15 @@ sub remove_indexcodes
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $filename = $doc->cache_file( $suffix );
 
 Return a cache filename for this document with the givven suffix.
+
+DEPRECATED
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1543,24 +1581,27 @@ sub thumbnail_url
 
 	$relation = "has${size}ThumbnailVersion";
 
-	my $url = $self->get_baseurl();
-	$url =~ s! /$ !.$relation/!x;
+	my $path = $self->path;
+	$path =~ s! /$ !.$relation/!x;
+
 	if( $self->is_set( "main" ) )
 	{
-		my $file = $self->value( "main" );
-		utf8::encode($file);
-		$file =~ s/([^\/-_\.!~\*'\(\)A-Za-z0-9\/])/sprintf('%%%02X',ord($1))/ge;
-		$url .= $file;
+		$path .= URI::Escape::uri_escape_utf8(
+			$self->value( "main" ),
+			"^A-Za-z0-9\-\._~\/"
+		);
 	}
 
 	if( $self->{session}->{preparing_static_page} )
 	{
-		return $url;
+		return $self->{session}->config( "http_url" ). "/" . $path;
 	}
 
-	$url = substr($url,length($self->{session}->config( "http_url" )));
-
-	return $self->{session}->config( "rel_path" ) . $url;
+	return $self->{session}->current_url(
+		host => 0,
+		path => "static",
+		$path
+	);
 }
 
 # size => "small","medium","preview" (small is default)
@@ -1657,8 +1698,19 @@ sub render_icon_link
 	}
 
 	my %aopts;
-	$aopts{href} = $self->get_url;
 	$aopts{target} = "_blank" if( $opts{new_window} );
+	if( $self->{session}->{preparing_static_page} )
+	{
+		$aopts{href} = $self->get_url;
+	}
+	else
+	{
+		$aopts{href} = $self->{session}->current_url(
+			host => 0,
+			path => "static",
+			$self->file_path
+		);
+	}
 	my $preview_id = "doc_preview_".$self->get_id;
 	my $preview_url;
 	if( $opts{preview} )
@@ -1777,6 +1829,7 @@ sub thumbnail_plugin
 	return $def->{ "plugin" };
 }
 
+# DEPRECATED
 sub thumbnail_path
 {
 	my( $self ) = @_;
