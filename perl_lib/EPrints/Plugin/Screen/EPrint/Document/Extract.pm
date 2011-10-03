@@ -198,11 +198,13 @@ sub available
 	
 	foreach my $plugin ($self->{session}->get_plugins( \%params,
 			type => "Import",
-			can_accept => $doc->value( "format" ),
+			can_accept => $doc->value( "mime_type" ),
 			can_produce => "dataobj/eprint",
 			can_action => "*",
 		))
 	{
+		# unpack has its own screen
+		next if @{$plugin->param( "actions" )} == 1 && $plugin->param( "actions" )->[0] eq "unpack";
 		push(@available, $plugin);
 	}
 

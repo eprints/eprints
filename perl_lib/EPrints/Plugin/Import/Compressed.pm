@@ -24,7 +24,7 @@ sub new
 	$self->{visible} = "all";
 	$self->{advertise} = 1;
 	$self->{produce} = [qw( dataobj/document dataobj/eprint )];
-	$self->{accept} = [qw( application/zip application/x-gzip sword:http://purl.org/net/sword/package/SimpleZip )];
+	$self->{accept} = [qw( application/zip application/x-zip application/x-gzip sword:http://purl.org/net/sword/package/SimpleZip )];
 	$self->{actions} = [qw( unpack )];
 
 	return $self;
@@ -57,12 +57,12 @@ sub input_fh
 	if( $dataset->base_id eq "document" )
 	{
 		$epdata = $self->create_epdata_from_directory( $dir, 1 );
-		warn($@), return if !defined $epdata;
+		$self->handler->message("error", $@), return if !defined $epdata;
 	}
 	elsif( $dataset->base_id eq "eprint" )
 	{
 		$epdata = $self->create_epdata_from_directory( $dir, 0 );
-		warn($@), return if !defined $epdata;
+		$self->handler->message("error", $@), return if !defined $epdata;
 		$epdata = {
 			documents => $epdata,
 		};

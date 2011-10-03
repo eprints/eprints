@@ -120,17 +120,35 @@ sub action_update
 	my $main = $repo->param( "main" );
 	foreach my $file (@$files)
 	{
-		if( defined($main) && $main eq $file->value( "filename" ) )
+		if( defined(my $mime_type = $repo->param( "mime_type_".$file->id )) )
 		{
-			$doc->set_value( "main", $main );
-			$doc->commit;
+			$file->set_value( "mime_type", $mime_type );
+			$file->commit;
+			if( defined($main) && $main eq $file->value( "filename" ) )
+			{
+				$doc->set_value( "mime_type", $mime_type );
+				$self->{processor}->{refresh} = 1;
+			}
+		}
+		if(
+			defined($main) &&
+			$main eq $file->value( "filename" ) &&
+			$main ne $doc->value( "main" )
+		)
+		{
+			$doc->set_main( $file );
 			$self->{processor}->{refresh} = 1;
 		}
-		elsif( $repo->param( "delete_".$file->id ) )
+		if( $repo->param( "delete_".$file->id ) )
 		{
 			$file->remove();
 			$self->{processor}->{refresh} = 1;
 		}
+	}
+
+	if( $self->{processor}->{refresh} )
+	{
+		$doc->commit;
 	}
 }
 
@@ -140,10 +158,16 @@ sub action_add_file
 
 	$self->{processor}->{redirect} = $self->{processor}->{return_to};
 
-	my $ok = EPrints::Apache::AnApache::upload_doc_file(
-		$self->{session},
-		$self->{processor}->{document},
-		"filename" );
+	my $fh = $self->{session}->query->upload( "filename" );
+	my $filename = $self->{session}->query->param( "filename" );
+	my $filepath = $self->{session}->query->tmpFileName( $fh );
+
+	my $fileobj = $self->{processor}->{document}->add_file(
+		$filepath,
+		$filename,
+	);
+	my $ok = defined $fileobj;
+
 	if( $ok )
 	{
 		$self->{processor}->{refresh} = 1;
@@ -268,11 +292,17 @@ sub _render_file
 	$link->appendChild( $session->make_text( $filename ) );
 	push @values, $link;
 	
-	for( qw( filesize mime_type hash_type hash ) )
+	for( qw( filesize hash_type hash ) )
 	{
 		push @values, $file->render_value( $_ );
 	}
 	
+	splice(@values, 2, 0, $session->make_element( "input",
+		type => "text",
+		name => "mime_type_".$file->id,
+		value => $file->value( "mime_type" ),
+		) );
+
 	push @values, $session->make_element( "input",
 		type => "radio",
 		name => "main",

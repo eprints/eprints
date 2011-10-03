@@ -38,6 +38,7 @@ sub new
 
 	$self->{name} = "Plain text conversion";
 	$self->{visible} = "all";
+	$self->{advertise} = 1;
 
 	return $self;
 }

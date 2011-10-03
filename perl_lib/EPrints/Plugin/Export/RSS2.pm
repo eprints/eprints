@@ -249,7 +249,7 @@ sub render_doc_media_content
 	{
 		$frag->appendChild( $session->make_element( "media:thumbnail", 
 			url => $thumbnail->get_url,
-			type => $thumbnail->mime_type,
+			type => $thumbnail->value( "mime_type" ),
 		) );
 	}
 
@@ -258,7 +258,7 @@ sub render_doc_media_content
 	{
 		$frag->appendChild( $session->make_element( "media:content", 
 			url => $preview->get_url,
-			type => $preview->mime_type,
+			type => $preview->value( "mime_type" ),
 		) );
 	}
 

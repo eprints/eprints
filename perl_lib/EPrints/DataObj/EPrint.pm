@@ -1193,38 +1193,6 @@ sub get_all_documents
 	return @sdocs;
 }
 
-
-
-######################################################################
-=pod
-
-=item @formats =  $eprint->required_formats
-
-Return a list of the required formats for this 
-eprint. Only one of the required formats is required, not all.
-
-An empty list means no format is required.
-
-=cut
-######################################################################
-
-sub required_formats
-{
-	my( $self ) = @_;
-
-	my $fmts = $self->{session}->get_repository->get_conf( 
-				"required_formats" );
-	if( ref( $fmts ) ne "ARRAY" )
-	{
-		# function pointer then...
-		$fmts = $self->{session}->get_repository->call(
-			'required_formats',
-			$self );
-	}
-
-	return @{$fmts};
-}
-
 ######################################################################
 =pod
 

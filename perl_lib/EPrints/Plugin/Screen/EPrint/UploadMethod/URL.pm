@@ -55,9 +55,6 @@ sub action_add_format
 		return;
 	}
 
-	$document->set_value( "format", $session->call( 'guess_doc_type', 
-		$self->{session},
-		$document->get_main ) );
 	$document->commit;
 
 	$processor->{notes}->{upload_plugin}->{to_unroll}->{$document->get_id} = 1;

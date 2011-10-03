@@ -128,13 +128,22 @@ sub action_import_single
 	{
 		my $filename = $self->{repository}->param( "file" );
 		$filename ||= "main.bin";
+		my $filepath = $self->{repository}->query->tmpFileName( $fh );
+
+		$repo->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+			filename => $filename,
+			filepath => $filepath,
+			epdata => my $media_info = {},
+		);
+
 		$epdata->{documents} = [{
+			%$media_info,
 			main => $filename,
-			format => $repo->call( "guess_doc_type", $repo, $filename ),
 			files => [{
 				_content => $fh,
 				filename => $filename,
 				filesize => -s $fh,
+				mime_type => $media_info->{mime_type},
 			}],
 		}];
 	}

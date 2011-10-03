@@ -53,7 +53,7 @@ sub can_be_viewed
 		$_->can_produce( "dataobj/eprint" )
 	} $self->{session}->get_plugins(
 		type => "Import",
-		can_accept => $doc->value( "format" ),
+		can_accept => $doc->value( "mime_type" ),
 	);
 
 	return scalar(@plugins) > 0;
@@ -139,7 +139,7 @@ sub _expand
 	# the normal epdata_to_dataobj is intercepted (parse_only=>1) and we merge
 	# the new documents into our eprint
 	my $handler = EPrints::CLIProcessor->new(
-		message => sub {},
+		message => sub { $self->{processor}->add_message( $_[0], $self->{session}->make_text( $_[1] ) ) },
 		epdata_to_dataobj => sub {
 			my( $epdata ) = @_;
 
@@ -174,7 +174,7 @@ sub _expand
 			parse_only => 1,
 		},
 		type => "Import",
-		can_accept => $doc->value( "format" ),
+		can_accept => $doc->value( "mime_type" ),
 	);
 
 	return if !$plugin;

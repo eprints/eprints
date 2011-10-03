@@ -48,23 +48,23 @@ sub action_add_format
 	{
 		$filename =~ s/^.*\///;
 	}
-	$filename =~ s/^\.+//;
+	$filename = EPrints->system->sanitise( $filename );
 
 	my $filepath = $session->query->tmpFileName( $fh );
 
 	my $epdata = {};
 
 	$session->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
-		epdata => $epdata,
-		filename => $filename,
 		filepath => $filepath,
+		filename => $filename,
+		epdata => $epdata,
 	);
 
 	$epdata->{main} = $filename;
 	$epdata->{files} = [{
 		filename => $filename,
 		filesize => (-s $fh),
-		mime_type => $epdata->{format},
+		mime_type => $epdata->{mime_type},
 		_content => $fh,
 	}];
 

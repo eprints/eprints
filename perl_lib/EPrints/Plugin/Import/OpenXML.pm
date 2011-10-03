@@ -52,7 +52,10 @@ sub input_fh
 	my %flags = map { $_ => 1 } @{$opts{actions}};
 	my $filename = $opts{filename};
 
-	my $format = $session->call( "guess_doc_type", $session, $filename );
+	$session->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+		filename => $filename,
+		epdata => my $media_info = {},
+	);
 
 	my $filepath = "$opts{fh}";
 	if( !-f $filepath ) # need to make a copy for our purposes :-(
@@ -79,12 +82,13 @@ sub input_fh
 	my $epdata = {
 		documents => [{
 			_id => "main",
-			format => $format,
+			format => $media_info->{format},
 			main => $filename,
 			files => [{
 				filename => $filename,
 				filesize => (-s $opts{fh}),
-				_content => $opts{fh}
+				_content => $opts{fh},
+				mime_type => $media_info->{mime_type},
 			}],
 		}],
 	};
@@ -252,19 +256,22 @@ sub _extract_media_files
 	foreach my $file (@files)
 	{
 		my( $filename, $filepath ) = @$file;
+		$session->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+			filename => $filename,
+			filepath => $filepath,
+			epdata => my $media_info = {}
+		);
 		open(my $fh, "<", $filepath) or die "Error opening $filename: $!";
 		push @{$epdata->{documents}}, {
+			%$media_info,
 			main => $filename,
-			format => $session->call( "guess_doc_type", $session, $filename ),
 			files => [{
 				filename => $filename,
 				filesize => (-s $fh),
-				_content => $fh
+				mime_type => $media_info->{mime_type},
+				_content => $fh,
 			}],
 			relation => [{
-#				type => EPrints::Utils::make_relation( "isVersionOf" ),
-#				uri => $doc->internal_uri(),
-#				},{
 				type => EPrints::Utils::make_relation( "isPartOf" ),
 				uri => "main",
 			}],

@@ -500,6 +500,32 @@ sub join_path
 	return join '/', @parts;
 }
 
+=item $filepath = $sys->sanitise( $filepath )
+
+Replaces restricted file system characters and control characters in $filepath with '_'.
+
+Removes path-walking elements ('.', '..') from the front of any path components and removes the leading '/'.
+
+=cut
+
+sub sanitise
+{
+	my( $self, $filepath ) = @_;
+
+	$filepath = Encode::decode_utf8( $filepath )
+		if !utf8::is_utf8( $filepath );
+
+	# control characters + Win32 restricted
+	$filepath =~ s![\x00-\x0f\x7f<>:"\\|?*]!_!g;
+
+	$filepath =~ s!\.+/!/!g; # /foo/../bar
+	$filepath =~ s!/\.+!/!g; # /foo/.bar/
+	$filepath =~ s!//+!/!g; # /foo//bar
+	$filepath =~ s!^/!!g;
+
+	return $filepath;
+}
+
 1;
 
 =head1 COPYRIGHT
