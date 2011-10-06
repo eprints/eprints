@@ -867,6 +867,16 @@ sub get_url
 	return $doc->get_url( $self->value( "filename" ) );
 }
 
+sub path
+{
+	my( $self ) = @_;
+
+	my $parent = $self->parent;
+	return undef if !defined $parent || !defined $parent->path;
+
+	return $parent->path . URI::Escape::uri_escape_utf8( $self->value( "filename" ), "^A-Za-z0-9\-\._~\/" );
+}
+
 1;
 
 __END__

@@ -742,10 +742,11 @@ sub tabs
 
 	my $repo = $self->{repository};
 	my $xml = $repo->xml;
+	my $online = $repo->get_online;
 
 	my $frag = $xml->create_document_fragment;
 
-	my $base_url = exists($opts{base_url}) ? $opts{base_url} : $repo->current_url( query => 1 );
+	my $base_url = exists($opts{base_url}) || !$online ? $opts{base_url} : $repo->current_url( query => 1 );
 	my $basename = exists($opts{basename}) ? $opts{basename} : "ep_tabs";
 
 	# compatibility with Session::render_tabs()
@@ -755,8 +756,9 @@ sub tabs
 	# our special parameter
 	my $q_current = $basename."_current";
 
-	$base_url = URI->new( $base_url );
+	if( defined $base_url )
 	{
+		$base_url = URI->new( $base_url );
 		# strip our parameter from the base URL
 		my @q = $base_url->query_form;
 		for(reverse 0..$#q)
@@ -770,7 +772,7 @@ sub tabs
 	# render the current page according to the request (javascript might alter
 	# the actual page shown)
 	my $current = $opts{current};
-	if( defined($repo->param( $q_current )) )
+	if( $online && defined($repo->param( $q_current )) )
 	{
 		$current = $repo->param( $q_current );
 	}
@@ -809,11 +811,15 @@ sub tabs
 			style => "width: $width\%",
 		) );
 
-		my $href = $base_url->clone();
-		$href->query_form(
-			$href->query_form,
-			$q_current => $label,
-		);
+		my $href;
+		if( $online )
+		{
+			$href = $base_url->clone();
+			$href->query_form(
+				$href->query_form,
+				$q_current => $label,
+			);
+		}
 		if( defined $links && defined $links->{$label} )
 		{
 			$href = $links->{$label};

@@ -38,7 +38,22 @@ sub get_sql_index
 
 	return ($self->get_name()."_family");
 }
-	
+
+# fix undefined parts which causes uniqueness problems :-(
+sub sql_row_from_value
+{
+	my( $self, $session, $value ) = @_;
+
+	my @row = $self->SUPER::sql_row_from_value( $session, $value );
+
+	for(@row)
+	{
+		$_ = "" if !defined $_;
+	}
+
+	return @row;
+}
+
 sub render_single_value
 {
 	my( $self, $session, $value ) = @_;

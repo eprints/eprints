@@ -94,11 +94,10 @@ sub csv
 	{
 		if( !defined $item )
 		{
-			push @r, '""';
+			push @r, '';
 			next;
 		}
-		$item =~ s/(["\\])/\\$1/g;
-		$item =~ s/\r?\n//g;
+		$item =~ s/"/""/g;
 		push @r, '"'.$item.'"';
 	}
 	return join( ",", @r )."\n";

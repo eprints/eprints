@@ -1358,6 +1358,12 @@ sub local_path
 			"documents_path" )."/".$self->get_value( "dir" ) );
 }
 
+sub path
+{
+	my( $self ) = @_;
+
+	return sprintf("%d/", $self->id);
+}
 
 ######################################################################
 =pod
