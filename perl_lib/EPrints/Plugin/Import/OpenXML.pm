@@ -169,13 +169,17 @@ sub _extract_bibl
 	seek($bibl_file,0,0);
 	return if !-s $bibl_file;
 
+	my $mime_type = $session->plugin( "Export::XML" )->param( "mimetype" );
+	$mime_type =~ s/;.*$//;
+
 	push @{$epdata->{documents}}, {
 		format => "other",
+		mime_type => $mime_type,
 		content => "bibliography",
 		files => [{
-			filename => "eprints.xml",
+			filename => "bibliography.xml",
 			filesize => (-s $bibl_file),
-			mime_type => "text/xml",
+			mime_type => $mime_type,
 			_content => $bibl_file,
 		}],
 		relation => [{

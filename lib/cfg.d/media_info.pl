@@ -49,6 +49,7 @@ $c->add_trigger( EP_TRIGGER_MEDIA_INFO, sub {
 
 	# file thinks OpenXML office types are x-zip
 	return 0 if $filename =~ /.(docx|pptx|xlsx)$/i;
+	return 0 if $filename =~ /\.bib$/; # BibTeX
 
 	if( open(my $fh, "file -b -i ".quotemeta($filepath)."|") )
 	{

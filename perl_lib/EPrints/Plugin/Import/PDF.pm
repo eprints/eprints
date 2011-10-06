@@ -162,8 +162,9 @@ sub _parse_bibliography
 	$epdata->{referencetext} = Encode::decode_utf8( $buffer );
 
 	push @{$epdata->{documents}}, {
-			format => "text/plain",
+			format => "other",
 			content => "bibliography",
+			mime_type => "text/plain",
 			main => "bibliography.txt",
 #			relation => [{
 #				type => EPrints::Utils::make_relation( "isVolatileVersionOf" ),
@@ -178,6 +179,7 @@ sub _parse_bibliography
 			files => [{
 				filename => "bibliography.txt",
 				filesize => length( $buffer ),
+				mime_type => "text/plain",
 				_content => \$buffer,
 			}],
 	};
