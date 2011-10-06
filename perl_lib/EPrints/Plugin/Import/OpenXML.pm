@@ -174,6 +174,7 @@ sub _extract_bibl
 
 	push @{$epdata->{documents}}, {
 		format => "other",
+		formatdesc => "XML Bibliography",
 		mime_type => $mime_type,
 		content => "bibliography",
 		files => [{

@@ -163,6 +163,7 @@ sub _parse_bibliography
 
 	push @{$epdata->{documents}}, {
 			format => "other",
+			formatdesc => "Plain Text Bibliography",
 			content => "bibliography",
 			mime_type => "text/plain",
 			main => "bibliography.txt",
