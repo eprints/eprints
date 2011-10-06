@@ -22,7 +22,7 @@ sub new
 
 	$self->{name} = "Unpack an archive (.zip or .tar.gz)";
 	$self->{visible} = "all";
-	$self->{advertise} = 1;
+	$self->{advertise} = 0;
 	$self->{produce} = [qw( dataobj/document dataobj/eprint )];
 	$self->{accept} = [qw( application/zip application/x-zip application/x-gzip sword:http://purl.org/net/sword/package/SimpleZip )];
 	$self->{actions} = [qw( unpack )];

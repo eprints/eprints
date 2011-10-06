@@ -102,10 +102,10 @@ sub action_import_from
 
 	my $plugin = $self->{processor}->{plugin};
 	
-	my $screen = $plugin->screen;
-	if( defined $screen )
+	my $screenid = $plugin->param( "screen" );
+	if( defined $screenid )
 	{
-		$self->{processor}->{screenid} = $screen->get_subtype;
+		$self->{processor}->{screenid} = $screenid;
 	}
 }
 
@@ -154,8 +154,12 @@ sub action_import_upload
 	my( $self ) = @_;
 
 	my $tmpfile = $self->{repository}->get_query->upload( "file" );
+	return if !defined $tmpfile;
+
 	$tmpfile = *$tmpfile; # CGI file handles aren't proper handles
 	return if !defined $tmpfile;
+
+	$self->{processor}->{filename} = $self->{repository}->get_query->param( "file" );
 
 	my $list = $self->run_import( 0, 0, $tmpfile ); # real run with messages
 	return if !defined $list;
@@ -247,6 +251,13 @@ sub run_import
 
 	my @problems;
 
+	my @actions;
+	foreach my $action (@{$plugin->param( "actions" )})
+	{
+		push @actions, $action
+			if scalar($session->param( "action_$action" ));
+	}
+
 	# Don't let an import plugin die() on us
 	my $list = eval {
 		$plugin->input_fh(
@@ -254,6 +265,8 @@ sub run_import
 			dataset=>$dataset,
 			fh=>$tmp_file,
 			user=>$user,
+			filename=>$self->{processor}->{filename},
+			actions=>\@actions,
 		);
 	};
 
@@ -387,6 +400,42 @@ sub render
 	return $session->xhtml->tabs( \@labels, \@panels );
 }
 
+sub render_actions
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+	my $plugin = $self->{processor}->{plugin};
+
+	my $ul = $self->{session}->make_element( "ul",
+		style => "list-style-type: none"
+	);
+
+	foreach my $action (sort @{$plugin->param( "actions" )})
+	{
+		my $li = $xml->create_element( "li" );
+		$ul->appendChild( $li );
+		my $action_id = "action_$action";
+		my $checkbox = $xml->create_element( "input",
+			type => "checkbox",
+			name => $action_id,
+			id => $action_id,
+			value => "yes",
+			checked => "yes",
+		);
+		$li->appendChild( $checkbox );
+		my $label = $xml->create_element( "label",
+			for => $action_id,
+		);
+		$li->appendChild( $label );
+		$label->appendChild( $plugin->html_phrase( $action_id ) );
+	}
+
+	return $ul->hasChildNodes ? $ul : $xml->create_document_fragment;
+}
+
 sub render_import_form
 {
 	my( $self ) = @_;
@@ -406,6 +455,7 @@ sub render_import_form
 			$repo,
 			scalar($repo->param( "data" )),
 		) );
+	$form->appendChild( $self->render_actions );
 	$form->appendChild( $repo->render_action_buttons(
 		test_data => $repo->phrase( "Plugin/Screen/Import:action_test_data" ),
 		import_data => $repo->phrase( "Plugin/Screen/Import:action_import_data" ),
@@ -430,6 +480,7 @@ sub render_upload_form
 		file => undef,
 		type => "file"
 		) );
+	$form->appendChild( $self->render_actions );
 	$form->appendChild( $repo->render_action_buttons(
 		test_upload => $repo->phrase( "Plugin/Screen/Import:action_test_upload" ),
 		import_upload => $repo->phrase( "Plugin/Screen/Import:action_import_upload" ),

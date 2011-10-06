@@ -39,6 +39,7 @@ sub new
 	$self->{accept} = [qw( application/vnd.openxmlformats-officedocument.wordprocessingml.document application/vnd.openxmlformats application/msword )];
 	$self->{advertise} = 1;
 	$self->{actions} = [qw( metadata media bibliography )];
+	$self->{screen} = "Import::Upload";
 
 	return $self;
 }
@@ -50,13 +51,8 @@ sub input_fh
 	my $session = $self->{session};
 
 	my %flags = map { $_ => 1 } @{$opts{actions}};
+
 	my $filename = $opts{filename};
-
-	$session->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
-		filename => $filename,
-		epdata => my $media_info = {},
-	);
-
 	my $filepath = "$opts{fh}";
 	if( !-f $filepath ) # need to make a copy for our purposes :-(
 	{
@@ -69,6 +65,13 @@ sub input_fh
 		seek($filepath,0,0);
 		$opts{fh} = $filepath;
 	}
+	$filename = $filepath if !defined $filename;
+
+	$session->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+		filename => $filename,
+		filepath => $filepath,
+		epdata => my $media_info = {},
+	);
 
 	my $dir = $self->unpack( $filepath, %opts );
 	if( !$dir )
@@ -167,7 +170,7 @@ sub _extract_bibl
 	return if !-s $bibl_file;
 
 	push @{$epdata->{documents}}, {
-		format => "text/xml",
+		format => "other",
 		content => "bibliography",
 		files => [{
 			filename => "eprints.xml",

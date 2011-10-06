@@ -42,6 +42,7 @@ sub new
 	$params{actions} = exists $params{actions} ? $params{actions} : [];
 	$params{arguments} = exists $params{arguments} ? $params{arguments} : {};
 	$params{Handler} = exists $params{Handler} ? $params{Handler} : EPrints::CLIProcessor->new( session => $params{session} );
+	$params{screen} = exists $params{screen} ? $params{screen} : "Import";
 
 	return $class->SUPER::new(%params);
 }
@@ -283,16 +284,6 @@ sub is_tool
 {
 	return 0;
 }
-
-=item $screen = $plugin->screen( %params )
-
-Return the import screen to gather date for this import.
-
-If $screen is undef L<EPrints::Plugin::Screen::Import> will be used.
-
-=cut
-
-sub screen {}
 
 1;
 

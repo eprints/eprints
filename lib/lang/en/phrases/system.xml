@@ -66,6 +66,7 @@ The list of document content types.
 	<epp:phrase id="content_typename_presentation">Presentation</epp:phrase>
 	<epp:phrase id="content_typename_coverimage">Cover Image</epp:phrase>
 	<epp:phrase id="content_typename_metadata">Additional Metadata</epp:phrase>
+	<epp:phrase id="content_typename_bibliography">Bibliography</epp:phrase>
 	<epp:phrase id="content_typename_other">Other</epp:phrase>
 
 
