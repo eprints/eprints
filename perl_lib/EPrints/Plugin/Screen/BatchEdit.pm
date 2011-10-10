@@ -167,8 +167,8 @@ sub ajax_list
 	if( !scalar @records )
 	{
 		$div->appendChild( $session->render_message( "error", $session->html_phrase( "lib/searchexpression:noresults" ) ) );
-		print EPrints::XML::to_string( $div, undef, 1 );
-		EPrints::XML::dispose( $div );
+		print $session->xml->to_string( $div, undef, 1 );
+		$session->xml->dispose( $div );
 		return;
 	}
 
@@ -186,8 +186,8 @@ sub ajax_list
 		$li->appendChild( $record->render_citation_link() );
 	}
 
-	print EPrints::XML::to_string( $div, undef, 1 );
-	EPrints::XML::dispose( $div );
+	print $session->xml->to_string( $div, undef, 1 );
+	$session->xml->dispose( $div );
 }
 
 # generate a new action line
@@ -303,8 +303,8 @@ sub ajax_new_field
 
 	$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
 	binmode(STDOUT, ":utf8");
-	print EPrints::XML::to_string( $div, undef, 1 );
-	EPrints::XML::dispose( $div );
+	print $session->xml->to_string( $div, undef, 1 );
+	$session->xml->dispose( $div );
 }
 
 sub ajax_edit
@@ -343,7 +343,7 @@ sub ajax_edit
 		$progress->remove();
 		$body->appendChild( $session->render_message( "warning", $self->html_phrase( "no_changes" ) ) );
 		print $session->xhtml->to_xhtml( $html );
-		EPrints::XML::dispose( $html );
+		$session->xml->dispose( $html );
 		return;
 	}
 
@@ -414,16 +414,16 @@ sub ajax_edit
 			value => $session->make_text( EPrints::Utils::tree_to_utf8( $value ) ),
 			fieldname => $field->render_name,
 		) );
-		EPrints::XML::dispose( $value );
+		$session->xml->dispose( $value );
 	}
-	$body->applied( $session->render_message( "message", $self->html_phrase( "applied",
+	$body->appendChild( $session->render_message( "message", $self->html_phrase( "applied",
 		changes => $ul,
 	) ) );
 
 	$progress->remove;
 
-	print EPrints::XHTML::to_xhtml( $html );
-	EPrints::XML::dispose( $html );
+	print $session->xhtml->to_xhtml( $html );
+	$session->xml->dispose( $html );
 }
 
 sub ajax_remove
@@ -468,8 +468,8 @@ sub ajax_remove
 
 	$progress->remove;
 
-	print EPrints::XHTML::to_xhtml( $html );
-	EPrints::XML::dispose( $html );
+	print $session->xhtml->to_xhtml( $html );
+	$session->xml->dispose( $html );
 }
 
 sub render
@@ -554,7 +554,7 @@ sub get_fields
 		push @fields, $field;
 		my $name = $field->render_name( $self->{session} );
 		$fieldnames{$field} = lc(EPrints::Utils::tree_to_utf8( $name ) );
-		EPrints::XML::dispose( $name );
+		$self->{session}->xml->dispose( $name );
 	}
 
 	@fields = sort { $fieldnames{$a} cmp $fieldnames{$b} } @fields;
