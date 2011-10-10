@@ -440,7 +440,7 @@ sub from
 	}
 
 	my $satisfy_all = $self->{session}->param( "satisfyall" );
-	$satisfy_all = defined $satisfy_all && $satisfy_all eq "ALL";
+	$satisfy_all = !defined $satisfy_all || $satisfy_all eq "ALL";
 
 	my $searchexp = $processor->{search};
 	if( !defined $searchexp )
