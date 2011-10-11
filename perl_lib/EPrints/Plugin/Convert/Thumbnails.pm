@@ -406,6 +406,9 @@ sub export
 		if( $doc->exists_and_set( "media_sample_start" ) )
 		{
 			$seconds = $doc->get_value( "media_sample_start" );
+		}
+		if( $doc->exists_and_set( "media_duration" ) )
+		{
 			$duration = $doc->get_value( "media_duration" );
 		}
 		# default to 5 seconds (as good a place as any)
