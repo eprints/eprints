@@ -314,6 +314,11 @@ sub _read_exec
 	my $fn = Data::Dumper->Dump( ["$tmp"], ['fn'] );
 	my $args = Data::Dumper->Dump( [[$cmd, @args]], ['args'] );
 
+	if( $repo->{noise} >= 2 )
+	{
+		$repo->log( "Executing: $cmd @args" );
+	}
+
 	my $script = <<EOP;
 $fn$args
 open(STDOUT,">>", \$fn);
