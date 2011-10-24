@@ -7,6 +7,7 @@ EPrints::Plugin::Screen::Subject::Edit
 
 package EPrints::Plugin::Screen::Subject::Edit;
 
+use EPrints::Plugin::Screen::Workflow::Edit;
 @ISA = qw( EPrints::Plugin::Screen::Workflow::Edit );
 
 use strict;
