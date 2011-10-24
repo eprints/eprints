@@ -24,10 +24,56 @@ Update static web pages on demand.
 
 package EPrints::Update::Static;
 
-use Data::Dumper;
+use File::Find;
 
 use strict;
-  
+
+=item %files = scan_static_dirs( $repo, $static_dirs )
+
+Returns a list of files in $static_dirs where the key is the relative path and
+the value is the absolute path.
+
+=cut
+
+sub scan_static_dirs
+{
+	my( $repo, $static_dirs ) = @_;
+
+	my %files;
+
+	foreach my $dir (@$static_dirs)
+	{
+		_scan_static_dirs( $repo, $dir, "", \%files );
+	}
+
+	return %files;
+}
+
+sub _scan_static_dirs
+{
+	my( $repo, $dir, $path, $files ) = @_;
+
+	File::Find::find({
+		wanted => sub {
+			return if $dir eq $File::Find::name;
+			return if $File::Find::name =~ m#/\.#;
+			if( -d $File::Find::name )
+			{
+				return if $_ eq "CVS";
+				_scan_static_dirs(
+					$repo,
+					$File::Find::name,
+					(length($path) ? "$path/$_" : $_),
+					$files
+				);
+			}
+			else
+			{
+				$files->{length($path) ? "$path/$_" : $_} = $File::Find::name;
+			}
+		},
+	}, $dir);
+}
 
 sub update_static_file
 {
