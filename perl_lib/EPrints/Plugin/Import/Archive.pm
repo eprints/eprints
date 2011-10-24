@@ -63,100 +63,6 @@ sub add_archive
 	return( $tmpdir );
 }
 
-#####################################################################
-=pod
-
-=item $success = $plugin->set_main_file( $document) 
-
-Set a main file for a document which may not have one.
-
-by default this is index.html or the first file
-
-=cut
-#####################################################################
-
-sub set_main_file
-{
-	my ($self, $doc) = @_;
-
-	my $repo = $self->{session};
-
-	if( !$doc->set_main( "index.html" ) && !$doc->set_main( "index.htm" ) )
-	{
-		my $files = $doc->value( "files" );
-		if( @$files )
-		{
-			my $file = $files->[0];
-			$doc->set_value( "main", $file->value( "filename" ) );
-		}
-	}
-
-	if( $doc->is_set( "main" ) )
-	{
-		my $file = $doc->get_stored_file( $doc->value( "main" ) );
-		$doc->set_value( "format", $repo->call( 'guess_doc_type',
-					$repo,
-					$file->value( "filename" ) ) );
-	}
-
-	$doc->commit;
-}
-
-
-
-
-
-
-
-######################################################################
-=pod
-
-=item $success = $plugin->add_directory_to_document( $directory )
-
-Upload the contents of $directory to this document. This will not set the main file.
-
-This method expects $directory to have a trailing slash (/).
-
-=cut
-######################################################################
-
-sub add_directory_to_document
-{
-        my( $self, $directory, $doc ) = @_;
-
-        $directory =~ s/[\/\\]?$/\//;
-
-        my $rc = 0;
-
-        if( !-d $directory )
-        {
-                EPrints::abort( "Attempt to call upload_dir on a non-directory: $directory" );
-        }
-
-        File::Find::find( {
-                no_chdir => 1,
-                wanted => sub {
-			return if -d $File::Find::name;
-                        my $filepath = $File::Find::name;
-                        my $filename = substr($filepath, length($directory));
-                        open(my $filehandle, "<", $filepath);
-                        unless( defined( $filehandle ) )
-                        {
-                                $rc = 0;
-                                return;
-                        }
-                        my $stored = $doc->add_stored_file(
-                                $filename,
-                                $filehandle,
-                                -s $filepath
-                        );
-                        $rc = defined $stored;
-                },
-        }, $directory );
-
-        return $rc;
-}
-
 sub create_epdata_from_directory
 {
 	my( $self, $dir, $single ) = @_;
@@ -167,6 +73,8 @@ sub create_epdata_from_directory
 		{ files => [] } :
 		[];
 
+	my $media_info = {};
+
 	eval { File::Find::find( {
 		no_chdir => 1,
 		wanted => sub {
@@ -174,12 +82,20 @@ sub create_epdata_from_directory
 			my $filepath = $File::Find::name;
 			my $filename = substr($filepath, length($dir) + 1);
 
+			$media_info = {};
+			$repo->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+				filename => $filename,
+				filepath => $filepath,
+				epdata => $media_info,
+				);
+
 			open(my $fh, "<", $filepath) or die "Error opening $filename: $!";
 			if( $single )
 			{
 				push @{$epdata->{files}}, {
 					filename => $filename,
 					filesize => -s $fh,
+					mime_type => $media_info->{mime_type},
 					_content => $fh,
 				};
 				die "Too many files" if @{$epdata->{files}} > 100;
@@ -187,92 +103,33 @@ sub create_epdata_from_directory
 			else
 			{
 				push @{$epdata}, {
+					%$media_info,
 					main => $filename,
 					files => [{
 						filename => $filename,
 						filesize => -s $fh,
+						mime_type => $media_info->{mime_type},
 						_content => $fh,
 					}],
 				};
-				$repo->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
-					epdata => $epdata->[$#$epdata],
-					filename => $filename,
-					filepath => $filepath,
-					);
 				die "Too many files" if @{$epdata} > 100;
 			}
 		},
 	}, $dir ) };
 
+	if( $single )
+	{
+		# bootstrap the document data from the last file
+		$epdata = {
+			%$media_info,
+			%$epdata,
+			main => $epdata->{files}->[-1]->{filename},
+		};
+	}
+
 	return !$@ ? $epdata : undef;
 }
 
-######################################################################
-=pod
-
-=item $success = $doc->add_directory_to_eprint( $directory )
-
-Upload the contents of $directory to this eprint. This will create one document per file.
-
-This method expects $directory to have a trailing slash (/).
-
-=cut
-######################################################################
-
-sub add_directory_to_eprint
-{
-        my( $self, $directory, $eprint ) = @_;
-
-	my $repo = $self->{session};
-
-        $directory =~ s/[\/\\]?$/\//;
-
-        my $rc = 0;
-	my @docs;
-
-        if( !-d $directory )
-        {
-                EPrints::abort( "Attempt to call upload_dir on a non-directory: $directory" );
-        }
-
-        File::Find::find( {
-                no_chdir => 1,
-                wanted => sub {
-			return if -d $File::Find::name;
-                        my $filepath = $File::Find::name;
-                        my $filename = substr($filepath, length($directory));
-                        open(my $filehandle, "<", $filepath);
-                        unless( defined( $filehandle ) )
-                        {
-                                $rc = 0;
-                                return;
-                        }
-			
-			my $format = $repo->call( 'guess_doc_type', $repo, $filename );
-
-			my $doc = $eprint->create_subdataobj( "documents", {
-				format => $format,
-				main => $filename,
-			} );
-
-                        my $stored = $doc->add_stored_file(
-                                $filename,
-                                $filehandle,
-				-s $filepath
-                        );
-
-			if (defined $stored) {
-				$doc->commit();
-				push @docs, $doc;
-			} else {
-				$doc->remove();
-			}
-                        $rc = defined $stored;
-                },
-        }, $directory );
-
-        return @docs;
-}
 1;
 
 =head1 COPYRIGHT

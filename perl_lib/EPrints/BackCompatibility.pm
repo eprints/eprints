@@ -459,6 +459,34 @@ sub render_toolbar {
 		)->render_toolbar;
 }
 
+sub freshen_citation
+{
+	my( $self, $dsid, $fileid ) = @_;
+}
+
+sub get_citation_spec
+{
+	my( $self, $dataset, $style ) = @_;
+
+	my $citation = $dataset->citation( $style );
+	return undef if !defined $citation;
+
+	EPrints->abort( "get_citation_spec is deprecated and only works with EPC citations: ".$dataset->id.".".$style.": you should be calling render_citation()" )
+		if !$citation->isa( "EPrints::Citation::EPC" );
+
+	return $self->clone_for_me( $citation->{style}, 1 )
+}
+
+sub get_citation_type
+{
+	my( $self, $dataset, $style ) = @_;
+
+	my $citation = $dataset->citation( $style );
+	return undef if !defined $citation;
+
+	return $citation->type;
+}
+
 ######################################################################
 1;
 

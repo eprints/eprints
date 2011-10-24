@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 14;
+use Test::More tests => 15;
 
 use strict;
 use warnings;
@@ -56,4 +56,13 @@ is($list->count, 3, "list is 3 long after slice");
 # 3704 - Secret fields being retrieved from database
 {
 	is( $user->value( "password" ), undef, "secret (password) is undef" );
+}
+
+# 4014 - get_citation_spec() undefined error
+SKIP: {
+	my $citation = $repo->dataset( "eprint" )->citation( "default" );
+	skip "requires EPC citation", 1
+		unless $citation->isa( "EPrints::Citation::EPC" );
+	my $xml = $repo->get_citation_spec( $repo->dataset( "eprint" ), "default" );
+	ok( defined($xml), "get_citation_spec" );
 }

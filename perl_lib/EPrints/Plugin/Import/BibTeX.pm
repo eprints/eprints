@@ -244,6 +244,7 @@ sub new
 	$self->{name} = "BibTeX";
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint', 'dataobj/eprint' ];
+	$self->{accept} = [qw( text/x-bibtex )],
 
 	return $self;
 }

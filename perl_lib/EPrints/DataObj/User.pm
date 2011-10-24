@@ -1237,7 +1237,7 @@ my $PRIVMAP =
 		"indexer/start",
 		"indexer/force_start",
 		"create_user",
-		"subject/edit:editor",
+		"subject/edit",
 		"staff/user_search",
 		"staff/history_search",
 		"staff/issue_search",

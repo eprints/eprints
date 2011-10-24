@@ -90,7 +90,7 @@ sub properties_from
 		return;
 	}
 
-	$processor->{"dataobj"} = $dataset->dataobj( $id );
+	$processor->{"dataobj"} = $dataobj;
 
 	my $plugin = $self->{session}->plugin(
 		"Screen::" . $self->edit_screen,
@@ -99,6 +99,9 @@ sub properties_from
 	$self->{processor}->{can_be_edited} = $plugin->can_be_viewed();
 
 	$self->SUPER::properties_from;
+
+	$self->{processor}->{stage} = $self->{session}->param( "stage" );
+	$self->{processor}->{component} = $self->{session}->param( "component" );
 }
 
 sub allow
@@ -169,9 +172,10 @@ sub has_workflow
 
 sub workflow
 {
-	my( $self ) = @_;
+	my( $self, $workflow_id ) = @_;
 
 	my $cache_id = "workflow";
+	$workflow_id = "default" if !defined $workflow_id;
 
 	my $user = $self->{session}->current_user;
 	my $staff = 0;
@@ -187,13 +191,27 @@ sub workflow
 
 	if( !defined $self->{processor}->{$cache_id} )
 	{
- 		$self->{processor}->{$cache_id} = EPrints::Workflow->new( $self->{session}, "default",
+ 		$self->{processor}->{$cache_id} = EPrints::Workflow->new( $self->{session}, $workflow_id,
 			item => $self->{processor}->{"dataobj"},
 			STAFF_ONLY => [$staff ? "TRUE" : "FALSE", "BOOLEAN"],
 		);
 	}
 
 	return $self->{processor}->{$cache_id};
+}
+
+sub current_component
+{
+	my( $self ) = @_;
+
+	return unless $self->{processor}->{component};
+	my $stage = $self->workflow->get_stage( $self->workflow->get_stage_id );
+	return unless $stage;
+	foreach my $component ($stage->get_components)
+	{
+		return $component if $component->{prefix} eq $self->{processor}->{component};
+	}
+	return undef;
 }
 
 sub uncache_workflow

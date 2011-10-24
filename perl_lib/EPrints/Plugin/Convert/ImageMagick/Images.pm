@@ -49,6 +49,7 @@ sub new
 
 	$self->{name} = "ImageMagick";
 	$self->{visible} = "all";
+	$self->{advertise} = 1;
 
 	return $self;
 }

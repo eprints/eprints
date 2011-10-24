@@ -36,7 +36,7 @@ sub from_form
 {
 	my( $self ) = @_;
 
-	$self->{q} = $self->{session}->param( "q" );
+	$self->{q} = $self->{session}->param( $self->{basename}."q" );
 
 	return ();
 }
@@ -65,6 +65,13 @@ sub is_blank
 	my( $self ) = @_;
 
 	return !EPrints::Utils::is_set( $self->{q} );
+}
+
+sub clear
+{
+	my( $self ) = @_;
+
+	undef $self->{q};
 }
 
 sub execute
@@ -184,14 +191,14 @@ sub _get_records
 	my @ids;
 	if( defined $size )
 	{
-		@ids = grep { $_ } map { $_->get_document->get_data + 0 } $self->{enq}->matches( $offset, $size );
+		@ids = grep { length($_) } map { $_->get_document->get_data } $self->{enq}->matches( $offset, $size );
 	}
 	else
 	{
 		# retrieve matches 1000 ids at a time
 		while((@ids % 1000) == 0)
 		{
-			push @ids, grep { $_ } map { $_->get_document->get_data + 0 } $self->{enq}->matches( $offset, 1000 );
+			push @ids, grep { length($_) } map { $_->get_document->get_data } $self->{enq}->matches( $offset, 1000 );
 			$offset += 1000;
 		}
 	}

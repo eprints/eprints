@@ -936,12 +936,6 @@ sub _load_citation_file
 	}
 }
 
-# DEPRECATED
-sub freshen_citation
-{
-	my( $self, $dsid, $fileid ) = @_;
-}
-
 
 ######################################################################
 # 
@@ -5107,64 +5101,6 @@ sub get_plugins
 #############################################################
 #############################################################
 
-
-######################################################################
-# =pod
-# 
-# =item $spec = $repository->get_citation_spec( $dataset, [$ctype] )
-# 
-# Return the XML spec for the given dataset. If a $ctype is specified
-# then return the named citation style for that dataset. eg.
-# a $ctype of "foo" on the eprint dataset gives a copy of the citation
-# spec with ID "eprint_foo".
-# 
-# This returns a copy of the XML citation spec., so that it may be 
-# safely modified.
-# 
-# =cut
-######################################################################
-
-sub get_citation_spec
-{
-	my( $self, $dataset, $style ) = @_;
-
-	my $ds_id = $dataset->confid();
-
-	$style = "default" unless defined $style;
-
-	$self->freshen_citation( $ds_id, $style );
-	my $citespec = $self->{citation_style}->{$ds_id}->{$style};
-	if( !defined $citespec )
-	{
-		$self->log( "Could not find citation style $ds_id.$style. Using default instead." );
-		$style = "default";
-		$self->freshen_citation( $ds_id, $style );
-		$citespec = $self->{citation_style}->{$ds_id}->{$style};
-	}
-	
-	if( !defined $citespec )
-	{
-		return $self->make_text( "Error: Unknown Citation Style \"$ds_id.$style\"" );
-	}
-	
-	my $r = $self->clone_for_me( $citespec, 1 );
-
-	return $r;
-}
-
-sub get_citation_type
-{
-	my( $self, $dataset, $style ) = @_;
-
-	$style = "default" unless defined $style;
-
-	my $citation = $dataset->citation( $style );
-	return undef if !defined $citation;
-
-	$citation->freshen;
-
-	return $citation->{type};
-}
 
 ######################################################################
 =pod

@@ -24,6 +24,7 @@ my %executables = (
 	  'file' => '/usr/bin/file',
 	  'doc2txt' => "$c->{base_path}/tools/doc2txt",
 	  'unoconv' => '/usr/bin/unoconv',
+	  'txt2refs' => "$c->{base_path}/tools/txt2refs",
 	);
 while(my( $name, $path ) = each %executables)
 {

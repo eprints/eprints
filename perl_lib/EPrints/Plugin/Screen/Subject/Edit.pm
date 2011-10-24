@@ -7,7 +7,7 @@ EPrints::Plugin::Screen::Subject::Edit
 
 package EPrints::Plugin::Screen::Subject::Edit;
 
-@ISA = ( 'EPrints::Plugin::Screen::Subject' );
+@ISA = qw( EPrints::Plugin::Screen::Workflow::Edit );
 
 use strict;
 
@@ -29,12 +29,12 @@ sub new
 	return $self;
 }
 
-
-sub can_be_viewed
+sub has_workflow { 1 }
+sub workflow
 {
 	my( $self ) = @_;
 
-	return $self->allow( "subject/edit" );
+	return $self->SUPER::workflow( "screen_subject_edit" );
 }
 
 sub allow_cancel { 1 }
@@ -46,12 +46,59 @@ sub allow_link { 1 }
 sub allow_unlink { 1 }
 sub allow_remove { 1 }
 
+sub can_be_viewed
+{
+	my( $self ) = @_;
+
+	return $self->EPrints::Plugin::Screen::allow( "subject/edit" );
+}
+
+sub properties_from
+{
+	my( $self ) = @_;
+
+	my $processor = $self->{processor};
+
+	$processor->{dataset} = $self->{session}->dataset( "subject" );
+
+	my $id = $self->{session}->param( "dataobj" );
+	if( !EPrints::Utils::is_set( $id ) )
+	{
+		$processor->{dataobj} = $processor->{dataset}->dataobj( "ROOT" );
+	}
+
+	$self->SUPER::properties_from;
+}
+
+sub render_title
+{
+	my( $self ) = @_;
+
+	my $subject = $self->{processor}->{dataobj};
+
+	my $f = $self->{session}->make_doc_fragment;
+	$f->appendChild( $self->html_phrase( "title" ) );
+	$f->appendChild( $self->{session}->make_text( ": " ) );
+
+	my $title = $subject->render_citation( "screen" );
+	$f->appendChild( $title );
+
+	return $f;
+}
+
 sub render
 {
 	my( $self ) = @_;
 
+	if( my $component = $self->current_component )
+	{
+		my $form = $self->render_form;
+		$form->appendChild( $component->render );
+		return $form;
+	}
+
 	my $session = $self->{session};
-	my $subject = $self->{processor}->{subject};
+	my $subject = $self->{processor}->{dataobj};
 
 	my $page = $session->make_doc_fragment;
 
@@ -73,95 +120,38 @@ sub render_editbox
 
 	my $session = $self->{session};
 
-	my $subject_ds = $session->dataset( "subject" );
-	my $subject = $self->{processor}->{subject};
+	my $form = $session->render_form( "POST" );
+	$form->appendChild( $self->render_hidden_bits );
 
-	my $form = $session->render_form( "post" );
-	$form->appendChild( $session->render_hidden_field( "subjectid", $subject->get_id ) );
-	$form->appendChild( $session->render_hidden_field( "screen", "Subject::Edit" ) );
-	my $table = $self->{session}->make_element( "table", class => "ep_multi" );
-	$form->appendChild( $table );
-	my $tbody = $self->{session}->make_element( "tbody" );
-	$table->appendChild( $tbody );
-	my $first = 1;
-	my $prefix = "update";
-	foreach my $field (
-				$subject_ds->get_field( "subjectid" ),
-				$subject_ds->get_field( "name" ),
-				$subject_ds->get_field( "depositable" )
-	) {
-		my %parts;
-		$parts{class} = "";
-		$parts{class} = "ep_first" if $first;
-		$first = 0;
+	my $workflow = $self->workflow;
 
-		$parts{label} = $field->render_name( $self->{session} );
+	my $stage = $workflow->get_stage( $workflow->get_first_stage_id );
 
-		if( $field->{required} eq "yes" ) # moj: Handle for_archive
-		{
-			$parts{label} = $self->{session}->html_phrase( 
-				"sys:ep_form_required",
-				label=>$parts{label} );
-		}
- 
-		$parts{help} = $field->render_help( $self->{session} );
+	# prepend subjectid ???
+	$form->appendChild( $stage->render( $session, $workflow ) );
 
+	$form->appendChild( $session->render_hidden_field( "_default_action", "register" ) );
+	$form->appendChild( $session->render_action_buttons(
+		save => $self->phrase( "action_save" )
+		) );
 
-		# Get the field and its value/default
-		my $value;
-		if( $subject )
-		{
-			$value = $subject->get_value( $field->{name} );
-		}
-		if( $field->get_name eq "depositable" && !EPrints::Utils::is_set($value))
-		{
-			$value = "FALSE";
-		}
-
-		if( $field eq $subject_ds->key_field )
-		{
-			$parts{field} = $field->render_value( $self->{session}, $value );
-		}
-		else
-		{
-			$parts{field} = $field->render_input_field( 
-				$self->{session}, 
-				$value, 
-				undef,
-				0,
-				undef,
-				$subject,
-				$prefix,
-			  );
-		}
-
-		$parts{help_prefix} = $prefix."_help_".$field->get_name;
-
-		$table->appendChild( $self->{session}->render_row_with_help( %parts ) );
-	}
-        $form->appendChild( $session->render_action_buttons(
-                save => $self->phrase( "action_save" ) ) );
-
-	return $self->{session}->render_toolbox( 
-		undef,
-		$form );
+	return $form;
 }
 
 sub action_save
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
-	my $subject = $self->{processor}->{subject};
-	my $subject_ds = $session->dataset( "subject" );
-	my $name = $subject_ds->get_field( "name" )->form_value( $session, $subject, "update" );
-	$subject->set_value( "name", $name );
+	my $processor = $self->{processor};
+	my $subject = $processor->{dataobj};
 
-	my $depositable = $subject_ds->get_field( "depositable" )->form_value( $session, $subject, "update" );
-	$subject->set_value( "depositable", $depositable );
-	$self->{processor}->add_message( "message", $self->html_phrase( "saved" ) );
+	my $workflow = $self->workflow;
 
-	$subject->commit();
+	if( $workflow->update_from_form( $processor, $workflow->get_stage_id, 0 ) )
+	{
+		$processor->add_message( "message", $self->html_phrase( "saved" ) );
+		$subject->commit();
+	}
 }
 
 
@@ -175,27 +165,31 @@ sub render_subject_tree
 	my $xml = $repo->xml;
 	my $xhtml = $repo->xhtml;
 
-	my $subject = $self->{processor}->{subject};
+	my $subject = $self->{processor}->{dataobj};
 	my $dataset = $subject->get_dataset;
 
 	my $tree = {
 		$EPrints::DataObj::Subject::root_subject => $self->render_subject( $dataset->dataobj( $EPrints::DataObj::Subject::root_subject ), 1 ),
 	};
 
-	$self->_render_subject_tree( $tree, $subject );
+	$self->_render_subject_tree( $tree, $subject, {} );
 
 	return $tree->{$EPrints::DataObj::Subject::root_subject};
 }
 
 sub _render_subject_tree
 {
-	my( $self, $tree, $current ) = @_;
+	my( $self, $tree, $current, $seen ) = @_;
+
+	return undef if $seen->{$current->id}++;
+#	EPrints->abort( "subject hierarchy cycle encountered on ".$current->id )
+#		if $seen->{$current->id};
 
 	my $repo = $self->{repository};
 	my $xml = $repo->xml;
 	my $xhtml = $repo->xhtml;
 
-	my $subject = $self->{processor}->{subject};
+	my $subject = $self->{processor}->{dataobj};
 	my $dataset = $subject->get_dataset;
 
 	my $ul;
@@ -206,7 +200,14 @@ sub _render_subject_tree
 		my $container = $tree->{$parent->id};
 		if( !defined $container )
 		{
-			$container = $self->_render_subject_tree( $tree, $parent );
+			$container = $self->_render_subject_tree( $tree, $parent, $seen );
+			if( !defined $container )
+			{
+				$self->{processor}->add_message( "error", $self->html_phrase( "loop",
+					id => $self->{session}->make_text( $current->id ),
+				) );
+				next;
+			}
 			$tree->{$parent->id} = $container;
 		}
 		# ul -> li
@@ -225,7 +226,7 @@ sub render_subject
 	my $xml = $repo->xml;
 	my $xhtml = $repo->xhtml;
 
-	my $subject = $self->{processor}->{subject};
+	my $subject = $self->{processor}->{dataobj};
 	my $dataset = $subject->get_dataset;
 
 	my $ul = $xml->create_element( "ul" );
@@ -247,11 +248,9 @@ sub render_subject
 	}
 	else
 	{
+		local $self->{processor}->{dataobj} = $current;
 		my $url = $repo->current_url( path => "cgi", "users/home" );
-		$url->query_form(
-			$self->hidden_bits,
-			subjectid => $current->id,
-		);
+		$url->query_form( $self->hidden_bits );
 		$li->appendChild( $current->render_citation( "edit",
 			url => $url,
 			pindata => {
@@ -273,7 +272,7 @@ sub render_children
 	my $xml = $repo->xml;
 	my $xhtml = $repo->xhtml;
 
-	my $subject = $self->{processor}->{subject};
+	my $subject = $self->{processor}->{dataobj};
 	my $dataset = $subject->get_dataset;
 
 	my $table = $xml->create_element( "table",
@@ -309,10 +308,10 @@ sub render_children
 			class => ""
 		) );
 		my $url = $repo->current_url( path => "cgi", "users/home" );
-		$url->query_form(
-			$self->hidden_bits,
-			subjectid => $child->id,
-		);
+		{
+			local $self->{processor}->{dataobj} = $child;
+			$url->query_form( $self->hidden_bits );
+		}
 		my $td = $tr->appendChild( $xml->create_element( "td",
 			class => "ep_columns_cell",
 		) );
@@ -389,7 +388,7 @@ sub action_create
 
 	my $session = $self->{session};
 	my $subject_ds = $session->dataset( "subject" );
-	my $subject = $self->{processor}->{subject};
+	my $subject = $self->{processor}->{dataobj};
 	
 	my $childid = $session->param( "childid" );
 	return if !EPrints::Utils::is_set( $childid );
@@ -408,8 +407,7 @@ sub action_create
 		depositable => 1 } );
 
 	$self->{processor}->add_message( "message", $self->html_phrase( "added", newchild=>$child->render_value( "subjectid" ) ) );
-	$self->{processor}->{subject} = $child;
-	$self->{processor}->{subjectid} = $child->id;
+	$self->{processor}->{dataobj} = $child;
 }
 
 sub action_link
@@ -418,7 +416,7 @@ sub action_link
 
 	my $session = $self->{session};
 	my $subject_ds = $session->dataset( "subject" );
-	my $subject = $self->{processor}->{subject};
+	my $subject = $self->{processor}->{dataobj};
 	
 	my $childid = $session->param( "childid" );
 	return if !EPrints::Utils::is_set( $childid );
@@ -440,23 +438,13 @@ sub action_link
 	$self->{processor}->add_message( "message", $self->html_phrase( "linked", newchild=>$child->render_description ) );
 }
 
-sub redirect_to_me_url
-{
-	my( $self ) = @_;
-
-	my $session = $self->{session};
-	my $subject_ds = $session->dataset( "subject" );
-	my $field = $subject_ds->get_field( "name" );
-	return $self->SUPER::redirect_to_me_url.$field->get_state_params( $self->{session} );
-}
-
 sub action_unlink
 {
 	my( $self ) = @_;
 
 	my $repo = $self->{repository};
 	my $subject_ds = $repo->dataset( "subject" );
-	my $subject = $self->{processor}->{subject};
+	my $subject = $self->{processor}->{dataobj};
 	
 	my $childid = $repo->param( "childid" );
 
@@ -496,7 +484,7 @@ sub action_remove
 
 	my $repo = $self->{repository};
 	my $subject_ds = $repo->dataset( "subject" );
-	my $subject = $self->{processor}->{subject};
+	my $subject = $self->{processor}->{dataobj};
 	my $childid = $repo->param( "childid" );
 	
 	my $child = $subject_ds->dataobj( $childid );
@@ -516,10 +504,31 @@ sub from
 	if( defined $self->{processor}->{internal} )
 	{
 		$self->action_save;
+		if( my $component = $self->current_component )
+		{
+			$component->update_from_form( $self->{processor} );
+		}
+		else
+		{
+			$self->workflow->update_from_form( $self->{processor}, undef, 1 );
+		}
+		$self->workflow->{item}->commit;
+		$self->uncache_workflow;
 		return;
 	}
 
 	$self->EPrints::Plugin::Screen::from;
+}
+
+sub hidden_bits
+{
+	my( $self ) = @_;
+
+	# don't need dataset
+	return(
+		$self->EPrints::Plugin::Screen::hidden_bits,
+		dataobj => $self->{processor}->{dataobj}->id,
+	);
 }
 
 =head1 COPYRIGHT

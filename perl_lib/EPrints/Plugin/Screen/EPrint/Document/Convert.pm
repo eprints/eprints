@@ -92,7 +92,8 @@ sub render
 		my $plugin_id = $available{$type}->{ "plugin" }->get_id();
 		my $phrase_id = $available{$type}->{ "phraseid" };
 		my $option = $session->make_element( "option", value => $type );
-		$option->appendChild( $session->html_phrase( $phrase_id ));
+		$option->appendChild( $session->make_text( $type ) );
+#		$option->appendChild( $session->html_phrase( $phrase_id ));
 		$select_button->appendChild( $option );
 	}
 	$form->appendChild( 
@@ -133,6 +134,11 @@ sub action_convert
 		$self->{processor}->add_message( "error", $self->html_phrase( "conversion_failed" ) );
 		return;
 	}
+	$new_doc->set_value( "format", $session->call( "guess_doc_type",
+			$session,
+			$new_doc->value( "main" ),
+			$new_doc->value( "mime_type" ),
+		) );
 	$new_doc->remove_relation( undef, "isVolatileVersionOf" );
 	$new_doc->commit();
 	$new_doc->queue_files_modified();
@@ -148,15 +154,12 @@ sub available
 	my( $self, $doc ) = @_;
 
 	my $convert = $self->{session}->plugin( "Convert" );
-	my %available = $convert->can_convert( $doc );
+	my %available = $convert->can_convert( $doc, undef,
+		is_advertised => "1",
+	);
 
 	my $field = $doc->dataset->get_field( 'format' );
 	my %document_formats = map { ($_ => 1) } $field->tags( $self->{session} );
-
-	foreach my $format (keys %available)
-	{
-		delete $available{$format} if !$document_formats{$format};
-	}
 
 	return %available;
 }

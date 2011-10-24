@@ -20,6 +20,7 @@ sub new
 	$self->{name} = "ISI Web of Knowledge";
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint' ];
+	$self->{screen} = "Import::ISIWoK";
 
 	if( !EPrints::Utils::require_if_exists( "SOAP::ISIWoK::Lite", "1.05" ) )
 	{
@@ -28,13 +29,6 @@ sub new
 	}
 
 	return $self;
-}
-
-sub screen
-{
-	my( $self, %params ) = @_;
-
-	return $self->{repository}->plugin( "Screen::Import::ISIWoK", %params );
 }
 
 sub input_text_fh

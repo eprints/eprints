@@ -51,7 +51,15 @@ sub from
 
 	if( defined $self->{processor}->{internal} )
 	{
-		$self->workflow->update_from_form( $self->{processor}, undef, 1 );
+		if( my $component = $self->current_component )
+		{
+			$component->update_from_form( $self->{processor} );
+		}
+		else
+		{
+			$self->workflow->update_from_form( $self->{processor}, undef, 1 );
+		}
+		$self->workflow->{item}->commit;
 		$self->uncache_workflow;
 		return;
 	}
@@ -74,6 +82,36 @@ sub from
 	}
 
 	$self->EPrints::Plugin::Screen::from;
+}
+
+sub wishes_to_export
+{
+	my( $self ) = @_;
+
+	return $self->current_component->wishes_to_export
+		if $self->current_component;
+
+	return $self->SUPER::wishes_to_export;
+}
+
+sub export_mimetype
+{
+	my( $self ) = @_;
+
+	return $self->current_component->export_mimetype
+		if $self->current_component;
+
+	return $self->SUPER::export_mimetype;
+}
+
+sub export
+{
+	my( $self ) = @_;
+
+	return $self->current_component->export
+		if $self->current_component;
+
+	return $self->SUPER::export;
 }
 
 sub action_stop
@@ -132,6 +170,8 @@ sub redirect_to_me_url
 {
 	my( $self ) = @_;
 
+	return undef if $self->current_component;
+
 	return $self->SUPER::redirect_to_me_url.$self->workflow->get_state_params( $self->{processor} );
 }
 
@@ -140,6 +180,12 @@ sub render
 	my( $self ) = @_;
 
 	my $form = $self->render_form;
+
+	if( my $component = $self->current_component )
+	{
+		$form->appendChild( $component->render );
+		return $form;
+	}
 
 	if( scalar $self->workflow->get_stage_ids > 1 )
 	{

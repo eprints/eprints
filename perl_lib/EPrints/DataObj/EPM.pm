@@ -332,11 +332,10 @@ sub new_from_manifest
 		close($fh);
 		my $md5 = Digest::MD5::md5_hex( $data );
 
-		my $media_info = {};
 		$repo->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
-			epdata => $media_info,
 			filename => $filename,
 			filepath => $filepath,
+			epdata => my $media_info = {},
 		);
 
 		my $copy = { pluginid => "Storage::EPM", sourceid => $filepath };
@@ -350,11 +349,11 @@ sub new_from_manifest
 #				data => MIME::Base64::encode_base64( $data ),
 				hash => $md5,
 				hash_type => "MD5",
-				mime_type => $media_info->{format},
+				mime_type => $media_info->{mime_type},
 				copies => [$copy],
 			})
 		]);
-		$install->set_value( "main", $filename );
+		$install->set_main( $filename );
 
 		if( $filename =~ m#^static/(images/epm/.*)# )
 		{
@@ -364,7 +363,7 @@ sub new_from_manifest
 				content => "coverimage",
 				main => $filename,
 				files => [],
-				format => $media_info->{format},
+				format => "image",
 			});
 			$icon->set_value( "files", [
 				$repo->dataset( "file" )->make_dataobj({
@@ -374,7 +373,7 @@ sub new_from_manifest
 #					data => MIME::Base64::encode_base64( $data ),
 					hash => $md5,
 					hash_type => "MD5",
-					mime_type => $media_info->{format},
+					mime_type => $media_info->{mime_type},
 					copies => [$copy],
 				})
 			]);

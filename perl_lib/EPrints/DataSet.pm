@@ -14,12 +14,11 @@
 
 =head1 NAME
 
-B<EPrints::DataSet> - a dataset is a set of records in the eprints system with
-the same metadata.
+B<EPrints::DataSet> - a set of records with the same metadata scheme
 
 =head1 SYNOPSIS
 
-	my $dataset = $repository->get_dataset( "inbox" );
+	my $dataset = $repository->dataset( "inbox" );
 
 	print sprintf("There are %d records in the inbox\n",
 		$dataset->count);
@@ -45,9 +44,9 @@ the same metadata.
 
 =head1 DESCRIPTION
 
-This module describes an EPrint dataset.
+This module describes a dataset.
 
-A repository has several datasets that make up the repository's database.
+A repository has several datasets that make up the repository's metadata schema.
 The list of dataset ids can be obtained from the repository object
 (see L<EPrints::Repository>).
 
@@ -55,7 +54,7 @@ A normal dataset (eg. "user") has a package associated with it
 (eg. L<EPrints::DataObj::User>) which must be a subclass of L<EPrints::DataObj> 
 and a number of SQL tables which are prefixed with the dataset name.
 Most datasets also have a set of associated L<EPrints::MetaField>'s which
-may be optional or compulsary depending on the type eg. books have editors
+may be optional or required depending on the type eg. books have editors
 but posters don't but they are both EPrints.
 
 The fields contained in a dataset are defined by the data object and by
@@ -63,14 +62,79 @@ any additional fields defined in cfg.d. Some datasets don't have any
 fields.
 
 Some datasets are "virtual" datasets made from others. Examples include 
-"inbox", "archive", "buffer" and "retired" which are all virtual datasets 
+"inbox", "archive", "buffer" and "deletion" which are all virtual datasets 
 of of the "eprint" dataset. That is to say "inbox" is a subset of "eprint" 
-and by inference contains L<EPrints::DataObj::EPrints>. You can define your 
+and by inference contains L<EPrints::DataObj::EPrint>. You can define your 
 own virtual datasets which opperate on existing datasets.
 
-=over 4
+=head1 CREATING CUSTOM DATASETS
+
+New datasets can be defined in a configuration file, e.g.
+
+	$c->{datasets}->{bread} = {
+		class => "EPrints::DataObj::Bread",
+		sqlname => "bread",
+	};
+
+This defines a dataset with the id C<bread> (must be unique). The dataobj package (class) to instantiate objects with is C<EPrints::DataObj::Bread>, which must be a sub-class of L<EPrints::DataObj>. Lastly, the database tables used by the dataset will be called 'bread' or prefixed 'bread_'.
+
+Other optional properties:
+
+	columns - an array ref of field ids to default the user view to
+	datestamp - field id to use to sort this dataset
+	import - is the dataset importable?
+	index - is the dataset text-indexed?
+	order - is the dataset orderable?
+	virtual - completely virtual dataset (no database tables)
+
+To make one dataset a virtual dataset of another (as 'inbox' is to 'eprint') use the following properties:
+
+	confid - the super-dataset this is a virtual sub-dataset of
+	dataset_id_field - the field containing the sub-dataset id
+	filters - an array ref of filters to apply when retrieving records
+
+As with system datasets, the L<EPrints::MetaField>s can be defined via L<EPrints::DataObj/get_system_field_info> or via configuration:
+
+	$c->add_dataset_field(
+		"bread",
+		{ name => "breadid", type => "counter", sql_counter => "bread" }
+	);
+	$c->add_dataset_field(
+		"bread",
+		{ name => "toasted", type => "bool", }
+	);
+	$c->add_dataset_field(
+		"bread",
+		{ name => "description", type => "text", }
+	);
+
+See L<EPrints::RepositoryConfig/add_dataset_field> for details on C<add_dataset_field>.
+
+Creating a fully-operational dataset will require more configuration files. You will probably want at least a L<workflow|EPrints::Workflow>, L<citations|EPrints::Citation> for the summary page, search results etc, and permissions and searching settings:
+
+	push @{$c->{user_roles}->{admin}}, qw(
+		+bread/create
+		+bread/edit
+		+bread/view
+		+bread/destroy
+		+bread/details
+	);
+	push @{$c->{plugins}->{"Export::SummaryPage"}->{params}->{accept}}, qw(
+		dataobj/bread
+	);
+	$c->{datasets}->{bread}->{search}->{simple} = {
+		search_fields => {
+			id => "q",
+			meta_fields => [qw(
+				breadid
+				description
+			)],
+		},
+	};
 
 =begin InternalDoc
+
+=over 4
 
 =item cachemap, counter
 
@@ -81,25 +145,20 @@ Don't have a package or metadata fields associated.
 All have the same package and metadata fields as B<eprints>, but
 are filtered by B<eprint_status>.
 
-=end InternalDoc
-
 =back
-
-=begin InternalDoc
 
 EPrints::DataSet objects are cached by the related EPrints::Repository
 object and usually obtained by calling.
 
 $ds = $repository->get_dataset( "inbox" );
 
+=end InternalDoc
+
 =head1 METHODS
 
 =head2 Class Methods
 
-=end InternalDoc
-
 =over 4
-
 
 =cut
 
@@ -1536,6 +1595,8 @@ sub citation
 	my( $self, $id ) = @_;
 
 	my $repo = $self->repository;
+
+	$id = "default" if !defined $id;
 
 	my $citation = $repo->{citations}->{$self->base_id}->{$id};
 	if( !defined $citation )

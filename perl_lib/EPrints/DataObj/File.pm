@@ -147,7 +147,12 @@ sub new_from_filename
 
 =item $dataobj = EPrints::DataObj::File->create_from_data( $session, $data [, $dataset ] )
 
-Create a new File record using $data. If "_content" is defined in $data it will be read from and stored - for possible values see set_file().
+Create a new File record using $data.
+
+Private data elements:
+
+	_content - content to pass to L</set_file>.
+	_filepath - path to source file used for improved mime-type detection
 
 =cut
 
@@ -156,10 +161,21 @@ sub create_from_data
 	my( $class, $session, $data, $dataset ) = @_;
 
 	my $content = delete $data->{_content} || delete $data->{_filehandle};
+	my $filepath = delete $data->{_filepath};
 
 	# if things go wrong later filesize will be zero
 	my $filesize = $data->{filesize};
 	$data->{filesize} = 0;
+
+	if( !EPrints::Utils::is_set( $data->{mime_type} ) )
+	{
+		$session->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+			filepath => $filepath,
+			filename => $data->{filename},
+			epdata => my $media_info = {}
+		);
+		$data->{mime_type} = $media_info->{mime_type};
+	}
 
 	my $self;
 
@@ -298,34 +314,6 @@ sub get_dataset_id
 
 ######################################################################
 
-=item $defaults = EPrints::DataObj::File->get_defaults( $session, $data )
-
-Return default values for this object based on the starting data.
-
-=cut
-
-######################################################################
-
-sub get_defaults
-{
-	my( $class, $session, $data, $dataset ) = @_;
-	
-	$class->SUPER::get_defaults( $session, $data, $dataset );
-
-	if( defined( $data->{filename} ) )
-	{
-		my $type = $session->get_repository->call( "guess_doc_type", $session, $data->{filename} );
-		if( $type ne "other" )
-		{
-			$data->{mime_type} = $type;
-		}
-	}
-
-	return $data;
-}
-
-######################################################################
-
 =head2 Object Methods
 
 =over 4
@@ -449,11 +437,6 @@ sub upload
 	}
 
 	$self->set_value( "filename", $filename );
-	my $type = $self->{session}->get_repository->call( "guess_doc_type", $self->{session}, $filename );
-	if( $type ne "other" )
-	{
-		$self->set_value( "mime_type", $type );
-	}
 
 	$filesize = $self->set_file( $fh, $filesize );
 	

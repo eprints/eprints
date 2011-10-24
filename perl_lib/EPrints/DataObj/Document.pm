@@ -142,8 +142,10 @@ sub get_system_field_info
 
 		{ name=>"placement", type=>"int", },
 
+		{ name=>"mime_type", type=>"id", volatile=>1, },
+
 		{ name=>"format", type=>"namedset", required=>1, input_rows=>1,
-			set_name=>"document" },
+			set_name=>"document", },
 
 		{ name=>"formatdesc", type=>"text", input_cols=>40 },
 
@@ -297,6 +299,15 @@ sub create_from_data
 	if( !EPrints::Utils::is_set( $data->{main} ) && @$files > 0 )
 	{
 		$data->{main} = $files->[0]->{filename};
+	}
+
+	if( !EPrints::Utils::is_set( $data->{mime_type} ) && @$files > 0 )
+	{
+		foreach my $file (@$files)
+		{
+			$data->{mime_type} = $file->{mime_type}, last
+				if $file->{filename} eq $data->{main};
+		}
 	}
 
 	my $document = $class->SUPER::create_from_data( $session, $data, $dataset );
@@ -717,7 +728,7 @@ sub remove_file
 
 =item $doc->set_main( $main_file )
 
-Sets the main file. Won't affect the database until a $doc->commit().
+Sets the main file and adjusts format and mime type as necessary. Won't affect the database until a $doc->commit().
 
 =cut
 ######################################################################
@@ -729,10 +740,22 @@ sub set_main
 	if( defined $main_file )
 	{
 		# Ensure that the file exists
-		my $fileobj = $self->get_stored_file( $main_file );
+		my $fileobj = UNIVERSAL::isa( $main_file, "EPrints::DataObj::File" ) ?
+			$main_file :
+			$self->stored_file( $main_file );
 
 		# Set the main file if it does
-		$self->set_value( "main", $main_file ) if( defined $fileobj );
+		if( defined $fileobj )
+		{
+			$self->set_value( "main", $fileobj->value( "filename" ) );
+			$self->set_value( "format",
+				$self->{session}->call( "guess_doc_type",
+					$self->{session},
+					$fileobj->value( "filename" ),
+					$fileobj->value( "mime_type" )
+				) );
+			$self->set_value( "mime_type", $fileobj->value( "mime_type" ) );
+		}
 	}
 	else
 	{
@@ -772,7 +795,6 @@ sub get_main
 
 	return;
 }
-
 
 ######################################################################
 =pod
@@ -816,13 +838,19 @@ sub set_format_desc
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $success = $doc->upload( $filehandle, $filename [, $preserve_path [, $filesize ] ] )
+
+DEPRECATED - use L</add_file>, which will automatically identify the file type.
 
 Upload the contents of the given file handle into this document as
 the given filename.
 
 If $preserve_path then make any subdirectories needed, otherwise place
 this in the top level.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -879,7 +907,7 @@ sub upload
 	{
 		if( !$self->is_set( "main" ) )
 		{
-			$self->set_value( "main", $fileobj->value( "filename" ) );
+			$self->set_main( $fileobj );
 			$self->commit();
 		}
 		$self->queue_files_modified;
@@ -891,37 +919,53 @@ sub upload
 ######################################################################
 =pod
 
-=item $success = $doc->add_file( $file, $filename, [$preserve_path] )
+=item $fileobj = $doc->add_file( $file, $filename [, $preserve_path] )
 
 $file is the full path to a file to be added to the document, with
-name $filename.
+name $filename. $filename is passed through L<EPrints::System/sanitise> before
+being written.
 
-If $preserve_path then keep the filename as is (including subdirs and
-spaces)
+If $preserve_path is true then include path components in $filename.
+
+Returns the $fileobj created or undef on failure.
 
 =cut
 ######################################################################
 
 sub add_file
 {
-	my( $self, $file, $filename, $preserve_path ) = @_;
+	my( $self, $filepath, $filename, $preserve_path ) = @_;
 
-	my $fh;
-	open( $fh, "<", $file ) or return( 0 );
-	binmode( $fh );
-	my $rc = $self->upload( $fh, $filename, $preserve_path, -s $file );
+	my $fileobj = $self->stored_file( $filename );
+	$fileobj->remove if defined $fileobj;
+
+	$filename = EPrints->system->sanitise( $filename );
+	$filename = (split '/', $filename)[-1] if !$preserve_path;
+
+	open(my $fh, "<", $filepath) or return undef;
+
+	$fileobj = $self->create_subdataobj( "files", {
+		_content => $fh,
+		_filepath => $filepath,
+		filename => $filename,
+		filesize => -s $fh,
+	});
+
 	close $fh;
 
-	return $rc;
+	return $fileobj;
 }
 
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $cleanfilename = sanitise( $filename )
 
-Return just the filename (no leading path) and convert any naughty
-characters to underscore.
+DEPRECATED - use L<EPrints::System/sanitise>.
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -929,10 +973,9 @@ characters to underscore.
 sub sanitise 
 {
 	my( $filename ) = @_;
-	$filename =~ s/.*\\//;     # Remove everything before a "\" (MSDOS or Win)
-	$filename =~ s/.*\///;     # Remove everything before a "/" (UNIX)
 
-	$filename =~ s/ /_/g;      # Change spaces into underscores
+	$filename = EPrints->system->sanitise( $filename );
+	$filename =~ s!/!_!g;
 
 	return $filename;
 }
@@ -940,13 +983,19 @@ sub sanitise
 ######################################################################
 =pod
 
+=begin InternalDoc
+
 =item $success = $doc->upload_archive( $filehandle, $filename, $archive_format )
+
+DEPRECATED - use L</add_archive>.
 
 Upload the contents of the given archive file. How to deal with the 
 archive format is configured in SystemSettings. 
 
 (In case the over-loading of the word "archive" is getting confusing, 
 in this context we mean ".zip" or ".tar.gz" archive.)
+
+=end InternalDoc
 
 =cut
 ######################################################################
@@ -1036,17 +1085,7 @@ sub add_directory
 			return unless $rc and !-d $File::Find::name;
 			my $filepath = $File::Find::name;
 			my $filename = substr($filepath, length($directory));
-			open(my $filehandle, "<", $filepath);
-			unless( defined( $filehandle ) )
-			{
-				$rc = 0;
-				return;
-			}
-			my $stored = $self->add_stored_file(
-				$filename,
-				$filehandle,
-				-s $filepath
-			);
+			my $stored = $self->add_file( $filepath, $filename, 1 );
 			$rc = defined $stored;
 		},
 	}, $directory );
@@ -1134,7 +1173,7 @@ sub upload_url
 		my $files = $self->value( "files" );
 		if( scalar @$files == 1 )
 		{
-			$self->set_main( $files->[0]->value( "filename" ) );
+			$self->set_main( $files->[0] );
 		}
 	}
 	
@@ -1625,28 +1664,16 @@ sub icon_url
 	my $langid = $session->get_langid;
 	my @static_dirs = $session->get_repository->get_static_dirs( $langid );
 
-	my $icon = "unknown.png";
+	my $icon = "other.png";
 	my $rel_path = "style/images/fileicons";
 
-	# e.g. audio/mp3 will look for "audio_mp3.png" then "audio.png" then
-	# "unknown.png"
 	my $format = $self->value( "format" );
-	$format = "application/octet-stream" if !defined $format;
-	my( $major, $minor ) = split /\//, $format, 2;
-	$minor = "" if !defined $minor;
-	$minor =~ s/\//_/g;
-
 	foreach my $dir (@static_dirs)
 	{
-		my $path = "$dir/$rel_path";
-		if( $minor ne "" && -e "$path/$major\_$minor.png" )
+		my $path = "$dir/$rel_path/$format.png";
+		if( -e $path )
 		{
-			$icon = "$major\_$minor.png";
-			last;
-		}
-		elsif( -e "$path/$major.png" )
-		{
-			$icon = "$major.png";
+			$icon = "$format.png";
 			last;
 		}
 	}
@@ -1991,6 +2018,7 @@ sub make_thumbnails
 	$eprint->commit();
 }
 
+# DEPRECATED - use $doc->value( "mime_type" )
 sub mime_type
 {
 	my( $self, $file ) = @_;

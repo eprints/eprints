@@ -633,7 +633,21 @@ sub validate
 	my $eprint = $self->{workflow}->{item};
 	my $session = $self->{session};
 	
-	my @req_formats = $eprint->required_formats;
+	push @problems, $eprint->validate_field( "documents" );
+
+	# legacy, use a field_validate.pl
+	my @req_formats;
+	if( defined(my $f = $session->config( "required_formats" )) )
+	{
+		if( ref($f) eq "CODE" )
+		{
+			push @req_formats, &$f( $eprint );
+		}
+		else
+		{
+			push @req_formats, @$f;
+		}
+	}
 	my @docs = $eprint->get_all_documents;
 
 	my $ok = 0;

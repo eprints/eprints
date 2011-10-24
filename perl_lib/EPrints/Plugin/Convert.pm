@@ -56,6 +56,7 @@ sub new
 	my( $class, %params ) = @_;
 
 	$params{visible} = exists $params{visible} ? $params{visible} : "all";
+	$params{advertise} = exists $params{advertise} ? $params{advertise} : 0;
 
 	return $class->SUPER::new( %params );
 }
@@ -75,6 +76,22 @@ sub render_name
 	my( $plugin ) = @_;
 
 	return $plugin->{session}->make_text( $plugin->{name} );
+}
+
+sub matches
+{
+	my( $self, $test, $param ) = @_;
+
+	if( $test eq "is_visible" )
+	{
+		return $self->is_visible( $param );
+	}
+	if( $test eq "is_advertised" )
+	{
+		return $self->param( "advertise" ) == $param;
+	}
+
+	return $self->SUPER::matches( $test, $param );
 }
 
 ######################################################################
@@ -104,7 +121,7 @@ sub is_visible
 
 =pod
 
-=item %types = $p->can_convert( $doc )
+=item %types = $p->can_convert( $doc, [$type], [%params] )
 
 Returns a hash of types that this plugin can convert the document $doc to. The key is the type. The value is a hash ref containing:
 
@@ -132,10 +149,10 @@ A value between 0 and 1 representing the 'quality' or confidence in this convers
 
 sub can_convert
 {
-	my ($plugin, $doc, $type) = @_;
+	my ($plugin, $doc, $type, %params) = @_;
 	
 	my $session = $plugin->{ "session" };
-	my @ids = $session->plugin_list( type => 'Convert' );
+	my @ids = $session->plugin_list( type => 'Convert', %params );
 
 	my %types;
 	for(@ids)
@@ -209,10 +226,16 @@ sub convert
 			$session->get_repository->log( "Error reading from $dir/$filename: $!" );
 			next;
 		}
+		$session->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+			filepath => "$dir/$filename",
+			filename => $filename,
+			epdata => my $media_info = {}
+		);
 		push @filedata, {
 			filename => $filename,
 			filesize => (-s "$dir/$filename"),
 			url => "file://$dir/$filename",
+			mime_type => $media_info->{mime_type},
 			_content => $fh,
 		};
 		# file is closed after object creation
@@ -225,7 +248,8 @@ sub convert
 		main => $main_file,
 		eprintid => $eprint->get_id,
 		_parent => $eprint,
-		format => $type,
+		format => "other",
+		mime_type => $filedata[0]->{mime_type},
 		security => $doc->value( "security" ),
 		formatdesc => $plugin->{name} . ' conversion from ' . $doc->get_type . ' to ' . $type,
 		relation => [{

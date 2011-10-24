@@ -1,15 +1,9 @@
 .ep_fileselector dl {
-	margin: 0;
+	margin: 0px 0px 0px 25px;
+	padding: 0px 0px;
 }
-.ep_fileselector ul {
-	clear: left; /* clear the floated input */
-	list-style: none;
-	margin: 0;
-	padding: 0; 
-}
-.ep_fileselector li {
-	padding: 0;
-	margin: 0;
+.ep_fileselector dd {
+	margin: 0px 0px;
 }
 .ep_fileselector input {
 /*	float: left; */
@@ -17,7 +11,7 @@
 .ep_fileselector label {
 	cursor: pointer;
 }
-.ep_fileselector dt {
+.ep_fileselector dt.ep_fileselector {
 	clear: left; /* clear the floated input */
 	display: block;
 	cursor: pointer;
@@ -26,8 +20,6 @@
 	background-position: 0px 0px;
 	padding-left: 20px;
 	padding-bottom: 2px;
-}
-.ep_fileselector dd {
 }
 .ep_fileselector dt.ep_fileselector_open {
 	background-image: url(data:image/gif;base64,R0lGODlhEAAQAOMMAIp5CJqGCrmhCdy+Be3OIe3UP+/YUvLeaPLgdPTlifTolvTro////////////////yH5BAEKAA8ALAAAAAAQABAAAARZUIQ5xbsYh8QTClm4FeRBnYEVIERbHEYsF+Da3rhbH3lPPwFeL7cbGAcBgHIpAQqWgEJisVBYkUCqdpE4eL2K2uJLJoez5XSipkiXz5uOXP55SFD4VGi/jwAAOw==);

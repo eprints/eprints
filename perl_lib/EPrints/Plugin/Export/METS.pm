@@ -235,9 +235,7 @@ sub _make_fileSec
 	
 	foreach my $doc ($dataobj->get_all_documents)
 	{
-		my $baseurl = $doc->get_baseurl;
 		my $id_base = $id."_".$doc->get_id;
-		my %files = $doc->files;
 
 		$fileSec->appendChild(my $fileGrp = $session->make_element(
 			"${PREFIX}fileGrp",
@@ -245,17 +243,17 @@ sub _make_fileSec
 		));
 
 		my $file_idx = 0;
-		while( my( $name, $size) = each %files )
+		foreach my $file (@{$doc->value( "files" )})
 		{
 			$file_idx++;
-			my $url = $baseurl . $name;
-			my $mimetype = $doc->mime_type( $name );
+			my $url = $doc->get_url( $file->value( "filename" ) );
+			my $mimetype = $file->value( "mime_type" );
 			$mimetype = 'application/octet-stream' unless defined $mimetype;
 
 			$fileGrp->appendChild( my $file = $session->make_element(
 				"${PREFIX}file",
 				"ID" => $id_base."_".$file_idx,
-				"SIZE" => $size,
+				"SIZE" => $file->value( "filesize" ),
 				"OWNERID" => $url,
 				"MIMETYPE" => $mimetype
 			));
