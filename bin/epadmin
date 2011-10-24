@@ -3051,8 +3051,8 @@ sub upgrade_3_3_1_to_3_3_2
 	update_counters( $repo, $db );
 
 	# fix the NULL given/honourific
-	$db->do("UPDATE eprint_creators_name SET creators_name_lineage="" WHERE creators_name_lineage is Null");
-	$db->do("UPDATE eprint_creators_name SET creators_name_honourific="" WHERE creators_name_honourific is Null");
+	$db->do("UPDATE eprint_creators_name SET creators_name_lineage='' WHERE creators_name_lineage is Null");
+	$db->do("UPDATE eprint_creators_name SET creators_name_honourific='' WHERE creators_name_honourific is Null");
 
 	my $list = $repo->dataset( "file" )->search(
 		filters => [
