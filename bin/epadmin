@@ -54,6 +54,8 @@ Where I<command> is one of:
 
 =item reorder
 
+=item redo_mime_type
+
 =item redo_thumbnails
 
 =item refresh_abstracts
@@ -165,6 +167,12 @@ Tell the webserver that all views pages must be regenerated. The webserver will 
 =item B<epadmin> refresh_abstracts I<repository_id>
 
 Tell the webserver that all abstract summary pages must be regenerated. The webserver will update them next , but won't update them again unless something on the EPrint changes or you re-run refresh abstracts. Also causes config to be reloaded.
+
+=item B<epadmin> redo_mime_type I<repository_id> dataset [ objectid, ... ]
+
+Re-run the file format identification. Dataset may be one of 'document' or
+'file'. If 'document' only re-does the identification of the main files in
+documents.
 
 =item B<epadmin> redo_thumbnails I<repository_id> [ I<eprintid>, ... ]
 
@@ -321,6 +329,7 @@ else
 	elsif( $action eq "reload_metafields" ) { reload_metafields( $repoid ); }
 	elsif( $action eq "refresh_abstracts" ) { refresh_abstracts( $repoid ); }
 	elsif( $action eq "refresh_views" ) { refresh_views( $repoid ); }
+	elsif( $action eq "redo_mime_type" ) { redo_mime_type( $repoid, @ARGV ); }
 	elsif( $action eq "redo_thumbnails" ) { redo_thumbnails( $repoid, @ARGV ); }
 	elsif( $action eq "set_developer_mode" ) { set_developer_mode( $repoid, @ARGV ); }
 	elsif( $action eq "upgrade" ) { upgrade( $repoid ); }
@@ -1200,6 +1209,78 @@ sub create_user
 	}
 }
 
+sub redo_mime_type
+{
+	my( $repoid, $datasetid, @ids ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	die "Missing dataset argument\n" if !defined $datasetid;
+	die "Dataset must be one of 'document' or 'file'\n"
+		if $datasetid !~ /^document|file$/;
+
+	my $dataset = $repo->dataset( $datasetid );
+	my $list = @ids ? $dataset->list( \@ids ) : $dataset->search;
+
+	my $i = 0;
+	my $f;
+	if( $datasetid eq "document" )
+	{
+		$f = sub {
+			(undef, undef, my $doc) = @_;
+
+			print STDERR sprintf("%.0f%%\r",
+				100 * $i++ / $list->count
+			);
+
+			my( $file ) = $doc->stored_file( $doc->value( "main" ) );
+			return if !defined $file;
+
+			my $fh = $file->get_local_copy;
+			return if !defined $fh;
+
+			$repo->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+				filename => "$fh",
+				filepath => "$fh",
+				epdata => my $media_info = {},
+			);
+
+			foreach my $fieldid (keys %$media_info)
+			{
+				next if !$dataset->has_field( $fieldid );
+				$doc->set_value( $fieldid, $media_info->{$fieldid} );
+			}
+			$file->set_value( "mime_type", $media_info->{mime_type} );
+
+			$file->commit;
+			$doc->commit;
+		};
+	}
+	else
+	{
+		$f = sub {
+			(undef, undef, my $file) = @_;
+
+			print STDERR sprintf("%.0f%%\r",
+				100 * $i++ / $list->count
+			);
+
+			my $fh = $file->get_local_copy;
+			return if !defined $fh;
+
+			$repo->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+				filename => "$fh",
+				filepath => "$fh",
+				epdata => my $media_info = {},
+			);
+
+			$file->set_value( "mime_type", $media_info->{mime_type} );
+			$file->commit;
+		};
+	}
+
+	$list->map( $f );
+}
 
 sub redo_thumbnails
 {
@@ -2636,6 +2717,18 @@ sub upgrade_mysql_charset_table
 	return $rc;
 }
 
+sub checksum
+{
+	my( $filepath ) = @_;
+
+	use Digest::MD5;
+	my $ctx = Digest::MD5->new;
+	open(my $fh, "<", $filepath) or return undef;
+	$ctx->addfile( $fh );
+
+	return $ctx->hexdigest;
+}
+
 sub upgrade
 {
 	my( $repoid ) = @_;
@@ -2666,6 +2759,7 @@ sub upgrade
 			3.2.4
 			3.3.0
 			3.3.1
+			3.3.2
 		);
 
 	for(my $i = 0; $i < $#versions; ++$i)
@@ -2936,6 +3030,42 @@ sub upgrade_3_3_0_to_3_3_1
 				} @cols
 			);
 	}
+}
+
+sub upgrade_3_3_1_to_3_3_2
+{
+	my( $repo, $db ) = @_;
+
+	# document.mime_type
+	update_datasets( $repo, $db );
+	update_counters( $repo, $db );
+
+	my $list = $repo->dataset( "file" )->search(
+		filters => [
+			{ meta_fields => [qw( datasetid )], value => "document" },
+		],
+	);
+	
+	my $i = 0; 
+	$list->map(sub {
+		(undef, undef, my $file) = @_;
+
+		my $docid = $file->value( "objectid" );
+
+		$db->{dbh}->do("UPDATE document SET mime_type=? WHERE docid=?",{},
+			$file->value( "mime_type" ),
+			$docid,
+		);
+
+		print STDERR sprintf("Set document.mime_type %.0f%%\r",
+			100 * $i++ / $list->count
+		);
+	});
+
+	print <<'EOH';
+You may want to update cfg.d/document_upload.pl and namedsets/document then
+./bin/epadmin redo_mime_type [REPOID] document
+EOH
 }
 
 # End of UPGRADE CODE

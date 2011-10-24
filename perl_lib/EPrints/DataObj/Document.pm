@@ -142,7 +142,7 @@ sub get_system_field_info
 
 		{ name=>"placement", type=>"int", },
 
-		{ name=>"mime_type", type=>"id", },
+		{ name=>"mime_type", type=>"id", volatile=>1, },
 
 		{ name=>"format", type=>"namedset", required=>1, input_rows=>1,
 			set_name=>"document", },

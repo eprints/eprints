@@ -61,7 +61,10 @@ $c->add_trigger( EP_TRIGGER_MEDIA_INFO, sub {
 		return 0 if !defined $mime_type;
 		return 0 if $mime_type =~ /^ERROR:/;
 		return 0 if $mime_type eq "application/octet-stream";
-		$epdata->{mime_type} = $mime_type;
+		# more file fubar
+		return 0 if $mime_type =~ /^very short file/;
+		# doc = "application/msword application/msword" ?!
+		($epdata->{mime_type}) = split /\s+/, $mime_type;
 		my( $charset ) = $opts =~ s/charset=(\S+)//;
 		$epdata->{charset} = $charset if defined $charset;
 	}
