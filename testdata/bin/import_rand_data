@@ -123,7 +123,7 @@ for(1..10)
 	push @INSTITUTIONS, $lorem->sentences(1);
 }
 
-my $datapath = $EPrints::SystemSettings::conf->{base_path}."/testdata/data";
+my $datapath = "$FindBin::Bin/../data";
 
 our @DOCUMENTS = (
 	{
