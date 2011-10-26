@@ -57,20 +57,8 @@ sub _scan_static_dirs
 		wanted => sub {
 			return if $dir eq $File::Find::name;
 			return if $File::Find::name =~ m#/\.#;
-			if( -d $File::Find::name )
-			{
-				return if $_ eq "CVS";
-				_scan_static_dirs(
-					$repo,
-					$File::Find::name,
-					(length($path) ? "$path/$_" : $_),
-					$files
-				);
-			}
-			else
-			{
-				$files->{length($path) ? "$path/$_" : $_} = $File::Find::name;
-			}
+			return if -d $File::Find::name;
+			$files->{substr($File::Find::name,length($dir)+1)} = $File::Find::name;
 		},
 	}, $dir);
 }
@@ -333,6 +321,28 @@ sub update_auto
 	close($fh);
 
 	return $target;
+}
+
+sub copy_file
+{
+	my( $repo, $from, $to, $wrote_files ) = @_;
+
+	my @path = split '/', $to;
+	pop @path;
+	EPrints::Platform::mkdir( join '/', @path );
+
+	if( $from =~ /\.xhtml$/ )
+	{
+		return copy_xhtml( @_ );
+	}
+	elsif( $from =~ /\.xpage$/ )
+	{
+		return copy_xpage( $repo, $from, substr($to,0,-6), $wrote_files );
+	}
+	else
+	{
+		return copy_plain( @_[1..$#_] );
+	}
 }
 
 sub copy_plain

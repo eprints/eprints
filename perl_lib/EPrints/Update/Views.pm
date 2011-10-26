@@ -1225,7 +1225,8 @@ sub create_sections_menu
 			langid => $langid,
 			ranges => $ranges,
 			groupings => $groupings,
-			range => $range
+			range => $range,
+			target => $args{target}
 		);
 	}
 
@@ -1240,6 +1241,7 @@ sub create_sections_menu
 			langid => $langid,
 			ranges => $ranges,
 			groupings => $groupings,
+			target => $args{target}
 		);
 
 	return @wrote_files;
