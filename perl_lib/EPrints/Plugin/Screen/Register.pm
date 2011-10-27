@@ -181,18 +181,11 @@ sub action_confirm
 			["password","newpassword","pin"],
 			[$repo->get_database->quote_identifier("newpassword"),"NULL","NULL"],
 		);
-		my @a = ();
-		srand;
-		for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
-		my $code = join( "", @a );
-		my $cookie = $repo->{query}->cookie(
-				-name    => "eprints_session",
-				-path    => "/",
-				-value   => $code,
-				-domain  => $repo->config("cookie_domain"),
-		);
-		$repo->get_request->err_headers_out->{"Set-Cookie"} = $cookie;
-		$repo->get_database->update_ticket_userid( $code, $user->get_id, $ENV{REMOTE_ADDR} );
+		# Create a login ticket and log the user in
+		EPrints::DataObj::LoginTicket->expire_all( $repo );
+		$repo->dataset( "loginticket" )->create_dataobj({
+			userid => $user->id,
+		})->set_cookies();
 	}
 }
 

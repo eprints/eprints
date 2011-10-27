@@ -58,19 +58,11 @@ sub finished
 			login_params => $uri->query,
 			login_check => 1
 			);
-		# always set a new random cookie value when we login
-		my @a = ();
-		srand;
-		for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
-		my $code = join( "", @a );
-		$repo->login( $user,$code );
-		my $cookie = $repo->{query}->cookie(
-			-name    => "eprints_session",
-			-path    => "/",
-			-value   => $code,
-			-domain  => $repo->get_conf("cookie_domain"),
-		);			
-		$repo->get_request->err_headers_out->add('Set-Cookie' => $cookie);
+		# Create a login ticket and log the user in
+		EPrints::DataObj::LoginTicket->expire_all( $repo );
+		$repo->dataset( "loginticket" )->create_dataobj({
+			userid => $user->id,
+		})->set_cookies();
 	}
 
 	$repo->redirect( "$uri" );

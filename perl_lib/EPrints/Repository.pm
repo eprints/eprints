@@ -4745,6 +4745,16 @@ sub _current_user_auth_basic
 	return $user;
 }
 
+sub current_loginticket
+{
+	my( $self ) = @_;
+
+	return EPrints::DataObj::LoginTicket->new_from_request(
+		$self,
+		$self->{request}
+	);
+}
+
 # Attempt to login using cookie based login.
 
 # Returns a user on success or undef on failure.
@@ -4771,19 +4781,12 @@ sub _current_user_auth_cookie
 		return $user;
 	}
 	
-	my $cookie = EPrints::Apache::AnApache::cookie( $self->get_request, "eprints_session" );
+	my $ticket = $self->current_loginticket;
+	return undef if !defined $ticket;
 
-	return undef if( !defined $cookie );
-	return undef if( $cookie eq "" );
+	$ticket->update;
 
-	my $remote_addr = $c->get_remote_host;
-	
-	$userid = $self->{database}->get_ticket_userid( $cookie, $remote_addr );
-	
-	return undef if( !EPrints::Utils::is_set( $userid ) );
-
-	my $user = EPrints::DataObj::User->new( $self, $userid );
-	return $user;
+	return $self->user( $ticket->value( "userid" ) );
 }
 
 ######################################################################
@@ -5178,17 +5181,6 @@ sub allow_anybody
 sub login
 {
 	my( $self,$user,$code ) = @_;
-
-	my $ip = $ENV{REMOTE_ADDR};
-
-        if(!$code)
-	{
-		$code =  EPrints::Apache::AnApache::cookie( $self->get_request, "eprints_session" );
-	}
-	return unless EPrints::Utils::is_set( $code );
-
-	my $userid = $user->get_id;
-	$self->{database}->update_ticket_userid( $code, $userid, $ip );
 }
 
 =begin InternalDoc
