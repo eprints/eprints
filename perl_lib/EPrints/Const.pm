@@ -130,6 +130,16 @@ Continue normal processing.
 
 =item EP_TRIGGER_CREATED
 
+Called after $dataset->create_dataobj( { ... } ).
+
+	dataobj - the newly created dataobj
+
+=item EP_TRIGGER_REMOVED
+
+Called just before the object is removed from the database.
+
+	dataobj - the object being removed
+
 =item EP_TRIGGER_RDF
 
 =item EP_TRIGGER_DEFAULTS
@@ -272,6 +282,7 @@ use constant {
 	EP_TRIGGER_VALIDATE => 106,
 	EP_TRIGGER_WARNINGS => 107,
 	EP_TRIGGER_FILES_MODIFIED => 108,
+	EP_TRIGGER_REMOVED => 109,
 };
 
 # Field properties
@@ -392,6 +403,7 @@ use constant {
 	EP_TRIGGER_VALIDATE
 	EP_TRIGGER_WARNINGS
 	EP_TRIGGER_FILES_MODIFIED
+	EP_TRIGGER_REMOVED
 );
 
 @metafield = qw(
