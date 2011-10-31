@@ -1,48 +1,14 @@
 package BibTeX::Parser::Entry;
-our $VERSION = '0.4';
+BEGIN {
+  $BibTeX::Parser::Entry::VERSION = '0.63';
+}
 
 use warnings;
 use strict;
 
 use BibTeX::Parser::Author;
 
-=head1 NAME
 
-BibTeX::Entry - Contains a single entry of a BibTeX document.
-
-=head1 VERSION
-
-version 0.4
-
-=cut
-
-=head1 SYNOPSIS
-
-This class ist a wrapper for a single BibTeX entry. It is usually created
-by a BibTeX::Parser.
-
-
-    use BibTeX::Parser::Entry;
-
-    my $entry = BibTeX::Parser::Entry->new($type, $key, $parse_ok, \%fields);
-    
-    if ($entry->parse_ok) {
-	    my $type    = $entry->type;
-	    my $key     = $enty->key;
-	    print $entry->field("title");
-	    my @authors = $entry->author;
-	    my @editors = $entry->editor;
-
-	    ...
-    }
-
-=head1 FUNCTIONS
-
-=head2 new
-
-Create new entry.
-
-=cut
 
 sub new {
 	my ($class, $type, $key, $parse_ok, $fieldsref) = @_;
@@ -56,11 +22,6 @@ sub new {
 }
 
 
-=head2 parse_ok
-
-If the entry was correctly parsed, this method returns a true value, false otherwise.
-
-=cut
 
 sub parse_ok {
 	my $self = shift;
@@ -70,11 +31,6 @@ sub parse_ok {
 	$self->{_parse_ok};
 }
 
-=head2 error
-
-Return the error message, if the entry could not be parsed or undef otherwise.
-
-=cut
 
 sub error {
 	my $self = shift;
@@ -85,12 +41,6 @@ sub error {
 	return $self->parse_ok ? undef : $self->{_error};
 }
 
-=head2 type
-
-Get or set the type of the entry, eg. 'ARTICLE' or 'BOOK'. Return value is 
-always uppercase.
-
-=cut
 
 sub type {
 	if (scalar @_ == 1) {
@@ -104,11 +54,6 @@ sub type {
 	}
 }
 
-=head2 key
-
-Get or set the reference key of the entry.
-
-=cut
 
 sub key {
 	if (scalar @_ == 1) {
@@ -123,12 +68,6 @@ sub key {
 
 }
 
-=head2 field($name [, $value])
-
-Get or set the contents of a field. The first parameter is the name of the
-field, the second (optional) value is the new value.
-
-=cut
 
 sub field {
 	if (scalar @_ == 2) {
@@ -137,7 +76,7 @@ sub field {
 		return $self->{ lc( $field ) };
 	} else {
 		my ($self, $key, $value) = @_;
-		$self->{ lc( $key ) } = _sanitize_field($value);
+		$self->{ lc( $key ) } = $value; #_sanitize_field($value);
 	}
 
 }
@@ -183,64 +122,45 @@ sub _split_author_field {
     return () if !defined $field || $field eq '';
 
     my @names;
-	my $name = '';
-	my $inbrace = 0;
-	for($field)
-	{
-		pos($_) = 0;
-		while(pos $_ < length $_)
-		{
-			/\G(\{)/cg && (($name .= $1), ++$inbrace, next);
-			/\G(\})/cg && (($name .= $1), --$inbrace, next);
-			$inbrace && /\G([^\{\}]+)/cg && (($name .= _nbsp($1)), next);
-			/\G([^\{\}]*?)\sand\s+/cig && (push(@names, $name.$1), $name='', next);
-			/\G([^\{\}]+)/cg && (($name .= $1), next); # last name
+
+    my $buffer;
+    while (!defined pos $field || pos $field < length $field) {
+	if ( $field =~ /\G ( .*? ) ( \{ | \s+ and \s+ )/xcgi ) {
+	    my $match = $1;
+	    if ( $2 =~ /and/i ) {
+		$buffer .= $match;
+		push @names, $buffer;
+		$buffer = "";
+	    } elsif ( $2 =~ /\{/ ) {
+		$buffer .= $match . "{";
+		if ( $field =~ /\G (.* \})/cgx ) {
+		    $buffer .= $1;
+		} else {
+		    die "Missing closing brace at " . substr( $field, pos $field, 10 );
 		}
+	    } else {
+		$buffer .= $match;
+	    }
+	} else {
+	   #print "# $field " . (pos ($field) || 0) . "\n";
+	   $buffer .= substr $field, (pos $field || 0);
+	   last;
 	}
-	push @names, $name if length($name);
-	return @names;
+    }
+    push @names, $buffer if $buffer;
+    return @names;
 }
 
-sub _nbsp
-{
-	my( $str ) = @_;
-	$str =~ s/\s/\xa0/g;
-	return $str;
-}
-
-=head2 author([@authors])
-
-Get or set the authors. Returns an array of L<BibTeX::Author|BibTeX::Author> 
-objects. The parameters can either be L<BibTeX::Author|BibTeX::Author> objects
-or strings.
-
-Note: You can also change the authors with $entry->field('author', $authors_string)
-
-=cut
 
 sub author {
 	_handle_author_editor('author', @_);
 }
 
-=head2 editor([@editors])
-
-Get or set the editors. Returns an array of L<BibTeX::Author|BibTeX::Author> 
-objects. The parameters can either be L<BibTeX::Author|BibTeX::Author> objects
-or strings.
-
-Note: You can also change the authors with $entry->field('editor', $editors_string)
-
-=cut
 
 sub editor {
 	_handle_author_editor('editor', @_);
 }
 
-=head2 fieldlist()
-
-Returns a list of all the fields used in this entry.
-
-=cut
 
 sub fieldlist {
 	my $self = shift;
@@ -248,11 +168,6 @@ sub fieldlist {
 	return grep {!/^_/} keys %$self;	
 }
 
-=head2 has($fieldname)
-
-Returns a true value if this entry has a value for $fieldname.
-
-=cut
 
 sub has {
 	my ($self, $field) = @_;
@@ -261,7 +176,6 @@ sub has {
 }
 
 sub _sanitize_field {
-return shift;
 	my $value = shift;	
 	for ($value) {
 		tr/\{\}//d;
@@ -272,11 +186,6 @@ return shift;
 }
 
 
-=head2 raw_bibtex
-
-Return raw BibTeX entry (if available).
-
-=cut
 
 sub raw_bibtex {
 	my $self = shift;
@@ -287,3 +196,124 @@ sub raw_bibtex {
 }
 
 1; # End of BibTeX::Entry
+__END__
+=pod
+
+=head1 NAME
+
+BibTeX::Parser::Entry
+
+=head1 VERSION
+
+version 0.63
+
+=head1 SYNOPSIS
+
+This class ist a wrapper for a single BibTeX entry. It is usually created
+by a BibTeX::Parser.
+
+    use BibTeX::Parser::Entry;
+
+    my $entry = BibTeX::Parser::Entry->new($type, $key, $parse_ok, \%fields);
+    
+    if ($entry->parse_ok) {
+	    my $type    = $entry->type;
+	    my $key     = $enty->key;
+	    print $entry->field("title");
+	    my @authors = $entry->author;
+	    my @editors = $entry->editor;
+
+	    ...
+    }
+
+=head1 NAME
+
+BibTeX::Entry - Contains a single entry of a BibTeX document.
+
+=head1 VERSION
+
+version 0.63
+
+=head1 FUNCTIONS
+
+=head2 new
+
+Create new entry.
+
+=head2 parse_ok
+
+If the entry was correctly parsed, this method returns a true value, false otherwise.
+
+=head2 error
+
+Return the error message, if the entry could not be parsed or undef otherwise.
+
+=head2 type
+
+Get or set the type of the entry, eg. 'ARTICLE' or 'BOOK'. Return value is 
+always uppercase.
+
+=head2 key
+
+Get or set the reference key of the entry.
+
+=head2 field($name [, $value])
+
+Get or set the contents of a field. The first parameter is the name of the
+field, the second (optional) value is the new value.
+
+=head2 cleaned_field($name)
+
+Retrieve the contents of a field in a format that is cleaned of TeX markup.
+
+=head2 cleaned_author
+
+Get an array of L<BibTeX::Parser::Author> objects for the authors of this
+entry. Each name has been cleaned of accents and braces.
+
+=head2 cleaned_editor
+
+Get an array of L<BibTeX::Parser::Author> objects for the editors of this
+entry. Each name has been cleaned of accents and braces.
+
+=head2 author([@authors])
+
+Get or set the authors. Returns an array of L<BibTeX::Author|BibTeX::Author> 
+objects. The parameters can either be L<BibTeX::Author|BibTeX::Author> objects
+or strings.
+
+Note: You can also change the authors with $entry->field('author', $authors_string)
+
+=head2 editor([@editors])
+
+Get or set the editors. Returns an array of L<BibTeX::Author|BibTeX::Author> 
+objects. The parameters can either be L<BibTeX::Author|BibTeX::Author> objects
+or strings.
+
+Note: You can also change the authors with $entry->field('editor', $editors_string)
+
+=head2 fieldlist()
+
+Returns a list of all the fields used in this entry.
+
+=head2 has($fieldname)
+
+Returns a true value if this entry has a value for $fieldname.
+
+=head2 raw_bibtex
+
+Return raw BibTeX entry (if available).
+
+=head1 AUTHOR
+
+Gerhard Gossen <gerhard.gossen@googlemail.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2011 by Gerhard Gossen.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut
+

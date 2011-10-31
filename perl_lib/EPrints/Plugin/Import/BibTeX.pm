@@ -255,12 +255,8 @@ sub input_text_fh
 	
 	my @ids;
 
-	my $fh = IO::Handle->new;
-	$fh->fdopen( fileno($opts{fh}), "r" )
-	 or die "Error opening input filehandle: $!";
-
+	my $fh = $opts{fh};
 	binmode( $fh, ":utf8" );
-
 	my $parser = BibTeX::Parser->new( $fh );
 
 	while(my $entry = $parser->next)
@@ -509,11 +505,12 @@ sub convert_input
 	# keywords
 	$epdata->{keywords} = $entry->field( "keywords" );
 
-	_decode_bibtex( $epdata );
+	$epdata = _decode_bibtex( $epdata );
 
 	# url (don't decode TeX)
 	$epdata->{official_url} = $entry->field( "url" );
-	$epdata->{official_url} =~ s/\\\%/%/g;
+	$epdata->{official_url} =~ s/\\\%/%/g
+		if defined $epdata->{official_url};
 
 	return $epdata;
 }
@@ -529,7 +526,7 @@ sub _decode_bibtex
 		while( my($k,$v) = each(%$epdata) )
 		{
 			next if( $k eq 'type' );
-			$v = _decode_bibtex( $v );
+			$epdata->{$k} = _decode_bibtex( $v );
 		}
 	}
 	elsif( ref($epdata) eq "ARRAY" )
