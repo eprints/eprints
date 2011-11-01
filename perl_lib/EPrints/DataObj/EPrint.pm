@@ -493,9 +493,9 @@ sub create_from_data
 	
 	return undef unless defined $self;
 
-	$self->set_value( "fileinfo", $self->fileinfo );
-
 	$self->update_triggers();
+
+	$self->set_value( "fileinfo", $self->fileinfo );
 
 	$self->save_revision( action => "create" );
 
@@ -984,7 +984,12 @@ sub commit
 		return( 1 ) unless $force;
 	}
 
-	$self->update_triggers(); # might cause a new revision
+	{
+		# block legacy eprint_fields_automatic from changing fileinfo
+		local $self->{data}->{fileinfo};
+		local $self->{changed}->{fileinfo};
+		$self->update_triggers(); # might cause a new revision
+	}
 
 	if( !$self->under_construction )
 	{

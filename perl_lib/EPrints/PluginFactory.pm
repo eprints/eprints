@@ -350,17 +350,17 @@ sub get_plugin
 {
 	my( $self, $id, %params ) = @_;
 
-	if( $self->{disabled}->{$id} )
-	{
-		return;
-	}
-
 	if( exists $self->{alias}->{$id} )
 	{
 		$params{id} = $id;
 		$id = $self->{alias}->{$id};
 	}
 	return unless defined $id;
+
+	if( $self->{disabled}->{$id} )
+	{
+		return;
+	}
 
 	my $class = $self->get_plugin_class( $id );
 	if( !defined $class )

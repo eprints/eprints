@@ -2963,8 +2963,18 @@ sub upgrade_3_2_4_to_3_3_0
 	}
 
 	# move var/metafields.pl to cfg/cfg.d/metafields.pl
-	my $base_path = $repo->config( "arc_path" );
-	rename( "$base_path/var/metafield.pl", "$base_path/cfg/cfg.d/zz_webcfg_eprint_fields.pl" );
+	my $base_path = $repo->config( "archiveroot" );
+	if( open(my $fh, "<", "$base_path/var/metafield.pl") )
+	{
+		open(my $ofh, ">", "$base_path/cfg/cfg.d/zz_webcfg_eprint_fields.pl");
+		while(<$fh>)
+		{
+			$_ =~ s/\bprovidence\b/provenance/;
+			print $ofh $_;
+		}
+		close($fh);
+		close($ofh);
+	}
 
 	$repo->load_config;
 
@@ -3039,6 +3049,10 @@ sub upgrade_3_3_1_to_3_3_2
 	# document.mime_type
 	update_datasets( $repo, $db );
 	update_counters( $repo, $db );
+
+	# fix the NULL given/honourific
+	$db->do("UPDATE eprint_creators_name SET creators_name_lineage='' WHERE creators_name_lineage is Null");
+	$db->do("UPDATE eprint_creators_name SET creators_name_honourific='' WHERE creators_name_honourific is Null");
 
 	my $list = $repo->dataset( "file" )->search(
 		filters => [

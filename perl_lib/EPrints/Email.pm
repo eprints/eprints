@@ -202,16 +202,18 @@ sub send_mail_via_sendmail
 
 	my $repository = $p{session}->get_repository;
 
-	unless( open( SENDMAIL, "|".$repository->invocation( "sendmail" ) ) )
+	if( open(my $fh, "|-", $p{session}->invocation( "sendmail" )) )
 	{
-		$repository->log( "Failed to invoke sendmail: ".
-			$repository->invocation( "sendmail" ) );
-		return( 0 );
+		binmode($fh, ":utf8");
+		print $fh build_email( %p )->as_string;
+		close($fh);
 	}
-	my $message = build_email( %p );
-	print SENDMAIL $message->as_string;
-	close(SENDMAIL) or return( 0 );
-	return( 1 );
+	else
+	{
+		$p{session}->log( $p{session}->invocation( "sendmail" ).": $!" );
+	}
+
+	return 1;
 }
 
 # $mime_message = EPrints::Utils::build_mail( %params ) 

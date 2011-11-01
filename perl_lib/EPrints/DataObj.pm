@@ -484,6 +484,10 @@ sub remove
 {
 	my( $self ) = @_;
 
+	$self->{dataset}->run_trigger( EPrints::Const::EP_TRIGGER_REMOVED,
+		dataobj => $self,
+	);
+
 	$self->queue_removed;
 
 	return $self->{session}->get_database->remove(

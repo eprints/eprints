@@ -281,6 +281,8 @@ sub update_view_menu
 {
 	my( $repo, $target, $langid, $view, $path_values ) = @_;
 
+	$target =~ s/\/index$/\//;
+
 	my $menu_level = scalar @{$path_values};
 	my $menus_fields = $view->menus_fields;
 
@@ -377,6 +379,7 @@ sub update_view_menu
 			nav_sizes => $nav_sizes,
 			has_submenu => $has_submenu,
 			menu_level => $menu_level,
+			target => $target,
 			langid => $langid
 		);
 	
@@ -829,8 +832,12 @@ sub create_single_page_menu
 	my $menu_fields = $menus_fields->[$menu_level];
 	my $menu = $view->{menus}->[$menu_level];
 
+	my $target = $args{target};
+	$target = join '/', $repo->config( "htdocs_path" ), $langid, "view", $view->{id}
+		if !defined $target;
+
 	# work out filename
-	my $target = join '/', $repo->config( "htdocs_path" ), $langid, "view", $view->{id}, abbr_path( $view->escape_path_values( @$path_values ) ), "index";
+	$target = join '/', $target, abbr_path( $view->escape_path_values( @$path_values ) ), "index";
 	if( defined $range )
 	{
 		$target .= ".".EPrints::Utils::escape_filename( $range->[0] );
@@ -1218,7 +1225,8 @@ sub create_sections_menu
 			langid => $langid,
 			ranges => $ranges,
 			groupings => $groupings,
-			range => $range
+			range => $range,
+			target => $args{target}
 		);
 	}
 
@@ -1233,6 +1241,7 @@ sub create_sections_menu
 			langid => $langid,
 			ranges => $ranges,
 			groupings => $groupings,
+			target => $args{target}
 		);
 
 	return @wrote_files;
@@ -1903,6 +1912,7 @@ sub get_filters
 
 	my $filters = $self->{filters};
 	$filters = [] if !defined $filters;
+	$filters = EPrints::Utils::clone( $filters );
 
 	if( $self->dataset->base_id eq "eprint" )
 	{
@@ -2102,6 +2112,7 @@ sub update_view_by_path
 	my( $self, %opts ) = @_;
 
 	$opts{on_write} ||= sub {};
+	$opts{target} ||= join '/', $self->repository->config( "htdocs_path" ), $opts{langid}, "view";
 
 	$self->_update_view_by_path(
 		%opts,
@@ -2116,7 +2127,7 @@ sub _update_view_by_path
 
 	my $repo = $self->repository;
 
-	my $target = join "/", $repo->config( "htdocs_path" ), $opts{langid}, "view", $self->{id}, abbr_path( $self->escape_path_values( @{$opts{path}} ) );
+	my $target = join "/", $opts{target}, $self->{id}, abbr_path( $self->escape_path_values( @{$opts{path}} ) );
 
 	if( scalar @{$opts{path}} == scalar @{$self->{menus}} )
 	{

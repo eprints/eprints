@@ -24,10 +24,44 @@ Update static web pages on demand.
 
 package EPrints::Update::Static;
 
-use Data::Dumper;
+use File::Find;
 
 use strict;
-  
+
+=item %files = scan_static_dirs( $repo, $static_dirs )
+
+Returns a list of files in $static_dirs where the key is the relative path and
+the value is the absolute path.
+
+=cut
+
+sub scan_static_dirs
+{
+	my( $repo, $static_dirs ) = @_;
+
+	my %files;
+
+	foreach my $dir (@$static_dirs)
+	{
+		_scan_static_dirs( $repo, $dir, "", \%files );
+	}
+
+	return %files;
+}
+
+sub _scan_static_dirs
+{
+	my( $repo, $dir, $path, $files ) = @_;
+
+	File::Find::find({
+		wanted => sub {
+			return if $dir eq $File::Find::name;
+			return if $File::Find::name =~ m#/\.#;
+			return if -d $File::Find::name;
+			$files->{substr($File::Find::name,length($dir)+1)} = $File::Find::name;
+		},
+	}, $dir);
+}
 
 sub update_static_file
 {
@@ -287,6 +321,28 @@ sub update_auto
 	close($fh);
 
 	return $target;
+}
+
+sub copy_file
+{
+	my( $repo, $from, $to, $wrote_files ) = @_;
+
+	my @path = split '/', $to;
+	pop @path;
+	EPrints::Platform::mkdir( join '/', @path );
+
+	if( $from =~ /\.xhtml$/ )
+	{
+		return copy_xhtml( @_ );
+	}
+	elsif( $from =~ /\.xpage$/ )
+	{
+		return copy_xpage( $repo, $from, substr($to,0,-6), $wrote_files );
+	}
+	else
+	{
+		return copy_plain( @_[1..$#_] );
+	}
 }
 
 sub copy_plain

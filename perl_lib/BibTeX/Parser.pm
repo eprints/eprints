@@ -1,71 +1,17 @@
 package BibTeX::Parser;
-our $VERSION = '0.4';
+BEGIN {
+  $BibTeX::Parser::VERSION = '0.63';
+}
 # ABSTRACT: A pure perl BibTeX parser
 use warnings;
 use strict;
 
 use BibTeX::Parser::Entry;
 
-=for stopwords jr von
-
-=head1 NAME
-
-BibTeX::Parser - A pure perl BibTeX parser
-
-=head1 VERSION
-
-version 0.4
-
-=cut
 
 my $re_namechar = qr/[a-zA-Z0-9\!\$\&\*\+\-\.\/\:\;\<\>\?\[\]\^\_\`\|]/o;
 my $re_name     = qr/$re_namechar+/o;
 
-=head1 SYNOPSIS
-
-Parses BibTeX files.
-
-    use BibTeX::Parser;
-	use IO::File;
-
-    my $fh     = IO::File->new("filename");
-
-    # Create parser object ...
-    my $parser = BibTeX::Parser->new($fh);
-    
-    # ... and iterate over entries
-    while (my $entry = $parser->next ) {
-	    if ($entry->parse_ok) {
-		    my $type    = $entry->type;
-		    my $title   = $entry->field("title");
-
-		    my @authors = $entry->author;
-		    # or:
-		    my @editors = $entry->editor;
-		    
-		    foreach my $author (@authors) {
-			    print $author->first . " "
-			    	. $author->von . " "
-				. $author->last . ", "
-				. $author->jr;
-		    }
-	    } else {
-		    warn "Error parsing file: " . $entry->error;
-	    }
-    }
-
-
-=head1 FUNCTIONS
-
-=head2 new
-
-Creates new parser object. 
-
-Parameters:
-
-	* fh: A filehandle
-
-=cut
 
 sub new {
     my ( $class, $fh ) = @_;
@@ -97,12 +43,14 @@ sub _slurp_close_bracket;
 sub _parse_next {
     my $self = shift;
 
+	my $fh = $self->{fh};
+
     while (1) {    # loop until regular entry is finished
-        return 0 if $self->{fh}->eof;
+        return 0 if eof($fh);
         local $_ = $self->{buffer};
 
         until (/@/m) {
-            my $line = $self->{fh}->getline;
+            my $line = <$fh>;
             return 0 unless defined $line;
             $_ .= $line;
         }
@@ -119,7 +67,7 @@ sub _parse_next {
             $bracelevel -= tr/\}/\}/;
             while ( $bracelevel != 0 ) {
                 my $position = pos($_);
-                my $line     = $self->{fh}->getline;
+                my $line     = <$fh>;
 				last unless defined $line;
                 $bracelevel =
                   $bracelevel + ( $line =~ tr/\{/\{/ ) - ( $line =~ tr/\}/\}/ );
@@ -157,7 +105,7 @@ sub _parse_next {
                 $current_entry->parse_ok(1);
 
 				# parse key
-                if (/\G\{\s*($re_name),[\s\n]*/cgo) {
+                if (/\G\s*\{(?:\s*($re_name)\s*,[\s\n]*|\s+\r?\s*)/cgo) {
                     $current_entry->key($1);
 
 					# fields
@@ -188,11 +136,6 @@ sub _parse_next {
     }
 }
 
-=head2 next
-
-Returns the next parsed entry or undef.
-
-=cut
 
 sub next {
     my $self = shift;
@@ -268,3 +211,84 @@ sub _extract_bracketed
 }
 
 1;    # End of BibTeX::Parser
+__END__
+=pod
+
+=head1 NAME
+
+BibTeX::Parser - A pure perl BibTeX parser
+
+=head1 VERSION
+
+version 0.63
+
+=head1 SYNOPSIS
+
+Parses BibTeX files.
+
+    use BibTeX::Parser;
+	use IO::File;
+
+    my $fh     = IO::File->new("filename");
+
+    # Create parser object ...
+    my $parser = BibTeX::Parser->new($fh);
+    
+    # ... and iterate over entries
+    while (my $entry = $parser->next ) {
+	    if ($entry->parse_ok) {
+		    my $type    = $entry->type;
+		    my $title   = $entry->field("title");
+
+		    my @authors = $entry->author;
+		    # or:
+		    my @editors = $entry->editor;
+		    
+		    foreach my $author (@authors) {
+			    print $author->first . " "
+			    	. $author->von . " "
+				. $author->last . ", "
+				. $author->jr;
+		    }
+	    } else {
+		    warn "Error parsing file: " . $entry->error;
+	    }
+    }
+
+=for stopwords jr von
+
+=head1 NAME
+
+BibTeX::Parser - A pure perl BibTeX parser
+
+=head1 VERSION
+
+version 0.63
+
+=head1 FUNCTIONS
+
+=head2 new
+
+Creates new parser object. 
+
+Parameters:
+
+	* fh: A filehandle
+
+=head2 next
+
+Returns the next parsed entry or undef.
+
+=head1 AUTHOR
+
+Gerhard Gossen <gerhard.gossen@googlemail.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2011 by Gerhard Gossen.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut
+

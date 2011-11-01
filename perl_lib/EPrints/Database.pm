@@ -672,57 +672,6 @@ sub create_dataset_ordervalues_tables
 	return $rv;
 }
 
-
-# $db->get_ticket_userid( $code, $ip )
-# 
-# return the userid, if any, associated with the given ticket code and IP address.
-
-sub get_ticket_userid
-{
-	my( $self, $code, $ip ) = @_;
-
-	my $sql;
-
-	my $Q_table = $self->quote_identifier( "loginticket" );
-	my $Q_expires = $self->quote_identifier( "expires" );
-	my $Q_userid = $self->quote_identifier( "userid" );
-	my $Q_ip = $self->quote_identifier( "ip" );
-	my $Q_code = $self->quote_identifier( "code" );
-
-	# clean up old tickets
-	$sql = "DELETE FROM $Q_table WHERE ".time." > $Q_expires";
-	$self->do( $sql );
-
-	$sql = "SELECT $Q_userid FROM $Q_table WHERE ($Q_ip='' OR $Q_ip=".$self->quote_value($ip).") AND $Q_code=".$self->quote_value($code);
-	my $sth = $self->prepare( $sql );
-	$self->execute( $sth , $sql );
-	my( $userid ) = $sth->fetchrow_array;
-	$sth->finish;
-
-	return $userid;
-}
-
-sub update_ticket_userid
-{
-	my( $self, $code, $userid, $ip ) = @_;
-
-	my $table = "loginticket";
-
-	my $Q_table = $self->quote_identifier( $table );
-	my $Q_userid = $self->quote_identifier( "userid" );
-	my $Q_code = $self->quote_identifier( "code" );
-
-	my $sql = "DELETE FROM $Q_table WHERE $Q_userid=".$self->quote_int($userid)." AND $Q_code=".$self->quote_value($code);
-	$self->do($sql);
-
-	$self->insert( $table, ["code","userid","ip","expires"], [
-		$code,
-		$userid,
-		$ip,
-		time()+60*60*24*7
-	]);
-}
-
 =item $type_info = $db->type_info( DATA_TYPE )
 
 See L<DBI/type_info>.
