@@ -46,6 +46,8 @@ sub can_be_viewed
 	my $doc = $self->{processor}->{document};
 	return 0 if !$doc;
 
+	return 0 if !$doc->is_set( "mime_type" );
+
 	return 0 if !$self->SUPER::can_be_viewed;
 
 	my @plugins = grep {

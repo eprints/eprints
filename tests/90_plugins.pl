@@ -66,14 +66,16 @@ package $class;
 
 1;
 EOP
-	$session->get_plugin_factory->register_plugin(
-		$session->get_plugin_factory->{repository_data},
+
+	my $pf = $session->get_plugin_factory;
+	$pf->register_plugin(
+		$pf->{repository_data},
 		$class->new( session => $session )
 	);
 	my $conf = $session->{config};
 	local $conf->{plugins}->{"Export::DC"}->{params}->{disable} = 1;
-	local $conf->{plugin_alias_map}->{"Export::DC"} = substr($class, 17);
-	local $conf->{plugin_alias_map}->{substr($class, 17)} = undef;
+	local $pf->{alias}->{"Export::DC"} = substr($class, 17);
+	local $pf->{alias}->{substr($class, 17)} = undef;
 
 	my $plugin = $session->plugin( "Export::DC" );
 	is( ref($plugin), $class, "plugin_alias_map" );

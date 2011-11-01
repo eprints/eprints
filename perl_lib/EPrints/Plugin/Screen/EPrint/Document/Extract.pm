@@ -42,7 +42,9 @@ sub can_be_viewed
 
 	return 0 if !$self->SUPER::can_be_viewed;
 
-	return $self->available( $doc ) > 0;
+	my @plugins = $self->available( $doc );
+	
+	return @plugins > 0;
 }
 
 sub allow_merge { shift->can_be_viewed( @_ ) }
@@ -193,6 +195,8 @@ sub _action
 sub available
 {
 	my( $self, $doc, %params ) = @_;
+
+	return () if !$doc->is_set( "mime_type" );
 
 	my @available;
 	
