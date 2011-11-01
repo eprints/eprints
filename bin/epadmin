@@ -68,8 +68,6 @@ Where I<command> is one of:
 
 =item reload
 
-=item reload_metafields
-
 =item schema
 
 =item set_developer_mode
@@ -179,10 +177,6 @@ documents.
 Regenerate all the thumbnail and image-preview files and any other things which
 are triggered if the document file changed. Optionally supply a list of eprint
 ids to re-generate thumbnails for.
-
-=item B<epadmin> reload_metafields I<repository_id>
-
-Reload the metafields dataset, based on the current configuration.
 
 =item B<epadmin> erase_data I<repository_id>
 
@@ -326,7 +320,6 @@ else
 	elsif( $action eq "erase_eprints" ) { erase_eprints( $repoid ); }
 	elsif( $action eq "erase_fulltext_index" ) { erase_fulltext_index( $repoid ); }
 	elsif( $action eq "reload" ) { reload( $repoid ); }
-	elsif( $action eq "reload_metafields" ) { reload_metafields( $repoid ); }
 	elsif( $action eq "refresh_abstracts" ) { refresh_abstracts( $repoid ); }
 	elsif( $action eq "refresh_views" ) { refresh_views( $repoid ); }
 	elsif( $action eq "redo_mime_type" ) { redo_mime_type( $repoid, @ARGV ); }
@@ -1399,22 +1392,6 @@ soon as possible.
 
 END
 	}
-}	
-
-sub reload_metafields
-{
-	my( $repoid ) = @_;
-
-	my $repo = &repository( $repoid );
-
-	my $dataset = $repo->dataset( "metafield" );
-	$dataset->search->map( sub {
-		my( undef, undef, $mf ) = @_;
-		$mf->remove();
-	});
-
-	my $list = EPrints::DataObj::MetaField::load_all( $repo );
-	print "Loaded ".$list->count." metafields\n";
 }	
 
 sub create_tables
