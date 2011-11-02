@@ -217,6 +217,9 @@ my $hdataset = $session->dataset( "history" );
 
 my $db = $session->get_database;
 
+my $retry = 0;
+HISTORY:
+
 my $sql = "SELECT ".$db->quote_identifier( "userid" )." FROM ".$db->quote_identifier( $hdataset->get_sql_table_name )." WHERE ".$db->quote_identifier( "userid" )." IS NOT NULL";
 my $sth = $db->prepare_select( $sql, limit => 1 );
 $sth->execute;
@@ -224,6 +227,15 @@ $sth->execute;
 my( $userid ) = $sth->fetchrow_array;
 
 undef $sth;
+
+if( !$retry && !defined $userid )
+{
+	my $eprint = $session->dataset( "eprint" )->search( limit => 1 )->item( 0 );
+	BAIL_OUT("No eprints") if !defined $eprint;
+	$eprint->save_revision( user => $session->user( 1 ), action => "unit_test" );
+	$retry = 1;
+	goto HISTORY;
+}
 
 BAIL_OUT("Need at least one history object") unless defined $userid;
 my $user = EPrints::DataObj::User->new( $session, $userid );

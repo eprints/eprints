@@ -537,6 +537,8 @@ sub path
 	my $eprint = $self->parent;
 	return undef if !defined $eprint;
 
+	return undef if !defined $eprint->path;
+
 	return sprintf("%s%i/",
 		$eprint->path,
 		$self->value( "pos" ),
@@ -558,10 +560,13 @@ sub file_path
 {
 	my( $self, $file ) = @_;
 
-	$file = $self->value( "main" ) if !defined $file;
-	return $self->path if !defined $file;
+	my $path = $self->path;
+	return undef if !defined $path;
 
-	return $self->path . URI::Escape::uri_escape_utf8(
+	$file = $self->value( "main" ) if !defined $file;
+	return $path if !defined $file;
+
+	return $path . URI::Escape::uri_escape_utf8(
 		$file,
 		"^A-Za-z0-9\-\._~\/" # don't escape /
 	);
@@ -583,7 +588,10 @@ sub get_url
 {
 	my( $self, $file ) = @_;
 
-	return $self->{session}->config( "http_url" ) . "/" . $self->file_path( $file );
+	my $path = $self->file_path( $file );
+	return undef if !defined $path;
+
+	return $self->{session}->config( "http_url" ) . "/" . $path;
 }
 
 
