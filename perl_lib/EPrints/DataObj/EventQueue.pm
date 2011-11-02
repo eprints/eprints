@@ -243,7 +243,7 @@ sub _execute
 	# expand any object identifiers
 	foreach my $param (@params)
 	{
-		if( $param =~ m# ^/id/([^/]+)/(.+)$ #x )
+		if( defined($param) && $param =~ m# ^/id/([^/]+)/(.+)$ #x )
 		{
 			my $dataset = $session->dataset( $1 );
 			if( !defined $dataset )

@@ -14,6 +14,7 @@ sub index
 {
 	my( $self, $dataobj, @fieldnames ) = @_;
 
+	return if !defined $dataobj;
 	my $dataset = $dataobj->get_dataset;
 
 	my @fields;
@@ -30,6 +31,7 @@ sub index_all
 {
 	my( $self, $dataobj ) = @_;
 
+	return if !defined $dataobj;
 	my $dataset = $dataobj->get_dataset;
 
 	return $self->_index_fields( $dataobj, [$dataset->get_fields] );
