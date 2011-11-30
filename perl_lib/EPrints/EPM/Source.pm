@@ -20,6 +20,7 @@ sub new
 	my( $class, %self ) = @_;
 
 	$self{ua} = LWP::UserAgent->new;
+	$self{ua}->env_proxy;
 
 	return bless \%self, $class;
 }
