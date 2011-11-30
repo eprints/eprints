@@ -39,14 +39,22 @@ sub input_fh
 	my( $self, %opts ) = @_;
 
 	my $fh = $opts{fh};
+	my $is_bom = 0;
 
 	if( $^V gt v5.8.0 and seek( $fh, 0, 1 ) )
 	{
+		binmode($fh); # should be no-op
 		use bytes;
 
 		my $line = <$fh>;
 		seek( $fh, 0, 0 )
 			or die "Unable to reset file handle after BOM/CRLF read";
+
+		# If the line ends with return add the crlf layer
+		if( $line =~ /\r$/ )
+		{
+			binmode( $fh, ":crlf" );
+		}	
 
 		# Detect the Byte Order Mark and set the encoding appropriately
 		# See http://en.wikipedia.org/wiki/Byte_Order_Mark
@@ -54,17 +62,23 @@ sub input_fh
 		{
 			if( defined( my $enc = $BOM2ENC{substr($line,0,$_)} ) )
 			{
+				$is_bom = 1;
 				seek( $fh, $_, 0 );
 				binmode($fh, ":encoding($enc)");
 				last;
 			}
 		}
+	}
 
-		# If the line ends with return add the crlf layer
-		if( $line =~ /\r$/ )
+	if( !$is_bom )
+	{
+		my $enc = "UTF-8";
+		if( $opts{encoding} )
 		{
-			binmode( $fh, ":crlf" );
-		}	
+			my %available = map { $_ => 1 } Encode->encodings( ":all" );
+			$enc = $opts{encoding} if $available{$opts{encoding}};
+		}
+		binmode($fh, ":encoding($enc)");
 	}
 
 	return $self->input_text_fh( %opts );
