@@ -17,6 +17,23 @@ our $MAX_ERR_LEN = 1024;
 
 use strict;
 
+our @ENCODINGS = (
+	"UTF-8",
+	grep { $_ =~ /^iso|cp|UTF/ } Encode->encodings( ":all" )
+);
+{
+my $f = sub {
+	my $s = lc($_[0]);
+	$s = join '',
+		map { $_ =~ /[0-9]/ ? sprintf("%10d", $_) : $_ }
+		split /([^0-9]+)/, $s;
+	return $s;
+};
+@ENCODINGS = sort {
+	&$f($a) cmp &$f($b)
+} @ENCODINGS;
+}
+
 sub new
 {
 	my( $class, %params ) = @_;
@@ -44,6 +61,9 @@ sub new
 	}
 
 	$self->{show_stderr} = 1;
+
+	$self->{encodings} = \@ENCODINGS;
+	$self->{default_encoding} = "iso-8859-1";
 
 	return $self;
 }
@@ -82,6 +102,8 @@ sub properties_from
 		$self->{processor}->{plugin} = $plugin;
 		$self->{processor}->{plugin_id} = $plugin_id;
 	}
+
+	$self->{processor}->{encoding} = $self->{session}->param( "encoding" );
 }
 
 sub can_be_viewed
@@ -113,9 +135,13 @@ sub action_test_data
 {
 	my ( $self ) = @_;
 
+	$self->{processor}->{current} = 0;
+
 	my $tmpfile = File::Temp->new;
-	syswrite($tmpfile, scalar($self->{repository}->param( "data" )));
-	sysseek($tmpfile, 0, 0);
+	binmode($tmpfile, ":utf8");
+	print $tmpfile "\x{feff}";
+	print $tmpfile scalar($self->{repository}->param( "data" ));
+	seek($tmpfile, 0, 0);
 
 	my $list = $self->run_import( 1, 0, $tmpfile ); # dry run with messages
 	$self->{processor}->{results} = $list;
@@ -125,7 +151,10 @@ sub action_test_upload
 {
 	my ( $self ) = @_;
 
+	$self->{processor}->{current} = 1;
+
 	my $tmpfile = $self->{repository}->get_query->upload( "file" );
+	return if !defined $tmpfile;
 	$tmpfile = *$tmpfile; # CGI file handles aren't proper handles
 	return if !defined $tmpfile;
 
@@ -137,9 +166,13 @@ sub action_import_data
 {
 	my( $self ) = @_;
 
+	$self->{processor}->{current} = 0;
+
 	my $tmpfile = File::Temp->new;
-	syswrite($tmpfile, scalar($self->{repository}->param( "data" )));
-	sysseek($tmpfile, 0, 0);
+	binmode($tmpfile, ":utf8");
+	print $tmpfile "\x{feff}";
+	print $tmpfile scalar($self->{repository}->param( "data" ));
+	seek($tmpfile, 0, 0);
 
 	my $list = $self->run_import( 0, 0, $tmpfile ); # real run with messages
 	return if !defined $list;
@@ -152,6 +185,8 @@ sub action_import_data
 sub action_import_upload
 {
 	my( $self ) = @_;
+
+	$self->{processor}->{current} = 1;
 
 	my $tmpfile = $self->{repository}->get_query->upload( "file" );
 	return if !defined $tmpfile;
@@ -267,6 +302,7 @@ sub run_import
 			user=>$user,
 			filename=>$self->{processor}->{filename},
 			actions=>\@actions,
+			encoding=>$self->{processor}->{encoding},
 		);
 	};
 
@@ -397,7 +433,13 @@ sub render
 	push @labels, $self->html_phrase( "upload" );
 	push @panels, $self->render_upload_form;
 
-	return $session->xhtml->tabs( \@labels, \@panels );
+	my $base_url = $session->current_url;
+	$base_url->query_form( $self->hidden_bits );
+
+	return $session->xhtml->tabs( \@labels, \@panels,
+		base_url => $base_url,
+		current => $self->{processor}->{current},
+	);
 }
 
 sub render_actions
@@ -480,6 +522,14 @@ sub render_upload_form
 		file => undef,
 		type => "file"
 		) );
+	$form->appendChild( $repo->render_option_list(
+		name => "encoding",
+		default => ($repo->param( "encoding" ) || $self->param( "default_encoding" )),
+		values => $self->param( "encodings" ),
+		labels => {
+			map { $_ => $_ } @{$self->param( "encodings" )},
+		},
+	) );
 	$form->appendChild( $self->render_actions );
 	$form->appendChild( $repo->render_action_buttons(
 		test_upload => $repo->phrase( "Plugin/Screen/Import:action_test_upload" ),
