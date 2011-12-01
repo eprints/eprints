@@ -486,7 +486,7 @@ sub render_import_form
 	my $xml = $repo->xml;
 	my $xhtml = $repo->xhtml;
 
-	my $div = $xml->create_element( "div", class => "ep_block" );
+	my $div = $xml->create_element( "div", class => "ep_block ep_sr_component" );
 
 	my $form = $div->appendChild( $self->{processor}->screen->render_form );
 	$form->appendChild(EPrints::MetaField->new(
