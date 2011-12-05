@@ -810,14 +810,14 @@ sub _list
 
 	if( defined $args->{offset} )
 	{
-		my $offset = sprintf("%d-", $args->{offset});
+		my $offset = sprintf("%d..", $args->{offset});
 		$searchexp->add_field( $ds->key_field, $offset );
 	}
 
 	my $date_range;
 	if( defined $args->{from} )
 	{
-		$date_range = $args->{from}."-";
+		$date_range = $args->{from}."..";
 	}
 	if( defined $args->{until} )
 	{
