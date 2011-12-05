@@ -806,7 +806,7 @@ sub _list
 				@{$filters},
 			],
 			custom_order => "eprintid",
-			limit => $PAGESIZE );
+			limit => ($PAGESIZE+1) );
 
 	if( defined $args->{offset} )
 	{
@@ -883,7 +883,7 @@ END
 	my $list = $searchexp->perform_search();
 	my @records = $list->slice( 0, $PAGESIZE );
 
-	if( @records == 0 && !defined $args->{offset} )
+	if( @records == 0 )
 	{
 		# no items at all
 
@@ -925,7 +925,7 @@ END
 	}
 
 	# will show a blank list if total is % $PAGESIZE
-	if( @records >= $PAGESIZE )
+	if( $list->count > $PAGESIZE )
 	{
 		# we'll give a fake expiration date to make DRIVER happy
 		$response->appendChild( $repo->xhtml->data_element(
