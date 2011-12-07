@@ -165,9 +165,17 @@ sub render_content
 				"sys:ep_form_required",
 				label=>$parts{label} );
 		}
- 
-		$parts{help} = $field->render_help( $self->{session} );
 
+		# Option to have different help for different eprint type - phrase IDs should be e.g. "eprint_fieldhelp_title.article"
+	        if( $self->{dataobj}->exists_and_set('type') )
+	        {
+	                my $phrase_id = 'eprint_fieldhelp_' . $field->{name} . '.' . $self->{dataobj}->get_value('type');
+	                if( $self->{session}->get_lang->has_phrase( $phrase_id ) )
+	                {
+	                        $parts{help} = $self->{session}->html_phrase($phrase_id);
+	                }
+	        }
+		$parts{help} = $field->render_help( $self->{session} ) unless $parts{help};
 
 		# Get the field and its value/default
 		my $value;
