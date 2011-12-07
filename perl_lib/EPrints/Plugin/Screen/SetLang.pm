@@ -30,7 +30,8 @@ sub from
 	$session->{request}->err_headers_out->add('Set-Cookie' => $cookie);
 
 	my $referrer = $session->param( "referrer" );
-	$referrer = $session->config( "home_page" ) if !EPrints::Utils::is_set( $referrer );
+        $referrer = EPrints::Apache::AnApache::header_in( $session->get_request, 'Referer' ) unless( EPrints::Utils::is_set( $referrer ) );
+	$referrer = $session->config( "home_page" ) unless( EPrints::Utils::is_set( $referrer ) );
 
 	$self->{processor}->{redirect} = $referrer;
 }
