@@ -88,6 +88,16 @@ sub convert_dataobj
 		}
 	}
 
+	# A Corporate Author - a trailing comma MUST be added, see EndNote documentation
+	my $ds = $dataobj->get_dataset;
+	if( $dataobj->exists_and_set( 'corp_creators' ) )
+	{
+		foreach my $corp ( @{ $dataobj->get_value( 'corp_creators' ) } )
+		{
+			push @{ $data->{A} }, $corp.",";
+		}
+	}	
+
 	# B Conference Name, Department (Thesis), Series (Book, Report), Book Title (Book Section)
 	if( $type eq "conference_item")
 	{
@@ -215,7 +225,8 @@ sub output_dataobj
 	my $data = $plugin->convert_dataobj( $dataobj );
 
 	my $out = "";
-	foreach my $k ( sort keys %{ $data } )
+	# forces '0' to be FIRST
+	foreach my $k ( sort { $a eq "0" ? -1 : $b eq "0" ? 1 : $a cmp $b } keys %{ $data } )
 	{
 		if( ref( $data->{$k} ) eq "ARRAY" )
 		{
