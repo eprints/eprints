@@ -64,6 +64,7 @@ sub tool_getEprintField
 	return( 1, \@problems ) if( @problems );
 
 	my $field = $opts{eprint}->get_dataset->get_field( $opts{field} );
+	delete $field->{parent_name} if defined $field->{parent_name};
 
 	my $fieldxml = $field->to_xml( 
 			$opts{session},
@@ -342,7 +343,7 @@ sub _aux_tool_searchEprint
 		return( 1, [ $error ] );
 	}
 
-	return( 0, $conditions->process( $opts{session} ), $order );
+	return( 0, $conditions->process( session => $opts{session}, dataset => $dataset ), $order );
 }
 	
 
