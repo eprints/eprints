@@ -281,6 +281,7 @@ my $INFO = {
 		filters => [ { meta_fields => [ 'eprint_status' ], value => 'buffer', describe=>0 } ],
 		dataset_id_field => "eprint_status",
 		datestamp => "lastmod",
+		columns => [qw( eprintid type status_changed userid )], # default columns for Review screen
 	},
 	inbox => {
 		sqlname => "eprint",
