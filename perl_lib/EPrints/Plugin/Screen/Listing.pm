@@ -58,6 +58,11 @@ sub properties_from
 		return;
 	}
 
+	if( !defined $processor->{columns_key} )
+	{
+		$processor->{columns_key} = "screen.listings.columns.".$dataset->id;
+	}
+
 	my $columns = $self->show_columns();
 	$processor->{"columns"} = $columns;
 	my %columns = map { $_->name => 1 } @$columns;
@@ -112,18 +117,21 @@ sub from
 	my $search = $self->{processor}->{search};
 	my $exp = $session->param( "exp" );
 
-	if( $exp )
+	if( $self->{processor}->{action} ne "newsearch" )
 	{
-		$search->from_string( $exp );
-	}
-	else
-	{
-		foreach my $sf ( $search->get_non_filter_searchfields )
+		if( $exp )
 		{
-			my $prob = $sf->from_form();
-			if( defined $prob )
+			$search->from_string( $exp );
+		}
+		else
+		{
+			foreach my $sf ( $search->get_non_filter_searchfields )
 			{
-				$self->{processor}->add_message( "warning", $prob );
+				my $prob = $sf->from_form();
+				if( defined $prob )
+				{
+					$self->{processor}->add_message( "warning", $prob );
+				}
 			}
 		}
 	}
@@ -135,7 +143,13 @@ sub redirect_to_me_url
 {
 	my( $self ) = @_;
 
-	return $self->SUPER::redirect_to_me_url."&dataset=".$self->{processor}->{dataset}->id;
+	my $uri = URI->new( $self->SUPER::redirect_to_me_url );
+	$uri->query_form(
+		$uri->query_form,
+		$self->hidden_bits,
+	);
+
+	return $uri;
 }
 
 sub can_be_viewed
@@ -168,7 +182,7 @@ sub _set_user_columns
 
 	my $user = $self->{session}->current_user;
 
-	$user->set_preference( "screen.listings.columns.".$self->{processor}->{dataset}->id, join( " ", map { $_->name } @$columns ) );
+	$user->set_preference( $self->{processor}->{columns_key}, join( " ", map { $_->name } @$columns ) );
 	$user->commit;
 
 	# update the list of columns
@@ -259,7 +273,7 @@ sub show_columns
 	my $dataset = $self->{processor}->{dataset};
 	my $user = $self->{session}->current_user;
 
-	my $columns = $user->preference( "screen.listings.columns.".$dataset->id );
+	my $columns = $user->preference( $self->{processor}->{columns_key} );
 	if( defined $columns )
 	{
 		$columns = [split / /, $columns];
@@ -298,19 +312,7 @@ sub render
 
 	my $chunk = $session->make_doc_fragment;
 
-	if( $session->get_lang->has_phrase( $self->html_phrase_id( "intro" ), $session ) )
-	{
-		my $intro_div_outer = $session->make_element( "div", class => "ep_toolbox" );
-		my $intro_div = $session->make_element( "div", class => "ep_toolbox_content" );
-		$intro_div->appendChild( $self->html_phrase( "intro" ) );
-		$intro_div_outer->appendChild( $intro_div );
-		$chunk->appendChild( $intro_div_outer );
-	}
-
-	# we've munged the argument list below
-	$chunk->appendChild( $self->render_action_list_bar( "dataobj_tools", {
-		dataset => $self->{processor}->{dataset}->id,
-	} ) );
+	$chunk->appendChild( $self->render_top_bar() );
 
 	$chunk->appendChild( $self->render_filters() );
 
@@ -355,8 +357,8 @@ sub render
 			$form_l->appendChild( $session->make_element( 
 				"input",
 				type=>"image",
-				value=>"Move Left",
-				title=>"Move Left",
+				value=>$session->phrase( "lib/paginate:move_left" ),
+				title=>$session->phrase( "lib/paginate:move_left" ),
 				src => "$imagesurl/left.png",
 				alt => "<",
 				name => "_action_col_left" ) );
@@ -374,8 +376,8 @@ sub render
 		$form_rm->appendChild( $session->make_element( 
 			"input",
 			type=>"image",
-			value=>"Remove Column",
-			title=>"Remove Column",
+			value=>$session->phrase( "lib/paginate:remove_column" ),
+			title=>$session->phrase( "lib/paginate:remove_column" ),
 			src => "$imagesurl/delete.png",
 			alt => "X",
 			onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm( ".EPrints::Utils::js_string($msg).");",
@@ -390,8 +392,8 @@ sub render
 			$form_r->appendChild( $session->make_element( 
 				"input",
 				type=>"image",
-				value=>"Move Right",
-				title=>"Move Right",
+				value=>$session->phrase( "lib/paginate:move_right" ),
+				title=>$session->phrase( "lib/paginate:move_right" ),
 				src => "$imagesurl/right.png",
 				alt => ">",
 				name => "_action_col_right" ) );
@@ -410,8 +412,8 @@ sub render
 	my %opts = (
 		params => {
 			screen => $self->{processor}->{screenid},
-			dataset => $self->{processor}->{dataset}->id,
 			exp => $exp,
+			$self->hidden_bits,
 		},
 		custom_order => $search->{custom_order},
 		columns => [(map{ $_->name } @{$columns}), undef ],
@@ -433,15 +435,9 @@ sub render
 				$td->appendChild( $dataobj->render_value( $_ ) );
 			}
 
-			my $datasetid = $dataobj->{dataset}->base_id;
-
 			my $td = $session->make_element( "td", class=>"ep_columns_cell ep_columns_cell_last", align=>"left" );
 			$tr->appendChild( $td );
-			$td->appendChild( 
-				$self->render_action_list_icons( ["${datasetid}_item_actions", "dataobj_actions"], {
-					dataset => $datasetid,
-					dataobj => $dataobj->id,
-				} ) );
+			$td->appendChild( $self->render_dataobj_actions( $dataobj ) );
 
 			++$row;
 
@@ -486,7 +482,8 @@ sub render
 			$session->render_button(
 				class=>"ep_form_action_button",
 				name=>"_action_add_col", 
-				value => $self->phrase( "add" ) ) );
+				value => $session->phrase( "lib/paginate:add_column" ),
+			) );
 	$div->appendChild( $form_add );
 	$chunk->appendChild( $div );
 	# End of Add form
@@ -494,16 +491,50 @@ sub render
 	return $chunk;
 }
 
-sub render_hidden_bits
+sub hidden_bits
 {
 	my( $self ) = @_;
 
-	my $chunk = $self->{session}->make_doc_fragment;
+	return(
+		dataset => $self->{processor}->{dataset}->id,
+		$self->SUPER::hidden_bits,
+	);
+}
 
-	$chunk->appendChild( $self->{session}->render_hidden_field( "dataset", $self->{processor}->{dataset}->id ) );
-	$chunk->appendChild( $self->SUPER::render_hidden_bits );
+sub render_top_bar
+{
+	my( $self ) = @_;
+
+	my $session = $self->{session};
+	my $chunk = $session->make_doc_fragment;
+
+	if( $session->get_lang->has_phrase( $self->html_phrase_id( "intro" ), $session ) )
+	{
+		my $intro_div_outer = $session->make_element( "div", class => "ep_toolbox" );
+		my $intro_div = $session->make_element( "div", class => "ep_toolbox_content" );
+		$intro_div->appendChild( $self->html_phrase( "intro" ) );
+		$intro_div_outer->appendChild( $intro_div );
+		$chunk->appendChild( $intro_div_outer );
+	}
+
+	# we've munged the argument list below
+	$chunk->appendChild( $self->render_action_list_bar( "dataobj_tools", {
+		dataset => $self->{processor}->{dataset}->id,
+	} ) );
 
 	return $chunk;
+}
+
+sub render_dataobj_actions
+{
+	my( $self, $dataobj ) = @_;
+
+	my $datasetid = $self->{processor}->{dataset}->base_id;
+
+	return $self->render_action_list_icons( ["${datasetid}_item_actions", "dataobj_actions"], {
+			dataset => $datasetid,
+			dataobj => $dataobj->id,
+		} );
 }
 
 sub render_filters
