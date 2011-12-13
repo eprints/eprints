@@ -1307,6 +1307,9 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
     <!-- Publisher- or funder-imposed embargos --> 
     <epp:phrase id="page:embargo_status"><p>These documents will be made publicly accessible from <epc:pin name="date"/>.</p></epp:phrase>
 
+    <epp:phrase id="page:item_not_available"> Item not available from this repository.</epp:phrase>
+    <epp:phrase id="page:item_restricted"> Item availability may be restricted.</epp:phrase>
+    <epp:phrase id="page:more">more...</epp:phrase>
 
 <!-- Plugin/Screen/Admin/StorageManager -->
 

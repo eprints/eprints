@@ -9,8 +9,8 @@
     <td style="padding-left: 0.5em"><epc:print expr="$n" />.</td>
     <td style="padding-left: 0.5em">
       <epc:print expr="$item.citation('default')" />
-      <epc:if test="full_text_status = 'none'"> Not available from this repository.</epc:if>
-      <epc:if test="full_text_status = 'restricted'"> Item availablity restricted.</epc:if>
+      <epc:if test="full_text_status = 'none'"><epc:phrase ref="page:item_not_available"/></epc:if>
+      <epc:if test="full_text_status = 'restricted'"><epc:phrase ref="page:item_restricted"/></epc:if>
     </td>
     <td style="padding-left: 0.5em" align="center">
       <epc:set name='docs' expr='$item.documents()'>
@@ -22,7 +22,7 @@
           </div>
         </epc:if>
         <epc:if test="length($docs) gt 2">
-          <div><a href='{$item.url()}'>+<epc:print expr="length($docs)-2" /> more...</a></div>
+          <div><a href='{$item.url()}'>+<epc:print expr="length($docs)-2" /> <epc:phrase ref="page:more"/></a></div>
         </epc:if>
       </epc:set>
     </td>
