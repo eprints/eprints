@@ -70,6 +70,7 @@ use Pod::Html;
 use HTML::Entities;
 use HTTP::Cookies;
 use Pod::Coverage;
+use MediaWiki::API;
 
 use strict;
 
@@ -93,29 +94,15 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
-	my $ua = LWP::UserAgent->new;
+	my $mw = MediaWiki::API->new;
+	$self->{_mw} = $mw;
 
-	$self->{_ua} = $ua;
+	$mw->{config}->{api_url} = $self->{wiki_api};
 
-	my $u = URI->new( $self->{wiki_index} );
-	$u->query_form(
-		title => "Special:Userlogin",
-		action => "submitlogin",
-		type => "login"
-	);
-
-	my $cookie_jar = HTTP::Cookies->new;
-	$ua->cookie_jar( $cookie_jar );
-
-	# log into the Wiki
-	my $r = $ua->post( $u, [
-		wpName => $opts{username},
-		wpPassword => $opts{password},
-		wpDomain => "eprints",
-		wpLoginattempt => "Log in",
-	]);
-
-#print STDERR "$u\n", $r->headers->as_string, $r->content;
+	$mw->login( {
+		lgname => $opts{username},
+		lgpassword => $opts{password},
+	} ) or Carp::croak( $mw->{error}->{code} . ": " . $mw->{error}->{details} );
 
 	return $self;
 }
@@ -205,44 +192,17 @@ sub _p2w_post_new_page
 {
 	my( $self, $title, $content ) = @_;
 
-	my $u = URI->new( $self->{wiki_index} );
-	$u->query_form(
+	my $page = $self->{_mw}->get_page( { title => $title } );
+
+	my $r = $self->{_mw}->edit( {
+		action => "edit",
 		title => $title,
-		action => "edit"
-	);
-	my $r = $self->{_ua}->get( $u );
-	my( $edit_time ) = $r->content =~ /<input (.*?wpStarttime.*?)\/>/;
-	if( !$edit_time )
-	{
-		print STDERR "Error following edit link for page\n";
-		return;
-	}
-	$edit_time = $edit_time =~ /value=["']([^"']+)/;
-	my( $edit_token ) = $r->content =~ /<input (.*?wpEditToken.*?)\/>/;
-	($edit_token) = $edit_token =~ /value=["']([^"']+)/;
-	my( $auto_summary ) = $r->content =~ /<input (.*?wpAutoSummary.*?)\/>/;
-	($auto_summary) = $auto_summary =~ /value=["']([^"']+)/;
-	$u->query_form(
-		title => $title,
-		action => "submit"
-	);
-	$r = $self->{_ua}->post( $u, [
-		wpStarttime => $edit_time,
-		wpEdittime => $edit_time,
-		wpSection => "",
-		wpTextbox1 => $content,
-		wpSave => "Save page",
-		wpEditToken => $edit_token,
-		wpAutoSummary => $auto_summary,
-		wpScrolltop => 0,
-		wpSummary => "",
-		wpRecreate => 1, # MediaWiki throws a fit on previously deleted pages
-	]);
-	if( $r->code ne "302" )
-	{
-		print STDERR "Error posting update to: $u: ".$r->message."\n";
-	}
-	return $r->code eq "302";
+		text => $content,
+		basetimestamp => (defined $page ? $page->{timestamp} : undef),
+		bot => 1,
+	} ) or Carp::carp( $self->{_mw}->{error}->{code} . ": " . $self->{_mw}->{error}->{details} );
+
+	return $r;
 }
 
 # preamble blurb for the Wiki output (placed in a comment)
@@ -319,15 +279,11 @@ sub _p2w_wiki_source
 {
 	my( $self, $title ) = @_;
 
-	my $u = URI->new( $self->{wiki_index} );
-	$u->query_form(
-		title => $title,
-		action => "raw",
-	);
+	my $page = $self->{_mw}->get_page( { title => $title } );
 
-	my $r = $self->{_ua}->get( $u );
+	return "" if !$page || !$page->{'*'};
 
-	return $r->is_success ? $r->content : "";
+	return $page->{'*'};
 }
 
 # parse the Wiki source and record any Wiki that may have been added to the
