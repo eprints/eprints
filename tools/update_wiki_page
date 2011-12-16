@@ -86,7 +86,11 @@ if( !@ARGV )
 		print STDERR "Processing $class\n";
 		$parser->update_page( $class );
 	}, $perl_lib);
-	my $bin_path = $EPrints::SystemSettings::conf->{base_path} . "/bin";
+	foreach my $bin_path (
+		$EPrints::SystemSettings::conf->{base_path} . "/bin",
+		$EPrints::SystemSettings::conf->{base_path} . "/tools",
+		)
+	{
 	File::Find::find(sub {
 		return if $File::Find::dir eq $File::Find::name;
 		my $class = $File::Find::name;
@@ -95,4 +99,5 @@ if( !@ARGV )
 		print STDERR "Processing $class\n";
 		$parser->update_page( "bin/$class" );
 	}, $bin_path);
+	}
 }
