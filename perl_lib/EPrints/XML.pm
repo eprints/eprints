@@ -193,8 +193,9 @@ $value may be undef, an XML tree or an array ref of children, otherwise it is st
 	$xml->create_data_element(
 		"html",
 		[
+			[ "head" ],
 			[ "body",
-				[ "div", undef, id => "contents" ]
+				[ [ "div", undef, id => "contents" ] ]
 			],
 		],
 		xmlns => "http://www.w3.org/1999/xhtml"
