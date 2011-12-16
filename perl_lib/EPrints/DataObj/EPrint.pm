@@ -1523,10 +1523,8 @@ sub render
 		elsif( $self->is_set( "succeeds" ) )
 		{
 			$replacement = $self->{session}->eprint( $self->value( "succeeds" ) );
-			undef $replacement
-				if $replacement->value( "eprint_status" ) ne "archive";
 		}
-		if( defined $replacement )
+		if( defined $replacement && $replacement->value( "eprint_status" ) eq "archive" )
 		{
 			$dom->appendChild( 
 				$self->{session}->html_phrase( 
