@@ -206,9 +206,9 @@ LANGUAGE: foreach my $langid ( @{$repository->get_conf( "languages" )} )
 			do_lists => $do_lists );
 	}
 
-	my $target = join "/", $session->config( "htdocs_path" ), $langid, "view";
 	if( $do_menus )
 	{
+		my $target = join "/", $session->config( "htdocs_path" ), $langid, "view", "index";
 		# make views index page
 		EPrints::Update::Views::update_browse_view_list( $session, $target, $langid );
 		print "Wrote: $target\n" if( $noise > 1 );
