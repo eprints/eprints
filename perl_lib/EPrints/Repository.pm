@@ -245,6 +245,8 @@ sub _new
 
 	$self->_load_datasets or EPrints->abort( "Failed to load datasets" );
 	$self->_load_languages or EPrints->abort( "Failed to load languages" );
+	$self->_load_storage or EPrints->abort( "Failed to load storage" );
+	$self->_load_plugins or EPrints->abort( "Failed to load plugins" );
 
 	$self->change_lang( $self->config( "defaultlanguage" ) );
 

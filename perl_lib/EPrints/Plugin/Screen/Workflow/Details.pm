@@ -24,7 +24,7 @@ sub new
 	];
 
 	my $session = $self->{session};
-	if( $session )
+	if( $session && $session->get_online )
 	{
 		$self->{title} = $session->make_element( "span" );
 		$self->{title}->appendChild( $self->SUPER::render_tab_title );

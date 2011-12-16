@@ -23,6 +23,7 @@ Where I<command> is one of:
 	install
 	link_lib
 	list
+	rebuild
 	uninstall
 	unpack
 
@@ -277,6 +278,8 @@ sub action_install
 Soft-link all files in the package under lib/ to a directory tree lib/ below
 the package's home directory. This is a utility method for developers.
 
+Use --force to overwrite existing files.
+
 =cut
 
 sub action_link_lib
@@ -301,6 +304,9 @@ sub action_link_lib
 
 		EPrints->system->mkdir( $path );
 
+		if( $opt_force && -e "$path/$_" ) {
+			unlink "$path/$_";
+		}
 		symlink($File::Find::name, "$path/$_");
 
 		print "$path/$_\n";
@@ -322,6 +328,29 @@ sub action_list
 
 		print sprintf("%s\t%s\n", $epm->id, $epm->value( "version" ));
 	});
+}
+
+=item rebuild
+
+Rewrite the .epm and .epmi files. This is a utility method for developers.
+
+=cut
+
+sub action_rebuild
+{
+	my( $repo ) = @_;
+
+	pod2usage( 2 ) if @ARGV != 1;
+
+	my( $name ) = @ARGV;
+
+	my $epm = &epm( $repo, $name );
+
+	$epm->rebuild;
+
+	$epm->commit;
+
+	print $epm->epm_dir . "/" . $epm->id . ".epm\n";
 }
 
 =item uninstall I<package>
