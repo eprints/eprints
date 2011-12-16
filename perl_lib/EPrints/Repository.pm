@@ -956,7 +956,7 @@ sub _load_templates
 
 	foreach my $langid ( @{$self->config( "languages" )} )
 	{
-		foreach my $dir ($self->get_template_dirs( $langid ))
+		foreach my $dir ($self->template_dirs( $langid ))
 		{
 			opendir( my $dh, $dir ) or next;
 			while( my $fn = readdir( $dh ) )
@@ -1790,17 +1790,23 @@ END
 	return $dirs[$#dirs];
 }
 
-=begin InternalDoc
+=item @dirs = $repository->template_dirs( $langid )
 
-=item @dirs = $repository->get_template_dirs( $langid )
+Returns a list of directories from which template files may be sourced, where the first matching template encountered is used.
 
-Returns a list of directories from which template files may be sourced.
+The directories searched are:
 
-=end InternalDoc
+	archives/[archiveid]/cfg/lang/[langid]/templates/
+	archives/[archiveid]/cfg/templates/
+	archives/[archiveid]/cfg/themes/[themeid]/lang/[langid]/templates/
+	archives/[archiveid]/cfg/themes/[themeid]/templates/
+	lib/themes/[themeid]/templates/
+	lib/lang/[langid]/templates/
+	lib/templates/
 
 =cut
 
-sub get_template_dirs
+sub template_dirs
 {
 	my( $self, $langid ) = @_;
 

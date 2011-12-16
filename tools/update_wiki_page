@@ -61,7 +61,7 @@ GetOptions(
 pod2usage( 1 ) if $opt_help;
 
 my $parser = EPrints::Test::Pod2Wiki->new(
-	wiki_index => "http://wiki.eprints.org/index.php",
+	wiki_api => "http://wiki.eprints.org/wiki/api.php",
 	username => $opt_username,
 	password => $opt_password,
 );
