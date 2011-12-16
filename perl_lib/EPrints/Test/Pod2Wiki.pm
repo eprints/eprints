@@ -218,8 +218,9 @@ EOC
 	$sort_key =~ s/^.*:://;
 
 	my $file = $package_name;
-	$file =~ s/::/\//g;
-	$file = "$file.pm";
+	if( $file =~ s/::/\//g ) {
+		$file = "perl_lib/$file.pm";
+	}
 
 	my $parent = $package_name;
 	$parent =~ s/::[^:]+$//;
