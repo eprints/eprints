@@ -239,9 +239,13 @@ sub _load_plugin
 		return;
 	}
 
-	my $plugin = $class->new(
+	my $plugin = eval { $class->new(
 		repository => $self->{repository},
-		session => $self->{repository} );
+		session => $self->{repository} ) };
+	if( $@ ) {
+		warn $@;
+		return;
+	}
 
 	# disabled by class-global?
 	no strict "refs";

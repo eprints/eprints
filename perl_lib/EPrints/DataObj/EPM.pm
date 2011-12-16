@@ -170,7 +170,7 @@ sub _upgrade
 			});
 		}
 		# can't retrieve files if they weren't included
-		next if !$doc->is_set( "files" );
+		next if !EPrints::Utils::is_set( $doc->{data}->{files} );
 		foreach my $file (@{$doc->value( "files" )})
 		{
 			if( !UNIVERSAL::isa( $file, "EPrints::DataObj" ) )
@@ -340,20 +340,21 @@ sub new_from_manifest
 
 		my $copy = { pluginid => "Storage::EPM", sourceid => $filepath };
 
+		my $file = $repo->dataset( "file" )->make_dataobj({
+			_parent => $install,
+			filename => $filename,
+			filesize => length($data),
+#			data => MIME::Base64::encode_base64( $data ),
+			hash => $md5,
+			hash_type => "MD5",
+			mime_type => $media_info->{mime_type},
+			copies => [$copy],
+		});
 		$install->set_value( "files", [
 			@{$install->value( "files")},
-			$repo->dataset( "file" )->make_dataobj({
-				_parent => $install,
-				filename => $filename,
-				filesize => length($data),
-#				data => MIME::Base64::encode_base64( $data ),
-				hash => $md5,
-				hash_type => "MD5",
-				mime_type => $media_info->{mime_type},
-				copies => [$copy],
-			})
+			$file,
 		]);
-		$install->set_main( $filename );
+		$install->set_main( $file );
 
 		if( $filename =~ m#^static/(images/epm/.*)# )
 		{
@@ -1132,6 +1133,17 @@ sub publish
 	}
 
 	return $r->header( 'Location' );
+}
+
+sub is_set
+{
+	my( $self, $fieldid ) = @_;
+
+	my $field = $self->{dataset}->field( $fieldid );
+	return $self->SUPER::is_set( $fieldid )
+		if !$field->isa( "EPrints::MetaField::Subobject" );
+
+	return EPrints::Utils::is_set( $self->{data}->{$fieldid} );
 }
 
 =head1 COPYRIGHT
