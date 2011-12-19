@@ -72,7 +72,12 @@ END
 
 my $row = $sth->fetch;
 
-exit unless defined $row;
+unless( defined $row )
+{
+        print '<?xml version="1.0" encoding="UTF-8" ?><span/>';
+        $session->terminate;
+        exit;
+}
 
 $doc->appendChild( my $div = $session->render_message( "warning", $session->make_text( $warning) ) );
 
