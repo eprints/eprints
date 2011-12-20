@@ -159,8 +159,9 @@ foreach my $langid ( @{$session->config( "languages" )} )
 {
 	my @static_dirs = $session->get_static_dirs( $langid );
 
+	# scan_static_dir overwrites existing locations
 	my $map = {};
-	foreach my $dir ( @static_dirs )
+	foreach my $dir ( reverse @static_dirs )
 	{
 		next if !defined $dir;
 		next if !-d $dir;
