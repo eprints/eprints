@@ -511,7 +511,7 @@ sub update_view_list
 			for( my $i = 0; $i < scalar( @{$path_values} ); ++$i )
 			{
 				my $menu_fields = $menus_fields->[$i];
-				my $value = $path_values->[0];
+				my $value = $path_values->[$i];
 				$o{"value".($i+1)} = $menu_fields->[0]->render_single_value( $repo, $value);
 				if( !EPrints::Utils::is_set( $value ) && $repo->get_lang()->has_phrase($null_phrase_id) )
 				{
@@ -832,9 +832,7 @@ sub create_single_page_menu
 	my $menu_fields = $menus_fields->[$menu_level];
 	my $menu = $view->{menus}->[$menu_level];
 
-	my $target = $args{target};
-	$target = join '/', $repo->config( "htdocs_path" ), $langid, "view", $view->{id}
-		if !defined $target;
+	my $target = join '/', $repo->config( "htdocs_path" ), $langid, "view", $view->{id};
 
 	# work out filename
 	$target = join '/', $target, abbr_path( $view->escape_path_values( @$path_values ) ), "index";
@@ -861,7 +859,9 @@ sub create_single_page_menu
 		my $phrase_id = "viewintro_".$view->{id};
 		if( scalar(@{$path_values}) )
 		{
-			$phrase_id.= "/".join( "/", @{$path_values} );
+			$phrase_id.= "/".join( "/", map {
+					defined $_ ? $_ : "NULL"
+				} @{$path_values} );
 		}
 		unless( $repo->get_lang()->has_phrase( $phrase_id, $repo ) )
 		{
