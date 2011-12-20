@@ -268,7 +268,7 @@ sub handler
 
 
 	# REST
-	if( $uri =~ m! ^$urlpath/rest !x )
+	if( $uri =~ m! ^$urlpath/rest\b !x )
 	{
 		$r->handler( 'perl-script' );
 
