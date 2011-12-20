@@ -39,15 +39,10 @@ sub send
 		EPrints::abort( "Attempt to send the same page object twice!" );
 	}
 
-	binmode(STDOUT,":utf8");
+	$self->{page} =
+		$self->{repository}->xhtml->to_xhtml( $self->{page_dom} );
 
-	$self->send_header( %options );
-
-	eval { print EPrints::XML::to_string( $self->{page_dom}, undef, 1 ); };
-	if( $@ && $@ !~ m/^Software caused connection abort/ )
-	{
-		EPrints::abort( "Error in send_page: $@" );	
-	}
+	$self->SUPER::send;
 
 	EPrints::XML::dispose( $self->{page_dom} );
 	delete $self->{page_dom};
@@ -62,7 +57,10 @@ sub write_to_file
 		EPrints::abort( "Attempt to write the same page object twice!" );
 	}
 
-	EPrints::XML::write_xhtml_file( $self->{page_dom}, $filename, add_doctype=>$self->{add_doctype} );
+	$self->{page} =
+		$self->{repository}->xhtml->to_xhtml( $self->{page_dom} );
+
+	$self->SUPER::write_to_file;
 
 	if( defined $wrote_files )
 	{
@@ -72,7 +70,6 @@ sub write_to_file
 	EPrints::XML::dispose( $self->{page_dom} );
 	delete $self->{page_dom};
 }
-
 
 sub DESTROY
 {

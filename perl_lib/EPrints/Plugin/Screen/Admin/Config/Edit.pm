@@ -771,7 +771,7 @@ sub action_download_full_file {
 	my $is_html = 0;
 
 	my $done = {};
-	push @output,'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'."\n";
+	push @output, $session->xhtml->doc_type;
 
 
 	foreach my $bit ( @{$template_parts} )
@@ -1350,7 +1350,7 @@ sub get_images
 	my $is_html = 0;
 
 	my $done = {};
-	push @output,'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'."\n";
+	push @output, $session->xhtml->doc_type;
 
 
 	foreach my $bit ( @{$template_parts} )

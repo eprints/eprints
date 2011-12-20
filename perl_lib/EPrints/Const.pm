@@ -187,6 +187,12 @@ An object was removed and should now be removed from the index engine(s).
 	dataset = EPrints::DataSet
 	id = object id
 
+=item EP_TRIGGER_DYNAMIC_TEMPLATE
+
+Manipulate parts included in the template. These will be called for every page impression, so don't do anything heavyweight in here.
+
+	pins - hash ref of template pins
+
 =head2 :metafield
 
 =item EP_PROPERTY_FROM_CONFIG
@@ -269,6 +275,7 @@ use constant {
 	EP_TRIGGER_URL_REWRITE => 13,
 	EP_TRIGGER_VALIDATE_FIELD => 14,
 	EP_TRIGGER_LOCAL_SITEMAP_URLS => 15,
+	EP_TRIGGER_DYNAMIC_TEMPLATE => 16,
 };
 
 # Dataset triggers
@@ -393,6 +400,7 @@ use constant {
 	EP_TRIGGER_INDEX_REMOVED
 	EP_TRIGGER_VALIDATE_FIELD
 	EP_TRIGGER_LOCAL_SITEMAP_URLS
+	EP_TRIGGER_DYNAMIC_TEMPLATE
 
 	EP_TRIGGER_CREATED
 	EP_TRIGGER_RDF

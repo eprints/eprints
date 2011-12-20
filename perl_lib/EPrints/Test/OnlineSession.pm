@@ -134,11 +134,11 @@ sub send_http_header
 
 {
 no warnings;
-sub EPrints::Page::Text::send
+sub EPrints::Page::send
 {
 	my( $self ) = @_;
 
-	$VAR{$self->{repository}}->{"stdout"} .= $self->{page_text};
+	$VAR{$self->{repository}}->{"stdout"} .= $self->{page};
 }
 
 sub Apache2::Util::ht_time

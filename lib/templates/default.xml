@@ -3,23 +3,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epc="http://eprints.org/ep3/control">
   <head>
     <title><epc:pin ref="title" textonly="yes"/> - <epc:phrase ref="archive_name"/></title>
-    <link rel="Top" href="{$config{frontpage}}"/>
-    <link rel="Sword" href="{$config{http_url}}/sword-app/servicedocument"/>
-    <link rel="SwordDeposit" href="{$config{http_url}}/id/contents"/>
-    <link rel="Search" type="text/html" href="{$config{http_cgiurl}}/search"/>
-    <link rel="Search" type="application/opensearchdescription+xml" href="{$config{http_url}}/cgi/opensearchdescription"/>
-    <epc:pin ref="login_status_header"/>
-    <script type="text/javascript" src="{$config{rel_path}}/javascript/auto.js"><!-- padder --></script>
-    <link rel="stylesheet" type="text/css" href="{$config{rel_path}}/style/auto.css"/>
-    <style type="text/css" media="print">.ep_noprint { display: none }</style>
     <link rel="icon" href="{$config{rel_path}}/favicon.ico" type="image/x-icon"/>
     <link rel="shortcut icon" href="{$config{rel_path}}/favicon.ico" type="image/x-icon"/>
     <epc:pin ref="head"/>
-    <link rel="stylesheet" type="text/css" href="{$config{rel_path}}/style/nojs.css"/>
-    <script type="text/javascript" src="{$config{rel_path}}/javascript/jscss.js"><!-- padder --></script>
-    <!--[if lte IE 6]>
-        <link rel="stylesheet" type="text/css" href="/style/ie6.css" />
-    <![endif]-->
   </head>
   <body>
     <epc:pin ref="pagetop"/>

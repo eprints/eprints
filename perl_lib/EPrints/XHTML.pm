@@ -523,86 +523,38 @@ sub page
 {
 	my( $self, $map, %options ) = @_;
 
-	# This first bit is a really heinous hack, back it provides two really useful
-	# functions, the contextual phrase editor and the "mainonly" feature making pages
-	# easy to embed.
-	
-	unless( $self->{repository}->{offline} || !defined $self->{repository}->{query} )
-	{
-		my $mo = $self->{repository}->param( "mainonly" );
-		if( defined $mo && $mo eq "yes" )
-		{
-			return EPrints::Page::DOM->new( $self->{repository}, $map->{page}, add_doctype=>0 );
-		}
+	my $repo = $self->{repository};
 
-		my $dp = $self->{repository}->param( "edit_phrases" );
-		# phrase debugging code.
-
-		if( defined $dp && $dp eq "yes" )
-		{
-			my $current_user = $self->{repository}->current_user;	
-			if( defined $current_user && $current_user->allow( "config/edit/phrase" ) )
-			{
-				my $phrase_screen = $self->{repository}->plugin( "Screen::Admin::Phrases",
-		  			phrase_ids => [ sort keys %{$self->{repository}->{used_phrases}} ] );
-				$map->{page} = $self->{repository}->xml->create_document_fragment;
-				my $url = $self->{repository}->get_full_url;
-				my( $a, $b ) = split( /\?/, $url );
-				my @parts = ();
-				foreach my $part ( split( "&", $b ) )	
-				{
-					next if( $part =~ m/^edit(_|\%5F)phrases=yes$/ );
-					push @parts, $part;
-				}
-				$url = $a."?".join( "&", @parts );
-				my $div = $self->{repository}->xml->create_element( "div", style=>"margin-bottom: 1em" );
-				$map->{page}->appendChild( $div );
-				$div->appendChild( $self->{repository}->html_phrase( "lib/session:phrase_edit_back",
-					link => $self->{repository}->render_link( $url ),
-					page_title => $self->{repository}->clone_for_me( $map->{title},1 ) ) );
-				$map->{page}->appendChild( $phrase_screen->render );
-				$map->{title} = $self->{repository}->html_phrase( "lib/session:phrase_edit_title",
-					page_title => $map->{title} );
-			}
-		}
-	}
-
-	# provide CSS/JS settings to show/hide content based on login status
-	if( defined $self->{repository}->current_user )
+	# if mainonly=yes is in effect return the page content
+	if(
+		defined $repo->{query} &&
+		$repo->param( "mainonly" ) &&
+		$repo->param( "mainonly" ) eq "yes"
+	  )
 	{
-		$map->{login_status_header} = $self->{repository}->html_phrase( "dynamic:logged_in_header" );
-	}
-	else
-	{
-		$map->{login_status_header} = $self->{repository}->html_phrase( "dynamic:not_logged_in_header" );
+		return EPrints::Page::DOM->new( $repo, $map->{page}, add_doctype=>0 );
 	}
 
 	# languages pin
-	my $plugin = $self->{repository}->plugin( "Screen::SetLang" );
+	my $plugin = $repo->plugin( "Screen::SetLang" );
 	if( defined $plugin )
 	{
 		$map->{languages} = $plugin->render_action_link;
 	}
 	
-	if( $self->{repository}->config( "dynamic_template","enable" ) )
-	{
-		if( $self->{repository}->can_call( "dynamic_template", "function" ) )
-		{
-			$self->{repository}->call( [ "dynamic_template", "function" ],
-				$self->{repository},
-				$map );
-		}
-	}
+	$repo->run_trigger( EPrints::Const::EP_TRIGGER_DYNAMIC_TEMPLATE,
+			pins => $map,
+		);
 
 	# we've been called by an older script
 	if( !defined $map->{login_status} )
 	{
 		$map->{login_status} = EPrints::ScreenProcessor->new(
-			session => $self->{repository},
+			session => $repo,
 		)->render_toolbar;
 	}
 
-	my $pagehooks = $self->{repository}->config( "pagehooks" );
+	my $pagehooks = $repo->config( "pagehooks" );
 	$pagehooks = {} if !defined $pagehooks;
 	my $ph = $pagehooks->{$options{page_id}} if defined $options{page_id};
 	$ph = {} if !defined $ph;
@@ -618,9 +570,9 @@ sub page
 	{
 		next if( !defined $ph->{$_} );
 
-		my $pt = $self->{repository}->xml->create_document_fragment;
+		my $pt = $repo->xml->create_document_fragment;
 		$pt->appendChild( $map->{$_} );
-		my $ptnew = $self->{repository}->clone_for_me(
+		my $ptnew = $repo->clone_for_me(
 			$ph->{$_},
 			1 );
 		$pt->appendChild( $ptnew );
@@ -629,31 +581,17 @@ sub page
 
 	if( !defined $options{template} )
 	{
-		if( $self->{repository}->get_secure )
-		{
-			$options{template} = "secure";
-		}
-		else
-		{
-			$options{template} = "default";
-		}
+		$options{template} = "default";
 	}
 
-	my $parts = $self->{repository}->get_template_parts( 
-				$self->{repository}->get_langid, 
-				$options{template} );
-	my @output = ();
-	my $is_html = 0;
+	my @output = @{ $repo->get_template_parts( 
+				$repo->get_langid, 
+				$options{template} ) };
 
-	foreach my $bit ( @{$parts} )
+	my $i = 0;
+	foreach my $bit (@output)
 	{
-		$is_html = !$is_html;
-
-		if( $is_html )
-		{
-			push @output, $bit;
-			next;
-		}
+		next if $i++ % 2 == 0;
 
 		# either 
 		#  print:epscript-expr
@@ -661,21 +599,23 @@ sub page
 		#  pin:id-of-a-pin.textonly
 		#  phrase:id-of-a-phrase
 		my( $type, $rest ) = split /:/, $bit, 2;
+		$bit = "";
 
 		if( $type eq "print" )
 		{
-			my $result = EPrints::XML::to_string( EPrints::Script::print( $rest, { session=>$self->{repository} } ), undef, 1 );
-			push @output, $result;
-			next;
+			my $frag = EPrints::Script::print( $rest, { session=>$repo } );
+			$bit = $self->to_xhtml( $frag );
+			$repo->xml->dispose( $frag );
 		}
 
-		if( $type eq "phrase" )
+		elsif( $type eq "phrase" )
 		{	
-			push @output, EPrints::XML::to_string( $self->{repository}->html_phrase( $rest ), undef, 1 );
-			next;
+			my $phrase = $repo->html_phrase( $rest );
+			$bit = $self->to_xhtml( $phrase );
+			$repo->xml->dispose( $phrase );
 		}
 
-		if( $type eq "pin" )
+		elsif( $type eq "pin" )
 		{	
 			my( $pinid, $modifier ) = split /:/, $rest, 2;
 			if( defined $modifier && $modifier eq "textonly" )
@@ -688,35 +628,33 @@ sub page
 				elsif( defined $map->{$pinid} )
 				{
 					# don't convert href's to <http://...>'s
-					$text = EPrints::Utils::tree_to_utf8( $map->{$pinid}, undef, undef, undef, 1 ); 
+					$text = $self->to_text_dump( $map->{$pinid},
+						show_links => 0,
+					);
 				}
 
-				# else no title
-				next unless defined $text;
-
-				# escape any entities in the text (<>&" etc.)
-				my $xml = $self->{repository}->xml->create_text_node( $text );
-				push @output, EPrints::XML::to_string( $xml, undef, 1 );
-				EPrints::XML::dispose( $xml );
-				next;
+				if( defined $text )
+				{
+					# escape any entities in the text (<>&" etc.)
+					my $xml = $repo->xml->create_text_node( $text );
+					$bit = $repo->xml->to_string( $xml );
+					$repo->xml->dispose( $xml );
+				}
 			}
-	
-			if( defined $map->{"utf-8.".$pinid} )
+			elsif( defined $map->{"utf-8.".$pinid} )
 			{
-				push @output, $map->{"utf-8.".$pinid};
+				$bit = $map->{"utf-8.".$pinid};
 			}
 			elsif( defined $map->{$pinid} )
 			{
-#EPrints::XML::tidy( $map->{$pinid} );
-				push @output, EPrints::XML::to_string( $map->{$pinid}, undef, 1 );
+				$bit = $self->to_xhtml( $map->{$pinid} );
 			}
 		}
 
 		# otherwise this element is missing. Leave it blank.
-	
 	}
 
-	return EPrints::Page::Text->new( $self->{repository}, join( "", @output ) );
+	return EPrints::Page->new( $repo, join( "", @output ) );
 }
 
 =item $node = $xhtml->tabs( $labels, $contents, %opts )
@@ -932,6 +870,21 @@ sub tree2
 	}
 
 	return $dl;
+}
+
+=item $str = $xhtml->doc_type
+
+Returns the default DOCTYPE as a string.
+
+=cut
+
+sub doc_type
+{
+	my( $self ) = @_;
+
+	return <<'END';
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+END
 }
 
 ######################################################################
