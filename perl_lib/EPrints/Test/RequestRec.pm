@@ -15,6 +15,8 @@ sub new
 	return bless \%opts, $class;
 }
 
+sub is_initial_req { 1 }
+
 sub uri
 {
 	my( $self ) = @_;
@@ -22,11 +24,63 @@ sub uri
 	return $self->{uri};
 }
 
+sub args
+{
+	my( $self ) = @_;
+
+	return $self->{args};
+}
+
 sub pool
 {
 	my( $self ) = @_;
 
 	return $self->{pool} ||= EPrints::Test::Pool->new();
+}
+
+sub filename
+{
+	my( $self ) = @_;
+
+	$self->{filename} = $_[1] if @_ == 2;
+
+	return $self->{filename};
+}
+
+sub dir_config
+{
+	my( $self, $key ) = @_;
+
+	return $self->{dir_config}->{$key};
+}
+
+sub headers_in
+{
+	my( $self ) = @_;
+
+	return $self->{headers_in} ||= {};
+}
+
+sub headers_out
+{
+	my( $self ) = @_;
+
+	return $self->{headers_out} ||= {};
+}
+
+sub custom_response
+{
+	my( $self, $code, $url ) = @_;
+}
+
+sub handler
+{
+	my( $self, $handler ) = @_;
+}
+
+sub set_handlers
+{
+	my( $self, $handlers ) = @_;
 }
 
 package EPrints::Test::Pool;
