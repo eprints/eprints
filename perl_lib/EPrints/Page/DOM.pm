@@ -60,7 +60,7 @@ sub write_to_file
 	$self->{page} =
 		$self->{repository}->xhtml->to_xhtml( $self->{page_dom} );
 
-	$self->SUPER::write_to_file;
+	$self->SUPER::write_to_file( $filename );
 
 	if( defined $wrote_files )
 	{
