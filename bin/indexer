@@ -29,6 +29,8 @@ B<indexer> install
 
 B<indexer> uninstall
 
+B<indexer> debug
+
 B<indexer> --help
 
 =head1 DESCRIPTION
@@ -188,6 +190,14 @@ my $p = {
 	pidfile => EPrints::Index::pidfile(),
 	tickfile => EPrints::Index::tickfile(),
 };
+
+if( $ARGV[0] eq "debug" )
+{
+	$once = 1;
+	$notdaemon = 1;
+	$loglevel = 5;
+	$ARGV[0] = "start";
+}
 
 $logfile ||= EPrints::Index::logfile();
 $logfile = undef if $logfile eq "-" or $notdaemon;
