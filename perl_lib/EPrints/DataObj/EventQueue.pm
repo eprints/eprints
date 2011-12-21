@@ -1,5 +1,7 @@
 package EPrints::DataObj::EventQueue;
 
+=for Pod2Wiki
+
 =head1 NAME
 
 EPrints::DataObj::EventQueue - scheduler/indexer event queue
@@ -10,11 +12,7 @@ EPrints::DataObj::EventQueue - scheduler/indexer event queue
 
 =item eventqueueid
 
-A unique id for this event.
-
-=item hash
-
-A unique hash for this event.
+Either a UUID or a hash of the event (if created with L</create_unique>).
 
 =item cleanup
 
@@ -58,6 +56,10 @@ Parameters to pass to the action (a text serialisation).
 
 =back
 
+=head1 METHODS
+
+=over 4
+
 =cut
 
 @ISA = qw( EPrints::DataObj );
@@ -67,8 +69,7 @@ use strict;
 sub get_system_field_info
 {
 	return (
-		{ name=>"eventqueueid", type=>"counter", sql_counter=>"eventqueueid", required=>1 },
-		{ name=>"hash", type=>"id", sql_index=>1, },
+		{ name=>"eventqueueid", type=>"uuid", required=>1, },
 		{ name=>"cleanup", type=>"boolean", default_value=>"TRUE", },
 		{ name=>"priority", type=>"int", },
 		{ name=>"start_time", type=>"timestamp", required=>1, },
@@ -84,25 +85,15 @@ sub get_system_field_info
 
 sub get_dataset_id { "event_queue" }
 
-sub create_unique
-{
-	my( $class, $session, $data, $dataset ) = @_;
+=item $event = EPrints::DataObj::EventQueue->create_unique( $repo, $data [, $dataset ] )
 
-	$dataset ||= $session->dataset( $class->get_dataset_id );
+Creates a unique event by setting the C<eventqueueid> to a hash of the C<pluginid>, C<action> and (if given) C<params>.
 
-	my $event = $class->new_from_hash( $session, $data, $dataset );
-	return undef if defined $event;
-
-	return $class->create_from_data( $session, $data, $dataset );
-}
-
-=item $event = EPrints::DataObj::EventQueue->new_from_hash( $repo, $epdata [, $dataset ] )
-
-Returns the event that corresponds to the hash of the data provided in $epdata.
+Returns undef if such an event already exists.
 
 =cut
 
-sub new_from_hash
+sub create_unique
 {
 	my( $class, $session, $data, $dataset ) = @_;
 
@@ -113,14 +104,9 @@ sub new_from_hash
 	$md5->add( $data->{action} );
 	$md5->add( EPrints::MetaField::Storable->freeze( $session, $data->{params} ) )
 		if EPrints::Utils::is_set( $data->{params} );
-	$data->{hash} = $md5->hexdigest;
+	$data->{eventqueueid} = $md5->hexdigest;
 
-	return $dataset->search(
-		filters => [
-			{ meta_fields => [qw( hash )], value => $data->{hash} },
-		],
-		limit => 1
-	)->item( 0 );
+	return $class->create_from_data( $session, $data, $dataset );
 }
 
 =item $ok = $event->execute()
@@ -288,7 +274,7 @@ sub _execute
 
 =item $event->message( $type, $xhtml )
 
-Register a message.
+Utility method to log a message for this event.
 
 =cut
 
