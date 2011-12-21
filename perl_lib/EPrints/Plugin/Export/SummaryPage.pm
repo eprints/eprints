@@ -43,6 +43,28 @@ sub output_dataobj
 	return "";
 }
 
+sub output_list
+{
+	my( $self, %opts ) = @_;
+
+	my $repo = $self->{session};
+
+	return "" if !$repo->get_online;
+
+	my $page = $repo->xml->create_document_fragment;
+	$opts{list}->map(sub {
+		(undef, undef, my $dataobj) = @_;
+
+		my $para = $page->appendChild( $repo->xml->create_element( "p" ) );
+		$para->appendChild( $dataobj->render_citation_link );
+	});
+
+	$repo->build_page( undef, $page, "export" );
+	$repo->send_page;
+
+	return "";
+}
+
 1;
 
 =head1 COPYRIGHT
