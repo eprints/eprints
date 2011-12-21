@@ -220,16 +220,10 @@ sub update_auto_js
 
 	my @dirs = map { "$_/javascript/auto" } grep { defined } @$static_dirs;
 
-	my $js = "";
-	$js .= "var eprints_http_root = ".EPrints::Utils::js_string( $session->get_url( scheme => "http", host => 1, path => "static" ) ).";\n";
-	$js .= "var eprints_http_cgiroot = ".EPrints::Utils::js_string( $session->get_url( scheme => "http", host => 1, path => "cgi" ) ).";\n";
-	$js .= "var eprints_oai_archive_id = ".EPrints::Utils::js_string( EPrints::OpenArchives::archive_id( $session ) ).";\n";
-
 	update_auto(
 			"$target_dir/javascript/auto.js",
 			"js",
 			\@dirs,
-			{ prefix => $js },
 		);
 }
 

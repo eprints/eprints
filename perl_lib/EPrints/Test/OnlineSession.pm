@@ -48,9 +48,13 @@ sub new
 
 	my $self = bless $session, $class;
 
+	$EPrints::HANDLE = EPrints->new();
+	$EPrints::HANDLE->{repository}->{$self->get_id} = $self;
+
 	my $method = $opts->{method} || "GET";
 	my $path = defined $opts->{path} ? $opts->{path} : "";
 	my $query = defined $opts->{query} ? $opts->{query} : "";
+	$opts->{dir_config}->{EPrints_ArchiveID} = $session->get_id;
 
 	my $uri = URI->new( $session->config( "base_url" ) );
 	if( $path !~ m#^/# )
@@ -74,7 +78,11 @@ sub new
 	$self->{query} = $cgi;
 	$self->{offline} = 0;
 
-	$self->{request} = EPrints::Test::RequestRec->new( uri => $uri->path );
+	$self->{request} = EPrints::Test::RequestRec->new(
+			%$opts,
+			uri => $uri->path,
+			args => $uri->query,
+		);
 
 	$ENV{REQUEST_METHOD} = $method;
 
@@ -124,25 +132,21 @@ sub send_http_header
 #	Test::More::diag( "send_http_header()" );
 }
 
-sub send_page
 {
-	my( $self, %httpopts ) = @_;
+no warnings;
+sub EPrints::Page::send
+{
+	my( $self ) = @_;
 
-#	Test::More::diag( "send_page()" );
-	$VAR{$self}->{"stdout"} .= <<END;
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-END
-	if( $self->{page}->isa( "EPrints::Page::Text" ) )
-	{
-		$VAR{$self}->{"stdout"} .= $self->{page}->{page_text};
-		delete $self->{page};
-	}
-	else
-	{
-		$VAR{$self}->{"stdout"} .= EPrints::XML::to_string( $self->{page}->{page_dom}, undef, 1 );
-		delete $self->{page};
-	}
+	$VAR{$self->{repository}}->{"stdout"} .= $self->{page};
+}
+
+sub Apache2::Util::ht_time
+{
+	my( $self, $pool, $time, $fmt, $gmt ) = @_;
+
+	return POSIX::strftime("%a, %d %b %Y %H:%M:%S %Z", gmtime($time));
+}
 }
 
 1;

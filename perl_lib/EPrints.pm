@@ -241,7 +241,6 @@ use EPrints::MetaField;
 use EPrints::NamedSet;
 use EPrints::OpenArchives;
 use EPrints::Page;
-use EPrints::Page::Text;
 use EPrints::Page::DOM;
 use EPrints::Paginate;
 use EPrints::Paginate::Columns;

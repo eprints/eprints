@@ -8,8 +8,8 @@ use warnings;
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
 
-my $TEMP_FILE = "/tmp/page_api_test.$$";
-if( -e $TEMP_FILE ) { unlink( $TEMP_FILE ); }
+my $TEMP_FILE = File::Temp->new( UNLINK => 0 );
+unlink("$TEMP_FILE");
 
 my $repoid = EPrints::Test::get_test_id();
 
@@ -28,20 +28,20 @@ if( !defined $repo ) { BAIL_OUT( "Could not obtain the Repository object" ); }
 	my $title = $repo->xml->create_text_node( "test title" );
 	
 	my $page = $repo->xhtml->page( { page=>$test_dom, title=>$title } );
-	isa_ok( $page, "EPrints::Page::Text", "\$repo->xhtml->page(..)" );
+	isa_ok( $page, "EPrints::Page", "\$repo->xhtml->page(..)" );
 
 	$page->write_to_file( $TEMP_FILE );
-	ok( -e $TEMP_FILE, "EPrints::Page::Text: \$page->write_to_file creates file" );
+	ok( -e $TEMP_FILE, "EPrints::Page: \$page->write_to_file creates file" );
 
 	open( T, $TEMP_FILE ) || BAIL_OUT( "Failed to read $TEMP_FILE: $!" );
 	my $data = join( "", <T> );
 	close T;
 
-	ok( $data =~ m/test title/, "EPrints::Page::Text: Output file contains title string" );
-	ok( $data =~ m/<element>some text<\/element>/, "EPrints::Page::Text: Output file contains body string" );
+	ok( $data =~ m/test title/, "EPrints::Page: Output file contains title string" );
+	ok( $data =~ m/<element>some text<\/element>/, "EPrints::Page: Output file contains body string" );
 	#print STDERR $data;
 
-	unlink( $TEMP_FILE );
+	unlink( "$TEMP_FILE" );
 }
 
 
@@ -61,7 +61,7 @@ if( !defined $repo ) { BAIL_OUT( "Could not obtain the Repository object" ); }
 
 	ok( $data eq "<element>some text</element>", "EPrints::Page::DOM: Output file contains body string" );
 
-	unlink( $TEMP_FILE );
+	unlink( "$TEMP_FILE" );
 }
 
 # DOCTYPE
