@@ -112,7 +112,7 @@ my $DEBUG_SQL = 0;
 
 # this may not be the current version of eprints, it's the version
 # of eprints where the current desired db configuration became standard.
-$EPrints::Database::DBVersion = "3.3.2";
+$EPrints::Database::DBVersion = "3.3.3";
 
 
 # ID of next buffer table. This can safely reset to zero each time
@@ -1337,22 +1337,22 @@ sub add_record
 
 	my $table = $dataset->get_sql_table_name();
 	my $keyfield = $dataset->get_key_field();
-	my $kf_sql = $keyfield->get_sql_name;
-	my $id = $data->{$kf_sql};
+	my $keyname = $keyfield->get_sql_name;
+	my $id = $data->{$keyname};
 
-	if( $self->exists( $dataset, $id ) )
+	# atomically grab the slot in the table (key must be PRIMARY KEY!)
 	{
-		# item already exists.
-		$self->{session}->get_repository->log( 
-"Failed in attempt to create existing item $id in table $table." );
-		return 0;
+		local $self->{dbh}->{PrintError};
+		local $self->{dbh}->{RaiseError};
+		if( !$self->insert( $table, [$keyname], [$id] ) )
+		{
+			Carp::carp( $DBI::errstr ) if !$self->duplicate_error;
+			return 0;
+		}
 	}
 
 	# Now add the ACTUAL data:
-	my $rv = $self->update( $dataset, $data, $data, 1 );
-	
-	# Return with an error if unsuccessful
-	return( defined $rv );
+	return $self->update( $dataset, $data, $data );
 }
 
 
@@ -4414,6 +4414,11 @@ sub sql_LIKE
 }
 
 sub retry_error
+{
+	return 0;
+}
+
+sub duplicate_error
 {
 	return 0;
 }

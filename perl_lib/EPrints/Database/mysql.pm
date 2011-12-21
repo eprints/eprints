@@ -530,13 +530,8 @@ sub ci_lookup
 	return defined $real_value ? $real_value : $value;
 }
 
-sub retry_error
-{
-	my( $self ) = @_;
-
-	my $err = $self->{'dbh'}->err;
-	return ($err == 2006);
-}
+sub duplicate_error { $DBI::err == 1062 }
+sub retry_error { $DBI::err == 2006 }
 
 sub type_info
 {
