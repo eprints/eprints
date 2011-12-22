@@ -97,7 +97,7 @@ if( !defined $verb )
 {
 	$verb = "error";
 	unshift @errors,
-		render_oai_error( $repo, "badArgument", "Requires verb argument" );
+		render_oai_error( $repo, "badVerb", "Requires verb argument" );
 }
 elsif( !exists $GRAMMAR{$verb} )
 {
