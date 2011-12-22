@@ -182,17 +182,7 @@ sub render_body
 			EPrints::Utils::tree_to_utf8( $eprint->render_description() )
 		) if !defined $parts{title};
 	
-	my $target = $repo->current_url(
-			scheme => 'http',
-			host => 1,
-			path => 'cgi',
-			'users/home'
-		);
-	$target->query_form(
-		eprintid => $eprint->id,
-		screen => "EPrint::View",
-	);
-	$parts{edit_link} = $repo->render_link( $target )
+	$parts{edit_link} = $repo->render_link( $eprint->get_control_url() )
 		if !defined $parts{edit_link};
 
 	$parts{reason} = $repo->make_text( scalar($repo->param( "reason" )) )
