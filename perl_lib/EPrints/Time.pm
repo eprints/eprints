@@ -240,7 +240,7 @@ current locale's format, see L<perlfunc/localtime>.
 sub human_time
 {
 	return sprintf("%s %s",
-		scalar(localtime(@_ ? @_ : time())),
+		scalar(localtime(@_ ? $_[0] : time())),
 		strftime("%Z", localtime(@_ == 1 ? $_[0] : time()))
 	);
 }
