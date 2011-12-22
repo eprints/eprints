@@ -474,6 +474,9 @@ sub get_parent
 {
 	my( $self, $datasetid, $objectid ) = @_;
 
+	# document without an eprint parent is broken
+	return undef if !$self->is_set( "eprintid" );
+
 	$datasetid = "eprint";
 	$objectid = $self->get_value( "eprintid" );
 
