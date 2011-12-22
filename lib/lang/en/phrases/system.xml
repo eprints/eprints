@@ -2913,7 +2913,7 @@ PY = 2006 and OG = (Cambridge)<br />
 
 <p><epc:pin name="reason"/></p>
 
-<p>You should <epc:pin name="url">view the item details</epc:pin> before determining whether to retire it from the live repository.</p>
+<p><epc:pin name="url">View the item details</epc:pin>.</p>
     </epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/RequestRemoval:reason">No reason was given.</epp:phrase>
 
