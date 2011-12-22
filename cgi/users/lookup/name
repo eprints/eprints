@@ -75,9 +75,8 @@ while( my @row = $sth->fetchrow_array )
 		$frag->appendChild( $session->make_text( " " ) );
 		$frag->appendChild( $id_field->render_single_value( $session, $id ) );
 	}
-	my $small = $session->make_element( "small" );
-	$frag->appendChild( $small );
-	$small->appendChild( $session->make_text( " (author of ".$cnt." item".($cnt>1?"s":"")." in this repository)" ) );
+
+	$frag->appendChild( $session->html_phrase( 'cgi/lookup/name:authored', count => $session->make_text( $cnt ) ) );
 
 	$item->{xhtml} = $frag;
 	$item->{values} = [
