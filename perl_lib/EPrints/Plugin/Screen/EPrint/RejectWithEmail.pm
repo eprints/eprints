@@ -140,26 +140,9 @@ sub render
 		$textarea->appendChild( $self->{session}->html_phrase( "mail_bounce_reason" ) ); 
 		$reason->appendChild( $textarea );
 
-
-		# remove any markup:
-		my $title = $self->{session}->make_text( 
-			EPrints::Utils::tree_to_utf8( 
-				$eprint->render_description() ) );
-
-		my $eprintid = $eprint->get_id;
-		my $home = $self->{session}->get_repository->get_conf( "userhome" );
-		my $target = $home."?eprintid=$eprintid&screen=EPrint::View";	
-		my $edit_link = $self->{session}->render_link( $target );
-
-		my $content = $self->{session}->html_phrase(
-			"mail_bounce_body",
-			title => $title,
-			reason => $reason,
-			edit_link => $edit_link );
-
 		my $body = $self->{session}->html_phrase(
 			"mail_body",
-			content => $content );
+			content => $self->render_body( reason => $reason ) );
 
 		my $to_user = $user;
 		my $from_user =$self->{session}->current_user;
@@ -188,6 +171,37 @@ sub render
 	return( $page );
 }	
 
+sub render_body
+{
+	my( $self, %parts ) = @_;
+
+	my $eprint = $self->{processor}->{eprint};
+	my $repo = $self->{session};
+
+	$parts{title} = $repo->make_text(
+			EPrints::Utils::tree_to_utf8( $eprint->render_description() )
+		) if !defined $parts{title};
+	
+	my $target = $repo->current_url(
+			scheme => 'http',
+			host => 1,
+			path => 'cgi',
+			'users/home'
+		);
+	$target->query_form(
+		eprintid => $eprint->id,
+		screen => "EPrint::View",
+	);
+	$parts{edit_link} = $repo->render_link( $target )
+		if !defined $parts{edit_link};
+
+	$parts{reason} = $repo->make_text( scalar($repo->param( "reason" )) )
+		if !defined $parts{reason};
+
+	return $repo->html_phrase(
+		"mail_bounce_body",
+		%parts );
+}
 
 sub action_send
 {
@@ -218,25 +232,9 @@ sub action_send
 		# change language temporarily to the user's language
 		local $self->{session}->{lang} = $user->language();
 
-		my $title = $self->{session}->make_text( 
-			EPrints::Utils::tree_to_utf8( 
-				$eprint->render_description() ) );
-		
-		my $eprintid = $eprint->get_id;
-		my $home = $self->{session}->get_repository->get_conf( "userhome" );
-		my $target = $home."?eprintid=$eprintid&screen=EPrint::View";	
-		my $edit_link = $self->{session}->render_link( $target );
-
-		$content = $self->{session}->html_phrase(
-			"mail_bounce_body",
-			title => $title,
-			reason => $self->{session}->make_text( 
-				$self->{session}->param( "reason" ) ),
-			edit_link => $edit_link );
-
 		$user->mail(
 			"cgi/users/edit_eprint:subject_bounce",
-			$content,
+			$self->render_body,
 			$self->{session}->current_user );
 	};
 	
