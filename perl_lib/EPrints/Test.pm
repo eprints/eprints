@@ -78,6 +78,10 @@ sub get_test_session
 	return $session;
 }
 
+=item $size = EPrints::Test::mem_size()
+
+Returns the current resident memory size.
+
 =item $size = EPrints::Test::mem_increase( [ $previous ] )
 
 Returns the change in memory size in bytes since it was $previous bytes. If $previous isn't given uses the memory size the last time mem_increase was called.
@@ -88,10 +92,12 @@ eval "use GTop";
 my $MEM_PREVIOUS = 0;
 if( $@ )
 {
+	*mem_size = sub { -1 };
 	*mem_increase = sub { -1 };
 }
 else
 {
+	*mem_size = sub { return GTop->new->proc_mem( $$ )->resident };
 	*mem_increase = sub {
 		$MEM_PREVIOUS = $_[0] if scalar(@_);
 
