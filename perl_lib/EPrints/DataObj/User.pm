@@ -1570,7 +1570,17 @@ sub get_privs
 		}
 
 		foreach my $priv ( @{$privmap{$role}} ) 
-		{ 
+		{
+			if( $priv =~ m/^\+(.*)$/ )
+			{
+				$self->{".privs"}->{$1} = 1;
+				next;
+			}
+			if( $priv =~ m/^-(.*)$/ )
+			{
+				delete $self->{".privs"}->{$1};
+				next;
+			}
 			$self->{".privs"}->{$priv} = 1;
 		}
 	}
