@@ -951,7 +951,6 @@ sub _load_templates
 {
 	my( $self ) = @_;
 
-	$self->{html_templates} = {};
 	$self->{text_templates} = {};
 	$self->{template_mtime} = {};
 	$self->{template_path} = {};
@@ -976,7 +975,7 @@ sub _load_templates
 			closedir( $dh );
 		}
 
-		if( !defined $self->{html_templates}->{default}->{$langid} )
+		if( !defined $self->{text_templates}->{default}->{$langid} )
 		{
 			EPrints::abort( "Failed to load default template for language $langid" );
 		}
@@ -989,7 +988,7 @@ sub freshen_template
 {
 	my( $self, $langid, $id ) = @_;
 
-	my $curr_lang = $self->{lang};
+	local $self->{lang};
 	$self->change_lang( $langid );
 
 	my $path = $self->{template_path}->{$id}->{$langid};
@@ -1000,18 +999,15 @@ sub freshen_template
 	my $old_mtime = $self->{template_mtime}->{$id}->{$langid};
 	if( defined $old_mtime && $old_mtime == $mtime )
 	{
-		$self->{lang} = $curr_lang;
 		return;
 	}
 
 	my $template = $self->_load_template( $path );
 	if( !defined $template ) 
 	{ 
-		$self->{lang} = $curr_lang;
 		return 0; 
 	}
 
-	$self->{html_templates}->{$id}->{$langid} = $template;
 	$self->{text_templates}->{$id}->{$langid} = $self->_template_to_text( $template, $langid );
 	$self->{template_mtime}->{$id}->{$langid} = $mtime;
 }
@@ -1024,8 +1020,7 @@ sub _template_to_text
 
 	my $divide = "61fbfe1a470b4799264feccbbeb7a5ef";
 
-        my @pins = $template->getElementsByTagName("pin");
-	foreach my $pin ( @pins )
+	foreach my $pin ( $template->getElementsByTagName("pin") )
 	{
 		#$template
 		my $parent = $pin->getParentNode;
@@ -1039,8 +1034,7 @@ sub _template_to_text
 		$parent->replaceChild( $textnode, $pin );
 	}
 
-        my @prints = $template->getElementsByTagName("print");
-	foreach my $print ( @prints )
+	foreach my $print ( $template->getElementsByTagName("print") )
 	{
 		my $parent = $print->getParentNode;
 		my $ref = "print:".$print->getAttribute( "expr" );
@@ -1048,9 +1042,7 @@ sub _template_to_text
 		$parent->replaceChild( $textnode, $print );
 	}
 
-        my @phrases = $template->getElementsByTagName("phrase");
-	
-	foreach my $phrase ( @phrases )
+	foreach my $phrase ( $template->getElementsByTagName("phrase") )
 	{
 		my $done_phrase = EPrints::XML::EPC::process( $phrase, session=>$self );
 
@@ -1153,39 +1145,6 @@ sub get_template_parts
 	if( !defined $tempid ) { $tempid = 'default'; }
 	$self->freshen_template( $langid, $tempid );
 	my $t = $self->{text_templates}->{$tempid}->{$langid};
-	if( !defined $t ) 
-	{
-		EPrints::abort( <<END );
-Error. Template not loaded.
-Language: $langid
-Template ID: $tempid
-END
-	}
-
-	return $t;
-}
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $template = $repository->get_template( $langid, [$template_id] )
-
-Returns the DOM document which is the webpage template for the given
-language. Do not modify the template without cloning it first.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub get_template
-{
-	my( $self, $langid, $tempid ) = @_;
-  
-	if( !defined $tempid ) { $tempid = 'default'; }
-	$self->freshen_template( $langid, $tempid );
-	my $t = $self->{html_templates}->{$tempid}->{$langid};
 	if( !defined $t ) 
 	{
 		EPrints::abort( <<END );
@@ -5419,7 +5378,7 @@ sub init_from_request
 	return 1;
 }
 
-my @CACHE_KEYS = qw/ id citations class config datasets field_defaults html_templates template_path langs plugins storage template_mtime text_templates types workflows loadtime noise /;
+my @CACHE_KEYS = qw/ id citations class config datasets field_defaults template_path langs plugins storage template_mtime text_templates types workflows loadtime noise /;
 my %CACHED = map { $_ => 1 } @CACHE_KEYS;
 
 sub cleanup
