@@ -817,9 +817,7 @@ activated you can start to use the registered features of the repository.</p>
 
 
 
-<epp:phrase id="mail_bounce_reason">
-No reason was given.
-</epp:phrase>
+<epp:phrase id="mail_bounce_reason">No reason was given.</epp:phrase>
 
 
 <epp:phrase id="mail_bounce_body">
