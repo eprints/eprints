@@ -527,12 +527,23 @@ sub page
 
 	# if mainonly=yes is in effect return the page content
 	if(
-		defined $repo->{query} &&
+		$repo->get_online &&
 		$repo->param( "mainonly" ) &&
 		$repo->param( "mainonly" ) eq "yes"
 	  )
 	{
-		return EPrints::Page::DOM->new( $repo, $map->{page}, add_doctype=>0 );
+		if( defined $map->{'utf-8.page'} )
+		{
+			return EPrints::Page->new( $repo, $map->{'utf-8.page'}, add_doctype=>0 );
+		}
+		elsif( defined $map->{page} )
+		{
+			return EPrints::Page::DOM->new( $repo, $map->{page}, add_doctype=>0 );
+		}
+		else
+		{
+			EPrints->abort( "Can't generate mainonly without page" );
+		}
 	}
 
 	# languages pin

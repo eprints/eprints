@@ -42,7 +42,7 @@ sub send
 	$self->{page} =
 		$self->{repository}->xhtml->to_xhtml( $self->{page_dom} );
 
-	$self->SUPER::send;
+	$self->SUPER::send( %options );
 
 	EPrints::XML::dispose( $self->{page_dom} );
 	delete $self->{page_dom};
