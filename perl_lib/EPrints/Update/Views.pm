@@ -1081,16 +1081,14 @@ sub group_by_n_chars
 	my $sections = {};
 	foreach my $value ( @{$values} )
 	{
-		my $v = EPrints::Utils::tree_to_utf8(
+		my $v = $repo->xhtml->to_text_dump(
 				$menu_fields->[0]->render_single_value( $repo, $value) );
 
-		utf8::decode( $v );
 		# lose everything not a letter or number
-		$v =~ s/[^\p{L}\p{N}]//g;
+		$v =~ s/\P{Alnum}+//g;
 	
 		my $start = uc substr( $v, 0, $n );
 		$start = "?" if( $start eq "" );	
-		utf8::encode( $start );
 
 		push @{$sections->{$start}}, $value;
 	}
