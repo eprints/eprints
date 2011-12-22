@@ -83,7 +83,21 @@ our @ISA = qw( EPrints::Repository );
 	}
 }
 
-diag( "LOAD=".EPrints::Test::human_mem_increase() );
+my $core_modules = EPrints::Test::human_mem_increase();
+{
+my $path = $EPrints::SystemSettings::conf->{base_path} . "/perl_lib/EPrints/MetaField";
+opendir(my $dh, $path);
+while(my $fn = readdir($dh))
+{
+	next if $fn =~ /^\./;
+	if( $fn =~ s/\.pm$// )
+	{
+		EPrints::Utils::require_if_exists( "EPrints::MetaField::".$fn );
+	}
+}
+closedir($dh);
+}
+diag( "LOAD=".$core_modules." + ".EPrints::Test::human_mem_increase()." fields" );
 diag( "Repository-Specific Data" );
 my $repository = EPrints::Test::Repository->new( EPrints::Test::get_test_id() );
 
