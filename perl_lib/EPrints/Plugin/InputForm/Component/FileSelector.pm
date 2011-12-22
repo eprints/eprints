@@ -87,39 +87,19 @@ sub render_content
 	my $epm = $self->{workflow}->{item};
 
 	my $f = $repo->xml->create_document_fragment;
-	
-	$f->appendChild( $repo->make_javascript( <<EOJ
-Event.observe(window, 'load', function() {
-	\$('$self->{prefix}').descendants().each(function(ele) {
-		if( ele.nodeName != 'DT' ) return;
-		ele.onclick = (function() {
-			var dd = this.next('dd');
-			if( !dd ) return;
-			if( dd.visible() ) {
-				this.removeClassName( 'ep_fileselector_open' );
-				new Effect.SlideUp(dd, {
-					duration: 0.2,
-					afterFinish: (function () {
-						this.descendants().each(function(ele) {
-							if( ele.nodeName == 'DT' )
-								ele.removeClassName( 'ep_fileselector_open' );
-							if( ele.nodeName == 'DD' )
-								ele.hide();
-						});
-					}).bind(dd)
-				});
-			}
-			else {
-				this.addClassName( 'ep_fileselector_open' );
-				new Effect.SlideDown(dd, {
-					duration: 0.2
-				});
-			}
-		}).bind(ele);
-	});
-});
-EOJ
-	) );
+
+	my $epmid = $epm->id;
+	my @exclude = split /\s+/, <<"EOE";
+		^defaultcfg
+		^syscfg\\.d
+		^entities\\.dtd\$
+		^mime\\.types\$
+		^epm/$epmid/$epmid\\.epm\$
+		^epm/$epmid/$epmid\\.epmi\$
+EOE
+	@exclude = grep { $_ =~ /\S/ } @exclude;
+	my $exclude_re = join '|', map { "(?:$_)" } @exclude;
+	$exclude_re = qr/$exclude_re/;
 
 	my $doc;
 	for(@{$epm->value( "documents" )})
@@ -134,114 +114,82 @@ EOJ
 			files => [],
 		} );
 	}
-
-	my %tree;
+	my %selected;
 	my @filenames = map { $_->value( "filename" ) } @{$doc->value( "files" )};
 	foreach my $filename (@filenames)
 	{
-		my $c = \%tree;
-		for(split '/', $filename)
+		my @parts = split '/', $filename;
+		foreach my $i (0..$#parts)
 		{
-			$c->{$_} ||= {};
-			$c = $c->{$_};
+			$selected{join('/',@parts[0..$i])} = 1;
 		}
 	}
 
-	my $epmid = $epm->id;
-	my %exclude = (
-		defaultcfg => {},
-		'syscfg.d' => {},
-		'entities.dtd' => {},
-		'mime.types' => {},
-		epm => {
-			$epmid => {
-				"$epmid.epm" => {},
-				"$epmid.epmi" => {},
-			},
-		},
-	);
+	my $tree = [ undef, [] ];
+	my @stack = ($tree);
 
-	$f->appendChild( $repo->xml->create_data_element( 'div', $self->_render_tree(
-			$self->{config}->{path},
-			\%tree,
-			\%exclude,
-		),
-		class => "ep_fileselector",
+	my $path = $self->{config}->{path};
+	$path =~ s! /*$ !/!x;
+
+	File::Find::find({
+		no_chdir => 1,
+		preprocess => sub {
+			my $filename = $File::Find::dir;
+			$filename =~ s/^.*\///;
+			my $rel = substr($File::Find::dir, length($path));
+			my $node = [ $filename, [],
+				show => $selected{$rel}
+			];
+			push @{$stack[-1][1]}, $node;
+			push @stack, $node;
+			return sort { $a cmp $b } grep { $_ !~ /^\./ } @_;
+		},
+		wanted => sub {
+			return if -d $File::Find::name;
+			my $rel = substr($File::Find::name, length($path));
+			return if $rel =~ $exclude_re;
+			push @{$stack[-1][1]}, $rel;
+		},
+		postprocess => sub { pop @stack; }
+	}, $path );
+
+	$tree = $tree->[1];
+
+	push @{$tree->[0]}, show => 1;
+
+	$f->appendChild( $repo->xhtml->tree( $tree,
+		prefix => "ep_fileselector",
+		render_value => sub { $self->_render_value( \%selected, @_ ) },
 	) );
 
 	return $f;
 }
 
-sub _render_tree
+sub _render_value
 {
-	my( $self, $root, $tree, $exclude, @path ) = @_;
+	my( $self, $selected, $ctx, $children ) = @_;
 
-	my $xml = $self->{repository}->xml;
-	my $xhtml = $self->{repository}->xhtml;
+	return $ctx if defined $children;
 
-	my $filepath = $root . join('/', '', @path);
-	if( -d $filepath )
-	{
-		my $dl = $xml->create_element( "dl" );
-		opendir(my $dh, $filepath);
-		my @filenames = sort grep {
-				$_ !~ /^\./ &&
-				(!exists $exclude->{$_} ||
-				scalar(keys(%{$exclude->{$_}})))
-			} readdir($dh);
-		closedir($dh);
-		my $dt = $dl->appendChild( $xml->create_data_element( "dt", ($path[$#path] || $root) . '/' ) );
-		my $dd = $dl->appendChild( $xml->create_element( "dd" ) );
-		if( !defined $tree )
-		{
-			$dd->setAttribute( style => "display: none" );
-		}
-		else
-		{
-			$dt->setAttribute( class => "ep_fileselector_open" );
-		}
-		my $ul = $dd->appendChild( $xml->create_element( "ul" ) );
-		foreach my $filename (@filenames)
-		{
-			my $filepath = $root . join('/', '', @path, $filename);
-			if( -d $filepath )
-			{
-				$dd->insertBefore( $self->_render_tree(
-					$root,
-					$tree->{$filename},
-					$exclude->{$filename},
-					@path,
-					$filename
-				), $ul );
-			}
-			else
-			{
-				$ul->appendChild( $self->_render_tree(
-					$root,
-					$tree->{$filename},
-					$exclude->{$filename},
-					@path,
-					$filename
-				) );
-			}
-		}
-		return $dl;
-	}
-	else
-	{
-		my $id = $self->{prefix} . ':' . join('/',@path);
-		my $li = $xml->create_element( "li" );
-		my $input = $li->appendChild(
-			$xhtml->input_field( $self->{prefix}, join('/',@path),
-				type => "checkbox",
-				(defined $tree ? (checked => "checked") : ())
-		) );
-		$input->setAttribute( id => $id );
-		$li->appendChild( $xml->create_data_element( "label", $path[$#path],
-			for => $id
-		) );
-		return $li;
-	}
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+	my $frag = $xml->create_document_fragment;
+
+	my @path = split '/', $ctx;
+
+	my $id = $self->{prefix} . ':' . join('/',@path);
+	my $input = $frag->appendChild(
+		$xhtml->input_field( $self->{prefix}, join('/',@path),
+			type => "checkbox",
+			($selected->{$ctx} ? (checked => "checked") : ())
+	) );
+	$input->setAttribute( id => $id );
+	$frag->appendChild( $xml->create_data_element( "label", $path[-1],
+		for => $id
+	) );
+
+	return $frag;
 }
 
 sub export_mimetype
