@@ -3146,8 +3146,8 @@ sub prepare_select
 		if( defined $options{offset} && length($options{offset}) )
 		{
 			$sql .= sprintf(" LIMIT %d OFFSET %d",
-				$options{offset},
-				$options{limit} );
+				$options{limit},
+				$options{offset} );
 		}
 		else
 		{
