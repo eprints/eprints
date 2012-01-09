@@ -58,6 +58,8 @@ use File::Copy qw();
 use Text::Wrap qw();
 use LWP::UserAgent;
 use URI;
+use Digest::SHA qw();
+use EPrints::Const qw( :crypt );
 
 use strict;
 
@@ -924,32 +926,106 @@ sub clone
 	return $data;			
 }
 
+# crypt_password( $value, $session )
+sub crypt_password { &crypt( $_[0] ) }
 
-######################################################################
+=item $crypt = EPrints::Utils::crypt( $value [, $method ] )
 
-=begin InternalDoc
+Generate a one-way crypt of $value e.g. for storing passwords.
 
-=item $crypted_value = EPrints::Utils::crypt_password( $value, $session )
-
-Apply the crypt encoding to the given $value.
-
-=end
+For available methods see L<EPrints::Const>. Defaults to EP_CRYPT_SHA512.
 
 =cut
 
-######################################################################
-
-sub crypt_password
+sub crypt
 {
-	my( $value, $session ) = @_;
+	my( $value, $method ) = @_;
 
-	return unless EPrints::Utils::is_set( $value );
+	return undef if !EPrints::Utils::is_set( $value );
 
+	# backwards compatibility
+	if( UNIVERSAL::isa( $method, "EPrints::Repository" ) ) {
+		$method = EP_CRYPT_CRYPT;
+	}
+	elsif( !defined $method ) {
+		$method = EP_CRYPT_SHA512;
+	}
+
+	srand;
 	my @saltset = ('a'..'z', 'A'..'Z', '0'..'9', '.', '/');
-	my $salt = $saltset[time % 64] . $saltset[(time/64)%64];
-	my $cryptpass = crypt($value ,$salt);
+	my $salt = join '', @saltset[
+			int(rand(scalar(@saltset))),
+			int(rand(scalar(@saltset)))
+		];
 
-	return $cryptpass;
+	if( $method eq EP_CRYPT_SHA512 )
+	{
+		# calculate the sha512 of the salt + value (avoids two identical
+		# passwords resulting in the same hash)
+		my $crypt = Digest::SHA::sha512( $salt . $value );
+
+		# repeatedly calculate the hash, which makes it computationally
+		# expensive to brute-force the resulting hash
+		my $rounds = 10000;
+		while(--$rounds) {
+			$crypt = Digest::SHA::sha512( $crypt );
+		}
+		# once more + hex to get $rounds in total
+		$crypt = Digest::SHA::sha512_hex( $crypt );
+
+		# store the crypt as a URI for easy serialisation
+		my $uri = URI->new;
+		$uri->query_form(
+			method => EP_CRYPT_SHA512,
+			salt => $salt,
+			digest => $crypt,
+		);
+
+		return "$uri";
+	}
+	elsif( $method eq EP_CRYPT_CRYPT )
+	{
+		return CORE::crypt($value ,$salt);
+	}
+
+	EPrints->abort( "Unsupported or unknown crypt method: $method" );
+}
+
+=item $bool = EPrints::Utils::crypt_equals( $crypt, $value )
+
+Test whether the $crypt as previously returned by L</crypt> for $value matches $value.
+
+=cut
+
+sub crypt_equals
+{
+	my( $crypt, $value ) = @_;
+
+	return undef if !EPrints::Utils::is_set( $value );
+
+	# EP_CRYPT_CRYPT
+	if( $crypt !~ /^\?/ ) {
+		return $crypt eq CORE::crypt($value, substr($crypt, 0, 2));
+	}
+
+	# unpack the crypt URI
+	my %q = URI->new( $crypt )->query_form;
+	( my $method, my $salt, $crypt ) = @q{ qw( method salt digest ) };
+
+	if( $method eq EP_CRYPT_SHA512 )
+	{
+		my $digest = Digest::SHA::sha512( $salt . $value );
+
+		my $rounds = 10000;
+		while(--$rounds) {
+			$digest = Digest::SHA::sha512( $digest );
+		}
+		$digest = Digest::SHA::sha512_hex( $digest );
+
+		return $crypt eq $digest;
+	}
+
+	EPrints->abort( "Unsupported or unknown crypt method: $method" );
 }
 
 # Escape everything AFTER the last /

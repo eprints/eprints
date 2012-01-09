@@ -219,6 +219,18 @@ This field property defaults to true.
 
 This field property defaults to false.
 
+=head2 :crypt
+
+One-way encryption methods for passwords, see L<EPrints::Utils/crypt>.
+
+=item EP_CRYPT_CRYPT
+
+L<perlfunc/crypt>.
+
+=item EP_CRYPT_SHA512
+
+L<Digest::SHA> sha512 with 2-byte salt and 10000 rounds.
+
 =back
 
 =cut
@@ -301,6 +313,13 @@ use constant {
 
 	EP_PROPERTY_TRUE => 1,
 	EP_PROPERTY_FALSE => "\0\4", # don't set hash attribute
+};
+
+# Crypt methods
+
+use constant {
+	EP_CRYPT_CRYPT => 1,
+	EP_CRYPT_SHA512 => 2,
 };
 
 @xml = qw(
@@ -423,7 +442,12 @@ use constant {
 	EP_PROPERTY_FALSE
 );
 
-@EXPORT_OK = (@xml, @namespace, @http, @trigger, @metafield);
+@crypt = qw(
+	EP_CRYPT_CRYPT
+	EP_CRYPT_SHA512
+);
+
+@EXPORT_OK = (@xml, @namespace, @http, @trigger, @metafield, @crypt);
 @EXPORT = ();
 %EXPORT_TAGS = (
 	xml => \@xml,
@@ -431,6 +455,7 @@ use constant {
 	http => \@http,
 	trigger => \@trigger,
 	metafield => \@metafield,
+	crypt => \@crypt,
 );
 
 use strict;
