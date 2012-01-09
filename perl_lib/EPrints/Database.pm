@@ -4232,14 +4232,12 @@ sub valid_login
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth , $sql );
-	my( $real_username, $real_password ) = $sth->fetchrow_array;
+	my( $real_username, $crypt ) = $sth->fetchrow_array;
 	$sth->finish;
 
-	return undef if( !defined $real_password );
+	return undef if( !defined $crypt );
 
-	my $salt = substr( $real_password, 0, 2 );
-
-	return $real_password eq crypt( $password , $salt ) ?
+	return EPrints::Utils::crypt_equals( $crypt, $password ) ?
 		$real_username :
 		undef;
 }
