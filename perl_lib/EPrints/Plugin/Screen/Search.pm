@@ -520,6 +520,11 @@ sub from
 
 		$searchexp->{custom_order} = $custom_order;
 	}
+	# use default order
+	else
+	{
+		$searchexp->{custom_order} = $sconf->{order_methods}->{$sconf->{default_order}};
+	}
 
 	# feeds are always limited and ordered by -datestamp
 	if( $self->{processor}->{action} eq "export" )
