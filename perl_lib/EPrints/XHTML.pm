@@ -286,7 +286,7 @@ sub to_xhtml
 {
 	my( $self, $node, %opts ) = @_;
 
-	&_to_xhtml( $node );
+	return scalar(&_to_xhtml( $node ));
 }
 
 my %HTML_ENTITIES = (
