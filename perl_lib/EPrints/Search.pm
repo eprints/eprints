@@ -276,12 +276,8 @@ END
 			$show_help = $fielddata->{show_help};
 		}
 
-		my %opts = %$fielddata;
-		$opts{value} = delete $opts{default}
-			if exists $opts{default};
-
 		# Add a reference to the list
-		$self->add_field( %opts,
+		$self->add_field( %$fielddata,
 			fields => \@meta_fields,
 			show_help => $show_help,
 		);
