@@ -219,6 +219,7 @@ use EPrints::DataObj::File;
 use EPrints::DataObj::History;
 use EPrints::DataObj::Import;
 use EPrints::DataObj::Import::XML;
+use EPrints::DataObj::Issue;
 use EPrints::DataObj::EventQueue;
 use EPrints::DataObj::LoginTicket;
 use EPrints::DataObj::Message;

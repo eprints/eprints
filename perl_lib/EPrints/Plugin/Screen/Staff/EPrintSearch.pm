@@ -7,7 +7,8 @@ EPrints::Plugin::Screen::Staff::EPrintSearch
 
 package EPrints::Plugin::Screen::Staff::EPrintSearch;
 
-@ISA = ( 'EPrints::Plugin::Screen::AbstractSearch' );
+use EPrints::Plugin::Screen::Search;
+@ISA = ( 'EPrints::Plugin::Screen::Search' );
 
 use strict;
 
@@ -27,24 +28,6 @@ sub new
 	return $self;
 }
 
-sub search_dataset
-{
-	my( $self ) = @_;
-
-	return $self->{session}->get_repository->get_dataset( "eprint" );
-}
-
-sub search_filters
-{
-	my( $self ) = @_;
-
-	return;
-}
-
-sub allow_export { return 1; }
-
-sub allow_export_redir { return 1; }
-
 sub can_be_viewed
 {
 	my( $self ) = @_;
@@ -52,63 +35,49 @@ sub can_be_viewed
 	return $self->allow( "staff/eprint_search" );
 }
 
-sub from
+sub properties_from
 {
 	my( $self ) = @_;
 
-	my $sconf = {
-		staff => 1,
-		dataset_id => "eprint",
-		citation => $self->{session}->get_repository->get_conf( "search","advanced","citation" ),
-		order_methods => $self->{session}->get_repository->get_conf( "search","advanced","order_methods" ),
-		default_order => $self->{session}->get_repository->get_conf( "search","advanced","default_order"),
-	};
-		
-	my $adv_fields = $self->{session}->get_repository->get_conf( "search","advanced","search_fields" );
-	my $extra_fields = $self->param( "extra_fields" );
-	$extra_fields = [] if !defined $extra_fields;
-	$sconf->{"search_fields"} = [
-		{ meta_fields => [ "eprintid" ] },
-		{ meta_fields => [ "userid.username" ] },
-		{ meta_fields => [ "userid.name" ] },
-		{ meta_fields => [ "eprint_status" ], default=>'archive buffer' },
-		{ meta_fields => [ "dir" ] },
-		@{$adv_fields},
-		@{$extra_fields},
-	];
+	$self->{processor}->{dataset} = $self->repository->dataset( "eprint" );
+	$self->{processor}->{searchid} = "staff";
 
-	$self->{processor}->{sconf} = $sconf;
-
-	$self->SUPER::from;
+	$self->SUPER::properties_from;
 }
 
-sub _vis_level
+sub default_search_config
 {
 	my( $self ) = @_;
 
-	return "staff";
+	my $sconf = EPrints::Utils::clone(
+			$self->repository->config( "search", "advanced" )
+		);
+
+	delete $sconf->{preamble_phrase};
+	delete $sconf->{title_phrase};
+
+	$sconf->{staff} = 1;
+
+	unshift @{$sconf->{search_fields}},
+			{ meta_fields => [qw( eprintid )] },
+			{ meta_fields => [qw( userid.username )] },
+			{ meta_fields => [qw( userid.name )] },
+			{ meta_fields => [qw( eprint_status )], default=>"archive buffer" },
+			{ meta_fields => [qw( dir )] };
+
+	if( $self->param( "extra_fields" ) )
+	{
+		unshift @{$sconf->{search_fields}}, @{$self->param( "extra_fields" )};
+	}
+
+	return $sconf;
 }
 
-sub get_controls_before
+# suppress dataset=
+sub hidden_bits
 {
-	my( $self ) = @_;
-
-	return $self->get_basic_controls_before;	
+	return shift->EPrints::Plugin::Screen::AbstractSearch::hidden_bits();
 }
-
-sub render_result_row
-{
-	my( $self, $session, $result, $searchexp, $n ) = @_;
-
-	return $result->render_citation_link_staff(
-			$self->{processor}->{sconf}->{citation},  #undef unless specified
-			n => [$n,"INTEGER"] );
-}
-
-
-
-
-
 
 =head1 COPYRIGHT
 

@@ -195,58 +195,8 @@ sub get_system_field_info
 		],
 	},
 
-	{ name=>"item_issues", type=>"compound", multiple=>1,
-		fields => [
-			{
-				sub_name => "id",
-				type => "id",
-				text_index => 0,
-			},
-			{
-				sub_name => "type",
-				type => "id",
-				text_index => 0,
-				sql_index => 1,
-			},
-			{
-				sub_name => "description",
-				type => "longtext",
-				text_index => 0,
-				render_single_value => "EPrints::Extras::render_xhtml_field",
-			},
-			{
-				sub_name => "timestamp",
-				type => "time",
-			},
-			{
-				sub_name => "status",
-				type => "set",
-				text_index => 0,
-				options=> [qw/ discovered ignored reported autoresolved resolved /],
-			},
-			{
-				sub_name => "reported_by",
-				type => "itemref",
-				datasetid => "user",
-			},
-			{
-				sub_name => "resolved_by",
-				type => "itemref",
-				datasetid => "user",
-			},
-			{
-				sub_name => "comment",
-				type => "longtext",
-				text_index => 0,
-				render_single_value => "EPrints::Extras::render_xhtml_field",
-			},
-		],
-		make_value_orderkey => "EPrints::DataObj::EPrint::order_issues_newest_open_timestamp",
-		render_value=>"EPrints::DataObj::EPrint::render_issues",
-		volatile => 1,
-	},
-
-	{ name=>"item_issues_count", type=>"int",  volatile=>1 },
+	{ name=>"item_issues", type=>"subobject", datasetid=>'issue',
+		multiple=>1, text_index=>1 },
 
 	{ 'name' => 'sword_depositor', 'type' => 'itemref', datasetid=>"user" },
 
@@ -262,122 +212,6 @@ sub get_system_field_info
  	},
 	
 	)
-}
-
-=item $eprint->set_item_issues( $new_issues )
-
-This method updates the issues attached to this eprint based on the new issues
-passed.
-
-If an existing issue is set as "discovered" and doesn't exist in $new_issues
-its status will be updated to "autoresolved", otherwise the old issue's status
-and description are updated.
-
-Any issues in $new_issues that don't already exist will be appended.
-
-=cut
-
-sub set_item_issues
-{
-	my( $self, $new_issues ) = @_;
-
-	$new_issues = [] if !defined $new_issues;
-
-	# tidy-up issues (should this be in the calling code?)
-	for(@$new_issues)
-	{
-		# default status to "discovered"
-		$_->{status} = "discovered"
-			if !EPrints::Utils::is_set( $_->{status} );
-		# default item_issue_id to item_issue_type
-		$_->{id} = $_->{type}
-			if !EPrints::Utils::is_set( $_->{id} );
-		# default timestamp to 'now'
-		$_->{timestamp} = EPrints::Time::get_iso_timestamp();
-		# backwards compatibility
-		if( ref( $_->{description} ) )
-		{
-			$_->{description} = $self->{session}->xhtml->to_xhtml( $_->{description} );
-		}
-	}
-
-	my %issues_map = map { $_->{id} => $_ } @$new_issues;
-
-	my $current_issues = $self->value( "item_issues" );
-	$current_issues = [] if !defined $current_issues;
-	# clone, otherwise we can't detect changes
-	$current_issues = EPrints::Utils::clone( $current_issues );
-
-	# update existing issues
-	foreach my $issue (@$current_issues)
-	{
-		my $new_issue = delete $issues_map{$issue->{id}};
-		if( defined $new_issue )
-		{
-			# update description (may have changed)
-			$issue->{description} = $new_issue->{description};
-			$issue->{status} = $new_issue->{status};
-		}
-		elsif( $issue->{status} eq "discovered" )
-		{
-			$issue->{status} = "autoresolved";
-		}
-	}
-
-	# append all other new issues
-	foreach my $new_issue (@$new_issues)
-	{
-		next if !exists $issues_map{$new_issue->{id}};
-		push @$current_issues, $new_issue;
-	}
-
-	$self->SUPER::set_value( "item_issues", $current_issues );
-}
-
-sub render_issues
-{
-	my( $session, $field, $value ) = @_;
-
-	# Default rendering only shows discovered and reported issues (not resolved or ignored ones)
-
-	my $f = $field->get_property( "fields_cache" );
-	my $fmap = {};	
-	foreach my $field_conf ( @{$f} )
-	{
-		my $fieldname = $field_conf->{name};
-		my $field = $field->{dataset}->get_field( $fieldname );
-		$fmap->{$field_conf->{sub_name}} = $field;
-	}
-
-	my $ol = $session->make_element( "ol" );
-	foreach my $issue ( @{$value} )
-	{
-		next if( $issue->{status} ne "reported" && $issue->{status} ne "discovered" ); 
-		my $li = $session->make_element( "li" );
-		$li->appendChild( EPrints::Extras::render_xhtml_field( $session, $fmap->{description}, $issue->{description} ) );
-		$li->appendChild( $session->make_text( " - " ) );
-		$li->appendChild( $fmap->{timestamp}->render_single_value( $session, $issue->{timestamp} ) );
-		$ol->appendChild( $li );
-	}
-
-	return $ol;
-}
-
-
-sub order_issues_newest_open_timestamp
-{
-	my( $field, $value, $session, $langid, $dataset ) = @_;
-
-	return "" if !defined $value;
-
-	my $v = "";
-	foreach my $issue ( sort { $b->{timestamp} cmp $a->{timestamp} } @{$value} )
-	{
-		next if( $issue->{status} ne "reported" && $issue->{status} ne "discovered" );
-		$v.=$issue->{timestamp};
-	}
-
-	return $v;	
 }
 
 =item $eprint->fileinfo()
@@ -905,6 +739,11 @@ sub remove
 		$file->remove;
 	}
 
+	foreach my $issue (@{$self->value( "item_issues" )})
+	{
+		$issue->remove;
+	}
+
 	my $success = $self->SUPER::remove();
 
 	# remove the webpages associated with this record.
@@ -959,19 +798,6 @@ The goal of these controls is to only trigger expensive processes in response to
 sub commit
 {
 	my( $self, $force ) = @_;
-
-	# recalculate issues number
-	if( exists $self->{changed}->{item_issues_status} )
-	{
-		my $issues_status = $self->value( "item_issues_status" ) || [];
-		my $c = 0;
-		foreach my $issue_status ( @{$issues_status} )
-		{
-			$c+=1 if( $issue_status eq "discovered" );
-			$c+=1 if( $issue_status eq "reported" );
-		}
-		$self->set_value( "item_issues_count", $c );
-	}
 
 	if( !$self->is_set( "datestamp" ) && $self->value( "eprint_status" ) eq "archive" )
 	{

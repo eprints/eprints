@@ -44,16 +44,40 @@ sub render
 	my $page = $session->make_doc_fragment;
 	$page->appendChild( $self->html_phrase( "live_audit_intro" ) );
 
+	my @issues;
+	
+	foreach my $issue (@{$eprint->value( "item_issues" )})
+	{
+		if( $issue->value( "status" ) =~ /^discovered|reported$/ )
+		{
+			push @issues, $issue;
+		}
+	}
+
+	my $epdata_to_dataobj = sub {
+		my( $epdata ) = @_;
+
+		push @issues, $session->dataset( "issue" )->make_dataobj( $epdata );
+
+		return undef;
+	};
 
 	# Run all available Issues plugins
-	my @issues_plugins = $session->plugin_list(
-		type=>"Issues",
-		is_available=>1 );
-	my @issues = ();
-	foreach my $plugin_id ( @issues_plugins )
+	my @plugins = $session->get_plugins(
+		{
+			Handler => EPrints::CLIProcessor->new(
+				session => $session,
+				epdata_to_dataobj => $epdata_to_dataobj,
+			),
+		},
+		type => "Issues",
+		can_accept => "dataobj/eprint",
+	);
+
+	foreach my $plugin ( @plugins )
 	{
-		my $plugin = $session->plugin( $plugin_id );
-		push @issues, $plugin->item_issues( $eprint );
+		$plugin->process_dataobj( $eprint );
+		$plugin->finish;
 	}
 
 	if( scalar @issues ) 
@@ -62,7 +86,7 @@ sub render
 		foreach my $issue ( @issues )
 		{
 			my $li = $session->make_element( "li" );
-			$li->appendChild( $issue->{description} );
+			$li->appendChild( $issue->render_description );
 			$ol->appendChild( $li );
 		}
 		$page->appendChild( $ol );
@@ -70,12 +94,6 @@ sub render
 	else
 	{
 		$page->appendChild( $self->html_phrase( "no_live_issues" ) );
-	}
-
-	if( $eprint->get_value( "item_issues_count" ) > 0 )
-	{
-		$page->appendChild( $self->html_phrase( "issues" ) );
-		$page->appendChild( $eprint->render_value( "item_issues" ) );
 	}
 
 	return $page;

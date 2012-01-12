@@ -27,7 +27,7 @@ This script should probably be called from your "cron" system, soon after
 midnight. Something like:
 
  # 00:23 every morning
- 23 0 * * * /opt/eprints3/bin/isseus_audit my_repo_id
+ 23 0 * * * /opt/eprints3/bin/issues_audit my_repo_id
 
 This script will take longer as your repository grows, so initially you may 
 want to run it more frequently, or on very large systems you might move to
@@ -68,6 +68,18 @@ May be repeated for greater effect.
 
 Output version information and exit.
 
+=item B<--dry-run>
+
+Don't remove or create any issue objects.
+
+=item B<--noclear>
+
+Do not clear auto-discovered issues before starting.
+
+=item B<--clearall>
+
+Clear all issues - use with caution!
+
 =back   
 
 
@@ -78,74 +90,71 @@ use EPrints;
 use strict;
 use Getopt::Long;
 use Pod::Usage;
-use Data::Dumper;
 
-my $version = 0;
-my $verbose = 0;
-my $quiet = 0;
-my $help = 0;
-my $man = 0;
+my %opt = (
+	verbose => 0,
+	quiet => 0,
+	clear => 1,
+);
 
 Getopt::Long::Configure("permute");
 
-GetOptions( 
-	'help|?' => \$help,
-	'man' => \$man,
-	'version' => \$version,
-	'verbose+' => \$verbose,
-	'silent' => \$quiet,
-	'quiet' => \$quiet
+GetOptions( \%opt,
+	'help|?',
+	'man',
+	'version',
+	'verbose+',
+	'silent',
+	'quiet+',
+	'dry-run|n',
+	'clear!',
+	'clearall',
 ) || pod2usage( 2 );
-EPrints::Utils::cmd_version( "send_alerts" ) if $version;
-pod2usage( 1 ) if $help;
-pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+EPrints::Utils::cmd_version( "send_alerts" ) if $opt{version};
+pod2usage( 1 ) if $opt{help};
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $opt{man};
 pod2usage( 2 ) if( @ARGV < 1 ); 
 
-my $noise = 1;
-$noise = 0 if( $quiet );
-$noise = 1+$verbose if( $verbose );
+my $noise = 1 + $opt{verbose} - $opt{quiet};
 
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;
 
-my $repoid = shift(@ARGV);
-my $session = new EPrints::Session( 1 , $repoid , $noise );
-if( !defined $session )
-{
-	print STDERR "Failed to load repository: $repoid\n";
-	exit 1;
-}
-
+my $repoid = shift @ARGV;
+my $repo = EPrints->new->repository( $repoid, noise => $noise )
+	or die "Failed to load repository: $repoid\n";
 
 
 ##############################
 
-my $file = $session->config( "config_path" )."/issues.xml";
-if( -e $file )
+if( $opt{clearall} && !$opt{'dry-run'} )
 {
-	my $doc = $session->get_repository->parse_xml( $file , 1 );
-	if( !defined $doc )
-	{
-        	EPrints::abort "Error parsing $file\n";
-	}
-	
-	my $issues_conf = ($doc->getElementsByTagName( "issues" ))[0];
-	if( !defined $issues_conf )
-	{
-        	EPrints::abort "Missing <issues> tag in $file\n";
-	}
+	print STDERR "Clearing issues\n" if $noise;
+	$repo->dataset( 'issue' )->search->map(sub {
+			(undef, undef, my $issue) = @_;
+
+			$issue->remove;
+		});
 }
-else
+elsif( $opt{clear} && !$opt{'dry-run'} )
 {
-	print "No $file - skipping\n" if( $noise > 1 );
+	print STDERR "Clearing unresolved, discovered issues\n" if $noise;
+	$repo->dataset( 'issue' )->search(
+		filters => [
+			{ meta_fields => [qw( status )], value => 'discovered' },
+		])->map(sub {
+			(undef, undef, my $issue) = @_;
+
+			$issue->remove;
+		});
 }
 
-my $ds = $session->get_archive()->get_dataset( 'eprint' );
+my $ds = $repo->dataset( 'eprint' );
 my $list;
 if( @ARGV )
 {
 	$list = EPrints::List->new(
-		session => $session,
+		session => $repo,
 		dataset => $ds,
 		ids => \@ARGV,
 	);
@@ -159,71 +168,58 @@ else
 		]);
 }
 
-# Run all available Issues plugins
-my @issues_plugins = $session->get_plugins(
-	type=>"Issues",
-	is_available=>1 );
-my %item_issues;
-my %info;
-
-foreach my $plugin (@issues_plugins)
+# Get all available Issues plugins
+my( @list_plugins, @dataobj_plugins );
+foreach my $plugin ($repo->get_plugins(
+		type => "Issues",
+	))
 {
-	$info{$plugin} = {
-		issues => \%item_issues,
-		opts => {
-			list => $list,
-		},
-	};
+	if( $plugin->can_accept( "list/eprint" ) )
+	{
+		push @list_plugins, $plugin;
+	}
+	elsif( $plugin->can_accept( "dataobj/eprint" ) )
+	{
+		push @dataobj_plugins, $plugin;
+	}
 }
+
+if( $opt{'dry-run'} )
+{
+	my $handler = EPrints::CLIProcessor->new(
+		epdata_to_dataobj => sub {
+			my( $epdata ) = @_;
+			printf("%s.%s %s: %s\n", $epdata->{datasetid}, $epdata->{objectid}, $epdata->{type}, $epdata->{description}) if $noise > 1;
+			return undef;
+	});
+	$_->set_handler( $handler ) for @list_plugins, @dataobj_plugins;
+}
+
+my %opts = (
+	dataset => $ds,
+	list => $list,
+);
 
 my $total = $list->count;
 my $i = 0;
 
-print "Running plugins: ".join(', ', map { $_->get_name() } @issues_plugins)."\n" if( $noise > 0 );
 $list->map(sub {
-	my( undef, undef, $item ) = @_;
-	foreach my $plugin ( @issues_plugins )
-	{
-		$plugin->process_item_in_list( $item, $info{$plugin} );
-	}
-	print sprintf("% 3s%%\r", sprintf("%d", $i++ / $total * 100)) if $noise > 1;
+	(undef, undef, my $eprint) = @_;
+
+	$_->process_dataobj( $eprint, %opts ) for @list_plugins, @dataobj_plugins;
+
+	print STDERR sprintf("% 3s%%\r", sprintf("%d", $i++ / $total * 100))
+		if $noise > 1;
 });
 
-foreach my $plugin ( @issues_plugins )
+foreach my $plugin (@list_plugins)
 {
-	print "Finishing plugin ".$plugin->get_name()."\n" if( $noise > 0 );
-	$plugin->process_at_end( $info{$plugin} );
+	print STDERR "Finishing plugin ".$plugin->get_name()."\n" if $noise;
+	$plugin->finish( %opts );
 }
-
-$i = 0;
-
-# Update the issues fields
-print "Updating database\n" if $noise > 0;
-$list->map(sub {
-	my( undef, undef, $item ) = @_;
-
-	print sprintf("% 3s%%\r", sprintf("%d", $i++ / $total * 100)) if $noise > 1;
-
-	my $value = $item_issues{$item->id};
-	$value = [] if !defined $value;
-	for(@$value)
-	{
-		my $desc = $session->xml->to_string( $_->{description} );
-		$session->xml->dispose( $_->{description} );
-		$_->{description} = $desc;
-	}
-	$item->set_item_issues( $value );
-	$item->commit;
-});
-print "Done updating database\n" if $noise > 0;
-
-
-$list->dispose;
-
 
 #####################################
 
-$session->terminate();
 exit;
 
 

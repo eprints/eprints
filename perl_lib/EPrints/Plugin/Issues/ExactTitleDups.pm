@@ -19,51 +19,53 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "Exact title duplicates";
+	$self->{accept} = [qw( list/eprint )];
 
 	return $self;
 }
 
-sub process_at_end
+sub process_dataobj
 {
-	my( $plugin, $info ) = @_;
+	my( $self, $eprint, %opts ) = @_;
 
-	my $session = $plugin->{session};
-	foreach my $code ( keys %{$info->{titlemap}} )
-	{
-		my @set = @{$info->{titlemap}->{$code}};
-		next unless scalar @set > 1;
-		foreach my $id ( @set )
-		{
-			my $eprint = EPrints::DataObj::EPrint->new( $session, $id );
-			my $desc = $session->make_doc_fragment;
-			$desc->appendChild( $session->make_text( "Duplicate title to " ) );
-			$desc->appendChild( $eprint->render_citation_link_staff );
-			OTHER: foreach my $id2 ( @set )
-			{
-				next OTHER if $id == $id2;
-				push @{$info->{issues}->{$id2}}, {
-					type => "duplicate_title",
-					id => "duplicate_title_$id",
-					description => $desc,
-				};
-			}
-		}
-	}
-}
-
-# info is the data block being used to store cumulative information for
-# processing at the end.
-sub process_item_in_list
-{
-	my( $plugin, $item, $info ) = @_;
-
-	my $title = $item->get_value( "title" );
+	my $title = $eprint->value( "title" );
 	return if !defined $title;
 
-	push @{$info->{titlemap}->{$title}}, $item->get_id;
+	push @{$self->{titles}->{$title}}, $eprint->id;
 }
 
+sub finish
+{
+	my( $self, %opts ) = @_;
 
+	my $repo = $self->{session};
+
+	foreach my $set (values %{$self->{titles}})
+	{
+		next if @$set == 1;
+		foreach my $item (@$set)
+		{
+			$item = $repo->eprint( $item );
+		}
+		foreach my $item (@$set)
+		{
+			foreach my $dupe (@$set)
+			{
+				next if $item->id eq $dupe->id;
+				my $desc = $self->html_phrase( "duplicate",
+						duplicate => $dupe->render_citation_link_staff( 'brief' ),
+					);
+				$self->create_issue( $item, {
+					type => $self->get_subtype,
+					description => $repo->xhtml->to_xhtml( $desc ),
+				});
+			}
+		}
+		@$set = (); # free objects
+	}
+
+	delete $self->{titles};
+}
 
 1;
 

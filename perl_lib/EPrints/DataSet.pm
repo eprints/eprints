@@ -228,6 +228,12 @@ my $INFO = {
 		class => "EPrints::DataObj::Import",
 		datestamp => "datestamp",
 	},
+	issue => {
+		sqlname => "issue",
+		class => "EPrints::DataObj::Issue",
+		datestamp => "timestamp",
+		columns => [qw( parent description status )],
+	},
 	metafield => {
 		sqlname => "mf", # identifiers get too long
 		class => "EPrints::DataObj::MetaField",

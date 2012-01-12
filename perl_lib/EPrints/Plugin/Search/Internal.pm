@@ -47,6 +47,13 @@ sub new
 	return $self;
 }
 
+sub can_search
+{
+	my( $self, $format ) = @_;
+
+	return 1; # "probably"
+}
+
 sub from_form
 {
 	my( $self ) = @_;

@@ -19,76 +19,64 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "Issues XML Config File";
+	$self->{accept} = [qw( dataobj/eprint )];
 
 	return $self;
 }
 
 sub config_file
 {
-	my( $plugin ) = @_;
+	my( $self ) = @_;
 
-	return $plugin->{session}->get_repository->get_conf( "config_path" )."/issues.xml";
+	return $self->{session}->config( "config_path" )."/issues.xml";
 }
 
 sub get_config
 {
-	my( $plugin ) = @_;
+	my( $self ) = @_;
 
-	if( !defined $plugin->{issuesconfig} )
+	if( !defined $self->{issuesconfig} )
 	{
-		my $file = $plugin->config_file;
-		my $doc = $plugin->{session}->get_repository->parse_xml( $file , 1 );
+		my $file = $self->config_file;
+		my $doc = $self->{session}->parse_xml( $file , 1 );
 		if( !defined $doc )
 		{
-			$plugin->{session}->get_repository->log( "Error parsing $file\n" );
+			$self->{session}->log( "Error parsing $file\n" );
 			return;
 		}
 	
-		$plugin->{issuesconfig} = ($doc->getElementsByTagName( "issues" ))[0];
-		if( !defined $plugin->{issuesconfig} )
+		$self->{issuesconfig} = ($doc->getElementsByTagName( "issues" ))[0];
+		if( !defined $self->{issuesconfig} )
 		{
-			$plugin->{session}->get_repository->log(  "Missing <issues> tag in $file\n" );
+			$self->{session}->log(  "Missing <issues> tag in $file\n" );
 			EPrints::XML::dispose( $doc );
 			return;
 		}
 	}
 	
-	return $plugin->{issuesconfig};
+	return $self->{issuesconfig};
 }
 
-sub is_available
+sub process_dataobj
 {
-	my( $plugin ) = @_;
-
-	return( -e $plugin->config_file );
-}
-
-# return an array of issues. Issues should be of the type
-# { description=>XHTML String, type=>string }
-# if one item can have multiple occurances of the same issue type then add
-# an id field too. This only need to be unique within the item.
-sub item_issues
-{
-	my( $plugin, $dataobj ) = @_;
+	my( $self, $dataobj, %opts ) = @_;
 	
-	my %params = ();
-	$params{item} = $dataobj;
-	$params{current_user} = $plugin->{session}->current_user;
-	$params{session} = $plugin->{session};
-	my $issues = EPrints::XML::EPC::process( $plugin->get_config, %params );
+	my $issues = EPrints::XML::EPC::process( $self->get_config,
+			item => $dataobj,
+			current_user => $self->{session}->current_user,
+			session => $self->{session},
+		);
 
-	my @issues_list = ();
-	foreach my $child ( $issues->getChildNodes )
+	foreach my $child ( $issues->childNodes )
 	{
 		next unless( $child->nodeName eq "issue" );
-		my $issue = {};
-		$issue->{description} = EPrints::XML::contents_of( $child );
-		$issue->{type} = $child->getAttribute( "type" );
-		$issue->{id} = $child->getAttribute( "issue_id" );
-		push @issues_list, $issue;
+		my $desc = EPrints::XML::contents_of( $child );
+		$desc = $self->{session}->xhtml->to_xhtml( $desc );
+		$self->create_issue( $dataobj, {
+				type => $self->get_subtype . ":" . $child->getAttribute( "type" ),
+				description => $desc,
+			}, %opts);
 	}
-
-	return @issues_list;
 }
 
 1;
