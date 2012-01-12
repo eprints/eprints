@@ -139,18 +139,22 @@ sub joins
 	# join to another dataset
 	else
 	{
-		my( $left_key, $right_key ) = $self->join_keys( $opts{dataset}, $self->dataset );
 		my $main_table = $self->dataset->get_sql_table_name;
-		my $main_key = $self->dataset->get_key_field->get_sql_name;
+		my $logic = $self->join_path(
+				$opts{dataset},
+				%opts,
+				alias => "$prefix$main_table",
+			);
 		# join to main table of child dataset
 		my $join = {
 			type => "inner",
 			table => $main_table,
 			alias => "$prefix$main_table",
-			logic => $db->quote_identifier( $opts{dataset}->get_sql_table_name, $left_key )."=".$db->quote_identifier( "$prefix$main_table", $right_key ),
+			logic => $logic,
 		};
 		if( $self->{field}->get_property( "multiple" ) )
 		{
+			my $main_key = $self->dataset->get_key_field->get_sql_name;
 			my $table = $self->table;
 			return ($join, {
 				type => "inner",
@@ -247,6 +251,56 @@ sub logic
 			$self->{op},
 			$db->quote_value( $self->{params}->[0] ) );
 	}
+}
+
+# return the logic to join two datasets together
+sub join_path
+{
+	my( $self, $source, %opts ) = @_;
+
+	my @logic;
+
+	my $db = $opts{session}->database;
+
+	my $target = $self->dataset;
+
+	my $left_key = $source->get_key_field->get_name;
+	my $right_key = $target->get_key_field->get_name;
+
+	# document.docid = file.objectid AND file.datasetid = 'document'
+	if(
+		$target->dataobj_class->isa( "EPrints::DataObj::SubObject" ) &&
+		$target->has_field( "datasetid" ) &&
+		$target->has_field( "objectid" )
+	  )
+	{
+		push @logic, join '=',
+			$db->quote_identifier( $source->get_sql_table_name, $left_key ),
+			$db->quote_identifier( $opts{alias}, "objectid" );
+		push @logic, join '=',
+			$db->quote_identifier( $opts{alias}, "datasetid" ),
+			$db->quote_value( $source->base_id );
+	}
+	# eprint.userid = user.userid
+	elsif( $source->has_field( $right_key ) )
+	{
+		push @logic, join '=',
+			$db->quote_identifier( $source->get_sql_table_name, $right_key ),
+			$db->quote_identifier( $opts{alias}, $right_key );
+	}
+	# eprint.eprintid = document.eprintid
+	elsif( $target->has_field( $left_key ) )
+	{
+		push @logic, join '=',
+			$db->quote_identifier( $source->get_sql_table_name, $left_key ),
+			$db->quote_identifier( $opts{alias}, $left_key );
+	}
+	else
+	{
+		EPrints::abort( "Can't create join path for field ".$self->dataset->base_id.".".$self->{field}->get_name.": ".$source->confid." -> ".$target->confid );
+	}
+
+	return join ' AND ', @logic;
 }
 
 1;
