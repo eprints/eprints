@@ -152,7 +152,9 @@ sub search_filters
 {
 	my( $self ) = @_;
 
-	return;
+	my $filters = $self->{processor}->{filters};
+
+	return defined $filters ? @$filters : ();
 }
 
 

@@ -90,12 +90,22 @@ if( !defined $dataset )
 	exit;
 }
 
+my @filters;
+
+# legacy
+if( $dataset->base_id eq "eprint" )
+{
+	push @filters,
+		{ meta_fields => ["metadata_visibility"], value => "show" };
+}
+
 EPrints::ScreenProcessor->process( 
 	session => $repo, 
 	url => $repo->config( "http_cgiroot" )."/search/$datasetid/$searchid",
 	screenid => "Search",
 	searchid => $searchid,
 	dataset => $dataset,
+	filters => \@filters,
 );
 
 exit;
