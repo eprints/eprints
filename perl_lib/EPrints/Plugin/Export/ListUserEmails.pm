@@ -32,11 +32,10 @@ sub output_dataobj
 {
 	my( $plugin, $dataobj ) = @_;
 
+	return "" if $dataobj->is_set( "pin" );
+	return "" if !$dataobj->is_set( "email" );
+
 	my $email = $dataobj->get_value( "email" );
-	if( !defined $email ) 
-	{
-		return "";
-	}
 
 	return "$email\n";
 }
