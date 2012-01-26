@@ -80,7 +80,7 @@ sub run
 
         if( !defined $EPrints::Script::Compiled::{$fn} )
         {
-		$self->runtime_error( "call to unknown fuction: ".$self->{id} );
+		$self->runtime_error( "call to unknown function: ".$self->{id} );
                 next;
         }
 
