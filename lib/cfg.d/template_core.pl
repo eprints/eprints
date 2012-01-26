@@ -44,7 +44,7 @@ EOJ
 	# IE 6 fix
 	$head->appendChild( $repo->xml->create_comment( sprintf('[if lte IE 6]>
         <link rel="stylesheet" type="text/css" href="%s" />
-    <!endif]',
+   <![endif]',
 			$repo->current_url( path => "static", "style/ie6.css" ),
 		) ) );
 	$head->appendChild( $repo->xml->create_text_node( "\n    " ) );
