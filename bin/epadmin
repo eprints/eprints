@@ -1872,20 +1872,29 @@ sub reorder
 		exit( 1 );
 	}
 
+	my $f;
+
 	my $list;
 	if( @ids )
 	{ 
+		$f = \&EPrints::Index::update_ordervalues;
 		$list = $dataset->list( \@ids );
 	}
 	else
 	{
+		$f = \&EPrints::Index::insert_ordervalues;
 		$list = $dataset->search;
+		foreach my $langid ( @{$repo->config( "languages" )} )
+		{
+			my $ovt = $dataset->get_ordervalues_table_name( $langid );
+			$repo->database->clear_table( $ovt );
+		}
 	}
 
 	$list->map( sub {
 		my( $session, $dataset, $item ) = @_;
 	
-		EPrints::Index::update_ordervalues( $session, $dataset, $item->{data}, $item->{data} );
+		&$f( $session, $dataset, $item->{data}, $item->{data} );
 
 		if( $noise >= 2 )
 		{
