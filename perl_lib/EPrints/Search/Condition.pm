@@ -564,6 +564,7 @@ sub process
 
 	my $cachemap = delete $opts{cachemap};
 	my $limit = delete $opts{limit};
+	my $offset = delete $opts{offset};
 
 	my $sql = $self->sql( %opts );
 
@@ -579,7 +580,7 @@ sub process
 	}
 
 #print STDERR "EXECUTING: $sql\n";
-	my $sth = $db->prepare_select( $sql, limit => $limit );
+	my $sth = $db->prepare_select( $sql, limit => $limit, offset => $offset );
 	$db->execute($sth, $sql);
 
 	my @results;
