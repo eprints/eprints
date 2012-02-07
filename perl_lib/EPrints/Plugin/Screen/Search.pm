@@ -65,7 +65,7 @@ sub can_be_viewed
 	my( $self ) = @_;
 
 	# note this method is also used by $self->datasets()
-
+	
 	my $dataset = $self->{processor}->{dataset};
 	return 0 if !defined $dataset;
 
@@ -381,7 +381,7 @@ sub properties_from
 	{
 		$sconf = $repo->config( "search", $searchid );
 	}
-	else
+	if( !defined $sconf )	
 	{
 		$sconf = $repo->config( "datasets", $dataset->id, "search", $searchid );
 	}
