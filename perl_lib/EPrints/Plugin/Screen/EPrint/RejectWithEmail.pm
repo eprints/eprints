@@ -217,14 +217,14 @@ sub action_send
 
 	# Successfully transferred, mail the user with the reason
 
-	my $content;
+	my $content = $self->render_body;
 	my $mail_ok = do {
 		# change language temporarily to the user's language
 		local $self->{session}->{lang} = $user->language();
 
 		$user->mail(
 			"cgi/users/edit_eprint:subject_bounce",
-			$self->render_body,
+			$content,
 			$self->{session}->current_user );
 	};
 	
