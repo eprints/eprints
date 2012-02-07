@@ -134,6 +134,34 @@ sub add_dataset_field
 	push @{$c->{fields}->{$datasetid}}, $fielddata;
 }
 
+=item $c->push( KEY1 [, KEY2 ], VALUE )
+
+Push a value onto a configuration slot that is an array ref. VALUE may be an array ref in which case each value is pushed onto the existing list.
+
+=cut
+
+sub push
+{
+	my( $self, @keys ) = @_;
+	my $value = pop @keys;
+
+	EPrints->abort( "Usage: \$c->push( KEY, [, KEY ], VALUE )" ) if !@keys;
+
+	my $c = $self;
+	while(@keys)
+	{
+		my $key = shift @keys;
+		$c = $c->{$key} ||= (@keys ? {} : []);
+	}
+
+	$value = [$value] unless( ref( $value ) eq 'ARRAY' );
+
+	CORE::push @$c, @$value;
+
+	return $value;
+}
+
+
 =pod
 
 =back
