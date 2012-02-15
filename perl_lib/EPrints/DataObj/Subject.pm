@@ -371,6 +371,31 @@ sub _get_ancestors
 	return @ancestors;
 }
 
+=item $subject = $subject->top()
+
+Returns the subject that is at the top of this subject's tree (which may be this subject).
+
+Returns undef if the subject is not part of a tree.
+
+=cut
+
+sub top
+{
+	my( $self ) = @_;
+
+	foreach my $id ($self->id, @{$self->value( "ancestors" )})
+	{
+		my $subject = $self->{dataset}->dataobj( $id );
+		next if !defined $subject;
+		foreach my $parentid (@{$subject->value( "parents" )})
+		{
+			return $subject
+				if $parentid eq $EPrints::DataObj::Subject::root_subject;
+		}
+	}
+
+	return undef;
+}
 
 ######################################################################
 =pod

@@ -2,6 +2,15 @@
 
 EPrints::Apache::CRUD
 
+=head1 SYNOPSIS
+
+	$crud = EPrints::Apache::CRUD->new(
+			repository => $repo,
+			request => $r,
+			datasetid => "eprint",
+			dataobjid => "23",
+		);
+
 =cut
 
 package EPrints::Apache::CRUD;
@@ -15,22 +24,238 @@ use Apache2::Access;
 
 our $PACKAGING_PREFIX = "sword:";
 
+use constant {
+	CRUD_SCOPE_USER_CONTENTS => 1,
+	CRUD_SCOPE_DATASET => 2,
+	CRUD_SCOPE_DATAOBJ => 3,
+	CRUD_SCOPE_FIELD => 4,
+	CRUD_SCOPE_CONTENTS => 5,
+};
+
 use strict;
+
+my %CONTENTSMAP = (
+	"EPrints::DataObj::EPrint" => "documents",
+	"EPrints::DataObj::Document" => "files",
+	);
+
+sub new
+{
+	my( $class, %self ) = @_;
+
+	my $self = bless \%self, $class;
+
+	$self{headers} = $self->process_headers;
+	$self{options} = [qw( GET HEAD OPTIONS )];
+
+	# servicedocument FIXME
+	return $self if !exists $self{datasetid};
+
+	my $repo = $self{repository};
+
+	# /id/FOO...
+	if( defined $self{datasetid} )
+	{
+		$self{dataset} = $repo->dataset( $self{datasetid} );
+		if( !defined $self{dataset} )
+		{
+			$self{request}->status( HTTP_NOT_FOUND );
+			return;
+		}
+		$self{options} = [qw( GET HEAD POST OPTIONS )];
+		$self{scope} = CRUD_SCOPE_DATASET;
+	}
+	# /id/contents
+	else
+	{
+		$self{dataset} = $repo->dataset( "eprint" );
+		$self{options} = [qw( GET HEAD POST OPTIONS )];
+		$self{scope} = CRUD_SCOPE_USER_CONTENTS;
+	}
+
+	# /id/FOO/BAR
+	if( defined $self{dataobjid} )
+	{
+		$self{dataobj} = $self{dataset}->dataobj( $self{dataobjid} );
+		$self{options} = [qw( GET HEAD PUT OPTIONS )];
+		$self{scope} = CRUD_SCOPE_DATAOBJ;
+	}
+
+	# /id/FOO/BAR/xxx
+	if( defined $self{fieldid} )
+	{
+		if( $self{fieldid} eq "contents" )
+		{
+			$self{options} = [qw( GET HEAD POST PUT OPTIONS )];
+			$self{scope} = CRUD_SCOPE_CONTENTS;
+			my $fieldid = $CONTENTSMAP{ref($self->dataobj)};
+			if( !defined $fieldid )
+			{
+				$self{request}->status( HTTP_NOT_FOUND );
+				return;
+			}
+			$self{field} = $self{dataset}->field( $fieldid );
+			$self{dataset} = $repo->dataset(
+					$self{field}->property( "datasetid" )
+				);
+		}
+		elsif( !$self{dataset}->has_field( $self{fieldid} ) )
+		{
+			$self{request}->status( HTTP_NOT_FOUND );
+			return;
+		}
+		else
+		{
+			$self{field} = $self{dataset}->field( $self{fieldid} );
+			$self{options} = [qw( GET HEAD PUT OPTIONS )];
+			$self{scope} = CRUD_SCOPE_FIELD;
+		}
+	}
+
+	$self{plugin} = $self->content_negotiate_best_plugin;
+
+	return $self;
+}
+
+=item $repo = $crud->repository()
+
+Returns the current repository.
+
+=cut
+
+sub repository { $_[0]->{repository} }
+
+=item $r = $crud->request()
+
+Returns the current L<Apache2::RequestUtil>.
+
+=cut
+
+sub request { $_[0]->{request} }
+
+=item $scope = $crud->scope()
+
+Returns the scope of the action being performed.
+
+=cut
+
+sub scope { $_[0]->{scope} }
+
+=item $dataset = $crud->dataset()
+
+Returns the current dataset (if any).
+
+=cut
+
+sub dataset { $_[0]->{dataset} }
+
+=item $dataobj = $crud->dataobj()
+
+Returns the current dataobj (if any).
+
+=cut
+
+sub dataobj { $_[0]->{dataobj} }
+
+=item $field = $crud->field()
+
+Returns the current field (if available);
+
+=cut
+
+sub field { $_[0]->{field} } 
+
+=item $headers = $crud->headers()
+
+Get the processed headers.
+
+=cut
+
+sub headers { $_[0]->{headers} }
+
+=item @verbs = $crud->options()
+
+Returns the available HTTP verbs for the current request.
+
+=cut
+
+sub options { @{$_[0]->{options}} }
+
+=item $plugin = $crud->plugin()
+
+Returns the current plugin (if available).
+
+=cut
+
+sub plugin { $_[0]->{plugin} }
+
+=item $bool = $crud->is_write()
+
+Returns true if the request is not a read-only method.
+
+=cut
+
+sub is_write { $_[0]->{request}->method !~ /^GET|HEAD|OPTIONS$/ }
+
+=item $rc = $crud->check_packaging()
+
+Check the Packaging header is ok, if given.
+
+=cut
+
+sub check_packaging
+{
+	my( $self ) = @_;
+
+	my $headers = $self->headers;
+
+	if( $headers->{packaging} && !defined $self->plugin )
+	{
+		return $self->sword_error(
+			status => HTTP_BAD_REQUEST,
+			href => "http://purl.org/net/sword/error/ErrorContent",
+			summary => "No support for packaging '$headers->{packaging}'",
+		);
+	}
+
+	return OK;
+}
 
 sub _priv
 {
-	my( $r, $dataset ) = @_;
+	my( $self ) = @_;
 
-	my $dataobj = $r->pnotes->{dataobj};
-	my $plugin = $r->pnotes->{plugin};
-	my $field = $r->pnotes->{field};
-
-	my $write = $r->method ne "GET" && $r->method ne "HEAD";
+	my $r = $self->request;
+	my $dataset = $self->dataset;
+	my $dataobj = $self->dataobj;
+	my $plugin = $self->plugin;
+	my $field = $self->field;
 
 	my $priv;
-	if( $r->method eq "POST" || $r->method eq "PUT" )
+	# /id/xx/yy/contents
+	if( $self->scope eq CRUD_SCOPE_CONTENTS )
 	{
-		$priv = "edit";
+		$priv = $self->is_write ? "edit" : "view";
+		$dataobj = $dataobj->parent
+			if $dataobj->isa( "EPrints::DataObj::File" );
+		$dataobj = $dataobj->parent
+			if $dataobj->isa( "EPrints::DataObj::Document" );
+		$dataset = $dataobj->get_dataset;
+	}
+	elsif( $r->method eq "POST" )
+	{
+		$priv = "create";
+	}
+	elsif( $r->method eq "PUT" )
+	{
+		if( $self->scope == CRUD_SCOPE_DATAOBJ && !defined $dataobj )
+		{
+			$priv = "upsert";
+		}
+		else
+		{
+			$priv = "edit";
+		}
 	}
 	elsif( $r->method eq "DELETE" )
 	{
@@ -45,22 +270,15 @@ sub _priv
 		$priv = "view";
 	}
 
-	# for /XX/contents we always want dataobj/edit for POST/PUT/DELETE and not
-	# POST/PUT/DELETE on the dataset we're working on
-	if( defined $field )
+	if( $dataset->base_id eq "eprint" && $priv eq "create" )
 	{
-		if( $dataobj->isa( "EPrints::DataObj::Document" ) )
-		{
-			$dataobj = $dataobj->parent;
-		}
-		$dataset = $dataobj->get_dataset;
-		if( $write )
-		{
-			$priv = "edit";
-		}
+		$priv = "create_eprint";
 	}
-
-	if( $dataset->id ne $dataset->base_id )
+	elsif( $dataset->base_id eq "eprint" && $priv eq "view" )
+	{
+		$priv = "items";
+	}
+	elsif( $dataset->id ne $dataset->base_id )
 	{
 		$priv = join('/', $dataset->base_id, $dataset->id, $priv );
 	}
@@ -69,37 +287,22 @@ sub _priv
 		$priv = join('/', $dataset->base_id, $priv );
 	}
 
-	if( !defined $dataobj )
-	{
-		if( $write )
-		{
-			$priv = "create_eprint";
-		}
-		else
-		{
-			$priv = "items";
-		}
-	}
-
 	return $priv;
 }
 
 # authentication
 sub authen
 {
-	my( $r ) = @_;
+	my( $self ) = @_;
 
-	my $repo = $EPrints::HANDLE->current_repository;
-	return HTTP_FORBIDDEN if !defined $repo;
-
-	my $dataobj = $r->pnotes->{dataobj};
-	my $dataset = $r->pnotes->{dataset};
-	my $plugin = $r->pnotes->{plugin};
-
-	my $write = $r->method ne "GET" && $r->method ne "HEAD";
+	my $r = $self->request;
+	my $repo = $self->repository;
+	my $dataset = $self->dataset;
+	my $dataobj = $self->dataobj;
+	my $plugin = $self->plugin;
 
 	# POST, PUT, DELETE must authenticate
-	if( $write )
+	if( $self->is_write )
 	{
 		return EPrints::Apache::Auth::authen( $r );
 	}
@@ -111,27 +314,27 @@ sub authen
 	}
 
 	# /id/contents implicitly requires a user
-	if( !defined $dataobj )
+	if( $self->scope eq CRUD_SCOPE_USER_CONTENTS )
 	{
 		return EPrints::Apache::Auth::authen( $r );
 	}
 
 	# permission for GET/HEAD a document is via authen_doc/authz_doc
-	if( !$write )
+	if( !$self->is_write && $self->scope == CRUD_SCOPE_DATAOBJ )
 	{
-		if( $dataobj->isa( "EPrints::DataObj::File" ) )
+		if( $dataset->base_id eq "file" )
 		{
 			$dataobj = $dataobj->parent;
 			$dataset = $dataobj->get_dataset;
 		}
-		if( $dataobj->isa( "EPrints::DataObj::Document" ) )
+		if( $dataset->base_id eq "document" )
 		{
 			$r->pnotes->{document} = $dataobj;
 			return EPrints::Apache::Auth::authen_doc( $r );
 		}
 	}
 
-	my $priv = _priv( $r, $dataset );
+	my $priv = $self->_priv;
 
 	return OK if $repo->allow_anybody( $priv );
 
@@ -141,18 +344,14 @@ sub authen
 # authorisation
 sub authz
 {
-	my( $r ) = @_;
+	my( $self ) = @_;
 
-	my $repo = $EPrints::HANDLE->current_repository;
-	return HTTP_FORBIDDEN if !defined $repo;
-
-	my $dataobj = $r->pnotes->{dataobj};
-	my $dataset = $r->pnotes->{dataset};
-	my $plugin = $r->pnotes->{plugin};
+	my $r = $self->request;
+	my $repo = $self->repository;
+	my $dataset = $self->dataset;
+	my $plugin = $self->plugin;
 
 	my $user = $repo->current_user;
-
-	my $write = $r->method ne "GET" && $r->method ne "HEAD";
 
 	if( defined($plugin) && $plugin->param( "visible" ) eq "staff" )
 	{
@@ -168,13 +367,13 @@ sub authz
 		return EPrints::Apache::Auth::authz_doc( $r );
 	}
 
-	my $priv = _priv( $r, $dataset );
+	my $priv = $self->_priv;
 
 	return OK if $repo->allow_anybody( $priv );
 
 	return HTTP_FORBIDDEN if !defined $user;
 
-	if( $user->allow( $priv, $dataobj ) )
+	if( $user->allow( $priv, $self->dataobj ) )
 	{
 		return OK;
 	}
@@ -182,7 +381,120 @@ sub authz
 	return HTTP_FORBIDDEN;
 }
 
-=item $plugin = content_negotiate_best_plugin( $r )
+=item $list = $crud->parse_input( $plugin, $f [, %params ] )
+
+Parse the content submitted by the user using the given $plugin.  $f is called by epdata_to_dataobj to convert epdata to a dataobj.  %params are passed to the plugin's input_fh method.
+
+Returns undef on error.
+
+=cut
+
+sub _read_content
+{
+	my( $self ) = @_;
+
+	my $r = $self->request;
+	my $repo = $self->repository;
+	my $headers = $self->headers;
+
+	my $ctx = $headers->{content_md5} ? Digest::MD5->new : undef;
+
+	my $tmpfile = File::Temp->new( SUFFIX => $headers->{extension} );
+	binmode($tmpfile);
+	my $len = 0;
+	while($r->read(my $buffer, 4096)) {
+		$len += length($buffer);
+		$ctx->add( $buffer ) if defined $ctx;
+		print $tmpfile $buffer;
+	}
+	seek($tmpfile,0,0);
+
+	if( defined $ctx && $ctx->hexdigest ne $headers->{content_md5} )
+	{
+		$self->sword_error(
+			status => HTTP_PRECONDITION_FAILED,
+			href => "http://purl.org/net/sword/error/ErrorChecksumMismatch",
+			summary => "MD5 digest mismatch between headers and content",
+		);
+		return undef;
+	}
+
+	return $tmpfile;
+}
+
+sub parse_input
+{
+	my( $self, $plugin, $f, %params ) = @_;
+
+	my $repo = $self->repository;
+	my $headers = $self->headers;
+
+	my @messages;
+	my $count = 0;
+
+	$plugin->set_handler( EPrints::CLIProcessor->new(
+		message => sub { push @messages, $_[1] },
+		epdata_to_dataobj => sub { ++$count; &$f },
+		) );
+
+	my $tmpfile = $self->_read_content();
+	return undef if !defined $tmpfile;
+
+	my %content_type_params;
+	for(keys %{$headers->{content_type_params}})
+	{
+		next if !$plugin->has_argument( $_ );
+		$content_type_params{$_} = $headers->{content_type_params}->{$_};
+	}
+
+	my $list = eval { $plugin->input_fh(
+		%content_type_params,
+		dataset => $self->dataset,
+		fh => $tmpfile,
+		filename => $headers->{filename},
+		mime_type => $headers->{mime_type},
+		content_type => $headers->{content_type},
+		actions => $headers->{actions},
+		%params,
+	) };
+
+	if( !defined $list )
+	{
+		$self->plugin_error( $plugin, \@messages );
+		return undef;
+	}
+	elsif( $count == 0 )
+	{
+		$plugin->handler->message( "error", "Import plugin didn't create anything" );
+		$self->plugin_error( $plugin, \@messages );
+		return undef;
+	}
+
+	return $list;
+}
+
+sub create_dataobj
+{
+	my( $self, $owner, $epdata ) = @_;
+
+	$epdata = {} if !defined $epdata;
+
+	my $repo = $self->repository;
+	my $dataset = $self->dataset;
+
+	local $repo->{config}->{enable_import_fields} = 1;
+
+	$epdata->{$dataset->key_field->name} = $self->{dataobjid};
+
+	if( $dataset->base_id eq "eprint" )
+	{
+		$epdata->{userid} = $owner->id;
+	}
+
+	return $dataset->create_dataobj( $epdata );
+}
+
+=item $plugin = $crud->content_negotiate_best_plugin( $r )
 
 Work out the best plugin to export/update an object based on the client-headers.
 
@@ -190,63 +502,31 @@ Work out the best plugin to export/update an object based on the client-headers.
 
 sub content_negotiate_best_plugin
 {
-	my( $r ) = @_;
+	my( $self ) = @_;
 
-	my $repo = EPrints->new->current_repository;
+	my $r = $self->request;
+	my $repo = $self->repository;
+	my $dataset = $self->dataset;
+	my $field = $self->field;
 
-	my $dataset = $r->pnotes->{dataset};
-	my $dataobj = $r->pnotes->{dataobj};
-	my $uri = $r->pnotes->{uri};
+	my $headers = $self->headers;
 
-	my $headers = process_headers( $repo, $r );
+	return undef if $r->method eq "DELETE";
 
-	my $write = $r->method eq 'POST' || $r->method eq 'PUT';
-
-	my $accept_type = "dataobj/".$dataset->base_id;
-	if( !defined $dataobj && !$write )
+	my $accept_type = $dataset->base_id;
+	if( $self->is_write || $self->scope == CRUD_SCOPE_DATAOBJ )
 	{
-		$accept_type = "list/".$dataset->base_id;
+		$accept_type = "dataobj/".$accept_type;
 	}
-
-	my $field;
-	if( $uri eq "contents" )
+	else
 	{
-		if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
-		{
-			$field = $dataset->field( "documents" );
-		}
-		elsif( $dataobj->isa( "EPrints::DataObj::Document" ) )
-		{
-			$field = $dataset->field( "files" );
-		}
-		else
-		{
-			return( HTTP_NOT_FOUND, undef );
-		}
-		$dataset = $repo->dataset( $field->property( "datasetid" ) );
-
-		$r->pnotes->{dataset} = $dataset;
-		$r->pnotes->{field} = $field;
-		if( $write )
-		{
-			$accept_type = "dataobj/".$dataset->base_id;
-		}
-		else
-		{
-			$accept_type = "list/".$dataset->base_id;
-		}
+		$accept_type = "list/".$accept_type;
 	}
-	elsif( length($uri) )
-	{
-		return( HTTP_NOT_FOUND, undef );
-	}
-
-	return( OK, undef ) if $r->method eq "DELETE";
 
 	if( defined(my $package = $headers->{packaging}) )
 	{
 		my $plugin;
-		if( $write )
+		if( $self->is_write )
 		{
 			($plugin) = $repo->get_plugins(
 				type => "Import",
@@ -263,11 +543,11 @@ sub content_negotiate_best_plugin
 				can_produce => $PACKAGING_PREFIX.$package,
 			);
 		}
-		return( OK, $plugin );
+		return $plugin;
 	}
 
 	my @plugins;
-	if( $write )
+	if( $self->is_write )
 	{
 		@plugins = $repo->get_plugins(
 			type => "Import",
@@ -313,7 +593,7 @@ sub content_negotiate_best_plugin
 	} keys %pset;
 
 	my $accept;
-	if( $write )
+	if( $self->is_write )
 	{
 		$accept = $r->headers_in->{'Content-Type'};
 	}
@@ -386,7 +666,7 @@ sub content_negotiate_best_plugin
 		}
 	}
 
-	return( OK,  $match );
+	return $match;
 }
 
 # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1
@@ -417,164 +697,76 @@ sub parse_media_range
 
 sub handler
 {
-	my( $r ) = @_;
+	my( $self ) = @_;
 
-	my $repo = EPrints->new->current_repository;
+	my $r = $self->request;
+	my $repo = $self->repository;
+	my $dataset = $self->dataset;
+	my $dataobj = $self->dataobj;
+	my $plugin = $self->plugin;
+
 	my $user = $repo->current_user;
 
 	my( $rc, $owner ) = on_behalf_of( $repo, $r, $user );
 	return $rc if $rc != OK;
 
-	my $write = $r->method ne "GET" && $r->method ne "HEAD";
-
-	my $dataset = $r->pnotes->{dataset};
-	my $dataobj = $r->pnotes->{dataobj};
-	my $plugin = $r->pnotes->{plugin};
-	my $field = $r->pnotes->{field};
-	my $uri = $r->pnotes->{uri};
-
 	# Subject URI's redirect to the top of that particular subject tree
-	# rather than the node in the tree. (the ancestor with "ROOT" as a parent).
-	if( $dataset->id eq "subject" )
+	# rather than the node in the tree.
+	if( UNIVERSAL::isa( $dataobj, "EPrints::DataObj::Subject" ) )
 	{
-ANCESTORS: foreach my $anc_subject_id ( @{$dataobj->get_value( "ancestors" )} )
-	   {
-		   my $anc_subject = $dataset->dataobj($anc_subject_id);
-		   next ANCESTORS if( !$anc_subject );
-		   next ANCESTORS if( !$anc_subject->is_set( "parents" ) );
-		   foreach my $anc_subject_parent_id ( @{$anc_subject->get_value( "parents" )} )
-		   {
-			   if( $anc_subject_parent_id eq "ROOT" )
-			   {
-				   $dataobj = $anc_subject;
-				   last ANCESTORS;
-			   }
-		   }
-	   }
+		$dataobj = $dataobj->top || $dataobj;
+		$self->{dataobj} = $dataobj;
 	}
+
+	$r->err_headers_out->{Allow} = join ',', $self->options;
 
 	if( $r->method eq "DELETE" )
 	{
-		return DELETE( $r, $owner );
+		return $self->DELETE( $owner );
 	}
 	elsif( $r->method eq "POST" )
 	{
-		return POST( $r, $owner );
+		return $self->POST( $owner );
 	}
 	elsif( $r->method eq "PUT" )
 	{
-		return PUT( $r, $owner );
-	}
-	# GET/HEAD XX/contents
-	elsif( defined $field )
-	{
-		if( $r->pnotes->{mime_type} eq "*/*" )
+		if( $self->scope == CRUD_SCOPE_CONTENTS )
 		{
-			if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
-			{
-				my @docs = $dataobj->get_all_documents;
-				if( @docs == 0 )
-				{
-					return HTTP_NOT_FOUND;
-				}
-				elsif( @docs == 1 )
-				{
-					$dataobj = $docs[0];
-				}
-				else
-				{
-					return sword_error($repo, $r,
-						status => HTTP_NOT_ACCEPTABLE,
-						summary => "More than one resource at this location",
-					);
-				}
-			}
-			return EPrints::Apache::Rewrite::redir_see_other( $r, $dataobj->get_url );
+			return $self->PUT_contents( $owner );
 		}
-
-		# negotiation failed
-		return HTTP_UNSUPPORTED_MEDIA_TYPE if !defined $plugin;
-
-		return GET( $r, $owner );
-	}
-	# GET/HEAD /id/contents
-	elsif( !defined $dataobj )
-	{
-		# force Atom if match was */*
-		if( $r->pnotes->{mime_type} eq "*/*" )
+		else
 		{
-			$plugin = $repo->plugin( "Export::Atom" );
+			return $self->PUT( $owner );
 		}
-
-		# negotiation failed
-		return HTTP_UNSUPPORTED_MEDIA_TYPE if !defined $plugin;
-
-		return GET( $r, $owner );
 	}
-
-	# GET / HEAD
-	return HTTP_UNSUPPORTED_MEDIA_TYPE if !defined $plugin;
-
-	# if there's a static page for this object and the user is asking for the
-	# SummaryPage then redirect them
-	my $url = $dataobj->get_url;
-	if(
-		defined( $url ) && 
-		$plugin->get_subtype eq "SummaryPage" &&
-		$url ne $dataobj->uri
-	  )
+	elsif( $r->method eq "GET" || $r->method eq "HEAD" || $r->method eq "OPTIONS" )
 	{
-		if( $dataset->base_id eq "eprint" && $dataset->id ne "archive" )
-		{
-			$url = $dataobj->get_control_url;
-		}
-		my @relations = @{$r->pnotes( "relations" ) || []};
-		if( $dataset->base_id eq "document" && @relations )
-		{
-			for(@relations)
-			{
-				s/^has(.+)$/is$1Of/;
-				$dataobj = $dataobj->search_related( $_ )->item( 0 );
-				return HTTP_NOT_FOUND if !defined $dataobj;
-			}
-			$url = $dataobj->get_url;
-		}
-		return EPrints::Apache::Rewrite::redir_see_other( $r, $url );
+		return $self->GET( $owner );
 	}
 
-	if( $dataset->base_id eq "subject" )
-	{
-		return redir_see_other( $r, $plugin->dataobj_export_url( $dataobj ) );
-	}
-
-	return GET( $r, $owner );
+	return HTTP_METHOD_NOT_ALLOWED;
 }
 
 sub DELETE
 {
-	my( $r ) = @_;
+	my( $self ) = @_;
 
-	my $repo = $EPrints::HANDLE->current_repository;
-	return NOT_FOUND if !defined $repo;
+	my $repo = $self->repository;
+	my $dataobj = $self->dataobj;
 
 	my $user = $repo->current_user;
 
-	my $dataobj = $r->pnotes->{dataobj};
-	my $dataset = $r->pnotes->{dataset};
-	my $plugin = $r->pnotes->{plugin};
-	my $field = $r->pnotes->{field};
-
 	# /id/contents
-	return HTTP_METHOD_NOT_ALLOWED if !defined $dataobj;
+	return HTTP_METHOD_NOT_ALLOWED if $self->scope == CRUD_SCOPE_USER_CONTENTS;
 
-	# /XX/contents
-	return HTTP_METHOD_NOT_ALLOWED if defined $field;
+	# already deleted?
+	return NOT_FOUND if !defined $dataobj;
 
-	# obtain lock, if available
+	# obtain parent lock, if available
 	my $lock_obj = $dataobj;
 	while( defined($lock_obj) && !$lock_obj->can( "obtain_lock" ) )
 	{
-		$lock_obj = $lock_obj->parent;
+		$lock_obj = $lock_obj->can( "parent" ) ? $lock_obj->parent : undef;
 	}
 	if( defined $lock_obj )
 	{
@@ -582,17 +774,11 @@ sub DELETE
 			or return HTTP_CONFLICT;
 	}
 
-	if( defined $field )
+	# allow DELETE /id/foo/bar/contents because /contents is the edit-media URI
+	if( $self->scope == CRUD_SCOPE_CONTENTS )
 	{
-		foreach my $item (@{$field->get_value( $dataobj )})
-		{
-			$item->remove;
-		}
+		$_->remove for @{$self->field->get_value( $dataobj )};
 	}
-#	elsif( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
-#	{
-#		$dataobj->move_to_deletion;
-#	}
 	else
 	{
 		$dataobj->remove;
@@ -608,15 +794,56 @@ sub DELETE
 
 sub GET
 {
-	my( $r, $owner ) = @_;
+	my( $self, $owner ) = @_;
 
-	my $repo = $EPrints::HANDLE->current_repository;
-	return NOT_FOUND if !defined $repo;
+	my $r = $self->request;
+	my $repo = $self->repository;
+	my $dataset = $self->dataset;
+	my $dataobj = $self->dataobj;
+	my $field = $self->field;
+	my $plugin = $self->plugin;
 
-	my $dataobj = $r->pnotes->{dataobj};
-	my $dataset = $r->pnotes->{dataset};
-	my $plugin = $r->pnotes->{plugin};
-	my $field = $r->pnotes->{field};
+	# what to do when the user doesn't ask for a specific content type
+	if( $r->pnotes->{mime_type} eq "*/*" )
+	{
+		# GET/HEAD XX/contents without mime type, default to content
+		if( $self->scope == CRUD_SCOPE_CONTENTS )
+		{
+			if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
+			{
+				my @docs = $dataobj->get_all_documents;
+				if( @docs == 0 )
+				{
+					return HTTP_NO_CONTENT;
+				}
+				elsif( @docs == 1 )
+				{
+					$dataobj = $docs[0];
+				}
+				else
+				{
+					return $self->sword_error(
+						status => HTTP_NOT_ACCEPTABLE,
+						summary => "More than one resource at this location",
+					);
+				}
+			}
+			return EPrints::Apache::Rewrite::redir_see_other( $r, $dataobj->get_url );
+		}
+
+		# GET/HEAD /id/contents without mime type, default to Atom
+		elsif( $self->scope == CRUD_SCOPE_USER_CONTENTS )
+		{
+			$plugin = $repo->plugin( "Export::Atom" );
+		}
+	}
+
+	return HTTP_UNSUPPORTED_MEDIA_TYPE if !defined $plugin;
+
+	if( $dataset->base_id eq "subject" )
+	{
+		return EPrints::Apache::Rewrite::redir_see_other( $r, $plugin->dataobj_export_url( $dataobj ) );
+	}
 
 	my %args = %{$plugin->param( "arguments" )};
 	# fetch the plugin arguments, if any
@@ -628,9 +855,7 @@ sub GET
 		}
 	}
 
-	$r->content_type( $plugin->param( "mimetype" ) );
-	$plugin->initialise_fh( \*STDOUT );
-	if( !defined $dataobj )
+	if( $self->scope == CRUD_SCOPE_USER_CONTENTS )
 	{
 		my $indexOffset = $repo->param( "indexOffset" ) || 0;
 		my $page_size = 20;
@@ -647,7 +872,7 @@ sub GET
 		);
 		$list->{ids} = $list->ids( $indexOffset, $page_size );
 
-		$r->content_type( $plugin->param( "mime_type" ) );
+		$r->content_type( $plugin->param( "mimetype" ) );
 		$plugin->initialise_fh( \*STDOUT );
 		$plugin->output_list(
 			startIndex => $indexOffset,
@@ -661,7 +886,7 @@ sub GET
 			},
 		);
 	}
-	elsif( $field )
+	elsif( $self->scope == CRUD_SCOPE_CONTENTS )
 	{
 		my $datasetid = $field->property( "datasetid" );
 		my @ids;
@@ -673,6 +898,8 @@ sub GET
 		{
 			@ids = map { $_->id } @{$field->get_value( $dataobj )};
 		}
+		$r->content_type( $plugin->param( "mimetype" ) );
+		$plugin->initialise_fh( \*STDOUT );
 		$plugin->output_list(
 			%args,
 			list => EPrints::List->new(
@@ -683,8 +910,22 @@ sub GET
 			fh => \*STDOUT,
 		);
 	}
-	else
+	elsif( $self->scope == CRUD_SCOPE_DATAOBJ )
 	{
+		return HTTP_NOT_FOUND if !defined $dataobj;
+
+		# user wants HTML and there is a static page available
+		my $url = ($dataset->base_id eq "eprint" && $dataset->id ne "archive") ?
+				$dataobj->get_control_url :
+				$dataobj->get_url;
+		if( $plugin->get_subtype eq "SummaryPage" )
+		{
+			if( defined( $url ) && $url ne $dataobj->uri )
+			{
+				return EPrints::Apache::Rewrite::redir_see_other( $r, $url );
+			}
+		}
+
 		# set Last-Modified header for individual objects
 		if( my $field = $dataset->get_datestamp_field() )
 		{
@@ -694,6 +935,8 @@ sub GET
 				EPrints::Time::datestring_to_timet( undef, $datestamp )
 			);
 		}
+		$r->content_type( $plugin->param( "mimetype" ) );
+		$plugin->initialise_fh( \*STDOUT );
 		my $output = $plugin->output_dataobj( $dataobj,
 			%args,
 			fh => \*STDOUT,
@@ -701,40 +944,41 @@ sub GET
 		# optional for output_dataobj to support 'fh'
 		print $output if defined $output;
 	}
+	# /id/eprint, not supported yet (what would it do?)
+	else
+	{
+		return HTTP_NOT_FOUND;
+	}
 
 	return OK;
 }
 
 sub POST 
 {
-	my( $r, $owner ) = @_;
+	my( $self, $owner ) = @_;
 
-	my $repo = $EPrints::HANDLE->current_repository();
-	return NOT_FOUND if !defined $repo;
+	my $r = $self->request;
+	my $repo = $self->repository;
+	my $dataset = $self->dataset;
+	my $dataobj = $self->dataobj;
+	my $field = $self->field;
+	my $plugin = $self->plugin;
 
 	my $user = $repo->current_user;
 
-	my $dataobj = $r->pnotes->{dataobj};
-	my $dataset = $r->pnotes->{dataset};
-	my $plugin = $r->pnotes->{plugin};
-	my $field = $r->pnotes->{field};
-
 	# can only post to XX/contents and /id/contents
-	if( defined($dataobj) && !defined $field )
+	if(
+		$self->scope != CRUD_SCOPE_CONTENTS &&
+		$self->scope != CRUD_SCOPE_USER_CONTENTS
+	  )
 	{
 		return HTTP_METHOD_NOT_ALLOWED;
 	}
 
-	my $headers = process_headers( $repo, $r );
+	my $headers = $self->headers;
 
-	if( $headers->{packaging} && !defined $plugin )
-	{
-		return sword_error( $repo, $r,
-			status => HTTP_BAD_REQUEST,
-			href => "http://purl.org/net/sword/error/ErrorContent",
-			summary => "No support for packaging '$headers->{packaging}'",
-		);
-	}
+	my $rc = $self->check_packaging;
+	return $rc if $rc != OK;
 
 	# we can import any file type into /contents
 	if( !defined $plugin )
@@ -742,101 +986,49 @@ sub POST
 		$plugin = $repo->plugin( "Import::Binary" );
 	}
 
-	my( $rc, $tmpfile ) = _read_content( $repo, $r, $headers );
-	return $rc if $rc != OK;
-
 	my @items;
 
 	my $status;
 	my $rev_number;
-	if( UNIVERSAL::isa( $dataobj, "EPrints::DataObj::EPrint" ) )
-	{
-		$status = $dataobj->value( "eprint_status" );
-		$rev_number = $dataobj->value( "rev_number" );
-	}
-	elsif( !defined $dataobj )
+	if( $self->scope == CRUD_SCOPE_USER_CONTENTS )
 	{
 		$status = $headers->{in_progress} ? "inbox" : "buffer";
 		$status = "archive" if ($repo->config("skip_buffer") and $status eq "buffer");
 	}
 
-	my @messages;
-
-	$plugin->{parse_only} = 1;
-	$plugin->set_handler( EPrints::CLIProcessor->new(
-		message => sub { push @messages, $_[1] },
-		epdata_to_dataobj => sub {
+	my $list = $self->parse_input( $plugin, sub {
 			my( $epdata ) = @_;
 
-			if( $dataset->base_id eq "eprint" )
+			if( $self->scope == CRUD_SCOPE_USER_CONTENTS )
 			{
 				$epdata->{userid} = $owner->id;
 				$epdata->{sword_depositor} = $user->id;
 				$epdata->{eprint_status} = $status;
 				$epdata->{rev_number} = $rev_number;
-			}
 
-			if( defined $dataobj )
-			{
-				push @items, $dataobj->create_subdataobj( $field->name, $epdata );
+				push @items, $dataset->create_dataobj( $epdata );
 			}
 			else
 			{
-				push @items, $dataset->create_dataobj( $epdata );
+				push @items, $dataobj->create_subdataobj( $field->name, $epdata );
 			}
 
-			return $items[$#items];
+			return $items[-1];
 		}
-	) );
+	);
+	return undef if !defined $list;
+
+	if( $self->scope == CRUD_SCOPE_CONTENTS && $headers->{metadata_relevant} )
+	{
+		$self->metadata_relevant( $items[0] );
+	}
 
 	my $atom = $repo->plugin( "Export::Atom" );
 
-	my %content_type_params;
-	for(keys %{$headers->{content_type_params}})
-	{
-		next if !$plugin->has_argument( $_ );
-		$content_type_params{$_} = $headers->{content_type_params}->{$_};
-	}
-
-	my $list = eval { $plugin->input_fh(
-		%content_type_params,
-		dataset => $dataset,
-		fh => $tmpfile,
-		filename => $headers->{filename},
-		mime_type => $headers->{mime_type},
-		content_type => $headers->{content_type},
-		actions => $headers->{actions},
-	) };
-	return plugin_error( $repo, $r, $plugin, \@messages ) if !defined $list;
-
-	EPrints->abort( "Import plugin didn't create anything" ) if !@items;
-
-	if( $headers->{metadata_relevant} )
-	{
-		my $file = $items[0];
-		if( $file->isa( "EPrints::DataObj::EPrint" ) )
-		{
-			$file = ($file->get_all_documents())[0];
-		}
-		if( defined $file && $file->isa( "EPrints::DataObj::Document" ) )
-		{
-			$file = $file->stored_file( $file->value( "main" ) );
-		}
-		if( defined $file && $file->isa( "EPrints::DataObj::File" ) )
-		{
-			metadata_relevant( $repo, $r, $file );
-		}
-	}
-
 	# producing more than one item (potentially)
-	if( defined $dataobj && $headers->{flags}->{unpack} )
+	if( $self->scope == CRUD_SCOPE_CONTENTS && $headers->{flags}->{unpack} )
 	{
-		$list = EPrints::List->new(
-			session => $repo,
-			dataset => $items[0]->get_dataset,
-			ids => [map { $_->id } @items]
-		);
-		return send_response( $r,
+		return $self->send_response(
 			HTTP_CREATED,
 			$atom->param( "mimetype" ),
 			$atom->output_list( list => $list ),
@@ -852,7 +1044,7 @@ $r->err_headers_out->{Location} = $items[0]->uri . '/contents';
 }
 # DEBUG CODE
 
-		return send_response( $r,
+		return $self->send_response(
 			HTTP_CREATED,
 			$atom->param( "mimetype" ),
 			$atom->output_dataobj( $items[0] ),
@@ -860,155 +1052,145 @@ $r->err_headers_out->{Location} = $items[0]->uri . '/contents';
 	}
 }
 
-sub PUT 
+# PUT /id/eprint/23
+sub PUT
 {
-	my( $r, $owner ) = @_;
+	my( $self, $owner ) = @_;
 
-	my $repo = $EPrints::HANDLE->current_repository();
-	return NOT_FOUND if !defined $repo;
+	my $repo = $self->repository;
+	my $dataset = $self->dataset;
+	my $dataobj = $self->dataobj;
+	my $plugin = $self->plugin;
 
 	my $user = $repo->current_user;
 
-	my $dataobj = $r->pnotes->{dataobj};
-	my $dataset = $r->pnotes->{dataset};
-	my $plugin = $r->pnotes->{plugin};
-	my $field = $r->pnotes->{field};
+	my $headers = $self->headers;
 
-	# need an object to update
-	return HTTP_METHOD_NOT_ALLOWED if !defined $dataobj;
-
-	my $headers = process_headers( $repo, $r );
-
-	if( $headers->{packaging} && !defined $plugin )
-	{
-		return sword_error( $repo, $r,
-			status => HTTP_BAD_REQUEST,
-			href => "http://purl.org/net/sword/error/ErrorContent",
-			summary => "No support for packaging '$headers->{packaging}'",
-		);
-	}
-
-	my( $rc, $tmpfile ) = _read_content( $repo, $r, $headers );
+	my $rc = $self->check_packaging;
 	return $rc if $rc != OK;
 
-	if( $dataobj->isa( "EPrints::DataObj::File" ) )
-	{
-		my $rc = $dataobj->set_file( $tmpfile, -s $tmpfile );
-		return HTTP_INTERNAL_SERVER_ERROR if !defined $rc;
-
-		$dataobj->set_value( "filename", $headers->{filename} );
-		$dataobj->set_value( "mime_type", $headers->{mime_type} );
-		$dataobj->commit;
-
-		return OK;
-	}
-
-	# we can import any file type into /contents
-	if( !defined $plugin && defined $field )
+	if( !defined $plugin && $dataset->base_id eq "file" )
 	{
 		$plugin = $repo->plugin( "Import::Binary" );
 	}
 
 	return HTTP_UNSUPPORTED_MEDIA_TYPE if !defined $plugin;
 
-	my $status;
-	if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
+	my $epdata;
+
+	my $list = $self->parse_input( $plugin, sub {
+			( $epdata ) = @_; return undef
+		} );
+	return if !defined $list;
+
+	# implicit create on unknown URI
+	if( !defined $dataobj )
 	{
-		$status = $dataobj->value( "eprint_status" );
+		$dataobj = $self->create_dataobj( $owner );
+		return $self->sword_error(
+				status => HTTP_FORBIDDEN,
+				summary => "An item already exists at this location or you do not have sufficient privileges to create an item with a predefined identifier",
+			) if !defined $dataobj;
 	}
+
+	my $new_status;
+
+	if( $dataset->base_id eq "eprint" )
+	{
+		$new_status = delete $epdata->{eprint_status};
+		$epdata->{userid} = $owner->id;
+		$epdata->{sword_depositor} = $user->id;
+		$epdata->{eprint_status} = $dataobj->value( "eprint_status" );
+		$epdata->{rev_number} = $dataobj->value( "rev_number" );
+	}
+
+	$dataobj->empty();
+	$dataobj->update( $epdata );
+
+	if( EPrints::Utils::is_set( $new_status ) )
+	{
+		my $status = $dataobj->value( "eprint_status" );
+		my $priv = "eprint/$status/move_$new_status";
+		if( $user->allow( $priv, $dataobj ) )
+		{
+			$dataobj->commit;
+			$dataobj->_transfer( $new_status );
+		}
+	}
+	else
+	{
+		$dataobj->commit;
+	}
+
+	if( !defined $self->dataobj )
+	{
+		$self->request->err_headers_out->{Location} = $dataobj->uri;
+		return HTTP_CREATED;
+	}
+
+	return HTTP_NO_CONTENT;
+}
+
+sub PUT_contents
+{
+	my( $self, $owner ) = @_;
+
+	my $repo = $self->repository;
+	my $dataobj = $self->dataobj;
+	my $plugin = $self->plugin;
+	my $field = $self->field;
+
+	my $headers = $self->headers;
+
+	my $rc = $self->check_packaging;
+	return $rc if $rc != OK;
+
+	# we can import any file type into XX/contents
+	if( !defined $plugin )
+	{
+		$plugin = $repo->plugin( "Import::Binary" );
+	}
+
+	return HTTP_UNSUPPORTED_MEDIA_TYPE if !defined $plugin;
+
+	# PUT /XX/contents implies DELETE existing contents
+	$_->remove for @{$field->get_value( $dataobj )};
 
 	my @items;
 
-	my @messages;
-
-	$plugin->{parse_only} = 1;
-	$plugin->set_handler( EPrints::CLIProcessor->new(
-		message => sub { push @messages, $_[1] },
-		epdata_to_dataobj => sub {
+	my $list = $self->parse_input( $plugin, sub {
 			my( $epdata ) = @_;
 
-			my $new_status = delete $epdata->{eprint_status};
-			if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
-			{
-				$epdata->{userid} = $owner->id;
-				$epdata->{sword_depositor} = $user->id;
-				$epdata->{eprint_status} = $status;
-				$epdata->{rev_number} = $dataobj->value( "rev_number" );
-			}
+			push @items, $dataobj->create_subdataobj( $field->name, $epdata );
 
-			if( defined $field )
-			{
-				# PUT /XX/contents implies DELETE existing contents
-				if( !@items )
-				{
-					$_->remove for @{$field->get_value( $dataobj )};
-				}
-				push @items, $dataobj->create_subdataobj( $field->name, $epdata );
-			}
-			else
-			{
-				@items = ($dataobj);
-
-				$dataobj->empty();
-				foreach my $fieldname (keys %{$epdata})
-				{
-					next if $fieldname =~ /^_/;
-					next if !$dataset->has_field( $fieldname );
-					my $f = $dataset->field( $fieldname );
-					next if !$f->property( "import" );
-					next if $f->isa( "EPrints::MetaField::Subobject" );
-
-					$f->set_value( $dataobj, $epdata->{$fieldname} );
-				}
-				if( EPrints::Utils::is_set( $new_status ) )
-				{
-					my $priv = "eprint/$status/move_$new_status";
-					if( $user->allow( $priv, $dataobj ) )
-					{
-						$dataobj->commit;
-						$dataobj->_transfer( $new_status );
-					}
-				}
-				$dataobj->commit;
-			}
-			return undef;
+			return $items[-1];
 		}
-	) );
+	);
+	return if !defined $list;
 
-	my $list = eval { $plugin->input_fh(
-		fh => $tmpfile,
-		dataset => $dataset,
-		filename => $headers->{filename},
-		mime_type => $headers->{content_type},
-		actions => $headers->{actions},
-	) };
-	return plugin_error( $repo, $r, $plugin, \@messages ) if !defined $list;
-
-	EPrints->abort( "Import plugin didn't create anything" ) if !@items;
-
-	if( defined $field && $headers->{metadata_relevant} )
+	if( $headers->{metadata_relevant} )
 	{
-		my $file = $items[0];
-		if( $file->isa( "EPrints::DataObj::EPrint" ) )
-		{
-			$file = ($file->get_all_documents())[0];
-		}
-		if( defined $file && $file->isa( "EPrints::DataObj::Document" ) )
-		{
-			$file = $file->stored_file( $file->value( "main" ) );
-		}
-		if( defined $file )
-		{
-			metadata_relevant( $repo, $r, $file );
-		}
+		$self->metadata_relevant( $items[0] );
 	}
 
-	return OK;
+	return HTTP_NO_CONTENT;
 }
 
 sub metadata_relevant
 {
-	my( $repo, $r, $file ) = @_;
+	my( $self, $file ) = @_;
+
+	my $repo = $self->repository;
+
+	if( $file->isa( "EPrints::DataObj::EPrint" ) )
+	{
+		$file = ($file->get_all_documents())[0];
+	}
+	if( defined $file && $file->isa( "EPrints::DataObj::Document" ) )
+	{
+		$file = $file->stored_file( $file->value( "main" ) );
+	}
+	return if !defined $file;
 
 	my $eprint = eval { $file->parent->parent };
 	return if !defined $eprint;
@@ -1048,7 +1230,6 @@ sub metadata_relevant
 
 	foreach my $plugin ( @plugins )
 	{
-		$plugin->{parse_only} = 1;
 		$plugin->set_handler( $handler );
 
 		seek($fh,0,0);
@@ -1066,51 +1247,18 @@ sub metadata_relevant
 	}
 
 	$eprint->empty();
-
-	foreach my $fieldname (keys %$epdata)
-	{
-		my $f = $dataset->field( $fieldname );
-		my $v = $epdata->{$fieldname};
-		next if $f->isa( "EPrints::MetaField::Subobject" );
-		$f->set_value( $eprint, $v );
-	}
-
+	$eprint->update( $epdata );
 	$eprint->commit;
-}
-
-sub _read_content
-{
-	my( $repo, $r, $headers ) = @_;
-
-	my $ctx = $headers->{content_md5} ? Digest::MD5->new : undef;
-
-	my $tmpfile = File::Temp->new( SUFFIX => $headers->{extension} );
-	binmode($tmpfile);
-	my $len = 0;
-	while($r->read(my $buffer, 4096)) {
-		$len += length($buffer);
-		$ctx->add( $buffer ) if defined $ctx;
-		print $tmpfile $buffer;
-	}
-	seek($tmpfile,0,0);
-
-	if( defined $ctx && $ctx->hexdigest ne $headers->{content_md5} )
-	{
-		return( sword_error( $repo, $r,
-			status => HTTP_PRECONDITION_FAILED,
-			href => "http://purl.org/net/sword/error/ErrorChecksumMismatch",
-			summary => "MD5 digest mismatch between headers and content",
-		), undef );
-	}
-
-	return( OK, $tmpfile );
 }
 
 sub servicedocument
 {
-	my( $r ) = @_;
+	my( $self ) = @_;
 
-	my $repo = EPrints->new->current_repository;
+	my $r = $self->request;
+	my $repo = $self->repository;
+	my $dataset = $repo->dataset( "eprint" );
+
 	my $xml = $repo->xml;
 
 	my $user = $repo->current_user;
@@ -1166,7 +1314,7 @@ sub servicedocument
 			{
 				if( $mime_type =~ /^$PACKAGING_PREFIX(.+)$/ )
 				{
-					$collection->appendChild( $xml->create_data_element( "acceptPackaging", $1 ) );
+					$collection->appendChild( $xml->create_data_element( "sword:acceptPackaging", $1 ) );
 				}
 				else
 				{
@@ -1185,17 +1333,17 @@ sub servicedocument
 	}
 
 	my $categories = $collection->appendChild( $xml->create_element( "categories", fixed => "yes" ) );
-	foreach my $type ($repo->get_types( "eprint" ))
+	foreach my $type ($dataset->field( "type" )->tags)
 	{
 		$categories->appendChild( $xml->create_element( "atom:category",
-			scheme => $repo->config( "base_url" )."/data/eprint/type/",
+			scheme => $repo->config( "base_url" )."/data/eprint/type",
 			term => $type,
 		) );
 	}
-	foreach my $type (qw( inbox buffer archive deletion))
+	foreach my $type ($dataset->field( "eprint_status" )->tags)
 	{
 		$categories->appendChild( $xml->create_element( "atom:category",
-			scheme => $repo->config( "base_url" )."/data/eprint/status/",
+			scheme => EPrints::Const::EP_NS_DATA . "/eprint/eprint_status",
 			term => $type,
 		) );
 	}
@@ -1203,9 +1351,9 @@ sub servicedocument
 	my $content = "<?xml version='1.0' encoding='UTF-8'?>\n" .
 		$xml->to_string( $service, indent => 1 );
 
-	return send_response( $r,
+	return $self->send_response(
 		OK,
-		'application/xtomsvc+xml; charset=UTF-8',
+		'application/xtomsvc+xml; charset=utf-8',
 		$content
 	);
 }
@@ -1250,7 +1398,10 @@ sub is_false
 
 sub process_headers
 {
-	my ( $repo, $r ) = @_;
+	my( $self ) = @_;
+
+	my $r = $self->request;
+	my $repo = $self->repository;
 
 	my %response;
 
@@ -1317,7 +1468,10 @@ sub process_headers
 
 sub sword_error
 {
-	my( $repo, $r, %opts ) = @_;
+	my( $self, %opts ) = @_;
+
+	my $r = $self->request;
+	my $repo = $self->repository;
 
 	my $xml = generate_error_document( $repo, %opts );
 
@@ -1325,7 +1479,7 @@ sub sword_error
 
 	$r->status( $opts{status} );
 
-	return send_response( $r,
+	return $self->send_response(
 		$opts{status},
 		'application/xml; charset=UTF-8',
 		$xml
@@ -1335,16 +1489,20 @@ sub sword_error
 # input_fh() failed
 sub plugin_error
 {
-	my( $repo, $r, $plugin, $messages ) = @_;
+	my( $self, $plugin, $messages ) = @_;
+
+	my $repo = $self->repository;
 
 	$plugin->handler->message( "error", $@ ) if $@ ne "\n";
+
 	my $ul = $repo->xml->create_element( "ul" );
 	for(@{$messages}) {
 		$ul->appendChild( $repo->xml->create_data_element( "li", $_ ) );
 	}
 	my $err = $repo->xhtml->to_xhtml( $ul );
 	$repo->xml->dispose( $ul );
-	return sword_error( $repo, $r,
+
+	return $self->sword_error(
 		status => HTTP_INTERNAL_SERVER_ERROR,
 		summary => $err
 	);
@@ -1394,7 +1552,9 @@ sub plugins
 
 sub send_response
 {
-	my( $r, $status, $content_type, $content ) = @_;
+	my( $self, $status, $content_type, $content ) = @_;
+
+	my $r = $self->request;
 
 	use bytes;
 
