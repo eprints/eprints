@@ -132,7 +132,8 @@ sub get_system_field_info
 		multiple=>1 },
 
 	{ name=>"eprint_status", type=>"set", required=>1,
-		options=>[qw/ inbox buffer archive deletion /] },
+		options=>[qw/ inbox buffer archive deletion /],
+		default_value=>"inbox", },
 
 	# UserID is not required, as some bulk importers
 	# may not provide this info. maybe bulk importers should
