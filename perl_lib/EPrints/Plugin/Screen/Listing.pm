@@ -121,8 +121,10 @@ sub from
 
 	my $search = $self->{processor}->{search};
 	my $exp = $session->param( "exp" );
+	my $action = $self->{processor}->{action};
+	$action = "" if !defined $action;
 
-	if( $self->{processor}->{action} ne "newsearch" )
+	if( $action ne "newsearch" )
 	{
 		if( $exp )
 		{
