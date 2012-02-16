@@ -39,6 +39,14 @@ sub render_value
 	return $dataobj->render_citation_link;
 }
 
+sub get_property_defaults
+{
+	my( $self ) = @_;
+	my %defaults = $self->SUPER::get_property_defaults;
+	$defaults{export_as_xml} = 0;
+	return %defaults;
+}
+
 ######################################################################
 1;
 
