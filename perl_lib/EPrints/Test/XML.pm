@@ -60,11 +60,6 @@ sub xml_tests
 	}
 	my $eprint2 = $repo->dataset( "eprint" )->make_dataobj( $epdata );
 
-open(my $fh, ">", "a.xml");
-print $fh $xml_dump->toString();
-open($fh, ">", "b.xml");
-print $fh $eprint2->to_xml->toString();
-
 	is( $xml_dump->toString(), $eprint2->to_xml->toString(), "to_xml==xml_to_epdata" );
 
 	ok(1, "complete");
