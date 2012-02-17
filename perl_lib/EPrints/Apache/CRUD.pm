@@ -1105,7 +1105,7 @@ sub PUT
 	}
 
 	$dataobj->empty();
-	$dataobj->update( $epdata );
+	$dataobj->update( $epdata, include_subobjects => 1 );
 
 	if( EPrints::Utils::is_set( $new_status ) )
 	{
@@ -1124,8 +1124,14 @@ sub PUT
 
 	if( !defined $self->dataobj )
 	{
+		my $atom = $repo->plugin( "Export::Atom" );
+
 		$self->request->err_headers_out->{Location} = $dataobj->uri;
-		return HTTP_CREATED;
+		return $self->send_response(
+			HTTP_CREATED,
+			$atom->param( "mimetype" ),
+			$atom->output_dataobj( $dataobj ),
+		);
 	}
 
 	return HTTP_NO_CONTENT;
