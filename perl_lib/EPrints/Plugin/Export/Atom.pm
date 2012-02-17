@@ -330,7 +330,7 @@ sub output_eprint
 			$dataobj->render_description;
 	$entry->appendChild( $xml->create_data_element(
 			"title",
-			$dataobj->render_value( "title" ),
+			$title,
 			type => "xhtml" ) );
 	if( $dataobj->exists_and_set( "abstract" ) )
 	{
