@@ -809,7 +809,10 @@ Render a tree using definition lists (DLs).
 
 Options:
 
-	prefix - id to use for the parent <div> and class prefix
+	prefix - id to use for the parent <div>
+	class
+		HTML class to use for div and prefix for open/close, defaults to
+		'prefix' option
 	render_value - custom renderer for values
 
 =cut
@@ -821,15 +824,14 @@ sub tree
 	my $repo = $self->{repository};
 	my $xml = $repo->xml;
 
+	$opts{class} = $opts{prefix} if !defined $opts{class};
+
 	my $frag = $xml->create_document_fragment;
 
 	$frag->appendChild( $xml->create_data_element( "div",
-		$self->tree2( $root,
-			class => $opts{prefix},
-			%opts,
-		),
+		$self->tree2( $root, %opts ),
 		id => $opts{prefix},
-		class => $opts{prefix},
+		class => $opts{class},
 	) );
 	$frag->appendChild( $repo->make_javascript(<<"EOJ") );
 Event.observe( window, 'load', function() {
