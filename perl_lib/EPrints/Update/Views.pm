@@ -93,6 +93,56 @@ Open the first section of the browse menu.
 
 =back
 
+=head2 Variations
+
+Format is:
+
+	[fieldname];[options]
+
+Where options is:
+
+	[option1],[option2],[option3]=[value]
+
+If no value is given the option is implicitly 1 (enable).
+
+	creators_name;first_letter,allow_null=1
+
+=over 4
+
+=item allow_null = 0
+
+Show items that have no value(s) for the selected field.
+
+=item cloud
+
+Render a "Tag Cloud" of links, where the individual links are scaled by their frequency of occurence.
+
+=item cloudmin = 80, cloudmax = 200
+
+Scale cloud tag links by between cloudmin and cloudmax percent from normal text size.
+
+=item first_letter
+
+Implies truncate=1 and first_value.
+
+=item first_value
+
+Only group-by on the first value in a multiple field.
+
+=item jump = none|plain|default
+
+Hide the jump-to links, render just the links or render as a phrase ('Update/Views:jump_to').
+
+=item tags
+
+Treat the field value as a comma or semi-colon separated list of values.
+
+=item truncate = n
+
+Truncate the value to at most n characters.
+
+=back
+
 =head1 METHODS
 
 =over 4
@@ -669,8 +719,8 @@ sub update_view_list
 			$PAGE->appendChild( $xml->clone( $intro ) );
 			$INCLUDE->appendChild( $xml->clone( $intro ) );
 
-			$PAGE->appendChild( $xml->clone( $count_div ) );
-			$INCLUDE->appendChild( $count_div );
+			$PAGE->appendChild( $view->render_count( $count ) );
+			$INCLUDE->appendChild( $view->render_count( $count ) );
 
 			$PAGE->appendChild( $xml->clone( $block ) );
 			$INCLUDE->appendChild( $block );
@@ -693,8 +743,8 @@ sub update_view_list
 			$PAGE->appendChild( $xml->clone( $intro ) );
 			$INCLUDE->appendChild( $xml->clone( $intro ) );
 
-			$PAGE->appendChild( $xml->clone( $count_div ) );
-			$INCLUDE->appendChild( $count_div );
+			$PAGE->appendChild( $view->render_count( $count ) );
+			$INCLUDE->appendChild( $view->render_count( $count ) );
 
 			$PAGE->appendChild( $xml->clone( $block ) );
 			$INCLUDE->appendChild( $block );
@@ -717,6 +767,7 @@ sub update_view_list
 		{
 			my( $code, $heading, $items ) = @{$group};
 			my $n = scalar @$items;
+			$total += $n;
 			if( $n > $maxsize ) { $maxsize = $n; }
 		}
 		my $range;
@@ -762,7 +813,7 @@ sub update_view_list
 			$first = 0;
 		}
 
-		if( $count )
+		if( $total > 0 )
 		{
 			# css for your convenience
 			my $jumpmenu = $xml->create_element( "div",
@@ -786,8 +837,8 @@ sub update_view_list
 		$PAGE->appendChild( $xml->clone( $intro ) );
 		$INCLUDE->appendChild( $xml->clone( $intro ) );
 
-		$PAGE->appendChild( $xml->clone( $count_div ) );
-		$INCLUDE->appendChild( $count_div );
+		$PAGE->appendChild( $view->render_count( $total ) );
+		$INCLUDE->appendChild( $view->render_count( $total ) );
 
 		foreach my $group ( @{$data} )
 		{
@@ -1622,6 +1673,7 @@ sub group_items
 		{
 			$values = [$field->empty_value];
 		}
+		next if !$opts->{allow_null} && !EPrints::Utils::is_set( $values );
 		VALUE: foreach my $value ( @$values )
 		{
 			if( $opts->{tags} )
@@ -1820,6 +1872,8 @@ sub get_view_opts
 	{
 		$opts->{"filename"} = "\L$fieldname";
 	}
+
+	$opts->{allow_null} = 0 if !defined $opts->{allow_null};
 
 	return $opts;
 }
@@ -2073,6 +2127,33 @@ sub repository
 	my( $self ) = @_;
 
 	return $self->{_repository};
+}
+
+=begin InternalDoc
+
+=item $xhtml = $view->render_count( $n )
+
+Return the item count $n.
+
+=end InternalDoc
+
+=cut
+
+sub render_count
+{
+	my( $self, $n ) = @_;
+
+	my $repo = $self->{_repository};
+	return $repo->xml->create_document_fragment if $self->{nocount};
+
+	my $phraseid = "bin/generate_views:blurb";
+	if( $self->menus_fields->[-1]->[0]->isa( "EPrints::MetaField::Subject" ) )
+	{
+		$phraseid = "bin/generate_views:subject_blurb";
+	}
+	return $repo->html_phrase(
+		$phraseid,
+		n=>$repo->xml->create_text_node( $n ) );
 }
 
 =begin InternalDoc
