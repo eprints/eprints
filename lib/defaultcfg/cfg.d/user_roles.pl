@@ -16,7 +16,7 @@ $c->{user_roles}->{user} = [qw{
 	set-password
 	deposit
 	change-email
-}],
+}];
 
 $c->{user_roles}->{editor} = [qw{
 	general
@@ -28,7 +28,7 @@ $c->{user_roles}->{editor} = [qw{
 	editor
 	view-status
 	staff-view
-}],
+}];
 
 $c->{user_roles}->{admin} = [qw{
 	general
@@ -42,7 +42,7 @@ $c->{user_roles}->{admin} = [qw{
 	staff-view
 	admin
 	edit-config
-}],
+}];
 # Note -- nobody has the very powerful "toolbox" or "rest" roles, by default!
 
 # Use this to set public privilages. 
