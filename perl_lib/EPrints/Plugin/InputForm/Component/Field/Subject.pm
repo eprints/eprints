@@ -199,7 +199,8 @@ sub render_content
 	{
 		$out->appendChild( $session->xhtml->tree(
 			$tree->[1], # don't want the root subject
-			prefix => "ep_subjectinput_tree",
+			prefix => $self->{prefix} . "_tree",
+			class => "ep_subjectinput_tree",
 			render_value => sub { $self->_render_node( @_ ) },
 		) );
 	}
