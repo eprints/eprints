@@ -415,7 +415,7 @@ sub update_view_menu
 		while( my $fn = readdir( $dh ) )
 		{
 			next unless( $fn =~ m/^index\./ );
-			push @indexes, "$target/$fn";
+			push @indexes, "$target$fn";
 		}
 		closedir( $dh );
 	}
