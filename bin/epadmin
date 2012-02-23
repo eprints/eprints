@@ -1403,7 +1403,7 @@ sub create_tables
 	if( $repo->database->has_table( "eprint" ) )
 	{
 		print "WARNING: Database is NOT empty. Contains an \"eprint\" table.\n";
-		print "You might consider running 'epadmin erase_data $repoid' instead.\n";
+		print "You might consider running 'epadmin erase_data ".$repo->id."' instead.\n";
 		exit 1;
 	}
 
