@@ -1687,6 +1687,13 @@ sub start_element
 		{
 			$state->{child} = {%$state, depth => 0};
 			$state->{handler} = $state->{dataset}->field( $data->{LocalName} );
+			if( exists $epdata->{$data->{LocalName}} && defined $state->{Handler} )
+			{
+				my $repo = $state->{dataset}->repository;
+				$state->{Handler}->message( "warning", $repo->html_phrase( "Plugin/Import/XML:dup_element", 
+						name => $repo->xml->create_text_node( $data->{LocalName} ),
+					) );
+			}
 		}
 		else
 		{
