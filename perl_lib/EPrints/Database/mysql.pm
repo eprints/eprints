@@ -16,9 +16,21 @@
 
 B<EPrints::Database::mysql> - custom database methods for MySQL DB
 
+=head1 SYNOPSIS
+
+	$c->{dbdriver} = 'mysql';
+	# $c->{dbhost} = 'localhost';
+	# $c->{dbport} = '3316';
+	$c->{dbname} = 'myrepo';
+	$c->{dbuser} = 'bob';
+	$c->{dbpass} = 'asecret';
+	# $c->{dbengine} = 'InnoDB';
+
 =head1 DESCRIPTION
 
 MySQL database wrapper.
+
+Foreign keys will be defined if you use a DB engine that supports them (e.g. InnoDB).
 
 =head2 MySQL-specific Annoyances
 
@@ -584,6 +596,27 @@ sub index_name
 	}
 
 	return undef;
+}
+
+sub _create_table
+{
+	my( $self, $table, $primary_key, $columns ) = @_;
+
+	my $sql = "";
+
+	$sql .= "CREATE TABLE ".$self->quote_identifier($table)." (";
+	$sql .= join(', ', @$columns);
+	if( @$primary_key )
+	{
+		$sql .= ", PRIMARY KEY(".join(', ', map { $self->quote_identifier($_) } @$primary_key).")";
+	}
+	$sql .= ")";
+	$sql .= " DEFAULT CHARSET=".$self->get_default_charset;
+	
+	my $engine = $self->{session}->config( "dbengine" );
+	$sql .= " ENGINE=$engine" if $engine;
+
+	return $self->do($sql);
 }
 
 1; # For use/require success

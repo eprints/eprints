@@ -446,22 +446,60 @@ sub create_dataset_tables
 	
 	my $rv = 1;
 
+	my @main_fields;
+	my @aux_fields;
+
+	foreach my $field ($dataset->fields)
+	{
+		next if $field->is_virtual;
+		if( $field->property( "multiple") )
+		{
+			push @aux_fields, $field;
+		}
+		else
+		{
+			push @main_fields, $field;
+		}
+	}
+
+	my $main_table = $dataset->get_sql_table_name;
+
+	# Create the main tables
+	if( !$self->has_table( $main_table ) )
+	{
+		$rv &&= $self->create_table( $main_table, 1, @main_fields );
+	}
+
+	# Create the auxillary tables
+	foreach my $field (@aux_fields)
+	{
+		my $table = $dataset->get_sql_sub_table_name( $field );
+		next if $self->has_table( $table );
+
+		my $key_field = $dataset->key_field;
+
+		my $pos = EPrints::MetaField->new( 
+				repository => $self->{session},
+				name => "pos", 
+				type => "int",
+				sql_index => 1,
+			);
+
+		my $aux_field = $field->clone;
+		$aux_field->set_property( "multiple", 0 );
+
+		$rv &&= $self->create_table( $table, 2, $key_field, $pos, $aux_field );
+		$rv &&= $self->create_foreign_key( $main_table, $table, $key_field );
+	}
+
+	# Create the index tables
 	if( $dataset->indexable )
 	{
 		$rv &&= $self->create_dataset_index_tables( $dataset );
 	}
 
+	# Create the ordervalues tables
 	$rv &&= $self->create_dataset_ordervalues_tables( $dataset );
-
-	# Create the main tables
-	if( !$self->has_table( $dataset->get_sql_table_name ) )
-	{
-		$rv &&= $self->create_table( 
-				$dataset->get_sql_table_name, 
-				$dataset, 
-				1, 
-				$dataset->get_fields( 1 ) );
-	}
 
 	return $rv;
 }
@@ -480,39 +518,38 @@ sub drop_dataset_tables
 {
 	my( $self, $dataset ) = @_;
 
-	foreach my $field ($dataset->get_fields)
+	my @tables;
+
+	foreach my $field ($dataset->fields)
 	{
-		next if defined $field->get_property( "sub_name" );
-		next unless $field->get_property( "multiple" );
-		if( $self->{session}->get_noise >= 1 )
-		{
-			print "Removing ".$dataset->id.".".$field->get_name."\n";
-		}
-		$self->remove_field( $dataset, $field );
+		next if $field->is_virtual;
+		next if !$field->property( "multiple" );
+		push @tables, $dataset->get_sql_sub_table_name( $field );
 	}
 
-	foreach my $langid ( @{$self->{session}->get_repository->get_conf( "languages" )} )
+	foreach my $langid ( @{$self->{session}->config( "languages" )} )
 	{
-		$self->drop_table( $dataset->get_ordervalues_table_name( $langid ) );
+		push @tables, $dataset->get_ordervalues_table_name( $langid );
 	}
+
+	if( $dataset->indexable )
+	{
+		push @tables, 
+			$dataset->get_sql_index_table_name,
+			$dataset->get_sql_grep_table_name,
+			$dataset->get_sql_rindex_table_name
+		;
+	}
+
+	push @tables, $dataset->get_sql_table_name;
 
 	if( $self->{session}->get_noise >= 1 )
 	{
 		print "Removing ".$dataset->id."\n";
+		print "\t$_\n" for @tables;
 	}
-	$self->drop_table( $dataset->get_sql_table_name );
 
-	if( $dataset->indexable )
-	{
-		foreach(
-			$dataset->get_sql_index_table_name,
-			$dataset->get_sql_grep_table_name,
-			$dataset->get_sql_rindex_table_name
-		)
-		{
-			$self->drop_table( $_ );
-		}
-	}
+	$self->drop_table( @tables );
 
 	return 1;
 }
@@ -558,7 +595,6 @@ sub create_dataset_index_tables
 	{
 		$rv &= $self->create_table(
 			$dataset->get_sql_index_table_name,
-			$dataset,
 			2, # primary key over word/pos
 			( $field_fieldword, $field_pos, $field_ids ) );
 	}
@@ -583,9 +619,12 @@ sub create_dataset_index_tables
 	{
 		$rv = $rv & $self->create_table(
 			$dataset->get_sql_grep_table_name,
-			$dataset,
 			3, # no primary key
 			( $field_fieldname, $field_grepstring, $keyfield ) );
+		$rv &= $self->create_foreign_key(
+			$dataset->get_sql_table_name,
+			$dataset->get_sql_grep_table_name,
+			$keyfield );
 	}
 
 
@@ -612,9 +651,12 @@ sub create_dataset_index_tables
 		local $keyfield->{sql_index} = 0; # See KEY added below
 		$rv = $rv & $self->create_table(
 			$rindex_table,
-			$dataset,
 			3, # primary key over all fields
 			( $field_field, $field_word, $keyfield ) );
+		$rv &= $self->create_foreign_key(
+			$dataset->get_sql_table_name,
+			$dataset->get_sql_rindex_table_name,
+			$keyfield );
 	}
 	if( !defined($self->index_name( $rindex_table, $keyfield->get_sql_name, $field_field->get_sql_name )) )
 	{
@@ -663,9 +705,12 @@ sub create_dataset_ordervalues_tables
 		{
 			$rv &&= $self->create_table( 
 				$order_table,
-				$dataset, 
 				1, 
 				@orderfields );
+			$rv &&= $self->create_foreign_key(
+				$dataset->get_sql_table_name,
+				$order_table,
+				$keyfield );
 		}
 	}
 
@@ -816,10 +861,9 @@ sub get_column_type
 ######################################################################
 =pod
 
-=item  $success = $db->create_table( $tablename, $dataset, $setkey, @fields );
+=item  $success = $db->create_table( $tablename, $setkey, @fields );
 
-Create the tables used to store metadata for this dataset: the main
-table and any required for multiple or mulitlang fields.
+Creates a new table $tablename based on @fields.
 
 The first $setkey number of fields are used for a primary key.
 
@@ -828,50 +872,15 @@ The first $setkey number of fields are used for a primary key.
 
 sub create_table
 {
-	my( $self, $tablename, $dataset, $setkey, @fields ) = @_;
+	my( $self, $tablename, $setkey, @fields ) = @_;
 	
-	my $field;
 	my $rv = 1;
-
-	my @main_fields;
-
-	# build the sub-tables first
-	foreach $field (@fields)
-	{
-		next if $field->is_virtual;
-		if( !$field->get_property( "multiple" ) )
-		{
-			push @main_fields, $field;
-			next;
-		}
-		# create an aux. table for the multiple field that contains:
-		#  keyfield | pos | field
-		# PRIMARY KEY(keyfield,pos)
-
-		my $auxfield = $field->clone;
-		$auxfield->set_property( "multiple", 0 );
-
-		my $keyfield = $dataset->get_key_field();
-
-		my $pos = EPrints::MetaField->new( 
-			repository=> $self->{session}->get_repository,
-			name => "pos", 
-			type => "int",
-			sql_index => 1 );
-
-		next if $self->has_table( $dataset->get_sql_sub_table_name( $field ) );
-		$rv &&= $self->create_table(	
-			$dataset->get_sql_sub_table_name( $field ),
-			$dataset,
-			2, # use key + pos as primary key
-			$keyfield, $pos, $auxfield );
-	}
 
 	# PRIMARY KEY
 	my @primary_key;
 	foreach my $i (0..$setkey-1)
 	{
-		my $field = $main_fields[$i] = $main_fields[$i]->clone;
+		my $field = $fields[$i] = $fields[$i]->clone;
 
 		# PRIMARY KEY columns must be NOT NULL
 		$field->set_property( allow_null => 0 );
@@ -886,7 +895,7 @@ sub create_table
 
 	my @indices;
 	my @columns;
-	foreach $field (@main_fields)
+	foreach my $field (@fields)
 	{
 		if( $field->get_property( "sql_index" ) )
 		{
@@ -930,6 +939,30 @@ sub _create_table
 	$sql .= ")";
 
 	return $self->do($sql);
+}
+
+=item $ok = $db->create_foreign_key( $main_table, $aux_table, $key_field )
+
+Create a foreign key relationship between $main_table and $aux_table using the $key_field.
+
+This will cause records in $aux_table to be deleted if the equivalent record is deleted from $main_table.
+
+=cut
+
+sub create_foreign_key
+{
+	my( $self, $main_table, $table, $key_field ) = @_;
+
+	my $Q_key_name = $self->quote_identifier( $key_field->get_sql_name );
+	my $Q_fk = $self->quote_identifier( $table . "_fk" );
+
+	return $self->do(
+		"ALTER TABLE ".$self->quote_identifier( $table ) .
+		" ADD CONSTRAINT $Q_fk" .
+		" FOREIGN KEY($Q_key_name)" .
+		" REFERENCES ".$self->quote_identifier( $main_table )."($Q_key_name)" .
+		" ON DELETE CASCADE"
+	);
 }
 
 ######################################################################
@@ -3928,13 +3961,14 @@ sub create_version_table
 	my $column = "version";
 
 	my $version = EPrints::MetaField->new(
-		repository => $self->{ session }->get_repository,
+		repository => $self->{ session },
 		name => $column,
 		type => "text",
 		maxlength => 64,
 		allow_null => 0 );
 
-	$self->create_table( $table, undef, 1, $version );
+	$self->drop_table( $table ); # sanity check
+	$self->create_table( $table, 1, $version );
 
 	$self->insert( $table, [$column], ["0.0.0"] );
 }
@@ -4068,21 +4102,24 @@ sub index_name
 ######################################################################
 =pod
 
-=item $db->drop_table( $tablename )
+=item $db->drop_table( $tablename [, $tablename2 ] )
 
-Delete the named table. Use with caution!
+Delete the named table(s). Use with caution!
 
 =cut
 ######################################################################
 	
 sub drop_table
 {
-	my( $self, $tablename ) = @_;
+	my( $self, @tables ) = @_;
 
 	local $self->{dbh}->{PrintError} = 0;
 	local $self->{dbh}->{RaiseError} = 0;
 
-	my $sql = "DROP TABLE ".$self->quote_identifier($tablename);
+	my $sql = "DROP TABLE ".join(',',
+			map { $self->quote_identifier($_) } @tables
+		)." CASCADE";
+
 	return defined $self->{dbh}->do( $sql );
 }
 

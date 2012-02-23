@@ -573,6 +573,26 @@ sub type_info
 	return $ORACLE_TYPES{$data_type};
 }
 
+sub drop_table
+{
+	my( $self, @tables ) = @_;
+
+	local $self->{dbh}->{PrintError} = 0;
+	local $self->{dbh}->{RaiseError} = 0;
+
+	my $rc = 1;
+
+	foreach my $table (@tables)
+	{
+		$rc &= defined $self->{dbh}->do( "DROP TABLE " .
+				$self->quote_identifier($table) .
+				" CASCADE CONSTRAINTS"
+		);
+	}
+
+	return $rc;
+}
+
 1; # For use/require success
 
 ######################################################################
