@@ -49,7 +49,10 @@ sub default_search_config
 {
 	my( $self ) = @_;
 
-	return $self->repository->config( "search", "user" );
+	return {
+		%{ $self->repository->config( "search", "user" ) },
+		staff => 1,
+	};
 }
 
 # suppress dataset=
