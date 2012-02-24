@@ -1682,6 +1682,7 @@ sub icon_url
 
 	# support old-style MIME types e.g. application/zip
 	my( $major, $minor ) = split '/', $format, 2;
+	$minor = "" if !defined $minor;
 	DIR: foreach my $dir (@static_dirs)
 	{
 		# we'll use the major type if available e.g. 'image.png'
