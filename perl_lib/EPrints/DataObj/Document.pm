@@ -1679,13 +1679,19 @@ sub icon_url
 	my $rel_path = "style/images/fileicons";
 
 	my $format = $self->value( "format" );
-	foreach my $dir (@static_dirs)
+
+	# support old-style MIME types e.g. application/zip
+	my( $major, $minor ) = split '/', $format, 2;
+	DIR: foreach my $dir (@static_dirs)
 	{
-		my $path = "$dir/$rel_path/$format.png";
-		if( -e $path )
+		# we'll use the major type if available e.g. 'image.png'
+		foreach my $fn ("$major\_$minor.png", "$major.png")
 		{
-			$icon = "$format.png";
-			last;
+			if( -e "$dir/$rel_path/$fn" )
+			{
+				$icon = $fn;
+				last DIR;
+			}
 		}
 	}
 
