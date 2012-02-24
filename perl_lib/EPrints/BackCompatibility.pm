@@ -107,7 +107,26 @@ sub process_editor_alerts { EPrints::deprecated; return EPrints::DataObj::User::
 sub create_user { EPrints::deprecated; return EPrints::DataObj::User::create( @_ ); }
 
 package EPrints::DataObj::User;
-sub can_edit { EPrints::deprecated; return $_->in_editorial_scope_of( $_[0] ); }
+
+sub can_edit { EPrints::deprecated; return $_[1]->in_editorial_scope_of( $_[0] ); }
+sub get_owned_eprints { EPrints::deprecated; return $_[0]->owned_eprints_list( dataset => $_[1] ); }
+sub get_editable_eprints
+{
+	EPrints::deprecated;
+	return $_[0]->editable_eprints_list(
+			dataset => $_[0]->{session}->dataset( "buffer" )
+		);
+}
+sub get_eprints
+{
+	EPrints::deprecated;
+	return $_[1]->search(
+			filters => [
+				{ meta_fields => ["userid"], value => $_[0] },
+			],
+		);
+}
+
 
 ######################################################################
 

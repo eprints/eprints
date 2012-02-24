@@ -548,27 +548,24 @@ sub owned_eprints_list
 {
 	my( $self, %opts ) = @_;
 		
-	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
+	$opts{dataset} = $self->{session}->dataset( "eprint" ) if !defined $opts{dataset};
 
-	my $searchexp = EPrints::Search->new(
-		session => $self->{session},
-		dataset => $dataset,
-		%opts );
+	my $searchexp = $opts{dataset}->prepare_search( %opts );
 
 	# BACKWARDS COMPATIBILITY
 	# This method is predicated on doing an in-memory intersect of everything
 	# that the user "owns" and every eprint in the matching datasets
 	# If the user chose to show his 'live' eprints that could get really,
 	# really big
-	my $fn = $self->{session}->get_repository->get_conf( "get_users_owned_eprints" );
+	my $fn = $self->{session}->config( "get_users_owned_eprints" );
 	if( !defined $fn )
 	{
-		$searchexp->add_field( $dataset->get_field( "userid" ), $self->get_id );
+		$searchexp->add_field( $opts{dataset}->field( "userid" ), $self->id );
 
 		return $searchexp->perform_search;
 	}
 	
-	my $list = &$fn( $self->{session}, $self, $dataset );
+	my $list = &$fn( $self->{session}, $self, $opts{dataset} );
 	if (!$searchexp->is_blank()) { $list = $list->intersect( $searchexp->perform_search ); }
 
 	return $list;
@@ -576,9 +573,13 @@ sub owned_eprints_list
 
 =item $list = $user->editable_eprints_list( %opts )
 
-Returns a L<EPrints::List> of L<EPrints::DataObj::EPrint>s that match this user's editorial search expressions. If the user has no editorial scope a list of all buffered eprints is returned.
+Returns a L<EPrints::List> of L<EPrints::DataObj::EPrint>s that match this user's editorial search expressions. If the user has no editorial scope a list of all eprints that match the given %opts is returned.
 
 %opts is passed to a L<EPrints::Search> which is used to filter the results. 
+
+	$list = $user->editable_eprints_list(
+			dataset => $repo->dataset( "buffer" ),
+		 );
 
 =cut
 
@@ -586,17 +587,13 @@ sub editable_eprints_list
 {
 	my( $self, %opts ) = @_;
 
-	my $dataset = $self->{session}->get_repository->get_dataset( "eprint" );
+	$opts{dataset} = $self->{session}->dataset( "eprint" ) if !defined $opts{dataset};
 
-	unless( $self->is_set( 'editperms' ) )
+	if( !$self->is_set( 'editperms' ) )
 	{
-		my $searchexp = EPrints::Search->new(
-			session => $self->{session},
-			dataset => $dataset,
+		return $opts{dataset}->search(
 			custom_order => "-datestamp",
-			allow_blank => 1,
 			%opts );
-		return $searchexp->perform_search;
 	}
 
 	my @conds;
@@ -611,147 +608,26 @@ sub editable_eprints_list
 
 	my $cond = EPrints::Search::Condition->new( "OR", @conds );
 
-	if( defined $opts{filters} )
+	# Condition::process() doesn't check dataset filters, so manually
+	# add them here
+	$opts{filters} = [] if !defined $opts{filters};
+	push @{$opts{filters}}, $opts{dataset}->get_filters;
+
+	if( EPrints::Utils::is_set( $opts{filters} ) )
 	{
-		my $searchexp = EPrints::Search->new(
-			session => $self->{session},
-			dataset => $dataset,
-			%opts );
+		my $searchexp = $opts{dataset}->prepare_search( %opts );
 		$cond = EPrints::Search::Condition->new( "AND",
 			$searchexp->get_conditions,
 			$cond );
 	}
 
-	my $ids = $cond->process( session => $self->{session}, dataset => $dataset );
+	my $ids = $cond->process( session => $self->{session}, dataset => $opts{dataset} );
 
 	return EPrints::List->new(
 		session => $self->{session},
-		dataset => $dataset,
+		dataset => $opts{dataset},
 		ids => $ids,
 		order => "-datestamp" );
-}
-
-######################################################################
-=pod
-
-=item $list = $user->get_eprints( $dataset )
-
-DEPRECATED
-
-Return EPrints in the given EPrints::DataSet which have this user
-as their creator.
-
-Since 2.4 this returns an EPrints::List object, not an array of eprints.
-
-=cut
-######################################################################
-
-sub get_eprints
-{
-	my( $self , $ds ) = @_;
-
-	my $searchexp = new EPrints::Search(
-		session=>$self->{session},
-		custom_order=>"eprintid",
-		dataset=>$ds );
-
-	$searchexp->add_field(
-		$ds->get_field( "userid" ),
-		$self->get_value( "userid" ) );
-
-	return $searchexp->perform_search;
-}
-
-######################################################################
-=pod
-
-=item $list = $user->get_editable_eprints
-
-DEPRECATED
-
-Return eprints currently in the editorial review buffer. If this user
-has editperms set then only return those records which match.
-
-Since 2.4 this returns an EPrints::List object, not an array of eprints.
-
-=cut
-######################################################################
-
-sub get_editable_eprints
-{
-	my( $self ) = @_;
-
-	unless( $self->is_set( 'editperms' ) )
-	{
-		my $ds = $self->{session}->get_repository->get_dataset( 
-			"buffer" );
-		my $searchexp = EPrints::Search->new(
-			allow_blank => 1,
-			custom_order => "-datestamp",
-			dataset => $ds,
-			session => $self->{session} );
-		return $searchexp->perform_search;
-	}
-
-	my $editperms = $self->{dataset}->get_field( "editperms" );
-	my $list = undef;
-	foreach my $sv ( @{$self->get_value( 'editperms' )} )
-	{
-		my $searchexp = $editperms->make_searchexp(
-			$self->{session},
-			$sv );
-		$searchexp->add_field(
-			$self->{session}->get_repository->get_dataset("eprint" )->get_field( "eprint_status" ),
-			"buffer" );
-		$searchexp->{custom_order}="-datestamp";
-	        $searchexp->{order} = $EPrints::Search::CustomOrder;
-
-		my $newlist = $searchexp->perform_search;
-		if( defined $list )
-		{
-			$list = $list->union( $newlist );
-		}
-		else
-		{
-			$list = $newlist;
-		}
-	}
-	return $list;
-}
-
-######################################################################
-=pod
-
-=item $list = $user->get_owned_eprints( $dataset );
-
-DEPRECATED
-
-Return a list of the eprints which this user owns. This is by default
-the same as $user->get_eprints( $dataset) but may be over-ridden by
-get_users_owned_eprints.
-
-Since 2.4 this returns an EPrints::List object, not an array of eprints.
-
-=cut
-######################################################################
-
-sub get_owned_eprints
-{
-	my( $self, $ds ) = @_;
-
-	my $fn = $self->{session}->get_repository->get_conf( "get_users_owned_eprints" );
-
-	if( !defined $fn )
-	{
-		return $self->get_eprints( $ds );
-	}
-
-	my $result = &$fn( $self->{session}, $self, $ds );
-	unless( $result->isa( "EPrints::List" ) )
-	{
-		EPrints::abort( "get_users_owned_eprints should now return an EPrints::List object." );
-	}
-	return $result;
 }
 
 ######################################################################
@@ -1060,7 +936,10 @@ sub send_out_editor_alert
 	
 	$self->{session}->change_lang( $self->get_value( "lang" ) );
 
-	my $list = $self->get_editable_eprints;
+	# we're only interested in items under review (buffer)
+	my $list = $self->editable_eprints_list(
+			dataset => $self->{session}->dataset( "buffer" ),
+		);
 
 	if( $list->count > 0 || $self->get_value( "mailempty" ) eq 'TRUE' )
 	{
