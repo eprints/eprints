@@ -73,7 +73,7 @@ sub make_searchexp
 		prefix => $basename );
 
 	# new-style search spec
-	if( $value =~ /^\?/ )
+	if( defined $value && $value =~ /^\?/ )
 	{
 		my $url = URI->new( $value );
 		my %spec = $url->query_form;
