@@ -541,7 +541,7 @@ sub update
 		next if $name =~ /^_/;
 		next if !$dataset->has_field( $name );
 		my $field = $dataset->field( $name );
-		next if !$field->property( "import" );
+		next if !$field->property( "import" ) && !$self->{session}->config( "enable_import_fields" );
 		if( $field->isa( "EPrints::MetaField::Subobject" ) )
 		{
 			next if !$opts{include_subdataobjs};

@@ -76,6 +76,10 @@ Don't import, just check the file.
 
 Turn on all the options needed to correctly import an XML data file exported from version 2, using the migration toolkit. Implies --enable-web-imports --enable-file-imports --force
 
+=item B<--enable-import-fields>
+
+Allow the import to set fields that are set as not to be imported. This is typically used to specify the imported object id.
+
 =item B<--enable-file-imports>
 
 Allow the imported data to import files from the local filesystem. This can obviously be seen as a security hole if you don't trust the data you are importing.
@@ -88,8 +92,7 @@ This sets the "enable_web_imports" configuration option for this session only.
 
 =item B<--update>
 
-Normally you can not import a new item with the same id as an existing item.
-With this option enabled existing items will be updated with the new item (implies --enable-import-ids).
+Normally you can not import a new item with the same id as an existing item. With this option enabled existing items will be updated with the new item. Combine with --enable-import-fields to update all field values.
 
 =item B<--force>
 
@@ -163,6 +166,7 @@ GetOptions(
 	'scripted' => \$scripted,
 	'single' => \$single,
 	'parse-only' => \$parse_only,
+	'enable-import-fields' => \$enable_import_fields,
 	'enable-file-imports' => \$enable_file_imports,
 	'enable-web-imports' => \$enable_web_imports,
 	'migration' => \$migration,
@@ -298,6 +302,8 @@ END
 
 my $count = 0;
 
+my $key_field = $ds->key_field;
+
 my $handler = EPrints::CLIProcessor->new(
 	session => $session,
 	epdata_to_dataobj => sub {
@@ -312,10 +318,30 @@ my $handler = EPrints::CLIProcessor->new(
 
 		$count++, return if $parse_only;
 
-		my $item = $opts{dataset}->create_dataobj( $epdata );
-		return if !defined $item;
+		my $item;
 
-		print "EPRINTS_IMPORT: ITEM_IMPORTED ".$item->get_id."\n" if $scripted;
+		if(
+			$update &&
+			EPrints::Utils::is_set( my $id = $epdata->{$key_field->name} )
+		  )
+		{
+			$item = $ds->dataobj( $id );
+		}
+
+		if( $update && defined $item )
+		{
+			$item->update( $epdata,
+					include_subdataobjs => 1,
+				);
+			print "EPRINTS_IMPORT: ITEM_UPDATED ".$item->get_id."\n" if $scripted;
+		}
+		else
+		{
+			$item = $opts{dataset}->create_dataobj( $epdata );
+			print "EPRINTS_IMPORT: ITEM_IMPORTED ".$item->get_id."\n" if $scripted;
+		}
+
+		return if !defined $item;
 
 		$count++, return $item;
 	},
