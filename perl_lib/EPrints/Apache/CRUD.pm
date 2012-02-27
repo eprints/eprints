@@ -1,3 +1,5 @@
+=for Pod2Wiki
+
 =head1 NAME
 
 EPrints::Apache::CRUD
@@ -10,6 +12,123 @@ EPrints::Apache::CRUD
 			datasetid => "eprint",
 			dataobjid => "23",
 		);
+
+=head1 DESCRIPTION
+
+The CRUD (Create/Read/Update/Delete) module provides the Web API for manipulating content on the server. The API is an AtomPub implementation that exposes Import and Export plugins via simple URLs and HTTP content type negotiation.
+
+You should use the <link> entries in the repository's home page to locate the CRUD endpoint, as they may change in the future:
+
+	<link rel="Sword" href="https://myrepo/sword-app/servicedocument" />
+	<link rel="SwordDeposit" href="https://myrepo/id/contents" />
+
+=head2 Examples
+
+Create a new eprint based on a single file:
+
+	curl -x POST \
+		-i \
+		-u user:password \
+		-d 'Hello, World!' \
+		-H 'Content-Type: text/plain' \
+		https://myrepo/id/contents
+	
+	HTTP/1.1 201 Created
+	Content-Type: application/atom+xml;charset=utf-8
+	...
+
+Add a file to an existing eprint:
+
+	curl -X POST \
+		-i \
+		-u user:password \
+		-d 'Hello, World!' \
+		-H 'Content-Disposition: attachment; filename=hello.txt' \
+		-H 'Content-Type: text/plain' \
+		https://myrepo/id/eprint/23/contents
+	
+	HTTP/1.1 201 Created
+	Content-Type: application/atom+xml;charset=utf-8
+	...
+
+Get an eprint's metadata in Atom XML:
+
+	curl -X GET \
+		-i \
+		-u user:password \
+		-H 'Accept: application/atom+xml' \
+		https://myrepo/id/eprint/23
+
+	HTTP/1.1 200 OK
+	Content-Type: application/atom+xml;charset=utf-8
+	...
+
+Get the list of contents (documents) of an eprint in Atom XML:
+
+	curl -X GET \
+		-i \
+		-u user:password \
+		-H 'Accept: application/atom+xml' \
+		https://myrepo/id/eprint/23/contents
+
+	HTTP/1.1 200 OK
+	Content-Type: application/atom+xml;charset=utf-8
+	...
+
+=head2 Content Negotiation
+
+You can GET/HEAD/POST/PUT in the formats supported by your L<Export|EPrints::Plugin::Export>/L<Import|EPrints::Plugin::Import> plugins. ('Export' plugins for GET/HEAD and 'Import' for POST/PUT.)
+
+When GETing, your repository should support at least:
+
+	application/vnd.eprints.data+xml - EPrints XML
+	application/atom+xml - Atom XML
+
+Depending on the object type requested (eprint, document etc.) additional formats may be available. These are defined by the 'mime-type' in the plugin.
+
+L<EPrint|EPrints::DataObj::EPrint> objects are always available as text/html, which will result in a 303 Redirect to the EPrint's abstract page or, if the EPrint is not public, the L<View|EPrints::Plugin::Screen::EPrint::View> page.
+
+Requesting the C</contents> of a L<Document|EPrints::DataObj::Document> will return the content of the main file. Requesting a L<File|EPrints::DataObj::File> with no Accept header (or '*/*') will return the file content.
+
+When creating new records via POST content negotiation is performed against the Import plugins. If no Import plugin supports the given Content-Type the content will be treated as binary and stored in a new, blank object. The returned Atom entry will describe the new object (e.g. the root 'eprint' object, in which the new document and file were created).
+
+If the POSTed content is in a recognised format the resulting object(s) will depend on what the Import plugin outputs. This may be a single object, if the output is only an object, or an object plus content file(s).
+
+If no Content-Type is given the MIME type defaults to application/octet-stream. If no Content-Disposition with a 'filename' argument is given the filename will be set to 'main.bin'.
+
+=head2 Updating complex objects using PUT
+
+EPrint objects contain zero or more documents, which each contain zero or more files. When you update (PUT) an EPrint object the contained documents will only be replaced if the Import plugin defines new documents e.g. the Atom Import plugin will never define new documents so PUTing Atom content will only update the EPrint's metadata. PUTing EPrints XML will replace the documents if you include a <documents> XML element.
+
+PUTing to C</contents> will always replace all contents e.g. PUTing to C</eprint/23/contents> is equivalent to C<DELETE /eprint/23/contents> then C<POST /eprint/23/contents>.
+
+=head2 URIs
+
+=over 4
+
+=item /id/contents GET,HEAD,OPTIONS,POST
+
+Requires authentication.
+
+GET a list of the eprints owned by the user. POST to create a new EPrint object.
+
+=item /id/[datasetid]/[dataobjid] DELETE,GET,HEAD,OPTIONS,PUT
+
+Requires authentication depending on user's privileges and object visibility.
+
+GET an object's metadata or, for L<File|EPrints::DataObj::File> objects, the file content. PUT to replace the metadata and/or contents (see L</Updating complex objects using PUT>). If the object does not exist will attempt to create it with the given dataobjid (requires 'upsert' privilege).
+
+=item /id/[datasetid]/[dataobjid]/contents DELETE,GET,HEAD,OPTIONS,POST,PUT
+
+Requires authentication depending on user's privileges and object visibility.
+
+GET the logical contents of the object: documents for eprints or files for documents. PUT to replace the existing contents or POST to add to the existing contents.
+
+=back
+
+=head1 METHODS
+
+=over 4
 
 =cut
 
@@ -718,8 +837,6 @@ sub handler
 		$self->{dataobj} = $dataobj;
 	}
 
-	$r->err_headers_out->{Allow} = join ',', $self->options;
-
 	if( $r->method eq "DELETE" )
 	{
 		return $self->DELETE( $owner );
@@ -741,6 +858,8 @@ sub handler
 	}
 	elsif( $r->method eq "GET" || $r->method eq "HEAD" || $r->method eq "OPTIONS" )
 	{
+		$r->err_headers_out->{Allow} = join ',', $self->options;
+
 		return $self->GET( $owner );
 	}
 
@@ -1577,6 +1696,14 @@ sub send_response
 }
 
 1;
+
+=back
+
+=head1 SEE ALSO
+
+http://en.wikipedia.org/wiki/Create,_read,_update_and_delete
+
+http://en.wikipedia.org/wiki/Content_negotiation
 
 =head1 COPYRIGHT
 
