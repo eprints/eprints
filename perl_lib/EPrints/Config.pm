@@ -95,17 +95,18 @@ sub init
 
 	load_system_config();
 
-	opendir( my $dh, $SYSTEMCONF->{arc_path} );
-	my $id;
-	while( $id = readdir( $dh ) )
+	if( opendir( my $dh, $SYSTEMCONF->{arc_path} ) )
 	{
-		next if( $id =~ m/^\./ );
-		next if( !-d $SYSTEMCONF->{arc_path}."/".$id );
-		next if $SYSTEMCONF->{repository}->{$id} && $SYSTEMCONF->{repository}->{$id}->{disabled};
-		
-		$ARCHIVES{$id} = {};
+		while( my $id = readdir( $dh ) )
+		{
+			next if( $id =~ m/^\./ );
+			next if( !-d $SYSTEMCONF->{arc_path}."/".$id );
+			next if $SYSTEMCONF->{repository}->{$id} && $SYSTEMCONF->{repository}->{$id}->{disabled};
+			
+			$ARCHIVES{$id} = {};
+		}
+		closedir( $dh );
 	}
-	closedir( $dh );
 }
 
 =item EPrints::Config::load_system_config()
