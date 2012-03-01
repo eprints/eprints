@@ -1384,6 +1384,13 @@ sub add_record
 		}
 	}
 
+	if( $dataset->ordered )
+	{
+		EPrints::Index::insert_ordervalues( $self->{session}, $dataset, {
+				$keyname => $id,
+			});
+	}
+
 	# Now add the ACTUAL data:
 	return $self->update( $dataset, $data, $data );
 }
@@ -1533,19 +1540,18 @@ sub quote_identifier
 ######################################################################
 =pod
 
-=item $success = $db->update( $dataset, $data, $changed, $insert )
+=item $success = $db->update( $dataset, $data, $changed )
 
-Updates a record in the database with the given $data. Obviously the
-value of the primary key must be set.
+Updates a record in the database with the given $data. The key field value must be given.
 
-This also updates the text indexes and the ordering keys.
+Updates the ordervalues if the dataset is L<ordered|EPrints::DataSet/ordered>.
 
 =cut
 ######################################################################
 
 sub update
 {
-	my( $self, $dataset, $data, $changed, $insert ) = @_;
+	my( $self, $dataset, $data, $changed ) = @_;
 
 	my $rv = 1;
 
@@ -1577,15 +1583,7 @@ sub update
 		push @values, $field->sql_row_from_value( $self->{session}, $value );
 	}
 
-	if( $insert )
-	{
-		$rv &&= $self->insert(
-			$dataset->get_sql_table_name,
-			[$keyname, @names],
-			[$keyvalue, @values],
-		);
-	}
-	elsif( scalar @values )
+	if( scalar @values )
 	{
 		$rv &&= $self->_update(
 			$dataset->get_sql_table_name,
@@ -1600,10 +1598,7 @@ sub update
 	foreach my $multifield ( @aux )
 	{
 		my $auxtable = $dataset->get_sql_sub_table_name( $multifield );
-		if( !$insert )
-		{
-			$rv &&= $self->delete_from( $auxtable, [$keyname], [$keyvalue] );
-		}
+		$rv &&= $self->delete_from( $auxtable, [$keyname], [$keyvalue] );
 
 		my $values = $data->{$multifield->get_name()};
 
@@ -1635,14 +1630,7 @@ sub update
 
 	if( $dataset->ordered )
 	{
-		if( $insert )
-		{
-			EPrints::Index::insert_ordervalues( $self->{session}, $dataset, $data );
-		}
-		else
-		{
-			EPrints::Index::update_ordervalues( $self->{session}, $dataset, $data, $changed );
-		}
+		EPrints::Index::update_ordervalues( $self->{session}, $dataset, $data, $changed );
 	}
 
 	return $rv;
