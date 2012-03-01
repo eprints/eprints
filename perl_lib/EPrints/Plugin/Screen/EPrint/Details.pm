@@ -339,10 +339,13 @@ sub render_edit_button
 
 	local $self->{processor}->{stage} = $stage;
 
-	my $button = $self->render_action_button({
-		screen => $session->plugin( "Screen::".$self->edit_screen_id,
+	my $screen = $session->plugin( "Screen::".$self->edit_screen_id,
 			processor => $self->{processor},
-		),
+		);
+	return $div if !defined $screen; # No Edit screen plugin available
+
+	my $button = $self->render_action_button({
+		screen => $screen,
 		screen_id => "Screen::".$self->edit_screen_id,
 		hidden => [qw( eprintid stage )],
 	});
