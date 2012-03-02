@@ -381,7 +381,7 @@ sub command
 {
 	my( $self, $cmd, $text, $line_num, $pod_para ) = @_;
 
-	if( $self->{_p2w_pod_section} )
+	if( $self->{_p2w_pod_section} && $cmd ne "for" )
 	{
 		if( $self->{_p2w_pod_section} eq "begin" )
 		{
