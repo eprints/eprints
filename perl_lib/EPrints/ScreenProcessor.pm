@@ -316,10 +316,7 @@ sub process
 		{
 			foreach my $message ( @{$self->{messages}} )
 			{
-				$self->{session}->get_database->save_user_message( 
-					$current_user->get_id,
-					$message->{type},
-					$message->{content} );
+				$current_user->create_subdataobj( "messages", $message );
 			}
 		}
 		$self->{session}->redirect( $self->{redirect} );
@@ -336,10 +333,7 @@ sub process
 		{
 			foreach my $message ( @{$self->{messages}} )
 			{
-				$self->{session}->get_database->save_user_message( 
-					$current_user->get_id,
-					$message->{type},
-					$message->{content} );
+				$current_user->create_subdataobj( "messages", $message );
 			}
 			$self->{session}->redirect( $url );
 			return;
@@ -470,7 +464,8 @@ sub render_messages
 	if( defined $cuser )
 	{
 		my $db = $self->{session}->get_database;
-		@old_messages = $db->get_user_messages( $cuser->get_id, clear => 1 );
+		@old_messages = @{$cuser->value( "messages" )};
+		$_->remove for @old_messages;
 	}
 	foreach my $message ( @old_messages, @{$self->{messages}} )
 	{

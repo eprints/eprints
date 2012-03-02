@@ -298,25 +298,18 @@ $dataset.
 
 sub delete_ordervalues
 {
-	my( $session, $dataset, $id, $tmp ) = @_;
+	my( $session, $dataset, $id ) = @_;
 
-	my $db = $session->get_database;
-
-	my @fields = $dataset->get_fields( 1 );
-
-	# remove the key field
-	splice( @fields, 0, 1 ); 
-	my $keyfield = $dataset->get_key_field();
-	my $keyvalue = $id;
+	my $keyfield = $dataset->get_key_field;
+	my $keyname = $keyfield->get_sql_name;
 
 	foreach my $langid ( @{$session->config( "languages" )} )
 	{
-		# cjg raw SQL!
-		my $ovt = $dataset->get_ordervalues_table_name( $langid );
-		if( $tmp ) { $ovt .= "_tmp"; }
-		my $sql;
-		$sql = "DELETE FROM ".$db->quote_identifier($ovt)." WHERE ".$db->quote_identifier($keyfield->get_sql_name())."=".$db->quote_value( $keyvalue );
-		$db->do( $sql );
+		$session->database->delete_from(
+				$dataset->get_ordervalues_table_name( $langid ),
+				[$keyname],
+				[$id]
+			);
 	}
 }
 

@@ -648,7 +648,7 @@ sub commit
 	);
 
 	# Write the data to the database
-	my $success = $self->{session}->get_database->update(
+	my $success = $self->{session}->get_database->update_data(
 		$self->{dataset},
 		$self->{data},
 		$force ? $self->{data} : $self->{changed} );

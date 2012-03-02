@@ -506,6 +506,53 @@ sub get_citation_type
 	return $citation->type;
 }
 
+package EPrints::Database;
+
+sub save_user_message
+{
+	EPrints->deprecated;
+	my( $self, $userid, $type, $xhtml ) = @_;
+
+	my $user = $self->{session}->user( $userid );
+	return undef if !defined $user;
+
+	return $user->create_subdataobj("messages", {
+		type => $type,
+		message => $xhtml,
+	});
+}
+
+sub get_user_messages
+{
+	EPrints->deprecated;
+	my( $self, $userid, %opts ) = @_;
+
+	my $user = $self->{session}->user( $userid );
+	return undef if !defined $user;
+
+	my @messages = @{$user->value( "messages" )};
+
+	if( $opts{clear} )
+	{
+		$_->remove for @messages;
+	}
+
+	return @messages;
+}
+
+sub clear_user_messages
+{
+	EPrints->deprecated;
+	my( $self, $userid ) = @_;
+
+	my $user = $self->{session}->user( $userid );
+	return undef if !defined $user;
+
+	$_->remove for @{$user->value( "messages" )};
+}
+
+
+
 ######################################################################
 1;
 

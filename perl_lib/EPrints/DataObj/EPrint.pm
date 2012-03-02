@@ -892,7 +892,7 @@ sub save_revision
 	$event->set_dataobj_xml( $self );
 
 	# make sure the revision number is correct in the database
-	$repo->database->update(
+	$repo->database->update_data(
 		$self->{dataset},
 		$self->{data},
 		{ rev_number => delete $self->{changed}->{rev_number} }

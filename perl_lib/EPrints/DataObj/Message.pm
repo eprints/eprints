@@ -52,7 +52,7 @@ sub get_system_field_info
 		{ name=>"type", type=>"set", required=>1, text_index=>0,
 			options => [qw/ message warning error /] },
 
-		{ name=>"message", type=>"longtext", required=>1, text_index=>0 },
+		{ name=>"message", type=>"xml", required=>1, text_index=>0 },
 
 	);
 }
