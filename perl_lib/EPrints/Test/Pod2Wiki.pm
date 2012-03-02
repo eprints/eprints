@@ -507,8 +507,8 @@ sub verbatim
 	# tabs = indented
 	$text =~ s/\t/  /g;
 	$text =~ s/\n\n/\n  \n/g;
-	$text =~ s/\n+$//;
-	push @{$self->{_out}}, $text;
+	$text =~ s/\s+$//;
+	push @{$self->{_out}}, "<pre>$text</pre>\n\n";
 }
 
 =item $parser->textblock( ... )
@@ -566,11 +566,11 @@ sub interior_sequence
 	# shouldn't happen (and breaks =item text)
 #	return unless $self->{_p2w_pod_section};
 
-	return "'''$seq_arg'''" if $seq_cmd eq 'B';
-	return "''$seq_arg''" if $seq_cmd eq 'F';
-	return "\x{00}tt\x00$seq_arg\x00" if $seq_cmd eq 'C';
-	return "\x{00}em\x00$seq_arg\x00" if $seq_cmd eq 'I';
-	return "\x{00}u\x00$seq_arg\x00" if $seq_cmd eq 'U';
+	'B' eq $seq_cmd && return "'''$seq_arg'''";
+	'F' eq $seq_cmd && return "''$seq_arg''";
+	'C' eq $seq_cmd && return "\x{00}code\x00$seq_arg\x00";
+	'I' eq $seq_cmd && return "\x{00}em\x00$seq_arg\x00";
+	'U' eq $seq_cmd && return "\x{00}u\x00$seq_arg\x00";
 	if( $seq_cmd eq "E" )
 	{
 		return {
