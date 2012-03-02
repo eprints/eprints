@@ -85,12 +85,15 @@ Create a new Pod2Wiki parser. Required options:
   wiki_index - URL of the MediaWiki "index.php" page
   username - MediaWiki username
   password - MediaWiki password
+  comments - "section", "none"
 
 =cut
 
 sub new
 {
 	my( $class, %opts ) = @_;
+
+	$opts{comments} = "none" if !defined $opts{comments};
 
 	my $self = $class->SUPER::new( %opts );
 
@@ -158,8 +161,8 @@ sub update_page
 	$self->command( "pod" );
 
 	push @{$self->{_out}},
-		"<!-- ${PREFIX}_postamble_ -->",
-		"<!-- $END_PREFIX -->";
+		"<!-- ${PREFIX}_postamble_ -->\n",
+		"<!-- $END_PREFIX -->\n";
 
 	push @{$self->{_out}}, delete($self->{_wiki}->{"_postamble_"})
 		if defined $self->{_wiki}->{"_postamble_"};
@@ -390,16 +393,25 @@ sub command
 			return;
 		}
 		my $key = delete $self->{_p2w_pod_section};
-		push @{$self->{_out}}, "<div style='$STYLE'>\n<span style='display:none'>User Comments</span>\n<!-- $END_PREFIX -->\n\n";
+		if( $self->{comments} eq "section" )
+		{
+			push @{$self->{_out}}, "<div style='$STYLE'>\n<span style='display:none'>User Comments</span>\n";
+		}
+		push @{$self->{_out}}, "<!-- $END_PREFIX -->\n\n";
 		if( $self->{_wiki}->{$key} )
 		{
 			push @{$self->{_out}},
 				delete $self->{_wiki}->{$key};
 		}
-		push @{$self->{_out}}, "\n<!-- ${PREFIX} -->\n</div>\n";
+		push @{$self->{_out}}, "\n<!-- ${PREFIX} -->\n";
+		if( $self->{comments} eq "section" )
+		{
+			push @{$self->{_out}}, "</div>\n";
+		}
 	}
 	return if $cmd eq "pod";
 
+	my $orig_text = $text;
 	$text =~ s/\n+//g;
 	my $key = EPrints::Utils::escape_filename( $text );
 	my $ref = lc( _p2w_fragment_id( $text ) );
@@ -438,7 +450,7 @@ sub command
 			$ref = $text if !$ref;
 			push @{$self->{_out}}, 
 				"$eqs$ref$eqs\n\n",
-				" $text\n";
+				"<source lang=\"perl\">$orig_text</source>\n";
 		}
 		else
 		{
@@ -495,6 +507,7 @@ sub verbatim
 	# tabs = indented
 	$text =~ s/\t/  /g;
 	$text =~ s/\n\n/\n  \n/g;
+	$text =~ s/\n+$//;
 	push @{$self->{_out}}, $text;
 }
 
