@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 18;
+use Test::More tests => 20;
 
 use strict;
 use warnings;
@@ -30,6 +30,7 @@ my $eprint = $repo->dataset( "eprint" )->create_dataobj( $epdata );
 BAIL_OUT( "Failed to create eprint object" ) if !defined $eprint;
 
 ok($eprint->value( "title" ) eq $TITLE, "eprint created with title" );
+ok(has_ordervalues_row($eprint), "ordervalues row created");
 
 # subobject
 
@@ -94,3 +95,17 @@ is( eval { $epdata->{creators}->[0]->{name}->{family} }, eval { $eprint->value( 
 #print STDERR "\n\n", Data::Dumper::Dumper( $epdata ), "\n\n";
 
 $eprint->delete(); # deletes document sub-object too
+ok(!has_ordervalues_row($eprint), "ordervalues row created");
+
+sub has_ordervalues_row
+{
+	my( $dataobj ) = @_;
+	my $dataset = $dataobj->dataset;
+	my $table = $dataset->get_ordervalues_table_name(
+			$repo->get_language->get_id
+		);
+	my $key_field = $dataset->key_field;
+	my $db = $repo->database;
+	my $sql = "SELECT * FROM ".$db->quote_identifier($table)." WHERE ".$db->quote_identifier($key_field->get_sql_name)."=".$db->quote_value($dataobj->id);
+	return defined $db->{dbh}->selectrow_arrayref($sql);
+}
