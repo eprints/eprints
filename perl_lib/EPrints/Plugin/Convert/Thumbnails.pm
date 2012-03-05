@@ -1,5 +1,7 @@
 package EPrints::Plugin::Convert::Thumbnails;
 
+=for Pod2Wiki
+
 =head1 NAME
 
 EPrints::Plugin::Convert::Thumbnails - audio visual thumbnailing
@@ -7,9 +9,14 @@ EPrints::Plugin::Convert::Thumbnails - audio visual thumbnailing
 =head1 SYNOPSIS
 
   use EPrints;
-
+  
+  # enable audio previews
+  $c->{plugins}->{'Convert::Thumbnails'}->{params}->{audio} = 1;
+  # disable video previews
+  $c->{plugins}->{'Convert::Thumbnails'}->{params}->{video} = 0;
+  
   ...
-
+  
   my $plugin = $session->plugin( "Convert" );
   my %available = $plugin->can_convert( $doc );
   $plugin = $available{"thumbnail_video"}->{plugin};
@@ -157,8 +164,8 @@ $DEFAULT{sizes} = {(
 	lightbox => [640,480],
 )};
 # enable/disable audio/video previews
-#$DEFAULT{video} = 1;
-#$DEFAULT{audio} = 1;
+$DEFAULT{video} = 1;
+$DEFAULT{audio} = 1;
 
 # video_preview lines
 $DEFAULT{video_height} = "480";
@@ -215,6 +222,7 @@ sub new
 	$self->{name} = "Thumbnails";
 	$self->{visible} = "all";
 	for(qw(
+		audio video
 		audio_mp4 audio_ogg video_mp4 video_ogg
 		convert_formats ffmpeg_formats sizes
 		video_height
@@ -230,6 +238,14 @@ sub new
 		}
 		# set the default
 		$self->{$_} = $DEFAULT{$_} if !defined $self->{$_};
+	}
+	if( $self->{audio} )
+	{
+		$self->{audio_mp4} = $self->{audio_ogg} = 1;
+	}
+	if( $self->{video} )
+	{
+		$self->{video_mp4} = $self->{video_ogg} = 1;
 	}
 
 	if( defined $self->{session} )
