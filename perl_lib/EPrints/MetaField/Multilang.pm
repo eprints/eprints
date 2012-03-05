@@ -9,9 +9,22 @@
 
 =pod
 
+=for Pod2Wiki
+
 =head1 NAME
 
 B<EPrints::MetaField::Multilang> - Subclass of compound for multilingual data.
+
+=head1 SYNOPSIS
+
+	{
+		name => "title",
+		type => "multilang",
+		multiple => 1,
+		fields => [
+			{ sub_name => "title", type => "text", },
+		],
+	},
 
 =head1 DESCRIPTION
 
