@@ -5416,6 +5416,8 @@ sub init_from_request
 	# set the language for the current user
 	$self->change_lang( $self->get_session_language( $request ) );
 
+	$self->run_trigger( EP_TRIGGER_BEGIN_REQUEST );
+
 	return 1;
 }
 
@@ -5425,6 +5427,11 @@ my %CACHED = map { $_ => 1 } @CACHE_KEYS;
 sub cleanup
 {
 	my( $self ) = @_;
+
+	if( $self->get_online )
+	{
+		$self->run_trigger( EP_TRIGGER_END_REQUEST )
+	}
 
 	if( defined $self->{database} )
 	{
