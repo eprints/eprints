@@ -120,7 +120,11 @@ Continue normal processing.
 
 =item EP_TRIGGER_BEGIN_REQUEST
 
+Called after L<EPrints::Repository/init_from_request>.
+
 =item EP_TRIGGER_END_REQUEST
+
+Called just before L<EPrints::Repository/cleanup> in response to a mod_perl request.
 
 =item EP_TRIGGER_END
 
