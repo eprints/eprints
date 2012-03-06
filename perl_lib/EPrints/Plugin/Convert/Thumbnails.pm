@@ -4,23 +4,30 @@ package EPrints::Plugin::Convert::Thumbnails;
 
 =head1 NAME
 
-EPrints::Plugin::Convert::Thumbnails - audio visual thumbnailing
+EPrints::Plugin::Convert::Thumbnails - thumbnail-sized versions of audio/video/images
 
 =head1 SYNOPSIS
 
-  use EPrints;
-  
-  # enable audio previews
-  $c->{plugins}->{'Convert::Thumbnails'}->{params}->{audio} = 1;
-  # disable video previews
-  $c->{plugins}->{'Convert::Thumbnails'}->{params}->{video} = 0;
-  
-  ...
-  
-  my $plugin = $session->plugin( "Convert" );
-  my %available = $plugin->can_convert( $doc );
-  $plugin = $available{"thumbnail_video"}->{plugin};
-  $new_doc = $plugin->convert( $doc, "thumbnail_video" );
+	use EPrints;
+	
+	# enable audio previews
+	$c->{plugins}->{'Convert::Thumbnails'}->{params}->{audio} = 1;
+	# disable video previews
+	$c->{plugins}->{'Convert::Thumbnails'}->{params}->{video} = 0;
+	
+	# enable audio_*/video_* previews
+	$c->{thumbnail_types} = sub {
+		my( $list, $repo, $doc ) = @_;
+
+		push @$list, qw( audio_mp4 audio_ogg video_mp4 video_ogg );
+	};
+	
+	...
+	
+	my $plugin = $session->plugin( "Convert" );
+	my %available = $plugin->can_convert( $doc );
+	$plugin = $available{"thumbnail_video"}->{plugin};
+	$new_doc = $plugin->convert( $doc, "thumbnail_video" );
 
 
 =head1 DESCRIPTION
@@ -238,14 +245,6 @@ sub new
 		}
 		# set the default
 		$self->{$_} = $DEFAULT{$_} if !defined $self->{$_};
-	}
-	if( $self->{audio} )
-	{
-		$self->{audio_mp4} = $self->{audio_ogg} = 1;
-	}
-	if( $self->{video} )
-	{
-		$self->{video_mp4} = $self->{video_ogg} = 1;
 	}
 
 	if( defined $self->{session} )
