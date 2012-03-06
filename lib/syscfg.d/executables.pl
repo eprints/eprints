@@ -25,10 +25,24 @@ my %executables = (
 	  'doc2txt' => "$c->{base_path}/tools/doc2txt",
 	  'unoconv' => '/usr/bin/unoconv',
 	  'txt2refs' => "$c->{base_path}/tools/txt2refs",
+	  'ffprobe' => '/usr/bin/ffprobe',
 	);
-while(my( $name, $path ) = each %executables)
+my @paths = EPrints->system->bin_paths;
+EXECUTABLE: while(my( $name, $path ) = each %executables)
 {
 	next if exists $c->{executables}->{$name};
-	$c->{executables}->{$name} = $path if -x $path;
+	if( -x $path )
+	{
+		$c->{executables}->{$name} = $path;
+		next EXECUTABLE;
+	}
+	for(@paths)
+	{
+		if( -x "$_/$name" )
+		{
+			$c->{executables}->{$name} = "$_/$name";
+			next EXECUTABLE;
+		}
+	}
 }
 }
