@@ -25,6 +25,7 @@ my %invocations = (
 	 'ffmpeg_cell' => '$(ffmpeg) -y -i $(SOURCE) -an -f mjpeg -ss $(offset) -t 00:00:01 -r 1 -s $(width)x$(height) $(TARGET)',
 	 'unoconv' => '$(unoconv) -f $(FORMAT) $(SOURCE)',
 	 'txt2refs' => '$(perl) $(txt2refs) $(SOURCE) $(TARGET)',
+	 'ffprobe' => '$(ffprobe) -show_streams $(SOURCE)',
 );
 while(my( $name, $invo ) = each %invocations)
 {

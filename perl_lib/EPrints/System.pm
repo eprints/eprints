@@ -531,7 +531,22 @@ sub sanitise
 	return $filepath;
 }
 
+=item @paths = $sys->bin_paths()
+
+Get the list of absolute directories to search for system tools (e.g. F<convert>).
+
+=cut
+
+sub bin_paths
+{
+	my( $self ) = @_;
+
+	return split ':', $ENV{PATH};
+}
+
 1;
+
+=back
 
 =head1 COPYRIGHT
 

@@ -96,36 +96,43 @@ $c->add_trigger( EP_TRIGGER_MEDIA_INFO, sub {
 
 	my $ffmpeg_log = File::Temp->new;
 
-	$repo->read_exec( $ffmpeg_log, "ffmpeg_i", SOURCE => $filepath );
+	$repo->read_exec( $ffmpeg_log, "ffprobe", SOURCE => $filepath );
 	seek($ffmpeg_log,0,0);
 
 	my $media = $epdata->{media} ||= {};
 
+	my @streams;
+	my $stream;
 	while(<$ffmpeg_log>)
 	{
-		if( /Stream #[0-9.]+[^:]*?: (Audio|Video): / )
+		chomp;
+		m{^\[STREAM\]} and ($stream={}, next);
+		m{^\[/STREAM\]} and (push(@streams, $stream), $stream=undef, next);
+		next if !defined $stream;
+		my( $k, $v ) = split '=', $_, 2;
+		$stream->{$k} = $v;
+	}
+
+	foreach my $stream (@streams)
+	{
+		my $type = $stream->{codec_type};
+		next if !defined $type;
+		$media->{streams}->{$type} = 1;
+		if( $stream->{duration} )
 		{
-			$media->{streams}->{"\L$1"} = 1;
+			$media->{duration} = $stream->{duration};
+			$media->{duration} =~ s/\..+$//;
 		}
-		if( /Video: (\S+),.*?\s(\d+)x(\d+)\b/ )
+		if( $type eq "video" )
 		{
-			$media->{video_codec} = $1;
-			$media->{width} = $2;
-			$media->{height} = $3;
-			$media->{video_codec} =~ s/(['"])(.+)\1/$2/;
+			$media->{width} = $stream->{width};
+			$media->{height} = $stream->{height};
+			$media->{video_codec} = $stream->{codec_name};
+			$media->{aspect_ratio} = $stream->{display_aspect_ratio};
 		}
-		if( /Audio: (\S+),/ )
+		elsif( $type eq "audio" )
 		{
-			$media->{audio_codec} = $1;
-			$media->{audio_codec} =~ s/(['"])(.+)\1/$2/;
-		}
-		if( /Duration:.* (\d+):(\d\d):(\d\d)\.\d+/ )
-		{
-			$media->{duration} = $1 * 3600 + $2 * 60 + $3;
-		}
-		if( /Video:.* DAR (\d+:\d+)\b/ )
-		{
-			$media->{aspect_ratio} = $1;
+			$media->{audio_codec} = $stream->{codec_name};
 		}
 	}
 
