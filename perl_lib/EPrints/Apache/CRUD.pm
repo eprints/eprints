@@ -196,6 +196,8 @@ sub new
 	if( defined $self{dataobjid} )
 	{
 		$self{dataobj} = $self{dataset}->dataobj( $self{dataobjid} );
+		# adjust /id/eprint/23 to /id/archive/23
+		$self{dataset} = $self{dataobj}->get_dataset if defined $self{dataobj};
 		$self{options} = [qw( GET HEAD PUT OPTIONS )];
 		$self{scope} = CRUD_SCOPE_DATAOBJ;
 	}
@@ -231,7 +233,10 @@ sub new
 		}
 	}
 
-	$self{plugin} = $self->content_negotiate_best_plugin;
+	if( !defined $self{plugin} )
+	{
+		$self{plugin} = $self->content_negotiate_best_plugin;
+	}
 
 	return $self;
 }
@@ -393,7 +398,7 @@ sub _priv
 	{
 		$priv = "create_eprint";
 	}
-	elsif( $dataset->base_id eq "eprint" && $priv eq "view" )
+	elsif( $self->scope eq CRUD_SCOPE_USER_CONTENTS && $dataset->base_id eq "eprint" && $priv eq "view" )
 	{
 		$priv = "items";
 	}
