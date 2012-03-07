@@ -83,6 +83,15 @@ sub get_system_field_info
 	);
 }
 
+sub get_dataset
+{
+	my( $self ) = @_;
+
+	return $self->is_set( "public" ) && $self->value( "public" ) eq "TRUE" ?
+			$self->{session}->dataset( "public_saved_search" ) :
+			$self->{session}->dataset( "saved_search" );
+}
+
 ######################################################################
 =pod
 
