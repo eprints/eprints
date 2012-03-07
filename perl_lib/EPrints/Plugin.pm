@@ -63,6 +63,25 @@ sub repository
 	return $self->{repository};
 }
 
+=item $mime_type = EPrints::Plugin->mime_type()
+
+Returns the MIME type for this plugin.
+
+Returns undef if there is no relevant MIME type for this plugin type.
+
+=cut
+
+sub mime_type
+{
+	my( $class ) = @_;
+
+	my $mime_type = substr(lc(ref($class) || $class), 17);
+	$mime_type =~ s/::/-/g;
+	$mime_type = "application/x-eprints-$mime_type";
+
+	return $mime_type;
+}
+
 ######################################################################
 =pod
 
