@@ -118,10 +118,10 @@ $c->add_trigger( EP_TRIGGER_MEDIA_INFO, sub {
 		my $type = $stream->{codec_type};
 		next if !defined $type;
 		$media->{streams}->{$type} = 1;
-		if( $stream->{duration} )
+		# pick out the seconds (fraction part is frames)
+		if( $stream->{duration} && $stream->{duration} =~ /^([0-9]+)/ )
 		{
-			$media->{duration} = $stream->{duration};
-			$media->{duration} =~ s/\..+$//;
+			$media->{duration} = $1;
 		}
 		if( $type eq "video" )
 		{
