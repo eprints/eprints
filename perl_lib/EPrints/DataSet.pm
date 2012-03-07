@@ -340,6 +340,16 @@ my $INFO = {
 		import => 1,
 		index => 1,
 	},
+	public_saved_search => {
+		sqlname => "saved_search",
+		class => "EPrints::DataObj::SavedSearch",
+		import => 1,
+		index => 1,
+		virtual => 1,
+		confid => "saved_search",
+		filters => [ { meta_fields => [ 'public' ], value => 'TRUE', describe=>0 } ],
+#		dataset_id_field => "eprint_status",
+	},
 	access => {
 		sqlname => "access",
 		class => "EPrints::DataObj::Access",

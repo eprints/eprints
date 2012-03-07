@@ -17,7 +17,7 @@
       <field ref="mailempty"/>
     </component>
 
-<!--    <component><field ref="public"/></component> -->
+    <component><field ref="public"/></component>
 
   </stage>
 </workflow>
