@@ -64,7 +64,7 @@ If this is an integer then it is assumed to be the userid of the user, otherwise
 
 You may wish to create one or more "bulk import" users and make imported eprint records belong to them.
 
-=item B<--arg key=value>
+=item B<--argument key=value>
 
 Add an argument to the import plugin. May be repeated. Effects depend on the import plugin.
 
@@ -171,7 +171,7 @@ GetOptions(
 	'enable-web-imports' => \$enable_web_imports,
 	'migration' => \$migration,
 	'update' => \$update,
-	'arg=s' => \%opt_args,
+	'argument|arg=s' => \%opt_args,
 	'action=s' => \@actions,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version() if $version;

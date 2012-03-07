@@ -58,7 +58,7 @@ If this is set then just output the single, specified item or items.
 
 =over 8
 
-=item B<--arg key=value>
+=item B<--argument key=value>
 
 Add an argument to the export plugin. May be repeated. Effects depend on te export plugin.
 
@@ -117,7 +117,7 @@ GetOptions(
 	'silent' => \$quiet,
 	'quiet' => \$quiet,
 	'single' => \$single,
-	'arg=s' => \%opt_args,
+	'argument|arg=s' => \%opt_args,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "export_xml" ) if $version;
 pod2usage( 1 ) if $help;
