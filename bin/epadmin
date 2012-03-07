@@ -46,6 +46,8 @@ Where I<command> is one of:
 
 =item help
 
+=item info
+
 =item profile
 
 =item rebuild_triples
@@ -352,6 +354,7 @@ else
 	elsif( $action eq "rehash" ) { rehash( $repoid, @ARGV ); }
 	elsif( $action eq "upgrade_add_files" ) { upgrade_add_files( $repoid, @ARGV ) }
 	elsif( $action eq "remove_field" ) { remove_field( $repoid, @ARGV ); }
+	elsif( $action eq "info" ) { info( $repoid, @ARGV ); }
 	else { pod2usage( 1 ); }
 }
 
@@ -1631,6 +1634,31 @@ sub erase_fulltext_index
 	$ep_ds->search->map( $fn );
 
 	print "Done queuing\n" if( $noise >= 1 );
+}
+
+sub info
+{
+	my( $repoid, $section, @extra ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	$section = '' if !defined $section;
+
+	if( $section eq "executables" )
+	{
+		foreach my $name (sort keys %{$repo->config( "executables" )})
+		{
+			printf("%s\t%s\n", $name, $repo->config( "executables", $name ));
+		}
+	}
+	elsif( $section eq "config" )
+	{
+		EPrints->dump( $repo->config( @extra ) );
+	}
+	else
+	{
+		die "Show info for one of: executables, config\n";
+	}
 }
 
 sub test
