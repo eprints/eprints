@@ -16,11 +16,12 @@ sub new
 
 	my $self = $class->SUPER::new( %params );
 
-	$self->{mimetype} = "application/xml; charset=utf-8";
 	$self->{suffix} = ".xml";
 
 	return $self;
 }
+
+sub mime_type { shift->SUPER::mime_type() . '+xml; charset=utf-8' }
 
 sub initialise_fh
 {

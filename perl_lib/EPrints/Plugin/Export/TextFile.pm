@@ -16,11 +16,12 @@ sub new
 
 	my $self = $class->SUPER::new( %params );
 
-	$self->{mimetype} = "text/plain; charset=utf-8";
 	$self->{suffix} = ".txt";
 
 	return $self;
 }
+
+sub mime_type { shift->SUPER::mime_type() . '; charset=utf-8' }
 
 sub initialise_fh
 {

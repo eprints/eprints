@@ -34,7 +34,6 @@ sub new
 {
 	my( $class, %params ) = @_;
 
-	$params{accept} = exists $params{accept} ? $params{accept} : [];
 	$params{produce} = exists $params{produce} ? $params{produce} : [];
 	$params{visible} = exists $params{visible} ? $params{visible} : "all";
 	$params{advertise} = exists $params{advertise} ? $params{advertise} : 1;
@@ -43,6 +42,7 @@ sub new
 	$params{arguments} = exists $params{arguments} ? $params{arguments} : {};
 	$params{Handler} = exists $params{Handler} ? $params{Handler} : EPrints::CLIProcessor->new( session => $params{session} );
 	$params{screen} = exists $params{screen} ? $params{screen} : "Import";
+	$params{accept} = exists $params{accept} ? $params{accept} : [$class->mime_type];
 
 	return $class->SUPER::new(%params);
 }

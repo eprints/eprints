@@ -34,6 +34,8 @@ sub new
 	return $self;
 }
 
+sub mime_type { shift->SUPER::mime_type() . '; charset=utf-8' }
+
 sub input_fh
 {
 	my( $self, %opts ) = @_;
