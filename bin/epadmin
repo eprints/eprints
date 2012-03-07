@@ -14,11 +14,11 @@ use lib "$FindBin::Bin/../perl_lib";
 
 =head1 NAME
 
-B<epadmin> - EPrints repository admin tool
+epadmin - EPrints repository admin tool
 
 =head1 SYNOPSIS
 
-B<epadmin> I<command> I<repository_id> [B<options>]
+epadmin B<options> I<command> [repository_id]
 
 Where I<command> is one of:
 
@@ -46,8 +46,6 @@ Where I<command> is one of:
 
 =item help
 
-=item info
-
 =item profile
 
 =item rebuild_triples
@@ -64,15 +62,13 @@ Where I<command> is one of:
 
 =item refresh_views
 
-=item rehash
-
 =item reindex
 
 =item reload
 
-=item schema
-
 =item set_developer_mode
+
+=item show_config
 
 =item test
 
@@ -84,165 +80,9 @@ Where I<command> is one of:
 
 =back
 
-Type I<epadmin help> for further help.
+Type C<epadmin help command> for further help.
 
-=head1 ARGUMENTS
-
-=over 8
-
-=item B<epadmin> create
-
-START HERE! This option will walk you through the tasks needed to create your repository.
-
-=item B<epadmin> test I<repository_id>
-
-A null operation which just checks your configuration files are OK and that you can connect to the database. If no I<repository_id> is specified loads each repository in turn. Use --verbose to generate more information.
-
-=item B<epadmin> cleanup_cachemaps I<repository_id>
-
-Drop any orphaned cache tables.
-
-=item B<epadmin> config_core I<repository_id>
-
-Set hostname, contact email and repository name. 
-
-=item B<epadmin> config_db I<repository_id>
-
-Set database connection properties and, optionally, to create database and database user.
-
-=item B<epadmin> create_db I<repository_id>
-
-Create a database and database user with the current settings.
-
-=item B<epadmin> create_tables I<repository_id>
-
-Create the database tables.
-
-=item B<epadmin> create_user I<repository_id>
-
-Create a new user. You need to do this to create your first admin account.
-
-=item B<epadmin> schema I<repository_id>
-
-Use this to produce a schema for the EP3 XML read/written by your repository. 
-
-=item B<epadmin> erase_fulltext_index I<repository_id>
-
-This erases all the .words and .indexcodes cache files from your repository, forcing the indexer to rerun the tools used to extract full text from your documents.
-
-This is useful if you only setup the fulltext indexing after your repository is already live, or if you discover there has been a problem.
-
-=item B<epadmin> rebuild_triples I<repository_id> [I<dataset_id> [I<item_id> I<item_id> ...]]
-
-Queue all the records to have their RDF triple cache rebuilt. This may tie-up the indexer for some time on a large repository. Do this if you have made changes to the way RDF triples are produced from an EPrint. 
-
-=item B<epadmin> recommit I<repository_id> I<dataset_id> [I<eprint_id> I<eprint_id> ...]
-
-Recommit all the records in the given dataset. What this does is cause the automatic values to be re-calculated. If a list of eprint_ids is given then just recommit those.
-
-=item B<epadmin> reindex I<repository_id> I<dataset_id> [I<eprint_id> I<eprint_id> ...]
-
-Schedule the dataset for reindexing. The indexer will do the actual indexing and it may take some time. This only schedules the reindexing. If a list of eprint_ids is given then just reindex those.
-
-=item B<epadmin> reorder I<repository_id> I<dataset_id> [I<eprint_id> I<eprint_id> ...]
-
-Regenerate the order values for the dataset. If a list of eprint_ids is given then just recalculate ordervalues for those.
-
-=item B<epadmin> rehash I<repository_id> [I<document_id>]
-
-Recalculate the hashes of the files in this document and write it to a probity log file. If a document id is given then just generate the hash for that document.
-
-=item B<epadmin> reload I<repository_id>
-
-Cause the web server to reload the repository configuration.
-
-=item B<epadmin> set_developer_mode I<repository_id> <on|off>
-
-While set to on developer mode causes the web server to reload the repository configuration on every page request. This makes development much quicker but must not be left switched on in a production environment since it increases server load dramatically.
-
-=item B<epadmin> refresh_views I<repository_id>
-
-Tell the webserver that all views pages must be regenerated. The webserver will update them next time they are requested. Also causes config to be reloaded.
-
-=item B<epadmin> refresh_abstracts I<repository_id>
-
-Tell the webserver that all abstract summary pages must be regenerated. The webserver will update them next , but won't update them again unless something on the EPrint changes or you re-run refresh abstracts. Also causes config to be reloaded.
-
-=item B<epadmin> redo_mime_type I<repository_id> dataset [ objectid, ... ]
-
-Re-run the file format identification. Dataset may be one of 'document' or
-'file'. If 'document' only re-does the identification of the main files in
-documents.
-
-=item B<epadmin> redo_thumbnails I<repository_id> [ I<eprintid>, ... ]
-
-Regenerate all the thumbnail and image-preview files and any other things which
-are triggered if the document file changed. Optionally supply a list of eprint
-ids to re-generate thumbnails for.
-
-=item B<epadmin> erase_data I<repository_id>
-
-Erases and recreates the database. Removes all documents and files. Does not touch the configuration files.
-
-=item B<epadmin> erase_eprints I<repository_id>
-
-Erases all the documents and eprints (including their files). Recreates the eprint and document tables. Leaves configuration files and the users and subjects tables alone.
-
-=item B<epadmin> unit_tests
-
-Run unit tests, printing the results to STDOUT. If everything passed will exit
-with a return code of 0.
-
-=item B<epadmin> profile I<test>
-
-Run a performance profile of I<test> using L<Devel::NYTProf>.
-
-=item B<epadmin> remove_field I<repository_id> I<dataset> I<field_id>
-
-Remove the database entries for the given field, can not be undone!
-
-=item B<epadmin> update I<repository_id>
-
-This will add tables and columns to your SQL database to bring it in-line with your current configuration. It will not remove data. Use with caution on a live database. Database backup is recommended befire use on live systems.
-
-=item B<epadmin> upgrade I<repository_id>
-
-After upgrading EPrints, use this to update the database tables. It will advise any other tasks that are required.
-
-=item B<epadmin> --help
-
-=back
-
-=head1 OPTIONS
-
-=over 8
-
-=item B<--help>
-
-Print a brief help message and exit.
-
-=item B<--man>
-
-Print the full manual page and then exit.
-
-=item B<--quiet>
-
-This option does not do anything.
-
-=item B<--verbose>
-
-Explain in detail what is going on. May be repeated for greater effect.
-
-=item B<--force>
-
-Be more forceful (don't ask for confirmation).
-
-=item B<--version>
-
-Output version information and exit.
-
-=back   
-
+=head1 COMMANDS
 
 =cut
 
@@ -266,6 +106,7 @@ my $help = 0;
 my $man = 0;
 my $version = 0;
 my $force = 0;
+my $silent = 0;
 
 Getopt::Long::Configure("permute");
 
@@ -274,8 +115,8 @@ GetOptions(
 	'man' => \$man,
 	'version' => \$version,
 	'verbose+' => \$verbose,
-	'silent' => \$quiet,
-	'quiet' => \$quiet,
+	'silent' => \$silent,
+	'quiet+' => \$quiet,
 	'force' => \$force,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "epadmin" ) if $version;
@@ -286,9 +127,8 @@ pod2usage( 2 ) if( scalar @ARGV == 0 );
 # Set STDOUT to auto flush (without needing a \n)
 $|=1;
 
-my $noise = 1;
-$noise = 0 if( $quiet );
-$noise = 1+$verbose if( $verbose );
+my $noise = 1 + $verbose - $quiet;
+$noise = 0 if $silent;
 
 my $REGEXP_HOSTNAME_MIDDLE = '[a-z0-9-]+(\.[a-z0-9-]+)*';
 my $REGEXP_HOSTNAME = '^'.$REGEXP_HOSTNAME_MIDDLE.'$';
@@ -300,84 +140,49 @@ my $REGEXP_YESNO = '^(yes|no)$';
 my $REGEXP_ANY = '^.*$';
 my @PASSWORD_CHARS = ( 'a'..'z','A'..'Z','0'..'9' );
 
-my $eprints = EPrints->new();
+our $eprints = EPrints->new();
 
-my $action = shift @ARGV;
-if( $action eq "create" ) { create(); }
-elsif( $action eq "test" ) { test( @ARGV ); }
-elsif( $action eq "unit_tests" ) { unit_tests( @ARGV ); }
-elsif( $action eq "profile" ) { profile( @ARGV ); }
+our $action = shift @ARGV;
+
+my $f = "epadmin_$action";
+if( defined &$f )
+{
+	no strict "refs";
+	&$f( @ARGV );
+}
 else
 {
-	my $repoid = shift @ARGV;
-	pod2usage(1) unless defined $repoid;
-	if( $action eq "cleanup_cachemaps" ) { cleanup_cachemaps( $repoid ); }
-	elsif( $action eq "config_core" ) { config_core( &repository($repoid) ); }
-	elsif( $action eq "config_db" ) { config_db( $repoid ); }
-	elsif( $action eq "database_type_info" ) { database_type_info( $repoid ); }
-	elsif( $action eq "create_db" ) { create_db( $repoid ); }
-	elsif( $action eq "create_user" ) { create_user( $repoid, @ARGV ); }
-	elsif( $action eq "create_tables" ) { create_tables( $repoid ); }
-	elsif( $action eq "erase_data" ) { erase_data( $repoid ); }
-	elsif( $action eq "erase_eprints" ) { erase_eprints( $repoid ); }
-	elsif( $action eq "erase_fulltext_index" ) { erase_fulltext_index( $repoid ); }
-	elsif( $action eq "reload" ) { reload( $repoid ); }
-	elsif( $action eq "refresh_abstracts" ) { refresh_abstracts( $repoid ); }
-	elsif( $action eq "refresh_views" ) { refresh_views( $repoid ); }
-	elsif( $action eq "redo_mime_type" ) { redo_mime_type( $repoid, @ARGV ); }
-	elsif( $action eq "redo_thumbnails" ) { redo_thumbnails( $repoid, @ARGV ); }
-	elsif( $action eq "set_developer_mode" ) { set_developer_mode( $repoid, @ARGV ); }
-	elsif( $action eq "upgrade" ) { upgrade( $repoid ); }
-	elsif( $action eq "schema" ) { schema( $repoid ); }
-	elsif( $action eq "update_database_structure" ) { update_database_structure( $repoid ); }
-	elsif( $action eq "update" ) { update_database_structure( $repoid ); }
-	elsif( $action eq "upgrade_mysql_charset" ) { upgrade_mysql_charset( $repoid ); }
-	elsif( $action eq "rebuild_triples" ) { rebuild_triples( $repoid, @ARGV ); }
-	elsif( $action eq "recommit" ) 
-	{
-		my $datasetid = shift @ARGV;
-		pod2usage(1) unless defined $datasetid;
-		recommit( $repoid, $datasetid, @ARGV );
-	}
-	elsif( $action eq "reindex" ) 
-	{
-		my $datasetid = shift @ARGV;
-		pod2usage(1) unless defined $datasetid;
-		reindex( $repoid, $datasetid, @ARGV );
-	}
-	elsif( $action eq "reorder" )
-	{
-		my $datasetid = shift @ARGV;
-		pod2usage(1) unless defined $datasetid;
-		reorder( $repoid, $datasetid, @ARGV );
-	}
-	elsif( $action eq "rehash" ) { rehash( $repoid, @ARGV ); }
-	elsif( $action eq "upgrade_add_files" ) { upgrade_add_files( $repoid, @ARGV ) }
-	elsif( $action eq "remove_field" ) { remove_field( $repoid, @ARGV ); }
-	elsif( $action eq "info" ) { info( $repoid, @ARGV ); }
-	else { pod2usage( 1 ); }
+	pod2usage(
+			-message => "Unknown command: $action",
+			-verbose => 1,
+		);
 }
 
-
-exit;
+exit 0;
 
 sub repository
 {
 	my( $repoid, %opts ) = @_;
 
+	help( $action ) if !defined $repoid;
+
 	return $repoid if ref($repoid) && $repoid->isa( "EPrints::Repository" );
 
-	my $repo = $eprints->repository( $repoid, noise => $noise, %opts );
-	if( !defined $repo )
-	{
-		print STDERR "Failed to load repository: $repoid\n";
-		exit 1;
-	}
+	my $repo = $eprints->repository( $repoid, noise => $noise, %opts )
+		or die "Failed to load repository: $repoid\n";
 
 	return $repo;
 }
 
-sub create
+=head2 create
+
+	epadmin create
+
+Create a new repository instance based on question-and-answer.
+
+=cut
+
+sub epadmin_create
 {
 	pod2usage( 2 ) if( scalar @ARGV != 0 ); 
 
@@ -579,7 +384,15 @@ sub run_script
 	system( 'perl', $path, @opts );
 }
 
-sub cleanup_cachemaps
+=head2 cleanup_cachemaps
+
+	epadmin cleanup_cachemaps repository_id
+
+Drop any orphaned cache tables.
+
+=cut
+
+sub epadmin_cleanup_cachemaps
 {
 	my( $repoid ) = @_;
 
@@ -601,11 +414,24 @@ sub cleanup_cachemaps
 	}
 }
 
-sub config_core
+=head2 config_core
+
+	epadmin config_core repository_id
+
+Set hostname, contact email and repository name. 
+
+=cut
+
+sub epadmin_config_core
 {
 	my( $repo ) = @_;
 
-	my $repoid = ref($repo) ? $repo->get_id : $repo;
+	my $repoid = $repo;
+	if( $action eq "config_core" )
+	{
+		$repo = &repository( $repo );
+		$repoid = $repo->get_id;
+	}
 
 	print "Core configuration for $repoid\n\n";
 
@@ -878,7 +704,15 @@ END
 	print "Wrote $anamefile\n";
 }
 
-sub config_db
+=head2 config_db
+
+	epadmin config_db repository_id
+
+Set database connection properties and, optionally, to create database and database user.
+
+=cut
+
+sub epadmin_config_db
 {
 	my( $repoid ) = @_;
 
@@ -1029,7 +863,7 @@ sub root_dbh
 
 # debug tool to print out the database types supported by the current database
 # driver
-sub database_type_info
+sub epadmin_database_type_info
 {
 	my( $repoid ) = @_;
 
@@ -1094,7 +928,15 @@ sub database_type_info
 	}
 }
 
-sub create_db
+=head2 create_db
+
+	epadmin create_db repository_id
+
+Create a database and database user with the current settings.
+
+=cut
+
+sub epadmin_create_db
 {
 	my( $repoid ) = @_;
 
@@ -1128,7 +970,15 @@ sub create_db
 	}
 }
 
-sub create_user
+=head2 create_user
+
+	epadmin create_user repository_id
+
+Create a new user. You need to do this to create your first admin account.
+
+=cut
+
+sub epadmin_create_user
 {
 	my( $repoid, @info ) = @_;
 
@@ -1205,7 +1055,39 @@ sub create_user
 	}
 }
 
-sub redo_mime_type
+=head2 help
+
+	epadmin help [command]
+
+Show help for C<epadmin>. Specify a C<command> to get detailed help on a particular
+command
+
+=cut
+
+sub help { &epadmin_help }
+sub epadmin_help
+{
+	my( $topic ) = @_;
+
+	my $f = "epadmin_$topic";
+
+	pod2usage( -verbose => $noise ) if !defined $topic || !defined &$f;
+
+	pod2usage(
+		-verbose => 99,
+		-sections => "COMMANDS/$topic",
+	);
+}
+
+=head2 redo_mime_type
+
+	epadmin redo_mime_type repository_id dataset [ objectid, ... ]
+
+Redo file format identification. Dataset may be C<eprint>, C<document> or C<file>.
+
+=cut
+
+sub epadmin_redo_mime_type
 {
 	my( $repoid, $datasetid, @ids ) = @_;
 
@@ -1220,7 +1102,42 @@ sub redo_mime_type
 
 	my $i = 0;
 	my $f;
-	if( $datasetid eq "document" )
+	if( $dataset->base_id eq "eprint" )
+	{
+		$f = sub {
+			(undef, undef, my $eprint) = @_;
+
+			print STDERR sprintf("%.0f%%\r",
+				100 * $i++ / $list->count
+			);
+
+			foreach my $doc ($eprint->get_all_documents)
+			{
+				my( $file ) = $doc->stored_file( $doc->value( "main" ) );
+				return if !defined $file;
+
+				my $fh = $file->get_local_copy;
+				return if !defined $fh;
+
+				$repo->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+					filename => "$fh",
+					filepath => "$fh",
+					epdata => my $media_info = {},
+				);
+
+				foreach my $fieldid (keys %$media_info)
+				{
+					next if !$dataset->has_field( $fieldid );
+					$doc->set_value( $fieldid, $media_info->{$fieldid} );
+				}
+				$file->set_value( "mime_type", $media_info->{mime_type} );
+
+				$file->commit;
+				$doc->commit;
+			}
+		};
+	}
+	elsif( $datasetid eq "document" )
 	{
 		$f = sub {
 			(undef, undef, my $doc) = @_;
@@ -1278,7 +1195,17 @@ sub redo_mime_type
 	$list->map( $f );
 }
 
-sub redo_thumbnails
+=head2 redo_thumbnails
+
+	epadmin redo_thumbnails repository_id [ eprintid, ... ]
+
+Regenerate all the thumbnail and image-preview files and any other things which
+are triggered if the document file changed. Optionally supply a list of eprint
+ids to re-generate thumbnails for.
+
+=cut
+
+sub epadmin_redo_thumbnails
 {
 	my( $repoid, @ids ) = @_;
 
@@ -1320,8 +1247,16 @@ sub redo_thumbnails
 	}
 }	
 
+=head2 refresh_views
 
-sub refresh_views
+	epadmin refresh_views repository_id
+
+Tell the webserver that all views pages must be regenerated. The webserver will update them next time they are requested. Also causes config to be reloaded.
+
+=cut
+
+
+sub epadmin_refresh_views
 {
 	my( $repoid ) = @_;
 
@@ -1347,8 +1282,16 @@ END
 	reload( $repoid );
 }	
 
+=head2 refresh_abstracts
 
-sub refresh_abstracts
+	epadmin refresh_abstracts repository_id
+
+Tell the webserver that all abstract summary pages must be regenerated. The webserver will update them next , but won't update them again unless something on the EPrint changes or you re-run refresh abstracts. Also causes config to be reloaded.
+
+=cut
+
+
+sub epadmin_refresh_abstracts
 {
 	my( $repoid ) = @_;
 
@@ -1374,7 +1317,15 @@ END
 	reload( $repoid );
 }	
 
-sub reload
+=head2 reload
+
+	epadmin reload repository_id
+
+Cause the web server to reload the repository configuration.
+
+=cut
+
+sub epadmin_reload
 {
 	my( $repoid ) = @_;
 
@@ -1397,7 +1348,15 @@ END
 	}
 }	
 
-sub create_tables
+=head2 create_tables
+
+	epadmin create_tables repository_id
+
+Create the database tables.
+
+=cut
+
+sub epadmin_create_tables
 {
 	my( $repoid ) = @_;
 
@@ -1423,7 +1382,15 @@ sub create_tables
 	}
 }
 
-sub erase_data
+=head2 erase_data
+
+	epadmin erase_data repository_id
+
+Erases and recreates the database. Removes all documents and files. Does not touch the configuration files.
+
+=cut
+
+sub epadmin_erase_data
 {
 	my( $repoid ) = @_;
 
@@ -1449,7 +1416,15 @@ END
 	drop_tables_and_recreate_db( $repo );
 }
 
-sub erase_eprints
+=head2 erase_eprints
+
+	epadmin erase_eprints repository_id
+
+Erases all the documents and eprints (including their files). Recreates the eprint and document tables. Leaves configuration files and the users and subjects tables alone.
+
+=cut
+
+sub epadmin_erase_eprints
 {
 	my( $repoid ) = @_;
 
@@ -1596,7 +1571,17 @@ sub erase_eprint_files
 	if( $noise>=1 ) { print "...done erasing eprint files.\n"; }
 }
 
-sub erase_fulltext_index
+=head2 erase_fulltext_index
+
+	epadmin erase_fulltext_index repository_id
+
+This erases all the .words and .indexcodes cache files from your repository, forcing the indexer to rerun the tools used to extract full text from your documents.
+
+This is useful if you only setup the fulltext indexing after your repository is already live, or if you discover there has been a problem.
+
+=cut
+
+sub epadmin_erase_fulltext_index
 {
 	my( $repoid ) = @_;
 
@@ -1636,32 +1621,35 @@ sub erase_fulltext_index
 	print "Done queuing\n" if( $noise >= 1 );
 }
 
-sub info
+=head2 show_config
+
+	epadmin show_config repository_id key1 [key2 ...]
+
+Dump the given configuration section identified by key1. Use extra keys to get
+a lower-level configuration setting.
+
+=cut
+
+sub show_config
 {
-	my( $repoid, $section, @extra ) = @_;
+	my( $repoid, @keys ) = @_;
 
 	my $repo = &repository( $repoid );
 
-	$section = '' if !defined $section;
+	help( "show_config" ) if !@keys;
 
-	if( $section eq "executables" )
-	{
-		foreach my $name (sort keys %{$repo->config( "executables" )})
-		{
-			printf("%s\t%s\n", $name, $repo->config( "executables", $name ));
-		}
-	}
-	elsif( $section eq "config" )
-	{
-		EPrints->dump( $repo->config( @extra ) );
-	}
-	else
-	{
-		die "Show info for one of: executables, config\n";
-	}
+	EPrints->dump( $repo->config( @keys ) );
 }
 
-sub test
+=head2 test
+
+	epadmin test repository_id
+
+A null operation which just checks your configuration files are OK and that you can connect to the database. If no repository_id is specified loads each repository in turn. Use --verbose to generate more information.
+
+=cut
+
+sub epadmin_test
 {
 	my( $repoid ) = @_;
 
@@ -1702,7 +1690,15 @@ sub test
 	print "Everything seems OK.\n";
 }
 
-sub profile
+=head2 profile
+
+	epadmin profile test
+
+Run a performance profile of test using L<Devel::NYTProf>.
+
+=cut
+
+sub epadmin_profile
 {
 	my( $test ) = @_;
 
@@ -1742,7 +1738,16 @@ sub profile
 	exit(0);
 }
 
-sub unit_tests
+=head2 unit_tests
+
+	epadmin unit_tests
+
+Run unit tests, printing the results to STDOUT. If everything passed will exit
+with a return code of 0.
+
+=cut
+
+sub epadmin_unit_tests
 {
 	my( @todo ) = @_;
 
@@ -1769,6 +1774,14 @@ sub unit_tests
 
 	exit(0) if runtests(map { "$test_path/$_" } @test_files);
 }
+
+=head2 rehash
+
+	epadmin rehash repository_id [document_id]
+
+Recalculate the hashes of the files in this document and write it to a probity log file. If a document id is given then just generate the hash for that document.
+
+=cut
 
 sub rehash
 {
@@ -1812,6 +1825,14 @@ sub rehash
 	}
 }
 
+=head2 update
+
+	epadmin update repository_id
+
+This will add tables and columns to your SQL database to bring it in-line with your current configuration. It will not remove data. Use with caution on a live database. Database backup is recommended before use on live systems.
+
+=cut
+
 # undocumented option - use with caution!
 sub update_database_structure
 {
@@ -1831,12 +1852,22 @@ sub update_database_structure
 #
 ###################################
 
+=head2 recommit
+
+	epadmin recommit repository_id dataset_id [eprint_id eprint_id ...]
+
+Recommit all the records in the given dataset. What this does is cause the automatic values to be re-calculated. If a list of eprint_ids is given then just recommit those.
+
+=cut
+
 
 sub recommit
 {
 	my( $repoid, $datasetid, @ids ) = @_;
 
 	my $repo = &repository( $repoid );
+
+	help( "recommit" ) if !defined $datasetid;
 
 	my $dataset = $repo->dataset( $datasetid );
 	if( !defined $dataset )
@@ -1887,11 +1918,21 @@ sub recommit
 	}
 }
 
+=head2 reorder
+
+	epadmin reorder repository_id dataset_id [eprint_id eprint_id ...]
+
+Regenerate the order values for the dataset. If a list of eprint_ids is given then just recalculate ordervalues for those.
+
+=cut
+
 sub reorder
 {
 	my( $repoid, $datasetid, @ids ) = @_;
 
 	my $repo = &repository( $repoid );
+
+	help( "recommit" ) if !defined $datasetid;
 
 	my $dataset = $repo->dataset( $datasetid );
 	if( !defined $dataset )
@@ -1930,6 +1971,14 @@ sub reorder
 		}
 	} );
 }
+
+=head2 rebuild_triples
+
+	epadmin rebuild_triples repository_id [dataset_id item_id item_id ...]]
+
+Queue all the records to have their RDF triple cache rebuilt. This may tie-up the indexer for some time on a large repository. Do this if you have made changes to the way RDF triples are produced from an EPrint. 
+
+=cut
 
 sub rebuild_triples
 {
@@ -1976,12 +2025,22 @@ sub rebuild_triples
 	} );
 }
 
+=head2 reindex
+
+	epadmin reindex repository_id dataset_id [eprint_id eprint_id ...]
+
+Schedule the dataset for reindexing. The indexer will do the actual indexing and it may take some time. This only schedules the reindexing. If a list of eprint_ids is given then just reindex those.
+
+=cut
+
 
 sub reindex
 {
 	my( $repoid, $datasetid, @ids ) = @_;
 
 	my $repo = &repository( $repoid );
+
+	help( "reindex" ) if !defined $datasetid;
 
 	my $dataset = $repo->dataset( $datasetid );
 	if( !defined $dataset )
@@ -2030,19 +2089,13 @@ sub reindex
 }
 
 
-sub schema 
-{
-	my( $repoid ) = @_;
+=head2 remove_field
 
-	my $repo = &repository( $repoid );
+	epadmin remove_field repository_id dataset field_id
 
-	my $dataset = $repo->dataset( "metafield" );
+Remove the database entries for the given field, can not be undone!
 
-	my $plugin = $repo->plugin( "Export::XML_Schema" );
-
-	$plugin->initialise_fh( *STDOUT );
-	$plugin->output_list( list=>$dataset->search, fh=>*STDOUT );
-}
+=cut
 
 sub remove_field
 {
@@ -2069,7 +2122,15 @@ sub remove_field
 	}
 }
 
-sub set_developer_mode
+=head2 set_developer_mode
+
+	epadmin set_developer_mode repository_id <on|off>
+
+While set to on developer mode causes the web server to reload the repository configuration on every page request. This makes development much quicker but must not be left switched on in a production environment since it increases server load dramatically.
+
+=cut
+
+sub epadmin_set_developer_mode
 {
 	my ( $repoid, $set_to ) = @_;
 
@@ -2743,7 +2804,15 @@ sub checksum
 	return $ctx->hexdigest;
 }
 
-sub upgrade
+=head2 upgrade
+
+	epadmin upgrade repository_id
+
+After upgrading EPrints, use this to update the database tables. It will advise any other tasks that are required.
+
+=cut
+
+sub epadmin_upgrade
 {
 	my( $repoid ) = @_;
 
@@ -3160,6 +3229,37 @@ sub upgrade_3_3_3_to_3_3_4
 }
 
 # End of UPGRADE CODE
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--quiet>
+
+This option does not do anything.
+
+=item B<--verbose>
+
+Explain in detail what is going on. May be repeated for greater effect.
+
+=item B<--force>
+
+Be more forceful (don't ask for confirmation).
+
+=item B<--version>
+
+Output version information and exit.
+
+=back   
+
 
 =head1 COPYRIGHT
 
