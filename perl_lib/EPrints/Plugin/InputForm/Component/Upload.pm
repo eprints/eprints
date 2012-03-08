@@ -61,11 +61,6 @@ sub update_from_form
 	my $session = $self->{session};
 	my $eprint = $self->{workflow}->{item};
 
-	if( defined $self->{_documents} )
-	{
-		$self->{_documents}->update_from_form( $processor );
-	}
-
 	if( $session->internal_button_pressed )
 	{
 		my $internal = $self->get_internal_button;
@@ -210,11 +205,6 @@ sub render_content
 		current => $current,
 	) );
 
-	if( defined $self->{_documents} )
-	{
-		$html->appendChild( $self->{_documents}->render_content( $surround ) );
-	}
-
 	return $html;
 }
 
@@ -251,17 +241,17 @@ sub parse_config
 			push @{$self->{config}->{methods}}, $method;
 		}
 	}
-
-	# backwards compatibility
-	if( $config_dom->getElementsByTagName( "field" )->length > 0 )
-	{
-		$self->{_documents} = $self->{session}->plugin( "InputForm::Component::Documents",
-			processor => $self->{processor},
-			workflow => $self->{workflow} );
-		$self->{_documents}->parse_config( $config_dom );
-	}
 }
 
+sub problems
+{
+	my( $self ) = @_;
+
+	if( $self->{xml_config}->getElementsByTagName( "field" )->length > 0 )
+	{
+		return $self->html_phrase( "error:fields" );
+	}
+}
 
 1;
 

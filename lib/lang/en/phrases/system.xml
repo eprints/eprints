@@ -3969,4 +3969,13 @@ To create a blank EPM entire a new id in the input and click <epc:phrase ref="Pl
     <epp:phrase id="issue_fieldopt_status_reported">Reported</epp:phrase>
     <epp:phrase id="issue_fieldopt_status_resolved">Resolved</epp:phrase>
 
+	<epp:phrase id="Plugin/InputForm/Component/Upload:error:fields">
+	<p>You must update your workflow file located in archives/[archiveid]/cfg/workflows/eprint/default.xml by replacing:</p>
+	<p><pre>&lt;component type="Upload"&gt;</pre></p>
+	<p>With:</p>
+	<p><pre>&lt;component type="Upload" /&gt;
+&lt;component type="Documents"&gt;
+</pre></p>
+	</epp:phrase>
+
 </epp:phrases>
