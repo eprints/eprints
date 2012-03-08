@@ -86,6 +86,7 @@ sub parse_config
 {
 	my( $self, $config_dom ) = @_;
 	
+	$self->SUPER::parse_config( $config_dom );
 	$self->{config}->{fields} = [];
 	$self->{config}->{title} = $self->{session}->make_doc_fragment;
 

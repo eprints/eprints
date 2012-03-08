@@ -49,22 +49,14 @@ sub new
 	my( $class, %opts ) = @_;
 
 	$opts{problems} = [] if !exists $opts{problems};
+	$opts{name} = "Base component plugin: This should have been subclassed" if !exists $opts{name};
+	$opts{visible} = "all" if !exists $opts{visible};
 
 	my $self = $class->SUPER::new( %opts );
 
-	$self->{name} = "Base component plugin: This should have been subclassed";
-	$self->{visible} = "all";
 	# don't have a config when we first load this to register it as a plugin class
 	if( defined $opts{xml_config} )
 	{
-		$self->{session} = $opts{session};
-		$self->{collapse} = $opts{collapse};
-		$self->{no_help} = $opts{no_help};
-		$self->{no_toggle} = $opts{no_toggle};
-		$self->{surround} = $opts{surround};
-		$self->{prefix} = $opts{prefix};
-		$self->{dataobj} = $opts{dataobj};
-		$self->{dataset} = $opts{dataobj}->get_dataset;
 		$self->parse_config( $opts{xml_config} );
 	}
 
@@ -89,13 +81,39 @@ sub note
 
 =item $bool = $component->parse_config( $config_dom )
 
-Parses the supplied DOM object and populates $component->{config}
+Parses the supplied DOM object and populates $component configuration.
 
 =cut
 
 sub parse_config
 {
-	my( $self, $config_dom ) = @_;
+	my( $self, $xml_config ) = @_;
+
+	foreach my $attr ($xml_config->attributes)
+	{
+		my $value = $attr->nodeValue;
+		next if !EPrints::Utils::is_set( $value );
+		my $name = $attr->nodeName;
+
+		if( $name eq "id" )
+		{
+			$self->{prefix} = $value;
+		}
+		elsif( $name eq "surround" )
+		{
+			$self->{surround} = $value;
+		}
+		elsif( $name eq "collapse" )
+		{
+			$self->{collapse} = 1 if $value eq "yes";
+		}
+		elsif( $name eq "help" )
+		{
+			$self->{no_help} = 1 if $value eq "never";
+			$self->{no_toggle} = 1 if $value eq "always";
+			# toggle
+		}
+	}
 
 	return 1;
 }

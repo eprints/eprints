@@ -36,6 +36,8 @@ sub parse_config
 {
 	my( $self, $dom ) = @_;
 
+	$self->SUPER::parse_config( $dom );
+
 	$self->{config}->{dom} = $dom;
 }
 

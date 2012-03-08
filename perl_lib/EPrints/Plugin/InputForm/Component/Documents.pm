@@ -726,6 +726,8 @@ sub parse_config
 {
 	my( $self, $config_dom ) = @_;
 
+	$self->SUPER::parse_config( $config_dom );
+
 	$self->{config}->{doc_fields} = [];
 
 	my @fields = $config_dom->getElementsByTagName( "field" );

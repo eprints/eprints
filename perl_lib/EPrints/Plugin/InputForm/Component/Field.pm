@@ -28,6 +28,8 @@ sub parse_config
 {
 	my( $self, $config_dom ) = @_;
 
+	$self->SUPER::parse_config( $config_dom );
+
 	my @fields = $config_dom->getElementsByTagName( "field" );
 
 	if( scalar @fields != 1 )

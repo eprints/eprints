@@ -218,6 +218,8 @@ sub parse_config
 {
 	my( $self, $config_dom ) = @_;
 
+	$self->SUPER::parse_config( $config_dom );
+
 	$self->{config}->{path} = $config_dom->getAttribute( "path" );
 	$self->{config}->{document} = $config_dom->getAttribute( "document" );
 }
