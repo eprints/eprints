@@ -34,7 +34,25 @@ EPrints::Plugin::Convert::Thumbnails - thumbnail-sized versions of audio/video/i
 
 Conversion of images, videos and audio into preview/thumbnail versions.
 
-This plugin wraps the ImageMagick I<convert> and I<ffmpeg> tools.
+This plugin wraps the ImageMagick F<convert> and F<ffmpeg> tools.
+
+=head2 Testing Audio and Video Conversion
+
+When files are uploaded to EPrints a file format identification process occurs. This is based on the C<EP_TRIGGER_MEDIA_INFO> callbacks. A set of callbacks are provided by F<lib/cfg.d/media_info.pl>. To customise these copy the file to your repository's F<cfg.d/> directory.
+
+This plugin relies on the C<media> info added by the file format identification. To check this is working export the EPrint as XML and check for a <media> entry in your document:
+
+	./bin/export [archiveid] eprint XML [eprintid]
+
+At any time you can re-run the file format identification by using C<redo_mime_type> in epadmin:
+
+	./bin/epadmin redo_mime_type [archiveid] eprint [eprintid] --verbose
+
+If F<ffprobe> is configured correctly you should see it being called for each document.
+
+Finally, to regenerate thumbnails do:
+
+	./bin/epadmin redo_thumbnails [archiveid] [eprintid] --verbose
 
 =head1 PARAMETERS
 
@@ -205,6 +223,7 @@ $DEFAULT{video_mp4} = {
 	video_frame_rate => "10.00",
 	video_bitrate => "500k",
 	container => "mp4",
+	preset => "default",
 };
 $DEFAULT{video_ogg} = {
 	audio_codec => "vorbis",
