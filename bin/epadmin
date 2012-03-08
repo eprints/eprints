@@ -1095,7 +1095,7 @@ sub epadmin_redo_mime_type
 
 	die "Missing dataset argument\n" if !defined $datasetid;
 	die "Dataset must be one of 'document' or 'file'\n"
-		if $datasetid !~ /^document|file$/;
+		if $datasetid !~ /^document|file|eprint$/;
 
 	my $dataset = $repo->dataset( $datasetid );
 	my $list = @ids ? $dataset->list( \@ids ) : $dataset->search;
