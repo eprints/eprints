@@ -708,17 +708,15 @@ sub get_conditions
 	my @filters = ();
 	foreach my $sf ( $self->get_searchfields )
 	{
-		next unless( $sf->is_set() );
-		$any_field_set = 1;
-
 		my $cond = $sf->get_conditions;
 		next if $cond->is_empty;
 		if( $self->{filtersmap}->{$sf->get_id} )
 		{
 			push @filters, $cond;
 		}
-		else
+		elsif( $sf->is_set() )
 		{
+			$any_field_set = 1;
 			push @r, $cond;
 		}
 	}

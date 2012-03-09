@@ -243,11 +243,12 @@ my $user = EPrints::DataObj::User->new( $session, $userid );
 $searchexp = EPrints::Search->new(
 	session => $session,
 	dataset => $hdataset,
+	allow_blank => 1,
 	filters => [{ meta_fields => [qw( userid.username )], value => $user->get_value( "username" ) }],
 	);
 
 $list = $searchexp->perform_search;
-ok($list->count > 0, "history object by username subquery");
+ok($list->count > 0, "history object by username subquery".$searchexp->get_conditions->describe."\n".$searchexp->get_conditions->sql( dataset => $hdataset, session => $session ));
 
 my $udataset = $session->dataset( "user" );
 my $ssdataset = $session->dataset( "saved_search" );
