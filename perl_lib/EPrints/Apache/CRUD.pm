@@ -1217,33 +1217,45 @@ sub PUT
 			) if !defined $dataobj;
 	}
 
-	my $new_status;
+	my( $old_status, $new_status );
 
 	if( $dataset->base_id eq "eprint" )
 	{
+		$old_status = $dataobj->value( "eprint_status" );
 		$new_status = delete $epdata->{eprint_status};
+
 		$epdata->{userid} = $owner->id;
 		$epdata->{sword_depositor} = $user->id;
-		$epdata->{eprint_status} = $dataobj->value( "eprint_status" );
+		$epdata->{eprint_status} = $old_status;
 		$epdata->{rev_number} = $dataobj->value( "rev_number" );
+
+		# check the user has permission to move this eprint, before we perform
+		# any other changes.
+		my $priv = "eprint/$old_status/move_$new_status";
+		if(
+			EPrints::Utils::is_set( $new_status ) &&
+			$new_status ne $old_status &&
+			!$user->allow( $priv, $dataobj )
+		  )
+		{
+			return $self->sword_error(
+					status => HTTP_FORBIDDEN,
+					summary => "Insufficient privileges to transfer item from $old_status to $new_status",
+				);
+		}
 	}
 
 	$dataobj->empty();
 	$dataobj->update( $epdata, include_subobjects => 1 );
+	$dataobj->commit;
 
-	if( EPrints::Utils::is_set( $new_status ) )
+	# transfer the eprint, if needed
+	if(
+		EPrints::Utils::is_set( $new_status ) &&
+		$new_status ne $old_status
+	  )
 	{
-		my $status = $dataobj->value( "eprint_status" );
-		my $priv = "eprint/$status/move_$new_status";
-		if( $user->allow( $priv, $dataobj ) )
-		{
-			$dataobj->commit;
-			$dataobj->_transfer( $new_status );
-		}
-	}
-	else
-	{
-		$dataobj->commit;
+		$dataobj->_transfer( $new_status );
 	}
 
 	if( !defined $self->dataobj )
