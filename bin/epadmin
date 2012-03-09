@@ -1658,7 +1658,7 @@ sub epadmin_test
 		foreach( EPrints::Config::get_repository_ids() )
 		{
 			print "REPOID: $_\n" if $noise > 1;
-			test( $_ );
+			epadmin_test( $_ );
 		}
 		return;
 	}
