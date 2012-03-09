@@ -109,6 +109,32 @@ sub create_unique
 	return $class->create_from_data( $session, $data, $dataset );
 }
 
+=begin InternalDoc
+
+=item $event = EPrints::DataObj::EventQueue->new_from_hash( $repo, $epdata [, $dataset ] )
+
+Returns the event that corresponds to the hash of the data provided in $epdata.
+
+=end InternalDoc
+
+=cut
+
+sub new_from_hash
+{
+	my( $class, $session, $data, $dataset ) = @_;
+
+	$dataset ||= $session->dataset( $class->get_dataset_id );
+
+	my $md5 = Digest::MD5->new;
+	$md5->add( $data->{pluginid} );
+	$md5->add( $data->{action} );
+	$md5->add( EPrints::MetaField::Storable->freeze( $session, $data->{params} ) )
+		if EPrints::Utils::is_set( $data->{params} );
+	my $eventqueueid = $md5->hexdigest;
+	
+	return $dataset->dataobj( $eventqueueid );
+}
+
 =item $ok = $event->execute()
 
 Execute the action this event describes.
