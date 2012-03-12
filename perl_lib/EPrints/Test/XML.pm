@@ -21,8 +21,13 @@ sub xml_tests
 	my $node;
 	my $frag;
 
-	$node = $repo->make_element( "x" );
+	$node = $repo->make_element( "x", i => "j", x => "y" );
 	ok(EPrints::XML::is_dom( $node, "Element" ), "is_dom (Element)");
+
+	my @attr = $node->attributes;
+	ok(@attr == 2, "attributes in array context");
+	my $attr = $node->attributes;
+	is(eval { $attr->length }, 2, "attributes in scalar context");
 
 	$frag = $repo->make_doc_fragment;
 	ok(EPrints::XML::is_dom( $frag, "DocumentFragment" ), "is_dom (DocumentFragment)");

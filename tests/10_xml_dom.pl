@@ -9,7 +9,7 @@ BEGIN {
 	}
 	else
 	{
-		plan tests => 12;
+		plan tests => 14;
 	}
 }
 
