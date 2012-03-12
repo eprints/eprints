@@ -136,10 +136,10 @@ sub action_test_data
 	my ( $self ) = @_;
 
 	$self->{processor}->{current} = 0;
+	$self->{processor}->{encoding} = "UTF-8";
 
 	my $tmpfile = File::Temp->new;
 	binmode($tmpfile, ":utf8");
-	print $tmpfile "\x{feff}";
 	print $tmpfile scalar($self->{repository}->param( "data" ));
 	seek($tmpfile, 0, 0);
 
@@ -167,10 +167,10 @@ sub action_import_data
 	my( $self ) = @_;
 
 	$self->{processor}->{current} = 0;
+	$self->{processor}->{encoding} = "UTF-8";
 
 	my $tmpfile = File::Temp->new;
 	binmode($tmpfile, ":utf8");
-	print $tmpfile "\x{feff}";
 	print $tmpfile scalar($self->{repository}->param( "data" ));
 	seek($tmpfile, 0, 0);
 
