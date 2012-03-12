@@ -19,22 +19,6 @@
 # $c->{pagehooks}->{submission_meta}->{bodyattr}->{bgcolor} = '#ff0000';
 
 
-# 404 override. This is handy if you want to catch some urls from an
-# old system, or want to make some kind of weird dynamic urls work.
-# It should be handled before it becomes a 404, but hey.
-# If the function returns a string then the browser is redirected to
-# that url. If it returns undef then then the normal error page is shown.
-# $c->{catch404} = sub {
-#	my( $repository, $url ) = @_;
-#	
-#	if( $url =~ m#/subject-(\d+).html$# )
-#	{
-#		return "/views/subjects/$1.html";
-#	}
-#	
-#	return undef;
-# };
-
 # If you use the Latex render function and want to use the mimetex
 # package rather than the latex->dvi->ps->png route then enable this
 # option and put the location of the executable "mimetex.cgi" into 

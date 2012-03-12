@@ -36,22 +36,7 @@ if( defined($show) and !$show )
 	exit( 0 );
 }
 
-my $newurl;
-my $fn = $session->config( "catch404" );
-if( defined $fn )
-{
-	$newurl = &{$fn}( $session, $url );
-}
-
-my $urlpath = $session->config( "rel_path" );
-if( defined $newurl )
-{
-	$session->redirect( $newurl );
-}
-else
-{
-	&plain_404( $session );
-}
+&plain_404( $session );
 
 $session->terminate();
 
