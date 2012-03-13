@@ -1630,7 +1630,7 @@ a lower-level configuration setting.
 
 =cut
 
-sub show_config
+sub epadmin_show_config
 {
 	my( $repoid, @keys ) = @_;
 
@@ -1783,7 +1783,7 @@ Recalculate the hashes of the files in this document and write it to a probity l
 
 =cut
 
-sub rehash
+sub epadmin_rehash
 {
 	my( $repoid, $docid ) = @_;
 
@@ -1834,7 +1834,8 @@ This will add tables and columns to your SQL database to bring it in-line with y
 =cut
 
 # undocumented option - use with caution!
-sub update_database_structure
+sub epadmin_update { &epadmin_update_database_structure }
+sub epadmin_update_database_structure
 {
 	my( $repoid ) = @_;
 
@@ -1861,7 +1862,7 @@ Recommit all the records in the given dataset. What this does is cause the autom
 =cut
 
 
-sub recommit
+sub epadmin_recommit
 {
 	my( $repoid, $datasetid, @ids ) = @_;
 
@@ -1926,7 +1927,7 @@ Regenerate the order values for the dataset. If a list of eprint_ids is given th
 
 =cut
 
-sub reorder
+sub epadmin_reorder
 {
 	my( $repoid, $datasetid, @ids ) = @_;
 
@@ -1980,7 +1981,7 @@ Queue all the records to have their RDF triple cache rebuilt. This may tie-up th
 
 =cut
 
-sub rebuild_triples
+sub epadmin_rebuild_triples
 {
 	my( $repoid, $datasetid, @ids ) = @_;
 
@@ -2034,7 +2035,7 @@ Schedule the dataset for reindexing. The indexer will do the actual indexing and
 =cut
 
 
-sub reindex
+sub epadmin_reindex
 {
 	my( $repoid, $datasetid, @ids ) = @_;
 
@@ -2097,7 +2098,7 @@ Remove the database entries for the given field, can not be undone!
 
 =cut
 
-sub remove_field
+sub epadmin_remove_field
 {
 	my( $repoid, $datasetid, $fieldid ) = @_;
 
