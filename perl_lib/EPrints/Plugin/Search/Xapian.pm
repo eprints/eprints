@@ -2,6 +2,24 @@
 
 EPrints::Plugin::Search::Xapian
 
+=head1 PARAMETERS
+
+=over 4
+
+=item lang
+
+Override the default language used for stemming.
+
+=item stopwords
+
+An array reference of stop words to use (defaults to English).
+
+=back
+
+=head1 METHODS
+
+=over 4
+
 =cut
 
 package EPrints::Plugin::Search::Xapian;
@@ -9,6 +27,441 @@ package EPrints::Plugin::Search::Xapian;
 @ISA = qw( EPrints::Plugin::Search );
 
 use strict;
+
+# Freely available stopword list.  This stopword
+# list provides a nice balance between coverage
+# and size.
+our @STOPWORDS = qw(
+	a
+	about
+	above
+	across
+	after
+	again
+	against
+	all
+	almost
+	alone
+	along
+	already
+	also
+	although
+	always
+	among
+	an
+	and
+	another
+	any
+	anybody
+	anyone
+	anything
+	anywhere
+	are
+	area
+	areas
+	around
+	as
+	ask
+	asked
+	asking
+	asks
+	at
+	away
+	b
+	back
+	backed
+	backing
+	backs
+	be
+	became
+	because
+	become
+	becomes
+	been
+	before
+	began
+	behind
+	being
+	beings
+	best
+	better
+	between
+	big
+	both
+	but
+	by
+	c
+	came
+	can
+	cannot
+	case
+	cases
+	certain
+	certainly
+	clear
+	clearly
+	come
+	could
+	d
+	did
+	differ
+	different
+	differently
+	do
+	does
+	done
+	down
+	down
+	downed
+	downing
+	downs
+	during
+	e
+	each
+	early
+	either
+	end
+	ended
+	ending
+	ends
+	enough
+	even
+	evenly
+	ever
+	every
+	everybody
+	everyone
+	everything
+	everywhere
+	f
+	face
+	faces
+	fact
+	facts
+	far
+	felt
+	few
+	find
+	finds
+	first
+	for
+	four
+	from
+	full
+	fully
+	further
+	furthered
+	furthering
+	furthers
+	g
+	gave
+	general
+	generally
+	get
+	gets
+	give
+	given
+	gives
+	go
+	going
+	good
+	goods
+	got
+	great
+	greater
+	greatest
+	group
+	grouped
+	grouping
+	groups
+	h
+	had
+	has
+	have
+	having
+	he
+	her
+	here
+	herself
+	high
+	high
+	high
+	higher
+	highest
+	him
+	himself
+	his
+	how
+	however
+	i
+	if
+	important
+	in
+	interest
+	interested
+	interesting
+	interests
+	into
+	is
+	it
+	its
+	itself
+	j
+	just
+	k
+	keep
+	keeps
+	kind
+	knew
+	know
+	known
+	knows
+	l
+	large
+	largely
+	last
+	later
+	latest
+	least
+	less
+	let
+	lets
+	like
+	likely
+	long
+	longer
+	longest
+	m
+	made
+	make
+	making
+	man
+	many
+	may
+	me
+	member
+	members
+	men
+	might
+	more
+	most
+	mostly
+	mr
+	mrs
+	much
+	must
+	my
+	myself
+	n
+	necessary
+	need
+	needed
+	needing
+	needs
+	never
+	new
+	new
+	newer
+	newest
+	next
+	no
+	nobody
+	non
+	noone
+	not
+	nothing
+	now
+	nowhere
+	number
+	numbers
+	o
+	of
+	off
+	often
+	old
+	older
+	oldest
+	on
+	once
+	one
+	only
+	open
+	opened
+	opening
+	opens
+	or
+	order
+	ordered
+	ordering
+	orders
+	other
+	others
+	our
+	out
+	over
+	p
+	part
+	parted
+	parting
+	parts
+	per
+	perhaps
+	place
+	places
+	point
+	pointed
+	pointing
+	points
+	possible
+	present
+	presented
+	presenting
+	presents
+	problem
+	problems
+	put
+	puts
+	q
+	quite
+	r
+	rather
+	really
+	right
+	right
+	room
+	rooms
+	s
+	said
+	same
+	saw
+	say
+	says
+	second
+	seconds
+	see
+	seem
+	seemed
+	seeming
+	seems
+	sees
+	several
+	shall
+	she
+	should
+	show
+	showed
+	showing
+	shows
+	side
+	sides
+	since
+	small
+	smaller
+	smallest
+	so
+	some
+	somebody
+	someone
+	something
+	somewhere
+	state
+	states
+	still
+	still
+	such
+	sure
+	t
+	take
+	taken
+	than
+	that
+	the
+	their
+	them
+	then
+	there
+	therefore
+	these
+	they
+	thing
+	things
+	think
+	thinks
+	this
+	those
+	though
+	thought
+	thoughts
+	three
+	through
+	thus
+	to
+	today
+	together
+	too
+	took
+	toward
+	turn
+	turned
+	turning
+	turns
+	two
+	u
+	under
+	until
+	up
+	upon
+	us
+	use
+	used
+	uses
+	v
+	very
+	w
+	want
+	wanted
+	wanting
+	wants
+	was
+	way
+	ways
+	we
+	well
+	wells
+	went
+	were
+	what
+	when
+	where
+	whether
+	which
+	while
+	who
+	whole
+	whose
+	why
+	will
+	with
+	within
+	without
+	work
+	worked
+	working
+	works
+	would
+	x
+	y
+	year
+	years
+	yet
+	you
+	young
+	younger
+	youngest
+	your
+	yours
+	z
+);
 
 sub new
 {
@@ -19,10 +472,52 @@ sub new
 	$self->{name} = "xapian";
 	$self->{search} = [qw( simple/* )];
 	$self->{result_order} = 1; # whether to default to showing by engine result order
+	if( defined $self->{session} )
+	{
+		$self->{lang} = $self->{session}->config( "defaultlanguage" );
+	}
+	$self->{stopwords} = \@STOPWORDS;
 
 	$self->{disable} = !EPrints::Utils::require_if_exists( "Search::Xapian" );
 	
 	return $self;
+}
+
+=item $stemmer = $plugin->stemmer()
+
+Returns a L<Search::Xapian::Stem> for the default language.
+
+=cut
+
+sub stemmer
+{
+	my( $self ) = @_;
+
+	my $langid = $self->param( "lang" );
+
+	my $stemmer = Search::Xapian::Stem->new( $langid );
+	if( UNIVERSAL::isa( $stemmer, "Search::Xapian::Error" ) )
+	{
+		$self->{session}->log( "'$langid' is not a supported Xapian stem language, using English instead" );
+		$stemmer = Search::Xapian::Stem->new( 'en' );
+	}
+
+	return $stemmer;
+}
+
+=item $stopper = $plugin->stopper()
+
+Returns a L<Search::Xapian::SimpleStopper> for C<stopwords>.
+
+=cut
+
+sub stopper
+{
+	my( $self ) = @_;
+
+	return Search::Xapian::SimpleStopper->new(
+			@{$self->param( "stopwords" )}
+		);
 }
 
 sub from_cache
@@ -84,8 +579,8 @@ sub execute
 	my $xapian = Search::Xapian::Database->new( $path );
 
 	my $qp = Search::Xapian::QueryParser->new( $xapian );
-	$qp->set_stemmer( Search::Xapian::Stem->new( "english" ) );
-	$qp->set_stopper( Search::Xapian::SimpleStopper->new() );
+	$qp->set_stemmer( $self->stemmer );
+	$qp->set_stopper( $self->stopper );
 	$qp->set_stemming_strategy( Search::Xapian::STEM_SOME() );
 	$qp->set_default_op( Search::Xapian::OP_AND() );
 
@@ -225,6 +720,8 @@ sub reorder
 }
 
 1;
+
+=back
 
 =head1 COPYRIGHT
 
