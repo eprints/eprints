@@ -244,6 +244,7 @@ sub handler
 		my $crud = EPrints::Apache::CRUD->new(
 				repository => $repository,
 				request => $r,
+				dataset => $repository->dataset( "eprint" ),
 			);
 
 		$r->set_handlers( PerlResponseHandler => [

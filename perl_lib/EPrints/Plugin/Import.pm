@@ -143,7 +143,7 @@ sub can_accept
 {
 	my( $self, $format ) = @_;
 
-	for(@{$self->param( "accept" )})
+	for(@{$self->param( "accept" )}, $self->mime_type)
 	{
 		return 1 if (split /;/, $_)[0] eq $format;
 	}

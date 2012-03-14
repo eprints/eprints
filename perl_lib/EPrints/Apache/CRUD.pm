@@ -149,6 +149,7 @@ use constant {
 	CRUD_SCOPE_DATAOBJ => 3,
 	CRUD_SCOPE_FIELD => 4,
 	CRUD_SCOPE_CONTENTS => 5,
+	CRUD_SCOPE_SERVICEDOCUMENT => 6,
 };
 
 use strict;
@@ -168,7 +169,11 @@ sub new
 	$self{options} = [qw( GET HEAD OPTIONS )];
 
 	# servicedocument FIXME
-	return $self if !exists $self{datasetid};
+	if( !exists $self{datasetid} )
+	{
+		$self{scope} = CRUD_SCOPE_SERVICEDOCUMENT;
+		return $self;
+	}
 
 	my $repo = $self{repository};
 
@@ -320,6 +325,33 @@ Returns true if the request is not a read-only method.
 =cut
 
 sub is_write { $_[0]->{request}->method !~ /^GET|HEAD|OPTIONS$/ }
+
+=item $accept_type = $crud->accept_type()
+
+Returns the EPrints type for the current request.
+
+=cut
+
+sub accept_type
+{
+	my( $self ) = @_;
+
+	my $accept_type = $self->dataset->base_id;
+	if(
+		$self->is_write ||
+		$self->scope == CRUD_SCOPE_DATAOBJ ||
+		$self->scope == CRUD_SCOPE_SERVICEDOCUMENT
+	  )
+	{
+		$accept_type = "dataobj/".$accept_type;
+	}
+	else
+	{
+		$accept_type = "list/".$accept_type;
+	}
+
+	return $accept_type;
+}
 
 =item $rc = $crud->check_packaging()
 
@@ -483,11 +515,7 @@ sub authz
 
 	if( defined($plugin) && $plugin->param( "visible" ) eq "staff" )
 	{
-		if( $user->get_type ne "editor" && $user->get_type ne "admin" )
-		{
-			$r->err_headers_out->{'X-EPrints-Error'} = "Plugin is only visible to staff";
-			return HTTP_FORBIDDEN;
-		}
+		return HTTP_FORBIDDEN if !$user->is_staff;
 	}
 
 	# GET/HEAD a document
@@ -509,8 +537,6 @@ sub authz
 	{
 		return OK if $user->allow( $_, $self->dataobj );
 	}
-
-	$r->err_headers_out->{'X-EPrints-Error'} = "Requires privilege @privs";
 
 	return HTTP_FORBIDDEN;
 }
@@ -628,7 +654,67 @@ sub create_dataobj
 	return $dataset->create_dataobj( $epdata );
 }
 
-=item $plugin = $crud->content_negotiate_best_plugin( $r )
+=item @plugins = $crud->import_plugins( [ %params ] )
+
+Returns all matching import plugins against %params ordered by descending 'q' score.
+
+=cut
+
+sub import_plugins
+{
+	my( $self, %params ) = @_;
+
+	my $user = $self->repository->current_user;
+	if( defined $user && !$user->is_staff )
+	{
+		$params{is_visible} = "all";
+	}
+
+	my @plugins = $self->repository->get_plugins(
+		type => "Import",
+		can_produce => $self->accept_type,
+		%params,
+	);
+
+	my %qs = map { $_ => ($_->param( "qs" ) || 0) } @plugins;
+	my %ids = map { $_ => $_->get_id } @plugins;
+
+	return sort {
+			$qs{$b} <=> $qs{$a} || $ids{$a} cmp $ids{$b}
+		} @plugins;
+}
+
+=item @plugins = $crud->export_plugins( [ %params ] )
+
+Returns all matching export plugins against %params ordered by descending 'q' score.
+
+=cut
+
+sub export_plugins
+{
+	my( $self, %params ) = @_;
+
+	my $user = $self->repository->current_user;
+	if( defined $user && !$user->is_staff )
+	{
+		$params{is_visible} = "all";
+	}
+
+	my @plugins = $self->repository->get_plugins(
+		type => "Export",
+		can_accept => $self->accept_type,
+		%params,
+	);
+
+	my %qs = map { $_ => ($_->param( "qs" ) || 0) } @plugins;
+	my %ids = map { $_ => $_->get_id } @plugins;
+
+	return sort {
+			$qs{$b} <=> $qs{$a} || $ids{$a} cmp $ids{$b}
+		} @plugins;
+}
+
+=item $plugin = $crud->content_negotiate_best_plugin()
 
 Work out the best plugin to export/update an object based on the client-headers.
 
@@ -647,35 +733,23 @@ sub content_negotiate_best_plugin
 
 	return undef if $r->method eq "DELETE";
 
-	my $accept_type = $dataset->base_id;
-	if( $self->is_write || $self->scope == CRUD_SCOPE_DATAOBJ )
-	{
-		$accept_type = "dataobj/".$accept_type;
-	}
-	else
-	{
-		$accept_type = "list/".$accept_type;
-	}
+	my $accept_type = $self->accept_type;
 
 	if( defined(my $package = $headers->{packaging}) )
 	{
 		my $plugin;
 		if( $self->is_write )
 		{
-			($plugin) = $repo->get_plugins(
-				type => "Import",
-				can_accept => $PACKAGING_PREFIX.$package,
-				can_produce => $accept_type,
-				can_action => $headers->{actions},
-			);
+			($plugin) = $self->import_plugins(
+					can_accept => $PACKAGING_PREFIX.$package,
+					can_action => $headers->{actions},
+				);
 		}
 		else
 		{
-			($plugin) = $repo->get_plugins(
-				type => "Export",
-				can_accept => $accept_type,
-				can_produce => $PACKAGING_PREFIX.$package,
-			);
+			($plugin) = $self->export_plugins(
+					can_produce => $PACKAGING_PREFIX.$package,
+				);
 		}
 		return $plugin;
 	}
@@ -683,18 +757,13 @@ sub content_negotiate_best_plugin
 	my @plugins;
 	if( $self->is_write )
 	{
-		@plugins = $repo->get_plugins(
-			type => "Import",
-			can_produce => $accept_type,
-			can_action => $headers->{actions},
-		);
+		@plugins = $self->import_plugins(
+				can_action => $headers->{actions},
+			);
 	}
 	else
 	{
-		@plugins = $repo->get_plugins(
-			type => "Export",
-			can_accept => $accept_type,
-		);
+		@plugins = $self->export_plugins();
 	}
 
 	my %pset;
@@ -702,7 +771,7 @@ sub content_negotiate_best_plugin
 	foreach my $plugin ( @plugins )
 	{
 		my $mimetype = $plugin->get_type eq "Export" ?
-			[ $plugin->param( "mimetype" ) ] :
+			$plugin->param( "produce" ) :
 			$plugin->param( "accept" );
 		$mimetype = join ',', @$mimetype;
 		for( HTTP::Headers::Util::split_header_words( $mimetype ) )
@@ -713,13 +782,14 @@ sub content_negotiate_best_plugin
 				%params,
 				plugin => $plugin,
 				q => $plugin->param( "qs" ),
+				id => $plugin->get_id,
 			};
 		}
 	}
-	# sort plugins internally by q
+	# sort plugins internally by q then id
 	for(values(%pset))
 	{
-		@$_ = sort { $b->{q} <=> $a->{q} } @$_;
+		@$_ = sort { $b->{q} <=> $a->{q} || $a->{id} cmp $b->{id} } @$_;
 	}
 	# sort supported types by the highest plugin score
 	my @pset_order = sort {
@@ -733,9 +803,9 @@ sub content_negotiate_best_plugin
 	}
 	else
 	{
-		if( !defined $field )
+		# summary page is higher priority than anything else for /id/eprint/23
+		if( $self->scope == CRUD_SCOPE_DATAOBJ )
 		{
-			# summary page is higher priority than anything else
 			unshift @pset_order, "text/html";
 			unshift @{$pset{"text/html"}}, {
 				charset => 'utf-8',
@@ -774,7 +844,7 @@ sub content_negotiate_best_plugin
 						if exists($match->{$_}) && $match->{$_} eq $params{$_};
 				}
 			}
-			$match = (sort { $b->{q} <=> $a->{q} } @$plugins)[0]->{plugin};
+			$match = (sort { $b->{q} <=> $a->{q} || $a->{id} cmp $b->{id} } @$plugins)[0]->{plugin};
 			$r->pnotes->{mime_type} = $mime_type;
 			last CHOICE;
 		}
@@ -1460,7 +1530,7 @@ sub servicedocument
 
 	if( $user->allow( "create_eprint" ) )
 	{
-		foreach my $plugin (plugins( $repo ))
+		foreach my $plugin ($self->import_plugins( is_advertised => 1 ))
 		{
 			foreach my $mime_type (@{$plugin->param( "accept" )})
 			{
@@ -1687,19 +1757,6 @@ sub generate_error_document
 
 	return "<?xml version='1.0' encoding='UTF-8'?>\n" .
 		$xml->to_string( $error, indent => 1 );
-}
-
-sub plugins
-{
-	my( $repo, %constraints ) = @_;
-
-	return $repo->get_plugins(
-		type => "Import",
-		can_produce => "dataobj/eprint",
-		is_visible => "all",
-		is_advertised => 1,
-		%constraints
-	);
 }
 
 sub send_response
