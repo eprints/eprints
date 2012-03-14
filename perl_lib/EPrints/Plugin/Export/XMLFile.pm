@@ -14,14 +14,11 @@ sub new
 {
 	my( $class, %params ) = @_;
 
-	my $self = $class->SUPER::new( %params );
+	$params{mimetype} = exists $params{mimetype} ? $params{mimetype} : "text/xml; charset=utf-8";
+	$params{suffix} = exists $params{suffix} ? $params{suffix} : ".xml";
 
-	$self->{suffix} = ".xml";
-
-	return $self;
+	return $class->SUPER::new( %params );
 }
-
-sub mime_type { shift->SUPER::mime_type() . '+xml; charset=utf-8' }
 
 sub initialise_fh
 {
