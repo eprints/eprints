@@ -10,33 +10,43 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 	my $dataset = $dataobj->dataset;
 	my $fields = $params{fields};
 
-	# if plugin disabled, don't continue
-	return if !defined $repo->plugin( "Search::Xapian" );
-
-	if( !defined $repo->{_xapian} || $repo->{_xapian_limit}++ > $FLUSH_LIMIT )
+	if( !exists $repo->{_xapian} || $repo->{_xapian_limit}++ > $FLUSH_LIMIT )
 	{
+		$repo->{_xapian} = undef;
+		$repo->{_xapian_limit} = 0;
+
+		# if plugin disabled, don't continue
+		my $plugin = $repo->plugin( "Search::Xapian" );
+		return if !defined $plugin;
+
 		my $path = $repo->config( "variables_path" ) . "/xapian";
-		if( !-d $path )
-		{
-			EPrints->system->mkdir( $path );
-		}
+		EPrints->system->mkdir( $path ) if !-d $path;
+
 		$repo->{_xapian} = eval { Search::Xapian::WritableDatabase->new(
 			$path,
 			Search::Xapian::DB_CREATE_OR_OPEN()
 		) };
 		$repo->log( $@ ), return if $@;
-		$repo->{_xapian_limit} = 0;
+
+		if( !defined $repo->{_xapian_tg} )
+		{
+			$repo->{_xapian_tg} = Search::Xapian::TermGenerator->new();
+			$repo->{_xapian_stemmer} = $plugin->stemmer;
+			$repo->{_xapian_stopper} = $plugin->stopper;
+
+			my $tg = $repo->{_xapian_tg};
+			$tg->set_stemmer( $repo->{_xapian_stemmer} );
+			$tg->set_stopper( $repo->{_xapian_stopper} );
+		}
 	}
+
 	my $db = $repo->{_xapian};
+	return if !defined $db;
 
-	my $tg = Search::Xapian::TermGenerator->new();
+	my $tg = $repo->{_xapian_tg};
+	$tg->set_termpos( 1 );
+
 	my $doc = Search::Xapian::Document->new();
-
-	my $stemmer = Search::Xapian::Stem->new( "english" );
-	my $stopper = Search::Xapian::SimpleStopper->new();
-
-	$tg->set_stemmer( $stemmer );
-	$tg->set_stopper( $stopper );
 	$tg->set_document( $doc );
 
 	my $key = "_id:" . $dataobj->internal_uri;
@@ -143,23 +153,26 @@ $c->add_trigger( EP_TRIGGER_INDEX_REMOVED, sub {
 	my $dataset = $params{dataset};
 	my $id = $params{id};
 
-	# if plugin disabled, don't continue
-	return if !defined $repo->plugin( "Search::Xapian" );
-
-	if( !defined $repo->{_xapian} )
+	if( !exists $repo->{_xapian} )
 	{
+		$repo->{_xapian} = undef;
+		$repo->{_xapian_limit} = 0;
+
+		# if plugin disabled, don't continue
+		return if !defined $repo->plugin( "Search::Xapian" );
+
 		my $path = $repo->config( "variables_path" ) . "/xapian";
-		if( !-d $path )
-		{
-			EPrints->system->mkdir( $path );
-		}
+		EPrints->system->mkdir( $path ) if !-d $path;
+
 		$repo->{_xapian} = eval { Search::Xapian::WritableDatabase->new(
 			$path,
 			Search::Xapian::DB_CREATE_OR_OPEN()
 		) };
 		$repo->log( $@ ), return if $@;
 	}
+
 	my $db = $repo->{_xapian};
+	return if !defined $db;
 
 	my $key = "_id:/id/" . $dataset->base_id . "/" . $id;
 	my $enq = $db->enquire( Search::Xapian::Query->new( $key ) );
