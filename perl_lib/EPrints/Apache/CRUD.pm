@@ -404,7 +404,10 @@ sub _priv
 	}
 	elsif( $dataset->id ne $dataset->base_id )
 	{
-		$priv = join('/', $dataset->base_id, $dataset->id, $priv );
+		return(
+				join('/', $dataset->base_id, $dataset->id, $priv ),
+				join('/', $dataset->base_id, $priv ),
+			);
 	}
 	else
 	{
@@ -458,9 +461,10 @@ sub authen
 		}
 	}
 
-	my $priv = $self->_priv;
-
-	return OK if $repo->allow_anybody( $priv );
+	for($self->_priv)
+	{
+		return OK if $repo->allow_anybody( $_ );
+	}
 
 	return EPrints::Apache::Auth::authen( $r );
 }
@@ -481,6 +485,7 @@ sub authz
 	{
 		if( $user->get_type ne "editor" && $user->get_type ne "admin" )
 		{
+			$r->err_headers_out->{'X-EPrints-Error'} = "Plugin is only visible to staff";
 			return HTTP_FORBIDDEN;
 		}
 	}
@@ -491,16 +496,21 @@ sub authz
 		return EPrints::Apache::Auth::authz_doc( $r );
 	}
 
-	my $priv = $self->_priv;
+	my @privs = $self->_priv;
 
-	return OK if $repo->allow_anybody( $priv );
+	for(@privs)
+	{
+		return OK if $repo->allow_anybody( $_ );
+	}
 
 	return HTTP_FORBIDDEN if !defined $user;
 
-	if( $user->allow( $priv, $self->dataobj ) )
+	for(@privs)
 	{
-		return OK;
+		return OK if $user->allow( $_, $self->dataobj );
 	}
+
+	$r->err_headers_out->{'X-EPrints-Error'} = "Requires privilege @privs";
 
 	return HTTP_FORBIDDEN;
 }
