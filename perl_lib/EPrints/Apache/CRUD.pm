@@ -169,11 +169,7 @@ sub new
 	$self{options} = [qw( GET HEAD OPTIONS )];
 
 	# servicedocument FIXME
-	if( !exists $self{datasetid} )
-	{
-		$self{scope} = CRUD_SCOPE_SERVICEDOCUMENT;
-		return $self;
-	}
+	return $self if !exists $self{datasetid};
 
 	my $repo = $self{repository};
 
