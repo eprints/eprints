@@ -530,6 +530,21 @@ sub remove
 	return( $success );
 }
 
+=item $bool = $user->is_staff()
+
+Returns true if the user's type is B<editor> or B<admin>.
+
+=cut
+
+sub is_staff
+{
+	my( $self ) = @_;
+
+	my $type = $self->value( "usertype" );
+
+	return $type eq "editor" || $type eq "admin";
+}
+
 =item $lang = $user->langauge()
 
 Get the preferred language of the user.
