@@ -49,6 +49,7 @@ sub _parse_stage
 	foreach my $node ($stage->childNodes)
 	{
 		my $name = $node->localName;
+		next if !defined $name;
 		if( $name eq "component" )
 		{
 			$self->_parse_component( $node );
