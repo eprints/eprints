@@ -47,7 +47,9 @@ sub render_tab_title
 {
 	my( $self ) = @_;
 
-	return $self->{title};
+	# Return a clone otherwise the DESTROY above will double-dispose of this
+	# element when it is disposed by whatever called us
+	return $self->{session}->xml->clone( $self->{title} );
 }
 
 sub can_be_viewed
