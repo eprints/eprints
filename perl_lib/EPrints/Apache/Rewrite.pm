@@ -245,7 +245,7 @@ sub handler
 				repository => $repository,
 				request => $r,
 				dataset => $repository->dataset( "eprint" ),
-				scope => EPrints::Apache::CRUD::CRUD_SCOPE_SERVICEDOCUMENT,
+				scope => EPrints::Apache::CRUD::CRUD_SCOPE_SERVICEDOCUMENT(),
 			);
 
 		$r->set_handlers( PerlResponseHandler => [
