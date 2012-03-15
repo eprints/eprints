@@ -43,8 +43,10 @@ use strict;
 
 our $SELF;
 
+my $conf = $EPrints::SystemSettings::conf;
+my $disable_libxml = exists $conf->{enable_libxml} && !$conf->{enable_libxml};
 eval "use XML::LibXSLT 1.70";
-if( !$@ )
+if( !$disable_libxml && !$@ )
 {
 	register_globals() if !$EPrints::XSLT;
 	$EPrints::XSLT = 1;
