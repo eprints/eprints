@@ -17,6 +17,8 @@ B<EPrints::Citation::EPC> - loading and rendering of citation styles
 
 package EPrints::Citation::EPC;
 
+use EPrints::Const qw( :namespace );
+
 @ISA = qw( EPrints::Citation );
 
 use strict;
@@ -41,9 +43,12 @@ sub load_source
 	my $type = $citation->getAttribute( "type" );
 	$type = "default" unless EPrints::Utils::is_set( $type );
 
+	my $whitespace = $citation->getAttributeNodeNS( EP_NS_CITATION, "trim-whitespace" );
+
 	$self->{type} = $type;
 	$self->{style} = $repo->xml->contents_of( $citation );
 	$self->{mtime} = EPrints::Utils::mtime( $file );
+	$self->{trim_whitespace} = defined $whitespace && lc($whitespace->nodeValue) eq "yes";
 
 	$repo->xml->dispose( $doc );
 
@@ -76,6 +81,8 @@ sub render
 	{
 		$collapsed = _render_citation_aux( $collapsed, %opts );
 	}
+
+	$collapsed = EPrints::XML::trim_whitespace( $collapsed ) if $self->{trim_whitespace};
 
 	return $collapsed;
 }
