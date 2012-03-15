@@ -36,6 +36,10 @@ This module contains EPrints constants and enumerations.
 
 =over 4
 
+=item EP_NS_CITATION
+
+http://eprints.org/ep3/citation
+
 =item EP_NS_DATA
 
 http://eprints.org/ep2/data/2.0
@@ -248,6 +252,7 @@ use Exporter;
 # Namespaces
 use constant {
 	EP_NS_XSLT => "http://eprints.org/ep2/xslt/1.0",
+	EP_NS_CITATION => "http://eprints.org/ep3/citation",
 	EP_NS_DATA => "http://eprints.org/ep2/data/2.0",
 	EP_NS_OPENSEARCH => "http://a9.com/-/spec/opensearch/1.1/",
 };
@@ -344,6 +349,7 @@ use constant {
 
 @namespace = qw(
 	EP_NS_XSLT
+	EP_NS_CITATION
 	EP_NS_DATA
 	EP_NS_OPENSEARCH
 );

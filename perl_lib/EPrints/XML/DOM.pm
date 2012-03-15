@@ -79,6 +79,19 @@ $EPrints::XML::LIB_LEN = length("XML::DOM::");
 
 		return $node;
 	};
+*XML::DOM::Element::getAttributeNodeNS = sub {
+		my( $node, $nsuri, $name ) = @_;
+
+		foreach my $attr ($node->attributes)
+		{
+			if( $attr->nodeName eq $name )
+			{
+				return $attr;
+			}
+		}
+
+		return undef;
+	};
 
 ######################################################################
 # 
