@@ -82,7 +82,7 @@ sub render
 		$collapsed = _render_citation_aux( $collapsed, %opts );
 	}
 
-	$collapsed = EPrints::XML::trim_whitespace( $collapsed ) if $self->{trim_whitespace};
+	EPrints::XML::trim_whitespace( $collapsed ) if $self->{trim_whitespace};
 
 	return $collapsed;
 }
