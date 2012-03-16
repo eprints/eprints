@@ -14,7 +14,9 @@ sub new {
 	my ($class, $type, $key, $parse_ok, $fieldsref) = @_;
 
 	my %fields = defined $fieldsref ? %$fieldsref : ();
-	$fields{_type}     = uc($type);
+	if (defined $type) {
+		$fields{_type}     = uc($type);
+	}
 	$fields{_key}      = $key;
 	$fields{_parse_ok} = $parse_ok;
         $fields{_raw}      = '';
