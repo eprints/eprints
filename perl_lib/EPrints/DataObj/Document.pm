@@ -1897,10 +1897,14 @@ sub thumbnail_types
 
 	my @list = qw/ small medium preview lightbox audio_ogg audio_mp4 video_ogg video_mp4 /;
 
-	if( $self->{session}->get_repository->can_call( "thumbnail_types" ) )
+	if( $self->{session}->can_call( "thumbnail_types" ) )
 	{
-		$self->{session}->get_repository->call( "thumbnail_types", \@list, $self->{session}, $self );
+		$self->{session}->call( "thumbnail_types", \@list, $self->{session}, $self );
 	}
+	$self->{session}->run_trigger( EPrints::Const::EP_TRIGGER_THUMBNAIL_TYPES,
+			dataobj => $self,
+			list => \@list,
+		);
 
 	return reverse @list;
 }
