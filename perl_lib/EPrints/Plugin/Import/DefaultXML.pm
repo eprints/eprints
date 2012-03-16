@@ -227,9 +227,13 @@ sub start_element
 	{
 		$handler->start_element( $info, $self->{epdata}, $self->{state} );
 	}
-	elsif( $self->{depth} == 1 && $info->{Name} ne $self->{plugin}->top_level_tag( $self->{dataset} ) )
+	elsif( $self->{depth} == 1 )
 	{
-		$self->{plugin}->unknown_start_element( $info->{Name}, $self->{plugin}->top_level_tag( $self->{dataset} ) ); #dies
+		my $tlt = $self->{plugin}->top_level_tag( $self->{dataset} );
+		if( defined $tlt && $tlt ne $info->{Name} )
+		{
+			$self->{plugin}->unknown_start_element( $info->{Name}, $tlt ); #dies
+		}
 	}
 	elsif( $self->{depth} == 2 )
 	{
@@ -253,10 +257,17 @@ sub end_element
 			delete $self->{handler};
 
 			$handler->end_document;
+
 			my $xml = $handler->result;
-			my $epdata = $self->{plugin}->xml_to_epdata( $self->{dataset}, $xml );
-			my $dataobj = $self->{plugin}->epdata_to_dataobj( $self->{dataset}, $epdata );
-			push @{$self->{imported}}, $dataobj->id if defined $dataobj;
+			MAKE_OBJECT: {
+				my $epdata = $self->{plugin}->xml_to_epdata( $self->{dataset}, $xml );
+				last MAKE_OBJECT if !defined $epdata;
+
+				my $dataobj = $self->{plugin}->epdata_to_dataobj( $self->{dataset}, $epdata );
+				last MAKE_OBJECT if !defined $dataobj;
+
+				push @{$self->{imported}}, $dataobj->id;
+			}
 		}
 	}
 
