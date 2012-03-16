@@ -21,6 +21,22 @@ B<EPrints::RepositoryConfig> - Repository Configuration
 		name => "title",
 		type => "longtext",
 	}, reuse => 1 );
+	
+	$c->add_trigger( EP_TRIGGER_URL_REWRITE, sub {
+		my( %params ) = @_;
+	
+		my $r = $params{request};
+	
+		my $uri = $params{uri};
+		if( $uri =~ m{^/blog/} )
+		{
+			$r->err_headers_out->{Location} = "http://...";
+			${$params{rc}} = EPrints::Const::HTTP_SEE_OTHER;
+			return EP_TRIGGER_DONE;
+		}
+	
+		return EP_TRIGGER_OK;
+	});
 
 =head1 DESCRIPTION
 

@@ -102,6 +102,8 @@ And all HTTP_* constants defined by L<Apache2::Const>.
 
 =head2 :trigger
 
+See L<EPrints::RepositoryConfig/add_trigger> and L<EPrints::RepositoryConfig/add_dataset_trigger>.
+
 =over 4
 
 =item EP_TRIGGER_DONE
@@ -111,8 +113,6 @@ Stop processing triggers immediately and return.
 =item EP_TRIGGER_OK
 
 Continue normal processing.
-
-=item EP_TRIGGER_GUESS_DOC_TYPE
 
 =item EP_TRIGGER_LOG
 
@@ -133,6 +133,17 @@ Called just before L<EPrints::Repository/cleanup> in response to a mod_perl requ
 =item EP_TRIGGER_END
 
 =item EP_TRIGGER_URL_REWRITE
+
+Called for every request that is within the repository's path. Use this to redirect the user to a different location. C<return_code> is a scalar reference, therefore you must deference when assigning a new value C<${$rc} = CODE>.
+
+	request - mod_perl request object
+	lang - current language id
+	args - request arguments "?..."
+	urlpath - EPrint's HTTP root
+	cgipath - EPrints's HTTP cgi root
+	uri - request uri "/eprints/12/"
+	secure - whether under HTTPS
+	return_code - reference to return code
 
 =item EP_TRIGGER_DOC_URL_REWRITE
 
@@ -180,6 +191,13 @@ Populate a Document epdata structure with information about a file.
 	epdata
 	filename
 	filepath
+
+=item EP_TRIGGER_THUMBNAIL_TYPES
+
+Manipulate the list of thumbnail types that will be generated for a given user-uploaded document.
+
+	types - array reference of types (strings)
+	dataobj - document object
 
 =item EP_TRIGGER_INDEX_FIELDS
 
@@ -281,7 +299,6 @@ use constant {
 
 # Repository triggers
 use constant {
-	EP_TRIGGER_GUESS_DOC_TYPE => 1,
 	EP_TRIGGER_LOG => 2,
 	EP_TRIGGER_BOILERPLATE_RDF => 3,
 	EP_TRIGGER_REPOSITORY_RDF => 4,
@@ -297,6 +314,7 @@ use constant {
 	EP_TRIGGER_VALIDATE_FIELD => 14,
 	EP_TRIGGER_LOCAL_SITEMAP_URLS => 15,
 	EP_TRIGGER_DYNAMIC_TEMPLATE => 16,
+	EP_TRIGGER_THUMBNAIL_TYPES => 17,
 };
 
 # Dataset triggers
@@ -414,7 +432,6 @@ use constant {
 	EP_TRIGGER_DONE
 	EP_TRIGGER_OK
 
-	EP_TRIGGER_GUESS_DOC_TYPE
 	EP_TRIGGER_LOG
 	EP_TRIGGER_BOILERPLATE_RDF
 	EP_TRIGGER_REPOSITORY_RDF
@@ -430,6 +447,7 @@ use constant {
 	EP_TRIGGER_VALIDATE_FIELD
 	EP_TRIGGER_LOCAL_SITEMAP_URLS
 	EP_TRIGGER_DYNAMIC_TEMPLATE
+	EP_TRIGGER_THUMBNAIL_TYPES
 
 	EP_TRIGGER_CREATED
 	EP_TRIGGER_RDF
