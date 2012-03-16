@@ -282,7 +282,11 @@ sub run_import
 		},
 	) );
 
-	my $err_file = EPrints->system->capture_stderr();
+	my $err_file;
+	if( $show_stderr )
+	{
+		$err_file = EPrints->system->capture_stderr();
+	}
 
 	my @problems;
 
@@ -306,7 +310,10 @@ sub run_import
 		);
 	};
 
-	EPrints->system->restore_stderr( $err_file );
+	if( $show_stderr )
+	{
+		EPrints->system->restore_stderr( $err_file );
+	}
 
 	if( $@ )
 	{
@@ -345,19 +352,22 @@ sub run_import
 
 	my $count = $self->{processor}->{count};
 
-	my $err;
-	sysread($err_file, $err, $MAX_ERR_LEN);
-	$err =~ s/\n\n+/\n/g;
-
-	if( length($err) && $show_stderr )
+	if( $show_stderr )
 	{
-		push @problems, [
-			"warning",
-			$session->phrase( "Plugin/Screen/Import:warning",
-				plugin => $plugin->{id},
-				warning => $err,
-			),
-		];
+		my $err;
+		sysread($err_file, $err, $MAX_ERR_LEN);
+		$err =~ s/\n\n+/\n/g;
+
+		if( length($err) )
+		{
+			push @problems, [
+				"warning",
+				$session->phrase( "Plugin/Screen/Import:warning",
+					plugin => $plugin->{id},
+					warning => $err,
+				),
+			];
+		}
 	}
 
 	foreach my $problem (@problems)

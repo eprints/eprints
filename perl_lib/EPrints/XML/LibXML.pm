@@ -127,6 +127,12 @@ in the handler where necessary.
 sub event_parse
 {
 	my( $fh, $handler ) = @_;	
+
+	# XML::LibXML causes a "stack smashing detected" on utf8 input FHs. The XML
+	# library ought to read the <?xml> declaration anyway, to determine the
+	# encoding
+	binmode($fh);
+
 	my $parser = new XML::LibXML::SAX->new(Handler => $handler);
 	$parser->parse_file( $fh );	
 }
