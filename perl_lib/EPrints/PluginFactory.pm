@@ -187,6 +187,7 @@ sub _load_dir
 			push @plugins, $plugin if defined $plugin;
 		},
 		no_chdir => 1,
+		follow => 1,
 		},
 		$base_dir
 	);
@@ -220,6 +221,7 @@ sub _load_xslt_dir
 			push @plugins, $plugin if defined $plugin;
 		},
 		no_chdir => 1,
+		follow => 1,
 		},
 		$base_dir
 	);
