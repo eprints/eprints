@@ -1515,9 +1515,6 @@ sub _update_data
 	my @values;
 	foreach my $fieldname ( keys %$changed )
 	{
-		# field names beginning with '_' are private entries in the epdata
-		# (e.g. _parent)
-		next if $fieldname =~ /^_/;
 		next if $fieldname eq $keyname;
 		my $field = $dataset->field( $fieldname );
 		next if $field->is_virtual;

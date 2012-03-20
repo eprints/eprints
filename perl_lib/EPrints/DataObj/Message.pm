@@ -24,7 +24,8 @@ This is an internal class that shouldn't be used outside L<EPrints::Database>.
 
 package EPrints::DataObj::Message;
 
-@ISA = ( 'EPrints::DataObj' );
+use EPrints::DataObj::SubObject;
+@ISA = ( 'EPrints::DataObj::SubObject' );
 
 use EPrints;
 
