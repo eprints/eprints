@@ -70,6 +70,8 @@ Where I<command> is one of:
 
 =item show_config
 
+=item show_plugins
+
 =item test
 
 =item unit_tests
@@ -1639,6 +1641,34 @@ sub epadmin_show_config
 	help( "show_config" ) if !@keys;
 
 	EPrints->dump( $repo->config( @keys ) );
+}
+
+=head2 show_plugins
+
+	epadmin show_plugins repository_id [filters]
+
+Dump a list of all enabled plugins. You can constrain this list by providing
+filters e.g.:
+
+	type=Import
+
+=cut
+
+sub epadmin_show_plugins
+{
+	my( $repoid, @filters ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	@filters = map { $_ =~ /=/ ? split('=', $_, 2) : ($_ => 1) } @filters;
+
+	my @plugins = $repo->get_plugins( @filters );
+	my %ids = map { $_ => $_->get_id } @plugins;
+	
+	foreach my $plugin (sort { $ids{$a} cmp $ids{$b} } @plugins)
+	{
+		print $plugin->get_id, "\n";
+	}
 }
 
 =head2 test
