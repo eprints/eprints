@@ -2,7 +2,6 @@
 $c->{search}->{advanced} = 
 {
 	search_fields => [
-		{ meta_fields => [ "shelves.shelfid" ] },
 		{ meta_fields => [ "documents" ] },
 		{ meta_fields => [ "title" ] },
 		{ meta_fields => [ "creators_name" ] },
