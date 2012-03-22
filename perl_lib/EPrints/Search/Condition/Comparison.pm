@@ -260,8 +260,9 @@ sub join_keys
 	{
 		my( $left, $right ) = (
 				$join_path->[0]->[0],
-				$field,
+				$join_path->[1]->[0],
 			);
+		$right = $target->key_field if !defined $right;
 		if( $left->isa( "EPrints::MetaField::Subobject" ) )
 		{
 			$right = $target->field( $left->property( "dataobj_fieldname" ) );
