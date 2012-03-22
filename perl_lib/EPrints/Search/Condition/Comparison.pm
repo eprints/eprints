@@ -139,31 +139,24 @@ sub joins
 	# join to another dataset
 	else
 	{
-		my $main_table = $self->dataset->get_sql_table_name;
-		my $logic = $self->join_path(
+		my @joins = $self->join_path(
 				$opts{dataset},
 				%opts,
-				alias => "$prefix$main_table",
+				prefix => $prefix,
 			);
-		# join to main table of child dataset
-		my $join = {
-			type => "inner",
-			table => $main_table,
-			alias => "$prefix$main_table",
-			logic => $logic,
-		};
 		if( $self->{field}->get_property( "multiple" ) )
 		{
 			my $main_key = $self->dataset->get_key_field->get_sql_name;
 			my $table = $self->table;
-			return ($join, {
+			# link to the last join, which is always the table being joined to
+			push @joins, {
 				type => "inner",
 				table => $table,
 				alias => "${prefix}$table",
-				logic => $db->quote_identifier( $join->{alias}, $main_key )."=".$db->quote_identifier( "${prefix}$table", $main_key ),
-			});
+				logic => $db->quote_identifier( $joins[-1]->{alias}, $main_key )."=".$db->quote_identifier( "${prefix}$table", $main_key ),
+			};
 		}
-		return $join;
+		return @joins;
 	}
 }
 
@@ -253,19 +246,16 @@ sub logic
 	}
 }
 
-# return the logic to join two datasets together
-sub join_path
+sub join_keys
 {
 	my( $self, $source, %opts ) = @_;
 
-	my @logic;
-
-	my $db = $opts{session}->database;
-
 	my $target = $self->dataset;
 
-	my $left_key = $source->get_key_field->get_name;
-	my $right_key = $target->get_key_field->get_name;
+	my $left = $source->get_key_field;
+	my $right = $target->get_key_field;
+
+	my @join;
 
 	# document.docid = file.objectid AND file.datasetid = 'document'
 	if(
@@ -274,33 +264,110 @@ sub join_path
 		$target->has_field( "objectid" )
 	  )
 	{
-		push @logic, join '=',
-			$db->quote_identifier( $source->get_sql_table_name, $left_key ),
-			$db->quote_identifier( $opts{alias}, "objectid" );
-		push @logic, join '=',
-			$db->quote_identifier( $opts{alias}, "datasetid" ),
-			$db->quote_value( $source->base_id );
+		@join = ( $left, $target->field( "objectid" ) );
 	}
 	# eprint.userid = user.userid
-	elsif( $source->has_field( $right_key ) )
+	elsif( $source->has_field( $right->name ) )
 	{
-		push @logic, join '=',
-			$db->quote_identifier( $source->get_sql_table_name, $right_key ),
-			$db->quote_identifier( $opts{alias}, $right_key );
+		@join = ( $source->field( $right->name ), $right );
 	}
 	# eprint.eprintid = document.eprintid
-	elsif( $target->has_field( $left_key ) )
+	elsif( $target->has_field( $left->name ) )
 	{
-		push @logic, join '=',
-			$db->quote_identifier( $source->get_sql_table_name, $left_key ),
-			$db->quote_identifier( $opts{alias}, $left_key );
+		@join = ( $left, $target->field( $left->name ) );
 	}
-	else
+
+	return @join;
+}
+
+# return the logic to join two datasets together
+sub join_path
+{
+	my( $self, $source, %opts ) = @_;
+
+	my $db = $opts{session}->database;
+
+	my $target = $self->dataset;
+
+	my( $left, $right ) = $self->join_keys( $source, %opts );
+	if( !defined $left )
 	{
 		EPrints::abort( "Can't create join path for field ".$self->dataset->base_id.".".$self->{field}->get_name.": ".$source->confid." -> ".$target->confid );
 	}
 
-	return join ' AND ', @logic;
+	my @joins;
+	my @logic;
+
+	my $left_table = $source->get_sql_table_name;
+	my $left_alias = $left_table;
+
+	# add a join between the LHS main table and field sub-table
+	if( $left->property( "multiple" ) )
+	{
+		my $main_table = $source->get_sql_table_name;
+		my $key_field = $source->key_field;
+
+		$left_table = $source->get_sql_sub_table_name( $left );
+		$left_alias = $opts{prefix} . $left_table;
+
+		push @joins, {
+			type => "inner",
+			table => $left_table,
+			alias => $left_alias,
+			logic => join('=',
+				$db->quote_identifier( $main_table, $key_field->get_sql_name ),
+				$db->quote_identifier( $left_alias, $key_field->get_sql_name )
+			),
+		};
+	}
+
+	my $right_table = $target->get_sql_table_name;
+	my $right_alias = $opts{prefix} . $right_table;
+
+	# add a join between the RHS field sub-table and main table
+	if( $right->property( "multiple" ) )
+	{
+		my $main_table = $target->get_sql_table_name;
+		my $alias = $opts{prefix} . $main_table;
+		my $key_field = $target->key_field;
+
+		$right_table = $target->get_sql_sub_table_name( $right );
+		$right_alias = $opts{prefix} . $right_table;
+
+		push @joins, {
+			type => "inner",
+			table => $main_table,
+			alias => $alias,
+			logic => join('=',
+				$db->quote_identifier( $right_alias, $key_field->get_sql_name ),
+				$db->quote_identifier( $alias, $key_field->get_sql_name )
+			),
+		};
+	}
+
+	push @logic, join '=',
+		$db->quote_identifier( $left_alias, $left->get_sql_name ),
+		$db->quote_identifier( $right_alias, $right->get_sql_name );
+
+	# add the implied datasetid filter for dynamically typed Subobjects
+	if(
+		$target->dataobj_class->isa( "EPrints::DataObj::SubObject" ) &&
+		$target->has_field( "datasetid" )
+	  )
+	{
+		push @logic, join '=',
+			$db->quote_identifier( $right_alias, "datasetid" ),
+			$db->quote_value( $source->base_id );
+	}
+
+	push @joins, {
+		type => "inner",
+		table => $right_table,
+		alias => $right_alias,
+		logic => join(' AND ', @logic),
+	};
+
+	return @joins;
 }
 
 1;
