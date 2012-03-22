@@ -254,7 +254,7 @@ sub render_search_form
 {
 	my( $self ) = @_;
 
-	if( $self->{processor}->{searchid} eq "simple" )
+	if( $self->{processor}->{searchid} eq "simple" && @{$self->{processor}->{sconf}->{search_fields}} == 1 )
 	{
 		return $self->render_simple_form;
 	}
