@@ -251,6 +251,24 @@ sub join_keys
 	my( $self, $source, %opts ) = @_;
 
 	my $target = $self->dataset;
+	my $field = $self->{field};
+
+	if(
+		$field->has_property( "join_path" ) &&
+		defined(my $join_path = $field->property( "join_path" ))
+	  )
+	{
+		my( $left, $right ) = (
+				$join_path->[0]->[0],
+				$field,
+			);
+		if( $left->isa( "EPrints::MetaField::Subobject" ) )
+		{
+			$right = $target->field( $left->property( "dataobj_fieldname" ) );
+			$left = $source->key_field;
+		}
+		return( $left, $right );
+	}
 
 	my $left = $source->get_key_field;
 	my $right = $target->get_key_field;
