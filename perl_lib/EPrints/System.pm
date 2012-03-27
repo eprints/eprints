@@ -256,6 +256,11 @@ sub exec
 
 	my $command = $repository->invocation( $cmd_id, %map );
 
+	if( $repository->{noise} >= 2 )
+	{
+		$repository->log( "Executing: $command" );
+	}
+
 	my $rc = 0xffff & system $command;
 
 	if( $rc != 0 )
