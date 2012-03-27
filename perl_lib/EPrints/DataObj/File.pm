@@ -671,6 +671,13 @@ sub add_plugin_copy
 {
 	my( $self, $plugin, $sourceid ) = @_;
 
+	for(@{$self->value( "copies" )})
+	{
+		return if
+			$_->{pluginid} eq $plugin->get_id &&
+			$_->{sourceid} eq $sourceid;
+	}
+
 	my $copies = EPrints::Utils::clone( $self->get_value( "copies" ) );
 	push @$copies, {
 		pluginid => $plugin->get_id,
@@ -696,11 +703,11 @@ sub remove_plugin_copy
 
 =item $success = $stored->get_file( CALLBACK [, $offset, $n ] )
 
-Get the contents of the stored file - see L<EPrints::Storage/retrieve>.
+Get the contents of the stored file.
 
-$offset is the position in bytes to start reading from, default 0.
+$offset is the position in bytes to start reading from, defaults to 0.
 
-$n is the number of bytes to read, default C<filesize>.
+$n is the number of bytes to read, defaults to C<filesize>.
 
 =cut
 
@@ -714,72 +721,91 @@ sub get_file
 	return $self->{session}->get_storage->retrieve( $self, $offset, $n, $f );
 }
 
-=item $content_length = $stored->set_file( CONTENT, $content_length )
+=item $content_length = $stored->set_file( CONTENT, $content_length [, $offset ] )
 
-Reads data from CONTENT and stores it. Sets the MD5 hash and filesize.
+Write $content_length bytes from CONTENT to the file object.
 
-If the write failed returns undef and sets the filesize to 0.
+If no $offset is given replaces the existing content, setting the C<filesize> and C<hash> values.
+
+Returns $content_length or undef on failure.
 
 CONTENT may be one of:
 
-	CODEREF - will be called until it returns empty string ("")
-	SCALARREF - a scalar reference will be used as-is (expects bytes)
-	GLOB - will be treated as a file handle and read with sysread()
+=over 4
 
-This method does not check the actual number of bytes read is the same as $content_length.
+=item CODEREF
 
-Calling set_file() will delete any existing file data.
+Will be called until it returns empty string ("").
+
+=item SCALARREF
+
+A scalar reference to a string of octets that will be written as-is.
+
+=item GLOB
+
+Will be treated as a file handle and read with sysread().
+
+=back
 
 =cut
 
 sub set_file
 {
-	my( $self, $content, $clen ) = @_;
+	my( $self, $content, $clen, $offset ) = @_;
 
-	$self->{session}->get_storage->delete( $self );
+	my $filesize = $self->value( "filesize" );
+
+	if( !defined $offset )
+	{
+		$self->{session}->get_storage->delete( $self );
+		$filesize = $clen;
+	}
+
+	$self->set_value( "filesize", $filesize );
+	$self->set_value( "hash", undef );
+	$self->set_value( "hash_type", undef );
+
+	return 0 if $clen == 0;
 
 	use bytes;
 	# on 32bit platforms this will cause wrapping at 2**31, without integer
 	# Perl will wrap at some much larger value (so use 64bit O/S!)
 #	use integer;
 
+	# calculate the MD5 as the data goes past
 	my $md5 = Digest::MD5->new;
 
 	my $f;
 	if( ref($content) eq "CODE" )
 	{
-		$f = sub {
-			my $buffer = &$content();
-			$md5->add( $buffer );
-			return $buffer;
-		};
+		$f = defined $offset ? $content : sub {
+				my $buffer = &$content;
+				$md5->add( $buffer );
+				return $buffer;
+			};
 	}
 	elsif( ref($content) eq "SCALAR" )
 	{
-		$md5->add( $$content );
-		my $first = 1;
+		return 0 if length($$content) == 0;
+
+		my $i = 0;
 		$f = sub {
-			return $first-- ? $$content : "";
-		};
+				return "" if $i++;
+				$md5->add( $$content ) if !defined $offset;
+				return $$content;
+			};
 	}
 	else
 	{
 		binmode($content);
 		$f = sub {
-			return "" unless sysread($content,my $buffer,16384);
-			$md5->add( $buffer );
-			return $buffer;
-		};
+				return "" unless sysread($content,my $buffer,16384);
+				$md5->add( $buffer ) if !defined $offset;
+				return $buffer;
+			};
 	}
 
-	$self->set_value( "filesize", 0 );
-	$self->set_value( "hash", undef );
-	$self->set_value( "hash_type", undef );
-
-	my $rlen = do {
-		local $self->{data}->{filesize} = $clen;
-		$self->{session}->get_storage->store( $self, $f );
-	};
+	my $rlen = $self->{session}->get_storage->store( $self, $f, $offset );
 
 	# no storage plugin or plugins failed
 	if( !defined $rlen )
@@ -795,9 +821,12 @@ sub set_file
 		return undef;
 	}
 
-	$self->set_value( "filesize", $rlen );
-	$self->set_value( "hash", $md5->hexdigest );
-	$self->set_value( "hash_type", "MD5" );
+	if( !defined $offset )
+	{
+		$self->set_value( "filesize", $rlen );
+		$self->set_value( "hash", $md5->hexdigest );
+		$self->set_value( "hash_type", "MD5" );
+	}
 
 	return $rlen;
 }

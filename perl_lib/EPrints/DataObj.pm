@@ -1941,6 +1941,52 @@ sub has_owner
 	return 0;
 }
 
+=item $rc = $dataobj->permit( $priv [, $user ] )
+
+	# current user can edit via editorial role
+	if( $dataobj->permit( "xxx/edit", $user ) & 8 )
+	{
+		...
+	}
+	# anyone can view this object
+	if( $dataobj->permit( "xxx/view" ) )
+	{
+	}
+
+Returns true if the current user (or 'anybody') can perform this action.
+
+Returns a bit mask where:
+
+	0 - not permitted
+	1 - anybody
+	2 - logged in user
+	4 - user as owner
+	8 - user as editor
+
+See also L<EPrints::Repository/allow_anybody> and L<EPrints::DataObj::User/allow>.
+
+=cut
+
+sub permit
+{
+	my( $self, $priv, $user ) = @_;
+
+	my $r = 0;
+
+	$r |= 1 if $self->{session}->allow_anybody( $priv );
+
+	if( defined $user )
+	{
+		$r |= 2 if $user->has_privilege( $priv );
+
+		$r |= 4 if $self->has_owner( $user ) && $user->has_privilege( "$priv:owner" );
+
+		$r |= 8 if $self->in_editorial_scope_of( $user ) && $user->has_privilege( "$priv:editor" );
+	}
+
+	return $r;
+}
+
 ######################################################################
 =pod
 

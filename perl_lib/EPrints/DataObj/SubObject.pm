@@ -139,6 +139,48 @@ sub get_parent_id
 	return $self->get_value( "objectid" );
 }
 
+=item $r = $dataobj->permit( $priv [, $user ] )
+
+Checks parent objects for permission for $priv in addition to this object.
+
+=cut
+
+sub permit
+{
+	my( $self, $priv, $user ) = @_;
+
+	my $r = 0;
+
+	$r |= $self->SUPER::permit( $priv, $user );
+
+	my $parent = $self->parent;
+	return $r if !defined $parent;
+
+	my $privid = $self->{dataset}->base_id;
+	return $r if $priv !~ s{^$privid/}{};
+
+	# creating or destroying a sub-object is equivalent to editing its parent
+	$priv = "edit" if $priv eq "create" || $priv eq "destroy";
+
+	# eprint/view => eprint/archive/view
+	my $dataset = $parent->get_dataset;
+	$priv = $dataset->id ne $dataset->base_id ?
+		join('/', $dataset->base_id, $dataset->id, $priv) :
+		join('/', $dataset->base_id, $priv);
+
+	return $self->parent->permit( $priv, $user );
+}
+
+sub has_owner
+{
+	my( $self, $user ) = @_;
+
+	my $parent = $self->parent;
+	return 0 if !defined $parent;
+
+	return $parent->has_owner( $user );
+}
+
 1;
 
 =head1 COPYRIGHT

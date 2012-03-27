@@ -117,61 +117,18 @@ sub authen_doc
 	my( $r, $realm ) = @_;
 
 	my $repository = $EPrints::HANDLE->current_repository;
-	if( !defined $repository )
-	{
-		return FORBIDDEN;
-	}
-
-	my $rvalue = _authen_doc( $r, $repository, $realm );
-
-	return $rvalue;
-}
-
-sub _authen_doc
-{
-	my( $r, $repository, $realm ) = @_;
-
-	my $document = $r->pnotes( "document" );
-	return NOT_FOUND if( !defined $document );
+	return FORBIDDEN if !defined $repository;
 
 	# Internet Explorer launches Office with a URL, which then performs an
 	# OPTIONS on the URL. By returning FORBIDDEN we stop some annoying
 	# challenge-dialogs.
 	return FORBIDDEN if $r->method eq "OPTIONS";
 
-	my $security = $document->get_value( "security" );
+	my $doc = $r->pnotes( "document" );
+	my $rc = $doc->permit( "document/view", $repository->current_user );
 
-	my $result = $repository->call( "can_request_view_document", $document, $r );
-
-	if( $result eq "ALLOW" )
-	{
-		return OK;
-	}
-	elsif( $result eq "DENY" )
-	{
-		return FORBIDDEN;
-	}
-	elsif( $result ne "USER" )
-	{
-		$repository->log( "Response from can_request_view_document was '$result'. Only ALLOW, DENY, USER are allowed." );
-		return FORBIDDEN;
-	}
-
-	my $rc;
-	if( !_use_auth_basic( $r, $repository ) )
-	{
-		$rc = auth_cookie( $r, $repository, 1 );
-	}
-	else
-	{
-		$rc = auth_basic( $r, $repository, $realm );
-	}
-
-	return $rc;
+	return $rc ? OK : authen( $r, $realm );
 }
-
-
-
 
 sub auth_cookie
 {
@@ -287,37 +244,12 @@ sub authz_doc
 	my( $r ) = @_;
 
 	my $repository = $EPrints::HANDLE->current_repository;
-	if( !defined $repository )
-	{
-		return FORBIDDEN;
-	}
+	return FORBIDDEN if !defined $repository;
 
-	my $document = $r->pnotes( "document" );
-	if( !defined $document ) 
-	{
-		return NOT_FOUND;
-	}
+	my $doc = $r->pnotes( "document" );
+	my $rc = $doc->permit( "document/view", $repository->current_user );
 
-	my $result = $repository->call( "can_request_view_document", $document, $r );
-	if( $result eq "ALLOW" )
-	{
-		return OK;
-	}
-	elsif( $result eq "DENY" )
-	{
-		return FORBIDDEN;
-	}
-
-	my $user = $repository->current_user;
-
-	if( $document->user_can_view( $user ) )
-	{
-		return OK;
-	}
-	else
-	{
-		return FORBIDDEN;
-	}
+	return $rc ? OK : FORBIDDEN;
 }
 
 1;

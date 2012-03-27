@@ -165,7 +165,9 @@ sub new
 
 	my $self = bless \%self, $class;
 
-	$self{headers} = $self->process_headers;
+	my $rc = $self->process_headers;
+	$self->request->status( $rc ), return if $rc != OK;
+
 	$self{options} = [qw( GET HEAD OPTIONS )];
 
 	# servicedocument FIXME
@@ -474,25 +476,23 @@ sub authen
 		return EPrints::Apache::Auth::authen( $r );
 	}
 
-	# permission for GET/HEAD a document is via authen_doc/authz_doc
-	if( !$self->is_write && $self->scope == CRUD_SCOPE_DATAOBJ )
+	my @privs = $self->_priv;
+
+	if( defined $dataobj )
 	{
-		if( $dataset->base_id eq "file" )
+		foreach my $priv (@privs)
 		{
-			$dataobj = $dataobj->parent;
-			$dataset = $dataobj->get_dataset;
+			return OK if $dataobj->permit( $priv );
 		}
-		if( $dataset->base_id eq "document" )
+	}
+	else
+	{
+		foreach my $priv (@privs)
 		{
-			$r->pnotes->{document} = $dataobj;
-			return EPrints::Apache::Auth::authen_doc( $r );
+			return OK if $repo->allow_anybody( $priv );
 		}
 	}
 
-	for($self->_priv)
-	{
-		return OK if $repo->allow_anybody( $_ );
-	}
 
 	return EPrints::Apache::Auth::authen( $r );
 }
@@ -505,33 +505,38 @@ sub authz
 	my $r = $self->request;
 	my $repo = $self->repository;
 	my $dataset = $self->dataset;
+	my $dataobj = $self->dataobj;
 	my $plugin = $self->plugin;
 
 	my $user = $repo->current_user;
 
 	if( defined($plugin) && $plugin->param( "visible" ) eq "staff" )
 	{
-		return HTTP_FORBIDDEN if !$user->is_staff;
-	}
-
-	# GET/HEAD a document
-	if( defined $r->pnotes->{document} )
-	{
-		return EPrints::Apache::Auth::authz_doc( $r );
+		return HTTP_FORBIDDEN if !defined $user || !$user->is_staff;
 	}
 
 	my @privs = $self->_priv;
 
-	for(@privs)
+	if( defined $dataobj )
 	{
-		return OK if $repo->allow_anybody( $_ );
+		foreach my $priv (@privs)
+		{
+			return OK if $dataobj->permit( $priv, $user );
+		}
 	}
-
-	return HTTP_FORBIDDEN if !defined $user;
-
-	for(@privs)
+	elsif( defined $user )
 	{
-		return OK if $user->allow( $_, $self->dataobj );
+		foreach my $priv (@privs)
+		{
+			return OK if $user->allow( $priv );
+		}
+	}
+	else
+	{
+		foreach my $priv (@privs)
+		{
+			return OK if $repo->allow_anybody( $priv );
+		}
 	}
 
 	return HTTP_FORBIDDEN;
@@ -1257,6 +1262,7 @@ sub PUT
 {
 	my( $self, $owner ) = @_;
 
+	my $r = $self->request;
 	my $repo = $self->repository;
 	my $dataset = $self->dataset;
 	my $dataobj = $self->dataobj;
@@ -1275,6 +1281,38 @@ sub PUT
 	}
 
 	return HTTP_UNSUPPORTED_MEDIA_TYPE if !defined $plugin;
+
+	# We support Content-Ranges for writing to files
+	if( defined(my $offset = $headers->{offset}) )
+	{
+		if( $dataset->base_id ne "file" || !defined $dataobj )
+		{
+			return $self->sword_error(
+					status => HTTP_RANGE_NOT_SATISFIABLE,
+					summary => "Content-Range unsupported for ".$dataset->base_id,
+				);
+		}
+		my $tmpfile = $self->_read_content;
+		return $r->status if !defined $tmpfile;
+
+		if( ($offset + -s $tmpfile) > $dataobj->value( "filesize" ) )
+		{
+			return $self->sword_error(
+					status => HTTP_RANGE_NOT_SATISFIABLE,
+					summary => "Can't write beyond predefined file size",
+				);
+		}
+
+		my $rlen = $dataobj->set_file( $tmpfile, -s $tmpfile, $offset );
+		return $self->sword_error(
+				status => HTTP_INTERNAL_SERVER_ERROR,
+				summary => "Error occurred during writing - check server logs",
+			) if !defined $rlen;
+
+		$dataobj->commit;
+
+		return HTTP_NO_CONTENT;
+	}
 
 	my $epdata;
 
@@ -1622,6 +1660,7 @@ sub process_headers
 	my $repo = $self->repository;
 
 	my %response;
+	$self->{headers} = \%response;
 
 # In-Progress
 	$response{in_progress} = is_true( $r->headers_in->{'In-Progress'} );
@@ -1638,6 +1677,26 @@ sub process_headers
 
 # Content-Length
 	$response{content_length} = $r->headers_in->{'Content-Length'};
+
+# Content-Range
+	my $range = $r->headers_in->{'Content-Range'};
+	if( defined $range )
+	{
+		if( $range =~ m{^(\d+)-(\d+)/(\d+|\*)$} && $1 <= $2 )
+		{
+			$response{content_range} = $range;
+			$response{offset} = $1;
+			$response{total} = $3; # Unused
+			if( !defined $response{content_length} )
+			{
+				$response{content_length} = $2 - $1;
+			}
+		}
+		else
+		{
+			return HTTP_RANGE_NOT_SATISFIABLE;
+		}
+	}
 
 # Content-MD5	
 	$response{content_md5} = $r->headers_in->{'Content-MD5'};
@@ -1681,7 +1740,7 @@ sub process_headers
 	push @$actions, "unpack" if $response{packaging} && $response{packaging} eq "http://purl.org/net/sword/package/SimpleZip";
 	$response{flags} = {map { $_ => 1 } @$actions};
 
-	return \%response;
+	return OK;
 }
 
 sub sword_error

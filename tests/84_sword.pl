@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 25;
+use Test::More tests => 27;
 
 use EPrints;
 use EPrints::Test;
@@ -158,7 +158,7 @@ SKIP:
 
 SKIP:
 {
-	skip "Missing edit-media-link", 3, if !defined $edit_media_link;
+	skip "Missing edit-media-link", 5, if !defined $edit_media_link;
 	my $r = $ua->get( $edit_media_link );
 
 	is($r->content, $data, "GET $edit_media_link");
@@ -173,13 +173,48 @@ SKIP:
 	is((split /\s*;\s*/, $r->header("Content-Type"))[0], "application/atom+xml", "$edit_media_link list is ATOM xml");
 
 	my $doc = eval { XML::LibXML->load_xml( string => $r->content ) };
-	skip "XML parsing failed", 1 if !defined $doc;
+	skip "XML parsing failed", 3 if !defined $doc;
 	my( $link ) = $xpc->findnodes(
 			q{/atom:feed/atom:entry/atom:content[@type='text/plain']},
 			$doc->documentElement
 		);
 
 	ok(defined $link, "Data attached as text/plain");
+
+	skip "No content link", 2 if !defined $link;
+
+	$r = $ua->request( HTTP::Request->new(
+			GET => $link->getAttribute( "src" ),
+			[
+				Accept => "application/atom+xml;type=feed",
+			]
+		) );
+
+	$doc = eval { XML::LibXML->load_xml( string => $r->content ) };
+	skip "XML parsing failed", 2 if !defined $doc;
+
+	( $link ) = $xpc->findnodes(
+			q{/atom:feed/atom:entry/atom:id},
+			$doc->documentElement
+		);
+
+	skip "XML feed missing <atom:entry> for file", 2 if !defined $link;
+
+	# "Hello, World!" => "Hello, xxxld!"
+	$r = $ua->request( HTTP::Request->new(
+			PUT => $link->textContent,
+			[
+				'Content-Range' => '7-10/13',
+				'Content-Length' => 3,
+			],
+			"xxx"
+		) );
+
+	is($r->code, 204, "PUT Content-Range: ".$link->textContent);
+
+	$r = $ua->get( $link->textContent );
+
+	is($r->content, "Hello, xxxld!", "PUT Content-Range succeeded");
 }
 
 SKIP:

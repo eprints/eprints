@@ -122,29 +122,32 @@ sub _config
 	return $config->{xml};
 }
 
-=item $len = $store->store( $fileobj, CODEREF )
+=item $len = $store->store( $fileobj, CODEREF [, $offset ] )
 
-Read from and store all data from CODEREF for $fileobj. The B<filesize> field in $fileobj must be set at the expected number of bytes to read from CODEREF.
+Read from and store all data from CODEREF for $fileobj.
 
-Returns undef if the file couldn't be stored, otherwise the number of bytes read.
+Behaviour is undefined if an attempt is made to write beyond $fileobj's B<filesize>.
+
+Returns undef if the file couldn't be stored, otherwise the number of bytes actually written.
 
 =cut
 
 sub store
 {
-	my( $self, $fileobj, $f ) = @_;
+	my( $self, $fileobj, $f, $offset ) = @_;
 
 	use bytes;
 
 	my $rlen = 0;
 
-	return undef unless $self->open_write( $fileobj );
+	return undef unless $self->open_write( $fileobj, $offset );
 
 	# copy the input data to each writable plugin
 	my( $buffer, $c );
 	while(($c = length($buffer = &$f)) > 0)
 	{
 		$rlen += $c;
+		$offset += $c if defined $offset;
 		$self->write( $fileobj, $buffer );
 	}
 
@@ -383,15 +386,15 @@ sub copy
 	return $ok;
 }
 
-=item $ok = $storage->open_write( $fileobj )
+=item $ok = $storage->open_write( $fileobj [, $offset ] )
 
-Start a write session for $fileobj. $fileobj must have at least the "filesize" property set (which is the number of bytes that will be written).
+Start a write session for $fileobj. $fileobj must have at least the "filesize" property set (which is the total number of bytes that will be written).
 
 =cut
 
 sub open_write
 {
-	my( $self, $fileobj ) = @_;
+	my( $self, $fileobj, $offset ) = @_;
 
 	if( !$fileobj->is_set( "filesize" ) )
 	{
@@ -403,7 +406,7 @@ sub open_write
 	# open a write for each plugin, record any plugins that error
 	foreach my $plugin ($self->get_plugins( $fileobj ))
 	{
-		if( $plugin->open_write( $fileobj ) )
+		if( $plugin->open_write( $fileobj, $offset ) )
 		{
 			push @writable, $plugin;
 		}
@@ -426,7 +429,7 @@ sub open_write
 
 =item $ok = $storage->write( $fileobj, $buffer )
 
-Write $buffer to the storage plugin(s).
+Write $buffer to the storage plugin(s), starting from the previously written data.
 
 =cut
 
