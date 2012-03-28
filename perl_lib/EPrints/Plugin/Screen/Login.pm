@@ -55,7 +55,7 @@ sub finished
 	if( defined $user )
 	{
 		$uri->query_form(
-			login_params => $uri->query,
+			$uri->query_form,
 			login_check => 1
 			);
 		# Create a login ticket and log the user in

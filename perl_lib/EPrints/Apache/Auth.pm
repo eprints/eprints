@@ -179,12 +179,17 @@ sub auth_cookie
 
 	my $user = $repository->current_user;
 
+	my %q = URI::http->new( $r->uri . '?' . $r->args );
+	my $login_params = $q{login_params};
+
 	# Check we logged in successfully, if so skip do the real URL
-	if( $repository->param( "login_check" ) && defined $user )
+	if( $q{login_check} && defined $user )
 	{
 		my $url = $repository->get_url( host=>1 );
-		my $login_params = $repository->param("login_params");
-		if( EPrints::Utils::is_set( $login_params ) ) { $url .= "?".$login_params; }
+		if( EPrints::Utils::is_set( $login_params ) ) 
+		{
+			$url .= "?".$login_params;
+		}
 		$repository->redirect( $url );
 		return DONE;
 	}
@@ -222,10 +227,9 @@ sub auth_cookie
 		return OK;
 	}
 
-	my $loginparams = $repository->param("loginparams");
-	if( EPrints::Utils::is_set( $loginparams ) ) 
+	if( EPrints::Utils::is_set( $login_params ) ) 
 	{
-		my $url = $repository->get_url( host=>1 )."?".$loginparams;
+		my $url = $repository->get_url( host=>1 )."?".$login_params;
 		$repository->redirect( $url );
 		return DONE;
 	}
