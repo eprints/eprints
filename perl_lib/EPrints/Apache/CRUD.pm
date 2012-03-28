@@ -260,6 +260,14 @@ Returns the current L<Apache2::RequestUtil>.
 
 sub request { $_[0]->{request} }
 
+=item $method = $crud->method()
+
+Returns the HTTP method.
+
+=cut
+
+sub method { $_[0]->{method} }
+
 =item $scope = $crud->scope()
 
 Returns the scope of the action being performed.
@@ -322,7 +330,7 @@ Returns true if the request is not a read-only method.
 
 =cut
 
-sub is_write { $_[0]->{request}->method !~ /^GET|HEAD|OPTIONS$/ }
+sub is_write { $_[0]->method !~ /^GET|HEAD|OPTIONS$/ }
 
 =item $accept_type = $crud->accept_type()
 
@@ -396,11 +404,11 @@ sub _priv
 			if $dataobj->isa( "EPrints::DataObj::Document" );
 		$dataset = $dataobj->get_dataset;
 	}
-	elsif( $r->method eq "POST" )
+	elsif( $self->method eq "POST" )
 	{
 		$priv = "create";
 	}
-	elsif( $r->method eq "PUT" )
+	elsif( $self->method eq "PUT" )
 	{
 		if( $self->scope == CRUD_SCOPE_DATAOBJ && !defined $dataobj )
 		{
@@ -411,7 +419,7 @@ sub _priv
 			$priv = "edit";
 		}
 	}
-	elsif( $r->method eq "DELETE" )
+	elsif( $self->method eq "DELETE" )
 	{
 		$priv = "destroy";
 	}
@@ -732,7 +740,7 @@ sub content_negotiate_best_plugin
 
 	my $headers = $self->headers;
 
-	return undef if $r->method eq "DELETE";
+	return undef if $self->method eq "DELETE";
 
 	my $accept_type = $self->accept_type;
 
@@ -923,15 +931,15 @@ sub handler
 		$self->{dataobj} = $dataobj;
 	}
 
-	if( $r->method eq "DELETE" )
+	if( $self->method eq "DELETE" )
 	{
 		return $self->DELETE( $owner );
 	}
-	elsif( $r->method eq "POST" )
+	elsif( $self->method eq "POST" )
 	{
 		return $self->POST( $owner );
 	}
-	elsif( $r->method eq "PUT" )
+	elsif( $self->method eq "PUT" )
 	{
 		if( $self->scope == CRUD_SCOPE_CONTENTS )
 		{
@@ -942,7 +950,7 @@ sub handler
 			return $self->PUT( $owner );
 		}
 	}
-	elsif( $r->method eq "GET" || $r->method eq "HEAD" || $r->method eq "OPTIONS" )
+	elsif( $self->method eq "GET" || $self->method eq "HEAD" || $self->method eq "OPTIONS" )
 	{
 		$r->err_headers_out->{Allow} = join ',', $self->options;
 
@@ -1661,6 +1669,21 @@ sub process_headers
 
 	my %response;
 	$self->{headers} = \%response;
+
+# X-Method (pseudo-PUTs etc. from POST)
+	if( $r->method eq "POST" )
+	{
+		if( $r->headers_in->{'X-Method'} )
+		{
+			$self->{method} = $r->headers_in->{'X-Method'}
+		}
+		# or via Ruby-on-Rails "_method" query parameter
+		my %q = URI::http->new( $r->uri . '?' . $r->args )->query_form;
+		if( $q{_method} )
+		{
+			$self->{method} = $q{_method};
+		}
+	}
 
 # In-Progress
 	$response{in_progress} = is_true( $r->headers_in->{'In-Progress'} );
