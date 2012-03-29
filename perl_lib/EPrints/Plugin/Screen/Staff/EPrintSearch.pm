@@ -79,6 +79,13 @@ sub hidden_bits
 	return shift->EPrints::Plugin::Screen::AbstractSearch::hidden_bits();
 }
 
+sub _vis_level
+{
+	my( $self ) = @_;
+
+	return "staff";
+}
+
 =head1 COPYRIGHT
 
 =for COPYRIGHT BEGIN
