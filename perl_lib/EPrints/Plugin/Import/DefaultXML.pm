@@ -160,7 +160,10 @@ sub start_element
 	elsif( $self->{depth} == 2 )
 	{
 		$self->{epdata} = {};
-		$self->{state} = { dataset => $self->{dataset} };
+		$self->{state} = {
+				dataset => $self->{dataset},
+				Handler => $self->{plugin}->{Handler},
+			};
 
 		my $class = $self->{dataset}->get_object_class;
 		$self->{handler} = $class;
