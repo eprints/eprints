@@ -20,40 +20,74 @@ sub new
 		appears => [
 			{ place => "upload_methods", position => 200 },
 		],
-		actions => [qw( add_format )],
+		actions => [qw( add_format create_file finish_file )],
 		%params );
 }
 
 sub redirect_to_me_url { }
 
 sub allow_add_format { shift->can_be_viewed }
+sub allow_create_file { shift->can_be_viewed }
+sub allow_finish_file { shift->can_be_viewed }
 
 sub wishes_to_export
 {
 	my( $self ) = @_;
 
-	return $self->{session}->get_request->unparsed_uri =~ /\bprogress_id=([a-fA-F0-9]{32})\b/;
+	return $self->{session}->get_request->unparsed_uri =~ /\bajax=\b/;
 }
 
-sub export_mimetype { "text/html" }
+sub export_mimetype 
+{
+	shift->{session}->get_request->unparsed_uri =~ /\bajax=([a-z_]+)\b/;
+	return "text/html" if $1 eq "add_format";
+	return "application/json";
+}
 
 sub export
 {
 	my( $self ) = @_;
 
-	$self->{session}->get_request->unparsed_uri =~ /\bprogress_id=([a-fA-F0-9]{32})\b/;
-	my $doc = $self->{processor}->{notes}->{upload_plugin}->{document};
-	my $docid = defined $doc ? $doc->id : 'null';
+	my $repo = $self->{session};
 
-	print <<EOH;
+	my $doc = $self->{processor}->{notes}->{upload_plugin}->{document};
+	my $file = $self->{processor}->{notes}->{upload_plugin}->{file};
+
+	my %q = URI::http->new( $repo->get_request->unparsed_uri )->query_form;
+
+	my $progress_id = $q{progress_id};
+	my $ajax = $q{ajax};
+
+	if( $ajax eq "add_format" )
+	{
+		my $docid = defined $doc ? $doc->id : 'null';
+
+		print <<EOH;
 <html>
 <body>
 <script type="text/javascript">
-window.top.window.UploadMethod_file_stop( '$1', $docid );
+window.top.window.UploadMethod_file_stop( '$progress_id', $docid );
 </script>
 </body>
 </html>
 EOH
+		return;
+	}
+
+	my %data;
+
+	if( defined $doc )
+	{
+		$data{docid} = $doc->id;
+	}
+	if( defined $file )
+	{
+		$data{fileid} = $file->id;
+	}
+	$data{phrases}{abort} = $repo->phrase( "lib/submissionform:action_cancel" );
+
+	my $plugin = $self->{session}->plugin( "Export::JSON" );
+	print $plugin->output_dataobj( \%data );
 }
 
 sub action_add_format
@@ -95,9 +129,81 @@ sub action_add_format
 	}
 }
 
-sub render
+sub action_create_file
 {
 	my( $self ) = @_;
+
+	my $session = $self->{session};
+	my $processor = $self->{processor};
+	my $eprint = $processor->{eprint};
+
+	my $filename = $session->param( "filename" );
+	$filename = "main.bin" if !EPrints::Utils::is_set( $filename );
+
+	my $mime_type = $session->param( "mime_type" );
+	$mime_type = "application/octet-stream" if !EPrints::Utils::is_set( $mime_type );
+
+	my $doc = $eprint->create_subdataobj( "documents", {
+			main => $filename,
+			mime_type => $mime_type,
+			format => "other",
+		});
+
+	my $file = $doc->create_subdataobj( "files", {
+			filename => $filename,
+			filesize => 0,
+			mime_type => $mime_type,
+		});
+
+	$processor->{notes}->{upload_plugin}->{document} = $doc;
+	$processor->{notes}->{upload_plugin}->{file} = $file;
+}
+
+sub action_finish_file
+{
+	my( $self ) = @_;
+
+	my $session = $self->{session};
+	my $processor = $self->{processor};
+	my $eprint = $processor->{eprint};
+
+	my $file = $session->dataset( "file" )->dataobj( $session->param( "fileid" ) );
+	return if !defined $file;
+
+	my $doc = $file->parent;
+	return if !defined $doc || !$doc->isa( "EPrints::DataObj::Document" );
+
+	return if $doc->value( "eprintid" ) ne $eprint->id;
+
+	my $epdata = {};
+
+	my $tmpfile = $file->get_local_copy;
+
+	$session->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+			filepath => "$tmpfile",
+			filename => $file->value( "filename" ),
+			epdata => $epdata,
+		);
+
+	$file->set_value( "mime_type", $epdata->{mime_type} );
+	foreach my $fieldid (keys %$epdata)
+	{
+		next if !$doc->{dataset}->has_field( $fieldid );
+		$doc->set_value( $fieldid, $epdata->{$fieldid} );
+	}
+
+	if( !$file->is_set( "hash" ) )
+	{
+		$file->update_md5();
+	}
+
+	$file->commit;
+	$doc->commit;
+}
+
+sub render
+{
+	my( $self, $component ) = @_;
 
 	my $session = $self->{session};
 	my $xml = $session->xml;
@@ -106,7 +212,8 @@ sub render
 	my $f = $xml->create_document_fragment;
 
 	my $container = $xml->create_element( "div",
-		class => "UploadMethod_file_container"
+		class => "UploadMethod_file_container",
+		id => join('_', $self->{prefix}, "dropbox"),
 	);
 	$f->appendChild( $container );
 
@@ -131,6 +238,18 @@ sub render
 		);
 	$container->appendChild( $session->make_text( " " ) );
 	$container->appendChild( $add_format_button );
+
+	$container->appendChild( $xml->create_element( "table",
+			id => join('_', $self->{prefix}, "progress_table"),
+			class => "UploadMethod_file_progress_table",
+		) );
+
+	$container->appendChild( $session->make_javascript( <<EOJ ) );
+var div = \$('$self->{prefix}_dropbox');
+Event.observe (div, 'drop', function(evt) {
+		new Screen_EPrint_UploadMethod_File ('$self->{prefix}', '$component', evt);
+	});
+EOJ
 
 	return $f;
 }

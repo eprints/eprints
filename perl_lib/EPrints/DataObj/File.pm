@@ -721,11 +721,9 @@ sub get_file
 	return $self->{session}->get_storage->retrieve( $self, $offset, $n, $f );
 }
 
-=item $content_length = $stored->set_file( CONTENT, $content_length [, $offset ] )
+=item $content_length = $stored->set_file( CONTENT, $content_length )
 
-Write $content_length bytes from CONTENT to the file object.
-
-If no $offset is given replaces the existing content, setting the C<filesize> and C<hash> values.
+Write $content_length bytes from CONTENT to the file object. Updates C<filesize> and C<hash> (you must call L</commit>).
 
 Returns $content_length or undef on failure.
 
@@ -751,17 +749,11 @@ Will be treated as a file handle and read with sysread().
 
 sub set_file
 {
-	my( $self, $content, $clen, $offset ) = @_;
+	my( $self, $content, $clen ) = @_;
 
-	my $filesize = $self->value( "filesize" );
+	$self->{session}->get_storage->delete( $self );
 
-	if( !defined $offset )
-	{
-		$self->{session}->get_storage->delete( $self );
-		$filesize = $clen;
-	}
-
-	$self->set_value( "filesize", $filesize );
+	$self->set_value( "filesize", 0 );
 	$self->set_value( "hash", undef );
 	$self->set_value( "hash_type", undef );
 
@@ -778,7 +770,7 @@ sub set_file
 	my $f;
 	if( ref($content) eq "CODE" )
 	{
-		$f = defined $offset ? $content : sub {
+		$f = sub {
 				my $buffer = &$content;
 				$md5->add( $buffer );
 				return $buffer;
@@ -791,7 +783,7 @@ sub set_file
 		my $i = 0;
 		$f = sub {
 				return "" if $i++;
-				$md5->add( $$content ) if !defined $offset;
+				$md5->add( $$content );
 				return $$content;
 			};
 	}
@@ -800,12 +792,15 @@ sub set_file
 		binmode($content);
 		$f = sub {
 				return "" unless sysread($content,my $buffer,16384);
-				$md5->add( $buffer ) if !defined $offset;
+				$md5->add( $buffer );
 				return $buffer;
 			};
 	}
 
-	my $rlen = $self->{session}->get_storage->store( $self, $f, $offset );
+	my $rlen = do {
+		local $self->{data}->{filesize} = $clen;
+		$self->{session}->get_storage->store( $self, $f );
+	};
 
 	# no storage plugin or plugins failed
 	if( !defined $rlen )
@@ -821,12 +816,77 @@ sub set_file
 		return undef;
 	}
 
-	if( !defined $offset )
+	$self->set_value( "filesize", $rlen );
+	$self->set_value( "hash", $md5->hexdigest );
+	$self->set_value( "hash_type", "MD5" );
+
+	return $rlen;
+}
+
+=item $content_length = $file->set_file_chunk( CONTENT, $content_length, $offset, $total )
+
+Write a chunk of data to the content, overwriting or appending to the existing content. See L</set_file> for CONTENT and $content_length. C<filesize> is updated if $offset + $content_length is greater than the current C<filesize>.
+
+$offset is the starting point (in bytes) to write. $total is the total file size, used to determine where to store the content.
+
+Returns the number of bytes written or undef on failure.
+
+=cut
+
+sub set_file_chunk
+{
+	my( $self, $content, $clen, $offset, $total ) = @_;
+
+	$self->set_value( "hash", undef );
+	$self->set_value( "hash_type", undef );
+
+	my $f;
+	if( ref($content) eq "CODE" )
 	{
-		$self->set_value( "filesize", $rlen );
-		$self->set_value( "hash", $md5->hexdigest );
-		$self->set_value( "hash_type", "MD5" );
+		$f = $content;
 	}
+	elsif( ref($content) eq "SCALAR" )
+	{
+		return 0 if length($$content) == 0;
+
+		my $i = 0;
+		$f = sub {
+				return "" if $i++;
+				return $$content;
+			};
+	}
+	else
+	{
+		binmode($content);
+		$f = sub {
+				return "" unless sysread($content,my $buffer,16384);
+				return $buffer;
+			};
+	}
+
+	my $rlen = do {
+		local $self->{data}->{filesize} = $total;
+		$self->{session}->get_storage->store( $self, $f, $offset );
+	};
+
+	# no storage plugin or plugins failed
+	if( !defined $rlen )
+	{
+		$self->{session}->log( $self->get_dataset_id."/".$self->get_id."::set_file(".$self->get_value( "filename" ).") failed: No storage plugins succeeded" );
+		return undef;
+	}
+
+	# read failed
+	if( $rlen != $clen )
+	{
+		$self->{session}->log( $self->get_dataset_id."/".$self->get_id."::set_file(".$self->get_value( "filename" ).") failed: expected $clen bytes but actually got $rlen bytes" );
+		return undef;
+	}
+
+	my $filesize = $self->value( "filesize" );
+	$filesize = 0 if !defined $filesize;
+	$self->set_value( "filesize", $offset + $clen )
+		if $offset + $clen > $filesize;
 
 	return $rlen;
 }

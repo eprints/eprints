@@ -126,6 +126,14 @@ GET the logical contents of the object: documents for eprints or files for docum
 
 =back
 
+=head1 AJAX REQUESTS
+
+Browsers only allow GET and POST requests. To perform other requests use the 'X-Method' header with POST to specify the actual method you want.
+
+	POST /id/eprint/23 HTTP/1.1
+	X-Method: PUT
+	...
+
 =head1 METHODS
 
 =over 4
@@ -1293,6 +1301,7 @@ sub PUT
 	# We support Content-Ranges for writing to files
 	if( defined(my $offset = $headers->{offset}) )
 	{
+		my $total = $headers->{total};
 		if( $dataset->base_id ne "file" || !defined $dataobj )
 		{
 			return $self->sword_error(
@@ -1303,15 +1312,15 @@ sub PUT
 		my $tmpfile = $self->_read_content;
 		return $r->status if !defined $tmpfile;
 
-		if( ($offset + -s $tmpfile) > $dataobj->value( "filesize" ) )
+		if( $total eq '*' || ($offset + -s $tmpfile) > $total )
 		{
 			return $self->sword_error(
 					status => HTTP_RANGE_NOT_SATISFIABLE,
-					summary => "Can't write beyond predefined file size",
+					summary => "Won't write beyond total file size (or total size not given)",
 				);
 		}
 
-		my $rlen = $dataobj->set_file( $tmpfile, -s $tmpfile, $offset );
+		my $rlen = $dataobj->set_file_chunk( $tmpfile, -s $tmpfile, $offset, $total );
 		return $self->sword_error(
 				status => HTTP_INTERNAL_SERVER_ERROR,
 				summary => "Error occurred during writing - check server logs",
@@ -1671,17 +1680,18 @@ sub process_headers
 	$self->{headers} = \%response;
 
 # X-Method (pseudo-PUTs etc. from POST)
-	if( $r->method eq "POST" )
+	$self->{method} = uc($r->method);
+	if( $self->method eq "POST" )
 	{
 		if( $r->headers_in->{'X-Method'} )
 		{
-			$self->{method} = $r->headers_in->{'X-Method'}
+			$self->{method} = uc($r->headers_in->{'X-Method'});
 		}
 		# or via Ruby-on-Rails "_method" query parameter
-		my %q = URI::http->new( $r->uri . '?' . $r->args )->query_form;
+		my %q = URI::http->new( $r->unparsed_uri )->query_form;
 		if( $q{_method} )
 		{
-			$self->{method} = $q{_method};
+			$self->{method} = uc($q{_method});
 		}
 	}
 
@@ -1709,7 +1719,7 @@ sub process_headers
 		{
 			$response{content_range} = $range;
 			$response{offset} = $1;
-			$response{total} = $3; # Unused
+			$response{total} = $3;
 			if( !defined $response{content_length} )
 			{
 				$response{content_length} = $2 - $1;

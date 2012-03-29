@@ -3759,6 +3759,7 @@ PY = 2006 and OG = (Cambridge)<br />
 
 	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/File:title" ref="Plugin/InputForm/Component/Upload:from_file" />
 	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/File:unsupported_format">No method available to extract data from uploaded file.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/File:confirm_bulk_upload">Are you sure you want to create <epc:pin name="n"/> new documents?</epp:phrase>
 
 	<epp:phrase id="Plugin/Screen/EPrint/UploadMethod/URL:title" ref="Plugin/InputForm/Component/Upload:from_url" />
 
