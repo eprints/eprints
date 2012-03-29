@@ -4650,7 +4650,7 @@ sub read_params
 	}
 
 	my $uri = $r->unparsed_uri;
-	my $progressid = ($uri =~ /progress_id=([a-fA-F0-9]{32})/)[0];
+	my $progressid = ($uri =~ /progress_?id=([a-fA-F0-9]{32})/)[0];
 
 	my $c = $r->connection;
 

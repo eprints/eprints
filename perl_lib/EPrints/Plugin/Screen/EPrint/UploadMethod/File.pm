@@ -32,7 +32,7 @@ sub wishes_to_export
 {
 	my( $self ) = @_;
 
-	return $self->{session}->get_request->unparsed_uri =~ /\bprogress_id=([a-fA-F0-9]{32})\b/;
+	return $self->{session}->get_request->unparsed_uri =~ /\bprogress_?id=([a-fA-F0-9]{32})\b/;
 }
 
 sub export_mimetype { "text/html" }
@@ -41,7 +41,7 @@ sub export
 {
 	my( $self ) = @_;
 
-	$self->{session}->get_request->unparsed_uri =~ /\bprogress_id=([a-fA-F0-9]{32})\b/;
+	$self->{session}->get_request->unparsed_uri =~ /\bprogress_?id=([a-fA-F0-9]{32})\b/;
 	my $doc = $self->{processor}->{notes}->{upload_plugin}->{document};
 	my $docid = defined $doc ? $doc->id : 'null';
 
