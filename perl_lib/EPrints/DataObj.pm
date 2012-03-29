@@ -513,15 +513,26 @@ sub empty
 	}
 }
 
-=item $dataobj->update( $epdata )
+=item $dataobj->update( $epdata [, %opts ] )
 
 Update this object's values from $epdata. Ignores any values that do not exist in the dataset or do not have the 'import' property set.
+
+	include_subdataobjs - replace sub-dataobjs if given
+
+	# replaces all documents in $dataobj
+	$dataobj->update( {
+		title => "Wombats on Fire",
+		documents => [{
+			main => "wombat.pdf",
+			...
+		}],
+	}, include_subdataobjs => 1 );
 
 =cut
 
 sub update
 {
-	my( $self, $epdata ) = @_;
+	my( $self, $epdata, %opts ) = @_;
 
 	my $dataset = $self->{dataset};
 
@@ -531,7 +542,26 @@ sub update
 		next if !$dataset->has_field( $name );
 		my $field = $dataset->field( $name );
 		next if !$field->property( "import" ) && !$self->{session}->config( "enable_import_fields" );
-		$field->set_value( $self, $epdata->{$name} );
+		if( $field->isa( "EPrints::MetaField::Subobject" ) )
+		{
+			next if !$opts{include_subdataobjs};
+			local $_;
+
+			my $v = $field->get_value( $self );
+			for($field->property( "multiple" ) ? @$v : $v)
+			{
+				$_->remove if defined $_;
+			}
+			$v = $epdata->{$field->name};
+			for($field->property( "multiple" ) ? @{$v} : $v)
+			{
+				$self->create_subdataobj( $_ ) if defined $_;
+			}
+		}
+		else
+		{
+			$field->set_value( $self, $epdata->{$name} );
+		}
 	}
 }
 
