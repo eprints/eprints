@@ -372,6 +372,25 @@ sub remove
 	$self->get_session->get_storage->delete( $self );
 }
 
+=item $file->update( $epdata )
+
+=cut
+
+sub update
+{
+	my( $self, $epdata ) = @_;
+
+	my $content = delete $epdata->{_content};
+	my $filesize = delete $epdata->{filesize};
+
+	$self->SUPER::update( $epdata );
+
+	$self->set_file(
+			$content,
+			$filesize
+		) if defined $content;
+}
+
 =item $filename = $file->get_local_copy()
 
 Return the name of a local copy of the file (may be a L<File::Temp> object).
@@ -709,11 +728,15 @@ CONTENT may be one of:
 
 This method does not check the actual number of bytes read is the same as $content_length.
 
+Calling set_file() will delete any existing file data.
+
 =cut
 
 sub set_file
 {
 	my( $self, $content, $clen ) = @_;
+
+	$self->{session}->get_storage->delete( $self );
 
 	use bytes;
 	# on 32bit platforms this will cause wrapping at 2**31, without integer
