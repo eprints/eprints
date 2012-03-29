@@ -91,7 +91,7 @@ sub new_from_request
 
 	my $uri = $session->get_request->unparsed_uri;
 
-	my $progressid = ($uri =~ /progress_id=([a-fA-F0-9]{32})/)[0];
+	my $progressid = ($uri =~ /progress_?id=([a-fA-F0-9]{32})/)[0];
 
 	if( !$progressid )
 	{

@@ -55,7 +55,7 @@ sub export
 
 	my %q = URI::http->new( $repo->get_request->unparsed_uri )->query_form;
 
-	my $progress_id = $q{progress_id};
+	my $progressid = $q{progressid};
 	my $ajax = $q{ajax};
 
 	if( $ajax eq "add_format" )
@@ -66,7 +66,7 @@ sub export
 <html>
 <body>
 <script type="text/javascript">
-window.top.window.UploadMethod_file_stop( '$progress_id', $docid );
+window.top.window.UploadMethod_file_stop( '$progressid', $docid );
 </script>
 </body>
 </html>
