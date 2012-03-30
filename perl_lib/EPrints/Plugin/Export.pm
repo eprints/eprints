@@ -25,7 +25,8 @@ sub new
 	# desirability of using this plugin during content negotiation.
 	$params{qs} = exists $params{qs} ? $params{qs} : 0.5; 
 
-	$params{mimetype} = exists $params{mimetype} ? $params{mimetype} : [$class->mime_type];
+	$params{mimetype} = exists $params{mimetype} ? $params{mimetype} : undef;
+	$params{produce} = exists $params{produce} ? $params{produce} : [$class->mime_type];
 
 	return $class->SUPER::new(%params);
 }
@@ -46,28 +47,27 @@ sub has_argument
 	return exists $self->{arguments}->{$arg};
 }
 
-sub param 
-{
-	my( $self, $paramid ) = @_;
-
-	# Allow args to override mimetype
-	if( $self->{session}->get_online
-	 && $paramid eq "mimetype" 
-	 && defined $self->{session}->param( "mimetype" ) )
-	{
-		return $self->{session}->param( "mimetype" );
-	}
-	
-	return $self->SUPER::param( $paramid );
-}
-		
-
-
 sub render_name
 {
 	my( $plugin ) = @_;
 
 	return $plugin->{session}->make_text( $plugin->param("name") );
+}
+
+sub param
+{
+	my( $self, $id ) = @_;
+
+	if( $id eq "produce" )
+	{
+		my $mimetype = $self->SUPER::param( "mimetype" );
+		return [
+				(defined $mimetype ? $mimetype : ()),
+				@{$self->SUPER::param( $id )}
+			];
+	}
+
+	return $self->SUPER::param( $id );
 }
 
 sub matches 
@@ -172,9 +172,14 @@ sub can_accept
 
 sub can_produce
 {
-	my( $self, $mime_type ) = @_;
+	my( $self, $format ) = @_;
 
-	return $self->param( "mimetype" ) eq $mime_type;
+	for(@{$self->param( "produce" )}, $self->mime_type)
+	{
+		return 1 if (split /;/, $_)[0] eq $format;
+	}
+
+	return 0;
 }
 
 sub has_xmlns
