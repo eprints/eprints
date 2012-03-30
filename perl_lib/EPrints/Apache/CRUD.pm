@@ -666,6 +666,7 @@ sub create_dataobj
 	if( $dataset->base_id eq "eprint" )
 	{
 		$epdata->{userid} = $owner->id;
+		$epdata->{eprint_status} = "inbox";
 	}
 
 	return $dataset->create_dataobj( $epdata );
