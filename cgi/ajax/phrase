@@ -1,0 +1,38 @@
+#!/usr/bin/perl
+
+use EPrints;
+
+my $repo = EPrints->new->current_repository;
+exit if !defined $repo;
+
+my $textonly = $repo->param( "textonly" );
+my $phraseid = $repo->param( "phraseid" );
+my %pins;
+foreach my $param ($repo->param)
+{
+	if( $param =~ /^pin\.(.+)$/ )
+	{
+		$pins{$1} = $repo->param( $param );
+	}
+}
+
+if( $textonly )
+{
+	$repo->get_request->content_type( "text/plain; charset=UTF-8" );
+	print $repo->phrase( $phraseid, %pins );
+}
+else
+{
+	for(values %pins)
+	{
+		my $xml = eval { $repo->xml->parse_string( $_ ) };
+		$_ = defined $xml ? $xml : $repo->xml->create_text_node( $_ );
+	}
+	$repo->get_request->content_type( "text/html; charset=UTF-8" );
+	my $xml = $repo->html_phrase( $phraseid, %pins );
+	print $repo->xhtml->to_xhtml( $xml );
+	for($xml, values %pins)
+	{
+		$repo->xml->dispose( $_ );
+	}
+}
