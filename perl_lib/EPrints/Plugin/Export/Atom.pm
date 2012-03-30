@@ -54,6 +54,7 @@ sub output_list
 	xmlns="http://www.w3.org/2005/Atom"
 	xmlns:opensearch="'.EPrints::Const::EP_NS_OPENSEARCH.'"
 	xmlns:xhtml="http://www.w3.org/1999/xhtml"
+	xmlns:sword="http://purl.org/net/sword/"
 >' );
 	
 	# title
@@ -188,6 +189,8 @@ sub output_eprint
 {
 	my( $self, $dataobj, %opts ) = @_;
 
+	my $dataset = $dataobj->get_dataset;
+
 	my $repo = $self->{repository};
 	my $xml = $repo->xml;
 	my $xhtml = $repo->xhtml;
@@ -199,9 +202,6 @@ sub output_eprint
 		$entry = $xml->create_element( "entry" );
 	}
 
-	$entry->appendChild( $xml->create_data_element(
-			"title",
-			$xhtml->to_text_dump( $dataobj->render_description ) ) );
 	$entry->appendChild( $xml->create_data_element(
 			"link",
 			undef,
@@ -237,27 +237,18 @@ sub output_eprint
 			) );
 		}
 	}
-	if( $dataobj->exists_and_set( "abstract" ) )
-	{
-		$entry->appendChild( $xml->create_data_element(
-				"summary",
-				$dataobj->get_value("abstract") ) );
-	}
 
-	my $updated;
-	my $datestamp = $dataobj->get_value( "lastmod" );
-	if( $datestamp =~ /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})$/ )
-	{
-		$updated = "$1T$2Z";
-	}
-	else
-	{
-		$updated =  EPrints::Time::get_iso_timestamp();
-	}
+	my $lastmod = $dataset->field( "lastmod" )->iso_value( $dataobj );
+	my $datestamp = $dataset->field( "datestamp" )->iso_value( $dataobj );
 
 	$entry->appendChild( $xml->create_data_element(
-				"updated",
-				$updated ) );	
+			"published",
+			$datestamp
+			) );	
+	$entry->appendChild( $xml->create_data_element(
+			"updated",
+			$lastmod
+			) );	
 
 	$entry->appendChild( $xml->create_data_element(
 				"id", 
@@ -267,16 +258,16 @@ sub output_eprint
 		"category",
 		undef,
 		term => $dataobj->value( "type" ),
-		label => $dataobj->value( "type" ),
-		scheme => $repo->config( "base_url" )."/data/eprint/type/"
+		label => $xhtml->to_text_dump( $dataobj->render_value( "type" ) ),
+		scheme => $repo->config( "base_url" )."/data/eprint/type"
 	) );
 	
 	$entry->appendChild( $xml->create_data_element(
 		"category",
 		undef,
 		term => $dataobj->value( "eprint_status" ),
-		label => $dataobj->value( "eprint_status" ),
-		scheme => $repo->config( "base_url" )."/data/eprint/status/"
+		label => $xhtml->to_text_dump( $dataobj->render_value( "eprint_status" ) ),
+		scheme => EPrints::Const::EP_NS_DATA . "/eprint/eprint_status"
 	) );
 	
 	$entry->appendChild( $xml->create_data_element(
@@ -289,7 +280,7 @@ sub output_eprint
 	$entry->appendChild( $xml->create_data_element(
 		"sword:state",
 		undef,
-		href => $repo->config( "base_url" )."/data/eprint/status/" . $dataobj->value( "eprint_status" )
+		href => EPrints::Const::EP_NS_DATA . "/eprint/eprint_status/" . $dataobj->value( "eprint_status" )
 	) );
 
 	$entry->appendChild( $xml->create_data_element(
@@ -304,21 +295,10 @@ sub output_eprint
 	);
 	$entry->appendChild($original_deposit);
 	
-	$updated = undef;
-	if ( $dataobj->exists_and_set( "datestamp" ) )
-	{
-		if( $datestamp =~ /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})$/ )
-		{
-			$updated = "$1T$2Z";
-		}
-	}
-	if (defined $updated) 
-	{
-		$original_deposit->appendChild( $xml->create_data_element(
-			"sword:depositedOn",
-			$updated
-		) );
-	}
+	$original_deposit->appendChild( $xml->create_data_element(
+		"sword:depositedOn",
+		$datestamp
+	) );
 
 	if ( $dataobj->exists_and_set( "sword_depositor" ) ) 
 	{
@@ -344,6 +324,21 @@ sub output_eprint
 		}
 	}
 
+	# metadata
+	my $title = $dataobj->exists_and_set( "title" ) ?
+			$dataobj->render_value( "title" ) :
+			$dataobj->render_description;
+	$entry->appendChild( $xml->create_data_element(
+			"title",
+			$title,
+			type => "xhtml" ) );
+	if( $dataobj->exists_and_set( "abstract" ) )
+	{
+		$entry->appendChild( $xml->create_data_element(
+				"summary",
+				$dataobj->render_value( "abstract" ),
+				type => "xhtml" ) );
+	}
 	if( $dataobj->exists_and_set( "creators" ) )
 	{
 		my $names = $dataobj->get_value( "creators" );
