@@ -555,7 +555,8 @@ sub update
 			$v = $epdata->{$field->name};
 			for($field->property( "multiple" ) ? @{$v} : $v)
 			{
-				$self->create_subdataobj( $_ ) if defined $_;
+				next if !defined $_;
+				$self->create_subdataobj( $field->name, $_ );
 			}
 		}
 		else
