@@ -821,21 +821,22 @@ sub content_negotiate_best_plugin
 	else
 	{
 		# summary page is higher priority than anything else for /id/eprint/23
-		if( $self->scope == CRUD_SCOPE_DATAOBJ )
+		# and /id/contents
+		if( $self->scope == CRUD_SCOPE_DATAOBJ || $self->scope == CRUD_SCOPE_USER_CONTENTS )
 		{
-			unshift @pset_order, "text/html";
-			unshift @{$pset{"text/html"}}, {
-				charset => 'utf-8',
-				q => 1.0,
-				plugin => $repo->plugin( "Export::SummaryPage" ),
-			};
-			#chrome
-			unshift @pset_order, "application/xhtml+xml";
-			unshift @{$pset{"application/xhtml+xml"}}, {
-				charset => 'utf-8',
-				q => 1.0,
-				plugin => $repo->plugin( "Export::SummaryPage" ),
-			};
+			my $plugin = $repo->plugin( "Export::SummaryPage" );
+			my $mimetype = $plugin->param( "produce" );
+			$mimetype = join ',', @$mimetype;
+			for( HTTP::Headers::Util::split_header_words( $mimetype ) )
+			{
+				my( $type, undef, %params ) = @$_;
+				unshift @pset_order, $type;
+				unshift @{$pset{$type}}, {
+					charset => 'utf-8',
+					q => $plugin->param( "qs" ),
+					plugin => $plugin,
+				};
+			}
 		}
 
 		$accept = $r->headers_in->{Accept} || "*/*";

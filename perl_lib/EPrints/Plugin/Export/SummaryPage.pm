@@ -23,6 +23,11 @@ sub new
 	$self->{visible} = "all";
 	$self->{advertise} = 0;
 	$self->{qs} = 0.9;
+	$self->{produce} = [
+			"text/html;charset=utf-8",
+			"application/xhtml+xml;charset=utf-8",
+			$self->mime_type,
+		];
 
 	return $self;
 }
