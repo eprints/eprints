@@ -39,13 +39,13 @@ use EPrints::MetaField::Set;
 
 sub tags
 {
-	my( $self, $session ) = @_;
+	my( $self ) = @_;
 
 	if( defined $self->{options} )
 	{
 		return @{$self->{options}};
 	}
-	return $session->get_repository->get_types( $self->{set_name} );
+	return $self->{repository}->get_types( $self->{set_name} );
 }
 
 sub get_unsorted_values
@@ -56,7 +56,7 @@ sub get_unsorted_values
 	{
 		return @{$self->{options}};
 	}
-	my @types = $session->get_repository->get_types( $self->{set_name} );
+	my @types = $self->{repository}->get_types( $self->{set_name} );
 
 	return @types;
 }
