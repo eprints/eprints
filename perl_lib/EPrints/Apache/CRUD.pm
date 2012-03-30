@@ -913,7 +913,7 @@ sub parse_media_range
 		scalar(keys %$b) <=> scalar(keys %$a)
 	} @accept;
 
-	return [ map { delete $_->{mime_type}, undef, %$_ } @accept ];
+	return map { [ delete $_->{mime_type}, undef, %$_ ] } @accept;
 }
 
 sub handler
