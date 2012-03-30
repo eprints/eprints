@@ -73,7 +73,7 @@ Link to the non-secure location.
 
 =item scheme => "https"
 
-Link to the secure location.
+Link to the secure location (or http if C<securehost> isn't defined).
 
 =item host => 1
 
@@ -126,7 +126,7 @@ sub get
 	# host
 	if( $opts{host} )
 	{
-		if( $opts{scheme} eq "https" )
+		if( $opts{scheme} eq "https" && EPrints::Utils::is_set( $session->config( "securehost" ) )
 		{
 			$uri->scheme( "https" );
 			$uri->host( $session->config( "securehost" ) );
