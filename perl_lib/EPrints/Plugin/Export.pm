@@ -18,13 +18,14 @@ sub new
 
 	$params{suffix} = exists $params{suffix} ? $params{suffix} : ".txt";
 	$params{visible} = exists $params{visible} ? $params{visible} : "all";
-	$params{mimetype} = exists $params{mimetype} ? $params{mimetype} : "text/plain";
 	$params{advertise} = exists $params{advertise} ? $params{advertise} : 1;
 	$params{arguments} = exists $params{arguments} ? $params{arguments} : {};
 
 	# q is used to describe quality. Use it to increase or decrease the 
 	# desirability of using this plugin during content negotiation.
 	$params{qs} = exists $params{qs} ? $params{qs} : 0.5; 
+
+	$params{mimetype} = exists $params{mimetype} ? $params{mimetype} : [$class->mime_type];
 
 	return $class->SUPER::new(%params);
 }

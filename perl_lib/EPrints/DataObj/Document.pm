@@ -2192,6 +2192,38 @@ sub search_related
 	}
 }
 
+sub permit
+{
+	my( $self, $priv, $user ) = @_;
+
+	if( $priv eq "document/view" )
+	{
+		my $r;
+		if( defined $user )
+		{
+			$r = $self->{session}->call( "can_user_view_document",
+					$self,
+					$user
+				);
+			return 1 if $r eq "ALLOW";
+			return 0 if $r eq "DENY";
+			EPrints->abort( "can_user_view_document returned '$r': expected ALLOW or DENY" );
+		}
+		else
+		{
+			$r = $self->{session}->call( "can_request_view_document",
+					$self,
+					$self->{session}->{request}
+				);
+			return 1 if $r eq "ALLOW";
+			return 0 if $r eq "DENY" || $r eq "USER";
+			EPrints->abort( "can_request_view_document returned '$r': expected ALLOW, DENY or USER" );
+		}
+	}
+
+	return $self->SUPER::permit( $priv, $user );
+}
+
 1;
 
 ######################################################################

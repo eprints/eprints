@@ -44,12 +44,16 @@ sub get_test_id
 	return $ids[0];
 }
 
-=item $repository = EPrints::Test::get_test_repository()
+=item $repository = EPrints::Test->repository()
 
 Returns the first repository object.
 
 =cut
 
+sub repository
+{
+	&get_test_repository;
+}
 sub get_test_repository
 {
 	my $repoid = get_test_id();

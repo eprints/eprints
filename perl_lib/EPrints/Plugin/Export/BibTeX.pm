@@ -33,6 +33,7 @@ sub new
 	$self->{visible} = "all";
 	$self->{suffix} = ".bib";
 	$self->{mimetype} = "text/plain";
+	unshift @{$self->{produce}}, "application/x-bibtex";
 
 	return $self;
 }

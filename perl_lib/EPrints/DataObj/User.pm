@@ -1160,6 +1160,7 @@ my $PRIVMAP =
 		"eprint/details",
 		"eprint/edit",
 		"eprint/export",
+		"eprint/upsert",
 		"eprint/view",
 		"eprint/archive/remove",
 		"eprint/archive/edit", # BatchEdit
@@ -1370,23 +1371,11 @@ my $PRIVMAP =
 ######################################################################
 =pod
 
-=item $result = $user->allow( $priv, [$item] )
+=item $result = $user->allow( $priv )
 
 Returns true if $user can perform this action/view this screen.
 
-A true result is 1..15 where the value indicates what about the user
-allowed the priv to be performed. This is used for filtering owner/
-editor actions in eprint control screens.
-
-1 = anybody (not currently used)
-2 = only if logged in 
-4 = only if owner of item
-8 = only if editor of item
-
-For non item related privs the result will normally be 2.
-
-Nb. That create eprint is NOT a priv related to an eprint, as you 
-don't own it at that stage.
+To test whether a privilege is possible on an object use L<EPrints::DataObj/permit>.
 
 =cut
 ######################################################################
@@ -1395,28 +1384,28 @@ sub allow
 {
 	my( $self, $priv, $item ) = @_;
 
-	return 1 if( $self->{session}->allow_anybody( $priv ) );
-
-	my $privs = $self->get_privs;
-
-	my $if_logged_in = $privs->{$priv} || 0;
-	my $if_editor = $privs->{"$priv:editor"} || 0;
-	my $if_owner = $privs->{"$priv:owner"} || 0;
-
-	if( !$if_logged_in && ( $if_editor || $if_owner ) && !defined $item )
-	{
-		return 0;
-	}
-
 	my $r = 0;
 
-	$r += 2 if( $if_logged_in  );
+	$r |= 1 if $self->{session}->allow_anybody( $priv );
 
-	$r += 4 if( $if_owner && defined $item && $item->has_owner( $self ) );
+	$r |= 2 if $self->has_privilege( $priv );
 
-	$r += 8 if( $if_editor && defined $item && $item->in_editorial_scope_of( $self ) );
+	$r |= $item->permit( $priv, $self ) if defined $item;
 
 	return $r;
+}
+
+=item $boolean = $user->has_privilege( $priv )
+
+Returns true if $priv is in the user's privileges table.
+
+=cut
+
+sub has_privilege
+{
+	my( $self, $priv ) = @_;
+
+	return $self->get_privs->{$priv};
 }
 
 ######################################################################

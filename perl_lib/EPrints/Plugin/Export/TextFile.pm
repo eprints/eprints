@@ -14,12 +14,10 @@ sub new
 {
 	my( $class, %params ) = @_;
 
-	my $self = $class->SUPER::new( %params );
+	$params{mimetype} = exists $params{mimetype} ? $params{mimetype} : "text/plain; charset=utf-8";
+	$params{suffix} = exists $params{suffix} ? $params{suffix} : ".txt";
 
-	$self->{mimetype} = "text/plain; charset=utf-8";
-	$self->{suffix} = ".txt";
-
-	return $self;
+	return $class->SUPER::new( %params );
 }
 
 sub initialise_fh

@@ -52,20 +52,7 @@ div#progress {
     font-weight: bold;
 }
 
-.UploadMethod_file_container {
-	clear: both;
-}
-
-.UploadMethod_file_progress {
-	width: 500px;
-	height: 30px;
+.UploadMethod_file_progress_table {
+	width: 550px;
 	margin: 0 auto;
-}
-
-.UploadMethod_file_progress_bar {
-	float: left;
-}
-
-.UploadMethod_file_progress_info {
-	float: right;
 }

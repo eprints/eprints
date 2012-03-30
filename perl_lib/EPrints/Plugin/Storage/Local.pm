@@ -16,7 +16,7 @@ package EPrints::Plugin::Storage::Local;
 
 use URI;
 use URI::Escape;
-use Fcntl 'SEEK_SET';
+use Fcntl qw( SEEK_SET :DEFAULT );
 
 use EPrints::Plugin::Storage;
 
@@ -39,7 +39,7 @@ sub new
 
 sub open_write
 {
-	my( $self, $fileobj ) = @_;
+	my( $self, $fileobj, $offset ) = @_;
 
 	my( $path, $fn ) = $self->_filename( $fileobj );
 
@@ -51,14 +51,18 @@ sub open_write
 
 	EPrints::Platform::mkdir( $filepath );
 
+	my $mode = O_WRONLY|O_CREAT;
+	$mode |= O_TRUNC if !defined $offset;
+
 	my $fh;
-	unless( open($fh, ">", "$path/$fn") )
+	unless( sysopen($fh, "$path/$fn", $mode) )
 	{
 		$self->{error} = "Unable to write to $path/$fn: $!";
 		$self->{session}->get_repository->log( $self->{error} );
 		return 0;
 	}
-	binmode($fh);
+
+	sysseek($fh, $offset, 0) if defined $offset;
 
 	$self->{_fh}->{$fileobj} = $fh;
 	$self->{_path}->{$fileobj} = $path;
