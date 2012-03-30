@@ -126,7 +126,7 @@ sub get
 	# host
 	if( $opts{host} )
 	{
-		if( $opts{scheme} eq "https" && EPrints::Utils::is_set( $session->config( "securehost" ) )
+		if( $opts{scheme} eq "https" && EPrints::Utils::is_set( $session->config( "securehost" ) ) )
 		{
 			$uri->scheme( "https" );
 			$uri->host( $session->config( "securehost" ) );
