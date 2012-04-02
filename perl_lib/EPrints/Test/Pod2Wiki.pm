@@ -397,6 +397,11 @@ sub command
 			$self->{_is_api} = 1;
 			push @{$self->{_out}}, $value if $value;
 		}
+		elsif( $type eq "MediaWiki" )
+		{
+			push @{$self->{_out}}, "<!-- ${PREFIX}_private_ -->";
+			push @{$self->{_out}}, $value if $value;
+		}
 		return;
 	}
 	elsif( $cmd eq "over" )
@@ -453,12 +458,13 @@ sub command
 		$orig_text = $text;
 		$text =~ s/\n+//g;
 		$key = EPrints::Utils::escape_filename( $text );
-		$ref = lc( _p2w_fragment_id( $text ) );
+		$ref = _p2w_fragment_id( $text );
 		$text = $self->interpolate( $text, $line_num );
 	}
 
 	if( $cmd =~ /^head(\d+)/ )
 	{
+		$ref = lc( $ref );
 		$self->{_p2w_head_depth} = $1;
 		my $eqs = "=" x $1;
 		$eqs .= "="; # start at == not =
@@ -574,11 +580,11 @@ sub textblock
 
 	my $indent = @{$self->{_p2w_over}};
 	$indent-- if $self->{_p2w_methods} && $indent > 0;
-	my $stars = $self->{_p2w_pod_section} =~ /^item_/ ? "*" x $indent : "";
+#	my $stars = $self->{_p2w_pod_section} =~ /^item_/ ? "*" x $indent : "";
 	my $colons = ":" x $indent;
 	$colons .= " " if length $colons;
 
-	push @{$self->{_out}}, "$stars$colons$text";
+	push @{$self->{_out}}, "$colons$text";
 }
 
 =item $parser->interpolate( ... )

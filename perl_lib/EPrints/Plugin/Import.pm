@@ -1,6 +1,12 @@
+=for Pod2Wiki
+
 =head1 NAME
 
 EPrints::Plugin::Import
+
+=head1 METHODS
+
+=over 4
 
 =cut
 
@@ -18,13 +24,37 @@ Create a new Import plugin. Available options:
 
 =over 4
 
-=item import_documents
+=item accept
 
-If an eprint contains documents attempt to import them as well.
+Array reference of acceptable MIME types.
 
-=item update
+=item actions
 
-If the new item has the same identifier as an existing one, attempt to update the existing item.
+Array reference of named actions.
+
+=item advertise
+
+Boolean for whether to advertise this plugin to users.
+
+=item arguments
+
+Hash reference of supported arguments/default values.
+
+=item Handler
+
+Reference to a handler class, typically L<EPrints::CLIProcessor> or L<EPrints::ScreenProcessor>.
+
+=item produce
+
+Array reference of eprint types this plugin can produce.
+
+=item screen
+
+The screen id this plugin uses to provide its import UI.
+
+=item visible
+
+"staff" (staff only) or "all" (anyone).
 
 =back
 
@@ -287,11 +317,13 @@ sub is_tool
 
 1;
 
+=back
+
 =head1 COPYRIGHT
 
 =for COPYRIGHT BEGIN
 
-Copyright 2000-2011 University of Southampton.
+Copyright 2000-2012 University of Southampton.
 
 =for COPYRIGHT END
 

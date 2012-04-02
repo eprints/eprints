@@ -1,8 +1,8 @@
-=for Pod2Wiki
+=for Pod2Wiki {{Version|since=3.3.0}}
 
 =head1 NAME
 
-EPrints::Apache::CRUD
+EPrints::Apache::CRUD - Create, read, update and delete via HTTP
 
 =head1 SYNOPSIS
 
@@ -75,34 +75,11 @@ Get the list of contents (documents) of an eprint in Atom XML:
 	Content-Type: application/atom+xml;charset=utf-8
 	...
 
-=head2 Content Negotiation
+You can find more examples in the F<tests/84_sword.t> unit test.
 
-You can GET/HEAD/POST/PUT in the formats supported by your L<Export|EPrints::Plugin::Export>/L<Import|EPrints::Plugin::Import> plugins. ('Export' plugins for GET/HEAD and 'Import' for POST/PUT.)
+=head2 URI layout
 
-When GETing, your repository should support at least:
-
-	application/vnd.eprints.data+xml - EPrints XML
-	application/atom+xml - Atom XML
-
-Depending on the object type requested (eprint, document etc.) additional formats may be available. These are defined by the 'mime-type' in the plugin.
-
-L<EPrint|EPrints::DataObj::EPrint> objects are always available as text/html, which will result in a 303 Redirect to the EPrint's abstract page or, if the EPrint is not public, the L<View|EPrints::Plugin::Screen::EPrint::View> page.
-
-Requesting the C</contents> of a L<Document|EPrints::DataObj::Document> will return the content of the main file. Requesting a L<File|EPrints::DataObj::File> with no Accept header (or '*/*') will return the file content.
-
-When creating new records via POST content negotiation is performed against the Import plugins. If no Import plugin supports the given Content-Type the content will be treated as binary and stored in a new, blank object. The returned Atom entry will describe the new object (e.g. the root 'eprint' object, in which the new document and file were created).
-
-If the POSTed content is in a recognised format the resulting object(s) will depend on what the Import plugin outputs. This may be a single object, if the output is only an object, or an object plus content file(s).
-
-If no Content-Type is given the MIME type defaults to application/octet-stream. If no Content-Disposition with a 'filename' argument is given the filename will be set to 'main.bin'.
-
-=head2 Updating complex objects using PUT
-
-EPrint objects contain zero or more documents, which each contain zero or more files. When you update (PUT) an EPrint object the contained documents will only be replaced if the Import plugin defines new documents e.g. the Atom Import plugin will never define new documents so PUTing Atom content will only update the EPrint's metadata. PUTing EPrints XML will replace the documents if you include a <documents> XML element.
-
-PUTing to C</contents> will always replace all contents e.g. PUTing to C</eprint/23/contents> is equivalent to C<DELETE /eprint/23/contents> then C<POST /eprint/23/contents>.
-
-=head2 URIs
+These URIs are relative to your EPrints HTTP/HTTPs root.
 
 =over 4
 
@@ -126,13 +103,72 @@ GET the logical contents of the object: documents for eprints or files for docum
 
 =back
 
-=head1 AJAX REQUESTS
+=head2 HTTP Content Negotiation
 
-Browsers only allow GET and POST requests. To perform other requests use the 'X-Method' header with POST to specify the actual method you want.
+GET/HEAD requests are processed using L<Export|EPrints::Plugin::Export> plugins. POST/PUT requests are processed using L<Import|EPrints::Plugin::Import> plugins.
+
+The plugin used depends on the request's I<Accept> (GET/HEAD) or I<Content-Type> (POST/PUT) header and the type of object being acted on. For example, the following request:
+
+	GET /id/eprint/23 HTTP/1.1
+	Accept: application/vnd.eprints.data+xml
+
+Will search for an Export plugin that accepts objects of type B<dataobj/eprint> and can produce output in the MIME type B<application/vnd.eprints.data+xml>. This will most likely be the L<EP3 XML|EPrints::Plugin::Export::XML> plugin.
+
+In addition to the general plugin negotiation behaviour some special cases are supported to improve compatibility with Atom Pub/Web Browser clients:
+
+=over 4
+
+=item /id/eprint/...
+
+Requesting L<EPrint|EPrints::DataObj::EPrint> objects as text/html will result in a 303 Redirect to the eprint object's abstract page or, if the eprint is not public, its L<View|EPrints::Plugin::Screen::EPrint::View> page.
+
+=item /id/document/.../contents
+
+Requesting the I</contents> of a L<Document|EPrints::DataObj::Document> object will return the content of the document's main file.
+
+=item /id/file/...
+
+Requesting a L<File|EPrints::DataObj::File> object with no I<Accept> header (or B<*/*>) will return the file's content.
+
+=item POST /id/.../contents
+
+When creating new records via POST, content negotiation is performed against the Import plugins.
+
+If no Import plugin supports the I<Content-Type> header the content will be treated as B<application/octet-stream> and stored in a new object. The resulting Atom entry will describe the new object (e.g. the I<eprint> object in which the new I<document> and I<file> objects were created).
+
+Otherwise, the result will depend on the Import plugin's output. Import plugins may produce a single object, multiple objects or an object plus content file(s).
+
+=item Content-Type header
+
+If no I<Content-Type> header is given the MIME type defaults to B<application/octet-stream> for POSTs and PUTs.
+
+=item Content-Disposition header
+
+If the I<Content-Disposition> header is missing or does not contain a I<filename> parameter the filename defaults to F<main.bin> for POSTs and PUTs.
+
+=back
+
+=head2 Updating complex objects using PUT
+
+Eprint objects contain zero or more documents, which each contain zero or more files. When you update (PUT) an eprint object the contained documents will only be replaced if the Import plugin defines new documents e.g. the Atom Import plugin will never define new documents so PUTing Atom content will only update the eprint's metadata. PUTing L<EP3 XML|EPrints::Plugin::Export::XML> will replace the documents if you include a <documents> XML element.
+
+PUTing to I</contents> will always replace all contents - PUTing to I</eprint/23/contents> is equivalent to I<DELETE /eprint/23/contents> then I<POST /eprint/23/contents>.
+
+=head2 PUT/DELETE from Javascript
+
+=for MediaWiki {{Available|since=3.3.9}}
+
+Web browsers only allow GET and POST requests. To perform other requests use the 'X-Method' header with POST to specify the actual method you want:
 
 	POST /id/eprint/23 HTTP/1.1
 	X-Method: PUT
 	...
+
+=head2 Upserting objects with PUT
+
+=for MediaWiki {{Available|since=3.3.9}}
+
+If you have the I<upsert> privilege objects will be created on demand, otherwise attempting to PUT to a non-existant object will result in an error.
 
 =head1 METHODS
 
@@ -969,6 +1005,32 @@ sub handler
 	return HTTP_METHOD_NOT_ALLOWED;
 }
 
+=item $rc = $crud->DELETE()
+
+Handle DELETE requests.
+
+=over 4
+
+=item HTTP_METHOD_NOT_ALLOWED
+
+Can't perform DELETE on F</id/contents>.
+
+=item HTTP_NOT_FOUND
+
+No such object.
+
+=item HTTP_CONFLICT
+
+Lock conflict with another user.
+
+=item HTTP_NO_CONTENT
+
+Successfully removed the object.
+
+=back
+
+=cut
+
 sub DELETE
 {
 	my( $self ) = @_;
@@ -1013,6 +1075,40 @@ sub DELETE
 
 	return HTTP_NO_CONTENT;
 }
+
+=item $rc = $crud->GET( [ $owner ] )
+
+Handle GET requests.
+
+=over 4
+
+=item HTTP_NO_CONTENT
+
+No sub-objects in I</id/.../contents>.
+
+=item HTTP_NOT_ACCEPTABLE
+
+More than one sub-object in I</id/.../contents>.
+
+=item HTTP_UNSUPPORTED_MEDIA_TYPE
+
+No L<Export|EPrints::Plugin::Export> plugin matches the I<Accept> header/object type.
+
+=item HTTP_SEE_OTHER
+
+Redirect to a non-CRUD EPrints page.
+
+=item HTTP_NOT_FOUND
+
+Object not found.
+
+=item HTTP_OK
+
+Object outputted successfully.
+
+=back
+
+=cut
 
 sub GET
 {
@@ -1175,6 +1271,28 @@ sub GET
 	return OK;
 }
 
+=item $rc = $crud->POST( [ $owner ] )
+
+Handle POST requests.
+
+=over 4
+
+=item HTTP_METHOD_NOT_ALLOWED
+
+Can only POST to I</id/.../contents>.
+
+=item HTTP_BAD_REQUEST
+
+No plugin for the SWORD I<Packaging> header.
+
+=item HTTP_CREATED
+
+Object(s) successfully created.
+
+=back
+
+=cut
+
 sub POST 
 {
 	my( $self, $owner ) = @_;
@@ -1273,6 +1391,36 @@ $r->err_headers_out->{Location} = $items[0]->uri . '/contents';
 		);
 	}
 }
+
+=item $rc = $crud->PUT( [ $owner ] )
+
+Handle PUT requests.
+
+=over 4
+
+=item HTTP_UNSUPPORTED_MEDIA_TYPE
+
+No L<Import|EPrints::Plugin::Import> plugin matched the I<Content-Type> header/object type.
+
+=item HTTP_RANGE_NOT_SATISFIABLE
+
+I<Range> header is invalid or unsupported for the I<object type>.
+
+=item HTTP_FORBIDDEN
+
+User does not have permission to create/update the I<object>.
+
+=item HTTP_CREATED
+
+Object was successfully created.
+
+=item HTTP_NO_CONTENT
+
+Object was successfully updated.
+
+=back
+
+=cut
 
 # PUT /id/eprint/23
 sub PUT
@@ -1404,6 +1552,14 @@ sub PUT
 
 	return HTTP_NO_CONTENT;
 }
+
+=item $rc = $crud->PUT_contents( [ $owner ] )
+
+Equivalent to C<DELETE /id/.../contents> then C<POST /id/.../contents>.
+
+See L</DELETE> and L</POST>.
+
+=cut
 
 sub PUT_contents
 {
