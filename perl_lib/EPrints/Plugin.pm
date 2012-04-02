@@ -1,22 +1,18 @@
-######################################################################
-#
-# EPrints::Plugin
-#
-######################################################################
-#
-#
-######################################################################
-
-
-=pod
+=for Pod2Wiki
 
 =head1 NAME
 
-B<EPrints::Plugin> - Base class of all EPrints Plugins
+EPrints::Plugin - base class of all EPrints Plugins
+
+=head1 SYNOPSIS
+
+	$plugin = $repo->plugin( "Export::XML" );
 
 =head1 DESCRIPTION
 
 This class provides the basic methods used by all EPrints Plugins.
+
+=head1 METHODS
 
 =over 4
 
@@ -31,7 +27,23 @@ use strict;
 
 =item $plugin = EPrints::Plugin->new( %params );
 
-Create a new instance of a plugin with the given parameters.
+Create a new instance of a plugin. Defines the following parameters:
+
+=over 4
+
+=item repository
+
+Required handle to the current repository object.
+
+=item name
+
+Human-readable name of the plugin.
+
+=item alias
+
+Array reference of plugin id's that this plugin is aliasing (replacing).
+
+=back
 
 =cut
 ######################################################################
@@ -270,7 +282,10 @@ sub matches
 =item $value = $plugin->param( $paramid )
 
 Return the parameter with the given id. This uses the hard wired
-parameter unless an override has been configured for this archive.
+parameter unless an override has been configured for this repository:
+
+	$c->{plugins}->{"Export::XML"}->{params}->{name} = "My EP3 XML";
+	$c->{plugins}->{"Export::Ids"}->{params}->{disable} = 1;
 
 =cut
 ######################################################################

@@ -1,6 +1,14 @@
+=for Pod2Wiki
+
 =head1 NAME
 
 EPrints::Plugin::Export
+
+=cut
+
+=head1 METHODS
+
+=over 4
 
 =cut
 
@@ -11,6 +19,48 @@ use strict;
 our @ISA = qw/ EPrints::Plugin /;
 
 $EPrints::Plugin::Export::DISABLE = 1;
+
+=item $plugin = EPrints::Plugin::Export->new( %params )
+
+Creates a new Export plugin. In addition to those parameters defined by L<EPrints::Plugin>:
+
+=over 4
+
+=item accept
+
+Array reference of object types this plugin can accept.
+
+=item advertise
+
+Boolean for whether to advertise this plugin to users.
+
+=item arguments
+
+Hash reference of supported arguments/default values.
+
+=item mimetype
+
+The MIME type to set when outputting to an HTTP response.
+
+=item produce
+
+Array reference of MIME types this plugin can output. By default includes B<application/x-eprints-export-XXX>, where I<XXX> is the case-insensitive id of the plugin.
+
+=item qs
+
+Score used to determine which plugin to use, if all else is equal, where 0 is least likely and 1 is most likely.
+
+=item suffix
+
+File name extension to use when outputting to file.
+
+=item visible
+
+"staff" (staff only) or "all" (anyone).
+
+=back
+
+=cut
 
 sub new
 {
@@ -25,6 +75,7 @@ sub new
 	# desirability of using this plugin during content negotiation.
 	$params{qs} = exists $params{qs} ? $params{qs} : 0.5; 
 
+	$params{accept} = exists $params{accept} ? $params{accept} : [];
 	$params{mimetype} = exists $params{mimetype} ? $params{mimetype} : undef;
 	$params{produce} = exists $params{produce} ? $params{produce} : [$class->mime_type];
 
@@ -333,6 +384,8 @@ sub byte_order_mark
 }
 
 1;
+
+=back
 
 =head1 COPYRIGHT
 

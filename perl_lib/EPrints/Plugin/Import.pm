@@ -18,15 +18,15 @@ our @ISA = qw/ EPrints::Plugin /;
 
 $EPrints::Plugin::Import::DISABLE = 1;
 
-=item $plugin = EPrints::Plugin::Import->new( %opts )
+=item $plugin = EPrints::Plugin::Import->new( %params )
 
-Create a new Import plugin. Available options:
+Creates a new Import plugin. In addition to those parameters defined by L<EPrints::Plugin>:
 
 =over 4
 
 =item accept
 
-Array reference of acceptable MIME types.
+Array reference of acceptable MIME types. By default includes B<application/x-eprints-import-XXX>, where I<XXX> is the case-insensitive id of the plugin.
 
 =item actions
 
@@ -46,7 +46,7 @@ Reference to a handler class, typically L<EPrints::CLIProcessor> or L<EPrints::S
 
 =item produce
 
-Array reference of eprint types this plugin can produce.
+Array reference of object types this plugin can produce.
 
 =item screen
 
@@ -80,12 +80,24 @@ sub new
 sub arguments { shift->EPrints::Plugin::Export::arguments( @_ ) }
 sub has_argument { shift->EPrints::Plugin::Export::has_argument( @_ ) }
 
+=item $handler = $plugin->handler()
+
+Returns the Handler object, which is used for messages and object creation.
+
+=cut
+
 sub handler
 {
 	my( $plugin ) = @_;
 
 	return $plugin->{Handler};
 }
+
+=item $plugin->set_handler( $handler )
+
+Set the handler object.
+
+=cut
 
 sub set_handler
 {
@@ -201,7 +213,7 @@ sub can_produce
 
 =item $plugin->input_fh( fh => FILEHANDLE [, %opts] )
 
-Import one or more objects from filehandle FILEHANDLE. FILEHANDLE should be set to binary semantics.
+Import one or more objects from B<FILEHANDLE>. B<FILEHANDLE> should be set to binary semantics using L<perlfunc/binmode>.
 
 This method should by subclassed.
 
@@ -216,7 +228,7 @@ sub input_fh
 
 =item $plugin->input_file( filename => FILENAME [, %opts] )
 
-Opens FILENAME for reading, sets binary semantics and calls input_fh to actually read the file.
+Opens B<FILENAME> for reading, sets binary semantics and calls L</input_fh> to actually read the file.
 
 This method may be subclassed (e.g. see L<EPrints::Plugin::Import::TextFile>).
 
@@ -273,9 +285,11 @@ sub convert_input
 
 =item $dataobj = $plugin->epdata_to_dataobj( $epdata, %opts )
 
-Turn $epdata into a L<EPrints::DataObj> with the dataset passed in %opts.
+Turn B<$epdata> into a L<EPrints::DataObj> using the L<dataset|EPrints::DataSet> argument passed in %opts.
 
-Calls handler to perform the actual creation.
+Uses the L</handler> object to perform the actual object creation.
+
+When sub-classing you B<must> call L</epdata_to_dataobj> in order to correctly handle the parse-only and test phases during import.
 
 =cut
 
@@ -296,6 +310,12 @@ sub epdata_to_dataobj
 	return $self->handler->epdata_to_dataobj( $epdata, %opts );
 }
 
+=item $plugin->warning( $text )
+
+Generate a warning message using B<$text>.
+
+=cut
+
 sub warning
 {
 	my( $plugin, $msg ) = @_;
@@ -303,12 +323,24 @@ sub warning
 	$plugin->handler->message( "warning", $plugin->{session}->make_text( $msg ));
 }	
 
+=item $plugin->error( $text )
+
+Generate an error message using B<$text>.
+
+=cut
+
 sub error
 {
 	my( $plugin, $msg ) = @_;
 
 	$plugin->handler->message( "error", $plugin->{session}->make_text( $msg ));
 }
+
+=item $bool = $plugin->is_tool()
+
+Returns true if this plugin is a tool that should be rendered as a link.
+
+=cut
 
 sub is_tool
 {
