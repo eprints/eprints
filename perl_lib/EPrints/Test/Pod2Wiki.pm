@@ -642,7 +642,7 @@ sub interior_sequence
 			return $seq_arg;
 		}
 		# link to the API wiki page
-		elsif( $seq_arg =~ /^EPrints\b/ )
+		elsif( $seq_arg =~ /^([^\|]+\|)?EPrints\b/ )
 		{
 			my( $text, $module, $sec ) = $self->_p2w_split_pod_link( $seq_arg );
 			if( defined $module )
