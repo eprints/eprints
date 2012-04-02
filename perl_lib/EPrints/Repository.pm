@@ -5121,6 +5121,8 @@ my $PUBLIC_PRIVS =
 	"eprint_search" => 1,
 	"eprint/archive/view" => 1,
 	"eprint/archive/export" => 1,
+	"subject/view" => 1,
+	"subject/export" => 1,
 	"saved_search/public_saved_search/export" => 1,
 	"saved_search/public_saved_search/view" => 1,
 };
