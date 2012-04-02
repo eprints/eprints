@@ -1,19 +1,10 @@
-######################################################################
-#
-# EPrints::TempDir
-#
-######################################################################
-#
-#
-######################################################################
-
 package EPrints::TempDir;
 
 use File::Temp;
 
 use strict;
 
-=pod
+=for Pod2Wiki
 
 =head1 NAME
 
@@ -23,7 +14,7 @@ EPrints::TempDir - Create temporary directories that are removed automatically
 
 DEPRECATED
 
-Use C<<File::Temp->newdir()>>;
+Use C<< File::Temp->newdir() >>
 
 =head1 SEE ALSO
 
