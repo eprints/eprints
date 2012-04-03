@@ -175,8 +175,6 @@ sub dump
 	warn Data::Dumper::Dumper( @_ );
 }
 
-use Apache::DBI; # must be first! 	 	 
-
 use EPrints::Const; # must be before any use of constants
 
 use EPrints::Apache;
