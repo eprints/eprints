@@ -488,6 +488,13 @@ sub has_owner
 	return 0;
 }
 
+sub parent
+{
+	my( $self ) = @_;
+
+	return $self->{session}->user( $self->value( "userid" ) );
+}
+
 sub get_url
 {
 	my( $self, $staff ) = @_;
