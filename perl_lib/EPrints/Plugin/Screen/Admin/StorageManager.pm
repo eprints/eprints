@@ -96,15 +96,11 @@ sub ajax_stats
 			parent => {},
 		};
 
-	my $searchexp = EPrints::Search->new(
-		session => $session,
-		dataset => $dataset,
-		allow_blank => 1,
+	$dataset->search(
 		filters => [
 			{ meta_fields => ["copies_pluginid"], value => $pluginid },
-		]);
-	my $list = $searchexp->perform_search;
-	$list->map(sub {
+		]
+	)->map(sub {
 		my( undef, undef, $file ) = @_;
 
 		my $datasetid = $file->get_value( "datasetid" );
@@ -117,7 +113,6 @@ sub ajax_stats
 		$data->{parent}->{$datasetid}->{total} ++;
 		$data->{parent}->{$datasetid}->{bytes} += $filesize;
 	});
-	$list->dispose;
 
 	my $html = $session->make_doc_fragment;
 
@@ -203,18 +198,14 @@ sub ajax_migrate
 
 	my $dataset = $session->dataset( "file" );
 
-	my $searchexp = EPrints::Search->new(
-		session => $session,
-		dataset => $dataset,
+	my $total = 0;
+
+	$dataset->search(
 		filters => [
 			{ meta_fields => ["copies_pluginid"], value => $pluginid },
 			{ meta_fields => ["datasetid"], value => $datasetid },
-		] );
-
-	my $total = 0;
-
-	my $list = $searchexp->perform_search;
-	$list->map(sub {
+		]
+	)->map(sub {
 		my( undef, undef, $file ) = @_;
 
 		$total ++ if $session->get_storage->copy( $target_store, $file );
@@ -237,18 +228,14 @@ sub ajax_delete
 
 	my $dataset = $session->dataset( "file" );
 
-	my $searchexp = EPrints::Search->new(
-		session => $session,
-		dataset => $dataset,
+	my $total = 0;
+
+	$dataset->search(
 		filters => [
 			{ meta_fields => ["copies_pluginid"], value => $pluginid },
 			{ meta_fields => ["datasetid"], value => $datasetid },
-		] );
-
-	my $total = 0;
-
-	my $list = $searchexp->perform_search;
-	$list->map(sub {
+		]
+	)->map(sub {
 		my( undef, undef, $file ) = @_;
 
 		my @copies = @{$file->get_value( "copies" )};
