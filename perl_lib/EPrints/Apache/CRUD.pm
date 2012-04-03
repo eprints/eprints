@@ -242,9 +242,20 @@ sub new
 	# /id/FOO/BAR
 	if( defined $self{dataobjid} )
 	{
+		if( $self{dataset}->base_id eq "document" )
+		{
+			($self{dataobjid}, my @relations) = split /\./, $self{dataobjid};
+			@relations = grep { length($_) } @relations;
+		}
+
 		$self{dataobj} = $self{dataset}->dataobj( $self{dataobjid} );
+
+		# resolve 11.hassmallThumbnailVersion
+		$self{dataobj} = $self->resolve_relations( $self{dataobj}, @relations );
+
 		# adjust /id/eprint/23 to /id/archive/23
 		$self{dataset} = $self{dataobj}->get_dataset if defined $self{dataobj};
+
 		$self{options} = [qw( GET HEAD PUT OPTIONS )];
 		$self{scope} = CRUD_SCOPE_DATAOBJ;
 	}
@@ -425,6 +436,29 @@ sub check_packaging
 	}
 
 	return OK;
+}
+
+=item $dataobj = $crud->resolve_relations( $dataobj [, @relations ] )
+
+Resolve the relation path from $dataobj and return the resulting dataobj.
+
+Returns undef if there is no such related object.
+
+=cut
+
+sub resolve_relations
+{
+	my( $self, $dataobj, @relations ) = @_;
+
+	foreach my $r (@relations)
+	{
+		last if !defined $dataobj;
+
+		$r =~ s/^has(.+)$/is$1Of/;
+		$dataobj = $dataobj->search_related( $r )->item( 0 );
+	}
+
+	return $dataobj;
 }
 
 sub _priv
