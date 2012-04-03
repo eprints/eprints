@@ -242,9 +242,10 @@ sub new
 	# /id/FOO/BAR
 	if( defined $self{dataobjid} )
 	{
+		my @relations;
 		if( $self{dataset}->base_id eq "document" )
 		{
-			($self{dataobjid}, my @relations) = split /\./, $self{dataobjid};
+			($self{dataobjid}, @relations) = split /\./, $self{dataobjid};
 			@relations = grep { length($_) } @relations;
 		}
 
