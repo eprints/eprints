@@ -236,6 +236,9 @@ sub connect
 
 	if( $rc )
 	{
+		# always try to reconnect
+		$self->{dbh}->{mysql_auto_reconnect} = 1;
+
 		$self->do("SET NAMES 'utf8'");
 	}
 	elsif( $DBI::err == 1040 )

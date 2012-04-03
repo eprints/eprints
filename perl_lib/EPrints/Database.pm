@@ -241,27 +241,31 @@ sub connect
 {
 	my( $self ) = @_;
 
+	my $repo = $self->{session};
+
 	# Connect to the database
-	$self->{dbh} = DBI->connect( 
-		build_connection_string( 
-			dbdriver => $self->{session}->get_repository->get_conf("dbdriver"),
-			dbhost => $self->{session}->get_repository->get_conf("dbhost"),
-			dbsock => $self->{session}->get_repository->get_conf("dbsock"),
-			dbport => $self->{session}->get_repository->get_conf("dbport"),
-			dbname => $self->{session}->get_repository->get_conf("dbname"),
-			dbsid => $self->{session}->get_repository->get_conf("dbsid") ),
-	        $self->{session}->get_repository->get_conf("dbuser"),
-	        $self->{session}->get_repository->get_conf("dbpass") );
+	$self->{dbh} = DBI->connect_cached( 
+			build_connection_string( 
+				dbdriver => $repo->config("dbdriver"),
+				dbhost => $repo->config("dbhost"),
+				dbsock => $repo->config("dbsock"),
+				dbport => $repo->config("dbport"),
+				dbname => $repo->config("dbname"),
+				dbsid => $repo->config("dbsid")
+			),
+			$repo->config("dbuser"),
+			$repo->config("dbpass"),
+			{
+				AutoCommit => 1,
+			}
+		);
 
 	return unless defined $self->{dbh};	
 
-	if( $self->{session}->{noise} >= 4 )
+	if( $repo->{noise} >= 4 )
 	{
 		$self->{dbh}->trace( 2 );
 	}
-
-	# always try to reconnect
-	$self->{dbh}->{mysql_auto_reconnect} = 1;
 
 	return 1;
 }

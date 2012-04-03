@@ -47,27 +47,12 @@ sub connect
 {
 	my( $self ) = @_;
 
-	# Connect to the database
-	$self->{dbh} = DBI->connect( EPrints::Database::build_connection_string( 
-			dbdriver => $self->{session}->get_repository->get_conf("dbdriver"),
-			dbhost => $self->{session}->get_repository->get_conf("dbhost"),
-			dbsock => $self->{session}->get_repository->get_conf("dbsock"),
-			dbport => $self->{session}->get_repository->get_conf("dbport"),
-			dbname => $self->{session}->get_repository->get_conf("dbname"), ),
-	        $self->{session}->get_repository->get_conf("dbuser"),
-	        $self->{session}->get_repository->get_conf("dbpass"),
-			{ AutoCommit => 1 } );
-
-	return unless defined $self->{dbh};	
+	my $rc = $self->SUPER::connect;
+	return $rc if !$rc;
 
 	$self->{dbh}->{pg_enable_utf8} = 1;
 
-	if( $self->{session}->{noise} >= 4 )
-	{
-		$self->{dbh}->trace( 2 );
-	}
-
-	return 1;
+	return $rc;
 }
 
 sub type_info
