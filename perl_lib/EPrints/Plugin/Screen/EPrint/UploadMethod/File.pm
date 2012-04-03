@@ -197,6 +197,8 @@ sub action_finish_file
 		$file->update_md5();
 	}
 
+	$doc->queue_files_modified;
+
 	$file->commit;
 	$doc->commit;
 }
