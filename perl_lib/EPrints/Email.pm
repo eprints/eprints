@@ -160,15 +160,20 @@ sub send_mail_via_smtp
 	my $smtp = Net::SMTP->new( $smtphost );
 	if( !defined $smtp )
 	{
-		$repository->log( "Failed to create smtp connection to $smtphost" );
+		$repository->log( "Failed to create SMTP connection to $smtphost" );
 		return( 0 );
 	}
 
 	
-	$smtp->mail( $p{from_email} );
+	if( !$smtp->mail( $p{from_email} ) )
+	{
+		$repository->log( "SMTP refused MAIL FROM: $p{from_email}: ".$smtp->code." ".$smtp->message );
+		$smtp->quit;
+		return 0;
+	}
 	if( !$smtp->recipient( $p{to_email} ) )
 	{
-		$repository->log( "smtp server refused <$p{to_email}>" );
+		$repository->log( "SMTP refused RCPT TO: $p{to_email}: ".$smtp->code." ".$smtp->message );
 		$smtp->quit;
 		return 0;
 	}
