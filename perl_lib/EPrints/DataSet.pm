@@ -786,14 +786,7 @@ sub count
 
 	if( $self->get_filters )
 	{
-		my $searchexp = EPrints::Search->new(
-			allow_blank => 1,
-			dataset => $self,
-			session => $session );
-		my $list = $searchexp->perform_search;
-		my $c = $list->count;
-		$list->dispose;
-		return $c;
+		return $self->search->count;
 	}
 
 	return $session->get_database->count_table( $self->get_sql_table_name() );
@@ -1298,12 +1291,7 @@ sub get_item_ids
 
 	if( $self->get_filters )
 	{
-		my $searchexp = EPrints::Search->new(
-			allow_blank => 1,
-			dataset => $self,
-			session => $session );
-		my $list = $searchexp->perform_search;
-		return $list->get_ids;
+		return $self->search->get_ids;
 	}
 	return $session->get_database->get_values( $self->get_key_field, $self );
 }

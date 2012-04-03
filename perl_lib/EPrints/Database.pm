@@ -2580,16 +2580,14 @@ sub dequeue_events
 
 	my @events;
 
-	my $searchexp = EPrints::Search->new(
-		session => $repo,
-		dataset => $dataset,
-		filters => [
-			{ meta_fields => ["status"], value => "waiting" },
-			{ meta_fields => ["start_time"], value => "..$until", match => "EQ" },
-		],
-		custom_order => "-priority/-start_time",
-		limit => $n,
-		);
+	my @potential = $dataset->search(
+			filters => [
+				{ meta_fields => ["status"], value => "waiting" },
+				{ meta_fields => ["start_time"], value => "..$until", match => "EQ" },
+			],
+			custom_order => "-priority/-start_time",
+			limit => $n,
+		)->slice( 0, $n );
 
 	my $sql = "UPDATE ".
 		$self->quote_identifier( $dataset->get_sql_table_name ).
@@ -2604,8 +2602,6 @@ sub dequeue_events
 		$self->quote_identifier( $dataset->field( "status" )->get_sql_name ).
 		"=".
 		$self->quote_value( "waiting" );
-
-	my @potential = $searchexp->perform_search->slice( 0, $n );
 
 	foreach my $event (@potential)
 	{
