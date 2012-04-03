@@ -165,7 +165,7 @@ sub render_title
 	if( !defined $title )
 	{
 		my $dataset = $self->{item}->dataset;
-		return $self->{repository}->html_phrase( $dataset->id.":workflow:stage:".$self->get_name.":title" );
+		return $self->{repository}->html_phrase( $dataset->base_id.":workflow:stage:".$self->get_name.":title" );
 	}
 
 	return $self->{repository}->xml->create_text_node( $title );
