@@ -329,7 +329,7 @@ sub log
 		return;
 	}
 
-	print STDERR "[".localtime()."] ".$msg."\n";
+	print STDERR "[".localtime()."] $$ ".$msg."\n";
 }
 
 =head2 Control Methods
@@ -603,16 +603,16 @@ sub run_index
 {
 	my( $self ) = @_;
 
-	$self->log( 3, "** Worker process started: $$" );
+	$self->log( 3, "** Worker process started" );
 
 	my @repos = $self->get_all_sessions();
 
 	$SIG{TERM} = sub {
-		$self->log( 3, "** Worker process terminated: $$" );
+		$self->log( 3, "** Worker process terminated" );
 		$self->real_exit;
 	};
 	$SIG{INT} = sub {
-		$self->log( 3, "** Worker process interupted: $$" );
+		$self->log( 3, "** Worker process interupted" );
 		$self->{interupt} = 1;
 	};
 
@@ -623,6 +623,7 @@ sub run_index
 		foreach my $repo ( @repos )
 		{
 			last MAINLOOP if $self->interupted;
+			$self->log( 5, "** Processing queue from ".$repo->get_id );
 
 			# (re)init the repository object e.g. reconnect timed-out DBI
 			$repo->init_from_indexer( $self );
@@ -674,11 +675,15 @@ sub run_index
 
 	if( $self->interupted )
 	{
-		$self->log( 3, "** Worker process stopping: $$" );
+		$self->log( 3, "** Worker process stopping" );
 	}
 	elsif( !$self->{once} )
 	{
-		$self->log( 3, "** Worker process restarting: $$" );
+		$self->log( 3, "** Worker process restarting" );
+	}
+	else
+	{
+		$self->log( 3, "** Worker process finished" );
 	}
 }
 
@@ -688,6 +693,7 @@ sub _run_index
 
 	my $seen_action = 0;
 	my @events = $session->get_database->dequeue_events( 10 );
+	$self->log( 5, "** Empty task list" ) if !@events;
 	EVENT: foreach my $event (@events)
 	{
 		# reset events on interuption
