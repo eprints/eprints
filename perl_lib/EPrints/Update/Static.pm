@@ -75,42 +75,9 @@ sub update_static_file
 
 	my @static_dirs = $repository->get_static_dirs( $langid );
 
-	my $ok = $repository->get_conf( "auto_update_auto_files" );
-	if( defined $ok && $ok == 0 )
-	{
-		return if $localpath =~ m# /style/auto\.css$ #x;
-		return if $localpath =~ m# /javascript/auto\.js$ #x;
-		return if $localpath =~ m# /javascript/secure_auto\.js$ #x;
-	}
-
 	my $source_mtime;
 	my $source;
 	my $map;
-
-	if( $localpath =~ m# /style/auto\.css$ #x )
-	{
-		return update_auto_css( 
-				$session,
-				$repository->get_conf( "htdocs_path" )."/$langid",
-				\@static_dirs
-			);
-	}
-	elsif( $localpath =~ m# /javascript/auto\.js$ #x )
-	{
-		return update_auto_js(
-				$session,
-				$repository->get_conf( "htdocs_path" )."/$langid",
-				\@static_dirs
-			);
-	}
-	elsif( $localpath =~ m# /javascript/secure_auto\.js$ #x )
-	{
-		return update_secure_auto_js(
-				$session,
-				$repository->get_conf( "htdocs_path" )."/$langid",
-				\@static_dirs
-			);
-	}
 
 	if( $localpath =~ m# \.html$ #x )
 	{
