@@ -515,6 +515,31 @@ sub handler
 
 		$r->filename( $filename );
 	}
+	elsif( $uri =~ m! ^$urlpath/javascript/(secure_)?auto(?:-\d+\.\d+\.\d+)?\.js$ !x )
+	{
+		my $f = $1 ?
+			\&EPrints::Update::Static::update_secure_auto_js :
+			\&EPrints::Update::Static::update_auto_js;
+		my $filename = &$f(
+			$repository,
+			$repository->config( "htdocs_path" )."/$lang",
+			[$repository->get_static_dirs( $lang )]
+		);
+		return NOT_FOUND if( !defined $filename );
+
+		$r->filename( $filename );
+	}
+	elsif( $uri =~ m! ^$urlpath/style/auto(?:-\d+\.\d+\.\d+)?\.css$ !x )
+	{
+		my $filename = EPrints::Update::Static::update_auto_css(
+			$repository,
+			$repository->config( "htdocs_path" )."/$lang",
+			[$repository->get_static_dirs( $lang )]
+		);
+		return NOT_FOUND if( !defined $filename );
+
+		$r->filename( $filename );
+	}
 	else
 	{
 		local $repository->{preparing_static_page} = 1; 

@@ -33,11 +33,11 @@ EOJ
 	$head->appendChild( $repo->xml->create_element( "link",
 			rel => "stylesheet",
 			type => "text/css",
-			href => $repo->current_url( path => "static", "style/auto.css" ),
+			href => $repo->current_url( path => "static", "style/auto-".EPrints->human_version.".css" ),
 		) );
 	$head->appendChild( $repo->xml->create_text_node( "\n    " ) );
 	$head->appendChild( $repo->make_javascript( undef,
-		src => $repo->current_url( path => "static", "javascript/auto.js" ),
+		src => $repo->current_url( path => "static", "javascript/auto-".EPrints->human_version.".js" ),
 	) );
 	$head->appendChild( $repo->xml->create_text_node( "\n    " ) );
 
