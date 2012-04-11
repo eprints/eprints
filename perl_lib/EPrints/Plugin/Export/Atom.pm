@@ -238,8 +238,8 @@ sub output_eprint
 		}
 	}
 
-	my $lastmod = $dataset->field( "lastmod" )->iso_value( $dataobj );
-	my $datestamp = $dataset->field( "datestamp" )->iso_value( $dataobj );
+	my $lastmod = $dataset->field( "lastmod" )->iso_value( $dataobj->value( "lastmod" ) );
+	my $datestamp = $dataset->field( "datestamp" )->iso_value( $dataobj->value( "datestamp" ) );
 
 	$entry->appendChild( $xml->create_data_element(
 			"published",

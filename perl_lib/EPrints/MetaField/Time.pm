@@ -27,11 +27,17 @@ Note: if you set the time using ISO datetime format (YYYY-MM-DDThh:mm:ssZ) it wi
 
 In addition to those properties available in L<EPrints::MetaField::Date> and L<EPrints::MetaField>:
 
+=head2 render_res
+
+Reduce the resolution the date is shown as.
+
 =over 4
 
-=item maxlength = 19
+=item B<"second">
 
-=item render_res = "second"
+=item "minute"
+
+=item "hour"
 
 =back
 
@@ -186,9 +192,9 @@ sub render_xml_schema_type
 	return $type;
 }
 
-=item $datetime = $time->iso_value( $dataobj )
+=item $datetime = $time->iso_value( $value )
 
-Returns the value of this field from $dataobj in ISO datetime format (YYYY-MM-DDThh:mm:ssZ).
+Returns $value in ISO datetime format (YYYY-MM-DDThh:mm:ssZ).
 
 Returns undef if the value is unset.
 
@@ -196,12 +202,11 @@ Returns undef if the value is unset.
 
 sub iso_value
 {
-	my( $self, $dataobj ) = @_;
+	my( $self, $value ) = @_;
 
-	my $dt = $self->get_value( $dataobj );
-	return undef if !EPrints::Utils::is_set( $dt );
+	return undef if !EPrints::Utils::is_set( $value );
 
-	return join('T',split / /, $dt) . "Z";
+	return join('T',split / /, $self->_build_value( $value )) . "Z";
 }
 
 =back

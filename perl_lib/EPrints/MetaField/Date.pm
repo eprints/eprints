@@ -6,47 +6,73 @@ EPrints::MetaField::Date - dates
 
 =head1 DESCRIPTION
 
-not done
+This field is used to store a single date. The notation used is C<YYYY-MM-DD>, where C<YYYY> is the 4-digit year, C<MM> is the 2 digit month (starting at 01) and C<DD> is the 2 digit day of the month (starting at 01).
+
+C<MM> and C<DD> may be omitted, giving the following possible values:
+
+	YYYY-MM-DD
+	YYYY-MM
+	YYYY
+
+=head2 Database
+
+=over 4
+
+=item [fieldname]_year SQL_SMALLINT
+
+=item [fieldname]_month SQL_TINYINT
+
+=item [fieldname]_day SQL_TINYINT
+
+=back
+
+=head2 Searching
+
+Date fields can be searched as either single values or ranges. Searching for "2006" will also match 2006-12-25. You can search for "2000.." to search dates in or after 2000. Or "2000-12..2003-01" for December 2000 through January 2003.
 
 =head1 PROPERTIES
 
 In addition to those properties available in L<EPrints::MetaField>:
 
-=over 4
-
-=item input_style = "short"
+=head2 input_style
 
 =over 4
 
-=item long
+=item "long"
 
 Render labeled text entry boxes for year, month and day.
 
-=item short
+=item B<"short">
 
 Render a single text entry box with a Javascript date picker.
 
 =back
 
-=item maxlength = "10"
-
-=item render_res = "day"
+=head2 render_res
 
 Reduce the resolution the date is shown as.
 
-=item render_style = "long"
+=over 4
+
+=item B<"day">
+
+=item "month"
+
+=item "year"
+
+=back
+
+=head2 render_style
 
 =over 4
 
-=item long
+=item B<"long">
 
 Render the full month name.
 
-=item short
+=item "short"
 
 Render an abbreviated month name.
-
-=back
 
 =back
 
