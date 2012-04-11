@@ -162,8 +162,7 @@ sub get_system_field_info
 			input_tags=>\&main_input_tags,
 			render_option=>\&main_render_option },
 
-		{ name=>"date_embargo", type=>"date", required=>0,
-			min_resolution=>"year" },	
+		{ name=>"date_embargo", type=>"date", required=>0, },	
 
 		{ name=>"content", type=>"namedset", required=>0, input_rows=>1,
 			set_name=>"content" },

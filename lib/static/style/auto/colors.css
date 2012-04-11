@@ -149,9 +149,9 @@ h1, h2, h3, h4 {
 	background-color: #fff;
 }
 
-/* general.css */
+/* general.css datepicker.css */
 
-th.ep_title_row
+th.ep_title_row, .ep_datepicker table tr:first-child
 {
 	border-color: #808080;
 	background-image: url(images/bar_24px.png);
@@ -209,4 +209,17 @@ td.ep_columns_cell {
 {
 	border-color: #cccccc;
 	background-image: url(images/bar_24px.png);
+}
+
+/* datepicker.css */
+
+.ep_datepicker {
+	background-color: #fff;
+	border-color: #ddd;
+	border-style: outset;
+	box-shadow: 8px 8px 5px #aaa;
+}
+
+.ep_datepicker td:hover, .ep_datepicker td.ep_dp_selected {
+	background-color: #9999ff;
 }

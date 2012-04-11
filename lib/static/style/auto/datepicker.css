@@ -1,0 +1,31 @@
+.ep_datepicker {
+	border-width: 1px;
+	padding: 8px;
+}
+.ep_datepicker div {
+	display: block;
+	text-align: center;
+}
+.ep_datepicker div span.ep_dp_previous {
+	float: left;
+	margin-right: 10px;
+}
+.ep_datepicker div span.ep_dp_next {
+	float: right;
+	margin-left: 10px;
+}
+.ep_datepicker table {
+	border-spacing: 0px;
+	border-collapse: collapse;
+	margin-top: 2px;
+}
+.ep_datepicker th, .ep_datepicker td {
+	padding: 0px 2px;
+	text-align: center;
+}
+.ep_datepicker td.ep_dp_selected {
+	font-weight: bold;
+}
+.ep_datepicker td a {
+	display: block;
+}
