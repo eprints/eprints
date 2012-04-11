@@ -1,21 +1,22 @@
-######################################################################
-#
-# EPrints::MetaField::Int;
-#
-######################################################################
-#
-#
-######################################################################
-
-=pod
+=for Pod2Wiki
 
 =head1 NAME
 
-B<EPrints::MetaField::Int> - no description
+EPrints::MetaField::Int - integers
 
 =head1 DESCRIPTION
 
-not done
+=head1 PROPERTIES
+
+=over 4
+
+=item maxlength = 9
+
+Maximum digits to allow (excluding '-' for negative numbers). The maximum allowed will depend on your database (probably 18 for BIGINT).
+
+=back
+
+=head1 METHODS
 
 =over 4
 
@@ -23,25 +24,52 @@ not done
 
 package EPrints::MetaField::Int;
 
+use EPrints::Database;
+
+@ISA = qw( EPrints::MetaField );
+
 use strict;
-use warnings;
 
-BEGIN
-{
-	our( @ISA );
-
-	@ISA = qw( EPrints::MetaField );
-}
+our %MAXLENGTHS = (
+	2 => EPrints::Database::SQL_TINYINT,
+	4 => EPrints::Database::SQL_SMALLINT,
+#	6 => EPrints::Database::SQL_MEDIUMINT, # Not widely supported
+	9 => EPrints::Database::SQL_INTEGER,
+	18 => EPrints::Database::SQL_BIGINT,
+);
 
 use EPrints::MetaField;
+
+sub new
+{
+	my( $class, %params ) = @_;
+
+	$params{maxlength} = delete $params{digits}
+		if exists $params{digits};
+
+	my $self = $class->SUPER::new( %params );
+
+	return $self;
+}
 
 sub get_sql_type
 {
 	my( $self, $session ) = @_;
 
+	my $db_type;
+	foreach my $len (sort { $a <=> $b } keys %MAXLENGTHS)
+	{
+		next if !defined $MAXLENGTHS{$len};
+		$db_type = $MAXLENGTHS{$len}, last if $len >= $self->property( "maxlength" );
+	}
+	if( !defined $db_type )
+	{
+		EPrints->abort( "No database type that is long enough to support ".$self->property( "maxlength" ). " digits");
+	}
+
 	return $session->get_database->get_column_type(
 		$self->get_sql_name(),
-		EPrints::Database::SQL_INTEGER,
+		$db_type,
 		!$self->get_property( "allow_null" ),
 		undef,
 		undef,
@@ -53,7 +81,7 @@ sub get_max_input_size
 {
 	my( $self ) = @_;
 
-	return $self->get_property( "digits" );
+	return $self->get_property( "maxlength" );
 }
 
 sub ordervalue_basic
@@ -66,7 +94,7 @@ sub ordervalue_basic
 	}
 
 	# just in case we still use eprints in year 200k 
-	my $pad = $self->get_property( "digits" );
+	my $pad = $self->get_property( "maxlength" );
 	return sprintf( "%0".$pad."d",$value );
 }
 
@@ -74,12 +102,13 @@ sub render_search_input
 {
 	my( $self, $session, $searchfield ) = @_;
 	
+	my $maxlength = $self->property( "maxlength" ) + 1; # digits plus '-' for negative
 	return $session->render_input_field(
 				class => "ep_form_text",
 				name=>$searchfield->get_form_prefix,
 				value=>$searchfield->get_value,
 				size=>9,
-				maxlength=>100 );
+				maxlength=>$maxlength );
 }
 
 sub from_search_form
@@ -196,7 +225,7 @@ sub get_property_defaults
 {
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
-	$defaults{digits} = $EPrints::MetaField::FROM_CONFIG;
+	$defaults{maxlength} = 9, # SQL_INT
 	$defaults{text_index} = 0;
 	$defaults{regexp} = qr/-?[0-9]+/;
 	return %defaults;
@@ -242,8 +271,29 @@ sub form_value_basic
 			undef;
 }
 
+sub create_ordervalues_field
+{
+	my( $self, $session, $langid ) = @_;
+
+	my $field = $self->clone;
+	$field->set_property( sql_index => 0 );
+
+	return $field;
+}
+
+sub ordervalue
+{
+	my( $self, @params ) = @_;
+
+	my $value = $self->SUPER::ordervalue( @params );
+
+	return EPrints::Utils::is_set( $value ) ? $value : 0;
+}
+
 ######################################################################
 1;
+
+=back
 
 =head1 COPYRIGHT
 
