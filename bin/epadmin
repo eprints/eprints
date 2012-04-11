@@ -968,7 +968,7 @@ sub epadmin_create_db
 	my $mktables = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database tables?", "yes" );
 	if( $mktables eq "yes" )
 	{
-		create_tables( $repoid );
+		epadmin_create_tables( $repoid );
 	}
 }
 
@@ -1502,7 +1502,7 @@ sub drop_tables_and_recreate_db
 	my $mktables = $force || EPrints::Utils::get_input_confirm( "Create database tables?", 0, 1 ); # not quick, default to "yes"
 	if( $mktables )
 	{
-		create_tables( $repoid );
+		epadmin_create_tables( $repoid );
 	}
 }
 
@@ -1535,7 +1535,7 @@ sub drop_and_recreate_db
 	my $mktables = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database tables?", "yes" );
 	if( $mktables eq "yes" )
 	{
-		create_tables( $repoid );
+		epadmin_create_tables( $repoid );
 	}
 }
 
