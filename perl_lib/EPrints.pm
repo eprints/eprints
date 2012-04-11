@@ -93,6 +93,7 @@ BEGIN
 use Data::Dumper;
 use Scalar::Util;
 use File::Temp;
+use JSON qw();
 
 use Carp;
 

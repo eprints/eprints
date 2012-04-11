@@ -1,38 +1,58 @@
 #!/usr/bin/perl
 
+our $MAXSIZE = 1 * 1024 * 1024;
+
 use EPrints;
 
 my $repo = EPrints->new->current_repository;
 exit if !defined $repo;
 
-my $textonly = $repo->param( "textonly" );
-my $phraseid = $repo->param( "phraseid" );
-my %pins;
-foreach my $param ($repo->param)
+my $r = $repo->get_request;
+
+my $uri = URI::http->new( $r->unparsed_uri );
+my %q = $uri->query_form;
+
+my $json;
+$r->read( $json, $MAXSIZE + 1 );
+EPrints->abort( "JSON read limit reached" ) if length($json) > $MAXSIZE;
+utf8::upgrade( $json );
+
+my $input = JSON::decode_json( $json );
+
+EPrints->abort( "Expected HASH but got ".ref($input) ) if ref($input) ne "HASH";
+
+my $textonly = $q{textonly};
+
+my %phrases;
+
+while(my( $phraseid, $pins ) = each %$input)
 {
-	if( $param =~ /^pin\.(.+)$/ )
+	$pins = {} if ref($pins) ne "HASH";
+	if( $textonly )
 	{
-		$pins{$1} = $repo->param( $param );
+		$phrases{$phraseid} = $repo->phrase( $phraseid, %$pins );
+	}
+	else
+	{
+		for(values(%$pins))
+		{
+			my $doc = eval { $repo->xml->parse_string( $_ ) };
+			if( defined $doc )
+			{
+				$_ = $repo->xml->clone( $doc->documentElement );
+				$repo->xml->dispose( $doc );
+			}
+			else
+			{
+				$_ = $repo->xml->create_text_node( $_ );
+			};
+		}
+		my $xml = $repo->html_phrase( $phraseid, %$pins );
+		$phrases{$phraseid} = $repo->xhtml->to_xhtml( $xml );
+		$repo->xml->dispose( $xml );
 	}
 }
 
-if( $textonly )
-{
-	$repo->get_request->content_type( "text/plain; charset=UTF-8" );
-	print $repo->phrase( $phraseid, %pins );
-}
-else
-{
-	for(values %pins)
-	{
-		my $xml = eval { $repo->xml->parse_string( $_ ) };
-		$_ = defined $xml ? $xml : $repo->xml->create_text_node( $_ );
-	}
-	$repo->get_request->content_type( "text/html; charset=UTF-8" );
-	my $xml = $repo->html_phrase( $phraseid, %pins );
-	print $repo->xhtml->to_xhtml( $xml );
-	for($xml, values %pins)
-	{
-		$repo->xml->dispose( $_ );
-	}
-}
+$r->content_type( "application/json" );
+binmode( STDOUT, ":utf8" );
+print JSON::encode_json( \%phrases );
