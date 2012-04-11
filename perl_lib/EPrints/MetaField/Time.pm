@@ -379,9 +379,9 @@ sub render_xml_schema_type
 	return $type;
 }
 
-=item $datetime = $time->iso_value( $dataobj )
+=item $datetime = $time->iso_value( $value )
 
-Returns the value of this field from $dataobj in ISO datetime format (YYYY-MM-DDThh:mm:ssZ).
+Returns $value in ISO datetime format (YYYY-MM-DDThh:mm:ssZ).
 
 Returns undef if the value is unset.
 
@@ -389,12 +389,11 @@ Returns undef if the value is unset.
 
 sub iso_value
 {
-	my( $self, $dataobj ) = @_;
+	my( $self, $value ) = @_;
 
-	my $dt = $self->get_value( $dataobj );
-	return undef if !EPrints::Utils::is_set( $dt );
+	return undef if !EPrints::Utils::is_set( $value );
 
-	return join('T',split / /, $dt) . "Z";
+	return join('T',split / /, $self->_build_value( $value )) . "Z";
 }
 
 =back
