@@ -27,21 +27,23 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 			Search::Xapian::DB_CREATE_OR_OPEN()
 		) };
 		$repo->log( $@ ), return if $@;
-
-		if( !defined $repo->{_xapian_tg} )
-		{
-			$repo->{_xapian_tg} = Search::Xapian::TermGenerator->new();
-			$repo->{_xapian_stemmer} = $plugin->stemmer;
-			$repo->{_xapian_stopper} = $plugin->stopper;
-
-			my $tg = $repo->{_xapian_tg};
-			$tg->set_stemmer( $repo->{_xapian_stemmer} );
-			$tg->set_stopper( $repo->{_xapian_stopper} );
-		}
 	}
 
 	my $db = $repo->{_xapian};
 	return if !defined $db;
+
+	if( !defined $repo->{_xapian_tg} )
+	{
+		my $plugin = $repo->plugin( "Search::Xapian" );
+
+		$repo->{_xapian_tg} = Search::Xapian::TermGenerator->new();
+		$repo->{_xapian_stemmer} = $plugin->stemmer;
+		$repo->{_xapian_stopper} = $plugin->stopper;
+
+		my $tg = $repo->{_xapian_tg};
+		$tg->set_stemmer( $repo->{_xapian_stemmer} );
+		$tg->set_stopper( $repo->{_xapian_stopper} );
+	}
 
 	my $tg = $repo->{_xapian_tg};
 	$tg->set_termpos( 1 );
