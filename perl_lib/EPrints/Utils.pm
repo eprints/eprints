@@ -58,7 +58,6 @@ use File::Copy qw();
 use Text::Wrap qw();
 use LWP::UserAgent;
 use URI;
-use Digest::SHA qw();
 use EPrints::Const qw( :crypt );
 
 use strict;
