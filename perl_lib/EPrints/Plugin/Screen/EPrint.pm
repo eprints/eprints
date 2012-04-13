@@ -64,10 +64,6 @@ sub allow
 
 	return 0 unless defined $self->{processor}->{eprint};
 
-	my $status = $self->{processor}->{eprint}->get_value( "eprint_status" );
-
-	$priv =~ s/^eprint\//eprint\/$status\//;	
-
 	return 1 if( $self->{session}->allow_anybody( $priv ) );
 	return 0 if( !defined $self->{session}->current_user );
 	return $self->{session}->current_user->allow( $priv, $self->{processor}->{eprint} );
@@ -161,23 +157,23 @@ sub workflow
 {
 	my( $self ) = @_;
 
-	my $staff = $self->allow( "eprint/edit:editor" );
-
-	my $cache_id = "workflow";
-	$cache_id.= "_staff" if( $staff ); 
-
-	if( !defined $self->{processor}->{$cache_id} )
+	if( !defined $self->{processor}->{workflow} )
 	{
+		my $staff = $self->allow( "eprint/edit:editor" );
 		my %opts = (
 			item => $self->{processor}->{eprint},
 			session => $self->{session},
 			processor => $self->{processor},
+			STAFF_ONLY => [$staff ? "TRUE" : "FALSE","BOOLEAN"],
 		);
-		$opts{STAFF_ONLY} = [$staff ? "TRUE" : "FALSE","BOOLEAN"];
- 		$self->{processor}->{$cache_id} = EPrints::Workflow->new( $self->{session}, $self->workflow_id, %opts );
+ 		$self->{processor}->{workflow} = EPrints::Workflow->new(
+				$self->{session},
+				$self->workflow_id,
+				%opts
+			);
 	}
 
-	return $self->{processor}->{$cache_id};
+	return $self->{processor}->{workflow};
 }
 
 sub workflow_id

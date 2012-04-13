@@ -374,15 +374,6 @@ sub render_stage_warnings
 	return $session->render_message( "warning", $ul );
 }
 
-sub workflow
-{
-	my( $self ) = @_;
-
-	my $staff = $self->allow( "eprint/edit:editor" );
-
-	return $self->SUPER::workflow( $staff );
-}
-
 1;
 
 =head1 COPYRIGHT
