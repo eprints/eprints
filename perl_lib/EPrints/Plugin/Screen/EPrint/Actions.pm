@@ -49,31 +49,46 @@ sub render
 	my $frag = $session->make_doc_fragment;
 	my $table = $session->make_element( "table" );
 	$frag->appendChild( $table );
-	my( $tr, $th, $td );
+	my( $contents, $tr, $th, $td );
 
-	$tr = $table->appendChild( $session->make_element( "tr" ) );
-	$td = $tr->appendChild( $session->make_element( "td" ) );
-	$td->appendChild( $self->render_action_list( "eprint_actions", ['eprintid'] ) );
+	$contents = $self->render_action_list( "eprint_actions", ['eprintid'] );
 
-	$tr = $table->appendChild( $session->make_element( "tr" ) );
-	$th = $tr->appendChild( $session->make_element( "th", class => "ep_title_row" ) );
-	$th->appendChild( $session->html_phrase( "Plugin/Screen/EPrint/Actions/Editor:title" ) );
+	if( $contents->hasChildNodes )
+	{
+		$tr = $table->appendChild( $session->make_element( "tr" ) );
+		$td = $tr->appendChild( $session->make_element( "td" ) );
+		$td->appendChild( $contents );
+	}
 
-	$tr = $table->appendChild( $session->make_element( "tr" ) );
-	$td = $tr->appendChild( $session->make_element( "td" ) );
-	$td->appendChild( $self->render_action_list( "eprint_editor_actions", ['eprintid'] ) );
+	$contents = $self->render_action_list( "eprint_editor_actions", ['eprintid'] );
 
-	$tr = $table->appendChild( $session->make_element( "tr" ) );
-	$th = $tr->appendChild( $session->make_element( "th", class => "ep_title_row" ) );
-	$th->appendChild( $session->html_phrase( "Plugin/Screen/EPrint/Export:title" ) );
+	if( $contents->hasChildNodes )
+	{
+		$tr = $table->appendChild( $session->make_element( "tr" ) );
+		$th = $tr->appendChild( $session->make_element( "th", class => "ep_title_row" ) );
+		$th->appendChild( $session->html_phrase( "Plugin/Screen/EPrint/Actions/Editor:title" ) );
 
-	$tr = $table->appendChild( $session->make_element( "tr" ) );
-	$td = $tr->appendChild( $session->make_element( "td" ) );
-	$td->appendChild(
-		$session->make_element( "div", class => "ep_block" )
-	)->appendChild(
-		$self->{processor}->{eprint}->render_export_bar( $staff )
-	);
+		$tr = $table->appendChild( $session->make_element( "tr" ) );
+		$td = $tr->appendChild( $session->make_element( "td" ) );
+		$td->appendChild( $contents );
+	}
+
+	$contents = $self->{processor}->{eprint}->render_export_bar( $staff );
+
+	if( $contents->hasChildNodes )
+	{
+		$tr = $table->appendChild( $session->make_element( "tr" ) );
+		$th = $tr->appendChild( $session->make_element( "th", class => "ep_title_row" ) );
+		$th->appendChild( $session->html_phrase( "Plugin/Screen/EPrint/Export:title" ) );
+
+		$tr = $table->appendChild( $session->make_element( "tr" ) );
+		$td = $tr->appendChild( $session->make_element( "td" ) );
+		$td->appendChild(
+			$session->make_element( "div", class => "ep_block" )
+		)->appendChild(
+			$contents
+		);
+	}
 
 	return $frag;
 }
