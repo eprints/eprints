@@ -1,44 +1,36 @@
 use strict;
-use Test::More tests => 4;
+use Test::More tests => 6;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
 
-our $VIEW_DIR = undef;
-
-END
-{
-	if( defined $VIEW_DIR )
-	{
-		EPrints::Utils::rmtree( $VIEW_DIR );
-	}
-}
 
 $SIG{INT} = sub { die "CAUGHT SIGINT\n" };
 
 EPrints::Test::mem_increase();
 
-my $session = EPrints::Test::get_test_session( 0 );
-ok(defined $session, 'opened an EPrints::Session object (noisy, no_check_db)');
+my $repo = EPrints::Test->repository;
 
-$session->cache_subjects;
+$repo->cache_subjects;
 
-my $repository = $session->get_repository;
+my $views = $repo->config( "browse_views" );
 
-my $views = $repository->get_conf( "browse_views" );
-
-my $ds = $repository->get_dataset( "archive" );
+my $ds = $repo->dataset( "archive" );
 
 my $test_id = "_40_views_pl";
 
-my $lang = $session->get_lang;
+my $lang = $repo->get_lang;
 my $langid = $lang->{id};
+
+my $viewdir = File::Temp->newdir();
+
+local $repo->{config}->{htdocs_path} = "$viewdir";
 
 # Work-around to suppress the phrase warnings
 {
 my $data = $lang->_get_repositorydata;
-my $phrase = $session->make_element( "phrase", id => "viewname_eprint_$test_id" );
-$phrase->appendChild( $session->make_text( $test_id ) );
+my $phrase = $repo->make_element( "phrase", id => "viewname_eprint_$test_id" );
+$phrase->appendChild( $repo->make_text( $test_id ) );
 $data->{xml}->{"viewname_eprint_$test_id"} = $phrase;
 keys %{$data->{file}};
 (undef, $data->{file}->{"viewname_eprint_$test_id"}) = each %{$data->{file}};
@@ -58,32 +50,32 @@ my $test_view =
 };
 
 my $view = EPrints::Update::Views->new(
-	repository => $session,
+	repository => $repo,
 	view => $test_view
 );
-
-$VIEW_DIR = $repository->get_conf( "htdocs_path" )."/".$langid."/view/$test_id";
-
-my @files;
 
 EPrints::Test::mem_increase();
 Test::More::diag( "memory footprint\n" );
 
 $view->update_view_by_path(
-		on_write => sub { push @files, $_[0]; diag( $_[0] ); },
+		on_write => sub { diag( $_[0] ); },
 		langid => $langid, 
 		do_menus => 1,
 		do_lists => 1 );
 
+ok( -e "$viewdir/$langid/view/$test_id/index.page", "browse_view_menu");
+ok( -e "$viewdir/$langid/view/$test_id/2004.page", "browse_view_menu");
+
 Test::More::diag( "\t update_view_by_path=" . EPrints::Test::human_mem_increase() );
 
-push @files, EPrints::Update::Views::update_browse_view_list(
-		$session,
-		$langid );
+EPrints::Update::Views::update_view_file(
+		$repo,
+		$langid,
+		"view/index.html" );
+
+ok( -e "$viewdir/$langid/view/index.page", "browse_view_menu");
 
 Test::More::diag( "\t update_browse_view_list=" . EPrints::Test::human_mem_increase() );
-
-$session->terminate;
 
 ok(1);
 
