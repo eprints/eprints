@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+
+<!-- 
+	Citation Styles for messages.
+-->
+
+<cite:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:cite="http://eprints.org/ep3/citation" xmlns:epc="http://eprints.org/ep3/control">
+
+<div class="ep_msg_{as_string(type)}" id="m{messageid}">
+	<div class="ep_msg_{as_string(type)}_content">
+		<table>
+		<tr>
+		<td><img class="ep_msg_{as_string(type)}_icon" src="{$config{rel_path}}/style/images/{as_string(type)}.png" alt="{type}" /></td>
+		<td><epc:print expr="message" /></td>
+		</tr>
+		</table>
+	</div>
+</div>
+
+</cite:citation>

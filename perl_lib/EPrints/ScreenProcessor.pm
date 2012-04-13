@@ -424,7 +424,7 @@ sub add_message
 	# we'll sanity check now, otherwise it becomes hard to trace later on
 	EPrints->abort( "Requires message argument" ) if !defined $message;
 
-	push @{$self->{messages}},{type=>$type,content=>$message};
+	push @{$self->{messages}},{type=>$type,message=>$message};
 }
 
 
@@ -459,26 +459,27 @@ sub render_messages
 
 	my $chunk = $self->{session}->make_element( "div", id => "ep_messages" );
 
-	my @old_messages;
-	my $cuser = $self->{session}->current_user;
-	if( defined $cuser )
+	my $user = $self->{session}->current_user;
+	if( defined $user )
 	{
-		my $db = $self->{session}->get_database;
-		@old_messages = @{$cuser->value( "messages" )};
-		$_->remove for @old_messages;
-	}
-	foreach my $message ( @old_messages, @{$self->{messages}} )
-	{
-		if( !defined $message->{content} )
+		foreach my $message ( @{$user->value( "messages" )} )
 		{
-			# parse error!
-			next;
+			$chunk->appendChild( $message->render_citation );
+			$message->remove;
 		}
-		my $dom_message = $self->{session}->render_message( 
-				$message->{type},
-				$message->{content});
-		$chunk->appendChild( $dom_message );
 	}
+
+	my $dataset = $self->{session}->dataset( "message" );
+	foreach my $message ( @{$self->{messages}} )
+	{
+		# EPrints::DataObj::Message will dispose $message->{message}
+		$chunk->appendChild(
+				$dataset->make_dataobj( $message )->render_citation
+			);
+	}
+
+	# XML has been disposed, so don't let anything else try to use the messages
+	$self->{messages} = [];
 
 	return $chunk;
 }

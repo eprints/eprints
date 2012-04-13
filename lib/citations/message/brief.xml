@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+
+<!-- 
+	Citation Styles for messages.
+-->
+
+<cite:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:cite="http://eprints.org/ep3/citation" xmlns:epc="http://eprints.org/ep3/control">
+
+<div class="ep_msg_{as_string(type)}" id="m{messageid}">
+	<div class="ep_msg_{as_string(type)}_content">
+		<epc:print expr="message" />
+	</div>
+</div>
+
+</cite:citation>

@@ -4116,28 +4116,17 @@ sub render_message
 {
 	my( $self, $type, $content, $show_icon ) = @_;
 	
+	my $msg = $self->dataset( "message" )->make_dataobj( {
+			messageid => $self->get_next_id,
+			type => $type,
+			message => $content,
+		});
+
 	$show_icon = 1 unless defined $show_icon;
 
-	my $id = "m".$self->get_next_id;
-	my $div = $self->make_element( "div", class=>"ep_msg_".$type, id=>$id );
-	my $content_div = $self->make_element( "div", class=>"ep_msg_".$type."_content" );
-	my $table = $self->make_element( "table" );
-	my $tr = $self->make_element( "tr" );
-	$table->appendChild( $tr );
-	if( $show_icon )
-	{
-		my $td1 = $self->make_element( "td" );
-		my $imagesurl = $self->get_repository->get_conf( "rel_path" );
-		$td1->appendChild( $self->make_element( "img", class=>"ep_msg_".$type."_icon", src=>"$imagesurl/style/images/".$type.".png", alt=>$self->phrase( "Plugin/Screen:message_".$type ) ) );
-		$tr->appendChild( $td1 );
-	}
-	my $td2 = $self->make_element( "td" );
-	$tr->appendChild( $td2 );
-	$td2->appendChild( $content );
-	$content_div->appendChild( $table );
-#	$div->appendChild( $title_div );
-	$div->appendChild( $content_div );
-	return $div;
+	return !$show_icon ?
+		$msg->render_citation( "brief" ) :
+		$msg->render_citation();
 }
 
 
