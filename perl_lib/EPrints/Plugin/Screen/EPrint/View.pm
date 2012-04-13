@@ -115,7 +115,7 @@ sub can_be_viewed
 	return $self->allow( "eprint/view" ) & $self->who_filter;
 }
 
-sub who_filter { return 15; }
+sub who_filter { return 14; }
 
 sub render
 {
