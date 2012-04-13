@@ -52,6 +52,24 @@ sub sql_row_from_value
 	return $repo->xml->to_string( $value );
 }
 
+sub render_value_no_multiple
+{
+	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
+
+	return $session->xml->clone( $value );
+}
+
+sub to_sax_basic
+{
+	my( $self, $value, %opts ) = @_;
+
+	return if !defined $value;
+
+	EPrints::XML::SAX::Generator->new(
+			Handler => $opts{Handler}
+		)->generate_fragment( $value );
+}
+
 ######################################################################
 1;
 
