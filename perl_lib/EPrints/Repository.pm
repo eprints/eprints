@@ -130,7 +130,7 @@ sub new
 	EPrints::Utils::process_parameters( \%opts, {
 		  consume_post => 1,
 		           cgi => 0,
-		         noise => 0,
+		         noise => 1,
 		    db_connect => 1,
 		      check_db => 1,
 	});
@@ -138,7 +138,7 @@ sub new
 	my $self = bless {}, $class;
 
 	$self->{noise} = $opts{noise};
-	$self->{noise} = 0 if ( !defined $self->{noise} );
+	$self->{noise} = 1 if ( !defined $self->{noise} );
 
 	$self->{used_phrases} = {};
 

@@ -9,7 +9,7 @@ $SIG{INT} = sub { die "CAUGHT SIGINT\n" };
 
 EPrints::Test::mem_increase();
 
-my $repo = EPrints::Test->repository;
+my $repo = EPrints::Test->repository( noise => 0 );
 
 $repo->cache_subjects;
 

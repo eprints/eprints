@@ -237,10 +237,10 @@ sub phrase
 	$inserts = {} if( !defined $inserts );
 	if( !defined $phrase )
 	{
-		$session->get_repository->log( sprintf("Undefined phrase: %s (%s) at line %d in %s",
+		$session->log( sprintf("Undefined phrase: %s (%s) at line %d in %s",
 			$phraseid,
 			$self->{id},
-			(caller(1))[2,1] ) );
+			(caller(1))[2,1] ) ) if $session->{noise};
 		my $frag = $session->make_doc_fragment;
 		$frag->appendChild( $session->make_text( '["'.$phraseid.'" not defined' ) );
 		if( scalar(keys %$inserts) )

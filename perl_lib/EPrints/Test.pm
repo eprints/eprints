@@ -52,13 +52,14 @@ Returns the first repository object.
 
 sub repository
 {
+	my $class = shift;
 	&get_test_repository;
 }
 sub get_test_repository
 {
 	my $repoid = get_test_id();
 
-	my $repository = EPrints::Repository->new( $repoid );
+	my $repository = EPrints::Repository->new( $repoid, @_ );
 
 	return $repository;
 }
