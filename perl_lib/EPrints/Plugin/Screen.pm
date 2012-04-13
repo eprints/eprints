@@ -531,8 +531,11 @@ sub render_action_list
 
 	my $session = $self->{session};
 
+	my @actions = $self->action_list( $list_id );
+	return $session->make_doc_fragment if !@actions;
+
 	my $table = $session->make_element( "table", class=>"ep_act_list" );
-	foreach my $params ( $self->action_list( $list_id ) )
+	foreach my $params ( @actions )
 	{
 		my $tr = $session->make_element( "tr" );
 		$table->appendChild( $tr );

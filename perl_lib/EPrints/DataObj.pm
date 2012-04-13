@@ -1974,15 +1974,28 @@ sub permit
 
 	my $r = 0;
 
-	$r |= 1 if $self->{session}->allow_anybody( $priv );
+	my $dataset = $self->get_dataset;
 
-	if( defined $user )
+	my $vpriv = $priv;
+	if( $dataset->id ne $dataset->base_id )
 	{
-		$r |= 2 if $user->has_privilege( $priv );
+		my $id = $dataset->id;
+		my $base_id = $dataset->base_id;
+		$vpriv =~ s{^$base_id/}{$base_id/$id/};
+	}
 
-		$r |= 4 if $self->has_owner( $user ) && $user->has_privilege( "$priv:owner" );
+	for( $priv eq $vpriv ? ($priv) : ($priv, $vpriv) )
+	{
+		$r |= 1 if $self->{session}->allow_anybody( $_ );
 
-		$r |= 8 if $self->in_editorial_scope_of( $user ) && $user->has_privilege( "$priv:editor" );
+		if( defined $user )
+		{
+			$r |= 2 if $user->has_privilege( $_ );
+
+			$r |= 4 if $self->has_owner( $user ) && $user->has_privilege( "$_:owner" );
+
+			$r |= 8 if $self->in_editorial_scope_of( $user ) && $user->has_privilege( "$_:editor" );
+		}
 	}
 
 	return $r;
