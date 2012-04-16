@@ -298,27 +298,32 @@ sub export_dataobj
 		$dataset = $dataobj->get_dataset;
 	}
 
-	$r->pnotes->{dataset} = $dataset;
-	$r->pnotes->{dataobj} = $dataobj;
-	$r->pnotes->{plugin} = $plugin;
-
 	my $rc;
 
-	$rc = EPrints::Apache::CRUD::authen( $r );
+	my $crud = EPrints::Apache::CRUD->new(
+			repository => $repository,
+			request => $r,
+			dataset => $dataset,
+			dataobj => $dataobj,
+			plugin => $plugin,
+			scope => EPrints::Apache::CRUD::CRUD_SCOPE_DATAOBJ,
+		);
+
+	$rc = $crud->authen;
 	if( $rc != OK )
 	{
 		$r->status( $rc );
 		return;
 	}
 
-	$rc = EPrints::Apache::CRUD::authz( $r );
+	$rc = $crud->authz;
 	if( $rc != OK )
 	{
 		$r->status( $rc );
 		return;
 	}
 
-	$rc = EPrints::Apache::CRUD::handler( $r );
+	$rc = $crud->handler;
 	if( $rc != OK )
 	{
 		$r->status( $rc );
