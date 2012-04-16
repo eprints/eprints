@@ -3,7 +3,7 @@ use strict;
 
 =head1 NAME
 
-URI::Escape - Escape and unescape unsafe characters
+URI::Escape - Percent-encode and percent-decode unsafe characters
 
 =head1 SYNOPSIS
 
@@ -14,8 +14,10 @@ URI::Escape - Escape and unescape unsafe characters
 
 =head1 DESCRIPTION
 
-This module provides functions to escape and unescape URI strings as
-defined by RFC 3986.
+This module provides functions to percent-encode and percent-decode URI strings as
+defined by RFC 3986. Percent-encoding URI's is informally called "URI escaping".
+This is the terminology used by this module, which predates the formalization of the
+terms by the RFC by several years.
 
 A URI consists of a restricted set of characters.  The restricted set
 of characters consists of digits, letters, and a few graphic symbols
@@ -72,22 +74,16 @@ as the reserved characters.  I.e. the default is:
 =item uri_escape_utf8( $string, $unsafe )
 
 Works like uri_escape(), but will encode chars as UTF-8 before
-escaping them.  This makes this function able do deal with characters
+escaping them.  This makes this function able to deal with characters
 with code above 255 in $string.  Note that chars in the 128 .. 255
 range will be escaped differently by this function compared to what
 uri_escape() would.  For chars in the 0 .. 127 range there is no
 difference.
 
-The call:
+Equivalent to:
 
-    $uri = uri_escape_utf8($string);
-
-will be the same as:
-
-    use Encode qw(encode);
-    $uri = uri_escape(encode("UTF-8", $string));
-
-but will even work for perl-5.6 for chars in the 128 .. 255 range.
+    utf8::encode($string);
+    my $uri = uri_escape($string);
 
 Note: JavaScript has a function called escape() that produces the
 sequence "%uXXXX" for chars in the 256 .. 65535 range.  This function
@@ -139,14 +135,12 @@ it under the same terms as Perl itself.
 
 =cut
 
-use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION);
-use vars qw(%escapes);
-
 require Exporter;
-@ISA = qw(Exporter);
-@EXPORT = qw(uri_escape uri_unescape uri_escape_utf8);
-@EXPORT_OK = qw(%escapes);
-$VERSION = "3.30";
+our @ISA = qw(Exporter);
+our %escapes;
+our @EXPORT = qw(uri_escape uri_unescape uri_escape_utf8);
+our @EXPORT_OK = qw(%escapes);
+our $VERSION = "3.31";
 
 use Carp ();
 
@@ -159,23 +153,22 @@ my %subst;  # compiled patterns
 
 my %Unsafe = (
     RFC2732 => qr/[^A-Za-z0-9\-_.!~*'()]/,
-    RFC3986 => qr/[^A-Za-z0-9\-\._~"]/,
+    RFC3986 => qr/[^A-Za-z0-9\-\._~]/,
 );
 
-sub uri_escape
-{
+sub uri_escape {
     my($text, $patn) = @_;
     return undef unless defined $text;
     if (defined $patn){
-	unless (exists  $subst{$patn}) {
-	    # Because we can't compile the regex we fake it with a cached sub
-	    (my $tmp = $patn) =~ s,/,\\/,g;
-	    eval "\$subst{\$patn} = sub {\$_[0] =~ s/([$tmp])/\$escapes{\$1} || _fail_hi(\$1)/ge; }";
-	    Carp::croak("uri_escape: $@") if $@;
-	}
-	&{$subst{$patn}}($text);
+        unless (exists  $subst{$patn}) {
+            # Because we can't compile the regex we fake it with a cached sub
+            (my $tmp = $patn) =~ s,/,\\/,g;
+            eval "\$subst{\$patn} = sub {\$_[0] =~ s/([$tmp])/\$escapes{\$1} || _fail_hi(\$1)/ge; }";
+            Carp::croak("uri_escape: $@") if $@;
+        }
+        &{$subst{$patn}}($text);
     } else {
-	$text =~ s/($Unsafe{RFC3986})/$escapes{$1} || _fail_hi($1)/ge;
+        $text =~ s/($Unsafe{RFC3986})/$escapes{$1} || _fail_hi($1)/ge;
     }
     $text;
 }
@@ -185,32 +178,24 @@ sub _fail_hi {
     Carp::croak(sprintf "Can't escape \\x{%04X}, try uri_escape_utf8() instead", ord($chr));
 }
 
-sub uri_escape_utf8
-{
+sub uri_escape_utf8 {
     my $text = shift;
-    if ($] < 5.008) {
-	$text =~ s/([^\0-\x7F])/do {my $o = ord($1); sprintf("%c%c", 0xc0 | ($o >> 6), 0x80 | ($o & 0x3f)) }/ge;
-    }
-    else {
-	utf8::encode($text);
-    }
-
+    utf8::encode($text);
     return uri_escape($text, @_);
 }
 
-sub uri_unescape
-{
+sub uri_unescape {
     # Note from RFC1630:  "Sequences which start with a percent sign
     # but are not followed by two hexadecimal characters are reserved
     # for future extension"
     my $str = shift;
     if (@_ && wantarray) {
-	# not executed for the common case of a single argument
-	my @str = ($str, @_);  # need to copy
-	foreach (@str) {
-	    s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
-	}
-	return @str;
+        # not executed for the common case of a single argument
+        my @str = ($str, @_);  # need to copy
+        for (@str) {
+            s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
+        }
+        return @str;
     }
     $str =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg if defined $str;
     $str;

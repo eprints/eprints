@@ -8,7 +8,7 @@ use URI::Escape qw(uri_unescape);
 
 
 
-sub extract_path
+sub _file_extract_path
 {
     my $class = shift;
     my $path = shift;
@@ -25,7 +25,7 @@ sub extract_path
     }
 
     my $isdir = ($path =~ s/:$//);
-    $path =~ s,([%/;]),$URI::Escape::escapes{$1},g;
+    $path =~ s,([%/;]), URI::Escape::escape_char($1),eg;
 
     my @path = split(/:/, $path, -1);
     for (@path) {
@@ -47,9 +47,9 @@ sub file
 
     my $auth = $uri->authority;
     if (defined $auth) {
-	if (lc($auth) ne "localhost") {
+	if (lc($auth) ne "localhost" && $auth ne "") {
 	    my $u_auth = uri_unescape($auth);
-	    if (!$class->is_this_host($u_auth)) {
+	    if (!$class->_file_is_localhost($u_auth)) {
 		# some other host (use it as volume name)
 		@path = ("", $auth);
 		# XXX or just return to make it illegal;
