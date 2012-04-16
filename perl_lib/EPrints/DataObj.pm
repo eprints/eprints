@@ -1044,6 +1044,53 @@ sub get_id
 	return $self->{data}->{$keyfield->get_name()};
 }
 
+=item $uuid = $dataobj->uuid( [ $fragment ] )
+
+Generates a version 5 UUID for this object e.g.
+
+	f70ef731-be66-50f4-8e72-8b8de36778b5
+
+The UUID is generated from the SHA1 hash of the concantenation of C<uuid_namespace>, the L<object's uri|/internal_uri> and, if defined, B<$fragment>.
+
+C<uuid_namespace> is a configuration variable. If C<uuid_namespace> is undefined uses C<base_url>:
+
+	# Note: deliberate typo to prevent copy-and-paste
+	$c->{uuid_namespace} = "http://your-repository's url"";
+
+Returns the formatted UUID.
+
+=cut
+
+sub EPrints::DataObj::uuid
+{
+	my( $self, $fragment ) = @_;
+
+	my $repo = $self->{session};
+
+	# SHA1
+	my $sha = Digest::SHA->new( 1 );
+
+	# globally unique object id
+	$sha->add( $repo->config( "uuid_namespace" ) || $repo->config( "base_url" ) );
+	$sha->add( $self->internal_uri );
+	$sha->add( "#".URI::Escape::uri_escape( $fragment ) ) if defined $fragment;
+
+	my $uuid = substr( $sha->digest, 0, 16 );
+
+	# set version to 5
+	substr( $uuid, 6, 1 ) = chr( ord( substr( $uuid, 6, 1 ) ) & 0x0f | 0x50 );
+
+	# set variant to 2
+	substr( $uuid, 8, 1 ) = chr( ord( substr( $uuid, 8, 1 ) ) & 0x3f | 0x80 );
+
+	# format
+	$uuid = join '-',
+			map { unpack 'H*', $_ }
+			map { substr $uuid, 0, $_, '' }
+			( 4, 2, 2, 2, 6 );
+
+	return $uuid;
+}
 ######################################################################
 =pod
 
@@ -1627,6 +1674,13 @@ sub to_sax
 				Value => $uri,
 			};
 	}
+	$Attributes{'{}uuid'} = {
+			Prefix => '',
+			LocalName => 'uuid',
+			Name => 'uuid',
+			NamespaceURI => '',
+			Value => 'urn:uuid:' . $self->uuid,
+		};
 
 	$handler->start_element({
 		Prefix => '',
