@@ -27,29 +27,30 @@ B<EPrints::Apache::Template> - Template Applying Module
 
 =head1 DESCRIPTION
 
-When HTML pages are served by EPrints they are processed through a template written in XML. Most repositories will have two templates - F<default.xml> for HTTP and F<secure.xml> for HTTPS.
+This module renders HTML page content using a template.
 
-Templates are parsed at B<server start-up> and any included phrases are replaced at that point. Because templates persist over the lifetime of a server you do not typically perform any logic within the template itself, instead use a pin generated via L</Custom Pins>.
+Templates are parsed and rendered at server start-up, expanding phrases and any EPC. If you need to include dynamic content in the page use use a pin generated via L</Dynamic Pins>.
 
-The page content is added to the template via <epc:pins>.
+The page title, content and other core page structures are supplied via L</Default Pins>.
 
-=head2 Custom Pins
+=head2 Static HTML Pages
 
-In C<cfg.d/dynamic_template.pl>:
+Static files with the F<.xpage> extension are rendered using templates:
 
-	$c->{dynamic_template}->{function} = sub {
-		my( $repo, $parts ) = @_;
+	<?xml version="1.0" encoding="utf-8"  standalone="no"  ?>
+	<!DOCTYPE page SYSTEM "entities.dtd" >
+	<xpage:page xmlns="http://www.w3.org/1999/xhtml" xmlns:xpage="http://eprints.org/ep3/xpage" xmlns:epc="http://eprints.org/ep3/control">
+		<xpage:template>default</xpage:template>
+		<xpage:head>
+			<style type="text/css">h1 { text-weight: bold }</style>
+		</xpage:head>
+		<xpage:title>My first XPage</xpage:title>
+		<xpage:body>
+			Writing XPages is easy.
+		</xpage:body>
+	</xpage:page>
 
-		$parts->{mypin} = $repo->xml->create_text_node( "Hello, World!" );
-	};
-
-In C<archives/[archiveid]/cfg/templates/default.xml> (copy from C<lib/templates/default.xml> if not already exists):
-
-	<epc:pin ref="mypin" />
-
-Or, for just the text content of a pin:
-
-	<epc:pin ref="mypin" textonly="yes" />
+C<< <xpage:template> >> is a special pin that, instead of supplying content to the template, changes the template used for rendering. The content is just the template name (without the F<.xml> extension).
 
 =head2 Default Pins
 
@@ -86,6 +87,26 @@ Historically this was the login/logout links plus C<key_tools> but since 3.3 log
 The C<render_action_link> from L<EPrints::Plugin::Screen::SetLang>.
 
 =back
+
+=head2 Dynamic Pins
+
+In C<cfg.d/dynamic_template.pl>:
+
+	$c->{dynamic_template}->{function} = sub {
+		my( $repo, $parts ) = @_;
+
+		$parts->{mypin} = $repo->xml->create_text_node( "Hello, World!" );
+	};
+
+In C<archives/[archiveid]/cfg/templates/default.xml> (copy from C<lib/templates/default.xml> if not already exists):
+
+	<epc:pin ref="mypin" />
+
+Or, for just the text content of a pin:
+
+	<epc:pin ref="mypin" textonly="yes" />
+
+=head1 METHODS
 
 =over 4
 
@@ -179,7 +200,7 @@ The directories scanned for template sources are in L<EPrints::Repository/templa
 
 =for COPYRIGHT BEGIN
 
-Copyright 2000-2011 University of Southampton.
+Copyright 2000-2012 University of Southampton.
 
 =for COPYRIGHT END
 
