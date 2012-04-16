@@ -765,7 +765,7 @@ sub action_download_full_file {
 	####
 	my $template_parts = $session->get_repository->get_template_parts( 
 			$session->get_langid, 
-			$page_parts->{template} );
+			EPrints::XML::to_string( $page_parts->{template} ) );
 	#print join( "\n\n*****\n\n", @{$template_parts} )."\n";
 	my @output = ();
 	my $is_html = 0;
@@ -1344,7 +1344,7 @@ sub get_images
 	####
 	my $template_parts = $session->get_repository->get_template_parts( 
 			$session->get_langid, 
-			$page_parts->{template} );
+			EPrints::XML::to_string( $page_parts->{template} ) );
 	#print join( "\n\n*****\n\n", @{$template_parts} )."\n";
 	my @output = ();
 	my $is_html = 0;
