@@ -1073,7 +1073,7 @@ sub EPrints::DataObj::uuid
 	# globally unique object id
 	$sha->add( $repo->config( "uuid_namespace" ) || $repo->config( "base_url" ) );
 	$sha->add( $self->internal_uri );
-	$sha->add( "#".URI::Escape::uri_escape( $fragment ) ) if defined $fragment;
+	$sha->add( "#".URI::Escape::uri_escape_utf8( $fragment ) ) if defined $fragment;
 
 	my $uuid = substr( $sha->digest, 0, 16 );
 
