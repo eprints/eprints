@@ -18,6 +18,8 @@ EPrints::Apache::Template - renders a page using a template
 
 =head1 SYNOPSIS
 
+=for verbatim_lang xml
+
   <?xml version="1.0" standalone="no"?>
   <!DOCTYPE html SYSTEM "entities.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epc="http://eprints.org/ep3/control">
@@ -52,6 +54,8 @@ editing the system-wide template.
 =head2 Static HTML Pages
 
 Static files with the F<.xpage> extension are rendered using templates:
+
+=for verbatim_lang xml
 
 	<?xml version="1.0" encoding="utf-8"  standalone="no"  ?>
 	<!DOCTYPE page SYSTEM "entities.dtd" >
@@ -103,6 +107,8 @@ The C<render_action_link> from L<EPrints::Plugin::Screen::SetLang>.
 =head2 Dynamic Pins
 
 In C<cfg.d/dynamic_template.pl>:
+
+=for verbatim_lang perl
 
 	$c->{dynamic_template}->{function} = sub {
 		my( $repo, $parts ) = @_;

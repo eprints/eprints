@@ -130,6 +130,7 @@ sub update_page
 	local $self->{_p2w_over} = [];
 	local $self->{_p2w_over_section} = [];
 	local $self->{_p2w_methods} = 0;
+	local $self->{_p2w_verbatim_lang};
 	local $self->{_wiki} = {};
 	local $self->{_package_name} = $package_name;
 
@@ -388,19 +389,27 @@ sub command
 
 	$text = "" if !defined $text;
 
+	# any other command clears the verbatim lang
+	undef $self->{_p2w_verbatim_lang};
+
 	if( $cmd eq "for" )
 	{
 		my( $type, $value ) = split /\s+/, $text, 2;
-		if( $type eq "Pod2Wiki" )
+		if( lc($type) eq "pod2wiki" )
 		{
 			push @{$self->{_out}}, "<!-- ${PREFIX}_private_ -->";
 			$self->{_is_api} = 1;
 			push @{$self->{_out}}, $value if $value;
 		}
-		elsif( $type eq "MediaWiki" )
+		elsif( lc($type) eq "mediawiki" )
 		{
 			push @{$self->{_out}}, "<!-- ${PREFIX}_private_ -->";
 			push @{$self->{_out}}, $value if $value;
+		}
+		elsif( lc($type) eq "verbatim_lang" )
+		{
+			$value =~ s/\s+//g;
+			$self->{_p2w_verbatim_lang} = $value if $value;
 		}
 		return;
 	}
@@ -540,9 +549,12 @@ sub verbatim
 	my $_out = $self->{_out};
 	if( !@$_out || !UNIVERSAL::isa( $_out->[-1], "EPrints::Test::Pod2Wiki::Verbatim" ) )
 	{
-		if( $self->{_p2w_pod_section} eq "head_synopsis" )
+		if( $self->{_p2w_pod_section} eq "head_synopsis" || $self->{_p2w_verbatim_lang} )
 		{
-			push @$_out, EPrints::Test::Pod2Wiki::Verbatim::Source->new( [$text] );
+			push @$_out, EPrints::Test::Pod2Wiki::Verbatim::Source->new(
+					[$text],
+					$self->{_p2w_verbatim_lang}
+				);
 		}
 		else
 		{
@@ -812,6 +824,20 @@ package EPrints::Test::Pod2Wiki::Verbatim::Source;
 our @ISA = qw( EPrints::Test::Pod2Wiki::Verbatim );
 
 use overload '""' => \&stringify;
+use Scalar::Util qw( refaddr );
+
+my %LANG;
+
+sub new
+{
+	my( $class, $self, $lang ) = @_;
+
+	$self = $class->SUPER::new( $self );
+
+	$LANG{refaddr($self)} = $lang;
+
+	return $self;
+}
 
 sub stringify
 {
@@ -823,8 +849,13 @@ sub stringify
 		s/\s+$//;
 	}
 
-	return "<source lang=\"perl\">".join("\n\n", @$self)."</source>\n\n";
+	my $lang = $LANG{refaddr($self)};
+	$lang = "perl" if !defined $lang;
+
+	return "<source lang=\"$lang\">".join("\n\n", @$self)."</source>\n\n";
 }
+
+sub DESTROY { delete $LANG{refaddr($_[0])} }
 
 1;
 
