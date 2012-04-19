@@ -126,7 +126,7 @@ sub get_system_field_info
 		sql_index=>0, default_value=>0, volatile=>1 },
 
 	{ name=>"documents", type=>"subobject", datasetid=>'document',
-		multiple=>1, text_index=>1 },
+		multiple=>1, text_index=>1, dataobj_fieldname=>'eprintid' },
 
 	{ name=>"files", type=>"subobject", datasetid=>"file",
 		multiple=>1 },
