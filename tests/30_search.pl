@@ -1,6 +1,6 @@
 use strict;
 use utf8;
-use Test::More tests => 35;
+use Test::More tests => 36;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -250,6 +250,11 @@ $searchexp = EPrints::Search->new(
 
 $list = $searchexp->perform_search;
 ok($list->count > 0, "history object by username subquery".$searchexp->get_conditions->describe."\n".$searchexp->get_conditions->sql( dataset => $hdataset, session => $session ));
+
+$list = eval { $dataset->search(
+	filters => [{ meta_fields => [qw( documents.format )], value => "text" }],
+	) };
+ok($list->count > 0, "documents.format join path");
 
 my $udataset = $session->dataset( "user" );
 my $ssdataset = $session->dataset( "saved_search" );
