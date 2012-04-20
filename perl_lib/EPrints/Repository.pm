@@ -2294,7 +2294,7 @@ sub phrase
 		$_ = $self->make_text( $_ );
 	}
 
-	my $r = $self->html_phrase( $phraseid, \%inserts, $self );
+	my $r = $self->html_phrase( $phraseid, %inserts );
 	my $string = EPrints::Utils::tree_to_utf8( $r, 40 );
 	$self->xml->dispose( $r );
 
