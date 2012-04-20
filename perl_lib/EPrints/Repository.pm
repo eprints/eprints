@@ -1,25 +1,22 @@
-######################################################################
-#
-# EPrints::Repository
-#
-######################################################################
-#
-#
-######################################################################
-
-
-=pod
-
 =for Pod2Wiki
 
 =head1 NAME
 
-B<EPrints::Repository> - Single connection to a specific EPrints Repository
+EPrints::Repository - connection to a single repository instance
+
+=head1 SYNOPSIS
+
+	use EPrints;
+	
+	$repo = EPrints->new->current_repository;
+	
+	$repo = EPrints->new->repository( "myrepo" );
+	
+	$xml = $repo->xml;
+	$cuser = $repo->current_user;
+	$repo->log( "Got user " . $cuser->id );
 
 =head1 DESCRIPTION
-
-This module is really a Repository, REALLY. The name is up to date 
-and everything :-) 
 
 EPrints::Repository represents a connection to the EPrints system. It
 connects to a single EPrints repository, and the database used by
@@ -34,13 +31,15 @@ if there is one, including the CGI parameters.
 
 If the connection requires a username and password then it can also 
 give access to the L<EPrints::DataObj::User> object representing the user who is
-causing this request. See current_user().
+causing this request. See L</current_user>.
 
-The Repository object also provides access to the L<EPrints::XHTML> class which contains
-many methods for creating XHTML results which can be returned via the web 
-interface. 
+The Repository object provides access to the L<EPrints::XML> and
+L<EPrints::XHTML> class which contain methods for creating XHTML results which
+can be returned via the web interface. 
 
 =head1 METHODS
+
+=over 4
 
 =cut
 
@@ -325,8 +324,6 @@ sub get_request
 ######################################################################
 =pod
 
-=over 4
-
 =item $query = $repository->query
 
 Return the L<CGI> object describing the current HTTP query, or 
@@ -350,15 +347,9 @@ sub query
 	return $self->{query};
 }
 
-######################################################################
-=pod
-
 =item $value or @values = $repository->param( $name )
 
 Passes through to CGI.pm param method.
-
-$value = $repository->param( $name ): returns the value of CGI parameter
-$name.
 
 $value = $repository->param( $name ): returns the value of CGI parameter
 $name.
@@ -367,7 +358,6 @@ $name.
 CGI parameters in the current request.
 
 =cut
-######################################################################
 
 sub param
 {
@@ -542,6 +532,19 @@ sub eprint($$)
 	my( $repository, $eprint_id ) = @_;
 
 	return $repository->dataset( "eprint" )->get_object( $repository, $eprint_id );
+}
+
+=item $lang = $repository->current_language
+
+Returns the current language.
+
+=cut
+
+sub current_language
+{
+	my( $self ) = @_;
+
+	return $self->{lang};
 }
 
 ######################################################################
@@ -1513,37 +1516,29 @@ sub run_trigger
 	}
 }
 
-######################################################################
-=pod
+=item $repository->log( $msg [, $level ] )
 
-=item $repository->log( $msg )
+Log a plain text message $msg. If $level is given only logs if $level is greater than or equal to L</noise>.
 
-Calls the log method from ArchiveConfig.pm for this repository with the 
-given parameters. Basically logs the comments wherever the site admin
-wants them to go. Printed to STDERR by default.
+To override where log messages are sent define the C<log> callback:
+
+	$c->{log} = sub {
+		my( $repo, $msg, $level ) = @_;
+		
+		...
+	};
 
 =cut
-######################################################################
 
 sub log
 {
-	my( $self , $msg) = @_;
-
-	if( $self->config( 'show_ids_in_log' ) )
-	{
-		my @m2 = ();
-		foreach my $line ( split( '\n', $msg ) )
-		{
-			push @m2,"[".$self->{id}."] ".$line;
-		}
-		$msg = join("\n",@m2);
-	}
+	my( $self, $msg, $level) = @_;
 
 	if( $self->can_call( 'log' ) )
 	{
-		$self->call( 'log', $self, $msg );
+		$self->call( 'log', $self, $msg, $level );
 	}
-	else
+	elsif( !defined $level || $level >= $self->{noise} )
 	{
 		print STDERR "$msg\n";
 	}
@@ -2255,11 +2250,6 @@ sub change_lang
 }
 
 
-######################################################################
-=pod
-
-=begin InternalDoc
-
 =item $xhtml_phrase = $repository->html_phrase( $phraseid, %inserts )
 
 Return an XHTML DOM object describing a phrase from the phrase files.
@@ -2273,34 +2263,17 @@ an entry in %inserts where the key is the "ref" of the pin and the
 value is an XHTML DOM object describing what the pin should be 
 replaced with.
 
-=end InternalDoc
-
 =cut
-######################################################################
 
 sub html_phrase
 {
-	my( $self, $phraseid , %inserts ) = @_;
-	# $phraseid [ASCII] 
-	# %inserts [HASH: ASCII->DOM]
-	#
-	# returns [DOM]	
+	my( $self, $phraseid, %inserts ) = @_;
         
 	$self->{used_phrases}->{$phraseid} = 1;
 
-	my $r = $self->{lang}->phrase( $phraseid , \%inserts , $self );
-	#my $s = $self->make_element( "span", title=>$phraseid );
-	#$s->appendChild( $r );
-	#return $s;
-
-	return $r;
+	return $self->{lang}->phrase( $phraseid, \%inserts, $self );
 }
 
-
-######################################################################
-=pod
-
-=begin InternalDoc
 
 =item $utf8_text = $repository->phrase( $phraseid, %inserts )
 
@@ -2310,23 +2283,21 @@ All HTML elements will be removed, <br> and <p> will be converted
 into breaks in the text. <img> tags will be replaced with their 
 "alt" values.
 
-=end InternalDoc
-
 =cut
-######################################################################
 
 sub phrase
 {
 	my( $self, $phraseid, %inserts ) = @_;
 
-	$self->{used_phrases}->{$phraseid} = 1;
-	foreach( keys %inserts )
+	for(values %inserts)
 	{
-		$inserts{$_} = $self->make_text( $inserts{$_} );
+		$_ = $self->make_text( $_ );
 	}
-        my $r = $self->{lang}->phrase( $phraseid, \%inserts , $self);
-	my $string =  EPrints::Utils::tree_to_utf8( $r, 40 );
-	EPrints::XML::dispose( $r );
+
+	my $r = $self->html_phrase( $phraseid, \%inserts, $self );
+	my $string = EPrints::Utils::tree_to_utf8( $r, 40 );
+	$self->xml->dispose( $r );
+
 	return $string;
 }
 
@@ -2622,22 +2593,15 @@ sub get_full_url
 }
 
 
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $noise_level = $repository->get_noise
+=item $noise_level = $repository->noise
 
 Return the noise level for the current session. See the explaination
 under EPrints::Repository->new()
 
-=end InternalDoc
-
 =cut
-######################################################################
 
-sub get_noise
+*get_noise = \&noise;
+sub noise
 {
 	my( $self ) = @_;
 	
