@@ -392,6 +392,16 @@ sub command
 	# any other command clears the verbatim lang
 	undef $self->{_p2w_verbatim_lang};
 
+	if( $self->{_p2w_pod_section} && $self->{_p2w_pod_section} eq "begin" )
+	{
+		if( $cmd eq "end" )
+		{
+			$self->{_p2w_format} = "";
+			delete $self->{_p2w_pod_section};
+		}
+		return;
+	}
+
 	if( $cmd eq "for" )
 	{
 		my( $type, $value ) = split /\s+/, $text, 2;
@@ -430,15 +440,6 @@ sub command
 
 	if( $self->{_p2w_pod_section} )
 	{
-		if( $self->{_p2w_pod_section} eq "begin" )
-		{
-			if( $cmd eq "end" )
-			{
-				$self->{_p2w_format} = "";
-				delete $self->{_p2w_pod_section};
-			}
-			return;
-		}
 		my $key = delete $self->{_p2w_pod_section};
 		if( $key =~ /^head_/ )
 		{
@@ -517,9 +518,9 @@ sub command
 	elsif( $cmd eq "begin" )
 	{
 		$self->{_p2w_pod_section} = $cmd;
+		$self->{_p2w_format} = $text;
 		if( $text eq "Pod2Wiki" )
 		{
-			$self->{_p2w_format} = $text;
 			push @{$self->{_out}}, "<!-- ${PREFIX}_private_ -->";
 		}
 	}
