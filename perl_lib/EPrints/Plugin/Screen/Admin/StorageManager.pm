@@ -209,6 +209,7 @@ sub ajax_migrate
 		my( undef, undef, $file ) = @_;
 
 		$total ++ if $session->get_storage->copy( $target_store, $file );
+		$file->commit;
 	});
 
 	print "$total";
@@ -242,6 +243,7 @@ sub ajax_delete
 		return if scalar(@copies) <= 1;
 
 		$total ++ if $session->get_storage->delete_copy( $store, $file );
+		$file->commit;
 	});
 
 	print "$total";
