@@ -124,7 +124,8 @@ sub load_system_config
 
 	foreach my $dir ( $syslibcfgd, $syscfgd )
 	{
-		opendir(my $dh, $dir) or EPrints::abort( "Error opening config directory $dir: $!" );
+		opendir(my $dh, $dir)
+			or (warn("Error opening directory $dir: $!"), next);
 		foreach my $file (readdir($dh)) 
 		{
 			next if $file =~ m/^\./;
