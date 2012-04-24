@@ -218,6 +218,7 @@ use EPrints::DataObj::EPM;
 use EPrints::DataObj::File;
 use EPrints::DataObj::History;
 use EPrints::DataObj::Import;
+use EPrints::DataObj::ImportCache;
 use EPrints::DataObj::Import::XML;
 use EPrints::DataObj::Issue;
 use EPrints::DataObj::EventQueue;

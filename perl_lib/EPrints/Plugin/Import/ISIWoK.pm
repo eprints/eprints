@@ -9,6 +9,30 @@ package EPrints::Plugin::Import::ISIWoK;
 use EPrints::Plugin::Import::TextFile;
 @ISA = qw( EPrints::Plugin::Import::TextFile );
 
+our @WOS_INDEXES = (
+		AD => 'Address',
+		AU => 'Author',
+		CA => 'Cited Author',
+		CI => 'City',
+		CT => 'Conference',
+		CU => 'Country',
+		CW => 'Cited Work',
+		CY => 'Cited Year',
+		DT => 'Document Type',
+		GP => 'Group Author',
+		LA => 'Language',
+		OG => 'Organization',
+		PS => 'Province/State',
+		PY => 'Pub Year',
+		SA => 'Street Address',
+		SG => 'Sub-organization',
+		SO => 'Source',
+		TI => 'Title',
+		TS => 'Topic',
+		UT => 'ISI UT identifier',
+		ZP => 'Zip/Postal Code',
+	);
+
 use strict;
 
 sub new
@@ -21,6 +45,9 @@ sub new
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint' ];
 	$self->{screen} = "Import::ISIWoK";
+	$self->{input_textarea} = 0;
+	$self->{input_file} = 0;
+	$self->{input_form} = 1;
 
 	if( !EPrints::Utils::require_if_exists( "SOAP::ISIWoK::Lite", "1.05" ) )
 	{
@@ -29,6 +56,47 @@ sub new
 	}
 
 	return $self;
+}
+
+sub render_input_form
+{
+	my( $self, $screen, $basename, %opts ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $uri = URI::http->new();
+	$uri->query( $opts{query} );
+	my %values = $uri->query_form;
+
+	my $frag = $xml->create_document_fragment;
+
+	$frag->appendChild( $self->html_phrase( "help" ) );
+
+	my $table = $frag->appendChild( $xml->create_element( "table" ) );
+
+	for(my $i = 0; $i < @WOS_INDEXES; $i+=2)
+	{
+		my( $key, undef ) = @WOS_INDEXES[$i,$i+1];
+		$table->appendChild( $repo->render_row_with_help(
+				label => $self->html_phrase( "field:$key" ),
+				field => $repo->render_input_field(
+					class => "ep_form_text",
+					type => "text",
+					name => join('_', $basename, $key),
+					value => $values{$key},
+					maxlength => 256 ),
+			) );
+	}
+
+	$frag->appendChild( $xhtml->input_field(
+		_action_search => $repo->phrase( "lib/searchexpression:action_search" ),
+		type => "submit",
+		class => "ep_form_action_button",
+	) );
+
+	return $frag;
 }
 
 sub input_text_fh
@@ -43,12 +111,22 @@ sub input_text_fh
 	my $fh = $opts{fh};
 	my $query = join '', <$fh>;
 
+	if( $opts{mime_type} && $opts{mime_type} eq "application/x-www-form-urlencoded" )
+	{
+		my $uri = URI::http->new();
+		$uri->query( $query );
+		my %q = $uri->query_form;
+		$query = join ' AND ', map {
+				EPrints::Utils::is_set( $q{$_} ) ? "$_ = ($q{$_})" : ()
+			} keys %q;
+	}
+
 	my $wok = SOAP::ISIWoK::Lite->new;
 
 	my $xml = $wok->search( $query,
-		offset => $opts{offset},
+		(defined $opts{offset} ? (offset => $opts{offset}) : ()),
 	);
-	$self->{total} = $xml->documentElement->getAttribute( "recordsFound" );
+	$self->{count} = $xml->documentElement->getAttribute( "recordsFound" );
 
 	foreach my $rec ($xml->getElementsByTagName( "REC" ))
 	{
@@ -149,8 +227,8 @@ sub xml_to_epdata
 	( $node ) = $rec->findnodes( "item/abstract" );
 	$epdata->{abstract} = $node->textContent if $node;
 
-	# include the complete data for debug
-	$epdata->{suggestions} = $rec->toString( 1 );
+	# include the complete data for debug (disabled for being too big)
+#	$epdata->{suggestions} = $rec->toString( 1 );
 
 	return $epdata;
 }

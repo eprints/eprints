@@ -40,7 +40,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{actions} = [qw/ import_from test_data import_data test_upload import_upload /];
+	$self->{actions} = [qw/ paste upload search add import_from /];
 
 #	$self->{appears} = [
 #		{
@@ -66,6 +66,23 @@ sub new
 	$self->{default_encoding} = "iso-8859-1";
 
 	return $self;
+}
+
+sub from
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{session};
+
+	my $action = $self->{processor}->{action};
+
+	if( $action && $action =~ /^add_(.*)$/ )
+	{
+		$self->{processor}->{notes}->{n} = $1;
+		$self->{processor}->{action} = "add";
+	}
+
+	return $self->SUPER::from;
 }
 
 sub properties_from
@@ -101,9 +118,34 @@ sub properties_from
 
 		$self->{processor}->{plugin} = $plugin;
 		$self->{processor}->{plugin_id} = $plugin_id;
+		$self->{processor}->{notes}->{prefix} = $plugin->get_subtype;
+
+		my @query;
+		foreach my $key ($self->{session}->param)
+		{
+			next if $key !~ /^$self->{processor}->{notes}->{prefix}_(.+)$/;
+			push @query, map {
+					$1 => $_
+				} $self->{session}->param( $key );
+		}
+		if( @query )
+		{
+			my $uri = URI::http->new();
+			$uri->query_form( @query );
+			$self->{processor}->{notes}->{query} = $uri->query;
+		}
 	}
 
 	$self->{processor}->{encoding} = $self->{session}->param( "encoding" );
+
+	my $results = $self->{session}->dataset( "import" )->dataobj(
+			scalar $self->{session}->param( "import" )
+		);
+	if( $results )
+	{
+		$self->{processor}->{results} = $results;
+		$results->touch;
+	}
 }
 
 sub can_be_viewed
@@ -113,80 +155,90 @@ sub can_be_viewed
 }
 
 sub allow_import_from { shift->can_be_viewed }
-sub allow_test_data { shift->can_be_viewed }
-sub allow_import_data { shift->can_be_viewed }
-sub allow_test_upload { shift->can_be_viewed }
-sub allow_import_upload { shift->can_be_viewed }
+
+sub allow_paste { shift->can_be_viewed }
+sub allow_upload { shift->can_be_viewed }
+sub allow_search { shift->can_be_viewed }
+sub allow_add { shift->can_be_viewed }
 
 sub action_import_from
 {
 	my( $self ) = @_;
-
-	my $plugin = $self->{processor}->{plugin};
-	
-	my $screenid = $plugin->param( "screen" );
-	if( defined $screenid )
-	{
-		$self->{processor}->{screenid} = $screenid;
-	}
 }
 
-sub action_test_data
-{
-	my ( $self ) = @_;
-
-	$self->{processor}->{current} = 0;
-	$self->{processor}->{encoding} = "UTF-8";
-
-	my $tmpfile = File::Temp->new;
-	binmode($tmpfile, ":utf8");
-	print $tmpfile scalar($self->{repository}->param( "data" ));
-	seek($tmpfile, 0, 0);
-
-	my $list = $self->run_import( 1, 0, $tmpfile ); # dry run with messages
-	$self->{processor}->{results} = $list;
-}
-
-sub action_test_upload
-{
-	my ( $self ) = @_;
-
-	$self->{processor}->{current} = 1;
-
-	my $tmpfile = $self->{repository}->get_query->upload( "file" );
-	return if !defined $tmpfile;
-	$tmpfile = *$tmpfile; # CGI file handles aren't proper handles
-	return if !defined $tmpfile;
-
-	my $list = $self->run_import( 1, 0, $tmpfile ); # dry run with messages
-	$self->{processor}->{results} = $list;
-}
-
-sub action_import_data
+sub action_paste
 {
 	my( $self ) = @_;
 
-	$self->{processor}->{current} = 0;
-	$self->{processor}->{encoding} = "UTF-8";
+	my $repo = $self->{session};
+
+	my $plugin = $self->{processor}->{plugin};
+	
+	my $data = $repo->param( "data" );
+
+	my $import = $repo->dataset( "import" )->create_dataobj({
+			userid => $repo->current_user->id,
+			pluginid => $plugin->get_subtype,
+			query => $data,
+		});
 
 	my $tmpfile = File::Temp->new;
 	binmode($tmpfile, ":utf8");
-	print $tmpfile scalar($self->{repository}->param( "data" ));
+	print $tmpfile $data;
 	seek($tmpfile, 0, 0);
 
-	my $list = $self->run_import( 0, 0, $tmpfile ); # real run with messages
-	return if !defined $list;
+	$self->{processor}->{offset} = 0;
+	$self->{processor}->{results} = $import;
 
-	$self->{processor}->{results} = $list;
+	$self->run_import( $tmpfile );
 
-	$self->post_import( $list );
+	$import->set_value( "count", $self->{processor}->{count} );
+	$import->commit;
+}
+
+sub action_search
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{session};
+
+	my $plugin = $self->{processor}->{plugin};
+	
+	my $data = $self->{processor}->{notes}->{query};
+
+	my $import = $repo->dataset( "import" )->create_dataobj({
+			userid => $repo->current_user->id,
+			pluginid => $plugin->get_subtype,
+			query => $data,
+		});
+
+	my $tmpfile = File::Temp->new;
+	binmode($tmpfile, ":utf8");
+	print $tmpfile $data;
+	seek($tmpfile, 0, 0);
+
+	$self->{processor}->{mime_type} = "application/x-www-form-urlencoded";
+	$self->{processor}->{offset} = 0;
+	$self->{processor}->{results} = $import;
+
+	$self->run_import( $tmpfile );
+
+	$import->set_value( "count", $plugin->{count} );
+	$import->commit;
 }
 
 sub action_import_upload
 {
 	my( $self ) = @_;
 
-	$self->{processor}->{current} = 1;
+	my $repo = $self->{session};
+
+	my $plugin = $self->{processor}->{plugin};
+	
+	my $import = $repo->dataset( "import" )->create_dataobj({
+			userid => $repo->current_user->id,
+			pluginid => $plugin->get_subtype,
+		});
 
 	my $tmpfile = $self->{repository}->get_query->upload( "file" );
 	return if !defined $tmpfile;
@@ -195,13 +247,13 @@ sub action_import_upload
 	return if !defined $tmpfile;
 
 	$self->{processor}->{filename} = $self->{repository}->get_query->param( "file" );
+	$self->{processor}->{offset} = 0;
+	$self->{processor}->{results} = $import;
 
-	my $list = $self->run_import( 0, 0, $tmpfile ); # real run with messages
-	return if !defined $list;
+	$self->run_import( $tmpfile );
 
-	$self->{processor}->{results} = $list;
-
-	$self->post_import( $list );
+	$import->set_value( "count", $self->{processor}->{count} );
+	$import->commit;
 }
 
 sub post_import
@@ -226,22 +278,49 @@ sub post_import
 	}
 }
 
+sub action_add
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{session};
+
+	my $import = $self->{processor}->{results};
+	return if !defined $import;
+
+	my $dataobj = $import->item( $self->{processor}->{notes}->{n} );
+
+	$dataobj = $dataobj->get_dataset->create_dataobj( $dataobj->get_data );
+
+	$self->{processor}->add_message( "message", $self->html_phrase( "add",
+			dataset => $dataobj->get_dataset->render_name,
+			dataobj => $dataobj->render_citation( "default",
+				url => $dataobj->uri,
+			)
+		) );
+}
+
 sub epdata_to_dataobj
 {
 	my( $self, $epdata, %opts ) = @_;
 
+	my $import = $self->{processor}->{results};
+
 	$self->{processor}->{count}++;
-			
+
 	my $dataset = $opts{dataset};
 	if( $dataset->base_id eq "eprint" )
 	{
 		$epdata->{userid} = $self->{repository}->current_user->id;
 		$epdata->{eprint_status} = "inbox";
-	}	
+	}
 
-	return undef if $opts{parse_only};
+	$import->create_subdataobj( "cache", {
+			pos => ++$self->{processor}->{offset},
+			datasetid => $opts{dataset}->base_id,
+			epdata => $epdata,
+		});
 
-	return $dataset->create_dataobj( $epdata );
+	return undef;
 }
 
 sub arguments
@@ -253,7 +332,7 @@ sub arguments
 
 sub run_import
 {
-	my( $self, $dryrun, $quiet, $tmp_file ) = @_;
+	my( $self, $tmp_file, %opts ) = @_;
 
 	seek($tmp_file, 0, SEEK_SET);
 
@@ -269,16 +348,10 @@ sub run_import
 		);
 	$show_stderr = $self->{show_stderr} if !defined $show_stderr;
 
-	$self->{processor}->{count} = 0;
-
-	$plugin->{parse_only} = $dryrun;
 	$plugin->set_handler( EPrints::CLIProcessor->new(
-		message => sub { !$quiet && $self->{processor}->add_message( @_ ) },
+		message => sub { !$opts{quiet} && $self->{processor}->add_message( @_ ) },
 		epdata_to_dataobj => sub {
-			return $self->epdata_to_dataobj(
-				@_,
-				parse_only => $dryrun,
-			);
+			return $self->epdata_to_dataobj( @_ );
 		},
 	) );
 
@@ -297,18 +370,20 @@ sub run_import
 			if scalar($session->param( "action_$action" ));
 	}
 
+	$self->{processor}->{count} = 0;
+
 	# Don't let an import plugin die() on us
-	my $list = eval {
-		$plugin->input_fh(
+	my $list = eval { $plugin->input_fh(
 			$self->arguments,
 			dataset=>$dataset,
 			fh=>$tmp_file,
 			user=>$user,
 			filename=>$self->{processor}->{filename},
-			actions=>\@actions,
+			mime_type=>$self->{processor}->{mime_type},
 			encoding=>$self->{processor}->{encoding},
-		);
-	};
+			actions=>\@actions,
+			offset=>$self->{processor}->{offset},
+		) };
 
 	if( $show_stderr )
 	{
@@ -383,41 +458,31 @@ sub run_import
 
 	my $ok = (scalar(@problems) == 0 and $count > 0);
 
-	if( $dryrun )
+	if( $ok )
 	{
-		if( $ok )
-		{
-			$self->{processor}->add_message( "message", $session->html_phrase(
-				"Plugin/Screen/Import:test_completed", 
-				count => $session->make_text( $count ) ) ) unless $quiet;
-		}
-		else
-		{
-			$self->{processor}->add_message( "warning", $session->html_phrase( 
-				"Plugin/Screen/Import:test_failed", 
-				count => $session->make_text( $count ) ) );
-		}
+		$self->{processor}->add_message( "message", $session->html_phrase( 
+			"Plugin/Screen/Import:import_completed", 
+			count => $session->make_text( $count ) ) ) unless $opts{quiet};
 	}
 	else
 	{
-		if( $ok )
-		{
-			$self->{processor}->add_message( "message", $session->html_phrase( 
-				"Plugin/Screen/Import:import_completed", 
-				count => $session->make_text( $count ) ) );
-		}
-		else
-		{
-			$self->{processor}->add_message( "warning", $session->html_phrase( 
-				"Plugin/Screen/Import:import_failed", 
-				count => $session->make_text( $count ) ) );
-		}
+		$self->{processor}->add_message( "warning", $session->html_phrase( 
+			"Plugin/Screen/Import:import_failed", 
+			count => $session->make_text( $count ) ) );
 	}
 
 	return $list;
 }
 
-sub redirect_to_me_url { }
+sub redirect_to_me_url
+{
+	my( $self ) = @_;
+
+	my $uri = URI::http->new($self->{processor}->{url});
+	$uri->query_form( $self->hidden_bits );
+
+	return $uri;
+}
 
 sub render_title
 {
@@ -434,22 +499,199 @@ sub render
 	my $session = $self->{session};
 	my $plugin = $self->{processor}->{plugin};
 
+	my $action = $self->{processor}->{action};
+	$action = "" if !defined $action;
+
+	my $f = $session->make_doc_fragment;
+
+	if( $self->{processor}->{results} && $self->{processor}->{results}->value( "count" ) )
+	{
+		$f->appendChild( $self->render_input( 1 ) ); # collapsed
+		$f->appendChild( $self->render_results );
+	}
+	else
+	{
+		$f->appendChild( $self->render_input );
+	}
+
+	return $f;
+}
+
+sub render_input
+{
+	my ( $self, $collapsed ) = @_;
+
+	my $session = $self->{session};
+	my $plugin = $self->{processor}->{plugin};
+
+	my $form = $self->render_form;
+
 	my @labels;
 	my @panels;
 
-	push @labels, $self->html_phrase( "data" );
-	push @panels, $self->render_import_form;
-
-	push @labels, $self->html_phrase( "upload" );
-	push @panels, $self->render_upload_form;
+	if( $collapsed )
+	{
+		push @labels, $self->html_phrase( "results" );
+		push @panels, $session->make_doc_fragment;
+	}
+	if( $plugin->can_input( "textarea" ) )
+	{
+		push @labels, $self->html_phrase( "data" );
+		push @panels, $self->render_import_form;
+	}
+	if( $plugin->can_input( "file" ) )
+	{
+		push @labels, $self->html_phrase( "upload" );
+		push @panels, $self->render_upload_form;
+	}
+	if( $plugin->can_input( "form" ) )
+	{
+		push @labels, $self->html_phrase( "form" );
+		push @panels, $plugin->render_input_form( $self, $self->{processor}->{notes}->{prefix},
+				query => (defined $self->{processor}->{results} ? $self->{processor}->{results}->value( "query" ) : undef),
+			);
+	}
 
 	my $base_url = $session->current_url;
 	$base_url->query_form( $self->hidden_bits );
 
-	return $session->xhtml->tabs( \@labels, \@panels,
+	$form->appendChild( $session->xhtml->tabs( \@labels, \@panels,
 		base_url => $base_url,
-		current => $self->{processor}->{current},
-	);
+	) );
+
+	return $form;
+}
+
+sub count { shift->{processor}->{results}->value( "count" ) }
+*get_records = \&slice;
+sub slice
+{
+	my( $self, $offset, $count ) = @_;
+
+	my $import = $self->{processor}->{results};
+
+	$offset ||= 0;
+
+	return () if $offset >= $import->value( "count" );
+
+	if( !defined $count || $offset + $count > $import->value( "count" ) )
+	{
+		$count = $import->value( "count" ) - $offset;
+	}
+
+	my @records = $import->slice( $offset, $count );
+	# query for more records
+	if( @records < $count && $import->is_set( "query" ) )
+	{
+		$_->remove for @records;
+		@records = ();
+
+		while(@records < $count)
+		{
+			my $tmpfile = File::Temp->new;
+			binmode($tmpfile, ":utf8");
+			print $tmpfile $import->value( "query" );
+			seek($tmpfile,0,0);
+
+			$self->{processor}->{offset} = $offset + @records;
+			$self->{processor}->{mime_type} = "application/x-www-form-urlencoded";
+
+			$self->run_import( $tmpfile, quiet => 1 );
+
+			my @chunk = $import->slice( $offset + @records, $count - @records );
+			last if !@chunk; # no more records found
+			push @records, @chunk;
+		}
+	}
+
+	# convert import cache objects into the actual objects
+	local $_;
+	for(@records)
+	{
+		my $dataset = $self->{session}->dataset( $_->value( "datasetid" ) );
+		$_ = $dataset->make_dataobj( $_->value( "epdata" ) );
+	}
+
+	return @records;
+}
+
+sub render_results
+{
+	my ( $self ) = @_;
+
+	my $session = $self->{session};
+	my $plugin = $self->{processor}->{plugin};
+
+	my $f = $session->make_doc_fragment;
+	return $f if !$self->{processor}->{results};
+
+	my $form = $self->render_form;
+	$f->appendChild( $form );
+
+	$form->appendChild( EPrints::Paginate->paginate_list(
+			$session,
+			undef,
+			$self,
+			params => {$self->hidden_bits},
+			container => $session->make_element(
+				"table",
+				class=>"ep_paginate_list"
+			),
+			render_result => sub {
+				my( undef, $result, undef, $n ) = @_;
+
+				return $self->render_result_row( $result, $n );
+			},
+		) );
+
+	return $f;
+}
+
+sub render_result_row
+{
+	my( $self, $dataobj, $n ) = @_;
+
+	my $repo = $self->{session};
+	my $xhtml = $repo->xhtml;
+	my $dataset = $dataobj->{dataset};
+
+	my $match;
+	if( $dataobj->exists_and_set( "source" ) )
+	{
+		$match = $dataset->search(filters => [
+				{ meta_fields => [qw( source )], value => $dataobj->value( "source" ), match => "EX", },
+			],
+			limit => 1,
+		)->item( 0 );
+	}
+
+	my $tr = $repo->make_element( "tr" );
+	my $td;
+
+	$td = $tr->appendChild( $repo->make_element( "td" ) );
+	$td->appendChild( $repo->make_text( $n ) );
+
+	$td = $tr->appendChild( $repo->make_element( "td" ) );
+	if( $match )
+	{
+		$td->appendChild( $dataobj->render_citation( "default",
+				url => $match->uri,
+			) );
+	}
+	else
+	{
+		$td->appendChild( $dataobj->render_citation );
+	}
+
+	my $input = $xhtml->action_button(
+			"add_" . $n,
+			$self->phrase( "action:add:title" ),
+			class => ($match ? "ep_blister_node" : ""),
+		);
+	$td = $tr->appendChild( $repo->make_element( "td" ) );
+	$td->appendChild( $input );
+
+	return $tr;
 }
 
 sub render_actions
@@ -498,20 +740,16 @@ sub render_import_form
 
 	my $div = $xml->create_element( "div", class => "ep_block ep_sr_component" );
 
-	my $form = $div->appendChild( $self->{processor}->screen->render_form );
-	$form->appendChild(EPrints::MetaField->new(
+	$div->appendChild(EPrints::MetaField->new(
 			name => "data",
 			type => "longtext",
 			repository => $repo,
 		)->render_input_field(
 			$repo,
-			scalar($repo->param( "data" )),
+			(defined $self->{processor}->{results} ? $self->{processor}->{results}->value( "query" ) : undef),
 		) );
-	$form->appendChild( $self->render_actions );
-	$form->appendChild( $repo->render_action_buttons(
-		test_data => $repo->phrase( "Plugin/Screen/Import:action_test_data" ),
-		import_data => $repo->phrase( "Plugin/Screen/Import:action_import_data" ),
-		_order => [qw( test_data import_data )],
+	$div->appendChild( $repo->render_action_buttons(
+		paste => $repo->phrase( "Plugin/Screen/Import:action:paste:title" ),
 	) );
 
 	return $div;
@@ -527,12 +765,11 @@ sub render_upload_form
 
 	my $div = $xml->create_element( "div", class => "ep_block" );
 
-	my $form = $div->appendChild( $self->{processor}->screen->render_form );
-	$form->appendChild( $xhtml->input_field(
+	$div->appendChild( $xhtml->input_field(
 		file => undef,
 		type => "file"
 		) );
-	$form->appendChild( $repo->render_option_list(
+	$div->appendChild( $repo->render_option_list(
 		name => "encoding",
 		default => ($repo->param( "encoding" ) || $self->param( "default_encoding" )),
 		values => $self->param( "encodings" ),
@@ -540,11 +777,8 @@ sub render_upload_form
 			map { $_ => $_ } @{$self->param( "encodings" )},
 		},
 	) );
-	$form->appendChild( $self->render_actions );
-	$form->appendChild( $repo->render_action_buttons(
-		test_upload => $repo->phrase( "Plugin/Screen/Import:action_test_upload" ),
-		import_upload => $repo->phrase( "Plugin/Screen/Import:action_import_upload" ),
-		_order => [qw( test_upload import_upload )],
+	$div->appendChild( $repo->render_action_buttons(
+		upload => $repo->phrase( "Plugin/Screen/Import:action:upload:title" ),
 	) );
 
 	return $div;
@@ -653,53 +887,9 @@ sub hidden_bits
 	return(
 		$self->SUPER::hidden_bits,
 		format => scalar($self->{repository}->param( "format" )),
+		import => ($self->{processor}->{results} ? $self->{processor}->{results}->id : undef),
 	);
 }
-
-package EPrints::Plugin::Screen::Import::Handler;
-
-sub new
-{
-	my( $class, %self ) = @_;
-
-	$self{wrote} = 0;
-	$self{parsed} = 0;
-
-	bless \%self, $class;
-}
-
-sub message
-{
-	my( $self, $type, $msg ) = @_;
-
-	unless( $self->{quiet} )
-	{
-		$self->{processor}->add_message( $type, $msg );
-	}
-}
-
-sub epdata_to_dataobj
-{
-	my( $self, $epdata, %opts ) = @_;
-
-	$self->{parsed}++;
-
-	return if $self->{dryrun};
-
-	my $dataset = $opts{dataset};
-	if( $dataset->base_id eq "eprint" )
-	{
-		$epdata->{userid} = $self->{user}->id;
-		$epdata->{eprint_status} = "inbox";
-	}	
-
-	$self->{wrote}++;
-
-	return $dataset->create_dataobj( $epdata );
-}
-
-sub parsed { }
-sub object { }
 
 1;
 

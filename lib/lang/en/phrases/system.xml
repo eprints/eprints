@@ -2717,7 +2717,7 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Import/ExplodeArchive:input:form">Select an archive from your system: <epc:pin name="input_file_upload"/> e.g. my_photos.zip<br />
 Each file inside this archive will be created as an <b>individual</b> document inside the resulting eprint.</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Import/DOI:help">Enter a DOI or DOIs, one per line e.g. doi:10.1006/jmbi.1998.2354</epp:phrase>
-	<epp:phrase id="Plugin/Screen/Import/ISIWoK:help">Enter an ISI query string:<br />
+	<epp:phrase id="Plugin/Import/ISIWoK:help">Enter an ISI query string:<br />
 AU = (Carr) and TI = (open access)<br />
 PY = 2006 and OG = (Cambridge)<br />
 </epp:phrase>
@@ -2767,10 +2767,16 @@ PY = 2006 and OG = (Cambridge)<br />
 </table>
 	</epp:phrase>
 
+	<epp:phrase id="Plugin/Screen/Import:add">Added new record to <epc:pin name="dataset" />: <epc:pin name="dataobj" /></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Import:results">Results</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Import:data">Paste data</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Import:upload">Upload from file</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Import:form">Search or query</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:input:title">Import a single item</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:bulk_input:title">Import more than one item</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:action:add:title">Add</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:action:paste:title">Paste</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:action:upload:title">Upload</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:action:import_from:title">Import</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:action_test_data">Test without Importing</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:action_test_upload" ref="Plugin/Screen/Import:action_test_data"></epp:phrase>
@@ -3979,5 +3985,27 @@ To create a blank EPM entire a new id in the input and click <epc:phrase ref="Pl
 &lt;component type="Documents"&gt;
 </pre></p>
 	</epp:phrase>
+
+	<epp:phrase id="Plugin/Import/ISIWoK:field:AD">Address</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:AU">Author</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:CA">Cited Author</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:CI">City</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:CT">Conference</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:CU">Country</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:CW">Cited Work</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:CY">Cited Year</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:DT">Document Type</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:GP">Group Author</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:LA">Language</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:OG">Organisation</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:PS">Province/State</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:PY">Publication Year</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:SA">Street Address</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:SG">Sub-organisation</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:SO">Source</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:TI">Title</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:TS">Topic</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:UT">ISI UT Identifier</epp:phrase>
+	<epp:phrase id="Plugin/Import/ISIWoK:field:ZP">Zip/Postal Code</epp:phrase>
 
 </epp:phrases>
