@@ -259,7 +259,7 @@ END
 	my $config_core = EPrints::Utils::get_input( $REGEXP_YESNO, "Configure vital settings?", "yes" );
 	if( $config_core eq "yes" )
 	{
-		config_core( $repoid );	
+		epadmin_config_core( $repoid );	
 	}
 	else
 	{
@@ -270,7 +270,7 @@ END
 	my $config_db = EPrints::Utils::get_input( $REGEXP_YESNO, "Configure database?", "yes" );
 	if( $config_db eq "yes" )
 	{
-		config_db( $repoid );	
+		epadmin_config_db( $repoid );	
 	}
 	else
 	{
@@ -282,7 +282,7 @@ END
 	my $create_user = EPrints::Utils::get_input( $REGEXP_YESNO, "Create an initial user?", "yes" );
 	if( $create_user eq "yes" )
 	{
-		create_user( $repoid );	
+		epadmin_create_user( $repoid );	
 	}
 	else
 	{
@@ -794,7 +794,7 @@ END
 	my $makedb = EPrints::Utils::get_input( $REGEXP_YESNO, "Create database \"$config{dbname}\"", "yes" );
 	if( $makedb eq "yes" )
 	{
-		create_db( $repoid );
+		epadmin_create_db( $repoid );
 	}
 	else
 	{
