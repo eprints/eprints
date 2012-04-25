@@ -2768,6 +2768,7 @@ PY = 2006 and OG = (Cambridge)<br />
 	</epp:phrase>
 
 	<epp:phrase id="Plugin/Screen/Import:add">Added new record to <epc:pin name="dataset" />: <epc:pin name="dataobj" /></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Import:all">Added <epc:pin name="n" /> new records.</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Import:results">Results</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Import:data">Paste data</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Import:upload">Upload from file</epp:phrase>
@@ -2775,6 +2776,7 @@ PY = 2006 and OG = (Cambridge)<br />
     <epp:phrase id="Plugin/Screen/Import:input:title">Import a single item</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:bulk_input:title">Import more than one item</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:action:add:title">Add</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:action:all:title">Add all new items</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:action:paste:title">Paste</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:action:upload:title">Upload</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:action:import_from:title">Import</epp:phrase>

@@ -333,7 +333,7 @@ sub epdata_to_dataobj
 	my( $self, $epdata, %opts ) = @_;
 	$opts{dataset} ||= $dataset;
 
-	if( $dataset->id eq "eprint" && !defined $epdata->{eprint_status} )
+	if( $opts{dataset}->id eq "eprint" && !defined $epdata->{eprint_status} )
 	{
 		$self->warning( "Importing an EPrint record into 'eprint' dataset without eprint_status being set. Using 'buffer' as default." );
 		$epdata->{eprint_status} = "buffer";

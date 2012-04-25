@@ -111,7 +111,7 @@ sub get_system_field_info
 
 		{ name=>"count", type=>"int", },
 
-		{ name=>"cache", type=>"subobject", datasetid=>"import_cache", datasetid_fieldname=>"", dataobjid_fieldname=>"importid", },
+		{ name=>"cache", type=>"subobject", datasetid=>"import_cache", dataset_fieldname=>"", dataobj_fieldname=>"importid", },
 	);
 }
 

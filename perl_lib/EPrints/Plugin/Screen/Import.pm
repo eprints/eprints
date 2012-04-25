@@ -40,7 +40,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{actions} = [qw/ paste upload search add import_from /];
+	$self->{actions} = [qw/ paste upload search add all import_from /];
 
 #	$self->{appears} = [
 #		{
@@ -160,6 +160,7 @@ sub allow_paste { shift->can_be_viewed }
 sub allow_upload { shift->can_be_viewed }
 sub allow_search { shift->can_be_viewed }
 sub allow_add { shift->can_be_viewed }
+sub allow_all { shift->can_be_viewed }
 
 sub action_import_from
 {
@@ -187,6 +188,35 @@ sub action_paste
 	print $tmpfile $data;
 	seek($tmpfile, 0, 0);
 
+	$self->{processor}->{offset} = 0;
+	$self->{processor}->{results} = $import;
+
+	$self->run_import( $tmpfile );
+
+	$import->set_value( "count", $self->{processor}->{count} );
+	$import->commit;
+}
+
+sub action_upload
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{session};
+
+	my $plugin = $self->{processor}->{plugin};
+	
+	my $import = $repo->dataset( "import" )->create_dataobj({
+			userid => $repo->current_user->id,
+			pluginid => $plugin->get_subtype,
+		});
+
+	my $tmpfile = $self->{repository}->get_query->upload( "file" );
+	return if !defined $tmpfile;
+
+	$tmpfile = *$tmpfile; # CGI file handles aren't proper handles
+	return if !defined $tmpfile;
+
+	$self->{processor}->{filename} = $self->{repository}->get_query->param( "file" );
 	$self->{processor}->{offset} = 0;
 	$self->{processor}->{results} = $import;
 
@@ -224,35 +254,6 @@ sub action_search
 	$self->run_import( $tmpfile );
 
 	$import->set_value( "count", $plugin->{count} );
-	$import->commit;
-}
-
-sub action_import_upload
-{
-	my( $self ) = @_;
-
-	my $repo = $self->{session};
-
-	my $plugin = $self->{processor}->{plugin};
-	
-	my $import = $repo->dataset( "import" )->create_dataobj({
-			userid => $repo->current_user->id,
-			pluginid => $plugin->get_subtype,
-		});
-
-	my $tmpfile = $self->{repository}->get_query->upload( "file" );
-	return if !defined $tmpfile;
-
-	$tmpfile = *$tmpfile; # CGI file handles aren't proper handles
-	return if !defined $tmpfile;
-
-	$self->{processor}->{filename} = $self->{repository}->get_query->param( "file" );
-	$self->{processor}->{offset} = 0;
-	$self->{processor}->{results} = $import;
-
-	$self->run_import( $tmpfile );
-
-	$import->set_value( "count", $self->{processor}->{count} );
 	$import->commit;
 }
 
@@ -296,6 +297,33 @@ sub action_add
 			dataobj => $dataobj->render_citation( "default",
 				url => $dataobj->uri,
 			)
+		) );
+}
+
+sub action_all
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{session};
+
+	my $import = $self->{processor}->{results};
+	return if !defined $import;
+
+	my $c = 0;
+
+	for(my $i = 0; $i < $import->value( "count" ); $i += 100)
+	{
+		foreach my $dataobj ($self->slice( $i, 100 ))
+		{
+			next if $self->duplicates( $dataobj )->count;
+
+			$dataobj = $dataobj->get_dataset->create_dataobj( $dataobj->get_data );
+			++$c if defined $dataobj;
+		}
+	}
+
+	$self->{processor}->add_message( "message", $self->html_phrase( "all",
+			n => $repo->make_text( $c ),
 		) );
 }
 
@@ -532,7 +560,7 @@ sub render_input
 	if( $collapsed )
 	{
 		push @labels, $self->html_phrase( "results" );
-		push @panels, $session->make_doc_fragment;
+		push @panels, $self->render_import_all;
 	}
 	if( $plugin->can_input( "textarea" ) )
 	{
@@ -647,6 +675,24 @@ sub render_results
 	return $f;
 }
 
+sub duplicates
+{
+	my( $self, $dataobj ) = @_;
+
+	my $dataset = $dataobj->get_dataset;
+
+	if( $dataobj->exists_and_set( "source" ) )
+	{
+		return $dataset->search(filters => [
+				{ meta_fields => [qw( source )], value => $dataobj->value( "source" ), match => "EX", },
+			],
+			limit => 1,
+		);
+	}
+
+	return $dataset->list( [] );
+}
+
 sub render_result_row
 {
 	my( $self, $dataobj, $n ) = @_;
@@ -655,21 +701,16 @@ sub render_result_row
 	my $xhtml = $repo->xhtml;
 	my $dataset = $dataobj->{dataset};
 
-	my $match;
-	if( $dataobj->exists_and_set( "source" ) )
-	{
-		$match = $dataset->search(filters => [
-				{ meta_fields => [qw( source )], value => $dataobj->value( "source" ), match => "EX", },
-			],
-			limit => 1,
-		)->item( 0 );
-	}
+	my $match = $self->duplicates( $dataobj )->item( 0 );
 
 	my $tr = $repo->make_element( "tr" );
 	my $td;
 
 	$td = $tr->appendChild( $repo->make_element( "td" ) );
 	$td->appendChild( $repo->make_text( $n ) );
+
+	$td = $tr->appendChild( $repo->make_element( "td" ) );
+	$td->appendChild( $dataset->render_name );
 
 	$td = $tr->appendChild( $repo->make_element( "td" ) );
 	if( $match )
@@ -730,6 +771,29 @@ sub render_actions
 	return $ul->hasChildNodes ? $ul : $xml->create_document_fragment;
 }
 
+sub render_import_all
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $plugin = $self->{processor}->{plugin};
+
+	my $f = $xml->create_document_fragment;
+	return $f if !$self->{processor}->{results};
+
+	my $div = $xml->create_element( "div", class => "ep_block ep_sr_component" );
+	$f->appendChild( $div );
+
+	$div->appendChild( $repo->render_action_buttons(
+		 all => $repo->phrase( "Plugin/Screen/Import:action:all:title" ),
+	) );
+
+	return $f;
+}
+
 sub render_import_form
 {
 	my( $self ) = @_;
@@ -788,7 +852,9 @@ sub _vis_level
 {
 	my( $self ) = @_;
 
-	return "all";
+	my $user = $self->{session}->current_user;
+
+	return $user->is_staff ? "staff" : "all";
 }
 
 sub _get_import_plugins

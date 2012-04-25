@@ -24,15 +24,9 @@ sub new
 	$self->{name} = "DOI (via CrossRef)";
 	$self->{visible} = "all";
 	$self->{produce} = [ 'dataobj/eprint', 'list/eprint' ];
+	$self->{input_file} = 0;
 
 	return $self;
-}
-
-sub screen
-{
-	my( $self, %params ) = @_;
-
-	return $self->{repository}->plugin( "Screen::Import::DOI", %params );
 }
 
 sub input_text_fh
@@ -124,6 +118,9 @@ sub input_text_fh
 
 		my $epdata = $plugin->convert_input( $data );
 		next unless( defined $epdata );
+
+		# link back to import source
+		$epdata->{source} = $doi;
 
 		my $dataobj = $plugin->epdata_to_dataobj( $opts{dataset}, $epdata );
 		if( defined $dataobj )
@@ -262,13 +259,6 @@ sub convert_input
 	}
 
 	return $epdata;
-}
-
-sub url_encode
-{
-        my ($str) = @_;
-        $str =~ s/([^A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg;
-        return $str;
 }
 
 1;
