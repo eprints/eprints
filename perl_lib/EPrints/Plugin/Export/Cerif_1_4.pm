@@ -160,9 +160,10 @@ sub output_dataobj
 	}
 
 	my @people;
-	if( $dataobj->exists_and_set( "creators" ) )
+	for(qw( creators editors ))
 	{
-		foreach my $creator (@{$dataobj->value( "creators" )})
+		next if !$dataobj->exists_and_set( "creators" );
+		foreach my $creator (@{$dataobj->value( $_ )})
 		{
 			my $id = $dataobj->uuid( $creator->{id} || EPrints::Utils::make_name_string( $creator->{name} ) );
 			push @people, {
@@ -172,8 +173,8 @@ sub output_dataobj
 			$writer->start_element( CERIF_NS, "cfPers_ResPubl" );
 			$writer->data_element( CERIF_NS, "cfPersId", $id );
 			$self->cf_class_fraction( $writer,
-					classId => "?author-of?",
-					classSchemeId => "?cfpers_respubl?",
+					classId => {creators => "author", editors => "editor"}->{$_},
+					classSchemeId => "class_scheme_person_publication_roles",
 				);
 			$writer->end_element( CERIF_NS, "cfPers_ResPubl" );
 		}

@@ -190,7 +190,7 @@ sub deconstruct
 		my $subject = $data->{$relation->{_subjectclass}}{$relation->{_subject}};
 		next if !defined $subject;
 
-		if( "class_scheme_cerif_publication_types" eq $relation->{classschemeid} )
+		if( "class_scheme_publication_publication" eq $relation->{classschemeid} )
 		{
 			if( "child" eq $relation->{classid} )
 			{
