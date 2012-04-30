@@ -42,6 +42,12 @@ Do not check the current user/group is the same as the user/group in SystemSetti
 
 =back
 
+=head2 Debugging
+
+To get a full stack trace on errors and warnings use L<Carp>'s verbose mode. E.g. in F<perl_lib/EPrints/SystemSettings.pm> add:
+
+	use Carp 'verbose';
+
 =begin InternalDoc
 
 =head2 Debugging Slow Processes
@@ -635,8 +641,9 @@ sub sigusr2_cluck
 	$SIG{'USR2'} = \&sigusr2_cluck;
 };
 
-# Die with stack trace if Carp is verbose
+# Attach die and warn to Carp if Carp is verbose
 $SIG{__DIE__} = \&Carp::croak if $Carp::Verbose;
+$SIG{__WARN__} = \&Carp::carp if $Carp::Verbose;
 
 umask( 0002 );
 
