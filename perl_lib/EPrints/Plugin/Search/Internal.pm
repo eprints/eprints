@@ -82,9 +82,9 @@ sub from_string_raw
 
 sub render_simple_fields
 {
-	my( $self ) = @_;
+	my( $self, %opts ) = @_;
 
-	return ($self->get_non_filter_searchfields)[0]->render;
+	return ($self->get_non_filter_searchfields)[0]->render( %opts );
 }
 
 sub execute { shift->perform_search( @_ ) }
