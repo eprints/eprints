@@ -2181,7 +2181,7 @@ sub render_xml_schema_type
 
 sub render_search_input
 {
-	my( $self, $session, $searchfield ) = @_;
+	my( $self, $session, $searchfield, %opts ) = @_;
 	
 	my $frag = $session->make_doc_fragment;
 
@@ -2207,7 +2207,9 @@ sub render_search_input
 			name => $searchfield->get_form_prefix,
 			value => $searchfield->get_value,
 			size => $self->get_property( "search_cols" ),
-			maxlength => 256 ) );
+			maxlength => 256,
+			%opts,
+			) );
 	if( $searchfield->get_match ne $self->property( "match" ) )
 	{
 		$frag->appendChild(

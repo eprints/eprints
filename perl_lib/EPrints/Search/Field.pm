@@ -639,9 +639,9 @@ input boxes required to search this field.
 
 sub render
 {
-	my( $self ) = @_;
+	my( $self, %opts ) = @_;
 
-	return $self->{"field"}->render_search_input( $self->{"repository"}, $self );
+	return $self->{"field"}->render_search_input( $self->{"repository"}, $self, %opts );
 }
 
 ######################################################################
