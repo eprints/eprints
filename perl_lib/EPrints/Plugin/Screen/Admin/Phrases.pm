@@ -328,7 +328,6 @@ sub render_action_link
 {
 	my( $self ) = @_;
 
-	my $uri = URI->new( $self->{session}->current_url( query => 1 ) );
 	my $uri = $self->{session}->current_url(
 			scheme => "https",
 			host => 1,
