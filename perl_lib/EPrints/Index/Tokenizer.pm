@@ -51,7 +51,7 @@ sub split_words
 	# fix malformed UTF-8 data
 	$utext = Encode::decode("UTF-8", $utext, Encode::FB_DEFAULT);
 
-	return split /$EPrints::Index::FREETEXT_SEPERATOR_REGEXP+/, $utext;
+	return split /[^\w']+/, $utext;
 }
 
 =item @terms = EPrints::Index::Tokenizer::split_search_value( $session, $value )
@@ -67,7 +67,7 @@ sub split_search_value
 	# transliterate to English
 	$value = apply_mapping( $session, $value );
 
-	return split /[^\w\*]+/, $value;
+	return split /[^\w'\*]+/, $value;
 }
 
 ######################################################################
