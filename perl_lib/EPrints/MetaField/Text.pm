@@ -78,13 +78,6 @@ sub get_index_codes_basic
 	return( $codes, [], $badwords );
 }
 
-sub split_search_value
-{
-	my( $self, $session, $value ) = @_;
-
-	return $self->SUPER::split_search_value( $session, lc($value) );
-}
-
 # internal function to paper over some cracks in 2.2 
 # text indexing config.
 sub _extract_words
