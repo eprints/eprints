@@ -107,8 +107,6 @@ use EPrints::Const qw( :metafield );
 
 use strict;
 
-use Text::Unidecode qw();
-
 $EPrints::MetaField::VARCHAR_SIZE 	= 255;
 
 $EPrints::MetaField::FROM_CONFIG = EP_PROPERTY_FROM_CONFIG;
