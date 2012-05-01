@@ -48,15 +48,6 @@ sub search_dataset
 	return $self->{processor}->{dataset};
 }
 
-# DEPRECATED
-# Use the configuration to add per-dataset filters
-sub search_filters
-{
-	my( $self ) = @_;
-
-	return;
-}
-
 sub allow_advanced { &can_be_viewed }
 sub allow_export { &can_be_viewed }
 sub allow_export_redir { &can_be_viewed }
@@ -452,6 +443,10 @@ sub from
 				keep_cache => 1,
 				satisfy_all => $satisfy_all,
 				%{$sconf},
+				filters => [
+					$self->search_filters,
+					@{$sconf->{filters} || []},
+				],
 			},
 			type => "Search",
 			can_search => $format,
