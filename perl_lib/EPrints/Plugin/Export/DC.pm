@@ -204,7 +204,7 @@ sub simple_value
 		$langs = [$langs] if ref($values) ne "ARRAY";
 		foreach my $i (0..$#$values)
 		{
-			push @dcdata, [ $term, $values->[$i], { lang => $langs->[$i] } ];
+			push @dcdata, [ $term, $values->[$i], { 'xml:lang' => $langs->[$i] } ];
 		}
 	}
 	elsif( $field->property( "multiple" ) )
