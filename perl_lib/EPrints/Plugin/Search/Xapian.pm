@@ -495,9 +495,10 @@ sub stemmer
 
 	my $langid = $self->param( "lang" );
 
-	my $stemmer = Search::Xapian::Stem->new( $langid );
-	if( UNIVERSAL::isa( $stemmer, "Search::Xapian::Error" ) )
-	{
+        my $stemmer;
+        eval { $stemmer = Search::Xapian::Stem->new( $langid ); };
+        if( $@ || UNIVERSAL::isa( $stemmer, "Search::Xapian::Error" ) )
+        {
 		$self->{session}->log( "'$langid' is not a supported Xapian stem language, using English instead" );
 		$stemmer = Search::Xapian::Stem->new( 'en' );
 	}
