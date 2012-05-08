@@ -76,7 +76,6 @@ $INC{"EPrints/Subject.pm"} = "EPrints/BackCompatibility.pm";
 $EPrints::Subject::root_subject = "ROOT";
 sub remove_all { EPrints::deprecated; return EPrints::DataObj::Subject::remove_all( @_ ); }
 sub create { EPrints::deprecated; return EPrints::DataObj::Subject::create( @_ ); }
-sub subject_label { EPrints::deprecated; return EPrints::DataObj::Subject::subject_label( @_ ); }
 sub get_all { EPrints::deprecated; return EPrints::DataObj::Subject::get_all( @_ ); }
 sub valid_id { EPrints::deprecated; return EPrints::DataObj::Subject::valid_id( @_ ); }
 sub children { EPrints::deprecated; return EPrints::DataObj::Subject::get_children( $_[0] ); }

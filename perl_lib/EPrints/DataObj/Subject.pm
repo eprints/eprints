@@ -724,54 +724,6 @@ sub _get_subjects2
 	return $subpairs;
 }
 
-######################################################################
-=pod
-
-=item $label = EPrints::DataObj::Subject::subject_label( $session, $subject_id )
-
-Return the full label of a subject, including parents. Returns
-undef if the subject id is invalid.
-
-The returned string is encoded in utf8.
-
-=cut
-######################################################################
-
-sub subject_label
-{
-	my( $session, $subject_tag ) = @_;
-	
-	my $label = "";
-	my $tag = $subject_tag;
-
-	while( $tag ne $EPrints::DataObj::Subject::root_subject )
-	{
-		my $ds = $session->dataset();
-		my $data = $session->{database}->get_single( $ds, $tag );
-		
-		# If we can't find it, the tag must be invalid.
-		if( !defined $data )
-		{
-			return( undef );
-		}
-
-		$tag = $data->{parent};
-
-		if( $label eq "" )
-		{
-			$label = $data->{name};
-		}
-		else
-		{
-			#cjg lang ": "
-			$label = $data->{name} . ": " . $label;
-		}
-	}
-	
-	return( $label );
-}
-
-
 # cjg CACHE this per, er, session?
 # commiting a subject should erase the cache
 
