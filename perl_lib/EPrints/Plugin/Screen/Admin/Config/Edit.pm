@@ -762,10 +762,16 @@ sub action_download_full_file {
 	#print "\n--\n\n";
 	#print EPrints::XML::to_string( $page_parts->{page} );
 
+	my $template = "default";
+	if( defined $page_parts->{template} )
+	{
+		$template = $session->xml->text_contents_of( $page_parts->{template} );
+	}
+
 	####
 	my $template_parts = $session->get_repository->get_template_parts( 
 			$session->get_langid, 
-			EPrints::XML::to_string( $page_parts->{template} ) );
+			$template );
 	#print join( "\n\n*****\n\n", @{$template_parts} )."\n";
 	my @output = ();
 	my $is_html = 0;
@@ -1341,10 +1347,16 @@ sub get_images
 	#print "\n--\n\n";
 	#print EPrints::XML::to_string( $page_parts->{page} );
 
+	my $template = "default";
+	if( defined $page_parts->{template} )
+	{
+		$template = $session->xml->text_contents_of( $page_parts->{template} );
+	}
+
 	####
 	my $template_parts = $session->get_repository->get_template_parts( 
 			$session->get_langid, 
-			EPrints::XML::to_string( $page_parts->{template} ) );
+			$template );
 	#print join( "\n\n*****\n\n", @{$template_parts} )."\n";
 	my @output = ();
 	my $is_html = 0;
