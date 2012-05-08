@@ -1,32 +1,50 @@
-# warns of duplicates based on a simple string match
+#!/usr/bin/perl
+
+=head1 NAME
+
+title_duplicates - warn of duplicate entries based on title
+
+=head1 SYNOPSIS
+
+	title_duplicates?q=Field+studies+&field=title&dataset=eprint&id=23
+
+=head1 DESCRIPTION
+
+Provides a warning box for any other eprints where q prefixes the title.
+
+=cut
 
 use EPrints;
 
 use strict;
 use warnings;
 
-my $session = EPrints::Session->new();
+my $repo = EPrints->new->current_repository;
+
+my $db = $repo->get_database;
+my $xml = $repo->xml;
 
 # security??
 
 # How many chars needed before we try and suggest duplicates?
 my $need = 5;
 
-my $q = $session->param( "q" ) || "";
+my $q = $repo->param( "q" ) || "";
 
 exit unless length( $q ) >= $need; 
 
-my $id = $session->param( "id" );
+my $id = $repo->param( "eprintid" );
+$id = $repo->param( "id" ) if !EPrints::Utils::is_set( $id );
 
-my $field = $session->param( "field" );
-$field = 'title' if !EPrints::Utils::is_set( $field );
+my $fieldname = $repo->param( "field" );
+$fieldname = 'title' if !EPrints::Utils::is_set( $fieldname );
 
-my $dataset_name = $session->param( "dataset" );
+my $dataset_name = $repo->param( "dataset" );
 $dataset_name = 'eprint' if !EPrints::Utils::is_set( $dataset_name );
 
 if( !defined($id) )
 {
-	$session->get_repository->log( "duplicates lookup script called without eprintid argument: ".join(',',$session->param));
+	$repo->log( "duplicates lookup script called without id argument: ".join(',',$repo->param));
 	exit(0);
 }
 elsif( $id =~ /^([0-9]+)$/ )
@@ -38,50 +56,55 @@ else
 	EPrints::abort "Requires numeric id argument";
 }
 
-my $database = $session->get_database;
-my $dataset = $session->dataset( $dataset_name );
+my $dataset = $repo->dataset( $dataset_name );
+EPrints->abort( "No such dataset '$dataset_name'" ) if !defined $dataset;
 
-my $Q_table = $database->quote_identifier($dataset->get_sql_table_name);
-my $Q_id = $database->quote_identifier( $dataset_name . "id" );
-my $Q_eprint_status = $database->quote_identifier( "eprint_status" );
-my $Q_field_name = $database->quote_identifier( $field );
+EPrints->abort( "No such field '$fieldname'" ) if !$dataset->has_field( $fieldname );
+my $field = $dataset->field( $fieldname );
+
+my $Q_table = $db->quote_identifier($dataset->get_sql_table_name);
+my $Q_id = $db->quote_identifier( $dataset_name . "id" );
+my $Q_eprint_status = $db->quote_identifier( "eprint_status" );
+my $Q_field_name = $db->quote_identifier( $field->get_sql_name );
 
 my $sql = "SELECT $Q_id" .
 	" FROM $Q_table" .
 	" WHERE ";
 if ($dataset_name eq "eprint") {
-	$sql .= " $Q_eprint_status=" .  $database->quote_value( "archive" );
+	$sql .= " $Q_eprint_status=" .  $db->quote_value( "archive" );
 } 
 $sql .=	" AND $Q_id!=$id" .
 	" AND $Q_field_name IS NOT NULL" .
 	" AND $Q_field_name " .
-	$database->sql_LIKE() .
-	$database->quote_value( EPrints::Database::prep_like_value( $q ) . '%' );
+	$db->sql_LIKE() .
+	$db->quote_value( EPrints::Database::prep_like_value( $q ) . '%' );
 
-my $doc = $session->make_doc_fragment();
+my $html = $xml->create_element( "div" );
 
-my $sth = $session->get_database->prepare_select( $sql, 'limit' => 10 );
-$session->get_database->execute( $sth , $sql );
+my $sth = $db->prepare_select( $sql, 'limit' => 10 );
+$db->execute( $sth , $sql );
 
-my $base_url = $session->config( "base_url" );
-
-my $warning =<<END;
-The following records matching this $field already exist in the archive.
-Please check that you are not entering a duplicate record.
-END
+my $base_url = $repo->config( "base_url" );
 
 my $row = $sth->fetch;
 
 unless( defined $row )
 {
         print '<?xml version="1.0" encoding="UTF-8" ?><span/>';
-        $session->terminate;
+        $repo->terminate;
         exit;
 }
 
-$doc->appendChild( my $div = $session->render_message( "warning", $session->make_text( $warning) ) );
+$html->appendChild( $repo->render_message( "warning",
+		$repo->html_phrase( "cgi/users/lookup/title_duplicates:warning",
+			field => $field->render_name,
+		)
+	) );
 
-$div->appendChild( my $ul = $session->make_element( 'ul' ));
+# messages have a 10px top & bottom margin :-(
+$html->appendChild( my $ul = $xml->create_element( 'ul',
+		style => "margin-top: -10px",
+	));
 
 my $count = 0;
 my $first = 1;
@@ -89,7 +112,7 @@ my $first = 1;
 do
 {
 	my( $id, $value ) = @$row;
-	$ul->appendChild( my $li = $session->make_element( 'li' ) );
+	$ul->appendChild( my $li = $repo->make_element( 'li' ) );
 	if( $first )
 	{
 		$li->setAttribute( 'class', 'ep_first' );
@@ -109,14 +132,13 @@ do
 
 $sth->finish;
 
-$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
+binmode(STDOUT, ":utf8");
+$repo->send_http_header( content_type => "text/xml; charset=UTF-8" );
 
 print <<END,
 <?xml version="1.0" encoding="UTF-8" ?>
 
 END
-	EPrints::XML::to_string( $doc, "utf-8", 1 );
+	$repo->xhtml->to_xhtml( $html );
 
-EPrints::XML::dispose( $doc );
-
-$session->terminate;
+$xml->dispose( $html );

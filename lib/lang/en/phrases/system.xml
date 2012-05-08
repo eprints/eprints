@@ -4010,4 +4010,6 @@ To create a blank EPM entire a new id in the input and click <epc:phrase ref="Pl
 	<epp:phrase id="Plugin/Import/ISIWoK:field:UT">ISI UT Identifier</epp:phrase>
 	<epp:phrase id="Plugin/Import/ISIWoK:field:ZP">Zip/Postal Code</epp:phrase>
 
+	<epp:phrase id="cgi/users/lookup/title_duplicates:warning">The following records matching this <epc:pin name="field" /> already exist in the archive. Please check that you are not entering a duplicate record.</epp:phrase>
+
 </epp:phrases>
