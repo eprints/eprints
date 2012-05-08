@@ -205,7 +205,7 @@ sub convert_dataobj
 	}
 	elsif( $type eq "patent" || $type eq "monograph" )
 	{
-		$data->{"@"} = $dataobj->get_value( "id_number" ) if $dataobj->exists_and_set( "issn" );
+		$data->{"@"} = $dataobj->get_value( "id_number" ) if $dataobj->exists_and_set( "id_number" );
 	}
 	elsif( $type eq "book" || $type eq "book_section" )
 	{
