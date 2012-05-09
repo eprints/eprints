@@ -46,65 +46,50 @@ sub render_action_link
 	my $f = $xml->create_document_fragment;
 
 	my $languages = $session->config( "languages" );
+	return $f if @$languages == 1;
 
-	if( @$languages == 1 )
-	{
-		return $f;
-	}
+	$f->appendChild( my $div = $session->xml->create_element( "div",
+			class => "ep_tm_languages",
+		) );
 
-	my $imagesurl = $session->config( "rel_path" )."/images/flags";
-	my $scripturl = URI->new( $session->current_url( path => "cgi", "set_lang" ), 'http' );
-	my $curl = "";
-	if( $session->get_online )
-	{
-		$curl = $session->current_url( host => 1, query => 1 );
-	}
+	$div->appendChild( my $form = $self->render_form );
+	$form->setAttribute( "action", $session->get_url(
+			path => "cgi",
+			"set_lang"
+		) );
 
-	my $div = $xml->create_element( "div", id => "ep_tm_languages" );
-	$f->appendChild( $div );
+	$form->appendChild( $session->xhtml->hidden_field(
+			"referrer",
+			$session->get_url( host => 1, query => 1 ),
+		) );
 
-	foreach my $langid (@$languages)
-	{
-		next if $langid eq $session->get_lang->get_id;
-		$scripturl->query_form(
-			lang => $langid,
-			referrer => $curl
-		);
-		my $clangid = $session->get_lang()->get_id;
-		$session->change_lang( $langid );
-		my $title = $session->phrase( "languages_typename_$langid" );
-		$session->change_lang( $clangid );
-		my $link = $xml->create_element( "a",
-			href => "$scripturl",
-			title => $title,
-		);
-		my $img = $xml->create_element( "img",
-			src => "$imagesurl/$langid.png",
-			align => "top",
-			border => 0,
-			alt => $title,
-		);
-		$link->appendChild( $img );
-		$div->appendChild( $link );
-	}
+	my @values = @$languages;
+	my %labels = map {
+			local $session->{lang};
+			$session->change_lang( $_ );
+			$_ => $session->phrase( "languages_typename_".$_ )
+		} @values;
 
-	$scripturl->query_form( referrer => $curl );
+	unshift @values, "";
+	$labels{""} = "---";
 
-	my $title = $session->phrase( "cgi/set_lang:clear_cookie" );
-	my $link = $xml->create_element( "a",
-		href => "$scripturl",
-		title => $title,
-	);
-	my $img = $xml->create_element( "img",
-		src => "$imagesurl/aero.png",
-		align => "top",
-		border => 0,
-		alt => $title,
-	);
-	$link->appendChild( $img );
-	$div->appendChild( $link );
+	$form->appendChild( my $select = $session->render_option_list(
+			name => "lang",
+			values => \@values,
+			labels => \%labels,
+			default => $session->get_lang->get_id,
+		) );
+	$select->setAttribute( "onchange", "\$(this).up('form').submit()" );
+	$select->setAttribute( "title", $self->phrase( "action:change:title" ) );
 
-	return $div;
+	# hidden button for non-javascript
+	$form->appendChild( $session->xhtml->input_field(
+			_action_change => $self->phrase( "action:change:title" ),
+			type => "submit",
+			class => "ep_no_js",
+		) );
+
+	return $f;
 }
 
 1;
