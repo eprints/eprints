@@ -60,7 +60,6 @@
       </ul>
       <div class="ep_tm_searchbar">
 		<epc:pin ref="login_status"/>
-		<epc:pin ref="languages"/>
 		<div class="ep_tm_searchform">
           <form method="get" accept-charset="utf-8" action="{$config{http_cgiurl}}/search">
             <input type="text" name="q" placeholder="{phrase('lib/searchexpression:action_search')}"/>
@@ -89,6 +88,7 @@
           <img alt="EPrints Logo" src="{$config{rel_path}}/images/eprintslogo.gif"/>
         </a>
       </div>
+	  <div class="ep_block"><epc:pin ref="languages"/></div>
       <epc:phrase ref="template:about_eprints"/>
     </div>
   </body>

@@ -40,54 +40,40 @@ sub render_action_link
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
+	my $repo = $self->{session};
 
-	my $xml = $session->xml;
+	my $xml = $repo->xml;
 	my $f = $xml->create_document_fragment;
 
-	my $languages = $session->config( "languages" );
+	my $languages = $repo->config( "languages" );
 	return $f if @$languages == 1;
 
-	$f->appendChild( my $div = $session->xml->create_element( "div",
+	$f->appendChild( my $ul = $xml->create_element( "ul",
 			class => "ep_tm_languages",
 		) );
 
-	$div->appendChild( my $form = $self->render_form );
-	$form->setAttribute( "action", $session->get_url(
-			path => "cgi",
-			"set_lang"
-		) );
+	my $uri = $repo->get_url( path => "cgi", "set_lang" );
+	$uri->query_form( referrer => $repo->get_url( host => 1, query => 1 ) );
 
-	$form->appendChild( $session->xhtml->hidden_field(
-			"referrer",
-			$session->get_url( host => 1, query => 1 ),
-		) );
+	foreach my $langid (@$languages)
+	{
+		my $u = $uri->clone;
+		$u->query_form(
+				$uri->query_form,
+				lang => $langid,
+			);
+		{
+			local $repo->{lang};
+			$repo->change_lang( $langid );
+			$ul->appendChild( $xml->create_data_element( "li", [
+					[ "a", $repo->html_phrase( "languages_typename_".$langid ), href => $u ]
+				]) );
+		}
+	}
 
-	my @values = @$languages;
-	my %labels = map {
-			local $session->{lang};
-			$session->change_lang( $_ );
-			$_ => $session->phrase( "languages_typename_".$_ )
-		} @values;
-
-	unshift @values, "";
-	$labels{""} = "---";
-
-	$form->appendChild( my $select = $session->render_option_list(
-			name => "lang",
-			values => \@values,
-			labels => \%labels,
-			default => $session->get_lang->get_id,
-		) );
-	$select->setAttribute( "onchange", "\$(this).up('form').submit()" );
-	$select->setAttribute( "title", $self->phrase( "action:change:title" ) );
-
-	# hidden button for non-javascript
-	$form->appendChild( $session->xhtml->input_field(
-			_action_change => $self->phrase( "action:change:title" ),
-			type => "submit",
-			class => "ep_no_js",
-		) );
+	$ul->appendChild( $xml->create_data_element( "li", [
+			[ "a", $repo->html_phrase( "cgi/set_lang:clear_cookie" ), href => $uri ]
+		]) );
 
 	return $f;
 }

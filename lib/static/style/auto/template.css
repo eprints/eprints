@@ -148,6 +148,32 @@ hr.ep_tm_last {
 
 /* end of search bar */
 
+/* Language bar */
+
+ul.ep_tm_languages
+{
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.ep_tm_languages li {
+	list-style: none;
+	display: inline;
+	padding: 0;
+	margin: 0;
+}
+
+.ep_tm_languages li {
+	padding: 0px 6px;
+}
+
+.ep_tm_languages li:first-child {
+	padding-left: 0px;
+}
+
+/* end of Language bar */
+
 .ep_tm_languages {
 	display: inline;
 }
