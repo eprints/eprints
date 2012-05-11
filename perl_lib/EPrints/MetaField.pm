@@ -1,46 +1,23 @@
-######################################################################
-#
-# EPrints::MetaField
-#
-######################################################################
-#
-#
-######################################################################
-
-=pod
-
 =for Pod2Wiki
 
 =head1 NAME
 
-B<EPrints::MetaField> - A single metadata field.
+EPrints::MetaField - A single metadata field.
 
 =head1 SYNOPSIS
 
-my $field = $dataset->field( $fieldname );
-
-$dataset = $field->dataset;
-
-$repo = $field->repository;
-
-$field->set_property( $property, $value );
-
-$value = $field->property( $property );
-
-$name = $field->name;
-
-$type = $field->type;
-
-$xhtml = $field->render_name;
-
-$xhtml = $field->render_help;
-
-$xhtml = $field->render_value_label( $value );
-
-$values = $field->all_values( %opts );
-
-$sorted_list = $field->sort_values( $unsorted_list );
-
+	my $field = $dataset->field( $fieldname );
+	$dataset = $field->dataset;
+	$repo = $field->repository;
+	$field->set_property( $property, $value );
+	$value = $field->property( $property );
+	$name = $field->name;
+	$type = $field->type;
+	$xhtml = $field->render_name;
+	$xhtml = $field->render_help;
+	$xhtml = $field->render_value_label( $value );
+	$values = $field->all_values( %opts );
+	$sorted_list = $field->sort_values( $unsorted_list );
 
 =head1 DESCRIPTION
 
@@ -55,15 +32,9 @@ field. For example: "text", "name" or "date".
 A full description of metadata types and properties is in the eprints
 documentation and will not be duplicated here.
 
-=begin InternalDoc
-
 =head1 PROPERTIES
 
 =over 4
-
-=item provenance => "core" or "config"
-
-Indiciates where the field was initialised from. "core" fields are defined in L<DataObj> classes while "config" fields are defined in cfg.d files.
 
 =item replace_core => 0
 
@@ -71,35 +42,38 @@ Normally any attempt to define two fields with the same name will fail. However,
 
 =back
 
-=end InternalDoc
+=head2 Rendering
+
+=over 4
+
+=item render_value => CODEREF
+
+	sub my_render_method
+	{
+		my( $repo, $field, $value, $all_langs, $no_link, $object ) = @_;
+
+		return $repo->xml->create_text_node( $value );
+	}
+
+Override the default rendering of values with a custom method. Renders $value (which may be a multiple) and returns an XHTML fragment.
+
+=back
+
+=head2 Read-only Properties
+
+=over 4
+
+=item provenance => "core" or "config"
+
+Indiciates where the field was initialised from. "core" fields are defined in L<DataObj> classes while "config" fields are defined in cfg.d files.
+
+=back
 
 =head1 METHODS
 
-=cut
+=over 4
 
-######################################################################
-#
-# INSTANCE VARIABLES:
-#
-#  $self->{confid}
-#     The conf-id of the dataset to which this field belongs. If this
-#     field is not part of a dataset then this is just a string used 
-#     to find config info about this field. Most importantly the name
-#     and other information from the phrase file.
-#
-#  $self->{repository}
-#     The repository to which this field belongs.
-#
-# The rest of the instance variables are the properties of the field.
-# The most important properties (which are always required) are:
-#
-#  $self->{name}
-#     The name of this field.
-#
-#  $self->{type}
-#     The type of this field.
-#
-######################################################################
+=cut
 
 package EPrints::MetaField;
 
@@ -365,8 +339,6 @@ sub clone
 
 	return EPrints::MetaField->new( %{$self} );
 }
-
-=over 4
 
 =item $repository = $field->repository
 
