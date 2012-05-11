@@ -219,22 +219,24 @@ sub render
 	);
 	$f->appendChild( $container );
 
-	# upload help
-	$container->appendChild( $session->html_phrase( "Plugin/InputForm/Component/Upload:new_document" ) );
+	$container->appendChild( $xml->create_data_element( "div",
+			$session->html_phrase( "Plugin/InputForm/Component/Upload:drag_and_drop" ),
+			style => "display: none;",
+			id => join('_', $self->{prefix}, "dropbox_help"),
+		) );
 
 	# file selection button
-	my $file_button = $xml->create_element( "input",
+	$container->appendChild( $xml->create_element( "input",
 		name => $ffname,
 		id => $ffname,
 		type => "file",
 		onchange => "UploadMethod_file_change(this,'$self->{parent}->{prefix}','$self->{prefix}')",
-		);
-	$container->appendChild( $file_button );
+		) );
 
 	# upload button
 	my $add_format_button = $session->render_button(
 		value => $self->{session}->phrase( "Plugin/InputForm/Component/Upload:add_format" ), 
-		class => "ep_form_internal_button",
+		class => "ep_form_internal_button ep_no_js",
 		name => "_internal_".$self->{prefix}."_add_format",
 		id => "_internal_".$self->{prefix}."_add_format",
 		);
@@ -248,8 +250,17 @@ sub render
 
 	$container->appendChild( $session->make_javascript( <<EOJ ) );
 var div = \$('$self->{prefix}_dropbox');
+var body = document.getElementsByTagName ('body').item (0);
+var controller = new Screen_EPrint_UploadMethod_File ('$self->{prefix}', '$component');
 Event.observe (div, 'drop', function(evt) {
-		new Screen_EPrint_UploadMethod_File ('$self->{prefix}', '$component', evt);
+		controller.dragFinish (evt);
+		controller.drop (evt);
+	});
+Event.observe (body, 'ep:dragcommence', function(evt) {
+		controller.dragCommence (evt);
+	});
+Event.observe (body, 'ep:dragfinish', function(evt) {
+		controller.dragFinish (evt);
 	});
 EOJ
 

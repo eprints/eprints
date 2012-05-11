@@ -2965,6 +2965,8 @@ PY = 2006 and OG = (Cambridge)<br />
 	<epp:phrase id="Plugin/InputForm/Component/Upload:new_from_targz">New document (from .tar.gz file): </epp:phrase>
 	<epp:phrase id="Plugin/InputForm/Component/Upload:new_from_url">Capture from URL: </epp:phrase>
 
+	<epp:phrase id="Plugin/InputForm/Component/Upload:drag_and_drop">Drop files here to begin uploading.</epp:phrase>
+
 	<epp:phrase id="Plugin/InputForm/UploadMethod/xcompressed:extract_type">Extraction Result: </epp:phrase>
 	<epp:phrase id="Plugin/InputForm/UploadMethod/xcompressed:single">Single Document (e.g. a web page)</epp:phrase>
 	<epp:phrase id="Plugin/InputForm/UploadMethod/xcompressed:multiple">Multi-Document (e.g. a collection)</epp:phrase>

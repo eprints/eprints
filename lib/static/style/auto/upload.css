@@ -96,3 +96,17 @@
 }
 
 /* End of Document section */
+
+/* Drag and drop */
+
+.ep_dropbox {
+	border-width: 2px;
+	border-style: dashed;
+	border-color: #4ea;
+	background-color: #fff;
+	font-weight: bold;
+	font-size: 110%;
+	padding: 40px 0px;
+}
+
+/* End of Drap and drop */
