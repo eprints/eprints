@@ -2714,58 +2714,10 @@ Titles and Help for the System Fields
 </tr>
 </table></epp:phrase>
 
-    <epp:phrase id="Plugin/Import/ExplodeArchive:input:form">Select an archive from your system: <epc:pin name="input_file_upload"/> e.g. my_photos.zip<br />
-Each file inside this archive will be created as an <b>individual</b> document inside the resulting eprint.</epp:phrase>
-	<epp:phrase id="Plugin/Screen/Import/DOI:help">Enter a DOI or DOIs, one per line e.g. doi:10.1006/jmbi.1998.2354</epp:phrase>
 	<epp:phrase id="Plugin/Import/ISIWoK:help">Enter an ISI query string:<br />
 AU = (Carr) and TI = (open access)<br />
 PY = 2006 and OG = (Cambridge)<br />
 </epp:phrase>
-	<epp:phrase id="Plugin/Screen/Import/ISIWoK:results">Results</epp:phrase>
-	<epp:phrase id="Plugin/Screen/Import/ISIWoK:duplicates"><strong>Possible duplicates: </strong></epp:phrase>
-	<epp:phrase id="Plugin/Screen/Import/ISIWoK:action_import_single">Import</epp:phrase>
-
-	<epp:phrase id="Plugin/Import/DOI:bulk_input:form">
-<table>
-<tr>
-<td>Either enter DOIs (one per line):</td><td><epc:pin name="bulk_input_text_area"/></td>
-</tr><tr>
-<td><b>OR</b> select a file to import from:</td><td><epc:pin name="bulk_input_file_upload"/></td>
-</tr>
-</table>
-	</epp:phrase>
-    <epp:phrase id="Plugin/Import/BibTeX:input:form">
-<table>
-<tr>
-<td>Enter a BibTeX entry:</td><td><epc:pin name="input_text_area"/></td>
-</tr>
-</table>
-	</epp:phrase>
-    <epp:phrase id="Plugin/Import/BibTeX:bulk_input:form">
-<table>
-<tr>
-<td>Either cut-and-paste BibTeX entries into this box:</td><td><epc:pin name="bulk_input_text_area"/></td>
-</tr><tr>
-<td><b>OR</b> select a file to import from:</td><td><epc:pin name="bulk_input_file_upload"/></td>
-</tr>
-</table>
-	</epp:phrase>
-	<epp:phrase id="Plugin/Screen/Import:input:form">
-<table>
-<tr>
-<td>Enter data to import:</td><td><epc:pin name="input_text_area"/></td>
-</tr>
-</table>
-	</epp:phrase>
-	<epp:phrase id="Plugin/Screen/Import:bulk_input:form">
-<table>
-<tr>
-<td><b>Either</b> paste data here:</td><td><epc:pin name="bulk_input_text_area"/></td>
-</tr><tr>
-<td><b>Or</b> select a file to import from:</td><td><epc:pin name="bulk_input_file_upload"/></td>
-</tr>
-</table>
-	</epp:phrase>
 
 	<epp:phrase id="Plugin/Screen/Import:add">Added new record to <epc:pin name="dataset" />: <epc:pin name="dataobj" /></epp:phrase>
 	<epp:phrase id="Plugin/Screen/Import:all">Added <epc:pin name="n" /> new records.</epp:phrase>
@@ -2780,24 +2732,15 @@ PY = 2006 and OG = (Cambridge)<br />
     <epp:phrase id="Plugin/Screen/Import:action:paste:title">Paste</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:action:upload:title">Upload</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:action:import_from:title">Import</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Import:action_test_data">Test without Importing</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Import:action_test_upload" ref="Plugin/Screen/Import:action_test_data"></epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:action_import_data">Import Items</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:action_import_upload" ref="Plugin/Screen/Import:action_import_data"></epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:nothing_to_import">You must specify something to import!</epp:phrase>
-
-	<epp:phrase id="Plugin/Screen/Import:multiple_inputs">Encountered more than one set of input - make sure you haven't filled in more than one field.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Import:test_completed">Test run completed: <epc:pin name="count"/> item(s) found.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Import:test_failed">Test run failed: <epc:pin name="count"/> item(s) found before an error caused the test run to abort. Carefully check any warning messages before proceeding.</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Import:import_completed">Import completed: <epc:pin name="count"/> item(s) imported.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:import_failed">Import failed: <epc:pin name="count"/> item(s) imported before an error caused the import to abort.</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Import:import_errors">The following warnings were produced:<br/><epc:pin name="errors"/></epp:phrase>
-
-    <epp:phrase id="Plugin/Screen/Import:step1">Cut and paste import records<br/><i>or</i><br />Upload import file</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Import:step2">Select import format</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Import:import_documents">Import full texts in addition to metadata if full text is available</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:confirm_all">Are you sure you want to import all items (only first <epc:pin name="limit" /> will be imported)? This may take a very long time. <epc:pin name="form"/></epp:phrase>
 
     <!-- eprint action screens -->
 

@@ -40,7 +40,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{actions} = [qw/ paste upload search add all import_from /];
+	$self->{actions} = [qw/ import_from paste upload search add all confirm_all cancel /];
 
 #	$self->{appears} = [
 #		{
@@ -49,21 +49,16 @@ sub new
 #		}
 #	];
 
-	if( $self->{session} )
-	{
-		# screen to go to after a single item import
-		$self->{post_import_screen} = $self->param( "post_import_screen" );
-		$self->{post_import_screen} ||= "EPrint::Edit";
-
-		# screen to go to after a bulk import
-		$self->{post_bulk_import_screen} = $self->param( "post_bulk_import_screen" );
-		$self->{post_bulk_import_screen} ||= "Items";
-	}
+	$self->{post_import_screen} = "EPrint::Edit";
+	$self->{post_bulk_import_screen} = "Items";
 
 	$self->{show_stderr} = 1;
 
 	$self->{encodings} = \@ENCODINGS;
 	$self->{default_encoding} = "iso-8859-1";
+
+	$self->{bulk_import_limit} = 30;
+	$self->{bulk_import_warn} = 10;
 
 	return $self;
 }
@@ -119,24 +114,7 @@ sub properties_from
 		$self->{processor}->{plugin} = $plugin;
 		$self->{processor}->{plugin_id} = $plugin_id;
 		$self->{processor}->{notes}->{prefix} = $plugin->get_subtype;
-
-		my @query;
-		foreach my $key ($self->{session}->param)
-		{
-			next if $key !~ /^$self->{processor}->{notes}->{prefix}_(.+)$/;
-			push @query, map {
-					$1 => $_
-				} $self->{session}->param( $key );
-		}
-		if( @query )
-		{
-			my $uri = URI::http->new();
-			$uri->query_form( @query );
-			$self->{processor}->{notes}->{query} = $uri->query;
-		}
 	}
-
-	$self->{processor}->{encoding} = $self->{session}->param( "encoding" );
 
 	my $results = $self->{session}->dataset( "import" )->dataobj(
 			scalar $self->{session}->param( "import" )
@@ -145,7 +123,32 @@ sub properties_from
 	{
 		$self->{processor}->{results} = $results;
 		$results->touch;
+
+		my $uri = URI::http->new();
+		$uri->query( $results->value( "query" ) );
+		$self->{processor}->{notes}->{query} = {$uri->query_form};
 	}
+}
+
+sub can_create
+{
+	my( $self, $dataset ) = @_;
+
+	# check we can create the object
+	return 0 unless
+		$self->allow( join '_', "create", $dataset->base_id ) ||
+		$self->allow( join '/', $dataset->base_id, "create" );
+
+	if( $dataset->id eq "buffer" )
+	{
+		return 0 if !$self->allow( "eprint/inbox/move_buffer" );
+	}
+	elsif( $dataset->id eq "archive" )
+	{
+		return 0 if !$self->allow( "eprint/buffer/move_archive" );
+	}
+
+	return 1;
 }
 
 sub can_be_viewed
@@ -155,17 +158,17 @@ sub can_be_viewed
 }
 
 sub allow_import_from { shift->can_be_viewed }
+sub allow_cancel { shift->can_be_viewed }
 
 sub allow_paste { shift->can_be_viewed }
 sub allow_upload { shift->can_be_viewed }
 sub allow_search { shift->can_be_viewed }
 sub allow_add { shift->can_be_viewed }
 sub allow_all { shift->can_be_viewed }
+sub allow_confirm_all { shift->can_be_viewed }
 
-sub action_import_from
-{
-	my( $self ) = @_;
-}
+sub action_import_from {}
+sub action_cancel {}
 
 sub action_paste
 {
@@ -180,7 +183,6 @@ sub action_paste
 	my $import = $repo->dataset( "import" )->create_dataobj({
 			userid => $repo->current_user->id,
 			pluginid => $plugin->get_subtype,
-			query => $data,
 		});
 
 	my $tmpfile = File::Temp->new;
@@ -188,12 +190,14 @@ sub action_paste
 	print $tmpfile $data;
 	seek($tmpfile, 0, 0);
 
-	$self->{processor}->{offset} = 0;
 	$self->{processor}->{results} = $import;
 
-	$self->run_import( $tmpfile );
+	my $total = $self->run_import(
+			fh => $tmpfile,
+			offset => 0,
+		);
 
-	$import->set_value( "count", $self->{processor}->{count} );
+	$import->set_value( "count", $total );
 	$import->commit;
 }
 
@@ -215,14 +219,18 @@ sub action_upload
 
 	$tmpfile = *$tmpfile; # CGI file handles aren't proper handles
 	return if !defined $tmpfile;
+	seek($tmpfile, 0, 0);
 
-	$self->{processor}->{filename} = $self->{repository}->get_query->param( "file" );
-	$self->{processor}->{offset} = 0;
 	$self->{processor}->{results} = $import;
 
-	$self->run_import( $tmpfile );
+	my $total = $self->run_import(
+			fh => $tmpfile,
+			filename => scalar($repo->get_query->param( "file" )),
+			encoding => scalar($repo->param( "encoding" )),
+			offset => 0,
+		);
 
-	$import->set_value( "count", $self->{processor}->{count} );
+	$import->set_value( "count", $total );
 	$import->commit;
 }
 
@@ -233,50 +241,34 @@ sub action_search
 	my $repo = $self->{session};
 
 	my $plugin = $self->{processor}->{plugin};
-	
-	my $data = $self->{processor}->{notes}->{query};
+
+	# get the form values
+	my @query;
+	foreach my $key ($repo->param)
+	{
+		next if $key !~ /^$self->{processor}->{notes}->{prefix}_(.+)$/;
+		push @query, map {
+				$1 => $_
+			} $repo->param( $key );
+	}
+	my $uri = URI::http->new;
+	$uri->query_form( @query );
 
 	my $import = $repo->dataset( "import" )->create_dataobj({
 			userid => $repo->current_user->id,
 			pluginid => $plugin->get_subtype,
-			query => $data,
+			query => $uri,
 		});
 
-	my $tmpfile = File::Temp->new;
-	binmode($tmpfile, ":utf8");
-	print $tmpfile $data;
-	seek($tmpfile, 0, 0);
-
-	$self->{processor}->{mime_type} = "application/x-www-form-urlencoded";
-	$self->{processor}->{offset} = 0;
 	$self->{processor}->{results} = $import;
 
-	$self->run_import( $tmpfile );
+	my $total = $self->run_import(
+			query => { $uri->query_form },
+			offset => 0,
+		);
 
-	$import->set_value( "count", $plugin->{count} );
+	$import->set_value( "count", $total );
 	$import->commit;
-}
-
-sub post_import
-{
-	my( $self, $list ) = @_;
-
-	my $processor = $self->{processor};
-
-	my $n = $list->count;
-
-	if( $n == 1 )
-	{
-		my( $eprint ) = $list->get_records( 0, 1 );
-		# add in eprint/eprintid for backwards compatibility
-		$processor->{dataobj} = $processor->{eprint} = $eprint;
-		$processor->{dataobj_id} = $processor->{eprintid} = $eprint->get_id;
-		$processor->{screenid} = $self->{post_import_screen};
-	}
-	elsif( $n > 1 )
-	{
-		$processor->{screenid} = $self->{post_bulk_import_screen};
-	}
 }
 
 sub action_add
@@ -284,20 +276,34 @@ sub action_add
 	my( $self ) = @_;
 
 	my $repo = $self->{session};
+	my $processor = $self->{processor};
 
 	my $import = $self->{processor}->{results};
 	return if !defined $import;
 
 	my $dataobj = $import->item( $self->{processor}->{notes}->{n} );
 
+	if( !$self->can_create( $dataobj->get_dataset ) )
+	{
+		$processor->add_message( "error", $self->html_phrase( "lib/session:no_priv" ) );
+		return;
+	}
+
 	$dataobj = $dataobj->get_dataset->create_dataobj( $dataobj->get_data );
 
-	$self->{processor}->add_message( "message", $self->html_phrase( "add",
+	$processor->add_message( "message", $self->html_phrase( "add",
 			dataset => $dataobj->get_dataset->render_name,
 			dataobj => $dataobj->render_citation( "default",
 				url => $dataobj->uri,
 			)
 		) );
+
+	if( $self->count == 1 )
+	{
+		$processor->{dataobj} = $processor->{eprint} = $dataobj;
+		$processor->{dataobj_id} = $processor->{eprintid} = $dataobj->id;
+		$processor->{screenid} = $self->param( "post_import_screen" );
+	}
 }
 
 sub action_all
@@ -309,22 +315,56 @@ sub action_all
 	my $import = $self->{processor}->{results};
 	return if !defined $import;
 
+	if( $import->value( "count" ) <= $self->param( "bulk_import_warn" ) )
+	{
+		return $self->action_confirm_all;
+	}
+	else
+	{
+		my $form = $self->render_form;
+		$form->appendChild( $repo->render_action_buttons(
+					confirm_all => $repo->phrase( "lib/submissionform:action_confirm" ),
+					cancel => $repo->phrase( "lib/submissionform:action_cancel" ),
+					_order => [qw( confirm_all cancel )],
+				) );
+		$self->{processor}->add_message( "message", $self->html_phrase( "confirm_all",
+				n => $repo->make_text( $import->value( "count" ) ),
+				limit => $repo->make_text( $self->param( "bulk_import_limit" ) ),
+				form => $form,
+			) );
+	}
+}
+
+sub action_confirm_all
+{
+	my( $self ) = @_;
+
+	my $repo = $self->{session};
+
+	my $import = $self->{processor}->{results};
+	return if !defined $import;
+
 	my $c = 0;
 
-	for(my $i = 0; $i < $import->value( "count" ); $i += 100)
+	SLICE: for(my $i = 0; $i < $import->value( "count" ); $i += 100)
 	{
 		foreach my $dataobj ($self->slice( $i, 100 ))
 		{
+			next if !$self->can_create( $dataobj->get_dataset );
 			next if $self->duplicates( $dataobj )->count;
 
 			$dataobj = $dataobj->get_dataset->create_dataobj( $dataobj->get_data );
 			++$c if defined $dataobj;
+
+			last SLICE if $c >= $self->param( "bulk_import_limit" );
 		}
 	}
 
 	$self->{processor}->add_message( "message", $self->html_phrase( "all",
 			n => $repo->make_text( $c ),
 		) );
+
+	$self->{processor}->{screenid} = $self->param( "post_bulk_import_screen" );
 }
 
 sub epdata_to_dataobj
@@ -333,7 +373,7 @@ sub epdata_to_dataobj
 
 	my $import = $self->{processor}->{results};
 
-	$self->{processor}->{count}++;
+	$self->{count}++;
 
 	my $dataset = $opts{dataset};
 	if( $dataset->base_id eq "eprint" )
@@ -343,7 +383,7 @@ sub epdata_to_dataobj
 	}
 
 	$import->create_subdataobj( "cache", {
-			pos => ++$self->{processor}->{offset},
+			pos => ++$self->{offset},
 			datasetid => $opts{dataset}->base_id,
 			epdata => $epdata,
 		});
@@ -351,18 +391,9 @@ sub epdata_to_dataobj
 	return undef;
 }
 
-sub arguments
-{
-	my( $self ) = @_;
-
-	return ();
-}
-
 sub run_import
 {
-	my( $self, $tmp_file, %opts ) = @_;
-
-	seek($tmp_file, 0, SEEK_SET);
+	my( $self, %opts ) = @_;
 
 	my $session = $self->{session};
 	my $dataset = $self->{processor}->{dataset};
@@ -398,19 +429,17 @@ sub run_import
 			if scalar($session->param( "action_$action" ));
 	}
 
-	$self->{processor}->{count} = 0;
+	my $f = defined $opts{fh} ? "input_fh" : "input_form";
+
+	local $self->{offset} = $opts{offset};
+	local $self->{count} = 0;
 
 	# Don't let an import plugin die() on us
-	my $list = eval { $plugin->input_fh(
-			$self->arguments,
+	my $rc = eval { $plugin->$f(
+			%opts,
 			dataset=>$dataset,
-			fh=>$tmp_file,
 			user=>$user,
-			filename=>$self->{processor}->{filename},
-			mime_type=>$self->{processor}->{mime_type},
-			encoding=>$self->{processor}->{encoding},
 			actions=>\@actions,
-			offset=>$self->{processor}->{offset},
 		) };
 
 	if( $show_stderr )
@@ -442,7 +471,7 @@ sub run_import
 			];
 		}
 	}
-	elsif( !defined $list && !@{$self->{processor}->{messages}} )
+	elsif( !defined $rc && !@{$self->{processor}->{messages}} )
 	{
 		push @problems, [
 			"error",
@@ -452,8 +481,6 @@ sub run_import
 			),
 		];
 	}
-
-	my $count = $self->{processor}->{count};
 
 	if( $show_stderr )
 	{
@@ -484,22 +511,17 @@ sub run_import
 		$self->{processor}->add_message( $type, $pre );
 	}
 
-	my $ok = (scalar(@problems) == 0 and $count > 0);
+	my $ok = (scalar(@problems) == 0 and $self->{count} > 0);
 
-	if( $ok )
-	{
-		$self->{processor}->add_message( "message", $session->html_phrase( 
-			"Plugin/Screen/Import:import_completed", 
-			count => $session->make_text( $count ) ) ) unless $opts{quiet};
-	}
-	else
+	if( !$ok )
 	{
 		$self->{processor}->add_message( "warning", $session->html_phrase( 
 			"Plugin/Screen/Import:import_failed", 
-			count => $session->make_text( $count ) ) );
+			count => $session->make_text( $self->{count} ) ) );
 	}
 
-	return $list;
+	# input_fh = our count, input_form = returned total
+	return $opts{fh} ? $self->{count} : $rc;
 }
 
 sub redirect_to_me_url
@@ -576,7 +598,7 @@ sub render_input
 	{
 		push @labels, $self->html_phrase( "form" );
 		push @panels, $plugin->render_input_form( $self, $self->{processor}->{notes}->{prefix},
-				query => (defined $self->{processor}->{results} ? $self->{processor}->{results}->value( "query" ) : undef),
+				query => $self->{processor}->{notes}->{query},
 			);
 	}
 
@@ -590,6 +612,12 @@ sub render_input
 	return $form;
 }
 
+sub item
+{
+	my( $self, $i ) = @_;
+
+	return ($self->slice($i,1))[0];
+}
 sub count { shift->{processor}->{results}->value( "count" ) }
 *get_records = \&slice;
 sub slice
@@ -608,6 +636,7 @@ sub slice
 	}
 
 	my @records = $import->slice( $offset, $count );
+
 	# query for more records
 	if( @records < $count && $import->is_set( "query" ) )
 	{
@@ -616,19 +645,15 @@ sub slice
 
 		while(@records < $count)
 		{
-			my $tmpfile = File::Temp->new;
-			binmode($tmpfile, ":utf8");
-			print $tmpfile $import->value( "query" );
-			seek($tmpfile,0,0);
-
-			$self->{processor}->{offset} = $offset + @records;
-			$self->{processor}->{mime_type} = "application/x-www-form-urlencoded";
-
-			$self->run_import( $tmpfile, quiet => 1 );
+			$self->run_import(
+					query => $self->{processor}->{notes}->{query},
+					quiet => 1,
+					offset => $offset + @records,
+				);
 
 			my @chunk = $import->slice( $offset + @records, $count - @records );
-			last if !@chunk; # no more records found
 			push @records, @chunk;
+			last if !@chunk; # no more records found
 		}
 	}
 
@@ -638,6 +663,10 @@ sub slice
 	{
 		my $dataset = $self->{session}->dataset( $_->value( "datasetid" ) );
 		$_ = $dataset->make_dataobj( $_->value( "epdata" ) );
+		if( $dataset->base_id eq "eprint" )
+		{
+			$_->set_value( "eprint_status", "inbox" );
+		}
 	}
 
 	return @records;
@@ -804,13 +833,15 @@ sub render_import_form
 
 	my $div = $xml->create_element( "div", class => "ep_block ep_sr_component" );
 
+	my $results = $self->{processor}->{results};
+
 	$div->appendChild(EPrints::MetaField->new(
 			name => "data",
 			type => "longtext",
 			repository => $repo,
 		)->render_input_field(
 			$repo,
-			(defined $self->{processor}->{results} ? $self->{processor}->{results}->value( "query" ) : undef),
+			undef,
 		) );
 	$div->appendChild( $repo->render_action_buttons(
 		paste => $repo->phrase( "Plugin/Screen/Import:action:paste:title" ),

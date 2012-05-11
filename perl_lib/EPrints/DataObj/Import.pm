@@ -186,7 +186,7 @@ sub remove
 	my $repo = $self->{session};
 
 	$self->{session}->get_database->delete_from(
-			$self->sql_table_name,
+			$self->{session}->dataset( "import_cache" )->get_sql_table_name,
 			["importid"],
 			[$self->id],
 		);

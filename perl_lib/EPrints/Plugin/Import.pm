@@ -297,6 +297,35 @@ sub input_file
 	return $list;
 }
 
+=item $total = $plugin->input_form( query => $params [, %opts ] )
+
+Perform an import based on CGI query parameters.
+
+Returns the total number of records available (which may be a very large number of search results).
+
+=over 4
+
+=item query
+
+A hash ref of query terms that were previously set by L</render_input_form>.
+
+=item offset
+
+Zero-indexed offset to start fetching results from.
+
+=back
+
+=cut
+
+sub input_form
+{
+	my( $self, %opts ) = @_;
+
+	$self->log( "input_form should be overridden" );
+
+	return undef;
+}
+
 sub input_dataobj
 {
 	my( $plugin, $input_data ) = @_;

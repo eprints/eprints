@@ -66,10 +66,6 @@ sub render_input_form
 	my $xml = $repo->xml;
 	my $xhtml = $repo->xhtml;
 
-	my $uri = URI::http->new();
-	$uri->query( $opts{query} );
-	my %values = $uri->query_form;
-
 	my $frag = $xml->create_document_fragment;
 
 	$frag->appendChild( $self->html_phrase( "help" ) );
@@ -79,13 +75,14 @@ sub render_input_form
 	for(my $i = 0; $i < @WOS_INDEXES; $i+=2)
 	{
 		my( $key, undef ) = @WOS_INDEXES[$i,$i+1];
+		my $param_key = join '_', $basename, $key;
 		$table->appendChild( $repo->render_row_with_help(
 				label => $self->html_phrase( "field:$key" ),
 				field => $repo->render_input_field(
 					class => "ep_form_text",
 					type => "text",
 					name => join('_', $basename, $key),
-					value => $values{$key},
+					value => $opts{query}{$key},
 					maxlength => 256 ),
 			) );
 	}
@@ -99,33 +96,54 @@ sub render_input_form
 	return $frag;
 }
 
+sub input_form
+{
+	my( $self, %opts ) = @_;
+
+	my $repo = $self->{repository};
+
+	my %query;
+	for(@WOS_INDEXES)
+	{
+		my $value = $opts{query}{$_};
+		next if !EPrints::Utils::is_set( $value );
+		$query{$_} = $value;
+	}
+
+	my $query = join ' AND ', map { 
+			"$_ = ($query{$_})"
+		} keys %query;
+
+	$self->_input_query( $query, %opts );
+
+	return $self->{count};
+}
+
 sub input_text_fh
 {
 	my( $self, %opts ) = @_;
 
-	my $session = $self->{session};
-	my $dataset = $opts{dataset};
-
-	my @ids;
-
 	my $fh = $opts{fh};
 	my $query = join '', <$fh>;
 
-	if( $opts{mime_type} && $opts{mime_type} eq "application/x-www-form-urlencoded" )
-	{
-		my $uri = URI::http->new();
-		$uri->query( $query );
-		my %q = $uri->query_form;
-		$query = join ' AND ', map {
-				EPrints::Utils::is_set( $q{$_} ) ? "$_ = ($q{$_})" : ()
-			} keys %q;
-	}
+	return $self->_input_query( $query, %opts );
+}
+
+sub _input_query
+{
+	my( $self, $query, %opts ) = @_;
+
+	my $repo = $self->{repository};
+	my $dataset = $opts{dataset};
+
+	my @ids;
 
 	my $wok = SOAP::ISIWoK::Lite->new;
 
 	my $xml = $wok->search( $query,
 		(defined $opts{offset} ? (offset => $opts{offset}) : ()),
 	);
+
 	$self->{count} = $xml->documentElement->getAttribute( "recordsFound" );
 
 	foreach my $rec ($xml->getElementsByTagName( "REC" ))
@@ -137,7 +155,7 @@ sub input_text_fh
 	}
 
 	return EPrints::List->new(
-		session => $session,
+		session => $repo,
 		dataset => $dataset,
 		ids => \@ids );
 }
