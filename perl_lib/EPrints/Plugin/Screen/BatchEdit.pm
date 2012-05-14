@@ -121,15 +121,12 @@ sub export
 
 	my $session = $self->{session};
 
-	my $action = $session->param( "ajax" );
+	my $action = $self->{processor}->{action};
 	return unless defined $action;
 
-	if( $action eq "new_field" )
+	if( $action eq "add_change" )
 	{
-		$self->ajax_new_field(
-			$session->param( "field_name" ),
-			$session->param( "c" )
-		);
+		$self->ajax_add_change( scalar($session->param( "field_name" )) );
 	}
 	elsif( $action eq "edit" )
 	{
@@ -191,24 +188,26 @@ sub ajax_list
 }
 
 # generate a new action line
-sub ajax_new_field
+sub ajax_add_change
 {
-	my( $self, $name, $c ) = @_;
+	my( $self, $name ) = @_;
+
+	my $prefix = APR::UUID->new->format;
 
 	my $session = $self->{session};
 
 	my $searchexp = $self->get_searchexp;
-	return if !defined $searchexp;
+	EPrints->abort( "Missing cache parameter" ) if !defined $searchexp;
 
 	my $dataset = $searchexp->get_dataset;
-	return if !$dataset->has_field( $name );
+	EPrints->abort( "'$name' is not a valid field" ) if !$dataset->has_field( $name );
 
 	my $field;
 	foreach my $f ($self->get_fields( $dataset ))
 	{
 		$field = $f, last if $f->get_name eq $name;
 	}
-	return if !defined $field;
+	EPrints->abort( "'$name' is not a valid field" ) if !defined $field;
 
 	$field = $field->clone;
 	my @options;
@@ -224,7 +223,7 @@ sub ajax_new_field
 	# construct a new field called the action number
 	# this first sub-field is the action to perform (append, clear etc.)
 	my $custom_field = {
-		name => $c,
+		name => $prefix,
 		type => "compound",
 		fields => [{
 			sub_name => "action",
@@ -259,7 +258,6 @@ sub ajax_new_field
 	# and lastly a button to remove action entries and a hidden that tells us
 	# the field name of the action name
 	push @{$custom_field->{fields}}, {
-			name => "batchedit_remove",
 			sub_name => "remove",
 			type => "text",
 			title_xhtml => $session->make_doc_fragment,
@@ -271,13 +269,13 @@ sub ajax_new_field
 					type => "image",
 					alt => "Remove",
 					src => $session->get_url( path => "static", "style/images/action_remove.png" ),
-					onclick => "ep_batchedit_remove_action($c)",
+					onclick => "\$('$prefix').remove(); return false;",
 				) );
 
 				# hint so we can work out how to retrieve the values
 				$frag->appendChild( $session->make_element( "input",
 					type => "hidden",
-					name => "action_$c",
+					name => $self->get_subtype."_change_".$prefix,
 					value => $name
 				) );
 
@@ -288,22 +286,12 @@ sub ajax_new_field
 	# do some tidying up and turn custom_field into a temporary field object
 	$custom_field = $self->custom_field_to_field( $dataset, $custom_field );
 
-	my $div = $session->make_element( "div", id => "action_$c" );
+	my $div = $session->make_element( "div", id => $prefix );
+	$div->appendChild( $custom_field->render_input_field( $session ) );
 
-	my $title_div = $session->make_element( "div", class => "ep_form_field_name" );
-	$div->appendChild( $title_div );
-	$title_div->appendChild( $field->render_name( $session ) );
-
-	my $help_div = $session->make_element( "div", class => "ep_form_field_help" );
-	$div->appendChild( $help_div );
-	$help_div->appendChild( $field->render_help( $session ) );
-
-	my $inputs = $custom_field->render_input_field( $session );
-	$div->appendChild( $inputs );
-
-	$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
+	$session->send_http_header( content_type => "text/html; charset=UTF-8" );
 	binmode(STDOUT, ":utf8");
-	print $session->xml->to_string( $div, undef, 1 );
+	print $session->xhtml->to_xhtml( $div );
 	$session->xml->dispose( $div );
 }
 
@@ -330,9 +318,7 @@ sub ajax_edit
 
 	$request->content_type( "text/html; charset=UTF-8" );
 	my $html = $session->make_element( "html" );
-	my $body = $html->appendChild( $session->make_element( "body",
-		onload => "window.top.window.ep_batchedit_finished()"
-	) );
+	my $body = $html->appendChild( $session->make_element( "body" ) );
 
 	my $dataset = $searchexp->get_dataset;
 
@@ -479,6 +465,8 @@ sub render
 	my $processor = $self->{processor};
 	my $session = $processor->{session};
 
+	my $prefix = $self->get_subtype;
+
 	my( $page, $p, $div, $link );
 
 	$page = $session->make_doc_fragment;
@@ -497,31 +485,37 @@ sub render
 		return $page;
 	}
 
-	my $iframe = $session->make_element( "iframe",
-			id => "ep_batchedit_iframe",
-			name => "ep_batchedit_iframe",
+	$page->appendChild( $session->make_element( "iframe",
+			id => "${prefix}_iframe",
+			name => "${prefix}_iframe",
 			width => "0px",
 			height => "0px",
 			style => "border: 0px;",
-	);
-	$page->appendChild( $iframe );
+		) );
 
-	$page->appendChild( $self->render_cancel_form( $searchexp ) );
+	$div = $session->make_element( "div" );
+	$page->appendChild( $div );
+	$div->appendChild( $searchexp->render_description );
 
-	$p = $session->make_element( "p" );
-	$page->appendChild( $p );
-	$p->appendChild( $searchexp->render_description );
-
-	$p = $session->make_element( "div", id => "ep_batchedit_sample" );
-	$page->appendChild( $p );
-
-	$div = $session->make_element( "div", id => "ep_progress_container" );
+	$div = $session->make_element( "div", id => "${prefix}_sample" );
 	$page->appendChild( $div );
 
-	$div = $session->make_element( "div", id => "ep_batchedit_inputs" );
+	$div = $session->make_element( "div", id => "${prefix}_progress" );
 	$page->appendChild( $div );
 
-	$div->appendChild( $session->xhtml->tabs(
+	my $form = $self->render_form;
+	$page->appendChild( $form );
+
+	$form->setAttribute( target => "${prefix}_iframe" );
+	$form->setAttribute( id => "${prefix}_form" );
+	$form->appendChild( $session->xhtml->hidden_field(
+			ajax => 1,
+		) );
+	$form->appendChild( $session->xhtml->hidden_field(
+			progressid => APR::UUID->new->format,
+		) );
+
+	$form->appendChild( $session->xhtml->tabs(
 		[
 			$self->html_phrase( "edit_title" ),
 			$self->html_phrase( "remove_title" )
@@ -531,6 +525,12 @@ sub render
 			$self->render_remove_form( $searchexp ),
 		],
 	) );
+
+	$page->appendChild( $session->make_javascript( <<EOJ ) );
+Event.observe(window, 'load', function() {
+	new Screen_BatchEdit ('$prefix');
+});
+EOJ
 
 	return $page;
 }
@@ -571,21 +571,23 @@ sub get_changes
 
 	my @actions;
 
-	my @idx = map { /_(\d+)$/; $1 } grep { /^action_\d+$/ } $session->param;
+	my $prefix = $self->get_subtype . "_change_";
+
+	my @uuids = map { /^$prefix(.+)$/ ? $1 : () } $session->param;
 
 	my %fields = map { $_->get_name => $_ } $self->get_fields( $dataset );
 
-	foreach my $i (@idx)
+	foreach my $uuid (@uuids)
 	{
-		my $name = $session->param( "action_" . $i );
+		my $name = $session->param( $prefix . $uuid );
 		next if !EPrints::Utils::is_set( $name );
-		my $action = $session->param( $i . "_action" );
+		my $action = $session->param( $uuid . "_action" );
 		next if !EPrints::Utils::is_set( $action );
 		my $field = $fields{$name};
 		next if !defined $field;
 		do {
 			local $field->{multiple} = 0;
-			my $value = $field->form_value( $session, undef, $i );
+			my $value = $field->form_value( $session, undef, $uuid );
 			push @actions, {
 				action => $action,
 				field => $field,
@@ -604,52 +606,21 @@ sub render_changes_form
 	my $processor = $self->{processor};
 	my $session = $processor->{session};
 
+	my $prefix = $self->get_subtype;
+
 	my $dataset = $searchexp->get_dataset;
 
 	my( $page, $p, $div, $link );
 
 	$page = $session->make_doc_fragment;
 
-	my %buttons = (
-		edit => $self->phrase( "action:edit" ),
-	);
+	$div = $session->make_element( "div", id => "${prefix}_changes" );
+	$page->appendChild( $div );
 
-	my $form = $session->render_input_form(
-		dataset => $dataset,
-#		fields => \@input_fields,
-		show_help => 0,
-		show_names => 1,
-#		top_buttons => \%buttons,
-		buttons => \%buttons,
-		hidden_fields => {
-			screen => $processor->{screenid},
-			cache => $searchexp->get_cache_id,
-			max_action => 0,
-			ajax => "edit",
-			progressid => "", # set by JavaScript
-		},
-	);
-	$page->appendChild( $form );
-	$form->setAttribute( id => "ep_batchedit_form" );
-	$form->setAttribute( target => "ep_batchedit_iframe" );
-	$form->setAttribute( onsubmit => "return ep_batchedit_submitted();" );
+	$page->appendChild( $div = $session->make_element( "div" ) );
 
-	my $container = $session->make_element( "div" );
-	# urg, fragile!
-	for($form->childNodes)
-	{
-		if( $_->nodeName eq "input" && $_->getAttribute( "type" ) eq "hidden" )
-		{
-			$form->insertBefore( $container, $_ );
-			last;
-		}
-	}
-
-	$div = $session->make_element( "div", id => "ep_batchedit_actions" );
-	$container->appendChild( $div );
-
-	my $select = $session->make_element( "select", id => "ep_batchedit_field_name" );
-	$container->appendChild( $select );
+	my $select = $session->make_element( "select", id => "${prefix}_field_name" );
+	$div->appendChild( $select );
 
 	foreach my $field ($self->get_fields( $dataset ))
 	{
@@ -659,39 +630,15 @@ sub render_changes_form
 		$option->appendChild( $field->render_name( $session ) );
 	}
 
-	my $add_button = $session->make_element( "button", class => "ep_form_action_button", onclick => "ep_batchedit_add_action(); return false" );
-	$container->appendChild( $add_button );
+	$div->appendChild( $session->xhtml->action_button(
+			add_change => $self->phrase( "action:add" ),
+			id => join('_', $self->get_subtype, "action_add_change"),
+		) );
 
-	$add_button->appendChild( $self->html_phrase( "add_action" ) );
-
-	return $page;
-}
-
-sub render_cancel_form
-{
-	my( $self, $searchexp ) = @_;
-
-	my $processor = $self->{processor};
-	my $session = $processor->{session};
-
-	my $dataset = $searchexp->get_dataset;
-
-	my( $page, $p, $div, $link );
-
-	$page = $session->make_doc_fragment;
-
-	my $form = $session->render_input_form(
-		dataset => $dataset,
-		show_help => 0,
-		show_names => 1,
-		buttons => {},
-		hidden_fields => {
-			screen => $processor->{screenid},
-			cache => $searchexp->get_cache_id,
-		},
-	);
-	$form->setAttribute( id => "ep_batchedit_cancel_form" );
-	$page->appendChild( $form );
+	$page->appendChild( $session->xhtml->action_button(
+			edit => $self->phrase( "action:edit" ),
+			id => join('_', $self->get_subtype, "action_edit"),
+		) );
 
 	return $page;
 }
@@ -702,8 +649,6 @@ sub render_remove_form
 
 	my $processor = $self->{processor};
 	my $session = $processor->{session};
-
-	my $dataset = $searchexp->get_dataset;
 
 	my( $page, $p, $div, $link );
 
@@ -717,26 +662,11 @@ sub render_remove_form
 	$div = $session->make_element( "div", class => "ep_block" );
 	$page->appendChild( $div );
 
-	my %buttons = (
-		remove => $session->phrase( "lib/submissionform:action_remove" ),
-	);
-
-	my $form = $session->render_input_form(
-		dataset => $dataset,
-		show_help => 0,
-		show_names => 1,
-		buttons => \%buttons,
-		hidden_fields => {
-			screen => $processor->{screenid},
-			cache => $searchexp->get_cache_id,
-			ajax => "remove",
-		},
-	);
-	$form->setAttribute( target => "ep_batchedit_iframe" );
-	my $message = EPrints::Utils::js_string( $self->phrase( "confirm_remove" ) );
-	$form->setAttribute( onsubmit => "return ep_batchedit_remove_submitted( $message );" );
-	$div->appendChild( $form );
-	$form->setAttribute( id => "ep_batchremove_form" );
+	$div->appendChild( $session->xhtml->action_button(
+			remove => $session->phrase( "lib/submissionform:action_remove" ),
+			id => join('_', $self->get_subtype, "action_remove"),
+			_phrase => $self->phrase( "confirm_remove" ),
+		) );
 
 	return $page;
 }
