@@ -66,7 +66,8 @@ $c->add_trigger( EP_TRIGGER_MEDIA_INFO, sub {
 		# doc = "application/msword application/msword" ?!
 		($epdata->{mime_type}) = split /\s+/, $mime_type;
 		my( $charset ) = $opts =~ s/charset=(\S+)//;
-		$epdata->{charset} = $charset if defined $charset;
+		# unsupported in document metadata
+		# $epdata->{charset} = $charset if defined $charset;
 	}
 	else
 	{

@@ -40,14 +40,12 @@ sub json
 		};
 	}
 
-	foreach my $msg (@{$self->{processor}->{messages}})
+	my $messages = $self->{processor}->render_messages;
+	foreach my $content ($messages->childNodes)
 	{
-		my $content = $self->{repository}->render_message(
-			$msg->{type}, $msg->{content}
-		);
 		push @{$json{messages}}, $content->toString();
-		$self->{repository}->xml->dispose( $content );
 	}
+	$self->{repository}->xml->dispose( $messages );
 
 	return \%json;
 }
