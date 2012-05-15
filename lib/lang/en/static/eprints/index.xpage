@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="iso-8859-1"  standalone="no"  ?>
 <!DOCTYPE page SYSTEM "entities.dtd" >
 <xpage:page xmlns="http://www.w3.org/1999/xhtml" xmlns:xpage="http://eprints.org/ep3/xpage" xmlns:epc="http://eprints.org/ep3/control">
+<xpage:head>
+<style type="text/css">
+.technology dt {
+	font-weight: bold;
+}
+.technology dd {
+	display: inline;
+	margin: 0;
+}
+.technology dd:after { content: ","; }
+.technology dd.last:after { content: "."; }
+</style>
+</xpage:head>
 <xpage:title>About EPrints</xpage:title>
 <xpage:body>
 
@@ -18,14 +31,14 @@
 
 <h3>Lead Developer + Software Architect</h3>
 <ul>
-<li><a href="http://www.ecs.soton.ac.uk/people/cjg">Christopher Gutteridge</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/tdb2">Dr Tim Brody</a></li>
 </ul>
 
 <h3>Developers</h3>
 <ul>
+<li><a href="http://www.ecs.soton.ac.uk/people/cjg">Christopher Gutteridge</a></li>
 <li><a href="http://www.ecs.soton.ac.uk/people/tmb">Dr Timothy Miles-Board</a></li>
-<li><a href="http://www.ecs.soton.ac.uk/people/tdb2">Dr Tim Brody</a></li>
-<li><a href="http://www.ecs.soton.ac.uk/people/dct05r">Dave Tarrant</a></li>
+<li><a href="http://www.ecs.soton.ac.uk/people/dct05r">Dr Dave Tarrant</a></li>
 <li><a href="http://www.ecs.soton.ac.uk/people/af05v">Adam Field</a></li>
 <li><a href="http://www.ecs.soton.ac.uk/people/sf2">Seb Francois</a></li>
 <li><a href="http://www.ecs.soton.ac.uk/people/pm5">Patrick McSweeney</a></li>
@@ -37,16 +50,12 @@
 <li><a href="http://www.ecs.soton.ac.uk/people/jmnh">Dr Jessie Hey</a></li>
 <li><a href="http://www.ecs.soton.ac.uk/people/moj">Dr Michael O. Jewell</a></li>
 <li><a href="http://www.ecs.soton.ac.uk/people/hjm03r">Dr Harry Mason</a></li>
- <li>Al Riddoch</li>
- <li>Dr Gui Power</li>
- <li>Pauline Simpson</li>
- <li>Robert Tansley</li>
- <li>Adam White</li>
- <li>Wendy White</li>
-</ul>
-
-<h3>user experience consultant</h3>
-<ul>
+<li>Al Riddoch</li>
+<li>Dr Gui Power</li>
+<li>Pauline Simpson</li>
+<li>Robert Tansley</li>
+<li>Adam White</li>
+<li>Wendy White</li>
 <li><a href="http://www.ecs.soton.ac.uk/people/mc">dr mc schraefel</a></li>
 </ul>
 
@@ -83,36 +92,38 @@ EPrints Community members for advice and bug reports.</p>
 
 <h2>Technologies employed and supported:</h2>
 
-<p><strong>Powered by:</strong>
-<a href="http://www.mysql.com/">MySQL</a>,
-<a href="http://www.apache.org/">Apache Webserver</a>,
-<a href="http://www.perl.org/">Perl</a>,
-<a href="http://perl.apache.org/">mod_perl</a>,
-<a href="http://www.w3c.org/XML/">XML</a>,
-<a href="http://www.w3c.org/DOM/">DOM</a>,
-<a href="http://www.w3c.org/RDF/">RDF</a>,
-<a href="http://paracite.eprints.org/">ParaCite</a>,
-<a href="http://www.eprints.org/software/">EPrints</a>.
-</p>
+<dl class="technology">
+
+<dt>Powered by:</dt>
+<dd><a href="http://www.mysql.com/">MySQL</a></dd>
+<dd><a href="http://www.apache.org/">Apache Webserver</a></dd>
+<dd><a href="http://www.perl.org/">Perl</a></dd>
+<dd><a href="http://perl.apache.org/">mod_perl</a></dd>
+<dd><a href="http://www.w3c.org/XML/">XML</a></dd>
+<dd><a href="http://www.w3c.org/DOM/">DOM</a></dd>
+<dd><a href="http://www.w3c.org/RDF/">RDF</a></dd>
+<dd><a href="http://codemirror.net/">CodeMirror</a></dd>
+<dd><a href="http://flowplayer.org/">Flowplayer</a></dd>
+<dd class="last"><a href="http://www.cpan.org/">CPAN</a></dd>
 
 
-<p><strong>Supports:</strong>
-<a href="http://www.openarchives.org/">Open Archives Initiative Protocol for Metadata Harvesting</a>,
-<a href="http://www.w3.org/MarkUp/">Valid XHTML</a>,
-<a href="http://jigsaw.w3.org/css-validator/">Valid CSS</a>,
-<a href="http://linkeddata.org/">Linked Data</a>.
+<dt>Supports:</dt>
+<dd><a href="http://www.openarchives.org/">Open Archives Initiative Protocol for Metadata Harvesting</a></dd>
+<dd><a href="http://www.w3.org/MarkUp/">Valid XHTML</a></dd>
+<dd><a href="http://jigsaw.w3.org/css-validator/">Valid CSS</a></dd>
+<dd class="last"><a href="http://linkeddata.org/">Linked Data</a></dd>
 
-</p>
+<dt>Part of:</dt>
+<dd class="last"><a href="http://www.gnu.org/">The GNU Project</a></dd>
 
-<p><strong>Part of:</strong>
-<a href="http://www.gnu.org/">The GNU Project</a>.
-</p>
+</dl>
+
 
 <epc:phrase ref="ruler" />
 
 <div align="center" style='margin-top:2em'>
 <a href="http://www.ecs.soton.ac.uk/"><img src="{$config{rel_path}}/images/ecslogo.jpg" border="0" alt="School of Electronics and Computer Science, University of Southampton" align="top"/></a>
-<p>EPrints is Copyright &copy; University of Southampton, 2000-2010.</p>
+<p>EPrints is Copyright &copy; University of Southampton, 2000-2012.</p>
 </div>
 
 
