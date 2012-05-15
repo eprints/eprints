@@ -3,3 +3,4 @@
 ^cfg/
 \.swp$
 ^perl_lib/EPrints/SystemSettings\.pm$
+^var
