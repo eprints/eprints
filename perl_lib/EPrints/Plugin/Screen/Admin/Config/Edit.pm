@@ -23,6 +23,33 @@ $node_collection->{"template"} = '<?xml version="1.0" standalone="no" ?>' . "\n"
 	'<!DOCTYPE html SYSTEM "entities.dtd" >'. "\n\n" . 
 	'<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epc="http://eprints.org/ep3/control">';
 
+our %CODEMIRROR_MODES = (
+	pl => {
+		js => [qw( mode/perl/perl.js )],
+		mode => "perl",
+	},
+	xml => {
+		js => [qw( mode/xml/xml.js )],
+		mode => "xml",
+	},
+	xsl => {
+		js => [qw( mode/xml/xml.js )],
+		mode => "xml",
+	},
+	xhtml => {
+		js => [qw( mode/xml/xml.js )],
+		mode => "xml",
+	},
+	css => {
+		js => [qw( mode/css/css.js )],
+		mode => "css",
+	},
+	js => {
+		js => [qw( mode/javascript/javascript.js )],
+		mode => "javascript",
+	},
+);
+
 sub new
 {
 	my( $class, %params ) = @_;
@@ -1014,23 +1041,21 @@ sub config_edit
 	$form->appendChild( $self->{session}->render_action_buttons( %buttons ) );
 	my $div = $self->{session}->make_element( "div", align => "center" );
 	$div->appendChild($form);
-	
-	my ( $parser_files, $codemirror_style ) = $self->get_parser_files($fn);
 
-	if (defined $parser_files)
+	if( $fn =~ /\.([^\.]+)$/ && exists $CODEMIRROR_MODES{$1} )
 	{
-		my $rel_path = $self->{session}->config( "rel_path" );
-		$div->appendChild( $self->{session}->make_javascript( undef, src=> "$rel_path/javascript/codemirror/codemirror.js" ) );
-		$div->appendChild( $self->{session}->make_javascript('
-			document.observe("dom:loaded",function(){
-			var editor = CodeMirror.fromTextArea(\'code\', {
-			height: "350px",
-			parserfile: [ '.$parser_files.' ],
-			stylesheet: "'.$rel_path.$codemirror_style.'",
-			path: "'.$rel_path.'/javascript/codemirror/",
+		my $mode = $CODEMIRROR_MODES{$1};
+
+		$div->appendChild( $self->{session}->make_javascript(<<"EOJ") );
+Event.observe (window, "load", function() {
+	var editor = CodeMirror.fromTextArea(\$('code'), {
+			mode: '$mode->{mode}',
+			theme: 'neat',
 			continuousScanning: 500,
 			lineNumbers: true
-			});});') );
+		});
+});
+EOJ
 	}
 	
 	my $box;
@@ -1059,33 +1084,6 @@ sub config_edit
 		);
 	}
 	#$page->appendChild( $form );
-}
-
-sub get_parser_files {
-	my ( $self, $type ) = @_;
-	my $parser_files;
-	my $style;
-	if (rindex($type,".")>0) {
-		$type = substr $type,rindex($type,".")+1;
-		if ($type eq "pl" || $type eq "pm") {
-			$parser_files = '"parsephp.js", "tokenizephp.js"';
-			$style = "/style/codemirror/phpcolors.css";
-		}
-		if ($type eq "xml") {
-			$parser_files = '"parsexml.js"';
-			$style = "/style/codemirror/xmlcolors.css";
-		}
-		if ($type eq "css") {
-			$parser_files = '"parsecss.js"';
-			$style = "/style/codemirror/csscolors.css";
-		}
-		if ($type eq "js") {
-			$parser_files = '"parsejavascript.js", "tokenizejavascript.js"';
-			$style = "/style/codemirror/jscolors.css";
-		}
-	}
-	return ( $parser_files, $style );
-	
 }
 
 sub image_edit 
@@ -1491,22 +1489,50 @@ sub render_links
 {
 	my ( $self ) = @_;
 
-	my $frag = $self->{session}->make_element( "style", type=>"text/css" );
-	$frag->appendChild($self->{session}->make_text( "
-	.CodeMirror-wrapping {
-		background-color: white;
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+
+	my $frag = $xml->create_document_fragment;
+
+	$frag->appendChild( $xml->create_text_node( "\n\t" ) );
+	$frag->appendChild( $repo->make_javascript( undef,
+			src => $repo->get_url( path => "static", "codemirror/lib/codemirror.js" ),
+		) );
+	$frag->appendChild( $xml->create_text_node( "\n\t" ) );
+	$frag->appendChild( $xml->create_element( "link",
+			rel => "stylesheet",
+			type => "text/css",
+			href => $repo->get_url( path => "static", "codemirror/lib/codemirror.css" ),
+		) );
+	# load modes
+	my %loaded;
+	foreach my $mode (values %CODEMIRROR_MODES)
+	{
+		for(@{$mode->{js}})
+		{
+			next if $loaded{$_}++;
+			$frag->appendChild( $xml->create_text_node( "\n\t" ) );
+			$frag->appendChild( $repo->make_javascript( undef,
+					src => $repo->get_url( path => "static", "codemirror/$_" ),
+				) );
+		}
 	}
-	.CodeMirror-line-numbers {
-		width: 2.2em;
-		color: #aaa;
-		background-color: #eee;
-		text-align: right;
-		padding-right: .3em;
-		font-size: 10pt;
-		font-family: monospace;
-		padding-top: .4em;
-	}" ));
+	# load theme
+	$frag->appendChild( $xml->create_text_node( "\n\t" ) );
+	$frag->appendChild( $xml->create_element( "link",
+			rel => "stylesheet",
+			type => "text/css",
+			href => $repo->get_url( path => "static", "codemirror/theme/neat.css" ),
+		) );
 	
+	$frag->appendChild( $self->{session}->xml->create_data_element( "style", $self->{session}->make_text( <<EOS ), type=>"text/css" ) );
+	.CodeMirror {
+		text-align: left;
+		background-color: #fff;
+		font-size: 10pt;
+	}
+EOS
+
 	return $frag;
 }
 
