@@ -541,7 +541,7 @@ sub bin_paths
 {
 	my( $self ) = @_;
 
-	return split ':', $ENV{PATH};
+	return split ':', ($ENV{PATH} || "");
 }
 
 1;
