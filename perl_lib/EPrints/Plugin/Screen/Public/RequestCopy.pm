@@ -70,6 +70,13 @@ sub properties_from
 		return;
 	}
 
+	$self->{processor}->{dataset} = $self->{repository}->dataset( "request" );
+	$self->{processor}->{dataobj} = $self->{processor}->{dataset}->make_dataobj( {
+			eprintid => $self->{processor}->{eprintid},
+			docid => $self->{processor}->{docid},
+			email => $self->{processor}->{contact_email},
+		} );
+
 	$self->{processor}->{request_sent} = $self->{session}->param( "request_sent" );
 
 	$self->SUPER::properties_from;
@@ -99,32 +106,24 @@ sub action_request
 
 	my $session = $self->{session};
 
-	my $email = $session->param( "requester_email" );
+	my $request = $self->{processor}->{dataobj};
 
-	unless( defined $email && $email ne "" )
-	{
-		$self->{processor}->add_message( "error", $session->html_phrase( "request:no_email" ) );
-		return;
-	}
+	my $rc = $self->workflow->update_from_form( $self->{processor} );
+	return if !$rc; # validation failed
+
+	my $email = $request->value( "requester_email" );
 
 	my $eprint = $self->{processor}->{eprint};
 	my $doc = $self->{processor}->{document};
 	my $contact_email = $self->{processor}->{contact_email};
 
-	# Create request object
-	my $data = {};
-	$data->{eprintid} = $eprint->get_id;
-	$data->{docid} = $doc->get_id if defined $doc;
-	$data->{requester_email} = $email;
-	$data->{email} = $contact_email;
-
 	my $user = EPrints::DataObj::User::user_with_email( $session, $contact_email );
-	$data->{userid} = $user->get_id if defined $user;
+	if( defined $user )
+	{
+		$request->set_value( "userid", $user->id );
+	}
 
-	my $reason = $session->param( "reason" );
-	$data->{reason} = $reason if EPrints::Utils::is_set( $reason );
-
-	my $request = $session->dataset( "request" )->create_object( $session, $data );
+	$request = $self->{processor}->{dataset}->create_dataobj( $request->get_data );
 
 	my $history_data = {
 		datasetid=>"request",
@@ -153,7 +152,7 @@ sub action_request
 		eprint => $eprint->render_citation_link_staff,
 		document => defined $doc ? $doc->render_value( "main" ) : $session->make_doc_fragment,
 		requester => $session->make_text( $email ),
-		reason => EPrints::Utils::is_set( $reason ) ? $session->make_text( $reason )
+		reason => $request->is_set( "reason" ) ? $request->render_value( "reason" )
 			: $session->html_phrase( "Plugin/Screen/EPrint/RequestRemoval:reason" ) ) );
 
 	my $result;
@@ -162,8 +161,11 @@ sub action_request
 		# Contact is registered user and EPrints holds requested document
 		# Send email to contact with accept/reject links
 
-		my $url =  $session->config( "http_cgiurl" ) .
-			"/users/home?screen=Request::Respond&requestid=" . $request->get_id;
+		my $url = $session->get_url( host => 1, path => "cgi", "users/home" );
+		$url->query_form(
+				screen => "Request::Respond",
+				requestid => $request->id,
+			);
 
 		$mail->appendChild( $session->html_phrase( "request/request_email:links",
 			accept => $session->render_link( "$url&action=accept" ),
@@ -247,6 +249,18 @@ sub redirect_to_me_url
 	return $url;
 } 
 
+sub workflow
+{
+	my( $self ) = @_;
+
+	return $self->{processor}->{workflow} ||= EPrints::Workflow->new(
+			$self->{repository},
+			"default",
+			item => $self->{processor}->{dataobj},
+			eprint => $self->{processor}->{eprint},
+			document => $self->{processor}->{document},
+		);
+}
 
 sub render
 {
@@ -260,25 +274,17 @@ sub render
 	my $eprint = $self->{processor}->{eprint};
 	my $doc = $self->{processor}->{document};
 
-	my $p = $session->make_element( "p" );
-	$p->appendChild( $eprint->render_citation );
-	$page->appendChild( $p );
-
-	$page->appendChild( $self->render_document ) if defined $doc;
-
-	my $form = $session->render_input_form(
-		fields => [ 
-			$session->dataset( "request" )->get_field( "requester_email" ),
-			$session->dataset( "request" )->get_field( "reason" ),
-		],
-		show_names => 1,
-		show_help => 1,
-		buttons => { request => $session->phrase( "request:button" ) },
-	);
+	my $form = $self->render_form;
 	$page->appendChild( $form );
 
 	$form->appendChild( $session->render_hidden_field( "eprintid", $eprint->get_id ) );
 	$form->appendChild( $session->render_hidden_field( "docid", $doc->get_id ) ) if defined $doc;
+
+	$form->appendChild( $self->workflow->render );
+
+	$form->appendChild( $session->xhtml->action_button(
+			request => $session->phrase( "request:button" )
+		) );
 
 	return $page;
 }
