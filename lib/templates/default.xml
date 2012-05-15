@@ -2,6 +2,7 @@
 <!DOCTYPE html SYSTEM "entities.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epc="http://eprints.org/ep3/control">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title><epc:pin ref="title" textonly="yes"/> - <epc:phrase ref="archive_name"/></title>
     <link rel="icon" href="{$config{rel_path}}/favicon.ico" type="image/x-icon"/>
     <link rel="shortcut icon" href="{$config{rel_path}}/favicon.ico" type="image/x-icon"/>
