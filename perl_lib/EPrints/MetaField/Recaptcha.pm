@@ -35,6 +35,8 @@ use EPrints::MetaField::Id;
 
 use strict;
 
+sub is_virtual { 1 }
+
 sub render_input_field_actual
 {
 	my( $self, $session, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
@@ -43,8 +45,7 @@ sub render_input_field_actual
 
 	if( !defined $public_key )
 	{
-		$session->get_repository->log( "recaptcha public_key not set" );
-		return undef;
+		return $session->render_message( "error", $session->make_text( "public_key not set" ) );
 	}
 
 	my $frag = $session->make_doc_fragment;
