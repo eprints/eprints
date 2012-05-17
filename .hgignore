@@ -4,3 +4,5 @@
 \.swp$
 ^perl_lib/EPrints/SystemSettings\.pm$
 ^var
+^lib/epms
+^lib/plugins
