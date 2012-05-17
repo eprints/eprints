@@ -477,6 +477,15 @@ sub run_related_objects
 	return [ scalar($object->[0]->get_related_objects( @r )), 'ARRAY' ];
 }
 
+sub run_search_related
+{
+	my( $self, $state, $object, @required ) = @_;
+
+	my $list = $object->[0]->search_related( map { $_->[0] } @required );
+
+	return [ $list->slice, 'ARRAY' ];
+}
+
 sub run_url
 {
 	my( $self, $state, $object ) = @_;
