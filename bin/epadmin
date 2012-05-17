@@ -54,6 +54,8 @@ Where I<command> is one of:
 
 =item reorder
 
+=item redo_files_modified
+
 =item redo_mime_type
 
 =item redo_thumbnails
@@ -1079,6 +1081,58 @@ sub epadmin_help
 		-verbose => 99,
 		-sections => "COMMANDS/$topic",
 	);
+}
+
+=head2 redo_files_modified
+
+	epadmin redo_files_modified repository_id [ dataset objectid, ... ]
+
+Call L<EPrints::DataObj::Document/files_modified> for every document.
+
+=cut
+
+sub epadmin_redo_files_modified
+{
+	my( $repoid, $datasetid, @ids ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	$datasetid = "document" if !defined $datasetid;
+
+	my $dataset = $repo->dataset( $datasetid );
+	my $list = @ids ? $dataset->list( \@ids ) : $dataset->search;
+
+	my $i = 0;
+	my $f;
+	if( $dataset->base_id eq "eprint" )
+	{
+		$f = sub {
+			(undef, undef, my $eprint) = @_;
+
+			print STDERR sprintf("%.0f%%\r",
+				100 * $i++ / $list->count
+			);
+
+			foreach my $doc ($eprint->get_all_documents)
+			{
+				$doc->files_modified();
+			}
+		};
+	}
+	else
+	{
+		$f = sub {
+			(undef, undef, my $doc) = @_;
+
+			print STDERR sprintf("%.0f%%\r",
+				100 * $i++ / $list->count
+			);
+
+			$doc->files_modified();
+		};
+	}
+
+	$list->map( $f );
 }
 
 =head2 redo_mime_type
