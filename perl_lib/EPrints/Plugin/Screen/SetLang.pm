@@ -53,7 +53,8 @@ sub render_action_link
 		) );
 
 	my $uri = $repo->get_url( path => "cgi", "set_lang" );
-	$uri->query_form( referrer => $repo->get_url( host => 1, query => 1 ) );
+	$uri->query_form( referrer => $repo->get_url( host => 1, query => 1 ) )
+		if $repo->get_online;
 
 	foreach my $langid (@$languages)
 	{
