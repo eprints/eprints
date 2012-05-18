@@ -79,6 +79,10 @@ sub new
 	my $self = {};
 	bless $self, $class;
 
+	$self->{repository} = $repository;
+	Scalar::Util::weaken( $self->{repository} )
+		if defined &Scalar::Util::weaken;
+
 	$self->{xmldoc} = EPrints::XML::make_document();
 
 	$self->{id} = $langid;
@@ -91,13 +95,11 @@ sub new
 
 	$self->_read_phrases_dir(
 		$self->{repository_data},
-		$repository,
 		$repository->get_conf( "config_path" ).
 			"/lang/".$self->{id}."/phrases" );
 
 	$self->_read_phrases_dir(
 		$self->{data},
-		$repository,
 		$repository->get_conf( "lib_path" ).
 			"/lang/".$self->{id}."/phrases" );
 
@@ -113,7 +115,7 @@ sub CLONE
 
 sub _read_phrases_dir
 {
-	my( $self, $data, $repository, $dir ) = @_;
+	my( $self, $data, $dir ) = @_;
 
 	my $dh;
 	# directory doesn't exist, so there won't be any files to read
@@ -125,13 +127,13 @@ sub _read_phrases_dir
 		my $file = "$dir/$fn";
 		if( !exists $data->{docs}->{$file} )
 		{
-			$self->_read_phrases( $data, $file, $repository );
+			$self->_read_phrases( $data, $file );
 		}
 	}
 	closedir $dh;
 }
 
-=item $info = $lang->get_phrase_info( $phraseid, $session )
+=item $info = $lang->get_phrase_info( $phraseid )
 
 Returns a hash describing the phrase $phraseid. Contains:
 
@@ -148,9 +150,9 @@ If $phraseid doesn't exist returns undef.
 
 sub get_phrase_info
 {
-	my( $self, $phraseid, $session ) = @_;
+	my( $self, $phraseid ) = @_;
 
-	my( $xml, $fb, $src, $file ) = $self->_get_phrase( $phraseid, $session );
+	my( $xml, $fb, $src, $file ) = $self->_get_phrase( $phraseid );
 	return undef unless defined $xml;
 
 	return {
@@ -198,7 +200,7 @@ sub get_phrase_ids
 ######################################################################
 =pod
 
-=item $xhtml = $language->phrase( $phraseid, $inserts, $session )
+=item $xhtml = $language->phrase( $phraseid, $inserts )
 
 Return an XHTML DOM structure for the phrase with the given phraseid.
 
@@ -229,10 +231,12 @@ will replace the "pin" when returing this phrase.
 
 sub phrase
 {
-	my( $self, $phraseid, $inserts, $session ) = @_;
+	my( $self, $phraseid, $inserts ) = @_;
+
+	my $session = $self->{repository};
 
 	# not using fb 
-	my( $phrase , $fb ) = $self->_get_phrase( $phraseid, $session );
+	my( $phrase , $fb ) = $self->_get_phrase( $phraseid );
 
 	$inserts = {} if( !defined $inserts );
 	if( !defined $phrase )
@@ -294,7 +298,7 @@ sub phrase
 
 ######################################################################
 # 
-# ( $phrasexml, $is_fallback ) = $language->_get_phrase( $phraseid, $session )
+# ( $phrasexml, $is_fallback ) = $language->_get_phrase( $phraseid )
 #
 # Return the phrase for the given id or undef if no phrase is defined,
 # and reload the phrase from disk if needed.
@@ -303,7 +307,7 @@ sub phrase
 
 sub _get_phrase
 {
-	my( $self, $phraseid, $session ) = @_;
+	my( $self, $phraseid ) = @_;
 
 	# Look for the phrase in this order:
 	# $self->{repository_data}, $self->{$data},
@@ -313,7 +317,7 @@ sub _get_phrase
 		next if !defined $lang;
 		foreach my $src (qw( repository_data data ))
 		{
-			my( $xml, $file ) = $lang->_get_src_phrase( $src, $phraseid, $session );
+			my( $xml, $file ) = $lang->_get_src_phrase( $src, $phraseid );
 			# phrase, fallback?, source, XML file
 			return( $xml, $lang ne $self, $src, $file ) if defined $xml;
 		}
@@ -324,7 +328,9 @@ sub _get_phrase
 
 sub _get_src_phrase
 {
-	my( $self, $src, $phraseid, $session ) = @_;
+	my( $self, $src, $phraseid ) = @_;
+
+	my $session = $self->{repository};
 
 	my $data = $self->{$src};
 
@@ -339,7 +345,7 @@ sub _get_src_phrase
 		my $c_mtime = (stat( $file ))[9];
 		if( $mtime ne $c_mtime )
 		{
-			$self->_reload_phrases( $data, $file, $session->get_repository );
+			$self->_reload_phrases( $data, $file );
 			$xml = $data->{xml}->{$phraseid};
 		}
 		$session->{config_file_mtime_checked}->{$file} = 1;
@@ -351,7 +357,7 @@ sub _get_src_phrase
 ######################################################################
 =pod
 
-=item $boolean = $language->has_phrase( $phraseid, $session )
+=item $boolean = $language->has_phrase( $phraseid )
 
 Return 1 if the phraseid is defined for this language. Return 0 if
 it is only available as a fallback or unavailable.
@@ -361,9 +367,9 @@ it is only available as a fallback or unavailable.
 
 sub has_phrase
 {
-	my( $self, $phraseid, $session ) = @_;
+	my( $self, $phraseid ) = @_;
 
-	my( $phrase , $fb ) = $self->_get_phrase( $phraseid, $session );
+	my( $phrase , $fb ) = $self->_get_phrase( $phraseid );
 
 	return( defined $phrase && !$fb );
 }
@@ -400,7 +406,7 @@ sub _get_repositorydata
 
 ######################################################################
 # 
-#  $phrases = $language->_read_phrases( $data, $file, $repository )
+#  $phrases = $language->_read_phrases( $data, $file )
 # 
 # Return a reference to a hash of DOM objects describing the phrases
 # from the XML phrase file $file.
@@ -409,7 +415,9 @@ sub _get_repositorydata
 
 sub _read_phrases
 {
-	my( $self, $data, $file, $repository ) = @_;
+	my( $self, $data, $file ) = @_;
+
+	my $repository = $self->{repository};
 
 	my $doc = $repository->parse_xml( $file );	
 	if( !defined $doc )
@@ -474,7 +482,7 @@ sub _read_phrases
 
 ######################################################################
 # 
-#  $phrases = $language->_reload_phrases( $data, $file, $repository )
+#  $phrases = $language->_reload_phrases( $data, $file )
 # 
 # Reload the phrases file $file (otherwise same as _read_phrases).
 # 
@@ -482,7 +490,7 @@ sub _read_phrases
 
 sub _reload_phrases
 {
-	my( $self, $data, $file, $repository ) = @_;
+	my( $self, $data, $file ) = @_;
 
 	# Find and remove all phrases read from this file
 	foreach my $phraseid (keys %{$data->{xml}})
@@ -502,10 +510,10 @@ sub _reload_phrases
 	}
 	else
 	{
-		$repository->log( "Asked to reload phrases file '$file', but it wasn't loaded already?" );
+		$self->{repository}->log( "Asked to reload phrases file '$file', but it wasn't loaded already?" );
 	}
 
-	return $self->_read_phrases( $data, $file, $repository );
+	return $self->_read_phrases( $data, $file );
 }
 
 ######################################################################
@@ -536,7 +544,7 @@ sub get_fallback
 	return $self->{fallback};
 }
 
-=item $ok = $language->load_phrases( $session, $file )
+=item $ok = $language->load_phrases( $file )
 
 Load phrases from $file into the current language (use with care!).
 
@@ -544,11 +552,11 @@ Load phrases from $file into the current language (use with care!).
 
 sub load_phrases
 {
-	my( $self, $session, $file ) = @_;
+	my( $self, $file ) = @_;
 
 	return unless -r $file;
 
-	return $self->_reload_phrases( $self->{repository_data}, $file, $session->get_repository );
+	return $self->_reload_phrases( $self->{repository_data}, $file );
 }
 
 =item $doc = EPrints::Language->create_phrase_doc( $session, [ $comment ] )
