@@ -226,7 +226,7 @@ END
 	$message_dom->appendChild( $session->make_text( " " ) );
 
 	# force a load of zz_webcfg.xml to get the new phrase
-	$session->get_lang->load_phrases( $session, $file );
+	$session->get_lang->load_phrases( $file );
 
 	if( !$reload )
 	{
