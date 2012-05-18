@@ -597,7 +597,9 @@ sub from_string
 		my $sf = EPrints::Search::Field->unserialise(
 			repository => $self->{session},
 			dataset => $self->{dataset},
-			string => $_ );
+			string => $_,
+			prefix => $self->{prefix},
+		);
 		next if !defined $sf; # bad serialisation
 
 		my $id = $sf->get_id;
@@ -637,6 +639,7 @@ sub from_string_raw
 			repository => $self->{session},
 			dataset => $self->{dataset},
 			string => $_,
+			prefix => $self->{prefix},
 		);
 		EPrints->abort( "Failed to unserialise search field from '$_'" )
 			if !defined $sf;
@@ -648,6 +651,7 @@ sub from_string_raw
 			repository => $self->{session},
 			dataset => $self->{dataset},
 			string => $_,
+			prefix => $self->{prefix},
 		);
 		EPrints->abort( "Failed to unserialise filter field from '$_'" )
 			if !defined $sf;
