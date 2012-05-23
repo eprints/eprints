@@ -304,6 +304,7 @@ sub _format_subjects
 	my( $self, %params ) = @_;
 
 	my $session = $self->{session};
+	my $field = $self->{config}->{field};
 	my $table = $session->make_element( "table", class=>$params{table_class} );
 	my $first = 1;
 	foreach my $subject_id (@{$params{values}})
@@ -327,7 +328,6 @@ sub _format_subjects
 		}
 		else
 		{
-			my $field = $self->{config}->{field};
 			$td2->appendChild( $field->render_single_value( $session, $subject_id ) );
 		}
 		
