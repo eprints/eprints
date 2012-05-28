@@ -60,7 +60,7 @@ sub update_from_form
 		{
 			my $value = $field->form_value( 
 				$session, 
-				$eprint,
+				$doc,
 				$doc_prefix );
 			$doc->set_value( $field->{name}, $value );
 		}
