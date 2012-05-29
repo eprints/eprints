@@ -1146,6 +1146,214 @@ sub is_set
 	return EPrints::Utils::is_set( $self->{data}->{$fieldid} );
 }
 
+=item $epm->add_to_xml( $dest, $src )
+
+Add this package's XML $src to $dest XML. Useful for workflows and citations.
+
+$src may have these additional attributes on elements:
+
+=over 4
+
+=item operation = "replace" | "disable" | *"merge"
+
+Where replace will replace the default element, disable will disable it and merge will merge the new branch with the old.
+
+=back
+
+=cut
+
+sub add_to_xml
+{
+	my( $self, $dest, $src ) = @_;
+
+	$dest = $dest->documentElement if $dest->nodeType == EPrints::Const::XML_DOCUMENT_NODE;
+	$src = $src->documentElement if $src->nodeType == EPrints::Const::XML_DOCUMENT_NODE;
+
+	$src = $dest->ownerDocument->importNode( $src, 1 );
+
+	for($src->childNodes)
+	{
+		$self->_merge( $dest, $_, $self->id );
+	}
+}
+
+sub _merge_match
+{
+	my( $left, $right ) = @_;
+
+	no warnings; # avoid undef errors
+
+	return 0 if $left->nodeType != $right->nodeType;
+	if( $left->can( "namespaceURI" ) )
+	{
+		return 0 if $left->localName ne $right->localName;
+		return 0 if $left->namespaceURI ne $right->namespaceURI;
+	}
+	else
+	{
+		return 0 if $left->nodeName ne $right->nodeName;
+	}
+	for($left->attributes)
+	{
+		next if $_->nodeName =~ /^operation$|^xmlns\b/;
+		my $attr = $right->getAttribute( $_->nodeName );
+		return 0 if !defined $attr;
+		return 0 if $attr ne $_->nodeValue;
+	}
+	return 1;
+}
+
+sub _merge_add_name
+{
+	my( $node, $attr_name, $id ) = @_;
+
+	my $value = $node->getAttribute( $attr_name );
+	$value = "" if !defined $value;
+	return if $value =~ /\b$id\b/;
+	$value .= " $id";
+	for($value)
+	{
+		s/^\s+//;
+		s/\s+$//;
+	}
+	$node->setAttribute( $attr_name, $value );
+}
+
+sub _merge_remove_name
+{
+	my( $node, $attr_name, $id ) = @_;
+
+	my $value = $node->getAttribute( $attr_name );
+	for($value)
+	{
+		s/^\s+//;
+		s/\s+$//;
+	}
+	$value = join ' ', grep { $_ ne $id } split /\s+/, $value;
+	$node->setAttribute( $attr_name, $value );
+
+	return $value;
+}
+
+sub _merge
+{
+	my( $self, $parent, $node, $id, $include_text ) = @_;
+
+	my $type = $node->nodeType;
+
+	if( $type == EPrints::Const::XML_TEXT_NODE )
+	{
+		$parent->appendChild( $node ) if $include_text;
+		return;
+	}
+
+	return if $type != EPrints::Const::XML_ELEMENT_NODE;
+
+	my $operation = $node->getAttribute( "operation" ) || "merge";
+	$node->removeAttribute( "operation" );
+
+	my @children = $node->childNodes;
+	$node->removeChild( $_ ) for @children;
+
+	my $old;
+	for($parent->childNodes)
+	{
+		$old = $_, last if _merge_match( $node, $_ );
+	}
+
+	if( $operation eq "replace" )
+	{
+		if( defined $old && !$old->hasAttribute( "required_by" ) )
+		{
+			$old->setAttribute( "disabled", 1 );
+			_merge_add_name( $old, "disabled_by", $id );
+			$node->setAttribute( "required_by", $id );
+		}
+		$old = $parent->insertBefore( $node, $old->nextSibling );
+	}
+	elsif( $operation eq "disable" )
+	{
+		if( defined $old && !$old->hasAttribute( "required_by" ) )
+		{
+			$old->setAttribute( "disabled", 1 );
+			_merge_add_name( $old, "disabled_by", $id );
+		}
+		return;
+	}
+	else
+	{
+		if( defined $old )
+		{
+			if( $old->hasAttribute( "required_by" ) )
+			{
+				_merge_add_name( $old, "required_by", $id );
+			}
+		}
+		else
+		{
+			$node->setAttribute( "required_by", $id );
+			$old = $parent->appendChild( $node );
+		}
+	}
+
+	for(@children)
+	{
+		$self->_merge( $old, $_, $id, $include_text || !$old->hasChildNodes );
+	}
+}
+
+=item $epm->remove_from_xml( $dest )
+
+Remove this package's extensions from $dest XML.
+
+=cut
+
+sub remove_from_xml
+{
+	my( $self, $dest ) = @_;
+
+	for($dest->childNodes)
+	{
+		$self->_remove_from_xml( $_, $self->id );
+	}
+}
+
+sub _remove_from_xml
+{
+	my( $self, $node, $id ) = @_;
+
+	my $type = $node->nodeType;
+
+	return if $type != EPrints::Const::XML_ELEMENT_NODE;
+
+	if( $node->hasAttribute( "disabled_by" ) )
+	{
+		my $ids = _merge_remove_name( $node, "disabled_by", $id );
+		if( length($ids) == 0 )
+		{
+			$node->removeAttribute( "disabled_by" );
+			$node->removeAttribute( "disabled" );
+		}
+	}
+
+	if( $node->hasAttribute( "required_by" ) )
+	{
+		my $ids = _merge_remove_name( $node, "required_by", $id );
+		if( length($ids) == 0 )
+		{
+			$node->parentNode->removeChild( $node );
+			return;
+		}
+	}
+
+	for($node->childNodes)
+	{
+		$self->_remove_from_xml( $_, $id );
+	}
+}
+
+=back
+
 =head1 COPYRIGHT
 
 =for COPYRIGHT BEGIN

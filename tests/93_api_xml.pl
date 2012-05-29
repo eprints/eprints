@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 17;
+use Test::More tests => 19;
 
 use strict;
 use warnings;
@@ -93,3 +93,39 @@ $node = eval { $xhtml->tree([ # dl
 ) };
 
 ok( defined $node && $node->toString =~ /leopard/, "XHTML::tree" );
+
+{
+	my $main = $xml->parse_string( <<'EOX' );
+<root>
+<node1 />
+<node2>
+<child1 match="attr" other="attr"/>
+<child2>Value 2</child2>
+<child3 required_by="xxx" />
+</node2>
+<node3 />
+<node5 />
+</root>
+EOX
+	my $diff = $xml->parse_string( <<'EOX' );
+<root>
+<node2>
+<child1 match="attr">
+<grandchild1>Value 1</grandchild1>
+</child1>
+<child3 />
+</node2>
+<node3 operation="disable"/>
+<node4 foo="bar">
+<child1 />
+</node4>
+</root>
+EOX
+	my $epm = EPrints::DataObj::EPM->new_from_data( $repo, {
+			epmid => "test",
+		});
+	$epm->add_to_xml( $main, $diff );
+	ok($main->toString =~ /grandchild1/, "epm add_to_xml");
+	$epm->remove_from_xml( $main );
+	ok($main->toString !~ /grandchild1/, "epm remove_from_xml");
+}

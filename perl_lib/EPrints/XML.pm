@@ -993,339 +993,54 @@ sub trim_whitespace
 
 }
 
+# See EPrints::DataObj::EPM::add_to_xml()
 sub add_to_xml
 {
 	my ($filename,$node,$id) = @_;
 	
 	my $xml = EPrints::XML::parse_xml( $filename );
 
-	$xml = _remove_blank_nodes($xml);
-
-	my $main_node;
-
-	foreach my $element ($xml->getChildNodes()) {
-		next if ($element->nodeName() eq "#text" or $element->nodeName() eq "#comment");
-		$main_node = $element;
-		last;
+	if( !ref($node) )
+	{
+		$node = EPrints::XML::parse_string( undef, $node );
+		$node = $node->documentElement;
 	}
-	
-	return 1 if (!defined $main_node);
-
-	my $ret;
-
-	unless (ref($node) eq "XML::LibXML::Element") {
-		my $in_xml = EPrints::XML::parse_string( undef, $node );
-		$in_xml = EPrints::XML::_remove_blank_nodes($in_xml);
-		$node = $in_xml->getFirstChild();
+	elsif( $node->nodeType == EPrints::Const::XML_DOCUMENT_NODE )
+	{
+		$node = $node->documentElement;
 	}
 
-	foreach my $child ( $node->getChildNodes() ) {
-		$ret = _add_node_to_xml( $main_node, $child, $id, 0 );
+	$node = $xml->importNode( $node, 1 );
+
+	for($node->childNodes)
+	{
+		EPrints::DataObj::EPM->_merge( $xml->documentElement, $_, $id );
 	}
 
-	$ret = _write_xml($xml,$filename);
-	
-	return $ret;
+	open(my $fh, ">", $filename) or die "Error writing to $filename: $!";
+	$xml->toFH( $fh );
+	close($fh);
+
+	return 1;
 }
 
+# See EPrints::DataObj::EPM::remove_from_xml()
 sub remove_package_from_xml
 {
 	my( $filename, $id ) = @_;
 	
 	my $xml = EPrints::XML::parse_xml( $filename );
 
-	$xml = _remove_blank_nodes($xml);
-
-	my $main_node;
-
-	foreach my $element ($xml->getChildNodes()) {
-		next if ($element->nodeName() eq "#text" or $element->nodeName() eq "#comment");
-		$main_node = $element;
-		last;
-	}
-	
-	return 1 if (!defined $main_node);
-
-	$main_node = _remove_required_nodes($main_node,$id);
-	$main_node = _remove_orphaned_chooses($main_node);
-	$main_node = _enable_disabled_nodes($main_node,$id);
-	
-	my $ret = _write_xml($xml,$filename);
-	
-	return $ret;
-}
-
-sub _add_node_to_xml
-{
-	my ( $xml, $node, $id, $depth ) = @_;
-
-	my $ret = 0;
-	
-	my @attrs = $node->getAttributes();
-	my $count = scalar @attrs;
-
-	foreach my $element ($xml->getChildNodes())
+	for($xml->childNodes)
 	{
-#print STDERR "$depth : Element NAME " . $element->nodeName() . " VALUE " . $element->nodeValue() . "\n";
-#print STDERR "$depth : NODE NAME " . $node->nodeName() . " VALUE " . $node->nodeValue() . "\n";
-		
-		next unless (defined $element->nodeName);
-		next unless ($element->nodeName eq $node->nodeName);
-		my $match_count = 0;
-		my $match_type = undef;
-		foreach my $at (@attrs)
-		{
-#print STDERR $at->getName() . " : " . $at->getValue() . "\n";
-			if ($at->getName eq "operation") {
-				$match_type = $at->getValue();
-				$count--;
-				next;
-			}
-			next unless ($element->getAttribute($at->getName()) eq $at->getValue());
-			$match_count++;
-		}
-		next unless ($match_count == $count);
-		next unless (_trim($element->nodeValue) eq _trim($node->nodeValue));
-#print STDERR "HERE\n\n";
-		if ($match_type eq "replace") {
-			$element->setAttribute("disabled",1);
-			$element->setAttribute("disabled_by",$id);
-			$node->setAttribute("required_by",$id);
-			($element->parentNode())->insertAfter($node,$element);
-			return 1;
-		}
-		if ($match_type eq "disbale") {
-			$element->setAttribute("disabled",1);
-			$element->setAttribute("disabled_by",$id);
-			$node->setAttribute("required_by",$id);
-			return 1;
-		}
-		
-		$depth++;
-		if (!$node->hasChildNodes) {
-			return 1 if ($element->nodeName eq "#text" or $element->nodeName eq "#comment");
-			if ($element->hasAttribute("required_by")) {
-				my $id_string = _get_id_string($element,$id);
-				$element->setAttribute("required_by",$id_string);
-				return 1;
-			} else {
-				return 1;
-			}
-		} 
-		foreach my $child_node ( $node->getChildNodes ) {
-#print STDERR "CALLING WITH \n\n\n\n\n" . $child_node->toString() . "\n\n\n\n\n";
-			$ret = _add_node_to_xml($element,$child_node,$id,$depth);
-			if ($ret == 2) {
-				if ($element->hasAttribute("required_by")) {
-					my $id_string = _get_id_string($element,$id);
-					$element->setAttribute("required_by",$id_string);
-					return 1;
-				} else {
-					return 2;
-				}
-			}
-		}
-		
-	}
-	if ($ret == 2) {
-		if ($node->hasAttribute("required_by")) {
-			my $id_string = _get_id_string($node,$id);
-			$node->setAttribute("required_by",$id_string);
-		} else {
-			return 1;
-		}
+		EPrints::DataObj::EPM->_remove_from_xml( $_, $id );
 	}
 
-	#if ($depth > 0 and $ret < 1) {
-	if ($ret < 1) {
-		if (!($node->nodeName() eq "#comment") and !($node->nodeName() eq "#text")) {
-#print STDERR "ADDING REQUIRED BY \n\n";
-			$node->setAttribute("required_by",$id);
-		}
-#print STDERR "ADDING CHILD " . $node->nodeName() . "\n\n";
-		$xml->addChild($node);
-		return 1;
-	}
-
-	return $ret;
-}
-
-sub _trim($)
-{
-	my $string = shift;
-	$string =~ s/^\s+//;
-	$string =~ s/\s+$//;
-	return $string;
-}
-
-sub _remove_blank_nodes
-{
-	my ( $node ) = @_;
-
-	foreach my $element ( $node->getChildNodes ) {
-	 	$node->removeChild($element);
-		my $name = $element->nodeName();
-		my $value = $element->nodeValue();
-		unless (_trim($name) eq "#text" && _trim($value) eq "") {
-			$node->appendChild($element);
-		}
-		next if (_trim($name) eq "#text");
-		if ($element->hasChildNodes) 
-		{
-			$node->appendChild(_remove_blank_nodes($element));
-		}
-	}
-	return $node;
-}
-
-sub _write_xml 
-{
-	my( $xml_in, $filename ) = @_;
-
-	$xml_in = _remove_blank_nodes($xml_in);
-
-	open(my $fh, ">", $filename) or return 0;
-
-	print $fh EPrints::XML::to_string( $xml_in );
-
+	open(my $fh, ">", $filename) or die "Error writing to $filename: $!";
+	$xml->ownerDocument->toFH( $fh );
 	close($fh);
 
 	return 1;
-}
-
-sub _enable_disabled_nodes
-{
-	my ( $xml, $id ) = @_;
-	foreach my $element ( $xml->getChildNodes ) {
-		my $name = $element->nodeName();
-		if ($element->hasAttributes) {
-			my @attrs = $element->getAttributes();
-			foreach my $at (@attrs) 
-			{
-				if ($at->getName() eq "disabled_by")
-				{
-					my $id_string = $at->getValue();
-					my @ids = split(/ /,$id_string);
-					my $flag = 1;
-					my $out_ids;
-					foreach my $sids(@ids)
-					{
-						if (!($sids eq $id)) 
-						{
-							$out_ids .= $sids . " ";	
-							$flag = 0;
-						}
-					}
-					if ($flag == 1) {
-						$element->removeAttribute("disabled_by");
-						$element->removeAttribute("disabled");
-					} else {
-						$element->setAttribute("disabled_by",_trim($out_ids));
-					}
-				}
-			}
-		}
-		if ($element->hasChildNodes) 
-		{
-			$element = _enable_disabled_nodes($element,$id);
-		}
-	}
-
-	return $xml;
-}
-
-sub _remove_required_nodes
-{
-	my ( $xml, $id ) = @_;
-	
-	my $found = 0;
-	foreach my $element ( $xml->getChildNodes ) {
-		my $name = $element->nodeName();
-		if ($element->hasAttributes) {
-			my @attrs = $element->getAttributes();
-			foreach my $at (@attrs) 
-			{
-				if ($at->getName() eq "required_by")
-				{
-					my $id_string = $at->getValue();
-					my @ids = split(/ /,$id_string);
-					my $flag = 1;
-					my $out_ids;
-					foreach my $sids(@ids)
-					{
-						if (!($sids eq $id)) 
-						{
-							$out_ids .= $sids . " ";	
-							$flag = 0;
-						}
-					}
-					if ($flag == 1) {
-						$xml->removeChild($element);
-					} else {
-						$element->setAttribute("required_by",_trim($out_ids));
-					}
-				}
-			}
-		}
-		if ($element->hasChildNodes) 
-		{
-			$element = _remove_required_nodes($element,$id);
-		}
-	}
-
-	return $xml;
-
-}
-
-sub _remove_orphaned_chooses
-{
-	my ( $xml ) = @_;
-	
-	$xml = _remove_blank_nodes($xml);
-	
-	foreach my $element ( $xml->getChildNodes ) {
-		my $name = $element->nodeName;
-		my @preserve_nodes;
-		if ($name eq "epc:choose") {
-			if ($element->firstChild->nodeName eq "epc:otherwise")
-			{
-				foreach my $child ($element->firstChild->getChildNodes) 
-				{
-					$xml->appendChild($child);
-				}
-				$xml->removeChild($element);
-			}
-		}
-		if ($element->hasChildNodes) 
-		{
-			$element = _remove_orphaned_chooses($element);
-		}
-	}
-
-	return $xml;
-
-}
-
-sub _get_id_string 
-{
-	my ( $element, $id ) = @_;
-
-	my $id_string = $element->getAttribute("required_by");
-	my @ids = split(/ /,$id_string);
-	my $flag = 1;
-	my $out_ids;
-	foreach my $sids(@ids)
-	{
-		if ($sids eq $id) 
-		{
-			$flag = 0;
-		}
-	}
-	if ($flag > 0) 
-	{
-		$id_string .= " $id";
-	}
-	return $id_string;
 }
 
 # DEPRECATED

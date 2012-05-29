@@ -57,6 +57,11 @@ $EPrints::XML::LIB_LEN = length("XML::GDOME::");
 
 		return $f;
 	};
+*XML::GDOME::Document::toFH = sub {
+		my( $doc, $fh, $format ) = @_;
+
+		print $fh $doc->toString;
+	};
 
 sub parse_xml_string
 {
