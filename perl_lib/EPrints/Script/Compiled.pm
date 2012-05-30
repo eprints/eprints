@@ -290,21 +290,50 @@ sub run_is_set
 	return [ EPrints::Utils::is_set( $param->[0] ), "BOOLEAN" ];
 } 
 
+=item citation_link( OBJECT, [ ,CITATION_NAME [, OPTIONS ] ] )
+
+Renders a citation for OBJECT that will be linked to the object's URL.
+
+If CITATION_NAME is not given defaults to "default".
+
+OPTIONS is a key-value list of options to pass to the citation method e.g.
+
+	citation_link($doc, "default", "eprint", $eprint);
+
+=cut
+
 sub run_citation_link
 {
-	my( $self, $state, $object, $citationid ) = @_;
+	my( $self, $state, $object, $citationid, @opts ) = @_;
 
-	my $citation = $object->[0]->render_citation_link( $citationid->[0]  );
+	$_ = $_->[0] for @opts;
+
+	my $citation = $object->[0]->render_citation_link( $citationid->[0], @opts  );
 
 	return [ $citation, "XHTML" ];
 }
 
+=item citation( OBJECT, [ ,CITATION_NAME [, OPTIONS ] ] )
+
+Renders a citation for OBJECT.
+
+If CITATION_NAME is not given defaults to "default".
+
+OPTIONS is a key-value list of options to pass to the citation method e.g.
+
+	citation_link($doc, "default", "eprint", $eprint);
+
+=cut
+
 sub run_citation
 {
-	my( $self, $state, $object, $citationid ) = @_;
+	my( $self, $state, $object, $citationid, @opts ) = @_;
+
+	$_ = $_->[0] for @opts;
 
 	my $citation = $object->[0]->render_citation( $citationid->[0],
-		finalize => 0
+		finalize => 0,
+		@opts,
 	);
 
 	return [ $citation, "XHTML" ];
@@ -342,6 +371,19 @@ sub run_one_of
 	}
 	return [ 0, "BOOLEAN" ];
 } 
+
+=item namedset( NAMEDSET_NAME )
+
+Returns an ARRAY of types from NAMEDSET_NAME.
+
+=cut
+
+sub run_namedset
+{
+	my( $self, $state, $namedset ) = @_;
+
+	return [ [ $state->{session}->get_types( $namedset ? $namedset->[0] : undef ) ], "ARRAY" ];
+}
 
 sub run_as_item 
 {
