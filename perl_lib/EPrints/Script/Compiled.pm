@@ -483,7 +483,7 @@ sub run_search_related
 
 	my $list = $object->[0]->search_related( map { $_->[0] } @required );
 
-	return [ $list->slice, 'ARRAY' ];
+	return [ [ $list->slice ], 'ARRAY' ];
 }
 
 sub run_url
