@@ -864,6 +864,28 @@ sub run_array_concat
 	return [ \@v, "DATA_ARRAY" ];
 }
 
+=item grep_dataobj_list( list, fieldname, value )
+
+Greps a list of objects where fieldname equals value.
+
+=cut
+
+sub run_grep_dataobj_list
+{
+	my( $self, $state, $list, $fieldname, $value ) = @_;
+
+	$self->runtime_error( "Usage: grep_dataobj_list( list, fieldname, value )" )
+		if !defined $value || $list->[1] ne "ARRAY";
+
+	$_ = $_->[0] for $list, $fieldname, $value;
+
+	my $f = EPrints::Utils::is_set( $value ) ?
+		sub { $_->value( $fieldname ) eq $value } :
+		sub { !$_->is_set( $fieldname ) };
+
+	return [ [ grep { &$f } @$list ], "ARRAY" ];
+};
+
 sub run_join
 {
 	my( $self, $state, $array, $join_string ) = @_;
