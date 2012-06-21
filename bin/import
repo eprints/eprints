@@ -335,6 +335,7 @@ my $handler = EPrints::CLIProcessor->new(
 			$item->update( $epdata,
 					include_subdataobjs => 1,
 				);
+			$item->commit;
 			print "EPRINTS_IMPORT: ITEM_UPDATED ".$item->get_id."\n" if $scripted;
 		}
 		elsif( defined($item = $opts{dataset}->create_dataobj( $epdata )) )
