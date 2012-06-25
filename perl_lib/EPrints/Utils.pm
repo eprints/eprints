@@ -1254,7 +1254,7 @@ sub human_filesize
 	my( $size_in_bytes ) = @_;
 
 	my $tsize = $size_in_bytes;
-	my $prefixes = [ 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB' ];
+	my $prefixes = [ 'B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB' ];
 	my $i = 0;
 	while(1) {
 		last if( $tsize < 4096 || $i >= scalar( @$prefixes ) - 1 );
