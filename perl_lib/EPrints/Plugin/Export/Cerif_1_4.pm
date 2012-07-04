@@ -57,9 +57,12 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "CERIF 1.4";
-	$self->{accept} = [ 'list/eprint' ];
+	$self->{accept} = [ 'list/eprint', 'dataobj/eprint', 'list/user', 'dataobj/user' ];
 	$self->{visible} = "staff";
 	$self->{advertise} = 1;
+	$self->{arguments} = {
+			hide_related => 0,
+		};
 
 	return $self;
 }
@@ -83,6 +86,8 @@ sub output_list
 
 	local $self->{_writer};
 	local $self->{_output} = \$r;
+	local $self->{_seen} = {};
+	local $self->{_sameas} = {};
 	my $writer = $self->writer( %opts );
 
 	$writer->xml_decl( '1.0', 'UTF-8' );
@@ -109,6 +114,60 @@ sub output_list
 }
 
 sub output_dataobj
+{
+	my( $self, $dataobj, %opts ) = @_;
+
+	return if $self->{_seen}{$dataobj->internal_uri}++;
+
+	if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
+	{
+		return $self->output_eprint( $dataobj, %opts );
+	}
+	elsif( $dataobj->isa( "EPrints::DataObj::User" ) )
+	{
+		return $self->output_user( $dataobj, %opts );
+	}
+	else
+	{
+		warn "Unsupported object type ".ref($dataobj);
+		return;
+	}
+}
+
+sub output_user
+{
+	my( $self, $user, %opts ) = @_;
+
+	my $writer = $self->writer;
+
+	my $name = $user->value( "name" );
+
+	$writer->start_element( CERIF_NS, "cfPers" );
+	$writer->data_element( CERIF_NS, "cfPersId", $user->uuid );
+	$writer->start_element( CERIF_NS, "cfPersName" );
+		$writer->data_element( CERIF_NS, "cfFamilyNames", $name->{family} );
+		$writer->data_element( CERIF_NS, "cfFirstNames", $name->{given} );
+	$writer->end_element( CERIF_NS, "cfPersName" );
+	if( $user->is_set( "email" ) )
+	{
+		$writer->start_element( CERIF_NS, "cfPers_EAddr" );
+		$writer->data_element( CERIF_NS, "cfEAddrId", $user->value( "email" ) );
+		$writer->end_element( CERIF_NS, "cfPers_EAddr" );
+		$self->{_sameas}{user}{$user->value( "email" )} = $user->uuid;
+	}
+	$writer->end_element( CERIF_NS, "cfPers" );
+
+	if( !$opts{hide_related} )
+	{
+		$user->owned_eprints_list->map(sub {
+			(undef, undef, my $eprint) = @_;
+
+			$self->output_dataobj( $eprint, %opts );
+		});
+	}
+}
+
+sub output_eprint
 {
 	my( $self, $dataobj, %opts ) = @_;
 
@@ -159,6 +218,10 @@ sub output_dataobj
 		}
 	}
 
+	if( $dataobj->exists_and_set( "project" ) )
+	{
+	}
+
 	my @people;
 	for(qw( creators editors ))
 	{
@@ -166,7 +229,8 @@ sub output_dataobj
 		my $i = 1;
 		foreach my $creator (@{$dataobj->value( $_ )})
 		{
-			my $id = $dataobj->uuid( $creator->{id} || EPrints::Utils::make_name_string( $creator->{name} ) );
+			my $_value = $creator->{id} || EPrints::Utils::make_name_string( $creator->{name} );
+			my $id = $self->{_sameas}{user}{$_value} || $dataobj->uuid( $_value );
 			push @people, {
 					%$creator,
 					_id => $id,
@@ -217,10 +281,16 @@ sub cf_pers
 
 	$writer->start_element( CERIF_NS, "cfPers" );
 	$writer->data_element( CERIF_NS, "cfPersId", $pers->{_id} );
-		$writer->start_element( CERIF_NS, "cfPersName" );
+	$writer->start_element( CERIF_NS, "cfPersName" );
 		$writer->data_element( CERIF_NS, "cfFamilyNames", $pers->{name}->{family} );
 		$writer->data_element( CERIF_NS, "cfFirstNames", $pers->{name}->{given} );
-		$writer->end_element( CERIF_NS, "cfPersName" );
+	$writer->end_element( CERIF_NS, "cfPersName" );
+	if( $pers->{id} && $pers->{id} =~ /^(?:mailto:)?([^\@]+\@[^\@]+)$/ )
+	{
+		$writer->start_element( CERIF_NS, "cfPers_EAddr" );
+		$writer->data_element( CERIF_NS, "cfEAddrId", $1 );
+		$writer->end_element( CERIF_NS, "cfPers_EAddr" );
+	}
 	$writer->end_element( CERIF_NS, "cfPers" );
 }
 
