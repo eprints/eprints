@@ -1999,6 +1999,7 @@ sub plugin_error
 
 	my $ul = $repo->xml->create_element( "ul" );
 	for(@{$messages}) {
+		$_ = Encode::decode_utf8($_) if !utf8::is_utf8($_);
 		$ul->appendChild( $repo->xml->create_data_element( "li", $_ ) );
 	}
 	my $err = $repo->xhtml->to_xhtml( $ul );
@@ -2035,7 +2036,7 @@ sub generate_error_document
 		href => $opts{href},
 	);
 
-	return "<?xml version='1.0' encoding='UTF-8'?>\n" .
+	return "<?xml version='1.0' encoding='utf-8'?>\n" .
 		$xml->to_string( $error, indent => 1 );
 }
 
