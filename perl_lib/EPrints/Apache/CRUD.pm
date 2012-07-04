@@ -26,7 +26,7 @@ You should use the <link> entries in the repository's home page to locate the CR
 
 Create a new eprint based on a single file:
 
-	curl -x POST \
+	curl -X POST \
 		-i \
 		-u user:password \
 		-d 'Hello, World!' \
@@ -1000,7 +1000,7 @@ sub handler
 
 	my $user = $repo->current_user;
 
-	my( $rc, $owner ) = on_behalf_of( $repo, $r, $user );
+	my( $rc, $owner ) = $self->on_behalf_of( $user );
 	return $rc if $rc != OK;
 
 	# Subject URI's redirect to the top of that particular subject tree
@@ -1728,10 +1728,10 @@ sub servicedocument
 
 	my $user = $repo->current_user;
 	EPrints->abort( "unprotected" ) if !defined $user; # Rewrite foobar
-	my $on_behalf_of = on_behalf_of( $repo, $r, $user );
+	my $on_behalf_of = $self->on_behalf_of( $user );
 	if( $on_behalf_of->{status} != OK )
 	{
-		return sword_error( $repo, $r, %$on_behalf_of );
+		return $self->sword_error( %$on_behalf_of );
 	}
 	$on_behalf_of = $on_behalf_of->{on_behalf_of};
 
@@ -1827,7 +1827,10 @@ sub servicedocument
 
 sub on_behalf_of
 {
-	my( $repo, $r, $user ) = @_;
+	my( $self, $user ) = @_;
+
+	my $repo = $self->repository;
+	my $r = $self->request;
 
 	my $err = {
 		status => HTTP_FORBIDDEN,
@@ -1843,9 +1846,9 @@ sub on_behalf_of
 
 	my $owner = $repo->user_by_username( $on_behalf_of );
 
-	return sword_error($repo, $r, %$err )
+	return $self->sword_error( %$err )
 		if !defined $owner;
-	return sword_error($repo, $r, %$err ) 
+	return $self->sword_error( %$err ) 
 		if !$user->allow( "user/mediate", $owner );
 
 	return( OK, $owner );
