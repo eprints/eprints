@@ -165,7 +165,7 @@ $seconds is seconds since epoch or now if not given.
 
 sub local_datetime
 {
-	my @t = localtime(@_ ? @_ : time());
+	my @t = localtime(@_ ? $_[0] : time());
 	@t = reverse @t[0..5];
 	$t[0] += 1900;
 	$t[1] += 1;
@@ -183,7 +183,7 @@ $seconds is seconds since epoch or now if not given.
 
 sub utc_datetime
 {
-	my @t = gmtime(@_ ? @_ : time());
+	my @t = gmtime(@_ ? $_[0] : time());
 	@t = reverse(@t[0..5]);
 	$t[0] += 1900;
 	$t[1] += 1;
