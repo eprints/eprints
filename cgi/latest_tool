@@ -25,6 +25,7 @@ my $citation = $session->config( "latest_tool_citation" );
 my $max = 20;
 my $mode = $session->param( "mode" );
 $mode = "default" if( !defined $mode );
+my $search_fields = [];
 my $filters = [];
 my $conf = $session->config( "latest_tool_modes", $mode );
 my $show_conditions = 0;
@@ -35,7 +36,7 @@ if( defined $conf )
 		$citation = $conf->{"citation"} if( $key eq "citation" );
 		if( $key eq "filters" )
 		{
-			$filters = $conf->{"filters"};
+			$search_fields = $conf->{"filters"};
 			$show_conditions = 1;
 		}
 		$max = $conf->{"max"} if( $key eq "max" );
@@ -53,7 +54,7 @@ $indexOffset = 1 if !$indexOffset || $indexOffset =~ /\D/;
 my $searchexp = new EPrints::Search(
 	allow_blank => 1,
 	session => $session,
-	filters => $filters,
+	search_fields => $search_fields,
 	custom_order => "-datestamp",
 	dataset => $ds,
 	limit => ($indexOffset+$number_to_get-1) );
