@@ -121,7 +121,9 @@ sub from
 	{
 		if( $exp )
 		{
+			my $order = $search->{custom_order};
 			$search->from_string( $exp );
+			$search->{custom_order} = $order;
 		}
 		else
 		{
@@ -351,8 +353,7 @@ sub render
 
 		if( $i > 0 )
 		{
-			my $form_l = $session->render_form( "post" );
-			$form_l->appendChild( $self->render_hidden_bits );
+			my $form_l = $self->render_form;
 			$form_l->appendChild( $session->render_hidden_field( "column", $i ) );
 			$form_l->appendChild( $session->make_element( 
 				"input",
@@ -370,8 +371,7 @@ sub render
 		}
 
 		my $msg = $self->phrase( "remove_column_confirm" );
-		my $form_rm = $session->render_form( "post" );
-		$form_rm->appendChild( $self->render_hidden_bits );
+		my $form_rm = $self->render_form;
 		$form_rm->appendChild( $session->render_hidden_field( "column", $i ) );
 		$form_rm->appendChild( $session->make_element( 
 			"input",
@@ -386,8 +386,7 @@ sub render
 
 		if( $i < $#$columns )
 		{
-			my $form_r = $session->render_form( "post" );
-			$form_r->appendChild( $self->render_hidden_bits );
+			my $form_r = $self->render_form;
 			$form_r->appendChild( $session->render_hidden_field( "column", $i ) );
 			$form_r->appendChild( $session->make_element( 
 				"input",
@@ -450,8 +449,7 @@ sub render
 
 	# Add form
 	my $div = $session->make_element( "div", class=>"ep_columns_add" );
-	my $form_add = $session->render_form( "post" );
-	$form_add->appendChild( $self->render_hidden_bits );
+	my $form_add = $self->render_form;
 
 	my %col_shown = map { $_->name() => 1 } @$columns;
 	my $fieldnames = {};
@@ -497,6 +495,7 @@ sub hidden_bits
 
 	return(
 		dataset => $self->{processor}->{dataset}->id,
+		_listing_order => $self->{processor}->{search}->{custom_order},
 		$self->SUPER::hidden_bits,
 	);
 }
@@ -569,8 +568,8 @@ sub render_search_form
 {
 	my( $self ) = @_;
 
-	my $form = $self->{session}->render_form( "get" );
-	$form->appendChild( $self->render_hidden_bits );
+	my $form = $self->render_form;
+	$form->setAttribute( method => "get" );
 
 	my $table = $self->{session}->make_element( "table", class=>"ep_search_fields" );
 	$form->appendChild( $table );

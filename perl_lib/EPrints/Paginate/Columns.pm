@@ -52,6 +52,7 @@ sub paginate_list
 		my $params = $opts{params};
 		foreach my $key ( keys %$params )
 		{
+			next if $key eq $basename."order";
 			my $value = $params->{$key};
 			push @param_list, "$key=$value" if defined $value;
 		}
