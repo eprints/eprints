@@ -71,24 +71,23 @@ sub writer
 {
 	my( $self, %opts ) = @_;
 
-	return $self->{_writer} ||= EPrints::XML::SAX::SimpleDriver->new(
-		Handler => EPrints::XML::SAX::PrettyPrint->new(
-		Handler => EPrints::XML::SAX::Writer->new(
-			Output => $opts{fh} ? $opts{fh} : $self->{_output}
-		) ) );
+	return $self->{_writer};
 }
 
-sub output_list
+sub _start
 {
 	my( $self, %opts ) = @_;
 
-	my $r = "";
+	$self->{_output} = "";
+	$self->{_seen} = {};
+	$self->{_sameas} = {};
+	$self->{_writer} = EPrints::XML::SAX::SimpleDriver->new(
+		Handler => EPrints::XML::SAX::PrettyPrint->new(
+		Handler => EPrints::XML::SAX::Writer->new(
+			Output => $opts{fh} ? $opts{fh} : \$self->{_output}
+		) ) );
 
-	local $self->{_writer};
-	local $self->{_output} = \$r;
-	local $self->{_seen} = {};
-	local $self->{_sameas} = {};
-	my $writer = $self->writer( %opts );
+	my $writer = $self->{_writer};
 
 	$writer->xml_decl( '1.0', 'UTF-8' );
 
@@ -101,16 +100,32 @@ sub output_list
 			'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
 			'xsi:schemaLocation' => 'urn:xmlns:org:eurocris:cerif-1.4-0 http://www.eurocris.org/Uploads/Web%20pages/CERIF-1.4/CERIF_1.4_0.xsd',
 		);
+}
+
+sub _end
+{
+	my( $self, %opts ) = @_;
+
+	my $writer = $self->{_writer};
+
+	$writer->end_element( CERIF_NS, 'CERIF' );
+
+	$writer->end_document;
+}
+
+sub output_list
+{
+	my( $self, %opts ) = @_;
+
+	$self->_start( %opts );
 
 	$opts{list}->map( sub {
 			$self->output_dataobj( $_[2], %opts );
 		});
 
-	$writer->end_element( CERIF_NS, 'CERIF' );
+	$self->_end( %opts );
 
-	$writer->end_document;
-
-	return $r;
+	return $self->{_output};
 }
 
 sub output_dataobj
@@ -119,19 +134,24 @@ sub output_dataobj
 
 	return if $self->{_seen}{$dataobj->internal_uri}++;
 
+	$self->_start( %opts ) if !defined $opts{list};
+
 	if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
 	{
-		return $self->output_eprint( $dataobj, %opts );
+		$self->output_eprint( $dataobj, %opts );
 	}
 	elsif( $dataobj->isa( "EPrints::DataObj::User" ) )
 	{
-		return $self->output_user( $dataobj, %opts );
+		$self->output_user( $dataobj, %opts );
 	}
 	else
 	{
 		warn "Unsupported object type ".ref($dataobj);
-		return;
 	}
+
+	$self->_end( %opts ) if !defined $opts{list};
+
+	return $self->{_output};
 }
 
 sub output_user
@@ -200,8 +220,8 @@ sub output_eprint
 		{
 			my $id = $dataobj->uuid(
 				$dataobj->exists_and_set( "issn" ) ?
-					$dataobj->value( "issn" ) :
-					$dataobj->value( "publication" )
+					"issn:".$dataobj->value( "issn" ) :
+					"publication:".$dataobj->value( "publication" )
 				);
 			$writer->start_element( CERIF_NS, "cfResPubl_ResPubl" );
 			$writer->data_element( CERIF_NS, "cfResPublId2", $id );
@@ -218,8 +238,27 @@ sub output_eprint
 		}
 	}
 
-	if( $dataobj->exists_and_set( "project" ) )
+	if( $dataobj->exists_and_set( "refereed" ) )
 	{
+		$self->cf_class( $writer, 'cfResPubl_Class',
+				classId => {TRUE => "yes", FALSE => "no"}->{$dataobj->value( "refereed" )},
+				classSchemeId => "class_scheme_publication_peer-reviewed",
+			);
+	}
+
+	if( $dataobj->exists_and_set( "projects" ) )
+	{
+		foreach my $project (@{$dataobj->value( "projects" )})
+		{
+			my $id = $dataobj->uuid("project:".$project);
+			$writer->start_element( CERIF_NS, "cfProj_ResPubl" );
+			$writer->data_element( CERIF_NS, "cfProjId", $id );
+#			$self->cf_class_fraction( $writer,
+#					classId => "funder",
+#					classSchemeId => "class_scheme_cerif_publication_funding_roles",
+#				);
+			$writer->end_element( CERIF_NS, "cfProj_ResPubl" );
+		}
 	}
 
 	my @people;
@@ -272,6 +311,22 @@ sub output_eprint
 				cfTrans => "o",
 			);
 		$writer->end_element( CERIF_NS, "cfResPubl" );
+	}
+
+	if( $dataobj->exists_and_set( "projects" ) )
+	{
+		foreach my $project (@{$dataobj->value( "projects" )})
+		{
+			my $projid = $dataobj->uuid("project:".$project);
+
+			$writer->start_element( CERIF_NS, "cfResProj" );
+			$writer->data_element( CERIF_NS, "cfProjId", $projid );
+			$writer->data_element( CERIF_NS, "cfTitle", $project,
+					cfLangCode => "en_GB",
+					cfTrans => "o",
+				);
+			$writer->end_element( CERIF_NS, "cfResProj" );
+		}
 	}
 }
 
