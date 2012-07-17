@@ -592,7 +592,7 @@ sub render_modify
 	{
 		if( !empty_tree( $old_nodes{$fn} ) && empty_tree( $new_nodes{$fn} ) )
 		{
-			my( $old, $pad ) = render_xml( $self->{session}, $old_nodes{$fn}, 0, 1, $width/2 );
+			my( $old, $pad ) = render_xml( $self->{session}, $old_nodes{$fn}, 0, 1, int($width/2)-1 );
 			$tr = $self->{session}->make_element( "tr" );
 
 			$td = $self->{session}->make_element( "td", valign=>"top", width=>"50%", style=>"background-color: #fcc; " );
@@ -610,7 +610,7 @@ sub render_modify
 		}
 		elsif( empty_tree( $old_nodes{$fn} ) && !empty_tree( $new_nodes{$fn} ) )
 		{
-			my( $new, $pad ) = render_xml( $self->{session}, $new_nodes{$fn}, 0, 1, $width/2 );
+			my( $new, $pad ) = render_xml( $self->{session}, $new_nodes{$fn}, 0, 1, int($width/2)-1 );
 			$tr = $self->{session}->make_element( "tr" );
 			$td = $self->{session}->make_element( "td", valign=>"top", width=>"50%" );
 
@@ -629,7 +629,7 @@ sub render_modify
 		elsif( diff( $old_nodes{$fn}, $new_nodes{$fn} ) )
 		{
 			$tr = $self->{session}->make_element( "tr" );
-			my( $t1, $t2 ) = render_xml_diffs( $self->{session}, $old_nodes{$fn}, $new_nodes{$fn}, 0, $width/2 );
+			my( $t1, $t2 ) = render_xml_diffs( $self->{session}, $old_nodes{$fn}, $new_nodes{$fn}, 0, int($width/2)-1 );
 
 			$td = $self->{session}->make_element( "td", valign=>"top", width=>"50%", style=>"background-color: #ffc" );
 			$td->appendChild( $self->{session}->html_phrase( "lib/history:xmlblock", xml=>$t1 ) );
