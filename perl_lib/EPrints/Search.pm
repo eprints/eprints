@@ -1249,8 +1249,25 @@ sub get_ids_by_field_values
 	return $self->process_distinctby( [$field] );
 }
 
+=begin InternalDoc
 
+=item $sql = $searchexp->sql
 
+Debug method to get the SQL that will be executed, see L<EPrints::Search::Condition/sql>.
+
+=end InternalDoc
+
+=cut
+
+sub sql
+{
+	my( $self ) = @_;
+
+	return $self->get_conditions->sql(
+		session => $self->{session},
+		dataset => $self->{dataset},
+	);
+}
 
 
 1;
