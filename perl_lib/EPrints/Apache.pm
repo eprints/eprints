@@ -66,6 +66,14 @@ EOC
 $aliases
   ServerAdmin $adminemail
 
+  <Location "$http_root">
+    PerlSetVar EPrints_ArchiveID $id
+
+    Options +ExecCGI
+    Order allow,deny
+    Allow from all
+  </Location>
+
 EOC
 
 	# backwards compatibility
@@ -77,13 +85,6 @@ EOC
 	}
 
 	$conf .= <<EOC;
-  <Location "$http_root">
-    PerlSetVar EPrints_ArchiveID $id
-
-    Options +ExecCGI
-    Order allow,deny 
-    Allow from all
-  </Location>
 
   # Note that PerlTransHandler can't go inside
   # a "Location" block as it occurs before the
