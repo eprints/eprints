@@ -376,37 +376,9 @@ sub properties_from
 	return if !defined $dataset;
 	return if !defined $searchid;
 
-	my $sconf;
-	if( $dataset->id eq "archive" )
-	{
-		$sconf = $repo->config( "search", $searchid );
-	}
-	if( !defined $sconf )	
-	{
-		$sconf = $repo->config( "datasets", $dataset->id, "search", $searchid );
-	}
-	if( defined $sconf )
-	{
-		foreach my $sfs (@{$sconf->{search_fields}})
-		{
-			for(@{$sfs->{meta_fields}})
-			{
-				$_ = "documents" if $_ eq "_fulltext_";
-			}
-		}
-	}
-	elsif( $searchid eq "simple" )
-	{
-		$sconf = $dataset->_simple_search_config();
-	}
-	elsif( $searchid eq "advanced" )
-	{
-		$sconf = $dataset->_advanced_search_config();
-	}
-	else
-	{
-		$sconf = $self->default_search_config;
-	}
+	# get the dataset's search configuration
+	my $sconf = $dataset->search_config( $searchid );
+	$sconf = $self->default_search_config if !%$sconf;
 
 	$processor->{sconf} = $sconf;
 	$processor->{template} = $sconf->{template};

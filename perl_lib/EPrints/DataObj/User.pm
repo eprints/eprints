@@ -1121,7 +1121,7 @@ my $PRIVMAP =
 		"eprint/deletion/details",
 		"eprint/deletion/history",
 
-		"staff/eprint_search",
+		"eprint/search/staff",
 	],
 	
 	"view-status" => 

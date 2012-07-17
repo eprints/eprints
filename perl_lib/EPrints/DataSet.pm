@@ -1525,6 +1525,54 @@ sub run_trigger
 	}
 }
 
+=item $sconf = $dataset->search_config( $searchid )
+
+Retrieve the search configuration $searchid for this dataset. This typically contains a set of fields to search over, order values and rendering parameters.
+
+=cut
+
+sub search_config
+{
+	my( $self, $searchid ) = @_;
+
+	my $repo = $self->{repository};
+
+	my $sconf;
+	if( $self->id eq "archive" )
+	{
+		$sconf = $repo->config( "search", $searchid );
+	}
+	if( !defined $sconf )	
+	{
+		$sconf = $repo->config( "datasets", $self->id, "search", $searchid );
+	}
+	if( defined $sconf )
+	{
+		# backwards compat. when _fulltext_ was a magic field
+		foreach my $sfs (@{$sconf->{search_fields}})
+		{
+			for(@{$sfs->{meta_fields}})
+			{
+				$_ = "documents" if $_ eq "_fulltext_";
+			}
+		}
+	}
+	elsif( $searchid eq "simple" )
+	{
+		$sconf = $self->_simple_search_config();
+	}
+	elsif( $searchid eq "advanced" )
+	{
+		$sconf = $self->_advanced_search_config();
+	}
+	else
+	{
+		$sconf = {};
+	}
+
+	return $sconf;
+}
+
 =begin InternalDoc
 
 =item $sconf = $dataset->_simple_search_config()
