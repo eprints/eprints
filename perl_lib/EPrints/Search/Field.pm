@@ -316,7 +316,14 @@ sub from_form
 			$self->{"repository"}, 
 			$self->{"form_name_prefix"} );
 
-	$self->{value} = $value if EPrints::Utils::is_set( $value );
+	if( EPrints::Utils::is_set( $value ) )
+	{
+		$self->{value} = $value;
+	}
+	elsif( EPrints::Utils::is_set( $self->{default} ) )
+	{
+		$self->{value} = $self->{default};
+	}
 	$self->{match} = $match if $match && $match =~ /^EQ|IN|EX|SET$/;
 	$self->{merge} = $merge if $merge && $merge =~ /^ANY|ALL$/;
 
