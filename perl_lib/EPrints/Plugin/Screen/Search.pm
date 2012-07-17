@@ -224,7 +224,7 @@ sub action_savesearch
 		$screen = "Edit";
 		$savedsearch = $ds->create_dataobj( { 
 			userid => $self->{session}->current_user->id,
-			name => $self->{session}->xml->to_string( $name ),
+			name => $self->{session}->xml->text_contents_of( $name ),
 			spec => $searchexp->freeze
 		} );
 	}
