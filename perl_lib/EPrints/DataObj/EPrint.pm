@@ -1602,41 +1602,6 @@ sub render_box_list
 ######################################################################
 =pod
 
-=item ( $html ) = $eprint->render_history
-
-Render the history of this eprint as XHTML DOM.
-
-=cut
-######################################################################
-
-sub render_history
-{
-	my( $self ) = @_;
-
-	my $page = $self->{session}->make_doc_fragment;
-
-	my @filters = (
-		{ meta_fields => [qw( datasetid )], value => 'eprint', },
-		{ meta_fields => [qw( objectid )], value => $self->id, },
-	);
-
-	$self->repository->dataset( "history" )->search(
-		filters => \@filters,
-		custom_order=>"-historyid",
-		limit => 10,
-	)->map(sub {
-		my( undef, undef, $item ) = @_;
-	
-		$item->set_parent( $self );
-		$page->appendChild( $item->render );
-	} );
-
-	return $page;
-}
-
-######################################################################
-=pod
-
 =item $url = $eprint->get_control_url
 
 Return the URL of the control page for this eprint.

@@ -39,6 +39,15 @@ sub new
 	return $self;
 }
 
+sub properties_from
+{
+	my( $self ) = @_;
+
+	$self->{processor}->{tab_prefix} = "ep_eprint_view";
+
+	$self->SUPER::properties_from;
+}
+
 sub wishes_to_export { shift->{repository}->param( "ajax" ) }
 
 sub export_mime_type { "text/html;charset=utf-8" }
@@ -47,7 +56,7 @@ sub export
 {
 	my( $self ) = @_;
 
-	my $id_prefix = "ep_eprint_views";
+	my $id_prefix = $self->{processor}->{tab_prefix};
 
 	my $current = $self->{session}->param( "${id_prefix}_current" );
 	$current = 0 if !defined $current;
@@ -60,7 +69,9 @@ sub export
 		push @screens, $item->{screen};
 	}
 
-	my $content = $screens[$current]->render;
+	local $self->{processor}->{current} = $current;
+
+	my $content = $screens[$current]->render( "${id_prefix}_$current" );
 	binmode(STDOUT, ":utf8");
 	print $self->{repository}->xhtml->to_xhtml( $content );
 	$self->{repository}->xml->dispose( $content );
@@ -83,6 +94,16 @@ sub register_furniture
 	}
 
 	return $self->SUPER::register_furniture;
+}
+
+sub hidden_bits
+{
+	my( $self ) = @_;
+
+	return(
+		$self->SUPER::hidden_bits,
+		$self->{processor}->{tab_prefix} . "_current" => $self->{processor}->{current},
+	);
 }
 
 sub about_to_render 
@@ -129,7 +150,7 @@ sub render
 
 	# if in archive and can request delete then do that here TODO
 
-	my $id_prefix = "ep_eprint_views";
+	my $id_prefix = $self->{processor}->{tab_prefix};
 
 	my $current = $self->{session}->param( "${id_prefix}_current" );
 	$current = 0 if !defined $current;
@@ -148,6 +169,9 @@ sub render
 
 	for(my $i = 0; $i < @screens; ++$i)
 	{
+		# allow hidden_bits to point to the correct tab for local links
+		local $self->{processor}->{current} = $i;
+
 		my $screen = $screens[$i];
 		push @labels, $screen->render_tab_title;
 		push @expensive, $i if $screen->{expensive};
@@ -159,7 +183,7 @@ sub render
 		}
 		else
 		{
-			push @contents, $screen->render;
+			push @contents, $screen->render( "${id_prefix}_$i" );
 		}
 	}
 
