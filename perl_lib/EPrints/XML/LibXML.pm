@@ -64,6 +64,8 @@ $EPrints::XML::LIB_LEN = length("XML::LibXML::");
 # Bug work-arounds
 ##############################################################################
 
+*XML::LibXML::NodeList::item = sub { shift->[$_[0]] };
+
 ##############################################################################
 
 our $PARSER = XML::LibXML->new();
