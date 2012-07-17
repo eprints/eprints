@@ -296,8 +296,6 @@ sub thaw
 	my $uri = URI->new( $spec );
 	my %spec = $uri->query_form;
 
-	my $sconf = {};
-
 	my $dataset = $self->{session}->dataset( $spec{dataset} );
 	my $sconf = $dataset->search_config( $spec{searchid} );
 
