@@ -299,14 +299,7 @@ sub thaw
 	my $sconf = {};
 
 	my $dataset = $self->{session}->dataset( $spec{dataset} );
-	if( $dataset->base_id eq "eprint" )
-	{
-		$sconf = $self->{session}->config( "search", $spec{searchid} );
-	}
-	else
-	{
-		$sconf = $self->{session}->config( "datasets", $dataset->id, "search", $spec{searchid} );
-	}
+	my $sconf = $dataset->search_config( $spec{searchid} );
 
 	my $plugin = $self->{session}->plugin( "Search::$spec{plugin}",
 		searchid => $spec{searchid},
