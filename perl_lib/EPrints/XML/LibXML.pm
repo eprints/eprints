@@ -64,7 +64,11 @@ $EPrints::XML::LIB_LEN = length("XML::LibXML::");
 # Bug work-arounds
 ##############################################################################
 
+# Fix $nodelist->item(0) returning the last item
+{
+no warnings;
 *XML::LibXML::NodeList::item = sub { shift->[$_[0]] };
+}
 
 ##############################################################################
 
