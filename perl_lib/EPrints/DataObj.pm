@@ -1065,6 +1065,9 @@ sub EPrints::DataObj::uuid
 {
 	my( $self, $fragment ) = @_;
 
+	my $internal_uri = $self->internal_uri;
+	return if !defined $internal_uri;
+
 	my $repo = $self->{session};
 
 	# SHA1
@@ -1072,7 +1075,7 @@ sub EPrints::DataObj::uuid
 
 	# globally unique object id
 	$sha->add( $repo->config( "uuid_namespace" ) || $repo->config( "base_url" ) );
-	$sha->add( $self->internal_uri );
+	$sha->add( $internal_uri );
 	$sha->add( "#".URI::Escape::uri_escape_utf8( $fragment ) ) if defined $fragment;
 
 	my $uuid = substr( $sha->digest, 0, 16 );
@@ -1674,13 +1677,17 @@ sub to_sax
 				Value => $uri,
 			};
 	}
-	$Attributes{'{}uuid'} = {
-			Prefix => '',
-			LocalName => 'uuid',
-			Name => 'uuid',
-			NamespaceURI => '',
-			Value => 'urn:uuid:' . $self->uuid,
-		};
+	my $uuid = $self->uuid;
+	if( defined $uuid )
+	{
+		$Attributes{'{}uuid'} = {
+				Prefix => '',
+				LocalName => 'uuid',
+				Name => 'uuid',
+				NamespaceURI => '',
+				Value => 'urn:uuid:' . $uuid,
+			};
+	}
 
 	$handler->start_element({
 		Prefix => '',
