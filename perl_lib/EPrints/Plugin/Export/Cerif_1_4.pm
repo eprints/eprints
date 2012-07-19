@@ -45,9 +45,43 @@ $GRAMMAR{eprint} = [
 	cfAbstr => { depends => [qw( abstract )], value => sub { $_[0]->value( 'abstract' ), cfLangCode => "en_GB", cfTrans => "o" } },
 ];
 
-our %cfPublicationTypes = (
-	article => "Journal Article",
+our %CLASS_SCHEME_PUBLICATION_TYPES = (
+	annotation => "Annotation",
+	anthology => "Anthology",
 	book => "Book",
+	book_review => "Book Review",
+	book_chapter_abstract => "Book Chapter Abstract",
+	commentary => "Commentary",
+	conference_proceedings => "Conference Proceedings",
+	conference_proceedings_article => "Conference Proceedings Article",
+	consultancy_report => "Consultancy Report",
+	critical_edition => "Critical Edition",
+	encyclopedia => "Encyclopedia",
+	inbook => "Inbook",
+	journal => "Journal",
+	journal_article => "Journal Article",
+	journal_article_abstract => "Journal Article Abstract",
+	journal_article_review => "Journal Article Review",
+	letter => "Letter",
+	letter_to_editor => "Letter to Editor",
+	manual => "Manual",
+	monograph => "Monograph",
+	news_clipping => "Newsclipping",
+	other_book => "Other Book",
+	phd_thesis => "PhD Thesis",
+	presentation => "Presentation",
+	reference_book => "Reference Book",
+	short_communication => "Short Communication",
+	technical_report => "Technical Report",
+	technical_standard => "Technical Standard",
+	textbook => "Textbook",
+	working_paper => "Working Paper",
+);
+our %CLASS_SCHEME_PUBLICATION_STATE = (
+	in_preparation => "In Preparation",
+	in_press => "In Press",
+	published => "Published",
+	unpublished => "Unpublished",
 );
 
 sub new
@@ -63,6 +97,34 @@ sub new
 	$self->{arguments} = {
 			hide_related => 0,
 		};
+
+	# mappings
+	$self->{map_eprint_type} = {
+		article => "journal_article",
+		book_section => "book_chapter_abstract",
+		monograph => "monograph",
+		conference_item => "conference_proceedings_article",
+		book => "book",
+		thesis => "phd_thesis",  # FIXME
+		patent => "",
+		artefact => "",
+		exhibition => "",
+		composition => "",
+		performance => "",
+		image => "",
+		video => "",
+		audio => "",
+		dataset => "",
+		experiment => "",
+		teaching_resource => "",
+		other => "",
+	};
+	$self->{map_eprint_ispublished} = {
+		pub => "published",
+		inpress => "in_press",
+		submitted => "",
+		unpub => "unpublished",
+	};
 
 	return $self;
 }
@@ -207,35 +269,44 @@ sub output_eprint
 
 	my $type = $dataobj->value( "type" );
 
-	$self->cf_class( $writer, 'cfResPubl_Class',
-			classId => $cfPublicationTypes{$type} || "?$type?",
-			classSchemeId => 'class_scheme_cerif_publication_types',
-		);
+	if( my $classId = $self->param( "map_eprint_type" )->{$type} )
+	{
+		$self->cf_class( $writer, 'cfResPubl_Class',
+				classId => $classId,
+				classSchemeId => 'class_scheme_publication_types',
+			);
+	}
+
+	my $ispublished = $dataobj->exists_and_set( "ispublished" ) ? $dataobj->value( "ispublished" ) : "";
+	if( my $classId = $self->param( "map_eprint_ispublished" )->{$ispublished} )
+	{
+		$self->cf_class( $writer, 'cfResPubl_Class',
+				classId => $classId,
+				classSchemeId => 'class_scheme_publication_state',
+			);
+	}
 
 	my @publications;
 
-	if( $type eq "article" )
+	if( $dataobj->exists_and_set( "publication" ) || $dataobj->exists_and_set( "issn" ) )
 	{
-		if( $dataobj->exists_and_set( "publication" ) || $dataobj->exists_and_set( "issn" ) )
-		{
-			my $id = $dataobj->uuid(
-				$dataobj->exists_and_set( "issn" ) ?
-					"issn:".$dataobj->value( "issn" ) :
-					"publication:".$dataobj->value( "publication" )
-				);
-			$writer->start_element( CERIF_NS, "cfResPubl_ResPubl" );
-			$writer->data_element( CERIF_NS, "cfResPublId2", $id );
-			$self->cf_class_fraction( $writer,
-					classId => "?part-of?",
-					classSchemeId => "?cfrespubl_respubl?",
-				);
-			$writer->end_element( CERIF_NS, "cfResPubl_ResPubl" );
-			push @publications, {
-					_id => $id,
-					title => $dataobj->exists_and_set( "publication" ) ? $dataobj->value( "publication" ) : undef,
-					issn => $dataobj->exists_and_set( "issn" ) ? $dataobj->value( "issn" ) : undef,
-				};
-		}
+		my $id = $dataobj->uuid(
+			$dataobj->exists_and_set( "issn" ) ?
+				"issn:".$dataobj->value( "issn" ) :
+				"publication:".$dataobj->value( "publication" )
+			);
+		$writer->start_element( CERIF_NS, "cfResPubl_ResPubl" );
+		$writer->data_element( CERIF_NS, "cfResPublId2", $id );
+		$self->cf_class_fraction( $writer,
+				classId => "part",
+				classSchemeId => "class_scheme_publication_publication_roles",
+			);
+		$writer->end_element( CERIF_NS, "cfResPubl_ResPubl" );
+		push @publications, {
+				_id => $id,
+				title => $dataobj->exists_and_set( "publication" ) ? $dataobj->value( "publication" ) : undef,
+				issn => $dataobj->exists_and_set( "issn" ) ? $dataobj->value( "issn" ) : undef,
+			};
 	}
 
 	if( $dataobj->exists_and_set( "refereed" ) )
@@ -255,7 +326,7 @@ sub output_eprint
 			$writer->data_element( CERIF_NS, "cfProjId", $id );
 #			$self->cf_class_fraction( $writer,
 #					classId => "funder",
-#					classSchemeId => "class_scheme_cerif_publication_funding_roles",
+#					classSchemeId => "class_scheme_publication_funding_roles",
 #				);
 			$writer->end_element( CERIF_NS, "cfProj_ResPubl" );
 		}
@@ -364,15 +435,15 @@ sub cf_class_fraction
 {
 	my( $self, $writer, %parts ) = @_;
 
-	$parts{startDate} ||= CERIF_DATE_START;
-	$parts{endDate} ||= CERIF_DATE_END;
-	$parts{fraction} = '1.00' if !defined $parts{fraction};
+#	$parts{startDate} ||= CERIF_DATE_START;
+#	$parts{endDate} ||= CERIF_DATE_END;
+#	$parts{fraction} = '1.00' if !defined $parts{fraction};
 
 	$writer->data_element( CERIF_NS, "cfClassId", $parts{classId} );
 	$writer->data_element( CERIF_NS, "cfClassSchemeId", $parts{classSchemeId} );
-	$writer->data_element( CERIF_NS, "cfStartDate", $parts{startDate} );
-	$writer->data_element( CERIF_NS, "cfEndDate", $parts{endDate} );
-	$writer->data_element( CERIF_NS, "cfFraction", $parts{fraction} );
+	$writer->data_element( CERIF_NS, "cfStartDate", $parts{startDate} ) if defined $parts{startDate};
+	$writer->data_element( CERIF_NS, "cfEndDate", $parts{endDate} ) if defined $parts{endDate};
+	$writer->data_element( CERIF_NS, "cfFraction", $parts{fraction} ) if defined $parts{fraction};
 }
 
 sub expand_date

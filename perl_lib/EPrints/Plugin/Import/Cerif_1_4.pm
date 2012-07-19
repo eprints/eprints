@@ -63,6 +63,13 @@ sub input_fh
 	local $self->{depth} = 0;
 	local $self->{stack} = [];
 
+	# mappings
+	my $plugin = $self->{session}->plugin( "Export::Cerif_1_4" );
+	for(qw( map_eprint_type map_eprint_ispublished ))
+	{
+		%{$self->{$_}} = reverse %{$plugin->param( $_ )};
+	}
+
 	eval { EPrints::XML::event_parse( $opts{fh}, $self ) };
 	die $@ if $@ and "$@" ne "\n";
 
@@ -100,6 +107,31 @@ sub localise
 		foreach my $epdata (values %{$self->{data}{eprint} || {}})
 		{
 			$epdata->{$_} = $epdata->{$_}[0]{text};
+		}
+	}
+
+	# remove users that are just names
+	foreach my $userid (keys %{$self->{data}{user} || {}})
+	{
+		if(
+			keys(%{$self->{data}{user}{$userid}}) == 1 &&
+			defined($self->{data}{user}{$userid}{name})
+		  )
+		{
+			delete $self->{data}{user}{$userid};
+		}
+	}
+
+	# remove unsupported fields
+	foreach my $dsid (keys %{$self->{data}})
+	{
+		my $dataset = $repo->dataset( $dsid );
+		foreach my $epdata (values %{$self->{data}{$dsid}})
+		{
+			foreach my $fieldid (keys %$epdata)
+			{
+				delete $epdata->{$fieldid} if !$dataset->has_field( $fieldid );
+			}
 		}
 	}
 }
@@ -144,6 +176,7 @@ sub deconstruct
 				};
 		}
 	}
+	delete $data->{"user:relation"};
 
 	# process eprint classes
 	foreach my $class (values %{$data->{"eprint:class"} || {}})
@@ -151,9 +184,13 @@ sub deconstruct
 		my $subject = $data->{eprint}->{$class->{_object}};
 		next if !defined $subject;
 
-		if( "class_scheme_cerif_publication_types" eq $class->{classschemeid} )
+		if( "class_scheme_publication_types" eq $class->{classschemeid} )
 		{
-			$subject->{type} = $CERIF_RESPUBL_TYPE{lc($class->{classid})} || $class->{classid};
+			$subject->{type} = $self->param( "map_eprint_type" )->{lc($class->{classid})} || $class->{classid};
+		}
+		elsif( "class_scheme_publication_state" eq $class->{classschemeid} )
+		{
+			$subject->{ispublished} = $self->param( "map_eprint_ispublished" )->{lc($class->{classid})} || $class->{classid};
 		}
 	}
 	delete $data->{"eprint:class"};
