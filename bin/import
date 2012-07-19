@@ -90,6 +90,10 @@ This sets the "enable_file_imports" configuration option for this session only.
 Allow the imported data to import files from the Web. This can obviously be seen as a security hole if you don't trust the data you are importing.
 This sets the "enable_web_imports" configuration option for this session only.
 
+=item B<--xml>
+
+Output to STDOUT the parsed objects in EPrints XML (does not import anything).
+
 =item B<--update>
 
 Normally you can not import a new item with the same id as an existing item. With this option enabled existing items will be updated with the new item. Combine with --enable-import-fields to update all field values.
@@ -151,6 +155,7 @@ my $migration = 0;
 my $update = 0;
 my %opt_args;
 my @actions;
+my $output_xml = 0;
 
 Getopt::Long::Configure("permute");
 
@@ -173,6 +178,7 @@ GetOptions(
 	'update' => \$update,
 	'argument|arg=s' => \%opt_args,
 	'action=s' => \@actions,
+	'xml' => \$output_xml,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version() if $version;
 pod2usage( 1 ) if $help;
@@ -320,6 +326,16 @@ my $handler = EPrints::CLIProcessor->new(
 
 		$count++, return if $parse_only;
 
+		if( $output_xml )
+		{
+			my $dataobj = $opts{dataset}->make_dataobj( $epdata );
+			my $frag = $dataobj->to_xml;
+			print $session->xml->to_string( $frag, indent => 1 );
+			print "\n";
+			$session->xml->dispose( $frag );
+			return;
+		}
+
 		my $item;
 
 		if(
@@ -402,6 +418,12 @@ if( $scripted )
 # improve ordervalues insertion performance
 $session->cache_subjects;
 
+if( $output_xml )
+{
+	binmode(STDOUT, ":utf8");
+	print "<?xml version='1.0'?>\n<eprints xmlns='".EPrints::Const::EP_NS_DATA()."'>\n";
+}
+
 my $list = eval { $plugin->input_file(
 		%arguments,
 		dataset=>$ds,
@@ -412,6 +434,11 @@ my $list = eval { $plugin->input_file(
 if( $@ )
 {
 	$handler->message( "error", $session->make_text( "Unhandled exception in ".$plugin->{id}.": $@" ) );
+}
+
+if( $output_xml )
+{
+	print "\n</eprints>\n";
 }
 
 if( $scripted )
