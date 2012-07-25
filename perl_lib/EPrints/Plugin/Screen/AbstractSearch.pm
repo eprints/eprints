@@ -306,6 +306,8 @@ sub _vis_level
 {
 	my( $self ) = @_;
 
+	return "staff" if defined $self->{session}->current_user && $self->{session}->current_user->is_staff;
+
 	return "all";
 }
 
