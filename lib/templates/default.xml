@@ -73,6 +73,7 @@
             <input type="hidden" name="_satisfyall" value="ALL"/>
           </form>
         </div>
+		<div style="clear: both"></div>
       </div>
     </div>
     <div>
