@@ -156,6 +156,11 @@ $c->{extract_words} = sub
 		# Only "bad" words are used in display to the
 		# user. Good words can be normalised even further.
 
+		# If any of the characters are lowercase then lower
+		# case the entire word so "Mesh" becomes "mesh" but
+		# "HTTP" remains "HTTP".
+		$word = lc $word;
+
 		# non-acronyms (ie not all UPPERCASE words) have
 		# a trailing 's' removed. Thus in searches the
 		# word "chair" will match "chairs" and vice-versa.
@@ -163,14 +168,6 @@ $c->{extract_words} = sub
 		# "nappy" still won't match "nappies" but it's a
 		# reasonable attempt.
 		$word =~ s/s$//;
-
-		# If any of the characters are lowercase then lower
-		# case the entire word so "Mesh" becomes "mesh" but
-		# "HTTP" remains "HTTP".
-		if( $word =~ m/[a-z]/ )
-		{
-			$word = lc $word;
-		}
 
 		$good{$word}++;
 	}
