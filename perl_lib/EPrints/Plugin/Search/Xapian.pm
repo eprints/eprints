@@ -608,7 +608,7 @@ sub execute
 		$query = Search::Xapian::Query->new(
 			Search::Xapian::OP_AND(),
 			$query,
-			$qp->parse_query( $self->{q},
+			$qp->parse_query( lc( $self->{q} ),
 				Search::Xapian::FLAG_PHRASE() |
 				Search::Xapian::FLAG_BOOLEAN() | 
 				Search::Xapian::FLAG_LOVEHATE() | 
