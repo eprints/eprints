@@ -157,7 +157,7 @@ sub _start
 
 	$writer->start_element( CERIF_NS, 'CERIF',
 			release => '1.4',
-			date => EPrints::Time::iso_date,
+			date => EPrints::Time::get_iso_timestamp, # 3.2 compat
 			sourceDatabase => $self->{session}->config( "base_url" ),
 			'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
 			'xsi:schemaLocation' => 'urn:xmlns:org:eurocris:cerif-1.4-0 http://www.eurocris.org/Uploads/Web%20pages/CERIF-1.4/CERIF_1.4_0.xsd',
@@ -332,6 +332,20 @@ sub output_eprint
 		}
 	}
 
+	my @fundids;
+
+	if( $dataobj->exists_and_set( "funding_funder_code" ) )
+	{
+		foreach my $code (@{$dataobj->value( "funding_funder_code" )})
+		{
+			my $id = $dataobj->uuid("funding_funder_code:".$code);
+			$writer->start_element( CERIF_NS, "cfProj_ResPubl" );
+			$writer->data_element( CERIF_NS, "cjProjId", $id );
+			$writer->end_element( CERIF_NS,  "cfProj_ResPubl" );
+			push @fundids, { projid => $id, code => $code };
+		}
+	}
+
 	my @people;
 	for(qw( creators editors ))
 	{
@@ -398,6 +412,21 @@ sub output_eprint
 				);
 			$writer->end_element( CERIF_NS, "cfResProj" );
 		}
+	}
+
+	for(@fundids)
+	{
+		$writer->start_element( CERIF_NS, "cfProj" );
+		$writer->data_element( CERIF_NS, "cfProjId", $_->{projid} );
+		$writer->start_element( CERIF_NS, "cfProj_Fund" );
+		$writer->data_element( CERIF_NS, "cfFundId", $_->{projid} );
+		$writer->end_element( CERIF_NS, "cfProj_Fund" );
+		$writer->end_element( CERIF_NS, "cfProj" );
+
+		$writer->start_element( CERIF_NS, "cfFund" );
+		$writer->data_element( CERIF_NS, "cfFundId", $_->{projid} );
+		$writer->data_element( CERIF_NS, "cfAcro", $_->{code} );
+		$writer->end_element( CERIF_NS, "cfFund" );
 	}
 }
 
