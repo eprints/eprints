@@ -95,8 +95,8 @@ sub get_parent
 
 	my $session = $self->get_session;
 
-	$datasetid = $self->get_value( "datasetid" ) unless defined $datasetid;
-	$objectid = $self->get_value( "objectid" ) unless defined $objectid;
+	$datasetid = $self->get_parent_dataset_id unless defined $datasetid;
+	$objectid = $self->get_parent_id unless defined $objectid;
 
 	my $ds = $session->dataset( $datasetid );
 
