@@ -1221,6 +1221,12 @@ sub epadmin_redo_mime_type
 			}
 			$file->set_value( "mime_type", $media_info->{mime_type} );
 
+			# hide volatiles from the search interface (sort of)
+			if( $doc->has_relation( undef, "isVolatileVersionOf" ) )
+			{
+				$doc->set_value( "format", "other" );
+			}
+
 			$file->commit;
 			$doc->commit;
 		};
