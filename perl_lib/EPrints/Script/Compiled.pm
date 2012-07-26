@@ -500,7 +500,7 @@ sub run_doc_size
 
 	if( !defined $doc->[0] || ref($doc->[0]) ne "EPrints::DataObj::Document" )
 	{
-		$self->runtime_error( "Can only call document_size() on document objects not ".
+		$self->runtime_error( "Can only call doc_zie() on document objects not ".
 			ref($doc->[0]) );
 	}
 
@@ -511,7 +511,7 @@ sub run_doc_size
 
 	my %files = $doc->[0]->files;
 
-	return $files{$doc->[0]->get_main} || 0;
+	return [ $files{$doc->[0]->get_main} || 0, "INTEGER" ];
 }
 
 sub run_is_public
@@ -520,7 +520,7 @@ sub run_is_public
 
 	if( !defined $doc->[0] || ref($doc->[0]) ne "EPrints::DataObj::Document" )
 	{
-		$self->runtime_error( "Can only call document_size() on document objects not ".
+		$self->runtime_error( "Can only call is_public() on document objects not ".
 			ref($doc->[0]) );
 	}
 
@@ -584,7 +584,7 @@ sub run_human_filesize
 {
 	my( $self, $state, $size_in_bytes ) = @_;
 
-	return [ EPrints::Utils::human_filesize( $size_in_bytes || 0 ), "INTEGER" ];
+	return [ EPrints::Utils::human_filesize( $size_in_bytes->[0] || 0 ), "INTEGER" ];
 }
 
 sub run_control_url
