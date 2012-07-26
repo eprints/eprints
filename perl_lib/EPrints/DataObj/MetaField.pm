@@ -369,6 +369,9 @@ sub get_dataset_id()
 	return "metafield";
 }
 
+sub get_parent_dataset_id { "metafield" }
+sub get_parent_id { shift->value( "parent" ) }
+
 ######################################################################
 
 =item $defaults = EPrints::DataObj::MetaField->get_defaults( $repo, $data )
