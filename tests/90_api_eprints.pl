@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 6;
+use Test::More tests => 9;
 
 use strict;
 use warnings;
@@ -57,3 +57,9 @@ if( @missing )
 	diag("Missing following API methods: ".join(', ', @missing));
 }
 ok(@missing==0, "all API methods defined");
+
+my $sys = EPrints->system;
+
+is($sys->file_extension("foo.pdf"), ".pdf");
+is($sys->file_extension("2012.12.25-object.tar.gz"), ".tar.gz");
+is($sys->file_extension("extensionless"), "");
