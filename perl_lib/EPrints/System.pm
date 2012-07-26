@@ -510,6 +510,26 @@ sub join_path
 	return join '/', @parts;
 }
 
+=item $ext = $sys->file_extension( $filename )
+
+Returns the file extension of $filename including the leading '.' e.g. F<.tar.gz>
+
+Returns empty string if there is no file extension.
+
+=cut
+
+sub file_extension
+{
+	my( $self, $filename ) = @_;
+
+	if( $filename =~ /((?:\.[a-z0-9]{1,4}){1,2})$/i )
+	{
+		return $1;
+	}
+
+	return "";
+}
+
 =item $filepath = $sys->sanitise( $filepath )
 
 Replaces restricted file system characters and control characters in $filepath with '_'.
