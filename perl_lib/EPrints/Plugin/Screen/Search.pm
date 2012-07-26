@@ -305,10 +305,8 @@ sub render_simple_form
 	$input = $xhtml->hidden_field( "order", $session->param( "order" ) );
 	$form->appendChild( $input );
 
-#	$form->appendChild( $self->render_preamble );
+	$form->appendChild( $self->render_preamble );
 
-#	my( $sfield ) = $self->{processor}->{search}->get_non_filter_searchfields;
-#	$form->appendChild( $sfield->render );
 	$form->appendChild( $self->{processor}->{search}->render_simple_fields );
 
 	$input = $xml->create_element( "input",
