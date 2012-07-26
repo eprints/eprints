@@ -148,6 +148,10 @@ sub make_name_string
 		$secondbit .= " ".$name->{lineage};
 	}
 
+	if( !length( $firstbit ) )
+	{
+		return $secondbit;
+	}
 	
 	if( defined $familylast && $familylast )
 	{
