@@ -23,6 +23,7 @@ Action buttons (Previous/Save/Next) can be shown "top", "bottom" or "both":
   	<component><field ref="controller" /></component>
   	<component><field ref="requirements" /></component>
   	<component><field ref="home_page" /></component>
+  	<component><field ref="screenshot" /></component>
   	<component type="FileSelector" path="{$config{base_path}}/lib" document="install"></component>
   </stage>
 

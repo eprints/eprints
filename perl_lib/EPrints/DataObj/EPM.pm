@@ -30,7 +30,7 @@ B<EPrints::DataObj::EPM> - Class representing an EPrints Package
 
 package EPrints::DataObj::EPM;
 
-@ISA = ( 'EPrints::DataObj' );
+use base "EPrints::DataObj";
 
 use strict;
 
@@ -97,7 +97,8 @@ sub get_system_field_info
 
 	# icon filename
 	{ name=>"icon", type=>"url", render_value => \&render_icon, },
-
+	# screenshot image file
+	{ name => "screenshot", type=>"image", multiple=>1 }
 	);
 }
 

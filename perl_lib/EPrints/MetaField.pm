@@ -526,15 +526,7 @@ sub form_value
 {
 	my( $self, $session, $object, $prefix ) = @_;
 
-	my $basename;
-	if( defined $prefix )
-	{
-		$basename = $prefix."_".$self->{name};
-	}
-	else
-	{
-		$basename = $self->{name};
-	}
+	my $basename = $self->basename($prefix);
 
 	my $value = $self->form_value_actual( $session, $object, $basename );
 
@@ -2528,6 +2520,23 @@ sub validate
 	return @problems;
 }
 
+sub basename 
+{
+  my ( $self, $prefix ) = @_;
+
+  my $basename;
+
+  if( defined $prefix )
+    {
+      $basename = $prefix."_".$self->{name};
+    }
+  else
+    {
+      $basename = $self->{name};
+    }
+
+  return $basename;
+}
 
 
 ######################################################################
