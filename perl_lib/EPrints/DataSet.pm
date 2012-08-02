@@ -1417,23 +1417,44 @@ Short-cut to L</prepare_search>( %options )->execute.
 
 =over 4
 
-=item "satisfy_all"=>1 
+=item satisfy_all
+
+   satisfy_all"=>1 
 
 Satify all conditions specified. 0 means satisfy any of the conditions specified. Default is 1
 
-=item "staff"=>1
+=item staff
+
+  "staff"=>1
 
 Do search as an adminstrator means you get everything back
 
-=item "custom_order" => "field1/-field2/field3"
+=item custom_order
+
+  "custom_order" => "field1/-field2/field3"
 
 Order the search results by field order. prefixing the field name with a "-" results in reverse ordering
 
-=item "search_fields" => \@({meta_fields=>[ "field1", "field2" "document.field3" ], merge=>"ANY", match=>"EX", value=>"bees"}, {meta_fields=>[ "field4" ], value=>"honey"});
+=item filters
 
-Return values where field1 field2 or field3 is "bees" and field2  is "honey" (assuming satisfy all is set)
+  "filters" => \@(
+                         { meta_fields=>[ "field1", "field2" "document.field3" ],
+                           merge=>"ANY", match=>"EX",
+                           value=>"bees"
+                         },
+                         { meta_fields=>[ "field4" ],
+                           value=> qw( honey ),
+                           match=>"IN"
+                         }
+                       );
 
-=item "limit" => 10
+This searchs for 'bees' in C<field1> or C<field2> or C<document.field3>, and 'honey' in C<field4>
+
+For details on the C<merge> and C<match> parameters, refer to L<EPrints::Search::Field>
+
+=back
+
+  "limit" => 10
 
 Only return 10 results
 
