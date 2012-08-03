@@ -3971,4 +3971,9 @@ To create a blank EPM entire a new id in the input and click <epc:phrase ref="Pl
 
 	<epp:phrase id="cgi/users/lookup/title_duplicates:warning">The following records matching this <epc:pin name="field" /> already exist in the archive. Please check that you are not entering a duplicate record.</epp:phrase>
 
+    <epp:phrase id="epm_fieldname_screenshot">Screenshot</epp:phrase>
+    <epp:phrase id="epm_fieldhelp_screenshot">Upload a demonstrative screen shot for this package.</epp:phrase>
+
+    <epp:phrase id="lib/metafield:join_image"><br /></epp:phrase>
+
 </epp:phrases>

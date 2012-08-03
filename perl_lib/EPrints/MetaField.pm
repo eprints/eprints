@@ -497,16 +497,9 @@ The actual function called may be overridden from the config.
 
 sub render_input_field
 {
-	my( $self, $session, $value, $dataset, $staff, $hidden_fields, $obj, $basename ) = @_;
+	my( $self, $session, $value, $dataset, $staff, $hidden_fields, $obj, $prefix ) = @_;
 
-	if( defined $basename )
-	{
-		$basename = $basename."_".$self->{name};
-	}
-	else
-	{
-		$basename = $self->{name};
-	}
+	my $basename = $self->basename( $prefix );
 
 	if( defined $self->{toform} )
 	{
@@ -2558,6 +2551,23 @@ sub validate
 	return @problems;
 }
 
+sub basename 
+{
+  my ( $self, $prefix ) = @_;
+
+  my $basename;
+
+  if( defined $prefix )
+    {
+      $basename = $prefix."_".$self->{name};
+    }
+  else
+    {
+      $basename = $self->{name};
+    }
+
+  return $basename;
+}
 
 
 ######################################################################
