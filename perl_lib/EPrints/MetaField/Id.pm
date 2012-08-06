@@ -45,7 +45,7 @@ sub value_from_sql_row
 {
 	my( $self, $session, $row ) = @_;
 
-	if( ref($session->{database}) eq "EPrints::Database::mysql" )
+	if( $session->{database}->{dbh}->{Driver}->{Name} eq "mysql" )
 	{
 		utf8::decode( $row->[0] );
 	}
