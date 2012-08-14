@@ -142,6 +142,24 @@ sub render
 
 	my $page = $repo->make_doc_fragment;
 
+	# shows a friendly warning if users need to login to access a restricted document
+        if( my $target = $repo->param( 'target' ) )
+        {
+                my $base_url = $repo->config( 'base_url' );
+                if( $target =~ m#^$base_url/(\d+)/(\d+)/# )
+                {
+			my $doc = EPrints::DataObj::Document::doc_with_eprintid_and_pos( $repo, $1, $2 );
+			if( $doc && $doc->exists_and_set( 'security' ) )
+			{
+				$self->{processor}->add_message( "error", $repo->html_phrase( 'cgi/login:restricted_document:security', 
+						security => $doc->render_value( 'security' ) ) );
+			}
+			else {
+	        		$self->{processor}->add_message( "error", $repo->html_phrase( 'cgi/login:restricted_document' ) );
+			}
+                }
+        }
+
 	my @tabs = map { $_->{screen} } $self->list_items( "login_tabs" );
 
 	my $show = $self->{processor}->{show};
