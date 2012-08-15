@@ -1,0 +1,15 @@
+.ep_box_show {
+	background-image: url(images/plus.png);
+	background-repeat: no-repeat;
+	background-position: left center;
+	padding-left: 20px;
+	display: block;
+}
+
+.ep_box_hide {
+	background-image: url(images/minus.png);
+	background-repeat: no-repeat;
+	background-position: left center;
+	padding-left: 20px;
+	display: none;
+}
