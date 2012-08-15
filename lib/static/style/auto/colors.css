@@ -223,3 +223,7 @@ td.ep_columns_cell {
 .ep_datepicker td:hover, .ep_datepicker td.ep_dp_selected {
 	background-color: #9999ff;
 }
+
+.ep_diff_add { background-color: #cfc }
+.ep_diff_remove { background-color: #fcc }
+.ep_diff_change { background-color: #ffc }

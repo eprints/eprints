@@ -174,7 +174,7 @@ sub get_system_field_info
 
 	{ name=>"contact_email", type=>"email", required=>0, can_clone=>0 },
 
-	{ name=>"fileinfo", type=>"longtext", 
+	{ name=>"fileinfo", type=>"longtext", import=>0,
 		text_index=>0,
 		export_as_xml=>0,
 		render_value=>"EPrints::DataObj::EPrint::render_fileinfo" },
@@ -203,7 +203,7 @@ sub get_system_field_info
 
 	{ 'name' => 'sword_slug', 'type' => 'text' },
 
-	{ 'name' => 'edit_lock', 'type' => 'compound', volatile => 1, export_as_xml=>0,
+	{ 'name' => 'edit_lock', 'type' => 'compound', volatile => 1, export_as_xml=>0, import=>0,
 		'fields' => [
 			{ 'sub_name' => 'user',  'type' => 'itemref', 'datasetid' => 'user', sql_index=>0 },
 			{ 'sub_name' => 'since', 'type' => 'int', sql_index=>0 },
