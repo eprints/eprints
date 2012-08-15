@@ -3251,11 +3251,14 @@ sub has_dataset
 
 	$rc &&= $self->has_table( $table );
 
-	foreach my $langid ( @{$self->{session}->get_conf( "languages" )} )
+	if( $dataset->ordered )
 	{
-		my $order_table = $dataset->get_ordervalues_table_name( $langid );
+		foreach my $langid ( @{$self->{session}->get_conf( "languages" )} )
+		{
+			my $order_table = $dataset->get_ordervalues_table_name( $langid );
 
-		$rc &&= $self->has_table( $order_table );
+			$rc &&= $self->has_table( $order_table );
+		}
 	}
 
 	$rc &&= $self->_has_dataset_index_tables( $dataset );
@@ -3352,7 +3355,10 @@ sub create_dataset_tables
 	}
 
 	# Create the ordervalues tables
-	$rv &&= $self->_create_dataset_ordervalues_tables( $dataset );
+	if( $dataset->ordered )
+	{
+		$rv &&= $self->_create_dataset_ordervalues_tables( $dataset );
+	}
 
 	return $rv;
 }
@@ -3573,7 +3579,10 @@ sub has_field
 	}
 
 	# Check the order values (used to order search results)
-	$rc &&= $self->_has_field_ordervalues( $dataset, $field );
+	if( $dataset->ordered )
+	{
+		$rc &&= $self->_has_field_ordervalues( $dataset, $field );
+	}
 
 	# Check the field index
 	$rc &&= $self->_has_field_index( $dataset, $field );
@@ -3635,7 +3644,10 @@ sub add_field
 	}
 
 	# Add the field to order values (used to order search results)
-	$rc &&= $self->_add_field_ordervalues( $dataset, $field );
+	if( $dataset->ordered )
+	{
+		$rc &&= $self->_add_field_ordervalues( $dataset, $field );
+	}
 
 	# Add the index to the field
 	$rc &&= $self->_add_field_index( $dataset, $field );
