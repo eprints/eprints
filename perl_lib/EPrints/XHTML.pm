@@ -688,6 +688,119 @@ sub page
 	return EPrints::Page->new( $repo, join( "", @output ) );
 }
 
+=item $node = $xhtml->box( $content, %opts )
+
+Render a collapsible box.
+
+Options:
+
+=over 4
+
+=item basename = ep_box
+
+Prefix to use for identifying page elements.
+
+=item collapsed = 1
+
+Should the box start rolled up.
+
+=item show_label
+
+Label shown when the box is hidden (in the link).
+
+=item hide_label
+
+Label shown when the box is visible (in the link).
+
+=item show_icon_url = "style/images/plus.png"
+
+The url of the icon to use instead of the [+].
+
+=item hide_icon_url = "style/images/minus.png"
+
+The url of the icon to use instead of the [-].
+
+=back
+
+=cut
+
+sub box
+{
+	my( $self, $content, %opts ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+
+	my $frag = $xml->create_document_fragment;
+
+	my $basename = exists $opts{basename} ? $opts{basename} : "ep_box";
+
+	$frag->appendChild( my $div = $xml->create_element( "div",
+			id=>$basename,
+			class=>"ep_summary_box",
+		) );
+
+	$div->appendChild( my $title_bar = $xml->create_element( "div",
+			class => "ep_summary_box_title",
+			id => "${basename}_title_bar",
+		) );
+
+	$div->appendChild( my $container = $xml->create_data_element( "div",
+			$content,
+			class => "ep_summary_box_body ep_no_js",
+			id => "${basename}_content",
+		) );
+
+	$title_bar->appendChild( my $show_link = $xml->create_element( "a",
+			href => "javascript:",
+			id => "${basename}_show_link",
+			class => "ep_box_show",
+			style => "",
+		) );
+	$title_bar->appendChild( my $hide_link = $xml->create_element( "a",
+			href => "javascript:",
+			id => "${basename}_hide_link",
+			class => "ep_box_hide",
+			style => "",
+		) );
+
+	if( $opts{show_label} )
+	{
+		$show_link->appendChild( $opts{show_label} );
+	}
+	if( $opts{show_icon_url} )
+	{
+		$show_link->setAttribute( style => "background-image: url(" . $opts{show_icon_url} . ");" );
+	}
+	if( $opts{hide_label} )
+	{
+		$hide_link->appendChild( $opts{hide_label} );
+	}
+	if( $opts{hide_icon_url} )
+	{
+		$hide_link->setAttribute( style => "background-image: url(" . $opts{hide_icon_url} . ");" );
+	}
+
+	if( !$opts{collapsed} )
+	{
+		$container->setAttribute( class => "ep_summary_box_body" );
+		$show_link->setAttribute(
+			style => join(' ', $show_link->getAttribute( "style" ), "display: none;")
+		);
+		$hide_link->setAttribute(
+			style => join(' ', $hide_link->getAttribute( "style" ), "display: block;")
+		);
+	}
+
+	$frag->appendChild( $repo->make_javascript( <<"EOJ" ) );
+Event.observe (window, 'load', function() {
+	new EPrints.XHTML.Box ('$basename');
+});
+EOJ
+
+	return $frag;
+}
+
 =item $node = $xhtml->tabs( $labels, $contents, %opts )
 
 Render a tabbed box where:
