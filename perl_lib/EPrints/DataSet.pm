@@ -228,9 +228,14 @@ my $INFO = {
 		class => "EPrints::DataObj::Import",
 		datestamp => "datestamp",
 	},
-	import_cache => {
-		sqlname => "import_cache",
-		class => "EPrints::DataObj::ImportCache",
+	cache_dataobj_map => {
+		sqlname => "cache_dataobj_map",
+		class => "EPrints::DataObj::CacheDataobjMap",
+	},
+	cache_dataobj => {
+		sqlname => "cache_dataobj",
+		class => "EPrints::DataObj::CacheDataobj",
+		order => 0,
 	},
 	issue => {
 		sqlname => "issue",

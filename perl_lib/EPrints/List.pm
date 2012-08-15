@@ -123,7 +123,7 @@ sub new
 {
 	my( $class, %self ) = @_;
 
-	$self{session} = $self{repository} if !defined $self{session};
+	$self{session} ||= $self{repository} ||= $self{session};
 
 	my $self = \%self;
 #	$self->{session} = $opts{session} || $opts{repository};

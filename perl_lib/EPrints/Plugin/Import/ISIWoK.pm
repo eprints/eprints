@@ -6,32 +6,7 @@ EPrints::Plugin::Import::ISIWoK
 
 package EPrints::Plugin::Import::ISIWoK;
 
-use EPrints::Plugin::Import::TextFile;
-@ISA = qw( EPrints::Plugin::Import::TextFile );
-
-our @WOS_INDEXES = (
-		AD => 'Address',
-		AU => 'Author',
-		CA => 'Cited Author',
-		CI => 'City',
-		CT => 'Conference',
-		CU => 'Country',
-		CW => 'Cited Work',
-		CY => 'Cited Year',
-		DT => 'Document Type',
-		GP => 'Group Author',
-		LA => 'Language',
-		OG => 'Organization',
-		PS => 'Province/State',
-		PY => 'Pub Year',
-		SA => 'Street Address',
-		SG => 'Sub-organization',
-		SO => 'Source',
-		TI => 'Title',
-		TS => 'Topic',
-		UT => 'ISI UT identifier',
-		ZP => 'Zip/Postal Code',
-	);
+use base "EPrints::Plugin::Import";
 
 use strict;
 
@@ -43,121 +18,10 @@ sub new
 
 	$self->{name} = "ISI Web of Knowledge";
 	$self->{visible} = "all";
+	$self->{advertise} = 0;
 	$self->{produce} = [ 'list/eprint' ];
-	$self->{screen} = "Import::ISIWoK";
-	$self->{input_textarea} = 0;
-	$self->{input_file} = 0;
-	$self->{input_form} = 1;
-
-	if( !EPrints::Utils::require_if_exists( "SOAP::ISIWoK::Lite", "1.05" ) )
-	{
-		$self->{visible} = 0;
-		$self->{error} = "Requires SOAP::ISIWoK::Lite 1.05";
-	}
 
 	return $self;
-}
-
-sub render_input_form
-{
-	my( $self, $screen, $basename, %opts ) = @_;
-
-	my $repo = $self->{repository};
-	my $xml = $repo->xml;
-	my $xhtml = $repo->xhtml;
-
-	my $frag = $xml->create_document_fragment;
-
-	$frag->appendChild( $self->html_phrase( "help" ) );
-
-	my $table = $frag->appendChild( $xml->create_element( "table" ) );
-
-	for(my $i = 0; $i < @WOS_INDEXES; $i+=2)
-	{
-		my( $key, undef ) = @WOS_INDEXES[$i,$i+1];
-		my $param_key = join '_', $basename, $key;
-		$table->appendChild( $repo->render_row_with_help(
-				label => $self->html_phrase( "field:$key" ),
-				field => $repo->render_input_field(
-					class => "ep_form_text",
-					type => "text",
-					name => join('_', $basename, $key),
-					value => $opts{query}{$key},
-					maxlength => 256 ),
-			) );
-	}
-
-	$frag->appendChild( $xhtml->input_field(
-		_action_search => $repo->phrase( "lib/searchexpression:action_search" ),
-		type => "submit",
-		class => "ep_form_action_button",
-	) );
-
-	return $frag;
-}
-
-sub input_form
-{
-	my( $self, %opts ) = @_;
-
-	my $repo = $self->{repository};
-
-	my %query;
-	for(@WOS_INDEXES)
-	{
-		my $value = $opts{query}{$_};
-		next if !EPrints::Utils::is_set( $value );
-		$query{$_} = $value;
-	}
-
-	my $query = join ' AND ', map { 
-			"$_ = ($query{$_})"
-		} keys %query;
-
-	$self->_input_query( $query, %opts );
-
-	return $self->{count};
-}
-
-sub input_text_fh
-{
-	my( $self, %opts ) = @_;
-
-	my $fh = $opts{fh};
-	my $query = join '', <$fh>;
-
-	return $self->_input_query( $query, %opts );
-}
-
-sub _input_query
-{
-	my( $self, $query, %opts ) = @_;
-
-	my $repo = $self->{repository};
-	my $dataset = $opts{dataset};
-
-	my @ids;
-
-	my $wok = SOAP::ISIWoK::Lite->new;
-
-	my $xml = $wok->search( $query,
-		(defined $opts{offset} ? (offset => $opts{offset}) : ()),
-	);
-
-	$self->{count} = $xml->documentElement->getAttribute( "recordsFound" );
-
-	foreach my $rec ($xml->getElementsByTagName( "REC" ))
-	{
-		my $epdata = $self->xml_to_epdata( $dataset, $rec );
-		next if !scalar keys %$epdata;
-		my $dataobj = $self->epdata_to_dataobj( $dataset, $epdata );
-		push @ids, $dataobj->id if defined $dataobj;
-	}
-
-	return EPrints::List->new(
-		session => $repo,
-		dataset => $dataset,
-		ids => \@ids );
 }
 
 sub xml_to_epdata

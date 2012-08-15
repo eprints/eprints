@@ -56,6 +56,11 @@ sub new
 	$params{custom_order} = "" if !exists $params{custom_order};
 	$params{filters} = [] if !exists $params{filters};
 
+	# advertise this search engine
+	$params{advertise} = exists $params{advertise} ? $params{advertise} : 1;
+	# searches an external dataset
+	$params{external} = exists $params{external} ? $params{external} : 0;
+
 	my $self = $class->SUPER::new( %params );
 
 	# distinguish plugins by a quality score
@@ -74,7 +79,7 @@ sub plugins
 {
 	my( $self, @args ) = @_;
 
-	my @plugins = $self->{session}->get_plugins( @args, type => "Search" );
+	my @plugins = $self->{session}->get_plugins( @args, type => "Search", is_external => 0, );
 
 	@plugins = sort { $b->param( "qs" ) <=> $a->param( "qs" ) } @plugins;
 
@@ -88,6 +93,14 @@ sub matches
 	if( $test eq "can_search" )
 	{
 		return $self->can_search( $param );
+	}
+	if( $test eq "is_advertised" )
+	{
+		return $self->param( "advertise" ) == $param;
+	}
+	if( $test eq "is_external" )
+	{
+		return $self->param( "external" ) == $param;
 	}
 
 	return $self->SUPER::matches( $test, $param );

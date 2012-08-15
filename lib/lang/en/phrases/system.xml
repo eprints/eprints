@@ -2702,23 +2702,13 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/Screen/Items:list_desc">Your Deposits</epp:phrase>
 
     <epp:phrase id="Plugin/Screen/Import:title">Import Items from <epc:pin name="input"/></epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:action:view:title">View</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Import:exception">Unhandled exception in <epc:pin name="plugin" />: <epc:pin name="error" /></epp:phrase>
 	<epp:phrase id="Plugin/Screen/Import:warning">Unhandled warning in <epc:pin name="plugin" />: <epc:pin name="warning" /></epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:intro">To import items from an external source enter the required data below. To test whether the data to import is correctly formatted click <em><epc:phrase ref="Plugin/Screen/Import:action:test:title"/></em>, otherwise click <em><epc:phrase ref="Plugin/Screen/Import:action:import:title"/></em> to import.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:import_section">
-<table width="100%"><tr>
-  <td align="center">Import from <epc:pin name="menu"/><epc:pin name="button"/></td>
-</tr>
-<tr>
-  <td align="center">
-    <epc:pin name="tools"/>
-  </td>
-</tr>
-</table></epp:phrase>
-
-	<epp:phrase id="Plugin/Import/ISIWoK:help">Enter an ISI query string:<br />
-AU = (Carr) and TI = (open access)<br />
-PY = 2006 and OG = (Cambridge)<br />
+<div>Import from <epc:pin name="menu"/><epc:pin name="button"/></div>
+<div><epc:pin name="tools"/></div>
 </epp:phrase>
 
 	<epp:phrase id="Plugin/Screen/Import:add">Added new record to <epc:pin name="dataset" />: <epc:pin name="dataobj" /></epp:phrase>
@@ -2729,7 +2719,7 @@ PY = 2006 and OG = (Cambridge)<br />
 	<epp:phrase id="Plugin/Screen/Import:form">Search or query</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:input:title">Import a single item</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:bulk_input:title">Import more than one item</epp:phrase>
-    <epp:phrase id="Plugin/Screen/Import:action:add:title">Add</epp:phrase>
+    <epp:phrase id="Plugin/Screen/Import:action:add:title">Import</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:action:all:title">Add all new items</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:action:paste:title">Paste</epp:phrase>
     <epp:phrase id="Plugin/Screen/Import:action:upload:title">Upload</epp:phrase>
@@ -3933,28 +3923,6 @@ To create a blank EPM entire a new id in the input and click <epc:phrase ref="Pl
 </pre></p>
 	</epp:phrase>
 
-	<epp:phrase id="Plugin/Import/ISIWoK:field:AD">Address</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:AU">Author</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:CA">Cited Author</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:CI">City</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:CT">Conference</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:CU">Country</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:CW">Cited Work</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:CY">Cited Year</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:DT">Document Type</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:GP">Group Author</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:LA">Language</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:OG">Organisation</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:PS">Province/State</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:PY">Publication Year</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:SA">Street Address</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:SG">Sub-organisation</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:SO">Source</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:TI">Title</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:TS">Topic</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:UT">ISI UT Identifier</epp:phrase>
-	<epp:phrase id="Plugin/Import/ISIWoK:field:ZP">Zip/Postal Code</epp:phrase>
-
 	<epp:phrase id="cgi/users/lookup/title_duplicates:warning">The following records matching this <epc:pin name="field" /> already exist in the archive. Please check that you are not entering a duplicate record.</epp:phrase>
 
     <epp:phrase id="epm_fieldname_screenshot">Screenshot</epp:phrase>
@@ -3969,5 +3937,36 @@ To create a blank EPM entire a new id in the input and click <epc:phrase ref="Pl
 	<epp:phrase id="Plugin/Screen/Merge:action:merge:title">←</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Merge:action:add_all:title">Add Missing Only</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Merge:action:merge_all:title">Replace All</epp:phrase>
+
+	<epp:phrase id="Plugin/Screen/Import/Search:action:new_search:title">Import from <epc:pin name="format" /></epp:phrase>
+
+	<epp:phrase id="Plugin/Search/ISIWoK:help">Enter an ISI query string:<br />
+AU = (Carr) and TI = (open access)<br />
+PY = 2006 and OG = (Cambridge)<br />
+</epp:phrase>
+
+	<epp:phrase id="Plugin/Search/ISIWoK:title">ISI Web of Knowledge</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:AD">Address</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:AU">Author</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:CA">Cited Author</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:CI">City</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:CT">Conference</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:CU">Country</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:CW">Cited Work</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:CY">Cited Year</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:DT">Document Type</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:GP">Group Author</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:LA">Language</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:OG">Organisation</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:PS">Province/State</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:PY">Publication Year</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:SA">Street Address</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:SG">Sub-organisation</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:SO">Source</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:TI">Title</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:TS">Topic</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:UT">ISI UT Identifier</epp:phrase>
+	<epp:phrase id="Plugin/Search/ISIWoK:field:ZP">Zip/Postal Code</epp:phrase>
+
 
 </epp:phrases>

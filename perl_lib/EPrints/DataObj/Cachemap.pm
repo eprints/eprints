@@ -217,9 +217,39 @@ sub get_sql_table_name
 	return "cache" . $self->get_id;
 }
 
+=item $ok = $cachemap->store( $dataset, $ids )
+
+Store the cached $ids.
+
+=cut
+
+sub store
+{
+	my( $self, $dataset, $ids ) = @_;
+
+	my $repo = $self->repository;
+	my $db = $repo->database;
+
+	my $pos = 0;
+
+	for( my $i = 0; $i < @$ids; $i+=1000 )
+	{
+		my @pairs;
+		for(my $j = $i; $j < @$ids; ++$j)
+		{
+			push @pairs, [ ++$pos, $ids->[$j] ];
+		}
+		$db->insert(
+			$self->get_sql_table_name,
+			[ "pos", $dataset->key_field->get_sql_name ],
+			@pairs
+		);
+	}
+}
+
 =item $ok = $cachemap->create_sql_table( $dataset )
 
-Create the cachemap database table that can store ids from $dataset.
+Create the cachemap database table that can store data of type $field.
 
 =cut
 
@@ -228,7 +258,7 @@ sub create_sql_table
 	my( $self, $dataset ) = @_;
 
 	my $cache_table = $self->get_sql_table_name;
-	my $key_field = $dataset->get_key_field;
+	my $key_field = $dataset->key_field;
 	my $database = $self->{session}->get_database;
 
 	my $rc = $database->_create_table( $cache_table, ["pos"], [
