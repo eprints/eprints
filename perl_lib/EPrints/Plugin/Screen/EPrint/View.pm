@@ -145,8 +145,10 @@ sub render
 	my $chunk = $self->{session}->make_doc_fragment;
 
 	$chunk->appendChild( $self->render_status );
+	my $div = $self->{session}->make_element( "div", class => "ep_block" );
 	my $buttons = $self->render_common_action_buttons;
-	$chunk->appendChild( $buttons );
+	$div->appendChild( $buttons );
+	$chunk->appendChild( $div );
 
 	# if in archive and can request delete then do that here TODO
 

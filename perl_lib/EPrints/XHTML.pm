@@ -218,6 +218,26 @@ sub action_button
 	);
 }
 
+=item $node = $xhtml->action_icon( $name, $src, %opts )
+
+Creates an image button that links to $src.
+
+For usability it is strongly recommended to supply the alt= attribute.
+
+=cut
+
+sub action_icon
+{
+	my( $self, $name, $src, %opts ) = @_;
+
+	return $self->{repository}->xml->create_element( "input",
+		name => "_action_$name",
+		src => $src,
+		type => "image",
+		%opts,
+	);
+}
+
 =item $node = $xhtml->text_area_field( $name, $value, %opts )
 
 Returns an XHTML textarea input.
@@ -880,6 +900,52 @@ sub tree2
 				class => "ep_no_js",
 			) );
 		}
+	}
+
+	return $dl;
+}
+
+=item $node = $xhtml->action_list( $actions, %opts )
+
+Returns an unordered list (<UL>) of actions on a single line. $actions is an array reference of XHTML fragments (e.g. icons or buttons).
+
+=cut
+
+sub action_list
+{
+	my( $self, $actions, %opts ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+
+	my $ul = $xml->create_element( "ul", class => "ep_action_list" );
+	for(@$actions)
+	{
+		$ul->appendChild( $xml->create_data_element( "li", $_ ) );
+	}
+
+	return $ul;
+}
+
+=item $node = $xhtml->action_definition_list( $actions, $definitions, %opts )
+
+Returns a definition list (<DL>) of actions plus their definitions. $actions is an array reference of XHTML fragments (e.g. icons or buttons).
+
+=cut
+
+sub action_definition_list
+{
+	my( $self, $actions, $definitions, %opts ) = @_;
+
+	my $repo = $self->{repository};
+	my $xml = $repo->xml;
+
+	my $dl = $xml->create_element( "dl", class => "ep_action_list" );
+
+	for(my $i = 0; $i < @$actions; ++$i)
+	{
+		$dl->appendChild( $xml->create_data_element( "dt", $actions->[$i] ) );
+		$dl->appendChild( $xml->create_data_element( "dd", $definitions->[$i] ) );
 	}
 
 	return $dl;

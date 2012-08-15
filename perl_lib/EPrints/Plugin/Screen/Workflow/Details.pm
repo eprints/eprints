@@ -270,7 +270,7 @@ sub render_edit_button
 
 	my $session = $self->{session};
 
-	my $div = $session->make_element( "div", class => "ep_act_list" );
+	my $div = $session->make_element( "div" );
 
 	my $button = $self->render_action_button({
 		screen => $session->plugin( "Screen::".$self->edit_screen,

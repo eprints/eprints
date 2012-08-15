@@ -529,32 +529,16 @@ sub render_action_list
 {
 	my( $self, $list_id, $hidden ) = @_;
 
-	my $session = $self->{session};
+	my $repo = $self->repository;
 
-	my @actions = $self->action_list( $list_id );
-	return $session->make_doc_fragment if !@actions;
-
-	my $table = $session->make_element( "table", class=>"ep_act_list" );
-	foreach my $params ( @actions )
+	my( @actions, @definitions );
+	foreach my $params ($self->action_list( $list_id ))
 	{
-		my $tr = $session->make_element( "tr" );
-		$table->appendChild( $tr );
-
-		my $td = $session->make_element( "td", class=>"ep_act_list_button" );
-		$tr->appendChild( $td );
-		$td->appendChild( $self->render_action_button( { %$params, hidden => $hidden } ) );
-
-		my $td2 = $session->make_element( "td", class=>"ep_act_list_join" );
-		$tr->appendChild( $td2 );
-
-		$td2->appendChild( $session->make_text( " - " ) );
-
-		my $td3 = $session->make_element( "td", class=>"ep_act_list_desc" );
-		$tr->appendChild( $td3 );
-		$td3->appendChild( $self->get_description( $params ) );
+		push @actions, $self->render_action_button( { %$params, hidden => $hidden } );
+		push @definitions, $self->get_description( $params );
 	}
 
-	return $table;
+	return $repo->xhtml->action_definition_list( \@actions, \@definitions );
 }
 
 
@@ -562,19 +546,16 @@ sub render_action_list_bar
 {
 	my( $self, $list_id, $hidden ) = @_;
 
-	my $session = $self->{session};
+	my $repo = $self->repository;
 
-	my $div = $self->{session}->make_element( "div", class=>"ep_act_bar" );
-	my $table = $session->make_element( "table" );
-	$div->appendChild( $table );
-	my $tr = $session->make_element( "tr" );
-	$table->appendChild( $tr );
-	foreach my $params ( $self->action_list( $list_id ) )
+	my @actions;
+	foreach my $params ($self->action_list( $list_id ))
 	{
-		my $td = $session->make_element( "td" );
-		$tr->appendChild( $td );
-		$td->appendChild( $self->render_action_button( { %$params, hidden => $hidden } ) );
+		push @actions, $self->render_action_button( { %$params, hidden => $hidden } );
 	}
+
+	my $div = $repo->xml->create_element( "div", class => "ep_block" );
+	$div->appendChild( $repo->xhtml->action_list( \@actions ) );
 
 	return $div;
 }
@@ -584,21 +565,15 @@ sub render_action_list_icons
 {
 	my( $self, $list_id, $hidden ) = @_;
 
-	my $session = $self->{session};
+	my $repo = $self->repository;
 
-	my $div = $self->{session}->make_element( "div", class=>"ep_act_icons" );
-	my $table = $session->make_element( "table" );
-	$div->appendChild( $table );
-	my $tr = $session->make_element( "tr" );
-	$table->appendChild( $tr );
-	foreach my $params ( $self->action_list( $list_id ) )
+	my @actions;
+	foreach my $params ($self->action_list( $list_id ))
 	{
-		my $td = $session->make_element( "td" );
-		$tr->appendChild( $td );
-		$td->appendChild( $self->render_action_icon( { %$params, hidden => $hidden } ) );
+		push @actions, $self->render_action_icon( { %$params, hidden => $hidden } );
 	}
 
-	return $div;
+	return $repo->xhtml->action_list( \@actions );
 }
 
 1;
