@@ -182,7 +182,7 @@ sub slice
 				"($_ = $self->{q}->{$_})"
 			} keys %{$self->{q}};
 
-		my $xml = $wok->search( $q, offset => $available );
+		my $xml = $wok->search( $q, offset => $available + 1 );
 
 		$cache->set_value( "count", $xml->documentElement->getAttribute( "recordsFound" ) );
 		$cache->commit;

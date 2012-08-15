@@ -186,7 +186,7 @@ sub action_confirm_all
 		(undef, undef, my $dataobj) = @_;
 
 		next if !$self->can_create( $dataobj->get_dataset );
-		next if $self->search_duplicate( $dataobj );
+		next if $dataobj->duplicates->count;
 
 		$dataobj = $dataobj->get_dataset->create_dataobj( $dataobj->get_data );
 		++$c if defined $dataobj;
@@ -382,9 +382,12 @@ sub render_result_row
 
 	my @action_buttons;
 
+	my $dupes = $dataobj->duplicates;
+
 	# previously imported
-	if( defined( my $dupe = $self->search_duplicate( $dataobj ) ) )
+	if( $dupes->count > 0 )
 	{
+		my $dupe = $dupes->item( 0 );
 		push @action_buttons, $xml->create_data_element( "a", [
 					[
 						"img",
@@ -415,24 +418,6 @@ sub render_result_row
 	$td->appendChild( $xhtml->action_list( \@action_buttons ) );
 
 	return $frag;
-}
-
-sub search_duplicate
-{
-	my( $self, $dataobj ) = @_;
-
-	return if !$dataobj->exists_and_set( "source" );
-
-	my $dataset = $dataobj->{dataset};
-	$dataset = $self->repository->dataset( $dataset->base_id );
-
-	my $dupe = $dataset->search( filters => [
-			{ meta_fields => [qw( source )], value => $dataobj->value( "source" ), match => "EX", }
-		],
-		limit => 1,
-	)->item( 0 );
-
-	return $dupe;
 }
 
 sub _vis_level
