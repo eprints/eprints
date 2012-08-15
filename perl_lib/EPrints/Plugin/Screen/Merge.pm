@@ -45,7 +45,16 @@ sub properties_from
 	EPrints->abort( "Missing dataset parameter" ) if !defined $dataset;
 
 	$processor->{left} = $dataset->dataobj( scalar $repo->param( "left" ) );
-	$processor->{right} = $dataset->dataobj( scalar $repo->param( "right" ) );
+	$processor->{results} = $repo->dataset( "import" )->dataobj( scalar $repo->param( "import" ) );
+	$processor->{notes}->{n} = $repo->param( "n" );
+	if( defined $processor->{results} )
+	{
+		$processor->{right} = $processor->{results}->item( $processor->{notes}->{n} );
+	}
+	else
+	{
+		$processor->{right} = $dataset->dataobj( scalar $repo->param( "right" ) );
+	}
 }
 
 sub can_be_viewed
@@ -62,11 +71,15 @@ sub hidden_bits
 {
 	my( $self ) = @_;
 
+	my $processor = $self->{processor};
+
 	return(
 		$self->SUPER::hidden_bits,
-		dataset => $self->{processor}->{datasetid},
-		left => $self->{processor}->{left}->id,
-		right => $self->{processor}->{right}->id,
+		dataset => $processor->{datasetid},
+		left => $processor->{left}->id,
+		right => defined( $processor->{right} ) ? $processor->{right}->id : undef,
+		import => defined( $processor->{results} ) ? $processor->{results}->id : undef,
+		n => defined( $processor->{notes}->{n} ) ? $processor->{notes}->{n} : undef,
 	);
 }
 
@@ -142,7 +155,7 @@ sub action_merge
 			$field->name,
 			$processor->{right}->value( $field->name )
 		);
-#	$processor->{left}->commit;
+	$processor->{left}->commit;
 }
 
 sub action_merge_all
@@ -231,7 +244,9 @@ sub render
 	{
 		local $self->{processor}->{dataobj} = $left;
 		$tr->appendChild( $xml->create_data_element( "th",
-				$left->render_citation_link( "brief" ),
+				$left->render_citation( "brief",
+					url => $left->uri,
+				),
 				align => "center",
 			) );
 	}
@@ -239,7 +254,7 @@ sub render
 	{
 		local $self->{processor}->{dataobj} = $right;
 		$tr->appendChild( $xml->create_data_element( "th",
-				$right->render_citation_link( "brief" ),
+				$right->id ? $right->render_citation_link( "brief" ) : $right->render_citation( "brief" ),
 				align => "center",
 			) );
 	}
