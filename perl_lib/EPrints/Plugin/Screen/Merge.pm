@@ -23,9 +23,20 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{actions} = [qw/ merge merge_all add_all /];
+	$self->{actions} = [qw/ compare merge merge_all add_all /];
 
-	$self->{appears} = [];
+	$self->{icon} = "action_merge.png";
+
+	$self->{appears} = [
+		{
+			place => "eprint_item_actions",
+			position => 250,
+		},
+		{
+			place => "eprint_review_actions",
+			position => 250,
+		},
+	];
 
 	return $self;
 }
@@ -39,21 +50,35 @@ sub properties_from
 	my $repo = $self->repository;
 	my $processor = $self->{processor};
 
-	$processor->{datasetid} = $repo->param( "dataset" );
-	my $dataset = $processor->{dataset} = $repo->dataset( $processor->{datasetid} );
+	my $dataset;
 
-	EPrints->abort( "Missing dataset parameter" ) if !defined $dataset;
-
-	$processor->{left} = $dataset->dataobj( scalar $repo->param( "left" ) );
-	$processor->{results} = $repo->dataset( "import" )->dataobj( scalar $repo->param( "import" ) );
-	$processor->{notes}->{n} = $repo->param( "n" );
-	if( defined $processor->{results} )
+	my $eprintid = $repo->param( "eprintid" );
+	if( $eprintid )
 	{
-		$processor->{right} = $processor->{results}->item( $processor->{notes}->{n} );
+		my $dataset = $repo->dataset( "eprint" );
+		$processor->{dataset} = $dataset;
+		$processor->{dataobj} = $dataset->dataobj( $eprintid );
 	}
 	else
 	{
-		$processor->{right} = $dataset->dataobj( scalar $repo->param( "right" ) );
+		my $datasetid = $repo->param( "dataset" );
+		$dataset = $repo->dataset( $datasetid );
+		$processor->{dataset} = $dataset;
+
+		if( my $leftid = $repo->param( "dataobj" ) )
+		{
+			$processor->{dataobj} = $dataset->dataobj( $leftid );
+		}
+	}
+
+	my $rightid = $repo->param( "right" );
+	if( $rightid )
+	{
+		$processor->{right} = $dataset->dataobj( $rightid );
+	}
+	else
+	{
+		$processor->{results} = $processor->{dataobj}->duplicates;
 	}
 }
 
@@ -61,10 +86,12 @@ sub can_be_viewed
 {
 	my( $self ) = @_;
 
-	my $datasetid = $self->repository->param( "dataset" );
-	return 0 if !defined $datasetid;
+	my $dataobj = $self->{processor}->{dataobj} || $self->{processor}->{eprint};
+	return 0 if !defined $dataobj;
 
-	return $self->allow( "$datasetid/view" );
+	return 0 if $dataobj->duplicates->count == 0;
+
+	return $self->allow( $dataobj->{dataset}->base_id . "/edit", $dataobj );
 }
 
 sub hidden_bits
@@ -75,11 +102,9 @@ sub hidden_bits
 
 	return(
 		$self->SUPER::hidden_bits,
-		dataset => $processor->{datasetid},
-		left => $processor->{left}->id,
+		dataset => $processor->{dataset}->id,
+		dataobj => defined( $processor->{dataobj} ) ? $processor->{dataobj}->id : undef,
 		right => defined( $processor->{right} ) ? $processor->{right}->id : undef,
-		import => defined( $processor->{results} ) ? $processor->{results}->id : undef,
-		n => defined( $processor->{notes}->{n} ) ? $processor->{notes}->{n} : undef,
 	);
 }
 
@@ -111,23 +136,19 @@ sub from
 			$processor->{action} = "merge";
 			$processor->{field} = $processor->{dataset}->field( $1 );
 		}
+		elsif( $action =~ s/^compare_(.+)$// )
+		{
+			$processor->{action} = "compare";
+			$processor->{right} = $processor->{dataset}->dataobj( $1 );
+		}
 	}
 
 	$self->SUPER::from;
 }
 
-sub allow_merge_all
-{
-	my ( $self ) = @_;
-
-	my $processor = $self->{processor};
-
-	my $priv = $processor->{dataset}->base_id . "/edit";
-
-	return $self->allow( $priv, $processor->{left} );
-}
-
+sub allow_merge_all { shift->can_be_viewed }
 sub allow_add_all { shift->allow_merge_all }
+sub allow_compare { shift->can_be_viewed }
 
 sub allow_merge
 {
@@ -151,11 +172,11 @@ sub action_merge
 
 	my $field = $processor->{field};
 
-	$processor->{left}->set_value(
+	$processor->{dataobj}->set_value(
 			$field->name,
 			$processor->{right}->value( $field->name )
 		);
-	$processor->{left}->commit;
+	$processor->{dataobj}->commit;
 }
 
 sub action_merge_all
@@ -168,12 +189,12 @@ sub action_merge_all
 	{
 		next if !$processor->{right}->is_set( $field->name );
 
-		$processor->{left}->set_value(
+		$processor->{dataobj}->set_value(
 				$field->name,
 				$processor->{right}->value( $field->name )
 			);
 	}
-	$processor->{left}->commit;
+	$processor->{dataobj}->commit;
 }
 
 sub action_add_all
@@ -184,16 +205,19 @@ sub action_add_all
 
 	foreach my $field ($self->fields)
 	{
-		next if $processor->{left}->is_set( $field->name );
+		next if $processor->{dataobj}->is_set( $field->name );
 		next if !$processor->{right}->is_set( $field->name );
 
-		$processor->{left}->set_value(
+		$processor->{dataobj}->set_value(
 				$field->name,
 				$processor->{right}->value( $field->name )
 			);
 	}
-	$processor->{left}->commit;
+	$processor->{dataobj}->commit;
 }
+
+# taken care of in from()
+sub action_compare {}
 
 sub fields
 {
@@ -216,7 +240,44 @@ sub render
 	my $xhtml = $repo->xhtml;
 
 	my $dataset = $self->{processor}->{dataset};
-	my $left = $self->{processor}->{left};
+	my $dataobj = $self->{processor}->{dataobj};
+	my $right = $self->{processor}->{right};
+
+	if( defined $right )
+	{
+		return $self->render_merge;
+	}
+	else
+	{
+		my $dupes = $self->{processor}->{results};
+		if( $dupes->count > 1 )
+		{
+			return $self->render_duplicates;
+		}
+		if( $dupes->count == 1 )
+		{
+			$self->{processor}->{right} = $dupes->item( 0 );
+			return $self->render_merge;
+		}
+		else
+		{
+			$self->{processor}->add_message( "error", $self->html_phrase( "error:no_dupes" ) );
+		}
+	}
+
+	return $xml->create_document_fragment;
+}
+
+sub render_merge
+{
+	my( $self ) = @_;
+
+	my $repo = $self->repository;
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $dataset = $self->{processor}->{dataset};
+	my $dataobj = $self->{processor}->{dataobj};
 	my $right = $self->{processor}->{right};
 
 	my $frag = $xml->create_document_fragment;
@@ -242,10 +303,12 @@ sub render
 	$tr->appendChild( $xml->create_element( "th" ) );
 	$tr->appendChild( $xml->create_element( "th" ) );
 	{
-		local $self->{processor}->{dataobj} = $left;
+		local $self->{processor}->{dataobj} = $dataobj;
 		$tr->appendChild( $xml->create_data_element( "th",
-				$left->render_citation( "brief",
-					url => $left->uri,
+				$xml->create_data_element(
+					"a",
+					$dataset->base_id . "." . $dataobj->id,
+					href => $dataobj->uri
 				),
 				align => "center",
 			) );
@@ -254,7 +317,11 @@ sub render
 	{
 		local $self->{processor}->{dataobj} = $right;
 		$tr->appendChild( $xml->create_data_element( "th",
-				$right->id ? $right->render_citation_link( "brief" ) : $right->render_citation( "brief" ),
+				$xml->create_data_element(
+					"a",
+					$dataset->base_id . "." . $right->id,
+					href => $right->uri
+				),
 				align => "center",
 			) );
 	}
@@ -263,7 +330,7 @@ sub render
 	{
 		my $fieldid = $field->name;
 
-		my $left_value = $field->get_value( $left );
+		my $left_value = $field->get_value( $dataobj );
 		my $right_value = $field->get_value( $right );
 
 		my $is_set = 0;
@@ -335,6 +402,45 @@ sub render
 	return $frag;
 }
 
+sub render_duplicates
+{
+	my( $self ) = @_;
+
+	my $repo = $self->repository;
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $dataset = $self->{processor}->{dataset};
+	my $dataobj = $self->{processor}->{dataobj};
+	my $dupes = $self->{processor}->{results};
+
+	my $frag = $xml->create_document_fragment;
+
+	$frag->appendChild( my $form = $self->render_form );
+
+	$form->appendChild( my $table = $xml->create_element( "table" ) );
+
+	$dupes->map(sub {
+		(undef, undef, my $dupe) = @_;
+
+		$table->appendChild( my $tr = $xml->create_element( "tr" ) );
+
+		$tr->appendChild( $xml->create_data_element( "td",
+				$dupe->render_citation( undef, url => $dupe->uri ),
+			) );
+
+		$tr->appendChild( $xml->create_data_element( "td",
+				$xhtml->action_icon(
+					"compare_".$dupe->id,
+					$repo->current_url( path => "static", "style/images/action_merge.png" ),
+					title => $self->phrase( "title" ),
+					alt => $self->phrase( "title" ),
+				)
+			) );
+	});
+
+	return $frag;
+}
 
 1;
 

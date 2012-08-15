@@ -2052,7 +2052,34 @@ sub render_edit_lock
 };
 
 
+sub duplicates
+{
+	my( $self ) = @_;
 
+	my $dataset = $self->{dataset};
+
+	if( $self->is_set( "source" ) )
+	{
+		my $list = $dataset->search(filters => [
+				{ meta_fields => [qw( source )], value => $self->value( "source" ), match=>"EX", },
+			],
+			limit => 10,
+			);
+		if( defined $self->id )
+		{
+			my @ids;
+			$list->map(sub {
+				(undef, undef, my $dataobj) = @_;
+
+				push @ids, $dataobj->id if $dataobj->id ne $self->id;
+			});
+			$list = $dataset->list( \@ids );
+		}
+		return $list;
+	}
+
+	return $dataset->list( [] );
+}
 
 ######################################################################
 =pod
