@@ -1423,6 +1423,19 @@ sub make_sitemap_url
 	return $url;
 }
 
+=item $ok = cmp_deeply(LEFT, RIGHT)
+
+Compare structures LEFT and RIGHT using C<eq>, but descend into any array or hash references.
+
+Note: this calls the L<EPrints::DataObj/_equal> internal method.
+
+=cut
+
+sub cmp_deeply
+{
+	&EPrints::DataObj::_equal;
+}
+
 1;
 
 =head1 COPYRIGHT
