@@ -132,9 +132,12 @@ sub export_mimetype
 	
 sub render_form
 {
-	my( $self ) = @_;
+	my( $self, $method, $action ) = @_;
 
-	my $form = $self->{session}->render_form( "post", $self->{processor}->{url}."#t" );
+	$method = "post" if !defined $method;
+	$action = $self->{processor}->{url} . "#t" if !defined $action;
+
+	my $form = $self->{session}->xhtml->form( $method, $action );
 
 	$form->appendChild( $self->render_hidden_bits );
 
