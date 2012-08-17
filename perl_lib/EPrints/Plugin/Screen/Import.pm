@@ -116,7 +116,7 @@ sub action_add
 	my $results = $self->{processor}->{results};
 	return if !defined $results;
 
-	my $dataobj = $results->item( $self->{processor}->{notes}->{n} );
+	my $dataobj = $results->item( $self->{processor}->{notes}->{n} - 1 );
 
 	if( !$self->can_create( $dataobj->get_dataset ) )
 	{

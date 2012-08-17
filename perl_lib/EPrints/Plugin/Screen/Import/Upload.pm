@@ -65,6 +65,13 @@ sub properties_from
 
 	$self->SUPER::properties_from;
 
+	my $datasetid = $self->{session}->param( "dataset" );
+	if( $datasetid )
+	{
+		$self->{processor}->{dataset} = $self->{session}->dataset( $datasetid );
+		EPrints->abort( "Invalid dataset" ) if !defined $self->{processor}->{dataset};
+	}
+
 	my $plugin_id = $self->{processor}->{format};
 
 	my $plugin = $self->{session}->plugin(
@@ -114,7 +121,45 @@ sub hidden_bits
 			"cache_$datasetid" => $self->{processor}->{results}->{$datasetid}->id;
 	}
 
+	if( defined $self->{processor}->{dataset} )
+	{
+		push @hidden_bits, dataset => $self->{processor}->{dataset}->base_id;
+	}
+
 	return @hidden_bits;
+}
+
+sub action_add
+{
+	my( $self ) = @_;
+
+	my $datasetid = $self->{processor}->{dataset}->base_id;
+
+	local $self->{processor}->{results} = $self->{processor}->{results}->{$datasetid};
+
+	return $self->SUPER::action_add;
+}
+
+sub action_all
+{
+	my( $self ) = @_;
+
+	my $datasetid = $self->{processor}->{dataset}->base_id;
+
+	local $self->{processor}->{results} = $self->{processor}->{results}->{$datasetid};
+
+	return $self->SUPER::action_add;
+}
+
+sub action_confirm_all
+{
+	my( $self ) = @_;
+
+	my $datasetid = $self->{processor}->{dataset}->base_id;
+
+	local $self->{processor}->{results} = $self->{processor}->{results}->{$datasetid};
+
+	return $self->SUPER::action_add;
 }
 
 sub allow_paste { shift->can_be_viewed }
@@ -378,8 +423,17 @@ sub render_results
 	my @tabs;
 	my @panels;
 
+	my $i = 0;
+	my $current = 0;
+
 	foreach my $datasetid (sort keys %$results)
 	{
+		$current = $i if $datasetid eq $self->{processor}->{dataset}->base_id;
+		$i++;
+
+		# for hidden_bits
+		local $self->{processor}->{dataset} = $repo->dataset( $datasetid );
+
 		my $title = $xml->create_document_fragment;
 		$title->appendChild( $repo->dataset( $datasetid )->render_name );
 		$title->appendChild( $xml->create_text_node( " (" . $results->{$datasetid}->count . ")" ) );
@@ -387,7 +441,9 @@ sub render_results
 		push @panels, $self->SUPER::render_results( $results->{$datasetid} );
 	}
 
-	$f->appendChild( $xhtml->tabs( \@tabs, \@panels ) );
+	$f->appendChild( $xhtml->tabs( \@tabs, \@panels,
+			current => $current,
+		) );
 
 	return $f;
 }
