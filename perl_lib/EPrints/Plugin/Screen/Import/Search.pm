@@ -179,28 +179,7 @@ sub render_action_link
 	return $frag;
 }
 
-sub render
-{
-	my ( $self ) = @_;
-
-	my $session = $self->{session};
-	my $results = $self->{processor}->{results};
-
-	my $f = $session->make_doc_fragment;
-
-	if( defined $results )
-	{
-		$f->appendChild( $self->render_results );
-	}
-	else
-	{
-		$f->appendChild( $self->render_input_form );
-	}
-
-	return $f;
-}
-
-sub render_input_form
+sub render_input
 {
 	my( $self ) = @_;
 

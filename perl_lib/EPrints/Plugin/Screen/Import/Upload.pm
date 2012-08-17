@@ -82,9 +82,14 @@ sub properties_from
 
 	$self->{processor}->{plugin} = $plugin;
 
-	if( defined( my $cache_id = $self->{session}->param( "cache" ) ) )
+	my $cache_dataset = $self->{session}->dataset( "cache_dataobj_map" );
+	foreach my $key ($self->{session}->param)
 	{
-		$self->{processor}->{results} = $self->{session}->dataset( "cache_dataobj_map" )->dataobj( $cache_id );
+		if( $key =~ /^cache_(.+)$/ )
+		{
+			my $cache_id = $self->{session}->param( $key );
+			$self->{processor}->{results}->{$1} = $cache_dataset->dataobj( $cache_id );
+		}
 	}
 }
 
@@ -92,7 +97,7 @@ sub action_import_from
 {
 	my( $self ) = @_;
 
-	undef $self->{processor}->{results};
+	delete $self->{processor}->{results};
 
 	return $self->SUPER::action_import_from;
 }
@@ -101,10 +106,15 @@ sub hidden_bits
 {
 	my( $self ) = @_;
 
-	return(
-		$self->SUPER::hidden_bits,
-		($self->{processor}->{results} ? (cache => $self->{processor}->{results}->id) : ()),
-	);
+	my @hidden_bits = $self->SUPER::hidden_bits;
+
+	foreach my $datasetid (keys %{$self->{processor}->{results} || {}})
+	{
+		push @hidden_bits, 
+			"cache_$datasetid" => $self->{processor}->{results}->{$datasetid}->id;
+	}
+
+	return @hidden_bits;
 }
 
 sub allow_paste { shift->can_be_viewed }
@@ -120,24 +130,15 @@ sub action_paste
 	
 	my $data = $repo->param( "data" );
 
-	my $cache = $repo->dataset( "cache_dataobj_map" )->create_dataobj({
-			userid => $repo->current_user->id,
-		});
-
 	my $tmpfile = File::Temp->new;
 	binmode($tmpfile, ":utf8");
 	print $tmpfile $data;
 	seek($tmpfile, 0, 0);
 
-	$self->{processor}->{results} = $cache;
-
 	my $total = $self->run_import(
 			fh => $tmpfile,
 			offset => 0,
 		);
-
-	$cache->set_value( "count", $total );
-	$cache->commit;
 }
 
 sub action_upload
@@ -148,10 +149,6 @@ sub action_upload
 
 	my $plugin = $self->{processor}->{plugin};
 	
-	my $cache = $repo->dataset( "cache_dataobj_map" )->create_dataobj({
-			userid => $repo->current_user->id,
-		});
-
 	my $tmpfile = $self->{repository}->get_query->upload( "file" );
 	return if !defined $tmpfile;
 
@@ -159,24 +156,19 @@ sub action_upload
 	return if !defined $tmpfile;
 	seek($tmpfile, 0, 0);
 
-	$self->{processor}->{results} = $cache;
-
 	my $total = $self->run_import(
 			fh => $tmpfile,
 			filename => scalar($repo->get_query->param( "file" )),
 			encoding => scalar($repo->param( "encoding" )),
 			offset => 0,
 		);
-
-	$cache->set_value( "count", $total );
-	$cache->commit;
 }
 
 sub epdata_to_dataobj
 {
 	my( $self, $epdata, %opts ) = @_;
 
-	my $cache = $self->{processor}->{results};
+	my $repo = $self->repository;
 
 	$self->{count}++;
 
@@ -187,11 +179,23 @@ sub epdata_to_dataobj
 		$epdata->{eprint_status} = "inbox";
 	}
 
+	my $cache = $self->{processor}->{results}->{$dataset->base_id};
+	if( !defined $cache )
+	{
+		$cache = $repo->dataset( "cache_dataobj_map" )->create_dataobj({
+				userid => $repo->current_user->id,
+				count => 0,
+			});
+		$self->{processor}->{results}->{$dataset->base_id} = $cache;
+	}
+
 	$cache->create_subdataobj( "dataobjs", {
-			pos => ++$self->{offset},
+			pos => $cache->value( "count" ) + 1, # 1-indexed
 			datasetid => $opts{dataset}->base_id,
 			epdata => $epdata,
 		});
+	$cache->set_value( "count", $cache->value( "count" ) + 1 );
+	$cache->commit;
 
 	return undef;
 }
@@ -330,7 +334,7 @@ sub run_import
 
 sub render_input
 {
-	my ( $self, $results ) = @_;
+	my ( $self ) = @_;
 
 	my $session = $self->{session};
 	my $plugin = $self->{processor}->{plugin};
@@ -340,14 +344,6 @@ sub render_input
 	my @labels;
 	my @panels;
 
-	if( $results )
-	{
-		push @labels, $self->html_phrase( "results" );
-		my $f = $session->make_doc_fragment;
-		$f->appendChild( $self->render_import_all );
-		$f->appendChild( $results );
-		push @panels, $f;
-	}
 	if( $plugin->can_input( "textarea" ) )
 	{
 		push @labels, $session->html_phrase( "Plugin/Screen/Import:data" );
@@ -367,6 +363,33 @@ sub render_input
 	) );
 
 	return $form;
+}
+
+sub render_results
+{
+	my( $self, $results ) = @_;
+
+	my $repo = $self->repository;
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $f = $xml->create_document_fragment;
+
+	my @tabs;
+	my @panels;
+
+	foreach my $datasetid (sort keys %$results)
+	{
+		my $title = $xml->create_document_fragment;
+		$title->appendChild( $repo->dataset( $datasetid )->render_name );
+		$title->appendChild( $xml->create_text_node( " (" . $results->{$datasetid}->count . ")" ) );
+		push @tabs, $title;
+		push @panels, $self->SUPER::render_results( $results->{$datasetid} );
+	}
+
+	$f->appendChild( $xhtml->tabs( \@tabs, \@panels ) );
+
+	return $f;
 }
 
 sub render_import_all
@@ -401,8 +424,6 @@ sub render_import_form
 	my $xhtml = $repo->xhtml;
 
 	my $div = $xml->create_element( "div", class => "ep_block ep_sr_component" );
-
-	my $results = $self->{processor}->{results};
 
 	$div->appendChild(EPrints::MetaField->new(
 			name => "data",

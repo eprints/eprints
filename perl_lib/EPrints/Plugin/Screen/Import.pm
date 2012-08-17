@@ -228,13 +228,12 @@ sub render
 	my ( $self ) = @_;
 
 	my $session = $self->{session};
-	my $plugin = $self->{processor}->{plugin};
 
 	my $f = $session->make_doc_fragment;
 
-	if( $self->{processor}->{results} )
+	if( defined $self->{processor}->{results} )
 	{
-		$f->appendChild( $self->render_results );
+		$f->appendChild( $self->render_results( $self->{processor}->{results} ) );
 	}
 	else
 	{
@@ -311,13 +310,11 @@ sub slice
 
 sub render_results
 {
-	my ( $self ) = @_;
+	my ( $self, $results ) = @_;
 
 	my $session = $self->{session};
 
 	my $f = $session->make_doc_fragment;
-
-	my $results = $self->{processor}->{results};
 
 	my $form = $self->render_form;
 	$f->appendChild( $form );
