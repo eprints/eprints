@@ -130,7 +130,10 @@ sub from
 	if( $action ne "refine" )
 	{
 		my $results = $processor->{results} = $plugin->execute;
-		$results->cache;
+		if( defined $results )
+		{
+			$results->cache;
+		}
 	}
 
 	$self->SUPER::from();

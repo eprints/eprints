@@ -136,9 +136,24 @@ sub execute
 
 	if( !defined $self->{cache} )
 	{
+		my $xml = eval { $self->_query( 0 ) };
+		if( $@ )
+		{
+			if( $self->{processor} )
+			{
+				$@ =~ s/at \/.*$//s;
+				$self->{processor}->add_message(
+					"error",
+					$self->repository->xml->create_text_node( $@ )
+				);
+			}
+			return;
+		}
+
 		$self->{cache} = $dataset->create_dataobj({
 				searchexp => $self->freeze,
 				available => 0,
+				count => $xml->documentElement->getAttribute( "recordsFound" ),
 			});
 	}
 
@@ -160,6 +175,21 @@ sub count
 	return $self->{count};
 }
 
+sub _query
+{
+	my( $self, $offset ) = @_;
+
+	my $wok = SOAP::ISIWoK::Lite->new;
+
+	my $q = join ' AND ', map {
+			"($_ = $self->{q}->{$_})"
+		} keys %{$self->{q}};
+
+	my $xml = $wok->search( $q, offset => $offset + 1 );
+
+	return $xml;
+}
+
 sub slice
 {
 	my( $self, $offset, $count ) = @_;
@@ -176,13 +206,7 @@ sub slice
 
 		my $import = $repo->plugin( "Import::ISIWoK" );
 
-		my $wok = SOAP::ISIWoK::Lite->new;
-
-		my $q = join ' AND ', map {
-				"($_ = $self->{q}->{$_})"
-			} keys %{$self->{q}};
-
-		my $xml = $wok->search( $q, offset => $available + 1 );
+		my $xml = $self->_query( $available );
 
 		$cache->set_value( "count", $xml->documentElement->getAttribute( "recordsFound" ) );
 		$cache->commit;
