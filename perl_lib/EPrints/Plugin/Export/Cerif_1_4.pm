@@ -157,7 +157,7 @@ sub _start
 
 	$writer->start_element( CERIF_NS, 'CERIF',
 			release => '1.4',
-			date => EPrints::Time::get_iso_timestamp, # 3.2 compat
+			date => substr(EPrints::Time::get_iso_timestamp, 0, 10), # 3.2 compat
 			sourceDatabase => $self->{session}->config( "base_url" ),
 			'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
 			'xsi:schemaLocation' => 'urn:xmlns:org:eurocris:cerif-1.4-0 http://www.eurocris.org/Uploads/Web%20pages/CERIF-1.4/CERIF_1.4_0.xsd',
@@ -233,6 +233,8 @@ sub output_user
 	if( $user->is_set( "email" ) )
 	{
 		$writer->start_element( CERIF_NS, "cfPers_EAddr" );
+		$writer->data_element( CERIF_NS, "cfClassId", "email" );
+		$writer->data_element( CERIF_NS, "cfClassSchemeId", "class_scheme_eaddress_types" );
 		$writer->data_element( CERIF_NS, "cfEAddrId", $user->value( "email" ) );
 		$writer->end_element( CERIF_NS, "cfPers_EAddr" );
 		$self->{_sameas}{user}{$user->value( "email" )} = $user->uuid;
@@ -317,6 +319,18 @@ sub output_eprint
 			);
 	}
 
+	my $owner = $dataobj->get_user;
+	if( defined $owner )
+	{
+		$writer->start_element( CERIF_NS, "cfPers_ResPubl" );
+		$writer->data_element( CERIF_NS, "cfPersId", $owner->uuid );
+		$self->cf_class_fraction( $writer,
+				classId => "creator",
+				classSchemeId => "class_scheme_person_publication_roles",
+			);
+		$writer->end_element( CERIF_NS, "cfPers_ResPubl" );
+	}
+
 	if( $dataobj->exists_and_set( "projects" ) )
 	{
 		foreach my $project (@{$dataobj->value( "projects" )})
@@ -373,13 +387,18 @@ sub output_eprint
 
 	if( $dataobj->exists_and_set( "id_number" ) )
 	{
-		$self->cf_class( $writer, "cfClass",
+		$self->cf_class( $writer, "cfResPubl_Class",
 				classId => $dataobj->value( "id_number" ),
 				classSchemeId => "class_scheme_publication_alternateids_doi",
 			);
 	}
 
 	$writer->end_element( CERIF_NS, 'cfResPubl' );
+
+	if( defined $owner && !$opts{hide_related} )
+	{
+		$self->output_dataobj( $owner, %opts, hide_related => 1 );
+	}
 
 	foreach my $pers (@people)
 	{
