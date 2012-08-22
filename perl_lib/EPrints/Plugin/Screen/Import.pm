@@ -278,8 +278,11 @@ sub render
 
 	if( defined $self->{processor}->{on_behalf_of} )
 	{
-		$f->appendChild( $repo->html_phrase( "Plugin/Screen/Import:on_behalf_of",
-				user => $self->{processor}->{on_behalf_of}->render_citation_link,
+		$f->appendChild( $repo->xml->create_data_element( "div",
+				$repo->html_phrase( "Plugin/Screen/Import:on_behalf_of",
+					user => $self->{processor}->{on_behalf_of}->render_citation_link,
+				),
+				class => "ep_block"
 			) );
 	}
 
@@ -431,7 +434,7 @@ sub render_result_row_action_buttons
 						alt => $repo->phrase( "Plugin/Screen/Import:action:view:title" ),
 					],
 				],
-				href => $dupe->uri,
+				href => $dupe->get_control_url,
 				title => $repo->phrase( "Plugin/Screen/Import:action:view:title" ),
 			);
 		if( $dataset->base_id eq "user" )

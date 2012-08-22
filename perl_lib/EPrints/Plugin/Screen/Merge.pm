@@ -23,7 +23,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{actions} = [qw/ swap compare merge merge_all add_all /];
+	$self->{actions} = [qw/ swap succeed compare merge merge_all add_all /];
 
 	$self->{icon} = "action_merge.png";
 
@@ -150,6 +150,14 @@ sub allow_swap { shift->can_be_viewed }
 sub allow_merge_all { shift->can_be_viewed }
 sub allow_add_all { shift->allow_merge_all }
 sub allow_compare { shift->can_be_viewed }
+sub allow_succeed
+{
+	my( $self ) = @_;
+
+	return 0 if !$self->allow( "eprint/derive_version", $self->{processor}->{right} );
+
+	return $self->can_be_viewed;
+}
 
 sub allow_merge
 {
@@ -229,6 +237,18 @@ sub action_add_all
 # taken care of in from()
 sub action_compare {}
 
+sub action_succeed
+{
+	my( $self ) = @_;
+
+	my $dataset = $self->{processor}->{dataset};
+	my $dataobj = $self->{processor}->{dataobj};
+	my $right = $self->{processor}->{right};
+
+	$dataobj->set_value( "succeeds", $right->id );
+	$dataobj->commit;
+}
+
 sub fields
 {
 	my( $self ) = @_;
@@ -283,7 +303,35 @@ sub render
 	return $f;
 }
 
-sub render_merge
+sub render_dataobj_actions
+{
+	my( $self, $dataobj ) = @_;
+
+	my $repo = $self->repository;
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $dataset = $self->{processor}->{dataset};
+
+	local $self->{processor}->{dataobj} = $dataobj;
+
+	# eprints have their own world of screens
+	if( $dataset->base_id eq "eprint" )
+	{
+		local $self->{processor}->{eprint} = $dataobj;
+
+		return $self->render_action_list_icons( "eprint_item_actions", {
+				eprintid => $dataobj->id,
+			} );
+	}
+
+	return $self->render_action_list_icons( [$dataset->base_id . "_item_actions", "dataobj_actions"], {
+				dataset => $dataset->base_id,
+				dataobj => $dataobj->id,
+			} );
+}
+
+sub render_common_action_buttons
 {
 	my( $self ) = @_;
 
@@ -299,52 +347,72 @@ sub render_merge
 
 	$frag->appendChild( my $form = $self->render_form );
 
+	$form->appendChild( my $div = $xml->create_element( "div", class => "ep_block" ) );
+
+	my @actions;
+	my @order;
+
+	if( $dataset->base_id eq "eprint" && !$dataobj->is_set( "succeeds" ) )
+	{
+		push @actions, succeed => $self->phrase( "action:succeed:title",
+						dataobj => $dataobj->id,
+						right => $right->id,
+					);
+		push @order, "succeed";
+	}
+
+	$div->appendChild( $repo->render_action_buttons( @actions, _order => \@order ) );
+
+	return $frag;
+}
+
+sub render_merge
+{
+	my( $self ) = @_;
+
+	my $repo = $self->repository;
+	my $xml = $repo->xml;
+	my $xhtml = $repo->xhtml;
+
+	my $dataset = $self->{processor}->{dataset};
+	my $dataobj = $self->{processor}->{dataobj};
+	my $right = $self->{processor}->{right};
+
+	my $frag = $xml->create_document_fragment;
+
+	$frag->appendChild( $self->render_common_action_buttons );
+
+	$frag->appendChild( my $form = $self->render_form );
+
 	$form->appendChild( my $table = $xml->create_element( "table" ) );
 
 	my $listing = $repo->plugin( "Screen::Listing",
 			processor => $self->{processor},
 		);
 
-	$table->appendChild( my $tr = $xml->create_element( "tr" ) );
-	$tr->appendChild( $xml->create_element( "th", class => "ep_row" ) );
-	{
-		local $self->{processor}->{dataobj} = $dataobj;
-		$tr->appendChild( $xml->create_data_element( "td",
-				$xml->create_data_element(
-					"a",
-					$dataset->base_id . "." . $dataobj->id,
-					href => $dataobj->uri
-				),
-				align => "center",
-				class => "ep_row",
-			) );
-	}
-	$tr->appendChild( $xml->create_element( "td", class => "ep_row" ) );
-	{
-		local $self->{processor}->{dataobj} = $right;
-		$tr->appendChild( my $th = $xml->create_data_element( "td",
-				$xml->create_data_element(
-					"a",
-					$dataset->base_id . "." . $right->id,
-					href => $right->uri
-				),
-				align => "center",
-				class => "ep_row",
-			) );
-	}
+	my( $tr, $th, $td );
 
 	$table->appendChild( $tr = $xml->create_element( "tr" ) );
 	$tr->appendChild( $xml->create_element( "th", class => "ep_row" ) );
-	{
-		local $self->{processor}->{dataobj} = $dataobj;
-		$tr->appendChild( $xml->create_data_element( "td",
-				$self->render_action_list_icons( [$dataset->base_id . "_item_actions", "dataobj_actions"], {
-					dataset => $dataset->base_id,
-					dataobj => $dataobj->id,
-				} ),
-				class => "ep_row",
-			) );
-	}
+	$tr->appendChild( $xml->create_data_element( "td",
+			$dataset->base_id . "." . $dataobj->id,
+			align => "center",
+			class => "ep_row",
+		) );
+	$tr->appendChild( $xml->create_element( "td", class => "ep_row" ) );
+	$tr->appendChild( $xml->create_data_element( "td",
+			$dataset->base_id . "." . $right->id,
+			align => "center",
+			class => "ep_row",
+		) );
+
+	$table->appendChild( $tr = $xml->create_element( "tr" ) );
+	$tr->appendChild( $xml->create_element( "th", class => "ep_row" ) );
+	$tr->appendChild( $xml->create_data_element(
+			"td",
+			$self->render_dataobj_actions( $dataobj ),
+			class => "ep_row",
+		) );
 	{
 		local $self->{processor}->{dataobj} = $right;
 		if( $self->can_be_viewed )
@@ -364,16 +432,11 @@ sub render_merge
 			$tr->appendChild( $xml->create_element( "td", class => "ep_row" ) );
 		}
 	}
-	{
-		local $self->{processor}->{dataobj} = $right;
-		$tr->appendChild( $xml->create_data_element( "td",
-				$self->render_action_list_icons( [$dataset->base_id . "_item_actions", "dataobj_actions"], {
-					dataset => $dataset->base_id,
-					dataobj => $right->id,
-				} ),
-				class => "ep_row",
-			) );
-	}
+	$tr->appendChild( $xml->create_data_element(
+			"td",
+			$self->render_dataobj_actions( $right ),
+			class => "ep_row",
+		) );
 
 	my $has_diff = 0;
 

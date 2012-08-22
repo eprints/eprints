@@ -2062,7 +2062,9 @@ sub duplicates
 	{
 		my $list = $dataset->search(filters => [
 				{ meta_fields => [qw( source )], value => $self->value( "source" ), match=>"EX", },
+				{ meta_fields => [qw( metadata_visibility )], value => "show", },
 			],
+			satisfy_all => 1,
 			limit => 10,
 			);
 		if( defined $self->id )

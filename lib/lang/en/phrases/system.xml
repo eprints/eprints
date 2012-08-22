@@ -3938,6 +3938,7 @@ To create a blank EPM entire a new id in the input and click <epc:phrase ref="Pl
 	<epp:phrase id="Plugin/Screen/Merge:action:add_all:title">Add Missing Only</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Merge:action:merge_all:title">Replace All</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Merge:action:swap:title">Swap</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Merge:action:succeed:title">Make <epc:pin name="dataobj" /> a later version of <epc:pin name="right" /></epp:phrase>
 
 	<epp:phrase id="Plugin/Screen/Import/Search:action:new_search:title">Import from <epc:pin name="format" /></epp:phrase>
 
@@ -3969,7 +3970,7 @@ PY = 2006 and OG = (Cambridge)<br />
 	<epp:phrase id="Plugin/Search/ISIWoK:field:UT">ISI UT Identifier</epp:phrase>
 	<epp:phrase id="Plugin/Search/ISIWoK:field:ZP">Zip/Postal Code</epp:phrase>
 
-	<epp:phrase id="Plugin/Screen/Import:on_behalf_of">Importing records for user <epc:pin name="user" />.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Import:on_behalf_of">Importing records on behalf of user <em><epc:pin name="user" /></em>.</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Import:action:change_user:title">Change User</epp:phrase>
 	<epp:phrase id="Plugin/Import/Cerif_1_4:title">CERIF 1.4 XML</epp:phrase>
 
