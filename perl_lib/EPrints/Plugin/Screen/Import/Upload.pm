@@ -38,10 +38,16 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	push @{$self->{appears}}, {
+	push @{$self->{appears}},
+		{
 			place => "user_tasks",
 			position => 500,
-		};
+		},
+		{
+			place => "user_view_action_links",
+			position => 500,
+		},
+	;
 
 	push @{$self->{actions}}, qw/ upload paste /;
 
@@ -215,9 +221,10 @@ sub epdata_to_dataobj
 
 	my $repo = $self->repository;
 
-	$self->{count}++;
-
 	my $dataset = $opts{dataset};
+
+	return undef if !$self->can_create( $dataset );
+
 	if( $dataset->base_id eq "eprint" )
 	{
 		$epdata->{userid} = $self->{repository}->current_user->id;
@@ -234,11 +241,14 @@ sub epdata_to_dataobj
 		$self->{processor}->{results}->{$dataset->base_id} = $cache;
 	}
 
+	$self->{count}++;
+
 	$cache->create_subdataobj( "dataobjs", {
 			pos => $cache->value( "count" ) + 1, # 1-indexed
 			datasetid => $opts{dataset}->base_id,
 			epdata => $epdata,
 		});
+
 	$cache->set_value( "count", $cache->value( "count" ) + 1 );
 	$cache->commit;
 
@@ -419,6 +429,15 @@ sub render_results
 	my $xhtml = $repo->xhtml;
 
 	my $f = $xml->create_document_fragment;
+
+	$f->appendChild( my $div = $xml->create_element( "div", class => "ep_block" ) );
+	{
+		local $self->{processor}->{results};
+		$div->appendChild( my $form = $self->render_form );
+		$form->appendChild( $repo->render_action_buttons(
+				cancel => $repo->phrase( "lib/submissionform:action_cancel" ),
+			) );
+	}
 
 	my @tabs;
 	my @panels;
@@ -602,8 +621,17 @@ sub render_action_link
 	$button->appendChild( $session->render_button(
 			name=>"_action_import_from",
 			value=>$session->phrase( "Plugin/Screen/Import:action:import_from:title" ) ) );
-	$button->appendChild( 
-		$session->render_hidden_field( "screen", substr($self->{id},8) ) ); 
+	{
+		local $self->{processor}->{format};
+		local $self->{processor}->{dataset};
+		local $self->{processor}->{results};
+		local $self->{processor}->{on_behalf_of};
+		if( $self->{processor}->{screen}->get_id eq "Screen::Workflow::View" )
+		{
+			$self->{processor}->{on_behalf_of} = $self->{processor}->{dataobj};
+		}
+		$button->appendChild( $self->render_hidden_bits );
+	}
 
 	my $form = $session->render_form( "GET" );
 	$form->appendChild( $session->html_phrase( "Plugin/Screen/Import:import_section",

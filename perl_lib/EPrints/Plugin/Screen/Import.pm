@@ -17,7 +17,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{actions} = [qw/ import_from add all confirm_all cancel /];
+	$self->{actions} = [qw/ import_from change_user add all confirm_all cancel /];
 
 	$self->{post_import_screen} = "EPrint::Edit";
 	$self->{post_bulk_import_screen} = "Items";
@@ -31,7 +31,7 @@ sub from
 
 	my $action = $self->{processor}->{action};
 
-	if( $action && $action =~ /^(add)_(\d+)$/ )
+	if( $action && $action =~ /^(add|change_user)_(\d+)$/ )
 	{
 		$self->{processor}->{action} = $1;
 		$self->{processor}->{notes}->{n} = $2;
@@ -58,6 +58,11 @@ sub properties_from
 
 	# default dataset to import to
 	$self->{processor}->{dataset} = $repo->dataset( "inbox" );
+
+	if( defined(my $userid = $repo->param( "on_behalf_of" )) )
+	{
+		$self->{processor}->{on_behalf_of} = $repo->user( $userid );
+	}
 }
 
 sub can_create
@@ -89,6 +94,14 @@ sub can_be_viewed
 
 sub allow_import_from { shift->can_be_viewed }
 sub allow_cancel { shift->can_be_viewed }
+sub allow_change_user
+{
+	my( $self ) = @_;
+
+	return 0 if !$self->repository->current_user->is_staff;
+
+	return $self->can_be_viewed;
+}
 
 sub allow_add { shift->can_be_viewed }
 sub allow_all { shift->can_be_viewed }
@@ -98,13 +111,27 @@ sub action_import_from
 {
 	my( $self ) = @_;
 
-	my $uri = $self->repository->current_url( path => "cgi", "users/home" );
-	$uri->query_form( $self->hidden_bits );
+#	my $uri = $self->repository->current_url( path => "cgi", "users/home" );
+#	$uri->query_form( $self->hidden_bits );
 
-	$self->{processor}->{redirect} = $uri;
+#	$self->{processor}->{redirect} = $uri;
 }
 
-sub action_cancel {}
+sub action_change_user
+{
+	my( $self ) = @_;
+
+	my $new_user = $self->repository->user( $self->{processor}->{notes}->{n} );
+
+	$self->{processor}->{on_behalf_of} = $new_user;
+}
+
+sub action_cancel
+{
+	my( $self ) = @_;
+
+	$self->{processor}->{on_behalf_of} = undef;
+}
 
 sub action_add
 {
@@ -116,16 +143,31 @@ sub action_add
 	my $results = $self->{processor}->{results};
 	return if !defined $results;
 
+	my $owner = $processor->{on_behalf_of};
+	$owner = $repo->current_user if !defined $owner;
+
 	my $dataobj = $results->item( $self->{processor}->{notes}->{n} - 1 );
+	my $dataset = $dataobj->get_dataset;
+
+	# we're working on-behalf-of
+	if( $dataset->has_field( "userid" ) && $dataset->field( "userid" )->isa( "EPrints::MetaField::Itemref" ) )
+	{
+		$dataobj->set_value( "userid", $owner->id );
+	}
 
 	if( !$self->can_create( $dataobj->get_dataset ) )
 	{
-		$processor->add_message( "error", $self->html_phrase( "lib/session:no_priv" ) );
+		$processor->add_message( "error", $repo->html_phrase( "lib/session:no_priv" ) );
 		return;
 	}
 
-	my $dataset = $dataobj->get_dataset;
 	$dataobj = $dataset->create_dataobj( $dataobj->get_data );
+
+	# move editor-imported items into the buffer
+	if( $dataset->base_id eq "eprint" )
+	{
+		$dataobj->move_to_buffer;
+	}
 
 	$processor->add_message( "message", $repo->html_phrase( "Plugin/Screen/Import:add",
 			dataset => $dataset->render_name,
@@ -133,6 +175,12 @@ sub action_add
 				url => $dataobj->uri,
 			)
 		) );
+
+	# switch to the new user, so imported items can be owned by them
+	if( $dataset->base_id eq "user" && $repo->current_user->is_staff )
+	{
+		$processor->{on_behalf_of} = $dataobj;
+	}
 
 	if( $results->count == 1 )
 	{
@@ -205,9 +253,6 @@ sub redirect_to_me_url
 {
 	my( $self ) = @_;
 
-	my $action = $self->{processor}->{action};
-	$action = "" if !defined $action;
-
 	my $uri = URI::http->new($self->{processor}->{url});
 	$uri->query_form( $self->hidden_bits );
 
@@ -227,9 +272,16 @@ sub render
 {
 	my ( $self ) = @_;
 
-	my $session = $self->{session};
+	my $repo = $self->repository;
 
-	my $f = $session->make_doc_fragment;
+	my $f = $repo->xml->create_document_fragment;
+
+	if( defined $self->{processor}->{on_behalf_of} )
+	{
+		$f->appendChild( $repo->html_phrase( "Plugin/Screen/Import:on_behalf_of",
+				user => $self->{processor}->{on_behalf_of}->render_citation_link,
+			) );
+	}
 
 	if( defined $self->{processor}->{results} )
 	{
@@ -352,6 +404,66 @@ sub render_results
 
 sub controls_before {}
 
+sub render_result_row_action_buttons
+{
+	my( $self, $dataobj, $n ) = @_;
+
+	my $repo = $self->{session};
+	my $xhtml = $repo->xhtml;
+	my $xml = $repo->xml;
+	my $dataset = $dataobj->{dataset};
+
+	my $frag = $xml->create_document_fragment;
+
+	my @action_buttons;
+
+	my $dupes = $dataobj->duplicates;
+
+	# previously imported
+	if( $dupes->count > 0 )
+	{
+		my $dupe = $dupes->item( 0 );
+		push @action_buttons, $xml->create_data_element( "a", [
+					[
+						"img",
+						undef,
+						src => $repo->current_url( path => "static", "style/images/action_view.png" ),
+						alt => $repo->phrase( "Plugin/Screen/Import:action:view:title" ),
+					],
+				],
+				href => $dupe->uri,
+				title => $repo->phrase( "Plugin/Screen/Import:action:view:title" ),
+			);
+		if( $dataset->base_id eq "user" )
+		{
+			push @action_buttons, $xhtml->action_icon(
+					"change_user_" . $dupe->id,
+					$repo->current_url( path => "static", "style/images/action_change_user.png" ),
+					alt => $repo->phrase( "Plugin/Screen/Import:action:change_user:title" ),
+					title => $repo->phrase( "Plugin/Screen/Import:action:change_user:title" ),
+				);
+		}
+	}
+	else
+	{
+#		$tr->setAttribute(
+#			class => $tr->getAttribute( "class" ) . " ep_diff_add"
+#		);
+	}
+
+	# add as a new record for the current user
+	push @action_buttons, $xhtml->action_icon(
+			"add_" . $n,
+			$repo->current_url( path => "static", "style/images/action_import.png" ),
+			alt => $repo->phrase( "Plugin/Screen/Import:action:add:title" ),
+			title => $repo->phrase( "Plugin/Screen/Import:action:add:title" ),
+		);
+
+	$frag->appendChild( $xhtml->action_list( \@action_buttons ) );
+
+	return $frag;
+}
+
 sub render_result_row
 {
 	my( $self, $dataobj, $n ) = @_;
@@ -376,43 +488,7 @@ sub render_result_row
 	$td->appendChild( $dataobj->render_citation );
 
 	$td = $tr->appendChild( $repo->make_element( "td", class => "ep_columns_cell" ) );
-
-	my @action_buttons;
-
-	my $dupes = $dataobj->duplicates;
-
-	# previously imported
-	if( $dupes->count > 0 )
-	{
-		my $dupe = $dupes->item( 0 );
-		push @action_buttons, $xml->create_data_element( "a", [
-					[
-						"img",
-						undef,
-						src => $repo->current_url( path => "static", "style/images/action_view.png" ),
-						alt => $repo->phrase( "Plugin/Screen/Import:action:view:title" ),
-					],
-				],
-				href => $dupe->uri,
-				title => $repo->phrase( "Plugin/Screen/Import:action:view:title" ),
-			);
-	}
-	else
-	{
-		$tr->setAttribute(
-			class => $tr->getAttribute( "class" ) . " ep_diff_add"
-		);
-	}
-
-	# add as a new record for the current user
-	push @action_buttons, $xhtml->action_icon(
-			"add_" . $n,
-			$repo->current_url( path => "static", "style/images/action_import.png" ),
-			alt => $repo->phrase( "Plugin/Screen/Import:action:add:title" ),
-			title => $repo->phrase( "Plugin/Screen/Import:action:add:title" ),
-		);
-
-	$td->appendChild( $xhtml->action_list( \@action_buttons ) );
+	$td->appendChild( $self->render_result_row_action_buttons( $dataobj, $n ) );
 
 	return $frag;
 }
@@ -432,7 +508,8 @@ sub hidden_bits
 
 	return(
 		$self->SUPER::hidden_bits,
-		format => $self->{processor}->{format},
+		(defined $self->{processor}->{format} ? (format => $self->{processor}->{format}) : ()),
+		(defined $self->{processor}->{on_behalf_of} ? (on_behalf_of => $self->{processor}->{on_behalf_of}->id) : ()),
 	);
 }
 

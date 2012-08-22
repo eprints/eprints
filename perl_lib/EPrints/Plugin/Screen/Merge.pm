@@ -23,7 +23,7 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	$self->{actions} = [qw/ compare merge merge_all add_all /];
+	$self->{actions} = [qw/ swap compare merge merge_all add_all /];
 
 	$self->{icon} = "action_merge.png";
 
@@ -146,6 +146,7 @@ sub from
 	$self->SUPER::from;
 }
 
+sub allow_swap { shift->can_be_viewed }
 sub allow_merge_all { shift->can_be_viewed }
 sub allow_add_all { shift->allow_merge_all }
 sub allow_compare { shift->can_be_viewed }
@@ -162,6 +163,15 @@ sub allow_merge
 	return 0 if $field->property( "sub_name" );
 
 	return $self->allow_merge_all;
+}
+
+sub action_swap
+{
+	my( $self ) = @_;
+
+	my $processor = $self->{processor};
+
+	($processor->{dataobj}, $processor->{right}) = ($processor->{right}, $processor->{dataobj});
 }
 
 sub action_merge
@@ -243,21 +253,26 @@ sub render
 	my $dataobj = $self->{processor}->{dataobj};
 	my $right = $self->{processor}->{right};
 
+	my $f = $xml->create_document_fragment;
+
 	if( defined $right )
 	{
-		return $self->render_merge;
+		$f->appendChild( $self->render_merge );
 	}
 	else
 	{
 		my $dupes = $self->{processor}->{results};
 		if( $dupes->count > 1 )
 		{
-			return $self->render_duplicates;
+			$f->appendChild( $xml->create_data_element( "div",
+					$dataobj->render_citation_link,
+				) );
+			$f->appendChild( $self->render_duplicates );
 		}
-		if( $dupes->count == 1 )
+		elsif( $dupes->count == 1 )
 		{
 			$self->{processor}->{right} = $dupes->item( 0 );
-			return $self->render_merge;
+			$f->appendChild( $self->render_merge );
 		}
 		else
 		{
@@ -265,7 +280,7 @@ sub render
 		}
 	}
 
-	return $xml->create_document_fragment;
+	return $f;
 }
 
 sub render_merge
@@ -284,15 +299,6 @@ sub render_merge
 
 	$frag->appendChild( my $form = $self->render_form );
 
-	$form->appendChild( $xml->create_data_element( "div",
-		$repo->render_action_buttons(
-			add_all => $self->phrase( "action:add_all:title" ),
-			merge_all => $self->phrase( "action:merge_all:title" ),
-			_order => [qw( add_all merge_all )]
-		),
-		class => "ep_block"
-	) );
-
 	$form->appendChild( my $table = $xml->create_element( "table" ) );
 
 	my $listing = $repo->plugin( "Screen::Listing",
@@ -300,31 +306,76 @@ sub render_merge
 		);
 
 	$table->appendChild( my $tr = $xml->create_element( "tr" ) );
-	$tr->appendChild( $xml->create_element( "th" ) );
-	$tr->appendChild( $xml->create_element( "th" ) );
+	$tr->appendChild( $xml->create_element( "th", class => "ep_row" ) );
 	{
 		local $self->{processor}->{dataobj} = $dataobj;
-		$tr->appendChild( $xml->create_data_element( "th",
+		$tr->appendChild( $xml->create_data_element( "td",
 				$xml->create_data_element(
 					"a",
 					$dataset->base_id . "." . $dataobj->id,
 					href => $dataobj->uri
 				),
 				align => "center",
+				class => "ep_row",
 			) );
 	}
-	$tr->appendChild( $xml->create_element( "th" ) );
+	$tr->appendChild( $xml->create_element( "td", class => "ep_row" ) );
 	{
 		local $self->{processor}->{dataobj} = $right;
-		$tr->appendChild( $xml->create_data_element( "th",
+		$tr->appendChild( my $th = $xml->create_data_element( "td",
 				$xml->create_data_element(
 					"a",
 					$dataset->base_id . "." . $right->id,
 					href => $right->uri
 				),
 				align => "center",
+				class => "ep_row",
 			) );
 	}
+
+	$table->appendChild( $tr = $xml->create_element( "tr" ) );
+	$tr->appendChild( $xml->create_element( "th", class => "ep_row" ) );
+	{
+		local $self->{processor}->{dataobj} = $dataobj;
+		$tr->appendChild( $xml->create_data_element( "td",
+				$self->render_action_list_icons( [$dataset->base_id . "_item_actions", "dataobj_actions"], {
+					dataset => $dataset->base_id,
+					dataobj => $dataobj->id,
+				} ),
+				class => "ep_row",
+			) );
+	}
+	{
+		local $self->{processor}->{dataobj} = $right;
+		if( $self->can_be_viewed )
+		{
+			$tr->appendChild( $xml->create_data_element( "td",
+					$xhtml->action_icon(
+						"swap",
+						$repo->current_url( path => "static", "style/images/action_swap.png" ),
+						alt => $self->phrase( "action:swap:title" ),
+						title => $self->phrase( "action:swap:title" ),
+					),
+					class => "ep_row",
+				) );
+		}
+		else
+		{
+			$tr->appendChild( $xml->create_element( "td", class => "ep_row" ) );
+		}
+	}
+	{
+		local $self->{processor}->{dataobj} = $right;
+		$tr->appendChild( $xml->create_data_element( "td",
+				$self->render_action_list_icons( [$dataset->base_id . "_item_actions", "dataobj_actions"], {
+					dataset => $dataset->base_id,
+					dataobj => $right->id,
+				} ),
+				class => "ep_row",
+			) );
+	}
+
+	my $has_diff = 0;
 
 	foreach my $field ($self->fields)
 	{
@@ -340,13 +391,13 @@ sub render_merge
 
 		next if $is_set == 4;
 
+		$has_diff = 1 if !($is_set & 4);
+
 		$table->appendChild( my $tr = $xml->create_element( "tr", id => $fieldid ) );
-		$tr->appendChild( $xml->create_data_element( "td", [
-				[ "a", undef, name => $fieldid, ]
+		$tr->appendChild( $xml->create_data_element( "th", [
+					[ "a", undef, name => $fieldid, ],
+					[ "span", $field->render_name( $repo ), ],
 				],
-			) );
-		$tr->appendChild( $xml->create_data_element( "th",
-				$field->render_name( $repo ),
 				class => "ep_row",
 			) );
 		$tr->appendChild( my $td_left = $xml->create_data_element( "td",
@@ -399,6 +450,18 @@ sub render_merge
 			) );
 	}
 
+	if( $has_diff )
+	{
+		$form->appendChild( $xml->create_data_element( "div",
+			$repo->render_action_buttons(
+				add_all => $self->phrase( "action:add_all:title" ),
+				merge_all => $self->phrase( "action:merge_all:title" ),
+				_order => [qw( add_all merge_all )]
+			),
+			class => "ep_block"
+		) );
+	}
+
 	return $frag;
 }
 
@@ -420,13 +483,21 @@ sub render_duplicates
 
 	$form->appendChild( my $table = $xml->create_element( "table" ) );
 
+	my $i = 1;
+
 	$dupes->map(sub {
 		(undef, undef, my $dupe) = @_;
 
 		$table->appendChild( my $tr = $xml->create_element( "tr" ) );
 
+		$tr->appendChild( $xml->create_data_element( "th",
+				$xml->create_text_node( $i++ ),
+				class => "ep_row",
+			) );
+
 		$tr->appendChild( $xml->create_data_element( "td",
 				$dupe->render_citation( undef, url => $dupe->uri ),
+				class => "ep_row",
 			) );
 
 		$tr->appendChild( $xml->create_data_element( "td",
@@ -435,7 +506,8 @@ sub render_duplicates
 					$repo->current_url( path => "static", "style/images/action_merge.png" ),
 					title => $self->phrase( "title" ),
 					alt => $self->phrase( "title" ),
-				)
+				),
+				class => "ep_row",
 			) );
 	});
 

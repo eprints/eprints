@@ -25,6 +25,7 @@ our %CERIF_CLASS_TYPE = (
 	respubl_class => "eprint",
 	pers_class => "user",
 	persname => "user",
+	pers_eaddr => "user",
 );
 our %CERIF_RESPUBL_TYPE = (
 	book => "book",
@@ -47,7 +48,7 @@ sub new
 	my $self = $class->SUPER::new(%params);
 
 	$self->{name} = "CERIF 1.4";
-	$self->{visible} = "staff";
+	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint' ];
 
 	return $self;
@@ -148,12 +149,17 @@ sub deconstruct
 	{
 		my $subject = $data->{user}->{$class->{_object}};
 		next if !defined $subject;
+		if( $class->{classid} eq "email" )
+		{
+			$subject->{email} = $class->{eaddrid};
+		}
 	}
 	delete $data->{"user:class"};
 	
 	# general tidy-up of the user data
 	while(my( $objectid, $object ) = each %{$data->{user} || {}})
 	{
+		$object->{source} = $objectid;
 		$object->{name} = {
 				given => delete $object->{firstnames},
 				family => delete $object->{familynames},
@@ -173,6 +179,7 @@ sub deconstruct
 		{
 			push @{$subject->{creators}}, {
 					name => $object->{name},
+					id => $object->{email},
 				};
 		}
 	}
@@ -301,7 +308,7 @@ sub start_element
 			];
 	}
 	# classes
-	elsif( $name =~ /^cf(respubl_class|pers_class)$/ )
+	elsif( $name =~ /^cf(respubl_class|pers_class|pers_eaddr)$/ )
 	{
 		my $class = $CERIF_CLASS_TYPE{$1};
 		push @{$self->{stack}}, [
@@ -360,7 +367,7 @@ sub start_element
 				\($self->{stack}[-1][2]{$1} = "");
 		}
 		# entity properties
-		elsif( $name =~ /^cf(respubldate|num|vol|edition|series|issue|startpage|endpage|totalpages|isbn|issn|birthdate|gender|familynames|middlenames|firstnames|othernames)$/ )
+		elsif( $name =~ /^cf(respubldate|num|vol|edition|series|issue|startpage|endpage|totalpages|isbn|issn|birthdate|gender|familynames|middlenames|firstnames|othernames|eaddrid)$/ )
 		{
 			my $fieldid = $CERIF_RESPUBL_FIELD{$1} || $1;
 			push @{$self->{stack}}, 
