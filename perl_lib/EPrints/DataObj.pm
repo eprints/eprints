@@ -2512,7 +2512,14 @@ sub duplicates
 
 	my $dataset = $self->{dataset};
 
-	return $dataset->list( [] );
+	my @ids;
+
+	$dataset->run_trigger( EPrints::Const::EP_TRIGGER_DUPLICATE_SEARCH(),
+			dataobj => $self,
+			ids => \@ids,
+		);
+
+	return $dataset->list( \@ids );
 }
 
 ######################################################################

@@ -89,9 +89,19 @@ sub can_be_viewed
 	my $dataobj = $self->{processor}->{dataobj} || $self->{processor}->{eprint};
 	return 0 if !defined $dataobj;
 
-	return 0 if $dataobj->duplicates->count == 0;
+	my $dataset = $dataobj->{dataset};
 
-	return $self->allow( $dataobj->{dataset}->base_id . "/edit", $dataobj );
+	my $right = $self->{processor}->{right};
+	if( defined $right )
+	{
+		return 0 if !$self->allow( $dataset->base_id . "/view", $right );
+	}
+	else
+	{
+		return 0 if $dataobj->duplicates->count == 0;
+	}
+
+	return $self->allow( $dataset->base_id . "/edit", $dataobj );
 }
 
 sub hidden_bits
@@ -104,7 +114,7 @@ sub hidden_bits
 		$self->SUPER::hidden_bits,
 		dataset => $processor->{dataset}->id,
 		dataobj => defined( $processor->{dataobj} ) ? $processor->{dataobj}->id : undef,
-		right => defined( $processor->{right} ) ? $processor->{right}->id : undef,
+		defined( $processor->{right} ) ? (right => $processor->{right}->id) : (),
 	);
 }
 
@@ -257,7 +267,7 @@ sub fields
 	my $dataset = $self->{processor}->{dataset};
 
 	return grep {
-			$_->property( "import" ) && !$_->property( "sub_name" )
+			$_->property( "import" ) && !$_->property( "sub_name" ) && !$_->isa( "EPrints::MetaField::Subobject" )
 		} $dataset->fields;
 }
 
@@ -282,21 +292,17 @@ sub render
 	else
 	{
 		my $dupes = $self->{processor}->{results};
-		if( $dupes->count > 1 )
-		{
-			$f->appendChild( $xml->create_data_element( "div",
-					$dataobj->render_citation_link,
-				) );
-			$f->appendChild( $self->render_duplicates );
-		}
-		elsif( $dupes->count == 1 )
+		if( $dupes->count == 1 )
 		{
 			$self->{processor}->{right} = $dupes->item( 0 );
 			$f->appendChild( $self->render_merge );
 		}
 		else
 		{
-			$self->{processor}->add_message( "error", $self->html_phrase( "error:no_dupes" ) );
+			$f->appendChild( $xml->create_data_element( "div",
+					$dataobj->render_citation_link,
+				) );
+			$f->appendChild( $self->render_duplicates );
 		}
 	}
 
@@ -314,6 +320,7 @@ sub render_dataobj_actions
 	my $dataset = $self->{processor}->{dataset};
 
 	local $self->{processor}->{dataobj} = $dataobj;
+	local $self->{processor}->{right};
 
 	# eprints have their own world of screens
 	if( $dataset->base_id eq "eprint" )
@@ -528,6 +535,7 @@ sub render_merge
 	return $frag;
 }
 
+# WARNING! Also called by Screen::EPrint::Duplicates
 sub render_duplicates
 {
 	my( $self ) = @_;
@@ -564,15 +572,37 @@ sub render_duplicates
 			) );
 
 		$tr->appendChild( $xml->create_data_element( "td",
-				$xhtml->action_icon(
-					"compare_".$dupe->id,
-					$repo->current_url( path => "static", "style/images/action_merge.png" ),
-					title => $self->phrase( "title" ),
-					alt => $self->phrase( "title" ),
-				),
+				$repo->render_action_buttons(
+						"compare_".$dupe->id => $self->phrase( "action:compare:title" ),
+					),
 				class => "ep_row",
 			) );
 	});
+
+	if( $dupes->count == 0 )
+	{
+		$form->appendChild( $repo->render_message(
+			"warning",
+			$self->html_phrase( "no_dupes" ),
+		) );
+	}
+
+	$form->appendChild( $table = $xml->create_element( "table" ) );
+
+	$table->appendChild( my $tr = $xml->create_element( "tr" ) );
+
+	my $key_field = $dataset->key_field;
+	my $input_field = $key_field->clone;
+	$input_field->set_property( name => "right" );
+
+	$form->appendChild( $self->html_phrase( "select_right_form",
+			name => $key_field->render_name( $repo ),
+			input => $input_field->render_input_field( $repo ),
+			buttons => $repo->render_action_buttons(
+				compare => $self->phrase( "action:compare:title" ),
+			),
+		) );
+
 
 	return $frag;
 }

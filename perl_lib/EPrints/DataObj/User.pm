@@ -1519,37 +1519,6 @@ sub has_role
 	return 0;
 }
 
-sub duplicates
-{
-	my( $self ) = @_;
-
-	my $dataset = $self->{dataset};
-
-	if( $self->exists_and_set( "source" ) )
-	{
-		my $list = $dataset->search(filters => [
-				{ meta_fields => [qw( source )], value => $self->value( "source" ), match=>"EX", },
-			],
-			limit => 10,
-			);
-		if( defined $self->id )
-		{
-			my @ids;
-			$list->map(sub {
-				(undef, undef, my $dataobj) = @_;
-
-				push @ids, $dataobj->id if $dataobj->id ne $self->id;
-			});
-			$list = $dataset->list( \@ids );
-		}
-		return $list;
-	}
-
-	return $dataset->list( [] );
-}
-
-
-
 
 
 1;
