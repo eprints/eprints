@@ -1767,10 +1767,13 @@ sub render_icon_link
 		$aopts{onmouseover} = "EPJS_ShowPreview( event, '$preview_id' );";
 		$aopts{onmouseout} = "EPJS_HidePreview( event, '$preview_id' );";
 	}
+
+	my $extra_css = 'ep_doc_icon_'.($self->value( 'security' ) || 'public' );
+
 	my $a = $self->{session}->make_element( "a", %aopts );
 	$a->appendChild( $self->{session}->make_element( 
 		"img", 
-		class=>"ep_doc_icon",
+		class=>"ep_doc_icon $extra_css",
 		alt=>"[img]",
 		src=>$self->icon_url( public=>$opts{public} ),
 		border=>0 ));
