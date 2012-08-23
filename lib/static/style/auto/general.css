@@ -105,7 +105,7 @@ th.ep_title_row {
 }
 
 div.ep_doc_restricted {
-        background: url(images/doc_locked.png) no-repeat transparent;
+        background: url(images/restricted_document.png) no-repeat transparent;
         height: 28px;
         width: 28px;
         position: relative;
