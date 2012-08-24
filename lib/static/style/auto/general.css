@@ -104,19 +104,19 @@ th.ep_title_row {
 	padding: 2px;
 }
 
-div.ep_doc_restricted {
-        background: url(images/restricted_document.png) no-repeat transparent;
-        height: 28px;
-        width: 28px;
-        position: relative;
-        float: right;
+/* shows a padlock overlayed on top of the document's icon */
+.ep_doc_icon_restricted {
+    /* fix the width of the span to the size of the background image */
+    display: inline-block;
+    background: no-repeat url('images/restricted_document.png');
+    width: 28px;
+    height: 28px;
+    /* relative positioning, allows us to shift the image back */
+    position: relative;
+    /* shift the image and its margins */
+    left: -25px;
+    top: 5px;
+    margin-right: -25px;
+    /* make sure we display in front */
+    z-index: 1000;
 }
-
-div.ep_doc_overlay_container {
-        text-align:right;
-        width:100%;
-        height:100%;
-        padding:0px;
-        margin:0px;
-}
-

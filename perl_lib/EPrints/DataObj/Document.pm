@@ -1768,15 +1768,16 @@ sub render_icon_link
 		$aopts{onmouseout} = "EPJS_HidePreview( event, '$preview_id' );";
 	}
 
-	my $extra_css = 'ep_doc_icon_'.($self->value( 'security' ) || 'public' );
-
 	my $a = $self->{session}->make_element( "a", %aopts );
 	$a->appendChild( $self->{session}->make_element( 
 		"img", 
-		class=>"ep_doc_icon $extra_css",
+		class=>"ep_doc_icon",
 		alt=>"[img]",
 		src=>$self->icon_url( public=>$opts{public} ),
 		border=>0 ));
+
+	$a->appendChild( $self->{session}->make_element( 'span', class => 'ep_doc_icon_restricted' ) ) if( !$self->is_public );
+
 	my $f = $self->{session}->make_doc_fragment;
 	$f->appendChild( $a ) ;
 	if( $opts{preview} )
