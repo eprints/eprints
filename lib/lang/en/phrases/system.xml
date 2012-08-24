@@ -2815,13 +2815,13 @@ PY = 2006 and OG = (Cambridge)<br />
 	<epp:phrase id="Plugin/Screen/EPrint/Error:title">Error</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/Error:description">Error</epp:phrase>
     
-    <epp:phrase id="Plugin/Screen/EPrint/RemoveWithEmail:title">Remove item (with notification)</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/RemoveWithEmail:title">Remove item (and notify)</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/RemoveWithEmail:description">Remove this item from the system forever, but send an email to the user who deposited it to inform them why.</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/RemoveWithEmail:item_removed">Item has been removed.</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Document/Remove:item_removed" ref="Plugin/Screen/EPrint/RemoveWithEmail:item_removed"/>
     <epp:phrase id="Plugin/Screen/EPrint/RemoveWithEmail:item_not_removed">Item could not be removed.</epp:phrase>
 
-    <epp:phrase id="Plugin/Screen/EPrint/RejectWithEmail:title">Return item (with notification)</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/RejectWithEmail:title">Return item (and notify)</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/RejectWithEmail:description">Return this item from to the user work area and send an email to the user who deposited it to explain why it cannot yet be accepted.</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/RejectWithEmail:item_removed">Item has been removed.</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/RejectWithEmail:item_not_removed">Item could not be removed.</epp:phrase>
