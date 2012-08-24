@@ -423,7 +423,11 @@ sub get_search_conditions
 
 	if( $match eq "SET" )
 	{
-		return $self->SUPER::get_search_conditions( @_[1..$#_] );
+		# see EPrints::MetaField::Int
+		return EPrints::Search::Condition->new( 
+				'is_not_null', 
+				$dataset, 
+				$self );
 	}
 
 	if( $match eq "EX" )

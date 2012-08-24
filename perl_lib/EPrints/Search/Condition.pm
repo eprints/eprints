@@ -112,6 +112,7 @@ sub new
 	if( $op eq "in_subject" ) { return EPrints::Search::Condition::InSubject->new( @params ); }
 	if( $op eq "is_null" ) { return EPrints::Search::Condition::IsNull->new( @params ); }
 	if( $op eq "is_not_null" ) { return EPrints::Search::Condition::IsNotNull->new( @params ); }
+	if( $op eq "is_set" ) { return EPrints::Search::Condition::IsSet->new( @params ); }
 	if( $op eq "grep" ) { return EPrints::Search::Condition::Grep->new( @params ); }
 	if( $op eq "regexp" ) { return EPrints::Search::Condition::Regexp->new( @params ); }
 	if ( $op =~ m/^(=|<=|>=|<|>)$/ )
