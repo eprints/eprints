@@ -63,6 +63,10 @@ sub properties_from
 	{
 		$self->{processor}->{on_behalf_of} = $repo->user( $userid );
 	}
+
+	# paginate bits
+	$self->{processor}->{notes}->{_offset} = $repo->param( "_offset" );
+	$self->{processor}->{notes}->{page_size} = $repo->param( "page_size" );
 }
 
 sub can_create
@@ -368,6 +372,7 @@ sub render_results
 	my ( $self, $results ) = @_;
 
 	my $session = $self->{session};
+	my $xhtml = $session->xhtml;
 
 	my $f = $session->make_doc_fragment;
 
@@ -385,11 +390,15 @@ sub render_results
 				) );
 	}
 
+	my %hidden_bits = $self->hidden_bits;
+	delete $hidden_bits{_offset};
+	delete $hidden_bits{page_size};
+
 	$form->appendChild( EPrints::Paginate->paginate_list(
 			$session,
 			undef,
 			$results,
-			params => {$self->hidden_bits},
+			params => \%hidden_bits,
 			container => $session->make_element(
 				"table",
 				class=>"ep_paginate_list ep_columns"
@@ -513,7 +522,21 @@ sub hidden_bits
 		$self->SUPER::hidden_bits,
 		(defined $self->{processor}->{format} ? (format => $self->{processor}->{format}) : ()),
 		(defined $self->{processor}->{on_behalf_of} ? (on_behalf_of => $self->{processor}->{on_behalf_of}->id) : ()),
+		# paginate
+		_offset => $self->{processor}->{notes}->{_offset},
+		page_size => $self->{processor}->{notes}->{page_size},
 	);
+}
+
+# Back compatibility
+sub render_import_bar
+{
+	my( $self ) = @_;
+
+	return $self->{processor}->render_item_list(
+			[ $self->{processor}->list_items( "user_tasks" ) ],
+			class => "ep_user_tasks",
+		);
 }
 
 1;
