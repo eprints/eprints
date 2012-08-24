@@ -1776,7 +1776,12 @@ sub render_icon_link
 		src=>$self->icon_url( public=>$opts{public} ),
 		border=>0 ));
 
-	$a->appendChild( $self->{session}->make_element( 'span', class => 'ep_doc_icon_restricted' ) ) if( !$self->is_public );
+	if( !$self->is_public )
+	{
+		$a->appendChild( $self->{session}->make_element( 'span', 
+			class => 'ep_doc_icon_restricted', 
+			title => $self->{session}->phrase( 'page:item_restricted' ) ) );
+	}
 
 	my $f = $self->{session}->make_doc_fragment;
 	$f->appendChild( $a ) ;
