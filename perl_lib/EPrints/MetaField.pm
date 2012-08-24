@@ -2403,7 +2403,7 @@ sub get_search_conditions
 	if( $match eq "SET" )
 	{
 		return EPrints::Search::Condition->new(
-				"is_not_null",
+				"is_set",
 				$dataset,
 				$self );
 	}

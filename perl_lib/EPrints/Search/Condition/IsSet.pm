@@ -1,25 +1,16 @@
-######################################################################
-#
-# EPrints::Search::Condition::IsNotNull
-#
-######################################################################
-#
-#
-######################################################################
-
 =pod
 
 =head1 NAME
 
-B<EPrints::Search::Condition::IsNull> - "IsNull" search condition
+EPrints::Search::Condition::IsSet
 
 =head1 DESCRIPTION
 
-Matches items where the field is not null.
+Matches items where the field is not null and not ''.
 
 =cut
 
-package EPrints::Search::Condition::IsNotNull;
+package EPrints::Search::Condition::IsSet;
 
 use EPrints::Search::Condition::Comparison;
 
@@ -31,7 +22,7 @@ sub new
 {
 	my( $class, @params ) = @_;
 
-	return $class->SUPER::new( "is_not_null", @params );
+	return $class->SUPER::new( "is_set", @params );
 }
 
 sub logic
@@ -48,13 +39,13 @@ sub logic
 	my $db = $opts{session}->get_database;
 	my $table = $prefix . $self->table;
 
-	my @sql_and = ();
+	my @sql_or = ();
 	foreach my $col_name ( $self->{field}->get_sql_names )
 	{
-		push @sql_and,
-			$db->quote_identifier( $table, $col_name )." IS NOT NULL";
+		my $qname = $db->quote_identifier( $table, $col_name );
+		push @sql_or, $db->sql_IS_SET( $qname );
 	}
-	return "( ".join( " OR ", @sql_and ).")";
+	return "( ".join( " OR ", @sql_or ).")";
 }
 
 1;

@@ -62,6 +62,8 @@ When specifying char column lengths use (n char) to define character semantics. 
 
 DBD::Oracle can crash when using PERL_USE_SAFE_PUTENV-compiled Perls, see http://www.eprints.org/tech.php/13984.html
 
+Oracle treats empty string ("") as NULL.
+
 =head2 TODO
 
 =over 4
@@ -503,6 +505,13 @@ sub sql_AS
 	my( $self ) = @_;
 
 	return " ";
+}
+
+sub sql_IS_SET
+{
+	my( $self, $qname ) = @_;
+
+	return "$qname IS NOT NULL";
 }
 
 sub retry_error

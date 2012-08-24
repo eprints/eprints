@@ -1278,6 +1278,23 @@ sub sql_LIKE
 	return " LIKE ";
 }
 
+=item $sql = $db->sql_IS_SET( $qname )
+
+Return the SQL to test whether $qname is set. For most databases this will be:
+
+	$qname is not null AND $qname != ''
+
+$qname is a quoted identifier or value.
+
+=cut
+
+sub sql_IS_SET
+{
+	my( $self, $qname ) = @_;
+
+	return "($qname IS NOT NULL AND $qname != ".$self->quote_value('').")";
+}
+
 ######################################################################
 ######################################################################
 

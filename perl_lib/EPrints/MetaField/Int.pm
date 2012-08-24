@@ -290,6 +290,23 @@ sub ordervalue
 	return EPrints::Utils::is_set( $value ) ? $value : 0;
 }
 
+# Integer columns can only be NULL, never ''
+sub get_search_conditions
+{
+	my( $self, $session, $dataset, $search_value, $match, $merge,
+		$search_mode ) = @_;
+
+	if( $match eq "SET" )
+	{
+		return EPrints::Search::Condition->new(
+				"is_not_null",
+				$dataset,
+				$self );
+	}
+
+	return shift->SUPER::get_search_conditions( @_ );
+}
+
 ######################################################################
 1;
 
