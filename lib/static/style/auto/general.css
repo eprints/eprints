@@ -118,5 +118,5 @@ th.ep_title_row {
     top: 5px;
     margin-right: -25px;
     /* make sure we display in front */
-    z-index: 1000;
+    z-index: 10;
 }
