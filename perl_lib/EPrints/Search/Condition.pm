@@ -72,6 +72,7 @@ use EPrints::Search::Condition::NameMatch;
 use EPrints::Search::Condition::InSubject;
 use EPrints::Search::Condition::IsNull;
 use EPrints::Search::Condition::IsNotNull;
+use EPrints::Search::Condition::IsSet;
 use EPrints::Search::Condition::Comparison;
 use EPrints::Search::Condition::Regexp;
 use EPrints::Search::Condition::SubQuery;
