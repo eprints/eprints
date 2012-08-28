@@ -236,7 +236,7 @@ sub deconstruct
 
 		if( "class_scheme_publication_publication" eq $relation->{classschemeid} )
 		{
-			if( "child" eq $relation->{classid} )
+			if( "part" eq $relation->{classid} )
 			{
 				if( "journal" eq $subject->{type} )
 				{
