@@ -289,6 +289,7 @@ sub output_eprint
 	}
 
 	my @publications;
+	my @organisations;
 
 	if( $dataobj->exists_and_set( "publication" ) || $dataobj->exists_and_set( "issn" ) )
 	{
@@ -308,6 +309,22 @@ sub output_eprint
 				_id => $id,
 				title => $dataobj->exists_and_set( "publication" ) ? $dataobj->value( "publication" ) : undef,
 				issn => $dataobj->exists_and_set( "issn" ) ? $dataobj->value( "issn" ) : undef,
+			};
+	}
+
+	if( $dataobj->exists_and_set( "publisher" ) )
+	{
+		my $id = $dataobj->uuid( "publisher:".$dataobj->value( "publisher" ) );
+		$writer->start_element( CERIF_NS, "cfOrgUnit_ResPubl" );
+		$writer->data_element( CERIF_NS, "cfOrgUnitId", $id );
+		$self->cf_class_fraction( $writer,
+				classId => "publisher_institution",
+				classSchemeId => "class_scheme_cerif_organisation_publication_roles",
+			);
+		$writer->end_element( CERIF_NS, "cfOrgUnit_ResPubl" );
+		push @organisations, {
+				_id => $id,
+				name => $dataobj->value( "publisher" ),
 			};
 	}
 
@@ -415,6 +432,17 @@ sub output_eprint
 				cfTrans => "o",
 			);
 		$writer->end_element( CERIF_NS, "cfResPubl" );
+	}
+
+	foreach my $org (@organisations)
+	{
+		$writer->start_element( CERIF_NS, "cfOrgUnit" );
+		$writer->data_element( CERIF_NS, "cfOrgUnitId", $org->{_id} );
+		$writer->data_element( CERIF_NS, "cfName", $org->{name},
+				cfLangCode => "en_GB",
+				cfTrans => "o",
+			);
+		$writer->end_element( CERIF_NS, "cfOrgUnit" );
 	}
 
 	if( $dataobj->exists_and_set( "projects" ) )
