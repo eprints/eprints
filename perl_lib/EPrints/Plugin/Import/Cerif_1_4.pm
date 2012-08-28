@@ -241,6 +241,7 @@ sub deconstruct
 				if( "journal" eq $subject->{type} )
 				{
 					$object->{publication} = $subject->{title}[0]{text};
+					$object->{issn} ||= $subject->{issn};
 				}
 				elsif( "book" eq $subject->{type} )
 				{
