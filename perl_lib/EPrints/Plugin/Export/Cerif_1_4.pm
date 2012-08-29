@@ -305,8 +305,18 @@ sub output_eprint
 				classSchemeId => "class_scheme_publication_publication_roles",
 			);
 		$writer->end_element( CERIF_NS, "cfResPubl_ResPubl" );
+		# work out the class of the related publication entry
+		my $ptype = "journal";
+		if( $type eq "book_section" )
+		{
+			$ptype = "book";
+		}
 		push @publications, {
 				_id => $id,
+				_class => [{
+					classid => $ptype,
+					classschemeid => "class_scheme_publication_types",
+				}],
 				title => $dataobj->exists_and_set( "publication" ) ? $dataobj->value( "publication" ) : undef,
 				issn => $dataobj->exists_and_set( "issn" ) ? $dataobj->value( "issn" ) : undef,
 			};
@@ -426,11 +436,18 @@ sub output_eprint
 	{
 		$writer->start_element( CERIF_NS, "cfResPubl" );
 		$writer->data_element( CERIF_NS, "cfResPublId", $publ->{_id} );
-		$writer->data_element( CERIF_NS, "cfISSN", $publ->{issn} );
+		$writer->data_element( CERIF_NS, "cfISSN", $publ->{issn} ) if $publ->{issn};
 		$writer->data_element( CERIF_NS, "cfTitle", $publ->{title},
 				cfLangCode => "en_GB",
 				cfTrans => "o",
-			);
+			) if $publ->{title};
+		foreach my $class (@{$publ->{_class} || []})
+		{
+			$self->cf_class( $writer, 'cfResPubl_Class',
+					classId => $class->{classid},
+					classSchemeId => $class->{classschemeid},
+				);
+		}
 		$writer->end_element( CERIF_NS, "cfResPubl" );
 	}
 

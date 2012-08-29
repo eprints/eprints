@@ -149,6 +149,7 @@ sub deconstruct
 	{
 		my $subject = $data->{user}->{$class->{_object}};
 		next if !defined $subject;
+		next if !defined $class->{classid};
 		if( $class->{classid} eq "email" )
 		{
 			$subject->{email} = $class->{eaddrid};
@@ -175,9 +176,16 @@ sub deconstruct
 		my $subject = $data->{$relation->{_subjectclass}}{$relation->{_subject}};
 		next if !defined $subject;
 
-		if( $relation->{_subjectclass} eq "eprint" )
+		if( $relation->{_subjectclass} eq "eprint" && $relation->{classid} =~ /^author/ )
 		{
-			push @{$subject->{creators}}, {
+			my $idx = @{$subject->{creators} || []};
+			if( $relation->{classid} eq "author_numbered" )
+			{
+				# sanity check
+				$idx = int($relation->{fraction} - 1)
+					if $relation->{fraction} > 0 && $relation->{fraction} < 10000;
+			}
+			$subject->{creators}->[$idx] = {
 					name => $object->{name},
 					id => $object->{email},
 				};
@@ -234,7 +242,9 @@ sub deconstruct
 		my $subject = $data->{$relation->{_subjectclass}}{$relation->{_subject}};
 		next if !defined $subject;
 
-		if( "class_scheme_publication_publication" eq $relation->{classschemeid} )
+		no warnings; # suppress undef warnings
+
+		if( "class_scheme_publication_publication_roles" eq $relation->{classschemeid} )
 		{
 			if( "part" eq $relation->{classid} )
 			{
@@ -292,18 +302,29 @@ sub start_element
 		push @{$self->{stack}}, [
 				$CERIF_TYPE{$1},
 				undef,
-				{},
+				{
+					_cf => $1,
+				},
 			];
 	}
 	# relations
-	elsif( $name =~ /^cf(respubl_respubl|pers_respubl)$/ )
+	elsif( $name =~ /^cf((respubl|pers)_(respubl|pers))$/ )
 	{
 		my( $from, $to ) = @{$CERIF_RELATION_TYPE{$1}};
+		# if there is a parent entity then we need to use its identifier as
+		# either the object or subject of the relation, depending on the
+		# relation type. Pers_ResPubl always has the person as the object,
+		# whether the parent is a cfPers or cfResPubl
+		my $side;
+		if( defined $current )
+		{
+			$side = $2 eq $current->[2]{_cf} ? "_object" : "_subject";
+		}
 		push @{$self->{stack}}, [
 				"$from:relation",
 				APR::UUID->new->format,
 				{
-					_object => $current ? $current->[1] : undef,
+					(defined $side ? ($side => $current->[1]) : ()),
 					_subjectclass => $to,
 				},
 			];
