@@ -444,6 +444,9 @@ sub render
 		},
 		rows_after => $final_row,
 	);
+
+	$opts{page_size} = $self->param( 'page_size' );
+
 	$chunk->appendChild( EPrints::Paginate::Columns->paginate_list( $session, "_listing", $list, %opts ) );
 
 

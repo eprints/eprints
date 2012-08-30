@@ -158,6 +158,13 @@ sub serve_dataset
 
 	# /23/	
 	my $object = $dataset->get_object( $repository, $file );
+
+	# /abc/
+	if( !defined $object && $dataset->id eq "user" )
+	{
+		$object = $repository->user_by_username( $file );
+	}
+
 	if( !defined $object )
 	{
 		return 404;

@@ -377,6 +377,9 @@ sub _render_doc_div
 
 	$td_right->appendChild( $self->_render_doc_actions( $doc ) );
 
+        my @fields = $self->doc_fields( $doc );
+        return $doc_div if !scalar @fields;
+
 	my $opts_toggle = $session->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${doc_prefix}_opts',".($hide?"false":"true").",'${doc_prefix}_block');EPJS_toggle('${doc_prefix}_opts_hide',".($hide?"false":"true").",'block');EPJS_toggle('${doc_prefix}_opts_show',".($hide?"true":"false").",'block');return false" );
 	$doc_expansion_bar->appendChild( $opts_toggle );
 
