@@ -106,7 +106,8 @@ use Carp;
 
 use strict;
 
-our $VERSION = v3.4.0;
+our $VERSION = v4.0.0;
+
 $conf->{version} = "EPrints ".EPrints->human_version;
 $conf->{versionid} = "eprints-".EPrints->human_version;
 
@@ -537,16 +538,6 @@ sub import
 	my( $class, @args ) = @_;
 
 	my %opts = map { $_ => 1 } @args;
-
-	# mod_perl will probably be running as root for the main httpd.
-	# The sub processes should run as the same user as the one specified
-	# in $EPrints::SystemSettings
-	# An exception to this is running as root (uid==0) in which case
-	# we can become the required user.
-	if( !$__loaded && !$opts{"no_check_user"} && !$ENV{MOD_PERL} && !$ENV{EPRINTS_NO_CHECK_USER} )
-	{
-		EPrints->system->test_uid();
-	}
 
 	$__loaded = 1;
 }

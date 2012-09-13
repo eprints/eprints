@@ -1,0 +1,275 @@
+#!@PERL_PATH@
+
+our $PREFIX="@PREFIX@";
+our $DESTDIR=$ENV{DESTDIR} || $PREFIX;
+our $INSTALL_USER="@INSTALL_USER@";
+our $INSTALL_GROUP="@INSTALL_GROUP@";
+our $SIGNATURE_PATH="$DESTDIR/SIGNATURES";
+
+use strict;
+use Cwd;
+use Digest::MD5;
+use Data::Dumper;
+use File::Copy;
+use Getopt::Long;
+
+my %opts;
+
+GetOptions(\%opts,
+	"uninstall",
+);
+
+#
+# Set the umask so nothing goes odd on systems which
+# change it.
+#
+umask( 0022 );
+
+### Trim prefix if needed 
+
+$PREFIX =~ s{/+$}{};
+$DESTDIR =~ s{/+$}{};
+
+my(undef,undef,$uid) = getpwnam($INSTALL_USER);
+my(undef,undef,$gid) = getgrnam($INSTALL_GROUP);
+
+# Warn if we can't install as the requested user/group
+
+unless( $uid )
+{
+	warn("Warning! User $INSTALL_USER doesn't exist. You probably need to do: useradd $INSTALL_USER\n");
+}
+
+unless( $gid )
+{
+	warn("Warning! Group $INSTALL_GROUP doesn't exist. You probably need to do: groupadd $INSTALL_GROUP\n");
+}
+
+unless( $< == 0 or (defined $uid and $uid == $<) )
+{
+	warn("Warning! It looks like you're trying to install as user $INSTALL_USER without root. You probably need to do: sudo $0\n");
+}
+
+$uid = $< || 0 unless defined $uid;
+$gid = $( || 0 unless defined $gid;
+
+# If we are upgrading and have a digest file, read the digests into a hash
+# to check them against the files in place to see if they've changed.
+
+uninstall( $DESTDIR, $SIGNATURE_PATH );
+
+exit if $opts{uninstall};
+
+#
+# Actual install starts here.
+#
+ensure_dir( $DESTDIR, $uid, $gid, 0755 );
+ensure_dir( "$DESTDIR/archives", $uid, $gid, 02770 );
+ensure_dir( "$DESTDIR/testdata", $uid, $gid, 0750 );
+
+my $newsighash = {};
+
+my @dirs = (
+	bin => [0750, $uid, $gid, 0750],
+	cgi => [0640, $uid, $gid, 0750],
+	cfg => [0640, $uid, $gid, 0750],
+	lib => [0660, $uid, $gid, 02770], # epms installed as 'apache'
+	perl_lib => [0640, $uid, $gid, 0750],
+	"testdata/bin" => [0750, $uid, $gid, 0750],
+	"testdata/data" => [0640, $uid, $gid, 0750],
+	tests => [0640, $uid, $gid, 0750],
+	var => [0660, $uid, $gid, 02770], # indexer may run as 'apache'
+);
+
+foreach my $i (grep { $_ % 2 == 0 } 0 .. $#dirs)
+{
+	install_dir($dirs[$i], @{$dirs[$i+1]}, $DESTDIR, $newsighash);
+}
+
+write_sigs( $DESTDIR, $newsighash, $uid, $gid );
+
+print "Installed EPrints to: $DESTDIR\n";
+
+# Post installation bits
+
+sub uninstall
+{
+	my( $destdir, $sig_path ) = @_;
+	
+	return if !-e $sig_path;
+
+	print "Uninstalling ...\n";
+
+	open(my $fh, "<", $sig_path) or die "Error opening $sig_path: $!";
+	while(<$fh>)
+	{
+		chomp;
+		my( $filepath, $digest ) = split /\s/, $_;
+		$filepath = "$destdir/$filepath";
+		if( get_digest($filepath) eq $digest )
+		{
+			unlink($filepath);
+		}
+		else
+		{
+			move_out_of_harms_way($filepath);
+		}
+	}
+}
+
+sub write_sigs
+{
+	my( $dir, $sigs, $uid, $gid ) = @_;
+
+	my $sigfile = $dir.'/SIGNATURES';
+	# Dump out signature file
+	unless( open (SIGOUT, ">".$sigfile ) )
+	{
+		print "Unable to write $sigfile: $!\n";
+		exit 1;
+	}
+	binmode(SIGOUT);
+		
+	foreach( sort keys %{$sigs} )
+	{
+		print SIGOUT $_." ".$sigs->{$_}."\n";
+	}
+	close(SIGOUT);
+	chown($uid, $gid, $sigfile );
+	chmod( 0660, $sigfile );
+}
+
+# Calculate the MD5 digest of a file.
+
+sub get_digest
+{
+	my($file) = @_;
+	my $ctx = Digest::MD5->new;
+	open(my $fh, "<", $file) or die "Error opening $file: $!";
+	$ctx->addfile( $fh );
+	return $ctx->hexdigest;
+}
+
+# Install $file from directory $dir into $dest. The permissions
+# from $perms are set, and the group and user are set from $group
+# and $user. The %hash is used for MD5 comparisions - currently
+# not doing anything active, but checking is enabled.
+
+sub install_file
+{
+	my($file, $dir, $perms, $uid, $gid, $dest, $newsighash) = @_;
+
+	my $relpath = $file;
+	if( defined $dir ) { $relpath = "$dir/$file"; }
+	if( !defined $dir ) { $dir = ""; }
+
+	return unless (-e "$relpath");
+
+	$newsighash->{$relpath} = get_digest($relpath);
+	
+	if( -e "$dest/$relpath" )
+	{
+		move_out_of_harms_way( "$dest/$relpath" );
+	}
+
+	copy($relpath, "$dest/$relpath");
+
+	chmod($perms, "$dest/$relpath");
+	chown($uid, $gid, "$dest/$relpath");
+}
+
+sub install_dir
+{
+	my( $dir, $fmode, $uid, $gid, $dmode, $dest, $newsighash) = @_;
+
+	ensure_dir("$dest/$dir", $uid, $gid, $dmode);
+
+	opendir(INDIR, $dir) or return;
+
+	my @dirs = ();
+	my @files = ();
+
+	while(my $item = readdir(INDIR))
+	{
+		next if $item =~ /^\./;
+		next if $item =~ /\.in$/; # source files are copied by make dist
+		if( -d "$dir/$item" ) 
+		{ 
+			push(@dirs, $item); 
+		}
+		else 
+		{ 
+			push(@files, $item); 
+		}
+	}
+	closedir(INDIR);
+
+	foreach(@files)
+	{
+		install_file($_, $dir, $fmode, $uid, $gid, $dest, $newsighash );
+	}
+	foreach(@dirs)
+	{
+		install_dir("$dir/".$_, $fmode, $uid, $gid, $dmode, $dest, $newsighash );
+	}
+}
+
+##############################################################
+
+sub move_out_of_harms_way
+{
+	my( $file ) = @_;
+
+	my @date = localtime;
+	my $safename = sprintf( 
+		"%s.backup.%04d-%02d-%02d", 
+		$file, 
+		$date[5]+1900, 
+		$date[4]+1, 
+		$date[3] );
+
+	my $n = 0;
+	while( -e $safename )
+	{
+		++$n;
+		$safename = sprintf( 
+			"%s.backup.%04d-%02d-%02d.%d", 
+			$file, 
+			$date[5]+1900, 
+			$date[4]+1, 
+			$date[3],
+			$n );
+	}
+
+	rename $file, $safename;
+
+	print "\n$file has been modified.\nSaving old version as $safename\n";
+}
+
+
+sub ensure_dir
+{
+	my( $dir, $uid, $gid, $mode ) = @_;
+
+	if( !-d $dir ) 
+	{
+		if( !mkdir($dir) )
+		{
+			print "Unable to make dir: $dir.\n";
+			print "Aborting!\n";
+			exit 1;
+		}
+	}		
+	
+	chown($uid, $gid, $dir);
+
+	unless( chmod($mode, $dir) )
+	{
+		print "Unable to chmod ".$dir." : $!\n"; 
+		print "Aborting!\n";
+		exit 1;
+	}
+
+	return;
+}
+

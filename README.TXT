@@ -3,10 +3,20 @@ NAME
 
 SYNOPSIS
             ./configure --help
-            ./configure (with some sensible options)
+            ./configure ...
             sudo make install
 
-    For more information see http://www.eprints.org/software/.
+    To build a package do:
+
+            aclocal
+            autoconf
+            automake
+            ./configure ...
+            make dist
+
+    To see available options for configure do:
+
+            ./configure --help
 
 DESCRIPTION
     EPrints is a document management system aimed at Higher Educational
@@ -17,7 +27,7 @@ DESCRIPTION
     Web and institutional systems.
 
 CONTACT
-    For support options please see http://www.eprints.org/software/.
+    For support options please see http://www.eprints.org/.
 
     Enquiries that can not be made via our public mailing list (e.g.
     security concerns) may be sent to support@eprints.org.
@@ -29,6 +39,9 @@ CONTACT
             University of Southampton
             SO17 1BJ
             United Kingdom
+
+SEE ALSO
+    http://www.eprints.org/software/
 
 COPYRIGHT
     Copyright 2000-2011 University of Southampton.
