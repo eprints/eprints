@@ -46,6 +46,10 @@ The id of the input plugin to use. This should not include the leading "Import::
 
 If this is ommited or an invalid plugin is requested, then 'import' will list all plugins compatible with the dataset and exit.
 
+=item I<filename>
+
+Filename to read from. To read from STDIN specify '-'.
+
 =back
 
 =head1 OPTIONS
@@ -424,10 +428,21 @@ if( $output_xml )
 	print "<?xml version='1.0'?>\n<eprints xmlns='".EPrints::Const::EP_NS_DATA()."'>\n";
 }
 
-my $list = eval { $plugin->input_file(
+my $fh;
+
+if( $filename eq "-" )
+{
+	$fh = \*STDIN;
+}
+else
+{
+	open($fh, "<", $filename) or die "Error reading from $filename: $!";
+}
+
+my $list = eval { $plugin->input_fh(
 		%arguments,
 		dataset=>$ds,
-		filename=>$filename,
+		fh=>$fh,
 		user=>$userobj,
 		actions=>\@actions,
 ) };
@@ -435,6 +450,8 @@ if( $@ )
 {
 	$handler->message( "error", $session->make_text( "Unhandled exception in ".$plugin->{id}.": $@" ) );
 }
+
+close $fh;
 
 if( $output_xml )
 {

@@ -16,10 +16,12 @@ use strict;
 our %CERIF_TYPE = (
 	respubl => "eprint",
 	pers => "user",
+	orgunit => "org_unit",
 );
 our %CERIF_RELATION_TYPE = (
 	respubl_respubl => ["eprint", "eprint"],
 	pers_respubl => ["user", "eprint"],
+	orgunit_respubl => ["org_unit", "eprint"],
 );
 our %CERIF_CLASS_TYPE = (
 	respubl_class => "eprint",
@@ -127,6 +129,7 @@ sub localise
 	foreach my $dsid (keys %{$self->{data}})
 	{
 		my $dataset = $repo->dataset( $dsid );
+		next if !defined $dataset;
 		foreach my $epdata (values %{$self->{data}{$dsid}})
 		{
 			foreach my $fieldid (keys %$epdata)
@@ -234,6 +237,26 @@ sub deconstruct
 		}
 	}
 
+	# process org_unit->* relations
+	foreach my $relation (values %{$data->{"org_unit:relation"} || {}})
+	{
+		my $object = $data->{org_unit}->{$relation->{_object}};
+		next if !defined $object;
+		my $subject = $data->{$relation->{_subjectclass}}{$relation->{_subject}};
+		next if !defined $subject;
+
+		no warnings; # suppress undef warnings
+
+		if( "class_scheme_cerif_organisation_publication_roles" eq $relation->{classschemeid} )
+		{
+			if( "publisher_institution" eq $relation->{classid} )
+			{
+				$subject->{publisher} = $object->{name}[0]{text};
+			}
+		}
+	}
+	delete $data->{"org_unit:relation"};
+
 	# process eprint->* relations
 	foreach my $relation (values %{$data->{"eprint:relation"} || {}})
 	{
@@ -252,12 +275,14 @@ sub deconstruct
 				{
 					$object->{publication} = $subject->{title}[0]{text};
 					$object->{issn} ||= $subject->{issn};
+					$object->{publisher} ||= $subject->{publisher};
 				}
 				elsif( "book" eq $subject->{type} )
 				{
 					$object->{book_title} = $subject->{title}[0]{text};
 					$object->{isbn} ||= $subject->{isbn};
 					$object->{issn} ||= $subject->{issn};
+					$object->{publisher} ||= $subject->{publisher};
 				}
 				else
 				{
@@ -297,7 +322,7 @@ sub start_element
 	}
 
 	# entities
-	if( $name =~ /^cf(respubl|pers)$/ )
+	if( $name =~ /^cf(respubl|pers|orgunit)$/ )
 	{
 		push @{$self->{stack}}, [
 				$CERIF_TYPE{$1},
@@ -308,7 +333,7 @@ sub start_element
 			];
 	}
 	# relations
-	elsif( $name =~ /^cf((respubl|pers)_(respubl|pers))$/ )
+	elsif( $name =~ /^cf((respubl|pers|orgunit)_(respubl|pers))$/ )
 	{
 		my( $from, $to ) = @{$CERIF_RELATION_TYPE{$1}};
 		# if there is a parent entity then we need to use its identifier as
@@ -361,7 +386,7 @@ sub start_element
 	elsif( defined $current )
 	{
 		# identifiers
-		if( $name =~ /^cf(respublid|respublid1|respublid2|persid)$/ )
+		if( $name =~ /^cf(respublid|respublid1|respublid2|persid|orgunitid)$/ )
 		{
 			# /CERIF/cfPers/cfPersId
 			if( !defined $current->[1] )
@@ -396,7 +421,7 @@ sub start_element
 				\($self->{stack}[-1][2]{$fieldid} = "");
 		}
 		# multilingual entity properties
-		elsif( $name =~ /^cf(title|abstr|keyw)$/ )
+		elsif( $name =~ /^cf(title|abstr|keyw|name)$/ )
 		{
 			my $fieldid = $CERIF_RESPUBL_FIELD{$1} || $1;
 			my $langid = $data->{Attributes}{'{}cfLangCode'}{Value};

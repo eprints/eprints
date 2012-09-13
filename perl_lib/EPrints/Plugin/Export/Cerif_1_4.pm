@@ -126,6 +126,13 @@ sub new
 		unpub => "unpublished",
 	};
 
+	# allow calling code to override the owned_eprints_list
+	$self->{owned_eprints_list} ||= sub {
+		my( $user, %opts ) = @_;
+
+		return $user->owned_eprints_list;
+	};
+
 	return $self;
 }
 
@@ -243,7 +250,8 @@ sub output_user
 
 	if( !$opts{hide_related} )
 	{
-		$user->owned_eprints_list->map(sub {
+		my $list = $self->param( "owned_eprints_list" )->( $user, %opts );
+		$list->map(sub {
 			(undef, undef, my $eprint) = @_;
 
 			$self->output_dataobj( $eprint, %opts );
