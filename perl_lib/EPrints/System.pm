@@ -98,6 +98,50 @@ sub init
 	}
 }
 
+=item $oct = $sys->dir_perms()
+
+Returns the default directory permissions for eprints-owned directories.
+
+=cut
+
+sub dir_perms
+{
+	# Default to "dir_perms"
+	my $perms = EPrints::Config::get( "dir_perms" );
+	if( !defined( $perms ))
+	{
+		$perms = 02770;
+	}
+	elsif( $perms =~ /^0/ )
+	{
+		$perms = oct($perms);
+	}
+
+	return $perms;
+}
+
+=item $oct = $sys->file_perms()
+
+Returns the default file permissions for eprints-owned files.
+
+=cut
+
+sub file_perms
+{
+	# Default to "dir_perms"
+	my $perms = EPrints::Config::get( "file_perms" );
+	if( !defined( $perms ))
+	{
+		$perms = 0660;
+	}
+	elsif( $perms =~ /^0/ )
+	{
+		$perms = oct($perms);
+	}
+
+	return $perms;
+}
+
 =item $sys->chmod( MODE, @filelist )
 
 Change the access control on files listed in @filelist to MODE.
@@ -108,7 +152,13 @@ sub chmod
 {
 	my( $self, $mode, @files ) = @_;
 
-	return CORE::chmod( $mode, @files );
+	if( @files && !CORE::chmod( $mode, @files ) )
+	{
+		warn "chmod $mode @files: $!\n";
+		return 0;
+	}
+
+	return 1;
 } 
 
 =item $sys->chown( $uid, $gid, @filelist )
@@ -122,7 +172,13 @@ sub chown
 {
 	my( $self, $uid, $gid, @files ) = @_;
 
-	return CORE::chown( $uid, $gid, @files );
+	if( @files && !CORE::chown( $uid, $gid, @files ) )
+	{
+		warn "chown $uid $gid @files: $!\n";
+		return 0;
+	}
+
+	return 1;
 }
 
 =item $sys->chown_for_eprints( @filelist )
@@ -195,7 +251,7 @@ sub test_uid
 	}
 }
 
-=item $sys->copy( $src, $dst )
+=item $sys->copy( $src, $dst [, MODE ] )
 
 Copy the file located at $src to $dst and set the correct permissions.
 
@@ -203,16 +259,20 @@ Copy the file located at $src to $dst and set the correct permissions.
 
 sub copy
 {
-	my( $self, $src, $dst ) = @_;
+	my( $self, $src, $dst, $perms ) = @_;
+
+	$perms = $self->file_perms if @_ < 4;
 
 	return if !File::Copy::copy( $src, $dst );
+
+	$self->chmod( $perms, $dst );
 
 	$self->chown_for_eprints( $dst );
 
 	return 1;
 }
 
-=item $sys->mkdir( $path, MODE )
+=item $sys->mkdir( $path [, MODE ] )
 
 Create a directory $path (including parent directories as necessary)
 set to mode MODE. If MODE is undefined defaults to dir_perms in
@@ -224,12 +284,7 @@ sub mkdir
 {
 	my( $self, $full_path, $perms ) = @_;
 
-	# Default to "dir_perms"
-	$perms = eval($EPrints::SystemSettings::conf->{"dir_perms"}) if @_ < 3;
-	if( !defined( $perms ))
-	{
-		EPrints->abort( "mkdir requires dir_perms is set in SystemSettings");
-	}
+	$perms = $self->dir_perms if @_ < 3;
 
 	my $dir = "";
 	my @parts = grep { length($_) } split( "/", "$full_path" );
@@ -250,9 +305,10 @@ sub mkdir
 	}
 
 	# mkdir ignores sticky bits (01000, 02000, 04000)
-	$self->chmod( $perms, @newdirs );
+	$self->chmod( $perms, @newdirs ) or return 0;
+
 	# fix the file ownership
-	$self->chown_for_eprints( @newdirs );
+	$self->chown_for_eprints( @newdirs ) or return 0;
 
 	return 1;
 }
@@ -463,6 +519,10 @@ sub write_config_file
 		or EPrints->abort( "Error opening $path: $!" );
 	print $fh $content;
 	close($fh);
+
+	$self->chmod( $self->file_perms, $path );
+
+	$self->chown_for_eprints( $path );
 
 	return $rc;
 }

@@ -19,3 +19,11 @@ VERSION:
 clean-local:
 	-rm -f configure Makefile.in ChangeLog install-sh missing INSTALL VERSION
 	-rm -rf autom4te.cache
+
+test:
+	$(PERL_PATH) bin/epadmin create_test --force --quiet
+	$(PERL_PATH) bin/epadmin create_user test _
+	$(PERL_PATH) testdata/bin/import_test_data test
+	$(PERL_PATH) bin/indexer --once --notdaemon start
+	$(PERL_PATH) bin/epadmin unit_tests
+	$(PERL_PATH) bin/epadmin delete test --force
