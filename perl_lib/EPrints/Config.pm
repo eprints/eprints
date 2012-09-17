@@ -124,8 +124,8 @@ sub load_system_config
 
 	foreach my $dir ( $syslibcfgd, $syscfgd )
 	{
-		opendir(my $dh, $dir)
-			or (warn("Error opening directory $dir: $!"), next);
+		next if !-e $dir;
+		opendir(my $dh, $dir) or die "Error opening $dir: $!";
 		foreach my $file (readdir($dh)) 
 		{
 			next if $file =~ m/^\./;
