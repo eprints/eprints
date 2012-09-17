@@ -23,7 +23,7 @@ B<EPrints::System> - Wrappers for system calls
 package EPrints::System;
 
 use strict;
-use File::Copy;
+use File::Copy qw();
 use Digest::MD5;
 
 =item $sys = EPrints::System->new();
@@ -69,7 +69,7 @@ sub init
 
 	if(
 		!defined($EPrints::SystemSettings::conf->{user}) ||
-		!defined($EPrints::SystemSettings::conf->{user})
+		!defined($EPrints::SystemSettings::conf->{group})
 	  )
 	{
 		EPrints->abort( "'user' and 'group' must be configured. Perhaps you need to add them to perl_lib/EPrints/SystemSettings.pm?" );
@@ -120,9 +120,9 @@ $gid. $uid and $gid are as returned by L<getpwnam> (usually numeric).
 
 sub chown 
 {
-	my( $self, $mode, @files ) = @_;
+	my( $self, $uid, $gid, @files ) = @_;
 
-	return CORE::chown( $mode, @files );
+	return CORE::chown( $uid, $gid, @files );
 }
 
 =item $sys->chown_for_eprints( @filelist )
@@ -193,6 +193,23 @@ sub test_uid
 "We appear to be running as user: $username ($cur_uid)\n".
 "We expect to be running as user: $req_username ($req_uid)" );
 	}
+}
+
+=item $sys->copy( $src, $dst )
+
+Copy the file located at $src to $dst and set the correct permissions.
+
+=cut
+
+sub copy
+{
+	my( $self, $src, $dst ) = @_;
+
+	return if !File::Copy::copy( $src, $dst );
+
+	$self->chown_for_eprints( $dst );
+
+	return 1;
 }
 
 =item $sys->mkdir( $path, MODE )

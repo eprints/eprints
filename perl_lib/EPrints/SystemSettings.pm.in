@@ -17,6 +17,8 @@ package EPrints::SystemSettings;
 
 $EPrints::SystemSettings::conf = 
 {
+	'user' => '@INSTALL_USER@',
+	'group' => '@INSTALL_GROUP@',
 	'smtp_server' => '@SMTP_SERVER@',
 };
 
