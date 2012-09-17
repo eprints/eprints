@@ -389,7 +389,7 @@ sub output_eprint
 		{
 			my $id = $dataobj->uuid("funding_funder_code:".$code);
 			$writer->start_element( CERIF_NS, "cfProj_ResPubl" );
-			$writer->data_element( CERIF_NS, "cjProjId", $id );
+			$writer->data_element( CERIF_NS, "cfProjId", $id );
 			$writer->end_element( CERIF_NS,  "cfProj_ResPubl" );
 			push @fundids, { projid => $id, code => $code };
 		}
