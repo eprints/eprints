@@ -6,8 +6,8 @@ VERSION=m4_esyscmd([grep \$VERSION perl_lib/EPrints.pm | sed 's/.*\([0-9]\+\.[0-
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
 
 DIST_PATH=`pwd`
-INSTALL_USER=eprints
-INSTALL_GROUP=eprints
+INSTALL_USER=`id -nu`
+INSTALL_GROUP=`id -ng`
 
 PERL_SEARCH_PATH="$PATH:/usr/local/bin:/opt/perl/bin:/opt/PERL/bin"
 AC_ARG_WITH(perl,
@@ -123,7 +123,7 @@ fi
 
 APACHE="2"
 
-SMTP_SERVER=""
+SMTP_SERVER="smtp"
 AC_ARG_WITH(smtp-server,
     [  --with-smtp-server=[HOSTNAME]  
                           SMTP server to use for outgoing email],
