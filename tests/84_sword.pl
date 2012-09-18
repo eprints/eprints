@@ -24,19 +24,23 @@ sub get_basic_credentials
 
 package main;
 
-my $repo = EPrints::Test->repository;
-
-my $base_url = URI->new( $repo->config( "base_url" ) );
-my $secure_url = URI->new( 'https://' . $repo->config( "securehost" ) );
-$secure_url->port( $repo->config( "secureport" ) );
-$secure_url->path( $repo->config( "https_root" ) );
-
 my $data = "Hello, World!";
 my $atom_data = join '', <DATA>;
 
+my $repo = EPrints::Test->repository;
+
 my $ua = MyUserAgent->new;
+
+if( $repo->config( "securehost" ) )
+{
+	my $secure_url = URI->new( 'https://' . $repo->config( "securehost" ) );
+	$secure_url->port( $repo->config( "secureport" ) );
+	$secure_url->path( $repo->config( "https_root" ) );
+	$ua->credentials( $secure_url->host_port, "*", "admin", "admin" );
+}
+
+my $base_url = URI->new( $repo->config( "base_url" ) );
 $ua->credentials( $base_url->host_port, "*", "admin", "admin" );
-$ua->credentials( $secure_url->host_port, "*", "admin", "admin" );
 
 my $xpc = XML::LibXML::XPathContext->new;
 $xpc->registerNs("atom", "http://www.w3.org/2005/Atom");
@@ -48,6 +52,7 @@ ok(1);
 my $end_point;
 
 # Retrieve the Sword endpoint via the repository's home page <link>
+SKIP:
 {
 	eval {
 		my $r = $ua->get( $base_url );
@@ -76,8 +81,9 @@ my $end_point;
 		die "Service document does not contain a collection"
 			if !defined $end_point;
 	};
-	BAIL_OUT( $@ ) if $@;
+	skip $@, 26 if $@;
 }
+goto FINISH if $@; # sort-of bail out if no HTTP available
 
 my $edit_link;
 
@@ -349,6 +355,8 @@ SKIP:
 		) );
 	ok($repo->database->counter_next( "eprintid" ) > $eprintid, "counter got moved on");
 }
+
+FINISH:
 
 __DATA__
 <?xml version="1.0" encoding="utf-8" ?>
