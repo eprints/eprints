@@ -552,7 +552,7 @@ sub run_doc_size
 
 	if( !$doc->[0]->is_set( "main" ) )
 	{
-		return 0;
+		return [];
 	}
 
 	my %files = $doc->[0]->files;

@@ -43,6 +43,7 @@ sub new
 	$self->{qs} = 0; # internal search is default
 	$self->{search} = [qw( simple/* advanced/* )];
 	$self->{session} = $self->{repository} = $self->{session} || $self->{repository};
+	$self->{external} = exists $params{external} ? $params{external} : 0;
 
 	return $self;
 }

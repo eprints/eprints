@@ -254,6 +254,157 @@ sub _new
 	return $self;
 }
 
+=item $repo = EPrints::Repository->create_from_data( $epdata )
+
+Create a new repository instance using $epdata.
+
+=cut
+
+sub create_from_data
+{
+	my( $class, $epdata ) = @_;
+
+	my $system = EPrints::System->new;
+
+	my $base_path = EPrints::Config::get( "base_path" );
+
+	my $repodir = "$base_path/archives/".$epdata->{repositoryid};
+	$system->mkdir( $repodir );
+
+	for(qw( cfg cgi var html documents documents/disk0 ))
+	{
+		$system->mkdir( "$repodir/$_" );
+	}
+
+	my $defaultcfg = "$base_path/lib/defaultcfg";
+
+	File::Find::find(sub {
+		if( -d $File::Find::name )
+		{
+			my $rel_path = substr($File::Find::name, length($defaultcfg));
+			$rel_path =~ s{^/}{};
+			$system->mkdir( "$repodir/cfg/$rel_path" )
+				or die "Error mkdir $repodir/cfg/$rel_path: $!";
+		}
+		else
+		{
+			my $rel_path = substr($File::Find::dir, length($defaultcfg));
+			$rel_path =~ s{^/}{};
+			$system->copy( $File::Find::name, "$repodir/cfg/$rel_path/$_" )
+				or die "Error copying $File::Find::name to $repodir/cfg/$rel_path/$_: $!";
+		}
+	}, $defaultcfg);
+
+	$epdata = EPrints::Utils::clone( $epdata );
+
+	my $cfgd = "$repodir/cfg/cfg.d";
+	$system->mkdir( $cfgd );
+
+	my $fh;
+
+	# 10_core.pl
+	my @core = qw( host port aliases securehost secureport http_root https_root );
+	EPrints::Config::write_config( "$cfgd/10_core.pl", [
+			map { "\$c->{$_}" } @core
+		],[
+			map { $epdata->{$_} } @core
+		]);
+
+	# adminemail.pl
+	EPrints::Config::write_config( "$cfgd/adminemail.pl", [qw/
+			$c->{adminemail}
+		/],[
+			$epdata->{adminemail}
+		]);
+
+	# database.pl
+	EPrints::Config::write_config( "$cfgd/database.pl", [
+			map { "\$c->{$_}" } grep { /^db/ } keys %$epdata
+		],[
+			map { $epdata->{$_} } grep { /^db/ } keys %$epdata
+		]);
+
+	# archive_name.xml
+	my $doc = EPrints::Language->create_phrase_doc;
+	my $phrases = $doc->documentElement;
+	my $phrase = $phrases->appendChild(
+		$doc->createElement( "epp:phrase" )
+	);
+	$phrase->setAttribute( id => "archive_name" );
+	$phrase->appendChild(
+		$doc->createTextNode( $epdata->{name} )
+	);
+	$system->mkdir("$repodir/cfg/lang/en/phrases");
+	open($fh, ">", "$repodir/cfg/lang/en/phrases/archive_name.xml");
+	print $fh $doc->toString;
+	close($fh);
+	$system->chown_for_eprints( "$repodir/cfg/lang/en/phrases/archive_name.xml" );
+
+	# reload the configuration
+	EPrints::Config::init();
+
+	return $class->new( $epdata->{repositoryid},
+			check_db => 0,
+		);
+}
+
+=item $repo->delete()
+
+Destroy the repository and all its contents.
+
+To allow this method you must first set $EPrints::Repository::ALLOW_DELETE to 1.
+
+=cut
+
+sub delete
+{
+	my( $self ) = @_;
+
+	if( !$EPrints::Repository::ALLOW_DELETE )
+	{
+		EPrints->abort( "Set \$EPrints::Repository::ALLOW_DELETE to 1 to delete a repository" );
+	}
+
+	my $base_path = $self->config( "base_path" );
+
+	my $repodir = "$base_path/archives/".$self->id;
+
+	EPrints::Utils::rmtree( $repodir );
+
+	$self->database->drop_archive_tables;
+
+	my $apache_cfg = "$base_path/cfg/apache/".$self->id.".conf";
+	unlink( $apache_cfg );
+
+	my $apache_ssl_cfg = "$base_path/cfg/apache_ssl/".$self->id.".conf";
+	unlink( $apache_ssl_cfg );
+}
+
+sub get_system_field_info
+{
+	my( $class ) = @_;
+
+	return(
+		{ name=>"repositoryid", type=>"id", required=>1, },
+
+		{ name=>"name", type=>"text", },
+
+		{ name=>"adminemail", type=>"email", },
+
+		{ name=>"host", type=>"id", },
+		{ name=>"port", type=>"int", },
+		{ name=>"http_root", type=>"id", },
+
+		{ name=>"aliases", type=>"id", multiple=>1, },
+
+		{ name=>"securehost", type=>"id", },
+		{ name=>"secureport", type=>"int", },
+		{ name=>"https_root", type=>"id", },
+
+		{ name=>"dbdriver", type=>"id", },
+	);
+}
+
 =begin InternalDoc
 
 =item $repo->init_from_thread()

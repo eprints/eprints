@@ -124,8 +124,8 @@ sub load_system_config
 
 	foreach my $dir ( $syslibcfgd, $syscfgd )
 	{
-		opendir(my $dh, $dir)
-			or (warn("Error opening directory $dir: $!"), next);
+		next if !-e $dir;
+		opendir(my $dh, $dir) or die "Error opening $dir: $!";
 		foreach my $file (readdir($dh)) 
 		{
 			next if $file =~ m/^\./;
@@ -335,6 +335,27 @@ sub get
 	my( $confitem ) = @_;
 
 	return $SYSTEMCONF->{$confitem};
+}
+
+=item $ok = EPrints::Config::write_config( $dest, $names, $values )
+
+Write name-value pairs to a configuration file $dest (overwriting any existing data). This uses L<EPrints::Dumper> to serialise the passed Perl structures.
+
+=cut
+
+sub write_config
+{
+	my( $filename, $names, $values ) = @_;
+
+	my $sys = EPrints::System->new;
+
+	open(my $fh, ">", $filename) or die "Error writing to $filename: $!";
+	print $fh Data::Dumper->Dump( $values, $names );
+	close($fh);
+
+	$sys->chmod( $sys->file_perms, $filename );
+
+	$sys->chown_for_eprints( $filename );
 }
 
 1;

@@ -201,9 +201,20 @@ sub output_dataobj
 {
 	my( $self, $dataobj, %opts ) = @_;
 
-	return if $self->{_seen}{$dataobj->internal_uri}++;
-
 	$self->_start( %opts ) if !defined $opts{list};
+
+	$self->_output_dataobj( $dataobj, %opts );
+
+	$self->_end( %opts ) if !defined $opts{list};
+
+	return $self->{_output};
+}
+
+sub _output_dataobj
+{
+	my( $self, $dataobj, %opts ) = @_;
+
+	return if $self->{_seen}{$dataobj->internal_uri}++;
 
 	if( $dataobj->isa( "EPrints::DataObj::EPrint" ) )
 	{
@@ -217,10 +228,6 @@ sub output_dataobj
 	{
 		warn "Unsupported object type ".ref($dataobj);
 	}
-
-	$self->_end( %opts ) if !defined $opts{list};
-
-	return $self->{_output};
 }
 
 sub output_user
@@ -254,7 +261,7 @@ sub output_user
 		$list->map(sub {
 			(undef, undef, my $eprint) = @_;
 
-			$self->output_dataobj( $eprint, %opts );
+			$self->_output_dataobj( $eprint, %opts );
 		});
 	}
 }
@@ -432,7 +439,8 @@ sub output_eprint
 
 	if( defined $owner && !$opts{hide_related} )
 	{
-		$self->output_dataobj( $owner, %opts, hide_related => 1 );
+		local $opts{hide_related} = 1;
+		$self->_output_dataobj( $owner, %opts );
 	}
 
 	foreach my $pers (@people)

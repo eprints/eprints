@@ -36,15 +36,7 @@ my $move_to_archive_ok = 1;
 my $move_to_deletion_ok = 1;
 
 local $EPrints::die_on_abort = 1;
-
-foreach my $field_data ( @fields )
-{
-	my $field_name = $field_data->{name};
-
-	local $dataset->{field_index} = {%{$dataset->{field_index}}};
-	$dataset->unregister_field( $dataset->field( $field_name ) );
-
-	my $eprint = eval { $dataset->create_dataobj( { 
+my $epdata = { 
 		eprint_status => "inbox", 
 		userid => 1,
 		type => "article",
@@ -67,7 +59,19 @@ foreach my $field_data ( @fields )
 		date => "2009",
 		isbn => "1234567890",
 		issn => "12345690",
-	} ); };
+};
+
+foreach my $field_data ( @fields )
+{
+	my $field_name = $field_data->{name};
+
+	local $dataset->{field_index} = {%{$dataset->{field_index}}};
+	$dataset->unregister_field( $dataset->field( $field_name ) );
+
+	$epdata = EPrints::Utils::clone( $epdata );
+	delete $epdata->{$field_name};
+
+	my $eprint = eval { $dataset->create_dataobj( $epdata ); };
 	ok( !$@, "create eprint without '$field_name' field: $@" );
 
 	if( !defined $eprint ) { BAIL_OUT( "Could not create a new eprint object (in sans $field_name mode)" ); }

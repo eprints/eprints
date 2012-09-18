@@ -347,6 +347,49 @@ exit;
 
 }
 
+=head2 create_test
+
+	epadmin create_test
+
+Create a test repository instance called "test".
+
+=cut
+
+sub epadmin_create_test
+{
+	my $repoid = "test";
+
+	my $system = EPrints::System->new;
+
+	my $repodir = EPrints::Config::get( "base_path" )."/archives/".$repoid;
+
+	if( -e $repodir && !$force )
+	{
+		die "Use --force to overwrite existing repository.\n";
+	}
+
+	my $repo = EPrints::Repository->create_from_data({
+			repositoryid => "test",
+			name => "Test Repository",
+			adminemail => 'root@localhost',
+			host => "localhost",
+			port => 8080,
+			http_root => "",
+			dbdriver => "mysql",
+			dbname => "test",
+			dbuser => "test",
+		});
+
+	$repo->database->drop_archive_tables;
+
+	$repo->database->create_archive_tables;
+
+	run_script( $repoid, "generate_static", $repoid );	
+
+	run_script( $repoid, "import_subjects", "--force", $repoid );	
+
+	run_script( $repoid, "generate_apacheconf", $repoid );	
+}
 	
 # don't be fooled. This isn't the same as the install() in
 # eprints-install
@@ -1056,6 +1099,33 @@ sub epadmin_create_user
 	{
 		my $db_error = $repo->database->error;
 		print STDERR "Error creating user: $db_error\n";
+	}
+}
+
+=head2 delete
+
+	epadmin delete repository_id
+
+Destroy repository_id and all of its content. Only use if you are absolutely sure you know what you're doing.
+
+=cut
+
+sub epadmin_delete
+{
+	my( $repoid ) = @_;
+
+	my $repo = &repository( $repoid );
+
+	if(
+		$force ||
+		$repoid eq EPrints::Utils::get_input( $REGEXP_VARNAME, 'Confirm repository id' )
+	  )
+	{
+		local $EPrints::Repository::ALLOW_DELETE = 1;
+
+		$repo->delete;
+
+		print "$repoid has been removed\n";
 	}
 }
 

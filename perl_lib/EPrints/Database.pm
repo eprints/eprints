@@ -4043,7 +4043,10 @@ sub rename_field
 	}
 
 	# rename the field from order values (used to order search results)
-	$rc &&= $self->_rename_field_ordervalues( $dataset, $field, $old_name );
+	if( $dataset->ordered )
+	{
+		$rc &&= $self->_rename_field_ordervalues( $dataset, $field, $old_name );
+	}
 
 	return $rc;
 }
