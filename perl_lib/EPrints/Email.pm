@@ -62,6 +62,12 @@ replyto_email, replyto_name
 
 attach - ref to an array of filenames (with full paths) to attach to the message 
 
+to_list - ref to an array of additional email addresses to send the email to
+(note that to_email must be provided)
+
+cc_list - ref to an array of email addresses to CC the email to (note that
+to_email must be provided)
+
 Returns true if mail sending (appears to have) succeeded. False otherwise.
 
 Uses the config. option "send_email" to send the mail, or if that's
@@ -177,6 +183,18 @@ sub send_mail_via_smtp
 		$smtp->quit;
 		return 0;
 	}
+
+	if( EPrints::Utils::is_set( $p{to_list} ) )
+	{
+		my @goodrecips = $smtp->recipient( @{ $p{to_list} }, { Notify => ['NEVER'], SkipBad => 1 } );
+		$p{to_list} = \@goodrecips;
+	}
+	if( EPrints::Utils::is_set( $p{cc_list} ) )
+	{
+		my @goodrecips = $smtp->recipient( @{ $p{cc_list} }, { Notify => ['NEVER'], SkipBad => 1 } );
+		$p{cc_list} = \@goodrecips;
+	}
+
 	my $message = build_email( %p );
 	my $data = $message->as_string;
 	# Send the message as bytes, to avoid Net::Cmd wide-character warnings
@@ -248,6 +266,14 @@ sub build_email
 	}
 	$mimemsg->replace( "X-Mailer" => "EPrints http://eprints.org/" );
 
+	if( EPrints::Utils::is_set( $p{to_list} ) )
+	{
+		$mimemsg->replace( "To", encode_mime_header( "$p{to_name}" )." <$p{to_email}>, " . join( ", ", @{ $p{to_list} } ) );
+	}
+	if( EPrints::Utils::is_set( $p{cc_list} ) )
+	{
+		$mimemsg->replace( "Cc", join( ", ", @{ $p{cc_list} } ) );
+	}
 
 	# If there are file attachments, change to a "mixed" type
 	# and attach the body Text and HTML to an "alternative" subpart
@@ -263,6 +289,7 @@ sub build_email
 	}
 
 	my $xml_mail = $p{message};
+	EPrints::XML::tidy( $xml_mail );
 	my $data = EPrints::Utils::tree_to_utf8( $xml_mail , $MAILWIDTH, 0, 0, 0 );
 
 	my $text = MIME::Lite->new( 
