@@ -484,13 +484,13 @@ sub output_eprint
 		{
 			my $projid = $dataobj->uuid("project:".$project);
 
-			$writer->start_element( CERIF_NS, "cfResProj" );
+			$writer->start_element( CERIF_NS, "cfProj" );
 			$writer->data_element( CERIF_NS, "cfProjId", $projid );
 			$writer->data_element( CERIF_NS, "cfTitle", $project,
 					cfLangCode => "en_GB",
 					cfTrans => "o",
 				);
-			$writer->end_element( CERIF_NS, "cfResProj" );
+			$writer->end_element( CERIF_NS, "cfProj" );
 		}
 	}
 
