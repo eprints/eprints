@@ -154,7 +154,7 @@ sub action_all
 
 	local $self->{processor}->{results} = $self->{processor}->{results}->{$datasetid};
 
-	return $self->SUPER::action_add;
+	return $self->SUPER::action_all;
 }
 
 sub action_confirm_all
@@ -165,7 +165,7 @@ sub action_confirm_all
 
 	local $self->{processor}->{results} = $self->{processor}->{results}->{$datasetid};
 
-	return $self->SUPER::action_add;
+	return $self->SUPER::action_confirm_all;
 }
 
 sub allow_paste { shift->can_be_viewed }

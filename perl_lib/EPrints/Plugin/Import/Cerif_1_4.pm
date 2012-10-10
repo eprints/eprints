@@ -116,10 +116,13 @@ sub localise
 	# remove users that are just names
 	foreach my $userid (keys %{$self->{data}{user} || {}})
 	{
-		if(
-			keys(%{$self->{data}{user}{$userid}}) == 1 &&
-			defined($self->{data}{user}{$userid}{name})
-		  )
+		my $epdata = $self->{data}{user}{$userid};
+		my @fieldids = grep {
+				$_ !~ /^_/ &&
+				$_ ne "source" &&
+				EPrints::Utils::is_set( $epdata->{$_} )
+			} keys %$epdata;
+		if( @fieldids == 0 || (@fieldids == 1 && $fieldids[0] eq "name") )
 		{
 			delete $self->{data}{user}{$userid};
 		}
@@ -146,6 +149,12 @@ sub deconstruct
 	my( $self ) = @_;
 
 	my $data = $self->{data};
+
+	# clean up '_cf'
+	for(values %{$data->{user} || {}}, values %{$data->{eprint} || {}})
+	{
+		delete $_->{_cf};
+	}
 
 	# process user classes
 	foreach my $class (values %{$data->{"user:class"} || {}})
@@ -267,7 +276,7 @@ sub deconstruct
 
 		no warnings; # suppress undef warnings
 
-		if( "class_scheme_publication_publication_roles" eq $relation->{classschemeid} )
+		if( "class_scheme_cerif_publication_publication_roles" eq $relation->{classschemeid} )
 		{
 			if( "part" eq $relation->{classid} )
 			{
@@ -286,7 +295,7 @@ sub deconstruct
 				}
 				else
 				{
-					warn "Unsupported: $object->{type} - $relation->{classid} - $subject->{type}";
+					warn "Unsupported relation: $object->{type} [$relation->{_object}] - $relation->{classid} - $subject->{type} [$relation->{_subject}]";
 				}
 			}
 			else
@@ -296,7 +305,7 @@ sub deconstruct
 		}
 		else
 		{
-			warn "Unsupported classschemeid: $relation->{classschemeid}";
+			warn "Unsupported classschemeid: $relation->{classschemeid} [$relation->{_object}]";
 		}
 	}
 	delete $data->{"eprint:relation"};
@@ -324,6 +333,7 @@ sub start_element
 	# entities
 	if( $name =~ /^cf(respubl|pers|orgunit)$/ )
 	{
+		# object type|id|epdata
 		push @{$self->{stack}}, [
 				$CERIF_TYPE{$1},
 				undef,
@@ -401,10 +411,15 @@ sub start_element
 					\($self->{stack}[-1][2]{_object} = "");
 			}
 			# /CERIF/cfPers_ResPubl/cfResPublId or /CERIF/cfPers/cfPers_ResPubl/cfResPublId
-			else
+			elsif( !defined $self->{stack}[-1][2]{_subject} )
 			{
 				push @{$self->{stack}},
 					\($self->{stack}[-1][2]{_subject} = "");
+			}
+			else
+			{
+				# both ids in the relation object, arg
+				push @{$self->{stack}}, undef;
 			}
 		}
 		# class properties
