@@ -135,8 +135,9 @@ sub localise
 	# remove unsupported fields
 	foreach my $dsid (keys %{$self->{data}})
 	{
+		# FIXME has_dataset()
+		next if !exists $repo->{datasets}->{$dsid};
 		my $dataset = $repo->dataset( $dsid );
-		next if !defined $dataset;
 		foreach my $epdata (values %{$self->{data}{$dsid}})
 		{
 			foreach my $fieldid (keys %$epdata)
@@ -281,6 +282,7 @@ sub deconstruct
 			$object->{acro} = $subject->{acro};
 		}
 	}
+	delete $data->{"project:relation"};
 
 	# merge data from proj into parent eprints
 	while(my( $objectid, $object ) = each %{$data->{project} || {}})
