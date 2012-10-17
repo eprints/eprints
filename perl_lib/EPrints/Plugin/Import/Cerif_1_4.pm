@@ -17,11 +17,15 @@ our %CERIF_TYPE = (
 	respubl => "eprint",
 	pers => "user",
 	orgunit => "org_unit",
+	proj => "project",
+	fund => "funding_programme",
 );
 our %CERIF_RELATION_TYPE = (
 	respubl_respubl => ["eprint", "eprint"],
 	pers_respubl => ["user", "eprint"],
 	orgunit_respubl => ["org_unit", "eprint"],
+	proj_respubl => ["project", "eprint"],
+	proj_fund => ["project", "funding_programme"],
 );
 our %CERIF_CLASS_TYPE = (
 	respubl_class => "eprint",
@@ -150,12 +154,6 @@ sub deconstruct
 
 	my $data = $self->{data};
 
-	# clean up '_cf'
-	for(values %{$data->{user} || {}}, values %{$data->{eprint} || {}})
-	{
-		delete $_->{_cf};
-	}
-
 	# process user classes
 	foreach my $class (values %{$data->{"user:class"} || {}})
 	{
@@ -266,6 +264,36 @@ sub deconstruct
 	}
 	delete $data->{"org_unit:relation"};
 
+	# process proj->* relations
+	foreach my $relation (values %{$data->{"project:relation"} || {}})
+	{
+		my $object = $data->{project}->{$relation->{_object}};
+		next if !defined $object;
+		my $subject = $data->{$relation->{_subjectclass}}{$relation->{_subject}};
+		next if !defined $subject;
+
+		if( $subject->{_cf} eq "respubl" )
+		{
+			push @{$object->{eprint}}, $subject;
+		}
+		elsif( $subject->{_cf} eq "fund" )
+		{
+			$object->{acro} = $subject->{acro};
+		}
+	}
+
+	# merge data from proj into parent eprints
+	while(my( $objectid, $object ) = each %{$data->{project} || {}})
+	{
+		next if !EPrints::Utils::is_set( $object->{acro} );
+		foreach my $eprint (@{$object->{eprint}||[]})
+		{
+			push @{$eprint->{funding}}, {
+				funder_code => $object->{acro},
+			};
+		}
+	}
+
 	# process eprint->* relations
 	foreach my $relation (values %{$data->{"eprint:relation"} || {}})
 	{
@@ -310,7 +338,11 @@ sub deconstruct
 	}
 	delete $data->{"eprint:relation"};
 
-
+	# clean up '_cf' typedef
+	for(values %{$data->{user} || {}}, values %{$data->{eprint} || {}})
+	{
+		delete $_->{_cf};
+	}
 }
 
 sub start_element
@@ -331,7 +363,7 @@ sub start_element
 	}
 
 	# entities
-	if( $name =~ /^cf(respubl|pers|orgunit)$/ )
+	if( $name =~ /^cf(respubl|pers|orgunit|proj|fund)$/ )
 	{
 		# object type|id|epdata
 		push @{$self->{stack}}, [
@@ -343,8 +375,14 @@ sub start_element
 			];
 	}
 	# relations
-	elsif( $name =~ /^cf((respubl|pers|orgunit)_(respubl|pers))$/ )
+	elsif( $name =~ /^cf((respubl|pers|orgunit|proj)_(respubl|pers|fund))$/ )
 	{
+		if( !exists $CERIF_RELATION_TYPE{$1} )
+		{
+			push @{$self->{stack}}, undef;
+			return;
+		}
+
 		my( $from, $to ) = @{$CERIF_RELATION_TYPE{$1}};
 		# if there is a parent entity then we need to use its identifier as
 		# either the object or subject of the relation, depending on the
@@ -396,7 +434,7 @@ sub start_element
 	elsif( defined $current )
 	{
 		# identifiers
-		if( $name =~ /^cf(respublid|respublid1|respublid2|persid|orgunitid)$/ )
+		if( $name =~ /^cf(respublid|respublid1|respublid2|persid|orgunitid|projid|fundid)$/ )
 		{
 			# /CERIF/cfPers/cfPersId
 			if( !defined $current->[1] )
@@ -429,7 +467,7 @@ sub start_element
 				\($self->{stack}[-1][2]{$1} = "");
 		}
 		# entity properties
-		elsif( $name =~ /^cf(respubldate|num|vol|edition|series|issue|startpage|endpage|totalpages|isbn|issn|birthdate|gender|familynames|middlenames|firstnames|othernames|eaddrid)$/ )
+		elsif( $name =~ /^cf(respubldate|num|vol|edition|series|issue|startpage|endpage|totalpages|isbn|issn|birthdate|gender|familynames|middlenames|firstnames|othernames|eaddrid|acro)$/ )
 		{
 			my $fieldid = $CERIF_RESPUBL_FIELD{$1} || $1;
 			push @{$self->{stack}}, 
