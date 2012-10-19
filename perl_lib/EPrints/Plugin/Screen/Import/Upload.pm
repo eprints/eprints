@@ -225,10 +225,25 @@ sub epdata_to_dataobj
 
 	return undef if !$self->can_create( $dataset );
 
+	my $owner = $self->{processor}->{on_behalf_of};
+	$owner = $repo->current_user if !defined $owner;
+
+	# we're working on-behalf-of
+	if( $dataset->has_field( "userid" ) && $dataset->field( "userid" )->isa( "EPrints::MetaField::Itemref" ) )
+	{
+		$epdata->{userid} = $owner->id;
+	}
+
 	if( $dataset->base_id eq "eprint" )
 	{
-		$epdata->{userid} = $self->{repository}->current_user->id;
-		$epdata->{eprint_status} = "inbox";
+		if( $owner->id ne $repo->current_user->id )
+		{
+			$epdata->{eprint_status} = "buffer";
+		}
+		else
+		{
+			$epdata->{eprint_status} = "inbox";
+		}
 	}
 
 	my $cache = $self->{processor}->{results}->{$dataset->base_id};
