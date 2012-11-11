@@ -1818,7 +1818,7 @@ sub servicedocument
 
 	return $self->send_response(
 		OK,
-		'application/xtomsvc+xml; charset=utf-8',
+		'application/atomsvc+xml; charset=utf-8',
 		$content
 	);
 }
