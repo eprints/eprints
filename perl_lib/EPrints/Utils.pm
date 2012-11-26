@@ -456,6 +456,10 @@ sub wget
 	}
 
 	my $ua = LWP::UserAgent->new();
+        if ( $session->config( "proxy" ))
+        {
+          $ua->proxy(['http', 'https', 'ftp'], $session->config( "proxy" ));
+        }
 
 	my $r = $ua->get( $url,
 		":content_file" => $target
