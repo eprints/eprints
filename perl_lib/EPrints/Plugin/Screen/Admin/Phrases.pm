@@ -253,69 +253,6 @@ sub export_mimetype
 	return "text/html";
 }
 
-
-sub render_style
-{
-	my( $self ) = @_;
-
-	my $style = $self->{session}->make_element( "style", type=>"text/css" );
-	my $base_url = $self->{session}->get_url( path => "static" );
-	$style->appendChild( $self->{session}->make_text( <<END ) );
-#ep_phraseedit_table {
-	width: 100%;
-	border-collapse: collapse;
-	margin-top: 1em;
-}
-#ep_phraseedit_table tr {
-/*	background-color: #ccf; */
-	border-bottom: dashed 1px #88f;
-}
-#ep_phraseedit_table tr td {
-	padding: 3px;
-}
-.ep_phraseedit_widget {
-	cursor: text;
-	min-height: 1em;
-/*	overflow: auto; */
-}
-#ep_phraseedit_table textarea {
-/*	overflow: hidden; */
-}
-.ep_phraseedit_widget, #ep_phraseedit_table textarea {
-	font-family: monospace;
-	font-size: 9pt;
-	width: 98%;
-	display: block;
-	background-color: white;
-	border: solid 1px #66c;
-	padding: 3px;
-}
-.ep_phraseedit_ref {
-	border: dashed 1px #c66;
-}
-.ep_phraseedit_null {
-	background-color: #ccf;
-}
-.ep_phraseedit_webcfg {
-	background-color: #99f;
-}
-#ep_phraseedit_table td input {
-	font-size: 90%;
-}
-#ep_phraseedit_addbar
-{
-	border: 1px solid #88c;
-	background: #e7e9f5 url($base_url/style/images/toolbox.png) repeat-x;
-	padding: 8px;
-	margin-bottom: 0.75em;
-	margin-top: 0.25em;
-}
-END
-	return $style;
-}
-
-
-
 # stop post requests redirecting to GETs
 sub redirect_to_me_url
 {
@@ -356,8 +293,6 @@ sub render
 
 	my $f = $session->make_doc_fragment;
 	
-	$f->appendChild( $self->render_style );
-
 	$f->appendChild( $self->html_phrase( "intro" ) );
 
 	if( !defined $self->{phrase_ids} )
