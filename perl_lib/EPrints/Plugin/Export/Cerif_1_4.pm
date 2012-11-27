@@ -14,6 +14,8 @@ EPrints::Plugin::Export::Cerif_1_4 - Cerif 1.4 XML Export
 
 use EPrints::Plugin::Export::XMLFile;
 use EPrints::XML::SAX::SimpleDriver;
+use EPrints::XML::SAX::PrettyPrint;
+use EPrints::XML::SAX::Writer;
 
 @ISA = ( "EPrints::Plugin::Export::XMLFile" );
 
