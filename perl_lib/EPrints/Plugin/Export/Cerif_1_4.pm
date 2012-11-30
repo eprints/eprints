@@ -14,6 +14,8 @@ EPrints::Plugin::Export::Cerif_1_4 - Cerif 1.4 XML Export
 
 use EPrints::Plugin::Export::XMLFile;
 use EPrints::XML::SAX::SimpleDriver;
+use EPrints::XML::SAX::PrettyPrint;
+use EPrints::XML::SAX::Writer;
 
 @ISA = ( "EPrints::Plugin::Export::XMLFile" );
 
@@ -317,7 +319,7 @@ sub output_eprint
 		$writer->data_element( CERIF_NS, "cfResPublId2", $id );
 		$self->cf_class_fraction( $writer,
 				classId => "part",
-				classSchemeId => "class_scheme_publication_publication_roles",
+				classSchemeId => "class_scheme_cerif_publication_publication_roles",
 			);
 		$writer->end_element( CERIF_NS, "cfResPubl_ResPubl" );
 		# work out the class of the related publication entry
@@ -484,13 +486,13 @@ sub output_eprint
 		{
 			my $projid = $dataobj->uuid("project:".$project);
 
-			$writer->start_element( CERIF_NS, "cfResProj" );
+			$writer->start_element( CERIF_NS, "cfProj" );
 			$writer->data_element( CERIF_NS, "cfProjId", $projid );
 			$writer->data_element( CERIF_NS, "cfTitle", $project,
 					cfLangCode => "en_GB",
 					cfTrans => "o",
 				);
-			$writer->end_element( CERIF_NS, "cfResProj" );
+			$writer->end_element( CERIF_NS, "cfProj" );
 		}
 	}
 

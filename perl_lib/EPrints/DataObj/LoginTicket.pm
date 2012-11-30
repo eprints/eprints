@@ -113,7 +113,11 @@ sub get_defaults
 
 	$data->{code} = &_code();
 	$data->{securecode} = &_code();
-	$data->{ip} = $repo->get_request->connection->remote_ip;
+	if( !$repo->config( "ignore_login_ip" ) )
+	{
+		$data->{ip} = $repo->get_request->connection->remote_ip;
+	}
+
 	$data->{time} = time();
 	my $timeout = $repo->config( "user_inactivity_timeout" );
 	$timeout = $SESSION_TIMEOUT if !defined $timeout;

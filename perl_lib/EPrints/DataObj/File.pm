@@ -588,7 +588,7 @@ sub to_sax
 		Attributes => \%Attributes,
 	});
 
-	if( $self->value( "datasetid" ) eq "document" )
+	if( $self->is_set( "datasetid" ) && $self->value( "datasetid" ) eq "document" )
 	{
 		my $doc = $self->parent();
 		my $url = $doc->get_url( $self->value( "filename" ) );
