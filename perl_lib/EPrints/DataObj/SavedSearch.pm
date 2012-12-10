@@ -64,8 +64,6 @@ sub get_system_field_info
 		{ name=>"userid", type=>"itemref", 
 			datasetid=>"user", required=>1 },
 
-		{ name=>"pos", type=>"int", required=>1 },
-
 		{ name=>"name", type=>"text" },
 
 		{ name => "spec", type => "search", datasetid => "eprint",
