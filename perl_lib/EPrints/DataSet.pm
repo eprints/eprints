@@ -354,7 +354,7 @@ my $INFO = {
 		class => "EPrints::DataObj::SavedSearch",
 		import => 1,
 		index => 1,
-		columns => [qw( id name )],
+		columns => [qw( id name spec )],
 	},
 	public_saved_search => {
 		sqlname => "saved_search",
