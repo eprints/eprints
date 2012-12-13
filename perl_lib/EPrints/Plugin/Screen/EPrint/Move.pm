@@ -18,7 +18,7 @@ sub new
 
 	#	$self->{priv} = # no specific priv - one per action
 
-	$self->{actions} = [qw/ move_inbox move_buffer move_archive move_deletion /];
+	$self->{actions} = [qw/ move_inbox move_buffer move_archive move_deletion review_move_archive /];
 
 	$self->{appears} = [
 { place => "eprint_actions", 	action => "move_inbox", 	position => 600, },
@@ -29,9 +29,12 @@ sub new
 { place => "eprint_actions_bar_archive", action => "move_buffer", position => 100, },
 { place => "eprint_actions_bar_archive", action => "move_deletion", position => 100, },
 { place => "eprint_actions_bar_deletion", action => "move_archive", position => 100, },
-{ place => "eprint_review_actions", action => "move_archive", postion => 200, },
+{ place => "eprint_review_actions", action => "review_move_archive", postion => 200, },
 	];
-	$self->{action_icon} = { move_archive => "action_approve.png" };
+	$self->{action_icon} = {
+		move_archive => "action_approve.png",
+		review_move_archive => "action_approve.png",
+	};
 
 	return $self;
 }
@@ -96,6 +99,7 @@ sub action_move_inbox
 }
 
 
+sub allow_review_move_archive { shift->allow_move_archive( @_ ) }
 sub allow_move_archive
 {
 	my( $self ) = @_;
@@ -110,6 +114,14 @@ sub action_move_archive
 	my $ok = $self->{processor}->{eprint}->move_to_archive;
 
 	$self->add_result_message( $ok );
+}
+sub action_review_move_archive
+{
+	my( $self ) = @_;
+
+	$self->action_move_archive;
+
+	$self->{processor}->{screenid} = "Review";
 }
 
 
@@ -139,6 +151,7 @@ sub add_result_message
 	{
 		$self->{processor}->add_message( "message",
 			$self->html_phrase( "status_changed",
+				item=>$self->{processor}->{eprint}->render_citation_link,
 				status=>$self->{processor}->{eprint}->render_value( "eprint_status" ) ) );
 	}
 	else
