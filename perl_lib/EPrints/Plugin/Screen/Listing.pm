@@ -389,8 +389,7 @@ sub render
 	my( $self ) = @_;
 
 	my $session = $self->{session};
-	my $user = $session->current_user;
-	my $imagesurl = $session->config( "rel_path" )."/style/images";
+	my $list = $self->perform_search;
 
 	my $chunk = $session->make_doc_fragment;
 
@@ -398,11 +397,25 @@ sub render
 
 	$chunk->appendChild( $self->render_filters() );
 
+	$chunk->appendChild( $self->render_items( $list ) );
+
+	return $chunk;
+}
+
+sub render_items
+{
+	my( $self, $list ) = @_;
+
+	my $session = $self->{session};
+	my $user = $session->current_user;
+	my $imagesurl = $session->config( "rel_path" )."/style/images";
+
+	my $chunk = $session->make_doc_fragment;
+
 	### Get the items owned by the current user
 	my $ds = $self->{processor}->{dataset};
 
 	my $search = $self->{processor}->{search};
-	my $list = $self->perform_search;
 	my $exp;
 	if( !$search->is_blank )
 	{
@@ -498,29 +511,7 @@ sub render
 		columns => [(map{ $_->name } @{$columns}), undef ],
 		above_results => $session->make_doc_fragment,
 		render_result => sub {
-			my( undef, $dataobj ) = @_;
-
-			local $self->{processor}->{dataobj} = $dataobj;
-			my $class = "row_".($row % 2 ? "b" : "a");
-
-			my $tr = $session->make_element( "tr", class=>$class );
-
-			my $first = 1;
-			for( map { $_->name } @$columns )
-			{
-				my $td = $session->make_element( "td", class=>"ep_columns_cell".($first?" ep_columns_cell_first":"")." ep_columns_cell_$_"  );
-				$first = 0;
-				$tr->appendChild( $td );
-				$td->appendChild( $dataobj->render_value( $_ ) );
-			}
-
-			my $td = $session->make_element( "td", class=>"ep_columns_cell ep_columns_cell_last", align=>"left" );
-			$tr->appendChild( $td );
-			$td->appendChild( $self->render_dataobj_actions( $dataobj ) );
-
-			++$row;
-
-			return $tr;
+			$self->render_result_row( $_[1] );
 		},
 		rows_after => $final_row,
 	);
@@ -583,12 +574,43 @@ sub hidden_bits
 	);
 }
 
+sub render_result_row
+{
+	my( $self, $dataobj ) = @_;
+
+	my $session = $self->{session};
+	my $columns = $self->{processor}->{columns};
+
+	local $self->{processor}->{dataobj} = $dataobj;
+	my $class = "";
+# "row_".($row % 2 ? "b" : "a");
+
+	my $tr = $session->make_element( "tr", class=>$class );
+
+	my $first = 1;
+	for( map { $_->name } @$columns )
+	{
+		my $td = $session->make_element( "td", class=>"ep_columns_cell".($first?" ep_columns_cell_first":"")." ep_columns_cell_$_"  );
+		$first = 0;
+		$tr->appendChild( $td );
+		$td->appendChild( $dataobj->render_value( $_ ) );
+	}
+
+	my $td = $session->make_element( "td", class=>"ep_columns_cell ep_columns_cell_last", align=>"left" );
+	$tr->appendChild( $td );
+	$td->appendChild( $self->render_dataobj_actions( $dataobj ) );
+
+	return $tr;
+}
+
 sub render_top_bar
 {
 	my( $self ) = @_;
 
 	my $session = $self->{session};
 	my $chunk = $session->make_doc_fragment;
+	my $imagesurl = $session->current_url( path => "static", "style/images" );
+	my $list = $self->perform_search;
 
 	if( $session->get_lang->has_phrase( $self->html_phrase_id( "intro" ), $session ) )
 	{
@@ -597,6 +619,22 @@ sub render_top_bar
 		$intro_div->appendChild( $self->html_phrase( "intro" ) );
 		$intro_div_outer->appendChild( $intro_div );
 		$chunk->appendChild( $intro_div_outer );
+	}
+
+	my $phraseid = $self->html_phrase_id( $list->count ? "help" : "help_no_items" );
+	if( $session->get_lang->has_phrase( $phraseid, $session ) )
+	{
+		my %options = (
+			session => $session,
+			id => "ep_review_instructions",
+			title => $self->html_phrase( "help_title" ),
+			content => $session->html_phrase( $phraseid ),
+			collapsed => 1,
+			show_icon_url => "$imagesurl/help.gif",
+		);
+		my $box = $session->make_element( "div", style=>"text-align: left" );
+		$box->appendChild( EPrints::Box::render( %options ) );
+		$chunk->appendChild( $box );
 	}
 
 	# we've munged the argument list below

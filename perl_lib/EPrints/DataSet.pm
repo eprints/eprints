@@ -328,6 +328,7 @@ my $INFO = {
 		index => 1,
 		order => 1,
 		datestamp => "lastmod",
+		columns => [qw( eprintid type eprint_status lastmod )], # default columns for Items screen
 	},
 	document => {
 		sqlname => "document",
