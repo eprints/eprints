@@ -201,6 +201,7 @@ use strict;
 my %CONTENTSMAP = (
 	"EPrints::DataObj::EPrint" => "documents",
 	"EPrints::DataObj::Document" => "files",
+	"EPrints::DataObj::File" => "data",
 	);
 
 sub new
@@ -275,9 +276,6 @@ sub new
 				return;
 			}
 			$self{field} = $self{dataset}->field( $fieldid );
-			$self{dataset} = $repo->dataset(
-					$self{field}->property( "datasetid" )
-				);
 		}
 		elsif( !$self{dataset}->has_field( $self{fieldid} ) )
 		{
@@ -477,11 +475,6 @@ sub _priv
 	if( $self->scope eq CRUD_SCOPE_CONTENTS )
 	{
 		$priv = $self->is_write ? "edit" : "view";
-		$dataobj = $dataobj->parent
-			if $dataobj->isa( "EPrints::DataObj::File" );
-		$dataobj = $dataobj->parent
-			if $dataobj->isa( "EPrints::DataObj::Document" );
-		$dataset = $dataobj->get_dataset;
 	}
 	elsif( $self->method eq "POST" )
 	{
@@ -1156,6 +1149,13 @@ sub GET
 	my $field = $self->field;
 	my $plugin = $self->plugin;
 
+	# contents of a file is always the file content
+	if( $dataobj->isa( "EPrints::DataObj::File" ) && $self->scope == CRUD_SCOPE_CONTENTS )
+	{
+		$r->pnotes( dataobj => $dataobj );
+		return EPrints::Apache::Storage::handler( $r );
+	}
+
 	# what to do when the user doesn't ask for a specific content type
 	if( $r->pnotes->{mime_type} eq "*/*" )
 	{
@@ -1475,13 +1475,6 @@ sub PUT
 	my $rc = $self->check_packaging;
 	return $rc if $rc != OK;
 
-	if( !defined $plugin && $dataset->base_id eq "file" )
-	{
-		$plugin = $repo->plugin( "Import::Binary" );
-	}
-
-	return HTTP_UNSUPPORTED_MEDIA_TYPE if !defined $plugin;
-
 	# We support Content-Ranges for writing to files
 	if( defined(my $offset = $headers->{offset}) )
 	{
@@ -1514,6 +1507,8 @@ sub PUT
 
 		return HTTP_NO_CONTENT;
 	}
+
+	return HTTP_UNSUPPORTED_MEDIA_TYPE if !defined $plugin;
 
 	my $epdata;
 

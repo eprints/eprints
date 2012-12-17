@@ -421,7 +421,7 @@ sub handler
 
 			$r->pnotes( eprint => $eprint );
 			$r->pnotes( document => $doc );
-			$r->pnotes( dataobj => $doc );
+			$r->pnotes( dataobj => $doc->storage_file( $filename ) );
 			$r->pnotes( filename => $filename );
 
 			$r->handler('perl-script');

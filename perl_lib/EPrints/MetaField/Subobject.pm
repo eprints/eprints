@@ -67,6 +67,7 @@ sub get_property_defaults
 	$defaults{dataobj_fieldname} = "objectid";
 	$defaults{show_in_fieldlist} = 0;
 	$defaults{match} = "IN";
+	$defaults{citation} = $EPrints::MetaField::UNDEF;
 
 	return %defaults;
 }
@@ -204,7 +205,7 @@ sub render_single_value
 {
 	my( $self, $session, $value ) = @_;
 
-	return $value->render_citation_link( "default" );
+	return $value->render_citation_link( $self->property( "citation" ) );
 }
 
 sub get_search_conditions

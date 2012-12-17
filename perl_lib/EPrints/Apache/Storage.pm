@@ -93,11 +93,10 @@ sub handler
 
 	my $repo = $EPrints::HANDLE->current_repository();
 
-	my $dataobj = $r->pnotes( "dataobj" );
-	my $filename = $r->pnotes( "filename" );
+	my $fileobj = $r->pnotes( "dataobj" );
+	my $filename = $fileobj->value( "filename" );
 
 	# Now get the file object itself
-	my $fileobj = $dataobj->get_stored_file( $filename );
 	return HTTP_NOT_FOUND unless defined $fileobj;
 
 	my $url = $fileobj->get_remote_copy();

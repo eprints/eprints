@@ -239,7 +239,11 @@ sub _filename
 	}
 	else
 	{
-		# Gawd knows?!
+		my $root = $self->repository->config( "documents_path" );
+		my $path = sprintf("%08d", $fileobj->id);
+		substr($path,2) =~ s{(..)}{/$1}g;
+		$local_path = join '/', $root, 'file', $path;
+		$in_file = $filename;
 	}
 
 	return( $local_path, $in_file );

@@ -26,17 +26,9 @@ For example: Documents have files.
 
 package EPrints::MetaField::File;
 
+use base EPrints::MetaField::Subobject;
+
 use strict;
-use warnings;
-
-BEGIN
-{
-	our( @ISA );
-
-	@ISA = qw( EPrints::MetaField );
-}
-
-use EPrints::MetaField;
 
 sub get_sql_type
 {
@@ -59,9 +51,82 @@ sub get_property_defaults
 
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{show_in_fieldlist} = 0;
-	#$defaults{datasetid} = $EPrints::MetaField::REQUIRED; 
+	$defaults{datasetid} = "file";
 
 	return %defaults;
+}
+
+sub render_input_field 
+{
+	my( $self, $session, $value, $dataset, $staff, $hidden_fields, $obj, $prefix ) = @_;
+
+	my $xml = $session->xml;
+	my $xhtml = $xml->create_document_fragment();
+	my $basename = $self->basename($prefix);
+
+	my $div = $xml->create_element("div", class => "ep_block");
+	$xhtml->appendChild($div);
+
+	for($self->property( "multiple" ) ? @$value : $value)
+	{
+		next if !defined $_;
+		my $inner_div = $xml->create_element( "div" );
+		$div->appendChild($inner_div);
+		$inner_div->appendChild($self->render_value( $session, $_ ));
+		$inner_div->appendChild($session->xhtml->input_field("_internal_".$basename."_delete_".$_->id,
+					$session->phrase("lib/submissionform:delete"),
+					type=>"submit",
+					class=>"ep_form_internal_button"));
+	}
+
+	$div->appendChild($session->xhtml->input_field($basename, undef, type => "file"));
+	$div->appendChild($session->xhtml->input_field("_internal_".$basename."_upload",
+				$session->phrase("lib/submissionform:action_upload"),
+				type=>"submit",
+				class=>"ep_form_internal_button"));
+
+#	$xhtml->appendChild($self->render_value($session, $value));
+
+	return $xhtml;
+}
+
+sub has_internal_action 
+{
+	my ($self, $basename) = @_;
+
+	my $ibutton = $self->{repository}->get_internal_button;
+
+	return $ibutton =~ /^${basename}_/;
+}
+
+sub form_value_actual 
+{
+	my ($self, $session, $object, $basename) = @_;
+
+	my $filename = $session->param($basename);
+	my $fh = $session->query->upload($basename);
+
+	if( $session->get_internal_button =~ /^${basename}_delete_(.+)$/ )
+	{
+		my $fileobj = $session->dataset( "file" )->dataobj( $1 );
+		if( $fileobj->value( "datasetid" ) eq $object->{dataset}->base_id && $fileobj->value( "objectid" ) eq $object->id )
+		{
+			$fileobj->delete;
+		}
+	}
+
+	if(!defined $fh) 
+	{
+		return $self->property("multiple") ? [] : undef;
+	}
+
+	my $fileobj = $object->create_subdataobj( $self->name, {
+		_content => $fh,
+		filename => $filename,
+		filesize => -s $fh,
+	});
+
+	return $self->property("multiple") ? [$fileobj] : $fileobj;
 }
 
 sub render_xml_schema
