@@ -77,24 +77,12 @@ sub action_cancel
 	$self->{processor}->{screenid} = "EPrint::View";
 }
 
-
-
 sub render
 {
 	my( $self ) = @_;
 
 	my $eprint = $self->{processor}->{eprint};
 	my $user = $eprint->get_user();
-	# We can't bounce it if there's no user associated 
-
-	if( !defined $user )
-	{
-		$self->{session}->render_error( 
-			$self->{session}->html_phrase( 
-				"cgi/users/edit_eprint:no_user" ),
-			"error" );
-		return;
-	}
 
 	my $page = $self->{session}->make_doc_fragment();
 	

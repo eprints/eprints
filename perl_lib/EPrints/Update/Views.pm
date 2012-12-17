@@ -301,16 +301,13 @@ sub update_browse_view_list
 
 	$title = $repo->html_phrase( "bin/generate_views:browsetitle" );
 
-	$repo->write_static_page( 
-			$target, 
-			{
-				title => $title, 
+	EPrints::Page->new(
+			repository => $repo,
+			pins => {
+				title => $title,
 				page => $page,
-			},
-			"browsemain" );
-
-	$xml->dispose( $title );
-	$xml->dispose( $page );
+			}
+		)->write_to_file( $target );
 
 	return OK;
 }
@@ -1017,22 +1014,26 @@ sub create_single_page_menu
 		);
 	}
 
+	my %pins = (
+		title => $title,
+		page => $page,
+	);
 
-	# Write page to disk
-	$repo->write_static_page( 
-			$target, 
-			{
-				title => $title, 
-				page => $page,
-				template => $repo->make_text($view->{template}),
-			},
-			"browseindex" );
+	if( $view->{template} )
+	{
+		$pins{template} = $view->{template};
+	}
 
-	open( INCLUDE, ">:utf8", "$target.include" ) || EPrints::abort( "Failed to write $target.include: $!" );
-	print INCLUDE EPrints::XML::to_string( $page, undef, 1 );
-	close INCLUDE;
+	my $_page = EPrints::Page->new(
+			repository => $repo,
+			pins => \%pins,
+		);
 
-	EPrints::XML::dispose( $page );
+	$_page->write_to_file( $target );
+
+	open(my $fh, ">:utf8", "$target.include") or die "Error writing to $target.include: $!";
+	print $fh $_page->utf8_pin( "page" );
+	close($fh);
 
 	return $target;
 }

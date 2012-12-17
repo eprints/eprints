@@ -386,17 +386,18 @@ sub process
 
 	$page->appendChild( $content );
 
-	$self->{session}->prepare_page(  
-		{
-			title => $title, 
-			page => $page,
-			head => $links,
-			login_status => $self->render_toolbar,
+	my $template = $self->{session}->template( $self->{template} );
+
+	$template->send_page( EPrints::Page->new(
+			repository => $self->{session},
+			pins => {
+				title => $title, 
+				page => $page,
+				head => $links,
+				login_status => $self->render_toolbar,
 #			toolbar => $toolbar,
-		},
-		template => $self->{template},
- 	);
-	$self->{session}->send_page();
+			},
+ 	) );
 
 	return $self; # useful for unit-tests
 }

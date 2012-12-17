@@ -63,87 +63,6 @@ sub _scan_static_dirs
 	}, $dir);
 }
 
-sub update_static_file
-{
-	my( $session, $langid, $localpath ) = @_;
-
-	my $repository = $session->get_repository;
-
-	if( $localpath =~ m/\/$/ ) { $localpath .= "index.html"; }
-
-	my $target = $repository->get_conf( "htdocs_path" )."/".$langid.$localpath;
-
-	my @static_dirs = $repository->get_static_dirs( $langid );
-
-	my $source_mtime;
-	my $source;
-	my $map;
-
-	if( $localpath =~ m# \.html$ #x )
-	{
-		my $base = $localpath;
-		$base =~ s/\.html$//;
-		DIRLOOP: foreach my $dir ( @static_dirs )
-		{
-			foreach my $suffix ( qw/ .html .xpage .xhtml / )
-			{
-				if( -e $dir.$base.$suffix )
-				{
-					$source = $dir.$base.$suffix;
-					$source_mtime = EPrints::Utils::mtime( $source );
-					last DIRLOOP;
-				}
-			}
-		}
-	}
-	else
-	{
-		foreach my $dir ( @static_dirs )
-		{
-			if( -e $dir.$localpath )
-			{
-				$source = $dir.$localpath; 
-				$source_mtime = EPrints::Utils::mtime( $source );
-				last;
-			}
-		}
-	}
-
-	if( !defined $source_mtime ) 
-	{
-		# no source file therefore source file not changed.
-		return;
-	}
-
-	my $target_mtime = EPrints::Utils::mtime( $target );
-
-	return if( defined $target_mtime && $target_mtime > $source_mtime ); # nothing to do
-
-	$target =~ m/^(.*)\/([^\/]+)/;
-	my( $target_dir, $target_file ) = ( $1, $2 );
-	
-	if( !-e $target_dir )
-	{
-		EPrints::Platform::mkdir( $target_dir );
-	}
-
-	$source =~ m/\.([^.]+)$/;
-	my $suffix = $1;
-
-	if( $suffix eq "xhtml" ) 
-	{ 
-		copy_xhtml( $session, $source, $target, {} ); 
-	}
-	elsif( $suffix eq "xpage" ) 
-	{ 
-		copy_xpage( $session, $source, $target, {} ); 
-	}
-	else 
-	{ 
-		copy_plain( $source, $target, {} ); 
-	}
-}
-
 =item update_auto_css( $target_dir, $dirs )
 
 =cut
@@ -316,6 +235,8 @@ sub copy_plain
 	}
 
 	$wrote_files->{$to} = 1;
+
+	return $to;
 }
 
 
@@ -362,9 +283,19 @@ sub copy_xpage
 
 	$parts->{page} = delete $parts->{body};
 	$to =~ s/.html$//;
-	$session->write_static_page( $to, $parts, "static", $wrote_files );
+
+	my $page = EPrints::Page->new(
+			repository => $session,
+			pins => $parts,
+		);
+
+	my @written = $page->write_to_file( $to );
+
+	$wrote_files->{$_} = 1 for @written;
 
 	EPrints::XML::dispose( $doc );
+
+	return "$to.page";
 }
 
 sub copy_xhtml
@@ -379,22 +310,18 @@ sub copy_xhtml
 		return;
 	}
 
-	my $html = $doc->documentElement;
-	if( !defined $html )
-	{
-		$session->get_repository->log( "Error: no html element in ".$from );
-		EPrints::XML::dispose( $doc );
-		return;
-	}
-	# why clone?
-	#$session->set_page( $session->clone_for_me( $elements->{html}, 1 ) );
-	$session->set_page( 
-		EPrints::XML::EPC::process( 
-			$html, 
+	my $html = EPrints::XML::EPC::process( 
+			$doc->documentElement, 
 			in => $from,
-			session => $session ) ); 
+			session => $session );
 
-	$session->page_to_file( $to, $wrote_files );
+	open(my $fh, ">:utf8", $to) or die "Error writing to $to: $!";
+	print $fh $session->xhtml->to_xhtml( $html );
+	close($fh);
+
+	$wrote_files->{$to} = 1;
+
+	return $to;
 }
 
 

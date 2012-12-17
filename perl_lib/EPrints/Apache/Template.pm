@@ -152,54 +152,21 @@ sub handler
 
 	return DECLINED unless( $filename =~ s/\.html$// );
 
-	return DECLINED unless( -r $filename.".page" );
+	return DECLINED unless( -r "$filename.page" );
 
 	my $repo = EPrints->new->current_repository;
-
-	my $parts;
-	foreach my $part ( "title", "title.textonly", "page", "head", "template" )
-	{
-		if( !-e $filename.".".$part )
-		{
-			$parts->{"utf-8.".$part} = "";
-		}
-		elsif( open( CACHE, $filename.".".$part ) ) 
-		{
-			binmode(CACHE,":utf8");
-			$parts->{"utf-8.".$part} = join("",<CACHE>);
-			close CACHE;
-		}
-		else
-		{
-			$parts->{"utf-8.".$part} = "";
-			$repo->log( "Could not read ".$filename.".".$part.": $!" );
-		}
-	}
-
 	local $repo->{preparing_static_page} = 1; 
 
-	$parts->{login_status} = EPrints::ScreenProcessor->new(
-		session => $repo,
-	)->render_toolbar;
-	
-	my $template = delete $parts->{"utf-8.template"};
-	chomp $template;
-	$template = 'default' if $template eq "";
-	my $page = $repo->prepare_page( $parts,
-			page_id=>"static",
-			template=>$template
+	my $page = EPrints::Page->new_from_file( $filename,
+			repository => $repo,
 		);
-	$page->send;
 
-	return OK;
+	my $templateid = $page->utf8_pin( "template" );
+
+	my $template = $repo->template( $templateid ? $templateid : undef );
+
+	return $template->send_page( $page );
 }
-
-
-
-
-
-
-
 
 1;
 

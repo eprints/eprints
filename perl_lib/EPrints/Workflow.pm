@@ -382,15 +382,12 @@ sub update_from_form
 	# gone wrong.
 	if( !defined $self->{item} )
 	{
-		$self->_corrupt_err;
-		return( 0 );
+		EPrints->abort( "Workflow missing item object" );
 	}
 
 	if( !defined $self->{stages}->{$self->get_stage_id} )
 	{
-		# Not a valid stage
-		$self->_corrupt_err;
-		return( 0 );
+		EPrints->abort( $self->get_stage_id . " is not a valid stage" );
 	}
 	
 	my $stage_obj = $self->get_stage( $self->get_stage_id );
@@ -445,44 +442,6 @@ sub render
 	$fragment->appendChild( $stage_dom );
 	
 	return $fragment;
-}
-
-
-######################################################################
-# 
-# $s_form->_corrupt_err
-#
-######################################################################
-
-sub _corrupt_err
-{
-	my( $self ) = @_;
-
-	$self->{session}->render_error( 
-		$self->{session}->html_phrase( 
-			"lib/submissionform:corrupt_err",
-			line_no => 
-				$self->{session}->make_text( (caller())[2] ) ),
-		$self->{session}->get_repository->get_conf( "userhome" ) );
-
-}
-
-######################################################################
-# 
-# $s_form->_database_err
-#
-######################################################################
-
-sub _database_err
-{
-	my( $self ) = @_;
-
-	$self->{session}->render_error( 
-		$self->{session}->html_phrase( 
-			"lib/submissionform:database_err",
-			line_no => 
-				$self->{session}->make_text( (caller())[2] ) ),
-		$self->{session}->get_repository->get_conf( "userhome" ) );
 }
 
 # return "&foo=bar"  style paramlist to add to url to maintain state
