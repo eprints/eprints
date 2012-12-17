@@ -202,6 +202,10 @@ sub output_eprint
 		$entry = $xml->create_element( "entry" );
 	}
 
+	# Need secure URL for editing
+	my $edit_uri = $repo->current_url( scheme => "https", host => 1, path => "static" );
+	$edit_uri->path( $edit_uri->path . $dataobj->internal_uri );
+
 	$entry->appendChild( $xml->create_data_element(
 			"link",
 			undef,
@@ -211,17 +215,17 @@ sub output_eprint
 			"link",
 			undef,
 			rel => "edit",
-			href => $dataobj->uri ) );
+			href => $edit_uri ) );
 	$entry->appendChild( $xml->create_data_element( 
 			"link",
 			undef,
 			rel => "edit-media",
-			href => $dataobj->uri . "/contents" ) );
+			href => $edit_uri . "/contents" ) );
 	$entry->appendChild( $xml->create_data_element( 
 			"link",
 			undef,
 			rel => "contents",
-			href => $dataobj->uri . "/contents" ) );
+			href => $edit_uri . "/contents" ) );
 	$entry->appendChild( $xml->create_data_element(
 			"link",
 			undef,
@@ -291,7 +295,7 @@ sub output_eprint
 	my $original_deposit = $xml->create_data_element(
 		"sword:originalDeposit",
 		undef,
-		href => $dataobj->uri
+		href => $edit_uri
 	);
 	$entry->appendChild($original_deposit);
 	
@@ -377,6 +381,10 @@ sub output_document
 
 	my $entry = $xml->create_element( "entry" );
 	
+	# Need secure URL for editing
+	my $edit_uri = $repo->current_url( scheme => "https", host => 1, path => "static" );
+	$edit_uri->path( $edit_uri->path . $dataobj->internal_uri );
+
 	$entry->appendChild( $xml->create_data_element(
 			"id",
 			$dataobj->uri ) );
@@ -390,12 +398,12 @@ sub output_document
 		"link",
 		undef,
 		rel => "contents",
-		href => $dataobj->uri . "/contents" ) );	
+		href => $edit_uri . "/contents" ) );	
 	$entry->appendChild( $xml->create_data_element( 
 		"link",
 		undef,
 		rel => "edit-media",
-		href => $dataobj->uri . "/contents" ) );	
+		href => $edit_uri . "/contents" ) );	
 
 	$entry->appendChild( $xml->create_data_element(
 			"summary",
@@ -405,7 +413,7 @@ sub output_document
 		"content",
 		undef,
 		type => ($main ? $main->value( "mime_type" ) : undef),
-		src => $dataobj->uri . "/contents" ) );
+		src => $edit_uri . "/contents" ) );
 
 	my $r = $xml->to_string( $entry, indent => 1 );
 	$xml->dispose( $entry );
