@@ -1230,33 +1230,41 @@ sub generate_static
 		# only deleted and live records have a web page.
 		next if( $status ne "archive" && $status ne "deletion" );
 
-		my( $page, $title, $links, $template ) = $self->render;
-		my @plugins = $self->{session}->plugin_list( 
+		my %pins;
+
+		@pins{qw( page title links template )} = $self->render;
+		if( $pins{template} )
+		{
+			$pins{template} = $self->{session}->make_text( $pins{template} );
+		}
+		else
+		{
+			delete $pins{template};
+		}
+
+		my @plugins = $self->{session}->get_plugins( 
 					type=>"Export",
 					can_accept=>"dataobj/".$self->{dataset}->confid, 
 					is_advertised => 1,
 					is_visible=>"all" );
 		if( scalar @plugins > 0 ) {
-			$links = $self->{session}->make_doc_fragment() if( !defined $links );
-			foreach my $plugin_id ( @plugins ) 
+			$pins{links} = $self->{session}->make_doc_fragment() if( !defined $pins{links} );
+			foreach my $plugin ( @plugins ) 
 			{
-				$plugin_id =~ m/^[^:]+::(.*)$/;
-				my $id = $1;
-				my $plugin = $self->{session}->plugin( $plugin_id );
 				my $link = $self->{session}->make_element( 
 					"link", 
 					rel=>"alternate",
 					href=>$plugin->dataobj_export_url( $self ),
 					type=>$plugin->param("mimetype"),
 					title=>EPrints::XML::to_string( $plugin->render_name ), );
-				$links->appendChild( $link );
-				$links->appendChild( $self->{session}->make_text( "\n" ) );
+				$pins{links}->appendChild( $link );
+				$pins{links}->appendChild( $self->{session}->make_text( "\n" ) );
 			}
 		}
-		$self->{session}->write_static_page( 
-			$full_path . "/index",
-			{title=>$title, page=>$page, head=>$links, template=>$self->{session}->make_text($template) },
-			 );
+		EPrints::Page->new(
+				repository => $self->{session},
+				pins => \%pins,
+			)->write_to_file( "$full_path/index" );
 	}
 	$self->{session}->change_lang( $real_langid );
 	delete $self->{session}->{preparing_static_page};

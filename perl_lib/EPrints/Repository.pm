@@ -65,10 +65,6 @@ can be returned via the web interface.
 #  $self->{offline}
 #     True if this is a command-line script.
 #
-#  $self->{page}
-#     Used to store the output XHTML page between "build_page" and
-#     "send_page"
-#
 #  $self->{lang}
 #     The current language that this session should use. eg. "en" or "fr"
 #     It is used to determine which phrases and template will be used.
@@ -181,10 +177,13 @@ sub new
 		if( !defined $self->{database} )
 		{
 			# Database connection failure - noooo!
-			$self->render_error( $self->html_phrase( 
-				"lib/session:fail_db_connect" ) );
-			#$self->get_repository->log( "Failed to connect to database." );
-			return undef;
+			if( $self->{offline} ) {
+				$self->log( $self->phrase( "lib/session:fail_db_connect" ) );
+				return undef;
+			}
+			else {
+				EPrints->abort( $self->phrase( "lib/session:fail_db_connect" ) );
+			}
 		}
 	}
 
@@ -1105,9 +1104,7 @@ sub _load_templates
 {
 	my( $self ) = @_;
 
-	$self->{text_templates} = {};
-	$self->{template_mtime} = {};
-	$self->{template_path} = {};
+	$self->{templates} = {};
 
 	foreach my $langid ( @{$self->config( "languages" )} )
 	{
@@ -1120,16 +1117,16 @@ sub _load_templates
 				next if $fn !~ /\.xml$/;
 				my $id = $fn;
 				$id =~ s/\.xml$//;
-				next if
-					exists $self->{template_mtime}->{$id} &&
-					exists $self->{template_mtime}->{$id}->{$langid};
-				$self->{template_path}->{$id}->{$langid} = "$dir/$fn";
-				$self->freshen_template( $langid, $id );
+				next if $self->{templates}{$id}{$langid};
+
+				$self->{templates}{$id}{$langid} = EPrints::Template::EPC->new( "$dir/$fn",
+						repository => $self,
+					);
 			}
 			closedir( $dh );
 		}
 
-		if( !defined $self->{text_templates}->{default}->{$langid} )
+		if( !defined $self->{templates}->{default}->{$langid} )
 		{
 			EPrints::abort( "Failed to load default template for language $langid" );
 		}
@@ -1138,177 +1135,23 @@ sub _load_templates
 	return 1;
 }
 
-sub freshen_template
-{
-	my( $self, $langid, $id ) = @_;
-
-	local $self->{lang};
-	$self->change_lang( $langid );
-
-	my $path = $self->{template_path}->{$id}->{$langid};
-
-	my @filestat = stat( $path );
-	my $mtime = $filestat[9];
-
-	my $old_mtime = $self->{template_mtime}->{$id}->{$langid};
-	if( defined $old_mtime && $old_mtime == $mtime )
-	{
-		return;
-	}
-
-	my $template = $self->_load_template( $path );
-	if( !defined $template ) 
-	{ 
-		return 0; 
-	}
-
-	$self->{text_templates}->{$id}->{$langid} = $self->_template_to_text( $template, $langid );
-	$self->{template_mtime}->{$id}->{$langid} = $mtime;
-}
-
-sub _template_to_text
-{
-	my( $self, $template, $langid ) = @_;
-
-	$template = $self->xml->clone( $template );
-
-	my $divide = "61fbfe1a470b4799264feccbbeb7a5ef";
-
-	foreach my $pin ( $template->getElementsByTagName("pin") )
-	{
-		#$template
-		my $parent = $pin->getParentNode;
-		my $textonly = $pin->getAttribute( "textonly" );
-		my $ref = "pin:".$pin->getAttribute( "ref" );
-		if( defined $textonly && $textonly eq "yes" )
-		{
-			$ref.=":textonly";
-		}
-		my $textnode = $self->xml->create_text_node( $divide.$ref.$divide );
-		$parent->replaceChild( $textnode, $pin );
-	}
-
-	foreach my $print ( $template->getElementsByTagName("print") )
-	{
-		my $parent = $print->getParentNode;
-		my $ref = "print:".$print->getAttribute( "expr" );
-		my $textnode = $self->xml->create_text_node( $divide.$ref.$divide );
-		$parent->replaceChild( $textnode, $print );
-	}
-
-	foreach my $phrase ( $template->getElementsByTagName("phrase") )
-	{
-		my $done_phrase = EPrints::XML::EPC::process( $phrase, session=>$self );
-
-		my $parent = $phrase->getParentNode;
-		$parent->replaceChild( $done_phrase, $phrase );
-	}
-
-	$self->_divide_attributes( $template, $divide );
-
-	my @r = split( "$divide", $self->xhtml->to_xhtml( $template ) );
-
-	return \@r;
-}
-
-sub _divide_attributes
-{
-	my( $self, $node, $divide ) = @_;
-
-	return unless( $self->xml->is( $node, "Element" ) );
-
-	foreach my $kid ( $node->childNodes )
-	{
-		$self->_divide_attributes( $kid, $divide );
-	}
-	
-	my $attrs = $node->attributes;
-
-	return unless defined $attrs;
-	
-	for( my $i = 0; $i < $attrs->length; ++$i )
-	{
-		my $attr = $attrs->item( $i );
-		my $v = $attr->nodeValue;
-		next unless( $v =~ m/\{/ );
-		my $name = $attr->nodeName;
-		my @r = EPrints::XML::EPC::split_script_attribute( $v, $name );
-		my @r2 = ();
-		for( my $i = 0; $i<scalar @r; ++$i )
-		{
-			if( $i % 2 == 0 )
-			{
-				push @r2, $r[$i];
-			}
-			else
-			{
-				push @r2, "print:".$r[$i];
-			}
-		}
-		if( scalar @r % 2 == 0 )
-		{
-			push @r2, "";
-		}
-		
-		my $newv = join( $divide, @r2 );
-		$attr->setValue( $newv );
-	}
-
-	return;
-}
-
-sub _load_template
-{
-	my( $self, $file ) = @_;
-	my $doc = $self->parse_xml( $file );
-	if( !defined $doc ) { return undef; }
-	my $html = ($doc->getElementsByTagName( "html" ))[0];
-	my $rvalue;
-	if( !defined $html )
-	{
-		print STDERR "Missing <html> tag in $file\n";
-	}
-	else
-	{
-		$rvalue = $self->xml->clone( $html );
-	}
-	$self->xml->dispose( $doc );
-	return $rvalue;
-}
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $template = $repository->get_template_parts( $langid, [$template_id] )
-
-Returns an array of utf-8 strings alternating between XML and the id
-of a pin to replace. This is used for the faster template construction.
-
-=end InternalDoc
+=item $template = $repository->template( [ $id ] )
 
 =cut
-######################################################################
 
-sub get_template_parts
+sub template
 {
-	my( $self, $langid, $tempid ) = @_;
-  
-	if( !defined $tempid ) { $tempid = 'default'; }
-	$self->freshen_template( $langid, $tempid );
-	my $t = $self->{text_templates}->{$tempid}->{$langid};
-	if( !defined $t ) 
+	my( $self, $id ) = @_;
+
+	$id = "default" if !defined $id;
+
+	my $template = $self->{templates}{$id}{$self->get_langid};
+	if( defined $template )
 	{
-		EPrints::abort( <<END );
-Error. Template not loaded.
-Language: $langid
-Template ID: $tempid
-END
+		$template->freshen;
 	}
 
-	return $t;
+	return $template;
 }
 
 ######################################################################
@@ -3908,75 +3751,6 @@ sub _render_subjects_aux
 	return $ul;
 }
 
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $repository->render_error( $error_text, $back_to, $back_to_text )
-
-Renders an error page with the given error text. A link, with the
-text $back_to_text, is offered, the destination of this is $back_to,
-which should take the user somewhere sensible.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_error
-{
-	my( $self, $error_text, $back_to, $back_to_text ) = @_;
-	
-	if( !defined $back_to )
-	{
-		$back_to = $self->get_repository->get_conf( "frontpage" );
-	}
-	if( !defined $back_to_text )
-	{
-		$back_to_text = $self->html_phrase( "lib/session:continue");
-	}
-
-	my $textversion = '';
-	$textversion.= $self->phrase( "lib/session:some_error" );
-	$textversion.= EPrints::Utils::tree_to_utf8( $error_text, 76 );
-	$textversion.= "\n";
-
-	if ( $self->{offline} )
-	{
-		print $textversion;
-		return;
-	} 
-
-	# send text version to log
-	$self->get_repository->log( $textversion );
-
-	my( $p, $page, $a );
-	$page = $self->make_doc_fragment();
-
-	$page->appendChild( $self->html_phrase( "lib/session:some_error"));
-
-	$p = $self->make_element( "p" );
-	$p->appendChild( $error_text );
-	$page->appendChild( $p );
-
-	$page->appendChild( $self->html_phrase( "lib/session:contact" ) );
-				
-	$p = $self->make_element( "p" );
-	$a = $self->render_link( $back_to ); 
-	$a->appendChild( $back_to_text );
-	$p->appendChild( $a );
-	$page->appendChild( $p );
-	$self->build_page(	
-		$self->html_phrase( "lib/session:error_title" ),
-		$page,
-		"error" );
-
-	$self->send_page();
-}
-
 my %INPUT_FORM_DEFAULTS = (
 	dataset => undef,
 	type	=> undef,
@@ -4311,238 +4085,6 @@ sub get_next_id
 	return $self->{id_counter}++;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-#############################################################
-#############################################################
-=pod
-
-=begin InternalDoc
-
-=back
-
-=head2 Methods relating to the current XHTML page
-
-=over 4
-
-=end InternalDoc
-
-=cut
-#############################################################
-#############################################################
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $repository->write_static_page( $filebase, $parts, [$page_id], [$wrote_files] )
-
-Write an .html file plus a set of files describing the parts of the
-page for use with the dynamic template option.
-
-File base is the name of the page without the .html suffix.
-
-parts is a reference to a hash containing DOM trees.
-
-If $wrote_files is defined then any filenames written are logged in it as keys.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub write_static_page
-{
-	my( $self, $filebase, $parts, $page_id, $wrote_files ) = @_;
-
-	print "Writing: $filebase\n" if( $self->{noise} > 1 );
-	
-	my $dir = $filebase;
-	$dir =~ s/\/[^\/]*$//;
-
-	if( !-d $dir ) { EPrints::Platform::mkdir( $dir ); }
-	if( !defined $parts->{template} && -e "$filebase.template" )
-	{
-		unlink( "$filebase.template" );
-	}
-	foreach my $part_id ( keys %{$parts} )
-	{
-		next if !defined $parts->{$part_id};
-		if( !ref($parts->{$part_id}) )
-		{
-			EPrints::abort( "Page parts must be DOM fragments" );
-		}
-		my $file = $filebase.".".$part_id;
-		if( open( CACHE, ">$file" ) )
-		{
-			binmode(CACHE,":utf8");
-			print CACHE $self->xhtml->to_xhtml( $parts->{$part_id} );
-			close CACHE;
-			if( defined $wrote_files )
-			{
-				$wrote_files->{$file} = 1;
-			}
-		}
-		else
-		{
-			$self->log( "Could not write to file $file" );
-		}
-	}
-
-
-	my $title_textonly_file = $filebase.".title.textonly";
-	if( open( CACHE, ">$title_textonly_file" ) )
-	{
-		binmode(CACHE,":utf8");
-		print CACHE EPrints::Utils::tree_to_utf8( $parts->{title}, undef, undef, undef, 1 ); # don't convert href's to <http://...>'s
-		close CACHE;
-		if( defined $wrote_files )
-		{
-			$wrote_files->{$title_textonly_file} = 1;
-		}
-	}
-	else
-	{
-		$self->log( "Could not write to file $title_textonly_file" );
-	}
-
-	my $html_file = $filebase.".html";
-	$self->prepare_page( $parts, page_id=>$page_id );
-	$self->page_to_file( $html_file, $wrote_files );
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $repository->prepare_page( $parts, %options )
-
-Create an XHTML page for this session. 
-
-$parts is a hash of XHTML elements to insert into the pins in the
-template. Usually: title, page. Maybe pagetop and head.
-
-If template is set then an alternate template file is used.
-
-This function only builds the page it does not output it any way, see
-the methods below for that.
-
-Options include:
-
-page_id=>"id to put in body tag"
-template=>"The template to use instead of default."
-
-=end InternalDoc
-
-=cut
-######################################################################
-# move to compat module?
-
-sub build_page
-{
-	my( $self, $title, $mainbit, $page_id, $links, $template ) = @_;
-	$self->prepare_page( { title=>$title, page=>$mainbit, pagetop=>undef,head=>$links}, page_id=>$page_id, template=>$template );
-}
-sub prepare_page
-{
-	my( $self, $map, %options ) = @_;
-	$self->{page} = $self->xhtml->page( $map, %options );
-}
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $repository->send_page( %httpopts )
-
-Send a web page out by HTTP. Only relevant if this is a CGI script.
-build_page must have been called first.
-
-See send_http_header for an explanation of %httpopts
-
-Dispose of the XML once it's sent out.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub send_page
-{
-	my( $self, %httpopts ) = @_;
-
-	$self->{page}->send( %httpopts );
-	delete $self->{page};
-}
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $repository->page_to_file( $filename, [$wrote_files] )
-
-Write out the current webpage to the given filename.
-
-build_page must have been called first.
-
-Dispose of the XML once it's sent out.
-
-If $wrote_files is set then keys are created in it for each file
-created.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub page_to_file
-{
-	my( $self , $filename, $wrote_files ) = @_;
-	
-	$self->{page}->write_to_file( $filename, $wrote_files );
-	delete $self->{page};
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $repository->set_page( $newhtml )
-
-Erase the current page for this session, if any, and replace it with
-the XML DOM structure described by $newhtml.
-
-This page is what is output by page_to_file or send_page.
-
-$newhtml is a normal DOM Element, not a document object.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub set_page
-{
-	my( $self, $newhtml ) = @_;
-	
-	$self->{page} = EPrints::Page::DOM->new( $self, $newhtml );
-}
 
 
 ######################################################################
@@ -5488,7 +5030,7 @@ sub init_from_request
 	return 1;
 }
 
-my @CACHE_KEYS = qw/ id citations class config datasets field_defaults template_path langs plugins storage template_mtime text_templates types workflows loadtime noise /;
+my @CACHE_KEYS = qw/ id citations templates class config datasets field_defaults langs plugins storage types workflows loadtime noise /;
 my %CACHED = map { $_ => 1 } @CACHE_KEYS;
 
 sub cleanup
