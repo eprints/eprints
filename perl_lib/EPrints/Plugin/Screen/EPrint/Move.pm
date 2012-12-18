@@ -86,10 +86,11 @@ sub action_move_inbox
 
 	if( !defined $user )
 	{
-		$self->{session}->render_error( 
-			$self->{session}->html_phrase( 
-				"cgi/users/edit_eprint:no_user" ),
-			"error" );
+		$self->{processor}->add_message(
+				"error",
+				$self->{session}->html_phrase( "cgi/users/edit_eprint:no_user" )
+			);
+		$self->{processor}->{screenid} = "Error";
 		return;
 	}
 

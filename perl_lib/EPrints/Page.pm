@@ -17,102 +17,161 @@ B<EPrints::Page> - A Webpage
 
 This class describes a webpage suitable for serving via mod_perl or writing to a file.
 
+Supported pins:
+
 =over 4
 
-=item $page = $repository->xhtml->page( { title => ..., body => ... }, %options );
+=item title
 
-Construct a new page.
+=item title.textonly
 
-=item $page->send( [%options] )
+=item page
 
-Send this page via the current HTTP connection. 
+=item head
 
-=cut
-
-=item $page->write_to_file( $filename )
-
-Write this page to the given filename.
+=item template
 
 =back
+
+=head1 METHODS
+
+=over 4
 
 =cut
 
 package EPrints::Page;
 
+use strict;
+
+=item $page = EPrints::Page->new( %options )
+
+=cut
+
 sub new
 {
-	my( $class, $repository, $page, %options ) = @_;
+	my( $class, %self ) = @_;
 
-	EPrints::Utils::process_parameters( \%options, {
-		   add_doctype => 1,
-	});
+	$self{pins} = {} if !exists $self{pins};
 
-	return bless { repository=>$repository, page=>$page, %options }, $class;
+	return bless \%self, $class;
 }
 
-sub send_header
-{
-	my( $self, %options ) = @_;
+=item $page = EPrints::Page->new_from_file( $prefix, %options )
 
-	$self->{repository}->send_http_header( %options );
+Read pins from $prefix on disk.
+
+=cut
+
+sub new_from_file
+{
+	my( $class, $prefix, %params ) = @_;
+
+	my $self = $class->new( %params );
+
+	foreach my $pinid (qw( title title.textonly page head template ))
+	{
+		local $/;
+		open(my $fh, "<:utf8", "$prefix.$pinid") or next;
+		$self->{pins}{"utf-8.$pinid"} = <$fh>;
+		close($fh);
+		chomp($self->{pins}{"utf-8.$pinid"}); # remove trailing newline
+	}
+
+	return $self;
 }
 
-sub send
+=item $pins = $page->pins()
+
+Returns the plain-text pins in this page.
+
+=cut
+
+sub pins { shift->{pins} }
+
+=item $utf8 = $page->utf8_pin( $pinid )
+
+Returns the pin identified by $pinid as serialised xhtml.
+
+=cut
+
+sub utf8_pin
 {
-	my( $self, %options ) = @_;
+	my( $self, $pinid ) = @_;
 
-	if( !defined $self->{page} ) 
+	if( exists $self->{pins}{$pinid} )
 	{
-		EPrints::abort( "Attempt to send the same page object twice!" );
+		return $self->{repository}->xhtml->to_xhtml( $self->{pins}{$pinid} );
 	}
-
-	binmode(STDOUT, ":utf8");
-
-	$self->send_header( %options );
-
-	eval {
-		if( $self->{add_doctype} )
-		{
-			print $self->{repository}->xhtml->doc_type;
-		}
-		print delete($self->{page});
-	};
-	if( $@ )
+	elsif( exists $self->{pins}{"utf-8.$pinid"} )
 	{
-		if( $@ !~ m/^Software caused connection abort/ )
-		{
-			EPrints::abort( "Error in send_page: $@" );	
-		}
-		else
-		{
-			die $@;
-		}
-	}
-}
-
-sub write_to_file
-{
-	my( $self, $filename ) = @_;
-
-	if( !defined $self->{page} ) 
-	{
-		EPrints::abort( "Attempt to write the same page object twice!" );
-	}
-
-	if( open(my $fh, ">:utf8", $filename) )
-	{
-		if( $self->{add_doctype} )
-		{
-			print $fh $self->{repository}->xhtml->doc_type;
-		}
-		print $fh delete($self->{page});
+		return $self->{pins}{"utf-8.$pinid"};
 	}
 	else
 	{
-		EPrints::abort( <<END );
-Can't open to write to file: $filename
-END
+		return "";
 	}
+}
+
+=item $text = $page->text_pin( $pinid )
+
+Returns the pin identified by $pinid as plain text.
+
+=cut
+
+sub text_pin
+{
+	my( $self, $pinid ) = @_;
+
+	if( exists $self->{pins}{"utf-8.$pinid.textonly"} )
+	{
+		return $self->{pins}{"utf-8.$pinid.textonly"};
+	}
+	elsif( exists $self->{pins}{$pinid} )
+	{
+		return $self->{repository}->xhtml->to_text_dump( $self->{pins}{$pinid},
+				show_links => 0,
+			);
+	}
+	elsif( exists $self->{pins}{"utf-8.$pinid"} )
+	{
+		return $self->{pins}{"utf-8.$pinid"};
+	}
+	else
+	{
+		return "";
+	}
+}
+
+=item @files = $page->write_to_file( $prefix )
+
+Write the pins to files prefixed by $prefix, where each pin will be written as "$prefix.{pinname}".
+
+Returns the list of files written (full path).
+
+=cut
+
+sub write_to_file
+{
+	my( $self, $prefix ) = @_;
+
+	my @r;
+
+	my $dir = $prefix;
+	$dir =~ s{[^/]+$}{};
+	EPrints->system->mkdir( $dir );
+
+	foreach my $pinid (qw( title title.textonly page head template ))
+	{
+		my $pin = $self->utf8_pin( $pinid );
+		next if $pin eq "";
+
+		open(my $fh, ">:utf8", "$prefix.$pinid") or die "Error writing to $prefix.$pinid: $!";
+		print $fh $pin;
+		close($fh);
+		push @r, "$prefix.$pinid";
+	}
+
+	return @r;
 }
 
 1;
@@ -122,7 +181,7 @@ END
 
 =for COPYRIGHT BEGIN
 
-Copyright 2000-2011 University of Southampton.
+Copyright 2000-2012 University of Southampton.
 
 =for COPYRIGHT END
 

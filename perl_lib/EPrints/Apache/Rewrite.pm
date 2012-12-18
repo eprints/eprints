@@ -491,16 +491,22 @@ sub handler
 		return OK;
 	}
 
-	# apache 2 does not automatically look for index.html so we have to do it ourselves
+	local $repository->{preparing_static_page} = 1; 
+
 	my $localpath = $uri;
 	$localpath =~ s! ^$urlpath !!x;
+
+	# apache 2 does not automatically look for index.html so we have to do it ourselves
 	if( $uri =~ m! /$ !x )
 	{
 		$localpath.="index.html";
 	}
-	$r->filename( $repository->get_conf( "htdocs_path" )."/".$lang.$localpath );
 
-	if( $uri =~ m! ^$urlpath/view(/|\$.*) !x )
+	$r->pnotes( langid => $lang );
+	$r->pnotes( localpath => $localpath );
+
+	# /view/year/2012
+	if( $localpath =~ m! ^/view(/|\$.*) !x )
 	{
 		$uri =~ s! ^$urlpath !!x;
 		# redirect /foo to /foo/ 
@@ -509,63 +515,42 @@ sub handler
 			return redir( $r, "$urlpath$uri/" );
 		}
 
-		local $repository->{preparing_static_page} = 1; 
-		my $filename = EPrints::Update::Views::update_view_file( $repository, $lang, $localpath, $uri );
-		return NOT_FOUND if( !defined $filename );
+		$r->pnotes( localuri => $uri );
 
-		$r->filename( $filename );
+		$r->set_handlers( PerlMapToStorageHandler => ['EPrints::Apache::MapToStorage::View'] );
 	}
-	elsif( $uri =~ m! ^$urlpath/javascript/(secure_)?auto(?:-\d+\.\d+\.\d+)?\.js$ !x )
+	# DEPRECATED /javascript/secure_auto.js
+	elsif( $localpath =~ m! ^/javascript/secure_auto(?:-\d+\.\d+\.\d+)?\.js$ !x )
 	{
-		my $f = $1 ?
-			\&EPrints::Update::Static::update_secure_auto_js :
-			\&EPrints::Update::Static::update_auto_js;
-		my $filename = &$f(
-			$repository,
-			$repository->config( "htdocs_path" )."/$lang",
-			[$repository->get_static_dirs( $lang )]
-		);
-		return NOT_FOUND if( !defined $filename );
-
-		$r->filename( $filename );
+		$r->set_handlers( PerlMapToStorageHandler => ['EPrints::Apache::MapToStorage::SecureJavascript'] );
 	}
-	elsif( $uri =~ m! ^$urlpath/style/auto(?:-\d+\.\d+\.\d+)?\.css$ !x )
+	# /javascript/auto.js
+	elsif( $localpath =~ m! ^/javascript/auto(?:-\d+\.\d+\.\d+)?\.js$ !x )
 	{
-		my $filename = EPrints::Update::Static::update_auto_css(
-			$repository,
-			$repository->config( "htdocs_path" )."/$lang",
-			[$repository->get_static_dirs( $lang )]
-		);
-		return NOT_FOUND if( !defined $filename );
-
-		$r->filename( $filename );
+		$r->set_handlers( PerlMapToStorageHandler => ['EPrints::Apache::MapToStorage::Javascript'] );
 	}
+	# /style/auto.css
+	elsif( $localpath =~ m! ^/style/auto(?:-\d+\.\d+\.\d+)?\.css$ !x )
+	{
+		$r->set_handlers( PerlMapToStorageHandler => ['EPrints::Apache::MapToStorage::Stylesheet'] );
+	}
+	# /path/to/any.html
+	elsif( $localpath =~ m! \.html$ !x )
+	{
+		$r->set_handlers( PerlMapToStorageHandler => [
+				'EPrints::Apache::MapToStorage::XPage',
+				'EPrints::Apache::MapToStorage',
+			] );
+	}
+	# /path/to/any.xhtml
+	elsif( $localpath =~ m! \.xhtml$ !x )
+	{
+		$r->set_handlers( PerlMapToStorageHandler => ['EPrints::Apache::MapToStorage::XHTML'] );
+	}
+	# /path/to/*
 	else
 	{
-		local $repository->{preparing_static_page} = 1; 
-		EPrints::Update::Static::update_static_file( $repository, $lang, $localpath );
-	}
-
-	# set all static files to +1 month expiry
-	$r->headers_out->{Expires} = Apache2::Util::ht_time(
-		$r->pool,
-		time + 30 * 86400
-	);
-	# let Firefox cache secure, static files
-	if( $repository->get_secure )
-	{
-		$r->headers_out->{'Cache-Control'} = 'public';
-	}
-
-	if( $r->filename =~ /\.html$/ )
-	{
-		my $ua = $r->headers_in->{'User-Agent'};
-		if( $ua && $ua =~ /MSIE ([0-9]{1,}[\.0-9]{0,})/ && $1 >= 8.0 )
-		{
-			$r->headers_out->{'X-UA-Compatible'} = "IE=9";
-		}
-		$r->handler('perl-script');
-		$r->set_handlers(PerlResponseHandler => [ 'EPrints::Apache::Template' ] );
+		$r->set_handlers( PerlMapToStorageHandler => ['EPrints::Apache::MapToStorage'] );
 	}
 
 	return OK;

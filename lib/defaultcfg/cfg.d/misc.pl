@@ -8,16 +8,6 @@
 #
 ######################################################################
 
-# Example page hooks to mess around with the metadata
-# submission page.
-
-# my $doc = EPrints::XML::make_document();
-# my $link = $doc->createElement( "link" );
-# $link->setAttribute( "rel", "copyright" );
-# $link->setAttribute( "href", "http://totl.net/" );
-# $c->{pagehooks}->{submission_meta}->{head} = $link;
-# $c->{pagehooks}->{submission_meta}->{bodyattr}->{bgcolor} = '#ff0000';
-
 
 # If you use the Latex render function and want to use the mimetex
 # package rather than the latex->dvi->ps->png route then enable this
