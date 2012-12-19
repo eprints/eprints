@@ -571,8 +571,8 @@ sub _get_import_plugins
 	);
 
 	return
-		$self->{session}->plugin_list( %opts, can_produce => "list/eprint" ),
-		$self->{session}->plugin_list( %opts, can_produce => "dataobj/eprint" );
+		$self->repository->plugins( %opts, can_produce => "list/eprint" ),
+		$self->repository->plugins( %opts, can_produce => "dataobj/eprint" );
 }
 
 sub render_action_button
@@ -596,17 +596,14 @@ sub render_action_link
 
 	my $tools = $session->make_doc_fragment;
 	my $options = {};
-	foreach my $plugin_id ( @plugins ) 
+	foreach my $plugin ( @plugins ) 
 	{
-		$plugin_id =~ m/^[^:]+::(.*)$/;
-		my $id = $1;
-		my $plugin = $session->plugin( $plugin_id );
 		my $dom_name = $plugin->render_name;
 		if( $plugin->is_tool )
 		{
 			my $type = "tool";
 			my $span = $session->make_element( "span", class=>"ep_search_$type" );
-			my $url = $self->export_url( $id );
+			my $url = $self->export_url( $plugin->subtype );
 			my $a1 = $session->render_link( $url );
 			my $icon = $session->make_element( "img", src=>$plugin->icon_url(), alt=>"[$type]", border=>0 );
 			$a1->appendChild( $icon );
@@ -621,7 +618,7 @@ sub render_action_link
 		}
 		else
 		{
-			my $option = $session->make_element( "option", value=>$id );
+			my $option = $session->make_element( "option", value=>$plugin->subtype );
 			$option->appendChild( $dom_name );
 			$options->{EPrints::XML::to_string($dom_name)} = $option;
 		}

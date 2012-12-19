@@ -143,14 +143,15 @@ sub global_uri
 ######################################################################
 =pod
 
-=item $id = $plugin->get_id
+=item $id = $plugin->id
 
 Return the ID of this plugin.
 
 =cut
 ######################################################################
 
-sub get_id
+sub get_id { shift->id }
+sub id
 {
 	my( $self ) = @_;
 
@@ -160,14 +161,15 @@ sub get_id
 ######################################################################
 =pod
 
-=item $name = $plugin->get_name
+=item $name = $plugin->name
 
 Return the ID of this plugin.
 
 =cut
 ######################################################################
 
-sub get_name
+sub get_name { shift->name }
+sub name
 {
 	my( $self ) = @_;
 
@@ -177,14 +179,15 @@ sub get_name
 ######################################################################
 =pod
 
-=item $name = $plugin->get_type
+=item $name = $plugin->type
 
 Return the type of this plugin. eg. Export
 
 =cut
 ######################################################################
 
-sub get_type
+sub get_type { shift->type }
+sub type
 {
 	my( $self ) = @_;
 
@@ -196,7 +199,7 @@ sub get_type
 ######################################################################
 =pod
 
-=item $name = $plugin->get_subtype
+=item $name = $plugin->subtype
 
 Return the sub-type of this plugin. eg. BibTex
 
@@ -205,7 +208,8 @@ This is the ID with the type stripped from the front.
 =cut
 ######################################################################
 
-sub get_subtype
+sub get_subtype { shift->subtype }
+sub subtype
 {
 	my( $self ) = @_;
 

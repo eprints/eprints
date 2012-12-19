@@ -299,7 +299,7 @@ sub _get_export_plugins
 			is_visible=>$self->_vis_level,
 	);
 	unless( $include_not_advertised ) { $opts{is_advertised} = 1; }
-	return $self->{session}->plugin_list( %opts );
+	return $self->{session}->plugins( %opts );
 }
 
 sub _vis_level
@@ -342,16 +342,13 @@ sub render_links
 	my $links = $self->{session}->make_doc_fragment();
 
 	my $escexp = $self->{processor}->{search}->serialise;
-	foreach my $plugin_id ( @plugins ) 
+	foreach my $plugin ( @plugins ) 
 	{
-		$plugin_id =~ m/^[^:]+::(.*)$/;
-		my $id = $1;
-		my $plugin = $self->{session}->plugin( $plugin_id );
 		my $url = URI::http->new;
 		$url->query_form(
 			cache => $self->{cache_id},
 			exp => $escexp,
-			output => $id,
+			output => $plugin->subtype,
 			_action_export_redir => 1
 			);
 		my $link = $self->{session}->make_element( 
@@ -465,18 +462,15 @@ sub render_export_bar
 	my $feeds = $session->make_doc_fragment;
 	my $tools = $session->make_doc_fragment;
 	my $options = {};
-	foreach my $plugin_id ( @plugins ) 
+	foreach my $plugin ( @plugins ) 
 	{
-		$plugin_id =~ m/^[^:]+::(.*)$/;
-		my $id = $1;
-		my $plugin = $session->plugin( $plugin_id );
 		my $dom_name = $plugin->render_name;
 		if( $plugin->is_feed || $plugin->is_tool )
 		{
 			my $type = "feed";
 			$type = "tool" if( $plugin->is_tool );
 			my $span = $session->make_element( "span", class=>"ep_search_$type" );
-			my $url = $self->export_url( $id );
+			my $url = $self->export_url( $plugin->subtype );
 			my $a1 = $session->render_link( $url );
 			my $icon = $session->make_element( "img", src=>$plugin->icon_url(), alt=>"[$type]", border=>0 );
 			$a1->appendChild( $icon );
@@ -499,7 +493,7 @@ sub render_export_bar
 		}
 		else
 		{
-			my $option = $session->make_element( "option", value=>$id );
+			my $option = $session->make_element( "option", value=>$plugin->subtype );
 			$option->appendChild( $dom_name );
 			$options->{EPrints::XML::to_string($dom_name)} = $option;
 		}

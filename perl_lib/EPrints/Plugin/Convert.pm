@@ -154,16 +154,15 @@ A value between 0 and 1 representing the 'quality' or confidence in this convers
 
 sub can_convert
 {
-	my ($plugin, $doc, $type, %params) = @_;
+	my ($self, $doc, $type, %params) = @_;
 	
-	my $session = $plugin->{ "session" };
-	my @ids = $session->plugin_list( type => 'Convert', %params );
+	my $repo = $self->repository;
 
 	my %types;
-	for(@ids)
+	foreach my $plugin ($repo->plugins( type => 'Convert', %params ))
 	{
-		next if $_ eq $plugin->get_id;
-		my %avail = $session->plugin( $_ )->can_convert( $doc, $type );
+		next if $self->id eq $plugin->id;
+		my %avail = $plugin->can_convert( $doc, $type );
 		while( my( $mt, $def ) = each %avail )
 		{
 			next if defined( $type ) && $mt ne $type;

@@ -4639,52 +4639,15 @@ sub expire_abstracts
 	return 1;
 }
 
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item @plugin_ids  = $repository->plugin_list( %restrictions )
-
-Return either a list of all the plugins available to this repository or
-return a list of available plugins which can accept the given 
-restrictions.
-
-Restictions:
- vary depending on the type of the plugin.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub plugin_list
-{
-	my( $self, %restrictions ) = @_;
-
-	return
-		map { $_->get_id() }
-		$self->get_plugin_factory->get_plugins(
-			{ session => $self },
-			%restrictions,
-		);
-}
-
-=begin InternalDoc
-
-=item @plugins = $repository->get_plugins( [ $params, ] %restrictions )
+=item @plugins = $repository->plugins( [ $params, ] %restrictions )
 
 Returns a list of plugin objects that conform to %restrictions (may be empty).
 
 If $params is given uses that hash reference to initialise the plugins. Always passes this session to the plugin constructor method.
 
-=end InternalDoc
-
 =cut
 
-sub get_plugins
+sub plugins
 {
 	my( $self, @opts ) = @_;
 

@@ -505,6 +505,17 @@ sub get_citation_type
 	return $citation->type;
 }
 
+sub plugin_list
+{
+	my( $self, %restrictions ) = @_;
+
+	return
+		map { $_->get_id() }
+		$self->plugins( %restrictions );
+}
+
+sub get_plugins { shift->plugins( @_ ) }
+
 package EPrints::Database;
 
 sub save_user_message
