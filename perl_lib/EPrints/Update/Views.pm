@@ -307,7 +307,7 @@ sub update_browse_view_list
 				title => $title,
 				page => $page,
 			}
-		)->write_to_file( $target );
+		)->write_to_path( $target );
 
 	return OK;
 }
@@ -1029,7 +1029,7 @@ sub create_single_page_menu
 			pins => \%pins,
 		);
 
-	$_page->write_to_file( $target );
+	$_page->write_to_path( $target );
 
 	open(my $fh, ">:utf8", "$target.include") or die "Error writing to $target.include: $!";
 	print $fh $_page->utf8_pin( "page" );

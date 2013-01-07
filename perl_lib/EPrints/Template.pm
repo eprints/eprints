@@ -80,13 +80,13 @@ sub load_source
 	return undef;
 }
 
-=item $template->write( $fh, $page )
+=item $template->write_page( $fh, $page )
 
 Writes the $page to $fh using this template.
 
 =cut
 
-sub write
+sub write_page
 {
 	my( $self, $pins ) = @_;
 }

@@ -157,7 +157,7 @@ sub handler
 	my $repo = EPrints->new->current_repository;
 	local $repo->{preparing_static_page} = 1; 
 
-	my $page = EPrints::Page->new_from_file( $filename,
+	my $page = EPrints::Page->new_from_path( $filename,
 			repository => $repo,
 		);
 
