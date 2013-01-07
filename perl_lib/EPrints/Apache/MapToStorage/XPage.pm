@@ -41,6 +41,8 @@ sub handler
 
 	if( -e "$target.page" )
 	{
+		$r->pnotes( xpage_source => $source );
+
 		my $ua = $r->headers_in->{'User-Agent'};
 		if( $ua && $ua =~ /MSIE ([0-9]{1,}[\.0-9]{0,})/ && $1 >= 8.0 )
 		{

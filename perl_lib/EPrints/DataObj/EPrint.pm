@@ -1264,7 +1264,7 @@ sub generate_static
 		EPrints::Page->new(
 				repository => $self->{session},
 				pins => \%pins,
-			)->write_to_file( "$full_path/index" );
+			)->write_to_path( "$full_path/index" );
 	}
 	$self->{session}->change_lang( $real_langid );
 	delete $self->{session}->{preparing_static_page};

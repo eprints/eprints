@@ -244,56 +244,31 @@ sub copy_xpage
 {
 	my( $session, $from, $to, $wrote_files ) = @_;
 
-	my $doc = $session->get_repository->parse_xml( $from );
+	my $page = EPrints::Page->new_from_file( $from,
+			repository => $session,
+		);
 
-	if( !defined $doc )
+	if( !defined $page )
 	{
 		$session->get_repository->log( "Could not load file: $from" );
 		return;
 	}
 
-	my $html = $doc->documentElement;
-	my $parts = {};
-	foreach my $node ( $html->getChildNodes )
+	foreach my $part ( qw/ title page / )
 	{
-		my $part = $node->nodeName;
-		$part =~ s/^.*://;
-		next unless( $part eq "head" || $part eq "body" || $part eq "title" || $part eq "template" );
-
-		$parts->{$part} = $session->make_doc_fragment;
-			
-		foreach my $kid ( $node->getChildNodes )
+		if( !$page->pins->{$part} )
 		{
-			$parts->{$part}->appendChild( 
-				EPrints::XML::EPC::process( 
-					$kid,
-					in => $from,
-					session => $session ) ); 
-		}
-	}
-	foreach my $part ( qw/ title body / )
-	{
-		if( !$parts->{$part} )
-		{
+			$page = "body" if $part eq "page";
 			$session->get_repository->log( "Error: no $part element in ".$from );
-			EPrints::XML::dispose( $doc );
 			return;
 		}
 	}
 
-	$parts->{page} = delete $parts->{body};
 	$to =~ s/.html$//;
 
-	my $page = EPrints::Page->new(
-			repository => $session,
-			pins => $parts,
-		);
-
-	my @written = $page->write_to_file( $to );
+	my @written = $page->write_to_path( $to );
 
 	$wrote_files->{$_} = 1 for @written;
-
-	EPrints::XML::dispose( $doc );
 
 	return "$to.page";
 }
