@@ -497,6 +497,37 @@ sub query
 	return $self->{query};
 }
 
+=item $value or @values = $repository->url_param( $name )
+
+Retrieve the UTF-8 value(s) of the query parameter $name for the current request.
+
+This will not cause the POST data to be read. 
+
+=cut
+
+sub url_param
+{
+	my( $self, $name ) = @_;
+
+	my $uri = URI::http->new;
+	$uri->query(
+			defined($self->{request}->args) ?
+			substr($self->{request}->args,1) : # strip '?'
+			""
+		);
+	my @q = $uri->query_form;
+
+	my @v;
+	for(my $i = 0; $i < @q; $i+=2)
+	{
+		push @v, $q[$i+1] if $q[$i] eq $name;
+	}
+
+	utf8::decode($_) for @v;
+
+	return wantarray ? @v : $v[0];
+}
+
 =item $value or @values = $repository->param( $name )
 
 Passes through to CGI.pm param method.
