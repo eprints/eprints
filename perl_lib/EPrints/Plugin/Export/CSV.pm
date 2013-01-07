@@ -2,6 +2,12 @@
 
 EPrints::Plugin::Export::CSV
 
+=head1 DESCRIPTION
+
+Similar export to MultilineCSV but exports only public fields and is publicly visible.
+
+All field values are rendered.
+
 =cut
 
 package EPrints::Plugin::Export::CSV;
