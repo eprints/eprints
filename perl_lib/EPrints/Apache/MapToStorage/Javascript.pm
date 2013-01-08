@@ -28,7 +28,7 @@ sub handler
 	my $target = $repo->config( "htdocs_path" )."/".$langid."/javascript/auto.js";
 	$r->filename( $target );
 
-	EPrints::Update::Static::update_auto( $target, [
+	EPrints::Update::Static::update_auto( $target, "js", [
 			map { "$_/javascript/auto" } @static_dirs
 		]);
 

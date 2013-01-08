@@ -28,7 +28,7 @@ sub handler
 	my $target = $repo->config( "htdocs_path" )."/".$langid."/style/auto.css";
 	$r->filename( $target );
 
-	EPrints::Update::Static::update_auto( $target, [
+	EPrints::Update::Static::update_auto( $target, "css", [
 			map { "$_/style/auto" } @static_dirs
 		]);
 
