@@ -121,8 +121,7 @@ sub render_editbox
 
 	my $session = $self->{session};
 
-	my $form = $session->render_form( "POST" );
-	$form->appendChild( $self->render_hidden_bits );
+	my $form = $self->render_form;
 
 	my $workflow = $self->workflow;
 

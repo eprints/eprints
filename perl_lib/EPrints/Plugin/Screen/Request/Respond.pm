@@ -223,7 +223,7 @@ sub render
 		document => $self->render_document,
 	) );
 
-	my $form =  $session->render_form( "post" );
+	my $form =  $self->render_form;
 	$page->appendChild( $form );
 	
 	if( $action eq "reject" )
@@ -250,7 +250,6 @@ sub render
 		$p->appendChild( $label );
 	}
 
-	$form->appendChild( $session->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
 	$form->appendChild( $session->render_hidden_field( "requestid", $self->{processor}->{request}->get_id ) );
 	$form->appendChild( $session->render_hidden_field( "action", $action ) );
 

@@ -437,9 +437,8 @@ sub render_action_buttons
 
 	my $div = $repo->xml->create_element( "div", class => "ep_act_buttons" );
 
-	my $form = $repo->render_form();
+	my $form = $self->render_form;
 	$div->appendChild( $form );
-	$form->appendChild( $self->render_hidden_bits );
 	$form->appendChild( $repo->render_action_buttons(
 		_order=>[qw( create_field )],
 		_class=>"ep_form_button_bar",

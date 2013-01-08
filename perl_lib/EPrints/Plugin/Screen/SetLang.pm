@@ -20,14 +20,12 @@ sub from
 	my $langid = $session->param( "lang" );
 	$langid = "" if !defined $langid;
 
-	my $cookie = $session->{query}->cookie(
-		-name    => "eprints_lang",
-		-path    => "/",
-		-expires => 0,
-		-value   => $langid,
-		-expires => ($langid ? "+10y" : "+0s"), # really long time
-		-domain  => $session->config("cookie_domain") );
-	$session->{request}->err_headers_out->add('Set-Cookie' => $cookie);
+	EPrints::Cookie::set_cookie( $session, "eprints_lang", $langid,
+			-expires => ($langid ? "+10y" : "+0s"), # really long time
+		);
+	EPrints::Cookie::set_secure_cookie( $session, "eprints_lang", $langid,
+			-expires => ($langid ? "+10y" : "+0s"), # really long time
+		);
 
 	my $referrer = $session->param( "referrer" );
         $referrer = EPrints::Apache::AnApache::header_in( $session->get_request, 'Referer' ) unless( EPrints::Utils::is_set( $referrer ) );

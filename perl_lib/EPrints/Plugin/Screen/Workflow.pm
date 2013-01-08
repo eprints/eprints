@@ -122,13 +122,6 @@ sub can_be_viewed
 	return $self->allow( $self->{processor}->{dataset}->id."/edit" );
 }
 
-sub allow_action
-{
-	my( $self, $action ) = @_;
-
-	return $self->can_be_viewed();
-}
-
 sub dataset
 {
 	my( $self ) = @_;
@@ -276,69 +269,6 @@ sub hidden_bits
 		dataset => $self->{processor}->{dataset}->id,
 		dataobj => $self->{processor}->{dataobj}->id,
 	);
-}
-
-sub _render_action_aux
-{
-	my( $self, $params, $asicon ) = @_;
-	
-	my $session = $self->{session};
-	
-	my $method = "GET";	
-	if( defined $params->{action} )
-	{
-		$method = "POST";
-	}
-
-	my $form = $session->render_form( $method, $session->current_url( path => "cgi" ) . "/users/home" );
-
-	$form->appendChild( 
-		$session->render_hidden_field( 
-			"screen", 
-			substr( $params->{screen_id}, 8 ) ) );
-	foreach my $id ( keys %{$params->{hidden}} )
-	{
-		$form->appendChild( 
-			$session->render_hidden_field( 
-				$id, 
-				$params->{hidden}->{$id} ) );
-	}
-	my( $action, $title, $icon );
-	if( defined $params->{action} )
-	{
-		$action = $params->{action};
-		$title = $params->{screen}->phrase( "action:$action:title" );
-		$icon = $params->{screen}->action_icon_url( $action );
-	}
-	else
-	{
-		$action = "null";
-		$title = $params->{screen}->phrase( "title" );
-		$icon = $params->{screen}->icon_url();
-	}
-	if( defined $icon && $asicon )
-	{
-		$form->appendChild( 
-			$session->make_element(
-				"input",
-				type=>"image",
-				class=>"ep_form_action_icon",
-				name=>"_action_$action", 
-				src=>$icon,
-				title=>$title,
-				alt=>$title,
-				value=>$title ));
-	}
-	else
-	{
-		$form->appendChild( 
-			$session->render_button(
-				class=>"ep_form_action_button",
-				name=>"_action_$action", 
-				value=>$title ));
-	}
-
-	return $form;
 }
 
 1;

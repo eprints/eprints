@@ -142,8 +142,7 @@ sub ajax_stats
 		my $ddata = $data->{parent}->{$datasetid};
 		my $total_width = $max_width * $ddata->{total} / $max;
 		my $bytes_width = $max_width * $ddata->{bytes} / $max_bytes;
-		my $form = $session->render_form( "GET", "#" );
-		$form->appendChild( $session->render_hidden_field( screen => $self->{processor}->{screenid} ) );
+		my $form = $self->render_form( "get" );
 		$form->appendChild( $session->render_hidden_field( store => $pluginid ) );
 		$form->appendChild( $session->render_hidden_field( datasetid => $datasetid ) );
 		$form->appendChild( $session->render_button(

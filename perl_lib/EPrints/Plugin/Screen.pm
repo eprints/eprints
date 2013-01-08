@@ -14,6 +14,8 @@ use strict;
 
 our @ISA = qw/ EPrints::Plugin /;
 
+our $CSRF_KEY = "_CSRF_Token";
+
 sub new
 {
 	my( $class, %params ) = @_;
@@ -129,7 +131,6 @@ sub export_mimetype
 	return "text/plain";
 }
 
-	
 sub render_form
 {
 	my( $self, $method, $action ) = @_;
@@ -141,7 +142,68 @@ sub render_form
 
 	$form->appendChild( $self->render_hidden_bits );
 
+	if( lc($method) eq "post" )
+	{
+		my $csrf = $self->csrf;
+		$csrf = $self->set_csrf if !defined $csrf;
+
+		$form->appendChild( $self->{session}->xhtml->hidden_field( $CSRF_KEY, $csrf ) );
+	}
+
 	return $form;
+}
+
+=begin InternalDoc
+
+=item $csrf = $screen->csrf
+
+Returns the CSRF cookie value.
+
+=end InternalDoc
+
+=cut
+
+sub csrf
+{
+	my( $self ) = @_;
+
+	# cached from a previous set_csrf() call
+	return $self->{processor}->{csrf} if defined $self->{processor}->{csrf};
+
+	return $self->repository->get_secure ?
+		EPrints::Cookie::cookie( $self->repository, "eprints_secure_csrf" ) :
+		EPrints::Cookie::cookie( $self->repository, "eprints_csrf" );
+}
+
+=begin InternalDoc
+
+=item $csrf = $screen->set_csrf
+
+Generate and set a new CSRF code. Returns the new code.
+
+=end InternalDoc
+
+=cut
+
+sub set_csrf
+{
+	my( $self ) = @_;
+
+	my $csrf = $self->{processor}->{csrf} = &EPrints::DataObj::LoginTicket::_code;
+
+	# note: someone with control of the wire could sniff the insecure cookie
+	# then rewrite an insecure page with a call to the HTTPS page, hence we use
+	# different cookies/codes for HTTP and HTTPS
+	if( $self->repository->get_secure )
+	{
+		EPrints::Cookie::set_secure_cookie( $self->repository, "eprints_secure_csrf", $csrf );
+	}
+	else
+	{
+		EPrints::Cookie::set_cookie( $self->repository, "eprints_csrf", $csrf );
+	}
+
+	return $csrf;
 }
 
 sub about_to_render 
@@ -180,20 +242,32 @@ sub can_be_viewed
 sub allow_action
 {
 	my( $self, $action_id ) = @_;
-	my $ok = 0;
-	foreach my $an_action ( @{$self->{actions}} )
-	{
-		if( $an_action eq $action_id )
-		{
-			$ok = 1;
-			last;
-		}
-	}
-
-	return( 0 ) if( !$ok );
 
 	my $fn = "allow_".$action_id;
 	return $self->$fn;
+}
+
+=item $ok = $screen->verify_csrf()
+
+Verify that the CSRF token in the user agent's cookie matches the token passed in the form value.
+
+If the CSRF check fails no action should be taken as this may be an attempt to forge a request.
+
+=cut
+
+sub verify_csrf
+{
+	my( $self ) = @_;
+
+	my $cookie = $self->csrf;
+	my $param = $self->repository->param( $CSRF_KEY );
+
+	if( !$cookie || !$param || $cookie ne $param )
+	{
+		return 0;
+	}
+
+	return 1;
 }
 
 sub render_tab_title
@@ -209,43 +283,36 @@ sub from
 
 	my $action_id = $self->{processor}->{action};
 
-	return if( !defined $action_id || $action_id eq "" );
-
-	return if( $action_id eq "null" );
+	# _action_null is legacy
+	return if( !defined $action_id || $action_id eq "" || $action_id eq "null" );
 
 	# If you hit reload after login you can cause a
 	# login action, so we'll just ignore it.
 #	return if( $action_id eq "login" );
 
-	my $ok = 0;
-	foreach my $an_action ( @{$self->{actions}} )
-	{
-		if( $an_action eq $action_id )
-		{
-			$ok = 1;
-			last;
-		}
-	}
-
-	if( !$ok )
+	if( !$self->has_action( $action_id ) )
 	{
 		$self->{processor}->add_message( "error",
 			$self->{session}->html_phrase( 
 	      			"Plugin/Screen:unknown_action",
 				action=>$self->{session}->make_text( $action_id ),
 				screen=>$self->{session}->make_text( $self->{processor}->{screenid} ) ) );
-		return;
 	}
-
-	if( $self->allow_action( $action_id ) )
-	{
-		my $fn = "action_".$action_id;
-		$self->$fn;
-	}
-	else
+	elsif( !$self->allow_action( $action_id ) )
 	{
 		$self->{processor}->action_not_allowed( 
 			$self->html_phrase( "action:$action_id:title" ) );
+	}
+	elsif( !$self->verify_csrf )
+	{
+		$self->{processor}->add_message( "error", $self->repository->html_phrase(
+				"Plugin/Screen:csrf_failure"
+			) );
+	}
+	else
+	{
+		my $fn = "action_".$action_id;
+		$self->$fn;
 	}
 }
 
@@ -300,6 +367,24 @@ sub list_items
 
 	return $self->{processor}->list_items( $list_id, %opts );
 }	
+
+=item $ok = $screen->has_action( $action_id )
+
+Returns true if this screen has an action $action_id.
+
+=cut
+
+sub has_action
+{
+	my( $self, $action_id ) = @_;
+
+	for(@{$self->{actions}})
+	{
+		return 1 if $action_id eq $_;
+	}
+
+	return 0;
+}
 
 sub action_allowed
 {
@@ -416,13 +501,18 @@ sub _render_action_aux
 	
 	my $session = $self->{session};
 	
-	my $method = "GET";	
+	my @query = (
+			screen => $params->{screen}->get_subtype,
+		);
+
+	my $method = "get";	
 	if( defined $params->{action} )
 	{
-		$method = "POST";
+		$method = "post";
+		my $csrf = $self->csrf;
+		$csrf = $self->set_csrf if !defined $csrf;
+		push @query, $CSRF_KEY => $csrf;
 	}
-
-	my @query = (screen => substr( $params->{screen_id}, 8 ));
 
 	my $hidden = $params->{hidden};
 	if( ref($hidden) eq "ARRAY" )
@@ -457,7 +547,7 @@ sub _render_action_aux
 
 	my $frag;
 
-	if( $method eq "GET" && defined $icon && $asicon )
+	if( $method eq "get" && defined $icon && $asicon )
 	{
 		push @query, "_action_$action" => 1 if length($action);
 		my $uri = URI->new( $path );

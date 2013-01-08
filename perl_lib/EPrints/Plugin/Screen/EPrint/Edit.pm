@@ -68,6 +68,10 @@ sub from
 {
 	my( $self ) = @_;
 
+	if( $self->{processor}->{internal} || $self->{processor}->{action} )
+	{
+		return if !$self->verify_csrf;
+	}
 
 	if( defined $self->{processor}->{internal} )
 	{
