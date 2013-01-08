@@ -40,6 +40,7 @@ sub can_be_viewed
 
 	return $self->allow( $self->{processor}->{dataset}->id."/destroy" );
 }
+sub allow_action { shift->can_be_viewed }
 
 sub render
 {

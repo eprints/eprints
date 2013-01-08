@@ -222,6 +222,7 @@ use EPrints::Storage;
 use EPrints::Citation;
 use EPrints::Citation::EPC;
 use EPrints::Citation::XSL;
+use EPrints::Cookie;
 use EPrints::DataObj;
 use EPrints::DataObj::SubObject;
 use EPrints::DataObj::Access;

@@ -45,9 +45,16 @@ sub can_be_viewed
 	return $self->allow( $self->{processor}->{dataset}->id."/edit" );
 }
 
+sub allow_action { shift->can_be_viewed }
+
 sub from
 {
 	my( $self ) = @_;
+
+	if( $self->{processor}->{internal} || $self->{processor}->{action} )
+	{
+		return if !$self->verify_csrf;
+	}
 
 	if( defined $self->{processor}->{internal} )
 	{
@@ -81,7 +88,7 @@ sub from
 		return;
 	}
 
-	$self->EPrints::Plugin::Screen::from;
+	$self->SUPER::from;
 }
 
 sub wishes_to_export

@@ -631,7 +631,7 @@ sub render_action_link
 	}
 	my $button = $session->make_doc_fragment;
 	$button->appendChild( $session->render_button(
-			name=>"_action_import_from",
+#			name=>"_action_import_from",
 			value=>$session->phrase( "Plugin/Screen/Import:action:import_from:title" ) ) );
 	{
 		local $self->{processor}->{format};
@@ -642,10 +642,9 @@ sub render_action_link
 		{
 			$self->{processor}->{on_behalf_of} = $self->{processor}->{dataobj};
 		}
-		$button->appendChild( $self->render_hidden_bits );
 	}
 
-	my $form = $session->render_form( "GET" );
+	my $form = $self->render_form( "get" );
 	$form->appendChild( $session->html_phrase( "Plugin/Screen/Import:import_section",
 					tools => $tools,
 					menu => $select,

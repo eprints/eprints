@@ -465,9 +465,7 @@ sub render_new_phrase
 	my $f = $session->make_doc_fragment;
 	
 	my $add_div = $session->make_element( "div", id=>"ep_phraseedit_addbar" );
-	my $form = $session->render_form( "get",
-		$session->config( "rel_cgipath" )."/users/home" );
-	$form->appendChild( $self->render_hidden_bits );
+	my $form = $self->render_form;
 	$form->appendChild(
 		$session->render_noenter_input_field( 
 			size => "50",

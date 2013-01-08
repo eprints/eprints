@@ -21,6 +21,18 @@ sub new
 	return $self;
 }
 
+# public searches require no csrf
+sub verify_csrf { 1 }
+
+# default search forms to 'get' (allows refreshing)
+sub render_form
+{
+	my( $self, $method, $action ) = @_;
+
+	$method = "get" if !defined $method;
+
+	return $self->SUPER::render_form( $method, $action );
+}
 
 sub can_be_viewed
 {
@@ -509,8 +521,7 @@ sub render_export_bar
 			name=>"_action_export_redir",
 			value=>$session->phrase( "lib/searchexpression:export_button" ) ) );
 
-	my $form = $self->{session}->render_form( "GET" );
-	$form->appendChild( $self->render_hidden_bits );
+	my $form = $self->render_form;
 	$form->appendChild( $session->render_hidden_field( "order", $order ) ); 
 	$form->appendChild( $session->render_hidden_field( "cache", $cacheid ) ); 
 	$form->appendChild( $session->render_hidden_field( "exp", $escexp, ) );
@@ -602,7 +613,7 @@ sub paginate_opts
 	}
 
 	my $order_div = $self->{session}->make_element( "div", class=>"ep_search_reorder" );
-	my $form = $self->{session}->render_form( "GET" );
+	my $form = $self->render_form;
 	$order_div->appendChild( $form );
 	$form->appendChild( $self->{session}->html_phrase( "lib/searchexpression:order_results" ) );
 	$form->appendChild( $self->{session}->make_text( ": " ) );
@@ -611,7 +622,6 @@ sub paginate_opts
 	$form->appendChild( $self->{session}->render_button(
 			name=>"_action_search",
 			value=>$self->{session}->phrase( "lib/searchexpression:reorder_button" ) ) );
-	$form->appendChild( $self->render_hidden_bits );
 	$form->appendChild( 
 		$self->{session}->render_hidden_field( "exp", $escexp, ) );
 
@@ -694,9 +704,7 @@ sub render_search_form
 {
 	my( $self ) = @_;
 
-	my $form = $self->{session}->render_form( "get" );
-
-	$form->appendChild( $self->render_hidden_bits );
+	my $form = $self->render_form;
 
 	$form->appendChild( $self->render_preamble );
 

@@ -146,20 +146,14 @@ sub new_from_request
 
 	if( $repo->get_secure )
 	{
-		my $securecode = EPrints::Apache::AnApache::cookie(
-			$r,
-			$SECURE_SESSION_KEY
-		);
+		my $securecode = EPrints::Cookie::cookie( $repo, $SECURE_SESSION_KEY );
 		$ticket = $dataset->search(filters => [
 			{ meta_fields => [qw( securecode )], value => $securecode },
 		])->item( 0 );
 	}
 	else
 	{
-		my $code = EPrints::Apache::AnApache::cookie(
-			$r,
-			$SESSION_KEY
-		);
+		my $code = EPrints::Cookie::cookie( $repo, $SESSION_KEY );
 		$ticket = $dataset->search(filters => [
 			{ meta_fields => [qw( code )], value => $code },
 		])->item( 0 );
@@ -204,61 +198,6 @@ sub expire_all
 
 =cut
 
-######################################################################
-
-=begin InternalDoc
-
-=item $cookie = $ticket->generate_cookie( %opts )
-
-Returns the HTTP (non-secure) session cookie.
-
-=end InternalDoc
-
-=cut
-
-sub generate_cookie
-{
-	my( $self, %opts ) = @_;
-
-	my $repo = $self->{session};
-
-	return $repo->{query}->cookie(
-		-name    => $SESSION_KEY,
-		-path    => ($repo->config( "http_root" ) || '/'),
-		-value   => $self->value( "code" ),
-		-domain  => $repo->config( "host" ),
-		-expires => $repo->config( "user_cookie_timeout" ),
-		%opts,
-	);			
-}
-
-=begin InternalDoc
-
-=item $cookie = $ticket->generate_secure_cookie( %opts )
-
-Returns the HTTPS session cookie.
-
-=end InternalDoc
-
-=cut
-
-sub generate_secure_cookie
-{
-	my( $self, %opts ) = @_;
-
-	my $repo = $self->{session};
-
-	return $repo->{query}->cookie(
-		-name    => $SECURE_SESSION_KEY,
-		-path    => ($repo->config( "https_root" ) || '/'),
-		-value   => $self->value( "securecode" ),
-		-domain  => $repo->config( "securehost" ),
-		-secure  => 1,
-		-expires => $repo->config( "user_cookie_timeout" ),
-		%opts,
-	);			
-}
-
 =item $ticket->set_cookies()
 
 Set the session cookies for this login ticket.
@@ -271,14 +210,18 @@ sub set_cookies
 
 	my $repo = $self->{session};
 
-	$repo->get_request->err_headers_out->add(
-		'Set-Cookie' => $self->generate_cookie
-	);
+	EPrints::Cookie::set_cookie(
+			$repo,
+			$SESSION_KEY,
+			$self->value( "code" )
+		);
 	if( $repo->config( "securehost" ) )
 	{
-		$repo->get_request->err_headers_out->add(
-			'Set-Cookie' => $self->generate_secure_cookie
-		);
+		EPrints::Cookie::set_secure_cookie(
+				$repo,
+				$SECURE_SESSION_KEY,
+				$self->value( "securecode" )
+			);
 	}
 }
 
