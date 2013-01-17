@@ -710,7 +710,7 @@ sub update_view_list
 					$view,
 					$path_values,
 					$opts->{filename} );
-			$block = $xml->parse_string( $block )
+			$block = $xml->parse_string( $block )->documentElement
 				if !ref( $block );
 
 			$PAGE->appendChild( $xml->clone( $intro ) );
