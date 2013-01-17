@@ -210,6 +210,9 @@ sub get_search_conditions
 		$indexmode = "index_start";
 	}
 
+	# split up initials
+	$v2 =~ s/([\p{Uppercase}])/ $1/g;
+
 	# name searches are case sensitive
 	$v2 = "\L$v2";
 
@@ -223,11 +226,8 @@ sub get_search_conditions
 	}
 
 
-	# split up initials
-	$v2 =~ s/([A-Z])/ $1/g;
-
 	# remove not a-z characters (except ,)
-	$v2 =~ s/[^a-z,]/ /ig;
+	$v2 =~ s/[^\p{Lowercase},]/ /ig;
 
 	my( $family, $given ) = split /\s*,\s*/, $v2;
 	my @freetexts = ();
