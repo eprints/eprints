@@ -27,15 +27,6 @@ use EPrints::Search::Condition::SubQuery;
 
 use strict;
 
-sub logic
-{
-	my( $self, %opts ) = @_;
-
-	my @logic = map { $_->logic( %opts ) } @{$self->{sub_ops}};
-
-	return @logic ? "(".join(" OR ", @logic).")" : ();
-}
-
 1;
 
 =head1 COPYRIGHT
