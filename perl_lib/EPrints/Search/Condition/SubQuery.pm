@@ -46,6 +46,9 @@ sub joins
 {
 	my( $self, %opts ) = @_;
 
+	# Stop sub_ops from using their own prefixes (InSubject)
+	$opts{prefix} = "" if !defined $opts{prefix};
+
 	return $self->{sub_ops}->[0]->joins( %opts );
 }
 
@@ -53,7 +56,12 @@ sub logic
 {
 	my( $self, %opts ) = @_;
 
-	return "(" . join(" OR ", map { $_->logic( %opts ) } @{$self->{sub_ops}} ) . ")";
+	# Stop sub_ops from using their own prefixes (InSubject)
+	$opts{prefix} = "" if !defined $opts{prefix};
+
+	my @logic = map { $_->logic( %opts ) } @{$self->{sub_ops}};
+
+	return @logic ? "(".join(" OR ", @logic).")" : ();
 }
 
 sub alias
