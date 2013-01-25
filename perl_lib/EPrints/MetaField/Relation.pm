@@ -49,7 +49,7 @@ sub to_sax_basic
 
 	return $self->SUPER::to_sax_basic( {
 		type => $value->{type},
-		uri => $self->{repository}->config( "base_url" ) . $value->{uri},
+		uri => URI->new_abs($value->{uri}, $self->{repository}->config( "base_url" )),
 	}, %opts );
 }
 
