@@ -61,11 +61,12 @@ sub headers_in
 	return $self->{headers_in} ||= {};
 }
 
+sub err_headers_out { shift->headers_out(@_) }
 sub headers_out
 {
 	my( $self ) = @_;
 
-	return $self->{headers_out} ||= {};
+	return $self->{headers_out} ||= EPrints::Test::Table->new();
 }
 
 sub custom_response
@@ -81,6 +82,16 @@ sub handler
 sub set_handlers
 {
 	my( $self, $handlers ) = @_;
+}
+
+sub pnotes
+{
+	my( $self, $key, $value ) = @_;
+
+	$self->{pnotes} ||= {};
+	$self->{pnotes}{$key} = $value if @_ == 3;
+
+	return $self->{pnotes};
 }
 
 package EPrints::Test::Pool;
@@ -100,6 +111,17 @@ sub cleanup_register
 
 	unshift @{$self->{cleanup}}, [$f, $ctx];
 }
+
+package EPrints::Test::Table;
+
+sub new
+{
+	my( $class, %self ) = @_;
+
+	return bless \%self, $class;
+}
+
+sub add { shift->{$_[0]} = $_[1] }
 
 1;
 

@@ -16,11 +16,13 @@ B<EPrints::Test::OnlineSession> - Test online features of EPrints, offline
 package EPrints::Test::OnlineSession;
 
 use EPrints::Test::RequestRec;
+use EPrints::Test::Template;
 
 our @ISA = qw( EPrints::Session );
 
-my @VARS = qw( stdout uri secure );
+my @VARS = qw( uri secure );
 my %VAR;
+our $STDOUT = "";
 
 =item $session = EPrints::Test::OnlineSession->new( $session, $query )
 
@@ -41,6 +43,8 @@ foreach my $f (@VARS)
 	my $fn = "test_get_$f";
 	*$fn = sub { my( $self ) = @_; $VAR{$self}->{$f} };
 }
+
+sub test_get_stdout { $STDOUT }
 
 sub new
 {
@@ -96,6 +100,16 @@ sub new
 		$self->{current_user} = $user;
 	}
 
+	# capture output from templates
+	foreach my $id (keys %{$self->{templates}})
+	{
+		foreach my $langid (keys %{$self->{templates}{$id}})
+		{
+			my $template = $self->{templates}{$id}{$langid};
+			bless $template, EPrints::Test::Template;
+		}
+	}
+
 	return $self;
 }
 
@@ -134,12 +148,6 @@ sub send_http_header
 
 {
 no warnings;
-sub EPrints::Page::send
-{
-	my( $self ) = @_;
-
-	$VAR{$self->{repository}}->{"stdout"} .= $self->{page};
-}
 
 sub Apache2::Util::ht_time
 {
