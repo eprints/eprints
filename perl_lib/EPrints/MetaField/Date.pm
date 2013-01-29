@@ -145,8 +145,9 @@ sub value_from_sql_row
 {
 	my( $self, $session, $row ) = @_;
 
-	my @parts = grep { defined $_ } splice(@$row,0,scalar(@{$self->{parts}}));
-
+	my @parts;
+	@parts = splice(@$row,0,scalar(@{$self->{parts}}));
+	@parts = grep { defined $_ && $_ > 0 } @parts;
 	return undef if !@parts;
 
 	return $self->_build_value( join(' ', @parts) );
@@ -158,7 +159,7 @@ sub sql_row_from_value
 
 	my @parts;
 	@parts = split /[-: TZ]/, $value if defined $value;
-	@parts = @parts[0..$#{$self->{parts}}];
+	@parts = map { defined $_ ? $_ : 0 } @parts[0..$#{$self->{parts}}];
 
 	return @parts;
 }
