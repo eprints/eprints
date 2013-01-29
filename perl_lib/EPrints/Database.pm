@@ -524,6 +524,32 @@ sub rollback
 	$self->{dbh}->{AutoCommit} = 1;
 }
 
+=item $ok = $db->lock_table(TABLE1 [, TABLE2 ...])
+
+Lock a table for writing, preventing any other processes from working on this table until L</unlock_table> is called on the tables.
+
+=cut
+
+sub lock_table
+{
+	my ($self, @tables) = @_;
+
+	return 1;
+}
+
+=item $ok = $db->unlock_table(TABLE1 [, TABLE2 ...])
+
+Unlock tables previously locked with L</lock_table>.
+
+=cut
+
+sub unlock_table
+{
+	my ($self, @tables) = @_;
+
+	return 1;
+}
+
 =item $type_info = $db->type_info( DATA_TYPE )
 
 See L<DBI/type_info>.
@@ -1584,19 +1610,17 @@ sub _update_data
 	# Erase old, and insert new, values into aux-tables.
 	foreach my $multifield ( @aux )
 	{
-		my $auxtable = $dataset->get_sql_sub_table_name( $multifield );
-		if( !$insert )
-		{
-			$rv &&= $self->delete_from( $auxtable, [$keyname], [$keyvalue] );
-		}
-
 		my $values = $data->{$multifield->get_name()};
+
+		my $auxtable = $dataset->get_sql_sub_table_name( $multifield );
 
 		# skip if there are no values at all
 		if( !EPrints::Utils::is_set( $values ) )
 		{
+			$rv &&= $self->delete_from( $auxtable, [$keyname], [$keyvalue] );
 			next;
 		}
+
 		if( ref($values) ne "ARRAY" )
 		{
 			EPrints->abort( "Expected array reference for ".$multifield->get_name."\n".Data::Dumper::Dumper( $data ) );
@@ -1615,7 +1639,15 @@ sub _update_data
 			];
 		}
 
+		$self->lock_table($auxtable);
+
+		if( !$insert )
+		{
+			$rv &&= $self->delete_from( $auxtable, [$keyname], [$keyvalue] );
+		}
 		$rv &&= $self->insert( $auxtable, \@names, @rows );
+
+		$self->unlock_table($auxtable);
 	}
 
 	if( $dataset->ordered )
