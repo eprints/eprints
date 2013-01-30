@@ -31,7 +31,7 @@ B<EPrints::RepositoryConfig> - Repository Configuration
 		if( $uri =~ m{^/blog/} )
 		{
 			$r->err_headers_out->{Location} = "http://...";
-			${$params{rc}} = EPrints::Const::HTTP_SEE_OTHER;
+			${$params{return_code}} = EPrints::Const::HTTP_SEE_OTHER;
 			return EP_TRIGGER_DONE;
 		}
 	
