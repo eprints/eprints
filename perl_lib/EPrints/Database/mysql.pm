@@ -249,6 +249,19 @@ sub connect
 	return $rc;
 }
 
+sub disconnect
+{
+	my ($self) = @_;
+
+	if (defined $self->{dbh})
+	{
+		# make sure no MySQL table LOCKs are left on a cached connection
+		$self->unlock_table;
+	}
+
+	return $self->SUPER::disconnect;
+}
+
 ######################################################################
 =pod
 
