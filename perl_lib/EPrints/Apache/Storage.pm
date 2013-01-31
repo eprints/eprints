@@ -244,9 +244,10 @@ sub handler
 		}
 		print shift( @boundaries ) if $rv;
 	}
-	elsif( $rres == HTTP_RANGE_NOT_SATISFIABLE )
+	elsif( $rres != OK )
 	{
-		return HTTP_RANGE_NOT_SATISFIABLE;
+		# HTTP_RANGE_NOT_SATISFIABLE, HTTP_BAD_REQUEST
+		return $rres;
 	}
 	else # OK normal response
 	{

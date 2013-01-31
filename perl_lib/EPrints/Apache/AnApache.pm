@@ -222,19 +222,23 @@ sub ranges
 	my $ranges = EPrints::Apache::AnApache::header_in( $r, "Range" );
 	return OK if !defined $ranges;
 
+	# can never get the Range of an empty resource
+	return HTTP_RANGE_NOT_SATISFIABLE if $maxlength == 0;
+
 	$ranges =~ s/\s+//g;
-	return HTTP_RANGE_NOT_SATISFIABLE if $ranges !~ s/^bytes=//;
-	return HTTP_RANGE_NOT_SATISFIABLE if $ranges =~ /[^0-9,\-]/;
+	return HTTP_BAD_REQUEST if $ranges !~ s/^bytes=//;
+	return HTTP_BAD_REQUEST if $ranges =~ /[^0-9,\-]/;
 
 	my @ranges = map { [split /\-/, $_] } split(/,/, $ranges);
 	return HTTP_RANGE_NOT_SATISFIABLE if !@ranges;
 
 	# handle -500 and 9500-
 	# check for broken ranges (in which case we give-up)
+	# limit ranges to $maxlength
 	for(@ranges)
 	{
-		return HTTP_RANGE_NOT_SATISFIABLE if @$_ > 2;
-		return HTTP_RANGE_NOT_SATISFIABLE if !length($_->[0]) && !length($_->[1]);
+		return HTTP_BAD_REQUEST if @$_ > 2;
+		return HTTP_BAD_REQUEST if !length($_->[0]) && !length($_->[1]);
 		if( !defined $_->[1] || !length $_->[1] )
 		{
 			$_->[1] = $maxlength-1;
@@ -244,13 +248,19 @@ sub ranges
 			$_->[0] = $maxlength-$_->[1];
 			$_->[1] = $maxlength-1;
 		}
-		return HTTP_RANGE_NOT_SATISFIABLE if $_->[0] >= $maxlength;
-		return HTTP_RANGE_NOT_SATISFIABLE if $_->[1] >= $maxlength;
+		$_->[0] = $maxlength-1 if $_->[0] >= $maxlength;
+		$_->[1] = $maxlength-1 if $_->[1] >= $maxlength;
 		return HTTP_RANGE_NOT_SATISFIABLE if $_->[0] > $_->[1];
 	}
 
+	# strip zero-length ranges
+	@ranges = grep { $_->[1] > $_->[0] } @ranges;
+	return HTTP_RANGE_NOT_SATISFIABLE if !@ranges;
+
+	# sort ranges in starting-octet order
 	@ranges = sort { $a->[0] <=> $b->[0] } @ranges;
 
+	# glue overlapping ranges together
 	for(my $i = 0; $i < $#ranges;)
 	{
 		my( $l, $r ) = @ranges[$i,$i+1];
@@ -270,6 +280,8 @@ sub ranges
 			++$i;
 		}
 	}
+
+	return HTTP_RANGE_NOT_SATISFIABLE if $ranges[0][0] >= $maxlength;
 
 	@$chunks = @ranges;
 
