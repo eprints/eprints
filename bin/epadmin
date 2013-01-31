@@ -3006,6 +3006,7 @@ sub epadmin_upgrade
 			3.3.2
 			3.3.3
 			3.3.4
+			4.0.0
 		);
 
 	for(my $i = 0; $i < $#versions; ++$i)
@@ -3385,6 +3386,36 @@ sub upgrade_3_3_3_to_3_3_4
 				EPrints::Index::insert_ordervalues(
 					$repo, $dataset, $item->get_data, $item->get_data );
 			});
+		}
+	}
+}
+
+sub upgrade_3_3_4_to_4_0_0
+{
+	my( $repo, $db ) = @_;
+
+	foreach my $dataset (map { $repo->dataset( $_ ) } $repo->get_sql_dataset_ids)
+	{
+		foreach my $field ($dataset->fields)
+		{
+			next if !$field->isa( "EPrints::MetaField::Date");
+
+			my $table;
+			if ($field->property("multiple")) {
+				$table = $dataset->get_sql_sub_table_name($field);
+			}
+			else {
+				$table = $dataset->get_sql_table_name;
+			}
+
+			foreach my $col ($field->get_sql_names) {
+				my $sql = sprintf('UPDATE %s SET %s=0 WHERE %s IS NULL',
+						$db->quote_identifier($table),
+						$db->quote_identifier($col),
+						$db->quote_identifier($col),
+					);
+				$db->do($sql);
+			}
 		}
 	}
 }
