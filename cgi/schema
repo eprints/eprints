@@ -32,6 +32,9 @@ foreach my $datasetid ($repo->get_dataset_ids)
 	next if $dataset->is_virtual;
 	foreach my $field ($dataset->fields)
 	{
+		# skip creators_name and other parts of compounds
+		next if $field->property("sub_name");
+
 		push @{$elements{$datasetid}}, $field->render_xml_schema( $repo );
 		my $type = $field->get_xml_schema_type();
 		if( $type !~ /^xs:/ )
@@ -65,7 +68,7 @@ foreach my $datasetid (sort keys %elements)
 
 	# dataset fields
 	# TODO: this should be xs:all, but the DTD won't accept minOccurs=0
-	my $datasetAll = $xml->create_element( "xs:choice", minOccurs => 0, maxOccurs => "unbounded" );
+	my $datasetAll = $xml->create_element( "xs:all", minOccurs => 0, maxOccurs => 1 );
 	$complexType->appendChild( $datasetAll );
 	foreach my $field_schemas (@{$elements{$datasetid}})
 	{

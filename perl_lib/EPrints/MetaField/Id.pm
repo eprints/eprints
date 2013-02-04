@@ -96,6 +96,33 @@ sub get_index_codes_basic
 	return( [ $value ], [], [] );
 }
 
+sub get_xml_schema_type
+{
+	my( $self ) = @_;
+
+	if ($self->property("maxlength") != $self->{field_defaults}->{maxlength}) {
+		return $self->get_xml_schema_field_type;
+	}
+	else {
+		return $self->{type};
+	}
+}
+
+sub render_xml_schema_type
+{
+	my( $self, $session ) = @_;
+
+	my $type = $session->make_element( "xs:simpleType", name => $self->get_xml_schema_type );
+
+	my $restriction = $session->make_element( "xs:restriction", base => "xs:string" );
+	$type->appendChild( $restriction );
+	my $length = $session->make_element( "xs:maxLength", value => $self->get_max_input_size );
+	$restriction->appendChild( $length );
+
+	return $type;
+}
+
+
 ######################################################################
 1;
 

@@ -527,7 +527,7 @@ sub get_xml_schema_type
 {
 	my( $self ) = @_;
 
-	return $self->get_property( "type" ) . "_" . $self->{dataset}->confid . "_" . $self->get_name;
+	return $self->get_xml_schema_field_type;
 }
 
 sub render_xml_schema_type

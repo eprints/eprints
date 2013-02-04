@@ -223,11 +223,11 @@ my $INFO = {
 		class => "EPrints::DataObj::File",
 		datestamp => "mtime",
 	},
-	import => {
-		sqlname => "import",
-		class => "EPrints::DataObj::Import",
-		datestamp => "datestamp",
-	},
+#	import => {
+#		sqlname => "import",
+#		class => "EPrints::DataObj::Import",
+#		datestamp => "datestamp",
+#	},
 	cache_dataobj_map => {
 		sqlname => "cache_dataobj_map",
 		class => "EPrints::DataObj::CacheDataobjMap",
