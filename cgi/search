@@ -82,6 +82,16 @@ elsif( !defined $searchid )
 		exit;
 	}
 }
+elsif( $searchid =~ /^export/ )
+{
+	# /cgi/search/quicksearch/export i.e. repository-specific search spec. that
+	# hopefully doesn't match an existing dataset id
+	if( !defined $repo->dataset( $datasetid ) )
+	{
+		$repo->redirect( $repo->config( "http_cgiroot" )."/search/archive/$datasetid/$searchid$args" );
+		exit;
+	}
+}
 
 my $dataset = $repo->dataset( $datasetid );
 if( !defined $dataset )
