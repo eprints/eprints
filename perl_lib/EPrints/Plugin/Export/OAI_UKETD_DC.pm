@@ -82,7 +82,7 @@ sub xml_dataobj
 
 	# we have a variety of namespaces since we're doing qualified dublin core, so we need an
 	# array of references to three element arrays in our data structure
-	my @etdData = &eprint_to_uketd_dc( $eprint, $plugin->{session} );
+	my @etdData = $plugin->eprint_to_uketd_dc( $eprint );
 	
 	my $namespace = $plugin->{xmlns};
 	my $schema = $plugin->{schemaLocation};
@@ -128,7 +128,7 @@ sub xml_dataobj
 
 sub eprint_to_uketd_dc
 {
-	my( $eprint, $session ) = @_;
+	my( $plugin, $eprint, $session ) = @_;
 
 	my @etddata = ();
 	# we still want much the same dc data so include under the dc namespace

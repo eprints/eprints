@@ -588,6 +588,7 @@ sub _render_citation_aux
 			{
 				$rendered = $params{session}->make_element( 
 					"a",
+					class=>$params{class},
 					onclick=>$params{onclick},
 					target=>$params{target},
 					href=> $params{url} );
@@ -649,6 +650,11 @@ sub field_from_config_string
 			{
 				my( $k, $v ) = split( /=/, $render_pair );
 				$v = 1 unless defined $v;
+				if( $k eq "options" )
+				{
+					$q{$k} = [ split( ",", $v ) ];
+					next;
+				}
 				$q{($k eq "top"?"top":"render_$k")} = $v;
 			}
 		}

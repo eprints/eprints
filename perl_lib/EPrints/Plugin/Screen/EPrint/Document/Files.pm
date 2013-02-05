@@ -162,6 +162,17 @@ sub action_add_file
 	my $filename = $self->{session}->query->param( "filename" );
 	my $filepath = $self->{session}->query->tmpFileName( $fh );
 
+	# strip the filepath from the uploaded filename parameter
+	if( $filename =~ /^[A-Z]:/i )
+	{
+		$filename =~ s/^.*\\//;
+	}
+	else
+	{
+		$filename =~ s/^.*\///;
+	}
+	$filename = EPrints->system->sanitise( $filename );
+
 	my $fileobj = $self->{processor}->{document}->add_file(
 		$filepath,
 		$filename,

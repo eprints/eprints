@@ -45,7 +45,7 @@ sub output_dataobj
 	}
 	my $parents = $dataobj->get_value( "parents" );
 	push @parts, join ",", @$parents;
-	push @parts, $dataobj->get_value( "depositable" ) ? "1" : "0";
+	push @parts, $dataobj->is_set( "depositable" ) && $dataobj->get_value( "depositable" ) eq "TRUE" ? "1" : "0";
 
 	return join(":", @parts)."\n";
 }

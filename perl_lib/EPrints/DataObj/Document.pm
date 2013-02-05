@@ -1743,6 +1743,7 @@ sub render_icon_link
 	}
 
 	my %aopts;
+	$aopts{class} = "ep_document_link";
 	$aopts{target} = "_blank" if( $opts{new_window} );
 	if( $self->{session}->{preparing_static_page} )
 	{
@@ -2190,6 +2191,17 @@ sub search_related
 				value => $self->parent->id,
 			}]);
 	}
+}
+
+# Add ep_document_link class
+sub render_citation_link
+{
+	my( $self , $style , %params ) = @_;
+
+	$params{url} = $self->get_url;
+	$params{class} = "ep_document_link";
+	
+	return $self->render_citation( $style, %params );
 }
 
 sub permit

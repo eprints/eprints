@@ -24,6 +24,7 @@ sub new
 	$self->{name} = "DOI (via CrossRef)";
 	$self->{visible} = "all";
 	$self->{produce} = [ 'dataobj/eprint', 'list/eprint' ];
+	$self->{screen} = "Import::DOI";
 
 	return $self;
 }

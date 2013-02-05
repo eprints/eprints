@@ -151,7 +151,7 @@ sub action_request
 		"request/request_email:body", 
 		eprint => $eprint->render_citation_link_staff,
 		document => defined $doc ? $doc->render_value( "main" ) : $session->make_doc_fragment,
-		requester => $session->make_text( $email ),
+		requester => $request->render_citation( "requester" ),
 		reason => $request->is_set( "reason" ) ? $request->render_value( "reason" )
 			: $session->html_phrase( "Plugin/Screen/EPrint/RequestRemoval:reason" ) ) );
 

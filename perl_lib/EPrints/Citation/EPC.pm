@@ -116,6 +116,7 @@ sub _render_citation_aux
 			{
 				$rendered = $params{repository}->make_element( 
 					"a",
+					class=>$params{class},
 					onclick=>$params{onclick},
 					target=>$params{target},
 					href=> $params{url} );
