@@ -252,7 +252,7 @@ sub get_defaults
 	else
 	{
 		# command line or not logged in. Store script name.
-		$data->{actor} = $0;
+		$data->{actor} = "$0 @ARGV";
 	}
 
 	return $data;
