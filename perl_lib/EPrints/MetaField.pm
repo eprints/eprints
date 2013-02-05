@@ -2109,7 +2109,9 @@ sub render_xml_schema
 {
 	my( $self, $session ) = @_;
 
-	my $element = $session->make_element( "xs:element", name => $self->get_name );
+	my $name = $self->{sub_name} ? $self->{sub_name} : $self->{name};
+
+	my $element = $session->make_element( "xs:element", name => $name );
 
 	my $phraseid = $self->{dataset}->confid . "_fieldname_" . $self->get_name;
 	my $helpid = $self->{dataset}->confid . "_fieldhelp_" . $self->get_name;
@@ -2151,25 +2153,21 @@ sub render_xml_schema
 	return $element;
 }
 
-sub get_xml_schema_type
+sub get_xml_schema_type { 'xs:string' }
+
+# any sub-class that provides field-specific restrictions will need this
+sub get_xml_schema_field_type
 {
 	my( $self ) = @_;
 
-	return $self->get_property( "type" );
+	return join '.', $self->{type}, $self->{dataset}->base_id, $self->{name};
 }
 
 sub render_xml_schema_type
 {
 	my( $self, $session ) = @_;
 
-	my $type = $session->make_element( "xs:simpleType", name => $self->get_xml_schema_type );
-
-	my $restriction = $session->make_element( "xs:restriction", base => "xs:string" );
-	$type->appendChild( $restriction );
-	my $length = $session->make_element( "xs:maxLength", value => $self->get_max_input_size );
-	$restriction->appendChild( $length );
-
-	return $type;
+	return $session->make_doc_fragment;
 }
 
 sub render_search_input

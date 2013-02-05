@@ -410,6 +410,13 @@ sub characters
 	}
 }
 
+sub get_xml_schema_type
+{
+	my ($self) = @_;
+
+	return $self->get_xml_schema_field_type;
+}
+
 sub render_xml_schema_type
 {
 	my( $self, $session ) = @_;
@@ -420,7 +427,7 @@ sub render_xml_schema_type
 	$type->appendChild( $all );
 	foreach my $field (@{$self->{fields_cache}})
 	{
-		$all->appendChild( $field->render_xml_schema_type( $session ) );
+		$all->appendChild( $field->render_xml_schema( $session ) );
 	}
 
 	return $type;

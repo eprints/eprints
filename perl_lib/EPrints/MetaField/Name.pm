@@ -455,7 +455,39 @@ sub get_index_codes_basic
 	return( \@r, [$code], [] );
 }	
 
+# override Multipart
+sub get_xml_schema_type
+{
+	my ($self) = @_;
 
+	return $self->{type};
+}
+
+sub render_xml_schema_type
+{
+	my( $self, $session ) = @_;
+
+	my $type = $session->make_element( "xs:complexType", name => $self->get_xml_schema_type );
+
+	my $all = $session->make_element( "xs:all" );
+	$type->appendChild( $all );
+	foreach my $field (@{$self->{fields_cache}})
+	{
+		my $element = $session->make_element( "xs:element", name => $field->{sub_name}, minOccurs => 0 );
+		$all->appendChild( $element );
+
+		my $simpleType = $session->make_element( "xs:simpleType" );
+		$element->appendChild( $simpleType );
+
+		my $restriction = $session->make_element( "xs:restriction", base => "xs:string" );
+		$simpleType->appendChild( $restriction );
+
+		my $maxLength = $session->make_element( "xs:maxLength", value => $field->{maxlength} );
+		$restriction->appendChild( $maxLength );
+	}
+
+	return $type;
+}
 
 ######################################################################
 1;

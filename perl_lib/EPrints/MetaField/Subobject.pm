@@ -79,6 +79,11 @@ sub render_xml_schema
 
 	my $element = $session->make_element( "xs:element", name => $self->get_name );
 
+	if (!$self->property("required"))
+	{
+		$element->setAttribute( minOccurs => 0 );
+	}
+
 	if( $self->get_property( "multiple" ) )
 	{
 		my $complexType = $session->make_element( "xs:complexType" );
