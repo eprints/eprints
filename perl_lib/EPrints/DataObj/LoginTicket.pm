@@ -147,16 +147,20 @@ sub new_from_request
 	if( $repo->get_secure )
 	{
 		my $securecode = EPrints::Cookie::cookie( $repo, $SECURE_SESSION_KEY );
-		$ticket = $dataset->search(filters => [
-			{ meta_fields => [qw( securecode )], value => $securecode },
-		])->item( 0 );
+		if (EPrints::Utils::is_set($securecode)) {
+			$ticket = $dataset->search(filters => [
+				{ meta_fields => [qw( securecode )], value => $securecode },
+			])->item( 0 );
+		}
 	}
 	else
 	{
 		my $code = EPrints::Cookie::cookie( $repo, $SESSION_KEY );
-		$ticket = $dataset->search(filters => [
-			{ meta_fields => [qw( code )], value => $code },
-		])->item( 0 );
+		if (EPrints::Utils::is_set($code)) {
+			$ticket = $dataset->search(filters => [
+				{ meta_fields => [qw( code )], value => $code },
+			])->item( 0 );
+		}
 	}
 
 	my $timeout = $repo->config( "user_session_timeout" );
