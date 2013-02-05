@@ -528,13 +528,13 @@ sub render_xml_schema_type
 
 	my $type = $session->make_element( "xs:complexType", name => $self->get_xml_schema_type );
 
-	my $sequence = $session->make_element( "xs:sequence" );
-	$type->appendChild( $sequence );
+	my $all = $session->make_element( "xs:all" );
+	$type->appendChild( $all );
 	foreach my $field (@{$self->{fields_cache}})
 	{
 		my $name = $field->{sub_name};
-		my $element = $session->make_element( "xs:element", name => $name, type => $field->get_xml_schema_type() );
-		$sequence->appendChild( $element );
+		my $element = $session->make_element( "xs:element", name => $name, type => $field->get_xml_schema_type(), minOccurs => 0 );
+		$all->appendChild( $element );
 	}
 
 	return $type;

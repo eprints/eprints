@@ -469,11 +469,11 @@ sub render_xml_schema_type
 
 	my $type = $session->make_element( "xs:complexType", name => $self->get_xml_schema_type );
 
-	my $all = $session->make_element( "xs:all", minOccurs => 0 );
+	my $all = $session->make_element( "xs:all" );
 	$type->appendChild( $all );
 	foreach my $field (@{$self->{fields_cache}})
 	{
-		my $element = $session->make_element( "xs:element", name => $field->{sub_name} );
+		my $element = $session->make_element( "xs:element", name => $field->{sub_name}, minOccurs => 0 );
 		$all->appendChild( $element );
 
 		my $simpleType = $session->make_element( "xs:simpleType" );
