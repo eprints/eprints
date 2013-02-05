@@ -150,9 +150,11 @@ sub new_from_request
 			$r,
 			$SECURE_SESSION_KEY
 		);
-		$ticket = $dataset->search(filters => [
-			{ meta_fields => [qw( securecode )], value => $securecode },
-		])->item( 0 );
+		if (EPrints::Utils::is_set($securecode)) {
+			$ticket = $dataset->search(filters => [
+				{ meta_fields => [qw( securecode )], value => $securecode },
+			])->item( 0 );
+		}
 	}
 	else
 	{
@@ -160,9 +162,11 @@ sub new_from_request
 			$r,
 			$SESSION_KEY
 		);
-		$ticket = $dataset->search(filters => [
-			{ meta_fields => [qw( code )], value => $code },
-		])->item( 0 );
+		if (EPrints::Utils::is_set($code)) {
+			$ticket = $dataset->search(filters => [
+				{ meta_fields => [qw( code )], value => $code },
+			])->item( 0 );
+		}
 	}
 
 	my $timeout = $repo->config( "user_session_timeout" );
