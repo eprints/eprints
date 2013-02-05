@@ -41,6 +41,21 @@ B<EPrints::Update::Views> - Update view pages
 
 Update the browse-by X web pages on demand.
 
+=head1 LIMITS TO LIST PAGE SIZE
+
+By default an error page will be generated if a browse view list exceeds 2000 items. This can be controlled by the global setting:
+
+	$c->{browse_views_max_items} = 300;
+
+Or, per view:
+
+	$c->{browse_views} = [{
+		...
+		max_items => 300,
+	}];
+
+To disable the limit set C<max_items> to 0.
+
 =head1 OPTIONS
 
 =over 4
@@ -160,6 +175,8 @@ our $DEBUG = 0;
 
 use strict;
   
+my $MAX_ITEMS = 2000;
+
 =item $filename = update_view_file( $repo, $langid, $localpath, $uri )
 
 This is the function which decides which type of view it is:
@@ -482,13 +499,18 @@ sub update_view_list
 
 	my $ds = $view->dataset;
 
+	my $max_items = $view->{max_items};
+	$max_items = $repo->config("browse_views_max_items") if !defined $max_items;
+	$max_items = $MAX_ITEMS if !defined $max_items;
+
 	my $list = $ds->search(
 		custom_order=>$view->{order},
 		satisfy_all=>1,
-		filters=>$filters );
+		filters=>$filters,
+		($max_items > 0 ? (limit => $max_items+1) : ()),
+	);
 
-	my @items = $list->get_records;
-	my $count = scalar @items;
+	my $count = $list->count;
 
 	# construct the export and navigation bars, which are common to all "alt_views"
 	my $menu_fields = $menus_fields->[$#$path_values];
@@ -501,7 +523,7 @@ sub update_view_list
 	$nav_sizes = {} if !defined $nav_sizes;
 
 	# nothing to show at this level or anywhere below a subject tree
-	return if !@items && !scalar(keys(%$nav_sizes));
+	return if $count == 0 && !scalar(keys(%$nav_sizes));
 
 	my $export_bar = render_export_bar( $repo, $view, $path_values );
 
@@ -509,6 +531,23 @@ sub update_view_list
 		export_bar => $xml->clone( $export_bar ),
 		sizes => $nav_sizes,
 	);
+
+	# hit the limit
+	if ($count == $max_items+1)
+	{
+		my $PAGE = $xml->create_element( "div",
+			class => "ep_view_page ep_view_page_view_$view->{id}"
+		);
+		$PAGE->appendChild( $navigation_aids );
+		$PAGE->appendChild( $repo->html_phrase( "bin/generate_views:max_items",
+			n => $xml->create_text_node( $count ),
+			max => $xml->create_text_node( $max_items ),
+		) );
+		output_files( $repo,
+			"$target.page" => $PAGE,
+		);
+		return $target;
+	}
 
 	# Timestamp div
 	my $time_div;
@@ -529,6 +568,8 @@ sub update_view_list
 	{
 		$alt_views = [ 'DEFAULT' ];
 	}
+
+	my @items = $list->get_records;
 
 	my @files = ();
 	my $first_view = 1;	
