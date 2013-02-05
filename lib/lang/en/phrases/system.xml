@@ -2347,6 +2347,7 @@ Views
     <epp:phrase id="bin/generate_views:browsetitle">Browse Items</epp:phrase>
     <epp:phrase id="bin/generate_views:browseintro"><div class="ep_view_browse_intro">Items may be browsed by the following:</div></epp:phrase>
     <epp:phrase id="bin/generate_views:timestamp"><div class="ep_view_timestamp">This list was generated on <strong><epc:pin name="time"/></strong>.</div></epp:phrase>
+	<epp:phrase id="bin/generate_views:max_items">The number of items (<epc:pin name="n" />) for this view has exceeded system limits (<epc:pin name="max" />). The system administrator either needs to increase "max_items" or apply additional filters to this view.</epp:phrase>
     <epp:phrase id="Update/Views:group_by"><div class="ep_view_group_by">Group by: <epc:pin name="groups" /></div></epp:phrase>
     <epp:phrase id="Update/Views:current_group"><span class="ep_view_group_by_current"><epc:pin name="group" /></span></epp:phrase>
     <epp:phrase id="Update/Views:group_seperator"> | </epp:phrase>
