@@ -1065,6 +1065,8 @@ sub EPrints::DataObj::uuid
 {
 	my( $self, $fragment ) = @_;
 
+	use bytes;
+
 	my $internal_uri = $self->internal_uri;
 	return if !defined $internal_uri;
 
