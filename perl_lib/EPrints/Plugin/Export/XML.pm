@@ -12,6 +12,17 @@ use EPrints::Plugin::Export::XMLFile;
 
 use strict;
 
+my @PREFIXES = (
+	{
+		Prefix => '',
+		NamespaceURI => EPrints::Const::EP_NS_DATA,
+	},
+	{
+		Prefix => 'xsi',
+		NamespaceURI => 'http://www.w3.org/2001/XMLSchema-instance',
+	},
+);
+
 sub new
 {
 	my( $class, %opts ) = @_;
@@ -27,6 +38,23 @@ sub new
 	$self->{arguments}->{hide_volatile} = 1;
 
 	return $self;
+}
+
+sub root_attributes
+{
+	my ($self) = @_;
+
+	my $schema_location = $self->{session}->current_url( host => 1, path => 'cgi', 'schema/ep2.xsd' );
+
+	return (
+		'{http://www.w3.org/2001/XMLSchema-instance}schemaLocation' => {
+			Prefix => 'xsi',
+			LocalName => 'schemaLocation',
+			Name => 'xsi:schemaLocation',
+			NamespaceURI => 'http://www.w3.org/2001/XMLSchema-instance',
+			Value => EPrints::Const::EP_NS_DATA() . ' ' . $schema_location,
+		},
+	);
 }
 
 sub output_list
@@ -51,10 +79,7 @@ sub output_list
 			Encoding => 'utf-8',
 		});
 	}
-	$wr->start_prefix_mapping({
-		Prefix => '',
-		NamespaceURI => EPrints::Const::EP_NS_DATA,
-	});
+	$wr->start_prefix_mapping($_) for @PREFIXES;
 
 	if( !$opts{omit_root} )
 	{
@@ -63,7 +88,7 @@ sub output_list
 			LocalName => $toplevel,
 			Name => $toplevel,
 			NamespaceURI => EPrints::Const::EP_NS_DATA,
-			Attributes => {},
+			Attributes => {$self->root_attributes},
 		});
 	}
 	$opts{list}->map( sub {
@@ -81,10 +106,7 @@ sub output_list
 			NamespaceURI => EPrints::Const::EP_NS_DATA,
 		});
 	}
-	$wr->end_prefix_mapping({
-		Prefix => '',
-		NamespaceURI => EPrints::Const::EP_NS_DATA,
-	});
+	$wr->end_prefix_mapping($_) for @PREFIXES;
 	$wr->end_document({});
 
 	return $output;
@@ -118,10 +140,7 @@ sub output_dataobj
 			Encoding => 'utf-8',
 		});
 	}
-	$wr->start_prefix_mapping({
-		Prefix => '',
-		NamespaceURI => EPrints::Const::EP_NS_DATA,
-	});
+	$wr->start_prefix_mapping($_) for @PREFIXES;
 	if( !$opts{omit_root} )
 	{
 		$wr->start_element({
@@ -129,7 +148,7 @@ sub output_dataobj
 			LocalName => $toplevel,
 			Name => $toplevel,
 			NamespaceURI => EPrints::Const::EP_NS_DATA,
-			Attributes => {},
+			Attributes => {$self->root_attributes},
 		});
 	}
 	$dataobj->to_sax( %opts, Handler => $wr );
@@ -142,10 +161,7 @@ sub output_dataobj
 			NamespaceURI => EPrints::Const::EP_NS_DATA,
 		});
 	}
-	$wr->end_prefix_mapping({
-		Prefix => '',
-		NamespaceURI => EPrints::Const::EP_NS_DATA,
-	});
+	$wr->end_prefix_mapping($_) for @PREFIXES;
 	$wr->end_document({});
 
 	return $output;
