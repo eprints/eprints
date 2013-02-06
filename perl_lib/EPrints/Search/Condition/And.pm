@@ -121,85 +121,24 @@ sub joins
 {
 	my( $self, %opts ) = @_;
 
-	my $db = $opts{session}->get_database;
-	my $dataset = $opts{dataset};
-
-	my $alias = "and_".Scalar::Util::refaddr( $self );
-	my $key_name = $dataset->get_key_field->get_sql_name;
-
-	my @joins;
-
-	# operations on the main table are applied directly in logic()
-	my @intersects;
-	my %seen;
-	foreach my $sub_op ( @{$self->{sub_ops}} )
-	{
-		my $table = $sub_op->table;
-		$table = "" if !defined $table;
-		if(
-			($sub_op->isa( "EPrints::Search::Condition::OrSubQuery" ) &&
-			$table ne $opts{dataset}->get_sql_table_name) ||
-			$sub_op->isa( "EPrints::Search::Condition::Or" )
-		  )
-		{
-			push @intersects, $sub_op->sql( %opts, key_alias => $key_name );
-		}
-		else
-		{
-			push @joins, $sub_op->joins( %opts );
-			$seen{$table} = 1;
-		}
-	}
-
-	my $i = 0;
-	return @joins, map { {
-		type => "inner",
-		subquery => "($_)",
-		alias => $alias . "_" . $i++,
-		key => $key_name,
-	} } @intersects;
+	return map {
+			$_->joins(%opts)
+		} @{$self->{sub_ops}};
 }
 
 sub logic
 {
 	my( $self, %opts ) = @_;
 
-	my @logic;
-	foreach my $sub_op (@{$self->{sub_ops}})
-	{
-		my $table = $sub_op->table;
-		if(
-		  (!$sub_op->isa( "EPrints::Search::Condition::OrSubQuery" ) ||
-		  $table eq $opts{dataset}->get_sql_table_name) &&
-		  !$sub_op->isa( "EPrints::Search::Condition::Or" )
-		  )
-		{
-			push @logic, $sub_op->logic( %opts );
-		}
-	}
-
+	my @logic = map { $_->logic(%opts) } @{$self->{sub_ops}};
 	return () if !@logic;
 
-	return join(' AND ', @logic);
+	return '('.join(" AND ", @logic).')';
 }
 
-# Can't do Index AND Index, so let our parent know we're working on this table
-# which will cause an AndSubQuery to be generated
-# We do this here so Grep queries remain tightly bound to their Index lookup
 sub table
 {
 	my( $self ) = @_;
-
-	foreach my $sub_op (@{$self->{sub_ops}})
-	{
-		my $table = $sub_op->table;
-		return $table if
-			defined $table &&
-			(
-				ref($sub_op) eq "EPrints::Search::Condition::Index" ||
-				ref($sub_op) eq "EPrints::Search::Condition::IndexStart"
-			);
-	}
 
 	return undef;
 }

@@ -78,10 +78,6 @@ sub optimise_specific
 		}
 	}
 
-	# if there's only one table stay as an OR, otherwise we get optimised into
-	# an OrSubQuery, which is wrong for a single-table operation
-	return $self if scalar keys %tables == 1;
-
 	foreach my $table (keys %tables)
 	{
 		# must do every condition using a subquery, otherwise we would need
