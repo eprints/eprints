@@ -1,5 +1,6 @@
 use strict;
-use Test::More tests => 34;
+use utf8;
+use Test::More tests => 36;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -422,6 +423,42 @@ $list = eval { $searchexp->perform_search };
 
 ok(defined($list) && $list->count > 0, "search multiple field".&describe($searchexp).&sql($searchexp));
 
+
+my $issue = $sample_eprint->create_subdataobj( 'item_issues', {
+	type => "tests/30_search",
+	status => "resolved",
+});
+$issue = $session->dataset( 'issue' )->dataobj( "tests/30_search" )
+	if !defined $issue;
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $dataset,
+);
+
+$searchexp->add_field( $session->dataset( 'issue' )->field( "status" ), "resolved" );
+
+$list = eval { $searchexp->perform_search };
+
+ok(defined($list) && $list->count > 0, "subobject join_path".&describe($searchexp).&sql($searchexp));
+
+$issue->remove if defined $issue;
+
+SKIP:
+{
+	skip "Enable Xapian", 1 if !defined $session->plugin( "Search::Xapian" );
+
+	my $searchexp = $session->plugin( "Search::Xapian",
+			dataset => $dataset,
+			search_fields => [
+				{ meta_fields => [qw( creators_name )], },
+			],
+			q => "creators_name:Léricolais",
+		);
+	my $list = $searchexp->execute;
+
+	ok($list->count > 0, "Xapian creators_name");
+}
 
 $session->terminate;
 
