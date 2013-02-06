@@ -211,7 +211,7 @@ sub get_search_conditions
 	}
 
 	# split up initials
-	$v2 =~ s/([\p{Uppercase}])/ $1/g;
+	$v2 = normalise_initials($v2);
 
 	# name searches are case sensitive
 	$v2 = "\L$v2";
@@ -421,6 +421,17 @@ Q
 
 END
 
+sub normalise_initials
+{
+	my ($str) = @_;
+
+	# Separate upto 3 capitalised initials
+	# JR Tolkein => J R Tolkein
+	# WORDSWORTH => WORDSWORTH
+	$str =~ s/\b(\p{Uppercase}{2,3})\b/join ' ', split '', $1/eg;
+
+	return $str;
+}
 
 sub get_index_codes_basic
 {
@@ -431,11 +442,7 @@ sub get_index_codes_basic
 	my $f = &EPrints::Index::apply_mapping( $session, $value->{family} );
 	my $g = &EPrints::Index::apply_mapping( $session, $value->{given} );
 
-	# Add a space before all capitals to break
-	# up initials. Will screw up names with capital
-	# letters in the middle of words. But that's
-	# pretty rare.
-	$g =~ s/([[:upper:]])/ $1/g;
+	$g = normalise_initials($g);
 
 	my $code = '';
 	my @r = ();
