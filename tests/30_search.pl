@@ -1,6 +1,6 @@
 use strict;
 use utf8;
-use Test::More tests => 36;
+use Test::More tests => 39;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -129,7 +129,7 @@ $searchexp->add_field( $dataset->get_field( "title" ), "legend", "IN" );
 
 $list = eval { $searchexp->perform_search };
 
-ok(defined($list) && $list->count > 0, "satisfy-any, nomatch multiple");
+ok(defined($list) && $list->count > 0, "satisfy-any, nomatch multiple: ".describe($searchexp));
 
 
 $searchexp = EPrints::Search->new(
@@ -459,6 +459,48 @@ SKIP:
 
 	ok($list->count > 0, "Xapian creators_name");
 }
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $dataset,
+	satisfy_all => 1
+);
+
+$searchexp->add_field( $dataset->get_field( "subjects" ), "BS PN" );
+$searchexp->add_field( $dataset->get_field( "eprintid" ), "1.." );
+#$searchexp->add_field( $dataset->get_field( "eprint_status" ), "buffer archive", "EQ", "ANY" );
+
+$list = eval { $searchexp->perform_search };
+
+ok(defined($list) && $list->count > 0, "multiple subjects: " . $searchexp->get_conditions->describe );
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $dataset,
+	satisfy_all => 1
+);
+
+$searchexp->add_field( $dataset->get_field( "subjects" ), "subjects BS PN" );
+$searchexp->add_field( $dataset->get_field( "title" ), "eagle demonstration", "IN", "ANY" );
+$searchexp->add_field( $dataset->get_field( "abstract" ), "eagle demonstration", "IN", "ANY" );
+$searchexp->add_field( $udataset->get_field( "username" ), "admin user", "EQ", "ANY" );
+
+$list = eval { $searchexp->perform_search };
+
+ok(defined($list) && $list->count > 0, "AND(OR,OR,OR): " . $searchexp->get_conditions->describe );
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $dataset,
+	satisfy_all => 1
+);
+
+$searchexp->add_field( $dataset->get_field( "abstract" ), "demonstration", "IN", "ANY" );
+$searchexp->add_field( $dataset->get_field( "documents" ), "demonstration", "IN", "ANY" );
+
+$list = eval { $searchexp->perform_search };
+
+ok(defined($list) && $list->count > 0, "IN(abstract) AND IN(documents): " . $searchexp->get_conditions->describe );
 
 $session->terminate;
 
