@@ -159,7 +159,9 @@ sub sql_row_from_value
 
 	my @parts;
 	@parts = split /[-: TZ]/, $value if defined $value;
-	@parts = map { defined $_ ? $_ : 0 } @parts[0..$#{$self->{parts}}];
+	@parts = @parts[0..$#{$self->{parts}}];
+	# range matches require the other bits to be 0
+	@parts = map { defined $_ ? $_ : 0 } @parts if defined $parts[0];
 
 	return @parts;
 }
