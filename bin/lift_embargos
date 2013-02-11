@@ -144,8 +144,7 @@ $list->map( sub {
 	{
 		$doc->set_value( "security", "public" );
 		$doc->set_value( "date_embargo", undef );
-		$doc->commit;
-		$eprint->commit;
+		$doc->commit( 1 ); # pass force through to parent eprint
 		$eprint->generate_static;
 	}
 } );
