@@ -2610,7 +2610,7 @@ sub get_ids_by_field_values
 {
 	my( $self, $field, $dataset, %opts ) = @_;
 
-	return $dataset->prepare_search->perform_distinctby( [$field] );
+	return $dataset->prepare_search( %opts )->perform_distinctby( [$field] );
 }
 
 =item @events = $db->dequeue_events( $n )
