@@ -540,7 +540,6 @@ sub update_view_list
 		);
 		$PAGE->appendChild( $navigation_aids );
 		$PAGE->appendChild( $repo->html_phrase( "bin/generate_views:max_items",
-			n => $xml->create_text_node( $count ),
 			max => $xml->create_text_node( $max_items ),
 		) );
 		output_files( $repo,
