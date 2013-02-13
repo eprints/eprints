@@ -1,6 +1,6 @@
 use strict;
 use utf8;
-use Test::More tests => 39;
+use Test::More tests => 40;
 
 BEGIN { use_ok( "EPrints" ); }
 BEGIN { use_ok( "EPrints::Test" ); }
@@ -501,6 +501,39 @@ $searchexp->add_field( $dataset->get_field( "documents" ), "demonstration", "IN"
 $list = eval { $searchexp->perform_search };
 
 ok(defined($list) && $list->count > 0, "IN(abstract) AND IN(documents): " . $searchexp->get_conditions->describe );
+
+{
+local $SIG{__DIE__};
+$list = $dataset->search(
+	allow_blank => 1,
+	limit => 100,
+);
+
+my $eprintid = 23;
+my $year = 2000;
+eval { $list->map(sub {
+	(undef, undef, my $eprint) = @_;
+
+	$year = $eprint->value("date");
+
+	$eprintid = $eprint->id, die "ok\n" if length($year) == 4;
+}) };
+die $@ if $@ && $@ ne "ok\n";
+
+$searchexp = EPrints::Search->new(
+	session => $session,
+	dataset => $dataset,
+	satisfy_all => 1,
+	limit => 100,
+);
+
+$searchexp->add_field( $dataset->get_field( "eprintid" ), $eprintid );
+$searchexp->add_field( $dataset->get_field( "date" ), "..$year-01-01" );
+
+$list = eval { $searchexp->perform_search };
+
+ok(defined($list) && $list->count > 0, "..YYYY-01-01 date match: " . $searchexp->get_conditions->describe );
+}
 
 $session->terminate;
 

@@ -147,7 +147,10 @@ sub value_from_sql_row
 
 	my @parts;
 	@parts = splice(@$row,0,scalar(@{$self->{parts}}));
-	@parts = grep { defined $_ && $_ > 0 } @parts;
+	for(@parts[1..2]) {
+		$_ = undef if !$_;
+	}
+	@parts = grep { defined $_ } @parts;
 	return undef if !@parts;
 
 	return $self->_build_value( join(' ', @parts) );
@@ -160,8 +163,9 @@ sub sql_row_from_value
 	my @parts;
 	@parts = split /[-: TZ]/, $value if defined $value;
 	@parts = @parts[0..$#{$self->{parts}}];
-	# range matches require the other bits to be 0
-	@parts = map { defined $_ ? $_ : 0 } @parts if defined $parts[0];
+	for(@parts[1..2]) {
+		$_ ||= 0 if defined $parts[0];
+	}
 
 	return @parts;
 }
