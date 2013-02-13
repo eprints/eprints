@@ -31,28 +31,6 @@ use EPrints::MetaField;
 
 use strict;
 
-######################################################################
-=pod
-
-=item $val = $field->value_from_sql_row( $session, $row )
-
-Shift and return the utf8 value of this field from the database input $row.
-
-=cut
-######################################################################
-
-sub value_from_sql_row
-{
-	my( $self, $session, $row ) = @_;
-
-	if( $session->{database}->{dbh}->{Driver}->{Name} eq "mysql" )
-	{
-		utf8::decode( $row->[0] );
-	}
-
-	return shift @$row;
-}
-
 =item @row = $field->sql_row_from_value( $session, $value )
 
 Returns the value as an appropriate value for the database.

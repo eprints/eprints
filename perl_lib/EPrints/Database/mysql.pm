@@ -239,6 +239,9 @@ sub connect
 		# always try to reconnect
 		$self->{dbh}->{mysql_auto_reconnect} = 1;
 
+		# utf8 decode text fields
+		$self->{dbh}->{mysql_enable_utf8} = 1;
+
 		$self->do("SET NAMES 'utf8'");
 	}
 	elsif( $DBI::err == 1040 )
