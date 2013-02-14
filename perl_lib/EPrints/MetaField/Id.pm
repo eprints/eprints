@@ -71,6 +71,9 @@ sub sql_row_from_value
 
 	$value =~ s/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]/\x{fffd}/g;
 	
+	$value =~ s/^\s+//;
+	$value =~ s/\s+$//;
+
 	$value = substr( $value, 0, $self->{ "maxlength" } );
 
 	return( $value );
