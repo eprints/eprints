@@ -27,11 +27,15 @@ dump_access - dump access log table to var/
 
 =item --man
 
+=item --until
+
+Dump accesses upto the date given (which is an EPrints search query).
+
+=item --remove
+
+Remove access log entries after dumping them.
+
 =back
-
-=head1 COMMANDS
-
-=over 4
 
 =cut
 
@@ -53,6 +57,8 @@ GetOptions(\%opt,
 	'help',
 	'man',
 	'cron=s',
+	'until=s',
+	'remove',
 ) or pod2usage( 2 );
 
 pod2usage(-verbose => 1) if $opt{help};
@@ -74,7 +80,16 @@ EPrints->system->mkdir($dir);
 my $fh;
 my $open_datestamp;
 
-&access_map(sub {
+my @filters;
+if ($opt{until})
+{
+	push @filters, {
+		meta_fields => [qw( datestamp )],
+		value => '..'.$opt{until},
+	};
+}
+
+&access_map(\@filters, sub {
 	my ($access) = @_;
 
 	my $datestamp = $access->value("datestamp");
@@ -100,12 +115,13 @@ close($fh) if defined $fh;
 
 sub access_map
 {
-	my ($f) = @_;
+	my ($filters, $f) = @_;
 
 	my $accessid = 0;
 
 	do {
 		my $list = $dataset->search(filters => [
+				@$filters,
 				{ meta_fields => [qw( accessid )], value => ($accessid+1)."..", }
 			],
 			limit => 10000,
@@ -116,6 +132,14 @@ sub access_map
 			$accessid = $_[2]->id;
 			&$f($_[2]);
 		});
+		if ($opt{remove})
+		{
+			$repo->database->delete_from(
+				$dataset->get_sql_table_name,
+				['accessid'],
+				map { [$_] } @{$list->ids},
+			);
+		}
 	} while(defined $accessid);
 }
 

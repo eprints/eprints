@@ -27,6 +27,12 @@ filter_access - apply 3.3 filters to 3.2 data
 
 =item --man
 
+=item --dry-run
+
+=item --window=30
+
+Set the time-window (in seconds) used to filter repeated requests.
+
 =back
 
 =head1 COMMANDS
@@ -36,6 +42,7 @@ filter_access - apply 3.3 filters to 3.2 data
 =cut
 
 use EPrints;
+use EPrints::Apache::LogHandler;
 use Getopt::Long;
 use Pod::Usage;
 
@@ -45,6 +52,7 @@ use warnings;
 my %opt = (
 	verbose => 0,
 	force => 0,
+	window => 30,
 );
 
 GetOptions(\%opt,
@@ -53,6 +61,8 @@ GetOptions(\%opt,
 	'help',
 	'man',
 	'cron=s',
+	'dry-run',
+	'window=i',
 ) or pod2usage( 2 );
 
 pod2usage(-verbose => 1) if $opt{help};
@@ -65,9 +75,114 @@ my $repo = EPrints->new->repository( $ARGV[0] )
 
 my $f = $ARGV[1] or die "Requires function to call";
 
-my $filter = $repo->plugin("Event::FilterAccess");
+die "Unsupported command '$f'" unless UNIVERSAL::can('main', $f);
 
-$filter->$f;
+main->$f;
+
+=item user_agent
+
+Filter accesses based on the latest USERAGENT_ROBOTS list in EPrints.
+
+=cut
+
+sub user_agent
+{
+	my $total = 0;
+	my $removed = 0;
+
+	die "Missing robots list" if !@EPrints::Apache::LogHandler::USERAGENT_ROBOTS;
+
+	&access_map(sub {
+		my ($access) = @_;
+
+		my $is_robot = 0;
+
+		for(@EPrints::Apache::LogHandler::USERAGENT_ROBOTS)
+		{
+			$is_robot = 1, last if $access->value("requester_user_agent") =~ $_;
+		}
+
+		$total++;
+		$removed++ if $is_robot;
+		print STDERR "Removed $removed of $total\r" if $opt{verbose} && ($total % 1000 == 0);
+
+		$access->delete if !$opt{'dry-run'};
+		print $access->id . ": " . $access->value("requester_user_agent") . "\n" if $is_robot && $opt{verbose} > 1;
+	});
+
+	print "Removed $removed of $total\n" if $opt{verbose};
+}
+
+=item repeated
+
+Remove repeated requests from the same IP for the same resource.
+
+=cut
+
+sub repeated
+{
+	my %RECENT;
+	my $window = $opt{window};
+
+	my $total = 0;
+	my $removed = 0;
+
+	&access_map(sub {
+		my ($access) = @_;
+
+		my $ip = $access->value("requester_id");
+		my $referent = do {
+			no warnings;
+			$access->value("referent_id").'|'.$access->value("referent_docid")
+		};
+		my $service = $access->value("service_type_id");
+
+		my $datestamp = $access->value("datestamp");
+
+		my $key = "$ip|$referent|$service";
+		my $seconds = EPrints::Time::datetime_utc(EPrints::Time::split_value($datestamp));
+
+		if(scalar keys %RECENT > 1000) {
+			while(my($key, $t) = each %RECENT) {
+				delete $RECENT{$key} if $t < $seconds - 30;
+			}
+		}
+
+		my $is_repeat = 0;
+
+		if ($RECENT{$key} && $RECENT{$key} + $window >= $seconds) {
+			$is_repeat = 1;
+		}
+
+		$total++;
+		$removed++ if $is_repeat;
+		print STDERR "Removed $removed of $total\r" if $opt{verbose} && ($total % 1000 == 0);
+
+		$access->delete if !$opt{'dry-run'};
+		print $access->id . ": [$key] $RECENT{$key} + $window >= $seconds\n" if $is_repeat && $opt{verbose} > 1;
+
+		$RECENT{$key} = $seconds;
+	});
+
+	print "Removed $removed of $total\n" if $opt{verbose};
+}
+
+sub access_map
+{
+	my ($f) = @_;
+
+	my $accessid = 0;
+
+	do {
+		my $list = $repo->dataset("access")->search(filters => [
+				{ meta_fields => [qw( accessid )], value => ($accessid+1)."..", }
+			],
+			limit => 10000,
+		);
+		undef $accessid;
+		$list->map(sub { $accessid = $_[2]->id; &$f($_[2]) });
+	} while(defined $accessid);
+}
 
 =back
 
