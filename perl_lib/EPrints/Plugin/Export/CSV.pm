@@ -122,21 +122,13 @@ sub csv_escape
 {
 	my( $field, $value ) = @_;
 
-	return "" if !EPrints::Utils::is_set( $value );
+	return "" if !defined $value;
 
-	local $field->{multiple};
-	$value = $field->render_value( $field->{repository}, $value );
-	$value = $field->{repository}->xhtml->to_text_dump( $value );
+	return $value if UNIVERSAL::isa($field, "EPrints::MetaField::Int" );
 
-	if( $field->isa( "EPrints::MetaField::Int" ) )
-	{
-	}
-	else
-	{
-		$value =~ s/"/""/g;
-		$value =~ s/\n/ /sg;
-		$value = "\"$value\"";
-	}
+	$value =~ s/"/""/g;
+	$value =~ s/\n/ /sg;
+	$value = "\"$value\"";
 
 	return $value;
 }
