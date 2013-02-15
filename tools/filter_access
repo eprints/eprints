@@ -1,0 +1,102 @@
+#!/usr/bin/perl
+
+use FindBin;
+use lib "$FindBin::Bin/../perl_lib";
+
+=pod
+
+=for Pod2Wiki
+
+=head1 NAME
+
+filter_access - apply 3.3 filters to 3.2 data
+
+=head1 SYNOPSIS
+
+	filter_access <repoid> <function>
+
+=head1 OPTIONS
+
+=over 4
+
+=item --verbose
+
+=item --force
+
+=item --help
+
+=item --man
+
+=back
+
+=head1 COMMANDS
+
+=over 4
+
+=cut
+
+use EPrints;
+use Getopt::Long;
+use Pod::Usage;
+
+use strict;
+use warnings;
+
+my %opt = (
+	verbose => 0,
+	force => 0,
+);
+
+GetOptions(\%opt,
+	'verbose+',
+	'force',
+	'help',
+	'man',
+	'cron=s',
+) or pod2usage( 2 );
+
+pod2usage(-verbose => 1) if $opt{help};
+pod2usage(-verbose => 2) if $opt{man};
+
+pod2usage if @ARGV < 2;
+
+my $repo = EPrints->new->repository( $ARGV[0] )
+	or die "Unknown repository '$ARGV[0]'";
+
+my $f = $ARGV[1] or die "Requires function to call";
+
+my $filter = $repo->plugin("Event::FilterAccess");
+
+$filter->$f;
+
+=back
+
+=cut
+
+=head1 COPYRIGHT
+
+=for COPYRIGHT BEGIN
+
+Copyright 2000-2011 University of Southampton.
+
+=for COPYRIGHT END
+
+=for LICENSE BEGIN
+
+This file is part of EPrints L<http://www.eprints.org/>.
+
+EPrints is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+EPrints is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+License for more details.
+
+You should have received a copy of the GNU General Public License
+along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
+
+=for LICENSE END
+

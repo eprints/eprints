@@ -1,0 +1,152 @@
+#!/usr/bin/perl
+
+use FindBin;
+use lib "$FindBin::Bin/../perl_lib";
+
+=pod
+
+=for Pod2Wiki
+
+=head1 NAME
+
+dump_access - dump access log table to var/
+
+=head1 SYNOPSIS
+
+	dump_access <repoid>
+
+=head1 OPTIONS
+
+=over 4
+
+=item --verbose
+
+=item --force
+
+=item --help
+
+=item --man
+
+=back
+
+=head1 COMMANDS
+
+=over 4
+
+=cut
+
+use EPrints;
+use Getopt::Long;
+use Pod::Usage;
+
+use strict;
+use warnings;
+
+my %opt = (
+	verbose => 0,
+	force => 0,
+);
+
+GetOptions(\%opt,
+	'verbose+',
+	'force',
+	'help',
+	'man',
+	'cron=s',
+) or pod2usage( 2 );
+
+pod2usage(-verbose => 1) if $opt{help};
+pod2usage(-verbose => 2) if $opt{man};
+
+pod2usage if @ARGV < 1;
+
+my $repo = EPrints->new->repository( $ARGV[0] )
+	or die "Unknown repository '$ARGV[0]'";
+
+my $dataset = $repo->dataset("access");
+my @fields = $dataset->fields;
+
+my $dir = $repo->config("variables_path") . "/log";
+my $csv = $repo->plugin("Export::CSV");
+
+EPrints->system->mkdir($dir);
+
+my $fh;
+my $open_datestamp;
+
+&access_map(sub {
+	my ($access) = @_;
+
+	my $datestamp = $access->value("datestamp");
+	my $month_day = sprintf("%04d%02d",
+		EPrints::Time::split_value($datestamp)
+	);
+
+	if (!defined $fh || $open_datestamp ne $month_day)
+	{
+		close($fh) if defined $fh;
+		my $fn = "access_$month_day.csv";
+		open($fh, ">>:utf8", "$dir/$fn") or die "Error writing to $dir/$fn: $!";
+		$open_datestamp = $month_day;
+	}
+
+	print $fh $csv->output_dataobj($access,
+		fh => $fh,
+		fields => \@fields,
+	);
+});
+
+close($fh) if defined $fh;
+
+sub access_map
+{
+	my ($f) = @_;
+
+	my $accessid = 0;
+
+	do {
+		my $list = $dataset->search(filters => [
+				{ meta_fields => [qw( accessid )], value => ($accessid+1)."..", }
+			],
+			limit => 10000,
+			custom_order => 'accessid',
+		);
+		undef $accessid;
+		$list->map(sub {
+			$accessid = $_[2]->id;
+			&$f($_[2]);
+		});
+	} while(defined $accessid);
+}
+
+=back
+
+=cut
+
+=head1 COPYRIGHT
+
+=for COPYRIGHT BEGIN
+
+Copyright 2000-2011 University of Southampton.
+
+=for COPYRIGHT END
+
+=for LICENSE BEGIN
+
+This file is part of EPrints L<http://www.eprints.org/>.
+
+EPrints is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+EPrints is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+License for more details.
+
+You should have received a copy of the GNU General Public License
+along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
+
+=for LICENSE END
+
