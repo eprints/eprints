@@ -31,7 +31,7 @@ foreach my $ds_id ($repo->get_sql_dataset_ids)
 {
 	my $ds = $repo->dataset( $ds_id );
 	my $table = $ds->get_sql_table_name;
-	$counts{$ds_id} = $repo->get_database->count_table( $table );
+	$counts{$ds_id} = $repo->get_database->quick_count_table( $table );
 }
 {
 	my $ds = $repo->dataset( "eprint" );
@@ -39,6 +39,7 @@ foreach my $ds_id ($repo->get_sql_dataset_ids)
 	my @counts = $search->perform_groupby( $ds->field( "eprint_status" ) );
 	foreach my $i (0..$#{$counts[0]})
 	{
+		next if exists $counts{$counts[0]->[$i]};
 		$counts{$counts[0]->[$i]} = $counts[1]->[$i];
 	}
 	for(qw( inbox buffer archive deletion ))

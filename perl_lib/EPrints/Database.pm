@@ -1119,6 +1119,19 @@ sub count_table
 	return $count;
 }
 
+=item $n = $db->quick_count_table( $tablename )
+
+Getting the number of rows in a very long table can be slow (e.g. millions of rows in InnoDB). This method will return an approximate row count when we don't care about exact numbers but do want an answer quickly.
+
+=cut
+
+sub quick_count_table
+{
+	my ($self, $tablename) = @_;
+
+	return $self->count_table($tablename);
+}
+
 =item $db->clear_table( $tablename )
 
 Clears all records from the given table, use with caution!

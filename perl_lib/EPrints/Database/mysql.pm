@@ -662,6 +662,21 @@ sub unlock_table
 	return $self->do("UNLOCK TABLES");
 }
 
+sub quick_count_table
+{
+	my ($self, $tablename) = @_;
+
+	my $c = $self->{dbh}->selectrow_hashref(
+			"EXPLAIN SELECT COUNT(*) FROM ".$self->quote_identifier($tablename)
+		)->{rows};
+	
+	if ($c < 1_000_000) {
+		return $self->SUPER::quick_count_table($tablename);
+	}
+
+	return $c;
+}
+
 1; # For use/require success
 
 ######################################################################
