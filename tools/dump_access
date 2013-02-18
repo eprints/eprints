@@ -73,7 +73,7 @@ my $dataset = $repo->dataset("access");
 my @fields = $dataset->fields;
 
 my $dir = $repo->config("variables_path") . "/log";
-my $csv = $repo->plugin("Export::CSV");
+my $csv = $repo->plugin("Export::MultilineCSV");
 
 EPrints->system->mkdir($dir);
 
@@ -105,7 +105,7 @@ if ($opt{until})
 		$open_datestamp = $month_day;
 	}
 
-	print $fh $csv->output_dataobj($access,
+	$csv->output_dataobj($access,
 		fh => $fh,
 		fields => \@fields,
 	);
