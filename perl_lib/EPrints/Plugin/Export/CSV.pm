@@ -4,17 +4,15 @@ EPrints::Plugin::Export::CSV
 
 =head1 DESCRIPTION
 
-Similar export to MultilineCSV but exports only public fields and is publicly visible.
-
-All field values are rendered.
+Subclass of MultilineCSV but exports only fields set "export_as_xml" and is publicly visible.
 
 =cut
 
 package EPrints::Plugin::Export::CSV;
 
-use EPrints::Plugin::Export::TextFile;
+use EPrints::Plugin::Export::MultilineCSV;
 
-@ISA = ( "EPrints::Plugin::Export::TextFile" );
+@ISA = ( "EPrints::Plugin::Export::MultilineCSV" );
 
 use strict;
 
@@ -24,113 +22,22 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
-	$self->{name} = "Comma-Separated Values";
-	$self->{accept} = [ 'dataobj/*', 'list/*' ];
+	$self->{name} = "Multiline CSV";
 	$self->{visible} = "all";
-	$self->{suffix} = ".csv";
-	$self->{mimetype} = "text/csv; charset=utf-8";
 	
 	return $self;
-}
-
-sub output_list
-{
-	my( $self, %opts ) = @_;
-
-	my $r = "";
-	my $f = $opts{fh} ? sub { print {$opts{fh}} "$_[0]\n" } : sub { $r .= "$_[0]\r\n" };
-
-	my @fields = $self->fields( $opts{list}->{dataset} );
-
-	my $key_field = EPrints::MetaField->new(
-			name => "_",
-			type => "text",
-			repository => $self->{repository},
-		);
-
-	&$f(
-		join ',',
-		map { csv_escape( $key_field, $_ ) }
-		map { $self->{repository}->xhtml->to_text_dump( $_ ) }
-		map { $_->render_name }
-		@fields
-	);
-
-	$self->SUPER::output_list(
-			%opts,
-			fields => \@fields,
-		);
-
-	return $r;
-}
-
-sub output_dataobj
-{
-	my( $self, $dataobj, %opts ) = @_;
-
-	my $dataset = $dataobj->{dataset};
-
-	my $fields = $opts{fields} || [$self->fields( $dataset )];
-
-	my $r = "";
-	my $f = $opts{fh} ? sub { print {$opts{fh}} "$_[0]\n" } : sub { $r .= "$_[0]\r\n" };
-
-	my @rows = ([]);
-	foreach my $field (@$fields)
-	{
-		my $i = @{$rows[0]};
-		$rows[0][$i] = undef; # multiples won't fill out the column, so make sure it is done here
-
-		my $value = $field->get_value( $dataobj );
-		if( ref($value) eq "ARRAY" )
-		{
-			foreach my $j (0..$#$value) {
-				$rows[$j][$i] = csv_escape( $field, $value->[$j] );
-			}
-		}
-		else
-		{
-			$rows[0][$i] = csv_escape( $field, $value );
-		}
-	}
-
-	# generate complete rows
-	for(@rows) {
-		$_->[$#{$rows[0]}] ||= undef;
-	}
-
-	{ # ignore undef warnings
-		no warnings;
-		&$f( join ',', @$_ ) for @rows;
-	}
-
-	return $r;
 }
 
 sub fields
 {
 	my( $self, $dataset ) = @_;
 
+	# skip compound, subobjects
 	return grep {
-			$_->property( "export_as_xml" ) &&
-			!$_->is_virtual &&
-			!$_->isa( "EPrints::MetaField::Itemref" )
-		} $dataset->fields;
-}
-
-sub csv_escape
-{
-	my( $field, $value ) = @_;
-
-	return "" if !defined $value;
-
-	return $value if UNIVERSAL::isa($field, "EPrints::MetaField::Int" );
-
-	$value =~ s/"/""/g;
-	$value =~ s/\n/ /sg;
-	$value = "\"$value\"";
-
-	return $value;
+			$_->property("export_as_xml") &&
+			!$_->is_virtual
+		} 
+		$dataset->fields;
 }
 
 1;

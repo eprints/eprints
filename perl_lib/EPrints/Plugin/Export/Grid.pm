@@ -7,7 +7,6 @@ EPrints::Plugin::Export::Grid
 package EPrints::Plugin::Export::Grid;
 
 use EPrints::Plugin::Export;
-use Data::Dumper;
 
 @ISA = ( "EPrints::Plugin::Export" );
 
@@ -22,95 +21,95 @@ sub new
 	my $self = $class->SUPER::new( %opts );
 
 	$self->{name} = "Grid (abstract)";
+	$self->{accept} = [ 'dataobj/*', 'list/*', ];
 	
 	return $self;
 }
 
+sub fields
+{
+	my( $self, $dataset ) = @_;
+
+	# skip compound, subobjects
+	return grep { !$_->is_virtual } $dataset->fields;
+}
+
 sub header_row
 {
-	my( $plugin, %opts ) = @_;
+	my( $self, %opts ) = @_;
 
-	my $ds = $opts{list}->get_dataset;
-	my $key_field = $ds->get_key_field();
-	my @n = ( $key_field->get_name, "rowid" );
-	foreach my $field ( $ds->get_fields )
+	my $fields = $opts{fields} ||= [$self->fields($opts{list}->{dataset})];
+
+	my @names;
+	foreach my $field (@$fields)
 	{
-		next if $field->get_name eq $key_field->get_name;
-		next if $field->is_type( "compound", "multilang", "subobject" );
-		
-		if( $field->is_type( "name" ) )
-		{	
-			foreach my $part ( qw/ family given honourific lineage / )
-			{
-				push @n, $field->get_name.".".$part;
-			}
+		if ($field->isa("EPrints::MetaField::Multipart"))
+		{
+			my $name = $field->name;
+			push @names, map {
+					$name . '.' . $_->{sub_name}
+				} @{$field->property("fields_cache")};
 		}
 		else
 		{
-			push @n, $field->get_name;
+			push @names, $field->name;
 		}
 	}
 
-	return @n;
+	return @names;
 }
 
 sub dataobj_to_rows
 {
-	my( $plugin, $dataobj ) = @_;
+	my( $self, $dataobj, %opts ) = @_;
 
-	my $ds = $dataobj->get_dataset;
-	my $key_field = $ds->get_key_field();
-	my $rows = [];
-	my $col = 2;
-	foreach my $field ( $ds->get_fields )
+	my $fields = $opts{fields} || [$self->fields($dataobj->{dataset})];
+
+	my @rows = ([]);
+	foreach my $field (@$fields)
 	{
-		next if $field->get_name eq $key_field->get_name;
-		next if $field->is_type( "compound", "multilang", "subobject" );
+		my $i = @{$rows[0]};
 
-		my $v = $dataobj->get_value( $field->get_name );
-		if( EPrints::Utils::is_set( $v ) )
+		my $_rows = $self->value_to_rows($field, $field->get_value( $dataobj ));
+		foreach my $j (0..$#$_rows)
 		{
-			$v = [$v] if( !$field->get_property( "multiple" ) );
-		}
-		else
-		{
-			$v = [];
-		}
-
-		my $i = 0;
-		foreach my $single_value ( @{$v} )
-		{
-			if( $field->is_type( "name" ) )
-			{	
-				$rows->[$i]->[$col+0] = $single_value->{"family"};
-				$rows->[$i]->[$col+1] = $single_value->{"given"};
-				$rows->[$i]->[$col+2] = $single_value->{"honourific"};
-				$rows->[$i]->[$col+3] = $single_value->{"lineage"};
-			}
-			else
+			foreach my $_i (0..$#{$_rows->[$j]})
 			{
-				$rows->[$i]->[$col] = $single_value;
+				$rows[$j][$i+$_i] = $_rows->[$j][$_i];
 			}
-			$i += 1;
-		}
-		if( $field->is_type( "name" ) )
-		{	
-			$col += 4;
-		}
-		else
-		{	
-			$col += 1
 		}
 	}
 
-	for( my $row_n=0;$row_n<scalar @{$rows};++$row_n  )
+	# generate complete rows
+	for(@rows) {
+		$_->[0] = $rows[0][0];
+		$_->[$#{$rows[0]}] ||= undef;
+	}
+
+	return \@rows;
+}
+
+sub value_to_rows
+{
+	my ($self, $field, $value) = @_;
+
+	my @rows;
+
+	if (ref($value) eq "ARRAY")
 	{
-		my $row = $rows->[$row_n];
-		$row->[0] = $dataobj->get_value( $key_field->get_name );
-		$row->[1] = $dataobj->get_value( $key_field->get_name )."_".$row_n;
+		$value = [$field->empty_value] if !@$value;
+		@rows = map { $self->value_to_rows($field, $_)->[0] } @$value;
+	}
+	elsif ($field->isa("EPrints::MetaField::Multipart"))
+	{
+		push @rows, [map { $value->{$_->{sub_name}} } @{$field->property("fields_cache")}];
+	}
+	else
+	{
+		push @rows, [$value];
 	}
 
-	return $rows;
+	return \@rows;
 }
 
 1;
