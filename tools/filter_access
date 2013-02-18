@@ -33,9 +33,13 @@ filter_access - apply 3.3 filters to 3.2 data
 
 Set the time-window (in seconds) used to filter repeated requests.
 
+=item --until <date>
+
+Filter upto and including <date> (in YYYY-MM-DD format).
+
 =back
 
-=head1 COMMANDS
+=head1 FUNCTIONS
 
 =over 4
 
@@ -63,6 +67,7 @@ GetOptions(\%opt,
 	'cron=s',
 	'dry-run',
 	'window=i',
+	'until=s',
 ) or pod2usage( 2 );
 
 pod2usage(-verbose => 1) if $opt{help};
@@ -76,6 +81,15 @@ my $repo = EPrints->new->repository( $ARGV[0] )
 my $f = $ARGV[1] or die "Requires function to call";
 
 die "Unsupported command '$f'" unless UNIVERSAL::can('main', $f);
+
+my @filters;
+if ($opt{until})
+{
+	push @filters, {
+		meta_fields => [qw( datestamp )],
+		value => '..'.$opt{until},
+	};
+}
 
 main->$f;
 
@@ -92,7 +106,7 @@ sub user_agent
 
 	die "Missing robots list" if !@EPrints::Apache::LogHandler::USERAGENT_ROBOTS;
 
-	&access_map(sub {
+	&access_map(\@filters, sub {
 		my ($access) = @_;
 
 		my $is_robot = 0;
@@ -127,7 +141,7 @@ sub repeated
 	my $total = 0;
 	my $removed = 0;
 
-	&access_map(sub {
+	&access_map(\@filters, sub {
 		my ($access) = @_;
 
 		my $ip = $access->value("requester_id");
@@ -169,12 +183,13 @@ sub repeated
 
 sub access_map
 {
-	my ($f) = @_;
+	my ($filters, $f) = @_;
 
 	my $accessid = 0;
 
 	do {
 		my $list = $repo->dataset("access")->search(filters => [
+				@$filters,
 				{ meta_fields => [qw( accessid )], value => ($accessid+1)."..", }
 			],
 			limit => 10000,
