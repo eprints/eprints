@@ -16,6 +16,7 @@
 ######################################################################
 
 use EPrints;
+use JSON;
 
 
 use strict;
@@ -24,7 +25,9 @@ my $eprints = EPrints->new;
 my $repo = $eprints->current_repository;
 exit( 0 ) unless( defined $repo );
 
-$repo->send_http_header( content_type=>"text/plain; charset=UTF-8" );
+my $use_json = $repo->get_request->path_info =~ /\.json$/;
+
+my %data;
 
 my %counts;
 foreach my $ds_id ($repo->get_sql_dataset_ids)
@@ -47,15 +50,10 @@ foreach my $ds_id ($repo->get_sql_dataset_ids)
 		$counts{$_} ||= 0;
 	}
 }
-foreach my $ds_id ( sort keys %counts )
-{
-	print sprintf("%s: %i\n",
-		$ds_id,
-		$counts{$ds_id}
-	);
-}
+$data{counts} = \%counts;
+
 # version
-print sprintf("version: %s\n", EPrints->human_version);
+$data{version} = EPrints->human_version;
 
 # Indexer Status
 my $daemon = EPrints::Index::Daemon->new(
@@ -67,19 +65,77 @@ my $daemon = EPrints::Index::Daemon->new(
 my $status = "not-running";
 $status = "running" if $daemon->is_running();
 $status = "stalled" if $daemon->has_stalled();
-print "indexer: $status\n";
+$data{indexer} = $status;
 
-print "epm: ";
-{
-my $first = 1;
+my %epm;
 $repo->dataset( 'epm' )->dataobj_class->map($repo, sub {
 	my( undef, undef, $epm ) = @_;
 
-	print "; " if !$first;
-	$first = 0;
-	print $epm->value( "epmid" ) . "=" . $epm->value( "version" );
+	$epm{$epm->value("epmid")} = $epm->value("version");
 });
+$data{epm} = \%epm;
+
+if ($use_json) {
+	$repo->send_http_header( content_type=>"application/json; charset=UTF-8" );
+	&application_json(%data);
 }
-print "\n";
+else {
+	$repo->send_http_header( content_type=>"text/plain; charset=UTF-8" );
+	&plain_text(%data);
+}
 
 exit;
+
+sub plain_text
+{
+	my %data = @_;
+
+	foreach my $ds_id ( sort keys %{$data{counts}} )
+	{
+		print sprintf("%s: %i\n",
+			$ds_id,
+			$data{counts}{$ds_id}
+		);
+	}
+
+	print sprintf("version: %s\n", $data{version});
+	print sprintf("indexer: %s\n", $data{indexer});
+
+	print "epm: ";
+	my $first = 1;
+	foreach my $epm_id ( sort keys %{$data{epm}} )
+	{
+		print "; " if !$first;
+		$first = 0;
+
+		print sprintf("%s=%s", $epm_id, $data{epm}{$epm_id});
+	}
+	print "\n";
+}
+
+sub application_json
+{
+	my %data = @_;
+
+	my $jsonp;
+	for($repo->param)
+	{
+		if (/^json|jsonp|callback$/) {
+			$jsonp = $repo->param($_);
+			$jsonp =~ s/[^=A-Za-z0-9_]//g;
+			last;
+		}
+	}
+
+	if( $jsonp )
+	{
+		print "$jsonp(";
+	}
+
+	print JSON->new->pretty->canonical->encode( \%data );
+
+	if( $jsonp )
+	{
+		print ");";
+	}
+}
