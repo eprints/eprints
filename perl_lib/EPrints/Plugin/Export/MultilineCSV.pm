@@ -19,70 +19,57 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
-	$self->{name} = "Multiline CSV";
-	$self->{accept} = [ 'dataobj/eprint', 'list/eprint', ];
+	$self->{name} = "Multiline CSV (Staff)";
 	$self->{visible} = "staff";
 	$self->{suffix} = ".csv";
-	$self->{mimetype} = "text/csv";
+	$self->{mimetype} = "text/csv; charset=utf-8";
 	
 	return $self;
 }
 
+sub initialise_fh
+{
+	my ($self, $fh) = @_;
+
+	binmode( $fh, ":utf8" );
+}
 
 sub output_list
 {
-	my( $plugin, %opts ) = @_;
+	my( $self, %opts ) = @_;
 
-	my $part = csv( $plugin->header_row( %opts ) );
+	my $fields = $opts{fields} ||= [$self->fields($opts{list}->{dataset})];
 
-	my $r = [];
+	my @r;
+	my $f = $opts{fh} ? sub { print {$opts{fh}} $_[0] } : sub { push @r, $_[0] };
 
-	binmode( $opts{fh}, ":utf8" );
-
-	if( defined $opts{fh} )
-	{
-		print {$opts{fh}} $part;
-	}
-	else
-	{
-		push @{$r}, $part;
-	}
+	&$f(csv( $self->header_row( %opts ) ));
 
 	# list of things
 
 	$opts{list}->map( sub {
-		my( $session, $dataset, $item ) = @_;
+		( undef, undef, my $item ) = @_;
 
-		my $part = $plugin->output_dataobj( $item, %opts );
-		if( defined $opts{fh} )
-		{
-			print {$opts{fh}} $part;
-		}
-		else
-		{
-			push @{$r}, $part;
-		}
+		&$f($self->output_dataobj( $item, %opts ));
 	} );
 
-	return if( defined $opts{fh} );
-
-	return join( '', @{$r} );
+	return join '', @r;
 }
 
 sub output_dataobj
 {
-	my( $plugin, $dataobj ) = @_;
+	my( $self, $dataobj, %opts ) = @_;
 
-	my $rows = $plugin->dataobj_to_rows( $dataobj );
+	my $rows = $self->dataobj_to_rows( $dataobj, %opts );
 
-	my $r = [];
+	my @r;
 	for( my $row_n=0;$row_n<scalar @{$rows};++$row_n  )
 	{
 		my $row = $rows->[$row_n];
-		push @{$r}, csv( @{$row} );
+		push @r, csv( @{$row} );
 	}
 
-	return join( "", @{$r} );
+	return join '', @r;
 }
 
 sub csv
@@ -95,12 +82,16 @@ sub csv
 		if( !defined $item )
 		{
 			push @r, '';
-			next;
 		}
-		$item =~ s/"/""/g;
-		push @r, '"'.$item.'"';
+		else
+		{
+			$item =~ s/"/""/g;
+			$item =~ s/\r//g;
+			push @r, "\"$item\"";
+		}
 	}
-	return join( ",", @r )."\n";
+
+	return join( ",", @r )."\r\n";
 }
 
 1;
