@@ -142,6 +142,9 @@ sub start_element
 	elsif ($path eq '/records/REC/static_data/summary/names/name/display_name') {
 		$self->{characters} = \$self->{person}{name}{family};
 	}
+	elsif ($path eq '/records/REC/static_data/summary/names/name/email_addr') {
+		$self->{characters} = \$self->{person}{id};
+	}
 	else {
 		$self->{characters} = undef;
 	}
