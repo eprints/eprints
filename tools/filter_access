@@ -1,0 +1,232 @@
+#!/usr/bin/perl
+
+use FindBin;
+use lib "$FindBin::Bin/../perl_lib";
+
+=pod
+
+=for Pod2Wiki
+
+=head1 NAME
+
+filter_access - apply 3.3 filters to 3.2 data
+
+=head1 SYNOPSIS
+
+	filter_access <repoid> <function>
+
+=head1 OPTIONS
+
+=over 4
+
+=item --verbose
+
+=item --force
+
+=item --help
+
+=item --man
+
+=item --dry-run
+
+=item --window=30
+
+Set the time-window (in seconds) used to filter repeated requests.
+
+=item --until <date>
+
+Filter upto and including <date> (in YYYY-MM-DD format).
+
+=back
+
+=head1 FUNCTIONS
+
+=over 4
+
+=cut
+
+use EPrints;
+use EPrints::Apache::LogHandler;
+use Getopt::Long;
+use Pod::Usage;
+
+use strict;
+use warnings;
+
+my %opt = (
+	verbose => 0,
+	force => 0,
+	window => 30,
+);
+
+GetOptions(\%opt,
+	'verbose+',
+	'force',
+	'help',
+	'man',
+	'cron=s',
+	'dry-run',
+	'window=i',
+	'until=s',
+) or pod2usage( 2 );
+
+pod2usage(-verbose => 1) if $opt{help};
+pod2usage(-verbose => 2) if $opt{man};
+
+pod2usage if @ARGV < 2;
+
+my $repo = EPrints->new->repository( $ARGV[0] )
+	or die "Unknown repository '$ARGV[0]'";
+
+my $f = $ARGV[1] or die "Requires function to call";
+
+die "Unsupported command '$f'" unless UNIVERSAL::can('main', $f);
+
+my @filters;
+if ($opt{until})
+{
+	push @filters, {
+		meta_fields => [qw( datestamp )],
+		value => '..'.$opt{until},
+	};
+}
+
+main->$f;
+
+=item user_agent
+
+Filter accesses based on the latest USERAGENT_ROBOTS list in EPrints.
+
+=cut
+
+sub user_agent
+{
+	my $total = 0;
+	my $removed = 0;
+
+	die "Missing robots list" if !@EPrints::Apache::LogHandler::USERAGENT_ROBOTS;
+
+	&access_map(\@filters, sub {
+		my ($access) = @_;
+
+		my $is_robot = 0;
+
+		for(@EPrints::Apache::LogHandler::USERAGENT_ROBOTS)
+		{
+			$is_robot = 1, last if $access->value("requester_user_agent") =~ $_;
+		}
+
+		$total++;
+		$removed++ if $is_robot;
+		print STDERR "Removed $removed of $total\r" if $opt{verbose} && ($total % 1000 == 0);
+
+		$access->delete if !$opt{'dry-run'};
+		print $access->id . ": " . $access->value("requester_user_agent") . "\n" if $is_robot && $opt{verbose} > 1;
+	});
+
+	print "Removed $removed of $total\n" if $opt{verbose};
+}
+
+=item repeated
+
+Remove repeated requests from the same IP for the same resource.
+
+=cut
+
+sub repeated
+{
+	my %RECENT;
+	my $window = $opt{window};
+
+	my $total = 0;
+	my $removed = 0;
+
+	&access_map(\@filters, sub {
+		my ($access) = @_;
+
+		my $ip = $access->value("requester_id");
+		my $referent = do {
+			no warnings;
+			$access->value("referent_id").'|'.$access->value("referent_docid")
+		};
+		my $service = $access->value("service_type_id");
+
+		my $datestamp = $access->value("datestamp");
+
+		my $key = "$ip|$referent|$service";
+		my $seconds = EPrints::Time::datetime_utc(EPrints::Time::split_value($datestamp));
+
+		if(scalar keys %RECENT > 1000) {
+			while(my($key, $t) = each %RECENT) {
+				delete $RECENT{$key} if $t < $seconds - 30;
+			}
+		}
+
+		my $is_repeat = 0;
+
+		if ($RECENT{$key} && $RECENT{$key} + $window >= $seconds) {
+			$is_repeat = 1;
+		}
+
+		$total++;
+		$removed++ if $is_repeat;
+		print STDERR "Removed $removed of $total\r" if $opt{verbose} && ($total % 1000 == 0);
+
+		$access->delete if !$opt{'dry-run'};
+		print $access->id . ": [$key] $RECENT{$key} + $window >= $seconds\n" if $is_repeat && $opt{verbose} > 1;
+
+		$RECENT{$key} = $seconds;
+	});
+
+	print "Removed $removed of $total\n" if $opt{verbose};
+}
+
+sub access_map
+{
+	my ($filters, $f) = @_;
+
+	my $accessid = 0;
+
+	do {
+		my $list = $repo->dataset("access")->search(filters => [
+				@$filters,
+				{ meta_fields => [qw( accessid )], value => ($accessid+1)."..", }
+			],
+			limit => 10000,
+		);
+		undef $accessid;
+		$list->map(sub { $accessid = $_[2]->id; &$f($_[2]) });
+	} while(defined $accessid);
+}
+
+=back
+
+=cut
+
+=head1 COPYRIGHT
+
+=for COPYRIGHT BEGIN
+
+Copyright 2000-2011 University of Southampton.
+
+=for COPYRIGHT END
+
+=for LICENSE BEGIN
+
+This file is part of EPrints L<http://www.eprints.org/>.
+
+EPrints is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+EPrints is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+License for more details.
+
+You should have received a copy of the GNU General Public License
+along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
+
+=for LICENSE END
+
