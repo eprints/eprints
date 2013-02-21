@@ -327,10 +327,10 @@ sub convert_input
 	$epdata->{type} = "article" if $type eq "ARTICLE";
 	$epdata->{type} = "book" if $type eq "BOOK";
 	$epdata->{type} = "book" if $type eq "PROCEEDINGS";
-	$epdata->{type} = "book\\_section" if $type eq "INBOOK";
-	$epdata->{type} = "book\\_section" if $type eq "INCOLLECTION";
-	$epdata->{type} = "conference\\_item" if $type eq "INPROCEEDINGS";
-	$epdata->{type} = "conference\\_item" if $type eq "CONFERENCE";
+	$epdata->{type} = "book_section" if $type eq "INBOOK";
+	$epdata->{type} = "book_section" if $type eq "INCOLLECTION";
+	$epdata->{type} = "conference_item" if $type eq "INPROCEEDINGS";
+	$epdata->{type} = "conference_item" if $type eq "CONFERENCE";
 	$epdata->{type} = "other" if $type eq "MISC";
 	if( $type eq "MANUAL" )
 	{
@@ -340,7 +340,7 @@ sub convert_input
 	if( $type eq "TECHREPORT" )
 	{
 		$epdata->{type} = "monograph";
-		$epdata->{monograph_type} = "technical\\_report";
+		$epdata->{monograph_type} = "technical_report";
 	}
 	if( $type eq "MASTERSTHESIS" )
 	{
