@@ -28,6 +28,10 @@ sub new
 		$self->{visible} = 0;
 		$self->{error} = "Requires SOAP::ISIWoK 3.00";
 	}
+	else
+	{
+		EPrints::Utils::require_if_exists( "SOAP::ISIWoK::Lite" );
+	}
 
 	return $self;
 }
@@ -50,7 +54,9 @@ sub input_text_fh
 	my $fh = $opts{fh};
 	my $query = join '', <$fh>;
 
-	my $wok = SOAP::ISIWoK->new;
+	my $wok = $self->param('lite') ?
+		SOAP::ISIWoK::Lite->new :
+		SOAP::ISIWoK->new;
 
 	my $som = $wok->authenticate;
 	if ($som->fault)

@@ -115,12 +115,14 @@ sub action_import_single
 		},
 	) );
 
-	my $q = "UT = ($self->{processor}->{ut})";
-	open(my $fh, "<", \$q);
-	$plugin->input_fh(
-			dataset => $repo->dataset( "inbox" ),
-			fh => $fh,
-		);
+	{
+		my $q = "UT = ($self->{processor}->{ut})";
+		open(my $fh, "<", \$q);
+		$plugin->input_fh(
+				dataset => $repo->dataset( "inbox" ),
+				fh => $fh,
+			);
+	}
 
 	if( !defined $eprint )
 	{
