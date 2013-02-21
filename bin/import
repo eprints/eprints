@@ -76,6 +76,10 @@ Add an argument to the import plugin. May be repeated. Effects depend on the imp
 
 Don't import, just check the file.
 
+=item B<--dump>
+
+Dump epdata to STDERR while importing (for debugging).
+
 =item B<--migration>
 
 Turn on all the options needed to correctly import an XML data file exported from version 2, using the migration toolkit. Implies --enable-web-imports --enable-file-imports --force
@@ -160,6 +164,7 @@ my $update = 0;
 my %opt_args;
 my @actions;
 my $output_xml = 0;
+my $dump = 0;
 
 Getopt::Long::Configure("permute");
 
@@ -183,6 +188,7 @@ GetOptions(
 	'argument|arg=s' => \%opt_args,
 	'action=s' => \@actions,
 	'xml' => \$output_xml,
+	'dump' => \$dump,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version() if $version;
 pod2usage( 1 ) if $help;
@@ -327,6 +333,8 @@ my $handler = EPrints::CLIProcessor->new(
 		my $id = $epdata->{$opts{dataset}->key_field->name};
 
 		print "EPRINTS_IMPORT: ITEM_PARSED".(defined $id ? " $id" : "")."\n" if $scripted && $parse_only;
+
+		EPrints->dump($epdata) if $dump;
 
 		$count++, return if $parse_only;
 
