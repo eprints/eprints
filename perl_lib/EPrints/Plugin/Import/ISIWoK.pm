@@ -22,6 +22,7 @@ sub new
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint' ];
 	$self->{screen} = "Import::ISIWoK";
+	$self->{arguments}{fields} = [];
 
 	if( !EPrints::Utils::require_if_exists( "SOAP::ISIWoK", "3.00" ) )
 	{
@@ -47,6 +48,12 @@ sub input_text_fh
 {
 	my( $self, %opts ) = @_;
 
+	if ($opts{fields})
+	{
+		$opts{fields} = [split /\s*,\s*/, $opts{fields}]
+			if ref($opts{fields}) ne 'ARRAY';
+	}
+
 	my $session = $self->{session};
 
 	my @ids;
@@ -58,7 +65,7 @@ sub input_text_fh
 		SOAP::ISIWoK::Lite->new :
 		SOAP::ISIWoK->new;
 
-	my $som = $wok->authenticate;
+	my $som = $wok->authenticate($self->param('username'), $self->param('password'));
 	if ($som->fault)
 	{
 		$self->warning($som->faultstring);
@@ -67,6 +74,7 @@ sub input_text_fh
 
 	$som = $wok->search( $query,
 		offset => $opts{offset},
+		fields => $opts{fields},
 	);
 	if ($som->fault)
 	{

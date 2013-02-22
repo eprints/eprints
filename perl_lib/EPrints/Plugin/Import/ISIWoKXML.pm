@@ -121,6 +121,9 @@ sub start_element
 		if ($type eq 'doi' || $type eq 'xref_doi') {
 			$epdata->{id_number} = $attr{value};
 		}
+		elsif ($type eq 'issn') {
+			$epdata->{issn} = $attr{value};
+		}
 	}
 	elsif ($path eq '/records/REC/static_data/summary/pub_info/page') {
 		$self->{characters} = \$epdata->{pagerange};
@@ -144,6 +147,17 @@ sub start_element
 	}
 	elsif ($path eq '/records/REC/static_data/summary/names/name/email_addr') {
 		$self->{characters} = \$self->{person}{id};
+	}
+	elsif ($path eq '/records/REC/static_data/fullrecord_metadata/fund_ack/grants/grant/grant_agency') {
+		push @{$epdata->{funders}}, '';
+		$self->{characters} = \$epdata->{funders}[-1];
+	}
+	elsif ($path eq '/records/REC/static_data/fullrecord_metadata/fund_ack/grants/grant/grant_ids/grant_id') {
+		push @{$epdata->{projects}}, '';
+		$self->{characters} = \$epdata->{projects}[-1];
+	}
+	elsif ($path =~ m{^/records/REC/static_data/fullrecord_metadata/fund_ack/fund_text\b}) {
+		$self->{characters} = \$epdata->{notes};
 	}
 	else {
 		$self->{characters} = undef;
