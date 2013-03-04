@@ -51,7 +51,7 @@ $c->add_trigger( EP_TRIGGER_MEDIA_INFO, sub {
 	return 0 if $filename =~ /.(docx|pptx|xlsx)$/i;
 	return 0 if $filename =~ /\.bib$/; # BibTeX
 
-	if( open(my $fh, "file -b -i ".quotemeta($filepath)."|") )
+	if( open(my $fh, "file -b -i -L ".quotemeta($filepath)."|") )
 	{
 		my $output = <$fh>;
 		close($fh);
@@ -74,7 +74,7 @@ $c->add_trigger( EP_TRIGGER_MEDIA_INFO, sub {
 	}
 	else
 	{
-		$repo->log( "Error executing command file -b -i ".quotemeta($filepath).": $!" );
+		$repo->log( "Error executing command file -b -i -L ".quotemeta($filepath).": $!" );
 		return undef;
 	}
 
