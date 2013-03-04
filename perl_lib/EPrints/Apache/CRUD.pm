@@ -619,6 +619,12 @@ sub authz
 		}
 	}
 
+	print STDERR sprintf("Access denied to %s on %s: user requires one of %s privileges\n",
+		(defined $user ? $user->value("username") : 'anonymous'),
+		$r->uri,
+		join(',', @privs),
+	);
+
 	return HTTP_FORBIDDEN;
 }
 

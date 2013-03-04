@@ -162,11 +162,9 @@ sub permit
 	# creating or destroying a sub-object is equivalent to editing its parent
 	$priv = "edit" if $priv eq "create" || $priv eq "destroy";
 
-	# eprint/view => eprint/archive/view
-	my $dataset = $parent->get_dataset;
-	$priv = $dataset->id ne $dataset->base_id ?
-		join('/', $dataset->base_id, $dataset->id, $priv) :
-		join('/', $dataset->base_id, $priv);
+	# {parent_datasetid}/{priv}
+	# Note: parent will add virtual dataset priv e.g. eprint/buffer/edit
+	$priv = join('/', $parent->{dataset}->base_id, $priv);
 
 	return $self->parent->permit( $priv, $user );
 }
