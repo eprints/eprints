@@ -209,7 +209,7 @@ PerlPostConfigHandler +EPrints::post_config_handler
 Include $inc_path/*.conf
 
 END
-	my $backup = EPrints::Config::write( $site_userfile, $conf, BACKUP => 1 );
+	my $backup = EPrints->system->write_config_file( $site_userfile, $conf, BACKUP => 1 );
 	if( $backup )
 	{
 		print "Wrote $backup\n" if $noise >= 1;

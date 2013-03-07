@@ -51,6 +51,8 @@ Deprecated, use *_repository_*.
 
 package EPrints::Config;
 
+use Data::Dumper;
+
 use warnings;
 use strict;
 
