@@ -570,10 +570,11 @@ sub box
 	my $frag = $xml->create_document_fragment;
 
 	my $basename = exists $opts{basename} ? $opts{basename} : "ep_box";
+	my $class = exists $opts{class} ? $opts{class} : "ep_summary_box";
 
 	$frag->appendChild( my $div = $xml->create_element( "div",
 			id=>$basename,
-			class=>"ep_summary_box",
+			class=>$class,
 		) );
 
 	$div->appendChild( my $title_bar = $xml->create_element( "div",
@@ -629,9 +630,7 @@ sub box
 	}
 
 	$frag->appendChild( $repo->make_javascript( <<"EOJ" ) );
-Event.observe (window, 'load', function() {
-	new EPrints.XHTML.Box ('$basename');
-});
+new EPrints.XHTML.Box ('$basename');
 EOJ
 
 	return $frag;

@@ -295,6 +295,11 @@ sub new
 		$self{plugin} = $self->content_negotiate_best_plugin;
 	}
 
+	if( !defined $self{import_plugin} && $self->is_write )
+	{
+		$self{import_plugin} = $self->content_negotiate_best_import_plugin;
+	}
+
 	return $self;
 }
 
@@ -369,6 +374,14 @@ Returns the available HTTP verbs for the current request.
 =cut
 
 sub options { @{$_[0]->{options}} }
+
+=item $plugin = $crud->import_plugin()
+
+Returns the current plugin for parsing input.
+
+=cut
+
+sub import_plugin { $_[0]->{import_plugin} }
 
 =item $plugin = $crud->plugin()
 
@@ -801,13 +814,13 @@ sub export_plugins
 		} @plugins;
 }
 
-=item $plugin = $crud->content_negotiate_best_plugin()
+=item $plugin = $crud->content_negotiate_best_import_plugin()
 
-Work out the best plugin to export/update an object based on the client-headers.
+Work out the best plugin to create/update an object based on the client-headers.
 
 =cut
 
-sub content_negotiate_best_plugin
+sub content_negotiate_best_import_plugin
 {
 	my( $self ) = @_;
 
@@ -824,42 +837,22 @@ sub content_negotiate_best_plugin
 
 	if( defined(my $package = $headers->{packaging}) )
 	{
-		my $plugin;
-		if( $self->is_write )
-		{
-			($plugin) = $self->import_plugins(
-					can_accept => $PACKAGING_PREFIX.$package,
-					can_action => $headers->{actions},
-				);
-		}
-		else
-		{
-			($plugin) = $self->export_plugins(
-					can_produce => $PACKAGING_PREFIX.$package,
-				);
-		}
+		my ($plugin) = $self->import_plugins(
+				can_accept => $PACKAGING_PREFIX.$package,
+				can_action => $headers->{actions},
+			);
 		return $plugin;
 	}
 
-	my @plugins;
-	if( $self->is_write )
-	{
-		@plugins = $self->import_plugins(
-				can_action => $headers->{actions},
-			);
-	}
-	else
-	{
-		@plugins = $self->export_plugins();
-	}
+	my @plugins = $self->import_plugins(
+			can_action => $headers->{actions},
+		);
 
 	my %pset;
 
 	foreach my $plugin ( @plugins )
 	{
-		my $mimetype = $plugin->get_type eq "Export" ?
-			$plugin->param( "produce" ) :
-			$plugin->param( "accept" );
+		my $mimetype = $plugin->param( "accept" );
 		$mimetype = join ',', @$mimetype;
 		for( HTTP::Headers::Util::split_header_words( $mimetype ) )
 		{
@@ -883,34 +876,100 @@ sub content_negotiate_best_plugin
 		$pset{$b}->[0]->{q} <=> $pset{$a}->[0]->{q}
 	} keys %pset;
 
-	my $accept;
-	if( $self->is_write )
-	{
-		$accept = $r->headers_in->{'Content-Type'};
-	}
-	else
-	{
-		# summary page is higher priority than anything else for /id/eprint/23
-		# and /id/contents
-		if( $self->scope == CRUD_SCOPE_DATAOBJ || $self->scope == CRUD_SCOPE_USER_CONTENTS )
-		{
-			my $plugin = $repo->plugin( "Export::SummaryPage" );
-			my $mimetype = $plugin->param( "produce" );
-			$mimetype = join ',', @$mimetype;
-			for( HTTP::Headers::Util::split_header_words( $mimetype ) )
-			{
-				my( $type, undef, %params ) = @$_;
-				unshift @pset_order, $type;
-				unshift @{$pset{$type}}, {
-					charset => 'utf-8',
-					q => $plugin->param( "qs" ),
-					plugin => $plugin,
-				};
-			}
-		}
+	my $accept = $r->headers_in->{'Content-Type'};
 
-		$accept = $r->headers_in->{Accept} || "*/*";
+	return $self->_http_negotiate($accept, \@pset_order, \%pset);
+}
+
+=item $plugin = $crud->content_negotiate_best_plugin()
+
+Work out the best plugin to export/update an object based on the client-headers.
+
+=cut
+
+sub content_negotiate_best_plugin
+{
+	my( $self ) = @_;
+
+	my $r = $self->request;
+	my $repo = $self->repository;
+	my $dataset = $self->dataset;
+	my $field = $self->field;
+
+	my $headers = $self->headers;
+
+	return undef if $self->method eq "DELETE";
+
+	my $accept_type = $self->accept_type;
+
+	if( defined(my $package = $headers->{packaging}) )
+	{
+		my ($plugin) = $self->export_plugins(
+				can_produce => $PACKAGING_PREFIX.$package,
+			);
+		return $plugin;
 	}
+
+	my @plugins = $self->export_plugins();
+
+	my %pset;
+
+	foreach my $plugin ( @plugins )
+	{
+		my $mimetype = $plugin->param( "produce" );
+		$mimetype = join ',', @$mimetype;
+		for( HTTP::Headers::Util::split_header_words( $mimetype ) )
+		{
+			my( $type, undef, %params ) = @$_;
+
+			push @{$pset{$type}}, {
+				%params,
+				plugin => $plugin,
+				q => $plugin->param( "qs" ),
+				id => $plugin->get_id,
+			};
+		}
+	}
+	# sort plugins internally by q then id
+	for(values(%pset))
+	{
+		@$_ = sort { $b->{q} <=> $a->{q} || $a->{id} cmp $b->{id} } @$_;
+	}
+	# sort supported types by the highest plugin score
+	my @pset_order = sort {
+		$pset{$b}->[0]->{q} <=> $pset{$a}->[0]->{q}
+	} keys %pset;
+
+	my $accept = $r->headers_in->{Accept} || "*/*";
+
+	# summary page is higher priority than anything else for /id/eprint/23
+	# and /id/contents
+	if( $self->scope == CRUD_SCOPE_DATAOBJ || $self->scope == CRUD_SCOPE_USER_CONTENTS )
+	{
+		my $plugin = $repo->plugin( "Export::SummaryPage" );
+		my $mimetype = $plugin->param( "produce" );
+		$mimetype = join ',', @$mimetype;
+		for( HTTP::Headers::Util::split_header_words( $mimetype ) )
+		{
+			my( $type, undef, %params ) = @$_;
+			unshift @pset_order, $type;
+			unshift @{$pset{$type}}, {
+				charset => 'utf-8',
+				q => $plugin->param( "qs" ),
+				plugin => $plugin,
+			};
+		}
+	}
+
+	return $self->_http_negotiate($accept, \@pset_order, \%pset);
+}
+
+sub _http_negotiate
+{
+	my ($self, $accept, $pset_order, $pset) = @_;
+
+	my @pset_order = @$pset_order;
+	my %pset = %$pset;
 
 	my @accept = parse_media_range( $accept || "" );
 
@@ -933,14 +992,12 @@ sub content_negotiate_best_plugin
 				}
 			}
 			$match = (sort { $b->{q} <=> $a->{q} || $a->{id} cmp $b->{id} } @$plugins)[0]->{plugin};
-			$r->pnotes->{mime_type} = $mime_type;
 			last CHOICE;
 		}
 		# */*
 		elsif( $type eq '*' && $subtype eq '*' )
 		{
 			$match = $pset{$pset_order[0]}->[0]->{plugin};
-			$r->pnotes->{mime_type} = $mime_type;
 			last CHOICE;
 		}
 		# text/*
@@ -951,7 +1008,6 @@ sub content_negotiate_best_plugin
 				if( m#^$type/# )
 				{
 					$match = $pset{$_}->[0]->{plugin};
-					$r->pnotes->{mime_type} = $mime_type;
 					last CHOICE;
 				}
 			}
@@ -1162,8 +1218,10 @@ sub GET
 		return EPrints::Apache::Storage::handler( $r );
 	}
 
+	my $accept = $r->headers_in->{'Accept'};
+
 	# what to do when the user doesn't ask for a specific content type
-	if( $r->pnotes->{mime_type} eq "*/*" )
+	if( !$accept || $accept eq '*/*' )
 	{
 		# GET/HEAD XX/contents without mime type, default to content
 		if( $self->scope == CRUD_SCOPE_CONTENTS )
@@ -1344,6 +1402,7 @@ sub POST
 	my $dataobj = $self->dataobj;
 	my $field = $self->field;
 	my $plugin = $self->plugin;
+	my $import_plugin = $self->import_plugin;
 
 	my $user = $repo->current_user;
 
@@ -1362,9 +1421,15 @@ sub POST
 	return $rc if $rc != OK;
 
 	# we can import any file type into /contents
+	if( !defined $import_plugin )
+	{
+		$import_plugin = $repo->plugin( "Import::Binary" );
+	}
+
+	# default to Atom output
 	if( !defined $plugin )
 	{
-		$plugin = $repo->plugin( "Import::Binary" );
+		$plugin = $repo->plugin( "Export::Atom" );
 	}
 
 	my @items;
@@ -1377,8 +1442,10 @@ sub POST
 		$status = "archive" if ($repo->config("skip_buffer") and $status eq "buffer");
 	}
 
-	my $list = $self->parse_input( $plugin, sub {
-			my( $epdata ) = @_;
+	my $list = $self->parse_input( $import_plugin, sub {
+			my( $epdata, %opts ) = @_;
+
+			my $dataset = $opts{dataset};
 
 			if( $self->scope == CRUD_SCOPE_USER_CONTENTS )
 			{
@@ -1389,9 +1456,19 @@ sub POST
 
 				push @items, $dataset->create_dataobj( $epdata );
 			}
+			elsif( $field->property( "multiple" ) )
+			{
+				push @items, $dataobj->create_subdataobj(
+					$field->name,
+					$epdata->{$field->name}[0],
+				);
+			}
 			else
 			{
-				push @items, $dataobj->create_subdataobj( $field->name, $epdata );
+				push @items, $dataobj->create_subdataobj(
+					$field->name,
+					$epdata->{$field->name},
+				);
 			}
 
 			return $items[-1];
@@ -1404,15 +1481,13 @@ sub POST
 		$self->metadata_relevant( $items[0] );
 	}
 
-	my $atom = $repo->plugin( "Export::Atom" );
-
 	# producing more than one item (potentially)
 	if( $self->scope == CRUD_SCOPE_CONTENTS && $headers->{flags}->{unpack} )
 	{
 		return $self->send_response(
 			HTTP_CREATED,
-			$atom->param( "mimetype" ),
-			$atom->output_list( list => $list ),
+			$plugin->param( "mimetype" ),
+			$plugin->output_list( list => $list ),
 		);
 	}
 	else
@@ -1427,8 +1502,8 @@ $r->err_headers_out->{Location} = $items[0]->uri . '/contents';
 
 		return $self->send_response(
 			HTTP_CREATED,
-			$atom->param( "mimetype" ),
-			$atom->output_dataobj( $items[0] ),
+			$plugin->param( "mimetype" ),
+			$plugin->output_dataobj( $items[0] ),
 		);
 	}
 }
@@ -1508,6 +1583,12 @@ sub PUT
 				status => HTTP_INTERNAL_SERVER_ERROR,
 				summary => "Error occurred during writing - check server logs",
 			) if !defined $rlen;
+
+		# if the client has sent the entire file, we can calculate the MD5
+		if ($dataobj->value( 'filesize' ) == $total)
+		{
+			$dataobj->update_md5();
+		}
 
 		$dataobj->commit;
 

@@ -2976,12 +2976,6 @@ Titles and Help for the System Fields
 	<epp:phrase id="Plugin/InputForm/Component/Upload:bad_doc_button">Unknown internal document button: <epc:pin name="button"/></epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Document/Convert:conversion_failed">Document conversion failed.</epp:phrase>
 	
-	<!-- tabs -->
-	<epp:phrase id="Plugin/InputForm/Component/Documents:Metadata">Metadata</epp:phrase>
-	<epp:phrase id="Plugin/InputForm/Component/Documents:Files">Files</epp:phrase>
-	<epp:phrase id="Plugin/InputForm/Component/Documents:related_files">Related Files</epp:phrase>
-
-
 	<!-- options -->
 	<epp:phrase id="Plugin/InputForm/Component/Documents:move_up">Move Up</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Document/MoveUp:title" ref="Plugin/InputForm/Component/Documents:move_up" />

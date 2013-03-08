@@ -44,15 +44,13 @@ sub update_from_form
 	$eprint->set_value( "documents", $eprint->value( "documents" ) );
 	my @eprint_docs = $eprint->get_all_documents;
 
-	my %update = map { $_ => 1 } $session->param( $self->{prefix} . "_update_doc" );
-
 	# update the metadata for any documents that have metadata
 	foreach my $doc ( @eprint_docs )
 	{
-		# check the page we're coming from included this document
-		next if !$update{$doc->id};
-
 		my $doc_prefix = $self->{prefix}."_doc".$doc->id;
+
+		# check the page we're coming from included this document
+    next if !$self->{session}->param( $doc_prefix . "_update" );
 
 		my @fields = $self->doc_fields( $doc );
 
@@ -102,8 +100,6 @@ sub get_state_params
 	my $to_unroll = $processor->{notes}->{upload_plugin}->{to_unroll};
 	$to_unroll = {} if !defined $to_unroll;
 
-	my %update = map { $_ => 1 } $self->{session}->param( $self->{prefix} . "_update_doc" );
-
 	my $eprint = $self->{workflow}->{item};
 	my @eprint_docs = $eprint->get_all_documents;
 	foreach my $doc ( @eprint_docs )
@@ -111,7 +107,7 @@ sub get_state_params
 		my $doc_prefix = $self->{prefix}."_doc".$doc->id;
 
 		# check the page we're coming from included this document
-		next if !$update{$doc->id};
+    next if !$self->{session}->param( $doc_prefix . "_update" );
 
 		my @fields = $self->doc_fields( $doc );
 		foreach my $field ( @fields )
@@ -139,8 +135,6 @@ sub get_state_fragment
 	my $to_unroll = $processor->{notes}->{upload_plugin}->{to_unroll};
 	$to_unroll = {} if !defined $to_unroll;
 
-	my %update = map { $_ => 1 } $self->{session}->param( $self->{prefix} . "_update_doc" );
-
 	my $eprint = $self->{workflow}->{item};
 	foreach my $doc ( $eprint->get_all_documents )
 	{
@@ -148,7 +142,7 @@ sub get_state_fragment
 		return $doc_prefix if $to_unroll->{$doc->id};
 
 		# check the page we're coming from included this document
-		next if !$update{$doc->id};
+    next if !$self->{session}->param( $doc_prefix . "_update" );
 
 		my @fields = $self->doc_fields( $doc );
 		foreach my $field ( @fields )
@@ -244,10 +238,6 @@ sub render_content
 
 	my $f = $session->make_doc_fragment;
 	
-	$f->appendChild( $self->{session}->make_javascript(
-		"Event.observe(window, 'load', function() { new Component_Documents('".$self->{prefix}."') });"
-	) );
-
 	my @docs = $eprint->get_all_documents;
 
 	my %unroll = map { $_ => 1 } $session->param( $self->{prefix}."_view" );
@@ -261,7 +251,7 @@ sub render_content
 	}
 
 	my $panel = $session->make_element( "div",
-		id=>$self->{prefix}."_panels",
+		id=>$self->{prefix},
 	);
 	$f->appendChild( $panel );
 
@@ -271,6 +261,10 @@ sub render_content
 
 		$panel->appendChild( $self->_render_doc_div( $doc, $hide ));
 	}
+
+	$f->appendChild( $self->{session}->make_javascript(<<"EOJ") );
+new Component_Documents('$self->{prefix}');
+EOJ
 
 	return $f;
 }
@@ -318,7 +312,13 @@ sub export
 
 		my $hide = $self->{session}->param( "docid" );
 		$hide = !defined($hide) || $hide ne $docid;
-		$frag = $self->_render_doc_div( $doc, $hide );
+		my $doc_div = $self->_render_doc_div( $doc, $hide );
+
+		$frag = $self->{session}->xml->create_document_fragment;
+		foreach my $node ($doc_div->childNodes)
+		{
+			$frag->appendChild( $doc_div->removeChild( $node ) );
+		}
 	}
 
 	print $self->{session}->xhtml->to_xhtml( $frag );
@@ -330,11 +330,11 @@ sub _render_doc_div
 	my( $self, $doc, $hide ) = @_;
 
 	my $session = $self->{session};
+	my $xml = $session->xml;
+	my $xhtml = $session->xhtml;
 
 	my $docid = $doc->get_id;
 	my $doc_prefix = $self->{prefix}."_doc".$docid;
-
-	my $imagesurl = $session->current_url( path => "static" );
 
 	my $files = $doc->get_value( "files" );
 	do {
@@ -342,25 +342,16 @@ sub _render_doc_div
 		@$files = sort { $idx{$a} cmp $idx{$b} } @$files;
 	};
 
-	my $doc_div = $self->{session}->make_element( "div", class=>"ep_upload_doc", id=>$doc_prefix."_block" );
+	my $doc_div = $self->{session}->make_element( "div", class=>"ep_upload_doc", id=>$doc_prefix );
 
-	# provide <a> link to this document
-	$doc_div->appendChild( $session->make_element( "a", name=>$doc_prefix ) );
+	# easier access to the docid
+	$doc_div->appendChild( $xhtml->hidden_field( $doc_prefix . "_docid", $docid ) );
 
 	# note which documents should be updated
-	$doc_div->appendChild( $session->render_hidden_field( $self->{prefix}."_update_doc", $docid ) );
-
-	# note the document placement
-	$doc_div->appendChild( $session->render_hidden_field( $self->{prefix}."_doc_placement", $doc->value( "placement" ) ) );
+	$doc_div->appendChild( $xhtml->hidden_field( $doc_prefix . "_update", 1 ) );
 
 	my $doc_title_bar = $session->make_element( "div", class=>"ep_upload_doc_title_bar" );
 	$doc_div->appendChild( $doc_title_bar );
-
-	my $doc_expansion_bar = $session->make_element( "div", class=>"ep_upload_doc_expansion_bar ep_only_js" );
-	$doc_div->appendChild( $doc_expansion_bar );
-
-	my $content = $session->make_element( "div", id=>$doc_prefix."_opts", class=>"ep_upload_doc_content ".($hide?"ep_no_js":"") );
-	$doc_div->appendChild( $content );
 
 
 	my $table = $session->make_element( "table", width=>"100%", border=>0 );
@@ -377,35 +368,32 @@ sub _render_doc_div
 
 	$td_right->appendChild( $self->_render_doc_actions( $doc ) );
 
-        my @fields = $self->doc_fields( $doc );
-        return $doc_div if !scalar @fields;
+  # drag and drop bits
+	my $container = $xml->create_element( "div",
+		class => "UploadMethod_file_container",
+		id => join('_', $doc_prefix, "dropbox"),
+	);
+	$doc_div->appendChild( $container );
 
-	my $opts_toggle = $session->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${doc_prefix}_opts',".($hide?"false":"true").",'${doc_prefix}_block');EPJS_toggle('${doc_prefix}_opts_hide',".($hide?"false":"true").",'block');EPJS_toggle('${doc_prefix}_opts_show',".($hide?"true":"false").",'block');return false" );
-	$doc_expansion_bar->appendChild( $opts_toggle );
+	$container->appendChild( $xml->create_data_element( "div",
+			$session->html_phrase( "Plugin/InputForm/Component/Upload:drag_and_drop" ),
+			class => "ep_dropbox_help",
+		) );
 
-	my $s_options = $session->make_element( "div", id=>$doc_prefix."_opts_show", class=>"ep_update_doc_options ".($hide?"":"ep_hide") );
-	$s_options->appendChild( $self->html_phrase( "show_options" ) );
-	$s_options->appendChild( $session->make_text( " " ) );
-	$s_options->appendChild( 
-			$session->make_element( "img",
-				src=>"$imagesurl/style/images/plus.png",
-				) );
-	$opts_toggle->appendChild( $s_options );
+	$container->appendChild( $xml->create_element( "table",
+			id => join('_', $doc_prefix, "progress_table"),
+			class => "UploadMethod_file_progress_table",
+		) );
 
-	my $h_options = $session->make_element( "div", id=>$doc_prefix."_opts_hide", class=>"ep_update_doc_options ".($hide?"ep_hide":"") );
-	$h_options->appendChild( $self->html_phrase( "hide_options" ) );
-	$h_options->appendChild( $session->make_text( " " ) );
-	$h_options->appendChild( 
-			$session->make_element( "img",
-				src=>"$imagesurl/style/images/minus.png",
-				) );
-	$opts_toggle->appendChild( $h_options );
+  $container->appendChild($xhtml->box(
+      $self->_render_doc_metadata($doc),
+      basename => join('_', $doc_prefix, 'content'),
+      show_label => $self->html_phrase('show_options'),
+      hide_label => $self->html_phrase('hide_options'),
+      collapsed => $hide,
+      class => 'ep_upload_doc_content',
+    ));
 
-
-	my $content_inner = $self->{session}->make_element( "div", id=>$doc_prefix."_opts_inner" );
-	$content->appendChild( $content_inner );
-
-	$content_inner->appendChild( $self->_render_doc_metadata( $doc )->{content} );
 	return $doc_div;
 }
 
@@ -487,75 +475,6 @@ sub _render_doc_actions
 	return $table;
 }
 
-sub _render_related_docs
-{
-	my( $self, $doc ) = @_;
-
-	my $session = $self->{session};
-	my $eprint = $self->{workflow}->{item};
-
-	my $div = $session->make_element( "div", id=>$self->{prefix}."_panels" );
-
-	$doc->search_related( "isVolatileVersionOf" )->map(sub {
-			my( undef, undef, $dataobj ) = @_;
-
-			# in the future we might get other objects coming back
-			next if !$dataobj->isa( "EPrints::DataObj::Document" );
-
-			$div->appendChild( $self->_render_volatile_div( $dataobj ) );
-		});
-
-	if( !$div->hasChildNodes )
-	{
-		return ();
-	}
-
-	return {
-		id => "related_".$doc->id,
-		   title => $self->html_phrase("related_files"),
-		   content => $div,
-	};
-}
-
-sub _render_volatile_div
-{
-	my( $self, $doc ) = @_;
-
-	my $session = $self->{session};
-
-	my $doc_prefix = $self->{prefix}."_doc".$doc->id;
-
-	my $doc_div = $self->{session}->make_element( "div", class=>"ep_upload_doc", id=>$doc_prefix."_block" );
-
-	my $doc_title_bar = $session->make_element( "div", class=>"ep_upload_doc_title_bar" );
-
-	my $table = $session->make_element( "table", width=>"100%", border=>0 );
-	my $tr = $session->make_element( "tr" );
-	$doc_title_bar->appendChild( $table );
-	$table->appendChild( $tr );
-	my $td_left = $session->make_element( "td", valign=>"middle" );
-	$tr->appendChild( $td_left );
-
-	$td_left->appendChild( $self->_render_doc_icon_info(
-			$doc,
-			[] # $doc->value( "files" )
-		) );
-
-	my $td_right = $session->make_element( "td", align=>"right", valign=>"middle", width=>"20%" );
-	$tr->appendChild( $td_right );
-	my $msg = $self->phrase( "unlink_document_confirm" );
-	my $unlink_button = $session->render_button(
-			name => "_internal_".$doc_prefix."_unlink_doc",
-			value => $self->phrase( "unlink_document" ),
-			class => "ep_form_internal_button",
-			onclick => "if( window.event ) { window.event.cancelBubble = true; } return confirm(".EPrints::Utils::js_string($msg).");",
-			);
-	$td_right->appendChild($unlink_button);
-	$doc_div->appendChild( $doc_title_bar );
-
-	return $doc_div;
-}
-
 sub doc_fields
 {
 	my( $self, $document ) = @_;
@@ -618,11 +537,7 @@ sub _render_doc_metadata
 
 	$doc_cont->appendChild( $tool_div );
 	
-	return ({
-		id => "metadata_".$doc->get_id,
-		   title => $self->html_phrase("Metadata"),
-		   content => $doc_cont,
-	});
+  return $doc_cont;
 }
 
 sub validate
