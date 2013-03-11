@@ -2221,7 +2221,9 @@ sub render_search_description
 
 	my $valuedesc = $self->render_search_value(
 		$session,
-		$value );
+		$value,
+		$merge,
+		$match );
 	
 	return $session->html_phrase(
 		$phraseid,
@@ -2575,3 +2577,4 @@ License along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
 
 =for LICENSE END
 
+# vim:ts=4:sts=4:sw=4
