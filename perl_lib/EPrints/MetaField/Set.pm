@@ -593,4 +593,3 @@ License along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
 
 =for LICENSE END
 
-# vim:ts=4:sts=4:sw=4
