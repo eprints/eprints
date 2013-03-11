@@ -28,6 +28,16 @@ use EPrints::MetaField::Id;
 
 use strict;
 
+sub form_value_basic
+{
+	my $self = shift;
+	my $v = $self->SUPER::form_value_basic( @_ );
+	return unless( defined $v );
+	# strip leading and trailing whitespace
+	$v =~ s/^\s+|\s+$//g;
+	return $v;
+}
+
 sub render_single_value
 {
 	my( $self, $session, $value ) = @_;
@@ -74,3 +84,4 @@ License along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
 
 =for LICENSE END
 
+# vim:ts=4:sts=4:sw=4
