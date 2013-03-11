@@ -538,12 +538,6 @@ sub render_xml_schema_type
 
 	my( $tags, $labels ) = $self->tags_and_labels( $session );
 
-	# Allow Set fields to have no value. This weakens the constraints
-	# applies by the schema, but is an approach that works for
-	# optional Set fields.
-	push @{$tags}, '';
-	$labels->{''} = $session->phrase( 'lib/metafield:unspecified' );
-
 	my $restriction = $session->make_element( "xs:restriction", base => "xs:string" );
 	$type->appendChild( $restriction );
 	foreach my $value (@$tags)
