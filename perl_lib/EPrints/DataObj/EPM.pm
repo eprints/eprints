@@ -405,12 +405,12 @@ sub commit
 	# give the user a hint for where to put cfg.d.s
 	EPrints->system->mkdir( $self->epm_dir . "/cfg/cfg.d" );
 
-	if( open(my $fh, ">", $self->epm_dir . "/" . $self->id . ".epm") )
+	if( open(my $fh, ">:utf8", $self->epm_dir . "/" . $self->id . ".epm") )
 	{
 		$self->serialise( $fh, 1 );
 		close($fh);
 	}
-	if( open(my $fh, ">", $self->epm_dir . "/" . $self->id . ".epmi") )
+	if( open(my $fh, ">:utf8", $self->epm_dir . "/" . $self->id . ".epmi") )
 	{
 		$self->serialise( $fh, 0 );
 		close($fh);
