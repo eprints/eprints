@@ -1703,6 +1703,44 @@ sub citation
 	return $citation;
 }
 
+=item $searchexp = $dataset->owned_by($user [, %opts])
+
+Returns a prepared search for items in this dataset owned by $user.
+
+=cut
+
+sub owned_by
+{
+	my ($self, $user, %opts) = @_;
+
+	my @filters = @{$opts{filters} || []};
+
+	my $f = $self->{repository}->config( "datasets", $self->id, "owned" );
+	if (defined $f) {
+		&$f($self, $user, \@filters, %opts);
+	}
+	elsif ($self->has_field("userid")) {
+		push @filters, {
+			meta_fields => [qw( userid )],
+			value => $user->id,
+			match => "EX",
+		};
+	}
+	else {
+		# return a NO-OP?
+		push @filters, {
+			meta_fields => [$self->key_field->name],
+			value => undef,
+			match => "EX",
+		};
+	}
+
+	return $self->prepare_search(
+		%opts,
+		filters => \@filters,
+	);
+}
+
 ######################################################################
 1;
 ######################################################################
