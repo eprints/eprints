@@ -199,7 +199,6 @@ sub delete
 		if( !$plugin )
 		{
 			$self->{repository}->get_repository->log( "Can not remove file copy '$copy->{sourceid}' - $copy->{pluginid} not available" );
-			$fileobj->remove_plugin_copy( $plugin );
 		}
 		elsif( $plugin->delete( $fileobj, $copy->{sourceid} ) )
 		{
