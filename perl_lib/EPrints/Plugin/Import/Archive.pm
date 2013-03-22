@@ -21,6 +21,9 @@ sub new
 	$self->{name} = "Base archive inport plugin: This should have been subclassed";
 	$self->{visible} = "all";
 
+	# limit the total number of files we'll read from a zip file
+	$self->{max_files} = 100;
+
 	return $self;
 }
 
@@ -68,6 +71,7 @@ sub create_epdata_from_directory
 	my( $self, $dir, $single ) = @_;
 
 	my $repo = $self->{repository};
+	my $max_files = $self->param("max_files") || 0;
 
 	my $epdata = $single ?
 		{ files => [] } :
@@ -98,7 +102,7 @@ sub create_epdata_from_directory
 					mime_type => $media_info->{mime_type},
 					_content => $fh,
 				};
-				die "Too many files" if @{$epdata->{files}} > 100;
+				die "Too many files" if $max_files && @{$epdata} > $max_files;
 			}
 			else
 			{
@@ -112,7 +116,7 @@ sub create_epdata_from_directory
 						_content => $fh,
 					}],
 				};
-				die "Too many files" if @{$epdata} > 100;
+				die "Too many files" if $max_files && @{$epdata} > $max_files;
 			}
 		},
 	}, $dir ) };
