@@ -2221,7 +2221,9 @@ sub render_search_description
 
 	my $valuedesc = $self->render_search_value(
 		$session,
-		$value );
+		$value,
+		$merge,
+		$match );
 	
 	return $session->html_phrase(
 		$phraseid,

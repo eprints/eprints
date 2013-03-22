@@ -31,33 +31,36 @@ use strict;
 
 sub render_search_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $session, $value, $merge, $match ) = @_;
 
 	my $valuedesc = $session->make_doc_fragment;
 	$valuedesc->appendChild( $session->make_text( '"' ) );
 	$valuedesc->appendChild( $session->make_text( $value ) );
 	$valuedesc->appendChild( $session->make_text( '"' ) );
-	my( $good, $bad ) = _extract_words( $session, $value );
-
-	if( scalar(@{$bad}) )
+	if( $match ne 'EX' )
 	{
-		my $igfrag = $session->make_doc_fragment;
-		for( my $i=0; $i<scalar(@{$bad}); $i++ )
+		my( $good, $bad ) = _extract_words( $session, $value );
+
+		if( scalar(@{$bad}) )
 		{
-			if( $i>0 )
+			my $igfrag = $session->make_doc_fragment;
+			for( my $i=0; $i<scalar(@{$bad}); $i++ )
 			{
+				if( $i>0 )
+				{
+					$igfrag->appendChild(
+						$session->make_text( 
+							', ' ) );
+				}
 				$igfrag->appendChild(
 					$session->make_text( 
-						', ' ) );
+						'"'.$bad->[$i].'"' ) );
 			}
-			$igfrag->appendChild(
-				$session->make_text( 
-					'"'.$bad->[$i].'"' ) );
+			$valuedesc->appendChild( 
+				$session->html_phrase( 
+					"lib/searchfield:desc_ignored",
+					list => $igfrag ) );
 		}
-		$valuedesc->appendChild( 
-			$session->html_phrase( 
-				"lib/searchfield:desc_ignored",
-				list => $igfrag ) );
 	}
 
 	return $valuedesc;
