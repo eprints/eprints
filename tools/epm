@@ -21,6 +21,7 @@ Where I<command> is one of:
 	disable
 	enable
 	install
+	link_cfg
 	link_lib
 	list
 	rebuild
@@ -271,6 +272,45 @@ sub action_install
 	{
 		print "Installed ".$epm->value( "epmid" )." [$source]\n";
 	}
+}
+
+=item link_cfg I<repository> I<package>
+
+Soft-link all of the repository-specific files to the package.
+
+Use --force to overwrite existing files.
+
+=cut
+
+sub action_link_cfg
+{
+	pod2usage( 2 ) if @ARGV != 2;
+
+	my( $repoid, $name ) = @ARGV;
+
+	my $repo = &repository( $repoid );
+	my $epm = &epm( $repo, $name );
+
+	my $sourcedir = $epm->epm_dir;
+	my $targetdir = $repo->config( "archiveroot" );
+
+	File::Find::find(sub {
+		return if $File::Find::name =~ /\/\./;
+		return if -d $File::Find::name;
+
+		my $rel_path = substr($File::Find::dir,length($sourcedir));
+		return if $rel_path =~ m{^$|^/lib\b};
+
+		my $path = $targetdir . $rel_path;
+		EPrints->system->mkdir( $path );
+
+		if( $opt_force && -e "$path/$_" ) {
+			unlink "$path/$_";
+		}
+		symlink($File::Find::name, "$path/$_");
+
+		print "$path/$_\n";
+	}, $sourcedir);
 }
 
 =item link_lib I<package>
