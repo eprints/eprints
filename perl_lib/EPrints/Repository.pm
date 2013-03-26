@@ -3501,6 +3501,9 @@ sub render_hidden_field
 sub render_input_field
 {
 	my( $self, %opts ) = @_;
+
+	$opts{type} = 'text' unless( exists $opts{type} );
+
 	return $self->xhtml->input_field(
 		delete($opts{name}),
 		delete($opts{value}),
@@ -3510,6 +3513,9 @@ sub render_input_field
 sub render_noenter_input_field
 {
 	my( $self, %opts ) = @_;
+	
+	$opts{type} = 'text' unless( exists $opts{type} );
+
 	return $self->xhtml->input_field(
 		delete($opts{name}),
 		delete($opts{value}),
