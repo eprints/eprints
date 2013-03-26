@@ -178,8 +178,8 @@ sub workflow
 		# staff mode if user is an admin or has editorial privileges for this
 		# object
 		$staff =
-			$user->value( "usertype" ) eq "admin" ||
-			($user->allow( $priv, $self->{processor}->{dataobj} ) & 8);
+			($user->allow( $priv, $self->{processor}->{dataobj} ) & 8) ||
+			$user->has_role( 'admin' );
 	}
 
 	if( !defined $self->{processor}->{$cache_id} )
