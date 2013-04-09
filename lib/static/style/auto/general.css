@@ -126,3 +126,14 @@ th.ep_title_row {
 	min-height: 60px;
 	min-width: 60px;
 }
+
+.epjs_ajax_button {
+        margin-right: 5px;
+}
+
+/* 19px = 14px (img width) + 5px (margin) */
+a.epjs_ajax_padding {
+        padding-right: 19px;
+        cursor: default;
+}
+

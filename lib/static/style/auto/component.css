@@ -1,0 +1,24 @@
+/*
+ * component.css
+ */
+
+ol.ep_component_item_list li {
+        margin-bottom: 5px;
+        padding-bottom: 5px;
+        border-width: 0px 0px 1px 0px;
+        border-style: solid;
+}
+
+div.ep_component_item_actions {
+        width: 10%;
+        float:right;
+}
+
+div.ep_component_item_desc {
+        width: 85%;
+}
+
+div.ep_component_item_separator {
+        clear: right;
+}
+

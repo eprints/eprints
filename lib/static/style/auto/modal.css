@@ -1,15 +1,12 @@
 /* 
- * TODO: move all colours to colours.css
-*/
+ * modal.css
+ */
 
-div.ep_modal_box
-{
-	border: 1px solid #CCCCCC;
-	background-image: url("images/bar_solid_24px.png");
-	background-repeat: repeat-x;
-	background-color: #E8E8FF;
-	padding: 0;
-	margin: 0;
+div.ep_modal_box {
+	border-style: solid;
+	border-width: 1px;
+	padding: 0px;
+	margin: 0px;
 	z-index: 110;
 }
 
@@ -23,8 +20,7 @@ div.ep_modal_box div.ep_sr_component {
 	margin-bottom: 0px;
 }
 
-div.ep_modal_box > div > div.epjs_messagebox_buttons_bar
-{
+div.ep_modal_box > div > div.epjs_messagebox_buttons_bar {
 	margin-bottom: 0px;
 }
 
@@ -33,7 +29,6 @@ div.ep_overlay {
 	top: 0;
 	left: 0;
 	width: 100%;
-	background: #000000;
 	z-index: 100;
 }
 
@@ -60,22 +55,18 @@ div.ep_modal_bar {
 div.ep_modal_results_list {
 	height: 350px;
         overflow-y:scroll;
-        background-color:#FFFFFF;
 	margin: 0px;
 	padding: 0px;
-	border-top: 1px solid #CCC;
-	border-bottom: 1px solid #CCC;
+	border-width: 1px 0px 1px 0px;
+	border-style: solid;
 }
 
 div.ep_modal_results_list div.ep_result {
 	padding: 5px;
 	min-height: 30px;
-	border-bottom: 1px dotted #CCC;
 	cursor:pointer;
-}
-
-div.ep_modal_results_list div.ep_result:hover {
-	background-color: #e0e0ff;
+	border-style: dotted;
+	border-width: 0px 0px 1px 0px;
 }
 
 div.ep_result > input[type="checkbox"] {
@@ -83,33 +74,16 @@ div.ep_result > input[type="checkbox"] {
 	margin-right: 30px;
 }
 
-/* sf2 - to move somewhere else, little to do with Modals */ 
-
-.epjs_ajax_button {
-	margin-right: 5px;
+div.ep_modal_bar input[type="text"] {
+        width: 350px;
+        margin-right: 5px;
+        font-size: 14px;
+        padding: 2px;
+	border-width: 1px;
+	border-style: solid;
 }
 
-/* 19px = 14px (img width) + 5px (margin) */
-a.epjs_ajax_padding {
-	padding-right: 19px;
-	cursor: default;
+div.ep_modal_results_list p {
+	margin-left: 15px;
 }
 
-ol.ep_component_item_list li {
-	margin-bottom: 5px;
-	padding-bottom: 5px;
-	border-bottom: 1px #CCC solid;
-}
-
-div.ep_component_item_actions {
-	width: 10%;
-	float:right;
-}
-
-div.ep_component_item_desc {
-	width: 85%;
-}
-
-div.ep_component_item_separator {
-	clear: right;
-}

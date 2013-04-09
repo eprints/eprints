@@ -227,3 +227,30 @@ td.ep_columns_cell {
 .ep_diff_add { background-color: #cfc }
 .ep_diff_remove { background-color: #fcc }
 .ep_diff_change { background-color: #ffc }
+
+/* modal.css */
+
+div.ep_modal_box {
+	border-color: #CCCCCC;
+	background-color: #E8E8FF;
+	background-image: url("images/bar_solid_24px.png");
+	background-repeat: repeat-x;
+}
+
+div.ep_overlay { background-color: #000000; }
+
+div.ep_modal_results_list {
+	border-color: #CCCCCC;
+        background-color:#FFFFFF;
+}
+
+div.ep_modal_results_list div.ep_result { border-color: #CCCCCC; }
+
+div.ep_modal_results_list div.ep_result:hover { background-color: #E0E0FF; }
+
+div.ep_modal_bar input[type="text"] { border-color: #CCCCCC; }
+
+/* component.css */
+
+ol.ep_component_item_list li { border-color: #CCCCCC; }
+
