@@ -1756,6 +1756,13 @@ Enter a URL to capture a file from: <epc:pin name="url"/><br/>
     <epp:phrase id="lib/submissionform:action_remove">Remove</epp:phrase>
     <epp:phrase id="lib/submissionform:action_create">Create</epp:phrase>
     <epp:phrase id="lib/submissionform:action_later">Deposit Item Later</epp:phrase>
+    <epp:phrase id="lib/submissionform:action_close">Close</epp:phrase>
+    <epp:phrase id="lib/submissionform:action_select">Select</epp:phrase>
+    <epp:phrase id="lib/submissionform:action_selected">Selected</epp:phrase>
+    <epp:phrase id="lib/submissionform:action_deselect">Deselect</epp:phrase>
+    <epp:phrase id="lib/submissionform:action_add">Add</epp:phrase>
+    <epp:phrase id="lib/submissionform:action_change">Change</epp:phrase>
+    <epp:phrase id="lib/submissionform:action_search">Search</epp:phrase>
     <epp:phrase id="lib/submissionform:title_type">Edit item: Item Type</epp:phrase>
     <epp:phrase id="lib/submissionform:title_meta">Edit item: Bibliographic Information</epp:phrase>
     <epp:phrase id="lib/submissionform:title_linking">Edit item: Succession/Commentary</epp:phrase>
@@ -3015,7 +3022,9 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/InputForm/Component/Field/Subject:search_clear_button">Clear</epp:phrase>
     <epp:phrase id="Plugin/InputForm/Component/Field/Subject:add">Add</epp:phrase>
     <epp:phrase id="Plugin/InputForm/Component/Field/Subject:remove">Remove</epp:phrase>
-	
+
+	<!-- Modal/ItemSearch component -->
+	<epp:phrase id="Plugin/InputForm/Component/Modal/ItemSearch:title">Select item(s)</epp:phrase>
 
 	<!-- Component errors -->
 	
