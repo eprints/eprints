@@ -128,7 +128,9 @@ sub xml_dataobj
 
 sub eprint_to_uketd_dc
 {
-	my( $plugin, $eprint, $session ) = @_;
+	my( $plugin, $eprint ) = @_;
+
+	my $session = $plugin->{session};
 
 	my @etddata = ();
 	# we still want much the same dc data so include under the dc namespace
