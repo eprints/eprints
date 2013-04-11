@@ -72,7 +72,7 @@ Define the formats supported for input by the call_ffmpeg() method.
 
 Define the size of thumbnails that can be generated e.g. "small => [66,50]". The image dimensions generated may be smaller than those specified if the aspect ratio of the source document is different.
 
-Images are output in 8-bit paletted PNG.
+Images are output as JPGs.
 
 =item video = 1
 
@@ -428,7 +428,7 @@ sub export
 		$geom = $self->{sizes}->{$size};
 		return () if !defined $geom;
 
-		$self->{_mime_type} = "image/png";
+		$self->{_mime_type} = "image/jpeg";
 	}
 
 	my @files;
