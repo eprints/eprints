@@ -30,7 +30,14 @@ my $processor = EPrints::ScreenProcessor->new(
 	searchid => "simple",
 );
 
+
 $processor->screen->properties_from;
+
+if( !$processor->screen->can_be_viewed )
+{
+	$repo->get_request->status( EPrints::Const::HTTP_FORBIDDEN );
+	exit; 
+}
 
 # override the settings from Screen::Search
 $processor->{sconf}->{keep_cache} = 0;

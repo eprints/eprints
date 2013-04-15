@@ -11,7 +11,7 @@ ChangeLog:
 	$(PERL_PATH) tools/gitlog-to-changelog > ChangeLog
 
 INSTALL:
-	pod2txt README > INSTALL
+	pod2text README > INSTALL
 
 VERSION:
 	echo $(VERSION) > VERSION

@@ -865,7 +865,7 @@ sub wishes_to_export
 	my @plugins = $self->_get_export_plugins( 1 );
 		
 	my $ok = 0;
-	foreach( @plugins ) { if( $_ eq "Export::$format" ) { $ok = 1; last; } }
+	foreach( @plugins ) { if( $_->subtype eq $format ) { $ok = 1; last; } }
 	unless( $ok ) 
 	{
 		$self->{processor}->{search_subscreen} = "results";

@@ -120,3 +120,9 @@ th.ep_title_row {
     /* make sure we display in front */
     z-index: 10;
 }
+
+.ep_loading {
+	background: no-repeat url('images/loading.gif');
+	min-height: 60px;
+	min-width: 60px;
+}
