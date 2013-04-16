@@ -69,15 +69,6 @@ ensure_dir( "$DESTDIR/testdata", $uid, $gid, 0750 );
 
 my $newsighash = {};
 
-my @files = (
-	ChangeLog => [0640, $uid, $gid],
-	COPYING  => [0640, $uid, $gid],
-	INSTALL => [0640, $uid, $gid],
-	README => [0640, $uid, $gid],
-	'README.txt' => [0640, $uid, $gid],
-	VERSION => [0640, $uid, $gid],
-);
-
 my @dirs = (
 	bin => [0750, $uid, $gid, 0750],
 	cgi => [0640, $uid, $gid, 0750],
@@ -91,11 +82,6 @@ my @dirs = (
 	tools => [0750, $uid, $gid, 0750],
 	var => [0660, $uid, $gid, 02770], # indexer may run as 'apache'
 );
-
-foreach my $i (grep { $_ % 2 == 0 } 0 .. $#files)
-{
-	install_file($files[$i], '.', @{$files[$i+1]}, $DESTDIR, $newsighash);
-}
 
 foreach my $i (grep { $_ % 2 == 0 } 0 .. $#dirs)
 {
