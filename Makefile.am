@@ -1,3 +1,5 @@
+EXTRA_DIST = eprints.spec ChangeLog INSTALL VERSION
+
 install-data-hook:
 	$(PERL_PATH) install.pl
 
@@ -18,6 +20,7 @@ VERSION:
 
 clean-local:
 	-rm -f configure Makefile.in ChangeLog install-sh missing INSTALL VERSION
+	-rm -f aclocal.m4 eprints.spec Makefile
 	-rm -rf autom4te.cache
 
 test:
