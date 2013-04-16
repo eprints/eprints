@@ -55,11 +55,15 @@ Print the full manual page and then exit.
 
 =item B<--quiet>
 
-This option does not do anything.
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
 
 =item B<--verbose>
 
 Explain in detail what is going on. May be repeated for greater effect.
+
+=item B<--dry-run>
+
+Don't perform an actual changes.
 
 =item B<--version>
 
