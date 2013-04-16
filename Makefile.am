@@ -33,10 +33,6 @@ clean-local:
 	-rm -f config.status config.log bin/epindexer
 	-rm -rf autom4te.cache
 
+# won't back-port the master test features onto 3.3
 test:
-	$(PERL_PATH) bin/epadmin create_test --force --quiet
-	$(PERL_PATH) bin/epadmin create_user test _
-	$(PERL_PATH) testdata/bin/import_test_data test
-	$(PERL_PATH) bin/indexer --once --notdaemon start
-	$(PERL_PATH) bin/epadmin unit_tests
-	$(PERL_PATH) bin/epadmin delete test --force
+	$(PERL_PATH) bin/epadmin test
