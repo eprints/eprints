@@ -1,7 +1,6 @@
 #!@PERL_PATH@
 
 our $PREFIX="@PREFIX@";
-our $DESTDIR=$ENV{DESTDIR} || $PREFIX;
 our $INSTALL_USER="@INSTALL_USER@";
 our $INSTALL_GROUP="@INSTALL_GROUP@";
 our $SIGNATURE_PATH="$DESTDIR/SIGNATURES";
@@ -11,11 +10,13 @@ use Cwd;
 use Digest::MD5;
 use Data::Dumper;
 use File::Copy;
+use File::Path;
 use Getopt::Long;
 
 my %opts;
 
 GetOptions(\%opts,
+	"dist",
 	"uninstall",
 );
 
@@ -28,6 +29,20 @@ umask( 0022 );
 ### Trim prefix if needed 
 
 $PREFIX =~ s{/+$}{};
+
+our $DESTDIR;
+
+# for convenience we support a --dist mode which will copy the installed files
+# into $DESTDIR without $PREFIX
+if ($opts{dist})
+{
+	$DESTDIR = "$ENV{DESTDIR}";
+}
+else
+{
+	$DESTDIR = "$ENV{DESTDIR}$PREFIX";
+}
+
 $DESTDIR =~ s{/+$}{};
 
 my(undef,undef,$uid) = getpwnam($INSTALL_USER);
@@ -253,24 +268,16 @@ sub ensure_dir
 {
 	my( $dir, $uid, $gid, $mode ) = @_;
 
+	File::Path::make_path($dir, {
+		user => $uid,
+		group => $gid,
+		mode => $mode,
+	});
+
 	if( !-d $dir ) 
 	{
-		if( !mkdir($dir) )
-		{
-			print "Unable to make dir: $dir.\n";
-			print "Aborting!\n";
-			exit 1;
-		}
+		die "Error creating directory $dir: $!\n";
 	}		
-	
-	chown($uid, $gid, $dir);
-
-	unless( chmod($mode, $dir) )
-	{
-		print "Unable to chmod ".$dir." : $!\n"; 
-		print "Aborting!\n";
-		exit 1;
-	}
 
 	return;
 }

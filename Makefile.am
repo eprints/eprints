@@ -1,19 +1,20 @@
 EXTRA_INST = AUTHORS VERSION
-EXTRA_DIST = eprints.spec AUTHORS VERSION 
+EXTRA_DIST = eprints.spec AUTHORS VERSION README.pod
 
-install-data-hook: doc
+install-data-hook:
+	mkdir -p $(DESTDIR)$(PREFIX)
 	@for f in $(EXTRA_INST); do \
-		$(INSTALL_DATA) $$f $(PREFIX)/$$f; \
+		$(INSTALL_DATA) $$f $(DESTDIR)$(PREFIX)/$$f; \
 	done
-	$(PERL_PATH) install.pl
+	DESTDIR=$(DESTDIR) $(PERL_PATH) install.pl
 
-dist-hook: doc
-	DESTDIR=$(CURDIR)/$(distdir) $(PERL_PATH) install.pl
+dist-hook:
+	DESTDIR=$(CURDIR)/$(distdir) $(PERL_PATH) install.pl --dist
 
 uninstall-hook:
 	$(PERL_PATH) install.pl --uninstall
 
-doc: ChangeLog INSTALL README VERSION
+all: ChangeLog INSTALL README VERSION
 
 ChangeLog:
 	$(PERL_PATH) tools/gitlog-to-changelog > ChangeLog
@@ -28,11 +29,15 @@ VERSION:
 	echo $(VERSION) > VERSION
 
 clean-local:
-	-rm -f configure Makefile.in ChangeLog install-sh missing INSTALL VERSION
-	-rm -f aclocal.m4 eprints.spec Makefile README install.pl
-	-rm -f config.status config.log bin/epindexer
+	-rm -f ChangeLog INSTALL README VERSION
+
+distclean-local:
+	-rm -f eprints.spec perl_lib/EPrints/SystemSettings.pm bin/epindexer
+
+realclean: distclean
+	-rm -f configure Makefile.in aclocal.m4 install-sh missing
 	-rm -rf autom4te.cache
 
 # won't back-port the master test features onto 3.3
 test:
-	$(PERL_PATH) bin/epadmin test
+	EPRINTS_NO_CHECK_USER=1 $(PERL_PATH) bin/epadmin test
