@@ -164,4 +164,4 @@ AC_SUBST(INSTALL_GROUP)
 AC_SUBST(SMTP_SERVER)
 AC_SUBST(PLATFORM)
 
-AC_OUTPUT(Makefile perl_lib/EPrints/SystemSettings.pm install.pl)
+AC_OUTPUT(Makefile perl_lib/EPrints/SystemSettings.pm install.pl eprints.spec)
