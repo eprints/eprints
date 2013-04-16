@@ -1,9 +1,9 @@
-%{!?_epname: %define _epname eprints}
-%{!?_epversion: %define _epversion 0.0.0}
+%{!?_epname: %define _epname @PACKAGE@}
+%{!?_epversion: %define _epversion @VERSION@}
 %{!?_eprelease: %define _eprelease 1}
-%{!?_epuser: %define _epuser eprints}
-%{!?_epgroup: %define _epgroup eprints}
-%{!?_epbase_path: %define _epbase_path /usr/share/eprints}
+%{!?_epuser: %define _epuser @INSTALL_USER@}
+%{!?_epgroup: %define _epgroup @INSTALL_GROUP@}
+%{!?_epbase_path: %define _epbase_path @PREFIX@}
 %{!?_eppackage: %define _eppackage %{_epname}-%{_epversion}}
 
 Name: %{_epname}
@@ -53,6 +53,7 @@ integration with other systems.
 
 %build
 pushd %{_eppackage}
+aclocal
 autoconf
 automake --add-missing
 ./configure --prefix=%{_epbase_path} --with-user=%{_epuser} --with-group=%{_epgroup} --with-smtp-server=localhost --disable-user-check --disable-group-check
