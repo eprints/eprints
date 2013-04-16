@@ -100,7 +100,7 @@ use Carp;
 
 use strict;
 
-our $VERSION = v3.3.11;
+our $VERSION = v3.3.12;
 $conf->{version} = "EPrints ".EPrints->human_version;
 $conf->{versionid} = "eprints-".EPrints->human_version;
 
