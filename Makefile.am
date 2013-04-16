@@ -19,10 +19,10 @@ ChangeLog:
 	$(PERL_PATH) tools/gitlog-to-changelog > ChangeLog
 
 INSTALL:
-	pod2text README.POD > INSTALL
+	pod2text README.pod > INSTALL
 
 README:
-	pod2text README.POD > README
+	pod2text README.pod > README
 
 VERSION:
 	echo $(VERSION) > VERSION
