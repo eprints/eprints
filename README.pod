@@ -8,20 +8,10 @@ GNU EPrints README
 =head1 SYNOPSIS
 
 	./configure --help
-	./configure ...
+	./configure (with some sensible options)
 	sudo make install
 
-To build a package do:
-
-	aclocal
-	autoconf
-	automake
-	./configure ...
-	make dist
-
-To see available options for configure do:
-
-	./configure --help
+For more information see B<http://www.eprints.org/software/>.
 
 =head1 DESCRIPTION
 
@@ -34,7 +24,7 @@ institutional systems.
 
 =head1 CONTACT
 
-For support options please see B<http://www.eprints.org/>.
+For support options please see B<http://www.eprints.org/software/>.
 
 Enquiries that can not be made via our public mailing list (e.g. security
 concerns) may be sent to B<support@eprints.org>.
@@ -46,10 +36,6 @@ EPrints can be contacted in the real world at
 	University of Southampton
 	SO17 1BJ
 	United Kingdom
-
-=head1 SEE ALSO
-
-http://www.eprints.org/software/
 
 =head1 COPYRIGHT
 
