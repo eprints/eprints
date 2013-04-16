@@ -35,4 +35,4 @@ clean-local:
 
 # won't back-port the master test features onto 3.3
 test:
-	$(PERL_PATH) bin/epadmin test
+	EPRINTS_NO_CHECK_USER=1 $(PERL_PATH) bin/epadmin test
