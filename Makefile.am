@@ -1,5 +1,5 @@
 EXTRA_INST = AUTHORS VERSION
-EXTRA_DIST = eprints.spec AUTHORS VERSION 
+EXTRA_DIST = eprints.spec AUTHORS VERSION README.pod
 
 install-data-hook: doc
 	@for f in $(EXTRA_INST); do \
