@@ -1,0 +1,5 @@
+eprints (@VERSION@) @DEBIAN_TYPE@; urgency=low
+
+  * Upstream release.
+
+ -- Tim Brody <tdb2@ecs.soton.ac.uk>  @DEBIAN_DATE@
