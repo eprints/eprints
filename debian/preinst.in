@@ -15,14 +15,15 @@ set -e
 
 
 case "$1" in
-    install|upgrade)
-#    export EP3_INSTALL=`grep eprints: /etc/passwd`;
-#    if [ "$EP3_INSTALL" == "" ]
-#    then
-    	adduser --system --home /usr/share/eprints3 --shell /bin/bash --group eprints > /dev/null
-	adduser www-data eprints > /dev/null
-	adduser eprints www-data > /dev/null
-#    fi
+	install|upgrade)
+	if ! getent passwd @INSTALL_USER@ >/dev/null; then
+		adduser --system --home @PREFIX@ --shell /bin/bash --group @INSTALL_GROUP@ > /dev/null
+	fi
+	if ! getent group @INSTALL_GROUP@ >/dev/null; then
+		addgroup @INSTALL_GROUP@
+	fi
+	adduser www-data @INSTALL_GROUP@ > /dev/null
+	adduser @INSTALL_USER@ www-data > /dev/null
     ;;
 
     abort-upgrade)

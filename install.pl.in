@@ -60,7 +60,7 @@ unless( $gid )
 	warn("Warning! Group $INSTALL_GROUP doesn't exist. You probably need to do: groupadd $INSTALL_GROUP\n");
 }
 
-unless( $< == 0 or (defined $uid and $uid == $<) )
+unless( $opts{dist} or $< == 0 or (defined $uid and $uid == $<) )
 {
 	warn("Warning! It looks like you're trying to install as user $INSTALL_USER without root. You probably need to do: sudo $0\n");
 }
@@ -269,8 +269,11 @@ sub ensure_dir
 	my( $dir, $uid, $gid, $mode ) = @_;
 
 	File::Path::make_path($dir, {
-		user => $uid,
-		group => $gid,
+		# we're not installing into the dist
+		($opts{dist} ? () : (
+			user => $uid,
+			group => $gid,
+		)),
 		mode => $mode,
 	});
 
