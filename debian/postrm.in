@@ -18,21 +18,35 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+reload_apache()
+{
+	if apache2ctl configtest 2>/dev/null; then
+		invoke-rc.d apache2 $1 || true
+	else
+		echo "Your apache2 configuration is broken, so we're not restarting it for you."
+	fi
+}
 
 case "$1" in
-    purge|remove|failed-upgrade|abort-install|abort-upgrade|disappear)
-	rm -f /etc/apache2/sites-enabled/eprints3
+    purge|remove|abort-install|disappear)
+	rm -f /etc/apache2/sites-enabled/@PACKAGE@
+	rm -f /etc/apache2/sites-available/@PACKAGE@
 	update-rc.d -f epindexer remove
 	rm -f /etc/init.d/epindexer
-	deluser eprints
-	if [ `grep "eprints" /etc/group` ]; then
-		delgroup eprints
+	if getent passwd @INSTALL_USER@ >/dev/null; then
+		deluser @INSTALL_USER@
 	fi
-	apache2ctl restart
+	if getent group @INSTALL_GROUP@ >/dev/null; then
+		delgroup @INSTALL_GROUP@
+	fi
+	reload_apache restart
     ;;
 
+	abort-upgrade|failed-upgrade)
+	;;
+
     upgrade)
-	apache2ctl restart
+	reload_apache restart
 	echo "###################################################################";
 	echo "##                                                               ##";
 	echo "##                 EPrints 3 Upgrade Complete                    ##";

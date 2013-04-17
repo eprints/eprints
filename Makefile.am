@@ -33,6 +33,7 @@ clean-local:
 
 distclean-local:
 	-rm -f eprints.spec perl_lib/EPrints/SystemSettings.pm bin/epindexer
+	-rm -f debian/changelog debian/ debian/postinst debian/postrm debian/preinst debian/prerm
 
 realclean: distclean
 	-rm -f configure Makefile.in aclocal.m4 install-sh missing

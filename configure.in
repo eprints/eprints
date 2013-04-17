@@ -179,6 +179,13 @@ AC_SUBST(PLATFORM)
 AC_SUBST(DEBIAN_DATE)
 AC_SUBST(DEBIAN_TYPE)
 
+
+
 AC_CONFIG_FILES([debian/rules], [chmod +x debian/rules])
+AC_CONFIG_FILES([debian/postinst], [chmod +x debian/postinst])
+AC_CONFIG_FILES([debian/postrm], [chmod +x debian/postrm])
+AC_CONFIG_FILES([debian/preinst], [chmod +x debian/preinst])
+AC_CONFIG_FILES([debian/prerm], [chmod +x debian/prerm])
 AC_CONFIG_FILES([bin/epindexer], [chmod +x bin/epindexer])
+
 AC_OUTPUT(Makefile perl_lib/EPrints/SystemSettings.pm install.pl eprints.spec debian/changelog)

@@ -20,18 +20,18 @@ set -e
 
 case "$1" in
     configure)
-	adduser --system --home /usr/share/eprints3 --shell /bin/bash --group eprints > /dev/null
-	adduser www-data eprints > /dev/null
-	rm -f /etc/apache2/sites-available/eprints3
-	rm -f /etc/apache2/sites-enabled/eprints3
-	`echo "Include /usr/share/eprints3/cfg/apache.conf" > /etc/apache2/sites-available/eprints3`
-	`ln -fs /usr/share/eprints3/bin/epindexer /etc/init.d/epindexer`
-	`update-rc.d epindexer defaults 99 99 > /dev/null`
-	`chown eprints:www-data /usr/share/eprints3/ > /dev/null`
-	`chown eprints:www-data /usr/share/eprints3/* -R > /dev/null`
-	`chmod g+w /usr/share/eprints3/lib > /dev/null`
-	`chmod g+w /usr/share/eprints3/lib/* -R > /dev/null`
-	`chmod g+w /usr/share/eprints3/var > /dev/null`
+	# Why is this adding a user here (in config?)
+	#adduser --system --home @PREFIX@ --shell /bin/bash --group @INSTALL_GROUP@ > /dev/null
+	#adduser www-data @INSTALL_USER@ > /dev/null
+	# Why disable the site in configure?!
+	#rm -f /etc/apache2/sites-available/@PACKAGE@
+	#rm -f /etc/apache2/sites-enabled/@PACKAGE@
+	echo "Include @PREFIX@/cfg/apache.conf" > /etc/apache2/sites-available/@PACKAGE@
+	ln -fs @PREFIX@/bin/epindexer /etc/init.d/epindexer
+	update-rc.d epindexer defaults 99 99 > /dev/null
+	chown @INSTALL_USER@:www-data @PREFIX@ -R > /dev/null
+	chmod g+w @PREFIX@/lib -R > /dev/null
+	chmod g+w @PREFIX@/var > /dev/null
 	echo "###################################################################";
 	echo "##                                                               ##";
 	echo "##                    Welcome to EPrints 3                       ##";
