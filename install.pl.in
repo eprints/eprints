@@ -3,7 +3,6 @@
 our $PREFIX="@PREFIX@";
 our $INSTALL_USER="@INSTALL_USER@";
 our $INSTALL_GROUP="@INSTALL_GROUP@";
-our $SIGNATURE_PATH="$DESTDIR/SIGNATURES";
 
 use strict;
 use Cwd;
@@ -44,6 +43,8 @@ else
 }
 
 $DESTDIR =~ s{/+$}{};
+
+our $SIGNATURE_PATH="$DESTDIR/SIGNATURES";
 
 my(undef,undef,$uid) = getpwnam($INSTALL_USER);
 my(undef,undef,$gid) = getgrnam($INSTALL_GROUP);
@@ -123,6 +124,7 @@ sub uninstall
 		chomp;
 		my( $filepath, $digest ) = split /\s/, $_;
 		$filepath = "$destdir/$filepath";
+		next if !-e $filepath;
 		if( get_digest($filepath) eq $digest )
 		{
 			unlink($filepath);
