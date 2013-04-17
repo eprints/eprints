@@ -8,6 +8,8 @@ AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
 DIST_PATH=`pwd`
 INSTALL_USER=`id -nu`
 INSTALL_GROUP=`id -ng`
+DEBIAN_DATE=`LANG=C date -R`
+DEBIAN_TYPE="UNRELEASED"
 
 PERL_SEARCH_PATH="$PATH:/usr/local/bin:/opt/perl/bin:/opt/PERL/bin"
 AC_ARG_WITH(perl,
@@ -144,6 +146,17 @@ AC_ARG_WITH(toolpath,
         TOOL_PATH=$withval
     ])
 
+AC_ARG_WITH(debian_unstable,
+    [  --with-debian-unstable    unstable debian release],
+    [
+        DEBIAN_TYPE="unstable"
+    ])
+AC_ARG_WITH(debian_stable,
+    [  --with-debian-stable      stable debian release],
+    [
+        DEBIAN_TYPE="stable"
+    ])
+
 # Check for any non-core Perl modules here
 #CHECK_PERL_MOD(Digest::MD5)
 
@@ -163,5 +176,9 @@ AC_SUBST(INSTALL_USER)
 AC_SUBST(INSTALL_GROUP)
 AC_SUBST(SMTP_SERVER)
 AC_SUBST(PLATFORM)
+AC_SUBST(DEBIAN_DATE)
+AC_SUBST(DEBIAN_TYPE)
 
-AC_OUTPUT(Makefile perl_lib/EPrints/SystemSettings.pm install.pl eprints.spec bin/epindexer)
+AC_CONFIG_FILES([debian/rules], [chmod +x debian/rules])
+AC_CONFIG_FILES([bin/epindexer], [chmod +x bin/epindexer])
+AC_OUTPUT(Makefile perl_lib/EPrints/SystemSettings.pm install.pl eprints.spec debian/changelog)

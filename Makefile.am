@@ -1,5 +1,5 @@
 EXTRA_INST = AUTHORS VERSION
-EXTRA_DIST = eprints.spec AUTHORS VERSION README.pod
+EXTRA_DIST = eprints.spec AUTHORS VERSION README.pod debian
 
 install-data-hook:
 	mkdir -p $(DESTDIR)$(PREFIX)
