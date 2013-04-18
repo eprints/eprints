@@ -393,7 +393,7 @@ terms.</p>
     
 	<epp:phrase id="eprint_fieldname_creators_name">Creators</epp:phrase>
     <epp:phrase id="eprint_fieldname_creators_id">Email</epp:phrase>
-    <epp:phrase id="eprint_fieldhelp_creators">Enter in the format given on the first page or title page. If there are more than four authors, click on the [More&nbsp;input&nbsp;rows] button.
+    <epp:phrase id="eprint_fieldhelp_creators">Enter in the format given on the first page or title page. If there are more than four authors, click on the [More&#160;input&#160;rows] button.
 <br/>Example: [<span class="ep_form_example">Smith</span>] [<span class="ep_form_example">J.P.</span>] [<span class="ep_form_example">j.smith@soton.ac.uk</span>]
 <br/>Example: [<span class="ep_form_example">Chance-Collins</span>] [<span class="ep_form_example">Chris</span>] [<span class="ep_form_example">chris@bar.com</span>]
 <br/>Example: [<span class="ep_form_example">Fu</span>] [<span class="ep_form_example">Yan-Li</span>] []
@@ -3004,7 +3004,7 @@ PY = 2006 and OG = (Cambridge)<br />
     <epp:phrase id="Plugin/Screen/Staff/HistorySearch:description">Search for actions that have occurred on items in this repository.</epp:phrase>
 
 
-    <epp:phrase id="sys:ep_form_required"><img src="{$config{rel_path}}/style/images/required.png" border="0" class="ep_required" alt="Required" style="display: inline"/>&nbsp;<epc:pin name="label"/></epp:phrase>
+    <epp:phrase id="sys:ep_form_required"><img src="{$config{rel_path}}/style/images/required.png" border="0" class="ep_required" alt="Required" style="display: inline"/>&#160;<epc:pin name="label"/></epp:phrase>
 
 
 
