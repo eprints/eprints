@@ -8,6 +8,7 @@ div.ep_modal_box {
 	padding: 0px;
 	margin: 0px;
 	z-index: 110;
+	width: 600px;
 }
 
 div.ep_modal_box div.ep_sr_content {
