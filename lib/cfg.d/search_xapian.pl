@@ -1,3 +1,24 @@
+
+$c->{datasets}->{eprint}->{facets} = [
+	
+	{
+		name => "type",
+		max_slots => 1,
+	},
+	{
+		name => 'subjects',
+		max_slots => 5,
+	},
+	{
+		name => 'creators_name',
+		max_slots => 5,
+	},
+
+];
+
+
+
+
 if( EPrints::Utils::require_if_exists( "Search::Xapian" ) )
 {
 my $FLUSH_LIMIT = 1000;
@@ -68,11 +89,36 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 			$field_pos{$key} = $db->get_metadata( $key ) || 0;
 			$max_pos = $field_pos{$key} if $field_pos{$key} > $max_pos;
 		}
-		foreach my $key (keys %field_pos)
+	}
+
+	my $facet_conf = $repo->config('datasets', $dataset->base_id, 'facets');
+
+my $facet_offset = 10000;
+my $facet_skip = 100;
+
+	foreach my $i (0..$#$facet_conf)
+	{
+		my $facet = $facet_conf->[$i];
+
+		my $field = $dataset->field($facet->{name}) or next;
+
+		my $value = $field->get_value($dataobj);
+		my $j = 0;
+		foreach my $v (ref($value) eq "ARRAY" ? @$value : $value)
 		{
-			next if $field_pos{$key};
-			$db->set_metadata( $key, "" . ($field_pos{$key} = ++$max_pos) );
+			my $slot = $facet_offset + $facet_skip * $i + $j;
+			my $key = join '.', $dataset->base_id, '_facet', $facet->{name}, $j++;
+			$db->set_metadata($key, "" . $slot);
+			my $id = $field->get_id_from_value($repo, $v);
+			$doc->add_value( $slot, $id );
+
+			last if $j >= ($facet->{max_slots} || 5);
 		}
+	}
+	foreach my $key (keys %field_pos)
+	{
+		next if $field_pos{$key};
+		$db->set_metadata( $key, "" . ($field_pos{$key} = ++$max_pos) );
 	}
 
 	foreach my $field ($dataobj->dataset->fields)
@@ -97,12 +143,12 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 				$value = $v;
 			}
 			next if !EPrints::Utils::is_set( $value );
-			$tg->index_text( lc( $value ) );
+			$tg->index_text( $value );
 			$tg->increase_termpos();
 			next if length($value) > 200; # Xapian term length limit-ish
 			if( $field->isa( "EPrints::MetaField::Text" ) || $field->isa( "EPrints::MetaField::Name" ) )
 			{
-				$tg->index_text( lc( $value ), 2, $prefix );
+				$tg->index_text( $value, 2, $prefix );
 				$tg->increase_termpos();
 			}
 			else
@@ -139,7 +185,7 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 				open(my $fh, "<", "$tempdir/$fn") or next FILE;
 				sysread($fh, my $buffer, 2 * 1024 * 1024);
 				close($fh);
-				$tg->index_text( lc( Encode::decode_utf8( $buffer ) ) );
+				$tg->index_text( Encode::decode_utf8( $buffer ) );
 				$tg->increase_termpos();
 			}
 		}
