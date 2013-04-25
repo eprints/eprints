@@ -608,7 +608,7 @@ sub execute
 		$query = Search::Xapian::Query->new(
 			Search::Xapian::OP_AND(),
 			$query,
-			$qp->parse_query( lc( $self->{q} ),
+			$qp->parse_query( $self->{q},
 				Search::Xapian::FLAG_PHRASE() |
 				Search::Xapian::FLAG_BOOLEAN() | 
 				Search::Xapian::FLAG_LOVEHATE() | 
@@ -639,13 +639,59 @@ sub execute
 		$enq->set_sort_by_key_then_relevance( $sorter );
 	}
 
+
+my @spys;
+foreach my $i ( 0..1 )
+{
+	my $key = "eprint._facet.creators_name.$i";
+	my $idx = $xapian->get_metadata( $key );
+print STDERR "idx is '$idx' for '$key'\n";
+	my $spy = Search::Xapian::ValueCountMatchSpy->new( $idx );
+
+	$enq->add_matchspy( $spy );
+	push @spys, $spy;
+}
+
+
+
+eval {
+
+	$enq->get_mset( 0, $xapian->get_doccount );
+
+
+	foreach my $spy (@spys)
+	{
+
+		print STDERR "total = ".$spy->get_total()."\n";
+
+		for( my $i = $spy->values_begin(); $i != $spy->values_end(); $i++ )
+		{
+			print STDERR $i->get_termname()." -> ".$i->get_termfreq()."\n";
+		}
+print STDERR "\n\n";
+	}
+	
+};
+if($@)
+{
+	print STDERR "Xapian: $@\n";
+}
+
+
 	return EPrints::Plugin::Search::Xapian::ResultSet->new(
 		session => $session,
 		dataset => $self->{dataset},
 		enq => $enq,
 		count => $enq->get_mset( 0, $xapian->get_doccount )->get_matches_estimated,
 		ids => [],
-		limit => $self->{limit} );
+		limit => $self->{limit},
+		spy => \@spys );
+
+
+
+
+
+
 }
 
 sub render_description
