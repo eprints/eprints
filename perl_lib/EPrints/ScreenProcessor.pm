@@ -433,6 +433,8 @@ sub screen
 {
 	my( $self ) = @_;
 
+	return $self->{screen} if( defined $self->{screen} && $self->{screen}->get_subtype eq "$self->{screenid}" );
+
 	my $screen = $self->{screenid};
 	my $plugin_id = "Screen::".$screen;
 	$self->{screen} = $self->{session}->plugin( $plugin_id, processor=>$self );
