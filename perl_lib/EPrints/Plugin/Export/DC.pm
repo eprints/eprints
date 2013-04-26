@@ -81,6 +81,12 @@ sub convert_dataobj
 
 	my @dcdata = ();
 
+	# The URL of the abstract page
+	if( $eprint->is_set( "eprintid" ) )
+	{
+		push @dcdata, [ "relation", $eprint->get_url() ];
+	}
+
 	push @dcdata, $plugin->simple_value( $eprint, title => "title" );
 
 	# grab the creators without the ID parts so if the site admin
@@ -150,7 +156,6 @@ sub convert_dataobj
 	}
 	push @dcdata, [ "type", $ref ];
 
-
 	my @documents = $eprint->get_all_documents();
 	my $mimetypes = $plugin->{session}->get_repository->get_conf( "oai", "mime_types" );
 	foreach( @documents )
@@ -159,26 +164,26 @@ sub convert_dataobj
 		$format = $_->get_value("format") unless defined $format;
 		#$format = "application/octet-stream" unless defined $format;
 		push @dcdata, [ "format", $format ];
+		push @dcdata, [ "language", $_->value("language") ] if $_->exists_and_set("language");
+		push @dcdata, [ "rights", $_->value("license") ] if $_->exists_and_set("language");
 		push @dcdata, [ "identifier", $_->get_url() ];
 	}
 
-	# Most commonly a DOI or journal link
-	push @dcdata, $plugin->simple_value( $eprint, official_url => "relation" );
-	
 	# The citation for this eprint
 	push @dcdata, [ "identifier",
 		EPrints::Utils::tree_to_utf8( $eprint->render_citation() ) ];
 
-	# The URL of the abstract page
-	if( $eprint->is_set( "eprintid" ) )
-	{
-		push @dcdata, [ "relation", $eprint->get_url() ];
-	}
+	# Most commonly a DOI or journal link
+	push @dcdata, $plugin->simple_value( $eprint, official_url => "relation" );
+	
+	# Probably a DOI
+	push @dcdata, $plugin->simple_value( $eprint, id_number => "relation" );
 
-	# dc.language not handled yet.
+	# If no documents, may still have an eprint-level language
+	push @dcdata, $plugin->simple_value( $eprint, language => "language" );
+
 	# dc.source not handled yet.
 	# dc.coverage not handled yet.
-	# dc.rights not handled yet.
 
 	return \@dcdata;
 }
