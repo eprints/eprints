@@ -128,7 +128,7 @@ sub document
         $relations = [] unless( defined $relations );
         foreach my $r (@$relations)
         {
-                return DECLINED if( $r->{type} =~ /is\w+ThumbnailVersionOf$/ );
+                return DECLINED if( $r->{type} =~ /is\w+ThumbnailVersionOf$/ || $r->{type} eq 'http://eprints.org/relation/isVolatileVersionOf' );
         }
 
 	my $epdata = _generic( $r, { _parent => $doc } );
