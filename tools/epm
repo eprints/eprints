@@ -304,7 +304,7 @@ sub action_link_cfg
 		my $path = $targetdir . $rel_path;
 		EPrints->system->mkdir( $path );
 
-		if( $opt_force && -e "$path/$_" ) {
+		if( $opt_force ) {
 			unlink "$path/$_";
 		}
 		symlink($File::Find::name, "$path/$_");
@@ -344,7 +344,7 @@ sub action_link_lib
 
 		EPrints->system->mkdir( $path );
 
-		if( $opt_force && -e "$path/$_" ) {
+		if( $opt_force ) {
 			unlink "$path/$_";
 		}
 		symlink($File::Find::name, "$path/$_");
