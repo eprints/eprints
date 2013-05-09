@@ -3406,6 +3406,11 @@ PY = 2006 and OG = (Cambridge)<br />
 <epp:phrase id="request_fieldname_reason">Reason</epp:phrase>
 <epp:phrase id="request_fieldhelp_reason">You may enter a rationale for requesting this document.</epp:phrase>
 
+<epp:phrase id="request_fieldname_code">Code</epp:phrase>
+<epp:phrase id="request_fieldhelp_code"></epp:phrase>
+<epp:phrase id="request_fieldname_expiry_date">Expiry date</epp:phrase>
+<epp:phrase id="request_fieldhelp_expiry_date"></epp:phrase>
+
 <epp:phrase id="request/request_email:subject">Request for &quot;<epc:pin name="eprint"/>&quot;</epp:phrase>
 <epp:phrase id="request/request_email:body"><p>This item has been requested from <epc:phrase ref="archive_name" /> by <epc:pin name="requester"/>. Please can you respond.</p>
 
@@ -3432,6 +3437,19 @@ PY = 2006 and OG = (Cambridge)<br />
 
 <p>If you do not receive a reply or need advice at a later time please contact the <a href="mailto:{$config{adminemail}}">administrator</a>. For items with copyright implications, you may also be able to contact your local inter-library loan service.</p>
 </epp:phrase>
+
+<epp:phrase id="request/response_email:download_label">Go to document</epp:phrase>
+<epp:phrase id="request/response_email:warning_expiry">
+<p>Note: This link is only valid until <epc:pin name="expiry"/></p>
+</epp:phrase>
+
+<epp:phrase id="cgi/process_request:title">Error</epp:phrase>
+<epp:phrase id="cgi/process_request:page"><p><epc:pin name="error" /></p></epp:phrase>
+
+<epp:phrase id="cgi/process_request:bad_params">Do not try to access this script directly.</epp:phrase>
+<epp:phrase id="cgi/process_request:request_expired">The request is no longer valid.</epp:phrase>
+<epp:phrase id="cgi/process_request:doc_deleted">The document you have requeted is no longer available.</epp:phrase>
+<epp:phrase id="cgi/process_request:cookie_error">Failed to create a cookie: please try again later.</epp:phrase>
 
 <epp:phrase id="Plugin/Screen/Request/Respond:title">Confirm response</epp:phrase>
 
@@ -3467,10 +3485,7 @@ PY = 2006 and OG = (Cambridge)<br />
 
 <epp:phrase id="request/response_email:subject">Result of request for &quot;<epc:pin name="eprint"/>&quot;</epp:phrase>
 <epp:phrase id="request/response_email:body_accept"><p>Your request for the following item has been accepted:</p>
-
-<p><epc:pin name="eprint"/><br/>(<epc:pin name="document"/>)</p>
-
-<p>Please find the requested document attached.</p>
+    <p><epc:pin name="eprint"/><br/>(<epc:pin name="document"/>)</p>
 </epp:phrase>
 
 <epp:phrase id="request/response_email:body_reject"><p>Your request for the following item has been rejected:</p>

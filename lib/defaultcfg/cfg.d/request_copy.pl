@@ -58,4 +58,7 @@ $c->{email_for_doc_request} = sub
 
 	# 'Request a copy' not available for this eprint
 	return undef; 
-}
+};
+
+# The expiry for a document request (in days)
+# $c->{expiry_for_doc_request} = 7;

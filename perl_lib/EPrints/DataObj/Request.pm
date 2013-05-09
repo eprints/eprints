@@ -23,6 +23,7 @@ package EPrints::DataObj::Request;
 @ISA = ( 'EPrints::DataObj' );
 
 use EPrints;
+use Time::Local 'timegm_nocheck';
 
 use strict;
 
@@ -56,6 +57,10 @@ sub get_system_field_info
 		{ name=>"requester_email", type=>"text", required=>1 },
 
 		{ name=>"reason", type=>"longtext", required=>0 },
+
+		{ name=>"expiry_date", type=>"time", required=>0 },
+
+		{ name=>"code", type=>"text", required=>0 },
 
 	);
 }
@@ -92,6 +97,33 @@ sub get_dataset_id
 =cut
 
 ######################################################################
+
+sub new_from_code
+{
+	my( $class, $session, $code ) = @_;
+	
+	return unless( defined $code );
+
+	return $session->dataset( $class->get_dataset_id )->search(
+                filters => [
+                        { meta_fields => [ 'code' ], value => "$code", match => 'EX' },
+                ])->item( 0 );
+}
+
+sub has_expired
+{
+	my( $self ) = @_;
+
+	my $expiry = $self->get_value( "expiry_date" );
+	return 1 unless( defined $expiry );
+
+	my( $year,$mon,$day,$hour,$min,$sec ) = split /[- :]/, $expiry;
+	my $t = timegm_nocheck $sec||0,$min||0,$hour,$day,$mon-1,$year-1900;
+
+	return 1 if( !defined $t ||  $t <= time );
+
+	return 0;
+}
 
 1;
 

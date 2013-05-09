@@ -115,13 +115,6 @@ sub action_confirm
 	my $result;
 	if( $action eq "accept")
 	{
-		# Send acceptance notice with requested document attached
-		my @paths;
-		my %files = $doc->files;
-		for( keys %files )
-		{
-			push @paths, $doc->local_path . "/" . $_;
-		}
 	
 		# Make document OA if flag set
 		if( defined $session->param( "oa" ) && $session->param( "oa" ) eq "on" )
@@ -132,6 +125,31 @@ sub action_confirm
 			$eprint->generate_static;
 		}
 
+		my $expiry = $session->config( "expiry_for_doc_request" );
+		$expiry = 7 if( !defined $expiry || $expiry !~ /^\d+$/ );
+		$expiry = time + $expiry*3600*24;
+
+		$self->{processor}->{request}->set_value(
+				       "expiry_date" ,
+				       EPrints::Time::get_iso_timestamp( $expiry )
+		);
+
+		my @a = ();
+		srand;
+		for(1..16) { push @a, sprintf( "%02X",int rand 256 ); }
+		my $code = join( "", @a );
+		$self->{processor}->{request}->set_value( "code", "$code" );
+		$self->{processor}->{request}->commit;
+
+		my $cgi_url = $session->config( "http_cgiurl" )."/process_request?code=$code";
+		my $link = $session->make_element( "a", href=>"$cgi_url" );
+		$link->appendChild( $session->html_phrase( "request/response_email:download_label" ) );
+		$mail->appendChild( $link );
+
+		$mail->appendChild( $session->html_phrase( "request/response_email:warning_expiry",
+					       expiry => $session->make_text( EPrints::Time::human_time( $expiry )  ) ) );
+
+
 		$result = EPrints::Email::send_mail(
 			session => $session,
 			langid => $session->get_langid,
@@ -139,7 +157,6 @@ sub action_confirm
 			subject => $subject,
 			message => $mail,
 			sig => $session->html_phrase( "mail_sig" ),
-			attach => \@paths,
 		);
 	}
 	else
