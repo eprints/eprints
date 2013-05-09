@@ -184,7 +184,7 @@ sub get_system_field_info
 			fieldnames_config => "editor_limit_fields",
 		},
 
-		{ name => "roles", multiple => 1, type => "text", text_index=>0 },
+		{ name => "roles", multiple => 1, type => "id", text_index=>0 },
 
 		{ name=>"frequency", type=>"set", input_style=>"medium",
 			options=>["never","daily","weekly","monthly"],
