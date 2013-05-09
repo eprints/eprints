@@ -226,8 +226,8 @@ sub get_search_conditions
 	}
 
 
-	# remove not a-z characters (except ,)
-	$v2 =~ s/[^\p{Lowercase},]/ /ig;
+	# remove not a-z characters (except , and ')
+	$v2 =~ s/[^\p{Lowercase},']/ /ig;
 
 	my( $family, $given ) = split /\s*,\s*/, $v2;
 	my @freetexts = ();
