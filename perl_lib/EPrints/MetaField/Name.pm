@@ -226,8 +226,8 @@ sub get_search_conditions
 	# split up initials
 	$v2 =~ s/([A-Z])/ $1/g;
 
-	# remove not a-z characters (except ,)
-	$v2 =~ s/[^a-z,]/ /ig;
+	# remove not a-z characters (except , and ')
+	$v2 =~ s/[^a-z,']/ /ig;
 
 	my( $family, $given ) = split /\s*,\s*/, $v2;
 	my @freetexts = ();
