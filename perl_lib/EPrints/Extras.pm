@@ -303,13 +303,14 @@ sub render_possible_doi
 	my( $session, $field, $value ) = @_; 
 
 	$value = "" unless defined $value;
+	$value =~ s/^http:\/\/dx\.doi\.org//;
 
 	if( $value !~ /^(doi:)?10\.\d\d\d\d\// ) { return $session->make_text( $value ); }
 	
 	$value =~ s/^doi://;
 
 	my $url = "http://dx.doi.org/$value";
-	my $link = $session->render_link( $url );
+	my $link = $session->render_link( $url, "_blank" ); 
 	$link->appendChild( $session->make_text( $value ) );
 	return $link; 
 }
