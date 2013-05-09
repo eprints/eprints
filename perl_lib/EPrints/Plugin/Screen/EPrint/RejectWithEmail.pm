@@ -170,7 +170,7 @@ sub render_body
 	my $repo = $self->{session};
 
 	$parts{title} = $repo->make_text(
-			EPrints::Utils::tree_to_utf8( $eprint->render_description() )
+			EPrints::Utils::tree_to_utf8( $eprint->render_citation() )
 		) if !defined $parts{title};
 	
 	$parts{edit_link} = $repo->render_link( $eprint->get_control_url() )
