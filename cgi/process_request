@@ -1,0 +1,83 @@
+use EPrints;
+use strict;
+
+my $session = EPrints->new->current_repository;
+exit( 0 ) unless( defined $session );
+
+my $code = $session->param( "code" );
+unless( defined $code )
+{
+	&_render_error( $session, $session->html_phrase( "cgi/process_request:bad_params" ) );
+	$session->terminate;
+	return;
+}
+
+my $request = EPrints::DataObj::Request->new_from_code( $session, $code );
+
+if( !defined $request )
+{
+	&_render_error( $session, $session->html_phrase( "cgi/process_request:bad_params" ) );
+	$session->terminate;
+	return;
+}
+
+if( $request->has_expired() )
+{
+	&_render_error( $session, $session->html_phrase( "cgi/process_request:request_expired" ) );
+	$session->terminate;
+	return;
+}
+
+# is the document still available?
+my $document = $session->dataset( 'document' )->dataobj( $request->get_value( "docid" ) );
+unless( defined $document )
+{
+	&_render_error( $session, $session->html_phrase( "cgi/process_request:doc_deleted" ) );
+	$session->terminate;
+	return;
+}
+
+# is the document now public? in which case redirect to document url
+my $doc_secu = $document->get_value( "security" );
+if( defined $doc_secu && $doc_secu eq 'public' )
+{
+	$session->redirect( $document->get_url );
+	$session->terminate;
+	return;
+}
+
+# don't set expiry date -> will expire at the end of the current session
+my $cookie = $session->{query}->cookie(
+	-name    => "eprints_doc_request",
+	-path    => "/",
+	-value   => $code,
+	-domain  => $session->config( "cookie_domain" ),
+);
+
+unless( defined $cookie )
+{
+	&_render_error( $session, $session->html_phrase( "cgi/process_request:cookie_error" ) );
+	$session->terminate;
+	return;
+}
+
+my $r = $session->get_request;
+$r->err_headers_out->{"Set-Cookie"} = $cookie;
+
+EPrints::Apache::AnApache::send_status_line( $r, 302, "Moved" );
+EPrints::Apache::AnApache::header_out( $r, "Location", $document->get_url );
+EPrints::Apache::AnApache::send_http_header( $r );
+
+$session->terminate;
+return;
+
+sub _render_error
+{
+	my( $session, $error_msg ) = @_;
+
+        my $title = $session->html_phrase( "cgi/process_request:title" );
+        my $page = $session->html_phrase( "cgi/process_request:page", error => $error_msg );
+        $session->build_page( $title, $page, "process_request" );
+        $session->send_page;
+        return;
+}

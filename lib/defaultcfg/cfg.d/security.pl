@@ -22,6 +22,22 @@ $c->{can_request_view_document} = sub
 		return( "ALLOW" );
 	}
 
+        my $code = EPrints::Apache::AnApache::cookie( $r, "eprints_doc_request" );
+        if( EPrints::Utils::is_set( $code ) )
+        {
+                my $request = EPrints::DataObj::Request->new_from_code( $doc->get_session, $code );
+
+                if( defined $request )
+                {
+                        my $docid = $doc->get_id;
+                        my $target_docid = $request->get_value( "docid" );
+                        if( "$docid" eq "$target_docid" )
+                        {
+                                return( "ALLOW" ) unless( $request->has_expired() );
+                        }
+                }
+        }	
+
 	my $ip = $r->connection()->remote_ip();
 
 	# Example of how to allow an override for certain basic auth type usernames/passwords.
