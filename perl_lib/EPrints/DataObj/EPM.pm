@@ -874,12 +874,16 @@ sub enable
 			{
 				next FILE;
 			}
-			else
+			# something went wrong in a previous upgrade
+			elsif( -f "$targetpath.epmsave" )
 			{
 				$handler->add_message( "error", $self->html_phrase( "file_exists",
-						filename => $repo->xml->create_text_node( $targetpath ),
+						filename => $repo->xml->create_text_node( "$targetpath.epmsave" ),
 					) );
-				return 0;
+			}
+			else
+			{
+				rename($targetpath, "$targetpath.epmsave");
 			}
 		}
 		my $targetdir = $targetpath;
