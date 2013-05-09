@@ -685,7 +685,7 @@ sub has_owner
 ######################################################################
 =pod
 
-=item $ok = $user->mail( $subjectid, $message, [$replyto], [$email] )
+=item $ok = $user->mail( $subjectid, $message, [$replyto], [$email], [$cc_list] )
 
 Send an email to this user. 
 
@@ -699,6 +699,8 @@ repository default.
 $email is the email address to send this email to if different from
 this users configured email address.
 
+$cc_list is an optional cc_list (array ref)
+
 Return true if the email was sent OK.
 
 =cut
@@ -706,7 +708,7 @@ Return true if the email was sent OK.
 
 sub mail
 {
-	my( $self,   $subjectid, $message, $replyto,  $email ) = @_;
+	my( $self,   $subjectid, $message, $replyto,  $email, $cc_list ) = @_;	#EPrints Services/sf2 2010-11-18 added optional cc_list (array ref) for GREENWICH-17
 	#   User   , string,     DOM,      User/undef Other Email
 
 	# Mail the admin in the default language
@@ -735,6 +737,7 @@ sub mail
 		sig      => $lang->phrase( "mail_sig", {}, $self->{session} ),
 		replyto_name  => $rname, 
 		replyto_email => $remail,
+		cc_list => $cc_list,
 	); 
 }
 
