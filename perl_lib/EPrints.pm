@@ -88,6 +88,7 @@ BEGIN
 	}
 
 	unshift @INC, $conf->{base_path} . "/lib/plugins";
+	unshift @INC, $conf->{base_path} . "/site_lib/plugins";
 }
 
 use Data::Dumper;
