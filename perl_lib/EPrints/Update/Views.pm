@@ -1717,6 +1717,7 @@ sub group_items
 		next if !$opts->{allow_null} && !EPrints::Utils::is_set( $values );
 		VALUE: foreach my $value ( @$values )
 		{
+			next VALUE unless EPrints::Utils::is_set( $value );
 			if( $opts->{tags} )
 			{
 				$value =~ s/\.$//;
