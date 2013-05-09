@@ -179,6 +179,7 @@ sub action_request
 			subject => $subject,
 			message => $mail,
 			sig => $session->html_phrase( "mail_sig" ),
+			cc_list => EPrints::Utils::is_set( $session->config( "request_copy_cc" ) ) ? $session->config( "request_copy_cc" ) : [],
 		);
 	} 
 	else
@@ -194,6 +195,7 @@ sub action_request
 			message => $mail,
 			sig => $session->html_phrase( "mail_sig" ),
 			replyto_email => $email,
+			cc_list => EPrints::Utils::is_set( $session->config( "request_copy_cc" ) ) ? $session->config( "request_copy_cc" ) : [],
 		);
 	}
 
