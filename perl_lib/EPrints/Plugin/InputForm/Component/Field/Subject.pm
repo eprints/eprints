@@ -359,7 +359,7 @@ sub _render_search
 	my $bar = $self->html_phrase(
 		$field->get_name."_search_bar",
 		input => $self->{search}->render_simple_fields(
-			noenter => 1,
+			noenter => 0,
 			size => 40,
 		),
 		search_button=>$session->render_button( 
