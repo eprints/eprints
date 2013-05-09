@@ -229,6 +229,16 @@ sub render_help
 {
 	my( $self, $surround ) = @_;
 
+	#customisation for type specific help on the eprint workflow - phrase IDs should be (e.g. eprint_fieldhelp_title.article)
+	if ($self->{dataobj}->exists_and_set('type'))
+	{
+		my $phrase_id = 'eprint_fieldhelp_' . $self->{config}->{field}->{name} . '.' . $self->{dataobj}->get_value('type');
+		if ( $self->{session}->get_lang->has_phrase( $phrase_id ) )
+		{
+			return $self->{session}->html_phrase($phrase_id);
+		}
+	}
+
 	return $self->{config}->{field}->render_help( 
 			$self->{session}, 
 			$self->{config}->{field}->get_type() );
