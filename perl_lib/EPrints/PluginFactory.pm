@@ -93,6 +93,16 @@ sub new
 			push @loaded,
 				$self->_load_xslt_dir( \%SYSTEM_PLUGINS, $repository, $dir );
 		}
+
+		# /site_lib/ extensions plugins
+		$dir = $repository->config( "base_path" )."/site_lib/plugins";
+		push @loaded = $self->_load_dir( \%SYSTEM_PLUGINS, $repository, $dir );
+		if( $use_xslt )
+		{
+			push @loaded,
+				$self->_load_xslt_dir( \%SYSTEM_PLUGINS, $repository, $dir );
+		}
+
 		# default to disabled
 		my $conf = $repository->config( "plugins" );
 		foreach my $plugin (@loaded)
