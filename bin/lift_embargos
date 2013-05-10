@@ -143,6 +143,11 @@ $list->map( sub {
 	$doc->commit( 1 );
 	$eprint->commit( 1 );
 	$eprint->generate_static;
+	# post-processing, eg. send notification of embargo expiry
+	if( $session->can_call( "notify_embargo_expiry" ) )
+	{
+		$session->call( "notify_embargo_expiry", $eprint, $doc );
+	}
 } );
 
 $session->terminate();
