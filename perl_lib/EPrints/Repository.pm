@@ -1868,6 +1868,7 @@ sub get_static_dirs
 
 	my $config_path = $self->config( "config_path" );
 	my $lib_path = $self->config( "lib_path" );
+	my $site_lib_path = $self->config( "base_path" )."/site_lib";
 
 	# repository path: /archives/[repoid]/cfg/static/
 	push @dirs, "$config_path/lang/$langid/static";
@@ -1884,6 +1885,10 @@ sub get_static_dirs
 	# system path: /lib/static/
 	push @dirs, "$lib_path/lang/$langid/static";
 	push @dirs, "$lib_path/static";
+
+	# site_lib
+	push @dirs, "$site_lib_path/lang/$langid/static";
+	push @dirs, "$site_lib_path/static";
 
 	return @dirs;
 }
