@@ -735,6 +735,14 @@ sub _load_workflows
 		$self->config( "lib_path" )."/workflows",
 		$self->{workflows} );
 
+	if( -e $self->config( "base_path" )."/site_lib/workflows" )
+	{	
+		# load /site_lib/ workflows
+		EPrints::Workflow::load_all( 
+			$self->config( "base_path" )."/site_lib/workflows",
+			$self->{workflows} );
+	}
+
 	# load repository-specific workflows (may overwrite)
 	EPrints::Workflow::load_all( 
 		$self->config( "config_path" )."/workflows",
@@ -860,10 +868,20 @@ sub _load_citation_specs
 	my( $self ) = @_;
 
 	$self->{citations} = {};
+
+
+
 	# load repository-specific citations
 	$self->_load_citation_dir( $self->config( "config_path" )."/citations" );
 	# load system-level citations (won't overwrite)
 	$self->_load_citation_dir( $self->config( "lib_path" )."/citations" );
+
+	if( -e $self->config( "base_path" )."/site_lib/citations" )
+	{
+		$self->_load_citation_dir( $self->config( "base_path" )."/site_lib/citations" );
+	}
+
+	return 1;
 }
 
 sub _load_citation_dir
@@ -1210,42 +1228,50 @@ sub _load_namedsets
 {
 	my( $self ) = @_;
 
+	my @paths = ( 
+		$self->config( "base_path" )."/site_lib/namedsets",
+		$self->config( "config_path" )."/namedsets",
+	);
 
 	# load /namedsets/* 
 
-	my $dir = $self->config( "config_path" )."/namedsets";
-	my $dh;
-	opendir( $dh, $dir );
-	my @type_files = ();
-	while( my $fn = readdir( $dh ) )
+	foreach my $dir ( @paths )
 	{
-		next if $fn=~m/^\./;
-		push @type_files, $fn;
-	}
-	closedir( $dh );
-
-	foreach my $tfile ( @type_files )
-	{
-		my $file = $dir."/".$tfile;
-
-		my $type_set = $tfile;	
-		open( FILE, $file ) || EPrints::abort( "Could not read $file" );
-
-		my @types = ();
-		foreach my $line (<FILE>)
+		next if !-e $dir;
+		my $dh;
+		opendir( $dh, $dir );
+		my @type_files = ();
+		while( my $fn = readdir( $dh ) )
 		{
-			$line =~ s/\015?\012?$//s;
-			$line =~ s/#.*$//;
-			$line =~ s/^\s+//;
-			$line =~ s/\s+$//;
-			my @values = split(' ',$line);
-			$line = $values[0];
-			next if (!defined $line);
-			push @types, $line;
+			next if $fn=~m/^\./;
+			push @type_files, $fn;
 		}
-		close FILE;
+		closedir( $dh );
 
-		$self->{types}->{$type_set} = \@types;
+		foreach my $tfile ( @type_files )
+		{
+			my $file = $dir."/".$tfile;
+
+			my $type_set = $tfile;	
+			open( FILE, $file ) || EPrints::abort( "Could not read $file" );
+
+			my @types = ();
+			foreach my $line (<FILE>)
+			{
+				$line =~ s/\015?\012?$//s;
+				$line =~ s/#.*$//;
+				$line =~ s/^\s+//;
+				$line =~ s/\s+$//;
+				my @values = split(' ',$line);
+				$line = $values[0];
+				next if (!defined $line);
+				push @types, $line;
+			}
+			close FILE;
+
+			$self->{types}->{$type_set} = \@types;
+		}
+
 	}
 
 	return 1;

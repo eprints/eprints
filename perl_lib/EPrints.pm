@@ -178,6 +178,63 @@ sub dump
 	warn Data::Dumper::Dumper( @_ );
 }
 
+
+=item EPrints->trace()
+
+Short-cut to L<Carp::longmess> to show a (non-blocking) call-trace
+
+=cut
+
+sub trace
+{
+	print STDERR Carp::longmess();
+}
+
+=item EPrints->assert( CONDITION )
+
+Evaluates a condition and shows a call trace if this condition is undef or false.
+
+=cut
+
+sub assert
+{
+	my $condition = pop @_;
+
+        if( !defined $condition || !$condition )
+        {
+                my @caller = caller();
+
+                my $assert_text_condition = undef;
+                if( -e $caller[1] && open( CALLER, "$caller[1]" ) )
+                {
+                        my $line = $caller[2];
+                        my $assert_text = undef;
+                        while( <CALLER> )
+                        {
+                                last unless( defined $line );
+                                next unless $. == $line;
+                                $assert_text_condition = $_;
+                                last;
+                        }
+                        close( CALLER );
+                }
+
+                my $actual_text = " <?unknown?> ";
+                if( defined $assert_text_condition && $assert_text_condition =~ /EPrints\-\>assert\((.*)\)/  )
+                {
+                        $actual_text = $1;
+                        $actual_text =~ s/^\s+//g;
+                        $actual_text =~ s/\s+$//g;
+                }
+
+                print STDERR "\n>>>>>>>>>> '$actual_text' assertion failed <<<<<<<<<<\n";
+                EPrints->trace();
+        }
+
+        return 1;
+}
+
+
 use EPrints::Const; # must be before any use of constants
 
 use EPrints::Apache;
