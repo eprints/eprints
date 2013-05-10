@@ -37,7 +37,7 @@ if( defined $conf )
 		if( $key eq "filters" )
 		{
 			$search_fields = $conf->{"filters"};
-			$show_conditions = 1;
+			$show_conditions = defined $conf->{"show_conditions"} ? $conf->{"show_conditions"} : 1;
 		}
 		$max = $conf->{"max"} if( $key eq "max" );
 	}
@@ -161,7 +161,8 @@ foreach my $item ( @records )
 		$container->appendChild( $div );
 	}
 }
-$session->build_page( $title, $page, "latest_tool" );
+my $template = defined $conf->{template} ? $conf->{template} : "default";
+$session->build_page( $title, $page, "latest_tool", undef, $template );
 $session->send_page();
 
 $session->terminate;
