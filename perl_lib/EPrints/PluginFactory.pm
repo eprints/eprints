@@ -96,7 +96,7 @@ sub new
 
 		# /site_lib/ extensions plugins
 		$dir = $repository->config( "base_path" )."/site_lib/plugins";
-		push @loaded = $self->_load_dir( \%SYSTEM_PLUGINS, $repository, $dir );
+		push @loaded, $self->_load_dir( \%SYSTEM_PLUGINS, $repository, $dir );
 		if( $use_xslt )
 		{
 			push @loaded,
