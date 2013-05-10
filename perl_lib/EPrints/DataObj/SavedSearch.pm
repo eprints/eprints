@@ -162,7 +162,7 @@ sub commit
 
 =item $user = $saved_search->get_user
 
-Return the EPrints::DataObj:;User which owns this saved search.
+Return the EPrints::DataObj::User which owns this saved search.
 
 =cut
 ######################################################################
