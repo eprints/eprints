@@ -249,7 +249,7 @@ sub load_repository_config_module
 	my $repcfgd = $info->{archiveroot}."/cfg/cfg.d";
 	my %files_map = ();
 
-	my $site_lib_cfgd = $SYSTEMCONF->{"base_path"}."/site_lib/cfg.d"
+	my $site_lib_cfgd = $SYSTEMCONF->{"base_path"}."/site_lib/cfg.d";
 
 	foreach my $dir ( $libcfgd, $site_lib_cfgd, $repcfgd )
 	{
