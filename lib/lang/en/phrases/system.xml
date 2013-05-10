@@ -1417,6 +1417,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
     <epp:phrase id="history_fieldopt_action_move_archive_to_buffer">Moved from Repository to Review</epp:phrase>
     <epp:phrase id="history_fieldopt_action_move_archive_to_deletion">Moved from Repository to Retired</epp:phrase>
     <epp:phrase id="history_fieldopt_action_move_deletion_to_archive">Moved from Retired to Repository</epp:phrase>
+		<epp:phrase id="history_fieldopt_action_move_inbox_to_archive">Moved from Work Area to Repository</epp:phrase>
     <epp:phrase id="history_fieldopt_action_mail_owner">Email sent to depositor of record</epp:phrase>
     <epp:phrase id="history_fieldopt_action_create">Created</epp:phrase>
     <epp:phrase id="history_fieldopt_action_destroy">Destroyed</epp:phrase>
@@ -1812,7 +1813,7 @@ Enter a URL to capture a file from: <epc:pin name="url"/><br/>
     <epp:phrase id="lib/user:missed_field">You haven't filled out the required <epc:pin name="field"/> field.</epp:phrase>
     <epp:phrase id="lib/user:editor_update_subject">Review Summary</epp:phrase>
     <epp:phrase id="lib/user:editor_update_mail">
-<p><epc:pin name="n"/> item(s) <a href='{$config{userhome}}?screen=Review'>awaiting review</a>.</p>
+<p><epc:pin name="n"/> item(s) <a href='{$config{base_url}}{$config{userhome}}?screen=Review'>awaiting review</a>.</p>
 <div style='border: solid 1px #99f; padding: 1em'>
 <div style='display: none'><hr /></div>
 <epc:pin name="matches"/>
@@ -2488,7 +2489,7 @@ Titles and Help for the System Fields
     <epp:phrase id="user_fieldname_lang">Preferred Language</epp:phrase>
     <epp:phrase id="user_fieldhelp_lang">Your preferred language. Where possible information will be mailed in this language.</epp:phrase>
     <epp:phrase id="user_fieldname_roles">Roles</epp:phrase>
-    <epp:phrase id="user_fieldhelp_roles">This field allows an administrator to assign roles to a user. It may ealso be used to assign (and remove) indiviudal privilidges by prefixing the priv string with plus (+) or minus (-).</epp:phrase>
+    <epp:phrase id="user_fieldhelp_roles">This field allows an administrator to assign roles to a user. It may also be used to assign (and remove) individual privileges by prefixing the priv string with plus (+) or minus (-).</epp:phrase>
 
 	<epp:phrase id="user_fieldname_openid_identifier">OpenID</epp:phrase>
 	<epp:phrase id="user_fieldhelp_openid_identifier">This must be a valid OpenID endpoint e.g. https://www.google.com/accounts/o8/id</epp:phrase>
@@ -2521,15 +2522,15 @@ Titles and Help for the System Fields
     <epp:phrase id="document_fieldname_formatdesc">Description</epp:phrase>
     <epp:phrase id="document_fieldhelp_formatdesc">You may offer an additional brief description of the format.</epp:phrase>
     <epp:phrase id="document_fieldname_content">Content</epp:phrase>
-    <epp:phrase id="document_fieldhelp_content">The content of this document, as oppose to the format.</epp:phrase>
+    <epp:phrase id="document_fieldhelp_content">The content of this document, as opposed to the format.</epp:phrase>
     <epp:phrase id="document_fieldname_security">Visible to</epp:phrase>
     <epp:phrase id="document_fieldhelp_security">Please indicate the required "security level" of this document. Who is allowed to download it?  If you set this to anything other than "anyone" then consider adding a contact email for this eprint (on the next page), this will allow users to use a web form to request a copy of the document, and you can decide on a case-by-case basis.</epp:phrase>
     <epp:phrase id="document_fieldname_license">License</epp:phrase>
-    <epp:phrase id="document_fieldhelp_license">Specify an explicit license for this document (does not effect the access rights you grant at the end of this deposit process). This repository allows <a href="http://creativecommons.org/about/licenses/" target="_blank">Creative Commons</a> licenses.</epp:phrase>
+    <epp:phrase id="document_fieldhelp_license">Specify an explicit license for this document (does not affect the access rights you grant at the end of this deposit process). This repository allows <a href="http://creativecommons.org/about/licenses/" target="_blank">Creative Commons</a> licenses.</epp:phrase>
     <epp:phrase id="document_fieldname_date_embargo">Embargo expiry date</epp:phrase>
     <epp:phrase id="document_fieldhelp_date_embargo">The date that a publisher- or sponsor-imposed embargo expires. On and after this date, this document will be made publicly accessible.
-<br/>Example: <span class="ep_form_example">2006 - all documents made publicly accessible on 1st January 2006</span>
-<br/>Example: <span class="ep_form_example">2006 June - all documents made publicly accessible on 1st June 2006</span>
+<br/>Example: <span class="ep_form_example">2014 - all documents made publicly accessible on 1st January 2014</span>
+<br/>Example: <span class="ep_form_example">2014 June - all documents made publicly accessible on 1st June 2014</span>
 </epp:phrase>
     <epp:phrase id="document_fieldname_relation">Relationships</epp:phrase>
     <epp:phrase id="document_fieldhelp_relation">This field describes relationships this document has to other entities. Ideally, use URIs for the target identifier.</epp:phrase>
@@ -2591,7 +2592,7 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen/Items:remove_column_confirm">Really remove this column from the display?</epp:phrase>
     <epp:phrase id="Plugin/Screen/Items:help_title">Help</epp:phrase>
     <epp:phrase id="Plugin/Screen/Items:help">
-<p>This page shows items which you have not yet deposited, or are still under review.</p>
+<p>This page shows items which you have not yet deposited, or which are still under review.</p>
 <p>To start depositing an item use the "New Item" button, and follow the instructions.</p>
 <p>If you stop before completing the deposit, or a deposit is returned for corrections, it will appear in the list as in the "User Workarea".</p>
 
@@ -2816,13 +2817,13 @@ PY = 2006 and OG = (Cambridge)<br />
 	<epp:phrase id="Plugin/Screen/EPrint/Error:title">Error</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/Error:description">Error</epp:phrase>
     
-    <epp:phrase id="Plugin/Screen/EPrint/RemoveWithEmail:title">Remove item (and notify)</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/RemoveWithEmail:title">Remove item (with notification)</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/RemoveWithEmail:description">Remove this item from the system forever, but send an email to the user who deposited it to inform them why.</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/RemoveWithEmail:item_removed">Item has been removed.</epp:phrase>
 	<epp:phrase id="Plugin/Screen/EPrint/Document/Remove:item_removed" ref="Plugin/Screen/EPrint/RemoveWithEmail:item_removed"/>
     <epp:phrase id="Plugin/Screen/EPrint/RemoveWithEmail:item_not_removed">Item could not be removed.</epp:phrase>
 
-    <epp:phrase id="Plugin/Screen/EPrint/RejectWithEmail:title">Return item (and notify)</epp:phrase>
+    <epp:phrase id="Plugin/Screen/EPrint/RejectWithEmail:title">Return item (with notification)</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/RejectWithEmail:description">Return this item from to the user work area and send an email to the user who deposited it to explain why it cannot yet be accepted.</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/RejectWithEmail:item_removed">Item has been removed.</epp:phrase>
     <epp:phrase id="Plugin/Screen/EPrint/RejectWithEmail:item_not_removed">Item could not be removed.</epp:phrase>
@@ -3535,11 +3536,11 @@ PY = 2006 and OG = (Cambridge)<br />
 <epp:phrase id="datasetname_user">Users</epp:phrase>
 <epp:phrase id="datasethelp_user">Used to store info on eprints users</epp:phrase>
 <epp:phrase id="datasetname_subject">Subjects</epp:phrase>
-<epp:phrase id="datasethelp_subject">Used to store the heirarchical subject tree(s)</epp:phrase>
+<epp:phrase id="datasethelp_subject">Used to store the hierarchical subject tree(s)</epp:phrase>
 <epp:phrase id="datasetname_document">Documents</epp:phrase>
-<epp:phrase id="datasethelp_document">Used to store documents metadata, for ALL of archive,inbox,etc.</epp:phrase>
+<epp:phrase id="datasethelp_document">Used to store documents metadata, for ALL of archive, inbox, etc.</epp:phrase>
 <epp:phrase id="datasetname_saved_search">Saved Searches</epp:phrase>
-<epp:phrase id="datasethelp_saved_search">Used to store what seaches users have and the frequency of alert emails</epp:phrase>
+<epp:phrase id="datasethelp_saved_search">Used to store what searches users have and the frequency of alert emails</epp:phrase>
 <epp:phrase id="datasetname_cachemap">Cache Tables</epp:phrase>
 <epp:phrase id="datasethelp_cachemap">Index to the tables used for temporarily storing search results</epp:phrase>
 <epp:phrase id="datasetname_message">User Notifications</epp:phrase>
