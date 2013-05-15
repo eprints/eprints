@@ -1564,6 +1564,10 @@ sub _update_data
 {
 	my( $self, $dataset, $data, $changed, $insert ) = @_;
 
+	# starting a transaction will greatly improve the performance of multi-row
+	# inserts (at least in MySQL)
+	$self->begin;
+
 	my $rv = 1;
 
 	my $keyfield = $dataset->get_key_field();
@@ -1674,6 +1678,9 @@ sub _update_data
 			EPrints::Index::update_ordervalues( $self->{session}, $dataset, $data, $changed );
 		}
 	}
+
+	# we began, so therefore we must commit
+	$self->commit;
 
 	return $rv;
 }
