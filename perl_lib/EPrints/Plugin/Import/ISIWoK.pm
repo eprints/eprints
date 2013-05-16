@@ -129,15 +129,27 @@ sub isidata_to_epdata
 			type => "article",
 		};
 
-	foreach my $name (@{$data->{authors}{value}||[]})
+	if (ref($data->{authors}) ne 'ARRAY')
 	{
-		my ($family, $given) = split /\s*,\s/, $name;
-		push @{$epdata->{creators}}, {
-			name => {
-				family => $family,
-				given => $given,
-			},
-		};
+		$data->{authors} = [$data->{authors}];
+	}
+	foreach my $authors (@{$data->{authors}})
+	{
+		next if $authors->{Label} ne 'Authors';
+		if (ref($authors->{value}) ne 'ARRAY')
+		{
+			$authors->{value} = [$authors->{value}]
+		}
+		foreach my $name (@{$authors->{value}})
+		{
+			my ($family, $given) = split /\s*,\s/, $name;
+			push @{$epdata->{creators}}, {
+				name => {
+					family => $family,
+					given => $given,
+				},
+			};
+		}
 	}
 
 	foreach my $part (@{$data->{source}||[]}, @{$data->{other}||[]})
