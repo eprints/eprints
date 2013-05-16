@@ -135,7 +135,7 @@ sub isidata_to_epdata
 	}
 	foreach my $authors (@{$data->{authors}})
 	{
-		next if $authors->{Label} ne 'Authors';
+		next if $authors->{label} ne 'Authors';
 		if (ref($authors->{value}) ne 'ARRAY')
 		{
 			$authors->{value} = [$authors->{value}]
