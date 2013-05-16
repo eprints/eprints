@@ -105,23 +105,32 @@ sub action_import_single
 
 	my $repo = $self->{repository};
 
-	my $wok = SOAP::ISIWoK::Lite->new;
+	my $eprint;
 
-	my $xml = $wok->retrieve( $self->{processor}->{ut} );
-	my( $rec ) = $xml->documentElement->getElementsByTagName( "REC" );
+	my $plugin = $repo->plugin("Import::ISIWoK");
+	$plugin->set_handler(EPrints::CLIProcessor->new(
+		message => sub { $self->{processor}->add_message( @_ ) },
+		epdata_to_dataobj => sub {
+			$eprint = $self->SUPER::epdata_to_dataobj( @_ );
+		},
+	) );
 
-	if( !$rec )
+	{
+		my $q = "UT = ($self->{processor}->{ut})";
+		open(my $fh, "<", \$q);
+		$plugin->input_fh(
+				dataset => $repo->dataset( "inbox" ),
+				fh => $fh,
+			);
+	}
+
+	if( !defined $eprint )
 	{
 		$self->{processor}->add_message( "error", $self->html_phrase( "error:not_found",
 			ut => $self->{repository}->create_text_node( $self->{processor}->{ut} )
 			) );
 		return;
 	}
-
-	my $epdata = $self->{processor}->{plugin}->xml_to_epdata(
-		$self->{processor}->{dataset},
-		$rec
-	);
 
 	my $fh = $self->{repository}->get_query->upload( "file" );
 	if( defined $fh )
@@ -136,7 +145,7 @@ sub action_import_single
 			epdata => my $media_info = {},
 		);
 
-		$epdata->{documents} = [{
+		$eprint->create_subdataobj( 'documents', {
 			%$media_info,
 			main => $filename,
 			files => [{
@@ -145,19 +154,12 @@ sub action_import_single
 				filesize => -s $fh,
 				mime_type => $media_info->{mime_type},
 			}],
-		}];
+		});
 	}
 
-	my $eprint = $self->epdata_to_dataobj(
-		$epdata,
-		dataset => $self->{processor}->{dataset},
-	);
-	if( defined $eprint )
-	{
-		$self->{processor}->add_message( "message", $repo->html_phrase( "Plugin/Screen/Import:import_completed",
-			count => $repo->xml->create_text_node( 1 )
-			) );
-	}
+	$self->{processor}->add_message( "message", $repo->html_phrase( "Plugin/Screen/Import:import_completed",
+		count => $repo->xml->create_text_node( 1 )
+		) );
 
 	if( !$self->wishes_to_export )
 	{
@@ -315,7 +317,7 @@ sub find_duplicate
 
 	$self->{repository}->dataset( "eprint" )->search(
 		filters => [
-			{ meta_fields => [qw( title )], value => "@terms", merge => "ALL", },
+			{ meta_fields => [qw( source )], value => $eprint->value("source"), match => "EX", },
 		],
 		limit => 5,
 	)->map(sub {
@@ -343,7 +345,7 @@ sub _get_records
 
 	return $justids ?
 		$ids :
-		(map { $self->{items}->{$_} } @$ids);
+		(grep { defined $_ } map { $self->{items}->{$_} } @$ids);
 }
 
 1;
