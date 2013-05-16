@@ -130,7 +130,7 @@ sub cookie
 
 	foreach my $cookie ( split( /;\s*/, $cookies ) )
 	{
-		my( $k, $v ) = split( '=', $cookie );
+		my( $k, $v ) = URI::Escape::uri_unescape(split( '=', $cookie, 2 ));
 		if( $k eq $cookieid )
 		{
 			return $v;

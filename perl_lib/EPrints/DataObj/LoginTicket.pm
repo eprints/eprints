@@ -146,7 +146,7 @@ sub new_from_request
 
 	if( $repo->get_secure )
 	{
-		my $securecode = EPrints::Cookie::cookie( $repo, $SECURE_SESSION_KEY );
+		my $securecode = EPrints::Cookie::cookie( $repo, $class->secure_session_key($repo) );
 		if (EPrints::Utils::is_set($securecode)) {
 			$ticket = $dataset->search(filters => [
 				{ meta_fields => [qw( securecode )], value => $securecode },
@@ -155,7 +155,7 @@ sub new_from_request
 	}
 	else
 	{
-		my $code = EPrints::Cookie::cookie( $repo, $SESSION_KEY );
+		my $code = EPrints::Cookie::cookie( $repo, $class->session_key($repo) );
 		if (EPrints::Utils::is_set($code)) {
 			$ticket = $dataset->search(filters => [
 				{ meta_fields => [qw( code )], value => $code },
@@ -194,6 +194,35 @@ sub expire_all
 	});
 }
 
+=item EPrints::DataObj::LoginTicket->session_key($repo)
+
+=item EPrints::DataObj::LoginTicket->secure_session_key($repo)
+
+Get the key to use for the session cookies.
+
+In the following circumstance:
+
+	example.org
+	custom.example.org
+
+Where both hosts use the same cookie key the cookie from example.org will collide with the cookie from custom.example.org. To avoid this the full hostname is embedded in the cookie key.
+
+=cut
+
+sub session_key
+{
+	my ($class, $repo) = @_;
+
+	return join ':', $SESSION_KEY, $repo->config('host');
+}
+
+sub secure_session_key
+{
+	my ($class, $repo) = @_;
+
+	return join ':', $SECURE_SESSION_KEY, $repo->config('securehost');
+}
+
 ######################################################################
 
 =head2 Object Methods
@@ -216,14 +245,14 @@ sub set_cookies
 
 	EPrints::Cookie::set_cookie(
 			$repo,
-			$SESSION_KEY,
+			$self->session_key($repo),
 			$self->value( "code" )
 		);
 	if( $repo->config( "securehost" ) )
 	{
 		EPrints::Cookie::set_secure_cookie(
 				$repo,
-				$SECURE_SESSION_KEY,
+				$self->secure_session_key($repo),
 				$self->value( "securecode" )
 			);
 	}
