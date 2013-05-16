@@ -6,7 +6,8 @@ EPrints::Plugin::Import::ISIWoK
 
 package EPrints::Plugin::Import::ISIWoK;
 
-use base "EPrints::Plugin::Import";
+use base qw( EPrints::Plugin::Import::ISIWoKXML );
+use EPrints::Plugin::Import::TextFile;
 
 use strict;
 
@@ -17,102 +18,81 @@ sub new
 	my $self = $class->SUPER::new( %params );
 
 	$self->{name} = "ISI Web of Knowledge";
+	$self->{advertise} = 1;
 	$self->{visible} = "all";
-	$self->{advertise} = 0;
 	$self->{produce} = [ 'list/eprint' ];
+	$self->{screen} = "Import::ISIWoK";
+	$self->{arguments}{fields} = [];
+
+	if( !EPrints::Utils::require_if_exists( "SOAP::ISIWoK", "3.00" ) )
+	{
+		$self->{visible} = 0;
+		$self->{error} = "Requires SOAP::ISIWoK 3.00";
+	}
+	else
+	{
+		EPrints::Utils::require_if_exists( "SOAP::ISIWoK::Lite" );
+	}
 
 	return $self;
 }
 
-sub xml_to_epdata
+sub input_fh
 {
-	my( $self, $dataset, $rec ) = @_;
+	my ($self, %opts) = @_;
 
-	my $epdata = {};
+	return $self->EPrints::Plugin::Import::TextFile::input_fh( %opts );
+}
 
-	my $node;
+sub input_text_fh
+{
+	my( $self, %opts ) = @_;
 
-	( $node ) = $rec->findnodes( "item/ut" );
-	$epdata->{source} = $node->textContent if $node;
-
-	( $node ) = $rec->findnodes( "item/item_title" );
-	$epdata->{title} = $node->textContent if $node;
-
-	if( !$node )
+	if ($opts{fields})
 	{
-		die "Expected to find item_title in: ".$rec->toString( 1 );
+		$opts{fields} = [split /\s*,\s*/, $opts{fields}]
+			if ref($opts{fields}) ne 'ARRAY';
 	}
 
-	( $node ) = $rec->findnodes( "item/source_title" );
-	if( $node )
+	my $session = $self->{session};
+
+	my @ids;
+
+	my $fh = $opts{fh};
+	my $query = join '', <$fh>;
+
+	my $wok = $self->param('lite') ?
+		SOAP::ISIWoK::Lite->new :
+		SOAP::ISIWoK->new;
+
+	my $som = $wok->authenticate($self->param('username'), $self->param('password'));
+	if ($som->fault)
 	{
-		$epdata->{publication} = $node->textContent;
-		$epdata->{ispublished} = "pub";
+		$self->warning($som->faultstring);
+		return undef;
 	}
 
-	foreach my $node ($rec->findnodes( "item/article_nos/article_no" ))
+	$som = $wok->search( $query,
+		offset => $opts{offset},
+		fields => $opts{fields},
+	);
+	if ($som->fault)
 	{
-		my $id = $node->textContent;
-		if( $id =~ s/^DOI\s+// )
-		{
-			$epdata->{id_number} = $id;
-		}
+		$self->error($som->faultstring);
+		return EPrints::List->new(
+				session => $session,
+				dataset => $opts{dataset},
+				ids => []
+			);
 	}
+	$self->{total} = $som->result->{recordsFound};
 
-	( $node ) = $rec->findnodes( "item/bib_pages" );
-	$epdata->{pagerange} = $node->textContent if $node;
+	open(my $xml_fh, "<", \$som->result->{records}) or die "Error getting fh to scalar: $!";
 
-	( $node ) = $rec->findnodes( "item/bib_issue" );
-	if( $node )
-	{
-		$epdata->{date} = $node->getAttribute( "year" ) if $node->hasAttribute( "year" );
-		$epdata->{volume} = $node->getAttribute( "vol" ) if $node->hasAttribute( "vol" );
-	}
-
-	# 
-	$epdata->{type} = "article";
-	( $node ) = $rec->findnodes( "item/doctype" );
-	if( $node )
-	{
-	}
-
-	foreach my $node ($rec->findnodes( "item/authors/*" ))
-	{
-		if( $node->nodeName eq "fullauthorname" )
-		{
-			next if !$epdata->{creators};
-			my( $family ) = $node->getElementsByTagName( "AuLastName" );
-			my( $given ) = $node->getElementsByTagName( "AuFirstName" );
-			$family = $family->textContent if $family;
-			$given = $given->textContent if $given;
-			$epdata->{creators}->[$#{$epdata->{creators}}]->{name} = {
-				family => $family,
-				given => $given,
-			};
-		}
-		else
-		{
-			my $name = $node->textContent;
-			my( $family, $given ) = split /,/, $name;
-			push @{$epdata->{creators}}, {
-				name => { family => $family, given => $given },
-			};
-		}
-	}
-
-	foreach my $node ($rec->findnodes( "item/keywords/*" ))
-	{
-		push @{$epdata->{keywords}}, $node->textContent;
-	}
-	$epdata->{keywords} = join ", ", @{$epdata->{keywords}} if $epdata->{keywords};
-
-	( $node ) = $rec->findnodes( "item/abstract" );
-	$epdata->{abstract} = $node->textContent if $node;
-
-	# include the complete data for debug (disabled for being too big)
-#	$epdata->{suggestions} = $rec->toString( 1 );
-
-	return $epdata;
+	return $self->SUPER::input_fh(
+		%opts,
+		fh => $xml_fh,
+	);
 }
 
 1;

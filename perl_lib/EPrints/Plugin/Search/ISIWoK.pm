@@ -40,10 +40,29 @@ sub new
 
 	my $self = $class->SUPER::new( %params );
 
-	$self->{disable} = !EPrints::Utils::require_if_exists( "SOAP::ISIWoK::Lite", "1.05" );
+	$self->{disable} = !EPrints::Utils::require_if_exists( "SOAP::ISIWoK", "3.00" );
 	$self->{q} = {};
 
 	return $self;
+}
+
+sub _isiwok
+{
+	my ($self) = @_;
+
+	return $self->{wok} if $self->{wok};
+
+	my $wok = $self->{wok} = $self->param('lite') ?
+		SOAP::ISIWoK::Lite->new :
+		SOAP::ISIWoK->new;
+
+	my $som = $wok->authenticate(
+			$self->param('username'),
+			$self->param('password')
+		);
+	die $som->faultstring if $som->fault;
+
+	return $wok;
 }
 
 sub from_form
@@ -136,7 +155,7 @@ sub execute
 
 	if( !defined $self->{cache} )
 	{
-		my $xml = eval { $self->_query( 0 ) };
+		my $result = eval { $self->_query( 0 ) };
 		if( $@ )
 		{
 			if( $self->{processor} )
@@ -144,7 +163,7 @@ sub execute
 				$@ =~ s/at \/.*$//s;
 				$self->{processor}->add_message(
 					"error",
-					$self->repository->xml->create_text_node( $@ )
+					$self->repository->xml->create_text_node( "WoK responded with: $@" )
 				);
 			}
 			return;
@@ -153,7 +172,7 @@ sub execute
 		$self->{cache} = $dataset->create_dataobj({
 				searchexp => $self->freeze,
 				available => 0,
-				count => $xml->documentElement->getAttribute( "recordsFound" ),
+				count => $result->{"recordsFound"},
 			});
 	}
 
@@ -179,15 +198,16 @@ sub _query
 {
 	my( $self, $offset ) = @_;
 
-	my $wok = SOAP::ISIWoK::Lite->new;
+	my $wok = $self->_isiwok;
 
 	my $q = join ' AND ', map {
 			"($_ = $self->{q}->{$_})"
 		} keys %{$self->{q}};
 
-	my $xml = $wok->search( $q, offset => $offset + 1 );
+	my $som = $wok->search( $q, offset => $offset + 1 );
+	die $som->faultstring if $som->fault;
 
-	return $xml;
+	return $som->result;
 }
 
 sub slice
@@ -204,26 +224,43 @@ sub slice
 	{
 		my $available = $cache->value( "available" );
 
-		my $import = $repo->plugin( "Import::ISIWoK" );
+		my $result = eval { $self->_query( $available ) };
+		if( $@ )
+		{
+			if( $self->{processor} )
+			{
+				$@ =~ s/at \/.*$//s;
+				$self->{processor}->add_message(
+					"error",
+					$self->repository->xml->create_text_node( "WoK responded with: $@" )
+				);
+			}
+			return;
+		}
 
-		my $xml = $self->_query( $available );
-
-		$cache->set_value( "count", $xml->documentElement->getAttribute( "recordsFound" ) );
+		$cache->set_value( "count", $result->{"recordsFound"} );
 		$cache->commit;
 
-		my $dataset = $repo->dataset( "eprint" );
+		my $import = $repo->plugin( "Import::ISIWoKXML",
+			Handler => EPrints::CLIProcessor->new(
+				message => sub { $self->{processor}->add_message(@_) },
+				epdata_to_dataobj => sub {
+					my ($epdata, %opts) = @_;
+					$epdata->{eprint_status} = "inbox";
+					$cache->create_subdataobj( "dataobjs", {
+							pos => ++$available,
+							datasetid => "eprint",
+							epdata => $epdata,
+						});
+				},
+			),
+		);
 
-		foreach my $rec ($xml->getElementsByTagName( "REC" ))
-		{
-			my $epdata = $import->xml_to_epdata( $dataset, $rec );
-			next if !scalar keys %$epdata;
-			$epdata->{eprint_status} = "inbox";
-			$cache->create_subdataobj( "dataobjs", {
-					pos => ++$available,
-					datasetid => "eprint",
-					epdata => $epdata,
-				});
-		}
+		open(my $fh, "<", \$result->{records});
+		$import->input_fh(
+			fh => $fh,
+			dataset => $repo->dataset('inbox'),
+		);
 
 		# nothing received
 		last if $available == $cache->value( "available" );
