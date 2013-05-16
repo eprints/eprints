@@ -299,7 +299,7 @@ sub epdata_to_dataobj
 	my( $dataset ) = splice(@_,1,1)
 		if UNIVERSAL::isa( $_[1], "EPrints::DataSet" );
 	my( $self, $epdata, %opts ) = @_;
-	$opts{dataset} ||= $dataset;
+	$dataset = $opts{dataset} ||= $dataset;
 
 	if( $dataset->id eq "eprint" && !defined $epdata->{eprint_status} )
 	{
