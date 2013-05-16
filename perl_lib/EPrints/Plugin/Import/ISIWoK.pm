@@ -87,12 +87,92 @@ sub input_text_fh
 	}
 	$self->{total} = $som->result->{recordsFound};
 
-	open(my $xml_fh, "<", \$som->result->{records}) or die "Error getting fh to scalar: $!";
+	if ($self->param('lite'))
+	{
+		my @ids;
+		foreach my $record (@{$som->result->{records}})
+		{
+			my $epdata = $self->isidata_to_epdata($record, %opts);
+			my $dataobj = $self->epdata_to_dataobj($epdata, %opts);
+			push @ids, $dataobj->id if defined $dataobj;
+		}
+		return EPrints::List->new(
+				session => $session,
+				dataset => $opts{dataset},
+				ids => \@ids
+			);
+	}
+	else
+	{
+		open(my $xml_fh, "<", \$som->result->{records}) or die "Error getting fh to scalar: $!";
 
-	return $self->SUPER::input_fh(
-		%opts,
-		fh => $xml_fh,
-	);
+		return $self->SUPER::input_fh(
+			%opts,
+			fh => $xml_fh,
+		);
+	}
+}
+
+=item $epdata = isidata_to_epdata($data)
+
+The Lite service returns a completely different structure to the Premium service.
+
+This method will convert the Lite service data structure into epdata.
+
+=cut
+
+sub isidata_to_epdata
+{
+	my ($self, $data, %opts) = @_;
+
+	my $epdata = {
+			type => "article",
+		};
+
+	foreach my $name (@{$data->{authors}{value}||[]})
+	{
+		my ($family, $given) = split /\s*,\s/, $name;
+		push @{$epdata->{creators}}, {
+			name => {
+				family => $family,
+				given => $given,
+			},
+		};
+	}
+
+	foreach my $part (@{$data->{source}||[]}, @{$data->{other}||[]})
+	{
+		my( $label, $value ) = @$part{qw( label value )};
+		if ($label eq 'Issue') {
+			$epdata->{number} = $value;
+		}
+		elsif ($label eq 'Pages') {
+			$epdata->{pagerange} = $value;
+		}
+		elsif ($label eq 'SourceTitle') {
+			$epdata->{ispublished} = "pub";
+			$epdata->{publication} = $value;
+		}
+		elsif ($label eq 'Volume') {
+			$epdata->{volume} = $value;
+		}
+		elsif ($label eq 'Published.BiblioYear') {
+			$epdata->{date_type} = 'published';
+			$epdata->{date} = $value;
+		}
+		elsif ($label eq 'Identifier.Issn') {
+			$epdata->{issn} = $value;
+		}
+		elsif ($label eq 'Identifier.Xref_Doi') {
+			$epdata->{id_number} = $value;
+		}
+	}
+
+	$epdata->{source} = $data->{uid};
+
+	$epdata->{title} = $data->{title}{value};
+
+	return $epdata;
 }
 
 1;
