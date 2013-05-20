@@ -87,7 +87,7 @@ sub lang_value
 	});
 }
 
-sub render_value
+sub render_value_actual
 {
 	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
 
@@ -104,12 +104,22 @@ sub render_value
 
 	if( @$f > 2 ) # value + lang
 	{
-		return $self->render_single_value( $session, $value );
+		return $self->render_value_no_multiple(
+			$session,
+			$value,
+			$nolink,
+			$object,
+		);
 	}
 	else
 	{
 		$value = $value->{$f->[0]->property( "sub_name" )};
-		return $f->[0]->render_single_value( $session, $value );
+		return $f->[0]->render_value_no_multiple(
+			$session,
+			$value,
+			$nolink,
+			$object,
+		);
 	}
 }
 
