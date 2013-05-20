@@ -221,6 +221,8 @@ sub action_disable
 	my $repo = &repository( $repoid );
 	my $epm = &epm( $repo, $name );
 
+	local $handler->{dataobj} = $epm;
+
 	$epm->control_screen(
 		processor => $handler,
 	)->action_disable;
