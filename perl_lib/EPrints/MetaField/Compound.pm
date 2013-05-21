@@ -89,20 +89,9 @@ sub extra_subfields
 	return ();
 }
 
-sub render_value
+sub render_value_actual
 {
 	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
-
-	if( defined $self->{render_value} )
-	{
-		return $self->call_property( "render_value",
-			$session, 
-			$self, 
-			$value, 
-			$alllangs, 
-			$nolink,
-			$object );
-	}
 
 	my $table = $session->make_element( "table", border=>1, cellspacing=>0, cellpadding=>2 );
 	my $tr = $session->make_element( "tr" );
