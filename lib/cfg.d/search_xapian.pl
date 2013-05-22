@@ -67,6 +67,9 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 	}
 
 	my $tg = $repo->{_xapian_tg};
+	$tg->set_database( $db );
+	$tg->set_flags( Search::Xapian::FLAG_SPELLING_CORRECTION() );
+
 	$tg->set_termpos( 1 );
 
 	my $doc = Search::Xapian::Document->new();

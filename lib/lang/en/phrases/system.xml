@@ -1571,6 +1571,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
     <epp:phrase id="lib/searchexpression:export_error_search"><p>The search failed to execute correctly.</p></epp:phrase>
     <epp:phrase id="lib/searchexpression:export_error_format"><p>The requested output format is not available.</p></epp:phrase>
     <epp:phrase id="lib/searchexpression:savesearch">Save search</epp:phrase>
+    <epp:phrase id="lib/searchexpression:corrected_query">Try with <em><strong><epc:pin name="q"/></strong></em></epp:phrase>
 
 <!-- Search::Field (Used to be SearchField)-->
 

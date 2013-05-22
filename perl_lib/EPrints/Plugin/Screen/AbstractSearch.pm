@@ -151,6 +151,11 @@ sub run_search
 	}
 
 	$self->{processor}->{results} = $list;
+
+	foreach my $msg ( $self->{processor}->{results}->get_messages )
+	{
+		$self->{processor}->add_message( $msg->{type}, $msg->{content} );
+	}
 }	
 
 sub search_dataset

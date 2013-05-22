@@ -612,7 +612,8 @@ sub execute
 				Search::Xapian::FLAG_PHRASE() |
 				Search::Xapian::FLAG_BOOLEAN() | 
 				Search::Xapian::FLAG_LOVEHATE() | 
-				Search::Xapian::FLAG_WILDCARD()
+				Search::Xapian::FLAG_WILDCARD() |
+				Search::Xapian::FLAG_SPELLING_CORRECTION()
 			)
 		);
 	}
@@ -685,6 +686,7 @@ if($@)
 		count => $enq->get_mset( 0, $xapian->get_doccount )->get_matches_estimated,
 		ids => [],
 		limit => $self->{limit},
+		qp => $qp,
 		spy => \@spys );
 
 
@@ -764,6 +766,37 @@ sub reorder
 	$self->{ids} = $self->ids;
 
 	return $self->SUPER::reorder( $new_order );
+}
+
+sub get_messages
+{
+	my( $self ) = @_;
+
+	my @messages = $self->SUPER::get_messages();
+	
+	if( defined $self->{qp} )
+	{
+		my $corrected_q = $self->{qp}->get_corrected_query_string();
+		if( EPrints::Utils::is_set( $corrected_q ) )
+		{
+			my $baseurl = URI->new( $self->{session}->get_full_url );
+
+			my %params = $baseurl->query_form();
+			$params{q} = $corrected_q;
+
+			$baseurl->query_form( \%params );
+
+			my $link = $self->{session}->render_link( $baseurl );
+			$link->appendChild( $self->{session}->make_text( $corrected_q ) );
+
+			push @messages, {
+				type => 'message',
+				content => $self->{session}->html_phrase( 'lib/searchexpression:corrected_query', q => $link ) 
+			}
+		}
+	}
+
+	return @messages;
 }
 
 1;

@@ -760,6 +760,14 @@ sub render_description
 	return $frag;
 }
 
+# Potential messages to display on a Screen
+# format = { type => 'message', content => XHTML }
+sub get_messages
+{
+	my( $self ) = @_;
+	return @{ $self->{messages} || [] };
+}
+
 ######################################################################
 #
 # Clean up any caches and XML belonging to this object.
