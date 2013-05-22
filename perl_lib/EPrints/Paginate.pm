@@ -322,6 +322,7 @@ sub paginate_list
 	
 	if( defined $opts{controls_after} )
 	{
+		$pins{controls} = $session->make_element( 'div' ) if( !defined $pins{controls} );
 		$pins{controls}->appendChild( $opts{controls_after} );	
 	}
 
