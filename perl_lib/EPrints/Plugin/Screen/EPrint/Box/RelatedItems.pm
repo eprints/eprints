@@ -31,7 +31,7 @@ sub new
 	$self->{disable} = 1;
 
 	# the threshold for including items - expressed as a percentage of matching
-	$self->{threshold} = 50;
+	$self->{threshold} = 15;
 
 	# the number of items to include
 	$self->{max} = 5;
@@ -76,29 +76,7 @@ sub render
 			$enq = Search::Xapian::Enquire->new( $xapian );
 
 			my $stopper = Search::Xapian::SimpleStopper->new();
-			my $eset = $enq->get_eset( 40, $rset, sub {
-				my( $term ) = @_;
-
-				# Reject terms with a prefix
-				return 0 if $term =~ /^[A-Z]/;
-
-				# Don't suggest stopwords
-				return 0 if $stopper->stop_word( $term );
-
-				# Reject small numbers
-				return 0 if $term =~ /^[0-9]{1,3}$/;
-
-				# Reject terms containing a space
-				return 0 if $term =~ /\s/;
-
-				# Ignore terms that only occur once
-				return 0 if $xapian->get_termfreq( $term ) <= 1;
-
-				# Ignore the unique term used to retrieve the query
-				return 0 if $term eq $key;
-
-				return 1;
-			} );
+			my $eset = $enq->get_eset( 40, $rset );
 			my @terms = map { $_->get_termname() } $eset->items;
 
 			$enq = Search::Xapian::Enquire->new( $xapian );

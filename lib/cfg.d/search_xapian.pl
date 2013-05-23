@@ -238,6 +238,6 @@ $c->add_trigger( EP_TRIGGER_INDEX_REMOVED, sub {
 $c->{plugins}->{"Screen::EPrint::Box::RelatedItems"}->{params}->{disable} = 0;
 # you may override the default values:
 #$c->{plugins}->{"Screen::EPrint::Box::RelatedItems"}->{params}->{max} = 5;
-#$c->{plugins}->{"Screen::EPrint::Box::RelatedItems"}->{params}->{threshold} = 50;
+#$c->{plugins}->{"Screen::EPrint::Box::RelatedItems"}->{params}->{threshold} = 15;
 
 } # End of require_if_exists
