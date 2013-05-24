@@ -55,7 +55,7 @@ sub export
 {
 	my( $self ) = @_;
 
-	my $frag = $self->render_content;
+	my $frag = $self->render;
 
 	print $self->{session}->xhtml->to_xhtml( $frag );
 	$self->{session}->xml->dispose( $frag );
