@@ -1251,10 +1251,11 @@ sub unescape_filename
 
 =item $filesize_text = EPrints::Utils::human_filesize( $size_in_bytes )
 
-Return a human readable version of a filesize. If 0-4095B then show 
-as bytes, if 4-4095KB show as KB otherwise show as MB.
+Return a human readable version of a filesize. If 0-999B then show as
+bytes, if 1-999kB show as kB otherwise show as MB, GB, TB, PB, or EB
+following the same pattern.
 
-eg. Input of 5234 gives "5KB", input of 3234 gives "3234B".
+eg. Input of 1234 gives "1kB", input of 934 gives "934B".
 
 This is not internationalised, I don't think it needs to be. Let me
 know if this is a problem. support@eprints.org
@@ -1271,8 +1272,9 @@ sub human_filesize
 	my $prefixes = [ 'B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB' ];
 	my $i = 0;
 	while(1) {
-		last if( $tsize < 1024 || $i >= scalar( @$prefixes ) - 1 );
-		$tsize = int( $tsize / 1024 );
+		### Modified by QUT, 20130521: converted to SI
+		last if( $tsize < 1000 || $i >= scalar( @$prefixes ) - 1 );
+		$tsize =  int( $tsize / 1000 );
 		$i++;
 	}
 
