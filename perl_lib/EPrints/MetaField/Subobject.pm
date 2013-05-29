@@ -167,7 +167,7 @@ sub get_value
 		{
 			if( !$ds->has_field( $fieldname ) )
 			{
-				EPrints->abort( "dataset_fieldname property on ".$self->{dataset}->id.".".$self->{name}." is not a valid field on ".$ds->id );
+				EPrints->abort( "dataset_fieldname property on ".$self->{dataset}->id.".".$self->{name}." (".$fieldname.") is not a valid field on ".$ds->id );
 			}
 			$searchexp->add_field(
 				$ds->field( $fieldname ),
@@ -177,7 +177,7 @@ sub get_value
 		$fieldname = $self->get_property( "dataobj_fieldname" );
 		if( !$ds->has_field( $fieldname ) )
 		{
-			EPrints->abort( "dataset_fieldname property on ".$self->{dataset}->id.".".$self->{name}." is not a valid field on ".$ds->id );
+			EPrints->abort( "dataobj_fieldname property on ".$self->{dataset}->id.".".$self->{name}." (".$fieldname.") is not a valid field on ".$ds->id );
 		}
 		$searchexp->add_field(
 			$ds->field( $fieldname ),
