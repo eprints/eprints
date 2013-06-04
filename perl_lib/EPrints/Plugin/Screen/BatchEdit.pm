@@ -511,8 +511,11 @@ sub render
 	$form->appendChild( $session->xhtml->hidden_field(
 			ajax => 1,
 		) );
+	
+	my $progressid = APR::UUID->new->format; #contains unwanted hyphens
+	$progressid =~ s/-//g;
 	$form->appendChild( $session->xhtml->hidden_field(
-			progressid => APR::UUID->new->format,
+			progressid => $progressid,
 		) );
 
 	$form->appendChild( $session->xhtml->tabs(
