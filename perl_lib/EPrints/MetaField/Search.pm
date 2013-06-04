@@ -109,7 +109,9 @@ sub make_searchexp
 			$session->get_repository->log( "Field specified in search field configuration $conf_key does not exist in dataset ".$dataset->confid.": $fieldname" );
 			next;
 		}
-		$searchexp->add_field( $dataset->get_field( $fieldname ) );
+		$searchexp->add_field(
+			fields => [$dataset->get_field( $fieldname )],
+		);
 	}
 
 	if( defined $value )
