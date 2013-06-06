@@ -114,6 +114,117 @@ sub new($$)
 	return $self;
 }
 
+=item $node = $xhtml->frag()
+
+See XML->create_document_fragment
+
+=cut
+
+sub frag 
+{ 
+	my( $self ) = @_;
+
+	return $self->{repository}->xml->create_document_fragment 
+}
+
+=item $node = $xhtml->element()
+
+See XML->create_element
+
+=cut
+
+sub element 
+{
+	my( $self, @opts ) = @_;
+
+	return $self->{repository}->xml->create_element( @opts )
+}
+
+=item $node = $xhtml->text()
+
+See XML->create_text_node
+
+=cut
+
+sub text 
+{
+	my( $self, @opts ) = @_;
+
+	return $self->{repository}->xml->create_text_node( @opts );
+}
+
+=item $node = $xhtml->cdata()
+
+See XML->create_cdata_section
+
+=cut
+sub cdata
+{
+	my( $self, @opts ) = @_;
+
+	return $self->{repository}->xml->create_cdata_section( @opts );
+}
+
+=item $node = $xhtml->comment()
+
+See XML->create_comment
+
+=cut
+
+sub comment
+{
+	my( $self, @opts ) = @_;
+
+	return $self->{repository}->xml->create_comment( @opts );
+}
+
+# sf2 - might get removed
+sub anchor_link
+{
+	my( $self, $name ) = @_;
+
+	return $self->element( 'a', name => $name );
+}
+
+
+=item $DOM = $xhtml->javascript( $code, %attribs )
+
+Return a new DOM "script" element containing $code in javascript. %attribs will
+be added to the script element, similar to make_element().
+
+E.g.
+
+        <script type="text/javascript">
+        // <![CDATA[
+        alert("Hello, World!");
+        // ]]>
+        </script>
+
+=cut
+
+sub javascript
+{
+        my( $self, $text, %attr ) = @_;
+
+	my $script = $self->element( 'script', type => 'text/javascript', %attr );
+
+        if( defined $text )
+        {
+                chomp($text);
+                $script->appendChild( $self->text( "\n// " ) );
+                $script->appendChild( $self->cdata( "\n$text\n// " ) );
+        }
+        else
+        {
+                $script->appendChild( $self->comment( "padder" ) );
+        }
+
+        return $script;
+}
+
+sub uid { APR::UUID->new->format() }
+
+
 =item $node = $xhtml->form( $method [, $action] )
 
 Returns an XHTML form. If $action isn't defined uses the current URL.
@@ -130,7 +241,7 @@ sub form
 		$action = $self->{repository}->current_url( query => 0 );
 	}
 
-	my $form = $self->{repository}->xml->create_element( "form",
+	my $form = $self->element( "form",
 		method => $method,
 		'accept-charset' => "utf-8",
 		action => $action,
@@ -169,7 +280,7 @@ sub input_field
 		push @opts, onKeyPress => 'return EPJS_block_enter( event )';
 	}
 
-	return $self->{repository}->xml->create_element( "input",
+	return $self->element( "input",
 		name => $name,
 		id => $name,
 		value => $value,
@@ -186,7 +297,7 @@ sub hidden_field
 {
 	my( $self, $name, $value, @opts ) = @_;
 
-	return $self->{repository}->xml->create_element( "input",
+	return $self->element( "input",
 		name => $name,
 		id => $name,
 		value => $value,
@@ -208,7 +319,7 @@ sub action_button
 
 	$opts{class} = join ' ', 'ep_form_action_button', ($opts{class}||());
 
-	return $self->{repository}->xml->create_element( "input",
+	return $self->element( "input",
 		name => "_action_$name",
 		value => $value,
 		type => "submit",
@@ -228,7 +339,7 @@ sub action_icon
 {
 	my( $self, $name, $src, %opts ) = @_;
 
-	return $self->{repository}->xml->create_element( "input",
+	return $self->element( "input",
 		name => "_action_$name",
 		src => $src,
 		type => "image",
@@ -246,11 +357,11 @@ sub text_area_field
 {
 	my( $self, $name, $value, @opts ) = @_;
 
-	my $node = $self->{repository}->xml->create_element( "textarea",
+	my $node = $self->element( "textarea",
 		name => $name,
 		id => $name,
 		@opts );
-	$node->appendChild( $self->{repository}->xml->create_text_node( $value ) );
+	$node->appendChild( $self->text( $value ) );
 
 	return $node;
 }
@@ -278,13 +389,13 @@ sub data_element
 		}
 	}
 
-	my $node = $self->{repository}->xml->create_element( $name, @opts );
-	$node->appendChild( $self->{repository}->xml->create_text_node( $value ) );
+	my $node = $self->element( $name, @opts );
+	$node->appendChild( $self->text( $value ) );
 
 	if( defined $indent )
 	{
-		my $f = $self->{repository}->xml->create_document_fragment;
-		$f->appendChild( $self->{repository}->xml->create_text_node(
+		my $f = $self->frag;
+		$f->appendChild( $self->text(
 			"\n"." "x$indent
 			) );
 		$f->appendChild( $node );
@@ -567,34 +678,34 @@ sub box
 	my $repo = $self->{repository};
 	my $xml = $repo->xml;
 
-	my $frag = $xml->create_document_fragment;
+	my $frag = $self->frag;
 
 	my $basename = exists $opts{basename} ? $opts{basename} : "ep_box";
 	my $class = exists $opts{class} ? $opts{class} : "ep_summary_box";
 
-	$frag->appendChild( my $div = $xml->create_element( "div",
+	$frag->appendChild( my $div = $self->element( "div",
 			id=>$basename,
 			class=>$class,
 		) );
 
-	$div->appendChild( my $title_bar = $xml->create_element( "div",
+	$div->appendChild( my $title_bar = $self->element( "div",
 			class => "ep_summary_box_title",
 			id => "${basename}_title_bar",
 		) );
 
-	$div->appendChild( my $container = $xml->create_data_element( "div",
+	$div->appendChild( my $container = $self->data_element( "div",
 			$content,
 			class => "ep_summary_box_body ep_no_js",
 			id => "${basename}_content",
 		) );
 
-	$title_bar->appendChild( my $show_link = $xml->create_element( "a",
+	$title_bar->appendChild( my $show_link = $self->element( "a",
 			href => "javascript:",
 			id => "${basename}_show_link",
 			class => "ep_box_show",
 			style => "",
 		) );
-	$title_bar->appendChild( my $hide_link = $xml->create_element( "a",
+	$title_bar->appendChild( my $hide_link = $self->element( "a",
 			href => "javascript:",
 			id => "${basename}_hide_link",
 			class => "ep_box_hide",
@@ -661,7 +772,7 @@ sub tabs
 	my $xml = $repo->xml;
 	my $online = $repo->get_online;
 
-	my $frag = $xml->create_document_fragment;
+	my $frag = $self->frag;
 
 	my $base_url = exists($opts{base_url}) || !$online ? $opts{base_url} : $repo->current_url( query => 1 );
 	my $basename = exists($opts{basename}) ? $opts{basename} : "ep_tabs";
@@ -700,7 +811,7 @@ sub tabs
 		$current = exists $raliases{$current} ? $raliases{$current} : 0;
 	}
 
-	my $ul = $xml->create_element( "ul",
+	my $ul = $self->element( "ul",
 		id=>$basename."_tabs",
 		class => "ep_tab_bar",
 	);
@@ -709,7 +820,7 @@ sub tabs
 	my $panel;
 	if( @$contents )
 	{
-		$panel = $xml->create_element( "div", 
+		$panel = $self->element( "div", 
 				id => $basename."_panels",
 				class => "ep_tab_panel" );
 		$frag->appendChild( $panel );
@@ -722,7 +833,7 @@ sub tabs
 		my $label = defined($aliases) ? $aliases->{$_} : $_;
 		my $width = int( 100 / @$labels );
 		$width += 100 % @$labels if $_ == 0;
-		my $tab = $ul->appendChild( $xml->create_element( "li",
+		my $tab = $ul->appendChild( $self->element( "li",
 			($current == $_ ? (class => "ep_tab_selected") : ()),
 			id => $basename."_tab_".$label,
 			style => "width: $width\%",
@@ -751,13 +862,13 @@ sub tabs
 
 		if( defined $panel )
 		{
-			my $inner_panel = $xml->create_element( "div", 
+			my $inner_panel = $self->element( "div", 
 				id => $basename."_panel_".$label,
 			);
 			if( $_ != $current )
 			{
 				# padding for non-javascript enabled browsers
-				$panel->appendChild( $xml->create_element( "div",
+				$panel->appendChild( $self->element( "div",
 					class=>"ep_no_js",
 					style => "height: 1em",
 				) );
@@ -794,7 +905,7 @@ sub tree
 
 	$opts{class} = $opts{prefix} if !defined $opts{class};
 
-	my $frag = $xml->create_document_fragment;
+	my $frag = $self->frag;
 
 	$frag->appendChild( $xml->create_data_element( "div",
 		$self->tree2( $root, %opts ),
@@ -817,12 +928,12 @@ sub tree2
 	my $repo = $self->{repository};
 	my $xml = $repo->xml;
 
-	my $frag = $xml->create_document_fragment;
+	my $frag = $self->frag;
 	return $frag if !defined $root || !scalar(@$root);
 
 	$opts{render_value} ||= sub { $xml->create_text_node( $_[0] ) };
 
-	my $dl = $frag->appendChild( $xml->create_element( "dl" ) );
+	my $dl = $frag->appendChild( $self->element( "dl" ) );
 	
 	foreach my $node (@$root)
 	{
@@ -844,7 +955,7 @@ sub tree2
 			$dl->appendChild( $xml->create_data_element( "dt",
 				$opts{render_value}( $node ),
 			) );
-			$dl->appendChild( $xml->create_element( "dd",
+			$dl->appendChild( $self->element( "dd",
 				class => "ep_no_js",
 			) );
 		}
@@ -866,7 +977,7 @@ sub action_list
 	my $repo = $self->{repository};
 	my $xml = $repo->xml;
 
-	my $ul = $xml->create_element( "ul", class => "ep_action_list" );
+	my $ul = $self->element( "ul", class => "ep_action_list" );
 	for(@$actions)
 	{
 		$ul->appendChild( $xml->create_data_element( "li", $_ ) );
@@ -888,7 +999,7 @@ sub action_definition_list
 	my $repo = $self->{repository};
 	my $xml = $repo->xml;
 
-	my $dl = $xml->create_element( "dl", class => "ep_action_list" );
+	my $dl = $self->element( "dl", class => "ep_action_list" );
 
 	for(my $i = 0; $i < @$actions; ++$i)
 	{
