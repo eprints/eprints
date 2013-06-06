@@ -178,15 +178,6 @@ sub comment
 	return $self->{repository}->xml->create_comment( @opts );
 }
 
-# sf2 - might get removed
-sub anchor_link
-{
-	my( $self, $name ) = @_;
-
-	return $self->element( 'a', name => $name );
-}
-
-
 =item $DOM = $xhtml->javascript( $code, %attribs )
 
 Return a new DOM "script" element containing $code in javascript. %attribs will
