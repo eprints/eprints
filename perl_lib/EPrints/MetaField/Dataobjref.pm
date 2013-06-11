@@ -155,6 +155,13 @@ sub _dataset
 	return $self->{repository}->dataset( $self->get_property('datasetid') );
 }
 
+sub get_item
+{
+	my ($self, $session, $value) = @_;
+
+	return $self->dataobj($value);
+}
+
 sub dataobj
 {
 	my( $self, $value ) = @_;

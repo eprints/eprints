@@ -347,12 +347,17 @@ sub run_as_item
 {
 	my( $self, $state, $itemref ) = @_;
 
-	if( !$itemref->[1]->isa( "EPrints::MetaField::Itemref" ) )
+	my $field = $itemref->[1];
+
+	if(
+		!UNIVERSAL::isa($field, "EPrints::MetaField::Itemref") &&
+		!UNIVERSAL::isa($field, "EPrints::MetaField::Dataobjref")
+	  )
 	{
-		$self->runtime_error( "can't call as_item on anything but a value of type itemref" );
+		$self->runtime_error( "as_item requires a itemref or dataobjref" );
 	}
 
-	my $object = $itemref->[1]->get_item( $state->{session}, $itemref->[0] );
+	my $object = $field->get_item( $state->{session}, $itemref->[0] );
 
 	return [ $object ];
 }
