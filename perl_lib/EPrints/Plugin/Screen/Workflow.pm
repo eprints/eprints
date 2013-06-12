@@ -275,6 +275,7 @@ sub hidden_bits
 		$self->SUPER::hidden_bits,
 		dataset => $self->{processor}->{dataset}->id,
 		dataobj => $self->{processor}->{dataobj}->id,
+		return_to => scalar($self->repository->param('return_to')),
 	);
 }
 

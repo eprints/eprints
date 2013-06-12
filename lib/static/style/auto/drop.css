@@ -46,3 +46,7 @@
 	background-repeat: no-repeat;
 	background-position: center;
 }
+
+.ep_draggable {
+	cursor: move;
+}
