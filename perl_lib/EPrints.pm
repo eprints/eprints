@@ -74,6 +74,8 @@ my $conf;
 
 BEGIN
 {
+	require Cwd;
+
 	# SystemSettings can be overridden by loading it before EPrints, which is
 	# used by some unit tests
 	if( !defined($EPrints::SystemSettings::conf) )
@@ -87,8 +89,7 @@ BEGIN
 	# set default global configuration values
 	if( !defined $conf->{base_path} )
 	{
-		my $base_path = $INC{'EPrints.pm'};
-		$base_path =~ s#[^/]+/\.\.(/|$)##g;
+		my $base_path = Cwd::realpath($INC{'EPrints.pm'});
 		$base_path =~ s/.perl_lib.EPrints\.pm$//; # ignore / \
 		$conf->{base_path} = $base_path;
 	}
