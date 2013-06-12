@@ -207,7 +207,7 @@ sub wishes_to_export
 {
 	my( $self ) = @_;
 
-	return $self->current_component->wishes_to_export
+	return $self->current_component->wishes_to_export($self->{processor})
 		if $self->current_component;
 
 	return $self->SUPER::wishes_to_export;
@@ -217,7 +217,7 @@ sub export_mimetype
 {
 	my( $self ) = @_;
 
-	return $self->current_component->export_mimetype
+	return $self->current_component->export_mimetype($self->{processor})
 		if $self->current_component;
 
 	return $self->SUPER::export_mimetype;
@@ -227,7 +227,7 @@ sub export
 {
 	my( $self ) = @_;
 
-	return $self->current_component->export
+	return $self->current_component->export($self->{processor})
 		if $self->current_component;
 
 	return $self->SUPER::export;
