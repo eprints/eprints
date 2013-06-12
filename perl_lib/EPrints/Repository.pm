@@ -3012,9 +3012,7 @@ sub render_data_element
 {
 	my( $self, $indent, $elementname, $value, %opts ) = @_;
 
-	return $self->xhtml->data_element( $elementname, $value,
-		indent => $indent,
-		%opts );
+	return $self->xhtml->data_element( $elementname, $value, %opts );
 }
 
 

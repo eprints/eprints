@@ -27,7 +27,14 @@ B<EPrints::XHTML> - XHTML Module
 	$xhtml_dom_node = $xhtml->text_area_field( $name, $value, rows => 4 );
 	$xhtml_dom_node = $xhtml->form( "get", $url );
 
-	$xhtml_dom_node = $xhtml->data_element( $name, $value, indent => 4 );
+	$xhtml_dom_node = $xhtml->fragment;
+	$xhtml_dom_node = $xhtml->element('div', class => 'ep_block');
+	$xhtml_dom_node = $xhtml->text('Hello, World!');
+	$xhtml_dom_node = $xhtml->data_element(
+		'span',
+		'Hello, World!',
+		style => 'text-color: red'
+	);
 
 =head2 tree()
 
@@ -114,13 +121,13 @@ sub new($$)
 	return $self;
 }
 
-=item $node = $xhtml->frag()
+=item $node = $xhtml->fragment()
 
-See XML->create_document_fragment
+See L<EPrints::XML/create_document_fragment>.
 
 =cut
 
-sub frag 
+sub fragment
 { 
 	my( $self ) = @_;
 
@@ -129,7 +136,7 @@ sub frag
 
 =item $node = $xhtml->element()
 
-See XML->create_element
+See L<EPrints::XML/create_element>.
 
 =cut
 
@@ -142,7 +149,7 @@ sub element
 
 =item $node = $xhtml->text()
 
-See XML->create_text_node
+See L<EPrints::XML/create_text_node>.
 
 =cut
 
@@ -155,7 +162,7 @@ sub text
 
 =item $node = $xhtml->cdata()
 
-See XML->create_cdata_section
+See L<EPrints::XML/create_cdata_section>.
 
 =cut
 sub cdata
@@ -167,7 +174,7 @@ sub cdata
 
 =item $node = $xhtml->comment()
 
-See XML->create_comment
+See L<EPrints::XML/create_comment>.
 
 =cut
 
@@ -359,41 +366,15 @@ sub text_area_field
 
 =item $node = $xhtml->data_element( $name, $value, %opts )
 
-Create a new element named $name containing a text node containing $value.
-
-Options:
-	indent - amount of whitespace to indent by
+See L<EPrints::XML/create_data_element>.
 
 =cut
 
 sub data_element
 {
-	my( $self, $name, $value, @opts ) = @_;
+	my( $self, @opts ) = @_;
 
-	my $indent;
-	for(my $i = 0; $i < @opts; $i+=2)
-	{
-		if( $opts[$i] eq 'indent' )
-		{
-			(undef, $indent ) = splice(@opts,$i,2);
-			last;
-		}
-	}
-
-	my $node = $self->element( $name, @opts );
-	$node->appendChild( $self->text( $value ) );
-
-	if( defined $indent )
-	{
-		my $f = $self->frag;
-		$f->appendChild( $self->text(
-			"\n"." "x$indent
-			) );
-		$f->appendChild( $node );
-		return $f;
-	}
-
-	return $node;
+	return $self->{repository}->xml->create_data_element(@opts);
 }
 
 =item $utf8_string = $xhtml->to_xhtml( $node, %opts )
@@ -669,7 +650,7 @@ sub box
 	my $repo = $self->{repository};
 	my $xml = $repo->xml;
 
-	my $frag = $self->frag;
+	my $frag = $self->fragment;
 
 	my $basename = exists $opts{basename} ? $opts{basename} : "ep_box";
 	my $class = exists $opts{class} ? $opts{class} : "ep_summary_box";
@@ -763,7 +744,7 @@ sub tabs
 	my $xml = $repo->xml;
 	my $online = $repo->get_online;
 
-	my $frag = $self->frag;
+	my $frag = $self->fragment;
 
 	my $base_url = exists($opts{base_url}) || !$online ? $opts{base_url} : $repo->current_url( query => 1 );
 	my $basename = exists($opts{basename}) ? $opts{basename} : "ep_tabs";
@@ -896,7 +877,7 @@ sub tree
 
 	$opts{class} = $opts{prefix} if !defined $opts{class};
 
-	my $frag = $self->frag;
+	my $frag = $self->fragment;
 
 	$frag->appendChild( $xml->create_data_element( "div",
 		$self->tree2( $root, %opts ),
@@ -919,7 +900,7 @@ sub tree2
 	my $repo = $self->{repository};
 	my $xml = $repo->xml;
 
-	my $frag = $self->frag;
+	my $frag = $self->fragment;
 	return $frag if !defined $root || !scalar(@$root);
 
 	$opts{render_value} ||= sub { $xml->create_text_node( $_[0] ) };
@@ -1030,7 +1011,7 @@ END
 
 =for COPYRIGHT BEGIN
 
-Copyright 2000-2011 University of Southampton.
+Copyright 2000-2013 University of Southampton.
 
 =for COPYRIGHT END
 
