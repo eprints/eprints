@@ -54,7 +54,8 @@ sub dataobj_to_html_header
 		$links->appendChild( $plugin->{session}->make_element(
 			"meta",
 			name => "eprints.".$_->[0],
-			content => $_->[1] ) );
+			content => $_->[1],
+			%{ $_->[2] || {} } ) );
 		$links->appendChild( $plugin->{session}->make_text( "\n" ));
 	}
 	return $links;
@@ -67,60 +68,36 @@ sub convert_dataobj
 	my @epdata = ();
 	my $dataset = $eprint->get_dataset;
 
-	foreach my $fieldname ( qw/
-creators_name
-creators_id
-editors_name
-editors_id
-type
-datestamp
-lastmod
-metadata_visibility
-latitude
-longitude
-corp_creators
-title
-ispublished
-subjects
-full_text_status
-monograph_type
-pres_type
-keywords
-note
-abstract
-date
-date_type
-series
-publication
-volume
-number
-publisher
-place_of_pub
-pagerange
-pages
-event_title
-event_location
-event_dates
-event_type
-id_number
-patent_applicant
-institution
-department
-thesis_type
-refereed
-isbn
-issn
-book_title
-official_url
-related_url_url
-related_url_type
-referencetext / )
+	foreach my $field ( $dataset->fields )
 	{
-		next unless $dataset->has_field( $fieldname );
+		my $fieldname = $field->name;
+
+		next if( !$field->property( 'export_as_xml' ) ); 
+
+		# export "creators_name" but not "creators"
+		next if( $field->is_virtual && !$field->isa( "EPrints::MetaField::Multilang" ) ); 
+	
+		# export "title" but not "title_text"
+		next if( UNIVERSAL::isa( $field->property('parent'), 'EPrints::MetaField::Multilang' ) );
+	
 		next unless $eprint->is_set( $fieldname );
 		my $field = $dataset->get_field( $fieldname );
 		my $value = $eprint->get_value( $fieldname );
-		if( $field->get_property( "multiple" ) )
+
+		if( $field->isa( "EPrints::MetaField::Multilang" ) )
+		{
+			my( $values, $langs ) =
+				map { $_->get_value( $eprint ) }
+				@{$field->property( "fields_cache" )};
+
+			$values = [$values] if ref($values) ne "ARRAY";
+			$langs = [$langs] if ref($values) ne "ARRAY";
+			foreach my $i (0..$#$values)
+			{
+				push @epdata, [ $fieldname, $values->[$i], { 'xml:lang' => $langs->[$i] } ];
+			}
+		}
+		elsif( $field->get_property( "multiple" ) )
 		{
 			foreach my $item ( @{$value} )
 			{
