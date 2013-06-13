@@ -1257,9 +1257,6 @@ following the same pattern.
 
 eg. Input of 1234 gives "1kB", input of 934 gives "934B".
 
-This is not internationalised, I don't think it needs to be. Let me
-know if this is a problem. support@eprints.org
-
 =cut
 
 ######################################################################
@@ -1268,18 +1265,12 @@ sub human_filesize
 {
 	my( $size_in_bytes ) = @_;
 
-	my $tsize = $size_in_bytes;
-	my $prefixes = [ 'B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB' ];
-	my $i = 0;
-	while(1) {
-		### Modified by QUT, 20130521: converted to SI
-		last if( $tsize < 1000 || $i >= scalar( @$prefixes ) - 1 );
-		$tsize =  int( $tsize / 1000 );
-		$i++;
-	}
+	return "0B" if $size_in_bytes == 0;
 
-	$tsize .= $prefixes->[$i];
-	return $tsize;
+	my @prefixes = qw( B kB MB GB TB PB EB );
+
+	my $i = int(log(abs($size_in_bytes))/log(1000));
+	return int($size_in_bytes / 1000 ** $i) . $prefixes[$i];
 }
 
 my %REQUIRED_CACHE;
