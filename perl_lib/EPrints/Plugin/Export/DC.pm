@@ -65,7 +65,8 @@ sub dataobj_to_html_header
 		$links->appendChild( $plugin->{session}->make_element(
 			"meta",
 			name => "DC.".$_->[0],
-			content => $_->[1] ) );
+			content => $_->[1],
+			%{ $_->[2] || {} } ) );
 		$links->appendChild( $plugin->{session}->make_text( "\n" ));
 	}
 	return $links;
