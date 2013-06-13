@@ -1265,12 +1265,12 @@ sub human_filesize
 {
 	my( $size_in_bytes ) = @_;
 
-	return "0B" if $size_in_bytes == 0;
+	return "0B" if $size_in_bytes <= 0;
 
-	my @prefixes = qw( B kB MB GB TB PB EB );
+	my @units_prefix = qw( B kB MB GB TB PB EB );
 
-	my $i = int(log(abs($size_in_bytes))/log(1000));
-	return int($size_in_bytes / 1000 ** $i) . $prefixes[$i];
+	my $i =  int( ( length( $size_in_bytes ) - 1 ) / 3 );
+	return int( $size_in_bytes / 1000 ** $i ) . $units_prefix[$i];
 }
 
 my %REQUIRED_CACHE;
