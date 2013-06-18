@@ -251,7 +251,7 @@ sub render_content
 	}
 
 	my $panel = $session->make_element( "div",
-		id=>$self->{prefix},
+		id=>$self->{prefix}."_panel",
 	);
 	$f->appendChild( $panel );
 
