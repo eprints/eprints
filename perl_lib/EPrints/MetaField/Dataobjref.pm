@@ -53,7 +53,8 @@ sub get_property_defaults
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{datasetid} = $EPrints::MetaField::REQUIRED;
-	$defaults{text_index} = 0;
+	$defaults{match} = "IN";
+	$defaults{text_index} = 1;
 	return %defaults;
 }
 
@@ -217,6 +218,52 @@ sub render_input_field_actual
 	return $f;
 }
 
+sub get_search_conditions
+{
+	return shift->EPrints::MetaField::Subobject::get_search_conditions(@_);
+}
+
+# Compound ignores get_index_codes()
+sub get_index_codes
+{
+	return shift->EPrints::MetaField::get_index_codes(@_);
+}
+
+sub get_index_codes_basic
+{
+	my( $self, $session, $value ) = @_;
+
+	my @codes;
+
+	my $dataobj = $self->dataobj($value);
+
+	if (defined $dataobj)
+	{
+		my $dataset = $dataobj->{dataset};
+		foreach my $field ($dataset->fields)
+		{
+			my ($codes) = $field->get_index_codes(
+				$session,
+				$field->get_value($dataobj)
+			);
+			push @codes, @$codes;
+		}
+	}
+	else
+	{
+		foreach my $field (@{$self->property('fields_cache')})
+		{
+			my ($codes) = $field->get_index_codes_basic(
+				$session,
+				$value->{$field->property('sub_name')}
+			);
+			push @codes, @$codes;
+		}
+	}
+
+	return( \@codes, [], [] );
+}
+
 ######################################################################
 1;
 
@@ -224,7 +271,7 @@ sub render_input_field_actual
 
 =for COPYRIGHT BEGIN
 
-Copyright 2000-2011 University of Southampton.
+Copyright 2000-2013 University of Southampton.
 
 =for COPYRIGHT END
 
