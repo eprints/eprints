@@ -110,7 +110,10 @@ sub joins
 		{
 			return ();
 		}
-		elsif( $self->{field}->isa( "EPrints::MetaField::Compound" ) )
+		elsif( 
+			$self->{field}->isa( "EPrints::MetaField::Compound" ) &&
+			!$self->{field}->isa( "EPrints::MetaField::Dataobjref" )
+		)
 		{
 			my @joins;
 			foreach my $f (@{$self->{field}->property( "fields_cache" )})
