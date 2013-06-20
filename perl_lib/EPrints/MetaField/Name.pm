@@ -29,6 +29,25 @@ use EPrints::MetaField::Multipart;
 
 use strict;
 
+sub new
+{
+	my ($class, %params) = @_;
+
+	my $self = $class->SUPER::new(%params);
+
+	# override field input_cols
+	if (defined(my $cols = $self->property('input_name_cols')))
+	{
+		foreach my $name (keys %$cols)
+		{
+			my $field = $self->{fields_index}->{$name};
+			$field->set_property('input_cols', $cols->{$name});
+		}
+	}
+
+	return $self;
+}
+
 # index the family part only...
 sub get_sql_index
 {
