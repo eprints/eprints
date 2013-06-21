@@ -135,11 +135,18 @@ sub get_controls_before
 sub hidden_bits
 {
 	my( $self ) = @_;
+	
+	my %bits = $self->SUPER::hidden_bits;
 
-	return(
-		$self->SUPER::hidden_bits,
-		dataset => $self->{processor}->{dataset}->id
-	);
+	my @datasets = $self->datasets;
+
+	# if there's more than 1 dataset, then the search form will render the list of "search-able" datasets - see render_dataset below
+	if( scalar( @datasets ) < 2 )
+	{
+		$bits{dataset} = $self->{processor}->{dataset}->id;
+	}
+
+	return %bits;
 }
 
 sub render_result_row
