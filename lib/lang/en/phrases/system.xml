@@ -1601,6 +1601,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
     <epp:phrase id="lib/searchfield:help_namedset">Select one or more values from the list, and whether you want to search for records with any one or all of those values. Default is (Any).</epp:phrase>
     <epp:phrase id="lib/searchfield:help_username">Enter one or more usernames (space separated) and whether you want to search for records with any one or all of those values. Default is (Any).</epp:phrase>
     <epp:phrase id="lib/searchfield:help_text">Enter a term or terms to search for.</epp:phrase>
+    <epp:phrase id="lib/searchfield:help_multilang">Enter a term or terms to search for.</epp:phrase>
     <epp:phrase id="lib/searchfield:help_id">Enter an exact term to search for.</epp:phrase>
     <epp:phrase id="lib/searchfield:help_fulltext">Enter a term or terms to search for.</epp:phrase>
     <epp:phrase id="lib/searchfield:help_url">Enter some text to search for.</epp:phrase>
