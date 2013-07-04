@@ -214,7 +214,7 @@ sub _filename
 	if( !defined $filename )
 	{
 		$filename = $fileobj->get_value( "filename" );
-		$filename = escape_filename( $filename );
+		$filename = $self->escape_filename( $filename );
 	}
 
 	my $in_file;
@@ -251,7 +251,7 @@ sub _filename
 
 sub escape_filename
 {
-	my( $filename ) = @_;
+	my( $self, $filename ) = @_;
 
 	# $filename is UTF-8
 	$filename =~ s# /\.+ #/_#xg; # don't allow hiddens
