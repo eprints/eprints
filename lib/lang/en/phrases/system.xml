@@ -1323,6 +1323,8 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 	
 	<epp:phrase id="Plugin/Screen/Admin/StorageManager:a_local_disk_storage">Local Disk Storage</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/StorageManager:a_local_disk_storage_pic"></epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:a_epm_disk_storage">Bazaar Packages</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:a_epm_disk_storage_pic"></epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/StorageManager:m_local_archival_storage">Archival Storage</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/StorageManager:m_local_archival_storage_pic"></epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/StorageManager:z_cloud_storage">Cloud Storage Platforms</epp:phrase>
