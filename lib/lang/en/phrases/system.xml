@@ -3006,7 +3006,9 @@ PY = 2006 and OG = (Cambridge)<br />
     <epp:phrase id="Plugin/Screen/Subject/Edit:added">Created new subject node with ID "<epc:pin name="newchild" />". Please now enter a subject name and set the subject to be depositable, if applicable.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:linked">Linked the existing subject node "<epc:pin name="newchild" />" as a child of this subject node.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:description">Modify the subject tree(s)</epp:phrase>
-	<epp:phrase id="Plugin/Screen/Subject/Edit:confirm_form">Unlinking this subject will cause it to be permanently deleted. Are you sure you want to do this? <epc:pin name="form" /></epp:phrase>
+    <epp:phrase id="Plugin/Screen/Subject/Edit:confirm_form">Deleting <strong><epc:pin name="child"/></strong><br />
+        Unlinking this subject will cause it to be permanently deleted. Are you sure you want to do this? <epc:pin name="form" />
+    </epp:phrase>
 
 
     <!-- other screens -->
