@@ -510,26 +510,16 @@ sub split_value
 {
 	my( $self, $value ) = @_;
 
-	my @values = EPrints::Index::Tokenizer::split_search_value( 
-		$self->{"repository"},
-		$value );
-	# unless we strip stop-words 'the' will get passed through to name
-	# matches causing no results (doesn't help in the search description)
-	my $freetext_stop_words = $self->{repository}->config(
-			"indexing",
-			"freetext_stop_words"
-		);
-	my $freetext_always_words = $self->{repository}->config(
-			"indexing",
-			"freetext_always_words"
-		);
-	@values = grep {
-			EPrints::Utils::is_set( $_ ) &&
-			($freetext_always_words->{lc($_)} ||
-			!$freetext_stop_words->{lc($_)})
-		} @values;
+	my $index_start = $value =~ s/\*$//;
 
-	return @values;
+	my ($codes, $badwords) = $self->{repository}->call("extract_words", $self->{repository}, $value);
+
+	if (@$codes == 1)
+	{
+		$codes->[0] .= '*' if $index_start;
+	}
+
+	return @$codes;
 }
 
 ######################################################################
