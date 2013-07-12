@@ -6,6 +6,8 @@
 .ep_sr_component {
 	padding: 0px;
 	margin-top: 10px;
+	border-width: 1px;
+	border-style: solid;
 }
 .ep_sr_component .ep_sr_title_bar {
 	padding: 2px 6px 2px 6px; 
@@ -21,8 +23,6 @@
 .ep_sr_component .ep_sr_content {
 	clear: both;
 	padding: 6px;
-	border-style: none solid solid solid;
-	border-width: 1px;
 }
 
 /* collapse bar */
@@ -31,9 +31,6 @@
 	padding: 2px 6px 2px 6px; 
 	font-weight: bold;
 	font-size: 115%;
-	margin-top: 10px;
-	border-style: solid;
-	border-width: 1px;
 }
 .ep_sr_collapse_bar a {
 	text-decoration: none;
@@ -64,8 +61,8 @@
 	text-decoration: none;
 }	
 .ep_sr_component .ep_sr_title_bar {
-	border-style: solid;
-	border-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-width: 1px;
 }
 .ep_sr_show_help img {
 	vertical-align: -2px;

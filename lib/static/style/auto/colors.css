@@ -126,6 +126,7 @@ h1, h2, h3, h4 {
 }
 .ep_summary_box_title, .ep_summary_box_body, .ep_sr_title_bar, .ep_sr_content, .ep_sr_collapse_bar
 ,.ep_tab_panel, .ep_tab_bar li, .ep_tab_bar li a
+,.ep_sr_component /* surround.css */
 ,.ep_toolbox_content /* toolbox.css */
 ,.ep_upload_doc /* upload.css */
 {
