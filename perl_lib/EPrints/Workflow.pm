@@ -147,6 +147,9 @@ sub new
 	$self->{workflow_id} = $workflow_id;
 	$self->{processor} = $params{processor};
 
+	Scalar::Util::weaken($self->{processor})
+		if defined &Scalar::Util::weaken;
+
 	$params{session} = $session;
 	$params{current_user} = $session->current_user;
 	$self->{user} = $params{current_user};

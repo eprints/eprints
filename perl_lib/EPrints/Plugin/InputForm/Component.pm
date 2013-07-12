@@ -49,11 +49,17 @@ sub new
 	my( $class, %opts ) = @_;
 
 	$opts{problems} = [] if !exists $opts{problems};
+	$self->{name} = "Base component plugin: This should have been subclassed";
+	$self->{visible} = "all";
 
 	my $self = $class->SUPER::new( %opts );
 
-	$self->{name} = "Base component plugin: This should have been subclassed";
-	$self->{visible} = "all";
+	if( defined &Scalar::Util::weaken )
+	{
+		Scalar::Util::weaken($self->{workflow});
+		Scalar::Util::weaken($self->{processor});
+	}
+
 	# don't have a config when we first load this to register it as a plugin class
 	if( defined $opts{xml_config} )
 	{

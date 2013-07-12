@@ -154,9 +154,8 @@ sub redirect_to_me_url
 {
 	my( $self ) = @_;
 
-	my $url = $self->SUPER::redirect_to_me_url;
-	$url .= "&dataset=".$self->{processor}->{dataset}->id if defined $self->{processor}->{dataset};
-	$url .= "&dataobj=".$self->{processor}->{dataobj}->id if defined $self->{processor}->{dataobj};
+	my $url = URI->new($self->SUPER::redirect_to_me_url);
+	$url->query_form($self->hidden_bits);
 
 	return $url;
 }
@@ -194,6 +193,7 @@ sub workflow
  		$self->{processor}->{$cache_id} = EPrints::Workflow->new( $self->{session}, $workflow_id,
 			item => $self->{processor}->{"dataobj"},
 			STAFF_ONLY => [$staff ? "TRUE" : "FALSE", "BOOLEAN"],
+			processor => $self->{processor},
 		);
 	}
 
