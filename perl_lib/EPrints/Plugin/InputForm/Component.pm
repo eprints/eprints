@@ -54,6 +54,12 @@ sub new
 
 	my $self = $class->SUPER::new( %opts );
 
+	if( defined &Scalar::Util::weaken )
+	{
+		Scalar::Util::weaken($self->{workflow});
+		Scalar::Util::weaken($self->{processor});
+	}
+
 	# don't have a config when we first load this to register it as a plugin class
 	if( defined $opts{xml_config} )
 	{
