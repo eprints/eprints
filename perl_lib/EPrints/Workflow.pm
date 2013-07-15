@@ -475,7 +475,7 @@ sub link_problem_xhtml
 			my $url = URI->new( $self->{session}->current_url );
 			$url->query_form(
 				screen => $screenid,
-				dataset => $self->{dataset}->id,
+				dataset => $self->{dataset}->base_id,
 				dataobj => $self->{item}->id,
 				$kf_sql => $self->{item}->id,
 				stage => $stage
