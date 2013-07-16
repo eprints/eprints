@@ -182,6 +182,10 @@ sub render_single_value
 	{
 		return EPrints::Time::render_short_date( $session, substr( $value,0,$l ) );
 	}
+	elsif( $self->{render_style} eq "dow" )
+	{
+		return EPrints::Time::render_date_with_dow( $session, substr( $value,0,$l ) );
+	}
 	return EPrints::Time::render_date( $session, substr( $value,0,$l ) );
 }
 	
@@ -356,7 +360,7 @@ sub get_value_label
 {
 	my( $self, $session, $value ) = @_;
 
-	return EPrints::Time::render_date( $session, $value );
+	return $self->render_single_value( $session, $value );
 }
 
 sub render_search_input
