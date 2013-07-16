@@ -314,6 +314,47 @@ sub short_month_label
 	return $session->phrase( $code );
 }
 
+
+=item $label = EPrints::Time::dow_label( $repo, $dowid )
+
+Return a UTF-8 string of a short representation of the day of the week, in the current lanugage.
+
+$dowid is an integer from 1 to 7.
+
+=cut
+
+sub dow_label
+{
+	my( $session, $dowid ) = @_;
+	
+	my $code = sprintf( "lib/utils:dow_%01d", $dowid );
+
+	return $session->phrase( $code );
+}
+
+=back
+
+=head2 Rendering
+
+=over 4
+
+=item $xhtml = EPrints::Time::render_date_with_dow( $repo, $value )
+
+Same as L<EPrints::Time::render_date> but adds the day of the week.
+
+Month and DoW names are taken from the current repository language.
+
+E.g.
+
+	Tuesday 16 July 2013
+=cut
+
+sub render_date_with_dow
+{
+	my( $session, $datevalue ) = @_;
+	return _render_date( $session, $datevalue, 0, 1 );
+}
+
 =back
 
 =head2 Rendering
@@ -333,7 +374,6 @@ E.g.
 	1954 # no month/day
 
 =cut
-######################################################################
 
 sub render_date
 {
@@ -365,7 +405,7 @@ sub render_short_date
 
 sub _render_date
 {
-	my( $session, $datevalue, $short ) = @_;
+	my( $session, $datevalue, $short, $dow ) = @_;
 
 	if( !defined $datevalue )
 	{
@@ -400,6 +440,12 @@ sub _render_date
 	if( @l > 2 )
 	{
 		$r = ($short ? sprintf( "%02d", $day ) : 0+$day)." $r";
+	
+		# we can only render the day of the week if we have values for year, month and day
+		if( defined $dow && $dow )
+		{
+			$r = dow_label( $session, strftime( "%u", 0, 0, 0, $day, $mon - 1, $year - 1900, -1, -1, -1 ) ) . " " . $r;
+		}
 	}
 
 	if( @l > 3 )

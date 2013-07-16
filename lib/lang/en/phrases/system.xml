@@ -1857,6 +1857,14 @@ Enter a URL to capture a file from: <epc:pin name="url"/><br/>
     <epp:phrase id="lib/utils:month_11">November</epp:phrase>
     <epp:phrase id="lib/utils:month_12">December</epp:phrase>
 
+    <epp:phrase id="lib/utils:dow_1">Monday</epp:phrase>
+    <epp:phrase id="lib/utils:dow_2">Tuesday</epp:phrase>
+    <epp:phrase id="lib/utils:dow_3">Wednesday</epp:phrase>
+    <epp:phrase id="lib/utils:dow_4">Thursday</epp:phrase>
+    <epp:phrase id="lib/utils:dow_5">Friday</epp:phrase>
+    <epp:phrase id="lib/utils:dow_6">Saturday</epp:phrase>
+    <epp:phrase id="lib/utils:dow_7">Sunday</epp:phrase>
+
 <!--********************************************************************** 
 User Area CGI Scripts
 ***********************************************************************-->
@@ -2301,13 +2309,13 @@ Public CGI Scripts
     <epp:phrase id="cgi/latest:none"><p>Nothing new in the last 7 days.</p></epp:phrase>
     <epp:phrase id="cgi/latest:today">Today</epp:phrase>
     <epp:phrase id="cgi/latest:yesterday">Yesterday</epp:phrase>
-    <epp:phrase id="cgi/latest:day_0">Sunday</epp:phrase>
-    <epp:phrase id="cgi/latest:day_1">Monday</epp:phrase>
-    <epp:phrase id="cgi/latest:day_2">Tuesday</epp:phrase>
-    <epp:phrase id="cgi/latest:day_3">Wednesday</epp:phrase>
-    <epp:phrase id="cgi/latest:day_4">Thursday</epp:phrase>
-    <epp:phrase id="cgi/latest:day_5">Friday</epp:phrase>
-    <epp:phrase id="cgi/latest:day_6">Saturday</epp:phrase>
+    <epp:phrase id="cgi/latest:day_0" ref="lib/utils:dow_7"/>
+    <epp:phrase id="cgi/latest:day_1" ref="lib/utils:dow_1"/>
+    <epp:phrase id="cgi/latest:day_2" ref="lib/utils:dow_2"/>
+    <epp:phrase id="cgi/latest:day_3" ref="lib/utils:dow_3"/>
+    <epp:phrase id="cgi/latest:day_4" ref="lib/utils:dow_4"/>
+    <epp:phrase id="cgi/latest:day_5" ref="lib/utils:dow_5"/>
+    <epp:phrase id="cgi/latest:day_6" ref="lib/utils:dow_6"/>
 
 <!-- latest_tool -->
 
