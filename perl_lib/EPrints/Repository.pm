@@ -1640,7 +1640,7 @@ sub call
 	}
 	if( $@ )
 	{
-		print "$@\n";
+		print "Error during call to '$cmd' at ".join(':', (caller)[1,2]).": $@\n";
 		exit 1;
 	}
 	return wantarray ? @r : $r;
