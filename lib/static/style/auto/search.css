@@ -93,3 +93,12 @@
 	font-weight: bold;
 	margin-top: 0.5em;
 }
+
+input.ep_form_search_advanced_link {
+        border: none;
+        text-decoration: underline;
+        background: none;
+        color: #00f;
+        cursor: pointer;
+}
+

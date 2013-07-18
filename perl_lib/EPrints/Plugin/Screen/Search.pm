@@ -321,8 +321,7 @@ sub render_simple_form
 		type => "submit",
 		name => "_action_advanced",
 		value => $self->{session}->phrase( "lib/searchexpression:advanced_link" ),
-		style => "border: none; text-decoration: underline; background: none; color: #00f; cursor: pointer; font-size: 80%;",
-#		class => "ep_form_action_button",
+		class => "ep_form_action_button ep_form_search_advanced_link",
 	);
 	$form->appendChild( $input );
 
