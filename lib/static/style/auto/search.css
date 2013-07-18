@@ -94,7 +94,7 @@
 	margin-top: 0.5em;
 }
 
-input.ep_form_search_advanced_link {
+input.ep_form_search_advanced_link, input.ep_form_search_advanced_link:hover {
         border: none;
         text-decoration: underline;
         background: none;
