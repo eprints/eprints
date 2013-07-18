@@ -1684,6 +1684,11 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 	<epp:phrase id="lib/paginate:move_right">Move Right</epp:phrase>
 	<epp:phrase id="lib/paginate:remove_column">Remove Column</epp:phrase>
 
+
+<!-- Search screens -->
+
+<epp:phrase id="Plugin/Search/Xapian:results:title">Search results for <span class="search_desc"><epc:pin name="q"/></span></epp:phrase>
+
 <!-- Subject -->
 
     <epp:phrase id="lib/subject:top_level">(Top Level)</epp:phrase>

@@ -659,7 +659,9 @@ sub render_conditions_description
 {
 	my( $self ) = @_;
 
-	return $self->{session}->make_text( $self->{q} );
+	return $self->html_phrase( 'results:title', 
+		q => $self->{repository}->make_text( $self->{q} ) 
+	);
 }
 
 package EPrints::Plugin::Search::Xapian::ResultSet;

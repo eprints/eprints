@@ -102,3 +102,6 @@ input.ep_form_search_advanced_link {
         cursor: pointer;
 }
 
+span.search_desc {
+	font-style: italic;
+}
