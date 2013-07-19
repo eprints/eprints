@@ -242,6 +242,10 @@ sub get_index_codes_basic
 		my $dataset = $dataobj->{dataset};
 		foreach my $field ($dataset->fields)
 		{
+			# avoids deep recursion if we have a circular relationship
+			next if( $field->isa( "EPrints::MetaField::Dataobjref" ) && 
+					$field->dataset->id eq $self->_dataset->id );
+
 			my ($codes) = $field->get_index_codes(
 				$session,
 				$field->get_value($dataobj)

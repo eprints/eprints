@@ -17,7 +17,7 @@ Create a file in C<Plugins/Export/XSLT/> called 'Title.xsl' containing:
 		ept:visible="all"
 		ept:advertise="1"
 		ept:accept="list/eprint dataobj/eprint"
-		ept:mime_type="application/xml; charset=utf-8"
+		ept:mimetype="application/xml; charset=utf-8"
 		ept:qs="0.1"
 		xmlns:ept="http://eprints.org/ep2/xslt/1.0"
 		xmlns:ep="http://eprints.org/ep2/data/2.0"

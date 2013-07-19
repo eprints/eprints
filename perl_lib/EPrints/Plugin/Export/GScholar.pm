@@ -26,7 +26,7 @@ sub new
 	$self->{visible} = "staff";
 	$self->{advertise} = 0;
 	$self->{suffix} = ".txt";
-	$self->{mime_type} = "text/plain";
+	$self->{mimetype} = "text/plain";
 
 	if( defined($self->{session}) && !$self->{session}->get_repository->get_dataset( "eprint" )->has_field( "gscholar" ) )
 	{
