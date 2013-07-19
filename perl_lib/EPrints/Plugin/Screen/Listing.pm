@@ -326,7 +326,8 @@ sub apply_user_filters
 		$self->{processor}->{search}->add_field( fields => $sf->get_fields, 
 			value => $sf->get_value, 
 			match => $sf->get_match, 
-			merge => $sf->get_merge 
+			merge => $sf->get_merge,
+			id => $sf->get_id,
 		);
 	}
 }
