@@ -49,8 +49,8 @@ sub new
 	my( $class, %opts ) = @_;
 
 	$opts{problems} = [] if !exists $opts{problems};
-	$self->{name} = "Base component plugin: This should have been subclassed";
-	$self->{visible} = "all";
+	$opts{name} = "Base component plugin: This should have been subclassed" if !exists $opts{name};
+	$opts{visible} = "all" if !exists $opts{visible};
 
 	my $self = $class->SUPER::new( %opts );
 
