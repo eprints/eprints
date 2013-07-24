@@ -73,7 +73,7 @@ pushd %{_eppackage}
 mkdir -p ${RPM_BUILD_ROOT}%{_epbase_path}
 echo 'Installing into:'
 echo $RPM_BUILD_ROOT%{_epbase_path}
-DESTDIR=$RPM_BUILD_ROOT%{_epbase_path}
+DESTDIR=$RPM_BUILD_ROOT
 export DESTDIR
 make install
 popd
