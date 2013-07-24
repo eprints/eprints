@@ -1,8 +1,109 @@
+=for Pod2Wiki
+
 =head1 NAME
 
-EPrints::Plugin::Search::Xapian
+EPrints::Plugin::Search::Xapian - simple searches
+
+=head1 SYNOPSIS
+
+	# 'q' is shown here for demonstration and may change in future!
+	$searchexp = $repo->plugin('Search::Xapian',
+		dataset => $repo->dataset('archive'),
+		search_fields => [{
+			meta_fields => [qw( title )],
+		}],
+		q => 'title:(ameri* eagle)',
+	);
+	
+	$list = $searchexp->execute;
+	
+	warn 'About ' . $list->count . ' matches';
+	$list->map(sub {
+		...
+	});
+
+=head1 DESCRIPTION
+
+	Xapian is a highly adaptable toolkit which allows developers to easily add
+	advanced indexing and search facilities to their own applications. It supports
+	the Probabilistic Information Retrieval model and also supports a rich set of
+	boolean query operators.
+
+Xapian simple searches are parsed by the Xapian query parser which supports prefixes for search terms:
+
+	title:(eagle buzzard) abstract:"london wetlands"
+
+The field prefixes are taken from the search configuration and constrain the following term (or bracketed terms) to that field only. If no prefix is given the entire Xapian index will be used i.e. it will search any indexed term, not just those from the search configuration fields. For example, the following simple search configuration:
+
+	search_fields => [
+		{
+			id => "q",
+			   meta_fields => [
+				   "documents",
+				   "title",
+				   "abstract",
+				   "creators_name",
+				   "date"
+			   ]
+		},
+	],
+
+Allows the user to specify "documents", "title", "abstract", "creators_name" or "date" as a prefix to a search term. Omitting a prefix will match any field e.g. "publisher".
+
+Terms can be negated by prefixing the term with '-':
+
+	eagle -buzzard
+
+Phrases can be specified by using quotes, for example  "Southampton University" won't match I<University of Southampton>.
+
+Terms are stemmed by default ('bubbles' becomes 'bubble') except if you use the term in a phrase.
+
+Partial matches are supported by using '*':
+
+	ameri* - americans, americas, amerillo etc.
+
+Xapian search results are returned in a sub-class of L<EPrints::List> (a wrapper around a Xapian enquire object). Calling L<EPrints::List/count> will return an B<estimate> of the total matches.
+
+As Xapian has a higher 'qs' score than Internal it will (once enabled) override the default EPrints simple search. You can override this behaviour in B<cfg.d/plugins.pl>:
+
+	$c->{plugins}{'Search::Xapian'}{params}{qs} = .1;
+
+Or disable completely (including disabling indexing):
+
+	$c->{plugins}{'Search::Xapian'}{params}{disable} = 1;
+
+=head1 USAGE
+
+Install the L<Search::Xapian> extension. Note: there are two Perl bindings available for Xapian. The CPAN version is older and based on Perl-XS. xapian-bindings-perl available from xapian.org is based on SWIG and has better coverage of the API. Regardless, for the best feature support/performance it is highly recommended to have the latest stable version of the Xapian library.
+
+Xapian uses a separate (from MySQL) index that is stored in F<archives/[archiveid]/var/xapian>. To build the Xapian index you will need to reindex:
+
+	./bin/epadmin reindex [archiveid] eprint
+
+(Repeat for any other datasets you expect to use Xapian with.)
+
+The F</var/xapian/> directory should contain something like:
+
+	flintlock  position.baseA  position.DB     postlist.baseB  record.baseA  record.DB       termlist.baseB
+	iamchert   position.baseB  postlist.baseA  postlist.DB     record.baseB  termlist.baseA  termlist.DB
+
+The indexing process for Xapian is in F<lib/cfg.d/search_xapian.pl>. This can be overridden by dropping the same-named file into your repository F<cfg.d/>. If the Xapian search is not matching what you might expect it to, you probably need to fix the indexing process (and re-index!). Terms indexed by Xapian can also be weighted to e.g. give names a higher weighting than abstract text.
+
+You will need to restart your Apache server to enable the Xapian search plugin and dependencies.
+
+If the Xapian search is working correctly you will have a "by relevance" option available in the ordering of simple search results.
+
+=head2 Lock Files
+
+Xapian maintains a lock file in F<var/xapian>. If you see indexing errors about not being able to lock the database ensure you aren't running multiple copies of the EPrints L<indexer|bin/indexer>. If no other processes are running you may need to manually remove the lock file from the F<var/xapian> directory. While only one process may modify the Xapian index at a time, any number of processes may concurrently read.
 
 =head1 PARAMETERS
+
+All but the first C<search_field> entry are ignored.
+
+Filters are applied as boolean terms, so complex matches like names won't work.
+
+Ordervalues are supported.
 
 =over 4
 
