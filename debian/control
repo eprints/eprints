@@ -1,7 +1,7 @@
 Source: eprints
 Section: web
 Priority: extra
-Maintainer: Tim Brody <tdb2@ecs.soton.ac.uk>
+Maintainer: EPrints Software <software@eprints.org>
 Build-Depends: debhelper (>= 8.0.0), autotools-dev
 Standards-Version: 3.9.2
 Homepage: http://www.eprints.org/
