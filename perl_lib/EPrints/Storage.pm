@@ -1,34 +1,55 @@
-######################################################################
-#
-# EPrints::Storage
-#
-######################################################################
-#
-#
-######################################################################
-
-
-=pod
-
 =for Pod2Wiki {{API:Unstable}}
 
 =head1 NAME
 
-B<EPrints::Storage> - store and retrieve objects in the storage engine
+EPrints::Storage - manage data streams in storage devices (storage layer)
 
 =head1 SYNOPSIS
 
-	my $store = $repository->storage();
+=for verbatim_lang perl
 
+	my $store = $repository->storage();
+	
+	$str = "Hello, World!";
+	open(my $fh, "<", \$str);
+	$f = sub {
+		read($fh, my $buffer, 6); # just to demonstrate!
+		return $buffer;
+	};
 	$store->store(
 		$fileobj,		# file object
-		"diddle.pdf",	# filename
-		$fh				# file handle
+		$f,				# callback
+		1024,			# offset
 	);
 
 =head1 DESCRIPTION
 
+Unless you are directly manipulating how data streams are stored you should use the methods for retrieving and writing data available from L<EPrints::DataObj::File>.
+
 This module is the storage control layer which uses L<EPrints::Plugin::Storage> plugins to support various storage back-ends. It enables the storage, retrieval and deletion of data streams. The maximum size of a stream is dependent on the back-end storage mechanism.
+
+Storage works on L<EPrints::DataObj::File> objects, which record the size of the data stream and where it has been stored. Unless a specific storage back-end is used, where a file is stored depends on the storage policy which is located in F<lib/storage/default.xml>:
+
+=for verbatim_lang xml
+
+	<store xmlns="http://eprints.org/ep3/storage" xmlns:epc="http://eprints.org/ep3/control">
+	<epc:choose>
+		<epc:when test="datasetid = 'document'">
+			<plugin name="Local"/>
+		</epc:when>
+		<epc:otherwise>
+			<plugin name="Local"/>
+		</epc:otherwise>
+	</epc:choose>
+	</store>
+
+The storage policy is a EP-script file that resolves to a list of one or more "plugin" elements. When storing, all matching plugins will be given the data stream to store (i.e. multiple copies). When retrieving, the first plugin to be successfully opened for reading will be used. The item context used when the storage policy is evaluated is the L<EPrints::DataObj::File>.
+
+=head2 Callbacks
+
+Writing to and retrieving from data streams makes use of callback functions. This allows data to be streamed (to avoid memory overheads) and for flexibility in where data is going.
+
+For details on the callback API see L<EPrints::DataObj::File/get_file> and L<EPrints::DataObj::File/set_file> for retrieving and writing respectively.
 
 =head1 METHODS
 
@@ -124,11 +145,11 @@ sub _config
 
 =item $len = $store->store( $fileobj, CODEREF [, $offset ] )
 
-Read from and store all data from CODEREF for $fileobj.
+Read from and store all data from CODEREF for $fileobj. If $offset is given starts writing from that point onwards.
 
 Behaviour is undefined if an attempt is made to write beyond $fileobj's B<filesize>.
 
-Returns undef if the file couldn't be stored, otherwise the number of bytes actually written.
+Returns the number of bytes written or undef if an error occurred.
 
 =cut
 
@@ -215,7 +236,7 @@ sub delete
 
 =item $ok = $store->delete_copy( $plugin, $fileobj )
 
-Delete the copy of this file stored in $plugin.
+Delete the copy of this file stored in the storage layer L<$plugin|EPrints::Plugin::Storage>.
 
 =cut
 
@@ -296,6 +317,8 @@ sub get_local_copy
 
 =item $url = $store->get_remote_copy( $fileobj )
 
+Some storage back-ends may provide direct Web access to the data stream (e.g. Amazon S3). If the back-end supports this, a user can be redirected to the storage back-end rather than downloading the file from EPrints. Internally, EPrints will always use the L</retrieve> method.
+
 Returns a URL from which this file can be accessed.
 
 Returns undef if this file is not available via another service.
@@ -321,7 +344,7 @@ sub get_remote_copy
 
 =item @plugins = $store->get_plugins( $fileobj )
 
-Returns the L<EPrints::Plugin::Storage> plugin(s) to use for $fileobj. If more than one plugin is returned they should be used in turn until one succeeds.
+Returns the L<EPrints::Plugin::Storage> plugin(s) available to use for $fileobj, based on the storage policy. If more than one plugin is returned they should be used in turn until one succeeds.
 
 =cut
 
@@ -356,7 +379,7 @@ sub get_plugins
 
 =item $ok = $store->copy( $plugin, $fileobj )
 
-Copy the contents of $fileobj into another storage $plugin.
+Copy the contents of $fileobj into another storage $plugin. This uses L</retrieve> and L</store>.
 
 Returns 1 on success, 0 on failure and -1 if a copy already exists in $plugin.
 
@@ -394,6 +417,8 @@ sub copy
 =item $ok = $storage->open_write( $fileobj [, $offset ] )
 
 Start a write session for $fileobj. $fileobj must have at least the "filesize" property set (which is the total number of bytes that will be written).
+
+Don't forget to L</close_write> otherwise the handle to the write will be left open.
 
 =cut
 

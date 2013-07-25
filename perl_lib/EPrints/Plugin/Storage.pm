@@ -1,6 +1,27 @@
+=for Pod2Wiki
+
 =head1 NAME
 
 EPrints::Plugin::Storage
+
+=head1 SYNOPSIS
+
+=for verbatim_lang perl
+
+	$plugin = $repo->plugin('Storage::Local');
+	$plugin->open_write($fileobj) or die;
+	$plugin->write('Hello, World!');
+	$plugin->close_write() or die;
+
+=head1 DESCRIPTION
+
+See L<EPrints::Storage> for information on using the storage layer.
+
+You shouldn't need to use a storage plugin directly.
+
+=head1 METHODS
+
+=over 4
 
 =cut
 
@@ -64,6 +85,8 @@ sub store
 Retrieve $n bytes of data starting at $offset from the data stored for $fileobj identified by $sourceid.
 
 CALLBACK = $rc = &f( BYTES )
+
+Note: this API may change in future to reflect the open_write/write/close_write mechanism.
 
 =cut
 
@@ -171,6 +194,8 @@ sub close_write
 }
 
 1;
+
+=back
 
 =head1 COPYRIGHT
 

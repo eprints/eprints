@@ -1,19 +1,8 @@
-######################################################################
-#
-# EPrints::DataObj::File
-#
-######################################################################
-#
-#
-######################################################################
-
-=pod
-
 =for Pod2Wiki
 
 =head1 NAME
 
-B<EPrints::DataObj::File> - a stored file
+EPrints::DataObj::File - a stored file
 
 =head1 DESCRIPTION
 
@@ -309,8 +298,6 @@ sub get_dataset_id
 ######################################################################
 
 =head2 Object Methods
-
-=over 4
 
 =cut
 
@@ -705,11 +692,17 @@ $n is the number of bytes to read, defaults to C<filesize>.
 
 CALLBACK is:
 
+=for verbatim_lang perl
+
 	sub {
 		my( $buffer ) = @_;
-		...
+
+		print $buffer;
+
 		return 1;
 	}
+
+Returning 0 from the callback will cause the read to abort.
 
 =cut
 
@@ -729,7 +722,9 @@ Write $content_length bytes from CONTENT to the file object. Updates C<filesize>
 
 Returns $content_length or undef on failure.
 
-CONTENT may be one of:
+If CONTENT has fewer bytes than $content_length the result is undetermined and a warning will be printed.
+
+CONTENT may be any one of:
 
 =over 4
 
@@ -737,13 +732,20 @@ CONTENT may be one of:
 
 Will be called until it returns empty string ("").
 
+=for verbatim_lang perl
+
+	sub {
+		sysread($fh, my $buffer, 1024);
+		return $buffer;
+	};
+
 =item SCALARREF
 
 A scalar reference to a string of octets that will be written as-is.
 
 =item GLOB
 
-Will be treated as a file handle and read with sysread().
+Will be treated as a file handle and read with sysread() until the eof.
 
 =back
 
@@ -984,6 +986,8 @@ __END__
 
 =head1 SEE ALSO
 
+L<EPrints::Storage>
+
 L<EPrints::DataObj> and L<EPrints::DataSet>.
 
 =cut
@@ -993,7 +997,7 @@ L<EPrints::DataObj> and L<EPrints::DataSet>.
 
 =for COPYRIGHT BEGIN
 
-Copyright 2000-2011 University of Southampton.
+Copyright 2000-2013 University of Southampton.
 
 =for COPYRIGHT END
 
