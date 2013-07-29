@@ -1,6 +1,102 @@
+=for Pod2Wiki
+
 =head1 NAME
 
-EPrints::Plugin::Screen
+EPrints::Plugin::Screen - dynamic user interface web pages
+
+=head1 DESCRIPTION
+
+Screen plugins provide the CGI user interface to EPrints. Only "static" pages (summary pages, browse views) are not rendered via screens.
+
+Screens generate elements of the page that are then rendered using the L<EPrints::Apache::Template>. These elements include the page title, header elements and page body. Screens can also B<export> (depending on L</wishes_to_export>) which allows complete control over the HTTP response.
+
+Most screens have an interactive element that follow this pattern:
+
+first request ...
+
+=over 4
+
+=item 1. can_be_viewed() grants access
+
+=item 2. properties_from() sets up the response
+
+=item 3. render() includes a form with an action
+
+=back
+
+second request ...
+
+=over 4
+
+=item 4. properties_from() sets up the response
+
+=item 5. from() identifies the action
+
+=item 6. allow_*() checks access to the specific action
+
+=item 7. action_*() method performs the (probably) side-effecting action
+
+=item 8. redirect_to_me_url() redirects the user back to ...
+
+=back
+
+third request ... back to step 1.
+
+The exception to this is where L</redirect_to_me_url> is sub-classed to return undef, in which case the screen is expected to render in addition to processing the form request.
+
+The reason for using a redirect is that the user will end up on a page that can be reloaded without re-submitting the form. This is particularly important where submitting the action twice may result in an error, for example when deleting an object (can't delete twice!). 
+
+=head1 PARAMETERS
+
+=head2 action_icon
+
+	$self->{action_icon} = {
+		move_archive => "action_approve.png",
+		review_move_archive => "action_approve.png",
+	};
+
+Use an icon instead of a button for the given actions. The image name is relative to F<style/images/>.
+
+=head2 actions
+
+	$self->{actions} = [qw( clear update cancel )];
+
+A list of actions that are supported by this screen.
+
+=head2 appears
+
+	$self->{appears} = [
+		place => "eprint_summary_page_actions",
+		position => 100,
+	];
+
+Controls where links/buttons to this plugin will appear.
+
+=over 4
+
+=item place
+
+The string-constant name of the list to appear in. Other plugins will refer to this via the L</list_items> and related methods.
+
+=item position
+
+The relative position in the list to appear at. Higher means later in the list.
+
+=item action
+
+The optional action that this button will trigger.
+
+=back
+
+=head2 icon
+
+	$self->{icon} = "action_view.png";
+
+Use an icon instead of a button for links to this screen. The image name is relative to F<style/images/>.
+
+=head1 METHODS
+
+=over 4
 
 =cut
 
@@ -30,11 +126,27 @@ sub new
 	return $class->SUPER::new(%params);
 }
 
+=item $screen->properties_from()
+
+Called by the L<EPrints::ScreenProcessor> very early in the response process.
+
+This method should be used to set up the response by, for example getting CGI query parameters and storing them in the processor object.
+
+Because this method is called B<before> L</can_be_viewed> no changes to the system should be made here.
+
+=cut
+
 sub properties_from
 {
 	my( $self ) = @_;
 
 }
+
+=item $url = $screen->redirect_to_me_url()
+
+If the request is a POST the screen is given an opportunity to redirect the user, avoiding double-POSTs if the user reloads the resulting page.
+
+=cut
 
 sub redirect_to_me_url
 {
@@ -42,6 +154,12 @@ sub redirect_to_me_url
 
 	return $self->{processor}->{url}."?screen=".$self->{processor}->{screenid};
 }
+
+=item $xhtml = $screen->render()
+
+Render the page body.
+
+=cut
 
 sub render
 {
@@ -53,6 +171,12 @@ sub render
 
 	return $self->{session}->html_phrase( $phraseid, screen => $self->{session}->make_text( $self ) );
 }
+
+=item $xhtml = $screen->render_links()
+
+Render any elements for the page <head> section.
+
+=cut
 
 sub render_links
 {
@@ -83,6 +207,8 @@ Returns a key-value list of values that must be set when referring to this scree
 
 At the top-level this is just the 'screen' id.
 
+Historically render_hidden_bits() - which built up a set of hidden inputs in XHTML - was used but this had the downside of not being usable with GET requests. Screen plugins now have a mix of approaches, so care is needed when sub-classing C<hidden_bits>.
+
 =cut
 
 sub hidden_bits
@@ -111,6 +237,12 @@ sub render_hidden_bits
 	return $chunk;
 }
 
+=item $bool = $screen->wishes_to_export()
+
+If true, instead of calling the render* methods the export* methods will be used.
+
+=cut
+
 sub wishes_to_export
 {
 	my( $self ) = @_;
@@ -118,18 +250,43 @@ sub wishes_to_export
 	return 0;
 }
 
+=item $screen->export()
+
+Called when L</wishes_to_export> is true.
+
+This method should generate an HTTP response directly (e.g. by printing to STDOUT).
+
+=cut
+
 sub export
 {
 	my( $self ) = @_;
 
 	print "Needs to be subclassed\n";
 }
+
+=item $mime_type = $screen->export_mimetype()
+
+Return the MIME type of the HTTP response (as will be generated by L</export>).
+
+Default is to use "text/plain".
+
+=cut
+
 sub export_mimetype
 {
 	my( $self ) = @_;
 
 	return "text/plain";
 }
+
+=item $xhtml = $screen->render_form( [ METHOD [, ACTION ] ] )
+
+Render an XHTML form that will call this screen. If the METHOD is POST will apply cross-site request forgery protection.
+
+Unless you have a good reason not to you should always use render_form() to add forms to your HTTP response, which ensures the correct context and request protections are in place.
+
+=cut
 
 sub render_form
 {
@@ -335,6 +492,12 @@ sub matches
 
 	return $self->SUPER::matches( $test, $param );
 }
+
+=item $xhtml = $screen->render_title
+
+Render the page title.
+
+=cut
 
 sub render_title
 {
@@ -672,13 +835,13 @@ sub render_action_list_icons
 1;
 
 		
-		
+=back	
 
 =head1 COPYRIGHT
 
 =for COPYRIGHT BEGIN
 
-Copyright 2000-2011 University of Southampton.
+Copyright 2000-2013 University of Southampton.
 
 =for COPYRIGHT END
 
