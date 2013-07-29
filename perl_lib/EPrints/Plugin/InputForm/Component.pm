@@ -1,18 +1,46 @@
-
-######################################################################
-#
-# EPrints::Plugin::InputForm::Component
-#
-######################################################################
-#
-#
-######################################################################
-
-=pod
+=for Pod2Wiki
 
 =head1 NAME
 
 B<EPrints::Plugin::InputForm::Component> - A single form component 
+
+=head1 DESCRIPTION
+
+A component is an HTML widget for use in a L<EPrints::Workflow::Stage>. A L<EPrints::Plugin::InputForm::Component::Field> component renders the form inputs for a L<EPrints::MetaField> but component subclasses can be used to provide any required behaviour around user input. Components don't even have to be form inputs e.g. just render a fragment of XHTML.
+
+Where components are shown and configuration are controlled through the EPrints XML workflow. The workflow reads the component type, loads the referenced plugin and passes the XML node to L</parse_config>:
+
+=for verbatim_lang xml
+
+	<component type="Upload" show_help="always" />
+
+In this instance the L<EPrints::Plugin::InputForm::Component::Upload> component is being inserted into the workflow and its help is being set to always be shown.
+
+Components share many of the features seen in L<EPrints::Plugin::Screen>s. The L</update_from_form> method is called from the Screen's L</from> stage and the component L</render>s a fragment of XHTML that is inserted into the resulting page. Components have no equivalent to L<EPrints::Plugin::Screen/can_be_viewed> - it is assumed that the workflow only exposes inputs to which the user has access.
+
+A component will be created twice during a workflow response: to process the incoming data (L</update_from_form>) and to generate the new page (L</render>). Therefore you can not rely on data persisting between the update and rendering stages, unless you store the data in the L<EPrints::ScreenProcessor>.
+
+Buttons in components are classed as "internal actions". Internal actions do not normally change the response workflow but only how the component renders. This is used to provide search features, provide more button inputs etc.
+
+=head2 AJAX Support
+
+Some components support AJAX-like incremental updates. The Javascript Component class can make requests aimed at a Component by specifying the C<component=cXX> CGI parameter and it is then up to the component what it renders.
+
+The default behaviour is to render the XHTML fragment represented by the component, which is used by Javascript as an in-place replacement. Elsewhere a JSON response is used to drive client-side behaviour.
+
+Similarly to L<EPrints::Plugin::Screen>, AJAX components have a life-cycle of:
+
+=over 4
+
+=item 1. update_from_form() reads form values and sets them on the object
+
+=item 2. wishes_to_export() determines if this component is exporting
+
+=item 3. export() generates a response
+
+=back
+
+See also L<EPrints::Plugin::InputForm::Component::Documents>, which uses a JSON response to determine the documents to update.
 
 =head1 METHODS
 
@@ -541,7 +569,7 @@ sub get_state_fragment
 
 =for COPYRIGHT BEGIN
 
-Copyright 2000-2011 University of Southampton.
+Copyright 2000-2013 University of Southampton.
 
 =for COPYRIGHT END
 
