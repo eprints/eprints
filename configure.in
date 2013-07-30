@@ -6,8 +6,8 @@ VERSION=m4_esyscmd([grep \$VERSION perl_lib/EPrints.pm | sed 's/.*\([0-9]\+\.[0-
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
 
 DIST_PATH=`pwd`
-INSTALL_USER=`id -nu`
-INSTALL_GROUP=`id -ng`
+INSTALL_USER=eprints
+INSTALL_GROUP=eprints
 DEBIAN_DATE=`LANG=C date -R`
 DEBIAN_TYPE="UNRELEASED"
 
