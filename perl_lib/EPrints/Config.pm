@@ -1,14 +1,4 @@
-######################################################################
-#
-# EPrints::Config
-#
-######################################################################
-#
-#
-######################################################################
-
-
-=pod
+=for Pod2Wiki
 
 =head1 NAME
 
@@ -20,7 +10,7 @@ This module handles loading the main configuration for an instance
 of the eprints software - such as the list of language id's and 
 the top level configurations for repositories - the XML files in /archives/
 
-=head1 METHODS
+You should need to use this module, instead load repositories using L<EPrints>.
 
 =head2 Deprecated Methods
 
@@ -28,17 +18,19 @@ the top level configurations for repositories - the XML files in /archives/
 
 =item EPrints::Config::abort
 
-Deprecated, use L<EPrints>::abort.
+Deprecated, use L<EPrints/abort>.
 
 =item EPrints::Config::get_archive_config
+
 =item EPrints::Config::get_archive_ids
+
 =item EPrints::Config::load_archive_config_module
 
 Deprecated, use *_repository_*.
 
 =back
 
-=head2 Normal Methods
+=head1 METHODS
 
 =over 4
 
@@ -78,6 +70,15 @@ Load the EPrints configuration.
 Do not use this method directly, it will be automatically called
 when using EPrints.
 
+Defines the following configuration properties:
+
+	cgi_path /cgi
+	cfg_path /cfg
+	lib_path /lib
+	arc_path /archives
+	bin_path /bin
+	var_path /var
+
 =cut
 ######################################################################
 
@@ -114,6 +115,11 @@ sub init
 =item EPrints::Config::load_system_config()
 
 Load the system configuration files.
+
+Configuration files are loaded in order from (later files with the same name will be ignored):
+
+	/cfg/cfg.d
+	/lib/syscfg.d
 
 =cut
 
@@ -212,10 +218,23 @@ sub get_repository_ids
 
 =item $arc_conf = EPrints::Config::load_repository_config_module( $id )
 
-Load the full configuration for the specified repository unless the 
-it has already been loaded.
+Load the full configuration for the specified repository.
 
-Return a reference to a hash containing the full repository configuration. 
+Returns a reference to a hash containing the full repository configuration. 
+
+Configuration files are loaded in order from (later files with the same name will be ignored):
+
+	archives/[archiveid]/cfg/cfg.d
+	site_lib/cfg.d
+	lib/cfg.d
+
+Defines the following configuration properties:
+
+	archiveroot    archives/[archiveid]
+	documents_path archives/[archiveid]/documents
+	config_path    archives/[archiveid]/cfg
+	htdocs_path    archives/[archiveid]/html
+	cgi_path       archives/[archiveid]/cgi
 
 =cut
 ######################################################################

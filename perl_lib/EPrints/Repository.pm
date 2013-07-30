@@ -1844,21 +1844,20 @@ sub template_dirs
 	return @dirs;
 }
 
-######################################################################
-=pod
-
-=begin InternalDoc
-
 =item @dirs = $repository->get_static_dirs( $langid )
 
 Returns a list of directories from which static files may be sourced.
 
-Directories are returned in order of importance, most important first.
+Directories are returned in order of importance, most important first:
 
-=end InternalDoc
+	archives/[archiveid]/cfg/lang/[langid]/static
+	archives/[archiveid]/cfg/static
+	archives/[archiveid]/themes/[themeid]/static
+	lib/themes/[themeid]/static
+	lib/lang/[langid]/static
+	lib/static
 
 =cut
-######################################################################
 
 sub get_static_dirs
 {
