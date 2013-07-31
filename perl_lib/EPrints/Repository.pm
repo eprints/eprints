@@ -4193,6 +4193,18 @@ sub clone_for_me
 
 Redirects the browser to $url.
 
+If %opts contains a 'mode', it is used to modify the semantics of
+the redirection:
+
+    value  alias       HTTP Status
+    301    permanent   301 Moved Permanently
+    302    temporary   302 Found
+    303    other       303 See Other
+    307    temporary!  307 Temporary Redirect
+    308    permanent!  308 Permanent Redirect  (experimental)
+
+By default it issues a 302 temporary redirection.
+
 =end InternalDoc
 
 =cut
@@ -4208,14 +4220,53 @@ sub redirect
 		print STDERR "ODD! redirect called in offline script.\n";
 		return;
 	}
-	EPrints::Apache::AnApache::send_status_line( $self->{"request"}, 302, "Moved" );
+
+	my $status = 302, $message = "Moved";
+	if( exists $opts{mode} )
+	{
+		SWITCH: for( $opts{mode} )
+		{
+			if( /^(301|permanent)$/i )
+			{
+				$status = 301; $message = 'Moved Permanently';
+				delete $opts{mode};
+				last SWITCH;
+			}
+			if( /^(302|temporary)$/i )
+			{
+				$status = 302; $message = 'Found';
+				delete $opts{mode};
+				last SWITCH;
+			}
+			if( /^(303|other)$/i )
+			{
+				$status = 303; $message = 'See Other';
+				delete $opts{mode};
+				last SWITCH;
+			}
+			if( /^(307|temporary!)$/i )
+			{
+				$status = 307; $message = 'Temporary Redirect';
+				delete $opts{mode};
+				last SWITCH;
+			}
+			if( /^(308|permanent!)$/i )
+			{
+				$status = 308; $message = 'Permanent Redirect';
+				delete $opts{mode};
+				last SWITCH;
+			}
+		}
+	}
+
+	EPrints::Apache::AnApache::send_status_line( $self->{"request"}, $status, $message );
 	EPrints::Apache::AnApache::header_out( 
 		$self->{"request"},
 		"Location",
 		$url );
 
 	EPrints::Apache::AnApache::send_http_header( $self->{"request"}, %opts );
-	return 302;
+	return $status;
 }
 
 ######################################################################
