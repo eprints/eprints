@@ -304,7 +304,7 @@ sub _add_live_http_paths
 
 =begin InternalDoc
 
-=item $request = $repository->get_request;
+=item $request = $repository->request;
 
 Return the Apache request object (from mod_perl) or undefined if 
 this isn't a CGI script.
@@ -314,8 +314,8 @@ this isn't a CGI script.
 =cut
 ######################################################################
 
-
-sub get_request
+sub get_request { &request }
+sub request
 {
 	my( $self ) = @_;
 
@@ -2722,7 +2722,7 @@ sub get_noise
 
 =begin InternalDoc
 
-=item $boolean = $repository->get_online
+=item $boolean = $repository->is_online
 
 Return true if this script is running via CGI, return false if we're
 on the command line.
@@ -2732,7 +2732,8 @@ on the command line.
 =cut
 ######################################################################
 
-sub get_online
+sub get_online { &is_online }
+sub is_online
 {
 	my( $self ) = @_;
 	
@@ -2744,7 +2745,7 @@ sub get_online
 
 =begin InternalDoc
 
-=item $secure = $repository->get_secure
+=item $secure = $repository->is_secure
 
 Returns true if we're using HTTPS/SSL (checks get_online first).
 
@@ -2753,7 +2754,8 @@ Returns true if we're using HTTPS/SSL (checks get_online first).
 =cut
 ######################################################################
 
-sub get_secure
+sub get_secure { &is_secure }
+sub is_secure
 {
 	my( $self ) = @_;
 
@@ -4560,6 +4562,17 @@ sub clone_for_me
 
 Redirects the browser to $url.
 
+Optional argument $opts{status_code} to specify the returned HTTP status code:
+
+    value  HTTP Status
+    301    301 Moved Permanently
+    302    302 Found
+    303    303 See Other
+    307    307 Temporary Redirect
+    308    308 Permanent Redirect  (experimental)
+
+By default 302 temporary redirection is issued.
+
 =end InternalDoc
 
 =cut
@@ -4570,19 +4583,23 @@ sub redirect
 	my( $self, $url, %opts ) = @_;
 
 	# Write HTTP headers if appropriate
-	if( $self->{"offline"} )
+	if( !$self->is_online )
 	{
 		print STDERR "ODD! redirect called in offline script.\n";
 		return;
 	}
-	EPrints::Apache::AnApache::send_status_line( $self->{"request"}, 302, "Moved" );
+
+	my $status = delete $opts{status_code} || 302;
+	
+	EPrints::Apache::AnApache::send_status_line( $self->request, $status );
 	EPrints::Apache::AnApache::header_out( 
-		$self->{"request"},
+		$self->request,
 		"Location",
 		$url );
 
-	EPrints::Apache::AnApache::send_http_header( $self->{"request"}, %opts );
-	return 302;
+	EPrints::Apache::AnApache::send_http_header( $self->request, %opts );
+
+	return $status;
 }
 
 ######################################################################
