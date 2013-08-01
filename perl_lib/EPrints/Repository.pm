@@ -4193,6 +4193,9 @@ sub clone_for_me
 
 Redirects the browser to $url.
 
+If %opts contains a 'status_code', it is used as the status code of
+the HTTP response.  By default it issues a 302 temporary redirection.
+
 =end InternalDoc
 
 =cut
@@ -4208,14 +4211,17 @@ sub redirect
 		print STDERR "ODD! redirect called in offline script.\n";
 		return;
 	}
-	EPrints::Apache::AnApache::send_status_line( $self->{"request"}, 302, "Moved" );
+
+	my $status = delete $opts{status_code} || 302;
+
+	EPrints::Apache::AnApache::send_status_line( $self->{"request"}, $status, );
 	EPrints::Apache::AnApache::header_out( 
 		$self->{"request"},
 		"Location",
 		$url );
 
 	EPrints::Apache::AnApache::send_http_header( $self->{"request"}, %opts );
-	return 302;
+	return $status;
 }
 
 ######################################################################
