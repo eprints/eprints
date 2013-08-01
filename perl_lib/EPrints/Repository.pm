@@ -2707,7 +2707,7 @@ sub is_secure
 	my( $self ) = @_;
 
 	# mod_ssl sets "HTTPS", but only AFTER the Auth stage
-	return $self->get_online &&
+	return $self->is_online &&
 		($ENV{"HTTPS"} || $self->get_request->dir_config( 'EPrints_Secure' ));
 }
 
