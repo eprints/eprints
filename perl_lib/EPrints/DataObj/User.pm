@@ -530,9 +530,7 @@ sub is_staff
 {
 	my( $self ) = @_;
 
-	my $type = $self->value( "usertype" );
-
-	return $type eq "editor" || $type eq "admin";
+	return $self->has_role( 'editor' ) || $self->has_role( 'admin' );
 }
 
 =item $lang = $user->langauge()
