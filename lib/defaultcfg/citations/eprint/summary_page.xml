@@ -37,13 +37,13 @@
               <epc:if test="$doc.is_public()">
 			  <epc:choose>
 			  <epc:when test="$doc.thumbnail_url('video_mp4').is_set()">
-			  | <epc:print expr="$doc.preview_link($doc.citation_link('default'),'docs','video_mp4')" />
+			  | <epc:print expr="$doc.preview_link(phrase('lib/document:preview'),'docs','video_mp4')" />
 			  </epc:when>
 			  <epc:when test="$doc.thumbnail_url('audio_mp4').is_set()">
-			  | <epc:print expr="$doc.preview_link($doc.citation_link('default'),'docs','audio_mp4')" />
+			  | <epc:print expr="$doc.preview_link(phrase('lib/document:preview'),'docs','audio_mp4')" />
 			  </epc:when>
 			  <epc:when test="$doc.thumbnail_url('lightbox').is_set()">
-			  | <epc:print expr="$doc.preview_link($doc.citation_link('default'),'docs','lightbox')" />
+			  | <epc:print expr="$doc.preview_link(phrase('lib/document:preview'),'docs','lightbox')" />
 			  </epc:when>
 			  </epc:choose>
 			  </epc:if>

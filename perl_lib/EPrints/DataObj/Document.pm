@@ -1858,7 +1858,7 @@ sub render_preview_link
 		my $link = $self->{session}->make_element( "a",
 				href=>$url,
 				rel=>"lightbox$set nofollow",
-				title=>EPrints::XML::to_string($caption),
+				title=>EPrints::Utils::tree_to_utf8($caption),
 			);
 		$link->appendChild( $self->{session}->html_phrase( "lib/document:preview" ) );
 		$f->appendChild( $link );
