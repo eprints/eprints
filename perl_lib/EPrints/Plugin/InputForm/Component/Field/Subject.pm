@@ -405,7 +405,7 @@ sub get_state_params
 	my( $self ) = @_;
 
 	my $params = "";
-	foreach my $id ( $self->{prefix}."q" )
+	foreach my $id ( $self->{prefix}."_q" )
 	{
 		my $v = $self->{session}->param( $id );
 		next unless defined $v;
