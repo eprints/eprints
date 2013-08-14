@@ -93,16 +93,7 @@ sub new
 			push @loaded,
 				$self->_load_xslt_dir( \%SYSTEM_PLUGINS, $repository, $dir );
 		}
-
-		# /site_lib/ extensions plugins
-		$dir = $repository->config( "base_path" )."/site_lib/plugins";
-		push @loaded, $self->_load_dir( \%SYSTEM_PLUGINS, $repository, $dir );
-		if( $use_xslt )
-		{
-			push @loaded,
-				$self->_load_xslt_dir( \%SYSTEM_PLUGINS, $repository, $dir );
-		}
-
+		
 		# default to disabled
 		my $conf = $repository->config( "plugins" );
 		foreach my $plugin (@loaded)
@@ -113,6 +104,16 @@ sub new
 				$conf->{$pluginid}{params}{disable} = 1;
 			}
 		}
+
+		# /site_lib/ extensions plugins - we want those enabled by default
+		$dir = $repository->config( "base_path" )."/site_lib/plugins";
+		push @loaded, $self->_load_dir( \%SYSTEM_PLUGINS, $repository, $dir );
+		if( $use_xslt )
+		{
+			push @loaded,
+				$self->_load_xslt_dir( \%SYSTEM_PLUGINS, $repository, $dir );
+		}
+
 	}
 
 	# repository-specific plugins
