@@ -24,7 +24,7 @@ sub new
 	$self->{accept} = [ 'list/eprint' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".xml";
-	$self->{mimetype} = "application/rss+xml";
+	$self->{mimetype} = "application/rss+xml; charset=utf-8";
 
 	return $self;
 }
