@@ -1426,23 +1426,26 @@ sub get_input_elements
 			push @{$rows}, $row;
 		}
 	}
+
+	my $more = $session->make_doc_fragment;
+	$more->appendChild( $session->render_hidden_field(
+					$basename."_spaces",
+					$boxcount ) 
+	);
+
 	if ($self->{input_add_boxes} > 0)
 	{
-		my $more = $session->make_doc_fragment;
-		$more->appendChild( $session->render_hidden_field(
-					        $basename."_spaces",
-						$boxcount ) );
 		$more->appendChild( $session->render_button(
 			name => "_internal_".$basename."_morespaces",
 			value => $session->phrase( "lib/metafield:more_spaces" ),
 			class => "ep_form_internal_button epjs_ajax"
 		) );
-
-		my @row = ();
-		push @row, {} if( $self->{input_ordered} );
-		push @row, {el=>$more,colspan=>3,class=>"ep_form_input_grid_wide"};
-		push @{$rows}, \@row;
 	}
+
+	my @row = ();
+	push @row, {} if( $self->{input_ordered} );
+	push @row, {el=>$more,colspan=>3,class=>"ep_form_input_grid_wide"};
+	push @{$rows}, \@row;
 
 	return $rows;
 }
