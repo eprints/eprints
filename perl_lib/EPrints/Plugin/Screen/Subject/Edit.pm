@@ -467,6 +467,7 @@ sub action_unlink
 		) );
 		$self->{processor}->add_message( "warning", $self->html_phrase( "confirm_form",
 			form => $form,
+			child => $child->render_description(),
 		) );
 		return;
 	}
