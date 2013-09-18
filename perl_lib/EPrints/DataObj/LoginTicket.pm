@@ -255,7 +255,7 @@ sub generate_cookie
 
 	my $repo = $self->{session};
 
-	return $repo->{query}->cookie(
+	return $repo->query->cookie(
 		-name    => $self->session_key($repo),
 		-path    => ($repo->config( "http_root" ) || '/'),
 		-value   => $self->value( "code" ),
@@ -281,7 +281,7 @@ sub generate_secure_cookie
 
 	my $repo = $self->{session};
 
-	return $repo->{query}->cookie(
+	return $repo->query->cookie(
 		-name    => $self->secure_session_key($repo),
 		-path    => ($repo->config( "https_root" ) || '/'),
 		-value   => $self->value( "securecode" ),
