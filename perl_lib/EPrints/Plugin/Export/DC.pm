@@ -166,7 +166,7 @@ sub convert_dataobj
 		#$format = "application/octet-stream" unless defined $format;
 		push @dcdata, [ "format", $format ];
 		push @dcdata, [ "language", $_->value("language") ] if $_->exists_and_set("language");
-		push @dcdata, [ "rights", $_->value("license") ] if $_->exists_and_set("language");
+		push @dcdata, [ "rights", $_->value("license") ] if $_->exists_and_set("license");
 		push @dcdata, [ "identifier", $_->get_url() ];
 	}
 
