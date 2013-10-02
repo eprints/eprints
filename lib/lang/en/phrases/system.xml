@@ -336,6 +336,7 @@ terms.</p>
 
 	<epp:phrase id="document_typename_text">Text</epp:phrase>
 	<epp:phrase id="document_typename_slideshow">Slideshow</epp:phrase>
+	<epp:phrase id="document_typename_spreadsheet">Spreadsheet</epp:phrase>
     <epp:phrase id="document_typename_image">Image</epp:phrase>
     <epp:phrase id="document_typename_audio">Audio</epp:phrase>
     <epp:phrase id="document_typename_video">Video</epp:phrase>
