@@ -87,7 +87,7 @@ use Cache::Memcached::Fast;
 
 use strict;
 
-my $USE_MEMCACHED = 0;
+my $USE_MEMCACHED = 1;
 
 ######################################################################
 =pod
