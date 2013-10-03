@@ -83,9 +83,11 @@ use EPrints::Const qw( :trigger );
 
 #use URI::Escape;
 use CGI qw(-compile);
+use Cache::Memcached::Fast;
 
 use strict;
 
+my $USE_MEMCACHED = 0;
 
 ######################################################################
 =pod
@@ -221,6 +223,8 @@ sub new
 		$self->read_params; 
 	}
 
+	$self->init_cache;
+
 	$self->call( "session_init", $self, $self->{offline} );
 
 	$self->{loadtime} = time();
@@ -255,6 +259,105 @@ sub _new
 	return $self;
 }
 
+
+sub init_cache
+{
+	my( $self ) = @_;
+
+	return if( !$USE_MEMCACHED );
+
+	if( defined $self->{memd} )
+	{
+		return;
+	}
+
+	my $memd = new Cache::Memcached::Fast({
+		servers => [
+			   'localhost:11211'
+		],
+		namespace => 'my:',
+		connect_timeout => 0.2,
+		io_timeout => 0.5,
+		close_on_error => 1,
+		compress_threshold => 100_000,
+		compress_ratio => 0.9,
+		compress_methods => [ \&IO::Compress::Gzip::gzip,
+				    \&IO::Uncompress::Gunzip::gunzip ],
+		max_failures => 3,
+		failure_timeout => 2,
+		ketama_points => 150,
+		nowait => 1,
+		hash_namespace => 1,
+		serialize_methods => [ \&Storable::freeze, \&Storable::thaw ],
+		utf8 => ($^V ge v5.8.1 ? 1 : 0),
+		max_size => 512 * 1024,
+	});
+
+	if( defined $memd && ref( $memd ) ne '' )
+	{
+		$self->{memd} = $memd;
+	}
+
+	print STDERR "init_cache\n";
+}
+
+sub cache_get
+{
+	my( $self, $key ) = @_;
+
+	if( !defined $self->{memd} )
+	{
+		return undef;
+	}
+
+#	print STDERR "cache_get: '".$self->id.":$key\n";
+
+	return $self->{memd}->get( $self->id.":$key" );
+}
+
+sub cache_set
+{
+	my( $self, $key, $value ) = @_;
+
+	if( !defined $self->{memd} )
+	{
+		return undef;
+	}
+	
+#	print STDERR "cache_set: '".$self->id.":$key - storing a $value\n";
+
+	return eval { $self->{memd}->set( $self->id.":$key", $value ) };
+}
+
+sub cache_remove
+{
+	my( $self, $key ) = @_;
+
+	if( !defined $self->{memd} )
+	{
+		return undef;
+	}
+
+#	print STDERR "cache_remove: '".$self->id.":$key\n";
+
+	return $self->{memd}->delete( $self->id.":$key" );
+}
+
+# same as cache_set but doesn't set the value if it doesn't exist
+sub cache_replace
+{
+	my( $self, $key, $value ) = @_;
+
+	if( !defined $self->{memd} )
+	{
+		return undef;
+	}
+	
+#	print STDERR "cache_replace: '".$self->id.":$key - storing a $value\n";
+
+	return $self->{memd}->replace( $self->id.":$key", $value );
+}
+
 =begin InternalDoc
 
 =item $repo->init_from_thread()
@@ -282,6 +385,7 @@ sub init_from_thread
 	$self->_load_templates();
 	$self->_load_citation_specs();
 	$self->_load_storage();
+	$self->init_cache;
 }
 
 # add the relative paths + http_* config if not set already by cfg.d
@@ -5473,6 +5577,8 @@ sub init_from_request
 
 	# set the language for the current user
 	$self->change_lang( $self->get_session_language( $request ) );
+	
+	$self->init_cache;
 
 	$self->run_trigger( EP_TRIGGER_BEGIN_REQUEST );
 
@@ -5499,6 +5605,11 @@ sub cleanup
 	for(keys %$self)
 	{
 		delete $self->{$_} if !$CACHED{$_};
+	}
+
+	if( defined $self->{memd} )
+	{
+		$self->{memd}->disconnect_all;
 	}
 
 	$self->{offline} = 1;

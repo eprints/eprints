@@ -613,7 +613,30 @@ sub _get_records
 	}
 
 	return \@ids if $justids;
-	return $self->{session}->get_database->get_dataobjs( $self->{dataset}, @ids );
+
+# read as many items from the cache as possible...
+
+	my @dataobjs;
+	my @missing_ids;
+
+#sf2 - would that scale?
+	foreach(@ids)
+	{
+		if( defined( my $data = $self->{session}->cache_get( "dataobj:".$self->{dataset}->confid.":$_" ) ) )
+		{
+			push @dataobjs, $self->{dataset}->dataobj_class->new_from_data( $self->{session}, $data, $self->{dataset} );
+			next;
+		}
+		push @missing_ids, $_;
+	}
+
+	foreach( $self->{session}->get_database->get_dataobjs( $self->{dataset}, @missing_ids ) )
+	{
+		$self->{session}->cache_set( "dataobj:".$self->{dataset}->confid.":".$_->id, $_->{data} );
+		push @dataobjs, $_;
+	}
+
+	return @dataobjs;
 }
 
 

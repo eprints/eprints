@@ -150,6 +150,13 @@ sub new_from_request
 			$r,
 			$class->secure_session_key($repo)
 		);
+
+# perhaps it's cached?
+		if( defined ( my $data = $repo->cache_get( "dataobj:loginticket:$securecode" ) ) )
+		{
+			return $class->new_from_data( $repo, $data, $dataset );
+		}
+
 		if (EPrints::Utils::is_set($securecode)) {
 			$ticket = $dataset->search(filters => [
 				{ meta_fields => [qw( securecode )], value => $securecode },
@@ -162,6 +169,13 @@ sub new_from_request
 			$r,
 			$class->session_key($repo)
 		);
+
+# perhaps it's cached?
+		if( defined ( my $data = $repo->cache_get( "dataobj:loginticket:$code" ) ) )
+		{
+			return $class->new_from_data( $repo, $data, $dataset );
+		}
+
 		if (EPrints::Utils::is_set($code)) {
 			$ticket = $dataset->search(filters => [
 				{ meta_fields => [qw( code )], value => $code },

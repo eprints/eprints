@@ -223,6 +223,10 @@ it as an EPrints::DataObj::User object.
 =cut
 ######################################################################
 
+=pod 
+
+use super class
+
 sub new
 {
 	my( $class, $session, $userid ) = @_;
@@ -231,7 +235,7 @@ sub new
 		$session->dataset( "user" ),
 		$userid );
 }
-
+=cut
 
 ######################################################################
 =pod

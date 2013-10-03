@@ -129,9 +129,20 @@ sub new
 		$dataset = $session->dataset( $class->get_dataset_id );
 	}
 
-	return $session->get_database->get_single( 
+	if( defined ( my $data = $session->cache_get( "dataobj:".$dataset->confid.":$id" ) ) )
+	{
+		return $class->new_from_data( $session, $data, $dataset );
+	}
+
+
+	my $object = $session->get_database->get_single( 
 			$dataset,
 			$id );
+	
+	$session->cache_set( "dataobj:".$dataset->confid.":$id", $object->{data} );
+
+	return $object;
+
 }
 
 ######################################################################
@@ -490,6 +501,8 @@ sub remove
 
 	$self->queue_removed;
 
+	$self->{session}->cache_remove( "dataobj:".$self->{dataset}->confid.":".$self->id );
+
 	return $self->{session}->get_database->remove(
 		$self->{dataset},
 		$self->get_id );
@@ -661,6 +674,14 @@ sub commit
 			"Error committing ".$self->get_dataset_id.".".
 			$self->get_id.": ".$db_error );
 		return 0;
+	}
+
+	# update cache
+	# $self->{session}->cache_replace( "dataobj:".$self->{dataset}->confid.":".$self->id, $self->{data} );
+
+	if( defined $self->{session}->cache_get( "dataobj:".$self->{dataset}->confid.":".$self->id ) )
+	{
+		$self->{session}->cache_set( "dataobj:".$self->{dataset}->confid.":".$self->id, $self->{data} );
 	}
 
 	# Queue changes for the indexer (if indexable)
