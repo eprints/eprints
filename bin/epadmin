@@ -2376,6 +2376,64 @@ sub migrate_to_multiple_values
 	}
 	print "\n";
 }
+							
+# this will migrate a single field to a multilang field using the repository's default language - useful if you've turned "title" into a multilang
+sub migrate_to_multilang
+{
+	my( $repo, $db, $dataset, $field ) = @_;
+
+	my $lang = $repo->config( 'defaultlanguage' ) || 'en';
+
+	print "\tMigrating ".$field->get_name." to multilang (default language: [$lang])... ";
+	
+	# the field that holds the actual data
+	my $text_field = $field->property( 'fields_cache' )->[0];
+	if( !defined $text_field )
+	{
+		print " Skipping (failed to retrieve data field)\n";
+		return;
+	}
+
+	my $rc = 1;
+	my $Q_key = $db->quote_identifier( $dataset->key_field->get_name );
+	my $Q_fn = $db->quote_identifier( $field->get_name );
+	my $Q_table = $db->quote_identifier( $dataset->get_sql_table_name );
+
+	my $sql = "SELECT $Q_key, $Q_fn FROM $Q_table";
+
+	my $sth = $db->prepare_select( $sql );
+	$db->execute( $sth , $sql );
+
+	my $c=0;
+
+	my $lang_tablename = $dataset->get_sql_table_name . "_" . $field->name . "_lang";
+	my $text_tablename = $dataset->get_sql_table_name . "_" . $text_field->name;
+
+	my $lang_fieldname = $field->name."_lang";
+
+	my $keyfieldname = $dataset->key_field->get_name;
+
+	while( my @row = $sth->fetchrow )
+	{
+			next unless( defined $row[0] );
+
+			$rc &&= $db->insert( $text_tablename, [$keyfieldname, 'pos', $text_field->name], ( [ $row[0], 0, $row[1] ] ) );
+			next if( !$rc );
+			
+			$rc &&= $db->insert( $lang_tablename, [$keyfieldname, 'pos', $lang_fieldname], ( [ $row[0], 0, $lang ] ) );
+			$c++;
+	}
+	if( $rc )
+	{
+		print " OK";
+		print ", migrated $c values" if( $c );
+	}
+	else
+	{
+		print " ERRORS";
+	}
+	print "\n";
+}
 
 # This will check for any missing datasets or fields and add them
 sub update_datasets
@@ -2412,11 +2470,22 @@ sub update_datasets
 					++$field_count;
 					print "Added ".$field->get_name." to dataset $_\n" if $noise;
 
+					# perhaps we can pre-populate with existing data:
+
+					# 1- if field changes from single to multiple values
 					if( $field->get_property( 'multiple' ) && !$field->is_virtual )
 					{
 						if( $db->has_column( $dataset->get_sql_table_name, $field->get_name ) )
 						{
 							migrate_to_multiple_values( $db, $dataset, $field );
+						}
+					}
+					# 2- if field changes from 'text' to 'multilang' (language will default to repository's default language
+					elsif( $field->isa( "EPrints::MetaField::Multilang" ) )
+					{
+						if( $db->has_column( $dataset->get_sql_table_name, $field->get_name ) )
+						{
+							migrate_to_multilang( $repo, $db, $dataset, $field );
 						}
 					}
 				}
