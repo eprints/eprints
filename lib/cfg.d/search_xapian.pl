@@ -1,23 +1,22 @@
-
+# default max_slots = 1 for single fields, 5 for multiple fields (can be set in the conf)
 $c->{datasets}->{eprint}->{facets} = [
-	
 	{
 		name => "type",
-		max_slots => 1,
 	},
 	{
 		name => 'subjects',
-		max_slots => 5,
 	},
 	{
 		name => 'creators_name',
-		max_slots => 5,
 	},
+	{
+		name => 'divisions',
+	},
+	{
+		name => 'date_year',
+	}
 
 ];
-
-
-
 
 if( EPrints::Utils::require_if_exists( "Search::Xapian" ) )
 {
@@ -55,6 +54,8 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 
 	if( !defined $repo->{_xapian_tg} )
 	{
+# sf2 - 2nd instantiation of the plugin woops
+# sf2 - should have one TG per lang + one without stemming
 		my $plugin = $repo->plugin( "Search::Xapian" );
 
 		$repo->{_xapian_tg} = Search::Xapian::TermGenerator->new();
@@ -79,6 +80,7 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 
 	$doc->add_term( "_dataset:" . $dataobj->{dataset}->base_id, 0 );
 	$doc->add_term( $key, 0 );
+	$doc->add_term( "_index_timestamp:".EPrints::Time::iso_datetime, 0 );
 	$doc->set_data( $dataobj->id );
 
 	my %field_pos;
@@ -92,13 +94,19 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 			$field_pos{$key} = $db->get_metadata( $key ) || 0;
 			$max_pos = $field_pos{$key} if $field_pos{$key} > $max_pos;
 		}
+		foreach my $key (keys %field_pos)
+		{
+			next if $field_pos{$key};
+			$db->set_metadata( $key, "" . ($field_pos{$key} = ++$max_pos) );
+		}
 	}
 
 	my $facet_conf = $repo->config('datasets', $dataset->base_id, 'facets');
 
-my $facet_offset = 10000;
-my $facet_skip = 100;
+	my $facet_offset = 10000;
+	my $facet_skip = 100;
 
+	# TODO facets should be generated at the same time as fields
 	foreach my $i (0..$#$facet_conf)
 	{
 		my $facet = $facet_conf->[$i];
@@ -107,21 +115,26 @@ my $facet_skip = 100;
 
 		my $value = $field->get_value($dataobj);
 		my $j = 0;
+
+		my $max_slots = $facet->{max_slots};
+		
+		if( !defined $max_slots )
+		{
+			$max_slots = $field->property( 'multiple' ) ? 5 : 1;
+		}
+
+		$max_slots = 100 if $max_slots > 100;
+
 		foreach my $v (ref($value) eq "ARRAY" ? @$value : $value)
 		{
 			my $slot = $facet_offset + $facet_skip * $i + $j;
-			my $key = join '.', $dataset->base_id, '_facet', $facet->{name}, $j++;
+			my $key = join '.', $dataset->base_id, '_facet', $facet->{name}, $j;
 			$db->set_metadata($key, "" . $slot);
 			my $id = $field->get_id_from_value($repo, $v);
 			$doc->add_value( $slot, $id );
 
-			last if $j >= ($facet->{max_slots} || 5);
+			last if $j++ >= $max_slots;
 		}
-	}
-	foreach my $key (keys %field_pos)
-	{
-		next if $field_pos{$key};
-		$db->set_metadata( $key, "" . ($field_pos{$key} = ++$max_pos) );
 	}
 
 	foreach my $field ($dataobj->dataset->fields)
@@ -130,6 +143,9 @@ my $facet_skip = 100;
 		next if $field->isa( "EPrints::MetaField::Langid" );
 		next if $field->isa( "EPrints::MetaField::Subobject" );
 		next if $field->isa( "EPrints::MetaField::Storable" );
+
+# sf2 - something similar should be enabled?
+		next if ( defined $field->property( 'text_index' ) && !$field->property( 'text_index' ) );
 
 		my $prefix = $field->name . ':';
 		my $value = $field->get_value( $dataobj );
