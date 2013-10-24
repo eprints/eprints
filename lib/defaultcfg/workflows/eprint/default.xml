@@ -73,21 +73,7 @@ Action buttons (Previous/Save/Next) can be shown "top", "bottom" or "both":
     <component><field ref="contributors" /></component>
 
     <epc:if test="type = 'exhibition'">
-      <component collapse="yes"><field ref="exhibitors"/></component>
       <component><field ref="num_pieces"/></component>
-    </epc:if>
-
-    <epc:if test="type = 'composition'">
-      <component collapse="yes"><field ref="producers"/></component>
-      <component collapse="yes"><field ref="conductors"/></component>
-      <component collapse="yes"><field ref="accompaniment"/></component>
-      <component collapse="yes"><field ref="lyricists"/></component>
-    </epc:if>
-
-    <epc:if test="type = 'performance'">
-      <component collapse="yes"><field ref="producers"/></component>
-      <component collapse="yes"><field ref="conductors"/></component>
-      <component collapse="yes"><field ref="accompaniment"/></component>
     </epc:if>
 
     <component><field ref="divisions" /></component>
