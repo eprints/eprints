@@ -46,6 +46,7 @@ Action buttons (Previous/Save/Next) can be shown "top", "bottom" or "both":
     </epc:if>
     <epc:if test="type = 'thesis'">
       <component><field ref="thesis_type" required="yes" /></component>
+      <component><field ref="thesis_name" required="yes" /></component>
     </epc:if>
     <epc:if test="type = 'conference_item'">
       <component><field ref="pres_type" required="yes" /></component>

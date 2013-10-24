@@ -268,9 +268,22 @@ push @{$c->{fields}->{eprint}},
 	name => 'thesis_type',
 	type => 'set',
 	options => [qw(
+		diploma
 		masters
+		doctoral
+		postdoctoral
+		other
+	)],
+	input_style => 'medium',
+},
+
+{
+	name => 'thesis_name',
+	type => 'set',
+	options => [qw(
+		mphil
 		phd
-		engd
+		dphil
 		other
 	)],
 	input_style => 'medium',
