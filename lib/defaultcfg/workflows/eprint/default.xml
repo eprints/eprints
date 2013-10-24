@@ -70,10 +70,7 @@ Action buttons (Previous/Save/Next) can be shown "top", "bottom" or "both":
       </epc:otherwise>
     </epc:choose>
 
-<!-- This field is much more complicated than creators, but here if you need it. 
     <component><field ref="contributors" /></component>
--->
-
 
     <epc:if test="type = 'exhibition'">
       <component collapse="yes"><field ref="exhibitors"/></component>
