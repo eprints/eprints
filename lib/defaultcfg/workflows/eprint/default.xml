@@ -31,7 +31,7 @@ Action buttons (Previous/Save/Next) can be shown "top", "bottom" or "both":
       <field ref="license" />
       <field ref="date_embargo" />
 <!--  <field ref="relation" /> -->
-<!--  <field ref="language" /> --> 
+      <field ref="language" />
     </component>
   </stage>
 
