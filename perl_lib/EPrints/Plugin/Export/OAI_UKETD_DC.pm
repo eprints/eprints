@@ -38,6 +38,8 @@ my %DEFAULT;
 
 # map default thesis_type values to appropriate
 # qualificationname
+# can be overridden at archive level eg.
+# $c->{plugins}->{"Export::OAI_UKETD_DC"}->{params}->{thesis_type_to_qualname} = { .. };
 $DEFAULT{thesis_type_to_qualname} = {
 	phd => "phd",
 	engd => "engd",
@@ -45,12 +47,16 @@ $DEFAULT{thesis_type_to_qualname} = {
 
 # map default thesis_type valies to appropriate
 # qualificationlevel
+# can be overridden at archive level eg.
+# $c->{plugins}->{"Export::OAI_UKETD_DC"}->{params}->{thesis_type_to_quallevel} = { .. };
 $DEFAULT{thesis_type_to_quallevel} = {
 	phd => "doctoral",
 	engd => "doctoral",
 };
 
 # default contributor_type that identifies a thesis advisor
+# can be overridden at archive level eg.
+# $c->{plugins}->{"Export::OAI_UKETD_DC"}->{params}->{contributor_type_thesis_advisor} = "advisor";
 $DEFAULT{contributor_type_thesis_advisor} = "http://www.loc.gov/loc.terms/relators/THS";
 
 sub new
@@ -272,8 +278,8 @@ sub eprint_to_uketd_dc
 		if( $eprint->exists_and_set( "thesis_name" )){
 			push @etddata, [ "qualificationname", $eprint->get_value( "thesis_name" ), "uketdterms"];
 		}
-		# attempt to derive a qualificationname from thesis_type
-		elsif( $eprint->exists_and_set( "thesis_type" ) )
+		# if there is no thesis_name field, attempt to derive a qualificationname from thesis_type
+		elsif( !$eprint->get_dataset->has_field( "thesis_name" ) && $eprint->exists_and_set( "thesis_type" ) )
 		{
 			my $name = $plugin->{thesis_type_to_qualname}{ $eprint->get_value( "thesis_type" ) };
 			if( defined $name )
