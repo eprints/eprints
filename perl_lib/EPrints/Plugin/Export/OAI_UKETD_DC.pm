@@ -278,8 +278,8 @@ sub eprint_to_uketd_dc
 		if( $eprint->exists_and_set( "thesis_name" )){
 			push @etddata, [ "qualificationname", $eprint->get_value( "thesis_name" ), "uketdterms"];
 		}
-		# if there is no thesis_name field, attempt to derive a qualificationname from thesis_type
-		elsif( !$eprint->get_dataset->has_field( "thesis_name" ) && $eprint->exists_and_set( "thesis_type" ) )
+		# attempt to derive a qualificationname from thesis_type
+		elsif( $eprint->exists_and_set( "thesis_type" ) )
 		{
 			my $name = $plugin->{thesis_type_to_qualname}{ $eprint->get_value( "thesis_type" ) };
 			if( defined $name )
