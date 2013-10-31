@@ -194,6 +194,7 @@ sub handler
 		my( undef, @parts ) = split m! /+ !x, $uri;
 		PATH: foreach my $path (
 				$repository->config( "cgi_path" ),
+				$repository->config( "base_path" ) . '/site_lib/cgi',
 				EPrints::Config::get( "cgi_path" ),
 			)
 		{
