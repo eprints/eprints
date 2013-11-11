@@ -54,7 +54,7 @@ sub render_content
 {
 	my( $self ) = @_;
 
-	return $self->{config}->{dom};
+	return EPrints::XML::contents_of( $self->{config}->{dom} );
 }
 
 1;
