@@ -408,7 +408,10 @@ sub _to_xhtml
 	my @n = ();
 	if( $type == XML_ELEMENT_NODE )
 	{
-		my $tagname = $node->localName; # ignore prefixes
+		my $tagname = $node->nodeName; # includes NS prefix
+
+		# strip namespaces that are no longer relevant or required in xhtml
+		$tagname =~ s/^(xhtml|ep[pc])://;
 
 		$tagname = lc($tagname);
 
@@ -418,14 +421,19 @@ sub _to_xhtml
 		if( $tagname eq "html" )
 		{
 			push @n, ' xmlns="http://www.w3.org/1999/xhtml"';
+			$seen->{'xmlns'} = 1;
 		}
 
 		foreach my $attr ( $node->attributes )
 		{
 			my $name = $attr->nodeName;
-			# strip all namespace definitions and prefixes
-			next if $name =~ /^xmlns/;
-			$name =~ s/^.+://;
+			# strip epp/epc namespace definitions
+			next if $name =~ /^xmlns:ep[pc]$/;
+			# dump epp/epc-namespaced attributes
+			next if $attr->prefix =~ /^ep[pc]$/;
+
+			# clean up xhtml-namespaced attributes
+			$name =~ s/^xhtml://;
 
 			next if( exists $seen->{$name} );
 			$seen->{$name} = 1;
