@@ -167,7 +167,6 @@ sub render_content
 	my( $self, $surround ) = @_;
 	
 	my $session = $self->{session};
-	my $f = $session->make_doc_fragment;
 	
 	my @screen_opts = $self->{processor}->list_items( 
 			"upload_methods",
