@@ -305,9 +305,8 @@ sub render_possible_doi
 	$value = "" unless defined $value;
 	$value =~ s!^http://dx\.doi\.org/!!;
 
-	if( $value !~ m!^(doi:)?10\.\d{4}/! ) { return $session->make_text( $value ); }
-	
-	$value =~ s!^doi:!!;
+	if( $value !~ m!^(?:(?:doi:?)?\s*)(10(\.[^./]+)+/.+)$!i ) { return $session->make_text( $value ); }
+	$value = $1;
 
 	my $url = "http://dx.doi.org/$value";
 	my $link = $session->render_link( $url, "_blank" ); 
