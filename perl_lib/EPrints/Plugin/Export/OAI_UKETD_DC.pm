@@ -265,7 +265,7 @@ sub eprint_to_uketd_dc
 			}
 			if( $_->exists_and_set( "security" ) )
 			{
-				push @etddata, ["rights", $_->get_value("security"), "dc"];
+				push @etddata, ["accessRights", $_->get_value("security"), "dcterms"];
 			}
 		}
 	
