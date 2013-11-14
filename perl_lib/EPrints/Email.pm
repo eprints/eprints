@@ -252,6 +252,9 @@ sub build_email
 
 	my $repository = $p{session}->get_repository;
 
+	# removes the @ and everything after (confuses SMTP otherwise)
+        $p{to_name} =~ s/@[^@]*$//g;
+
 	my $mimemsg = MIME::Lite->new(
 		From       => encode_mime_header( "$p{from_name}" )." <$p{from_email}>",
 		To         => encode_mime_header( "$p{to_name}" )." <$p{to_email}>",
