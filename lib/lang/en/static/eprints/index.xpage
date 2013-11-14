@@ -123,7 +123,7 @@ EPrints Community members for advice and bug reports.</p>
 
 <div align="center" style='margin-top:2em'>
 <a href="http://www.ecs.soton.ac.uk/"><img src="{$config{rel_path}}/images/ecslogo.jpg" border="0" alt="School of Electronics and Computer Science, University of Southampton" align="top"/></a>
-<p>EPrints is Copyright &copy; University of Southampton, 2000-2012.</p>
+<p>EPrints is Copyright &#169; University of Southampton, 2000-2012.</p>
 </div>
 
 
