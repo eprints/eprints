@@ -384,8 +384,6 @@ sub output_document
 			"title",
 			$xhtml->to_text_dump( $dataobj->render_description ) ) );
 	
-	my @files = @{$dataobj->get_value( "files" )};
-
 	$entry->appendChild( $xml->create_data_element( 
 		"link",
 		undef,
