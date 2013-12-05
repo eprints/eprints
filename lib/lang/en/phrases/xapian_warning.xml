@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<!DOCTYPE phrases SYSTEM "entities.dtd">
+
+<epp:phrases xmlns="http://www.w3.org/1999/xhtml" xmlns:epp="http://eprints.org/ep3/phrase" xmlns:epc="http://eprints.org/ep3/control">
+
+<!-- see https://github.com/eprints/eprints/issues/169 - can be removed when this issue fixed -->
+<epp:phrase id="saved_search_xapian_warning">
+<div class="ep_msg_warning"><div class="ep_msg_warning_content"><table><tbody><tr><td>
+<img alt="Message" src="{$config{rel_path}}/style/images/warning.png" /></td><td>
+Please note: Email alerts for saved simple searches are not supported in this version.
+</td></tr></tbody></table></div></div>
+</epp:phrase>
+
+</epp:phrases>
