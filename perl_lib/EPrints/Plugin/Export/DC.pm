@@ -179,6 +179,8 @@ sub convert_dataobj
 	
 	# Probably a DOI
 	push @dcdata, $plugin->simple_value( $eprint, id_number => "relation" );
+	# .. not a default field but added by several IRs
+	push @dcdata, $plugin->simple_value( $eprint, doi => "relation" );
 
 	# If no documents, may still have an eprint-level language
 	push @dcdata, $plugin->simple_value( $eprint, language => "language" );
