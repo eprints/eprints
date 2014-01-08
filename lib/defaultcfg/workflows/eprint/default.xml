@@ -31,7 +31,7 @@ Action buttons (Previous/Save/Next) can be shown "top", "bottom" or "both":
       <field ref="license" />
       <field ref="date_embargo" />
 <!--  <field ref="relation" /> -->
-<!--  <field ref="language" /> --> 
+      <field ref="language" />
     </component>
   </stage>
 
@@ -46,6 +46,7 @@ Action buttons (Previous/Save/Next) can be shown "top", "bottom" or "both":
     </epc:if>
     <epc:if test="type = 'thesis'">
       <component><field ref="thesis_type" required="yes" /></component>
+      <component><field ref="thesis_name" required="yes" /></component>
     </epc:if>
     <epc:if test="type = 'conference_item'">
       <component><field ref="pres_type" required="yes" /></component>
@@ -69,27 +70,10 @@ Action buttons (Previous/Save/Next) can be shown "top", "bottom" or "both":
       </epc:otherwise>
     </epc:choose>
 
-<!-- This field is much more complicated than creators, but here if you need it. 
     <component><field ref="contributors" /></component>
--->
-
 
     <epc:if test="type = 'exhibition'">
-      <component collapse="yes"><field ref="exhibitors"/></component>
       <component><field ref="num_pieces"/></component>
-    </epc:if>
-
-    <epc:if test="type = 'composition'">
-      <component collapse="yes"><field ref="producers"/></component>
-      <component collapse="yes"><field ref="conductors"/></component>
-      <component collapse="yes"><field ref="accompaniment"/></component>
-      <component collapse="yes"><field ref="lyricists"/></component>
-    </epc:if>
-
-    <epc:if test="type = 'performance'">
-      <component collapse="yes"><field ref="producers"/></component>
-      <component collapse="yes"><field ref="conductors"/></component>
-      <component collapse="yes"><field ref="accompaniment"/></component>
     </epc:if>
 
     <component><field ref="divisions" /></component>
