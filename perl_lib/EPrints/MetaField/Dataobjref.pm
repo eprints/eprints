@@ -242,6 +242,8 @@ sub get_index_codes_basic
 		my $dataset = $dataobj->{dataset};
 		foreach my $field ($dataset->fields)
 		{
+			next if( !$field->property( 'text_index' ) );
+
 			# avoids deep recursion if we have a circular relationship
 			next if( $field->isa( "EPrints::MetaField::Dataobjref" ) && 
 					$field->dataset->id eq $self->_dataset->id );
@@ -257,6 +259,8 @@ sub get_index_codes_basic
 	{
 		foreach my $field (@{$self->property('fields_cache')})
 		{
+			next if( !$field->property( 'text_index' ) );
+
 			my ($codes) = $field->get_index_codes_basic(
 				$session,
 				$value->{$field->property('sub_name')}
