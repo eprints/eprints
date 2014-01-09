@@ -34,6 +34,31 @@ use EPrints::Plugin::Export;
 
 use strict;
 
+my %DEFAULT;
+
+# map default thesis_type values to appropriate
+# qualificationname
+# can be overridden at archive level eg.
+# $c->{plugins}->{"Export::OAI_UKETD_DC"}->{params}->{thesis_type_to_qualname} = { .. };
+$DEFAULT{thesis_type_to_qualname} = {
+	phd => "phd",
+	engd => "engd",
+};
+
+# map default thesis_type valies to appropriate
+# qualificationlevel
+# can be overridden at archive level eg.
+# $c->{plugins}->{"Export::OAI_UKETD_DC"}->{params}->{thesis_type_to_quallevel} = { .. };
+$DEFAULT{thesis_type_to_quallevel} = {
+	phd => "doctoral",
+	engd => "doctoral",
+};
+
+# default contributor_type that identifies a thesis advisor
+# can be overridden at archive level eg.
+# $c->{plugins}->{"Export::OAI_UKETD_DC"}->{params}->{contributor_type_thesis_advisor} = "advisor";
+$DEFAULT{contributor_type_thesis_advisor} = "http://www.loc.gov/loc.terms/relators/THS";
+
 sub new
 {
 	my( $class, %opts ) = @_;
@@ -49,6 +74,17 @@ sub new
 	$self->{metadataPrefix} = "uketd_dc";
 	$self->{xmlns} = "http://naca.central.cranfield.ac.uk/ethos-oai/2.0/";
 	$self->{schemaLocation} = "http://naca.central.cranfield.ac.uk/ethos-oai/2.0/uketd_dc.xsd";
+
+	for(qw( thesis_type_to_qualname 
+		thesis_type_to_quallevel 
+		contributor_type_thesis_advisor ))
+	{
+		if( defined $self->{session} )
+		{
+			$self->{$_} = $self->param( $_ );
+		}
+		$self->{$_} = $DEFAULT{$_} if !defined $self->{$_};
+	}
 
 	return $self;
 }
@@ -216,6 +252,21 @@ sub eprint_to_uketd_dc
 			push @etddata, [ "format", $format, "dc" ];
 			# information about extent and checksums could be added here, if they are available
 			# the default eprint doesn't have a place for this but both could be generated dynamically
+
+			# output a language, embargodate and rights element for each document where possible
+			# this may be in addition to fields defined at the eprint level (see below)
+			if( $_->exists_and_set( "language" ) )
+			{
+				push @etddata, [ "language", $_->get_value( "language" ), "dc"];
+			}
+			if( $_->exists_and_set( "date_embargo" ) )
+			{
+				push @etddata, ["embargodate", $_->get_value("date_embargo"), "uketdterms"];
+			}
+			if( $_->exists_and_set( "security" ) )
+			{
+				push @etddata, ["accessRights", $_->get_value("security"), "dcterms"];
+			}
 		}
 	
 		# Steve Carr : we're using isreferencedby for the official url splash page
@@ -227,8 +278,24 @@ sub eprint_to_uketd_dc
 		if( $eprint->exists_and_set( "thesis_name" )){
 			push @etddata, [ "qualificationname", $eprint->get_value( "thesis_name" ), "uketdterms"];
 		}
+		# attempt to derive a qualificationname from thesis_type
+		elsif( $eprint->exists_and_set( "thesis_type" ) )
+		{
+			my $name = $plugin->{thesis_type_to_qualname}{ $eprint->get_value( "thesis_type" ) };
+			if( defined $name )
+			{
+				push @etddata, [ "qualificationname", $name, "uketdterms"];
+			}
+		}
 		if( $eprint->exists_and_set( "thesis_type")){
-			push @etddata, [ "qualificationlevel", $eprint->get_value( "thesis_type" ), "uketdterms"];
+			# default thesis_type values are a mix of name and level
+			# map 'name' values (eg. phd) to appropriate level (eg. doctoral)
+			my $type = $eprint->get_value( "thesis_type" );
+			if( defined $plugin->{thesis_type_to_quallevel}{ $type } )
+			{
+				$type = $plugin->{thesis_type_to_quallevel}{ $type };
+			}
+			push @etddata, [ "qualificationlevel", $type, "uketdterms"];
 		}
 		if( $eprint->exists_and_set( "institution" )){
 			push @etddata, [ "institution", $eprint->get_value( "institution" ), "uketdterms"];
@@ -239,11 +306,29 @@ sub eprint_to_uketd_dc
 		if( $eprint->exists_and_set( "advisor" )){
 			push @etddata, [ "advisor", $eprint->get_value( "advisor" ), "uketdterms"];
 		}
+		# also look in contributors
+		elsif( $eprint->exists_and_set( "contributors" ) )
+		{
+			foreach my $contrib ( @{ $eprint->get_value( "contributors" ) } )
+			{
+				next unless defined $contrib->{type} && defined $contrib->{name};
+				next unless $contrib->{type} eq $plugin->{contributor_type_thesis_advisor};
+				push @etddata, [ "advisor", EPrints::Utils::make_name_string( $contrib->{name} ), "uketdterms" ];
+			}
+		}
 		if( $eprint->exists_and_set( "language" )){
 			push @etddata, [ "language", $eprint->get_value( "language" ), "dc"];
 		}
 		if( $eprint->exists_and_set( "sponsors" )){
 			push @etddata, [ "sponsor", $eprint->get_value( "sponsors" ), "uketdterms"];
+		}
+		# also look in funders
+		elsif( $eprint->exists_and_set( "funders" ) )
+		{
+			foreach my $funder ( @{ $eprint->get_value( "funders" ) } )
+			{
+				push @etddata, [ "sponsor", $funder, "uketdterms"];
+			}
 		}
 		if( $eprint->exists_and_set( "alt_title" )){
 			push @etddata, [ "alternative", $eprint->get_value("alt_title" ), "dcterms"];
@@ -252,7 +337,7 @@ sub eprint_to_uketd_dc
 			push @etddata, [ "checksum", $eprint->get_value("checksum"), "uketdterms" ];
 		}
 		if( $eprint->exists_and_set( "date_embargo" )){
-			push @etddata, ["date_embargo", $eprint->get_value("date_embargo"), "uketdterms"];
+			push @etddata, ["embargodate", $eprint->get_value("date_embargo"), "uketdterms"];
 		}
 		if( $eprint->exists_and_set( "embargo_reason" )){
 			push @etddata, ["embargo_reason", $eprint->get_value("embargo_reason"), "uketdterms"];

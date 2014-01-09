@@ -570,10 +570,18 @@ This field is required if no creators are listed.
 
     <epp:phrase id="eprint_fieldname_thesis_type">Thesis Type</epp:phrase>
     <epp:phrase id="eprint_fieldhelp_thesis_type">Please select the thesis type.</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_thesis_type_diploma">Diploma</epp:phrase>
     <epp:phrase id="eprint_fieldopt_thesis_type_masters">Masters</epp:phrase>
-    <epp:phrase id="eprint_fieldopt_thesis_type_phd">PhD</epp:phrase>
-    <epp:phrase id="eprint_fieldopt_thesis_type_engd">EngD</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_thesis_type_doctoral">Doctoral</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_thesis_type_postdoctoral">Post-Doctoral</epp:phrase>
     <epp:phrase id="eprint_fieldopt_thesis_type_other">Other</epp:phrase>
+
+    <epp:phrase id="eprint_fieldname_thesis_name">Thesis Name</epp:phrase>
+    <epp:phrase id="eprint_fieldhelp_thesis_name">Please select the thesis name.</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_thesis_name_mphil">MPhil</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_thesis_name_phd">PhD</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_thesis_name_dphil">DPhil</epp:phrase>
+    <epp:phrase id="eprint_fieldopt_thesis_name_other">Other</epp:phrase>
 
 
     <epp:phrase id="eprint_fieldname_patent_applicant">Patent Applicant</epp:phrase>
