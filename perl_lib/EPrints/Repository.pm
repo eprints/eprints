@@ -1565,6 +1565,8 @@ sub run_trigger
 			last TRIGGER if defined $rc && $rc eq EP_TRIGGER_DONE;
 		}
 	}
+
+	return $rc;
 }
 
 =item $repository->log( $msg [, $level ] )
