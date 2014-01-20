@@ -1,0 +1,182 @@
+#!/usr/bin/perl -w 
+
+use FindBin;
+use lib "$FindBin::Bin/../perl_lib";
+
+######################################################################
+#
+#
+######################################################################
+
+=pod
+
+=head1 NAME
+
+B<lift_embargos> - lift expired publisher- or funder-imposed embargos from a repository
+
+=head1 SYNOPSIS
+
+B<lift_embargos> - I<repository_id> [B<options>]
+
+=head1 DESCRIPTION
+
+Lift expired publisher- or funder-imposed embargos from a repository.
+
+This script will:
+
+  - search the repository for documents which have an expired publisher- or funder-imposed embargo date (relative to the system date)
+  - make all documents whose embargo has expired publically available
+  - remove the expired embargo date value
+  - re-generate the abstract page for the eprint
+
+Note that this considers the date to be the local date, not the UTC date.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item B<repository_id> 
+
+The ID of the EPrint repository to search.
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--quiet>
+
+This option does not do anything.
+
+=item B<--verbose>
+
+Explain in detail what is going on. May be repeated for greater effect.
+
+=item B<--version>
+
+Output version information and exit.
+
+=back   
+
+
+=cut
+
+use EPrints;
+use Getopt::Long;
+use Pod::Usage;
+use strict;
+
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+
+Getopt::Long::Configure("permute");
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'silent' => \$quiet,
+	'quiet' => \$quiet
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "lift_embargos" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 1 ); 
+
+our $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
+my $repoid = $ARGV[0];
+my $session = new EPrints::Session( 1 , $repoid , $noise );
+if( !defined $session )
+{
+	print STDERR "Failed to load repository: $repoid\n";
+	exit 1;
+}
+
+my $ds = $session->dataset( "document" );
+
+# Search for expired embargos
+my $searchexp = new EPrints::Search( 
+		session=>$session, 
+		dataset=>$ds );
+
+my $date = sprintf("-%04d-%02d-%02d", EPrints::Time::utc_datetime() );
+$searchexp->add_field( $ds->get_field( "date_embargo" ), $date );
+
+my $list = $searchexp->perform_search;
+
+# For matching documents, remove embargo date value,
+# make documents publically accessible, and
+# re-generate abstract page
+$list->map( sub {
+	my( $session, $dataset, $doc ) = @_;
+
+	my $eprint = $doc->get_eprint;
+
+	# only concerned with documents in main archive
+	return unless $eprint->get_value( "eprint_status" ) eq "archive";
+
+	if( $noise )
+	{
+		print "Lifting expired embargo on document #" . $doc->get_id . " (" . $doc->get_value("date_embargo") . ")\n";
+	}
+	$doc->set_value( "security", "public" );
+	$doc->set_value( "date_embargo", undef );
+	$doc->commit( 1 );
+	$eprint->commit( 1 );
+	$eprint->generate_static;
+	# post-processing, eg. send notification of embargo expiry
+	if( $session->can_call( "notify_embargo_expiry" ) )
+	{
+		$session->call( "notify_embargo_expiry", $eprint, $doc );
+	}
+} );
+
+$session->terminate();
+
+
+=head1 COPYRIGHT
+
+=for COPYRIGHT BEGIN
+
+Copyright 2000-2011 University of Southampton.
+
+=for COPYRIGHT END
+
+=for LICENSE BEGIN
+
+This file is part of EPrints L<http://www.eprints.org/>.
+
+EPrints is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+EPrints is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+License for more details.
+
+You should have received a copy of the GNU General Public License
+along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
+
+=for LICENSE END
+
