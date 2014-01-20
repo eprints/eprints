@@ -151,11 +151,7 @@ $list->map( sub {
 		$doc->commit( 1 ); # pass force through to parent eprint
 		$eprint->generate_static;
 	}
-	$doc->set_value( "security", "public" );
-	$doc->set_value( "date_embargo", undef );
-	$doc->commit( 1 );
-	$eprint->commit( 1 );
-	$eprint->generate_static;
+
 	# post-processing, eg. send notification of embargo expiry
 	if( $session->can_call( "notify_embargo_expiry" ) )
 	{
