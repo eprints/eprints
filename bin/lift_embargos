@@ -55,11 +55,15 @@ Print the full manual page and then exit.
 
 =item B<--quiet>
 
-This option does not do anything.
+Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
 
 =item B<--verbose>
 
 Explain in detail what is going on. May be repeated for greater effect.
+
+=item B<--dry-run>
+
+Don't perform an actual changes.
 
 =item B<--version>
 
@@ -80,6 +84,7 @@ my $verbose = 0;
 my $quiet = 0;
 my $help = 0;
 my $man = 0;
+my $dryrun = 0;
 
 Getopt::Long::Configure("permute");
 
@@ -89,7 +94,8 @@ GetOptions(
 	'version' => \$version,
 	'verbose+' => \$verbose,
 	'silent' => \$quiet,
-	'quiet' => \$quiet
+	'quiet' => \$quiet,
+	'dry-run' => \$dryrun,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "lift_embargos" ) if $version;
 pod2usage( 1 ) if $help;
@@ -136,17 +142,20 @@ $list->map( sub {
 
 	if( $noise )
 	{
-		print "Lifting expired embargo on document #" . $doc->get_id . " (" . $doc->get_value("date_embargo") . ")\n";
+		print "Lifting expired embargo on eprint #".$eprint->id.", document #" . $doc->get_id . " (" . $doc->get_value("date_embargo") . ")\n";
 	}
-	$doc->set_value( "security", "public" );
-	$doc->set_value( "date_embargo", undef );
-	$doc->commit( 1 );
-	$eprint->commit( 1 );
-	$eprint->generate_static;
-	# post-processing, eg. send notification of embargo expiry
-	if( $session->can_call( "notify_embargo_expiry" ) )
+	if( !$dryrun )
 	{
-		$session->call( "notify_embargo_expiry", $eprint, $doc );
+		$doc->set_value( "security", "public" );
+		$doc->set_value( "date_embargo", undef );
+		$doc->commit( 1 ); # pass force through to parent eprint
+		$eprint->generate_static;
+
+		# post-processing, eg. send notification of embargo expiry
+		if( $session->can_call( "notify_embargo_expiry" ) )
+		{
+			$session->call( "notify_embargo_expiry", $eprint, $doc );
+		}
 	}
 } );
 
