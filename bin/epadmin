@@ -1882,16 +1882,22 @@ sub reorder
 	if( @ids )
 	{ 
 		$list = $dataset->list( \@ids );
+		EPrints::Index::delete_ordervalues( $repo, $dataset, $_ ) for( @ids );
 	}
 	else
 	{
 		$list = $dataset->search;
+		foreach my $langid ( @{$repo->config( "languages" )} )
+		{
+			my $ovt = $dataset->get_ordervalues_table_name( $langid );
+			$repo->database->clear_table( $ovt );
+		}
 	}
 
 	$list->map( sub {
 		my( $session, $dataset, $item ) = @_;
 	
-		EPrints::Index::update_ordervalues( $session, $dataset, $item->{data}, $item->{data} );
+		EPrints::Index::insert_ordervalues( $session, $dataset, $item->{data} );
 
 		if( $noise >= 2 )
 		{
