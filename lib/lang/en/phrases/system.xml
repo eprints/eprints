@@ -879,7 +879,7 @@ No reason was given.
 
 <p>Your username is: <b><epc:pin name="username"/></b>.</p>
 
-<p>After you have successfully confirmed your password, you can deposit items <a href="{$config{userhome}}">here</a>.</p>
+<p>After you have successfully confirmed your password, you can deposit items <a href="{$config{base_url}}{$config{userhome}}">here</a>.</p>
 
 <p>Once you have confirmed your identity you may also subscribe to the email alerts service, to be automatically informed of new deposits in the repository in your chosen subject areas in a daily, weekly or monthly digest.</p>
 
