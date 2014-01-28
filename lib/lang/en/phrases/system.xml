@@ -879,7 +879,7 @@ No reason was given.
 
 <p>Your username is: <b><epc:pin name="username"/></b>.</p>
 
-<p>After you have successfully confirmed your password, you can deposit items <a href="{$config{userhome}}">here</a>.</p>
+<p>After you have successfully confirmed your password, you can deposit items <a href="{$config{base_url}}{$config{userhome}}">here</a>.</p>
 
 <p>Once you have confirmed your identity you may also subscribe to the email alerts service, to be automatically informed of new deposits in the repository in your chosen subject areas in a daily, weekly or monthly digest.</p>
 
@@ -1324,7 +1324,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 	
 	<epp:phrase id="Plugin/Screen/Admin/StorageManager:a_local_disk_storage">Local Disk Storage</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/StorageManager:a_local_disk_storage_pic"></epp:phrase>
-	<epp:phrase id="Plugin/Screen/Admin/StorageManager:a_epm_disk_storage">Bazaar Packages</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/StorageManager:a_epm_disk_storage">EPM Disk Storage</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/StorageManager:a_epm_disk_storage_pic"></epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/StorageManager:m_local_archival_storage">Archival Storage</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/StorageManager:m_local_archival_storage_pic"></epp:phrase>
