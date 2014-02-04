@@ -101,7 +101,7 @@ sub new
 	if( -e $repository->config( "base_path" )."/site_lib/lang/".$self->{id}."/phrases" )
 	{
 		$self->_read_phrases_dir(
-			$self->{repository_data},
+			$self->{data},
 			$repository->config( "base_path" ).
 				"/site_lib/lang/".$self->{id}."/phrases" );
 	}
