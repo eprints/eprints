@@ -1,4 +1,3 @@
-
 /* 
    Styles for the subject component.
 
@@ -96,6 +95,7 @@ ul.ep_subjectinput_subjects img {
 	background-color: transparent;
 	font-size: 70%;
 	color: blue;
+	cursor:pointer;
 }
 
 
