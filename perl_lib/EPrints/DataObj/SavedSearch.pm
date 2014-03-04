@@ -316,7 +316,7 @@ sub send_out_alert
 	}
 
 	my $settings_url = $self->{session}->get_repository->get_conf( "http_cgiurl" ).
-		"/users/home?screen=User::SavedSearch::Edit&savedsearchid=".$self->get_id;
+		"/users/home?screen=Workflow::Edit&dataset=saved_search&dataobj=".$self->get_id;
 	my $freqphrase = $self->{session}->html_phrase(
 		"lib/saved_search:".$freq );
 
