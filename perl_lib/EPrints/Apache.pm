@@ -40,7 +40,7 @@ EOC
 	my $aliases = "";
 	foreach $aliasinfo ( @{$repo->config( "aliases" ) || []} )
 	{
-		if( $aliasinfo->{redirect} )
+		if( $aliasinfo->{redirect} eq 'yes' )
 		{
 			my $vname = $aliasinfo->{name};
 			$conf .= <<EOC;
