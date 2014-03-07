@@ -727,7 +727,7 @@ END
 			EPrints::Utils::get_input( 
 				$REGEXP_YESNO,
 				"Redirect $alias to $config{host}",
-				(defined $default && !$default->{redirect} ? 'no' : 'yes' ) );
+				(defined $default && $default->{redirect} ne 'yes' ? 'no' : 'yes' ) );
 		push @{$config{aliases}},$aliasrecord;
 		print "\n";
 	}
