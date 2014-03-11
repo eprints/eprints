@@ -92,7 +92,7 @@ sub send
 
 sub write_to_file
 {
-	my( $self, $filename ) = @_;
+	my( $self, $filename, $wrote_files ) = @_;
 
 	if( !defined $self->{page} ) 
 	{
@@ -106,6 +106,10 @@ sub write_to_file
 			print $fh $self->{repository}->xhtml->doc_type;
 		}
 		print $fh delete($self->{page});
+		if( defined $wrote_files )
+		{
+			$wrote_files->{$filename} = 1;
+		}
 	}
 	else
 	{
