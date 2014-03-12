@@ -4020,4 +4020,7 @@ To create a blank EPM entire a new id in the input and click <epc:phrase ref="Pl
 
     <epp:phrase id="lib/metafield:join_image"><br /></epp:phrase>
 
+    <epp:phrase id="summary_page:actions"><h3>Actions (login required)</h3></epp:phrase>
+    <epp:phrase id="summary_page:download">Download</epp:phrase>
+
 </epp:phrases>

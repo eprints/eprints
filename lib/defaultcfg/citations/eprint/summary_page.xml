@@ -33,7 +33,7 @@
             <td valign="top" align="right"><epc:print expr="$doc.icon('HoverPreview','noNewWindow')}" /></td>
             <td valign="top">
               <epc:print expr="$doc.citation('default')" /><br />
-              <a href="{$doc.url()}" class="ep_document_link">Download (<epc:print expr="$doc.doc_size().human_filesize()" />)</a>
+              <a href="{$doc.url()}" class="ep_document_link"><epc:phrase ref="summary_page:download"/> (<epc:print expr="$doc.doc_size().human_filesize()" />)</a>
               <epc:if test="$doc.is_public()">
 			  <epc:choose>
 			  <epc:when test="$doc.thumbnail_url('video_mp4').is_set()">
@@ -115,7 +115,7 @@
   </epc:if>
 
   <epc:if test="!$flags{preview}">
-    <h3>Actions (login required)</h3>
+    <epc:phrase ref="summary_page:actions"/>
     <table class="ep_summary_page_actions">
     <epc:foreach expr="action_list('eprint_summary_page_actions',$item)" iterator="action">
       <tr>
