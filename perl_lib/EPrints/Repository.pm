@@ -927,10 +927,13 @@ sub _load_workflows
 			$self->{workflows} );
 	}
 
-	# load repository-specific workflows (may overwrite)
-	EPrints::Workflow::load_all( 
-		$self->config( "config_path" )."/workflows",
-		$self->{workflows} );
+	if( -e $self->config( "config_path" )."/workflows" )
+	{	
+		# load repository-specific workflows (may overwrite)
+		EPrints::Workflow::load_all( 
+			$self->config( "config_path" )."/workflows",
+			$self->{workflows} );
+	}
 
 	return 1;
 }
@@ -1071,6 +1074,8 @@ sub _load_citation_specs
 sub _load_citation_dir
 {
 	my( $self, $dir ) = @_;
+
+	return unless -e $dir;
 
 	my $dh;
 	opendir( $dh, $dir );
