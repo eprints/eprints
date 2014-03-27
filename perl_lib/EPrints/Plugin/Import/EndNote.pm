@@ -503,24 +503,52 @@ sub convert_input
 		}
 	}
 
-	# A Editor (Edited Book), Author (Other Types)
+
 	for ( $input_data->author )
-	{
-		# Author's names should be in Lastname, Firstname format
-		if( /^(.*?),(.*?)(,(.*?))?$/ )
-		{
+        {
+                # catch: Lastname, Firstname format
+                if( /^(.*?),(.*?)(,(.*?))?$/ )
+                {
+                        if( $input_data_type eq "Edited Book" )
+                        {
+                                push @{$epdata->{editors_name}}, { family => $1, given => $2, lineage => $4 };
+                        }
+                        else
+                        {
+                                push @{$epdata->{creators_name}}, { family => $1, given => $2, lineage => $4 };
+                        }
+                }
+                # catch :  Anthony W. J. Bicknell  --  surname is the part after the last whitespace, and the first name is the front part
+                elsif(/^(.*?) (\w{2,})$/)
+                {
 			if( $input_data_type eq "Edited Book" )
 			{
-				push @{$epdata->{editors_name}}, { family => $1, given => $2, lineage => $4 };
+	                        push @{$epdata->{editors_name}}, { family => $2, given => $1 };
 			}
 			else
 			{
-				push @{$epdata->{creators_name}}, { family => $1, given => $2, lineage => $4 };
+				push @{$epdata->{creators_name}}, { family => $2, given => $1 };
 			}
-		} else {
-			$plugin->warning( $plugin->phrase( "bad_author", author => $_ ) );
-		}
-	}
+                }
+                # catch : Bicknell A W. J.  or Newton J  --   surname is the first part. 
+                elsif(/^(\w{2,}) (.*)$/)
+                {
+			if( $input_data_type eq "Edited Book" )
+			{
+				push @{$epdata->{editors_name}}, { family => $1, given => $2 };
+			}
+			else
+			{
+				push @{$epdata->{creators_name}}, { family => $1, given => $2 };
+			}
+                }
+                 else {
+                        $plugin->warning( $plugin->phrase( "bad_author", author => $_ ) );
+                }
+        }
+
+
+
 
 	# B Conference Name, Department (Thesis), Newspaper, Magazine, Series (Book, Edited Book, Report), Book Title (Book Section)
 	if( defined $input_data->book )
@@ -581,7 +609,22 @@ sub convert_input
 			{
 				push @{$epdata->{editors_name}}, { family => $1, given => $2, lineage => $4 };
 			}
-		} else {
+		} 
+		##catch: A. Lavin  ---   Lastname is the second part 
+ 		elsif(/^(.*?) (\w{2,})$/)
+                {
+			if( $input_data_type eq "Book" || $input_data_type eq "Edited Book" || $input_data_type eq "Report" )
+                        {
+                                 # Unsupported
+                        }
+                        else
+                	{
+                     		push @{$epdata->{editors_name}}, { family => $2, given => $1 };
+                        }
+                }
+
+
+		else {
 			$plugin->warning( $plugin->phrase( "bad_editor", editor => $_ ) );
 		}
 	}
