@@ -157,7 +157,7 @@ sub start_element
 		$self->{characters} = \$epdata->{projects}[-1];
 	}
 	elsif ($path =~ m{^/records/REC/static_data/fullrecord_metadata/fund_ack/fund_text\b}) {
-		$self->{characters} = \$epdata->{notes};
+		$self->{characters} = \$epdata->{note};
 	}
 	else {
 		$self->{characters} = undef;

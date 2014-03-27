@@ -1,6 +1,6 @@
 package SOAP::ISIWoK;
 
-use SOAP::Lite;
+use SOAP::Lite on_action => sub {};
 use HTTP::Cookies;
 use MIME::Base64;
 #use SOAP::Lite +'trace';
