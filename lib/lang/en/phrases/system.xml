@@ -1541,7 +1541,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
     <epp:phrase id="lib/searchexpression:form_problem"><p>There is a problem with the form:</p></epp:phrase>
     <epp:phrase id="lib/searchexpression:results_for">Results for <epc:pin name="title"/></epp:phrase>
     <epp:phrase id="lib/searchexpression:results">Displaying results <epc:pin name="from"/> to <epc:pin name="to"/> of <epc:pin name="n"/>.</epp:phrase>
-	<epp:phrase id="lib/searchexpression:results_page_size">Show <epc:pin name="n_10"/>, <epc:pin name="n_25"/> or <epc:pin name="n_100"/> results per page.</epp:phrase>
+    <epp:phrase id="lib/searchexpression:results_page_size">Show <epc:pin name="n_10"/>, <epc:pin name="n_25"/> or <epc:pin name="n_100"/> results per page. <epc:pin name="n_all">Show All</epc:pin></epp:phrase>
     <epp:phrase id="lib/searchexpression:search_time">Search time: <epc:pin name="searchtime"/>s.</epp:phrase>
     <epp:phrase id="lib/searchexpression:noresults">Search has no matches.</epp:phrase>
     <epp:phrase id="lib/searchexpression:export_section">
