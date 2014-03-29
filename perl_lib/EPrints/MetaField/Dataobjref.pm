@@ -44,7 +44,7 @@ sub extra_subfields
 	my( $self ) = @_;
 
 	return (
-		{ sub_name=>"id", type=>"int", input_cols=>6, },
+		{ sub_name=>"id", type=>"itemref", datasetid => $self->property( 'datasetid' ), input_cols=>6, },
 	);
 }
 
