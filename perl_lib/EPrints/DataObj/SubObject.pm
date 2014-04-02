@@ -168,7 +168,8 @@ sub permit
 		join('/', $dataset->base_id, $dataset->id, $priv) :
 		join('/', $dataset->base_id, $priv);
 
-	return $self->parent->permit( $priv, $user );
+	$r |= $self->parent->permit( $priv, $user );
+	return $r;
 }
 
 sub has_owner
