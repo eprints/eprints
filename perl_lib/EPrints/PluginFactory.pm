@@ -40,6 +40,9 @@ use File::Find qw();
 # lookup-table of system plugin types
 my %SYSTEM_PLUGINS;
 
+# list of plugins that should be disabled by default
+my @PLUGINS_TO_DISABLE;
+
 =item $plugins = EPrints::PluginFactory->new( $repository )
 
 Create a new plugin factory using settings from $repository.
@@ -87,33 +90,35 @@ sub new
 
 		# extension plugins
 		$dir = $repository->config( "base_path" )."/lib/plugins";
-		my @loaded = $self->_load_dir( \%SYSTEM_PLUGINS, $repository, $dir );
+		push @PLUGINS_TO_DISABLE, map { $_->get_id } $self->_load_dir( \%SYSTEM_PLUGINS, $repository, $dir );
 		if( $use_xslt )
 		{
-			push @loaded,
+			push @PLUGINS_TO_DISABLE,
+				map { $_->get_id }
 				$self->_load_xslt_dir( \%SYSTEM_PLUGINS, $repository, $dir );
-		}
-		
-		# default to disabled
-		my $conf = $repository->config( "plugins" );
-		foreach my $plugin (@loaded)
-		{
-			my $pluginid = $plugin->get_id();
-			if( !defined $plugin->param( "disable" ) )
-			{
-				$conf->{$pluginid}{params}{disable} = 1;
-			}
 		}
 
 		# /site_lib/ extensions plugins - we want those enabled by default
 		$dir = $repository->config( "base_path" )."/site_lib/plugins";
-		push @loaded, $self->_load_dir( \%SYSTEM_PLUGINS, $repository, $dir );
+		$self->_load_dir( \%SYSTEM_PLUGINS, $repository, $dir );
 		if( $use_xslt )
 		{
-			push @loaded,
-				$self->_load_xslt_dir( \%SYSTEM_PLUGINS, $repository, $dir );
+			$self->_load_xslt_dir( \%SYSTEM_PLUGINS, $repository, $dir );
 		}
+	}
 
+	if( scalar @PLUGINS_TO_DISABLE )
+	{
+		# default to disabled
+		my $conf = $repository->config( "plugins" );
+		foreach my $pluginid (@PLUGINS_TO_DISABLE)
+		{
+			my $plugin = $self->get_plugin( $pluginid );
+			if( defined $plugin && !defined $plugin->param( "disable" ) )
+			{
+				$conf->{$pluginid}{params}{disable} = 1;
+			}
+		}
 	}
 
 	# repository-specific plugins
