@@ -3150,6 +3150,7 @@ PY = 2006 and OG = (Cambridge)<br />
 	<epp:phrase id="Plugin/Import/DefaultXML:file_imports_disabled">Attempt to import eprint with document data expressed as a local filename. This is a security hole in normal use, and is disabled. It *is* useful when bulk importing and may be enabled by setting enable_file_imports.</epp:phrase>
 	<epp:phrase id="Plugin/Import/DefaultXML:file_not_exists">Could not locate file for import: <epc:pin name="href" />.</epp:phrase>
 	<epp:phrase id="Plugin/Import/DOI:invalid_doi">Unrecognised or invalid doi: <epc:pin name="doi" />.<br />Remote service said: <tt><epc:pin name="msg"/></tt></epp:phrase>
+	<epp:phrase id="Plugin/Import/DOI:duplicate_doi"><strong>Duplicate DOI: <epc:pin name="doi" /></strong>.<br />This DOI already exists in the repository: <br /><epc:pin name="msg"/></epp:phrase>
 
 	<!-- Convert plugins -->
 
