@@ -58,4 +58,8 @@
 # You should replace this with your own CrossRef account username and password.
 
 $c->{plugins}->{"Import::DOI"}->{params}->{pid} = "ourl_eprintsorg:eprintsorg";
+# set the default options for the DOI import plugin - change these to reflect your
+# own repository requirements
+$c->{plugins}->{"Import::DOI"}->{params}->{doi_field} = "id_number";
+$c->{plugins}->{"Import::DOI"}->{params}->{use_prefix} = 1;
 

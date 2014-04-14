@@ -43,6 +43,11 @@ sub input_text_fh
 	my @ids;
 
 	my $pid = $plugin->param( "pid" );
+        my $session = $plugin->{repository};
+        my $use_prefix = $plugin->param( "use_prefix" );
+        my $doi_field = $plugin->param( "doi_field" );
+        $use_prefix = 1 unless defined ( $use_prefix );
+        $doi_field = "id_number" unless defined ($doi_field );
 
 	unless( $pid )
 	{
@@ -57,8 +62,31 @@ sub input_text_fh
 		$doi =~ s/\s+$//;
 
 		next unless length($doi);
-
-		$doi =~ s/^(doi:)?/doi:/i;
+		# Only include prefix if config parameter set - Alan Stiles, Open University, 20140408
+		if ( $use_prefix )
+		{
+			$doi =~ s/^(doi:)?/doi:/i;
+		}
+		else
+		{
+			$doi =~ s/^(doi:)?//i;
+		}
+		# START check and exclude DOI from fetch if DOI already exists in the 'archive' dataset - Alan Stiles, Open University, 20140408
+		my $duplicates = $session->dataset( 'archive' )->search(
+						filters =>
+						[
+							{ meta_fields => [$doi_field], value => $doi, match => "EQ" }
+						]
+		);
+		if ( $duplicates->count() > 0 )
+		{
+			$plugin->handler->message( "warning", $plugin->html_phrase( "duplicate_doi",
+				doi => $plugin->{session}->make_text( $doi ),
+				msg => $duplicates->item( 0 )->render_citation_link(),
+			));
+			next;
+		}
+		# END check and exclude DOI from fetch if DOI already exists in the 'archive' dataset - Alan Stiles, Open University, 20140408
 
 		my %params = (
 			pid => $pid,
@@ -173,6 +201,10 @@ sub convert_input
 	my( $plugin, $data ) = @_;
 
 	my $epdata = {};
+        my $use_prefix = $plugin->param( "use_prefix" );
+        my $doi_field = $plugin->param( "doi_field" );
+        $use_prefix = 1 unless defined ( $use_prefix );
+        $doi_field = "id_number" unless defined ( $doi_field );
 
 	if( defined $data->{creators} )
 	{
@@ -202,7 +234,8 @@ sub convert_input
 	}
 	if( defined $data->{"doi"} )
 	{
-		$epdata->{id_number} = $data->{"doi"};
+		#Use doi field identified from config parameter, in case it has been customised. Alan Stiles, Open University 20140408
+		$epdata->{$doi_field} = $data->{"doi"};
 		my $doi = $data->{"doi"};
 		$doi =~ s/^\s*doi:\s*//gi;
 		$epdata->{official_url} = "http://dx.doi.org/$doi";
