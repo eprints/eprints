@@ -44,10 +44,8 @@ sub input_text_fh
 
 	my $pid = $plugin->param( "pid" );
         my $session = $plugin->{repository};
-        my $use_prefix = $plugin->param( "use_prefix" );
-        my $doi_field = $plugin->param( "doi_field" );
-        $use_prefix = 1 unless defined ( $use_prefix );
-        $doi_field = "id_number" unless defined ($doi_field );
+        my $use_prefix = $plugin->param( "use_prefix" ) || 1;
+        my $doi_field = $plugin->param( "doi_field" ) || 'id_number';
 
 	unless( $pid )
 	{
@@ -75,7 +73,7 @@ sub input_text_fh
 		my $duplicates = $session->dataset( 'archive' )->search(
 						filters =>
 						[
-							{ meta_fields => [$doi_field], value => $doi, match => "EQ" }
+							{ meta_fields => [$doi_field], value => $doi, match => "EX" }
 						]
 		);
 		if ( $duplicates->count() > 0 )
