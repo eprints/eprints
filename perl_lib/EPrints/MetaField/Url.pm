@@ -40,7 +40,8 @@ sub get_property_defaults
 {
 	my( $self ) = @_;
 	return (
-		$self->SUPER::get_property_defaults,
+		$self->SUPER::get_property_defaults, # Id
+		$self->EPrints::MetaField::Longtext::get_property_defaults, # LongText - maxlength
 		text_index => 1,
 		sql_index => 0,
 		match => "IN"
