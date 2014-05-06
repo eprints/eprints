@@ -65,6 +65,8 @@ A shell script will print the stack trace to the console.
 package EPrints;
 
 my $conf;
+		
+use Cwd;
 
 BEGIN
 {
@@ -81,8 +83,7 @@ BEGIN
 	# set default global configuration values
 	if( !defined $conf->{base_path} )
 	{
-		my $base_path = $INC{'EPrints.pm'};
-		$base_path =~ s#[^/]+/\.\.(/|$)##g;
+		my $base_path = Cwd::realpath( $INC{'EPrints.pm'} );
 		$base_path =~ s/.perl_lib.EPrints\.pm$//; # ignore / \
 		$conf->{base_path} = $base_path;
 	}
