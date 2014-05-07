@@ -704,7 +704,7 @@ sub export_video
 	my $duration = $doc->get_value( "media_duration" );
 	my $aspect = $doc->get_value( "media_aspect_ratio" );
 	my $ratio = 4 / 3;
-	if( defined $aspect && $aspect =~ /^(\d+):(\d+)$/ )
+	if( defined $aspect && $aspect =~ /^(\d+):(\d+)$/ && ( $1 / $2 ) != 0 ) # ignore 0:n
 	{
 		$ratio = $1 / $2;
 	}
