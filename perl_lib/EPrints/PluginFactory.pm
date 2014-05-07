@@ -107,6 +107,14 @@ sub new
 		}
 	}
 
+	# repository-specific plugins
+	$dir = $repository->get_conf( "config_path" )."/plugins";
+	$self->_load_dir( $self->{repository_data}, $repository, $dir );
+	if( $use_xslt )
+	{
+		$self->_load_xslt_dir( $self->{repository_data}, $repository, $dir );
+	}
+
 	if( scalar @PLUGINS_TO_DISABLE )
 	{
 		# default to disabled
@@ -119,14 +127,6 @@ sub new
 				$conf->{$pluginid}{params}{disable} = 1;
 			}
 		}
-	}
-
-	# repository-specific plugins
-	$dir = $repository->get_conf( "config_path" )."/plugins";
-	$self->_load_dir( $self->{repository_data}, $repository, $dir );
-	if( $use_xslt )
-	{
-		$self->_load_xslt_dir( $self->{repository_data}, $repository, $dir );
 	}
 
 	foreach my $plugin ($self->get_plugins)
