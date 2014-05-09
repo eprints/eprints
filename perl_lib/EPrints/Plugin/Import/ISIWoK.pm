@@ -152,6 +152,14 @@ sub isidata_to_epdata
 		}
 	}
 
+	if (ref($data->{source}) ne 'ARRAY')
+	{
+		$data->{source} = [$data->{source}];
+	}
+	if (ref($data->{other}) ne 'ARRAY')
+	{
+		$data->{other} = [$data->{other}];
+	}
 	foreach my $part (@{$data->{source}||[]}, @{$data->{other}||[]})
 	{
 		my( $label, $value ) = @$part{qw( label value )};
