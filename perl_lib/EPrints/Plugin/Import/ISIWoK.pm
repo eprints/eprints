@@ -90,7 +90,10 @@ sub input_text_fh
 	if ($self->param('lite'))
 	{
 		my @ids;
-		foreach my $record (@{$som->result->{records}})
+
+		my $records = $som->result->{records};
+		$records = [$records] unless ref($records) eq 'ARRAY';
+		foreach my $record (@$records)
 		{
 			my $epdata = $self->isidata_to_epdata($record, %opts);
 			my $dataobj = $self->epdata_to_dataobj($epdata, %opts);
