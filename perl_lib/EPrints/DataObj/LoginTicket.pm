@@ -115,7 +115,7 @@ sub get_defaults
 	$data->{securecode} = &_code();
 	if( !$repo->config( "ignore_login_ip" ) )
 	{
-		$data->{ip} = $repo->get_request->connection->remote_ip;
+		$data->{ip} = $repo->remote_ip;
 	}
 
 	$data->{time} = time();
