@@ -581,6 +581,49 @@ sub param
         return( @result );
 }
 
+######################################################################
+=pod
+
+=begin InternalDoc
+
+=item $repository->remote_ip
+
+A wrapper method which - when available - returns the true IP of the 
+client. This will not return the IP of any Proxy/load balancer in-between.
+
+=end InternalDoc
+
+=cut
+######################################################################
+
+sub remote_ip
+{
+        my( $self ) = @_;
+
+        # need an HTTP request...
+        return if $self->{offline};
+
+        my $r = $self->get_request;
+
+        return if !$r;
+
+        # Proxy has set the "X-Forwarded-For" HTTP header?
+        my $ip = $r->headers_in->{"X-Forwarded-For"};
+
+        # Apache v2.4+ (http://httpd.apache.org/docs/trunk/developer/new_api_2_4.html)
+        if( !EPrints::Utils::is_set( $ip ) && $r->can( "useragent_ip" ) )
+        {
+                $ip = $r->useragent_ip;
+        }
+
+        # Apache v2.0-2.2
+        if( !EPrints::Utils::is_set( $ip ) && $r->connection->can( "client_ip" ) )
+        {
+                $ip = $r->connection->client_ip;
+        }
+
+        return $ip;
+}
 
 ######################################################################
 =pod
