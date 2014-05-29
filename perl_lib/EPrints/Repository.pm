@@ -371,36 +371,43 @@ CGI parameters in the current request.
 
 sub param
 {
-	my( $self, $name ) = @_;
+        my( $self, $name ) = @_;
 
-	if( !defined $self->{query} ) 
-	{
-		$self->read_params;
-	}
+        if( !defined $self->{query} )
+        {
+                $self->read_params;
+        }
 
-	if( !wantarray )
-	{
-		my $value = ( $self->{query}->param( $name ) );
-		utf8::decode($value);
-		return $value;
-	}
-	
-	# Called in an array context
-	my @result;
+        if( !wantarray )
+        {
+                my $value = ( $self->{query}->param( $name ) );
+                if( EPrints::Utils::is_set( $value ) )
+                {
+                        utf8::decode($value);
+                }
 
-	if( defined $name )
-	{
-		@result = $self->{query}->param( $name );
-	}
-	else
-	{
-		@result = $self->{query}->param;
-	}
+                return $value;
+        }
 
-	utf8::decode($_) for @result;
+        # Called in an array context
+        my @result;
 
-	return( @result );
+        if( defined $name )
+        {
+                @result = $self->{query}->param( $name );
+        }
+        else
+        {
+                @result = $self->{query}->param;
+        }
 
+        for( @result )
+        {
+                next if( !EPrints::Utils::is_set( $_ ) );
+                utf8::decode($_);
+        }
+
+        return( @result );
 }
 
 
