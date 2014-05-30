@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 20;
+use Test::More tests => 21;
 
 use strict;
 use warnings;
@@ -130,4 +130,4 @@ foreach my $i (grep { $_ % 2 == 0 } 0..$#field_tests)
 	, "add_dataset_field ".($i/2 + 1)." $rc\n$output" );
 }
 
-
+ok( $repo->can( "remote_ip" ), "Client-IP wrapper in place" );
