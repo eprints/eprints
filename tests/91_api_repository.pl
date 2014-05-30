@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 24;
+use Test::More tests => 25;
 
 use strict;
 use warnings;
@@ -143,3 +143,5 @@ foreach my $i (grep { $_ % 2 == 0 } 0..$#field_tests)
 	is(scalar(@v), 2, "url_param x == 2");
 	ok(utf8::is_utf8(scalar($repo->url_param("x"))), "url_param is_utf8");
 }
+
+ok( $repo->can( "remote_ip" ), "Client-IP wrapper in place" );
