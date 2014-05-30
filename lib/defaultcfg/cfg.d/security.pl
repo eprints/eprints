@@ -36,13 +36,13 @@ $c->{can_request_view_document} = sub
                                 return( "ALLOW" ) unless( $request->has_expired() );
                         }
                 }
-        }	
-
-	my $ip = $r->connection()->remote_ip();
-
+        }
+	
 	# Example of how to allow an override for certain basic auth type usernames/passwords.
 	# This is useful if you want the site to be read by a crawler, for example.
 	# You may wish to wrap it all in a if( $ip eq "xxx" ) for added security.
+	#
+	# my $ip = $doc->repository->remote_ip();
 	#
 	# my( $res, $passwd_sent ) = $r->get_basic_auth_pw;
 	# my( $user_sent ) = $r->user;

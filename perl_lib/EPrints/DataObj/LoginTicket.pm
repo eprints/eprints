@@ -140,7 +140,7 @@ sub new_from_request
 
 	my $dataset = $repo->dataset( $class->get_dataset_id );
 
-	my $ip = $r->connection->remote_ip;
+	my $ip = $repo->remote_ip;
 
 	my $ticket;
 
