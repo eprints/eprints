@@ -467,6 +467,10 @@ sub post_config_handler
 		$named{$port} = 1;
 	}
 
+	# eg. "Apache/2.4.7 (Ubuntu)"
+	my $apache_desc = Apache2::ServerUtil::get_server_description();
+	my( $apache_version ) = ( $apache_desc =~ m!^Apache/(\d\.\d)! );
+
 	foreach my $repo (@repos)
 	{
 		 my $port = $repo->config( "port" );
@@ -475,7 +479,8 @@ sub post_config_handler
 		 {
 			 $s->warn( "EPrints Warning! '".$repo->get_id."' is configured for port $port but Apache has not been configured to listen on that port. To fix this add to your main Apache configuration file: Listen $port" );
 		 }
-		 if( !$named{$port} )
+		 # NameVirtualHost not required since v2.3 - http://httpd.apache.org/docs/2.4/mod/core.html#namevirtualhost
+		 if( !$named{$port} && ( defined $apache_version && $apache_version < 2.3 ) )
 		 {
 			 my $hostname = $repo->config( "host" );
 			 $s->warn( "EPrints Warning! '".$repo->get_id."' is configured for port $port but Apache does not have NameVirtualHosts configured for that port. This may cause the wrong repository to respond to '$hostname:$port'. To fix this add to your main Apache configuration file: NameVirtualHost *:$port" );
