@@ -103,9 +103,8 @@ sub handler {} # deprecated
 
 sub is_robot
 {
-	my( $r ) = @_;
+	my( $r, $ip ) = @_;
 
-	my $ip = $r->connection->remote_ip;
 	my $time_t = time();
 
 	# cleanup then check the cache
@@ -149,9 +148,11 @@ sub document
 		return DECLINED;
 	}
 
-	return if is_robot( $r );
-
 	my $doc = $r->pnotes( "document" );
+
+	my $ip = $doc->repository->remote_ip;
+	return if is_robot( $r, $ip );
+
 	my $filename = $r->pnotes->{ "filename" };
 
 	# only count hits to the main file
@@ -170,6 +171,7 @@ sub document
 
 	my $epdata = _generic( $r, { _parent => $doc } );
 
+	$epdata->{requester_id} = $ip;
 	$epdata->{service_type_id} = "?fulltext=yes";
 	$epdata->{referent_id} = $doc->value( "eprintid" );
 	$epdata->{referent_docid} = $doc->id;
@@ -198,13 +200,15 @@ sub eprint
 	{
 		return DECLINED;
 	}
-
-	return if is_robot( $r );
-
+	
 	my $eprint = $r->pnotes( "eprint" );
+
+	my $ip = $eprint->repository->remote_ip;
+	return if is_robot( $r, $ip );
 
 	my $epdata = _generic( $r, { _parent => $eprint } );
 
+	$epdata->{requester_id} = $ip;
 	$epdata->{service_type_id} = "?abstract=yes";
 	$epdata->{referent_id} = $eprint->id;
 
@@ -215,11 +219,7 @@ sub _generic
 {
 	my( $r, $epdata ) = @_;
 
-	my $c = $r->connection;
-	my $ip = $c->remote_ip;
-
 	$epdata->{datestamp} = EPrints::Time::get_iso_timestamp( $r->request_time );
-	$epdata->{requester_id} = $ip;
 	$epdata->{referring_entity_id} = $r->headers_in->{ "Referer" };
 	$epdata->{requester_user_agent} = $r->headers_in->{ "User-Agent" };
 
