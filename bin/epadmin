@@ -1097,7 +1097,7 @@ sub create_db
 
 	my $repo = &repository( $repoid, db_connect => 0 );
 
-	my $dbname = $repo->get_conf( "dbname" );
+	my $dbname = $repo->config( "dbname" );
 
 	if( !defined $dbname )
 	{
@@ -1109,7 +1109,7 @@ sub create_db
 	my $username = EPrints::Utils::get_input( '^.*$', "Database Superuser Username", "root" );
 	my $password = EPrints::Utils::get_input_hidden( '^.*$', "Database Superuser Password" );
 
-	my $database = EPrints::Database->new( $repo, db_connect => 0 );
+	my $database = EPrints::Database->new( $repo );
 
 	if( !$database->create( $username, $password ) )
 	{
@@ -1163,10 +1163,13 @@ sub create_user
 			);
 		}
 	}
+	
+	my $user_ds = $repo->dataset( "user" );
 
 	print "Creating a new user in $repoid\n\n";
 	$info{username} ||= EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
-	while( defined $repo->user_by_username( $info{username} ) )
+	
+	while( $user_ds->search( filters => [ { meta_fields => [qw/ username /], value => $info{username}, match => 'EX' } ] )->count > 0 )
 	{
 		print STDERR "User with username '".$info{username}."' already exists.\n";
 		$info{username} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Enter a username', 'admin' );
@@ -1177,7 +1180,6 @@ sub create_user
 	$info{password} = EPrints::Utils::crypt_password( $info{password}, $repo );
 	$info{email} ||= EPrints::Utils::get_input( $REGEXP_EMAIL, 'Email' );
 	
-	my $user_ds = $repo->dataset( "user" );
 	my $new_user = $user_ds->create_dataobj( \%info );
 
 	print "\n";
@@ -1984,13 +1986,19 @@ sub reindex
 		}
 	}
 
-	my $indexer = $repo->plugin( "Event::Indexer" );
+# TODO - sf2
+#	my $indexer = $repo->plugin( "Event::Indexer" );
 
 	$list->map(sub {
 		my( undef, $dataset, $item ) = @_;
-	
-		$indexer->index_all( $item );
 
+		$repo->run_trigger( EPrints::Const::EP_TRIGGER_INDEX_FIELDS,
+			repository => $repo,
+			dataobj => $item
+		);
+#	
+#		$indexer->index_all( $item );
+#
 		if( $noise >= 2 )
 		{
 			print STDERR "Indexed item: ".$dataset->id()."/".$item->id()."\n";
@@ -2149,7 +2157,7 @@ sub update_datasets
 				print STDERR "Failed adding dataset $_\n";
 			}
 		}
-		foreach my $field ($dataset->get_fields)
+		foreach my $field ($dataset->fields)
 		{
 			next if defined $field->get_property( "sub_name" );
 			if( !$db->has_field( $dataset, $field ) )
@@ -2175,12 +2183,13 @@ sub update_datasets
 			}
 		}
 		# check multiple field PRIMARY KEYs
-		foreach my $field ($dataset->get_fields)
+		foreach my $field ($dataset->fields)
 		{
 			next if $field->is_virtual;
 			next if !$field->property( "multiple" );
 
 			my $table = $dataset->get_sql_sub_table_name( $field );
+
 			my @cols = $db->get_primary_key( $table );
 			if( @cols != 2 || $cols[0] ne $dataset->key_field->get_sql_name || $cols[1] ne "pos" )
 			{
@@ -2190,32 +2199,6 @@ sub update_datasets
 				}
 				$db->do("ALTER TABLE ".$db->quote_identifier($table)." ADD PRIMARY KEY (".$db->quote_identifier($dataset->key_field->get_sql_name).",".$db->quote_identifier("pos").")");
 				print "Fixed PRIMARY KEY on $table\n";
-			}
-		}
-		# check the __rindex collation
-		if( $dataset->indexable && $db->isa( "EPrints::Database::mysql" ) )
-		{
-			my $database = $repo->config( "dbname" );
-			my $table = $dataset->get_sql_rindex_table_name();
-			foreach my $col (qw( field word ))
-			{
-				my $sth = $db->prepare(<<EOS);
-SELECT
-	COLLATION_NAME
-FROM
-	information_schema.COLUMNS
-WHERE
-	TABLE_SCHEMA='$database' AND
-	TABLE_NAME='$table' AND
-	COLUMN_NAME='$col' AND
-	LOWER(COLLATION_NAME)!='utf8_bin'
-LIMIT 1
-EOS
-				$db->execute( $sth );
-				my( $collate ) = $sth->fetchrow_array or next;
-				$db->do("ALTER TABLE ".$db->quote_identifier($table)." CONVERT TO CHARACTER SET utf8 COLLATE utf8_bin");
-				print "Fixed $table.$col collation\n" if $noise;
-				last;
 			}
 		}
 	}
@@ -2576,47 +2559,7 @@ EOW
 			$rc &&= upgrade_mysql_charset_table( $repo, $db, $dataset->get_sql_sub_table_name( $aux_field ), [$key_field, $pos_field, $aux_field] );
 		}
 
-		# ordervalues
-		foreach my $langid ( @{$repo->config( "languages" )} )
-		{
-			my @fields = map { $_->create_ordervalues_field( $repo, $langid ) } $dataset->fields;
-			$fields[0] = $key_field;
-			$rc &&= upgrade_mysql_charset_table( $repo, $db, $dataset->get_ordervalues_table_name( $langid ), \@fields );
-		}
-
-		# rindex and index_grep
-		if( $dataset->indexable )
-		{
-			print STDERR "Upgrading rindex and grep tables for $_\n";
-			my $dataset = $repo->dataset( $_ );
-			my $rindex_table = $dataset->get_sql_rindex_table_name;
-			my $grep_table = $dataset->get_sql_grep_table_name;
-			my $Q_key_name = $db->quote_identifier( $key_field->get_sql_name );
-			my $sql = "ALTER IGNORE TABLE $rindex_table MODIFY field VARCHAR(64) CHARACTER SET UTF8, MODIFY word VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, ADD PRIMARY KEY(field,word,$Q_key_name)";
-			if( $db->get_primary_key( $rindex_table ) )
-			{
-				$sql =~ s/(ADD PRIMARY KEY)/DROP PRIMARY KEY, $1/;
-			}
-			my %old_keys = _mysql_table_keys( $db, $rindex_table );
-			foreach my $old_key (keys %old_keys)
-			{
-				$sql .= ", DROP KEY ".$db->quote_identifier( $old_key );
-			}
-			$rc &&= $db->do( $sql );
-			$sql = "ALTER IGNORE TABLE $grep_table MODIFY fieldname VARCHAR(64) CHARACTER SET UTF8, MODIFY grepstring VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, ADD PRIMARY KEY(fieldname,grepstring,$Q_key_name)";
-			if( $db->get_primary_key( $grep_table ) )
-			{
-				$sql =~ s/(ADD PRIMARY KEY)/DROP PRIMARY KEY, $1/;
-			}
-			%old_keys = _mysql_table_keys( $db, $grep_table );
-			foreach my $old_key (keys %old_keys)
-			{
-				$sql .= ", DROP KEY ".$db->quote_identifier( $old_key );
-			}
-			$rc &&= $db->do( $sql );
-		}
 	}
-
 	# don't need to go via binary because these should only contain US-ASCII
 	$rc &&= $db->do("ALTER TABLE `version` MODIFY `version` VARCHAR(255) CHARACTER SET utf8");
 	$rc &&= $db->do("ALTER TABLE `counters` MODIFY `countername` VARCHAR(255) CHARACTER SET utf8");
