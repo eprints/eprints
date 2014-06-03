@@ -147,7 +147,7 @@ $|=1;
 
 my $repoid = $ARGV[0];
 
-my $session = new EPrints::Session( 1 , $repoid , $noise );
+my $session = EPrints->new->repository( $repoid );
 if( !defined $session )
 {
 	print STDERR "Failed to load repository: $repoid\n";
@@ -180,7 +180,7 @@ foreach my $langid ( @{$session->config( "languages" )} )
 		if( !-e $target_dir )
 		{
 			print "mkdir $target_dir\n" if( $noise >= 1);
-			EPrints::Platform::mkdir( $target_dir );
+			EPrints->system->mkdir( $target_dir );
 		}
 
 		$source =~ m/\.([^.]+)$/;
