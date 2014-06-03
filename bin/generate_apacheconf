@@ -122,6 +122,7 @@ configuration files.
 
 
 use EPrints;
+use EPrints::Apache::Conf;
 
 use strict;
 use Getopt::Long;
@@ -170,7 +171,7 @@ my $eprints = EPrints->new;
 my %reps = ();
 foreach my $id ( $eprints->repository_ids() )
 {
-	$reps{$id} = $eprints->repository( $id, db_connect => 0); 
+	$reps{$id} = $eprints->repository( $id );
 	EPrints->abort( "Error loading $id" ) if !defined $reps{$id};
 }
 
@@ -231,7 +232,7 @@ if( ($system && $replace) || !-e $apache_ssl_conf )
 # Note that PerlTransHandler can't go inside
 # a "Location" block as it occurs before the
 # Location is known.
-PerlTransHandler +EPrints::Apache::Rewrite
+PerlTransHandler +EPrints::Apache::Handler
 
 # Load the per-repository apache configuration
 Include $inc_ssl_path/*.conf
@@ -259,14 +260,14 @@ foreach my $repository ( values %reps )
 
 	next if $repository_id && $repository_id ne $id;
 
-	my $cfg_path = $repository->get_conf( "config_path" );
+	my $cfg_path = $repository->config( "config_path" );
 
 	my $apache_conf = "$inc_path/$id.conf";
 	my $apache_ssl_conf = "$inc_ssl_path/$id.conf";
 
-	my $oldfile = $repository->get_conf( "config_path" )."/apache.conf";
+	my $oldfile = $repository->config( "config_path" )."/apache.conf";
 
-	my $securehost = $repository->get_conf( "securehost" );
+	my $securehost = $repository->config( "securehost" );
 
 	if( -e $oldfile && !-e $apache_conf )
 	{
@@ -276,7 +277,7 @@ foreach my $repository ( values %reps )
 	}
 	elsif( $replace || !-e $apache_conf )
 	{
-		my $conf = EPrints::Apache::apache_conf( $repository );
+		my $conf = EPrints::Apache::Conf::generate( $repository );
 		my $backup = EPrints->system->write_config_file( $apache_conf, $conf );
 		if( $backup )
 		{
@@ -292,7 +293,7 @@ foreach my $repository ( values %reps )
 	{
 		if( $replace || !-e $apache_ssl_conf )
 		{
-			my $conf = EPrints::Apache::apache_secure_conf( $repository );
+			my $conf = EPrints::Apache::Conf::generate_secure( $repository );
 			my $backup = EPrints->system->write_config_file( $apache_ssl_conf, $conf );
 			if( $backup )
 			{
