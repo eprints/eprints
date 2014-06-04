@@ -43,7 +43,7 @@ B<EPrints::XML> - XML Abstraction Module
 
 =head1 DESCRIPTION
 
-EPrints can use either XML::DOM, XML::LibXML or XML::GDOME modules to generate
+EPrints can use either XML::DOM or XML::LibXML modules to generate
 and process XML. Some of the functionality of these modules differs so this
 module abstracts such functionality so that all the module specific code is in
 one place. 
@@ -66,17 +66,10 @@ sub init
 {
 	my $c = $EPrints::SystemSettings::conf;
 	my $disable_libxml = exists $c->{enable_libxml} && !$c->{enable_libxml};
-	my $disable_gdome = exists $c->{enable_gdome} && !$c->{enable_gdome};
 
 	if( !$disable_libxml )
 	{
 		eval "use EPrints::XML::LibXML; 1";
-		return 1 if !$@;
-	}
-
-	if( !$disable_gdome )
-	{
-		eval "use EPrints::XML::GDOME; 1";
 		return 1 if !$@;
 	}
 
