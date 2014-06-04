@@ -164,7 +164,7 @@ sub output_dataobj
 {
 	my( $self, $dataobj, %opts ) = @_;
 
-	my $dataset_id = $dataobj->get_dataset_id;
+	my $dataset_id = $dataobj->dataset->id;
 	my $fn = "output_$dataset_id";
 
 	$opts{single} = 1;
