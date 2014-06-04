@@ -95,7 +95,7 @@ sub new
 
 	$self->_read_phrases_dir(
 		$self->{repository_data},
-		$repository->get_conf( "config_path" ).
+		$repository->config( "config_path" ).
 			"/lang/".$self->{id}."/phrases" );
 
 	if( -e $repository->config( "base_path" )."/site_lib/lang/".$self->{id}."/phrases" )
@@ -108,7 +108,7 @@ sub new
 
 	$self->_read_phrases_dir(
 		$self->{data},
-		$repository->get_conf( "lib_path" ).
+		$repository->config( "lib_path" ).
 			"/lang/".$self->{id}."/phrases" );
 
 	return( $self );
@@ -241,7 +241,7 @@ sub phrase
 {
 	my( $self, $phraseid, $inserts ) = @_;
 
-	my $session = $self->{repository};
+	my $repository = $self->{repository};
 
 	# not using fb 
 	my( $phrase , $fb ) = $self->_get_phrase( $phraseid );
@@ -249,27 +249,27 @@ sub phrase
 	$inserts = {} if( !defined $inserts );
 	if( !defined $phrase )
 	{
-		$session->get_repository->log( sprintf("Undefined phrase: %s (%s) at line %d in %s",
+		$repository->log( sprintf("Undefined phrase: %s (%s) at line %d in %s",
 			$phraseid,
 			$self->{id},
 			(caller(1))[2,1] ) );
-		my $frag = $session->make_doc_fragment;
-		$frag->appendChild( $session->make_text( '["'.$phraseid.'" not defined' ) );
+		my $frag = $repository->xml->create_document_fragment;
+		$frag->appendChild( $repository->xml->create_text_node( '["'.$phraseid.'" not defined' ) );
 		if( scalar(keys %$inserts) )
 		{
-			my $dl = $session->make_element( "dl", class => "ep_undefined_phrase"  );
+			my $dl = $repository->xml->create_element( "dl", class => "ep_undefined_phrase"  );
 			$frag->appendChild( $dl );
 			while(my( $key, $insert ) = each %$inserts)
 			{
-				my $dt = $session->make_element( "dt" );
+				my $dt = $repository->xml->create_element( "dt" );
 				$dl->appendChild( $dt );
-				$dt->appendChild( $session->make_text( $key ) );
-				my $dd = $session->make_element( "dd" );
+				$dt->appendChild( $repository->xml->create_text_node( $key ) );
+				my $dd = $repository->xml->create_element( "dd" );
 				$dl->appendChild( $dd );
 				$dd->appendChild( $insert );
 			}
 		}
-		$frag->appendChild( $session->make_text( ']' ) );
+		$frag->appendChild( $repository->xml->create_text_node( ']' ) );
 		return $frag;
 	}
 
@@ -277,7 +277,7 @@ sub phrase
 	my $ref = $phrase->getAttribute( "ref" );
 	if( EPrints::Utils::is_set( $ref ) )
 	{
-		return $self->phrase( $ref, $inserts, $session );
+		return $self->phrase( $ref, $inserts, $repository );
 	}
 
 #print STDERR "---\nN:$phrase\nNO:".$phrase->getOwnerDocument."\n";
@@ -285,7 +285,7 @@ sub phrase
 	my $result = EPrints::XML::EPC::process_child_nodes( 
 		$phrase, 
 		in => "Phrase: '$phraseid'",
-		session => $session, 
+		repository => $repository, 
 		pindata=>{ 
 			inserts => $inserts,
 			used => $used,
@@ -296,7 +296,7 @@ sub phrase
 		if( !$used->{$_} )
 		{
 			# Should log this, but somtimes it's supposed to happen!
-			# $session->get_repository->log( "Unused parameter \"$_\" passed to phrase \"$phraseid\"" );
+			# $repository->log( "Unused parameter \"$_\" passed to phrase \"$phraseid\"" );
 			EPrints::XML::dispose( $inserts->{$_} );
 		}
 	}
@@ -338,7 +338,7 @@ sub _get_src_phrase
 {
 	my( $self, $src, $phraseid ) = @_;
 
-	my $session = $self->{repository};
+	my $repository = $self->{repository};
 
 	my $data = $self->{$src};
 
@@ -347,7 +347,7 @@ sub _get_src_phrase
 
 	# Check the file modification time, reload it if it's changed
 	my $file = ${$data->{file}->{$phraseid}};
-	if( !defined( $session->{config_file_mtime_checked}->{$file} ) )
+	if( !defined( $repository->{config_file_mtime_checked}->{$file} ) )
 	{
 		my $mtime = $data->{docs}->{$file}->{mtime};
 		my $c_mtime = (stat( $file ))[9];
@@ -356,7 +356,7 @@ sub _get_src_phrase
 			$self->_reload_phrases( $data, $file );
 			$xml = $data->{xml}->{$phraseid};
 		}
-		$session->{config_file_mtime_checked}->{$file} = 1;
+		$repository->{config_file_mtime_checked}->{$file} = 1;
 	}
 
 	return ($xml, $file);
@@ -567,7 +567,7 @@ sub load_phrases
 	return $self->_reload_phrases( $self->{repository_data}, $file );
 }
 
-=item $doc = EPrints::Language->create_phrase_doc( $session, [ $comment ] )
+=item $doc = EPrints::Language->create_phrase_doc( $repository, [ $comment ] )
 
 Create and return a new, empty, phrases document. Optionally put $comment at the top.
 
@@ -575,7 +575,7 @@ Create and return a new, empty, phrases document. Optionally put $comment at the
 
 sub create_phrase_doc
 {
-	my( $class, $session, $comment ) = @_;
+	my( $class, $repository, $comment ) = @_;
 
 	my $xml = <<END;
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
