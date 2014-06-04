@@ -48,7 +48,7 @@ MySQL is (by default) lax about truncation.
 #
 # INSTANCE VARIABLES:
 #
-#  $self->{session}
+#  $self->{repository}
 #     The EPrints::Session which is associated with this database 
 #     connection.
 #
@@ -110,13 +110,13 @@ sub create
 {
 	my( $self, $username, $password ) = @_;
 
-	my $repo = $self->{session}->get_repository;
+	my $repo = $self->{repository};
 
 	my $dbh = DBI->connect( EPrints::Database::build_connection_string( 
 			dbdriver => "mysql",
-			dbhost => $repo->get_conf("dbhost"),
-			dbsock => $repo->get_conf("dbsock"),
-			dbport => $repo->get_conf("dbport"),
+			dbhost => $repo->config("dbhost"),
+			dbsock => $repo->config("dbsock"),
+			dbport => $repo->config("dbport"),
 			dbname => "mysql", ),
 	        $username,
 	        $password,
@@ -130,9 +130,9 @@ sub create
 
 	$dbh->{RaiseError} = 1;
 
-	my $dbuser = $repo->get_conf( "dbuser" );
-	my $dbpass = $repo->get_conf( "dbpass" );
-	my $dbname = $repo->get_conf( "dbname" );
+	my $dbuser = $repo->config( "dbuser" );
+	my $dbpass = $repo->config( "dbpass" );
+	my $dbname = $repo->config( "dbname" );
 
 	my $rc = 1;
 	
@@ -163,7 +163,7 @@ sub create_counters
 {
 	my( $self ) = @_;
 
-	my $counter_ds = $self->{session}->get_repository->get_dataset( "counter" );
+	my $counter_ds = $self->{repository}->dataset( "counter" );
 	
 	# The table creation SQL
 	my $table = $counter_ds->get_sql_table_name;
@@ -289,7 +289,7 @@ sub remove_counters
 {
 	my( $self ) = @_;
 
-	my $counter_ds = $self->{session}->get_repository->get_dataset( "counter" );
+	my $counter_ds = $self->{repository}->dataset( "counter" );
 	my $table = $counter_ds->get_sql_table_name;
 	
 	$self->drop_table( $table );
@@ -310,7 +310,7 @@ sub counter_next
 {
 	my( $self, $counter ) = @_;
 
-	my $ds = $self->{session}->get_repository->get_dataset( "counter" );
+	my $ds = $self->{repository}->dataset( "counter" );
 
 	# Update the counter
 	my $table = $ds->get_sql_table_name;
@@ -345,7 +345,7 @@ sub counter_minimum
 {
 	my( $self, $counter, $value ) = @_;
 
-	my $ds = $self->{session}->get_repository->get_dataset( "counter" );
+	my $ds = $self->{repository}->dataset( "counter" );
 
 	$value+=0; # ensure numeric!
 
@@ -371,7 +371,7 @@ sub counter_reset
 {
 	my( $self, $counter ) = @_;
 
-	my $ds = $self->{session}->get_repository->get_dataset( "counter" );
+	my $ds = $self->{repository}->dataset( "counter" );
 
 	# Update the counter	
 	my $sql = "UPDATE ".$ds->get_sql_table_name()." ";
@@ -463,7 +463,7 @@ sub _rename_table_field
 	my $rc = 1;
 
 	my @names = $field->get_sql_names;
-	my @types = $field->get_sql_type( $self->{session} );
+	my @types = $field->get_sql_type( $self->{repository} );
 
 	# work out what the old columns are called
 	my @old_names;
@@ -492,9 +492,9 @@ sub _rename_field_ordervalues_lang
 
 	my $order_table = $dataset->get_ordervalues_table_name( $langid );
 
-	my $sql_field = $field->create_ordervalues_field( $self->{session}, $langid );
+	my $sql_field = $field->create_ordervalues_field( $self->{repository}, $langid );
 
-	my( $col ) = $sql_field->get_sql_type( $self->{session} );
+	my( $col ) = $sql_field->get_sql_type( $self->{repository} );
 
 	my $sql = sprintf("ALTER TABLE %s CHANGE %s %s",
 			$self->quote_identifier($order_table),
@@ -616,7 +616,7 @@ sub _create_table
 	$sql .= ")";
 	$sql .= " DEFAULT CHARSET=".$self->get_default_charset;
 	
-	my $engine = $self->{session}->config( "dbengine" );
+	my $engine = $self->{repository}->config( "dbengine" );
 	$sql .= " ENGINE=$engine" if $engine;
 
 	return $self->do($sql);

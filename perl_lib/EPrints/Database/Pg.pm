@@ -103,13 +103,13 @@ sub create
 {
 	my( $self, $username, $password ) = @_;
 
-	my $repo = $self->{session}->get_repository;
+	my $repo = $self->{repository};
 
 	my $dbh = DBI->connect( EPrints::Database::build_connection_string( 
 			dbdriver => "Pg",
-			dbhost => $repo->get_conf("dbhost"),
-			dbsock => $repo->get_conf("dbsock"),
-			dbport => $repo->get_conf("dbport"),
+			dbhost => $repo->config("dbhost"),
+			dbsock => $repo->config("dbsock"),
+			dbport => $repo->config("dbport"),
 			dbname => "postgres", ),
 	        $username,
 	        $password,
@@ -117,9 +117,9 @@ sub create
 
 	return undef if !defined $dbh;
 
-	my $dbuser = $repo->get_conf( "dbuser" );
-	my $dbpass = $repo->get_conf( "dbpass" );
-	my $dbname = $repo->get_conf( "dbname" );
+	my $dbuser = $repo->config( "dbuser" );
+	my $dbpass = $repo->config( "dbpass" );
+	my $dbname = $repo->config( "dbname" );
 
 	my $rc = 1;
 	
