@@ -198,7 +198,7 @@ sub delete
 		my $plugin = $self->{repository}->plugin( $copy->{pluginid} );
 		if( !$plugin )
 		{
-			$self->{repository}->get_repository->log( "Can not remove file copy '$copy->{sourceid}' - $copy->{pluginid} not available" );
+			$self->{repository}->log( "Can not remove file copy '$copy->{sourceid}' - $copy->{pluginid} not available" );
 			$fileobj->remove_plugin_copy( $plugin );
 		}
 		elsif( $plugin->delete( $fileobj, $copy->{sourceid} ) )
@@ -337,7 +337,7 @@ sub get_plugins
 	my %params;
 	$params{item} = $fileobj;
 	$params{current_user} = $repository->current_user;
-	$params{session} = $repository;
+	$params{repository} = $repository;
 	$params{parent} = $fileobj->get_parent;
 
 	my $epc = $self->_config( "default" );
@@ -351,7 +351,6 @@ sub get_plugins
 		my $plugin = $repository->plugin( "Storage::$pluginid" );
 		push @plugins, $plugin if defined $plugin;
 	}
-
 	return @plugins;
 }
 
@@ -394,7 +393,7 @@ sub copy
 
 =item $ok = $storage->open_write( $fileobj [, $offset ] )
 
-Start a write session for $fileobj. $fileobj must have at least the "filesize" property set (which is the total number of bytes that will be written).
+Start a write repository for $fileobj. $fileobj must have at least the "filesize" property set (which is the total number of bytes that will be written).
 
 =cut
 
@@ -408,7 +407,7 @@ sub open_write
 	}
 
 	my( @writable, @errored );
-
+	
 	# open a write for each plugin, record any plugins that error
 	foreach my $plugin ($self->get_plugins( $fileobj ))
 	{
