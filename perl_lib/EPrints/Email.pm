@@ -42,7 +42,7 @@ Sends an email.
 
 Required properties:
 
-session - the current session
+repository - the current repository
 
 langid - the id of the language to send the email in.
 
@@ -83,18 +83,18 @@ sub send_mail
 {
 	my( %p ) = @_;
 
-	my $repository = $p{session}->get_repository;
+	my $repository = $p{repository};
 
 	if( defined $p{message} )
 	{
 		my $msg = $p{message};
 
 		# First get the body
-		my $body = $p{session}->html_phrase( 
+		my $body = $p{repository}->html_phrase( 
 			"mail_body",
-			content => $p{session}->clone_for_me($msg,1) );
+			content => $p{repository}->clone_for_me($msg,1) );
 		# Then add the HTML around it
-		my $html = $p{session}->html_phrase(
+		my $html = $p{repository}->html_phrase(
 			"mail_wrapper",
 			body => $body );
 
@@ -103,8 +103,8 @@ sub send_mail
 
 	if( !defined $p{from_email} ) 
 	{
-		$p{from_name} = $p{session}->phrase( "archive_name" );
-		$p{from_email} = $repository->get_conf( "adminemail" );
+		$p{from_name} = $p{repository}->phrase( "archive_name" );
+		$p{from_email} = $repository->config( "adminemail" );
 	}
 	
 	# If a name contains a comma we must quote it, because comma is the
@@ -129,7 +129,7 @@ sub send_mail
 
 	if( !$result )
 	{
-		$p{session}->get_repository->log( "Failed to send mail.\nTo: $p{to_email} <$p{to_name}>\nSubject: $p{subject}\n" );
+		$p{repository}->log( "Failed to send mail.\nTo: $p{to_email} <$p{to_name}>\nSubject: $p{subject}\n" );
 	}
 
 	return $result;
@@ -153,9 +153,9 @@ sub send_mail_via_smtp
 
 	eval 'use Net::SMTP';
 
-	my $repository = $p{session}->get_repository;
+	my $repository = $p{repository};
 
-	my $smtphost = $repository->get_conf( 'smtp_server' );
+	my $smtphost = $repository->config( 'smtp_server' );
 
 	if( !defined $smtphost )
 	{
@@ -223,9 +223,9 @@ sub send_mail_via_sendmail
 {
 	my( %p )  = @_;
 
-	my $repository = $p{session}->get_repository;
+	my $repository = $p{repository};
 
-	if( open(my $fh, "|-", $p{session}->invocation( "sendmail" )) )
+	if( open(my $fh, "|-", $p{repository}->invocation( "sendmail" )) )
 	{
 		binmode($fh, ":utf8");
 		print $fh build_email( %p )->as_string;
@@ -233,7 +233,7 @@ sub send_mail_via_sendmail
 	}
 	else
 	{
-		$p{session}->log( $p{session}->invocation( "sendmail" ).": $!" );
+		$p{repository}->log( $p{repository}->invocation( "sendmail" ).": $!" );
 	}
 
 	return 1;
@@ -250,7 +250,7 @@ sub build_email
 
 	my $MAILWIDTH = 80;
 
-	my $repository = $p{session}->get_repository;
+	my $repository = $p{repository};
 
 	my $mimemsg = MIME::Lite->new(
 		From       => encode_mime_header( "$p{from_name}" )." <$p{from_email}>",
