@@ -45,14 +45,10 @@ is used for eprints, rather than the inbox, buffer etc.
 
 The numerical ID of the object in the dataset. 
 
-=item revision (int)
+=item object_revision (int)
 
 The revision of the object. This is the revision number after the
 action occured. Not all actions increase the revision number.
-
-=item timestamp (time)
-
-The moment at which this thing happened.
 
 =item action (set)
 
@@ -74,14 +70,12 @@ to the user.
 
 package EPrints::DataObj::History;
 
-@ISA = ( 'EPrints::DataObj::SubObject' );
+@ISA = ( 'EPrints::DataObj::File' );
 
 use EPrints;
 
 use strict;
 
-# Override this with 'max_history_width' in a configuration file
-our $DEFAULT_MAX_WIDTH = 120;
 
 ######################################################################
 =pod
@@ -113,9 +107,8 @@ sub get_system_field_info
 		# is this required?
 		{ name=>"objectid", type=>"int", }, 
 
-		{ name=>"revision", type=>"int", },
-
-		{ name=>"timestamp", type=>"timestamp", }, 
+		# note: that's the revision of the target dataobj!
+		{ name=>"object_revision", type=>"int", },
 
 		# TODO should be a set when I know what the actions will be
 		{ name=>"action", type=>"set", text_index=>0, options=>[qw/
@@ -135,70 +128,38 @@ sub get_system_field_info
 				note
 				other
 				/], },
+		# sf2 - from File
+		
+		{ name=>"fieldname", type=>"id", import=>0, export => 0,can_clone=>0 }, 
+		
+		{ name=>"filename", type=>"id", },
 
-		{ name=>"details", type=>"longtext", text_index=>0, 
-render_single_value => \&EPrints::Extras::render_preformatted_field }, 
+		{ name=>"mime_type", type=>"id", sql_index=>0, export => 0 },
+
+		{ name=>"hash", type=>"id", maxlength=>64, export => 0 },
+
+		{ name=>"hash_type", type=>"id", maxlength=>32, export => 0 },
+
+		{ name=>"filesize", type=>"bigint", sql_index=>0 },
+
+		{ name=>"url", type=>"url", virtual=>1 },
+
+		{ name=>"data", type=>"base64", virtual=>1 },
+
+		{
+			name=>"copies", type=>"compound", multiple=>1, export => 0,
+			fields=>[{
+				name=>"pluginid",
+				type=>"id",
+			},{
+				name=>"sourceid",
+				type=>"id",
+			}],
+		},
 	);
 }
 
 
-
-######################################################################
-=pod
-
-=item $dataset = EPrints::DataObj::History->get_dataset_id
-
-Returns the id of the L<EPrints::DataSet> object to which this record belongs.
-
-=cut
-######################################################################
-
-sub get_dataset_id
-{
-	return "history";
-}
-
-
-
-######################################################################
-=pod
-
-=item $history->commit 
-
-Not meaningful. History can't be altered.
-
-=cut
-######################################################################
-
-sub commit 
-{
-	my( $self, $force ) = @_;
-
-	$self->{session}->get_repository->log(
-		"WARNING: Called commit on a EPrints::DataObj::History object." );
-
-	return 0;
-}
-
-
-######################################################################
-=pod
-
-=item $history->remove
-
-Not meaningful. History can't be altered.
-
-=cut
-######################################################################
-
-sub remove
-{
-	my( $self ) = @_;
-	
-	$self->{session}->get_repository->log(
-		"WARNING: Called remove on a EPrints::DataObj::History object." );
-	return 0;
-}
 
 ######################################################################
 # =pod
@@ -224,6 +185,35 @@ sub create
 		$session->dataset( "history" ) );
 }
 
+sub create_from_data
+{
+	my( $class, $repository, $data, $dataset ) = @_;
+
+	my $content = delete $data->{_content} || delete $data->{_filehandle};
+	my $filepath = delete $data->{_filepath};
+
+	# if things go wrong later filesize will be zero
+	my $filesize = $data->{filesize};
+	$data->{filesize} = 0;
+
+	$data->{mime_type} ||= 'application/json';
+
+	$data->{repository} = $repository;
+
+	# note: we don't call $class->SUPER (SUPER = DataObj::File here) coz 
+	# this would call $self->commit and that's not allowed
+	my $self = EPrints::DataObj::create_from_data( $class, $repository, $data, $dataset );
+	return if !defined $self;
+
+	# content write failed
+	if( !defined $self->set_file( $content, $filesize ) )
+	{
+		return undef;
+	}
+
+	return $self;
+}
+
 ######################################################################
 =pod
 
@@ -236,18 +226,23 @@ Return default values for this object based on the starting data.
 
 sub get_defaults
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $repository, $data, $dataset ) = @_;
 	
-	$class->SUPER::get_defaults( $session, $data, $dataset );
+	$class->SUPER::get_defaults( $repository, $data, $dataset );
 
 	my $user;
 	if( defined $data->{userid} )
 	{
-		$user = EPrints::DataObj::User->new( $session, $data->{userid} );
+		$user = $repository->dataset( 'user' )->dataobj( $data->{userid} );
 	}
+	else
+	{
+		$user = $repository->current_user;
+	}
+
 	if( defined $user ) 
 	{
-		$data->{actor} = EPrints::Utils::tree_to_utf8( $user->render_description() );
+		$data->{actor} = $user->internal_uri;
 	}
 	else
 	{
@@ -255,92 +250,13 @@ sub get_defaults
 		$data->{actor} = $0;
 	}
 
+	my $parent = $data->{_parent};
+
+	$data->{datasetid} ||= $parent->dataset->id;
+	$data->{objectid} ||= $parent->id;
+	$data->{object_revision} ||= ( $parent->revision - 1 );
+
 	return $data;
-}
-
-######################################################################
-#
-# $xhtml = $history->render_citation( $style, $url )
-#
-# This overrides the normal citation rendering and just does a full
-# render of the event.
-#
-######################################################################
-
-sub render_citation
-{
-	my( $self , $style , $url ) = @_;
-
-	return $self->render;
-}
-
-######################################################################
-=pod
-
-=item $xhtml = $history->render
-
-Render this change as XHTML DOM.
-
-=cut
-######################################################################
-
-sub render
-{
-	my( $self ) = @_;
-
-	my %pins = ();
-	
-	my $user = $self->get_user;
-	if( defined $user )
-	{
-		$pins{cause} = $user->render_description;
-	}
-	else
-	{
-		$pins{cause} = $self->{session}->make_element( "tt" );
-		$pins{cause}->appendChild( $self->{session}->make_text( $self->get_value( "actor" ) ) );
-	}
-
-	$pins{when} = $self->render_value( "timestamp" );
-
-	my $action = $self->get_value( "action" );
-
-	$pins{action} = $self->render_value( "action" );
-
-	if( $action eq "modify" ) { $pins{details} = $self->render_modify; }
-	elsif( $action =~ m/^move_/ ) { $pins{details} = $self->{session}->render_nbsp; } # no details
-	elsif( $action eq "destroy" ) { $pins{details} = $self->{session}->render_nbsp; } # no details
-	elsif( $action eq "create" ) { $pins{details} = $self->render_create; }
-	elsif( $action eq "mail_owner" ) { $pins{details} = $self->render_with_details; }
-	elsif( $action eq "note" ) { $pins{details} = $self->render_with_details; }
-	elsif( $action eq "other" ) { $pins{details} = $self->render_with_details; }
-	elsif( $action eq "removal_request" ) { $pins{details} = $self->render_removal_request; }
-	else { $pins{details} = $self->{session}->make_text( "Don't know how to render history event: $action" ); }
-
-	my $obj  = $self->get_dataobj;
-	if( defined $obj )
-	{
-		$pins{item} = $self->{session}->make_doc_fragment;
-		$pins{item}->appendChild( $obj->render_description );
-		$pins{item}->appendChild( $self->{session}->make_text( " (" ) );
- 		my $a = $self->{session}->render_link( $obj->get_control_url );
-		$pins{item}->appendChild( $a );
-		$a->appendChild( $self->{session}->make_text( $self->get_value( "datasetid" )." ".$self->get_value("objectid" ) ) );
-		$pins{item}->appendChild( $self->{session}->make_text( " r".$self->get_value( "revision" ) ) );
-		$pins{item}->appendChild( $self->{session}->make_text( ")" ) );
-	}
-	else
-	{
-		$pins{item} = $self->{session}->html_phrase( 
-			"lib/history:no_such_item", 
-			datasetid=>$self->{session}->make_text($self->get_value( "datasetid" ) ),
-			objectid=>$self->{session}->make_text($self->get_value( "objectid" ) ),
-			 );
-	}
-		
-	#$pins{item}->appendChild( $self->render_value( "historyid" ));
-	
-	return $self->{session}->html_phrase( "lib/history:record", %pins );
 }
 
 ######################################################################
@@ -431,222 +347,6 @@ sub get_previous
 	return $self->{_previous} = $results->item( 0 );
 }
 
-######################################################################
-#
-# methods to render various types of history event
-#
-######################################################################
-
-
-
-######################################################################
-#
-# $xhtml = $history->render_removal_request
-#
-# Render a removal request history event. 
-#
-######################################################################
-
-sub render_removal_request
-{
-	my( $self ) = @_;
-
-	my $div = $self->{session}->make_element( "div" );
-	$div->appendChild( $self->render_value("details") );
-	return $div;
-}
-
-######################################################################
-#
-# $xhtml = $history->render_with_details
-#
-# Render a MAIL_OWNER history event. 
-#
-######################################################################
-
-sub render_with_details
-{
-	my( $self ) = @_;
-
-	my $div = $self->{session}->make_element( "div" );
-	$div->appendChild( $self->render_value("details") );
-	return $div;
-}
-
-######################################################################
-#
-# $xhtml = $history->render_create( $action )
-#
-# Render a CREATE history event. 
-#
-######################################################################
-
-sub render_create
-{
-	my( $self ) = @_;
-
-	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || $DEFAULT_MAX_WIDTH;
-
-	my $r_file = $self->get_stored_file( "dataobj.xml" );
-	my $r_file_new;
-	if( !defined( $r_file ) || !defined($r_file_new = $r_file->get_local_copy) )
-	{
-		my $div = $self->{session}->make_element( "div" );
-		$div->appendChild( $self->{session}->html_phrase( "lib/history:no_file" ) );
-		return $div;
-	}
-
-	my $file_new = EPrints::XML::parse_xml( "$r_file_new" );
-	my $dom_new = $file_new->getFirstChild;
-
-	my $div = $self->{session}->make_element( "div" );
-	$div->appendChild( $self->{session}->html_phrase( "lib/history:xmlblock", xml=>render_xml( $self->{session}, $dom_new, 0, 0, $width ) ) );
-
-	return $div;
-}
-
-######################################################################
-#
-# $xhtml = $history->render_modify( $action )
-#
-# Render a MODIFY history event. 
-#
-######################################################################
-
-sub render_modify
-{
-	my( $self ) = @_;
-
-	my $width = $self->{session}->get_repository->get_conf( "max_history_width" ) || $DEFAULT_MAX_WIDTH;
-
-	my $r_file = $self->get_stored_file( "dataobj.xml" );
-	my $r_file_new = defined($r_file) ? $r_file->get_local_copy() : undef;
-
-	if( !defined $r_file || !defined $r_file_new )
-	{
-		my $div = $self->{session}->make_element( "div" );
-		$div->appendChild( $self->{session}->html_phrase( "lib/history:no_file" ) );
-		return $div;
-	}
-
-	my $file_new = EPrints::XML::parse_xml( "$r_file_new" );
-	my $dom_new = $file_new->getFirstChild;
-
-	$r_file = undef;
-
-	my $previous = $self->get_previous();
-	if( defined( $previous ) )
-	{
-		$r_file = $previous->get_stored_file( "dataobj.xml" );
-	}
-
-	unless( defined( $r_file ) )
-	{
-		my $div = $self->{session}->make_element( "div" );
-		$div->appendChild( $self->{session}->html_phrase( "lib/history:no_earlier" ) );
-		$div->appendChild( $self->{session}->html_phrase( "lib/history:xmlblock", xml=>render_xml( $self->{session}, $dom_new, 0, 0, $width ) ) );
-		return $div;
-	}
-
-	my $r_file_old = $r_file->get_local_copy();
-	if( !defined $r_file_old )
-	{
-		return $self->render_create;
-	}
-
-	my $file_old = EPrints::XML::parse_xml( "$r_file_old" );
-	my $dom_old = $file_old->getFirstChild;
-
-	my %fieldnames = ();
-
-	my %old_nodes = ();
-	foreach my $cnode ( $file_old->getFirstChild->getChildNodes )
-	{
-		next unless EPrints::XML::is_dom( $cnode, "Element" );
-		$fieldnames{$cnode->nodeName}=1;
-		$old_nodes{$cnode->nodeName}=$cnode;
-	}
-
-	my %new_nodes = ();
-	foreach my $cnode ( $file_new->getFirstChild->getChildNodes )
-	{
-		next unless EPrints::XML::is_dom( $cnode, "Element" );
-		$fieldnames{$cnode->nodeName}=1;
-		$new_nodes{$cnode->nodeName}=$cnode;
-	}
-
-	my $table;
-	my $tr;
-	my $td;
-	$table = $self->{session}->make_element( "table" , width=>"100%", cellspacing=>"0", cellpadding=>"0");
-	$tr = $self->{session}->make_element( "tr" );
-	$td = $self->{session}->make_element( "td", valign=>"top", width=>"50%" );
-	$td->appendChild( $self->{session}->html_phrase( "lib/history:before" ) );
-	$tr->appendChild( $td );
-	$td = $self->{session}->make_element( "td", valign=>"top", width=>"50%" );
-	$td->appendChild( $self->{session}->html_phrase( "lib/history:after" ) );
-	$tr->appendChild( $td );
-	$table->appendChild( $tr );
-
-	foreach my $fn ( keys %fieldnames )
-	{
-		if( !empty_tree( $old_nodes{$fn} ) && empty_tree( $new_nodes{$fn} ) )
-		{
-			my( $old, $pad ) = render_xml( $self->{session}, $old_nodes{$fn}, 0, 1, int($width/2)-1 );
-			$tr = $self->{session}->make_element( "tr" );
-
-			$td = $self->{session}->make_element( "td", valign=>"top", width=>"50%", style=>"background-color: #fcc; " );
-			$td->appendChild( $self->{session}->html_phrase( "lib/history:xmlblock", xml=>$old ) );
-			$tr->appendChild( $td );
-
-			$td = $self->{session}->make_element( "td", valign=>"top", width=>"50%" );
-			my $f = $self->{session}->make_doc_fragment;			
-			$f->appendChild( $self->{session}->render_nbsp );
-			$f->appendChild( $pad );
-			$td->appendChild( $self->{session}->html_phrase( "lib/history:xmlblock", xml=>$f ) );
-			$tr->appendChild( $td );
-
-			$table->appendChild( $tr );
-		}
-		elsif( empty_tree( $old_nodes{$fn} ) && !empty_tree( $new_nodes{$fn} ) )
-		{
-			my( $new, $pad ) = render_xml( $self->{session}, $new_nodes{$fn}, 0, 1, int($width/2)-1 );
-			$tr = $self->{session}->make_element( "tr" );
-			$td = $self->{session}->make_element( "td", valign=>"top", width=>"50%" );
-
-			my $f = $self->{session}->make_doc_fragment;			
-			$f->appendChild( $self->{session}->render_nbsp );
-			$f->appendChild( $pad );
-			$td->appendChild( $self->{session}->html_phrase( "lib/history:xmlblock", xml=>$f ) );
-			$tr->appendChild( $td );
-
-			$td = $self->{session}->make_element( "td", valign=>"top", width=>"50%", style=>"background-color: #cfc" );
-			$td->appendChild( $self->{session}->html_phrase( "lib/history:xmlblock", xml=>$new ) );
-			$tr->appendChild( $td );
-
-			$table->appendChild( $tr );
-		}
-		elsif( diff( $old_nodes{$fn}, $new_nodes{$fn} ) )
-		{
-			$tr = $self->{session}->make_element( "tr" );
-			my( $t1, $t2 ) = render_xml_diffs( $self->{session}, $old_nodes{$fn}, $new_nodes{$fn}, 0, int($width/2)-1 );
-
-			$td = $self->{session}->make_element( "td", valign=>"top", width=>"50%", style=>"background-color: #ffc" );
-			$td->appendChild( $self->{session}->html_phrase( "lib/history:xmlblock", xml=>$t1 ) );
-			$tr->appendChild( $td );
-
-			$td = $self->{session}->make_element( "td", valign=>"top", width=>"50%", style=>"background-color: #ffc" );
-			$td->appendChild( $self->{session}->html_phrase( "lib/history:xmlblock", xml=>$t2 ) );
-			$tr->appendChild( $td );
-
-			$table->appendChild( $tr );
-		}
-	}
-
-	return $table;
-}
-
-
 
 ######################################################################
 #
@@ -691,327 +391,6 @@ sub empty_tree
 	return 1;
 }
 
-######################################################################
-#
-# $xhtml = EPrints::DataObj::History::render_xml_diffs( $tree1, $tree2, $indent, $width )
-#
-# Render the diffs between tree1 and tree2 as XHTML
-#
-######################################################################
-
-sub render_xml_diffs
-{
-	my( $session, $tree1, $tree2, $indent, $width ) = @_;
-
-	if( EPrints::XML::is_dom( $tree1, "Text" ) && EPrints::XML::is_dom( $tree2, "Text" ))
-	{
-		my $v1 = $tree1->nodeValue;
-		my $v2 = $tree2->nodeValue;
-		$v1=~s/^[\s\r\n]*$//;
-		$v2=~s/^[\s\r\n]*$//;
-		if( $v1 eq "" && $v2 eq "" )
-		{
-			return( $session->make_doc_fragment, $session->make_doc_fragment );
-		}
-		#return $session->make_text( ("  "x$indent).$v."\n" );
-		return( $session->make_text( ("  "x$indent).$v1."\n" ), $session->make_text( ("  "x$indent).$v2."\n" ) );
-	}
-
-	unless( EPrints::XML::is_dom( $tree1, "Element" ) && EPrints::XML::is_dom( $tree2, "Element" ))
-	{
-		return(
-			$session->make_text( "schema changed?:".ref($tree1) ),
-			$session->make_text( "schema changed?:".ref($tree2) )
-			);
-	}
-
-	my $f1 = $session->make_doc_fragment;
-	my $f2 = $session->make_doc_fragment;
-	my $name1 = $tree1->nodeName;
-	my $name2 = $tree2->nodeName;
-	my( @list1 ) = $tree1->getChildNodes;
-	my( @list2 ) = $tree2->getChildNodes;
-	my $justtext = 1;
-	my $t1 = "";
-	my $t2 = "";
-	foreach my $cnode ( @list1 )
-	{
-		unless( EPrints::XML::is_dom( $cnode,"Text" ) )
-		{	
-			$justtext = 0;
-			last;
-		}
-		$t1.=$cnode->nodeValue;
-	}
-	foreach my $cnode ( @list2 )
-	{
-		unless( EPrints::XML::is_dom( $cnode,"Text" ) )
-		{	
-			$justtext = 0;
-			last;
-		}
-		$t2.=$cnode->nodeValue;
-	}
-
-	if( $justtext )
-	{
-		$f1->appendChild( $session->make_text( "  "x$indent ) );
-		$f1->appendChild( $session->make_text( "<$name1>" ) );
-		$f2->appendChild( $session->make_text( "  "x$indent ) );
-		$f2->appendChild( $session->make_text( "<$name2>" ) );
-		my $offset = $indent*2+length($name1)+2;
-		my $endw = length($name1)+3;
-		my $s1;
-		my $s2;
-		if( $t1 eq $t2 )
-		{
-			$s1 = $session->make_element( "span", style=>"" );
-			$s1->appendChild( mktext( $session, $t1, $offset, $endw, $width ) );
-			$s2 = $session->make_element( "span", style=>"" );
-			$s2->appendChild( mktext( $session, $t2, $offset, $endw, $width ) );
-		}
-		elsif( $t1 eq "" )
-		{
-			$s1 = $session->make_element( "span", style=>"" );
-			$s1->appendChild( mkpad( $session, $t2, $offset, $endw, $width ) );
-			$s2 = $session->make_element( "span", style=>"background: #cfc;" );
-			$s2->appendChild( mktext( $session, $t2, $offset, $endw, $width ) );
-		}
-		elsif( $t2 eq "" )
-		{
-			$s1 = $session->make_element( "span", style=>"background: #fcc" );
-			$s1->appendChild( mktext( $session, $t1, $offset, $endw, $width ) );
-			$s2 = $session->make_element( "span", style=>"" );
-			$s2->appendChild( mkpad( $session, $t1, $offset, $endw, $width ) );
-		}
-		else
-		{
-			my $h1 = scalar _mktext( $session, $t1, $offset, $endw, $width );
-			my $h2 = scalar _mktext( $session, $t2, $offset, $endw, $width );
-			$s1 = $session->make_element( "span", style=>"background: #cc0" );
-			$s1->appendChild( mktext( $session, $t1, $offset, $endw, $width ) );
-			$s2 = $session->make_element( "span", style=>"background: #cc0" );
-			$s2->appendChild( mktext( $session, $t2, $offset, $endw, $width ) );
-			if( $h1>$h2 )
-			{
-				$s2->appendChild( $session->make_text( "\n"x($h1-$h2) ) );
-			}
-			if( $h2>$h1 )
-			{
-				$s1->appendChild( $session->make_text( "\n"x($h2-$h1) ) );
-			}
-		}
-		$f1->appendChild( $s1 );
-		$f2->appendChild( $s2 );
-		$f1->appendChild( $session->make_text( "</$name1>\n" ) );
-		$f2->appendChild( $session->make_text( "</$name2>\n" ) );
-		return( $f1, $f2 );
-	}
-		
-	
-	$f1->appendChild( $session->make_text( "  "x$indent ) );
-	$f1->appendChild( $session->make_text( "<$name1>\n" ) );
-	$f2->appendChild( $session->make_text( "  "x$indent ) );
-	$f2->appendChild( $session->make_text( "<$name2>\n" ) );
-	my $c1 = 0;
-	my $c2 = 0;
-	my( $r1, $r2 );
-	while( $c1<scalar @list1 && $c2<scalar @list2 )
-	{
-		if( diff( $list1[$c1], $list2[$c2] ) )
-		{
-			if( $c1+1<scalar @list1 )
-			{
-				my $removedto = 0;
-				for(my $i=$c1+1;$i<scalar @list1;++$i)
-				{
-					if( !diff( $list1[$i], $list2[$c2] ) )
-					{
-						$removedto = $i;
-						last;
-					}
-				}
-				if( $removedto )
-				{
-					$r1 = $session->make_element( "span", style=>"background: #f88" );
-					for(my $i=$c1;$i<$removedto;++$i)
-					{
-						my( $rem, $pad ) = render_xml( $session, $list1[$i], $indent+1, 1, $width );
-						$r1->appendChild( $rem );
-						$f2->appendChild( $pad );
-					}
-					$f1->appendChild( $r1 );
-					$c1 = $removedto;
-					next;
-				}
-			} 
-
-			if( $c2+1<scalar @list2 )
-			{
-				my $addedto = 0;
-				for(my $i=$c2+1;$i<scalar @list2;++$i)
-				{
-					if( !diff( $list2[$i], $list1[$c1] ) )
-					{
-						$addedto = $i;
-						last;
-					}
-				}
-
-				if( $addedto )
-				{
-					$r2 = $session->make_element( "span", style=>"background: #8f8" );
-					for(my $i=$c2;$i<$addedto;++$i)
-					{
-						my( $add, $pad ) = render_xml( $session, $list2[$i], $indent+1, 1, $width );
-						$r2->appendChild( $add );
-						$f1->appendChild( $pad );
-					}
-					$f2->appendChild( $r2 );
-					$c2 = $addedto;
-					next;
-				}
-			}
-
-			( $r1, $r2 ) = render_xml_diffs( $session, $list1[$c1], $list2[$c2], $indent+1, $width );
-		}	
-		else
-		{
-			$r1 = $session->make_element( "span" );
-			$r1->appendChild( render_xml( $session, $list1[$c1], $indent+1, 0, $width ) );
-			$r2 = $session->make_element( "span" );
-			$r2->appendChild( render_xml( $session, $list2[$c2], $indent+1, 0, $width ) );
-		}
-		$f1->appendChild( $r1 );
-		$f2->appendChild( $r2 );
-		++$c1;
-		++$c2;
-	}
-
-	# print any straglers.
-
-	# any removed
-	if( $c1<scalar @list1 )
-	{
-		$r1 = $session->make_element( "span", style=>"background: #f88" );
-		for(my $i=$c1;$i<scalar @list1;++$i)
-		{
-			my( $rem, $pad ) = render_xml( $session, $list1[$i], $indent+1, 1, $width );
-			$r1->appendChild( $rem );
-			$f2->appendChild( $pad );
-		}
-		$f1->appendChild( $r1 );
-	}
-
-	# any added
-	if( $c2<scalar @list2 )
-	{
-		my $r2 = $session->make_element( "span", style=>"background: #8f8" );
-		for(my $i=$c2;$i<scalar @list2;++$i)
-		{
-			my( $add, $pad ) = render_xml( $session, $list2[$i], $indent+1, 1, $width );
-			$f1->appendChild( $pad );
-			$r2->appendChild( $add );
-		}
-		$f2->appendChild( $r2 );
-	}
-
-	$f1->appendChild( $session->make_text( "  "x$indent ) );
-	$f1->appendChild( $session->make_text( "</$name1>\n" ) );
-	$f2->appendChild( $session->make_text( "  "x$indent ) );
-	$f2->appendChild( $session->make_text( "</$name2>\n" ) );
-
-	return( $f1, $f2 );
-}
-
-	
-
-######################################################################
-#
-# ($xhtml, [$xhtml_padding]) = EPrints::DataObj::History::render_domtree( $session, $tree, $indent, $make_padded, $width )
-#
-# Render the given tree as XHTML (showing the actual XML structure).
-#
-# If make_padded is true then also generate another element, which is 
-# empty but the same height to be used in the other column to keep
-# things level.
-#
-######################################################################
-
-sub render_xml
-{
-	my( $session,$domtree,$indent,$mkpadder,$width ) = @_;
-
-	if( EPrints::XML::is_dom( $domtree, "Text" ) )
-	{
-		my $v = $domtree->nodeValue;
-		if( $v=~m/^[\s\r\n]*$/ )
-		{
-			if( $mkpadder ) { return( $session->make_doc_fragment, $session->make_doc_fragment ); }
-			return $session->make_doc_fragment;
-		}
-		my $r = $session->make_text( ("  "x$indent).$v."\n" );
-		if( $mkpadder ) { return( $r, $session->make_text( "\n" ) ); }
-		return $r;
-	}
-
-	if( EPrints::XML::is_dom( $domtree, "Element" ) )
-	{
-		my $t = '';
-		my $justtext = 1;
-
-		foreach my $cnode ( $domtree->getChildNodes )
-		{
-			if( EPrints::XML::is_dom( $cnode,"Element" ) )
-			{
-				$justtext = 0;
-				last;
-			}
-			if( EPrints::XML::is_dom( $cnode,"Text" ) )
-			{
-				$t.=$cnode->nodeValue;
-			}
-		}
-		my $name = $domtree->nodeName;
-		my $f = $session->make_doc_fragment;
-		my $padder;
-		if( $mkpadder ) { $padder = $session->make_doc_fragment; }
-		if( $justtext )
-		{
-			my $offset = $indent*2+length($name)+2;
-			my $endw = length($name)+3;
-			$f->appendChild( $session->make_text( "  "x$indent ) );
-			$t = "" if( $t =~ m/^[\s\r\n]*$/ );
-			$f->appendChild( $session->make_text( "<$name>" ) );
-			$f->appendChild( mktext( $session, $t, $offset, $endw, $width ) );
-			$f->appendChild( $session->make_text( "</$name>\n" ) );
-			if( $mkpadder ) { 
-				$padder->appendChild( $session->make_text( "\n" ) ); 
-				$padder->appendChild( mkpad( $session, $t, $offset, $endw, $width ) );
-			}
-		}
-		else
-		{
-			$f->appendChild( $session->make_text( "  "x$indent ) );
-			$f->appendChild( $session->make_text( "<$name>\n" ) );
-			if( $mkpadder ) { $padder->appendChild( $session->make_text( "\n" ) ); }
-	
-			foreach my $cnode ( $domtree->getChildNodes )
-			{
-				my( $sub, $padsub ) = render_xml( $session,$cnode, $indent+1, $mkpadder, $width );
-				if( $mkpadder ) { $padder->appendChild( $padsub ); }
-				$f->appendChild( $sub );
-			}
-
-			$f->appendChild( $session->make_text( "  "x$indent ) );
-			$f->appendChild( $session->make_text( "</$name>\n" ) );
-			if( $mkpadder ) { $padder->appendChild( $session->make_text( "\n" ) ); }
-		}
-		if( $mkpadder ) { return( $f, $padder ); }
-		return $f;
-	}
-	return( $session->make_text( "eh?:".ref($domtree) ), $session->make_doc_fragment );
-}
 
 ######################################################################
 #
@@ -1160,21 +539,39 @@ sub mkpad
 	return $session->make_text( "\n"x((scalar @bits)-1) );
 }
 
-sub set_dataobj_xml
+sub commit
 {
-	my( $self, $dataobj ) = @_;
+	my( $self, $force ) = @_;
 
-	use bytes;
+	# cannot call "comit" on SUPER nor on the parent dataobj
+	# coz history objects are created from the parent "commit"
+	# method - that'd create an infinite loop
+	
+	$self->EPrints::DataObj::commit( $force );
+}
 
-	my $xml = $dataobj->to_xml( hide_volatile => 1 );
+sub diff_data
+{
+	my( $self ) = @_;
 
-	my $data = "<?xml version='1.0' encoding='utf-8' ?>\n";
-	$data .= $self->{session}->xml->to_string( $xml, indent => 1 );
-	# $data will be bytes due to "use bytes" above
+	my $json = "";
+	$self->get_file( sub { $json .= $_[0] } );
 
-	$self->{session}->xml->dispose( $xml );
+	if( $json )
+	{
+		my $epdata;
+		eval {
+			$epdata = JSON->new->utf8(1)->decode( $json );
+		};
+		if( $@ )
+		{
+			$self->repository->log( "Failed to parse json.diff: $@" );
+			return;
+		}
+		return $epdata;
+	}
 
-	$self->add_stored_file( "dataobj.xml", \$data, length($data) );
+	return;
 }
 
 ######################################################################
