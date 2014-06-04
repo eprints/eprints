@@ -30,7 +30,7 @@ package EPrints::DataObj::SubObject;
 
 use strict;
 
-=item $dataobj = EPrints::DataObj::File->new_from_data( $session, $data [, $dataset ] )
+=item $dataobj = EPrints::DataObj::File->new_from_data( $repository, $data [, $dataset ] )
 
 Looks for a special B<_parent> element in $data and uses it to set the parent object, if defined.
 
@@ -38,11 +38,11 @@ Looks for a special B<_parent> element in $data and uses it to set the parent ob
 
 sub new_from_data
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $repository, $data, $dataset ) = @_;
 
 	my $parent = delete $data->{_parent};
 
-	my $self = $class->SUPER::new_from_data( $session, $data, $dataset );
+	my $self = $class->SUPER::new_from_data( $repository, $data, $dataset );
 
 	if( defined $parent )
 	{
@@ -52,7 +52,7 @@ sub new_from_data
 	return $self;
 }
 
-=item $dataobj = EPrints::DataObj::File->create_from_data( $session, $data [, $dataset ] )
+=item $dataobj = EPrints::DataObj::File->create_from_data( $repository, $data [, $dataset ] )
 
 Looks for a special B<_parent> element in $data and uses it to create default values for B<datasetid> and B<objectid> if parent is available and those fields exist on the object.
 
@@ -60,7 +60,7 @@ Looks for a special B<_parent> element in $data and uses it to create default va
 
 sub create_from_data
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $repository, $data, $dataset ) = @_;
 
 	my $parent = $data->{_parent};
 	if( defined( $parent ) )
@@ -75,7 +75,7 @@ sub create_from_data
 		}
 	}
 
-	return $class->SUPER::create_from_data( $session, $data, $dataset );
+	return $class->SUPER::create_from_data( $repository, $data, $dataset );
 }
 
 =item $dataobj = $dataobj->get_parent( [ $datasetid [, $objectid ] ] )
@@ -93,14 +93,12 @@ sub get_parent
 
 	return $self->{_parent} if defined( $self->{_parent} );
 
-	my $session = $self->get_session;
-
 	$datasetid = $self->get_parent_dataset_id unless defined $datasetid;
 	$objectid = $self->get_parent_id unless defined $objectid;
+	
+	my $repo = $self->repository;
 
-	my $ds = $session->dataset( $datasetid );
-
-	my $parent = $ds->get_object( $session, $objectid );
+	my $parent = $repo->dataset( $datasetid )->dataobj( $objectid );
 	$self->set_parent( $parent );
 
 	return $parent;
@@ -138,6 +136,35 @@ sub get_parent_id
 
 	return $self->get_value( "objectid" );
 }
+
+sub public_action
+{
+	my( $self, $action, $user ) = @_;
+
+	my $r = $self->SUPER::permit_action( $action, $user );
+
+	my $parent = $self->parent or return $r;
+
+	# creating or destroying a sub-object is equivalent to editing its parent
+	$action = "edit" if( $action eq "create" || $action eq "destroy" );
+
+	return $parent->public_action( $action, $user );
+}
+
+sub permit_action
+{
+	my( $self, $action, $user ) = @_;
+	
+	my $r = $self->SUPER::permit_action( $action, $user );
+
+	my $parent = $self->parent or return $r;
+
+	# creating or destroying a sub-object is equivalent to editing its parent
+	$action = "edit" if( $action eq "create" || $action eq "destroy" );
+
+	return $parent->permit_action( $action, $user );
+}
+
 
 =item $r = $dataobj->permit( $priv [, $user ] )
 
