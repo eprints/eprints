@@ -57,7 +57,7 @@ sub process
 		my $name = $node->tagName;
 		$name =~ s/^epc://;
 
-		return $params{session}->xml->create_document_fragment
+		return $params{repository}->xml->create_document_fragment
 			if $node->hasAttribute( "disabled" ) && $node->getAttribute( "disabled" );
 
 		if( $name=~m/^(if|comment|choose|print|debug|phrase|pin|foreach|set)$/ )
@@ -68,14 +68,14 @@ sub process
 			use strict "refs";
 			if( $@ )
 			{
-				$params{session}->log( "EPScript error: $@" );
-				return $params{session}->html_phrase( "XML/EPC:script_error" );
+				$params{repository}->log( "EPScript error: $@" );
+				return $params{repository}->html_phrase( "XML/EPC:script_error" );
 			}
 			return $r;
 		}
 	}
 
-	my $collapsed = $params{session}->clone_for_me( $node );
+	my $collapsed = $params{repository}->clone_for_me( $node );
 	my $attrs = $collapsed->attributes;
 	if( defined $attrs )
 	{
@@ -87,8 +87,8 @@ sub process
 			my $newv = eval { EPrints::XML::EPC::expand_attribute( $v, $name, \%params ); };
 			if( $@ )
 			{
-				$params{session}->log( "EPScript error: $@" );
-				$newv = $params{session}->phrase( "XML/EPC:script_error" );
+				$params{repository}->log( "EPScript error: $@" );
+				$newv = $params{repository}->phrase( "XML/EPC:script_error" );
 			}
 			if( $v ne $newv ) { $attr->setValue( $newv ); }
 		}
@@ -105,6 +105,7 @@ sub expand_attribute
 {
 	my( $v, $name, $params ) = @_;
 
+	return $v if( $v =~ m/\{\{/ );		# AngularJS format
 	return $v unless( $v =~ m/\{/ );
 
 	my @r = EPrints::XML::EPC::split_script_attribute( $v, $name );
@@ -126,8 +127,8 @@ sub expand_attribute
 sub process_child_nodes
 {
 	my( $node, %params ) = @_;
-
-	my $collapsed = $params{session}->make_doc_fragment;
+	
+	my $collapsed = $params{repository}->xml->create_document_fragment;
 
 	foreach my $child ( $node->getChildNodes )
 	{
@@ -152,18 +153,18 @@ sub _process_pin
 
 	if( !defined $params{pindata}->{inserts}->{$ref} )
 	{
-		$params{session}->get_repository->log(
+		$params{repository}->log(
 "missing parameter \"$ref\" when making phrase \"".$params{pindata}->{phraseid}."\"" );
-		return $params{session}->make_text( "[pin missing: $ref]" );
+		return $params{repository}->make_text( "[pin missing: $ref]" );
 	}
 	if( !EPrints::XML::is_dom( $params{pindata}->{inserts}->{$ref},
 			"DocumentFragment",
 			"Text",
 			"Element" ) )
 	{
-		$params{session}->get_repository->log(
+		$params{repository}->log(
 "parameter \"$ref\" is not an XML node when making phrase \"".$params{pindata}->{phraseid}."\"" );
-		return $params{session}->make_text( "[pin missing: $ref]" );
+		return $params{repository}->make_text( "[pin missing: $ref]" );
 	}
 		
 
@@ -219,11 +220,11 @@ sub _process_phrase
 	my $collapsed;
 	if( $node->hasAttribute( "textonly" ) && $node->getAttribute( "textonly" ) eq 'yes' )
 	{
-		$collapsed = $params{session}->make_text( $params{session}->phrase( $ref, %pins ) );
+		$collapsed = $params{repository}->make_text( $params{repository}->phrase( $ref, %pins ) );
 	}
 	else
 	{
-		$collapsed = $params{session}->html_phrase( $ref, %pins );
+		$collapsed = $params{repository}->html_phrase( $ref, %pins );
 	}
 
 #	print $collapsed->toString."\n";
@@ -263,7 +264,7 @@ sub _process_debug
 
 	print STDERR EPrints::XML::to_string( $result );
 
-	return $params{session}->make_doc_fragment;
+	return $params{repository}->make_doc_fragment;
 }
 
 sub _process_set
@@ -332,7 +333,7 @@ sub _process_foreach
 
 	my $list = $result->[0];
 	my $type = $result->[1];
-	my $output = $params{session}->make_doc_fragment;
+	my $output = $params{repository}->make_doc_fragment;
 
 	if( !EPrints::Utils::is_set( $list ) )
 	{
@@ -386,7 +387,7 @@ sub _process_if
 	my $result = EPrints::Script::execute( $test, \%params );
 #	print STDERR  "IFTEST:::".$test." == $result\n";
 
-	my $collapsed = $params{session}->make_doc_fragment;
+	my $collapsed = $params{repository}->make_doc_fragment;
 
 	if( $result->[0] )
 	{
@@ -400,14 +401,14 @@ sub _process_comment
 {
 	my( $node, %params ) = @_;
 
-	return $params{session}->make_doc_fragment;
+	return $params{repository}->make_doc_fragment;
 }
 
 sub _process_choose
 {
 	my( $node, %params ) = @_;
 
-	my $collapsed = $params{session}->make_doc_fragment;
+	my $collapsed = $params{repository}->xml->create_document_fragment;
 
 	# when
 	foreach my $child ( $node->getChildNodes )
@@ -466,6 +467,11 @@ sub split_script_attribute
 	my $depth = 0;
 	OUTCODE: while( length( $value ) )
 	{
+		# sf2 - not to annoy AngularJS/Mustache code:
+		if( $value =~ /\{\{/ )
+		{
+			return ();
+		}
 		$value=~s/^([^{]*)//;
 		push @r, $1;
 		last unless $value=~s/^\{//;
