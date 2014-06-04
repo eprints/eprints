@@ -58,7 +58,7 @@ sub new
 	Scalar::Util::weaken( $self->{repository} )
 		if defined &Scalar::Util::weaken;
 
-	$self->{alias} = $repository->get_conf( "plugin_alias_map" );
+	$self->{alias} = $repository->config( "plugin_alias_map" );
 	$self->{alias} = {} unless defined $self->{alias};
 
 	$self->{data} = \%SYSTEM_PLUGINS;
@@ -116,7 +116,7 @@ sub new
 	}
 
 	# repository-specific plugins
-	$dir = $repository->get_conf( "config_path" )."/plugins";
+	$dir = $repository->config( "config_path" )."/plugins";
 	$self->_load_dir( $self->{repository_data}, $repository, $dir );
 	if( $use_xslt )
 	{

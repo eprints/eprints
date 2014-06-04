@@ -320,7 +320,7 @@ sub warning
 {
 	my( $plugin, $msg ) = @_;
 
-	$plugin->handler->message( "warning", $plugin->{session}->make_text( $msg ));
+	$plugin->handler->message( "warning", $plugin->repository->make_text( $msg ));
 }	
 
 =item $plugin->error( $text )
@@ -333,7 +333,7 @@ sub error
 {
 	my( $plugin, $msg ) = @_;
 
-	$plugin->handler->message( "error", $plugin->{session}->make_text( $msg ));
+	$plugin->handler->message( "error", $plugin->repository->make_text( $msg ));
 }
 
 =item $bool = $plugin->is_tool()

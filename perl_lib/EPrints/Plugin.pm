@@ -114,7 +114,7 @@ sub local_uri
 
 	my $id = $self->{id};
 	$id =~ s!::!/!g;
-	return $self->{repository}->get_conf( "http_url" )."/#Plugin/".$id;
+	return $self->{repository}->config( "http_url" )."/#Plugin/".$id;
 }
 
 ######################################################################
@@ -294,7 +294,7 @@ sub param
 {
 	my( $self, $paramid ) = @_;
 
-	my $pconf = $self->{repository}->get_conf( "plugins", $self->{id} );
+	my $pconf = $self->{repository}->config( "plugins", $self->{id} );
 
 	if( defined $pconf->{params} && exists $pconf->{params}->{$paramid} )
 	{
@@ -360,7 +360,7 @@ sub icon_url
 {
 	my( $self ) = @_;
 
-	my $icon = $self->{repository}->get_conf( "plugins", $self->{id}, "icon" );
+	my $icon = $self->{repository}->config( "plugins", $self->{id}, "icon" );
 	if( !defined( $icon ) )
 	{
 		$icon = $self->{icon};
