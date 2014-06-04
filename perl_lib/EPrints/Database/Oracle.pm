@@ -82,7 +82,7 @@ DBD::Oracle can crash when using PERL_USE_SAFE_PUTENV-compiled Perls, see http:/
 #
 # INSTANCE VARIABLES:
 #
-#  $self->{session}
+#  $self->{repository}
 #     The EPrints::Session which is associated with this database 
 #     connection.
 #
@@ -355,7 +355,7 @@ sub get_tables
 
 	my @tables;
 
-	my $dbuser = $self->{session}->get_repository->get_conf( "dbuser" );
+	my $dbuser = $self->{repository}->config( "dbuser" );
 	my $sql = "SELECT table_name FROM all_tables WHERE owner = ?";
 	my $sth = $self->{dbh}->prepare($sql);
 	return undef unless $sth;
@@ -531,7 +531,7 @@ sub _add_field
 
 	my $table = $dataset->get_sql_table_name;
 	my @names = $field->get_sql_names;
-	my @types = $field->get_sql_type( $self->{session} );
+	my @types = $field->get_sql_type( $self->{repository} );
 
 	return $rc if $self->has_column( $table, $names[0] ) && !$force;
 
