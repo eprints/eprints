@@ -7,6 +7,7 @@ EPrints::Plugin::Export::JSON
 package EPrints::Plugin::Export::JSON;
 
 use EPrints::Plugin::Export::TextFile;
+use JSON;
 
 @ISA = ( "EPrints::Plugin::Export::TextFile" );
 
@@ -19,7 +20,7 @@ sub new
 	my( $self ) = $class->SUPER::new( %opts );
 
 	$self->{name} = "JSON";
-	$self->{accept} = [ 'list/*', 'dataobj/*' ];
+	$self->{accept} = [ 'list/*', 'dataobj/*', 'schema/dataset', 'data/perl' ];
 	$self->{visible} = "all";
 	$self->{suffix} = ".js";
 	$self->{mimetype} = "application/json; charset=utf-8";
@@ -31,7 +32,22 @@ sub new
 	return $self;
 }
 
+# sf2 un-used - just an idea - linked to accept = "data/perl" above ^^
+sub output_data
+{
+	my( $self, $data ) = @_;
 
+	return JSON->new->utf8(1)->encode( $data );
+}
+
+# sf2 un-used - same as above, linked to 'schema/dataset'
+sub output_schema
+{
+	my( $self, $dataset ) = @_;
+
+	
+}
+	
 sub _header
 {
 	my( $self, %opts ) = @_;
@@ -117,6 +133,19 @@ sub output_dataobj
 	return $self->_header( %opts ).$self->_epdata_to_json( $dataobj, 1, 0, %opts ).$self->_footer( %opts );
 }
 
+sub output_field
+{
+	my( $self, $dataobj, $field, %opts ) = @_;
+
+	return "null" if( !$field->property( "export_as_xml" )
+		|| defined $field->{sub_name} );
+
+	my $value = $dataobj->value( $field->name );
+	return "null" if( !EPrints::Utils::is_set( $value ) );
+
+	return $self->_header( %opts ).$self->_epdata_to_json( { $field->name => $value }, 1, 0, %opts ).$self->_footer( %opts );
+}
+
 sub _epdata_to_json
 {
 	my( $self, $epdata, $depth, $in_hash, %opts ) = @_;
@@ -124,10 +153,8 @@ sub _epdata_to_json
 	my $pad = "  " x $depth;
 	my $pre_pad = $in_hash ? "" : $pad;
 	
-
 	if( !ref( $epdata ) )
 	{
-		
 		if( !defined $epdata )
 		{
 			return "null"; # part of a compound field
@@ -164,13 +191,13 @@ sub _epdata_to_json
 			$epdata->has_relation( undef, "isVolatileVersionOf" )
 		  );
 
-		foreach my $field ($epdata->get_dataset->get_fields)
+		foreach my $field ($epdata->dataset->fields)
 		{
-			next if !$field->get_property( "export_as_xml" );
+			next if !$field->property( "export" );
 			next if defined $field->{sub_name};
-			my $value = $field->get_value( $epdata );
+			my $value = $field->value( $epdata );
 			next if !EPrints::Utils::is_set( $value );
-			$subdata->{$field->get_name} = $value;
+			$subdata->{$field->name} = $value;
 		}
 
 		$subdata->{uri} = $epdata->uri;
