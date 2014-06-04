@@ -50,11 +50,6 @@ sub removed
 	);
 	return if defined $rc && $rc eq EPrints::Const::EP_TRIGGER_DONE;
 
-	foreach my $field ($dataset->fields)
-	{
-		EPrints::Index::remove( $self->{session}, $dataset, $id, $field->name );
-	}
-
 	return;
 }
 
@@ -70,20 +65,6 @@ sub _index_fields
 		fields => $fields,
 	);
 	return if defined $rc && $rc eq EPrints::Const::EP_TRIGGER_DONE;
-
-	EPrints::Index::remove( $session, $dataset, $dataobj->get_id,
-		[map { $_->name } @$fields]
-	);
-
-	foreach my $field (@$fields)
-	{
-		next unless( $field->get_property( "text_index" ) );
-
-		my $value = $field->get_value( $dataobj );
-		next unless EPrints::Utils::is_set( $value );	
-
-		EPrints::Index::add( $session, $dataset, $dataobj->get_id, $field->get_name, $value );
-	}
 
 	return;
 }	
