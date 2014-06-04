@@ -15,7 +15,7 @@ B<EPrints::DataObj::LoginTicket> - user system loginticket
 
 =head1 DESCRIPTION
 
-Login tickets are the database entries for the user's session cookies.
+Login tickets are the database entries for the user's repository cookies.
 
 =head2 Configuration Settings
 
@@ -23,13 +23,13 @@ Login tickets are the database entries for the user's session cookies.
 
 =item user_cookie_timeout = undef
 
-Set an expiry on the session cookies. This will cause the user's browser to delete the cookie after the given time. The time is specified according to L<CGI>'s cookie constructor. This allows settings like C<+1h> and C<+7d>.
+Set an expiry on the repository cookies. This will cause the user's browser to delete the cookie after the given time. The time is specified according to L<CGI>'s cookie constructor. This allows settings like C<+1h> and C<+7d>.
 
 =item user_inactivity_timeout = 86400 * 7
 
 How long to wait in seconds before logging the user out after their last activity.
 
-=item user_session_timeout = undef
+=item user_repository_timeout = undef
 
 How long in seconds the user can stay logged in before they must re-log in. Defaults to never - if you do specify this setting you probably want to reduce user_inactivity_timeout to <1 hour.
 
@@ -115,7 +115,7 @@ sub get_defaults
 	$data->{securecode} = &_code();
 	if( !$repo->config( "ignore_login_ip" ) )
 	{
-		$data->{ip} = $repo->get_request->connection->remote_ip;
+		$data->{ip} = $class->client_ip( $repo );
 	}
 
 	$data->{time} = time();
@@ -134,42 +134,73 @@ sub _code
 	return $ctx->hexdigest;
 }
 
+sub client_ip
+{
+	my( $self, $repo ) = @_;
+	
+	my $repository;
+	if( ref( $self ) ne '' )
+	{
+		# static call
+		$repository = $self->repository;
+	} 
+	else
+	{
+		$repository = $repo;
+	}
+
+	if( EPrints::Utils::is_set( $repository->request->headers_in->{'X-Forwarded-For'} ) )
+	{
+		# proxied
+		return $repository->request->headers_in->{'X-Forwarded-For'};
+	}
+	
+	return $repo->request->connection->remote_ip;
+}
+
 sub new_from_request
 {
-	my( $class, $repo, $r ) = @_;
+	my( $class, $repo ) = @_;
+
+	my $r = $repo->request or return undef;
 
 	my $dataset = $repo->dataset( $class->get_dataset_id );
 
-	my $ip = $r->connection->remote_ip;
+	my $ip = $class->client_ip( $repo );
 
 	my $ticket;
 
-	if( $repo->get_secure )
+	if( $repo->is_secure )
 	{
-		my $securecode = EPrints::Apache::AnApache::cookie(
+		my $securecode = EPrints::Apache::cookie(
 			$r,
-			$class->secure_session_key($repo)
+			$class->secure_repository_key($repo)
 		);
 		if (EPrints::Utils::is_set($securecode)) {
-			$ticket = $dataset->search(filters => [
-				{ meta_fields => [qw( securecode )], value => $securecode },
-			])->item( 0 );
+
+$ticket = $dataset->dataobj( $securecode );
+
+#			$ticket = $dataset->search(filters => [
+#				{ meta_fields => [qw( securecode )], value => $securecode },
+#			])->item( 0 );
 		}
 	}
 	else
 	{
-		my $code = EPrints::Apache::AnApache::cookie(
+		my $code = EPrints::Apache::cookie(
 			$r,
-			$class->session_key($repo)
+			$class->repository_key($repo)
 		);
 		if (EPrints::Utils::is_set($code)) {
-			$ticket = $dataset->search(filters => [
-				{ meta_fields => [qw( code )], value => $code },
-			])->item( 0 );
+$ticket = $dataset->dataobj( $code );
+#			$ticket = $dataset->search(filters => [
+#				{ meta_fields => [qw( code )], value => $code },
+#			])->item( 0 );
+
 		}
 	}
 
-	my $timeout = $repo->config( "user_session_timeout" );
+	my $timeout = $repo->config( "user_repository_timeout" );
 
 	if( 
 		defined $ticket &&
@@ -200,11 +231,11 @@ sub expire_all
 	});
 }
 
-=item EPrints::DataObj::LoginTicket->session_key($repo)
+=item EPrints::DataObj::LoginTicket->repository_key($repo)
 
-=item EPrints::DataObj::LoginTicket->secure_session_key($repo)
+=item EPrints::DataObj::LoginTicket->secure_repository_key($repo)
 
-Get the key to use for the session cookies.
+Get the key to use for the repository cookies.
 
 In the following circumstance:
 
@@ -215,14 +246,14 @@ Where both hosts use the same cookie key the cookie from example.org will collid
 
 =cut
 
-sub session_key
+sub repository_key
 {
 	my ($class, $repo) = @_;
 
 	return join ':', $SESSION_KEY, $repo->config('host');
 }
 
-sub secure_session_key
+sub secure_repository_key
 {
 	my ($class, $repo) = @_;
 
@@ -243,7 +274,7 @@ sub secure_session_key
 
 =item $cookie = $ticket->generate_cookie( %opts )
 
-Returns the HTTP (non-secure) session cookie.
+Returns the HTTP (non-secure) repository cookie.
 
 =end InternalDoc
 
@@ -253,10 +284,10 @@ sub generate_cookie
 {
 	my( $self, %opts ) = @_;
 
-	my $repo = $self->{session};
+	my $repo = $self->{repository};
 
-	return $repo->{query}->cookie(
-		-name    => $self->session_key($repo),
+	return $repo->query->cookie(
+		-name    => $self->repository_key($repo),
 		-path    => ($repo->config( "http_root" ) || '/'),
 		-value   => $self->value( "code" ),
 		-domain  => $repo->config( "host" ),
@@ -269,7 +300,7 @@ sub generate_cookie
 
 =item $cookie = $ticket->generate_secure_cookie( %opts )
 
-Returns the HTTPS session cookie.
+Returns the HTTPS repository cookie.
 
 =end InternalDoc
 
@@ -279,10 +310,10 @@ sub generate_secure_cookie
 {
 	my( $self, %opts ) = @_;
 
-	my $repo = $self->{session};
+	my $repo = $self->{repository};
 
-	return $repo->{query}->cookie(
-		-name    => $self->secure_session_key($repo),
+	return $repo->query->cookie(
+		-name    => $self->secure_repository_key($repo),
 		-path    => ($repo->config( "https_root" ) || '/'),
 		-value   => $self->value( "securecode" ),
 		-domain  => $repo->config( "securehost" ),
@@ -294,7 +325,7 @@ sub generate_secure_cookie
 
 =item $ticket->set_cookies()
 
-Set the session cookies for this login ticket.
+Set the repository cookies for this login ticket.
 
 =cut
 
@@ -302,12 +333,13 @@ sub set_cookies
 {
 	my( $self ) = @_;
 
-	my $repo = $self->{session};
+	my $repo = $self->{repository};
 
 	$repo->get_request->err_headers_out->add(
 		'Set-Cookie' => $self->generate_cookie
 	);
-	if( $repo->config( "securehost" ) )
+
+	if( $repo->is_secure )
 	{
 		$repo->get_request->err_headers_out->add(
 			'Set-Cookie' => $self->generate_secure_cookie
@@ -327,7 +359,7 @@ sub update
 {
 	my( $self ) = @_;
 
-	my $timeout = $self->{session}->config( "user_inactivity_timeout" );
+	my $timeout = $self->{repository}->config( "user_inactivity_timeout" );
 	$timeout = $SESSION_TIMEOUT if !defined $timeout;
 
 	$self->set_value( "expires", time() + $timeout );
