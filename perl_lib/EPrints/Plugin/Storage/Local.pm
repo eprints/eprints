@@ -49,7 +49,7 @@ sub open_write
 	my $filepath = "$path/$fn";
 	$filepath =~ s/[^\\\/]+$//;
 
-	EPrints::Platform::mkdir( $filepath );
+	EPrints->system->mkdir( $filepath );
 
 	my $mode = O_WRONLY|O_CREAT;
 	$mode |= O_TRUNC if !defined $offset;
@@ -79,6 +79,8 @@ sub write
 
 	my $fh = $self->{_fh}->{$fileobj}
 		or Carp::croak "Must call open_write before write";
+	
+	$self->repository->debug_log( "storage", "writing file %s", $fileobj->internal_uri );
 
 	my $rc = syswrite($fh, $buffer);
 	if( !defined $rc || $rc != length($buffer) )
@@ -136,6 +138,8 @@ sub retrieve
 	my( $path, $fn ) = $self->_filename( $fileobj, $sourceid );
 
 	return undef if !defined $path;
+	
+	$self->repository->debug_log( "storage", "reading file %s (%s/%s)", $fileobj->internal_uri, $path, $fn );
 
 	my $fh = $self->{_fh}->{$fileobj};
 
@@ -177,6 +181,8 @@ sub delete
 	return 1 if !-e "$path/$fn";
 
 	return 0 if !unlink("$path/$fn");
+	
+	$self->repository->debug_log( "storage", "removing file %s (%s/%s)", $fileobj->internal_uri, $path, $fn );
 
 	my @parts = split /\//, $fn;
 	pop @parts;
@@ -207,43 +213,41 @@ sub _filename
 {
 	my( $self, $fileobj, $filename ) = @_;
 
-	my $parent = $fileobj->get_parent();
-	
 	my $local_path;
 
 	if( !defined $filename )
 	{
-		$filename = $fileobj->get_value( "filename" );
+		$filename = $fileobj->value( "filename" );
 		$filename = escape_filename( $filename );
 	}
 
-	my $in_file;
+	$local_path = join( "/", 
+		$self->{repository}->config( 'archiveroot' ),
+		"storage",
+		$fileobj->dataset->id,
+		$self->dataobjid_to_path( $fileobj->id )
+	);
 
-	if( $parent->isa( "EPrints::DataObj::Document" ) )
+	if( !-d $local_path )
 	{
-		$local_path = $parent->local_path;
-		$in_file = $filename;
-	}
-	elsif( $parent->isa( "EPrints::DataObj::History" ) )
-	{
-		my $eprint = $parent->get_parent;
-		return if !defined $eprint;
-		$local_path = $eprint->local_path."/revisions";
-		$filename = $parent->get_value( "revision" ) . ".xml";
-		$in_file = $filename;
-	}
-	elsif( $parent->isa( "EPrints::DataObj::EPrint" ) )
-	{
-		$local_path = $parent->local_path;
-		$in_file = $filename;
-	}
-	else
-	{
-		# Gawd knows?!
+		EPrints->system->mkdir( $local_path );
 	}
 
-	return( $local_path, $in_file );
+	return( $local_path, $filename );
 }
+
+sub dataobjid_to_path
+{
+        my( $self, $id ) = @_;
+
+        my $path = sprintf("%08d", $id);
+        $path =~ s#(..)#/$1#g;
+        substr($path,0,1) = '';
+
+        return $path;
+}
+
+
 
 sub escape_filename
 {
