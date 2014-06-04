@@ -51,6 +51,42 @@ sub get_sql_type
 	);
 }
 
+# sf2 - very, very similar than Int::validate_value...
+sub validate_value
+{
+        my( $self, $value ) = @_;
+
+	return 1 if( !defined $value );
+
+# sf2 - problem: this calls Int::validate_value and of course the regex in Int will fail
+#        $value = $self->SUPER::validate_value( $value );
+
+	return 0 if( !EPrints::MetaField::validate_value( $self, $value ) );
+
+        # sf2 - safer than using $self->property( 'multiple' );
+        my $is_array = ref( $value ) eq 'ARRAY';
+
+        my @valid_values;
+        foreach my $single_value ( $is_array ?
+                @$value :
+                $value
+        )
+        {
+                if( $single_value !~ /^[-+]?\d+\.?\d+$/ )
+                {
+                	$self->repository->debug_log( "field", "Non-floating point value passed to field: ".$self->dataset->id."/".$self->name );
+#			if( $self->property( 'positive || signed?' ) )
+#			{
+#				if( $single_value < 0 ) ...
+#			}
+			return 0;
+                }
+        }
+
+	return 1;
+}
+
+
 sub ordervalue_basic
 {
 	my( $self , $value ) = @_;
@@ -75,13 +111,6 @@ sub get_property_defaults
 sub get_xml_schema_type
 {
 	return "xs:double";
-}
-
-sub render_xml_schema_type
-{
-	my( $self, $session ) = @_;
-
-	return $session->make_doc_fragment;
 }
 
 ######################################################################

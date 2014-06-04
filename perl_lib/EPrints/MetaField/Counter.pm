@@ -29,11 +29,27 @@ use warnings;
 use EPrints::MetaField::Int;
 our @ISA = qw( EPrints::MetaField::Int );
 
+sub new
+{
+	my( $class, %args ) = @_;
+
+	my $self = $class->SUPER::new( %args );
+
+	if( !defined $self->property( 'sql_counter' ) )
+	{
+		$self->set_property( 'sql_counter', $self->name );
+	}
+
+	return $self;
+}
+
 sub get_property_defaults
 {
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
-	$defaults{sql_counter} = $EPrints::MetaField::REQUIRED;
+#	$defaults{sql_counter} = $EPrints::MetaField::REQUIRED;
+	$defaults{sql_counter} = $EPrints::MetaField::UNDEF;
+	$defaults{import} = 0;
 	return %defaults;
 }
 

@@ -129,26 +129,6 @@ sub thaw
 	return Storable::thaw( $value );
 }
 
-sub render_value
-{
-	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
-
-	if( defined $self->{render_value} )
-	{
-		return $self->call_property( "render_value", 
-			$session, 
-			$self, 
-			$value, 
-			$alllangs, 
-			$nolink,
-			$object );
-	}
-
-	local $Data::Dumper::Terse = 1;
-
-	return $session->make_text( Data::Dumper::Dumper( $value ) );
-}
-
 sub ordervalue
 {
 	return "";

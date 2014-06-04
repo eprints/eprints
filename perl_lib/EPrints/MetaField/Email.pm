@@ -28,21 +28,34 @@ use EPrints::MetaField::Id;
 
 use strict;
 
-sub render_single_value
+sub validate_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $value ) = @_;
 	
-	return $session->make_doc_fragment if !EPrints::Utils::is_set( $value );
+	return 1 if( !defined $value );
 
-	my $text = $session->make_text( $value );
+	return 0 if( !$self->SUPER::validate_value( $value ) );
 
-	return $text if !defined $value;
-	return $text if( $self->{render_dont_link} );
+        # sf2 - safer than using $self->property( 'multiple' );
+        my $is_array = ref( $value ) eq 'ARRAY';
 
-	my $link = $session->render_link( "mailto:".$value );
-	$link->appendChild( $text );
-	return $link;
+        my @valid_values;
+        foreach my $single_value ( $is_array ?
+                @$value :
+                $value
+        )
+        {
+		# trivial check - it could be much much more complex
+                if( $single_value !~ /^.+\@.+\..+$/ )
+                {
+			$self->repository->debug_log( "field", "Invalid email '$single_value' passed to field ".$self->dataset->id."/".$self->name );
+			return 0;
+		}
+	}
+
+	return 1;
 }
+
 
 ######################################################################
 1;

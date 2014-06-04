@@ -35,16 +35,6 @@ sub new
 
 	my $self = $class->SUPER::new(%params);
 
-	# override field input_cols
-	if (defined(my $cols = $self->property('input_name_cols')))
-	{
-		foreach my $name (keys %$cols)
-		{
-			my $field = $self->{fields_index}->{$name};
-			$field->set_property('input_cols', $cols->{$name});
-		}
-	}
-
 	return $self;
 }
 
@@ -73,91 +63,6 @@ sub sql_row_from_value
 	return @row;
 }
 
-sub render_single_value
-{
-	my( $self, $session, $value ) = @_;
-
-	my $order = $self->{render_order};
-	
-	# If the render opt "order" is set to "gf" then we order
-	# the name with given name first. 
-
-	return $session->render_name( 
-			$value, 
-			defined $order && $order eq "gf" );
-}
-
-sub get_input_bits
-{
-	my( $self ) = @_;
-
-	my @namebits;
-	unless( $self->get_property( "hide_honourific" ) )
-	{
-		push @namebits, "honourific";
-	}
-	if( $self->get_property( "family_first" ) )
-	{
-		push @namebits, "family", "given";
-	}
-	else
-	{
-		push @namebits, "given", "family";
-	}
-	unless( $self->get_property( "hide_lineage" ) )
-	{
-		push @namebits, "lineage";
-	}
-
-	return @namebits;
-}
-
-sub get_basic_input_elements
-{
-	my( $self, $session, $value, $basename, $staff, $object ) = @_;
-
-	my $grid_row = [];
-
-	foreach my $alias ($self->get_input_bits)
-	{
-		my $field = $self->{fields_index}->{$alias};
-		my $part_grid = $field->get_basic_input_elements( 
-					$session, 
-					$value->{$alias}, 
-					$basename."_".$alias, 
-					$staff, 
-					$object );
-		my $top_row = $part_grid->[0];
-		push @{$grid_row}, @{$top_row};
-	}
-
-	return [ $grid_row ];
-}
-
-sub get_basic_input_ids
-{
-	my( $self, $session, $basename, $staff, $obj ) = @_;
-
-	return map {
-		join('_', $basename, $_)
-	} $self->get_input_bits;
-}
-
-sub get_input_col_titles
-{
-	my( $self, $session, $staff ) = @_;
-
-	my @r = ();
-	foreach my $bit ( $self->get_input_bits() )
-	{
-		# deal with some legacy in the phrase id's
-		$bit = "given_names" if( $bit eq "given" );
-		$bit = "family_names" if( $bit eq "family" );
-		push @r, $session->html_phrase(	"lib/metafield:".$bit );
-	}
-	return \@r;
-}
-
 sub split_search_value
 {
 	my( $self, $session, $value ) = @_;
@@ -180,22 +85,6 @@ sub split_search_value
 		push @bits, split /\s+/ , $value;
 	}
 	return @bits;
-}
-
-sub render_search_value
-{
-        my( $self, $session, $value ) = @_;
-
-	# bit of a hack but fixes the dodgey name rendering in RSS titles etc.
-	# probably need to be removed when the code is rationalised.
-	if( ref( $value ) eq "HASH" )
-	{
-		my $text = "\"".$value->{family}.", ".$value->{given}."\"";		
-		return $session->make_text( $text );
-	}
-
-	my @bits = $self->split_search_value( $session, $value );
-        return $session->make_text( '"'.join( '", "', @bits).'"' );
 }
 
 sub get_search_conditions

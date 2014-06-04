@@ -29,50 +29,15 @@ use EPrints::MetaField::Id;
 
 use strict;
 
-sub render_search_value
-{
-	my( $self, $session, $value ) = @_;
-
-	my $valuedesc = $session->make_doc_fragment;
-	$valuedesc->appendChild( $session->make_text( '"' ) );
-	$valuedesc->appendChild( $session->make_text( $value ) );
-	$valuedesc->appendChild( $session->make_text( '"' ) );
-	my( $good, $bad ) = _extract_words( $session, $value );
-
-	if( scalar(@{$bad}) )
-	{
-		my $igfrag = $session->make_doc_fragment;
-		for( my $i=0; $i<scalar(@{$bad}); $i++ )
-		{
-			if( $i>0 )
-			{
-				$igfrag->appendChild(
-					$session->make_text( 
-						', ' ) );
-			}
-			$igfrag->appendChild(
-				$session->make_text( 
-					'"'.$bad->[$i].'"' ) );
-		}
-		$valuedesc->appendChild( 
-			$session->html_phrase( 
-				"lib/searchfield:desc_ignored",
-				list => $igfrag ) );
-	}
-
-	return $valuedesc;
-}
-
-
 sub get_search_group { return 'text'; }
 
 sub get_index_codes_basic
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $repository, $value ) = @_;
 
 	return( [], [], [] ) unless( EPrints::Utils::is_set( $value ) );
 
-	my( $codes, $badwords ) = _extract_words( $session, $value );
+	my( $codes, $badwords ) = _extract_words( $repository, $value );
 	$_ = lc($_) for @$codes;
 
 	return( $codes, [], $badwords );
@@ -82,12 +47,12 @@ sub get_index_codes_basic
 # text indexing config.
 sub _extract_words
 {
-	my( $session, $value ) = @_;
+	my( $repository, $value ) = @_;
 
 	my( $codes, $badwords ) = 
-		$session->get_repository->call( 
+		$repository->call( 
 			"extract_words" ,
-			$session,
+			$repository,
 			$value );
 	my $newbadwords = [];
 	foreach( @{$badwords} ) 
@@ -108,7 +73,7 @@ sub get_property_defaults
 	return %defaults;
 }
 
-=item $cond = $field->get_search_conditions_not_ex( $session, $dataset, $value, $match, $merge, $mode )
+=item $cond = $field->get_search_conditions_not_ex( $repository, $dataset, $value, $match, $merge, $mode )
 
 Return the search condition for a search which is not-exact ($match ne "EX").
 
@@ -118,7 +83,7 @@ If match is "IN" $value is split into terms and the first term is used as an ind
 
 sub get_search_conditions_not_ex
 {
-	my( $self, $session, $dataset, $search_value, $match, $merge,
+	my( $self, $repository, $dataset, $search_value, $match, $merge,
 		$search_mode ) = @_;
 	
 	if( $match eq "EQ" )
@@ -138,7 +103,7 @@ sub get_search_conditions_not_ex
 
 	# apply stemming and stuff
 	# codes, grep_terms, bad
-	my( $codes, undef, undef ) = $self->get_index_codes( $session,
+	my( $codes, undef, undef ) = $self->get_index_codes( $repository,
 		$self->property( "multiple" ) ? [$search_value] : $search_value );
 
 	# Just go "yeah" if stemming removed the word

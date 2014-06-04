@@ -40,7 +40,7 @@ sub extra_subfields
 	my( $self ) = @_;
 
 	return (
-		{ sub_name=>"lang", type=>"namedset", set_name => "languages", input_style => "short", maxlength => 16, },
+		{ name=>"lang", type=>"namedset", set_name => "languages", input_style => "short", maxlength => 16, },
 	);
 }
 
@@ -74,32 +74,6 @@ sub lang_value
 	});
 }
 
-sub render_value
-{
-	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
-
-	if( $alllangs )
-	{
-		return $self->SUPER::render_value( 
-				$session,$value,$alllangs,$nolink,$object);
-	}
-
-	my $f = $self->get_property( "fields_cache" );
-
-	$value = $self->lang_value( undef, $value )
-		if $self->property( "multiple" );
-
-	if( @$f > 2 ) # value + lang
-	{
-		return $self->render_single_value( $session, $value );
-	}
-	else
-	{
-		$value = $value->{$f->[0]->property( "sub_name" )};
-		return $f->[0]->render_single_value( $session, $value );
-	}
-}
-
 sub value_to_langhash
 {
 	my( $self, $value ) = @_;
@@ -129,8 +103,6 @@ sub get_property_defaults
 {
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
-	$defaults{input_ordered} = 0;
-	$defaults{input_boxes} = 1;
 	$defaults{match} = "IN";
 	return %defaults;
 }

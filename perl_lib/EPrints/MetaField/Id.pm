@@ -111,21 +111,6 @@ sub get_xml_schema_type
 	}
 }
 
-sub render_xml_schema_type
-{
-	my( $self, $session ) = @_;
-
-	my $type = $session->make_element( "xs:simpleType", name => $self->get_xml_schema_type );
-
-	my $restriction = $session->make_element( "xs:restriction", base => "xs:string" );
-	$type->appendChild( $restriction );
-	my $length = $session->make_element( "xs:maxLength", value => $self->get_max_input_size );
-	$restriction->appendChild( $length );
-
-	return $type;
-}
-
-
 ######################################################################
 1;
 

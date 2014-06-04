@@ -26,6 +26,8 @@ package EPrints::MetaField::Int;
 use strict;
 use warnings;
 
+use EPrints::Const qw( :validators );
+
 BEGIN
 {
 	our( @ISA );
@@ -34,6 +36,48 @@ BEGIN
 }
 
 use EPrints::MetaField;
+
+# sf2 - enforce checks
+# returns the valid(-ated) values
+sub validate_value
+{
+	my( $self, $value ) = @_;
+
+	# undef is valid
+	return 1 if( !defined $value );
+
+	return 0 if( !$self->SUPER::validate_value( $value ) );
+
+	# sf2 - safer than using $self->property( 'multiple' );
+	my $is_array = ref( $value ) eq 'ARRAY';
+
+	my @valid_values;
+	foreach my $single_value ( $is_array ?
+		@$value :
+		$value
+	)
+	{
+		return 0 if( !$self->validate_type( $single_value ) );
+		if( $single_value !~ /^[-+]?\d+$/ )
+		{
+			$self->repository->debug_log( "field", "Non-integer value passed to field: ".$self->dataset->id."/".$self->name );
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+sub validate_type
+{
+	my( $self, $value ) = @_;
+
+	return 1 if( !defined $value || ref( $value ) eq '' );
+
+	$self->repository->log( "Non-scalar value passed to field: ".$self->dataset->id."/".$self->name );
+
+	return 0;
+}
 
 sub get_sql_type
 {
@@ -49,13 +93,6 @@ sub get_sql_type
 	);
 }
 
-sub get_max_input_size
-{
-	my( $self ) = @_;
-
-	return $self->get_property( "digits" );
-}
-
 sub ordervalue_basic
 {
 	my( $self , $value ) = @_;
@@ -68,70 +105,6 @@ sub ordervalue_basic
 	# just in case we still use eprints in year 200k 
 	my $pad = $self->get_property( "digits" );
 	return sprintf( "%0".$pad."d",$value );
-}
-
-sub render_search_input
-{
-	my( $self, $session, $searchfield ) = @_;
-	
-	return $session->render_input_field(
-				class => "ep_form_text",
-				name=>$searchfield->get_form_prefix,
-				value=>$searchfield->get_value,
-				size=>9,
-				maxlength=>100 );
-}
-
-sub from_search_form
-{
-	my( $self, $session, $prefix ) = @_;
-
-	my $value = $session->param( $prefix );
-	return $value unless EPrints::Utils::is_set( $value );
-
-	my $regexp = $self->property( "regexp" );
-	my $range = qr/-|(?:\.\.)/;
-
-	if( $value !~ /^(?:$regexp$range?)|(?:$regexp?$range$regexp)$/ )
-	{
-		return( undef,undef,undef, $session->html_phrase( "lib/searchfield:int_err" ) );
-	}
-
-	return( $value );
-}
-
-sub render_search_value
-{
-	my( $self, $session, $value ) = @_;
-
-	my $type = $self->get_type;
-
-	my $regexp = $self->property( "regexp" );
-	my $range = qr/-|(?:\.\.)/;
-
-	if( $value =~ m/^($regexp)$range($regexp)$/ )
-	{
-		return $session->html_phrase(
-			"lib/searchfield:desc:".$type."_between",
-			from => $session->make_text( $1 ),
-			to => $session->make_text( $2 ) );
-	}
-
-	if( $value =~ m/^$range($regexp)$/ )
-	{
-		return $session->html_phrase(
-			"lib/searchfield:desc:".$type."_orless",
-			to => $session->make_text( $1 ) );
-	}
-
-	if( $value =~ m/^($regexp)$range$/ )
-	{
-		return $session->html_phrase(
-			"lib/searchfield:desc:".$type."_ormore",
-			from => $session->make_text( $1 ) );
-	}
-
-	return $session->make_text( $value );
 }
 
 sub get_search_conditions_not_ex
@@ -199,19 +172,16 @@ sub get_property_defaults
 	$defaults{digits} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{text_index} = 0;
 	$defaults{regexp} = qr/-?[0-9]+/;
+
+#sf2
+	$defaults{validators} = [ EP_METAFIELD_VALIDATOR_INTEGER ];
+
 	return %defaults;
 }
 
 sub get_xml_schema_type
 {
 	return "xs:integer";
-}
-
-sub render_xml_schema_type
-{
-	my( $self, $session ) = @_;
-
-	return $session->make_doc_fragment;
 }
 
 # integer fields must be NULL or a number, can't be ''
@@ -229,17 +199,6 @@ sub sql_row_from_value
 	my( $self, $session, $value ) = @_;
 
 	return( $value );
-}
-
-sub form_value_basic
-{
-	my( $self, $session, $basename, $object ) = @_;
-
-	my $value = $self->SUPER::form_value_basic( $session, $basename, $object );
-
-	return defined $value && $value =~ $self->property( "regexp" ) ?
-			$value :
-			undef;
 }
 
 ######################################################################

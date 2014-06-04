@@ -49,69 +49,10 @@ sub get_sql_type
 	);
 }
 
-sub render_single_value
-{
-	my( $self, $session, $value ) = @_;
-	
-#	my @paras = split( /\r\n\r\n|\r\r|\n\n/ , $value );
-#
-#	my $frag = $session->make_doc_fragment();
-#	foreach( @paras )
-#	{
-#		my $p = $session->make_element( "p" );
-#		$p->appendChild( $session->make_text( $_ ) );
-#		$frag->appendChild( $p );
-#	}
-#	return $frag;
-
-	return $session->make_text( $value );
-}
-
-sub get_basic_input_elements
-{
-	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
-
-	my @classes = defined $self->{dataset} ?
-		join('_', 'ep', $self->dataset->base_id, $self->name) :
-		();
-	my $textarea = $session->make_element(
-		"textarea",
-		name => $basename,
-		id => $basename,
-		class => join(' ', @classes),
-		rows => $self->{input_rows},
-		cols => $self->{input_cols},
-		wrap => "virtual" );
-	$textarea->appendChild( $session->make_text( $value ) );
-
-	return [ [ { el=>$textarea } ] ];
-}
-
-
-sub form_value_basic
-{
-	my( $self, $session, $basename ) = @_;
-
-	# this version is just like that for Basic except it
-	# does not remove line breaks.
-	
-	my $value = $session->param( $basename );
-
-	return undef if( !defined($value) or $value eq "" );
-
-	return $value;
-}
-
-sub is_browsable
-{
-	return( 1 );
-}
-
 sub get_property_defaults
 {
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
-	$defaults{input_rows} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{maxlength} = 65535;
 	$defaults{sql_index} = 0;
 	return %defaults;
@@ -120,13 +61,6 @@ sub get_property_defaults
 sub get_xml_schema_type
 {
 	return "xs:string";
-}
-
-sub render_xml_schema_type
-{
-	my( $self, $session ) = @_;
-
-	return $session->make_doc_fragment;
 }
 
 

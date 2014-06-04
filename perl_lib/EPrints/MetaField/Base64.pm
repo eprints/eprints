@@ -26,29 +26,6 @@ use MIME::Base64;
 use strict;
 use base "EPrints::MetaField::Longtext";
 
-sub form_value 
-{
-  my ($self, $session, $object, $prefix) = @_;
-
-  my $basename = $self->basename($prefix);
-
-  my $value = $self->form_value_actual($session, $object, $basename);
-
-  if(ref $value eq "ARRAY") 
-  {
-    foreach my $v (@{$value}) 
-    {
-      $v = MIME::Base64::encode_base64($v);
-    }
-  } 
-  else 
-  {
-    $value = MIME::Base64::encode_base64($value);
-  }
-
-  return $value;
-}
-
 sub to_sax
 {
 	my( $self, $value, %opts ) = @_;

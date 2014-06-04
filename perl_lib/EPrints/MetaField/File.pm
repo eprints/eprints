@@ -1,4 +1,4 @@
-######################################################################
+#####################################################################
 #
 # EPrints::MetaField::File;
 #
@@ -11,14 +11,15 @@
 
 =head1 NAME
 
-B<EPrints::MetaField::File> - File in the file system.
+B<EPrints::MetaField::Subobject> - Sub Object an object.
 
 =head1 DESCRIPTION
 
-This is an abstract field which represents a directory in the 
-filesystem. It is mostly used by the import and export systems.
+This is an abstract field which represents an item, or list of items,
+in another dataset, but which are a sub part of the object to which
+this field belongs, and have no indepentent status.
 
-For example: Documents have files.
+For example: Documents are part of EPrints.
 
 =over 4
 
@@ -28,93 +29,176 @@ package EPrints::MetaField::File;
 
 use strict;
 use warnings;
+use EPrints::MetaField::Subobject;
 
 BEGIN
 {
 	our( @ISA );
 
-	@ISA = qw( EPrints::MetaField );
+	@ISA = qw( EPrints::MetaField::Subobject );
 }
 
-use EPrints::MetaField;
-
-sub get_sql_type
-{
-	my( $self, $session ) = @_;
-
-	return undef;
-}
-
-# This type of field is virtual.
-sub is_virtual
-{
-	my( $self ) = @_;
-
-	return 1;
-}
+######################################################################
 
 sub get_property_defaults
 {
 	my( $self ) = @_;
 
 	my %defaults = $self->SUPER::get_property_defaults;
+	$defaults{datasetid} = "file";	
+	$defaults{dataset_fieldname} = "datasetid";
+	$defaults{dataobj_fieldname} = "objectid";
 	$defaults{show_in_fieldlist} = 0;
-	#$defaults{datasetid} = $EPrints::MetaField::REQUIRED; 
+	$defaults{match} = "IN";
+	$defaults{thumbnails} = [];
 
 	return %defaults;
 }
 
-sub render_xml_schema
+=item $field->set_value( $dataobj, $value )
+
+B<Cache> the $value in the data object. To actually update the value in the database you must commit the $value objects.
+
+=cut
+
+# sf2 - this is tricky for file-objects as it needs to handle the "multiple" property... 
+#
+# if single, a set_value if empty creates a new file dataobj
+# if single, a set_value if !empty updates that file dataobj
+# if single, a set_value( undef ) must delete the related file dataobj
+#
+# if multiple, a set_value might add new file dataobj or update existing ones (or delete ones :-))
+# 
+# but for a field like a "file", what should be the $value?! get_value returns the file dataobjs
+#
+# "file" field is a good example to see how we can generalise/abstract the MetaField methods - cos it should work like any other fields - we 
+# cannot hard-code stuff in DataObj etc to make MetaField/File work differently than other MetaField/*
+
+
+sub set_value
 {
-	my( $self, $session ) = @_;
+	my( $self, $dataobj, $value ) = @_;
 
-	my $element = $session->make_element( "xs:element", name => $self->get_name );
+	if( !defined $value )
+	{
+		# should delete any related file-dataobj's whether single of multiple
+	}
 
+
+	# don't populate changed nor perform an _equal for object caching
+	$dataobj->{data}->{$self->get_name} = $value;
+}
+
+sub value
+{
+	my( $self, $parent, $pos ) = @_;
+	
+	# parent doesn't have an id defined
+	return $self->property( "multiple" ) ? [] : undef
+		if( !defined $parent || !EPrints::Utils::is_set( $parent->id ) );
+
+	my $ds = $self->repository->dataset( $self->property( "datasetid" ) );
+	my $searchexp = $ds->prepare_search();
+	
+	$searchexp->add_field(
+		$ds->field( "datasetid" ),
+		$parent->dataset->base_id
+	);
+
+	$searchexp->add_field(
+		$ds->field( "objectid" ),
+		$parent->id
+	);
+
+	$searchexp->add_field(
+		$ds->field( "fieldname" ),
+		$self->name
+	);
+
+	my $results = $searchexp->perform_search;
+
+#TODO not working: (the slice with @args)	
+	my @args = defined $pos ? ( $pos, 1 ) : ();
+	my @records = $results->slice( @args );
+
+	if( scalar @records && $records[0]->isa( "EPrints::DataObj::SubObject" ) )
+	{
+		foreach my $record (@records)
+		{
+			$record->set_parent( $parent );
+		}
+	}
+	
 	if( $self->get_property( "multiple" ) )
 	{
-		my $complexType = $session->make_element( "xs:complexType" );
-		$element->appendChild( $complexType );
-		my $sequence = $session->make_element( "xs:sequence" );
-		$complexType->appendChild( $sequence );
-		my $item = $session->make_element( "xs:element", name => "file", maxOccurs => "unbounded", type => $self->get_xml_schema_type() );
-		$sequence->appendChild( $item );
+		return \@records;
 	}
 	else
 	{
-		$element->setAttribute( type => $self->get_xml_schema_type() );
+		return $records[0];
 	}
-
-	return $element;
 }
 
-sub render_xml_schema_type
+
+# stolen from DataObj::add_stored_file..
+# a file should be stored against a field in a dataobj, not against a dataobj
+sub add_stored_file
 {
-	my( $self, $session ) = @_;
+        my( $self, $filename, $filehandle, $filesize ) = @_;
 
-	my $type = $session->make_element( "xs:complexType", name => $self->get_xml_schema_type );
+# the "multiple" / fieldpos stuff might be tricky to handle...
 
-	my $all = $session->make_element( "xs:all", minOccurs => "0" );
-	$type->appendChild( $all );
-	foreach my $part ( qw/ filename filesize url / )
-	{
-		my $element = $session->make_element( "xs:element", name => $part, type => "xs:string" );
-		$all->appendChild( $element );
-	}
-	{
-		my $element = $session->make_element( "xs:element", name => "data" );
-		$all->appendChild( $element );
-		my $complexType = $session->make_element( "xs:complexType" );
-		$element->appendChild( $complexType );
-		my $simpleContent = $session->make_element( "xs:simpleContent" );
-		$complexType->appendChild( $simpleContent );
-		my $extension = $session->make_element( "xs:extension", base => "xs:base64Binary" );
-		$simpleContent->appendChild( $extension );
-		my $attribute = $session->make_element( "xs:attribute", name => "href", type => "xs:anyURI" );
-		$extension->appendChild( $attribute );
-	}
+        my $file = $self->get_stored_file( $filename );
 
-	return $type;
+        if( defined($file) )
+        {
+                $file->remove();
+        }
+
+        $file = $self->{repository}->dataset( "file" )->create_dataobj( {
+                _parent => $self,
+                _content => $filehandle,
+                filename => $filename,
+                filesize => $filesize,
+        } );
+
+        # something went wrong
+        if( defined $file && $file->value( "filesize" ) != $filesize )
+        {
+                $self->{repository}->log( "Error while writing file '$filename': size mismatch between caller ($filesize) and what was written: ".$file->value( "filesize" ) );
+                $file->remove;
+                undef $file;
+        }
+
+        return $file;
 }
+
+
+sub get_stored_file
+{
+        my( $self, $filename ) = @_;
+
+        my $file = EPrints::DataObj::File->new_from_filename(
+                $self->{repository},
+                $self,
+                $filename
+        );
+
+        if( defined $file )
+        {
+                $file->set_parent( $self );
+        }
+
+        return $file;
+}
+
+
+
+
+
+
+
+
 
 ######################################################################
 1;

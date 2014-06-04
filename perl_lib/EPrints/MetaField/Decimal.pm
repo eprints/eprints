@@ -51,13 +51,6 @@ sub get_sql_type
 	);
 }
 
-sub get_max_input_size
-{
-	my( $self ) = @_;
-
-	return $self->property( "integer" ) + $self->property( "fractional" ) + 2; # sign + decimal point
-}
-
 sub ordervalue_basic
 {
 	my( $self , $value ) = @_;
@@ -65,18 +58,6 @@ sub ordervalue_basic
 	return "" if !EPrints::Utils::is_set( $value );
 
 	return sprintf('%'.($self->property('integer')+1).".".$self->property('fractional').'f', $value);
-}
-
-sub render_search_input
-{
-	my( $self, $session, $searchfield ) = @_;
-	
-	return $session->render_input_field(
-				class => "ep_form_text",
-				name=>$searchfield->get_form_prefix,
-				value=>$searchfield->get_value,
-				size=>9,
-				maxlength=>$self->get_max_input_size );
 }
 
 sub get_property_defaults

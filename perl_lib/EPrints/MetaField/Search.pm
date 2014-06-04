@@ -37,22 +37,9 @@ BEGIN
 
 use EPrints::MetaField::Longtext;
 
-
-sub render_single_value
-{
-	my( $self, $session, $value ) = @_;
-
-	my $searchexp = $self->make_searchexp( $session, $value );
-
-	return $session->make_text( $value ) if !defined $searchexp;
-
-	return $searchexp->render_description;
-}
-
-
 ######################################################################
 # 
-# $searchexp = $field->make_searchexp( $session, $value, [$basename] )
+# $searchexp = $field->make_searchexp( $repository, $value, [$basename] )
 #
 # This method should only be called on fields of type "search". 
 # Return a search expression from the serialised expression in value.
@@ -63,12 +50,12 @@ sub render_single_value
 
 sub make_searchexp
 {
-	my( $self, $session, $value, $basename ) = @_;
+	my( $self, $repository, $value, $basename ) = @_;
 
-	my $dataset = $session->dataset( $self->{datasetid} );
+	my $dataset = $repository->dataset( $self->{datasetid} );
 
 	my $searchexp = EPrints::Search->new(
-		session => $session,
+		repository => $repository,
 		dataset => $dataset,
 		prefix => $basename );
 
@@ -77,13 +64,13 @@ sub make_searchexp
 	{
 		my $url = URI->new( $value );
 		my %spec = $url->query_form;
-		$searchexp = $session->plugin( "Search::$spec{plugin}",
+		$searchexp = $repository->plugin( "Search::$spec{plugin}",
 			dataset => $dataset,
 			prefix => $basename,
 		);
 		if( !defined $searchexp )
 		{
-			$session->log( "Unknown search plugin in: $value" );
+			$repository->log( "Unknown search plugin in: $value" );
 			return;
 		}
 		$value = $spec{exp};
@@ -93,7 +80,7 @@ sub make_searchexp
 	my $conf_key = $self->get_property( "fieldnames_config" );
 	if( defined($conf_key) )
 	{
-		$fields = $session->config( $conf_key );
+		$fields = $repository->config( $conf_key );
 	}
 	else
 	{
@@ -106,7 +93,7 @@ sub make_searchexp
 	{
 		if( !$dataset->has_field( $fieldname ) )
 		{
-			$session->get_repository->log( "Field specified in search field configuration $conf_key does not exist in dataset ".$dataset->confid.": $fieldname" );
+			$repository->log( "Field specified in search field configuration $conf_key does not exist in dataset ".$dataset->confid.": $fieldname" );
 			next;
 		}
 		$searchexp->add_field(
@@ -128,58 +115,6 @@ sub make_searchexp
 
 	return $searchexp;
 }		
-
-sub get_basic_input_elements
-{
-	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
-
-	#cjg NOT CSS'd properly.
-
-	my $div = $session->make_element( 
-		"div", 
-		style => "padding: 6pt; margin-left: 24pt; " );
-
-	# cjg - make help an option?
-
-	my $searchexp = $self->make_searchexp( $session, $value, $basename."_" );
-
-	foreach my $sf ( $searchexp->get_non_filter_searchfields )
-	{
-		my $sfdiv = $session->make_element( 
-				"div" , 
-				class => "ep_search_field_name" );
-		$sfdiv->appendChild( $sf->render_name );
-		$div->appendChild( $sfdiv );
-		$div->appendChild( $sf->render() );
-	}
-
-	return [ [ { el=>$div } ] ];
-}
-
-
-sub form_value_basic
-{
-	my( $self, $session, $basename ) = @_;
-	
-	my $searchexp = $self->make_searchexp( $session, undef, $basename."_" );
-
-	foreach my $sf ( $searchexp->get_non_filter_searchfields )
-	{
-		$sf->from_form();
-	}
-
-	foreach my $sf ( $searchexp->get_non_filter_searchfields )
-	{
-		$sf->from_form;
-	}
-	my $value = undef;
-	unless( $searchexp->is_blank )
-	{
-		$value = $searchexp->serialise;	
-	}
-
-	return $value;
-}
 
 sub get_search_group { return 'search'; } 
 

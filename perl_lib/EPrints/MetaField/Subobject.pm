@@ -1,4 +1,4 @@
-######################################################################
+#####################################################################
 #
 # EPrints::MetaField::Subobject;
 #
@@ -129,19 +129,19 @@ sub set_value
 	$dataobj->{data}->{$self->get_name} = $value;
 }
 
-sub get_value
+sub value
 {
 	my( $self, $parent ) = @_;
 
 	# sub-object caching
-	my $value = $self->SUPER::get_value( $parent );
+	my $value = $self->SUPER::value( $parent );
 	return $value if defined $value;
 
 	# parent doesn't have an id defined
 	return $self->property( "multiple" ) ? [] : undef
 		if !EPrints::Utils::is_set( $parent->id );
 
-	my $ds = $parent->get_session->dataset( $self->get_property( "datasetid" ) );
+	my $ds = $parent->repository->dataset( $self->get_property( "datasetid" ) );
 
 	my $searchexp = $ds->prepare_search();
 
@@ -203,13 +203,6 @@ sub get_value
 	{
 		return $records[0];
 	}
-}
-
-sub render_single_value
-{
-	my( $self, $session, $value ) = @_;
-
-	return $value->render_citation_link( "default" );
 }
 
 sub get_search_conditions

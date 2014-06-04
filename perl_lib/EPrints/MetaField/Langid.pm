@@ -50,30 +50,10 @@ sub get_sql_type
 	);
 }
 
-
-sub render_option
-{
-	my( $self, $session, $option ) = @_;
-
-	$option = "" if !defined $option;
-
-	my $phrasename = "languages_typename_".$option;
-
-	# if the option is empty, and no explicit phrase is defined, print 
-	# UNDEFINED rather than an error phrase.
-	if( $option eq "" && !$session->get_lang->has_phrase( $phrasename, $session ) )
-	{
-		$phrasename = "lib/metafield:unspecified";
-	}
-
-	return $session->html_phrase( $phrasename );
-}
-
 sub get_property_defaults
 {
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
-	$defaults{input_style} = "short";
 	return %defaults;
 }
 

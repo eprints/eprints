@@ -121,67 +121,6 @@ sub get_sql_index
 	return ($self->get_sql_names);
 }
 	
-sub render_single_value
-{
-	my( $self, $session, $value ) = @_;
-
-	no warnings; # suppress undef warnings
-	return $session->make_text(join ', ', @{$value}{
-		keys %{$self->{fields_index}}
-	});
-}
-
-sub get_basic_input_elements
-{
-	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
-
-	return $self->EPrints::MetaField::Compound::get_basic_input_elements(
-		$session, $value, $basename, $staff, $obj
-	);
-}
-
-sub get_basic_input_ids
-{
-	my( $self, $session, $basename, $staff, $obj ) = @_;
-
-	my @ids;
-
-	foreach my $field (@{$self->{fields_cache}})
-	{
-		push @ids, join('_', $basename, $field->property( "sub_name" ));
-	}
-
-	return @ids;
-}
-
-sub get_input_col_titles
-{
-	my( $self, $session, $staff ) = @_;
-
-	my @r;
-
-	foreach my $field (@{$self->{fields_cache}})
-	{
-		push @r, $field->get_input_col_titles( $session, $staff );
-	}
-
-	return \@r;
-}
-
-sub form_value_basic
-{
-	my( $self, $session, $basename ) = @_;
-	
-	return $self->EPrints::MetaField::Compound::form_value_basic( $session, $basename );
-}
-
-sub get_value_label
-{
-	my( $self, $session, $value ) = @_;
-
-	return $self->render_single_value( $session, $value );
-}
-
 sub ordervalue_basic
 {
 	my( $self , $value ) = @_;
@@ -205,16 +144,6 @@ sub split_search_value
 	my( $self, $session, $value ) = @_;
 
 	return $value;
-}
-
-sub render_search_value
-{
-	my( $self, $session, $value ) = @_;
-
-	my @bits = $self->split_search_value( $session, $value );
-
-	no warnings; # suppress undef warnings
-	return $session->make_text( '"'.join( '", "', @bits).'"' );
 }
 
 sub get_search_conditions

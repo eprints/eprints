@@ -35,32 +35,6 @@ BEGIN
 
 use EPrints::MetaField::Int;
 
-sub render_search_input
-{
-	my( $self, $session, $searchfield ) = @_;
-	
-	return $session->render_input_field(
-				class => "ep_form_text",
-				name=>$searchfield->get_form_prefix,
-				value=>$searchfield->get_value,
-				size=>9,
-				maxlength=>9 );
-}
-
-sub from_search_form
-{
-	my( $self, $session, $prefix ) = @_;
-
-	my $val = $session->param( $prefix );
-	return unless defined $val;
-
-	if( $val =~ m/^(\d\d\d\d)?\-?(\d\d\d\d)?/ )
-	{
-		return( $val );
-	}
-			
-	return( undef,undef,undef, $session->html_phrase( "lib/searchfield:year_err" ) );
-}
 
 sub get_property_defaults
 {

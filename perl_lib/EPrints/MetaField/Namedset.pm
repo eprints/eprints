@@ -61,23 +61,6 @@ sub get_unsorted_values
 	return @types;
 }
 
-sub render_option
-{
-	my( $self, $session, $value ) = @_;
-
-	if( !defined $value )
-	{
-		return $self->SUPER::render_option( $session, $value );
-	}
-
-        if( defined $self->get_property("render_option") )
-        {
-                return $self->call_property( "render_option", $session, $value );
-        }
-
-	return $session->render_type_name( $self->{set_name}, $value );
-}
-
 sub get_property_defaults
 {
 	my( $self ) = @_;

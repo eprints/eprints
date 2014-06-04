@@ -29,6 +29,35 @@ use EPrints::MetaField::Id;
 
 use strict;
 
+sub validate_value
+{
+        my( $self, $value ) = @_;
+
+	return 1 if( !defined $value );
+
+	return 0 if( !$self->SUPER::validate_value( $value ) );
+
+        # sf2 - safer than using $self->property( 'multiple' );
+        my $is_array = ref( $value ) eq 'ARRAY';
+
+        my @valid_values;
+        foreach my $single_value ( $is_array ?
+                @$value :
+                $value
+        )
+        {
+                # trivial check - it could be much much more complex
+                if( $single_value !~ /^https?:\/\/.+/ )
+                {
+                	$self->repository->debug_log( "field", "Invalid URL '$single_value' passed to field ".$self->dataset->id."/".$self->name );
+			return 0;
+                }
+        }
+
+	return 1;
+}
+
+
 sub get_sql_type
 {
 	my( $self, $session ) = @_;
@@ -45,19 +74,6 @@ sub get_property_defaults
 		sql_index => 0,
 		match => "IN"
 	);
-}
-
-sub render_single_value
-{
-	my( $self, $session, $value ) = @_;
-
-	my $text = $session->make_text( $value );
-
-	return $text if( $self->{render_dont_link} );
-
-	my $link = $session->render_link( $value );
-	$link->appendChild( $text );
-	return $link;
 }
 
 sub get_xml_schema_type

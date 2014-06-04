@@ -40,6 +40,9 @@ sub new
 	my %seen;
 	foreach my $inner_field ( @{$properties{fields}}, $self->extra_subfields )
 	{
+#sf2 - use 'name' for sub-fields as you'd do for normal fields
+		$inner_field->{sub_name} ||= delete $inner_field->{name};
+
 		if( !EPrints::Utils::is_set( $inner_field->{sub_name} ) )
 		{
 			EPrints->abort( "Sub fields of ".$self->dataset->id.".".$self->name." need the sub_name property to be set." );
@@ -49,7 +52,6 @@ sub new
 			EPrints->abort( $self->dataset->id.".".$self->name." already contains a sub-field called '$inner_field->{sub_name}'" );
 		}
 		my $field = EPrints::MetaField->new( 
-			show_in_html => 0, # don't show the inner field separately
 		# these properties can be overriden
 			export_as_xml => $properties{ "export_as_xml" },
 			import => $properties{ "import" },
@@ -87,80 +89,6 @@ sub extra_subfields
 	my( $self ) = @_;
 
 	return ();
-}
-
-sub render_value
-{
-	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
-
-	if( defined $self->{render_value} )
-	{
-		return $self->call_property( "render_value",
-			$session, 
-			$self, 
-			$value, 
-			$alllangs, 
-			$nolink,
-			$object );
-	}
-
-	my $table = $session->make_element( "table", border=>1, cellspacing=>0, cellpadding=>2 );
-	my $tr = $session->make_element( "tr" );
-	$table->appendChild( $tr );
-	my $f = $self->get_property( "fields_cache" );
-	foreach my $field_conf ( @{$f} )
-	{
-		my $fieldname = $field_conf->{name};
-		my $field = $self->{dataset}->get_field( $fieldname );
-		my $th = $session->make_element( "th" );
-		$tr->appendChild( $th );
-		$th->appendChild( $field->render_name( $session ) );
-	}
-
-	if( $self->get_property( "multiple" ) )
-	{
-		foreach my $row ( @{$value} )
-		{
-			$table->appendChild( $self->render_single_value_row( $session, $row, $alllangs, $nolink, $object ) );
-		}
-	}
-	else
-	{
-		$table->appendChild( $self->render_single_value_row( $session, $value, $alllangs, $nolink, $object ) );
-	}
-	return $table;
-}
-
-sub render_single_value_row
-{
-	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
-
-	my $tr = $session->make_element( "tr" );
-
-	foreach my $field (@{$self->{fields_cache}})
-	{
-		my $alias = $field->property( "sub_name" );
-		my $td = $session->make_element( "td" );
-		$tr->appendChild( $td );
-		$td->appendChild( 
-			$field->render_value_no_multiple( 
-				$session, 
-				$value->{$alias}, 
-				$alllangs,
-				$nolink,
-				$object ) );
-	}
-
-	return $tr;
-}
-
-sub render_single_value
-{
-	my( $self, $session, $value, $object ) = @_;
-
-	my $table = $session->make_element( "table", border=>1 );
-	$table->appendChild( $self->render_single_value_row( $session, $value, $object ) );
-	return $table;
 }
 
 sub to_sax_basic
@@ -300,15 +228,66 @@ sub is_virtual
 {
 	my( $self ) = @_;
 
-	return 1;
+# TODO/sf2 - calling for danger :-)
+# this allows Compound to be stored in a single table: [ counterid | pos | @sub_fields ] 
+	return 0;
+#	return 1;
 }
+
+# sf2 - from Metafield/Multipart
+sub get_sql_names
+{
+        my( $self ) = @_;
+
+        return map { $_->get_sql_names } @{$self->{fields_cache}};
+}
+
 
 sub get_sql_type
 {
 	my( $self, $session ) = @_;
 
-	return undef;
+# sf2 - from MetaField/Multipart
+	return map { $_->get_sql_type( $session ) } @{$self->{fields_cache}};
+#	return undef;
 }
+
+sub sql_row_from_value
+{
+        my( $self, $session, $value ) = @_;
+
+        my @row;
+
+        for(@{$self->{fields_cache}})
+        {
+                push @row,
+                        $_->sql_row_from_value( $session, $value->{$_->property( "sub_name" )} );
+        }
+
+        return @row;
+}
+
+sub value_from_sql_row
+{
+        my( $self, $session, $row ) = @_;
+
+        my %value;
+
+        for(@{$self->{fields_cache}})
+        {
+                $value{$_->property( "sub_name" )} =
+                        $_->value_from_sql_row( $session, $row );
+        }
+
+        return \%value;
+}
+
+
+#end from Multipart
+
+
+
+
 
 # UNUSED
 sub get_alias_to_fieldname
@@ -336,10 +315,10 @@ sub get_fieldname_to_alias
 
 # Get the value of this field from the object. In this case this
 # is quite complicated.
-sub get_value
+sub get_value_BLA
 {
 	my( $self, $object ) = @_;
-
+print STDERR "in Compound::GET_VALUE\n";
 	my $value;
 
 	if( $self->property( "multiple" ) )
@@ -349,6 +328,7 @@ sub get_value
 		{
 			my $alias = $field->property( "sub_name" );
 			my $v = $field->get_value( $object );
+print STDERR $field->name." >> $v\n";
 			foreach my $i (0..$#$v)
 			{
 				$value->[$i]->{$alias} = $v->[$i];
@@ -368,8 +348,55 @@ sub get_value
 	return $value;
 }
 
+# TODO/sf2 - should this be validate_values ?
+sub validate_value
+{
+	my( $self, $value ) = @_;
 
-sub set_value
+	return 1 if( !defined $value );
+	return 0 if( !$self->SUPER::validate_value( $value ) );
+
+	my $is_array = ref( $value ) eq 'ARRAY';
+
+	foreach my $single_value ( $is_array ?
+        	        @$value :
+                	$value
+        )
+        {
+		if( !$self->validate_type( $single_value ) )
+		{
+			return 0;
+		}
+
+		foreach my $sub_field ( @{$self->sub_fields} )
+		{
+			# sub-field validation
+			return 0 if( !$sub_field->validate_value( $single_value->{$sub_field->property( 'sub_name' )} ) );
+		}
+	}
+
+	return 1;
+}
+
+sub sub_fields
+{
+	$_[0]->{fields_cache};
+}
+
+sub validate_type
+{
+	my( $self, $value ) = @_;
+
+	return 1 if( !defined $value || ref( $value ) eq 'HASH' );
+
+	$self->repository->log( "Non-hash value '$value' passed to field ".$self->dataset->id."/".$self->name );
+EPrints->trace;
+	return 0;
+}
+
+
+
+sub set_value_SF2
 {
 	my( $self, $object, $value ) = @_;
 
@@ -393,89 +420,6 @@ sub set_value
 	}
 }
 
-sub get_input_col_titles
-{
-	my( $self, $session, $staff ) = @_;
-
-	my @r  = ();
-	my $f = $self->get_property( "fields_cache" );
-	foreach my $field ( @{$f} )
-	{
-		my $fieldname = $field->get_name;
-		my $sub_r = $field->get_input_col_titles( $session, $staff );
-
-		if( !defined $sub_r )
-		{
-			$sub_r = [ $field->render_name( $session ) ];
-		}
-
-		push @r, @{$sub_r};
-	}
-	
-	return \@r;
-}
-
-# assumes all basic input elements are 1 high, x wide.
-sub get_basic_input_elements
-{
-	my( $self, $session, $value, $basename, $staff, $object ) = @_;
-
-	my $grid_row = [];
-
-	foreach my $field (@{$self->{fields_cache}})
-	{
-		my $alias = $field->property( "sub_name" );
-		my $part_grid = $field->get_basic_input_elements( 
-					$session, 
-					$value->{$alias}, 
-					$basename."_".$alias, 
-					$staff, 
-					$object );
-		my $top_row = $part_grid->[0];
-		push @{$grid_row}, @{$top_row};
-	}
-
-	return [ $grid_row ];
-}
-
-sub get_basic_input_ids
-{
-	my( $self, $session, $basename, $staff, $obj ) = @_;
-
-	my @ids = ();
-
-	foreach my $field (@{$self->{fields_cache}})
-	{
-		my $alias = $field->property( "sub_name" );
-		push @ids, $field->get_basic_input_ids( 
-					$session, 
-					$basename."_".$alias, 
-					$staff, 
-					$obj );
-	}
-
-	return( @ids );
-}
-
-
-sub form_value_basic
-{
-	my( $self, $session, $basename, $object ) = @_;
-	
-	my $value = {};
-
-	foreach my $field (@{$self->{fields_cache}})
-	{
-		my $alias = $field->property( "sub_name" );
-		my $v = $field->form_value_basic( $session, $basename."_".$alias, $object );
-		$value->{$alias} = $v;
-	}
-
-	return undef if( !EPrints::Utils::is_set( $value ) );
-
-	return $value;
-}
-
 sub validate
 {
 	my( $self, $session, $value, $object ) = @_;
@@ -488,12 +432,6 @@ sub validate
 	}
 	return @problems;
 }
-
-sub is_browsable
-{
-	return( 0 );
-}
-
 
 # don't index
 sub get_index_codes
@@ -520,24 +458,6 @@ sub get_xml_schema_type
 	my( $self ) = @_;
 
 	return $self->get_xml_schema_field_type;
-}
-
-sub render_xml_schema_type
-{
-	my( $self, $session ) = @_;
-
-	my $type = $session->make_element( "xs:complexType", name => $self->get_xml_schema_type );
-
-	my $all = $session->make_element( "xs:all" );
-	$type->appendChild( $all );
-	foreach my $field (@{$self->{fields_cache}})
-	{
-		my $name = $field->{sub_name};
-		my $element = $session->make_element( "xs:element", name => $name, type => $field->get_xml_schema_type(), minOccurs => 0 );
-		$all->appendChild( $element );
-	}
-
-	return $type;
 }
 
 sub get_search_conditions
