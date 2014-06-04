@@ -547,7 +547,7 @@ sub page
 
 	# if mainonly=yes is in effect return the page content
 	if(
-		$repo->get_online &&
+		$repo->is_online &&
 		$repo->param( "mainonly" ) &&
 		$repo->param( "mainonly" ) eq "yes"
 	  )
@@ -577,14 +577,6 @@ sub page
 			pins => $map,
 		);
 
-	# we've been called by an older script
-	if( !defined $map->{login_status} )
-	{
-		$map->{login_status} = EPrints::ScreenProcessor->new(
-			session => $repo,
-		)->render_toolbar;
-	}
-
 	my $pagehooks = $repo->config( "pagehooks" );
 	$pagehooks = {} if !defined $pagehooks;
 	my $ph = $pagehooks->{$options{page_id}} if defined $options{page_id};
@@ -610,14 +602,7 @@ sub page
 		$map->{$_} = $pt;
 	}
 
-	if( !defined $options{template} )
-	{
-		$options{template} = "default";
-	}
-
-	my @output = @{ $repo->get_template_parts( 
-				$repo->get_langid, 
-				$options{template} ) };
+	my @output = @{ $repo->template( $repo->get_langid, $options{template} )->to_text };
 
 	my $i = 0;
 	foreach my $bit (@output)
@@ -711,7 +696,7 @@ sub tabs
 
 	my $repo = $self->{repository};
 	my $xml = $repo->xml;
-	my $online = $repo->get_online;
+	my $online = $repo->is_online;
 
 	my $frag = $xml->create_document_fragment;
 
