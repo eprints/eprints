@@ -63,10 +63,6 @@ Name of check sum algorithm used (e.g. "MD5").
 
 Size of the file in bytes.
 
-=item mtime
-
-Last modification time of the file.
-
 =item url
 
 Virtual field for storing the file's URL.
@@ -101,7 +97,7 @@ use strict;
 
 ######################################################################
 
-=item $dataobj = EPrints::DataObj::File->new_from_filename( $session, $dataobj, $filename )
+=item $dataobj = EPrints::DataObj::File->new_from_filename( $repository, $dataobj, $filename )
 
 Convenience method to get an existing File object for $filename stored in $dataobj.
 
@@ -139,7 +135,7 @@ sub new_from_filename
 	return $results->item( 0 );
 }
 
-=item $dataobj = EPrints::DataObj::File->create_from_data( $session, $data [, $dataset ] )
+=item $dataobj = EPrints::DataObj::File->create_from_data( $repository, $data [, $dataset ] )
 
 Create a new File record using $data.
 
@@ -152,7 +148,7 @@ Private data elements:
 
 sub create_from_data
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $repository, $data, $dataset ) = @_;
 
 	my $content = delete $data->{_content} || delete $data->{_filehandle};
 	my $filepath = delete $data->{_filepath};
@@ -163,7 +159,7 @@ sub create_from_data
 
 	if( !EPrints::Utils::is_set( $data->{mime_type} ) )
 	{
-		$session->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+		$repository->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
 			filepath => $filepath,
 			filename => $data->{filename},
 			epdata => my $media_info = {}
@@ -179,15 +175,15 @@ sub create_from_data
 	{
 		EPrints->abort( "Must defined filesize when using _content" ) if !defined $filesize;
 
-		$self = $class->SUPER::create_from_data( $session, $data, $dataset );
+		$self = $class->SUPER::create_from_data( $repository, $data, $dataset );
 		return if !defined $self;
-
+		
 		$ok = defined $self->set_file( $content, $filesize );
 	}
 	# read from XML (Base64 encoded)
 	elsif( EPrints::Utils::is_set( $data->{data} ) )
 	{
-		$self = $class->SUPER::create_from_data( $session, $data, $dataset );
+		$self = $class->SUPER::create_from_data( $repository, $data, $dataset );
 		return if !defined $self;
 
 		use bytes;
@@ -197,12 +193,12 @@ sub create_from_data
 	# read from a URL
 	elsif( EPrints::Utils::is_set( $data->{url} ) )
 	{
-		$self = $class->SUPER::create_from_data( $session, $data, $dataset );
+		$self = $class->SUPER::create_from_data( $repository, $data, $dataset );
 		return if !defined $self;
 
 		my $tmpfile = File::Temp->new;
 
-		my $r = EPrints::Utils::wget( $session, $data->{url}, $tmpfile );
+		my $r = EPrints::Utils::wget( $repository, $data->{url}, $tmpfile );
 		if( $r->is_success )
 		{
 			seek( $tmpfile, 0, 0 );
@@ -210,14 +206,14 @@ sub create_from_data
 		}
 		else
 		{
-			$session->get_repository->log( "Failed to retrieve $data->{url}: " . $r->code . " " . $r->message );
+			$repository->log( "Failed to retrieve $data->{url}: " . $r->code . " " . $r->message );
 			$ok = 0;
 		}
 	}
 	else
 	{
 		$data->{filesize} = $filesize; # callers responsibility
-		$self = $class->SUPER::create_from_data( $session, $data, $dataset );
+		$self = $class->SUPER::create_from_data( $repository, $data, $dataset );
 		return if !defined $self;
 	}
 
@@ -256,38 +252,41 @@ sub get_system_field_info
 		{ name=>"fileid", type=>"counter", required=>1, import=>0, show_in_html=>0,
 			can_clone=>0, sql_counter=>"fileid" },
 
-		{ name=>"datasetid", type=>"id", text_index=>0, import=>0,
+		{ name=>"datasetid", type=>"id", text_index=>0, import=>0, export => 0,
 			can_clone=>0 }, 
 
-		{ name=>"objectid", type=>"int", import=>0, can_clone=>0 }, 
+		{ name=>"objectid", type=>"int", import=>0, export => 0,can_clone=>0 }, 
+		
+		{ name=>"fieldname", type=>"id", import=>0, export => 0,can_clone=>0 }, 
+		
+		{ name=>"fieldpos", type=>"int", import=>0, export => 0,can_clone=>0 }, 
 
 		{ name=>"filename", type=>"id", },
 
 		{ name=>"mime_type", type=>"id", sql_index=>0, },
 
-		{ name=>"hash", type=>"id", maxlength=>64, },
+		{ name=>"hash", type=>"id", maxlength=>64, export => 1,},
 
-		{ name=>"hash_type", type=>"id", maxlength=>32, },
+		{ name=>"hash_type", type=>"id", maxlength=>32, export => 1,},
 
-		{ name=>"filesize", type=>"bigint", sql_index=>0,
-			render_value => \&render_filesize },
-
-		{ name=>"mtime", type=>"timestamp", },
+		{ name=>"filesize", type=>"bigint", sql_index=>0, },
 
 		{ name=>"url", type=>"url", virtual=>1 },
 
 		{ name=>"data", type=>"base64", virtual=>1 },
 
 		{
-			name=>"copies", type=>"compound", multiple=>1, export_as_xml=>0,
+			name=>"copies", type=>"compound", multiple=>1, export=>0,
 			fields=>[{
-				sub_name=>"pluginid",
+				name=>"pluginid",
 				type=>"id",
 			},{
-				sub_name=>"sourceid",
+				name=>"sourceid",
 				type=>"id",
 			}],
 		},
+
+		{ name => "thumbnails", type => "file", datasetid => "thumbnail", multiple => 1 },
 	);
 }
 
@@ -331,10 +330,10 @@ sub clone
 	$data->{objectid} = $parent->get_id;
 	$data->{_parent} = $parent;
 
-	my $new_file = $self->{dataset}->create_object( $self->{session}, $data );
+	my $new_file = $self->{dataset}->create_object( $self->{repository}, $data );
 	return undef if !defined $new_file;
 
-	my $storage = $self->{session}->get_storage;
+	my $storage = $self->{repository}->get_storage;
 
 	my $rc = 1;
 
@@ -363,7 +362,7 @@ sub remove
 
 	$self->SUPER::remove();
 
-	$self->get_session->get_storage->delete( $self );
+	$self->repository->get_storage->delete( $self );
 }
 
 =item $file->update( $epdata )
@@ -377,8 +376,13 @@ sub update
 	my $content = delete $epdata->{_content};
 	my $filesize = delete $epdata->{filesize};
 
+	if( defined $content )
+	{
+		$self->remove_thumbnails;
+	}
+	
 	$self->SUPER::update( $epdata );
-
+	
 	$self->set_file(
 			$content,
 			$filesize
@@ -397,14 +401,14 @@ sub get_local_copy
 {
 	my( $self ) = @_;
 
-	return $self->get_session->get_storage->get_local_copy( $self );
+	return $self->repository->get_storage->get_local_copy( $self );
 }
 
 sub get_remote_copy
 {
 	my( $self ) = @_;
 
-	return $self->get_session->get_storage->get_remote_copy( $self );
+	return $self->repository->get_storage->get_remote_copy( $self );
 }
 
 =item $success = $file->add_file( $filepath, $filename [, $preserve_path ] )
@@ -675,7 +679,7 @@ sub add_plugin_copy
 	my $copies = EPrints::Utils::clone( $self->get_value( "copies" ) );
 	push @$copies, {
 		pluginid => $plugin->get_id,
-		sourceid => $sourceid,
+		sourceid => "$sourceid",
 	};
 	$self->set_value( "copies", $copies );
 }
@@ -720,7 +724,7 @@ sub get_file
 	$offset = 0 if !defined $offset;
 	$n = $self->value( "filesize" ) if !defined $n;
 
-	return $self->{session}->get_storage->retrieve( $self, $offset, $n, $f );
+	return $self->{repository}->get_storage->retrieve( $self, $offset, $n, $f );
 }
 
 =item $content_length = $stored->set_file( CONTENT, $content_length )
@@ -753,7 +757,7 @@ sub set_file
 {
 	my( $self, $content, $clen ) = @_;
 
-	$self->{session}->get_storage->delete( $self );
+	$self->repository->get_storage->delete( $self );
 
 	$self->set_value( "filesize", 0 );
 	$self->set_value( "hash", undef );
@@ -801,26 +805,34 @@ sub set_file
 
 	my $rlen = do {
 		local $self->{data}->{filesize} = $clen;
-		$self->{session}->get_storage->store( $self, $f );
+		$self->{repository}->get_storage->store( $self, $f );
 	};
 
 	# no storage plugin or plugins failed
 	if( !defined $rlen )
 	{
-		$self->{session}->log( $self->get_dataset_id."/".$self->get_id."::set_file(".$self->get_value( "filename" ).") failed: No storage plugins succeeded" );
+		$self->{repository}->log( $self->get_dataset_id."/".$self->get_id."::set_file(".$self->get_value( "filename" ).") failed: No storage plugins succeeded" );
 		return undef;
 	}
 
 	# read failed
 	if( $rlen != $clen )
 	{
-		$self->{session}->log( $self->get_dataset_id."/".$self->get_id."::set_file(".$self->get_value( "filename" ).") failed: expected $clen bytes but actually got $rlen bytes" );
+		$self->{repository}->log( $self->get_dataset_id."/".$self->get_id."::set_file(".$self->get_value( "filename" ).") failed: expected $clen bytes but actually got $rlen bytes" );
 		return undef;
 	}
 
 	$self->set_value( "filesize", $rlen );
 	$self->set_value( "hash", $md5->hexdigest );
 	$self->set_value( "hash_type", "MD5" );
+
+	# sf2 - TODO good place to set the mime?
+	$self->{repository}->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+		filepath => $self->{repository}->get_storage->get_local_copy( $self, $self->value( 'filename' ) ),
+		filename => $self->value( 'filename' ),
+		epdata => my $media_info = {}
+	);
+	$self->set_value( 'mime_type', $media_info->{mime_type} );
 
 	return $rlen;
 }
@@ -868,20 +880,20 @@ sub set_file_chunk
 
 	my $rlen = do {
 		local $self->{data}->{filesize} = $total;
-		$self->{session}->get_storage->store( $self, $f, $offset );
+		$self->{repository}->get_storage->store( $self, $f, $offset );
 	};
 
 	# no storage plugin or plugins failed
 	if( !defined $rlen )
 	{
-		$self->{session}->log( $self->get_dataset_id."/".$self->get_id."::set_file(".$self->get_value( "filename" ).") failed: No storage plugins succeeded" );
+		$self->{repository}->log( $self->get_dataset_id."/".$self->get_id."::set_file(".$self->get_value( "filename" ).") failed: No storage plugins succeeded" );
 		return undef;
 	}
 
 	# read failed
 	if( $rlen != $clen )
 	{
-		$self->{session}->log( $self->get_dataset_id."/".$self->get_id."::set_file(".$self->get_value( "filename" ).") failed: expected $clen bytes but actually got $rlen bytes" );
+		$self->{repository}->log( $self->get_dataset_id."/".$self->get_id."::set_file(".$self->get_value( "filename" ).") failed: expected $clen bytes but actually got $rlen bytes" );
 		return undef;
 	}
 
@@ -957,14 +969,6 @@ sub render_filesize
 	return $repo->make_text( EPrints::Utils::human_filesize( $value ) );
 }
 
-sub get_url
-{
-	my( $self ) = @_;
-
-	my $doc = $self->parent or return;
-	return $doc->get_url( $self->value( "filename" ) );
-}
-
 sub path
 {
 	my( $self ) = @_;
@@ -973,6 +977,101 @@ sub path
 	return undef if !defined $parent || !defined $parent->path;
 
 	return $parent->path . URI::Escape::uri_escape_utf8( $self->value( "filename" ), "^A-Za-z0-9\-\._~\/" );
+}
+
+sub thumbnail_types
+{
+	my( $self ) = @_;
+
+	# it's a propriety of the parent field!
+	my $parent_field = $self->repository->dataset( $self->value( "datasetid" ) )->field( $self->value( "fieldname" ) ) or return [];
+
+	return $parent_field->property( "thumbnails" );
+}
+
+sub thumbnail_plugin
+{
+	my( $self, $size ) = @_;
+
+	my $convert = $self->repository->plugin( "Convert" );
+	my %types = $convert->can_convert( $self );
+
+	my $def = $types{'thumbnail_'.$size};
+	return unless defined $def;
+	return $def->{ "plugin" };
+}
+
+sub remove_thumbnails
+{
+	my( $self ) = @_;
+
+	$_->remove foreach( @{ $self->value( "thumbnails" ) || [] } );
+}
+
+sub make_thumbnails
+{
+	my( $self ) = @_;
+	
+	my $src_main = $self->value( "filename" );
+	return unless defined $src_main;
+
+	my @list = @{ $self->thumbnail_types || [] };
+
+$self->repository->log( "thumbnails types required: ".join(", ",@list ) );
+	
+	SIZE: foreach my $size ( @list )
+	{
+		my $plugin = $self->thumbnail_plugin( $size ) or next;
+
+		$plugin->convert( $self->get_parent, $self, 'thumbnail_'.$size );
+	}
+
+	return;
+}
+
+sub queue_changes
+{
+	my( $self ) = @_;
+
+	my $rc = $self->SUPER::queue_changes;
+
+	if( scalar( @{ $self->thumbnail_types || [] } ) == 0 )
+	{
+		return $rc;
+	}
+
+        EPrints::DataObj::EventQueue->create_unique( $self->repository, {
+                        pluginid => "Event::FilesThumbnails",
+                        action => "make_thumbnails",
+                        params => [$self->internal_uri],
+                });
+
+	return $rc;
+}
+
+sub commit
+{
+	my( $self, $force ) = @_;
+
+	my $parent = $self->parent;
+
+	if( defined $parent )
+	{
+		if( scalar( keys %{ $self->{changed} || {} } ) )
+		{
+			# then parent has also 'changed'
+			$parent->{changed}->{$self->value('fieldname')} = 1;
+		}
+		
+		$parent->commit( $force );
+	}
+
+	# "filename" may be a file handle - so making sure it's turned
+	# into a string (could be a problem for caching)
+	my $filename = $self->value( "filename" );
+	$self->set_value( "filename", "$filename" );
+
+	$self->SUPER::commit( $force );
 }
 
 1;
