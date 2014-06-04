@@ -63,8 +63,9 @@ interface.
 #  $self->{query}
 #     A CGI.pm object also representing the request, if any.
 #
-#  $self->{offline}
-#     True if this is a command-line script.
+#  $self->{online}
+#     True if this is a Web request
+#     False if this is a command-line script.
 #
 #  $self->{page}
 #     Used to store the output XHTML page between "build_page" and
@@ -80,8 +81,6 @@ package EPrints::Repository;
 
 use EPrints;
 use EPrints::Const qw( :trigger );
-
-#use URI::Escape;
 use CGI qw(-compile);
 
 use strict;
@@ -120,6 +119,7 @@ sub new
 {
 	my $class = shift;
 
+# TODO/sf2 - _new still used?
 	if( @_ % 2 == 0 )
 	{
 		return $class->_new( @_ );
@@ -127,41 +127,41 @@ sub new
 
 	my( $repository_id, %opts ) = @_;
 
+	my $debug = delete $opts{debug};
+
 	EPrints::Utils::process_parameters( \%opts, {
 		  consume_post => 1,
-		           cgi => 0,
 		         noise => 0,
-		    db_connect => 1,
 		      check_db => 1,
 	});
 
 	my $self = bless {}, $class;
 
+# TODO/sf2 - to totally disable the debug_log method?
+# *debug_log = sub {};
+
+	$self->{debug} = $debug;
+	# ON by default:
+	$self->{debug}->{$_} ||= 1 for(qw/ controllers crud auth security database / );	
+
+	$self->{debug}->{$_} ||= 0 for(qw/ warnings db sql sql_prepare request controllers security auth memcached storage crud page /);
+
+	
 	$self->{noise} = $opts{noise};
 	$self->{noise} = 0 if ( !defined $self->{noise} );
 
 	$self->{used_phrases} = {};
 
-	$self->{offline} = 1;
-	if( $opts{cgi} )
-	{
-		EPrints->abort( __PACKAGE__."::new() called with cgi argument" );
-	}
-
+	$self->{online} = 0;
+	
 	$self->{id} = $repository_id;
 
 	$self->load_config();
 
 	if( $self->{noise} >= 2 ) { print "\nStarting EPrints Repository.\n"; }
 
-	if( $self->{offline} )
-	{
-		# Set a script to use the default language unless it 
-		# overrides it
-		$self->change_lang( 
-			$self->get_conf( "defaultlanguage" ) );
-	}
-	else
+# TODO/sf2 - how can this be TRUE if {online} is set to FALSE a few lines above?
+	if( $self->is_online )
 	{
 		# running as CGI, Lets work out what language the
 		# client wants...
@@ -169,63 +169,126 @@ sub new
 			$self,
 			$self->{request} ) );
 	}
-	
-	if( defined $opts{db_connect} && $opts{db_connect} == 0 )
-	{
-		$opts{check_db} = 0;
-	}
 	else
 	{
-		# Create a database connection
-		if( $self->{noise} >= 2 ) { print "Connecting to DB ... "; }
-		$self->{database} = EPrints::Database->new( $self );
-		if( !defined $self->{database} )
-		{
-			# Database connection failure - noooo!
-			$self->render_error( $self->html_phrase( 
-				"lib/session:fail_db_connect" ) );
-			#$self->get_repository->log( "Failed to connect to database." );
-			return undef;
-		}
+		# Set a script to use the default language unless it 
+		# overrides it
+		$self->change_lang( 
+			$self->config( "defaultlanguage" ) );
 	}
-
-	#cjg make this a method of EPrints::Database?
-	if( !defined $opts{check_db} || $opts{check_db} )
-	{
-		# Check there are some tables.
-		# Well, check for the most important table, which 
-		# if it's not there is a show stopper.
-		unless( $self->{database}->is_latest_version )
-		{ 
-			my $cur_version = $self->{database}->get_version || "unknown";
-			if( $self->{database}->has_table( "eprint" ) )
-			{	
-				EPrints::abort(
-	"Database tables are in old configuration (version $cur_version). Please run:\nepadmin upgrade ".$self->get_repository->get_id );
-			}
-			else
-			{
-				EPrints::abort(
-					"No tables in the MySQL database! ".
-					"Did you run create_tables?" );
-			}
-			$self->{database}->disconnect();
-			return undef;
-		}
-	}
+	
+	$self->{check_db} = $opts{check_db};
 
 	if( $self->{noise} >= 2 ) { print "done.\n"; }
 	
-	if( !$self->{offline} && (!defined $opts{consume_post} || $opts{consume_post}) )
+	if( $self->is_online && (!defined $opts{consume_post} || $opts{consume_post}) )
 	{
 		$self->read_params; 
 	}
 
-	$self->call( "session_init", $self, $self->{offline} );
+# sf2 - new: memcached init
+	$self->init_cache;
+
+	$self->call( "session_init", $self, !$self->is_online );
 
 	$self->{loadtime} = time();
 	
 	return( $self );
+}
+
+# sf2 - new - init Memcached if enabled and available. 
+# this allows server-wide caching of data (e.g. data-objects) 
+sub init_cache
+{
+	my( $self ) = @_;
+
+	# already initialised or not available
+	return undef if( exists $self->{memd} || $self->{memd_disabled} );
+
+	# perhaps caching is disabled - or the module isn't installed
+	if( !$self->config( 'use_memcached' ) || !EPrints::Utils::require_if_exists( 'Cache::Memcached::Fast' ) )
+	{
+		$self->{memd_disabled} = 1;
+		return undef;
+	}
+
+	# the config 'memcached' contains all the calling options of the module (max size etc)
+	$self->{memd} = $self->config( 'memcached' );
+
+	if( !defined $self->{memd} )
+	{
+		$self->log( "EPrints: failed to initialise memory caching." );
+		$self->{memd_disabled} = 1;
+		return undef;
+	}
+
+	my $n = 0;
+	my $versions = $self->{memd}->server_versions;
+		while (my ($server, $version) = each %$versions) {
+			$self->debug_log( "memcached", "cache enabled on server: %s (v%s)\n", $server, $version );
+			$n++;
+	}
+	
+	if( $n == 0 )
+	{
+		$self->debug_log( "memcached", "no server available - caching disabled" );
+		$self->{memd_disabled} = 1;
+		delete $self->{memd};
+		return undef;
+	}
+
+	delete $self->{memd_disabled};
+
+	return 1;
+}
+
+# sf2 - new - store some cached data whose key is prefixed with the repository id
+sub cache_set
+{
+	my( $self, $key, $value ) = @_;
+
+	return undef if( $self->{memd_disabled} );
+	
+	$self->debug_log( "memcached", "setting '".$self->id.":$key' by %s",join(",",caller) );
+
+	return $self->{memd}->set( $self->id.":".$key, $value );
+}
+
+# sf2 - new - retrieve some previously cached data
+sub cache_get
+{
+	my( $self, $key ) = @_;
+
+	return undef if( $self->{memd_disabled} );
+
+	$self->debug_log( "memcached", "getting '".$self->id.":$key'" );
+
+	return $self->{memd}->get( $self->id.":".$key );
+}
+
+# sf2 - new - remove some previously cached data
+sub cache_remove
+{
+	my( $self, $key ) = @_;
+
+	return undef if( $self->{memd_disabled} );
+
+	# DEBUG
+	# print STDERR 
+	$self->debug_log( "memcached", "removing '".$self->id.":$key'" );
+
+	return $self->{memd}->remove( $self->id.":".$key );
+}
+
+# sf2 - new - flush the entire cache
+# TODO ought to be called when database is created, the data schema changes etc etc
+sub cache_flush
+{
+	my( $self ) = @_;
+
+	$self->{memd}->flush_all if( defined $self->{memd} );
+
+	return;
 }
 
 sub _new
@@ -234,7 +297,9 @@ sub _new
 
 	my $self = bless {}, $class;
 
-	$self->{offline} = 1;
+	EPrints->trace( "repo::_new called" );
+
+	$self->{online} = 0;
 
 	$self->{config} = EPrints::Config::system_config();
 	$self->{config}->{field_defaults} = {}
@@ -277,11 +342,13 @@ sub init_from_thread
 	# force reload
 #	$self->{loadtime} = 0;
 
-	$self->_load_workflows();
 	$self->_load_languages();
-	$self->_load_templates();
-	$self->_load_citation_specs();
 	$self->_load_storage();
+
+	# memcached
+	$self->init_cache;
+
+	return;
 }
 
 # add the relative paths + http_* config if not set already by cfg.d
@@ -297,6 +364,7 @@ sub _add_live_http_paths
 	$config->{"rel_cgipath"} = $self->get_url(
 		path => "cgi",
 	);
+	return;
 }
 
 ######################################################################
@@ -314,7 +382,7 @@ this isn't a CGI script.
 =cut
 ######################################################################
 
-
+sub request { shift->get_request }
 sub get_request
 {
 	my( $self ) = @_;
@@ -340,7 +408,7 @@ sub query
 {
 	my( $self ) = @_;
 
-	return undef if $self->{offline};
+	return undef if !$self->is_online;
 
 	if( !defined $self->{query} )
 	{
@@ -428,12 +496,17 @@ sub terminate
 	if( $self->{noise} >= 2 ) { print "Ending EPrints Repository.\n\n"; }
 
 	# if we're online then clean-up happens later
-	return if !$self->{offline};
+	return if $self->is_online;
 
-	$self->{database}->disconnect();
+	if( $self->database )
+	{
+		$self->database->disconnect();
+	}
 
 	# give garbage collection a hand.
 	foreach( keys %{$self} ) { delete $self->{$_}; } 
+	
+	return;
 }
 
 
@@ -469,13 +542,9 @@ sub load_config
 	# abort loading the config for this repository.
 	if( $load_xml )
 	{
-		# $self->generate_dtd() || return;
-		$self->_load_workflows() || return;
 		$self->_load_namedsets() || return;
 		$self->_load_datasets() || return;
 		$self->_load_languages() || return;
-		$self->_load_templates() || return;
-		$self->_load_citation_specs() || return;
 		$self->_load_storage() || return;
 	}
 
@@ -517,136 +586,223 @@ Return an L<EPrints::XHTML> object for working with XHTML.
 
 sub xhtml($) 
 {
-	my( $self ) = @_;
+        my( $self ) = @_;
 
-	return $self->{xhtml} if defined $self->{xhtml};
+        return $self->{xhtml} if defined $self->{xhtml};
 
-	return $self->{xhtml} = EPrints::XHTML->new( $self );
+        return $self->{xhtml} = EPrints::XHTML->new( $self );
 }
+
+
 
 ######################################################################
 =pod
 
-=item $eprint = $repository->eprint( $eprint_id );
+=begin InternalDoc
 
-A convience method to return the L<EPrints::DataObj::EPrint> with 
-the given ID, or undef.
+=item $repository->write_static_page( $filebase, $parts, [$page_id], [$wrote_files] )
 
-Equivent to $repository->dataset("eprint")->dataobj( $eprint_id )
+Write an .html file plus a set of files describing the parts of the
+page for use with the dynamic template option.
 
-=cut
-######################################################################
+File base is the name of the page without the .html suffix.
 
-sub eprint($$)
-{
-	my( $repository, $eprint_id ) = @_;
+parts is a reference to a hash containing DOM trees.
 
-	return $repository->dataset( "eprint" )->get_object( $repository, $eprint_id );
-}
+If $wrote_files is defined then any filenames written are logged in it as keys.
 
-######################################################################
-=pod
-
-=item $user = $repository->current_user
-
-Return the current logged in L<EPrints::DataObj::User> for this session.
-
-Return undef if there isn't one.
+=end InternalDoc
 
 =cut
 ######################################################################
 
-sub current_user
+sub write_static_page
 {
-	my( $self ) = @_;
+	my( $self, $filebase, $parts, $page_id, $wrote_files ) = @_;
 
-	if( $self->{offline} )
+	print "Writing: $filebase\n" if( $self->{noise} > 1 );
+	
+	my $dir = $filebase;
+	$dir =~ s/\/[^\/]*$//;
+
+	if( !-d $dir ) { EPrints->system->mkdir( $dir ); }
+	if( !defined $parts->{template} && -e "$filebase.template" )
 	{
-		return undef;
+		unlink( "$filebase.template" );
 	}
-
-	if( $self->{logged_out} )
-	{	
-		return undef;
-	}
-
-	if( !defined $self->{current_user} )
+	foreach my $part_id ( keys %{$parts} )
 	{
-		return undef if( $self->{already_in_current_user} );
-		$self->{already_in_current_user} = 1;
-
-		# custom auth
-		if( $self->get_repository->can_call( 'get_current_user' ) )
+		next if !defined $parts->{$part_id};
+		if( !ref($parts->{$part_id}) )
 		{
-			$self->{current_user} = $self->get_repository->call( 'get_current_user', $self );
+			EPrints->abort( "Page parts must be DOM fragments" );
 		}
-		# cookie auth
-		if( !defined $self->{current_user} )
+		my $file = $filebase.".".$part_id;
+		if( open( CACHE, ">$file" ) )
 		{
-			$self->{current_user} = $self->_current_user_auth_cookie;
+			binmode(CACHE,":utf8");
+			print CACHE $self->xhtml->to_xhtml( $parts->{$part_id} );
+			close CACHE;
+			if( defined $wrote_files )
+			{
+				$wrote_files->{$file} = 1;
+			}
 		}
-		# basic auth
-		if( !defined $self->{current_user} )
+		else
 		{
-			$self->{current_user} = $self->_current_user_auth_basic;
+			$self->log( "Could not write to file $file" );
 		}
-		$self->{already_in_current_user} = 0;
 	}
-	return $self->{current_user};
+
+
+	my $title_textonly_file = $filebase.".title.textonly";
+	if( open( CACHE, ">$title_textonly_file" ) )
+	{
+		binmode(CACHE,":utf8");
+		print CACHE EPrints::Utils::tree_to_utf8( $parts->{title}, undef, undef, undef, 1 ); # don't convert href's to <http://...>'s
+		close CACHE;
+		if( defined $wrote_files )
+		{
+			$wrote_files->{$title_textonly_file} = 1;
+		}
+	}
+	else
+	{
+		$self->log( "Could not write to file $title_textonly_file" );
+	}
+
+	my $html_file = $filebase.".html";
+	$self->prepare_page( $parts, page_id=>$page_id );
+	$self->page_to_file( $html_file, $wrote_files );
+	return;
 }
-	
+
 ######################################################################
 =pod
 
-=item $user = $repository->user( $user_id );
+=begin InternalDoc
 
-A convience method to return the L<EPrints::DataObj::User> with 
-the given ID, or undef.
+=item $repository->prepare_page( $parts, %options )
 
-Equivent to $repository->dataset("user")->dataobj( $user_id )
+Create an XHTML page for this session. 
+
+$parts is a hash of XHTML elements to insert into the pins in the
+template. Usually: title, page. Maybe pagetop and head.
+
+If template is set then an alternate template file is used.
+
+This function only builds the page it does not output it any way, see
+the methods below for that.
+
+Options include:
+
+page_id=>"id to put in body tag"
+template=>"The template to use instead of default."
+
+=end InternalDoc
+
+=cut
+######################################################################
+# move to compat module?
+
+sub build_page
+{
+	my( $self, $title, $mainbit, $page_id, $links, $template ) = @_;
+	$self->prepare_page( { title=>$title, page=>$mainbit, pagetop=>undef,head=>$links}, page_id=>$page_id, template=>$template );
+	return;
+}
+sub prepare_page
+{
+	my( $self, $map, %options ) = @_;
+	$self->{page} = $self->xhtml->page( $map, %options );
+	return;
+}
+
+
+######################################################################
+=pod
+
+=begin InternalDoc
+
+=item $repository->send_page( %httpopts )
+
+Send a web page out by HTTP. Only relevant if this is a CGI script.
+build_page must have been called first.
+
+See send_http_header for an explanation of %httpopts
+
+Dispose of the XML once it's sent out.
+
+=end InternalDoc
 
 =cut
 ######################################################################
 
-sub user($$)
+sub send_page
 {
-	my( $repository, $user_id ) = @_;
+	my( $self, %httpopts ) = @_;
 
-	return $repository->dataset( "user" )->get_object( $repository, $user_id );
+	$self->{page}->send( %httpopts );
+	delete $self->{page};
+	return;
 }
-	
+
+
 ######################################################################
 =pod
 
-=item $user = $repository->user_by_username( $username );
+=begin InternalDoc
 
-Return the user with the given username, or undef.
+=item $repository->page_to_file( $filename, [$wrote_files] )
+
+Write out the current webpage to the given filename.
+
+build_page must have been called first.
+
+Dispose of the XML once it's sent out.
+
+If $wrote_files is set then keys are created in it for each file
+created.
+
+=end InternalDoc
 
 =cut
 ######################################################################
 
-sub user_by_username($$)
+sub page_to_file
 {
-	my( $repository, $username ) = @_;
-
-	return EPrints::DataObj::User::user_with_username( $repository, $username )
-}
+	my( $self , $filename, $wrote_files ) = @_;
 	
+	$self->{page}->write_to_file( $filename, $wrote_files );
+	delete $self->{page};
+	return;
+}
+
 ######################################################################
 =pod
 
-=item $user = $repository->user_by_email( $email );
+=begin InternalDoc
 
-Return the L<EPrints::DataObj::User> with the given email, or undef.
+=item $repository->set_page( $newhtml )
+
+Erase the current page for this session, if any, and replace it with
+the XML DOM structure described by $newhtml.
+
+This page is what is output by page_to_file or send_page.
+
+$newhtml is a normal DOM Element, not a document object.
+
+=end InternalDoc
 
 =cut
 ######################################################################
 
-sub user_by_email($$)
+sub set_page
 {
-	my( $repository, $email ) = @_;
-
-	return EPrints::DataObj::User::user_with_email( $repository, $email )
+	my( $self, $newhtml ) = @_;
+	
+	$self->{page} = EPrints::Page::DOM->new( $self, $newhtml );
+	return;
 }
 
 sub _add_http_paths
@@ -708,49 +864,9 @@ sub _add_http_paths
 	$config->{"perl_url"} ||= $config->{"http_cgiurl"};
 	$config->{"frontpage"} ||= $config->{"http_url"} . "/";
 	$config->{"userhome"} ||= $config->{"http_cgiroot"} . "/users/home";
+	return;
 }
  
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $success = $repository_config->_load_workflows
-
- Attempts to load and cache the workflows for this repository
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub _load_workflows
-{
-	my( $self ) = @_;
-
-	$self->{workflows} = {};
-
-	# load system-level workflows
-	EPrints::Workflow::load_all( 
-		$self->config( "lib_path" )."/workflows",
-		$self->{workflows} );
-
-	if( -e $self->config( "base_path" )."/site_lib/workflows" )
-	{	
-		# load /site_lib/ workflows
-		EPrints::Workflow::load_all( 
-			$self->config( "base_path" )."/site_lib/workflows",
-			$self->{workflows} );
-	}
-
-	# load repository-specific workflows (may overwrite)
-	EPrints::Workflow::load_all( 
-		$self->config( "config_path" )."/workflows",
-		$self->{workflows} );
-
-	return 1;
-}
-
 =begin InternalDoc
 
 =item $repo->_load_storage()
@@ -768,25 +884,6 @@ sub _load_storage
 	$self->{storage} = EPrints::Storage->new( $self );
 
 	return defined $self->{storage};
-}
-
-######################################################################
-# 
-# $workflow_xml = $repository->get_workflow_config( $datasetid, $workflowid )
-#
-# Return the XML of the requested workflow
-#
-######################################################################
-
-sub get_workflow_config
-{
-	my( $self, $datasetid, $workflowid ) = @_;
-
-	my $r = EPrints::Workflow::get_workflow_config( 
-		$workflowid,
-		$self->{workflows}->{$datasetid} );
-
-	return $r;
 }
 
 ######################################################################
@@ -855,366 +952,7 @@ sub get_language
 	return $self->{langs}->{$langid};
 }
 
-######################################################################
-# 
-# $success = $repository_config->_load_citation_specs
-#
-# Attempts to load and cache all the citation styles for this repository.
-#
-######################################################################
 
-sub _load_citation_specs
-{
-	my( $self ) = @_;
-
-	$self->{citations} = {};
-
-
-
-	# load repository-specific citations
-	$self->_load_citation_dir( $self->config( "config_path" )."/citations" );
-	# load system-level citations (won't overwrite)
-	$self->_load_citation_dir( $self->config( "lib_path" )."/citations" );
-
-	if( -e $self->config( "base_path" )."/site_lib/citations" )
-	{
-		$self->_load_citation_dir( $self->config( "base_path" )."/site_lib/citations" );
-	}
-
-	return 1;
-}
-
-sub _load_citation_dir
-{
-	my( $self, $dir ) = @_;
-
-	my $dh;
-	opendir( $dh, $dir );
-	my @dirs = ();
-	while( my $fn = readdir( $dh ) )
-	{
-		next if $fn =~ m/^\./;
-		push @dirs,$fn if( -d "$dir/$fn" );
-	}
-	closedir $dh;
-
-	# for each dataset dir
-	foreach my $dsid ( @dirs )
-	{
-		next if !exists $self->{datasets}->{$dsid};
-		opendir( $dh, "$dir/$dsid" );
-		while( my $fn = readdir( $dh ) )
-		{
-			next if $fn =~ m/^\./;
-			my $fileid = substr($fn,0,-4);
-			# prefer .xsl to .xml
-			next if $fn =~ /\.xml$/
-				&& $EPrints::XSLT &&
-				-e "$dir/$dsid/$fileid.xsl";
-			$self->_load_citation_file( 
-				"$dir/$dsid/$fn",
-				$dsid,
-				$fileid
-			);
-		}
-		closedir $dh;
-	}
-
-	return 1;
-}
-
-sub _load_citation_file
-{
-	my( $self, $file, $dsid, $fileid ) = @_;
-
-	return if defined $self->{citations}->{$dsid}->{$fileid};
-
-	if( !-e $file )
-	{
-		if( $fileid eq "default" )
-		{
-			EPrints::abort( "Default citation file for '$dsid' does not exist. Was expecting a file at '$file'." );
-		}
-		$self->log( "Citation file '$fileid' for '$dsid' does not exist. Was expecting a file at '$file'." );
-		return;
-	}
-
-	if( $file =~ /\.xml$/ )
-	{
-		$self->{citations}->{$dsid}->{$fileid} = EPrints::Citation::EPC->new(
-			$file,
-			dataset => $self->dataset( $dsid )
-		);
-	}
-
-	if( $file =~ /\.xsl$/ && $EPrints::XSLT )
-	{
-		$self->{citations}->{$dsid}->{$fileid} = EPrints::Citation::XSL->new(
-			$file,
-			dataset => $self->dataset( $dsid )
-		);
-	}
-}
-
-
-######################################################################
-# 
-# $success = $repository_config->_load_templates
-#
-# Loads and caches all the html template files for this repository.
-#
-######################################################################
-
-sub _load_templates
-{
-	my( $self ) = @_;
-
-	$self->{html_templates} = {};
-	$self->{text_templates} = {};
-	$self->{template_mtime} = {};
-	$self->{template_path} = {};
-
-	foreach my $langid ( @{$self->config( "languages" )} )
-	{
-		foreach my $dir ($self->template_dirs( $langid ))
-		{
-			opendir( my $dh, $dir ) or next;
-			while( my $fn = readdir( $dh ) )
-			{
-				next if $fn =~ m/^\./;
-				next if $fn !~ /\.xml$/;
-				my $id = $fn;
-				$id =~ s/\.xml$//;
-				next if
-					exists $self->{template_mtime}->{$id} &&
-					exists $self->{template_mtime}->{$id}->{$langid};
-				$self->{template_path}->{$id}->{$langid} = "$dir/$fn";
-				$self->freshen_template( $langid, $id );
-			}
-			closedir( $dh );
-		}
-
-		if( !defined $self->{html_templates}->{default}->{$langid} )
-		{
-			EPrints::abort( "Failed to load default template for language $langid" );
-		}
-	}
-
-	return 1;
-}
-
-sub freshen_template
-{
-	my( $self, $langid, $id ) = @_;
-
-	my $curr_lang = $self->{lang};
-	$self->change_lang( $langid );
-
-	my $path = $self->{template_path}->{$id}->{$langid};
-
-	my @filestat = stat( $path );
-	my $mtime = $filestat[9];
-
-	my $old_mtime = $self->{template_mtime}->{$id}->{$langid};
-	if( defined $old_mtime && $old_mtime == $mtime )
-	{
-		$self->{lang} = $curr_lang;
-		return;
-	}
-
-	my $template = $self->_load_template( $path );
-	if( !defined $template ) 
-	{ 
-		$self->{lang} = $curr_lang;
-		return 0; 
-	}
-
-	$self->{html_templates}->{$id}->{$langid} = $template;
-	$self->{text_templates}->{$id}->{$langid} = $self->_template_to_text( $template, $langid );
-	$self->{template_mtime}->{$id}->{$langid} = $mtime;
-}
-
-sub _template_to_text
-{
-	my( $self, $template, $langid ) = @_;
-
-	$template = $self->xml->clone( $template );
-
-	my $divide = "61fbfe1a470b4799264feccbbeb7a5ef";
-
-        my @pins = $template->getElementsByTagName("pin");
-	foreach my $pin ( @pins )
-	{
-		#$template
-		my $parent = $pin->getParentNode;
-		my $textonly = $pin->getAttribute( "textonly" );
-		my $ref = "pin:".$pin->getAttribute( "ref" );
-		if( defined $textonly && $textonly eq "yes" )
-		{
-			$ref.=":textonly";
-		}
-		my $textnode = $self->xml->create_text_node( $divide.$ref.$divide );
-		$parent->replaceChild( $textnode, $pin );
-	}
-
-        my @prints = $template->getElementsByTagName("print");
-	foreach my $print ( @prints )
-	{
-		my $parent = $print->getParentNode;
-		my $ref = "print:".$print->getAttribute( "expr" );
-		my $textnode = $self->xml->create_text_node( $divide.$ref.$divide );
-		$parent->replaceChild( $textnode, $print );
-	}
-
-        my @phrases = $template->getElementsByTagName("phrase");
-	
-	foreach my $phrase ( @phrases )
-	{
-		my $done_phrase = EPrints::XML::EPC::process( $phrase, session=>$self );
-
-		my $parent = $phrase->getParentNode;
-		$parent->replaceChild( $done_phrase, $phrase );
-	}
-
-	$self->_divide_attributes( $template, $divide );
-
-	my @r = split( "$divide", $self->xhtml->to_xhtml( $template ) );
-
-	return \@r;
-}
-
-sub _divide_attributes
-{
-	my( $self, $node, $divide ) = @_;
-
-	return unless( $self->xml->is( $node, "Element" ) );
-
-	foreach my $kid ( $node->childNodes )
-	{
-		$self->_divide_attributes( $kid, $divide );
-	}
-	
-	my $attrs = $node->attributes;
-
-	return unless defined $attrs;
-	
-	for( my $i = 0; $i < $attrs->length; ++$i )
-	{
-		my $attr = $attrs->item( $i );
-		my $v = $attr->nodeValue;
-		next unless( $v =~ m/\{/ );
-		my $name = $attr->nodeName;
-		my @r = EPrints::XML::EPC::split_script_attribute( $v, $name );
-		my @r2 = ();
-		for( my $i = 0; $i<scalar @r; ++$i )
-		{
-			if( $i % 2 == 0 )
-			{
-				push @r2, $r[$i];
-			}
-			else
-			{
-				push @r2, "print:".$r[$i];
-			}
-		}
-		if( scalar @r % 2 == 0 )
-		{
-			push @r2, "";
-		}
-		
-		my $newv = join( $divide, @r2 );
-		$attr->setValue( $newv );
-	}
-
-	return;
-}
-
-sub _load_template
-{
-	my( $self, $file ) = @_;
-	my $doc = $self->parse_xml( $file );
-	if( !defined $doc ) { return undef; }
-	my $html = ($doc->getElementsByTagName( "html" ))[0];
-	my $rvalue;
-	if( !defined $html )
-	{
-		print STDERR "Missing <html> tag in $file\n";
-	}
-	else
-	{
-		$rvalue = $self->xml->clone( $html );
-	}
-	$self->xml->dispose( $doc );
-	return $rvalue;
-}
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $template = $repository->get_template_parts( $langid, [$template_id] )
-
-Returns an array of utf-8 strings alternating between XML and the id
-of a pin to replace. This is used for the faster template construction.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub get_template_parts
-{
-	my( $self, $langid, $tempid ) = @_;
-  
-	if( !defined $tempid ) { $tempid = 'default'; }
-	$self->freshen_template( $langid, $tempid );
-	my $t = $self->{text_templates}->{$tempid}->{$langid};
-	if( !defined $t ) 
-	{
-		EPrints::abort( <<END );
-Error. Template not loaded.
-Language: $langid
-Template ID: $tempid
-END
-	}
-
-	return $t;
-}
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $template = $repository->get_template( $langid, [$template_id] )
-
-Returns the DOM document which is the webpage template for the given
-language. Do not modify the template without cloning it first.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub get_template
-{
-	my( $self, $langid, $tempid ) = @_;
-  
-	if( !defined $tempid ) { $tempid = 'default'; }
-	$self->freshen_template( $langid, $tempid );
-	my $t = $self->{html_templates}->{$tempid}->{$langid};
-	if( !defined $t ) 
-	{
-		EPrints::abort( <<END );
-Error. Template not loaded.
-Language: $langid
-Template ID: $tempid
-END
-	}
-
-	return $t;
-}
 
 ######################################################################
 # 
@@ -1320,8 +1058,7 @@ sub _load_datasets
 
 	$self->{datasets} = {};
 
-	# system datasets
-	my %info = %{EPrints::DataSet::get_system_dataset_info()};
+	my %info;
 
 	# repository-specific datasets
 	my $repository_datasets = $self->config( "datasets" );
@@ -1341,12 +1078,7 @@ sub _load_datasets
 		}
 	}
 
-	# sort the datasets so that derived datasets follow (and hence share
-	# their fields)
-	foreach my $ds_id (
-		sort { defined $info{$a}->{confid} <=> defined $info{$b}->{confid} }
-		keys %info
-		)
+	foreach my $ds_id ( keys %info	)
 	{
 		$self->{datasets}->{$ds_id} = EPrints::DataSet->new(
 			repository => $self,
@@ -1425,7 +1157,7 @@ sub get_sql_counter_ids
 	foreach my $ds_id ($self->get_sql_dataset_ids)
 	{
 		my $dataset = $self->get_dataset( $ds_id );
-		foreach my $field ($dataset->get_fields)
+		foreach my $field ($dataset->fields)
 		{
 			next unless $field->isa( "EPrints::MetaField::Counter" );
 			my $c_id = $field->get_property( "sql_counter" );
@@ -1449,12 +1181,80 @@ Return a given L<EPrints::DataSet> or undef if it doesn't exist.
 sub get_dataset { return dataset( @_ ); }
 sub dataset($$)
 {
-	my( $self , $setname ) = @_;
+	my( $self , $datasetdef ) = @_;
 
-	my $ds = $self->{datasets}->{$setname};
+	my( $datasetid, $state ) = split( /\./, $datasetdef );
+
+	my $context;
+
+	if( defined $state )
+	{
+		( $state, $context ) = split( /:/, $state );
+	}
+	else
+	{
+		( $datasetid, $context ) = split( /:/, $datasetid );
+	}
+
+# sf2 - important: DataSet objects used to be passed as a copy of the 
+# object stored in Repository.pm
+# however since that object is shared by any processes requesting $repo->dataset( '..')
+# (within the same web request/CLI process) then the object might get 'dirty' 
+# (e.g. one process might set the 'state' and the other processes might set another 'state')
+#
+# so at the moment, DataSets objects are re-created basically so that each process
+# get a fresh object
+#
+#
+# TODO this ^^ can be optimised e.g. DataSets don't really need to
+# reload all their conf? can't we also just copy/clone the object
+# we have in $repo->{datasets} ? would be nice...
+#
+
+
+#	my $ds_conf = $self->config( 'datasets', $datasetid );
+#
+#	my $ds = EPrints::DataSet->new( 
+#			repository => $self,
+#			name => $datasetid,
+#			%{$ds_conf ||{}}
+#	);			
+#
+
+	my $ds = $self->{datasets}->{$datasetid};
+
 	if( !defined $ds )
 	{
-		$self->log( "Unknown dataset: ".$setname );
+		# $self->log( "Unknown dataset: %s", $datasetid );
+		EPrints->trace( "Unknown dataset '$datasetid'" );
+		return undef;
+	}
+
+	$ds->reset_state;
+	$ds->reset_context;
+#
+# TODO ^^^ is that ok?
+#
+## that'd be bad
+#if( defined ( my $state = $ds->state ) )
+#{
+#	printf STDERR "Warning: ds '%s' in state %s", "$ds", $state;
+#}
+	if( defined $state )
+	{
+		return undef if( !$ds->set_state( $state ) );
+	}
+
+## TODO
+#
+# problem: this consumes POST-data!! so can't be a query param... tho higher level API (CRUD, Search) may
+#		parse some custom "context" query param and apply it to the dataset if they wish...
+#
+	if( defined $context )
+	{
+		return undef if( !$ds->is_valid_context( $context ) );
+		$self->debug_log( "security", "forcing context %s on dataset %s", $context, $ds->id );
+		$ds->set_context( $context );
 	}
 
 	return $ds;
@@ -1533,7 +1333,13 @@ $repository->config( "stuff" )->{en}->{foo}
 =cut
 ######################################################################
 
-sub get_conf { return config( @_ ); }
+sub get_conf 
+{
+	EPrints->trace( "Repository::get_conf is deprecated" );
+
+	return config( @_ ); 
+}
+
 sub config($$@)
 {
 	my( $self, $key, @subkeys ) = @_;
@@ -1578,6 +1384,23 @@ sub run_trigger
 			last TRIGGER if defined $rc && $rc eq EP_TRIGGER_DONE;
 		}
 	}
+
+	return $rc;
+}
+
+# TODO/sf2 - temp method whilst dev - might keep it though if useful
+sub debug_log
+{
+	my( $self, @args ) = @_;
+
+	my $type = shift @args;
+
+	if( $self->{debug}->{$type} )
+	{
+		$args[0] = sprintf "[%s] %s", $type, $args[0];
+		$self->log( @args ) 
+	}
+	return;
 }
 
 ######################################################################
@@ -1594,7 +1417,7 @@ wants them to go. Printed to STDERR by default.
 
 sub log
 {
-	my( $self , $msg) = @_;
+	my( $self, $msg, @args ) = @_;
 
 	if( $self->config( 'show_ids_in_log' ) )
 	{
@@ -1608,12 +1431,14 @@ sub log
 
 	if( $self->can_call( 'log' ) )
 	{
-		$self->call( 'log', $self, $msg );
+		$self->call( 'log', $self, sprintf $msg, @args );
 	}
 	else
 	{
-		print STDERR "$msg\n";
+		chomp $msg;
+		printf STDERR "$msg\n", @args;
 	}
+	return;
 }
 
 
@@ -1631,7 +1456,7 @@ for this repository with the given params and returns the result.
 sub call
 {
 	my( $self, $cmd, @params ) = @_;
-	
+
 	my $fn;
 	if( ref $cmd eq "ARRAY" )
 	{
@@ -1683,6 +1508,7 @@ sub can_call
 	my( $self, @cmd_conf_path ) = @_;
 	
 	my $fn = $self->config( @cmd_conf_path );
+	
 	return( 0 ) unless( defined $fn );
 
 	return( 0 ) unless( ref $fn eq "CODE" );
@@ -1765,7 +1591,7 @@ sub get_store_dir
 	my @dirs = $self->get_store_dirs;
 
 	# df not available, just return last dir found
-	return $dirs[$#dirs] if $self->config( "disable_df" );
+	return $dirs[-1] if $self->config( "disable_df" );
 
 	my $root = $self->config( "documents_path" );
 
@@ -1778,7 +1604,7 @@ sub get_store_dir
 	my %space;
 	foreach my $dir (@dirs)
 	{
-		my $space = EPrints::Platform::free_space( "$root/$dir" );
+		my $space = EPrints->system->free_space( "$root/$dir" );
 		$space{$dir} = $space;
 		if( $space > $errorsize )
 		{
@@ -1815,7 +1641,7 @@ END
 	}
 
 	# return the store with the most space available
-	return $dirs[$#dirs];
+	return $dirs[-1];
 }
 
 =item @dirs = $repository->template_dirs( $langid )
@@ -1848,7 +1674,7 @@ sub template_dirs
 	# repository path: /archives/[repoid]/cfg/templates/
 	push @dirs, "$config_path/templates";
 
-	my $theme = $self->config( "theme" );
+	my $theme = $self->config( "ui", "theme" );
 	if( defined $theme )
 	{	
 		# themes path: /archives/[repoid]/cfg/themes/lang/[langid]templates/
@@ -1863,6 +1689,104 @@ sub template_dirs
 	push @dirs, "$lib_path/templates";
 
 	return @dirs;
+}
+
+######################################################################
+# 
+# $success = $repository_config->_load_templates
+#
+# Loads and caches all the html template files for this repository.
+#
+######################################################################
+
+sub _load_templates
+{
+	my( $self ) = @_;
+
+	$self->debug_log( "ui", "loading templtes" );
+
+	# sf2
+	$self->{templates} ||= {};
+
+	foreach my $langid ( @{$self->config( "languages" )} )
+	{
+		foreach my $dir ($self->template_dirs( $langid ))
+		{
+			opendir( my $dh, $dir ) or next;
+			while( my $fn = readdir( $dh ) )
+			{
+				next if $fn =~ m/^\./;
+				next if $fn !~ /\.xml$/;
+				my $id = $fn;
+				$id =~ s/\.xml$//;
+
+				my $path = "$dir/$fn";
+				$self->{templates}->{$id} ||= {};
+				my $template = $self->{templates}->{$id}->{$langid};
+				if( !$template )
+				{
+					$template = $self->{templates}->{$id}->{$langid} = 
+						EPrints::XHTML::Template->new( path => $path, repository => $self, langid => $langid );
+
+					$self->debug_log( "ui", "loaded template '%s' (%s)", $id, $langid );
+
+					if( !$template )
+					{
+						$self->log( "Failed to load template %s", $path );
+					}
+					# sf2? ->refresh?
+				}
+					
+				$template->refresh;
+			}
+			closedir( $dh );
+		}
+	# sf2 - ignore that error - UI not compulsory?
+	#	if( !defined $self->{html_templates}->{default}->{$langid} )
+	#	{
+	#		EPrints::abort( "Failed to load default template for language $langid" );
+	#	}
+	}
+
+	return 1;
+}
+
+######################################################################
+=pod
+
+=begin InternalDoc
+
+=item $template = $repository->get_template( $langid, [$template_id] )
+
+Returns the DOM document which is the webpage template for the given
+language. Do not modify the template without cloning it first.
+
+=end InternalDoc
+
+=cut
+######################################################################
+
+sub get_template { return template( @_ ) } 
+sub template
+{
+	my( $self, $langid, $id ) = @_;
+
+	$langid ||= $self->get_langid;
+	$id ||= 'default';  
+
+	my $template = $self->{templates}->{$id}->{$langid};
+	if( !defined $template ) 
+	{
+		EPrints::abort( <<END );
+Error. Template not loaded.
+Language: $langid
+Template ID: $id
+END
+	}
+
+	$template->refresh;
+
+	return $template;
 }
 
 ######################################################################
@@ -1942,7 +1866,7 @@ sub get_store_dir_size
 		return undef;
 	}
 
-	return EPrints::Platform::free_space( $filepath );
+	return EPrints->system->free_space( $filepath );
 } 
 
 
@@ -2151,6 +2075,7 @@ sub set_field_defaults
 	my( $self, $fieldtype, $defaults ) = @_;
 
 	$self->{field_defaults}->{$fieldtype} = $defaults;
+	return;
 }
 
 ######################################################################
@@ -2242,19 +2167,19 @@ eprint repository actually supports.
 sub get_session_language
 {
 	my( $repository, $request ) = @_; #$r should not really be passed???
-
+	
 	my @prefs;
 
 	# IMPORTANT! This function must not consume
 	# The post request, if any.
 
-	my $cookie = EPrints::Apache::AnApache::cookie( 
+	my $cookie = EPrints::Apache::cookie( 
 		$request,
 		"eprints_lang" );
 	push @prefs, $cookie if defined $cookie;
 
 	# then look at the accept language header
-	my $accept_language = EPrints::Apache::AnApache::header_in( 
+	my $accept_language = EPrints::Apache::header_in( 
 				$request,
 				"Accept-Language" );
 
@@ -2269,10 +2194,10 @@ sub get_session_language
 	}
 		
 	# last choice is always...	
-	push @prefs, $repository->get_conf( "defaultlanguage" );
+	push @prefs, $repository->config( "defaultlanguage" );
 
 	# So, which one to use....
-	my $arc_langs = $repository->get_conf( "languages" );	
+	my $arc_langs = $repository->config( "languages" );	
 	foreach my $pref_lang ( @prefs )
 	{
 		foreach my $langid ( @{$arc_langs} )
@@ -2315,7 +2240,7 @@ sub change_lang
 
 	if( !defined $newlangid )
 	{
-		$newlangid = $self->get_conf( "defaultlanguage" );
+		$newlangid = $self->config( "defaultlanguage" );
 	}
 	$self->{lang} = $self->get_language( $newlangid );
 
@@ -2324,6 +2249,7 @@ sub change_lang
 		die "Unknown language: $newlangid, can't go on!";
 		# cjg (maybe should try english first...?)
 	}
+	return;
 }
 
 
@@ -2394,7 +2320,7 @@ sub phrase
 	$self->{used_phrases}->{$phraseid} = 1;
 	foreach( keys %inserts )
 	{
-		$inserts{$_} = $self->make_text( $inserts{$_} );
+		$inserts{$_} = $self->xml->create_text_node( $inserts{$_} );
 	}
         my $r = $self->{lang}->phrase( $phraseid, \%inserts , $self);
 	my $string =  EPrints::Utils::tree_to_utf8( $r, 40 );
@@ -2493,7 +2419,7 @@ sub best_language
 	return $values{$lang} if( defined $lang && defined $values{$lang} );
 
 	# The default language of the repository is second best	
-	my $defaultlangid = $repository->get_conf( "defaultlanguage" );
+	my $defaultlangid = $repository->config( "defaultlanguage" );
 	return $values{$defaultlangid} if( defined $values{$defaultlangid} );
 
 	# Bit of personal bias: We'll try English before we just
@@ -2505,31 +2431,6 @@ sub best_language
 	return $values{$akey};
 }
 
-
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $viewname = $repository->get_view_name( $dataset, $viewid )
-
-Return a UTF8 encoded string containing the human readable name
-of the /view/ section with the ID $viewid.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub get_view_name
-{
-	my( $self, $dataset, $viewid ) = @_;
-
-        return $self->phrase( 
-		"viewname_".$dataset->confid()."_".$viewid );
-}
 
 ######################################################################
 =pod
@@ -2544,13 +2445,79 @@ Return the current EPrints::Database connection object.
 
 =cut
 ######################################################################
-sub get_db { return $_[0]->get_database; } # back compatibility
+sub get_db { shift->database( @_ ); } # back compatibility
 
-sub database { shift->get_database( @_ ) }
-sub get_database
+sub get_database { shift->database( @_ ) }
+sub database
 {
 	my( $self ) = @_;
-	return $self->{database};
+
+	if( $self->{database} )
+	{
+		# already connected
+		return $self->{database};
+	}
+
+	if( $self->{database_failed} )
+	{
+		# don't re-attempt to connect if this has failed already
+		return undef;
+	}
+	
+	# connect to the DB
+	$self->{database} = EPrints::Database->new( $self );
+
+	if( $self->{database} )
+	{
+		#cjg make this a method of EPrints::Database?
+		if( !defined $self->{check_db} || $self->{check_db} )
+		{
+			# Check there are some tables.
+			# Well, check for the most important table, which 
+			# if it's not there is a show stopper.
+			unless( $self->{database}->is_latest_version )
+			{ 
+				my $cur_version = $self->{database}->get_version || "unknown";
+				if( $self->database->has_table( "user" ) )
+				{	
+					EPrints->abort(
+		"Database tables are in old configuration (version $cur_version). Please run:\nepadmin upgrade ".$self->get_id );
+				}
+				else
+				{
+					EPrints->abort(
+						"No tables in the MySQL database! ".
+						"Did you run create_tables?" );
+				}
+				$self->{database}->disconnect();
+				return undef;
+			}
+		}
+
+		delete $self->{database_failed};	# to be safe
+		return $self->{database};
+	}
+
+	$self->log( $self->phrase( "lib/session:fail_db_connect" ) );
+	# it failed
+	$self->{database_failed} = 1;
+	EPrints->trace;
+
+	return undef;
+}
+
+# check if we're connected to the DB
+sub database_connected
+{
+	my( $self ) = @_;
+
+	return defined $self->{database};
+}
+
+# sf2 - new - TODO name confusing with the above method
+sub connect_database
+{
+	return ( shift->database ? 1 : 0 );
 }
 
 =begin InternalDoc
@@ -2570,7 +2537,6 @@ sub get_storage
 }
 
 
-
 ######################################################################
 =pod
 
@@ -2584,11 +2550,15 @@ Return the EPrints::Repository object associated with the Repository.
 
 =cut
 ######################################################################
-sub get_archive { return $_[0]->get_repository; }
 
+# sf2 - deprecated get_repository
 sub get_repository
 {
 	my( $self ) = @_;
+
+        print STDERR "Repository::get_repository (deprecated) called by \n";
+        EPrints->trace;
+
 	return $self;
 }
 
@@ -2722,7 +2692,7 @@ sub get_noise
 
 =begin InternalDoc
 
-=item $boolean = $repository->get_online
+=item $boolean = $repository->is_online
 
 Return true if this script is running via CGI, return false if we're
 on the command line.
@@ -2732,11 +2702,19 @@ on the command line.
 =cut
 ######################################################################
 
+# sf2 - depr
 sub get_online
 {
 	my( $self ) = @_;
 	
-	return( !$self->{offline} );
+	EPrints->trace( "Repository::get_online is deprecated" );
+
+	return $self->is_online;
+}
+
+sub is_online 
+{ 
+	return shift->{online};
 }
 
 ######################################################################
@@ -2744,7 +2722,7 @@ sub get_online
 
 =begin InternalDoc
 
-=item $secure = $repository->get_secure
+=item $secure = $repository->is_secure
 
 Returns true if we're using HTTPS/SSL (checks get_online first).
 
@@ -2753,525 +2731,25 @@ Returns true if we're using HTTPS/SSL (checks get_online first).
 =cut
 ######################################################################
 
+# sf2 - depr
 sub get_secure
 {
 	my( $self ) = @_;
 
+	EPrints->trace( "Repository::get_secure is deprecated" );
+
+	return $self->is_secure;
+}
+
+sub is_secure
+{
+	my( $self ) = @_;
+
 	# mod_ssl sets "HTTPS", but only AFTER the Auth stage
-	return $self->get_online &&
-		($ENV{"HTTPS"} || $self->get_request->dir_config( 'EPrints_Secure' ));
+	return $self->is_online &&
+		($ENV{"HTTPS"} || $self->request->dir_config( 'EPrints_Secure' ));
 }
 
-
-
-#############################################################
-#############################################################
-=pod
-
-=begin InternalDoc
-
-=back
-
-=head2 DOM Related Methods
-
-These methods help build XML. Usually, but not always XHTML.
-
-=over 4
-
-=end InternalDoc
-
-=cut
-#############################################################
-#############################################################
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $dom = $repository->make_element( $element_name, %attribs )
-
-Return a DOM element with name ename and the specified attributes.
-
-eg. $repository->make_element( "img", src => "/foo.gif", alt => "my pic" )
-
-Will return the DOM object describing:
-
-<img src="/foo.gif" alt="my pic" />
-
-Note that in the call we use "=>" not "=".
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub make_element
-{
-	my( $self, $ename , @opts ) = @_;
-	return $self->xml->create_element( $ename, @opts );
-}
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $dom = $repository->make_indent( $width )
-
-Return a DOM object describing a C.R. and then $width spaces. This
-is used to make nice looking XML for things like the OAI interface.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub make_indent
-{
-	my( $self, $width ) = @_;
-	return $self->xml->create_text_node( "\n"." "x$width );
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $dom = $repository->make_comment( $text )
-
-Return a DOM object describing a comment containing $text.
-
-eg.
-
-<!-- this is a comment -->
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub make_comment
-{
-	my( $self, $text ) = @_;
-	$self->xml->create_comment( $text );
-}
-	
-
-# $text is a UTF8 String!
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $DOM = $repository->make_text( $text )
-
-Return a DOM object containing the given text. $text should be
-UTF-8 encoded.
-
-Characters will be treated as _text_ including < > etc.
-
-eg.
-
-$repository->make_text( "This is <b> an example" );
-
-Would return a DOM object representing the XML:
-
-"This is &lt;b&gt; an example"
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub make_text
-{
-	my( $self, $text ) = @_;
-
-	return $self->xml->create_document_fragment if !defined $text;
-
-	return $self->xml->create_text_node( $text );
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $DOM = $repository->make_javascript( $code, %attribs )
-
-Return a new DOM "script" element containing $code in javascript. %attribs will
-be added to the script element, similar to make_element().
-
-E.g.
-
-	<script type="text/javascript">
-	// <![CDATA[
-	alert("Hello, World!");
-	// ]]>
-	</script>
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub make_javascript
-{
-	my( $self, $text, %attr ) = @_;
-
-	my $script = $self->xml->create_element( "script", type => "text/javascript", %attr );
-
-	if( defined $text )
-	{
-		chomp($text);
-		$script->appendChild( $self->xml->create_text_node( "\n// " ) );
-		$script->appendChild( $self->xml->create_cdata_section( "\n$text\n// " ) );
-	}
-	else
-	{
-		$script->appendChild( $self->xml->create_comment( "padder" ) );
-	}
-
-	return $script;
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $fragment = $repository->make_doc_fragment
-
-Return a new XML document fragment. This is an item which can have
-XML elements added to it, but does not actually get rendered itself.
-
-If appended to an element then it disappears and its children join
-the element at that point.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub make_doc_fragment
-{
-	my( $self ) = @_;
-	return $self->xml->create_document_fragment;
-}
-
-
-
-
-
-
-#############################################################
-#############################################################
-=pod
-
-=begin InternalDoc
-
-=back
-
-=head2 XHTML Related Methods
-
-These methods help build XHTML.
-
-=over 4
-
-=end InternalDoc
-
-=cut
-#############################################################
-#############################################################
-
-
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $ruler = $repository->render_ruler
-
-Return an HR.
-in ruler.xml
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_ruler
-{
-	my( $self ) = @_;
-
-	return $self->html_phrase( "ruler" );
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $nbsp = $repository->render_nbsp
-
-Return an XHTML &nbsp; character.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_nbsp
-{
-	my( $self ) = @_;
-
-	my $string = pack("U",160);
-
-	return $self->make_text( $string );
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $xhtml = $repository->render_data_element( $indent, $elementname, $value, [%opts] )
-
-This is used to help render neat XML data. It returns a fragment 
-containing an element of name $elementname containing the value
-$value, the element is indented by $indent spaces.
-
-The %opts describe any extra attributes for the element
-
-eg.
-$repository->render_data_element( 4, "foo", "bar", class=>"fred" )
-
-would return a XML DOM object describing:
-    <foo class="fred">bar</foo>
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_data_element
-{
-	my( $self, $indent, $elementname, $value, %opts ) = @_;
-
-	return $self->xhtml->data_element( $elementname, $value,
-		indent => $indent,
-		%opts );
-}
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $xhtml = $repository->render_link( $uri, [$target] )
-
-Returns an HTML link to the given uri, with the optional $target if
-it needs to point to a different frame or window.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_link
-{
-	my( $self, $uri, $target ) = @_;
-
-	return $self->make_element(
-		"a",
-		href=>$uri,
-		target=>$target );
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $table_row = $repository->render_row( $key, @values );
-
-Return the key and values in a DOM encoded HTML table row. eg.
-
- <tr><th>$key:</th><td>$value[0]</td><td>...</td></tr>
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_row
-{
-	my( $repository, $key, @values ) = @_;
-
-	my( $tr, $th, $td );
-
-	$tr = $repository->make_element( "tr" );
-
-	$th = $repository->make_element( "th", valign=>"top", class=>"ep_row" ); 
-	if( !defined $key )
-	{
-		$th->appendChild( $repository->render_nbsp );
-	}
-	else
-	{
-		$th->appendChild( $key );
-		$th->appendChild( $repository->make_text( ":" ) );
-	}
-	$tr->appendChild( $th );
-
-	foreach my $value ( @values )
-	{
-		$td = $repository->make_element( "td", valign=>"top", class=>"ep_row" ); 
-		$td->appendChild( $value );
-		$tr->appendChild( $td );
-	}
-
-	return $tr;
-}
-
-# parts...
-#
-#        help: dom of help text
-#       label: dom title of row (to go in <th>)
-#       class: class for <tr>
-#       field: dom content for <td>
-# help_prefix: prefix for id tag of help toggle
-#   no_toggle: if true, renders the help always on with no toggle
-#     no_help: don't actually render help or a toggle (for rendering same styled rows in the same table)
-
-sub render_row_with_help
-{
-	my( $self, %parts ) = @_;
-
-	if( defined $parts{help} && EPrints::XML::is_empty( $parts{help} ) )
-	{
-		delete $parts{help};
-	}
-
-
-	my $tr = $self->make_element( "tr", class=>$parts{class} );
-
-	#
-	# COL 1
-	#
-	my $th = $self->make_element( "th", class=>"ep_multi_heading" );
-	$th->appendChild( $parts{label} );
-	$th->appendChild( $self->make_text( ":" ) );
-	$tr->appendChild( $th );
-
-	if( !defined $parts{help} || $parts{no_help} )
-	{
-		my $td = $self->make_element( "td", class=>"ep_multi_input", colspan=>"2" );
-		$tr->appendChild( $td );
-		$td->appendChild( $parts{field} );
-		return $tr;
-	}
-
-	#
-	# COL 2
-	#
-	
-	my $inline_help_class = "ep_multi_inline_help";
-	my $colspan = "2";
-	if( !$parts{no_toggle} ) 
-	{ 
-		# ie, yes to toggle
-		$inline_help_class .= " ep_no_js"; 
-		$colspan = 1;
-	}
-
-	my $td = $self->make_element( "td", class=>"ep_multi_input", colspan=>$colspan, id=>$parts{help_prefix}."_outer" );
-	$tr->appendChild( $td );
-
-	my $inline_help = $self->make_element( "div", id=>$parts{help_prefix}, class=>$inline_help_class );
-	my $inline_help_inner = $self->make_element( "div", id=>$parts{help_prefix}."_inner" );
-	$inline_help->appendChild( $inline_help_inner );
-	$inline_help_inner->appendChild( $parts{help} );
-	$td->appendChild( $inline_help );
-
-	$td->appendChild( $parts{field} );
-
-	if( $parts{no_toggle} ) 
-	{ 
-		return $tr;
-	}
-		
-	#
-	# COL 3
-	# help toggle
-	#
-
-	my $td2 = $self->make_element( "td", class=>"ep_multi_help ep_only_js_table_cell ep_toggle" );
-	my $show_help = $self->make_element( "div", class=>"ep_sr_show_help ep_only_js", id=>$parts{help_prefix}."_show" );
-	my $helplink = $self->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlide('$parts{help_prefix}',false,'block');EPJS_toggle('$parts{help_prefix}_hide',false,'block');EPJS_toggle('$parts{help_prefix}_show',true,'block');return false", href=>"#" );
-	$show_help->appendChild( $self->html_phrase( "lib/session:show_help",link=>$helplink ) );
-	$td2->appendChild( $show_help );
-
-	my $hide_help = $self->make_element( "div", class=>"ep_sr_hide_help ep_hide", id=>$parts{help_prefix}."_hide" );
-	my $helplink2 = $self->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlide('$parts{help_prefix}',false,'block');EPJS_toggle('$parts{help_prefix}_hide',false,'block');EPJS_toggle('$parts{help_prefix}_show',true,'block');return false", href=>"#" );
-	$hide_help->appendChild( $self->html_phrase( "lib/session:hide_help",link=>$helplink2 ) );
-	$td2->appendChild( $hide_help );
-	$tr->appendChild( $td2 );
-
-	return $tr;
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $xhtml = $repository->render_language_name( $langid ) 
-Return a DOM object containing the description of the specified language
-in the current default language, or failing that from languages.xml
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_language_name
-{
-	my( $self, $langid ) = @_;
-
-	my $phrasename = 'languages_typename_'.$langid;
-
-	return $self->html_phrase( $phrasename );
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $xhtml = $repository->render_type_name( $type_set, $type ) 
-
-Return a DOM object containing the description of the specified type
-in the type set. eg. "eprint", "article"
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_type_name
-{
-	my( $self, $type_set, $type ) = @_;
-
-        return $self->html_phrase( $type_set."_typename_".$type );
-}
 
 ######################################################################
 =pod
@@ -3295,970 +2773,6 @@ sub get_type_name
         return $self->phrase( $type_set."_typename_".$type );
 }
 
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $xhtml_name = $repository->render_name( $name, [$familylast] )
-
-$name is a ref. to a hash containing family, given etc.
-
-Returns an XML DOM fragment with the name rendered in the manner
-of the repository. Usually "John Smith".
-
-If $familylast is set then the family and given parts are reversed, eg.
-"Smith, John"
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_name
-{
-	my( $self, $name, $familylast ) = @_;
-
-	my $namestr = EPrints::Utils::make_name_string( $name, $familylast );
-
-	my $span = $self->make_element( "span", class=>"person_name" );
-		
-	$span->appendChild( $self->make_text( $namestr ) );
-
-	return $span;
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $xhtml_select = $repository->render_option_list( %params )
-
-This method renders an XHTML <select>. The options are complicated
-and may change, so it's better not to use it.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_option_list
-{
-	my( $self , %params ) = @_;
-
-	#params:
-	# default  : array or scalar
-	# height   :
-	# multiple : allow multiple selections
-	# pairs    :
-	# values   :
-	# labels   :
-	# name     :
-	# checkbox :
-	# defaults_at_top : move items already selected to top
-	# 			of list, so they are visible.
-
-	my %defaults = ();
-	if( ref( $params{default} ) eq "ARRAY" )
-	{
-		foreach( @{$params{default}} )
-		{
-			$defaults{$_} = 1;
-		}
-	}
-	elsif( defined $params{default} )
-	{
-		$defaults{$params{default}} = 1;
-	}
-
-
-	my $dtop = defined $params{defaults_at_top} && $params{defaults_at_top};
-
-
-	my @alist = ();
-	my @list = ();
-	my $pairs = $params{pairs};
-	if( !defined $pairs )
-	{
-		$pairs = [];
-		foreach( @{$params{values}} )
-		{
-			push @{$pairs}, [ $_, $params{labels}->{$_} ];
-		}
-	}		
-						
-	if( $dtop && scalar keys %defaults )
-	{
-		my @pairsa;
-		my @pairsb;
-		foreach my $pair (@{$pairs})
-		{
-			if( $defaults{$pair->[0]} )
-			{
-				push @pairsa, $pair;
-			}
-			else
-			{
-				push @pairsb, $pair;
-			}
-		}
-		$pairs = [ @pairsa, [ '-', '----------' ], @pairsb ];
-	}
-
-	if( $params{checkbox} )
-	{
-		my $table = $self->make_element( "table", cellspacing=>"10", border=>"0", cellpadding=>"0" );
-		my $tr = $self->make_element( "tr" );
-		$table->appendChild( $tr );	
-		my $td = $self->make_element( "td", valign=>"top" );
-		$tr->appendChild( $td );	
-		my $i = 0;
-		my $len = scalar @$pairs;
-		foreach my $pair ( @{$pairs} )
-		{
-			my $div = $self->make_element( "div" );
-			my $label = $self->make_element( "label" );
-			$div->appendChild( $label );
-			my $box = $self->render_input_field( type=>"checkbox", name=>$params{name}, value=>$pair->[0], class=>"ep_form_checkbox" );
-			$label->appendChild( $box );
-			$label->appendChild( $self->make_text( " ".$pair->[1] ) );
-			if( $defaults{$pair->[0]} )
-			{
-				$box->setAttribute( "checked" , "checked" );
-			}
-			$td->appendChild( $div );
-			++$i;
-			if( $len > 5 && int($len / 2)==$i )
-			{
-				$td = $self->make_element( "td", valign=>"top" );
-				$tr->appendChild( $td );	
-			}
-		}
-		return $table;
-	}
-		
-
-
-	my $element = $self->make_element( "select" , name => $params{name}, id => $params{name} );
-	if( $params{multiple} )
-	{
-		$element->setAttribute( "multiple" , "multiple" );
-	}
-	my $size = 0;
-	foreach my $pair ( @{$pairs} )
-	{
-		$element->appendChild( 
-			$self->render_single_option(
-				$pair->[0],
-				$pair->[1],
-				$defaults{$pair->[0]} ) );
-		$size++;
-	}
-	if( defined $params{height} )
-	{
-		if( $params{height} ne "ALL" )
-		{
-			if( $params{height} < $size )
-			{
-				$size = $params{height};
-			}
-		}
-		$element->setAttribute( "size" , $size );
-	}
-	return $element;
-}
-
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $option = $repository->render_single_option( $key, $desc, $selected )
-
-Used by render_option_list.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_single_option
-{
-	my( $self, $key, $desc, $selected ) = @_;
-
-	my $opt = $self->make_element( "option", value => $key );
-	$opt->appendChild( $self->make_text( $desc ) );
-
-	if( $selected )
-	{
-		$opt->setAttribute( "selected" , "selected" );
-	}
-	return $opt;
-}
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $xhtml_hidden = $repository->render_hidden_field( $name, $value )
-
-Return the XHTML DOM describing an <input> element of type "hidden"
-and name and value as specified. eg.
-
-<input type="hidden" name="foo" value="bar" />
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_hidden_field
-{
-	my( $self, $name, $value ) = @_;
-
-	if( !defined $value ) 
-	{
-		$value = $self->param( $name );
-	}
-
-	return $self->xhtml->hidden_field( $name, $value );
-}
-
-sub render_input_field
-{
-	my( $self, %opts ) = @_;
-
-	$opts{type} = 'text' unless( exists $opts{type} );
-
-	return $self->xhtml->input_field(
-		delete($opts{name}),
-		delete($opts{value}),
-		%opts );
-}
-
-sub render_noenter_input_field
-{
-	my( $self, %opts ) = @_;
-	
-	$opts{type} = 'text' unless( exists $opts{type} );
-
-	return $self->xhtml->input_field(
-		delete($opts{name}),
-		delete($opts{value}),
-		noenter => 1,
-		%opts );
-}
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $xhtml_upload = $repository->render_upload_field( $name )
-
-Render into XHTML DOM a file upload form button with the given name. 
-
-eg.
-<input type="file" name="foo" />
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_upload_field
-{
-	my( $self, $name ) = @_;
-	return $self->xhtml->input_field(
-		$name,
-		undef,
-		type => "file" );
-}
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $dom = $repository->render_action_buttons( %buttons )
-
-Returns a DOM object describing the set of buttons.
-
-The keys of %buttons are the ids of the action that button will cause,
-the values are UTF-8 text that should appear on the button.
-
-Two optional additional keys may be used:
-
-_order => [ "action1", "action2" ]
-
-will force the buttons to appear in a set order.
-
-_class => "my_css_class" 
-
-will add a class attribute to the <div> containing the buttons to 
-allow additional styling.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_action_buttons
-{
-	my( $self, %buttons ) = @_;
-
-	return $self->_render_buttons_aux( "action" , %buttons );
-}
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $dom = $repository->render_internal_buttons( %buttons )
-
-As for render_action_buttons, but creates buttons for actions which
-will modify the state of the current form, not continue with whatever
-process the form is part of.
-
-eg. the "More Spaces" button and the up and down arrows on multiple
-type fields.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_internal_buttons
-{
-	my( $self, %buttons ) = @_;
-
-	return $self->_render_buttons_aux( "internal" , %buttons );
-}
-
-
-######################################################################
-# 
-# $dom = $repository->_render_buttons_aux( $btype, %buttons )
-#
-######################################################################
-
-sub _render_buttons_aux
-{
-	my( $self, $btype, %buttons ) = @_;
-
-	#my $frag = $self->make_doc_fragment();
-	my $class;
-	if( defined $buttons{_class} )
-	{
-		$class = $buttons{_class};
-	}
-	my $div = $self->make_element( "div", class=>$class );
-
-	my @order = keys %buttons;
-	if( defined $buttons{_order} )
-	{
-		@order = @{$buttons{_order}};
-	}
-
-	my $button_id;
-	foreach $button_id ( @order )
-	{
-		# skip options which start with a "_" they are params
-		# not buttons.
-		next if( $button_id eq '_class' );
-		next if( $button_id eq '_order' );
-		$div->appendChild(
-			$self->render_button( 
-				name => "_".$btype."_".$button_id, 
-				class => "ep_form_".$btype."_button",
-				value => $buttons{$button_id} ) );
-
-		# Some space between butons.
-		$div->appendChild( $self->make_text( " " ) );
-	}
-
-	return( $div );
-}
-
-sub render_button
-{
-	my( $self, %opts ) = @_;
-
-	if( !defined $opts{class} )
-	{
-		$opts{class} = "ep_form_action_button";
-	}
-	$opts{type} = "submit";
-
-	return $self->make_element( "input", %opts );
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $dom = $repository->render_form( $method, $dest )
-
-Return a DOM object describing an HTML form element. 
-
-$method should be "get" or "post"
-
-$dest is the target of the form. By default the current page.
-
-eg.
-
-$repository->render_form( "GET", "http://example.com/cgi/foo" );
-
-returns a DOM object representing:
-
-<form method="get" action="http://example.com/cgi/foo" accept-charset="utf-8" />
-
-If $method is "post" then an addition attribute is set:
-enctype="multipart/form-data" 
-
-This just controls how the data is passed from the browser to the
-CGI library. You don't need to worry about it.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_form
-{
-	my( $self, $method, $dest ) = @_;
-	
-	return $self->xhtml->form( $method, $dest );
-}
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $ul = $repository->render_subjects( $subject_list, [$baseid], [$currentid], [$linkmode], [$sizes] )
-
-Return as XHTML DOM a nested set of <ul> and <li> tags describing
-part of a subject tree.
-
-$subject_list is a array ref of subject ids to render.
-
-$baseid is top top level node to render the tree from. If only a single
-subject is in subject_list, all subjects up to $baseid will still be
-rendered. Default is the ROOT element.
-
-If $currentid is set then the subject with that ID is rendered in
-<strong>
-
-$linkmode can 0, 1, 2 or 3.
-
-0. Don't link the subjects.
-
-1. Links subjects to the URL which edits them in edit_subjects.
-
-2. Links subjects to "subjectid.html" (where subjectid is the id of 
-the subject)
-
-3. Links the subjects to "subjectid/".  $sizes must be set. Only 
-subjects with a size of more than one are linked.
-
-4. Links the subjects to "../subjectid/".  $sizes must be set. Only 
-subjects with a size of more than one are linked.
-
-$sizes may be a ref. to hash mapping the subjectid's to the number
-of items in that subject which will be rendered in brackets next to
-each subject.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_subjects
-{
-	my( $self, $subject_list, $baseid, $currentid, $linkmode, $sizes ) = @_;
-
-	# If sizes is defined then it contains a hash subjectid->#of subjects
-	# we don't do this ourselves.
-
-#cjg NO SUBJECT_LIST = ALL SUBJECTS under baseid!
-	if( !defined $baseid )
-	{
-		$baseid = $EPrints::DataObj::Subject::root_subject;
-	}
-
-	my %subs = ();
-	foreach( @{$subject_list}, $baseid )
-	{
-		$subs{$_} = EPrints::DataObj::Subject->new( $self, $_ );
-	}
-
-	return $self->_render_subjects_aux( \%subs, $baseid, $currentid, $linkmode, $sizes );
-}
-
-######################################################################
-# 
-# $ul = $repository->_render_subjects_aux( $subjects, $id, $currentid, $linkmode, $sizes )
-#
-# Recursive subroutine needed by render_subjects.
-#
-######################################################################
-
-sub _render_subjects_aux
-{
-	my( $self, $subjects, $id, $currentid, $linkmode, $sizes ) = @_;
-
-	my( $ul, $li, $elementx );
-	$ul = $self->make_element( "ul" );
-	$li = $self->make_element( "li" );
-	$ul->appendChild( $li );
-	if( defined $currentid && $id eq $currentid )
-	{
-		$elementx = $self->make_element( "strong" );
-	}
-	else
-	{
-		if( $linkmode == 1 )
-		{
-			$elementx = $self->render_link( "?screen=Subject::Edit&subjectid=".$id ); 
-		}
-		elsif( $linkmode == 2 )
-		{
-			$elementx = $self->render_link( 
-				EPrints::Utils::escape_filename( $id ).
-					".html" ); 
-		}
-		elsif( $linkmode == 3 )
-		{
-			$elementx = $self->render_link( 
-				EPrints::Utils::escape_filename( $id )."/" ); 
-		}
-		elsif( $linkmode == 4 )
-		{
-			$elementx = $self->render_link( 
-				"../".EPrints::Utils::escape_filename( $id )."/" ); 
-		}
-		else
-		{
-			$elementx = $self->make_element( "span" );
-		}
-	}
-	$li->appendChild( $elementx );
-	$elementx->appendChild( $subjects->{$id}->render_description() );
-	if( defined $sizes && defined $sizes->{$id} && $sizes->{$id} > 0 )
-	{
-		$li->appendChild( $self->make_text( " (".$sizes->{$id}.")" ) );
-	}
-		
-	foreach( $subjects->{$id}->get_children() )
-	{
-		my $thisid = $_->get_value( "subjectid" );
-		next unless( defined $subjects->{$thisid} );
-		$li->appendChild( $self->_render_subjects_aux( $subjects, $thisid, $currentid, $linkmode, $sizes ) );
-	}
-	
-	return $ul;
-}
-
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $repository->render_error( $error_text, $back_to, $back_to_text )
-
-Renders an error page with the given error text. A link, with the
-text $back_to_text, is offered, the destination of this is $back_to,
-which should take the user somewhere sensible.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_error
-{
-	my( $self, $error_text, $back_to, $back_to_text ) = @_;
-	
-	if( !defined $back_to )
-	{
-		$back_to = $self->get_repository->get_conf( "frontpage" );
-	}
-	if( !defined $back_to_text )
-	{
-		$back_to_text = $self->html_phrase( "lib/session:continue");
-	}
-
-	my $textversion = '';
-	$textversion.= $self->phrase( "lib/session:some_error" );
-	$textversion.= EPrints::Utils::tree_to_utf8( $error_text, 76 );
-	$textversion.= "\n";
-
-	if ( $self->{offline} )
-	{
-		print $textversion;
-		return;
-	} 
-
-	# send text version to log
-	$self->get_repository->log( $textversion );
-
-	my( $p, $page, $a );
-	$page = $self->make_doc_fragment();
-
-	$page->appendChild( $self->html_phrase( "lib/session:some_error"));
-
-	$p = $self->make_element( "p" );
-	$p->appendChild( $error_text );
-	$page->appendChild( $p );
-
-	$page->appendChild( $self->html_phrase( "lib/session:contact" ) );
-				
-	$p = $self->make_element( "p" );
-	$a = $self->render_link( $back_to ); 
-	$a->appendChild( $back_to_text );
-	$p->appendChild( $a );
-	$page->appendChild( $p );
-	$self->build_page(	
-		$self->html_phrase( "lib/session:error_title" ),
-		$page,
-		"error" );
-
-	$self->send_page();
-}
-
-my %INPUT_FORM_DEFAULTS = (
-	dataset => undef,
-	type	=> undef,
-	fields => [],
-	values => {},
-	show_names => 0,
-	show_help => 0,
-	staff => 0,
-	buttons => {},
-	hidden_fields => {},
-	comments => {},
-	dest => undef,
-	default_action => undef
-);
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $dom = $repository->render_input_form( %params )
-
-Return a DOM object representing an entire input form.
-
-%params contains the following options:
-
-dataset: The EPrints::Dataset to which the form relates, if any.
-
-fields: a reference to an array of EPrint::MetaField objects,
-which describe the fields to be added to the form.
-
-values: a set of default values. A reference to a hash where
-the keys are ID's of fields, and the values are the default
-values for those fields.
-
-show_help: if true, show the fieldhelp phrase for each input 
-field.
-
-show_name: if true, show the fieldname phrase for each input 
-field.
-
-buttons: a description of the buttons to appear at the bottom
-of the form. See render_action_buttons for details.
-
-top_buttons: a description of the buttons to appear at the top
-of the form (optional).
-
-default_action: the id of the action to be performed by default, 
-ie. if the user pushes "return" in a text field.
-
-dest: The URL of the target for this form. If not defined then
-the current URI is used.
-
-type: if this form relates to a user or an eprint, the type of
-eprint/user can effect what fields are flagged as required. This
-param contains the ID of the eprint/user if any, and if relevant.
-
-staff: if true, this form is being presented to repository staff 
-(admin, or editor). This may change which fields are required.
-
-hidden_fields: reference to a hash. The keys of which are CGI keys
-and the values are the values they are set to. This causes hidden
-form elements to be set, so additional information can be passed.
-
-object: The DataObj which this form is editing, if any.
-
-comment: not yet used.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub render_input_form
-{
-	my( $self, %p ) = @_;
-
-	foreach( keys %INPUT_FORM_DEFAULTS )
-	{
-		next if( defined $p{$_} );
-		$p{$_} = $INPUT_FORM_DEFAULTS{$_};
-	}
-
-	my( $form );
-
-	$form =	$self->render_form( "post", $p{dest} );
-	if( defined $p{default_action} )
-	{
-		my $imagesurl = $self->get_repository->get_conf( "rel_path" )."/images";
-		# This button will be the first on the page, so
-		# if a user hits return and the browser auto-
-		# submits then it will be this image button, not
-		# the action buttons we look for.
-
-		# It should be a small white on pixel PNG.
-		# (a transparent GIF would be slightly better, but
-		# GNU has a problem with GIF).
-		# The style stops it rendering on modern broswers.
-		# under lynx it looks bad. Lynx does not
-		# submit when a user hits return so it's 
-		# not needed anyway.
-		$form->appendChild( $self->make_element( 
-			"input", 
-			type => "image", 
-			width => 1, 
-			height => 1, 
-			border => 0,
-			style => "display: none",
-			src => "$imagesurl/whitedot.png",
-			name => "_default", 
-			alt => $p{buttons}->{$p{default_action}} ) );
-		$form->appendChild( $self->render_hidden_field(
-			"_default_action",
-			$p{default_action} ) );
-	}
-
-	if( defined $p{top_buttons} )
-	{
-		$form->appendChild( $self->render_action_buttons( %{$p{top_buttons}} ) );
-	}
-
-	my $field;	
-	foreach $field (@{$p{fields}})
-	{
-		$form->appendChild( $self->_render_input_form_field( 
-			$field,
-			$p{values}->{$field->get_name()},
-			$p{show_names},
-			$p{show_help},
-			$p{comments}->{$field->get_name()},
-			$p{dataset},
-			$p{type},
-			$p{staff},
-			$p{hidden_fields},
-			$p{object} ) );
-	}
-
-	foreach (keys %{$p{hidden_fields}})
-	{
-		$form->appendChild( $self->render_hidden_field( 
-					$_, 
-					$p{hidden_fields}->{$_} ) );
-	}
-	if( defined $p{comments}->{above_buttons} )
-	{
-		$form->appendChild( $p{comments}->{above_buttons} );
-	}
-
-	$form->appendChild( $self->render_action_buttons( %{$p{buttons}} ) );
-
-	return $form;
-}
-
-
-######################################################################
-# 
-# $xhtml_field = $repository->_render_input_form_field( $field, $value, $show_names, $show_help, $comment, $dataset, $type, $staff, $hiddenfields, $object )
-#
-# Render a single field in a form being rendered by render_input_form
-#
-######################################################################
-
-sub _render_input_form_field
-{
-	my( $self, $field, $value, $show_names, $show_help, $comment,
-			$dataset, $type, $staff, $hidden_fields , $object) = @_;
-	
-	my( $div, $html, $span );
-
-	$html = $self->make_doc_fragment();
-
-	if( substr( $self->get_internal_button(), 0, length($field->get_name())+1 ) eq $field->get_name()."_" ) 
-	{
-		my $a = $self->make_element( "a", name=>"t" );
-		$html->appendChild( $a );
-	}
-
-	my $req = $field->get_property( "required" );
-
-	if( $show_names )
-	{
-		$div = $self->make_element( "div", class => "ep_form_field_name" );
-
-		# Field name should have a star next to it if it is required
-		# special case for booleans - even if they're required it
-		# dosn't make much sense to highlight them.	
-
-		my $label = $field->render_name( $self );
-		if( $req && !$field->is_type( "boolean" ) )
-		{
-			$label = $self->html_phrase( "sys:ep_form_required",
-				label=>$label );
-		}
-		$div->appendChild( $label );
-
-		$html->appendChild( $div );
-	}
-
-	if( $show_help )
-	{
-		$div = $self->make_element( "div", class => "ep_form_field_help" );
-
-		$div->appendChild( $field->render_help( $self, $type ) );
-		$div->appendChild( $self->make_text( "" ) );
-
-		$html->appendChild( $div );
-	}
-
-	$div = $self->make_element( 
-		"div", 
-		class => "ep_form_field_input",
-		id => "inputfield_".$field->get_name );
-	$div->appendChild( $field->render_input_field( 
-		$self, $value, $dataset, $staff, $hidden_fields , $object ) );
-	$html->appendChild( $div );
-				
-	return( $html );
-}	
-
-######################################################################
-# 
-# $xhtml = $repository->render_toolbox( $title, $content )
-#
-# Render a toolbox. This method will probably gain a whole bunch of new
-# options.
-#
-# title and content are DOM objects.
-#
-######################################################################
-
-sub render_toolbox
-{
-	my( $self, $title, $content ) = @_;
-
-	my $div = $self->make_element( "div", class=>"ep_toolbox" );
-
-	if( defined $title )
-	{
-		my $title_div = $self->make_element( "div", class=>"ep_toolbox_title" );
-		$div->appendChild( $title_div );
-		$title_div->appendChild( $title );
-	}
-
-	my $content_div = $self->make_element( "div", class=>"ep_toolbox_content" );
-	$div->appendChild( $content_div );
-	$content_div->appendChild( $content );
-	return $div;
-}
-
-sub render_message
-{
-	my( $self, $type, $content, $show_icon ) = @_;
-	
-	$show_icon = 1 unless defined $show_icon;
-
-	my $id = "m".$self->get_next_id;
-	my $div = $self->make_element( "div", class=>"ep_msg_".$type, id=>$id );
-	my $content_div = $self->make_element( "div", class=>"ep_msg_".$type."_content" );
-	my $table = $self->make_element( "table" );
-	my $tr = $self->make_element( "tr" );
-	$table->appendChild( $tr );
-	if( $show_icon )
-	{
-		my $td1 = $self->make_element( "td" );
-		my $imagesurl = $self->get_repository->get_conf( "rel_path" );
-		$td1->appendChild( $self->make_element( "img", class=>"ep_msg_".$type."_icon", src=>"$imagesurl/style/images/".$type.".png", alt=>$self->phrase( "Plugin/Screen:message_".$type ) ) );
-		$tr->appendChild( $td1 );
-	}
-	my $td2 = $self->make_element( "td" );
-	$tr->appendChild( $td2 );
-	$td2->appendChild( $content );
-	$content_div->appendChild( $table );
-#	$div->appendChild( $title_div );
-	$div->appendChild( $content_div );
-	return $div;
-}
-
-
-######################################################################
-# 
-# $xhtml = $repository->render_tabs( %params )
-#
-# Render javascript tabs to switch between views. The views must be
-# rendered seperately. 
-
-# %params contains the following options:
-# id_prefix: the prefix of the id attributes.
-# current: the id of the current tab
-# tabs: array of tab ids (in order to display them)
-# labels: maps tab ids to DOM labels for each tab.
-# links: maps tab ids to the URL for each view if there is no javascript.
-# [icons]: maps tab ids to DOM containing a related icon
-# [slow_tabs]: optional array of tabs which must always be linked
-#  slowly rather than using javascript.
-#
-######################################################################
-
-sub render_tabs
-{
-	my( $self, %params ) = @_;
-
-	my $tabs = $params{tabs};
-	my $current = $params{current} || $tabs->[0];
-	my $labels = $params{labels};
-	my %expensive = map { $_ => 1 } @{$params{slow_tabs}||[]};
-
-	# TODO support $params{icons}, $params{links}
-	return $self->xhtml->tabs(
-		[@{$labels}{@$tabs}],
-		[],
-		basename => $params{id_prefix},
-		expensive => [grep { $expensive{$tabs->[$_]} } 0..$#$tabs],
-		current => (grep { $tabs->[$_] eq $current } 0..$#$tabs)[0],
-		aliases => { map { $_ => $tabs->[$_] } 0..$#$tabs },
-		links => $params{links},
-		icons => $params{icons},
-	);
-}
 
 ######################################################################
 # 
@@ -4273,6 +2787,7 @@ sub render_tabs
 #
 ######################################################################
 
+# sf2 - TODO - needed?
 sub get_next_id
 {
 	my( $self ) = @_;
@@ -4287,236 +2802,6 @@ sub get_next_id
 
 
 
-
-
-
-
-
-
-
-
-
-#############################################################
-#############################################################
-=pod
-
-=begin InternalDoc
-
-=back
-
-=head2 Methods relating to the current XHTML page
-
-=over 4
-
-=end InternalDoc
-
-=cut
-#############################################################
-#############################################################
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $repository->write_static_page( $filebase, $parts, [$page_id], [$wrote_files] )
-
-Write an .html file plus a set of files describing the parts of the
-page for use with the dynamic template option.
-
-File base is the name of the page without the .html suffix.
-
-parts is a reference to a hash containing DOM trees.
-
-If $wrote_files is defined then any filenames written are logged in it as keys.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub write_static_page
-{
-	my( $self, $filebase, $parts, $page_id, $wrote_files ) = @_;
-
-	print "Writing: $filebase\n" if( $self->{noise} > 1 );
-	
-	my $dir = $filebase;
-	$dir =~ s/\/[^\/]*$//;
-
-	if( !-d $dir ) { EPrints::Platform::mkdir( $dir ); }
-	if( !defined $parts->{template} && -e "$filebase.template" )
-	{
-		unlink( "$filebase.template" );
-	}
-	foreach my $part_id ( keys %{$parts} )
-	{
-		next if !defined $parts->{$part_id};
-		if( !ref($parts->{$part_id}) )
-		{
-			EPrints::abort( "Page parts must be DOM fragments" );
-		}
-		my $file = $filebase.".".$part_id;
-		if( open( CACHE, ">$file" ) )
-		{
-			binmode(CACHE,":utf8");
-			print CACHE $self->xhtml->to_xhtml( $parts->{$part_id} );
-			close CACHE;
-			if( defined $wrote_files )
-			{
-				$wrote_files->{$file} = 1;
-			}
-		}
-		else
-		{
-			$self->log( "Could not write to file $file" );
-		}
-	}
-
-
-	my $title_textonly_file = $filebase.".title.textonly";
-	if( open( CACHE, ">$title_textonly_file" ) )
-	{
-		binmode(CACHE,":utf8");
-		print CACHE EPrints::Utils::tree_to_utf8( $parts->{title}, undef, undef, undef, 1 ); # don't convert href's to <http://...>'s
-		close CACHE;
-		if( defined $wrote_files )
-		{
-			$wrote_files->{$title_textonly_file} = 1;
-		}
-	}
-	else
-	{
-		$self->log( "Could not write to file $title_textonly_file" );
-	}
-
-	my $html_file = $filebase.".html";
-	$self->prepare_page( $parts, page_id=>$page_id );
-	$self->page_to_file( $html_file, $wrote_files );
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $repository->prepare_page( $parts, %options )
-
-Create an XHTML page for this session. 
-
-$parts is a hash of XHTML elements to insert into the pins in the
-template. Usually: title, page. Maybe pagetop and head.
-
-If template is set then an alternate template file is used.
-
-This function only builds the page it does not output it any way, see
-the methods below for that.
-
-Options include:
-
-page_id=>"id to put in body tag"
-template=>"The template to use instead of default."
-
-=end InternalDoc
-
-=cut
-######################################################################
-# move to compat module?
-
-sub build_page
-{
-	my( $self, $title, $mainbit, $page_id, $links, $template ) = @_;
-	$self->prepare_page( { title=>$title, page=>$mainbit, pagetop=>undef,head=>$links}, page_id=>$page_id, template=>$template );
-}
-sub prepare_page
-{
-	my( $self, $map, %options ) = @_;
-	$self->{page} = $self->xhtml->page( $map, %options );
-}
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $repository->send_page( %httpopts )
-
-Send a web page out by HTTP. Only relevant if this is a CGI script.
-build_page must have been called first.
-
-See send_http_header for an explanation of %httpopts
-
-Dispose of the XML once it's sent out.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub send_page
-{
-	my( $self, %httpopts ) = @_;
-
-	$self->{page}->send( %httpopts );
-	delete $self->{page};
-}
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $repository->page_to_file( $filename, [$wrote_files] )
-
-Write out the current webpage to the given filename.
-
-build_page must have been called first.
-
-Dispose of the XML once it's sent out.
-
-If $wrote_files is set then keys are created in it for each file
-created.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub page_to_file
-{
-	my( $self , $filename, $wrote_files ) = @_;
-	
-	$self->{page}->write_to_file( $filename, $wrote_files );
-	delete $self->{page};
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $repository->set_page( $newhtml )
-
-Erase the current page for this session, if any, and replace it with
-the XML DOM structure described by $newhtml.
-
-This page is what is output by page_to_file or send_page.
-
-$newhtml is a normal DOM Element, not a document object.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub set_page
-{
-	my( $self, $newhtml ) = @_;
-	
-	$self->{page} = EPrints::Page::DOM->new( $self, $newhtml );
-}
 
 
 ######################################################################
@@ -4541,6 +2826,7 @@ copied too.
 =cut
 ######################################################################
 
+# TODO sf2 - move to $self->xml
 sub clone_for_me
 {
 	my( $self, $node, $deep ) = @_;
@@ -4575,13 +2861,12 @@ sub redirect
 		print STDERR "ODD! redirect called in offline script.\n";
 		return;
 	}
-	EPrints::Apache::AnApache::send_status_line( $self->{"request"}, 302, "Moved" );
-	EPrints::Apache::AnApache::header_out( 
+	EPrints::Apache::send_status_line( $self->{"request"}, 302, "Moved" );
+	EPrints::Apache::header_out( 
 		$self->{"request"},
 		"Location",
 		$url );
 
-	EPrints::Apache::AnApache::send_http_header( $self->{"request"}, %opts );
 	return 302;
 }
 
@@ -4617,7 +2902,7 @@ sub not_found
 		$message = "Not Found";
 	}
 
-	EPrints::Apache::AnApache::send_status_line( $self->{"request"}, 404, $message );
+	EPrints::Apache::send_status_line( $self->{"request"}, 404, $message );
 	return 404;
 }
 
@@ -4649,7 +2934,7 @@ sub send_http_header
 	my( $self, %opts ) = @_;
 
 	# Write HTTP headers if appropriate
-	if( $self->{offline} )
+	if( !$self->is_online )
 	{
 		$self->log( "Attempt to send HTTP Header while offline" );
 		return;
@@ -4661,11 +2946,11 @@ sub send_http_header
 	}
 	$self->{request}->content_type( $opts{content_type} );
 
-	EPrints::Apache::AnApache::header_out( 
+	EPrints::Apache::header_out( 
 		$self->{"request"},
 		"Cache-Control" => "no-store, no-cache, must-revalidate" );
+	return;
 
-	EPrints::Apache::AnApache::send_http_header( $self->{request} );
 }
 
 # $repository->read_params
@@ -4679,14 +2964,18 @@ sub send_http_header
 sub read_params
 {
 	my( $self ) = @_;
-
+	
 	my $r = $self->{request};
 	if( !$r )
 	{
-		EPrints::abort( "Attempt to read_params without a mod_perl request" );
+		EPrints->abort( "Attempt to read_params without a mod_perl request" );
 	}
 
+	$self->debug_log( "request", "consuming POSTDATA" );
+
 	my $uri = $r->unparsed_uri;
+
+# TODO sf2 - remove that:
 	my $progressid = ($uri =~ /progress_?id=([a-fA-F0-9]{32})/)[0];
 
 	my $c = $r->connection;
@@ -4698,6 +2987,7 @@ sub read_params
 	}
 	elsif( defined( $progressid ) && $r->method eq "POST" )
 	{
+# TODO sf2 - remove that - move to a Controller or something (all the upload progress stuff that is)
 		EPrints::DataObj::UploadProgress->remove_expired( $self );
 
 		my $size = $r->headers_in->get('Content-Length') || 0;
@@ -4729,7 +3019,9 @@ sub read_params
 	}
 
 	$c->notes->set( loginparams=>'undef' );
+	return;
 }
+
 
 ######################################################################
 =pod
@@ -4745,6 +3037,7 @@ Return true if the current script had any parameters (post or get)
 =cut
 ######################################################################
 
+# sf2 - needed? have_parameters should be has_params ?
 sub have_parameters
 {
 	my( $self ) = @_;
@@ -4754,221 +3047,6 @@ sub have_parameters
 	return( scalar @names > 0 );
 }
 
-
-
-
-
-sub logout
-{
-	my( $self ) = @_;
-
-	$self->{logged_out} = 1;
-}
-
-sub reload_current_user
-{
-	my( $self ) = @_;
-
-	delete $self->{current_user};
-}
-
-sub _current_user_auth_basic
-{
-	my( $self ) = @_;
-
-	if( !defined $self->{request} )
-	{
-		# not a cgi script.
-		return undef;
-	}
-
-	my $username = $self->{request}->user;
-
-	return undef if( !EPrints::Utils::is_set( $username ) );
-
-	my $user = EPrints::DataObj::User::user_with_username( $self, $username );
-	return $user;
-}
-
-sub current_loginticket
-{
-	my( $self ) = @_;
-
-	return EPrints::DataObj::LoginTicket->new_from_request(
-		$self,
-		$self->{request}
-	);
-}
-
-# Attempt to login using cookie based login.
-
-# Returns a user on success or undef on failure.
-
-sub _current_user_auth_cookie
-{
-	my( $self ) = @_;
-
-	if( !defined $self->{request} )
-	{
-		# not a cgi script.
-		return undef;
-	}
-
-
-	# we won't have the cookie for the page after login.
-	my $c = $self->{request}->connection;
-	my $userid = $c->notes->get( "userid" );
-	$c->notes->set( "userid", 'undef' );
-
-	if( EPrints::Utils::is_set( $userid ) && $userid ne 'undef' )
-	{	
-		my $user = EPrints::DataObj::User->new( $self, $userid );
-		return $user;
-	}
-	
-	my $ticket = $self->current_loginticket;
-	return undef if !defined $ticket;
-
-	$ticket->update;
-
-	return $self->user( $ticket->value( "userid" ) );
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $boolean = $repository->internal_button_pressed( $buttonid )
-
-Return true if a button has been pressed in a form which is intended
-to reload the current page with some change.
-
-Examples include the "more spaces" button on multiple fields, the 
-"lookup" button on succeeds, etc.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub internal_button_pressed
-{
-	my( $self, $buttonid ) = @_;
-
-	if( defined $buttonid )
-	{
-		return 1 if( defined $self->param( "_internal_".$buttonid ) );
-		return 1 if( defined $self->param( "_internal_".$buttonid.".x" ) );
-		return 0;
-	}
-	
-	if( !defined $self->{internalbuttonpressed} )
-	{
-		my $p;
-		# $p = string
-		
-		$self->{internalbuttonpressed} = 0;
-
-		foreach $p ( $self->param() )
-		{
-			if( $p =~ m/^_internal/ && EPrints::Utils::is_set( $self->param($p) ) )
-			{
-				$self->{internalbuttonpressed} = 1;
-				last;
-			}
-
-		}	
-	}
-
-	return $self->{internalbuttonpressed};
-}
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $action_id = $repository->get_action_button
-
-Return the ID of the eprint action button which has been pressed in
-a form, if there was one. The name of the button is "_action_" 
-followed by the id. 
-
-This also handles the .x and .y inserted in image submit.
-
-This is designed to get back the name of an action button created
-by render_action_buttons.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub get_action_button
-{
-	my( $self ) = @_;
-
-	my $p;
-	# $p = string
-	foreach $p ( $self->param() )
-	{
-		if( $p =~ s/^_action_// )
-		{
-			$p =~ s/\.[xy]$//;
-			return $p;
-		}
-	}
-
-	# undef if _default is not set.
-	$p = $self->param("_default_action");
-	return $p if defined $p;
-
-	return "";
-}
-
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $button_id = $repository->get_internal_button
-
-Return the id of the internal button which has been pushed, or 
-undef if one wasn't.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub get_internal_button
-{
-	my( $self ) = @_;
-
-	if( defined $self->{internalbutton} )
-	{
-		return $self->{internalbutton};
-	}
-
-	my $p;
-	# $p = string
-	foreach $p ( $self->param() )
-	{
-		if( $p =~ m/^_internal_/ )
-		{
-			$p =~ s/\.[xy]$//;
-			$self->{internalbutton} = substr($p,10);
-			return $self->{internalbutton};
-		}
-	}
-
-	$self->{internalbutton} = "";
-	return $self->{internalbutton};
-}
 
 ######################################################################
 =pod
@@ -5035,43 +3113,12 @@ sub plugin
 {
 	my( $self, $pluginid, %params ) = @_;
 
-	return $self->get_repository->get_plugin_factory->get_plugin( $pluginid,
+	return $self->get_plugin_factory->get_plugin( $pluginid,
 		%params,
 		session => $self,
 		repository => $self,
 		);
 }
-
-=begin InternalDoc
-
-=item $success = $repository->expire_abstracts()
-
-Cause the abstract pages to regenerate next time they are requested by expiring them.
-
-Returns success if done successfully.
-
-=end InternalDoc
-
-=cut
-
-sub expire_abstracts
-{
-	my ( $self ) = @_;
-
-	my $file = $self->get_conf( "variables_path" )."/abstracts.timestamp";
-	
-	unless( open( CHANGEDFILE, ">$file" ) )
-	{
-		return 0;
-	}
-	
-	print CHANGEDFILE "This file last poked at: ".EPrints::Time::human_time()."\n";
-	close CHANGEDFILE;
-
-	return 1;
-}
-
-
 
 ######################################################################
 =pod
@@ -5174,18 +3221,19 @@ the values the utf8 strings to replace the pins with.
 =cut
 ######################################################################
 
+# sf2 - TODO move to $self->email->... ? odd method to have in $repository
 sub mail_administrator
 {
 	my( $self,   $subjectid, $messageid, %inserts ) = @_;
 	
 	# Mail the admin in the default language
-	my $langid = $self->get_conf( "defaultlanguage" );
+	my $langid = $self->config( "defaultlanguage" );
 	return EPrints::Email::send_mail(
 		session => $self,
 		langid => $langid,
-		to_email => $self->get_conf( "adminemail" ),
+		to_email => $self->config( "adminemail" ),
 		to_name => $self->phrase( "lib/session:archive_admin" ),	
-		from_email => $self->get_conf( "adminemail" ),
+		from_email => $self->config( "adminemail" ),
 		from_name => $self->phrase( "lib/session:archive_admin" ),	
 		subject =>  EPrints::Utils::tree_to_utf8(
 			$self->html_phrase( $subjectid ) ),
@@ -5193,44 +3241,192 @@ sub mail_administrator
 }
 
 
-
-my $PUBLIC_PRIVS =
-{
-	"eprint_search" => 1,
-	"eprint/archive/view" => 1,
-	"eprint/archive/export" => 1,
-	"subject/view" => 1,
-	"subject/export" => 1,
-	"saved_search/public_saved_search/export" => 1,
-	"saved_search/public_saved_search/view" => 1,
-};
-
 sub allow_anybody
 {
-	my( $repository, $priv ) = @_;
+	my( $self, $priv ) = @_;
 
-	return 1 if( $PUBLIC_PRIVS->{$priv} );
+	EPrints->deprecated;
+	
+	return 0 if( !defined $priv );
 
-	# This doesn't understand actual roles, just +priv 
-	# we might extend it later if there's a need. 
-	my $public_roles = $repository->config( "public_roles" );
-	if( $public_roles ) 
+	if( $self->{config}->{public_privs}->{$priv} )
 	{
-		foreach my $role_id ( @{$public_roles} )
+		if( $priv =~ /^acl\// )
 		{
-			return 1 if( $role_id eq "+".$priv );
+			$self->log( 'Repository->allow_anybody: not allowing "acl" dataset to be publicly accessible' );
+			return 0;
 		}
+
+		return 1;
 	}
 
 	return 0;
 }
 
 
+# this is done via a Cookie and should only be called internally by $self->current_user
+sub load_user_session
+{
+	my( $self ) = @_;
 
+	$self->debug_log( "auth", "loading user session..." );
+
+        my $ticket = EPrints::DataObj::LoginTicket->new_from_request( $self );
+
+        if( !defined $ticket )
+        {
+		$self->debug_log( "auth", "loading user session failed" );
+		return undef;
+        }
+
+        $ticket->update;
+
+        my $user = $self->dataset( 'user' )->dataobj( $ticket->value( 'userid' ) );
+
+        if( !defined $user )
+        {
+		$self->debug_log( "auth", "ticket found but user does not exist" );
+                # invalid ticket
+                $ticket->remove;
+		return undef;
+        }
+        
+	$self->debug_log( "auth", "loaded session for user '%s'", $user->value( 'username' ) );
+       
+	return $user;
+}
+
+# checks username, password OK against configured login method (internal, ldap...)
+# creates ticket/user session
 sub login
 {
-	my( $self,$user,$code ) = @_;
+	my( $self, $username, $password ) = @_;
+
+	# checks credentials are OK (internal, LDAP, ...)
+
+	$username = $self->valid_login( $username, $password );
+
+	if( defined $username )
+	{
+		my $user = EPrints::DataObj::User::user_with_username( $self, $username );
+		if( defined $user )
+		{
+			$self->request->user( $username );
+
+# TODO should clean up any tickets matching that userid and IP? 
+# otherwise ppl authenticating with basic auth might create lots of tickets if they can't 
+# store cookies eg curl (one per request)
+			$self->dataset( "loginticket" )->create_dataobj({
+				userid => $user->id,
+			})->set_cookies();		
+
+			$self->load_current_user( $user );
+			
+			$self->debug_log( "auth", "login OK - user session created, cookies sent" );
+
+			return 1;
+		}
+	}
+
+	return 0;
 }
+
+######################################################################
+=pod
+
+=item $user = $repository->current_user
+
+Return the current logged in L<EPrints::DataObj::User> for this session.
+
+Return undef if there isn't one.
+
+=cut
+######################################################################
+
+sub set_cli_user
+{
+	my( $self, $user ) = @_;
+
+	return if $self->is_online || !defined $user;
+
+	$self->debug_log( "auth", "setting CLI user %s", $user->value( 'username' ) );
+
+	$self->{current_user} = $user;
+}
+
+# allow to test whether there's a user already-logged in, without loading 
+# a user-session when it's not
+sub has_current_user
+{
+	my( $self ) = @_;
+
+	return defined $self->{current_user};
+}
+
+sub current_user
+{
+	my( $self ) = @_;
+
+	# we just logged out: (TODO is this actually used?)
+	return undef if( $self->{logged_out} );
+	
+	if( !$self->is_online )
+	{
+		# allow a script to set a running user
+		return $self->{current_user} if( defined $self->{current_user} );
+		return undef;
+	}
+
+	# but for everything afterwards (cookie etc) we need the web
+	
+	if( defined $self->{current_user} )
+	{
+		return $self->{current_user};
+	}
+
+	my $user = $self->load_user_session();
+
+	$self->{current_user} = $user;
+
+	return $self->{current_user};
+
+}
+
+# sf2 - used anywhere?
+sub logout
+{
+	my( $self ) = @_;
+        
+	my $ticket = EPrints::DataObj::LoginTicket->new_from_request( $self );
+
+	if( $ticket )
+	{
+		$self->{logged_out} = 1;
+		$ticket->remove;
+		delete $self->{current_user};
+	}
+
+	return 1;
+}
+
+# sf2 - added - used by AUTH triggers to load the authenticated user
+sub load_current_user
+{
+	my( $self, $user ) = @_;
+
+	$self->{current_user} = $user;
+
+	return;
+}
+
+sub reload_current_user
+{
+	my( $self ) = @_;
+
+	delete $self->{current_user};
+	return;
+}
+
 
 =begin InternalDoc
 
@@ -5277,80 +3473,6 @@ sub valid_login
 	return $real_username;
 }
 
-sub cache_subjects
-{
-  my( $self ) = @_;
-
-  ( $self->{subject_cache}, $self->{subject_child_map} ) =
-    EPrints::DataObj::Subject::get_all( $self );
-    $self->{subjects_cached} = 1;
-}
-
-
-######################################################################
-#
-# $repository->get_static_page_conf_file
-# 
-# Utility method to return the config file for the static html page 
-# being viewed, if there is one, and it's in the repository config.
-#
-######################################################################
-
-sub get_static_page_conf_file
-{
-	my( $repository ) = @_;
-
-	my $r = $repository->get_request;
-	my $esec = $r->dir_config( "EPrints_Secure" );
-	my $secure = (defined $esec && $esec eq "yes" );
-	my $urlpath;
-	if( $secure ) 
-	{ 
-		$urlpath = $repository->get_conf( "https_root" );
-	}
-	else
-	{ 
-		$urlpath = $repository->get_conf( "http_root" );
-	}
-
-	my $uri = $r->uri;
-
-	my $lang = EPrints::Repository::get_session_language( $repository, $r );
-	my $args = $r->args;
-	$args = "?$args" if defined $args;
-
-	# Skip rewriting the /cgi/ path and any other specified in
-	# the config file.
-	my $econf = $repository->get_conf('rewrite_exceptions');
-	my @exceptions = ();
-	if( defined $econf ) { @exceptions = @{$econf}; }
-	push @exceptions,
-		"$urlpath/id/",
-		"$urlpath/view/",
-		"$urlpath/sword-app/",
-		"$urlpath/thumbnails/";
-
-	foreach my $exppath ( @exceptions )
-	{
-		return undef if( $uri =~ m/^$exppath/ );
-	}
-
-	return undef if( $uri =~ m!^$urlpath/\d+/! );
-	return undef unless( $uri =~ s/^$urlpath// );
-	$uri =~ s/\/$/\/index.html/;
-	return undef unless( $uri =~ s/\.html$// );
-
-	foreach my $suffix ( qw/ xpage xhtml html / )
-	{
-		my $conffile = "lang/".$repository->get_langid."/static".$uri.".".$suffix;	
-		if( -e $repository->get_repository->get_conf( "config_path" )."/".$conffile )
-		{
-			return $conffile;
-		}
-	}
-
-	return undef;
-}
 
 sub check_last_changed
 {
@@ -5374,6 +3496,7 @@ sub check_last_changed
 			warn( "Something went wrong while reloading configuration" );
 		}
 	}
+	return;
 }
 
 sub check_developer_mode
@@ -5400,6 +3523,7 @@ sub check_developer_mode
 	}
 	print CHANGEDFILE "This file last poked at: ".EPrints::Time::human_time()."\n";
 	close CHANGEDFILE;
+	return;
 }
 
 =item $repo->init_from_indexer( $daemon )
@@ -5417,11 +3541,11 @@ sub init_from_indexer
 	# see if we need to reload our configuration
 	$self->check_last_changed;
 
-	# connect to the database
-	$self->{database} = EPrints::Database->new( $self );
+	$self->connect_database;
 
 	# set the language to default
 	$self->change_lang();
+	return;
 }
 
 sub init_from_request
@@ -5438,18 +3562,12 @@ sub init_from_request
 
 	# go online
 	$self->{request} = $request;
-	$self->{offline} = 0;
+	$self->{online} = 1;
 
 	# register a cleanup call for us
 	$request->pool->cleanup_register( \&cleanup, $self );
 
-	# connect to the database
-	$self->{database} = EPrints::Database->new( $self );
-
-	if( !defined $self->{database} )
-	{
-		EPrints->abort( "Error connecting to database: ".$DBI::errstr );
-	}
+	# Note that the connection to the DB is not initialised here - we'll connect on-demand
 
 	# add live HTTP path configuration
 	$self->_add_live_http_paths;
@@ -5459,32 +3577,50 @@ sub init_from_request
 
 	$self->run_trigger( EP_TRIGGER_BEGIN_REQUEST );
 
+	# memcached
+	$self->init_cache;
+
 	return 1;
 }
 
-my @CACHE_KEYS = qw/ id citations class config datasets field_defaults html_templates template_path langs plugins storage template_mtime text_templates types workflows loadtime noise /;
+my @CACHE_KEYS = qw/ id citations class config datasets field_defaults langs plugins storage types workflows loadtime noise templates memd debug /;
 my %CACHED = map { $_ => 1 } @CACHE_KEYS;
 
 sub cleanup
 {
 	my( $self ) = @_;
-
-	if( $self->get_online )
+	
+	if( $self->is_online )
 	{
 		$self->run_trigger( EP_TRIGGER_END_REQUEST )
 	}
 
-	if( defined $self->{database} )
+	if( $self->database_connected )
 	{
-		$self->{database}->disconnect;
+		$self->debug_log( "db", "disconnecting" );
+		$self->database->disconnect;
 	}
+
+#	if( defined $self->{memd} )
+#	{
+#		$self->debug_log( "memcached", "disconnecting" );
+#		$self->{memd}->disconnect_all;
+#	}
 
 	for(keys %$self)
 	{
 		delete $self->{$_} if !$CACHED{$_};
 	}
 
-	$self->{offline} = 1;
+	foreach my $ds ( values %{ $self->{datasets} || {} } )
+	{
+		$ds->reset_state;
+		$ds->reset_context;
+	}
+
+
+	$self->{online} = 0;
+	return;
 }
 
 ######################################################################
@@ -5496,6 +3632,17 @@ sub cleanup
 
 ######################################################################
 
+# sf2 - deprecated
+sub make_text
+{
+	my( $self, $value ) = @_;
+
+	EPrints->deprecated();
+
+	print STDERR "[make_text] $value\n";
+
+	return $self->xml->create_text_node( $value );
+}
 
 
 1;
