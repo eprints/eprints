@@ -15,7 +15,7 @@
 =head1 NAME
 
 B<EPrints::Database> - a connection to the SQL database for an eprints
-session.
+repository.
 
 =head1 DESCRIPTION
 
@@ -26,9 +26,9 @@ via this module, in the hope that the backend can be replaced
 as easily as possible.
 
 The database object is created automatically when you start a new
-eprints session. To get a handle on it use:
+eprints repository. To get a handle on it use:
 
-$db = $session->get_database
+$db = $repository->get_database
 
 =head2 Cross-database Support
 
@@ -46,12 +46,9 @@ Variables that are database quoted are prefixed with 'Q_'.
 #
 # INSTANCE VARIABLES:
 #
-#  $self->{session}
+#  $self->{repository}
 #     The EPrints::Session which is associated with this database 
 #     connection.
-#
-#  $self->{debug}
-#     If true then SQL is logged.
 #
 #  $self->{dbh}
 #     The handle on the actual database connection.
@@ -166,24 +163,24 @@ sub build_connection_string
 
 sub _new
 {
-	my( $class, $session ) = @_;
+	my( $class, $repository ) = @_;
 
-	my $driver = $session->config( "dbdriver" );
+	my $driver = $repository->config( "dbdriver" );
 	$driver ||= "mysql";
+
+	my $engine = $repository->config( "dbengine" );
+	if( defined $engine && lc($engine) eq 'innodb' )
+	{
+		$driver = "innodb";
+	}
 
 	$class = "${class}::$driver";
 	eval "use $class; 1";
 	die $@ if $@;
 
-	my $self = bless { session => $session }, $class;
-	Scalar::Util::weaken($self->{session})
+	my $self = bless { repository => $repository }, $class;
+	Scalar::Util::weaken($self->{repository})
 		if defined &Scalar::Util::weaken;
-
-	$self->{debug} = $DEBUG_SQL;
-	if( $session->{noise} == 3 )
-	{
-		$self->{debug} = 1;
-	}
 
 	return $self;
 }
@@ -204,7 +201,7 @@ sub create
 ######################################################################
 =pod
 
-=item $db = EPrints::Database->new( $session )
+=item $db = EPrints::Database->new( $repository )
 
 Create a connection to the database.
 
@@ -213,17 +210,21 @@ Create a connection to the database.
 
 sub new
 {
-	my( $class, $session, %opts ) = @_;
+	my( $class, $repository, %opts ) = @_;
 
 	my $db_connect = exists($opts{db_connect}) ? $opts{db_connect} : 1;
 
-	my $self = $class->_new( $session );
+	my $self = $class->_new( $repository );
 
 	if( $db_connect )
 	{
+
+
 		$self->connect;
 		if( !defined $self->{dbh} ) { return( undef ); }
 	}
+
+	$repository->debug_log( "db", "Connected to DB" );
 
 	return( $self );
 }
@@ -242,7 +243,7 @@ sub connect
 {
 	my( $self ) = @_;
 
-	my $repo = $self->{session};
+	my $repo = $self->{repository};
 
 	# Connect to the database
 	$self->{dbh} = DBI->connect_cached( 
@@ -290,10 +291,10 @@ sub disconnect
 	if( defined $self->{dbh} )
 	{
 		$self->{dbh}->disconnect() ||
-			$self->{session}->get_repository->log( "Database disconnect error: ".
+			$self->{repository}->log( "Database disconnect error: ".
 				$self->{dbh}->errstr );
 	}
-	delete $self->{session};
+	delete $self->{repository};
 }
 
 
@@ -386,10 +387,10 @@ sub create_archive_tables
 	
 	my $success = 1;
 
-	foreach( $self->{session}->get_repository->get_sql_dataset_ids )
+	foreach( $self->{repository}->get_sql_dataset_ids )
 	{
 		$success = $success && $self->create_dataset_tables( 
-			$self->{session}->get_repository->get_dataset( $_ ) );
+			$self->{repository}->dataset( $_ ) );
 	}
 
 	$success = $success && $self->create_counters();
@@ -413,10 +414,10 @@ sub drop_archive_tables
 
 	my $success = 1;
 
-	foreach( $self->{session}->get_sql_dataset_ids )
+	foreach( $self->{repository}->get_sql_dataset_ids )
 	{
 		$success |= $self->drop_dataset_tables( 
-			$self->{session}->dataset( $_ ) );
+			$self->{repository}->dataset( $_ ) );
 	}
 
 	$success |= $self->remove_counters();
@@ -484,7 +485,7 @@ sub create_dataset_tables
 		my $key_field = $dataset->key_field;
 
 		my $pos = EPrints::MetaField->new( 
-				repository => $self->{session},
+				repository => $self->{repository},
 				name => "pos", 
 				type => "int",
 				sql_index => 1,
@@ -496,15 +497,6 @@ sub create_dataset_tables
 		$rv &&= $self->create_table( $table, 2, $key_field, $pos, $aux_field );
 		$rv &&= $self->create_foreign_key( $main_table, $table, $key_field );
 	}
-
-	# Create the index tables
-	if( $dataset->indexable )
-	{
-		$rv &&= $self->create_dataset_index_tables( $dataset );
-	}
-
-	# Create the ordervalues tables
-	$rv &&= $self->create_dataset_ordervalues_tables( $dataset );
 
 	return $rv;
 }
@@ -532,23 +524,9 @@ sub drop_dataset_tables
 		push @tables, $dataset->get_sql_sub_table_name( $field );
 	}
 
-	foreach my $langid ( @{$self->{session}->config( "languages" )} )
-	{
-		push @tables, $dataset->get_ordervalues_table_name( $langid );
-	}
-
-	if( $dataset->indexable )
-	{
-		push @tables, 
-			$dataset->get_sql_index_table_name,
-			$dataset->get_sql_grep_table_name,
-			$dataset->get_sql_rindex_table_name
-		;
-	}
-
 	push @tables, $dataset->get_sql_table_name;
 
-	if( $self->{session}->get_noise >= 1 )
+	if( $self->{repository}->get_noise >= 1 )
 	{
 		print "Removing ".$dataset->id."\n";
 		print "\t$_\n" for @tables;
@@ -572,108 +550,12 @@ Create all the index tables for a single dataset.
 sub create_dataset_index_tables
 {
 	my( $self, $dataset ) = @_;
-	
-	my $rv = 1;
 
-	my $keyfield = $dataset->get_key_field()->clone;
+	EPrints->deprecated();
 
-	$keyfield->set_property( allow_null => 0 );
+	return;
 
-	my $field_fieldword = EPrints::MetaField->new( 
-		repository=> $self->{session}->get_repository,
-		name => "fieldword", 
-		type => "text",
-		maxlength => 128,
-		allow_null => 0);
-	my $field_pos = EPrints::MetaField->new( 
-		repository=> $self->{session}->get_repository,
-		name => "pos", 
-		type => "int",
-		sql_index => 0,
-		allow_null => 0);
-	my $field_ids = EPrints::MetaField->new( 
-		repository=> $self->{session}->get_repository,
-		name => "ids", 
-		type => "longtext",
-		allow_null => 0);
-	if( !$self->has_table( $dataset->get_sql_index_table_name ) )
-	{
-		$rv &= $self->create_table(
-			$dataset->get_sql_index_table_name,
-			2, # primary key over word/pos
-			( $field_fieldword, $field_pos, $field_ids ) );
-	}
-
-	#######################
-
-		
-	my $field_fieldname = EPrints::MetaField->new( 
-		repository=> $self->{session}->get_repository,
-		name => "fieldname", 
-		type => "text",
-		maxlength => 64,
-		allow_null => 0 );
-	my $field_grepstring = EPrints::MetaField->new( 
-		repository=> $self->{session}->get_repository,
-		name => "grepstring", 
-		type => "text",
-		maxlength => 128,
-		allow_null => 0 );
-
-	if( !$self->has_table( $dataset->get_sql_grep_table_name ) )
-	{
-		$rv = $rv & $self->create_table(
-			$dataset->get_sql_grep_table_name,
-			3, # no primary key
-			( $field_fieldname, $field_grepstring, $keyfield ) );
-		$rv &= $self->create_foreign_key(
-			$dataset->get_sql_table_name,
-			$dataset->get_sql_grep_table_name,
-			$keyfield );
-	}
-
-
-	return 0 unless $rv;
-	###########################
-
-	my $field_field = EPrints::MetaField->new( 
-		repository=> $self->{session}->get_repository,
-		name => "field", 
-		type => "text",
-		maxlength => 64,
-		allow_null => 0 );
-	my $field_word = EPrints::MetaField->new( 
-		repository=> $self->{session}->get_repository,
-		name => "word", 
-		type => "text",
-		maxlength => 128,
-		allow_null => 0 );
-
-	my $rindex_table = $dataset->get_sql_rindex_table_name;
-
-	if( !$self->has_table( $rindex_table ) )
-	{
-		local $keyfield->{sql_index} = 0; # See KEY added below
-		$rv = $rv & $self->create_table(
-			$rindex_table,
-			3, # primary key over all fields
-			( $field_field, $field_word, $keyfield ) );
-		$rv &= $self->create_foreign_key(
-			$dataset->get_sql_table_name,
-			$dataset->get_sql_rindex_table_name,
-			$keyfield );
-	}
-	if( !defined($self->index_name( $rindex_table, $keyfield->get_sql_name, $field_field->get_sql_name )) )
-	{
-		# KEY(id,field) - used by deletion
-		$rv = $rv & $self->create_index(
-			$dataset->get_sql_rindex_table_name,
-			$keyfield->get_sql_name, $field_field->get_sql_name
-		);
-	}
-
-	return $rv;
-}
+};
 
 ######################################################################
 =pod
@@ -688,38 +570,10 @@ Create all the ordervalues tables for a single dataset.
 sub create_dataset_ordervalues_tables
 {
 	my( $self, $dataset ) = @_;
-	
-	my $rv = 1;
 
-	my $keyfield = $dataset->get_key_field()->clone;
-	# Create sort values table. These will be used when ordering search
-	# results.
-	my @fields = $dataset->get_fields( 1 );
-	# remove the key field
-	splice( @fields, 0, 1 ); 
-	foreach my $langid ( @{$self->{session}->get_repository->get_conf( "languages" )} )
-	{
-		my $order_table = $dataset->get_ordervalues_table_name( $langid );
-		my @orderfields = ( $keyfield );
-		foreach my $field ( @fields )
-		{
-			push @orderfields, $field->create_ordervalues_field( $self->{session}, $langid );
-		}
+	EPrints->deprecated;
 
-		if( !$self->has_table( $order_table ) )
-		{
-			$rv &&= $self->create_table( 
-				$order_table,
-				1, 
-				@orderfields );
-			$rv &&= $self->create_foreign_key(
-				$dataset->get_sql_table_name,
-				$order_table,
-				$keyfield );
-		}
-	}
-
-	return $rv;
+	return 1;
 }
 
 =item $type_info = $db->type_info( DATA_TYPE )
@@ -791,8 +645,7 @@ sub get_column_type
 {
 	my( $self, $name, $data_type, $not_null, $length, $scale, %opts ) = @_;
 
-	my $session = $self->{session};
-	my $repository = $session->get_repository;
+	my $repository = $self->{repository};
 
 	my $type_info = $self->type_info( $data_type );
 	my( $db_type, $params ) = @$type_info{
@@ -906,7 +759,7 @@ sub create_table
 		{
 			push @indices, [$field->get_sql_index()];
 		}
-		push @columns, $field->get_sql_type( $self->{session} );
+		push @columns, $field->get_sql_type( $self->{repository} );
 	}
 	
 	@primary_key = map {
@@ -1168,10 +1021,7 @@ sub _update
 
 	my $sth = $self->prepare($sql);
 
-	if( $self->{debug} )
-	{
-		$self->{session}->get_repository->log( "Database execute debug: $sql" );
-	}
+	$self->{repository}->debug_log( "sql", $sql );
 
 	my $rv = 0;
 
@@ -1185,7 +1035,7 @@ sub _update
 		my $rc = $sth->execute(); # execute can return "0e0"
 		if( !$rc )
 		{
-			$self->{session}->log( Carp::longmess( $sth->{Statement} . ": " . $self->{dbh}->err ) );
+			EPrints->trace( $sth->{Statement} . ": " . $self->{dbh}->err );
 			return $rc;
 		}
 		$rv += $rc; # otherwise add up the number of rows affected
@@ -1271,10 +1121,7 @@ sub insert
 	$sql .= " VALUES ";
 	$sql .= "(".join(",", map { '?' } @$columns).")";
 
-	if( $self->{debug} )
-	{
-		$self->{session}->get_repository->log( "Database execute debug: $sql" );
-	}
+	$self->{repository}->debug_log( "sql", $sql );
 
 	my $sth = $self->prepare($sql);
 	foreach my $row (@values)
@@ -1347,6 +1194,8 @@ sub delete_from
 
 	my $sql = "DELETE FROM ".$self->quote_identifier($table)." WHERE ".
 		join(" AND ", map { $self->quote_identifier($_)."=?" } @$keys);
+
+	$self->{repository}->debug_log( "sql", $sql );
 	
 	my $sth = $self->prepare($sql);
 	for(@values)
@@ -1374,7 +1223,7 @@ sub add_record
 	my( $self, $dataset, $data ) = @_;
 
 	my $table = $dataset->get_sql_table_name();
-	my $keyfield = $dataset->get_key_field();
+	my $keyfield = $dataset->key_field();
 	my $keyname = $keyfield->get_sql_name;
 	my $id = $data->{$keyname};
 
@@ -1387,13 +1236,6 @@ sub add_record
 			Carp::carp( $DBI::errstr ) if !$self->duplicate_error;
 			return 0;
 		}
-	}
-
-	if( $dataset->ordered )
-	{
-		EPrints::Index::insert_ordervalues( $self->{session}, $dataset, {
-				$keyname => $id,
-			});
 	}
 
 	# Now add the ACTUAL data:
@@ -1560,7 +1402,7 @@ sub update
 
 	my $rv = 1;
 
-	my $keyfield = $dataset->get_key_field();
+	my $keyfield = $dataset->key_field();
 	my $keyname = $keyfield->get_sql_name();
 	my $keyvalue = $data->{$keyname};
 
@@ -1585,7 +1427,7 @@ sub update
 		my $value = $data->{$fieldname};
 
 		push @names, $field->get_sql_names;
-		push @values, $field->sql_row_from_value( $self->{session}, $value );
+		push @values, $field->sql_row_from_value( $self->{repository}, $value );
 	}
 
 	if( scalar @values )
@@ -1626,16 +1468,11 @@ sub update
 			push @rows, [
 				$keyvalue,
 				$position++,
-				$multifield->sql_row_from_value( $self->{session}, $value )
+				$multifield->sql_row_from_value( $self->{repository}, $value )
 			];
 		}
 
 		$rv &&= $self->insert( $auxtable, \@names, @rows );
-	}
-
-	if( $dataset->ordered )
-	{
-		EPrints::Index::update_ordervalues( $self->{session}, $dataset, $data, $changed );
 	}
 
 	return $rv;
@@ -1660,7 +1497,7 @@ sub remove
 
 	my $rv=1;
 
-	my $keyfield = $dataset->get_key_field();
+	my $keyfield = $dataset->key_field();
 	my $keyname = $keyfield->get_sql_name();
 	my $keyvalue = $id;
 
@@ -1668,7 +1505,7 @@ sub remove
 	#$self->_deindex( $dataset, $id );
 
 	# Delete Subtables
-	my @fields = $dataset->get_fields( 1 );
+	my @fields = $dataset->fields( 1 );
 	foreach my $field ( @fields ) 
 	{
 		next unless( $field->get_property( "multiple" ) );
@@ -1691,14 +1528,7 @@ sub remove
 
 	if( !$rv )
 	{
-		$self->{session}->get_repository->log( "Error removing item id: $id" );
-	}
-
-	EPrints::Index::delete_ordervalues( $self->{session}, $dataset, $id );
-
-	if( $dataset->indexable )
-	{
-		EPrints::Index::remove_all( $self->{session}, $dataset, $id );
+		$self->{repository}->log( "Error removing item id: $id" );
 	}
 
 	# Return with an error if unsuccessful
@@ -1721,7 +1551,7 @@ sub create_counters
 {
 	my( $self ) = @_;
 
-	my $repository = $self->{session}->get_repository;
+	my $repository = $self->{repository};
 
 	my $rc = 1;
 
@@ -1782,7 +1612,7 @@ sub remove_counters
 {
 	my( $self ) = @_;
 
-	my $repository = $self->{session}->get_repository;
+	my $repository = $self->{repository};
 
 	foreach my $counter ($repository->get_sql_counter_ids)
 	{
@@ -1813,9 +1643,9 @@ sub save_user_message
 {
 	my( $self, $userid, $m_type, $dom_m_data ) = @_;
 
-	my $dataset = $self->{session}->get_repository->get_dataset( "message" );
+	my $dataset = $self->{repository}->dataset( "message" );
 
-	my $message = $dataset->create_object( $self->{session}, {
+	my $message = $dataset->create_object( $self->{repository}, {
 		userid => $userid,
 		type => $m_type,
 		message => EPrints::XML::to_string($dom_m_data)
@@ -1828,13 +1658,13 @@ sub get_user_messages
 {
 	my( $self, $userid, %opts ) = @_;
 
-	my $dataset = $self->{session}->get_repository->get_dataset( "message" );
+	my $dataset = $self->{repository}->dataset( "message" );
 
 	my $searchexp = EPrints::Search->new(
 		satisfy_all => 1,
-		session => $self->{session},
+		repository => $self->{repository},
 		dataset => $dataset,
-		custom_order => $dataset->get_key_field->get_name,
+		custom_order => $dataset->key_field->get_name,
 	);
 
 	$searchexp->add_field( $dataset->get_field( "userid" ), $userid );
@@ -1844,7 +1674,7 @@ sub get_user_messages
 	my @messages;
 
 	my $fn = sub {
-		my( $session, $dataset, $message, $messages ) = @_;
+		my( $repository, $dataset, $message, $messages ) = @_;
 		my $msg = $message->get_value( "message" );
 		my $content;
 		eval {
@@ -1853,17 +1683,17 @@ sub get_user_messages
 			{
 				EPrints::abort "Expected Document node from parse_xml_string(), got '$doc' instead";
 			}
-			$content = $session->make_doc_fragment();
+			$content = $repository->make_doc_fragment();
 			foreach my $node ($doc->documentElement->childNodes)
 			{
-				$content->appendChild( $session->clone_for_me( $node, 1 ) );
+				$content->appendChild( $repository->clone_for_me( $node, 1 ) );
 			}
 			EPrints::XML::dispose($doc);
 		};
 		if( !defined( $content ) )
 		{
-			$content = $session->make_doc_fragment();
-			$content->appendChild( $session->make_text( "Internal error while parsing: $msg" ));
+			$content = $repository->make_doc_fragment();
+			$content->appendChild( $repository->make_text( "Internal error while parsing: $msg" ));
 		}
 		push @$messages, {
 			type => $message->get_value( "type" ),
@@ -1881,11 +1711,11 @@ sub clear_user_messages
 {
 	my( $self, $userid ) = @_;
 
-	my $dataset = $self->{session}->get_repository->get_dataset( "message" );
+	my $dataset = $self->{repository}->dataset( "message" );
 
 	my $searchexp = EPrints::Search->new(
 		satisfy_all => 1,
-		session => $self->{session},
+		repository => $self->{repository},
 		dataset => $dataset,
 	);
 
@@ -1894,7 +1724,7 @@ sub clear_user_messages
 	my $results = $searchexp->perform_search;
 
 	my $fn = sub {
-		my( $session, $dataset, $message ) = @_;
+		my( $repository, $dataset, $message ) = @_;
 		$message->remove;
 	};
 	$results->map( $fn, undef );
@@ -2054,7 +1884,7 @@ sub get_cachemap
 {
 	my( $self, $id ) = @_;
 
-	return $self->{session}->get_repository->get_dataset( "cachemap" )->get_object( $self->{session}, $id );
+	return $self->{repository}->dataset( "cachemap" )->dataobj( $id );
 }
 
 ######################################################################
@@ -2072,13 +1902,12 @@ sub cache_exp
 {
 	my( $self , $id ) = @_;
 
-	my $a = $self->{session}->get_repository;
 	my $cache = $self->get_cachemap( $id );
 
 	return unless $cache;
 
 	my $created = $cache->get_value( "created" );
-	if( (time() - $created) > ($a->get_conf("cache_maxlife") * 3600) )
+	if( (time() - $created) > ($self->{repository}->config( "cache_maxlife" ) * 3600) )
 	{
 		return;
 	}
@@ -2122,14 +1951,14 @@ sub cache
 
 	# nb. all caches are now oneshot.
 	my $userid = undef;
-	my $user = $self->{session}->current_user;
+	my $user = $self->{repository}->current_user;
 	if( defined $user )
 	{
 		$userid = $user->get_id;
 	}
 
-	my $ds = $self->{session}->get_repository->get_dataset( "cachemap" );
-	my $cachemap = $ds->create_object( $self->{session}, {
+	my $ds = $self->{repository}->dataset( "cachemap" );
+	my $cachemap = $ds->create_object( $self->{repository}, {
 		lastused => time(),
 		userid => $userid,
 		searchexp => $code,
@@ -2182,7 +2011,7 @@ sub _cache_from_TABLE
 	my( $self, $cachemap, $dataset, $srctable, $order, $logic ) = @_;
 
 	my $cache_table  = $cachemap->get_sql_table_name;
-	my $keyfield = $dataset->get_key_field();
+	my $keyfield = $dataset->key_field();
 	my $keyname = $keyfield->get_sql_name();
 	$logic ||= [];
 
@@ -2193,7 +2022,7 @@ sub _cache_from_TABLE
 		my $ov_table;
 		if( $dataset->ordered )
 		{
-			$ov_table = $dataset->get_ordervalues_table_name( $self->{session}->get_langid );
+			$ov_table = $dataset->get_ordervalues_table_name( $self->{repository}->get_langid );
 		}
 		else
 		{
@@ -2245,7 +2074,7 @@ sub _cache_from_SELECT
 
 	my $cache_table  = $cachemap->get_sql_table_name;
 	my $Q_pos = $self->quote_identifier( "pos" );
-	my $key_field = $dataset->get_key_field();
+	my $key_field = $dataset->key_field();
 	my $Q_keyname = $self->quote_identifier($key_field->get_sql_name);
 
 	my $sql = "";
@@ -2433,7 +2262,7 @@ sub from_cache
 	my @results;
 	if( $justids )
 	{
-		my $keyfield = $dataset->get_key_field();
+		my $keyfield = $dataset->key_field();
 
 		my $Q_cache_table = $self->quote_identifier($self->cache_table($cacheid));
 		my $C = $self->quote_identifier("C");
@@ -2490,7 +2319,7 @@ sub drop_orphan_cache_tables
 	{
 		next unless $name =~ /^cache(\d+)$/;
 		next if defined $self->get_cachemap( $1 );
-		$self->{session}->get_repository->log( "Dropping orphaned cache table [$name]" );
+		$self->{repository}->log( "Dropping orphaned cache table [$name]" );
 		$self->drop_table( $name );
 		++$rc;
 	}
@@ -2515,7 +2344,7 @@ sub get_single
 	my( $self, $dataset, $id ) = @_;
 
 	return undef if !defined $id;
-
+	
 	return ($self->get_dataobjs( $dataset, $id ))[0];
 }
 
@@ -2550,7 +2379,7 @@ sub get_cache_ids
 
 	my $Q_pos = $self->quote_identifier( "pos" );
 
-	my $sql = "SELECT ".$self->quote_identifier( $dataset->get_key_field->get_sql_name );
+	my $sql = "SELECT ".$self->quote_identifier( $dataset->key_field->get_sql_name );
 	$sql .= " FROM ".$self->quote_identifier( $cachemap->get_sql_table_name );
 	$sql .= " WHERE $Q_pos > $offset";
 	if( defined $count )
@@ -2584,9 +2413,9 @@ sub get_dataobjs
 
 	my @data = map { {} } @ids;
 
-	my $session = $self->{session};
+	my $repository = $self->{repository};
 
-	my $key_field = $dataset->get_key_field;
+	my $key_field = $dataset->key_field;
 	my $key_name = $key_field->get_name;
 
 	# we build a list of OR statements to retrieve records
@@ -2608,7 +2437,7 @@ sub get_dataobjs
 	# work out which fields we need to retrieve
 	my @fields;
 	my @aux_fields;
-	foreach my $field ($dataset->get_fields)
+	foreach my $field ($dataset->fields)
 	{
 		next if $field->is_virtual;
 		# never retrieve secrets
@@ -2636,22 +2465,32 @@ sub get_dataobjs
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );
 
+	my $retrieved = 0;
+
 	while(my @row = $sth->fetchrow_array)
 	{
 		my $epdata = {};
 		foreach my $field (@fields)
 		{
-			$epdata->{$field->{name}} = $field->value_from_sql_row( $session, \@row );
+			$epdata->{$field->{name}} = $field->value_from_sql_row( $repository, \@row );
 		}
 		next if !defined $epdata->{$key_name};
 		$data[$lookup{$epdata->{$key_name}}] = $epdata;
+		$retrieved++;
+	}
+
+	# sf2 - no records in main table - no need to query the aux tables	
+	if( $retrieved == 0 )
+	{
+		return ();
 	}
 
 	# retrieve the data from multiple fields
 	my $pos_field = EPrints::MetaField->new(
-		repository => $session->get_repository,
+		repository => $repository,
 		name => "pos",
 		type => "int" );
+
 	foreach my $field (@aux_fields)
 	{
 		my @fields = ($key_field, $pos_field, $field);
@@ -2674,7 +2513,7 @@ sub get_dataobjs
 		while(my @row = $sth->fetchrow_array)
 		{
 			my( $id, $pos ) = splice(@row,0,2);
-			my $value = $field->value_from_sql_row( $session, \@row );
+			my $value = $field->value_from_sql_row( $repository, \@row );
 			$data[$lookup{$id}]->{$field->{name}}->[$pos] = $value;
 		}
 	}
@@ -2715,7 +2554,7 @@ sub _get
 	# mode 2 = return the whole table (careful now)
 	# mode 3 = some entries from a cache table
 
-	my @fields = $dataset->get_fields( 1 );
+	my @fields = $dataset->fields( 1 );
 
 	my $field = undef;
 	my $keyfield = $fields[0];
@@ -2732,12 +2571,11 @@ sub _get
 	my( @cols, @tables, @logic, @order );
 	push @tables, "$Q_table $M";
 
-	# inbox,buffer,archive etc.
-	if( $dataset->id ne $dataset->confid )
+	# make sure we add a filter for stateful datasets (similar to the former eprint_status = 'inbox')
+	if( !$dataset->is_stateless && defined $dataset->state )
 	{
-		my $ds_field = $dataset->get_field( $dataset->get_dataset_id_field() );
-		my $Q_ds_field = $self->quote_identifier($ds_field->get_sql_name());
-		push @logic, "$M.$Q_ds_field = ".$self->quote_value($dataset->id);
+		my $Q_ds_field = $self->quote_identifier( $dataset->field( 'state' )->get_sql_name );
+		push @logic, "$M.$Q_ds_field = ".$self->quote_value( $dataset->state );
 	}
 
 	foreach $field ( @fields ) 
@@ -2817,7 +2655,7 @@ sub _get
 				next;
 			}
 
-			my $value = $field->value_from_sql_row( $self->{session}, \@row );
+			my $value = $field->value_from_sql_row( $self->{repository}, \@row );
 
 			$record->{$field->get_name()} = $value;
 		}
@@ -2834,16 +2672,24 @@ sub _get
 		my $Q_subtable = $self->quote_identifier($dataset->get_sql_sub_table_name( $multifield ));
 		push @tables, "$Q_subtable $A";
 
-		# inbox,buffer,archive etc.
-		if( $dataset->id ne $dataset->confid )
+		if( !$dataset->is_stateless && defined $dataset->state )
 		{
-			my $ds_field = $dataset->get_field( $dataset->get_dataset_id_field() );
-			my $Q_ds_field = $self->quote_identifier($ds_field->get_sql_name());
+			my $Q_ds_field = $self->quote_identifier( $dataset->field( 'state' )->get_sql_name );
 			push @tables, "$Q_table $M";
 			push @logic,
 				"$M.$Q_keyname = $A.$Q_keyname",
 				"$M.$Q_ds_field = ".$self->quote_value($dataset->id);
 		}
+#		# inbox,buffer,archive etc.
+#		if( $dataset->id ne $dataset->confid )
+#		{
+#			my $ds_field = $dataset->get_field( $dataset->get_dataset_id_field() );
+#			my $Q_ds_field = $self->quote_identifier($ds_field->get_sql_name());
+#			push @tables, "$Q_table $M";
+#			push @logic,
+#				"$M.$Q_keyname = $A.$Q_keyname",
+#				"$M.$Q_ds_field = ".$self->quote_value($dataset->id);
+#		}
 
 		push @cols,
 			"$A.$Q_keyname",
@@ -2892,14 +2738,14 @@ sub _get
 			my $n = $lookup{ $id };
 			next unless defined $n; # junk data in auxillary tables?
 			$data[$n]->{$fn}->[$pos] = 
-				$multifield->value_from_sql_row( $self->{session}, \@values );
+				$multifield->value_from_sql_row( $self->{repository}, \@values );
 		}
 		$sth->finish;
 	}	
 
 	foreach( @data )
 	{
-		$_ = $dataset->make_object( $self->{session} ,  $_);
+		$_ = $dataset->make_object( $self->{repository} ,  $_);
 		$_->clear_changed();
 	}
 
@@ -2925,8 +2771,7 @@ sub get_values
 	# what if a subobjects field is called?
 	if( $field->is_virtual )
 	{
-		$self->{session}->get_repository->log( 
-"Attempt to call get_values on a virtual field." );
+		$self->{repository}->log( "Attempt to call get_values on a virtual field." );
 		return [];
 	}
 
@@ -2945,7 +2790,7 @@ ALPHA!!! Liable to API change!!!
 
 Sorts and returns the list of $values using the database.
 
-$field is used to get the order value for each value. $langid (or $session->get_langid if unset) is used to determine the database collation to use when sorting the resulting order values.
+$field is used to get the order value for each value. $langid (or $repository->get_langid if unset) is used to determine the database collation to use when sorting the resulting order values.
 
 =cut
 ######################################################################
@@ -2954,12 +2799,12 @@ sub sort_values
 {
 	my( $self, $field, $values, $langid ) = @_;
 
-	my $session = $self->{session};
+	my $repository = $self->{repository};
 
-	$langid ||= $session->get_langid;
+	$langid ||= $repository->get_langid;
 
 	# we'll use a cachemap but inverted (order by the key and use the pos)
-	my $cachemap = EPrints::DataObj::Cachemap->create_from_data( $session, {
+	my $cachemap = EPrints::DataObj::Cachemap->create_from_data( $repository, {
 		lastused => time(),
 		oneshot => "TRUE",
 	});
@@ -2967,14 +2812,14 @@ sub sort_values
 
 	# collation-aware field to use to order by
 	my $ofield = $field->create_ordervalues_field(
-		$session,
+		$repository,
 		$langid
 	);
 
 	# create a table to sort the values in
 	$self->_create_table( $table, [ "pos" ], [
 		$self->get_column_type( "pos", SQL_INTEGER, SQL_NOT_NULL ),
-		$ofield->get_sql_type( $session ),
+		$ofield->get_sql_type( $repository ),
 	]);
 
 	# insert all the order values with their index in $values
@@ -2984,7 +2829,7 @@ sub sort_values
 	{
 		push @pairs, [
 			$i++,
-			$field->ordervalue_single( $value, $session, $langid )
+			$field->ordervalue_single( $value, $repository, $langid )
 		];
 	}
 	$self->insert( $table, [ "pos", $ofield->get_sql_names ], @pairs );
@@ -3040,21 +2885,21 @@ sub do
 {
 	my( $self , $sql ) = @_;
 
-	if( $self->{session}->get_repository->can_call( 'sql_adjust' ) )
-	{
-		$sql = $self->{session}->get_repository->call( 'sql_adjust', $sql );
-	}
+# sf2 - unused?
+#
+#	if( $self->{repository}->can_call( 'sql_adjust' ) )
+#	{
+#		$sql = $self->{repository}->call( 'sql_adjust', $sql );
+#	}
 	
-	if( $self->{debug} )
-	{
-		$self->{session}->get_repository->log( "Database execute debug: $sql" );
-	}
+	$self->{repository}->debug_log( "sql", "$sql" );
+
 	my $result = $self->{dbh}->do( $sql );
 
 	if( !$result )
 	{
-		$self->{session}->get_repository->log( "SQL ERROR (do): $sql" );
-		$self->{session}->get_repository->log( "SQL ERROR (do): ".$self->{dbh}->errstr.' (#'.$self->{dbh}->err.')' );
+		$self->{repository}->log( "SQL ERROR (do): $sql" );
+		$self->{repository}->log( "SQL ERROR (do): ".$self->{dbh}->errstr.' (#'.$self->{dbh}->err.')' );
 
 		return undef unless( $self->retry_error() );
 
@@ -3063,16 +2908,16 @@ sub do
 		{
 			++$ccount;
 			sleep 3;
-			$self->{session}->get_repository->log( "Attempting DB reconnect: $ccount" );
+			$self->{repository}->log( "Attempting DB reconnect: $ccount" );
 			$self->connect;
 			if( defined $self->{dbh} )
 			{
 				$result = $self->{dbh}->do( $sql );
 				return 1 if( defined $result );
-				$self->{session}->get_repository->log( "SQL ERROR (do): ".$self->{dbh}->errstr );
+				$self->{repository}->log( "SQL ERROR (do): ".$self->{dbh}->errstr );
 			}
 		}
-		$self->{session}->get_repository->log( "Giving up after 10 tries" );
+		$self->{repository}->log( "Giving up after 10 tries" );
 		return undef;
 	}
 
@@ -3099,22 +2944,20 @@ sub prepare
 {
 	my ( $self , $sql ) = @_;
 
-	if( $self->{session}->get_repository->can_call( 'sql_adjust' ) )
-	{
-		$sql = $self->{session}->get_repository->call( 'sql_adjust', $sql );
-	}
-	
-#	if( $self->{debug} )
+# sf2
+#	if( $self->{repository}->can_call( 'sql_adjust' ) )
 #	{
-#		$self->{session}->get_repository->log( "Database prepare debug: $sql" );
+#		$sql = $self->{repository}->call( 'sql_adjust', $sql );
 #	}
+#	
+	$self->{repository}->debug_log( "sql_prepare", "prepare %s", $sql );
 
 	my $result = $self->{dbh}->prepare( $sql );
 	my $ccount = 0;
 	if( !$result )
 	{
-		$self->{session}->get_repository->log( "SQL ERROR (prepare): $sql" );
-		$self->{session}->get_repository->log( "SQL ERROR (prepare): ".$self->{dbh}->errstr.' (#'.$self->{dbh}->err.')' );
+		$self->{repository}->log( "SQL ERROR (prepare): $sql" );
+		$self->{repository}->log( "SQL ERROR (prepare): ".$self->{dbh}->errstr.' (#'.$self->{dbh}->err.')' );
 
 		# DB disconnect?
 		unless( $self->retry_error() )
@@ -3127,16 +2970,16 @@ sub prepare
 		{
 			++$ccount;
 			sleep 3;
-			$self->{session}->get_repository->log( "Attempting DB reconnect: $ccount" );
+			$self->{repository}->log( "Attempting DB reconnect: $ccount" );
 			$self->connect;
 			if( defined $self->{dbh} )
 			{
 				$result = $self->{dbh}->prepare( $sql );
 				return $result if( defined $result );
-				$self->{session}->get_repository->log( "SQL ERROR (prepare): ".$self->{dbh}->errstr );
+				$self->{repository}->log( "SQL ERROR (prepare): ".$self->{dbh}->errstr );
 			}
 		}
-		$self->{session}->get_repository->log( "Giving up after 10 tries" );
+		$self->{repository}->log( "Giving up after 10 tries" );
 
 		EPrints::abort( $self->{dbh}->{errstr} );
 	}
@@ -3203,16 +3046,13 @@ sub execute
 {
 	my( $self , $sth , $sql ) = @_;
 
-	if( $self->{debug} )
-	{
-		$self->{session}->get_repository->log( "Database execute debug: $sql" );
-	}
+	$self->{repository}->debug_log( "sql", $sql );
 
 	my $result = $sth->execute;
 	while( !$result )
 	{
-		$self->{session}->get_repository->log( "SQL ERROR (execute): $sql" );
-		$self->{session}->get_repository->log( "SQL ERROR (execute): ".$self->{dbh}->errstr );
+		$self->{repository}->log( "SQL ERROR (execute): $sql" );
+		$self->{repository}->log( "SQL ERROR (execute): ".$self->{dbh}->errstr );
 		return undef;
 	}
 
@@ -3241,15 +3081,6 @@ sub has_dataset
 
 	$rc &&= $self->has_table( $table );
 
-	foreach my $langid ( @{$self->{session}->get_repository->get_conf( "languages" )} )
-	{
-		my $order_table = $dataset->get_ordervalues_table_name( $langid );
-
-		$rc &&= $self->has_table( $order_table );
-	}
-
-	$rc &&= $self->has_dataset_index_tables( $dataset );
-
 	return $rc;
 }
 
@@ -3257,17 +3088,8 @@ sub has_dataset_index_tables
 {
 	my( $self, $dataset ) = @_;
 
-	return 1 if !$dataset->indexable;
-
-	my $table = $dataset->get_sql_rindex_table_name;
-	return 0 if !$self->has_table( $table );
-
-	return 0 if !defined($self->index_name(
-		$table,
-		$dataset->get_key_field->get_sql_name,
-		"field"
-	));
-
+	EPrints->deprecated;
+	
 	return 1;
 }
 
@@ -3288,7 +3110,7 @@ sub has_field
 	my $rc = 1;
 
 	# If this field is virtual and has sub-fields, check them
-	if( $field->isa( "EPrints::MetaField::Compound" ) )
+	if( 0 && $field->isa( "EPrints::MetaField::Compound" ) )
 	{
 		my $sub_fields = $field->get_property( "fields_cache" );
 		foreach my $sub_field (@$sub_fields)
@@ -3300,9 +3122,6 @@ sub has_field
 	{
 		$rc &&= $self->_has_field( $dataset, $field );
 	}
-
-	# Check the order values (used to order search results)
-	$rc &&= $self->_has_field_ordervalues( $dataset, $field );
 
 	# Check the field index
 	$rc &&= $self->_has_field_index( $dataset, $field );
@@ -3321,7 +3140,6 @@ sub _has_field
 	if( $field->get_property( "multiple" ) )
 	{
 		my $table = $dataset->get_sql_sub_table_name( $field );
-
 		$rc &&= $self->has_table( $table );
 	}
 	else
@@ -3354,7 +3172,7 @@ sub add_field
 	my $rc = 1;
 
 	# If this field is virtual and has sub-fields, add them
-	if( $field->isa( "EPrints::MetaField::Compound" ) )
+	if( 0 && $field->isa( "EPrints::MetaField::Compound" ) )
 	{
 		my $sub_fields = $field->get_property( "fields_cache" );
 		foreach my $sub_field (@$sub_fields)
@@ -3366,9 +3184,6 @@ sub add_field
 	{
 		$rc &&= $self->_add_field( $dataset, $field, $force );
 	}
-
-	# Add the field to order values (used to order search results)
-	$rc &&= $self->_add_field_ordervalues( $dataset, $field );
 
 	# Add the index to the field
 	$rc &&= $self->_add_field_index( $dataset, $field );
@@ -3413,9 +3228,12 @@ sub _has_field_ordervalues
 {
 	my( $self, $dataset, $field ) = @_;
 
+EPrints->deprecated;
+return 1;
+
 	my $rc = 1;
 
-	foreach my $langid ( @{$self->{ session }->get_repository->get_conf( "languages" )} )
+	foreach my $langid ( @{$self->{ repository }->config( "languages" )} )
 	{
 		$rc &&= $self->_has_field_ordervalues_lang( $dataset, $field, $langid );
 	}
@@ -3426,6 +3244,8 @@ sub _has_field_ordervalues
 sub _has_field_ordervalues_lang
 {
 	my( $self, $dataset, $field, $langid ) = @_;
+EPrints->deprecated;
+return 1;
 
 	my $order_table = $dataset->get_ordervalues_table_name( $langid );
 
@@ -3436,10 +3256,12 @@ sub _has_field_ordervalues_lang
 sub _add_field_ordervalues
 {
 	my( $self, $dataset, $field ) = @_;
+EPrints->deprecated;
+return 1;
 
 	my $rc = 1;
 
-	foreach my $langid ( @{$self->{ session }->get_repository->get_conf( "languages" )} )
+	foreach my $langid ( @{$self->{repository}->config( "languages" )} )
 	{
 		next if $self->_has_field_ordervalues_lang( $dataset, $field, $langid );
 		$rc &&= $self->_add_field_ordervalues_lang( $dataset, $field, $langid );
@@ -3452,12 +3274,14 @@ sub _add_field_ordervalues
 sub _add_field_ordervalues_lang
 {
 	my( $self, $dataset, $field, $langid ) = @_;
+EPrints->deprecated;
+return 1;
 
 	my $order_table = $dataset->get_ordervalues_table_name( $langid );
 
-	my $sql_field = $field->create_ordervalues_field( $self->{session}, $langid );
+	my $sql_field = $field->create_ordervalues_field( $self->{repository}, $langid );
 
-	my( $col ) = $sql_field->get_sql_type( $self->{session} );
+	my( $col ) = $sql_field->get_sql_type( $self->{repository} );
 
 	return $self->do( "ALTER TABLE ".$self->quote_identifier($order_table)." ADD $col" );
 }
@@ -3536,7 +3360,7 @@ sub _add_field
 
 	my $table = $dataset->get_sql_table_name;
 	my @names = $field->get_sql_names;
-	my @types = $field->get_sql_type( $self->{session} );
+	my @types = $field->get_sql_type( $self->{repository} );
 
 	return $rc if $self->has_column( $table, $names[0] ) && !$force;
 
@@ -3575,7 +3399,7 @@ sub _add_multiple_field
 		return 1 unless $force;
 
 		my @names = $field->get_sql_names;
-		my @types = $field->get_sql_type( $self->{session} );
+		my @types = $field->get_sql_type( $self->{repository} );
 		for(my $i = 0; $i < @names; ++$i)
 		{
 			if( $self->has_column( $table, $names[$i] ) )
@@ -3590,10 +3414,10 @@ sub _add_multiple_field
 		return $self->do( "ALTER TABLE ".$self->quote_identifier( $table )." ".join(",", @types) );
 	}
 
-	my $key_field = $dataset->get_key_field();
+	my $key_field = $dataset->key_field();
 
 	my $pos_field = EPrints::MetaField->new(
-		repository => $self->{ session }->get_repository,
+		repository => $self->{ repository },
 		name => "pos",
 		type => "int" );
 
@@ -3604,9 +3428,9 @@ sub _add_multiple_field
 			$pos_field->get_sql_name
 		],
 		[ # columns
-			$key_field->get_sql_type( $self->{session} ),
-			$pos_field->get_sql_type( $self->{session} ),
-			$field->get_sql_type( $self->{session} )
+			$key_field->get_sql_type( $self->{repository} ),
+			$pos_field->get_sql_type( $self->{repository} ),
+			$field->get_sql_type( $self->{repository} )
 		] );
 }
 
@@ -3642,9 +3466,6 @@ sub remove_field
 		$self->_remove_field( $dataset, $field );
 	}
 
-	# Remove the field from order values (used to order search results)
-	$self->_remove_field_ordervalues( $dataset, $field );
-
 	return 1; # if we failed the field probably isn't there anyway
 }
 
@@ -3653,10 +3474,8 @@ sub _remove_field_ordervalues
 {
 	my( $self, $dataset, $field ) = @_;
 
-	foreach my $langid ( @{$self->{ session }->get_repository->get_conf( "languages" )} )
-	{
-		$self->_remove_field_ordervalues_lang( $dataset, $field, $langid );
-	}
+	EPrints->deprecated;
+	return 1;
 }
 
 # Remove the field from the ordervalues table for $langid
@@ -3664,9 +3483,8 @@ sub _remove_field_ordervalues_lang
 {
 	my( $self, $dataset, $field, $langid ) = @_;
 
-	$self->drop_column(
-		$dataset->get_ordervalues_table_name( $langid ),
-		$field->get_sql_name );
+	EPrints->deprecated;
+	return 1;
 }
 
 # Remove the field from the main tables
@@ -3740,9 +3558,6 @@ sub rename_field
 		$rc &&= $self->_rename_field( $dataset, $field, $old_name );
 	}
 
-	# rename the field from order values (used to order search results)
-	$rc &&= $self->_rename_field_ordervalues( $dataset, $field, $old_name );
-
 	return $rc;
 }
 
@@ -3751,29 +3566,16 @@ sub _rename_field_ordervalues
 {
 	my( $self, $dataset, $field, $old_name ) = @_;
 
-	my $rc = 1;
-
-	foreach my $langid ( @{$self->{ session }->get_repository->get_conf( "languages" )} )
-	{
-		$rc &&= $self->_rename_field_ordervalues_lang( $dataset, $field, $old_name, $langid );
-	}
-
-	return $rc;
+	EPrints->deprecated;
+	return 1;
 }
 
 sub _rename_field_ordervalues_lang
 {
 	my( $self, $dataset, $field, $old_name, $langid ) = @_;
 
-	my $order_table = $dataset->get_ordervalues_table_name( $langid );
-
-	my $sql = sprintf("ALTER TABLE %s RENAME COLUMN %s TO %s",
-			$self->quote_identifier($order_table),
-			$self->quote_identifier($old_name),
-			$self->quote_identifier($field->get_sql_name)
-		);
-
-	return $self->do( $sql );
+	EPrints->deprecated;
+	return 1;
 }
 
 # rename a field
@@ -3869,7 +3671,7 @@ sub exists
 		return undef;
 	}
 	
-	my $keyfield = $dataset->get_key_field();
+	my $keyfield = $dataset->key_field();
 
 	my $Q_table = $self->quote_identifier($dataset->get_sql_table_name);
 	my $Q_column = $self->quote_identifier($keyfield->get_sql_name);
@@ -3883,24 +3685,6 @@ sub exists
 	return $result ? 1 : 0;
 }
 
-
-
-######################################################################
-=pod
-
-=item $db->set_debug( $boolean )
-
-Set the SQL debug mode to true or false.
-
-=cut
-######################################################################
-
-sub set_debug
-{
-	my( $self, $debug ) = @_;
-
-	$self->{debug} = $debug;
-}
 
 ######################################################################
 =pod
@@ -3921,7 +3705,7 @@ sub create_version_table
 	my $column = "version";
 
 	my $version = EPrints::MetaField->new(
-		repository => $self->{ session },
+		repository => $self->{repository},
 		name => $column,
 		type => "text",
 		maxlength => 64,
@@ -3972,7 +3756,7 @@ sub set_version
 	$sql = "UPDATE $Q_version SET $Q_version = ".$self->quote_value( $versionid );
 	$self->do( $sql );
 
-	if( $self->{session}->get_noise >= 1 )
+	if( $self->{repository}->get_noise >= 1 )
 	{
 		print "Set DB compatibility flag to '$versionid'.\n";
 	}
@@ -4047,7 +3831,7 @@ sub index_name
 		$sql .= $t.$self->sql_AS."S$i";
 		push @logic,
 			"S0.index_name=S$i.index_name",
-			"S$i.table_schema=".$self->quote_value( $self->{session}->config( "dbname" ) ),
+			"S$i.table_schema=".$self->quote_value( $self->{repository}->config( "dbname" ) ),
 			"S$i.table_name=".$self->quote_value( $table ),
 			"S$i.column_name=".$self->quote_value( $cols[$i] ),
 			"S$i.seq_in_index=".($i+1);
@@ -4098,6 +3882,9 @@ sub clear_table
 	my( $self, $tablename ) = @_;
 
 	my $sql = "DELETE FROM ".$self->quote_identifier($tablename);
+	
+	$self->{repository}->debug_log( "sql", $sql );
+
 	$self->do( $sql );
 }
 
@@ -4252,7 +4039,8 @@ sub valid_login
 {
 	my( $self, $username, $password ) = @_;
 
-	$username = $self->ci_lookup( $self->{session}->dataset( "user" )->field( "username" ), $username );
+#	$username = $self->ci_lookup( $self->{repository}->dataset( "user" )->field( "username" ), $username );
+	$self->{repository}->debug_log( "warnings", "database->ci_lookup disabled" );
 
 	my $Q_password = $self->quote_identifier( "password" );
 	my $Q_table = $self->quote_identifier( "user" );
@@ -4347,13 +4135,13 @@ sub dequeue_events
 {
 	my( $self, $n ) = @_;
 
-	my $session = $self->{session};
-	my $dataset = $session->dataset( "event_queue" );
+	my $repository = $self->{repository};
+	my $dataset = $repository->dataset( "event_queue" );
 
 	my $until = EPrints::Time::get_iso_timestamp();
 
 	my @events;
-
+	
 	my @potential = $dataset->search(
 			filters => [
 				{ meta_fields => ["status"], value => "waiting" },
