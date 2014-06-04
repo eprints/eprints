@@ -113,7 +113,7 @@ sub get
 	# scheme
 	if( $opts{scheme} eq "auto" )
 	{
-		if( $session->get_secure )
+		if( $session->is_secure )
 		{
 			$opts{scheme} = "https";
 		}
