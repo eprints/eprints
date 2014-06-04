@@ -1,0 +1,46 @@
+package EPrints::Plugin::Controller::Maintenance;
+
+# sf2 - test plug-in to show how to have a global handler to /.*
+
+use strict;
+use EPrints;
+use EPrints::Const qw( :http );
+
+our @ISA = qw/ EPrints::Plugin::Controller /;
+
+sub new
+{
+	my( $class, %params ) = @_;
+	
+	# top priority!
+	$params{priority} = 1;
+	
+	my $self = $class->SUPER::new(%params);
+
+	# matches anything
+	$self->register_endpoint(
+		qr[^/(.*)$],
+	);
+
+	return $self;
+}
+
+sub GET
+{
+	my( $self ) = @_;
+
+	my $repo = $self->repository;
+
+	print STDOUT "Site currently under maintenance\n";
+
+	return OK;
+}
+
+sub POST { &GET }
+sub DELETE { &GET }
+sub PUT { &GET }
+sub PATCH { &GET }
+sub OPTIONS { &GET }
+sub HEAD { &GET }
+
+1;
