@@ -48,6 +48,10 @@ sub remove
 {
 	my( $session, $dataset, $objectid, $fieldids ) = @_;
 
+# sf2
+	EPrints->trace( 'Deprecated Index::remove called' );
+	return 1;
+
 	$fieldids = [$fieldids] if ref($fieldids) ne "ARRAY";
 
 	my $rv = 1;
@@ -59,7 +63,7 @@ sub remove
 	my $rindextable = $dataset->get_sql_rindex_table_name();
 	my $grepindextable = $dataset->get_sql_grep_table_name();
 
-	my $keyfield = $dataset->get_key_field();
+	my $keyfield = $dataset->key_field();
 
 	# remove from rindex table
 	$db->do(
@@ -94,6 +98,10 @@ sub remove_all
 {
 	my( $session, $dataset, $objectid ) = @_;
 
+# sf2
+	EPrints->trace( 'Deprecated Index::remove_all called' );
+	return 1;
+
 	my $rv = 1;
 
 	my $sql;
@@ -103,7 +111,7 @@ sub remove_all
 	my $rindextable = $dataset->get_sql_rindex_table_name();
 	my $grepindextable = $dataset->get_sql_grep_table_name();
 
-	my $keyfield = $dataset->get_key_field();
+	my $keyfield = $dataset->key_field();
 
 	# remove from rindex table
 	$db->delete_from($rindextable,
@@ -134,6 +142,10 @@ sub purge_index
 {
 	my( $session, $dataset ) = @_;
 
+# sf2
+	EPrints->trace( 'Deprecated Index::purge_index called' );
+	return 1;
+
 	$session->clear_table( $dataset->get_sql_rindex_table_name() );
 	$session->clear_table( $dataset->get_sql_grep_table_name() );
 }
@@ -154,6 +166,10 @@ sub add
 {
 	my( $session, $dataset, $objectid, $fieldid, $value ) = @_;
 
+# sf2
+	EPrints->trace( 'Deprecated Index::add called' );
+	return 1;
+
 	my $db = $session->get_database;
 
 	my $field = $dataset->get_field( $fieldid );
@@ -166,7 +182,7 @@ sub add
 	%done = ();
 	@$grepcodes = grep { !$done{$_}++ } @$grepcodes;
 
-	my $keyfield = $dataset->get_key_field();
+	my $keyfield = $dataset->key_field();
 
 	my $rindextable = $dataset->get_sql_rindex_table_name();
 	my $grepindextable = $dataset->get_sql_grep_table_name();
@@ -207,6 +223,10 @@ sub update_ordervalues
 {
 	my( $session, $dataset, $data, $changed ) = @_;
 
+# sf2
+	EPrints->trace( 'Deprecated Index::update_ordervalues called' );
+	return 1;
+
 	&_do_ordervalues( $session, $dataset, $data, $changed, 0 );
 }
 
@@ -234,6 +254,10 @@ sub insert_ordervalues
 sub _do_ordervalues
 {
     my( $session, $dataset, $data, $changed, $insert ) = @_;
+	
+# sf2
+	EPrints->trace( 'Deprecated Index::_do_ordervalues called' );
+	return 1;
 
 	# nothing to do
 	return 1 if !keys %$changed;
@@ -242,7 +266,7 @@ sub _do_ordervalues
 	# insert = 0 => update
 	# insert = 1 => insert
 
-	my $keyfield = $dataset->get_key_field;
+	my $keyfield = $dataset->key_field;
 	my $keyname = $keyfield->get_sql_name;
 	my $keyvalue = $data->{$keyfield->get_name()};
 
@@ -299,6 +323,10 @@ $dataset.
 sub delete_ordervalues
 {
 	my( $session, $dataset, $id, $tmp ) = @_;
+	
+# sf2
+	EPrints->trace( 'Deprecated Index::delete_ordervalues called' );
+	return 1;
 
 	my $db = $session->get_database;
 
@@ -306,7 +334,7 @@ sub delete_ordervalues
 
 	# remove the key field
 	splice( @fields, 0, 1 ); 
-	my $keyfield = $dataset->get_key_field();
+	my $keyfield = $dataset->key_field();
 	my $keyvalue = $id;
 
 	foreach my $langid ( @{$session->config( "languages" )} )
