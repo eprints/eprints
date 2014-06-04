@@ -207,173 +207,7 @@ use strict;
 
 # These are both used by the virtual datasets inbox, buffer etc.
 
-my $INFO = {
-	event_queue => {
-		sqlname => "event_queue",
-		class => "EPrints::DataObj::EventQueue",
-		datestamp => "start_time",
-		columns => [qw( status start_time pluginid action params )],
-	},
-	upload_progress => {
-		sqlname => "upload_progress",
-		class => "EPrints::DataObj::UploadProgress",
-	},
-	file => {
-		sqlname => "file",
-		class => "EPrints::DataObj::File",
-		datestamp => "mtime",
-	},
-	import => {
-		sqlname => "import",
-		class => "EPrints::DataObj::Import",
-		datestamp => "datestamp",
-	},
-	metafield => {
-		sqlname => "mf", # identifiers get too long
-		class => "EPrints::DataObj::MetaField",
-		datestamp => "mfdatestamp",
-	},
-	cachemap => {
-		sqlname => "cachemap",
-		class => "EPrints::DataObj::Cachemap",
-	},
-	message => {
-		sqlname => "message",
-		class => "EPrints::DataObj::Message",
-		datestamp => "datestamp",
-	},
-	loginticket => {
-		sqlname => "loginticket",
-		class => "EPrints::DataObj::LoginTicket",
-	},
-	counter => {
-		sqlname => "counters",
-		virtual => 1,
-	},
-	user => {
-		sqlname => "user",
-		class => "EPrints::DataObj::User",
-		import => 1,
-		index => 1,
-		order => 1,
-		datestamp => "joined",
-	},
-	archive => {
-		sqlname => "eprint",
-		virtual => 1,
-		class => "EPrints::DataObj::EPrint",
-		confid => "eprint",
-		import => 1,
-		index => 1,
-		order => 1,
-		filters => [ { meta_fields => [ 'eprint_status' ], value => 'archive', describe=>0 } ],
-		dataset_id_field => "eprint_status",
-		datestamp => "lastmod",
-	},
-	buffer => {
-		sqlname => "eprint",
-		virtual => 1,
-		class => "EPrints::DataObj::EPrint",
-		confid => "eprint",
-		import => 1,
-		index => 1,
-		order => 1,
-		filters => [ { meta_fields => [ 'eprint_status' ], value => 'buffer', describe=>0 } ],
-		dataset_id_field => "eprint_status",
-		datestamp => "lastmod",
-		columns => [qw( eprintid type status_changed userid )], # default columns for Review screen
-	},
-	inbox => {
-		sqlname => "eprint",
-		virtual => 1,
-		class => "EPrints::DataObj::EPrint",
-		confid => "eprint",
-		import => 1,
-		index => 1,
-		order => 1,
-		filters => [ { meta_fields => [ 'eprint_status' ], value => 'inbox', describe=>0 } ],
-		dataset_id_field => "eprint_status",
-		datestamp => "lastmod",
-	},
-	deletion => {
-		sqlname => "eprint",
-		virtual => 1,
-		class => "EPrints::DataObj::EPrint",
-		confid => "eprint",
-		import => 1,
-		index => 1,
-		order => 1,
-		filters => [ { meta_fields => [ 'eprint_status' ], value => 'deletion', describe=>0 } ],
-		dataset_id_field => "eprint_status",
-		datestamp => "lastmod",
-	},
-	eprint => {
-		sqlname => "eprint",
-		class => "EPrints::DataObj::EPrint",
-		index => 1,
-		order => 1,
-		datestamp => "lastmod",
-	},
-	document => {
-		sqlname => "document",
-		class => "EPrints::DataObj::Document",
-		import => 1,
-		order => 1,
-		index => 1,
-	},
-	subject => {
-		sqlname => "subject",
-		class => "EPrints::DataObj::Subject",
-		import => 1,
-		index => 1,
-		order => 1,
-	},
-	history => {
-		sqlname => "history",
-		class => "EPrints::DataObj::History",
-		import => 1,
-		datestamp => "timestamp",
-	},
-	saved_search => {
-		sqlname => "saved_search",
-		class => "EPrints::DataObj::SavedSearch",
-		import => 1,
-		index => 1,
-	},
-	public_saved_search => {
-		sqlname => "saved_search",
-		class => "EPrints::DataObj::SavedSearch",
-		import => 1,
-		index => 1,
-		virtual => 1,
-		confid => "saved_search",
-		filters => [ { meta_fields => [ 'public' ], value => 'TRUE', describe=>0 } ],
-#		dataset_id_field => "eprint_status",
-	},
-	access => {
-		sqlname => "access",
-		class => "EPrints::DataObj::Access",
-		import => 1,
-		datestamp => "datestamp",
-	},
-	triple => {
-		sqlname => "triple",
-		class => "EPrints::DataObj::Triple",
-		import => 1,
-	},
-	request => {
-		sqlname => "request",	
-		class => "EPrints::DataObj::Request",
-		import => 1,
-		index => 1,
-		datestamp => "datestamp",
-	},
-	epm => {
-		sqlname => "epm",
-		class => "EPrints::DataObj::EPM",
-		virtual => 1,
-	},
-};
+
 
 ######################################################################
 =pod
@@ -446,17 +280,55 @@ Whether you can import into this dataset.
 =cut
 ######################################################################
 
+
+# those fields are internal, cannot be defined in user-space!
+# they are added automatically by EPrints when certain dataset properties are set
+my $SYSTEM_FIELDS = {
+
+	lastmod => {
+		name => "lastmod",
+		type => "time",
+		sql_index => 0,
+		export => 1,
+	},
+
+	revision => {
+		name => "revision",
+		type => "int",
+		sql_index => 0,
+		export => 1
+	},
+
+	history => {
+		name => "history",
+		datasetid => "history",
+		type => "file",
+		sql_index => 0,
+		export => 0,
+	},
+
+	datestamp => {
+		name => "datestamp",
+		type => "time",
+		sql_index => 0,
+		export => 1,
+	},
+
+	state => {},	# properties for 'state' are defined in-situ
+};
+
+
 sub new
 {
 	my( $class, %properties ) = @_;
 	
 	if( !defined $properties{repository} )
 	{
-		EPrints::abort( "Requires repository property" );
+		EPrints->abort( "Requires repository property" );
 	}
 	if( !defined $properties{name} )
 	{
-		EPrints::abort( "Requires name property" );
+		EPrints->abort( "Requires name property" );
 	}
 
 	# We support the field properties of "name" and "type"
@@ -466,7 +338,7 @@ sub new
 
 	# type is a short-cut for specifying the object class
 	# (We have to maintain case though, because DataObj classes are
-	# camelcased)
+	# uppercased)
 	my $type = delete $properties{type};
 	if( defined $type )
 	{
@@ -481,67 +353,163 @@ sub new
 	Scalar::Util::weaken($self->{repository})
 		if defined &Scalar::Util::weaken;
 
-	$self->{fields} = [];
-	$self->{system_fields} = [];
-	$self->{field_index} = {};
+# TODO/sf2/document - added new properties:
+# - flow: to replace eprint_status etc - describes the states an object can be in (inbox,archive..) and the valid transitions (it's a graph basically)
+#		(implemented)
+# - revision: adds a "revision" field which stores the current revision number of the data obj - incremented each time a modif' is made to the data obj.
+# - acl: enables ACL for this dataset (implemented)
+# - read-only: makes the dataset read-only 
+# - history: keeps the history of changes in JSON (implemented) - http://www.mediawiki.org/wiki/Extension:Memento (Accept-Datetime)
+# - lastmod: a field storing the last mod date of a data obj
+	my $default_properties	= {
+		"flow" => undef,
+		"revision" => 1,
+		"acl" => 0,
+		"read-only" => 0,
+		"history" => 0,
+		"lastmod" => 1,
+		"core_fields" => [],
+		"contexts" => {},
+# below: existing properties
+		"virtual" => 0,
+		"fields" => [],
+		"system_fields" => [],
+		"field_index" => {},
+		"default_order" => $repository->config( "default_order", $self->{confid} ),
+		"class" => "EPrints::DataObj",
+	};
 
-	$self->{default_order} = $repository->
-			get_conf( "default_order", $self->{confid} );
-
-	# copy fields from the real dataset
-	if(
-		$self->{id} ne $self->{confid} &&
-		defined(my $cdataset = $repository->get_dataset( $self->{confid} ))
-	  )
+	# force init the above properties	
+	foreach my $property ( keys %$default_properties )
 	{
-		for(qw( fields system_fields field_index ))
+		if( !exists $self->{$property} )
 		{
-			$self->{$_} = $cdataset->{$_};
+			$self->{$property} = $default_properties->{$property};
 		}
 	}
-	else
-	{
-		my $oclass = $self->get_object_class;
-		if( defined $oclass )
-		{
-			foreach my $fielddata ( $oclass->get_system_field_info() )
-			{
-				$self->process_field( $fielddata, 1 );
-			}
-		}
-		my $repository_fields = $repository->get_conf( "fields", $self->{confid} );
-		if( $repository_fields )
-		{
-			foreach my $fielddata ( @{$repository_fields} )
-			{
-				$self->process_field( $fielddata, 0 );
-			}
-		}
 
-		# lock these metadata fields against being modified again.
-		foreach my $field ( @{$self->{fields}} )
+	# history implies revision
+	if( $self->property( 'history' ) )
+	{
+		$self->{revision} = 1;
+	}
+
+	# virtual implies no-history
+	if( $self->property( 'virtual' ) )
+	{
+		$self->{history} = 0;
+	}
+
+	my $oclass = $self->get_object_class;
+	if( defined $oclass )
+	{
+		# TODO/sf2 - perhaps remove get_system_field_info from DataObj (this loads hard-coded fields from the
+		# DataObj class but fields should maybe just be set in the local conf)
+		foreach my $fielddata ( $oclass->get_system_field_info() )
 		{
-			$field->final;
+			$self->process_field( $fielddata, 1 );
 		}
 	}
+
+	my @repository_fields = @{ delete $self->{core_fields} || [] };
+	my $legacy_fields_def = $repository->config( "fields", $self->{confid} );
+	push @repository_fields, @$legacy_fields_def if( $legacy_fields_def );
+
+	foreach my $fielddata ( @repository_fields )
+	{
+		if( defined $fielddata->{name} && exists $SYSTEM_FIELDS->{$fielddata->{name}} )
+		{
+			$self->repository->log( "Attempt to re-use system field '$fielddata->{name}' on dataset ".$self->id );
+			next;
+		}
+		$self->process_field( $fielddata, 0 );
+	}
+
+	my $flow = $self->property( 'flow' );
+	if( EPrints::Utils::is_set( $flow ) )
+	{
+		my $states = $flow->{states};
+		if( !EPrints::Utils::is_set( $states ) || ref( $states ) ne 'ARRAY' )
+		{
+			$self->repository->log( sprintf "Wrong flow definition in dataset %s (missing 'states')", $self->id );
+		}
+		else
+		{
+			my $default = $flow->{default} || $states->[0];
+			my %valid_states = map { $_ => 1 } @$states;
+			if( !defined $default || !exists $valid_states{$default} )
+			{
+				$self->repository->log( sprintf "Invalid default state '%s' on dataset %s. Using '%s' instead", $default, $self->id, $states->[0] ) if( defined $default );
+				$self->{flow}->{default} = $default = $states->[0];
+			}
+			my $state_field_def = {
+				name => 'state',
+				type => 'state',
+				states => $states,
+				repository => $self->repository,
+				text_index => 1
+			};
+
+			$self->process_field( $state_field_def, 1 );
+		}
+	}
+
+	# adds automatic fields e.g. revision
+	foreach my $sysfield ( keys %$SYSTEM_FIELDS )
+	{
+		next if( !$self->property( $sysfield ) );
+		if( $self->has_field( $sysfield ) )
+		{
+			$repository->log( "Attempt to add existing '$sysfield' field to dataset ".$self->id );
+		}
+		else
+		{
+			my $field_definition = $SYSTEM_FIELDS->{$sysfield} or next;
+			$field_definition->{repository} = $repository;
+			$self->process_field( $field_definition, 1 );
+		}
+	}
+
+	# lock these metadata fields against being modified again.
+	foreach my $field ( @{$self->{fields}} )
+	{
+		$field->final;
+	}
+
+	# contexts (ACL's/security)
+
+	# TODO well could check the contexts are OK?
 
 	return $self;
 }
 
-=begin InternalDoc
-
-=item $info = EPrints::DataSet::get_system_dataset_info()
-
-Returns a hash reference of core system datasets.
-
-=end InternalDoc
-
-=cut
-
-sub get_system_dataset_info
+# like MetaField get_property
+sub property
 {
-	return $INFO;
+	my( $self, @properties ) = @_;
+	
+	my $ptr = $self;
+	my $i = 0;
+
+	foreach my $property (@properties)
+	{
+		return undef if( !$property );
+		my $next_ptr = $ptr->{$property};
+
+		if( ++$i < scalar( @properties ) )
+		{
+			return undef if( !defined $next_ptr || ref( $next_ptr ) ne 'HASH' );
+		}
+
+		$ptr = $next_ptr;
+	}
+
+	# to avoid returning '$self'
+	return $ptr if( $i > 0 );
+
+	return undef;
 }
+
 
 =back
 
@@ -560,11 +528,15 @@ Returns the identifier of the base dataset for this dataset (same as L</id> unle
 
 =cut
 
+# TODO/sf2: deprecate "confid"
 sub confid { &base_id }
 sub base_id
 {
 	my( $self ) = @_;
-	return $self->{confid};
+
+	# now returns ->{id} - the concept of {confid} (eg 'inbox' is sub-dataset of 'eprint') has been replaced by
+	# the generic "states"
+	return $self->id;
 }
 
 =begin InternalDoc
@@ -592,13 +564,15 @@ sub process_field
 		%{$fielddata} );
 
 	$self->register_field( $field, $system );
-	if( $field->isa( "EPrints::MetaField::Compound" ) )
-	{
-		foreach my $inner_field (@{$field->{fields_cache}})
-		{
-			$self->register_field( $inner_field, $system );
-		}
-	}
+
+	# TODO/sf2 - disabled (i think this is to make compound more like multipart fields i.e. stored in a single table)
+#	if( $field->isa( "EPrints::MetaField::Compound" ) )
+#	{
+#		foreach my $inner_field (@{$field->{fields_cache}})
+#		{
+#			$self->register_field( $inner_field, $system );
+#		}
+#	}
 
 	return $field;
 }
@@ -655,11 +629,11 @@ sub unregister_field
 {
 	my( $self, $field ) = @_;
 
-	my $name = $field->get_name();
+	my $name = $field->name();
 
 	delete $self->{field_index}->{$name};
-	@{$self->{fields}} = grep { $_->get_name() ne $name } @{$self->{fields}};
-	@{$self->{system_fields}} = grep { $_->get_name() ne $name } @{$self->{system_fields}};
+	@{$self->{fields}} = grep { $_->name() ne $name } @{$self->{fields}};
+	@{$self->{system_fields}} = grep { $_->name() ne $name } @{$self->{system_fields}};
 }
 
 ######################################################################
@@ -691,9 +665,7 @@ sub field
 	my $value = $self->{field_index}->{$fieldname};
 	if (!defined $value) 
 	{
-		$self->{repository}->log( 
-			"dataset ".$self->{id}." has no field: ".
-			$fieldname );
+		$self->repository->log( "dataset %s has no field %s", $self->id, $fieldname );
 		return undef;
 	}
 	return $self->{field_index}->{$fieldname};
@@ -767,7 +739,7 @@ sub id
 ######################################################################
 =pod
 
-=item $n = $ds->count( $session )
+=item $n = $ds->count( $repository )
 
 Return the number of records in this dataset.
 
@@ -776,14 +748,14 @@ Return the number of records in this dataset.
 
 sub count
 {
-	my( $self, $session ) = @_;
+	my( $self, $repository ) = @_;
 
 	if( $self->get_filters )
 	{
 		return $self->search->count;
 	}
 
-	return $session->get_database->count_table( $self->get_sql_table_name() );
+	return $repository->database->count_table( $self->get_sql_table_name() );
 }
  
 
@@ -806,99 +778,17 @@ sub get_sql_table_name
 {
 	my( $self ) = @_;
 
-	my $table = $self->{sqlname};
+	$self->{sqlname} ||= $self->base_id;
 
-	return $table if defined $table;
+	return $self->{sqlname};
 
-	EPrints::abort( "Can't get a SQL table name for dataset: ".$self->{id} );
+#	my $table = $self->{sqlname};
+#
+#	return $table if defined $table;
+#
+#	EPrints::abort( "Can't get a SQL table name for dataset: ".$self->{id} );
 }
 
-
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $tablename = $ds->get_sql_index_table_name
-
-Return the name of the SQL table which contains the free text indexing
-information.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub get_sql_index_table_name
-{
-	my( $self ) = @_;
-	return $self->get_sql_table_name()."__"."index";
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $tablename = $ds->get_sql_grep_table_name
-
-Reutrn the name of the SQL table which contains the strings to
-be used with LIKE in a final pass of a search.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub get_sql_grep_table_name
-{
-	my( $self ) = @_;
-	return $self->get_sql_table_name()."__"."index_grep";
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $tablename = $ds->get_sql_rindex_table_name
-
-Reutrn the name of the SQL table which contains the reverse text
-indexing information. (Used for deleting freetext indexes when
-removing a record).
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub get_sql_rindex_table_name
-{
-	my( $self ) = @_;
-	return $self->get_sql_table_name()."__"."rindex";
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $tablename = $ds->get_ordervalues_table_name( $langid )
-
-Return the name of the SQL table containing values used for ordering
-this dataset.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub get_ordervalues_table_name
-{
-	my( $self,$langid ) = @_;
-	return $self->get_sql_table_name()."__"."ordervalues_".$langid;
-}
 
 
 ######################################################################
@@ -934,7 +824,7 @@ Returns a list of the L<EPrints::MetaField>s belonging to this dataset.
 =cut
 ######################################################################
 
-sub get_fields { &fields }
+sub get_fields { EPrints->deprecated; &fields }
 sub fields
 {
 	my( $self ) = @_;
@@ -953,7 +843,7 @@ Always the first field.
 =cut
 ######################################################################
 
-sub get_key_field { &key_field }
+sub get_key_field { EPrints->deprecated; &key_field }
 sub key_field
 {
 	my( $self ) = @_;
@@ -982,7 +872,7 @@ sub make_dataobj
 	return $epdata if !defined $class;
 
 	return $class->new_from_data(
-		$self->{repository},
+		$self->repository,
 		$epdata,
 		$self );
 }
@@ -1001,14 +891,31 @@ If $data describes sub-objects then those will also be created.
 
 sub create_object
 {
-	my( $self , $session , $data ) = @_;
+	my( $self , $repository , $data ) = @_;
 
 	return $self->create_dataobj( $data );
 }
 sub create_dataobj
 {
 	my( $self, $data ) = @_;
+
+	# dataset default values (for internal fields)
+	if( $self->property( 'revision' ) )
+	{
+		$data->{revision} = 1;
+	}
 	
+	my $datestamp;
+	if( $self->property( 'lastmod' ) )
+	{
+		$datestamp = $data->{lastmod} = EPrints::Time::get_iso_timestamp();
+	}
+	
+	if( $self->property( 'datestamp' ) )
+	{
+		$data->{datestamp} = $datestamp || EPrints::Time::get_iso_timestamp();
+	}
+
 	my $dataobj = $self->dataobj_class->create_from_data( $self->repository, $data, $self );
 
 	$self->run_trigger( EP_TRIGGER_CREATED, dataobj => $dataobj );
@@ -1033,40 +940,10 @@ Return the perl class to which objects in this dataset belong.
 sub get_object_class { &dataobj_class }
 sub dataobj_class
 {
-	my( $self, $session ) = @_;
+	my( $self, $repository ) = @_;
 	return $self->{class};
 }
 
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item $obj = $ds->get_object( $session, $id );
-
-Return the object from this dataset with the given id, or undefined.
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub get_object
-{
-	my( $self, $session, $id ) = @_;
-
-	my $class = $self->get_object_class;
-
-	if( !defined $class )
-	{
-		$session->get_repository->log(
-				"Can't get_object for dataset ".
-				$self->{confid} );
-		return undef;
-	}
-
-	return $class->new( $session, $id, $self );
-}
 
 =item $dataobj = $ds->dataobj( $id )
 
@@ -1077,27 +954,17 @@ Returns the object from this dataset with the given id, or undefined.
 sub dataobj
 {
 	my( $self, $id ) = @_;
-	
-	my $dataobj = $self->dataobj_class->new( $self->repository, $id, $self );
 
-	return if !defined $dataobj;
+	return undef if( ref( $self ) eq '' );
 
-	# Hacky solution to ticket #3749. Stops an eprint in the wrong dataset 
-        # being returned. Otherwise stuff could leak out.
-	if( $self->{confid} eq "eprint" && $self->{id} ne "eprint" )
-	{
-		if( $dataobj->get_value( "eprint_status" ) ne $self->{id} )
-		{
-			return;
-		}
-	}
-
-	return $dataobj;
+	# dataobj_class->new makes sure that objects from a sub-dataset ('inbox')
+	# do not leak to another dataset ('archive')
+	return $self->dataobj_class->new( $self->repository, $id, $self );
 }
 
 =begin InternalDoc
 
-=item $dataobj = EPrints::DataSet->get_object_from_uri( $session, $uri )
+=item $dataobj = EPrints::DataSet->get_object_from_uri( $repository, $uri )
 
 Returns a the dataobj identified by internal URI $uri.
 
@@ -1109,21 +976,21 @@ Returns undef if $uri isn't an internal URI or the object is no longer available
 
 sub get_object_from_uri
 {
-	my( $class, $session, $uri ) = @_;
+	my( $class, $repository, $uri ) = @_;
+
+# TODO move this method to e.g. Utils - it's not an object method
 
 	my( $datasetid, $id ) = $uri =~ m# ^/id/([^/]+)/(.+)$ #x;
 	return unless defined $id;
 
 	$datasetid = URI::Escape::uri_unescape( $datasetid );
 
-	my $dataset = $session->dataset( $datasetid );
+	my $dataset = $repository->dataset( $datasetid );
 	return unless defined $dataset;
 
 	$id = URI::Escape::uri_unescape( $id );
 
-	my $dataobj = $dataset->get_object( $session, $id );
-
-	return $dataobj;
+	return $dataset->dataobj( $id );
 }
 
 ######################################################################
@@ -1131,10 +998,10 @@ sub get_object_from_uri
 
 =begin InternalDoc
 
-=item $xhtml = $ds->render_name( $session )
+=item $xhtml = $ds->render_name( $repository )
 
 Return a piece of XHTML describing this dataset, in the language of
-the current session.
+the current repository.
 
 =end InternalDoc
 
@@ -1144,8 +1011,8 @@ the current session.
 sub render_name
 {
 	my( $self ) = @_;
-
-	return $self->{repository}->html_phrase( "datasetname_".$self->id() );
+EPrints->deprecated;
+	return $self->repository->html_phrase( "datasetname_".$self->id() );
 }
 
 ######################################################################
@@ -1153,7 +1020,7 @@ sub render_name
 
 =begin InternalDoc
 
-=item $ds->map( $session, $fn, $info )
+=item $ds->map( $fn, $info )
 
 Maps the function $fn onto every record in this dataset. See 
 Search for a full explanation.
@@ -1165,9 +1032,23 @@ Search for a full explanation.
 
 sub map
 {
-	my( $self, $session, $fn, $info ) = @_;
+	my( $self, $fn, $info ) = @_;
 
-	$self->search->map( $fn, $info );
+	return __PACKAGE__ if( ref( $self ) eq '' );
+
+	if( ref( $fn ) eq 'CODE' )
+	{
+		return $self->search->map( $fn, $info );
+	}
+
+	# sf2 - backcompat
+	if( defined $fn && $fn->isa( "EPrints::Repository" ) )
+	{
+		EPrints->deprecated( "dataset->map( repository, function, info ) is deprecated. Use dataset->map( function, info ) instead" );
+		return $self->search->map( $_[2], $_[3] );
+	}
+
+	return undef;
 }
 
 
@@ -1181,8 +1062,7 @@ Returns the L<EPrints::Repository> to which this dataset belongs.
 =cut
 ######################################################################
 
-sub get_archive { &repository }
-sub get_repository { &repository }
+sub get_repository { EPrints->deprecated; &repository }
 sub repository
 {
 	my( $self ) = @_;
@@ -1195,7 +1075,7 @@ sub repository
 
 =begin InternalDoc
 
-=item $ds->reindex( $session )
+=item $ds->reindex( $repository )
 
 Recommits all the items in this dataset. This could take a real long 
 time on a large set of records.
@@ -1209,68 +1089,27 @@ Really should not be called reindex anymore as it doesn't.
 
 sub reindex
 {
-	my( $self, $session ) = @_;
+	my( $self, $repository ) = @_;
 
 	my $fn = sub {
-		my( $session, $dataset, $item ) = @_;
-		if( $session->get_noise() >= 2 )
+		my( $repository, $dataset, $item ) = @_;
+		if( $repository->get_noise() >= 2 )
 		{
 			print STDERR "Reindexing item: ".$dataset->id()."/".$item->get_id()."\n";
 		}
 		$item->commit();
 	};
 
-	$self->map( $session, $fn );
+	$self->map( $repository, $fn );
 }
+
 
 ######################################################################
 =pod
 
 =begin InternalDoc
 
-=item @ids = EPrints::DataSet::get_dataset_ids()
-
-Deprecated, use $repository->get_dataset_ids().
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub get_dataset_ids
-{
-	&EPrints::deprecated;
-
-	return keys %{$INFO};
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item @ids = EPrints::DataSet::get_sql_dataset_ids()
-
-Deprecated, use $repository->get_sql_dataset_ids().
-
-=end InternalDoc
-
-=cut
-######################################################################
-
-sub get_sql_dataset_ids
-{
-	&EPrints::deprecated;
-
-	return grep { !$INFO->{$_}->{"virtual"} } keys %{$INFO};
-}
-
-######################################################################
-=pod
-
-=begin InternalDoc
-
-=item @ids = $dataset->get_item_ids( $session )
+=item @ids = $dataset->get_item_ids( $repository )
 
 Return a list of the id's of all items in this set.
 
@@ -1281,13 +1120,13 @@ Return a list of the id's of all items in this set.
 
 sub get_item_ids
 {
-	my( $self, $session ) = @_;
+	my( $self, $repository ) = @_;
 
 	if( $self->get_filters )
 	{
 		return $self->search->get_ids;
 	}
-	return $session->get_database->get_values( $self->get_key_field, $self );
+	return $repository->database->get_values( $self->get_key_field, $self );
 }
 
 
@@ -1322,10 +1161,45 @@ sub get_dataset_id_field
 sub get_filters
 {
 	my( $self ) = @_;
+	
+	my $filters = $self->{filters} || [];
+	
+	if( !$self->is_stateless && defined ( my $state = $self->state ) )
+	{
+		$self->repository->debug_log( "security", "dataset->get_filters: adding state '%s' to restrict items", $state );
+		push @$filters, { meta_fields => [qw/ state /], value => $state, match => 'EX' };
+	}
 
-	my $f = $self->{filters};
+	if( defined ( my $context_def = $self->property( 'contexts', $self->active_context ) ) )
+	{
+		my $ctx_get_filters_fn = $context_def->{filters};
+		my $ctx_filters;		
 
-	return defined $f ? @{$f} : ();
+		$self->repository->debug_log( "security", "dataset->get_filters: adding context '%s' to restrict items", $self->active_context );
+
+### requires current-user!!
+
+if( !defined $self->repository->current_user )
+{
+	EPrints->abort( sprintf "Attempted to set security context '%s' without a current_user", $self->active_context );
+}
+
+		if( ref( $ctx_get_filters_fn ) eq 'CODE' )
+		{
+			$ctx_filters = &$ctx_get_filters_fn( $self->repository );
+		}
+		elsif( ref( $ctx_get_filters_fn ) eq 'ARRAY' )
+		{
+			$ctx_filters = $ctx_get_filters_fn;
+		}
+
+		if( EPrints::Utils::is_set( $ctx_filters ) )
+		{
+			push @$filters, @$ctx_filters;
+		}
+	}
+
+	return @$filters;
 }
 
 sub indexable
@@ -1384,7 +1258,7 @@ sub get_datestamp_field
 
 	my $datestamp = $self->{datestamp};
 
-	return defined $datestamp ? $self->get_field( $datestamp ) : undef;
+	return defined $datestamp ? $self->field( $datestamp ) : undef;
 }
 
 =item $searchexp = $ds->prepare_search( %options )
@@ -1398,7 +1272,7 @@ sub prepare_search
 	my( $self, %opts ) = @_;
 
 	return EPrints::Search->new(
-		session => $self->{repository},
+		repository => $self->repository,
 		dataset => $self,
 		allow_blank => 1,
 		%opts,
@@ -1439,6 +1313,8 @@ sub search
 {
 	my( $self, %opts ) = @_;
 
+	return __PACKAGE__ if( ref( $self ) eq '' );
+
 	return $self->prepare_search( %opts )->perform_search;
 }
 
@@ -1453,37 +1329,12 @@ sub list
 	my( $self, $ids ) = @_;
 
 	return EPrints::List->new(
-		session => $self->{repository},
+		repository => $self->repository,
 		dataset => $self,
 		ids => $ids,
 	);
 }
 
-=begin InternalDoc
-
-=item $fields = $dataset->columns()
-
-Returns the default list of fields to show the user when browsing this dataset in a table. Returns an array ref of L<EPrints::MetaField> objects.
-
-=end InternalDoc
-
-=cut
-
-sub columns
-{
-	my( $self ) = @_;
-
-	my $columns = $self->{repository}->config( "datasets", $self->id, "columns" );
-	if( !defined $columns )
-	{
-		$columns = $self->{columns};
-	}
-	$columns = [] if !defined $columns;
-
-	$columns = [grep { defined $_ } map { $self->field( $_ ) } @$columns];
-
-	return $columns;
-}
 
 =begin InternalDoc
 
@@ -1501,10 +1352,10 @@ sub run_trigger
 {
 	my( $self, $type, %params ) = @_;
 
-	my $fs = $self->{repository}->config( "datasets", $self->base_id, "triggers", $type );
+	my $fs = $self->repository->config( "datasets", $self->base_id, "triggers", $type );
 	return if !defined $fs;
 
-	$params{repository} = $self->{repository};
+	$params{repository} = $self->repository;
 	$params{dataset} = $self;
 
 	my $rc;
@@ -1529,7 +1380,7 @@ sub search_config
 {
 	my( $self, $searchid ) = @_;
 
-	my $repo = $self->{repository};
+	my $repo = $self->repository;
 
 	my $sconf;
 	if( $self->id eq "archive" )
@@ -1667,6 +1518,288 @@ sub citation
 	}
 
 	return $citation;
+}
+
+# return 1/0 whether the action is public (ie does not require an auth user)
+sub public_action
+{
+	my( $self, $action ) = @_;
+
+	# we need a user if the context is set/requested	
+	return 0 if( defined $self->active_context );
+
+	my @privs = @{ EPrints::ACL::privs_from_action( $action, $self ) || [] };
+
+	my $r = 0;
+	
+	foreach my $priv ( @privs )
+	{
+		$r |= 1 if $self->repository->allow_anybody( $priv );
+
+		$self->repository->debug_log( "security", "%s public-allow %s: %d", $self->id, $priv, $r );
+		
+		last if( $r );
+	}
+
+	return $r;
+}
+
+#sf2 - add-on - same as DataObj::permit_action
+# TODO - should be able to merge this permit_action sub with the one in 
+# Dataobj - they only differ on the few dataobj-specifics checks
+# then have only one method on the DataSet object
+# this is mostly used by Apache::Auth at the mo'
+sub permit_action
+{
+	my( $self, $action, $user ) = @_;
+
+	return 0 if( !$action );
+
+	# we need a user if the context is set/requested	
+	return 0 if( defined $self->active_context && !defined $user );
+
+	my @privs = @{ EPrints::ACL::privs_from_action( $action, $self ) || [] };
+
+	my @contexts = @{ $self->contexts || [] };
+	
+	my $r = 0;
+	
+	PRIV: foreach my $priv ( @privs )
+	{
+		last if( $r );
+	
+		$r |= 1 if $self->repository->allow_anybody( $priv );
+
+		$self->repository->debug_log( "security", "%s public-allow %s: %d", $self->id, $priv, $r );
+
+		if( defined $user )
+		{
+			$r |= 2 if $user->has_privilege( $priv );
+		
+			$self->repository->debug_log( "security", "%s user-allow %s: %d", $self->id, $priv, $r );
+
+			# may force a context without checking the user perms
+			my $active_context = $self->active_context;
+			@contexts = ( $active_context ) if( defined $active_context );
+
+			foreach my $context (@contexts)
+			{
+				# e.g. image.inbox/search:owner
+				if( $user->has_privilege( sprintf "%s:%s", $priv, $context ) )
+				{
+					# not sure that bit filter is still useful:
+					$r |= 2;
+					$self->set_context( $context );	
+					$self->repository->debug_log( "security", "set context '%s' on dataset %s", $context, $self->id );
+					last PRIV;
+				}
+			}
+		}
+	}
+
+	return $r;
+}
+
+=pod
+
+flow => {
+
+	default => "inbox",		# optional, default states->[0]
+	states => [qw/ inbox live /],	# compulsory!
+	transitions => {		# optional, default all allowed
+		inbox => [qw/ live /],
+		live => [qw/ inbox /],
+	},
+
+};
+
+                "default" => "inbox",   # starting state
+                "valid_states" => [qw/ inbox live /],
+                "flow" => {
+                        "inbox" => "live",
+                        "live" => "inbox",
+                },
+
+
+=cut
+
+sub set_state
+{
+	my( $self, $new_state ) = @_;
+
+	return __PACKAGE__ if( ref( $self ) eq '' );
+	
+	if( !$self->is_valid_state( $new_state ) )
+	{
+		$self->repository->log( "Invalid state '%s' for dataset %s", $new_state, $self->id );
+		return __PACKAGE__;
+	}
+
+	$self->{state} = $new_state;
+
+	return $self;	# for nested calls	
+}
+
+sub reset_state
+{
+	my( $self ) = @_;
+
+	delete $self->{state};
+}
+
+sub state
+{
+	my( $self ) = @_;
+
+	return undef if( $self->is_stateless );
+
+	return $self->{state};
+}
+
+sub states
+{
+        my( $self ) = @_;
+
+        return undef if( $self->is_stateless );
+
+        return $self->property( 'flow', 'states' );
+}
+
+sub is_valid_state
+{
+	my( $self, $state ) = @_;
+
+	return 0 if( !defined $state );
+	
+	return 0 if( $self->is_stateless );
+
+	my %valid_states = map { $_ => 1 } @{ $self->states || [] };
+	
+	return exists $valid_states{$state};
+}
+
+sub is_stateless
+{
+	my( $self ) = @_;
+
+        # 'state' SHOULD BE an internal field i.e. people cannot create custom fields called 'state'
+        return !$self->has_field( 'state' );
+}
+
+# TODO/sf2 - unused? remove?
+sub check_states
+{
+	my( $self ) = @_;
+
+	my $states_def = $self->property( 'states' );
+	return 1 if( !EPrints::Utils::is_set( $states_def ) );
+
+	my $default = $states_def->{default};
+
+	my $flow = $states_def->{flow};
+
+	# the actual valid states:
+	my $states = keys %{ $flow || [] };
+	
+}
+
+# object states ('inbox', 'archive' ..)
+sub default_state
+{
+	my( $self ) = @_;
+
+	return $self->state if( defined $self->state );
+
+	return $self->property( 'flow', 'default' );
+}
+
+sub set_context
+{
+	my( $self, $context ) = @_;
+
+	return __PACKAGE__ if( ref( $self ) eq '' );
+
+	if( !$self->is_valid_context( $context ) )
+	{
+		$self->repository->log( "Invalid security context '%s' on dataset %s", $context, $self->id );
+		return __PACKAGE__;
+	}
+	
+	$self->{context} = $context;
+
+	return $self;	# to allow nested calls
+}
+
+sub reset_context
+{
+	my( $self ) = @_;
+	
+	delete $self->{context};
+}
+
+# security contexts ('owner', ...)
+sub contexts
+{
+	my( $self ) = @_;
+
+	my @contexts = keys %{ $self->property( 'contexts' ) || {} };
+
+	return \@contexts;
+}
+
+sub active_context
+{
+	my( $self ) = @_;
+
+	return undef if( !$self->{context} );
+
+	return $self->{context};
+}
+
+sub is_valid_context
+{
+	my( $self, $context ) = @_;
+
+	my %valid_contexts = map { $_ => 1 } @{ $self->contexts || [] };
+
+	return exists $valid_contexts{$context};
+}
+
+sub matches_context
+{
+	my( $self, $dataobj ) = @_;
+
+	return 1 if( !defined $self->active_context );
+
+	my $matches = $self->property( 'contexts', $self->active_context, 'matches' );
+
+	if( defined $matches && ref( $matches ) eq 'CODE' )
+	{
+		return 0 if( !$self->repository->current_user );
+		return &$matches( $self->repository, $dataobj );
+	}
+
+	return 0;
+}
+
+# done via current_user cos that's currently how this works - cf. contexts definition in a cfg.d/.*_dataset
+sub user_contexts
+{
+	my( $self, $dataobj ) = @_;
+
+	return [] if( !defined $self->repository->current_user || !defined $dataobj );
+
+	my @user_contexts;
+	foreach my $ctx ( @{ $self->contexts } )
+	{
+		my $matches = $self->property( 'contexts', $ctx, 'matches' );
+		if( defined $matches && ref( $matches ) eq 'CODE' )
+		{
+			push @user_contexts, $ctx if &$matches( $self->repository, $dataobj );
+		}
+	}
+
+	return \@user_contexts;
 }
 
 ######################################################################
