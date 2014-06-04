@@ -49,11 +49,11 @@ The B<hash> value of the file object, if set.
 
 =item Expires
 
-The current time + 365 days, if the B<mtime> value is set.
+The current time + 365 days, if the B<lastmod> value is set.
 
 =item Last-Modified
 
-The B<mtime> of the file object, if set.
+The B<lastmod> of the file object, if set.
 
 =item Accept-Ranges
 
@@ -69,7 +69,7 @@ The following headers are recognised by this module.
 
 =item If-Modified-Since
 
-If greater than or equal to the B<mtime> value of the file object returns "304 Not Modified".
+If greater than or equal to the B<lastmod> value of the file object returns "304 Not Modified".
 
 =item If-None-Match
 
@@ -90,21 +90,31 @@ sub handler
 	my( $r ) = @_;
 
 	my $rc = OK;
-
 	my $repo = $EPrints::HANDLE->current_repository();
 
 	my $dataobj = $r->pnotes( "dataobj" );
 	my $filename = $r->pnotes( "filename" );
 
 	# Now get the file object itself
-	my $fileobj = $dataobj->get_stored_file( $filename );
+	my $fileobj;
+	if( defined $dataobj )
+	{
+		if( $dataobj->isa( "EPrints::DataObj::File" ) )
+		{
+			$fileobj = $dataobj;
+			$filename = $dataobj->value( 'filename' );
+		}
+		else
+		{
+			$fileobj = $dataobj->get_stored_file( $filename );
+		}
+	}
 	return HTTP_NOT_FOUND unless defined $fileobj;
 
 	my $url = $fileobj->get_remote_copy();
 	if( defined $url )
 	{
 		$repo->redirect( $url );
-
 		return $rc;
 	}
 
@@ -124,7 +134,7 @@ sub handler
 		{
 			return HTTP_NOT_MODIFIED;
 		}
-		EPrints::Apache::AnApache::header_out(
+		EPrints::Apache::header_out(
 			$r,
 			"ETag" => $fileobj->value( "hash" )
 		);
@@ -133,16 +143,16 @@ sub handler
 			my $md5 = $fileobj->value( "hash" );
 			# convert HEX-coded to Base64 (RFC1864)
 			$md5 = APR::Base64::encode( pack("H*", $md5) );
-			EPrints::Apache::AnApache::header_out(
+			EPrints::Apache::header_out(
 				$r,
 				"Content-MD5" => $md5
 			);
 		}
 	}
 
-	if( $fileobj->is_set( "mtime" ) )
+	if( $fileobj->is_set( "lastmod" ) )
 	{
-		my $cur_time = EPrints::Time::datestring_to_timet( undef, $fileobj->value( "mtime" ) );
+		my $cur_time = EPrints::Time::datestring_to_timet( undef, $fileobj->value( "lastmod" ) );
 		my $ims = $r->headers_in->{'if-modified-since'};
 		if( defined $ims )
 		{
@@ -152,12 +162,12 @@ sub handler
 				return HTTP_NOT_MODIFIED;
 			}
 		}
-		EPrints::Apache::AnApache::header_out(
+		EPrints::Apache::header_out(
 			$r,
 			"Last-Modified" => Apache2::Util::ht_time( $r->pool, $cur_time )
 		);
 		# can't go too far into the future or we'll wrap 32bit times!
-		EPrints::Apache::AnApache::header_out(
+		EPrints::Apache::header_out(
 			$r,
 			"Expires" => Apache2::Util::ht_time( $r->pool, time() + 365 * 86400 )
 		);
@@ -167,20 +177,20 @@ sub handler
 	my $download = $repo->param( "download" );
 	if( $download )
 	{
-		EPrints::Apache::AnApache::header_out(
+		EPrints::Apache::header_out(
 			$r,
 			"Content-Disposition" => "attachment; filename=".EPrints::Utils::uri_escape_utf8( $filename ),
 		);
 	}
 	else
 	{
-		EPrints::Apache::AnApache::header_out(
+		EPrints::Apache::header_out(
 			$r,
 			"Content-Disposition" => "inline; filename=".EPrints::Utils::uri_escape_utf8( $filename ),
 		);
 	}
 
-	EPrints::Apache::AnApache::header_out(
+	EPrints::Apache::header_out(
 		$r,
 		"Accept-Ranges" => "bytes"
 	);
@@ -189,17 +199,17 @@ sub handler
 	my $rv;
 
 	my @chunks;
-	my $rres = EPrints::Apache::AnApache::ranges( $r, $content_length, \@chunks );
+	my $rres = EPrints::Apache::ranges( $r, $content_length, \@chunks );
 	if( $rres == HTTP_PARTIAL_CONTENT && @chunks == 1 )
 	{
 		$r->status( $rres );
 		my $chunk = shift @chunks;
-		EPrints::Apache::AnApache::header_out( $r,
+		EPrints::Apache::header_out( $r,
 			"Content-Range" => sprintf( "bytes %d-%d/%d",
 				@$chunk[0,1],
 				$content_length
 			) );
-		EPrints::Apache::AnApache::header_out( 
+		EPrints::Apache::header_out( 
 			$r,
 			"Content-Length" => $chunk->[1] - $chunk->[0] + 1
 		);
@@ -229,7 +239,7 @@ sub handler
 		}
 		push @boundaries, "\r\n--$boundary--\r\n";
 		$body_length += length($boundaries[$#boundaries]);
-		EPrints::Apache::AnApache::header_out( 
+		EPrints::Apache::header_out( 
 			$r,
 			"Content-Length" => $body_length
 		);
@@ -251,7 +261,7 @@ sub handler
 	}
 	else # OK normal response
 	{
-		EPrints::Apache::AnApache::header_out( 
+		EPrints::Apache::header_out( 
 			$r,
 			"Content-Length" => $content_length
 		);
