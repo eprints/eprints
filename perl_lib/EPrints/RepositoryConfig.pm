@@ -150,11 +150,78 @@ sub add_dataset_field
 	push @{$c->{fields}->{$datasetid}}, $fielddata;
 }
 
+
+
+# sf2 - generalising roles and privs (ACL)
+
 =pod
+$c->define_role( 'public', [qw{
+        +subject/rest/get
+        +movie/view
+        +movie/export
+        +image/view
+        +image/export
+        +image/create
+        +file/view
+        +file/export
+}] );
+=cut
 
-=back
+sub define_role
+{
+	my( $c, $role, $privs ) = @_;
 
-=cut 
+	$privs ||= [];
+
+	if( !EPrints::Utils::is_set( $role ) || ref( $privs ) ne 'ARRAY' )
+	{
+		# EPrints->warn( "Usage: \$c->define_role( role, [priv1, priv2, ...] )" );
+		return;
+	}
+
+	# if the role exists this would redefine it.
+	$c->{roles}->{$role} = $privs;
+}
+
+=pod
+$c->add_public_roles( 'public' );
+
+# set a pre-defined role to be public (ie. no user required to perform the allowed actions)
+
+=cut
+
+sub add_public_roles
+{
+	my( $c, @roles ) = @_;
+	
+	$c->{public_roles} ||= {};
+
+	foreach my $role (@roles)
+	{
+		next if( !exists $c->{roles}->{$role} );
+		$c->{public_roles}->{$role} = 1;
+
+		$c->process_public_privs( @{$c->{roles}->{$role} || [] } );
+	}
+}
+
+sub process_public_privs
+{
+	my( $c, @privs ) = @_;
+
+	foreach my $priv ( @privs )
+	{
+		if( $priv =~ /^\+(.*)$/ )
+		{
+			$c->{public_privs}->{$1} = 1;
+		}
+		elsif( $priv =~ /^\-(.*)$/ )
+		{
+			delete $c->{public_privs}->{$1};
+		}
+	}
+}
+
 
 # Non advertised methods!
 
