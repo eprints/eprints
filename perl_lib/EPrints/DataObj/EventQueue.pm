@@ -95,18 +95,18 @@ Returns undef if such an event already exists.
 
 sub create_unique
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $repository, $data, $dataset ) = @_;
 
-	$dataset ||= $session->dataset( $class->get_dataset_id );
+	$dataset ||= $repository->dataset( $class->get_dataset_id );
 
 	my $md5 = Digest::MD5->new;
 	$md5->add( $data->{pluginid} );
 	$md5->add( $data->{action} );
-	$md5->add( EPrints::MetaField::Storable->freeze( $session, $data->{params} ) )
+	$md5->add( EPrints::MetaField::Storable->freeze( $repository, $data->{params} ) )
 		if EPrints::Utils::is_set( $data->{params} );
 	$data->{eventqueueid} = $md5->hexdigest;
 
-	return $class->create_from_data( $session, $data, $dataset );
+	return $class->create_from_data( $repository, $data, $dataset );
 }
 
 =begin InternalDoc
@@ -121,14 +121,14 @@ Returns the event that corresponds to the hash of the data provided in $epdata.
 
 sub new_from_hash
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $repository, $data, $dataset ) = @_;
 
-	$dataset ||= $session->dataset( $class->get_dataset_id );
+	$dataset ||= $repository->dataset( $class->get_dataset_id );
 
 	my $md5 = Digest::MD5->new;
 	$md5->add( $data->{pluginid} );
 	$md5->add( $data->{action} );
-	$md5->add( EPrints::MetaField::Storable->freeze( $session, $data->{params} ) )
+	$md5->add( EPrints::MetaField::Storable->freeze( $repository, $data->{params} ) )
 		if EPrints::Utils::is_set( $data->{params} );
 	my $eventqueueid = $md5->hexdigest;
 	
@@ -198,7 +198,7 @@ sub execute
 			$rc != EPrints::Const::HTTP_NOT_FOUND
 		  )
 		{
-			$self->message( "warning", $self->{session}->xml->create_text_node( "Unrecognised result code (check your action return): $rc" ) );
+			$self->message( "warning", $self->{repository}->xml->create_text_node( "Unrecognised result code (check your action return): $rc" ) );
 		}
 		if( !$self->is_set( "cleanup" ) || $self->value( "cleanup" ) eq "TRUE" )
 		{
@@ -225,10 +225,10 @@ sub _execute
 {
 	my( $self ) = @_;
 
-	my $session = $self->{session};
-	my $xml = $session->xml;
+	my $repository = $self->{repository};
+	my $xml = $repository->xml;
 
-	my $plugin = $session->plugin( $self->value( "pluginid" ),
+	my $plugin = $repository->plugin( $self->value( "pluginid" ),
 		event => $self,
 	);
 	if( !defined $plugin )
@@ -255,9 +255,9 @@ sub _execute
 	# expand any object identifiers
 	foreach my $param (@params)
 	{
-		if( defined($param) && $param =~ m# ^/id/([^/]+)/(.+)$ #x )
+		if( defined($param) && $param =~ m# ^/data/([^/]+)/(.+)$ #x )
 		{
-			my $dataset = $session->dataset( $1 );
+			my $dataset = $repository->dataset( $1 );
 			if( !defined $dataset )
 			{
 				$self->message( "error", $xml->create_text_node( "Bad parameters: No such dataset '$1'" ) );
@@ -313,10 +313,10 @@ sub message
 		$self->id,
 		$self->value( "pluginid" ),
 		$self->value( "action" ),
-		$self->{session}->xhtml->to_text_dump( $message ) );
-	$self->{session}->xml->dispose( $message );
+		$self->{repository}->xhtml->to_text_dump( $message ) );
+	$self->{repository}->xml->dispose( $message );
 
-	$self->{session}->log( $msg );
+	$self->{repository}->log( $msg );
 }
 
 1;

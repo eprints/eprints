@@ -76,8 +76,8 @@ sub get_system_field_info
 
 	# creators
 	{ name=>"creators", type=>"compound", multiple=>1, fields=>[
-		{ sub_name=>"name", type=>"name", hide_honourific=>1, },
-		{ sub_name=>"id", type=>"id", input_cols=>20, },
+		{ name=>"name", type=>"name", hide_honourific=>1, },
+		{ name=>"id", type=>"id", input_cols=>20, },
 		]},
 
 	# change to functional content
@@ -485,7 +485,7 @@ sub repositories
 
 	foreach my $repoid (EPrints->repository_ids)
 	{
-		local $self->{session} = EPrints->repository( $repoid );
+		local $self->{repository} = EPrints->repository( $repoid );
 		push @repoids, $repoid if $self->is_enabled;
 	}
 
@@ -767,7 +767,7 @@ sub _is_enabled_filepath
 {
 	my( $self ) = @_;
 
-	return $self->{session}->config( "archiveroot" ) . "/cfg/epm/" . $self->id;
+	return $self->{repository}->config( "archiveroot" ) . "/cfg/epm/" . $self->id;
 }
 
 =item $ok = $epm->disable_unchanged()
@@ -955,7 +955,7 @@ sub current_counters
 {
 	my( $self ) = @_;
 
-	return [$self->{session}->get_sql_counter_ids];
+	return [$self->{repository}->get_sql_counter_ids];
 }
 
 =item $conf = $epm->current_datasets()
@@ -1122,15 +1122,15 @@ sub publish
 	my $r = $ua->request( $req );
 	if( $r->code != 201 )
 	{
-		my $err = $self->{session}->xml->create_document_fragment;
-		$err->appendChild( $self->{session}->xml->create_text_node(
+		my $err = $self->{repository}->xml->create_document_fragment;
+		$err->appendChild( $self->{repository}->xml->create_text_node(
 				$r->status_line,
 			) );
-		$err->appendChild( $self->{session}->xml->create_data_element( "pre",
+		$err->appendChild( $self->{repository}->xml->create_data_element( "pre",
 				$r->content,
 			) );
 		$handler->add_message( "error", $self->html_phrase( "publish_failed",
-			base_url => $self->{session}->xml->create_text_node( $url ),
+			base_url => $self->{repository}->xml->create_text_node( $url ),
 			summary => $err,
 			) );
 		return undef;

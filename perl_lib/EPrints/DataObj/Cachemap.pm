@@ -32,22 +32,22 @@ use strict;
 
 sub create_from_data
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $repository, $data, $dataset ) = @_;
 
 	# if we're online delay clean-up until Apache cleanup, which will prevent
 	# the request blocking
-	if( $session->get_online )
+	if( $repository->get_online )
 	{
-		$session->get_request->pool->cleanup_register(sub {
-				__PACKAGE__->cleanup( $session )
-			}, $session );
+		$repository->get_request->pool->cleanup_register(sub {
+				__PACKAGE__->cleanup( $repository )
+			}, $repository );
 	}
 	else
 	{
-		$class->cleanup( $session );
+		$class->cleanup( $repository );
 	}
 
-	return $class->SUPER::create_from_data( $session, $data, $dataset );
+	return $class->SUPER::create_from_data( $repository, $data, $dataset );
 }
 
 =item $thing = EPrints::DataObj::Access->get_system_field_info
@@ -104,7 +104,7 @@ sub get_dataset_id
 
 ######################################################################
 
-=item $defaults = EPrints::DataObj::Cachemap->get_defaults( $session, $data )
+=item $defaults = EPrints::DataObj::Cachemap->get_defaults( $repository, $data )
 
 Return default values for this object based on the starting data.
 
@@ -114,9 +114,9 @@ Return default values for this object based on the starting data.
 
 sub get_defaults
 {
-	my( $class, $session, $data, $dataset ) = @_;
+	my( $class, $repository, $data, $dataset ) = @_;
 	
-	$class->SUPER::get_defaults( $session, $data, $dataset );
+	$class->SUPER::get_defaults( $repository, $data, $dataset );
 
 	$data->{created} = time();
 
@@ -196,7 +196,7 @@ sub remove
 	
 	my $rc = 1;
 	
-	my $database = $self->{session}->get_database;
+	my $database = $self->{repository}->get_database;
 
 	$rc &&= $database->remove(
 		$self->{dataset},
@@ -229,11 +229,11 @@ sub create_sql_table
 
 	my $cache_table = $self->get_sql_table_name;
 	my $key_field = $dataset->get_key_field;
-	my $database = $self->{session}->get_database;
+	my $database = $self->{repository}->get_database;
 
 	my $rc = $database->_create_table( $cache_table, ["pos"], [
 			$database->get_column_type( "pos", EPrints::Database::SQL_INTEGER, EPrints::Database::SQL_NOT_NULL ),
-			$key_field->get_sql_type( $self->{session} ),
+			$key_field->get_sql_type( $self->{repository} ),
 			]);
 
 	return $rc;
