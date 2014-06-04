@@ -357,7 +357,7 @@ sub run_as_item
 		$self->runtime_error( "as_item requires a itemref or dataobjref" );
 	}
 
-	my $object = $field->get_item( $state->{session}, $itemref->[0] );
+	my $object = $field->get_item( $state->{repository}, $itemref->[0] );
 
 	return [ $object ];
 }
@@ -612,12 +612,12 @@ sub run_contact_email
 			ref($eprint->[0]) );
 	}
 
-	if( !$state->{session}->get_repository->can_call( "email_for_doc_request" ) )
+	if( !$state->{repository}->can_call( "email_for_doc_request" ) )
 	{
 		return [ undef, "STRING" ];
 	}
 
-	return [ $state->{session}->get_repository->call( "email_for_doc_request", $state->{session}, $eprint->[0] ), "STRING" ]; 
+	return [ $state->{repository}->call( "email_for_doc_request", $state->{repository}, $eprint->[0] ), "STRING" ]; 
 }
 
 sub run_uri
@@ -634,7 +634,7 @@ sub run_action_list
 	my( $self, $state, $list_id, $item ) = @_;
 
 	my $screen_processor = EPrints::ScreenProcessor->new(
-		session => $state->{session},
+		repository => $state->{repository},
 		screenid => "Error",
 	);
 
@@ -767,7 +767,7 @@ sub run_pretty_list
 	}
 
 	my $n = scalar @{$list->[0]};
-	my $r = $state->{session}->make_doc_fragment;
+	my $r = $state->{repository}->make_doc_fragment;
 
 	for( my $i=0; $i<$n; ++$i )
 	{
@@ -775,21 +775,21 @@ sub run_pretty_list
 		{
 			if( defined $last_sep && $i == $n-1 )
 			{
-				$r->appendChild( $state->{session}->make_text( $last_sep->[0] ) );
+				$r->appendChild( $state->{repository}->make_text( $last_sep->[0] ) );
 			}
 			else
 			{
-				$r->appendChild( $state->{session}->make_text( $sep->[0] ) );
+				$r->appendChild( $state->{repository}->make_text( $sep->[0] ) );
 			}
 		}
 		my $val = $list->[0]->[$i]->[0];
 		my $field = $list->[0]->[$i]->[1];
 		$r->appendChild( 
-			$field->render_value( $state->{session}, $val, 0, 0 ));
+			$field->render_value( $state->{repository}, $val, 0, 0 ));
 	}
 	if( $n > 0 && defined $finally )
 	{
-		$r->appendChild( $state->{session}->make_text( $finally->[0] ) );
+		$r->appendChild( $state->{repository}->make_text( $finally->[0] ) );
 	}
 
 	return [ $r, "XHTML" ];
@@ -847,7 +847,7 @@ sub run_phrase
 {
 	my( $self, $state, $phrase ) = @_;
 
-	return [ $state->{session}->html_phrase( $phrase->[0] ), "XHTML" ];
+	return [ $state->{repository}->html_phrase( $phrase->[0] ), "XHTML" ];
 }
 
 sub run_documents

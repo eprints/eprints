@@ -79,12 +79,11 @@ sub execute
 	my( $code, $state ) = @_;
 
 #foreach( keys %{$state} ) { print STDERR "$_: ".$state->{$_}."\n"; }
-	$state->{repository} = $state->{session}->get_repository;
-	$state->{config} = $state->{session}->get_repository->{config};
+	$state->{config} = $state->{repository}->{config};
 
 	# might be undefined
-	$state->{current_user} = $state->{session}->current_user; 
-	$state->{current_lang} = [$state->{session}->get_langid, "STRING" ]; 
+	$state->{current_user} = $state->{repository}->current_user; 
+	$state->{current_lang} = [$state->{repository}->get_langid, "STRING" ]; 
 
 	my $compiled = EPrints::Script::Compiler->new()->compile( $code, $state->{in} );
 
@@ -102,23 +101,23 @@ sub print
 
 	if( $result->[1] eq "XHTML"  )
 	{
-		return $state->{session}->clone_for_me( $result->[0], 1 );
+		return $state->{repository}->clone_for_me( $result->[0], 1 );
 	}
 	if( $result->[1] eq "BOOLEAN"  )
 	{
-		return $state->{session}->make_text( $result->[0]?"TRUE":"FALSE" );
+		return $state->{repository}->xml->create_text_node( $result->[0]?"TRUE":"FALSE" );
 	}
 	if( $result->[1] eq "STRING"  )
 	{
-		return $state->{session}->make_text( $result->[0] );
+		return $state->{repository}->xml->create_text_node( $result->[0] );
 	}
 	if( $result->[1] eq "DATE"  )
 	{
-		return $state->{session}->make_text( $result->[0] );
+		return $state->{repository}->xml->create_text_node( $result->[0] );
 	}
 	if( $result->[1] eq "INTEGER"  )
 	{
-		return $state->{session}->make_text( $result->[0] );
+		return $state->{repository}->xml->create_text_node( $result->[0] );
 	}
 
 	my $field = $result->[1];
@@ -139,14 +138,14 @@ sub print
 
 	if( !defined $field )
 	{
-		return $state->{session}->make_text( "[No type for value '$result->[0]' from '$code']" );
+		return $state->{repository}->xml->create_text_node( "[No type for value '$result->[0]' from '$code']" );
 	}
 
 	if( !UNIVERSAL::isa( $field, "EPrints::MetaField" ) )
 	{
 		EPrints->abort( "Expected MetaField but got '$field'" );
 	}
-	return $field->render_value( $state->{session}, $result->[0], 0, 0, $result->[2] );
+	return $field->render_value( $state->{repository}, $result->[0], 0, 0, $result->[2] );
 }
 
 sub error
