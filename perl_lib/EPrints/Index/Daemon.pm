@@ -63,7 +63,7 @@ sub new
 	$opts{loglevel} = 1 unless defined $opts{loglevel};
 	$opts{rollcount} = 5 unless defined $opts{rollcount};
 	$opts{maxwait} ||= 8; # 8 seconds
-	$opts{interval} ||= 30; # 30 seconds
+	$opts{interval} ||= 10; # 10 seconds
 	$opts{respawn} ||= 86400; # 1 day
 	$opts{timeout} ||= 600; # 10 minutes
 	$opts{nextrespawn} = time() + $opts{respawn};
@@ -176,7 +176,7 @@ sub is_running
 	my( $self ) = @_;
 	my $pid = $self->get_pid or return undef;
 	return 1 if kill(0, $pid); # Running as the same uid as us
-	return 1 if EPrints::Platform::proc_exists( $pid );
+	return 1 if EPrints->system->proc_exists( $pid );
 	return 0;
 }
 
@@ -191,7 +191,7 @@ sub is_child_running
 	my( $self ) = @_;
 	my $pid = $self->{child} or return undef;
 	return 1 if kill(0, $pid); # Running as the same uid as us
-	return 1 if EPrints::Platform::proc_exists( $pid );
+	return 1 if EPrints->system->proc_exists( $pid );
 	return 0;
 }
 
