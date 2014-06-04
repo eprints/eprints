@@ -29,11 +29,11 @@ web page.
 
 =head2 Searching for Eprints
 
-	$ds = $session->dataset( "archive" );
+	$ds = $repository->dataset( "archive" );
 
 	$searchexp = EPrints::Search->new(
 		satisfy_all => 1,
-		session => $session,
+		repository => $repository,
 		dataset => $ds,
 	);
 
@@ -54,7 +54,7 @@ web page.
 
 	my $info = { matches => 0 };
 	sub fn {
-		my( $session, $dataset, $eprint, $info ) = @_;
+		my( $repository, $dataset, $eprint, $info ) = @_;
 		$info->{matches}++;
 	};
 	$results->map( \&fn, $info );
@@ -88,7 +88,7 @@ GENERAL PARAMETERS
 
 =over 4
 
-=item session (required)
+=item repository (required)
 
 The current L<EPrints::Session>
 
@@ -188,7 +188,7 @@ being mentioned in the description of the search.
 ######################################################################
 
 @EPrints::Search::OPTS = (
-	"session", 	"dataset", 	"allow_blank", 	
+	"repository", 	"dataset", 	"allow_blank", 	
 	"satisfy_all", 	"staff", 	
 	"custom_order", "keep_cache", 	"cache_id", 	
 	"prefix", 	"defaults", 	"filters", 
@@ -202,7 +202,7 @@ sub new
 	
 	my $self = {};
 	bless $self, $class;
-	# only session & table are required.
+	# only repository & table are required.
 	# setup defaults for the others:
 	$data{allow_blank} = 0 if ( !defined $data{allow_blank} );
 	$data{satisfy_all} = 1 if ( !defined $data{satisfy_all} );
@@ -243,7 +243,7 @@ END
 
 	if( defined $data{"dataset_id"} )
 	{
-		$self->{"dataset"} = $self->{"session"}->get_repository->get_dataset( $data{"dataset_id"} );
+		$self->{"dataset"} = $self->{"repository"}->dataset( $data{"dataset_id"} );
 	}
 
 	# Arrays for the Search::Field objects
@@ -335,7 +335,7 @@ sub from_cache
 {
 	my( $self, $id ) = @_;
 
-	my $string = $self->{session}->get_database->cache_exp( $id );
+	my $string = $self->{repository}->get_database->cache_exp( $id );
 
 	return( 0 ) if( !defined $string );
 	$self->from_string( $string );
@@ -377,7 +377,7 @@ sub add_field
 		@opts{qw( fields value match merge id filter show_help )} = @args;
 	}
 	$opts{prefix} = $self->{prefix} if !exists $opts{prefix};
-	$opts{repository} = $self->{session};
+	$opts{repository} = $self->{repository};
 	$opts{dataset} = $self->{dataset} if !exists $opts{dataset};
 	my $filter = delete $opts{filter};
 
@@ -586,12 +586,12 @@ sub from_string
 	
 # not overriding these bits
 #	$self->{allow_blank} = $parts[0];
-#	$self->{dataset} = $self->{session}->get_repository->get_dataset( $parts[3] ); 
+#	$self->{dataset} = $self->{repository}->dataset( $parts[3] ); 
 
 	foreach( split /\|/ , $field_string )
 	{
 		my $sf = EPrints::Search::Field->unserialise(
-			repository => $self->{session},
+			repository => $self->{repository},
 			dataset => $self->{dataset},
 			string => $_,
 			prefix => $self->{prefix},
@@ -627,12 +627,12 @@ sub from_string_raw
 	delete $self->{custom_order} if( $self->{custom_order} eq "" );
 # not overriding these bits
 #	$self->{allow_blank} = $parts[0];
-#	$self->{dataset} = $self->{session}->get_repository->get_dataset( $parts[3] ); 
+#	$self->{dataset} = $self->{repository}->dataset( $parts[3] ); 
 
 	foreach( split /\|/ , $field_string )
 	{
 		my $sf = EPrints::Search::Field->unserialise(
-			repository => $self->{session},
+			repository => $self->{repository},
 			dataset => $self->{dataset},
 			string => $_,
 			prefix => $self->{prefix},
@@ -644,7 +644,7 @@ sub from_string_raw
 	foreach( split /\|/ , $filter_string )
 	{
 		my $sf = EPrints::Search::Field->unserialise(
-			repository => $self->{session},
+			repository => $self->{repository},
 			dataset => $self->{dataset},
 			string => $_,
 			prefix => $self->{prefix},
@@ -777,7 +777,7 @@ sub get_conditions
 	}
 	
 	return $cond->optimise(
-		session => $self->{session},
+		repository => $self->{repository},
 		dataset => $self->{dataset},
 	);
 }
@@ -843,12 +843,12 @@ sub render_description
 {
 	my( $self ) = @_;
 
-	my $frag = $self->{session}->make_doc_fragment;
+	my $frag = $self->{repository}->make_doc_fragment;
 
 	$frag->appendChild( $self->render_conditions_description );
-	$frag->appendChild( $self->{session}->make_text( ". " ) );
+	$frag->appendChild( $self->{repository}->make_text( ". " ) );
 	$frag->appendChild( $self->render_order_description );
-	$frag->appendChild( $self->{session}->make_text( ". " ) );
+	$frag->appendChild( $self->{repository}->make_text( ". " ) );
 
 	return $frag;
 }
@@ -882,13 +882,13 @@ sub render_conditions_description
 		$joinphraseid = "lib/searchexpression:desc_and";
 	}
 
-	my $frag = $self->{session}->make_doc_fragment;
+	my $frag = $self->{repository}->make_doc_fragment;
 
 	for( my $i=0; $i<scalar @bits; ++$i )
 	{
 		if( $i>0 )
 		{
-			$frag->appendChild( $self->{session}->html_phrase( 
+			$frag->appendChild( $self->{repository}->html_phrase( 
 				$joinphraseid ) );
 		}
 		$frag->appendChild( $bits[$i] );
@@ -896,7 +896,7 @@ sub render_conditions_description
 
 	if( scalar @bits == 0 )
 	{
-		$frag->appendChild( $self->{session}->html_phrase(
+		$frag->appendChild( $self->{repository}->html_phrase(
 			"lib/searchexpression:desc_no_conditions" ) );
 	}
 
@@ -918,7 +918,7 @@ sub render_order_description
 {
 	my( $self ) = @_;
 
-	my $frag = $self->{session}->make_doc_fragment;
+	my $frag = $self->{repository}->make_doc_fragment;
 
 	# empty if there is no order.
 	return $frag unless( EPrints::Utils::is_set( $self->{custom_order} ) );
@@ -926,16 +926,16 @@ sub render_order_description
 	my $first = 1;
 	foreach my $orderid ( split( "/", $self->{custom_order} ) )
 	{
-		$frag->appendChild( $self->{session}->make_text( ", " ) ) if( !$first );
+		$frag->appendChild( $self->{repository}->make_text( ", " ) ) if( !$first );
 		my $desc = 0;
 		if( $orderid=~s/^-// ) { $desc = 1; }
-		$frag->appendChild( $self->{session}->make_text( "-" ) ) if( $desc );
+		$frag->appendChild( $self->{repository}->make_text( "-" ) ) if( $desc );
 		my $field = EPrints::Utils::field_from_config_string( $self->{dataset}, $orderid );
-		$frag->appendChild( $field->render_name( $self->{session} ) );
+		$frag->appendChild( $field->render_name( $self->{repository} ) );
 		$first = 0;
 	}
 
-	return $self->{session}->html_phrase(
+	return $self->{repository}->html_phrase(
 		"lib/searchexpression:desc_order",
 		order => $frag );
 
@@ -1076,7 +1076,7 @@ sub perform_search
 	if( defined $self->{cache_id} )
 	{
 		return EPrints::List->new( 
-			session => $self->{session},
+			repository => $self->{repository},
 			dataset => $self->{dataset},
 			encoded => $self->serialise,
 			cache_id => $self->{cache_id}, 
@@ -1092,10 +1092,10 @@ sub perform_search
 
 	if( $self->{keep_cache} )
 	{
-		my $userid = $self->{session}->current_user;
+		my $userid = $self->{repository}->current_user;
 		$userid = $userid->get_id if defined $userid;
 
-		$cachemap = $self->{session}->get_repository->get_dataset( "cachemap" )->create_object( $self->{session}, {
+		$cachemap = $self->{repository}->dataset( "cachemap" )->create_object( $self->{repository}, {
 			lastused => time(),
 			userid => $userid,
 			searchexp => $self->serialise,
@@ -1105,7 +1105,7 @@ sub perform_search
 	}
 
 	my $unsorted_matches = $self->get_conditions->process( 
-		session => $self->{session},
+		repository => $self->{repository},
 		cachemap => $cachemap,
 		order => $self->{custom_order},
 		dataset => $self->{dataset},
@@ -1114,7 +1114,7 @@ sub perform_search
 	);
 
 	my $results = EPrints::List->new( 
-		session => $self->{session},
+		repository => $self->{repository},
 		dataset => $self->{dataset},
 		encoded => $self->serialise,
 		keep_cache => $self->{keep_cache},
@@ -1141,7 +1141,7 @@ sub perform_distinctby
 
 	# we don't do any caching of DISTINCT BY
 	return $self->get_conditions->process_distinctby( 
-			session => $self->{session},
+			repository => $self->{repository},
 			dataset => $self->{dataset},
 			fields => $fields,
 		);
@@ -1161,7 +1161,7 @@ sub perform_groupby
 
 	# we don't do any caching of GROUP BY
 	return $self->get_conditions->process_groupby( 
-			session => $self->{session},
+			repository => $self->{repository},
 			dataset => $self->{dataset},
 			field => $field,
 		);
@@ -1261,7 +1261,7 @@ sub sql
 	my( $self ) = @_;
 
 	return $self->get_conditions->sql(
-		session => $self->{session},
+		repository => $self->{repository},
 		dataset => $self->{dataset},
 	);
 }
