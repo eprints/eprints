@@ -414,7 +414,7 @@ sub copy
 
 =pod
 
-=item $response = EPrints::Utils::wget( $session, $source, $target )
+=item $response = EPrints::Utils::wget( $repository, $source, $target )
 
 Copy $source file or URL to $target file without alteration.
 
@@ -428,7 +428,7 @@ Returns the HTTP response object: use $response->is_success to check whether the
 
 sub wget
 {
-	my( $session, $url, $target ) = @_;
+	my( $repository, $url, $target ) = @_;
 
 	$target = "$target";
 
@@ -441,12 +441,12 @@ sub wget
 
 	if( $url->scheme eq "file" )
 	{
-		if( !$session->config( "enable_file_imports" ) )
+		if( !$repository->config( "enable_file_imports" ) )
 		{
 			return HTTP::Response->new( 403, "Access denied by configuration: file imports disabled" );
 		}
 	}
-	elsif( !$session->config( "enable_web_imports" ) )
+	elsif( !$repository->config( "enable_web_imports" ) )
 	{
 		return HTTP::Response->new( 403, "Access denied by configuration: web imports disabled" );
 	}
@@ -537,7 +537,7 @@ sub rmtree
 # in=>.. describes where this came from in case it needs to report an
 # error.
 #
-# session=> is required
+# repository=> is required
 #
 # item => is required (the epobject being cited).
 #
@@ -574,19 +574,19 @@ sub _render_citation_aux
 
 		if( $name eq "iflink" )
 		{
-			$rendered = $params{session}->make_doc_fragment;
+			$rendered = $params{repository}->make_doc_fragment;
 			$addkids = defined $params{url};
 		}
 		elsif( $name eq "ifnotlink" )
 		{
-			$rendered = $params{session}->make_doc_fragment;
+			$rendered = $params{repository}->make_doc_fragment;
 			$addkids = !defined $params{url};
 		}
 		elsif( $name eq "linkhere" )
 		{
 			if( defined $params{url} )
 			{
-				$rendered = $params{session}->make_element( 
+				$rendered = $params{repository}->make_element( 
 					"a",
 					class=>$params{class},
 					onclick=>$params{onclick},
@@ -595,14 +595,14 @@ sub _render_citation_aux
 			}
 			else
 			{
-				$rendered = $params{session}->make_doc_fragment;
+				$rendered = $params{repository}->make_doc_fragment;
 			}
 		}
 	}
 
 	if( !defined $rendered )
 	{
-		$rendered = $params{session}->clone_for_me( $node );
+		$rendered = $params{repository}->clone_for_me( $node );
 	}
 
 	if( $addkids )
@@ -670,7 +670,7 @@ sub field_from_config_string
 		{
 			EPrints::abort( "Attempt to get a field or subfield from a non existent dataset. Could be due to a sub field of a inappropriate field type." );
 		}
-		$field = $dataset->get_field( $fname );
+		$field = $dataset->field( $fname );
 		if( !defined $field )
 		{
 			EPrints::abort( "Dataset ".$dataset->confid." does not have a field '$fname'" );
@@ -679,7 +679,7 @@ sub field_from_config_string
 		if( $field->is_type( "subobject", "itemref" ) )
 		{
 			my $datasetid = $field->get_property( "datasetid" );
-			$dataset = $dataset->get_repository->get_dataset( $datasetid );
+			$dataset = $dataset->repository->dataset( $datasetid );
 		}
 		else
 		{
@@ -931,7 +931,7 @@ sub clone
 	return $data;			
 }
 
-# crypt_password( $value, $session )
+# crypt_password( $value, $repository )
 sub crypt_password { &crypt( $_[0] ) }
 
 =item $crypt = EPrints::Utils::crypt( $value [, $method ] )
@@ -1306,14 +1306,14 @@ sub chown_for_eprints
 		my $group = $EPrints::SystemSettings::conf->{group};
 		my $username = $EPrints::SystemSettings::conf->{user};
 
-		(undef,undef,$uid,undef) = EPrints::Platform::getpwnam( $username );
-		$gid = EPrints::Platform::getgrnam( $group );
+		(undef,undef,$uid,undef) = EPrints->system->getpwnam( $username );
+		$gid = EPrints->system->getgrnam( $group );
 
 		$EPrints::SystemSettings::conf->{group_uid} = $uid;
 		$EPrints::SystemSettings::conf->{group_gid} = $gid;
 	}
 
-	EPrints::Platform::chown( $uid, $gid, $file );
+	EPrints->system->chown( $uid, $gid, $file );
 }
 
 
@@ -1425,6 +1425,33 @@ sub make_sitemap_url
 	}
 
 	return $url;
+}
+
+# sf2 - from Apache/CRUD.pm
+# http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1
+sub parse_media_range
+{
+        my( $media_range ) = @_;
+
+        my @accept = HTTP::Headers::Util::split_header_words( $media_range );
+        for(@accept)
+        {
+                my( $mime_type, undef, %params ) = @$_;
+                $params{'mime_type'} = $mime_type;
+                $params{q} = 1 if !defined $params{q};
+                $_ = \%params;
+        }
+
+        @accept = sort {
+# q-scores
+                $b->{q} <=> $a->{q} ||
+# text/html is higher than text/*
+                $a->{mime_type} cmp $b->{mime_type} ||
+# text/html;level=1 is higher than text/html
+                scalar(keys %$b) <=> scalar(keys %$a)
+        } @accept;
+
+        return map { [ delete $_->{mime_type}, undef, %$_ ] } @accept;
 }
 
 1;
