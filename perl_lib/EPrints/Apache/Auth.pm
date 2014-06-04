@@ -29,211 +29,98 @@ package EPrints::Apache::Auth;
 
 use strict;
 
-use EPrints::Apache::AnApache; # exports apache constants
+use EPrints::Apache; # exports apache constants
 use URI;
 use MIME::Base64;
 
+# sf2 - rewritten to call a stack of Auth triggers - cf. lib/cfg.d/auth_*.pl
 sub authen
 {
 	my( $r, $realm ) = @_;
 
 	return OK unless $r->is_initial_req; # only the first internal request
 	
-	my $repository = $EPrints::HANDLE->current_repository;
-	if( !defined $repository )
+	my $repo = $EPrints::HANDLE->current_repository;
+	if( !defined $repo )
 	{
 		return FORBIDDEN;
 	}
 
-	my $rc;
-	if( !_use_auth_basic( $r, $repository ) )
+	# this may load a cookie based user session
+	if( defined $repo->current_user )
 	{
-		$rc = auth_cookie( $r, $repository );
-	}
-	else
-	{
-		$rc = auth_basic( $r, $repository, $realm );
-	}
+		return OK;
+	} 
 
-	return $rc;
+	# AUTH_REQUIRED
+
+	$repo->debug_log( "auth", "calling for credentials handlers..." );
+
+	# typically this will either process BasicAuth included in the request
+	# or redirect to a Login UI page
+	# or redirect to a CAS page
+        my $rc = undef;
+        $repo->run_trigger( EPrints::Const::EP_TRIGGER_REQUEST_AUTH_CREDENTIALS,
+                request => $r,
+		realm => $realm,
+		repository => $repo,
+		return_code => \$rc,
+        );
+        return $rc if defined $rc;
+
+	# if we arrive here, there are no mechanisms to either collect credentials or validate them...
+	# so let's default to BasicAuth
+
+        $realm ||= $repo->phrase( "archive_name" );
+        $r->err_headers_out->{'WWW-Authenticate'} = "Basic realm=\"$realm\"";
+
+	$repo->debug_log( "auth", "unauthorized" );
+
+	return EPrints::Apache::HTTP_UNAUTHORIZED;
 }
 
-sub _use_auth_basic
+# tells if a user is required given a dataobj and an action
+sub authen_dataobj_action
 {
-	my( $r, $repository ) = @_;
+	my( %params ) = @_;
 
-	my $rc = 0;
-
-	if( !$repository->config( "cookie_auth" ) ) 
-	{
-		$rc = 1;
-	}
-	if( !$rc )
-	{
-		my $uri = URI->new( $r->uri, "http" );
-		my $script = $uri->path;
-
-		my $econf = $repository->config( "auth_basic" ) || [];
-
-		foreach my $exppath ( @$econf )
-		{
-			if( $exppath !~ /^\// )
-			{
-				$exppath = $repository->config( "rel_cgipath" )."/$exppath";
-			}
-			if( $script =~ /^$exppath/ )
-			{
-				$rc = 1;
-				last;
-			}
-		}
-	}
-	# if the user agent doesn't support text/html then use Basic Auth
-	# NOTE: browsers requesting objects in <img src> will also not specify
-	# text/html, so we always look for a cookie-authentication before checking
-	# basic auth
-	if( !$rc )
-	{
-		my $accept = $r->headers_in->{'Accept'} || '';
-		my @types = split /\s*,\s*/, $accept;
-		if( !grep { m#^text/html\b# } @types )
-		{
-			$rc = 1;
-		}
-		# Microsoft Internet Explorer - Accept: */*
-		my $agent = $r->headers_in->{'User-Agent'} || '';
-		# http://msdn.microsoft.com/en-us/library/ms537509(v=vs.85).aspx
-		if( $agent =~ /\bMSIE ([0-9]{1,}[\.0-9]{0,})/ )
-		{
-			$rc = 0;
-		}
-	}
-
-	return $rc;
-}
-
-sub authen_doc
-{
-	my( $r, $realm ) = @_;
-
-	my $repository = $EPrints::HANDLE->current_repository;
-	return FORBIDDEN if !defined $repository;
-
+	my $repository = $params{repository};
+	my $request = $params{request};
+	
 	# Internet Explorer launches Office with a URL, which then performs an
 	# OPTIONS on the URL. By returning FORBIDDEN we stop some annoying
 	# challenge-dialogs.
-	return FORBIDDEN if $r->method eq "OPTIONS";
+	return FORBIDDEN if $request->method eq "OPTIONS";
 
-	my $doc = $r->pnotes( "document" );
-	my $rc = $doc->permit( "document/view", $repository->current_user );
+	my $dataobj = $params{dataobj};
+	my $dataset = $params{dataset};
+	my $action = $params{action};
 
-	return $rc ? OK : authen( $r, $realm );
-}
+	return FORBIDDEN if( !EPrints::Utils::is_set( $action ) );
 
-sub auth_cookie
-{
-	my( $r, $repository, $redir ) = @_;
-
-	my $user = $repository->current_user;
-
-	my %q = URI::http->new( $r->uri . '?' . $r->args );
-	my $login_params = $q{login_params};
-
-	# Check we logged in successfully, if so skip do the real URL
-	if( $q{login_check} && defined $user )
+	# simply check if the action (and associated privs) are public
+	# if not, we need an authenticated user
+	if( defined $dataobj )
 	{
-		my $url = $repository->get_url( host=>1 );
-		if( EPrints::Utils::is_set( $login_params ) ) 
+		if( $dataobj->public_action( $action ) )
 		{
-			$url .= "?".$login_params;
+			$repository->debug_log( "auth", "authen_dataobj_action OK (public_action)" );
+			return OK;
 		}
-		$repository->redirect( $url );
-		return DONE;
 	}
 
-	if( !defined $user ) 
+	if( defined $dataset )
 	{
-		my $login_url = $repository->get_url(
-			path => "cgi",
-		) . "/users/login";
-		my $target_url = $repository->get_url(
-			host => 1,
-			path => "auto",
-			query => 1,
-		);
-		$login_url = URI->new( $login_url );
-		$login_url->query_form(
-			target => "$target_url"
-		);
-		if( $repository->can_call( 'get_login_url' ) )
+		if( $dataset->public_action( $action ) )
 		{
-			my $ext_url = $repository->call( 'get_login_url', $repository, $target_url );
-			$login_url = $ext_url if defined $ext_url;
+			$repository->debug_log( "auth", "authen_dataobj_action OK (public action)" );
+			return OK;
 		}
-		if( $repository->current_url ne $repository->current_url( path => "cgi", "users/login" ) )
-		{
-			EPrints::Apache::AnApache::send_status_line( $r, 302, "Need to login first" );
-			EPrints::Apache::AnApache::header_out( $r, "Location", $login_url );
-			EPrints::Apache::AnApache::send_http_header( $r );
-			return DONE;
-		}
-
-		# redirect otherwise we might ask for a password on a non-secure page
-		$r->handler( 'perl-script' );
-		$r->set_handlers(PerlResponseHandler =>[ 'EPrints::Apache::Login' ] );
-		return OK;
 	}
 
-	if( EPrints::Utils::is_set( $login_params ) ) 
-	{
-		my $url = $repository->get_url( host=>1 )."?".$login_params;
-		$repository->redirect( $url );
-		return DONE;
-	}
+	$repository->debug_log( "auth", "authen_dataobj_action AUTH REQUIRED" );
 
-	return OK;
-}
-
-
-sub auth_basic
-{
-	my( $r, $repository, $realm ) = @_;
-
-	# user has been logged in by some other means
-	my $user = $repository->current_user;
-	return OK if defined $user;
-
-	if( !EPrints::Utils::is_set( $realm ) )
-	{
-		$realm = $repository->phrase( "archive_name" );
-	}
-
-	my $authorization = $r->headers_in->{'Authorization'};
-	$authorization = '' if !defined $authorization;
-
-	my( $username, $password );
-	if( $authorization =~ s/^Basic\s+// )
-	{
-		$authorization = MIME::Base64::decode_base64( $authorization );
-		($username, $password) = split /:/, $authorization, 2;
-	}
-
-	if( !defined $username )
-	{
-		$r->err_headers_out->{'WWW-Authenticate'} = "Basic realm=\"$realm\"";
-		return AUTH_REQUIRED;
-	}
-
-	if( !$repository->valid_login( $username, $password ) )
-	{
-		$r->note_basic_auth_failure;
-		$r->err_headers_out->{'WWW-Authenticate'} = "Basic realm=\"$realm\"";
-		return AUTH_REQUIRED;
-	}
-
-	$r->user( $username );
-
-	return OK;
+	return EPrints::Apache::Auth::authen( $request );
 }
 
 sub authz
@@ -243,18 +130,43 @@ sub authz
 	return OK;
 }
 
-sub authz_doc
+# similar to authen_dataobj_action - checks if a user can
+# perform a given action on a given dataset or dataobj
+sub authz_dataobj_action
 {
-	my( $r ) = @_;
+	my( %params ) = @_;
 
-	my $repository = $EPrints::HANDLE->current_repository;
-	return FORBIDDEN if !defined $repository;
+	my $repository = $params{repository};
+	my $request = $params{request};
 
-	my $doc = $r->pnotes( "document" );
-	my $rc = $doc->permit( "document/view", $repository->current_user );
+	my $dataobj = $params{dataobj};
+	my $dataset = $params{dataset};
+	my $action = $params{action};
 
-	return $rc ? OK : FORBIDDEN;
+	return FORBIDDEN if( !EPrints::Utils::is_set( $action ) );
+	
+	if( defined $dataobj )
+	{
+		if( $dataobj->permit_action( $action, $repository->current_user ) )
+		{
+			$repository->debug_log( "auth", "authz_dataobj_action OK" );
+			return OK ;
+		}
+	}
+	if( defined $dataset )
+	{
+		if( $dataset->permit_action( $action, $repository->current_user ) )
+		{
+			$repository->debug_log( "auth", "authz_dataobj_action OK" );
+			return OK ;
+		}
+	}
+
+	$repository->debug_log( "auth", "authz_dataobj_action FORBIDDEN" );
+
+	return FORBIDDEN;
 }
+
 
 1;
 
