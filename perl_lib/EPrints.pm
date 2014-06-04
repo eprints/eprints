@@ -101,7 +101,7 @@ use Carp;
 
 use strict;
 
-our $VERSION = v3.3.12;
+our $VERSION = v3.99.1;
 $conf->{version} = "EPrints ".EPrints->human_version;
 $conf->{versionid} = "eprints-".EPrints->human_version;
 
@@ -187,7 +187,8 @@ Short-cut to L<Carp::longmess> to show a (non-blocking) call-trace
 
 sub trace
 {
-	print STDERR Carp::longmess();
+	my( $self, $msg, @args ) = @_;
+	print STDERR Carp::longmess( sprintf $msg, @args );
 }
 
 =item EPrints->assert( CONDITION )
@@ -238,95 +239,61 @@ sub assert
 use EPrints::Const; # must be before any use of constants
 
 use EPrints::Apache;
-use EPrints::Apache::AnApache;
-use EPrints::Apache::LogHandler;
-use EPrints::Apache::Login;
 use EPrints::Apache::Auth;
-use EPrints::Apache::Rewrite;
-# If someone really wants VLit they can enable it via Apache conf
-# use EPrints::Apache::VLit;
-use EPrints::Apache::Template;
 use EPrints::Apache::Storage;
-use EPrints::Apache::REST;
-use EPrints::Apache::RobotsTxt;
-use EPrints::Apache::SiteMap;
-use EPrints::Apache::CRUD;
-
-use EPrints::BackCompatibility;
+use EPrints::Apache::Handler;
 
 use EPrints::Config;
 use EPrints::System;
 use EPrints::XML;
-use EPrints::XSLT;
 use EPrints::Time;
 
-use EPrints::Box;
 use EPrints::Database;
 use EPrints::Storage;
-use EPrints::Citation;
-use EPrints::Citation::EPC;
-use EPrints::Citation::XSL;
+use EPrints::ACL;
 use EPrints::DataObj;
 use EPrints::DataObj::SubObject;
-use EPrints::DataObj::Access;
 use EPrints::DataObj::Cachemap;
-use EPrints::DataObj::Document;
-use EPrints::DataObj::EPrint;
 use EPrints::DataObj::EPM;
 use EPrints::DataObj::File;
+use EPrints::DataObj::EventQueue;
 use EPrints::DataObj::History;
 use EPrints::DataObj::Import;
-use EPrints::DataObj::Import::XML;
-use EPrints::DataObj::EventQueue;
 use EPrints::DataObj::LoginTicket;
-use EPrints::DataObj::Message;
-use EPrints::DataObj::MetaField;
-use EPrints::DataObj::Request;
 use EPrints::DataObj::Subject;
-use EPrints::DataObj::SavedSearch;
+use EPrints::DataObj::Thumbnail;
 use EPrints::DataObj::Triple;
-use EPrints::DataObj::UploadProgress;
 use EPrints::DataObj::User;
+use EPrints::DataObj::ACL;
 use EPrints::DataSet;
 use EPrints::Email;
-use EPrints::Extras;
 use EPrints::Index;
 use EPrints::Index::Daemon;
 use EPrints::Language;
-use EPrints::Latex;
 use EPrints::List;
 use EPrints::MetaField;
 use EPrints::NamedSet;
-use EPrints::OpenArchives;
-use EPrints::Page;
-use EPrints::Page::DOM;
-use EPrints::Paginate;
-use EPrints::Paginate::Columns;
+use EPrints::Probity;
 use EPrints::Plugin;
 use EPrints::PluginFactory;
-use EPrints::Probity;
-use EPrints::RDFGraph;
 use EPrints::Repository;
 use EPrints::RepositoryConfig;
 use EPrints::Search;
 use EPrints::Search::Field;
 use EPrints::Search::Condition;
 use EPrints::CLIProcessor;
-use EPrints::ScreenProcessor;
 use EPrints::Script;
 use EPrints::Script::Compiler;
 use EPrints::Script::Compiled;
 use EPrints::URL;
-use EPrints::Paracite;
-use EPrints::Update::Static;
-use EPrints::Update::Views;
-use EPrints::Update::Abstract;
-use EPrints::Workflow;
-use EPrints::Workflow::Stage;
 use EPrints::XML::EPC;
-use EPrints::XHTML;
 use EPrints::Utils;
-use EPrints::EPM::Source;
+
+use EPrints::ScreenProcessor;
+use EPrints::XHTML;
+use EPrints::Page;
+use EPrints::Page::DOM;
+use EPrints::Page::XPage;
 
 # SAX utilities
 use EPrints::XML::SAX::Builder;
@@ -636,7 +603,7 @@ sub load_repositories
 
 	foreach my $id ( $self->repository_ids )
 	{
-		$self->{repository}->{$id} = $self->repository( $id, db_connect => 0 );
+		$self->{repository}->{$id} = $self->repository( $id );
 		push @ids, $id;
 	}
 
