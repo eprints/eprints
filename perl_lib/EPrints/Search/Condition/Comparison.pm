@@ -44,8 +44,8 @@ sub _logic_time
 {
 	my( $self, %opts ) = @_;
 	
-	my $session = $opts{session};
-	my $database = $session->get_database;
+	my $repository = $opts{repository};
+	my $database = $repository->get_database;
 	my $table = $opts{table};
 	my $sql_col = $self->{field}->get_sql_name;
 
@@ -98,7 +98,7 @@ sub joins
 {
 	my( $self, %opts ) = @_;
 
-	my $db = $opts{session}->get_database;
+	my $db = $opts{repository}->get_database;
 	my $prefix = $opts{prefix};
 	$prefix = "" if !defined $prefix;
 
@@ -167,7 +167,7 @@ sub logic
 {
 	my( $self, %opts ) = @_;
 
-	my $db = $opts{session}->get_database;
+	my $db = $opts{repository}->get_database;
 	my $prefix = $opts{prefix};
 	$prefix = "" if !defined $prefix;
 	if( $self->table eq $opts{dataset}->get_sql_table_name )
@@ -307,7 +307,7 @@ sub join_path
 {
 	my( $self, $source, %opts ) = @_;
 
-	my $db = $opts{session}->database;
+	my $db = $opts{repository}->database;
 
 	my $target = $self->dataset;
 

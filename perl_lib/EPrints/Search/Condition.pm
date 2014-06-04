@@ -276,7 +276,7 @@ sub item_matches
 		),
 		$self );
 
-	my $ids = $scond->process( session => $item->get_session, dataset => $item->get_dataset );
+	my $ids = $scond->process( repository => $item->get_repository, dataset => $item->get_dataset );
 
 	return 1 if @$ids == 1;
 }
@@ -334,14 +334,14 @@ sub sql
 {
 	my( $self, %opts ) = @_;
 
-	my $session = $opts{session};
-	my $db = $session->get_database;
+	my $repository = $opts{repository};
+	my $db = $repository->get_database;
 
 	my $dataset = $opts{dataset};
-	my $key_field = $dataset->get_key_field;
+	my $key_field = $dataset->key_field;
 
 	my $order = delete $opts{order};
-	my @orders = $self->_split_order_by( $session, $dataset, $order );
+	my @orders = $self->_split_order_by( $repository, $dataset, $order );
 
 	my $key_alias = delete $opts{key_alias};
 
@@ -353,7 +353,7 @@ sub sql
 	my $ov_table;
 	if( $dataset->ordered )
 	{
-		$ov_table = $dataset->get_ordervalues_table_name( $session->get_langid );
+		$ov_table = $dataset->get_ordervalues_table_name( $repository->get_langid );
 	}
 	else
 	{
@@ -533,7 +533,7 @@ sub sql
 ######################################################################
 =pod
 
-=item $ids = $scond->process( $session, [$indent], [$filter] );
+=item $ids = $scond->process( $repository, [$indent], [$filter] );
 
 Return a reference to an array containing the ID's of items in
 the database which match this condition.
@@ -554,10 +554,10 @@ sub process
 {
 	my( $self, %opts ) = @_;
 
-	my $session = $opts{session};
-	EPrints::abort "Requires session argument" if !defined $session;
+	my $repository = $opts{repository};
+	EPrints::abort "Requires repository argument" if !defined $repository;
 
-	my $db = $opts{session}->get_database;
+	my $db = $opts{repository}->get_database;
 
 	my $dataset = $opts{dataset};
 	EPrints::abort "Requires dataset argument" if !defined $dataset;
@@ -578,7 +578,6 @@ sub process
 
 		$sql = "SELECT ".$db->quote_identifier( $key_field->get_sql_name )." FROM ".$db->quote_identifier($cache_table)." ORDER BY ".$db->quote_identifier("pos");
 	}
-
 #print STDERR "EXECUTING: $sql\n";
 	my $sth = $db->prepare_select( $sql, limit => $limit, offset => $offset );
 	$db->execute($sth, $sql);
@@ -595,11 +594,11 @@ sub process
 
 sub _split_order_by
 {
-	my( $self, $session, $dataset, $order ) = @_;
+	my( $self, $repository, $dataset, $order ) = @_;
 
 	return () unless defined $order;
 
-	my $db = $session->get_database;
+	my $db = $repository->get_database;
 
 	my @orders;
 
@@ -636,8 +635,8 @@ sub process_distinctby
 {
 	my( $self, %opts ) = @_;
 
-	my $session = $opts{session};
-	my $db = $session->get_database;
+	my $repository = $opts{repository};
+	my $db = $repository->get_database;
 	my $dataset = $opts{dataset};
 	my $table = $dataset->get_sql_table_name;
 
@@ -670,8 +669,8 @@ sub process_distinctby
 	my %ids_map;
 	while(my @row = $sth->fetchrow_array)
 	{
-		my $value = $fields->[0]->value_from_sql_row( $session, \@row );
-		my $key = $fields->[0]->get_id_from_value( $session, $value );
+		my $value = $fields->[0]->value_from_sql_row( $repository, \@row );
+		my $key = $fields->[0]->get_id_from_value( $repository, $value );
 		push @{$ids_map{$key}}, shift @row;
 	}
 
@@ -690,10 +689,10 @@ sub process_groupby
 {
 	my( $self, %opts ) = @_;
 
-	my $session = $opts{session};
-	EPrints::abort "Requires session argument" if !defined $session;
+	my $repository = $opts{repository};
+	EPrints::abort "Requires repository argument" if !defined $repository;
 
-	my $db = $opts{session}->get_database;
+	my $db = $opts{repository}->get_database;
 
 	my $dataset = $opts{dataset};
 	EPrints::abort "Requires dataset argument" if !defined $dataset;
@@ -718,7 +717,7 @@ sub process_groupby
 
 	while(my @row = $sth->fetchrow_array)
 	{
-		push @values, $groupby->value_from_sql_row( $session, \@row );
+		push @values, $groupby->value_from_sql_row( $repository, \@row );
 		push @counts, $row[0];
 	}
 
