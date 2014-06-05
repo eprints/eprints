@@ -212,17 +212,11 @@ sub new
 {
 	my( $class, $repository, %opts ) = @_;
 
-	my $db_connect = exists($opts{db_connect}) ? $opts{db_connect} : 1;
-
 	my $self = $class->_new( $repository );
 
-	if( $db_connect )
-	{
+	$self->connect;
 
-
-		$self->connect;
-		if( !defined $self->{dbh} ) { return( undef ); }
-	}
+	if( !defined $self->{dbh} ) { return( undef ); }
 
 	$repository->debug_log( "db", "Connected to DB" );
 

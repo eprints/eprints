@@ -986,7 +986,7 @@ sub root_dbh
 {
 	my( $repoid, $dbname ) = @_;
 
-	my $repo = &repository( $repoid, db_connect => 0 );
+	my $repo = &repository( $repoid );
 
 	if( !defined $dbname )
 	{
@@ -1095,7 +1095,7 @@ sub create_db
 {
 	my( $repoid ) = @_;
 
-	my $repo = &repository( $repoid, db_connect => 0 );
+	my $repo = &repository( $repoid );
 
 	my $dbname = $repo->config( "dbname" );
 
@@ -1539,7 +1539,7 @@ sub drop_and_recreate_db
 {
 	my( $repoid ) = @_;
 
-	my $repo = &repository( $repoid, db_connect => 0 );
+	my $repo = &repository( $repoid );
 	my $database = $repo->get_conf( "dbname" );
 	
 	if( $noise>=1 ) { print "Connecting to mysql...\n"; }
