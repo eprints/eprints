@@ -291,9 +291,6 @@ use EPrints::Utils;
 
 use EPrints::ScreenProcessor;
 use EPrints::XHTML;
-use EPrints::Page;
-use EPrints::Page::DOM;
-use EPrints::Page::XPage;
 
 # SAX utilities
 use EPrints::XML::SAX::Builder;
