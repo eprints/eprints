@@ -249,7 +249,7 @@ sub new
 
 	if( defined $self->{session} )
 	{
-		my $cfg = $self->{session}->get_repository->get_conf( "executables" );
+		my $cfg = $self->{session}->config( "executables" );
 		if( !defined( $self->{'convert'} = $cfg->{'convert'} ) )
 		{
 			$self->{'convert_formats'} = {};
@@ -273,14 +273,14 @@ This may be relatively expensive to do if the plugin has to call an external too
 
 sub can_convert
 {
-	my( $self, $doc ) = @_;
+	my( $self, $file ) = @_;
 
-	return () unless $self->get_repository->can_execute( "convert" );
+	return () unless $self->repository->can_execute( "convert" );
 
 	my %types;
 
 	# Get the main file name
-	my $fn = $doc->get_main() or return ();
+	my $fn = $file->value( 'filename' ) or return ();
 
 	my( $ext ) = $fn =~ /\.([^\.]+)$/;
 	return () unless defined $ext;
@@ -294,7 +294,7 @@ sub can_convert
 	}
 	if( exists $self->{ffmpeg_formats}->{lc($ext)} )
 	{
-		if( $doc->exists_and_set( "media_video_codec" ) )
+		if( $file->exists_and_set( "media_video_codec" ) )
 		{
 			foreach my $size (keys %{$self->{sizes}})
 			{
@@ -310,7 +310,7 @@ sub can_convert
 			}
 		}
 		# only offer audio thumbnailing if there's no video
-		elsif( $doc->exists_and_set( "media_audio_codec" ) )
+		elsif( $file->exists_and_set( "media_audio_codec" ) )
 		{
 			if( $self->{audio_mp4} )
 			{
@@ -334,49 +334,52 @@ Request the plugin converts $doc to $type, as returned by L</can_convert>.
 
 sub convert
 {
-	my( $self, $eprint, $doc, $type ) = @_;
-
+	my( $self, $parent, $file, $type ) = @_;
 	my $repo = $self->{session};
 
 	my $dir = File::Temp->newdir();
+	
+	my @thumbnails = $self->export( $dir, $file, $type );
+	return if !@thumbnails;
 
-	my @files = $self->export( $dir, $doc, $type );
-	return if !@files;
+	# scenario in which there are more than one generated file?
+	my $main = $thumbnails[0];
 
-	my $main = $files[0];
+	open(my $fh, "<", "$dir/$main") or EPrints->abort( "Error opening $dir/$main: $!" );
 
-	for(@files)
-	{
-		open(my $fh, "<", "$dir/$_") or EPrints->abort( "Error opening $dir/$_: $!" );
-		$_ = {
-			filename => $_,
+	my $epdata = {
+			datasetid => $file->dataset->id,
+			objectid => $file->id,
+			fieldname => "thumbnails",	#	?! sf2 - hard-coded, not good
+			fieldpos => 0,			# 	sf2 - cf above
+			filename => $main,
 			filesize => (-s $fh),
 			mime_type => $self->{_mime_type},
 			_content => $fh,
-		};
-	}
+			type => $type,
+	};
 
-	my $new_doc = $eprint->create_subdataobj( "documents", {
-		format => "other",
-		formatdesc => $self->{name} . ' conversion from ' . $doc->get_type . ' to ' . $type,
-		main => $main,
-		files => \@files,
-		security => $doc->value( "security" ),
-		relation => [{
-			type => EPrints::Utils::make_relation( "isVersionOf" ),
-			uri => $doc->internal_uri(),
-		},{
-			type => EPrints::Utils::make_relation( "isVolatileVersionOf" ),
-			uri => $doc->internal_uri(),
-		}],
-	});
-
-	for(@files)
+	# see if current thumbnail exists: if so update, if not, create 
+	my $cur_thumbnail = EPrints::DataObj::Thumbnail->new_from_type( $repo, $file, $type );
+	if( !defined $cur_thumbnail )
 	{
-		close $_->{_content};
+		$cur_thumbnail = $file->create_subdataobj( "thumbnails", $epdata );	
+	}
+	else
+	{
+		$cur_thumbnail->update( $epdata, include_subdataobjs => 1 );
+		$cur_thumbnail->commit;
 	}
 
-	return $new_doc;
+	close $fh;
+
+	if( !defined $cur_thumbnail )
+	{
+		$repo->log( "failed to create thumbnail '$type' for file ".$file->id );
+		return ();
+	}
+
+	return $cur_thumbnail;
 }
 
 =item @filelist = $plugin->export( $dir, $doc, $type )
@@ -387,18 +390,18 @@ Request the plugin converts $doc to $type, as returned by L</can_convert>. Outpu
 
 sub export
 {
-	my ( $self, $dir, $doc, $type ) = @_;
+	my ( $self, $dir, $file, $type ) = @_;
 	
-	my $src = $doc->get_stored_file( $doc->get_main );
-	return () unless defined $src && $src->value( "filesize" ) > 0;
+	return () unless defined $file && $file->value( "filesize" ) > 0;
 
-	my $filename = $src->value( "filename" );
+	my $filename = $file->value( "filename" );
 
 	my( $ext ) = $filename =~ /\.([^\.]+)$/;
 	return () unless $ext;
-
+	
 	my( $size ) = $type =~ m/^thumbnail_(.*)$/;
 	return () unless defined $size;
+	
 	my $geom;
 	if( $size =~ /^(audio|video)_(mp4|ogg)$/ )
 	{
@@ -409,55 +412,57 @@ sub export
 		$geom = $self->{sizes}->{$size};
 		return () if !defined $geom;
 
-		$self->{_mime_type} = "image/png";
+		$self->{_mime_type} = "image/jpeg";
 	}
 
-	my @files;
+	my @thumbnails;
 
 	if( exists $self->{ffmpeg_formats}->{lc($ext)} )
 	{
 		my $seconds;
 		my $duration;
-		if( $doc->exists_and_set( "media_sample_start" ) )
+		if( $file->exists_and_set( "media_sample_start" ) )
 		{
-			$seconds = $doc->get_value( "media_sample_start" );
+			$seconds = $file->value( "media_sample_start" );
 		}
-		if( $doc->exists_and_set( "media_duration" ) )
+		if( $file->exists_and_set( "media_duration" ) )
 		{
-			$duration = $doc->get_value( "media_duration" );
+			$duration = $file->value( "media_duration" );
 		}
 		# default to 5 seconds (as good a place as any)
 		$seconds = 5 if !EPrints::Utils::is_set( $seconds );
 		$duration = 0 if !EPrints::Utils::is_set( $duration );
 		$seconds = $self->calculate_offset( $duration, $seconds );
 
-		my $src_file = $src->get_local_copy;
+		my $src_file = $file->get_local_copy;
 		if( !$src_file )
 		{
-			$self->{session}->log( "get_local_copy failed for file.".$src->id );
+			$self->{session}->log( "get_local_copy failed for file.".$file->id );
 			return ();
 		}
-		@files = &{$self->{call_ffmpeg}}( $self, $dir, $doc, $src_file, $geom, $size, $seconds );
+
+# TODO/sf2
+#		@thumbnails = &{$self->{call_ffmpeg}}( $self, $dir, $doc, $src_file, $geom, $size, $seconds );
 	}
 	else
 	{
-		($doc, $src) = $self->intermediate( $doc, $src, $geom, $size );
-
-		my $src_file = $src->get_local_copy;
+		my $src_file = $file->get_local_copy;
 		if( !$src_file )
 		{
-			$self->{session}->log( "get_local_copy failed for file.".$src->id );
+			$self->{session}->log( "get_local_copy failed for file.".$file->id );
 			return ();
 		}
-		@files = &{$self->{call_convert}}( $self, $dir, $doc, $src_file, $geom, $size );
+
+		@thumbnails = &{$self->{call_convert}}( $self, $dir, $file, $src_file, $geom, $size );
+
 	}
 
-	for(@files)
+	for(@thumbnails)
 	{
 		EPrints::Utils::chown_for_eprints( "$dir/$_" );
 	}
 	
-	return @files;
+	return @thumbnails;
 }
 
 =back
@@ -499,42 +504,8 @@ sub is_video
 	return $doc->exists_and_set( "media_video_codec" );
 }
 
-=item $doc = $plugin->intermediate( $doc, $src, $geom, $src )
 
-Attempt to find an intermediate document that we can use to convert from (e.g. make a thumbnail from a preview version).
-
-Returns the original $doc if not intermediate is found.
-
-=cut
-
-sub intermediate
-{
-	my( $self, $doc, $src, $geom, $size ) = @_;
-
-	my %sizes = %{$self->param( "sizes" )};
-	my @sizes = sort { $sizes{$b}->[0] <=> $sizes{$a}->[0] } keys %sizes;
-	for(@sizes)
-	{
-		last if $_ eq $size; # anything further will be smaller
-
-		my $relation = EPrints::Utils::make_relation(
-			"has${_}ThumbnailVersion"
-		);
-		my( $thumb_doc ) = $doc->related_dataobjs( $relation );
-		next if !defined $thumb_doc;
-
-		# check this thumb is a current one
-		my $thumb_src = $thumb_doc->stored_file( $thumb_doc->get_main );
-		next if !defined $thumb_src;
-		next if $thumb_src->value( "mtime" ) lt $src->value( "mtime" );
-
-		return( $thumb_doc, $thumb_src );
-	}
-
-	return( $doc, $src );
-}
-
-=item $plugin->call_convert( $dst, $doc, $src, $geom, $size )
+=item $plugin->call_convert( $dst, $file, $src, $geom, $size )
 
 Calls the ImageMagick I<convert> tool to convert $doc into a thumbnail image. Writes the image to $dst. $src is the full path to the main file from $doc. The resulting image should not exceed $geom dimensions ([w,h] array ref).
 
@@ -546,7 +517,7 @@ This method can be overridden with the B<call_convert> parameter.
 
 sub call_convert
 {
-	my( $self, $dir, $doc, $src, $geom, $size ) = @_;
+	my( $self, $dir, $file, $src, $geom, $size ) = @_;
 
 	my $convert = $self->{'convert'};
 	my $version = $self->convert_version;
@@ -566,20 +537,20 @@ sub call_convert
 		# geom^ requires 6.3.8
 		if( $version > 6.3 )
 		{
-			$self->_system($convert, "-strip", "-colorspace", "RGB", "-background", "white", "-thumbnail","$geom^", "-gravity", "center", "-extent", $geom, "-bordercolor", "gray", "-border", "1x1", $src."[0]", "JPEG:$dst");
+			$self->_system($convert, "-auto-orient", "-strip", "-colorspace", "RGB", "-background", "white", "-thumbnail","$geom^", "-gravity", "center", "-extent", $geom, "-bordercolor", "gray", "-border", "1x1", $src."[0]", "JPEG:$dst");
 		}
 		else
 		{
-			$self->_system($convert, "-strip", "-colorspace", "RGB", "-background", "white", "-thumbnail","$geom>", "-extract", $geom, "-bordercolor", "gray", "-border", "1x1", $src."[0]", "JPEG:$dst");
+			$self->_system($convert, "-auto-orient", "-strip", "-colorspace", "RGB", "-background", "white", "-thumbnail","$geom>", "-extract", $geom, "-bordercolor", "gray", "-border", "1x1", $src."[0]", "JPEG:$dst");
 		}
 	}
 	elsif( $size eq "medium" )
 	{
-		$self->_system($convert, "-strip", "-colorspace", "RGB", "-trim", "+repage", "-size", "$geom", "-thumbnail","$geom>", "-background", "white", "-gravity", "center", "-extent", $geom, "-bordercolor", "white", "-border", "0x0", $src."[0]", "JPEG:$dst");
+		$self->_system($convert, "-auto-orient", "-strip", "-colorspace", "RGB", "-trim", "+repage", "-size", "$geom", "-thumbnail","$geom>", "-background", "white", "-gravity", "center", "-extent", $geom, "-bordercolor", "white", "-border", "0x0", $src."[0]", "JPEG:$dst");
 	}
 	else
 	{
-		$self->_system($convert, "-strip", "-colorspace", "RGB", "-background", "white", "-thumbnail","$geom>", "-extract", $geom, "-bordercolor", "white", "-border", "0x0", $src."[0]", "JPEG:$dst");
+		$self->_system($convert, "-auto-orient", "-strip", "-colorspace", "RGB", "-background", "white", "-thumbnail","$geom>", "-extract", $geom, "-bordercolor", "white", "-border", "0x0", $src."[0]", "JPEG:$dst");
 	}
 
 	if( -s $dst )
@@ -635,7 +606,7 @@ sub export_mp3
 
 	unless( -s $dst )
 	{
-		print STDERR Carp::longmess( "Error in command: $cmd" );
+		EPrints->trace( "Error in command: $cmd" );
 		return;
 	}
 }
