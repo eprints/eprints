@@ -188,6 +188,9 @@ Short-cut to L<Carp::longmess> to show a (non-blocking) call-trace
 sub trace
 {
 	my( $self, $msg, @args ) = @_;
+
+	$msg ||= "";
+
 	print STDERR Carp::longmess( sprintf $msg, @args );
 }
 

@@ -2554,8 +2554,7 @@ sub get_repository
 {
 	my( $self ) = @_;
 
-        print STDERR "Repository::get_repository (deprecated) called by \n";
-        EPrints->trace;
+        EPrints->trace( "Repository::get_repository (deprecated)" );
 
 	return $self;
 }
