@@ -986,7 +986,7 @@ sub root_dbh
 {
 	my( $repoid, $dbname ) = @_;
 
-	my $repo = &repository( $repoid, db_connect => 0 );
+	my $repo = &repository( $repoid );
 
 	if( !defined $dbname )
 	{
@@ -1095,7 +1095,7 @@ sub create_db
 {
 	my( $repoid ) = @_;
 
-	my $repo = &repository( $repoid, db_connect => 0 );
+	my $repo = &repository( $repoid );
 
 	my $dbname = $repo->config( "dbname" );
 
@@ -1109,7 +1109,7 @@ sub create_db
 	my $username = EPrints::Utils::get_input( '^.*$', "Database Superuser Username", "root" );
 	my $password = EPrints::Utils::get_input_hidden( '^.*$', "Database Superuser Password" );
 
-	my $database = EPrints::Database->new( $repo );
+	my $database = EPrints::Database->new( $repo, db_connect => 0 );
 
 	if( !$database->create( $username, $password ) )
 	{
