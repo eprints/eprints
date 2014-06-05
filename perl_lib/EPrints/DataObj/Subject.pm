@@ -76,7 +76,7 @@ sub get_system_field_info
 			multiple=>1, export_as_xml=>0 },
 
 		{ name=>"depositable", type=>"boolean", required=>1,
-			input_style=>"radio" },
+			},
 	);
 }
 

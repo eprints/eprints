@@ -40,7 +40,7 @@ sub extra_subfields
 	my( $self ) = @_;
 
 	return (
-		{ name=>"lang", type=>"namedset", set_name => "languages", input_style => "short", maxlength => 16, },
+		{ name=>"lang", type=>"namedset", set_name => "languages", maxlength => 16, },
 	);
 }
 

@@ -154,7 +154,7 @@ sub get_system_field_info
 			fromform=>\&EPrints::Utils::crypt_password },
 
 		{ name=>"usertype", type=>"namedset", required=>1, 
-			set_name=>"user", input_style=>"medium", default_value=>"user" },
+			set_name=>"user", default_value=>"user" },
 	
 		{ name=>"newemail", type=>"email", show_in_html=>0 },
 	
@@ -193,7 +193,7 @@ sub get_system_field_info
 #			options=>["never","daily","weekly","monthly"],
 #			default_value=>"never" },
 
-		{ name=>"mailempty", type=>"boolean", input_style=>"radio",
+		{ name=>"mailempty", type=>"boolean", 
 			default_value=>"FALSE" },
 
 		{
