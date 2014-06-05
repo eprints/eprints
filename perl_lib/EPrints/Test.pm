@@ -63,25 +63,6 @@ sub get_test_repository
 	return $repository;
 }
 
-=item $session = EPrints::Test::get_test_session( [ $noise ] )
-
-Returns a session to the first repository.
-
-=cut
-
-sub get_test_session
-{
-	my( $noise ) = @_;
-
-	my $repoid = get_test_id();
-
-	$noise ||= 0;
-
-	my $session = new EPrints::Session( 1 , $repoid , $noise );
-
-	return $session;
-}
-
 =item $size = EPrints::Test::mem_increase( [ $previous ] )
 
 Returns the change in memory size in bytes since it was $previous bytes. If $previous isn't given uses the memory size the last time mem_increase was called.
@@ -153,7 +134,6 @@ sub get_test_document
 
 Returns the first object from the dataset $dataset.
 
-=cut
 
 sub get_test_dataobj
 {
@@ -163,6 +143,91 @@ sub get_test_dataobj
 
 	return $results->item( 0 );
 }
+=cut
+
+sub get_test_user
+{
+	my( $repo ) = @_;
+
+	my $ds = $repo->dataset( 'user' );
+	return undef if( !$ds );
+
+	return $ds->make_dataobj( {
+		username => "_test_user_",
+		email => "test\@eprints.org",
+		usertype => 'user',
+	} );	
+}
+
+sub get_test_dataobj
+{
+	my( $self, $ds ) = @_;
+
+	return $ds->make_dataobj( {
+		text => "Bonjour tout le monde",
+	} );
+}
+
+# creates a fake dataset...
+sub get_test_dataset
+{
+	my( $repo ) = @_;
+
+
+	my $ds = EPrints::DataSet->new(
+			"repository" => $repo,
+			"name" => "testds",
+			"read-only" => 0,
+			"revision" => 1,
+			"history" => 0,
+			"lastmod" => 1,
+			"datestamp" => 1,
+			"virtual" => 1,
+			"flow" => {
+				"default" => "state1",
+				"states" => [qw/ state1 state2 state3 /],
+				"transitions" => {
+					"state1" => [qw/ state2 state3 /],
+					"state2" => [qw/ state3 /],
+					"state3" => [],
+				},
+			},
+			"core_fields" => [
+				{
+					"name" => "text",
+					"type" => "text",
+				},
+				{
+					"name" => "integer",
+					"type" => "int",
+				},
+				{
+					"name" => "float",
+					"type" => "float",
+				},
+				{
+					"name" => "url",
+					"type" => "url",
+				},
+				{
+					"name" => "email",
+					"type" => "email",
+				},
+				{
+					"name" => "set",
+					"type" => "set",
+					"options" => [qw/ value1 value2 /],
+				},
+				{
+					"name" => "boolean",
+					"type" => "boolean",
+				},
+			],
+	);
+
+	return $ds;
+}
+
 
 1;
 

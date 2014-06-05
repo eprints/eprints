@@ -17,7 +17,7 @@ package EPrints::Test::OnlineSession;
 
 use EPrints::Test::RequestRec;
 
-our @ISA = qw( EPrints::Session );
+our @ISA = qw( EPrints::Repository );
 
 my @VARS = qw( stdout uri secure );
 my %VAR;
@@ -44,9 +44,9 @@ foreach my $f (@VARS)
 
 sub new
 {
-	my( $class, $session, $opts ) = @_;
+	my( $class, $repo, $opts ) = @_;
 
-	my $self = bless $session, $class;
+	my $self = bless $repo, $class;
 
 	$EPrints::HANDLE = EPrints->new();
 	$EPrints::HANDLE->{repository}->{$self->get_id} = $self;
@@ -54,9 +54,9 @@ sub new
 	my $method = $opts->{method} || "GET";
 	my $path = defined $opts->{path} ? $opts->{path} : "";
 	my $query = defined $opts->{query} ? $opts->{query} : "";
-	$opts->{dir_config}->{EPrints_ArchiveID} = $session->get_id;
+	$opts->{dir_config}->{EPrints_ArchiveID} = $repo->get_id;
 
-	my $uri = URI->new( $session->config( "base_url" ) );
+	my $uri = URI->new( $repo->config( "base_url" ) );
 	if( $path !~ m#^/# )
 	{
 		$path = $uri->path . "/" . $path;
