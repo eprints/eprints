@@ -26,8 +26,6 @@ package EPrints::MetaField::Int;
 use strict;
 use warnings;
 
-use EPrints::Const qw( :validators );
-
 BEGIN
 {
 	our( @ISA );
@@ -172,9 +170,6 @@ sub get_property_defaults
 	$defaults{digits} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{text_index} = 0;
 	$defaults{regexp} = qr/-?[0-9]+/;
-
-#sf2
-	$defaults{validators} = [ EP_METAFIELD_VALIDATOR_INTEGER ];
 
 	return %defaults;
 }
