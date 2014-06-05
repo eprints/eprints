@@ -101,7 +101,6 @@ access to the database and to the repository configuration.
 
 Options:
 
-	db_connect - 1
 	check_db - 1
 	noise - 0
 
@@ -112,7 +111,6 @@ Options:
 #  consume_post (default 1), assumes cgi=1
 #  cgi (default 0)
 #  noise (default 0)
-#  db_connect (default 1)
 #  check_db (default 1)
 #
 sub new
