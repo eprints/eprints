@@ -1166,6 +1166,15 @@ sub get_sql_counter_ids
 	return @counter_ids;
 }
 
+sub has_dataset
+{
+	my( $self, $datasetid ) = @_;
+
+	return 0 if( !$datasetid );
+
+	return defined $self->{datasets}->{$datasetid};
+}
+
 ######################################################################
 =pod
 

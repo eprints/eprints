@@ -28,9 +28,14 @@ sub new
 	$self->{suffix} = ".txt";
 	$self->{mimetype} = "text/plain";
 
-	if( defined($self->{session}) && !$self->{session}->get_repository->get_dataset( "eprint" )->has_field( "gscholar" ) )
+	if( defined $self->repository && $self->repository->has_dataset( 'eprint' ) ) 
 	{
-		$self->{disable} = 1;
+		my $ds = $self->repository->dataset( 'eprint' );
+
+		if( !defined $ds || !$ds->has_field( 'gscholar' ) )
+		{
+			$self->{disable} = 1;
+		}
 	}
 
 	return $self;
