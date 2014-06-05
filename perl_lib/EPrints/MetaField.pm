@@ -2281,6 +2281,7 @@ sub get_property_defaults
 		can_clone 	=> EP_PROPERTY_TRUE,
 		confid 		=> EP_PROPERTY_NO_CHANGE,
 		export_as_xml 	=> EP_PROPERTY_TRUE,
+		export	 	=> EP_PROPERTY_TRUE,
 		fromform 	=> EP_PROPERTY_UNDEF,
 		import		=> EP_PROPERTY_TRUE,
 		input_add_boxes => EP_PROPERTY_FROM_CONFIG,
