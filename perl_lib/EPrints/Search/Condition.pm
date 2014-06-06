@@ -350,14 +350,22 @@ sub sql
 	# GROUPBY gets totals by value
 	my $groupby = delete $opts{groupby};
 
-	my $ov_table;
-	if( $dataset->ordered )
+	my @ov_tables;	# for left join
+	my %orderby;	# ORDER BY clauses
+
+	foreach(@orders)
 	{
-		$ov_table = $dataset->get_ordervalues_table_name( $repository->get_langid );
-	}
-	else
-	{
-		$ov_table = $dataset->get_sql_table_name();
+		my $field = $dataset->field( $_->[0] ) or next;
+
+		my $ov_table = $field->sql_table or next;
+
+		if( $ov_table ne $dataset->get_sql_table_name )
+		{
+			# will be LEFT JOIN'ed
+			push @ov_tables, $field->sql_table;
+		}
+			
+		$orderby{$_->[0]} = $ov_table;
 	}
 
 	my $sql = "";
@@ -421,8 +429,9 @@ sub sql
 
 	# FROM dataset_main_table
 	$sql .= " FROM ".$db->quote_identifier( $dataset->get_sql_table_name );
-	# LEFT JOIN dataset_ordervalues
-	if( scalar @orders && $dataset->ordered )
+
+	# potential LEFT JOIN's on aux-tables
+	foreach my $ov_table ( @ov_tables )
 	{
 		$sql .= " LEFT JOIN ".$db->quote_identifier( $ov_table );
 		$sql .= " ON ".$db->quote_identifier( $dataset->get_sql_table_name, $key_field->get_sql_name )."=".$db->quote_identifier( $ov_table, $key_field->get_sql_name );
@@ -508,10 +517,10 @@ sub sql
 			{
 				foreach my $order ( @orders )
 				{
-					$sql .= ", ".$db->quote_identifier( $ov_table, $order->[0] );
+					$sql .= ", ".$db->quote_identifier( $orderby{$order->[0]}, $order->[0] );
 				}
 				$sql .= " ORDER BY ";
-				$sql .= join(", ", map { $db->quote_identifier( $ov_table, $_->[0] ) . " " . $_->[1] } @orders );
+				$sql .= join(", ", map { $db->quote_identifier( $orderby{$_->[0]}, $_->[0] ) . " " . $_->[1] } @orders );
 			}
 		}
 		else
