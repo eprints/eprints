@@ -40,7 +40,7 @@ sub new
 	my %seen;
 	foreach my $inner_field ( @{$properties{fields}}, $self->extra_subfields )
 	{
-#sf2 - use 'name' for sub-fields as you'd do for normal fields
+		# use 'name' for sub-fields as you'd do for normal fields
 		$inner_field->{sub_name} ||= delete $inner_field->{name};
 
 		if( !EPrints::Utils::is_set( $inner_field->{sub_name} ) )
@@ -62,14 +62,15 @@ sub new
 			parent => $self,
 			parent_name => $self->get_name(),
 			dataset => $self->get_dataset(), 
-			provenance => $self->get_property( "provenance" ),
+			provenance => $self->property( "provenance" ),
 			multiple => $properties{ "multiple" },
-			volatile => $properties{ "volatile" } );
+			volatile => $properties{ "volatile" },
+			virtual => 1,
+		);
 
 		# avoid circular references if we can
 		Scalar::Util::weaken( $field->{parent} )
 			if defined &Scalar::Util::weaken;
-
 		push @{$self->{fields_cache}}, $field;
 	}
 
@@ -234,7 +235,7 @@ sub is_virtual
 #	return 1;
 }
 
-# sf2 - from Metafield/Multipart
+# from Metafield/Multipart
 sub get_sql_names
 {
         my( $self ) = @_;
@@ -247,7 +248,7 @@ sub get_sql_type
 {
 	my( $self, $session ) = @_;
 
-# sf2 - from MetaField/Multipart
+# from MetaField/Multipart
 	return map { $_->get_sql_type( $session ) } @{$self->{fields_cache}};
 #	return undef;
 }
@@ -313,42 +314,7 @@ sub get_fieldname_to_alias
 	return reverse $self->get_alias_to_fieldname;
 }
 
-# Get the value of this field from the object. In this case this
-# is quite complicated.
-sub get_value_BLA
-{
-	my( $self, $object ) = @_;
-print STDERR "in Compound::GET_VALUE\n";
-	my $value;
 
-	if( $self->property( "multiple" ) )
-	{
-		$value = [];
-		foreach my $field (@{$self->{fields_cache}})
-		{
-			my $alias = $field->property( "sub_name" );
-			my $v = $field->get_value( $object );
-print STDERR $field->name." >> $v\n";
-			foreach my $i (0..$#$v)
-			{
-				$value->[$i]->{$alias} = $v->[$i];
-			}
-		}
-	}
-	else
-	{
-		$value = {};
-		foreach my $field (@{$self->{fields_cache}})
-		{
-			my $alias = $field->property( "sub_name" );
-			$value->{$alias} = $field->get_value( $object );
-		}
-	}
-
-	return $value;
-}
-
-# TODO/sf2 - should this be validate_values ?
 sub validate_value
 {
 	my( $self, $value ) = @_;
@@ -390,15 +356,42 @@ sub validate_type
 	return 1 if( !defined $value || ref( $value ) eq 'HASH' );
 
 	$self->repository->log( "Non-hash value '$value' passed to field ".$self->dataset->id."/".$self->name );
-EPrints->trace;
+	
 	return 0;
 }
 
+# merge sub-fields values with its parents' values
+# if you do dataobj->set_value( 'creators_name', @names ) and the parent is creators = { name => .., id => .. };
+# this will merge @names with the current creators_name values
+sub merge_values
+{
+	my( $self, $dataobj, $subfieldname, $values ) = @_;
 
+	my $name = $self->name;
+	$subfieldname =~ s/$name\_//;
 
-sub set_value_SF2
+	$values = [$values] if( ref( $values ) ne 'ARRAY' );
+	
+	my $current_values = EPrints::Utils::clone( $dataobj->value( $self->name ) );
+	$current_values = [ $current_values ] if( !$self->property( 'multiple' ) );
+
+	my $max_array = scalar( @$values ) > scalar( @$current_values ) ? scalar( @$values ) : scalar( @$current_values );
+	
+	for( my $i=0; $i < $max_array; $i++ )
+	{
+		my $row = $current_values->[$i] ||= {};
+		$row->{$subfieldname} = $values->[$i] if( $values->[$i] );
+	}
+
+	return $dataobj->set_value_raw( $self->name, $current_values );
+}
+
+sub set_value
 {
 	my( $self, $object, $value ) = @_;
+
+
+return $self->SUPER::set_value( $object, $value );
 
 	if( $self->get_property( "multiple" ) )
 	{
