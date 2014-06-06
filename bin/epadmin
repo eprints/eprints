@@ -1408,9 +1408,9 @@ sub create_tables
 
 	my $repo = &repository( $repoid, check_db => 0 );
 
-	if( $repo->database->has_table( "eprint" ) )
+	if( $repo->database->has_table( "user" ) )
 	{
-		print "WARNING: Database is NOT empty. Contains an \"eprint\" table.\n";
+		print "WARNING: Database is NOT empty. Contains a \"user\" table.\n";
 		print "You might consider running 'epadmin erase_data $repoid' instead.\n";
 		exit 1;
 	}
