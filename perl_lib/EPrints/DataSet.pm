@@ -565,14 +565,13 @@ sub process_field
 
 	$self->register_field( $field, $system );
 
-	# TODO/sf2 - disabled (i think this is to make compound more like multipart fields i.e. stored in a single table)
-#	if( $field->isa( "EPrints::MetaField::Compound" ) )
-#	{
-#		foreach my $inner_field (@{$field->{fields_cache}})
-#		{
-#			$self->register_field( $inner_field, $system );
-#		}
-#	}
+	if( $field->isa( "EPrints::MetaField::Compound" ) )
+	{
+		foreach my $inner_field (@{$field->{fields_cache}})
+		{
+			$self->register_field( $inner_field, $system );
+		}
+	}
 
 	return $field;
 }
@@ -650,17 +649,6 @@ sub get_field { &field }
 sub field
 {
 	my( $self, $fieldname ) = @_;
-
-	# magic fields which can be searched but do
-	# not really exist.
-	if( $fieldname =~ m/^_/ )
-	{
-		my $field = EPrints::MetaField->new( 
-			dataset=>$self , 
-			name=>$fieldname,
-			type=>"longtext" );
-		return $field;
-	}
 
 	my $value = $self->{field_index}->{$fieldname};
 	if (!defined $value) 
@@ -1126,7 +1114,7 @@ sub get_item_ids
 	{
 		return $self->search->get_ids;
 	}
-	return $repository->database->get_values( $self->get_key_field, $self );
+	return $repository->database->get_values( $self->key_field, $self );
 }
 
 
