@@ -798,6 +798,34 @@ sub get_sql_name
 	return $self->{ name };
 }
 
+#sf2 - in which table does this field appears, if any
+sub sql_table
+{
+	my( $self ) = @_;
+
+	my $field = $self;
+
+	if( defined $self->property( 'parent' ) )
+	{
+		$field = $self->property( 'parent' );
+	}
+
+	if( $field->is_virtual )
+	{
+		return undef;
+	}
+	elsif( $field->property( 'multiple' ) )
+	{
+		return sprintf "%s_%s", $self->dataset->get_sql_table_name, $field->name;
+	}
+	else
+	{
+		return $self->dataset->get_sql_table_name;
+	}
+
+	return;
+}
+
 ######################################################################
 =pod
 
@@ -1458,7 +1486,20 @@ sub set_value
 # - if not, how do we detect that no values were validated?
 # - should validate_value returns the number of valid values it found?? "undef" is valid btw
 
+
+	# setting sub-field values -> need to merge them. Imagine creators = [{ name => '', id => '' }] - You may set creators_name => [ ... ]
+	# this does the merging of @names and @ids
+	if( $self->property( 'virtual' ) && $self->property( 'parent' ) )
+	{
+		return $self->property( 'parent' )->merge_values( $dataobj, $self->name, $value );
+	}
+
 	return $dataobj->set_value_raw( $self->name, $value );
+}
+
+sub merge_values
+{
+
 }
 
 sub validate_multiple
