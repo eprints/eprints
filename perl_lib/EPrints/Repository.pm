@@ -140,7 +140,7 @@ sub new
 
 	$self->{debug} = $debug;
 	# ON by default:
-	$self->{debug}->{$_} ||= 1 for(qw/ controllers crud auth security database / );	
+	$self->{debug}->{$_} ||= 1 for(qw/ auth security / );	
 
 	$self->{debug}->{$_} ||= 0 for(qw/ warnings db sql sql_prepare request controllers security auth memcached storage crud page /);
 
@@ -3251,7 +3251,8 @@ sub allow_anybody
 {
 	my( $self, $priv ) = @_;
 
-	EPrints->deprecated;
+# TODO/sf2 deprecate this method and move it to the appropriate module (Dataset? ACL?)
+#	EPrints->deprecated;
 	
 	return 0 if( !defined $priv );
 
