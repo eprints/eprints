@@ -198,8 +198,8 @@ $noise = 1+$verbose if( $verbose );
 $|=1;
 
 my $repoid = $ARGV[0];
-my $session = new EPrints::Session( 1, $repoid, $noise );
-if( !defined $session )
+my $repo = EPrints->new->repository( $repoid, noise => $noise );
+if( !defined $repo )
 {
 	print STDERR "Failed to load repository: $repoid\n";
 	exit 1;
@@ -208,16 +208,16 @@ if( !defined $session )
 my $filename = $ARGV[1];
 
 # We are always going to use the ids from the imported file
-$session->get_repository->{config}->{enable_import_migration} = 1;
+$repo->{config}->{enable_import_migration} = 1;
 
 if( !defined $filename )
 {
-	$filename = $session->config( "config_path" )."/subjects";
+	$filename = $repo->config( "config_path" )."/subjects";
 }
 
-my $subds = $session->dataset( "subject" );
+my $subds = $repo->dataset( "subject" );
 
-my $oldids = $subds->get_item_ids( $session );
+my $oldids = $subds->get_item_ids( $repo );
 my $existing = scalar(@$oldids) > 0;
 
 if( !$force && $existing )
@@ -226,7 +226,7 @@ if( !$force && $existing )
 	unless( $sure )
 	{
 		print "Aborting then.\n\n";
-		$session->terminate();
+		$repo->terminate();
 		exit;
 	}
 }
@@ -237,7 +237,7 @@ if( $purge && $existing )
 	{
 		print "Purging current subjects...\n";
 	}
-	EPrints::DataObj::Subject::remove_all( $session );
+	EPrints::DataObj::Subject::remove_all( $repo );
 	if( $noise > 0 )
 	{
 		print "...done purging.\n";
@@ -252,11 +252,11 @@ if( $xml )
 	$ipluginid = "XML";
 }
 my $pluginid = "Import::".$ipluginid;
-my $plugin = $session->plugin( $pluginid );
+my $plugin = $repo->plugin( $pluginid );
 
 if( !defined $plugin )
 {
-	$session->terminate;
+	$repo->terminate;
 	exit 1;
 }
 	
@@ -265,7 +265,7 @@ my $req_plugin_type = "list/subject";
 unless( $plugin->can_produce( "list/subject" ) )
 {
 	print STDERR "Plugin $pluginid can't process list/subject data.\n";
-	$session->terminate;
+	$repo->terminate;
 	exit 1;
 }
 
@@ -273,7 +273,7 @@ if( $plugin->broken )
 {
 	print STDERR "Plugin $pluginid could not run because:\n";
 	print STDERR $plugin->error_message."\n";
-	$session->terminate;
+	$repo->terminate;
 	exit 1;
 }
 
@@ -281,10 +281,10 @@ my $list = $plugin->input_file( dataset=>$subds, filename=>$filename );
 
 print "Done importing ".$list->count." subjects from $filename\n" if( $noise >= 1 );
 print "Reindexing subject dataset to set ancestor data\n" if( $noise >= 1 );
-$subds->reindex( $session );
+$subds->reindex( $repo );
 print "Done reindexing\n" if( $noise >= 1 );
 
-$session->terminate();
+$repo->terminate();
 print "Exiting normally.\n" if( $noise >= 2 );
 exit;
 
