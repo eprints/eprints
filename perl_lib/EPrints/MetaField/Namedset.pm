@@ -37,6 +37,14 @@ BEGIN
 
 use EPrints::MetaField::Set;
 
+sub validate_value
+{
+	my( $self, $value ) = @_;
+
+	# TODO/sf2
+	return 1;
+}
+
 sub tags
 {
 	my( $self ) = @_;
