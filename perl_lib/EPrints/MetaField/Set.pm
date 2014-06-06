@@ -81,7 +81,7 @@ sub set_value
 		} @$value;
 	}
 
-	return $object->set_value_raw( $self->{name}, $value );
+	return $self->SUPER::set_value( $object, $value );
 }
 
 sub tags
