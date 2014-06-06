@@ -123,7 +123,7 @@ sub joins
 					type => "inner",
 					table => $table,
 					alias => "$prefix$table",
-					key => $self->dataset->get_key_field->get_sql_name,
+					key => $self->dataset->key_field->get_sql_name,
 				};
 			}
 			return @joins;
@@ -135,7 +135,7 @@ sub joins
 				type => "inner",
 				table => $table,
 				alias => "$prefix$table",
-				key => $self->dataset->get_key_field->get_sql_name,
+				key => $self->dataset->key_field->get_sql_name,
 			};
 		}
 	}
@@ -149,7 +149,7 @@ sub joins
 			);
 		if( $self->{field}->get_property( "multiple" ) )
 		{
-			my $main_key = $self->dataset->get_key_field->get_sql_name;
+			my $main_key = $self->dataset->key_field->get_sql_name;
 			my $table = $self->table;
 			# link to the last join, which is always the table being joined to
 			push @joins, {
@@ -274,8 +274,8 @@ sub join_keys
 		return( $left, $right );
 	}
 
-	my $left = $source->get_key_field;
-	my $right = $target->get_key_field;
+	my $left = $source->key_field;
+	my $right = $target->key_field;
 
 	my @join;
 

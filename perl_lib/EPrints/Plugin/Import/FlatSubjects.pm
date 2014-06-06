@@ -49,7 +49,7 @@ sub input_text_fh
 	
 	return EPrints::List->new( 
 		dataset => $opts{dataset}, 
-		session => $plugin->{session},
+		repository => $plugin->repository,
 		ids=>\@ids );
 }
 
@@ -63,12 +63,11 @@ sub convert_input
 
 	my @parents = split( ",", $vals[2] );
 
-	my $lang = $plugin->{session}->get_repository->get_conf( "defaultlanguage" );
+	my $lang = $plugin->repository->config( "defaultlanguage" );
 
 	my $epdata = {
 			subjectid   => $vals[0],
-			name_name   => [$vals[1]],
-			name_lang   => [$lang],
+			name => [ { name => $vals[1], lang => $lang } ],
 			parents     => \@parents,					
 		        depositable => ($vals[3]?"TRUE":"FALSE"),
 		 };

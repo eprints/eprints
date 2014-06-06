@@ -566,7 +566,7 @@ sub create_from_data
 	if( !$self->dataset->property( 'virtual' ) )
 	{
 		# this checks whether the object exists
-		my $rc = $repository->get_database->add_record( $dataset, $self->get_data );
+		my $rc = $repository->database->add_record( $dataset, $self->get_data );
 		return undef unless $rc;
 	}
 
@@ -1073,14 +1073,14 @@ sub get_value
 
 	if( !defined $field )
 	{
-		EPrints::abort( "Attempt to get value from not existent field: ".$self->dataset->id()."/$fieldname" );
+		EPrints::abort( "Attempt to get value from not existent field: ".$self->dataset->id."/$fieldname" );
 	}
 
 	my $r = $field->value( $self );
 
-	unless( EPrints::Utils::is_set( $r ) )
+	if( !EPrints::Utils::is_set( $r ) )
 	{
-		if( $field->get_property( "multiple" ) )
+		if( $field->property( "multiple" ) )
 		{
 			return [];
 		}
@@ -1135,7 +1135,7 @@ sub set_value
 # set_value_raw should only be called internally (i.e. by set_value above)
 sub set_value_raw
 {
-	my( $self , $fieldname, $value ) = @_;
+	my( $self, $fieldname, $value ) = @_;
 
 	if( $self->dataset->property( 'read-only' ) )
 	{

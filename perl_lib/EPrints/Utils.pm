@@ -678,7 +678,7 @@ sub field_from_config_string
 		push @join, [ $field, $dataset ];
 		if( $field->is_type( "subobject", "itemref" ) )
 		{
-			my $datasetid = $field->get_property( "datasetid" );
+			my $datasetid = $field->property( "datasetid" );
 			$dataset = $dataset->repository->dataset( $datasetid );
 		}
 		else
