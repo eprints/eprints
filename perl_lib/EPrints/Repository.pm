@@ -1960,13 +1960,13 @@ sub get_static_dirs
 		push @dirs, "$lib_path/themes/$theme/static";
 	}
 
-	# system path: /lib/static/
-	push @dirs, "$lib_path/lang/$langid/static";
-	push @dirs, "$lib_path/static";
-
 	# site_lib
 	push @dirs, "$site_lib_path/lang/$langid/static";
 	push @dirs, "$site_lib_path/static";
+
+	# system path: /lib/static/
+	push @dirs, "$lib_path/lang/$langid/static";
+	push @dirs, "$lib_path/static";
 
 	return @dirs;
 }
