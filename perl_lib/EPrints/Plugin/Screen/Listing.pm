@@ -146,7 +146,6 @@ sub from
 	}
 
 	# don't apply the user filters (/preferences) if they're about to be changed or reset
-	my $action = $self->{processor}->{action};
 	unless( $action eq 'set_filters' || $action eq 'reset_filters' )
 	{
 		$self->apply_user_filters();
