@@ -542,38 +542,88 @@ CGI parameters in the current request.
 
 sub param
 {
-	my( $self, $name ) = @_;
+        my( $self, $name ) = @_;
 
-	if( !defined $self->{query} ) 
-	{
-		$self->read_params;
-	}
+        if( !defined $self->{query} )
+        {
+                $self->read_params;
+        }
 
-	if( !wantarray )
-	{
-		my $value = ( $self->{query}->param( $name ) );
-		utf8::decode($value);
-		return $value;
-	}
-	
-	# Called in an array context
-	my @result;
+        if( !wantarray )
+        {
+                my $value = ( $self->{query}->param( $name ) );
+                if( EPrints::Utils::is_set( $value ) )
+                {
+                        utf8::decode($value);
+                }
 
-	if( defined $name )
-	{
-		@result = $self->{query}->param( $name );
-	}
-	else
-	{
-		@result = $self->{query}->param;
-	}
+                return $value;
+        }
 
-	utf8::decode($_) for @result;
+        # Called in an array context
+        my @result;
 
-	return( @result );
+        if( defined $name )
+        {
+                @result = $self->{query}->param( $name );
+        }
+        else
+        {
+                @result = $self->{query}->param;
+        }
 
+        for( @result )
+        {
+                next if( !EPrints::Utils::is_set( $_ ) );
+                utf8::decode($_);
+        }
+
+        return( @result );
 }
 
+######################################################################
+=pod
+
+=begin InternalDoc
+
+=item $repository->remote_ip
+
+A wrapper method which - when available - returns the true IP of the 
+client. This will not return the IP of any Proxy/load balancer in-between.
+
+=end InternalDoc
+
+=cut
+######################################################################
+
+sub remote_ip
+{
+        my( $self ) = @_;
+
+        # need an HTTP request...
+        return if $self->{offline};
+
+        my $r = $self->get_request;
+
+        return if !$r;
+
+        # Proxy has set the "X-Forwarded-For" HTTP header?
+        my $ip = $r->headers_in->{"X-Forwarded-For"};
+
+        # Apache v2.4+ (http://httpd.apache.org/docs/trunk/developer/new_api_2_4.html)
+        if( !EPrints::Utils::is_set( $ip ) && $r->can( "useragent_ip" ) )
+        {
+                $ip = $r->useragent_ip;
+        }
+
+        # Apache v2.0-2.2
+        if( !EPrints::Utils::is_set( $ip ) && $r->connection->can( "client_ip" ) )
+        {
+                $ip = $r->connection->client_ip;
+        }
+
+        return $ip;
+}
 
 ######################################################################
 =pod
@@ -927,10 +977,13 @@ sub _load_workflows
 			$self->{workflows} );
 	}
 
-	# load repository-specific workflows (may overwrite)
-	EPrints::Workflow::load_all( 
-		$self->config( "config_path" )."/workflows",
-		$self->{workflows} );
+	if( -e $self->config( "config_path" )."/workflows" )
+	{	
+		# load repository-specific workflows (may overwrite)
+		EPrints::Workflow::load_all( 
+			$self->config( "config_path" )."/workflows",
+			$self->{workflows} );
+	}
 
 	return 1;
 }
@@ -1071,6 +1124,8 @@ sub _load_citation_specs
 sub _load_citation_dir
 {
 	my( $self, $dir ) = @_;
+
+	return unless -e $dir;
 
 	my $dh;
 	opendir( $dh, $dir );

@@ -81,6 +81,9 @@ use EPrints::Const qw( :metafield );
 
 use strict;
 
+use Text::Unidecode qw();
+use Unicode::Collate;
+
 $EPrints::MetaField::VARCHAR_SIZE 	= 255;
 
 $EPrints::MetaField::FROM_CONFIG = EP_PROPERTY_FROM_CONFIG;
@@ -914,7 +917,9 @@ sub sort_values
 		$ov{$_} = $self->ordervalue_single( $_, $self->{repository}, $langid );
 	}
 
-	my @out_list = sort { defined $a <=> defined $b || $ov{$a} cmp $ov{$b} } @$in_list;
+        my $col = Unicode::Collate->new();
+
+        my @out_list = sort { defined $a <=> defined $b || $col->cmp( $ov{$a}, $ov{$b} ) } @$in_list;
 
 	return \@out_list;
 }

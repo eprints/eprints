@@ -246,7 +246,7 @@ sub load_repository_config_module
 
 	my $info = bless {}, "EPrints::RepositoryConfig";
 	
-	%$info = %$SYSTEMCONF;
+	%$info = %{ EPrints::Utils::clone( $SYSTEMCONF ) };
 
 	$info->{archiveroot} = $info->{arc_path}."/".$id;
 	$info->{documents_path} = $info->{archiveroot}."/documents";

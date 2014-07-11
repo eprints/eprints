@@ -177,6 +177,10 @@ sub paginate_list
 				$links{"n_$_"} = $session->render_link( $url . "&${basename}page_size=$_" );
 				$links{"n_$_"}->appendChild( $session->make_text( $_ ) );
 			}
+
+			# option to show all results
+			$links{n_all} = $session->render_link( $url . "&${basename}page_size=$n_results" );
+
 			$matches->appendChild(
 				$session->html_phrase( "lib/searchexpression:results_page_size", %links )
 				);

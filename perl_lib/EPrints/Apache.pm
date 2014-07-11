@@ -8,8 +8,11 @@ package EPrints::Apache;
 
 =item $conf = EPrints::Apache::apache_conf( $repo )
 
-Generate and return the <VirtualHost> declaration for this repository.
-
+Generate and return the <VirtualHost> declaration for this repository. 
+Note that Apache v2.4 introduced some new API for access-control which
+deprecates the former "Order allow,deny" directive.
+We detect Apache's version by testing if mod_authz_core.c is available 
+(that module was added in 2.4).
 =cut
 
 sub apache_conf
@@ -40,7 +43,7 @@ EOC
 	my $aliases = "";
 	foreach $aliasinfo ( @{$repo->config( "aliases" ) || []} )
 	{
-		if( $aliasinfo->{redirect} )
+		if( $aliasinfo->{redirect} eq 'yes' )
 		{
 			my $vname = $aliasinfo->{name};
 			$conf .= <<EOC;
@@ -70,8 +73,13 @@ $aliases
     PerlSetVar EPrints_ArchiveID $id
 
     Options +ExecCGI
-    Order allow,deny
-    Allow from all
+    <IfModule mod_authz_core.c>
+       Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+       Order allow,deny
+       Allow from all
+    </IfModule>
   </Location>
 
 EOC
@@ -118,8 +126,13 @@ sub apache_secure_conf
     PerlSetVar EPrints_Secure yes
 
     Options +ExecCGI
-    Order allow,deny 
-    Allow from all
+    <IfModule mod_authz_core.c>
+       Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+       Order allow,deny
+       Allow from all
+    </IfModule>
   </Location>
 EOC
 }

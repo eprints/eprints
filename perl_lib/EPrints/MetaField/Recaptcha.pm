@@ -89,16 +89,17 @@ sub render_input_field_actual
 
 sub form_value_actual
 {
-	my( $self, $session, $object, $basename ) = @_;
+	my( $self, $repo, $object, $basename ) = @_;
 
-	my $private_key = $session->config( "recaptcha", "private_key" );
-	my $remote_ip = $session->get_request->connection->remote_ip;
-	my $challenge = $session->param( "recaptcha_challenge_field" );
-	my $response = $session->param( "recaptcha_response_field" );
+	my $private_key = $repo->config( "recaptcha", "private_key" );
+
+	my $remote_ip = $repo->remote_ip;
+	my $challenge = $repo->param( "recaptcha_challenge_field" );
+	my $response = $repo->param( "recaptcha_response_field" );
 
 	if( !defined $private_key )
 	{
-		$session->get_repository->log( "recaptcha private_key not set" );
+		$repo->log( "recaptcha private_key not set" );
 		return undef;
 	}
 
@@ -133,7 +134,7 @@ sub form_value_actual
 
 	# error talking to recaptcha, so lets continue to avoid blocking the user
 	# in case of network problems
-	$session->get_repository->log( "Error contacting recaptcha: ".$r->code." ".$r->message );
+	$repo->log( "Error contacting recaptcha: ".$r->code." ".$r->message );
 
 	return undef;
 }

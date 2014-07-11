@@ -115,7 +115,7 @@ sub get_defaults
 	$data->{securecode} = &_code();
 	if( !$repo->config( "ignore_login_ip" ) )
 	{
-		$data->{ip} = $repo->get_request->connection->remote_ip;
+		$data->{ip} = $repo->remote_ip;
 	}
 
 	$data->{time} = time();
@@ -140,7 +140,7 @@ sub new_from_request
 
 	my $dataset = $repo->dataset( $class->get_dataset_id );
 
-	my $ip = $r->connection->remote_ip;
+	my $ip = $repo->remote_ip;
 
 	my $ticket;
 

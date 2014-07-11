@@ -379,7 +379,7 @@ sub register_user
 	my $dataset = $repo->dataset( "user" );
 
 	my $pin = sprintf( "%04X%04X%04X%04X",int rand 0xffff,int rand 0xffff,int rand 0xffff,int rand 0xffff );
-	$epdata->{usertype} = $repo->config( "default_user_type" );
+	$epdata->{usertype} ||= $repo->config( "default_user_type" );
 	$epdata->{pin} = $pin;
 	$epdata->{pinsettime} = time();
 
