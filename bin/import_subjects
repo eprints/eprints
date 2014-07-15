@@ -22,7 +22,7 @@ B<import_subjects> I<repository_id> [B<options>] [I<subjectfile>]
 
 =head1 DESCRIPTION
 
-Import a set of subjects into an EPrints repository. The subjects are the heirarchical tree of options for "subject" type metadata fields in an eprint repository. 
+Import a set of subjects into an EPrints repository. The subjects are the hierarchical tree of options for "subject" type metadata fields in an eprint repository.
 
 Use the staff admin subject editor for little tweaks. Use this command for the initial setup or bulk editing subjects. Use the exporter to dump the current subjects if you (an administrator) have edited them online.
 
