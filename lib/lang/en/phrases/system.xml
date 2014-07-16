@@ -2559,7 +2559,7 @@ Titles and Help for the System Fields
     <epp:phrase id="subject_fieldname_parents">Subject Parents Subject(s)</epp:phrase>
     <epp:phrase id="subject_fieldname_depositable">Depositable</epp:phrase>
     <epp:phrase id="subject_fieldhelp_depositable">Can users add items to this subject?</epp:phrase>
-    <epp:phrase id="subject_radio_depositable"><label><epc:pin name="true"/>Yes, users can add items to this subject.</label><br/><label><epc:pin name="false"/>No. (In which case it should probably have some children.</label></epp:phrase>
+    <epp:phrase id="subject_radio_depositable"><label><epc:pin name="true"/>Yes, users can add items to this subject.</label><br/><label><epc:pin name="false"/>No. (In which case it should probably have some children.)</label></epp:phrase>
     <epp:phrase id="subject_fieldname_subjectid">Subject ID String</epp:phrase>
     <epp:phrase id="subject_fieldhelp_subjectid">This is the internal key for this subject. It is used in the database and to generate the "views" filenames. It should contain only a-z, 0-9 and dash "/"and underscore "_".</epp:phrase>
 
