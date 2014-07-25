@@ -249,21 +249,30 @@ sub render_related_url
 	foreach my $row ( @{$value} )
 	{
 		my $li = $session->make_element( "li" );
-		my $text = $row->{url};
-		unless( defined $text )
+		my $link;
+		if( defined $row->{url} )
 		{
-			$text = $session->phrase( 'lib/metafield:unspecified' );
-			$session->get_repository->log( '[warning] EPrints::Extras::render_related_url Can\'t render related URL with no link.' );
-		}
-		my $link = $session->render_link( $text );
-		if( defined $row->{type} )
-		{
-			$link->appendChild( $fmap->{type}->render_single_value( $session, $row->{type} ) );
+			$link = $session->render_link( $text );
+			if( defined $row->{type} )
+			{
+				$link->appendChild( $fmap->{type}->render_single_value( $session, $row->{type} ) );
+			}
+			else
+			{
+				my $text = $row->{url};
+				if( length( $text ) > 40 ) { $text = substr( $text, 0, 40 )."..."; }
+				$link->appendChild( $session->make_text( $text ) );
+			}
 		}
 		else
 		{
-			if( defined $row->{url} && length( $text ) > 40 ) { $text = substr( $text, 0, 40 )."..."; }
-			$link->appendChild( $session->make_text( $text ) );
+			$session->get_repository->log( '[warning] EPrints::Extras::render_related_url Can\'t render related URL with no link.' );
+			$link = $session->make_element( "span" );
+			$link->appendChild( $session->make_text( '[' . $session->phrase( 'lib/metafield:unspecified' ) . ']' ) );
+			if( defined $row->{type} )
+			{
+				$link->appendChild( $fmap->{type}->render_single_value( $session, $row->{type} ) );
+			}
 		}
 		$li->appendChild( $link );
 		$ul->appendChild( $li );
