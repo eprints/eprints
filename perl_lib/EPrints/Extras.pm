@@ -252,7 +252,7 @@ sub render_related_url
 		my $link;
 		if( defined $row->{url} )
 		{
-			$link = $session->render_link( $text );
+			$link = $session->render_link( $row->{url} );
 			if( defined $row->{type} )
 			{
 				$link->appendChild( $fmap->{type}->render_single_value( $session, $row->{type} ) );
