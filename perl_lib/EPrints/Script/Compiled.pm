@@ -322,9 +322,18 @@ sub run_yesno
 	return [ "no", "STRING" ];
 }
 
+
+=item one_of( VAR, ARRAY )
+
+Returns true if VAR is in ARRAY.  ARRAY can be passed as an array ref
+or a list of arguments, e.g., $var.one_of( $arrayref ) or
+$var.one_of( '1', '2', '3' )
+
+=cut
+
 sub run_one_of
 {
-	my( $self, $state, $left, @list ) = @_;
+	my( $self, $state, $left, @params ) = @_;
 
 	if( !defined $left )
 	{
@@ -335,6 +344,19 @@ sub run_one_of
 		return [ 0, "BOOLEAN" ];
 	}
 
+        my @list;
+        # If @params is a single ARRAY element, expand the ARRAY to a
+        # list of string elements and compare against each of those.
+        if ( scalar @params == 1 && $params[0]->[1] eq 'ARRAY' )
+        {
+            @list = $self->_array_to_list( $params[0] );
+        }
+        else
+        {
+            # The params are the list to compare against
+            @list = @params;
+        }
+
 	foreach( @list )
 	{
 		my $result = $self->run_EQUALS( $state, $left, $_ );
@@ -342,6 +364,30 @@ sub run_one_of
 	}
 	return [ 0, "BOOLEAN" ];
 } 
+
+#
+# Converts a Perl ARRAY into a list of EPScript string literals and
+# returns it.
+#
+# $array must be an array ref. Assumes that the items of $array are
+# strings.
+#
+# Example:
+# [ [ '1', '2', '3'], 'ARRAY' ]
+#   converts to
+# [ [ '1', 'STRING' ], [ '2', 'STRING' ], [ '3', 'STRING' ] ]
+#
+sub _array_to_list
+{
+    my( $self, $array ) = @_;
+
+    my @new_list = ();
+    foreach ( @{$array->[0]} )
+    {
+        push @new_list, [ $_, 'STRING' ];
+    }
+    return @new_list;
+}
 
 sub run_as_item 
 {
