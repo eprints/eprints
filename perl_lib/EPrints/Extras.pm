@@ -189,7 +189,7 @@ sub render_url_truncate_end
 	my $text = $value;
 	if( length( $value ) > $len )
 	{
-		$text = substr( $value, 0, $len )."...";
+		$text = substr( $value, 0, $len-3 )."...";
 	}
 	$link->appendChild( $session->make_text( $text ) );
 	return $link
@@ -210,12 +210,14 @@ sub render_url_truncate_middle
 {
 	my( $session, $field, $value ) = @_;
 
-	my $len = 50;	
+	my $len = 50;
 	my $link = $session->render_link( $value );
 	my $text = $value;
 	if( length( $value ) > $len )
 	{
-		$text = substr( $value, 0, $len/2 )."...".substr( $value, -$len/2, -1 );
+		my $before = ($len-3)/2;
+		my $after  = $len - $before - 1;
+		$text = substr( $value, 0, $before )."...".substr( $value, -$after, -1 );
 	}
 	$link->appendChild( $session->make_text( $text ) );
 	return $link
@@ -227,7 +229,7 @@ sub render_url_truncate_middle
 =item $xhtml = EPrints::Extras::render_related_url( $session, $field, $value )
 
 Hyper link the URL but truncate the middle part if it gets longer 
-than 50 characters.
+than 40 characters.
 
 =cut
 ######################################################################
@@ -260,7 +262,12 @@ sub render_related_url
 			else
 			{
 				my $text = $row->{url};
-				if( length( $text ) > 40 ) { $text = substr( $text, 0, 40 )."..."; }
+				my $len = 40;
+				if( length( $text ) > $len ) {
+					my $before = ($len-3)/2;
+					my $after = $len - $before - 1;
+					$text = substr( $text, 0, $before )."...".substr( $text, -$after, -1 );
+				}
 				$link->appendChild( $session->make_text( $text ) );
 			}
 		}
