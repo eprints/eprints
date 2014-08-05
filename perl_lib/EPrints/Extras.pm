@@ -275,11 +275,11 @@ sub render_related_url
 		{
 			$session->get_repository->log( '[warning] EPrints::Extras::render_related_url Can\'t render related URL with no link.' );
 			$link = $session->make_element( "span" );
-			$link->appendChild( $session->make_text( '[' . $session->phrase( 'lib/metafield:unspecified' ) . ']' ) );
 			if( defined $row->{type} )
 			{
 				$link->appendChild( $fmap->{type}->render_single_value( $session, $row->{type} ) );
 			}
+			$link->appendChild( $session->make_text( '[' . $session->phrase( 'lib/metafield:unspecified' ) . ']' ) );
 		}
 		$li->appendChild( $link );
 		$ul->appendChild( $li );
