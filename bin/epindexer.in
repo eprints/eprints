@@ -14,6 +14,7 @@ my $prefix = "@PREFIX@";
 #
 ######################################################################
 
+use Config::General qw( ParseConfig );
 use English;
 use POSIX;
 
@@ -43,7 +44,56 @@ while(my( undef, undef, $gid, $members ) = getgrent())
 $REAL_GROUP_ID = $EFFECTIVE_GROUP_ID = "@sgroups";
 $REAL_USER_ID = $EFFECTIVE_USER_ID = $uid;
 
-my $indexer_cmd = "$prefix/bin/indexer";
+# Read the configuration file
+my $confname = $EPrints::SystemSettings::conf->{'base_path'}.'/cfg/epindexer.conf';
+my %conf;
+if ( -f $confname )
+{
+	%conf = ParseConfig( $confname );
+}
+
+# Configure verbosity
+my $noise = ( defined $conf{'verbose'} )? $conf{verbose} : 0;
+
+# Set up the environment
+if ( exists $conf{'Environment'} )
+{
+	foreach my $v ( keys %{$conf{'Environment'}} )
+	{
+		$ENV{$v} = $conf{'Environment'}{$v};
+		if ( $noise > 0 )
+		{
+			print $v . '=' . $ENV{$v} . "\n";
+		}
+	}
+}
+
+# Build the command line for the indexer
+my @indexer_cmd = ( $EPrints::SystemSettings::conf->{'base_path'}.'/bin/indexer' );
+if ( defined $conf{'logfile'} )
+{
+	push @indexer_cmd, '--logfile', $conf{'logfile'};
+}
+if ( defined $conf{'loglevel'} )
+{
+	push @indexer_cmd, '--loglevel', $conf{'loglevel'};
+}
+if ( defined $conf{'rollcount'} )
+{
+	push @indexer_cmd, '--rollcount', $conf{'rollcount'};
+}
+if ( defined $conf{'respawn'} )
+{
+	push @indexer_cmd, '--respawn', $conf{'respawn'};
+}
+
+push @indexer_cmd, $opt;
+if ( $noise > 0 )
+{
+	print 'Executing ' . join( ' ', @indexer_cmd ) . "\n";
+}
+
+# Go!
 $| = 0;
 if( $opt eq 'start' )
 {
@@ -54,7 +104,7 @@ if( $opt eq 'stop' )
 	print 'Stopping EPrints Indexer: ';
 }
 delete $ENV{'PATH'};
-my $rv = system( $indexer_cmd, $opt );
+my $rv = system( @indexer_cmd );
 $rv = $rv >> 8;
 if( $opt eq 'start' || $opt eq 'stop' ) 
 {
