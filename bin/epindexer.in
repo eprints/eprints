@@ -69,7 +69,7 @@ if ( exists $conf{'Environment'} )
 }
 
 # Build the command line for the indexer
-my @indexer_cmd = ( $EPrints::SystemSettings::conf->{'base_path'}.'/bin/indexer' );
+my @indexer_cmd = ( "$prefix/bin/indexer" );
 if ( defined $conf{'logfile'} )
 {
 	push @indexer_cmd, '--logfile', $conf{'logfile'};
