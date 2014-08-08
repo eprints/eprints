@@ -26,7 +26,7 @@ case "$1" in
 	# Why disable the site in configure?!
 	#rm -f /etc/apache2/sites-available/@PACKAGE@
 	#rm -f /etc/apache2/sites-enabled/@PACKAGE@
-	echo "Include @PREFIX@/cfg/apache.conf" > /etc/apache2/sites-available/@PACKAGE@
+	echo "Include @PREFIX@/cfg/apache.conf" > /etc/apache2/sites-available/@PACKAGE@.conf
 	ln -fs @PREFIX@/bin/epindexer /etc/init.d/epindexer
 	update-rc.d epindexer defaults 99 99 > /dev/null
 	chown @INSTALL_USER@:www-data @PREFIX@ -R > /dev/null
