@@ -1028,7 +1028,7 @@ sub crypt_equals
 	# EP_CRYPT_BLOWFISH
 	if( $USE_CRYPT_BLOWFISH && $crypt =~ /^\$2a?\$..\$.{22}.{31}$/ ) {
 		my $ppr = Authen::Passphrase::BlowfishCrypt->from_crypt( $crypt );
-		return $ppr->match( $token );
+		return $ppr->match( $value );
 	}
 
 	# EP_CRYPT_CRYPT
