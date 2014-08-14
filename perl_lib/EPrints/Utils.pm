@@ -1025,6 +1025,12 @@ sub crypt_equals
 
 	return undef if !EPrints::Utils::is_set( $value );
 
+	# EP_CRYPT_BLOWFISH
+	if( $USE_CRYPT_BLOWFISH && $crypt =~ /^\$2a?\$..\$.{22}.{31}$/ ) {
+		my $ppr = Authen::Passphrase::BlowfishCrypt->from_crypt( $crypt );
+		return $ppr->match( $token );
+	}
+
 	# EP_CRYPT_CRYPT
 	if( $crypt !~ /^\?/ ) {
 		return $crypt eq CORE::crypt($value, substr($crypt, 0, 2));
