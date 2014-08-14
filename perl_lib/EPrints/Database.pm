@@ -4276,6 +4276,85 @@ sub valid_login
 ######################################################################
 =pod
 
+=item $db->secret_matches( $dataobj, $fieldname, $token [, $callback ] )
+
+Returns whether the clear-text $token matches the stored crypted field
+for the $dataobj according to $callback.
+
+If not given, $callback defaults to L<EPrints::Utils::crypt_equals>
+
+=cut
+######################################################################
+
+sub secret_matches
+{
+	my( $self, $dataobj, $fieldname, $token, $callback ) = @_;
+
+	my $dataset = $dataobj->dataset();
+
+	# Build and execute SQL
+	my $Q_token = $self->quote_identifier( $fieldname );
+	my $Q_table = $self->quote_identifier( $dataset->base_id() );
+	my $Q_dataobj_id = $self->quote_identifier( $dataset->base_id() . 'id' );
+
+	my $sql = "SELECT $Q_token FROM $Q_table WHERE $Q_dataobj_id = " . $self->quote_value( $dataobj->id );
+
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth , $sql );
+	my ( $real_token ) = $sth->fetchrow_array;
+	$sth->finish;
+
+	return undef if( !defined $real_token );
+
+	# Test provided token
+	if( defined $callback )
+	{
+		no strict 'refs';
+		return &{$callback}( $real_token, $token );
+	}
+
+	return EPrints::Utils::crypt_equals( $real_token, $token );
+
+}
+
+
+######################################################################
+=pod
+
+=item $db->is_secret_set( $dataobj, $fieldname )
+
+Returns 1 if the secret $fieldname in $dataobj has a value set.
+Otherwise returns 0.
+
+=cut
+######################################################################
+
+sub is_secret_set
+{
+	my( $self, $dataobj, $fieldname ) = @_;
+
+	# Build and execute SQL
+	my $dataset = $dataobj->dataset();
+	my $ds_baseid = $dataset->base_id();
+	my $Q_id = $self->quote_identifier( $ds_baseid . 'id' );
+	my $Q_token = $self->quote_identifier( $fieldname );
+	my $Q_table = $self->quote_identifier( $ds_baseid );
+	my $Q_dataobj_id = $self->quote_identifier( $ds_baseid . 'id' );
+
+	my $sql = "SELECT $Q_id FROM $Q_table WHERE $Q_dataobj_id = " . $self->quote_value( $dataobj->id ) . " AND $Q_token IS NOT NULL";
+
+	my $sth = $self->prepare( $sql );
+	$self->execute( $sth , $sql );
+	my( $matched_id ) = $sth->fetchrow_array;
+	$sth->finish;
+
+	return ( defined $matched_id ) ? 1 : 0;
+}
+
+
+######################################################################
+=pod
+
 =item $version = $db->get_server_version
 
 Return the database server version.
