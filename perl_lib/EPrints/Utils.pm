@@ -60,6 +60,9 @@ use LWP::UserAgent;
 use URI;
 use EPrints::Const qw( :crypt );
 
+my $USE_CRYPT_BLOWFISH = 1;
+eval "use Authen::Passphrase::BlowfishCrypt; 1" or $USE_CRYPT_BLOWFISH = 0;
+
 use strict;
 
 $EPrints::Utils::FULLTEXT = "documents";
@@ -987,6 +990,20 @@ sub crypt
 		);
 
 		return "$uri";
+	}
+	elsif( $method eq EP_CRYPT_BLOWFISH && $USE_CRYPT_BLOWFISH )
+	{
+		# Blowfish cost factor (2^n rounds)
+		my $cost = 12;
+		# Blowfish requires a 16-byte salt. We can just ignore the two bytes
+		# calculated above, and let the library generate its own salt.
+		my $ppr = Authen::Passphrase::BlowfishCrypt->new(
+			cost => $cost,
+			salt_random => 1,
+			passphrase => $value
+		);
+
+		return $ppr->as_crypt();
 	}
 	elsif( $method eq EP_CRYPT_CRYPT )
 	{
