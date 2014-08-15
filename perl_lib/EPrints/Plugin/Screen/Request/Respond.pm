@@ -28,9 +28,27 @@ sub properties_from
 {
 	my( $self ) = @_;
 
-	# Need valid requestid
-	$self->{processor}->{requestid} = $self->{session}->param( "requestid" );
-	$self->{processor}->{request} = new EPrints::DataObj::Request( $self->{session}, $self->{processor}->{requestid} );
+	my $use_pin_security = $self->{session}->config( 'use_request_copy_pin_security' );
+
+	if ( $use_pin_security )
+	{
+		$self->{processor}->{requestpin} = $self->{session}->param( "pin" );
+		$self->{processor}->{request} = EPrints::DataObj::Request::request_with_pin( $self->{session}, $self->{processor}->{requestpin} );
+	}
+
+	if( !defined $self->{processor}->{request} )
+	{
+		# Use the previous, authenticated model. This also
+		# provides a fall-back for requests with a requestid but
+		# not a pin, which may occur during the changeover to the
+		# pin-model.
+		$self->{processor}->{requestid} = $self->{session}->param( "requestid" );
+		$self->{processor}->{request} = new EPrints::DataObj::Request( $self->{session}, $self->{processor}->{requestid} );
+
+		# Disable pin security for this response only
+		$use_pin_security = 0;
+	}
+
 	if( !defined $self->{processor}->{request} )
 	{
 		&_properties_error;
@@ -46,10 +64,11 @@ sub properties_from
 	$self->{processor}->{contact} = EPrints::DataObj::User->new(
 				$self->{session}, $self->{processor}->{request}->get_value( "userid" ) );
 
-	# Need valid document, eprint and contact
+	# Need valid document, eprint and -- when not using pin
+	# security -- contact
 	if( !defined $self->{processor}->{document} ||
 		!defined $self->{processor}->{eprint} ||
-		!defined $self->{processor}->{contact} )
+		( !defined $self->{processor}->{contact} && !$use_pin_security ) )
 	{
 		&_properties_error;
 		return;
@@ -57,6 +76,8 @@ sub properties_from
 
 	$self->{processor}->{response_sent} = $self->{session}->param( "response_sent" );
 	$self->{processor}->{actionid} = $self->{session}->param( "action" );
+
+	$self->{processor}->{use_pin_security} = $use_pin_security;
 
 	$self->SUPER::properties_from;
 
@@ -73,6 +94,10 @@ sub _properties_error
 sub can_be_viewed
 {
 	my( $self ) = @_;
+
+	# If the pin security model is being used for this response,
+	# anyone with the correct pin can access it.
+	return 1 if $self->{processor}->{use_pin_security};
 
 	# Only the contact user (ie. user listed as contact email at time of request) can process it
 	return $self->{processor}->{contact}->get_id == $self->{processor}->{user}->get_id;
@@ -99,8 +124,8 @@ sub action_confirm
 	# Requested document has been made OA in the meantime
 	$action = "oa" if $self->{processor}->{document}->is_public;
 
-	my $subject = $session->phrase( 
-		"request/response_email:subject", 
+	my $subject = $session->phrase(
+		"request/response_email:subject",
 		eprint => $eprint->get_value( "title" ) );
 
 	my $mail = $session->make_element( "mail" );
@@ -149,7 +174,6 @@ sub action_confirm
 		$mail->appendChild( $session->html_phrase( "request/response_email:warning_expiry",
 					       expiry => $session->make_text( EPrints::Time::human_time( $expiry )  ) ) );
 
-
 		$result = EPrints::Email::send_mail(
 			session => $session,
 			langid => $session->get_langid,
@@ -175,17 +199,22 @@ sub action_confirm
 	# Log response event
 	my $history_ds = $session->dataset( "history" );
 	my $user = $self->{processor}->{contact};
-	$history_ds->create_object(
-		$session,
-		{
-			userid =>$user->get_id,
-			actor=>EPrints::Utils::tree_to_utf8( $user->render_description ),
-			datasetid=>"request",
-			objectid=>$self->{processor}->{request}->get_id,
-			action=> "$action\_request",
-			details=>EPrints::Utils::is_set( $reason ) ? $reason : undef,
-		}
-	);
+	my $history_data = {
+		datasetid=>"request",
+		objectid=>$self->{processor}->{request}->get_id,
+		action=> "$action\_request",
+		details=>EPrints::Utils::is_set( $reason ) ? $reason : undef,
+	};
+	if ( defined $user )
+	{
+		$history_data->{userid} = $user->get_id;
+		$history_data->{actor} = EPrints::Utils::tree_to_utf8( $user->render_description );
+	}
+	else
+	{
+		$history_data->{actor} = $self->{processor}->{request}->get_value( 'email' );
+	}
+	$history_ds->create_object( $session, $history_data );
 
 	if( !$result )
 	{
@@ -206,6 +235,10 @@ sub redirect_to_me_url
 	if( defined $self->{processor}->{requestid} )
 	{
 		$url.="&requestid=".$self->{processor}->{requestid};
+	}
+	if( defined $self->{processor}->{requestpin} )
+	{
+		$url.="&pin=".$self->{processor}->{requestpin};
 	}
 	if( defined $self->{processor}->{actionid} )
 	{
@@ -245,7 +278,7 @@ sub render
 	
 	if( $action eq "reject" )
 	{
-		my $textarea = $session->make_element( "textarea", 
+		my $textarea = $session->make_element( "textarea",
 			name => "reason",
 			rows => 5,
 			cols => 60,
@@ -269,6 +302,7 @@ sub render
 
 	$form->appendChild( $session->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
 	$form->appendChild( $session->render_hidden_field( "requestid", $self->{processor}->{request}->get_id ) );
+	$form->appendChild( $session->render_hidden_field( "pin", $self->{processor}->{requestpin} ) );
 	$form->appendChild( $session->render_hidden_field( "action", $action ) );
 
 	$form->appendChild( $session->make_element( "br" ) );

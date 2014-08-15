@@ -58,6 +58,7 @@ use File::Copy qw();
 use Text::Wrap qw();
 use LWP::UserAgent;
 use URI;
+use Session::Token;
 use EPrints::Const qw( :crypt );
 
 use strict;
@@ -929,6 +930,33 @@ sub clone
 
 	# dunno
 	return $data;			
+}
+
+=item $password = EPrints::Utils::generate_password( [ $length ] )
+
+Generate a new random password.
+
+The length of the new password is given by the $length parameter; if
+unspecified the default length is 22.
+
+Returns I<undef> if $length is less than 1.
+
+=cut
+
+our $DEFAULT_PASSWORD_LENGTH = 22;
+
+sub generate_password
+{
+	my( $length ) = @_;
+
+	$length = $DEFAULT_PASSWORD_LENGTH if !defined $length;
+	if( $length <= 0 )
+	{
+		print STDERR "Unable to generate password: length must be positive ($length given)\n";
+		return undef;
+	}
+
+	return Session::Token->new( length => $length )->get();
 }
 
 # crypt_password( $value, $session )
