@@ -248,11 +248,11 @@ sub from
 
 sub allow
 {
-	my( $self, $priv ) = @_;
+	my( $self, $priv, $item ) = @_;
 
 	return 1 if( $self->{session}->allow_anybody( $priv ) );
 	return 0 if( !defined $self->{session}->current_user );
-	return $self->{session}->current_user->allow( $priv );
+	return $self->{session}->current_user->allow( $priv, $item );
 }
 
 
