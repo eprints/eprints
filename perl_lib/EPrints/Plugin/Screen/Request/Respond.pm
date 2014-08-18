@@ -254,7 +254,10 @@ sub render
 		$form->appendChild( $textarea );
 	}
 
-	if( $action eq "accept" )
+	# Only display the 'Make this document OA' form if the user
+	# has privilege to edit this document
+	if( $action eq "accept"
+		 && $self->allow( 'eprint/archive/edit', $self->{processor}->{eprint} ) )
 	{
 		my $p = $session->make_element( "p" );
 		$form->appendChild( $p );
