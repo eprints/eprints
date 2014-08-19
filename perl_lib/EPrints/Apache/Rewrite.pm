@@ -268,7 +268,7 @@ sub handler
 	}
 
 	# sitemap.xml (nb. only works if site is in root / of domain.)
-	if( $uri =~ m! ^$urlpath/sitemap\.xml$ !x )
+	if( $uri =~ m! ^$urlpath/sitemap(?:-sc)\.xml$ !x )
 	{
 		$r->handler( 'perl-script' );
 
