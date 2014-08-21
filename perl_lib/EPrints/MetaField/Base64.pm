@@ -129,38 +129,37 @@ sub get_xml_schema_type
     return $self->get_property( "type" ) . "_" . $self->{dataset}->confid . "_" . $self->get_name;
 }
 
+# Returns DOM for the following:
+# <xs:complexType name="base64_file_data">
+#   <xs:simpleContent>
+#     <xs:extension base="xs:base64Binary">
+#       <xs:attribute name="encoding">
+#         <xs:simpleType>
+#           <xs:restriction base="xs:string">
+#             <xs:enumeration value="base64" />
+#           </xs:restriction>
+#         </xs:simpleType>
+#       </xs:attribute>
+#     </xs:extension>
+#   </xs:simpleContent>
+# </xs:complexType>
+#
+#  e.g., <data encoding="base64">...</data>
+
 sub render_xml_schema_type
 {
     my ( $self, $session ) = @_;
 
-    # Returns DOM for the following:
-    # <xs:complexType name="base64_file_data">
-    #   <xs:simpleContent>
-    #     <xs:extension base="xs:base64Binary">
-    #       <xs:attribute name="encoding">
-    #         <xs:simpleType>
-    #           <xs:restriction base="xs:string">
-    #             <xs:enumeration value="base64" />
-    #           </xs:restriction>
-    #         </xs:simpleType>
-    #       </xs:attribute>
-    #     </xs:extension>
-    #   </xs:simpleContent>
-    # </xs:complexType>
-
     my $type = $session->make_element( 'xs:complexType',
                                        name => $self->get_xml_schema_type );
     my $sc = $session->make_element( 'xs:simpleContent' );
-    my $ext =
-      $session->make_element( 'xs:extension', base => 'xs:base64Binary' );
+    my $ext = $session->make_element( 'xs:extension', base => 'xs:base64Binary' );
 
     # encoding attribute
     my $encoding = $session->make_element( 'xs:attribute', name => 'encoding' );
     my $enc_type = $session->make_element( 'xs:simpleType' );
-    my $enc_restr =
-      $session->make_element( 'xs:restriction', base => 'xs:string' );
-    my $enc_enum =
-      $session->make_element( 'xs:enumeration', value => 'base64' );
+    my $enc_restr = $session->make_element( 'xs:restriction', base => 'xs:string' );
+    my $enc_enum = $session->make_element( 'xs:enumeration', value => 'base64' );
 
     $enc_restr->appendChild( $enc_enum );
     $enc_type->appendChild( $enc_restr );
