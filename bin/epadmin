@@ -886,6 +886,7 @@ sub config_db
 	$config{dbsock} = undef;
 	$config{dbuser} = $repoid;
 	$config{dbpass} = undef;
+	$config{dbengine} = "MyISAM";
 
 	print "\nConfiguring Database for: $repoid\n";
 
@@ -915,6 +916,8 @@ sub config_db
 	$config{dbuser} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database User',  $config{dbuser} );
 	$config{dbpass} = EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Database Password',  $defaultpass );
 
+	$config{dbuser} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database Engine',  $config{dbengine} );
+
 	print "\n";
 	my $config_db = EPrints::Utils::get_input( $REGEXP_YESNO, "Write these database settings?", "yes" );
 	if( $config_db eq "no" )
@@ -934,6 +937,7 @@ sub config_db
 			$config{dbsock},
 			$config{dbuser},
 			$config{dbpass},
+			$config{dbengine},
 		],
 		[qw/
 			$c->{dbname} 
@@ -942,6 +946,7 @@ sub config_db
 			$c->{dbsock}
 			$c->{dbuser}
 			$c->{dbpass}
+			$c->{dbengine}
 		/]
 	);
 	close DBCONF;
