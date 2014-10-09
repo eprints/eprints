@@ -26,9 +26,10 @@ of this eprint for public viewing.
 
 Takes two arguments: the L<$eprint|EPrints::DataObj::EPrint> to render and the current L<$repository|EPrints::Session>.
 
-Returns three XHTML DOM fragments (see L<EPrints::XML>): C<$page>, C<$title>, (and optionally) C<$links>.
+Returns three XHTML DOM fragments (see L<EPrints::XML>): C<$page>, C<$title>, (and optionally) C<$links>, and (also
+optionally) the name of a template C<$template>.
 
-If $preview is true then this is only being shown as a preview.
+If $preview is true then this is only being shown as a preview. The C<$template> isn't honoured in this situation.
 (This is used to stop the "edit eprint" link appearing when it makes
 no sense.)
 
@@ -128,6 +129,12 @@ if(0){
 		$links->appendChild( $repository->plugin( "Export::DC" )->dataobj_to_html_header( $eprint ) );
 	}
 
+	#to define a specific template to render the abstract with, you can do something like:
+	# my $template;
+	# if( $eprint->value( "type" ) eq "article" ){
+	# 	$template = "article_template";
+	# }
+	# return ( $page, $title, $links, $template );
 	return( $page, $title, $links );
 };
 
