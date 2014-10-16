@@ -101,6 +101,12 @@ sub new
 		return $session->{subject_cache}->{$subjectid};
 	}
 
+	unless( defined $subjectid )
+	{
+		$session->get_repository->log( '[warning] Can\'t create Subject without an ID' );
+		return undef;
+	}
+
 	if( $subjectid eq $EPrints::DataObj::Subject::root_subject )
 	{
 		my $data = {

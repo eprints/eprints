@@ -40,6 +40,7 @@ sub update_from_form
 	my $field = $self->{config}->{field};
 
 	my $ibutton = $self->get_internal_button;
+	return unless defined $ibutton;
 	if( $ibutton =~ /^(.+)_add$/ )
 	{
 		my $subject = $1;

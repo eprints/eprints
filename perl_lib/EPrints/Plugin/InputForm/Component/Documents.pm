@@ -69,7 +69,7 @@ sub update_from_form
 	if( $session->internal_button_pressed )
 	{
 		my $internal = $self->get_internal_button;
-		if( $internal =~ m/^doc(\d+)_(.+)$/ )
+		if( $internal && $internal =~ m/^doc(\d+)_(.+)$/ )
 		{
 			my( $docid, $doc_action ) = ($1, $2);
 			my $doc = $session->dataset( "document" )->dataobj( $docid );
