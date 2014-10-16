@@ -61,6 +61,9 @@ sub convert_input
 	chomp $input_data;
 	my @vals = split /:/ , $input_data;
 
+	# percent-decode "%3A" to ":"
+	@vals = map { s/%3A/:/g } @vals;
+
 	my @parents = split( ",", $vals[2] );
 
 	my $lang = $plugin->{session}->get_repository->get_conf( "defaultlanguage" );
