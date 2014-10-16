@@ -813,6 +813,8 @@ sub is_set
 {
 	my( $self ) = @_;
 
+	return 1 if $self->{"match"} eq "SET";
+
 	return 0 if !exists( $self->{value} );
 
 	return
