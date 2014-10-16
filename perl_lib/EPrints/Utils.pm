@@ -1184,7 +1184,7 @@ sub escape_filename
 {
 	my( $fileid ) = @_;
 
-	return "NULL" if( $fileid eq "" );
+	return "NULL" unless( defined $fileid && $fileid ne "" );
 
 	$fileid = "$fileid";
 	utf8::decode($fileid);
