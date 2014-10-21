@@ -916,7 +916,7 @@ sub config_db
 	$config{dbuser} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database User',  $config{dbuser} );
 	$config{dbpass} = EPrints::Utils::get_input_hidden( $REGEXP_VARNAME, 'Database Password',  $defaultpass );
 
-	$config{dbuser} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database Engine',  $config{dbengine} );
+	$config{dbengine} = EPrints::Utils::get_input( $REGEXP_VARNAME, 'Database Engine',  $config{dbengine} );
 
 	print "\n";
 	my $config_db = EPrints::Utils::get_input( $REGEXP_YESNO, "Write these database settings?", "yes" );
