@@ -53,38 +53,48 @@ if ( -f $confname )
 }
 
 # Configure verbosity
-my $noise = ( defined $conf{'verbose'} )? $conf{verbose} : 0;
+my $noise = 0;
+if( defined $conf{'verbose'} and $conf{'verbose'} =~ m/^(\d+)$/ )
+{
+	$noise = $1;
+}
 
 # Set up the environment
 if ( exists $conf{'Environment'} )
 {
-	foreach my $v ( keys %{$conf{'Environment'}} )
+	foreach my $k ( keys %{$conf{'Environment'}} )
 	{
-		$ENV{$v} = $conf{'Environment'}{$v};
+		# regex capture groups don't inherit the source's taint
+		$conf{'Environment'}{$k} =~ m/(.*)/;
+		$ENV{$k} = $1;
 		if ( $noise > 0 )
 		{
-			print $v . '=' . $ENV{$v} . "\n";
+			print $k . '=' . $ENV{$k} . "\n";
 		}
 	}
 }
 
 # Build the command line for the indexer
-my @indexer_cmd = ( "$prefix/bin/indexer" );
-if ( defined $conf{'logfile'} )
+my @indexer_cmd = ( $EPrints::SystemSettings::conf->{'base_path'}.'/bin/indexer' );
+# logfile must be non-empty string
+if ( defined $conf{'logfile'} and $conf{'logfile'} =~ m/(.+)/ )
 {
-	push @indexer_cmd, '--logfile', $conf{'logfile'};
+	push @indexer_cmd, '--logfile', $1;
 }
-if ( defined $conf{'loglevel'} )
+# loglevel is a number from 0 to 6
+if ( defined $conf{'loglevel'} and $conf{'loglevel'} =~ m/^([0-6])$/ )
 {
-	push @indexer_cmd, '--loglevel', $conf{'loglevel'};
+	push @indexer_cmd, '--loglevel', $1;
 }
-if ( defined $conf{'rollcount'} )
+# rollcount is a number
+if ( defined $conf{'rollcount'} and $conf{'rollcount'} =~ m/^(\d+)$/ )
 {
-	push @indexer_cmd, '--rollcount', $conf{'rollcount'};
+	push @indexer_cmd, '--rollcount', $1;
 }
-if ( defined $conf{'respawn'} )
+# respawn is a number (of seconds)
+if ( defined $conf{'respawn'} and $conf{'respawn'} =~ m/(\d+)/ )
 {
-	push @indexer_cmd, '--respawn', $conf{'respawn'};
+	push @indexer_cmd, '--respawn', $1;
 }
 
 push @indexer_cmd, $opt;
