@@ -45,7 +45,7 @@ $REAL_GROUP_ID = $EFFECTIVE_GROUP_ID = "@sgroups";
 $REAL_USER_ID = $EFFECTIVE_USER_ID = $uid;
 
 # Read the configuration file
-my $confname = $EPrints::SystemSettings::conf->{'base_path'}.'/cfg/epindexer.conf';
+my $confname = "$prefix/cfg/epindexer.conf";
 my %conf;
 if ( -f $confname )
 {
@@ -75,7 +75,7 @@ if ( exists $conf{'Environment'} )
 }
 
 # Build the command line for the indexer
-my @indexer_cmd = ( $EPrints::SystemSettings::conf->{'base_path'}.'/bin/indexer' );
+my @indexer_cmd = ( "$prefix/bin/indexer" );
 # logfile must be non-empty string
 if ( defined $conf{'logfile'} and $conf{'logfile'} =~ m/(.+)/ )
 {
