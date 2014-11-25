@@ -3968,6 +3968,7 @@ To create a blank EPM entire a new id in the input and click <epc:phrase ref="Pl
 	<epp:phrase id="document_typename_indexcodes">Indexer Terms</epp:phrase>
 	<epp:phrase id="document_typename_text/html">HTML</epp:phrase>
 	<epp:phrase id="document_typename_application/pdf">PDF</epp:phrase>
+        <epp:phrase id="document_typename_application/adobe">PDF</epp:phrase>
 	<epp:phrase id="document_typename_application/postscript">Postscript</epp:phrase>
 	<epp:phrase id="document_typename_text/plain">Plain Text</epp:phrase>
 	<epp:phrase id="document_typename_application/vnd.ms-powerpoint">Microsoft PowerPoint</epp:phrase>
