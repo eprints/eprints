@@ -3008,6 +3008,7 @@ PY = 2006 and OG = (Cambridge)<br />
     <epp:phrase id="Plugin/Screen/Subject/Edit:existing">Link Existing Subject</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Subject/Edit:exists">A subject with that id already exists.</epp:phrase>
     <epp:phrase id="subject_fieldname_name_name">Name</epp:phrase>
+    <epp:phrase id="subject_fieldname_name_sortvalue">Sort name</epp:phrase>
     <epp:phrase id="subject_fieldname_name_lang">Language</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:action_save">Save changes</epp:phrase>
     <epp:phrase id="Plugin/Screen/Subject/Edit:saved">Saved changes</epp:phrase>

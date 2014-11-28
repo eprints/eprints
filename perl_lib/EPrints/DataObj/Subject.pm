@@ -64,6 +64,13 @@ sub get_system_field_info
 				{
             				'sub_name' => 'name',
             				'type' => 'text',
+					'input_cols' => 30,
+				},
+				# EPrints Services/tmb 2010-07-30 optional user-supplied sort value
+				{
+            				'sub_name' => 'sortvalue',
+            				'type' => 'text',
+					'input_cols' => 30,
 				},
 			]
 		},
@@ -77,6 +84,16 @@ sub get_system_field_info
 
 		{ name=>"depositable", type=>"boolean", required=>1,
 			input_style=>"radio" },
+
+		# EPrints Services/tmb 2010-07-30 derived sort value - not to be confused with name_sortvalue!
+		{ name=>"sortvalue", type=>"multilang", required=>1, multiple=>1, volatile => 1, export_as_xml => 0,
+			fields=>[ 
+				{
+            				'sub_name' => 'sortvalue',
+            				'type' => 'text',
+				},
+			]
+		},
 	);
 }
 
@@ -186,6 +203,20 @@ sub commit
 
 	my @ancestors = $self->_get_ancestors( {} );
 	$self->set_value( "ancestors", \@ancestors );
+
+	# EPrints Services/tmb 2010-07-30 derive sort values
+	my @svals;
+	for( @{ $self->get_value( "name" ) } )
+	{
+		next unless EPrints::Utils::is_set( $_->{name} );
+		my $sv = {
+			lang => $_->{lang},
+			sortvalue => $_->{name},
+		};
+		$sv->{sortvalue} = $_->{sortvalue} if EPrints::Utils::is_set( $_->{sortvalue} );
+		push @svals, $sv;
+	}
+	$self->set_value( "sortvalue", \@svals );
 
 	if( !defined $self->{changed} || scalar( keys %{$self->{changed}} ) == 0 )
 	{
@@ -458,8 +489,7 @@ sub get_children
 				value => $subjectid
 			}
 		],
-		custom_order=>"name_name" );
-
+		custom_order=>"sortvalue_sortvalue/name_name" );
 	return $results->slice;
 }
 
@@ -781,7 +811,7 @@ sub get_all
 	my $ds = $session->dataset( "subject" );
 
 	# Retrieve all of the subjects
-	my $results = $ds->search( custom_order => "name_name" );
+	my $results = $ds->search( custom_order => "sortvalue_sortvalue/name_name" ); # EPrints Services/tmb 2010-07-30 order by derived sort value
 	
 	$results->map($f);
 
@@ -922,7 +952,8 @@ sub render_description
 {
 	my( $self ) = @_;
 
-	return $self->render_value( "name" );
+	# EPrints Services/sf2 2011-12-13 - render 'name_name' otherwise it will render 'name_name' and 'name_sortvalue'
+	return $self->render_value( "name_name" );
 }
 
 
