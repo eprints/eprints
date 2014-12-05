@@ -439,6 +439,15 @@ sub remote_ip
         # Proxy has set the "X-Forwarded-For" HTTP header?
         my $ip = $r->headers_in->{"X-Forwarded-For"};
 
+        # Sanitise and clean up $ip from XFF, if any.
+        if( EPrints::Utils::is_set( $ip ) )
+        {
+                # sanitise: remove lead commas and all whitespace
+                $ip =~ s/^\s*,+|\s+//g;
+                # slice: take only first address from the list
+                $ip =~ s/,.*//;
+        }
+
         # Apache v2.4+ (http://httpd.apache.org/docs/trunk/developer/new_api_2_4.html)
         if( !EPrints::Utils::is_set( $ip ) && $r->can( "useragent_ip" ) )
         {
@@ -1960,13 +1969,13 @@ sub get_static_dirs
 		push @dirs, "$lib_path/themes/$theme/static";
 	}
 
-	# system path: /lib/static/
-	push @dirs, "$lib_path/lang/$langid/static";
-	push @dirs, "$lib_path/static";
-
 	# site_lib
 	push @dirs, "$site_lib_path/lang/$langid/static";
 	push @dirs, "$site_lib_path/static";
+
+	# system path: /lib/static/
+	push @dirs, "$lib_path/lang/$langid/static";
+	push @dirs, "$lib_path/static";
 
 	return @dirs;
 }

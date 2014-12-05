@@ -107,7 +107,7 @@ sub get_state_params
 	{
 		my $internal = $self->get_internal_button;
 		# modifying existing document
-		if( $internal =~ m/^doc(\d+)_(.*)$/ )
+		if( $internal && $internal =~ m/^doc(\d+)_(.*)$/ )
 		{
 			$tounroll->{$1} = 1;
 		}
