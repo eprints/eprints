@@ -536,7 +536,7 @@ sub update_view_list
 	);
 
 	# hit the limit
-	if ($count == $max_items+1)
+	if( $max_items && $count > $max_items )
 	{
 		my $PAGE = $xml->create_element( "div",
 			class => "ep_view_page ep_view_page_view_$view->{id}"
