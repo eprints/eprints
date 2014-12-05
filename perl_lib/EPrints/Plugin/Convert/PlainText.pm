@@ -111,11 +111,14 @@ sub export
 	return () unless defined $cmd_id;
 	
 	my @txt_files;
+	my $i = 0; # iterable value to append to target filenames to
+	           # make them unique
 	foreach my $file ( @{($doc->get_value( "files" ))} )
 	{
 		my $filename = $file->get_value( "filename" );
 		my $tgt = $filename;
-		next unless $tgt =~ s/\.$file_extension$/\.txt/;
+		$i++;
+		next unless $tgt =~ s/\.$file_extension$/\.$i\.txt/;
 		$tgt =~ s/^.*\///; # strip directories
 		my $outfile = "$dir/$tgt";
 		
