@@ -925,6 +925,7 @@ sub end_element
 		seek($tmpfile,0,0);
 		delete $state->{encoding};
 		delete $state->{buffer};
+                $epdata->{filesize} = -s $epdata->{_content} if ( !exists $epdata->{filesize} );
 	}
 
 	$self->SUPER::end_element( $data, $epdata, $state );
