@@ -31,15 +31,16 @@ concerns) may be sent to B<support@eprints.org>.
 
 EPrints can be contacted in the real world at
 
-	EPrints c/o Christopher Gutteridge
-	School of Electronics and Computer Science
+	EPrints Services
+	Electronics and Computer Science
+	Faculty of Physical Sciences and Engineering
 	University of Southampton
-	SO17 1BJ
+	Southampton, SO17 1BJ
 	United Kingdom
 
 =head1 COPYRIGHT
 
-Copyright 2000-2011 University of Southampton.
+Copyright 2000-2014 University of Southampton.
 
 EPrints is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published
