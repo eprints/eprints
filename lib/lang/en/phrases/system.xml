@@ -3342,11 +3342,17 @@ PY = 2006 and OG = (Cambridge)<br />
 
 
   <epp:phrase id="licenses_typename_cc_by_nd">Creative Commons: Attribution-No Derivative Works 3.0</epp:phrase>
+  <epp:phrase id="licenses_typename_cc_by_nd_4">Creative Commons: Attribution-No Derivative Works 4.0</epp:phrase>
   <epp:phrase id="licenses_typename_cc_by">Creative Commons: Attribution 3.0</epp:phrase>
+  <epp:phrase id="licenses_typename_cc_by_4">Creative Commons: Attribution 4.0</epp:phrase>
   <epp:phrase id="licenses_typename_cc_by_nc">Creative Commons: Attribution-Noncommercial 3.0</epp:phrase>
+  <epp:phrase id="licenses_typename_cc_by_nc_4">Creative Commons: Attribution-Noncommercial 4.0</epp:phrase>
   <epp:phrase id="licenses_typename_cc_by_nc_nd">Creative Commons: Attribution-Noncommercial-No Derivative Works 3.0</epp:phrase>
+  <epp:phrase id="licenses_typename_cc_by_nc_nd_4">Creative Commons: Attribution-Noncommercial-No Derivative Works 4.0</epp:phrase>
   <epp:phrase id="licenses_typename_cc_by_nc_sa">Creative Commons: Attribution-Noncommercial-Share Alike 3.0</epp:phrase>
+  <epp:phrase id="licenses_typename_cc_by_nc_sa_4">Creative Commons: Attribution-Noncommercial-Share Alike 4.0</epp:phrase>
   <epp:phrase id="licenses_typename_cc_by_sa">Creative Commons: Attribution-Share Alike 3.0</epp:phrase>
+  <epp:phrase id="licenses_typename_cc_by_sa_4">Creative Commons: Attribution-Share Alike 4.0</epp:phrase>
   <epp:phrase id="licenses_typename_cc_public_domain">Creative Commons: Public Domain Dedication</epp:phrase>
   <epp:phrase id="licenses_typename_cc_gnu_gpl">Software: Creative Commons: GNU GPL 2.0</epp:phrase>
   <epp:phrase id="licenses_typename_cc_gnu_lgpl">Software: Creative Commons: GNU LGPL 2.1</epp:phrase>
@@ -3354,12 +3360,18 @@ PY = 2006 and OG = (Cambridge)<br />
   <epp:phrase id="licenses_typename_odc_odbl">Data: Open Database License (ODbL) (Attribution-Share Alike)</epp:phrase>
   <epp:phrase id="licenses_typename_odc_by">Data: Open Data Commons Attribution License (Attribution)</epp:phrase>
 
-  <epp:phrase id="licenses_description_cc_by_nd"><a href="http://creativecommons.org/licenses/by-nd/2.5/">Creative Commons Attribution No Derivatives</a></epp:phrase>
-  <epp:phrase id="licenses_description_cc_by"><a href="http://creativecommons.org/licenses/by/2.5/">Creative Commons Attribution</a></epp:phrase>
-  <epp:phrase id="licenses_description_cc_by_nc"><a href="http://creativecommons.org/licenses/by-nc/2.5/">Creative Commons Attribution Non-commercial</a></epp:phrase>
-  <epp:phrase id="licenses_description_cc_by_nc_nd"><a href="http://creativecommons.org/licenses/by-nc-nd/2.5/">Creative Commons Attribution Non-commercial No Derivatives</a></epp:phrase>
-  <epp:phrase id="licenses_description_cc_by_nc_sa"><a href="http://creativecommons.org/licenses/by-nc-sa/2.5/">Creative Commons Attribution Non-commercial Share Alike</a></epp:phrase>
-  <epp:phrase id="licenses_description_cc_by_sa"><a href="http://creativecommons.org/licenses/by-sa/2.5/">Creative Commons Attribution Share Alike</a></epp:phrase>
+  <epp:phrase id="licenses_description_cc_by_nd"><a href="http://creativecommons.org/licenses/by-nd/3.0/">Creative Commons Attribution No Derivatives</a></epp:phrase>
+  <epp:phrase id="licenses_description_cc_by_nd_4"><a href="http://creativecommons.org/licenses/by-nd/4.0/">Creative Commons Attribution No Derivatives</a></epp:phrase>
+  <epp:phrase id="licenses_description_cc_by"><a href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution</a></epp:phrase>
+  <epp:phrase id="licenses_description_cc_by_4"><a href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution</a></epp:phrase>
+  <epp:phrase id="licenses_description_cc_by_nc"><a href="http://creativecommons.org/licenses/by-nc/3.0/">Creative Commons Attribution Non-commercial</a></epp:phrase>
+  <epp:phrase id="licenses_description_cc_by_nc_4"><a href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution Non-commercial</a></epp:phrase>
+  <epp:phrase id="licenses_description_cc_by_nc_nd"><a href="http://creativecommons.org/licenses/by-nc-nd/3.0/">Creative Commons Attribution Non-commercial No Derivatives</a></epp:phrase>
+  <epp:phrase id="licenses_description_cc_by_nc_nd_4"><a href="http://creativecommons.org/licenses/by-nc-nd/4.0/">Creative Commons Attribution Non-commercial No Derivatives</a></epp:phrase>
+  <epp:phrase id="licenses_description_cc_by_nc_sa"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution Non-commercial Share Alike</a></epp:phrase>
+  <epp:phrase id="licenses_description_cc_by_nc_sa_4"><a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution Non-commercial Share Alike</a></epp:phrase>
+  <epp:phrase id="licenses_description_cc_by_sa"><a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution Share Alike</a></epp:phrase>
+  <epp:phrase id="licenses_description_cc_by_sa_4"><a href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution Share Alike</a></epp:phrase>
   <epp:phrase id="licenses_description_cc_public_domain"><a href="http://creativecommons.org/licenses/publicdomain/">Creative Commons Public Domain Dedication</a></epp:phrase>
   <epp:phrase id="licenses_description_cc_gnu_gpl"><a href="http://creativecommons.org/licenses/GPL/2.0/">Creative Commons GNU GPL (Software)</a></epp:phrase>
   <epp:phrase id="licenses_description_cc_gnu_lgpl"><a href="http://creativecommons.org/licenses/LGPL/2.1/">Creative Commons GNU LGPL (Software)</a></epp:phrase>
