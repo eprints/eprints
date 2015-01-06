@@ -29,54 +29,61 @@
 
 <h2>Credits</h2>
 
-<h3>Lead Developer + Software Architect</h3>
+<h3>Software Architects</h3>
 <ul>
-<li><a href="http://www.ecs.soton.ac.uk/people/tdb2">Dr Tim Brody</a></li>
+ <li><a href="http://www.ecs.soton.ac.uk/people/cjg">Christopher Gutteridge</a></li>
+ <li><a href="http://www.ecs.soton.ac.uk/people/tdb2">Dr Tim Brody</a></li>
+ <li>Seb Francois</li>
 </ul>
 
 <h3>Developers</h3>
 <ul>
-<li><a href="http://www.ecs.soton.ac.uk/people/cjg">Christopher Gutteridge</a></li>
-<li><a href="http://www.ecs.soton.ac.uk/people/tmb">Dr Timothy Miles-Board</a></li>
-<li><a href="http://www.ecs.soton.ac.uk/people/dct05r">Dr Dave Tarrant</a></li>
-<li><a href="http://www.ecs.soton.ac.uk/people/af05v">Adam Field</a></li>
-<li><a href="http://www.ecs.soton.ac.uk/people/sf2">Seb Francois</a></li>
-<li><a href="http://www.ecs.soton.ac.uk/people/pm5">Patrick McSweeney</a></li>
+ <li><a href="http://www.ecs.soton.ac.uk/people/jy2e08">Dr Jiadi Yeo</a></li>
+ <li><a href="http://www.ecs.soton.ac.uk/people/jb4">Justin Bradley</a></li>
+ <li><a href="http://www.ecs.soton.ac.uk/people/kt2">Kelly Terrell</a></li>
+ <li><a href="http://www.ecs.soton.ac.uk/people/af05v">Adam Field</a></li>
+ <li><a href="http://www.ecs.soton.ac.uk/people/drn">Dr David Newman</a></li>
+ <li>Dr Timothy Miles-Board</li>
+ <li><a href="http://www.ecs.soton.ac.uk/people/dt2">Dr Dave Tarrant</a></li>
+ <li><a href="http://www.ecs.soton.ac.uk/people/pm5">Patrick McSweeney</a></li>
 </ul>
 
 <h3>Contributors</h3>
 <ul>
-<li>Alexander Bergolth (Vienna University of Economics)</li>
-<li><a href="http://www.ecs.soton.ac.uk/people/jmnh">Dr Jessie Hey</a></li>
-<li><a href="http://www.ecs.soton.ac.uk/people/moj">Dr Michael O. Jewell</a></li>
-<li><a href="http://www.ecs.soton.ac.uk/people/hjm03r">Dr Harry Mason</a></li>
-<li>Al Riddoch</li>
-<li>Dr Gui Power</li>
-<li>Pauline Simpson</li>
-<li>Robert Tansley</li>
-<li>Adam White</li>
-<li>Wendy White</li>
-<li><a href="http://www.ecs.soton.ac.uk/people/mc">dr mc schraefel</a></li>
+ <li><a href="http://www.wu.ac.at/">Alexander Bergolth</a></li>
+ <li><a href="http://www.ecs.soton.ac.uk/people/moj">Dr Michael O. Jewell</a></li>
+ <li>Dr Jessie Hey</li>
+ <li>Dr Harry Mason</li>
+ <li>Al Riddoch</li>
+ <li>Dr Gui Power</li>
+ <li>Pauline Simpson</li>
+ <li>Robert Tansley</li>
+ <li>Adam White</li>
+ <li>Wendy White</li>
+ <li>Dr Steve Hitchcock</li>
+ <li>Denis Pitzalis</li>
+ <li>Matthew Kerwin</li>
+ <li>Mark Gregson</li>
+ <li>John Salter</li>
 </ul>
 
 <h3>Project Management</h3>
 <ul>
-<li><a href="http://www.ecs.soton.ac.uk/people/lac">Dr Leslie Carr</a></li>
-<li><a href="http://www.ecs.soton.ac.uk/people/jd">John Darlington</a></li>
+ <li><a href="http://www.ecs.soton.ac.uk/people/lac">Professor Leslie Carr</a></li>
+ <li><a href="http://www.ecs.soton.ac.uk/people/jd">John Darlington</a></li>
 </ul>
 
-<h3>Community Manager</h3>
+<h3>user experience consultant</h3>
 <ul>
-<li><a href="http://www.ecs.soton.ac.uk/people/sh94r">Steve Hitchcock</a></li>
+ <li><a href="http://www.ecs.soton.ac.uk/people/mc">prof mc schraefel</a></li>
 </ul>
 
 <h3>Visionary and Software Specifications</h3>
 <ul>
-<li><a href="http://www.ecs.soton.ac.uk/people/harnad">Professor Stevan Harnad</a></li>
+ <li><a href="http://www.ecs.soton.ac.uk/people/harnad">Professor Stevan Harnad</a></li>
 </ul>
 
-<p>...and also thanks to the members of the eprints-tech mailing list and the
-EPrints Community members for advice and bug reports.</p>
+<p>Thanks to the EPrints users and community for contributing ideas, bug reports and fixes.</p>
 
 
 
@@ -123,7 +130,7 @@ EPrints Community members for advice and bug reports.</p>
 
 <div align="center" style='margin-top:2em'>
 <a href="http://www.ecs.soton.ac.uk/"><img src="{$config{rel_path}}/images/ecslogo.jpg" border="0" alt="School of Electronics and Computer Science, University of Southampton" align="top"/></a>
-<p>EPrints is Copyright &#169; University of Southampton, 2000-2012.</p>
+<p>EPrints is Copyright &#169; University of Southampton, 2000-2015.</p>
 </div>
 
 
