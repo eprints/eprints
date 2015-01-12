@@ -1594,13 +1594,13 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
     <epp:phrase id="lib/searchfield:help_time">Enter a date or date range. 
 <br/>Examples:  "<span class="ep_form_example">1985-</span>", 
 "<span class="ep_form_example">2001-05-17-2002-05-16</span>",
-"<span class="ep_form_example">-11-1980</span>"
+"<span class="ep_form_example">-1980-11</span>"
 </epp:phrase>
 	<epp:phrase id="lib/searchfield:help_timestamp" ref="lib/searchfield:help_time" />
     <epp:phrase id="lib/searchfield:help_date">Enter a date or date range. 
 <br/>Examples:  "<span class="ep_form_example">1985-</span>", 
 "<span class="ep_form_example">2001-05-17-2002-05-16</span>",
-"<span class="ep_form_example">-11-1980</span>"
+"<span class="ep_form_example">-1980-11</span>"
 </epp:phrase>
     <epp:phrase id="lib/searchfield:help_boolean">Select a value.</epp:phrase>
     <epp:phrase id="lib/searchfield:help_email">Enter some text to search for.</epp:phrase>
