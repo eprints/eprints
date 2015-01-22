@@ -24,8 +24,10 @@ case "$1" in
 	fi
 	adduser www-data @INSTALL_GROUP@ > /dev/null
 	adduser @INSTALL_USER@ www-data > /dev/null
-	a2dismod -q mpm_event > /dev/null
-	a2enmod mpm_prefork > /dev/null
+        if -f /etc/apache2/mods-enabled/mpm_event.load; then 
+  		a2dismod mpm_event > /dev/null
+		a2enmod mpm_prefork > /dev/null
+	fi
     ;;
 
     abort-upgrade)
