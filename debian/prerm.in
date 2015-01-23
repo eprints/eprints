@@ -24,6 +24,10 @@ case "$1" in
 	#`update-rc.d -f epindexer remove /dev/null` >&2
 	#`rm -f /etc/init.d/epindexer` >&2
 	#`/etc/init.d/apache2 force-reload /dev/null` >&2
+	if [ -f /etc/apache2/sites-enabled/@PACKAGE@.conf ]; then
+                `a2dissite @PACKAGE@ > /dev/null` >&2
+	fi
+		
     ;;
     
     failed-upgrade)
