@@ -1188,6 +1188,66 @@ sub group_by_n_chars
 	return $sections;
 }
 
+# [2015-01-26/drn] A-Z group treating accented characters as the same letter as unaccented ones.
+sub group_by_a_to_z_unidecode
+{
+
+        my $grouping = group_by_n_chars_unidecode( @_, 1 );
+
+        foreach my $c ( 'A'..'Z' )
+        {
+                next if defined $grouping->{$c};
+                $grouping->{$c} = [];
+        }
+        return $grouping;
+}
+
+sub group_by_first_character_unidecode { return group_by_n_chars_unidecode( @_, 1 ); }
+sub group_by_2_characters_unidecode { return group_by_n_chars_unidecode( @_, 2 ); }
+sub group_by_3_characters_unidecode { return group_by_n_chars_unidecode( @_, 3 ); }
+sub group_by_4_characters_unidecode { return group_by_n_chars_unidecode( @_, 4 ); }
+sub group_by_5_characters_unidecode { return group_by_n_chars_unidecoee( @_, 5 ); }
+
+sub group_by_n_chars_unidecode 
+{
+        my( $session, $menu, $menu_fields, $values, $n ) = @_;
+
+        # cache rendered values
+        my %rvals;
+        for( @$values )
+        {
+                $rvals{$_} = EPrints::Utils::tree_to_utf8( $menu_fields->[0]->render_single_value( $session, $_ ) );
+        }
+
+        # sort using cache
+        my @sorted = sort {
+                Text::Unidecode::unidecode(lc $rvals{$a} )
+                cmp
+                Text::Unidecode::unidecode(lc $rvals{$b} )
+        } @{$values};
+
+        my $sections = {};
+        foreach my $value ( @sorted )
+        {
+                # get rendered value from cache
+                my $v = $rvals{$value};
+
+                # lose everything not a letter or number
+                $v =~ s/[^\p{L}\p{N}]//g;
+
+                my $dc =  Text::Unidecode::unidecode( $v );
+
+                my $start = uc substr( $dc, 0, $n );
+                $start = "?" if( $start eq "" );
+
+                push @{$sections->{$start}}, $value;
+        }
+
+        return $sections;
+}
+# END: A-Z group treating accented characters as the same letter as unaccented ones.
+
+
 sub default_sort
 {
 	my( $repo, $menu, $values ) = @_;
