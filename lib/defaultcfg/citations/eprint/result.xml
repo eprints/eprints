@@ -22,7 +22,7 @@
           </div>
         </epc:if>
         <epc:if test="length($docs) gt 2">
-          <div><a href='{$item.url()}'>+<epc:print expr="length($docs)-2" /> <epc:phrase ref="page:more"/></a></div>
+          <div><a href='{$item.uri()}'>+<epc:print expr="length($docs)-2" /> <epc:phrase ref="page:more"/></a></div>
         </epc:if>
       </epc:set>
     </td>
