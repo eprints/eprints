@@ -62,7 +62,7 @@ sub convert_input
 	my @vals = split /:/ , $input_data;
 
 	# percent-decode "%3A" to ":"
-	@vals = map { s/%3A/:/g } @vals;
+	@vals = map { ( my $s = $_ ) =~ s/%3A/:/g; $s } @vals;
 
 	my @parents = split( ",", $vals[2] );
 
