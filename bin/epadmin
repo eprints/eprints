@@ -2075,7 +2075,7 @@ sub epadmin_recommit
 
 	if( !scalar @ids )
 	{
-		print "All items in \"$datasetid\" have been re-commited.\n" if( $noise >= 1 );
+		print "All items in \"$datasetid\" have been re-committed.\n" if( $noise >= 1 );
 	}
 }
 

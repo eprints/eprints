@@ -62,7 +62,7 @@ Print the full manual page and then exit.
 
 =item B<--quiet>
 
-Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+Be vewwy vewwy quiet. This option will suppress all output unless an error occurs.
 
 =item B<--verbose>
 
@@ -85,9 +85,9 @@ Don't ask before making the changes.
 
 =head1 FILE FORMAT
 
-There are two different file formats excepted, the default colon seperated file and XML in the eprints export format. 
+There are two different file formats excepted, the default colon separated file and XML in the eprints export format.
 
-The colon seperated ASCII is easier to edit, but is more limited. It is not 
+The colon separated ASCII is easier to edit, but is more limited. It is not
 intended for UTF-8 encoded characters and can only specify subject names in
 the default language. 
 
@@ -100,7 +100,7 @@ format is far more verbose.
 
 This is the default format. 
 
-Comments may be placed on lines begining with a hash (#)
+Comments may be placed on lines beginning with a hash (#)
 
 Each (non-comment) line of the file should be in the following format:
 
@@ -124,7 +124,7 @@ The name of this subject, in the default language of the repository.
 
 =item B<parents> 
 
-A comma seperated list of the parents of this subject. Be careful not to cause
+A comma separated list of the parents of this subject. Be careful not to cause
 loops. The top level subject id is ROOT and should not be imported as it always exists.
 
 =item B<depositable> 
