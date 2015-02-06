@@ -382,7 +382,8 @@ sub _tree
 	my $id = $top->id;
 
 	# infinite loop protection
-	return if $seen->{$id}++;
+##this prevents multi parent node to be rendered, hence commented out
+#	return if $seen->{$id}++;
 
 	return if defined($self->{whitelist}) && !$self->{whitelist}->{$id};
 
