@@ -513,7 +513,7 @@ the HTML contains a link to node1.html then node1.html will be copied. If
 the link points to http://somewebsite.edu/bar.html, then that URL will not
 be copied. </p>
 
-<p>Only files at the same depth or deeper in the Web site file hierachy
+<p>Only files at the same depth or deeper in the Web site file hierarchy
 are retrieved. For example, if a link points to /index.html or
 ../index.html, the file will not be copied. </p>
 

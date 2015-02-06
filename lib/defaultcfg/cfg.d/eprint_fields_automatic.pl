@@ -9,7 +9,7 @@ $c->{set_eprint_automatic_fields} = sub
 		unless( $eprint->is_set( "institution" ) )
 		{
  			# This is a handy place to make monographs and thesis default to
-			# your insitution
+			# your institution
 			#
 			# $eprint->set_value( "institution", "University of Southampton" );
 		}
