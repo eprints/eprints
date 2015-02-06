@@ -143,7 +143,7 @@ ul.quicklinks {
 ul.quicklinks li {
 	font-size: 80%;
 	display: inline;
-	list-stlye: none;
+	list-style: none;
 	font-family: sans-serif;
 }
 p.intro {
