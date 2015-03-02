@@ -1520,9 +1520,9 @@ sub render
 		{
 			$replacement = $later->item( 0 );
 		}
-		elsif( $self->is_set( "succeeds" ) )
+		elsif( $self->is_set( "replacedby" ) )
 		{
-			$replacement = $self->{session}->eprint( $self->value( "succeeds" ) );
+			$replacement = $self->{session}->eprint( $self->value( "replacedby" ) );
 		}
 		if( defined $replacement && $replacement->value( "eprint_status" ) eq "archive" )
 		{
