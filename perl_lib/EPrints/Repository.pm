@@ -631,6 +631,10 @@ sub remote_ip
                 $ip = $r->connection->client_ip;
         }
 
+	if( !EPrints::Utils::is_set( $ip ) && $r->connection->can( "remote_ip" ) )
+	{
+		$ip = $r->connection->remote_ip;
+	}
         return $ip;
 }
 
