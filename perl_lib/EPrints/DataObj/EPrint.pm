@@ -1520,7 +1520,7 @@ sub render
 		{
 			$replacement = $later->item( 0 );
 		}
-		elsif( $self->is_set( "replacedby" ) )
+		elsif( $self->{dataset}->has_field( "replacedby" ) && $self->is_set( "replacedby" ) )
 		{
 			$replacement = $self->{session}->eprint( $self->value( "replacedby" ) );
 		}
