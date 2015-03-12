@@ -236,7 +236,7 @@ sub convert_input
 		$epdata->{$doi_field} = $data->{"doi"};
 		my $doi = $data->{"doi"};
 		$doi =~ s/^\s*doi:\s*//gi;
-		$epdata->{official_url} = "http://dx.doi.org/$doi";
+		$epdata->{official_url} = "http://doi.org/$doi";
 	}
 	if( defined $data->{"volume_title"} )
 	{
