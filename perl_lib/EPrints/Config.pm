@@ -140,7 +140,7 @@ sub load_system_config
 		${"EPrints::SystemSettings::config"} = $SYSTEMCONF;
 	}
 
-	eval &_bootstrap( "EPrints::SystemSettings" );
+	eval &_bootstrap( "EPrints::SystemSettings" ) or die $@;
 
 	# we want to sort by filename because we interleave files from default and
 	# custom locations
@@ -269,7 +269,7 @@ sub load_repository_config_module
 		${"EPrints::Config::${id}::config"} = $info;
 	}
 
-	eval &_bootstrap( "EPrints::Config::".$id );
+	eval &_bootstrap( "EPrints::Config::".$id ) or die $@;
 
 	# we want to sort by filename because we interleave files from default and
 	# custom locations
@@ -317,6 +317,7 @@ sub load_config_file
 }
 }
 
+1;
 EOP
 }
 
