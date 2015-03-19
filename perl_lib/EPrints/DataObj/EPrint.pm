@@ -1520,7 +1520,11 @@ sub render
 		{
 			$replacement = $later->item( 0 );
 		}
-		elsif( $self->{dataset}->has_field( "replacedby" ) && $self->is_set( "replacedby" ) )
+		elsif( $self->is_set( "succeeds" ) )
+		{
+			$replacement = $self->{session}->eprint( $self->value( "succeeds" ) );
+		}
+		elsif( $self->{dataset}->has_field( "replacedby" ) && $self->is_set( "replacedby" ) ) ##backward compatibility for repository upgraded from older version, which had replacedby. 
 		{
 			$replacement = $self->{session}->eprint( $self->value( "replacedby" ) );
 		}
@@ -1528,7 +1532,7 @@ sub render
 		{
 			$dom->appendChild( 
 				$self->{session}->html_phrase( 
-					"lib/eprint:later_version", 
+					"lib/eprint:replaced_version", 
 					citation => $replacement->render_citation_link ) );
 		}
 	}

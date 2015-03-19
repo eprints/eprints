@@ -1388,6 +1388,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
     <epp:phrase id="lib/eprint:eprint_gone_title">Item Removed</epp:phrase>
     <epp:phrase id="lib/eprint:eprint_gone"><p>You seem to be attempting to access an item that has been removed from the repository.</p></epp:phrase>
     <epp:phrase id="lib/eprint:later_version"><p>There is a later version of the item you are trying to access:<br/><epc:pin name="citation"/></p></epp:phrase>
+    <epp:phrase id="lib/eprint:replaced_version"><p>There is an alternative version of the item you are trying to access:<br/><epc:pin name="citation"/></p></epp:phrase>
     <epp:phrase id="lib/eprint:curr_disp"><strong>[Currently Displayed]</strong></epp:phrase>
     <epp:phrase id="lib/eprint:not_locked">Not currently locked.</epp:phrase>
     <epp:phrase id="lib/eprint:locked">Locked by <epc:pin name='locked_by' /> until <epc:pin name='locked_until' /></epp:phrase>
