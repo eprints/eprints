@@ -68,6 +68,8 @@ Where I<command> is one of:
 
 =item reload
 
+=item remove_field
+
 =item schema
 
 =item set_developer_mode
