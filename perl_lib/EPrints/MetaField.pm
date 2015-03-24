@@ -483,7 +483,7 @@ sub render_input_field
 
 	if( defined $self->{toform} )
 	{
-		$value = $self->call_property( "toform", $value, $session );
+		$value = $self->call_property( "toform", $value, $session, $obj, $basename );
 	}
 
 	if( defined $self->{render_input} )
