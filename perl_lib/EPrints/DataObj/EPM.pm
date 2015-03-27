@@ -98,6 +98,27 @@ sub get_system_field_info
 	# icon filename
 	{ name=>"icon", type=>"url", render_value => \&render_icon, },
 
+	{
+ 		name=>"verb",
+ 		type=>"text",
+ 		multiple => 1,
+ 	},
+ 	{
+ 		name=>"verb_rendered",
+ 		type=>"text",
+ 		render_single_value => "EPrints::Extras::render_xhtml_field",
+ 		multiple => 1,
+ 	},
+ 	{
+ 		name=>"verb_rendered_long",
+ 		type=>"text",
+ 		render_single_value => "EPrints::Extras::render_xhtml_field",
+ 		multiple => 1,
+ 	},
+
+
+
+
 	);
 }
 

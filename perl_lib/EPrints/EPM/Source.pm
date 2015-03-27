@@ -68,7 +68,53 @@ sub query
 
 	my $url = URI->new( $base_url );
 	$url->path( $url->path . "cgi/search" );
-	$url->query_form( q => $q, output => "EPMI" );
+	$url->query_form( q => $q, output => "EPMI2" );
+	my $tmpfile = File::Temp->new;
+
+	my $r = $ua->get( $url,
+		':content_file' => "$tmpfile",
+	);
+	$self->{err} = $r->request->uri . " " . $r->status_line, return if !$r->is_success;
+
+	sysseek($tmpfile, 0, 0);
+
+	$repo->plugin( "Import::XML",
+		Handler => EPrints::CLIProcessor->new(
+			epdata_to_dataobj => sub {
+				push @epms, $repo->dataset( "epm" )->make_dataobj( $_[0] );
+				return undef;
+			},
+		),
+	)->input_fh(
+		fh => $tmpfile,
+		dataset => $repo->dataset( "epm" ),
+	);
+
+	return \@epms;
+}
+
+sub query2
+{
+	my( $self, $q, $v ) = @_;
+
+	my $repo = $self->{repository};
+
+	my $base_url = $self->{base_url};
+	my $ua = $self->{ua};
+
+	my @epms;
+
+	my $url = URI->new( $base_url );
+	$url->path( $url->path . "cgi/search/simple2" );
+
+	if( $v eq "_all")
+	{
+		$url->query_form( q => $q, "q_merge" => "ALL", output => "EPMI2" );
+	}
+	else
+	{
+		$url->query_form( q => $q, v => $v, "q_merge" => "ALL", output => "EPMI2" );
+	}
 
 	my $tmpfile = File::Temp->new;
 
@@ -92,6 +138,33 @@ sub query
 	);
 
 	return \@epms;
+}
+
+sub accolades
+{
+	my( $_ua, $_base_url ) = @_;
+
+	my $ua = ( $_ua ) ? $_ua : LWP::UserAgent->new;
+	my $base_url = ( $_base_url ) ? $_base_url : "http://bazaar.eprints.org/";
+
+#	my $ua = $self->{ua};
+# my $ua = LWP::UserAgent->new;
+#	my $r = $ua->get( $self->{base_url} . "cgi/accolades" );
+# my $r = $ua->get( "http://bazaar.eprints.org/cgi/accolades" );
+
+	my $r = $ua->get( $base_url . "cgi/accolades" );
+	my $str = $r->content;
+
+	my %kv;
+	$kv{ "_all" } = "All";
+
+	for my $line ( split(/\n/, $str) )
+	{
+		my ($k, $v) = split(":", $line, 2);
+		$kv{ $k } = $v;
+	}
+
+	return %kv;
 }
 
 =item $epm = $source->epm_by_eprintid( $eprintid )

@@ -240,6 +240,10 @@ sub action_search
 
 	$self->{processor}->{notes}->{$self->get_subtype."_q"} =
 		$self->{repository}->param($self->get_subtype."_q");
+
+	$self->{processor}->{notes}->{$self->get_subtype."_v"} =
+		$self->{repository}->param($self->get_subtype."_v");
+
 	$self->{processor}->{notes}->{ep_tabs_current} = $self->get_subtype;
 
 	$self->{processor}->{screenid} = "Admin::EPM";
@@ -276,6 +280,21 @@ sub render
 		"${prefix}_q" => scalar($repo->param( "${prefix}_q" )),
 		id => "${prefix}_q",
 	) );
+
+
+	my $base_url = $repo->param( "base_url" );
+	my $ua;
+	my %acc = EPrints::EPM::Source::accolades( $ua, $base_url );
+
+	my $default = ( defined $repo->param( "${prefix}_v" ) ) ? scalar( $repo->param( "${prefix}_v" ) ) : "_all";
+	$form->appendChild( $self->{session}->render_option_list(
+		name => "${prefix}_v",
+		id => "${prefix}_v",
+		values => [ sort { $acc{$a} cmp $acc{$b} } keys %acc ],
+		default => $default,
+		labels => \%acc,
+	) );
+
 	$form->appendChild( $xhtml->input_field(
 		"_action_search" => $repo->phrase( "lib/searchexpression:action_search" ),
 		type => "submit",
@@ -328,7 +347,11 @@ sub render_results
 	EPrints::EPM::Source->map( $repo, sub {
 		my( undef, $source ) = @_;
 
-		my $epms = $source->query( scalar($repo->param( $self->get_subtype."_q" )) );
+		# my $epms = $source->query( scalar($repo->param( $self->get_subtype."_q" )) );
+		my $epms = $source->query2(
+			scalar($repo->param( $self->get_subtype."_q" )),
+			scalar($repo->param( $self->get_subtype."_v" ))
+		);
 		if( !defined $epms )
 		{
 			$self->{processor}->add_message( "warning", $self->html_phrase( "source_error",
