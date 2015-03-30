@@ -1513,7 +1513,7 @@ sub render
 		$dom = $self->{session}->make_doc_fragment;
 		$dom->appendChild( $self->{session}->html_phrase( 
 			"lib/eprint:eprint_gone" ) );
-		my( $replacement, $successor );
+		my( $replacement, $antecendent );
 		my $succeeds = $self->{dataset}->field( "succeeds" );
 		my $later = $self->later_in_thread( $succeeds );
 		if( $later->count > 0 )
@@ -1526,7 +1526,7 @@ sub render
 		}
 		if( $self->is_set( "succeeds" ) )
 		{
-			$successor = $self->{session}->eprint( $self->value( "succeeds" ) );
+			$antecendent = $self->{session}->eprint( $self->value( "succeeds" ) );
 		}
 		if( defined $replacement && $replacement->value( "eprint_status" ) eq "archive" )
 		{
@@ -1535,12 +1535,12 @@ sub render
 					"lib/eprint:later_version",
 					citation => $replacement->render_citation_link ) );
 		}
-		elsif( defined $successor && $successor->value( "eprint_status" ) eq "archive" )
+		elsif( defined $antecendent && $antecendent->value( "eprint_status" ) eq "archive" )
 		{
 			$dom->appendChild(
 				$self->{session}->html_phrase(
 					"lib/eprint:earlier_version",
-					citation => $successor->render_citation_link ) );
+					citation => $antecendent->render_citation_link ) );
 		}
 	}
 	else
