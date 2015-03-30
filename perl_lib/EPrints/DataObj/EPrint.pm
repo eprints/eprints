@@ -1513,27 +1513,34 @@ sub render
 		$dom = $self->{session}->make_doc_fragment;
 		$dom->appendChild( $self->{session}->html_phrase( 
 			"lib/eprint:eprint_gone" ) );
-		my $replacement;
+		my( $replacement, $successor );
 		my $succeeds = $self->{dataset}->field( "succeeds" );
 		my $later = $self->later_in_thread( $succeeds );
 		if( $later->count > 0 )
 		{
 			$replacement = $later->item( 0 );
 		}
-		elsif( $self->is_set( "succeeds" ) )
-		{
-			$replacement = $self->{session}->eprint( $self->value( "succeeds" ) );
-		}
 		elsif( $self->{dataset}->has_field( "replacedby" ) && $self->is_set( "replacedby" ) ) ##backward compatibility for repository upgraded from older version, which had replacedby. 
 		{
 			$replacement = $self->{session}->eprint( $self->value( "replacedby" ) );
 		}
+		if( $self->is_set( "succeeds" ) )
+		{
+			$successor = $self->{session}->eprint( $self->value( "succeeds" ) );
+		}
 		if( defined $replacement && $replacement->value( "eprint_status" ) eq "archive" )
 		{
-			$dom->appendChild( 
-				$self->{session}->html_phrase( 
-					"lib/eprint:replaced_version", 
+			$dom->appendChild(
+				$self->{session}->html_phrase(
+					"lib/eprint:later_version",
 					citation => $replacement->render_citation_link ) );
+		}
+		elsif( defined $successor && $successor->value( "eprint_status" ) eq "archive" )
+		{
+			$dom->appendChild(
+				$self->{session}->html_phrase(
+					"lib/eprint:earlier_version",
+					citation => $successor->render_citation_link ) );
 		}
 	}
 	else
