@@ -7,6 +7,7 @@ EPrints::Plugin::Export::Atom
 package EPrints::Plugin::Export::Atom;
 
 use EPrints::Plugin::Export::Feed;
+use EPrints::Const qw( :namespace );
 
 @ISA = ( "EPrints::Plugin::Export::Feed" );
 
