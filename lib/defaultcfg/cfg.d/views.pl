@@ -3,6 +3,21 @@
 # a valid result. 
 # Multiple fields may be specified for one view, but avoid
 # subject or allowing null in this case.
+
+
+
+##
+# set a global max_items limit:
+#	$c->{browse_views_max_items} = 3000;
+
+# set a per view max_item limit:
+#        $c->{browse_views} = [{
+#                ...
+#                max_items => 3000,
+#        }];
+# To disable the limit set max_items to 0.
+
+
 $c->{browse_views} = [
         {
                 id => "year",
