@@ -34,7 +34,7 @@ $secure_url->path( $repo->config( "https_root" ) );
 my $data = "Hello, World!";
 my $atom_data = join '', <DATA>;
 
-my $ua = MyUserAgent->new;
+my $ua = MyUserAgent->new( ssl_opts => { verify_hostname => 0 } );
 $ua->credentials( $base_url->host_port, "*", "admin", "admin" );
 $ua->credentials( $secure_url->host_port, "*", "admin", "admin" );
 
