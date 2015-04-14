@@ -89,7 +89,8 @@ sub render_value
 	$value = $self->lang_value( undef, $value )
 		if $self->property( "multiple" );
 
-	if( @$f > 2 ) # value + lang
+    # always render sub_name
+	if( 0 && @$f > 2 ) # value + lang
 	{
 		return $self->render_single_value( $session, $value );
 	}
