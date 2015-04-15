@@ -952,8 +952,7 @@ sub render_description
 {
 	my( $self ) = @_;
 
-	# EPrints Services/sf2 2011-12-13 - render 'name_name' otherwise it will render 'name_name' and 'name_sortvalue'
-	return $self->render_value( "name_name" );
+	return $self->render_value( "name" );
 }
 
 
