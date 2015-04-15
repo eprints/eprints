@@ -7,7 +7,7 @@
 <cite:citation xmlns="http://www.w3.org/1999/xhtml" xmlns:cite="http://eprints.org/ep3/citation" xmlns:epc="http://eprints.org/ep3/control">
 
 <cite:linkhere><epc:choose>
-  <epc:when test="is_set(name_name)"><epc:print expr="name_name"/></epc:when> 
+  <epc:when test="is_set(name)"><epc:print expr="name"/></epc:when> 
   <epc:otherwise>Untitled subject #<epc:print expr="subjectid"/></epc:otherwise>
 </epc:choose></cite:linkhere>
 
