@@ -89,16 +89,9 @@ sub render_value
 	$value = $self->lang_value( undef, $value )
 		if $self->property( "multiple" );
 
-    # always render sub_name
-	if( 0 && @$f > 2 ) # value + lang
-	{
-		return $self->render_single_value( $session, $value );
-	}
-	else
-	{
-		$value = $value->{$f->[0]->property( "sub_name" )};
-		return $f->[0]->render_single_value( $session, $value );
-	}
+    	# always render the 1st sub_field's sub_name. Override this render_value if you need something different to be rendered. 
+	$value = $value->{$f->[0]->property( "sub_name" )};
+	return $f->[0]->render_single_value( $session, $value );
 }
 
 sub value_to_langhash
