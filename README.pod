@@ -11,6 +11,8 @@ GNU EPrints README
 	./configure (with some sensible options)
 	sudo make install
 
+Installation guide: B<http://wiki.eprints.org/w/Installation>.
+
 For more information see B<http://www.eprints.org/software/>.
 
 =head1 DESCRIPTION
