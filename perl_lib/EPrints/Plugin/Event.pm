@@ -136,10 +136,17 @@ sub _increment
 {
 	my( $t, @entry ) = @_;
 
+	# @entry[0] = hash of minutes to run
+        # @entry[1] =    "    hours to run
+        #       [2] =    "    days of month
+        #       [3] =    "    months to run
+        #       [4] =    "    days of week to run
+
 	my @t = (gmtime($t))[0..7];
 	$t[4]++; # month
 
-	# month
+	# month: if this month isn't in the months we should run
+	#  increment to midnight of the start of next month.
 	if( !exists $entry[3]{$t[4]} )
 	{
 		$_[0] -= 86400 * ($t[3] - 1);
@@ -161,14 +168,18 @@ sub _increment
 	}
 
 	# day of week / day of month
-	if( !exists $entry[4]{$t[6]} && !exists $entry[2]{$t[3]} )
+	# if today isn't a day of the week we should run
+	#      OR
+	#    today isn't a day of the month we should run
+	# increment to tomorrow.
+	if( !exists $entry[4]{$t[6]} || !exists $entry[2]{$t[3]} )
 	{
 		$_[0] -= $_[0] % 86400;
 		$_[0] += 86400;
 		return 1;
 	}
 
-	# hour
+	# hour: if this hour isn't an hour we should run, increment to the next hour
 	if( !exists $entry[1]{$t[2]} )
 	{
 		$_[0] -= $_[0] % 3600;
