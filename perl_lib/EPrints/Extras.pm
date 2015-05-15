@@ -319,7 +319,7 @@ sub render_possible_doi
 		return $session->make_text( $value );
 	}
 
-	my $url = "http://dx.doi.org/$value";
+	my $url = "http://doi.org/$value";
 	my $link = $session->render_link( $url, "_blank" ); 
 	$link->appendChild( $session->make_text( $value ) );
 	return $link; 
