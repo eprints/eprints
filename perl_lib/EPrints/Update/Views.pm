@@ -1206,7 +1206,7 @@ sub group_by_first_character_unidecode { return group_by_n_chars_unidecode( @_, 
 sub group_by_2_characters_unidecode { return group_by_n_chars_unidecode( @_, 2 ); }
 sub group_by_3_characters_unidecode { return group_by_n_chars_unidecode( @_, 3 ); }
 sub group_by_4_characters_unidecode { return group_by_n_chars_unidecode( @_, 4 ); }
-sub group_by_5_characters_unidecode { return group_by_n_chars_unidecoee( @_, 5 ); }
+sub group_by_5_characters_unidecode { return group_by_n_chars_unidecode( @_, 5 ); }
 
 sub group_by_n_chars_unidecode 
 {
