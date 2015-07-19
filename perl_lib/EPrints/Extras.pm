@@ -304,9 +304,9 @@ sub render_possible_doi
 
 	$value = "" unless defined $value;
 	if( $value =~ m!^
-			(?:http://dx\.doi\.org/)?  # add this again later anyway
-			(?:doi:?\s*)?              # don't need any namespace stuff
-			(10(\.[^./]+)+/.+)         # the actual DOI => $1
+			(?:http://(?:dx\.)?doi\.org/)?  # add this again later anyway
+			(?:doi:?\s*)?                   # don't need any namespace stuff
+			(10(\.[^./]+)+/.+)              # the actual DOI => $1
 		!ix )
 	{
 		# The only part we care about is the actual DOI.
@@ -319,7 +319,7 @@ sub render_possible_doi
 		return $session->make_text( $value );
 	}
 
-	my $url = "http://dx.doi.org/$value";
+	my $url = "http://doi.org/$value";
 	my $link = $session->render_link( $url, "_blank" ); 
 	$link->appendChild( $session->make_text( $value ) );
 	return $link; 
