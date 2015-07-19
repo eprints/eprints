@@ -26,7 +26,7 @@ You should use the <link> entries in the repository's home page to locate the CR
 
 Create a new eprint based on a single file:
 
-	curl -x POST \
+	curl -X POST \
 		-i \
 		-u user:password \
 		-d 'Hello, World!' \

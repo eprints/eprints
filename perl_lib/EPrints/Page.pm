@@ -79,7 +79,7 @@ sub send
 	};
 	if( $@ )
 	{
-		if( $@ !~ m/^Software caused connection abort/ )
+		if( $@ !~ m/Software caused connection abort/ )
 		{
 			EPrints::abort( "Error in send_page: $@" );	
 		}
