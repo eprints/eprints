@@ -255,7 +255,9 @@ sub render
 	}
 
 	# Only display the 'Make this document OA' form if this feature is enabled
-	if( $action eq "accept" && $self->param( 'allow_oa' ) )
+	if( $action eq "accept"
+		&& $self->allow( 'eprint/archive/edit', $self->{processor}->{eprint} ) 
+			&& $self->param( 'allow_oa' ))
 	{
 		my $p = $session->make_element( "p" );
 		$form->appendChild( $p );

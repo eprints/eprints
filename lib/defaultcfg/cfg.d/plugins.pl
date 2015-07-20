@@ -63,3 +63,9 @@ $c->{plugins}->{"Import::DOI"}->{params}->{pid} = "ourl_eprintsorg:eprintsorg";
 $c->{plugins}->{"Import::DOI"}->{params}->{doi_field} = "id_number";
 $c->{plugins}->{"Import::DOI"}->{params}->{use_prefix} = 1;
 
+# Allow OA param
+
+#This allows you to set a repository wide policy for allowing document security 
+#to be changed to 'public' as part of a request response... or not.
+$c->{plugins}->{"Screen::Request::Respond"}->{params}->{allow_oa} = 0;
+
