@@ -117,7 +117,7 @@ sub action_confirm
 	{
 	
 		# Make document OA if flag set
-		if( defined $session->param( "oa" ) && $session->param( "oa" ) eq "on" )
+		if( $self->param( "allow_oa" ) && defined $session->param( "oa" ) && $session->param( "oa" ) eq "on" )
 		{
 			$doc->set_value( "security", "public" );
 			$doc->commit;
@@ -254,10 +254,8 @@ sub render
 		$form->appendChild( $textarea );
 	}
 
-	# Only display the 'Make this document OA' form if the user
-	# has privilege to edit this document
-	if( $action eq "accept"
-		 && $self->allow( 'eprint/archive/edit', $self->{processor}->{eprint} ) )
+	# Only display the 'Make this document OA' form if this feature is enabled
+	if( $action eq "accept" && $self->param( 'allow_oa' ) )
 	{
 		my $p = $session->make_element( "p" );
 		$form->appendChild( $p );
