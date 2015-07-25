@@ -4503,7 +4503,12 @@ sub build_page
 sub prepare_page
 {
 	my( $self, $map, %options ) = @_;
-	$self->{page} = $self->xhtml->page( $map, %options );
+	my @plugins = $self->get_plugins( type => 'Template' );
+	if ( !scalar @plugins )
+	{
+	    $self->{page} = $self->xhtml->page( $map, %options );
+	}
+	$self->{page} = $plugins[0]->page( $map, %options );
 }
 
 
