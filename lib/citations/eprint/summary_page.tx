@@ -1,0 +1,42 @@
+<div>
+	: include 'eprint/default.tx';	
+
+	<ul>
+	: for documents( $item ) -> $doc {
+		: if $doc.is_public() {
+		<li><a href="<: $doc.url() :>"><img src="<: $doc.thumbnail_url() :>" /> <: $doc.render_value( 'content' ) :> <: human_filesize( doc_size( $doc ) ) :></a></li>
+		: }
+	: }
+	</ul>
+
+	<h2><: $repo.phrase( 'eprint_fieldname_abstract' ) :></h2>
+	<div><: $item.value( 'abstract' ) :></div>
+
+	<table style="margin-bottom: 1em; margin-top: 1em;" cellpadding="3">
+	: for $flags['summary_page_metadata'] -> $fieldname {
+		: if $item.value( $fieldname ) {
+		<tr>
+			<th align="right"><: $repo.phrase( 'eprint_fieldname_' ~ $fieldname ) :></th>
+			<td valign="top"><: $item.render_value( $fieldname ) | mark_raw :></td>
+		</tr>
+		: }
+	: }
+		<tr>
+			<th align="right">URI:</th>
+			<td valign="top"><a href="<: $item.uri() :>"><: $item.uri() :></a></td>
+		</tr>
+	</table>
+
+	:if $flags['preview'] != 1 {
+	<h2><: $repo.phrase( 'summary_page:actions' ) :></h2>
+	<table class="ep_summary_page_actions">	
+		: for $actions -> $action {
+		<tr>
+			<td><: $action['screen'].render_action_icon( $action ) | mark_raw :></td>
+			<td><: $repo.phrase( 'Plugin/' ~ replace( $action['screen_id'], '::', '/' ) ~ ':title' ) :> </td>
+		</tr>
+		: }
+	</table>
+	: }
+
+</div>
