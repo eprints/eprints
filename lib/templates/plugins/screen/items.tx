@@ -1,0 +1,73 @@
+: cascade common::paginated_table
+
+:# Querystring param whitelist for link building
+: my $whitelist = [ 'screen', $basename ~ '__offset', $basename ~ '_order' ];
+
+: before table_header -> {
+
+:# Introduction
+: if ( $repo.get_lang.has_phrase( 'intro' ) ) {
+<div class="ep_toolbox">
+	<div class="ep_toolbox_content">
+		<: $repo.html_phrase( 'intro' ) | mark_raw :>
+	</div>
+</div>
+: }
+
+:# Help
+<div style="text-align: left">
+: include 'common/help.tx' { phrase_id => 'Plugin/Screen/Items:help' };
+</div>
+
+<div class="ep_block">
+	<ul class="ep_action_list">
+	: for $tools -> $tool {
+		<li><: $tool['screen'].render_action_button( $tool ) | mark_raw :></li>
+	: }
+	</ul>
+</div>
+
+:# Import options
+<: $import_bar | mark_raw :>
+
+:# Dataset filters
+<div class="ep_items_filters">
+: for $filters.kv() -> $filter {
+	: if $filter.value {
+		<a href="<: link_self( $repo, $whitelist, ('set_show_' ~ $filter.key) => 0 ) :>"><img alt="Showing" src="/style/images/checkbox_tick.png" /> <: $repo.html_phrase( 'eprint_fieldopt_eprint_status_' ~ $filter.key ) :></a>
+	: }
+	: else
+	: {
+		<a href="<: link_self( $repo, $whitelist, ('set_show_' ~ $filter.key) => 1 ) :>"><img alt="Not showing" src="/style/images/checkbox_empty.png" /> <: $repo.html_phrase( 'eprint_fieldopt_eprint_status_' ~ $filter.key ) :></a> 
+	: }
+: }
+</div>
+: }
+
+: override results -> {
+	: if $has_eprints {
+		: for $eprints -> $eprint {
+		<tr class="<: $~eprint.cycle( 'row_b', '' ) :>">
+			: for $columns -> $column {
+				:# Need to add classes: ep_columns_cell_<: $dataset :>
+			<td class="ep_columns_cell ep_columns_cell_<: $eprint.value( 'eprint_status' ) :> <: if $~column.is_first { :> ep_columns_cell_first<: } :> ep_columns_cell_<: $column :>">
+				<: $eprint.render_value( $column ) :>
+			</td>
+			: }
+
+			<td align="left" class="ep_columns_cell ep_columns_cell_last">
+				<ul class="ep_action_list">
+			: for $actions[ $eprint.id() ] -> $action {
+					<li><: $action['screen'].render_action_icon( $action, hidden => $action[ 'hidden' ] ) | mark_raw :></li>
+			: }
+				</ul>
+			</td>
+		</tr>
+		: }
+	: } else {
+		<tr>
+			<td class="ep_columns_no_items" colspan="<: $columns.size() + 1 :>">No items</td>
+		</tr>
+	: }
+
+: }

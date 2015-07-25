@@ -1,0 +1,22 @@
+
+	<div class="ep_summary_box" id="ep_review_instructions">
+		<div class="ep_summary_box_title">
+			<div class="ep_no_js">
+				Help
+			</div>
+
+			<div class="ep_only_js" id="ep_review_instructions_colbar" style="display: none">
+				<a class="ep_box_collapse_link" href="#" onclick="EPJS_blur(event); EPJS_toggleSlideScroll('ep_review_instructions_content',true,'ep_review_instructions');EPJS_toggle('ep_review_instructions_colbar',true);EPJS_toggle('ep_review_instructions_bar',false);return false"><img alt="-" border="0" src="/style/images/minus.png" /> Help</a>
+			</div>
+
+			<div class="ep_only_js" id="ep_review_instructions_bar">
+				<a class="ep_box_collapse_link" href="#" onclick="EPJS_blur(event); EPJS_toggleSlideScroll('ep_review_instructions_content',false,'ep_review_instructions');EPJS_toggle('ep_review_instructions_colbar',false);EPJS_toggle('ep_review_instructions_bar',true);return false"><img alt="+" border="0" src="/style/images/help.gif" /> Help</a>
+			</div>
+		</div>
+
+		<div class="ep_summary_box_body" id="ep_review_instructions_content" style="display: none">
+			<div id="ep_review_instructions_content_inner">
+				<: $repo.html_phrase( $phrase_id ) | mark_raw :>
+			</div>
+		</div>
+	</div>

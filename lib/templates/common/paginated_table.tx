@@ -1,0 +1,132 @@
+
+:# Querystring param whitelist for link building
+: my $whitelist = [ 'screen', $basename ~ '_page_size', $basename ~ '_order' ];
+
+: block table_header -> {
+
+:# Search results
+<div class="ep_search_results">
+	<table border="0" cellpadding="4" cellspacing="0" class="ep_columns">
+		<tr class="header_plain">
+		: my $new_sort_dir = $sort_dir == '-' ? '' : '-';
+		: for $columns -> $column {
+			<th class="ep_columns_title" style="padding:0px">
+			: if ( $column == $sort_col ) {
+				<table border="0" cellpadding="0" cellspacing="0" width="100%">
+					<tr>
+						<td>
+							<a href="<: link_self( $repo, $whitelist, $basename ~ '_order' => $new_sort_dir ~ $column ) :>" style="display:block;padding:4px"><: $repo.phrase( 'eprint_fieldname_' ~ $column ) :></a>
+						</td>
+
+						<td style="width:22px; text-align: right">
+							<a href="<: link_self( $repo, $whitelist, $basename ~ '_order' => $new_sort_dir ~ $column ) :>"><: if ( $sort_dir == '-' ) { :><img alt="Down" border="0" src="/style/images/sorting_down_arrow.gif" style="border:0px;padding:4px" /><: } else { :><img alt="Up" border="0" src="/style/images/sorting_up_arrow.gif" style="border:0px;padding:4px" /><: } :></a>
+						</td>
+					</tr>
+				</table>
+			: }
+			: else
+			: {
+				<table border="0" cellpadding="0" cellspacing="0" width="100%">
+					<tr>
+						<td>
+							<a href="<: link_self( $repo, $whitelist, $basename ~ '_order' => $new_sort_dir ~ $column ) :>" style="display:block;padding:4px"><: $repo.phrase( 'eprint_fieldname_' ~ $column ) :></a>
+						</td>
+					</tr>
+				</table>
+			: }
+			</th>
+		: }
+			<th class="ep_columns_title ep_columns_title_last" style="padding:0px" />
+		</tr>
+: }
+: block results -> {}
+
+: block table_footer -> {
+		:# Table modification (move left/right, delete)
+		<tr>
+		: for $columns -> $column {
+			<td class="ep_columns_alter">
+				<table border="0" cellpadding="0" cellspacing="0" width="100%">
+					<tr>
+					: if ( $~column.is_first ) {
+						<td align="left" width="14"><img alt="" src="/style/images/noicon.png" /></td>
+					: } else {
+						<td align="left" width="14">
+							<form accept-charset="utf-8" action="/cgi/users/home" enctype="multipart/form-data" method="post">
+								<input id="screen" name="screen" type="hidden" value="Items" /><input id="colid" name="colid" type="hidden" value="<: $~column :>" /><input alt="&lt;" name="_action_col_left" src="/style/images/left.png" title="Move Left" type="image" value="Move Left" />
+							</form>
+						</td>
+					: }
+
+						<td align="center" width="100%">
+							<form accept-charset="utf-8" action="/cgi/users/home" enctype="multipart/form-data" method="post">
+								<input id="screen" name="screen" type="hidden" value="Items" /><input id="colid" name="colid" type="hidden" value="<: $~column :>" /><input alt="X" name="_action_remove_col" onclick="if( window.event ) { window.event.cancelBubble = true; } return confirm( &quot;Really remove this column from the display?&quot;);" src="/style/images/delete.png" title="Remove Column" type="image" value="Remove Column" />
+							</form>
+						</td>
+
+					: if ( $~column.is_last ) {
+						<td align="right" width="14"><img alt="" src="/style/images/noicon.png" /></td>
+					: } else {
+						<td align="right" width="14">
+							<form accept-charset="utf-8" action="/cgi/users/home" enctype="multipart/form-data" method="post">
+								<input id="screen" name="screen" type="hidden" value="Items" /><input id="colid" name="colid" type="hidden" value="<: $~column :>" /><input alt="&gt;" name="_action_col_right" src="/style/images/right.png" title="Move Right" type="image" value="Move Right" />
+							</form>
+						</td>
+					: }
+					</tr>
+				</table>
+			</td>
+		: }
+			<td class="ep_columns_alter ep_columns_alter_last" />
+		</tr>
+	</table>
+</div>
+
+<div class="ep_search_controls_bottom">
+	<div>Displaying results <span class="ep_search_number"><: $offset + 1 :></span> to 
+	<span class="ep_search_number"><: ( ( $offset + $pagesize ) > $total ) ? $total : ( $offset + $pagesize ) :></span> of 
+	<span class="ep_search_number"><: $total :></span>. 
+
+	Show <a href="<: link_self( $repo, $whitelist, $basename ~ '_page_size' => 10 ) :>">10</a>, 
+	<a href="<: link_self( $repo, $whitelist, $basename ~ '_page_size' => 25 ) :>">25</a> or 
+	<a href="<: link_self( $repo, $whitelist, $basename ~ '_page_size' => 100 ) :>">100</a> or results per page. 
+
+	: if ( $pages > 1 ) {
+		<a href="<: link_self( $repo, $whitelist, $basename ~ '_page_size' => $total ) :>">Show All</a><br>
+
+
+		: if ( $current_page > 1 ) {
+			<span class="ep_search_control"><a href="<: link_self( $repo, $whitelist, $basename ~ '__offset' => ( $offset - $pagesize ) ) :>">Previous</a></span> |
+		: }
+
+		: for [1 .. $pages] -> $i {
+			<span class="ep_search_control">
+			: if ( $~i == ( $current_page - 1 ) ) {
+				<strong><: $current_page :></strong>
+			: } else {
+				<a href="<: link_self( $repo, $whitelist, $basename ~ '__offset' => ( $pagesize * ( $i - 1 ) ) ) :>"><: $i :></a>
+			: }
+			</span> |
+		: }
+
+		: if ( $current_page != $pages ) {
+			<span class="ep_search_control"><a href="<: link_self( $repo, $whitelist, $basename ~ '__offset' => ( $offset + $pagesize ) ) :>">Next</a></span>
+		: }
+	: }
+	</div>
+</div>
+
+: }
+
+
+<div class="ep_columns_add">
+	<form accept-charset="utf-8" action="/cgi/users/home" enctype="multipart/form-data" method="post">
+		<input id="screen" name="screen" type="hidden" value="Items" />
+		<select id="col" name="col" size="1">
+			: for $extra_cols.kv() -> $col {
+			<option value="<: $col.value :>"><: $col.key :></option>
+			: }
+		</select>
+		<input class="ep_form_action_button" name="_action_add_col" type="submit" value="Add Column" />
+	</form>
+</div>
