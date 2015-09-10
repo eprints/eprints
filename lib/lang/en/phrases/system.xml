@@ -2496,7 +2496,7 @@ Titles and Help for the System Fields
     <epp:phrase id="user_fieldname_lang">Preferred Language</epp:phrase>
     <epp:phrase id="user_fieldhelp_lang">Your preferred language. Where possible information will be mailed in this language.</epp:phrase>
     <epp:phrase id="user_fieldname_roles">Roles</epp:phrase>
-    <epp:phrase id="user_fieldhelp_roles">This field allows an administrator to assign roles to a user. It may also be used to assign (and remove) individual privileges by prefixing the priv string with plus (+) or minus (-).</epp:phrase>
+    <epp:phrase id="user_fieldhelp_roles">This field allows an administrator to assign roles to a user. It may also be used to assign (and remove) individual privileges by prefixing the priv string with plus (+) or minus (-). <a href="http://wiki.eprints.org/w/User_roles.pl">More info.</a></epp:phrase>
 
 	<epp:phrase id="user_fieldname_openid_identifier">OpenID</epp:phrase>
 	<epp:phrase id="user_fieldhelp_openid_identifier">This must be a valid OpenID endpoint e.g. https://www.google.com/accounts/o8/id</epp:phrase>
