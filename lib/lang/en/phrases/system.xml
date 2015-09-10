@@ -1943,7 +1943,6 @@ User Area CGI Scripts
     <epp:phrase id="Plugin/Screen/Admin:admin_actions">Misc. Tools</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Phrases:title">Phrase Editor</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Phrases:description">Modify phrases used in the system.</epp:phrase>
-    <epp:phrase id="Plugin/Screen/QA:title">QA</epp:phrase>
     <epp:phrase id="Plugin/Screen/FirstTool:title">No Tools Available</epp:phrase>
     <epp:phrase id="Plugin/Screen/Status:description">Status information for this server.</epp:phrase>
     <epp:phrase id="Plugin/Screen/DatabaseSchema:description">Show the database schema.</epp:phrase>
