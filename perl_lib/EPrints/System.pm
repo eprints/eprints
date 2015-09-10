@@ -541,7 +541,7 @@ sub sanitise
 		if !utf8::is_utf8( $filepath );
 
 	# control characters + Win32 restricted
-	$filepath =~ s![\x00-\x0f\x7f<>:"\\|?*]!_!g;
+	$filepath =~ s![\x00-\x0f\x7f\x20<>:"\\|?*]!_!g;
 
 	$filepath =~ s!\.+/!/!g; # /foo/../bar
 	$filepath =~ s!/\.+!/!g; # /foo/.bar/
