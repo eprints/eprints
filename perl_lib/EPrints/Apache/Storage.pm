@@ -264,9 +264,15 @@ sub handler
 		# If the software (web client) stopped listening
 		# before we stopped sending then that's not a fail.
 		# even if $rv was not set
-		if( $@ !~ m/^Software caused connection abort/ )
+		if( $@ !~ m/Software caused connection abort/ )
 		{
 			EPrints::abort( "Error in file retrieval: $@" );
+		}
+		else
+		{
+			# Shows in httpd logs as 499, even though the client
+			# received a '200 Ok' response. From nginx
+			return 499;
 		}
 	}
 	elsif( !$rv )
