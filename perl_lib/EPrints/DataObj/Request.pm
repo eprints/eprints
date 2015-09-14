@@ -215,7 +215,7 @@ sub set_pin
     my( $self ) = @_;
     # Generate a random unique pin by using a random string prefixed
     # by the (unique and sequential) request ID
-    my $pin = $self->get_id() . EPrints::Utils::generate_password();
+    my $pin = $self->get_id() . EPrints::Utils::generate_token(22);
     $self->set_value( 'pin', $pin );
     return $pin;
 }
