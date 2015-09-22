@@ -266,7 +266,7 @@ sub get_index_codes_basic
 	}
 
 	# (re)generate indexcodes if it doesn't exist or is out of date
-	if( !defined( $indexcodes_doc ) ||
+	if( !defined( $indexcodes_doc ) || !defined( $indexcodes_file ) ||
 		$main_file->get_datestamp() gt $indexcodes_file->get_datestamp() )
 	{
 		$indexcodes_doc = $doc->make_indexcodes();
