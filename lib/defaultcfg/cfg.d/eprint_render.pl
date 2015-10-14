@@ -18,20 +18,28 @@ $c->{summary_page_metadata} = [qw/
 
 
 ######################################################################
+=pod
+
+=over
 
 =item $xhtmlfragment = eprint_render( $eprint, $repository, $preview )
 
 This subroutine takes an eprint object and renders the XHTML view
 of this eprint for public viewing.
 
-Takes two arguments: the L<$eprint|EPrints::DataObj::EPrint> to render and the current L<$repository|EPrints::Session>.
+Takes two arguments: the L<$eprint|EPrints::DataObj::EPrint> to render
+and the current L<$repository|EPrints::Session>.
 
-Returns three XHTML DOM fragments (see L<EPrints::XML>): C<$page>, C<$title>, (and optionally) C<$links>, and (also
-optionally) the name of a template C<$template>.
+Returns a list of ( C<$page>, C<$title>[, C<$links>[, C<$template>]] )
+where C<$page>, C<$title> and C<$links> are XHTML DOM objects and
+C<$template> is a string containing the name of the template to use
+for this page.
 
 If $preview is true then this is only being shown as a preview. The C<$template> isn't honoured in this situation.
 (This is used to stop the "edit eprint" link appearing when it makes
 no sense.)
+
+=back
 
 =cut
 
