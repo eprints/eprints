@@ -63,3 +63,11 @@ $c->{plugins}->{"Import::DOI"}->{params}->{pid} = "ourl_eprintsorg:eprintsorg";
 $c->{plugins}->{"Import::DOI"}->{params}->{doi_field} = "id_number";
 $c->{plugins}->{"Import::DOI"}->{params}->{use_prefix} = 1;
 
+# Google reCAPTCHA for "Request a Copy" form
+# See: https://www.google.com/recaptcha/
+
+#$c->{ plugins }->{ "Screen::Public::RequestCopy" }->{ params }->{ "reCAPTCHA" } = {
+#    'site-key' => 'xxxxxxxxyyyyyyyyaaaaaaaabbbbbbbbcccccccc',
+#    'secret'   => 'xxxxxxxxyyyyyyyyddddddddeeeeeeeeffffffff'
+#};
+

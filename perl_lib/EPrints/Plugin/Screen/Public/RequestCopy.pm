@@ -100,6 +100,9 @@ sub allow_request
 	return 1;
 }
 
+use LWP::UserAgent;
+use JSON;
+
 sub action_request
 {
 	my( $self ) = @_;
@@ -110,6 +113,28 @@ sub action_request
 
 	my $rc = $self->workflow->update_from_form( $self->{processor} );
 	return if !$rc; # validation failed
+
+	# Google reCAPTCHA
+	my $rcconf;
+	if( $rcconf = $self->param( 'reCAPTCHA' ) )
+	{
+		my $rcpass = 0;
+		my $recaptcha_token = $session->param( "g-recaptcha-response" );
+		if( $recaptcha_token )
+		{
+			my $ua = LWP::UserAgent->new;
+			my $post_data = { secret=>$rcconf->{'secret'}, response=>$recaptcha_token };
+			my $resp = $ua->post( "https://www.google.com/recaptcha/api/siteverify", $post_data );
+			my $hash = decode_json( $resp->content );
+			$rcpass = $hash->{success};
+		}
+		if( !$rcpass )
+		{
+			# Google says reCAPTCHA failed
+			$self->{processor}->add_message( "error", $session->html_phrase( "general:bad_param" ) ); # FIXME: needs a proper phrase
+			return;
+		}
+	}
 
 	my $email = $request->value( "requester_email" );
 
@@ -283,6 +308,16 @@ sub render
 	$form->appendChild( $session->render_hidden_field( "docid", $doc->get_id ) ) if defined $doc;
 
 	$form->appendChild( $self->workflow->render );
+
+	# Google reCAPTCHA thingy
+	my $rcconf;
+	if( $rcconf = $self->param( 'reCAPTCHA' ) )
+	{
+		my $captcha_script = $session->make_element( "script", src => "https://www.google.com/recaptcha/api.js" );
+		$form->appendChild( $captcha_script );
+		my $captcha_div = $session->make_element( "div", class => "g-recaptcha", 'data-sitekey' => $rcconf->{'site-key'} );
+		$form->appendChild( $captcha_div );
+	}
 
 	$form->appendChild( $session->xhtml->action_button(
 			request => $session->phrase( "request:button" )
