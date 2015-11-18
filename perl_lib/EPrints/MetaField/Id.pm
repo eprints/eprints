@@ -45,11 +45,9 @@ sub value_from_sql_row
 {
 	my( $self, $session, $row ) = @_;
 
-	return undef unless defined $row->[0];
-
 	if( $session->{database}->{dbh}->{Driver}->{Name} eq "mysql" )
 	{
-		utf8::decode( $row->[0] );
+		utf8::decode( $row->[0] ) if defined $row->[0];
 	}
 
 	return shift @$row;
