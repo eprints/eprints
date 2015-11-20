@@ -396,7 +396,10 @@ sub _cache_from_SELECT
 	$sql .= "INSERT INTO ".$self->quote_identifier( $cache_table );
 	$sql .= "($Q_pos, $Q_keyname)";
 	$sql .= " SELECT \@i:=\@i+1, $Q_keyname";
-	$sql .= " FROM ($select_sql) ".$self->quote_identifier( "S" );
+	# MariaDB does not order sub-queries unless limited. Using limit of 2^31-1 in case any system is using a signed 32-bit integer.
+	my $limit = " LIMIT 2147483647";
+        $limit = "" if $select_sql =~ /LIMIT/;
+        $sql .= " FROM ($select_sql$limit) ".$self->quote_identifier( "S" );
 
 	$self->do( $sql );
 }
@@ -425,6 +428,23 @@ sub get_primary_key
 	}
 
 	return @COLS;
+}
+
+sub get_number_of_keys
+{
+	my( $self, $table ) = @_;
+	my $sth = $self->prepare( "DESCRIBE ".$self->quote_identifier($table) );
+        $sth->execute;
+
+        my $NUM_KEYS = 0;
+        while(my $row = $sth->fetch)
+	{
+		if ( $row->[3] eq 'PRI' or $row->[3] eq 'MUL' or $row->[3] eq 'UNI' ) 
+		{
+			++$NUM_KEYS;
+		}
+	}
+	return $NUM_KEYS;
 }
 
 sub get_column_collation
