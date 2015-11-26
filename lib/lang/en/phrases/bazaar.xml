@@ -46,7 +46,7 @@
 
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:bazaar_submission_text">Please fill in your details in order to submit to your selected store.</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/Bazaar:select_store">Select Store:</epp:phrase>
-	<epp:phrase id="Plugin/Screen/Admin/Bazaar:submitted">Succesfully Submitted</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Bazaar:submitted">Successfully Submitted</epp:phrase>
 	
 
 	<epp:phrase id="epm_error_unpack_failed">Failed to unpack package</epp:phrase>

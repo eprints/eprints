@@ -10,7 +10,7 @@
 # Screen Plugin Configuration
 # (Disabling a screen will also remove it and it's actions from all lists)
 
-# To add the screen Screen::Items to the key_tools list at postion 200:
+# To add the screen Screen::Items to the key_tools list at position 200:
 # $c->{plugins}->{"Screen::Items"}->{appears}->{key_tools} = 200;
 
 # To remove the screen Screen::Items from the key_tools list:
@@ -23,7 +23,7 @@
 # (Disabling an action will also remove it from all lists)
 # $c->{plugins}->{"Screen::Items"}->{actions}->{blah}->{disable} = 1;
 
-# To add action "blah" of Screen::Items to the key_tools list at postion 200: 
+# To add action "blah" of Screen::Items to the key_tools list at position 200:
 # $c->{plugins}->{"Screen::Items"}->{actions}->{blah}->{appears}->{key_tools} = 200;
 
 # To remove action "blah" of Screen::Items from the key_tools list

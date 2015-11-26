@@ -1071,7 +1071,7 @@ Phrases related to the Manage Metadata Fields tool.
 <epp:phrase id="metafield_optdetails_type_subobject">A sub-object container (eprints contain documents).</epp:phrase>
 <epp:phrase id="metafield_fieldopt_type_text">text</epp:phrase>
 <epp:phrase id="metafield_fieldopt_fields_type_text">text</epp:phrase>
-<epp:phrase id="metafield_optdetails_type_text">A free-text field (upto 255 characters).</epp:phrase>
+<epp:phrase id="metafield_optdetails_type_text">A free-text field (up to 255 characters).</epp:phrase>
 <epp:phrase id="metafield_fieldopt_type_time">time</epp:phrase>
 <epp:phrase id="metafield_fieldopt_fields_type_time">time</epp:phrase>
 <epp:phrase id="metafield_optdetails_type_time">A year-month-day hour-minute-second field (YYYY-MM-DD:hh:mm:ss).</epp:phrase>
@@ -1299,7 +1299,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
     <epp:phrase id="page:alert">Alert</epp:phrase>
     <epp:phrase id="page:edit_link">Repository Staff Only: <epc:pin name="link">item control page</epc:pin></epp:phrase>
  
-    <!-- Publisher- or funder-imposed embargos --> 
+    <!-- Publisher- or funder-imposed embargoes -->
     <epp:phrase id="page:embargo_status"><p>These documents will be made publicly accessible from <epc:pin name="date"/>.</p></epp:phrase>
 
     <epp:phrase id="page:item_not_available"> Item not available from this repository.</epp:phrase>
@@ -1469,7 +1469,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
     <epp:phrase id="lib/metafield:date_res_month"></epp:phrase>
     <epp:phrase id="lib/metafield:date_res_year"></epp:phrase>
 
-    <!-- phrases used to seperate multiple values in a field -->
+    <!-- phrases used to separate multiple values in a field -->
     <!-- you can use .first and .last to make the first or 
          last joins in a list different. eg. set
 		join_name to ',' 

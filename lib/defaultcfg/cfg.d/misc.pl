@@ -26,7 +26,7 @@ $c->{cookie_auth} = 1;
 # by setting this option:
 $c->{skip_buffer} = 0;
 
-# Supress the public user information page. Useful if you have
+# Suppress the public user information page. Useful if you have
 # data protection concerns.
 $c->{disable_userinfo} = 0;
 

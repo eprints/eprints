@@ -12,7 +12,7 @@ use lib "$FindBin::Bin/../perl_lib";
 
 =head1 NAME
 
-B<lift_embargos> - lift expired publisher- or funder-imposed embargos from a repository
+B<lift_embargos> - lift expired publisher- or funder-imposed embargoes from a repository
 
 =head1 SYNOPSIS
 
@@ -20,12 +20,12 @@ B<lift_embargos> - I<repository_id> [B<options>]
 
 =head1 DESCRIPTION
 
-Lift expired publisher- or funder-imposed embargos from a repository.
+Lift expired publisher- or funder-imposed embargoes from a repository.
 
 This script will:
 
   - search the repository for documents which have an expired publisher- or funder-imposed embargo date (relative to the system date)
-  - make all documents whose embargo has expired publically available
+  - make all documents whose embargo has expired publicly available
   - remove the expired embargo date value
   - re-generate the abstract page for the eprint
 
@@ -55,7 +55,7 @@ Print the full manual page and then exit.
 
 =item B<--quiet>
 
-Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+Be vewwy vewwy quiet. This option will suppress all output unless an error occurs.
 
 =item B<--verbose>
 
@@ -119,7 +119,7 @@ if( !defined $session )
 
 my $ds = $session->dataset( "document" );
 
-# Search for expired embargos
+# Search for expired embargoes
 my $searchexp = new EPrints::Search( 
 		session=>$session, 
 		dataset=>$ds );
@@ -130,7 +130,7 @@ $searchexp->add_field( $ds->get_field( "date_embargo" ), $date );
 my $list = $searchexp->perform_search;
 
 # For matching documents, remove embargo date value,
-# make documents publically accessible, and
+# make documents publicly accessible, and
 # re-generate abstract page
 $list->map( sub {
 	my( $session, $dataset, $doc ) = @_;

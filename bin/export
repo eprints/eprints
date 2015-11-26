@@ -46,7 +46,7 @@ The name of the dataset to export, such as "archive", "subject" or "user".
 
 The id of the output plugin to use. This should not include the leading "Export::". Examples: BibTeX, XML.
 
-If this is ommited or an invalid plugin is requested, then 'export' will list all plugins compatible with the dataset and exit.
+If this is omitted or an invalid plugin is requested, then 'export' will list all plugins compatible with the dataset and exit.
 
 =item I<objectid>
 
@@ -72,7 +72,7 @@ Print the full manual page and then exit.
 
 =item B<--quiet>
 
-Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+Be vewwy vewwy quiet. This option will suppress all output unless an error occurs.
 
 =item B<--verbose>
 

@@ -17,7 +17,7 @@
     <td style="padding-left: 0.5em">
 	  <xsl:copy-of select="ept:citation('default', 'url', ept:param('url'))" />
 	  <xsl:if test="/ep:eprint/ep:full_text_status = 'none'">Not available from this repository.</xsl:if>
-      <xsl:if test="/ep:eprint/ep:full_text_status = 'restricted'">Item availablity restricted.</xsl:if>
+      <xsl:if test="/ep:eprint/ep:full_text_status = 'restricted'">Item availability restricted.</xsl:if>
     </td>
     <td style="padding-left: 0.5em" align="center">
 		<div style="white-space: nowrap">
