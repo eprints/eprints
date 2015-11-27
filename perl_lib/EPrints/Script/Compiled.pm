@@ -546,7 +546,7 @@ sub run_doc_size
 
 	if( !defined $doc->[0] || ref($doc->[0]) ne "EPrints::DataObj::Document" )
 	{
-		$self->runtime_error( "Can only call doc_zie() on document objects not ".
+		$self->runtime_error( "Can only call doc_size() on document objects not ".
 			ref($doc->[0]) );
 	}
 
