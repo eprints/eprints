@@ -17,12 +17,15 @@ sub new
 
 	my $self = $class->SUPER::new( %params );
 
+
 	$self->{name} = "ISI Web of Knowledge";
 	$self->{advertise} = 1;
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint' ];
 	$self->{screen} = "Import::ISIWoK";
 	$self->{arguments}{fields} = [];
+
+
 
 	if( !EPrints::Utils::require_if_exists( "SOAP::ISIWoK", "3.00" ) )
 	{
@@ -40,7 +43,6 @@ sub new
 sub input_fh
 {
 	my ($self, %opts) = @_;
-
 	return $self->EPrints::Plugin::Import::TextFile::input_fh( %opts );
 }
 
@@ -64,21 +66,28 @@ sub input_text_fh
 	my $wok = $self->param('lite') ?
 		SOAP::ISIWoK::Lite->new :
 		SOAP::ISIWoK->new;
-
 	my $som = $wok->authenticate($self->param('username'), $self->param('password'));
 	if ($som->fault)
 	{
-		$self->warning($som->faultstring);
+		if ($som->faultstring =~ /Throttle server/)
+		{
+			print STDERR "Request denied by Throttle server\n";
+		}
+		else
+		{
+			print STDERR $som->faultstring,"\n";
+		}
+#		$self->warning($som->faultstring);
 		return undef;
 	}
-
 	$som = $wok->search( $query,
 		offset => $opts{offset},
 		fields => $opts{fields},
 	);
 	if ($som->fault)
 	{
-		$self->error($som->faultstring);
+#		$self->error($som->faultstring);
+		print STDERR "Query Failed", $som->faultstring,"\n";
 		return EPrints::List->new(
 				session => $session,
 				dataset => $opts{dataset},
@@ -86,11 +95,10 @@ sub input_text_fh
 			);
 	}
 	$self->{total} = $som->result->{recordsFound};
-
 	if ($self->param('lite'))
 	{
 		my @ids;
-
+#https://github.com/eprints/eprints/commit/da2695a8aa7b8a32fdf81d00f7353f3e7c827ccb  bug fix
 		my $records = $som->result->{records};
 		$records = [$records] unless ref($records) eq 'ARRAY';
 		foreach my $record (@$records)

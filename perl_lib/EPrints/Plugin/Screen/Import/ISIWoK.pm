@@ -127,7 +127,7 @@ sub action_import_single
 	if( !defined $eprint )
 	{
 		$self->{processor}->add_message( "error", $self->html_phrase( "error:not_found",
-			ut => $self->{repository}->create_text_node( $self->{processor}->{ut} )
+			ut => $self->{repository}->xml->create_text_node( $self->{processor}->{ut} )
 			) );
 		return;
 	}
