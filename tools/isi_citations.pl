@@ -175,7 +175,7 @@ sub update_eprint
 			SOAP::Data->name("sort")->value("Relevance"),
 			# start returning records at 1
 			SOAP::Data->name("firstRec")->value("1"),
-			# return upto 10 records
+			# return up to 10 records
 			SOAP::Data->name("numRecs")->value("10"),
 			# NOTE: if no fields are specified all are returned, times_cited is
 			# an option

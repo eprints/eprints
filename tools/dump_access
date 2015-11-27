@@ -29,7 +29,7 @@ dump_access - dump access log table to var/
 
 =item --until
 
-Dump accesses upto the date given (which is an EPrints search query).
+Dump accesses up to the date given (which is an EPrints search query).
 
 =item --remove
 
