@@ -1363,7 +1363,7 @@ sub js_string
 # EPrints::Utils::process_parameters( $params, $defaults );
 #  for each key in the hash ref $defaults, if $params->{$key} is not set
 #  then it's set to the default from the $defaults hash.
-#  Also warns if unknown paramters were passed.
+#  Also warns if unknown parameters were passed.
 
 sub process_parameters($$)
 {

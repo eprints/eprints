@@ -233,7 +233,7 @@ $EPrints::Index::FREETEXT_ALWAYS_WORDS = {
 		"ok" => 1 
 };
 
-# Chars which seperate words. Pretty much anything except
+# Chars which separate words. Pretty much anything except
 # A-Z a-z 0-9 and single quote '
 
 # If you want to add other seperator characters then they

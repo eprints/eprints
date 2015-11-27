@@ -295,7 +295,7 @@ sub phrase
 	{
 		if( !$used->{$_} )
 		{
-			# Should log this, but somtimes it's supposed to happen!
+			# Should log this, but sometimes it's supposed to happen!
 			# $session->get_repository->log( "Unused parameter \"$_\" passed to phrase \"$phraseid\"" );
 			EPrints::XML::dispose( $inserts->{$_} );
 		}

@@ -168,7 +168,7 @@ Web browsers only allow GET and POST requests. To perform other requests use the
 
 =for MediaWiki {{Available|since=3.3.9}}
 
-If you have the I<upsert> privilege objects will be created on demand, otherwise attempting to PUT to a non-existant object will result in an error.
+If you have the I<upsert> privilege objects will be created on demand, otherwise attempting to PUT to a non-existent object will result in an error.
 
 =head1 METHODS
 
