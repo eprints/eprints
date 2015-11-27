@@ -15,7 +15,7 @@ B<EPrints::MetaField::Storable> - serialise/unserialise Perl structures
 
 =head1 DESCRIPTION
 
-This field supports arbitrary Perl data structures by serialising them using L<Storable>, upto the length of L<EPrints::MetaField::Longtext>.
+This field supports arbitrary Perl data structures by serialising them using L<Storable>, up to the length of L<EPrints::MetaField::Longtext>.
 
 When serialised into XML the values are further encoded in Base64 to avoid any problems with invalid XML character data being emitted by Storable.
 

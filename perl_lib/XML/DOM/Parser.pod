@@ -50,7 +50,7 @@ By default it will use a L<LWP::UserAgent> that is created as follows:
  $LWP_USER_AGENT->env_proxy;
 
 Note that env_proxy reads proxy settings from environment variables, which is what I need to
-do to get thru our firewall. If you want to use a different LWP::UserAgent, you can either set
+do to get through our firewall. If you want to use a different LWP::UserAgent, you can either set
 it globally with:
 
  XML::DOM::Parser::set_LWP_UserAgent ($my_agent);

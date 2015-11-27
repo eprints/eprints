@@ -156,7 +156,7 @@ sub action_confirm
 	# other value when they set theirs.
 
 	# This script hacks the SQL directly, as normally "secret" fields are not
-	# accessable to eprints. 
+	# accessible to eprints.
 	
 	if( $user->is_set( "newemail" ) )
 	{

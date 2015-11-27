@@ -973,7 +973,7 @@ sub _is_num {
 	my $doc = join "\n", @_;
 	my ($one,$two,$thr) = (1,2,3);
 	my @num_refs;
-	# Chop upto 300 chars off the front until we get a 1.
+	# Chop up to 300 chars off the front until we get a 1.
 #warn "_is_num: \$doc = ".substr($doc,0,50);
 	while( $doc =~ s/^.*?\b($one(\.\s|\s{4}))//s ) {
 		my $ref_sect = $1.$doc;

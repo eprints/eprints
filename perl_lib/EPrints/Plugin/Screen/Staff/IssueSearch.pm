@@ -76,7 +76,7 @@ sub default_search_config
 	};
 }
 
-# Supress the anyall field - not interesting.
+# Suppress the anyall field - not interesting.
 sub render_anyall_field
 {
 	my( $self ) = @_;

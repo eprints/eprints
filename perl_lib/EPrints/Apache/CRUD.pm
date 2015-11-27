@@ -150,9 +150,9 @@ If the I<Content-Disposition> header is missing or does not contain a I<filename
 
 =head2 Updating complex objects using PUT
 
-Eprint objects contain zero or more documents, which each contain zero or more files. When you update (PUT) an eprint object the contained documents will only be replaced if the Import plugin defines new documents e.g. the Atom Import plugin will never define new documents so PUTing Atom content will only update the eprint's metadata. PUTing L<EP3 XML|EPrints::Plugin::Export::XML> will replace the documents if you include a <documents> XML element.
+Eprint objects contain zero or more documents, which each contain zero or more files. When you update (PUT) an eprint object the contained documents will only be replaced if the Import plugin defines new documents e.g. the Atom Import plugin will never define new documents so PUTting Atom content will only update the eprint's metadata. PUTting L<EP3 XML|EPrints::Plugin::Export::XML> will replace the documents if you include a <documents> XML element.
 
-PUTing to I</contents> will always replace all contents - PUTing to I</eprint/23/contents> is equivalent to I<DELETE /eprint/23/contents> then I<POST /eprint/23/contents>.
+PUTting to I</contents> will always replace all contents - PUTting to I</eprint/23/contents> is equivalent to I<DELETE /eprint/23/contents> then I<POST /eprint/23/contents>.
 
 =head2 PUT/DELETE from Javascript
 
@@ -168,7 +168,7 @@ Web browsers only allow GET and POST requests. To perform other requests use the
 
 =for MediaWiki {{Available|since=3.3.9}}
 
-If you have the I<upsert> privilege objects will be created on demand, otherwise attempting to PUT to a non-existant object will result in an error.
+If you have the I<upsert> privilege objects will be created on demand, otherwise attempting to PUT to a non-existent object will result in an error.
 
 =head1 METHODS
 
