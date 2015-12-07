@@ -620,6 +620,10 @@ sub render_import_bar
 		else
 		{
 			my $option = $session->make_element( "option", value=>$id );
+			# EPrints Services/tmb select default plugin
+			my $default = $self->param( "default_import_plugin" );
+			$option->setAttribute( "selected", "selected" ) if EPrints::Utils::is_set( $default ) && $default eq $plugin_id;
+			# EPrints Services/tmb end
 			$option->appendChild( $dom_name );
 			$options->{EPrints::XML::to_string($dom_name)} = $option;
 		}

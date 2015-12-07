@@ -465,6 +465,9 @@ sub render_export_bar
 	my $feeds = $session->make_doc_fragment;
 	my $tools = $session->make_doc_fragment;
 	my $options = {};
+	# EPrints Services/af05v 2009-03-02 default export plugin
+	my $default_export_plugin = $session->config( 'default_export_plugin' ) || '_NULL_';
+	# EPrints Services/af05v end
 	foreach my $plugin_id ( @plugins ) 
 	{
 		$plugin_id =~ m/^[^:]+::(.*)$/;
@@ -500,6 +503,9 @@ sub render_export_bar
 		else
 		{
 			my $option = $session->make_element( "option", value=>$id );
+			# EPrints Services/af05v 2009-03-02 select default export plugin
+			$option->setAttribute( selected => 'selected' ) if( $id eq $default_export_plugin );
+			# EPrints Services/af05v end
 			$option->appendChild( $dom_name );
 			$options->{EPrints::XML::to_string($dom_name)} = $option;
 		}
