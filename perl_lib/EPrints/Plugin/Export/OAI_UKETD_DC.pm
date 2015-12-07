@@ -195,16 +195,17 @@ sub eprint_to_uketd_dc
 				push @etddata, [ "creator", EPrints::Utils::make_name_string( $creator ), "dc" ];
 			}
 		}
-	
-		my $subjectid;
-		foreach $subjectid ( @{$eprint->get_value( "subjects" )} )
+		if( $eprint->exists_and_set("subjects")) ##Check for existance before accessing. jy2e08
 		{
-			my $subject = EPrints::DataObj::Subject->new( $session, $subjectid );
-			# avoid problems with bad subjects
-			next unless( defined $subject ); 
-			push @etddata, [ "subject", EPrints::Utils::tree_to_utf8( $subject->render_description() ), "dc" ];
+			my $subjectid;
+			foreach $subjectid ( @{$eprint->get_value( "subjects" )} )
+			{
+				my $subject = EPrints::DataObj::Subject->new( $session, $subjectid );
+				# avoid problems with bad subjects
+				next unless( defined $subject ); 
+				push @etddata, [ "subject", EPrints::Utils::tree_to_utf8( $subject->render_description() ), "dc" ];
+			}
 		}
-	
 		# Steve Carr : we're using qdc, namespace dcterms, version of description - 'abstract'
 		push @etddata, [ "abstract", $eprint->get_value( "abstract" ), "dcterms" ]; 
 		
