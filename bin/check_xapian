@@ -1,0 +1,379 @@
+#!/usr/bin/perl -w
+
+use FindBin;
+use lib "$FindBin::Bin/../perl_lib";
+
+######################################################################
+#
+#
+######################################################################
+
+=pod
+
+=for Pod2Wiki
+
+=head1 NAME
+
+B<check_xapian> - Checks that Xapian is successfully indexing items in the live archive.
+
+=head1 SYNOPSIS
+
+B<check_xapian> I<repository_id> [B<options>] 
+
+=head1 DESCRIPTION
+
+This script checks that items in the live archive have successfully been indexed by Xapian.  It does this my using "/usr/bin/quest" to search the Xapian database filesystem for the title of the particular item.  This requires the 'xapian-tools' package to be installed.  If the title does not contain any special characters or quote marks it will attempt to search for the title within quote marks.  If this is not the case or this returns no matching results, it will search for all the terms in the title in an attempt to find a result.  The script will print a success message to the standard output if a result with the correct EPrint ID is returned othewise it will print a failure message to the standard error.  A summary message will be printed before the script exits totalling the number of items found not to be indexed.
+
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item B<repository_id> 
+
+The ID of the eprint repository to use.
+
+=back
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--all> 
+
+Check all live archive items rather than those last modified in the last 2 days.
+
+=item B<--days=n>
+
+Check live archive items last modified in the last n days rathar than the last 2 days.
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--path=/path/to/xapian/directory/> 
+
+Specify the directory of the Xapian database if it is not /opt/eprints3/archives/REPOID/var/xapian/.
+
+=item B<--quiet>
+
+This option will supress all output unless an error occurs.
+
+=item B<--random>
+
+Takes a random sample of 100 live archive items to check whether they are indexed.  Can be used with --sample=n to specify a different random sample size.  Can be used with --days to sepcify how recently the random sample should taken from.
+
+=item B<--reindex> 
+
+If a item is not found then schedule it for reindexing.
+
+=item B<--sample=n>
+
+Used in conjuction with --random to specify the sample size of items to check.
+
+=item B<--user=admin>
+
+Used in conjuction with --reindex to specify the username of the user who should be set as the creator for indexing tasks.  If not set the first admin or local_admin user created will be used.
+
+=item B<--verbose>
+
+Explain in detail what is going on.
+
+=item B<--version>
+
+Output version information and exit.
+
+=back   
+
+
+=cut
+
+use EPrints;
+
+use 5.010001;
+use Time::Piece;
+use Data::Dumper;
+use strict;
+use Getopt::Long;
+use Pod::Usage;
+
+my $version = 0;
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+my $all = 0;
+my $reindex = 0;
+my $random = 0;
+my $path_opt;
+my $days_opt;
+my $sample_opt;
+my $user_opt;
+
+Getopt::Long::Configure("permute");
+
+GetOptions(
+        'help|?' => \$help,
+        'man' => \$man,
+        'version' => \$version,
+        'verbose+' => \$verbose,
+        'silent' => \$quiet,
+        'quiet' => \$quiet,
+        'all' => \$all,
+	'random' => \$random,
+        'reindex' => \$reindex,
+	'path=s' => \$path_opt,
+	'days=s' => \$days_opt,
+	'sample=s' => \$sample_opt,
+	'user=s' => \$user_opt,
+) || pod2usage( 2 );
+EPrints::Utils::cmd_version( "check_xapian" ) if $version;
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage( 2 ) if( scalar @ARGV != 1 );
+
+my $noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+my $repoid = $ARGV[0];
+my $session = EPrints::Session->new( 1 , $repoid, $noise );
+if( !defined $session )
+{
+        print STDERR "Failed to load repository: $repoid\n";
+        exit 1;
+}
+
+my $quest_location = `/usr/bin/which quest`;
+$quest_location =~ s/\n//g;
+if ( "$quest_location" eq "" )
+{
+        print STDERR "\nError: Failed to find 'quest' command line tool.\n\n";
+        exit 1;
+}
+
+my $period = "";
+my $days = 2;
+if ( defined $days_opt )
+{
+	if ( $days_opt =~ m/[1-9][0-9]*/ )
+	{
+		$days = int($days_opt);
+	}
+	else
+	{
+		print STDERR "\nError: $days_opt is not a positive integer.\n\n";
+        	exit 1;
+	}
+}
+
+my $sample = 100;
+if ( defined $sample_opt )
+{
+	unless ( $random ) 
+	{
+		print STDERR "\nError: --sample can only be used with --random.\n\n";
+                exit 1;
+	}
+        if ( $sample_opt =~ m/[1-9][0-9]*/ )
+        {
+                $sample = int($sample_opt);
+        }
+        else
+        {
+                print STDERR "\nError: $sample_opt is not a positive integer.\n\n";
+                exit 1;
+        }
+}
+
+my $path = '/opt/eprints3/archives/'.$ARGV[0].'/var/xapian/';
+if ( defined $path_opt ) 
+{
+	$path = $path_opt;
+}
+
+unless ( -e $path."/record.DB" )
+{
+	print STDERR "\nError: No Xapian database directory at '$path'.\n\n";
+	exit 1;
+}
+
+print "\nRunning $0 at ".localtime()."\n\n" unless $quiet;
+
+my $repo = $session->get_repository;
+my $db = $session->get_database();
+
+my $user;
+if ( $reindex )
+{
+	if ( defined $user_opt )
+	{
+		$user = EPrints::DataObj::User::user_with_username( $session, $user_opt );
+		unless ( defined $user )
+		{	
+			print STDERR "\nError: No user found for username '$user_opt'.\n\n";
+	        	exit 1;
+		}
+	}
+	else 
+	{
+		my $user_ds = $repo->dataset( "user" );
+		my $admins = $user_ds->search( filters => [ { meta_fields => [ 'usertype' ], value => 'local_admin admin', match => 'IN', describe=>0 } ], custom_order => "userid");
+		if ($admins->count() == 0)
+		{	
+			print STDERR "\nError: No admin user found to set as creator of indexing task.\n\n";
+	                exit 1;
+		}
+		$user = $admins->item(0);
+	}
+}
+
+my $ds = $repo->dataset( "eprint" );
+my $list;
+if ( ( $random && defined($days_opt) ) || ( !$random && !$all ) )
+{
+	$period = " in the last $days days";
+	my $since = localtime() - $days*24*60*60;
+	my $since_timestamp = localtime($since)->strftime('%F-');
+	$list = $ds->search(filters => [ { meta_fields => [ 'eprint_status' ], value => 'archive', describe=>0 }, { meta_fields => [ 'lastmod' ], value => $since_timestamp, describe=>0 } ], custom_order => "-lastmod");
+}
+
+my @chosen = ();
+if ( $random ) 
+{
+	my @ids;
+	if ( defined $list )
+	{
+		my $ids_ref = $list->ids();
+		@ids = @$ids_ref;
+	}
+	else
+	{
+		my $sql = "SELECT eprintid from eprint WHERE eprint_status = 'archive'";
+		my $statement = $db->prepare($sql);
+		$db->execute($statement, $sql);
+		while (my $row = $statement->fetchrow_hashref)
+		{
+			push @ids, $row->{eprintid};
+		}
+	}
+	my $ids_size = @ids;
+	if ( $ids_size > $sample )
+	{
+		for ( my $i = 0; $i < $sample; $i++ )
+		{  
+			my $rand = int(rand($ids_size));
+			while ( $ids[$rand] ~~ @chosen )
+			{
+				$rand = int(rand($ids_size));
+			}
+			push @chosen, $ids[$rand];
+		}
+		$list = EPrints::List->new( repository => $repo, dataset => $ds, ids => \@chosen );
+	}
+}
+
+$list = $ds->search(filters => [ { meta_fields => [ 'eprint_status' ], value => 'archive', describe=>0 } ], custom_order => "-lastmod") unless defined $list;
+
+my $counter = 0;
+my $unfound = 0;
+
+for ( my $i = 0; $i < $list->count; $i++ )
+{
+	my $eprint = $list->item( $i );
+	my $found = 0;
+        my $title = $eprint->value('title');
+	unless (ref($title) eq "")
+	{
+		$title = $title->[0]{'text'};
+	}
+        my $sanitized_title = $title;
+        $sanitized_title =~ s/[^\w0-9,\;\:\.\?!%£\$&\(\)\[\]\@ -]/ /g;
+        my @results = ();
+        if ( $sanitized_title eq $title )
+        {
+                my $command = $quest_location.' -m 1000 -d '.$path.' \'"'.$sanitized_title.'"\'';
+		print "$command\n" if $verbose;
+                @results = `$command`;
+        }
+        if ( scalar @results < 3 )
+        {
+                $sanitized_title =~ s/ -([^ ])/ $1/g;
+                my $command = $quest_location.' -m 1000 -d '.$path.' "'.$sanitized_title.'"';
+		print "$command\n" if $verbose;
+                @results = `$command`;
+        }
+        if ( scalar @results < 3 )
+        {
+                print STDERR "No results from EPrint ID ".$eprint->id.". ";
+        }
+        else {
+                my $position = 0;
+                for ( my $l = 3; $l < scalar @results; $l = $l + 2 )
+                {
+                        $results[$l] =~ s/\n//g;
+			next unless $results[$l] =~ m/[1-9][0-9]*/;
+			$position++;
+                        if ( int($results[$l]) == $eprint->id )
+                        {
+                                $found = 1;
+                                last;
+                        }
+                }
+                print STDERR "No matching results from EPrint ID ".$eprint->id."." unless $found;
+                print "Found EPrint ID ".$eprint->id." in position $position.\n" if $found && !$quiet;
+        }
+        if ( !$found && $reindex )
+        {
+                print STDERR " Will reindex.\n";
+                EPrints::DataObj::EventQueue->create_unique( $session, {
+                        pluginid => "Event::Indexer",
+                        action => "index_all",
+                        params => [$eprint->internal_uri],
+                        userid => $user->id,
+                });
+                my @documents = $eprint->get_all_documents;
+                foreach my $document ( @documents )
+                {
+                        EPrints::DataObj::EventQueue->create_unique( $session, {
+                                pluginid => "Event::Indexer",
+                                action => "removed",
+                                params => ['document', $document->id ],
+                                userid => $user->id,
+                        });
+                }
+                if ( scalar @documents > 0 )
+                {
+                        EPrints::DataObj::EventQueue->create_unique( $session, {
+                                pluginid => "Event::Indexer",
+                                action => "index",
+                                params => [$eprint->internal_uri, 'documents'],
+                                userid => $user->id,
+                        });
+                }
+        }
+        print STDERR "\n" if !$reindex && !$found;
+	$unfound++ unless $found;
+        $counter++;
+}
+print "\n$unfound/$counter EPrints in the live archive were found not to be indexed by Xapian$period.\n" unless $quiet;
+
+$session->terminate();
+exit;
+
+
+=head1 COPYRIGHT
+
+=for COPYRIGHT BEGIN
+
+Copyright 2000-2015 University of Southampton.
+
+=for COPYRIGHT END
+
+=for LICENSE BEGIN
+
+
