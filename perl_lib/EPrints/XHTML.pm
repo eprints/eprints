@@ -450,7 +450,7 @@ sub _to_xhtml
 		# set the default XHTML namespace for the root <html/> element
 		if( $tagname eq "html" )
 		{
-			push @n, " xmlns=\"$NS_XHTML\"";
+			push @n, ' xmlns="', $NS_XHTML, '"';
 			$seen->{'xmlns'} = 1;
 		}
 
