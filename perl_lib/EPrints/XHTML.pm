@@ -106,7 +106,6 @@ use strict;
 %EPrints::XHTML::COMPRESS_TAG = map { $_ => 1 } @EPrints::XHTML::COMPRESS_TAGS;
 
 # XML namespace URIs
-my $NS_XMLNS = 'http://www.w3.org/2000/xmlns/';
 my $NS_XHTML = 'http://www.w3.org/1999/xhtml';
 my $NS_EPP   = 'http://eprints.org/ep3/phrase';
 my $NS_EPC   = 'http://eprints.org/ep3/control';
@@ -457,21 +456,22 @@ sub _to_xhtml
 		# specially handle namespace attributes
 		foreach my $ns ( $attr->getNamespaces )
 		{
-			# include all xmlns:foo definitions except epp|epc
+			# include all xmlns:* definitions except epp|epc
 			my $nsuri = $ns->getValue;
 			if( !( $nsuri eq $NS_EPP || $nsuri eq $NS_EPC ) )
 			{
 				my $value = _attr_value( $nsuri );
-				push @n, ' ', $ns->nodeName, '="', $value, '"';
+				push @n, ' ', $ns->name, '="', $value, '"';
+				$seen->{$ns->name} = 1;
 			}
 		}
 
 		# now handle all regular attributes
 		foreach my $attr ( $node->attributes )
 		{
-			# drop attributes in the xmlns|epp|epc namespaces
+			# drop attributes in the epp|epc namespaces
 			my $nsuri = $attr->namespaceURI;
-			next if $nsuri && ( $nsuri eq $NS_XMLNS || $nsuri eq $NS_EPP || $nsuri eq $NS_EPC );
+			next if $nsuri && ( $nsuri eq $NS_EPP || $nsuri eq $NS_EPC );
 
 			# get the sanitised attribute name
 			my $name = _name_of( $attr );
