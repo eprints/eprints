@@ -105,6 +105,12 @@ use strict;
 @EPrints::XHTML::COMPRESS_TAGS = qw/br hr img link input meta/;
 %EPrints::XHTML::COMPRESS_TAG = map { $_ => 1 } @EPrints::XHTML::COMPRESS_TAGS;
 
+# XML namespace URIs
+my $NS_XMLNS = 'http://www.w3.org/2000/xmlns/';
+my $NS_XHTML = 'http://www.w3.org/1999/xhtml';
+my $NS_EPP   = 'http://eprints.org/ep3/phrase';
+my $NS_EPC   = 'http://eprints.org/ep3/control';
+
 # $xhtml = new EPrints::XHTML( $repository )
 #
 # Contructor, should be called by Repository only.
@@ -397,6 +403,33 @@ my %HTML_ENTITIES = (
 	'"' => '&quot;',
 );
 
+sub _name_of
+{
+	my( $node, $downcase ) = @_;
+
+	my $tagname  = $node->localname;
+	my $nsprefix = $node->prefix;
+	my $nsuri    = $node->namespaceURI;
+
+	$tagname = lc($tagname) if $downcase;
+
+	if( $nsuri && !( $nsuri eq $NS_XHTML || $nsuri eq $NS_EPP || $nsuri eq $NS_EPC ) )
+	{
+		# the node's namespace isn't one of (xhtml|epp|epc) so we should propagate it
+		$tagname = "$nsprefix:$tagname";
+	}
+
+	return $tagname;
+}
+
+sub _attr_value
+{
+	my( $value ) = @_;
+	$value =~ s/([&<>"])/$HTML_ENTITIES{$1}/g;
+	utf8::decode($value) unless utf8::is_utf8($value);
+	return $value;
+}
+
 # may take options in the future
 sub _to_xhtml
 {
@@ -408,39 +441,45 @@ sub _to_xhtml
 	my @n = ();
 	if( $type == XML_ELEMENT_NODE )
 	{
-		my $tagname = $node->nodeName; # includes NS prefix
-
-		# strip namespaces that are no longer relevant or required in xhtml
-		$tagname =~ s/^(xhtml|ep[pc])://;
-
-		$tagname = lc($tagname);
+		# get the tagname, excluding xhtml|epp|epc prefixes
+		my $tagname  = _name_of( $node, 1 );
 
 		push @n, '<', $tagname;
 		my $seen = {};
 
+		# set the default XHTML namespace for the root <html/> element
 		if( $tagname eq "html" )
 		{
-			push @n, ' xmlns="http://www.w3.org/1999/xhtml"';
+			push @n, " xmlns=\"$NS_XHTML\"";
 			$seen->{'xmlns'} = 1;
 		}
 
+		# specially handle namespace attributes
+		foreach my $ns ( $attr->getNamespaces )
+		{
+			# include all xmlns:foo definitions except epp|epc
+			my $nsuri = $ns->getValue;
+			if( !( $nsuri eq $NS_EPP || $nsuri eq $NS_EPC ) )
+			{
+				my $value = _attr_value( $nsuri );
+				push @n, ' ', $ns->nodeName, '="', $value, '"';
+			}
+		}
+
+		# now handle all regular attributes
 		foreach my $attr ( $node->attributes )
 		{
-			my $name = $attr->nodeName;
-			# strip epp/epc namespace definitions
-			next if $name =~ /^xmlns:ep[pc]$/;
-			# dump epp/epc-namespaced attributes
-			next if $attr->prefix =~ /^ep[pc]$/;
+			# drop attributes in the xmlns|epp|epc namespaces
+			my $nsuri = $attr->namespaceURI;
+			next if $nsuri && ( $nsuri eq $NS_XMLNS || $nsuri eq $NS_EPP || $nsuri eq $NS_EPC );
 
-			# clean up xhtml-namespaced attributes
-			$name =~ s/^xhtml://;
+			# get the sanitised attribute name
+			my $name = _name_of( $attr );
 
 			next if( exists $seen->{$name} );
 			$seen->{$name} = 1;
 
-			my $value = $attr->nodeValue;
-			$value =~ s/([&<>"])/$HTML_ENTITIES{$1}/g;
-			utf8::decode($value) unless utf8::is_utf8($value);
+			my $value = _attr_value( $attr->nodeValue );
 			push @n, ' ', $name, '="', $value, '"';
 		}
 
