@@ -114,13 +114,6 @@ sub _new_urlset
 			"xsi:schemaLocation" => "http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd",
 	);
 	_insert_semantic_web_extensions( $repository, $xml, $urlset );
-
-	# <urlset/> must include at least one <url/>, so include a reference
-	# to the front page
-	$urlset->appendChild( EPrints::Utils::make_sitemap_url( $repository, {
-		loc => $repository->config( "frontpage" ),
-	} ) );
-
 	$document->appendChild( $urlset );
 
 	return $document;
