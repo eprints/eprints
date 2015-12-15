@@ -115,11 +115,11 @@ sub _new_urlset
 	);
 	_insert_semantic_web_extensions( $repository, $xml, $urlset );
 
-	# <urlset/> must include at least one <url/>
-	my $url = $xml->create_element( "url" );
-	my $urlloc = $xml->create_data_element( "loc", $repository->get_conf( "frontpage" ) );
-	$url->appendChild( $urlloc );
-	$urlset->appendChild( $url );
+	# <urlset/> must include at least one <url/>, so include a reference
+	# to the front page
+	$urlset->appendChild( EPrints::Utils::make_sitemap_url( $repository, {
+		loc => $repository->config( "frontpage" ),
+	} ) );
 
 	$document->appendChild( $urlset );
 
