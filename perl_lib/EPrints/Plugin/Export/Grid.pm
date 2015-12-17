@@ -60,6 +60,15 @@ sub header_row
 	return @names;
 }
 
+sub output_dataobj
+{
+        my( $plugin, $dataobj ) = @_;	
+
+	# this has to be sub classed in order to be a valid export plugin but is unused
+
+	return;
+}
+
 sub dataobj_to_rows
 {
 	my( $self, $dataobj, %opts ) = @_;
