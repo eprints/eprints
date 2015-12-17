@@ -9,7 +9,7 @@
 #
 #  __COPYRIGHT__
 #
-# Copyright 2000-2008 University of Southampton. All Rights Reserved.
+# Copyright 2000-2015 University of Southampton. All Rights Reserved.
 # 
 #  __LICENSE__
 #
@@ -53,8 +53,13 @@ foreach my $ds_id ( sort keys %counts )
 		$counts{$ds_id}
 	);
 }
+
 # version
-print sprintf("version: %s\n", EPrints->human_version);
+print "version: " . EPrints->human_version . " " . $repo->config( "vendor_short" ) . "\n";
+foreach my $key ( qw / version_description version_long version_alias vendor_long vendor_short / )
+{
+	print $key . ": " . $repo->config( $key ) . "\n";
+}
 
 # Indexer Status
 my $daemon = EPrints::Index::Daemon->new(
