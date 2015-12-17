@@ -23,6 +23,7 @@ sub new
 	$self->{name} = "Grid (abstract)";
 	$self->{accept} = [ 'dataobj/*', 'list/*', ];
 	$self->{visible} = "none";	
+	$self->{advertise} = 0;	
 	return $self;
 }
 
