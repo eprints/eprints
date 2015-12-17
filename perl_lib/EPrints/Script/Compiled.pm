@@ -629,7 +629,7 @@ sub run_icon
 sub run_human_filesize
 {
 	my( $self, $state, $size_in_bytes ) = @_;
-
+	return [ EPrints::Utils::human_filesize( 0 ), "INTEGER" ] if not ($size_in_bytes); ##check if the $size_in_bytes is defined. (reduces warnings)
 	return [ EPrints::Utils::human_filesize( $size_in_bytes->[0] || 0 ), "INTEGER" ];
 }
 
