@@ -422,6 +422,9 @@ sub render_fileinfo
 	}
 
 	my $f = $session->make_doc_fragment;
+
+	return $f unless defined $value;
+
 	my @fileinfo = map { split /;/, $_ } split /\|/, $value;
 	for(my $i = 0; $i < @fileinfo; $i+=2)
 	{

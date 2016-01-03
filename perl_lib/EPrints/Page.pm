@@ -79,7 +79,12 @@ sub send
 	};
 	if( $@ )
 	{
-		if( $@ !~ m/Software caused connection abort/ )
+		if(
+			$@ !~ m/^Software caused connection abort/ &&
+			$@ !~ m/:Apache2 IO write: \(104\) Connection reset by peer/ &&
+			$@ !~ m/:Apache2 IO write: \(32\) Broken pipe/ &&
+			$@ !~ m/:Apache2 IO write: \(70007\) The timeout specified has expired/
+		  )
 		{
 			EPrints::abort( "Error in send_page: $@" );	
 		}
@@ -90,6 +95,7 @@ sub send
 	}
 }
 
+# back-ported https://github.com/eprints/eprints/commit/7d3fe41fce984da63103824c94e4eee2c7b74fd3
 sub write_to_file
 {
 	my( $self, $filename, $wrote_files ) = @_;

@@ -51,6 +51,7 @@ sub dataobj_to_html_header
 	my $epdata = $plugin->convert_dataobj( $dataobj );
 	foreach( @{$epdata} )
 	{
+		next unless $_->[1];
 		$links->appendChild( $plugin->{session}->make_element(
 			"meta",
 			name => "eprints.".$_->[0],
