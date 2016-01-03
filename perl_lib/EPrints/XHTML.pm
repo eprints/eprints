@@ -168,7 +168,7 @@ sub input_field
 	}
 	if( $noenter )
 	{
-		push @opts, onKeyPress => 'return EPJS_block_enter( event )';
+		push @opts, onkeypress => 'return EPJS_block_enter( event )';
 	}
 
 	return $self->{repository}->xml->create_element( "input",
