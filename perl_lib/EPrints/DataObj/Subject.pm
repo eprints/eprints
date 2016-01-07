@@ -23,6 +23,8 @@ contains a number of methods for handling the entire tree.
 
 EPrints::DataObj::Subject is a subclass of EPrints::DataObj
 
+=head1 METHODS
+
 =over 4
 
 =cut
@@ -39,7 +41,6 @@ use strict;
 $EPrints::DataObj::Subject::root_subject = "ROOT";
 
 ######################################################################
-=pod
 
 =item $thing = EPrints::DataObj::Subject->get_system_field_info
 
@@ -99,7 +100,6 @@ sub get_system_field_info
 
 
 ######################################################################
-=pod
 
 =item $subject = EPrints::DataObj::Subject->new( $session, $subjectid )
 
@@ -159,7 +159,6 @@ sub new
 
 
 ######################################################################
-=pod
 
 =item $subject = EPrints::DataObj::Subject->new_from_data( $session, $data )
 
@@ -184,7 +183,6 @@ sub new_from_data
 
 
 ######################################################################
-=pod
 
 =item $success = $subject->commit( [$force] )
 
@@ -243,7 +241,6 @@ sub commit
 
 
 ######################################################################
-=pod
 
 =item $success = $subject->remove
 
@@ -270,7 +267,6 @@ sub remove
 }
 
 ######################################################################
-=pod
 
 =item $dataset = EPrints::DataObj::Subject->get_dataset_id
 
@@ -286,7 +282,6 @@ sub get_dataset_id
 
 
 ######################################################################
-=pod
 
 =item EPrints::DataObj::Subject::remove_all( $session )
 
@@ -313,18 +308,17 @@ sub remove_all
 
 	
 ######################################################################
-# =pod
-# 
-# =item $subject = EPrints::DataObj::Subject::create( $session, $id, $name, $parents, $depositable )
-# 
-# Creates a new subject in the database. $id is the ID of the subject,
-# $name is a multilang data structure with the name of the subject in
-# one or more languages. eg. { en=>"Trousers", en-us=>"Pants}. $parents
-# is a reference to an array containing the ID's of one or more other
-# subjects (don't make loops!). If $depositable is true then eprints may
-# belong to this subject.
-# 
-# =cut
+
+=item $subject = EPrints::DataObj::Subject::create( $session, $id, $name, $parents, $depositable )
+
+Creates a new subject in the database. $id is the ID of the subject,
+$name is a multilang data structure with the name of the subject in
+one or more languages. eg. { en=>"Trousers", en-us=>"Pants}. $parents
+is a reference to an array containing the ID's of one or more other
+subjects (don't make loops!). If $depositable is true then eprints may
+belong to this subject.
+
+=cut
 ######################################################################
 
 sub create
@@ -348,15 +342,14 @@ sub create
 }
 
 ######################################################################
-# =pod
-# 
-# =item $dataobj = EPrints::DataObj::Subject->create_from_data( $session, $data, $dataset )
-# 
-# Returns undef if a bad (or no) subjectid is specified.
-# 
-# Otherwise calls the parent method in EPrints::DataObj.
-# 
-# =cut
+
+=item $dataobj = EPrints::DataObj::Subject->create_from_data( $session, $data, $dataset )
+
+Returns undef if a bad (or no) subjectid is specified.
+
+Otherwise calls the parent method in EPrints::DataObj.
+
+=cut
 ######################################################################
 
 sub create_from_data
@@ -408,6 +401,8 @@ sub _get_ancestors
 	return @ancestors;
 }
 
+######################################################################
+
 =item $subject = $subject->top()
 
 Returns the subject that is at the top of this subject's tree (which may be this subject).
@@ -415,6 +410,7 @@ Returns the subject that is at the top of this subject's tree (which may be this
 Returns undef if the subject is not part of a tree.
 
 =cut
+######################################################################
 
 sub top
 {
@@ -435,7 +431,6 @@ sub top
 }
 
 ######################################################################
-=pod
 
 =item $child_subject = $subject->create_child( $id, $name, $depositable )
 
@@ -459,7 +454,6 @@ sub create_child
 
 
 ######################################################################
-=pod
 
 =item @children = $subject->get_children
 
@@ -497,7 +491,6 @@ sub get_children
 
 
 ######################################################################
-=pod
 
 =item @parents = $subject->get_parents
 
@@ -521,7 +514,6 @@ sub get_parents
 
 
 ######################################################################
-=pod
 
 =item $boolean = $subject->can_post( [$user] )
 
@@ -545,7 +537,6 @@ sub can_post
 
 
 ######################################################################
-=pod
 
 =item $xhtml = $subject->render_with_path( $session, $topsubjid )
 
@@ -598,7 +589,6 @@ sub render_with_path
 
 
 ######################################################################
-=pod
 
 =item @paths = $subject->get_paths( $session, $topsubjid )
 
@@ -643,21 +633,7 @@ sub get_paths
 	return @paths;
 }
 
-
 ######################################################################
-#
-# ( $tags, $labels ) = get_postable( $session, $user )
-#
-#  Returns a list of the subjects that can be posted to by $user. They
-#  are returned in a tuple, the first element being a reference to an
-#  array of tags (for the ordering) and the second being a reference
-#  to the hash mapping tags to full names. [STATIC]
-#
-######################################################################
-
-
-######################################################################
-=pod
 
 =item $subject_pairs = $subject->get_subjects ( [$postable_only], [$show_top_level], [$nes_tids], [$no_nest_label] )
 
@@ -760,11 +736,7 @@ sub _get_subjects2
 	return $subpairs;
 }
 
-# cjg CACHE this per, er, session?
-# commiting a subject should erase the cache
-
 ######################################################################
-=pod
 
 =item ( $subject_map, $reverse_map ) = EPrints::DataObj::Subject::get_all( $session )
 
@@ -870,7 +842,6 @@ sub posted_eprints
 }
 
 ######################################################################
-=pod
 
 =item $count = $subject->count_eprints( $dataset )
 
@@ -915,7 +886,6 @@ sub count_eprints
 }
 
 ######################################################################
-=pod
 
 =item $boolean = EPrints::DataObj::Subject::valid_id( $id )
 
@@ -959,13 +929,12 @@ sub render_description
 #deprecated
 
 ######################################################################
-=pod
-
-=item $subj->render()
-
-undocumented
-
-=cut
+#
+#
+#  item $subj->render()
+#
+#  undocumented
+#
 ######################################################################
 
 sub render
@@ -976,7 +945,6 @@ sub render
 1;
 
 ######################################################################
-=pod
 
 =back
 
