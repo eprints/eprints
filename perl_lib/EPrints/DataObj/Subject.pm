@@ -313,8 +313,9 @@ sub remove_all
 
 Creates a new subject in the database. $id is the ID of the subject,
 $name is a multilang data structure with the name of the subject in
-one or more languages. eg. { en=>"Trousers", en-us=>"Pants}. $parents
-is a reference to an array containing the ID's of one or more other
+one or more languages eg.
+[{"name"=>"New Subject Name",lang=>"en"}, {"name"=>"Nouveau nom du sujet",lang=>"fr"} ]
+ $parents is a reference to an array containing the ID's of one or more other
 subjects (don't make loops!). If $depositable is true then eprints may
 belong to this subject.
 
