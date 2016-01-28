@@ -20,7 +20,7 @@
 <h2>About this software</h2>
 
 
-<p>This site is running <epc:print expr="$config{version}" />.</p>
+<p>This site is running <epc:print expr="$config{version_description}" />.</p>
 
 <p>EPrints is free software developed at the <a href="http://www.ecs.soton.ac.uk/">School of Electronics and Computer Science</a> at the <a href="http://www.soton.ac.uk/">University of Southampton</a>, England.</p>
 

@@ -772,60 +772,6 @@ This field is required if no creators are listed.
 	<epp:phrase id="Plugin/Screen/Admin/Config/Edit/Config:inline_edit_title">Edit config file</epp:phrase>
 
 
-
-<!-- this is used for the minimal users who have their username locked to their
-     email address -->
-
-    <epp:phrase id="cgi/register:intro_minimal">
-<p>As a registered user you will be able to set up
-saved searches, which are sent when new items 
-are placed in the repository.</p>
-
-<p>Please complete the details on this page to register with <epc:phrase ref="archive_name" />.</p>
-
-<p>The registration process uses email to send you details of how to activate
-your account. You must then check your email and activate your password. Once
-activated you can start to use the registered features of the repository.</p>
-
-<p>If you have already registered but have forgotten your username or password,
-<a href="reset_password">click here</a> to set a new password.</p>
-    </epp:phrase>
-
-
-
-
-
-
-
-    <!-- registration introduction. -->
-    <epp:phrase id="cgi/register:intro">
-<p>You need to register in order to be able to deposit items in the 
-repository. </p>
-
-<p>As a registered user you will be able to manage your items, up to the point
-of submitting them for Editorial Review. If the review is successful your 
-item will be deposited in the repository, if it is unsuccessful it will be 
-returned to you with editorial comments.</p>
-
-<p>In addition to managing your items a registered user can set up
-alert options, so that email notifications are sent when new items 
-are placed in the repository.</p>
-
-<p>Please complete the details on this page to register with <epc:phrase ref="archive_name" />.</p>
-
-<p>The registration process uses email to send you details of how to activate
-your account. You must then check your email and activate your password. Once
-activated you can start to use the registered features of the repository.</p>
-
-<p>If you have already registered but have forgotten your username or password,
-<a href="reset_password">click here</a> to set a new password.</p>
-    </epp:phrase>
-
-
-
-
-
-
 <epp:phrase id="mail_bounce_reason">No reason was given.</epp:phrase>
 
 
@@ -1405,7 +1351,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 <div style="padding: 0.3em; background-color: black; color: white; font-weight: bold;"><epc:pin name="action"/> by <epc:pin name="cause"/> at <epc:pin name="when"/></div>
 <div style="padding: 0.3em; margin-bottom: 2em; border: solid 1px black;"><epc:pin name="details"/></div>
     </epp:phrase>
-    <epp:phrase id="lib/history:xmlblock"><pre style="margin: 0 0 0 0; padding: 3px 3px 3px 3px; border-left: 1px dashed black; border-bottom: 1px dashed black;"><epc:pin name="xml"/></pre></epp:phrase>
+    <epp:phrase id="lib/history:xmlblock"><pre style="margin: 0 0 0 0; padding: 3px 3px 3px 3px; border-left: 1px dashed black; border-bottom: 1px dashed black; font-size: 13px;"><epc:pin name="xml"/></pre></epp:phrase>
     <epp:phrase id="lib/history:no_such_item"><epc:pin name="datasetid"/> <epc:pin name="objectid"/> does not exist. It may have been erased.</epp:phrase>
 
     <epp:phrase id="history_fieldname_action">Action</epp:phrase>
@@ -2262,10 +2208,20 @@ Public CGI Scripts
     <epp:phrase id="cgi/register:intro">
 <p>In order to access some areas of the repository, you'll need a <em>user registration</em>. No charge is made for registering with us or using any of our services.</p>
 <p>This page lets you register with <epc:phrase ref="archive_name" />. This will allow you to save searches, receive alerts and deposit items.</p>
-<p>Your new password  will need to confirm your email address by using a code which will be mailed to you.</p>
+<p>A confirmation email will be sent to you. You need to activate your account using the link in the email.</p>
 <p>If you have already registered but have forgotten your username or password, <a href="reset_password">click here</a> to set a new password.</p>
 </epp:phrase>
-	<epp:phrase id="Plugin/Screen/Register:title">Create Account</epp:phrase>
+
+<!-- this is used for the minimal users who have their username locked to their email address -->
+    <epp:phrase id="cgi/register:intro_minimal">
+<p>As a registered user you will be able to set up saved searches, which are sent when new items are placed in the repository.</p>
+<p>Please complete the details on this page to register with <epc:phrase ref="archive_name" />.</p>
+<p>A confirmation email will be sent to you. You need to activate your account using the link in the email.</p>
+<p>If you have already registered but have forgotten your username or password,
+<a href="reset_password">click here</a> to set a new password.</p>
+    </epp:phrase>
+
+    <epp:phrase id="Plugin/Screen/Register:title">Create Account</epp:phrase>
     <epp:phrase id="cgi/register:action_submit">Register</epp:phrase>
     <epp:phrase id="cgi/register:title">Register</epp:phrase>
     <epp:phrase id="cgi/register:missing_field"><p>You have not filled in the &quot;<epc:pin name="fieldname"/>&quot; field.</p></epp:phrase>
@@ -3981,13 +3937,13 @@ To create a blank EPM entire a new id in the input and click <epc:phrase ref="Pl
 	<epp:phrase id="document_typename_indexcodes">Indexer Terms</epp:phrase>
 	<epp:phrase id="document_typename_text/html">HTML</epp:phrase>
 	<epp:phrase id="document_typename_application/pdf">PDF</epp:phrase>
-        <epp:phrase id="document_typename_application/adobe">PDF</epp:phrase>
+	<epp:phrase id="document_typename_application/adobe">PDF</epp:phrase>
 	<epp:phrase id="document_typename_application/postscript">Postscript</epp:phrase>
 	<epp:phrase id="document_typename_text/plain">Plain Text</epp:phrase>
 	<epp:phrase id="document_typename_application/vnd.ms-powerpoint">Microsoft PowerPoint</epp:phrase>
 	<epp:phrase id="document_typename_application/vnd.ms-excel">Microsoft Excel</epp:phrase>
 	<epp:phrase id="document_typename_application/msword">Microsoft Word</epp:phrase>
-        <epp:phrase id="document_typename_application/vnd.openxmlformats-officedocument.wordprocessingml.document">XML Word Processing Document (DOCX)</epp:phrase>
+	<epp:phrase id="document_typename_application/vnd.openxmlformats-officedocument.wordprocessingml.document">XML Word Processing Document (DOCX)</epp:phrase>
 	<epp:phrase id="document_typename_image/jpeg">Image (JPEG)</epp:phrase>
 	<epp:phrase id="document_typename_image/jpg">Image (JPEG)</epp:phrase>
 	<epp:phrase id="document_typename_image/png">Image (PNG)</epp:phrase>

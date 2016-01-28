@@ -117,10 +117,10 @@ sub output_dataobj
 		{
 			foreach( @{ $data->{$k} } )
 			{
-				$out .= "%$k " . remove_utf8( $_ ) . "\n";
+				$out .= "%$k " . encode_str( $_ ) . "\n";
 			}
 		} else {
-			$out .= "%$k " . remove_utf8( $data->{$k} ) . "\n";
+			$out .= "%$k " . encode_str( $data->{$k} ) . "\n";
 		}
 	}
 	$out .= "\n";
@@ -128,18 +128,19 @@ sub output_dataobj
 	return $out;
 }
 
-sub remove_utf8
+sub encode_str
 {
-	my( $text, $char ) = @_;
+        my( $text, $char ) = @_;
 
-	$char = '?' unless defined $char;
+        return "" unless defined $text;
 
-	$text = "" unless( defined $text );
+        #$text = Encode::encode("iso-8859-1", $text, Encode::FB_DEFAULT);
+        $text = Encode::encode("utf-8", $text, Encode::FB_DEFAULT);
 
-	$text =~ s/[^\x00-\x80]/$char/g;
-
-	return $text;
+        return $text;
 }
+
+
 
 1;
 

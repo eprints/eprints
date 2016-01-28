@@ -3,8 +3,16 @@
 use strict;
 use warnings;
 
-use Test::More tests => 27;
+use Test::More;
 
+if (-e "/etc/centos-release")
+{ 
+    plan skip_all => 'Known issue on centos 6.5+: https://github.com/eprints/eprints/issues/370 '
+}
+else
+{
+    plan tests => 27;
+}
 use EPrints;
 use EPrints::Test;
 
@@ -34,7 +42,7 @@ $secure_url->path( $repo->config( "https_root" ) );
 my $data = "Hello, World!";
 my $atom_data = join '', <DATA>;
 
-my $ua = MyUserAgent->new;
+my $ua = MyUserAgent->new( ssl_opts => { verify_hostname => 0 } );
 $ua->credentials( $base_url->host_port, "*", "admin", "admin" );
 $ua->credentials( $secure_url->host_port, "*", "admin", "admin" );
 

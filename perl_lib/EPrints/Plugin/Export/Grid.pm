@@ -23,6 +23,7 @@ sub new
 	$self->{name} = "Grid (abstract)";
 	$self->{accept} = [ 'dataobj/*', 'list/*', ];
 	$self->{visible} = "none";	
+	$self->{advertise} = 0;	
 	return $self;
 }
 
@@ -57,6 +58,15 @@ sub header_row
 	}
 
 	return @names;
+}
+
+sub output_dataobj
+{
+        my( $plugin, $dataobj ) = @_;	
+
+	# this has to be sub classed in order to be a valid export plugin but is unused
+
+	return;
 }
 
 sub dataobj_to_rows

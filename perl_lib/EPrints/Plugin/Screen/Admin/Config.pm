@@ -83,7 +83,7 @@ sub allow_delete
 {
 	my( $self ) = @_;
 
-	return $self->allow( "config/edit/static" );
+	return $self->allow( "config/delete/static" );
 }
 
 sub action_add_file

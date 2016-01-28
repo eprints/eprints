@@ -33,12 +33,30 @@ EPrints::SystemSettings
 # This file should only be use'd by EPrints::Config
 package EPrints::SystemSettings;
 
-$EPrints::SystemSettings::conf = 
-{
-	'user' => '@INSTALL_USER@',
-	'group' => '@INSTALL_GROUP@',
-	'smtp_server' => '@SMTP_SERVER@',
-};
+$EPrints::SystemSettings::conf = {
+                                   'version' => 'EPrints 3.3.15',
+                                   'version_id' => 'eprints-3.3.15',
+                                   'base_path' => '/opt/eprints3',
+                                   'show_ids_in_log' => 0,
+                                   'group' => 'eprints',
+                                   'version_history' => [
+                                                          'eprints-3.2.3',
+                                                          'eprints-3.3.6',
+                                                          'eprints-3.3.9',
+                                                          'eprints-3.3.10',
+                                                          'eprints-3.3.12',
+                                                          'eprints-3.3.13',
+                                                          'eprints-3.3.14'
+                                                        ],
+                                   'smtp_server' => '127.0.0.1', # sensible default, but may not be valid
+                                   'user' => 'eprints',
+                                   'file_perms' => '0664',
+                                   'invocation' => {},
+                                   'executables' => {
+                                                      'perl' => '/usr/bin/perl'
+                                                    },
+                                   'dir_perms' => '02775'
+                                 };
 
 1;
 

@@ -205,7 +205,7 @@ for(1..$total)
 		publication => rand_publication(),
 		book_title => ($type eq "book_section" ? rand_title() : undef),
 		publisher => ($type =~ /^book/ ? rand_publisher() : undef),
-		thesis_type => ($type eq "thesis" ? "phd" : undef),
+		thesis_type => ($type eq "thesis" ? "doctoral" : undef),
 		institution => rand_institution(),
 		documents => rand_documents(),
 	};

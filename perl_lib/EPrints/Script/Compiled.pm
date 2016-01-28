@@ -546,13 +546,14 @@ sub run_doc_size
 
 	if( !defined $doc->[0] || ref($doc->[0]) ne "EPrints::DataObj::Document" )
 	{
-		$self->runtime_error( "Can only call doc_zie() on document objects not ".
+		$self->runtime_error( "Can only call doc_size() on document objects not ".
 			ref($doc->[0]) );
 	}
 
 	if( !$doc->[0]->is_set( "main" ) )
 	{
-		return 0;
+		# this must be an array ref so it can be passed to human_readable
+		return [0];
 	}
 
 	my %files = $doc->[0]->files;
@@ -629,7 +630,7 @@ sub run_icon
 sub run_human_filesize
 {
 	my( $self, $state, $size_in_bytes ) = @_;
-
+	return [ EPrints::Utils::human_filesize( 0 ), "INTEGER" ] if not ($size_in_bytes); ##check if the $size_in_bytes is defined. (reduces warnings)
 	return [ EPrints::Utils::human_filesize( $size_in_bytes->[0] || 0 ), "INTEGER" ];
 }
 

@@ -142,8 +142,8 @@ sub document
 {
 	my( $r ) = @_;
 
-	# e.g. ignore 304 NOT MODIFIED
-	if( $r->status != 200 )
+	# COUNTER compliance specifies 200 and 304
+	if( $r->status != 200 && $r->status != 304 )
 	{
 		return DECLINED;
 	}
