@@ -507,7 +507,7 @@ sub new
 		{
 			foreach my $fielddata ( $oclass->get_system_field_info() )
 			{
-				$self->process_field( $fielddata, 1 );
+				$self->_process_field( $fielddata, 1 );
 			}
 		}
 		my $repository_fields = $repository->get_conf( "fields", $self->{confid} );
@@ -515,7 +515,7 @@ sub new
 		{
 			foreach my $fielddata ( @{$repository_fields} )
 			{
-				$self->process_field( $fielddata, 0 );
+				$self->_process_field( $fielddata, 0 );
 			}
 		}
 
@@ -570,7 +570,7 @@ sub base_id
 
 =begin InternalDoc
 
-=item $field = $ds->process_field( $data [, $system ] )
+=item $field = $ds->_process_field( $data [, $system ] )
 
 Creates a new field in this dataset based on $data. If $system is true defines
 the new field as a "core" field.
@@ -579,7 +579,7 @@ the new field as a "core" field.
 
 =cut
 
-sub process_field
+sub _process_field
 {
 	my( $self, $fielddata, $system ) = @_;
 
