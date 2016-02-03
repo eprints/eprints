@@ -1,7 +1,8 @@
 #!/usr/bin/perl
 
-use Test::More tests => 15;
+use Test::More tests => 39;
 use Test::MockObject;
+use Data::Compare;
 use Data::Dumper;
 
 use strict;
@@ -49,6 +50,9 @@ $repo->mock("log", sub {
 
 $repo->set_always("get_field_defaults", undef);
 $repo->set_true("set_field_defaults");
+
+my $non_existant_field = Test::MockObject->new();
+$non_existant_field->set_always("get_name","NONEXISTANT");
 
 {
 package EPrints::DataObj::FakeObj;
@@ -141,21 +145,60 @@ my $search_fields_config = join(":", @{$ds->search_config( "simple" )->{search_f
 my $search_fields_from_sub = join(":", @{$ds->_simple_search_config->{search_fields}->[0]->{meta_fields}});
 
 ok( $search_fields_config eq $search_fields_from_sub, "search_config returns _simple_search_config when not defined in repository config" );
-
-
-
 #TODO add a mock to test what this does when a search conf is found and etc etc for all the other slightly odd behaviour
+
+my @filters = $ds->get_filters();
+
+ok(scalar @filters == 0, "filters are null on a non-virtual dataset");
+# virutal version of this test
+
+ok($ds->repository->log("mock repository") , "repository returns the mocked repository");
+
+my @fields = $ds->fields;
+my $title_field = $ds->field("title");
+
+$ds->unregister_field($non_existant_field);
+my @fields_after_unregister = $ds->fields;
+ok( Compare(\@fields, \@fields_after_unregister), "removing a field which doesnt exist does nothing" );
+
+$ds->unregister_field($title_field);
+
+ok( !defined $ds->field("title"), "the list of fields are different after a real field is removed" );
+
+ok( !defined $ds->get_datestamp_field, "datestamp field is not defined when it was not passed is as a property" );
+
+my $sql_name = "bacon";
+my $dataset_id_field = "pork";
+my $ds = EPrints::DataSet->new( 
+	repository=>$repo, name=>$set_name, type=>$set_object, sqlname=>$sql_name, 
+	virtual=>1, dataset_id_field=>$dataset_id_field, datestamp=>"title"
+);
+
+ok($ds->get_sql_table_name eq $sql_name, "table name is same as parent setname");
+
+ok($ds->get_sql_index_table_name eq $sql_name."__index", "index table is correctly derrived from the sql name");
+
+ok($ds->get_sql_grep_table_name eq $sql_name."__index_grep", "index grep table is correctly derrived from the sql name");
+
+ok($ds->get_sql_rindex_table_name eq $sql_name."__rindex", "rindex table is correctly derrived from the sql name");
+
+my $lang_id = "en";
+ok($ds->get_ordervalues_table_name($lang_id) eq $sql_name."__ordervalues_".$lang_id, "language specific ordervalues table is correctly derrived from the sql name");
+
+ok( $ds->get_dataset_id_field eq $dataset_id_field, "dataset id field was stored correctly at initialisation" );
+
+ok( $ds->get_datestamp_field->get_name eq "title", "initialised datestamp field is returned" );
 
 sub dataset_info_ok
 {
 	my ( $info ) = @_;
 	
-	my $problem = 1;
+	my $ok = 1;
 	foreach my $key (keys %{$info})
 	{
-		$problem = 0 if !defined($info->{$key}->{sqlname});
+		$ok = 0 if !defined($info->{$key}->{sqlname});
 	}
-	return $problem;
+	return $ok;
 }
 
 #TESTED
@@ -178,27 +221,25 @@ sub dataset_info_ok
 #sub indexable
 #sub search_config
 #sub register_field
-
-#TO TEST
-#sub unregister_field
-#sub count
+#sub get_filters
 #sub get_sql_table_name
 #sub get_sql_index_table_name
 #sub get_sql_grep_table_name
+#sub repository
+#sub unregister_field
 #sub get_sql_rindex_table_name
 #sub get_ordervalues_table_name
 #sub get_sql_sub_table_name
+#sub get_dataset_id_field
+#sub get_datestamp_field
+
+#TO TEST
+#sub count
 #sub get_object_from_uri
 #sub render_name
 #sub map
-#sub repository
 #sub reindex
-#sub get_dataset_ids
-#sub get_sql_dataset_ids
 #sub get_item_ids
-#sub get_dataset_id_field
-#sub get_filters
-#sub get_datestamp_field
 #sub search
 #sub columns
 #sub run_trigger
@@ -206,6 +247,8 @@ sub dataset_info_ok
 
 
 #DEPRECATE these....
+#sub get_dataset_ids
+#sub get_sql_dataset_ids
 #sub get_object_class { &dataobj_class }
 #sub get_archive { &repository }
 #sub get_repository { &repository }
