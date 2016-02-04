@@ -169,7 +169,7 @@ ok( !defined $ds->get_datestamp_field, "datestamp field is not defined when it w
 
 my $sql_name = "bacon";
 my $dataset_id_field = "pork";
-my $ds = EPrints::DataSet->new( 
+$ds = EPrints::DataSet->new( 
 	repository=>$repo, name=>$set_name, type=>$set_object, sqlname=>$sql_name, 
 	virtual=>1, dataset_id_field=>$dataset_id_field, datestamp=>"title"
 );
