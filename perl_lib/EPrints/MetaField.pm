@@ -1258,20 +1258,13 @@ sub render_input_field_actual
 			$tr->appendChild( $th );
 		}
 
-		if( !defined $col_titles )
+		foreach my $col_title ( @{$col_titles} )
 		{
-			$th = $session->make_element( "th", class=>"empty_heading", id=>$basename."_th_".$x++ );
+			$th = $session->make_element( "th", id=>$basename."_th_".$x++ );
+			$th->appendChild( $col_title );
 			$tr->appendChild( $th );
-		}	
-		else
-		{
-			foreach my $col_title ( @{$col_titles} )
-			{
-				$th = $session->make_element( "th", id=>$basename."_th_".$x++ );
-				$th->appendChild( $col_title );
-				$tr->appendChild( $th );
-			}
 		}
+
 		$table->appendChild( $tr );
 	}
 
