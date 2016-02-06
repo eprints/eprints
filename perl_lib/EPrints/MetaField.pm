@@ -1853,18 +1853,6 @@ sub get_value_label
 	return $session->make_text( $value );
 }
 
-
-
-#	if( $self->is_type( "id" ) )
-#	{
-#		return $session->get_repository->call( 
-#			"id_label", 
-#			$self, 
-#			$session, 
-#			$value );
-#	}
-
-
 ######################################################################
 =pod
 
