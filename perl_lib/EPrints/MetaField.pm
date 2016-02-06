@@ -550,15 +550,7 @@ sub form_value
 {
 	my( $self, $session, $object, $prefix ) = @_;
 
-	my $basename;
-	if( defined $prefix )
-	{
-		$basename = $prefix."_".$self->{name};
-	}
-	else
-	{
-		$basename = $self->{name};
-	}
+	my $basename = $self->basename($prefix);
 
 	my $value = $self->form_value_actual( $session, $object, $basename );
 
@@ -1458,16 +1450,9 @@ Returns true if this field has an internal action.
 
 sub has_internal_action
 {
-	my( $self, $basename ) = @_;
+	my( $self, $prefix ) = @_;
 
-	if( defined $basename )
-	{
-		$basename .= "_" . $self->{name}
-	}
-	else
-	{
-		$basename = $self->{name};
-	}
+	my $basename = $self->basename($prefix);
 
 	my $ibutton = $self->{repository}->get_internal_button;
 	return
@@ -1490,16 +1475,9 @@ Returns "" if no parameters are required.
 
 sub get_state_params
 {
-	my( $self, $session, $basename ) = @_;
+	my( $self, $session, $prefix ) = @_;
 
-	if( defined $basename )
-	{
-		$basename .= "_" . $self->{name}
-	}
-	else
-	{
-		$basename = $self->{name};
-	}
+	my $basename = $self->basename($prefix);
 
 	my $params = "";
 
@@ -2538,20 +2516,20 @@ sub validate
 
 sub basename 
 {
-  my ( $self, $prefix ) = @_;
+	my ( $self, $prefix ) = @_;
 
-  my $basename;
+	my $basename;
 
-  if( defined $prefix )
-    {
-      $basename = $prefix."_".$self->{name};
-    }
-  else
-    {
-      $basename = $self->{name};
-    }
+	if( defined $prefix )
+	{
+		$basename = $prefix."_".$self->{name};
+	}
+	else
+	{
+		$basename = $self->{name};
+	}
 
-  return $basename;
+	return $basename;
 }
 
 
