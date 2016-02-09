@@ -35,7 +35,7 @@ Set the time-window (in seconds) used to filter repeated requests.
 
 =item --until <date>
 
-Filter upto and including <date> (in YYYY-MM-DD format).
+Filter up to and including <date> (in YYYY-MM-DD format).
 
 =back
 
