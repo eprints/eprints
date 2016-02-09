@@ -1515,12 +1515,12 @@ Return a given L<EPrints::DataSet> or undef if it doesn't exist.
 ######################################################################
 
 sub get_dataset { return dataset( @_ ); }
-sub dataset($$)
+sub dataset($$;$)
 {
-	my( $self , $setname ) = @_;
+	my( $self, $setname, $quiet ) = @_;
 
 	my $ds = $self->{datasets}->{$setname};
-	if( !defined $ds )
+	if( !defined $ds && !$quiet )
 	{
 		$self->log( "Unknown dataset: ".$setname );
 	}
