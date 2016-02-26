@@ -1539,7 +1539,7 @@ sub render
 		{
 			$dom->appendChild(
 				$self->{session}->html_phrase(
-					"lib/eprint:earlier_version",
+					"lib/eprint:replaced_version",
 					citation => $antecendent->render_citation_link ) );
 		}
 	}
