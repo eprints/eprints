@@ -148,13 +148,19 @@ sub make_name_string
 		$secondbit .= " ".$name->{lineage};
 	}
 
-	
-	if( defined $familylast && $familylast )
+	if( $firstbit && $secondbit )
 	{
-		return $firstbit." ".$secondbit;
+		if( defined $familylast && $familylast )
+		{
+			return $firstbit." ".$secondbit;
+		}
+		return $secondbit.", ".$firstbit;
 	}
-	
-	return $secondbit.", ".$firstbit;
+	else
+	{
+		# one of these will have text
+		return $firstbit.$secondbit;
+	}
 }
 
 
