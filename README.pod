@@ -13,6 +13,12 @@ GNU EPrints README
 
 For more information see B<http://www.eprints.org/software/>.
 
+NOTE: 
+	
+*The 3.3 branch should be considered as the new "master" branch now. * 
+	
+*The master branch is no longer maintained. (A merge could not be performed automatically due to different code paths.)*
+
 =head1 DESCRIPTION
 
 EPrints is a document management system aimed at Higher Educational
