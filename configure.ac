@@ -1,9 +1,5 @@
-AC_INIT()
-
-PACKAGE=eprints
-VERSION=m4_esyscmd([grep \$VERSION perl_lib/EPrints.pm | sed 's/.*\([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/' | tr -d '\n'])
-
-AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
+AC_INIT(eprints, m4_esyscmd([grep \$VERSION perl_lib/EPrints.pm | sed 's/.*\([0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/' | tr -d '\n']))
+AM_INIT_AUTOMAKE
 
 DIST_PATH=`pwd`
 INSTALL_USER=eprints
