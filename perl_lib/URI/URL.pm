@@ -144,7 +144,7 @@ sub query {
 		Carp::croak("$mess (you must call equery)");
 	    }
 	}
-	# Now it should be safe to unescape the string without loosing
+	# Now it should be safe to unescape the string without losing
 	# information
 	return uri_unescape($old);
     }

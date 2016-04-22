@@ -290,7 +290,7 @@ sub get_search_conditions
 		$noskip = 2;
 		if( length $gpart == 1 )
 		{
-			# inital
+			# initial
 			foreach my $l ( @{$list} )
 			{
 				$l .= '['.$gpart.'%';
@@ -444,7 +444,7 @@ sub normalise_initials
 {
 	my ($str) = @_;
 
-	# Separate upto 3 capitalised initials
+	# Separate up to 3 capitalised initials
 	# JR Tolkein => J R Tolkein
 	# WORDSWORTH => WORDSWORTH
 	$str =~ s/\b(\p{Uppercase}{2,3})\b/join ' ', split '', $1/eg;

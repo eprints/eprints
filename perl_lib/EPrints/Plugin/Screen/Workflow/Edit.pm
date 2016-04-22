@@ -84,7 +84,7 @@ sub from
 
 		$self->workflow->set_stage( $jump_to );
 
-		# not checking that this succeded. Maybe we should.
+		# not checking that this succeeded. Maybe we should.
 		return;
 	}
 

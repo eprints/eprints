@@ -78,7 +78,7 @@ sub get_file_from_uri {
 
         my $ua = get_user_agent(undef);
 
-        open(FILE, ">", "$file" ) or die('cant open input file');
+        open(FILE, ">", "$file" ) or die("can't open input file");
         binmode FILE;
 
         my $h;
@@ -295,7 +295,7 @@ sub deposit_file {
 
 	return undef if (!defined $url);
 
-	open(FILE, "$filepath" ) or die('cant open input file');
+	open(FILE, "$filepath" ) or die("can't open input file");
 	binmode FILE;
 
 	my $ua = get_user_agent();

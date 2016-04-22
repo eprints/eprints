@@ -130,7 +130,7 @@ Show items that have no value(s) for the selected field.
 
 =item cloud
 
-Render a "Tag Cloud" of links, where the individual links are scaled by their frequency of occurence.
+Render a "Tag Cloud" of links, where the individual links are scaled by their frequency of occurrence.
 
 =item cloudmin = 80, cloudmax = 200
 

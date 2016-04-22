@@ -144,7 +144,7 @@ sub render_input_field_actual
 	$default = [ $value ] unless( $self->get_property( "multiple" ) );
 	$default = [] if( !defined $value );
 
-	# called as a seperate function because subject does this
+	# called as a separate function because subject does this
 	# bit differently, and overrides render_set_input.
 	return $self->render_set_input( $session, $default, $required, $obj, $basename );
 }
