@@ -179,7 +179,7 @@ Filter definitions take the form of:
 like normal search fields except that they do not appear in the web form
 so force certain search parameters on the user.
 
-An optional parameter of describe=>0 can be set to supress the filter
+An optional parameter of describe=>0 can be set to suppress the filter
 being mentioned in the description of the search.
 
 =back
@@ -548,7 +548,7 @@ sub serialise
 	foreach( @parts )
 	{
 		# clone the string, so we can escape it without screwing
-		# up the origional.
+		# up the original.
 		my $bit = $_;
 		$bit="" unless defined( $bit );
 		$bit =~ s/[\\\|]/\\$&/g; 

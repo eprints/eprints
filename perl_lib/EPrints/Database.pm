@@ -475,7 +475,7 @@ sub create_dataset_tables
 		$rv &&= $self->create_table( $main_table, 1, @main_fields );
 	}
 
-	# Create the auxillary tables
+	# Create the auxiliary tables
 	foreach my $field (@aux_fields)
 	{
 		my $table = $dataset->get_sql_sub_table_name( $field );
@@ -2316,7 +2316,7 @@ sub get_index_ids
 =item $ids = $db->search( $keyfield, $tables, $conditions, [$main_table_alias] )
 
 Return a reference to an array of ids - the results of the search
-specified by $conditions accross the tables specified in the $tables
+specified by $conditions across the tables specified in the $tables
 hash where keys are tables aliases and values are table names. 
 
 If no table alias is passed then M is assumed. 
@@ -2890,7 +2890,7 @@ sub _get
 		{
 			my( $id, $pos ) = splice(@values,0,2);
 			my $n = $lookup{ $id };
-			next unless defined $n; # junk data in auxillary tables?
+			next unless defined $n; # junk data in auxiliary tables?
 			$data[$n]->{$fn}->[$pos] = 
 				$multifield->value_from_sql_row( $self->{session}, \@values );
 		}
@@ -3376,7 +3376,7 @@ sub add_field
 	return $rc;
 }
 
-# Split a sql type definition into its constituant columns
+# Split a sql type definition into its constituent columns
 sub _split_sql_type
 {
 	my( $sql ) = @_;
@@ -4418,7 +4418,7 @@ sub get_driver_name
 
 =item @events = $db->dequeue_events( $n )
 
-Attempt to dequeue upto $n events. May return between 0 and $n events depending on parallel processes and how many events are remaining on the queue.
+Attempt to dequeue up to $n events. May return between 0 and $n events depending on parallel processes and how many events are remaining on the queue.
 
 =cut
 

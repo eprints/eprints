@@ -165,7 +165,7 @@ sub stop_worker
 	if( $self->is_worker_running )
 	{
 		# terminate stops the indexer dead
-		$self->log( 1, "** Worker failed to respond to INTERUPT, terminating" );
+		$self->log( 1, "** Worker failed to respond to INTERRUPT, terminating" );
 		$self->{worker}->Kill( 0 );
 	}
 

@@ -52,7 +52,7 @@ sub from
 			return;
 		}
 
-		# not checking that this succeded. Maybe we should.
+		# not checking that this succeeded. Maybe we should.
 		$self->{processor}->{screenid} = "EPrint::Edit";
 		$self->workflow->set_stage( $jump_to );
 		return;

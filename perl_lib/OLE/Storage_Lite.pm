@@ -496,7 +496,7 @@ sub _savePpsSetPnt2($$$)
       push @$raList, $aThis->[$iPos];
       $aThis->[$iPos]->{No} = $#$raList;
 
-#1.3.2 Devide a array into Previous,Next
+#1.3.2 Divide an array into Previous, Next
       $aThis->[$iPos]->{NextPps} = _savePpsSetPnt2(
             \@aNext, $raList, $rhInfo);
       $aThis->[$iPos]->{DirPps} = _savePpsSetPnt2($aThis->[$iPos]->{Child}, $raList, $rhInfo);
@@ -532,7 +532,7 @@ sub _savePpsSetPnt2s($$$)
       push @$raList, $aThis->[$iPos];
       $aThis->[$iPos]->{No} = $#$raList;
       my @aWk = @$aThis;
-#1.3.2 Devide a array into Previous,Next
+#1.3.2 Divide an array into Previous, Next
       my @aPrev = splice(@aWk, 0, $iPos);
       my @aNext = splice(@aWk, 1, $iCnt - $iPos -1);
       $aThis->[$iPos]->{PrevPps} = _savePpsSetPnt2(
@@ -571,7 +571,7 @@ sub _savePpsSetPnt($$$)
       push @$raList, $aThis->[$iPos];
       $aThis->[$iPos]->{No} = $#$raList;
       my @aWk = @$aThis;
-#1.3.2 Devide a array into Previous,Next
+#1.3.2 Divide an array into Previous, Next
       my @aPrev = splice(@aWk, 0, $iPos);
       my @aNext = splice(@aWk, 1, $iCnt - $iPos -1);
       $aThis->[$iPos]->{PrevPps} = _savePpsSetPnt(
@@ -610,7 +610,7 @@ sub _savePpsSetPnt1($$$)
       push @$raList, $aThis->[$iPos];
       $aThis->[$iPos]->{No} = $#$raList;
       my @aWk = @$aThis;
-#1.3.2 Devide a array into Previous,Next
+#1.3.2 Divide an array into Previous, Next
       my @aPrev = splice(@aWk, 0, $iPos);
       my @aNext = splice(@aWk, 1, $iCnt - $iPos -1);
       $aThis->[$iPos]->{PrevPps} = _savePpsSetPnt(
@@ -1559,7 +1559,7 @@ C<$raTime1st>, C<$raTime2nd> are array refs with ($iSec, $iMin, $iHour, $iDay, $
 $iSec means seconds, $iMin means minutes. $iHour means hours.
 $iDay means day. $iMon is month -1. $iYear is year - 1900.
 
-C<$raChild> is a array ref of children PPSs.
+C<$raChild> is an array ref of children PPSs.
 
 
 =head2 save()
@@ -1594,12 +1594,12 @@ Constructor.
 
 C<$sName> is a name of the PPS.
 
-C<$raTime1st>, C<$raTime2nd> is a array ref as
+C<$raTime1st>, C<$raTime2nd> is an array ref as
 ($iSec, $iMin, $iHour, $iDay, $iMon, $iYear).
 $iSec means seconds, $iMin means minutes. $iHour means hours.
 $iDay means day. $iMon is month -1. $iYear is year - 1900.
 
-C<$raChild> is a array ref of children PPSs.
+C<$raChild> is an array ref of children PPSs.
 
 
 =head1 OLE::Storage_Lite::PPS::File

@@ -2021,7 +2021,7 @@ as key-value pairs have no inherent ordering in Perl.
 
 This setting has no effect when decoding JSON texts.
 
-If you want your own sorting routine, you can give a code referece
+If you want your own sorting routine, you can give a code reference
 or a subroutine name to C<sort_by>. See to C<JSON::PP OWN METHODS>.
 
 =head2 allow_nonref
