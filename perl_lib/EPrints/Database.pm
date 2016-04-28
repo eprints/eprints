@@ -4171,7 +4171,7 @@ sub get_tables
 
 =item $version = $db->get_version
 
-Return the version of eprints which the database is compatable with
+Return the version of eprints which the database is compatible with
 or undef if unknown (before v2.1).
 
 =cut
