@@ -1094,7 +1094,7 @@ sub _add_node_to_xml
 			($element->parentNode())->insertAfter($node,$element);
 			return 1;
 		}
-		if ($match_type eq "disbale") {
+		if ($match_type eq "disable") {
 			$element->setAttribute("disabled",1);
 			$element->setAttribute("disabled_by",$id);
 			$node->setAttribute("required_by",$id);
