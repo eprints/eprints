@@ -55,6 +55,18 @@ EOC
 </VirtualHost>
 EOC
 		}
+		elsif( $aliasinfo->{redirect} )
+		{
+			my $mode = $aliasinfo->{redirect};
+			my $vname = $aliasinfo->{name};
+			$conf .= <<EOC;
+
+# Redirect to the correct hostname
+<VirtualHost $virtualhost:$port>
+  ServerName $vname
+  Redirect $mode / http://$hostport/
+</VirtualHost>
+EOC
 		else
 		{
 			$aliases.="  ServerAlias ".$aliasinfo->{name}."\n";
