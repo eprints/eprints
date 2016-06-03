@@ -23,7 +23,7 @@ It should not be confused with MetaField.
 
 It can search over several metadata fields, and the value of the
 value of the search field is usually a string containing a list of
-whitespace seperated words, or other search criteria.
+whitespace separated words, or other search criteria.
 
 A search field has four key parameters:
 

@@ -3182,7 +3182,7 @@ L<Mail::Address|Mail::Address>, L<MIME::Base64|MIME::Base64>,
 L<MIME::QuotedPrint|MIME::QuotedPrint>.
 
 If they aren't present then some functionality won't work, and other features
-wont be as efficient or up to date as they could be. Nevertheless they are optional
+won't be as efficient or up to date as they could be. Nevertheless they are optional
 extras.
 
 =head1 BUNDLED GOODIES
@@ -3195,7 +3195,7 @@ The ./examples directory contains a number of snippets in prepared
 form, generally they are documented, but they should be easy to understand.
 
 The ./contrib directory contains a companion/tool modules that come bundled
-with MIME::Lite, they dont get installed by default. Please review the POD they
+with MIME::Lite, they don't get installed by default. Please review the POD they
 come with.
 
 =head1 BUGS
@@ -3216,8 +3216,8 @@ please include the output of the relevant file. This is the only redeeming featu
 of not using Test::More that I can see.
 
 Bug fixes / Patches / Contribution are welcome, however I probably won't apply them
-unless they also have an associated test. This means that if I dont have the time to
-write the test the patch wont get applied, so please, include tests for any patches
+unless they also have an associated test. This means that if I don't have the time to
+write the test the patch won't get applied, so please, include tests for any patches
 you provide.
 
 =head1 VERSION

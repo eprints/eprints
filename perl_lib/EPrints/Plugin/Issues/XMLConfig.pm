@@ -65,7 +65,7 @@ sub is_available
 
 # return an array of issues. Issues should be of the type
 # { description=>XHTML String, type=>string }
-# if one item can have multiple occurances of the same issue type then add
+# if one item can have multiple occurrences of the same issue type then add
 # an id field too. This only need to be unique within the item.
 sub item_issues
 {

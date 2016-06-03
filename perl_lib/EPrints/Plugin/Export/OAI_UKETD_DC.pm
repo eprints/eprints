@@ -195,7 +195,7 @@ sub eprint_to_uketd_dc
 				push @etddata, [ "creator", EPrints::Utils::make_name_string( $creator ), "dc" ];
 			}
 		}
-		if( $eprint->exists_and_set("subjects")) ##Check for existance before accessing. jy2e08
+		if( $eprint->exists_and_set("subjects")) ##Check for existence before accessing. jy2e08
 		{
 			my $subjectid;
 			foreach $subjectid ( @{$eprint->get_value( "subjects" )} )

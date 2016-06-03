@@ -881,7 +881,7 @@ sub _can_do_level {
       foreach my $file (@files) {
         # close the filehandle without checking its state
         # in order to make real sure that this is closed
-        # if its already closed then I dont care about the answer
+        # if its already closed then I don't care about the answer
         # probably a better way to do this
         close($file->[0]);      # file handle is [0]
 
@@ -2230,7 +2230,7 @@ simply examine the return value of C<safe_level>.
       if (($level != STANDARD) && ($level != MEDIUM) && ($level != HIGH)) {
         carp "safe_level: Specified level ($level) not STANDARD, MEDIUM or HIGH - ignoring\n" if $^W;
       } else {
-        # Dont allow this on perl 5.005 or earlier
+        # Don't allow this on perl 5.005 or earlier
         if ($] < 5.006 && $level != STANDARD) {
           # Can't do MEDIUM or HIGH checks
           croak "Currently requires perl 5.006 or newer to do the safe checks";

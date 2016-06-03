@@ -29,7 +29,7 @@ sub new
 { place => "eprint_actions_bar_archive", action => "move_buffer", position => 100, },
 { place => "eprint_actions_bar_archive", action => "move_deletion", position => 100, },
 { place => "eprint_actions_bar_deletion", action => "move_archive", position => 100, },
-{ place => "eprint_review_actions", action => "move_archive", postion => 200, },
+{ place => "eprint_review_actions", action => "move_archive", position => 200, },
 	];
 	$self->{action_icon} = { move_archive => "action_approve.png" };
 
