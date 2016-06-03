@@ -394,7 +394,7 @@ sub param
 
         if( defined $name )
         {
-                @result = $self->{query}->param( $name );
+                @result = $self->{query}->multi_param( $name );
         }
         else
         {
