@@ -245,6 +245,7 @@ sub get_last_tick
 }
 
 # true if we've been asked to exit
+sub interupted { &interrupted }
 sub interrupted
 {
 	my( $self ) = @_;
