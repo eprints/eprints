@@ -29,6 +29,7 @@ package EPrints::Email;
 use MIME::Lite;
 use LWP::MediaTypes qw( guess_media_type );
 use Encode; # required for MIME-Header support
+use URI::Escape; # required for complex strings in reply-to 
 
 use strict;
 
@@ -265,7 +266,7 @@ sub build_email
 
 	if( defined $p{replyto_email} )
 	{
-		$mimemsg->attr( "Reply-to" => "$p{replyto_name} <$p{replyto_email}>" );
+		$mimemsg->attr( "Reply-to" => uri_escape($p{replyto_name})." <$p{replyto_email}>" );
 	}
 	$mimemsg->replace( "X-Mailer" => "EPrints http://eprints.org/" );
 
