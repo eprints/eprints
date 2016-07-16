@@ -41,7 +41,7 @@ Return an XHTML DOM object of the contents of $value. In the case of
 an error parsing the XML in $value return an XHTML DOM object 
 describing the problem.
 
-This is intented to be used by the render_single_value metadata 
+This is intended to be used by the render_single_value metadata
 field option, as an alternative to the default text renderer. 
 
 This allows through any XML element, so could cause problems if

@@ -70,7 +70,7 @@ Id of the object requested.
 
 =item referent_docid
 
-Id of the document requested (if relevent).
+Id of the document requested (if relevant).
 
 =back
 

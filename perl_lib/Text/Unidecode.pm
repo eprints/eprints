@@ -133,7 +133,7 @@ Unidecode's ability to transliterate is limited by two factors:
 
 So if you have Hebrew data
 that has no vowel points in it, then Unidecode cannot guess what
-vowels should appear in a pronounciation.
+vowels should appear in a pronunciation.
 S f y hv n vwls n th npt, y wn't gt ny vwls
 n th tpt.  (This is a specific application of the general principle
 of "Garbage In, Garbage Out".)
@@ -223,7 +223,7 @@ characters -- i.e., characters 0x0000 - 0x007F.
 
 All Unicode characters translate to a sequence of (any number of)
 characters that are newline ("\n") or in the range 0x0020-0x007E.  That
-is, no Unicode character translates to "\x01", for example.  (Altho if
+is, no Unicode character translates to "\x01", for example.  (Although if
 you have a "\x01" on input, you'll get a "\x01" in output.)
 
 =item *
@@ -263,7 +263,7 @@ no matter what the surrounding character are.
 
 The main reason I'm making Text::Unidecode work with only
 context-insensitive substitution is that it's fast, dumb, and
-straightforward enough to be feasable.  It doesn't tax my
+straightforward enough to be feasible.  It doesn't tax my
 (quite limited) knowledge of world languages.  It doesn't require
 me writing a hundred lines of code to get the Thai syllabification
 right (and never knowing whether I've gotten it wrong, because I

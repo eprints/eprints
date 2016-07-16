@@ -1334,7 +1334,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
     <epp:phrase id="lib/eprint:eprint_gone_title">Item Removed</epp:phrase>
     <epp:phrase id="lib/eprint:eprint_gone"><p>You seem to be attempting to access an item that has been removed from the repository.</p></epp:phrase>
     <epp:phrase id="lib/eprint:later_version"><p>There is a later version of the item you are trying to access:<br/><epc:pin name="citation"/></p></epp:phrase>
-    <epp:phrase id="lib/eprint:replaced_version"><p>There is an alternative version of the item you are trying to access:<br/><epc:pin name="citation"/></p></epp:phrase>
+    <epp:phrase id="lib/eprint:replaced_version"><p>There is an earlier version of the item you are trying to access:<br/><epc:pin name="citation"/></p></epp:phrase>
     <epp:phrase id="lib/eprint:curr_disp"><strong>[Currently Displayed]</strong></epp:phrase>
     <epp:phrase id="lib/eprint:not_locked">Not currently locked.</epp:phrase>
     <epp:phrase id="lib/eprint:locked">Locked by <epc:pin name='locked_by' /> until <epc:pin name='locked_until' /></epp:phrase>
@@ -2510,8 +2510,8 @@ Titles and Help for the System Fields
     <epp:phrase id="document_fieldhelp_license">Specify an explicit license for this document (does not affect the access rights you grant at the end of this deposit process). This repository allows <a href="http://creativecommons.org/about/licenses/" target="_blank">Creative Commons</a> licenses.</epp:phrase>
     <epp:phrase id="document_fieldname_date_embargo">Embargo expiry date</epp:phrase>
     <epp:phrase id="document_fieldhelp_date_embargo">The date that a publisher- or sponsor-imposed embargo expires. On and after this date, this document will be made publicly accessible.
-<br/>Example: <span class="ep_form_example">2014 - all documents made publicly accessible on 1st January 2014</span>
-<br/>Example: <span class="ep_form_example">2014 June - all documents made publicly accessible on 1st June 2014</span>
+<br/>Example: <span class="ep_form_example">2016 - document made publicly accessible on 1st January 2017</span>
+<br/>Example: <span class="ep_form_example">2016 June - document made publicly accessible on 1st July 2016</span>
 </epp:phrase>
     <epp:phrase id="document_fieldname_relation">Relationships</epp:phrase>
     <epp:phrase id="document_fieldhelp_relation">This field describes relationships this document has to other entities. Ideally, use URIs for the target identifier.</epp:phrase>

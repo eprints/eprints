@@ -96,7 +96,7 @@ sub process
 }
 
 #
-# Started working on this, targetted clients don't need it, never finished.
+# Started working on this, targeted clients don't need it, never finished.
 #
 
 # sub proppatch

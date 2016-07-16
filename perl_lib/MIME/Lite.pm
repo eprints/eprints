@@ -1416,9 +1416,9 @@ with set() or replace().  Returns the text of the field.
     $ml->get('Subject', 0);
 
 If the optional 0-based INDEX is given, then we return the INDEX'th
-occurence of field TAG.  Otherwise, we look at the context:
-In a scalar context, only the first (0th) occurence of the
-field is returned; in an array context, I<all> occurences are returned.
+occurrence of field TAG.  Otherwise, we look at the context:
+In a scalar context, only the first (0th) occurrence of the
+field is returned; in an array context, I<all> occurrences are returned.
 
 I<Warning:> this should only be used with non-MIME fields.
 Behavior with MIME fields is TBD, and will raise an exception for now.
@@ -1547,7 +1547,7 @@ sub preamble {
 =item replace TAG,VALUE
 
 I<Instance method.>
-Delete all occurences of fields named TAG, and add a new
+Delete all occurrences of fields named TAG, and add a new
 field with the given VALUE.  TAG is converted to all-lowercase.
 
 B<Beware> the special MIME fields (MIME-version, Content-*):
@@ -3182,7 +3182,7 @@ L<Mail::Address|Mail::Address>, L<MIME::Base64|MIME::Base64>,
 L<MIME::QuotedPrint|MIME::QuotedPrint>.
 
 If they aren't present then some functionality won't work, and other features
-wont be as efficient or up to date as they could be. Nevertheless they are optional
+won't be as efficient or up to date as they could be. Nevertheless they are optional
 extras.
 
 =head1 BUNDLED GOODIES
@@ -3195,7 +3195,7 @@ The ./examples directory contains a number of snippets in prepared
 form, generally they are documented, but they should be easy to understand.
 
 The ./contrib directory contains a companion/tool modules that come bundled
-with MIME::Lite, they dont get installed by default. Please review the POD they
+with MIME::Lite, they don't get installed by default. Please review the POD they
 come with.
 
 =head1 BUGS
@@ -3203,7 +3203,7 @@ come with.
 The whole reason that version 3.0 was released was to ensure that MIME::Lite
 is up to date and patched. If you find an issue please report it.
 
-As far as I know MIME::Lite doesnt currently have any serious bugs, but my usage
+As far as I know MIME::Lite doesn't currently have any serious bugs, but my usage
 is hardly comprehensive.
 
 Having said that there are a number of open issues for me, mostly caused by the progress
@@ -3212,12 +3212,12 @@ interesting but non standard test framework. I'd like to change it over to using
 Test::More.
 
 Should tests fail please review the ./testout directory, and in any bug reports
-please include the output of the relevent file. This is the only redeeming feature
+please include the output of the relevant file. This is the only redeeming feature
 of not using Test::More that I can see.
 
 Bug fixes / Patches / Contribution are welcome, however I probably won't apply them
-unless they also have an associated test. This means that if I dont have the time to
-write the test the patch wont get applied, so please, include tests for any patches
+unless they also have an associated test. This means that if I don't have the time to
+write the test the patch won't get applied, so please, include tests for any patches
 you provide.
 
 =head1 VERSION

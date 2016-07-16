@@ -451,6 +451,7 @@ sub convert_input
 	# type
 	if( $type eq "TECHREPORT")
 	{
+		# !See note for monograph_type in _decode_bibtex sub below
 		# TODO: regexps
 		#$epdata->{monograph_type} = $fields->{""} if exists $fields->{""};
 	}
@@ -525,7 +526,8 @@ sub _decode_bibtex
 	{
 		while( my($k,$v) = each(%$epdata) )
 		{
-			next if( $k eq 'type' );
+			next if( $k eq 'type' ); # always defined in convert_input. Never passed as raw BibTeX
+			next if( $k eq 'monograph_type' ); # as above
 			$epdata->{$k} = _decode_bibtex( $v );
 		}
 	}

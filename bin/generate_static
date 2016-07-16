@@ -93,7 +93,7 @@ Print the full manual page and then exit.
 
 =item B<--quiet>
 
-Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+Be vewwy vewwy quiet. This option will suppress all output unless an error occurs.
 
 =item B<--verbose>
 

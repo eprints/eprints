@@ -132,27 +132,27 @@ sub df ($) {
     # Trying to inform the user...
     if ($^O eq 'solaris' || $^O eq 'dec_osf') {
       # Tested. No problem if syscall.ph is present.
-      warn "An error occured. statvfs failed. Did you run h2ph?\n";
+      warn "An error occurred. statvfs failed. Did you run h2ph?\n";
       $w = 2;
     }
     if ($^O eq 'linux' || $^O eq 'freebsd') {
       # Tested with linux 2.0.0 and 2.2.2
       # No problem if syscall.ph is present.
-      warn "An error occured. statfs failed. Did you run h2ph?\n";
+      warn "An error occurred. statfs failed. Did you run h2ph?\n";
     }
     if ($^O eq 'hpux') {
       if ($osvers == 9) {
 	# Tested. You have to change a line in syscall.ph.
-	warn "An error occured. statfs failed. Did you run h2ph?\n" .
+	warn "An error occurred. statfs failed. Did you run h2ph?\n" .
 	  "If you are using a hp9000s700, see the Df documentation\n";
       }
       elsif ($osvers == 10) {
 	# Tested. No problem if syscall.ph is present.
-	warn "An error occured. statvfs failed. Did you run h2ph?\n";
+	warn "An error occurred. statvfs failed. Did you run h2ph?\n";
       }
       else {
 	# Untested
-	warn "An error occured. df failed. Please, submit a bug report.\n";
+	warn "An error occurred. df failed. Please, submit a bug report.\n";
       }
       $w = 3;
     }
@@ -254,7 +254,7 @@ Fabien Tassin E<lt>fta@oleane.netE<gt>
 =head1 NOTES
 
 This module was formerly called File::Df. It has been renamed into
-Filesys::DiskSpace. It could have be Filesys::Df but unfortunatly
+Filesys::DiskSpace. It could have be Filesys::Df but unfortunately
 another module created in the meantime uses this name.
 
 Tested with Perl 5.003 under these systems :

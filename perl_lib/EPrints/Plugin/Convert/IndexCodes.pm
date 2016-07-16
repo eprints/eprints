@@ -48,7 +48,7 @@ sub export
 	EPrints::abort( "Can't find text conversion plugin" ) unless exists($types{$type});
 	my $plugin = $types{$type}->{"plugin"};
 
-	# Extract the text and read it all into $text (upto 4MB)
+	# Extract the text and read it all into $text (up to 4MB)
 	my @files = $plugin->export( $dir, $doc, "text/plain" );
 
 	my $text = "";

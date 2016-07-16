@@ -659,7 +659,7 @@ They are JSNO::backportPP and so on. JSON.pm should work as it did at all.
  ************************** CAUTION ********************************
  * This is 'JSON module version 2' and there are many differences  *
  * to version 1.xx                                                 *
- * Please check your applications useing old version.              *
+ * Please check your applications using old version.               *
  *   See to 'INCOMPATIBLE CHANGES TO OLD VERSION'                  *
  *******************************************************************
 
@@ -1044,7 +1044,7 @@ format as output, putting every array member or object/hash key-value pair
 into its own line, identing them properly.
 
 If C<$enable> is false, no newlines or indenting will be produced, and the
-resulting JSON text is guarenteed not to contain any C<newlines>.
+resulting JSON text is guaranteed not to contain any C<newlines>.
 
 This setting has no effect when decoding JSON texts.
 
@@ -1592,7 +1592,7 @@ The below methods are JSON::PP own methods, so when C<JSON> works
 with JSON::PP (i.e. the created object is a JSON::PP object), available.
 See to L<JSON::PP/JSON::PP OWN METHODS> in detail.
 
-If you use C<JSON> with additonal C<-support_by_pp>, some methods
+If you use C<JSON> with additional C<-support_by_pp>, some methods
 are available even with JSON::XS. See to L<USE PP FEATURES EVEN THOUGH XS BACKEND>.
 
    BEING { $ENV{PERL_JSON_BACKEND} = 'JSON::XS' }
@@ -1945,7 +1945,7 @@ To check the backend module, there are some methods - C<backend>, C<is_pp> and C
   $json->is_pp; # 0 or 1
 
 
-If you set an enviornment variable C<PERL_JSON_BACKEND>, The calling action will be changed.
+If you set an environment variable C<PERL_JSON_BACKEND>, The calling action will be changed.
 
 =over
 

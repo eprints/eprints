@@ -761,7 +761,7 @@ sub _get_subjects2
 }
 
 # cjg CACHE this per, er, session?
-# commiting a subject should erase the cache
+# committing a subject should erase the cache
 
 ######################################################################
 =pod
@@ -875,7 +875,7 @@ sub posted_eprints
 =item $count = $subject->count_eprints( $dataset )
 
 Return the number of eprints in the dataset which are in this subject
-or one of its decendants. Search all fields of type subject.
+or one of its descendants. Search all fields of type subject.
 
 =cut
 ######################################################################

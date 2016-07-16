@@ -4274,7 +4274,7 @@ sub parsefile
 
 		    # Load proxy settings from environment variables, i.e.:
 		    # http_proxy, ftp_proxy, no_proxy etc. (see LWP::UserAgent(3))
-		    # You need these to go thru firewalls.
+		    # You need these to go through firewalls.
 		    $LWP_USER_AGENT->env_proxy;
 		}
 		$ua = $LWP_USER_AGENT;

@@ -1418,7 +1418,7 @@ Satify all conditions specified. 0 means satisfy any of the conditions specified
 
 =item "staff"=>1
 
-Do search as an adminstrator means you get everything back
+Do search as an administrator means you get everything back
 
 =item "custom_order" => "field1/-field2/field3"
 

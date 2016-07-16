@@ -269,7 +269,7 @@ sub _load_plugin
 	no strict "refs";
 	my $disvar = $class.'::DISABLE';
 	my $disable = ${$disvar};
-	$disable = ${$disvar}; # supress "only once" warning
+	$disable = ${$disvar}; # suppress "only once" warning
 	#my %defaults = $class->defaults();
 	use strict "refs";
 	return if( $disable );

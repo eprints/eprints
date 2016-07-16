@@ -235,7 +235,7 @@ sub retrieve_dcq
 		return undef;
 	}
 
-	my $dc = $self->find_dc_pairs( $r->content );
+	my $dc = $self->find_dc_pairs( $r->decoded_content );
 	return undef unless defined $dc;
 
 	$self->{errurl} = $self->{errmsg} = undef;

@@ -847,7 +847,7 @@ sub _equal
 
 Returns a list of all the values in this record of all the fields specified
 by $fieldnames. $fieldnames should be in the format used by browse views - slash
-seperated fieldnames with an optional .id suffix to indicate the id part rather
+separated fieldnames with an optional .id suffix to indicate the id part rather
 than the main part. 
 
 For example "author.id/editor.id" would return a list of all author and editor

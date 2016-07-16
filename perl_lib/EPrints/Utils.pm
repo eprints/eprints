@@ -60,6 +60,9 @@ use LWP::UserAgent;
 use URI;
 use EPrints::Const qw( :crypt );
 
+my $USE_CRYPT_BLOWFISH = 1;
+eval "use Authen::Passphrase::BlowfishCrypt; 1" or $USE_CRYPT_BLOWFISH = 0;
+
 use strict;
 
 $EPrints::Utils::FULLTEXT = "documents";
@@ -148,13 +151,19 @@ sub make_name_string
 		$secondbit .= " ".$name->{lineage};
 	}
 
-	
-	if( defined $familylast && $familylast )
+	if( $firstbit && $secondbit )
 	{
-		return $firstbit." ".$secondbit;
+		if( defined $familylast && $familylast )
+		{
+			return $firstbit." ".$secondbit;
+		}
+		return $secondbit.", ".$firstbit;
 	}
-	
-	return $secondbit.", ".$firstbit;
+	else
+	{
+		# one of these will have text
+		return $firstbit.$secondbit;
+	}
 }
 
 
@@ -988,6 +997,20 @@ sub crypt
 
 		return "$uri";
 	}
+	elsif( $method eq EP_CRYPT_BLOWFISH && $USE_CRYPT_BLOWFISH )
+	{
+		# Blowfish cost factor (2^n rounds)
+		my $cost = 12;
+		# Blowfish requires a 16-byte salt. We can just ignore the two bytes
+		# calculated above, and let the library generate its own salt.
+		my $ppr = Authen::Passphrase::BlowfishCrypt->new(
+			cost => $cost,
+			salt_random => 1,
+			passphrase => $value
+		);
+
+		return $ppr->as_crypt();
+	}
 	elsif( $method eq EP_CRYPT_CRYPT )
 	{
 		return CORE::crypt($value ,$salt);
@@ -1007,6 +1030,12 @@ sub crypt_equals
 	my( $crypt, $value ) = @_;
 
 	return undef if !EPrints::Utils::is_set( $value );
+
+	# EP_CRYPT_BLOWFISH
+	if( $USE_CRYPT_BLOWFISH && $crypt =~ /^\$2a?\$..\$.{22}.{31}$/ ) {
+		my $ppr = Authen::Passphrase::BlowfishCrypt->from_crypt( $crypt );
+		return $ppr->match( $value );
+	}
 
 	# EP_CRYPT_CRYPT
 	if( $crypt !~ /^\?/ ) {
@@ -1357,7 +1386,7 @@ sub js_string
 # EPrints::Utils::process_parameters( $params, $defaults );
 #  for each key in the hash ref $defaults, if $params->{$key} is not set
 #  then it's set to the default from the $defaults hash.
-#  Also warns if unknown paramters were passed.
+#  Also warns if unknown parameters were passed.
 
 sub process_parameters($$)
 {

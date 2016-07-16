@@ -635,7 +635,7 @@ sub _replace_XX {
 }
 
 # Internal routine to force a temp file to be writable after
-# it is created so that we can unlink it. Windows seems to occassionally
+# it is created so that we can unlink it. Windows seems to occasionally
 # force a file to be readonly when written to certain temp locations
 sub _force_writable {
   my $file = shift;
@@ -881,7 +881,7 @@ sub _can_do_level {
       foreach my $file (@files) {
         # close the filehandle without checking its state
         # in order to make real sure that this is closed
-        # if its already closed then I dont care about the answer
+        # if its already closed then I don't care about the answer
         # probably a better way to do this
         close($file->[0]);      # file handle is [0]
 
@@ -1976,7 +1976,7 @@ sub unlink0 {
     # Make sure that the link count is zero
     # - Cygwin provides deferred unlinking, however,
     #   on Win9x the link count remains 1
-    # On NFS the link count may still be 1 but we cant know that
+    # On NFS the link count may still be 1 but we can't know that
     # we are on NFS
     return ( $fh[3] == 0 or $^O eq 'cygwin' ? 1 : 0);
 
@@ -2230,9 +2230,9 @@ simply examine the return value of C<safe_level>.
       if (($level != STANDARD) && ($level != MEDIUM) && ($level != HIGH)) {
         carp "safe_level: Specified level ($level) not STANDARD, MEDIUM or HIGH - ignoring\n" if $^W;
       } else {
-        # Dont allow this on perl 5.005 or earlier
+        # Don't allow this on perl 5.005 or earlier
         if ($] < 5.006 && $level != STANDARD) {
-          # Cant do MEDIUM or HIGH checks
+          # Can't do MEDIUM or HIGH checks
           croak "Currently requires perl 5.006 or newer to do the safe checks";
         }
         # Check that we are allowed to change level
