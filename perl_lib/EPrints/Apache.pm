@@ -67,6 +67,7 @@ EOC
   Redirect $mode / http://$hostport/
 </VirtualHost>
 EOC
+		}
 		else
 		{
 			$aliases.="  ServerAlias ".$aliasinfo->{name}."\n";
