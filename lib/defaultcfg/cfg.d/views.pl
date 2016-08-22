@@ -3,20 +3,27 @@
 # a valid result. 
 # Multiple fields may be specified for one view, but avoid
 # subject or allowing null in this case.
-
-
-
-##
+#
+#
 # set a global max_items limit:
 #	$c->{browse_views_max_items} = 3000;
-
+#
 # set a per view max_item limit:
 #        $c->{browse_views} = [{
 #                ...
 #                max_items => 3000,
 #        }];
 # To disable the limit set max_items to 0.
-
+#
+# For views that take a long time to generate, you may want to define max_menu_age and/or max_list_age.
+# These both default to 24hours, but can be defined for each view:
+#        $c->{browse_views} = [{
+#                ...
+#                max_menu_age => 10*24*60*60, # 10days
+#                max_list_age => 10*24*60*60,
+#        }];
+# 
+# If you are changing these, you may want to generate the views using the bin/generate_views script.
 
 $c->{browse_views} = [
         {
