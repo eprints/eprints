@@ -1768,16 +1768,33 @@ sub group_items
 		my $values = $field->get_value( $item );
 		if( !$field->get_property( "multiple" ) )
 		{
-			$values = [$values];
+			if( defined $values )
+			{
+				$values = [$values];
+			}
+			elsif( $opts->{allow_null} )
+			{
+				$values = [$field->empty_value];
+			}
+			else
+			{
+				next;
+			}
 		}
 		elsif( !scalar(@$values) )
 		{
-			$values = [$field->empty_value];
+			if( $opts->{allow_null} )
+			{
+				$values = [$field->empty_value];
+			}
+			else
+			{
+				next;
+			}
 		}
-		next if !$opts->{allow_null} && !EPrints::Utils::is_set( $values );
 		VALUE: foreach my $value ( @$values )
 		{
-			next VALUE unless EPrints::Utils::is_set( $value );
+			next VALUE unless EPrints::Utils::is_set( $value ) || $opts->{allow_null};
 			if( $opts->{tags} )
 			{
 				$value =~ s/\.$//;
