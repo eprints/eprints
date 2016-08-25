@@ -1768,7 +1768,7 @@ sub group_items
 		my $values = $field->get_value( $item );
 		if( !$field->get_property( "multiple" ) )
 		{
-			if( defined $values )
+			if( EPrints::Utils::is_set( $values ) )
 			{
 				$values = [$values];
 			}
