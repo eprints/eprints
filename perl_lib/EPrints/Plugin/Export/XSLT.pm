@@ -28,7 +28,7 @@ Create a file in C<Plugins/Export/XSLT/> called 'Title.xsl' containing:
 	
 	<xsl:template match="text()" />
 	
-	<xsl:template match="/ept:template">
+	<xsl:template match="ept:template">
 	<titles><xsl:value-of select="$results"/></titles>
 	</xsl:template>
 	
