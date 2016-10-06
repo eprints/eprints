@@ -304,7 +304,7 @@ sub render_possible_doi
 
 	$value = "" unless defined $value;
 	if( $value =~ m!^
-			(?:http(?:s)?://(?:dx\.)?doi\.org/)?  # add this again later anyway
+			(?:https?://(?:dx\.)?doi\.org/)?  # add this again later anyway
 			(?:doi:?\s*)?                   # don't need any namespace stuff
 			(10(\.[^./]+)+/.+)              # the actual DOI => $1
 		!ix )
