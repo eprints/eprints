@@ -9,7 +9,7 @@ package EPrints::Plugin::Screen::AbstractSearch;
 @ISA = ( 'EPrints::Plugin::Screen' );
 
 use strict;
-
+use URI::Escape;
 sub new
 {
 	my( $class, %params ) = @_;
@@ -45,8 +45,7 @@ sub action_export_redir
 			$self->{session}->html_phrase( "lib/searchexpression:export_error_format" ) );
 		return;
 	}
-
-	$self->{processor}->{redirect} = $self->export_url( $format )."&cache=".$cacheid;
+	$self->{processor}->{redirect} = $self->export_url( $format )."&cache=".uri_escape($cacheid);
 }
 
 sub export_url
