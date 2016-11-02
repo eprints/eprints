@@ -109,12 +109,14 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE"),
 			checked=>( defined $value && $value eq 
 					"TRUE" ? "checked" : undef ),
 			name => $basename,
+			id => "${basename}_TRUE",
 			value => "TRUE" );
 		my $false = $session->render_noenter_input_field(
 			type => "radio",
 			checked=>( defined $value && $value eq 
 					"FALSE" ? "checked" : undef ),
 			name => $basename,
+			id => "${basename}_FALSE",
 			value => "FALSE" );
 		my $f = $session->make_doc_fragment;
 		$f->appendChild( 
@@ -130,6 +132,7 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE"),
 					type => "radio",
 					checked=>( !EPrints::Utils::is_set($value) ? "checked" : undef ),
 					name => $basename,
+					id => "${basename}_UNDEF",
 					value => "" ) );
 			$f->appendChild( $div );
 			$div->appendChild( $session->html_phrase( 
