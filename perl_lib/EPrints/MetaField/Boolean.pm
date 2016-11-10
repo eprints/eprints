@@ -119,9 +119,14 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE"),
 			id => "${basename}_FALSE",
 			value => "FALSE" );
 		my $f = $session->make_doc_fragment;
+		my $phrase_id = $self->{confid}."_radio_".$self->{name};
+		if( !$session->get_lang->has_phrase( $phrase_id ) )
+		{
+			$phrase_id = "lib/metafield/boolean:default_radio_list";
+		}
 		$f->appendChild( 
 			$session->html_phrase(
-				$self->{confid}."_radio_".$self->{name},
+				$phrase_id,
 				true=>$true,
 				false=>$false ) );
 		if( !$self->get_property( "required" ) )

@@ -1478,6 +1478,11 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 	<!-- 000x392 -->
 	<epp:phrase id="lib/metafield/pagerange:other"><epc:pin name="pagerange"/></epp:phrase>
 
+	<epp:phrase id="lib/metafield/boolean:default_radio_list">
+		<label><epc:pin name="true"/> true</label><br/>
+		<label><epc:pin name="false"/> false</label><br/>
+	</epp:phrase>
+
 <!-- Search (used to be SearchExpression) -->
 
     <epp:phrase id="lib/searchexpression:simple_link" ref="cgi/search:simple_search" />
