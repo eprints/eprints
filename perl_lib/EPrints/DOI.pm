@@ -137,12 +137,12 @@ sub parse($)
 
 	my $doi = $string;
 
-	if( $doi =~ s!^https?://(?:dx\.)?doi\.org/+(?:doi:)?!!s )
+	if( $doi =~ s!^https?://(?:dx\.)?doi\.org/+(?:doi:)?!!i )
 	{
 		# It looks like a HTTP proxy URL.
 		$doi = url_decode( $doi );
 	}
-	elsif( $doi =~ s!^info:doi/!!s )
+	elsif( $doi =~ s!^info:doi/!!i )
 	{
 		# It looks like an info URI.
 		$doi = url_decode( $doi );
@@ -150,7 +150,7 @@ sub parse($)
 	else
 	{
 		# It's probably a DOI string.
-		$doi =~ s!^doi:!!s;
+		$doi =~ s!^doi:!!i;
 	}
 
 	# ANSI/NISO Z39.84-2005
