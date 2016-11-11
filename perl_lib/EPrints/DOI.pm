@@ -137,7 +137,7 @@ sub parse($)
 
 	my $doi = $string;
 
-	if( $doi =~ s!^https?://(?:dx\.)doi\.org/+(?:doi:)?!!s )
+	if( $doi =~ s!^https?://(?:dx\.)?doi\.org/+(?:doi:)?!!s )
 	{
 		# It looks like a HTTP proxy URL.
 		$doi = url_decode( $doi );
@@ -157,7 +157,7 @@ sub parse($)
 	# <http://www.niso.org/apps/group_public/download.php/6587/Syntax%20for%20the%20Digital%20Object%20Identifier.pdf>
 	if( $doi =~ m!^(10)\.([^/]+)/(\p{Graph}(?:[^/]\p{Graph}*)?)! )
 	{
-		# FIXME: $2 may contain characters outside of /\p{Graph}/
+		# FIXME: $2 and $3 may contain characters outside of /\p{Graph}/
 		return $class->new( dir=>$1, reg=>$2, dss=>$3 );
 	}
 	else
