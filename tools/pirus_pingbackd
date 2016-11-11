@@ -121,7 +121,7 @@ our( %DOI_EXPIRES, %DOC_DOI, %DOC_FORMAT );
 our $MAX_AGE = 86400;
 
 # regexp to use to identify doi's in eprint fields
-our $DOI_REGEXP = qr/(?:DOI:\s*|http:\/\/(?:dx\.doi\.org|doi\.org|doi\.acm\.org|doi\.ieeecomputersociety\.org)\/)([^&;]+)/i;
+our $DOI_REGEXP = qr/(?:DOI:\s*|https?:\/\/(?:(?:dx\.)?doi\.org|doi\.org|doi\.acm\.org|doi\.ieeecomputersociety\.org)\/)([^&;]+)/i;
 
 # use a meaningful user agent
 $UA->agent( "EPrints/".$session->config( "version_id" )." (mailto:".$session->get_repository->get_conf( "adminemail" ).")" );
