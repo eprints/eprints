@@ -43,9 +43,12 @@ sub input_text_fh
 	my @ids;
 
 	my $pid = $plugin->param( "pid" );
-        my $session = $plugin->{repository};
-        my $use_prefix = $plugin->param( "use_prefix" ) || 1;
-        my $doi_field = $plugin->param( "doi_field" ) || 'id_number';
+	my $session = $plugin->{repository};
+	
+	my $use_prefix = $plugin->param( "use_prefix" );
+	my $doi_field = $plugin->param( "doi_field" );
+	$use_prefix = 1 unless defined ( $use_prefix );
+	$doi_field = "id_number" unless defined ( $doi_field );
 
 	unless( $pid )
 	{
