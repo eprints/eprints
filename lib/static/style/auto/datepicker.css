@@ -1,0 +1,47 @@
+.ep_datepicker {
+	background-color: #fff;
+        border-color: #ddd;
+	border-style: outset;
+	box-shadow: 8px 8px 5px #aaa;
+	border-width: 1px;
+	padding: 8px;
+  	z-index: 100;
+}
+.ep_datepicker div {
+	display: block;
+	text-align: center;
+}
+.ep_datepicker div span.ep_dp_previous {
+	float: left;
+	margin-right: 10px;
+}
+.ep_datepicker div span.ep_dp_next {
+	float: right;
+	margin-left: 10px;
+}
+.ep_datepicker table {
+	border-spacing: 0px;
+	border-collapse: collapse;
+	margin-top: 2px;
+}
+.ep_datepicker th, .ep_datepicker td {
+	padding: 0px 2px;
+	text-align: center;
+}
+.ep_datepicker td.ep_dp_selected {
+	font-weight: bold;
+}
+.ep_datepicker td a {
+	display: block;
+}
+
+.ep_datepicker table tr:first-child {
+	border-color: #808080;
+	background-image: url(images/bar_24px.png);
+	background-color: #ccc;
+	color: #333;
+}
+
+.ep_datepicker td:hover, .ep_datepicker td.ep_dp_selected {
+	background-color: #9999ff;
+}

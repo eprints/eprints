@@ -1,369 +1,161 @@
-######################################################################
-#
-# EPrints::MetaField::Time;
-#
-######################################################################
-#
-#
-######################################################################
-
-=pod
-
+=for Pod2Wiki
 =head1 NAME
-
-B<EPrints::MetaField::Time> - no description
-
+EPrints::MetaField::Time - date + time
 =head1 DESCRIPTION
-
 Can store a time value upto seconds granularity. The time must be in UTC because this field can not store the time zone part.
-
 The value is set and returned as a string formatted as:
-
 	YYYY-MM-DD hh:mm:ss
-
 Where:
-
 	YYYY - year
 	MM - month (01-12)
 	DD - day (01-31)
 	hh - hours (00-23)
 	mm - minutes (00-59)
 	ss - seconds (00-59)
-
 Note: if you set the time using ISO datetime format (YYYY-MM-DDThh:mm:ssZ) it will automatically be converted into the native format.
-
-=head1 METHODS
-
+=head1 PROPERTIES
+In addition to those properties available in L<EPrints::MetaField::Date> and L<EPrints::MetaField>:
+=head2 render_res
+Reduce the resolution the date is shown as.
 =over 4
-
+=item B<"second">
+=item "minute"
+=item "hour"
+=back
+=head1 METHODS
+=over 4
 =cut
 
 
 package EPrints::MetaField::Time;
 
 use EPrints::MetaField::Date;
+
 @ISA = qw( EPrints::MetaField::Date );
 
 use strict;
-
-sub get_sql_names
-{
-	my( $self ) = @_;
-
-	return map { $self->get_name() . "_" . $_ } qw( year month day hour minute second );
-}
-
-# parse either ISO or our format and output our value
-sub _build_value
-{
-	my( $self, $value ) = @_;
-
-	return undef if !defined $value;
-
-	my @parts = split /[-: TZ]/, $value;
-
-	$value = "";
-	$value .= sprintf("%04d",$parts[0]) if( defined $parts[0] );
-	$value .= sprintf("-%02d",$parts[1]) if( defined $parts[1] );
-	$value .= sprintf("-%02d",$parts[2]) if( defined $parts[2] );
-	$value .= sprintf(" %02d",$parts[3]) if( defined $parts[3] );
-	$value .= sprintf(":%02d",$parts[4]) if( defined $parts[4] );
-	$value .= sprintf(":%02d",$parts[5]) if( defined $parts[5] );
-
-	return $value;
-}
-
-sub value_from_sql_row
-{
-	my( $self, $session, $row ) = @_;
-
-	my @parts = grep { defined $_ } splice(@$row,0,6);
-
-	return undef if !@parts;
-
-	return $self->_build_value( join(' ', @parts) );
-}
-
-sub sql_row_from_value
-{
-	my( $self, $session, $value ) = @_;
-
-	my @parts;
-	@parts = split /[-: TZ]/, $value if defined $value;
-	@parts = @parts[0..5];
-
-	return @parts;
-}
-
-sub render_single_value
-{
-	my( $self, $session, $value ) = @_;
-
-	my $res = $self->{render_res};
-
-	my $l = 19;
-	if( $res eq "minute" ) { $l = 16; }
-	if( $res eq "hour" ) { $l = 13; }
-	if( $res eq "day" ) { $l = 10; }
-	if( $res eq "month" ) { $l = 7; }
-	if( $res eq "year" ) { $l = 4; }
-		
-	if( defined $value )
-	{
-		$value = substr( $value, 0, $l );
-	}
-
-	if( $self->{render_style} eq "short" )
-	{
-		return EPrints::Time::render_short_date( $session, $value );
-	}
-	return EPrints::Time::render_date( $session, $value );
-}
-	
-
-sub get_basic_input_ids
-{
-	my( $self, $session, $basename, $staff, $obj ) = @_;
-
-	return( $basename."_second", $basename."_minute", $basename."_hour",
-		$basename."_day", $basename."_month", $basename."_year" );
-}
-
-sub get_basic_input_elements
-{
-	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
-
-	my $frag = $session->make_doc_fragment;
-		
-	my $min_res = $self->get_property( "min_resolution" );
-	
-	my $div;
-
-	if( defined $min_res && $min_res ne "second" )
-	{	
-		$div = $session->make_element( "div", class=>"ep_form_field_help" );	
-		$div->appendChild( $session->html_phrase( 
-			"lib/metafield:date_res_".$min_res ) );
-		$frag->appendChild( $div );
-	}
-
-	$div = $session->make_element( "div" );
-	my( $hour,$minute,$second,$year, $month, $day ) = ("", "", "","","","");
-	if( defined $value && $value ne "" )
-	{
-		($year, $month, $day, $hour,$minute,$second) = split /[-: TZ]/, $value;
-		$month = "00" if( !defined $month || $month == 0 );
-		$day = "00" if( !defined $day || $day == 0 );
-		$year = "" if( !defined $year || $year == 0 );
-		$hour = "" if( !defined $hour || $hour == 0 );
-		$minute = "" if( !defined $minute || $minute == 0 );
-		$second = "" if( !defined $second || $second == 0 );
-	}
- 	my $dayid = $basename."_day";
- 	my $monthid = $basename."_month";
- 	my $yearid = $basename."_year";
- 	my $hourid = $basename."_hour";
- 	my $minuteid = $basename."_minute";
- 	my $secondid = $basename."_second";
-
-	$div->appendChild( 
-		$session->html_phrase( "lib/metafield:year" ) );
-	$div->appendChild( $session->make_text(" ") );
-
-	$div->appendChild( $session->render_noenter_input_field(
-		class => "ep_form_text",
-		name => $yearid,
-		id => $yearid,
-		value => $year,
-		size => 4,
-		maxlength => 4 ) );
-
-	##############################################
-	$div->appendChild( $session->make_text(" ") );
-	##############################################
-
-	$div->appendChild( 
-		$session->html_phrase( "lib/metafield:month" ) );
-	$div->appendChild( $session->make_text(" ") );
-	$div->appendChild( $session->render_option_list(
-		name => $monthid,
-		id => $monthid,
-		values => \@EPrints::MetaField::Date::MONTHKEYS,
-		default => $month,
-		labels => $self->_month_names( $session ) ) );
-
-	##############################################
-	$div->appendChild( $session->make_text(" ") );
-	##############################################
-
-	$div->appendChild( 
-		$session->html_phrase( "lib/metafield:day" ) );
-	$div->appendChild( $session->make_text(" ") );
-
-	my @daykeys = ();
-	my %daylabels = ();
-	for( 0..31 )
-	{
-		my $key = sprintf( "%02d", $_ );
-		push @daykeys, $key;
-		$daylabels{$key} = ($_==0?"?":$key);
-	}
-	$div->appendChild( $session->render_option_list(
-		name => $dayid,
-		id => $dayid,
-		values => \@daykeys,
-		default => $day,
-		labels => \%daylabels ) );
-
-	##############################################
-	$div->appendChild( $session->make_text(" ") );
-	##############################################
-
-	$div->appendChild( 
-		$session->html_phrase( "lib/metafield:hour" ) );
-	$div->appendChild( $session->make_text(" ") );
-
-	my @hourkeys = ( "" );
-	my %hourlabels = ( ""=>"?" );
-	for( 0..23 )
-	{
-		my $key = sprintf( "%02d", $_ );
-		push @hourkeys, $key;
-		$hourlabels{$key} = $key;
-	}
-	$div->appendChild( $session->render_option_list(
-		name => $hourid,
-		id => $hourid,
-		values => \@hourkeys,
-		default => $hour,
-		labels => \%hourlabels ) );
-
-	##############################################
-	$div->appendChild( $session->make_text(" ") );
-	##############################################
-
-	$div->appendChild( 
-		$session->html_phrase( "lib/metafield:minute" ) );
-	$div->appendChild( $session->make_text(" ") );
-
-	my @minutekeys = ( "" );
-	my %minutelabels = ( ""=>"?" );
-	for( 0..59 )
-	{
-		my $key = sprintf( "%02d", $_ );
-		push @minutekeys, $key;
-		$minutelabels{$key} = $key;
-	}
-	$div->appendChild( $session->render_option_list(
-		name => $minuteid,
-		id => $minuteid,
-		values => \@minutekeys,
-		default => $minute,
-		labels => \%minutelabels ) );
-
-	##############################################
-	$div->appendChild( $session->make_text(" ") );
-	##############################################
-
-	$div->appendChild( 
-		$session->html_phrase( "lib/metafield:second" ) );
-	$div->appendChild( $session->make_text(" ") );
-
-	my @secondkeys = ( "" );
-	my %secondlabels = ( ""=>"?" );
-	for( 0..59 )
-	{
-		my $key = sprintf( "%02d", $_ );
-		push @secondkeys, $key;
-		$secondlabels{$key} = $key;
-	}
-	$div->appendChild( $session->render_option_list(
-		name => $secondid,
-		id => $secondid,
-		values => \@secondkeys,
-		default => $second,
-		labels => \%secondlabels ) );
-
-	##############################################
-	##############################################
-
-
-
-
-	$frag->appendChild( $div );
-	
-	return [ [ { el=>$frag } ] ];
-}
-
-sub form_value_basic
-{
-	my( $self, $session, $basename ) = @_;
-
-	my @parts;
-	for(qw( year month day hour minute second ))
-	{
-		my $part = $session->param( $basename."_$_" );
-		last if !EPrints::Utils::is_set( $part ) || $part == 0;
-		push @parts, $part;
-	}
-
-	return undef if !@parts;
-
-	return $self->_build_value( join(' ', @parts) );
-}
-
-sub get_unsorted_values
-{
-	my( $self, $session, $dataset ) = @_;
-
-	my $values = $session->get_database->get_values( $self, $dataset );
-
-	my $res = $self->{render_res};
-
-	if( $res eq "day" )
-	{
-		return $values;
-	}
-
-	my $l = 19;
-	if( $res eq "minute" ) { $l = 16; }
-	if( $res eq "hour" ) { $l = 13; }
-	if( $res eq "day" ) { $l = 10; }
-	if( $res eq "month" ) { $l = 7; }
-	if( $res eq "year" ) { $l = 4; }
-		
-	my %ov = ();
-	foreach my $value ( @{$values} )
-	{
-		if( !defined $value )
-		{
-			$ov{undef} = 1;
-			next;
-		}
-		$ov{substr($value,0,$l)}=1;
-	}
-	my @outvalues = keys %ov;
-	return \@outvalues;
-}
-
-sub get_value_label
-{
-	my( $self, $session, $value ) = @_;
-
-	return EPrints::Time::render_date( $session, $value );
-}
 
 sub get_property_defaults
 {
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
-	$defaults{min_resolution} = "second";
+	$defaults{input_style} = "long";
 	$defaults{render_res} = "second";
+	$defaults{maxlength} = 19;
 	$defaults{regexp} = qr/\d\d\d\d(?:-\d\d(?:-\d\d(?:[ T]\d\d(?::\d\d(?::\d\dZ?)?)?)?)?)?/;
+	$defaults{parts} = [qw( year month day hour minute second )];
 	return %defaults;
 }
 
 sub should_reverse_order { return 1; }
+
+sub get_basic_input_elements_short
+{
+	my( $self, $session, $value, $basename, $staff, $obj ) = @_;
+
+	my $frag = $session->make_doc_fragment;
+
+	$frag->appendChild( $session->xhtml->input_field( $basename, substr($value,0,10),
+		type => "text",
+		class => "ep_form_text",
+		noenter => 1,
+		size => 10,
+		maxlength => 10,
+	) );
+	$frag->appendChild( $session->xhtml->input_field( $basename . "_time", substr($value,11),
+		type => "text",
+		class => "ep_form_text",
+		noenter => 1,
+		size => 8,
+		maxlength => 8,
+	) );
+	
+	return [ [ { el=>$frag } ] ];
+}
+
+sub render_hour_input
+{
+	my( $self, $basename, $value ) = @_;
+
+	my $repo = $self->{repository};
+
+	my @values = map { sprintf("%02d", $_) } 0..23;
+	my %labels = map {
+			$_ => $_,
+		} @values;
+	unshift @values, "";
+	$labels{""} = "?";
+
+	return $repo->render_option_list(
+		name => "${basename}_hour",
+		id => "${basename}_hour",
+		values => \@values,
+		default => $value,
+		labels => \%labels );
+}
+
+sub render_minute_input
+{
+	my( $self, $basename, $value ) = @_;
+
+	my $repo = $self->{repository};
+
+	my @values = map { sprintf("%02d", $_) } 0..59;
+	my %labels = map {
+			$_ => $_,
+		} @values;
+	unshift @values, "";
+	$labels{""} = "?";
+
+	return $repo->render_option_list(
+		name => "${basename}_minute",
+		id => "${basename}_minute",
+		values => \@values,
+		default => $value,
+		labels => \%labels );
+}
+
+sub render_second_input
+{
+	my( $self, $basename, $value ) = @_;
+
+	my $repo = $self->{repository};
+
+	my @values = map { sprintf("%02d", $_) } 0..59;
+	my %labels = map {
+			$_ => $_,
+		} @values;
+	unshift @values, "";
+	$labels{""} = "?";
+
+	return $repo->render_option_list(
+		name => "${basename}_minute",
+		id => "${basename}_minute",
+		values => \@values,
+		default => $value,
+		labels => \%labels );
+}
+
+sub form_value_basic
+{
+	my( $self, $session, $basename ) = @_;
+	
+	my $value = $self->SUPER::form_value_basic( $session, $basename );
+
+	if( $self->{input_style} eq "short" )
+	{
+		my $time = $session->param( "$basename\_time" );
+		if(
+			EPrints::Utils::is_set( $value ) && length($value) == 10 &&
+			EPrints::Utils::is_set( $time )
+		  )
+		{
+			$value = $self->_build_value( "$value $time" );
+		}
+	}
+
+	return $value;
+}
 
 sub render_xml_schema_type
 {
@@ -380,11 +172,8 @@ sub render_xml_schema_type
 }
 
 =item $datetime = $time->iso_value( $value )
-
 Returns $value in ISO datetime format (YYYY-MM-DDThh:mm:ssZ).
-
 Returns undef if the value is unset.
-
 =cut
 
 sub iso_value
@@ -397,40 +186,28 @@ sub iso_value
 }
 
 =back
-
 =head1 SEE ALSO
-
 L<EPrints::MetaField::Date>.
-
 =cut
 
 ######################################################################
 1;
 
+=back
 =head1 COPYRIGHT
-
 =for COPYRIGHT BEGIN
-
 Copyright 2000-2011 University of Southampton.
-
 =for COPYRIGHT END
-
 =for LICENSE BEGIN
-
 This file is part of EPrints L<http://www.eprints.org/>.
-
 EPrints is free software: you can redistribute it and/or modify it
 under the terms of the GNU Lesser General Public License as published
 by the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 EPrints is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 License for more details.
-
 You should have received a copy of the GNU Lesser General Public
 License along with EPrints.  If not, see L<http://www.gnu.org/licenses/>.
-
 =for LICENSE END
-
