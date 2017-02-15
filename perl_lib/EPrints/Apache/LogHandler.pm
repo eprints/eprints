@@ -57,6 +57,7 @@ use strict;
 
 use EPrints::Apache::AnApache;
 use Apache2::Connection;
+use URI::Escape;
 
 our @USERAGENT_ROBOTS = map { qr/$_/i } qw{
 	Alexandria(\s|\+)prototype(\s|\+)project
@@ -221,7 +222,7 @@ sub _generic
 
 	$epdata->{datestamp} = EPrints::Time::get_iso_timestamp( $r->request_time );
 	$epdata->{referring_entity_id} = $r->headers_in->{ "Referer" };
-	$epdata->{requester_user_agent} = $r->headers_in->{ "User-Agent" };
+	$epdata->{requester_user_agent} = Encode::decode_utf8( uri_unescape( $r->headers_in->{ "User-Agent" } ) );
 
 	# Sanity check referring URL (don't store non-HTTP referrals)
 	if( !$epdata->{referring_entity_id} || $epdata->{referring_entity_id} !~ /^https?:/ )
