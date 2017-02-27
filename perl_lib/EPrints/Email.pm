@@ -239,7 +239,7 @@ sub send_mail_via_sendmail
 	return 1;
 }
 
-# $mime_message = EPrints::Email::build_mail( %params ) 
+# $mime_message = EPrints::Email::build_email( %params ) 
 #
 # Takes the same parameters as send_mail. This creates a MIME::Lite email
 # object with both a text and an HTML part.
