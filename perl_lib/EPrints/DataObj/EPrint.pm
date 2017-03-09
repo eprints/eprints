@@ -898,6 +898,9 @@ sub remove
 		}
 	);
 
+	# set under_construction so $doc->remove's don't cause revisions.
+	$self->set_under_construction( 1 );
+	
 	foreach my $doc ( @{($self->get_value( "documents" ))} )
 	{
 		$doc->remove;
@@ -907,6 +910,8 @@ sub remove
 	{
 		$file->remove;
 	}
+	
+	$self->set_under_construction( 0 );
 
 	my $success = $self->SUPER::remove();
 
