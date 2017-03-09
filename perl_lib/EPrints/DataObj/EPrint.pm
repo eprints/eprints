@@ -898,7 +898,7 @@ sub remove
 		}
 	);
 
-	# set under_contstruction do $doc->remove's don't cause revisions.
+	# set under_construction so $doc->remove's don't cause revisions.
 	$self->set_under_construction( 1 );
 	
 	foreach my $doc ( @{($self->get_value( "documents" ))} )
