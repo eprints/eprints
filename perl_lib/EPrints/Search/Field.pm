@@ -523,8 +523,13 @@ sub split_value
 			"indexing",
 			"freetext_always_words"
 		);
+	my $freetext_min_word_size = $self->{repository}->config(
+			"indexing",
+			"freetext_min_word_size"
+		);
 	@values = grep {
 			EPrints::Utils::is_set( $_ ) &&
+			length $_ >= $freetext_min_word_size &&
 			($freetext_always_words->{lc($_)} ||
 			!$freetext_stop_words->{lc($_)})
 		} @values;
