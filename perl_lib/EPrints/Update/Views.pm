@@ -1887,7 +1887,7 @@ sub render_array_of_eprints
 	}
 	elsif( defined $view->{layout} && $view->{layout} eq "unorderedlist" )
 	{
-		$frag = $xml->create_element( "ol" );
+		$frag = $xml->create_element( "ul" );
 	}
 	else
 	{

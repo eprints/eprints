@@ -89,7 +89,7 @@ sub input_text_fh
 			id => $doi,
 		);
 
-		my $url = URI->new( "http://www.crossref.org/openurl" );
+		my $url = URI->new( "http://doi.crossref.org/openurl" );
 		$url->query_form( %params );
 
 		my $dom_doc;
