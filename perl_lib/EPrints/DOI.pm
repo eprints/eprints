@@ -172,12 +172,21 @@ Returns a simple string representation of this DOI.
 
 For example "doi:10.1000/foo#bar"
 
+=over 4
+
+=item noprefix => 1
+
+Disable the 'doi:' prefix (enabled by default).
+
+=back
+
+
 =cut
 
 sub to_string
 {
-	my( $self ) = @_;
-	return 'doi:'
+	my( $self, %opts ) = @_;
+	return ( $opts{noprefix} ? '' : 'doi:' )
 		. $self->{dir}
 		. '.'
 		. $self->{reg}
