@@ -300,29 +300,19 @@ If the field looks like it contains a DOI then link it.
 
 sub render_possible_doi
 {
-	my( $session, $field, $value ) = @_; 
+	my( $session, $field, $value ) = @_;
 
 	$value = "" unless defined $value;
-	if( $value =~ m!^
-			(?:https?://(?:dx\.)?doi\.org/)?  # add this again later anyway
-			(?:doi:?\s*)?                   # don't need any namespace stuff
-			(10(\.[^./]+)+/.+)              # the actual DOI => $1
-		!ix )
-	{
-		# The only part we care about is the actual DOI.
-		$value = $1;
-	}
-	else
+	my $doi = EPrints::DOI->parse( $value );
+	if( !$doi )
 	{
 		# Doesn't look like a DOI we can turn into a link,
 		# so just render it as-is.
 		return $session->make_text( $value );
 	}
-
-	my $url = "https://doi.org/$value";
-	my $link = $session->render_link( $url, "_blank" ); 
-	$link->appendChild( $session->make_text( $url ) );
-	return $link; 
+	my $link = $session->render_link( $doi->to_uri, "_blank" );
+	$link->appendChild( $session->make_text( $doi->to_string( noprefix=>1 ) ) );
+	return $link;
 }
 
 
