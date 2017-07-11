@@ -137,7 +137,7 @@ sub parse
 
 	my $doi = $string;
 
-	if( $doi =~ s!^https?://(?:dx\.)?doi\.org/+(?:doi:)?!!i )
+	if( $doi =~ s!^https?://(?:(?:dx\.)?doi\.org|doi\.acm\.org|doi\.ieeecomputersociety\.org)/+(?:doi:)?!!i )
 	{
 		# It looks like a HTTP proxy URL.
 		$doi = url_decode( $doi );
