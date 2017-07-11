@@ -86,7 +86,7 @@ sub clone
 #
 # Adds $rest to dss on a new DOI.
 #
-sub _cat($)
+sub _cat
 {
 	my( $self, $rest ) = @_;
 	return $self->clone->_cat0( $rest );
@@ -95,7 +95,7 @@ sub _cat($)
 #
 # Adds $rest to dss of this DOI.
 #
-sub _cat0($)
+sub _cat0
 {
 	my( $self, $rest ) = @_;
 
@@ -131,7 +131,7 @@ Returns C<undef> if parsing fails.
 
 =cut
 
-sub parse($)
+sub parse
 {
 	my( $class, $string ) = @_;
 
