@@ -702,17 +702,17 @@ sub handler
 	}
 	else
 	{
-#		# redirect /foo to /foo/ if foo is a static directory
-#		if( $localpath !~ m/\/$/ )
-#		{
-#			foreach my $dir ( $repository->get_static_dirs( $lang ) )
-#			{
-#				if( -d $dir.$localpath )
-#				{
-#					return redir( $r, "$uri/" );
-#				}
-#			}
-#		}
+		# redirect /foo to /foo/ if foo is a static directory
+		if( $localpath !~ m/\/$/ )
+		{
+			foreach my $dir ( $repository->get_static_dirs( $lang ) )
+			{
+				if( -d $dir.$localpath )
+				{
+					return redir( $r, "$uri/" );
+				}
+			}
+		}
 
 		local $repository->{preparing_static_page} = 1; 
 		EPrints::Update::Static::update_static_file( $repository, $lang, $localpath );
