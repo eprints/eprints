@@ -30,3 +30,6 @@
 #  e.g. /myspecial/cgi
 # Will match http://yourrepo/myspecial/cgi
 #$c->{rewrite_exceptions} = [];
+#
+
+$c->{use_long_url_format} = 1;
