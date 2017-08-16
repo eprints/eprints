@@ -28,7 +28,6 @@ sub new
     {
         $self{ua}->proxy(['http', 'https', 'ftp'], $repo->config( "proxy" ));
     }
-}
 
 	return bless \%self, $class;
 }
