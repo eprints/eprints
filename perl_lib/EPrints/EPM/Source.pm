@@ -21,6 +21,12 @@ sub new
 
 	$self{ua} = LWP::UserAgent->new;
 	$self{ua}->env_proxy;
+	my $repo = $self{repository};
+
+        if ( $repo->config( "proxy" ))
+        {
+          $self{ua}->proxy(['http', 'https', 'ftp'], $repo->config( "proxy" ));
+        }
 
 	return bless \%self, $class;
 }
