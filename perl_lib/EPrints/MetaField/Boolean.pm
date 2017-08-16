@@ -109,17 +109,24 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE"),
 			checked=>( defined $value && $value eq 
 					"TRUE" ? "checked" : undef ),
 			name => $basename,
+			id => "${basename}_TRUE",
 			value => "TRUE" );
 		my $false = $session->render_noenter_input_field(
 			type => "radio",
 			checked=>( defined $value && $value eq 
 					"FALSE" ? "checked" : undef ),
 			name => $basename,
+			id => "${basename}_FALSE",
 			value => "FALSE" );
 		my $f = $session->make_doc_fragment;
+		my $phrase_id = $self->{confid}."_radio_".$self->{name};
+		if( !$session->get_lang->has_phrase( $phrase_id ) )
+		{
+			$phrase_id = "lib/metafield/boolean:default_radio_list";
+		}
 		$f->appendChild( 
 			$session->html_phrase(
-				$self->{confid}."_radio_".$self->{name},
+				$phrase_id,
 				true=>$true,
 				false=>$false ) );
 		if( !$self->get_property( "required" ) )
@@ -130,6 +137,7 @@ FALSE=> $session->phrase( $self->{confid}."_fieldopt_".$self->{name}."_FALSE"),
 					type => "radio",
 					checked=>( !EPrints::Utils::is_set($value) ? "checked" : undef ),
 					name => $basename,
+					id => "${basename}_UNDEF",
 					value => "" ) );
 			$f->appendChild( $div );
 			$div->appendChild( $session->html_phrase( 

@@ -130,7 +130,7 @@ Show items that have no value(s) for the selected field.
 
 =item cloud
 
-Render a "Tag Cloud" of links, where the individual links are scaled by their frequency of occurence.
+Render a "Tag Cloud" of links, where the individual links are scaled by their frequency of occurrence.
 
 =item cloudmin = 80, cloudmax = 200
 
@@ -1498,7 +1498,7 @@ sub render_menu
 
 		my $xhtml_value = $fields->[0]->get_value_label( $repo, $value ); 
 		my $null_phrase_id = "viewnull_".$ds->base_id()."_".$view->{id};
-		if( !EPrints::Utils::is_set( $value ) && $repo->get_lang()->has_phrase($null_phrase_id) )
+		if( !EPrints::Utils::is_set( $value ) )
 		{
 			$xhtml_value = $repo->html_phrase( $null_phrase_id );
 		}
@@ -1887,7 +1887,7 @@ sub render_array_of_eprints
 	}
 	elsif( defined $view->{layout} && $view->{layout} eq "unorderedlist" )
 	{
-		$frag = $xml->create_element( "ol" );
+		$frag = $xml->create_element( "ul" );
 	}
 	else
 	{

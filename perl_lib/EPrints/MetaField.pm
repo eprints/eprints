@@ -550,15 +550,7 @@ sub form_value
 {
 	my( $self, $session, $object, $prefix ) = @_;
 
-	my $basename;
-	if( defined $prefix )
-	{
-		$basename = $prefix."_".$self->{name};
-	}
-	else
-	{
-		$basename = $self->{name};
-	}
+	my $basename = $self->basename($prefix);
 
 	my $value = $self->form_value_actual( $session, $object, $basename );
 
@@ -1258,20 +1250,13 @@ sub render_input_field_actual
 			$tr->appendChild( $th );
 		}
 
-		if( !defined $col_titles )
+		foreach my $col_title ( @{$col_titles} )
 		{
-			$th = $session->make_element( "th", class=>"empty_heading", id=>$basename."_th_".$x++ );
+			$th = $session->make_element( "th", id=>$basename."_th_".$x++ );
+			$th->appendChild( $col_title );
 			$tr->appendChild( $th );
-		}	
-		else
-		{
-			foreach my $col_title ( @{$col_titles} )
-			{
-				$th = $session->make_element( "th", id=>$basename."_th_".$x++ );
-				$th->appendChild( $col_title );
-				$tr->appendChild( $th );
-			}
 		}
+
 		$table->appendChild( $tr );
 	}
 
@@ -1465,16 +1450,9 @@ Returns true if this field has an internal action.
 
 sub has_internal_action
 {
-	my( $self, $basename ) = @_;
+	my( $self, $prefix ) = @_;
 
-	if( defined $basename )
-	{
-		$basename .= "_" . $self->{name}
-	}
-	else
-	{
-		$basename = $self->{name};
-	}
+	my $basename = $self->basename($prefix);
 
 	my $ibutton = $self->{repository}->get_internal_button;
 	return
@@ -1497,16 +1475,9 @@ Returns "" if no parameters are required.
 
 sub get_state_params
 {
-	my( $self, $session, $basename ) = @_;
+	my( $self, $session, $prefix ) = @_;
 
-	if( defined $basename )
-	{
-		$basename .= "_" . $self->{name}
-	}
-	else
-	{
-		$basename = $self->{name};
-	}
+	my $basename = $self->basename($prefix);
 
 	my $params = "";
 
@@ -1859,18 +1830,6 @@ sub get_value_label
 
 	return $session->make_text( $value );
 }
-
-
-
-#	if( $self->is_type( "id" ) )
-#	{
-#		return $session->get_repository->call( 
-#			"id_label", 
-#			$self, 
-#			$session, 
-#			$value );
-#	}
-
 
 ######################################################################
 =pod
@@ -2413,10 +2372,6 @@ sub split_search_value
 {
 	my( $self, $session, $value ) = @_;
 
-#	return EPrints::Index::split_words( 
-#			$session,
-#			EPrints::Index::apply_mapping( $session, $value ) );
-
 	return split /\s+/, $value;
 }
 
@@ -2557,20 +2512,20 @@ sub validate
 
 sub basename 
 {
-  my ( $self, $prefix ) = @_;
+	my ( $self, $prefix ) = @_;
 
-  my $basename;
+	my $basename;
 
-  if( defined $prefix )
-    {
-      $basename = $prefix."_".$self->{name};
-    }
-  else
-    {
-      $basename = $self->{name};
-    }
+	if( defined $prefix )
+	{
+		$basename = $prefix."_".$self->{name};
+	}
+	else
+	{
+		$basename = $self->{name};
+	}
 
-  return $basename;
+	return $basename;
 }
 
 

@@ -61,7 +61,7 @@ Specify the directory of the Xapian database if it is not /opt/eprints3/archives
 
 =item B<--quiet>
 
-This option will supress all output unless an error occurs.
+This option will suppress all output unless an error occurs.
 
 =item B<--random>
 
@@ -73,11 +73,11 @@ If a item is not found then schedule it for reindexing.
 
 =item B<--sample=n>
 
-Used in conjuction with --random to specify the sample size of items to check.
+Used in conjunction with --random to specify the sample size of items to check.
 
 =item B<--user=admin>
 
-Used in conjuction with --reindex to specify the username of the user who should be set as the creator for indexing tasks.  If not set the first admin or local_admin user created will be used.
+Used in conjunction with --reindex to specify the username of the user who should be set as the creator for indexing tasks.  If not set the first admin or local_admin user created will be used.
 
 =item B<--verbose>
 

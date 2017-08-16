@@ -1,2 +1,10 @@
 apache
 perl_lib/EPrints/SystemSettings.pm
+INSTALL
+Makefile.in
+aclocal.m4
+autom4te.cache/
+configure
+install-sh
+missing
+*.swp

@@ -737,6 +737,11 @@ sub _get_subjects2
 	return $subpairs;
 }
 
+
+# cjg CACHE this per, er, session?
+# committing a subject should erase the cache
+
+
 ######################################################################
 
 =item ( $subject_map, $reverse_map ) = EPrints::DataObj::Subject::get_all( $session )
@@ -847,7 +852,7 @@ sub posted_eprints
 =item $count = $subject->count_eprints( $dataset )
 
 Return the number of eprints in the dataset which are in this subject
-or one of its decendants. Search all fields of type subject.
+or one of its descendants. Search all fields of type subject.
 
 =cut
 ######################################################################

@@ -134,7 +134,7 @@ sub render
 	my $xml = $repo->xml;
 	my $r = $repo->get_request;
 
-	# catch inifinite recursion on tab rendering
+	# catch infinite recursion on tab rendering
 	return $xml->create_document_fragment if ref($self) ne __PACKAGE__;
 
 	$r->status( 401 );

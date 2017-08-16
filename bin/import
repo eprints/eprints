@@ -44,7 +44,7 @@ Please note that for the "subject" dataset, you are probably better off using th
 
 The id of the input plugin to use. This should not include the leading "Import::". Examples: BibTeX, XML.
 
-If this is ommited or an invalid plugin is requested, then 'import' will list all plugins compatible with the dataset and exit.
+If this is omitted or an invalid plugin is requested, then 'import' will list all plugins compatible with the dataset and exit.
 
 =back
 
@@ -112,7 +112,7 @@ Print the full manual page and then exit.
 
 =item B<--quiet>
 
-Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+Be vewwy vewwy quiet. This option will suppress all output unless an error occurs.
 
 =item B<--verbose>
 
@@ -297,7 +297,7 @@ if( !defined $user && $ds->confid eq "eprint" && !$force )
 	print <<END;
 Warning! You haven't specified a user id to own these eprints, 
 That's OK, assuming the input file specifies the userid for each eprint. 
-(you can supress this check with --force).
+(you can suppress this check with --force).
 END
 	unless( EPrints::Utils::get_input_confirm( "Continue?", 1 ) )
 	{

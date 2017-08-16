@@ -55,13 +55,26 @@ EOC
 </VirtualHost>
 EOC
 		}
+		elsif( $aliasinfo->{redirect} )
+		{
+			my $mode = $aliasinfo->{redirect};
+			my $vname = $aliasinfo->{name};
+			$conf .= <<EOC;
+
+# Redirect to the correct hostname
+<VirtualHost $virtualhost:$port>
+  ServerName $vname
+  Redirect $mode / http://$hostport/
+</VirtualHost>
+EOC
+		}
 		else
 		{
 			$aliases.="  ServerAlias ".$aliasinfo->{name}."\n";
 		}
 	}
 
-		$conf .= <<EOC;
+	$conf .= <<EOC;
 
 # The main virtual host for this repository
 <VirtualHost $virtualhost:$port>
@@ -69,20 +82,9 @@ EOC
 $aliases
   ServerAdmin $adminemail
 
-  <Location "$http_root">
-    PerlSetVar EPrints_ArchiveID $id
-
-    Options +ExecCGI
-    <IfModule mod_authz_core.c>
-       Require all granted
-    </IfModule>
-    <IfModule !mod_authz_core.c>
-       Order allow,deny
-       Allow from all
-    </IfModule>
-  </Location>
-
 EOC
+
+	$conf .= _location( $http_root, $id );
 
 	# backwards compatibility
 	my $apachevhost = $repo->config( "config_path" )."/apachevhost.conf";
@@ -113,7 +115,7 @@ sub apache_secure_conf
 	my $id = $repo->get_id;
 	my $https_root = $repo->config( "https_root" );
 
-	return <<EOC
+	my $config = <<EOC;
 #
 # secure.conf include file for $id
 #
@@ -121,9 +123,33 @@ sub apache_secure_conf
 # with the --replace option
 #
 
-  <Location "$https_root">
+EOC
+
+	# Include a <Location/> directive for http_root if
+	# different from https_root
+	my $http_root = $repo->config( "http_root" );
+	if( $http_root ne $https_root )
+	{
+		$config .= _location( $http_root, $id );
+	}
+
+	# Include a <Location/> directive for https_root
+	$config .= _location( $https_root, $id, 1 );
+
+	return $config;
+}
+
+sub _location
+{
+	my( $http_root, $id, $secure ) = @_;
+
+	$secure = $secure ? 'PerlSetVar EPrints_Secure yes' : '';
+
+	return <<EOC;
+
+  <Location "$http_root">
     PerlSetVar EPrints_ArchiveID $id
-    PerlSetVar EPrints_Secure yes
+    $secure
 
     Options +ExecCGI
     <IfModule mod_authz_core.c>

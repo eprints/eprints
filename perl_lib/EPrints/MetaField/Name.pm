@@ -290,7 +290,7 @@ sub get_search_conditions
 		$noskip = 2;
 		if( length $gpart == 1 )
 		{
-			# inital
+			# initial
 			foreach my $l ( @{$list} )
 			{
 				$l .= '['.$gpart.'%';

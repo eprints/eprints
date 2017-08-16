@@ -67,7 +67,7 @@ sub new
 	$opts{respawn} ||= 86400; # 1 day
 	$opts{timeout} ||= 600; # 10 minutes
 	$opts{nextrespawn} = time() + $opts{respawn};
-	$opts{interupt} = 0; # break out of any loops
+	$opts{interrupt} = 0; # break out of any loops
 
 	my $self = bless \%opts, $class;
 
@@ -245,11 +245,12 @@ sub get_last_tick
 }
 
 # true if we've been asked to exit
-sub interupted
+sub interupted { &interrupted }
+sub interrupted
 {
 	my( $self ) = @_;
 
-	return $self->{interupt} ||= -e $_[0]->{suicidefile};
+	return $self->{interrupt} ||= -e $_[0]->{suicidefile};
 }
 
 # roll the log files then reopen the main log file
@@ -524,7 +525,7 @@ sub start_daemon
 			delete $self->{child};
 			$self->log( 2, "*** Indexer sub-process stopped" );
 
-			if( $self->interupted )
+			if( $self->interrupted )
 			{
 				$self->log( 1, "** Indexer process stopping" );
 				last;
@@ -612,8 +613,8 @@ sub run_index
 		$self->real_exit;
 	};
 	$SIG{INT} = sub {
-		$self->log( 3, "** Worker process interupted" );
-		$self->{interupt} = 1;
+		$self->log( 3, "** Worker process interrupted" );
+		$self->{interrupt} = 1;
 	};
 
 	MAINLOOP: while( 1 )
@@ -622,7 +623,7 @@ sub run_index
 
 		foreach my $repo ( @repos )
 		{
-			last MAINLOOP if $self->interupted;
+			last MAINLOOP if $self->interrupted;
 			$self->log( 5, "** Processing queue from ".$repo->get_id );
 
 			# (re)init the repository object e.g. reconnect timed-out DBI
@@ -654,11 +655,11 @@ sub run_index
 
 		next MAINLOOP if $seen_action;
 
-		# wait interval seconds. Check interupt requests every 5 seconds.
+		# wait interval seconds. Check interrupt requests every 5 seconds.
 		my $stime = time();
 		while( ($stime + $self->{interval}) > time() )
 		{
-			last MAINLOOP if $self->interupted;
+			last MAINLOOP if $self->interrupted;
 			sleep 5;
 		}
 
@@ -673,7 +674,7 @@ sub run_index
 		}
 	}
 
-	if( $self->interupted )
+	if( $self->interrupted )
 	{
 		$self->log( 3, "** Worker process stopping" );
 	}
@@ -696,8 +697,8 @@ sub _run_index
 	$self->log( 5, "** Empty task list" ) if !@events;
 	EVENT: foreach my $event (@events)
 	{
-		# reset events on interuption
-		if( $self->interupted )
+		# reset events on interruption
+		if( $self->interrupted )
 		{
 			$event->set_value( "status", "waiting" );
 			$event->commit;

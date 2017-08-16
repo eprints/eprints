@@ -394,7 +394,7 @@ sub param
 
         if( defined $name )
         {
-                @result = $self->{query}->param( $name );
+                @result = $self->{query}->multi_param( $name );
         }
         else
         {
@@ -1515,12 +1515,12 @@ Return a given L<EPrints::DataSet> or undef if it doesn't exist.
 ######################################################################
 
 sub get_dataset { return dataset( @_ ); }
-sub dataset($$)
+sub dataset($$;$)
 {
-	my( $self , $setname ) = @_;
+	my( $self, $setname, $quiet ) = @_;
 
 	my $ds = $self->{datasets}->{$setname};
-	if( !defined $ds )
+	if( !defined $ds && !$quiet )
 	{
 		$self->log( "Unknown dataset: ".$setname );
 	}
@@ -2298,7 +2298,7 @@ Given an repository object and a Apache (mod_perl) request object, this
 method decides what language the session should be.
 
 First it looks at the HTTP cookie "eprints_lang", failing that it
-looks at the prefered language of the request from the HTTP header,
+looks at the preferred language of the request from the HTTP header,
 failing that it looks at the default language for the repository.
 
 The language ID it returns is the highest on the list that the given
@@ -2356,7 +2356,7 @@ sub get_session_language
 	}
 
 	print STDERR <<END;
-Something odd happend in the language selection code... 
+Something odd happened in the language selection code...
 Did you make a default language which is not in the list of languages?
 END
 	return undef;
@@ -2527,7 +2527,7 @@ sub get_langid
 
 =item $value = EPrints::Repository::best_language( $repository, $lang, %values )
 
-$repository is the current repository. $lang is the prefered language.
+$repository is the current repository. $lang is the preferred language.
 
 %values contains keys which are language ids, and values which is
 text or phrases in those languages, all translations of the same 
@@ -2771,7 +2771,7 @@ sub get_full_url
 
 =item $noise_level = $repository->get_noise
 
-Return the noise level for the current session. See the explaination
+Return the noise level for the current session. See the explanation
 under EPrints::Repository->new()
 
 =end InternalDoc
@@ -3824,7 +3824,7 @@ sub render_form
 Return as XHTML DOM a nested set of <ul> and <li> tags describing
 part of a subject tree.
 
-$subject_list is a array ref of subject ids to render.
+$subject_list is an array ref of subject ids to render.
 
 $baseid is top top level node to render the tree from. If only a single
 subject is in subject_list, all subjects up to $baseid will still be
@@ -4296,7 +4296,7 @@ sub render_message
 # $xhtml = $repository->render_tabs( %params )
 #
 # Render javascript tabs to switch between views. The views must be
-# rendered seperately. 
+# rendered separately.
 
 # %params contains the following options:
 # id_prefix: the prefix of the id attributes.

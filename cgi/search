@@ -71,7 +71,7 @@ elsif( !defined $searchid )
 {
 	# /cgi/search/quicksearch i.e. repository-specific search spec. that
 	# hopefully doesn't match an existing dataset id
-	if( !defined $repo->dataset( $datasetid ) )
+	if( !defined $repo->dataset( $datasetid, 1 ) )
 	{
 		$searchid = $datasetid;
 		$datasetid = "archive";

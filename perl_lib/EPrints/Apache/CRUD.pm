@@ -168,7 +168,7 @@ Web browsers only allow GET and POST requests. To perform other requests use the
 
 =for MediaWiki {{Available|since=3.3.9}}
 
-If you have the I<upsert> privilege objects will be created on demand, otherwise attempting to PUT to a non-existant object will result in an error.
+If you have the I<upsert> privilege objects will be created on demand, otherwise attempting to PUT to a non-existent object will result in an error.
 
 =head1 METHODS
 
@@ -1267,17 +1267,30 @@ sub GET
 	elsif( $self->scope == CRUD_SCOPE_DATAOBJ )
 	{
 		return HTTP_NOT_FOUND if !defined $dataobj;
-
-		# user wants HTML and there is a static page available
-		my $url = ($dataset->base_id eq "eprint" && $dataset->id ne "archive") ?
-				$dataobj->get_control_url :
-				$dataobj->get_url;
-		if( $plugin->get_subtype eq "SummaryPage" )
+		if (not $repo->config("use_long_url_format"))
 		{
-			if( defined( $url ) && $url ne $dataobj->uri )
+			# user wants HTML and there is a static page available
+			my $url = ($dataset->base_id eq "eprint" && $dataset->id ne "archive") ?
+					$dataobj->get_control_url :
+					$dataobj->get_url;
+			if( $plugin->get_subtype eq "SummaryPage" )
 			{
-				return EPrints::Apache::Rewrite::redir_see_other( $r, $url );
+				if( defined( $url ) && $url ne $dataobj->uri )
+				{
+					return EPrints::Apache::Rewrite::redir_see_other( $r, $url );
+				}
 			}
+		}
+		else
+		{
+			if ($dataset->base_id eq "file")  ##  redirect /id/file/234  to  /id/eprint/23/1.pdf (part of the 84_sword.pl test)
+            {
+                my $url = $dataobj->get_url;
+                if( defined( $url ) && $url ne $dataobj->uri )
+                {
+                    return EPrints::Apache::Rewrite::redir_see_other( $r, $url );
+                }
+            }	
 		}
 
 		# set Last-Modified header for individual objects
@@ -1819,7 +1832,7 @@ sub servicedocument
 
 	return $self->send_response(
 		OK,
-		'application/xtomsvc+xml; charset=utf-8',
+		'application/atomsvc+xml; charset=utf-8',
 		$content
 	);
 }

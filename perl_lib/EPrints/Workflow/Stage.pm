@@ -165,7 +165,11 @@ sub render_title
 	if( !defined $title )
 	{
 		my $dataset = $self->{item}->dataset;
-		return $self->{repository}->html_phrase( $dataset->base_id.":workflow:stage:".$self->get_name.":title" );
+		if($self->{repository}->get_lang->has_phrase( $dataset->base_id.":workflow:stage:".$self->get_name.":title" )){
+			return $self->{repository}->html_phrase( $dataset->base_id.":workflow:stage:".$self->get_name.":title" );
+		}else{
+			return $self->{repository}->html_phrase( "metapage_title_".$self->get_name );
+		}
 	}
 
 	return $self->{repository}->xml->create_text_node( $title );

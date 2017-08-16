@@ -56,7 +56,7 @@ completeness.
 
 Returns a string or undef, depending on the node type. This method is provided 
 for completeness. In other languages it saves the programmer an upcast.
-The value is either available thru some other method defined in the subclass, or
+The value is either available through some other method defined in the subclass, or
 else undef is returned. Here are the corresponding methods: 
 Attr::getValue, Text::getData, CDATASection::getData, Comment::getData, 
 ProcessingInstruction::getData.

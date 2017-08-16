@@ -92,3 +92,20 @@ $c->{cache_max} = 100;
 #        return EP_TRIGGER_OK;
 #});
 
+$c->add_trigger( EP_TRIGGER_LOCAL_SITEMAP_URLS, sub {
+    my( %args ) = @_;
+
+    my( $repository, $urlset ) = @args{qw( repository urlset )};
+
+    # <urlset/> must contain at least one <url/>
+    if( !$urlset->exists( './url/loc' ) )
+    {
+	# if none, add a pointer to the homepage
+	$urlset->appendChild( EPrints::Utils::make_sitemap_url( $repository, {
+	    loc => $repository->config( "frontpage" )
+	} ) );
+    }
+
+    return EP_TRIGGER_OK;
+}, priority => -10); # run after other handlers
+

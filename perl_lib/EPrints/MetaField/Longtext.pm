@@ -53,17 +53,6 @@ sub render_single_value
 {
 	my( $self, $session, $value ) = @_;
 	
-#	my @paras = split( /\r\n\r\n|\r\r|\n\n/ , $value );
-#
-#	my $frag = $session->make_doc_fragment();
-#	foreach( @paras )
-#	{
-#		my $p = $session->make_element( "p" );
-#		$p->appendChild( $session->make_text( $_ ) );
-#		$frag->appendChild( $p );
-#	}
-#	return $frag;
-
 	return $session->make_text( $value );
 }
 

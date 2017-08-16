@@ -423,7 +423,7 @@ sub update_from_form
 }
 
 
-# return a fragement of a form.
+# return a fragment of a form.
 
 sub render
 {

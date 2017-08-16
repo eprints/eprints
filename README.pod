@@ -9,6 +9,7 @@
 
 =end HTML
 
+
 GNU EPrints README
 
 =head1 SYNOPSIS
@@ -20,6 +21,10 @@ GNU EPrints README
 Installation guide: B<http://wiki.eprints.org/w/Installation>.
 
 For more information see B<http://www.eprints.org/software/>.
+
+NOTE:
+*The 3.3 branch should be considered as the new "master" branch now. *
+*The master branch is no longer maintained. (A merge could not be performed automatically due to different code paths.)*
 
 =head1 DESCRIPTION
 

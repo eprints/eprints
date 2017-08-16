@@ -23,7 +23,7 @@ It should not be confused with MetaField.
 
 It can search over several metadata fields, and the value of the
 value of the search field is usually a string containing a list of
-whitespace seperated words, or other search criteria.
+whitespace separated words, or other search criteria.
 
 A search field has four key parameters:
 
@@ -37,11 +37,11 @@ A search field has four key parameters:
 
 =item match=IN
 
-Treat the value as a list of whitespace-seperated words. Search for
+Treat the value as a list of whitespace-separated words. Search for
 each one in the full-text index.
 
 In the case of subjects, match these subject ids or the those of any
-of their decendants in the subject tree.
+of their descendants in the subject tree.
 
 =item match=EQ (equal)
 
@@ -54,7 +54,7 @@ If the value is an empty string then search for fields which are
 empty, as oppose to skipping this search field.
 
 In the case of subjects, match the specified subjects, but not their
-decendants.
+descendants.
 
 =item match=SET
 

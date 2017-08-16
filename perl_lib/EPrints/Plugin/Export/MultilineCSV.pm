@@ -23,6 +23,7 @@ sub new
 	$self->{visible} = "staff";
 	$self->{suffix} = ".csv";
 	$self->{mimetype} = "text/csv; charset=utf-8";
+	$self->{advertise} = 1;  #to override the advertise=0 set in SUPER::new
 	
 	return $self;
 }

@@ -22,7 +22,7 @@ B<import_subjects> I<repository_id> [B<options>] [I<subjectfile>]
 
 =head1 DESCRIPTION
 
-Import a set of subjects into an EPrints repository. The subjects are the heirarchical tree of options for "subject" type metadata fields in an eprint repository. 
+Import a set of subjects into an EPrints repository. The subjects are the heirarchical tree of options for "subject" type metadata fields in an eprint repository.
 
 Use the staff admin subject editor for little tweaks. Use this command for the initial setup or bulk editing subjects. Use the exporter to dump the current subjects if you (an administrator) have edited them online.
 
@@ -34,13 +34,13 @@ Without the B<--force> option, this script asks for confirmation before actually
 
 =over 8
 
-=item I<repository_id> 
+=item I<repository_id>
 
 The ID of the EPrint repository to use.
 
 =item I<subjectfile>
 
-This is the file to import the subjects from. If you do not specify it then the system will use "subjects" from the given repository cfg directory. 
+This is the file to import the subjects from. If you do not specify it then the system will use "subjects" from the given repository cfg directory.
 
 =back
 
@@ -62,7 +62,7 @@ Print the full manual page and then exit.
 
 =item B<--quiet>
 
-Be vewwy vewwy quiet. This option will supress all output unless an error occurs.
+Be vewwy vewwy quiet. This option will suppress all output unless an error occurs.
 
 =item B<--verbose>
 
@@ -81,15 +81,15 @@ Do not purge the existing records from the subject table before importing this f
 
 Don't ask before making the changes.
 
-=back   
+=back
 
 =head1 FILE FORMAT
 
-There are two different file formats excepted, the default colon seperated file and XML in the eprints export format. 
+There are two different file formats excepted, the default colon separated file and XML in the eprints export format.
 
-The colon seperated ASCII is easier to edit, but is more limited. It is not 
+The colon separated ASCII is easier to edit, but is more limited. It is not
 intended for UTF-8 encoded characters and can only specify subject names in
-the default language. 
+the default language.
 
 The XML format can contain any unicode characters and also allows multiple
 languages for the names of subjects. You may wish to dump the current subjects
@@ -98,9 +98,9 @@ format is far more verbose.
 
 =head2 The ASCII Default Format
 
-This is the default format. 
+This is the default format.
 
-Comments may be placed on lines begining with a hash (#)
+Comments may be placed on lines beginning with a hash (#)
 
 Each (non-comment) line of the file should be in the following format:
 
@@ -114,23 +114,23 @@ Please see the main documentation for the meaning of these fields.
 
 =over 8
 
-=item B<subjectid> 
+=item B<subjectid>
 
 An ASCII string which is a unique ID for this subject.
 
-=item B<name> 
+=item B<name>
 
 The name of this subject, in the default language of the repository.
 
-=item B<parents> 
+=item B<parents>
 
-A comma seperated list of the parents of this subject. Be careful not to cause
+A comma separated list of the parents of this subject. Be careful not to cause
 loops. The top level subject id is ROOT and should not be imported as it always exists.
 
-=item B<depositable> 
+=item B<depositable>
 
 A boolean value ( 1 or 0 ) which indicates if this subject may have eprints
-associated with it. 
+associated with it.
 
 =back
 
@@ -174,11 +174,11 @@ my $xml = 0;
 
 Getopt::Long::Configure("permute");
 
-GetOptions( 
+GetOptions(
 	'help|?' => \$help,
 	'man' => \$man,
-	'force' => \$force , 
-	'xml' => \$xml , 
+	'force' => \$force ,
+	'xml' => \$xml ,
 	'version' => \$version,
 	'verbose+' => \$verbose,
 	'silent' => \$quiet,
@@ -188,7 +188,7 @@ GetOptions(
 EPrints::Utils::cmd_version( "import_subjects" ) if $version;
 pod2usage( 1 ) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
-pod2usage( 2 ) if( scalar @ARGV != 2 && scalar @ARGV != 1 ); 
+pod2usage( 2 ) if( scalar @ARGV != 2 && scalar @ARGV != 1 );
 
 my $noise = 1;
 $noise = 0 if( $quiet );
@@ -247,7 +247,7 @@ if( $purge && $existing )
 print "Importing from $filename...\n" if( $noise >= 1 );
 
 my $ipluginid = "FlatSubjects";
-if( $xml ) 
+if( $xml )
 {
 	$ipluginid = "XML";
 }

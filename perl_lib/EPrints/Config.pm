@@ -31,7 +31,9 @@ the top level configurations for repositories - the XML files in /archives/
 Deprecated, use L<EPrints>::abort.
 
 =item EPrints::Config::get_archive_config
+
 =item EPrints::Config::get_archive_ids
+
 =item EPrints::Config::load_archive_config_module
 
 Deprecated, use *_repository_*.

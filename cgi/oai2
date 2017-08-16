@@ -780,10 +780,8 @@ sub _list
 	$filters = [] unless defined $filters;
 
 	push @$filters, {
-		meta_fields => [qw( eprint_status )],
-		value => "archive deletion",
-		match => "EQ",
-		merge => "ANY",
+		meta_fields => [qw( datestamp )],
+		match => "SET",
 	};
 
 	# custom sets
