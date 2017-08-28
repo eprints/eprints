@@ -48,7 +48,7 @@ Welcome to <epc:phrase ref="archive_name" />. <a href="http://www.eprints.org/d/
 </div></div>
 
 <p style="margin-top: 2em; font-size: 90%">
-<epc:phrase ref="archive_name" /> supports <a href="http://www.openarchives.org"><abbr title="Open Archives Protocol for Metadata Harvesting v2.0">OAI 2.0</abbr></a> with a base URL of <tt><epc:print expr="$config{perl_url}" />/oai2</tt>
+<epc:phrase ref="archive_name" /> supports <a href="http://www.openarchives.org"><abbr title="Open Archives Protocol for Metadata Harvesting v2.0">OAI 2.0</abbr></a> with a base URL of <code><epc:print expr="$config{perl_url}" />/oai2</code>
 </p>
 
 

@@ -554,7 +554,7 @@ sub interior_sequence
 
 	return "'''$seq_arg'''" if $seq_cmd eq 'B';
 	return "''$seq_arg''" if $seq_cmd eq 'F';
-	return "\x{00}tt\x00$seq_arg\x00" if $seq_cmd eq 'C';
+	return "\x{00}code\x00$seq_arg\x00" if $seq_cmd eq 'C';
 	return "\x{00}em\x00$seq_arg\x00" if $seq_cmd eq 'I';
 	return "\x{00}u\x00$seq_arg\x00" if $seq_cmd eq 'U';
 	if( $seq_cmd eq "E" )
