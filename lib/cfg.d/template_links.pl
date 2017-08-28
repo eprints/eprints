@@ -40,6 +40,7 @@ $c->add_trigger( EP_TRIGGER_DYNAMIC_TEMPLATE, sub {
 			rel => "Search",
 			type => "application/opensearchdescription+xml",
 			href => $repo->current_url( scheme => 'http', host => 1, path => "cgi", "opensearchdescription" ),
+			title=> $repo->phrase( 'archive_name' ),
 		) );
 	$head->appendChild( $repo->xml->create_text_node( "\n    " ) );
 
