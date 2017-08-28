@@ -1433,6 +1433,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 		
     <epp:phrase id="lib/metafield:join_subobject"><br /></epp:phrase>
     <epp:phrase id="lib/metafield:join_int">, </epp:phrase>
+    <epp:phrase id="lib/metafield:join_id">, </epp:phrase>
     <epp:phrase id="lib/metafield:join_year">, </epp:phrase>
     <epp:phrase id="lib/metafield:join_longtext">, </epp:phrase>
     <epp:phrase id="lib/metafield:join_date">, </epp:phrase>
