@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+######################################################################
+=head1 NAME
+
+respond_to_doc_request - handle pin-based copy requests
+
+=head1 DESCRIPTION
+
+CGI handler for pin-based copy request responses
+
+=cut
+######################################################################
+
+use EPrints qw();
+
+use strict;
+use warnings;
+
+use EPrints::ScreenProcessor;
+
+my $eprints = EPrints->new;
+my $repo = $eprints->current_repository();
+
+EPrints::ScreenProcessor->process(
+    screenid => 'Request::Respond',
+    session => $repo,
+    template => $repo->config( 'user_area_template' ),
+    url => $repo->get_conf( 'rel_cgipath' ) . '/users/home' );
+
+$repo->terminate;
