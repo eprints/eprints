@@ -56,6 +56,20 @@ Or, per view:
 
 To disable the limit set C<max_items> to 0.
 
+=head1 GENERATING LARGE VIEWS
+
+By default views will get regenerated if they are older than 24 hours when requested. For large repositories views can take a long time to generate.
+
+If a view takes more than 24hours to generate, you may want to make the regeneration period longer:
+
+	$c->{browse_views} = [{
+		...
+		max_menu_age => 10*24*60*60, #10 days
+		max_list_age => 10*24*60*60, #10 days
+	}];
+
+These values should be set in relation to any scheduling of ~/bin/generate_views via cron. 
+
 =head1 OPTIONS
 
 =over 4
