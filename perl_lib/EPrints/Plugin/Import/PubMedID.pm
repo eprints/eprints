@@ -128,7 +128,7 @@ sub _get_pubmed_data
 
 	if ( $response->code != 200 )
 	{
-		print STDERR "HTTP status " . $response->code .  " from ncbi.nlm.nih.gov for PubMed ID $pmid\n";
+		print STDERR "HTTP status " . $response->code .  " for PubMed ID $pmid\n";
 	}
 	
 	if (!$success)
