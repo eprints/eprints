@@ -103,7 +103,7 @@ sub _cat0
 	return $self;
 }
 
-=item B<< $doi = EPrints::DOI->parse( $string ) >>
+=item B<< $doi = EPrints::DOI->parse( $string, %opts ) >>
 
 Parses a DOI from a string.
 
@@ -129,11 +129,21 @@ etc.
 
 Returns C<undef> if parsing fails.
 
+Options:
+
+=over 2
+
+=item B<< test => 1 >>
+
+Just tests that the string is parseable, and returns a boolean value.
+
+=back
+
 =cut
 
 sub parse
 {
-	my( $class, $string ) = @_;
+	my( $class, $string, %opts ) = @_;
 
 	my $doi = $string;
 
@@ -158,10 +168,12 @@ sub parse
 	if( $doi =~ m!^(10)\.([^/]+)/(\p{Graph}(?:[^/]\p{Graph}*)?)! )
 	{
 		# FIXME: $2 and $3 may contain characters outside of /\p{Graph}/
+		return 1 if $opts{test};
 		return $class->new( dir=>$1, reg=>$2, dss=>$3 );
 	}
 	else
 	{
+		return 0 if $opts{test};
 		warn "'$string' is not a valid DOI string";
 	}
 }
@@ -174,7 +186,7 @@ For example "doi:10.1000/foo#bar"
 
 =over 4
 
-=item noprefix => 1
+=item B<< noprefix => 1 >>
 
 Disable the 'doi:' prefix (enabled by default).
 
@@ -233,7 +245,7 @@ For example: "https://doi.org/10.1000/foo%23bar"
 
 =over 4
 
-=item info => 1
+=item B<< info => 1 >>
 
 Returns an 'info:' URI instead of 'https:'.
 
@@ -270,7 +282,7 @@ sub to_uri
 
 =for COPYRIGHT BEGIN
 
-Copyright 2016 Queensland University of Technology.
+Copyright 2017 Queensland University of Technology.
 
 =for COPYRIGHT END
 
