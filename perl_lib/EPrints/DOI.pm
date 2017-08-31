@@ -65,7 +65,7 @@ sub new
 {
 	my( $class, %opts ) = @_;
 
-	my %self = {};
+	my %self = ();
 
 	my @keys = qw/ dir reg dss /;
 	@self{ @keys } = @opts{ @keys };
