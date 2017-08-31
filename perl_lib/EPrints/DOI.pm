@@ -36,7 +36,7 @@ This module contains utility methods for parsing and displaying DOIs.
 
 =cut
 
-package EPrints::URL;
+package EPrints::DOI;
 
 use warnings;
 use strict;
