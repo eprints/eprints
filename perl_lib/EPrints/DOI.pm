@@ -38,6 +38,8 @@ This module contains utility methods for parsing and displaying DOIs.
 
 package EPrints::DOI;
 
+use URI::Escape;
+
 use warnings;
 use strict;
 
@@ -150,12 +152,12 @@ sub parse
 	if( $doi =~ s!^https?://(?:(?:dx\.)?doi\.org|doi\.acm\.org|doi\.ieeecomputersociety\.org)/+(?:doi:)?!!i )
 	{
 		# It looks like a HTTP proxy URL.
-		$doi = url_decode( $doi );
+		$doi = uri_unescape( $doi );
 	}
 	elsif( $doi =~ s!^info:doi/!!i )
 	{
 		# It looks like an info URI.
-		$doi = url_decode( $doi );
+		$doi = uri_unescape( $doi );
 	}
 	else
 	{
@@ -214,9 +216,9 @@ sub _uri_path
 	my( $self ) = @_;
 	return $self->{dir}
 		. '.'
-		. url_encode( $self->{reg} )
+		. uri_escape( $self->{reg} )
 		. '/'
-		. url_encode( $self->{dss} );
+		. uri_escape( $self->{dss} );
 }
 
 #
