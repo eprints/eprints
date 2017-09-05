@@ -44,7 +44,7 @@ use warnings;
 use strict;
 
 use overload
-	'""' => \&to_string,
+	'""' => \&_stringify,
 	'.'  => \&_cat,
 	'.=' => \&_cat0;
 
@@ -206,6 +206,11 @@ sub to_string
 		. $self->{reg}
 		. '/'
 		. $self->{dss};
+}
+
+sub _stringify
+{
+	return shift->to_string;
 }
 
 #
