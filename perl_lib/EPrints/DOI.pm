@@ -163,6 +163,12 @@ sub parse
 	{
 		# It's probably a DOI string.
 		$doi =~ s!^doi:!!i;
+
+		# final sanity check
+		if( $doi =~ m!^10.[^/]+%2F!i )
+		{
+			$doi = uri_unescape( $doi );
+		}
 	}
 
 	# ANSI/NISO Z39.84-2005
@@ -176,7 +182,8 @@ sub parse
 	else
 	{
 		return 0 if $opts{test};
-		warn "'$string' is not a valid DOI string";
+		#warn "'$string' is not a valid DOI string";
+		return undef;
 	}
 }
 
