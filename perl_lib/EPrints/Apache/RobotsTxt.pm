@@ -41,11 +41,17 @@ sub handler
 		last;
 	}	
 	if( !defined $robots )
-	{ 
+	{
+		$http_cgiurl = $repository->config( 'http_cgiurl' );
+		$https_cgiurl = $repository->config( 'https_cgiurl' );
 		$robots = <<END;
 User-agent: *
-Disallow: /cgi/
+Disallow: $http_cgiurl
 END
+		if( $http_cgiurl ne $https_cgiurl )
+		{
+			$robots .= "\nDisallow: $https_cgiurl";
+		}
 	}
 
 	my $sitemap = "Sitemap: ".$repository->config( 'http_url' )."/sitemap.xml";
