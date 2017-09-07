@@ -42,15 +42,15 @@ sub handler
 	}	
 	if( !defined $robots )
 	{
-		$http_cgiurl = $repository->config( 'http_cgiurl' );
-		$https_cgiurl = $repository->config( 'https_cgiurl' );
+		$http_cgiroot = $repository->config( 'http_cgiroot' );
+		$https_cgiroot = $repository->config( 'https_cgiroot' );
 		$robots = <<END;
 User-agent: *
-Disallow: $http_cgiurl
+Disallow: $http_cgiroot
 END
-		if( $http_cgiurl ne $https_cgiurl )
+		if( $http_cgiroot ne $https_cgiroot )
 		{
-			$robots .= "\nDisallow: $https_cgiurl";
+			$robots .= "\nDisallow: $https_cgiroot";
 		}
 	}
 
