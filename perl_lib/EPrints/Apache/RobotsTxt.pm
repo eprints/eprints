@@ -46,11 +46,11 @@ sub handler
 		$https_cgiroot = $repository->config( 'https_cgiroot' );
 		$robots = <<END;
 User-agent: *
-Disallow: $http_cgiroot
+Disallow: $http_cgiroot/
 END
 		if( $http_cgiroot ne $https_cgiroot )
 		{
-			$robots .= "\nDisallow: $https_cgiroot";
+			$robots .= "\nDisallow: $https_cgiroot/";
 		}
 	}
 
