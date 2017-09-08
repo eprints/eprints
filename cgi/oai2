@@ -101,6 +101,7 @@ if( !defined $verb )
 }
 elsif( !exists $GRAMMAR{$verb} )
 {
+	$verb = "error";
 	unshift @errors,
 		render_oai_error( $repo, "badVerb", "The value of the verb argument is not a legal OAI-PMH verb" ),
 		render_oai_error( $repo, "badArgument", "Bad verb argument" );
