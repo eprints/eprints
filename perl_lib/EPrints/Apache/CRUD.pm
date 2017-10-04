@@ -1267,31 +1267,27 @@ sub GET
 	elsif( $self->scope == CRUD_SCOPE_DATAOBJ )
 	{
 		return HTTP_NOT_FOUND if !defined $dataobj;
-		if (not $repo->config("use_long_url_format"))
+		if ( $repo->config("use_long_url_format") &&  ($dataset->base_id eq "file") ) 
 		{
-			# user wants HTML and there is a static page available
-			my $url = ($dataset->base_id eq "eprint" && $dataset->id ne "archive") ?
-					$dataobj->get_control_url :
-					$dataobj->get_url;
-			if( $plugin->get_subtype eq "SummaryPage" )
-			{
-				if( defined( $url ) && $url ne $dataobj->uri )
-				{
-					return EPrints::Apache::Rewrite::redir_see_other( $r, $url );
-				}
-			}
-		}
-		else
-		{
-			if ($dataset->base_id eq "file")  ##  redirect /id/file/234  to  /id/eprint/23/1.pdf (part of the 84_sword.pl test)
+            ##  redirect /id/file/234  to  /id/eprint/23/1.pdf (part of the 84_sword.pl test) when use_long_url_format is turned on, instead of the summary page of the file dataobj.
+            my $url = $dataobj->get_url;
+            if( defined( $url ) && $url ne $dataobj->uri )
             {
-                my $url = $dataobj->get_url;
-                if( defined( $url ) && $url ne $dataobj->uri )
-                {
-                    return EPrints::Apache::Rewrite::redir_see_other( $r, $url );
-                }
-            }	
-		}
+                return EPrints::Apache::Rewrite::redir_see_other( $r, $url );
+            }
+        }
+
+        # user wants HTML and there is a static page available
+        my $url = ($dataset->base_id eq "eprint" && $dataset->id ne "archive") ?
+                $dataobj->get_control_url :
+                $dataobj->get_url;
+        if( $plugin->get_subtype eq "SummaryPage" )
+        {
+            if( defined( $url ) && $url ne $dataobj->uri )
+            {
+                return EPrints::Apache::Rewrite::redir_see_other( $r, $url );
+            }
+        }
 
 		# set Last-Modified header for individual objects
 		if( my $field = $dataset->get_datestamp_field() )
