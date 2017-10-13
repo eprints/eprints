@@ -323,6 +323,7 @@ sub create_from_data
 	if( defined $eprint && !$eprint->under_construction )
 	{
 		local $eprint->{non_volatile_change} = 1;
+		$eprint->set_value( "fileinfo", $eprint->fileinfo );
 		$eprint->commit( 1 );
 	}
 
