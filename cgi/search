@@ -62,7 +62,7 @@ if( defined($repo->param( "dataset" )) )
 	}
 }
 
-if( $datasetid =~ /^(advanced)|(simple)$/ )
+if( $datasetid =~ /^(advanced|simple)$/ )
 {
 	$searchid = $datasetid;
 	$datasetid = "archive";
