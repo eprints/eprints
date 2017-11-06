@@ -265,7 +265,7 @@ sub build_email
 
 	if( defined $p{replyto_email} )
 	{
-		$mimemsg->attr( "Reply-to" => "$p{replyto_name} <$p{replyto_email}>" );
+		$mimemsg->attr( "Reply-to" => encode_mime_header( "$p{replyto_name}" )." <$p{replyto_email}>" );
 	}
 	$mimemsg->replace( "X-Mailer" => "EPrints http://eprints.org/" );
 

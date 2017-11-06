@@ -894,7 +894,7 @@ Phrases related to the Manage Metadata Fields tool.
     <epp:phrase id="Plugin/Screen/MetaField/Commit:commit_help">
 <p>Note: For this to work the web server must have write access to the var, phrases and workflow directories for this repository.</p>
 
-<p>When you commit this new metadata field its configuration will be written to the metadata fields configuration file and the appropriate columns added to the database. If you specified a name and help phrase for this field they will be added to the <tt>fields.xml</tt> phrases file for each language you specified (see also the <a href="http://eprints.org/d/?keyword=PhraseConfigFile&amp;filename=lang/en/phrases/fields.xml">phrases documentation</a>).</p>
+<p>When you commit this new metadata field its configuration will be written to the metadata fields configuration file and the appropriate columns added to the database. If you specified a name and help phrase for this field they will be added to the <code>fields.xml</code> phrases file for each language you specified (see also the <a href="http://eprints.org/d/?keyword=PhraseConfigFile&amp;filename=lang/en/phrases/fields.xml">phrases documentation</a>).</p>
 
 <p>If this field is being added to the Eprints dataset it will also be added to the Eprints submission workflow (see also the <a href="http://eprints.org/d/?keyword=WorkflowConfigFile&amp;filename=workflows/eprint/default.xml">workflow documentation</a>).</p>
 
@@ -1104,7 +1104,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 <epp:phrase id="metafield_fieldhelp_datasetid">The repository dataset to link the object identifier to (e.g. "eprint").</epp:phrase>
 <epp:phrase id="metafield_fieldname_set_name">Named Set Filename</epp:phrase>
 <epp:phrase id="metafield_fieldname_fields_set_name">Named Set</epp:phrase>
-<epp:phrase id="metafield_fieldhelp_set_name">The name of the file to read the option values from (in <tt>/cfg/namedsets</tt>).</epp:phrase>
+<epp:phrase id="metafield_fieldhelp_set_name">The name of the file to read the option values from (in <code>/cfg/namedsets</code>).</epp:phrase>
 <epp:phrase id="metafield_fieldname_options">Set Options</epp:phrase>
 <epp:phrase id="metafield_fieldname_fields_options">Options</epp:phrase>
 <epp:phrase id="metafield_fieldhelp_options">A comma-separated list of values to choose from (e.g. <em>london,paris,new_york</em>)). You will need to create phrases for every defined option.</epp:phrase>
@@ -1433,6 +1433,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 		
     <epp:phrase id="lib/metafield:join_subobject"><br /></epp:phrase>
     <epp:phrase id="lib/metafield:join_int">, </epp:phrase>
+    <epp:phrase id="lib/metafield:join_id">, </epp:phrase>
     <epp:phrase id="lib/metafield:join_year">, </epp:phrase>
     <epp:phrase id="lib/metafield:join_longtext">, </epp:phrase>
     <epp:phrase id="lib/metafield:join_date">, </epp:phrase>
@@ -1846,7 +1847,7 @@ User Area CGI Scripts
     <epp:phrase id="cgi/users/change_email:no_email"><p>You did not actually supply a new email address.</p></epp:phrase>
     <epp:phrase id="cgi/users/change_email:mail_sent"><p>An email has been sent to <b><epc:pin name="email"/></b> containing the code required to confirm this new email address.</p><p>This code is only valid for <epc:pin name="maxdelta" />.</p></epp:phrase>
     <epp:phrase id="cgi/users/change_email:changeemail">Email Change Request</epp:phrase>
-    <epp:phrase id="cgi/users/change_email:email_exists"><p>A user with the email address <tt><epc:pin name="email"/></tt> already exists.</p><p>If this is your email address, you should just <a href="../reset_password">reset your password</a>.</p></epp:phrase>
+    <epp:phrase id="cgi/users/change_email:email_exists"><p>A user with the email address <code><epc:pin name="email"/></code> already exists.</p><p>If this is your email address, you should just <a href="../reset_password">reset your password</a>.</p></epp:phrase>
 
 <!-- status -->
 
@@ -1943,7 +1944,7 @@ User Area CGI Scripts
     <epp:phrase id="Plugin/Screen/Admin/Config:description">View configuration files for this repository.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config:back_to_config"><p><epc:pin name="link">View other configuration files</epc:pin>.</p></epp:phrase>
 
-	<epp:phrase id="Plugin/Screen/Admin/Config/View:enable_editing">To enable configuration file editing add the <tt><epc:pin name="privilege"/></tt> privilege to your user role.</epp:phrase>
+	<epp:phrase id="Plugin/Screen/Admin/Config/View:enable_editing">To enable configuration file editing add the <code><epc:pin name="privilege"/></code> privilege to your user role.</epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config/View/Apache:page_title">View config file: <epc:pin name="file" /></epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config/View/Autocomplete:page_title">View config file: <epc:pin name="file" /></epp:phrase>
     <epp:phrase id="Plugin/Screen/Admin/Config/View/Citation:page_title">View config file: <epc:pin name="file" /></epp:phrase>
@@ -2233,10 +2234,10 @@ Public CGI Scripts
     <epp:phrase id="cgi/register:action_submit">Register</epp:phrase>
     <epp:phrase id="cgi/register:title">Register</epp:phrase>
     <epp:phrase id="cgi/register:missing_field"><p>You have not filled in the &quot;<epc:pin name="fieldname"/>&quot; field.</p></epp:phrase>
-    <epp:phrase id="cgi/register:email_exists"><p>A user with the email address <tt><epc:pin name="email"/></tt> already exists.</p><p>Rather than register, you should just <a href="reset_password">reset your password</a>.</p></epp:phrase>
-    <epp:phrase id="cgi/register:email_denied"><p>Registration not allowed from this email address: <tt><epc:pin name="email"/></tt>.</p></epp:phrase>
-    <epp:phrase id="cgi/register:username_exists"><p>Another user already has the username <tt><epc:pin name="username"/></tt>.</p></epp:phrase>
-    <epp:phrase id="cgi/register:created_new_user"><p>You have registered with username <big><strong><tt><epc:pin name="username"/></tt></strong></big>.</p><p>This registration <em>will not</em> be activated until you visit the confirmation URL which has been emailed to <tt><epc:pin name="email"/></tt></p>
+    <epp:phrase id="cgi/register:email_exists"><p>A user with the email address <code><epc:pin name="email"/></code> already exists.</p><p>Rather than register, you should just <a href="reset_password">reset your password</a>.</p></epp:phrase>
+    <epp:phrase id="cgi/register:email_denied"><p>Registration not allowed from this email address: <code><epc:pin name="email"/></code>.</p></epp:phrase>
+    <epp:phrase id="cgi/register:username_exists"><p>Another user already has the username <code><epc:pin name="username"/></code>.</p></epp:phrase>
+    <epp:phrase id="cgi/register:created_new_user"><p>You have registered with username <big><strong><code><epc:pin name="username"/></code></strong></big>.</p><p>This registration <em>will not</em> be activated until you visit the confirmation URL which has been emailed to <code><epc:pin name="email"/></code></p>
 </epp:phrase>
     <epp:phrase id="cgi/register:account">Registration</epp:phrase>
     <epp:phrase id="cgi/register:error">Error</epp:phrase>
@@ -3114,7 +3115,7 @@ PY = 2006 and OG = (Cambridge)<br />
 	<epp:phrase id="Plugin/Import/DefaultXML:unexpected_xml">Expected only text, found: <epc:pin name="xml" /></epp:phrase>
 	<epp:phrase id="Plugin/Import/DefaultXML:file_imports_disabled">Attempt to import eprint with document data expressed as a local filename. This is a security hole in normal use, and is disabled. It *is* useful when bulk importing and may be enabled by setting enable_file_imports.</epp:phrase>
 	<epp:phrase id="Plugin/Import/DefaultXML:file_not_exists">Could not locate file for import: <epc:pin name="href" />.</epp:phrase>
-	<epp:phrase id="Plugin/Import/DOI:invalid_doi">Unrecognised or invalid doi: <epc:pin name="doi" />.<br />Remote service said: <tt><epc:pin name="msg"/></tt></epp:phrase>
+	<epp:phrase id="Plugin/Import/DOI:invalid_doi">Unrecognised or invalid doi: <epc:pin name="doi" />.<br />Remote service said: <code><epc:pin name="msg"/></code></epp:phrase>
 	<epp:phrase id="Plugin/Import/DOI:duplicate_doi"><strong>Duplicate DOI: <epc:pin name="doi" /></strong>.<br />This DOI already exists in the repository: <br /><epc:pin name="msg"/></epp:phrase>
 
 	<!-- Convert plugins -->

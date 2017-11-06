@@ -21,7 +21,7 @@
 <input type="submit" value="Start defining policies" class="ep_form_action_button" />
 </form>
 
-<p>Add your policies to: <tt><epc:print expr="$config{config_path}" />/lang/en/static/policies.xpage</tt></p>
+<p>Add your policies to: <code><epc:print expr="$config{config_path}" />/lang/en/static/policies.xpage</code></p>
 
 
 

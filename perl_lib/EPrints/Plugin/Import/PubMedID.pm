@@ -24,7 +24,7 @@ sub new
 	$self->{visible} = "all";
 	$self->{produce} = [ 'list/eprint', 'dataobj/eprint' ];
 
-	$self->{EFETCH_URL} = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&rettype=full';
+	$self->{EFETCH_URL} = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&rettype=full';
 
 	return $self;
 }
@@ -55,7 +55,12 @@ sub input_fh
 		my $url = URI->new( $plugin->{EFETCH_URL} );
 		$url->query_form( $url->query_form, id => $pmid );
 
-		my $xml = EPrints::XML::parse_url( $url );
+		# EPrints::XML::parse_url() does not support HTTPS URLs
+		# c.f. http://mailman.ecs.soton.ac.uk/pipermail/eprints-tech/2016-November/006070.html
+		#my $xml = EPrints::XML::parse_url( $url );
+		# TODO: revert this workaround when EPrints::XML::parse_url() works
+		# c.f. http://mailman.ecs.soton.ac.uk/pipermail/eprints-tech/2016-November/006071.html
+		my $xml = $plugin->_get_pubmed_data( $pmid );
 		my $root = $xml->documentElement;
 
 		if( $root->nodeName eq 'ERROR' )
@@ -82,6 +87,62 @@ sub input_fh
 		session => $plugin->{session},
 		ids=>\@ids );
 }
+
+# from https://github.com/eprintsug/PubMedID-Import/blob/617b21e276c110507900d8b22554367b88513042/perl_lib/EPrints/Plugin/Import/PubMedID.pm#L256-L307
+# TODO: Remove when EPrints::XML::parse_url() works with HTTPS URLs
+sub _get_pubmed_data
+{
+	my ( $plugin, $pmid ) = @_;
+	
+	my $xml;
+	my $response;
+	
+	my $parser = XML::LibXML->new();
+	$parser->validation(0);
+	
+	my $host = $plugin->{session}->get_repository->config( 'host ');
+	my $request_retry = 3;
+	my $request_delay = 10;
+	
+	my $url = URI->new( $plugin->{EFETCH_URL} );
+	$url->query_form( $url->query_form, id => $pmid );
+	
+	my $req = HTTP::Request->new( "GET", $url );
+	$req->header( "Accept" => "text/xml" );
+	$req->header( "Accept-Charset" => "utf-8" );
+	$req->header( "User-Agent" => "EPrints 3.3.x; " . $host  );
+	
+	my $request_counter = 1;
+	my $success = 0;
+	
+	while (!$success && $request_counter <= $request_retry)
+	{
+		my $ua = LWP::UserAgent->new;
+		$ua->env_proxy;
+		$ua->timeout(60);
+		$response = $ua->request($req);
+		$success = $response->is_success;
+		$request_counter++;
+		sleep $request_delay if !$success;
+	}
+
+	if ( $response->code != 200 )
+	{
+		print STDERR "HTTP status " . $response->code .  " for PubMed ID $pmid\n";
+	}
+	
+	if (!$success)
+	{	
+		$xml = $parser->parse_string( '<?xml version="1.0" ?><eFetchResult><ERROR>' . $response->code . '</ERROR></eFetchResult>' );
+	}
+	else
+	{
+		$xml = $parser->parse_string( $response->content );
+	}
+	
+	return $xml;
+}
+
 
 1;
 

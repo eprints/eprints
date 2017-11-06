@@ -101,6 +101,7 @@ if( !defined $verb )
 }
 elsif( !exists $GRAMMAR{$verb} )
 {
+	$verb = "error";
 	unshift @errors,
 		render_oai_error( $repo, "badVerb", "The value of the verb argument is not a legal OAI-PMH verb" ),
 		render_oai_error( $repo, "badArgument", "Bad verb argument" );
@@ -780,10 +781,8 @@ sub _list
 	$filters = [] unless defined $filters;
 
 	push @$filters, {
-		meta_fields => [qw( eprint_status )],
-		value => "archive deletion",
-		match => "EQ",
-		merge => "ANY",
+		meta_fields => [qw( datestamp )],
+		match => "SET",
 	};
 
 	# custom sets

@@ -99,7 +99,10 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 			next if !EPrints::Utils::is_set( $value );
 			$tg->index_text( $value );
 			$tg->increase_termpos();
-			next if length($value) > 200; # Xapian term length limit-ish
+			
+			# Allow indexing of long text fields (e.g. abstracts that are longer than 200 chars)
+			# The Xapian length limit applies to only a single term with 200 consecutive chars without white-space
+			# next if length($value) > 200; # Xapian term length limit-ish
 			if( $field->isa( "EPrints::MetaField::Text" ) || $field->isa( "EPrints::MetaField::Name" ) )
 			{
 				$tg->index_text( $value, 2, $prefix );
@@ -107,7 +110,20 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 			}
 			else
 			{
-				$doc->add_term( $prefix . $value );
+				# Improve indexing: Long term values must be filtered
+				# Dates are stripped to year only and are added with wdf = 0
+				# This enables that records are correctly sorted by date
+				next if length($value) > 200; # Xapian term length limit-ish
+
+				if ($field->name eq 'date')
+				{
+					$value =~ /^(\d{4})/;
+					$doc->add_boolean_term( $prefix . $value );
+				}
+				else 
+				{
+					$doc->add_term( $prefix . $value );
+				}
 			}
 		}
 		foreach my $langid (@{$repo->config( "languages" )})

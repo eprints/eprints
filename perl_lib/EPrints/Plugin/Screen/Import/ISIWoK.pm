@@ -309,10 +309,6 @@ sub find_duplicate
 {
 	my( $self, $eprint ) = @_;
 
-	my @terms = split /\W+/, $eprint->value( "title" );
-	@terms = sort { length($b) <=> length($a) } @terms;
-	@terms = @terms[0..4] if @terms > 5;
-
 	my @dupes;
 
 	$self->{repository}->dataset( "eprint" )->search(

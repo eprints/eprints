@@ -940,6 +940,45 @@ sub clone
 	return $data;			
 }
 
+=item $token = EPrints::Utils::generate_token( [$length] )
+
+Generates a pseudorandom token comprising hexadecimal characters.
+
+The length of the new token is given by the $length parameter; if
+unspecified the default length is 32.
+
+Returns I<undef> if $length is less than 1.
+
+=cut
+
+sub generate_token
+{
+	my( $length ) = @_;
+
+	$length = 32 if !defined $length;
+	if( $length <= 0 )
+	{
+		print STDERR "Unable to generate token: length must be positive ($length given)\n";
+		return undef;
+	}
+
+	# If Session::Token is available, use that to generate the token.
+	if( require_if_exists( 'Session::Token' ) )
+	{
+		return Session::Token->new( length => $length )->get();
+	}
+	# Otherwise, fall back to a simple rand()-based mechanism
+	else
+	{
+		my @a = ();
+		my $n = int( ($length + 1) / 2 );
+		srand;
+		for(1..$n) { push @a, sprintf( '%02X', int rand 256 ); }
+		my $token = join( '', @a );
+		return substr( $token, 0, $length );
+	}
+}
+
 # crypt_password( $value, $session )
 sub crypt_password { &crypt( $_[0] ) }
 

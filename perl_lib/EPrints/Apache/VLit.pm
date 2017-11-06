@@ -358,9 +358,9 @@ END
 			$urlh2=~s/'/&squot;/g;
 			$msg.=<<END;
 <p>Cut and paste HTML for pop-up window:</p>
-<div style="margin-left: 10px"><tt>
+<div style="margin-left: 10px"><code>
 &lt;a href="#" onclick="javascript:window.open( '$urlh2', 'transclude_window', 'width=666, height=444, scrollbars');"&gt;$title&lt;/a&gt;
-</tt></div>
+</code></div>
 </div>
 END
 		}

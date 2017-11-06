@@ -548,6 +548,16 @@ sub sanitise
 	$filepath =~ s!//+!/!g; # /foo//bar
 	$filepath =~ s!^/!!g;
 
+	# This allows for custom substitutions to be set in the Archive
+	# It is useful for replacing characters which are encoded for HTTP
+	# There are sample substitutions in the optional_filename_sanitise.pl file in the repo config
+
+	my $repo = EPrints->new->current_repository;
+	if ( $repo->can_call( "optional_filename_sanitise" ) )
+	{
+		$filepath = $repo->call( "optional_filename_sanitise", $repo, $filepath );
+	}
+
 	return $filepath;
 }
 

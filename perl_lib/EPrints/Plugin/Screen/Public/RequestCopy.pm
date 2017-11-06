@@ -113,6 +113,8 @@ sub action_request
 
 	my $email = $request->value( "requester_email" );
 
+	my $use_pin_security = $session->config( 'use_request_copy_pin_security' );
+
 	my $eprint = $self->{processor}->{eprint};
 	my $doc = $self->{processor}->{document};
 	my $contact_email = $self->{processor}->{contact_email};
@@ -156,25 +158,51 @@ sub action_request
 			: $session->html_phrase( "Plugin/Screen/EPrint/RequestRemoval:reason" ) ) );
 
 	my $result;
-	if( defined $user && defined $doc )
+	if( ( defined $user || $use_pin_security ) && defined $doc )
 	{
-		# Contact is registered user and EPrints holds requested document
+		# Contact is a registered user or it doesn't matter
+		# because we're using the pin security model, and
+		# EPrints holds the requested document
+
 		# Send email to contact with accept/reject links
 
-		my $url = $session->get_url( host => 1, path => "cgi", "users/home" );
-		$url->query_form(
-				screen => "Request::Respond",
-				requestid => $request->id,
-			);
+		my $url;
+		if ( $use_pin_security )
+		{
+			# Handle the response via a non-authenticated CGI script
+			$url = $session->get_url( host => 1, path => "cgi", "respond_to_doc_request" );
+			$url->query_form(
+					pin => $request->get_value( 'pin' ),
+				);
+		}
+		else
+		{
+			# Handle the response via cgi/users/home which is authenticated
+			$url = $session->get_url( host => 1, path => "cgi", "users/home" );
+			$url->query_form(
+					screen => "Request::Respond",
+					requestid => $request->id,
+				);
+		}
 
 		$mail->appendChild( $session->html_phrase( "request/request_email:links",
 			accept => $session->render_link( "$url&action=accept" ),
 			reject => $session->render_link( "$url&action=reject" ) ) );
 
+		my $to_name;
+		if ( defined $user )
+		{
+			$to_name = EPrints::Utils::tree_to_utf8( $user->render_description );
+		}
+		else
+		{
+			$to_name = $contact_email;
+		}
+
 		$result = EPrints::Email::send_mail(
 			session => $session,
 			langid => $session->get_langid,
-			to_name => EPrints::Utils::tree_to_utf8( $user->render_description ),
+			to_name => $to_name,
 			to_email => $contact_email,
 			subject => $subject,
 			message => $mail,

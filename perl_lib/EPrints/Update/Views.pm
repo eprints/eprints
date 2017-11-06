@@ -56,6 +56,20 @@ Or, per view:
 
 To disable the limit set C<max_items> to 0.
 
+=head1 GENERATING LARGE VIEWS
+
+By default views will get regenerated if they are older than 24 hours when requested. For large repositories views can take a long time to generate.
+
+If a view takes more than 24hours to generate, you may want to make the regeneration period longer:
+
+	$c->{browse_views} = [{
+		...
+		max_menu_age => 10*24*60*60, #10 days
+		max_list_age => 10*24*60*60, #10 days
+	}];
+
+These values should be set in relation to any scheduling of ~/bin/generate_views via cron. 
+
 =head1 OPTIONS
 
 =over 4
@@ -1768,16 +1782,33 @@ sub group_items
 		my $values = $field->get_value( $item );
 		if( !$field->get_property( "multiple" ) )
 		{
-			$values = [$values];
+			if( EPrints::Utils::is_set( $values ) )
+			{
+				$values = [$values];
+			}
+			elsif( $opts->{allow_null} )
+			{
+				$values = [$field->empty_value];
+			}
+			else
+			{
+				next;
+			}
 		}
 		elsif( !scalar(@$values) )
 		{
-			$values = [$field->empty_value];
+			if( $opts->{allow_null} )
+			{
+				$values = [$field->empty_value];
+			}
+			else
+			{
+				next;
+			}
 		}
-		next if !$opts->{allow_null} && !EPrints::Utils::is_set( $values );
 		VALUE: foreach my $value ( @$values )
 		{
-			next VALUE unless EPrints::Utils::is_set( $value );
+			next VALUE unless EPrints::Utils::is_set( $value ) || $opts->{allow_null};
 			if( $opts->{tags} )
 			{
 				$value =~ s/\.$//;

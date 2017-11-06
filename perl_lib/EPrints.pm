@@ -510,7 +510,7 @@ sub abort
 </head>
 <body>
 <h1>EPrints System Error</h1>
-<p><tt>$htmlerrmsg</tt></p>
+<p><code>$htmlerrmsg</code></p>
 </body>
 </html>
 END

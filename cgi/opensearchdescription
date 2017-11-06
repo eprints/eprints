@@ -24,10 +24,12 @@ foreach my $plugin (sort { ref($a) cmp ref($b) } $repo->get_plugins(
 	is_visible => $is_visible,
 ))
 {
+	my $mt=$plugin->param( "mimetype" );
+	$mt=~s/;.*$//;
 	push @formats, [ 'Url', undef,
 		indexOffset => 0,
 		template => "$url&output=".URI::Escape::uri_escape( $plugin->get_subtype ),
-		type => $plugin->param( "mimetype" )
+		type => $mt
 	];
 }
 
