@@ -2167,6 +2167,9 @@ Public CGI Scripts
 
     <epp:phrase id="cgi/handle_http_error:404_title">404 File not Found</epp:phrase>
     <epp:phrase id="cgi/handle_http_error:404_blurb"><p>Could not find the file: <code><pin name="url"/></code></p><p>The specified file could not be found on this server.  If you reached this page by following a link within the repository, please contact the <a href="mailto:{$config{adminemail}}"><epc:phrase ref="archive_name" /> administration</a>.  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.</p></epp:phrase>
+    <epp:phrase id="cgi/handle_http_error:404_blurb:archive_eprint"><p>The file you are trying to access may be related to this item:</p><p><pin name="citation"/></p></epp:phrase>
+    <epp:phrase id="cgi/handle_http_error:404_blurb:message"><p>Could not find the file: <code><pin name="url"/></code></p><pin name="message"/><p>If you reached this page by following a link within the repository, please contact the <a href="mailto:{$config{adminemail}}"><epc:phrase ref="archive_name" /> administration</a>.  Otherwise, please check that you have typed the URL in correctly, or contact the person or site that supplied you with this URL.</p>
+    </epp:phrase>
 
 <!-- paracite -->
 
