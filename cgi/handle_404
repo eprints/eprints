@@ -12,9 +12,6 @@
 #
 ######################################################################
 
-
-#cjg Not fully finnished. Should detect missing items.
-
 use EPrints;
 
 use strict;
@@ -36,94 +33,36 @@ if( defined($show) and !$show )
 	exit( 0 );
 }
 
-&plain_404( $session );
+if( $url =~ m#^/(\d+)/#  || $url =~ m#^/id/eprint/(\d+)/# )
+{
+	my $eprint = $session->dataset( "eprint" )->dataobj( $1 );
+	my $eprint_message;
+	if( defined $eprint )
+	{
+		my $status = $eprint->get_value( "eprint_status" );
+		if( defined $status && $status eq "archive" ){
+			$eprint_message = $session->html_phrase(
+				"cgi/handle_http_error:404_blurb:archive_eprint",
+				citation => $eprint->render_citation_link,
+			);
+		} elsif( defined $status && $status eq "deletion" ){
+			# re-use logic used to deal with tombstone pages - linking to more recent versions
+			# if available. 
+			# render returns: $dom, $title, $links, $template
+			( $eprint_message, undef, undef, undef ) = $eprint->render;
+		}
+	}
+
+	&plain_404( $session, $eprint_message );
+} else {
+        &plain_404( $session );
+}
 
 $session->terminate();
 
-## Try and work out if the user is trying to access a deleted document
-#my $url = $ENV{REDIRECT_URL};
-#
-#my $was_deleted = 0;
-#
-## Look for digits in the path
-#if( $url =~ m#/(\d+)/(\d\d)/(\d\d)/(\d\d)/# )
-#{
-#	# There's a match, looks like we have an ID
-#	my $guessed_id = $1.$2.$3.$4;
-#
-#	# Was the eprint deleted?
-#	#cjg!
-#	#my $deletion_record = new EPrints::Deletion( $session, $guessed_id );
-#	
-#	if( defined $deletion_record )
-#	{
-#		# The user seems to be trying to get to a deleted eprint. 
-#		print $session->{render}->render_deleted_eprint( $deletion_record );
-#	}
-#	else
-#	{
-#		# See if the eprint exists.
-#		my $eprint = new EPrints::DataObj::EPrint(
-#			$session,
-#			$guessed_id,;
-#			EPrints::Database::table_name( "archive" ) );
-#		
-#		if( defined $eprint )
-#		{
-#			# Seems to be a slightly malformed access to an existing eprint.
-#			existing_record( $session, $eprint );
-#		}
-#		else
-#		{
-#			# Not a deleted or existing eprint: a plain old Document Not Found
-#			plain_404( $session );
-#		}
-#	}
-#}
-#else
-#{
-#	# No match, can't find any ID. Just a plain old 404.
-#	plain_404( $session );
-#}
-#
-#$session->terminate();
-#
-#
-#
-#######################################################################
-##
-## existing_record( $session, $eprint )
-##
-##  Render an appropriate erro saying that the user seems to be trying
-##  to get to a particular eprint, but may have just entered the URL
-##  incorrectly.
-##
-#######################################################################
-#
-#sub existing_record
-#{
-#	my( $session, $eprint ) = @_;
-#	
-#	print $session->{render}->start_html( 
-#		$session->{lang}->phrase( "cgi/handle_404:doc_not_found" ) );
-#
-#	print "<P>";
-#	print $session->{lang}->phrase( "cgi/handle_404:file_not_found" );
-#	print "<CODE>$url</CODE></P>\n";
-#	print "<P>";
-#	print $session->{lang}->phrase( "cgi/handle_404:looking_for" );
-#	print "</P>\n";
-#	print "<P ALIGN=CENTER>";
-#	print $session->{render}->render_eprint_citation( $eprint, 1, 1 );
-#	print "</P>\n";
-#	
-#	print $session->{render}->end_html();
-#}
-
-
 ######################################################################
 #
-# plain_404( $session )
+# plain_404( $session, [$message] )
 #
 #  Render a standard Document Not Found error message.
 #
@@ -131,14 +70,25 @@ $session->terminate();
 
 sub plain_404
 {
-	my( $session ) = @_;
+	my( $session, $message ) = @_;
 
-	$session->build_page( 
-		$session->html_phrase( "cgi/handle_http_error:404_title" ),
-		$session->html_phrase( "cgi/handle_http_error:404_blurb", 
-			url => $session->make_text( $ENV{REDIRECT_URL} ) ),
-		"plain_404" );
-
-        $session->send_page();
+	if( defined $message ){
+		$session->build_page(
+			$session->html_phrase( "cgi/handle_http_error:404_title" ),
+			$session->html_phrase( "cgi/handle_http_error:404_blurb:message",
+				url => $session->make_text( $ENV{REDIRECT_URL} ),
+				message => $message,
+			),
+			"plain_404"
+		);
+	} else {
+		$session->build_page(
+			$session->html_phrase( "cgi/handle_http_error:404_title" ),
+			$session->html_phrase( "cgi/handle_http_error:404_blurb",
+				url => $session->make_text( $ENV{REDIRECT_URL} )
+			),
+			"plain_404"
+		);
+	}
+	$session->send_page();
 }
-

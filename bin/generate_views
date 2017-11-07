@@ -22,19 +22,21 @@ B<generate_views> I<repository_id> [B<options>]
 
 =head1 DESCRIPTION
 
-This script creates some or all of the pages used in the /view/ section of the website. Since 3.1 these pages update themselves if they get only than a certain age, but this can cause delays for the viewer, so this script is still provided to pre-prepare them to provide a smoother experience.
+This script creates some or all of the pages used in the /view/ section of the website. Since 3.1 these pages update themselves if they are older than a certain age, but this can cause delays for the viewer, so this script is still provided to pre-prepare them to provide a smoother experience.
 
 Note: Since EPrints 3.1 it is not essential to run generate_views periodically, but it is still recommended.
 
-What this does is generate browse pages for each field configured as browsable in B<ArchiveConfig.pm>. It creates a static web page for each value of that field, and index pages to navigate to them. 
+For each view configured in $c->{browse_views}, (see: ~/archives/ARCHIVEID/cfg/cfg.d/views.pl) a static web page is created for each value of that field, and index pages to navigate to them. 
 
-For example, if we make "year" browseable then this script will generate one page for each unique value of the year field. So a user can then view the 1995 page and see links to all the 1995 eprints.
+For example, if we make "year" view then this script will generate one page for each unique value of the year field. A user can then view the 1995 page and see links to all the 1995 eprints.
 
-Advantages of this are that this puts less load on the database than user searches. Assuming you pick two or three sensible fields to make browsable. 
+Advantages of this are that this puts less load on the database than user searches, assuming you pick two or three sensible fields to make views with.
 
-This script should be run every hour or so, but that should once a day or even once a week on large repositories, as the more eprints the longer it will take to run. The rough length of time to run this is of the order of O( B<languages> * B<eprints> * B<browsable fields> ).  You can automate running this with the B<cron> system.
+On large repositories some views may take considerable time to generate. These views could be regenerated daily or weekly. Appropriate values for B<max_menu_age> and B<max_list_age> should be defined for the view in this case.
 
-If viewid is specified then only that view is updated. This can be useful if some views need updating more often then others. The top /view/ page which links to each view is always updated.
+The more eprints the longer it will take to run. The rough length of time to run this is of the order of O( B<languages> * B<eprints> * B<browsable fields> ).  You can automate running this with the B<cron> system.
+
+If the 'view' option is set, only that view is updated (the option can be repeated). This can be useful if some views need updating more often then others. The top /view/ page which links to each view is always updated.
 
 =head1 ARGUMENTS
 
@@ -61,6 +63,7 @@ Only generate the pages with lists of records, not the menu pages.
 =item B<--view> I<view_id>
 
 Generate only the view with this ID.
+May be repeated B<--view> I<viewid_1> B<--view> I<viewid_2>
 
 =item B<--lang> I<lang_id>
 
@@ -106,7 +109,7 @@ my $quiet = 0;
 my $help = 0;
 my $man = 0;
 my $generate_opt;
-my $view_opt;
+my @view_opts;
 my $lang_opt;
 
 Getopt::Long::Configure("permute");
@@ -119,7 +122,7 @@ GetOptions(
 	'silent' => \$quiet,
 	'quiet' => \$quiet,
 	'generate=s' => \$generate_opt,
-	'view=s' => \$view_opt,
+	'view=s' => \@view_opts,
 	'lang=s' => \$lang_opt,
 ) || pod2usage( 2 );
 EPrints::Utils::cmd_version( "generate_views" ) if $version;
@@ -168,16 +171,18 @@ my $views = $repository->get_conf( "browse_views" );
 
 my $ds = $repository->get_dataset( "archive" );
 
-if( defined $view_opt )
+if( @view_opts )
 {
-	my $ok = 0;
-	foreach my $view ( @{$views} )
-	{
-		$ok = 1 if( $view->{id} eq $view_opt );
-	}
-	if( !$ok )
-	{
-		EPrints::abort( "Unknown view: $view_opt" );
+	foreach my $view_opt (@view_opts){
+		my $ok = 0;
+		foreach my $view ( @{$views} )
+		{
+			$ok = 1 if( $view->{id} eq $view_opt );
+		}
+		if( !$ok )
+		{
+			EPrints::abort( "Unknown view: $view_opt" );
+		}
 	}
 }
 
@@ -192,7 +197,7 @@ LANGUAGE: foreach my $langid ( @{$repository->get_conf( "languages" )} )
 
 	VIEW: foreach my $view ( @{$views} )
 	{
-		next VIEW if( defined $view_opt && $view->{id} ne $view_opt );
+		next VIEW if( @view_opts && !grep( /$view->{id}/, @view_opts ) );
 
 		$view = EPrints::Update::Views->new(
 			repository => $session,

@@ -36,7 +36,7 @@ use strict;
 ######################################################################
 =pod
 
-=item EPrints::Utils::send_mail( %properties )
+=item EPrints::Email::send_mail( %properties )
 
 Sends an email. 
 
@@ -139,10 +139,10 @@ sub send_mail
 ######################################################################
 #=pod
 #
-#=item EPrints::Utils::send_mail_via_smtp( %properties )
+#=item EPrints::Email::send_mail_via_smtp( %properties )
 #
 #Send an email via STMP. Should not be called directly, but rather by
-#EPrints::Utils::send_mail.
+#EPrints::Email::send_mail.
 #
 #=cut
 ######################################################################
@@ -210,10 +210,10 @@ sub send_mail_via_smtp
 ######################################################################
 # =pod
 # 
-# =item EPrints::Utils::send_mail_via_sendmail( %params )
+# =item EPrints::Email::send_mail_via_sendmail( %params )
 # 
 # Also should not be called directly. The config. option "send_email"
-# can be set to \&EPrints::Utils::send_mail_via_sendmail to use the
+# can be set to \&EPrints::Email::send_mail_via_sendmail to use the
 # sendmail command to send emails rather than send to a SMTP server.
 # 
 # =cut
@@ -239,7 +239,7 @@ sub send_mail_via_sendmail
 	return 1;
 }
 
-# $mime_message = EPrints::Utils::build_mail( %params ) 
+# $mime_message = EPrints::Email::build_email( %params ) 
 #
 # Takes the same parameters as send_mail. This creates a MIME::Lite email
 # object with both a text and an HTML part.
@@ -265,7 +265,7 @@ sub build_email
 
 	if( defined $p{replyto_email} )
 	{
-		$mimemsg->attr( "Reply-to" => "$p{replyto_name} <$p{replyto_email}>" );
+		$mimemsg->attr( "Reply-to" => encode_mime_header( "$p{replyto_name}" )." <$p{replyto_email}>" );
 	}
 	$mimemsg->replace( "X-Mailer" => "EPrints http://eprints.org/" );
 

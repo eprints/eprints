@@ -297,7 +297,7 @@ sub render
 	}
 	else
 	{
-		$pins{cause} = $self->{session}->make_element( "tt" );
+		$pins{cause} = $self->{session}->make_element( "code" );
 		$pins{cause}->appendChild( $self->{session}->make_text( $self->get_value( "actor" ) ) );
 	}
 

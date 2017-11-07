@@ -7,7 +7,6 @@
 #
 ######################################################################
 
-
 =head1 NAME
 
 B<EPrints::DataObj::Request> - Log document requests and responses (for request document button)
@@ -62,6 +61,7 @@ sub get_system_field_info
 
 		{ name=>"code", type=>"text", required=>0 },
 
+		{ name=>"pin", type=>"text", required=>0 },
 	);
 }
 
@@ -74,6 +74,79 @@ sub get_system_field_info
 =cut
 
 ######################################################################
+
+######################################################################
+=pod
+
+=item $request = EPrints::DataObj::Request->request_with_pin( $repository, $pin )
+
+Return the Request object with the given pin, or undef if one is not
+found.
+
+QUT addition for pin-based request security.
+
+=cut
+######################################################################
+
+sub request_with_pin
+{
+	my( $repo, $pin ) = @_;
+
+	my $dataset = $repo->dataset( 'request' );
+
+	my $searchexp = EPrints::Search->new(
+					 satisfy_all => 1,
+					 session => $repo,
+					 dataset => $dataset,
+					);
+
+	$searchexp->add_field( $dataset->get_field( 'pin' ),
+			   $pin,
+			   'EQ',
+			   'ALL'
+			 );
+
+	my $results = $searchexp->perform_search;
+
+	return $results->item( 0 );
+}
+
+######################################################################
+=pod
+
+=item $dataobj = EPrints::DataObj->new_from_data( $session, $data, $dataset )
+
+Construct a new EPrints::DataObj object based on the $data hash
+reference of metadata.
+
+Used to create an object from the data retrieved from the database.
+
+Create a new object of this type in the database.
+
+Just calls the L<EPrints::DataObj> method but if the
+use_request_copy_pin_security option is set it ensures that the pin
+is set.
+
+QUT addition for pin-based request security.
+
+=cut
+######################################################################
+
+sub new_from_data
+{
+	my( $class, $session, $data, $dataset ) = @_;
+
+	$dataset = $dataset || undef;
+
+	my $dataobj = $class->SUPER::new_from_data( $session, $data, $dataset );
+
+	if ( $session->config( 'use_request_copy_pin_security' ) )
+	{
+		$dataobj->set_pin;
+	}
+
+	return $dataobj;
+}
 
 ######################################################################
 =pod
@@ -123,6 +196,28 @@ sub has_expired
 	return 1 if( !defined $t ||  $t <= time );
 
 	return 0;
+}
+
+######################################################################
+=pod
+
+=item $pin = EPrints::DataObj::Request->set_pin
+
+Sets the pin field of this L<EPrints::DataObj::Request> and returns the value.
+
+QUT addition for pin-based request security.
+
+=cut
+######################################################################
+
+sub set_pin
+{
+    my( $self ) = @_;
+    # Generate a random unique pin by using a random string prefixed
+    # by the (unique and sequential) request ID
+    my $pin = $self->get_id() . EPrints::Utils::generate_token(22);
+    $self->set_value( 'pin', $pin );
+    return $pin;
 }
 
 1;

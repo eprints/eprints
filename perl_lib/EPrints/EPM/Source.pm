@@ -22,6 +22,13 @@ sub new
 	$self{ua} = LWP::UserAgent->new;
 	$self{ua}->env_proxy;
 
+    my $repo = $self{repository};
+
+    if ( $repo->config( "proxy" ))
+    {
+        $self{ua}->proxy(['http', 'https', 'ftp'], $repo->config( "proxy" ));
+    }
+
 	return bless \%self, $class;
 }
 
@@ -89,6 +96,14 @@ sub query
 		fh => $tmpfile,
 		dataset => $repo->dataset( "epm" ),
 	);
+
+        if ( $ENV{"HTTPS"} )
+        {
+                for (my $e = 0; $e < @epms; $e = $e+1 )
+                {
+                        $epms[$e]->{data}->{icon} =~ s/^http:/https:/g;
+                }
+        }
 
 	return \@epms;
 }

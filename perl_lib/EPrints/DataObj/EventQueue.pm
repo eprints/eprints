@@ -290,8 +290,9 @@ sub _execute
 	my $rc = eval { $plugin->$action( @params ) };
 	if( $@ )
 	{
-		$self->message( "error", $xml->create_text_node( "Error during execution: $@" ) );
-		$self->set_value( "description", $@ );
+		my $error_message = $@;
+		$self->message( "error", $xml->create_text_node( "Error during execution: $error_message" ) );
+		$self->set_value( "description", $error_message );
 		return EPrints::Const::HTTP_INTERNAL_SERVER_ERROR;
 	}
 

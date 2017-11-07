@@ -267,7 +267,7 @@ sub update_auto
 	{
 		my $path = $map{$fn};
 
-		print $fh "\n\n\n/* From: $path */\n\n";
+		print $fh "\n\n\n/* From: $fn */\n\n";
 		open(my $in, "<:raw", $path) or EPrints::abort( "Can't read from $path: $!" );
 		my $buffer = "";
 		while(read($in, $buffer, 4096))

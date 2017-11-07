@@ -1,6 +1,6 @@
 <?xml version="1.0"?> 
 
-<!-- identity transformation -->
+<!-- Atom transformation -->
 
 <xsl:stylesheet
 	version="1.0"
@@ -67,8 +67,9 @@ Rights: <xsl:value-of select="atom:entry/atom:rights"/>
 </eprints>
 </xsl:template>
 
+<!-- scheme from: EPrints::Const::EP_NS_DATA -->
 <xsl:template match="atom:category">
-<xsl:if test="@scheme='http://yomiko.ecs.soton.ac.uk:8080/data/eprint/status/'">
+<xsl:if test="@scheme='http://eprints.org/ep2/data/2.0/eprint/eprint_status'">
 	<eprint_status><xsl:value-of select="@term" /></eprint_status>
 </xsl:if>
 </xsl:template>

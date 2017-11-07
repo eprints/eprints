@@ -898,6 +898,9 @@ sub remove
 		}
 	);
 
+	# set under_construction so $doc->remove's don't cause revisions.
+	$self->set_under_construction( 1 );
+	
 	foreach my $doc ( @{($self->get_value( "documents" ))} )
 	{
 		$doc->remove;
@@ -907,6 +910,8 @@ sub remove
 	{
 		$file->remove;
 	}
+	
+	$self->set_under_construction( 0 );
 
 	my $success = $self->SUPER::remove();
 
@@ -1361,6 +1366,7 @@ sub url_stem
 	my $url;
 	$url = $repository->get_conf( "http_url" );
 	$url .= '/';
+	$url .= 'id/eprint/' if $repository->get_conf( "use_long_url_format");
 	$url .= $self->get_value( "eprintid" )+0;
 	$url .= '/';
 
