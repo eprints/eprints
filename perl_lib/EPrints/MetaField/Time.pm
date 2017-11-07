@@ -155,9 +155,9 @@ sub get_basic_input_elements
 		$month = "00" if( !defined $month || $month == 0 );
 		$day = "00" if( !defined $day || $day == 0 );
 		$year = "" if( !defined $year || $year == 0 );
-		$hour = "" if( !defined $hour || $hour == 0 );
-		$minute = "" if( !defined $minute || $minute == 0 );
-		$second = "" if( !defined $second || $second == 0 );
+		$hour = "" if( !defined $hour );
+		$minute = "" if( !defined $minute );
+		$second = "" if( !defined $second );
 	}
  	my $dayid = $basename."_day";
  	my $monthid = $basename."_month";
@@ -303,7 +303,7 @@ sub form_value_basic
 	for(qw( year month day hour minute second ))
 	{
 		my $part = $session->param( $basename."_$_" );
-		last if !EPrints::Utils::is_set( $part ) || $part == 0;
+		last if !EPrints::Utils::is_set( $part ) || ($part == 0 && ( $_ eq "year" || $_ eq "month" || $_ eq "day" ));
 		push @parts, $part;
 	}
 
