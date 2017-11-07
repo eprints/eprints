@@ -134,7 +134,7 @@ sub handler
 	return $rc if defined $rc;
 
 	# /archive/ redirect
-	if( $uri =~ m! ^$urlpath/archive/(.*) !x )
+	if( $uri =~ m! ^$urlpath/archive/+(.*) !x )
 	{
 		return redir( $r, "$urlpath/$1$args" );
 	}
