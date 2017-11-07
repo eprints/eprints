@@ -33,7 +33,7 @@ if( defined($show) and !$show )
 	exit( 0 );
 }
 
-if( $url =~ m#^/(\d+)/# )
+if( $url =~ m#^/(\d+)/#  || $url =~ m#^/id/eprint/(\d+)/# )
 {
 	my $eprint = $session->dataset( "eprint" )->dataobj( $1 );
 	my $eprint_message;
