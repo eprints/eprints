@@ -129,6 +129,18 @@ sub parse_string
 	return parse_xml_string( $string );
 }
 
+=item $doc_frag = parse_frag_string( $string )
+
+Parse $string and return it as a new DOM Document Fragment.
+
+=cut
+
+sub parse_frag_string
+{
+	my( $self, $string ) = @_;
+	return parse_xml_frag_string( $string );
+}
+
 =item $doc = $xml->parse_file( $filename, %opts )
 
 Returns an XML document parsed from the file called $filename.

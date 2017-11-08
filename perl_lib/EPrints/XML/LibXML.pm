@@ -95,6 +95,21 @@ sub _parse_url
 	return $doc;
 }
 
+=item $doc_frag = parse_xml_frag_string( $string )
+
+Parse $string and return it as a new DOM Document Fragment.
+
+=cut
+
+sub parse_xml_frag_string
+{
+	my( $string ) = @_;
+
+	my $frag = $PARSER->parse_balanced_chunk( $string );
+
+	return $frag;
+}
+
 =item $doc = parse_xml( $filename [, $basepath [, $no_expand]] )
 
 Parse $filename and return it as a new DOM document.
