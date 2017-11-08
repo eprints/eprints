@@ -58,6 +58,19 @@ $EPrints::XML::LIB_LEN = length("XML::GDOME::");
 		return $f;
 	};
 
+sub parse_xml_frag_string
+{
+	# FIXME: bet this doesn't like missing <?xml?> and stuff
+	my $doc = parse_xml_string( @_ );
+
+	my $frag = XML::GDOME->createDocument->createDocumentFragment;
+	for($doc->childNodes)
+	{
+		$frag->appendChild( $_->cloneNode( 1 ) );
+	}
+	return $frag;
+}
+
 sub parse_xml_string
 {
 	my( $string ) = @_;
