@@ -1996,7 +1996,7 @@ sub get_view_opts
 	if( $opts->{"cloud"} )
 	{
 		$opts->{"jump"} = "plain";
-		$opts->{"no_seperator"} = 1;
+		$opts->{"no_seperator"} = 1 unless defined $opts->{"seperator"}; #[sic]
 		$opts->{"cloudmin"} = 80 unless defined $opts->{"cloudmin"};
 		$opts->{"cloudmax"} = 200 unless defined $opts->{"cloudmax"};
 	}
