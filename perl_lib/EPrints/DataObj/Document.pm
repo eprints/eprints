@@ -1735,6 +1735,10 @@ Show thumbnail/preview only on public docs.
 
 Show thumbnail/preview on all docs if poss.
 
+=item with_link => 0
+
+Do not link.
+
 =back
 
 =cut
@@ -1744,6 +1748,7 @@ sub render_icon_link
 	my( $self, %opts ) = @_;
 
 	$opts{public} = 1 unless defined $opts{public};
+	$opts{with_link} = 1 unless defined $opts{with_link};
 	if( $opts{public} && !$self->is_public )
 	{
 		$opts{preview} = 0;
@@ -1776,15 +1781,23 @@ sub render_icon_link
 		$aopts{onmouseover} = "EPJS_ShowPreview( event, '$preview_id' );";
 		$aopts{onmouseout} = "EPJS_HidePreview( event, '$preview_id' );";
 	}
-	my $a = $self->{session}->make_element( "a", %aopts );
-	$a->appendChild( $self->{session}->make_element( 
-		"img", 
+	my $f = $self->{session}->make_doc_fragment;
+	my $img = $self->{session}->make_element(
+		"img",
 		class=>"ep_doc_icon",
 		alt=>"[img]",
 		src=>$self->icon_url( public=>$opts{public} ),
-		border=>0 ));
-	my $f = $self->{session}->make_doc_fragment;
-	$f->appendChild( $a ) ;
+		border=>0 );
+	if ( $opts{with_link} )
+	{
+		my $a = $self->{session}->make_element( "a", %aopts );
+		$a->appendChild( $img );
+		$f->appendChild( $a );
+	}
+	else
+	{
+		$f->appendChild( $img );
+	}
 	if( $opts{preview} )
 	{
 		my $preview = $self->{session}->make_element( "div",
