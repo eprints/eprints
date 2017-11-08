@@ -908,6 +908,37 @@ sub run_documents
 	return [ [$eprint->[0]->get_all_documents()],  "ARRAY" ];
 }
 
+=item OBJ.render_value_function( FUNC, FIELD[, EXTRA...] )
+
+Extracts the value of the given FIELD from the OBJ data object, and renders
+it using the callback FUNC.
+
+FUNC must accept at least three parameters: $session, $field, and $value,
+and return an XHTML DOM structure.
+
+If EXTRAs are given, they will be passed to FUNC as the fourth, fifth, etc.
+parameters.
+
+=cut
+
+sub run_render_value_special { &run_render_value_function }
+sub run_render_value_function
+{
+	my( $self, $state, $dataobj, $funcname, $fieldname, @extra ) = @_;
+
+	my( $value, $field ) = @{$self->run_property( $state, $dataobj, $fieldname )};
+
+	no strict "refs";
+	my $xhtml = $funcname->[0](
+		$state->{session},
+		$field,
+		$value,
+		map {$_->[0]} @extra
+	);
+	use strict "refs";
+
+	return [ $xhtml, "XHTML" ];
+}
 
 1;
 
