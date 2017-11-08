@@ -58,6 +58,7 @@ use File::Copy qw();
 use Text::Wrap qw();
 use LWP::UserAgent;
 use URI;
+use JSON;
 use EPrints::Const qw( :crypt );
 
 my $USE_CRYPT_BLOWFISH = 1;
@@ -1400,27 +1401,16 @@ sub mtime
 
 # return a quoted string safe to go in javascript
 
-my %JSON_ESC = (
-	"\b" => "\\b",
-	"\f" => "\\f",
-	"\n" => "\\n",
-	"\r" => "\\r",
-	"\t" => "\\t",
-	"\"" => "\\\"",
-	"\'" => "\\'",
-	"\\" => "\\\\",
-	"\/" => "\\\/",
-);
 sub js_string
 {
 	my( $string ) = @_;
 
 	return 'null' if !defined $string || $string eq '';
 
-	$string =~ s/([\x2f\x22\x5c\n\r\t\f\b])/$JSON_ESC{$1}/g;
-	$string =~ s/([\x00-\x08\x0b\x0e-\x1f])/'\\u00' . unpack('H2', $1)/eg;
-
-	return "\"$string\"";
+	# 'ascii' forces all non-ASCII characters to be quoted, including
+	# simple \uXXXX codepoints and \uAAAA\uBBBB astral surrogates.
+	my $json = JSON->new->ascii->allow_nonref;
+	return $json->encode( "$string" );
 }
 
 # EPrints::Utils::process_parameters( $params, $defaults );
