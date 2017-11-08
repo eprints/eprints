@@ -2217,7 +2217,9 @@ sub render_search_description
 
 	my $valuedesc = $self->render_search_value(
 		$session,
-		$value );
+		$value,
+		$merge,
+		$match );
 	
 	return $session->html_phrase(
 		$phraseid,
@@ -2227,7 +2229,7 @@ sub render_search_description
 
 sub render_search_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $session, $value, $merge, $match ) = @_;
 
 	return $session->make_text( '"'.$value.'"' );
 }	
