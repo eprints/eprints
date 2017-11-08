@@ -161,6 +161,7 @@ sub build_connection_string
         {
                 $dsn.= ";mysql_socket=".$params{dbsock};
         }
+        $dsn.= ";mysql_enable_utf8=1";
         return $dsn;
 }
 
