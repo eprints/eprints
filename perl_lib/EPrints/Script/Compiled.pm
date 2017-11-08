@@ -553,7 +553,7 @@ sub run_doc_size
 	if( !$doc->[0]->is_set( "main" ) )
 	{
 		# this must be an array ref so it can be passed to human_readable
-		return [0];
+		return [ 0, "INTEGER" ];
 	}
 
 	my %files = $doc->[0]->files;
