@@ -743,6 +743,16 @@ sub handler
 	return OK;
 }
 
+sub redir_permanent
+{
+	my( $r, $url ) = @_;
+
+	EPrints::Apache::AnApache::send_status_line( $r, 301, "Moved Permanently" );
+	EPrints::Apache::AnApache::header_out( $r, "Location", $url );
+	EPrints::Apache::AnApache::send_http_header( $r );
+	return DONE;
+}
+
 sub redir
 {
 	my( $r, $url ) = @_;
