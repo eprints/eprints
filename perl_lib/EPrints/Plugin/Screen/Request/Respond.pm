@@ -142,7 +142,7 @@ sub action_confirm
 	{
 	
 		# Make document OA if flag set
-		if( $self->param( "allow_oa" ) && defined $session->param( "oa" ) && $session->param( "oa" ) eq "on" )
+		if( defined $session->param( "oa" ) && $session->param( "oa" ) eq "on" )
 		{
 			$doc->set_value( "security", "public" );
 			$doc->commit;
