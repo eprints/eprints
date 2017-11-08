@@ -148,7 +148,8 @@ sub make_name_string
 	}
 	if( defined $name->{lineage} && $name->{lineage} ne "" )
 	{
-		$secondbit .= " ".$name->{lineage};
+		$secondbit .= " " if $secondbit;
+		$secondbit .= $name->{lineage};
 	}
 
 	if( $firstbit && $secondbit )
