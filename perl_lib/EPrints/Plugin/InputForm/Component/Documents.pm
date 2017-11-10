@@ -603,7 +603,7 @@ sub _render_doc_metadata
 								$doc_prefix ),
 			help=>$field->render_help($session),
 			help_prefix=>$doc_prefix."_".$field->get_name."_help",
-            no_toggle=>$self->{no_toggle}
+			no_toggle=>$self->{no_toggle}
 		));
 		$first = 0;
 	}
