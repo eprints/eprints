@@ -155,6 +155,7 @@ sub update_auto_css
 	my @dirs = map { "$_/style/auto" } grep { defined } @$static_dirs;
 
 	update_auto(
+			$session->get_repository,
 			"$target_dir/style/auto.css",
 			"css",
 			\@dirs
@@ -174,6 +175,7 @@ sub update_secure_auto_js
 	$js .= "\n";
 
 	update_auto(
+			$session->get_repository,
 			"$target_dir/javascript/secure_auto.js",
 			"js",
 			\@dirs,
@@ -188,6 +190,7 @@ sub update_auto_js
 	my @dirs = map { "$_/javascript/auto" } grep { defined } @$static_dirs;
 
 	update_auto(
+			$session->get_repository,
 			"$target_dir/javascript/auto.js",
 			"js",
 			\@dirs,
@@ -220,7 +223,7 @@ Postfix text to the output file.
 
 sub update_auto
 {
-	my( $target, $ext, $dirs, $opts ) = @_;
+	my($repo, $target, $ext, $dirs, $opts ) = @_;
 
 	my $target_dir = $target;
 	unless( $target_dir =~ s/\/[^\/]+$// )
@@ -266,8 +269,14 @@ sub update_auto
 	foreach my $fn (sort keys %map)
 	{
 		my $path = $map{$fn};
-
-		print $fh "\n\n\n/* From: $fn */\n\n";
+		if ($repo->{quiet} == 1)
+		{
+			print $fh "\n\n\n/* From: $fn */\n\n";
+		}
+		else
+		{
+			print $fh "\n\n\n/* From: $path */\n\n";
+		}
 		open(my $in, "<:raw", $path) or EPrints::abort( "Can't read from $path: $!" );
 		my $buffer = "";
 		while(read($in, $buffer, 4096))
