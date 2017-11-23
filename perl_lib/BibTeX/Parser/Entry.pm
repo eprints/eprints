@@ -135,7 +135,7 @@ sub _split_author_field {
 		$buffer = "";
 	    } elsif ( $2 =~ /\{/ ) {
 		$buffer .= $match . "{";
-		if ( $field =~ /\G (.* \})/cgx ) {
+		if ( $field =~ /\G (.*? \})/cgx ) {
 		    $buffer .= $1;
 		} else {
 		    die "Missing closing brace at " . substr( $field, pos $field, 10 );
