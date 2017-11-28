@@ -86,15 +86,17 @@ sub render
 		$col_div->appendChild( $col_link );
 		$col_link->appendChild( $self->{session}->make_element( "img", alt=>"+", src=>"$imagesurl/style/images/plus.png", border=>0 ) );
 		$col_link->appendChild( $self->{session}->make_text( " " ) );
-		$col_link->appendChild( $component->render_title( $self ) );
+		my $tt =  $component->render_title( $self );
+		my $tc = $tt->cloneNode(1);
+		$col_link->appendChild( $tt );
 		$surround->appendChild( $col_div );
 
 		# alternate title to allow it to re-hide
 		my $recol_link =  $self->{session}->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${contentid}',false,'${main_id}');EPJS_toggle('${colbarid}',true);EPJS_toggle('${barid}',false);return false", href=>"#", class=>"ep_only_js ep_toggle ep_sr_collapse_link" );
 		$recol_link->appendChild( $self->{session}->make_element( "img", alt=>"-", src=>"$imagesurl/style/images/minus.png", border=>0 ) );
 		$recol_link->appendChild( $self->{session}->make_text( " " ) );
-		#nb. clone the title as we've already used it above.
-		$recol_link->appendChild( $self->render_title( $component ) );
+		#use cloned title as we've already used it above. github #164
+		$recol_link->appendChild( $tc );
 		$title_div->appendChild( $recol_link );
 
 		my $nojstitle = $self->{session}->make_element( "div", class=>"ep_no_js" );
