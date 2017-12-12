@@ -72,7 +72,11 @@ sub render
 
 	my $imagesurl = $self->{session}->get_repository->get_conf( "rel_path" );
 
-	$content_inner->appendChild( $component->render_content( $self ) );
+	my $ajax_content_target = $self->{session}->make_element( "div", id => $component->{prefix}."_ajax_content_target" );
+
+	$content_inner->appendChild( $ajax_content_target );
+	$ajax_content_target->appendChild( $component->render_content( $self ) );
+	
 
 	if( $component->is_collapsed )
 	{
