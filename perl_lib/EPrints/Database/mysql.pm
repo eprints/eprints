@@ -240,6 +240,7 @@ sub connect
 		$self->{dbh}->{mysql_auto_reconnect} = 1;
 
 		$self->do("SET NAMES 'utf8'");
+		$self->do('SET @@session.optimizer_search_depth = 3;');
 	}
 	elsif( $DBI::err == 1040 )
 	{
