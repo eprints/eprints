@@ -1351,7 +1351,7 @@ For more information see <a href="http://eprints.org/d/?keyword=MetaFields">Meta
 <div style="padding: 0.3em; background-color: black; color: white; font-weight: bold;"><epc:pin name="action"/> by <epc:pin name="cause"/> at <epc:pin name="when"/></div>
 <div style="padding: 0.3em; margin-bottom: 2em; border: solid 1px black;"><epc:pin name="details"/></div>
     </epp:phrase>
-    <epp:phrase id="lib/history:xmlblock"><pre style="margin: 0 0 0 0; padding: 3px 3px 3px 3px; border-left: 1px dashed black; border-bottom: 1px dashed black; font-size: 13px;"><epc:pin name="xml"/></pre></epp:phrase>
+    <epp:phrase id="lib/history:xmlblock"><pre style="margin: 0 0 0 0; padding: 3px 3px 3px 3px; border-left: 1px dashed black; border-bottom: 1px dashed black; font-size: 100%;"><epc:pin name="xml"/></pre></epp:phrase>
     <epp:phrase id="lib/history:no_such_item"><epc:pin name="datasetid"/> <epc:pin name="objectid"/> does not exist. It may have been erased.</epp:phrase>
 
     <epp:phrase id="history_fieldname_action">Action</epp:phrase>
