@@ -72,7 +72,7 @@ $list->map( sub {
 
 ok($ctx->{count} == scalar @{$ids}, "map is called once for each item in the list and the context is passed through");
 
-ok( $list->get_cache_id == undef, "an uncached list should have undef cache_id");
+ok( !defined($list->get_cache_id), "an uncached list should have undef cache_id");
 
 $list->cache;
 
@@ -82,9 +82,9 @@ ok( $list->get_cache_id == $dummy_cache_id, "cache_id is stored correctly after 
 
 $list->dispose;
 
-ok( $list->get_cache_id == undef, "dispose removes the cache id");
+ok( !defined($list->get_cache_id), "dispose removes the cache id");
 
-my $list = EPrints::List->new(%params);
+$list = EPrints::List->new(%params);
 
 my $ids2 = [$ids->[2],13,14,15];
 my %params2 = ( session=>$repo, dataset=>$dataset, ids=>$ids2);
