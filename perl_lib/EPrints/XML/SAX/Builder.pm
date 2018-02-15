@@ -179,12 +179,17 @@ sub characters {
     }
 
     my $node;
+    
+    my $data = $chars->{Data};
+
+    # Replaces invalid XML 1.0 code points with the Unicode substitution character (0xfffd)
+    $data =~ s/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/\x{fffd}/g;
 
     if ( defined $self->{IN_CDATA} and $self->{IN_CDATA} == 1 ) {
-        $node = $self->{DOM}->createCDATASection($chars->{Data});
+        $node = $self->{DOM}->createCDATASection($data);
     }
     else {
-		$node = $self->{DOM}->createTextNode($chars->{Data});
+        $node = $self->{DOM}->createTextNode($data);
     }
 
     $self->{Parent}->appendChild($node);
