@@ -289,6 +289,7 @@ use EPrints::DataObj::Triple;
 use EPrints::DataObj::UploadProgress;
 use EPrints::DataObj::User;
 use EPrints::DataSet;
+use EPrints::DOI;
 use EPrints::Email;
 use EPrints::Extras;
 use EPrints::Index;
