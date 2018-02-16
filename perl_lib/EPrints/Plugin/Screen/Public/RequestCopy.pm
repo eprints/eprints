@@ -113,6 +113,13 @@ sub action_request
 
 	my $email = $request->value( "requester_email" );
 
+	my $blacklist = $session->config( 'email_blacklist' );
+	if( $email && $blacklist && grep { $email eq $_ } @$blacklist )
+	{
+		$self->{processor}->add_message( "error", $session->html_phrase( "general:email_denied" ) );
+		return;
+	}
+
 	my $use_pin_security = $session->config( 'use_request_copy_pin_security' );
 
 	my $eprint = $self->{processor}->{eprint};
