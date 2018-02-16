@@ -76,7 +76,7 @@ sub render_title
 	if( defined( my $user = $self->{session}->current_user ) )
 	{
 		return $self->html_phrase( "title:logged_in",
-			user => $user->render_description,
+			user => $user->render_citation( 'login' ),
 		);
 	}
 	else

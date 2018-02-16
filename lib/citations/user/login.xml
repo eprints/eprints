@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<cite:citation xmlns="http://www.w3.org/1999/xhtml" 
+         xmlns:cite="http://eprints.org/ep3/citation" 
+         xmlns:epc="http://eprints.org/ep3/control">
+
+  <cite:linkhere><span class="ep_name_citation"><epc:choose>
+  <epc:when test="$item{name}.is_set()">
+    <epc:choose>
+      <epc:when test="$item{name}{given}"><epc:print expr="$item{name}{given}"/></epc:when>
+      <epc:when test="email"><epc:print expr="email"/></epc:when>
+      <epc:otherwise><epc:print expr="username"/></epc:otherwise>
+    </epc:choose>
+  </epc:when>
+  <epc:when test="email"><epc:print expr="email"/></epc:when>
+  <epc:otherwise><epc:print expr="username"/></epc:otherwise>
+  </epc:choose></span></cite:linkhere>
+</cite:citation>
