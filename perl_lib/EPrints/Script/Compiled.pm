@@ -921,7 +921,6 @@ parameters.
 
 =cut
 
-sub run_render_value_special { &run_render_value_function }
 sub run_render_value_function
 {
 	my( $self, $state, $dataobj, $funcname, $fieldname, @extra ) = @_;
