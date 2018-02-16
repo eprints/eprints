@@ -620,6 +620,8 @@ sub run_icon
 		elsif( $optv eq "noHoverPreview" ) { $args{preview}=0; }
 		elsif( $optv eq "NewWindow" ) { $args{new_window}=1; }
 		elsif( $optv eq "noNewWindow" ) { $args{new_window}=0; }
+		elsif( $optv eq "Link" ) { $args{with_link}=1; }
+		elsif( $optv eq "noLink" ) { $args{with_link}=0; }
 		else { $self->runtime_error( "Unknown option to doc->icon(): $optv" ); }
 	}
 
