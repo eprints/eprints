@@ -84,26 +84,36 @@ $aliases
 
 EOC
 
-	$conf .= _location( $http_root, $id );
+	# check if we enabled site-wide https
+        $http_url = $repo->config("http_url") || "";
+        if ( substr($http_url, 0, 5) ne "https")
+        {
 
-	# backwards compatibility
-	my $apachevhost = $repo->config( "config_path" )."/apachevhost.conf";
-	if( -e $apachevhost )
-	{
-		$conf .= "  # Include any legacy directives\n";
-		$conf .= "  Include $apachevhost\n\n";
-	}
+		$conf .= _location( $http_root, $id );
 
-	$conf .= <<EOC;
+		# backwards compatibility
+		my $apachevhost = $repo->config( "config_path" )."/apachevhost.conf";
+		if( -e $apachevhost )
+		{
+			$conf .= "  # Include any legacy directives\n";
+			$conf .= "  Include $apachevhost\n\n";
+		}
+
+		$conf .= <<EOC;
 
   # Note that PerlTransHandler can't go inside
   # a "Location" block as it occurs before the
   # Location is known.
   PerlTransHandler +EPrints::Apache::Rewrite
-  
-</VirtualHost>
 
 EOC
+	}
+	else
+	{
+		$conf .= "  RedirectPermanent / $http_url\n\n";
+	}
+  
+	$conf .= "</VirtualHost>\n\n";
 
 	return $conf;
 }
