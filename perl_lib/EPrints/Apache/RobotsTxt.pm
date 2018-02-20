@@ -42,8 +42,8 @@ sub handler
 	}	
 	if( !defined $robots )
 	{
-		$http_cgiroot = $repository->config( 'http_cgiroot' );
-		$https_cgiroot = $repository->config( 'https_cgiroot' );
+		my $http_cgiroot = $repository->config( 'http_cgiroot' );
+		my $https_cgiroot = $repository->config( 'https_cgiroot' );
 		$robots = <<END;
 User-agent: *
 Disallow: $http_cgiroot/
