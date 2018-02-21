@@ -105,6 +105,15 @@ sub action_add_format
 	my $filename = $epdata->{main};
 	return if !defined $filename;
 
+	# remove leading/trailing whitespace from filename used on filesystem
+        my $f = 0;
+        while ( defined $epdata->{files}[$f] )
+        {
+                my $tmp_filename = $epdata->{files}[$f]->{filename};
+                $tmp_filename =~ s/^\s+|\s+$//g;
+                $epdata->{files}[$f++]->{filename} = $tmp_filename;
+        }
+
 	my $list;
 	my $doc = $eprint->create_subdataobj( "documents", $epdata );
 	if( defined $doc )
