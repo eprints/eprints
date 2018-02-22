@@ -43,62 +43,62 @@ Also treats {foo} inside any attribute as if it were
 
 sub process
 {
-	my( $node, %params ) = @_;
+        my( $node, %params ) = @_;
 
-	if( !defined $node )
-	{
-		EPrints::abort( "no node passed to epc process" );
-	}
+        if( !defined $node )
+        {
+                EPrints::abort( "no node passed to epc process" );
+        }
 # cjg - Potential bug if: <ifset a><ifset b></></> and ifset a is disposed
 # then ifset: b is processed it will crash.
-	
-	if( EPrints::XML::is_dom( $node, "Element" ) )
-	{
-		my $name = $node->tagName;
-		$name =~ s/^epc://;
 
-		return $params{session}->xml->create_document_fragment
-			if $node->hasAttribute( "disabled" ) && $node->getAttribute( "disabled" );
+        if( EPrints::XML::is_dom( $node, "Element" ) )
+        {
+                my $name = $node->tagName;
+                $name =~ s/^epc://;
 
-		if( $name=~m/^(if|comment|choose|print|debug|phrase|pin|foreach|set)$/ )
-		{
-			my $fn = "_process_$name";
-			no strict "refs";
-			my $r = eval { &{$fn}( $node, %params ); };
-			use strict "refs";
-			if( $@ )
-			{
-				$params{session}->log( "EPScript error: $@" );
-				return $params{session}->html_phrase( "XML/EPC:script_error" );
-			}
-			return $r;
-		}
-	}
+                return $params{session}->xml->create_document_fragment
+                        if $node->hasAttribute( "disabled" ) && $node->getAttribute( "disabled" );
 
-	my $collapsed = $params{session}->clone_for_me( $node );
-	my $attrs = $collapsed->attributes;
-	if( defined $attrs )
-	{
-		for( my $i = 0; $i<$attrs->length; ++$i )
-		{
-			my $attr = $attrs->item( $i );
-			my $v = $attr->nodeValue;
-			my $name = $attr->nodeName;
-			my $newv = eval { EPrints::XML::EPC::expand_attribute( $v, $name, \%params ); };
-			if( $@ )
-			{
-				$params{session}->log( "EPScript error: $@" );
-				$newv = $params{session}->phrase( "XML/EPC:script_error" );
-			}
-			if( $v ne $newv ) { $attr->setValue( $newv ); }
-		}
-	}
+                if( $name=~m/^(if|comment|choose|print|debug|phrase|pin|foreach|set|list)$/ )
+                {
+                        my $fn = "EPrints::XML::EPC::_process_$name";
+                        no strict "refs";
+                        my $r = eval { &{$fn}( $node, %params ); };
+                        use strict "refs";
+                        if( $@ )
+                        {
+                                $params{session}->log( "EPScript error: $@" );
+                                return $params{session}->html_phrase( "XML/EPC:script_error" );
+                        }
+                        return $r;
+                }
+        }
 
-	if( $node->hasChildNodes )
-	{
-		$collapsed->appendChild( process_child_nodes( $node, %params ) );
-	}
-	return $collapsed;
+        my $collapsed = $params{session}->clone_for_me( $node );
+        my $attrs = $collapsed->attributes;
+        if( defined $attrs )
+        {
+                for( my $i = 0; $i<$attrs->length; ++$i )
+                {
+                        my $attr = $attrs->item( $i );
+                        my $v = $attr->nodeValue;
+                        my $name = $attr->nodeName;
+                        my $newv = eval { EPrints::XML::EPC::expand_attribute( $v, $name, \%params ); };
+                        if( $@ )
+                        {
+                                $params{session}->log( "EPScript error: $@" );
+                                $newv = $params{session}->phrase( "XML/EPC:script_error" );
+                        }
+                        if( $v ne $newv ) { $attr->setValue( $newv ); }
+                }
+        }
+
+        if( $node->hasChildNodes )
+        {
+                $collapsed->appendChild( EPrints::XML::EPC::process_child_nodes( $node, %params ) );
+        }
+        return $collapsed;
 }
 
 sub expand_attribute
@@ -453,7 +453,73 @@ sub _process_choose
 	return $collapsed;
 }
 
+sub _process_list
+{
+        my( $node, %params ) = @_;
 
+        # if there's only 2 items and first & last join are defined then last join is used.
+        my $opts = {};
+        foreach my $atr ( qw/ join suffix prefix first-join last-join / )
+        {
+                if( $node->hasAttribute( $atr ) )
+                {
+                        $opts->{$atr} = $node->getAttribute( $atr );
+                }
+        }
+
+        my @out_nodes = ();
+        foreach my $child ( $node->getChildNodes )
+        {
+                next unless( EPrints::XML::is_dom( $child, "Element" ) );
+                my $name = $child->tagName;
+                $name=~s/^ep://;
+                $name=~s/^epc://;
+                if( ! $name eq "item" )
+                {
+                        EPrints::abort( "In ".$params{in}.": only epc:item is allowed in epc:list.\n".substr( $child->toString, 0, 100 ) );
+                }
+                
+                my $collapsed_item = EPrints::XML::EPC::process_child_nodes( $child, %params );
+                
+                # Add result to the output list IF it's not just whitespace
+                my $text = $params{session}->xml->to_string( $collapsed_item );
+                $text =~ s/\s//g;
+                if( $text ne "" )
+                {
+                        push @out_nodes, $collapsed_item;
+                }
+        }
+
+        my $result = $params{session}->make_doc_fragment;
+        if( scalar @out_nodes > 0 )
+        {
+                # at least one item!
+                if( defined $opts->{prefix} )
+                {
+                        $result->appendChild( $params{session}->make_text( $opts->{prefix} ) );
+                }
+                for( my $pos=0; $pos < scalar @out_nodes; ++$pos )
+                {
+                        my $join;
+                        if( $pos > 0 ) {
+                                $join = $opts->{join};
+                                if( $pos == 1 && defined $opts->{"first-join"} ) { $join = $opts->{"first-join"}; }
+                                if( $pos == ((scalar @out_nodes)-1) && defined $opts->{"last-join"} ) { $join = $opts->{"last-join"}; }
+                        }
+                        if( defined $join )
+                        {
+                                $result->appendChild( $params{session}->make_text( $join ) );
+                        }
+                        $result->appendChild( $out_nodes[$pos] );
+                }
+                if( defined $opts->{suffix} )
+                {
+                        $result->appendChild( $params{session}->make_text( $opts->{suffix} ) );
+                }
+        }
+                                
+        return $result;
+}
 
 
 sub split_script_attribute
