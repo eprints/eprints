@@ -1,23 +1,23 @@
 # These configuration variables are mostly unused and should be deprecated.
 
 {
-	my $uri = URI->new( "http://" );
-	if( EPrints::Utils::is_set( $c->{host} ) )
-	{
-		$uri->scheme( "http" );
-		$uri->host( $c->{host} );
-		$uri->port( $c->{port} );
-		$uri = $uri->canonical;
-		$uri->path( $c->{http_root} );
-	}
-	else
-	{
-		$uri->scheme( "https" );
-		$uri->host( $c->{securehost} );
-		$uri->port( $c->{secureport} );
-		$uri = $uri->canonical;
-		$uri->path( $c->{https_root} );
-	}
+        my $uri = URI->new( "http://" );
+        if( EPrints::Utils::is_set( $c->{securehost} ) )
+        {
+                $uri->scheme( "https" );
+                $uri->host( $c->{securehost} );
+                $uri->port( $c->{secureport} );
+                $uri = $uri->canonical;
+                $uri->path( $c->{https_root} );
+        }
+        else
+        {
+                $uri->scheme( "http" );
+                $uri->host( $c->{host} );
+                $uri->port( $c->{port} );
+                $uri = $uri->canonical;
+                $uri->path( $c->{http_root} );
+        }
 
 # EPrints base URL without trailing slash
 	$c->{base_url} = "$uri";
