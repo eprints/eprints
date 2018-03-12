@@ -1510,12 +1510,12 @@ sub render_menu
 
 		my $li = $repo->make_element( "li" );
 
-		my $xhtml_value = $fields->[0]->get_value_label( $repo, $value, fallback_phrase => 'Update/Views:no_value' ); 
 		my $null_phrase_id = "viewnull_".$ds->base_id()."_".$view->{id};
-		if( !EPrints::Utils::is_set( $value ) && $repo->get_lang->has_phrase( $null_phrase_id ) )
+		if( !$repo->get_lang->has_phrase( $null_phrase_id ) )
 		{
-			$xhtml_value = $repo->html_phrase( $null_phrase_id );
+			$null_phrase_id = 'Update/Views:no_value';
 		}
+		my $xhtml_value = $fields->[0]->get_value_label( $repo, $value, fallback_phrase => $null_phrase_id ); 
 
 		if( defined $sizes && (!defined $sizes->{$fileid} || $sizes->{$fileid} == 0 ))
 		{
