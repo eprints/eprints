@@ -1821,13 +1821,17 @@ this returns the name of the option in the current language.
 
 sub render_value_label
 {
-	my( $self, $value ) = @_;
-	return $self->get_value_label( $self->repository, $value );
+	my( $self, $value, %opts ) = @_;
+	return $self->get_value_label( $self->repository, $value, %opts );
 }
 sub get_value_label
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $session, $value, %opts ) = @_;
 
+	if( !EPrints::Utils::is_set( $value ) && $opts{fallback_phrase} )
+	{
+		return $session->html_phrase( $opts{fallback_phrase} );
+	}
 	return $session->make_text( $value );
 }
 
