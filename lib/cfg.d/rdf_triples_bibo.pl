@@ -178,10 +178,13 @@ $c->add_dataset_trigger( "eprint", EP_TRIGGER_RDF, sub {
 	if( $eprint->dataset->has_field( "id_number" ) && $eprint->is_set( "id_number" ) )
 	{
 		my $doi = EPrints::DOI->parse( $eprint->get_value( "id_number" ) );
-		$o{"graph"}->add(
-			  subject => $eprint_uri,
-			predicate => "owl:sameAs",
-			   object => "<$doi>" );
+		if( $doi )
+		{
+			$o{"graph"}->add(
+				  subject => $eprint_uri,
+				predicate => "owl:sameAs",
+				   object => "<$doi>" );
+		}
 	}
 
 	# PageRange
