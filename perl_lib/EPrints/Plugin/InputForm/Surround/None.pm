@@ -15,7 +15,7 @@ sub render
 {
 	my( $self, $component ) = @_;
 
-	my $surround = $self->{session}->make_element( "div", class => "ep_sr_none" );
+	my $surround = $self->{session}->make_element( "div", class => "ep_sr_none", id => $component->{prefix} );
 	$surround->appendChild( $self->{session}->make_element( "a", name=>$component->{prefix} ) );
 	foreach my $field_id ( $component->get_fields_handled )
 	{
