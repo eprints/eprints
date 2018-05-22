@@ -147,7 +147,7 @@ sub parse
 {
 	my( $class, $string, %opts ) = @_;
 
-	my $doi = $string;
+	my $doi = "$string";
 
 	if( $doi =~ s!^https?://(?:(?:dx\.)?doi\.org|doi\.acm\.org|doi\.ieeecomputersociety\.org)/+(?:doi:)?!!i )
 	{
@@ -170,6 +170,8 @@ sub parse
 			$doi = uri_unescape( $doi );
 		}
 	}
+
+	utf8::decode( $doi ) unless utf8::is_utf8( $doi );
 
 	# ANSI/NISO Z39.84-2005
 	# <http://www.niso.org/apps/group_public/download.php/6587/Syntax%20for%20the%20Digital%20Object%20Identifier.pdf>
@@ -228,9 +230,9 @@ sub _uri_path
 	my( $self ) = @_;
 	return $self->{dir}
 		. '.'
-		. uri_escape( $self->{reg} )
+		. uri_escape_utf8( $self->{reg} )
 		. '/'
-		. uri_escape( $self->{dss} );
+		. uri_escape_utf8( $self->{dss} );
 }
 
 #
