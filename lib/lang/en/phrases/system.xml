@@ -3883,7 +3883,7 @@ PY = 2006 and OG = (Cambridge)<br />
 	<epp:phrase id="Plugin/Screen/Admin/EPM/Developer:action_create">Create</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/EPM/Developer:action_publish">Publish</epp:phrase>
 	<epp:phrase id="Plugin/Screen/Admin/EPM/Developer:create_form"><h2>Create a new EPM</h2>
-To create a blank EPM entire a new id in the input and click <epc:phrase ref="Plugin/Screen/Admin/EPM/Developer:action_create" />. EPM ids may only contain the characters A-Za-z0-9_.<br /><epc:pin name="form" /></epp:phrase>
+To create a blank EPM enter a new id in the input and click <epc:phrase ref="Plugin/Screen/Admin/EPM/Developer:action_create" />. EPM ids may only contain the characters A-Za-z0-9_.<br /><epc:pin name="form" /></epp:phrase>
 
 	<epp:phrase id="Plugin/Screen/Admin/EPM/Edit:title">Edit</epp:phrase>
 
