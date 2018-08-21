@@ -205,7 +205,7 @@ Remove the database entries for the given field, can not be undone!
 
 =item B<epadmin> update I<repository_id>
 
-This will add tables and columns to your SQL database to bring it in-line with your current configuration. It will not remove data. Use with caution on a live database. Database backup is recommended befire use on live systems.
+This will add tables and columns to your SQL database to bring it in-line with your current configuration. It will not remove data. Use with caution on a live database. Database backup is recommended before use on live systems.
 
 =item B<epadmin> update_dry_run I<repository_id>
 
