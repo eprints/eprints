@@ -67,10 +67,9 @@ sub logic
 	my @logic;
 	foreach my $cond (@{$self->{params}})
 	{
-		# escape $cond value in any way?
-		push @logic, sprintf("%s LIKE '%s'",
+		push @logic, sprintf("%s LIKE %s",
 			$db->quote_identifier( $table, "grepstring" ),
-			$cond );
+			$db->quote_value( $cond ) );
 	}
 
 	return sprintf( "%s=%s AND (%s)",
