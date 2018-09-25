@@ -1,11 +1,12 @@
 package BibTeX::Parser::Entry;
-BEGIN {
-  $BibTeX::Parser::Entry::VERSION = '0.63';
+{
+  $BibTeX::Parser::Entry::VERSION = '1.02';
 }
 
 use warnings;
 use strict;
 
+use BibTeX::Parser;
 use BibTeX::Parser::Author;
 
 
@@ -14,9 +15,16 @@ sub new {
 	my ($class, $type, $key, $parse_ok, $fieldsref) = @_;
 
 	my %fields = defined $fieldsref ? %$fieldsref : ();
-	if (defined $type) {
-		$fields{_type}     = uc($type);
+	my $i=0;
+	foreach my $field (keys %fields) {
+	    if ($field !~ /^_/) {
+		$fields{_fieldnums}->{$field}=$i;
+		$i++;
+	    }
 	}
+        if (defined $type) {
+            $fields{_type} = uc($type);
+        }
 	$fields{_key}      = $key;
 	$fields{_parse_ok} = $parse_ok;
         $fields{_raw}      = '';
@@ -78,80 +86,91 @@ sub field {
 		return $self->{ lc( $field ) };
 	} else {
 		my ($self, $key, $value) = @_;
-		$self->{ lc( $key ) } = $value; #_sanitize_field($value);
+		my $field = lc ($key);
+		$self->{$field} = $value; #_sanitize_field($value);
+		if (!exists($self->{_fieldnums}->{$field})) {
+		    my $num = scalar keys %{$self->{_fieldnums}};
+		    $self->{_fieldnums}->{$field} = $num;
+		}
 	}
 
 }
+
+use LaTeX::ToUnicode qw( convert );
+
+
+sub cleaned_field {
+        my ( $self, $field, @options ) = @_;
+        if ( $field =~ /author|editor/i ) {
+            return $self->field( $field );
+        } else {
+            return convert( $self->field( lc $field ), @options );
+        }
+}
+
+
+sub cleaned_author {
+    my $self = shift;
+    $self->_handle_cleaned_author_editor( [ $self->author ], @_ );
+}
+
+
+sub cleaned_editor {
+    my $self = shift;
+    $self->_handle_cleaned_author_editor( [ $self->editor ], @_ );
+}
+
+sub _handle_cleaned_author_editor {
+    my ( $self, $authors, @options ) = @_;
+    map {
+        my $author = $_;
+        my $new_author = BibTeX::Parser::Author->new;
+        map {
+            $new_author->$_( convert( $author->$_, @options ) )
+        } grep { defined $author->$_ } qw( first von last jr );
+        $new_author;
+    } @$authors;
+}
+
+no LaTeX::ToUnicode;
 
 sub _handle_author_editor {
-	my $type = shift;
-	my $self = shift;
-	if (@_) {
-		if (@_ == 1) { #single string
-			# my @names = split /\s+and\s+/i, $_[0];
-			my @names = _split_author_field( $_[0] );
-			$self->{"_$type"} = [map {new BibTeX::Parser::Author $_} @names];
-			$self->field($type, join " and ", @{$self->{"_$type"}});
-		} else {
-			$self->{"_$type"} = [];
-			foreach my $param (@_) {
-				if (ref $param eq "BibTeX::Author") {
-					push @{$self->{"_$type"}}, $param;
-				} else {
-					push @{$self->{"_$type"}}, new BibTeX::Parser::Author $param;
-				}
-
-				$self->field($type, join " and ", @{$self->{"_$type"}});
-			}
-		}
-	} else {
-		unless ( defined $self->{"_$type"} ) {
-			#my @names = split /\s+and\s+/i, $self->{$type} || "";
-			my @names = _split_author_field( $self->{$type} || "" );
-			$self->{"_$type"} = [map {new BibTeX::Parser::Author $_} @names];
-		}
-		return @{$self->{"_$type"}};
-	}
-}
-
-# _split_author_field($field)
-#
-# Split an author field into different author names.
-# Handles quoted names ({name}).
-sub _split_author_field {
-    my $field = shift;
-
-    return () if !defined $field || $field eq '';
-
-    my @names;
-
-    my $buffer;
-    while (!defined pos $field || pos $field < length $field) {
-	if ( $field =~ /\G ( .*? ) ( \{ | \s+ and \s+ )/xcgi ) {
-	    my $match = $1;
-	    if ( $2 =~ /and/i ) {
-		$buffer .= $match;
-		push @names, $buffer;
-		$buffer = "";
-	    } elsif ( $2 =~ /\{/ ) {
-		$buffer .= $match . "{";
-		if ( $field =~ /\G (.* \})/cgx ) {
-		    $buffer .= $1;
-		} else {
-		    die "Missing closing brace at " . substr( $field, pos $field, 10 );
-		}
-	    } else {
-		$buffer .= $match;
+    my $type = shift;
+    my $self = shift;
+    if (@_) {
+	if (@_ == 1) { #single string
+	    # my @names = split /\s+and\s+/i, $_[0];
+	    $_[0] =~ s/^\s*//; 
+	    $_[0] =~ s/\s*$//; 
+	    my @names = BibTeX::Parser::_split_braced_string($_[0], 
+							     '\s+and\s+');
+	    if (!scalar @names) {
+		$self->error('Bad names in author/editor field');
+		return;
 	    }
+	    $self->{"_$type"} = [map {new BibTeX::Parser::Author $_} @names];
+	    $self->field($type, join " and ", @{$self->{"_$type"}});
 	} else {
-	   #print "# $field " . (pos ($field) || 0) . "\n";
-	   $buffer .= substr $field, (pos $field || 0);
-	   last;
+	    $self->{"_$type"} = [];
+	    foreach my $param (@_) {
+		if (ref $param eq "BibTeX::Author") {
+		    push @{$self->{"_$type"}}, $param;
+		} else {
+		    push @{$self->{"_$type"}}, new BibTeX::Parser::Author $param;
+		}
+		
+		$self->field($type, join " and ", @{$self->{"_$type"}});
+	    }
 	}
+    } else {
+	unless ( defined $self->{"_$type"}) {
+	    my @names = BibTeX::Parser::_split_braced_string($self->{$type} || "", '\s+and\s+' );
+	    $self->{"_$type"} = [map {new BibTeX::Parser::Author $_} @names];
+	}
+	return @{$self->{"_$type"}};
     }
-    push @names, $buffer if $buffer;
-    return @names;
 }
+
 
 
 sub author {
@@ -197,17 +216,71 @@ sub raw_bibtex {
 	return $self->{_raw};
 }
 
+sub pre {
+	my $self = shift;
+	if (@_) {
+		$self->{_pre} = shift;
+	}
+	return $self->{_pre};
+}
+
+
+sub to_string {
+    my $self = shift;
+    my %options=@_;
+    if (!exists($options{canonize_names})) {
+	$options{canonize_names}=1;
+    }
+    my @fields = grep {!/^_/} keys %$self;
+    @fields = sort {
+	$self->{_fieldnums}->{$a} <=> 
+	    $self->{_fieldnums}->{$b}} @fields;
+    my $result = '';
+    if ($options{print_pre}) {
+	$result .= $self->pre()."\n";
+    }
+    my $type = $self->type;
+    if (exists($options{type_capitalization})) {
+	if ($options{type_capitalization} eq 'Lowercase') {
+	    $type = lc $type;
+	}
+	if ($options{type_capitalization} eq 'Titlecase') {
+	    $type = ucfirst lc $type;
+	}
+    }
+    $result .= '@'.$type."{".$self->key.",\n";    
+    foreach my $field (@fields) {
+	my $value = $self->field($field);
+	if ($field eq 'author' && $options{canonize_names}) {
+	    my @names = ($self->author);
+	    $value = join(' and ', @names);
+	}
+	if ($field eq 'editor' && $options{canonize_names}) {
+	    my @names = ($self->editor);
+	    $value = join(' and ', @names);
+	}
+	if (exists($options{field_capitalization})) {
+	    if ($options{field_capitalization} eq 'Uppercase') {
+		$field = uc $field;
+	    }
+	    if ($options{field_capitalization} eq 'Titlecase') {
+		$field = ucfirst  $field;
+	    }
+	}
+	$result .= "    $field = {"."$value"."},\n";	
+    }
+    $result .= "}";
+    return $result;
+}
+
 1; # End of BibTeX::Entry
+
 __END__
 =pod
 
 =head1 NAME
 
-BibTeX::Parser::Entry
-
-=head1 VERSION
-
-version 0.63
+BibTeX::Parser::Entry - Contains a single entry of a BibTeX document.
 
 =head1 SYNOPSIS
 
@@ -226,15 +299,13 @@ by a BibTeX::Parser.
 	    my @editors = $entry->editor;
 
 	    ...
+
+	    print $entry->to_string;
     }
 
-=head1 NAME
+   
 
-BibTeX::Entry - Contains a single entry of a BibTeX document.
 
-=head1 VERSION
-
-version 0.63
 
 =head1 FUNCTIONS
 
@@ -294,7 +365,7 @@ or strings.
 
 Note: You can also change the authors with $entry->field('editor', $editors_string)
 
-=head2 fieldlist()
+=head2 fieldlist ()
 
 Returns a list of all the fields used in this entry.
 
@@ -302,17 +373,58 @@ Returns a list of all the fields used in this entry.
 
 Returns a true value if this entry has a value for $fieldname.
 
-=head2 raw_bibtex
+=head2 pre ()
+
+Return the text in BibTeX file before the entry
+
+=head2 raw_bibtex ()
 
 Return raw BibTeX entry (if available).
 
+=head2 to_string ([options])
+
+Returns a text of the BibTeX entry in BibTeX format.  Options are
+a hash.  
+
+=over 4
+
+=item C<canonize_names>
+
+If true (the default), authors' and editors' 
+names are translated into canonical bibtex form.  The command 
+C<$entry-E<gt>to_string(canonize_names=E<gt>0)> overrides this behavior.
+
+=item C<field_capitalization>
+
+Capitalization of the field names.  
+Can take values 'Uppercase', 'Lowercase' (the default) or 'Titlecase'
+
+=item C<print_pre>
+
+False by default.  If true, the text in the Bib file before the
+entry is printed.  Note that at present we assume the text 
+before the entry NEVER has the @ symbol inside
+
+=item C<type_capitalization>
+
+Capitalization of the type names.  
+Can take values 'Uppercase' (the default), 'Lowercase' or 'Titlecase'
+
+
+=back
+
+=head1 VERSION
+
+version 1.02
+
 =head1 AUTHOR
 
-Gerhard Gossen <gerhard.gossen@googlemail.com>
+Gerhard Gossen <gerhard.gossen@googlemail.com> and
+Boris Veytsman <boris@varphi.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Gerhard Gossen.
+This software is copyright (c) 2013-2016 by Gerhard Gossen and Boris Veytsman
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
