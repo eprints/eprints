@@ -250,7 +250,7 @@ sub render_related_url
 	{
 		my $li = $session->make_element( "li" );
 		my $link = $session->render_link( $row->{url} );
-		if( defined $row->{type} )
+		if( EPrints::Utils::is_set( $row->{type} ) )
 		{
 			$link->appendChild( $fmap->{type}->render_single_value( $session, $row->{type} ) );
 		}
