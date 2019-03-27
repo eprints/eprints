@@ -482,9 +482,53 @@ sub commit
 		$self->set_value( "rev_number", ($self->get_value( "rev_number" )||0) + 1 );	
 	}
 
+        if (exists $self->{changed}->{password})
+	{
+		$self->close_non_current_login_tickets;
+	}
+
 	my $success = $self->SUPER::commit( $force );
 	
 	return( $success );
+}
+
+######################################################################
+=pod
+
+=item $user->close_non_current_login_tickets;
+
+Close all tickets for the current user except the one
+they're currently logged in on
+
+=cut
+######################################################################
+
+sub close_non_current_login_tickets
+{
+	my ($self) = @_;
+
+	my $repo = $self->repository;
+	my $current_ticket = $repo->current_loginticket;
+
+	my $ticket_ds = $repo->dataset('loginticket');
+
+	my $user_tickets = $ticket_ds->search(
+		filters => [ {meta_fields => ['userid'], value => $self->id} ]
+	);
+
+	$user_tickets->map(
+		sub
+		{
+			my ($repo, $ds, $ticket, $current_ticket) = @_;
+
+			if ($ticket->value('code') ne $current_ticket->value('code'))
+			{
+				$ticket->remove;
+			}
+		},
+		$current_ticket
+	);
+	
 }
 
 
