@@ -2577,6 +2577,7 @@ Titles and Help for the System Fields
     <epp:phrase id="Plugin/Screen:message_warning">Warning</epp:phrase>
     <epp:phrase id="Plugin/Screen:no_render_subclass">Error. $screen->render should be sub-classed for <epc:pin name="screen"/>.</epp:phrase>
     <epp:phrase id="Plugin/Screen:item_locked">This item is temporarily locked. Please go back and try again in a few minutes.</epp:phrase>
+    <epp:phrase id="Plugin/Screen:csrf_detected">Cross-Site Request Forgery (CSRF) was detected whilst processing your last request and therefore its action was not authorised.</epp:phrase>
    
     <epp:phrase id="Plugin/Screen/Items:title">Manage deposits</epp:phrase>
     <epp:phrase id="Plugin/Screen/Items:remove_column_confirm">Really remove this column from the display?</epp:phrase>
