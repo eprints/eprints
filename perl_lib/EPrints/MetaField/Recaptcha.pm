@@ -15,14 +15,19 @@ B<EPrints::MetaField::Recaptcha> - a Captcha
 
 =head1 DESCRIPTION
 
-This field renders a Captcha (a test that only humans can easily pass). It uses the "reCaptcha" service (http://recaptcha.net/). A single database text column is used to store the captcha error code.
+Please refer to the notes in [EPRINTS_ROOT]/archives/[ARCHIVEID]/cfg/cfg.d/recaptcha.pl.
 
-Two configuration options are required to define the reCaptcha keys:
+If this files does not exist, copy [EPRINTS_ROOT]/lib/defaultcfg/cfg.d/recaptcha.pl.example
+to the path above and edit it.
 
-	$c->{recaptcha}->{private_key} = "PRIVATE_KEY";
-	$c->{recaptcha}->{public_key} = "PUBLIC_KEY";
+This field uses the Google "reCAPTCHA" service (https://www.google.com/recaptcha/intro/) and
+renders a Captcha (a test that humans can easily pass, but robots shouldn't be able to).
 
-You can get these keys by registering at http://recaptcha.net/.
+Note: 
+This MetaField was updated in October 2017 to reCAPTCHA v2.
+The previous version of reCAPTCHA will cease to work in March 2018.
+
+Kudos to Matthew Kerwin (https://github.com/phluid61) for most of the work on the new version.
 
 =over 4
 
@@ -34,6 +39,7 @@ use EPrints::MetaField::Id;
 @ISA = qw( EPrints::MetaField::Id );
 
 use strict;
+use JSON;
 
 sub is_virtual { 1 }
 
@@ -50,39 +56,37 @@ sub render_input_field_actual
 
 	my $frag = $session->make_doc_fragment;
 
-	my $url = URI->new( "https://www.google.com/recaptcha/api/challenge" );
-	$url->query_form(
-		k => $public_key,
-		error => $value,
-		);
+	my $url = URI->new( "https://www.google.com/recaptcha/api.js" );
 
-	my $script = $frag->appendChild( $session->make_javascript( undef,
-		src => $url ) );
+	$frag->appendChild( $session->make_javascript( undef,
+		src => $url,
+		async => 'async',
+		defer => 'defer'
+	) );
 
-	$url = URI->new( "https://www.google.com/recaptcha/api/noscript" );
-	$url->query_form(
-		k => $public_key,
-		error => $value,
-		);
+	$frag->appendChild( $session->make_element( "div",
+		class => "g-recaptcha",
+		'data-sitekey' => $public_key,
+	) );
+
+	# No-Script, for users with javascript diabled
+	$url = URI->new( "https://www.google.com/recaptcha/api/fallback" );
+	$url->query_form( k => $public_key );
 
 	my $noscript = $frag->appendChild( $session->make_element( "noscript" ) );
 	$noscript->appendChild( $session->make_element( "iframe",
 		src => $url,
-		height => "300",
-		width => "500",
+		height => "422",
+		width => "302",
 		frameborder => "0"
-		) );
+	) );
 	$noscript->appendChild( $session->make_element( "br" ) );
 	$noscript->appendChild( $session->make_element( "textarea",
-		name => "recaptcha_challenge_field",
+		id => "g-recaptcha-response",
+		name => "g-recaptcha-response",
 		rows => "3",
 		cols => "40"
-		) );
-	$noscript->appendChild( $session->make_element( "input",
-		type => "hidden",
-		name => "recaptcha_response_field",
-		value => "manual_challenge"
-		) );
+	) );
 
 	return $frag;
 }
@@ -92,10 +96,7 @@ sub form_value_actual
 	my( $self, $repo, $object, $basename ) = @_;
 
 	my $private_key = $repo->config( "recaptcha", "private_key" );
-
-	my $remote_ip = $repo->remote_ip;
-	my $challenge = $repo->param( "recaptcha_challenge_field" );
-	my $response = $repo->param( "recaptcha_response_field" );
+	my $timeout = $repo->config( "recaptcha", "timeout" ) || 5;
 
 	if( !defined $private_key )
 	{
@@ -103,33 +104,39 @@ sub form_value_actual
 		return undef;
 	}
 
-	# don't bother reCaptcha if the user didn't enter the data
-	if( !EPrints::Utils::is_set( $challenge ) || !EPrints::Utils::is_set( $response ) )
+	my $response = $repo->param( "g-recaptcha-response" );
+	if( !EPrints::Utils::is_set( $response ) )
 	{
 		return "invalid-captcha-sol";
 	}
 
-	my $url = URI->new( "http://www.google.com/recaptcha/api/verify" );
+	my $url = URI->new( "https://www.google.com/recaptcha/api/siteverify" );
 
 	my $ua = LWP::UserAgent->new();
+	$ua->env_proxy;
+	$ua->timeout( $timeout ); #LWP default timeout is 180 seconds. 
 
-	my $r = $ua->post( $url, [
-		privatekey => $private_key,
-		remoteip => $remote_ip,
-		challenge => $challenge,
+	my $r = $ua->post( "https://www.google.com/recaptcha/api/siteverify", [
+		secret => $private_key,
 		response => $response
-		]);
+	]);
 
-	my $recaptcha_error;
-
+	# the request returned a response - but we have to check whether the human (or otherwise)
+	# passed the Captcha 
 	if( $r->is_success )
 	{
-		my( $success, $recaptcha_error ) = split /\n/, $r->content;
-		if( defined($success) && lc($success) eq "true" )
+		my $hash = decode_json( $r->content );
+		if( !$hash->{success} )
 		{
-			return undef
+			my $recaptcha_error = 'unknown-error';
+			my $codes = $hash->{'error-codes'};
+			if( $codes && scalar @{$codes} )
+			{
+				$recaptcha_error = join '+', @{$codes};
+			}
+			return $recaptcha_error;
 		}
-		return $recaptcha_error;
+		return undef; #success!
 	}
 
 	# error talking to recaptcha, so lets continue to avoid blocking the user

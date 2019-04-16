@@ -3592,7 +3592,7 @@ PY = 2006 and OG = (Cambridge)<br />
 
 <!-- Captcha -->
 
-<epp:phrase id="validate:recaptcha_mismatch">The words you entered for the captcha weren't correct.</epp:phrase>
+<epp:phrase id="validate:recaptcha_mismatch">There was an error with the reCAPTCHA. Please try again.</epp:phrase>
 <epp:phrase id="user_fieldname_captcha">Captcha Challenge</epp:phrase>
 <epp:phrase id="user_fieldhelp_captcha">To prevent robots from filling in this form you must verify this captcha.</epp:phrase>
 
