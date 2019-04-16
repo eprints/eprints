@@ -70,8 +70,6 @@ Where I<command> is one of:
 
 =item remove_field
 
-=item schema
-
 =item set_developer_mode
 
 =item test
@@ -123,10 +121,6 @@ Create the database tables.
 =item B<epadmin> create_user I<repository_id>
 
 Create a new user. You need to do this to create your first admin account.
-
-=item B<epadmin> schema I<repository_id>
-
-Use this to produce a schema for the EP3 XML read/written by your repository. 
 
 =item B<epadmin> erase_fulltext_index I<repository_id>
 
@@ -334,7 +328,6 @@ else
 	elsif( $action eq "redo_thumbnails" ) { redo_thumbnails( $repoid, @ARGV ); }
 	elsif( $action eq "set_developer_mode" ) { set_developer_mode( $repoid, @ARGV ); }
 	elsif( $action eq "upgrade" ) { upgrade( $repoid ); }
-	elsif( $action eq "schema" ) { schema( $repoid ); }
 	elsif( $action eq "update_database_structure" ) { update_database_structure( $repoid ); }
 	elsif( $action eq "update" ) { update_database_structure( $repoid ); }
 	elsif( $action eq "update_dry_run" ) { update_database_structure( $repoid, 1 ); }
@@ -2020,20 +2013,6 @@ sub reindex
 	});
 }
 
-
-sub schema 
-{
-	my( $repoid ) = @_;
-
-	my $repo = &repository( $repoid );
-
-	my $dataset = $repo->dataset( "metafield" );
-
-	my $plugin = $repo->plugin( "Export::XML_Schema" );
-
-	$plugin->initialise_fh( *STDOUT );
-	$plugin->output_list( list=>$dataset->search, fh=>*STDOUT );
-}
 
 sub remove_field
 {
