@@ -10,7 +10,7 @@ Vcs-Browser: https://github.com/eprints/eprints
 
 Package: eprints
 Architecture: all
-Depends: perl, libncurses5, libselinux1, libsepol1, apache2-mpm-prefork, libapache2-mod-perl2, libxml-libxml-perl, libunicode-string-perl, libterm-readkey-perl, libmime-lite-perl, libmime-types-perl, libxml-libxslt-perl, libdigest-sha-perl, libdbd-mysql-perl, libxml-parser-perl, libxml2-dev, libxml-twig-perl, libarchive-any-perl, libjson-perl, lynx, wget, ghostscript | gs, xpdf, antiword, elinks, pdftk, texlive-base, texlive-base-bin, psutils, imagemagick, adduser, tar (>= 1), gzip (>= 1), mysql-server, mysql-client, unzip, libsearch-xapian-perl
+Depends: perl, libncurses5, libselinux1, libsepol1, apache2-mpm-prefork, libapache2-mod-perl2, libxml-libxml-perl, libunicode-string-perl, libterm-readkey-perl, libmime-lite-perl, libmime-types-perl, libxml-libxslt-perl, libdigest-sha-perl, libdbd-mysql-perl, libxml-parser-perl, libxml2-dev, libxml-twig-perl, libarchive-any-perl, libjson-perl, libconfig-general-perl, lynx, wget, ghostscript | gs, xpdf, antiword, elinks, pdftk, texlive-base, texlive-base-bin, psutils, imagemagick, adduser, tar (>= 1), gzip (>= 1), mysql-server, mysql-client, unzip, libsearch-xapian-perl
 Description: Content Management System for Information Archiving
  EPrints is a web-based content management system. It allows a large
  number of contributors to share their digital objects/documents with
