@@ -13,7 +13,7 @@ my %invocations = (
 	 'zip' => '$(unzip) 1>/dev/null 2>&1 -qq -o -d $(DIR) $(ARC)',
 	 'unzip' => '$(unzip) 1>/dev/null 2>&1 -qq -o -j -d $(DIRECTORY) $(SOURCE)',
 	 'cpall' => '$(cp) -pR $(SOURCE)/* $(TARGET)',
-	 'wget' => '$(wget) -U "Mozilla/5.0" -r -L -q -m -nH -np --execute="robots=off" --cut-dirs=$(CUTDIRS) --content-disposition $(URL)',
+         'wget' => '$(wget) -U "Mozilla/5.0" -r -l 1 -L -q -nH -np --execute="robots=off" --cut-dirs=$(CUTDIRS) --content-disposition $(URL)',
 	 'antiword' => '$(antiword) -t -f -m UTF-8 $(SOURCE) > $(TARGET)',
 	 'doc2txt' => '$(perl) $(doc2txt) $(SOURCE) $(TARGET)',
 	 'rmall' => '$(rm) -rf $(TARGET)/*',
