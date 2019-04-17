@@ -452,6 +452,9 @@ sub post_config_handler
 	{
 		$s->log->notice( "Warning! Running EPrints under threads is experimental and liable to break" );
 	}
+	
+	# check for configuration using methods removed from Apache2.4
+	my $check_security = !Apache2::Connection->can( 'remote_ip' );
 
 	$EPrints::HANDLE = __PACKAGE__->new;
 	my @ids = $EPrints::HANDLE->load_repositories();
@@ -485,6 +488,15 @@ sub post_config_handler
 		 {
 			 my $hostname = $repo->config( "host" );
 			 $s->warn( "EPrints Warning! '".$repo->get_id."' is configured for port $port but Apache does not have NameVirtualHosts configured for that port. This may cause the wrong repository to respond to '$hostname:$port'. To fix this add to your main Apache configuration file: NameVirtualHost *:$port" );
+		 }
+		 
+		 if( $check_security && defined $repo->config( "can_request_view_document" ) )
+		 {
+		 	local $Data::Dumper::Deparse=1;
+			if( Dumper( $repo->config( "can_request_view_document" ) ) =~ /connection\S+remote_ip/i )
+			{
+				$s->warn( "EPrints warning! '".$repo->get_id."' uses 'remote_ip' in the 'can_request_view_document' configuration, but this version of Apache does not have that method. This may lead to the security value for a document being ignored. Please check configuration.");
+        		}
 		 }
 	}
 
