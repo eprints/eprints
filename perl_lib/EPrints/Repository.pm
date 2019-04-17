@@ -383,7 +383,7 @@ sub param
                 my $value = ( $self->{query}->param( $name ) );
                 if( EPrints::Utils::is_set( $value ) )
                 {
-                        utf8::decode($value);
+                        utf8::decode($value) if EPrints::Utils::is_set( $value );
                 }
 
                 return $value;
