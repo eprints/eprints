@@ -36,12 +36,14 @@ update the configuration for that repository with:
 To enable EPrints you must add the following line to your main Apache
 configuration file (I</etc/httpd/conf/httpd.conf>):
 
- Include /opt/eprints3/cfg/apache.conf
+ Include EPRINTS/cfg/apache.conf
+ 
+Where EPRINTS is the directory EPrints is installed into e.g. /opt/eprints3 or /usr/share/eprints
 
 To enable secure (HTTPS) you must add the following line to your SSL
 VirtualHost:
 
- Include /opt/eprints3/cfg/apache_ssl.conf
+ Include EPRINTS/cfg/apache_ssl.conf
 
 =head1 ARGUMENTS
 
@@ -302,17 +304,7 @@ foreach my $repository ( values %reps )
 			$restart_required = 1;
 		}
 
-		foreach my $langid (@{$repository->config( "languages" )})
-		{
-			my $secure_template = "$cfg_path/lang/$langid/templates/secure.xml";
-			my $default_template = "$cfg_path/lang/$langid/templates/default.xml";
-
-			if( !-e $secure_template && -e $default_template )
-			{
-				EPrints::Utils::copy( $default_template, $secure_template );
-				print "Copied default template to secure template, you will probably need to edit the secure template:\n$secure_template\n";
-			}
-		}
+		print "\nYou can use an alternative template for secure pages by creating a template called 'secure.xml' in the appropriate directory e.g. $cfg_path/lang/[LANG_ID]/templates/secure.xml\n";
 	}
 }
 
