@@ -55,22 +55,22 @@ $c->{set_eprint_automatic_fields} = sub
 	# </epc:if>
 	# to your citation
 	#######
-	if( $eprint->dataset->has_field( "your_address_field" ) && $eprint->is_set( "your_address_field" )){
-		use Geo::Coder::OpenCage;
-		
-		my $my_api_key = "";
-		my $ua = LWP::UserAgent->new( agent => "eprints geocoder");
-		$ua->env_proxy;
-		if ( $c->{"proxy"}) {
-			$ua->proxy(['http', 'https', 'ftp'], $c->{"proxy"});
-		}
-		my $geocoder = Geo::Coder::OpenCage->new( api_key => $my_api_key, ua => $ua );
-		my $location = $eprint->get_value( "your_address_field" );
-		my $result = $geocoder->geocode(location => $location);
+	#if( $eprint->dataset->has_field( "your_address_field" ) && $eprint->is_set( "your_address_field" )){
+	#	use Geo::Coder::OpenCage;
+	#	
+	#	my $my_api_key = "";
+	#	my $ua = LWP::UserAgent->new( agent => "eprints geocoder");
+	#	$ua->env_proxy;
+	#	if ( $c->{"proxy"}) {
+	#		$ua->proxy(['http', 'https', 'ftp'], $c->{"proxy"});
+	#	}
+	#	my $geocoder = Geo::Coder::OpenCage->new( api_key => $my_api_key, ua => $ua );
+	#	my $location = $eprint->get_value( "your_address_field" );
+	#	my $result = $geocoder->geocode(location => $location);
 		
 	#	push into latitude / longitude
-		$eprint->set_value( "latitude", $result->{'results'}->[0]->{'geometry'}->{'lat'} );
-		$eprint->set_value( "longitude", $result->{'results'}->[0]->{'geometry'}->{'lng'} );
-	}
+	#	$eprint->set_value( "latitude", $result->{'results'}->[0]->{'geometry'}->{'lat'} );
+	#	$eprint->set_value( "longitude", $result->{'results'}->[0]->{'geometry'}->{'lng'} );
+	#}
 };
 
