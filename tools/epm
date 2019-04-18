@@ -473,7 +473,8 @@ sub action_unpack
 			die "Use --force to overwrite $filepath\n";
 		}
 		open(my $fh, ">", $filepath) or die "Error writing to $filepath: $!";
-		syswrite($fh, $file->value( "data" ));
+		#syswrite($fh, $file->value( "data" ));
+		$file->get_file(sub { syswrite($fh, $_[0]) });
 		close($fh);
 		print "$filepath\n" if $noise;
 	}
