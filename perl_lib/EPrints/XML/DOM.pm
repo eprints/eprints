@@ -160,6 +160,15 @@ sub _parse_url
 	return $doc;
 }
 
+sub parse_xml_frag_string
+{
+	# FIXME: bet this doesn't like missing <?xml?> and stuff
+	my $doc = parse_xml_string( @_ );
+	my $frag = XML::DOM::Document->new->createDocumentFragment;
+	$frag->cloneChildren( $doc, 1 );
+	return $frag;
+}
+
 sub parse_xml
 {
 	my( $file, $basepath, $no_expand ) = @_;
