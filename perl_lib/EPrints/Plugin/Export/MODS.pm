@@ -197,7 +197,7 @@ sub _make_issue_date
 	my $originInfo = $session->make_element( "${PREFIX}originInfo" );
 	$originInfo->appendChild( my $dateIssued = $session->make_element(
 		"${PREFIX}dateIssued",
-		"encoding" => "iso8061"
+		"encoding" => "iso8601"
 	));
 	$dateIssued->appendChild( $session->make_text( $val ));
 	
