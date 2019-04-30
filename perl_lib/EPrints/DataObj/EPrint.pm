@@ -1225,6 +1225,13 @@ sub move_to_deletion
 	
 	my $success = $self->_transfer( "deletion" );
 
+	if( $self->is_set( "succeeds" ) )
+	{
+		my $succeeds = $self->{session}->eprint( $self->value( "succeeds" ) );
+		my $field = $self->{dataset}->field( "succeeds" );
+		$succeeds->removed_from_thread( $field, $self ) if defined $succeeds;
+	}
+
 	return $success;
 }
 
