@@ -3941,6 +3941,7 @@ To create a blank EPM enter a new id in the input and click <epc:phrase ref="Plu
 	<epp:phrase id="Plugin/Screen/Admin/UpdateDatabase:migrated">Migrated singular values to multiple for <em><epc:pin name="dataset" />.<epc:pin name="field" /></em>.</epp:phrase>
 	
 	<epp:phrase id="cgi/lookup/name:authored"><small> (author of <epc:pin name="count"/> item(s) in this repository)</small></epp:phrase>
+	<epp:phrase id="cgi/lookup/name_all_contributors:contributed"><small> (contributed to <epc:pin name="count"/> item(s) in this repository)</small></epp:phrase>
 
 <!-- document formats (see also "document" named set) -->
 
