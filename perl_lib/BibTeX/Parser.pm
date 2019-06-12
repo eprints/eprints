@@ -1,6 +1,6 @@
 package BibTeX::Parser;
-BEGIN {
-  $BibTeX::Parser::VERSION = '0.63';
+{
+  $BibTeX::Parser::VERSION = '1.02';
 }
 # ABSTRACT: A pure perl BibTeX parser
 use warnings;
@@ -43,14 +43,12 @@ sub _slurp_close_bracket;
 sub _parse_next {
     my $self = shift;
 
-	my $fh = $self->{fh};
-
     while (1) {    # loop until regular entry is finished
-        return 0 if eof($fh);
+        return 0 if $self->{fh}->eof;
         local $_ = $self->{buffer};
 
         until (/@/m) {
-            my $line = <$fh>;
+            my $line = $self->{fh}->getline;
             return 0 unless defined $line;
             $_ .= $line;
         }
@@ -67,13 +65,21 @@ sub _parse_next {
             $bracelevel -= tr/\}/\}/;
             while ( $bracelevel != 0 ) {
                 my $position = pos($_);
-                my $line     = <$fh>;
+                my $line     = $self->{fh}->getline;
 				last unless defined $line;
                 $bracelevel =
                   $bracelevel + ( $line =~ tr/\{/\{/ ) - ( $line =~ tr/\}/\}/ );
                 $_ .= $line;
                 pos($_) = $position;
             }
+
+            # Remember text before the entry
+            my $pre = substr($_, 0, $start_pos-1);
+	    if ($start_pos == 0) {
+		$pre = '';
+	    }
+            $current_entry->pre($pre);
+
 
             # Remember raw bibtex code
             my $raw = substr($_, $start_pos);
@@ -86,7 +92,7 @@ sub _parse_next {
             pos($_) = $pos;
 
             if ( $type eq "STRING" ) {
-                if (/\G{\s*($re_name)\s*=\s*/cgo) {
+                if (/\G\{\s*($re_name)\s*=\s*/cgo) {
                     my $key   = $1;
                     my $value = _parse_string( $self->{strings} );
                     if ( defined $self->{strings}->{$key} ) {
@@ -143,7 +149,7 @@ sub next {
     return $self->_parse_next;
 }
 
-# slurp everything till the next closing brace. Handels
+# slurp everything till the next closing brace. Handles
 # nested brackets
 sub _slurp_close_bracket {
     my $bracelevel = 0;
@@ -176,7 +182,7 @@ sub _parse_string {
             warn("Using undefined string $1") unless defined $strings_ref->{$1};
             $value .= $strings_ref->{$1} || "";
         } elsif (/\G"(([^"\\]*(\\.)*[^\\"]*)*)"/cgs)
-        {    # quoted string with embedded escapes
+        {    # quoted string with embeded escapes
             $value .= $1;
         } else {
             my $part = _extract_bracketed( $_ );
@@ -210,7 +216,56 @@ sub _extract_bracketed
 	}
 }
 
+# Split the $string using $pattern as a delimiter with
+# each part having balanced braces (so "{$pattern}"
+# does NOT split).
+# Return empty list if unmatched braces
+
+sub _split_braced_string {
+    my $string = shift;
+    my $pattern = shift;
+    my @tokens;
+    return () if  $string eq '';
+    my $buffer;
+    while (!defined pos $string || pos $string < length $string) {
+	if ( $string =~ /\G(.*?)(\{|$pattern)/cgi ) {
+	    my $match = $1;
+	    if ( $2 =~ /$pattern/i ) {
+		$buffer .= $match;
+		push @tokens, $buffer;
+		$buffer = "";
+	    } elsif ( $2 =~ /\{/ ) {
+		$buffer .= $match . "{";
+		my $numbraces=1;
+		while ($numbraces !=0 && pos $string < length $string) {
+		    my $symbol = substr($string, pos $string, 1);
+		    $buffer .= $symbol;
+		    if ($symbol eq '{') {
+			$numbraces ++;
+		    } elsif ($symbol eq '}') {
+			$numbraces --;
+		    }
+		    pos($string) ++;
+		}
+		if ($numbraces != 0) {
+		    return ();
+		}
+	    } else {
+		$buffer .= $match;
+	    }
+	} else {
+	    $buffer .= substr $string, (pos $string || 0);
+	    last;
+	}
+    }
+    push @tokens, $buffer if $buffer;
+    return @tokens;
+}
+
+
 1;    # End of BibTeX::Parser
+
+
 __END__
 =pod
 
@@ -218,9 +273,6 @@ __END__
 
 BibTeX::Parser - A pure perl BibTeX parser
 
-=head1 VERSION
-
-version 0.63
 
 =head1 SYNOPSIS
 
@@ -255,15 +307,7 @@ Parses BibTeX files.
 	    }
     }
 
-=for stopwords jr von
 
-=head1 NAME
-
-BibTeX::Parser - A pure perl BibTeX parser
-
-=head1 VERSION
-
-version 0.63
 
 =head1 FUNCTIONS
 
@@ -279,13 +323,39 @@ Parameters:
 
 Returns the next parsed entry or undef.
 
+=head1 NOTES
+
+The fields C<author> and C<editor> are canonized, see
+L<BibTeX::Parser::Author>
+
+
+=head1 SEE ALSO
+
+=over 4
+
+=item
+
+L<BibTeX::Parser::Entry>
+
+=item
+
+L<BibTeX::Parser::Author>
+
+=back
+
+=head1 VERSION
+
+version 1.02
+
+
 =head1 AUTHOR
 
-Gerhard Gossen <gerhard.gossen@googlemail.com>
+Gerhard Gossen <gerhard.gossen@googlemail.com> and
+Boris Veytsman <boris@varphi.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Gerhard Gossen.
+This software is copyright (c) 2013-2016 by Gerhard Gossen and Boris Veytsman
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
