@@ -888,7 +888,7 @@ sub config_db
 	$config{dbsock} = undef;
 	$config{dbuser} = $repoid;
 	$config{dbpass} = undef;
-	$config{dbengine} = "MyISAM";
+	$config{dbengine} = "InnoDB";
 
 	print "\nConfiguring Database for: $repoid\n";
 
