@@ -1,0 +1,5 @@
+<span>
+	<: $item.render_value( 'creators_name' ) | mark_raw :> (<: $item.render_value( 'date' ) :>) <em><: $item.render_value( 'title' ) | magicstop :></em>
+
+	<: if $item.value( 'publication' ) { :> <: $item.render_value( 'publication' ) :><: if $item.value( 'volume' ) { :>, <: $item.render_value( 'volume' ) } :><: if $item.value( 'number' ) { :> (<: $item.render_value( 'number' ) :>)<: } :>.<: } :>
+</span>

@@ -26,6 +26,7 @@ package EPrints::Paginate::Columns;
 
 @ISA = ( 'EPrints::Paginate' );
 
+use POSIX qw(ceil);
 use URI::Escape;
 use strict;
 
@@ -201,6 +202,62 @@ sub paginate_list
 	} unless defined $newopts{render_no_results};
 	
 	return EPrints::Paginate->paginate_list( $session, $basename, $list, %newopts );
+}
+
+#
+# Return $list sliced and sorted as another List
+#
+sub paginate_list2
+{
+    my( $class, $repo, $basename, $columns, $list ) = @_;
+
+    my $ds = $list->get_dataset();
+
+    # Determine the sort order for the table
+    my $sort_order = $repo->param( '_buffer_order' );
+    my ( $sort_dir, $sort_col ) = ( $sort_order =~ m/^(-?)([a-zA-Z0-9_]+)$/ );
+
+    if( !defined $sort_order )
+    {
+	foreach my $col ( @{$columns} )
+	{
+	    next if !defined $col;
+	    my $field = $ds->get_field( $col );
+	    next if !defined $field;
+
+	    if( $field->should_reverse_order )
+	    {
+		$sort_dir = '-';
+	    }
+	    $sort_col = $col;
+	    last;
+	}
+    }
+
+    $list = $list->reorder( "${sort_dir}${sort_col}" );
+
+    my $offset = $repo->param( "${basename}__offset" ) || 0;
+    $offset += 0;
+
+    my $pagesize = $repo->param( "${basename}_page_size" ) || 10;
+    $pagesize += 0;
+
+    my @items = $list->slice( $offset, $pagesize );
+
+    my $total = $list->count();
+    return {
+	sort_dir => $sort_dir,
+	sort_col => $sort_col,
+	order => "${sort_dir}${sort_col}",
+	dataset => $ds->id(),
+	total => $total,
+	pages => ceil( $total / $pagesize ),
+	current_page => ( $offset / $pagesize ) + 1,
+	offset => $offset,
+	pagesize => $pagesize,
+	dataobjs => \@items,
+    };
+
 }
 
 1;

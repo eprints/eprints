@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<title><: $title_textonly ? $title_textonly : $title :> - <: $archive_name :></title>
+		<link rel="icon" href="<: $repo.config( 'rel_path' ) :>/favicon.ico" type="image/x-icon"/>
+		<link rel="shortcut icon" href="<: $repo.config( 'rel_path' ) :>/favicon.ico" type="image/x-icon"/>
+		<: $head | mark_raw :>
+	</head>
+
+	<body>
+		<: $pagetop :>
+		<div class="ep_tm_header ep_noprint">
+			<div class="ep_tm_site_logo">
+				<a href="<: $repo.config( 'frontpage' ) :>" title="<: $repo.phrase( 'archive_name' ) :>">
+					<img alt="<: $repo.phrase( 'archive_name' ) :>" src="<: $repo.config( 'rel_path' ) :><: $repo.config( 'site_logo' ) :>"/>
+				</a>
+			</div>
+			<ul class="ep_tm_menu">
+				<li>
+					<a href="<: $repo.config( 'http_url' ) :>">
+						<: $repo.phrase( 'template/navigation:home' ) :>
+					</a>
+				</li>
+				<li>
+					<a href="<: $repo.config( 'http_url' ) :>/information.html">
+						<: $repo.phrase( 'template/navigation:about' ) :>
+					</a>
+				</li>
+				<li>
+					<a href="<: $repo.config( 'http_url' ) :>/view/" class="ep_tm_menu_browse">
+						<: $repo.phrase( 'template/navigation:browse' ) :>
+					</a>
+					<ul id="ep_tm_menu_browse" style="display:none;">
+						<li>
+							<a href="<: $repo.config( 'http_url' ) :>/view/year/">
+								<: $repo.phrase( 'bin/generate_views:indextitleprefix' ) :>
+								<: $repo.phrase( 'viewname_eprint_year' ) :>
+							</a>
+						</li>
+						<li>
+							<a href="<: $repo.config( 'http_url' ) :>/view/subjects/">
+								<: $repo.phrase( 'bin/generate_views:indextitleprefix' ) :>
+								<: $repo.phrase( 'viewname_eprint_subjects' ) :>
+							</a>
+						</li>
+						<li>
+							<a href="<: $repo.config( 'http_url' ) :>/view/divisions/">
+								<: $repo.phrase( 'bin/generate_views:indextitleprefix' ) :>
+								<: $repo.phrase( 'viewname_eprint_divisions' ) :>
+							</a>
+						</li>
+						<li>
+							<a href="<: $repo.config( 'http_url' ) :>/view/creators/">
+								<: $repo.phrase( 'bin/generate_views:indextitleprefix' ) :>
+								<: $repo.phrase( 'viewname_eprint_creators' ) :>
+							</a>
+						</li>
+					</ul>
+				</li>
+			</ul>
+			<table class="ep_tm_searchbar">
+				<tr>
+					<td>
+						<: $login_status | mark_raw :>
+					</td>
+					<td style="white-space: nowrap">
+						<: $languages :>
+						<form method="get" accept-charset="utf-8" action="<: $repo.config( 'http_cgiurl' ) :>/search" style="display:inline">
+							<input class="ep_tm_searchbarbox" size="20" type="text" name="q"/>
+							<input class="ep_tm_searchbarbutton" value="<: $repo.phrase( 'lib/searchexpression:action_search' ) :>" type="submit" name="_action_search"/>
+							<input type="hidden" name="_action_search" value="Search"/>
+							<input type="hidden" name="_order" value="bytitle"/>
+							<input type="hidden" name="basic_srchtype" value="ALL"/>
+							<input type="hidden" name="_satisfyall" value="ALL"/>
+						</form>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div>
+			<div class="ep_tm_page_content">
+
+				<h1 class="ep_tm_pagetitle"><: $title | mark_raw :></h1>
+
+				<: $page | mark_raw :>
+			</div>
+		</div>
+
+		<div class="ep_tm_footer ep_noprint">
+			<div class="ep_tm_eprints_logo">
+				<a href="http://eprints.org/software/">
+					<img alt="EPrints Logo" src="<: $repo.config( 'rel_path' ) :>/images/eprintslogo.gif"/>
+				</a>
+			</div>
+			<: $repo.html_phrase( "template:about_eprints" ) | mark_raw :>
+		</div>
+	</body>
+</html>
