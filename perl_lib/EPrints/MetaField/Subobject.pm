@@ -251,6 +251,9 @@ sub get_index_codes_basic
 
 	# only know how to get index codes out of documents
 	return( [], [], [] ) if !$doc->isa( "EPrints::DataObj::Document" );
+	
+	# only generate/use full-text index for public documents
+	return( [], [], [] ) if !$doc->is_public;
 
 	# we only supply index codes for proper documents
 	return( [], [], [] ) if $doc->has_relation( undef, "isVolatileVersionOf" );
