@@ -73,7 +73,7 @@ sub CLONE
 	$PARSER = XML::LibXML->new();
 }
 
-=item $doc = parse_xml_string( $string )
+=item $doc = parse_xml_string( $string, %opts )
 
 Create a new DOM document from $string.
 
@@ -81,8 +81,23 @@ Create a new DOM document from $string.
 
 sub parse_xml_string
 {
-	my( $string ) = @_;
-
+	my( $string, %opts ) = @_;
+	
+	if ( keys %opts )
+        {
+                my %cur_opts = ();
+                foreach ( keys %opts )
+                {
+                        $cur_opts{$_} = $PARSER->get_option( $_ );
+                        $PARSER->set_option( $_, $opts{$_} );
+                }
+                my $parsed = $PARSER->parse_string( $string );
+                foreach ( keys %cur_opts )
+                {
+                        $PARSER->set_option( $_, $cur_opts{$_} );
+                }
+                return $parsed;
+        }
 	return $PARSER->parse_string( $string );
 }
 

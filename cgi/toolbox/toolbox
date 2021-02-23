@@ -25,6 +25,11 @@ my $password = $session->param( "password" );
 
 my %opts = ();
 
+if ( $cmd !~ m/^[a-zA-Z0-9_]+$/ )
+{
+        toolbox_fail( $session, "Invalid toolbox function" );
+}
+
 if( !$session->valid_login( $username, $password ) )
 {
 	toolbox_fail( $session, "Invalid username/password" );
