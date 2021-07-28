@@ -369,8 +369,8 @@ sub handler
 		#this will serve a document, static files(.include files) or abstract page. 
 		my $accept = EPrints::Apache::AnApache::header_in( $r, "Accept" );
 		my $method = eval {$r->method};
-		if (  $method eq "GET"  ## request method must be GET
-			&&  (index(lc($accept), "text/html") != -1 || index(lc($accept),"*/*") != -1 || $accept eq ""  )   ## header must be text/html, or */*, or undef
+		if ( ( $method eq "GET" || $method eq "HEAD" )  ## request method must be GET
+			&&  (index(lc($accept), "text/html") != -1 || index(lc($accept),"text/*") != -1 || index(lc($accept),"*/*") != -1 || $accept eq ""  )   ## header must be text/html, or */*, or undef
 			&&  ($uri !~ m!^${urlpath}/id/eprint/0*[1-9][0-9]*/contents$! )   ## uri must not be id/eprint/XX/contents
 			&&  ($uri =~ s! ^${urlpath}/id/eprint/(0*)([1-9][0-9]*)\b !!x )     ## uri must be id/eprint/XX
         )
