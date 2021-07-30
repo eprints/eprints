@@ -1094,7 +1094,7 @@ sub create_index
 
 	return 1 unless @columns;
 
-	my $index_name = join('_', $columns[0] );
+	my $index_name = join('_', @columns );
 	$index_name = 'i'.Digest::MD5::md5_hex( $index_name ).'_'.(scalar @columns);
 
 	my $sql = sprintf("CREATE INDEX %s ON %s (%s)",
