@@ -219,10 +219,21 @@ $EPrints::Index::FREETEXT_CHAR_MAPPING = {
 		chr(0x00fd) => 'y',     # ý
 		chr(0x00fe) => 'th',    # þ
 		chr(0x00ff) => 'y',     # ÿ
+		chr(0x0132) => 'IJ',     # Ĳ
+		chr(0x0133) => 'ij',     # ĳ
 		chr(0x0150) => 'o',     # ~O
+		chr(0x0152) => 'OE',     # Œ
+		chr(0x0153) => 'oe',     # œ
 		chr(0x0170) => 'u',     # ~U
 		chr(0x0171) => 'u',     # ~u
 		chr(0x2019) => "'",     # ’
+		chr(0xFB00) => 'ff',     # ﬀ
+		chr(0xFB01) => 'fi',     # ﬁ
+		chr(0xFB02) => 'fl',     # ﬂ
+		chr(0xFB03) => 'ffi',     # ﬃ
+		chr(0xFB04) => 'ffl',     # ﬄ
+		chr(0xFB05) => 'st',     # ﬅ
+		chr(0xFB06) => 'st',     # ﬆ
 };
 
 # Minimum size word to normally index.
