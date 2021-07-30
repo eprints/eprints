@@ -58,7 +58,7 @@ sub can_convert
 		phraseid => $plugin->html_phrase_id( $mimetype ),
 	});
 
-	if( $fn =~ /\.txt$/ || $fn =~ /\.docx$/ )
+	if( $fn =~ /\.txt$/i || $fn =~ /\.docx$/i )
 	{
 		return @type;
 	}
@@ -67,7 +67,7 @@ sub can_convert
 	{
 		my $cmd_id = $EPrints::Plugin::Convert::PlainText::APPS{$ext};
 
-		if( $fn =~ /\.$ext$/ )
+		if( $fn =~ /\.$ext$/i )
 		{
 			if( $plugin->get_repository->can_execute( $cmd_id ) )
 			{
@@ -86,7 +86,7 @@ sub export
 	# What to call the temporary file
 	my $main = $doc->get_main;
 	
-	if( $main =~ /\.docx$/ )
+	if( $main =~ /\.docx$/i )
 	{
 		return $plugin->export_docx( $dir, $doc, $type );
 	}
@@ -118,7 +118,7 @@ sub export
 		my $filename = $file->get_value( "filename" );
 		my $tgt = $filename;
 		$i++;
-		next unless $tgt =~ s/\.$file_extension$/\.$i\.txt/;
+		next unless $tgt =~ s/\.$file_extension$/\.$i\.txt/i;
 		$tgt =~ s/^.*\///; # strip directories
 		my $outfile = "$dir/$tgt";
 		
