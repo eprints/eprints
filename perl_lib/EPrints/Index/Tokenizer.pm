@@ -26,6 +26,32 @@ This module provides utility methods for processing free text into indexable thi
 
 package EPrints::Index::Tokenizer;
 
+use Unicode::Normalize qw( normalize );
+
+## Returns a basic Perl string containing normalized UTF-8 bytes
+sub _cast_string
+{
+	my( $utext ) = @_;
+
+	# ensure it's a UTF-8 Perl string
+	if( ref($utext) eq "Unicode::String" )
+	{
+		$utext = $utext->utf8;
+	}
+	else
+	{
+		utf8::encode($utext);
+	}
+
+	# fix malformed UTF-8 data
+	$utext = Encode::decode("UTF-8", $utext, Encode::FB_DEFAULT);
+
+	# normalize with compatibility-decompose + canonical-compose (NFKC)
+	$utext = normalize( 'KC', $utext );
+
+	return $utext;
+}
+
 ######################################################################
 =pod
 
@@ -40,16 +66,7 @@ sub split_words
 {
 	my( $session, $utext ) = @_;
 
-	if( ref($utext) eq "Unicode::String" )
-	{
-		$utext = "$utext";
-	}
-	else
-	{
-		utf8::encode($utext);
-	}
-	# fix malformed UTF-8 data
-	$utext = Encode::decode("UTF-8", $utext, Encode::FB_DEFAULT);
+	$utext = _cast_string( $utext );
 
 	return split /[^\w']+/, $utext;
 }
@@ -88,11 +105,7 @@ sub apply_mapping
 {
 	my( $session, $utext ) = @_;
 
-	if( ref($utext) eq "Unicode::String" )
-	{
-		$utext = "$utext";
-		utf8::decode($utext);
-	}
+	$utext = _cast_string( $utext );
 
 	return join("", map {
 		exists($EPrints::Index::FREETEXT_CHAR_MAPPING->{$_}) ?
