@@ -86,7 +86,7 @@ be ignored when searching.
 
 sub apply_mapping
 {
-	my( $session, $text ) = @_;
+	my( $session, $utext ) = @_;
 
 	if( ref($utext) eq "Unicode::String" )
 	{
@@ -98,7 +98,7 @@ sub apply_mapping
 		exists($EPrints::Index::FREETEXT_CHAR_MAPPING->{$_}) ?
 		$EPrints::Index::FREETEXT_CHAR_MAPPING->{$_} :
 		$_;
-	} split(//, $text));
+	} split(//, $utext));
 }
 
 ##############################################################################
