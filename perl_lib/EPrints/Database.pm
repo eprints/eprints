@@ -1094,8 +1094,8 @@ sub create_index
 
 	return 1 unless @columns;
 
-	my $index_name = join('_', @columns );
-	$index_name = 'i'.Digest::MD5::md5_hex( $index_name ).'_'.(scalar @columns);
+	# Note: limit to 64 characters
+	my $index_name = substr(join('_', @columns), 0, 60).'_'.(scalar @columns);
 
 	my $sql = sprintf("CREATE INDEX %s ON %s (%s)",
 		$self->quote_identifier( $index_name ),
@@ -1121,8 +1121,8 @@ sub create_unique_index
 
 	return 1 unless @columns;
 
-	my $index_name = join('_', @columns);
-	$index_name = 'i'.Digest::MD5::md5_hex( $index_name ).'_'.(scalar @columns);
+	# MySQL max index name length is 64 chars
+	my $index_name = substr(join('_', @columns), 0, 60).'_'.(scalar @columns);
 
 	my $sql = "CREATE UNIQUE INDEX $index_name ON $table(".join(',',map { $self->quote_identifier($_) } @columns).")";
 
