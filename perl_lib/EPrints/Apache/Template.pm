@@ -146,8 +146,20 @@ sub handler
 	my $template = delete $parts->{"utf-8.template"};
 	chomp $template;
 	$template = 'default' if $template eq "";
+
+	my $page_id = $r->uri;
+	$page_id =~ s![^/]*$!!;
+	if ( $page_id ne $r->uri )
+	{
+		$page_id .= ( $r->uri =~ m!/index\..*$! ) ? "index" : "page";
+	}
+	$page_id =~ s!/[0-9]+/?$!/abstract!;
+	$page_id =~ s!/$!!;
+	$page_id =~ s!/!_!g;
+	$page_id = "static$page_id";
+
 	my $page = $repo->prepare_page( $parts,
-			page_id=>"static",
+			page_id=>$page_id,
 			template=>$template
 		);
 	$page->send;
