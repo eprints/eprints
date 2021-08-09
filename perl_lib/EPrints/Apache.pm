@@ -22,6 +22,7 @@ sub apache_conf
 	my $id = $repo->get_id;
 	my $adminemail = $repo->config( "adminemail" );
 	my $host = $repo->config( "host" );
+	$host ||= $repo->config( "securehost" );
 	my $port = $repo->config( "port" );
 	$port = 80 if !defined $port;
 	my $hostport = $host;
@@ -29,6 +30,7 @@ sub apache_conf
 	my $http_root = $repo->config( "http_root" );
 	my $virtualhost = $repo->config( "virtualhost" );
 	$virtualhost = "*" if !EPrints::Utils::is_set( $virtualhost );
+	my $base_path = EPrints::Config::get( "base_path" );
 
 	my $conf = <<EOC;
 #
