@@ -64,6 +64,8 @@ sub _use_auth_basic
 
 	my $rc = 0;
 
+	return 0 if ($repository->config( "disable_basic_auth" )); ## This is to prevent eprints falls back to use basic auth when it is not appropriate (e.g. shibboleth, adfs enabled repositories)
+
 	if( !$repository->config( "cookie_auth" ) ) 
 	{
 		$rc = 1;

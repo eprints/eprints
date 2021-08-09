@@ -257,7 +257,7 @@ sub new
 		# adjust /id/eprint/23 to /id/archive/23
 		$self{dataset} = $self{dataobj}->get_dataset if defined $self{dataobj};
 
-		$self{options} = [qw( GET HEAD PUT OPTIONS )];
+		$self{options} = [qw( GET HEAD PUT PATCH OPTIONS )];
 		$self{scope} = CRUD_SCOPE_DATAOBJ;
 	}
 
@@ -497,6 +497,10 @@ sub _priv
 		{
 			$priv = "edit";
 		}
+	}
+	elsif( $self->method eq "PATCH" )
+	{
+		$priv = "edit";
 	}
 	elsif( $self->method eq "DELETE" )
 	{
@@ -1031,6 +1035,10 @@ sub handler
 			return $self->PUT( $owner );
 		}
 	}
+	elsif( $self->method eq "PATCH" )
+	{
+		return $self->PUT( $owner, "patch" => 1 );
+	}
 	elsif( $self->method eq "GET" || $self->method eq "HEAD" || $self->method eq "OPTIONS" )
 	{
 		$r->err_headers_out->{Allow} = join ',', $self->options;
@@ -1158,7 +1166,7 @@ sub GET
 	my $plugin = $self->plugin;
 
 	# what to do when the user doesn't ask for a specific content type
-	if( $r->pnotes->{mime_type} eq "*/*" )
+	if( $r->pnotes->{mime_type} eq "*/*" || $r->pnotes->{mime_type} eq "" )
 	{
 		# GET/HEAD XX/contents without mime type, default to content
 		if( $self->scope == CRUD_SCOPE_CONTENTS )
@@ -1267,7 +1275,7 @@ sub GET
 	elsif( $self->scope == CRUD_SCOPE_DATAOBJ )
 	{
 		return HTTP_NOT_FOUND if !defined $dataobj;
-		if ( $repo->config("use_long_url_format") &&  ($dataset->base_id eq "file") ) 
+		if ( $repo->config("use_long_url_format") &&  ($dataset->base_id eq "file") && ( !defined $plugin || $plugin->get_type ne "Export" ) ) 
 		{
             ##  redirect /id/file/234  to  /id/eprint/23/1.pdf (part of the 84_sword.pl test) when use_long_url_format is turned on, instead of the summary page of the file dataobj.
             my $url = $dataobj->get_url;
@@ -1384,6 +1392,15 @@ sub POST
 	my $list = $self->parse_input( $plugin, sub {
 			my( $epdata ) = @_;
 
+			if (!$self->is_file_ok($epdata))
+			{
+				$self->sword_error(
+					status => HTTP_PRECONDITION_FAILED,
+					href => "http://purl.org/net/sword/error/ErrorChecksumMismatch",
+					summary => "Attachment file integrity check failed. (Filesize not specified, filesize does not match or MD5 checksum mismatch)",
+				);
+				return undef;
+			}
 			if( $self->scope == CRUD_SCOPE_USER_CONTENTS )
 			{
 				$epdata->{userid} = $owner->id;
@@ -1470,7 +1487,7 @@ Object was successfully updated.
 # PUT /id/eprint/23
 sub PUT
 {
-	my( $self, $owner ) = @_;
+	my( $self, $owner, %opts ) = @_;
 
 	my $r = $self->request;
 	my $repo = $self->repository;
@@ -1532,6 +1549,16 @@ sub PUT
 		} );
 	return if !defined $list;
 
+	if (!$self->is_file_ok($epdata))
+	{
+		$self->sword_error(
+			status => HTTP_PRECONDITION_FAILED,
+			href => "http://purl.org/net/sword/error/ErrorChecksumMismatch",
+			summary => "Filesize not specified or filesize does not match",
+		);
+		return undef;
+	}
+
 	# implicit create on unknown URI
 	if( !defined $dataobj )
 	{
@@ -1570,7 +1597,8 @@ sub PUT
 		}
 	}
 
-	$dataobj->empty();
+	$dataobj->empty() unless ( defined $opts{patch} );
+	#$dataobj->set_value('eprint_status','inbox') if $dataobj->get_dataset_id() eq "eprint";
 	$dataobj->update( $epdata, include_subobjects => 1 );
 	$dataobj->commit;
 
@@ -1869,6 +1897,50 @@ sub is_true
 sub is_false
 {
 	return defined($_[0]) && lc($_[0]) eq "false";
+}
+
+##check the filesize is set correctly in the given epdata obj and the md5 check sum matching
+##The check only happens when file is using "_content"
+sub is_file_ok
+{
+	my( $self, $epdata ) = @_;
+	my $file_checking_succ=1;
+	return $file_checking_succ unless defined $epdata->{documents};
+	foreach my $doc (@{$epdata->{documents}})
+	{
+		foreach (@{$doc->{files}})
+		{
+			my $content = $_->{_content};
+			if (defined $content) ##when content is defined, we expect the filesize exist and same as the the one in xml.
+			{
+				if (!defined $_->{filesize})
+				{
+					$file_checking_succ=0;
+				}
+
+				my $filesize = -s $content;
+				if ($filesize ne $_->{filesize})  ##if file size do not match, file check fail
+				{
+					$file_checking_succ=0;
+				}
+				##checking md5 checksum
+				if (defined($_->{hash_type}) && defined($_->{hash}))
+				{
+					if (lc($_->{hash_type}) eq 'md5')
+					{
+						my $ctx = Digest::MD5->new->addfile($content);
+						seek($content,0,0);
+						if ($ctx->hexdigest ne $_->{hash})
+						{
+						  $file_checking_succ=0;
+						}
+
+					}
+				}
+			}
+		}
+	}
+	return $file_checking_succ;
 }
 
 sub process_headers

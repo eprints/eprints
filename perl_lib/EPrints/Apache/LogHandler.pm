@@ -243,7 +243,19 @@ sub _create_access
 		return DECLINED;
 	}
 
-	$repository->dataset( "access" )->create_dataobj( $epdata );
+	my $access_table_logger_disabled = $repository->config( "access_table_logger_disabled" );
+
+	unless( defined( $access_table_logger_disabled ) && $access_table_logger_disabled )
+	{
+		$repository->dataset( "access" )->create_dataobj( $epdata );
+	}
+
+	my $access_logger_func = $repository->config( "access_logger_func" );
+
+	if( defined( $access_logger_func ) )
+	{
+		eval { &{$access_logger_func}( $repository, $epdata ); };
+	}
 
 	return OK;
 }
