@@ -1599,7 +1599,7 @@ sub PUT
 
 	$dataobj->empty() unless ( defined $opts{patch} );
 	#$dataobj->set_value('eprint_status','inbox') if $dataobj->get_dataset_id() eq "eprint";
-	$dataobj->update( $epdata, include_subobjects => 1 );
+	$dataobj->update( $epdata, include_subdataobjs => 1 );
 	$dataobj->commit;
 
 	# transfer the eprint, if needed
