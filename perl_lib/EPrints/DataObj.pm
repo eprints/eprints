@@ -1135,6 +1135,29 @@ sub render_citation
 		$style = 'default';
 	}
 
+	my $repo = $self->{session};
+	my @plugins = $repo->get_plugins( type => 'Template', template_file => $self->{dataset}->id() . '/' . $style );
+
+	# If there is a matching template plugin, use it render the
+	# citation
+	if ( scalar @plugins )
+	{
+
+	    my $plugin = $plugins[0];
+
+	    # Maybe the plugin should do this basic template variable
+	    # setup?
+	    my $vars = \%params;
+	    $vars->{item} = $self;
+	    $vars->{ds} = $self->dataset();
+
+	    return $plugin->get_xml( $self->{dataset}->id() . '/' . $style, $vars );
+	}
+
+	# There is no suitable Template plugin available, use the old
+	# school citations (Perhaps these should be converted to a
+	# Template plugin too?)
+
 	my $citation = $self->{dataset}->citation( $style );
 
 	# no citation style available, not even "default"

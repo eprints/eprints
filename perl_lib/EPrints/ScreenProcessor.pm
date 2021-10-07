@@ -401,19 +401,38 @@ sub process
 	my $links = $self->screen->render_links;
 	my $title = $self->screen->render_title;
 
-	my $page = $self->{session}->make_doc_fragment;
-
-	foreach my $chunk ( @{$self->{before_messages}} )
+	my $page;
+	if ( ref( $content ) =~ m/^XML::LibXML/ )
 	{
-		$page->appendChild( $chunk );
-	}
-	$page->appendChild( $self->render_messages );
-	foreach my $chunk ( @{$self->{after_messages}} )
-	{
-		$page->appendChild( $chunk );
-	}
+	    $page = $self->{session}->make_doc_fragment;
 
-	$page->appendChild( $content );
+	    foreach my $chunk ( @{$self->{before_messages}} )
+	    {
+		$page->appendChild( $chunk );
+	    }
+	    $page->appendChild( $self->render_messages );
+	    foreach my $chunk ( @{$self->{after_messages}} )
+	    {
+		$page->appendChild( $chunk );
+	    }
+
+	    $page->appendChild( $content );
+	}
+	else
+	{
+	    # Assume $content is text
+
+	    foreach my $chunk ( @{$self->{before_messages}} )
+	    {
+		$page .= $self->{session}->xhtml->to_xhtml( $chunk );
+	    }
+	    $page .= $self->{session}->xhtml->to_xhtml( $self->render_messages );
+	    foreach my $chunk ( @{$self->{after_messages}} )
+	    {
+		$page .= $self->{session}->xhtml->to_xhtml( $chunk );
+	    }
+	    $page .= $content;
+	}
 
 	$self->{session}->prepare_page(  
 		{

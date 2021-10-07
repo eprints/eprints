@@ -57,6 +57,7 @@ $c->{eprint_render} = sub
 		in_commentary_thread => $eprint->in_thread( $commentary_field ),
 		preview => $preview,
 	};
+	print STDERR "preview = " . $flags->{preview}, "\n";
 	my %fragments = ();
 
 	# Put in a message describing how this document has other versions
@@ -125,8 +126,32 @@ if(0){
 }
 
 	foreach my $key ( keys %fragments ) { $fragments{$key} = [ $fragments{$key}, "XHTML" ]; }
+
+	$flags->{summary_page_metadata} = $repository->config( 'summary_page_metadata' );
+
+        # Enumerate all the actions for an eprint
+	my $screen_processor = EPrints::ScreenProcessor->new(
+		session => $repository,
+		screenid => "Error",
+	);
+
+	my $screen = $screen_processor->screen;
+	$screen->properties_from;
+
+	my @actions = $screen->list_items( 'eprint_summary_page_actions', filter => 0 );
+	my $keyfield = $eprint->{dataset}->get_key_field();
+	$screen_processor->{$keyfield->get_name()} = $eprint->get_id;
+	foreach my $action ( @actions )
+	{
+	    $action->{hidden} = [$keyfield->get_name()];
+	}
+
 	
-	my $page = $eprint->render_citation( "summary_page", %fragments, flags=>$flags );
+	my $page = $eprint->render_citation( "summary_page", 
+					     %fragments, 
+					     flags => $flags, 
+					     actions => \@actions,
+	    );
 
 	my $title = $eprint->render_citation("brief");
 
