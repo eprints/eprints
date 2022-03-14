@@ -139,6 +139,11 @@ Options:
 
 Just tests that the string is parseable, and returns a boolean value.
 
+=item B<< canonical => 1 >>
+
+Converts the DOI to its canonical form according to the ANSI/NISO Z39.84-2005 (R2010) spec.
+Mostly this meaning uppercasing the ASCII characters in the dss part.
+
 =back
 
 =cut
@@ -184,11 +189,16 @@ sub parse
 	#
 	# .. because we've seen non-compliant DOIs in the wild.
 	#
-	if( $doi =~ m!^(10)\.([^/]+)/(\p{Graph}+)! )
+	if( $doi =~ m!^(?<dir>10)\.(?<reg>[^/]+)/(?<dss>\p{Graph}+)! )
 	{
-		# FIXME: $2 may contain characters outside of /\p{Graph}/
+		# FIXME: 'reg' may contain characters outside of /\p{Graph}/
+
 		return 1 if $opts{test};
-		return $class->new( dir=>$1, reg=>$2, dss=>$3 );
+
+		my %data = %+;
+		$data{dss} =~ y/a-z/A-Z/ if $opts{canonical};
+
+		return $class->new( %data );
 	}
 	else
 	{
