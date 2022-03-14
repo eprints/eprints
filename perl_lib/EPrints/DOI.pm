@@ -165,7 +165,7 @@ sub parse
 		$doi =~ s!^doi:!!i;
 
 		# final sanity check
-		if( $doi =~ m!^10.[^/]+%2F!i )
+		if( $doi =~ m!^10\.[^/]+%2F!i )
 		{
 			$doi = uri_unescape( $doi );
 		}
