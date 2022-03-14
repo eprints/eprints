@@ -173,11 +173,20 @@ sub parse
 
 	utf8::decode( $doi ) unless utf8::is_utf8( $doi );
 
-	# ANSI/NISO Z39.84-2005
-	# <http://www.niso.org/apps/group_public/download.php/6587/Syntax%20for%20the%20Digital%20Object%20Identifier.pdf>
-	if( $doi =~ m!^(10)\.([^/]+)/(\p{Graph}(?:[^/]\p{Graph}*)?)! )
+	# ANSI/NISO Z39.84-2005 (R2010)
+	# <https://groups.niso.org/apps/group_public/download.php/14689/z39-84-2005_r2010.pdf>
+	#
+	# Note: this ignores the restriction on the DOI Suffix String in Section 4.3
+	# that states
+	#
+	# > ... with the exception that the Suffix cannot start with */ where * is
+	# > any single character. This is reserved for future use.
+	#
+	# .. because we've seen non-compliant DOIs in the wild.
+	#
+	if( $doi =~ m!^(10)\.([^/]+)/(\p{Graph}+)! )
 	{
-		# FIXME: $2 and $3 may contain characters outside of /\p{Graph}/
+		# FIXME: $2 may contain characters outside of /\p{Graph}/
 		return 1 if $opts{test};
 		return $class->new( dir=>$1, reg=>$2, dss=>$3 );
 	}
