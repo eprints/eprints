@@ -1,0 +1,143 @@
+use EPrints;
+
+use strict;
+
+my $session = EPrints::Session->new();
+
+# security?
+
+my $content = "text/xml";
+$session->send_http_header( content_type=>$content );
+my $family = $session->param( "_name_family" );
+my $given = $session->param( "_name_given" );
+my $id = $session->param( "_id" );
+
+my $database = $session->get_database;
+my $dataset = $session->dataset( "eprint" );
+
+my @unique_results = ();
+my @roles = ('creators', 'editors', 'contributors');
+
+foreach my $role (@roles)
+{
+    my $name_field = $dataset->get_field( $role."_name" );
+    my $id_field = $dataset->get_field( $role."_id" );
+
+    my @fields = ($name_field->get_sql_names, $id_field->get_sql_names);
+
+    my $Q_table = $database->quote_identifier($dataset->get_sql_table_name);
+    my $Q_name_table = $database->quote_identifier($dataset->get_sql_sub_table_name($name_field));
+    my $Q_id_table = $database->quote_identifier($dataset->get_sql_sub_table_name($id_field));
+    my $Q_eprintid = $database->quote_identifier( "eprintid" );
+    my $Q_pos = $database->quote_identifier( "pos" );
+    my $Q_num_matches = $database->quote_identifier( "num_matches" );
+    my $Q_eprint_status = $database->quote_identifier( "eprint_status" );
+
+    my $sql = "SELECT COUNT($Q_table.$Q_eprintid) ".$database->sql_AS." $Q_num_matches," .
+        join(",", map { $database->quote_identifier($_) } @fields) .
+        " FROM $Q_table" .
+        " LEFT JOIN $Q_name_table" .
+        " ON $Q_table.$Q_eprintid=$Q_name_table.$Q_eprintid" .
+        " LEFT JOIN $Q_id_table" .
+        " ON $Q_name_table.$Q_eprintid=$Q_id_table.$Q_eprintid " .
+        " AND $Q_name_table.$Q_pos=$Q_id_table.$Q_pos " .
+        " WHERE " .
+        " $Q_table.$Q_eprint_status=".$database->quote_value( "archive" );
+    if( EPrints::Utils::is_set( $family ) )
+    {
+        $sql .= " AND ".$database->quote_identifier($role."_name_family").$database->sql_LIKE().$database->quote_value(EPrints::Database::prep_like_value($family).'%');
+    }
+    if( EPrints::Utils::is_set( $given ) )
+    {
+        $sql .= " AND ".$database->quote_identifier($role."_name_given").$database->sql_LIKE().$database->quote_value(EPrints::Database::prep_like_value($given).'%');
+    }
+    if( EPrints::Utils::is_set( $id ) )
+    {
+        $sql .= " AND ".$database->quote_identifier($role."_id").$database->sql_LIKE().$database->quote_value(EPrints::Database::prep_like_value($id).'%');
+    }
+    $sql .= "GROUP BY ".join(",",map { $database->quote_identifier($_) } @fields);
+
+    my $sth = $session->get_database->prepare_select( $sql, 'limit' => 40 );
+    $session->get_database->execute( $sth , $sql );
+    while( my @row = $sth->fetchrow_array )
+    {
+        my $count = shift @row;
+        my $name = $name_field->value_from_sql_row( $session, \@row );
+        my $id = $id_field->value_from_sql_row( $session, \@row );
+
+        my $result = {
+            count => $count,
+            name => $name,
+            id => $id,
+        };
+
+        my $is_duplicate = 0;
+
+        if(@unique_results) {
+            foreach my $unique_result (@unique_results)
+            {
+                # Check if we already have this person in our results
+                if( $result->{name}->{family} eq $unique_result->{name}->{family}
+                && $result->{name}->{given} eq $unique_result->{name}->{given}
+                && $result->{id} eq $unique_result->{id})
+                {
+                    # Drop the entry but add its number of matches to the entry in our results
+                    $unique_result->{count} += $result->{count};
+                    $is_duplicate = 1;
+                }
+            }
+        }
+
+        if(!@unique_results || (@unique_results && !$is_duplicate))
+        {
+            # New person, add to our unique results (including rendering)
+            my $frag = $session->make_doc_fragment;
+            $frag->appendChild( $name_field->render_single_value( $session, $name ) );
+            if( EPrints::Utils::is_set( $id ) )
+            {
+                $frag->appendChild( $session->make_text( " " ) );
+                $frag->appendChild( $id_field->render_single_value( $session, $id ) );
+            }
+
+            $result->{xhtml} = $frag;
+            $result->{values} = [
+                "for:value:relative:_name_family" => $name->{family},
+                "for:value:relative:_name_given" => $name->{given},
+                "for:value:relative:_name_honourific" => $name->{honourific},
+                "for:value:relative:_name_lineage" => $name->{lineage},
+                "for:value:relative:_id" => $id,
+            ];
+            push @unique_results, $result;
+        }
+    }
+    $sth->finish();
+}
+
+# Sort our unique results by num_matches descending and name ascending
+my @sorted_results = sort {
+    $b->{count} <=> $a->{count}
+    || $a->{name}->{family} cmp $b->{name}->{family}
+    || $a->{name}->{given} cmp $b->{name}->{given}
+} @unique_results;
+
+# Calculate total number of items
+foreach my $result (@sorted_results)
+{
+    my $frag = $result->{xhtml};
+    $frag->appendChild( $session->html_phrase( 'cgi/lookup/name_all_contributors:contributed', count => $session->make_text( $result->{count} ) ) );
+}
+
+my $ul = EPrints::Extras::render_lookup_list( $session, \@sorted_results );
+
+$session->send_http_header( content_type => "text/xml; charset=UTF-8" );
+
+binmode(STDOUT,":utf8");
+print <<END;
+<?xml version="1.0" encoding="UTF-8" ?>
+
+END
+print EPrints::XML::to_string( $ul, "utf-8", 1 );
+
+EPrints::XML::dispose( $ul );
+
+$session->terminate;
