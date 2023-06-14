@@ -276,6 +276,9 @@ sub get_index_codes_basic
 		}
 	}
 
+	# if the document is not public, don't add the indexcodes to the fulltext index database table
+	return( [], [], [] ) unless $doc->exists_and_set( "security" ) && $doc->value( "security" ) eq "public";
+	
 	return( [], [], [] ) unless defined $indexcodes_doc;
 
 	my $data = "";
