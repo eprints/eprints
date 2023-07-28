@@ -117,42 +117,33 @@ sub render_string
 	
 		if( !$inlatex && $oldinlatex )
 		{
-			my $url;
+			my $latex = $buffer;
 
-			if( $session->config( "use_mimetex" ) ) 
+			# strip leading and trailing '$'
+			$latex =~ s/^\$(.*)\$$/$1/g;
+
+			my $pngfile = EPrints::Latex::texstring_to_png( $session, $latex );
+			if( open( PNG, $pngfile ) )
 			{
-				my $param = $buffer;
+				binmode(PNG);
+				my $pngdata = do { local $/; <PNG> };
+				close PNG;
 
-				# strip $ from beginning and end.
-				$param =~ s/^\$(.*)\$$/$1/;
+				my $url = 'data:image/png;base64,' . MIME::Base64::encode_base64( $pngdata );
+				$pngdata = undef;
 
-				# Mimetex can't handle whitespace. Change it to ~'s.
-				$param =~ s/\\?\s/~/g;     
-
-				$url = $session->config( 
-        				"http_cgiurl" )."/mimetex.cgi?".$param;
+				my $img = $session->make_element(
+					   "img",
+					   align=>"absbottom",
+					   alt=>$buffer,
+					   src=>$url,
+					   border=>0 );
+				$html->appendChild( $img );
 			}
 			else
 			{
-				my $param = $buffer;
-	
-				# URL Encode non a-z 0-9 chars.
-				$param =~ s/[^a-z0-9]/sprintf('%%%02X',ord($&))/ieg;
-	
-				# strip $ from beginning and end.
-				$param =~ s/^\$(.*)\$$/$1/; 
-	
-				$url = $session->config( 
-					"http_cgiurl" )."/latex2png?latex=".$param;
+				$html->appendChild( $session->make_text( "[unable to convert: $buffer]" ) );
 			}
-
-			my $img = $session->make_element( 
-				"img",
-				align=>"absbottom",
-				alt=>$buffer,
-				src=>$url,
-				border=>0 );
-			$html->appendChild( $img );
 			$buffer = '';	
 		}
 

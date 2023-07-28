@@ -272,11 +272,11 @@ sub process
 {
 	my( $class, %opts ) = @_;
 
-	if( !defined $opts{screenid} ) 
+	if( ! $opts{screenid} ) 
 	{
 		$opts{screenid} = $opts{session}->param( "screen" );
 	}
-	if( !defined $opts{screenid} ) 
+	if( ! $opts{screenid} ) 
 	{
 		$opts{screenid} = "FirstTool";
 	}
@@ -286,27 +286,27 @@ sub process
 	my $current_user = $self->{session}->current_user;
 
 	# Check to make sure CSRF token is set and  has not been changed.
-        if ( defined $self->{session}->config( "csrf_token_salt" ) && defined $self->{session}->current_user && $ENV{REQUEST_METHOD} eq "POST" )
-        {
-                my $csrf_detected = 1;
-                if ( defined $opts{session}->param( "csrf_token" ) )
-                {
-                        my @csrf_token_bits = split( ':', $opts{session}->param( "csrf_token" ) );
-                        if ( scalar @csrf_token_bits eq 2 )
-                        {
-                                use Digest::MD5;
-                                my $ctx = Digest::MD5->new;
-                                my $csrf_token_expected = $ctx->add( $csrf_token_bits[0], $current_user->get_id, $self->{session}->config( "csrf_token_salt" ) )->hexdigest;
-                                $csrf_detected = $csrf_token_expected ne $csrf_token_bits[1];
-                        }
-                }
-                if ( $csrf_detected )
-                {
-                        $self->add_message( "error", $self->{session}->html_phrase(
-                                "Plugin/Screen:csrf_detected" ) );
-                        $self->{screenid} = "Error";
-                }
-        }
+	if ( defined $self->{session}->config( "csrf_token_salt" ) && defined $self->{session}->current_user && $ENV{REQUEST_METHOD} eq "POST" )
+	{
+		my $csrf_detected = 1;
+		if ( defined $opts{session}->param( "csrf_token" ) )
+		{
+			my @csrf_token_bits = split( ':', $opts{session}->param( "csrf_token" ) );
+			if ( scalar @csrf_token_bits eq 2 )
+			{
+				use Digest::MD5;
+				my $ctx = Digest::MD5->new;
+				my $csrf_token_expected = $ctx->add( $csrf_token_bits[0], $current_user->get_id, $self->{session}->config( "csrf_token_salt" ) )->hexdigest;
+				$csrf_detected = $csrf_token_expected ne $csrf_token_bits[1];
+			}
+		}
+		if ( $csrf_detected )
+		{
+			$self->add_message( "error", $self->{session}->html_phrase(
+				"Plugin/Screen:csrf_detected" ) );
+			$self->{screenid} = "Error";
+		}
+	}
 
 	# This loads the properties of what the screen is about,
 	# Rather than parameters for the action, if any.

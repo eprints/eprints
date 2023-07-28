@@ -185,6 +185,13 @@ sub handler
 		"Accept-Ranges" => "bytes"
 	);
 
+	# Instruct robots like Google not to follow links in these resources,
+	# as they are untrusted. (Mostly for PDF and HTML docs).
+	EPrints::Apache::AnApache::header_out(
+		$r,
+		"X-Robots-Tag" => "nofollow"
+	);
+
 	# did the file retrieval fail?
 	my $rv;
 

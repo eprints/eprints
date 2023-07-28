@@ -41,7 +41,7 @@ Return an XHTML DOM object of the contents of $value. In the case of
 an error parsing the XML in $value return an XHTML DOM object 
 describing the problem.
 
-This is intended to be used by the render_single_value metadata
+This is intended to be used by the render_single_value metadata 
 field option, as an alternative to the default text renderer. 
 
 This allows through any XML element, so could cause problems if
@@ -124,7 +124,7 @@ sub render_highlighted_field
 {
 	my( $session , $field , $value, $alllangs, $nolink, $object ) = @_;
 
-	my $div = $session->make_element( "div", class=>"ep_highlight" );
+	my $div = $session->make_element( "div", class=>"ep_highlight", style=>"white-space:pre-wrap" );
 	my $v=$field->render_value_actual( $session, $value, $alllangs, $nolink, $object );
 	$div->appendChild( $v );	
 	return $div;
@@ -249,16 +249,30 @@ sub render_related_url
 	foreach my $row ( @{$value} )
 	{
 		my $li = $session->make_element( "li" );
-		my $link = $session->render_link( $row->{url} );
-		if( EPrints::Utils::is_set( $row->{type} ) )
+		my $link;
+		if( defined $row->{url} )
 		{
-			$link->appendChild( $fmap->{type}->render_single_value( $session, $row->{type} ) );
+			$link = $session->render_link( $row->{url} );
+			if( defined $row->{type} )
+			{
+				$link->appendChild( $fmap->{type}->render_single_value( $session, $row->{type} ) );
+			}
+			else
+			{
+				my $text = $row->{url};
+				if( length( $text ) > 40 ) { $text = substr( $text, 0, 40 )."..."; }
+				$link->appendChild( $session->make_text( $text ) );
+			}
 		}
 		else
 		{
-			my $text = $row->{url};
-			if( length( $text ) > 40 ) { $text = substr( $text, 0, 40 )."..."; }
-			$link->appendChild( $session->make_text( $text ) );
+			$session->get_repository->log( '[warning] EPrints::Extras::render_related_url Can\'t render related URL with no link.' );
+			$link = $session->make_element( "a" );
+			if( defined $row->{type} )
+			{
+				$link->appendChild( $fmap->{type}->render_single_value( $session, $row->{type} ) );
+			}
+			$link->appendChild( $session->make_text( '[' . $session->phrase( 'lib/metafield:unspecified' ) . ']' ) );
 		}
 		$li->appendChild( $link );
 		$ul->appendChild( $li );
@@ -310,7 +324,9 @@ sub render_possible_doi
 		# so just render it as-is.
 		return $session->make_text( $value );
 	}
+
 	my $link = $session->render_link( $doi->to_uri, "_blank" );
+	$link->setAttribute( 'rel', 'alternate nofollow' );
 	$link->appendChild( $session->make_text( $doi->to_string( noprefix=>1 ) ) );
 	return $link;
 }

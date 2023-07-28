@@ -91,7 +91,9 @@ sub render_action_link
 
 	if( defined $self->{session}->current_user )
 	{
-		return $self->render_title;
+		my $span = $self->{session}->make_element( "span" );
+		$span->appendChild( $self->render_title );
+		return $span;
 	}
 	else
 	{

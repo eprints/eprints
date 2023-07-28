@@ -923,6 +923,7 @@ parameters.
 
 =cut
 
+sub run_render_value_special { &run_render_value_function }
 sub run_render_value_function
 {
 	my( $self, $state, $dataobj, $funcname, $fieldname, @extra ) = @_;
@@ -950,12 +951,12 @@ Provides XHTML pre element containing the type and serialization of the data obj
 
 sub run_dumper
 {
-        my( $self, $state, $data ) = @_;
+	my( $self, $state, $data ) = @_;
 
 	use Data::Dumper;
-        my $pre = $state->{session}->make_element( "pre" );
-        $pre->appendChild( $state->{session}->make_text( "TYPE: ".$data->[1]."\nVALUE: ".Dumper( $data->[0] ) ) );
-        return [ $pre , "XHTML" ];
+	my $pre = $state->{session}->make_element( "pre" );
+	$pre->appendChild( $state->{session}->make_text( "TYPE: ".$data->[1]."\nVALUE: ".Dumper( $data->[0] ) ) );
+	return [ $pre , "XHTML" ];
 }
 
 
@@ -967,42 +968,42 @@ Extracts the value of a specified subproperty of a data object.
 
 sub run_subproperty
 {
-         my( $self, $state, $objvar, $value ) = @_;
+	my( $self, $state, $objvar, $value ) = @_;
 
-         if( !defined $objvar->[0] )
-         {
-                 $self->runtime_error( "can't get a property {".$value->[0]."} from undefined value" );
-         }
-         my $ref = ref($objvar->[1]);
+	if( !defined $objvar->[0] )
+	{
+		$self->runtime_error( "can't get a property {".$value->[0]."} from undefined value" );
+	}
+	my $ref = ref($objvar->[1]);
 
-         if( $ref !~ m/::/ || ! $objvar->[1]->isa( "EPrints::MetaField::Compound" ) )
-         {
-                 $self->runtime_error( "can't get a subproperty from anything except a compound field value, when trying to get ".$value->[0]." from a $ref" );
-         }
-         my $field = $objvar->[1];
-         if( $field->get_property( "multiple" ) )
-         {
-                 $self->runtime_error( "can't get a subproperty from a multiple field." );
-         }
+	if( $ref !~ m/::/ || ! $objvar->[1]->isa( "EPrints::MetaField::Compound" ) )
+	{
+		$self->runtime_error( "can't get a subproperty from anything except a compound field value, when trying to get ".$value->[0]." from a $ref" );
+	}
+	my $field = $objvar->[1];
+	if( $field->get_property( "multiple" ) )
+	{
+		$self->runtime_error( "can't get a subproperty from a multiple field." );
+	}
 
-         my $fc = $field->get_property( "fields_cache" );
-         my $sub_field;
-         my @ok = ();
-         foreach my $a_sub_field ( @{$fc} )
-         {
-                 push @ok, $a_sub_field->{sub_name};
-                 if( $a_sub_field->{sub_name} eq $value->[0] )
-                 {
-                         $sub_field = $a_sub_field;
-                 }
-         }
-         if( !defined $sub_field ) {
-                 $self->runtime_error( "unknown sub-field of a compound: ".$value->[0].". OK values: ".join( ", ", @ok )."." );
-         }
+	my $fc = $field->get_property( "fields_cache" );
+	my $sub_field;
+	my @ok = ();
+	foreach my $a_sub_field ( @{$fc} )
+	{
+		push @ok, $a_sub_field->{sub_name};
+		if( $a_sub_field->{sub_name} eq $value->[0] )
+		{
+			$sub_field = $a_sub_field;
+		}
+	}
+	if( !defined $sub_field ) {
+		$self->runtime_error( "unknown sub-field of a compound: ".$value->[0].". OK values: ".join( ", ", @ok )."." );
+	}
 
-         return [
-                 $objvar->[0]->{ $value->[0] },
-                 $sub_field ];
+	return [
+		$objvar->[0]->{ $value->[0] },
+		$sub_field ];
 }
 
 
@@ -1020,14 +1021,14 @@ sub run_to_dataobj
 		return [];
 	}
 	if( !defined $dataset || !defined $dataset->[0] ) {
-                return [];
-        }
+		return [];
+	}
 	if( !defined $dataobj_fieldname || !defined $dataobj_fieldname->[0] ) {
-                return [];
-        }
+		return [];
+	}
 
 	my $dataobj_fieldvalue = $objvar->[0];
-	my $results = $state->{session}->dataset( $dataset->[0] )->search(	
+	my $results = $state->{session}->dataset( $dataset->[0] )->search(
 		filters => [
 			{
 				meta_fields => [ $dataobj_fieldname->[0] ],

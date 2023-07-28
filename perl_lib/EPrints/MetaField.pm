@@ -2231,6 +2231,8 @@ sub render_search_description
 		value => $valuedesc );
 }
 
+# $dom_text_node = $self->render_search_value( $session, $value, $merge, $match )
+# return an XHTML text node containing text describing a single search value.
 sub render_search_value
 {
 	my( $self, $session, $value, $merge, $match ) = @_;
@@ -2301,6 +2303,8 @@ sub get_property_defaults
 		input_advice_right => EP_PROPERTY_UNDEF,
 		input_advice_below => EP_PROPERTY_UNDEF,
 		input_assist	=> EP_PROPERTY_FALSE,
+
+		noxapian 	=> EP_PROPERTY_UNDEF,
 );
 }
 

@@ -158,7 +158,8 @@ sub update_auto_css
 			$session->get_repository,
 			"$target_dir/style/auto.css",
 			"css",
-			\@dirs
+			\@dirs,
+			{ minifier => $session->get_repository->config('minify_autocss') ? 'CSS::Minifier::minify' : undef },
 		);
 }
 
@@ -179,7 +180,7 @@ sub update_secure_auto_js
 			"$target_dir/javascript/secure_auto.js",
 			"js",
 			\@dirs,
-			{ prefix => $js },
+			{ prefix => $js, minifier => $session->get_repository->config('minify_autojs') ? 'JavaScript::Minifier::minify' : undef },
 		);
 }
 
@@ -194,10 +195,11 @@ sub update_auto_js
 			"$target_dir/javascript/auto.js",
 			"js",
 			\@dirs,
+			{ minifier => $session->get_repository->config('minify_autojs') ? 'JavaScript::Minifier::minify' : undef },
 		);
 }
 
-=item $auto = update_auto( $target_filename, $extension, $dirs [, $opts ] )
+=item $auto = update_auto( $repod, $target_filename, $extension, $dirs [, $opts ] )
 
 Update a file called $target_filename by concantenating all of the files found in $dirs with the extension $extension (js, css etc. - may be a regexp).
 
@@ -223,7 +225,7 @@ Postfix text to the output file.
 
 sub update_auto
 {
-	my($repo, $target, $ext, $dirs, $opts ) = @_;
+	my( $repo, $target, $ext, $dirs, $opts ) = @_;
 
 	my $target_dir = $target;
 	unless( $target_dir =~ s/\/[^\/]+$// )
@@ -258,35 +260,64 @@ sub update_auto
 
 	return $target unless $out_of_date;
 
+	if( defined $opts->{minifier} ) {
+		# make sure we can load the specified minifier
+		($opts->{minifier} =~ m/^(.*)::/ && eval "require $1") or EPrints::abort( "Can't load ".$opts->{minifier}." [$1]: $!" );
+	}
+
 	EPrints::Platform::mkdir( $target_dir );
 
 	# to improve speed use raw read/write
 	open(my $fh, ">:raw", $target) or EPrints::abort( "Can't write to $target: $!" );
 
-	print $fh Encode::encode_utf8($opts->{prefix}) if defined $opts->{prefix};
+	if( defined $opts->{prefix} ) {
+		if ( defined $opts->{minifier} ) {
+			no strict "refs";
+			&{ $opts->{minifier} }( input => Encode::encode_utf8($opts->{prefix}), outfile => *$fh );
+			use strict "refs";
+		} else {
+			print $fh Encode::encode_utf8($opts->{prefix});
+		}
+	}
 
 	# concat all of the mapped files into a single "auto" file
 	foreach my $fn (sort keys %map)
 	{
 		my $path = $map{$fn};
-		if (defined $repo->get_conf('quiet') && $repo->get_conf('quiet') == 1)
-		{
-			print $fh "\n\n\n/* From: $fn */\n\n"; ##show file name only (quiet)
-		}
-		else
-		{
-			print $fh "\n\n\n/* From: $path */\n\n"; ##show full path (not quiet)
-		}
+
 		open(my $in, "<:raw", $path) or EPrints::abort( "Can't read from $path: $!" );
-		my $buffer = "";
-		while(read($in, $buffer, 4096))
-		{
-			print $fh $buffer;
+		if( defined $opts->{minifier} ) {
+			print $fh "\n/*+$fn*/\n";
+			no strict "refs";
+			&{ $opts->{minifier} }( input => *$in, outfile => *$fh );
+			use strict "refs";
+		} else {
+			if (defined $repo->get_conf('quiet') && $repo->get_conf('quiet') == 1)
+			{
+				print $fh "\n\n\n/* From: $fn */\n\n"; ##show file name only (quiet)
+			}
+			else
+			{
+				print $fh "\n\n\n/* From: $path */\n\n"; ##show full path (not quiet)
+			}
+			my $buffer = "";
+			while(read($in, $buffer, 4096))
+			{
+				print $fh $buffer;
+			}
 		}
 		close($in);
 	}
 
-	print $fh Encode::encode_utf8($opts->{postfix}) if defined $opts->{postfix};
+	if( defined $opts->{postfix} ) {
+		if( defined $opts->{minifier} ) {
+			no strict "refs";
+			&{ $opts->{minifier} }( input => Encode::encode_utf8($opts->{postfix}), outfile => *$fh );
+			use strict "refs";
+		} else {
+			print $fh Encode::encode_utf8($opts->{postfix});
+		}
+	}
 
 	close($fh);
 

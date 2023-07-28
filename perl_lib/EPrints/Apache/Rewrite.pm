@@ -623,7 +623,7 @@ sub handler
 			{
 				if( $eprint->get_value( "eprint_status" ) eq "deletion" )
 				{
-					EPrints::Apache::AnApache::send_status_line( $r, 404, "Not Found" );
+					EPrints::Apache::AnApache::send_status_line( $r, 410, "Gone" );
 				}
 
 				my $path = "/archive/" . $eprint->store_path();
@@ -766,6 +766,8 @@ sub redir
 sub redir_see_other
 {
 	my( $r, $url ) = @_;
+
+	$url =~ s!^//!/!;
 
 	EPrints::Apache::AnApache::send_status_line( $r, 303, "See Other" );
 	EPrints::Apache::AnApache::header_out( $r, "Location", $url );

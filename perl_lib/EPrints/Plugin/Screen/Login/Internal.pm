@@ -67,7 +67,8 @@ sub render
 	$bits{input_username} = $repo->render_input_field(
 			class => "ep_form_text",
 			id => "login_username",
-			name => 'login_username' );
+			name => 'login_username',
+			autocomplete => 'username' );
 
 	$bits{input_password} = $repo->render_input_field(
 			class => "ep_form_text",

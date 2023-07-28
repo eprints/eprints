@@ -2045,7 +2045,7 @@ User Area CGI Scripts
     <epp:phrase id="cgi/login:bind">yes (more secure)</epp:phrase>
     <epp:phrase id="cgi/login:dont_bind">no (more convenient)</epp:phrase>
     <epp:phrase id="cgi/login:failed">Incorrect username or password.</epp:phrase>
-    <epp:phrase id="cgi/login:logged_in_as"><p>You are already logged in as <epc:pin name="name"/>.</p> <p>If you wish to log in as a different user you must <a href="{$config{http_url}}/logout">Logout</a> first.</p></epp:phrase>
+    <epp:phrase id="cgi/login:logged_in_as"><p>You are already logged in as <epc:pin name="name"/>.</p> <p>If you wish to log in as a different user you must <a href="{$config{http_url}}/users/logout">Logout</a> first.</p></epp:phrase>
     <epp:phrase id="cgi/login:title">Login</epp:phrase>
     <epp:phrase id="cgi/login:message">Login successful.</epp:phrase>
     <epp:phrase id="cgi/login:link_text"><p>You may now view <epc:pin name="link">your requested document</epc:pin>.</p></epp:phrase>

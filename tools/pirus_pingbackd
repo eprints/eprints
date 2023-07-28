@@ -120,9 +120,6 @@ our( %DOI_EXPIRES, %DOC_DOI, %DOC_FORMAT );
 # maximum time to store an eprint's DOI before checking it again
 our $MAX_AGE = 86400;
 
-# regexp to use to identify doi's in eprint fields
-our $DOI_REGEXP = qr/(?:DOI:\s*|https?:\/\/(?:(?:dx\.)?doi\.org|doi\.org|doi\.acm\.org|doi\.ieeecomputersociety\.org)\/)([^&;]+)/i;
-
 # use a meaningful user agent
 $UA->agent( "EPrints/".$session->config( "version_id" )." (mailto:".$session->get_repository->get_conf( "adminemail" ).")" );
 
@@ -252,24 +249,20 @@ sub eprint_get_doi
 
 	if( $eprint->get_dataset->has_field( "id_number" ) &&
 		$eprint->is_set( "id_number") &&
-		$eprint->get_value( "id_number" ) =~ /$DOI_REGEXP/ )
+		( $doi = EPrints::DOI->parse( $eprint->get_value( "id_number" ) ) ) )
 	{
-		 $doi = $1;
+		 $doi = $doi->to_string( noprefix=>1 );
 	}
 	elsif( $eprint->get_dataset->has_field( "altloc" ) )
 	{
 		foreach my $altloc( @{$eprint->get_value( "altloc" )||[]} )
 		{
-			if( $altloc =~ /$DOI_REGEXP/ )
+			$doi = EPrints::DOI->parse( $altloc );
+			if( $doi )
 			{
-				$doi = $1;
+				$doi = $doi->to_string( noprefix=>1 );
 			}
 		}
-	}
-
-	if( defined($doi) && $doi !~ /^\d+\.\d+\// )
-	{
-		$doi = undef;
 	}
 
 	return $doi;

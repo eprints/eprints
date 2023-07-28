@@ -86,11 +86,13 @@ sub send
 			$@ !~ m/:Apache2 IO write: \(70007\) The timeout specified has expired/
 		  )
 		{
-			EPrints::abort( "Error in send_page: $@" );	
+			EPrints::abort( "Error in send_page: $@" );
 		}
 		else
 		{
-			die $@;
+			# Shows in httpd logs as 499, even though the client
+			# received a '200 Ok' response. From nginx
+			$self->{repository}->request()->status( 499 );
 		}
 	}
 }

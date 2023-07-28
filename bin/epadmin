@@ -260,6 +260,9 @@ use strict;
 use Getopt::Long;
 use Pod::Usage;
 
+use Carp;
+local $SIG{__WARN__} = sub { confess @_ };
+
 my $verbose = 0;
 my $quiet = 0;
 my $help = 0;
@@ -2231,11 +2234,22 @@ sub update_datasets
 					++$field_count;
 					print "Added ".$field->get_name." to dataset $_\n" if $noise;
 
+					# perhaps we can pre-populate with existing data:
+
+					# 1- if field changes from single to multiple values
 					if( $field->get_property( 'multiple' ) && !$field->is_virtual )
 					{
 						if( $db->has_column( $dataset->get_sql_table_name, $field->get_name ) )
 						{
 							migrate_to_multiple_values( $db, $dataset, $field );
+						}
+					}
+					# 2- if field changes from 'text' to 'multilang' (language will default to repository's default language
+					elsif( $field->isa( "EPrints::MetaField::Multilang" ) )
+					{
+						if( $db->has_column( $dataset->get_sql_table_name, $field->get_name ) )
+						{
+							migrate_to_multilang( $repo, $db, $dataset, $field );
 						}
 					}
 				}
@@ -2293,12 +2307,12 @@ WHERE
 	TABLE_SCHEMA='$database' AND
 	TABLE_NAME='$table' AND
 	COLUMN_NAME='$col' AND
-	LOWER(COLLATION_NAME)!='utf8_bin'
+	LOWER(COLLATION_NAME)!='utf8mb4_bin'
 LIMIT 1
 EOS
 					$db->execute( $sth );
 					my( $collate ) = $sth->fetchrow_array or next;
-					$db->do("ALTER TABLE ".$db->quote_identifier($table)." CONVERT TO CHARACTER SET utf8 COLLATE utf8_bin");
+					$db->do("ALTER TABLE ".$db->quote_identifier($table)." CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_bin");
 					print "Fixed $table.$col collation\n" if $noise;
 				}
 				last;
@@ -2613,7 +2627,7 @@ sub upgrade_mysql_charset
 	}
 
 	print " collation is $collation: ";
-	if( 0 && $collation =~ /^utf8_/ )
+	if( 0 && $collation =~ /^utf8(mb4)?_/ )
 	{
 		print " [ Failed ]\n";
 		print STDERR <<EOW;
@@ -2645,7 +2659,7 @@ EOW
 	print " [ OK ]\n";
 
 	my $rc = $db->do("ALTER TABLE _utf8_test MODIFY version BINARY(255)");
-	$rc &&= $db->do("ALTER TABLE _utf8_test MODIFY version VARCHAR(255) CHARACTER SET utf8");
+	$rc &&= $db->do("ALTER TABLE _utf8_test MODIFY version VARCHAR(255) CHARACTER SET utf8mb4");
 
 	if( !$rc )
 	{
@@ -2700,7 +2714,7 @@ EOW
 			my $rindex_table = $dataset->get_sql_rindex_table_name;
 			my $grep_table = $dataset->get_sql_grep_table_name;
 			my $Q_key_name = $db->quote_identifier( $key_field->get_sql_name );
-			my $sql = "ALTER IGNORE TABLE $rindex_table MODIFY field VARCHAR(64) CHARACTER SET UTF8, MODIFY word VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, ADD PRIMARY KEY(field,word,$Q_key_name)";
+			my $sql = "ALTER IGNORE TABLE $rindex_table MODIFY field VARCHAR(64) CHARACTER SET UTF8MB4, MODIFY word VARCHAR(128) CHARACTER SET UTF8MB4, DEFAULT CHARACTER SET UTF8MB4, ADD PRIMARY KEY(field,word,$Q_key_name)";
 			if( $db->get_primary_key( $rindex_table ) )
 			{
 				$sql =~ s/(ADD PRIMARY KEY)/DROP PRIMARY KEY, $1/;
@@ -2711,7 +2725,7 @@ EOW
 				$sql .= ", DROP KEY ".$db->quote_identifier( $old_key );
 			}
 			$rc &&= $db->do( $sql );
-			$sql = "ALTER IGNORE TABLE $grep_table MODIFY fieldname VARCHAR(64) CHARACTER SET UTF8, MODIFY grepstring VARCHAR(128) CHARACTER SET UTF8, DEFAULT CHARACTER SET UTF8, ADD PRIMARY KEY(fieldname,grepstring,$Q_key_name)";
+			$sql = "ALTER IGNORE TABLE $grep_table MODIFY fieldname VARCHAR(64) CHARACTER SET UTF8MB4, MODIFY grepstring VARCHAR(128) CHARACTER SET UTF8MB4, DEFAULT CHARACTER SET UTF8MB4, ADD PRIMARY KEY(fieldname,grepstring,$Q_key_name)";
 			if( $db->get_primary_key( $grep_table ) )
 			{
 				$sql =~ s/(ADD PRIMARY KEY)/DROP PRIMARY KEY, $1/;
@@ -2726,8 +2740,8 @@ EOW
 	}
 
 	# don't need to go via binary because these should only contain US-ASCII
-	$rc &&= $db->do("ALTER TABLE `version` MODIFY `version` VARCHAR(255) CHARACTER SET utf8");
-	$rc &&= $db->do("ALTER TABLE `counters` MODIFY `countername` VARCHAR(255) CHARACTER SET utf8");
+	$rc &&= $db->do("ALTER TABLE `version` MODIFY `version` VARCHAR(255) CHARACTER SET utf8mb4");
+	$rc &&= $db->do("ALTER TABLE `counters` MODIFY `countername` VARCHAR(255) CHARACTER SET utf8mb4");
 
 	if( !$rc )
 	{
@@ -2773,7 +2787,7 @@ sub upgrade_mysql_charset_table
 	$rc &&= $db->do( "DROP TABLE IF EXISTS $Q_new_table" );
 	$rc &&= $db->do( "CREATE TABLE $Q_new_table LIKE $Q_table" );
 	# change it to use UTF8
-	$rc &&= $db->do( "ALTER TABLE $Q_new_table CONVERT TO CHARACTER SET utf8 COLLATE utf8_bin" );
+	$rc &&= $db->do( "ALTER TABLE $Q_new_table CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_bin" );
 
 	if( !$rc || !$db->has_table( $new_table ) )
 	{

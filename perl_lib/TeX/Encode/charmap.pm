@@ -46,13 +46,21 @@ use vars qw( %RESERVED %BIBTEX_RESERVED %CHARS %ACCENTED_CHARS %LATEX_MACROS %GR
 '<' => "\\ensuremath{<}",
 '>' => "\\ensuremath{>}",
 '|' => "\\ensuremath{|}",
-chr(0x2014) => "--", # emdash
+'[' => '{[}', # opening argument(s)
+']' => '{]}', # closing argument(s)
+chr(0x2014) => "---", # emdash
+chr(0x2013) => "--", # endash
+chr(0x2018) => '`', # left single quotation mark
+chr(0x2019) => '\'', # right single quotation mark
+chr(0x201c) => '``', # left double quotation mark “
+chr(0x201d) => '\'\'', # right double quotation mark ”
 
 # non-accented
 chr(0x00a3) => "\\pounds", # £
 chr(0x00a7) => "\\S", # §
 chr(0x00a9) => "\\copyright",
 chr(0x00b6) => "\\P", # ¶
+chr(0x00b7) => "\\textperiodcentered",
 chr(0x00c5) => "\\AA", # Å
 chr(0x00c6) => "\\AE", # Æ
 chr(0x00d0) => "\\DH", # Ð

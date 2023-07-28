@@ -196,6 +196,23 @@ sub action_request
 			accept => $session->render_link( "$url&action=accept" ),
 			reject => $session->render_link( "$url&action=reject" ) ) );
 
+		my $confirm = $session->make_element( 'script', type => 'application/ld+json' );
+		$confirm->appendChild( $session->make_text( <<JSON ) );
+{
+  "\@context": "http://schema.org",
+  "\@type": "EmailMessage",
+  "potentialAction": {
+    "\@type": "ViewAction",
+    "name": "Approve",
+    "target": "$url&action=accept",
+    "url": "$url&action=accept"
+    }
+  },
+  "description": "Approve request to access EPrint"
+}
+JSON
+		$mail->appendChild( $confirm );
+
 		my $to_name;
 		if ( defined $user )
 		{

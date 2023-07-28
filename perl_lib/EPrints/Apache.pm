@@ -114,7 +114,7 @@ EOC
 	{
 		$conf .= "  RedirectPermanent / $http_url\n\n";
 	}
-  
+
 	$conf .= "</VirtualHost>\n\n";
 
 	return $conf;
