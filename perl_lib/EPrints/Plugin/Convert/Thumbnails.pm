@@ -124,6 +124,7 @@ $DEFAULT{convert_formats} = {qw(
 	jpeg image/jpeg
 	jpe image/jpeg
 	jpg image/jpeg
+	jfif image/jpeg
 	jp2	image/jp2
 	png image/png
 	tiff image/tiff
@@ -258,6 +259,7 @@ sub new
 		{
 			$self->{'ffmpeg_formats'} = {};
 		}
+		$self->{'gs'} = $cfg->{'gs'};
 	}
 
 	return $self;
@@ -486,6 +488,18 @@ sub convert_version
 	return $version || 0;
 }
 
+sub colorspace
+{
+	my( $self, $file ) = @_;
+	my $_DEFAULT = "sRGB";
+
+	return $_DEFAULT if !defined $self->{convert};
+
+	my $colorspace = `$self->{convert} "$file" -print '%[colorspace]' null:`;
+
+	return $colorspace || $_DEFAULT;
+}
+
 =item $ok = $plugin->is_video( $doc )
 
 Returns true if $doc is a video.
@@ -558,6 +572,27 @@ sub call_convert
 	my $fn = $size . ".jpg";
 	my $dst = "$dir/$fn";
 
+	# Manually convert PDFs to JPEGs before generating thumbnails
+	my $PDF_tmp_file;
+	if( $src =~ /\.(pdf|ps)$/i and $self->{gs} and -x $self->{gs} )
+	{
+		$PDF_tmp_file = "$dst.intermediate.jpg";
+		eval {
+			$self->_system($self->{gs}, '-q', '-sDEVICE=jpeg', '-dNOPAUSE', '-dBATCH', '-dSAFER', '-dFirstPage=1', '-dLastPage=1', "-sOutputFile=$PDF_tmp_file", $src);
+			$src = $PDF_tmp_file unless $@;
+		};
+	}
+
+	my $in_colorspace;
+	if( $src =~ /\.(pdf|ps)$/i )
+	{
+		$in_colorspace = "RGB";
+	}
+	else
+	{
+		$in_colorspace = $self->colorspace( $src );
+	}
+
 	$geom = "$geom->[0]x$geom->[1]";
 # JPEG
 	if( $size eq "small" )
@@ -566,20 +601,25 @@ sub call_convert
 		# geom^ requires 6.3.8
 		if( $version > 6.3 )
 		{
-			$self->_system($convert, "-strip", "-colorspace", "RGB", "-background", "white", "-thumbnail","$geom^", "-gravity", "center", "-extent", $geom, "-bordercolor", "gray", "-border", "1x1", "-flatten", $src."[0]", "JPEG:$dst");
+			$self->_system($convert, "-strip", "-colorspace",$in_colorspace, "-thumbnail","$geom^", "-gravity","center", "-extent",$geom, "-background","white", "-bordercolor","gray", "-border","1x1", "-flatten", $src."[0]", "JPEG:$dst");
 		}
 		else
 		{
-			$self->_system($convert, "-strip", "-colorspace", "RGB", "-background", "white", "-thumbnail","$geom>", "-extract", $geom, "-bordercolor", "gray", "-border", "1x1", "-flatten", $src."[0]", "JPEG:$dst");
+			$self->_system($convert, "-strip", "-colorspace",$in_colorspace, "-background","white", "-thumbnail","$geom>", "-extract",$geom, "-bordercolor","gray", "-border","1x1", "-flatten", $src."[0]", "JPEG:$dst");
 		}
 	}
 	elsif( $size eq "medium" )
 	{
-		$self->_system($convert, "-strip", "-colorspace", "RGB", "-trim", "+repage", "-size", "$geom", "-thumbnail","$geom>", "-background", "white", "-gravity", "center", "-extent", $geom, "-bordercolor", "white", "-border", "0x0", "-flatten", $src."[0]", "JPEG:$dst");
+		$self->_system($convert, "-strip", "-colorspace",$in_colorspace, "-trim", "+repage", "-thumbnail","$geom>", "-gravity","center", "-extent",$geom, "-background","white", "-bordercolor","white", "-border","0x0", "-flatten", $src."[0]", "-colorspace","sRGB", "JPEG:$dst");
 	}
 	else
 	{
-		$self->_system($convert, "-strip", "-colorspace", "RGB", "-background", "white", "-thumbnail","$geom>", "-extract", $geom, "-bordercolor", "white", "-border", "0x0", "-flatten", $src."[0]", "JPEG:$dst");
+		$self->_system($convert, "-strip", "-colorspace",$in_colorspace,                     "-thumbnail","$geom>", "-gravity","center",                  "-background","white", "-bordercolor","white", "-border","0x0", "-flatten", $src."[0]", "-colorspace","sRGB", "JPEG:$dst");
+	}
+
+	if( $PDF_tmp_file )
+	{
+		eval { unlink $PDF_tmp_file; }
 	}
 
 	if( -s $dst )

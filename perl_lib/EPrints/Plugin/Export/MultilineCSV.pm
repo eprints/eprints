@@ -86,6 +86,11 @@ sub csv
 		}
 		else
 		{
+			$item =~ s/\s+/ /g;
+			if( length( $item ) > 1024 )
+			{
+			    $item = substr( $item, 0, 1021 ) . '...';
+			}
 			$item =~ s/"/""/g;
 			$item =~ s/\r//g;
 			push @r, "\"$item\"";

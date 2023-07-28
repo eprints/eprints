@@ -63,38 +63,20 @@ td.value {
 	padding: 3px;
 }
 td.key {
-	background-color: #e0e0ff;
+	background-color: var(--blue-300);
 	padding: 3px;
 	text-align: right;
-	border: 1px solid #c0c0c0;
+	border: 1px solid var(--grey-100);
 	white-space: nowrap;
 	font-weight: bold;
 	vertical-align: top;
 }
 .dcdata td.key {
-	background-color: #ffffe0;
-}
-body { 
-	margin: 1em 2em 1em 2em;
-}
-h1, h2, h3 {
-	font-family: sans-serif;
-	clear: left;
-}
-h1 {
-	padding-bottom: 4px;
-	margin-bottom: 0px;
-}
-h2 {
-	margin-bottom: 0.5em;
-}
-h3 {
-	margin-bottom: 0.3em;
-	font-size: medium;
+	background-color: var(--blue-300);
 }
 .link {
-	border: 1px outset #88f;
-	background-color: #c0c0ff;
+	border: 1px outset var(--blue-400);
+	background-color: var(--blue-300);
 	padding: 1px 4px 1px 4px;
 	font-size: 80%;
 	text-decoration: none;
@@ -102,21 +84,13 @@ h3 {
 	font-family: sans-serif;
 	color: black;
 }
-.link:hover {
-	color: red;
-}
-.link:active {
-	color: red;
-	border: 1px inset #88f;
-	background-color: #a0a0df;
-}
 .oaiRecord, .oaiRecordTitle {
-	background-color: #f0f0ff;
+	background-color: var(--blue-100);
 	border-style: solid;
-	border-color: #d0d0d0;
+	border-color: var(--grey-100);
 }
 h2.oaiRecordTitle {
-	background-color: #e0e0ff;
+	background-color: var(--blue-300);
 	font-size: medium;
 	font-weight: bold;
 	padding: 10px;
@@ -136,15 +110,14 @@ ul.quicklinks {
 	margin-top: 2px;
 	padding: 4px;
 	text-align: left;
-	border-bottom: 2px solid #ccc;
-	border-top: 2px solid #ccc;
+	border-bottom: 2px solid var(--grey-100);
+	border-top: 2px solid var(--grey-100);
 	clear: left;
 }
 ul.quicklinks li {
 	font-size: 80%;
 	display: inline;
 	list-stlye: none;
-	font-family: sans-serif;
 }
 p.intro {
 	font-size: 80%;
@@ -159,8 +132,21 @@ p.intro {
   <head>
     <title>OAI 2.0 Request Results</title>
     <style><xsl:call-template name="style"/></style>
+    <link rel="stylesheet" href="//s.library.qut.edu.au/css/minimal-20201019.css"/>
+    <link rel="icon" href="//s.library.qut.edu.au/favicon-20170214.ico"/>
   </head>
-  <body>
+  <body class="fullwidth">
+    <div id="masthead" class="no-nav" role="navigation">
+      <div id="qut">
+        <a href="https://www.qut.edu.au/"><img src="//s.library.qut.edu.au/img/QUT-square-inv-20180504.svg" width="52" alt="QUT home"/></a><img src="//s.library.qut.edu.au/img/white-bar-20180504.svg" width="42" alt=""/><a class="supertitle" href="/">Library</a>
+      </div>
+      <div id="strap" aria-hidden="true">
+        <span id="strap-line-1">the university for the</span>
+        <span id="strap-line-2">real</span>
+        <span id="strap-line-3">world</span>
+        <span id="strap-line-4">&#xa9;</span>
+      </div>
+    </div>
     <h1>OAI 2.0 Request Results</h1>
     <xsl:call-template name="quicklinks"/>
     <p class="intro">You are viewing an HTML version of the XML OAI response. To see the underlying XML use your web browsers view source option. More information about this XSLT is at the <a href="#moreinfo">bottom of the page</a>.</p>
@@ -557,69 +543,93 @@ p.intro {
   </div>
 </xsl:template>
 
-<xsl:template match="dc:title" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:title" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Title</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:creator" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:creator" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Author or Creator</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:subject" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:subject" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Subject and Keywords</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:description" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:description" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Description</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:publisher" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:publisher" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Publisher</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:contributor" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:contributor" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Other Contributor</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:date" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:date" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Date</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:type" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:type" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Resource Type</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:format" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:format" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Format</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:identifier" xmlns:dc="http://purl.org/dc/elements/1.1/">
-<tr><td class="key">Resource Identifier</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
+<xsl:template match="dc:identifier" xmlns:dc="http://purl.org/dc/terms/">
+<tr><td class="key">Resource Identifier<xsl:if test="@linktype"> (<xsl:value-of select="@linktype"/>)</xsl:if></td><td class="value">
+<xsl:call-template name="html-link"><xsl:with-param name="url" select="."/></xsl:call-template>
+</td></tr></xsl:template>
 
-<xsl:template match="dc:source" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:source" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Source</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:language" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:language" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Language</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:relation" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:relation" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Relation</td><td class="value">
+  <xsl:call-template name="html-link"><xsl:with-param name="url" select="."/></xsl:call-template>
+</td></tr></xsl:template>
+
+<xsl:template match="dc:relation.ispartof" xmlns:dc="http://purl.org/dc/terms/">
+<tr><td class="key">
   <xsl:choose>
-    <xsl:when test='starts-with(.,"http" )'>
+    <xsl:when test='starts-with(.,"https://digitalcollections.qut.edu.au/" )'>Collection</xsl:when>
+    <xsl:otherwise>Is part of</xsl:otherwise>
+  </xsl:choose>
+</td><td class="value">
+  <xsl:call-template name="html-link"><xsl:with-param name="url" select="."/></xsl:call-template>
+</td></tr></xsl:template>
+
+<xsl:template match="dc:coverage" xmlns:dc="http://purl.org/dc/terms/">
+<tr><td class="key">Coverage</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
+
+<xsl:template match="dc:rights" xmlns:dc="http://purl.org/dc/terms/">
+<tr><td class="key">Rights Management</td><td class="value">
+<xsl:call-template name="html-link"><xsl:with-param name="url" select="."/></xsl:call-template>
+</td></tr></xsl:template>
+
+<xsl:template match="dc:*" xmlns:dc="http://purl.org/dc/terms/" priority='-100'>
+<tr><td class="key"><code><xsl:value-of select="name(.)"/></code></td><td class="value">
+<xsl:call-template name="html-link"><xsl:with-param name="url" select="."/></xsl:call-template>
+</td></tr></xsl:template>
+
+<!-- XML Pretty Maker -->
+
+<xsl:template name="html-link">
+  <xsl:param name="url"/>
+  <xsl:choose>
+    <xsl:when test="starts-with($url,'http')">
       <xsl:choose>
-        <xsl:when test='string-length(.) &gt; 50'>
-          <a class="link" href="{.}">URL</a>
+        <xsl:when test="string-length($url) &gt; 75">
+          <a class="link" href="{$url}">URL</a>
           <i> URL not shown as it is very long.</i>
         </xsl:when>
         <xsl:otherwise>
-          <a href="{.}"><xsl:value-of select="."/></a>
+          <a href="{$url}"><xsl:value-of select="$url"/></a>
         </xsl:otherwise>
       </xsl:choose>
     </xsl:when>
     <xsl:otherwise>
-      <xsl:value-of select="."/>
+      <xsl:value-of select="$url"/>
     </xsl:otherwise>
   </xsl:choose>
-</td></tr></xsl:template>
-
-<xsl:template match="dc:coverage" xmlns:dc="http://purl.org/dc/elements/1.1/">
-<tr><td class="key">Coverage</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
-
-<xsl:template match="dc:rights" xmlns:dc="http://purl.org/dc/elements/1.1/">
-<tr><td class="key">Rights Management</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
-
-<!-- XML Pretty Maker -->
+</xsl:template>
 
 <xsl:template match="node()" mode='xmlMarkup'>
   <div class="xmlBlock">

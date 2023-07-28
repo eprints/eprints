@@ -139,9 +139,9 @@ sub get_system_field_info
 	# set a userid of -1 or something.
 
 	{ name=>"userid", type=>"itemref", 
-		datasetid=>"user", required=>0 },
+		datasetid=>"user", required=>0, export_as_xml=>0 },
 
-	{ name=>"importid", type=>"itemref", required=>0, datasetid=>"import" },
+	{ name=>"importid", type=>"itemref", required=>0, datasetid=>"import", export_as_xml=>0 },
 
 	{ name=>"source", type=>"text", required=>0, },
 
@@ -171,7 +171,7 @@ sub get_system_field_info
 		volatile => 1,
 		options=>[ "show", "no_search", "hide" ] },
 
-	{ name=>"contact_email", type=>"email", required=>0, can_clone=>0 },
+	{ name=>"contact_email", type=>"email", required=>0, can_clone=>0, export_as_xml=>0 },
 
 	{ name=>"fileinfo", type=>"longtext", 
 		text_index=>0,
@@ -244,13 +244,14 @@ sub get_system_field_info
 		make_value_orderkey => "EPrints::DataObj::EPrint::order_issues_newest_open_timestamp",
 		render_value=>"EPrints::DataObj::EPrint::render_issues",
 		volatile => 1,
+		export_as_xml => 0,
 	},
 
-	{ name=>"item_issues_count", type=>"int",  volatile=>1 },
+	{ name=>"item_issues_count", type=>"int",  volatile=>1, export_as_xml => 0 },
 
-	{ 'name' => 'sword_depositor', 'type' => 'itemref', datasetid=>"user" },
+	{ 'name' => 'sword_depositor', 'type' => 'itemref', datasetid=>"user", export_as_xml => 0 },
 
-	{ 'name' => 'sword_slug', 'type' => 'text' },
+	{ 'name' => 'sword_slug', 'type' => 'text', export_as_xml => 0 },
 
 	{ 'name' => 'edit_lock', 'type' => 'compound', volatile => 1, export_as_xml=>0,
 		'fields' => [
@@ -318,7 +319,7 @@ sub set_item_issues
 			$issue->{description} = $new_issue->{description};
 			$issue->{status} = $new_issue->{status};
 		}
-		elsif( $issue->{status} eq "discovered" )
+		elsif( $issue->{status} && $issue->{status} eq "discovered" )
 		{
 			$issue->{status} = "autoresolved";
 		}
@@ -900,7 +901,7 @@ sub remove
 
 	# set under_construction so $doc->remove's don't cause revisions.
 	$self->set_under_construction( 1 );
-	
+
 	foreach my $doc ( @{($self->get_value( "documents" ))} )
 	{
 		$doc->remove;
@@ -910,7 +911,7 @@ sub remove
 	{
 		$file->remove;
 	}
-	
+
 	$self->set_under_construction( 0 );
 
 	my $success = $self->SUPER::remove();
@@ -1070,7 +1071,7 @@ sub save_revision
 			details=>$details,
 		}
 	);
-	$event->set_dataobj_xml( $self );
+	$event->set_dataobj_xml( $self ) if($event);
 
 	# make sure the revision number is correct in the database
 	$repo->database->update(
@@ -1222,7 +1223,7 @@ sub move_to_deletion
 	my( $self ) = @_;
 
 	my $ds = $self->{session}->get_repository->get_dataset( "eprint" );
-	
+
 	my $success = $self->_transfer( "deletion" );
 
 	if( $self->is_set( "succeeds" ) )
@@ -1373,7 +1374,7 @@ sub url_stem
 	my $url;
 	$url = $repository->get_conf( "http_url" );
 	$url .= '/';
-	$url .= 'id/eprint/' if $repository->get_conf( "use_long_url_format");
+	$url .= 'id/eprint/' if $repository->get_conf( "use_long_url_format" );
 	$url .= $self->get_value( "eprintid" )+0;
 	$url .= '/';
 
@@ -1536,7 +1537,7 @@ sub render
 		{
 			$replacement = $later->item( 0 );
 		}
-		elsif( $self->{dataset}->has_field( "replacedby" ) && $self->is_set( "replacedby" ) ) ##backward compatibility for repository upgraded from older version, which had replacedby. 
+		elsif( $self->{dataset}->has_field( "replacedby" ) && $self->is_set( "replacedby" ) ) ##backward compatibility for repository upgraded from older version, which had replacedby.
 		{
 			$replacement = $self->{session}->eprint( $self->value( "replacedby" ) );
 		}
@@ -1546,9 +1547,9 @@ sub render
 		}
 		if( defined $replacement && $replacement->value( "eprint_status" ) eq "archive" )
 		{
-			$dom->appendChild(
-				$self->{session}->html_phrase(
-					"lib/eprint:later_version",
+			$dom->appendChild( 
+				$self->{session}->html_phrase( 
+					"lib/eprint:later_version", 
 					citation => $replacement->render_citation_link ) );
 		}
 		elsif( defined $antecendent && $antecendent->value( "eprint_status" ) eq "archive" )

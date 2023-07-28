@@ -57,7 +57,7 @@ sub dataobj_to_html_header
 	$links->appendChild( $plugin->{session}->make_element(
 		"link",
 		rel => "schema.DC",
-		href => "http://purl.org/DC/elements/1.0/" ) );
+		href => "http://purl.org/DC/terms/" ) );
 	$links->appendChild( $plugin->{session}->make_text( "\n" ));
 	my $dc = $plugin->convert_dataobj( $dataobj );
 	foreach( @{$dc} )

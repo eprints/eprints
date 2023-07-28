@@ -2168,7 +2168,7 @@ sub has_relation
 	{
 		next if defined($tgt) && $_->{uri} ne $tgt->internal_uri;
 		return 1 if !@types;
-		delete $lookup{$_->{type}};
+		delete $lookup{$_->{type}} if defined $_->{type};
 	}
 
 	return !scalar(keys %lookup);

@@ -407,43 +407,43 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   </div>
 </xsl:template>
 
-<xsl:template match="dc:title" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:title" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Title</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:creator" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:creator" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Author or Creator</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:subject" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:subject" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Subject and Keywords</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:description" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:description" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Description</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:publisher" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:publisher" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Publisher</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:contributor" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:contributor" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Other Contributor</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:date" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:date" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Date</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:type" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:type" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Resource Type</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:format" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:format" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Format</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:identifier" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:identifier" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Resource Identifier</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:source" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:source" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Source</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:language" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:language" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Language</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:relation" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:relation" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Relation</td><td class="value">
   <xsl:choose>
     <xsl:when test='starts-with(.,"http" )'>
@@ -463,10 +463,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   </xsl:choose>
 </td></tr></xsl:template>
 
-<xsl:template match="dc:coverage" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:coverage" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Coverage</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
-<xsl:template match="dc:rights" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<xsl:template match="dc:rights" xmlns:dc="http://purl.org/dc/terms/">
 <tr><td class="key">Rights Management</td><td class="value"><xsl:value-of select="."/></td></tr></xsl:template>
 
 <!-- XML Pretty Maker -->

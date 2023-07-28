@@ -151,6 +151,13 @@ sub document
 
 	my $doc = $r->pnotes( "document" );
 
+	# Don't log requests except GET (especially HEAD)
+	my $q = $doc->repository->get_request;
+	if( $q->method && $q->method !~ /^GET$/i )
+	{
+		return DECLINED;
+	}
+
 	my $ip = $doc->repository->remote_ip;
 	return if is_robot( $r, $ip );
 
@@ -203,6 +210,13 @@ sub eprint
 	}
 	
 	my $eprint = $r->pnotes( "eprint" );
+
+	# Don't log requests except GET (especially HEAD)
+	my $q = $eprint->repository->get_request;
+	if( $q->method && $q->method !~ /^GET$/i )
+	{
+		return DECLINED;
+	}
 
 	my $ip = $eprint->repository->remote_ip;
 	return if is_robot( $r, $ip );

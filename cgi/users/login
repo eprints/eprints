@@ -9,11 +9,11 @@ my $repo = EPrints->new->current_repository;
 my $url = $repo->param( "target" );
 
 #unset $url if it doesn't have the same hostname as the repository
-if (defined $url)
+if( defined $url )
 {
         my $target_uri = URI->new($url);
         my $repository_uri = URI->new($repo->config('base_url'));
-        if ($target_uri->host ne $repository_uri->host)
+        if( $target_uri->host ne $repository_uri->host )
         {
                 $url = undef;
         }

@@ -3506,6 +3506,10 @@ sub render_option_list
 			{
 				$box->setAttribute( "checked" , "checked" );
 			}
+			if( $pair->[0] eq '-' )
+			{
+				$box->setAttribute( "disabled" , "disabled" );
+			}
 			$td->appendChild( $div );
 			++$i;
 			if( $len > 5 && int($len / 2)==$i )
@@ -3574,6 +3578,11 @@ sub render_single_option
 	if( $selected )
 	{
 		$opt->setAttribute( "selected" , "selected" );
+	}
+
+	if( $key eq '-' )
+	{
+		$opt->setAttribute( "disabled" , "disabled" );
 	}
 	return $opt;
 }

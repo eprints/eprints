@@ -31,16 +31,20 @@ use strict;
 
 sub render_search_value
 {
-	my( $self, $session, $value ) = @_;
+	my( $self, $session, $value, $merge, $match ) = @_;
 
 	my $valuedesc = $session->make_doc_fragment;
 	$valuedesc->appendChild( $session->make_text( '"' ) );
 	$valuedesc->appendChild( $session->make_text( $value ) );
 	$valuedesc->appendChild( $session->make_text( '"' ) );
-	my( $good, $bad ) = _extract_words( $session, $value );
 
-	if( scalar(@{$bad}) )
+	# Modified by QUT, nothing is ignored when doing an EX search
+	if ( !defined $match || $match ne 'EX' )
 	{
+	    my( $good, $bad ) = _extract_words( $session, $value );
+
+	    if( scalar(@{$bad}) )
+	    {
 		my $igfrag = $session->make_doc_fragment;
 		for( my $i=0; $i<scalar(@{$bad}); $i++ )
 		{
@@ -58,7 +62,9 @@ sub render_search_value
 			$session->html_phrase( 
 				"lib/searchfield:desc_ignored",
 				list => $igfrag ) );
+	    }
 	}
+	# End QUT modification
 
 	return $valuedesc;
 }

@@ -129,7 +129,7 @@ sub send_mail
 
 	if( !$result )
 	{
-		$p{session}->get_repository->log( "Failed to send mail.\nTo: $p{to_email} <$p{to_name}>\nSubject: $p{subject}\n" );
+		$p{session}->get_repository->log( "Failed to send mail.\nTo: \"$p{to_name}\" <$p{to_email}>\nSubject: $p{subject}\n" );
 	}
 
 	return $result;

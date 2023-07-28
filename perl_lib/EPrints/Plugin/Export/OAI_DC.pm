@@ -57,7 +57,7 @@ sub xml_dataobj
 	my $dc = $plugin->{session}->make_element(
         	"oai_dc:dc",
 		"xmlns:oai_dc" => "http://www.openarchives.org/OAI/2.0/oai_dc/",
-        	"xmlns:dc" => "http://purl.org/dc/elements/1.1/",
+        	"xmlns:dc" => "http://purl.org/dc/terms/",
         	"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
 		"xsi:schemaLocation" =>
  	"http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd" );

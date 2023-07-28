@@ -17,7 +17,7 @@ use EPrints::Const qw( :http );
 
 use Digest::MD5;
 use EPrints::Sword::Utils;
- 
+
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
 

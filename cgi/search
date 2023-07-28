@@ -42,7 +42,7 @@ if( $datasetid eq "advsearch" )
 	exit;
 }
 
-if( defined($repo->param( "dataset" )) )
+if( $repo->param( "dataset" ) )
 {
 	if( !$searchid )
 	{

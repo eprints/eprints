@@ -69,10 +69,10 @@ use EPrints::Database qw( :sql_types );
 
 our $I18L = {
 	en => {
-		collate => "utf8_general_ci",
+		collate => "utf8mb4_general_ci",
 	},
 	de => {
-		collate => "utf8_unicode_ci",
+		collate => "utf8mb4_unicode_ci",
 	},
 };
 
@@ -239,7 +239,7 @@ sub connect
 		# always try to reconnect
 		$self->{dbh}->{mysql_auto_reconnect} = 1;
 
-		$self->do("SET NAMES 'utf8'");
+		$self->do("SET NAMES 'utf8mb4'");
 		$self->do('SET @@session.optimizer_search_depth = 3;');
 	}
 	elsif( $DBI::err == 1040 )
@@ -405,13 +405,13 @@ sub _cache_from_SELECT
 	$self->do( $sql );
 }
 
-sub get_default_charset { "utf8" }
+sub get_default_charset { "utf8mb4" }
 
 sub get_default_collation
 {
 	my( $self, $langid ) = @_;
 
-	return "utf8_bin";
+	return "utf8mb4_bin";
 }
 
 # Not supported by DBD::mysql?
@@ -537,7 +537,7 @@ sub sql_LIKE
 {
 	my( $self ) = @_;
 
-	return " COLLATE utf8_general_ci LIKE ";
+	return " COLLATE utf8mb4_general_ci LIKE ";
 }
 
 # This is a hacky method to support CI username/email lookups. Should be
@@ -554,7 +554,7 @@ sub ci_lookup
 	my $sql =
 		"SELECT ".$self->quote_identifier( $field->get_sql_name ).
 		" FROM ".$self->quote_identifier( $table ).
-		" WHERE ".$self->quote_identifier( $field->get_sql_name )."=".$self->quote_value( $value )." COLLATE utf8_general_ci";
+		" WHERE ".$self->quote_identifier( $field->get_sql_name )."=".$self->quote_value( $value )." COLLATE utf8mb4_general_ci";
 
 	my $sth = $self->prepare( $sql );
 	$self->execute( $sth, $sql );

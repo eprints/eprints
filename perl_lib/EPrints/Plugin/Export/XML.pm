@@ -94,6 +94,8 @@ sub output_dataobj
 {
 	my( $self, $dataobj, %opts ) = @_;
 
+	$opts{hide_volatile} //= 1;
+
 	if( $opts{Handler} )
 	{
 		return $dataobj->to_sax( %opts );

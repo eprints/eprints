@@ -657,6 +657,7 @@ sub commit
 	if( !$success )
 	{
 		my $db_error = $self->{session}->get_database->error;
+		$db_error = '(undef)' unless defined $db_error;
 		$self->{session}->get_repository->log( 
 			"Error committing ".$self->get_dataset_id.".".
 			$self->get_id.": ".$db_error );
